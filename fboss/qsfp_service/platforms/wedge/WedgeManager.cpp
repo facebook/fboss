@@ -364,13 +364,22 @@ void WedgeManager::writeTransceiverRegister(
     // Initialize responses with success = false. This will be overwritten with
     // the correct success flag later
     responses[i].success() = false;
-
     if (isValidTransceiver(i)) {
       if (auto it = lockedTransceivers->find(TransceiverID(i));
           it != lockedTransceivers->end()) {
         auto param = *(request->parameter());
-        futResponses.push_back(
-            it->second->futureWriteTransceiver(param, *(request->data())));
+        if (request->bytes().has_value()) {
+          // Converting signed int vector (Thrift type requirement) to unsigned
+          // int vector.
+          std::vector<uint8_t> unsignedVector(
+              request->bytes()->begin(), request->bytes()->end());
+          futResponses.push_back(
+              it->second->futureWriteTransceiver(param, unsignedVector));
+        } else {
+          param.length() = 1;
+          futResponses.push_back(it->second->futureWriteTransceiver(
+              param, {static_cast<uint8_t>(*(request->data()))}));
+        }
       }
     }
   }

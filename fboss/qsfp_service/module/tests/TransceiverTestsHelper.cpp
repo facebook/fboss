@@ -22,7 +22,7 @@ void testCachedMediaSignals(QsfpModule* qsfp) {
       param.offset() = 135;
       param.page() = 0x11;
     }
-    qsfp->writeTransceiver(param, fault);
+    qsfp->writeTransceiver(param, &fault);
   };
   // Store the original refresh interval and then change it to 0 so that we can
   // trigger a forced refresh

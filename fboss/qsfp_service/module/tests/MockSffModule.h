@@ -142,7 +142,8 @@ class MockSffModule : public SffModule {
     return SffModule::readTransceiver(param);
   }
 
-  bool writeTransceiver(TransceiverIOParameters param, uint8_t data) override {
+  bool writeTransceiver(TransceiverIOParameters param, const uint8_t* data)
+      override {
     return SffModule::writeTransceiver(param, data);
   }
 

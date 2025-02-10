@@ -713,7 +713,7 @@ struct CmisData {
 struct TransceiverIOParameters {
   1: i32 offset; // should range from 0 - 255
   2: optional i32 page; // can be used to access bytes 128-255 from a different page than page0
-  3: optional i32 length; // Number of bytes to read. Not applicable for a write
+  3: optional i32 length; // Number of bytes to read. Also can represent number of bytes to write for multi-byte writes.
 }
 
 struct ReadRequest {
@@ -730,6 +730,7 @@ struct WriteRequest {
   1: list<i32> ids;
   2: TransceiverIOParameters parameter;
   3: byte data; // The data to write for a write request
+  4: optional list<byte> bytes; // The data to write for multi-byte write requests (preferred)
 }
 
 struct WriteResponse {

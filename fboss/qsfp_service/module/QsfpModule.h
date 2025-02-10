@@ -140,7 +140,8 @@ class QsfpModule : public Transceiver {
   /*
    * Perform a raw register write on the transceiver
    */
-  bool writeTransceiver(TransceiverIOParameters param, uint8_t data) override;
+  bool writeTransceiver(TransceiverIOParameters param, const uint8_t* data)
+      override;
 
   /*
    * The size of the pages used by QSFP.  See below for an explanation of
@@ -704,13 +705,15 @@ class QsfpModule : public Transceiver {
    * Perform a raw register write on the transceiver
    * This must be called with a lock held on qsfpModuleMutex_
    */
-  bool writeTransceiverLocked(TransceiverIOParameters param, uint8_t data);
+  bool writeTransceiverLocked(
+      TransceiverIOParameters param,
+      const uint8_t* data);
   /*
    * Future version of writeTransceiver()
    */
   folly::Future<std::pair<int32_t, bool>> futureWriteTransceiver(
       TransceiverIOParameters param,
-      uint8_t data) override;
+      const std::vector<uint8_t>& data) override;
 
   bool upgradeFirmware(
       std::vector<std::unique_ptr<FbossFirmware>>& fwList) override;

@@ -40,7 +40,6 @@ cpp_library(
         "//fboss/lib/link_snapshots:snapshot_manager",
         "//fboss/lib/phy:phy-cpp2-types",
         "//fboss/lib/phy:prbs-cpp2-types",
-        "//fboss/lib/platforms:platform_mode",
         "//fboss/lib/usb:i2-api",
         "//fboss/qsfp_service:stats",
         "//fboss/qsfp_service:transceiver-manager",

@@ -36,7 +36,7 @@ DECLARE_bool(skip_check);
 DECLARE_bool(read_reg);
 DECLARE_bool(write_reg);
 DECLARE_int32(offset);
-DECLARE_int32(data);
+DECLARE_string(data);
 DECLARE_int32(length);
 DECLARE_int32(page);
 DECLARE_int32(pause_remediation);
@@ -137,7 +137,7 @@ bool doWriteRegViaService(
     const std::vector<int32_t>& ports,
     int offset,
     int page,
-    uint8_t value,
+    const std::vector<uint8_t>& data,
     folly::EventBase& evb);
 
 int doWriteReg(
@@ -145,7 +145,7 @@ int doWriteReg(
     std::vector<unsigned int>& ports,
     int offset,
     int page,
-    uint8_t data,
+    const std::vector<uint8_t>& data,
     folly::EventBase& evb);
 
 int writeRegister(

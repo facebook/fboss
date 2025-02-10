@@ -158,6 +158,22 @@ TEST_F(WedgeManagerTest, writeTransceiver) {
   }
 }
 
+TEST_F(WedgeManagerTest, writeTransceiverMultiByte) {
+  std::map<int32_t, WriteResponse> response;
+  std::unique_ptr<WriteRequest> request(new WriteRequest);
+  TransceiverIOParameters param;
+  std::vector<int32_t> data = {1, 3, 7};
+  request->ids() = data;
+  param.offset() = 0x10;
+  request->parameter() = param;
+  request->bytes() = {0, 16, 41};
+
+  transceiverManager_->writeTransceiverRegister(response, std::move(request));
+  for (const auto& i : data) {
+    EXPECT_NE(response.find(i), response.end());
+  }
+}
+
 TEST_F(WedgeManagerTest, modulePresenceTest) {
   // Tests that the module insertion is handled smoothly
   auto currentModules = transceiverManager_->mgmtInterfaces();

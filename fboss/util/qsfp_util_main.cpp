@@ -225,7 +225,28 @@ int main(int argc, char* argv[]) {
   }
 
   if (FLAGS_write_reg) {
-    return doWriteReg(bus, ports, FLAGS_offset, FLAGS_page, FLAGS_data, evb);
+    std::vector<uint8_t> data;
+    std::stringstream ss(FLAGS_data);
+    std::string item;
+    while (std::getline(ss, item, ',')) {
+      try {
+        if (item.substr(0, 2) == "0x") {
+          data.push_back(std::stoi(item, nullptr, 16));
+        } else {
+          data.push_back(std::stoi(item, nullptr, 10));
+        }
+      } catch (const std::invalid_argument&) {
+        fprintf(stderr, "Invalid integer value: %s\n", item.c_str());
+        return EX_SOFTWARE;
+      }
+    }
+
+    if (data.empty()) {
+      fprintf(stderr, "No data provided\n");
+      return EX_SOFTWARE;
+    }
+
+    return doWriteReg(bus, ports, FLAGS_offset, FLAGS_page, data, evb);
   }
 
   if (FLAGS_batch_ops) {

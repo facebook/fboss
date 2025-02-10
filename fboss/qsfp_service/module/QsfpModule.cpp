@@ -1186,29 +1186,31 @@ std::unique_ptr<IOBuf> QsfpModule::readTransceiverLocked(
 
 folly::Future<std::pair<int32_t, bool>> QsfpModule::futureWriteTransceiver(
     TransceiverIOParameters param,
-    uint8_t data) {
+    const std::vector<uint8_t>& data) {
   // Always use i2cEvb to program transceivers if there's an i2cEvb
   auto i2cEvb = qsfpImpl_->getI2cEventBase();
   auto id = getID();
   if (!i2cEvb) {
     // Certain platforms cannot execute multiple I2C transactions in parallel
     // and therefore don't have an I2C evb thread
-    return std::make_pair(id, writeTransceiver(param, data));
+    return std::make_pair(id, writeTransceiver(param, data.data()));
   }
   // As with all the other i2c transactions, run in the i2c event base thread
   return via(i2cEvb).thenValue([&, param, id, data](auto&&) mutable {
-    return std::make_pair(id, writeTransceiver(param, data));
+    return std::make_pair(id, writeTransceiver(param, data.data()));
   });
 }
 
-bool QsfpModule::writeTransceiver(TransceiverIOParameters param, uint8_t data) {
+bool QsfpModule::writeTransceiver(
+    TransceiverIOParameters param,
+    const uint8_t* data) {
   lock_guard<std::mutex> g(qsfpModuleMutex_);
   return writeTransceiverLocked(param, data);
 }
 
 bool QsfpModule::writeTransceiverLocked(
     TransceiverIOParameters param,
-    uint8_t data) {
+    const uint8_t* data) {
   /*
    * This must be called with a lock held on qsfpModuleMutex_
    */
@@ -1227,9 +1229,10 @@ bool QsfpModule::writeTransceiverLocked(
           POST_I2C_WRITE_DELAY_US,
           CAST_TO_INT(CmisField::PAGE_CHANGE)); // common enum to all tcvr types
     }
+    int numBytes = param.length().has_value() ? *(param.length()) : 1;
     qsfpImpl_->writeTransceiver(
-        {TransceiverAccessParameter::ADDR_QSFP, offset, sizeof(data)},
-        &data,
+        {TransceiverAccessParameter::ADDR_QSFP, offset, numBytes},
+        data,
         POST_I2C_WRITE_DELAY_US,
         CAST_TO_INT(CmisField::RAW)); // common enum to all tcvr types
   } catch (const std::exception& ex) {
