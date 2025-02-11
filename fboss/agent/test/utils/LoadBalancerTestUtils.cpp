@@ -360,17 +360,8 @@ std::shared_ptr<SwitchState> addLoadBalancers(
 }
 
 template <typename PortIdT, typename PortStatsT>
-bool isLoadBalancedImpl(
-    const std::map<PortIdT, PortStatsT>& portIdToStats,
-    const std::vector<NextHopWeight>& weights,
-    int maxDeviationPct,
-    bool noTrafficOk) {
-  auto ecmpPorts = folly::gen::from(portIdToStats) |
-      folly::gen::map([](const auto& portIdAndStats) {
-                     return portIdAndStats.first;
-                   }) |
-      folly::gen::as<std::vector<PortIdT>>();
-
+std::pair<uint64_t, uint64_t> getHighestAndLowestBytes(
+    const std::map<PortIdT, PortStatsT>& portIdToStats) {
   auto portBytes =
       folly::gen::from(portIdToStats) |
       folly::gen::map([&](const auto& portIdAndStats) {
@@ -388,6 +379,22 @@ bool isLoadBalancedImpl(
   auto lowest = portBytes.empty() ? 0 : *portBytes.begin();
   auto highest = portBytes.empty() ? 0 : *portBytes.rbegin();
   XLOG(DBG0) << " Highest bytes: " << highest << " lowest bytes: " << lowest;
+  return std::make_pair(highest, lowest);
+}
+
+template <typename PortIdT, typename PortStatsT>
+bool isLoadBalancedImpl(
+    const std::map<PortIdT, PortStatsT>& portIdToStats,
+    const std::vector<NextHopWeight>& weights,
+    int maxDeviationPct,
+    bool noTrafficOk) {
+  auto ecmpPorts = folly::gen::from(portIdToStats) |
+      folly::gen::map([](const auto& portIdAndStats) {
+                     return portIdAndStats.first;
+                   }) |
+      folly::gen::as<std::vector<PortIdT>>();
+
+  auto [highest, lowest] = getHighestAndLowestBytes(portIdToStats);
   if (!lowest) {
     return !highest && noTrafficOk;
   }
