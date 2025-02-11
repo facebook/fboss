@@ -88,6 +88,15 @@ cfg::AclTable* addAclTable(
     const std::vector<cfg::AclTableQualifier>& qualifiers,
     const std::vector<std::string>& udfGroups = {});
 
+cfg::AclTable* addAclTable(
+    cfg::SwitchConfig* cfg,
+    cfg::AclStage aclStage,
+    const std::string& aclTableName,
+    const int aclTablePriority,
+    const std::vector<cfg::AclTableActionType>& actionTypes,
+    const std::vector<cfg::AclTableQualifier>& qualifiers,
+    const std::vector<std::string>& udfGroups = {});
+
 void delAclTable(cfg::SwitchConfig* cfg, const std::string& aclTableName);
 
 void addAclStat(

@@ -203,7 +203,25 @@ cfg::AclTable* addAclTable(
     const std::vector<cfg::AclTableActionType>& actionTypes,
     const std::vector<cfg::AclTableQualifier>& qualifiers,
     const std::vector<std::string>& udfGroups) {
-  auto aclTableGroup = getAclTableGroup(*cfg);
+  return addAclTable(
+      cfg,
+      cfg::AclStage::INGRESS,
+      aclTableName,
+      aclTablePriority,
+      actionTypes,
+      qualifiers,
+      udfGroups);
+}
+
+cfg::AclTable* addAclTable(
+    cfg::SwitchConfig* cfg,
+    cfg::AclStage aclStage,
+    const std::string& aclTableName,
+    const int aclTablePriority,
+    const std::vector<cfg::AclTableActionType>& actionTypes,
+    const std::vector<cfg::AclTableQualifier>& qualifiers,
+    const std::vector<std::string>& udfGroups) {
+  auto aclTableGroup = getAclTableGroup(*cfg, aclStage);
   if (!aclTableGroup) {
     throw FbossError(
         "Attempted to add acl table without first creating acl table group");
