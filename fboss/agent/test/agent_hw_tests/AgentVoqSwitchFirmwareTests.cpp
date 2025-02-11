@@ -31,11 +31,30 @@ class AgentVoqSwitchIsolationFirmwareTest : public AgentVoqSwitchTest {
         true /*enable fabric ports*/);
     utility::populatePortExpectedNeighborsToSelf(
         ensemble.masterLogicalPortIds(), config);
+    /*
+     * Clear FW config since only one FW config is supported today. We
+     * started adding the default FW config in the config template so
+     * all tests load the FW. However for these FW tests, we add more
+     * custom config. So clear out the default config so we can prepare
+     * afresh.
+     */
+    config = clearFWConfig(config);
     config = addFwConfig(config);
     return config;
   }
 
  protected:
+  cfg::SwitchConfig clearFWConfig(cfg::SwitchConfig config) const {
+    auto fwCapableSwitchIndices = getFWCapableSwitchIndices(config);
+    auto& switchSettings = *config.switchSettings();
+    for (auto& [_, switchInfo] : *switchSettings.switchIdToSwitchInfo()) {
+      if (fwCapableSwitchIndices.find(*switchInfo.switchIndex()) !=
+          fwCapableSwitchIndices.end()) {
+        switchInfo.firmwareNameToFirmwareInfo()->clear();
+      }
+    }
+    return config;
+  }
   cfg::SwitchConfig addFwConfig(cfg::SwitchConfig config) const {
     cfg::FirmwareInfo j3FwInfo;
     j3FwInfo.coreToUse() = 5;
