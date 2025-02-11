@@ -2,7 +2,8 @@
 //
 #include "fboss/agent/test/agent_hw_tests/AgentVoqSwitchTests.h"
 
-#include "fboss/agent/hw/test/ConfigFactory.h"
+#include "fboss/agent/TxPacket.h"
+#include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/DsfConfigUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
@@ -13,7 +14,9 @@ namespace facebook::fboss {
 
 namespace {
 constexpr auto kEcmpWidth = 4;
-}
+// Send traffic through the 5th interface port and verify load balancing
+const auto kIngressPort = kEcmpWidth + 1;
+} // namespace
 class AgentVoqSwitchConditionalEntropyTest : public AgentVoqSwitchTest {
  public:
   cfg::SwitchConfig initialConfig(
@@ -37,6 +40,15 @@ class AgentVoqSwitchConditionalEntropyTest : public AgentVoqSwitchTest {
         localSysPortDescs.begin(),
         localSysPortDescs.begin() + kEcmpWidth);
     return sysPortDescs;
+  }
+  std::vector<SystemPortID> getEcmpSysPortIDs() {
+    auto portDescs = getEcmpSysPorts();
+    std::vector<SystemPortID> sysPorts;
+    std::for_each(
+        portDescs.begin(), portDescs.end(), [&sysPorts](auto portDesc) {
+          sysPorts.push_back(portDesc.sysPortID());
+        });
+    return sysPorts;
   }
   void setupEcmpGroup() {
     auto sysPortDescs = getEcmpSysPorts();
@@ -124,4 +136,50 @@ TEST_F(AgentVoqSwitchConditionalEntropyTest, verifyLoadBalancing) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+TEST_F(AgentVoqSwitchConditionalEntropyTest, verifyNonRoceTrafficUnbalanced) {
+  auto setup = [this]() { setupEcmpGroup(); };
+
+  auto verify = [this]() {
+    CHECK(masterLogicalInterfacePortIds().size() > kIngressPort + 1);
+
+    utility::EcmpSetupTargetedPorts6 ecmpHelper(getProgrammedState());
+    auto sysPortDescs = getEcmpSysPorts();
+
+    std::function<std::map<SystemPortID, HwSysPortStats>(
+        const std::vector<SystemPortID>&)>
+        getSysPortStatsFn = [&](const std::vector<SystemPortID>& portIds) {
+          getSw()->updateStats();
+          return getLatestSysPortStats(portIds);
+        };
+    auto srcIp = folly::IPAddress("1001::1");
+    auto dstIp = folly::IPAddress("2001::1");
+    auto bytesSent = 0;
+    for (auto i = 0; i < 10000; ++i) {
+      auto pkt = utility::makeUDPTxPacket(
+          utility::getAllocatePktFn(getAgentEnsemble()),
+          std::nullopt,
+          utility::getFirstInterfaceMac(getProgrammedState()),
+          utility::getFirstInterfaceMac(getProgrammedState()),
+          srcIp, /* fixed */
+          dstIp, /* fixed */
+          42, /* arbit src port, fixed */
+          24);
+      bytesSent += pkt->buf()->computeChainDataLength();
+      getAgentEnsemble()->sendPacketAsync(
+          std::move(pkt),
+          PortDescriptor(masterLogicalInterfacePortIds()[kIngressPort]),
+          std::nullopt);
+    }
+
+    WITH_RETRIES({
+      getSw()->updateStats();
+      auto sysPortStats = getLatestSysPortStats(getEcmpSysPortIDs());
+      auto [highest, lowest] = utility::getHighestAndLowestBytes(sysPortStats);
+      XLOG(DBG0) << " Total bytes sent: " << bytesSent
+                 << " Highest: " << highest << " Lowest: " << lowest;
+      EXPECT_EVENTUALLY_GT(highest, 0.9 * bytesSent);
+    });
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
 } // namespace facebook::fboss
