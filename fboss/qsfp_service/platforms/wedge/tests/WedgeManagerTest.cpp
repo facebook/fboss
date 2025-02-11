@@ -79,6 +79,9 @@ TEST_F(WedgeManagerTest, getTransceiverInfoBasic) {
     EXPECT_EQ(
         *transInfo[i].tcvrState()->present(),
         i != 4); // ID 5 was marked as absent
+    std::string expectedTcvrName = fmt::format("eth1/{}", (i + 1));
+    EXPECT_EQ(*transInfo[i].tcvrState()->tcvrName(), expectedTcvrName);
+    EXPECT_EQ(*transInfo[i].tcvrStats()->tcvrName(), expectedTcvrName);
   }
 }
 
