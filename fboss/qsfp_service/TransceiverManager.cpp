@@ -1255,9 +1255,15 @@ TransceiverInfo TransceiverManager::getTransceiverInfo(TransceiverID id) const {
     TransceiverInfo absentTcvr;
     absentTcvr.tcvrState()->present() = false;
     absentTcvr.tcvrState()->port() = id;
+
     auto interfaces = getPortNames(id);
     absentTcvr.tcvrState()->interfaces() = interfaces;
     absentTcvr.tcvrStats()->interfaces() = interfaces;
+
+    std::string tcvrName = getTransceiverName(id);
+    absentTcvr.tcvrState()->tcvrName() = tcvrName;
+    absentTcvr.tcvrStats()->tcvrName() = tcvrName;
+
     absentTcvr.tcvrState()->timeCollected() = std::time(nullptr);
     absentTcvr.tcvrStats()->timeCollected() = std::time(nullptr);
     return absentTcvr;

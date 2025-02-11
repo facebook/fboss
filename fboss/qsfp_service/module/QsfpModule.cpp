@@ -553,6 +553,9 @@ void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
   } else {
     tcvrState.fwUpgradeInProgress() = true;
   }
+  auto tcvrName = getTcvrName();
+  tcvrState.tcvrName() = tcvrName;
+  tcvrStats.tcvrName() = tcvrName;
   tcvrState.interfaces() = getInterfaces();
   tcvrStats.interfaces() = getInterfaces();
 

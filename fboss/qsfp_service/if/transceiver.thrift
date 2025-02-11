@@ -523,6 +523,7 @@ struct TcvrState {
   24: DiagsCapability diagCapability;
   25: bool fwUpgradeInProgress;
   26: set<string> interfaces;
+  27: string tcvrName;
 }
 
 struct TcvrStats {
@@ -542,6 +543,7 @@ struct TcvrStats {
   14: map<string, CdbDatapathSymErrHistogram> cdbDatapathSymErrHistogram;
   15: map<string, i64> lastDatapathResetTime;
   16: set<string> interfaces;
+  17: string tcvrName;
 }
 
 struct TransceiverInfo {
