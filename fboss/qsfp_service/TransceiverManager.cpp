@@ -5,6 +5,7 @@
 #include <folly/FileUtil.h>
 #include <folly/json/DynamicConverter.h>
 #include <folly/json/json.h>
+#include <re2/re2.h>
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/Utils.h"
@@ -74,6 +75,7 @@ DEFINE_bool(
     "Set to true to automatically upgrade firmware when a transceiver is inserted");
 
 namespace {
+constexpr auto kFbossPortNameRegex = "(eth|fab)(\\d+)/(\\d+)/(\\d+)";
 constexpr auto kForceColdBootFileName = "cold_boot_once_qsfp_service";
 constexpr auto kWarmBootFlag = "can_warm_boot";
 constexpr auto kWarmbootStateFileName = "qsfp_service_state";
@@ -119,6 +121,23 @@ void bumpFailedFwUpgrade() {
 void bumpTimeExceededFwUpgrade() {
   facebook::tcData().addStatValue(
       kExceededTimeLimitFirmwareUpgrade, 1, facebook::fb303::SUM);
+}
+
+// Returns a string version of transceiverId. For (eth|fab)X/Y/Z, returns
+// (eth|fab)X/Y
+std::string getTcvrNameFromPortName(const std::string& portName) {
+  std::string portType;
+  int pimID = 0;
+  int transceiverID = 0;
+  int laneID = 0;
+  re2::RE2 portNameRe(kFbossPortNameRegex);
+  if (!re2::RE2::FullMatch(
+          portName, portNameRe, &portType, &pimID, &transceiverID, &laneID)) {
+    throw facebook::fboss::FbossError(
+        "Can't figure out transceiver name for port:", portName);
+  }
+
+  return folly::sformat("{}{}/{}", portType, pimID, transceiverID);
 }
 } // namespace
 
@@ -202,8 +221,11 @@ void TransceiverManager::initPortToModuleMap() {
     }
     std::string portName = *port.mapping()->name();
     portNameToModule_[portName] = transceiverId.value();
+    auto tcvrName = getTcvrNameFromPortName(portName);
+    tcvrIdToTcvrName_[transceiverId.value()] = tcvrName;
     XLOG(DBG2) << "Added port " << portName << " with portId " << portId
-               << " to transceiver " << transceiverId.value();
+               << " to transceiver id: " << transceiverId.value()
+               << " transceiver name: " << tcvrName;
   }
 }
 
@@ -451,6 +473,14 @@ const std::set<std::string> TransceiverManager::getPortNames(
 const std::string TransceiverManager::getPortName(TransceiverID tcvrId) const {
   auto portNames = getPortNames(tcvrId);
   return portNames.empty() ? "" : *portNames.begin();
+}
+
+const std::string TransceiverManager::getTransceiverName(
+    const TransceiverID& tcvrId) const {
+  if (tcvrIdToTcvrName_.find(tcvrId) != tcvrIdToTcvrName_.end()) {
+    return tcvrIdToTcvrName_.at(tcvrId);
+  }
+  return "";
 }
 
 std::map<std::string, FirmwareUpgradeData>

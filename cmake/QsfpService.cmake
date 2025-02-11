@@ -203,6 +203,7 @@ target_link_libraries(transceiver_manager
   fsdb_flags
   firmware_upgrader
   transceiver_validator
+  ${RE2}
 )
 
 add_library(qsfp_handler
