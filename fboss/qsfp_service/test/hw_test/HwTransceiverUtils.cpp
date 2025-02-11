@@ -108,6 +108,7 @@ void HwTransceiverUtils::verifyPortNameToLaneMap(
         expectedMediaLanes = {0, 1, 2, 3};
         break;
       case MediaInterfaceCode::FR4_2x400G:
+      case MediaInterfaceCode::FR4_LITE_2x400G:
       case MediaInterfaceCode::DR4_2x400G:
         switch (profile) {
           case cfg::PortProfileID::PROFILE_400G_4_PAM4_RS544X2N_OPTICAL:
@@ -587,6 +588,7 @@ void HwTransceiverUtils::verifyDiagsCapability(
             (*mediaIntfCode == MediaInterfaceCode::FR4_400G ||
              *mediaIntfCode == MediaInterfaceCode::LR4_400G_10KM ||
              *mediaIntfCode == MediaInterfaceCode::FR4_2x400G ||
+             *mediaIntfCode == MediaInterfaceCode::FR4_LITE_2x400G ||
              *mediaIntfCode == MediaInterfaceCode::DR4_2x400G));
         EXPECT_TRUE(*diagsCapability->cdb());
         EXPECT_TRUE(*diagsCapability->prbsLine());
@@ -597,6 +599,7 @@ void HwTransceiverUtils::verifyDiagsCapability(
         if (*mediaIntfCode == MediaInterfaceCode::FR4_400G ||
             *mediaIntfCode == MediaInterfaceCode::LR4_400G_10KM ||
             *mediaIntfCode == MediaInterfaceCode::FR4_2x400G ||
+            *mediaIntfCode == MediaInterfaceCode::FR4_LITE_2x400G ||
             *mediaIntfCode == MediaInterfaceCode::DR4_2x400G) {
           EXPECT_TRUE(*diagsCapability->rxOutputControl());
         }

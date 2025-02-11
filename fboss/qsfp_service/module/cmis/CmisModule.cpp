@@ -41,6 +41,7 @@ constexpr int kUsecDatapathStateUpdateTime = 5000000; // 5 seconds
 constexpr int kUsecDatapathStatePollTime = 500000; // 500 ms
 constexpr double kU16TypeLsbDivisor = 256.0;
 constexpr int kVdmDescriptorLength = 2;
+constexpr int kFR4LiteSMFLength = 500; // 500 meters
 
 // Definitions for CDB Histogram
 constexpr int kCdbSymErrHistBinSize = 6;
@@ -3003,7 +3004,11 @@ MediaInterfaceCode CmisModule::getModuleMediaInterface() const {
         firstModuleCapability->moduleMediaInterface);
     if (smfCode == SMFMediaInterfaceCode::FR4_400G &&
         firstModuleCapability->hostStartLanes.size() == 2) {
-      moduleMediaInterface = MediaInterfaceCode::FR4_2x400G;
+      if (getQsfpSMFLength() == kFR4LiteSMFLength) {
+        moduleMediaInterface = MediaInterfaceCode::FR4_LITE_2x400G;
+      } else {
+        moduleMediaInterface = MediaInterfaceCode::FR4_2x400G;
+      }
     } else if (
         smfCode == SMFMediaInterfaceCode::DR4_400G &&
         firstModuleCapability->hostStartLanes.size() == 2) {

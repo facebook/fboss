@@ -205,6 +205,7 @@ std::vector<std::pair<std::string, float>> Bsp::processOpticEntries(
         opticType = constants::OPTIC_TYPE_400_GENERIC();
         break;
       case MediaInterfaceCode::FR4_2x400G:
+      case MediaInterfaceCode::FR4_LITE_2x400G:
       case MediaInterfaceCode::DR4_2x400G:
       case MediaInterfaceCode::FR8_800G:
         opticType = constants::OPTIC_TYPE_800_GENERIC();

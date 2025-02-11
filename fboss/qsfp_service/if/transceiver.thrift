@@ -218,6 +218,7 @@ enum MediaInterfaceCode {
   DR4_400G = 14,
   FR8_800G = 15,
   CR_10G = 16,
+  FR4_LITE_2x400G = 17,
 }
 
 // The extended specification compliance code of the transceiver module.
