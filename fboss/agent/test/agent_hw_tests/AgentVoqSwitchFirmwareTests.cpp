@@ -224,6 +224,7 @@ class AgentVoqSwitchIsolationFirmwareUpdateTest
         true /*enable fabric ports*/);
     utility::populatePortExpectedNeighborsToSelf(
         ensemble.masterLogicalPortIds(), config);
+    config = clearFWConfig(config);
     return config;
   }
   void tearDownAgentEnsemble(bool warmboot = false) override {
