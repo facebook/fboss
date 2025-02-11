@@ -49,9 +49,8 @@ std::vector<cfg::AclTableQualifier> genAclQualifiersConfig(
     cfg::AsicType asicType);
 
 int getAclTableIndex(
-    cfg::SwitchConfig* cfg,
-    const std::string& tableName,
-    const std::string& tableGroupName);
+    cfg::AclTableGroup* aclTableGroup,
+    const std::string& tableName);
 
 std::shared_ptr<AclEntry> getAclEntryByName(
     const std::shared_ptr<SwitchState> state,
@@ -144,9 +143,6 @@ std::shared_ptr<AclEntry> getAclEntry(
     const std::shared_ptr<SwitchState>& state,
     const std::string& name,
     bool enableAclTableGroup);
-
-cfg::AclTableGroup* FOLLY_NULLABLE
-getAclTableGroup(cfg::SwitchConfig& config, const std::string& name);
 
 cfg::AclTableGroup* FOLLY_NULLABLE getAclTableGroup(cfg::SwitchConfig& config);
 
