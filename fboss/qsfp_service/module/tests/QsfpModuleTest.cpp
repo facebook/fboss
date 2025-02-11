@@ -44,7 +44,8 @@ class QsfpModuleTest : public TransceiverManagerTestHelper {
             std::make_unique<MockSffModule>(
                 transceiverManager_->getPortNames(kTcvrID),
                 qsfpImpls_.back().get(),
-                tcvrConfig_)));
+                tcvrConfig_,
+                transceiverManager_->getTransceiverName(kTcvrID))));
     qsfp_->setVendorPN();
 
     gflags::SetCommandLineOptionWithMode(

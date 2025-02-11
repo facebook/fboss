@@ -25,7 +25,8 @@ class SffModule : public QsfpModule {
   explicit SffModule(
       std::set<std::string> portNames,
       TransceiverImpl* qsfpImpl,
-      std::shared_ptr<const TransceiverConfig> cfg);
+      std::shared_ptr<const TransceiverConfig> cfg,
+      std::string tcvrName);
   virtual ~SffModule() override;
 
   /*

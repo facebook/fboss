@@ -84,7 +84,8 @@ class QsfpModule : public Transceiver {
 
   explicit QsfpModule(
       std::set<std::string> portNames,
-      TransceiverImpl* qsfpImpl);
+      TransceiverImpl* qsfpImpl,
+      std::string tcvrName);
   virtual ~QsfpModule() override;
 
   /*
@@ -330,6 +331,10 @@ class QsfpModule : public Transceiver {
 
   std::set<std::string> getInterfaces() {
     return portNames_;
+  }
+
+  std::string getTcvrName() {
+    return tcvrName_;
   }
 
  protected:
@@ -797,6 +802,7 @@ class QsfpModule : public Transceiver {
 
   std::string primaryPortName_;
   std::set<std::string> portNames_;
+  std::string tcvrName_;
 
   std::time_t getLastDatapathResetTime(int lane) {
     if (lastDatapathResetTimes_.find(lane) == lastDatapathResetTimes_.end()) {

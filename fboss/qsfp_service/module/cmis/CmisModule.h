@@ -72,7 +72,8 @@ class CmisModule : public QsfpModule {
       std::set<std::string> portNames,
       TransceiverImpl* qsfpImpl,
       std::shared_ptr<const TransceiverConfig> cfg,
-      bool supportRemediate);
+      bool supportRemediate,
+      std::string tcvrName);
   virtual ~CmisModule() override;
 
   struct ApplicationAdvertisingField {

@@ -658,6 +658,7 @@ std::vector<TransceiverID> WedgeManager::updateTransceiverMap() {
     for (auto idx : tcvrsToCreate) {
       TransceiverID tcvrID(idx);
       auto mgmtIf = futInterfaces[idx].value();
+      auto tcvrName = getTransceiverName(tcvrID);
       if (mgmtIf == TransceiverManagementInterface::CMIS) {
         XLOG(INFO) << "Making CMIS QSFP for TransceiverID=" << idx;
         lockedTransceiversWPtr->emplace(
@@ -666,21 +667,25 @@ std::vector<TransceiverID> WedgeManager::updateTransceiverMap() {
                 getPortNames(tcvrID),
                 qsfpImpls_[idx].get(),
                 tcvrConfig,
-                cmisSupportRemediate));
+                cmisSupportRemediate,
+                tcvrName));
         retVal.push_back(TransceiverID(idx));
       } else if (mgmtIf == TransceiverManagementInterface::SFF) {
         XLOG(INFO) << "Making Sff QSFP for TransceiverID=" << idx;
         lockedTransceiversWPtr->emplace(
             tcvrID,
             std::make_unique<SffModule>(
-                getPortNames(tcvrID), qsfpImpls_[idx].get(), tcvrConfig));
+                getPortNames(tcvrID),
+                qsfpImpls_[idx].get(),
+                tcvrConfig,
+                tcvrName));
         retVal.push_back(TransceiverID(idx));
       } else if (mgmtIf == TransceiverManagementInterface::SFF8472) {
         XLOG(INFO) << "Making Sff8472 module for TransceiverID=" << idx;
         lockedTransceiversWPtr->emplace(
             tcvrID,
             std::make_unique<Sff8472Module>(
-                getPortNames(tcvrID), qsfpImpls_[idx].get()));
+                getPortNames(tcvrID), qsfpImpls_[idx].get(), tcvrName));
         retVal.push_back(TransceiverID(idx));
       } else {
         XLOG(ERR) << "Unknown Transceiver interface: "

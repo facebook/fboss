@@ -94,11 +94,13 @@ FlagLevels QsfpModule::getQsfpFlags(const uint8_t* data, int offset) {
 
 QsfpModule::QsfpModule(
     std::set<std::string> portNames,
-    TransceiverImpl* qsfpImpl)
+    TransceiverImpl* qsfpImpl,
+    std::string tcvrName)
     : Transceiver(),
       qsfpImpl_(qsfpImpl),
       snapshots_(SnapshotManager(portNames, kSnapshotIntervalSeconds)),
-      portNames_(portNames) {
+      portNames_(portNames),
+      tcvrName_(std::move(tcvrName)) {
   CHECK(!portNames.empty())
       << "No portNames attached to this transceiver in platform mapping";
   StatsPublisher::initPerPortFb303Stats(portNames);

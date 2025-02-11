@@ -170,8 +170,9 @@ uint8_t Sff8472Module::getSettingsValue(Sff8472Field field, uint8_t mask)
 
 Sff8472Module::Sff8472Module(
     std::set<std::string> portNames,
-    TransceiverImpl* qsfpImpl)
-    : QsfpModule(std::move(portNames), qsfpImpl) {}
+    TransceiverImpl* qsfpImpl,
+    std::string tcvrName)
+    : QsfpModule(std::move(portNames), qsfpImpl, std::move(tcvrName)) {}
 
 Sff8472Module::~Sff8472Module() {}
 

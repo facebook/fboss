@@ -35,8 +35,13 @@ class MockSffModule : public SffModule {
   explicit MockSffModule(
       std::set<std::string> portNames,
       TransceiverImpl* qsfpImpl,
-      std::shared_ptr<const TransceiverConfig> cfgOverridePtr)
-      : SffModule(portNames, qsfpImpl, cfgOverridePtr) {
+      std::shared_ptr<const TransceiverConfig> cfgOverridePtr,
+      std::string tcvrName)
+      : SffModule(
+            std::move(portNames),
+            qsfpImpl,
+            cfgOverridePtr,
+            std::move(tcvrName)) {
     ON_CALL(*this, updateQsfpData(testing::_))
         .WillByDefault(testing::Assign(&dirty_, false));
     ON_CALL(*this, ensureTransceiverReadyLocked())

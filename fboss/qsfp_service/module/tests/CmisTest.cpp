@@ -23,12 +23,14 @@ class MockCmisModule : public CmisModule {
   explicit MockCmisModule(
       std::set<std::string> portNames,
       XcvrImplT* qsfpImpl,
-      std::shared_ptr<const TransceiverConfig> cfgPtr)
+      std::shared_ptr<const TransceiverConfig> cfgPtr,
+      std::string tcvrName = "")
       : CmisModule(
             std::move(portNames),
             qsfpImpl,
             cfgPtr,
-            true /*supportRemediate*/) {
+            true /*supportRemediate*/,
+            tcvrName) {
     ON_CALL(*this, getModuleStateChanged).WillByDefault([this]() {
       // Only return true for the first read so that we can mimic the clear
       // on read register
@@ -65,7 +67,8 @@ class CmisTest : public TransceiverManagerTestHelper {
             std::make_unique<MockCmisModule>(
                 transceiverManager_->getPortNames(id),
                 qsfpImpls_.back().get(),
-                tcvrConfig_)));
+                tcvrConfig_,
+                transceiverManager_->getTransceiverName(id))));
 
     // Refresh once to make sure the override transceiver finishes refresh
     transceiverManager_->refreshStateMachines();

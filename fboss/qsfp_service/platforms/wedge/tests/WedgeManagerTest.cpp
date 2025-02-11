@@ -762,7 +762,8 @@ TEST_F(WedgeManagerTest, validateTransceiverConfigByIdTest) {
             std::make_unique<MockSffModule>(
                 transceiverManager_->getPortNames(tcvrID),
                 qsfpImpls_.back().get(),
-                tcvrConfig_)));
+                tcvrConfig_,
+                transceiverManager_->getTransceiverName(tcvrID))));
     tcvr->detectPresence();
     tcvr->overrideVendorInfo("fbossTwo", "TR-FC13H-HFZ", defaultSerialNumber);
     tcvr->setFwVersion("1", "2");
