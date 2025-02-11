@@ -73,23 +73,6 @@ class AgentVoqSwitchConditionalEntropyTest : public AgentVoqSwitchTest {
   }
 };
 
-TEST_F(AgentVoqSwitchConditionalEntropyTest, init) {
-  auto setup = []() {};
-
-  auto verify = [this]() {
-    auto state = getProgrammedState();
-    for (const auto& portMap : std::as_const(*state->getPorts())) {
-      for (const auto& port : std::as_const(*portMap.second)) {
-        if (port.second->getPortType() == cfg::PortType::INTERFACE_PORT) {
-          EXPECT_TRUE(port.second->getConditionalEntropyRehash());
-        }
-      }
-    }
-    // TODO: Program ECMP route, insert traffic and verify change in next hop.
-  };
-  verifyAcrossWarmBoots(setup, verify);
-}
-
 TEST_F(AgentVoqSwitchConditionalEntropyTest, verifyLoadBalancing) {
   constexpr auto kMaxDeviation = 25;
 
