@@ -150,4 +150,7 @@ getAclTableGroup(cfg::SwitchConfig& config, const std::string& name);
 
 cfg::AclTableGroup* FOLLY_NULLABLE getAclTableGroup(cfg::SwitchConfig& config);
 
+cfg::AclTableGroup* FOLLY_NULLABLE
+getAclTableGroup(cfg::SwitchConfig& config, cfg::AclStage aclStage);
+
 } // namespace facebook::fboss::utility

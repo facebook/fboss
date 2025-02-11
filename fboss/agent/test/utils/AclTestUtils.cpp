@@ -430,10 +430,22 @@ getAclTableGroup(cfg::SwitchConfig& config, const std::string& name) {
 }
 
 cfg::AclTableGroup* FOLLY_NULLABLE getAclTableGroup(cfg::SwitchConfig& config) {
-  if (!config.aclTableGroups() ||
-      config.aclTableGroups()->begin() == config.aclTableGroups()->end()) {
+  return getAclTableGroup(config, cfg::AclStage::INGRESS);
+}
+
+cfg::AclTableGroup* FOLLY_NULLABLE
+getAclTableGroup(cfg::SwitchConfig& config, cfg::AclStage aclStage) {
+  if (!config.aclTableGroups()) {
     return nullptr;
   }
-  return (*config.aclTableGroups()).data();
+  for (auto iter = config.aclTableGroups()->begin();
+       iter != config.aclTableGroups()->end();
+       iter++) {
+    if (iter->stage().value() == aclStage) {
+      return std::addressof(*iter);
+    }
+  }
+  return nullptr;
 }
+
 } // namespace facebook::fboss::utility
