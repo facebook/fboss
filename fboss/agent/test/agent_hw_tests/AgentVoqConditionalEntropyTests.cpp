@@ -29,6 +29,8 @@ class AgentVoqSwitchConditionalEntropyTest : public AgentVoqSwitchTest {
       }
     }
     cfg.switchSettings()->conditionalEntropyRehashPeriodUS() = 100;
+    cfg.loadBalancers()->push_back(utility::getEcmpFullHashConfig(
+        ensemble.getHwAsicTable()->getL3Asics()));
     return cfg;
   }
   std::vector<PortDescriptor> getEcmpSysPorts() {
