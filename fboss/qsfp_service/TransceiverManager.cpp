@@ -1959,10 +1959,8 @@ void TransceiverManager::refreshStateMachines() {
           << "Transceiver " << static_cast<int>(tcvrID)
           << " is in INACTIVE state, adding it to list of potentialTcvrsForFwUpgrade";
       potentialTcvrsForFwUpgrade.insert(tcvrID);
-    } else if (
-        curState == TransceiverStateMachineState::DISCOVERED &&
-        FLAGS_firmware_upgrade_on_coldboot) {
-      if (firstRefreshAfterColdboot) {
+    } else if (curState == TransceiverStateMachineState::DISCOVERED) {
+      if (FLAGS_firmware_upgrade_on_coldboot && firstRefreshAfterColdboot) {
         // First refresh after cold boot and module is still in
         // discovered state
         XLOG(INFO)
