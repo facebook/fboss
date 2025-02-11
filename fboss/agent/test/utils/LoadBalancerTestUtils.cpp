@@ -925,4 +925,10 @@ template bool isLoadBalancedImpl<std::string, HwSysPortStats>(
     int maxDeviationPct,
     bool noTrafficOk);
 
+template std::pair<uint64_t, uint64_t> getHighestAndLowestBytes(
+    const std::map<SystemPortID, HwSysPortStats>& portIdToStats);
+
+template std::pair<uint64_t, uint64_t> getHighestAndLowestBytes(
+    const std::map<PortID, HwPortStats>& portIdToStats);
+
 } // namespace facebook::fboss::utility
