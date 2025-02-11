@@ -11,6 +11,9 @@
 
 namespace facebook::fboss {
 
+namespace {
+constexpr auto kEcmpWidth = 4;
+}
 class AgentVoqSwitchConditionalEntropyTest : public AgentVoqSwitchTest {
  public:
   cfg::SwitchConfig initialConfig(
@@ -24,6 +27,35 @@ class AgentVoqSwitchConditionalEntropyTest : public AgentVoqSwitchTest {
     }
     cfg.switchSettings()->conditionalEntropyRehashPeriodUS() = 100;
     return cfg;
+  }
+  std::vector<PortDescriptor> getEcmpSysPorts() {
+    utility::EcmpSetupTargetedPorts6 ecmpHelper(getProgrammedState());
+    std::vector<PortDescriptor> sysPortDescs;
+    auto localSysPortDescs = resolveLocalNhops(ecmpHelper);
+    sysPortDescs.insert(
+        sysPortDescs.end(),
+        localSysPortDescs.begin(),
+        localSysPortDescs.begin() + kEcmpWidth);
+    return sysPortDescs;
+  }
+  void setupEcmpGroup() {
+    auto sysPortDescs = getEcmpSysPorts();
+    utility::EcmpSetupTargetedPorts6 ecmpHelper(getProgrammedState());
+    auto prefix = RoutePrefixV6{folly::IPAddressV6("0::0"), 0};
+    auto routeUpdater = getSw()->getRouteUpdater();
+    ecmpHelper.programRoutes(
+        &routeUpdater,
+        flat_set<PortDescriptor>(
+            std::make_move_iterator(sysPortDescs.begin()),
+            std::make_move_iterator(sysPortDescs.end())),
+        {prefix});
+  }
+  void clearSysPortStats(const std::vector<PortDescriptor>& sysPortDescs) {
+    auto ports = std::make_unique<std::vector<int32_t>>();
+    for (const auto& sysPortDecs : sysPortDescs) {
+      ports->push_back(static_cast<int32_t>(sysPortDecs.sysPortID()));
+    }
+    getSw()->clearPortStats(ports);
   }
 };
 
@@ -45,40 +77,17 @@ TEST_F(AgentVoqSwitchConditionalEntropyTest, init) {
 }
 
 TEST_F(AgentVoqSwitchConditionalEntropyTest, verifyLoadBalancing) {
-  const auto kEcmpWidth = 4;
-  const auto kMaxDeviation = 25;
+  constexpr auto kMaxDeviation = 25;
 
-  auto getLocalSysPortDesc = [this](auto ecmpHelper) {
-    std::vector<PortDescriptor> sysPortDescs;
-    auto localSysPortDescs = resolveLocalNhops(ecmpHelper);
-    sysPortDescs.insert(
-        sysPortDescs.end(),
-        localSysPortDescs.begin(),
-        localSysPortDescs.begin() + kEcmpWidth);
-    return sysPortDescs;
-  };
-  auto setup = [this, kEcmpWidth, &getLocalSysPortDesc]() {
-    utility::EcmpSetupTargetedPorts6 ecmpHelper(getProgrammedState());
+  auto setup = [this]() { setupEcmpGroup(); };
 
-    std::vector<PortDescriptor> sysPortDescs = getLocalSysPortDesc(ecmpHelper);
-
-    auto prefix = RoutePrefixV6{folly::IPAddressV6("0::0"), 0};
-    auto routeUpdater = getSw()->getRouteUpdater();
-    ecmpHelper.programRoutes(
-        &routeUpdater,
-        flat_set<PortDescriptor>(
-            std::make_move_iterator(sysPortDescs.begin()),
-            std::make_move_iterator(sysPortDescs.end())),
-        {prefix});
-  };
-
-  auto verify = [this, &getLocalSysPortDesc]() {
+  auto verify = [this]() {
     // Send traffic through the 5th interface port and verify load balancing
     const auto kIngressPort = 5;
     CHECK(masterLogicalInterfacePortIds().size() > kIngressPort + 1);
 
     utility::EcmpSetupTargetedPorts6 ecmpHelper(getProgrammedState());
-    std::vector<PortDescriptor> sysPortDescs = getLocalSysPortDesc(ecmpHelper);
+    auto sysPortDescs = getEcmpSysPorts();
 
     std::function<std::map<SystemPortID, HwSysPortStats>(
         const std::vector<SystemPortID>&)>
@@ -105,13 +114,7 @@ TEST_F(AgentVoqSwitchConditionalEntropyTest, verifyLoadBalancing) {
               std::nullopt, /* nextHdr */
               true /* sameDstQueue */);
         },
-        [&]() {
-          auto ports = std::make_unique<std::vector<int32_t>>();
-          for (auto sysPortDecs : sysPortDescs) {
-            ports->push_back(static_cast<int32_t>(sysPortDecs.sysPortID()));
-          }
-          getSw()->clearPortStats(ports);
-        },
+        [&]() { clearSysPortStats(sysPortDescs); },
         [&]() {
           WITH_RETRIES(EXPECT_EVENTUALLY_TRUE(utility::isLoadBalanced(
               sysPortDescs, {}, getSysPortStatsFn, kMaxDeviation, false)));
