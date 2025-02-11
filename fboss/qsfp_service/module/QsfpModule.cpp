@@ -97,7 +97,8 @@ QsfpModule::QsfpModule(
     TransceiverImpl* qsfpImpl)
     : Transceiver(),
       qsfpImpl_(qsfpImpl),
-      snapshots_(SnapshotManager(portNames, kSnapshotIntervalSeconds)) {
+      snapshots_(SnapshotManager(portNames, kSnapshotIntervalSeconds)),
+      portNames_(portNames) {
   CHECK(!portNames.empty())
       << "No portNames attached to this transceiver in platform mapping";
   StatsPublisher::initPerPortFb303Stats(portNames);
@@ -550,6 +551,8 @@ void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
   } else {
     tcvrState.fwUpgradeInProgress() = true;
   }
+  tcvrState.interfaces() = getInterfaces();
+  tcvrStats.interfaces() = getInterfaces();
 
   phy::LinkSnapshot snapshot;
   snapshot.transceiverInfo_ref() = info;

@@ -328,6 +328,10 @@ class QsfpModule : public Transceiver {
   std::map<std::string, CdbDatapathSymErrHistogram> getSymbolErrorHistogram()
       override;
 
+  std::set<std::string> getInterfaces() {
+    return portNames_;
+  }
+
  protected:
   /* Qsfp Internal Implementation */
   TransceiverImpl* qsfpImpl_;
@@ -792,6 +796,7 @@ class QsfpModule : public Transceiver {
       bool upgradeInProgress) override;
 
   std::string primaryPortName_;
+  std::set<std::string> portNames_;
 
   std::time_t getLastDatapathResetTime(int lane) {
     if (lastDatapathResetTimes_.find(lane) == lastDatapathResetTimes_.end()) {

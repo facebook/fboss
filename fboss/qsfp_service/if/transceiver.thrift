@@ -522,6 +522,7 @@ struct TcvrState {
   23: i64 timeCollected;
   24: DiagsCapability diagCapability;
   25: bool fwUpgradeInProgress;
+  26: set<string> interfaces;
 }
 
 struct TcvrStats {
@@ -540,6 +541,7 @@ struct TcvrStats {
   13: optional VdmPerfMonitorStatsForOds vdmPerfMonitorStatsForOds;
   14: map<string, CdbDatapathSymErrHistogram> cdbDatapathSymErrHistogram;
   15: map<string, i64> lastDatapathResetTime;
+  16: set<string> interfaces;
 }
 
 struct TransceiverInfo {
