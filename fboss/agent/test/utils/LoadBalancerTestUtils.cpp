@@ -360,7 +360,7 @@ std::shared_ptr<SwitchState> addLoadBalancers(
 }
 
 template <typename PortIdT, typename PortStatsT>
-std::pair<uint64_t, uint64_t> getHighestAndLowestBytes(
+std::set<uint64_t> getSortedPortBytes(
     const std::map<PortIdT, PortStatsT>& portIdToStats) {
   auto portBytes =
       folly::gen::from(portIdToStats) |
@@ -375,7 +375,13 @@ std::pair<uint64_t, uint64_t> getHighestAndLowestBytes(
         throw FbossError("Unsupported port stats type in isLoadBalancedImpl");
       }) |
       folly::gen::as<std::set<uint64_t>>();
+  return portBytes;
+}
 
+template <typename PortIdT, typename PortStatsT>
+std::pair<uint64_t, uint64_t> getHighestAndLowestBytes(
+    const std::map<PortIdT, PortStatsT>& portIdToStats) {
+  auto portBytes = getSortedPortBytes(portIdToStats);
   auto lowest = portBytes.empty() ? 0 : *portBytes.begin();
   auto highest = portBytes.empty() ? 0 : *portBytes.rbegin();
   XLOG(DBG0) << " Highest bytes: " << highest << " lowest bytes: " << lowest;
@@ -924,6 +930,12 @@ template bool isLoadBalancedImpl<std::string, HwSysPortStats>(
     const std::vector<NextHopWeight>& weights,
     int maxDeviationPct,
     bool noTrafficOk);
+
+template std::set<uint64_t> getSortedPortBytes(
+    const std::map<SystemPortID, HwSysPortStats>& portIdToStats);
+
+template std::set<uint64_t> getSortedPortBytes(
+    const std::map<PortID, HwPortStats>& portIdToStats);
 
 template std::pair<uint64_t, uint64_t> getHighestAndLowestBytes(
     const std::map<SystemPortID, HwSysPortStats>& portIdToStats);
