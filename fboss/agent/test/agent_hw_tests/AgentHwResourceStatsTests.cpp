@@ -14,6 +14,7 @@
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
+#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/QueuePerHostTestUtils.h"
 
@@ -181,10 +182,15 @@ TEST_F(AgentHwResourceStatsTest, aclStats) {
     // Trigger a stats collection
     this->getLatestPortStats(this->masterLogicalPortIds());
 
+    auto l3Asics = getAgentEnsemble()->getL3Asics();
+    auto asic = utility::checkSameAndGetAsic(l3Asics);
     auto [aclEntriesFreeBefore, aclCountersFreeBefore] = getStatsFn();
     // getSw()->isRunModeMultiSwitch() ? getMultiStatsFn() : getMonoStatsFn();
     auto acl = utility::addAcl(&newCfg, "acl0");
     acl->dscp() = 0x10;
+    if (asic->isSupported(HwAsic::Feature::ACL_ENTRY_ETHER_TYPE)) {
+      acl->etherType() = cfg::EtherType::IPv6;
+    }
     utility::addAclStat(&newCfg, "acl0", "stat0");
     this->applyNewConfig(newCfg);
     // Trigger a stats collection
