@@ -35,7 +35,8 @@
         47,
         50,
         51,
-        53
+        53,
+        59
     ],
     "ebro": [
         2,
@@ -70,7 +71,8 @@
         50,
         51,
         53,
-        54
+        54,
+        59
     ],
     "jericho2": [
         2,
@@ -169,7 +171,8 @@
         46,
         51,
         54,
-        33
+        33,
+        59
     ],
     "tomahawk3": [
         2,
@@ -212,7 +215,8 @@
         51,
         53,
         54,
-        33
+        33,
+        59
     ],
     "tomahawk4": [
         2,
@@ -254,7 +258,8 @@
         51,
         53,
         54,
-        33
+        33,
+        59
     ],
     "tomahawk5": [
         2,
@@ -295,7 +300,8 @@
         51,
         53,
         54,
-        33
+        33,
+        59
     ],
     "yuba": [
         2,
@@ -331,7 +337,8 @@
         50,
         51,
         53,
-        54
+        54,
+        59
     ]
   },
   "asicToFeatureNames": {
@@ -370,7 +377,8 @@
         "PFC_CAPTURE",
         "PAUSE",
         "SEPARATE_INGRESS_EGRESS_BUFFER_POOL",
-        "ERSPANV6_MIRRORING"
+        "ERSPANV6_MIRRORING",
+        "CLASS_ID_FOR_CONNECTED_ROUTE"
     ],
     "ebro": [
         "CPU_RX_TX",
@@ -405,7 +413,8 @@
         "PAUSE",
         "SEPARATE_INGRESS_EGRESS_BUFFER_POOL",
         "ERSPANV6_MIRRORING",
-        "IP_IN_IP_DECAP"
+        "IP_IN_IP_DECAP",
+        "CLASS_ID_FOR_CONNECTED_ROUTE"
     ],
     "jericho2": [
         "CPU_RX_TX",
@@ -504,7 +513,8 @@
         "LED_PROGRAMMING",
         "SEPARATE_INGRESS_EGRESS_BUFFER_POOL",
         "IP_IN_IP_DECAP",
-        "INTERFACE_NEIGHBOR_TABLE"
+        "INTERFACE_NEIGHBOR_TABLE",
+        "CLASS_ID_FOR_CONNECTED_ROUTE"
     ],
     "tomahawk3": [
         "CPU_RX_TX",
@@ -547,7 +557,8 @@
         "SEPARATE_INGRESS_EGRESS_BUFFER_POOL",
         "ERSPANV6_MIRRORING",
         "IP_IN_IP_DECAP",
-        "INTERFACE_NEIGHBOR_TABLE"
+        "INTERFACE_NEIGHBOR_TABLE",
+        "CLASS_ID_FOR_CONNECTED_ROUTE"
     ],
     "tomahawk4": [
         "CPU_RX_TX",
@@ -589,7 +600,8 @@
         "SEPARATE_INGRESS_EGRESS_BUFFER_POOL",
         "ERSPANV6_MIRRORING",
         "IP_IN_IP_DECAP",
-        "INTERFACE_NEIGHBOR_TABLE"
+        "INTERFACE_NEIGHBOR_TABLE",
+        "CLASS_ID_FOR_CONNECTED_ROUTE"
     ],
     "tomahawk5": [
         "CPU_RX_TX",
@@ -630,7 +642,8 @@
         "SEPARATE_INGRESS_EGRESS_BUFFER_POOL",
         "ERSPANV6_MIRRORING",
         "IP_IN_IP_DECAP",
-        "INTERFACE_NEIGHBOR_TABLE"
+        "INTERFACE_NEIGHBOR_TABLE",
+        "CLASS_ID_FOR_CONNECTED_ROUTE"
     ],
     "yuba": [
         "CPU_RX_TX",
@@ -666,7 +679,8 @@
         "PAUSE",
         "SEPARATE_INGRESS_EGRESS_BUFFER_POOL",
         "ERSPANV6_MIRRORING",
-        "IP_IN_IP_DECAP"
+        "IP_IN_IP_DECAP",
+        "CLASS_ID_FOR_CONNECTED_ROUTE"
     ]
   }
 }
