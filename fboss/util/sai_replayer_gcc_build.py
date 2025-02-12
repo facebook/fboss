@@ -62,14 +62,28 @@ def process_log(log_path, output_path):
                     output_file.write(line)
 
 
-def build_binary(cpp_path, sai_headers, *libraries):
+def build_binary(cpp_paths, sai_headers, *libraries):
     sai_header_list = "-I " + " -I ".join(sai_headers.split(","))
-    command = f"gcc {cpp_path} " + sai_header_list + " -lm -lpthread -lrt -lstdc++ -ldl"
+    flags = " -lm -lpthread -lrt -lstdc++ -ldl"
+
+    print("\nCompiling files...")
+    for cpp_path in cpp_paths:
+        command = f"gcc -c {cpp_path} " + sai_header_list + flags
+        print(f"  {command}")
+        subprocess.run(command, shell=True)
+
+    # Get list of built object files in current directory
+    command = "gcc " + " ".join(
+        [os.path.basename(file).replace("cpp", "o") for file in cpp_paths]
+    )
     for lib in libraries:
         if lib is not None:
             command += f" {lib}"
-    print(f"\n{command}")
+    command += " " + sai_header_list + flags
+    print(f"\nLinking files... \n  {command}")
     subprocess.run(command, shell=True)
+
+    print("\nDone. Executable: a.out")
 
 
 def main():
@@ -106,12 +120,26 @@ def main():
 
     # Process Sai Replayer Log from internal build form
     # to standalone main function.
-    process_log(args.sai_replayer_log, SAI_REPLAYER_CPP)
+    split_logs = os.path.isdir(args.sai_replayer_log)
+    if split_logs:
+        cpp_files = [
+            os.path.join(args.sai_replayer_log, file)
+            for file in os.listdir(args.sai_replayer_log)
+            if file.endswith("cpp")
+        ]
+        print(
+            "\nMultiple SAI log files found. Source files:\n  " + "\n  ".join(cpp_files)
+        )
+
+    else:
+        print("\nPreprocessing " + args.sai_replayer_log + "...")
+        process_log(args.sai_replayer_log, SAI_REPLAYER_CPP)
+        cpp_files = [SAI_REPLAYER_CPP]
 
     # Compile and link the binary from libraries provided.
     try:
         build_binary(
-            SAI_REPLAYER_CPP,
+            cpp_files,
             args.sai_headers,
             args.sai_lib,
             args.brcm_lib,
@@ -121,10 +149,12 @@ def main():
             args.yaml_lib,
         )
     except RuntimeError:
-        os.remove(SAI_REPLAYER_CPP)
+        if not split_logs:
+            os.remove(SAI_REPLAYER_CPP)
 
     # Delete the cpp file
-    os.remove(SAI_REPLAYER_CPP)
+    if not split_logs:
+        os.remove(SAI_REPLAYER_CPP)
 
 
 if __name__ == "__main__":
