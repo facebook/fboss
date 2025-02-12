@@ -34,7 +34,6 @@
 #include "fboss/agent/LookupClassUpdater.h"
 #include "fboss/agent/ResourceAccountant.h"
 #include "fboss/agent/SwitchInfoUtils.h"
-#include "fboss/agent/hw/HwSwitchWarmBootHelper.h"
 #include "fboss/agent/state/StateUtils.h"
 #include "fboss/lib/phy/gen-cpp2/prbs_types.h"
 #if FOLLY_HAS_COROUTINES
@@ -75,8 +74,6 @@
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/capture/PcapPkt.h"
 #include "fboss/agent/capture/PktCaptureManager.h"
-#include "fboss/agent/gen-cpp2/switch_config_types_custom_protocol.h"
-#include "fboss/agent/hw/HwSwitchFb303Stats.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/packet/EthHdr.h"
 #include "fboss/agent/packet/IPv4Hdr.h"
@@ -94,8 +91,6 @@
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/lib/platforms/PlatformProductInfo.h"
 #include "fboss/util/Logging.h"
-
-#include "fboss/lib/CommonFileUtils.h"
 
 #include <fb303/ServiceData.h>
 #include <folly/Demangle.h>
