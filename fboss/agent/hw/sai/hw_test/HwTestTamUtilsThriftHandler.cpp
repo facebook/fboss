@@ -146,6 +146,9 @@ void triggerBcmRamonParityError(const HwSwitch* hw) {
       std::make_unique<fbstring>("debug bcm intr +\n"),
       std::make_unique<ClientInformation>(clientInfo));
   diagCmdServer->diagCmd(
+      std::make_unique<fbstring>("ser eccindication off\n"),
+      std::make_unique<ClientInformation>(clientInfo));
+  diagCmdServer->diagCmd(
       std::make_unique<fbstring>("s RTP_INTERRUPT_MASK_REGISTER -1\n"),
       std::make_unique<ClientInformation>(clientInfo));
   diagCmdServer->diagCmd(
