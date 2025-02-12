@@ -148,13 +148,12 @@ def main():
             args.protobuf_lib,
             args.yaml_lib,
         )
-    except RuntimeError:
+    except RuntimeError as e:
+        print(e)
+    finally:
+        # Delete the cpp file
         if not split_logs:
             os.remove(SAI_REPLAYER_CPP)
-
-    # Delete the cpp file
-    if not split_logs:
-        os.remove(SAI_REPLAYER_CPP)
 
 
 if __name__ == "__main__":
