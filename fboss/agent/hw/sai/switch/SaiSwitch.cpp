@@ -523,6 +523,22 @@ void SaiSwitch::rollback(const StateDelta& delta) noexcept {
     auto hwSwitchJson = toFollyDynamicLocked(lockPolicy.lock());
     {
       HwWriteBehaviorRAII writeBehavior{HwWriteBehavior::SKIP};
+      if (platform_->getAsic()->isSupported(HwAsic::Feature::DEFAULT_VLAN)) {
+        /*
+         * TODO(pshaikh): introduce VLAN ID 1 in all configs across all
+         * platforms which support default vlans.
+         * TODO(pshaikh): remove default vlan from SwitchConfig, and
+         * SwitchSettings for SAI, existing value of 4094 is legacy (non-SAI)
+         * implementation
+         */
+        auto defaultVlan =
+            managerTable_->switchManager().getDefaultVlanAdapterKey();
+        saiStore_->get<SaiVlanTraits>().removeUnclaimedWarmbootHandlesIf(
+            [defaultVlan](const auto& obj) {
+              return obj->adapterKey() == defaultVlan;
+            },
+            true /* owned by adapter */);
+      }
       managerTable_->reset(true /*skip switch manager reset*/);
     }
     // The work flow below is essentially a in memory warm boot,
