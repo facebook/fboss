@@ -1756,6 +1756,8 @@ struct SwitchInfo {
   // communication to this node
   11: optional i32 inbandPortId;
   12: map<FirmwareName, FirmwareInfo> firmwareNameToFirmwareInfo;
+  13: optional i32 minLinksPerDeviceToRemainInVOQDomain;
+  14: optional i32 minLinksPerDeviceToJoinVOQDomain;
 }
 
 /*

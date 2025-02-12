@@ -5274,7 +5274,9 @@ std::pair<strings::systemPortRanges, ChildThriftPath<::facebook::fboss::cfg::Sys
 std::pair<strings::localSystemPortOffset, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
 std::pair<strings::globalSystemPortOffset, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
 std::pair<strings::inbandPortId, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
-std::pair<strings::firmwareNameToFirmwareInfo, ChildThriftPath<::std::map<::facebook::fboss::cfg::FirmwareName, ::facebook::fboss::cfg::FirmwareInfo>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>>;
+std::pair<strings::firmwareNameToFirmwareInfo, ChildThriftPath<::std::map<::facebook::fboss::cfg::FirmwareName, ::facebook::fboss::cfg::FirmwareInfo>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
+std::pair<strings::minLinksPerDeviceToRemainInVOQDomain, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
+std::pair<strings::minLinksPerDeviceToJoinVOQDomain, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, Child<::facebook::fboss::cfg::SwitchType, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::cfg::SwitchType>>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, Child<::facebook::fboss::cfg::AsicType, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::cfg::AsicType>>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, Child<::std::int16_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i16_t>>,
@@ -5286,7 +5288,9 @@ std::pair<strings::firmwareNameToFirmwareInfo, ChildThriftPath<::std::map<::face
    std::pair<std::integral_constant<apache::thrift::field_id_t, 9>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 10>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 11>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 12>, ChildThriftPath<::std::map<::facebook::fboss::cfg::FirmwareName, ::facebook::fboss::cfg::FirmwareInfo>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>>;
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 12>, ChildThriftPath<::std::map<::facebook::fboss::cfg::FirmwareName, ::facebook::fboss::cfg::FirmwareInfo>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 13>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 14>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>>;
   template <typename Name>
   using NameToId = fatal::tuple<std::pair<strings::switchType, std::integral_constant<apache::thrift::field_id_t, 1>>,
 std::pair<strings::asicType, std::integral_constant<apache::thrift::field_id_t, 2>>,
@@ -5299,7 +5303,9 @@ std::pair<strings::systemPortRanges, std::integral_constant<apache::thrift::fiel
 std::pair<strings::localSystemPortOffset, std::integral_constant<apache::thrift::field_id_t, 9>>,
 std::pair<strings::globalSystemPortOffset, std::integral_constant<apache::thrift::field_id_t, 10>>,
 std::pair<strings::inbandPortId, std::integral_constant<apache::thrift::field_id_t, 11>>,
-std::pair<strings::firmwareNameToFirmwareInfo, std::integral_constant<apache::thrift::field_id_t, 12>>>::template type_of<Name>;
+std::pair<strings::firmwareNameToFirmwareInfo, std::integral_constant<apache::thrift::field_id_t, 12>>,
+std::pair<strings::minLinksPerDeviceToRemainInVOQDomain, std::integral_constant<apache::thrift::field_id_t, 13>>,
+std::pair<strings::minLinksPerDeviceToJoinVOQDomain, std::integral_constant<apache::thrift::field_id_t, 14>>>::template type_of<Name>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -5317,6 +5323,8 @@ std::pair<strings::firmwareNameToFirmwareInfo, std::integral_constant<apache::th
     STRUCT_CHILD_GETTERS(globalSystemPortOffset, 10);
     STRUCT_CHILD_GETTERS(inbandPortId, 11);
     STRUCT_CHILD_GETTERS(firmwareNameToFirmwareInfo, 12);
+    STRUCT_CHILD_GETTERS(minLinksPerDeviceToRemainInVOQDomain, 13);
+    STRUCT_CHILD_GETTERS(minLinksPerDeviceToJoinVOQDomain, 14);
 
   template <apache::thrift::field_id_t __id>
   auto operator()(const std::integral_constant<apache::thrift::field_id_t, __id>&) {
@@ -5332,6 +5340,8 @@ std::pair<strings::firmwareNameToFirmwareInfo, std::integral_constant<apache::th
     else if constexpr (__id == 10) { return globalSystemPortOffset(); }
     else if constexpr (__id == 11) { return inbandPortId(); }
     else if constexpr (__id == 12) { return firmwareNameToFirmwareInfo(); }
+    else if constexpr (__id == 13) { return minLinksPerDeviceToRemainInVOQDomain(); }
+    else if constexpr (__id == 14) { return minLinksPerDeviceToJoinVOQDomain(); }
   }
 
   template <typename T, T... Values>
