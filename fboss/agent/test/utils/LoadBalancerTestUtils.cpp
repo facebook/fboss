@@ -379,12 +379,54 @@ std::set<uint64_t> getSortedPortBytes(
 }
 
 template <typename PortIdT, typename PortStatsT>
+std::set<uint64_t> getSortedPortBytesIncrement(
+    const std::map<PortIdT, PortStatsT>& beforePortIdToStats,
+    const std::map<PortIdT, PortStatsT>& afterPortIdToStats) {
+  auto portBytesIncrement =
+      folly::gen::from(beforePortIdToStats) |
+      folly::gen::map([&](const auto& beforePortIdToStats) {
+        CHECK(
+            afterPortIdToStats.find(beforePortIdToStats.first) !=
+            afterPortIdToStats.end());
+        if constexpr (std::is_same_v<PortStatsT, HwPortStats>) {
+          return *afterPortIdToStats.at(beforePortIdToStats.first).outBytes_() -
+              *beforePortIdToStats.second.outBytes_();
+        } else if constexpr (std::is_same_v<PortStatsT, HwSysPortStats>) {
+          const auto& beforeStats = beforePortIdToStats.second;
+          const auto& afterStats =
+              afterPortIdToStats.at(beforePortIdToStats.first);
+          const auto kDefaultQueue = getDefaultQueue();
+          return (afterStats.queueOutBytes_()->at(kDefaultQueue) +
+                  afterStats.queueOutDiscardBytes_()->at(kDefaultQueue)) -
+              (beforeStats.queueOutBytes_()->at(kDefaultQueue) +
+               beforeStats.queueOutDiscardBytes_()->at(kDefaultQueue));
+        }
+        throw FbossError("Unsupported port stats type in isLoadBalancedImpl");
+      }) |
+      folly::gen::as<std::set<uint64_t>>();
+  return portBytesIncrement;
+}
+
+template <typename PortIdT, typename PortStatsT>
 std::pair<uint64_t, uint64_t> getHighestAndLowestBytes(
     const std::map<PortIdT, PortStatsT>& portIdToStats) {
   auto portBytes = getSortedPortBytes(portIdToStats);
   auto lowest = portBytes.empty() ? 0 : *portBytes.begin();
   auto highest = portBytes.empty() ? 0 : *portBytes.rbegin();
   XLOG(DBG0) << " Highest bytes: " << highest << " lowest bytes: " << lowest;
+  return std::make_pair(highest, lowest);
+}
+
+template <typename PortIdT, typename PortStatsT>
+std::pair<uint64_t, uint64_t> getHighestAndLowestBytesIncrement(
+    const std::map<PortIdT, PortStatsT>& beforePortIdToStats,
+    const std::map<PortIdT, PortStatsT>& afterPortIdToStats) {
+  auto portBytes =
+      getSortedPortBytesIncrement(beforePortIdToStats, afterPortIdToStats);
+  auto lowest = portBytes.empty() ? 0 : *portBytes.begin();
+  auto highest = portBytes.empty() ? 0 : *portBytes.rbegin();
+  XLOG(DBG0) << " Highest bytes increment: " << highest
+             << " lowest bytes increment: " << lowest;
   return std::make_pair(highest, lowest);
 }
 
@@ -937,10 +979,26 @@ template std::set<uint64_t> getSortedPortBytes(
 template std::set<uint64_t> getSortedPortBytes(
     const std::map<PortID, HwPortStats>& portIdToStats);
 
+template std::set<uint64_t> getSortedPortBytesIncrement(
+    const std::map<SystemPortID, HwSysPortStats>& beforePortIdToStats,
+    const std::map<SystemPortID, HwSysPortStats>& afterPortIdToStats);
+
+template std::set<uint64_t> getSortedPortBytesIncrement(
+    const std::map<PortID, HwPortStats>& beforePortIdToStats,
+    const std::map<PortID, HwPortStats>& afterPortIdToStats);
+
 template std::pair<uint64_t, uint64_t> getHighestAndLowestBytes(
     const std::map<SystemPortID, HwSysPortStats>& portIdToStats);
 
 template std::pair<uint64_t, uint64_t> getHighestAndLowestBytes(
     const std::map<PortID, HwPortStats>& portIdToStats);
+
+template std::pair<uint64_t, uint64_t> getHighestAndLowestBytesIncrement(
+    const std::map<SystemPortID, HwSysPortStats>& beforePortIdToStats,
+    const std::map<SystemPortID, HwSysPortStats>& afterPortIdToStats);
+
+template std::pair<uint64_t, uint64_t> getHighestAndLowestBytesIncrement(
+    const std::map<PortID, HwPortStats>& beforePortIdToStats,
+    const std::map<PortID, HwPortStats>& afterPortIdToStats);
 
 } // namespace facebook::fboss::utility
