@@ -69,6 +69,7 @@ enum ProductionFeature {
   INGRESS_ACL_MIRRORING = 56,
   EGRESS_ACL_MIRRORING = 57,
   SFLOW_SAMPLES_PACKING = 58,
+  CLASS_ID_FOR_CONNECTED_ROUTE = 59,
   # production feature which is present on all platforms, keep it at the end
   HW_SWITCH = 65536,
 }
