@@ -7,7 +7,11 @@
 #include "fboss/lib/CommonFileUtils.h"
 
 extern "C" {
+#if defined(TAJO_SAI_SDK)
+#include <saiextensions.h>
+#else
 #include <experimental/sai_attr_ext.h>
+#endif
 }
 
 DEFINE_string(

@@ -5,7 +5,11 @@
 extern "C" {
 #include <sai.h>
 
+#if defined(TAJO_SAI_SDK)
+#include <saiextensions.h>
+#else
 #include <experimental/sai_attr_ext.h>
+#endif
 }
 
 #if defined(TAJO_SDK_GTE_24_4_90)
