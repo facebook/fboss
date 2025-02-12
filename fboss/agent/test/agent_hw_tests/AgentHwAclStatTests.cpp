@@ -33,6 +33,17 @@ class AgentHwAclStatTest : public AgentHwTest {
   }
 };
 
+class AgentHwAclStatCounterTypeTest : public AgentHwAclStatTest {
+ public:
+  std::vector<production_features::ProductionFeature>
+  getProductionFeaturesVerified() const override {
+    auto features = AgentHwAclStatTest::getProductionFeaturesVerified();
+    features.push_back(production_features::ProductionFeature::
+                           SEPARATE_BYTE_AND_PACKET_ACL_COUNTERS);
+    return features;
+  }
+};
+
 TEST_F(AgentHwAclStatTest, AclStatCreate) {
   auto setup = [=, this]() {
     const auto& ensemble = *getAgentEnsemble();
@@ -100,41 +111,6 @@ TEST_F(AgentHwAclStatTest, AclStatCreateDeleteCreate) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(AgentHwAclStatTest, AclStatChangeCounterType) {
-  auto setup = [=, this]() {
-    auto& ensemble = *getAgentEnsemble();
-    auto newCfg = initialConfig(ensemble);
-    addDscpAcl(&newCfg, "acl0");
-    utility::addAclStat(&newCfg, "acl0", "stat0", {cfg::CounterType::PACKETS});
-    this->applyNewConfig(newCfg);
-  };
-
-  auto verify = [=, this]() {
-    auto& ensemble = *getAgentEnsemble();
-    auto client = ensemble.getHwAgentTestClient(SwitchID(0));
-
-    EXPECT_TRUE(client->sync_isStatProgrammedInDefaultAclTable(
-        {"acl0"}, {"stat0"}, {cfg::CounterType::PACKETS}));
-  };
-
-  auto setupPostWB = [=, this]() {
-    auto& ensemble = *getAgentEnsemble();
-    auto newCfg = initialConfig(ensemble);
-    addDscpAcl(&newCfg, "acl0");
-    utility::addAclStat(&newCfg, "acl0", "stat0", {cfg::CounterType::BYTES});
-    this->applyNewConfig(newCfg);
-  };
-
-  auto verifyPostWB = [=, this]() {
-    auto& ensemble = *getAgentEnsemble();
-    auto client = ensemble.getHwAgentTestClient(SwitchID(0));
-
-    EXPECT_TRUE(client->sync_isStatProgrammedInDefaultAclTable(
-        {"acl0"}, {"stat0"}, {cfg::CounterType::BYTES}));
-  };
-  verifyAcrossWarmBoots(setup, verify, setupPostWB, verifyPostWB);
-}
-
 TEST_F(AgentHwAclStatTest, AclStatCreateShared) {
   auto setup = [=, this]() {
     auto& ensemble = *getAgentEnsemble();
@@ -199,6 +175,41 @@ TEST_F(AgentHwAclStatTest, AclStatCreateMultiple) {
   };
 
   this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(AgentHwAclStatCounterTypeTest, AclStatChangeCounterType) {
+  auto setup = [=, this]() {
+    auto& ensemble = *getAgentEnsemble();
+    auto newCfg = initialConfig(ensemble);
+    addDscpAcl(&newCfg, "acl0");
+    utility::addAclStat(&newCfg, "acl0", "stat0", {cfg::CounterType::PACKETS});
+    this->applyNewConfig(newCfg);
+  };
+
+  auto verify = [=, this]() {
+    auto& ensemble = *getAgentEnsemble();
+    auto client = ensemble.getHwAgentTestClient(SwitchID(0));
+
+    EXPECT_TRUE(client->sync_isStatProgrammedInDefaultAclTable(
+        {"acl0"}, {"stat0"}, {cfg::CounterType::PACKETS}));
+  };
+
+  auto setupPostWB = [=, this]() {
+    auto& ensemble = *getAgentEnsemble();
+    auto newCfg = initialConfig(ensemble);
+    addDscpAcl(&newCfg, "acl0");
+    utility::addAclStat(&newCfg, "acl0", "stat0", {cfg::CounterType::BYTES});
+    this->applyNewConfig(newCfg);
+  };
+
+  auto verifyPostWB = [=, this]() {
+    auto& ensemble = *getAgentEnsemble();
+    auto client = ensemble.getHwAgentTestClient(SwitchID(0));
+
+    EXPECT_TRUE(client->sync_isStatProgrammedInDefaultAclTable(
+        {"acl0"}, {"stat0"}, {cfg::CounterType::BYTES}));
+  };
+  verifyAcrossWarmBoots(setup, verify, setupPostWB, verifyPostWB);
 }
 
 } // namespace facebook::fboss
