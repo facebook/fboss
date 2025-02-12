@@ -578,10 +578,6 @@ void SaiHostifManager::changeCpuVoq(
 void SaiHostifManager::changeCpuQueue(
     const ControlPlane::PortQueues& oldQueueConfig,
     const ControlPlane::PortQueues& newQueueConfig) {
-  if (platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
-    // Chenab-TODO(pshaikh): no way to configure queues on CPU port
-    return;
-  }
   cpuPortHandle_->configuredQueues.clear();
 
   const auto asic = platform_->getAsic();
