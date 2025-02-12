@@ -630,8 +630,17 @@ QueueConfig SaiQueueManager::getQueueSettings(
   for (auto& queueHandle : queueHandles) {
     auto portQueue = std::make_shared<PortQueue>(queueHandle.first.first);
     portQueue->setStreamType(queueHandle.first.second);
-    managerTable_->schedulerManager().fillSchedulerSettings(
-        queueHandle.second->scheduler.get(), portQueue.get());
+    if (auto scheduler = queueHandle.second->scheduler.get()) {
+      managerTable_->schedulerManager().fillSchedulerSettings(
+          scheduler, portQueue.get());
+    } else if (
+        platform_->getAsic()->getAsicType() ==
+        cfg::AsicType::ASIC_TYPE_CHENAB) {
+      //  TODO(Chenab): For now, set scheduler as internal for chenab,
+      //  however identify settings which may be used to construct cold boot
+      //  state and use them in config
+      portQueue->setScheduling(cfg::QueueScheduling::INTERNAL);
+    }
     queueConfig.push_back(std::move(portQueue));
   }
   return queueConfig;
