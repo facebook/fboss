@@ -921,6 +921,31 @@ cfg::SwitchConfig genPortVlanCfg(
       config.vlanPorts()->push_back(vlanPort);
     }
   }
+  if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    cfg::Vlan vlan1;
+    vlan1.id() = 1;
+    vlan1.name() = "vlan1";
+    vlan1.routable() = true;
+    vlan1.intfID() = kDefaultVlanId;
+    config.vlans()->push_back(vlan1);
+
+    /*
+     * TODO(pshaikh): Chenab-Hack pipeline lookup for traffic injected by cpu
+     * requires vlan rif in default vlan.
+     */
+    cfg::Interface intf1;
+    intf1.intfID() = kDefaultVlanId; /* prevent conflict with port rifs */
+    intf1.name() = "default_vlan_rif";
+    intf1.vlanID() = 1;
+    intf1.mac() = getLocalCpuMacStr();
+    intf1.type() = cfg::InterfaceType::VLAN;
+    intf1.routerID() = 0;
+    intf1.mtu() = 9000;
+    config.interfaces()->push_back(intf1);
+
+    // default vlan really is 1 for Chenab
+    config.defaultVlan() = 1;
+  }
   return config;
 }
 
