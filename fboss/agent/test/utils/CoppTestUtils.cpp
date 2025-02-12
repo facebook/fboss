@@ -277,7 +277,9 @@ void addCpuQueueConfig(
     queue1.name() = "cpuQueue-default";
     queue1.streamType() = getCpuDefaultStreamType(hwAsic);
     queue1.scheduling() = getCpuDefaultQueueScheduling(hwAsic);
-    queue1.weight() = kCoppDefaultPriWeight;
+    queue1.weight() = *queue1.scheduling() == cfg::QueueScheduling::INTERNAL
+        ? 0
+        : kCoppDefaultPriWeight;
     if (setQueueRate) {
       queue1.portQueueRate() = setPortQueueRate(hwAsic, kCoppDefaultPriQueueId);
     }
@@ -286,6 +288,14 @@ void addCpuQueueConfig(
     }
     setPortQueueSharedBytes(queue1, isSai);
     cpuQueues.push_back(queue1);
+  } else if (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    cfg::PortQueue queue1;
+    queue1.id() = kCoppDefaultPriQueueId;
+    queue1.name() = "cpuQueue-default";
+    queue1.streamType() = getCpuDefaultStreamType(hwAsic);
+    queue1.scheduling() = cfg::QueueScheduling::INTERNAL;
+    queue1.weight() = 0;
+    cpuQueues.push_back(queue1);
   }
 
   cfg::PortQueue queue2;
@@ -293,7 +303,9 @@ void addCpuQueueConfig(
   queue2.name() = "cpuQueue-mid";
   queue2.streamType() = getCpuDefaultStreamType(hwAsic);
   queue2.scheduling() = getCpuDefaultQueueScheduling(hwAsic);
-  queue2.weight() = kCoppMidPriWeight;
+  queue2.weight() = *queue2.scheduling() == cfg::QueueScheduling::INTERNAL
+      ? 0
+      : kCoppMidPriWeight;
   setPortQueueMaxDynamicSharedBytes(queue2, hwAsic);
   cpuQueues.push_back(queue2);
 
@@ -302,7 +314,9 @@ void addCpuQueueConfig(
   queue9.name() = "cpuQueue-high";
   queue9.streamType() = getCpuDefaultStreamType(hwAsic);
   queue9.scheduling() = getCpuDefaultQueueScheduling(hwAsic);
-  queue9.weight() = kCoppHighPriWeight;
+  queue9.weight() = *queue9.scheduling() == cfg::QueueScheduling::INTERNAL
+      ? 0
+      : kCoppHighPriWeight;
   cpuQueues.push_back(queue9);
 
   *config.cpuQueues() = cpuQueues;
