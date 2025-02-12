@@ -10,7 +10,7 @@
 # If SAI SDK, native SDK and PHY libs are built separately as
 # different libs -
 # python3 sai_replayer_gcc_build.py --sai_replayer_log sai_replayer.log
-#                                   --sai_headers /path/to/sai/inc/
+#                                   --sai_headers /path/to/sai/inc/,/path/to/sai/experimental
 #                                   --sai_lib /path/to/libsai.a
 #                                   --brcm_lib /path/to/libxgs_robo.a
 #                                   --brcm_phymode_lib /path/to/libphymodepil.a
@@ -62,8 +62,9 @@ def process_log(log_path, output_path):
                     output_file.write(line)
 
 
-def build_binary(cpp_path, sai_header, *libraries):
-    command = f"gcc {cpp_path} -I {sai_header} -lm -lpthread -lrt -lstdc++ -ldl"
+def build_binary(cpp_path, sai_headers, *libraries):
+    sai_header_list = "-I " + " -I ".join(sai_headers.split(","))
+    command = f"gcc {cpp_path} " + sai_header_list + " -lm -lpthread -lrt -lstdc++ -ldl"
     for lib in libraries:
         if lib is not None:
             command += f" {lib}"
@@ -84,7 +85,12 @@ def main():
         help="Input sai replayer log generated from runtime. This should be "
         "the log file produced by FBOSS agent.",
     )
-    psr.add_argument("--sai_headers", required=True, type=str)
+    psr.add_argument(
+        "--sai_headers",
+        required=True,
+        type=str,
+        help="Comma-separated list of SAI header file directories.",
+    )
     psr.add_argument("--sai_lib", required=True, type=str)
     psr.add_argument("--brcm_lib", required=False, type=str)
     psr.add_argument("--brcm_phymode_lib", required=False, type=str)
