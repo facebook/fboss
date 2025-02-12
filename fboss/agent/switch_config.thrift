@@ -1756,6 +1756,28 @@ struct SwitchInfo {
   // communication to this node
   11: optional i32 inbandPortId;
   12: map<FirmwareName, FirmwareInfo> firmwareNameToFirmwareInfo;
+
+  /*
+   * VOQ switch may use these thresholds as below:
+   *  - During init, create switch device Isolated.
+   *  - When numActiveLinks > minLinksToJoinVOQDomain => Unisolate device.
+   *  - When numActiveLinks < minLinksToRemainInVOQDomain => Isolate device.
+   *
+   * In practice, these thresholds will be configured to provide hysteresis:
+   *  - 0 < minLinksToRemainInVOQDomain < minLinksToJoinVOQDomain < maxActiveLinks
+   *  - numActiveLinks in [0, minLinksToRemainInVOQDomain) => device isolated.
+   *  - numActiveLinks in (minLinksToJoinVOQDomain, maxActiveLinks] => device unisolated
+   *  - numActiveLinks in [minLinksToRemainInVOQDomain, minLinksToJoinVOQDomain]
+   *    => Whether or not the device is isolated depends on how we got to this state.
+   *    => For example, during init, as links gradually turn active, the device
+   *       will be isolated for these numActiveLinks as minLinksToJoinVOQDomain is not
+   *       yet hit.
+   *    => On the other hand, if the links are active but start turning inactive,
+   *       the device will be unisolated for these numActiveLinks since
+   *       minLinksToRemainInVOQDomain is not yet thit.
+   *
+   * TODO: This will be enhanced to work for Fabric switches as well.
+   */
   13: optional i32 minLinksPerDeviceToRemainInVOQDomain;
   14: optional i32 minLinksPerDeviceToJoinVOQDomain;
 }
