@@ -123,6 +123,7 @@ void setDefaultCpuTrafficPolicyConfig(
     bool isSai);
 
 cfg::StreamType getCpuDefaultStreamType(const HwAsic* hwAsic);
+cfg::QueueScheduling getCpuDefaultQueueScheduling(const HwAsic* hwAsic);
 
 cfg::Range getRange(uint32_t minimum, uint32_t maximum);
 

@@ -178,6 +178,14 @@ cfg::StreamType getCpuDefaultStreamType(const HwAsic* hwAsic) {
   return defaultStreamType;
 }
 
+cfg::QueueScheduling getCpuDefaultQueueScheduling(const HwAsic* hwAsic) {
+  if (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    // prevent scheduling configuration on chenab for cpu queues
+    return cfg::QueueScheduling::INTERNAL;
+  }
+  return cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+}
+
 uint32_t getCoppQueuePps(const HwAsic* hwAsic, uint16_t queueId) {
   uint32_t pps;
   if (hwAsic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_TAJO) {
@@ -251,7 +259,7 @@ void addCpuQueueConfig(
   queue0.id() = kCoppLowPriQueueId;
   queue0.name() = "cpuQueue-low";
   queue0.streamType() = getCpuDefaultStreamType(hwAsic);
-  queue0.scheduling() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+  queue0.scheduling() = getCpuDefaultQueueScheduling(hwAsic);
   queue0.weight() = kCoppLowPriWeight;
   if (setQueueRate) {
     queue0.portQueueRate() = setPortQueueRate(hwAsic, kCoppLowPriQueueId);
@@ -268,7 +276,7 @@ void addCpuQueueConfig(
     queue1.id() = kCoppDefaultPriQueueId;
     queue1.name() = "cpuQueue-default";
     queue1.streamType() = getCpuDefaultStreamType(hwAsic);
-    queue1.scheduling() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+    queue1.scheduling() = getCpuDefaultQueueScheduling(hwAsic);
     queue1.weight() = kCoppDefaultPriWeight;
     if (setQueueRate) {
       queue1.portQueueRate() = setPortQueueRate(hwAsic, kCoppDefaultPriQueueId);
@@ -284,7 +292,7 @@ void addCpuQueueConfig(
   queue2.id() = getCoppMidPriQueueId({hwAsic});
   queue2.name() = "cpuQueue-mid";
   queue2.streamType() = getCpuDefaultStreamType(hwAsic);
-  queue2.scheduling() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+  queue2.scheduling() = getCpuDefaultQueueScheduling(hwAsic);
   queue2.weight() = kCoppMidPriWeight;
   setPortQueueMaxDynamicSharedBytes(queue2, hwAsic);
   cpuQueues.push_back(queue2);
@@ -293,7 +301,7 @@ void addCpuQueueConfig(
   queue9.id() = getCoppHighPriQueueId(hwAsic);
   queue9.name() = "cpuQueue-high";
   queue9.streamType() = getCpuDefaultStreamType(hwAsic);
-  queue9.scheduling() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+  queue9.scheduling() = getCpuDefaultQueueScheduling(hwAsic);
   queue9.weight() = kCoppHighPriWeight;
   cpuQueues.push_back(queue9);
 
