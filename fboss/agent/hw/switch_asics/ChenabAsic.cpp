@@ -221,6 +221,10 @@ bool ChenabAsic::isSupportedFabric(Feature feature) const {
 int ChenabAsic::getDefaultNumPortQueues(
     cfg::StreamType streamType,
     cfg::PortType portType) const {
+  if (portType == cfg::PortType::CPU_PORT) {
+    // Chenab supports 4 CPU port queues
+    return 4;
+  }
   switch (streamType) {
     case cfg::StreamType::MULTICAST:
       throw FbossError(
