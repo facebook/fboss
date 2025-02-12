@@ -212,17 +212,28 @@ HwSwitchMatcher SwitchIdScopeResolver::scope(
     case cfg::InterfaceType::SYSTEM_PORT:
       return scope(SystemPortID(static_cast<int64_t>(interfaceId)));
     case cfg::InterfaceType::VLAN: {
-      int vlanId(static_cast<int>(interfaceId));
+      std::optional<int> vlanId;
+      for (const auto& vlan : *cfg.vlans()) {
+        if (vlan.intfID() == static_cast<int>(interfaceId)) {
+          vlanId = *vlan.id();
+        }
+      }
+      if (!vlanId) {
+        vlanId = static_cast<int>(interfaceId);
+      }
+      if (*vlanId == *cfg.defaultVlan()) {
+        return l3SwitchMatcher();
+      }
       auto vitr = std::find_if(
           cfg.vlans()->cbegin(),
           cfg.vlans()->cend(),
-          [vlanId](const auto& vlan) { return vlan.id() == vlanId; });
+          [vlanId](const auto& vlan) { return vlan.id() == *vlanId; });
       if (vitr == cfg.vlans()->cend()) {
-        throw FbossError("No vlan found for : ", vlanId);
+        throw FbossError("No vlan found for : ", *vlanId);
       }
       Vlan::MemberPorts vlanMembers;
       for (const auto& vlanPort : *cfg.vlanPorts()) {
-        if (vlanPort.vlanID() == vlanId) {
+        if (vlanPort.vlanID() == *vlanId) {
           vlanMembers.emplace(std::make_pair(*vlanPort.logicalPort(), true));
         }
       }
