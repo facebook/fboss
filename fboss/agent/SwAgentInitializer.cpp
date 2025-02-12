@@ -190,11 +190,15 @@ void SwAgentInitializer::stopAgent(bool setupWarmboot, bool gracefulExit) {
     handleExitSignal(gracefulExit);
   } else {
     stopServices();
-    auto revertToMinAlpmState =
-        sw_->getHwAsicTable()->isFeatureSupportedOnAnyAsic(
-            HwAsic::Feature::ROUTE_PROGRAMMING);
-    sw_->stop(false /* gracefulStop */, revertToMinAlpmState);
-    initializer_.reset();
+    if (sw_) {
+      auto revertToMinAlpmState =
+          sw_->getHwAsicTable()->isFeatureSupportedOnAnyAsic(
+              HwAsic::Feature::ROUTE_PROGRAMMING);
+      sw_->stop(false /* gracefulStop */, revertToMinAlpmState);
+    }
+    if (initializer_) {
+      initializer_.reset();
+    }
   }
 }
 
