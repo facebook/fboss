@@ -70,7 +70,7 @@ def build_binary(cpp_paths, sai_headers, *libraries):
     for cpp_path in cpp_paths:
         command = f"gcc -c {cpp_path} " + sai_header_list + flags
         print(f"  {command}")
-        subprocess.run(command, shell=True)
+        subprocess.run(command, shell=True, check=True)
 
     # Get list of built object files in current directory
     command = "gcc " + " ".join(
@@ -81,7 +81,7 @@ def build_binary(cpp_paths, sai_headers, *libraries):
             command += f" {lib}"
     command += " " + sai_header_list + flags
     print(f"\nLinking files... \n  {command}")
-    subprocess.run(command, shell=True)
+    subprocess.run(command, shell=True, check=True)
 
     print("\nDone. Executable: a.out")
 
