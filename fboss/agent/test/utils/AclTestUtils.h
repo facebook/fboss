@@ -158,4 +158,6 @@ cfg::AclTableGroup* FOLLY_NULLABLE getAclTableGroup(cfg::SwitchConfig& config);
 cfg::AclTableGroup* FOLLY_NULLABLE
 getAclTableGroup(cfg::SwitchConfig& config, cfg::AclStage aclStage);
 
+void setupDefaultAclTableGroups(cfg::SwitchConfig& config);
+
 } // namespace facebook::fboss::utility

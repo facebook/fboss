@@ -39,9 +39,7 @@ class HwAclStatTest : public HwTest {
         masterLogicalPortIds(),
         getAsic()->desiredLoopbackModes());
     if (FLAGS_enable_acl_table_group) {
-      utility::addAclTableGroup(
-          &cfg, cfg::AclStage::INGRESS, utility::kDefaultAclTableGroupName());
-      utility::addDefaultAclTable(cfg);
+      utility::setupDefaultAclTableGroups(cfg);
     }
     return cfg;
   }

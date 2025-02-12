@@ -39,9 +39,7 @@ class AgentHwResourceStatsTest : public AgentHwTest {
       const AgentEnsemble& ensemble) const override {
     auto cfg = AgentHwTest::initialConfig(ensemble);
     if (FLAGS_enable_acl_table_group) {
-      utility::addAclTableGroup(
-          &cfg, cfg::AclStage::INGRESS, utility::kDefaultAclTableGroupName());
-      utility::addDefaultAclTable(cfg);
+      utility::setupDefaultAclTableGroups(cfg);
     }
     return cfg;
   }

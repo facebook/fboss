@@ -55,9 +55,8 @@ BENCHMARK(RxSlowPathBenchmark) {
           ensemble.masterLogicalPortIds({cfg::PortType::RECYCLE_PORT})[0]);
     }
     auto config = utility::onePortPerInterfaceConfig(ensemble.getSw(), ports);
-    utility::addAclTableGroup(
-        &config, cfg::AclStage::INGRESS, utility::kDefaultAclTableGroupName());
-    utility::addDefaultAclTable(config);
+    utility::setupDefaultAclTableGroups(config);
+
     // We don't want to set queue rate that limits the number of rx pkts
     utility::addCpuQueueConfig(
         config,

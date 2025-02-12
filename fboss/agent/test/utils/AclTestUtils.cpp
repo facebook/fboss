@@ -443,4 +443,9 @@ getAclTableGroup(cfg::SwitchConfig& config, cfg::AclStage aclStage) {
   return nullptr;
 }
 
+void setupDefaultAclTableGroups(cfg::SwitchConfig& config) {
+  utility::addAclTableGroup(
+      &config, cfg::AclStage::INGRESS, utility::kDefaultAclTableGroupName());
+  utility::addDefaultAclTable(config);
+}
 } // namespace facebook::fboss::utility
