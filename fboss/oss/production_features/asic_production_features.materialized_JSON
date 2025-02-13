@@ -36,7 +36,8 @@
         50,
         51,
         53,
-        59
+        59,
+        60
     ],
     "ebro": [
         2,
@@ -172,7 +173,8 @@
         51,
         54,
         33,
-        59
+        59,
+        60
     ],
     "tomahawk3": [
         2,
@@ -216,7 +218,8 @@
         53,
         54,
         33,
-        59
+        59,
+        60
     ],
     "tomahawk4": [
         2,
@@ -259,7 +262,8 @@
         53,
         54,
         33,
-        59
+        59,
+        60
     ],
     "tomahawk5": [
         2,
@@ -301,7 +305,8 @@
         53,
         54,
         33,
-        59
+        59,
+        60
     ],
     "yuba": [
         2,
@@ -338,7 +343,8 @@
         51,
         53,
         54,
-        59
+        59,
+        60
     ]
   },
   "asicToFeatureNames": {
@@ -378,7 +384,8 @@
         "PAUSE",
         "SEPARATE_INGRESS_EGRESS_BUFFER_POOL",
         "ERSPANV6_MIRRORING",
-        "CLASS_ID_FOR_CONNECTED_ROUTE"
+        "CLASS_ID_FOR_CONNECTED_ROUTE",
+        "SEPARATE_BYTE_AND_PACKET_ACL_COUNTERS"
     ],
     "ebro": [
         "CPU_RX_TX",
@@ -514,7 +521,8 @@
         "SEPARATE_INGRESS_EGRESS_BUFFER_POOL",
         "IP_IN_IP_DECAP",
         "INTERFACE_NEIGHBOR_TABLE",
-        "CLASS_ID_FOR_CONNECTED_ROUTE"
+        "CLASS_ID_FOR_CONNECTED_ROUTE",
+        "SEPARATE_BYTE_AND_PACKET_ACL_COUNTERS"
     ],
     "tomahawk3": [
         "CPU_RX_TX",
@@ -558,7 +566,8 @@
         "ERSPANV6_MIRRORING",
         "IP_IN_IP_DECAP",
         "INTERFACE_NEIGHBOR_TABLE",
-        "CLASS_ID_FOR_CONNECTED_ROUTE"
+        "CLASS_ID_FOR_CONNECTED_ROUTE",
+        "SEPARATE_BYTE_AND_PACKET_ACL_COUNTERS"
     ],
     "tomahawk4": [
         "CPU_RX_TX",
@@ -601,7 +610,8 @@
         "ERSPANV6_MIRRORING",
         "IP_IN_IP_DECAP",
         "INTERFACE_NEIGHBOR_TABLE",
-        "CLASS_ID_FOR_CONNECTED_ROUTE"
+        "CLASS_ID_FOR_CONNECTED_ROUTE",
+        "SEPARATE_BYTE_AND_PACKET_ACL_COUNTERS"
     ],
     "tomahawk5": [
         "CPU_RX_TX",
@@ -643,7 +653,8 @@
         "ERSPANV6_MIRRORING",
         "IP_IN_IP_DECAP",
         "INTERFACE_NEIGHBOR_TABLE",
-        "CLASS_ID_FOR_CONNECTED_ROUTE"
+        "CLASS_ID_FOR_CONNECTED_ROUTE",
+        "SEPARATE_BYTE_AND_PACKET_ACL_COUNTERS"
     ],
     "yuba": [
         "CPU_RX_TX",
@@ -680,7 +691,8 @@
         "SEPARATE_INGRESS_EGRESS_BUFFER_POOL",
         "ERSPANV6_MIRRORING",
         "IP_IN_IP_DECAP",
-        "CLASS_ID_FOR_CONNECTED_ROUTE"
+        "CLASS_ID_FOR_CONNECTED_ROUTE",
+        "SEPARATE_BYTE_AND_PACKET_ACL_COUNTERS"
     ]
   }
 }
