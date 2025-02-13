@@ -49,6 +49,12 @@ static const std::string kQsfpToBmcSyncDataVersion{"1.0"};
 
 static const int kOpticsThermalSyncInterval = 10;
 
+static constexpr auto kPimsWithError = "qsfp.pims_with_error";
+
+void setPimsWithError(int pimsWithError) {
+  facebook::tcData().setCounter(kPimsWithError, pimsWithError);
+}
+
 } // namespace
 
 using LockedTransceiversPtr = folly::Synchronized<
@@ -544,10 +550,20 @@ void WedgeManager::publishPimStatesToFsdb() {
     return;
   }
 
+  int pimsWithError = 0;
   QsfpFsdbSyncManager::PimStatesMap pimStates = getPimStates();
   for (auto& [id, pimState] : pimStates) {
+    if (!pimState.errors()->empty()) {
+      ++pimsWithError;
+      for (auto error : *pimState.errors()) {
+        XLOG(ERR) << "PIM " << id << " has error: "
+                  << apache::thrift::util::enumNameSafe(error);
+      }
+    }
     updatePimStateInFsdb(id, std::move(pimState));
   }
+
+  setPimsWithError(pimsWithError);
 }
 
 void WedgeManager::publishTransceiversToFsdb() {
