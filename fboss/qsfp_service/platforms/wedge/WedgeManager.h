@@ -63,6 +63,12 @@ class WedgeManager : public TransceiverManager {
   std::vector<TransceiverID> refreshTransceivers() override;
   void publishTransceiversToFsdb() override;
 
+  // Retrieves PIM states (which includes PIM errors) by querying respective
+  // system containers
+  virtual std::map<int, PimState> getPimStates() const {
+    return {};
+  }
+
   int scanTransceiverPresence(
       std::unique_ptr<std::vector<int32_t>> ids) override;
 

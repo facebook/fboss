@@ -10,6 +10,7 @@
 #pragma once
 
 #include "fboss/lib/fpga/MultiPimPlatformPimContainer.h"
+#include "fboss/lib/if/gen-cpp2/pim_state_types.h"
 
 #include <map>
 #include <memory>
@@ -56,6 +57,8 @@ class MultiPimPlatformSystemContainer {
   bool isValidPimID(int pim) const {
     return (pims_.find(pim) != pims_.end());
   }
+
+  std::map<int, PimState> getPimStates() const;
 
  protected:
   void setPimContainer(
