@@ -469,7 +469,7 @@ class ThriftMapNode
       }
     } else if (construct) {
       // create unpublished default constructed child if missing
-      this->emplace(key).first->second;
+      this->emplace(key);
     }
   }
 
