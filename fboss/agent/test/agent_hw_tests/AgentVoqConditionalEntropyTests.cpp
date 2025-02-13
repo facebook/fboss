@@ -5,9 +5,7 @@
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/utils/AsicUtils.h"
-#include "fboss/agent/test/utils/DsfConfigUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
-#include "fboss/agent/test/utils/OlympicTestUtils.h"
 #include "fboss/agent/test/utils/VoqTestUtils.h"
 
 namespace facebook::fboss {
@@ -16,6 +14,8 @@ namespace {
 constexpr auto kEcmpWidth = 4;
 // Send traffic through the 5th interface port and verify load balancing
 const auto kIngressPort = kEcmpWidth + 1;
+constexpr auto kRehashPeriodUs = 100;
+constexpr auto kReservedBytesWithRehashEnabled = 0x40;
 } // namespace
 class AgentVoqSwitchConditionalEntropyTest : public AgentVoqSwitchTest {
  public:
@@ -28,7 +28,7 @@ class AgentVoqSwitchConditionalEntropyTest : public AgentVoqSwitchTest {
         port.conditionalEntropyRehash() = true;
       }
     }
-    cfg.switchSettings()->conditionalEntropyRehashPeriodUS() = 100;
+    cfg.switchSettings()->conditionalEntropyRehashPeriodUS() = kRehashPeriodUs;
     cfg.loadBalancers()->push_back(utility::getEcmpFullHashConfig(
         ensemble.getHwAsicTable()->getL3Asics()));
     return cfg;
@@ -83,9 +83,7 @@ TEST_F(AgentVoqSwitchConditionalEntropyTest, verifyLoadBalancing) {
     const auto kIngressPort = 5;
     CHECK(masterLogicalInterfacePortIds().size() > kIngressPort + 1);
 
-    utility::EcmpSetupTargetedPorts6 ecmpHelper(getProgrammedState());
     auto sysPortDescs = getEcmpSysPorts();
-
     std::function<std::map<SystemPortID, HwSysPortStats>(
         const std::vector<SystemPortID>&)>
         getSysPortStatsFn = [&](const std::vector<SystemPortID>& portIds) {
@@ -107,7 +105,7 @@ TEST_F(AgentVoqSwitchConditionalEntropyTest, verifyLoadBalancing) {
               std::nullopt /* srcMacAddr */,
               1000000, /* packetCount */
               utility::kUdfRoceOpcodeAck,
-              0x40, /* reserved */
+              kReservedBytesWithRehashEnabled, /* reserved */
               std::nullopt, /* nextHdr */
               true /* sameDstQueue */);
         },
@@ -127,15 +125,6 @@ TEST_F(AgentVoqSwitchConditionalEntropyTest, verifyNonRoceTrafficUnbalanced) {
   auto verify = [this]() {
     CHECK(masterLogicalInterfacePortIds().size() > kIngressPort + 1);
 
-    utility::EcmpSetupTargetedPorts6 ecmpHelper(getProgrammedState());
-    auto sysPortDescs = getEcmpSysPorts();
-
-    std::function<std::map<SystemPortID, HwSysPortStats>(
-        const std::vector<SystemPortID>&)>
-        getSysPortStatsFn = [&](const std::vector<SystemPortID>& portIds) {
-          getSw()->updateStats();
-          return getLatestSysPortStats(portIds);
-        };
     auto srcIp = folly::IPAddress("1001::1");
     auto dstIp = folly::IPAddress("2001::1");
     auto bytesSent = 0;
@@ -164,6 +153,59 @@ TEST_F(AgentVoqSwitchConditionalEntropyTest, verifyNonRoceTrafficUnbalanced) {
                  << " Highest: " << highest << " Lowest: " << lowest;
       EXPECT_EVENTUALLY_GT(highest, 0.9 * bytesSent);
     });
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+// Conditional Entropy should be enabled if the 8th byte in the BTH header
+// (reserved byte) masking with 0x40 is non-zero. This test sends packets with
+// other bits in the reserved bytes set to 1 and verifies that conditional
+// entropy is not enabled.
+TEST_F(
+    AgentVoqSwitchConditionalEntropyTest,
+    verifyRoceTrafficRehashDisabledUnbalanced) {
+  auto setup = [this]() { setupEcmpGroup(); };
+
+  auto verify = [this]() {
+    CHECK(masterLogicalInterfacePortIds().size() > kIngressPort + 1);
+
+    const auto ecmpSystemPorts = getEcmpSysPortIDs();
+    const auto kBitsPerByte = 8;
+    const auto kPacketsToSend = 10000;
+    for (int i = 0; i < kBitsPerByte; i++) {
+      const uint8_t reservedBytes = 1 << i;
+      if (reservedBytes == kReservedBytesWithRehashEnabled) {
+        continue;
+      }
+
+      const auto beforeStats = getLatestSysPortStats(ecmpSystemPorts);
+      auto packetSize = utility::pumpRoCETraffic(
+          true /* isV6 */,
+          utility::getAllocatePktFn(getAgentEnsemble()),
+          utility::getSendPktFunc(getAgentEnsemble()),
+          utility::getFirstInterfaceMac(getProgrammedState()),
+          std::nullopt /* vlan */,
+          masterLogicalInterfacePortIds()[kIngressPort],
+          utility::kUdfL4DstPort,
+          255 /* hopLimit */,
+          std::nullopt /* srcMacAddr */,
+          kPacketsToSend, /* packetCount */
+          utility::kUdfRoceOpcodeAck,
+          reservedBytes,
+          std::nullopt, /* nextHdr */
+          true /* sameDstQueue */);
+      const auto totalBytesSent = packetSize * kPacketsToSend;
+
+      WITH_RETRIES({
+        getSw()->updateStats();
+        auto afterStats = getLatestSysPortStats(ecmpSystemPorts);
+        auto [highest, lowest] =
+            utility::getHighestAndLowestBytesIncrement(beforeStats, afterStats);
+        XLOG(DBG2) << " Total bytes sent: " << totalBytesSent
+                   << " Highest: " << highest << " Lowest: " << lowest;
+        EXPECT_EVENTUALLY_GT(highest, 0.85 * totalBytesSent);
+      });
+    }
   };
   verifyAcrossWarmBoots(setup, verify);
 }
