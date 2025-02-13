@@ -595,17 +595,12 @@ class ThriftStructNode : public NodeBaseT<
     auto result = ThriftTraverseResult::OK;
     if (begin != end) {
       // TODO: can probably remove lambda use here
-      auto op = pvlambda([](auto&& node, auto begin, auto end) {
+      auto op = writablelambda([](auto&& node, auto begin, auto end) {
         if (begin == end) {
           return;
         }
         auto tok = *begin;
-        if constexpr (std::is_same_v<
-                          typename folly::remove_cvref_t<
-                              decltype(node)>::CowType,
-                          NodeType>) {
-          node.modify(tok);
-        }
+        node.modify(tok);
       });
 
       result =

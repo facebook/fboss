@@ -20,6 +20,27 @@
 
 namespace facebook::fboss::thrift_cow {
 
+// Parse keys for maps and sets. Keeping this outside nodes to reduce
+// instatiations because it only depends on the type and tc of the key, not the
+// type of the node itself.
+template <typename KeyT, typename KeyTC>
+std::optional<KeyT> tryParseKey(const std::string& token) {
+  if constexpr (std::
+                    is_same_v<KeyTC, apache::thrift::type_class::enumeration>) {
+    // special handling for enum keyed maps
+    KeyT enumKey;
+    if (apache::thrift::util::tryParseEnum(token, &enumKey)) {
+      return enumKey;
+    }
+  }
+  auto key = folly::tryTo<KeyT>(token);
+  if (key.hasValue()) {
+    return *key;
+  }
+
+  return std::nullopt;
+}
+
 struct FieldBaseType {};
 
 template <typename T>
@@ -308,6 +329,12 @@ struct WritableImpl {
     throw std::runtime_error(folly::to<std::string>(
         "Cannot remove a child from a primitive node: ", token));
   }
+
+  template <typename TType>
+  static inline void
+  modify(TType& node, const std::string& token, bool construct) {
+    throw std::runtime_error("Cannot mutate an immutable primitive node");
+  }
 };
 
 /**
@@ -317,7 +344,13 @@ template <>
 struct WritableImpl<apache::thrift::type_class::structure> {
   template <typename TType>
   static inline bool remove(TType&, const std::string&) {
-    throw std::runtime_error("not implemented");
+    throw std::runtime_error("not implemented remove structure");
+  }
+
+  template <typename TType>
+  static inline void
+  modify(TType& node, const std::string& token, bool construct) {
+    throw std::runtime_error("not implemented modify structure");
   }
 };
 
@@ -328,7 +361,13 @@ template <>
 struct WritableImpl<apache::thrift::type_class::variant> {
   template <typename TType>
   static inline bool remove(TType&, const std::string&) {
-    throw std::runtime_error("not implemented");
+    throw std::runtime_error("not implemented remove variant");
+  }
+
+  template <typename TType>
+  static inline void
+  modify(TType& node, const std::string& token, bool construct) {
+    throw std::runtime_error("not implemented modify variant");
   }
 };
 
@@ -346,6 +385,20 @@ struct WritableImpl<
       return node.erase(key.value());
     }
     return false;
+  }
+
+  template <typename TType>
+  static inline void
+  modify(TType& node, const std::string& token, bool construct) {
+    if (auto parsedKey =
+            tryParseKey<typename TType::key_type, KeyTypeClass>(token)) {
+      if (auto it = node.find(parsedKey.value()); it != node.end()) {
+        // key exists
+      } else if (construct) {
+        // create unpublished default constructed child if missing
+        node.try_emplace(parsedKey.value());
+      }
+    }
   }
 };
 
@@ -365,6 +418,12 @@ struct WritableImpl<apache::thrift::type_class::list<ValueTypeClass>> {
     }
     return false;
   }
+
+  template <typename TType>
+  static inline void
+  modify(TType& node, const std::string& token, bool construct) {
+    throw std::runtime_error("not implemented modify list");
+  }
 };
 
 /**
@@ -381,6 +440,12 @@ struct WritableImpl<apache::thrift::type_class::set<ValueTypeClass>> {
     }
     return false;
   }
+
+  template <typename TType>
+  static inline void
+  modify(TType& node, const std::string& token, bool construct) {
+    throw std::runtime_error("not implemented modify set");
+  }
 };
 
 template <typename TC, typename TType>
@@ -391,6 +456,10 @@ class WritableWrapper {
 
   bool remove(const std::string& token) {
     return WritableImpl<TC>::remove(node_, token);
+  }
+
+  void modify(const std::string& token, bool construct = true) {
+    WritableImpl<TC>::modify(node_, token, construct);
   }
 
   TType& node_;
