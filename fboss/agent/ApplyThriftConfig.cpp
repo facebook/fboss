@@ -5459,7 +5459,6 @@ std::shared_ptr<Mirror> ThriftConfigApplier::updateMirror(
     if (orig->getEgressPortDesc()) {
       newMirror->setEgressPortDesc(
           PortDescriptor(orig->getEgressPortDesc().value()));
-      newMirror->setEgressPort(orig->getEgressPortDesc().value().phyPortID());
     }
   }
   if (*newMirror == *orig) {
