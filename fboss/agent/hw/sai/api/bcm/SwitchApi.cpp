@@ -252,10 +252,15 @@ void SwitchApi::registerSwitchEventCallback(
   sai_attribute_t eventAttr;
   eventAttr.id = SAI_SWITCH_ATTR_SWITCH_EVENT_TYPE;
   if (switch_event_cb) {
-    // Register switch callback function
-    auto rv = _setAttribute(id, &attr);
-    saiLogError(
-        rv, ApiType, "Unable to register parity error switch event callback");
+    // Consider the following sequence:
+    //   (A) Register switch event callback
+    //   (B) Register switch events.
+    //
+    //   Any switch events received in time between (A) and (B) will be lost,
+    //   as a SAI implementation will discard those events thinking those are
+    //   not of interest.
+    //   Thus, register switch events first, and then register the switch event
+    //   callback.
 
     // Register switch events
 #if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
@@ -299,17 +304,25 @@ void SwitchApi::registerSwitchEventCallback(
 #endif
     eventAttr.value.u32list.count = events.size();
     eventAttr.value.u32list.list = events.data();
-    rv = _setAttribute(id, &eventAttr);
-    saiLogError(rv, ApiType, "Unable to register parity error switch events");
-  } else {
-    // First unregister switch events
-    eventAttr.value.u32list.count = 0;
     auto rv = _setAttribute(id, &eventAttr);
-    saiLogError(rv, ApiType, "Unable to unregister switch events");
+    saiLogError(rv, ApiType, "Unable to register parity error switch events");
 
-    // Then unregister callback function
+    // Register switch event callback function
     rv = _setAttribute(id, &attr);
+    saiLogError(
+        rv, ApiType, "Unable to register parity error switch event callback");
+  } else {
+    // This is reverse of the registration sequence.
+    // First, unregister callback, then unregister events.
+
+    // First unregister callback function
+    auto rv = _setAttribute(id, &attr);
     saiLogError(rv, ApiType, "Unable to unregister TAM event callback");
+
+    // Then unregister switch events
+    eventAttr.value.u32list.count = 0;
+    rv = _setAttribute(id, &eventAttr);
+    saiLogError(rv, ApiType, "Unable to unregister switch events");
   }
 #endif
 }
