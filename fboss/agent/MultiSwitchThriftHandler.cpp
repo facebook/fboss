@@ -158,9 +158,20 @@ MultiSwitchThriftHandler::co_notifyLinkChangeEvent(int64_t switchId) {
                      linkCancellationSource_.getToken(), gen.next())) {
             XLOG(DBG2) << "Got link change event from switch " << switchId;
             sw_->stats()->hwAgentLinkStatusReceived(switchIndex);
-            processLinkState(SwitchID(switchId), *item);
-            processLinkActiveState(SwitchID(switchId), *item);
-            processLinkConnectivity(SwitchID(switchId), *item);
+            auto eventType = *item->eventType();
+            if (eventType == multiswitch::LinkChangeEventType::LINK_STATE) {
+              processLinkState(SwitchID(switchId), *item);
+            } else if (
+                eventType == multiswitch::LinkChangeEventType::LINK_ACTIVE) {
+              processLinkActiveState(SwitchID(switchId), *item);
+            } else if (
+                eventType ==
+                multiswitch::LinkChangeEventType::LINK_CONNECTIVITY) {
+              processLinkConnectivity(SwitchID(switchId), *item);
+            } else {
+              XLOG(ERR) << "Invalid link event type "
+                        << static_cast<int>(eventType);
+            }
           }
         } catch (const std::exception& e) {
           XLOG(DBG2) << "link change event sink cancelled for switch "
