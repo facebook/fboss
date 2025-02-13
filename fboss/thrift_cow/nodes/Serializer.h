@@ -290,6 +290,99 @@ class SerializableWrapper : public Serializable {
   TType& node_;
 };
 
+template <typename TC>
+struct WritableImpl;
+
+/**
+ * primitives
+ */
+template <typename TC>
+struct WritableImpl {
+  static_assert(
+      !std::is_same<apache::thrift::type_class::unknown, TC>::value,
+      "No static reflection support for the given type. "
+      "Forgot to specify reflection option or include fatal header file? "
+      "Refer to thrift/lib/cpp2/reflection/reflection.h");
+  template <typename TType>
+  static inline bool remove(TType&, const std::string& token) {
+    throw std::runtime_error(folly::to<std::string>(
+        "Cannot remove a child from a primitive node: ", token));
+  }
+};
+
+/**
+ * structure
+ */
+template <>
+struct WritableImpl<apache::thrift::type_class::structure> {
+  template <typename TType>
+  static inline bool remove(TType&, const std::string&) {
+    throw std::runtime_error("not implemented");
+  }
+};
+
+/**
+ * Variant
+ */
+template <>
+struct WritableImpl<apache::thrift::type_class::variant> {
+  template <typename TType>
+  static inline bool remove(TType&, const std::string&) {
+    throw std::runtime_error("not implemented");
+  }
+};
+
+/**
+ * Map
+ */
+template <typename KeyTypeClass, typename MappedTypeClass>
+struct WritableImpl<
+    apache::thrift::type_class::map<KeyTypeClass, MappedTypeClass>> {
+  template <typename TType>
+  static inline bool remove(TType& node, const std::string& token) {
+    if constexpr (std::is_same_v<typename TType::key_type, std::string>) {
+      return node.erase(token);
+    } else if (auto key = folly::tryTo<typename TType::key_type>(token)) {
+      return node.erase(key.value());
+    }
+    return false;
+  }
+};
+
+/**
+ * List
+ */
+template <typename ValueTypeClass>
+struct WritableImpl<apache::thrift::type_class::list<ValueTypeClass>> {
+  template <typename TType>
+  static inline bool remove(TType& node, const std::string& token) {
+    auto index = folly::tryTo<std::size_t>(token);
+    if (index.hasValue()) {
+      if (index.value() < node.size()) {
+        node.erase(node.begin() + index.value());
+        return true;
+      }
+    }
+    return false;
+  }
+};
+
+/**
+ * Set
+ */
+template <typename ValueTypeClass>
+struct WritableImpl<apache::thrift::type_class::set<ValueTypeClass>> {
+  template <typename TType>
+  static inline bool remove(TType& node, const std::string& token) {
+    if constexpr (std::is_same_v<typename TType::value_type, std::string>) {
+      return node.erase(token);
+    } else if (auto key = folly::tryTo<typename TType::value_type>(token)) {
+      return node.erase(key.value());
+    }
+    return false;
+  }
+};
+
 template <typename TC, typename TType>
 class WritableWrapper {
  public:
@@ -297,46 +390,7 @@ class WritableWrapper {
   explicit WritableWrapper(TType& node) : node_(node) {}
 
   bool remove(const std::string& token) {
-    throw std::runtime_error("Not implemented remove for writable wrapper yet");
-  }
-
-  bool remove(const std::string& token)
-    requires(std::is_same_v<
-             TType,
-             std::map<
-                 typename TType::key_type,
-                 typename TType::value_type::second_type>>)
-  {
-    if constexpr (std::is_same_v<typename TType::key_type, std::string>) {
-      return node_.erase(token);
-    } else if (auto key = folly::tryTo<typename TType::key_type>(token)) {
-      return node_.erase(key.value());
-    }
-    return false;
-  }
-
-  bool remove(const std::string& token)
-    requires(std::is_same_v<TType, std::vector<typename TType::value_type>>)
-  {
-    auto index = folly::tryTo<std::size_t>(token);
-    if (index.hasValue()) {
-      if (index.value() < node_.size()) {
-        node_.erase(node_.begin() + index.value());
-        return true;
-      }
-    }
-    return false;
-  }
-
-  bool remove(const std::string& token)
-    requires(std::is_same_v<TType, std::set<typename TType::value_type>>)
-  {
-    if constexpr (std::is_same_v<typename TType::value_type, std::string>) {
-      return node_.erase(token);
-    } else if (auto key = folly::tryTo<typename TType::value_type>(token)) {
-      return node_.erase(key.value());
-    }
-    return false;
+    return WritableImpl<TC>::remove(node_, token);
   }
 
   TType& node_;
