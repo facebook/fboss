@@ -96,6 +96,13 @@ void HwBasePortFb303Stats::reinitStats(std::optional<std::string> oldPortName) {
           : std::nullopt;
       portCounters_.reinitStat(newStatName, oldStatName);
     }
+    for (auto statKey : kQueueFb303CounterStatKeys()) {
+      utility::deleteCounter(statName(
+          statKey,
+          oldPortName.value_or(""),
+          queueIdAndName.first,
+          queueIdAndName.second));
+    }
   }
   if (macsecStatsInited_) {
     reinitMacsecStats(oldPortName);
@@ -186,11 +193,19 @@ void HwBasePortFb303Stats::queueChanged(
   for (auto statKey : kQueueMonotonicCounterStatKeys()) {
     reinitStat(statKey, queueId, oldQueueName);
   }
+  for (auto statKey : kQueueFb303CounterStatKeys()) {
+    utility::deleteCounter(
+        statName(statKey, portName_, queueId, queueId2Name_[queueId]));
+  }
 }
 
 void HwBasePortFb303Stats::queueRemoved(int queueId) {
   for (auto statKey : kQueueMonotonicCounterStatKeys()) {
     portCounters_.removeStat(
+        statName(statKey, portName_, queueId, queueId2Name_[queueId]));
+  }
+  for (auto statKey : kQueueFb303CounterStatKeys()) {
+    utility::deleteCounter(
         statName(statKey, portName_, queueId, queueId2Name_[queueId]));
   }
   queueId2Name_.erase(queueId);

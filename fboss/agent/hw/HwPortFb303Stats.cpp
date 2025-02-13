@@ -81,6 +81,12 @@ HwPortFb303Stats::kQueueMonotonicCounterStatKeys() const {
 }
 
 const std::vector<folly::StringPiece>&
+HwPortFb303Stats::kQueueFb303CounterStatKeys() const {
+  static std::vector<folly::StringPiece> kQueueKeys{};
+  return kQueueKeys;
+}
+
+const std::vector<folly::StringPiece>&
 HwPortFb303Stats::kInMacsecPortMonotonicCounterStatKeys() const {
   static std::vector<folly::StringPiece> kMacsecInKeys{
       kInPreMacsecDropPkts(),
