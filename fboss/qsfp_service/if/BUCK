@@ -126,6 +126,7 @@ thrift_library(
     deps = [
         ":config",
         ":transceiver",
+        "//fboss/lib/if:pim_state",
         "//fboss/lib/phy:phy",
     ],
 )

@@ -354,6 +354,13 @@ add_fbthrift_cpp_library(
     prbs_cpp2
 )
 add_fbthrift_cpp_library(
+  pim_state_cpp2
+  fboss/lib/if/pim_state.thrift
+  OPTIONS
+    json
+    reflection
+)
+add_fbthrift_cpp_library(
   transceiver_validation_cpp2
   fboss/qsfp_service/if/transceiver_validation.thrift
   OPTIONS
@@ -385,6 +392,7 @@ add_fbthrift_cpp_library(
     qsfp_config_cpp2
     phy_cpp2
     transceiver_cpp2
+    pim_state_cpp2
 )
 add_fbthrift_cpp_library(
   qsfp_stats_cpp2
