@@ -200,6 +200,10 @@ class AgentVoqSwitchIsolationFirmwareWBEventsTest
               fwCrashedCounters.size() == 1 &&
               fwCrashedCounters.begin()->second == 0);
         });
+
+        XLOG(ERR)
+            << "Allow for Firmware Isolate callback to fire post cb unregister, sleep for "
+            << kEventDelay * 2 << " seconds";
         sleep(kEventDelay * 2);
       }
     });
