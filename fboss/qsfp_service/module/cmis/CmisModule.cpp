@@ -30,6 +30,11 @@ using std::memcpy;
 using std::mutex;
 using namespace apache::thrift;
 
+DEFINE_bool(
+    set_max_fec_sampling,
+    false,
+    "Flag to enable setting max FEC sampling for module");
+
 namespace {
 
 constexpr int kUsecBetweenPowerModeFlap = 100000;
@@ -94,6 +99,7 @@ static QsfpFieldInfo<CmisField, CmisPages>::QsfpFieldMap cmisFields = {
     {CmisField::VCC, {CmisPages::LOWER, 16, 2}},
     {CmisField::MODULE_CONTROL, {CmisPages::LOWER, 26, 1}},
     {CmisField::FIRMWARE_REVISION, {CmisPages::LOWER, 39, 2}},
+    {CmisField::FEC_SAMPLING_PCT, {CmisPages::LOWER, 65, 1}},
     {CmisField::MEDIA_TYPE_ENCODINGS, {CmisPages::LOWER, 85, 1}},
     {CmisField::APPLICATION_ADVERTISING1, {CmisPages::LOWER, 86, 4}},
     {CmisField::BANK_SELECT, {CmisPages::LOWER, 126, 1}},
@@ -338,6 +344,12 @@ static std::map<SMFMediaInterfaceCode, MediaInterfaceCode>
         {SMFMediaInterfaceCode::LR4_10_400G, MediaInterfaceCode::LR4_400G_10KM},
         {SMFMediaInterfaceCode::DR4_400G, MediaInterfaceCode::DR4_400G},
         {SMFMediaInterfaceCode::FR8_800G, MediaInterfaceCode::FR8_800G},
+};
+
+// A map of programmable FEC sampling pct per Module Media type.
+static const std::unordered_map<MediaInterfaceCode, uint8_t>
+    kMaxProgFecSamplingSupportedMap_ = {
+        {MediaInterfaceCode::FR4_2x400G, 20},
 };
 
 constexpr uint8_t kPage0CsumRangeStart = 128;
@@ -2318,6 +2330,29 @@ void CmisModule::setApplicationSelectCodeAllPorts(
 }
 
 /*
+ * setMaxFecSamplingLocked
+ *
+ * Sets the FEC monitor sampling ratio to maximum.
+ * Datapath state or module operation would not be interrupted during this
+ * configuration
+ */
+void CmisModule::setMaxFecSamplingLocked() {
+  // FLAGS_set_max_fec_sampling is used to roll out the feature
+  if (FLAGS_set_max_fec_sampling) {
+    auto mediaInterface = getModuleMediaInterface();
+    auto itr = kMaxProgFecSamplingSupportedMap_.find(mediaInterface);
+    if (itr != kMaxProgFecSamplingSupportedMap_.end()) {
+      uint8_t max = itr->second;
+      writeCmisField(CmisField::FEC_SAMPLING_PCT, &max);
+      QSFP_LOG(INFO, this) << folly::sformat(
+          "set sampling rate to max: {} for module media interface {}",
+          max,
+          apache::thrift::util::enumNameSafe(mediaInterface));
+    }
+  }
+}
+
+/*
  * setApplicationCodeLocked
  *
  * This function programs the application select code for a port using the speed
@@ -2461,6 +2496,7 @@ void CmisModule::setApplicationCodeLocked(
     usleep(kUsecAfterAppProgramming);
 
     // Check if the config has been applied correctly or not
+    // TODO: This is a failure scenario. We should Fail somehow !
     if (!checkLaneConfigError(startHostLane, numHostLanes)) {
       QSFP_LOG(ERR, this) << folly::sformat(
           "application {:#x} could not be set",
@@ -2865,6 +2901,8 @@ void CmisModule::customizeTransceiverLocked(TransceiverPortState& portState) {
       writeCmisField(CmisField::RX_SQUELCH_DISABLE, &squelchDisableValue);
       QSFP_LOG(DBG1, this) << "Disabled TX and RX Squelch";
     }
+    // Set the FEC sampling if applicable.
+    setMaxFecSamplingLocked();
   } else {
     QSFP_LOG(DBG1, this) << "Customization not supported";
   }

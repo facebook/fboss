@@ -220,4 +220,13 @@ enum CmisField {
   VDM_GROUPS_SUPPORT = 188,
   VDM_LATCH_REQUEST = 189,
   VDM_LATCH_DONE = 190,
+
+  // Custom Fields
+  // These are fields that are custom to specific transceivers
+  //
+  // FEC sampling percentage currenlty active on the module.
+  // The value applies to all datapaths.
+  // Datapath state or module operation would not be
+  // interrupted during this configuration.
+  FEC_SAMPLING_PCT = 400,
 }

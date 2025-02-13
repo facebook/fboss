@@ -603,6 +603,10 @@ class CmisModule : public QsfpModule {
       uint8_t numHostLanes,
       uint8_t hostLaneMask);
 
+  // Sets the sampling percentage for
+  // FEC errors if supported by transceiver.
+  void setMaxFecSamplingLocked();
+
   const std::shared_ptr<const TransceiverConfig> tcvrConfig_;
 
   bool supportRemediate_;
