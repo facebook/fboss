@@ -16,6 +16,7 @@ add_library(qsfp_lib
 target_link_libraries(qsfp_lib
     qsfp_cpp2
     ctrl_cpp2
+    pim_state_cpp2
     i2c_controller_stats_cpp2
     transceiver_cpp2
     alert_logger

@@ -63,6 +63,8 @@ class WedgeManager : public TransceiverManager {
   std::vector<TransceiverID> refreshTransceivers() override;
   void publishTransceiversToFsdb() override;
 
+  void publishPimStatesToFsdb() override;
+
   // Retrieves PIM states (which includes PIM errors) by querying respective
   // system containers
   virtual std::map<int, PimState> getPimStates() const {
@@ -199,6 +201,8 @@ class WedgeManager : public TransceiverManager {
   void updateTcvrStateInFsdb(
       TransceiverID tcvrID,
       facebook::fboss::TcvrState&& newState) override;
+
+  void updatePimStateInFsdb(int pimID, facebook::fboss::PimState&& newState);
 
   void initQsfpImplMap();
 

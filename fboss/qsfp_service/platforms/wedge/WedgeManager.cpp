@@ -533,6 +533,23 @@ void WedgeManager::updateTcvrStateInFsdb(
   fsdbSyncManager_->updateTcvrState(tcvrID, std::move(newState));
 }
 
+void WedgeManager::updatePimStateInFsdb(
+    int pimID,
+    facebook::fboss::PimState&& newState) {
+  fsdbSyncManager_->updatePimState(pimID, std::move(newState));
+}
+
+void WedgeManager::publishPimStatesToFsdb() {
+  if (!FLAGS_publish_state_to_fsdb) {
+    return;
+  }
+
+  QsfpFsdbSyncManager::PimStatesMap pimStates = getPimStates();
+  for (auto& [id, pimState] : pimStates) {
+    updatePimStateInFsdb(id, std::move(pimState));
+  }
+}
+
 void WedgeManager::publishTransceiversToFsdb() {
   if (!FLAGS_publish_stats_to_fsdb) {
     return;

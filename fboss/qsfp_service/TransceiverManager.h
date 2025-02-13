@@ -128,6 +128,8 @@ class TransceiverManager {
   /// Called to publish transceivers after a refresh
   virtual void publishTransceiversToFsdb() = 0;
 
+  virtual void publishPimStatesToFsdb() = 0;
+
   virtual int scanTransceiverPresence(
       std::unique_ptr<std::vector<int32_t>> ids) = 0;
 

@@ -2026,10 +2026,13 @@ void TransceiverManager::refreshStateMachines() {
     // qsfp_service crash (no gracefulExit).
     setCanWarmBoot();
   }
-  // Update the warmboot state if there is a change.
-  setWarmBootState();
+
+  publishPimStatesToFsdb();
 
   isUpgradingFirmware_ = false;
+
+  // Update the warmboot state if there is a change.
+  setWarmBootState();
 
   XLOG(INFO) << "refreshStateMachines ended";
 }
