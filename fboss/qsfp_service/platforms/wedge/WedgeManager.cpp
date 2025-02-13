@@ -551,7 +551,8 @@ void WedgeManager::publishPimStatesToFsdb() {
   }
 
   int pimsWithError = 0;
-  QsfpFsdbSyncManager::PimStatesMap pimStates = getPimStates();
+  pimStates_ = getPimStates();
+  QsfpFsdbSyncManager::PimStatesMap pimStates = folly::copy(pimStates_);
   for (auto& [id, pimState] : pimStates) {
     if (!pimState.errors()->empty()) {
       ++pimsWithError;

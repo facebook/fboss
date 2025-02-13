@@ -184,6 +184,10 @@ class WedgeManager : public TransceiverManager {
 
   std::string getQsfpToBmcSyncDataSerialized() const;
 
+  std::map<int, PimState> getLastPimState() const {
+    return pimStates_;
+  }
+
  protected:
   void initTransceiverMap() override;
 
@@ -221,6 +225,7 @@ class WedgeManager : public TransceiverManager {
   std::string dataCenter_{""};
   std::string hostnameScheme_{""};
   time_t nextOpticsToBmcSyncTime_{0};
+  std::map<int, PimState> pimStates_;
   std::vector<std::unique_ptr<WedgeQsfp>> qsfpImpls_;
 };
 } // namespace facebook::fboss
