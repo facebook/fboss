@@ -1329,6 +1329,10 @@ class SwSwitch : public HwSwitchCallback {
   folly::Synchronized<
       std::map<SwitchID, switch_reachability::SwitchReachability>>
       hwSwitchReachability_;
+  std::unordered_map<
+      SwitchID,
+      std::map<SwitchID, std::tuple<std::set<PortID>, uint64_t>>>
+      hwReachabilityInfo_;
 #if FOLLY_HAS_COROUTINES
   RxPacketHandlerQueues rxPacketHandlerQueues_;
 #endif

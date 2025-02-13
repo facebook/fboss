@@ -2315,6 +2315,12 @@ void SwSwitch::switchReachabilityChanged(
     const std::map<SwitchID, std::set<PortID>>& switchReachabilityInfo) {
   switch_reachability::SwitchReachability newReachability;
   int currentIdx = 1;
+  uint64_t collectionTimestamp =
+      duration_cast<seconds>(system_clock::now().time_since_epoch()).count();
+  if (hwReachabilityInfo_.find(switchId) == hwReachabilityInfo_.end()) {
+    hwReachabilityInfo_[switchId] = {};
+  }
+  auto& cachedRechabilityInfo = hwReachabilityInfo_[switchId];
   std::unordered_map<std::set<PortID>, int> portGrp2Id;
   for (const auto& [destinationSwitchId, portIdSet] : switchReachabilityInfo) {
     int portGroupId;
@@ -2336,6 +2342,17 @@ void SwSwitch::switchReachabilityChanged(
     }
     newReachability.switchIdToFabricPortGroupMap()[static_cast<int64_t>(
         destinationSwitchId)] = portGroupId;
+    auto iter = cachedRechabilityInfo.find(destinationSwitchId);
+    if (iter != cachedRechabilityInfo.end() &&
+        std::get<std::set<PortID>>(iter->second) == portIdSet) {
+      newReachability.switchIdToLastUpdatedTimestamp()[static_cast<int64_t>(
+          destinationSwitchId)] = std::get<uint64_t>(iter->second);
+    } else {
+      newReachability.switchIdToLastUpdatedTimestamp()[static_cast<int64_t>(
+          destinationSwitchId)] = collectionTimestamp;
+      cachedRechabilityInfo[destinationSwitchId] =
+          std::make_tuple(portIdSet, collectionTimestamp);
+    }
   }
   // Update switch reachability info with the latest data
   (*hwSwitchReachability_.wlock())[switchId] = newReachability;
