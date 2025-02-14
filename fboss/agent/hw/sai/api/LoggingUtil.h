@@ -236,6 +236,20 @@ struct formatter<sai_port_lane_eye_values_t> {
   }
 };
 
+// Formatting for sai_object_type_t
+template <>
+struct formatter<sai_object_type_t> {
+  template <typename ParseContext>
+  constexpr auto parse(ParseContext& ctx) const {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const sai_object_type_t& type, FormatContext& ctx) const {
+    return format_to(ctx.out(), "{}", static_cast<int>(type));
+  }
+};
+
 #if SAI_API_VERSION >= SAI_VERSION(1, 8, 1)
 // Formatting for sai_port_prbs_rx_status_t
 template <>
@@ -267,19 +281,6 @@ struct formatter<sai_prbs_rx_state_t> {
         "PRBS error count: {})",
         prbsStats.rx_status,
         prbsStats.error_count);
-  }
-};
-// Formatting for sai_object_type_t
-template <>
-struct formatter<sai_object_type_t> {
-  template <typename ParseContext>
-  constexpr auto parse(ParseContext& ctx) const {
-    return ctx.begin();
-  }
-
-  template <typename FormatContext>
-  auto format(const sai_object_type_t& type, FormatContext& ctx) const {
-    return format_to(ctx.out(), "{}", static_cast<int>(type));
   }
 };
 #endif

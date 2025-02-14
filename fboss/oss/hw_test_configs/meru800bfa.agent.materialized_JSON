@@ -117,7 +117,10 @@
               "minimum": 0,
               "maximum": 2047
             },
-            "connectionHandle": "15:00"
+            "connectionHandle": "15:00",
+            "firmwareNameToFirmwareInfo": {
+              
+            }
         },
         "2": {
             "switchType": 3,
@@ -127,7 +130,10 @@
               "minimum": 2048,
               "maximum": 4095
             },
-            "connectionHandle": "16:00"
+            "connectionHandle": "16:00",
+            "firmwareNameToFirmwareInfo": {
+              
+            }
         }
       },
       "vendorMacOuis": [
@@ -165,6 +171,9 @@
       }
     },
     "defaultVoqConfig": [
+      
+    ],
+    "mirrorOnDropReports": [
       
     ]
   },

@@ -167,10 +167,12 @@ cpp_unittest(
     srcs = [
         "CommonFileUtilsTest.cpp",
         "CommonPortUtilsTest.cpp",
+        "CommonThriftUtilsTest.cpp",
     ],
     deps = [
         "//fboss/lib:common_file_utils",
         "//fboss/lib:common_port_utils",
+        "//fboss/lib:common_thrift_utils",
         "//folly:format",
         "//folly:singleton",
         "//folly/logging:logging",

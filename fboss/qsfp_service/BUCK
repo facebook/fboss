@@ -152,6 +152,7 @@ cpp_library(
     ],
     exported_external_deps = [
         "boost",
+        "re2",
         ("boost", None, "boost_bimap"),
     ],
 )

@@ -177,7 +177,9 @@ class AgentTrunkLoadBalancerTest : public AgentHwTest {
         utility::getSendPktFunc(getAgentEnsemble()),
         mac,
         firstVlanID,
-        frontPanelPortToLoopTraffic);
+        frontPanelPortToLoopTraffic,
+        255,
+        20000);
   }
 
   void pumpMPLSTraffic(

@@ -9,6 +9,7 @@ add_library(fpga_multi_pim_container
 
 target_link_libraries(fpga_multi_pim_container
   fboss_error
+  pim_state_cpp2
 )
 
 add_library(facebook_fpga

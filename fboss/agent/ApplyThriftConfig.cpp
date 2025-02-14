@@ -1547,13 +1547,31 @@ void ThriftConfigApplier::processInterfaceForPortForNonVoqSwitches(
     int64_t switchId) {
   flat_map<VlanID, InterfaceID> vlan2InterfaceId;
   for (const auto& interfaceCfg : *cfg_->interfaces()) {
-    vlan2InterfaceId[VlanID(*interfaceCfg.vlanID())] =
-        InterfaceID(*interfaceCfg.intfID());
+    switch (*interfaceCfg.type()) {
+      case cfg::InterfaceType::VLAN: {
+        vlan2InterfaceId[VlanID(*interfaceCfg.vlanID())] =
+            InterfaceID(*interfaceCfg.intfID());
+      } break;
+      case cfg::InterfaceType::PORT: {
+        if (!interfaceCfg.portID()) {
+          throw FbossError(
+              "Missing port for interface ", *interfaceCfg.intfID());
+        }
+        port2InterfaceId_[PortID(*interfaceCfg.portID())] = {
+            *interfaceCfg.intfID()};
+      } break;
+      case cfg::InterfaceType::SYSTEM_PORT:
+        throw FbossError("Unsupport interface type for NPU switch");
+    }
   }
 
   for (const auto& portCfg : *cfg_->ports()) {
     auto portID = PortID(*portCfg.logicalID());
     if (!scopeResolver_.scope(portCfg).has(SwitchID(switchId))) {
+      continue;
+    }
+    if (port2InterfaceId_.find(portID) != port2InterfaceId_.end()) {
+      // port is associated with port router interface, vlan is immaterial
       continue;
     }
 
@@ -2548,7 +2566,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
       *portConf->conditionalEntropyRehash() ==
           orig->getConditionalEntropyRehash() &&
       portConf->selfHealingECMPLagEnable().value_or(false) ==
-          orig->getSelfHealingECMPLagEnable()) {
+          orig->getSelfHealingECMPLagEnable().value_or(false)) {
     return nullptr;
   }
 
@@ -5441,7 +5459,6 @@ std::shared_ptr<Mirror> ThriftConfigApplier::updateMirror(
     if (orig->getEgressPortDesc()) {
       newMirror->setEgressPortDesc(
           PortDescriptor(orig->getEgressPortDesc().value()));
-      newMirror->setEgressPort(orig->getEgressPortDesc().value().phyPortID());
     }
   }
   if (*newMirror == *orig) {
@@ -5510,12 +5527,6 @@ ThriftConfigApplier::createMirrorOnDropReport(
       ? folly::IPAddress(getSwitchIntfIP(new_, InterfaceID(systemPortId)))
       : folly::IPAddress(getSwitchIntfIPv6(new_, InterfaceID(systemPortId)));
 
-  uint8_t dscp = *config->dscp();
-  std::optional<int32_t> agingIntervalUsecs;
-  if (config->agingIntervalUsecs().has_value()) {
-    agingIntervalUsecs = config->agingIntervalUsecs().value();
-  }
-
   return std::make_shared<MirrorOnDropReport>(
       *config->name(),
       PortID(*config->mirrorPortId()),
@@ -5525,11 +5536,11 @@ ThriftConfigApplier::createMirrorOnDropReport(
       *config->collectorPort(),
       *config->mtu(),
       *config->truncateSize(),
-      dscp,
-      agingIntervalUsecs,
+      static_cast<uint8_t>(*config->dscp()),
       getLocalMacAddress().toString(),
       utility::getFirstInterfaceMac(new_).toString(),
-      *config->modEventToConfigMap());
+      *config->modEventToConfigMap(),
+      *config->agingGroupAgingIntervalUsecs());
 }
 
 std::shared_ptr<MirrorOnDropReport>

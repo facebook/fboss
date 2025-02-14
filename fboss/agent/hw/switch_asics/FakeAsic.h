@@ -106,13 +106,13 @@ class FakeAsic : public HwAsic {
   uint32_t getMaxMirrors() const override {
     return 4;
   }
-  uint64_t getDefaultReservedBytes(
+  std::optional<uint64_t> getDefaultReservedBytes(
       cfg::StreamType /*streamType*/,
       cfg::PortType portType) const override {
     // Mimicking TH
     return portType == cfg::PortType::CPU_PORT ? 1664 : 0;
   }
-  cfg::MMUScalingFactor getDefaultScalingFactor(
+  std::optional<cfg::MMUScalingFactor> getDefaultScalingFactor(
       cfg::StreamType /*streamType*/,
       bool /*cpu*/) const override {
     // Mimicking TH

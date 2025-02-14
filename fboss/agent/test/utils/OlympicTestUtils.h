@@ -117,7 +117,10 @@ constexpr int kNetworkAIHighestQueueId = kNetworkAINCQueueId;
 void addNetworkAIQueueConfig(
     cfg::SwitchConfig* config,
     cfg::StreamType streamType,
-    const HwAsic* hwAsic);
+    cfg::QueueScheduling schedType,
+    const HwAsic* hwAsic,
+    bool addWredConfig = false,
+    bool addEcnConfig = true);
 
 void addNetworkAIQosMaps(
     cfg::SwitchConfig& cfg,

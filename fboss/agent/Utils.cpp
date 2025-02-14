@@ -102,46 +102,6 @@ AddrT getIPAddress(InterfaceID intfID, const Interface::AddressesType addrs) {
   throw FbossError("Cannot find IP address for interface ", intfID);
 }
 
-static const facebook::fboss::PlatformMapping* FOLLY_NULLABLE
-getPlatformMappingForDsfNode(const facebook::fboss::PlatformType platformType) {
-  switch (platformType) {
-    case facebook::fboss::PlatformType::PLATFORM_MERU400BIU: {
-      static facebook::fboss::Meru400biuPlatformMapping meru400biu;
-      return &meru400biu;
-    }
-    case facebook::fboss::PlatformType::PLATFORM_MERU400BIA: {
-      static facebook::fboss::Meru400biaPlatformMapping meru400bia;
-      return &meru400bia;
-    }
-    case facebook::fboss::PlatformType::PLATFORM_MERU400BFU: {
-      static facebook::fboss::Meru400bfuPlatformMapping meru400bfu;
-      return &meru400bfu;
-    }
-    case facebook::fboss::PlatformType::PLATFORM_MERU800BFA: {
-      static facebook::fboss::Meru800bfaPlatformMapping meru800bfa{
-          true /*multiNpuPlatformMapping*/};
-      return &meru800bfa;
-    }
-    case facebook::fboss::PlatformType::PLATFORM_MERU800BFA_P1: {
-      static facebook::fboss::Meru800bfaP1PlatformMapping meru800bfa{
-          true /*multiNpuPlatformMapping*/};
-      return &meru800bfa;
-    }
-    case facebook::fboss::PlatformType::PLATFORM_MERU800BIA: {
-      static facebook::fboss::Meru800biaPlatformMapping meru800bia;
-      return &meru800bia;
-    }
-    case facebook::fboss::PlatformType::PLATFORM_JANGA800BIC: {
-      static facebook::fboss::Janga800bicPlatformMapping janga800bic{
-          true /*multiNpuPlatformMapping*/};
-      return &janga800bic;
-    }
-    default:
-      break;
-  }
-  return nullptr;
-}
-
 cfg::Range64 getCoveringSysPortRange(
     int64_t id,
     const std::map<int64_t, cfg::SwitchInfo>& switchIdToSwitchInfo) {
@@ -1083,6 +1043,47 @@ std::pair<std::string, std::string> getExpectedNeighborAndPortName(
   return std::make_pair(neighborName, neighborPortName);
 };
 
+const facebook::fboss::PlatformMapping* FOLLY_NULLABLE
+getPlatformMappingForPlatformType(
+    const facebook::fboss::PlatformType platformType) {
+  switch (platformType) {
+    case facebook::fboss::PlatformType::PLATFORM_MERU400BIU: {
+      static facebook::fboss::Meru400biuPlatformMapping meru400biu;
+      return &meru400biu;
+    }
+    case facebook::fboss::PlatformType::PLATFORM_MERU400BIA: {
+      static facebook::fboss::Meru400biaPlatformMapping meru400bia;
+      return &meru400bia;
+    }
+    case facebook::fboss::PlatformType::PLATFORM_MERU400BFU: {
+      static facebook::fboss::Meru400bfuPlatformMapping meru400bfu;
+      return &meru400bfu;
+    }
+    case facebook::fboss::PlatformType::PLATFORM_MERU800BFA: {
+      static facebook::fboss::Meru800bfaPlatformMapping meru800bfa{
+          true /*multiNpuPlatformMapping*/};
+      return &meru800bfa;
+    }
+    case facebook::fboss::PlatformType::PLATFORM_MERU800BFA_P1: {
+      static facebook::fboss::Meru800bfaP1PlatformMapping meru800bfa{
+          true /*multiNpuPlatformMapping*/};
+      return &meru800bfa;
+    }
+    case facebook::fboss::PlatformType::PLATFORM_MERU800BIA: {
+      static facebook::fboss::Meru800biaPlatformMapping meru800bia;
+      return &meru800bia;
+    }
+    case facebook::fboss::PlatformType::PLATFORM_JANGA800BIC: {
+      static facebook::fboss::Janga800bicPlatformMapping janga800bic{
+          true /*multiNpuPlatformMapping*/};
+      return &janga800bic;
+    }
+    default:
+      break;
+  }
+  return nullptr;
+}
+
 int getRemoteSwitchID(
     const cfg::SwitchConfig* cfg,
     const cfg::Port& port,
@@ -1097,7 +1098,7 @@ int getRemoteSwitchID(
   CHECK(dsfNodeItr != cfg->dsfNodes()->end());
 
   const auto platformMapping =
-      getPlatformMappingForDsfNode(*dsfNodeItr->second.platformType());
+      getPlatformMappingForPlatformType(*dsfNodeItr->second.platformType());
 
   if (!platformMapping) {
     throw FbossError(
@@ -1154,5 +1155,13 @@ int numFabricLevels(const std::map<int64_t, cfg::DsfNode>& dsfNodes) {
         maxFabricLevel = std::max(maxFabricLevel, nodeFabricLevel);
       });
   return maxFabricLevel;
+}
+
+const std::vector<cfg::AclLookupClass>& getToCpuClassIds() {
+  static const std::vector<cfg::AclLookupClass> toCpuClassIds = {
+      cfg::AclLookupClass::DST_CLASS_L3_LOCAL_1,
+      cfg::AclLookupClass::DST_CLASS_L3_LOCAL_2,
+  };
+  return toCpuClassIds;
 }
 } // namespace facebook::fboss

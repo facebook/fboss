@@ -487,7 +487,7 @@ void SaiBufferManager::updateIngressPriorityGroupWatermarkStats(
 
 void SaiBufferManager::updateIngressPriorityGroupNonWatermarkStats(
     const std::shared_ptr<SaiIngressPriorityGroup>& ingressPriorityGroup,
-    const IngressPriorityGroupID& /*pgId*/,
+    const IngressPriorityGroupID& pgId,
     HwPortStats& hwPortStats) {
   const auto& ingressPriorityGroupStats =
       supportedIngressPriorityGroupNonWatermarkStats();
@@ -496,8 +496,7 @@ void SaiBufferManager::updateIngressPriorityGroupNonWatermarkStats(
   auto counters = ingressPriorityGroup->getStats();
   auto iter = counters.find(SAI_INGRESS_PRIORITY_GROUP_STAT_DROPPED_PACKETS);
   if (iter != counters.end()) {
-    // In Congestion Discards are exposed at port level
-    *hwPortStats.inCongestionDiscards_() += iter->second;
+    hwPortStats.pgInCongestionDiscards_()[pgId] = iter->second;
   }
 }
 
@@ -507,6 +506,7 @@ void SaiBufferManager::updateIngressPriorityGroupStats(
     bool updateWatermarks) {
   SaiPortHandle* portHandle =
       managerTable_->portManager().getPortHandle(portId);
+  uint64_t inCongestionDiscards{0};
   for (const auto& ipgInfo : portHandle->configuredIngressPriorityGroups) {
     const auto& ingressPriorityGroup =
         ipgInfo.second.pgHandle->ingressPriorityGroup;
@@ -516,7 +516,15 @@ void SaiBufferManager::updateIngressPriorityGroupStats(
     }
     updateIngressPriorityGroupNonWatermarkStats(
         ingressPriorityGroup, ipgInfo.first, hwPortStats);
+    auto pgCongestionDiscardIter =
+        hwPortStats.pgInCongestionDiscards_()->find(ipgInfo.first);
+    if (pgCongestionDiscardIter !=
+        hwPortStats.pgInCongestionDiscards_()->end()) {
+      inCongestionDiscards += pgCongestionDiscardIter->second;
+    }
   }
+  // Port inCongestionDiscards is the sum of all PG inCongestionDiscards
+  hwPortStats.inCongestionDiscards_() = inCongestionDiscards;
 }
 
 SaiBufferProfileTraits::CreateAttributes SaiBufferManager::profileCreateAttrs(

@@ -100,8 +100,6 @@ class ExplorationSummary {
   // 2. Publish relevant data to ODS.
   // Return final exploration status.
   ExplorationStatus summarize();
-
- protected:
   virtual bool isDeviceExpectedToFail(const std::string& devicePath);
 
  private:

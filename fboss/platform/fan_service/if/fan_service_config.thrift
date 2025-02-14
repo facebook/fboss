@@ -83,7 +83,7 @@ struct Fan {
 }
 
 struct Watchdog {
-  1: AccessMethod access;
+  1: string sysfsPath;
   2: i32 value;
 }
 
@@ -91,7 +91,6 @@ struct Sensor {
   1: string sensorName;
   2: AccessMethod access;
   6: string pwmCalcType;
-  7: float scale;
   8: TempToPwmMap normalUpTable;
   9: TempToPwmMap normalDownTable;
   10: TempToPwmMap failUpTable;

@@ -129,6 +129,7 @@ cpp_library(
         "PkgManager.cpp",
     ],
     exported_deps = [
+        "fbsource//third-party/range-v3:range-v3",
         ":platform_manager_config-cpp2-types",
         "//fb303:service_data",
         "//fboss/platform/helpers:platform_fs_utils",

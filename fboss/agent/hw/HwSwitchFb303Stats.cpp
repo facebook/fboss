@@ -221,6 +221,11 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
           getCounterPrefix() + vendor + ".allReassemblyContextsTaken.errors",
           SUM,
           RATE),
+      isolationFirmwareCrashes_(
+          map,
+          getCounterPrefix() + vendor + ".isolationFirmwareCrash",
+          SUM,
+          RATE),
       hwInitializedTimeMs_(
           map,
           getCounterPrefix() + vendor + ".hw_initialized_time_ms",
@@ -414,6 +419,11 @@ int64_t HwSwitchFb303Stats::getForwardingQueueProcessorErrors() const {
 int64_t HwSwitchFb303Stats::getAllReassemblyContextsTakenError() const {
   return getCumulativeValue(allReassemblyContextsTaken_);
 }
+
+int64_t HwSwitchFb303Stats::getIsolationFirmwareCrashes() const {
+  return getCumulativeValue(isolationFirmwareCrashes_);
+}
+
 int64_t HwSwitchFb303Stats::getPacketIntegrityDrops() const {
   return currentDropStats_.packetIntegrityDrops().value_or(0);
 }
@@ -474,6 +484,7 @@ HwAsicErrors HwSwitchFb303Stats::getHwAsicErrors() const {
   asicErrors.fdaFifoOverflowErrors() = getFdaFifoOverflowErrors();
   asicErrors.allReassemblyContextsTaken() =
       getAllReassemblyContextsTakenError();
+  asicErrors.isolationFirmwareCrashes() = getIsolationFirmwareCrashes();
   return asicErrors;
 }
 

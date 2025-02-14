@@ -97,6 +97,25 @@ void QsfpFsdbSyncManager::updateTcvrStats(std::map<int, TcvrStats>&& stats) {
   });
 }
 
+void QsfpFsdbSyncManager::updatePimState(int pimId, PimState&& newState) {
+  if (!FLAGS_publish_state_to_fsdb) {
+    return;
+  }
+
+  stateSyncer_->updateState([pimId,
+                             newState = std::move(newState)](const auto& in) {
+    auto out = in->clone();
+    out->template modify<state::qsfp_state_tags::strings::state>();
+    auto& state = out->template ref<state::qsfp_state_tags::strings::state>();
+    state->template modify<state::qsfp_state_tags::strings::pimStates>();
+    auto& PimStates =
+        state->template ref<state::qsfp_state_tags::strings::pimStates>();
+    PimStates->modify(folly::to<std::string>(pimId));
+    PimStates->ref(pimId)->fromThrift(newState);
+    return out;
+  });
+}
+
 void QsfpFsdbSyncManager::updatePhyState(
     std::string&& portName,
     std::optional<phy::PhyState>&& newState) {

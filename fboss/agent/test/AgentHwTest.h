@@ -40,7 +40,7 @@ class AgentHwTest : public ::testing::Test {
   ~AgentHwTest() override = default;
   void SetUp() override;
   void TearDown() override;
-  void tearDownAgentEnsemble(bool doWarmboot = false);
+  virtual void tearDownAgentEnsemble(bool doWarmboot = false);
   using StateUpdateFn = SwSwitch::StateUpdateFn;
 
  protected:

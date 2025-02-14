@@ -687,6 +687,13 @@ struct SaiSwitchTraits {
         AttributeArsAvailableFlows,
         SaiIntDefault<sai_uint32_t>>;
 #endif
+    struct AttributeSflowAggrNofSamplesWrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using SflowAggrNofSamples = SaiExtensionAttribute<
+        sai_uint8_t,
+        AttributeSflowAggrNofSamplesWrapper,
+        SaiIntDefault<sai_uint8_t>>;
   };
   using AdapterKey = SwitchSaiId;
   using AdapterHostKey = std::monostate;
@@ -772,7 +779,8 @@ struct SaiSwitchTraits {
       std::optional<Attributes::ShelDstIp>,
       std::optional<Attributes::ShelSrcMac>,
       std::optional<Attributes::ShelPeriodicInterval>,
-      std::optional<Attributes::MaxSwitchId>>;
+      std::optional<Attributes::MaxSwitchId>,
+      std::optional<Attributes::SflowAggrNofSamples>>;
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
   static constexpr std::array<sai_stat_id_t, 3> CounterIdsToRead = {
@@ -931,6 +939,7 @@ SAI_ATTRIBUTE_NAME(Switch, ShelPeriodicInterval)
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
 SAI_ATTRIBUTE_NAME(Switch, ArsAvailableFlows)
 #endif
+SAI_ATTRIBUTE_NAME(Switch, SflowAggrNofSamples)
 
 template <>
 struct SaiObjectHasStats<SaiSwitchTraits> : public std::true_type {};

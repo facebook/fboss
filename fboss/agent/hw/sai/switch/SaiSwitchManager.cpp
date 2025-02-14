@@ -35,11 +35,6 @@ extern "C" {
 #include <sai.h>
 }
 
-DEFINE_uint32(
-    counter_refresh_interval,
-    1,
-    "Counter refresh interval in seconds. Set it to 0 to fetch stats from HW");
-
 DEFINE_bool(
     skip_setting_src_mac,
     false,

@@ -201,6 +201,8 @@ class HwAsic {
     FDR_FIFO_WATERMARK,
     EGRESS_CELL_ERROR_STATS,
     CPU_QUEUE_WATERMARK_STATS,
+    SAMPLE_RATE_CONFIG_PER_MIRROR,
+    SFLOW_SAMPLES_PACKING,
   };
 
   enum class AsicMode {
@@ -250,10 +252,10 @@ class HwAsic {
   virtual uint64_t getMMUSizeBytes() const = 0;
   virtual uint32_t getMaxMirrors() const = 0;
   virtual uint16_t getMirrorTruncateSize() const = 0;
-  virtual uint64_t getDefaultReservedBytes(
+  virtual std::optional<uint64_t> getDefaultReservedBytes(
       cfg::StreamType streamType,
       cfg::PortType portType) const = 0;
-  virtual cfg::MMUScalingFactor getDefaultScalingFactor(
+  virtual std::optional<cfg::MMUScalingFactor> getDefaultScalingFactor(
       cfg::StreamType streamType,
       bool cpu) const = 0;
   virtual const std::map<cfg::PortType, cfg::PortLoopbackMode>&

@@ -49,9 +49,8 @@ std::vector<cfg::AclTableQualifier> genAclQualifiersConfig(
     cfg::AsicType asicType);
 
 int getAclTableIndex(
-    cfg::SwitchConfig* cfg,
-    const std::string& tableName,
-    const std::string& tableGroupName);
+    cfg::AclTableGroup* aclTableGroup,
+    const std::string& tableName);
 
 std::shared_ptr<AclEntry> getAclEntryByName(
     const std::shared_ptr<SwitchState> state,
@@ -83,6 +82,15 @@ void addDefaultAclTable(cfg::SwitchConfig& cfg);
 
 cfg::AclTable* addAclTable(
     cfg::SwitchConfig* cfg,
+    const std::string& aclTableName,
+    const int aclTablePriority,
+    const std::vector<cfg::AclTableActionType>& actionTypes,
+    const std::vector<cfg::AclTableQualifier>& qualifiers,
+    const std::vector<std::string>& udfGroups = {});
+
+cfg::AclTable* addAclTable(
+    cfg::SwitchConfig* cfg,
+    cfg::AclStage aclStage,
     const std::string& aclTableName,
     const int aclTablePriority,
     const std::vector<cfg::AclTableActionType>& actionTypes,
@@ -145,9 +153,11 @@ std::shared_ptr<AclEntry> getAclEntry(
     const std::string& name,
     bool enableAclTableGroup);
 
-cfg::AclTableGroup* FOLLY_NULLABLE
-getAclTableGroup(cfg::SwitchConfig& config, const std::string& name);
-
 cfg::AclTableGroup* FOLLY_NULLABLE getAclTableGroup(cfg::SwitchConfig& config);
+
+cfg::AclTableGroup* FOLLY_NULLABLE
+getAclTableGroup(cfg::SwitchConfig& config, cfg::AclStage aclStage);
+
+void setupDefaultAclTableGroups(cfg::SwitchConfig& config);
 
 } // namespace facebook::fboss::utility

@@ -573,6 +573,7 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
         utility::addOlympicQosMaps(newCfg, {getAsic()});
         utility::addDscpAclTable(
             &newCfg,
+            getAsic(),
             1 /*priority*/,
             addAllQualifiers,
             this->getHwSwitchEnsemble()->isSai());

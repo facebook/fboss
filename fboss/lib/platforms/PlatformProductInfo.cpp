@@ -164,7 +164,8 @@ void PlatformProductInfo::initMode() {
       type_ = PlatformType::PLATFORM_MERU800BFA;
     } else if (
         modelName.find("MORGAN800CC") == 0 ||
-        modelName.find("8501-SYS-MT") == 0) {
+        modelName.find("8501-SYS-MT") == 0 ||
+        modelName.find("8501-SYS-MT-PVT") == 0) {
       type_ = PlatformType::PLATFORM_MORGAN800CC;
     } else if (modelName.find("YANGRA") == 0) {
       type_ = PlatformType::PLATFORM_YANGRA;

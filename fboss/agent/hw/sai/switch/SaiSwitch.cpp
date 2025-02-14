@@ -523,6 +523,22 @@ void SaiSwitch::rollback(const StateDelta& delta) noexcept {
     auto hwSwitchJson = toFollyDynamicLocked(lockPolicy.lock());
     {
       HwWriteBehaviorRAII writeBehavior{HwWriteBehavior::SKIP};
+      if (platform_->getAsic()->isSupported(HwAsic::Feature::DEFAULT_VLAN)) {
+        /*
+         * TODO(pshaikh): introduce VLAN ID 1 in all configs across all
+         * platforms which support default vlans.
+         * TODO(pshaikh): remove default vlan from SwitchConfig, and
+         * SwitchSettings for SAI, existing value of 4094 is legacy (non-SAI)
+         * implementation
+         */
+        auto defaultVlan =
+            managerTable_->switchManager().getDefaultVlanAdapterKey();
+        saiStore_->get<SaiVlanTraits>().removeUnclaimedWarmbootHandlesIf(
+            [defaultVlan](const auto& obj) {
+              return obj->adapterKey() == defaultVlan;
+            },
+            true /* owned by adapter */);
+      }
       managerTable_->reset(true /*skip switch manager reset*/);
     }
     // The work flow below is essentially a in memory warm boot,
@@ -885,6 +901,43 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
       };
   processNeighborChangedAndAddedDeltaForIntfs(delta.getIntfsDelta());
   processNeighborChangedAndAddedDeltaForIntfs(delta.getRemoteIntfsDelta());
+
+  processAddedDelta(
+      delta.getPortsDelta(),
+      managerTable_->portManager(),
+      lockPolicy,
+      &SaiPortManager::addPortShelEnable);
+
+  processChangedDelta(
+      delta.getPortsDelta(),
+      managerTable_->portManager(),
+      lockPolicy,
+      &SaiPortManager::changePortShelEnable);
+
+  processAddedDelta(
+      delta.getSystemPortsDelta(),
+      managerTable_->systemPortManager(),
+      lockPolicy,
+      &SaiSystemPortManager::addSystemPortShelPktDstEnable);
+
+  processChangedDelta(
+      delta.getSystemPortsDelta(),
+      managerTable_->systemPortManager(),
+      lockPolicy,
+      &SaiSystemPortManager::changeSystemPortShelPktDstEnable);
+
+  processAddedDelta(
+      delta.getRemoteSystemPortsDelta(),
+      managerTable_->systemPortManager(),
+      lockPolicy,
+      &SaiSystemPortManager::addSystemPortShelPktDstEnable);
+
+  processChangedDelta(
+      delta.getRemoteSystemPortsDelta(),
+      managerTable_->systemPortManager(),
+      lockPolicy,
+      &SaiSystemPortManager::changeSystemPortShelPktDstEnable);
+
   for (const auto& vlanDelta : delta.getVlansDelta()) {
     processChangedDelta(
         vlanDelta.getArpDelta(),
@@ -2931,7 +2984,8 @@ void SaiSwitch::packetRxCallback(
         hostifQueueIdOpt = attr_list[index].value.u8;
         break;
       default:
-        XLOG_EVERY_MS(DBG3, 5000) << "invalid attribute received";
+        XLOG_EVERY_MS(DBG3, 5000)
+            << "invalid attribute received: " << attr_list[index].id;
     }
   }
 

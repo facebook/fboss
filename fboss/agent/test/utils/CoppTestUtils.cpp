@@ -178,6 +178,14 @@ cfg::StreamType getCpuDefaultStreamType(const HwAsic* hwAsic) {
   return defaultStreamType;
 }
 
+cfg::QueueScheduling getCpuDefaultQueueScheduling(const HwAsic* hwAsic) {
+  if (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    // prevent scheduling configuration on chenab for cpu queues
+    return cfg::QueueScheduling::INTERNAL;
+  }
+  return cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+}
+
 uint32_t getCoppQueuePps(const HwAsic* hwAsic, uint16_t queueId) {
   uint32_t pps;
   if (hwAsic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_TAJO) {
@@ -251,7 +259,7 @@ void addCpuQueueConfig(
   queue0.id() = kCoppLowPriQueueId;
   queue0.name() = "cpuQueue-low";
   queue0.streamType() = getCpuDefaultStreamType(hwAsic);
-  queue0.scheduling() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+  queue0.scheduling() = getCpuDefaultQueueScheduling(hwAsic);
   queue0.weight() = kCoppLowPriWeight;
   if (setQueueRate) {
     queue0.portQueueRate() = setPortQueueRate(hwAsic, kCoppLowPriQueueId);
@@ -268,8 +276,10 @@ void addCpuQueueConfig(
     queue1.id() = kCoppDefaultPriQueueId;
     queue1.name() = "cpuQueue-default";
     queue1.streamType() = getCpuDefaultStreamType(hwAsic);
-    queue1.scheduling() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
-    queue1.weight() = kCoppDefaultPriWeight;
+    queue1.scheduling() = getCpuDefaultQueueScheduling(hwAsic);
+    queue1.weight() = *queue1.scheduling() == cfg::QueueScheduling::INTERNAL
+        ? 0
+        : kCoppDefaultPriWeight;
     if (setQueueRate) {
       queue1.portQueueRate() = setPortQueueRate(hwAsic, kCoppDefaultPriQueueId);
     }
@@ -278,14 +288,24 @@ void addCpuQueueConfig(
     }
     setPortQueueSharedBytes(queue1, isSai);
     cpuQueues.push_back(queue1);
+  } else if (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    cfg::PortQueue queue1;
+    queue1.id() = kCoppDefaultPriQueueId;
+    queue1.name() = "cpuQueue-default";
+    queue1.streamType() = getCpuDefaultStreamType(hwAsic);
+    queue1.scheduling() = cfg::QueueScheduling::INTERNAL;
+    queue1.weight() = 0;
+    cpuQueues.push_back(queue1);
   }
 
   cfg::PortQueue queue2;
   queue2.id() = getCoppMidPriQueueId({hwAsic});
   queue2.name() = "cpuQueue-mid";
   queue2.streamType() = getCpuDefaultStreamType(hwAsic);
-  queue2.scheduling() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
-  queue2.weight() = kCoppMidPriWeight;
+  queue2.scheduling() = getCpuDefaultQueueScheduling(hwAsic);
+  queue2.weight() = *queue2.scheduling() == cfg::QueueScheduling::INTERNAL
+      ? 0
+      : kCoppMidPriWeight;
   setPortQueueMaxDynamicSharedBytes(queue2, hwAsic);
   cpuQueues.push_back(queue2);
 
@@ -293,8 +313,10 @@ void addCpuQueueConfig(
   queue9.id() = getCoppHighPriQueueId(hwAsic);
   queue9.name() = "cpuQueue-high";
   queue9.streamType() = getCpuDefaultStreamType(hwAsic);
-  queue9.scheduling() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
-  queue9.weight() = kCoppHighPriWeight;
+  queue9.scheduling() = getCpuDefaultQueueScheduling(hwAsic);
+  queue9.weight() = *queue9.scheduling() == cfg::QueueScheduling::INTERNAL
+      ? 0
+      : kCoppHighPriWeight;
   cpuQueues.push_back(queue9);
 
   *config.cpuQueues() = cpuQueues;
@@ -685,7 +707,7 @@ void setTTLZeroCpuConfig(
     // don't configure if not supported
     return;
   }
-
+  excludeTTL1TrapConfig(config);
   std::vector<cfg::PacketRxReasonToQueue> rxReasons;
   bool addTtlRxReason = true;
   if (config.cpuTrafficPolicy().has_value() &&
@@ -719,20 +741,20 @@ void setTTLZeroCpuConfig(
 }
 
 void excludeTTL1TrapConfig(cfg::SwitchConfig& config) {
-  std::vector<cfg::PacketRxReasonToQueue> rxReasons;
-  // Exclude TTL_1 trap since on some devices we disable it
-  // to set up data plane loops
-  CHECK(config.cpuTrafficPolicy().has_value());
-  CHECK(config.cpuTrafficPolicy()->rxReasonToQueueOrderedList().has_value());
-  if (config.cpuTrafficPolicy()->rxReasonToQueueOrderedList()->size()) {
+  if (config.cpuTrafficPolicy().has_value() &&
+      config.cpuTrafficPolicy()->rxReasonToQueueOrderedList().has_value() &&
+      config.cpuTrafficPolicy()->rxReasonToQueueOrderedList()->size()) {
+    std::vector<cfg::PacketRxReasonToQueue> rxReasons;
+    // Exclude TTL_1 trap since on some devices we disable it
+    // to set up data plane loops
     for (auto rxReasonAndQueue :
          *config.cpuTrafficPolicy()->rxReasonToQueueOrderedList()) {
       if (*rxReasonAndQueue.rxReason() != cfg::PacketRxReason::TTL_1) {
         rxReasons.push_back(rxReasonAndQueue);
       }
     }
+    config.cpuTrafficPolicy()->rxReasonToQueueOrderedList() = rxReasons;
   }
-  config.cpuTrafficPolicy()->rxReasonToQueueOrderedList() = rxReasons;
 }
 
 void setPortQueueSharedBytes(cfg::PortQueue& queue, bool isSai) {

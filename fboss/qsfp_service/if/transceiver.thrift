@@ -218,6 +218,7 @@ enum MediaInterfaceCode {
   DR4_400G = 14,
   FR8_800G = 15,
   CR_10G = 16,
+  FR4_LITE_2x400G = 17,
 }
 
 // The extended specification compliance code of the transceiver module.
@@ -521,6 +522,8 @@ struct TcvrState {
   23: i64 timeCollected;
   24: DiagsCapability diagCapability;
   25: bool fwUpgradeInProgress;
+  26: set<string> interfaces;
+  27: string tcvrName;
 }
 
 struct TcvrStats {
@@ -539,6 +542,8 @@ struct TcvrStats {
   13: optional VdmPerfMonitorStatsForOds vdmPerfMonitorStatsForOds;
   14: map<string, CdbDatapathSymErrHistogram> cdbDatapathSymErrHistogram;
   15: map<string, i64> lastDatapathResetTime;
+  16: set<string> interfaces;
+  17: string tcvrName;
 }
 
 struct TransceiverInfo {
@@ -713,7 +718,7 @@ struct CmisData {
 struct TransceiverIOParameters {
   1: i32 offset; // should range from 0 - 255
   2: optional i32 page; // can be used to access bytes 128-255 from a different page than page0
-  3: optional i32 length; // Number of bytes to read. Not applicable for a write
+  3: optional i32 length; // Number of bytes to read. Also can represent number of bytes to write for multi-byte writes.
 }
 
 struct ReadRequest {
@@ -730,6 +735,7 @@ struct WriteRequest {
   1: list<i32> ids;
   2: TransceiverIOParameters parameter;
   3: byte data; // The data to write for a write request
+  4: optional list<byte> bytes; // The data to write for multi-byte write requests (preferred)
 }
 
 struct WriteResponse {

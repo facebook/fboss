@@ -1,6 +1,7 @@
 {
   "defaultCommandLineArgs": {
     "check_wb_handles": "true",
+    "enable_route_resource_protection": "false",
     "log_variable_name": "true",
     "mode": "meru400bfu",
     "skip_transceiver_programming": "true"
@@ -116,7 +117,10 @@
               "minimum": 0,
               "maximum": 2047
             },
-            "connectionHandle": "0c:00"
+            "connectionHandle": "0c:00",
+            "firmwareNameToFirmwareInfo": {
+              
+            }
         }
       },
       "vendorMacOuis": [
@@ -134,6 +138,9 @@
       
     },
     "defaultVoqConfig": [
+      
+    ],
+    "mirrorOnDropReports": [
       
     ]
   },

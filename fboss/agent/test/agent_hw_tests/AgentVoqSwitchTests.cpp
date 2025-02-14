@@ -25,10 +25,6 @@
 DECLARE_bool(disable_looped_fabric_ports);
 DECLARE_bool(enable_stats_update_thread);
 
-namespace {
-constexpr uint8_t kDefaultQueue = 0;
-} // namespace
-
 using namespace facebook::fb303;
 namespace facebook::fboss {
 
@@ -407,12 +403,14 @@ TEST_F(AgentVoqSwitchTest, sendPacketCpuAndFrontPanel) {
 
       if (isSupportedOnAllAsics(HwAsic::Feature::L3_QOS)) {
         auto beforeAllQueueOut = getAllQueueOutPktsBytes();
-        beforeQueueOutPkts = beforeAllQueueOut.first.at(kDefaultQueue);
-        beforeQueueOutBytes = beforeAllQueueOut.second.at(kDefaultQueue);
+        beforeQueueOutPkts =
+            beforeAllQueueOut.first.at(utility::getDefaultQueue());
+        beforeQueueOutBytes =
+            beforeAllQueueOut.second.at(utility::getDefaultQueue());
         printQueueStats("Before Queue Out", "Packets", beforeAllQueueOut.first);
         printQueueStats("Before Queue Out", "Bytes", beforeAllQueueOut.second);
         auto beforeAllVoQOutBytes = getAllVoQOutBytes();
-        beforeVoQOutBytes = beforeAllVoQOutBytes.at(kDefaultQueue);
+        beforeVoQOutBytes = beforeAllVoQOutBytes.at(utility::getDefaultQueue());
         printQueueStats("Before VoQ Out", "Bytes", beforeAllVoQOutBytes);
       }
 
@@ -439,10 +437,13 @@ TEST_F(AgentVoqSwitchTest, sendPacketCpuAndFrontPanel) {
           maxRetryCount, std::chrono::milliseconds(sleepTimeMsecs), {
             if (isSupportedOnAllAsics(HwAsic::Feature::L3_QOS)) {
               auto afterAllQueueOut = getAllQueueOutPktsBytes();
-              afterQueueOutPkts = afterAllQueueOut.first.at(kDefaultQueue);
-              afterQueueOutBytes = afterAllQueueOut.second.at(kDefaultQueue);
+              afterQueueOutPkts =
+                  afterAllQueueOut.first.at(utility::getDefaultQueue());
+              afterQueueOutBytes =
+                  afterAllQueueOut.second.at(utility::getDefaultQueue());
               auto afterAllVoQOutBytes = getAllVoQOutBytes();
-              afterVoQOutBytes = afterAllVoQOutBytes.at(kDefaultQueue);
+              afterVoQOutBytes =
+                  afterAllVoQOutBytes.at(utility::getDefaultQueue());
               printQueueStats("After VoQ Out", "Bytes", afterAllVoQOutBytes);
             }
             auto afterAclPkts =
@@ -811,7 +812,7 @@ TEST_F(AgentVoqSwitchTest, verifyQueueLatencyWatermark) {
   };
 
   auto verify = [&]() {
-    auto queueId{0};
+    auto queueId = utility::getDefaultQueue();
     auto dscpForQueue =
         utility::kOlympicQueueToDscp().find(queueId)->second.at(0);
     auto sendPkts = [this, kPortDesc, &ecmpHelper, dscpForQueue]() {

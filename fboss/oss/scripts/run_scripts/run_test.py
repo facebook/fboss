@@ -996,7 +996,7 @@ class SaiAgentTestRunner(TestRunner):
         return args.unsupported_tests_file
 
     def _get_test_binary_name(self):
-        return args.sai_bin if args.sai_bin else "sai_agent_test-sai_impl-1.13.0"
+        return args.sai_bin if args.sai_bin else "sai_agent_hw_test-sai_impl-1.13.0"
 
     def _get_sai_replayer_logging_flags(
         self, sai_replayer_logging_dir, test_prefix, test_to_run
@@ -1061,10 +1061,10 @@ class SaiAgentTestRunner(TestRunner):
                     set(test_feature_str.split(",")) if test_feature_str else set()
                 )
                 if "HW_SWITCH" in test_features:
-                    tests_to_run += ([test],)
+                    tests_to_run += (test,)
                     break
                 if test_features.issubset(producition_features):
-                    tests_to_run += ([test],)
+                    tests_to_run += (test,)
                     break
         return tests_to_run
 

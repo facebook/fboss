@@ -1,0 +1,24 @@
+FROM debian:bookworm
+RUN apt update && apt upgrade
+RUN apt install git sudo lsof -y
+WORKDIR /var/FBOSS/
+RUN mkdir -p /var/FBOSS/fboss
+COPY . fboss
+WORKDIR fboss
+RUN rm -rf build/deps/github_hashes/
+RUN tar xvzf fboss/oss/stable_commits/latest_stable_hashes.tar.gz
+RUN apt install -y autoconf automake binutils binutils-dev bzip2 \
+    libbz2-dev cmake libdouble-conversion3 libdouble-conversion-dev libcurl4-openssl-dev \
+    libcurl4 libdwarf-dev libevent-dev libffi-dev \
+    libnghttp2-dev libnl-3-dev libnl-route-3-dev libsodium-dev libtool libunwind-dev \
+    libusb-1.0-0-dev zstd libzstd-dev liblz4-dev libncurses-dev ninja-build \
+    libssl-dev python3-all-dev libre2-dev libsnappy-dev xxhash libxxhash-dev \
+    liblzma-dev zlib1g-dev
+RUN ./build/fbcode_builder/getdeps.py install-system-deps --recursive fboss
+RUN apt install -y bison flex
+RUN apt install -y openssl
+RUN apt install python3-pip -y
+RUN apt install -y python3-git
+RUN apt install -y python3-mesonpy
+RUN apt install -y python3-jinja2
+RUN apt install -y gperf libcap-dev libmount-dev

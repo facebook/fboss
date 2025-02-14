@@ -25,6 +25,8 @@ constexpr auto kNumPortPerCore = 10;
 constexpr auto kRemoteSysPortOffset = 7;
 constexpr auto kNumRdswSysPort = 44;
 constexpr auto kNumEdswSysPort = 26;
+constexpr uint8_t kDefaultQueue = 0;
+constexpr uint8_t kDualStage3Q2QDefaultQueue = 1;
 
 std::shared_ptr<SystemPort> makeRemoteSysPort(
     SystemPortID portId,
@@ -35,7 +37,7 @@ std::shared_ptr<SystemPort> makeRemoteSysPort(
     HwAsic::InterfaceNodeRole intfRole,
     cfg::PortType portType) {
   auto remoteSysPort = std::make_shared<SystemPort>(portId);
-  auto voqConfig = getDefaultVoqConfig();
+  auto voqConfig = getDefaultVoqConfig(portType);
   remoteSysPort->setName(folly::to<std::string>(
       "hwTestSwitch", remoteSwitchId, ":eth/", portId, "/1"));
   remoteSysPort->setSwitchId(remoteSwitchId);
@@ -119,12 +121,26 @@ std::vector<cfg::PortQueue> getDefaultNifVoqCfg() {
     defaultQueue.scheduling() = cfg::QueueScheduling::INTERNAL;
     voqs.push_back(defaultQueue);
 
+    cfg::PortQueue queue1;
+    queue1.id() = 1;
+    queue1.name() = "queue1";
+    queue1.streamType() = cfg::StreamType::UNICAST;
+    queue1.scheduling() = cfg::QueueScheduling::INTERNAL;
+    voqs.push_back(queue1);
+
     cfg::PortQueue rdmaQueue;
     rdmaQueue.id() = 2;
     rdmaQueue.name() = "rdma";
     rdmaQueue.streamType() = cfg::StreamType::UNICAST;
     rdmaQueue.scheduling() = cfg::QueueScheduling::INTERNAL;
     voqs.push_back(rdmaQueue);
+
+    cfg::PortQueue queue4;
+    queue4.id() = 4;
+    queue4.name() = "queue4";
+    queue4.streamType() = cfg::StreamType::UNICAST;
+    queue4.scheduling() = cfg::QueueScheduling::INTERNAL;
+    voqs.push_back(queue4);
 
     cfg::PortQueue monitoringQueue;
     monitoringQueue.id() = 6;
@@ -445,11 +461,9 @@ void populateRemoteIntfAndSysPorts(
   }
 }
 
-QueueConfig getDefaultVoqConfig() {
+QueueConfig getDefaultVoqConfig(cfg::PortType portType) {
   QueueConfig queueCfg;
-  // TODO: One port should be mgt port with 2 queues in 3Q2Q mode
-  auto nameAndDefaultVoq =
-      getNameAndDefaultVoqCfg(cfg::PortType::INTERFACE_PORT);
+  auto nameAndDefaultVoq = getNameAndDefaultVoqCfg(portType);
   CHECK(nameAndDefaultVoq);
   for (const auto& cfgQueue : nameAndDefaultVoq.value().queueConfig) {
     queueCfg.push_back(makeSwitchStateVoq(cfgQueue));
@@ -532,5 +546,9 @@ std::optional<QueueConfigAndName> getNameAndDefaultVoqCfg(
       break;
   }
   return std::nullopt;
+}
+
+uint8_t getDefaultQueue() {
+  return isDualStage3Q2QMode() ? kDualStage3Q2QDefaultQueue : kDefaultQueue;
 }
 } // namespace facebook::fboss::utility

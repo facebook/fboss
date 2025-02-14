@@ -137,7 +137,8 @@ struct PortFields {
   54: optional i32 reachabilityGroupId;
   // DSF Interface node to enable conditional entropy, rotating hash seed periodically to increase entropy.
   55: bool conditionalEntropyRehash = false;
-  56: bool selfHealingECMPLagEnable = false;
+  56: bool selfHealingECMPLagEnable_DEPRECATED = false;
+  57: optional bool selfHealingECMPLagEnable;
 }
 
 typedef ctrl.SystemPortThrift SystemPortFields
@@ -329,7 +330,7 @@ struct MirrorOnDropReportFields {
   7: i16 mtu;
   8: i16 truncateSize;
   9: byte dscp;
-  10: optional i32 agingIntervalUsecs;
+  10: optional i32 agingIntervalUsecs_DEPRECATED;
   11: string switchMac; // Populated at runtime
   12: string firstInterfaceMac; // Populated at runtime
   13: map<
@@ -337,6 +338,10 @@ struct MirrorOnDropReportFields {
     list<switch_config.MirrorOnDropReasonAggregation>
   > eventIdToDropReasons_DEPRECATED;
   14: map<byte, switch_config.MirrorOnDropEventConfig> modEventToConfigMap;
+  15: map<
+    switch_config.MirrorOnDropAgingGroup,
+    i32
+  > agingGroupAgingIntervalUsecs;
 }
 
 struct ControlPlaneFields {
@@ -432,6 +437,8 @@ struct SwitchSettingsFields {
   53: optional i32 remoteL1VoqMaxExpectedLatencyNsec;
   54: optional i32 remoteL2VoqMaxExpectedLatencyNsec;
   55: optional i32 voqOutOfBoundsLatencyNsec;
+  // Number of sflow samples to pack in a single packet being sent out
+  56: optional byte numberOfSflowSamplesPerPacket;
 }
 
 struct RoutePrefix {

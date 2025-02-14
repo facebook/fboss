@@ -446,6 +446,10 @@ InterfaceID getInbandPortIntfID(
 std::pair<std::string, std::string> getExpectedNeighborAndPortName(
     const cfg::Port& port);
 
+const facebook::fboss::PlatformMapping* FOLLY_NULLABLE
+getPlatformMappingForPlatformType(
+    const facebook::fboss::PlatformType platformType);
+
 int getRemoteSwitchID(
     const cfg::SwitchConfig* cfg,
     const cfg::Port& port,
@@ -457,4 +461,6 @@ CpuCosQueueId hwQueueIdToCpuCosQueueId(
     const HwAsic* asic,
     HwSwitchFb303Stats* hwswitchStats);
 int numFabricLevels(const std::map<int64_t, cfg::DsfNode>& dsfNodes);
+
+const std::vector<cfg::AclLookupClass>& getToCpuClassIds();
 } // namespace facebook::fboss

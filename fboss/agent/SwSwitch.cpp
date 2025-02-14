@@ -34,7 +34,6 @@
 #include "fboss/agent/LookupClassUpdater.h"
 #include "fboss/agent/ResourceAccountant.h"
 #include "fboss/agent/SwitchInfoUtils.h"
-#include "fboss/agent/hw/HwSwitchWarmBootHelper.h"
 #include "fboss/agent/state/StateUtils.h"
 #include "fboss/lib/phy/gen-cpp2/prbs_types.h"
 #if FOLLY_HAS_COROUTINES
@@ -75,8 +74,6 @@
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/capture/PcapPkt.h"
 #include "fboss/agent/capture/PktCaptureManager.h"
-#include "fboss/agent/gen-cpp2/switch_config_types_custom_protocol.h"
-#include "fboss/agent/hw/HwSwitchFb303Stats.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/packet/EthHdr.h"
 #include "fboss/agent/packet/IPv4Hdr.h"
@@ -94,8 +91,6 @@
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/lib/platforms/PlatformProductInfo.h"
 #include "fboss/util/Logging.h"
-
-#include "fboss/lib/CommonFileUtils.h"
 
 #include <fb303/ServiceData.h>
 #include <folly/Demangle.h>
@@ -1236,12 +1231,12 @@ void SwSwitch::init(
   const auto initialStateDelta = StateDelta(emptyState, initialState);
 
   // Notify resource accountant of the initial state.
-  if (!resourceAccountant_->isValidRouteUpdate(initialStateDelta)) {
+  if (!resourceAccountant_->isValidUpdate(initialStateDelta)) {
     // If DLB is enabled and pre-warmboot state has >128 ECMP groups, any
     // failure is due to DLB resource check failure. Resource accounting will
     // not be enabled in this boot and stay disabled until next warmboot
     //
-    // This is the first invocation of isValidRouteUpdate. At this time,
+    // This is the first invocation of isValidUpdate. At this time,
     // ResourceAccountant::checkDlbResource_ is True by default. If the method
     // returns False, set checkDlbResource_ to False. This will disable further
     // DLB resource checks within resource accounting
@@ -1321,12 +1316,12 @@ void SwSwitch::init(const HwWriteBehavior& hwWriteBehavior, SwitchFlags flags) {
   }
   const auto initialStateDelta = StateDelta(emptyState, initialState);
   // Notify resource accountant of the initial state.
-  if (!resourceAccountant_->isValidRouteUpdate(initialStateDelta)) {
+  if (!resourceAccountant_->isValidUpdate(initialStateDelta)) {
     // If DLB is enabled and pre-warmboot state has >128 ECMP groups, any
     // failure is due to DLB resource check failure. Resource accounting will
     // not be enabled in this boot and stay disabled until next warmboot
     //
-    // This is the first invocation of isValidRouteUpdate. At this time,
+    // This is the first invocation of isValidUpdate. At this time,
     // ResourceAccountant::checkDlbResource_ is True by default. If the method
     // returns False, set checkDlbResource_ to False. This will disable further
     // DLB resource checks within resource accounting
@@ -2248,7 +2243,11 @@ void SwSwitch::linkActiveStateChangedOrFwIsolated(
     auto currentActualDrainState = switchSettings->getActualSwitchDrainState();
 
     if (newActualSwitchDrainState != currentActualDrainState) {
-      stats()->setDrainState(matcher.switchId(), newActualSwitchDrainState);
+      auto switchInfo = switchSettings->getSwitchIdToSwitchInfo()
+                            .find(matcher.switchId())
+                            ->second;
+      stats()->setDrainState(
+          *switchInfo.switchIndex(), newActualSwitchDrainState);
       auto newSwitchSettings = switchSettings->modify(&newState);
       newSwitchSettings->setActualSwitchDrainState(newActualSwitchDrainState);
     }
@@ -2316,6 +2315,12 @@ void SwSwitch::switchReachabilityChanged(
     const std::map<SwitchID, std::set<PortID>>& switchReachabilityInfo) {
   switch_reachability::SwitchReachability newReachability;
   int currentIdx = 1;
+  uint64_t collectionTimestamp =
+      duration_cast<seconds>(system_clock::now().time_since_epoch()).count();
+  if (hwReachabilityInfo_.find(switchId) == hwReachabilityInfo_.end()) {
+    hwReachabilityInfo_[switchId] = {};
+  }
+  auto& cachedRechabilityInfo = hwReachabilityInfo_[switchId];
   std::unordered_map<std::set<PortID>, int> portGrp2Id;
   for (const auto& [destinationSwitchId, portIdSet] : switchReachabilityInfo) {
     int portGroupId;
@@ -2337,6 +2342,17 @@ void SwSwitch::switchReachabilityChanged(
     }
     newReachability.switchIdToFabricPortGroupMap()[static_cast<int64_t>(
         destinationSwitchId)] = portGroupId;
+    auto iter = cachedRechabilityInfo.find(destinationSwitchId);
+    if (iter != cachedRechabilityInfo.end() &&
+        std::get<std::set<PortID>>(iter->second) == portIdSet) {
+      newReachability.switchIdToLastUpdatedTimestamp()[static_cast<int64_t>(
+          destinationSwitchId)] = std::get<uint64_t>(iter->second);
+    } else {
+      newReachability.switchIdToLastUpdatedTimestamp()[static_cast<int64_t>(
+          destinationSwitchId)] = collectionTimestamp;
+      cachedRechabilityInfo[destinationSwitchId] =
+          std::make_tuple(portIdSet, collectionTimestamp);
+    }
   }
   // Update switch reachability info with the latest data
   (*hwSwitchReachability_.wlock())[switchId] = newReachability;

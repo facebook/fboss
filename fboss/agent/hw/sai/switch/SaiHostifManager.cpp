@@ -578,10 +578,6 @@ void SaiHostifManager::changeCpuVoq(
 void SaiHostifManager::changeCpuQueue(
     const ControlPlane::PortQueues& oldQueueConfig,
     const ControlPlane::PortQueues& newQueueConfig) {
-  if (platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
-    // Chenab-TODO(pshaikh): no way to configure queues on CPU port
-    return;
-  }
   cpuPortHandle_->configuredQueues.clear();
 
   const auto asic = platform_->getAsic();
@@ -599,16 +595,20 @@ void SaiHostifManager::changeCpuQueue(
         std::make_pair(newPortQueue->getID(), newPortQueue->getStreamType());
     auto queueHandle = getQueueHandle(saiQueueConfig);
     auto portQueue = newPortQueue->clone();
-    portQueue->setReservedBytes(
-        newPortQueue->getReservedBytes()
-            ? *newPortQueue->getReservedBytes()
-            : asic->getDefaultReservedBytes(
-                  newPortQueue->getStreamType(), cfg::PortType::CPU_PORT));
-    portQueue->setScalingFactor(
-        newPortQueue->getScalingFactor()
-            ? *newPortQueue->getScalingFactor()
-            : asic->getDefaultScalingFactor(
-                  newPortQueue->getStreamType(), true /*cpu port*/));
+    if (auto reservedBytes = newPortQueue->getReservedBytes()) {
+      portQueue->setReservedBytes(*reservedBytes);
+    } else if (
+        auto defaultReservedBytes = asic->getDefaultReservedBytes(
+            newPortQueue->getStreamType(), cfg::PortType::CPU_PORT)) {
+      portQueue->setReservedBytes(*defaultReservedBytes);
+    }
+    if (auto scalingFactor = newPortQueue->getScalingFactor()) {
+      portQueue->setScalingFactor(*scalingFactor);
+    } else if (
+        auto defaultScalingFactor = asic->getDefaultScalingFactor(
+            newPortQueue->getStreamType(), true /*cpu port*/)) {
+      portQueue->setScalingFactor(*defaultScalingFactor);
+    }
     managerTable_->queueManager().changeQueue(
         queueHandle, *portQueue, nullptr /*swPort*/, cfg::PortType::CPU_PORT);
     if (newPortQueue->getName().has_value()) {

@@ -144,6 +144,7 @@ void handleExtensionAttributes() {
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
   SAI_EXT_ATTR_MAP(Switch, ArsAvailableFlows);
 #endif
+  SAI_EXT_ATTR_MAP(Switch, SflowAggrNofSamples);
 }
 
 } // namespace

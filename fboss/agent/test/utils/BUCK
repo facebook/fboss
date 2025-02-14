@@ -233,6 +233,7 @@ cpp_library(
         ":acl_test_utils",
         ":asic_test_utils",
         ":config_utils",
+        ":voq_test_utils",
         "//fboss/agent:core",
         "//fboss/agent:loadbalancer_utils",
         "//fboss/agent:packet",
@@ -257,6 +258,7 @@ cpp_library(
     undefined_symbols = True,
     exported_deps = [
         ":acl_test_utils",
+        ":asic_test_utils",
         ":config_utils",
         ":olympic_qos_utils",
         ":traffic_policy_utils",
