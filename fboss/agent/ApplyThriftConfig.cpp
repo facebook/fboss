@@ -1328,6 +1328,19 @@ void ThriftConfigApplier::processReachabilityGroup(
             portCfg.expectedNeighborReachability()->size() > 0) {
           auto neighborRemoteSwitchId =
               getRemoteSwitchID(cfg_, portCfg, switchNameToSwitchIds);
+
+          if (std::find(
+                  localFabricSwitchIds.begin(),
+                  localFabricSwitchIds.end(),
+                  SwitchID(neighborRemoteSwitchId)) !=
+              localFabricSwitchIds.end()) {
+            // Skip processing links that are expected to connected to self -
+            // this should not happen in PROD since expected neighbors should be
+            // other devices. However during testing, ports are put in loopback
+            // mode and hence the expected neighbor will be populated to self.
+            // Skip processing these links for reachability group.
+            continue;
+          }
           const auto& neighborDsfNode =
               new_->getDsfNodes()->getNode(neighborRemoteSwitchId);
 
