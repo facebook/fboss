@@ -91,6 +91,11 @@ std::map<std::string, std::map<std::string, std::string>> getConfigs() {
           // TODO(T207042263) Enable cross-service config validation for Darwin
           // once Darwin onboards PM.
           if (platformName != "darwin") {
+            if (!configs["platform_manager"].contains(platformName)) {
+              throw std::runtime_error(fmt::format(
+                  "Platform Manager config doesn't exist for {}",
+                  platformName));
+            }
             platformConfig = SimpleJSONSerializer::deserialize<PlatformConfig>(
                 configs["platform_manager"][platformName]);
           }
