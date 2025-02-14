@@ -308,6 +308,9 @@
           "test_name_regex": "HwTransceiverResetTest.verifyResetControl$"
         },
         {
+          "test_name_regex": "HwPimTest.CheckPimPresent$"
+        },
+        {
           "test_name_regex": "HwTest.CheckTcvrNameAndInterfaces$"
         }
     ],
