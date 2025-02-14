@@ -904,12 +904,14 @@ cfg::SwitchConfig genPortVlanCfg(
       config.vlans()->push_back(vlan);
     }
 
-    cfg::Vlan defaultVlan;
-    defaultVlan.id() = kDefaultVlanId;
-    defaultVlan.name() = folly::sformat("vlan{}", kDefaultVlanId);
-    defaultVlan.routable() = true;
-    config.vlans()->push_back(defaultVlan);
-    config.defaultVlan() = kDefaultVlanId;
+    if (asic->getAsicType() != cfg::AsicType::ASIC_TYPE_CHENAB) {
+      cfg::Vlan defaultVlan;
+      defaultVlan.id() = kDefaultVlanId;
+      defaultVlan.name() = folly::sformat("vlan{}", kDefaultVlanId);
+      defaultVlan.routable() = true;
+      config.vlans()->push_back(defaultVlan);
+      config.defaultVlan() = kDefaultVlanId;
+    }
 
     // Vlan port config
     for (auto vlanPortPair : port2vlan) {
@@ -928,6 +930,7 @@ cfg::SwitchConfig genPortVlanCfg(
     vlan1.routable() = true;
     vlan1.intfID() = kDefaultVlanId;
     config.vlans()->push_back(vlan1);
+    config.defaultVlan() = 1;
 
     /*
      * TODO(pshaikh): Chenab-Hack pipeline lookup for traffic injected by cpu
