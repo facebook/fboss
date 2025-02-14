@@ -25,6 +25,7 @@
 namespace facebook::fboss::platform::platform_manager {
 namespace {
 constexpr auto kRootSlotPath = "/";
+const re2::RE2 kLegacyXcvrName = "xcvr_\\d+";
 
 std::string getSlotPath(
     const std::string& parentSlotPath,
@@ -138,11 +139,11 @@ namespace constants = platform_manager_config_constants;
 PlatformExplorer::PlatformExplorer(
     const PlatformConfig& config,
     const std::shared_ptr<PlatformFsUtils> platformFsUtils)
-    : platformConfig_(config),
+    : explorationSummary_(platformConfig_, dataStore_),
+      platformConfig_(config),
       dataStore_(platformConfig_),
       devicePathResolver_(dataStore_),
       presenceChecker_(devicePathResolver_),
-      explorationSummary_(platformConfig_, dataStore_),
       platformFsUtils_(platformFsUtils) {
   updatePmStatus(createPmStatus(ExplorationStatus::UNSTARTED));
 }
@@ -339,12 +340,12 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
       // I think we can refactor this simpler once I2CDevicePaths are also
       // stored in DataStore. 1/ Create IDPROMs 2/ Read contents from eepromPath
       // stored in DataStore.
-      productProductionStateInEeprom = eepromParser_.getProdutProductionState(
+      productProductionStateInEeprom =
+          eepromParser_.getProductionState(eepromPath, *idpromConfig.offset());
+      productVersionInEeprom = eepromParser_.getProductionSubState(
           eepromPath, *idpromConfig.offset());
-      productVersionInEeprom =
-          eepromParser_.getProductVersion(eepromPath, *idpromConfig.offset());
-      productSubVersionInEeprom = eepromParser_.getProductSubVersion(
-          eepromPath, *idpromConfig.offset());
+      productSubVersionInEeprom =
+          eepromParser_.getVariantVersion(eepromPath, *idpromConfig.offset());
       XLOG(INFO) << fmt::format(
           "Found ProductProductionState `{}` ProductVersion `{}` ProductSubVersion `{}` in IDPROM {} at {}",
           productProductionStateInEeprom
@@ -601,6 +602,13 @@ uint32_t PlatformExplorer::getFpgaInstanceId(
 void PlatformExplorer::createDeviceSymLink(
     const std::string& linkPath,
     const std::string& devicePath) {
+  if (explorationSummary_.isDeviceExpectedToFail(devicePath)) {
+    XLOG(WARNING) << fmt::format(
+        "Device at ({}) is not supported in this hardware. Skipping creating symlink {}",
+        devicePath,
+        linkPath);
+    return;
+  }
   auto linkParentPath = std::filesystem::path(linkPath).parent_path();
   if (!platformFsUtils_->createDirectories(linkParentPath.string())) {
     XLOG(ERR) << fmt::format(
@@ -632,11 +640,16 @@ void PlatformExplorer::createDeviceSymLink(
       targetPath = devicePathResolver_.resolvePciSubDevCharDevPath(devicePath);
     } else if (linkParentPath.string() == "/run/devmap/xcvrs") {
       auto xcvrName = linkPath.substr(linkParentPath.string().length() + 1);
+      // New XCVR paths
       if (xcvrName.starts_with("xcvr_ctrl")) {
         targetPath = devicePathResolver_.resolvePciSubDevSysfsPath(devicePath);
       }
       if (xcvrName.starts_with("xcvr_io")) {
         targetPath = devicePathResolver_.resolveI2cBusPath(devicePath);
+      }
+      // Legacy XCVR path
+      if (re2::RE2::FullMatch(xcvrName, kLegacyXcvrName)) {
+        targetPath = devicePathResolver_.resolvePciSubDevSysfsPath(devicePath);
       }
     } else {
       throw std::runtime_error(

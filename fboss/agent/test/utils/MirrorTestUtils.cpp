@@ -94,7 +94,8 @@ void configureSflowMirror(
     const std::string& destinationIp,
     uint32_t udpSrcPort,
     uint32_t udpDstPort,
-    bool isV4) {
+    bool isV4,
+    std::optional<int> sampleRate) {
   cfg::SflowTunnel sflowTunnel;
   sflowTunnel.ip() = destinationIp;
   sflowTunnel.udpSrcPort() = udpSrcPort;
@@ -111,6 +112,9 @@ void configureSflowMirror(
   mirror.name() = mirrorName;
   mirror.destination() = destination;
   mirror.truncate() = truncate;
+  if (sampleRate.has_value()) {
+    mirror.samplingRate() = *sampleRate;
+  }
 
   config.mirrors()->push_back(mirror);
 }

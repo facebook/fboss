@@ -3206,25 +3206,7 @@
           "test_name_regex": "HwTrafficPfcTest/HwTrafficPfcGenTest.verifyPfc/WithZeroGlobalHeadRoomCfg"
         },
         {
-          "test_name_regex": "SaiRouteRollbackTest.*"
-        },
-        {
-          "test_name_regex": "HwIngressBufferTest.validatePGHeadroomLimitChange"
-        },
-        {
-          "test_name_regex": "warm_boot.HwTrafficPfcTest.PfcWatchdog"
-        },
-        {
           "test_name_regex": "warm_boot.HwVerifyPfcConfigInHwTest.PfcWatchdogProgrammingSequence"
-        },
-        {
-          "test_name_regex": "warm_boot.HwParityErrorTest.verifyParityError"
-        },
-        {
-          "test_name_regex": "SaiNextHopGroupTest.*"
-        },
-        {
-          "test_name_regex": "SaiNextHopGroupTestWithWBWrites.*"
         }
     ],
     "brcm/11.7.0.0_dnx_odp/12.0_ea_dnx_odp/jericho3": [
@@ -3355,25 +3337,7 @@
           "test_name_regex": "HwTrafficPfcTest/HwTrafficPfcGenTest.verifyPfc/WithZeroGlobalHeadRoomCfg"
         },
         {
-          "test_name_regex": "SaiRouteRollbackTest.*"
-        },
-        {
-          "test_name_regex": "HwIngressBufferTest.validatePGHeadroomLimitChange"
-        },
-        {
-          "test_name_regex": "warm_boot.HwTrafficPfcTest.PfcWatchdog"
-        },
-        {
           "test_name_regex": "warm_boot.HwVerifyPfcConfigInHwTest.PfcWatchdogProgrammingSequence"
-        },
-        {
-          "test_name_regex": "warm_boot.HwParityErrorTest.verifyParityError"
-        },
-        {
-          "test_name_regex": "SaiNextHopGroupTest.*"
-        },
-        {
-          "test_name_regex": "SaiNextHopGroupTestWithWBWrites.*"
         }
     ],
     "brcm/11.7.0.0_odp/11.7.0.0_odp/tomahawk5": [
@@ -3863,25 +3827,12 @@
           "test_name_regex": "HwTrafficPfcTest/HwTrafficPfcGenTest.verifyPfc/WithZeroGlobalHeadRoomCfg"
         },
         {
-          "test_name_regex": "SaiRouteRollbackTest.*"
-        },
-        {
-          "test_name_regex": "HwIngressBufferTest.validatePGHeadroomLimitChange"
-        },
-        {
-          "test_name_regex": "warm_boot.HwTrafficPfcTest.PfcWatchdog"
-        },
-        {
           "test_name_regex": "warm_boot.HwVerifyPfcConfigInHwTest.PfcWatchdogProgrammingSequence"
-        },
+        }
+    ],
+    "brcm/12.0_ea_dnx_odp/12.0_ea_dnx_odp/ramon3": [
         {
-          "test_name_regex": "warm_boot.HwParityErrorTest.verifyParityError"
-        },
-        {
-          "test_name_regex": "SaiNextHopGroupTest.*"
-        },
-        {
-          "test_name_regex": "SaiNextHopGroupTestWithWBWrites.*"
+          "test_name_regex": "HwParityErrorTest.verifyParityError"
         }
     ],
     "brcm/8.2.0.0_odp/8.2.0.0_odp/tomahawk": [

@@ -234,3 +234,13 @@ DEFINE_int32(
     ecmp_resource_percentage,
     75,
     "Percentage of ECMP resources (out of 100) allowed to use before ResourceAccountant rejects the update.");
+
+DEFINE_int32(
+    switch_index_for_testing,
+    0,
+    "switch index under test. Used for testing NPU specific features.");
+
+DEFINE_uint32(
+    counter_refresh_interval,
+    1,
+    "Counter refresh interval in seconds. Set it to 0 to fetch stats from HW");

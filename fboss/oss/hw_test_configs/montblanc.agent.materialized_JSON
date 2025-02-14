@@ -116,6 +116,9 @@
             "portIdRange": {
               "minimum": 0,
               "maximum": 2047
+            },
+            "firmwareNameToFirmwareInfo": {
+              
             }
         }
       },
@@ -182,6 +185,9 @@
         ],
         "stage": 0
       }
+    ],
+    "mirrorOnDropReports": [
+      
     ]
   },
   "platform": {

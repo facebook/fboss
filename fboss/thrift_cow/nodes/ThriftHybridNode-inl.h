@@ -72,16 +72,6 @@ struct ThriftHybridNode : public thrift_cow::Serializable {
     fromThrift(deserializeBuf<TypeClass, TType>(proto, std::move(encoded)));
   }
 
-  bool remove(const std::string& token) {
-    throw std::runtime_error(folly::to<std::string>(
-        "Cannot remove a child from a ThriftHybridNode: ", token));
-  }
-
-  bool remove(const std::string& token) const {
-    throw std::runtime_error(folly::to<std::string>(
-        "Cannot remove a child from a ThriftHybridNode: ", token));
-  }
-
   void modify(const std::string&) {}
 
   TType& ref() {

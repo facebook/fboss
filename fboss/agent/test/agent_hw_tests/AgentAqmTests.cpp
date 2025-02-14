@@ -36,7 +36,18 @@ class AgentAqmTest : public AgentHwTest {
         true /*interfaceHasSubnet*/);
     if (ensemble.getHwAsicTable()->isFeatureSupportedOnAllAsic(
             HwAsic::Feature::L3_QOS)) {
-      utility::addOlympicQueueConfig(&config, ensemble.getL3Asics());
+      if (isDualStage3Q2QQos()) {
+        auto hwAsic = utility::checkSameAndGetAsic(ensemble.getL3Asics());
+        auto streamType =
+            *hwAsic->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin();
+        utility::addNetworkAIQueueConfig(
+            &config,
+            streamType,
+            cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN,
+            hwAsic);
+      } else {
+        utility::addOlympicQueueConfig(&config, ensemble.getL3Asics());
+      }
       utility::addOlympicQosMaps(config, ensemble.getL3Asics());
     }
     utility::setTTLZeroCpuConfig(ensemble.getL3Asics(), config);
@@ -131,8 +142,22 @@ class AgentAqmTest : public AgentHwTest {
         getSw(), masterLogicalPortIds(), true /*interfaceHasSubnet*/);
     if (getAgentEnsemble()->getHwAsicTable()->isFeatureSupportedOnAllAsic(
             HwAsic::Feature::L3_QOS)) {
-      utility::addOlympicQueueConfig(
-          &config, getAgentEnsemble()->getL3Asics(), enableWred, enableEcn);
+      if (isDualStage3Q2QQos()) {
+        auto hwAsic =
+            utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+        auto streamType =
+            *hwAsic->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin();
+        utility::addNetworkAIQueueConfig(
+            &config,
+            streamType,
+            cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN,
+            hwAsic,
+            enableWred,
+            enableEcn);
+      } else {
+        utility::addOlympicQueueConfig(
+            &config, getAgentEnsemble()->getL3Asics(), enableWred, enableEcn);
+      }
       utility::addOlympicQosMaps(config, getAgentEnsemble()->getL3Asics());
     }
     utility::setTTLZeroCpuConfig(getAgentEnsemble()->getL3Asics(), config);

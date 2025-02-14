@@ -56,7 +56,6 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::L3_MTU_ERROR_TRAP:
     case HwAsic::Feature::SAI_PORT_SERDES_PROGRAMMING:
     case HwAsic::Feature::PORT_WRED_COUNTER:
-    case HwAsic::Feature::BRIDGE_PORT_8021Q:
     case HwAsic::Feature::WARMBOOT:
     case HwAsic::Feature::PORT_SERDES_ZERO_PREEMPHASIS:
     case HwAsic::Feature::SAI_UDF_HASH:
@@ -74,6 +73,8 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::L3_INTF_MTU:
     case HwAsic::Feature::EGRESS_ACL_TABLE:
     case HwAsic::Feature::SAI_USER_DEFINED_TRAP:
+    case HwAsic::Feature::ACL_ENTRY_ETHER_TYPE:
+    case HwAsic::Feature::DEDICATED_CPU_BUFFER_POOL:
       return true;
     case HwAsic::Feature::PORT_MTU_ERROR_TRAP:
     case HwAsic::Feature::EVENTOR_PORT_FOR_SFLOW:
@@ -82,7 +83,6 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::CABLE_PROPOGATION_DELAY:
     case HwAsic::Feature::DRAM_BLOCK_TIME:
     case HwAsic::Feature::VOQ_LATENCY_WATERMARK_BIN:
-    case HwAsic::Feature::ACL_ENTRY_ETHER_TYPE:
     case HwAsic::Feature::ACL_BYTE_COUNTER:
     case HwAsic::Feature::DATA_CELL_FILTER:
     case HwAsic::Feature::EGRESS_CORE_BUFFER_WATERMARK:
@@ -185,7 +185,6 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::PQP_ERROR_EGRESS_DROP_COUNTER:
     case HwAsic::Feature::FABRIC_LINK_DOWN_CELL_DROP_COUNTER:
     case HwAsic::Feature::CRC_ERROR_DETECT:
-    case HwAsic::Feature::DEDICATED_CPU_BUFFER_POOL:
     case HwAsic::Feature::NO_RX_REASON_TRAP:
     case HwAsic::Feature::EGRESS_GVOQ_WATERMARK_BYTES:
     case HwAsic::Feature::INGRESS_PRIORITY_GROUP_SHARED_WATERMARK:
@@ -199,6 +198,10 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::SFLOWv4:
     case HwAsic::Feature::SFLOWv6:
     case HwAsic::Feature::SFLOW_SAMPLING:
+    case HwAsic::Feature::BRIDGE_PORT_8021Q: // no fdb entries required, using
+                                             // only pure l3 rifs
+    case HwAsic::Feature::SAMPLE_RATE_CONFIG_PER_MIRROR:
+    case HwAsic::Feature::SFLOW_SAMPLES_PACKING:
       return false;
   }
   return false;
@@ -218,6 +221,10 @@ bool ChenabAsic::isSupportedFabric(Feature feature) const {
 int ChenabAsic::getDefaultNumPortQueues(
     cfg::StreamType streamType,
     cfg::PortType portType) const {
+  if (portType == cfg::PortType::CPU_PORT) {
+    // Chenab supports 4 CPU port queues
+    return 4;
+  }
   switch (streamType) {
     case cfg::StreamType::MULTICAST:
       throw FbossError(
@@ -309,16 +316,20 @@ uint32_t ChenabAsic::getMaxMirrors() const {
   // TODO - verify this
   return 4;
 }
-uint64_t ChenabAsic::getDefaultReservedBytes(
+std::optional<uint64_t> ChenabAsic::getDefaultReservedBytes(
     cfg::StreamType /*streamType*/,
-    cfg::PortType /*portType*/) const {
-  // Concept of reserved bytes does not apply to GB
+    cfg::PortType portType) const {
+  if (portType == cfg::PortType::CPU_PORT) {
+    return std::nullopt;
+  }
   return 0;
 }
-cfg::MMUScalingFactor ChenabAsic::getDefaultScalingFactor(
+std::optional<cfg::MMUScalingFactor> ChenabAsic::getDefaultScalingFactor(
     cfg::StreamType /*streamType*/,
-    bool /*cpu*/) const {
-  // Concept of scaling factor does not apply returning the same value TH3
+    bool cpu) const {
+  if (cpu) {
+    return std::nullopt;
+  }
   return cfg::MMUScalingFactor::TWO;
 }
 int ChenabAsic::getMaxNumLogicalPorts() const {

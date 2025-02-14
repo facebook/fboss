@@ -14,9 +14,6 @@
 #include "fboss/agent/test/utils/VoqTestUtils.h"
 
 using namespace facebook::fb303;
-namespace {
-constexpr uint8_t kDefaultQueue = 0;
-} // namespace
 
 namespace facebook::fboss {
 
@@ -55,7 +52,7 @@ class AgentVoqSwitchWithMultipleDsfNodesTest : public AgentVoqSwitchTest {
       sendPkts();
       voqDiscardBytes =
           getLatestSysPortStats(sysPortId).get_queueOutDiscardBytes_().at(
-              kDefaultQueue);
+              utility::getDefaultQueue());
       XLOG(INFO) << " VOQ discard bytes: " << voqDiscardBytes;
       EXPECT_EVENTUALLY_GT(voqDiscardBytes, 0);
     });
@@ -110,12 +107,8 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, remoteSystemPort) {
                  << " after sysPortsFree: " << afterSysPortsFree
                  << " voqsFree: " << afterVoqsFree;
       EXPECT_EVENTUALLY_EQ(beforeSysPortsFree - 1, afterSysPortsFree);
-      // 8 VOQs allocated per sys port for single stage
-      // 4 VOQs allocated per sys port for dual stage - 3 VOQs for the system
-      // port itself (since it's <16k port), and 1 VOQ for the 16k+ port. Please
-      // see 3Q2Q mode VOQ allocation for more details.
       EXPECT_EVENTUALLY_EQ(
-          isDualStage3Q2QMode() ? beforeVoqsFree - 4 : beforeVoqsFree - 8,
+          isDualStage3Q2QMode() ? beforeVoqsFree - 3 : beforeVoqsFree - 8,
           afterVoqsFree);
     });
   };
@@ -273,7 +266,7 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, voqDelete) {
       }
       return getLatestSysPortStats(kRemoteSysPortId)
           .get_queueCreditWatchdogDeletedPackets_()
-          .at(kDefaultQueue);
+          .at(utility::getDefaultQueue());
     };
 
     auto voqDeletedPktsBefore = getVoQDeletedPkts();
@@ -599,32 +592,37 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, verifyDscpToVoqMapping) {
   verifyAcrossWarmBoots(setup, verify);
 };
 
-class AgentVoqShelSwitchTest : public AgentVoqSwitchWithMultipleDsfNodesTest {};
-
-TEST_F(AgentVoqShelSwitchTest, init) {
-  auto setup = [this]() {
-    auto config = initialConfig(*getAgentEnsemble());
+class AgentVoqShelSwitchTest : public AgentVoqSwitchWithMultipleDsfNodesTest {
+ public:
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto config =
+        AgentVoqSwitchWithMultipleDsfNodesTest::initialConfig(ensemble);
     // Set SHEL configuration
     cfg::SelfHealingEcmpLagConfig shelConfig;
     shelConfig.shelSrcIp() = "2222::1";
     shelConfig.shelDstIp() = "2222::2";
     shelConfig.shelPeriodicIntervalMS() = 5000;
     config.switchSettings()->selfHealingEcmpLagConfig() = shelConfig;
-    // Enable Conditional Entropy on Interface Ports
+    // Enable selfHealingEcmpLag on Interface Ports
     for (auto& port : *config.ports()) {
       if (port.portType() == cfg::PortType::INTERFACE_PORT) {
         port.selfHealingECMPLagEnable() = true;
       }
     }
-    applyNewConfig(config);
-  };
+    return config;
+  }
+};
 
+TEST_F(AgentVoqShelSwitchTest, init) {
+  auto setup = []() {};
   auto verify = [this]() {
     auto state = getProgrammedState();
     for (const auto& portMap : std::as_const(*state->getPorts())) {
       for (const auto& port : std::as_const(*portMap.second)) {
         if (port.second->getPortType() == cfg::PortType::INTERFACE_PORT) {
-          EXPECT_TRUE(port.second->getSelfHealingECMPLagEnable());
+          EXPECT_TRUE(port.second->getSelfHealingECMPLagEnable().has_value());
+          EXPECT_TRUE(port.second->getSelfHealingECMPLagEnable().value());
         }
       }
     }

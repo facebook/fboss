@@ -3,13 +3,10 @@
 #pragma once
 
 #include "fboss/fsdb/client/FsdbPubSubManager.h"
-#include "fboss/fsdb/client/FsdbStreamClient.h"
 #include "fboss/platform/sensor_service/if/gen-cpp2/sensor_service_types.h"
-#include "fboss/qsfp_service/if/gen-cpp2/qsfp_state_types.h"
-#include "fboss/qsfp_service/if/gen-cpp2/qsfp_stats_types.h"
+#include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
 #include <cstdint>
-#include <memory>
 
 namespace facebook::fboss {
 namespace fsdb {

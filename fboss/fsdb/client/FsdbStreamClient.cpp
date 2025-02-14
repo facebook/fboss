@@ -14,8 +14,17 @@
 DEFINE_int32(
     fsdb_reconnect_ms,
     1000,
+    "reconnect to fsdb timer in milliseconds"); // TODO: clean up after
+                                                // migrating to exponential
+                                                // backoff
+DEFINE_int32(
+    fsdb_initial_backoff_reconnect_ms,
+    1000,
     "reconnect to fsdb timer in milliseconds");
-
+DEFINE_int32(
+    fsdb_max_backoff_reconnect_ms,
+    1000,
+    "reconnect to fsdb timer in milliseconds");
 DEFINE_int32(
     fsdb_state_chunk_timeout,
     0, // disabled by default for now
@@ -25,29 +34,6 @@ DEFINE_int32(
     0, // disabled by default for now
     "Chunk timeout in seconds for FSDB Stat streams");
 
-namespace {
-/*
- * When Agent Coldboots/warmboots, it will attempt to establish subscriptions
- * to all remote interface nodes. If several remote interface nodes are
- * unreacuable, we will periodically attempt to reconnect to all those remote
- * nodes. This will cause periodic spikes and may cause drops. Avoid it by
- * spacing out reconnect requests to remote nodes.
- *
- * This is done by adding jitter to reconnect interval.
- */
-
-int getReconnectIntervalInMs(int value) {
-  static std::mt19937 engine{std::random_device{}()};
-  // Create a uniform distribution between 0 and value / 2
-  std::uniform_int_distribution<int> distribution(0, value * 0.5);
-  int jitter = distribution(engine);
-  bool isEven = (jitter % 2 == 0);
-  // evenly distribute jitter: add if even, subtract if odd
-  return isEven ? value + jitter : value - jitter;
-}
-
-} // namespace
-
 namespace facebook::fboss::fsdb {
 FsdbStreamClient::FsdbStreamClient(
     const std::string& clientId,
@@ -56,15 +42,17 @@ FsdbStreamClient::FsdbStreamClient(
     const std::string& counterPrefix,
     bool isStats,
     StreamStateChangeCb stateChangeCb,
-    int fsdbReconnectMs)
+    int fsdbInitialBackoffReconnectMs,
+    int fsdbMaxBackoffReconnectMs)
     : ReconnectingThriftClient(
           clientId,
           streamEvb,
           connRetryEvb,
           counterPrefix,
           "fsdb_streams",
-          stateChangeCb,
-          getReconnectIntervalInMs(fsdbReconnectMs)),
+          std::move(stateChangeCb),
+          fsdbInitialBackoffReconnectMs,
+          fsdbMaxBackoffReconnectMs),
       streamEvb_(streamEvb),
       isStats_(isStats) {
   if (isStats && FLAGS_fsdb_stat_chunk_timeout) {

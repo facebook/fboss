@@ -113,7 +113,7 @@ std::map<std::string, std::map<std::string, std::string>> getConfigs() {
         } else if (serviceName == "weutil") {
           SimpleJSONSerializer::deserialize<WeutilConfig>(jsonConfigStr);
         } else if (serviceName == "fw_util") {
-          SimpleJSONSerializer::deserialize<FwUtilConfig>(jsonConfigStr);
+          SimpleJSONSerializer::deserialize<NewFwUtilConfig>(jsonConfigStr);
         } else if (serviceName == "led_manager") {
           SimpleJSONSerializer::deserialize<LedManagerConfig>(jsonConfigStr);
         } else {
@@ -122,9 +122,10 @@ std::map<std::string, std::map<std::string, std::string>> getConfigs() {
         }
       } catch (std::exception& ex) {
         LOG(FATAL) << fmt::format(
-            "Failed to deserialize {} config for {}",
+            "Failed to deserialize {} config for {} with error: {}",
             serviceName,
-            platformName);
+            platformName,
+            ex.what());
       }
     }
 

@@ -12,6 +12,7 @@
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
+#include "fboss/agent/test/utils/VoqTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
 #include <folly/gen/Base.h>
@@ -24,7 +25,6 @@ DEFINE_string(
     "CSV file with source IP, port and destination IP, port for load balancing test. See P827101297 for example.");
 
 namespace {
-constexpr uint8_t kDefaultQueue = 0;
 std::vector<std::string> kTrafficFields = {"sip", "dip", "sport", "dport"};
 } // namespace
 
@@ -360,6 +360,77 @@ std::shared_ptr<SwitchState> addLoadBalancers(
 }
 
 template <typename PortIdT, typename PortStatsT>
+std::set<uint64_t> getSortedPortBytes(
+    const std::map<PortIdT, PortStatsT>& portIdToStats) {
+  auto portBytes =
+      folly::gen::from(portIdToStats) |
+      folly::gen::map([&](const auto& portIdAndStats) {
+        if constexpr (std::is_same_v<PortStatsT, HwPortStats>) {
+          return *portIdAndStats.second.outBytes_();
+        } else if constexpr (std::is_same_v<PortStatsT, HwSysPortStats>) {
+          const auto& stats = portIdAndStats.second;
+          return stats.queueOutBytes_()->at(getDefaultQueue()) +
+              stats.queueOutDiscardBytes_()->at(getDefaultQueue());
+        }
+        throw FbossError("Unsupported port stats type in isLoadBalancedImpl");
+      }) |
+      folly::gen::as<std::set<uint64_t>>();
+  return portBytes;
+}
+
+template <typename PortIdT, typename PortStatsT>
+std::set<uint64_t> getSortedPortBytesIncrement(
+    const std::map<PortIdT, PortStatsT>& beforePortIdToStats,
+    const std::map<PortIdT, PortStatsT>& afterPortIdToStats) {
+  auto portBytesIncrement =
+      folly::gen::from(beforePortIdToStats) |
+      folly::gen::map([&](const auto& beforePortIdToStats) {
+        CHECK(
+            afterPortIdToStats.find(beforePortIdToStats.first) !=
+            afterPortIdToStats.end());
+        if constexpr (std::is_same_v<PortStatsT, HwPortStats>) {
+          return *afterPortIdToStats.at(beforePortIdToStats.first).outBytes_() -
+              *beforePortIdToStats.second.outBytes_();
+        } else if constexpr (std::is_same_v<PortStatsT, HwSysPortStats>) {
+          const auto& beforeStats = beforePortIdToStats.second;
+          const auto& afterStats =
+              afterPortIdToStats.at(beforePortIdToStats.first);
+          const auto kDefaultQueue = getDefaultQueue();
+          return (afterStats.queueOutBytes_()->at(kDefaultQueue) +
+                  afterStats.queueOutDiscardBytes_()->at(kDefaultQueue)) -
+              (beforeStats.queueOutBytes_()->at(kDefaultQueue) +
+               beforeStats.queueOutDiscardBytes_()->at(kDefaultQueue));
+        }
+        throw FbossError("Unsupported port stats type in isLoadBalancedImpl");
+      }) |
+      folly::gen::as<std::set<uint64_t>>();
+  return portBytesIncrement;
+}
+
+template <typename PortIdT, typename PortStatsT>
+std::pair<uint64_t, uint64_t> getHighestAndLowestBytes(
+    const std::map<PortIdT, PortStatsT>& portIdToStats) {
+  auto portBytes = getSortedPortBytes(portIdToStats);
+  auto lowest = portBytes.empty() ? 0 : *portBytes.begin();
+  auto highest = portBytes.empty() ? 0 : *portBytes.rbegin();
+  XLOG(DBG0) << " Highest bytes: " << highest << " lowest bytes: " << lowest;
+  return std::make_pair(highest, lowest);
+}
+
+template <typename PortIdT, typename PortStatsT>
+std::pair<uint64_t, uint64_t> getHighestAndLowestBytesIncrement(
+    const std::map<PortIdT, PortStatsT>& beforePortIdToStats,
+    const std::map<PortIdT, PortStatsT>& afterPortIdToStats) {
+  auto portBytes =
+      getSortedPortBytesIncrement(beforePortIdToStats, afterPortIdToStats);
+  auto lowest = portBytes.empty() ? 0 : *portBytes.begin();
+  auto highest = portBytes.empty() ? 0 : *portBytes.rbegin();
+  XLOG(DBG0) << " Highest bytes increment: " << highest
+             << " lowest bytes increment: " << lowest;
+  return std::make_pair(highest, lowest);
+}
+
+template <typename PortIdT, typename PortStatsT>
 bool isLoadBalancedImpl(
     const std::map<PortIdT, PortStatsT>& portIdToStats,
     const std::vector<NextHopWeight>& weights,
@@ -371,23 +442,7 @@ bool isLoadBalancedImpl(
                    }) |
       folly::gen::as<std::vector<PortIdT>>();
 
-  auto portBytes =
-      folly::gen::from(portIdToStats) |
-      folly::gen::map([&](const auto& portIdAndStats) {
-        if constexpr (std::is_same_v<PortStatsT, HwPortStats>) {
-          return *portIdAndStats.second.outBytes_();
-        } else if constexpr (std::is_same_v<PortStatsT, HwSysPortStats>) {
-          const auto& stats = portIdAndStats.second;
-          return stats.queueOutBytes_()->at(kDefaultQueue) +
-              stats.queueOutDiscardBytes_()->at(kDefaultQueue);
-        }
-        throw FbossError("Unsupported port stats type in isLoadBalancedImpl");
-      }) |
-      folly::gen::as<std::set<uint64_t>>();
-
-  auto lowest = portBytes.empty() ? 0 : *portBytes.begin();
-  auto highest = portBytes.empty() ? 0 : *portBytes.rbegin();
-  XLOG(DBG0) << " Highest bytes: " << highest << " lowest bytes: " << lowest;
+  auto [highest, lowest] = getHighestAndLowestBytes(portIdToStats);
   if (!lowest) {
     return !highest && noTrafficOk;
   }
@@ -399,8 +454,8 @@ bool isLoadBalancedImpl(
         portOutBytes = *portIdToStats.find(ecmpPorts[i])->second.outBytes_();
       } else if constexpr (std::is_same_v<PortStatsT, HwSysPortStats>) {
         const auto& stats = portIdToStats.find(ecmpPorts[i])->second;
-        portOutBytes = stats.queueOutBytes_()->at(kDefaultQueue) +
-            stats.queueOutDiscardBytes_()->at(kDefaultQueue);
+        portOutBytes = stats.queueOutBytes_()->at(getDefaultQueue()) +
+            stats.queueOutDiscardBytes_()->at(getDefaultQueue());
       } else {
         throw FbossError("Unsupported port stats type in isLoadBalancedImpl");
       }
@@ -917,5 +972,33 @@ template bool isLoadBalancedImpl<std::string, HwSysPortStats>(
     const std::vector<NextHopWeight>& weights,
     int maxDeviationPct,
     bool noTrafficOk);
+
+template std::set<uint64_t> getSortedPortBytes(
+    const std::map<SystemPortID, HwSysPortStats>& portIdToStats);
+
+template std::set<uint64_t> getSortedPortBytes(
+    const std::map<PortID, HwPortStats>& portIdToStats);
+
+template std::set<uint64_t> getSortedPortBytesIncrement(
+    const std::map<SystemPortID, HwSysPortStats>& beforePortIdToStats,
+    const std::map<SystemPortID, HwSysPortStats>& afterPortIdToStats);
+
+template std::set<uint64_t> getSortedPortBytesIncrement(
+    const std::map<PortID, HwPortStats>& beforePortIdToStats,
+    const std::map<PortID, HwPortStats>& afterPortIdToStats);
+
+template std::pair<uint64_t, uint64_t> getHighestAndLowestBytes(
+    const std::map<SystemPortID, HwSysPortStats>& portIdToStats);
+
+template std::pair<uint64_t, uint64_t> getHighestAndLowestBytes(
+    const std::map<PortID, HwPortStats>& portIdToStats);
+
+template std::pair<uint64_t, uint64_t> getHighestAndLowestBytesIncrement(
+    const std::map<SystemPortID, HwSysPortStats>& beforePortIdToStats,
+    const std::map<SystemPortID, HwSysPortStats>& afterPortIdToStats);
+
+template std::pair<uint64_t, uint64_t> getHighestAndLowestBytesIncrement(
+    const std::map<PortID, HwPortStats>& beforePortIdToStats,
+    const std::map<PortID, HwPortStats>& afterPortIdToStats);
 
 } // namespace facebook::fboss::utility

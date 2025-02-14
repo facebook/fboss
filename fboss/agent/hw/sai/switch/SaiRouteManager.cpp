@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/hw/sai/switch/SaiRouteManager.h"
+#include "fboss/agent/Utils.h"
 
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiCounterManager.h"
@@ -426,6 +427,9 @@ void SaiRouteManager::addOrUpdateRoute(
   routeHandle->route = route;
   routeHandle->nexthopHandle_ = nextHopHandle;
   routeHandle->counterHandle_ = counterHandle;
+  if (!newRoute->isConnected()) {
+    checkMetadata(entry);
+  }
 }
 
 template <typename AddrT>
@@ -594,6 +598,34 @@ SaiRouteManager::refOrCreateManagedRouteNextHop(
   SaiObjectEventPublisher::getInstance()->get<NextHopTraitsT>().subscribe(
       managedRouteNextHop);
   return managedRouteNextHop;
+}
+
+void SaiRouteManager::checkMetadata(SaiRouteTraits::RouteEntry entry) {
+  auto route = getRouteObject(entry);
+  if (!route) {
+    return;
+  }
+  auto attributes = route->attributes();
+  auto metadata =
+      std::get<std::optional<SaiRouteTraits::Attributes::Metadata>>(attributes);
+  auto nexthop = std::get<std::optional<SaiRouteTraits::Attributes::NextHopId>>(
+      attributes);
+  const auto& toCpuClassIds = getToCpuClassIds();
+  if (metadata.has_value() && metadata.value().value() &&
+      std::find(
+          toCpuClassIds.begin(),
+          toCpuClassIds.end(),
+          static_cast<cfg::AclLookupClass>(metadata.value().value())) !=
+          toCpuClassIds.end() &&
+      nexthop.has_value() &&
+      nexthop.value() !=
+          static_cast<sai_object_id_t>(
+              managerTable_->switchManager().getCpuPort())) {
+    // invalid
+    XLOG(FATAL) << "found invalid route entry with class id value "
+                << std::to_string(metadata.value().value())
+                << " but cpu is not nexthop: " << entry.toString();
+  }
 }
 
 template <typename NextHopTraitsT>

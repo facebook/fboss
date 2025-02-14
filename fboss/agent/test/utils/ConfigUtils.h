@@ -73,7 +73,7 @@ int getMaxRdsw();
 int getMaxEdsw();
 
 cfg::DsfNode dsfNodeConfig(
-    const HwAsic& myAsic,
+    const HwAsic& firstAsic,
     int64_t otherSwitchId = 4,
     const std::optional<PlatformType> platformType = std::nullopt,
     const std::optional<int> clusterId = std::nullopt);
@@ -133,7 +133,8 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
     bool interfaceHasSubnet = true,
     bool setInterfaceMac = true,
     int baseIntfId = kBaseVlanId,
-    bool enableFabricPorts = false);
+    bool enableFabricPorts = false,
+    const std::optional<cfg::InterfaceType>& intfType = std::nullopt);
 
 cfg::SwitchConfig onePortPerInterfaceConfig(
     const PlatformMapping* platformMapping,
@@ -149,7 +150,8 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
         switchIdToSwitchInfo = std::nullopt,
     const std::optional<std::map<SwitchID, const HwAsic*>>& hwAsicTable =
         std::nullopt,
-    const std::optional<PlatformType> platformType = std::nullopt);
+    const std::optional<PlatformType> platformType = std::nullopt,
+    const std::optional<cfg::InterfaceType>& intfType = std::nullopt);
 
 cfg::SwitchConfig onePortPerInterfaceConfig(
     const TestEnsembleIf* ensemble,
@@ -157,7 +159,8 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
     bool interfaceHasSubnet = true,
     bool setInterfaceMac = true,
     int baseIntfId = kBaseVlanId,
-    bool enableFabricPorts = false);
+    bool enableFabricPorts = false,
+    const std::optional<cfg::InterfaceType>& intfType = std::nullopt);
 
 cfg::SwitchConfig
 oneL3IntfTwoPortConfig(const SwSwitch* sw, PortID port1, PortID port2);

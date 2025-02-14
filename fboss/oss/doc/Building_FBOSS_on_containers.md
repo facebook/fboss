@@ -40,6 +40,15 @@ sudo docker build . -t fboss_docker -f fboss/oss/docker/Dockerfile
 # "Building against a precompiled SDK".
 sudo docker run -d -it --name=FBOSS_DOCKER_CONTAINER fboss_docker:latest bash
 
+# A full FBOSS build may take significant space (> 50GB of storage), in which
+# case you may want to choose a more specific location for the output (e.g. a
+# disk with more space). You can do this by mounting a volume inside the
+# container using the `-v` flag as shown below. In this example,
+# the path `/opt/app/localbuild` from the base VM is mounted in the container
+# as /var/FBOSS/tmp_bld_dir.
+sudo docker run -d -v /opt/app/localbuild:/var/FBOSS/tmp_bld_dir:z -it \
+--name=FBOSS_DOCKER_CONTAINER fboss_docker:latest bash
+
 # Attaches our current terminal to a new bash shell in the docker container so
 # that we can perform the build within it.
 sudo docker exec -it FBOSS_DOCKER_CONTAINER bash

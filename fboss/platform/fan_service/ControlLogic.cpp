@@ -8,7 +8,7 @@
 #include <folly/logging/xlog.h>
 #include <gpiod.h>
 
-#include "common/time/Time.h"
+#include "fboss/agent/FbossError.h"
 #include "fboss/lib/GpiodLine.h"
 #include "fboss/platform/fan_service/SensorData.h"
 #include "fboss/platform/fan_service/if/gen-cpp2/fan_service_config_constants.h"
@@ -231,12 +231,11 @@ void ControlLogic::getSensorUpdate() {
     // STEP 1: Get reading.
     auto sensorEntry = pSensor_->getSensorEntry(sensorName);
     if (sensorEntry) {
-      float readValue = sensorEntry->value / *sensor.scale();
-      readCache.lastReadValue = readValue;
+      readCache.lastReadValue = sensorEntry->value;
       readCache.lastUpdatedTime = sensorEntry->lastUpdated;
       readCache.sensorFailed = false;
       XLOG(ERR) << fmt::format(
-          "{}: Sensor read value (after scaling) is {}", sensorName, readValue);
+          "{}: Sensor read value is {}", sensorName, sensorEntry->value);
     } else {
       XLOG(INFO) << fmt::format(
           "{}: Failure to get data (either wrong entry or read failure)",

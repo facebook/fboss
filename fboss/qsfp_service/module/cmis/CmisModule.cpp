@@ -30,6 +30,11 @@ using std::memcpy;
 using std::mutex;
 using namespace apache::thrift;
 
+DEFINE_bool(
+    set_max_fec_sampling,
+    false,
+    "Flag to enable setting max FEC sampling for module");
+
 namespace {
 
 constexpr int kUsecBetweenPowerModeFlap = 100000;
@@ -41,6 +46,7 @@ constexpr int kUsecDatapathStateUpdateTime = 5000000; // 5 seconds
 constexpr int kUsecDatapathStatePollTime = 500000; // 500 ms
 constexpr double kU16TypeLsbDivisor = 256.0;
 constexpr int kVdmDescriptorLength = 2;
+constexpr int kFR4LiteSMFLength = 500; // 500 meters
 
 // Definitions for CDB Histogram
 constexpr int kCdbSymErrHistBinSize = 6;
@@ -93,6 +99,7 @@ static QsfpFieldInfo<CmisField, CmisPages>::QsfpFieldMap cmisFields = {
     {CmisField::VCC, {CmisPages::LOWER, 16, 2}},
     {CmisField::MODULE_CONTROL, {CmisPages::LOWER, 26, 1}},
     {CmisField::FIRMWARE_REVISION, {CmisPages::LOWER, 39, 2}},
+    {CmisField::FEC_SAMPLING_PCT, {CmisPages::LOWER, 65, 1}},
     {CmisField::MEDIA_TYPE_ENCODINGS, {CmisPages::LOWER, 85, 1}},
     {CmisField::APPLICATION_ADVERTISING1, {CmisPages::LOWER, 86, 4}},
     {CmisField::BANK_SELECT, {CmisPages::LOWER, 126, 1}},
@@ -339,6 +346,12 @@ static std::map<SMFMediaInterfaceCode, MediaInterfaceCode>
         {SMFMediaInterfaceCode::FR8_800G, MediaInterfaceCode::FR8_800G},
 };
 
+// A map of programmable FEC sampling pct per Module Media type.
+static const std::unordered_map<MediaInterfaceCode, uint8_t>
+    kMaxProgFecSamplingSupportedMap_ = {
+        {MediaInterfaceCode::FR4_2x400G, 20},
+};
+
 constexpr uint8_t kPage0CsumRangeStart = 128;
 constexpr uint8_t kPage0CsumRangeLength = 94;
 constexpr uint8_t kPage1CsumRangeStart = 130;
@@ -567,8 +580,9 @@ CmisModule::CmisModule(
     std::set<std::string> portNames,
     TransceiverImpl* qsfpImpl,
     std::shared_ptr<const TransceiverConfig> cfg,
-    bool supportRemediate)
-    : QsfpModule(std::move(portNames), qsfpImpl),
+    bool supportRemediate,
+    std::string tcvrName)
+    : QsfpModule(std::move(portNames), qsfpImpl, std::move(tcvrName)),
       tcvrConfig_(std::move(cfg)),
       supportRemediate_(supportRemediate) {}
 
@@ -2316,6 +2330,29 @@ void CmisModule::setApplicationSelectCodeAllPorts(
 }
 
 /*
+ * setMaxFecSamplingLocked
+ *
+ * Sets the FEC monitor sampling ratio to maximum.
+ * Datapath state or module operation would not be interrupted during this
+ * configuration
+ */
+void CmisModule::setMaxFecSamplingLocked() {
+  // FLAGS_set_max_fec_sampling is used to roll out the feature
+  if (FLAGS_set_max_fec_sampling) {
+    auto mediaInterface = getModuleMediaInterface();
+    auto itr = kMaxProgFecSamplingSupportedMap_.find(mediaInterface);
+    if (itr != kMaxProgFecSamplingSupportedMap_.end()) {
+      uint8_t max = itr->second;
+      writeCmisField(CmisField::FEC_SAMPLING_PCT, &max);
+      QSFP_LOG(INFO, this) << folly::sformat(
+          "set sampling rate to max: {} for module media interface {}",
+          max,
+          apache::thrift::util::enumNameSafe(mediaInterface));
+    }
+  }
+}
+
+/*
  * setApplicationCodeLocked
  *
  * This function programs the application select code for a port using the speed
@@ -2459,6 +2496,7 @@ void CmisModule::setApplicationCodeLocked(
     usleep(kUsecAfterAppProgramming);
 
     // Check if the config has been applied correctly or not
+    // TODO: This is a failure scenario. We should Fail somehow !
     if (!checkLaneConfigError(startHostLane, numHostLanes)) {
       QSFP_LOG(ERR, this) << folly::sformat(
           "application {:#x} could not be set",
@@ -2863,6 +2901,8 @@ void CmisModule::customizeTransceiverLocked(TransceiverPortState& portState) {
       writeCmisField(CmisField::RX_SQUELCH_DISABLE, &squelchDisableValue);
       QSFP_LOG(DBG1, this) << "Disabled TX and RX Squelch";
     }
+    // Set the FEC sampling if applicable.
+    setMaxFecSamplingLocked();
   } else {
     QSFP_LOG(DBG1, this) << "Customization not supported";
   }
@@ -3003,7 +3043,11 @@ MediaInterfaceCode CmisModule::getModuleMediaInterface() const {
         firstModuleCapability->moduleMediaInterface);
     if (smfCode == SMFMediaInterfaceCode::FR4_400G &&
         firstModuleCapability->hostStartLanes.size() == 2) {
-      moduleMediaInterface = MediaInterfaceCode::FR4_2x400G;
+      if (getQsfpSMFLength() == kFR4LiteSMFLength) {
+        moduleMediaInterface = MediaInterfaceCode::FR4_LITE_2x400G;
+      } else {
+        moduleMediaInterface = MediaInterfaceCode::FR4_2x400G;
+      }
     } else if (
         smfCode == SMFMediaInterfaceCode::DR4_400G &&
         firstModuleCapability->hostStartLanes.size() == 2) {

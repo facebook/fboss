@@ -14,6 +14,7 @@ thrift_library(
         "go",
         "py-asyncio",
         "rust",
+        "python",
     ],
     py3_namespace = "neteng.fboss.asic_config",
     py_asyncio_base_module = "neteng.fboss.asyncio",

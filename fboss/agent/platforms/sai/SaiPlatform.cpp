@@ -540,6 +540,18 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
           getInternalSystemPortConfig()};
     }
   }
+  std::optional<SaiSwitchTraits::Attributes::SflowAggrNofSamples>
+      sflowNofSamples{std::nullopt};
+  if (getAsic()->isSupported(HwAsic::Feature::SFLOW_SAMPLES_PACKING)) {
+    auto agentCfg = config();
+    if (agentCfg->thrift.sw()
+            ->switchSettings()
+            ->numberOfSflowSamplesPerPacket()) {
+      sflowNofSamples = *agentCfg->thrift.sw()
+                             ->switchSettings()
+                             ->numberOfSflowSamplesPerPacket();
+    }
+  }
   std::optional<SaiSwitchTraits::Attributes::DllPath> dllPath;
 #if defined(BRCM_SAI_SDK_XGS)
   auto platformMode = getType();
@@ -810,7 +822,8 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       std::nullopt, // Shel Destination IP
       std::nullopt, // Shel Source MAC
       std::nullopt, // Shel Periodic Interval
-      maxSwitchId // Max switch Id
+      maxSwitchId, // Max switch Id
+      sflowNofSamples, // Sflow aggr number of samples
   };
 }
 

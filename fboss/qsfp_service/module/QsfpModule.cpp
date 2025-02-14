@@ -94,10 +94,13 @@ FlagLevels QsfpModule::getQsfpFlags(const uint8_t* data, int offset) {
 
 QsfpModule::QsfpModule(
     std::set<std::string> portNames,
-    TransceiverImpl* qsfpImpl)
+    TransceiverImpl* qsfpImpl,
+    std::string tcvrName)
     : Transceiver(),
       qsfpImpl_(qsfpImpl),
-      snapshots_(SnapshotManager(portNames, kSnapshotIntervalSeconds)) {
+      snapshots_(SnapshotManager(portNames, kSnapshotIntervalSeconds)),
+      portNames_(portNames),
+      tcvrName_(std::move(tcvrName)) {
   CHECK(!portNames.empty())
       << "No portNames attached to this transceiver in platform mapping";
   StatsPublisher::initPerPortFb303Stats(portNames);
@@ -344,6 +347,7 @@ unsigned int QsfpModule::numHostLanes() const {
     case MediaInterfaceCode::LR4_400G_10KM:
     case MediaInterfaceCode::CR8_400G:
     case MediaInterfaceCode::FR4_2x400G:
+    case MediaInterfaceCode::FR4_LITE_2x400G:
     case MediaInterfaceCode::DR4_400G:
     case MediaInterfaceCode::DR4_2x400G:
     case MediaInterfaceCode::FR8_800G:
@@ -373,6 +377,7 @@ unsigned int QsfpModule::numMediaLanes() const {
       return 4;
     case MediaInterfaceCode::CR8_400G:
     case MediaInterfaceCode::FR4_2x400G:
+    case MediaInterfaceCode::FR4_LITE_2x400G:
     case MediaInterfaceCode::DR4_2x400G:
     case MediaInterfaceCode::FR8_800G:
       return 8;
@@ -548,6 +553,11 @@ void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
   } else {
     tcvrState.fwUpgradeInProgress() = true;
   }
+  auto tcvrName = getTcvrName();
+  tcvrState.tcvrName() = tcvrName;
+  tcvrStats.tcvrName() = tcvrName;
+  tcvrState.interfaces() = getInterfaces();
+  tcvrStats.interfaces() = getInterfaces();
 
   phy::LinkSnapshot snapshot;
   snapshot.transceiverInfo_ref() = info;
@@ -1186,29 +1196,31 @@ std::unique_ptr<IOBuf> QsfpModule::readTransceiverLocked(
 
 folly::Future<std::pair<int32_t, bool>> QsfpModule::futureWriteTransceiver(
     TransceiverIOParameters param,
-    uint8_t data) {
+    const std::vector<uint8_t>& data) {
   // Always use i2cEvb to program transceivers if there's an i2cEvb
   auto i2cEvb = qsfpImpl_->getI2cEventBase();
   auto id = getID();
   if (!i2cEvb) {
     // Certain platforms cannot execute multiple I2C transactions in parallel
     // and therefore don't have an I2C evb thread
-    return std::make_pair(id, writeTransceiver(param, data));
+    return std::make_pair(id, writeTransceiver(param, data.data()));
   }
   // As with all the other i2c transactions, run in the i2c event base thread
   return via(i2cEvb).thenValue([&, param, id, data](auto&&) mutable {
-    return std::make_pair(id, writeTransceiver(param, data));
+    return std::make_pair(id, writeTransceiver(param, data.data()));
   });
 }
 
-bool QsfpModule::writeTransceiver(TransceiverIOParameters param, uint8_t data) {
+bool QsfpModule::writeTransceiver(
+    TransceiverIOParameters param,
+    const uint8_t* data) {
   lock_guard<std::mutex> g(qsfpModuleMutex_);
   return writeTransceiverLocked(param, data);
 }
 
 bool QsfpModule::writeTransceiverLocked(
     TransceiverIOParameters param,
-    uint8_t data) {
+    const uint8_t* data) {
   /*
    * This must be called with a lock held on qsfpModuleMutex_
    */
@@ -1227,9 +1239,10 @@ bool QsfpModule::writeTransceiverLocked(
           POST_I2C_WRITE_DELAY_US,
           CAST_TO_INT(CmisField::PAGE_CHANGE)); // common enum to all tcvr types
     }
+    int numBytes = param.length().has_value() ? *(param.length()) : 1;
     qsfpImpl_->writeTransceiver(
-        {TransceiverAccessParameter::ADDR_QSFP, offset, sizeof(data)},
-        &data,
+        {TransceiverAccessParameter::ADDR_QSFP, offset, numBytes},
+        data,
         POST_I2C_WRITE_DELAY_US,
         CAST_TO_INT(CmisField::RAW)); // common enum to all tcvr types
   } catch (const std::exception& ex) {

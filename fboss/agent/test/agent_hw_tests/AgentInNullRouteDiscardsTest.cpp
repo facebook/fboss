@@ -7,14 +7,28 @@
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/utils/AsicUtils.h"
+#include "fboss/agent/test/utils/CoppTestUtils.h"
+#include "fboss/agent/test/utils/PfcTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
 #include "fboss/agent/test/gen-cpp2/production_features_types.h"
 
 namespace facebook::fboss {
 
+using facebook::fboss::utility::PfcBufferParams;
+
 class AgentInNullRouteDiscardsCounterTest : public AgentHwTest {
  public:
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto config = utility::onePortPerInterfaceConfig(
+        ensemble.getSw(),
+        ensemble.masterLogicalPortIds(),
+        true /*interfaceHasSubnet*/);
+    utility::setTTLZeroCpuConfig(ensemble.getL3Asics(), config);
+    return config;
+  }
+
   std::vector<production_features::ProductionFeature>
   getProductionFeaturesVerified() const override {
     return {
@@ -35,7 +49,25 @@ class AgentInNullRouteDiscardsCounterTest : public AgentHwTest {
 };
 
 TEST_F(AgentInNullRouteDiscardsCounterTest, nullRouteHit) {
-  auto setup = [=]() {};
+  auto setup = [&]() {
+    if (isSupportedOnAllAsics(HwAsic::Feature::PFC)) {
+      // Setup buffer configurations only if PFC is supported
+      cfg::SwitchConfig cfg = initialConfig(*getAgentEnsemble());
+      std::vector<PortID> portIds = {masterLogicalInterfacePortIds()[0]};
+      std::vector<int> losslessPgIds = {2};
+      // Make sure default traffic goes to PG2, which is lossless
+      const std::map<int, int> tcToPgOverride{{0, 2}};
+      const auto bufferParams = PfcBufferParams{};
+      utility::setupPfcBuffers(
+          getAgentEnsemble(),
+          cfg,
+          portIds,
+          losslessPgIds,
+          tcToPgOverride,
+          bufferParams);
+      applyNewConfig(cfg);
+    }
+  };
   PortID portId = masterLogicalInterfacePortIds()[0];
   auto verify = [=, this]() {
     auto isVoqSwitch =
@@ -59,6 +91,10 @@ TEST_F(AgentInNullRouteDiscardsCounterTest, nullRouteHit) {
       EXPECT_EVENTUALLY_EQ(
           *portStatsAfter.inDiscardsRaw_(),
           *portStatsAfter.inDstNullDiscards_());
+      // Route discards should not increment congestion discards
+      EXPECT_EQ(
+          *portStatsAfter.inCongestionDiscards_(),
+          *portStatsBefore.inCongestionDiscards_());
       if (isVoqSwitch) {
         EXPECT_EVENTUALLY_EQ(
             *switchDropStatsAfter.ingressPacketPipelineRejectDrops() -

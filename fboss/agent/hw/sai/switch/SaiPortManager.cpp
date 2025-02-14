@@ -110,17 +110,15 @@ uint16_t getPriorityFromPfcPktCounterId(sai_stat_id_t counterId) {
   throw FbossError("Got unexpected port counter id: ", counterId);
 }
 
-uint16_t getFecSymbolCountFromCounterId(sai_stat_id_t counterId) {
 #if SAI_API_VERSION >= SAI_VERSION(1, 11, 0)
+uint16_t getFecSymbolCountFromCounterId(sai_stat_id_t counterId) {
   if (counterId < SAI_PORT_STAT_IF_IN_FEC_CODEWORD_ERRORS_S0 ||
       counterId > SAI_PORT_STAT_IF_IN_FEC_CODEWORD_ERRORS_S16) {
     throw FbossError("Got unexpected FEC codeword counter id: ", counterId);
   }
   return counterId - SAI_PORT_STAT_IF_IN_FEC_CODEWORD_ERRORS_S0;
-#else
-  throw FbossError("FEC codewords not supported on this SAI version");
-#endif
 }
+#endif
 
 void fillHwPortStats(
     const folly::F14FastMap<sai_stat_id_t, uint64_t>& counterId2Value,
@@ -564,16 +562,21 @@ void SaiPortManager::loadPortQueues(const Port& swPort) {
     // practice. Need to refactor to avoid it.
     auto clonedPortQueue = portQueue->clone();
     if (platform_->getAsic()->isSupported(HwAsic::Feature::BUFFER_POOL)) {
-      clonedPortQueue->setReservedBytes(
-          portQueue->getReservedBytes()
-              ? *portQueue->getReservedBytes()
-              : asic->getDefaultReservedBytes(
-                    portQueue->getStreamType(), swPort.getPortType()));
-      clonedPortQueue->setScalingFactor(
-          portQueue->getScalingFactor()
-              ? *portQueue->getScalingFactor()
-              : asic->getDefaultScalingFactor(
-                    portQueue->getStreamType(), false /* not cpu port*/));
+      if (auto reservedBytes = portQueue->getReservedBytes()) {
+        clonedPortQueue->setReservedBytes(*reservedBytes);
+      } else if (
+          auto defaultReservedBytes = asic->getDefaultReservedBytes(
+              portQueue->getStreamType(), swPort.getPortType())) {
+        clonedPortQueue->setReservedBytes(*defaultReservedBytes);
+      }
+
+      if (auto scalingFactor = portQueue->getScalingFactor()) {
+        clonedPortQueue->setScalingFactor(*scalingFactor);
+      } else if (
+          auto defaultScalingFactor = asic->getDefaultScalingFactor(
+              portQueue->getStreamType(), false /* not cpu port*/)) {
+        clonedPortQueue->setScalingFactor(*defaultScalingFactor);
+      }
     } else if (portQueue->getReservedBytes() || portQueue->getScalingFactor()) {
       throw FbossError("Reserved bytes, scaling factor setting not supported");
     }
@@ -717,31 +720,34 @@ SaiPortPfcInfo SaiPortManager::getPortPfcAttributes(
 std::vector<sai_map_t> SaiPortManager::preparePfcDeadlockQueueTimers(
     std::vector<PfcPriority>& enabledPfcPriorities,
     uint32_t timerVal) {
-  std::vector<sai_map_t> mapToValueList;
-  mapToValueList.reserve(enabledPfcPriorities.size());
-  for (const auto& pri : enabledPfcPriorities) {
+  std::vector<sai_map_t> mapToValueList(
+      cfg::switch_config_constants::PFC_PRIORITY_VALUE_MAX() + 1);
+  for (int pri = 0;
+       pri <= cfg::switch_config_constants::PFC_PRIORITY_VALUE_MAX();
+       pri++) {
+    // Quite a few ASICs have the timer supported at port level and hence
+    // setting the same timer value on all priorities irrespective of if
+    // PFC is enabled for that priority or not to simplify the SAI/SDK
+    // side handling.
     sai_map_t mapping{};
     mapping.key = pri;
     mapping.value = timerVal;
-    mapToValueList.push_back(mapping);
+    mapToValueList.at(pri) = mapping;
   }
   return mapToValueList;
 }
 
 void SaiPortManager::programPfcWatchdogTimers(
     const std::shared_ptr<Port>& swPort,
-    std::vector<PfcPriority>& enabledPfcPriorities,
-    const bool portPfcWdEnabled) {
+    std::vector<PfcPriority>& enabledPfcPriorities) {
   auto portHandle = getPortHandle(swPort->getID());
   CHECK(portHandle);
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
-  uint32_t recoveryTimeMsecs = 0;
-  uint32_t detectionTimeMsecs = 0;
-  if (portPfcWdEnabled) {
-    CHECK(swPort->getPfc()->watchdog().has_value());
-    recoveryTimeMsecs = *swPort->getPfc()->watchdog()->recoveryTimeMsecs();
-    detectionTimeMsecs = *swPort->getPfc()->watchdog()->detectionTimeMsecs();
-  }
+  CHECK(swPort->getPfc()->watchdog().has_value());
+  uint32_t recoveryTimeMsecs =
+      *swPort->getPfc()->watchdog()->recoveryTimeMsecs();
+  uint32_t detectionTimeMsecs =
+      *swPort->getPfc()->watchdog()->detectionTimeMsecs();
   // Set deadlock detection timer interval for PFC queues
   auto pfcDldTimerMap =
       preparePfcDeadlockQueueTimers(enabledPfcPriorities, detectionTimeMsecs);
@@ -817,8 +823,7 @@ void SaiPortManager::removePfc(const std::shared_ptr<Port>& swPort) {
 void SaiPortManager::addPfcWatchdog(const std::shared_ptr<Port>& swPort) {
   if (swPort->getPfc()->watchdog().has_value()) {
     auto pfcEnabledPriorities = swPort->getPfcPriorities();
-    programPfcWatchdogTimers(
-        swPort, pfcEnabledPriorities, true /* wdEnabled */);
+    programPfcWatchdogTimers(swPort, pfcEnabledPriorities);
   }
 }
 
@@ -832,11 +837,17 @@ void SaiPortManager::changePfcWatchdog(
   if (newPort->getPfc() && newPort->getPfc()->watchdog()) {
     newPfcWd = *newPort->getPfc()->watchdog();
   }
-  if ((oldPfcWd.has_value() != newPfcWd.has_value()) ||
-      (newPfcWd.has_value() && (newPfcWd.value() != oldPfcWd.value()))) {
+  // Some asics (e.g. TH4/5) don't allow setting timer to zero when disabling
+  // watchdog, just so set the per-queue enable flag.
+  if (oldPfcWd.has_value() && !newPfcWd.has_value()) {
+    auto pfcEnabledPriorities = oldPort->getPfcPriorities();
+    programPfcWatchdogPerQueueEnable(
+        oldPort, pfcEnabledPriorities, false /* wdEnabled */);
+  } else if (
+      newPfcWd.has_value() &&
+      (!oldPfcWd.has_value() || newPfcWd.value() != oldPfcWd.value())) {
     auto pfcEnabledPriorities = newPort->getPfcPriorities();
-    programPfcWatchdogTimers(
-        newPort, pfcEnabledPriorities, newPfcWd.has_value());
+    programPfcWatchdogTimers(newPort, pfcEnabledPriorities);
   } else {
     XLOG(DBG4) << "PFC watchdog setting unchanged for " << newPort->getName();
   }
@@ -845,8 +856,6 @@ void SaiPortManager::changePfcWatchdog(
 void SaiPortManager::removePfcWatchdog(const std::shared_ptr<Port>& swPort) {
   if (swPort->getPfc()->watchdog()) {
     auto pfcEnabledPriorities = swPort->getPfcPriorities();
-    programPfcWatchdogTimers(
-        swPort, pfcEnabledPriorities, false /* wdEnabled */);
     programPfcWatchdogPerQueueEnable(
         swPort, pfcEnabledPriorities, false /* wdEnabled */);
   }
@@ -1233,16 +1242,20 @@ void SaiPortManager::changeQueue(
          SaiApiTable::getInstance()->queueApi().getAttribute(
              queueHandle->queue->adapterKey(),
              SaiQueueTraits::Attributes::Type{}))) {
-      portQueue->setReservedBytes(
-          newPortQueue->getReservedBytes()
-              ? *newPortQueue->getReservedBytes()
-              : asic->getDefaultReservedBytes(
-                    newPortQueue->getStreamType(), swPort->getPortType()));
-      portQueue->setScalingFactor(
-          newPortQueue->getScalingFactor()
-              ? *newPortQueue->getScalingFactor()
-              : asic->getDefaultScalingFactor(
-                    newPortQueue->getStreamType(), false /* not cpu port*/));
+      if (auto reservedBytes = newPortQueue->getReservedBytes()) {
+        portQueue->setReservedBytes(*reservedBytes);
+      } else if (
+          auto defaultReservedBytes = asic->getDefaultReservedBytes(
+              newPortQueue->getStreamType(), swPort->getPortType())) {
+        portQueue->setReservedBytes(*defaultReservedBytes);
+      }
+      if (auto scalingFactor = newPortQueue->getScalingFactor()) {
+        portQueue->setScalingFactor(*scalingFactor);
+      } else if (
+          auto defaultScalingFactor = asic->getDefaultScalingFactor(
+              newPortQueue->getStreamType(), false /* not cpu port */)) {
+        portQueue->setScalingFactor(*defaultScalingFactor);
+      }
     } else if (
         newPortQueue->getReservedBytes() || newPortQueue->getScalingFactor()) {
       throw FbossError("Reserved bytes, scaling factor setting not supported");
@@ -1566,8 +1579,11 @@ std::shared_ptr<Port> SaiPortManager::swPortFromAttributes(
   port->setScope(platform_->getPlatformMapping()->getPortScope(port->getID()));
 
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
-  auto shelEnable = GET_OPT_ATTR(Port, ShelEnable, attributes);
-  port->setSelfHealingECMPLagEnable(shelEnable);
+  if (port->getPortType() == cfg::PortType::INTERFACE_PORT ||
+      port->getPortType() == cfg::PortType::MANAGEMENT_PORT) {
+    auto shelEnable = GET_OPT_ATTR(Port, ShelEnable, attributes);
+    port->setSelfHealingECMPLagEnable(shelEnable);
+  }
 #endif
 
   return port;
@@ -3030,21 +3046,6 @@ void SaiPortManager::changeTxEnable(
   }
 }
 
-void SaiPortManager::updateConditionalEntropySeed(PortID portID, uint32_t seed)
-    const {
-// TODO(zecheng): Update flag when new 12.0 release has the attribute
-#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
-  auto portHandle = getPortHandle(portID);
-  if (!portHandle) {
-    throw FbossError(
-        "Cannot update conditional entropy seed on non existent port: ",
-        portID);
-  }
-  portHandle->port->setOptionalAttribute(
-      SaiPortTraits::Attributes::CondEntropyRehashSeed{seed});
-#endif
-}
-
 void SaiPortManager::changePortFlowletConfig(
     const std::shared_ptr<Port>& oldPort,
     const std::shared_ptr<Port>& newPort) {
@@ -3100,5 +3101,51 @@ void SaiPortManager::changePortFlowletConfig(
   } else {
     XLOG(DBG4) << "Port flowlet setting unchanged for " << newPort->getName();
   }
+}
+
+void SaiPortManager::addPortShelEnable(
+    const std::shared_ptr<Port>& swPort) const {
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+  if (!swPort->getSelfHealingECMPLagEnable().has_value()) {
+    return;
+  }
+  const auto portHandle = getPortHandle(swPort->getID());
+  CHECK(portHandle);
+
+  // Load current SDK value into SaiStore - this will avoid unnecessary hw
+  // writes.
+  auto gotShelEnable = SaiApiTable::getInstance()->portApi().getAttribute(
+      portHandle->port->adapterKey(), SaiPortTraits::Attributes::ShelEnable{});
+  std::optional<SaiPortTraits::Attributes::ShelEnable> shelEnableAttr =
+      gotShelEnable;
+  portHandle->port->setAttribute(shelEnableAttr, true /* skipHwWrite */);
+
+  shelEnableAttr = swPort->getSelfHealingECMPLagEnable();
+  portHandle->port->setAttribute(shelEnableAttr);
+#endif
+}
+
+void SaiPortManager::changePortShelEnable(
+    const std::shared_ptr<Port>& oldPort,
+    const std::shared_ptr<Port>& newPort) const {
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+  if (oldPort->getSelfHealingECMPLagEnable() !=
+      newPort->getSelfHealingECMPLagEnable()) {
+    const auto portHandle = getPortHandle(newPort->getID());
+    CHECK(portHandle);
+
+    // Load current SDK value into SaiStore - this will avoid unnecessary hw
+    // writes.
+    auto gotShelEnable = SaiApiTable::getInstance()->portApi().getAttribute(
+        portHandle->port->adapterKey(),
+        SaiPortTraits::Attributes::ShelEnable{});
+    std::optional<SaiPortTraits::Attributes::ShelEnable> shelEnableAttr =
+        gotShelEnable;
+    portHandle->port->setAttribute(shelEnableAttr, true /* skipHwWrite */);
+
+    shelEnableAttr = newPort->getSelfHealingECMPLagEnable();
+    portHandle->port->setAttribute(shelEnableAttr);
+  }
+#endif
 }
 } // namespace facebook::fboss

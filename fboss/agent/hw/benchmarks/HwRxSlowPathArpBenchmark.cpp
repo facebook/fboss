@@ -59,9 +59,7 @@ BENCHMARK(RxSlowPathArpBenchmark) {
         ensemble.getSw()->getPlatformSupportsAddRemovePort(),
         asic->desiredLoopbackModes());
 
-    utility::addAclTableGroup(
-        &config, cfg::AclStage::INGRESS, utility::kDefaultAclTableGroupName());
-    utility::addDefaultAclTable(config);
+    utility::setupDefaultAclTableGroups(config);
     // We don't want to set queue rate that limits the number of rx pkts
     utility::addCpuQueueConfig(
         config,

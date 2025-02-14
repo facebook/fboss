@@ -20,7 +20,6 @@
         21,
         23,
         24,
-        25,
         26,
         27,
         28,
@@ -31,13 +30,14 @@
         35,
         42,
         43,
-        44,
         45,
         46,
         47,
         50,
         51,
-        53
+        53,
+        59,
+        60
     ],
     "ebro": [
         2,
@@ -72,7 +72,8 @@
         50,
         51,
         53,
-        54
+        54,
+        59
     ],
     "jericho2": [
         2,
@@ -113,7 +114,6 @@
         16,
         18,
         20,
-        21,
         23,
         24,
         26,
@@ -130,18 +130,19 @@
         42,
         45,
         47,
-        29,
         30,
         35,
         34,
         48,
-        49
+        49,
+        58
     ],
     "ramon": [
         1
     ],
     "ramon3": [
-        1
+        1,
+        7
     ],
     "tomahawk": [
         2,
@@ -170,7 +171,10 @@
         44,
         46,
         51,
-        54
+        54,
+        33,
+        59,
+        60
     ],
     "tomahawk3": [
         2,
@@ -212,7 +216,10 @@
         50,
         51,
         53,
-        54
+        54,
+        33,
+        59,
+        60
     ],
     "tomahawk4": [
         2,
@@ -253,7 +260,10 @@
         50,
         51,
         53,
-        54
+        54,
+        33,
+        59,
+        60
     ],
     "tomahawk5": [
         2,
@@ -293,7 +303,10 @@
         50,
         51,
         53,
-        54
+        54,
+        33,
+        59,
+        60
     ],
     "yuba": [
         2,
@@ -329,7 +342,9 @@
         50,
         51,
         53,
-        54
+        54,
+        59,
+        60
     ]
   },
   "asicToFeatureNames": {
@@ -353,7 +368,6 @@
         "WRED",
         "JUMBO_FRAMES",
         "TRAP_DISCARDS_COUNTER",
-        "MAC_LEARNING",
         "SCHEDULER_PPS",
         "ROUTE_COUNTERS",
         "PORT_TX_DISABLE",
@@ -364,13 +378,14 @@
         "EGRESS_MIRRORING",
         "PFC",
         "UDF_WR_IMMEDIATE_ACL",
-        "VLAN",
         "PORT_MTU_ERROR_TRAP",
         "LED_PROGRAMMING",
         "PFC_CAPTURE",
         "PAUSE",
         "SEPARATE_INGRESS_EGRESS_BUFFER_POOL",
-        "ERSPANv6"
+        "ERSPANV6_MIRRORING",
+        "CLASS_ID_FOR_CONNECTED_ROUTE",
+        "SEPARATE_BYTE_AND_PACKET_ACL_COUNTERS"
     ],
     "ebro": [
         "CPU_RX_TX",
@@ -404,8 +419,9 @@
         "VLAN",
         "PAUSE",
         "SEPARATE_INGRESS_EGRESS_BUFFER_POOL",
-        "ERSPANv6",
-        "IP_IN_IP_DECAP"
+        "ERSPANV6_MIRRORING",
+        "IP_IN_IP_DECAP",
+        "CLASS_ID_FOR_CONNECTED_ROUTE"
     ],
     "jericho2": [
         "CPU_RX_TX",
@@ -446,7 +462,6 @@
         "SINGLE_ACL_TABLE",
         "BTH_OPCODE_ACL",
         "ECN",
-        "WRED",
         "JUMBO_FRAMES",
         "TRAP_DISCARDS_COUNTER",
         "SCHEDULER_PPS",
@@ -463,18 +478,19 @@
         "PFC",
         "PORT_MTU_ERROR_TRAP",
         "PFC_CAPTURE",
-        "SFLOWv4_SAMPLING",
         "SFLOWv6_SAMPLING",
         "EGRESS_MIRRORING",
         "INGRESS_MIRRORING",
         "LINERATE_SFLOW",
-        "MIRROR_ON_DROP"
+        "MIRROR_ON_DROP",
+        "SFLOW_SAMPLES_PACKING"
     ],
     "ramon": [
         "FABRIC"
     ],
     "ramon3": [
-        "FABRIC"
+        "FABRIC",
+        "PRBS"
     ],
     "tomahawk": [
         "CPU_RX_TX",
@@ -503,7 +519,10 @@
         "VLAN",
         "LED_PROGRAMMING",
         "SEPARATE_INGRESS_EGRESS_BUFFER_POOL",
-        "IP_IN_IP_DECAP"
+        "IP_IN_IP_DECAP",
+        "INTERFACE_NEIGHBOR_TABLE",
+        "CLASS_ID_FOR_CONNECTED_ROUTE",
+        "SEPARATE_BYTE_AND_PACKET_ACL_COUNTERS"
     ],
     "tomahawk3": [
         "CPU_RX_TX",
@@ -544,8 +563,11 @@
         "VLAN",
         "PAUSE",
         "SEPARATE_INGRESS_EGRESS_BUFFER_POOL",
-        "ERSPANv6",
-        "IP_IN_IP_DECAP"
+        "ERSPANV6_MIRRORING",
+        "IP_IN_IP_DECAP",
+        "INTERFACE_NEIGHBOR_TABLE",
+        "CLASS_ID_FOR_CONNECTED_ROUTE",
+        "SEPARATE_BYTE_AND_PACKET_ACL_COUNTERS"
     ],
     "tomahawk4": [
         "CPU_RX_TX",
@@ -585,8 +607,11 @@
         "VLAN",
         "PAUSE",
         "SEPARATE_INGRESS_EGRESS_BUFFER_POOL",
-        "ERSPANv6",
-        "IP_IN_IP_DECAP"
+        "ERSPANV6_MIRRORING",
+        "IP_IN_IP_DECAP",
+        "INTERFACE_NEIGHBOR_TABLE",
+        "CLASS_ID_FOR_CONNECTED_ROUTE",
+        "SEPARATE_BYTE_AND_PACKET_ACL_COUNTERS"
     ],
     "tomahawk5": [
         "CPU_RX_TX",
@@ -625,8 +650,11 @@
         "VLAN",
         "PAUSE",
         "SEPARATE_INGRESS_EGRESS_BUFFER_POOL",
-        "ERSPANv6",
-        "IP_IN_IP_DECAP"
+        "ERSPANV6_MIRRORING",
+        "IP_IN_IP_DECAP",
+        "INTERFACE_NEIGHBOR_TABLE",
+        "CLASS_ID_FOR_CONNECTED_ROUTE",
+        "SEPARATE_BYTE_AND_PACKET_ACL_COUNTERS"
     ],
     "yuba": [
         "CPU_RX_TX",
@@ -661,8 +689,10 @@
         "VLAN",
         "PAUSE",
         "SEPARATE_INGRESS_EGRESS_BUFFER_POOL",
-        "ERSPANv6",
-        "IP_IN_IP_DECAP"
+        "ERSPANV6_MIRRORING",
+        "IP_IN_IP_DECAP",
+        "CLASS_ID_FOR_CONNECTED_ROUTE",
+        "SEPARATE_BYTE_AND_PACKET_ACL_COUNTERS"
     ]
   }
 }

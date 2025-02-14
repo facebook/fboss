@@ -122,9 +122,9 @@ const std::vector<EepromFieldEntry> kFieldDictionaryV6 = {
     {5, "Meta PCB Part Number", FIELD_STRING, 12, VARIABLE},
     {6, "ODM/JDM PCBA Part Number", FIELD_STRING, VARIABLE, VARIABLE},
     {7, "ODM/JDM PCBA Serial Number", FIELD_STRING, VARIABLE, VARIABLE},
-    {8, "Product Production State", FIELD_BE_UINT, 1, VARIABLE},
-    {9, "Product Version", FIELD_BE_UINT, 1, VARIABLE},
-    {10, "Product Sub-Version", FIELD_BE_UINT, 1, VARIABLE},
+    {8, "Production State", FIELD_BE_UINT, 1, VARIABLE},
+    {9, "Production Sub-State", FIELD_BE_UINT, 1, VARIABLE},
+    {10, "Re-Spin/Variant Indicator", FIELD_BE_UINT, 1, VARIABLE},
     {11, "Product Serial Number", FIELD_STRING, VARIABLE, VARIABLE},
     {12, "System Manufacturer", FIELD_STRING, VARIABLE, VARIABLE},
     {13, "System Manufacturing Date", FIELD_STRING, 8, VARIABLE},
@@ -176,7 +176,6 @@ std::vector<EepromFieldEntry> getEepromFieldDict(int version) {
 
 std::string parseMacHelper(int len, unsigned char* ptr, bool useBigEndian) {
   std::string retVal = "";
-  // We convert char array to string only upto len or null pointer
   int juice = 0;
   while (juice < len) {
     unsigned int val = useBigEndian ? ptr[juice] : ptr[len - juice - 1];
@@ -490,15 +489,11 @@ FbossEepromParser::prepareEepromFieldMap(
   return result;
 }
 
-// Parse Little Endian Uint field
 std::string FbossEepromParser::parseLeUint(int len, unsigned char* ptr) {
-  // For now, we only support up to 4 Bytes of data
   if (len > 4) {
-    throw std::runtime_error("Unsigned int can be up to 4 bytes only.");
+    throw std::runtime_error("Unsigned int can only be up to 4 bytes.");
   }
   unsigned int readVal = 0;
-  // Values in the EEPROM is big endian
-  // Thus cursor starts from the end and goes backwards
   int cursor = len - 1;
   for (int i = 0; i < len; i++) {
     readVal <<= 8;
@@ -508,15 +503,11 @@ std::string FbossEepromParser::parseLeUint(int len, unsigned char* ptr) {
   return std::to_string(readVal);
 }
 
-// Parse Big Endian Uint field
 std::string FbossEepromParser::parseBeUint(int len, unsigned char* ptr) {
-  // For now, we only support up to 4 Bytes of data
   if (len > 4) {
-    throw std::runtime_error("Unsigned int can be up to 4 bytes only.");
+    throw std::runtime_error("Unsigned int can only be up to 4 bytes.");
   }
   unsigned int readVal = 0;
-  // Values in the EEPROM is big endian
-  // Thus cursor starts from the end and goes backwards
   for (int i = 0; i < len; i++) {
     readVal <<= 8;
     readVal |= (unsigned int)ptr[i];
@@ -526,8 +517,6 @@ std::string FbossEepromParser::parseBeUint(int len, unsigned char* ptr) {
 
 std::string FbossEepromParser::parseLeHex(int len, unsigned char* ptr) {
   std::string retVal = "";
-  // Values in the EEPROM is Little endian
-  // Thus cursor starts from the end and goes backwards
   int cursor = len - 1;
   for (int i = 0; i < len; i++) {
     int val = ptr[cursor];
@@ -540,7 +529,6 @@ std::string FbossEepromParser::parseLeHex(int len, unsigned char* ptr) {
 
 std::string FbossEepromParser::parseBeHex(int len, unsigned char* ptr) {
   std::string retVal = "";
-  // Values in the EEPROM is big endian
   for (int i = 0; i < len; i++) {
     int val = ptr[i];
     std::string converter = "0123456789abcdef";
@@ -549,10 +537,8 @@ std::string FbossEepromParser::parseBeHex(int len, unsigned char* ptr) {
   return "0x" + retVal;
 }
 
-// Parse String field
 std::string FbossEepromParser::parseString(int len, unsigned char* ptr) {
   std::string retVal = "";
-  // We convert char array to string only upto len or null pointer
   int juice = 0;
   while ((juice < len) && (ptr[juice] != 0)) {
     retVal += (ptr[juice]);
@@ -597,7 +583,6 @@ std::string FbossEepromParser::parseLegacyMac(int len, unsigned char* ptr) {
 
 std::string FbossEepromParser::parseDate(int len, unsigned char* ptr) {
   std::string retVal = "";
-  // We convert char array to string only upto len or null pointer
   if (len != 4) {
     throw std::runtime_error("Date field must be 4 Bytes Long!");
   }

@@ -62,6 +62,7 @@ class TransceiverManager {
   using PortNameMap = std::map<std::string, int32_t>;
   using PortGroups = std::map<int32_t, std::set<cfg::PlatformPortEntry>>;
   using PortNameIdMap = boost::bimap<std::string, PortID>;
+  using TcvrIdToTcvrNameMap = std::map<TransceiverID, std::string>;
 
  public:
   using TcvrInfoMap = std::map<int32_t, TransceiverInfo>;
@@ -108,18 +109,6 @@ class TransceiverManager {
 
   virtual PlatformType getPlatformType() const = 0;
 
-  int getSuccessfulOpticsFwUpgradeCount() const {
-    return successfulOpticsFwUpgradeCount_;
-  }
-
-  int getFailedOpticsFwUpgradeCount() const {
-    return failedOpticsFwUpgradeCount_;
-  }
-
-  int getExceededTimeLimitFwUpgradeCount() const {
-    return exceededTimeLimitFwUpgradeCount_;
-  }
-
   int getMaxTimeTakenForFwUpgrade() const {
     return maxTimeTakenForFwUpgrade_;
   }
@@ -138,6 +127,8 @@ class TransceiverManager {
 
   /// Called to publish transceivers after a refresh
   virtual void publishTransceiversToFsdb() = 0;
+
+  virtual void publishPimStatesToFsdb() = 0;
 
   virtual int scanTransceiverPresence(
       std::unique_ptr<std::vector<int32_t>> ids) = 0;
@@ -313,6 +304,8 @@ class TransceiverManager {
   // Returns the first interface name found for the given transceiverId
   // returns empty string when there is no name found
   const std::string getPortName(TransceiverID tcvrId) const;
+
+  const std::string getTransceiverName(const TransceiverID& tcvrId) const;
 
   // Since all the transceiver events need to have a proper order for the
   // correct port programming, we should always wait for the update results
@@ -707,6 +700,8 @@ class TransceiverManager {
   // don't have to search from PlatformMapping again and again
   PortNameIdMap portNameToPortID_;
 
+  TcvrIdToTcvrNameMap tcvrIdToTcvrName_;
+
   struct SwPortInfo {
     std::optional<TransceiverID> tcvrID;
     std::string name;
@@ -982,9 +977,6 @@ class TransceiverManager {
 
   void initTcvrValidator();
 
-  std::atomic<int> successfulOpticsFwUpgradeCount_{0};
-  std::atomic<int> failedOpticsFwUpgradeCount_{0};
-  std::atomic<int> exceededTimeLimitFwUpgradeCount_{0};
   std::atomic<int> maxTimeTakenForFwUpgrade_{0};
 
   folly::Synchronized<std::unordered_set<TransceiverID>> tcvrsForFwUpgrade;

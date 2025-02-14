@@ -113,6 +113,24 @@ void pumpMplsTraffic(
     std::optional<PortID> frontPanelPortToLoopTraffic = std::nullopt);
 
 template <typename PortIdT, typename PortStatsT>
+std::set<uint64_t> getSortedPortBytes(
+    const std::map<PortIdT, PortStatsT>& portIdToStats);
+
+template <typename PortIdT, typename PortStatsT>
+std::set<uint64_t> getSortedPortBytesIncrement(
+    const std::map<PortIdT, PortStatsT>& beforePortIdToStats,
+    const std::map<PortIdT, PortStatsT>& afterPortIdToStats);
+
+template <typename PortIdT, typename PortStatsT>
+std::pair<uint64_t, uint64_t> getHighestAndLowestBytes(
+    const std::map<PortIdT, PortStatsT>& portIdToStats);
+
+template <typename PortIdT, typename PortStatsT>
+std::pair<uint64_t, uint64_t> getHighestAndLowestBytesIncrement(
+    const std::map<PortIdT, PortStatsT>& beforePortIdToStats,
+    const std::map<PortIdT, PortStatsT>& afterPortIdToStats);
+
+template <typename PortIdT, typename PortStatsT>
 bool isLoadBalancedImpl(
     const std::map<PortIdT, PortStatsT>& portIdToStats,
     const std::vector<NextHopWeight>& weights,

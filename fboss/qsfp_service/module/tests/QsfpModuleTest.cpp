@@ -44,7 +44,8 @@ class QsfpModuleTest : public TransceiverManagerTestHelper {
             std::make_unique<MockSffModule>(
                 transceiverManager_->getPortNames(kTcvrID),
                 qsfpImpls_.back().get(),
-                tcvrConfig_)));
+                tcvrConfig_,
+                transceiverManager_->getTransceiverName(kTcvrID))));
     qsfp_->setVendorPN();
 
     gflags::SetCommandLineOptionWithMode(
@@ -369,18 +370,28 @@ TEST_F(QsfpModuleTest, writeTransceiver) {
   EXPECT_CALL(*transImpl_, writeTransceiver(_, _, _, _)).Times(1);
   TransceiverIOParameters param;
   param.offset() = 0x23;
-  EXPECT_EQ(qsfp_->writeTransceiver(param, 0xab), true);
+  uint8_t data = 0xab;
+  EXPECT_EQ(qsfp_->writeTransceiver(param, &data), true);
+
+  // Expect a call to writeTransceiver and the result to be successful
+  // (multi-byte)
+  EXPECT_CALL(*transImpl_, writeTransceiver(_, _, _, _)).Times(1);
+  param.offset() = 0x23;
+  std::vector<uint8_t> multiByteData{0xab, 0xcd, 0xef};
+  EXPECT_EQ(qsfp_->writeTransceiver(param, multiByteData.data()), true);
 
   // Set the page
   EXPECT_CALL(*transImpl_, writeTransceiver(_, _, _, _)).Times(2);
   param.page() = 3;
-  EXPECT_EQ(qsfp_->writeTransceiver(param, 0xde), true);
+  uint8_t data2 = 0xde;
+  EXPECT_EQ(qsfp_->writeTransceiver(param, &data2), true);
 
   // Test on a transceiver that fails detection, the result should be false
   EXPECT_CALL(*transImpl_, detectTransceiver()).WillRepeatedly(Return(false));
   EXPECT_CALL(*transImpl_, writeTransceiver(_, _, _, _)).Times(0);
   qsfp_->detectPresence();
-  EXPECT_EQ(qsfp_->writeTransceiver(param, 0xac), false);
+  uint8_t data3 = 0xac;
+  EXPECT_EQ(qsfp_->writeTransceiver(param, &data3), false);
 }
 
 TEST_F(QsfpModuleTest, populateSnapshots) {

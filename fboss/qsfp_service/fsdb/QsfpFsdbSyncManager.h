@@ -11,6 +11,7 @@
 #pragma once
 
 #include "fboss/fsdb/client/FsdbSyncManager.h"
+#include "fboss/lib/if/gen-cpp2/pim_state_types.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/qsfp_service_config_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/qsfp_state_types.h"
@@ -24,6 +25,7 @@ class QsfpFsdbSyncManager {
   using TcvrStatsMap = std::map<int32_t, TcvrStats>;
   using PhyStatsMap = std::map<std::string, phy::PhyStats>;
   using PortStatsMap = std::map<std::string, HwPortStats>;
+  using PimStatesMap = std::map<int, PimState>;
 
   QsfpFsdbSyncManager();
 
@@ -37,6 +39,7 @@ class QsfpFsdbSyncManager {
   void updateConfig(cfg::QsfpServiceConfig newConfig);
   void updateTcvrState(int32_t tcvrId, TcvrState&& newState);
   void updateTcvrStats(TcvrStatsMap&& stats);
+  void updatePimState(int pimId, PimState&& PimState);
   void updatePhyState(
       std::string&& portName,
       std::optional<phy::PhyState>&& newState);

@@ -12,6 +12,7 @@
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/PortStatsTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
@@ -69,6 +70,9 @@ class AgentLoopBackTest : public AgentHwTest {
       resolveNeigborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
     };
     auto verify = [=, this]() {
+      const auto switchType =
+          utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
+              ->getSwitchType();
       auto beforePortStats =
           getLatestPortStats(masterLogicalInterfacePortIds()[0]);
       sendPkt(frontPanel, pktTtl, srcEqualDstMac);
@@ -78,17 +82,25 @@ class AgentLoopBackTest : public AgentHwTest {
         // For packets going out to front panel, they would not go through the
         // routing logic the very first time (but directly looped back).
         // Therefore, the counter would plus one compared to the cpu port.
-        if (frontPanel) {
-          EXPECT_EVENTUALLY_EQ(
-              utility::getPortOutPkts(afterPortStats) -
-                  utility::getPortOutPkts(beforePortStats),
-              pktTtl);
+        // For VoQ switches, TTL 0 packets don't get dropped at Egress and hence
+        // it will be forwarded at Egress and looped back in and then get
+        // dropped at Ingress. So, there would be one extra packet for VoQ
+        // switches.
+        int expectedPkts;
+        if (frontPanel && switchType == cfg::SwitchType::VOQ) {
+          // VoQ switch front panel
+          expectedPkts = pktTtl + 1;
+        } else if (frontPanel || switchType == cfg::SwitchType::VOQ) {
+          // VoQ switch CPU port and Non-VoQ switch front panel
+          expectedPkts = pktTtl;
         } else {
-          EXPECT_EVENTUALLY_EQ(
-              utility::getPortOutPkts(afterPortStats) -
-                  utility::getPortOutPkts(beforePortStats),
-              pktTtl - 1);
+          // Non-VoQ switch CPU port
+          expectedPkts = pktTtl - 1;
         }
+        EXPECT_EVENTUALLY_EQ(
+            utility::getPortOutPkts(afterPortStats) -
+                utility::getPortOutPkts(beforePortStats),
+            expectedPkts);
       });
     };
 

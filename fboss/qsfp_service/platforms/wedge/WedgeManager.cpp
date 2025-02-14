@@ -49,6 +49,12 @@ static const std::string kQsfpToBmcSyncDataVersion{"1.0"};
 
 static const int kOpticsThermalSyncInterval = 10;
 
+static constexpr auto kPimsWithError = "qsfp.pims_with_error";
+
+void setPimsWithError(int pimsWithError) {
+  facebook::tcData().setCounter(kPimsWithError, pimsWithError);
+}
+
 } // namespace
 
 using LockedTransceiversPtr = folly::Synchronized<
@@ -364,13 +370,22 @@ void WedgeManager::writeTransceiverRegister(
     // Initialize responses with success = false. This will be overwritten with
     // the correct success flag later
     responses[i].success() = false;
-
     if (isValidTransceiver(i)) {
       if (auto it = lockedTransceivers->find(TransceiverID(i));
           it != lockedTransceivers->end()) {
         auto param = *(request->parameter());
-        futResponses.push_back(
-            it->second->futureWriteTransceiver(param, *(request->data())));
+        if (request->bytes().has_value()) {
+          // Converting signed int vector (Thrift type requirement) to unsigned
+          // int vector.
+          std::vector<uint8_t> unsignedVector(
+              request->bytes()->begin(), request->bytes()->end());
+          futResponses.push_back(
+              it->second->futureWriteTransceiver(param, unsignedVector));
+        } else {
+          param.length() = 1;
+          futResponses.push_back(it->second->futureWriteTransceiver(
+              param, {static_cast<uint8_t>(*(request->data()))}));
+        }
       }
     }
   }
@@ -524,6 +539,34 @@ void WedgeManager::updateTcvrStateInFsdb(
   fsdbSyncManager_->updateTcvrState(tcvrID, std::move(newState));
 }
 
+void WedgeManager::updatePimStateInFsdb(
+    int pimID,
+    facebook::fboss::PimState&& newState) {
+  fsdbSyncManager_->updatePimState(pimID, std::move(newState));
+}
+
+void WedgeManager::publishPimStatesToFsdb() {
+  if (!FLAGS_publish_state_to_fsdb) {
+    return;
+  }
+
+  int pimsWithError = 0;
+  pimStates_ = getPimStates();
+  QsfpFsdbSyncManager::PimStatesMap pimStates = folly::copy(pimStates_);
+  for (auto& [id, pimState] : pimStates) {
+    if (!pimState.errors()->empty()) {
+      ++pimsWithError;
+      for (auto error : *pimState.errors()) {
+        XLOG(ERR) << "PIM " << id << " has error: "
+                  << apache::thrift::util::enumNameSafe(error);
+      }
+    }
+    updatePimStateInFsdb(id, std::move(pimState));
+  }
+
+  setPimsWithError(pimsWithError);
+}
+
 void WedgeManager::publishTransceiversToFsdb() {
   if (!FLAGS_publish_stats_to_fsdb) {
     return;
@@ -614,11 +657,16 @@ std::vector<TransceiverID> WedgeManager::updateTransceiverMap() {
       // here.
       // If the transceiver is held in reset, we dont create a new one in its
       // place until it is released from reset.
-      if (transceiversInReset->count(idx) == 0) {
-        tcvrsToCreate.insert(idx);
-      } else {
+      // Also only create transceivers that are defined in platform mapping
+      // (have non empty port list)
+      if (transceiversInReset->count(idx) != 0) {
         XLOG(INFO) << "TransceiverID=" << idx
-                   << " is held in reset. Not adding transceiver";
+                   << " is held in reset. Not creating transceiver";
+      } else if (getPortNames(static_cast<TransceiverID>(idx)).empty()) {
+        XLOG(INFO) << "TransceiverID=" << idx
+                   << " is not in platform mapping. Not creating transceiver";
+      } else {
+        tcvrsToCreate.insert(idx);
       }
     }
   } // end of scope for transceivers_.rlock
@@ -644,6 +692,7 @@ std::vector<TransceiverID> WedgeManager::updateTransceiverMap() {
     for (auto idx : tcvrsToCreate) {
       TransceiverID tcvrID(idx);
       auto mgmtIf = futInterfaces[idx].value();
+      auto tcvrName = getTransceiverName(tcvrID);
       if (mgmtIf == TransceiverManagementInterface::CMIS) {
         XLOG(INFO) << "Making CMIS QSFP for TransceiverID=" << idx;
         lockedTransceiversWPtr->emplace(
@@ -652,21 +701,25 @@ std::vector<TransceiverID> WedgeManager::updateTransceiverMap() {
                 getPortNames(tcvrID),
                 qsfpImpls_[idx].get(),
                 tcvrConfig,
-                cmisSupportRemediate));
+                cmisSupportRemediate,
+                tcvrName));
         retVal.push_back(TransceiverID(idx));
       } else if (mgmtIf == TransceiverManagementInterface::SFF) {
         XLOG(INFO) << "Making Sff QSFP for TransceiverID=" << idx;
         lockedTransceiversWPtr->emplace(
             tcvrID,
             std::make_unique<SffModule>(
-                getPortNames(tcvrID), qsfpImpls_[idx].get(), tcvrConfig));
+                getPortNames(tcvrID),
+                qsfpImpls_[idx].get(),
+                tcvrConfig,
+                tcvrName));
         retVal.push_back(TransceiverID(idx));
       } else if (mgmtIf == TransceiverManagementInterface::SFF8472) {
         XLOG(INFO) << "Making Sff8472 module for TransceiverID=" << idx;
         lockedTransceiversWPtr->emplace(
             tcvrID,
             std::make_unique<Sff8472Module>(
-                getPortNames(tcvrID), qsfpImpls_[idx].get()));
+                getPortNames(tcvrID), qsfpImpls_[idx].get(), tcvrName));
         retVal.push_back(TransceiverID(idx));
       } else {
         XLOG(ERR) << "Unknown Transceiver interface: "

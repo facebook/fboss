@@ -58,6 +58,12 @@ struct AdapterHostKeyWarmbootRecoverable<SaiWredTraits> : std::false_type {};
 
 #endif
 
+#if defined(CHENAB_SDK)
+template <>
+struct AdapterHostKeyWarmbootRecoverable<SaiAclCounterTraits>
+    : std::false_type {};
+#endif
+
 /*
  * SaiObjectStore is the critical component of SaiStore,
  * it provides the needed operations on a single type of SaiObject

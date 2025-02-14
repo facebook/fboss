@@ -38,6 +38,8 @@ namespace facebook::fboss {
 template <typename AddrT>
 class AgentSflowMirrorTest : public AgentHwTest {
  public:
+  // Index in the sample ports where data traffic is expected!
+  const int kDataTrafficPortIndex{0};
   std::vector<production_features::ProductionFeature>
   getProductionFeaturesVerified() const override {
     if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
@@ -63,14 +65,18 @@ class AgentSflowMirrorTest : public AgentHwTest {
     if (asic->isSupported(HwAsic::Feature::EVENTOR_PORT_FOR_SFLOW)) {
       utility::addEventorVoqConfig(&cfg, cfg::StreamType::UNICAST);
     }
+    utility::setTTLZeroCpuConfig(ensemble.getL3Asics(), cfg);
     return cfg;
   }
 
-  void configureMirror(
+  virtual void configureMirror(
       cfg::SwitchConfig& cfg,
-      bool v4,
+      std::optional<bool> isV4Addr = std::nullopt,
       uint32_t udpSrcPort = 6545,
-      uint32_t udpDstPort = 6343) const {
+      uint32_t udpDstPort = 6343,
+      std::optional<int> sampleRate = std::nullopt) const {
+    bool v4 = isV4Addr.has_value() ? *isV4Addr
+                                   : std::is_same_v<AddrT, folly::IPAddressV4>;
     utility::configureSflowMirror(
         cfg,
         kSflowMirror,
@@ -78,14 +84,29 @@ class AgentSflowMirrorTest : public AgentHwTest {
         utility::getSflowMirrorDestination(v4).str(),
         udpSrcPort,
         udpDstPort,
-        v4);
+        v4,
+        sampleRate);
   }
 
-  virtual void configureMirror(
+  void configSampling(cfg::SwitchConfig& config, int sampleRate) const {
+    auto ports = getPortsForSampling();
+    utility::configureSflowSampling(config, kSflowMirror, ports, sampleRate);
+  }
+
+  void configureMirrorWithSampling(
       cfg::SwitchConfig& cfg,
+      int sampleRate,
+      std::optional<bool> v4 = std::nullopt,
       uint32_t udpSrcPort = 6545,
       uint32_t udpDstPort = 6343) const {
-    configureMirror(cfg, std::is_same_v<AddrT, folly::IPAddressV4>);
+    std::optional<int> sampleRateCfg;
+    auto asic = checkSameAndGetAsic();
+    if (asic->isSupported(HwAsic::Feature::SAMPLE_RATE_CONFIG_PER_MIRROR)) {
+      // Handle sampleRate config needed on mirror
+      sampleRateCfg = sampleRate;
+    }
+    configureMirror(cfg, v4, udpSrcPort, udpDstPort, sampleRateCfg);
+    configSampling(cfg, sampleRate);
   }
 
   void configureTrapAcl(cfg::SwitchConfig& cfg, bool isV4) const {
@@ -143,11 +164,6 @@ class AgentSflowMirrorTest : public AgentHwTest {
       return std::vector<PortID>(ports.begin(), ports.begin() + 16);
     }
     return ports;
-  }
-
-  void configSampling(cfg::SwitchConfig& config, int sampleRate) {
-    auto ports = getPortsForSampling();
-    utility::configureSflowSampling(config, kSflowMirror, ports, sampleRate);
   }
 
   const HwAsic* checkSameAndGetAsic() const {
@@ -265,13 +281,38 @@ class AgentSflowMirrorTest : public AgentHwTest {
     }
   }
 
+  std::string getTrafficDestinationIp(int portIndex) {
+    return folly::to<std::string>(kIpStr, portIndex, "::1");
+  }
+
+  void setupEcmpTraffic() {
+    utility::EcmpSetupTargetedPorts6 ecmpHelper{
+        getProgrammedState(),
+        utility::getFirstInterfaceMac(getProgrammedState())};
+
+    const PortDescriptor port(getDataTrafficPort());
+    RoutePrefixV6 route{
+        folly::IPAddressV6(getTrafficDestinationIp(kDataTrafficPortIndex)),
+        128};
+
+    applyNewState([&](const std::shared_ptr<SwitchState>& state) {
+      return ecmpHelper.resolveNextHops(state, {port});
+    });
+
+    auto routeUpdater = getSw()->getRouteUpdater();
+    ecmpHelper.programRoutes(&routeUpdater, {port}, {route});
+
+    utility::ttlDecrementHandlingForLoopbackTraffic(
+        getAgentEnsemble(), ecmpHelper.getRouterId(), ecmpHelper.nhop(port));
+  }
+
   std::unique_ptr<facebook::fboss::TxPacket> genPacket(
       int portIndex,
       size_t payloadSize) {
     auto vlanId = utility::firstVlanID(getProgrammedState());
     auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
     folly::IPAddressV6 sip{"2401:db00:dead:beef::2401"};
-    folly::IPAddressV6 dip{folly::to<std::string>(kIpStr, portIndex, "::1")};
+    folly::IPAddressV6 dip{getTrafficDestinationIp(portIndex)};
     uint16_t sport = 9701;
     uint16_t dport = 9801;
     std::vector<uint8_t> payload(payloadSize, 0xff);
@@ -449,52 +490,51 @@ class AgentSflowMirrorTest : public AgentHwTest {
   }
 
   uint64_t getSampleCount(const std::map<PortID, HwPortStats>& stats) {
-    auto portStats = stats.at(getPortsForSampling()[0]);
+    const auto& portStats = stats.at(getNonSflowSampledInterfacePort());
     return *portStats.outUnicastPkts_();
+  }
+
+  const PortID getDataTrafficPort() {
+    return getPortsForSampling()[kDataTrafficPortIndex];
   }
 
   uint64_t getExpectedSampleCount(const std::map<PortID, HwPortStats>& stats) {
     uint64_t expectedSampleCount = 0;
-    uint64_t allPortRx = 0;
-    for (auto i = 1; i < getPortsForSampling().size(); i++) {
-      auto port = getPortsForSampling()[i];
-      auto portStats = stats.at(port);
-      allPortRx += *portStats.inUnicastPkts_();
-      expectedSampleCount +=
-          (*portStats.inUnicastPkts_() / FLAGS_sflow_test_rate);
-    }
-    XLOG(DBG2) << "total packets rx " << allPortRx;
+    auto port = getDataTrafficPort();
+    const auto& portStats = stats.at(port);
+    expectedSampleCount = (*portStats.inUnicastPkts_() / FLAGS_sflow_test_rate);
+    XLOG(DBG2) << "total packets rx " << *portStats.inUnicastPkts_();
     return expectedSampleCount;
   }
 
   void verifySampledPacketRate() {
-    auto ports = getPortsForSampling();
-
-    auto pkt = genPacket(1, 256);
-
-    for (auto i = 1; i < ports.size(); i++) {
+    auto trafficPort = getDataTrafficPort();
+    for (int i = 0; i < getAgentEnsemble()->getMinPktsForLineRate(trafficPort);
+         i++) {
+      auto pkt = genPacket(kDataTrafficPortIndex, 256 /*payloadSize*/);
       getAgentEnsemble()->sendPacketAsync(
-          std::move(pkt), PortDescriptor(ports[i]), std::nullopt);
-      getAgentEnsemble()->waitForLineRateOnPort(ports[i]);
+          std::move(pkt), PortDescriptor(trafficPort), std::nullopt);
     }
+    getAgentEnsemble()->waitForLineRateOnPort(trafficPort);
 
+    auto ports = getPortsForSampling();
     getAgentEnsemble()->bringDownPorts(
         std::vector<PortID>(ports.begin() + 1, ports.end()));
-
+    ports.push_back(getNonSflowSampledInterfacePort());
+    int percentError = 100;
     WITH_RETRIES({
-      auto stats = getLatestPortStats(getPortsForSampling());
+      auto stats = getLatestPortStats(ports);
       auto actualSampleCount = getSampleCount(stats);
       auto expectedSampleCount = getExpectedSampleCount(stats);
+      XLOG(DBG2) << "Number of sflow samples expected: " << expectedSampleCount
+                 << ", samples seen: " << actualSampleCount;
       auto difference = (expectedSampleCount > actualSampleCount)
           ? (expectedSampleCount - actualSampleCount)
           : (actualSampleCount - expectedSampleCount);
-      if (!actualSampleCount) {
-        continue;
+      if (actualSampleCount) {
+        percentError = (difference * 100) / actualSampleCount;
       }
-      auto percentError = (difference * 100) / actualSampleCount;
       EXPECT_EVENTUALLY_LE(percentError, kDefaultPercentErrorThreshold);
-      XLOG(DBG2) << "expected number of " << expectedSampleCount << " samples";
-      XLOG(DBG2) << "captured number of " << actualSampleCount << " samples";
     });
 
     getAgentEnsemble()->bringUpPorts(
@@ -506,8 +546,7 @@ class AgentSflowMirrorTest : public AgentHwTest {
     auto setup = [=, this]() {
       auto ports = getPortsForSampling();
       auto config = initialConfig(*getAgentEnsemble());
-      configureMirror(config);
-      configSampling(config, 1);
+      configureMirrorWithSampling(config, 1 /*sampleRate*/);
       configureTrapAcl(config);
       applyNewConfig(config);
       resolveRouteForMirrorDestination();
@@ -525,11 +564,10 @@ class AgentSflowMirrorTest : public AgentHwTest {
   void testSampledPacketRate(bool truncate = false) {
     auto setup = [=, this]() {
       auto config = initialConfig(*getAgentEnsemble());
-      configureMirror(config);
-      configSampling(config, FLAGS_sflow_test_rate);
-      configureTrapAcl(config);
+      configureMirrorWithSampling(config, FLAGS_sflow_test_rate /*sampleRate*/);
       applyNewConfig(config);
       resolveRouteForMirrorDestination();
+      setupEcmpTraffic();
     };
     auto verify = [=, this]() { verifySampledPacketRate(); };
     verifyAcrossWarmBoots(setup, verify);
@@ -588,11 +626,14 @@ class AgentSflowMirrorTruncateTest : public AgentSflowMirrorTest<AddrT> {
     }
   }
 
-  void configureMirror(
+  virtual void configureMirror(
       cfg::SwitchConfig& cfg,
-      bool v4,
+      std::optional<bool> isV4Addr = std::nullopt,
       uint32_t udpSrcPort = 6545,
-      uint32_t udpDstPort = 6343) const {
+      uint32_t udpDstPort = 6343,
+      std::optional<int> sampleRate = std::nullopt) const override {
+    bool v4 = isV4Addr.has_value() ? *isV4Addr
+                                   : std::is_same_v<AddrT, folly::IPAddressV4>;
     utility::configureSflowMirror(
         cfg,
         kSflowMirror,
@@ -600,15 +641,8 @@ class AgentSflowMirrorTruncateTest : public AgentSflowMirrorTest<AddrT> {
         utility::getSflowMirrorDestination(v4).str(),
         udpSrcPort,
         udpDstPort,
-        v4);
-  }
-
-  virtual void configureMirror(
-      cfg::SwitchConfig& cfg,
-      uint32_t udpSrcPort = 6545,
-      uint32_t udpDstPort = 6343) const override {
-    configureMirror(
-        cfg, std::is_same_v<AddrT, folly::IPAddressV4>, udpSrcPort, udpDstPort);
+        v4,
+        sampleRate);
   }
 };
 
@@ -623,12 +657,14 @@ class AgentSflowMirrorOnTrunkTest : public AgentSflowMirrorTruncateTest<AddrT> {
       return {
           production_features::ProductionFeature::SFLOWv4_SAMPLING,
           production_features::ProductionFeature::LAG,
-          production_features::ProductionFeature::MIRROR_PACKET_TRUNCATION};
+          production_features::ProductionFeature::MIRROR_PACKET_TRUNCATION,
+          production_features::ProductionFeature::LAG_MIRRORING};
     } else {
       return {
           production_features::ProductionFeature::SFLOWv6_SAMPLING,
           production_features::ProductionFeature::LAG,
-          production_features::ProductionFeature::MIRROR_PACKET_TRUNCATION};
+          production_features::ProductionFeature::MIRROR_PACKET_TRUNCATION,
+          production_features::ProductionFeature::LAG_MIRRORING};
     }
   }
 
@@ -672,9 +708,8 @@ class AgentSflowMirrorWithLineRateTrafficTest
           allPorts.begin(), allPorts.begin() + kNumDataTrafficPorts);
       std::vector<int> losslessPgIds = {kLosslessPriority};
       auto config = initialConfig(*getAgentEnsemble());
-      configureMirror(config);
       // Configure 1:1 sampling to ensure high rate on mirror egress port
-      configSampling(config, 1);
+      configureMirrorWithSampling(config, 1 /*sampleRate*/);
       // PFC buffer configurations to ensure we have lossless traffic
       const std::map<int, int> tcToPgOverride{};
       // We dont want PFC here, so set global shared threshold to be high
@@ -790,12 +825,65 @@ class AgentSflowMirrorWithLineRateTrafficTest
       auto watermarkBytes = latestSysPortStats.queueWatermarkBytes_()->at(0);
       EXPECT_EVENTUALLY_GT(watermarkBytes, 0);
       EXPECT_LT(watermarkBytes, maxExpectedQueueLimitBytes);
-      // Now, ingress congestion discards will be seen on input ports
-      // with line rate traffic. Pick one of the ports with line rate
-      // traffic and look for ingress congestion discards.
-      auto latestPortStats = getLatestPortStats(getPortsForSampling()[0]);
-      EXPECT_EVENTUALLY_GT(*latestPortStats.inCongestionDiscards_(), 0);
     });
+  }
+};
+
+class AgentSflowMirrorTruncateWithSamplesPackingTestV6
+    : public AgentSflowMirrorTruncateTest<folly::IPAddressV6> {
+ public:
+  const int kNumSflowSamplesPacked{4};
+  std::vector<production_features::ProductionFeature>
+  getProductionFeaturesVerified() const override {
+    auto productionFeatures = AgentSflowMirrorTruncateTest<
+        folly::IPAddressV6>::getProductionFeaturesVerified();
+    productionFeatures.push_back(
+        production_features::ProductionFeature::SFLOW_SAMPLES_PACKING);
+    return productionFeatures;
+  }
+
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto config =
+        AgentSflowMirrorTruncateTest<folly::IPAddressV6>::initialConfig(
+            ensemble);
+    config.switchSettings()->numberOfSflowSamplesPerPacket() =
+        kNumSflowSamplesPacked;
+    return config;
+  }
+
+  void verifySflowSamplePacking(uint8_t numSflowSamplesPacked) {
+    auto ports = getPortsForSampling();
+    getAgentEnsemble()->bringDownPorts(
+        std::vector<PortID>(ports.begin() + 2, ports.end()));
+    utility::SwSwitchPacketSnooper snooper(getSw(), "snooper");
+    // Send as many packets as the samples packed in a single
+    // packet and expect to receive a single sampled packet.
+    int numPacketsToSend{numSflowSamplesPacked};
+    for (auto i = 0; i < numPacketsToSend; i++) {
+      auto pkt = genPacket(1, 256);
+      XLOG(DBG2) << "Sending packet through port " << ports[1];
+      getAgentEnsemble()->sendPacketAsync(
+          std::move(pkt), PortDescriptor(ports[1]), std::nullopt);
+    }
+    WITH_RETRIES({
+      // Make sure that packets TXed from port stats!
+      auto portStats = getLatestPortStats(ports[1]);
+      EXPECT_EVENTUALLY_GE(*portStats.outUnicastPkts_(), numPacketsToSend);
+    });
+    int sflowPacketCount{0};
+    std::optional<std::unique_ptr<folly::IOBuf>> capturedPacketBuf;
+    // Should not expect to see more than number of packets sent
+    for (int i = 0; i < numPacketsToSend; i++) {
+      capturedPacketBuf = snooper.waitForPacket(1);
+      if (capturedPacketBuf.has_value()) {
+        sflowPacketCount++;
+      }
+    }
+    // Make sure that we received exactly one sflow packet
+    EXPECT_EQ(sflowPacketCount, 1);
+    // Verify packing!
+    // TODO: Inspect packet for the samples!
   }
 };
 
@@ -854,8 +942,7 @@ TEST_F(AgentSflowMirrorTestV4, MoveToV6) {
   // Test to migrate v4 mirror to v6
   auto setup = [=, this]() {
     auto config = initialConfig(*getAgentEnsemble());
-    configureMirror(config);
-    configSampling(config, 1);
+    configureMirrorWithSampling(config, 1 /* sampleRate */);
     configureTrapAcl(config);
     applyNewConfig(config);
     resolveRouteForMirrorDestination();
@@ -865,8 +952,7 @@ TEST_F(AgentSflowMirrorTestV4, MoveToV6) {
     auto config = initialConfig(*getAgentEnsemble());
     config.mirrors()->clear();
     /* move to v6 */
-    configureMirror(config, false /* v4 */);
-    configSampling(config, 1);
+    configureMirrorWithSampling(config, 1 /* sampleRate */, false /* v4 */);
     configureTrapAcl(config, false /* v4 */);
     applyNewConfig(config);
     resolveRouteForMirrorDestination(false /* v4 */);
@@ -879,8 +965,7 @@ TEST_F(AgentSflowMirrorTestV6, MoveToV4) {
   // Test to migrate v6 mirror to v4
   auto setup = [=, this]() {
     auto config = initialConfig(*getAgentEnsemble());
-    configureMirror(config);
-    configSampling(config, 1);
+    configureMirrorWithSampling(config, 1 /* sampleRate */);
     configureTrapAcl(config);
     applyNewConfig(config);
     resolveRouteForMirrorDestination();
@@ -890,8 +975,7 @@ TEST_F(AgentSflowMirrorTestV6, MoveToV4) {
     auto config = initialConfig(*getAgentEnsemble());
     config.mirrors()->clear();
     /* move to v4 */
-    configureMirror(config, true /* v4 */);
-    configSampling(config, 1);
+    configureMirrorWithSampling(config, 1 /* sampleRate */, true /* v4 */);
     configureTrapAcl(config, true /* v4 */);
     applyNewConfig(config);
     resolveRouteForMirrorDestination(true /* v4 */);
@@ -900,11 +984,11 @@ TEST_F(AgentSflowMirrorTestV6, MoveToV4) {
       setup, verify, setupPostWb, [=, this]() { verifySampledPacket(true); });
 }
 
-TEST_F(AgentSflowMirrorTestV6, verifyL4SrcPortRandomization) {
+TEST_F(AgentSflowMirrorTruncateTestV6, verifyL4SrcPortRandomization) {
   auto setup = [=, this]() {
     auto config = initialConfig(*getAgentEnsemble());
-    configureMirror(config, false, 0);
-    configSampling(config, 1);
+    configureMirrorWithSampling(
+        config, 1 /* sampleRate */, false /* v4 */, 0 /* udpSrcPort */);
     configureTrapAcl(config);
     applyNewConfig(config);
     resolveRouteForMirrorDestination();
@@ -914,4 +998,22 @@ TEST_F(AgentSflowMirrorTestV6, verifyL4SrcPortRandomization) {
   };
   verifyAcrossWarmBoots(setup, verify);
 }
+
+TEST_F(
+    AgentSflowMirrorTruncateWithSamplesPackingTestV6,
+    verifySflowSamplesPacking) {
+  auto setup = [=, this]() {
+    auto config = initialConfig(*getAgentEnsemble());
+    configureMirror(config, false, 0);
+    configSampling(config, 1);
+    configureTrapAcl(config);
+    applyNewConfig(config);
+    resolveRouteForMirrorDestination();
+  };
+  auto verify = [=, this]() {
+    this->verifySflowSamplePacking(kNumSflowSamplesPacked);
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss

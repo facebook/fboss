@@ -35,13 +35,15 @@ void configureAllIpQualifiers(
     cfg::AsicType asicType) {
   cfg::Ttl ttl;
   std::tie(*ttl.value(), *ttl.mask()) = std::make_tuple(0x80, 0x80);
+  bool enableSrcIpQualifier =
+      (asicType != cfg::AsicType::ASIC_TYPE_CHENAB) && enable;
 
   if (asicType != cfg::AsicType::ASIC_TYPE_JERICHO3) {
     // TODO(daiweix): remove after J3 ACL supports IP_TYPE
     configureQualifier(acl->ipType(), enable, ipType);
   }
   if (ipType == cfg::IpType::IP6) {
-    configureQualifier(acl->srcIp(), enable, "::ffff:c0a8:1");
+    configureQualifier(acl->srcIp(), enableSrcIpQualifier, "::ffff:c0a8:1");
     configureQualifier(
         acl->dstIp(), enable, "2401:db00:3020:70e2:face:0:63:0/64");
 
@@ -55,7 +57,7 @@ void configureAllIpQualifiers(
         cfg::AclLookupClass::DST_CLASS_L3_LOCAL_2);
 
   } else {
-    configureQualifier(acl->srcIp(), enable, "192.168.0.1");
+    configureQualifier(acl->srcIp(), enableSrcIpQualifier, "192.168.0.1");
     configureQualifier(acl->dstIp(), enable, "192.168.0.0/24");
 
     configureQualifier(
@@ -165,6 +167,9 @@ class AgentHwAclQualifierTest : public AgentHwTest {
       cfg::AclEntry* acl,
       SwitchID switchID = SwitchID(0)) {
     auto asicType = getAsicType(switchID);
+    bool enableSrcIpQualifier = (asicType != cfg::AsicType::ASIC_TYPE_CHENAB);
+    bool enableEtherTypeQualifier =
+        (asicType == cfg::AsicType::ASIC_TYPE_CHENAB);
     cfg::Ttl ttl;
     std::tie(*ttl.value(), *ttl.mask()) = std::make_tuple(0x80, 0x80);
 
@@ -172,17 +177,22 @@ class AgentHwAclQualifierTest : public AgentHwTest {
       // TODO(daiweix): remove after J3 ACL supports IP_TYPE
       configureQualifier(acl->ipType(), true, cfg::IpType::IP4);
     }
-    configureQualifier(acl->srcIp(), true, "192.168.0.1");
+    configureQualifier(acl->srcIp(), enableSrcIpQualifier, "192.168.0.1");
     configureQualifier(acl->dstIp(), true, "192.168.0.0/24");
     configureQualifier(acl->dscp(), true, 0x24);
     configureQualifier(acl->ttl(), true, ttl);
     configureQualifier(acl->proto(), true, 6);
+    configureQualifier(
+        acl->etherType(), enableEtherTypeQualifier, cfg::EtherType::IPv4);
   }
 
   void configureIp6QualifiersHelper(
       cfg::AclEntry* acl,
       SwitchID switchID = SwitchID(0)) {
     auto asicType = getAsicType(switchID);
+    auto enableSrcIpQualifier = (asicType != cfg::AsicType::ASIC_TYPE_CHENAB);
+    bool enableEtherTypeQualifier =
+        (asicType == cfg::AsicType::ASIC_TYPE_CHENAB);
     cfg::Ttl ttl;
     std::tie(*ttl.value(), *ttl.mask()) = std::make_tuple(0x80, 0x80);
 
@@ -190,12 +200,15 @@ class AgentHwAclQualifierTest : public AgentHwTest {
       // TODO(daiweix): remove after J3 ACL supports IP_TYPE
       configureQualifier(acl->ipType(), true, cfg::IpType::IP6);
     }
-    configureQualifier(acl->srcIp(), true, "::ffff:c0a8:1");
+
+    configureQualifier(acl->srcIp(), enableSrcIpQualifier, "::ffff:c0a8:1");
     configureQualifier(
         acl->dstIp(), true, "2401:db00:3020:70e2:face:0:63:0/64");
     configureQualifier(acl->dscp(), true, 0x24);
     configureQualifier(acl->ttl(), true, ttl);
     configureQualifier(acl->proto(), true, 6);
+    configureQualifier(
+        acl->etherType(), enableEtherTypeQualifier, cfg::EtherType::IPv6);
   }
 
   std::string kAclName() const {

@@ -149,11 +149,19 @@ class SystemPort
         getRemoteSystemPortType().value() == RemoteSystemPortType::STATIC_ENTRY;
   }
 
-  bool getShelDestinationEnabled() const {
-    return cref<ctrl_if_tags::shelDestinationEnabled>()->cref();
+  std::optional<bool> getShelDestinationEnabled() const {
+    if (auto shelDestinationEnabled =
+            cref<ctrl_if_tags::shelDestinationEnabled>()) {
+      return shelDestinationEnabled->cref();
+    };
+    return std::nullopt;
   }
-  void setShelDestinationEnabled(bool shelDestinationEnabled) {
-    set<ctrl_if_tags::shelDestinationEnabled>(shelDestinationEnabled);
+  void setShelDestinationEnabled(std::optional<bool> shelDestinationEnabled) {
+    if (!shelDestinationEnabled.has_value()) {
+      ref<ctrl_if_tags::shelDestinationEnabled>().reset();
+    } else {
+      set<ctrl_if_tags::shelDestinationEnabled>(shelDestinationEnabled.value());
+    }
   }
 
  private:

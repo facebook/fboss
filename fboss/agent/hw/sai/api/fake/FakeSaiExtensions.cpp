@@ -412,6 +412,11 @@ SaiSwitchTraits::Attributes::AttributeShelPeriodicInterval::operator()() {
 }
 
 std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeSflowAggrNofSamplesWrapper::operator()() {
+  return SAI_SWITCH_ATTR_SFLOW_AGGR_NOF_SAMPLES;
+}
+
+std::optional<sai_attr_id_t>
 SaiPortSerdesTraits::Attributes::AttributeTxDiffEncoderEnWrapper::operator()() {
   return SAI_PORT_SERDES_ATTR_EXT_TX_DIFF_ENCODER_EN;
 }

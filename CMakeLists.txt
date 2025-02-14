@@ -81,6 +81,14 @@ if ($ENV{CHENAB_SAI_SDK})
   add_definitions (-DCHENAB_SAI_SDK)
 endif()
 
+if (NOT $ENV{SAI_VERSION} EQUAL "")
+  message(STATUS "ENV SAI_VERSION is set")
+  set (SAI_VERSION $ENV{SAI_VERSION})
+else()
+  message(STATUS "ENV SAI_VERSION is not set, using default:1.14.0")
+  set (SAI_VERSION "1.14.0")
+endif()
+
 option(BUILD_SAI_FAKE_LINK_TEST "Building of SAI Fake Link Test binaries" OFF)
 if ($ENV{BUILD_SAI_FAKE_LINK_TEST})
   message(STATUS "ENV BUILD_SAI_FAKE_LINK_TEST is set")
@@ -100,9 +108,18 @@ if (SAI_BRCM_IMPL)
   set(SAI_SDK_VERSION "SAI_VERSION_11_0_EA_DNX_ODP")
 endif()
 
-set(SAI_VER_MAJOR "1")
-set(SAI_VER_MINOR "14")
-set(SAI_VER_RELEASE "0")
+# SAI version is set. Extract MAJOR, MINOR, RELEASE ver
+strtok(${SAI_VERSION} "." tokens)
+set(listLength 0)
+list(LENGTH tokens listLength)
+if(NOT ${listLength} EQUAL 3)
+  message(Invalid SAI_VERSION in env variable $ENV{SAI_VERSION})
+else()
+  list(GET tokens 0 SAI_VER_MAJOR)
+  list(GET tokens 1 SAI_VER_MINOR)
+  list(GET tokens 2 SAI_VER_RELEASE)
+endif()
+#endif
 
 if (NOT "$ENV{SAI_SDK_VERSION}" STREQUAL "")
   message(STATUS "ENV SAI_SDK_VERSION is set to $ENV{SAI_SDK_VERSION}")
@@ -183,11 +200,7 @@ include_directories(${FATAL_INCLUDE_DIR})
 find_library(NLOHMANN_JSON nlohmann-json)
 find_path(NLOHMANN_JSON_INCLUDE_DIRS NAMES nlohmann/json.hpp)
 include_directories(${NLOHMANN_JSON_INCLUDE_DIRS})
-
-# (TODO): Pinning python version to 3.8 to compile in lego-linux since
-# python 3.10 is causing link failures for sai test binary. Undo
-# this once lego-linux is compatible with python3.10
-find_package(Python3 3.8 EXACT COMPONENTS Interpreter Development)
+find_package(Python3 COMPONENTS Interpreter Development)
 include_directories(${Python3_INCLUDE_DIR})
 
 find_path(SAI_INCLUDE_DIR NAMES sai.h)
@@ -341,6 +354,13 @@ add_fbthrift_cpp_library(
     prbs_cpp2
 )
 add_fbthrift_cpp_library(
+  pim_state_cpp2
+  fboss/lib/if/pim_state.thrift
+  OPTIONS
+    json
+    reflection
+)
+add_fbthrift_cpp_library(
   transceiver_validation_cpp2
   fboss/qsfp_service/if/transceiver_validation.thrift
   OPTIONS
@@ -372,6 +392,7 @@ add_fbthrift_cpp_library(
     qsfp_config_cpp2
     phy_cpp2
     transceiver_cpp2
+    pim_state_cpp2
 )
 add_fbthrift_cpp_library(
   qsfp_stats_cpp2
@@ -753,6 +774,7 @@ add_dependencies(fboss_platform_services
   rackmon
   rackmon_test
   platform_manager
+  platform_manager_hw_test
   fw_util
   weutil
   led_service
@@ -851,5 +873,13 @@ if (GITHUB_ACTIONS_BUILD)
     fan_service_hw_test
     sensor_service_hw_test
     weutil_hw_test
+    platform_manager_hw_test
+  )
+
+  add_custom_target(github_actions_fboss_other_services)
+  add_dependencies(github_actions_fboss_other_services
+    # Services
+    fboss2
+    fsdb
   )
 endif()

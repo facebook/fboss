@@ -460,12 +460,9 @@ HwSwitchDropStats AgentHwTest::getAggregatedSwitchDropStats() {
   checkWithRetry([&hwSwitchDropStats, this]() {
     HwSwitchDropStats aggHwSwitchDropStats;
 
-    auto switchStats = getSw()->getHwSwitchStatsExpensive();
     for (const auto& switchId : getSw()->getHwAsicTable()->getSwitchIDs()) {
-      if (switchStats.find(switchId) == switchStats.end()) {
-        return false;
-      }
-      const auto& dropStats = *switchStats.at(switchId).switchDropStats();
+      auto switchStats = getHwSwitchStats(switchId);
+      const auto& dropStats = *switchStats.switchDropStats();
 
 #define FILL_DROP_COUNTERS(stat)                       \
   aggHwSwitchDropStats.stat##Drops() =                 \

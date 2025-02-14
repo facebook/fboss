@@ -14,6 +14,7 @@ include "fboss/agent/if/mpls.thrift"
 include "fboss/lib/if/fboss_common.thrift"
 include "thrift/annotation/cpp.thrift"
 include "thrift/annotation/python.thrift"
+include "thrift/annotation/thrift.thrift"
 
 @cpp.Type{name = "uint64_t"}
 typedef i64 u64
@@ -425,14 +426,17 @@ struct MirrorOnDropReport {
   // Contents of the dropped packet will be truncated when mirroring.
   7: i16 truncateSize = 128;
   8: byte dscp = 0;
-  // At most one mirrored packet will be sent per port/PG/VOQ within an interval.
-  9: optional i32 agingIntervalUsecs;
+  @thrift.DeprecatedUnvalidatedAnnotations{items = {"deprecated": "1"}}
+  9: optional i32 agingIntervalUsecs_DEPRECATED;
+  @thrift.DeprecatedUnvalidatedAnnotations{items = {"deprecated": "1"}}
   10: map<
     byte,
     list<MirrorOnDropReasonAggregation>
-  > eventIdToDropReasons_DEPRECATED (deprecated);
+  > eventIdToDropReasons_DEPRECATED;
   // Configuration for each event ID.
   11: map<byte, MirrorOnDropEventConfig> modEventToConfigMap;
+  // Aging interval (how often to send packets) for each aging group in usecs.
+  12: map<MirrorOnDropAgingGroup, i32> agingGroupAgingIntervalUsecs;
 }
 
 /**
@@ -1752,6 +1756,30 @@ struct SwitchInfo {
   // communication to this node
   11: optional i32 inbandPortId;
   12: map<FirmwareName, FirmwareInfo> firmwareNameToFirmwareInfo;
+
+  /*
+   * VOQ switch may use these thresholds as below:
+   *  - During init, create switch device Isolated.
+   *  - When numActiveLinks > minLinksToJoinVOQDomain => Unisolate device.
+   *  - When numActiveLinks < minLinksToRemainInVOQDomain => Isolate device.
+   *
+   * In practice, these thresholds will be configured to provide hysteresis:
+   *  - 0 < minLinksToRemainInVOQDomain < minLinksToJoinVOQDomain < maxActiveLinks
+   *  - numActiveLinks in [0, minLinksToRemainInVOQDomain) => device isolated.
+   *  - numActiveLinks in (minLinksToJoinVOQDomain, maxActiveLinks] => device unisolated
+   *  - numActiveLinks in [minLinksToRemainInVOQDomain, minLinksToJoinVOQDomain]
+   *    => Whether or not the device is isolated depends on how we got to this state.
+   *    => For example, during init, as links gradually turn active, the device
+   *       will be isolated for these numActiveLinks as minLinksToJoinVOQDomain is not
+   *       yet hit.
+   *    => On the other hand, if the links are active but start turning inactive,
+   *       the device will be unisolated for these numActiveLinks since
+   *       minLinksToRemainInVOQDomain is not yet thit.
+   *
+   * TODO: This will be enhanced to work for Fabric switches as well.
+   */
+  13: optional i32 minLinksPerDeviceToRemainInVOQDomain;
+  14: optional i32 minLinksPerDeviceToJoinVOQDomain;
 }
 
 /*
@@ -1838,6 +1866,8 @@ struct SwitchSettings {
   27: optional i32 remoteL1VoqMaxExpectedLatencyNsec;
   28: optional i32 remoteL2VoqMaxExpectedLatencyNsec;
   29: optional i32 voqOutOfBoundsLatencyNsec;
+  // Number of sflow samples to pack in a single packet being sent out
+  30: optional byte numberOfSflowSamplesPerPacket;
 }
 
 // Global buffer pool

@@ -24,6 +24,11 @@ class AgentTrafficPauseTest : public AgentHwTest {
     return config;
   }
 
+  void setCmdLineFlagOverrides() const override {
+    // Turn on Leaba SDK shadow cache to avoid test case timeout
+    FLAGS_counter_refresh_interval = 1;
+  }
+
   void sendPauseFrames(const PortID& portId, const int count) {
     // PAUSE frame to have the highest quanta of 0xffff
     std::vector<uint8_t> payload{0x00, 0x01, 0xff, 0xff};
@@ -143,7 +148,7 @@ class AgentTrafficPauseTest : public AgentHwTest {
               });
       std::optional<HwPortStats> prevPortStats;
       HwPortStats curPortStats{};
-      WITH_RETRIES({
+      WITH_RETRIES_N_TIMED(15, std::chrono::milliseconds(2000), {
         curPortStats = getLatestPortStats(kPausedPortId);
         if (!prevPortStats.has_value()) {
           // Rate calculation wont be accurate
@@ -151,7 +156,7 @@ class AgentTrafficPauseTest : public AgentHwTest {
           continue;
         }
         auto rate =
-            getAgentEnsemble()->getTrafficRate(*prevPortStats, curPortStats, 1);
+            getAgentEnsemble()->getTrafficRate(*prevPortStats, curPortStats, 2);
         XLOG(DBG0) << "Port " << kPausedPortId << ", current rate is : " << rate
                    << " bps, pause frames received: "
                    << curPortStats.inPause_().value();

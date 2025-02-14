@@ -245,7 +245,10 @@ DEFINE_bool(
     "Read a register, use with --offset and optionally --length");
 DEFINE_bool(write_reg, false, "Write a register, use with --offset and --data");
 DEFINE_int32(offset, -1, "The offset of register to read/write (0..255)");
-DEFINE_int32(data, 0, "The byte to write to the register, use with --offset");
+DEFINE_string(
+    data,
+    "",
+    "Comma-separated list of bytes to write to the register, use with --offset");
 DEFINE_int32(
     length,
     1,
@@ -829,25 +832,33 @@ void doWriteRegDirect(
     unsigned int port,
     int offset,
     int page,
-    uint8_t value) {
+    const std::vector<uint8_t>& data) {
   try {
     if (page != -1) {
       setPageDirect(bus, port, page);
     }
     bus->moduleWrite(
-        port, {static_cast<uint8_t>(FLAGS_i2c_address), offset, 1}, &value);
+        port,
+        {static_cast<uint8_t>(FLAGS_i2c_address),
+         offset,
+         static_cast<int>(data.size())},
+        data.data());
   } catch (const I2cError&) {
     fprintf(stderr, "QSFP %d: not present or unwritable\n", port);
     return;
   }
-  printf("QSFP %d: successfully write 0x%02x to %d.\n", port, value, offset);
+  printf(
+      "QSFP %d: successfully wrote %d bytes to %d.\n",
+      port,
+      static_cast<int>(data.size()),
+      offset);
 }
 
 bool doWriteRegViaService(
     const std::vector<int32_t>& ports,
     int offset,
     int page,
-    uint8_t value,
+    const std::vector<uint8_t>& data,
     folly::EventBase& evb) {
   bool retVal = true;
   auto client = getQsfpClient(evb);
@@ -858,8 +869,18 @@ bool doWriteRegViaService(
   if (page != -1) {
     param.page() = page;
   }
+  param.length() = data.size();
   request.parameter() = param;
-  request.data() = value;
+  if (!data.size()) {
+    fprintf(
+        stderr,
+        "QSFP %s: Fail to write register. No data specified.\n",
+        folly::join(",", ports).c_str());
+    return EX_SOFTWARE;
+  }
+  request.data() = data.front();
+  // Thrift only allows signed types – temporarily converting to int8_t.
+  request.bytes() = std::vector<int8_t>(data.begin(), data.end());
   std::map<int32_t, WriteResponse> response;
 
   try {
@@ -867,9 +888,9 @@ bool doWriteRegViaService(
     for (const auto& iterator : response) {
       if (*(response[iterator.first].success())) {
         printf(
-            "QSFP %d: successfully write 0x%02x to %d.\n",
+            "QSFP %d: successfully wrote %d bytes to %d.\n",
             iterator.first + 1,
-            value,
+            static_cast<int>(data.size()),
             offset);
       } else {
         retVal = false;
@@ -964,12 +985,26 @@ int doWriteReg(
     std::vector<unsigned int>& ports,
     int offset,
     int page,
-    uint8_t data,
+    const std::vector<uint8_t>& data,
     folly::EventBase& evb) {
   if (offset == -1) {
     fprintf(
         stderr,
         "QSFP %s: Fail to write register. Specify offset using --offset\n",
+        folly::join(",", ports).c_str());
+    return EX_SOFTWARE;
+  }
+
+  if (offset < 0 || offset + data.size() > 256) {
+    fprintf(
+        stderr,
+        "QSFP %s: Fail to write register. Fix --offset and --data length to be within a single page.\n",
+        folly::join(",", ports).c_str());
+    return EX_SOFTWARE;
+  } else if (offset < 128 && offset + data.size() > 128) {
+    fprintf(
+        stderr,
+        "QSFP %s: Fail to write register. Fix --offset and --data length to not perform a cross-page transaction.\n",
         folly::join(",", ports).c_str());
     return EX_SOFTWARE;
   }
@@ -1004,13 +1039,13 @@ int writeRegister(
   if (QsfpServiceDetector::getInstance()->isQsfpServiceActive()) {
     folly::EventBase& evb = QsfpUtilContainer::getInstance()->getEventBase();
     std::vector<int32_t> idx = zeroBasedPortIds(ports);
-    doWriteRegViaService(idx, offset, page, data, evb);
+    doWriteRegViaService(idx, offset, page, {data}, evb);
   } else {
     TransceiverI2CApi* bus =
         QsfpUtilContainer::getInstance()->getTransceiverBus();
 
     for (unsigned int portNum : ports) {
-      doWriteRegDirect(bus, portNum, offset, page, data);
+      doWriteRegDirect(bus, portNum, offset, page, {data});
     }
   }
 
@@ -1095,7 +1130,7 @@ int doBatchOps(
           regAddr,
           regVal,
           delayMsec);
-      doWriteReg(bus, ports, regAddr, -1, regVal, evb);
+      doWriteReg(bus, ports, regAddr, -1, {static_cast<uint8_t>(regVal)}, evb);
     }
     /* sleep override */
     usleep(delayMsec * 1000);
@@ -1176,7 +1211,8 @@ DOMDataUnion fetchDataFromLocalI2CBus(
         tcvrMgr->getPortNames(tcvrID),
         qsfpImpl.get(),
         cfgPtr,
-        cmisSupportRemediate);
+        cmisSupportRemediate,
+        tcvrMgr->getTransceiverName(tcvrID));
     try {
       cmisModule->refresh();
     } catch (FbossError&) {
@@ -1187,7 +1223,10 @@ DOMDataUnion fetchDataFromLocalI2CBus(
     return cmisModule->getDOMDataUnion();
   } else if (mgmtInterface == TransceiverManagementInterface::SFF) {
     auto sffModule = std::make_unique<SffModule>(
-        tcvrMgr->getPortNames(tcvrID), qsfpImpl.get(), cfgPtr);
+        tcvrMgr->getPortNames(tcvrID),
+        qsfpImpl.get(),
+        cfgPtr,
+        tcvrMgr->getTransceiverName(tcvrID));
     sffModule->refresh();
     return sffModule->getDOMDataUnion();
   } else {

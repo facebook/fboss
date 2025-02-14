@@ -95,6 +95,7 @@ cpp_library(
     exported_deps = [
         ":fpga_device",
         "//fboss/agent:fboss-error",
+        "//fboss/lib/if:pim_state-cpp2-types",
     ],
 )
 

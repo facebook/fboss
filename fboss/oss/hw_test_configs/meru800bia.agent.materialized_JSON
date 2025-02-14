@@ -171,7 +171,15 @@
             },
             "localSystemPortOffset": 10,
             "globalSystemPortOffset": 10,
-            "inbandPortId": 1
+            "inbandPortId": 1,
+            "firmwareNameToFirmwareInfo": {
+              "isolationFW": {
+                  "coreToUse": 5,
+                  "path": "/tmp/db/jericho3ai_a0/fi-2.4.0.1-GA.elf",
+                  "logPath": "/tmp/edk.log",
+                  "firmwareLoadType": 0
+              }
+            }
         }
       },
       "vendorMacOuis": [
@@ -258,6 +266,9 @@
         ],
         "stage": 0
       }
+    ],
+    "mirrorOnDropReports": [
+      
     ]
   },
   "platform": {
@@ -317,9 +328,6 @@
             "fabric_connectivity_based_on_integrity": "0",
             "fabric_distributed_system_enable": "1",
             "fail_on_unsupported_attribute": "1",
-            "fw_auto_isolation_arm_core_to_use.0": "5",
-            "fw_auto_isolation_image_filename.0": "/tmp/db/jericho3ai_a0/fi-2.4.0.1-GA.elf",
-            "fw_auto_isolation_log_filename.0": "/tmp/edk_fi.log",
             "l3_ecmp_max_group_size": "512",
             "lane_to_serdes_map_fabric_lane0.BCM8889X": "rx0:tx5",
             "lane_to_serdes_map_fabric_lane1.BCM8889X": "rx1:tx3",

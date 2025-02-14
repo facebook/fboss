@@ -150,6 +150,20 @@ void LedServiceTest::checkLedColor(
   sleep(FLAGS_visual_delay_sec);
 }
 
+void LedServiceTest::checkLedBlink(
+    PortID port,
+    enum led::Blink blink,
+    int testNum) {
+  auto portName = platformMap_->getPortNameByPortId(port);
+  CHECK(portName.has_value());
+  auto ledState = ledManager_->getPortLedState(portName.value());
+  auto currentBlink = ledState.currentLedState()->blink().value();
+  EXPECT_EQ(currentBlink, blink)
+      << "LED Blink should be " << enumToName<led::Blink>(blink) << " for port "
+      << portName.value() << " but current blink is "
+      << enumToName<led::Blink>(currentBlink) << " for test " << testNum;
+}
+
 TEST_F(LedServiceTest, checkLedColorChange) {
   auto transceivers = getAllTransceivers(platformMap_);
   std::sort(transceivers.begin(), transceivers.end());
@@ -264,6 +278,87 @@ TEST_F(LedServiceTest, checkLedColorChange) {
       updateMap[swPort].operState = false;
       ledManager_->updateLedStatus(updateMap);
       checkLedColor(swPort, led::LedColor::OFF, ++testNum);
+
+      // 17 - set cabling error loop detected. Expect LED to be yellow similar
+      // to cabling error.
+      updateMap[swPort].operState = true;
+      updateMap[swPort].ledExternalState =
+          PortLedExternalState::CABLING_ERROR_LOOP_DETECTED;
+      ledManager_->updateLedStatus(updateMap);
+      checkLedColor(swPort, led::LedColor::YELLOW, ++testNum);
+
+      // 18 - Remove external led state and set oper state to false. Expect
+      // led to be OFF
+      updateMap[swPort].operState = false;
+      ledManager_->setExternalLedState(swPort, PortLedExternalState::NONE);
+      ledManager_->updateLedStatus(updateMap);
+      checkLedColor(swPort, led::LedColor::OFF, ++testNum);
+    }
+  }
+}
+
+TEST_F(LedServiceTest, checkLedBlinking) {
+  auto transceivers = getAllTransceivers(platformMap_);
+  std::sort(transceivers.begin(), transceivers.end());
+  auto blinkSupported = ledManager_->blinkingSupported();
+
+  for (auto tcvr : transceivers) {
+    XLOG(INFO) << "Testing transceiver " << tcvr;
+    auto swPorts = platformMap_->getSwPortListFromTransceiverId(tcvr);
+    for (auto& swPort : swPorts) {
+      // Do the first update from FSDB to LedService. LED set to inactive.
+      auto maxSpeed = platformMap_->getPortMaxSpeed(swPort);
+      auto profile = platformMap_->getProfileIDBySpeed(swPort, maxSpeed);
+      XLOG(INFO) << "Testing SW Port " << swPort << " with speed "
+                 << enumToName<cfg::PortSpeed>(maxSpeed) << " and profile "
+                 << enumToName<cfg::PortProfileID>(profile);
+      LedManager::LedSwitchStateUpdate ledUpdate = {
+          static_cast<short>(swPort),
+          "",
+          enumToName<cfg::PortProfileID>(profile),
+          true /*operationalState*/,
+          PortLedExternalState::NONE,
+          true /*activeState*/,
+          false /*drain*/,
+      };
+
+      std::map<short, LedManager::LedSwitchStateUpdate> updateMap;
+      updateMap[swPort] = ledUpdate;
+      ledManager_->updateLedStatus(updateMap);
+
+      auto swPortName = platformMap_->getPortNameByPortId(swPort);
+      CHECK(swPortName.has_value());
+
+      int testNum = 0;
+      // 1- Verify Default creation with operational state = true, drain = false
+      // that the LED color is on, blink is off
+      auto colorBefore = ledManager_->getCurrentLedColor(swPort);
+      EXPECT_NE(colorBefore, led::LedColor::OFF);
+      checkLedColor(swPort, colorBefore, ++testNum);
+      checkLedBlink(swPort, led::Blink::OFF, testNum);
+
+      // 2- Set the drain state to true, verify that the LED color is same but
+      // the LED blinks fast since port is up and there is no cabling error
+      updateMap[swPort].drained = true;
+      ledManager_->updateLedStatus(updateMap);
+      checkLedColor(swPort, colorBefore, ++testNum);
+      checkLedBlink(
+          swPort, blinkSupported ? led::Blink::SLOW : led::Blink::OFF, testNum);
+
+      // 3- Introduce a cabling error. Thus, port is up and drained but there is
+      // a cabling error. LED is expected to be yellow and blinking fast
+      updateMap[swPort].ledExternalState = PortLedExternalState::CABLING_ERROR;
+      ledManager_->updateLedStatus(updateMap);
+      checkLedColor(swPort, led::LedColor::YELLOW, ++testNum);
+      checkLedBlink(
+          swPort, blinkSupported ? led::Blink::FAST : led::Blink::OFF, testNum);
+
+      // Reset attributes so that this port doesn't interfere in inferring led
+      // color/blink of other ports sharing the same LED.
+      updateMap[swPort].ledExternalState = PortLedExternalState::NONE;
+      updateMap[swPort].activeState = false;
+      updateMap[swPort].drained = true;
+      ledManager_->updateLedStatus(updateMap);
     }
   }
 }

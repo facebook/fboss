@@ -27,6 +27,7 @@ class AgentOlympicQosTests : public AgentHwTest {
         ensemble.getSw(),
         ensemble.masterLogicalPortIds(),
         true /*interfaceHasSubnet*/);
+    utility::addOlympicQueueConfig(&cfg, ensemble.getL3Asics());
     utility::addOlympicQosMaps(cfg, ensemble.getL3Asics());
     return cfg;
   }

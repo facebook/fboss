@@ -83,6 +83,13 @@ int getSysPortIdsAllocated(
   }
   return portsConsumed;
 }
+
+cfg::InterfaceType getInterfaceType(const HwAsic& asic) {
+  if (asic.getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    return cfg::InterfaceType::PORT;
+  }
+  return cfg::InterfaceType::VLAN;
+}
 } // namespace
 folly::MacAddress kLocalCpuMac() {
   static const folly::MacAddress kLocalMac(
@@ -209,6 +216,7 @@ std::unordered_map<PortID, cfg::PortProfileID> getSafeProfileIDs(
     auto asicType = asic->getAsicType();
 
     auto bestSpeed = cfg::PortSpeed::DEFAULT;
+    auto bestProfile = cfg::PortProfileID::PROFILE_DEFAULT;
     if (asicType == cfg::AsicType::ASIC_TYPE_JERICHO3 &&
         FLAGS_dual_stage_rdsw_3q_2q) {
       // When using dual_stage_rdsw_3q_2q mapping. Pick NIF port
@@ -230,20 +238,34 @@ std::unordered_map<PortID, cfg::PortProfileID> getSafeProfileIDs(
         case cfg::PortType::CPU_PORT:
           break;
       }
+    } else if (asicType == cfg::AsicType::ASIC_TYPE_CHENAB) {
+      // For chenab pick both profile and speed to be 400G, since that's what is
+      // expected in production and chenab does not support dynamic port profile
+      // change, as it may lead to recreation of ports by delete and add. the
+      // usecase of recreating ports by delete and add is not supported in
+      // chenab.
+      bestSpeed = cfg::PortSpeed::FOURHUNDREDG;
+      bestProfile = cfg::PortProfileID::PROFILE_400G_4_PAM4_RS544X2N_OPTICAL;
     }
-
-    auto bestProfile = cfg::PortProfileID::PROFILE_DEFAULT;
     // If bestSpeed is default - pick the largest speed from the safe profiles
     auto pickMaxSpeed = bestSpeed == cfg::PortSpeed::DEFAULT;
-    for (auto profileID : safeProfiles) {
-      auto speed = getSpeed(profileID);
-      if (pickMaxSpeed) {
-        if (static_cast<int>(bestSpeed) < static_cast<int>(speed)) {
-          bestSpeed = speed;
+    auto pickBestProfile = bestProfile == cfg::PortProfileID::PROFILE_DEFAULT;
+    if (pickBestProfile) {
+      for (auto profileID : safeProfiles) {
+        auto speed = getSpeed(profileID);
+        if (pickMaxSpeed) {
+          if (static_cast<int>(bestSpeed) < static_cast<int>(speed)) {
+            bestSpeed = speed;
+            bestProfile = profileID;
+          }
+        } else if (speed == bestSpeed) {
           bestProfile = profileID;
         }
-      } else if (speed == bestSpeed) {
-        bestProfile = profileID;
+      }
+    } else {
+      if (getSpeed(bestProfile) != bestSpeed) {
+        throw FbossError(
+            "Invalid profile:", bestProfile, " for speed ", bestSpeed);
       }
     }
 
@@ -376,7 +398,7 @@ int getLocalSystemPortOffset(const cfg::SystemPortRanges& ranges) {
 }
 
 cfg::DsfNode dsfNodeConfig(
-    const HwAsic& myAsic,
+    const HwAsic& firstAsic,
     int64_t otherSwitchId,
     const std::optional<PlatformType> platformType,
     const std::optional<int> clusterId) {
@@ -426,10 +448,10 @@ cfg::DsfNode dsfNodeConfig(
   cfg::DsfNode dsfNode;
   dsfNode.switchId() = otherSwitchId;
   dsfNode.name() = folly::sformat("hwTestSwitch{}", *dsfNode.switchId());
-  switch (myAsic.getSwitchType()) {
+  switch (firstAsic.getSwitchType()) {
     case cfg::SwitchType::VOQ: {
       dsfNode.type() = cfg::DsfNodeType::INTERFACE_NODE;
-      auto sysPortRanges = getSystemPortRanges(myAsic, otherSwitchId);
+      auto sysPortRanges = getSystemPortRanges(firstAsic, otherSwitchId);
       dsfNode.systemPortRanges() = sysPortRanges;
       dsfNode.localSystemPortOffset() = getLocalSystemPortOffset(sysPortRanges);
       // In single-stage sys port ranges, 0th port is reserved for CPU.
@@ -438,8 +460,8 @@ cfg::DsfNode dsfNodeConfig(
       dsfNode.globalSystemPortOffset() = isDualStage3Q2QMode()
           ? *sysPortRanges.systemPortRanges()->begin()->minimum() - 1
           : *sysPortRanges.systemPortRanges()->begin()->minimum();
-      CHECK(myAsic.getInbandPortId().has_value());
-      dsfNode.inbandPortId() = *myAsic.getInbandPortId();
+      CHECK(firstAsic.getInbandPortId().has_value());
+      dsfNode.inbandPortId() = *firstAsic.getInbandPortId();
       dsfNode.nodeMac() = kLocalCpuMac().toString();
       dsfNode.loopbackIps() = getLoopbackIps(SwitchID(*dsfNode.switchId()));
     } break;
@@ -448,10 +470,10 @@ cfg::DsfNode dsfNodeConfig(
       break;
     case cfg::SwitchType::NPU:
     case cfg::SwitchType::PHY:
-      throw FbossError("Unexpected switch type: ", myAsic.getSwitchType());
+      throw FbossError("Unexpected switch type: ", firstAsic.getSwitchType());
   }
-  dsfNode.asicType() = myAsic.getAsicType();
-  dsfNode.platformType() = getPlatformType(myAsic, platformType);
+  dsfNode.asicType() = firstAsic.getAsicType();
+  dsfNode.platformType() = getPlatformType(firstAsic, platformType);
   if (clusterId.has_value()) {
     dsfNode.clusterId() = clusterId.value();
   }
@@ -582,7 +604,8 @@ cfg::SwitchConfig multiplePortsPerIntfConfig(
     }
     // For non NPU switch type vendor SAI impls don't support
     // tagging packet at port ingress.
-    if (switchType == cfg::SwitchType::NPU) {
+    if (switchType == cfg::SwitchType::NPU &&
+        intfType == cfg::InterfaceType::VLAN) {
       port2vlan[port] = VlanID(vlan);
       idx++;
       // If current vlan has portsPerIntf port,
@@ -626,6 +649,9 @@ cfg::SwitchConfig multiplePortsPerIntfConfig(
     if (setMac) {
       config.interfaces()[i].mac() = getLocalCpuMacStr();
     }
+    if (type == cfg::InterfaceType::PORT) {
+      config.interfaces()[i].portID() = intfId;
+    }
     config.interfaces()[i].mtu() = 9000;
     if (hasSubnet) {
       if (subnets) {
@@ -642,15 +668,28 @@ cfg::SwitchConfig multiplePortsPerIntfConfig(
       }
     }
   };
-  for (auto i = 0; i < vlans.size(); ++i) {
-    addInterface(
-        vlans[i],
-        vlans[i],
-        intfType,
-        setInterfaceMac,
-        interfaceHasSubnet,
-        std::nullopt,
-        cfg::Scope::LOCAL);
+  if (cfg::InterfaceType::VLAN == intfType) {
+    for (auto i = 0; i < vlans.size(); ++i) {
+      addInterface(
+          vlans[i],
+          vlans[i],
+          intfType,
+          setInterfaceMac,
+          interfaceHasSubnet,
+          std::nullopt,
+          cfg::Scope::LOCAL);
+    }
+  } else if (cfg::InterfaceType::PORT == intfType) {
+    for (auto i = 0; i < ports.size(); ++i) {
+      addInterface(
+          ports[i],
+          0,
+          intfType,
+          setInterfaceMac,
+          interfaceHasSubnet,
+          std::nullopt,
+          cfg::Scope::LOCAL);
+    }
   }
   // Create interfaces for local sys ports on VOQ switches
   if (switchType == cfg::SwitchType::VOQ) {
@@ -865,12 +904,14 @@ cfg::SwitchConfig genPortVlanCfg(
       config.vlans()->push_back(vlan);
     }
 
-    cfg::Vlan defaultVlan;
-    defaultVlan.id() = kDefaultVlanId;
-    defaultVlan.name() = folly::sformat("vlan{}", kDefaultVlanId);
-    defaultVlan.routable() = true;
-    config.vlans()->push_back(defaultVlan);
-    config.defaultVlan() = kDefaultVlanId;
+    if (asic->getAsicType() != cfg::AsicType::ASIC_TYPE_CHENAB) {
+      cfg::Vlan defaultVlan;
+      defaultVlan.id() = kDefaultVlanId;
+      defaultVlan.name() = folly::sformat("vlan{}", kDefaultVlanId);
+      defaultVlan.routable() = true;
+      config.vlans()->push_back(defaultVlan);
+      config.defaultVlan() = kDefaultVlanId;
+    }
 
     // Vlan port config
     for (auto vlanPortPair : port2vlan) {
@@ -882,6 +923,32 @@ cfg::SwitchConfig genPortVlanCfg(
       config.vlanPorts()->push_back(vlanPort);
     }
   }
+  if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    cfg::Vlan vlan1;
+    vlan1.id() = 1;
+    vlan1.name() = "vlan1";
+    vlan1.routable() = true;
+    vlan1.intfID() = kDefaultVlanId;
+    config.vlans()->push_back(vlan1);
+    config.defaultVlan() = 1;
+
+    /*
+     * TODO(pshaikh): Chenab-Hack pipeline lookup for traffic injected by cpu
+     * requires vlan rif in default vlan.
+     */
+    cfg::Interface intf1;
+    intf1.intfID() = kDefaultVlanId; /* prevent conflict with port rifs */
+    intf1.name() = "default_vlan_rif";
+    intf1.vlanID() = 1;
+    intf1.mac() = getLocalCpuMacStr();
+    intf1.type() = cfg::InterfaceType::VLAN;
+    intf1.routerID() = 0;
+    intf1.mtu() = 9000;
+    config.interfaces()->push_back(intf1);
+
+    // default vlan really is 1 for Chenab
+    config.defaultVlan() = 1;
+  }
   return config;
 }
 
@@ -892,6 +959,13 @@ void populateSwitchInfo(
     const std::optional<PlatformType> platformType) {
   std::map<long, cfg::SwitchInfo> newSwitchIdToSwitchInfo;
   std::map<long, cfg::DsfNode> newDsfNodes;
+  // save the firsthwAsic to create dsfNodeConfig
+  SwitchID switchId{0};
+  auto firstHwAsicTableItr = hwAsicTable.find(switchId);
+  if (firstHwAsicTableItr == hwAsicTable.end()) {
+    throw FbossError("HwAsic not found for SwitchID: ", switchId);
+  }
+  const auto& firstHwAsic = firstHwAsicTableItr->second;
   for (const auto& [switchId, switchInfo] : switchIdToSwitchInfo) {
     newSwitchIdToSwitchInfo.insert({switchId, switchInfo});
     auto hwAsicTableItr = hwAsicTable.find(switchId);
@@ -902,7 +976,7 @@ void populateSwitchInfo(
     if (hwAsic->getSwitchType() == cfg::SwitchType::VOQ ||
         hwAsic->getSwitchType() == cfg::SwitchType::FABRIC) {
       newDsfNodes.insert(
-          {switchId, dsfNodeConfig(*hwAsic, switchId, platformType)});
+          {switchId, dsfNodeConfig(*firstHwAsic, switchId, platformType)});
     }
   }
   config.switchSettings()->switchIdToSwitchInfo() = newSwitchIdToSwitchInfo;
@@ -1446,7 +1520,14 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
     bool interfaceHasSubnet,
     bool setInterfaceMac,
     int baseIntfId,
-    bool enableFabricPorts) {
+    bool enableFabricPorts,
+    const std::optional<cfg::InterfaceType>& intfType) {
+  auto switchID = swSwitch->getScopeResolver()->scope(ports[0]).switchId();
+  auto asic = swSwitch->getHwAsicTable()->getHwAsicIf(switchID);
+  cfg::InterfaceType intfTypeVal = getInterfaceType(*asic);
+  if (intfType) {
+    intfTypeVal = intfType.value();
+  }
   return onePortPerInterfaceConfigImpl(
       swSwitch,
       ports,
@@ -1454,7 +1535,7 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
       setInterfaceMac,
       baseIntfId,
       enableFabricPorts,
-      cfg::InterfaceType::VLAN);
+      intfTypeVal);
 }
 
 cfg::SwitchConfig onePortPerInterfaceConfig(
@@ -1470,7 +1551,12 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
     const std::optional<std::map<SwitchID, cfg::SwitchInfo>>&
         switchIdToSwitchInfo,
     const std::optional<std::map<SwitchID, const HwAsic*>>& hwAsicTable,
-    const std::optional<PlatformType> platformType) {
+    const std::optional<PlatformType> platformType,
+    const std::optional<cfg::InterfaceType>& intfType) {
+  cfg::InterfaceType intfTypeVal = getInterfaceType(*asic);
+  if (intfType) {
+    intfTypeVal = *intfType;
+  }
   return onePortPerInterfaceConfigImpl(
       platformMapping,
       asic,
@@ -1484,7 +1570,7 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
       switchIdToSwitchInfo,
       hwAsicTable,
       platformType,
-      cfg::InterfaceType::VLAN);
+      intfTypeVal);
 }
 
 cfg::SwitchConfig onePortPerInterfaceConfig(
@@ -1493,7 +1579,14 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
     bool interfaceHasSubnet,
     bool setInterfaceMac,
     int baseIntfId,
-    bool enableFabricPorts) {
+    bool enableFabricPorts,
+    const std::optional<cfg::InterfaceType>& intfType) {
+  auto switchID = ensemble->scopeResolver().scope(ports[0]).switchId();
+  auto asic = ensemble->getHwAsicTable()->getHwAsicIf(switchID);
+  cfg::InterfaceType intfTypeVal = getInterfaceType(*asic);
+  if (intfType) {
+    intfTypeVal = intfType.value();
+  }
   return onePortPerInterfaceConfigImpl(
       ensemble,
       ports,
@@ -1501,7 +1594,7 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
       setInterfaceMac,
       baseIntfId,
       enableFabricPorts,
-      cfg::InterfaceType::VLAN);
+      intfTypeVal);
 }
 
 } // namespace facebook::fboss::utility

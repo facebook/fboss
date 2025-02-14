@@ -11,6 +11,7 @@
 #include "fboss/agent/test/utils/DscpMarkingUtils.h"
 
 #include "fboss/agent/test/utils/AclTestUtils.h"
+#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
 #include "fboss/agent/test/utils/TrafficPolicyTestUtils.h"
@@ -142,10 +143,15 @@ void addDscpMarkingAclsTableHelper(
     const std::vector<uint32_t>& ports,
     const std::string& aclTableName,
     bool isSai) {
+  auto asicType = utility::checkSameAndGetAsicType(*config);
   for (auto port : ports) {
     auto l4SrcPortAclName = getDscpAclName(proto, "src", port);
     auto dscpSrcMarkingAcl = utility::addAcl(
         config, l4SrcPortAclName, cfg::AclActionType::PERMIT, aclTableName);
+    if (asicType == cfg::AsicType::ASIC_TYPE_CHENAB) {
+      // Add ethertype so that proto is interpreted correctly
+      dscpSrcMarkingAcl->etherType() = cfg::EtherType::IPv6;
+    }
     dscpSrcMarkingAcl->proto() = static_cast<int>(proto);
     dscpSrcMarkingAcl->l4SrcPort() = port;
     utility::addSetDscpAndEgressQueueActionToCfg(
@@ -158,6 +164,10 @@ void addDscpMarkingAclsTableHelper(
     auto l4DstPortAclName = getDscpAclName(proto, "dst", port);
     auto dscpDstMarkingAcl = utility::addAcl(
         config, l4DstPortAclName, cfg::AclActionType::PERMIT, aclTableName);
+    if (asicType == cfg::AsicType::ASIC_TYPE_CHENAB) {
+      // Add ethertype so that proto is interpreted correctly
+      dscpSrcMarkingAcl->etherType() = cfg::EtherType::IPv6;
+    }
     dscpDstMarkingAcl->proto() = static_cast<int>(proto);
     dscpDstMarkingAcl->l4DstPort() = port;
     utility::addSetDscpAndEgressQueueActionToCfg(
@@ -197,6 +207,7 @@ void addDscpAclEntryWithCounter(
 // Utility to add ICP Marking ACL table to a multi acl table group
 void addDscpAclTable(
     cfg::SwitchConfig* config,
+    const HwAsic* hwAsic,
     int16_t priority,
     bool addAllQualifiers,
     bool isSai) {
@@ -204,6 +215,7 @@ void addDscpAclTable(
       cfg::AclTableQualifier::L4_SRC_PORT,
       cfg::AclTableQualifier::L4_DST_PORT,
       cfg::AclTableQualifier::IP_PROTOCOL_NUMBER,
+      cfg::AclTableQualifier::IPV6_NEXT_HEADER,
       cfg::AclTableQualifier::ICMPV4_TYPE,
       cfg::AclTableQualifier::ICMPV4_CODE,
       cfg::AclTableQualifier::ICMPV6_TYPE,
@@ -223,6 +235,9 @@ void addDscpAclTable(
        cfg::AclTableActionType::SET_TC,
        cfg::AclTableActionType::SET_DSCP},
       qualifiers);
+  if (hwAsic->isSupported(HwAsic::Feature::ACL_ENTRY_ETHER_TYPE)) {
+    qualifiers.push_back(cfg::AclTableQualifier::ETHER_TYPE);
+  }
 
   addDscpAclEntryWithCounter(config, getDscpAclTableName(), isSai);
 }

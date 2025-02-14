@@ -94,6 +94,7 @@ class PlatformExplorer {
   // This member is thread safe since callers could be on different threads
   // E.g thrift API call on `getLastPmStatus`.
   folly::Synchronized<PlatformManagerStatus> platformManagerStatus_;
+  ExplorationSummary explorationSummary_;
 
  private:
   void createDeviceSymLink(
@@ -122,7 +123,6 @@ class PlatformExplorer {
   DataStore dataStore_;
   DevicePathResolver devicePathResolver_;
   PresenceChecker presenceChecker_;
-  ExplorationSummary explorationSummary_;
   std::shared_ptr<PlatformFsUtils> platformFsUtils_;
 
   // Map from <pmUnitPath, pmUnitScopeBusName> to kernel i2c bus name.

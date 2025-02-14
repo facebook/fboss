@@ -80,7 +80,7 @@ std::string Utils::resolveWatchdogCharDevPath(const std::string& sysfsPath) {
   if (!Utils().checkDeviceReadiness(
           [&]() -> bool { return fs::exists(watchdogDir); },
           fmt::format(
-              "Watchdog CharDevPath is not created. Waited for at most {}s",
+              "Watchdog SysfsPath is not created. Waited for at most {}s",
               kWatchdogDevCreationWaitSecs.count()),
           kWatchdogDevCreationWaitSecs)) {
     throw std::runtime_error(fmt::format(
@@ -102,7 +102,12 @@ std::string Utils::resolveWatchdogCharDevPath(const std::string& sysfsPath) {
         "{}. Reason: Couldn't find watchdog under {}", failMsg, sysfsPath));
   }
   auto charDevPath = fmt::format("/dev/watchdog{}", *watchdogNum);
-  if (!fs::exists(charDevPath)) {
+  if (!Utils().checkDeviceReadiness(
+          [&]() -> bool { return fs::exists(charDevPath); },
+          fmt::format(
+              "Watchdog CharDevPath is not created. Waited for at most {}s",
+              kWatchdogDevCreationWaitSecs.count()),
+          kWatchdogDevCreationWaitSecs)) {
     throw std::runtime_error(fmt::format(
         "{}. Reason: {} does not exist in the system", failMsg, charDevPath));
   }

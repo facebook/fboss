@@ -56,7 +56,8 @@ void addNetworkAIQosToConfig(cfg::SwitchConfig& config, const HwAsic* hwAsic) {
   auto streamType =
       *hwAsic->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin();
   // queue configuration is different
-  addNetworkAIQueueConfig(&config, streamType, hwAsic);
+  addNetworkAIQueueConfig(
+      &config, streamType, cfg::QueueScheduling::STRICT_PRIORITY, hwAsic);
 }
 
 void addNetworkAIQosToConfig(

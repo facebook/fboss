@@ -157,7 +157,8 @@ void verifyQueueHit(
     const HwPortStats& portStatsBefore,
     int queueId,
     SwSwitch* sw,
-    facebook::fboss::PortID egressPort) {
+    facebook::fboss::PortID egressPort,
+    int delta) {
   auto queuePacketsBefore = portStatsBefore.queueOutPackets_()->find(queueId) !=
           portStatsBefore.queueOutPackets_()->end()
       ? portStatsBefore.queueOutPackets_()->find(queueId)->second
@@ -172,14 +173,15 @@ void verifyQueueHit(
         queuePacketsAfter = portStatsAfter.queueOutPackets_()[queueId];
       }
     }
-    EXPECT_EVENTUALLY_GT(queuePacketsAfter, queuePacketsBefore);
+    EXPECT_EVENTUALLY_GE(queuePacketsAfter, queuePacketsBefore + delta);
     // Note, on some platforms, due to how loopbacked packets are pruned
     // from being broadcast, they will appear more than once on a queue
     // counter, so we can only check that the counter went up, not that it
     // went up by exactly one.
     XLOG(DBG2) << "Port ID: " << egressPort << " queue: " << queueId
                << " queuePacketsBefore " << queuePacketsBefore
-               << " queuePacketsAfter " << queuePacketsAfter;
+               << " queuePacketsAfter " << queuePacketsAfter << " delta "
+               << delta;
   });
 }
 
@@ -187,7 +189,8 @@ void verifyVoQHit(
     const HwSysPortStats& portStatsBefore,
     int queueId,
     SwSwitch* sw,
-    facebook::fboss::SystemPortID egressPort) {
+    facebook::fboss::SystemPortID egressPort,
+    int delta) {
   auto queueBytesBefore = portStatsBefore.queueOutBytes_()->find(queueId) !=
           portStatsBefore.queueOutBytes_()->end()
       ? portStatsBefore.queueOutBytes_()->find(queueId)->second
@@ -202,10 +205,10 @@ void verifyVoQHit(
         queueBytesAfter = portStatsAfter.queueOutBytes_()[queueId];
       }
     }
-    EXPECT_EVENTUALLY_GT(queueBytesAfter, queueBytesBefore);
+    EXPECT_EVENTUALLY_GE(queueBytesAfter, queueBytesBefore + delta);
     XLOG(DBG2) << "Sys port: " << egressPort << " queue " << queueId
                << " queueBytesBefore " << queueBytesBefore
-               << " queueBytesAfter " << queueBytesAfter;
+               << " queueBytesAfter " << queueBytesAfter << " delta " << delta;
   });
 }
 

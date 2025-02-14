@@ -135,6 +135,9 @@
         },
         {
           "test_name_regex": "PhyIOTest.phyIOStats$"
+        },
+        {
+          "test_name_regex": "HwTest.CheckTcvrNameAndInterfaces$"
         }
     ],
     "elbert_2x16Q_6x8DD/physdk-credo-0.9.0/credo-0.9.0": [
@@ -170,6 +173,9 @@
         },
         {
           "test_name_regex": "PhyIOTest.phyIOStats$"
+        },
+        {
+          "test_name_regex": "HwTest.CheckTcvrNameAndInterfaces$"
         }
     ],
     "elbert_5x16Q_3x8DD/physdk-credo-0.7.2/credo-0.7.2": [
@@ -205,6 +211,9 @@
         },
         {
           "test_name_regex": "PhyIOTest.phyIOStats$"
+        },
+        {
+          "test_name_regex": "HwTest.CheckTcvrNameAndInterfaces$"
         }
     ],
     "elbert_5x16Q_3x8DD/physdk-credo-0.9.0/credo-0.9.0": [
@@ -240,6 +249,9 @@
         },
         {
           "test_name_regex": "PhyIOTest.phyIOStats$"
+        },
+        {
+          "test_name_regex": "HwTest.CheckTcvrNameAndInterfaces$"
         }
     ],
     "elbert_8x16Q/physdk-credo-0.7.2/credo-0.7.2": [
@@ -294,6 +306,9 @@
         },
         {
           "test_name_regex": "HwTransceiverResetTest.verifyResetControl$"
+        },
+        {
+          "test_name_regex": "HwTest.CheckTcvrNameAndInterfaces$"
         }
     ],
     "fuji_8x16Q/physdk-barchetta2-5.2/barchetta2-5.2": [

@@ -34,33 +34,39 @@ class CachedFbossEepromParser {
     return std::nullopt;
   }
 
-  std::optional<int> getProdutProductionState(
+  std::optional<int> getProductionState(
       const std::string& eepromFilePath,
       uint16_t offset = 0) {
     for (const auto& [key, value] : getContents(eepromFilePath, offset)) {
-      if (key == "Product Production State") {
+      // < V6 - "Product Production State"
+      // = V6 - "Production State"
+      if (key == "Product Production State" || key == "Production State") {
         return std::stoi(value);
       }
     }
     return std::nullopt;
   }
 
-  std::optional<int> getProductVersion(
+  std::optional<int> getProductionSubState(
       const std::string& eepromFilePath,
       uint16_t offset = 0) {
     for (const auto& [key, value] : getContents(eepromFilePath, offset)) {
-      if (key == "Product Version") {
+      // < V6 - "Product Version"
+      // = V6 - "Production Sub-State"
+      if (key == "Product Version" || key == "Production Sub-State") {
         return std::stoi(value);
       }
     }
     return std::nullopt;
   }
 
-  std::optional<int> getProductSubVersion(
+  std::optional<int> getVariantVersion(
       const std::string& eepromFilePath,
       uint16_t offset = 0) {
     for (const auto& [key, value] : getContents(eepromFilePath, offset)) {
-      if (key == "Product Sub-Version") {
+      // < V6 - "Product Sub-Version"
+      // = V6 - "Re-Spin/Variant Indicator"
+      if (key == "Product Sub-Version" || key == "Re-Spin/Variant Indicator") {
         return std::stoi(value);
       }
     }

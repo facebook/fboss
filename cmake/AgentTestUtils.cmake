@@ -203,6 +203,7 @@ target_link_libraries(load_balancer_test_utils
   packet_factory
   resourcelibutil
   common_utils
+  voq_test_utils
 )
 
 add_library(dscp_marking_utils
@@ -433,6 +434,7 @@ add_library(multi_port_traffic_test_utils
 )
 
 target_link_libraries(multi_port_traffic_test_utils
+  agent_hw_test
   qos_test_utils
   state
   ecmp_helper

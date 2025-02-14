@@ -37,6 +37,7 @@ struct ChildStruct {
   4: list<switch_config.L4PortRange> listOfStruct;
   5: i32 leafI32;
   6: optional TestEnum optionalEnum;
+  7: set<string> childSet;
 }
 
 struct TestStruct {

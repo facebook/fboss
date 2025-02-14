@@ -72,7 +72,8 @@ class CmisModule : public QsfpModule {
       std::set<std::string> portNames,
       TransceiverImpl* qsfpImpl,
       std::shared_ptr<const TransceiverConfig> cfg,
-      bool supportRemediate);
+      bool supportRemediate,
+      std::string tcvrName);
   virtual ~CmisModule() override;
 
   struct ApplicationAdvertisingField {
@@ -601,6 +602,10 @@ class CmisModule : public QsfpModule {
       uint8_t startHostLane,
       uint8_t numHostLanes,
       uint8_t hostLaneMask);
+
+  // Sets the sampling percentage for
+  // FEC errors if supported by transceiver.
+  void setMaxFecSamplingLocked();
 
   const std::shared_ptr<const TransceiverConfig> tcvrConfig_;
 

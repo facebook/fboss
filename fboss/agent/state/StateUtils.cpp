@@ -55,8 +55,13 @@ folly::MacAddress getFirstInterfaceMac(
 std::optional<VlanID> firstVlanID(const std::shared_ptr<SwitchState>& state) {
   std::optional<VlanID> firstVlanId;
   if (state->getVlans()->numNodes()) {
-    firstVlanId =
-        utility::getFirstMap(state->getVlans())->cbegin()->second->getID();
+    for (const auto& vlan :
+         std::as_const(*(state->getVlans()->cbegin()->second))) {
+      if (!vlan.second->getPorts().empty()) {
+        firstVlanId = vlan.second->getID();
+        break;
+      }
+    }
   }
   return firstVlanId;
 }
