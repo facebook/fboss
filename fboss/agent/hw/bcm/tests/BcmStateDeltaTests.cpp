@@ -197,10 +197,10 @@ TEST_F(BcmTest, validInterfaceConfig) {
   auto oldState = applyNewConfig(cfg);
   // move a port to default vlan
   auto portCfg = utility::findCfgPort(cfg, masterLogicalPortIds()[1]);
-  portCfg->ingressVlan() = utility::kDefaultVlanId;
+  portCfg->ingressVlan() = utility::kDefaultVlanId4094;
   cfg.interfaces()->resize(2);
-  cfg.interfaces()[1].intfID() = utility::kDefaultVlanId;
-  cfg.interfaces()[1].vlanID() = utility::kDefaultVlanId;
+  cfg.interfaces()[1].intfID() = utility::kDefaultVlanId4094;
+  cfg.interfaces()[1].vlanID() = utility::kDefaultVlanId4094;
   cfg.interfaces()[1].routerID() = 0;
   cfg.interfaces()[1].ipAddresses()->resize(2);
   cfg.interfaces()[1].ipAddresses()[0] = "2.2.2.2/24";

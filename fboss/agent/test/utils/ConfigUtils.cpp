@@ -314,14 +314,14 @@ cfg::Port createDefaultPortConfig(
   defaultConfig.profileID() = defaultProfileID;
 
   defaultConfig.logicalID() = id;
-  defaultConfig.ingressVlan() = kDefaultVlanId;
+  defaultConfig.ingressVlan() = kDefaultVlanId4094;
   defaultConfig.state() = cfg::PortState::DISABLED;
   defaultConfig.portType() = *entry.mapping()->portType();
   if (asic->getSwitchType() == cfg::SwitchType::VOQ ||
       asic->getSwitchType() == cfg::SwitchType::FABRIC) {
     defaultConfig.ingressVlan() = 0;
   } else {
-    defaultConfig.ingressVlan() = kDefaultVlanId;
+    defaultConfig.ingressVlan() = kDefaultVlanId4094;
   }
   defaultConfig.scope() = *entry.mapping()->scope();
   return defaultConfig;
@@ -906,11 +906,11 @@ cfg::SwitchConfig genPortVlanCfg(
 
     if (asic->getAsicType() != cfg::AsicType::ASIC_TYPE_CHENAB) {
       cfg::Vlan defaultVlan;
-      defaultVlan.id() = kDefaultVlanId;
-      defaultVlan.name() = folly::sformat("vlan{}", kDefaultVlanId);
+      defaultVlan.id() = kDefaultVlanId4094;
+      defaultVlan.name() = folly::sformat("vlan{}", kDefaultVlanId4094);
       defaultVlan.routable() = true;
       config.vlans()->push_back(defaultVlan);
-      config.defaultVlan() = kDefaultVlanId;
+      config.defaultVlan() = kDefaultVlanId4094;
     }
 
     // Vlan port config
@@ -928,7 +928,7 @@ cfg::SwitchConfig genPortVlanCfg(
     vlan1.id() = 1;
     vlan1.name() = "vlan1";
     vlan1.routable() = true;
-    vlan1.intfID() = kDefaultVlanId;
+    vlan1.intfID() = kDefaultVlanId4094;
     config.vlans()->push_back(vlan1);
     config.defaultVlan() = 1;
 
@@ -937,7 +937,7 @@ cfg::SwitchConfig genPortVlanCfg(
      * requires vlan rif in default vlan.
      */
     cfg::Interface intf1;
-    intf1.intfID() = kDefaultVlanId; /* prevent conflict with port rifs */
+    intf1.intfID() = kDefaultVlanId4094; /* prevent conflict with port rifs */
     intf1.name() = "default_vlan_rif";
     intf1.vlanID() = 1;
     intf1.mac() = getLocalCpuMacStr();

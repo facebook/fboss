@@ -42,7 +42,7 @@ TEST_F(HwVlanTest, VlanApplyConfig) {
         {utility::kBaseVlanId + 1, 0},
     };
     for (auto& vlanAndNumPorts : vlan2NumPorts) {
-      if (vlanAndNumPorts.first == VlanID{utility::kDefaultVlanId}) {
+      if (vlanAndNumPorts.first == VlanID{utility::kDefaultVlanId4094}) {
         continue;
       }
       auto vlanItr = vlan2PortCount.find(vlanAndNumPorts.first);
