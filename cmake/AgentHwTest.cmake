@@ -182,6 +182,7 @@ target_link_libraries(prod_config_utils
   switch_config_cpp2
   traffic_policy_utils
   olympic_qos_utils
+  network_ai_qos_utils
   hw_copp_utils
 )
 
@@ -278,6 +279,7 @@ target_link_libraries(hw_switch_test
   mac_test_utils
   mirror_test_utils
   olympic_qos_utils
+  network_ai_qos_utils
   prod_config_factory
   prod_config_utils
   qos_test_utils
@@ -322,6 +324,7 @@ target_link_libraries(prod_config_factory
   hw_copp_utils
   dscp_marking_utils
   olympic_qos_utils
+  network_ai_qos_utils
   queue_per_host_test_utils
   load_balancer_utils
   load_balancer_test_utils

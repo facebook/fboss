@@ -571,6 +571,7 @@ cpp_library(
         "//fboss/agent/hw/switch_asics:switch_asics",
         "//fboss/agent/test/utils:dscp_marking_utils",
         "//fboss/agent/test/utils:load_balancer_test_utils",
+        "//fboss/agent/test/utils:network_ai_qos_utils",
         "//fboss/agent/test/utils:olympic_qos_utils",
         "//fboss/agent/test/utils:queue_per_host_test_utils",
     ],

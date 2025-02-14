@@ -84,6 +84,23 @@ target_link_libraries(olympic_qos_utils
   Folly::folly
   switch_config_cpp2
   traffic_policy_utils
+  queue_test_utils
+  voq_test_utils
+)
+
+add_library(network_ai_qos_utils
+  fboss/agent/test/utils/NetworkAITestUtils.cpp
+)
+
+target_link_libraries(network_ai_qos_utils
+  fboss_types
+  asic_test_utils
+  packet_factory
+  Folly::folly
+  switch_config_cpp2
+  traffic_policy_utils
+  queue_test_utils
+  voq_test_utils
 )
 
 add_library(port_test_utils
@@ -387,7 +404,7 @@ add_library(queue_test_utils
 
 target_link_libraries(queue_test_utils
   config_utils
-  olympic_qos_utils
+  agent_features
   switch_asics
   switch_config_cpp2
 )

@@ -109,12 +109,29 @@ cpp_library(
     headers = ["OlympicTestUtils.h"],
     exported_deps = [
         ":asic_test_utils",
+        ":queue_test_utils",
         ":traffic_policy_utils",
         ":voq_test_utils",
         "//fboss/agent:agent_features",
         "//fboss/agent:fboss-error",
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent:utils",
+        "//fboss/agent/hw/switch_asics:switch_asics",
+    ],
+)
+
+cpp_library(
+    name = "network_ai_qos_utils",
+    srcs = [
+        "NetworkAITestUtils.cpp",
+    ],
+    headers = ["NetworkAITestUtils.h"],
+    exported_deps = [
+        ":asic_test_utils",
+        ":queue_test_utils",
+        ":traffic_policy_utils",
+        ":voq_test_utils",
+        "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent/hw/switch_asics:switch_asics",
     ],
 )
@@ -495,7 +512,7 @@ cpp_library(
     ],
     exported_deps = [
         ":config_utils",
-        ":olympic_qos_utils",
+        "//fboss/agent:agent_features",
         "//fboss/agent:fboss-types",
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent/hw/switch_asics:switch_asics",

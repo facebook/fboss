@@ -73,5 +73,9 @@ std::optional<QueueConfigAndName> getNameAndDefaultVoqCfg(
     cfg::PortType portType);
 
 uint8_t getDefaultQueue();
+
+int getTrafficClassToVoqId(const HwAsic* hwAsic, int trafficClass);
+
+int getTrafficClassToCpuVoqId(const HwAsic* hwAsic, int trafficClass);
 } // namespace utility
 } // namespace facebook::fboss

@@ -17,6 +17,7 @@
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestPfcUtils.h"
 #include "fboss/agent/test/utils/DscpMarkingUtils.h"
+#include "fboss/agent/test/utils/NetworkAITestUtils.h"
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
 #include "fboss/agent/test/utils/QueuePerHostTestUtils.h"
 

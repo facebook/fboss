@@ -23,10 +23,12 @@
 #include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
+#include "fboss/agent/test/utils/NetworkAITestUtils.h"
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
 #include "fboss/agent/test/utils/PacketSnooper.h"
 #include "fboss/agent/test/utils/PacketTestUtils.h"
 #include "fboss/agent/test/utils/QosTestUtils.h"
+#include "fboss/agent/test/utils/QueueTestUtils.h"
 #include "fboss/agent/test/utils/TrapPacketUtils.h"
 #include "fboss/agent/types.h"
 #include "fboss/lib/CommonUtils.h"
@@ -1643,7 +1645,7 @@ class AgentCoppQosTest : public AgentHwTest {
     queue0.scheduling() = cfg::QueueScheduling::STRICT_PRIORITY;
     if (addEcnConfig) {
       queue0.aqms() = {};
-      queue0.aqms()->push_back(utility::kGetOlympicEcnConfig(hwAsic));
+      queue0.aqms()->push_back(utility::kGetEcnConfig(hwAsic));
     }
     if (addQueueRate) {
       queue0.portQueueRate() =
@@ -1659,7 +1661,7 @@ class AgentCoppQosTest : public AgentHwTest {
     queue2.scheduling() = cfg::QueueScheduling::STRICT_PRIORITY;
     if (addEcnConfig) {
       queue2.aqms() = {};
-      queue2.aqms()->push_back(utility::kGetOlympicEcnConfig(hwAsic));
+      queue2.aqms()->push_back(utility::kGetEcnConfig(hwAsic));
     }
     utility::setPortQueueMaxDynamicSharedBytes(queue2, hwAsic);
     cpuQueues.push_back(queue2);
@@ -1671,7 +1673,7 @@ class AgentCoppQosTest : public AgentHwTest {
     queue9.scheduling() = cfg::QueueScheduling::STRICT_PRIORITY;
     if (addEcnConfig) {
       queue9.aqms() = {};
-      queue9.aqms()->push_back(utility::kGetOlympicEcnConfig(hwAsic));
+      queue9.aqms()->push_back(utility::kGetEcnConfig(hwAsic));
     }
     cpuQueues.push_back(queue9);
 

@@ -551,4 +551,35 @@ std::optional<QueueConfigAndName> getNameAndDefaultVoqCfg(
 uint8_t getDefaultQueue() {
   return isDualStage3Q2QMode() ? kDualStage3Q2QDefaultQueue : kDefaultQueue;
 }
+
+int getTrafficClassToVoqId(const HwAsic* hwAsic, int trafficClass) {
+  if (hwAsic->isSupported(HwAsic::Feature::VOQ) && isDualStage3Q2QQos()) {
+    if (trafficClass == 7) {
+      // tc 7 -> nc voq 2
+      return 2;
+    } else if (trafficClass == 2) {
+      // tc 2 -> rdma voq 0
+      return 0;
+    }
+    // all other tc -> default voq 1
+    return 1;
+  }
+  return trafficClass;
+}
+
+int getTrafficClassToCpuVoqId(const HwAsic* hwAsic, int trafficClass) {
+  if (hwAsic->isSupported(HwAsic::Feature::VOQ) && isDualStage3Q2QQos()) {
+    if (trafficClass == 7) {
+      // tc 7 -> high queue 2
+      return 2;
+    } else if (trafficClass == 3) {
+      // tc 3 -> mid queue 1
+      return 1;
+    }
+    // all other tc -> low queue 0
+    return 0;
+  }
+  return trafficClass;
+}
+
 } // namespace facebook::fboss::utility

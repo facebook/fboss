@@ -14,58 +14,13 @@
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/test/utils/AsicUtils.h"
+#include "fboss/agent/test/utils/QueueTestUtils.h"
 #include "fboss/agent/test/utils/TrafficPolicyTestUtils.h"
 #include "fboss/agent/test/utils/VoqTestUtils.h"
 
 namespace facebook::fboss::utility {
 
 namespace {
-
-int getTrafficClassToVoqId(const HwAsic* hwAsic, int trafficClass) {
-  if (hwAsic->isSupported(HwAsic::Feature::VOQ) && isDualStage3Q2QQos()) {
-    if (trafficClass == 7) {
-      // tc 7 -> nc voq 2
-      return 2;
-    } else if (trafficClass == 2) {
-      // tc 2 -> rdma voq 0
-      return 0;
-    }
-    // all other tc -> default voq 1
-    return 1;
-  }
-  return trafficClass;
-}
-
-void addVoqAqmConfig(
-    cfg::SwitchConfig* config,
-    cfg::StreamType streamType,
-    const HwAsic* asic,
-    bool addWredConfig,
-    bool addEcnConfig) {
-  auto nameAndDefaultVoqCfg =
-      getNameAndDefaultVoqCfg(cfg::PortType::INTERFACE_PORT);
-  CHECK(nameAndDefaultVoqCfg.has_value());
-  std::vector<cfg::PortQueue> voqs = nameAndDefaultVoqCfg->queueConfig;
-  for (auto& voq : voqs) {
-    auto voqId = voq.id();
-    if (asic->scalingFactorBasedDynamicThresholdSupported()) {
-      voq.scalingFactor() = cfg::MMUScalingFactor::ONE;
-    }
-    voq.reservedBytes() = 1500; // Set to possible MTU!
-
-    if (voqId == getTrafficClassToVoqId(asic, 2)) {
-      voq.aqms() = {};
-      if (addEcnConfig) {
-        voq.aqms()->push_back(kGetOlympicEcnConfig(asic));
-      }
-      if (addWredConfig) {
-        voq.aqms()->push_back(kGetWredConfig(asic));
-      }
-    }
-  }
-  config->defaultVoqConfig() = voqs;
-}
-
 // XXX This is FSW config, add RSW config. Prefix queue names with portName
 void addOlympicQueueOptionalEcnWredConfigWithSchedulingHelper(
     cfg::SwitchConfig* config,
@@ -118,7 +73,7 @@ void addOlympicQueueOptionalEcnWredConfigWithSchedulingHelper(
   }
   queue2.aqms() = {};
   if (addEcnConfig) {
-    queue2.aqms()->push_back(kGetOlympicEcnConfig(asic));
+    queue2.aqms()->push_back(kGetEcnConfig(asic));
   }
   if (addWredConfig) {
     queue2.aqms()->push_back(kGetWredConfig(asic));
@@ -160,10 +115,6 @@ void addOlympicQueueOptionalEcnWredConfigWithSchedulingHelper(
       port.portQueueConfigName() = "queue_config";
     }
   }
-  // For VoQ switches, add AQM config to VoQ as well.
-  if (asic->getSwitchType() == cfg::SwitchType::VOQ) {
-    addVoqAqmConfig(config, streamType, asic, addWredConfig, addEcnConfig);
-  }
 }
 
 void addOlympicQueueConfigWithSchedulingHelper(
@@ -175,27 +126,6 @@ void addOlympicQueueConfigWithSchedulingHelper(
       config, asics, addWredConfig, true, schedType);
 }
 } // namespace
-
-void addEventorVoqConfig(
-    cfg::SwitchConfig* config,
-    cfg::StreamType streamType) {
-  // Eventor port queue config
-  cfg::PortQueue queue;
-  *queue.id() = 0;
-  queue.streamType() = streamType;
-  queue.name() = "default";
-  *queue.scheduling() = cfg::QueueScheduling::INTERNAL;
-  queue.maxDynamicSharedBytes() = 1024 * 1024; // 1MB
-  queue.scalingFactor() = cfg::MMUScalingFactor::ONE_HALF;
-  std::vector<cfg::PortQueue> eventorVoqConfig{std::move(queue)};
-  const std::string kEventorQueueConfigName{"eventor_queue_config"};
-  config->portQueueConfigs()[kEventorQueueConfigName] = eventorVoqConfig;
-  for (auto& port : *config->ports()) {
-    if (*port.portType() == cfg::PortType::EVENTOR_PORT) {
-      port.portVoqConfigName() = kEventorQueueConfigName;
-    }
-  }
-}
 
 int getOlympicQueueId(OlympicQueueType queueType) {
   switch (queueType) {
@@ -231,92 +161,6 @@ int getOlympicV2QueueId(OlympicV2QueueType queueType) {
       return kOlympicAllSPNCQueueId;
   }
   throw FbossError("Invalid all SP olympic queue type ", queueType);
-}
-
-int getNetworkAIQueueId(NetworkAIQueueType queueType) {
-  switch (queueType) {
-    case NetworkAIQueueType::MONITORING:
-      return kNetworkAIMonitoringQueueId;
-    case NetworkAIQueueType::RDMA:
-      return kNetworkAIRdmaQueueId;
-    case NetworkAIQueueType::NC:
-      return kNetworkAINCQueueId;
-    case NetworkAIQueueType::DEFAULT:
-      return kNetworkAIDefaultQueueId;
-  }
-  throw FbossError("Invalid all network AI queue type ", queueType);
-}
-
-int getAqmGranularThreshold(const HwAsic* asic, int value) {
-  return ceil(value / asic->getThresholdGranularity()) *
-      asic->getThresholdGranularity();
-}
-
-cfg::ActiveQueueManagement
-kGetOlympicEcnConfig(const HwAsic* asic, int minLength, int maxLength) {
-  cfg::ActiveQueueManagement ecnAQM;
-  cfg::LinearQueueCongestionDetection ecnLQCD;
-  ecnLQCD.minimumLength() = getAqmGranularThreshold(asic, minLength);
-  ecnLQCD.maximumLength() = getAqmGranularThreshold(asic, maxLength);
-  ecnAQM.detection()->linear_ref() = ecnLQCD;
-  ecnAQM.behavior() = cfg::QueueCongestionBehavior::ECN;
-  return ecnAQM;
-}
-
-cfg::ActiveQueueManagement kGetWredConfig(
-    const HwAsic* asic,
-    int minLength,
-    int maxLength,
-    int probability) {
-  cfg::ActiveQueueManagement wredAQM;
-  cfg::LinearQueueCongestionDetection wredLQCD;
-  wredLQCD.minimumLength() = getAqmGranularThreshold(asic, minLength);
-  wredLQCD.maximumLength() = getAqmGranularThreshold(asic, maxLength);
-  wredLQCD.probability() = probability;
-  wredAQM.detection()->linear_ref() = wredLQCD;
-  wredAQM.behavior() = cfg::QueueCongestionBehavior::EARLY_DROP;
-  return wredAQM;
-}
-
-int getTrafficClassToCpuVoqId(const HwAsic* hwAsic, int trafficClass) {
-  if (hwAsic->isSupported(HwAsic::Feature::VOQ) && isDualStage3Q2QQos()) {
-    if (trafficClass == 7) {
-      // tc 7 -> high queue 2
-      return 2;
-    } else if (trafficClass == 3) {
-      // tc 3 -> mid queue 1
-      return 1;
-    }
-    // all other tc -> low queue 0
-    return 0;
-  }
-  return trafficClass;
-}
-
-int getTrafficClassToEgressQueueId(const HwAsic* hwAsic, int trafficClass) {
-  if (isDualStage3Q2QQos()) {
-    if (trafficClass == 7) {
-      // tc 7 -> nc egq 7
-      return 7;
-    } else if (trafficClass == 2) {
-      // tc 2 -> rdma egq 2
-      return 2;
-    }
-    // all other tc -> default egq 6
-    return 6;
-  }
-  // same one-to-one tc to queue mapping for other platforms
-  return trafficClass;
-}
-
-int getTrafficClassToCpuEgressQueueId(const HwAsic* hwAsic, int trafficClass) {
-  if (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
-    // Jericho3 only has two egress queues for cpu port and recycle port
-    // match default/low/med to queue 0, high to 1
-    return trafficClass == kOlympicNCQueueId ? 1 : 0;
-  }
-  // same one-to-one tc to queue mapping for other platforms
-  return trafficClass;
 }
 
 cfg::PortQueue&
@@ -366,7 +210,7 @@ void addQueueEcnConfig(
   if (!queue.aqms().has_value()) {
     queue.aqms() = {};
   }
-  queue.aqms()->push_back(kGetOlympicEcnConfig(asic, minLen, maxLen));
+  queue.aqms()->push_back(kGetEcnConfig(asic, minLen, maxLen));
 }
 
 void addQueueWredConfig(
@@ -383,68 +227,6 @@ void addQueueWredConfig(
     queue.aqms() = {};
   }
   queue.aqms()->push_back(kGetWredConfig(asic, minLen, maxLen, probability));
-}
-
-void addNetworkAIQueueConfig(
-    cfg::SwitchConfig* config,
-    cfg::StreamType streamType,
-    cfg::QueueScheduling schedType,
-    const HwAsic* hwAsic,
-    bool addWredConfig,
-    bool addEcnConfig) {
-  std::vector<cfg::PortQueue> portQueues;
-  cfg::PortQueue queue0;
-  queue0.id() = getNetworkAIQueueId(NetworkAIQueueType::RDMA);
-  queue0.name() = "queue2.rdma";
-  queue0.streamType() = streamType;
-  queue0.scheduling() = schedType;
-  if (schedType == cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN) {
-    queue0.weight() = kOlympicEcn1Weight;
-  }
-  queue0.aqms() = {};
-  if (addEcnConfig) {
-    queue0.aqms()->push_back(kGetOlympicEcnConfig(hwAsic));
-  }
-  if (addWredConfig) {
-    queue0.aqms()->push_back(kGetWredConfig(hwAsic));
-  }
-  portQueues.push_back(queue0);
-
-  cfg::PortQueue queue1;
-  queue1.id() = getNetworkAIQueueId(NetworkAIQueueType::MONITORING);
-  queue1.name() = "queue6.monitoring";
-  queue1.streamType() = streamType;
-  queue1.scheduling() = schedType;
-  if (schedType == cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN) {
-    queue1.weight() = kOlympicSilverWeight;
-  }
-  portQueues.push_back(queue1);
-
-  cfg::PortQueue queue2;
-  queue2.id() = getNetworkAIQueueId(NetworkAIQueueType::NC);
-  queue2.name() = "queue7.nc";
-  queue2.streamType() = streamType;
-  queue2.scheduling() = schedType;
-  if (schedType == cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN) {
-    queue2.weight() = kOlympicGoldWeight;
-  }
-  portQueues.push_back(queue2);
-
-  cfg::PortQueue queue3;
-  queue3.id() = getNetworkAIQueueId(NetworkAIQueueType::DEFAULT);
-  queue3.name() = "queue0.default";
-  queue3.streamType() = streamType;
-  queue3.scheduling() = schedType;
-  if (schedType == cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN) {
-    queue3.weight() = kOlympicBronzeWeight;
-  }
-  portQueues.push_back(queue3);
-
-  config->defaultPortQueues() = portQueues;
-
-  if (hwAsic->getSwitchType() == cfg::SwitchType::VOQ) {
-    addVoqAqmConfig(config, streamType, hwAsic, addWredConfig, addEcnConfig);
-  }
 }
 
 void addOlympicQueueConfig(
@@ -512,15 +294,6 @@ void addQueueWredDropConfig(
   config->portQueueConfigs()["queue_config"] = portQueues;
   for (auto& port : *config->ports()) {
     port.portQueueConfigName() = "queue_config";
-  }
-  // For VoQ switches, add AQM config to VoQ as well.
-  if (asic->getSwitchType() == cfg::SwitchType::VOQ) {
-    addVoqAqmConfig(
-        config,
-        streamType,
-        asic,
-        true /*addWredConfig*/,
-        false /*addEcnConfig*/);
   }
 }
 
@@ -606,7 +379,7 @@ void addOlympicV2WRRQueueConfig(
     queue2.scalingFactor() = cfg::MMUScalingFactor::ONE;
   }
   queue2.aqms() = {};
-  queue2.aqms()->push_back(kGetOlympicEcnConfig(asic));
+  queue2.aqms()->push_back(kGetEcnConfig(asic));
   if (addWredConfig) {
     queue2.aqms()->push_back(kGetWredConfig(asic));
   }
@@ -691,20 +464,6 @@ const std::map<int, std::vector<uint8_t>> kOlympicV2QueueToDscp() {
   return queueToDscp;
 }
 
-const std::map<int, std::vector<uint8_t>> kNetworkAIV2QueueToDscp() {
-  const std::map<int, std::vector<uint8_t>> queueToDscp = {
-      {getNetworkAIQueueId(NetworkAIQueueType::DEFAULT),
-       {0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14, 15,
-        16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 31, 33, 34, 36, 37, 38,
-        39, 40, 41, 42, 43, 44, 45, 46, 47, 49, 60, 61, 62, 63}},
-      {getNetworkAIQueueId(NetworkAIQueueType::RDMA),
-       {50, 51, 52, 53, 54, 55, 56, 57, 58, 59}},
-      {getNetworkAIQueueId(NetworkAIQueueType::MONITORING),
-       {32, 35, 26, 27, 28, 29, 30}},
-      {getNetworkAIQueueId(NetworkAIQueueType::NC), {48}}};
-  return queueToDscp;
-}
-
 const std::map<int, uint8_t> kOlympicWRRQueueToWeight() {
   const std::map<int, uint8_t> wrrQueueToWeight = {
       {getOlympicQueueId(OlympicQueueType::SILVER), kOlympicSilverWeight},
@@ -713,10 +472,9 @@ const std::map<int, uint8_t> kOlympicWRRQueueToWeight() {
       {getOlympicQueueId(OlympicQueueType::BRONZE), kOlympicBronzeWeight},
   };
   const std::map<int, uint8_t> wrrQueueToWeight3Q2Q = {
-      {getNetworkAIQueueId(NetworkAIQueueType::RDMA), kOlympicEcn1Weight},
-      {getNetworkAIQueueId(NetworkAIQueueType::MONITORING),
-       kOlympicSilverWeight},
-      {getNetworkAIQueueId(NetworkAIQueueType::NC), kOlympicGoldWeight},
+      {getOlympicQueueId(OlympicQueueType::ECN1), kOlympicEcn1Weight},
+      {getOlympicQueueId(OlympicQueueType::ICP), kOlympicSilverWeight},
+      {getOlympicQueueId(OlympicQueueType::NC), kOlympicGoldWeight},
   };
   return isDualStage3Q2QQos() ? wrrQueueToWeight3Q2Q : wrrQueueToWeight;
 }
@@ -739,9 +497,9 @@ const std::vector<int> kOlympicWRRQueueIds() {
       getOlympicQueueId(OlympicQueueType::ECN1),
       getOlympicQueueId(OlympicQueueType::BRONZE)};
   const std::vector<int> wrrQueueIds3Q2Q = {
-      getNetworkAIQueueId(NetworkAIQueueType::RDMA),
-      getNetworkAIQueueId(NetworkAIQueueType::MONITORING),
-      getNetworkAIQueueId(NetworkAIQueueType::NC)};
+      getOlympicQueueId(OlympicQueueType::ECN1),
+      getOlympicQueueId(OlympicQueueType::ICP),
+      getOlympicQueueId(OlympicQueueType::NC)};
 
   return isDualStage3Q2QQos() ? wrrQueueIds3Q2Q : wrrQueueIds;
 }
@@ -888,10 +646,8 @@ void addOlympicV2QosMaps(
   addQosMapsHelper(cfg, kOlympicV2QueueToDscp(), "olympic_v2", asics);
 }
 
-void addNetworkAIQosMaps(
-    cfg::SwitchConfig& cfg,
-    const std::vector<const HwAsic*>& asics) {
-  addQosMapsHelper(cfg, kNetworkAIV2QueueToDscp(), "network_ai_v2", asics);
+void add2QueueQosMaps(cfg::SwitchConfig& cfg, const HwAsic* hwAsic) {
+  addQosMapsHelper(cfg, k2QueueToDscp(), "2queue", {hwAsic});
 }
 
 int getMaxWeightWRRQueue(const std::map<int, uint8_t>& queueToWeight) {

@@ -146,6 +146,7 @@ cpp_library(
         "//fboss/agent/test/utils:mac_test_utils",
         "//fboss/agent/test/utils:mirror_test_utils",
         "//fboss/agent/test/utils:multi_port_traffic_test_utils",
+        "//fboss/agent/test/utils:network_ai_qos_utils",
         "//fboss/agent/test/utils:olympic_qos_utils",
         "//fboss/agent/test/utils:packet_snooper",
         "//fboss/agent/test/utils:pfc_test_utils",
