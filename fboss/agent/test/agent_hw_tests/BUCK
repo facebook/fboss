@@ -300,7 +300,7 @@ _sai_agent_scale_test_prefix = "sai_agent_scale_test"
         linker_flags = [
             "--export-dynamic",
             "--unresolved-symbols=ignore-all",
-        ] if sai_impl.name == "nv_sai_sdk" else [],
+        ] if sai_impl.name == "nv" else [],
         versions = {
             sai_impl.sdk_name: sai_impl.version,
         },
