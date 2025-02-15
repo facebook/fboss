@@ -698,6 +698,16 @@ void SaiSwitch::switchEventCallback(
       break;
     }
 #endif
+// TODO: Support for 12.0 is pending, move this to BRCM_SAI_SDK_DNX_GTE_11_7
+// once 12.0 support is available.
+#if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
+    case SAI_SWITCH_EVENT_TYPE_RX_FIFO_STUCK_DETECTED: {
+      XLOG(ERR) << "RX FIFO stuck seen on link: " << eventInfo->index
+                << ", pipe: " << eventInfo->index2;
+      getSwitchStats()->rxFifoStuckDetected();
+      break;
+    }
+#endif
   }
 }
 

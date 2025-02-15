@@ -116,6 +116,9 @@ class HwSwitchFb303Stats {
   void isolationFirmwareCrash() {
     isolationFirmwareCrashes_.addValue(1);
   }
+  void rxFifoStuckDetected() {
+    rxFifoStuckDetected_.addValue(1);
+  }
   void fabricReachabilityMissingCount(int64_t value);
   void fabricReachabilityMismatchCount(int64_t value);
   void virtualDevicesWithAsymmetricConnectivity(int64_t value);
@@ -182,6 +185,7 @@ class HwSwitchFb303Stats {
   int64_t getAllReassemblyContextsTakenError() const;
   // FW Errors
   int64_t getIsolationFirmwareCrashes() const;
+  int64_t getRxFifoStuckDetected() const;
 
   // Switch drops
   int64_t getPacketIntegrityDrops() const;
@@ -275,6 +279,7 @@ class HwSwitchFb303Stats {
   TLTimeseries forwardingQueueProcessorErrors_;
   TLTimeseries allReassemblyContextsTaken_;
   TLTimeseries isolationFirmwareCrashes_;
+  TLTimeseries rxFifoStuckDetected_;
   TLTimeseries hwInitializedTimeMs_;
   TLTimeseries bootTimeMs_;
   TLTimeseries coldBoot_;

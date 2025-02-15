@@ -226,6 +226,11 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
           getCounterPrefix() + vendor + ".isolationFirmwareCrash",
           SUM,
           RATE),
+      rxFifoStuckDetected_(
+          map,
+          getCounterPrefix() + vendor + ".rxFifoStuckDetected.errors",
+          SUM,
+          RATE),
       hwInitializedTimeMs_(
           map,
           getCounterPrefix() + vendor + ".hw_initialized_time_ms",
@@ -424,6 +429,10 @@ int64_t HwSwitchFb303Stats::getIsolationFirmwareCrashes() const {
   return getCumulativeValue(isolationFirmwareCrashes_);
 }
 
+int64_t HwSwitchFb303Stats::getRxFifoStuckDetected() const {
+  return getCumulativeValue(rxFifoStuckDetected_);
+}
+
 int64_t HwSwitchFb303Stats::getPacketIntegrityDrops() const {
   return currentDropStats_.packetIntegrityDrops().value_or(0);
 }
@@ -485,6 +494,7 @@ HwAsicErrors HwSwitchFb303Stats::getHwAsicErrors() const {
   asicErrors.allReassemblyContextsTaken() =
       getAllReassemblyContextsTakenError();
   asicErrors.isolationFirmwareCrashes() = getIsolationFirmwareCrashes();
+  asicErrors.rxFifoStuckDetected() = getRxFifoStuckDetected();
   return asicErrors;
 }
 

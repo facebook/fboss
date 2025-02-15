@@ -235,6 +235,7 @@ struct HwAsicErrors {
   12: optional i64 fdrFifoOverflowErrors;
   13: optional i64 fdaFifoOverflowErrors;
   14: optional i64 isolationFirmwareCrashes;
+  15: optional i64 rxFifoStuckDetected;
 }
 
 struct HwTeFlowStats {
