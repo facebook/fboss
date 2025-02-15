@@ -163,7 +163,7 @@ void FwUtilImpl::printVersion(const std::string& fpd) {
       fwUtilVersionHandler_->printAllVersions();
     } else {
       std::string version = fwUtilVersionHandler_->getSingleVersion(fpd);
-      std::cout << fpd << " : " << version;
+      std::cout << fmt::format("{} : {}", fpd, version) << std::endl;
     }
   }
 }
