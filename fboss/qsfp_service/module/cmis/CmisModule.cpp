@@ -2163,7 +2163,7 @@ void CmisModule::setApplicationSelectCodeAllPorts(
     uint8_t hostLaneMask) {
   if (auto laneProgramValues =
           getValidMultiportSpeedConfig(speed, startHostLane, numHostLanes)) {
-    std::array<uint8_t, kMaxOsfpNumLanes> stageSet0Config;
+    AllLaneConfig stageSet0Config;
     for (auto lane = 0; lane < kMaxOsfpNumLanes;) {
       if (auto laneCapability = getApplicationField(
               static_cast<uint8_t>(laneProgramValues.value()[lane]), lane)) {
@@ -2404,7 +2404,7 @@ bool CmisModule::isRequestValidMultiportSpeedConfig(
 
   // Get the current speed config on the Multiport optics lanes. Avoid cache
   // and read from HW directly
-  std::array<uint8_t, kMaxOsfpNumLanes> currHwSpeedConfig;
+  AllLaneConfig currHwSpeedConfig;
   readCmisField(CmisField::ACTIVE_CTRL_ALL_LANES, currHwSpeedConfig.data());
   for (int laneId = 0; laneId < kMaxOsfpNumLanes; laneId++) {
     currHwSpeedConfig[laneId] =

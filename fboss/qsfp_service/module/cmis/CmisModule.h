@@ -85,7 +85,21 @@ class CmisModule : public QsfpModule {
     std::vector<int> mediaStartLanes;
   };
 
+  static constexpr int kMaxOsfpNumLanes = 8;
+
   using ApplicationAdvertisingFields = std::vector<ApplicationAdvertisingField>;
+
+  using AllLaneConfig = std::array<uint8_t, kMaxOsfpNumLanes>;
+
+  using LengthAndGauge = std::pair<double, uint8_t>;
+
+  using VdmDiagsLocationStatus = struct VdmDiagsLocationStatus_t {
+    bool vdmConfImplementedByModule = false;
+    CmisPages vdmValPage;
+    int vdmValOffset;
+    int vdmValLength;
+  };
+
   /*
    * Return a valid type.
    */
@@ -117,17 +131,6 @@ class CmisModule : public QsfpModule {
   enum : unsigned int {
     // Size of page read from QSFP via I2C
     MAX_QSFP_PAGE_SIZE = 128,
-  };
-
-  static constexpr int kMaxOsfpNumLanes = 8;
-
-  using LengthAndGauge = std::pair<double, uint8_t>;
-
-  using VdmDiagsLocationStatus = struct VdmDiagsLocationStatus_t {
-    bool vdmConfImplementedByModule = false;
-    CmisPages vdmValPage;
-    int vdmValOffset;
-    int vdmValLength;
   };
 
   void configureModule(uint8_t startHostLane) override;
