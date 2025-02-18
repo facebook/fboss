@@ -456,17 +456,6 @@ CmisModule::getApplicationField(uint8_t application, uint8_t startHostLane)
   return std::nullopt;
 }
 
-SMFMediaInterfaceCode CmisModule::getApplicationFromApSelCode(
-    uint8_t apSelCode) const {
-  for (const auto& capability : moduleCapabilities_) {
-    if (capability.ApSelCode == apSelCode) {
-      return static_cast<SMFMediaInterfaceCode>(
-          capability.moduleMediaInterface);
-    }
-  }
-  return SMFMediaInterfaceCode::UNKNOWN;
-}
-
 CmisModule::CmisModule(
     std::set<std::string> portNames,
     TransceiverImpl* qsfpImpl,
@@ -2385,35 +2374,6 @@ void CmisModule::setApplicationCodeLocked(
 }
 
 /*
- * getMediaIntfCodeFromSpeed
- *
- * Returns the media interface code for a given speed and the number of lanes on
- * this optics. This function uses the optics static value from register cache.
- * Pl note that the different optics can implement the same media interface code
- * using diferent number of lanes. ie: QSFP 400G-FR4 implements 400G-FR4 (code
- * 0x1d) using 8 lanes of 50G serdes on host whereas OSFP 2x400G-FR4 implements
- * the same 400G-FR4 (code 0x1d) using 4 lanes of 100G serdes on host.
- */
-SMFMediaInterfaceCode CmisModule::getMediaIntfCodeFromSpeed(
-    cfg::PortSpeed speed,
-    uint8_t numLanes) {
-  auto appCodes = CmisHelper::getInterfaceCode(speed);
-  if (appCodes.empty()) {
-    return SMFMediaInterfaceCode::UNKNOWN;
-  }
-
-  for (auto application : appCodes) {
-    for (const auto& capability : moduleCapabilities_) {
-      if (capability.moduleMediaInterface == application &&
-          capability.hostLaneCount == numLanes) {
-        return (SMFMediaInterfaceCode)application;
-      }
-    }
-  }
-  return SMFMediaInterfaceCode::UNKNOWN;
-}
-
-/*
  * isRequestValidMultiportSpeedConfig
  *
  * This function returns if the requested speed on given number of lanes will
@@ -2433,7 +2393,9 @@ bool CmisModule::isRequestValidMultiportSpeedConfig(
   }
 
   // Sanity check
-  auto desiredMediaIntfCode = getMediaIntfCodeFromSpeed(speed, numLanes);
+  auto desiredMediaIntfCode =
+      CmisHelper::getMediaIntfCodeFromSpeed<SMFMediaInterfaceCode>(
+          speed, numLanes, moduleCapabilities_);
   if (desiredMediaIntfCode == SMFMediaInterfaceCode::UNKNOWN) {
     QSFP_LOG(ERR, this) << "Unsupported Speed "
                         << apache::thrift::util::enumNameSafe(speed);
@@ -2456,7 +2418,8 @@ bool CmisModule::isRequestValidMultiportSpeedConfig(
       desiredSpeedConfig[laneId] = desiredMediaIntfCode;
     } else {
       desiredSpeedConfig[laneId] =
-          getApplicationFromApSelCode(currHwSpeedConfig[laneId]);
+          CmisHelper::getApplicationFromApSelCode<SMFMediaInterfaceCode>(
+              currHwSpeedConfig[laneId], moduleCapabilities_);
     }
   }
 
@@ -2496,7 +2459,9 @@ CmisModule::getValidMultiportSpeedConfig(
     cfg::PortSpeed speed,
     uint8_t startHostLane,
     uint8_t numLanes) {
-  auto desiredMediaIntfCode = getMediaIntfCodeFromSpeed(speed, numLanes);
+  auto desiredMediaIntfCode =
+      CmisHelper::getMediaIntfCodeFromSpeed<SMFMediaInterfaceCode>(
+          speed, numLanes, moduleCapabilities_);
   if (desiredMediaIntfCode == SMFMediaInterfaceCode::UNKNOWN) {
     QSFP_LOG(ERR, this) << "Unsupported Speed "
                         << apache::thrift::util::enumNameSafe(speed);

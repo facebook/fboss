@@ -4,6 +4,7 @@
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
+#include "fboss/qsfp_service/module/cmis/CmisModule.h"
 
 namespace facebook {
 namespace fboss {
@@ -172,6 +173,56 @@ class CmisHelper final {
         },
     };
     return smfOsfpValidSpeedCombinations_;
+  }
+
+  /*
+   * getApplicationFromApSelCode
+   *
+   * Returns the interface code if ApSelCode is present in the module
+   * capabilities.
+   */
+  template <typename InterfaceCode>
+  static InterfaceCode getApplicationFromApSelCode(
+      uint8_t apSelCode,
+      const CmisModule::ApplicationAdvertisingFields& moduleCapabilities) {
+    for (const auto& capability : moduleCapabilities) {
+      if (capability.ApSelCode == apSelCode) {
+        return static_cast<InterfaceCode>(capability.moduleMediaInterface);
+      }
+    }
+    return InterfaceCode::UNKNOWN;
+  }
+
+  /*
+   * getMediaIntfCodeFromSpeed
+   *
+   * Returns the media interface code for a given speed and the number of lanes
+   * on this optics. This function uses the optics static value from register
+   * cache. Pl note that the different optics can implement the same media
+   * interface code using diferent number of lanes. ie: QSFP 400G-FR4 implements
+   * 400G-FR4 (code 0x1d) using 8 lanes of 50G serdes on host whereas OSFP
+   * 2x400G-FR4 implements the same 400G-FR4 (code 0x1d) using 4 lanes of 100G
+   * serdes on host.
+   */
+  template <typename InterfaceCode>
+  static InterfaceCode getMediaIntfCodeFromSpeed(
+      cfg::PortSpeed speed,
+      uint8_t numLanes,
+      const CmisModule::ApplicationAdvertisingFields& moduleCapabilities) {
+    auto appCodes = CmisHelper::getInterfaceCode(speed);
+    if (appCodes.empty()) {
+      return InterfaceCode::UNKNOWN;
+    }
+
+    for (auto application : appCodes) {
+      for (const auto& capability : moduleCapabilities) {
+        if (capability.moduleMediaInterface == application &&
+            capability.hostLaneCount == numLanes) {
+          return (InterfaceCode)application;
+        }
+      }
+    }
+    return InterfaceCode::UNKNOWN;
   }
 };
 

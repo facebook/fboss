@@ -85,6 +85,7 @@ class CmisModule : public QsfpModule {
     std::vector<int> mediaStartLanes;
   };
 
+  using ApplicationAdvertisingFields = std::vector<ApplicationAdvertisingField>;
   /*
    * Return a valid type.
    */
@@ -408,8 +409,6 @@ class CmisModule : public QsfpModule {
       uint8_t application,
       uint8_t startHostLane) const;
 
-  SMFMediaInterfaceCode getApplicationFromApSelCode(uint8_t apSelCode) const;
-
   // Returns the list of host lanes configured in the same datapath as the
   // provided startHostLane
   std::vector<uint8_t> configuredHostLanes(
@@ -510,7 +509,7 @@ class CmisModule : public QsfpModule {
   /*
    * Application advertising fields.
    */
-  std::vector<ApplicationAdvertisingField> moduleCapabilities_;
+  ApplicationAdvertisingFields moduleCapabilities_;
 
   /*
    * Gets the module media interface. This is the intended media interface
@@ -568,10 +567,6 @@ class CmisModule : public QsfpModule {
   double f16ToDouble(uint8_t byte0, uint8_t byte1);
   std::pair<std::optional<const uint8_t*>, int> getVdmDataValPtr(
       VdmConfigType vdmConf);
-
-  SMFMediaInterfaceCode getMediaIntfCodeFromSpeed(
-      cfg::PortSpeed speed,
-      uint8_t numLanes);
 
   bool isMultiPortOptics() {
     return getIdentifier() == TransceiverModuleIdentifier::OSFP;
