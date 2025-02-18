@@ -445,6 +445,9 @@ std::optional<VlanID> BaseEcmpSetupHelper<AddrT, NextHopT>::getVlan(
   if (auto phyPortId = getPhysicalPortId()) {
     auto phyPort = state->getPorts()->getNodeIf(*phyPortId);
     for (const auto& vlanMember : phyPort->getVlans()) {
+      if (vlanMember.first == VlanID(0)) {
+        continue;
+      }
       return vlanMember.first;
     }
   }
