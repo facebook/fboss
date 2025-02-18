@@ -213,13 +213,14 @@ HwSwitchMatcher SwitchIdScopeResolver::scope(
       return scope(SystemPortID(static_cast<int64_t>(interfaceId)));
     case cfg::InterfaceType::VLAN: {
       std::optional<int> vlanId;
-      for (const auto& vlan : *cfg.vlans()) {
-        if (vlan.intfID() == static_cast<int>(interfaceId)) {
-          vlanId = *vlan.id();
+      for (const auto& intf : *cfg.interfaces()) {
+        if (intf.intfID() == static_cast<int>(interfaceId)) {
+          vlanId = *intf.vlanID();
         }
       }
       if (!vlanId) {
-        vlanId = static_cast<int>(interfaceId);
+        throw FbossError(
+            "vlan not set for vlan router interface  : ", interfaceId);
       }
       if (*vlanId == *cfg.defaultVlan()) {
         return l3SwitchMatcher();
