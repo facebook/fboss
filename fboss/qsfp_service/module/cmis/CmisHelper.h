@@ -7,6 +7,9 @@
 
 namespace facebook {
 namespace fboss {
+using SmfMediaInterfaceMap =
+    std::unordered_map<SMFMediaInterfaceCode, MediaInterfaceCode>;
+
 template <typename InterfaceCode>
 using SpeedApplicationMap = std::
     unordered_map<facebook::fboss::cfg::PortSpeed, std::vector<InterfaceCode>>;
@@ -65,6 +68,24 @@ class CmisHelper final {
       return interfaceCodes;
     }
     return {};
+  }
+
+  static MediaInterfaceCode getMediaInterfaceCode(
+      SMFMediaInterfaceCode mediaInterfaceCode) {
+    static const SmfMediaInterfaceMap smfMediaInterfaceMapping_ = {
+        {SMFMediaInterfaceCode::CWDM4_100G, MediaInterfaceCode::CWDM4_100G},
+        {SMFMediaInterfaceCode::FR1_100G, MediaInterfaceCode::FR1_100G},
+        {SMFMediaInterfaceCode::FR4_200G, MediaInterfaceCode::FR4_200G},
+        {SMFMediaInterfaceCode::FR4_400G, MediaInterfaceCode::FR4_400G},
+        {SMFMediaInterfaceCode::LR4_10_400G, MediaInterfaceCode::LR4_400G_10KM},
+        {SMFMediaInterfaceCode::DR4_400G, MediaInterfaceCode::DR4_400G},
+        {SMFMediaInterfaceCode::FR8_800G, MediaInterfaceCode::FR8_800G},
+    };
+    const auto itr = smfMediaInterfaceMapping_.find(mediaInterfaceCode);
+    if (itr != smfMediaInterfaceMapping_.end()) {
+      return itr->second;
+    }
+    return MediaInterfaceCode::UNKNOWN;
   }
 };
 

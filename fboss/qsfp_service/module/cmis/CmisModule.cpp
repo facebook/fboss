@@ -319,17 +319,6 @@ static CmisFieldMultiplier qsfpMultiplier = {
     {CmisField::LENGTH_COPPER, 0.1},
 };
 
-static std::map<SMFMediaInterfaceCode, MediaInterfaceCode>
-    mediaInterfaceMapping = {
-        {SMFMediaInterfaceCode::CWDM4_100G, MediaInterfaceCode::CWDM4_100G},
-        {SMFMediaInterfaceCode::FR1_100G, MediaInterfaceCode::FR1_100G},
-        {SMFMediaInterfaceCode::FR4_200G, MediaInterfaceCode::FR4_200G},
-        {SMFMediaInterfaceCode::FR4_400G, MediaInterfaceCode::FR4_400G},
-        {SMFMediaInterfaceCode::LR4_10_400G, MediaInterfaceCode::LR4_400G_10KM},
-        {SMFMediaInterfaceCode::DR4_400G, MediaInterfaceCode::DR4_400G},
-        {SMFMediaInterfaceCode::FR8_800G, MediaInterfaceCode::FR8_800G},
-};
-
 // A map of programmable FEC sampling pct per Module Media type.
 static const std::unordered_map<MediaInterfaceCode, uint8_t>
     kMaxProgFecSamplingSupportedMap_ = {
@@ -1108,14 +1097,12 @@ bool CmisModule::getMediaInterfaceId(
       mediaInterface[lane].lane() = lane;
       MediaInterfaceUnion media;
       media.smfCode_ref() = smfMediaInterface;
-      if (auto it = mediaInterfaceMapping.find(smfMediaInterface);
-          it != mediaInterfaceMapping.end()) {
-        mediaInterface[lane].code() = it->second;
-      } else {
+      mediaInterface[lane].code() =
+          CmisHelper::getMediaInterfaceCode(smfMediaInterface);
+      if (mediaInterface[lane].code() == MediaInterfaceCode::UNKNOWN) {
         QSFP_LOG(ERR, this)
             << "Unable to find MediaInterfaceCode for "
             << apache::thrift::util::enumNameSafe(smfMediaInterface);
-        mediaInterface[lane].code() = MediaInterfaceCode::UNKNOWN;
       }
       mediaInterface[lane].media() = media;
     }
@@ -3016,7 +3003,7 @@ MediaInterfaceCode CmisModule::getModuleMediaInterface() const {
         firstModuleCapability->hostStartLanes.size() == 2) {
       moduleMediaInterface = MediaInterfaceCode::DR4_2x400G;
     } else {
-      moduleMediaInterface = mediaInterfaceMapping[smfCode];
+      moduleMediaInterface = CmisHelper::getMediaInterfaceCode(smfCode);
     }
   }
 
