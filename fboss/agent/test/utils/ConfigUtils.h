@@ -52,6 +52,7 @@ auto constexpr kBaseVlanId = 2000;
  * Default VLAN
  */
 auto constexpr kDefaultVlanId4094 = 4094;
+auto constexpr kDefaultVlanId1 = 1;
 auto constexpr kDownlinkBaseVlanId = 2000;
 auto constexpr kUplinkBaseVlanId = 4000;
 

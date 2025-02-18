@@ -894,7 +894,7 @@ cfg::SwitchConfig genPortVlanCfg(
     portCfg->parserType() = cfg::ParserType::L3;
   }
 
-  if (vlans.size()) {
+  if (switchType == cfg::SwitchType::NPU) {
     // Vlan config
     for (auto vlanID : vlans) {
       cfg::Vlan vlan;
@@ -904,14 +904,17 @@ cfg::SwitchConfig genPortVlanCfg(
       config.vlans()->push_back(vlan);
     }
 
-    if (asic->getAsicType() != cfg::AsicType::ASIC_TYPE_CHENAB) {
-      cfg::Vlan defaultVlan;
-      defaultVlan.id() = kDefaultVlanId4094;
-      defaultVlan.name() = folly::sformat("vlan{}", kDefaultVlanId4094);
-      defaultVlan.routable() = true;
-      config.vlans()->push_back(defaultVlan);
-      config.defaultVlan() = kDefaultVlanId4094;
-    }
+    auto defaultVlanId =
+        (asic->getAsicType() != cfg::AsicType::ASIC_TYPE_CHENAB)
+        ? kDefaultVlanId4094
+        : kDefaultVlanId1;
+    cfg::Vlan defaultVlan;
+    defaultVlan.id() = defaultVlanId;
+    defaultVlan.name() = folly::sformat("vlan{}", defaultVlanId);
+    defaultVlan.intfID() = kDefaultVlanId4094;
+    defaultVlan.routable() = true;
+    config.vlans()->push_back(defaultVlan);
+    config.defaultVlan() = defaultVlanId;
 
     // Vlan port config
     for (auto vlanPortPair : port2vlan) {
@@ -924,14 +927,6 @@ cfg::SwitchConfig genPortVlanCfg(
     }
   }
   if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
-    cfg::Vlan vlan1;
-    vlan1.id() = 1;
-    vlan1.name() = "vlan1";
-    vlan1.routable() = true;
-    vlan1.intfID() = kDefaultVlanId4094;
-    config.vlans()->push_back(vlan1);
-    config.defaultVlan() = 1;
-
     /*
      * TODO(pshaikh): Chenab-Hack pipeline lookup for traffic injected by cpu
      * requires vlan rif in default vlan.
@@ -939,15 +934,15 @@ cfg::SwitchConfig genPortVlanCfg(
     cfg::Interface intf1;
     intf1.intfID() = kDefaultVlanId4094; /* prevent conflict with port rifs */
     intf1.name() = "default_vlan_rif";
-    intf1.vlanID() = 1;
+    intf1.vlanID() = kDefaultVlanId1;
     intf1.mac() = getLocalCpuMacStr();
     intf1.type() = cfg::InterfaceType::VLAN;
     intf1.routerID() = 0;
     intf1.mtu() = 9000;
+    intf1.isVirtual() = true;
+    intf1.ipAddresses()->emplace_back("192.168.0.1/24");
+    intf1.ipAddresses()->emplace_back("fd00::1/64");
     config.interfaces()->push_back(intf1);
-
-    // default vlan really is 1 for Chenab
-    config.defaultVlan() = 1;
   }
   return config;
 }
