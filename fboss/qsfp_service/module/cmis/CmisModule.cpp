@@ -4,6 +4,9 @@
 
 #include <boost/assign.hpp>
 #include <boost/bimap.hpp>
+#include <folly/io/IOBuf.h>
+#include <folly/io/async/EventBase.h>
+#include <folly/logging/xlog.h>
 #include <cmath>
 #include <string>
 #include "common/time/Time.h"
@@ -17,10 +20,7 @@
 #include "fboss/qsfp_service/module/QsfpHelper.h"
 #include "fboss/qsfp_service/module/TransceiverImpl.h"
 #include "fboss/qsfp_service/module/cmis/CmisFieldInfo.h"
-
-#include <folly/io/IOBuf.h>
-#include <folly/io/async/EventBase.h>
-#include <folly/logging/xlog.h>
+#include "fboss/qsfp_service/module/cmis/CmisHelper.h"
 
 #include <thrift/lib/cpp/util/EnumUtils.h>
 
@@ -56,6 +56,7 @@ constexpr int kCdbSymErrHistCurOffset = 5;
 
 constexpr int kMaxFecTailRs544 = 15;
 
+// TODO @sanabani: Change To Map
 std::array<std::string, 9> channelConfigErrorMsg = {
     "No status available, config under progress",
     "Config accepted and applied",
@@ -82,7 +83,7 @@ enum DiagnosticFeatureEncoding {
 };
 
 // As per CMIS4.0
-static QsfpFieldInfo<CmisField, CmisPages>::QsfpFieldMap cmisFields = {
+static const QsfpFieldInfo<CmisField, CmisPages>::QsfpFieldMap cmisFields = {
     // Lower Page
     {CmisField::PAGE_LOWER, {CmisPages::LOWER, 0, 128}},
     {CmisField::IDENTIFIER, {CmisPages::LOWER, 0, 1}},
@@ -317,23 +318,6 @@ static CmisFieldMultiplier qsfpMultiplier = {
     {CmisField::LENGTH_OM2, 1},
     {CmisField::LENGTH_COPPER, 0.1},
 };
-
-static SpeedApplicationMapping speedApplicationMapping = {
-    {cfg::PortSpeed::FIFTYTHREEPOINTONETWOFIVEG,
-     {SMFMediaInterfaceCode::FR4_200G}},
-    {cfg::PortSpeed::HUNDREDG,
-     {SMFMediaInterfaceCode::CWDM4_100G, SMFMediaInterfaceCode::FR1_100G}},
-    {cfg::PortSpeed::HUNDREDANDSIXPOINTTWOFIVEG,
-     {SMFMediaInterfaceCode::FR1_100G}},
-    {cfg::PortSpeed::TWOHUNDREDG, {SMFMediaInterfaceCode::FR4_200G}},
-    {cfg::PortSpeed::FOURHUNDREDG,
-     {SMFMediaInterfaceCode::FR4_400G,
-      SMFMediaInterfaceCode::LR4_10_400G,
-      SMFMediaInterfaceCode::DR4_400G}},
-    {
-        cfg::PortSpeed::EIGHTHUNDREDG,
-        {SMFMediaInterfaceCode::FR8_800G},
-    }};
 
 static std::map<SMFMediaInterfaceCode, MediaInterfaceCode>
     mediaInterfaceMapping = {
@@ -2353,9 +2337,8 @@ void CmisModule::setApplicationCodeLocked(
       "Trying to set application code for speed {} on startHostLane {}",
       apache::thrift::util::enumNameSafe(speed),
       startHostLane);
-  auto applicationIter = speedApplicationMapping.find(speed);
-
-  if (applicationIter == speedApplicationMapping.end()) {
+  auto appCodes = CmisHelper::getInterfaceCode(speed);
+  if (appCodes.empty()) {
     QSFP_LOG(INFO, this) << "Unsupported Speed.";
     throw FbossError(folly::to<std::string>(
         "Transceiver: ",
@@ -2409,9 +2392,8 @@ void CmisModule::setApplicationCodeLocked(
   // Loop through all the applications that we support for the given speed and
   // check if any of those are present in the moduleCapabilities. We configure
   // the first application that both we support and the module supports
-  for (auto application : applicationIter->second) {
-    auto capability =
-        getApplicationField(static_cast<uint8_t>(application), startHostLane);
+  for (auto application : appCodes) {
+    auto capability = getApplicationField(application, startHostLane);
 
     // Check if the module supports the application
     if (!capability) {
@@ -2428,7 +2410,7 @@ void CmisModule::setApplicationCodeLocked(
 
     // If the currently configured application is the same as what we are trying
     // to configure, then skip the configuration
-    if (static_cast<uint8_t>(application) == currentApplication) {
+    if (application == currentApplication) {
       QSFP_LOG(INFO, this) << "Speed matches. Doing nothing";
       // Make sure the datapath is initialized, otherwise initialize it before
       // returning
@@ -2510,17 +2492,16 @@ void CmisModule::setApplicationCodeLocked(
 SMFMediaInterfaceCode CmisModule::getMediaIntfCodeFromSpeed(
     cfg::PortSpeed speed,
     uint8_t numLanes) {
-  auto applicationIter = speedApplicationMapping.find(speed);
-  if (applicationIter == speedApplicationMapping.end()) {
+  auto appCodes = CmisHelper::getInterfaceCode(speed);
+  if (appCodes.empty()) {
     return SMFMediaInterfaceCode::UNKNOWN;
   }
 
-  for (auto application : applicationIter->second) {
+  for (auto application : appCodes) {
     for (const auto& capability : moduleCapabilities_) {
-      if (capability.moduleMediaInterface ==
-              static_cast<uint8_t>(application) &&
+      if (capability.moduleMediaInterface == application &&
           capability.hostLaneCount == numLanes) {
-        return application;
+        return (SMFMediaInterfaceCode)application;
       }
     }
   }
@@ -2833,16 +2814,14 @@ bool CmisModule::tcvrPortStateSupported(TransceiverPortState& portState) const {
   auto speed = portState.speed;
   auto startHostLane = portState.startHostLane;
   auto numHostLanes = portState.numHostLanes;
-  auto applicationIter = speedApplicationMapping.find(speed);
-
-  if (applicationIter == speedApplicationMapping.end()) {
+  auto appCodes = CmisHelper::getInterfaceCode(speed);
+  if (appCodes.empty()) {
     // Speed Not supported
     return false;
   }
 
-  for (auto application : applicationIter->second) {
-    if (auto capability = getApplicationField(
-            static_cast<uint8_t>(application), startHostLane)) {
+  for (auto application : appCodes) {
+    if (auto capability = getApplicationField(application, startHostLane)) {
       // Application supported on the starting host lane
       auto hostLaneCount = capability->hostLaneCount;
       if (numHostLanes == hostLaneCount) {
@@ -3580,8 +3559,8 @@ bool CmisModule::setPortPrbsLocked(
 
   // Step 3: Set the pattern for Checker (for starting case)
   if (startChk) {
-    auto cmisFields = (side == phy::Side::LINE) ? prbsChkMediaPatternFields
-                                                : prbsChkHostPatternFields;
+    auto& fields = (side == phy::Side::LINE) ? prbsChkMediaPatternFields
+                                             : prbsChkHostPatternFields;
 
     // Check that a valid polynomial is provided
     if (prbsPatternItr == prbsPatternMap.left.end()) {
@@ -3594,7 +3573,7 @@ bool CmisModule::setPortPrbsLocked(
     // There are 4 bytes, each contains pattern for 2 lanes
     uint8_t patternVal;
     for (auto lane : tcvrLanes) {
-      auto cmisReg = cmisFields[lane / 2];
+      auto cmisReg = fields[lane / 2];
       readCmisField(cmisReg, &patternVal);
       patternVal = (lane % 2 == 0)
           ? (patternVal & 0xF0) | (prbsPolynominal & 0x0F)

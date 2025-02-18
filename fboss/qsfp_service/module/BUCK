@@ -21,6 +21,7 @@ cpp_library(
         "QsfpFieldInfo.h",
         "QsfpUtil.h",
         "cmis/CmisFieldInfo.h",
+        "cmis/CmisHelper.h",
         "cmis/CmisModule.h",
         "facebook/SffFr1FieldInfo.h",
         "sff/Sff8472FieldInfo.h",
