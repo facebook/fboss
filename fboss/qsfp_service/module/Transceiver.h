@@ -302,9 +302,6 @@ class Transceiver {
   virtual std::map<std::string, CdbDatapathSymErrHistogram>
   getSymbolErrorHistogram() = 0;
 
-  virtual std::vector<MediaInterfaceCode> getSupportedMediaInterfaces()
-      const = 0;
-
   virtual bool tcvrPortStateSupported(
       TransceiverPortState& portState) const = 0;
 

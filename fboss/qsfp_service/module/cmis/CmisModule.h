@@ -339,12 +339,6 @@ class CmisModule : public QsfpModule {
   SMFMediaInterfaceCode getSmfMediaInterface(uint8_t lane = 0) const;
 
   /*
-   * Returns the list of media interfaces supported by the module
-   */
-  std::vector<MediaInterfaceCode> getSupportedMediaInterfacesLocked()
-      const override;
-
-  /*
    * Returns the firmware version
    * <Module firmware version, DSP version, Build revision>
    */
