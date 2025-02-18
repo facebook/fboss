@@ -15,6 +15,9 @@ using SpeedApplicationMap = std::
     unordered_map<facebook::fboss::cfg::PortSpeed, std::vector<InterfaceCode>>;
 using SmfSpeedApplicationMap = SpeedApplicationMap<SMFMediaInterfaceCode>;
 
+using SmfValidSpeedCombinations = std::vector<
+    std::array<SMFMediaInterfaceCode, CmisModule::kMaxOsfpNumLanes>>;
+
 class CmisHelper final {
  private:
   // Disable Construction of this class.
@@ -86,6 +89,89 @@ class CmisHelper final {
       return itr->second;
     }
     return MediaInterfaceCode::UNKNOWN;
+  }
+
+  static const SmfValidSpeedCombinations& getSmfValidSpeedCombinations() {
+    static const SmfValidSpeedCombinations smfOsfpValidSpeedCombinations_ = {
+        {
+            // 2x400G-FR4
+            SMFMediaInterfaceCode::FR4_400G,
+            SMFMediaInterfaceCode::FR4_400G,
+            SMFMediaInterfaceCode::FR4_400G,
+            SMFMediaInterfaceCode::FR4_400G,
+            SMFMediaInterfaceCode::FR4_400G,
+            SMFMediaInterfaceCode::FR4_400G,
+            SMFMediaInterfaceCode::FR4_400G,
+            SMFMediaInterfaceCode::FR4_400G,
+        },
+        {
+            // 2x200G-FR4
+            SMFMediaInterfaceCode::FR4_200G,
+            SMFMediaInterfaceCode::FR4_200G,
+            SMFMediaInterfaceCode::FR4_200G,
+            SMFMediaInterfaceCode::FR4_200G,
+            SMFMediaInterfaceCode::FR4_200G,
+            SMFMediaInterfaceCode::FR4_200G,
+            SMFMediaInterfaceCode::FR4_200G,
+            SMFMediaInterfaceCode::FR4_200G,
+        },
+        {
+            // 400G-FR4 + 200G-FR4
+            SMFMediaInterfaceCode::FR4_400G,
+            SMFMediaInterfaceCode::FR4_400G,
+            SMFMediaInterfaceCode::FR4_400G,
+            SMFMediaInterfaceCode::FR4_400G,
+            SMFMediaInterfaceCode::FR4_200G,
+            SMFMediaInterfaceCode::FR4_200G,
+            SMFMediaInterfaceCode::FR4_200G,
+            SMFMediaInterfaceCode::FR4_200G,
+        },
+        {
+            // 200G-FR4 + 400G-FR4
+            SMFMediaInterfaceCode::FR4_200G,
+            SMFMediaInterfaceCode::FR4_200G,
+            SMFMediaInterfaceCode::FR4_200G,
+            SMFMediaInterfaceCode::FR4_200G,
+            SMFMediaInterfaceCode::FR4_400G,
+            SMFMediaInterfaceCode::FR4_400G,
+            SMFMediaInterfaceCode::FR4_400G,
+            SMFMediaInterfaceCode::FR4_400G,
+        },
+        {
+            // 8x100G-FR1
+            SMFMediaInterfaceCode::FR1_100G,
+            SMFMediaInterfaceCode::FR1_100G,
+            SMFMediaInterfaceCode::FR1_100G,
+            SMFMediaInterfaceCode::FR1_100G,
+            SMFMediaInterfaceCode::FR1_100G,
+            SMFMediaInterfaceCode::FR1_100G,
+            SMFMediaInterfaceCode::FR1_100G,
+            SMFMediaInterfaceCode::FR1_100G,
+        },
+        {
+            // 2x100G-CWDM4
+            SMFMediaInterfaceCode::CWDM4_100G,
+            SMFMediaInterfaceCode::CWDM4_100G,
+            SMFMediaInterfaceCode::CWDM4_100G,
+            SMFMediaInterfaceCode::CWDM4_100G,
+            SMFMediaInterfaceCode::CWDM4_100G,
+            SMFMediaInterfaceCode::CWDM4_100G,
+            SMFMediaInterfaceCode::CWDM4_100G,
+            SMFMediaInterfaceCode::CWDM4_100G,
+        },
+        {
+            // 1x800G-2FR4
+            SMFMediaInterfaceCode::FR8_800G,
+            SMFMediaInterfaceCode::FR8_800G,
+            SMFMediaInterfaceCode::FR8_800G,
+            SMFMediaInterfaceCode::FR8_800G,
+            SMFMediaInterfaceCode::FR8_800G,
+            SMFMediaInterfaceCode::FR8_800G,
+            SMFMediaInterfaceCode::FR8_800G,
+            SMFMediaInterfaceCode::FR8_800G,
+        },
+    };
+    return smfOsfpValidSpeedCombinations_;
   }
 };
 

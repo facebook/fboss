@@ -391,88 +391,6 @@ std::array<CmisField, 4> prbsChkHostPatternFields = {
     CmisField::HOST_CHECKER_PATTERN_SELECT_LANE_8_7,
 };
 
-const std::vector<
-    std::array<SMFMediaInterfaceCode, CmisModule::kMaxOsfpNumLanes>>
-    osfpValidSpeedCombination = {
-        {
-            // 2x400G-FR4
-            SMFMediaInterfaceCode::FR4_400G,
-            SMFMediaInterfaceCode::FR4_400G,
-            SMFMediaInterfaceCode::FR4_400G,
-            SMFMediaInterfaceCode::FR4_400G,
-            SMFMediaInterfaceCode::FR4_400G,
-            SMFMediaInterfaceCode::FR4_400G,
-            SMFMediaInterfaceCode::FR4_400G,
-            SMFMediaInterfaceCode::FR4_400G,
-        },
-        {
-            // 2x200G-FR4
-            SMFMediaInterfaceCode::FR4_200G,
-            SMFMediaInterfaceCode::FR4_200G,
-            SMFMediaInterfaceCode::FR4_200G,
-            SMFMediaInterfaceCode::FR4_200G,
-            SMFMediaInterfaceCode::FR4_200G,
-            SMFMediaInterfaceCode::FR4_200G,
-            SMFMediaInterfaceCode::FR4_200G,
-            SMFMediaInterfaceCode::FR4_200G,
-        },
-        {
-            // 400G-FR4 + 200G-FR4
-            SMFMediaInterfaceCode::FR4_400G,
-            SMFMediaInterfaceCode::FR4_400G,
-            SMFMediaInterfaceCode::FR4_400G,
-            SMFMediaInterfaceCode::FR4_400G,
-            SMFMediaInterfaceCode::FR4_200G,
-            SMFMediaInterfaceCode::FR4_200G,
-            SMFMediaInterfaceCode::FR4_200G,
-            SMFMediaInterfaceCode::FR4_200G,
-        },
-        {
-            // 200G-FR4 + 400G-FR4
-            SMFMediaInterfaceCode::FR4_200G,
-            SMFMediaInterfaceCode::FR4_200G,
-            SMFMediaInterfaceCode::FR4_200G,
-            SMFMediaInterfaceCode::FR4_200G,
-            SMFMediaInterfaceCode::FR4_400G,
-            SMFMediaInterfaceCode::FR4_400G,
-            SMFMediaInterfaceCode::FR4_400G,
-            SMFMediaInterfaceCode::FR4_400G,
-        },
-        {
-            // 8x100G-FR1
-            SMFMediaInterfaceCode::FR1_100G,
-            SMFMediaInterfaceCode::FR1_100G,
-            SMFMediaInterfaceCode::FR1_100G,
-            SMFMediaInterfaceCode::FR1_100G,
-            SMFMediaInterfaceCode::FR1_100G,
-            SMFMediaInterfaceCode::FR1_100G,
-            SMFMediaInterfaceCode::FR1_100G,
-            SMFMediaInterfaceCode::FR1_100G,
-        },
-        {
-            // 2x100G-CWDM4
-            SMFMediaInterfaceCode::CWDM4_100G,
-            SMFMediaInterfaceCode::CWDM4_100G,
-            SMFMediaInterfaceCode::CWDM4_100G,
-            SMFMediaInterfaceCode::CWDM4_100G,
-            SMFMediaInterfaceCode::CWDM4_100G,
-            SMFMediaInterfaceCode::CWDM4_100G,
-            SMFMediaInterfaceCode::CWDM4_100G,
-            SMFMediaInterfaceCode::CWDM4_100G,
-        },
-        {
-            // 1x800G-2FR4
-            SMFMediaInterfaceCode::FR8_800G,
-            SMFMediaInterfaceCode::FR8_800G,
-            SMFMediaInterfaceCode::FR8_800G,
-            SMFMediaInterfaceCode::FR8_800G,
-            SMFMediaInterfaceCode::FR8_800G,
-            SMFMediaInterfaceCode::FR8_800G,
-            SMFMediaInterfaceCode::FR8_800G,
-            SMFMediaInterfaceCode::FR8_800G,
-        },
-};
-
 void getQsfpFieldAddress(
     CmisField field,
     int& dataAddress,
@@ -2501,7 +2419,7 @@ SMFMediaInterfaceCode CmisModule::getMediaIntfCodeFromSpeed(
  * This function returns if the requested speed on given number of lanes will
  * result in valid config on the overall optics. If the requested config on
  * given lanes will result in non-supported speed config (as described in static
- * list osfpValidSpeedCombination) then this function returns false otherwise
+ * list getSmfValidSpeedCombinations) then this function returns false otherwise
  * returns true. This function does not rely on cache and does the directHW read
  * to know the current speed config on the lanes.
  */
@@ -2543,7 +2461,7 @@ bool CmisModule::isRequestValidMultiportSpeedConfig(
   }
 
   // Check if this is supported speed config combo on this optics and return
-  for (auto& validSpeedCombo : osfpValidSpeedCombination) {
+  for (auto& validSpeedCombo : CmisHelper::getSmfValidSpeedCombinations()) {
     bool combolValid = true;
     for (int laneId = 0; laneId < kMaxOsfpNumLanes; laneId++) {
       if (validSpeedCombo[laneId] != desiredSpeedConfig[laneId]) {
@@ -2586,7 +2504,7 @@ CmisModule::getValidMultiportSpeedConfig(
   }
 
   CHECK_LE(startHostLane + numLanes, kMaxOsfpNumLanes);
-  for (auto& validSpeedCombo : osfpValidSpeedCombination) {
+  for (auto& validSpeedCombo : CmisHelper::getSmfValidSpeedCombinations()) {
     bool combolValid = true;
     for (int laneId = startHostLane; laneId < startHostLane + numLanes;
          laneId++) {
