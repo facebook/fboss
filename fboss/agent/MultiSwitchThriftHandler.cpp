@@ -158,19 +158,19 @@ MultiSwitchThriftHandler::co_notifyLinkChangeEvent(int64_t switchId) {
                      linkCancellationSource_.getToken(), gen.next())) {
             XLOG(DBG2) << "Got link change event from switch " << switchId;
             sw_->stats()->hwAgentLinkStatusReceived(switchIndex);
-            auto eventType = *item->eventType();
-            if (eventType == multiswitch::LinkChangeEventType::LINK_STATE) {
-              processLinkState(SwitchID(switchId), *item);
-            } else if (
-                eventType == multiswitch::LinkChangeEventType::LINK_ACTIVE) {
-              processLinkActiveState(SwitchID(switchId), *item);
-            } else if (
-                eventType ==
-                multiswitch::LinkChangeEventType::LINK_CONNECTIVITY) {
-              processLinkConnectivity(SwitchID(switchId), *item);
-            } else {
-              XLOG(ERR) << "Invalid link event type "
-                        << static_cast<int>(eventType);
+            switch (*item->eventType()) {
+              case multiswitch::LinkChangeEventType::LINK_STATE:
+                processLinkState(SwitchID(switchId), *item);
+                break;
+              case multiswitch::LinkChangeEventType::LINK_ACTIVE:
+                processLinkActiveState(SwitchID(switchId), *item);
+                break;
+              case multiswitch::LinkChangeEventType::LINK_CONNECTIVITY:
+                processLinkConnectivity(SwitchID(switchId), *item);
+                break;
+              case multiswitch::LinkChangeEventType::INVALID:
+                XLOG(ERR) << "Invalid link event type";
+                break;
             }
           }
         } catch (const std::exception& e) {
