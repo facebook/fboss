@@ -245,7 +245,7 @@
     "writeLog": true,
     "readLog": true,
     "disableOnFail": false,
-    "bufferSlots": 40960
+    "bufferSlots": 20480
   },
   "transceiverValidationConfig": [
     {
