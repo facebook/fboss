@@ -30,6 +30,10 @@ namespace facebook::fboss {
 
 constexpr int kMaxI2clogDataSize = 128;
 constexpr size_t kI2cFieldNameLength = 16;
+// Maximum number of buffer slots. Note that depending on the size of the log
+// element, to maintain a reasonable memory usage, we have to limit max size
+// the buffer.
+constexpr int kMaxNumberBufferSlots = 40960;
 
 // Number of address fields in TransceiverAccessParameter
 constexpr int kNumParamFields = 5;
@@ -71,6 +75,7 @@ class I2cLogBuffer {
   };
 
   // NOTE: The maximum number of entries is defined in config (qsfp_config.cinc)
+  // and also limited by kMaxNumberBufferSlots.
   static_assert(
       sizeof(I2cLogEntry) < 200,
       "I2cLogEntry must be < 200B to not exceed system memory limits.");
@@ -148,6 +153,10 @@ class I2cLogBuffer {
       const std::set<std::string>& portNames,
       const std::optional<FirmwareStatus>& status,
       const std::optional<Vendor>& vendor);
+
+  static int getMaxNumberSlots() {
+    return kMaxNumberBufferSlots;
+  }
 
  private:
   // Buffer Config.

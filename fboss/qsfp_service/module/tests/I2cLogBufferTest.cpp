@@ -117,6 +117,38 @@ TEST_F(I2cLogBufferTest, basic) {
   EXPECT_EQ(count.bufferEntries, 0);
 }
 
+TEST_F(I2cLogBufferTest, bufferLimit) {
+  const int maxElements = I2cLogBuffer::getMaxNumberSlots();
+
+  // Create a buffer with a size of maxElements + 1.
+  I2cLogBuffer logBuffer = createBuffer(maxElements + 1);
+
+  // Expect that the buffer size is max Elements even though we
+  // created a buffer with size maxElements + 1.
+  EXPECT_EQ(maxElements, logBuffer.getI2cLogBufferCapacity());
+  // Make sure that the test fails if the code is somehow changed to
+  // use another variable.
+  EXPECT_EQ(maxElements, kMaxNumberBufferSlots);
+
+  // insert max elemments + 1
+  for (int i = 0; i < maxElements + 1; i++) {
+    logBuffer.log(param_, kField, data_.data(), I2cLogBuffer::Operation::Read);
+  }
+
+  // Check that we only have maxElements elements in the buffer.
+  std::vector<I2cLogBuffer::I2cLogEntry> entries;
+  auto count = logBuffer.dump(entries);
+  // Total Entries logged is total logged entries.
+  EXPECT_EQ(count.totalEntries, maxElements + 1);
+  EXPECT_EQ(count.bufferEntries, maxElements);
+  EXPECT_EQ(entries.size(), maxElements);
+
+  // Create another buffer with a size of maxElements - 1.
+  I2cLogBuffer logBuffer2 = createBuffer(maxElements - 1);
+  // Expect that the buffer size is max Elements - 1;
+  EXPECT_EQ(maxElements - 1, logBuffer2.getI2cLogBufferCapacity());
+}
+
 TEST_F(I2cLogBufferTest, basicFullBuffer) {
   I2cLogBuffer logBuffer = createBuffer(kFullBuffer);
 

@@ -25,7 +25,10 @@ namespace facebook::fboss {
 I2cLogBuffer::I2cLogBuffer(
     cfg::TransceiverI2cLogging config,
     std::string logFile)
-    : size_(config.bufferSlots().value()),
+    : size_(
+          config.bufferSlots().value() > kMaxNumberBufferSlots
+              ? kMaxNumberBufferSlots
+              : config.bufferSlots().value()),
       writeLog_(config.writeLog().value()),
       readLog_(config.readLog().value()),
       disableOnFail_(config.disableOnFail().value()),
