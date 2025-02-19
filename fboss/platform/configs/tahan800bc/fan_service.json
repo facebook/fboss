@@ -2,8 +2,8 @@
   "pwmBoostOnNumDeadFan": 1,
   "pwmBoostOnNumDeadSensor": 0,
   "pwmBoostOnNoQsfpAfterInSec": 55,
-  "pwmBoostValue": 100,
-  "pwmTransitionValue": 50,
+  "pwmBoostValue": 85,
+  "pwmTransitionValue": 55,
   "pwmLowerThreshold": 30,
   "pwmUpperThreshold": 100,
   "controlInterval": {
@@ -17,39 +17,20 @@
         "accessType": "ACCESS_TYPE_QSFP"
       },
       "portList": [],
-      "aggregationType": "OPTIC_AGGREGATION_TYPE_PID",
-      "pidSettings": {
+      "aggregationType": "OPTIC_AGGREGATION_TYPE_MAX",
+      "tempToPwmMaps": {
         "OPTIC_TYPE_800_GENERIC": {
-          "kp": -4,
-          "ki": -0.06,
-          "kd": 0,
-          "setPoint": 67.0,
-          "posHysteresis": 0.0,
-          "negHysteresis": 2.0
-        },
-        "OPTIC_TYPE_400_GENERIC": {
-          "kp": -4,
-          "ki": -0.06,
-          "kd": 0,
-          "setPoint": 67.0,
-          "posHysteresis": 0.0,
-          "negHysteresis": 2.0
-        },
-        "OPTIC_TYPE_200_GENERIC": {
-          "kp": -4,
-          "ki": -0.06,
-          "kd": 0,
-          "setPoint": 67.0,
-          "posHysteresis": 0.0,
-          "negHysteresis": 2.0
-        },
-        "OPTIC_TYPE_100_GENERIC": {
-          "kp": -4,
-          "ki": -0.06,
-          "kd": 0,
-          "setPoint": 67.0,
-          "posHysteresis": 0.0,
-          "negHysteresis": 2.0
+          "30": 10,
+          "40": 20,
+          "44": 25,
+          "47": 30,
+          "50": 35,
+          "54": 40,
+          "57": 45,
+          "60": 50,
+          "64": 55,
+          "67": 60,
+          "70": 80
         }
       }
     }
@@ -62,32 +43,114 @@
       },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
       "normalUpTable": {
-        "38": 45,
-        "39": 50,
-        "44": 60,
-        "47": 70,
-        "48": 100
+        "20": 30,
+        "25": 40,
+        "30": 50,
+        "35": 60,
+        "40": 70,
+        "45": 100
       },
       "normalDownTable": {
-        "35": 45,
-        "40": 50,
-        "43": 60,
-        "48": 70,
-        "49": 100
+        "20": 30,
+        "25": 40,
+        "30": 50,
+        "35": 60,
+        "40": 70,
+        "45": 100
       },
       "failUpTable": {
-        "38": 45,
-        "39": 50,
-        "44": 60,
-        "47": 70,
-        "48": 100
+        "20": 30,
+        "25": 40,
+        "30": 50,
+        "35": 60,
+        "40": 70,
+        "45": 100
       },
       "failDownTable": {
-        "35": 45,
-        "40": 50,
-        "43": 60,
-        "48": 70,
-        "49": 100
+        "20": 30,
+        "25": 40,
+        "30": 50,
+        "35": 60,
+        "40": 70,
+        "45": 100
+      }
+    },
+    {
+      "sensorName": "SMB_U67_INLET_RIGHT_LM75_TEMP",
+      "access": {
+        "accessType": "ACCESS_TYPE_THRIFT"
+      },
+      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
+      "normalUpTable": {
+        "20": 30,
+        "25": 40,
+        "30": 50,
+        "35": 60,
+        "40": 70,
+        "45": 100
+      },
+      "normalDownTable": {
+        "20": 30,
+        "25": 40,
+        "30": 50,
+        "35": 60,
+        "40": 70,
+        "45": 100
+      },
+      "failUpTable": {
+        "20": 30,
+        "25": 40,
+        "30": 50,
+        "35": 60,
+        "40": 70,
+        "45": 100
+      },
+      "failDownTable": {
+        "20": 30,
+        "25": 40,
+        "30": 50,
+        "35": 60,
+        "40": 70,
+        "45": 100
+      }
+    },
+    {
+      "sensorName": "SMB_U69_INLET_RIGHT_BOT_LM75_TEMP",
+      "access": {
+        "accessType": "ACCESS_TYPE_THRIFT"
+      },
+      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
+      "normalUpTable": {
+        "20": 30,
+        "25": 40,
+        "30": 50,
+        "35": 60,
+        "40": 70,
+        "45": 100
+      },
+      "normalDownTable": {
+        "20": 30,
+        "25": 40,
+        "30": 50,
+        "35": 60,
+        "40": 70,
+        "45": 100
+      },
+      "failUpTable": {
+        "20": 30,
+        "25": 40,
+        "30": 50,
+        "35": 60,
+        "40": 70,
+        "45": 100
+      },
+      "failDownTable": {
+        "20": 30,
+        "25": 40,
+        "30": 50,
+        "35": 60,
+        "40": 70,
+        "45": 100
       }
     },
     {
@@ -95,14 +158,143 @@
       "access": {
         "accessType": "ACCESS_TYPE_THRIFT"
       },
-      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_PID",
-      "pidSetting": {
-        "kp": -4,
-        "ki": -0.06,
-        "kd": 0,
-        "setPoint": 97.0,
-        "posHysteresis": 0.0,
-        "negHysteresis": 5.0
+      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
+      "normalUpTable": {
+        "80": 20,
+        "85": 30,
+        "90": 40,
+        "95": 50,
+        "99": 80
+      },
+      "normalDownTable": {
+        "80": 20,
+        "85": 30,
+        "90": 40,
+        "95": 50,
+        "99": 80
+      },
+      "failUpTable": {
+        "80": 20,
+        "85": 30,
+        "90": 40,
+        "95": 50,
+        "99": 80
+      },
+      "failDownTable": {
+        "80": 20,
+        "85": 30,
+        "90": 40,
+        "95": 50,
+        "99": 80
+      }
+    },
+    {
+      "sensorName": "SMB_E1S_SSD_TEMP",
+      "access": {
+        "accessType": "ACCESS_TYPE_THRIFT"
+      },
+      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
+      "normalUpTable": {
+        "55": 20,
+        "65": 30,
+        "75": 40,
+        "80": 80
+      },
+      "normalDownTable": {
+        "55": 20,
+        "65": 30,
+        "75": 40,
+        "80": 80
+      },
+      "failUpTable": {
+        "55": 20,
+        "65": 30,
+        "75": 40,
+        "80": 80
+      },
+      "failDownTable": {
+        "55": 20,
+        "65": 30,
+        "75": 40,
+        "80": 80
+      }
+    },
+    {
+      "sensorName": "POWER_BRICK1_TEMP1",
+      "access": {
+        "accessType": "ACCESS_TYPE_THRIFT"
+      },
+      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
+      "normalUpTable": {
+        "55": 20,
+        "65": 25,
+        "75": 30,
+        "85": 35,
+        "95": 40,
+        "100": 80
+      },
+      "normalDownTable": {
+        "55": 20,
+        "65": 25,
+        "75": 30,
+        "85": 35,
+        "95": 40,
+        "100": 80
+      },
+      "failUpTable": {
+        "55": 20,
+        "65": 25,
+        "75": 30,
+        "85": 35,
+        "95": 40,
+        "100": 80
+      },
+      "failDownTable": {
+        "55": 20,
+        "65": 25,
+        "75": 30,
+        "85": 35,
+        "95": 40,
+        "100": 80
+      }
+    },
+    {
+      "sensorName": "POWER_BRICK2_TEMP1",
+      "access": {
+        "accessType": "ACCESS_TYPE_THRIFT"
+      },
+      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
+      "normalUpTable": {
+        "55": 20,
+        "65": 25,
+        "75": 30,
+        "85": 35,
+        "95": 40,
+        "100": 80
+      },
+      "normalDownTable": {
+        "55": 20,
+        "65": 25,
+        "75": 30,
+        "85": 35,
+        "95": 40,
+        "100": 80
+      },
+      "failUpTable": {
+        "55": 20,
+        "65": 25,
+        "75": 30,
+        "85": 35,
+        "95": 40,
+        "100": 80
+      },
+      "failDownTable": {
+        "55": 20,
+        "65": 25,
+        "75": 30,
+        "85": 35,
+        "95": 40,
+        "100": 80
       }
     }
   ],
@@ -111,7 +303,11 @@
       "fanName": "FANTRAY1_FAN1",
       "rpmSysfsPath": "/run/devmap/sensors/SMB_BCB_FAN_CPLD/fan1_input",
       "pwmSysfsPath": "/run/devmap/sensors/SMB_BCB_FAN_CPLD/pwm3",
-      "presenceSysfsPath": "/run/devmap/sensors/BCB_FAN/fan1_present",
+      "presenceGpio": {
+        "path": "/run/devmap/gpiochips/FCB_GPIO_CHIP_2",
+        "lineIndex": 8,
+        "desiredValue": 1
+      },
       "pwmMin": 1,
       "pwmMax": 255,
       "fanPresentVal": 1,
@@ -124,7 +320,11 @@
       "fanName": "FANTRAY1_FAN2",
       "rpmSysfsPath": "/run/devmap/sensors/SMB_BCB_FAN_CPLD/fan2_input",
       "pwmSysfsPath": "/run/devmap/sensors/SMB_BCB_FAN_CPLD/pwm3",
-      "presenceSysfsPath": "/run/devmap/sensors/BCB_FAN/fan1_present",
+      "presenceGpio": {
+        "path": "/run/devmap/gpiochips/FCB_GPIO_CHIP_2",
+        "lineIndex": 8,
+        "desiredValue": 1
+      },
       "pwmMin": 1,
       "pwmMax": 255,
       "fanPresentVal": 1,
@@ -137,7 +337,11 @@
       "fanName": "FANTRAY1_FAN3",
       "rpmSysfsPath": "/run/devmap/sensors/SMB_BCB_FAN_CPLD/fan3_input",
       "pwmSysfsPath": "/run/devmap/sensors/SMB_BCB_FAN_CPLD/pwm3",
-      "presenceSysfsPath": "/run/devmap/sensors/BCB_FAN/fan2_present",
+      "presenceGpio": {
+        "path": "/run/devmap/gpiochips/FCB_GPIO_CHIP_2",
+        "lineIndex": 9,
+        "desiredValue": 1
+      },
       "pwmMin": 1,
       "pwmMax": 255,
       "fanPresentVal": 1,
@@ -150,7 +354,11 @@
       "fanName": "FANTRAY1_FAN4",
       "rpmSysfsPath": "/run/devmap/sensors/SMB_BCB_FAN_CPLD/fan4_input",
       "pwmSysfsPath": "/run/devmap/sensors/SMB_BCB_FAN_CPLD/pwm3",
-      "presenceSysfsPath": "/run/devmap/sensors/BCB_FAN/fan2_present",
+      "presenceGpio": {
+        "path": "/run/devmap/gpiochips/FCB_GPIO_CHIP_2",
+        "lineIndex": 9,
+        "desiredValue": 1
+      },
       "pwmMin": 1,
       "pwmMax": 255,
       "fanPresentVal": 1,
@@ -163,7 +371,11 @@
       "fanName": "FANTRAY1_FAN5",
       "rpmSysfsPath": "/run/devmap/sensors/SMB_BCB_FAN_CPLD/fan5_input",
       "pwmSysfsPath": "/run/devmap/sensors/SMB_BCB_FAN_CPLD/pwm3",
-      "presenceSysfsPath": "/run/devmap/sensors/BCB_FAN/fan3_present",
+      "presenceGpio": {
+        "path": "/run/devmap/gpiochips/FCB_GPIO_CHIP_2",
+        "lineIndex": 10,
+        "desiredValue": 1
+      },
       "pwmMin": 1,
       "pwmMax": 255,
       "fanPresentVal": 1,
@@ -176,7 +388,11 @@
       "fanName": "FANTRAY1_FAN6",
       "rpmSysfsPath": "/run/devmap/sensors/SMB_BCB_FAN_CPLD/fan6_input",
       "pwmSysfsPath": "/run/devmap/sensors/SMB_BCB_FAN_CPLD/pwm3",
-      "presenceSysfsPath": "/run/devmap/sensors/BCB_FAN/fan3_present",
+      "presenceGpio": {
+        "path": "/run/devmap/gpiochips/FCB_GPIO_CHIP_2",
+        "lineIndex": 10,
+        "desiredValue": 1
+      },
       "pwmMin": 1,
       "pwmMax": 255,
       "fanPresentVal": 1,
@@ -189,7 +405,11 @@
       "fanName": "FANTRAY1_FAN7",
       "rpmSysfsPath": "/run/devmap/sensors/SMB_BCB_FAN_CPLD/fan7_input",
       "pwmSysfsPath": "/run/devmap/sensors/SMB_BCB_FAN_CPLD/pwm3",
-      "presenceSysfsPath": "/run/devmap/sensors/BCB_FAN/fan4_present",
+      "presenceGpio": {
+        "path": "/run/devmap/gpiochips/FCB_GPIO_CHIP_2",
+        "lineIndex": 11,
+        "desiredValue": 1
+      },
       "pwmMin": 1,
       "pwmMax": 255,
       "fanPresentVal": 1,
@@ -202,7 +422,11 @@
       "fanName": "FANTRAY1_FAN8",
       "rpmSysfsPath": "/run/devmap/sensors/SMB_BCB_FAN_CPLD/fan8_input",
       "pwmSysfsPath": "/run/devmap/sensors/SMB_BCB_FAN_CPLD/pwm3",
-      "presenceSysfsPath": "/run/devmap/sensors/BCB_FAN/fan4_present",
+      "presenceGpio": {
+        "path": "/run/devmap/gpiochips/FCB_GPIO_CHIP_2",
+        "lineIndex": 11,
+        "desiredValue": 1
+      },
       "pwmMin": 1,
       "pwmMax": 255,
       "fanPresentVal": 1,
@@ -215,7 +439,11 @@
       "fanName": "FANTRAY2_FAN1",
       "rpmSysfsPath": "/run/devmap/sensors/SMB_BCB_FAN_CPLD_2/fan1_input",
       "pwmSysfsPath": "/run/devmap/sensors/SMB_BCB_FAN_CPLD_2/pwm3",
-      "presenceSysfsPath": "/run/devmap/sensors/BCB_FAN_2/fan1_present",
+      "presenceGpio": {
+        "path": "/run/devmap/gpiochips/FCB_GPIO_CHIP_2",
+        "lineIndex": 8,
+        "desiredValue": 1
+      },
       "pwmMin": 1,
       "pwmMax": 255,
       "fanPresentVal": 1,
@@ -228,7 +456,11 @@
       "fanName": "FANTRAY2_FAN2",
       "rpmSysfsPath": "/run/devmap/sensors/SMB_BCB_FAN_CPLD_2/fan2_input",
       "pwmSysfsPath": "/run/devmap/sensors/SMB_BCB_FAN_CPLD_2/pwm3",
-      "presenceSysfsPath": "/run/devmap/sensors/BCB_FAN_2/fan1_present",
+      "presenceGpio": {
+        "path": "/run/devmap/gpiochips/FCB_GPIO_CHIP_2",
+        "lineIndex": 8,
+        "desiredValue": 1
+      },
       "pwmMin": 1,
       "pwmMax": 255,
       "fanPresentVal": 1,
@@ -241,7 +473,11 @@
       "fanName": "FANTRAY2_FAN3",
       "rpmSysfsPath": "/run/devmap/sensors/SMB_BCB_FAN_CPLD_2/fan3_input",
       "pwmSysfsPath": "/run/devmap/sensors/SMB_BCB_FAN_CPLD_2/pwm3",
-      "presenceSysfsPath": "/run/devmap/sensors/BCB_FAN_2/fan2_present",
+      "presenceGpio": {
+        "path": "/run/devmap/gpiochips/FCB_GPIO_CHIP_2",
+        "lineIndex": 9,
+        "desiredValue": 1
+      },
       "pwmMin": 1,
       "pwmMax": 255,
       "fanPresentVal": 1,
@@ -254,7 +490,11 @@
       "fanName": "FANTRAY2_FAN4",
       "rpmSysfsPath": "/run/devmap/sensors/SMB_BCB_FAN_CPLD_2/fan4_input",
       "pwmSysfsPath": "/run/devmap/sensors/SMB_BCB_FAN_CPLD_2/pwm3",
-      "presenceSysfsPath": "/run/devmap/sensors/BCB_FAN_2/fan2_present",
+      "presenceGpio": {
+        "path": "/run/devmap/gpiochips/FCB_GPIO_CHIP_2",
+        "lineIndex": 9,
+        "desiredValue": 1
+      },
       "pwmMin": 1,
       "pwmMax": 255,
       "fanPresentVal": 1,
@@ -267,7 +507,11 @@
       "fanName": "FANTRAY2_FAN5",
       "rpmSysfsPath": "/run/devmap/sensors/SMB_BCB_FAN_CPLD_2/fan5_input",
       "pwmSysfsPath": "/run/devmap/sensors/SMB_BCB_FAN_CPLD_2/pwm3",
-      "presenceSysfsPath": "/run/devmap/sensors/BCB_FAN_2/fan3_present",
+      "presenceGpio": {
+        "path": "/run/devmap/gpiochips/FCB_GPIO_CHIP_2",
+        "lineIndex": 10,
+        "desiredValue": 1
+      },
       "pwmMin": 1,
       "pwmMax": 255,
       "fanPresentVal": 1,
@@ -280,7 +524,11 @@
       "fanName": "FANTRAY2_FAN6",
       "rpmSysfsPath": "/run/devmap/sensors/SMB_BCB_FAN_CPLD_2/fan6_input",
       "pwmSysfsPath": "/run/devmap/sensors/SMB_BCB_FAN_CPLD_2/pwm3",
-      "presenceSysfsPath": "/run/devmap/sensors/BCB_FAN_2/fan3_present",
+      "presenceGpio": {
+        "path": "/run/devmap/gpiochips/FCB_GPIO_CHIP_2",
+        "lineIndex": 10,
+        "desiredValue": 1
+      },
       "pwmMin": 1,
       "pwmMax": 255,
       "fanPresentVal": 1,
@@ -293,7 +541,11 @@
       "fanName": "FANTRAY2_FAN7",
       "rpmSysfsPath": "/run/devmap/sensors/SMB_BCB_FAN_CPLD_2/fan7_input",
       "pwmSysfsPath": "/run/devmap/sensors/SMB_BCB_FAN_CPLD_2/pwm3",
-      "presenceSysfsPath": "/run/devmap/sensors/BCB_FAN_2/fan4_present",
+      "presenceGpio": {
+        "path": "/run/devmap/gpiochips/FCB_GPIO_CHIP_2",
+        "lineIndex": 11,
+        "desiredValue": 1
+      },
       "pwmMin": 1,
       "pwmMax": 255,
       "fanPresentVal": 1,
@@ -306,7 +558,11 @@
       "fanName": "FANTRAY2_FAN8",
       "rpmSysfsPath": "/run/devmap/sensors/SMB_BCB_FAN_CPLD_2/fan8_input",
       "pwmSysfsPath": "/run/devmap/sensors/SMB_BCB_FAN_CPLD_2/pwm3",
-      "presenceSysfsPath": "/run/devmap/sensors/BCB_FAN_2/fan4_present",
+      "presenceGpio": {
+        "path": "/run/devmap/gpiochips/FCB_GPIO_CHIP_2",
+        "lineIndex": 11,
+        "desiredValue": 1
+      },
       "pwmMin": 1,
       "pwmMax": 255,
       "fanPresentVal": 1,
@@ -322,7 +578,12 @@
       "zoneName": "zone1",
       "sensorNames": [
         "SMB_U77_INLET_LEFT_BOT_LM75_TEMP",
+        "SMB_U67_INLET_RIGHT_LM75_TEMP",
+        "SMB_U69_INLET_RIGHT_BOT_LM75_TEMP",
         "CPU_UNCORE_TEMP",
+        "SMB_E1S_SSD_TEMP",
+        "POWER_BRICK1_TEMP1",
+        "POWER_BRICK2_TEMP1",
         "qsfp_group_1"
       ],
       "fanNames": [
