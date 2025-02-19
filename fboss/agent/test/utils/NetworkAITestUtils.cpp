@@ -9,13 +9,14 @@
  */
 
 #include "fboss/agent/test/utils/NetworkAITestUtils.h"
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/QueueTestUtils.h"
 #include "fboss/agent/test/utils/TrafficPolicyTestUtils.h"
 #include "fboss/agent/test/utils/VoqTestUtils.h"
 
 namespace facebook::fboss::utility {
-const std::map<int, std::vector<uint8_t>> kNetworkAIV2QueueToDscp() {
+const std::map<int, std::vector<uint8_t>> kNetworkAIQueueToDscp() {
   const std::map<int, std::vector<uint8_t>> queueToDscp = {
       {getNetworkAIQueueId(NetworkAIQueueType::DEFAULT),
        {0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14, 15,
@@ -35,9 +36,9 @@ void addNetworkAIQosMaps(
   std::string qosPolicyName = "network_ai_v2";
   auto hwAsic = checkSameAndGetAsic(asics);
   cfg::QosMap qosMap;
-  qosMap.dscpMaps()->resize(kNetworkAIV2QueueToDscp().size());
+  qosMap.dscpMaps()->resize(kNetworkAIQueueToDscp().size());
   ssize_t qosMapIdx = 0;
-  for (const auto& q2dscps : kNetworkAIV2QueueToDscp()) {
+  for (const auto& q2dscps : kNetworkAIQueueToDscp()) {
     auto [q, dscps] = q2dscps;
     *qosMap.dscpMaps()[qosMapIdx].internalTrafficClass() = q;
     for (auto dscp : dscps) {
@@ -232,6 +233,46 @@ void addEventorVoqConfig(
       port.portVoqConfigName() = kEventorQueueConfigName;
     }
   }
+}
+
+const std::vector<int> kNetworkAISPQueueIds() {
+  const std::vector<int> spQueueIds = {
+      getNetworkAIQueueId(NetworkAIQueueType::RDMA),
+      getNetworkAIQueueId(NetworkAIQueueType::NC)};
+
+  return spQueueIds;
+}
+
+const std::map<int, uint8_t> kNetworkAIWRRQueueToWeight() {
+  const std::map<int, uint8_t> wrrQueueToWeight = {
+      {getNetworkAIQueueId(NetworkAIQueueType::DEFAULT),
+       kNetworkAIDefaultWeight},
+      {getNetworkAIQueueId(NetworkAIQueueType::RDMA), kNetworkAIRdmaWeight},
+      {getNetworkAIQueueId(NetworkAIQueueType::MONITORING),
+       kNetworkAIMonitoringWeight},
+      {getNetworkAIQueueId(NetworkAIQueueType::NC), kNetworkAINcWeight},
+  };
+  const std::map<int, uint8_t> wrrQueueToWeight3Q2Q = {
+      {getNetworkAIQueueId(NetworkAIQueueType::RDMA), kNetworkAIRdmaWeight},
+      {getNetworkAIQueueId(NetworkAIQueueType::MONITORING),
+       kNetworkAIMonitoringWeight},
+      {getNetworkAIQueueId(NetworkAIQueueType::NC), kNetworkAINcWeight},
+  };
+  return isDualStage3Q2QQos() ? wrrQueueToWeight3Q2Q : wrrQueueToWeight;
+}
+
+const std::vector<int> kNetworkAIWRRQueueIds() {
+  const std::vector<int> wrrQueueIds = {
+      getNetworkAIQueueId(NetworkAIQueueType::DEFAULT),
+      getNetworkAIQueueId(NetworkAIQueueType::RDMA),
+      getNetworkAIQueueId(NetworkAIQueueType::MONITORING),
+      getNetworkAIQueueId(NetworkAIQueueType::NC)};
+  const std::vector<int> wrrQueueIds3Q2Q = {
+      getNetworkAIQueueId(NetworkAIQueueType::RDMA),
+      getNetworkAIQueueId(NetworkAIQueueType::MONITORING),
+      getNetworkAIQueueId(NetworkAIQueueType::NC)};
+
+  return isDualStage3Q2QQos() ? wrrQueueIds3Q2Q : wrrQueueIds;
 }
 
 }; // namespace facebook::fboss::utility

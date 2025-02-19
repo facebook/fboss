@@ -257,4 +257,6 @@ bool verifyQueueMappings(
       portStatsBefore, q2dscps, getPortStats, egressPort);
 }
 
+int getMaxWeightWRRQueue(const std::map<int, uint8_t>& queueToWeight);
+
 } // namespace facebook::fboss::utility

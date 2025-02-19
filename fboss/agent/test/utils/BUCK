@@ -131,6 +131,7 @@ cpp_library(
         ":queue_test_utils",
         ":traffic_policy_utils",
         ":voq_test_utils",
+        "//fboss/agent:agent_features",
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent/hw/switch_asics:switch_asics",
     ],

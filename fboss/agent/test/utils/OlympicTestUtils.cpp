@@ -650,16 +650,6 @@ void add2QueueQosMaps(cfg::SwitchConfig& cfg, const HwAsic* hwAsic) {
   addQosMapsHelper(cfg, k2QueueToDscp(), "2queue", {hwAsic});
 }
 
-int getMaxWeightWRRQueue(const std::map<int, uint8_t>& queueToWeight) {
-  auto maxItr = std::max_element(
-      queueToWeight.begin(),
-      queueToWeight.end(),
-      [](const std::pair<int, uint64_t>& p1,
-         const std::pair<int, uint64_t>& p2) { return p1.second < p2.second; });
-
-  return maxItr->first;
-}
-
 std::set<cfg::StreamType> getStreamType(
     cfg::PortType portType,
     const std::vector<const HwAsic*>& asics) {

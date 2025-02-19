@@ -48,6 +48,7 @@ cpp_library(
         "AgentMirroringTests.cpp",
         "AgentMmuTuningTests.cpp",
         "AgentNeighborTests.cpp",
+        "AgentNetworkAIQosSchedulerTests.cpp",
         "AgentOlympicQosSchedulerTests.cpp",
         "AgentOlympicQosTests.cpp",
         "AgentOverflowTestBase.cpp",

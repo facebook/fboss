@@ -56,17 +56,7 @@ class AgentOlympicQosSchedulerTest : public AgentQosSchedulerTestBase {
         ensemble.getSw(),
         ensemble.masterLogicalPortIds(),
         true /*interfaceHasSubnet*/);
-    if (isDualStage3Q2QQos()) {
-      auto hwAsic = utility::checkSameAndGetAsic(ensemble.getL3Asics());
-      auto streamType =
-          *hwAsic->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin();
-      utility::addNetworkAIQueueConfig(
-          &cfg, streamType, cfg::QueueScheduling::STRICT_PRIORITY, hwAsic);
-      // TODO(daiweix): enhance qos scheduler test cases to work with network ai
-      // qos map and use addNetworkAIQosToConfig() here
-    } else {
-      utility::addOlympicQueueConfig(&cfg, ensemble.getL3Asics());
-    }
+    utility::addOlympicQueueConfig(&cfg, ensemble.getL3Asics());
     utility::addOlympicQosMaps(cfg, ensemble.getL3Asics());
     utility::setTTLZeroCpuConfig(ensemble.getL3Asics(), cfg);
     return cfg;

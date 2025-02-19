@@ -153,8 +153,6 @@ const std::vector<int> kOlympicWRRAndNCQueueIds();
 const std::vector<int> kOlympicAllSPQueueIds();
 const std::map<int, std::vector<uint8_t>> kOlympicV2QueueToDscp();
 
-int getMaxWeightWRRQueue(const std::map<int, uint8_t>& queueToWeight);
-
 void addQueueEcnConfig(
     cfg::SwitchConfig* config,
     const std::vector<const HwAsic*>& asics,

@@ -565,7 +565,7 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, verifyDscpToVoqMapping) {
   };
 
   auto verify = [=, this]() {
-    for (const auto& q2dscps : utility::kNetworkAIV2QueueToDscp()) {
+    for (const auto& q2dscps : utility::kNetworkAIQueueToDscp()) {
       auto queueId = q2dscps.first;
       for (auto dscp : q2dscps.second) {
         XLOG(DBG2) << "verify packet with dscp " << static_cast<int>(dscp)

@@ -35,7 +35,7 @@ constexpr int kNetworkAIMonitoringWeight = 15;
 constexpr int kNetworkAINcWeight = 80;
 constexpr int kNetworkAIDefaultWeight = 5;
 
-const std::map<int, std::vector<uint8_t>> kNetworkAIV2QueueToDscp();
+const std::map<int, std::vector<uint8_t>> kNetworkAIQueueToDscp();
 
 void addNetworkAIQueueConfig(
     cfg::SwitchConfig* config,
@@ -59,5 +59,9 @@ void addVoqAqmConfig(
     bool addEcnConfig);
 
 void addEventorVoqConfig(cfg::SwitchConfig* config, cfg::StreamType streamType);
+
+const std::vector<int> kNetworkAISPQueueIds();
+const std::map<int, uint8_t> kNetworkAIWRRQueueToWeight();
+const std::vector<int> kNetworkAIWRRQueueIds();
 
 } // namespace facebook::fboss::utility
