@@ -25,9 +25,11 @@ namespace facebook::fboss {
 I2cLogBuffer::I2cLogBuffer(
     cfg::TransceiverI2cLogging config,
     std::string logFile)
-    : buffer_(config.bufferSlots().value()),
-      size_(config.bufferSlots().value()),
-      config_(config),
+    : size_(config.bufferSlots().value()),
+      writeLog_(config.writeLog().value()),
+      readLog_(config.readLog().value()),
+      disableOnFail_(config.disableOnFail().value()),
+      buffer_(size_),
       logFile_(logFile) {
   if (size_ == 0) {
     throw std::invalid_argument("I2cLogBuffer size must be > 0");
@@ -47,8 +49,8 @@ void I2cLogBuffer::log(
     throw std::invalid_argument("I2cLogBuffer data must be non-null");
   }
   std::lock_guard<std::mutex> g(mutex_);
-  if ((op == Operation::Read && config_.readLog().value()) ||
-      (op == Operation::Write && config_.writeLog().value())) {
+  if ((op == Operation::Read && readLog_) ||
+      (op == Operation::Write && writeLog_)) {
     auto& bufferHead = buffer_[head_];
     bufferHead.steadyTime = std::chrono::steady_clock::now();
     bufferHead.systemTime = std::chrono::system_clock::now();
@@ -72,9 +74,9 @@ void I2cLogBuffer::log(
     totalEntries_++;
   }
 
-  if (!success && config_.disableOnFail().value()) {
-    config_.readLog() = false;
-    config_.writeLog() = false;
+  if (!success && disableOnFail_) {
+    readLog_ = false;
+    writeLog_ = false;
   }
 }
 
