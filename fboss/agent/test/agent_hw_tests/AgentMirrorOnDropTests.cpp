@@ -2,7 +2,6 @@
 
 #include <folly/MacAddress.h>
 #include <gtest/gtest.h>
-
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
@@ -13,9 +12,12 @@
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
+#include "fboss/agent/test/utils/DsfConfigUtils.h"
 #include "fboss/agent/test/utils/MirrorTestUtils.h"
 #include "fboss/agent/test/utils/PacketSnooper.h"
+#include "fboss/agent/test/utils/PortTestUtils.h"
 #include "fboss/agent/test/utils/TrapPacketUtils.h"
+#include "fboss/agent/test/utils/VoqTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
 // TODO(maxgg): remove once CS00012385223 is resolved
@@ -50,6 +52,8 @@ class AgentMirrorOnDropTest
         ensemble.getSw(),
         ensemble.masterLogicalPortIds(),
         true /*interfaceHasSubnet*/);
+    // Add a remote DSF node for use in VoqReject test.
+    config.dsfNodes() = *utility::addRemoteIntfNodeCfg(*config.dsfNodes(), 1);
     return config;
   }
 
@@ -92,6 +96,8 @@ class AgentMirrorOnDropTest
   const int kL3DropEventId = 0;
   // TODO: add null-route drop test case
   const int kAclDropEventId = 2;
+  // TODO: add vsq drop test case once CS00012390029 is fixed
+  const int kVoqDropEventId = 4;
 
   std::string portDesc(PortID portId) {
     const auto& cfg = getAgentEnsemble()->getCurrentConfig();
@@ -255,17 +261,23 @@ class AgentMirrorOnDropTest
     return pkt; // return for later comparison
   }
 
-  int32_t makeSSPA(PortID portId) {
-    // Source System Port Aggregate is simply the system port ID.
-    return static_cast<int32_t>(getSystemPortID(
-        portId,
-        getProgrammedState(),
-        scopeResolver().scope(portId).switchId()));
+  SystemPortID systemPortId(const PortID& portId) {
+    return getSystemPortID(
+        portId, getProgrammedState(), scopeResolver().scope(portId).switchId());
   }
 
-  int32_t makePortDSPA(PortID portId) {
+  int32_t makeSSPA(const PortID& portId) {
+    // Source System Port Aggregate is simply the system port ID.
+    return static_cast<int32_t>(systemPortId(portId));
+  }
+
+  int32_t makePortDSPA(SystemPortID portId) {
     // Destination System Port Aggregate for ports is prefixed with 0x0C.
-    return (0x0C << 16) | makeSSPA(portId);
+    return (0x0C << 16) | portId;
+  }
+
+  int32_t makePortDSPA(const PortID& portId) {
+    return makePortDSPA(systemPortId(portId));
   }
 
   int32_t makeTrapDSPA(int trapId) {
@@ -457,7 +469,7 @@ TEST_P(AgentMirrorOnDropTest, ModWithSflowMirrorPresent) {
 //    `kL3DropEventId`.
 // 2. Sends a packet towards an unknown destination.
 // 3. Packet will be dropped and a MOD packet will be sent to collector.
-// 4. Packets are trapped to CPU. We validate the MOD headeras well as a
+// 4. Packets are trapped to CPU. We validate the MOD headers well as a
 //    truncated version of the original packet.
 TEST_P(AgentMirrorOnDropTest, PacketProcessingDefaultRouteDrop) {
   auto mirrorPortId = masterLogicalPortIds({GetParam()})[0];
@@ -517,7 +529,7 @@ TEST_P(AgentMirrorOnDropTest, PacketProcessingDefaultRouteDrop) {
 //    `kAclDropEventId`. Add an ACL entry on a port to drop all packets.
 // 2. Sends a packet out of that port and let it loop back.
 // 3. Packet will be dropped and a MOD packet will be sent to collector.
-// 4. Packets are trapped to CPU. We validate the MOD headeras well as a
+// 4. Packets are trapped to CPU. We validate the MOD headers well as a
 //    truncated version of the original packet.
 TEST_P(AgentMirrorOnDropTest, PacketProcessingAclDrop) {
   auto mirrorPortId = masterLogicalPortIds({GetParam()})[0];
@@ -621,6 +633,106 @@ TEST_P(AgentMirrorOnDropTest, MultipleEventIDs) {
         1, // for INGRESS_PACKET_PROCESSING_DISCARDS
         makeSSPA(injectionPortId),
         makeTrapDSPA(kL3DropTrapId));
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+// 1. Configures MOD with VOQ drops mapped to event ID `kVoqDropEventId`.
+// 2. Setup a remote DSF node in initialConfig(). Add a remote system port and
+//    add an neighbor on the corresponding interface.
+// 3. Disable credit watchdog so that packets in VOQ don't expire.
+// 4. Sends a bunch of packets towards the neighbor. Packets will be stuck in
+//    VOQ and cause tail drops.
+// 5. MOD packet will be sent to collector.
+// 6. Packets are trapped to CPU. We validate the MOD headers well as a
+//    truncated version of the original packet.
+TEST_P(AgentMirrorOnDropTest, VoqReject) {
+  auto mirrorPortId = masterLogicalPortIds({GetParam()})[0];
+  auto collectorPortId = masterLogicalInterfacePortIds()[0];
+  auto ingressPortId = masterLogicalInterfacePortIds()[1];
+  XLOG(DBG3) << "MoD port: " << portDesc(mirrorPortId);
+  XLOG(DBG3) << "Collector port: " << portDesc(collectorPortId);
+  XLOG(DBG3) << "Ingress port: " << portDesc(ingressPortId);
+
+  constexpr auto remotePortId = 401;
+  const SystemPortID kRemoteSysPortId(remotePortId);
+
+  auto setup = [&]() {
+    auto config = getAgentEnsemble()->getCurrentConfig();
+    setupMirrorOnDrop(
+        &config,
+        mirrorPortId,
+        kCollectorIp_,
+        {{kVoqDropEventId,
+          makeEventConfig(
+              cfg::MirrorOnDropAgingGroup::GLOBAL,
+              {cfg::MirrorOnDropReasonAggregation::
+                   INGRESS_DESTINATION_CONGESTION_DISCARDS})}});
+    utility::addTrapPacketAcl(&config, kCollectorNextHopMac_);
+    applyNewConfig(config);
+
+    setupEcmpTraffic(collectorPortId, kCollectorIp_, kCollectorNextHopMac_);
+
+    // Add neighbor on remote system port. The remoteSwitchId formula must be
+    // in sync with the logic in addRemoteIntfNodeCfg().
+    SwitchID remoteSwitchId = static_cast<SwitchID>(
+        utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
+            ->getNumCores() *
+        getAgentEnsemble()->getNumL3Asics());
+    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      return utility::addRemoteSysPort(
+          in, scopeResolver(), kRemoteSysPortId, remoteSwitchId);
+    });
+    const InterfaceID kIntfId(remotePortId);
+    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      return utility::addRemoteInterface(
+          in, scopeResolver(), kIntfId, {{kDropDestIp, 128}});
+    });
+    const PortDescriptor kPort(kRemoteSysPortId);
+    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      return utility::addRemoveRemoteNeighbor(
+          in,
+          scopeResolver(),
+          kDropDestIp,
+          kIntfId,
+          kPort,
+          true /*add*/,
+          utility::getDummyEncapIndex(getAgentEnsemble()));
+    });
+
+    // Disable credit watchdog so that packets in VOQ don't expire.
+    utility::enableCreditWatchdog(getAgentEnsemble(), false);
+  };
+
+  auto verify = [&]() {
+    utility::SwSwitchPacketSnooper snooper(getSw(), "snooper");
+
+    WITH_RETRIES({
+      // We don't know what the VOQ limits are, so keep sending packets.
+      auto pkt = sendPackets(1000, ingressPortId, kDropDestIp);
+
+      XLOG(DBG3) << "Waiting for mirror packet...";
+      auto frameRx = snooper.waitForPacket(1);
+      EXPECT_EVENTUALLY_TRUE(frameRx.has_value());
+
+      if (frameRx.has_value()) {
+        XLOG(DBG3) << PktUtil::hexDump(frameRx->get());
+        validateMirrorOnDropPacket(
+            frameRx->get(),
+            pkt->buf(),
+            GetParam(),
+            kVoqDropEventId,
+            makeSSPA(ingressPortId),
+            makePortDSPA(kRemoteSysPortId),
+            0 /*payloadOffset*/);
+      }
+    });
+
+    // This test generates many drops and we must consume them all, otherwise
+    // PacketSnooper will complain on shutdown.
+    while (snooper.waitForPacket(1).has_value()) {
+    }
   };
 
   verifyAcrossWarmBoots(setup, verify);
