@@ -5106,6 +5106,24 @@ shared_ptr<MultiControlPlane> ThriftConfigApplier::updateControlPlane() {
         qosMap);
     newQueues.insert(
         newQueues.begin(), tmpPortQueues.begin(), tmpPortQueues.end());
+
+    if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+      // TODO-Chenab: ensure queue scheduling is set to internal until cpu
+      // queues can be configured.
+      std::transform(
+          newQueues.cbegin(),
+          newQueues.cend(),
+          newQueues.begin(),
+          [](auto queue) {
+            if (queue->getScheduling() == cfg::QueueScheduling::INTERNAL) {
+              return queue;
+            }
+            auto newQueue = queue->clone();
+            newQueue->setScheduling(cfg::QueueScheduling::INTERNAL);
+            return newQueue;
+          });
+    }
+
     if (cfg_->cpuVoqs()) {
       std::vector<cfg::PortQueue> cfgCpuVoqs = *cfg_->cpuVoqs();
       auto tmpPortVoqs = updatePortQueues(
