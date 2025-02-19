@@ -497,7 +497,7 @@ enum CpuCosQueueId {
 
 struct RxCaptureFilter {
   1: list<CpuCosQueueId> cosQueues;
-# can put additional Rx filters here if need be
+  # can put additional Rx filters here if need be
 }
 
 struct CaptureFilter {

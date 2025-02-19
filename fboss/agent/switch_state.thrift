@@ -715,5 +715,5 @@ struct RouteTableFields {
 struct WarmbootState {
   1: SwitchState swSwitchState;
   2: map<i32, RouteTableFields> routeTables;
-// TODO: Extend for hwSwitchState
+  // TODO: Extend for hwSwitchState
 }
