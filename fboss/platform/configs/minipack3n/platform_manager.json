@@ -3196,7 +3196,6 @@
     "/run/devmap/sensors/PDB_R_TSENSOR": "/PDBRIGHT_SLOT@0/[PDB_R_TSENSOR]",
     "/run/devmap/sensors/SMB_VRM1": "/SMB_SLOT@0/[SMB_VRM1]",
     "/run/devmap/sensors/SMB_VOLTAGE_MONITOR1": "/SMB_SLOT@0/[SMB_VOLTAGE_MONITOR1]",
-    "/run/devmap/sensors/SMB_CPLD": "/SMB_SLOT@0/[SMB_CPLD]",
     "/run/devmap/sensors/SMB_VRM2": "/SMB_SLOT@0/[SMB_VRM2]",
     "/run/devmap/sensors/SMB_VRM3": "/SMB_SLOT@0/[SMB_VRM3]",
     "/run/devmap/sensors/SMB_VRM4": "/SMB_SLOT@0/[SMB_VRM4]",
