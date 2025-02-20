@@ -7,10 +7,9 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/RestartTimeTracker.h"
+#include "fboss/lib/restart_tracker/RestartTimeTracker.h"
 
 #include <fb303/ServiceData.h>
-#include "fboss/agent/Utils.h"
 
 #include <folly/Conv.h>
 #include <folly/FileUtil.h>

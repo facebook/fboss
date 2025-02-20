@@ -513,16 +513,6 @@ target_link_libraries(hwagent-main
   test_utils
 )
 
-add_library(restart_time_tracker
-  fboss/agent/RestartTimeTracker.cpp
-)
-
-target_link_libraries(restart_time_tracker
-  utils
-  fb303::fb303
-  Folly::folly
-)
-
 add_library(multiswitch_service
   fboss/agent/MultiSwitchThriftHandler.cpp
 )

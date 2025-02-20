@@ -59,7 +59,6 @@
 #include "fboss/agent/RemoteNeighborUpdater.h"
 #include "fboss/agent/ResolvedNexthopMonitor.h"
 #include "fboss/agent/ResolvedNexthopProbeScheduler.h"
-#include "fboss/agent/RestartTimeTracker.h"
 #include "fboss/agent/RouteUpdateLogger.h"
 #include "fboss/agent/RxPacket.h"
 #include "fboss/agent/StaticL2ForNeighborObserver.h"
@@ -90,6 +89,7 @@
 #include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/lib/platforms/PlatformProductInfo.h"
+#include "fboss/lib/restart_tracker/RestartTimeTracker.h"
 #include "fboss/util/Logging.h"
 
 #include <fb303/ServiceData.h>

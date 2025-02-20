@@ -781,7 +781,6 @@ cpp_library(
         ":packet",
         ":packet_observer",
         ":phy_snapshot_lib",
-        ":restart_time_tracker",
         ":route_update_wrapper",
         ":state_observer",
         ":stats",
@@ -852,6 +851,7 @@ cpp_library(
         "//fboss/lib/phy:phy-cpp2-types",
         "//fboss/lib/phy:prbs-cpp2-types",
         "//fboss/lib/platforms:product-info",
+        "//fboss/lib/restart_tracker:restart_time_tracker",
         "//fboss/lib/thrift_service_client:thrift-service-client",
         "//fboss/thrift_cow/nodes:nodes",
         "//fboss/thrift_cow/nodes:serializer",
@@ -1346,27 +1346,6 @@ cpp_library(
 )
 
 cpp_library(
-    name = "restart_time_tracker",
-    srcs = [
-        "RestartTimeTracker.cpp",
-    ],
-    headers = [
-        "RestartTimeTracker.h",
-    ],
-    exported_deps = [
-        ":utils",
-        "//fb303:service_data",
-        "//folly:conv",
-        "//folly:file_util",
-        "//folly:range",
-        "//folly:synchronized",
-        "//folly/logging:logging",
-    ],
-    exported_external_deps = [
-    ],
-)
-
-cpp_library(
     name = "hwagent",
     srcs = [
         "HwAgent.cpp",
@@ -1401,7 +1380,6 @@ cpp_library(
         ":fboss_init_h",
         ":hw_switch",
         ":hwagent",
-        ":restart_time_tracker",
         ":setup_thrift",
         ":split_agent_thrift_syncer",
         ":test_utils",
@@ -1414,6 +1392,7 @@ cpp_library(
         "//fboss/agent/hw/test:hw_test_thrift_handler_h",
         "//fboss/agent/state:state",
         "//fboss/lib:common_file_utils",
+        "//fboss/lib/restart_tracker:restart_time_tracker",
         "//folly/logging:init",
         "//folly/logging:logging",
     ],
@@ -1555,7 +1534,6 @@ cpp_library(
         ":load_agent_config",
         ":monolithic_hw_switch_handler",
         ":platform_base",
-        ":restart_time_tracker",
         ":setup_thrift",
         ":stats",
         ":sw_agent_initializer",
@@ -1563,6 +1541,7 @@ cpp_library(
         "//fboss/agent/hw/switch_asics:switch_asics",
         "//fboss/lib:common_file_utils",
         "//fboss/lib:common_utils",
+        "//fboss/lib/restart_tracker:restart_time_tracker",
         "//folly:network_address",
         "//folly:scope_guard",
         "//folly:string",

@@ -15,7 +15,6 @@
 #include "fboss/agent/MultiHwSwitchHandler.h"
 #include "fboss/agent/MultiSwitchFb303Stats.h"
 #include "fboss/agent/PacketObserver.h"
-#include "fboss/agent/RestartTimeTracker.h"
 #include "fboss/agent/SwRxPacket.h"
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
 #include "fboss/agent/SwitchInfoTable.h"
@@ -33,6 +32,7 @@
 #include "fboss/lib/HwWriteBehavior.h"
 #include "fboss/lib/ThreadHeartbeat.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
+#include "fboss/lib/restart_tracker/RestartTimeTracker.h"
 
 #include <folly/IntrusiveList.h>
 #include <folly/Range.h>
