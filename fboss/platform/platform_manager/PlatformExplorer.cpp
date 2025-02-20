@@ -745,8 +745,12 @@ PmUnitInfo PlatformExplorer::getPmUnitInfo(const std::string& slotPath) const {
 }
 
 void PlatformExplorer::updatePmStatus(const PlatformManagerStatus& newStatus) {
-  platformManagerStatus_.withWLock(
-      [&](PlatformManagerStatus& status) { status = newStatus; });
+  platformManagerStatus_.withWLock([&](PlatformManagerStatus& status) {
+    status = newStatus;
+    if (status.explorationStatus() == ExplorationStatus::FAILED) {
+      status.failedDevices() = explorationSummary_.getFailedDevices();
+    }
+  });
 }
 
 void PlatformExplorer::setupI2cDevice(

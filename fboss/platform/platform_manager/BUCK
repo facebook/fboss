@@ -41,6 +41,7 @@ thrift_library(
     deps = [
         ":platform_manager_config",
         ":platform_manager_snapshot",
+        "//thrift/annotation:cpp",
         "//thrift/annotation:thrift",
     ],
 )

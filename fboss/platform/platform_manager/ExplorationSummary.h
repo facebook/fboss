@@ -85,21 +85,6 @@ constexpr const char* toExplorationErrorTypeStr(
   __builtin_unreachable();
 };
 
-struct ExplorationError {
-  ExplorationError(ExplorationErrorType errorType, const std::string& message)
-      : errorType_(errorType), message_(message) {}
-  ExplorationErrorType getErrorType() const {
-    return errorType_;
-  }
-  const std::string& getMessage() const {
-    return message_;
-  }
-
- private:
-  ExplorationErrorType errorType_;
-  std::string message_;
-};
-
 class ExplorationSummary {
  public:
   // ODS counters
@@ -128,6 +113,8 @@ class ExplorationSummary {
   // Return final exploration status.
   ExplorationStatus summarize();
   virtual bool isDeviceExpectedToFail(const std::string& devicePath);
+  std::unordered_map<std::string, std::vector<ExplorationError>>
+  getFailedDevices();
 
  private:
   const PlatformConfig& platformConfig_;

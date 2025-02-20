@@ -23,7 +23,9 @@ void ExplorationSummary::addError(
     ExplorationErrorType errorType,
     const std::string& devicePath,
     const std::string& message) {
-  ExplorationError newError(errorType, message);
+  ExplorationError newError;
+  newError.errorType() = toExplorationErrorTypeStr(errorType);
+  newError.message() = message;
   if (isDeviceExpectedToFail(devicePath)) {
     devicePathToExpectedErrors_[devicePath].push_back(newError);
     nExpectedErrs_++;
@@ -63,7 +65,7 @@ void ExplorationSummary::print(ExplorationStatus finalStatus) {
             : "<ABSENT>",
         slotPath);
     for (int i = 1; const auto& error : explorationErrors) {
-      XLOG(INFO) << fmt::format("{}. {}", i++, error.getMessage());
+      XLOG(INFO) << fmt::format("{}. {}", i++, *error.message());
     }
   }
   for (const auto& [devicePath, explorationErrors] :
@@ -77,7 +79,7 @@ void ExplorationSummary::print(ExplorationStatus finalStatus) {
             : "<ABSENT>",
         slotPath);
     for (int i = 1; const auto& error : explorationErrors) {
-      XLOG(INFO) << fmt::format("{}. {}", i++, error.getMessage());
+      XLOG(INFO) << fmt::format("{}. {}", i++, *error.message());
     }
   }
 }
@@ -90,16 +92,16 @@ void ExplorationSummary::publishCounters(ExplorationStatus finalStatus) {
   fb303::fbData->setCounter(kTotalFailures, nErrs_);
   fb303::fbData->setCounter(kTotalExpectedFailures, nExpectedErrs_);
 
-  std::unordered_map<ExplorationErrorType, uint> numErrPerType;
+  std::unordered_map<std::string, uint> numErrPerType;
   for (const auto& [devicePath, explorationErrors] : devicePathToErrors_) {
     for (const auto& error : explorationErrors) {
-      numErrPerType[error.getErrorType()]++;
+      numErrPerType[*error.errorType()]++;
     }
   }
   for (const auto errorType : explorationErrorTypeList()) {
-    const auto key = fmt::format(
-        kExplorationFailByType, toExplorationErrorTypeStr(errorType));
-    fb303::fbData->setCounter(key, numErrPerType[errorType]);
+    const auto errorTypeStr = toExplorationErrorTypeStr(errorType);
+    const auto key = fmt::format(kExplorationFailByType, errorTypeStr);
+    fb303::fbData->setCounter(key, numErrPerType[errorTypeStr]);
   }
 }
 
@@ -167,5 +169,10 @@ bool ExplorationSummary::isDeviceExpectedToFail(const std::string& devicePath) {
     }
   }
   return false;
+}
+
+std::unordered_map<std::string, std::vector<ExplorationError>>
+ExplorationSummary::getFailedDevices() {
+  return devicePathToErrors_;
 }
 } // namespace facebook::fboss::platform::platform_manager
