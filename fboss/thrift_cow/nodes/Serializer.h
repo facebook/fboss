@@ -453,7 +453,14 @@ struct WritableImpl<apache::thrift::type_class::set<ValueTypeClass>> {
   template <typename TType>
   static inline void
   modify(TType& node, const std::string& token, bool construct) {
-    throw std::runtime_error("not implemented modify set");
+    if (!construct) {
+      return;
+    }
+    if constexpr (std::is_same_v<typename TType::value_type, std::string>) {
+      node.insert(token);
+    } else if (auto key = folly::tryTo<typename TType::value_type>(token)) {
+      node.insert(key.value());
+    }
   }
 };
 
