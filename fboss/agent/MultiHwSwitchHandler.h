@@ -68,9 +68,9 @@ class MultiHwSwitchHandler {
       PortID portID,
       std::optional<uint8_t> queue = std::nullopt) noexcept;
 
-  bool sendPacketSwitchedSync(std::unique_ptr<TxPacket> pkt) noexcept;
+  bool sendPacketSwitchedSync(std::unique_ptr<TxPacket> pkt);
 
-  bool sendPacketSwitchedAsync(std::unique_ptr<TxPacket> pkt) noexcept;
+  bool sendPacketSwitchedAsync(std::unique_ptr<TxPacket> pkt);
 
   bool transactionsSupported() const;
 
@@ -101,6 +101,7 @@ class MultiHwSwitchHandler {
     connectionStatusTable_.disconnected(switchId);
   }
 
+  bool isHwSwitchConnected(const SwitchID& switchId);
   void fillHwAgentConnectionStatus(AgentStats& agentStats);
 
   state::SwitchState reconstructSwitchState(SwitchID id);

@@ -232,6 +232,15 @@ bool MultiHwSwitchHandler::needL2EntryForNeighbor(
   return false;
 }
 
+bool MultiHwSwitchHandler::isHwSwitchConnected(const SwitchID& switchId) {
+  // for monolithic mode, we always return true, as we are not using
+  // connectionStatusTable_ in this case
+  if (sw_->isRunModeMonolithic()) {
+    return true;
+  }
+  return connectionStatusTable_.getConnectionStatus(switchId) == 1;
+}
+
 std::unique_ptr<TxPacket> MultiHwSwitchHandler::allocatePacket(uint32_t size) {
   // TODO - support with multiple switches
   CHECK_GE(hwSwitchSyncers_.size(), 1);
@@ -252,19 +261,27 @@ bool MultiHwSwitchHandler::sendPacketOutOfPortAsync(
 }
 
 bool MultiHwSwitchHandler::sendPacketSwitchedSync(
-    std::unique_ptr<TxPacket> pkt) noexcept {
+    std::unique_ptr<TxPacket> pkt) {
   CHECK_GE(hwSwitchSyncers_.size(), 1);
-  // use first available switch to send pkt
-  return hwSwitchSyncers_.begin()->second->sendPacketSwitchedSync(
-      std::move(pkt));
+  // use first available connected switch to send pkt
+  for (auto& hwSwitchHandler : hwSwitchSyncers_) {
+    if (isHwSwitchConnected(hwSwitchHandler.first)) {
+      return hwSwitchHandler.second->sendPacketSwitchedSync(std::move(pkt));
+    }
+  }
+  throw FbossError("No connected switch found to send packet");
 }
 
 bool MultiHwSwitchHandler::sendPacketSwitchedAsync(
-    std::unique_ptr<TxPacket> pkt) noexcept {
+    std::unique_ptr<TxPacket> pkt) {
   CHECK_GE(hwSwitchSyncers_.size(), 1);
-  // use first available switch to send pkt
-  return hwSwitchSyncers_.begin()->second->sendPacketSwitchedAsync(
-      std::move(pkt));
+  // use first available connected switch to send pkt
+  for (auto& hwSwitchHandler : hwSwitchSyncers_) {
+    if (isHwSwitchConnected(hwSwitchHandler.first)) {
+      return hwSwitchHandler.second->sendPacketSwitchedAsync(std::move(pkt));
+    }
+  }
+  throw FbossError("No connected switch found to send packet");
 }
 
 std::map<SwitchID, HwSwitchHandler*> MultiHwSwitchHandler::getHwSwitchHandlers()
