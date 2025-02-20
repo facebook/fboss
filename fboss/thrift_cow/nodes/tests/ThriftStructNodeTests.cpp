@@ -16,7 +16,6 @@
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 #include "fboss/thrift_cow/nodes/Serializer.h"
 #include "fboss/thrift_cow/nodes/Types.h"
-#include "magic_enum/magic_enum.hpp"
 
 #include <gtest/gtest.h>
 #include <type_traits>
@@ -635,8 +634,7 @@ TYPED_TEST(
   // non-existent node
   auto visitResult = RootPathVisitor::visit(
       *node, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
-  EXPECT_EQ(visitResult, ThriftTraverseResult::INVALID_ARRAY_INDEX)
-      << magic_enum::enum_name(visitResult);
+  EXPECT_EQ(visitResult, ThriftTraverseResult::INVALID_ARRAY_INDEX);
 
   // create node
   auto result = ThriftStructNode<
@@ -695,8 +693,7 @@ TYPED_TEST(
   // non-existent node
   auto visitResult = RootPathVisitor::visit(
       *node, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
-  EXPECT_EQ(visitResult, ThriftTraverseResult::NON_EXISTENT_NODE)
-      << magic_enum::enum_name(visitResult);
+  EXPECT_EQ(visitResult, ThriftTraverseResult::NON_EXISTENT_NODE);
 
   // create node
   auto result = ThriftStructNode<

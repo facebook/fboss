@@ -49,7 +49,6 @@ cpp_unittest(
     preprocessor_flags = ["-DENABLE_DYNAMIC_APIS"],
     supports_static_listing = False,
     deps = [
-        "fbsource//third-party/magic_enum:magic_enum",
         ":test-cpp2-reflection",
         "//fboss/agent/state:nodebase",
         "//fboss/fsdb/if:fsdb_oper-cpp2-types",
