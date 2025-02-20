@@ -344,13 +344,15 @@ template <>
 struct WritableImpl<apache::thrift::type_class::structure> {
   template <typename TType>
   static inline bool remove(TType&, const std::string&) {
-    throw std::runtime_error("not implemented remove structure");
+    // TODO: optional field
+    return false;
   }
 
   template <typename TType>
   static inline void
   modify(TType& node, const std::string& token, bool construct) {
-    throw std::runtime_error("not implemented modify structure");
+    // TODO: optional field
+    return;
   }
 };
 
@@ -422,7 +424,14 @@ struct WritableImpl<apache::thrift::type_class::list<ValueTypeClass>> {
   template <typename TType>
   static inline void
   modify(TType& node, const std::string& token, bool construct) {
-    throw std::runtime_error("not implemented modify list");
+    auto index = folly::tryTo<std::size_t>(token);
+    if (construct) {
+      if (index.hasValue()) {
+        while (node.size() <= index.value()) {
+          node.emplace_back();
+        }
+      }
+    }
   }
 };
 

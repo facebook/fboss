@@ -16,6 +16,7 @@
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 #include "fboss/thrift_cow/nodes/Serializer.h"
 #include "fboss/thrift_cow/nodes/Types.h"
+#include "magic_enum/magic_enum.hpp"
 
 #include <gtest/gtest.h>
 #include <type_traits>
@@ -598,6 +599,66 @@ TYPED_TEST(
   visitResult = RootPathVisitor::visit(
       *node, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
   EXPECT_EQ(visitResult, ThriftTraverseResult::NON_EXISTENT_NODE);
+}
+
+TYPED_TEST(
+    ThriftStructNodeTestSuite,
+    ThriftStructNodeRemoveModifyPathOnThriftListTest) {
+  using Param = typename TestFixture::T;
+  constexpr bool enableHybridStorage = Param::hybridStorage;
+
+  RootTestStruct root;
+  ParentTestStruct parent;
+  auto testStruct = createSimpleTestStruct();
+  parent.mapOfI32ToMapOfStruct() = {{3, {{"4", std::move(testStruct)}}}};
+  root.mapOfI32ToMapOfStruct() = {{1, {{"2", std::move(parent)}}}};
+
+  auto node = this->initNode(root);
+
+  std::vector<std::string> path{
+      "mapOfI32ToMapOfStruct",
+      "1",
+      "2",
+      "mapOfI32ToMapOfStruct",
+      "3",
+      "4",
+      "hybridMapOfI32ToStruct",
+      "20",
+      "listOfStruct",
+      "2"};
+  folly::dynamic dyn;
+  auto processPath = pvlambda([&dyn](auto& node, auto begin, auto end) {
+    EXPECT_EQ(begin, end);
+    dyn = node.toFollyDynamic();
+  });
+
+  // non-existent node
+  auto visitResult = RootPathVisitor::visit(
+      *node, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
+  EXPECT_EQ(visitResult, ThriftTraverseResult::INVALID_ARRAY_INDEX)
+      << magic_enum::enum_name(visitResult);
+
+  // create node
+  auto result = ThriftStructNode<
+      RootTestStruct,
+      ThriftStructResolver<RootTestStruct, enableHybridStorage>,
+      enableHybridStorage>::modifyPath(&node, path.begin(), path.end());
+  EXPECT_EQ(result, ThriftTraverseResult::OK);
+
+  // node exists now
+  visitResult = RootPathVisitor::visit(
+      *node, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
+  EXPECT_EQ(visitResult, ThriftTraverseResult::OK);
+
+  // remove node
+  result = ThriftStructNode<
+      RootTestStruct,
+      ThriftStructResolver<RootTestStruct, enableHybridStorage>,
+      enableHybridStorage>::removePath(&node, path.begin(), path.end());
+  EXPECT_EQ(result, ThriftTraverseResult::OK);
+  visitResult = RootPathVisitor::visit(
+      *node, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
+  EXPECT_EQ(visitResult, ThriftTraverseResult::INVALID_ARRAY_INDEX);
 }
 
 TYPED_TEST(

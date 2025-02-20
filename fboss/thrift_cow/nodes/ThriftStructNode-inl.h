@@ -630,12 +630,7 @@ class ThriftStructNode : public NodeBaseT<
         node.remove(tok);
 
       } else {
-        if constexpr (std::is_same_v<
-                          typename folly::remove_cvref_t<
-                              decltype(node)>::CowType,
-                          NodeType>) {
-          node.modify(tok, false);
-        }
+        node.modify(tok, false);
       }
     });
 
