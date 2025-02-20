@@ -16,4 +16,12 @@ BENCHMARK(HwVoqScaleRouteDelBenchmark) {
   // Measure 8x512 ECMP route del
   voqRouteBenchmark(false /* add */, 8 /* ecmpGroup */, 512 /* ecmpWidth */);
 }
+
+BENCHMARK(HwVoqScale2kWideEcmpRouteDelBenchmark) {
+  // TODO(zecheng): Update benchmark to program 16x2048 ECMP route once
+  // programming speed issue is resolved.
+
+  // Measure 2x2048 ECMP route del
+  voqRouteBenchmark(false /* add */, 2 /* ecmpGroup */, 2048 /* ecmpWidth */);
+}
 } // namespace facebook::fboss
