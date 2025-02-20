@@ -390,6 +390,8 @@ FabricConnectivityManager::processConnectivityInfoForPort(
       // actual{switchID, portID} == expected{switchID, portID}
       iter->second.switchName() = iter->second.expectedSwitchName().value();
       iter->second.portName() = iter->second.expectedPortName().value();
+      XLOG(DBG5) << "Cabling is correct on port ID "
+                 << static_cast<int>(portId);
     } else if (*iter->second.isAttached()) {
       // Attached but miscabled:
       //    - Connected to expected Switch but on wrong port
@@ -407,17 +409,30 @@ FabricConnectivityManager::processConnectivityInfoForPort(
       if (portName.has_value()) {
         iter->second.portName() = portName.value();
       }
+      XLOG(DBG5) << "Attached but miscabled on port ID "
+                 << static_cast<int>(portId) << ". Switch name: "
+                 << iter->second.switchName().value_or("unknown")
+                 << " Port name: "
+                 << iter->second.portName().value_or("unknown");
     }
   } else {
+    XLOG(DBG2) << "Adding new entry for port ID " << static_cast<int>(portId);
     iter = currentNeighborConnectivity_.insert({portId, hwEndpoint}).first;
   }
+
   if (!old || (old != iter->second)) {
+    XLOG(DBG5) << "Connectivity changed on port ID " << static_cast<int>(portId)
+               << ". Processing delta.";
     delta = multiswitch::FabricConnectivityDelta();
     if (old.has_value()) {
       delta->oldConnectivity() = *old;
     }
     delta->newConnectivity() = iter->second;
+  } else {
+    XLOG(DBG5) << "No connectivity change on port ID "
+               << static_cast<int>(portId) << ".";
   }
+
   return delta;
 }
 

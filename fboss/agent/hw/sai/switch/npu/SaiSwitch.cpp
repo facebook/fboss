@@ -69,15 +69,24 @@ void SaiSwitch::updateStatsImpl() {
         auto delta = fabricConnectivityManager_->processConnectivityInfoForPort(
             portsIter->second.portID, *endpointOpt);
         if (delta) {
+          XLOG(DBG5) << "Connectivity delta found for port ID "
+                     << portsIter->second.portID;
           connectivityDelta.insert({portsIter->second.portID, *delta});
+        } else {
+          XLOG(DBG5) << "No connectivity delta for port ID "
+                     << portsIter->second.portID;
         }
         if (fabricConnectivityManager_->isConnectivityInfoMissing(
                 portsIter->second.portID)) {
           missingCount++;
+          XLOG(DBG5) << "Connectivity missing for port ID "
+                     << portsIter->second.portID;
         }
         if (fabricConnectivityManager_->isConnectivityInfoMismatch(
                 portsIter->second.portID)) {
           mismatchCount++;
+          XLOG(DBG5) << "Connectivity mismatch for port ID "
+                     << portsIter->second.portID;
         }
       }
       managerTable_->portManager().updateStats(
@@ -138,6 +147,8 @@ void SaiSwitch::updateStatsImpl() {
   reportAsymmetricTopology();
   reportInterPortGroupCableSkew();
   if (!connectivityDelta.empty()) {
+    XLOG(DBG2)
+        << "Connectivity delta is not empty. Sending callback to SwSwitch";
     linkConnectivityChangeBottomHalfEventBase_.runInFbossEventBaseThread(
         [this, connectivityDelta = std::move(connectivityDelta)] {
           linkConnectivityChanged(connectivityDelta);
