@@ -17,6 +17,15 @@ enum class ExplorationErrorType {
   I2C_DEVICE_EXPLORE,
   RUN_DEVMAP_SYMLINK,
   PCI_DEVICE_EXPLORE,
+  PCI_SUB_DEVICE_CREATE_I2C_ADAPTER,
+  PCI_SUB_DEVICE_CREATE_SPI_MASTER,
+  PCI_SUB_DEVICE_CREATE_GPIO_CHIP,
+  PCI_SUB_DEVICE_CREATE_WATCH_DOG,
+  PCI_SUB_DEVICE_CREATE_FAN_CTRL,
+  PCI_SUB_DEVICE_CREATE_LED_CTRL,
+  PCI_SUB_DEVICE_CREATE_XCVR_CTRL,
+  PCI_SUB_DEVICE_CREATE_INFO_ROM,
+  PCI_SUB_DEVICE_CREATE_MISC_CTRL,
   IDPROM_READ,
   SLOT_PM_UNIT_ABSENCE,
   SLOT_PRESENCE_CHECK,
@@ -46,6 +55,24 @@ constexpr const char* toExplorationErrorTypeStr(
       return "run_devmap_symlink";
     case ExplorationErrorType::PCI_DEVICE_EXPLORE:
       return "pci_device_explore";
+    case ExplorationErrorType::PCI_SUB_DEVICE_CREATE_I2C_ADAPTER:
+      return "pci_sub_device_create_i2c_adapter";
+    case ExplorationErrorType::PCI_SUB_DEVICE_CREATE_SPI_MASTER:
+      return "pci_sub_device_create_spi_master";
+    case ExplorationErrorType::PCI_SUB_DEVICE_CREATE_GPIO_CHIP:
+      return "pci_sub_device_create_gpio_chip";
+    case ExplorationErrorType::PCI_SUB_DEVICE_CREATE_WATCH_DOG:
+      return "pci_sub_device_create_watch_dog";
+    case ExplorationErrorType::PCI_SUB_DEVICE_CREATE_FAN_CTRL:
+      return "pci_sub_device_create_fan_ctrl";
+    case ExplorationErrorType::PCI_SUB_DEVICE_CREATE_LED_CTRL:
+      return "pci_sub_device_create_led_ctrl";
+    case ExplorationErrorType::PCI_SUB_DEVICE_CREATE_XCVR_CTRL:
+      return "pci_sub_device_create_xcvr_ctrl";
+    case ExplorationErrorType::PCI_SUB_DEVICE_CREATE_INFO_ROM:
+      return "pci_sub_device_create_info_rom";
+    case ExplorationErrorType::PCI_SUB_DEVICE_CREATE_MISC_CTRL:
+      return "pci_sub_device_create_misc_ctrl";
     case ExplorationErrorType::IDPROM_READ:
       return "idprom_read";
     case ExplorationErrorType::SLOT_PM_UNIT_ABSENCE:

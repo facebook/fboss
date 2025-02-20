@@ -114,6 +114,7 @@ class PlatformExplorer {
   void createPciSubDevices(
       const std::string& slotPath,
       const std::vector<T>& pciSubDeviceConfigs,
+      ExplorationErrorType errorType,
       auto&& deviceCreationLambda);
 
   PlatformConfig platformConfig_{};
