@@ -31,11 +31,8 @@ class AgentIpInIpTunnelTest : public AgentHwTest {
 
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
-    auto switchId = ensemble.getSw()
-                        ->getScopeResolver()
-                        ->scope(ensemble.masterLogicalPortIds())
-                        .switchId();
-    auto asic = ensemble.getSw()->getHwAsicTable()->getHwAsic(switchId);
+    auto l3Asics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
+    auto asic = utility::checkSameAndGetAsic(l3Asics);
     auto cfg = utility::oneL3IntfTwoPortConfig(
         ensemble.getSw()->getPlatformMapping(),
         asic,
@@ -170,11 +167,8 @@ TEST_F(AgentIpInIpTunnelTest, TunnelTermEntryMiss) {
 TEST_F(AgentIpInIpTunnelTest, IpinIpNoTunnelConfigured) {
   auto setup = [=, this]() {
     auto ensemble = getAgentEnsemble();
-    auto switchId = ensemble->getSw()
-                        ->getScopeResolver()
-                        ->scope(ensemble->masterLogicalPortIds())
-                        .switchId();
-    auto asic = ensemble->getSw()->getHwAsicTable()->getHwAsic(switchId);
+    auto l3Asics = ensemble->getSw()->getHwAsicTable()->getL3Asics();
+    auto asic = utility::checkSameAndGetAsic(l3Asics);
     auto cfg = utility::oneL3IntfTwoPortConfig(
         ensemble->getSw()->getPlatformMapping(),
         asic,
