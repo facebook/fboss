@@ -1592,24 +1592,34 @@ void ThriftHandler::setPortPrbs(
   if (component == phy::PortComponent::ASIC) {
     auto updateFn = [=](const shared_ptr<SwitchState>& state) {
       shared_ptr<SwitchState> newState{state};
-      auto newPort = port->modify(&newState);
-      newPort->setAsicPrbs(newPrbsState);
+      auto newPort = newState->getPorts()->getNodeIf(portId).get();
+      newPort = newPort->modify(&newState);
+      if (newPort) {
+        newPort = newPort->modify(&newState);
+        newPort->setAsicPrbs(newPrbsState);
+      }
       return newState;
     };
     sw_->updateStateBlocking("set port asic prbs", updateFn);
   } else if (component == phy::PortComponent::GB_SYSTEM) {
     auto updateFn = [=](const shared_ptr<SwitchState>& state) {
       shared_ptr<SwitchState> newState{state};
-      auto newPort = port->modify(&newState);
-      newPort->setGbSystemPrbs(newPrbsState);
+      auto newPort = newState->getPorts()->getNodeIf(portId).get();
+      newPort = newPort->modify(&newState);
+      if (newPort) {
+        newPort->setGbSystemPrbs(newPrbsState);
+      }
       return newState;
     };
     sw_->updateStateBlocking("set port gearbox system side prbs", updateFn);
   } else if (component == phy::PortComponent::GB_LINE) {
     auto updateFn = [=](const shared_ptr<SwitchState>& state) {
       shared_ptr<SwitchState> newState{state};
-      auto newPort = port->modify(&newState);
-      newPort->setGbLinePrbs(newPrbsState);
+      auto newPort = newState->getPorts()->getNodeIf(portId).get();
+      newPort = newPort->modify(&newState);
+      if (newPort) {
+        newPort->setGbLinePrbs(newPrbsState);
+      }
       return newState;
     };
     sw_->updateStateBlocking("set port gearbox line side prbs", updateFn);
