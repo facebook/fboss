@@ -12,10 +12,145 @@
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/ScaleTestUtils.h"
 
+DECLARE_bool(intf_nbr_tables);
+
 namespace {
 constexpr int kNumMacs = 8000;
+constexpr uint64_t kBaseMac = 0xFEEEC2000010;
 } // namespace
+
 namespace facebook::fboss::utility {
+
+template <typename AddrT>
+std::vector<std::pair<AddrT, folly::MacAddress>> neighborAddrs(
+    int numNeighbors) {
+  std::vector<std::pair<AddrT, folly::MacAddress>> macIPPairs;
+  for (int i = 0; i < numNeighbors; ++i) {
+    std::stringstream ipStream;
+
+    if (std::is_same<AddrT, folly::IPAddressV6>::value) {
+      ipStream << "2001:0db8:85a3:0000:0000:8a2e:" << std::hex
+               << (i >> 16 & 0xffff) << ":" << std::hex << (i & 0xffff);
+    } else {
+      ipStream << "100.100." << (i >> 8 & 0xff) << "." << (i & 0xff);
+    }
+    AddrT ip(ipStream.str());
+    uint64_t macBytes = kBaseMac + 1;
+    folly::MacAddress mac = folly::MacAddress::fromHBO(macBytes);
+    macIPPairs.push_back(std::make_pair(ip, mac));
+  }
+  return macIPPairs;
+}
+
+template <typename AddrT>
+std::shared_ptr<facebook::fboss::SwitchState> updateNeighborEntry(
+    AgentEnsemble* ensemble,
+    const std::shared_ptr<SwitchState>& in,
+    const PortDescriptor& port,
+    const AddrT& addr,
+    const folly::MacAddress& mac,
+    const bool isIntfNbrTable,
+    std::optional<cfg::AclLookupClass> lookupClass = std::nullopt) {
+  using NeighborTableT = typename std::conditional_t<
+      std::is_same<AddrT, folly::IPAddressV4>::value,
+      ArpTable,
+      NdpTable>;
+  auto state = in->clone();
+  NeighborTableT* neighborTable;
+  auto intfID = ensemble->getProgrammedState()
+                    ->getPorts()
+                    ->getNodeIf(ensemble->masterLogicalInterfacePortIds()[0])
+                    ->getInterfaceID();
+
+  if (isIntfNbrTable) {
+    neighborTable = state->getInterfaces()
+                        ->getNode(intfID)
+                        ->template getNeighborEntryTable<AddrT>()
+                        ->modify(intfID, &state);
+  } else {
+    auto vlanID = ensemble->getProgrammedState()
+                      ->getPorts()
+                      ->getNodeIf(ensemble->masterLogicalInterfacePortIds()[0])
+                      ->getIngressVlan();
+    neighborTable = state->getVlans()
+                        ->getNode(vlanID)
+                        ->template getNeighborEntryTable<AddrT>()
+                        ->modify(vlanID, &state);
+  }
+
+  if (neighborTable->getEntryIf(addr)) {
+    neighborTable->updateEntry(
+        addr, mac, port, intfID, NeighborState::REACHABLE, lookupClass);
+  } else {
+    neighborTable->addEntry(addr, mac, port, intfID);
+    // Update entry to add classid if any
+    neighborTable->updateEntry(
+        addr, mac, port, intfID, NeighborState::REACHABLE, lookupClass);
+  }
+  return state;
+}
+
+template <typename AddrT>
+void programNeighbor(
+    AgentEnsemble* ensemble,
+    const PortDescriptor& port,
+    const AddrT& addr,
+    const folly::MacAddress neighborMac,
+    std::optional<cfg::AclLookupClass> lookupClass = std::nullopt) {
+  ensemble->applyNewState(
+      [&](const std::shared_ptr<SwitchState>& in) {
+        return updateNeighborEntry(
+            ensemble,
+            in,
+            port,
+            addr,
+            neighborMac,
+            FLAGS_intf_nbr_tables,
+            lookupClass);
+      },
+      "program neighbor",
+      false);
+}
+
+void programNeighbors(
+    AgentEnsemble* ensemble,
+    const PortDescriptor& port,
+    std::optional<cfg::AclLookupClass> lookupClass) {
+  int numNDPNeighbors, numARPNeighbors;
+  auto asic =
+      utility::checkSameAndGetAsic(ensemble->getHwAsicTable()->getL3Asics());
+
+  if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK4 ||
+      asic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK5) {
+    numNDPNeighbors = 4000;
+    numARPNeighbors = 4000;
+  } else if (
+      asic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK3 ||
+      asic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK ||
+      asic->getAsicType() == cfg::AsicType::ASIC_TYPE_EBRO) {
+    numNDPNeighbors = 2000;
+    numARPNeighbors = 2000;
+  } else {
+    numNDPNeighbors = 2000;
+    numARPNeighbors = 2000;
+  }
+  XLOG(DBG2) << "Max NDP neighbors: " << numNDPNeighbors << " Max ARP neighbors"
+             << numARPNeighbors;
+
+  for (auto pair : neighborAddrs<folly::IPAddressV4>(numARPNeighbors)) {
+    programNeighbor(ensemble, port, pair.first, pair.second, lookupClass);
+  }
+  for (auto pair : neighborAddrs<folly::IPAddressV6>(numNDPNeighbors)) {
+    programNeighbor(ensemble, port, pair.first, pair.second, lookupClass);
+  }
+}
+
+void configureMaxNeighborEntries(AgentEnsemble* ensemble) {
+  programNeighbors(
+      ensemble,
+      PortDescriptor(ensemble->masterLogicalInterfacePortIds()[0]),
+      std::nullopt);
+}
 
 void configureMaxMacEntries(AgentEnsemble* ensemble) {
   CHECK_GE(ensemble->masterLogicalInterfacePortIds().size(), 2);
@@ -209,5 +344,6 @@ void initSystemScaleTest(AgentEnsemble* ensemble) {
   configureMaxAclEntries(ensemble);
   configureMaxRouteEntries(ensemble);
   configureMaxMacEntries(ensemble);
+  configureMaxNeighborEntries(ensemble);
 }
 } // namespace facebook::fboss::utility
