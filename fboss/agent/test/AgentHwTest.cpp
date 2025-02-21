@@ -10,8 +10,6 @@
 #include "fboss/agent/test/utils/StatsTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
-DEFINE_bool(run_forever, false, "run the test forever");
-DEFINE_bool(run_forever_on_failure, false, "run the test forever on failure");
 DEFINE_bool(
     list_production_feature,
     false,

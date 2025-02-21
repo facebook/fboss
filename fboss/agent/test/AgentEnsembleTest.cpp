@@ -4,7 +4,6 @@
 #include <folly/gen/Base.h>
 #include <optional>
 #include "fboss/agent/AgentConfig.h"
-#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/CommonInit.h"
 #include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/Main.h"
@@ -21,9 +20,6 @@ namespace {
 int argCount{0};
 char** argVec{nullptr};
 } // unnamed namespace
-
-DEFINE_bool(run_forever, false, "run the test forever");
-DEFINE_bool(run_forever_on_failure, false, "run the test forever on failure");
 
 DECLARE_string(config);
 DECLARE_bool(disable_looped_fabric_ports);

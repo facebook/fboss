@@ -244,3 +244,6 @@ DEFINE_uint32(
     counter_refresh_interval,
     1,
     "Counter refresh interval in seconds. Set it to 0 to fetch stats from HW");
+
+DEFINE_bool(run_forever, false, "run the test forever");
+DEFINE_bool(run_forever_on_failure, false, "run the test forever on failure");

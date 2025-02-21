@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/Main.h"
 #include "fboss/agent/Platform.h"

@@ -86,3 +86,6 @@ DECLARE_bool(link_stress_test);
 DECLARE_int32(ecmp_resource_percentage);
 DECLARE_int32(switch_index_for_testing);
 DECLARE_uint32(counter_refresh_interval);
+
+DECLARE_bool(run_forever);
+DECLARE_bool(run_forever_on_failure);
