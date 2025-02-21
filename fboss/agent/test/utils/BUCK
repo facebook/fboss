@@ -617,6 +617,7 @@ cpp_library(
         "SystemScaleTestUtils.h",
     ],
     exported_deps = [
+        ":acl_scale_test_utils",
         ":acl_test_utils",
         ":asic_test_utils",
         ":copp_test_utils",
@@ -641,6 +642,7 @@ cpp_library(
     ],
     exported_deps = [
         ":acl_test_utils",
+        ":asic_test_utils",
     ],
 )
 

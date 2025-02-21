@@ -5,6 +5,7 @@
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/RouteScaleGenerators.h"
+#include "fboss/agent/test/utils/AclScaleTestUtils.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
@@ -12,7 +13,18 @@
 
 namespace facebook::fboss::utility {
 
-void initSystemScaleTest(AgentEnsemble* ensemble) {}
+void configureMaxAclEntries(AgentEnsemble* ensemble) {
+  auto cfg = ensemble->getCurrentConfig();
+  const auto maxAclEntries = getMaxAclEntries(ensemble->getL3Asics());
+  XLOG(DBG2) << "Max Acl Entries: " << maxAclEntries;
+  std::vector<cfg::AclTableQualifier> qualifiers =
+      setAclQualifiers(AclWidth::SINGLE_WIDE);
+
+  utility::addAclTable(&cfg, "aclTable0", 0 /* priority */, {}, qualifiers);
+  addAclEntries(maxAclEntries, AclWidth::SINGLE_WIDE, &cfg, "aclTable0");
+
+  ensemble->applyNewConfig(cfg);
+}
 
 cfg::SwitchConfig getSystemScaleTestSwitchConfiguration(
     const AgentEnsemble& ensemble) {
@@ -40,4 +52,7 @@ cfg::SwitchConfig getSystemScaleTestSwitchConfiguration(
   return config;
 };
 
+void initSystemScaleTest(AgentEnsemble* ensemble) {
+  configureMaxAclEntries(ensemble);
+}
 } // namespace facebook::fboss::utility
