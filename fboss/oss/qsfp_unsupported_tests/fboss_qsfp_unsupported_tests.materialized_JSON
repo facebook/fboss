@@ -4851,6 +4851,9 @@
           "test_name_regex": "HwMacsecTest.*$"
         },
         {
+          "test_name_regex": "HwPimTest.CheckPimPresent$"
+        },
+        {
           "test_name_regex": "HwTest.CheckDefaultXphyFirmwareVersion$"
         },
         {
@@ -5022,6 +5025,9 @@
     "tahan800bc/physdk-credo-0.9.0/credo-0.9.0": [
         {
           "test_name_regex": "HwMacsecTest.*$"
+        },
+        {
+          "test_name_regex": "HwPimTest.CheckPimPresent$"
         },
         {
           "test_name_regex": "HwTest.CheckDefaultXphyFirmwareVersion$"
