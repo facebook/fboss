@@ -12,7 +12,55 @@
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/ScaleTestUtils.h"
 
+namespace {
+constexpr int kNumMacs = 8000;
+} // namespace
 namespace facebook::fboss::utility {
+
+void configureMaxMacEntries(AgentEnsemble* ensemble) {
+  CHECK_GE(ensemble->masterLogicalInterfacePortIds().size(), 2);
+  PortID txPort = PortID(ensemble->masterLogicalInterfacePortIds()[1]);
+  PortID rxPort = PortID(ensemble->masterLogicalInterfacePortIds()[0]);
+
+  auto vlan = ensemble->getProgrammedState()
+                  ->getPorts()
+                  ->getNodeIf(rxPort)
+                  ->getIngressVlan();
+
+  auto rxInterfaceMac = getInterfaceMac(
+      ensemble->getProgrammedState(),
+      ensemble->getProgrammedState()
+          ->getPorts()
+          ->getNodeIf(rxPort)
+          ->getInterfaceID());
+
+  std::vector<std::pair<folly::IPAddressV6, folly::MacAddress>> macIPv6Pairs;
+
+  for (int i = 0; i < kNumMacs; ++i) {
+    std::stringstream ipStream;
+    ipStream << "2001:0db8:85a3:0000:0000:8a2e:0370:" << std::hex << i;
+    folly::IPAddressV6 ip(ipStream.str());
+    uint64_t macBytes = 0xFEEEC2000010;
+    folly::MacAddress mac = folly::MacAddress::fromHBO(macBytes + i);
+    macIPv6Pairs.push_back(std::make_pair(ip, mac));
+  }
+  const int srcPort = 47231;
+  const int dstPort = 277;
+  for (const auto& [ipV6, mac] : macIPv6Pairs) {
+    auto txPacket = utility::makeTCPTxPacket(
+        ensemble->getSw(),
+        vlan,
+        mac,
+        // MacAddress::BROADCAST send from second last interface to last
+        // if replaced by macLastInterface, then traffic won't flood
+        rxInterfaceMac,
+        ipV6,
+        folly::IPAddressV6("2620:0:1cfe:face:b10c::4"),
+        srcPort,
+        dstPort);
+    ensemble->getSw()->sendPacketOutOfPortAsync(std::move(txPacket), txPort);
+  }
+}
 
 void configureMaxRouteEntries(AgentEnsemble* ensemble) {
   auto switchIds = ensemble->getHwAsicTable()->getSwitchIDs();
@@ -160,5 +208,6 @@ cfg::SwitchConfig getSystemScaleTestSwitchConfiguration(
 void initSystemScaleTest(AgentEnsemble* ensemble) {
   configureMaxAclEntries(ensemble);
   configureMaxRouteEntries(ensemble);
+  configureMaxMacEntries(ensemble);
 }
 } // namespace facebook::fboss::utility
