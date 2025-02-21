@@ -71,6 +71,16 @@ agent_benchmark_lib(
     ],
 )
 
+agent_benchmark_lib(
+    name = "hw_system_scale_memory_benchmark",
+    srcs = ["HwSystemScaleMemoryBenchmark.cpp"],
+    extra_deps = [
+        "//fboss/agent/test/utils:system_scale_test_utils",
+        "//fboss/agent/benchmarks:agent_benchmarks_h",  # @manual
+        "//folly/init:init",
+    ],
+)
+
 cpp_library(
     name = "hw_route_scale_benchmark_helpers",
     headers = [

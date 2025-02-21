@@ -478,3 +478,13 @@ target_link_libraries(hw_voq_sys_port_programming
   Folly::folly
   Folly::follybenchmark
 )
+
+add_library(hw_system_scale_memory_benchmark
+  fboss/agent/hw/benchmarks/HwSystemScaleMemoryBenchmark.cpp
+)
+
+target_link_libraries(hw_system_scale_memory_benchmark
+  system_scale_test_utils
+  mono_agent_ensemble
+  Folly::follybenchmark
+)
