@@ -231,3 +231,19 @@ target_link_libraries(linkstate_toggler
   state
   core
 )
+
+add_library(system_scale_test_utils
+  fboss/agent/test/utils/SystemScaleTestUtils.cpp
+)
+
+target_link_libraries(system_scale_test_utils
+  agent_ensemble
+  config_factory
+  packet_factory
+  ecmp_helper
+  acl_test_utils
+  asic_test_utils
+  copp_test_utils
+  scale_test_utils
+  route_scale_gen
+)

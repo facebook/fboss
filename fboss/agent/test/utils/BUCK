@@ -609,6 +609,29 @@ cpp_library(
 )
 
 cpp_library(
+    name = "system_scale_test_utils",
+    srcs = [
+        "SystemScaleTestUtils.cpp",
+    ],
+    headers = [
+        "SystemScaleTestUtils.h",
+    ],
+    exported_deps = [
+        ":acl_test_utils",
+        ":asic_test_utils",
+        ":copp_test_utils",
+        ":scale_test_utils",
+        "//fboss/agent:packet",
+        "//fboss/agent/benchmarks:agent_benchmarks_h",  # @manual
+        "//fboss/agent/hw/test:config_factory",
+        "//fboss/agent/packet:packet_factory",
+        "//fboss/agent/test:agent_ensemble",
+        "//fboss/agent/test:ecmp_helper",
+        "//fboss/agent/test:route_scale_gen",
+    ],
+)
+
+cpp_library(
     name = "stress_test_utils",
     srcs = [
         "StressTestUtils.cpp",
