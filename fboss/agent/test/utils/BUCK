@@ -632,6 +632,19 @@ cpp_library(
 )
 
 cpp_library(
+    name = "acl_scale_test_utils",
+    srcs = [
+        "AclScaleTestUtils.cpp",
+    ],
+    headers = [
+        "AclScaleTestUtils.h",
+    ],
+    exported_deps = [
+        ":acl_test_utils",
+    ],
+)
+
+cpp_library(
     name = "stress_test_utils",
     srcs = [
         "StressTestUtils.cpp",
