@@ -23297,16 +23297,19 @@ class ChildThriftPath<::facebook::fboss::FabricReachabilityStats, ::facebook::fb
   using Children = fatal::tuple<std::pair<strings::mismatchCount, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
 std::pair<strings::missingCount, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
 std::pair<strings::virtualDevicesWithAsymmetricConnectivity, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
-std::pair<strings::switchReachabilityChangeCount, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
+std::pair<strings::switchReachabilityChangeCount, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+std::pair<strings::bogusCount, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 4>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 4>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 5>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
   template <typename Name>
   using NameToId = fatal::tuple<std::pair<strings::mismatchCount, std::integral_constant<apache::thrift::field_id_t, 1>>,
 std::pair<strings::missingCount, std::integral_constant<apache::thrift::field_id_t, 2>>,
 std::pair<strings::virtualDevicesWithAsymmetricConnectivity, std::integral_constant<apache::thrift::field_id_t, 3>>,
-std::pair<strings::switchReachabilityChangeCount, std::integral_constant<apache::thrift::field_id_t, 4>>>::template type_of<Name>;
+std::pair<strings::switchReachabilityChangeCount, std::integral_constant<apache::thrift::field_id_t, 4>>,
+std::pair<strings::bogusCount, std::integral_constant<apache::thrift::field_id_t, 5>>>::template type_of<Name>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -23316,6 +23319,7 @@ std::pair<strings::switchReachabilityChangeCount, std::integral_constant<apache:
     STRUCT_CHILD_GETTERS(missingCount, 2);
     STRUCT_CHILD_GETTERS(virtualDevicesWithAsymmetricConnectivity, 3);
     STRUCT_CHILD_GETTERS(switchReachabilityChangeCount, 4);
+    STRUCT_CHILD_GETTERS(bogusCount, 5);
 
   template <apache::thrift::field_id_t __id>
   auto operator()(const std::integral_constant<apache::thrift::field_id_t, __id>&) {
@@ -23323,6 +23327,7 @@ std::pair<strings::switchReachabilityChangeCount, std::integral_constant<apache:
     else if constexpr (__id == 2) { return missingCount(); }
     else if constexpr (__id == 3) { return virtualDevicesWithAsymmetricConnectivity(); }
     else if constexpr (__id == 4) { return switchReachabilityChangeCount(); }
+    else if constexpr (__id == 5) { return bogusCount(); }
   }
 
   template <typename T, T... Values>

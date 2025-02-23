@@ -524,6 +524,28 @@ bool FabricConnectivityManager::isConnectivityInfoMissing(
   return isConnectivityInfoMissing(endpoint);
 }
 
+bool FabricConnectivityManager::isConnectivityInfoBogus(const PortID& portId) {
+  const auto& iter = currentNeighborConnectivity_.find(portId);
+  if (iter == currentNeighborConnectivity_.end()) {
+    return false;
+  }
+
+  const auto& endpoint = iter->second;
+  auto switchId = *endpoint.switchId();
+  if (switchIdToDsfNode_.find(switchId) == switchIdToDsfNode_.end()) {
+    // invalid switch id
+    return true;
+  }
+  auto switchType = *endpoint.switchType();
+  if (switchType != cfg::SwitchType::VOQ &&
+      switchType != cfg::SwitchType::FABRIC) {
+    // invalid switch type
+    return true;
+  }
+  // nothing invliad
+  return false;
+}
+
 const std::map<PortID, FabricEndpoint>&
 FabricConnectivityManager::getConnectivityInfo() const {
   return currentNeighborConnectivity_;

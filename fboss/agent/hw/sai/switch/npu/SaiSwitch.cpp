@@ -57,7 +57,7 @@ void SaiSwitch::updateStatsImpl() {
   if (updateCableLengths) {
     cableLengthStatsUpdateTime_ = now;
   }
-  int64_t missingCount = 0, mismatchCount = 0;
+  int64_t missingCount = 0, mismatchCount = 0, bogusCount = 0;
   auto portsIter = concurrentIndices_->portSaiId2PortInfo.begin();
   std::map<PortID, multiswitch::FabricConnectivityDelta> connectivityDelta;
   while (portsIter != concurrentIndices_->portSaiId2PortInfo.end()) {
@@ -88,6 +88,10 @@ void SaiSwitch::updateStatsImpl() {
           XLOG(DBG5) << "Connectivity mismatch for port ID "
                      << portsIter->second.portID;
         }
+        if (fabricConnectivityManager_->isConnectivityInfoBogus(
+                portsIter->second.portID)) {
+          bogusCount++;
+        }
       }
       managerTable_->portManager().updateStats(
           portsIter->second.portID, updateWatermarks, updateCableLengths);
@@ -95,8 +99,9 @@ void SaiSwitch::updateStatsImpl() {
     ++portsIter;
   }
 
-  getSwitchStats()->fabricReachabilityMissingCount(missingCount);
-  getSwitchStats()->fabricReachabilityMismatchCount(mismatchCount);
+  getSwitchStats()->fabricConnectivityMissingCount(missingCount);
+  getSwitchStats()->fabricConnectivityMismatchCount(mismatchCount);
+  getSwitchStats()->fabricConnectivityBogusCount(bogusCount);
 
   auto sysPortsIter = concurrentIndices_->sysPortIds.begin();
   while (sysPortsIter != concurrentIndices_->sysPortIds.end()) {

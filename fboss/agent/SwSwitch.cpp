@@ -3550,6 +3550,7 @@ FabricReachabilityStats SwSwitch::getFabricReachabilityStats() {
     *reachStats.virtualDevicesWithAsymmetricConnectivity() +=
         *stats.fabricReachabilityStats()
              ->virtualDevicesWithAsymmetricConnectivity();
+    *reachStats.bogusCount() += *stats.fabricReachabilityStats()->bogusCount();
   }
   return reachStats;
 }
