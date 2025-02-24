@@ -731,10 +731,18 @@ struct PathVisitorImpl<apache::thrift::type_class::structure> {
     visitMember<Members>(key, [&](auto indexed) {
       using member = decltype(fatal::tag_type(indexed));
       using tc = typename member::type_class;
-      typename member::getter getter;
-
+      using getter = typename member::getter;
+      const std::string fieldNameStr =
+          fatal::to_instance<std::string, typename member::name>();
+      if constexpr (
+          member::optional::value == apache::thrift::optionality::optional) {
+        if (!member::is_set(tObj)) {
+          result = ThriftTraverseResult::NON_EXISTENT_NODE;
+          return;
+        }
+      }
       // Recurse further
-      auto& child = getter(tObj);
+      auto& child = getter{}(tObj);
       result = PathVisitorImpl<tc>::visit(child, params, cursor);
     });
 
@@ -768,10 +776,18 @@ struct PathVisitorImpl<apache::thrift::type_class::structure> {
     visitMember<Members>(key, [&](auto indexed) {
       using member = decltype(fatal::tag_type(indexed));
       using tc = typename member::type_class;
-      typename member::getter getter;
-
+      using getter = typename member::getter;
+      const std::string fieldNameStr =
+          fatal::to_instance<std::string, typename member::name>();
+      if constexpr (
+          member::optional::value == apache::thrift::optionality::optional) {
+        if (!member::is_set(tObj)) {
+          result = ThriftTraverseResult::NON_EXISTENT_NODE;
+          return;
+        }
+      }
       // Recurse further
-      auto& child = getter(tObj);
+      auto& child = getter{}(tObj);
       result = PathVisitorImpl<tc>::visit(child, params, cursor);
     });
 

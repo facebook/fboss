@@ -15,6 +15,7 @@
 #include <thrift/lib/cpp2/folly_dynamic/folly_dynamic.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 #include <thrift/lib/cpp2/protocol/detail/protocol_methods.h>
+#include <thrift/lib/cpp2/reflection/reflection.h>
 #include <utility>
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 
@@ -343,9 +344,27 @@ struct WritableImpl {
 template <>
 struct WritableImpl<apache::thrift::type_class::structure> {
   template <typename TType>
-  static inline bool remove(TType&, const std::string&) {
-    // TODO: optional field
-    return false;
+  static inline bool remove(TType& node, const std::string& token) {
+    bool removed = false;
+    fatal::foreach<typename apache::thrift::reflect_struct<TType>::members>(
+        [&](auto indexed) {
+          using member = decltype(fatal::tag_type(indexed));
+          const std::string fieldNameStr =
+              fatal::to_instance<std::string, typename member::name>();
+          if (fieldNameStr != token) {
+            return;
+          }
+          if constexpr (
+              member::optional::value ==
+              apache::thrift::optionality::optional) {
+            if (member::is_set(node)) {
+              member::mark_set(node, false);
+              removed = true;
+            }
+          }
+          return;
+        });
+    return removed;
   }
 
   template <typename TType>
