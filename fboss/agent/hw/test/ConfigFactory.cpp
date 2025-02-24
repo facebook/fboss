@@ -127,6 +127,11 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
     bool setInterfaceMac,
     int baseIntfId,
     bool enableFabricPorts) {
+  cfg::InterfaceType intfType =
+      hwSwitch->getPlatform()->getAsic()->getAsicType() ==
+          cfg::AsicType::ASIC_TYPE_CHENAB
+      ? cfg::InterfaceType::PORT
+      : cfg::InterfaceType::VLAN;
   return multiplePortsPerIntfConfig(
       hwSwitch->getPlatform()->getPlatformMapping(),
       hwSwitch->getPlatform()->getAsic(),
@@ -137,7 +142,11 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
       setInterfaceMac,
       baseIntfId,
       1, /* portPerIntf*/
-      enableFabricPorts);
+      enableFabricPorts,
+      std::nullopt, /* switchIdToSwitchInfo  */
+      std::nullopt, /* hwAsicTable */
+      std::nullopt, /* platformType */
+      intfType);
 }
 
 cfg::SwitchConfig twoL3IntfConfig(
