@@ -199,6 +199,7 @@ add_library(hw_ecmp_shrink_speed
 target_link_libraries(hw_ecmp_shrink_speed
   config_factory
   hw_packet_utils
+  ecmp_test_utils
   ecmp_helper
   mono_agent_ensemble
   mono_agent_benchmarks
@@ -215,6 +216,7 @@ target_link_libraries(hw_ecmp_shrink_with_competing_route_updates_speed
   route_distribution_gen
   config_factory
   hw_packet_utils
+  ecmp_test_utils
   ecmp_helper
   mono_agent_ensemble
   mono_agent_benchmarks

@@ -202,6 +202,7 @@ agent_benchmark_lib(
         "//fboss/agent/hw/test:hw_test_ecmp_utils",
         "//fboss/agent/hw/test:hw_test_port_utils",
         "//fboss/agent/hw/test:hw_switch_ensemble_factory",
+        "//fboss/agent/test/utils:ecmp_test_utils",
     ],
 )
 
@@ -303,6 +304,7 @@ agent_benchmark_lib(
         "//fboss/agent/hw/test:hw_test_ecmp_utils",
         "//fboss/agent/hw/test:hw_switch_ensemble_factory",
         "//fboss/agent/hw/test:hw_test_port_utils",
+        "//fboss/agent/test/utils:ecmp_test_utils",
     ],
 )
 
