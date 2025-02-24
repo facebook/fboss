@@ -59,27 +59,6 @@ class CmisHelper final {
     return smfSpeedApplicationMapping_;
   }
 
-  /*
-   * getInterfaceCode
-   *
-   * a Function used to get the Supported interface codes supported
-   * for each speed. One of the values in the returned vector will be
-   * programmed to the hardware, so returning a uint8_t
-   */
-  static std::vector<uint8_t> getInterfaceCode(
-      facebook::fboss::cfg::PortSpeed speed) {
-    std::vector<uint8_t> interfaceCodes;
-    const auto& smfSpeedMapping = getSmfSpeedApplicationMapping();
-    const auto itr = smfSpeedMapping.find(speed);
-    if (itr != smfSpeedMapping.end()) {
-      for (auto& val : itr->second) {
-        interfaceCodes.push_back(static_cast<uint8_t>(val));
-      }
-      return interfaceCodes;
-    }
-    return {};
-  }
-
   static MediaInterfaceCode getMediaInterfaceCode(
       SMFMediaInterfaceCode mediaInterfaceCode) {
     static const SmfMediaInterfaceMap smfMediaInterfaceMapping_ = {
@@ -200,6 +179,28 @@ class CmisHelper final {
   }
 
   /*
+   * getInterfaceCode
+   *
+   * a Function used to get the Supported interface codes supported
+   * for each speed. One of the values in the returned vector will be
+   * programmed to the hardware, so returning a uint8_t
+   */
+  template <typename InterfaceCode>
+  static std::vector<uint8_t> getInterfaceCode(
+      facebook::fboss::cfg::PortSpeed speed,
+      const SpeedApplicationMap<InterfaceCode>& mapping) {
+    std::vector<uint8_t> interfaceCodes;
+    const auto itr = mapping.find(speed);
+    if (itr != mapping.end()) {
+      for (auto& val : itr->second) {
+        interfaceCodes.push_back(static_cast<uint8_t>(val));
+      }
+      return interfaceCodes;
+    }
+    return {};
+  }
+
+  /*
    * getMediaIntfCodeFromSpeed
    *
    * Returns the media interface code for a given speed and the number of lanes
@@ -214,8 +215,9 @@ class CmisHelper final {
   static InterfaceCode getMediaIntfCodeFromSpeed(
       cfg::PortSpeed speed,
       uint8_t numLanes,
-      const CmisModule::ApplicationAdvertisingFields& moduleCapabilities) {
-    auto appCodes = CmisHelper::getInterfaceCode(speed);
+      const CmisModule::ApplicationAdvertisingFields& moduleCapabilities,
+      const SpeedApplicationMap<InterfaceCode>& mapping) {
+    auto appCodes = CmisHelper::getInterfaceCode<InterfaceCode>(speed, mapping);
     if (appCodes.empty()) {
       return InterfaceCode::UNKNOWN;
     }
@@ -250,11 +252,12 @@ class CmisHelper final {
       const std::string& tcvrName,
       const CmisModule::ApplicationAdvertisingFields& moduleCapabilities,
       const CmisModule::AllLaneConfig& currHwSpeedConfig,
-      const ValidSpeedCombinations<InterfaceCode>& speedCombinations) {
+      const ValidSpeedCombinations<InterfaceCode>& speedCombinations,
+      const SpeedApplicationMap<InterfaceCode>& mapping) {
     // Sanity check
     auto desiredMediaIntfCode =
         CmisHelper::getMediaIntfCodeFromSpeed<InterfaceCode>(
-            speed, numLanes, moduleCapabilities);
+            speed, numLanes, moduleCapabilities, mapping);
     if (desiredMediaIntfCode == InterfaceCode::UNKNOWN) {
       XLOG(ERR) << "Transceiver " << tcvrName << ": " << "Unsupported Speed "
                 << apache::thrift::util::enumNameSafe(speed);
@@ -334,10 +337,11 @@ class CmisHelper final {
       const uint8_t laneMask,
       const std::string& tcvrName,
       const CmisModule::ApplicationAdvertisingFields& moduleCapabilities,
-      const ValidSpeedCombinations<InterfaceCode>& speedCombinations) {
+      const ValidSpeedCombinations<InterfaceCode>& speedCombinations,
+      const SpeedApplicationMap<InterfaceCode>& mapping) {
     auto desiredMediaIntfCode =
         CmisHelper::getMediaIntfCodeFromSpeed<InterfaceCode>(
-            speed, numLanes, moduleCapabilities);
+            speed, numLanes, moduleCapabilities, mapping);
     if (desiredMediaIntfCode == InterfaceCode::UNKNOWN) {
       XLOG(ERR) << "Transceiver " << tcvrName << ": " << "Unsupported Speed "
                 << apache::thrift::util::enumNameSafe(speed);

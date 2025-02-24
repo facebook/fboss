@@ -1216,7 +1216,8 @@ TEST_F(CmisTest, cmis2x400GFr4DatapathProgramTest) {
       CmisModule::laneMask(0, 4),
       "tcvr1",
       xcvr->getModuleCapabilities(),
-      CmisHelper::getSmfValidSpeedCombinations());
+      CmisHelper::getSmfValidSpeedCombinations(),
+      CmisHelper::getSmfSpeedApplicationMapping());
   EXPECT_EQ(speedCfgCombo.size(), CmisModule::kMaxOsfpNumLanes);
   EXPECT_EQ(speedCfgCombo[0], (uint8_t)SMFMediaInterfaceCode::FR4_400G);
 
@@ -1227,7 +1228,8 @@ TEST_F(CmisTest, cmis2x400GFr4DatapathProgramTest) {
       CmisModule::laneMask(4, 4),
       "tcvr1",
       xcvr->getModuleCapabilities(),
-      CmisHelper::getSmfValidSpeedCombinations());
+      CmisHelper::getSmfValidSpeedCombinations(),
+      CmisHelper::getSmfSpeedApplicationMapping());
   EXPECT_EQ(speedCfgCombo.size(), CmisModule::kMaxOsfpNumLanes);
   EXPECT_EQ(speedCfgCombo[4], (uint8_t)SMFMediaInterfaceCode::FR4_400G);
 
@@ -1238,7 +1240,8 @@ TEST_F(CmisTest, cmis2x400GFr4DatapathProgramTest) {
       CmisModule::laneMask(4, 4),
       "tcvr1",
       xcvr->getModuleCapabilities(),
-      CmisHelper::getSmfValidSpeedCombinations());
+      CmisHelper::getSmfValidSpeedCombinations(),
+      CmisHelper::getSmfSpeedApplicationMapping());
   EXPECT_EQ(speedCfgCombo.size(), CmisModule::kMaxOsfpNumLanes);
   EXPECT_EQ(speedCfgCombo[4], (uint8_t)SMFMediaInterfaceCode::CWDM4_100G);
 
@@ -1249,7 +1252,8 @@ TEST_F(CmisTest, cmis2x400GFr4DatapathProgramTest) {
       CmisModule::laneMask(4, 4),
       "tcvr1",
       xcvr->getModuleCapabilities(),
-      CmisHelper::getSmfValidSpeedCombinations());
+      CmisHelper::getSmfValidSpeedCombinations(),
+      CmisHelper::getSmfSpeedApplicationMapping());
   EXPECT_EQ(speedCfgCombo.size(), CmisModule::kMaxOsfpNumLanes);
   for (auto& speed : speedCfgCombo) {
     EXPECT_EQ(speed, (uint8_t)SMFMediaInterfaceCode::FR1_100G);

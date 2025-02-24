@@ -2167,7 +2167,8 @@ void CmisModule::setApplicationSelectCodeAllPorts(
           laneMask(startHostLane, numHostLanes),
           getNameString(),
           moduleCapabilities_,
-          CmisHelper::getSmfValidSpeedCombinations());
+          CmisHelper::getSmfValidSpeedCombinations(),
+          CmisHelper::getSmfSpeedApplicationMapping());
   if (laneProgramValues.size() == kMaxOsfpNumLanes) {
     AllLaneConfig stageSet0Config;
     for (auto lane = 0; lane < kMaxOsfpNumLanes;) {
@@ -2237,7 +2238,8 @@ void CmisModule::setApplicationCodeLocked(
       "Trying to set application code for speed {} on startHostLane {}",
       apache::thrift::util::enumNameSafe(speed),
       startHostLane);
-  auto appCodes = CmisHelper::getInterfaceCode(speed);
+  auto appCodes = CmisHelper::getInterfaceCode(
+      speed, CmisHelper::getSmfSpeedApplicationMapping());
   if (appCodes.empty()) {
     QSFP_LOG(INFO, this) << "Unsupported Speed.";
     throw FbossError(folly::to<std::string>(
@@ -2417,7 +2419,8 @@ bool CmisModule::isRequestValidMultiportSpeedConfig(
       tcvrName,
       moduleCapabilities_,
       currHwSpeedConfig,
-      CmisHelper::getSmfValidSpeedCombinations());
+      CmisHelper::getSmfValidSpeedCombinations(),
+      CmisHelper::getSmfSpeedApplicationMapping());
 }
 
 /*
@@ -2604,7 +2607,8 @@ bool CmisModule::tcvrPortStateSupported(TransceiverPortState& portState) const {
   auto speed = portState.speed;
   auto startHostLane = portState.startHostLane;
   auto numHostLanes = portState.numHostLanes;
-  auto appCodes = CmisHelper::getInterfaceCode(speed);
+  auto appCodes = CmisHelper::getInterfaceCode(
+      speed, CmisHelper::getSmfSpeedApplicationMapping());
   if (appCodes.empty()) {
     // Speed Not supported
     return false;
