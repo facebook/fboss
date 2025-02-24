@@ -338,9 +338,20 @@ class CmisModule : public QsfpModule {
   MediaTypeEncodings getMediaTypeEncoding() const;
 
   /*
-   * Gets the Single Mode Fiber Interface codes from SFF-8024
+   * Get the curent application set for the lane (i.e. programmed in the
+   * transceiver). Based on Interface codes from SFF-8024.
    */
-  SMFMediaInterfaceCode getSmfMediaInterface(uint8_t lane = 0) const;
+  uint8_t getCurrentApplication(uint8_t lane) const;
+
+  /*
+   * Get the SMF Media Interface Code for the lane. uses
+   * getCurrentApplication.
+   * TODO: Should add a check for translation is to an enum that is
+   * supported or defined in thrift.
+   */
+  SMFMediaInterfaceCode getSmfMediaInterface(uint8_t lane) const {
+    return (SMFMediaInterfaceCode)getCurrentApplication(lane);
+  }
 
   /*
    * Returns the firmware version

@@ -860,7 +860,7 @@ uint8_t CmisModule::currentConfiguredMediaInterfaceCode(
   auto mediaTypeEncoding = getMediaTypeEncoding();
   uint8_t application = 0;
   if (mediaTypeEncoding == MediaTypeEncodings::OPTICAL_SMF) {
-    application = static_cast<uint8_t>(getSmfMediaInterface(hostLane));
+    application = getCurrentApplication(hostLane);
   } else if (
       mediaTypeEncoding == MediaTypeEncodings::PASSIVE_CU &&
       !moduleCapabilities_.empty()) {
@@ -944,10 +944,11 @@ std::vector<uint8_t> CmisModule::configuredMediaLanes(
   return cfgLanes;
 }
 
-SMFMediaInterfaceCode CmisModule::getSmfMediaInterface(uint8_t lane) const {
+uint8_t CmisModule::getCurrentApplication(uint8_t lane) const {
   if (lane >= 8) {
     QSFP_LOG(ERR, this) << "Invalid lane number " << lane;
-    return SMFMediaInterfaceCode::UNKNOWN;
+    // Based on SFF-8024, an App / App Sel of 0 is undefined/Unknown.
+    return 0;
   }
   // Pick the first application for flatMem modules. FlatMem modules don't
   // support page11h that contains the current operational app sel code
@@ -960,7 +961,8 @@ SMFMediaInterfaceCode CmisModule::getSmfMediaInterface(uint8_t lane) const {
   // Application select value 0 means application is not selected by module yet
   if (currentApplicationSel == 0) {
     QSFP_LOG(ERR, this) << "Module has not selected application yet";
-    return SMFMediaInterfaceCode::UNKNOWN;
+    // Based on SFF-8024, an App / App Sel of 0 is undefined/Unknown.
+    return 0;
   }
 
   uint8_t currentApplication;
@@ -986,7 +988,7 @@ SMFMediaInterfaceCode CmisModule::getSmfMediaInterface(uint8_t lane) const {
 
   getQsfpValue(dataAddress, offset, 1, &currentApplication);
 
-  return (SMFMediaInterfaceCode)currentApplication;
+  return currentApplication;
 }
 
 MediaTypeEncodings CmisModule::getMediaTypeEncoding() const {
