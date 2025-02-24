@@ -4184,18 +4184,6 @@
           "test_name_regex": "AgentEcmpNeighborTest/1.ResolvePendingResolveNexthop"
         },
         {
-          "test_name_regex": "AgentFswRouteScaleTest.fswRouteScale"
-        },
-        {
-          "test_name_regex": "AgentHgridDuRouteScaleTest.hgridDuScaleTest"
-        },
-        {
-          "test_name_regex": "AgentHgridUuRouteScaleTest.hgridUuScaleTest"
-        },
-        {
-          "test_name_regex": "AgentHundredThousandRouteScaleTest.hundredThousandRouteScaleTest"
-        },
-        {
           "test_name_regex": "AgentRouteTest/0.ResolvedMultiNexthopToUnresolvedSingleNexthop"
         },
         {
@@ -4244,9 +4232,6 @@
           "test_name_regex": "AgentEcmpTest.*$"
         },
         {
-          "test_name_regex": "AgentPortTest.PortLoopbackMode$"
-        },
-        {
           "test_name_regex": "AgentRouteTest/[01].VerifyClassIDForConnectedRoute$"
         },
         {
@@ -4259,13 +4244,7 @@
           "test_name_regex": "AgentHwAclStatTest.AclStatChangeCounterType$"
         },
         {
-          "test_name_regex": "AgentNeighborTest/[46].ResolvePendingEntryThenChangeLookupClassAgentSendPacketToQueueTest.SendPacketOutOfPortToMCQueue$"
-        },
-        {
-          "test_name_regex": "AgentVoqSwitchTest.trapPktsOnPort$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/0.UnresolvedRoutesToLowPriQueue$"
+          "test_name_regex": "AgentNeighborTest/[46].ResolvePendingEntryThenChangeLookupClassAgentCoppTest/0.UnresolvedRoutesToLowPriQueue$"
         },
         {
           "test_name_regex": "AgentTrafficPfcWatchdogTest.*$"
@@ -4714,18 +4693,6 @@
           "test_name_regex": "AgentEcmpNeighborTest/1.ResolvePendingResolveNexthop"
         },
         {
-          "test_name_regex": "AgentFswRouteScaleTest.fswRouteScale"
-        },
-        {
-          "test_name_regex": "AgentHgridDuRouteScaleTest.hgridDuScaleTest"
-        },
-        {
-          "test_name_regex": "AgentHgridUuRouteScaleTest.hgridUuScaleTest"
-        },
-        {
-          "test_name_regex": "AgentHundredThousandRouteScaleTest.hundredThousandRouteScaleTest"
-        },
-        {
           "test_name_regex": "AgentRouteTest/0.ResolvedMultiNexthopToUnresolvedSingleNexthop"
         },
         {
@@ -4774,9 +4741,6 @@
           "test_name_regex": "AgentEcmpTest.*$"
         },
         {
-          "test_name_regex": "AgentPortTest.PortLoopbackMode$"
-        },
-        {
           "test_name_regex": "AgentRouteTest/[01].VerifyClassIDForConnectedRoute$"
         },
         {
@@ -4789,13 +4753,7 @@
           "test_name_regex": "AgentHwAclStatTest.AclStatChangeCounterType$"
         },
         {
-          "test_name_regex": "AgentNeighborTest/[46].ResolvePendingEntryThenChangeLookupClassAgentSendPacketToQueueTest.SendPacketOutOfPortToMCQueue$"
-        },
-        {
-          "test_name_regex": "AgentVoqSwitchTest.trapPktsOnPort$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/0.UnresolvedRoutesToLowPriQueue$"
+          "test_name_regex": "AgentNeighborTest/[46].ResolvePendingEntryThenChangeLookupClassAgentCoppTest/0.UnresolvedRoutesToLowPriQueue$"
         },
         {
           "test_name_regex": "AgentTrafficPfcWatchdogTest.*$"
@@ -5582,18 +5540,6 @@
           "test_name_regex": "AgentEcmpNeighborTest/1.ResolvePendingResolveNexthop"
         },
         {
-          "test_name_regex": "AgentFswRouteScaleTest.fswRouteScale"
-        },
-        {
-          "test_name_regex": "AgentHgridDuRouteScaleTest.hgridDuScaleTest"
-        },
-        {
-          "test_name_regex": "AgentHgridUuRouteScaleTest.hgridUuScaleTest"
-        },
-        {
-          "test_name_regex": "AgentHundredThousandRouteScaleTest.hundredThousandRouteScaleTest"
-        },
-        {
           "test_name_regex": "AgentRouteTest/0.ResolvedMultiNexthopToUnresolvedSingleNexthop"
         },
         {
@@ -5642,9 +5588,6 @@
           "test_name_regex": "AgentEcmpTest.*$"
         },
         {
-          "test_name_regex": "AgentPortTest.PortLoopbackMode$"
-        },
-        {
           "test_name_regex": "AgentRouteTest/[01].VerifyClassIDForConnectedRoute$"
         },
         {
@@ -5657,13 +5600,7 @@
           "test_name_regex": "AgentHwAclStatTest.AclStatChangeCounterType$"
         },
         {
-          "test_name_regex": "AgentNeighborTest/[46].ResolvePendingEntryThenChangeLookupClassAgentSendPacketToQueueTest.SendPacketOutOfPortToMCQueue$"
-        },
-        {
-          "test_name_regex": "AgentVoqSwitchTest.trapPktsOnPort$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/0.UnresolvedRoutesToLowPriQueue$"
+          "test_name_regex": "AgentNeighborTest/[46].ResolvePendingEntryThenChangeLookupClassAgentCoppTest/0.UnresolvedRoutesToLowPriQueue$"
         },
         {
           "test_name_regex": "AgentTrafficPfcWatchdogTest.*$"
@@ -6112,18 +6049,6 @@
           "test_name_regex": "AgentEcmpNeighborTest/1.ResolvePendingResolveNexthop"
         },
         {
-          "test_name_regex": "AgentFswRouteScaleTest.fswRouteScale"
-        },
-        {
-          "test_name_regex": "AgentHgridDuRouteScaleTest.hgridDuScaleTest"
-        },
-        {
-          "test_name_regex": "AgentHgridUuRouteScaleTest.hgridUuScaleTest"
-        },
-        {
-          "test_name_regex": "AgentHundredThousandRouteScaleTest.hundredThousandRouteScaleTest"
-        },
-        {
           "test_name_regex": "AgentRouteTest/0.ResolvedMultiNexthopToUnresolvedSingleNexthop"
         },
         {
@@ -6172,9 +6097,6 @@
           "test_name_regex": "AgentEcmpTest.*$"
         },
         {
-          "test_name_regex": "AgentPortTest.PortLoopbackMode$"
-        },
-        {
           "test_name_regex": "AgentRouteTest/[01].VerifyClassIDForConnectedRoute$"
         },
         {
@@ -6187,13 +6109,7 @@
           "test_name_regex": "AgentHwAclStatTest.AclStatChangeCounterType$"
         },
         {
-          "test_name_regex": "AgentNeighborTest/[46].ResolvePendingEntryThenChangeLookupClassAgentSendPacketToQueueTest.SendPacketOutOfPortToMCQueue$"
-        },
-        {
-          "test_name_regex": "AgentVoqSwitchTest.trapPktsOnPort$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/0.UnresolvedRoutesToLowPriQueue$"
+          "test_name_regex": "AgentNeighborTest/[46].ResolvePendingEntryThenChangeLookupClassAgentCoppTest/0.UnresolvedRoutesToLowPriQueue$"
         },
         {
           "test_name_regex": "AgentTrafficPfcWatchdogTest.*$"
@@ -7899,18 +7815,6 @@
           "test_name_regex": "AgentEcmpNeighborTest/1.ResolvePendingResolveNexthop"
         },
         {
-          "test_name_regex": "AgentFswRouteScaleTest.fswRouteScale"
-        },
-        {
-          "test_name_regex": "AgentHgridDuRouteScaleTest.hgridDuScaleTest"
-        },
-        {
-          "test_name_regex": "AgentHgridUuRouteScaleTest.hgridUuScaleTest"
-        },
-        {
-          "test_name_regex": "AgentHundredThousandRouteScaleTest.hundredThousandRouteScaleTest"
-        },
-        {
           "test_name_regex": "AgentRouteTest/0.ResolvedMultiNexthopToUnresolvedSingleNexthop"
         },
         {
@@ -7959,9 +7863,6 @@
           "test_name_regex": "AgentEcmpTest.*$"
         },
         {
-          "test_name_regex": "AgentPortTest.PortLoopbackMode$"
-        },
-        {
           "test_name_regex": "AgentRouteTest/[01].VerifyClassIDForConnectedRoute$"
         },
         {
@@ -7974,13 +7875,7 @@
           "test_name_regex": "AgentHwAclStatTest.AclStatChangeCounterType$"
         },
         {
-          "test_name_regex": "AgentNeighborTest/[46].ResolvePendingEntryThenChangeLookupClassAgentSendPacketToQueueTest.SendPacketOutOfPortToMCQueue$"
-        },
-        {
-          "test_name_regex": "AgentVoqSwitchTest.trapPktsOnPort$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/0.UnresolvedRoutesToLowPriQueue$"
+          "test_name_regex": "AgentNeighborTest/[46].ResolvePendingEntryThenChangeLookupClassAgentCoppTest/0.UnresolvedRoutesToLowPriQueue$"
         },
         {
           "test_name_regex": "AgentTrafficPfcWatchdogTest.*$"
@@ -8429,18 +8324,6 @@
           "test_name_regex": "AgentEcmpNeighborTest/1.ResolvePendingResolveNexthop"
         },
         {
-          "test_name_regex": "AgentFswRouteScaleTest.fswRouteScale"
-        },
-        {
-          "test_name_regex": "AgentHgridDuRouteScaleTest.hgridDuScaleTest"
-        },
-        {
-          "test_name_regex": "AgentHgridUuRouteScaleTest.hgridUuScaleTest"
-        },
-        {
-          "test_name_regex": "AgentHundredThousandRouteScaleTest.hundredThousandRouteScaleTest"
-        },
-        {
           "test_name_regex": "AgentRouteTest/0.ResolvedMultiNexthopToUnresolvedSingleNexthop"
         },
         {
@@ -8489,9 +8372,6 @@
           "test_name_regex": "AgentEcmpTest.*$"
         },
         {
-          "test_name_regex": "AgentPortTest.PortLoopbackMode$"
-        },
-        {
           "test_name_regex": "AgentRouteTest/[01].VerifyClassIDForConnectedRoute$"
         },
         {
@@ -8504,13 +8384,7 @@
           "test_name_regex": "AgentHwAclStatTest.AclStatChangeCounterType$"
         },
         {
-          "test_name_regex": "AgentNeighborTest/[46].ResolvePendingEntryThenChangeLookupClassAgentSendPacketToQueueTest.SendPacketOutOfPortToMCQueue$"
-        },
-        {
-          "test_name_regex": "AgentVoqSwitchTest.trapPktsOnPort$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/0.UnresolvedRoutesToLowPriQueue$"
+          "test_name_regex": "AgentNeighborTest/[46].ResolvePendingEntryThenChangeLookupClassAgentCoppTest/0.UnresolvedRoutesToLowPriQueue$"
         },
         {
           "test_name_regex": "AgentTrafficPfcWatchdogTest.*$"
