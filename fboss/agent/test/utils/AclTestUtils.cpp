@@ -224,7 +224,9 @@ cfg::AclTable* addAclTable(
   auto aclTableGroup = getAclTableGroup(*cfg, aclStage);
   if (!aclTableGroup) {
     throw FbossError(
-        "Attempted to add acl table without first creating acl table group");
+        "Attempted to add acl table ",
+        aclTableName,
+        " without first creating acl table group");
   }
 
   cfg::AclTable aclTable;
@@ -444,6 +446,10 @@ getAclTableGroup(cfg::SwitchConfig& config, cfg::AclStage aclStage) {
 }
 
 void setupDefaultAclTableGroups(cfg::SwitchConfig& config) {
+  if (getAclTableGroup(config, cfg::AclStage::INGRESS)) {
+    // default table group already exists
+    return;
+  }
   utility::addAclTableGroup(
       &config, cfg::AclStage::INGRESS, utility::kDefaultAclTableGroupName());
   utility::addDefaultAclTable(config);

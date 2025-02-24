@@ -751,11 +751,6 @@ cfg::SwitchConfig genPortVlanCfg(
     const std::optional<std::map<SwitchID, const HwAsic*>>& hwAsicTable,
     const std::optional<PlatformType> platformType) {
   cfg::SwitchConfig config;
-  if (FLAGS_enable_acl_table_group) {
-    utility::addAclTableGroup(
-        &config, cfg::AclStage::INGRESS, utility::kDefaultAclTableGroupName());
-    utility::addDefaultAclTable(config);
-  }
   if (switchIdToSwitchInfo.has_value() && hwAsicTable.has_value()) {
     populateSwitchInfo(
         config,
@@ -812,6 +807,9 @@ cfg::SwitchConfig genPortVlanCfg(
     defaultSwitchIdToSwitchInfo.insert({SwitchID(switchId), switchInfo});
     populateSwitchInfo(
         config, defaultSwitchIdToSwitchInfo, defaultHwAsicTable, platformType);
+  }
+  if (FLAGS_enable_acl_table_group) {
+    utility::setupDefaultAclTableGroups(config);
   }
   auto switchType = asic->getSwitchType();
   // VOQ config
