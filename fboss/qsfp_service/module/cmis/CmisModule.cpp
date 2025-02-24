@@ -403,10 +403,6 @@ void getQsfpFieldAddress(
   length = info.length;
 }
 
-uint8_t laneMask(uint8_t startLane, uint8_t numLanes) {
-  return ((1 << numLanes) - 1) << startLane;
-}
-
 bool isValidVdmConfigType(int vdmConf) {
   if (vdmConf == static_cast<int>(SNR_MEDIA_IN) ||
       vdmConf == static_cast<int>(SNR_HOST_IN) ||
@@ -2164,7 +2160,14 @@ void CmisModule::setApplicationSelectCodeAllPorts(
     uint8_t numHostLanes,
     uint8_t hostLaneMask) {
   if (auto laneProgramValues =
-          getValidMultiportSpeedConfig(speed, startHostLane, numHostLanes)) {
+          CmisHelper::getValidMultiportSpeedConfig<SMFMediaInterfaceCode>(
+              speed,
+              startHostLane,
+              numHostLanes,
+              laneMask(startHostLane, numHostLanes),
+              getNameString(),
+              moduleCapabilities_,
+              CmisHelper::getSmfValidSpeedCombinations())) {
     AllLaneConfig stageSet0Config;
     for (auto lane = 0; lane < kMaxOsfpNumLanes;) {
       if (auto laneCapability = getApplicationField(
@@ -2414,59 +2417,6 @@ bool CmisModule::isRequestValidMultiportSpeedConfig(
       moduleCapabilities_,
       currHwSpeedConfig,
       CmisHelper::getSmfValidSpeedCombinations());
-}
-
-/*
- * getValidMultiportSpeedConfig
- *
- * Returns the valid speed config for all the lanes of the multi-port optics
- * which matches closely with the supported speed combo on the optics. If no
- * valid speed combo is found then returns nullopt
- */
-std::optional<std::array<SMFMediaInterfaceCode, CmisModule::kMaxOsfpNumLanes>>
-CmisModule::getValidMultiportSpeedConfig(
-    cfg::PortSpeed speed,
-    uint8_t startHostLane,
-    uint8_t numLanes) {
-  auto desiredMediaIntfCode =
-      CmisHelper::getMediaIntfCodeFromSpeed<SMFMediaInterfaceCode>(
-          speed, numLanes, moduleCapabilities_);
-  if (desiredMediaIntfCode == SMFMediaInterfaceCode::UNKNOWN) {
-    QSFP_LOG(ERR, this) << "Unsupported Speed "
-                        << apache::thrift::util::enumNameSafe(speed);
-    return std::nullopt;
-  }
-
-  CHECK_LE(startHostLane + numLanes, kMaxOsfpNumLanes);
-  for (auto& validSpeedCombo : CmisHelper::getSmfValidSpeedCombinations()) {
-    bool combolValid = true;
-    for (int laneId = startHostLane; laneId < startHostLane + numLanes;
-         laneId++) {
-      if (validSpeedCombo[laneId] != desiredMediaIntfCode) {
-        combolValid = false;
-        break;
-      }
-    }
-    if (combolValid) {
-      std::string speedCfgCombo;
-      for (int laneId = 0; laneId < kMaxOsfpNumLanes; laneId++) {
-        speedCfgCombo +=
-            apache::thrift::util::enumNameSafe(validSpeedCombo[laneId]);
-        speedCfgCombo += " ";
-      }
-      QSFP_LOG(DBG2, this) << folly::sformat(
-          "Returning the valid speed combo of media intf id {:s} for lanemask {:#x} = {:s}",
-          apache::thrift::util::enumNameSafe(desiredMediaIntfCode),
-          laneMask(startHostLane, numLanes),
-          speedCfgCombo);
-      return validSpeedCombo;
-    }
-  }
-  QSFP_LOG(ERR, this) << folly::sformat(
-      "No valid speed combo found for speed {:s} and lanemask {:#x}",
-      apache::thrift::util::enumNameSafe(speed),
-      laneMask(startHostLane, numLanes));
-  return std::nullopt;
 }
 
 /*

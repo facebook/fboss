@@ -157,11 +157,14 @@ class CmisModule : public QsfpModule {
       uint8_t startHostLane,
       uint8_t numLanes);
 
-  std::optional<std::array<SMFMediaInterfaceCode, kMaxOsfpNumLanes>>
-  getValidMultiportSpeedConfig(
-      cfg::PortSpeed speed,
-      uint8_t startHostLane,
-      uint8_t numLanes);
+  // Public since its used for unit testing
+  ApplicationAdvertisingFields getModuleCapabilities() {
+    return moduleCapabilities_;
+  }
+  // Public since its used for unit testing
+  static uint8_t laneMask(uint8_t startLane, uint8_t numLanes) {
+    return ((1 << numLanes) - 1) << startLane;
+  }
 
  protected:
   // QSFP+ requires a bottom 128 byte page describing important monitoring

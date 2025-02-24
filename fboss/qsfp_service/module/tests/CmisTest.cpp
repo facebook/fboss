@@ -10,6 +10,7 @@
 
 #include "fboss/qsfp_service/test/TransceiverManagerTestHelper.h"
 
+#include "fboss/qsfp_service/module/cmis/CmisHelper.h"
 #include "fboss/qsfp_service/module/cmis/CmisModule.h"
 #include "fboss/qsfp_service/module/tests/FakeTransceiverImpl.h"
 #include "fboss/qsfp_service/module/tests/TransceiverTestsHelper.h"
@@ -1208,25 +1209,47 @@ TEST_F(CmisTest, cmis2x400GFr4DatapathProgramTest) {
   EXPECT_FALSE(
       xcvr->isRequestValidMultiportSpeedConfig(cfg::PortSpeed::HUNDREDG, 4, 4));
 
-  EXPECT_TRUE(
-      xcvr->getValidMultiportSpeedConfig(cfg::PortSpeed::FOURHUNDREDG, 0, 4)
-          .has_value());
-  EXPECT_TRUE(
-      xcvr->getValidMultiportSpeedConfig(cfg::PortSpeed::FOURHUNDREDG, 4, 4)
-          .has_value());
+  auto speedCfgCombo = CmisHelper::getValidMultiportSpeedConfig(
+      cfg::PortSpeed::FOURHUNDREDG,
+      0,
+      4,
+      CmisModule::laneMask(0, 4),
+      "tcvr1",
+      xcvr->getModuleCapabilities(),
+      CmisHelper::getSmfValidSpeedCombinations());
+  EXPECT_TRUE(speedCfgCombo.has_value());
+  EXPECT_EQ(speedCfgCombo.value()[0], SMFMediaInterfaceCode::FR4_400G);
 
-  auto speedCfgCombo =
-      xcvr->getValidMultiportSpeedConfig(cfg::PortSpeed::FOURHUNDREDG, 0, 4);
+  speedCfgCombo = CmisHelper::getValidMultiportSpeedConfig(
+      cfg::PortSpeed::FOURHUNDREDG,
+      4,
+      4,
+      CmisModule::laneMask(4, 4),
+      "tcvr1",
+      xcvr->getModuleCapabilities(),
+      CmisHelper::getSmfValidSpeedCombinations());
   EXPECT_TRUE(speedCfgCombo.has_value());
   EXPECT_EQ(speedCfgCombo.value()[4], SMFMediaInterfaceCode::FR4_400G);
 
-  speedCfgCombo =
-      xcvr->getValidMultiportSpeedConfig(cfg::PortSpeed::HUNDREDG, 4, 4);
+  speedCfgCombo = CmisHelper::getValidMultiportSpeedConfig(
+      cfg::PortSpeed::HUNDREDG,
+      4,
+      4,
+      CmisModule::laneMask(4, 4),
+      "tcvr1",
+      xcvr->getModuleCapabilities(),
+      CmisHelper::getSmfValidSpeedCombinations());
   EXPECT_TRUE(speedCfgCombo.has_value());
-  EXPECT_EQ(speedCfgCombo.value()[0], SMFMediaInterfaceCode::CWDM4_100G);
+  EXPECT_EQ(speedCfgCombo.value()[4], SMFMediaInterfaceCode::CWDM4_100G);
 
-  speedCfgCombo =
-      xcvr->getValidMultiportSpeedConfig(cfg::PortSpeed::HUNDREDG, 5, 1);
+  speedCfgCombo = CmisHelper::getValidMultiportSpeedConfig(
+      cfg::PortSpeed::HUNDREDG,
+      5,
+      1,
+      CmisModule::laneMask(4, 4),
+      "tcvr1",
+      xcvr->getModuleCapabilities(),
+      CmisHelper::getSmfValidSpeedCombinations());
   EXPECT_TRUE(speedCfgCombo.has_value());
   EXPECT_EQ(speedCfgCombo.value()[0], SMFMediaInterfaceCode::FR1_100G);
   EXPECT_EQ(speedCfgCombo.value()[1], SMFMediaInterfaceCode::FR1_100G);

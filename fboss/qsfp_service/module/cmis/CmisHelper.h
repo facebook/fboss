@@ -21,6 +21,10 @@ using ValidSpeedCombinations =
     std::vector<std::array<InterfaceCode, CmisModule::kMaxOsfpNumLanes>>;
 using SmfValidSpeedCombinations = ValidSpeedCombinations<SMFMediaInterfaceCode>;
 
+template <typename InterfaceCode>
+using MultiportSpeedConfig =
+    std::optional<std::array<InterfaceCode, CmisModule::kMaxOsfpNumLanes>>;
+
 class CmisHelper final {
  private:
   // Disable Construction of this class.
@@ -295,6 +299,67 @@ class CmisHelper final {
                apache::thrift::util::enumNameSafe(desiredMediaIntfCode),
                laneMask);
     return false;
+  }
+
+  /*
+   * getValidMultiportSpeedConfig
+   *
+   * Returns the valid speed config for all the lanes of the multi-port optics
+   * which matches closely with the supported speed combo on the optics. If no
+   * valid speed combo is found then returns nullopt
+   */
+  template <typename InterfaceCode>
+  static MultiportSpeedConfig<InterfaceCode> getValidMultiportSpeedConfig(
+      const cfg::PortSpeed speed,
+      const uint8_t startHostLane,
+      const uint8_t numLanes,
+      const uint8_t laneMask,
+      const std::string& tcvrName,
+      const CmisModule::ApplicationAdvertisingFields& moduleCapabilities,
+      const ValidSpeedCombinations<InterfaceCode>& speedCombinations) {
+    auto desiredMediaIntfCode =
+        CmisHelper::getMediaIntfCodeFromSpeed<InterfaceCode>(
+            speed, numLanes, moduleCapabilities);
+    if (desiredMediaIntfCode == InterfaceCode::UNKNOWN) {
+      XLOG(ERR) << "Transceiver " << tcvrName << ": " << "Unsupported Speed "
+                << apache::thrift::util::enumNameSafe(speed);
+      return std::nullopt;
+    }
+
+    CHECK_LE(startHostLane + numLanes, CmisModule::kMaxOsfpNumLanes);
+    for (auto& validSpeedCombo : speedCombinations) {
+      bool combolValid = true;
+      for (int laneId = startHostLane; laneId < startHostLane + numLanes;
+           laneId++) {
+        if (validSpeedCombo[laneId] != desiredMediaIntfCode) {
+          combolValid = false;
+          break;
+        }
+      }
+      if (combolValid) {
+        std::string speedCfgCombo;
+        for (int laneId = 0; laneId < CmisModule::kMaxOsfpNumLanes; laneId++) {
+          speedCfgCombo +=
+              apache::thrift::util::enumNameSafe(validSpeedCombo[laneId]);
+          speedCfgCombo += " ";
+        }
+        XLOG(ERR)
+            << "Transceiver " << tcvrName << ": "
+            << folly::sformat(
+                   "Returning the valid speed combo of media intf id {:s} for lanemask {:#x} = {:s}",
+                   apache::thrift::util::enumNameSafe(desiredMediaIntfCode),
+                   laneMask,
+                   speedCfgCombo);
+        return validSpeedCombo;
+      }
+    }
+    XLOG(ERR)
+        << "Transceiver " << tcvrName << ": "
+        << folly::sformat(
+               "No valid speed combo found for speed {:s} and lanemask {:#x}",
+               apache::thrift::util::enumNameSafe(speed),
+               laneMask);
+    return std::nullopt;
   }
 };
 
