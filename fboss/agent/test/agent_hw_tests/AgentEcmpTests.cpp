@@ -14,6 +14,7 @@
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
+#include "fboss/agent/test/utils/EcmpTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
 DECLARE_bool(intf_nbr_tables);
@@ -112,27 +113,11 @@ class AgentEcmpTest : public AgentHwTest {
       const std::vector<NextHopWeight>& hwWs);
 
  protected:
-  std::map<int32_t, int32_t> getEcmpWeightsInHw() const {
-    auto switchId = getSw()
-                        ->getScopeResolver()
-                        ->scope(masterLogicalPortIds()[0])
-                        .switchId();
-    auto client = getAgentEnsemble()->getHwAgentTestClient(switchId);
+  int getEcmpSizeInHw() const {
     facebook::fboss::utility::CIDRNetwork cidr;
     cidr.IPAddress() = "::";
     cidr.mask() = 0;
-    std::map<int32_t, int32_t> ecmpWeights;
-    client->sync_getEcmpWeights(ecmpWeights, cidr, 0);
-    return ecmpWeights;
-  }
-
-  int getEcmpSizeInHw(int sizeInSw = kNumNextHops) const {
-    auto ecmpWeights = getEcmpWeightsInHw();
-    int ecmpSize = 0;
-    for (auto& [_, weight] : ecmpWeights) {
-      ecmpSize += weight;
-    }
-    return ecmpSize;
+    return utility::getEcmpSizeInHw(getAgentEnsemble(), cidr);
   }
 };
 
@@ -617,9 +602,7 @@ TYPED_TEST(AgentEcmpNeighborTest, ResolvePendingResolveNexthop) {
   };
   auto verify = [=, this]() {
     /* ecmp is resolved */
-    WITH_RETRIES({
-      EXPECT_EVENTUALLY_EQ(this->getEcmpSizeInHw(numNeighborEntries), 2);
-    });
+    WITH_RETRIES({ EXPECT_EVENTUALLY_EQ(this->getEcmpSizeInHw(), 2); });
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }

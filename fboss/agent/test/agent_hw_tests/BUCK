@@ -139,6 +139,7 @@ cpp_library(
         "//fboss/agent/test/utils:dscp_marking_utils",
         "//fboss/agent/test/utils:dsf_config_utils",
         "//fboss/agent/test/utils:ecmp_dataplane_test_util",
+        "//fboss/agent/test/utils:ecmp_test_utils",
         "//fboss/agent/test/utils:fabric_test_utils",
         "//fboss/agent/test/utils:invariant_test_utils",
         "//fboss/agent/test/utils:l2learn_observer_util",

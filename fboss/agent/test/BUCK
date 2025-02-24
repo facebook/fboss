@@ -424,6 +424,7 @@ cpp_library(
     undefined_symbols = True,
     exported_deps = [
         "fbsource//third-party/googletest:gtest",
+        "//fboss/agent:agent_features",
         "//fboss/agent:fboss_common_init",
         "//fboss/agent:hw_asic_table",
         "//fboss/agent:hw_switch",
@@ -525,6 +526,7 @@ cpp_library(
         "fbsource//third-party/googletest:gtest",
         ":agent_ensemble",
         ":production_features-cpp2-types",
+        "//fboss/agent:agent_features",
         "//fboss/agent:core",
         "//fboss/agent:fboss_init_h",
         "//fboss/agent:hw_asic_table",
