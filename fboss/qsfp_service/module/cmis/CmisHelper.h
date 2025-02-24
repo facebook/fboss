@@ -16,8 +16,10 @@ using SpeedApplicationMap = std::
     unordered_map<facebook::fboss::cfg::PortSpeed, std::vector<InterfaceCode>>;
 using SmfSpeedApplicationMap = SpeedApplicationMap<SMFMediaInterfaceCode>;
 
-using SmfValidSpeedCombinations = std::vector<
-    std::array<SMFMediaInterfaceCode, CmisModule::kMaxOsfpNumLanes>>;
+template <typename InterfaceCode>
+using ValidSpeedCombinations =
+    std::vector<std::array<InterfaceCode, CmisModule::kMaxOsfpNumLanes>>;
+using SmfValidSpeedCombinations = ValidSpeedCombinations<SMFMediaInterfaceCode>;
 
 class CmisHelper final {
  private:
@@ -223,6 +225,76 @@ class CmisHelper final {
       }
     }
     return InterfaceCode::UNKNOWN;
+  }
+
+  /*
+   * checkSpeedCombo
+   *
+   * Given a port: desired speed, start host lane, number of lanes, the module
+   * capabilities the current transceiver HW speed config (if transceiver has
+   * multiple ports and we are only configuring one port) and the possible speed
+   * combinations, check if the desired speed combination is valid and
+   * supported.
+   */
+
+  template <typename InterfaceCode>
+  static bool checkSpeedCombo(
+      const cfg::PortSpeed speed,
+      const uint8_t startHostLane,
+      const uint8_t numLanes,
+      const uint8_t laneMask,
+      const std::string& tcvrName,
+      const CmisModule::ApplicationAdvertisingFields& moduleCapabilities,
+      const CmisModule::AllLaneConfig& currHwSpeedConfig,
+      const ValidSpeedCombinations<InterfaceCode>& speedCombinations) {
+    // Sanity check
+    auto desiredMediaIntfCode =
+        CmisHelper::getMediaIntfCodeFromSpeed<InterfaceCode>(
+            speed, numLanes, moduleCapabilities);
+    if (desiredMediaIntfCode == InterfaceCode::UNKNOWN) {
+      XLOG(ERR) << "Transceiver " << tcvrName << ": " << "Unsupported Speed "
+                << apache::thrift::util::enumNameSafe(speed);
+      return false;
+    }
+
+    // Find what will be the new config after applying the requested config
+    std::array<InterfaceCode, CmisModule::kMaxOsfpNumLanes> desiredSpeedConfig;
+    for (int laneId = 0; laneId < CmisModule::kMaxOsfpNumLanes; laneId++) {
+      if (laneId >= startHostLane && laneId < startHostLane + numLanes) {
+        desiredSpeedConfig[laneId] = desiredMediaIntfCode;
+      } else {
+        desiredSpeedConfig[laneId] =
+            CmisHelper::getApplicationFromApSelCode<InterfaceCode>(
+                currHwSpeedConfig[laneId], moduleCapabilities);
+      }
+    }
+
+    // Check if this is supported speed config combo on this optics and return
+    for (auto& validSpeedCombo : speedCombinations) {
+      bool combolValid = true;
+      for (int laneId = 0; laneId < CmisModule::kMaxOsfpNumLanes; laneId++) {
+        if (validSpeedCombo[laneId] != desiredSpeedConfig[laneId]) {
+          combolValid = false;
+          break;
+        }
+      }
+      if (combolValid) {
+        XLOG(ERR)
+            << "Transceiver " << tcvrName << ": "
+            << folly::sformat(
+                   "Found the valid speed combo of media intf id {:s} for lanemask {:#x}",
+                   apache::thrift::util::enumNameSafe(desiredMediaIntfCode),
+                   laneMask);
+        return true;
+      }
+    }
+    XLOG(ERR)
+        << "Transceiver " << tcvrName << ": "
+        << folly::sformat(
+               "Could not find the valid speed combo of media intf id {:s} for lanemask {:#x}",
+               apache::thrift::util::enumNameSafe(desiredMediaIntfCode),
+               laneMask);
+    return false;
   }
 };
 

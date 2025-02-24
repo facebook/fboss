@@ -2392,16 +2392,6 @@ bool CmisModule::isRequestValidMultiportSpeedConfig(
     return true;
   }
 
-  // Sanity check
-  auto desiredMediaIntfCode =
-      CmisHelper::getMediaIntfCodeFromSpeed<SMFMediaInterfaceCode>(
-          speed, numLanes, moduleCapabilities_);
-  if (desiredMediaIntfCode == SMFMediaInterfaceCode::UNKNOWN) {
-    QSFP_LOG(ERR, this) << "Unsupported Speed "
-                        << apache::thrift::util::enumNameSafe(speed);
-    return false;
-  }
-
   // Get the current speed config on the Multiport optics lanes. Avoid cache
   // and read from HW directly
   AllLaneConfig currHwSpeedConfig;
@@ -2411,40 +2401,17 @@ bool CmisModule::isRequestValidMultiportSpeedConfig(
         (currHwSpeedConfig[laneId] & APP_SEL_MASK) >> APP_SEL_BITSHIFT;
   }
 
-  // Find what will be the new config after applying the requested config
-  std::array<SMFMediaInterfaceCode, kMaxOsfpNumLanes> desiredSpeedConfig;
-  for (int laneId = 0; laneId < kMaxOsfpNumLanes; laneId++) {
-    if (laneId >= startHostLane && laneId < startHostLane + numLanes) {
-      desiredSpeedConfig[laneId] = desiredMediaIntfCode;
-    } else {
-      desiredSpeedConfig[laneId] =
-          CmisHelper::getApplicationFromApSelCode<SMFMediaInterfaceCode>(
-              currHwSpeedConfig[laneId], moduleCapabilities_);
-    }
-  }
-
-  // Check if this is supported speed config combo on this optics and return
-  for (auto& validSpeedCombo : CmisHelper::getSmfValidSpeedCombinations()) {
-    bool combolValid = true;
-    for (int laneId = 0; laneId < kMaxOsfpNumLanes; laneId++) {
-      if (validSpeedCombo[laneId] != desiredSpeedConfig[laneId]) {
-        combolValid = false;
-        break;
-      }
-    }
-    if (combolValid) {
-      QSFP_LOG(DBG2, this) << folly::sformat(
-          "Found the valid speed combo of media intf id {:s} for lanemask {:#x}",
-          apache::thrift::util::enumNameSafe(desiredMediaIntfCode),
-          laneMask(startHostLane, numLanes));
-      return true;
-    }
-  }
-  QSFP_LOG(DBG2, this) << folly::sformat(
-      "Could not find the valid speed combo of media intf id {:s} for lanemask {:#x}",
-      apache::thrift::util::enumNameSafe(desiredMediaIntfCode),
-      laneMask(startHostLane, numLanes));
-  return false;
+  uint8_t mask = laneMask(startHostLane, numLanes);
+  auto tcvrName = getNameString();
+  return CmisHelper::checkSpeedCombo<SMFMediaInterfaceCode>(
+      speed,
+      startHostLane,
+      numLanes,
+      mask,
+      tcvrName,
+      moduleCapabilities_,
+      currHwSpeedConfig,
+      CmisHelper::getSmfValidSpeedCombinations());
 }
 
 /*
