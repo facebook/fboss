@@ -1217,8 +1217,8 @@ TEST_F(CmisTest, cmis2x400GFr4DatapathProgramTest) {
       "tcvr1",
       xcvr->getModuleCapabilities(),
       CmisHelper::getSmfValidSpeedCombinations());
-  EXPECT_TRUE(speedCfgCombo.has_value());
-  EXPECT_EQ(speedCfgCombo.value()[0], SMFMediaInterfaceCode::FR4_400G);
+  EXPECT_EQ(speedCfgCombo.size(), CmisModule::kMaxOsfpNumLanes);
+  EXPECT_EQ(speedCfgCombo[0], (uint8_t)SMFMediaInterfaceCode::FR4_400G);
 
   speedCfgCombo = CmisHelper::getValidMultiportSpeedConfig(
       cfg::PortSpeed::FOURHUNDREDG,
@@ -1228,8 +1228,8 @@ TEST_F(CmisTest, cmis2x400GFr4DatapathProgramTest) {
       "tcvr1",
       xcvr->getModuleCapabilities(),
       CmisHelper::getSmfValidSpeedCombinations());
-  EXPECT_TRUE(speedCfgCombo.has_value());
-  EXPECT_EQ(speedCfgCombo.value()[4], SMFMediaInterfaceCode::FR4_400G);
+  EXPECT_EQ(speedCfgCombo.size(), CmisModule::kMaxOsfpNumLanes);
+  EXPECT_EQ(speedCfgCombo[4], (uint8_t)SMFMediaInterfaceCode::FR4_400G);
 
   speedCfgCombo = CmisHelper::getValidMultiportSpeedConfig(
       cfg::PortSpeed::HUNDREDG,
@@ -1239,8 +1239,8 @@ TEST_F(CmisTest, cmis2x400GFr4DatapathProgramTest) {
       "tcvr1",
       xcvr->getModuleCapabilities(),
       CmisHelper::getSmfValidSpeedCombinations());
-  EXPECT_TRUE(speedCfgCombo.has_value());
-  EXPECT_EQ(speedCfgCombo.value()[4], SMFMediaInterfaceCode::CWDM4_100G);
+  EXPECT_EQ(speedCfgCombo.size(), CmisModule::kMaxOsfpNumLanes);
+  EXPECT_EQ(speedCfgCombo[4], (uint8_t)SMFMediaInterfaceCode::CWDM4_100G);
 
   speedCfgCombo = CmisHelper::getValidMultiportSpeedConfig(
       cfg::PortSpeed::HUNDREDG,
@@ -1250,14 +1250,10 @@ TEST_F(CmisTest, cmis2x400GFr4DatapathProgramTest) {
       "tcvr1",
       xcvr->getModuleCapabilities(),
       CmisHelper::getSmfValidSpeedCombinations());
-  EXPECT_TRUE(speedCfgCombo.has_value());
-  EXPECT_EQ(speedCfgCombo.value()[0], SMFMediaInterfaceCode::FR1_100G);
-  EXPECT_EQ(speedCfgCombo.value()[1], SMFMediaInterfaceCode::FR1_100G);
-  EXPECT_EQ(speedCfgCombo.value()[2], SMFMediaInterfaceCode::FR1_100G);
-  EXPECT_EQ(speedCfgCombo.value()[3], SMFMediaInterfaceCode::FR1_100G);
-  EXPECT_EQ(speedCfgCombo.value()[4], SMFMediaInterfaceCode::FR1_100G);
-  EXPECT_EQ(speedCfgCombo.value()[6], SMFMediaInterfaceCode::FR1_100G);
-  EXPECT_EQ(speedCfgCombo.value()[7], SMFMediaInterfaceCode::FR1_100G);
+  EXPECT_EQ(speedCfgCombo.size(), CmisModule::kMaxOsfpNumLanes);
+  for (auto& speed : speedCfgCombo) {
+    EXPECT_EQ(speed, (uint8_t)SMFMediaInterfaceCode::FR1_100G);
+  }
 }
 
 TEST_F(CmisTest, cmis2x400GDr4TransceiverInfoTest) {

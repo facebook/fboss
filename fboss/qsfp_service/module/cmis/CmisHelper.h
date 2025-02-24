@@ -23,7 +23,7 @@ using SmfValidSpeedCombinations = ValidSpeedCombinations<SMFMediaInterfaceCode>;
 
 template <typename InterfaceCode>
 using MultiportSpeedConfig =
-    std::optional<std::array<InterfaceCode, CmisModule::kMaxOsfpNumLanes>>;
+    std::array<InterfaceCode, CmisModule::kMaxOsfpNumLanes>;
 
 class CmisHelper final {
  private:
@@ -302,6 +302,24 @@ class CmisHelper final {
   }
 
   /*
+   * getSpeedComboAsUint8
+   *
+   * Translate the valid speed combination to a
+   * vector of uint8_t so that the values can be applied
+   * to the module. Per CMIS spec, the value written to the
+   * HW is uint8_t.
+   */
+  template <typename InterfaceCode>
+  static std::vector<uint8_t> getSpeedComboAsUint8(
+      const MultiportSpeedConfig<InterfaceCode>& validCombo) {
+    std::vector<uint8_t> validComboVec;
+    for (auto& intfCode : validCombo) {
+      validComboVec.push_back(static_cast<uint8_t>(intfCode));
+    }
+    return validComboVec;
+  }
+
+  /*
    * getValidMultiportSpeedConfig
    *
    * Returns the valid speed config for all the lanes of the multi-port optics
@@ -309,7 +327,7 @@ class CmisHelper final {
    * valid speed combo is found then returns nullopt
    */
   template <typename InterfaceCode>
-  static MultiportSpeedConfig<InterfaceCode> getValidMultiportSpeedConfig(
+  static std::vector<uint8_t> getValidMultiportSpeedConfig(
       const cfg::PortSpeed speed,
       const uint8_t startHostLane,
       const uint8_t numLanes,
@@ -323,7 +341,7 @@ class CmisHelper final {
     if (desiredMediaIntfCode == InterfaceCode::UNKNOWN) {
       XLOG(ERR) << "Transceiver " << tcvrName << ": " << "Unsupported Speed "
                 << apache::thrift::util::enumNameSafe(speed);
-      return std::nullopt;
+      return {};
     }
 
     CHECK_LE(startHostLane + numLanes, CmisModule::kMaxOsfpNumLanes);
@@ -350,7 +368,7 @@ class CmisHelper final {
                    apache::thrift::util::enumNameSafe(desiredMediaIntfCode),
                    laneMask,
                    speedCfgCombo);
-        return validSpeedCombo;
+        return getSpeedComboAsUint8<InterfaceCode>(validSpeedCombo);
       }
     }
     XLOG(ERR)
@@ -359,7 +377,7 @@ class CmisHelper final {
                "No valid speed combo found for speed {:s} and lanemask {:#x}",
                apache::thrift::util::enumNameSafe(speed),
                laneMask);
-    return std::nullopt;
+    return {};
   }
 };
 

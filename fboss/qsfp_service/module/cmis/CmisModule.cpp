@@ -2159,19 +2159,20 @@ void CmisModule::setApplicationSelectCodeAllPorts(
     uint8_t startHostLane,
     uint8_t numHostLanes,
     uint8_t hostLaneMask) {
-  if (auto laneProgramValues =
-          CmisHelper::getValidMultiportSpeedConfig<SMFMediaInterfaceCode>(
-              speed,
-              startHostLane,
-              numHostLanes,
-              laneMask(startHostLane, numHostLanes),
-              getNameString(),
-              moduleCapabilities_,
-              CmisHelper::getSmfValidSpeedCombinations())) {
+  auto laneProgramValues =
+      CmisHelper::getValidMultiportSpeedConfig<SMFMediaInterfaceCode>(
+          speed,
+          startHostLane,
+          numHostLanes,
+          laneMask(startHostLane, numHostLanes),
+          getNameString(),
+          moduleCapabilities_,
+          CmisHelper::getSmfValidSpeedCombinations());
+  if (laneProgramValues.size() == kMaxOsfpNumLanes) {
     AllLaneConfig stageSet0Config;
     for (auto lane = 0; lane < kMaxOsfpNumLanes;) {
-      if (auto laneCapability = getApplicationField(
-              static_cast<uint8_t>(laneProgramValues.value()[lane]), lane)) {
+      if (auto laneCapability =
+              getApplicationField(laneProgramValues[lane], lane)) {
         uint8_t currApSelCode = laneCapability.value().ApSelCode;
         for (auto currApLane = lane;
              currApLane < lane + laneCapability.value().hostLaneCount;
