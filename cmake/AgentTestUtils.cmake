@@ -482,3 +482,11 @@ target_link_libraries(stress_test_utils
   core
   config_factory
 )
+
+add_library(ecmp_test_utils
+  fboss/agent/test/utils/EcmpTestUtils.cpp
+)
+
+target_link_libraries(ecmp_test_utils
+  agent_ensemble
+)

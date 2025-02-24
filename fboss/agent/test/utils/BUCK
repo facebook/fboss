@@ -622,6 +622,7 @@ cpp_library(
         ":asic_test_utils",
         ":copp_test_utils",
         ":scale_test_utils",
+        "//fboss/agent:agent_features",
         "//fboss/agent:packet",
         "//fboss/agent/benchmarks:agent_benchmarks_h",  # @manual
         "//fboss/agent/hw/test:config_factory",
@@ -665,5 +666,16 @@ cpp_library(
         "//fboss/agent/test:route_scale_gen",
         "//fboss/lib:function_call_time_reporter",
         "//folly:benchmark",
+    ],
+)
+
+cpp_library(
+    name = "ecmp_test_utils",
+    srcs = [
+        "EcmpTestUtils.cpp",
+    ],
+    headers = ["EcmpTestUtils.h"],
+    exported_deps = [
+        "//fboss/agent/test:agent_ensemble",
     ],
 )
