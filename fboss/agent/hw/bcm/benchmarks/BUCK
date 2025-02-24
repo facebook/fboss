@@ -152,42 +152,6 @@ bcm_agent_benchmark(
 )
 
 bcm_agent_benchmark(
-    name = "bcm_teflow_scale_add",
-    srcs = [],
-    extra_deps = [
-        "//fboss/agent/hw/benchmarks:hw_teflow_scale_add",
-        "//fboss/agent/hw/bcm/tests:bcm_teflow_utils",
-    ],
-)
-
-bcm_agent_benchmark(
-    name = "bcm_teflow_scale_del",
-    srcs = [],
-    extra_deps = [
-        "//fboss/agent/hw/benchmarks:hw_teflow_scale_del",
-        "//fboss/agent/hw/bcm/tests:bcm_teflow_utils",
-    ],
-)
-
-bcm_agent_benchmark(
-    name = "bcm_teflow_stats_collection_speed",
-    srcs = [],
-    extra_deps = [
-        "//fboss/agent/hw/benchmarks:hw_teflow_stats_collection_speed",
-        "//fboss/agent/hw/bcm/tests:bcm_teflow_utils",
-    ],
-)
-
-bcm_agent_benchmark(
-    name = "bcm_teflow_stats_fsdb_publish_speed",
-    srcs = [],
-    extra_deps = [
-        "//fboss/agent/hw/benchmarks:hw_teflow_stats_fsdb_publish_speed",
-        "//fboss/agent/hw/bcm/tests:bcm_teflow_utils",
-    ],
-)
-
-bcm_agent_benchmark(
     name = "bcm_flowlet_stats_collection_speed",
     srcs = [],
     extra_deps = [
@@ -300,10 +264,6 @@ bcm_agent_benchmark(
         "//fboss/agent/test:route_scale_gen",
         "//fboss/agent/hw/benchmarks:hw_rib_resolution_speed",
         "//fboss/agent/hw/benchmarks:hw_rib_sync_fib_speed",
-        "//fboss/agent/hw/benchmarks:hw_teflow_scale_add",
-        "//fboss/agent/hw/benchmarks:hw_teflow_scale_del",
-        "//fboss/agent/hw/benchmarks:hw_teflow_stats_collection_speed",
-        "//fboss/agent/hw/benchmarks:hw_teflow_stats_fsdb_publish_speed",
         "//fboss/agent/hw/bcm/tests:bcm_teflow_utils",
         "//fboss/agent/hw/benchmarks:hw_flowlet_stats_collection_speed",
         "//fboss/agent/hw/bcm/tests:bcm_ecmp_utils",

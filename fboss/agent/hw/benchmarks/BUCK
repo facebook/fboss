@@ -342,60 +342,6 @@ agent_benchmark_lib(
     ],
 )
 
-cpp_library(
-    name = "hw_teflow_scale_benchmark_helper",
-    srcs = ["HwTeFlowScaleBenchmarkHelper.cpp"],
-    undefined_symbols = True,
-    exported_deps = [
-        "//fboss/agent:switch_config-cpp2-types",
-        "//fboss/agent/benchmarks:mono_agent_benchmarks",
-        "//fboss/agent/hw/test:config_factory",
-        "//fboss/agent/hw/test:hw_switch_ensemble_factory",
-        "//fboss/agent/hw/test:hw_test_te_flow_utils",
-        "//fboss/agent/hw/test:teflow_utils",
-        "//fboss/agent/test:ecmp_helper",
-        "//fboss/lib:function_call_time_reporter",
-        "//folly:benchmark",
-        "//folly:network_address",
-    ],
-)
-
-agent_benchmark_lib(
-    name = "hw_teflow_scale_add",
-    srcs = ["HwTeFlowScaleAddBenchmark.cpp"],
-    extra_deps = [
-        "//fboss/agent/hw/test:teflow_utils",
-        "//fboss/agent/hw/benchmarks:hw_teflow_scale_benchmark_helper",
-    ],
-)
-
-agent_benchmark_lib(
-    name = "hw_teflow_scale_del",
-    srcs = ["HwTeFlowScaleDelBenchmark.cpp"],
-    extra_deps = [
-        "//fboss/agent/hw/test:teflow_utils",
-        "//fboss/agent/hw/benchmarks:hw_teflow_scale_benchmark_helper",
-    ],
-)
-
-agent_benchmark_lib(
-    name = "hw_teflow_stats_fsdb_publish_speed",
-    srcs = ["AgentTeFlowStatsExportBenchmark.cpp"],
-    extra_deps = [
-        "//fboss/agent/hw/test:teflow_utils",
-    ],
-)
-
-agent_benchmark_lib(
-    name = "hw_teflow_stats_collection_speed",
-    srcs = ["HwTeFlowStatsCollectionBenchmark.cpp"],
-    extra_deps = [
-        "//fboss/agent/hw/test:teflow_utils",
-        "//fboss/agent/hw/test:hw_test_te_flow_utils",
-        "//fboss/agent/hw/benchmarks:hw_teflow_scale_benchmark_helper",
-    ],
-)
-
 agent_benchmark_lib(
     name = "hw_flowlet_stats_collection_speed",
     srcs = ["HwFlowletStatsCollectionBenchmark.cpp"],

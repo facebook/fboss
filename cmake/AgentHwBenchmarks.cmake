@@ -177,45 +177,6 @@ target_link_libraries(hw_rib_sync_fib_speed
   Folly::follybenchmark
 )
 
-add_library(hw_teflow_scale_add
-  fboss/agent/hw/benchmarks/HwTeFlowScaleAddBenchmark.cpp
-)
-
-target_link_libraries(hw_teflow_scale_add
-  config_factory
-  hw_teflow_utils
-  mono_agent_ensemble
-  mono_agent_benchmarks
-  Folly::folly
-  Folly::follybenchmark
-)
-
-add_library(hw_teflow_scale_del
-  fboss/agent/hw/benchmarks/HwTeFlowScaleDelBenchmark.cpp
-)
-
-target_link_libraries(hw_teflow_scale_del
-  config_factory
-  hw_teflow_utils
-  mono_agent_ensemble
-  mono_agent_benchmarks
-  Folly::folly
-  Folly::follybenchmark
-)
-
-add_library(hw_teflow_stats_collection_speed
-  fboss/agent/hw/benchmarks/HwTeFlowStatsCollectionBenchmark.cpp
-)
-
-target_link_libraries(hw_teflow_stats_collection_speed
-  config_factory
-  hw_teflow_utils
-  mono_agent_ensemble
-  mono_agent_benchmarks
-  Folly::folly
-  Folly::follybenchmark
-)
-
 add_library(hw_flowlet_stats_collection_speed
   fboss/agent/hw/benchmarks/HwFlowletStatsCollectionBenchmark.cpp
 )
