@@ -1670,6 +1670,7 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet(
       };
     } else {
       return {
+          cfg::AclTableQualifier::DSCP,
           cfg::AclTableQualifier::OUT_PORT,
           cfg::AclTableQualifier::LOOKUP_CLASS_L2,
           cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE,
