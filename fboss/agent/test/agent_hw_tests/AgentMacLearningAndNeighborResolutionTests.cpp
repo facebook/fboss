@@ -497,7 +497,7 @@ class AgentNeighborResolutionOverFlowTest : public AgentNeighborResolutionTest {
     FLAGS_disable_neighbor_updates = false;
     // enable neighbor update failure protection
     FLAGS_enable_hw_update_protection = true;
-    // set max neighbor resource percentage to 101% to bypass resourceAccountant
+    // set max neighbor resource percentage to 200% to bypass resourceAccountant
     // check
     FLAGS_neighbhor_resource_percentage = 200;
   }
