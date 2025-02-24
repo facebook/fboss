@@ -370,8 +370,27 @@ struct WritableImpl<apache::thrift::type_class::structure> {
   template <typename TType>
   static inline void
   modify(TType& node, const std::string& token, bool construct) {
-    // TODO: optional field
-    return;
+    if (!construct) {
+      return;
+    }
+    fatal::foreach<typename apache::thrift::reflect_struct<TType>::members>(
+        [&](auto indexed) {
+          using member = decltype(fatal::tag_type(indexed));
+          const std::string fieldNameStr =
+              fatal::to_instance<std::string, typename member::name>();
+          if (fieldNameStr != token) {
+            return;
+          }
+          if constexpr (
+              member::optional::value ==
+              apache::thrift::optionality::optional) {
+            if (!member::is_set(node)) {
+              member::mark_set(node, true);
+              return;
+            }
+          }
+          return;
+        });
   }
 };
 

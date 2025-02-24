@@ -718,7 +718,6 @@ TYPED_TEST(
   EXPECT_EQ(visitResult, ThriftTraverseResult::NON_EXISTENT_NODE);
 }
 
-// remove optional
 TYPED_TEST(ThriftStructNodeTestSuite, ThriftStructNodeRemoveOptionalFieldTest) {
   using Param = typename TestFixture::T;
   constexpr bool enableHybridStorage = Param::hybridStorage;
@@ -747,13 +746,25 @@ TYPED_TEST(ThriftStructNodeTestSuite, ThriftStructNodeRemoveOptionalFieldTest) {
     dyn = node.toFollyDynamic();
   });
 
-  // node exists now
+  // non-existent node
   auto visitResult = RootPathVisitor::visit(
+      *node, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
+  EXPECT_EQ(visitResult, ThriftTraverseResult::NON_EXISTENT_NODE);
+
+  // create node
+  auto result = ThriftStructNode<
+      RootTestStruct,
+      ThriftStructResolver<RootTestStruct, enableHybridStorage>,
+      enableHybridStorage>::modifyPath(&node, path.begin(), path.end());
+  EXPECT_EQ(result, ThriftTraverseResult::OK);
+
+  // node exists now
+  visitResult = RootPathVisitor::visit(
       *node, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
   EXPECT_EQ(visitResult, ThriftTraverseResult::OK);
 
   // remove node
-  auto result = ThriftStructNode<
+  result = ThriftStructNode<
       RootTestStruct,
       ThriftStructResolver<RootTestStruct, enableHybridStorage>,
       enableHybridStorage>::removePath(&node, path.begin(), path.end());
