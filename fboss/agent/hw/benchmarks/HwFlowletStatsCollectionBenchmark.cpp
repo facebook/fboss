@@ -9,14 +9,11 @@
  */
 
 #include "fboss/agent/Platform.h"
-#include "fboss/agent/SwitchStats.h"
-#include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
+#include "fboss/agent/test/AgentEnsemble.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
-#include "fboss/lib/FunctionCallTimeReporter.h"
-
-#include "fboss/agent/benchmarks/AgentBenchmarks.h"
+#include "fboss/agent/test/utils/ConfigUtils.h"
 
 #include <folly/Benchmark.h>
 #include <folly/IPAddress.h>
@@ -51,7 +48,6 @@ BENCHMARK(HwFlowletStatsCollection) {
 
   ensemble =
       createAgentEnsemble(initialConfigFn, false /*disableLinkStateToggler*/);
-  auto hwSwitch = ensemble->getHwSwitch();
   // Resolve nextHops
   auto ecmpHelper = utility::EcmpSetupAnyNPorts6(ensemble->getSw()->getState());
   ensemble->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
@@ -64,9 +60,16 @@ BENCHMARK(HwFlowletStatsCollection) {
 
   // Measure Flowlet stats collection time
   int iterations = 10'000;
+
+  auto switchId = ensemble->getSw()
+                      ->getScopeResolver()
+                      ->scope(ensemble->masterLogicalPortIds()[0])
+                      .switchId();
+  auto client = ensemble->getHwAgentTestClient(switchId);
+
   suspender.dismiss();
   for (auto i = 0; i < iterations; ++i) {
-    hwSwitch->getHwFlowletStats();
+    client->sync_updateFlowletStats();
   }
   suspender.rehire();
 }
