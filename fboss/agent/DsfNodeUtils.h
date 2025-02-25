@@ -22,4 +22,8 @@ bool isDualStage(const cfg::AgentConfig& cfg);
 bool isDualStage(const cfg::SwitchConfig& cfg);
 bool isDualStage(const AgentConfig& cfg);
 
+int64_t maxDsfSwitchId(const AgentConfig& cfg);
+int64_t maxDsfSwitchId(const cfg::AgentConfig& cfg);
+int64_t maxDsfSwitchId(const cfg::SwitchConfig& cfg);
+
 } // namespace facebook::fboss::utility

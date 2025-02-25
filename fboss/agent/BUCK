@@ -384,6 +384,7 @@ cpp_library(
     ],
     exported_deps = [
         ":agent_config-cpp2-types",
+        ":fboss-error",
         ":load_agent_config",
         ":switch_config-cpp2-types",
     ],

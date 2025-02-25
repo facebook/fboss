@@ -11,6 +11,7 @@
 #include "fboss/agent/DsfNodeUtils.h"
 
 #include "fboss/agent/AgentConfig.h"
+#include "fboss/agent/FbossError.h"
 
 namespace facebook::fboss::utility {
 bool isDualStage(const AgentConfig& cfg) {
@@ -28,4 +29,21 @@ bool isDualStage(const cfg::SwitchConfig& cfg) {
   return false;
 }
 
+int64_t maxDsfSwitchId(const AgentConfig& cfg) {
+  return maxDsfSwitchId(cfg.thrift);
+}
+int64_t maxDsfSwitchId(const cfg::AgentConfig& cfg) {
+  return maxDsfSwitchId(*cfg.sw());
+}
+
+int64_t maxDsfSwitchId(const cfg::SwitchConfig& cfg) {
+  std::optional<int64_t> maxSwitchId;
+  for (auto const& [_, dsfNode] : *cfg.dsfNodes()) {
+    maxSwitchId = std::max(*dsfNode.switchId(), maxSwitchId.value_or(0));
+  }
+  if (!maxSwitchId.has_value()) {
+    throw FbossError("No DSF Node switch id found");
+  }
+  return maxSwitchId.value();
+}
 } // namespace facebook::fboss::utility
