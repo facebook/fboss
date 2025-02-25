@@ -7,6 +7,7 @@
 #include "fboss/fsdb/if/gen-cpp2/fsdb_common_types.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 #include "fboss/fsdb/oper/DeltaValue.h"
+#include "fboss/fsdb/oper/SubscriptionCommon.h"
 #include "fboss/fsdb/oper/SubscriptionMetadataServer.h"
 #include "fboss/thrift_cow/gen-cpp2/patch_types.h"
 

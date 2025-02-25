@@ -11,6 +11,16 @@ cpp_library(
 )
 
 cpp_library(
+    name = "subscription_common",
+    headers = [
+        "SubscriptionCommon.h",
+    ],
+    exported_deps = [
+        "//fboss/fsdb/if:fsdb_common-cpp2-types",
+    ],
+)
+
+cpp_library(
     name = "subscription_manager",
     srcs = [
         "CowPublishAndAddTraverseHelper.cpp",
@@ -34,6 +44,7 @@ cpp_library(
     ],
     exported_deps = [
         ":delta_value",
+        ":subscription_common",
         "//fboss/fsdb/common:utils",
         "//fboss/fsdb/if:fsdb-cpp2-types",
         "//fboss/fsdb/if:fsdb_common-cpp2-types",
