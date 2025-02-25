@@ -375,6 +375,19 @@ cpp_library(
 )
 
 cpp_library(
+    name = "dsfnode_utils",
+    srcs = [
+        "DsfNodeUtils.cpp",
+    ],
+    headers = [
+        "DsfNodeUtils.h",
+    ],
+    exported_deps = [
+        ":agent_config-cpp2-types",
+    ],
+)
+
+cpp_library(
     name = "switchinfo_utils",
     srcs = [
         "SwitchInfoUtils.cpp",

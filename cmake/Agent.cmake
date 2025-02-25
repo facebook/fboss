@@ -97,6 +97,14 @@ target_link_libraries(switchinfo_utils
   agent_config_cpp2
 )
 
+add_library(dsfnode_utils
+  fboss/agent/DsfNodeUtils.cpp
+)
+
+target_link_libraries(dsfnode_utils
+  agent_config_cpp2
+)
+
 add_library(voq_utils
   fboss/agent/VoqUtils.cpp
 )
