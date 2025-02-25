@@ -101,7 +101,10 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map, int numSwitches)
           kCounterPrefix + "ip.dst_lookup_failure",
           SUM,
           RATE),
-      updateState_(map, kCounterPrefix + "state_update.us", 50000, 0, 1000000),
+      updateState_(
+          kCounterPrefix + "state_update.us",
+          facebook::fb303::ExportTypeConsts::kCountAvg,
+          facebook::fb303::QuantileConsts::kP50_P95_P99_P100),
       routeUpdate_(map, kCounterPrefix + "route_update.us", 50, 0, 500),
       bgHeartbeatDelay_(
           map,

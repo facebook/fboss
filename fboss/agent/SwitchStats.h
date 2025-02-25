@@ -878,9 +878,9 @@ class SwitchStats : public boost::noncopyable {
   TLTimeseries dstLookupFailure_;
 
   /**
-   * Histogram for time used for SwSwitch::updateState() (in ms)
+   * Histogram for time used for SwSwitch::updateState() (in microsecond)
    */
-  TLHistogram updateState_;
+  fb303::detail::QuantileStatWrapper updateState_;
 
   /**
    * Histogram for time used for route update (in microsecond)
