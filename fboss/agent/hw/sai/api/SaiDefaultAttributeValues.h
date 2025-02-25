@@ -36,7 +36,7 @@ struct SaiIntDefault {
 
 struct SaiVlanIdDefault {
   uint16_t operator()() const {
-#if defined(CHENAB_SDK)
+#if defined(CHENAB_SAI_SDK)
     return 1;
 #else
     return 0;

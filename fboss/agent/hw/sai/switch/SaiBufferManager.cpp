@@ -670,7 +670,7 @@ SaiBufferManager::ingressProfileCreateAttrs(
   if (config.resumeOffsetBytes()) {
     xonOffsetTh = *config.resumeOffsetBytes();
   }
-#if !defined(CHENAB_SDK)
+#if !defined(CHENAB_SAI_SDK)
   else {
     xonOffsetTh = 0;
   }

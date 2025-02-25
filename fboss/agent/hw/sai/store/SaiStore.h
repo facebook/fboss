@@ -58,7 +58,7 @@ struct AdapterHostKeyWarmbootRecoverable<SaiWredTraits> : std::false_type {};
 
 #endif
 
-#if defined(CHENAB_SDK)
+#if defined(CHENAB_SAI_SDK)
 template <>
 struct AdapterHostKeyWarmbootRecoverable<SaiAclCounterTraits>
     : std::false_type {};
