@@ -14,7 +14,6 @@
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/hw/switch_asics/EbroAsic.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
-#include "fboss/agent/hw/switch_asics/Jericho2Asic.h"
 #include "fboss/agent/hw/switch_asics/Jericho3Asic.h"
 #include "fboss/agent/platforms/sai/SaiBcmDarwinPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmElbertPlatformPort.h"
@@ -508,20 +507,12 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       swInfo.switchIndex() = 0;
       swInfo.switchType() = cfg::SwitchType::VOQ;
       swInfo.switchMac() = localMac.toString();
-      const Jericho2Asic j2(0, swInfo);
       const Jericho3Asic j3(0, swInfo);
       for (const auto& [id, dsfNode] : *agentCfg->thrift.sw()->dsfNodes()) {
         if (dsfNode.type() != cfg::DsfNodeType::INTERFACE_NODE) {
           continue;
         }
         switch (*dsfNode.asicType()) {
-          case cfg::AsicType::ASIC_TYPE_JERICHO2:
-            // for directly connected interface nodes we don't expect
-            // asic type to change across dsf nodes
-            maxCoreCount = std::max(j2.getNumCores(), maxCoreCount);
-            maxSystemCoreCount =
-                std::max(maxSystemCoreCount, uint32_t(id + j2.getNumCores()));
-            break;
           case cfg::AsicType::ASIC_TYPE_JERICHO3:
             // for directly connected interface nodes we don't expect
             // asic type to change across dsf nodes
