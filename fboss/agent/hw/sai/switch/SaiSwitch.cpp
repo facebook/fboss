@@ -2460,6 +2460,41 @@ std::set<PortID> SaiSwitch::getFabricReachabilityPortIds(
   return portIds;
 }
 
+void SaiSwitch::setSwitchReachabilityChangePending() {
+  // UpdateStats (runs every second):
+  //    - Acquires saiSwitchMutex_
+  //    - Later, acquires SaiApiLock.
+  //    - Queries stats, and releases both the locks.
+  //    - Repeats the above for every object type.
+  //
+  // When SwitchReachability changes:
+  //   - Acquires SaiApiLock
+  //   - Queries SDK for reachability change: one query for every remote Switch.
+  //
+  // When several links flap:
+  //   - SDK issues SwitchReachability callback often.
+  //   - Each callback processing triggers multiple calls to SDK under
+  //     SaiApiLock as outlined above.
+  //
+  // If SaiApiLock is acquired by SwitchReachability often:
+  //  - updateStats holds saiSwitchMutex_ and waits for SaiApiLock.
+  //  - Any state update (e.g. set PRBS) waits on saiSwitchMutex
+  //
+  // This wait can be considerable:
+  //  - Without link flaps: set PRBS calls takes about 20 milisecond
+  //  - With link flaps: set PRBS calls take > 10 seconds!
+  //
+  // Thus, don't process SwitchReachability in the BottomHalf. Instead:
+  //  - SwitchReachability TopHalf signals switchReachabilityChangePending.
+  //  - updateStats checks switchReachabilityChangePending in every run (every
+  //    second) and process reachability if requested.
+
+  auto changePending = switchReachabilityChangePending_.wlock();
+  if (*changePending < FLAGS_max_unprocessed_switch_reachability_changes) {
+    *changePending += 1;
+  }
+}
+
 void SaiSwitch::switchReachabilityChangeBottomHalf() {
   {
     auto changePending = switchReachabilityChangePending_.wlock();

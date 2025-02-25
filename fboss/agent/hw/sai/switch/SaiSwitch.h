@@ -394,6 +394,8 @@ class SaiSwitch : public HwSwitch {
       const std::optional<uint32_t>& numActiveFabricPortsAtFwIsolate =
           std::nullopt);
   void switchReachabilityChangeBottomHalf();
+
+  void setSwitchReachabilityChangePending();
   std::set<PortID> getFabricReachabilityPortIds(
       const std::vector<sai_object_id_t>& switchIdAndFabricPortSaiIds) const;
 
