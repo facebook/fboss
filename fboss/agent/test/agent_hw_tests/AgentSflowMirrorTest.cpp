@@ -701,7 +701,7 @@ class AgentSflowMirrorWithLineRateTrafficTest
     return productionFeatures;
   }
   static const int kLosslessPriority{2};
-  void testSflowEgressCongestion() {
+  void testSflowEgressCongestion(int iterations) {
     constexpr int kNumDataTrafficPorts{6};
     auto setup = [=, this]() {
       auto allPorts = masterLogicalInterfacePortIds();
@@ -740,7 +740,7 @@ class AgentSflowMirrorWithLineRateTrafficTest
           1 /*desiredPctLineRate*/);
     };
     auto verify = [=, this]() {
-      verifySflowEgressPortNotStuck();
+      verifySflowEgressPortNotStuck(iterations);
       if (checkSameAndGetAsic()->isSupported(
               HwAsic::Feature::EVENTOR_PORT_FOR_SFLOW)) {
         validateEventorPortQueueLimitRespected();
@@ -774,17 +774,16 @@ class AgentSflowMirrorWithLineRateTrafficTest
     ensemble->getSw()->sendPacketSwitchedAsync(std::move(txPacket));
   }
 
-  void verifySflowEgressPortNotStuck() {
+  void verifySflowEgressPortNotStuck(int iterations) {
     auto portId = getNonSflowSampledInterfacePort();
     // Expect atleast 1Gbps of mirror traffic!
     const uint64_t kDesiredMirroredTrafficRate{1000000000};
     EXPECT_NO_THROW(getAgentEnsemble()->waitForSpecificRateOnPort(
         portId, kDesiredMirroredTrafficRate));
     // Make sure that we can sustain the rate for longer duration
-    constexpr int kNumberOfIterations{6};
     constexpr int kWaitPeriod{5};
     auto prevPortStats = getLatestPortStats(portId);
-    for (int iter = 0; iter < kNumberOfIterations; iter++) {
+    for (int iter = 0; iter < iterations; iter++) {
       sleep(kWaitPeriod);
       auto curPortStats = getLatestPortStats(portId);
       auto rate = getAgentEnsemble()->getTrafficRate(
@@ -936,7 +935,14 @@ SFLOW_SAMPLING_TRUNK_TEST_V4_V6(VerifySampledPacketRate, {
 })
 
 TEST_F(AgentSflowMirrorWithLineRateTrafficTest, VerifySflowEgressCongestion) {
-  this->testSflowEgressCongestion();
+  this->testSflowEgressCongestion(6);
+}
+
+TEST_F(
+    AgentSflowMirrorWithLineRateTrafficTest,
+    VerifySflowEgressCongestionShort) {
+  // Test fewer iterations as we will be using this in an n-warmboot test.
+  this->testSflowEgressCongestion(1);
 }
 
 TEST_F(AgentSflowMirrorTestV4, MoveToV6) {
