@@ -726,7 +726,13 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       // assert that we are are within this limit
       maxSwitchId = 2 * 1024;
     }
-    XLOG(DBG2) << "Set max switch-id to: " << *maxSwitchId;
+    auto maxDsfConfigSwitchId = utility::maxDsfSwitchId(*agentConfig) +
+        std::max(getAsic()->getNumCores(),
+                 (maxCores.has_value() ? maxCores->value() : 0));
+
+    XLOG(DBG2) << "Set max switch-id to: " << *maxSwitchId
+               << " got maxDsfConfigSwitchId: " << maxDsfConfigSwitchId;
+    CHECK_GE(*maxSwitchId, maxDsfConfigSwitchId);
     CHECK_LE(*maxSwitchId, getAsic()->getMaxSwitchId());
   }
 #endif
