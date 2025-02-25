@@ -703,7 +703,9 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
     // switch id that's used in their deployment to be below the
     // default (HW advertised) value.
     auto agentConfig = config();
-    if (utility::isDualStage(*agentConfig)) {
+    auto isDualStage =
+        utility::isDualStage(*agentConfig) || isDualStage3Q2QMode();
+    if (isDualStage) {
       maxSwitchId = getAsic()->getMaxSwitchId();
     } else {
       // Single stage FAP-ID on J3/R3 are limited to 1K.
