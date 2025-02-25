@@ -210,6 +210,8 @@ class ServiceHandler : public FsdbServiceSvIf,
   void preStart(const folly::SocketAddress* /*address*/) override;
 
  private:
+  SubscriptionIdentifier makeSubscriptionIdentifier(
+      const OperSubscriberInfo& info);
   void registerSubscription(
       const OperSubscriberInfo& info,
       bool forceSubscribe = false);
@@ -230,25 +232,30 @@ class ServiceHandler : public FsdbServiceSvIf,
 
   folly::coro::AsyncGenerator<DeltaValue<OperState>&&> makeStateStreamGenerator(
       std::unique_ptr<OperSubRequest> request,
-      bool isStats);
+      bool isStats,
+      SubscriptionIdentifier&& subId);
 
   folly::coro::AsyncGenerator<OperDelta&&> makeDeltaStreamGenerator(
       std::unique_ptr<OperSubRequest> request,
-      bool isStats);
+      bool isStats,
+      SubscriptionIdentifier&& subId);
 
   folly::coro::AsyncGenerator<std::vector<DeltaValue<TaggedOperState>>&&>
   makeExtendedStateStreamGenerator(
       std::unique_ptr<OperSubRequestExtended> request,
-      bool isStats);
+      bool isStats,
+      SubscriptionIdentifier&& subId);
 
   folly::coro::AsyncGenerator<SubscriberMessage&&> makePatchStreamGenerator(
       std::unique_ptr<SubRequest> request,
-      bool isStats);
+      bool isStats,
+      SubscriptionIdentifier&& subId);
 
   folly::coro::AsyncGenerator<std::vector<TaggedOperDelta>&&>
   makeExtendedDeltaStreamGenerator(
       std::unique_ptr<OperSubRequestExtended> request,
-      bool isStats);
+      bool isStats,
+      SubscriptionIdentifier&& subId);
 
   OperPublisherInfo makePublisherInfo(
       const RawPathT& path,
@@ -311,6 +318,7 @@ class ServiceHandler : public FsdbServiceSvIf,
   folly::Synchronized<ActiveSubscriptions> activeSubscriptions_;
   folly::Synchronized<ActivePublishers> activePublishers_;
   std::shared_ptr<apache::thrift::ThriftServer> server_;
+  std::atomic<uint64_t> lastSubscriptionUid_{0};
 };
 
 } // namespace facebook::fboss::fsdb

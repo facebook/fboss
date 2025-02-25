@@ -40,6 +40,7 @@ cpp_library(
         "//fboss/fsdb/if:fsdb_model",
         "//fboss/fsdb/if:fsdb_oper-cpp2-types",
         "//fboss/fsdb/oper:path_helpers",
+        "//fboss/fsdb/oper:subscription_common",
         "//fboss/fsdb/oper/instantiations:fsdb_naive_periodic_subscribable_storage",
         "//fboss/lib:log_thrift_call",
         "//fboss/lib:thread_heartbeat",
