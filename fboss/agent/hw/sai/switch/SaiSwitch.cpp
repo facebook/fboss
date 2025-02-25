@@ -2426,12 +2426,7 @@ void SaiSwitch::switchReachabilityChangeTopHalf() {
     // Callback handling and rest of the flow is unsupported!
     return;
   }
-  auto changePending = switchReachabilityChangePending_.wlock();
-  if (*changePending < FLAGS_max_unprocessed_switch_reachability_changes) {
-    *changePending += 1;
-    switchReachabilityChangeBottomHalfEventBase_.runInFbossEventBaseThread(
-        [this]() mutable { switchReachabilityChangeBottomHalf(); });
-  }
+  setSwitchReachabilityChangePending();
 }
 
 std::set<PortID> SaiSwitch::getFabricReachabilityPortIds(
@@ -2495,11 +2490,7 @@ void SaiSwitch::setSwitchReachabilityChangePending() {
   }
 }
 
-void SaiSwitch::switchReachabilityChangeBottomHalf() {
-  {
-    auto changePending = switchReachabilityChangePending_.wlock();
-    *changePending -= 1;
-  }
+void SaiSwitch::processSwitchReachabilityChange() {
   auto& switchApi = SaiApiTable::getInstance()->switchApi();
 
   for (const auto& [_, dsfNodes] :
@@ -2890,8 +2881,7 @@ void SaiSwitch::syncSwitchReachability() {
   if (platform_->getAsic()->isSupported(
           HwAsic::Feature::SWITCH_REACHABILITY_CHANGE_NOTIFY)) {
     std::lock_guard<std::mutex> lock(saiSwitchMutex_);
-    switchReachabilityChangeBottomHalfEventBase_.runInFbossEventBaseThread(
-        [=, this]() { switchReachabilityChangeBottomHalf(); });
+    setSwitchReachabilityChangePending();
   }
 }
 
@@ -2933,18 +2923,13 @@ void SaiSwitch::initSwitchReachabilityChangeLocked(
         initThread("fbossSaiSwitchReachabilityChangeBH");
         switchReachabilityChangeBottomHalfEventBase_.loopForever();
       });
-  switchReachabilityChangeBottomHalfEventBase_.runInFbossEventBaseThread(
-      [=, this]() {
-        /*
-         * Query the initial state after registering the callbacks to avoid a
-         * potentially missed callback and update.
-         *
-         * Moreover, query/process in the same context that registers/processes
-         * callback to guarantee that we don't miss any callbacks and those are
-         * always ordered.
-         */
-        switchReachabilityChangeBottomHalf();
-      });
+
+  /*
+   * Query the initial state after registering the callbacks to avoid a
+   * potentially missed callback and update.
+   * More details in comments in setSwitchReachabilityChangePending.
+   */
+  setSwitchReachabilityChangePending();
 }
 
 bool SaiSwitch::isMissingSrcPortAllowed(HostifTrapSaiId hostifTrapSaiId) {

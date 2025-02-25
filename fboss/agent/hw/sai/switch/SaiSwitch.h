@@ -396,6 +396,7 @@ class SaiSwitch : public HwSwitch {
   void switchReachabilityChangeBottomHalf();
 
   void setSwitchReachabilityChangePending();
+  void processSwitchReachabilityChange();
   std::set<PortID> getFabricReachabilityPortIds(
       const std::vector<sai_object_id_t>& switchIdAndFabricPortSaiIds) const;
 
