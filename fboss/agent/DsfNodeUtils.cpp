@@ -11,7 +11,12 @@
 #include "fboss/agent/DsfNodeUtils.h"
 
 namespace facebook::fboss::utility {
-bool isDualStage(const cfg::AgentConfig& /*cfg*/) {
+bool isDualStage(const cfg::AgentConfig& cfg) {
+  for (auto const& [_, dsfNode] : *cfg.sw()->dsfNodes()) {
+    if (dsfNode.fabricLevel().has_value() && dsfNode.fabricLevel() == 2) {
+      return true;
+    }
+  }
   return false;
 }
 
