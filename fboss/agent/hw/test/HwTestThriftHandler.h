@@ -116,6 +116,8 @@ class HwTestThriftHandler : public AgentHwTestCtrlSvIf {
 
   void printDiagCmd(std::unique_ptr<::std::string>) override;
 
+  void updateFlowletStats() override;
+
  private:
   HwSwitch* hwSwitch_;
 };

@@ -119,4 +119,7 @@ service AgentHwTestCtrl {
 
   // print diag
   void printDiagCmd(1: string cmd);
+
+  // Flowlet utils
+  void updateFlowletStats();
 }
