@@ -82,10 +82,12 @@ class NaivePeriodicSubscribableStorageBase {
       FsdbErrorCode disconnectReason = FsdbErrorCode::ALL_PUBLISHERS_GONE);
 
   template <typename T, typename TC>
-  folly::coro::AsyncGenerator<DeltaValue<T>&&>
-  subscribe_impl(SubscriberId subscriber, PathIter begin, PathIter end) {
-    auto sourceGen =
-        subscribe_encoded_impl(subscriber, begin, end, OperProtocol::BINARY);
+  folly::coro::AsyncGenerator<DeltaValue<T>&&> subscribe_impl(
+      SubscriptionIdentifier&& subscriber,
+      PathIter begin,
+      PathIter end) {
+    auto sourceGen = subscribe_encoded_impl(
+        std::move(subscriber), begin, end, OperProtocol::BINARY);
     return folly::coro::co_invoke(
         [&, gen = std::move(sourceGen)]() mutable
         -> folly::coro::AsyncGenerator<DeltaValue<T>&&> {
@@ -110,7 +112,7 @@ class NaivePeriodicSubscribableStorageBase {
   }
 
   folly::coro::AsyncGenerator<DeltaValue<OperState>&&> subscribe_encoded_impl(
-      SubscriberId subscriber,
+      SubscriptionIdentifier&& subscriber,
       PathIter begin,
       PathIter end,
       OperProtocol protocol,
@@ -118,7 +120,7 @@ class NaivePeriodicSubscribableStorageBase {
           std::nullopt);
 
   folly::coro::AsyncGenerator<OperDelta&&> subscribe_delta_impl(
-      SubscriberId subscriber,
+      SubscriptionIdentifier&& subscriber,
       PathIter begin,
       PathIter end,
       OperProtocol protocol,
@@ -127,7 +129,7 @@ class NaivePeriodicSubscribableStorageBase {
 
   folly::coro::AsyncGenerator<std::vector<DeltaValue<TaggedOperState>>&&>
   subscribe_encoded_extended_impl(
-      SubscriberId subscriber,
+      SubscriptionIdentifier&& subscriber,
       std::vector<ExtendedOperPath> paths,
       OperProtocol protocol,
       std::optional<SubscriptionStorageParams> subscriptionParams =
@@ -135,21 +137,21 @@ class NaivePeriodicSubscribableStorageBase {
 
   folly::coro::AsyncGenerator<std::vector<TaggedOperDelta>&&>
   subscribe_delta_extended_impl(
-      SubscriberId subscriber,
+      SubscriptionIdentifier&& subscriber,
       std::vector<ExtendedOperPath> paths,
       OperProtocol protocol,
       std::optional<SubscriptionStorageParams> subscriptionParams =
           std::nullopt);
 
   folly::coro::AsyncGenerator<SubscriberMessage&&> subscribe_patch_impl(
-      SubscriberId subscriber,
+      SubscriptionIdentifier&& subscriber,
       std::map<SubscriptionKey, RawOperPath> rawPaths,
       std::optional<SubscriptionStorageParams> subscriptionParams =
           std::nullopt);
 
   folly::coro::AsyncGenerator<SubscriberMessage&&>
   subscribe_patch_extended_impl(
-      SubscriberId subscriber,
+      SubscriptionIdentifier&& subscriber,
       std::map<SubscriptionKey, ExtendedOperPath> paths,
       std::optional<SubscriptionStorageParams> subscriptionParams =
           std::nullopt);

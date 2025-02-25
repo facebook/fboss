@@ -286,7 +286,7 @@ NaivePeriodicSubscribableStorageBase::convertExtPaths(
 
 folly::coro::AsyncGenerator<DeltaValue<OperState>&&>
 NaivePeriodicSubscribableStorageBase::subscribe_encoded_impl(
-    SubscriberId subscriber,
+    SubscriptionIdentifier&& subscriber,
     PathIter begin,
     PathIter end,
     OperProtocol protocol,
@@ -298,7 +298,7 @@ NaivePeriodicSubscribableStorageBase::subscribe_encoded_impl(
     heartbeatInterval = subscriptionParams->heartbeatInterval_.value();
   }
   auto [gen, subscription] = PathSubscription::create(
-      SubscriptionIdentifier(std::move(subscriber)),
+      std::move(subscriber),
       path.begin(),
       path.end(),
       protocol,
@@ -311,7 +311,7 @@ NaivePeriodicSubscribableStorageBase::subscribe_encoded_impl(
 
 folly::coro::AsyncGenerator<OperDelta&&>
 NaivePeriodicSubscribableStorageBase::subscribe_delta_impl(
-    SubscriberId subscriber,
+    SubscriptionIdentifier&& subscriber,
     PathIter begin,
     PathIter end,
     OperProtocol protocol,
@@ -323,7 +323,7 @@ NaivePeriodicSubscribableStorageBase::subscribe_delta_impl(
     heartbeatInterval = subscriptionParams->heartbeatInterval_.value();
   }
   auto [gen, subscription] = DeltaSubscription::create(
-      SubscriptionIdentifier(std::move(subscriber)),
+      std::move(subscriber),
       path.begin(),
       path.end(),
       protocol,
@@ -336,7 +336,7 @@ NaivePeriodicSubscribableStorageBase::subscribe_delta_impl(
 
 folly::coro::AsyncGenerator<std::vector<DeltaValue<TaggedOperState>>&&>
 NaivePeriodicSubscribableStorageBase::subscribe_encoded_extended_impl(
-    SubscriberId subscriber,
+    SubscriptionIdentifier&& subscriber,
     std::vector<ExtendedOperPath> paths,
     OperProtocol protocol,
     std::optional<SubscriptionStorageParams> subscriptionParams) {
@@ -348,7 +348,7 @@ NaivePeriodicSubscribableStorageBase::subscribe_encoded_extended_impl(
   }
   auto publisherRoot = getPublisherRoot(paths);
   auto [gen, subscription] = ExtendedPathSubscription::create(
-      SubscriptionIdentifier(std::move(subscriber)),
+      std::move(subscriber),
       std::move(paths),
       std::move(publisherRoot),
       protocol,
@@ -360,7 +360,7 @@ NaivePeriodicSubscribableStorageBase::subscribe_encoded_extended_impl(
 
 folly::coro::AsyncGenerator<std::vector<TaggedOperDelta>&&>
 NaivePeriodicSubscribableStorageBase::subscribe_delta_extended_impl(
-    SubscriberId subscriber,
+    SubscriptionIdentifier&& subscriber,
     std::vector<ExtendedOperPath> paths,
     OperProtocol protocol,
     std::optional<SubscriptionStorageParams> subscriptionParams) {
@@ -372,7 +372,7 @@ NaivePeriodicSubscribableStorageBase::subscribe_delta_extended_impl(
   }
   auto publisherRoot = getPublisherRoot(paths);
   auto [gen, subscription] = ExtendedDeltaSubscription::create(
-      SubscriptionIdentifier(std::move(subscriber)),
+      std::move(subscriber),
       std::move(paths),
       std::move(publisherRoot),
       protocol,
@@ -384,7 +384,7 @@ NaivePeriodicSubscribableStorageBase::subscribe_delta_extended_impl(
 
 folly::coro::AsyncGenerator<SubscriberMessage&&>
 NaivePeriodicSubscribableStorageBase::subscribe_patch_impl(
-    SubscriberId subscriber,
+    SubscriptionIdentifier&& subscriber,
     std::map<SubscriptionKey, RawOperPath> rawPaths,
     std::optional<SubscriptionStorageParams> subscriptionParams) {
   for (auto& [key, path] : rawPaths) {
@@ -398,7 +398,7 @@ NaivePeriodicSubscribableStorageBase::subscribe_patch_impl(
   }
   auto root = getPublisherRoot(rawPaths);
   auto [gen, subscription] = ExtendedPatchSubscription::create(
-      SubscriptionIdentifier(std::move(subscriber)),
+      std::move(subscriber),
       std::move(rawPaths),
       patchOperProtocol_,
       std::move(root),
@@ -410,7 +410,7 @@ NaivePeriodicSubscribableStorageBase::subscribe_patch_impl(
 
 folly::coro::AsyncGenerator<SubscriberMessage&&>
 NaivePeriodicSubscribableStorageBase::subscribe_patch_extended_impl(
-    SubscriberId subscriber,
+    SubscriptionIdentifier&& subscriber,
     std::map<SubscriptionKey, ExtendedOperPath> paths,
     std::optional<SubscriptionStorageParams> subscriptionParams) {
   for (auto& [key, path] : paths) {
@@ -424,7 +424,7 @@ NaivePeriodicSubscribableStorageBase::subscribe_patch_extended_impl(
   }
   auto root = getPublisherRoot(paths);
   auto [gen, subscription] = ExtendedPatchSubscription::create(
-      SubscriptionIdentifier(std::move(subscriber)),
+      std::move(subscriber),
       std::move(paths),
       patchOperProtocol_,
       std::move(root),

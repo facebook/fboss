@@ -88,6 +88,7 @@ cpp_library(
     exported_deps = [
         ":delta_value",
         ":path_helpers",
+        ":subscription_common",
         ":subscription_manager",
         "//common/base:proc",
         "//fb303:thread_cached_service_data",
