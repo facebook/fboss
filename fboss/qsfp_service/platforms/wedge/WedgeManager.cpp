@@ -1150,11 +1150,13 @@ QsfpToBmcSyncData WedgeManager::getQsfpToBmcSyncData() const {
   qsfpToBmcData.switchDeploymentInfo().value().hostnameScheme() =
       getSwitchRole();
 
-  // Gather Transceiver Data
-  std::map<std::string, TransceiverThermalData> tcvrData;
+  // Gather Transceiver Data. Use a max heap and then push to the
+  // returned map the top transceivers in terms of temperature (up to
+  // kMaxTcvrTemperaturesToReport transceivers).
   std::vector<int32_t> ids;
   folly::gen::range(0, getNumQsfpModules()) | folly::gen::appendTo(ids);
 
+  std::vector<std::pair<std::string, TransceiverThermalData>> temperatures;
   for (auto id : ids) {
     auto tcvrID = TransceiverID(id);
     auto portName = getPortName(tcvrID);
@@ -1188,13 +1190,34 @@ QsfpToBmcSyncData WedgeManager::getQsfpToBmcSyncData() const {
                         .value()
                         .value()
                         .value();
-      tcvrData[portName].temperature() = floor(temp);
-
       MediaInterfaceCode moduleType =
           tcvrInfo.tcvrState().value().moduleMediaInterface().value();
-      tcvrData[portName].moduleMediaInterface() =
+      TransceiverThermalData tcvrThermalData;
+      tcvrThermalData.temperature() = temp;
+      tcvrThermalData.moduleMediaInterface() =
           apache::thrift::util::enumNameSafe(moduleType);
+
+      temperatures.emplace_back(portName, tcvrThermalData);
     }
+  }
+  auto compareTemp =
+      [](const std::pair<std::string, TransceiverThermalData>& a,
+         const std::pair<std::string, TransceiverThermalData>& b) {
+        return a.second.temperature().value() > b.second.temperature().value();
+      };
+
+  std::sort(temperatures.begin(), temperatures.end(), compareTemp);
+
+  size_t elementsToReport = temperatures.size();
+  if (elementsToReport > kMaxTcvrTemperaturesToReport) {
+    XLOG(WARNING) << "Truncating transceiver thermal data to "
+                  << kMaxTcvrTemperaturesToReport << " from "
+                  << elementsToReport << " entries";
+    elementsToReport = kMaxTcvrTemperaturesToReport;
+  }
+  std::map<std::string, TransceiverThermalData> tcvrData;
+  for (int i = 0; i < elementsToReport; i++) {
+    tcvrData[temperatures[i].first] = temperatures[i].second;
   }
 
   qsfpToBmcData.transceiverThermalData() = tcvrData;

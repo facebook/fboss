@@ -21,6 +21,9 @@ namespace facebook::fboss {
 
 class PhyManager;
 
+// Temperatures to report to FSDB.
+constexpr size_t kMaxTcvrTemperaturesToReport = 256;
+
 class WedgeManager : public TransceiverManager {
  public:
   using TransceiverMap = std::map<int32_t, TransceiverInfo>;
