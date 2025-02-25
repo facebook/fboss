@@ -630,8 +630,8 @@ class SaiSwitch : public HwSwitch {
   std::unique_ptr<std::thread> linkConnectivityChangeBottomHalfThread_;
   FbossEventBase linkConnectivityChangeBottomHalfEventBase_{
       "LinkConnectivityChangeBottomHalfEventBase"};
-  std::unique_ptr<std::thread> switchReachabilityChangeBottomHalfThread_;
-  FbossEventBase switchReachabilityChangeBottomHalfEventBase_{
+  std::unique_ptr<std::thread> switchReachabilityChangeProcessThread_;
+  FbossEventBase switchReachabilityChangeProcessEventBase_{
       "SwitchReachabilityChangeBottomHalfEventBase"};
 
   HwResourceStats hwResourceStats_;

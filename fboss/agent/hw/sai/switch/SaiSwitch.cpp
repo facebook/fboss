@@ -357,11 +357,11 @@ void SaiSwitch::unregisterCallbacks() noexcept {
   if (runState_ >= SwitchRunState::CONFIGURED &&
       platform_->getAsic()->isSupported(
           HwAsic::Feature::SWITCH_REACHABILITY_CHANGE_NOTIFY)) {
-    switchReachabilityChangeBottomHalfEventBase_
-        .runInFbossEventBaseThreadAndWait([this]() {
-          switchReachabilityChangeBottomHalfEventBase_.terminateLoopSoon();
+    switchReachabilityChangeProcessEventBase_.runInFbossEventBaseThreadAndWait(
+        [this]() {
+          switchReachabilityChangeProcessEventBase_.terminateLoopSoon();
         });
-    switchReachabilityChangeBottomHalfThread_->join();
+    switchReachabilityChangeProcessThread_->join();
     // switch reachability change processing is completely shut-off
   }
 
@@ -2918,10 +2918,10 @@ void SaiSwitch::initTxReadyStatusChangeLocked(
 
 void SaiSwitch::initSwitchReachabilityChangeLocked(
     const std::lock_guard<std::mutex>& /* lock */) {
-  switchReachabilityChangeBottomHalfThread_ =
+  switchReachabilityChangeProcessThread_ =
       std::make_unique<std::thread>([this]() {
         initThread("fbossSaiSwitchReachabilityChangeBH");
-        switchReachabilityChangeBottomHalfEventBase_.loopForever();
+        switchReachabilityChangeProcessEventBase_.loopForever();
       });
 
   /*

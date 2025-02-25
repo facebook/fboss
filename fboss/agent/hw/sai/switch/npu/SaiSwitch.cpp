@@ -62,7 +62,7 @@ void SaiSwitch::updateStatsImpl() {
     auto changePending = switchReachabilityChangePending_.wlock();
     if (*changePending > 0) {
       *changePending -= 1;
-      switchReachabilityChangeBottomHalfEventBase_.runInFbossEventBaseThread(
+      switchReachabilityChangeProcessEventBase_.runInFbossEventBaseThread(
           [this]() mutable { processSwitchReachabilityChange(); });
     }
   }
