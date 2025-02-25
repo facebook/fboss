@@ -2490,12 +2490,16 @@ void SaiSwitch::setSwitchReachabilityChangePending() {
   }
 }
 
-void SaiSwitch::processSwitchReachabilityChange() {
+std::map<SwitchID, std::set<PortID>> SaiSwitch::getSwitchReachabilityChange() {
+  std::map<SwitchID, std::set<PortID>> reachabilityInfo{};
+
   auto& switchApi = SaiApiTable::getInstance()->switchApi();
 
+  // There is only one DSF Node map for the given SwitchID.
+  // Thus, the 'outer for loop' runs only once and reachabilityInfo values are
+  // never overwritten in below loops.
   for (const auto& [_, dsfNodes] :
        std::as_const(*getProgrammedState()->getDsfNodes())) {
-    std::map<SwitchID, std::set<PortID>> reachabilityInfo{};
     for (const auto& [switchId, node] : std::as_const(*dsfNodes)) {
       auto maxFabricPorts =
           getMaxNumberOfFabricPorts(*node->toThrift().asicType());
@@ -2512,10 +2516,15 @@ void SaiSwitch::processSwitchReachabilityChange() {
       reachabilityInfo[SwitchID(switchId)] =
           getFabricReachabilityPortIds(switchIdAndFabricPortSaiIds);
     }
-    callback_->switchReachabilityChanged(
-        SwitchID(platform_->getAsic()->getSwitchId().value()),
-        reachabilityInfo);
   }
+
+  return reachabilityInfo;
+}
+
+void SaiSwitch::processSwitchReachabilityChange(
+    const std::map<SwitchID, std::set<PortID>>& reachabilityInfo) {
+  callback_->switchReachabilityChanged(
+      SwitchID(platform_->getAsic()->getSwitchId().value()), reachabilityInfo);
 }
 
 BootType SaiSwitch::getBootType() const {
