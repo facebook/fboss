@@ -174,6 +174,7 @@ std::vector<sai_object_id_t> getPortTamIds(
   return portTamIds;
 }
 
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
 void bindTamObjectToSwitchAndPort(
     SaiManagerTable* managerTable,
     folly::F14FastMap<std::string, std::unique_ptr<SaiTamHandle>>& tamHandles,
@@ -186,6 +187,7 @@ void bindTamObjectToSwitchAndPort(
   XLOG(INFO) << "Binding TAM object " << tamId << " to switch";
   managerTable->switchManager().setTamObject(getSwitchTamIds(tamHandles));
 }
+#endif
 
 void unbindTamObjectFromSwitchAndPort(
     SaiManagerTable* managerTable,
