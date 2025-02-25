@@ -702,8 +702,8 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
   if (getAsic()->getSwitchType() == cfg::SwitchType::FABRIC &&
       getAsic()->getFabricNodeRole() == HwAsic::FabricNodeRole::DUAL_STAGE_L1) {
     CHECK(getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_RAMON3)
-        << " LLFC threshold values for no R3 chips in DUAL_STAGE_L1 role needs to figured out";
-    // Vendor suggested valie
+        << " LLFC threshold values for non R3 chips in DUAL_STAGE_L1 role needs to figured out";
+    // Vendor suggested value
     constexpr uint32_t kRamon3LlfcThreshold{800};
     fabricLLFC = std::vector<uint32_t>({kRamon3LlfcThreshold});
   }
