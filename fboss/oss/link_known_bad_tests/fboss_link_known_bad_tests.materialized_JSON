@@ -11890,6 +11890,9 @@
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_200G.*$"
         },
         {
+          "test_name_regex": "cold_boot.LinkTest.ecmpShrink$"
+        },
+        {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
@@ -11959,6 +11962,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "cold_boot.LinkTest.ecmpShrink$"
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
@@ -12032,6 +12038,9 @@
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_200G.*$"
         },
         {
+          "test_name_regex": "cold_boot.LinkTest.ecmpShrink$"
+        },
+        {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
@@ -12101,6 +12110,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "cold_boot.LinkTest.ecmpShrink$"
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
@@ -12174,6 +12186,9 @@
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_200G.*$"
         },
         {
+          "test_name_regex": "cold_boot.LinkTest.ecmpShrink$"
+        },
+        {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
@@ -12243,6 +12258,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "cold_boot.LinkTest.ecmpShrink$"
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
@@ -12316,6 +12334,9 @@
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_200G.*$"
         },
         {
+          "test_name_regex": "cold_boot.LinkTest.ecmpShrink$"
+        },
+        {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
@@ -12387,6 +12408,9 @@
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_200G.*$"
         },
         {
+          "test_name_regex": "cold_boot.LinkTest.ecmpShrink$"
+        },
+        {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
@@ -12456,6 +12480,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "cold_boot.LinkTest.ecmpShrink$"
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
@@ -15553,6 +15580,9 @@
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_200G.*$"
         },
         {
+          "test_name_regex": "cold_boot.LinkTest.ecmpShrink$"
+        },
+        {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
@@ -15622,6 +15652,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "cold_boot.LinkTest.ecmpShrink$"
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
@@ -15695,6 +15728,9 @@
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_200G.*$"
         },
         {
+          "test_name_regex": "cold_boot.LinkTest.ecmpShrink$"
+        },
+        {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
@@ -15764,6 +15800,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "cold_boot.LinkTest.ecmpShrink$"
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
@@ -15837,6 +15876,9 @@
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_200G.*$"
         },
         {
+          "test_name_regex": "cold_boot.LinkTest.ecmpShrink$"
+        },
+        {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
@@ -15906,6 +15948,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "cold_boot.LinkTest.ecmpShrink$"
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
@@ -15979,6 +16024,9 @@
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_200G.*$"
         },
         {
+          "test_name_regex": "cold_boot.LinkTest.ecmpShrink$"
+        },
+        {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
@@ -16050,6 +16098,9 @@
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_200G.*$"
         },
         {
+          "test_name_regex": "cold_boot.LinkTest.ecmpShrink$"
+        },
+        {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
@@ -16119,6 +16170,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "cold_boot.LinkTest.ecmpShrink$"
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
@@ -19760,9 +19814,6 @@
           "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR4_200G.*$"
         },
         {
-          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR4_400G.*$"
-        },
-        {
           "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*DR4_400G.*$"
         },
         {
@@ -19844,9 +19895,6 @@
         },
         {
           "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR4_200G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR4_400G.*$"
         },
         {
           "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*DR4_400G.*$"
@@ -19932,9 +19980,6 @@
           "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR4_200G.*$"
         },
         {
-          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR4_400G.*$"
-        },
-        {
           "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*DR4_400G.*$"
         },
         {
@@ -20016,9 +20061,6 @@
         },
         {
           "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR4_200G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR4_400G.*$"
         },
         {
           "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*DR4_400G.*$"
@@ -20104,9 +20146,6 @@
           "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR4_200G.*$"
         },
         {
-          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR4_400G.*$"
-        },
-        {
           "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*DR4_400G.*$"
         },
         {
@@ -20188,9 +20227,6 @@
         },
         {
           "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR4_200G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR4_400G.*$"
         },
         {
           "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*DR4_400G.*$"
@@ -20276,9 +20312,6 @@
           "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR4_200G.*$"
         },
         {
-          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR4_400G.*$"
-        },
-        {
           "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*DR4_400G.*$"
         },
         {
@@ -20360,9 +20393,6 @@
         },
         {
           "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR4_200G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR4_400G.*$"
         },
         {
           "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*DR4_400G.*$"
@@ -20448,9 +20478,6 @@
           "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR4_200G.*$"
         },
         {
-          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR4_400G.*$"
-        },
-        {
           "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*DR4_400G.*$"
         },
         {
@@ -20534,9 +20561,6 @@
           "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR4_200G.*$"
         },
         {
-          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR4_400G.*$"
-        },
-        {
           "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*DR4_400G.*$"
         },
         {
@@ -20615,9 +20639,6 @@
         },
         {
           "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR4_200G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR4_400G.*$"
         },
         {
           "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*DR4_400G.*$"
@@ -20700,9 +20721,6 @@
           "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR4_200G.*$"
         },
         {
-          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR4_400G.*$"
-        },
-        {
           "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*DR4_400G.*$"
         },
         {
@@ -20781,9 +20799,6 @@
         },
         {
           "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR4_200G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR4_400G.*$"
         },
         {
           "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*DR4_400G.*$"
@@ -20866,9 +20881,6 @@
           "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR4_200G.*$"
         },
         {
-          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR4_400G.*$"
-        },
-        {
           "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*DR4_400G.*$"
         },
         {
@@ -20947,9 +20959,6 @@
         },
         {
           "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR4_200G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR4_400G.*$"
         },
         {
           "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*DR4_400G.*$"
@@ -21032,9 +21041,6 @@
           "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR4_200G.*$"
         },
         {
-          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR4_400G.*$"
-        },
-        {
           "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*DR4_400G.*$"
         },
         {
@@ -21113,9 +21119,6 @@
         },
         {
           "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR4_200G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR4_400G.*$"
         },
         {
           "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*DR4_400G.*$"
@@ -21198,9 +21201,6 @@
           "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR4_200G.*$"
         },
         {
-          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR4_400G.*$"
-        },
-        {
           "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*DR4_400G.*$"
         },
         {
@@ -21279,9 +21279,6 @@
         },
         {
           "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR4_200G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR4_400G.*$"
         },
         {
           "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*DR4_400G.*$"
@@ -21364,9 +21361,6 @@
           "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR4_200G.*$"
         },
         {
-          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR4_400G.*$"
-        },
-        {
           "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*DR4_400G.*$"
         },
         {
@@ -21445,9 +21439,6 @@
         },
         {
           "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR4_200G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR4_400G.*$"
         },
         {
           "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*DR4_400G.*$"
