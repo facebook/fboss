@@ -703,8 +703,17 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
     // switch id that's used in their deployment to be below the
     // default (HW advertised) value.
     auto agentConfig = config();
-    auto isDualStage =
-        utility::isDualStage(*agentConfig) || isDualStage3Q2QMode();
+    bool isL2FabricNode = false;
+    if (swType == cfg::SwitchType::FABRIC) {
+      auto fabricNodeRole = getAsic()->getFabricNodeRole();
+      isL2FabricNode =
+          fabricNodeRole == HwAsic::FabricNodeRole::DUAL_STAGE_L1 ||
+          fabricNodeRole == HwAsic::FabricNodeRole::DUAL_STAGE_L2;
+    }
+    auto isDualStage = utility::isDualStage(*agentConfig) ||
+        // Use isDualStage3Q2QMode and fabricNodeRole so we set
+        // max switch-id in single node tests as well
+        isDualStage3Q2QMode() || isL2FabricNode;
     if (isDualStage) {
       maxSwitchId = getAsic()->getMaxSwitchId();
     } else {
