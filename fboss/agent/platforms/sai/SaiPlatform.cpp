@@ -10,6 +10,7 @@
 
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 
+#include "fboss/agent/DsfNodeUtils.h"
 #include "fboss/agent/hw/HwSwitchWarmBootHelper.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/hw/switch_asics/EbroAsic.h"
@@ -701,7 +702,21 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
     // R3/J3 asics have a HW bug, whereby we need to constrain the max
     // switch id that's used in their deployment to be below the
     // default (HW advertised) value.
-    maxSwitchId = getAsic()->getMaxSwitchId();
+    auto agentConfig = config();
+    if (utility::isDualStage(*agentConfig)) {
+      maxSwitchId = getAsic()->getMaxSwitchId();
+    } else {
+      // Single stage FAP-ID on J3/R3 are limited to 1K.
+      // With 4 cores we are limited to 1K switch-ids.
+      // Then with 80 R3 chips we get 160 more switch-ids
+      // so we are well within the 2K (vendor) recommended
+      // limit.
+      // TODO: Programatically calculate the max switch-id and
+      // assert that we are are within this limit
+      maxSwitchId = 2 * 1024;
+    }
+    XLOG(DBG2) << "Set max switch-id to: " << *maxSwitchId;
+    CHECK_LE(*maxSwitchId, getAsic()->getMaxSwitchId());
   }
 #endif
 #if defined(BRCM_SAI_SDK_DNX) && defined(BRCM_SAI_SDK_GTE_12_0)

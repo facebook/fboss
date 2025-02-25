@@ -69,6 +69,7 @@ add_library(sai_platform
 
 target_link_libraries(sai_platform
   handler
+  dsfnode_utils
   product_info
   sai_switch
   thrift_handler
