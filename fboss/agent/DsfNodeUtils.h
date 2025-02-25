@@ -10,9 +10,16 @@
 #pragma once
 
 #include "fboss/agent/gen-cpp2/agent_config_types.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
+
+namespace facebook::fboss {
+struct AgentConfig;
+}
 
 namespace facebook::fboss::utility {
 
 bool isDualStage(const cfg::AgentConfig& cfg);
+bool isDualStage(const cfg::SwitchConfig& cfg);
+bool isDualStage(const AgentConfig& cfg);
 
-}
+} // namespace facebook::fboss::utility

@@ -103,6 +103,8 @@ add_library(dsfnode_utils
 
 target_link_libraries(dsfnode_utils
   agent_config_cpp2
+  load_agent_config
+  switch_config_cpp2
 )
 
 add_library(voq_utils
