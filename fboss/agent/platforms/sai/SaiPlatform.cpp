@@ -696,7 +696,13 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
   std::optional<int32_t> maxVoqs;
   std::optional<int32_t> maxSwitchId;
 #if defined(BRCM_SAI_SDK_DNX) && defined(BRCM_SAI_SDK_GTE_11_0)
-  maxSwitchId = getAsic()->getMaxSwitchId();
+  if (getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_RAMON3 ||
+      getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
+    // R3/J3 asics have a HW bug, whereby we need to constrain the max
+    // switch id that's used in their deployment to be below the
+    // default (HW advertised) value.
+    maxSwitchId = getAsic()->getMaxSwitchId();
+  }
 #endif
 #if defined(BRCM_SAI_SDK_DNX) && defined(BRCM_SAI_SDK_GTE_12_0)
   if (getAsic()->getSwitchType() == cfg::SwitchType::FABRIC &&
