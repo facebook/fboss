@@ -57,6 +57,16 @@ void SaiSwitch::updateStatsImpl() {
   if (updateCableLengths) {
     cableLengthStatsUpdateTime_ = now;
   }
+
+  {
+    auto changePending = switchReachabilityChangePending_.wlock();
+    if (*changePending > 0) {
+      *changePending -= 1;
+      switchReachabilityChangeBottomHalfEventBase_.runInFbossEventBaseThread(
+          [this]() mutable { processSwitchReachabilityChange(); });
+    }
+  }
+
   int64_t missingCount = 0, mismatchCount = 0, bogusCount = 0;
   auto portsIter = concurrentIndices_->portSaiId2PortInfo.begin();
   std::map<PortID, multiswitch::FabricConnectivityDelta> connectivityDelta;
