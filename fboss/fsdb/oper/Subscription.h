@@ -23,8 +23,12 @@ class BaseSubscription {
  public:
   virtual PubSubType type() const = 0;
 
+  SubscriptionIdentifier subscriptionId() const {
+    return subId_;
+  }
+
   const SubscriberId subscriberId() const {
-    return subscriber_;
+    return subId_.subscriberId();
   }
 
   virtual ~BaseSubscription();
@@ -78,7 +82,7 @@ class BaseSubscription {
 
  protected:
   BaseSubscription(
-      SubscriberId subscriber,
+      SubscriptionIdentifier&& subId,
       OperProtocol protocol,
       std::optional<std::string> publisherRoot,
       folly::EventBase* heartbeatEvb,
@@ -87,7 +91,7 @@ class BaseSubscription {
  private:
   folly::coro::Task<void> heartbeatLoop();
 
-  const SubscriberId subscriber_;
+  const SubscriptionIdentifier subId_;
   const OperProtocol protocol_;
   const std::optional<std::string> publisherTreeRoot_;
   folly::EventBase* heartbeatEvb_;
@@ -115,7 +119,7 @@ class Subscription : public BaseSubscription {
 
  protected:
   Subscription(
-      SubscriberId subscriber,
+      SubscriptionIdentifier&& subscriber,
       std::vector<std::string> path,
       OperProtocol protocol,
       std::optional<std::string> publisherRoot,
@@ -167,7 +171,7 @@ class ExtendedSubscription : public BaseSubscription {
 
  protected:
   ExtendedSubscription(
-      SubscriberId subscriber,
+      SubscriptionIdentifier&& subscriber,
       ExtSubPathMap paths,
       OperProtocol protocol,
       std::optional<std::string> publisherRoot,
@@ -220,7 +224,7 @@ class PathSubscription : public BasePathSubscription,
       folly::coro::AsyncGenerator<value_type&&>,
       std::unique_ptr<PathSubscription>>
   create(
-      SubscriberId subscriber,
+      SubscriptionIdentifier&& subscriber,
       PathIter begin,
       PathIter end,
       OperProtocol protocol,
@@ -262,7 +266,7 @@ class PathSubscription : public BasePathSubscription,
   }
 
   PathSubscription(
-      SubscriberId subscriber,
+      SubscriptionIdentifier&& subscriber,
       std::vector<std::string> path,
       folly::coro::AsyncPipe<value_type> pipe,
       OperProtocol protocol,
@@ -295,7 +299,7 @@ class BaseDeltaSubscription : public Subscription {
   void appendRootDeltaUnit(const OperDeltaUnit& unit);
 
   BaseDeltaSubscription(
-      SubscriberId subscriber,
+      SubscriptionIdentifier&& subscriber,
       std::vector<std::string> path,
       OperProtocol protocol,
       std::optional<std::string> publisherTreeRoot,
@@ -336,7 +340,7 @@ class DeltaSubscription : public BaseDeltaSubscription,
       folly::coro::AsyncGenerator<OperDelta&&>,
       std::unique_ptr<DeltaSubscription>>
   create(
-      SubscriberId subscriber,
+      SubscriptionIdentifier&& subscriber,
       PathIter begin,
       PathIter end,
       OperProtocol protocol,
@@ -345,7 +349,7 @@ class DeltaSubscription : public BaseDeltaSubscription,
       std::chrono::milliseconds heartbeatInterval);
 
   DeltaSubscription(
-      SubscriberId subscriber,
+      SubscriptionIdentifier&& subscriber,
       std::vector<std::string> path,
       folly::coro::AsyncPipe<OperDelta> pipe,
       OperProtocol protocol,
@@ -428,7 +432,7 @@ class ExtendedPathSubscription : public ExtendedSubscription,
       folly::coro::AsyncGenerator<gen_type&&>,
       std::shared_ptr<ExtendedPathSubscription>>
   create(
-      SubscriberId subscriber,
+      SubscriptionIdentifier&& subscriber,
       std::vector<ExtendedOperPath> paths,
       std::optional<std::string> publisherRoot,
       OperProtocol protocol,
@@ -445,7 +449,7 @@ class ExtendedPathSubscription : public ExtendedSubscription,
       override;
 
   ExtendedPathSubscription(
-      SubscriberId subscriber,
+      SubscriptionIdentifier&& subscriber,
       ExtSubPathMap paths,
       folly::coro::AsyncPipe<gen_type> pipe,
       OperProtocol protocol,
@@ -519,7 +523,7 @@ class ExtendedDeltaSubscription : public ExtendedSubscription,
       folly::coro::AsyncGenerator<gen_type&&>,
       std::shared_ptr<ExtendedDeltaSubscription>>
   create(
-      SubscriberId subscriber,
+      SubscriptionIdentifier&& subscriber,
       std::vector<ExtendedOperPath> paths,
       std::optional<std::string> publisherRoot,
       OperProtocol protocol,
@@ -542,7 +546,7 @@ class ExtendedDeltaSubscription : public ExtendedSubscription,
       override;
 
   ExtendedDeltaSubscription(
-      SubscriberId subscriber,
+      SubscriptionIdentifier&& subscriber,
       ExtSubPathMap paths,
       folly::coro::AsyncPipe<value_type> pipe,
       OperProtocol protocol,
@@ -615,7 +619,7 @@ class ExtendedPatchSubscription : public ExtendedSubscription,
       folly::coro::AsyncGenerator<gen_type&&>,
       std::unique_ptr<ExtendedPatchSubscription>>
   create(
-      SubscriberId subscriber,
+      SubscriptionIdentifier&& subscriber,
       std::vector<std::string> path,
       OperProtocol protocol,
       std::optional<std::string> publisherRoot,
@@ -627,7 +631,7 @@ class ExtendedPatchSubscription : public ExtendedSubscription,
       folly::coro::AsyncGenerator<gen_type&&>,
       std::unique_ptr<ExtendedPatchSubscription>>
   create(
-      SubscriberId subscriber,
+      SubscriptionIdentifier&& subscriber,
       std::map<SubscriptionKey, RawOperPath> paths,
       OperProtocol protocol,
       std::optional<std::string> publisherRoot,
@@ -639,7 +643,7 @@ class ExtendedPatchSubscription : public ExtendedSubscription,
       folly::coro::AsyncGenerator<gen_type&&>,
       std::unique_ptr<ExtendedPatchSubscription>>
   create(
-      SubscriberId subscriber,
+      SubscriptionIdentifier&& subscriber,
       ExtSubPathMap paths,
       OperProtocol protocol,
       std::optional<std::string> publisherRoot,
@@ -647,7 +651,7 @@ class ExtendedPatchSubscription : public ExtendedSubscription,
       std::chrono::milliseconds heartbeatInterval);
 
   ExtendedPatchSubscription(
-      SubscriberId subscriber,
+      SubscriptionIdentifier&& subscriber,
       ExtSubPathMap paths,
       folly::coro::AsyncPipe<gen_type> pipe,
       OperProtocol protocol,

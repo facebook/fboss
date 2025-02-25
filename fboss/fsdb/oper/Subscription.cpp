@@ -28,12 +28,12 @@ ExtSubPathMap makeSimplePathMap(std::vector<ExtendedOperPath> paths) {
 } // namespace
 
 BaseSubscription::BaseSubscription(
-    SubscriberId subscriber,
+    SubscriptionIdentifier&& subId,
     OperProtocol protocol,
     std::optional<std::string> publisherRoot,
     folly::EventBase* heartbeatEvb,
     std::chrono::milliseconds heartbeatInterval)
-    : subscriber_(std::move(subscriber)),
+    : subId_(std::move(subId)),
       protocol_(protocol),
       publisherTreeRoot_(std::move(publisherRoot)),
       heartbeatEvb_(heartbeatEvb),
@@ -98,7 +98,7 @@ std::pair<
     folly::coro::AsyncGenerator<OperDelta&&>,
     std::unique_ptr<DeltaSubscription>>
 DeltaSubscription::create(
-    SubscriberId subscriber,
+    SubscriptionIdentifier&& subscriber,
     typename DeltaSubscription::PathIter begin,
     typename DeltaSubscription::PathIter end,
     OperProtocol protocol,
@@ -144,7 +144,7 @@ FullyResolvedExtendedPathSubscription::FullyResolvedExtendedPathSubscription(
     const std::vector<std::string>& path,
     ExtendedPathSubscription& subscription)
     : BasePathSubscription(
-          subscription.subscriberId(),
+          subscription.subscriptionId(),
           path,
           subscription.operProtocol(),
           subscription.publisherTreeRoot(),
@@ -208,7 +208,7 @@ FullyResolvedExtendedDeltaSubscription::FullyResolvedExtendedDeltaSubscription(
     const std::vector<std::string>& path,
     ExtendedDeltaSubscription& subscription)
     : BaseDeltaSubscription(
-          subscription.subscriberId(),
+          subscription.subscriptionId(),
           path,
           subscription.operProtocol(),
           subscription.publisherTreeRoot(),
@@ -256,7 +256,7 @@ std::pair<
     folly::coro::AsyncGenerator<typename ExtendedPathSubscription::gen_type&&>,
     std::shared_ptr<ExtendedPathSubscription>>
 ExtendedPathSubscription::create(
-    SubscriberId subscriber,
+    SubscriptionIdentifier&& subscriber,
     std::vector<ExtendedOperPath> paths,
     std::optional<std::string> publisherRoot,
     OperProtocol protocol,
@@ -313,7 +313,7 @@ std::pair<
     folly::coro::AsyncGenerator<typename ExtendedDeltaSubscription::gen_type&&>,
     std::shared_ptr<ExtendedDeltaSubscription>>
 ExtendedDeltaSubscription::create(
-    SubscriberId subscriber,
+    SubscriptionIdentifier&& subscriber,
     std::vector<ExtendedOperPath> paths,
     std::optional<std::string> publisherRoot,
     OperProtocol protocol,
@@ -373,7 +373,7 @@ PatchSubscription::PatchSubscription(
     std::vector<std::string> path,
     ExtendedPatchSubscription& subscription)
     : Subscription(
-          subscription.subscriberId(),
+          subscription.subscriptionId(),
           std::move(path),
           subscription.operProtocol(),
           subscription.publisherTreeRoot(),
@@ -416,7 +416,7 @@ std::pair<
     folly::coro::AsyncGenerator<ExtendedPatchSubscription::gen_type&&>,
     std::unique_ptr<ExtendedPatchSubscription>>
 ExtendedPatchSubscription::create(
-    SubscriberId subscriber,
+    SubscriptionIdentifier&& subscriber,
     std::vector<std::string> path,
     OperProtocol protocol,
     std::optional<std::string> publisherRoot,
@@ -437,7 +437,7 @@ std::pair<
     folly::coro::AsyncGenerator<ExtendedPatchSubscription::gen_type&&>,
     std::unique_ptr<ExtendedPatchSubscription>>
 ExtendedPatchSubscription::create(
-    SubscriberId subscriber,
+    SubscriptionIdentifier&& subscriber,
     std::map<SubscriptionKey, RawOperPath> paths,
     OperProtocol protocol,
     std::optional<std::string> publisherRoot,
@@ -465,7 +465,7 @@ std::pair<
     folly::coro::AsyncGenerator<ExtendedPatchSubscription::gen_type&&>,
     std::unique_ptr<ExtendedPatchSubscription>>
 ExtendedPatchSubscription::create(
-    SubscriberId subscriber,
+    SubscriptionIdentifier&& subscriber,
     std::map<SubscriptionKey, ExtendedOperPath> paths,
     OperProtocol protocol,
     std::optional<std::string> publisherRoot,

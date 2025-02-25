@@ -298,7 +298,7 @@ NaivePeriodicSubscribableStorageBase::subscribe_encoded_impl(
     heartbeatInterval = subscriptionParams->heartbeatInterval_.value();
   }
   auto [gen, subscription] = PathSubscription::create(
-      std::move(subscriber),
+      SubscriptionIdentifier(std::move(subscriber)),
       path.begin(),
       path.end(),
       protocol,
@@ -323,7 +323,7 @@ NaivePeriodicSubscribableStorageBase::subscribe_delta_impl(
     heartbeatInterval = subscriptionParams->heartbeatInterval_.value();
   }
   auto [gen, subscription] = DeltaSubscription::create(
-      std::move(subscriber),
+      SubscriptionIdentifier(std::move(subscriber)),
       path.begin(),
       path.end(),
       protocol,
@@ -348,7 +348,7 @@ NaivePeriodicSubscribableStorageBase::subscribe_encoded_extended_impl(
   }
   auto publisherRoot = getPublisherRoot(paths);
   auto [gen, subscription] = ExtendedPathSubscription::create(
-      std::move(subscriber),
+      SubscriptionIdentifier(std::move(subscriber)),
       std::move(paths),
       std::move(publisherRoot),
       protocol,
@@ -372,7 +372,7 @@ NaivePeriodicSubscribableStorageBase::subscribe_delta_extended_impl(
   }
   auto publisherRoot = getPublisherRoot(paths);
   auto [gen, subscription] = ExtendedDeltaSubscription::create(
-      std::move(subscriber),
+      SubscriptionIdentifier(std::move(subscriber)),
       std::move(paths),
       std::move(publisherRoot),
       protocol,
@@ -398,7 +398,7 @@ NaivePeriodicSubscribableStorageBase::subscribe_patch_impl(
   }
   auto root = getPublisherRoot(rawPaths);
   auto [gen, subscription] = ExtendedPatchSubscription::create(
-      std::move(subscriber),
+      SubscriptionIdentifier(std::move(subscriber)),
       std::move(rawPaths),
       patchOperProtocol_,
       std::move(root),
@@ -424,7 +424,7 @@ NaivePeriodicSubscribableStorageBase::subscribe_patch_extended_impl(
   }
   auto root = getPublisherRoot(paths);
   auto [gen, subscription] = ExtendedPatchSubscription::create(
-      std::move(subscriber),
+      SubscriptionIdentifier(std::move(subscriber)),
       std::move(paths),
       patchOperProtocol_,
       std::move(root),
