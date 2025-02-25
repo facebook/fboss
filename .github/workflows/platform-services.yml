@@ -35,6 +35,7 @@ jobs:
           --no-system-deps
           --env-var
           GITHUB_ACTIONS_BUILD
+          --local
       - name: Package FBOSS binaries and library dependencies
         run: >
           sudo
