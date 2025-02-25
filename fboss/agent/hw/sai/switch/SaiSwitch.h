@@ -393,7 +393,6 @@ class SaiSwitch : public HwSwitch {
       bool fwIsolated = false,
       const std::optional<uint32_t>& numActiveFabricPortsAtFwIsolate =
           std::nullopt);
-  void switchReachabilityChangeBottomHalf();
 
   void setSwitchReachabilityChangePending();
   void processSwitchReachabilityChange();
