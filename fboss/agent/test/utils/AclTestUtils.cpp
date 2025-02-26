@@ -445,6 +445,42 @@ getAclTableGroup(cfg::SwitchConfig& config, cfg::AclStage aclStage) {
   return nullptr;
 }
 
+void setupDefaultEgressAclTableGroup(cfg::SwitchConfig& config) {
+  if (config.switchSettings()->switchIdToSwitchInfo()->empty()) {
+    return;
+  }
+  auto switchId2SwitchInfo = *config.switchSettings()->switchIdToSwitchInfo();
+  std::optional<cfg::SdkVersion> version{};
+  if (config.sdkVersion()) {
+    version = *config.sdkVersion();
+  }
+
+  HwAsicTable asicTable(switchId2SwitchInfo, version);
+  if (!asicTable.isFeatureSupportedOnAnyAsic(
+          HwAsic::Feature::EGRESS_ACL_TABLE)) {
+    return;
+  }
+
+  if (!getAclTableGroup(config, cfg::AclStage::EGRESS)) {
+    return;
+  }
+  utility::addAclTableGroup(
+      &config, cfg::AclStage::EGRESS, "engress-ACL-Table-Group");
+
+  utility::addAclTable(
+      &config,
+      cfg::AclStage::EGRESS,
+      "eAclTable1",
+      0,
+      {
+          cfg::AclTableActionType::PACKET_ACTION,
+      },
+      {
+          cfg::AclTableQualifier::DSCP,
+      },
+      {});
+}
+
 void setupDefaultAclTableGroups(cfg::SwitchConfig& config) {
   if (getAclTableGroup(config, cfg::AclStage::INGRESS)) {
     // default table group already exists
