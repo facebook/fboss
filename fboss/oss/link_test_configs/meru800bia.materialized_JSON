@@ -195,7 +195,7 @@
         "logicalID": 6,
         "state": 1,
         "minFrameSize": 64,
-        "maxFrameSize": 9412,
+        "maxFrameSize": 1536,
         "parserType": 1,
         "routable": true,
         "ingressVlan": 0,
