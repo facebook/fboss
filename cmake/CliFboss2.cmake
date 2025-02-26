@@ -343,6 +343,13 @@ add_fbthrift_cpp_library(
     phy_cpp2
 )
 
+add_fbthrift_cpp_library(
+  show_platformshowtech_model
+  fboss/cli/fboss2/commands/show/platformshowtech/model.thrift
+  OPTIONS
+    json
+)
+
 find_package(CLI11 CONFIG REQUIRED)
 
 add_executable(fboss2
@@ -414,6 +421,8 @@ add_executable(fboss2
   fboss/cli/fboss2/commands/show/sdk/dump/CmdShowSdkDump.h
   fboss/cli/fboss2/commands/show/systemport/CmdShowSystemPort.h
   fboss/cli/fboss2/commands/show/cpuport/CmdShowCpuPort.h
+  fboss/cli/fboss2/commands/show/platformshowtech/CmdShowPlatformShowtech.h
+  fboss/cli/fboss2/commands/show/platformshowtech/utils.cpp
   fboss/cli/fboss2/commands/show/teflow/CmdShowTeFlow.h
   fboss/cli/fboss2/commands/show/transceiver/CmdShowTransceiver.h
   fboss/cli/fboss2/commands/start/pcap/CmdStartPcap.h
@@ -492,6 +501,7 @@ target_link_libraries(fboss2
   show_mac_model
   show_systemport_model
   show_cpuport_model
+  show_platformshowtech_model
   show_teflow_model
   show_hwagent_status_model
   show_interface_counters_fec_ber

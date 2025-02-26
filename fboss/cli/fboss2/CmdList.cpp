@@ -79,6 +79,8 @@
 #include "fboss/cli/fboss2/commands/show/route/CmdShowRouteSummary.h"
 #include "fboss/cli/fboss2/commands/show/sdk/dump/CmdShowSdkDump.h"
 #include "fboss/cli/fboss2/commands/show/systemport/CmdShowSystemPort.h"
+#include "fboss/cli/fboss2/commands/show/platformshowtech/CmdShowPlatformShowtech.h"
+#include "fboss/cli/fboss2/commands/show/platformshowtech/gen-cpp2/model_visitation.h"
 #include "fboss/cli/fboss2/commands/show/teflow/CmdShowTeFlow.h"
 #include "fboss/cli/fboss2/commands/show/transceiver/CmdShowTransceiver.h"
 #include "fboss/cli/fboss2/commands/start/pcap/CmdStartPcap.h"
@@ -358,6 +360,13 @@ const CommandTree& kCommandTree() {
        commandHandler<CmdShowSystemPort>,
        validFilterHandler<CmdShowSystemPort>,
        argTypeHandler<CmdShowSystemPortTraits>},
+
+      {"show",
+      "platform-showtech",
+      "Show platform-showtech debug information",
+      commandHandler<CmdShowPlatformShowtech>,
+      argTypeHandler<CmdShowPlatformShowtechTraits>,
+      localOptionsHandler<CmdShowPlatformShowtechTraits>},
 
       {"show",
        "teflow",

@@ -110,6 +110,8 @@
 #include "fboss/cli/fboss2/commands/show/sdk/dump/CmdShowSdkDump.h"
 #include "fboss/cli/fboss2/commands/show/systemport/CmdShowSystemPort.h"
 #include "fboss/cli/fboss2/commands/show/systemport/gen-cpp2/model_visitation.h"
+#include "fboss/cli/fboss2/commands/show/platformshowtech/CmdShowPlatformShowtech.h"
+#include "fboss/cli/fboss2/commands/show/platformshowtech/gen-cpp2/model_visitation.h"
 #include "fboss/cli/fboss2/commands/show/teflow/CmdShowTeFlow.h"
 #include "fboss/cli/fboss2/commands/show/transceiver/CmdShowTransceiver.h"
 #include "fboss/cli/fboss2/commands/show/transceiver/gen-cpp2/model_visitation.h"
@@ -231,6 +233,8 @@ template void CmdHandler<CmdSetInterface, CmdSetInterfaceTraits>::run();
 template void CmdHandler<CmdSetInterfacePrbs, CmdSetInterfacePrbsTraits>::run();
 template void
 CmdHandler<CmdSetInterfacePrbsState, CmdSetInterfacePrbsStateTraits>::run();
+template void
+CmdHandler<CmdShowPlatformShowtech, CmdShowPlatformShowtechTraits>::run();
 template void CmdHandler<CmdShowTeFlow, CmdShowTeFlowTraits>::run();
 template void CmdHandler<CmdStartPcap, CmdStartPcapTraits>::run();
 template void CmdHandler<CmdStopPcap, CmdStopPcapTraits>::run();
