@@ -190,7 +190,8 @@ std::unique_ptr<Repl> DiagShell::makeRepl() const {
     case PlatformType::PLATFORM_FAKE_SAI:
       throw FbossError("Shell not supported for fake platforms");
     case PlatformType::PLATFORM_YANGRA:
-      throw FbossError("Shell still not supported for Yangra platforms");
+    case PlatformType::PLATFORM_MINIPACK3N:
+      throw FbossError("Shell still not supported for Yangra/MP3N platforms");
   }
   CHECK(0) << " Should never get here";
   return nullptr;
@@ -426,7 +427,8 @@ std::string DiagCmdServer::getDelimiterDiagCmd(const std::string& UUID) const {
     case PlatformType::PLATFORM_FAKE_SAI:
       throw FbossError("Shell not supported for fake platforms");
     case PlatformType::PLATFORM_YANGRA:
-      throw FbossError("Shell still not supported for Yangra platforms");
+    case PlatformType::PLATFORM_MINIPACK3N:
+      throw FbossError("Shell still not supported for Yangra/MP3N platforms");
   }
   CHECK(0) << " Should never get here";
   return "";
@@ -493,7 +495,8 @@ std::string& DiagCmdServer::cleanUpOutput(
     case PlatformType::PLATFORM_FAKE_SAI:
       throw FbossError("Shell not supported for fake platforms");
     case PlatformType::PLATFORM_YANGRA:
-      throw FbossError("Shell still not supported for Yangra platforms");
+    case PlatformType::PLATFORM_MINIPACK3N:
+      throw FbossError("Shell still not supported for Yangra/MP3N platforms");
   }
   CHECK(0) << " Should never get here";
   return output;
