@@ -5,6 +5,7 @@
 #include "fboss/lib/bsp/meru400bfu/Meru400bfuBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru400bia/Meru400biaBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru400biu/Meru400biuBspPlatformMapping.h"
+#include "fboss/lib/bsp/minipack3n/Minipack3NBspPlatformMapping.h"
 #include "fboss/lib/bsp/montblanc/MontblancBspPlatformMapping.h"
 
 namespace facebook::fboss {
@@ -18,6 +19,10 @@ TEST_F(BspPlatformMapTest, checkNumPimTransceivers) {
   auto mbBspPlatformMap = MontblancBspPlatformMapping();
   EXPECT_EQ(mbBspPlatformMap.numPims(), 1);
   EXPECT_EQ(mbBspPlatformMap.numTransceivers(), 65);
+  // Check Minipack3N
+  auto mp3nBspPlatformMap = Minipack3NBspPlatformMapping();
+  EXPECT_EQ(mp3nBspPlatformMap.numPims(), 1);
+  EXPECT_EQ(mp3nBspPlatformMap.numTransceivers(), 65);
   // Check Kamet
   auto m400bfuBspPlatformMap = Meru400bfuBspPlatformMapping();
   EXPECT_EQ(m400bfuBspPlatformMap.numPims(), 1);
