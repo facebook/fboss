@@ -134,6 +134,9 @@
           "test_name_regex": "AgentWideEcmpTest.WideUcmpUnderflow$"
         },
         {
+          "test_name_regex": "AgentQueuePerHostTest/[0-3].VerifyHostToQueueMappingClassIDsAfterResolve$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -948,6 +951,9 @@
           "test_name_regex": "AgentWideEcmpTest.WideUcmpUnderflow$"
         },
         {
+          "test_name_regex": "AgentQueuePerHostTest/[0-3].VerifyHostToQueueMappingClassIDsAfterResolve$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -1724,6 +1730,9 @@
         },
         {
           "test_name_regex": "AgentWideEcmpTest.WideUcmpUnderflow$"
+        },
+        {
+          "test_name_regex": "AgentQueuePerHostTest/[0-3].VerifyHostToQueueMappingClassIDsAfterResolve$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
@@ -2681,6 +2690,9 @@
           "test_name_regex": "AgentWideEcmpTest.WideUcmpUnderflow$"
         },
         {
+          "test_name_regex": "AgentQueuePerHostTest/[0-3].VerifyHostToQueueMappingClassIDsAfterResolve$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -3561,6 +3573,9 @@
           "test_name_regex": "AgentWideEcmpTest.WideUcmpUnderflow$"
         },
         {
+          "test_name_regex": "AgentQueuePerHostTest/[0-3].VerifyHostToQueueMappingClassIDsAfterResolve$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -4309,6 +4324,9 @@
           "test_name_regex": "AgentWideEcmpTest.WideUcmpUnderflow$"
         },
         {
+          "test_name_regex": "AgentQueuePerHostTest/[0-3].VerifyHostToQueueMappingClassIDsAfterResolve$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -4669,6 +4687,9 @@
         },
         {
           "test_name_regex": "AgentWideEcmpTest.WideUcmpUnderflow$"
+        },
+        {
+          "test_name_regex": "AgentQueuePerHostTest/[0-3].VerifyHostToQueueMappingClassIDsAfterResolve$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
@@ -5368,6 +5389,9 @@
           "test_name_regex": "AgentWideEcmpTest.WideUcmpUnderflow$"
         },
         {
+          "test_name_regex": "AgentQueuePerHostTest/[0-3].VerifyHostToQueueMappingClassIDsAfterResolve$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -5728,6 +5752,9 @@
         },
         {
           "test_name_regex": "AgentWideEcmpTest.WideUcmpUnderflow$"
+        },
+        {
+          "test_name_regex": "AgentQueuePerHostTest/[0-3].VerifyHostToQueueMappingClassIDsAfterResolve$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
@@ -6604,6 +6631,9 @@
           "test_name_regex": "AgentWideEcmpTest.WideUcmpUnderflow$"
         },
         {
+          "test_name_regex": "AgentQueuePerHostTest/[0-3].VerifyHostToQueueMappingClassIDsAfterResolve$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -7352,6 +7382,9 @@
           "test_name_regex": "AgentWideEcmpTest.WideUcmpUnderflow$"
         },
         {
+          "test_name_regex": "AgentQueuePerHostTest/[0-3].VerifyHostToQueueMappingClassIDsAfterResolve$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -7712,6 +7745,9 @@
         },
         {
           "test_name_regex": "AgentWideEcmpTest.WideUcmpUnderflow$"
+        },
+        {
+          "test_name_regex": "AgentQueuePerHostTest/[0-3].VerifyHostToQueueMappingClassIDsAfterResolve$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
@@ -8519,6 +8555,9 @@
           "test_name_regex": "AgentWideEcmpTest.WideUcmpUnderflow$"
         },
         {
+          "test_name_regex": "AgentQueuePerHostTest/[0-3].VerifyHostToQueueMappingClassIDsAfterResolve$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -9283,6 +9322,9 @@
         },
         {
           "test_name_regex": "AgentWideEcmpTest.WideUcmpUnderflow$"
+        },
+        {
+          "test_name_regex": "AgentQueuePerHostTest/[0-3].VerifyHostToQueueMappingClassIDsAfterResolve$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
@@ -10214,6 +10256,9 @@
         },
         {
           "test_name_regex": "AgentWideEcmpTest.WideUcmpUnderflow$"
+        },
+        {
+          "test_name_regex": "AgentQueuePerHostTest/[0-3].VerifyHostToQueueMappingClassIDsAfterResolve$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
@@ -11242,6 +11287,9 @@
         },
         {
           "test_name_regex": "AgentWideEcmpTest.WideUcmpUnderflow$"
+        },
+        {
+          "test_name_regex": "AgentQueuePerHostTest/[0-3].VerifyHostToQueueMappingClassIDsAfterResolve$"
         }
     ],
     "leaba/24.8.3001/24.8.3001/gibraltar/mono": [
@@ -11840,6 +11888,9 @@
         },
         {
           "test_name_regex": "AgentWideEcmpTest.WideUcmpUnderflow$"
+        },
+        {
+          "test_name_regex": "AgentQueuePerHostTest/[0-3].VerifyHostToQueueMappingClassIDsAfterResolve$"
         }
     ],
     "leaba/24.8.3001_yuba/24.8.3001_yuba/graphene200/mono": [
