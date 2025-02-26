@@ -55,9 +55,6 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
         {masterLogicalPortIds()[0], masterLogicalPortIds()[1]},
         getAsic()->desiredLoopbackModes());
 
-    utility::addAclTableGroup(
-        &cfg, cfg::AclStage::INGRESS, utility::kDefaultAclTableGroupName());
-
     return cfg;
   }
 
