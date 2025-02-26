@@ -14,6 +14,10 @@ TEST(ParserTest, GetNameForTests) {
       "montblanc");
   EXPECT_EQ(
       facebook::fboss::Parser::getNameFor(
+          facebook::fboss::PlatformType::PLATFORM_MINIPACK3N),
+      "minipack3n");
+  EXPECT_EQ(
+      facebook::fboss::Parser::getNameFor(
           facebook::fboss::PlatformType::PLATFORM_MERU400BFU),
       "meru400bfu");
   EXPECT_EQ(
