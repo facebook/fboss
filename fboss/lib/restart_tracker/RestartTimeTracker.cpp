@@ -30,6 +30,7 @@ using TimePoint = time_point<steady_clock>;
 namespace {
 constexpr auto kWarmBootPrefix = "warm_boot.";
 constexpr auto kColdBootPrefix = "cold_boot.";
+constexpr auto kRestartPrefix = "restart.";
 constexpr auto kStageCounterSuffix = "stage_duration_ms";
 constexpr auto kTotalCounterSuffix = "total_duration_ms";
 constexpr auto kMaxWarmBootTime = minutes(5);
@@ -122,7 +123,9 @@ class RestartTimeTracker {
       bool warmBoot,
       const std::optional<std::string>& serviceName)
       : warmBootDir_(warmBootDir),
-        prefix_((warmBoot) ? kWarmBootPrefix : kColdBootPrefix),
+        prefix_(
+            (serviceName) ? kRestartPrefix
+                          : (warmBoot ? kWarmBootPrefix : kColdBootPrefix)),
         serviceName_(serviceName) {
     if (warmBoot) {
       auto signalled = newEvent(RestartEvent::SIGNAL_RECEIVED);

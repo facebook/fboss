@@ -80,6 +80,7 @@ cpp_library(
         "//fboss/fsdb/common:flags",
         "//fboss/fsdb/common:utils",
         "//fboss/fsdb/if:fsdb_common-cpp2-types",
+        "//fboss/lib/restart_tracker:restart_time_tracker",
         "//folly/init:init",
         "//folly/io/async:async_signal_handler",
         "//folly/logging:logging",
@@ -103,6 +104,7 @@ cpp_binary(
         ":fsdb_server",
         "//fboss/agent:fboss_init",  # @manual
         "//fboss/agent:fboss_init_h",
+        "//fboss/lib/restart_tracker:restart_time_tracker",
     ],
     external_deps = [
         "gflags",
