@@ -222,7 +222,8 @@
         54,
         33,
         59,
-        60
+        60,
+        62
     ],
     "tomahawk4": [
         2,
@@ -267,7 +268,8 @@
         54,
         33,
         59,
-        60
+        60,
+        62
     ],
     "tomahawk5": [
         2,
@@ -311,7 +313,8 @@
         54,
         33,
         59,
-        60
+        60,
+        62
     ],
     "yuba": [
         2,
@@ -576,7 +579,8 @@
         "IP_IN_IP_DECAP",
         "INTERFACE_NEIGHBOR_TABLE",
         "CLASS_ID_FOR_CONNECTED_ROUTE",
-        "SEPARATE_BYTE_AND_PACKET_ACL_COUNTERS"
+        "SEPARATE_BYTE_AND_PACKET_ACL_COUNTERS",
+        "EAPOL_TRAP"
     ],
     "tomahawk4": [
         "CPU_RX_TX",
@@ -621,7 +625,8 @@
         "IP_IN_IP_DECAP",
         "INTERFACE_NEIGHBOR_TABLE",
         "CLASS_ID_FOR_CONNECTED_ROUTE",
-        "SEPARATE_BYTE_AND_PACKET_ACL_COUNTERS"
+        "SEPARATE_BYTE_AND_PACKET_ACL_COUNTERS",
+        "EAPOL_TRAP"
     ],
     "tomahawk5": [
         "CPU_RX_TX",
@@ -665,7 +670,8 @@
         "IP_IN_IP_DECAP",
         "INTERFACE_NEIGHBOR_TABLE",
         "CLASS_ID_FOR_CONNECTED_ROUTE",
-        "SEPARATE_BYTE_AND_PACKET_ACL_COUNTERS"
+        "SEPARATE_BYTE_AND_PACKET_ACL_COUNTERS",
+        "EAPOL_TRAP"
     ],
     "yuba": [
         "CPU_RX_TX",
