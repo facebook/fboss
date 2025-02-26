@@ -10,8 +10,8 @@
 #pragma once
 
 #include <cstdint>
+#include <optional>
 #include <string>
-
 /**
  * This module exports restart timing info. The main interface is the
  * mark() method, which can be called from any point in our code to
@@ -42,7 +42,10 @@ enum class RestartEvent : uint16_t {
 };
 
 namespace restart_time {
-void init(const std::string& warmBootDir, bool warmBoot);
+void init(
+    const std::string& warmBootDir,
+    bool warmBoot,
+    const std::optional<std::string>& serviceName = std::nullopt);
 void mark(RestartEvent event);
 void stop();
 }; // namespace restart_time
