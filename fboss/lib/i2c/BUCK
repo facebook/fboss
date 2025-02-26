@@ -7,7 +7,7 @@ thrift_library(
     name = "i2c_controller_stats",
     languages = [
         "cpp2",
-        "py",
+        "py-deprecated",
     ],
     py_base_module = "neteng.fboss",
     thrift_srcs = {"i2c_controller_stats.thrift": []},

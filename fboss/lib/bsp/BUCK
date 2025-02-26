@@ -7,7 +7,7 @@ thrift_library(
     name = "bsp_platform_mapping",
     languages = [
         "cpp2",
-        "py",
+        "py-deprecated",
     ],
     py_base_module = "neteng.fboss",
     thrift_cpp2_options = [

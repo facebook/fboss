@@ -16,8 +16,8 @@ thrift_library(
     languages = [
         "cpp2",
         "go",
-        "py",
         "py3",
+        "py-deprecated",
     ],
     plugins = [
         thrift_plugin_thriftpath(),
