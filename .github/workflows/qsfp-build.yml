@@ -32,6 +32,7 @@ jobs:
           qsfp_targets
           --no-docker-output
           --no-system-deps
+          --local
       - name: Package FBOSS binaries and library dependencies
         run: >
           sudo
