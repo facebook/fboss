@@ -40,10 +40,12 @@ const std::map<int, std::vector<uint8_t>> kNetworkAIQueueToDscp();
 void addNetworkAIQueueConfig(
     cfg::SwitchConfig* config,
     cfg::StreamType streamType,
-    cfg::QueueScheduling we,
+    cfg::QueueScheduling schedType,
     const HwAsic* hwAsic,
     bool addWredConfig = false,
-    bool addEcnConfig = true);
+    bool addEcnConfig = true,
+    std::unordered_map<NetworkAIQueueType, cfg::QueueScheduling>
+        schedTypeOverride = {});
 
 void addNetworkAIQosMaps(
     cfg::SwitchConfig& cfg,
@@ -63,5 +65,7 @@ void addEventorVoqConfig(cfg::SwitchConfig* config, cfg::StreamType streamType);
 const std::vector<int> kNetworkAISPQueueIds();
 const std::map<int, uint8_t> kNetworkAIWRRQueueToWeight();
 const std::vector<int> kNetworkAIWRRQueueIds();
+const std::vector<int> kNetworkAIWRRAndICPQueueIds();
+const std::vector<int> kNetworkAIWRRAndNCQueueIds();
 
 } // namespace facebook::fboss::utility

@@ -114,13 +114,17 @@ void addNetworkAIQueueConfig(
     cfg::QueueScheduling schedType,
     const HwAsic* hwAsic,
     bool addWredConfig,
-    bool addEcnConfig) {
+    bool addEcnConfig,
+    std::unordered_map<NetworkAIQueueType, cfg::QueueScheduling>
+        schedTypeOverride) {
   std::vector<cfg::PortQueue> portQueues;
   cfg::PortQueue queue0;
   queue0.id() = getNetworkAIQueueId(NetworkAIQueueType::RDMA);
   queue0.name() = "queue2.rdma";
   queue0.streamType() = streamType;
-  queue0.scheduling() = schedType;
+  auto it = schedTypeOverride.find(NetworkAIQueueType::RDMA);
+  queue0.scheduling() =
+      (it == schedTypeOverride.end()) ? schedType : it->second;
   if (schedType == cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN) {
     queue0.weight() = kNetworkAIRdmaWeight;
   }
@@ -137,7 +141,9 @@ void addNetworkAIQueueConfig(
   queue1.id() = getNetworkAIQueueId(NetworkAIQueueType::MONITORING);
   queue1.name() = "queue6.monitoring";
   queue1.streamType() = streamType;
-  queue1.scheduling() = schedType;
+  it = schedTypeOverride.find(NetworkAIQueueType::MONITORING);
+  queue1.scheduling() =
+      (it == schedTypeOverride.end()) ? schedType : it->second;
   if (schedType == cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN) {
     queue1.weight() = kNetworkAIMonitoringWeight;
   }
@@ -147,7 +153,9 @@ void addNetworkAIQueueConfig(
   queue2.id() = getNetworkAIQueueId(NetworkAIQueueType::NC);
   queue2.name() = "queue7.nc";
   queue2.streamType() = streamType;
-  queue2.scheduling() = schedType;
+  it = schedTypeOverride.find(NetworkAIQueueType::NC);
+  queue2.scheduling() =
+      (it == schedTypeOverride.end()) ? schedType : it->second;
   if (schedType == cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN) {
     queue2.weight() = kNetworkAINcWeight;
   }
@@ -157,7 +165,9 @@ void addNetworkAIQueueConfig(
   queue3.id() = getNetworkAIQueueId(NetworkAIQueueType::DEFAULT);
   queue3.name() = "queue0.default";
   queue3.streamType() = streamType;
-  queue3.scheduling() = schedType;
+  it = schedTypeOverride.find(NetworkAIQueueType::DEFAULT);
+  queue3.scheduling() =
+      (it == schedTypeOverride.end()) ? schedType : it->second;
   if (schedType == cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN) {
     queue3.weight() = kNetworkAIDefaultWeight;
   }
@@ -273,6 +283,30 @@ const std::vector<int> kNetworkAIWRRQueueIds() {
       getNetworkAIQueueId(NetworkAIQueueType::NC)};
 
   return isDualStage3Q2QQos() ? wrrQueueIds3Q2Q : wrrQueueIds;
+}
+
+const std::vector<int> kNetworkAIWRRAndICPQueueIds() {
+  const std::vector<int> queueIds = {
+      getNetworkAIQueueId(NetworkAIQueueType::DEFAULT),
+      getNetworkAIQueueId(NetworkAIQueueType::RDMA),
+      getNetworkAIQueueId(NetworkAIQueueType::MONITORING)};
+  const std::vector<int> queueIds3Q2Q = {
+      getNetworkAIQueueId(NetworkAIQueueType::RDMA),
+      getNetworkAIQueueId(NetworkAIQueueType::MONITORING)};
+
+  return isDualStage3Q2QQos() ? queueIds3Q2Q : queueIds;
+}
+
+const std::vector<int> kNetworkAIWRRAndNCQueueIds() {
+  const std::vector<int> queueIds = {
+      getNetworkAIQueueId(NetworkAIQueueType::DEFAULT),
+      getNetworkAIQueueId(NetworkAIQueueType::RDMA),
+      getNetworkAIQueueId(NetworkAIQueueType::NC)};
+  const std::vector<int> queueIds3Q2Q = {
+      getNetworkAIQueueId(NetworkAIQueueType::RDMA),
+      getNetworkAIQueueId(NetworkAIQueueType::NC)};
+
+  return isDualStage3Q2QQos() ? queueIds3Q2Q : queueIds;
 }
 
 }; // namespace facebook::fboss::utility

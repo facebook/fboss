@@ -32,11 +32,16 @@ class AgentNetworkAIQosSchedulerTest : public AgentQosSchedulerTestBase {
 
   std::vector<production_features::ProductionFeature>
   getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::L3_QOS};
+    return {
+        production_features::ProductionFeature::L3_QOS,
+        production_features::ProductionFeature::NETWORKAI_QOS};
   }
 
   void verifyWRR();
   void verifySP(bool frontPanelTraffic = true);
+  void verifyWRRAndSP(const std::vector<int>& queueIds, int trafficQueueId);
+  void verifyWRRAndICP();
+  void verifyWRRAndNC();
 };
 
 void AgentNetworkAIQosSchedulerTest::verifySP(bool frontPanelTraffic) {
@@ -84,12 +89,67 @@ void AgentNetworkAIQosSchedulerTest::verifyWRR() {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+void AgentNetworkAIQosSchedulerTest::verifyWRRAndSP(
+    const std::vector<int>& queueIds,
+    int trafficQueueId) {
+  auto setup = [=, this]() {
+    auto newCfg{initialConfig(*getAgentEnsemble())};
+    auto hwAsic =
+        utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+    auto streamType =
+        *hwAsic->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin();
+    utility::addNetworkAIQueueConfig(
+        &newCfg,
+        streamType,
+        cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN,
+        hwAsic,
+        false,
+        true,
+        {{utility::NetworkAIQueueType::MONITORING,
+          cfg::QueueScheduling::STRICT_PRIORITY},
+         {utility::NetworkAIQueueType::NC,
+          cfg::QueueScheduling::STRICT_PRIORITY}});
+    applyNewConfig(newCfg);
+  };
+
+  auto verify = [=, this]() {
+    EXPECT_TRUE(verifySPHelper(
+        trafficQueueId, queueIds, utility::kNetworkAIQueueToDscp()));
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+void AgentNetworkAIQosSchedulerTest::verifyWRRAndICP() {
+  verifyWRRAndSP(
+      utility::kNetworkAIWRRAndICPQueueIds(),
+      utility::getNetworkAIQueueId(
+          utility::NetworkAIQueueType::MONITORING)); // SP should starve WRR
+                                                     // queues altogether
+}
+
+void AgentNetworkAIQosSchedulerTest::verifyWRRAndNC() {
+  verifyWRRAndSP(
+      utility::kNetworkAIWRRAndNCQueueIds(),
+      utility::getNetworkAIQueueId(
+          utility::NetworkAIQueueType::NC)); // SP should starve WRR
+                                             // queues altogether
+}
+
 TEST_F(AgentNetworkAIQosSchedulerTest, VerifyWRR) {
   verifyWRR();
 }
 
 TEST_F(AgentNetworkAIQosSchedulerTest, VerifySP) {
   verifySP();
+}
+
+TEST_F(AgentNetworkAIQosSchedulerTest, VerifyWRRAndICP) {
+  verifyWRRAndICP();
+}
+
+TEST_F(AgentNetworkAIQosSchedulerTest, VerifyWRRAndNC) {
+  verifyWRRAndNC();
 }
 
 } // namespace facebook::fboss
