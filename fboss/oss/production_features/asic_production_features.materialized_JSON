@@ -38,7 +38,8 @@
         51,
         53,
         59,
-        60
+        60,
+        63
     ],
     "ebro": [
         2,
@@ -74,7 +75,8 @@
         51,
         53,
         54,
-        59
+        59,
+        63
     ],
     "jericho2": [
         2,
@@ -176,7 +178,9 @@
         54,
         33,
         59,
-        60
+        60,
+        63,
+        64
     ],
     "tomahawk3": [
         2,
@@ -223,7 +227,9 @@
         33,
         59,
         60,
-        62
+        62,
+        63,
+        64
     ],
     "tomahawk4": [
         2,
@@ -269,7 +275,9 @@
         33,
         59,
         60,
-        62
+        62,
+        63,
+        64
     ],
     "tomahawk5": [
         2,
@@ -314,7 +322,8 @@
         33,
         59,
         60,
-        62
+        62,
+        63
     ],
     "yuba": [
         2,
@@ -353,7 +362,8 @@
         53,
         54,
         59,
-        60
+        60,
+        63
     ]
   },
   "asicToFeatureNames": {
@@ -395,7 +405,8 @@
         "SEPARATE_INGRESS_EGRESS_BUFFER_POOL",
         "ERSPANV6_MIRRORING",
         "CLASS_ID_FOR_CONNECTED_ROUTE",
-        "SEPARATE_BYTE_AND_PACKET_ACL_COUNTERS"
+        "SEPARATE_BYTE_AND_PACKET_ACL_COUNTERS",
+        "UCMP"
     ],
     "ebro": [
         "CPU_RX_TX",
@@ -431,7 +442,8 @@
         "SEPARATE_INGRESS_EGRESS_BUFFER_POOL",
         "ERSPANV6_MIRRORING",
         "IP_IN_IP_DECAP",
-        "CLASS_ID_FOR_CONNECTED_ROUTE"
+        "CLASS_ID_FOR_CONNECTED_ROUTE",
+        "UCMP"
     ],
     "jericho2": [
         "CPU_RX_TX",
@@ -533,7 +545,9 @@
         "IP_IN_IP_DECAP",
         "INTERFACE_NEIGHBOR_TABLE",
         "CLASS_ID_FOR_CONNECTED_ROUTE",
-        "SEPARATE_BYTE_AND_PACKET_ACL_COUNTERS"
+        "SEPARATE_BYTE_AND_PACKET_ACL_COUNTERS",
+        "UCMP",
+        "MULTICAST_QUEUE"
     ],
     "tomahawk3": [
         "CPU_RX_TX",
@@ -580,7 +594,9 @@
         "INTERFACE_NEIGHBOR_TABLE",
         "CLASS_ID_FOR_CONNECTED_ROUTE",
         "SEPARATE_BYTE_AND_PACKET_ACL_COUNTERS",
-        "EAPOL_TRAP"
+        "EAPOL_TRAP",
+        "UCMP",
+        "MULTICAST_QUEUE"
     ],
     "tomahawk4": [
         "CPU_RX_TX",
@@ -626,7 +642,9 @@
         "INTERFACE_NEIGHBOR_TABLE",
         "CLASS_ID_FOR_CONNECTED_ROUTE",
         "SEPARATE_BYTE_AND_PACKET_ACL_COUNTERS",
-        "EAPOL_TRAP"
+        "EAPOL_TRAP",
+        "UCMP",
+        "MULTICAST_QUEUE"
     ],
     "tomahawk5": [
         "CPU_RX_TX",
@@ -671,7 +689,8 @@
         "INTERFACE_NEIGHBOR_TABLE",
         "CLASS_ID_FOR_CONNECTED_ROUTE",
         "SEPARATE_BYTE_AND_PACKET_ACL_COUNTERS",
-        "EAPOL_TRAP"
+        "EAPOL_TRAP",
+        "UCMP"
     ],
     "yuba": [
         "CPU_RX_TX",
@@ -710,7 +729,8 @@
         "ERSPANV6_MIRRORING",
         "IP_IN_IP_DECAP",
         "CLASS_ID_FOR_CONNECTED_ROUTE",
-        "SEPARATE_BYTE_AND_PACKET_ACL_COUNTERS"
+        "SEPARATE_BYTE_AND_PACKET_ACL_COUNTERS",
+        "UCMP"
     ]
   }
 }
