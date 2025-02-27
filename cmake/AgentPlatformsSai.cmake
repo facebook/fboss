@@ -66,6 +66,7 @@ add_library(sai_platform
   fboss/agent/platforms/sai/oss/SaiMeru800bfaPlatformPort.cpp
   fboss/agent/platforms/sai/oss/SaiMorgan800ccPlatformPort.cpp
   fboss/agent/platforms/sai/SaiYangraPlatformPort.cpp
+  fboss/agent/platforms/sai/SaiMinipack3NPlatformPort.cpp
 )
 
 target_link_libraries(sai_platform
