@@ -220,7 +220,7 @@ LimitCORE=32G
 
 Environment=TSAN_OPTIONS="die_after_fork=0 halt_on_error=1
 Environment=LD_LIBRARY_PATH=/opt/fboss/lib
-ExecStart=/opt/fboss/bin/qsfp_service --qsfp-config {{qsfp_config}} --can-qsfp-service-warm-boot {{is_warm_boot}}
+ExecStart=/opt/fboss/bin/qsfp_service --qsfp-config {{qsfp_config}} --can-qsfp-service-warm-boot {{is_warm_boot}} {{optional_flags}}
 SyslogIdentifier={QSFP_SERVICE_FOR_TESTING}
 Restart=no
 
@@ -317,11 +317,17 @@ class TestRunner(abc.ABC):
     def setup_qsfp_service(self, is_warm_boot):
         subprocess.run(CLEANUP_QSFP_SERVICE_CMD, shell=True)
         qsfp_service_file = f"/tmp/{QSFP_SERVICE_FOR_TESTING}.service"
+        optional_flags = ""
+        if args.platform_mapping_override_path is not None:
+            optional_flags += f"{OPT_ARG_PLATFORM_MAPPING_OVERRIDE_PATH} {args.platform_mapping_override_path} "
+        if args.bsp_platform_mapping_override_path is not None:
+            optional_flags += f"{OPT_ARG_BSP_PLATFORM_MAPPING_OVERRIDE_PATH} {args.bsp_platform_mapping_override_path} "
         with open(qsfp_service_file, "w") as f:
             f.write(
                 QSFP_SERVICE_FILE_TEMPLATE.format(
                     qsfp_config=args.qsfp_config,
                     is_warm_boot=is_warm_boot,
+                    optional_flags=optional_flags,
                 )
             )
             f.flush()
@@ -945,7 +951,21 @@ class QsfpTestRunner(TestRunner):
 
 class LinkTestRunner(TestRunner):
     def add_subcommand_arguments(self, sub_parser: ArgumentParser):
-        pass
+        sub_parser.add_argument(
+            OPT_ARG_PLATFORM_MAPPING_OVERRIDE_PATH,
+            nargs="?",
+            type=str,
+            help="A file path to a platform mapping JSON file to be used.",
+            default=None,
+        )
+
+        sub_parser.add_argument(
+            OPT_ARG_BSP_PLATFORM_MAPPING_OVERRIDE_PATH,
+            nargs="?",
+            type=str,
+            help="A file path to a BSP platform mapping JSON file to be used.",
+            default=None,
+        )
 
     def _get_config_path(self):
         return ""
@@ -972,7 +992,16 @@ class LinkTestRunner(TestRunner):
         return AGENT_WARMBOOT_CHECK_FILE
 
     def _get_test_run_args(self, conf_file):
-        return ["--config", conf_file, "--mgmt-if", args.mgmt_if]
+        arg_list = ["--config", conf_file, "--mgmt-if", args.mgmt_if]
+        if args.platform_mapping_override_path is not None:
+            arg_list.extend(
+                [
+                    "--platform_mapping_override_path",
+                    args.platform_mapping_override_path,
+                ]
+            )
+
+        return arg_list
 
     def _setup_coldboot_test(self):
         self.start_qsfp_service(False)
@@ -1268,7 +1297,9 @@ if __name__ == "__main__":
 
     # Add subparser for Link tests
     link_test_parser = subparsers.add_parser(SUB_CMD_LINK, help="run link tests")
+    link_test_runner = LinkTestRunner()
     link_test_parser.set_defaults(func=LinkTestRunner().run_test)
+    link_test_runner.add_subcommand_arguments(link_test_parser)
 
     # Add subparser for SAI Agent tests
     sai_agent_test_parser = subparsers.add_parser(
