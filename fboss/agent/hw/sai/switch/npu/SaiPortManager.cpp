@@ -1006,6 +1006,26 @@ void SaiPortManager::programSerdes(
       swPort->getZeroPreemphasis()) {
     createSerdesWithZeroPreemphasis(portHandle, swPort->getPinConfigs());
   }
+  if (platform_->getAsic()->getAsicType() ==
+      cfg::AsicType::ASIC_TYPE_TOMAHAWK5) {
+    // set main txfir only first to avoid programming errors, see CS00012393198
+    auto attributes = serdesAttributes;
+    auto newTxFirMain =
+        std::get<std::optional<SaiPortSerdesTraits::Attributes::TxFirMain>>(
+            serdesAttributes);
+    auto numLanes = newTxFirMain.value().value().size();
+    SaiPortSerdesTraits::Attributes::TxFirPre1::ValueType txPre1;
+    txPre1.resize(numLanes, 0);
+    std::get<std::optional<SaiPortSerdesTraits::Attributes::TxFirPre1>>(
+        attributes) = txPre1;
+    std::get<std::optional<SaiPortSerdesTraits::Attributes::TxFirMain>>(
+        attributes) = newTxFirMain;
+    SaiPortSerdesTraits::Attributes::TxFirPre1::ValueType txPost1;
+    txPost1.resize(numLanes, 0);
+    std::get<std::optional<SaiPortSerdesTraits::Attributes::TxFirPost1>>(
+        attributes) = txPost1;
+    portHandle->serdes = store.setObject(serdesKey, attributes);
+  }
   // create if serdes doesn't exist or update existing serdes
   portHandle->serdes = store.setObject(serdesKey, serdesAttributes);
 
