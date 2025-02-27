@@ -103,6 +103,17 @@ struct ControlInterval {
   2: i32 pwmUpdateInterval;
 }
 
+struct OvertempEntry {
+  1: string sensorName;
+  2: float overtempThreshold;
+  3: optional i32 slidingWindowSize;
+}
+
+struct ShutdownCondition {
+  1: i32 numOvertempSensorForShutdown;
+  2: list<OvertempEntry> conditions;
+}
+
 struct FanServiceConfig {
   1: optional ControlInterval controlInterval;
   2: string shutdownCmd;
@@ -118,4 +129,5 @@ struct FanServiceConfig {
   15: i16 pwmTransitionValue;
   16: i16 pwmUpperThreshold;
   17: i16 pwmLowerThreshold;
+  18: optional ShutdownCondition shutdownCondition;
 }
