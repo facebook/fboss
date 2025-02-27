@@ -342,8 +342,13 @@ class AgentTrafficPfcTest : public AgentHwTest {
         auto ingressDropRaw = *portStats.inDiscardsRaw_();
         uint64_t ingressCongestionDiscards = 0;
         std::string ingressCongestionDiscardLog{};
-        if (isSupportedOnAllAsics(
-                HwAsic::Feature::INGRESS_PRIORITY_GROUP_DROPPED_PACKETS)) {
+        // In congestion discard stats is supported in native impl
+        // and in sai platforms with HwAsic::Feature enabled.
+        bool isIngressCongestionDiscardsSupported =
+            isSupportedOnAllAsics(
+                HwAsic::Feature::INGRESS_PRIORITY_GROUP_DROPPED_PACKETS) ||
+            !getAgentEnsemble()->isSai();
+        if (isIngressCongestionDiscardsSupported) {
           ingressCongestionDiscards = *portStats.inCongestionDiscards_();
           ingressCongestionDiscardLog = " IngressCongestionDiscards: " +
               std::to_string(ingressCongestionDiscards);
@@ -352,8 +357,7 @@ class AgentTrafficPfcTest : public AgentHwTest {
                    << " IngressDropRaw: " << ingressDropRaw
                    << ingressCongestionDiscardLog;
         EXPECT_EVENTUALLY_GT(ingressDropRaw, 0);
-        if (isSupportedOnAllAsics(
-                HwAsic::Feature::INGRESS_PRIORITY_GROUP_DROPPED_PACKETS)) {
+        if (isIngressCongestionDiscardsSupported) {
           EXPECT_EVENTUALLY_GT(ingressCongestionDiscards, 0);
         }
       }
