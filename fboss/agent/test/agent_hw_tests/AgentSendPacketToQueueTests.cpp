@@ -111,7 +111,17 @@ TEST_F(AgentSendPacketToQueueTest, SendPacketSwitchedToDefaultUCQueue) {
   checkSendPacket(std::nullopt, false);
 }
 
-TEST_F(AgentSendPacketToQueueTest, SendPacketOutOfPortToMCQueue) {
+class AgentSendPacketToMulticastQueueTest : public AgentHwTest {
+ public:
+  std::vector<production_features::ProductionFeature>
+  getProductionFeaturesVerified() const override {
+    return {
+        production_features::ProductionFeature::L3_FORWARDING,
+        production_features::ProductionFeature::MULTICAST_QUEUE};
+  }
+};
+
+TEST_F(AgentSendPacketToMulticastQueueTest, SendPacketOutOfPortToMCQueue) {
   auto ensemble = getAgentEnsemble();
   auto l3Asics = ensemble->getSw()->getHwAsicTable()->getL3Asics();
   auto asic = utility::checkSameAndGetAsic(l3Asics);
