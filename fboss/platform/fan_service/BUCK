@@ -61,6 +61,7 @@ cpp_library(
         "ControlLogic.cpp",
         "FanServiceHandler.cpp",
         "FsdbSensorSubscriber.cpp",
+        "OvertempCondition.cpp",
         "SensorData.cpp",
         "facebook/DataFetcher.cpp",
         "facebook/FsdbSensorSubscriber.cpp",
@@ -71,6 +72,7 @@ cpp_library(
         "DataFetcher.h",
         "FanServiceHandler.h",
         "FsdbSensorSubscriber.h",
+        "OvertempCondition.h",
     ],
     exported_deps = [
         ":pid_logic_library",

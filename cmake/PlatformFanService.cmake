@@ -37,6 +37,7 @@ add_library(fan_service_lib
   fboss/platform/fan_service/FsdbSensorSubscriber.cpp
   fboss/platform/fan_service/PidLogic.cpp
   fboss/platform/fan_service/SensorData.cpp
+  fboss/platform/fan_service/OvertempCondition.cpp
   fboss/platform/fan_service/oss/FsdbSensorSubscriber.cpp
   fboss/platform/fan_service/oss/DataFetcher.cpp
 )

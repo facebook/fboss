@@ -64,6 +64,7 @@ ControlLogic::ControlLogic(FanServiceConfig config, std::shared_ptr<Bsp> bsp)
   pSensorData_ = std::make_shared<SensorData>();
 
   setupPidLogics();
+  overtempCondition_.setupShutdownConditions(config_);
 
   XLOG(INFO)
       << "Upon fan_service start up, program all fan pwm with transitional value of "
@@ -236,6 +237,11 @@ void ControlLogic::getSensorUpdate() {
       readCache.sensorFailed = false;
       XLOG(ERR) << fmt::format(
           "{}: Sensor read value is {}", sensorName, sensorEntry->value);
+      // If this sensor is used for shutdown condition calculation,
+      // process it
+      if (overtempCondition_.isTracked(sensorName)) {
+        overtempCondition_.processSensorData(sensorName, sensorEntry->value);
+      }
     } else {
       XLOG(INFO) << fmt::format(
           "{}: Failure to get data (either wrong entry or read failure)",
@@ -626,6 +632,12 @@ void ControlLogic::updateControl(std::shared_ptr<SensorData> pS) {
   // STEP 3: Read optics values and calculate their PWM
   XLOG(INFO) << "Processing Optics ...";
   getOpticsUpdate();
+
+  // STEP 3.5: Shutdown the system if overtemp is detected
+  if (overtempCondition_.checkIfOvertemp()) {
+    XLOG(ERR) << fmt::format("Running shutdown command");
+    pBsp_->emergencyShutdown(true);
+  }
 
   // STEP 4: Determine whether boost mode is necessary
   uint64_t secondsSinceLastOpticsUpdate =
