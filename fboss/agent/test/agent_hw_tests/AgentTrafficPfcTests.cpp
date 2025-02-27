@@ -359,6 +359,11 @@ class AgentTrafficPfcTest : public AgentHwTest {
         EXPECT_EVENTUALLY_GT(ingressDropRaw, 0);
         if (isIngressCongestionDiscardsSupported) {
           EXPECT_EVENTUALLY_GT(ingressCongestionDiscards, 0);
+          // Ingress congestion discards should be less than
+          // the total packets received on this port.
+          uint64_t inPackets = *portStats.inUnicastPkts_() +
+              *portStats.inMulticastPkts_() + *portStats.inBroadcastPkts_();
+          EXPECT_EVENTUALLY_LT(ingressCongestionDiscards, inPackets);
         }
       }
       for (auto [switchId, asic] : getAsics()) {
