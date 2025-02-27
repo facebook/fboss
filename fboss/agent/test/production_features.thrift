@@ -74,6 +74,7 @@ enum ProductionFeature {
   NETWORKAI_QOS = 61,
   EAPOL_TRAP = 62,
   UCMP = 63,
+  MULTICAST_QUEUE = 64,
   # production feature which is present on all platforms, keep it at the end
   HW_SWITCH = 65536,
 }
