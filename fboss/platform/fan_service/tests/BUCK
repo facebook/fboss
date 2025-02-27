@@ -8,6 +8,7 @@ cpp_unittest(
         "BspTests.cpp",
         "ConfigValidatorTest.cpp",
         "ControlLogicTests.cpp",
+        "OvertempTests.cpp",
         "PidLogicTests.cpp",
     ],
     deps = [
