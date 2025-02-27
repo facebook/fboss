@@ -155,6 +155,8 @@ OPT_ARG_FILTER_FILE = "--filter_file"
 OPT_ARG_LIST_TESTS = "--list_tests"
 OPT_ARG_CONFIG_FILE = "--config"
 OPT_ARG_QSFP_CONFIG_FILE = "--qsfp-config"
+OPT_ARG_PLATFORM_MAPPING_OVERRIDE_PATH = "--platform_mapping_override_path"
+OPT_ARG_BSP_PLATFORM_MAPPING_OVERRIDE_PATH = "--bsp_platform_mapping_override_path"
 OPT_ARG_SAI_REPLAYER_LOGGING = "--sai_replayer_logging"
 OPT_ARG_SKIP_KNOWN_BAD_TESTS = "--skip-known-bad-tests"
 OPT_ARG_OSS = "--oss"
@@ -867,6 +869,22 @@ class QsfpTestRunner(TestRunner):
             OPT_ARG_PRODUCTION_FEATURES, type=str, help="", default=None
         )
 
+        sub_parser.add_argument(
+            OPT_ARG_PLATFORM_MAPPING_OVERRIDE_PATH,
+            nargs="?",
+            type=str,
+            help="A file path to a platform mapping JSON file to be used.",
+            default=None,
+        )
+
+        sub_parser.add_argument(
+            OPT_ARG_BSP_PLATFORM_MAPPING_OVERRIDE_PATH,
+            nargs="?",
+            type=str,
+            help="A file path to a BSP platform mapping JSON file to be used.",
+            default=None,
+        )
+
     def _get_config_path(self):
         return ""
 
@@ -892,7 +910,22 @@ class QsfpTestRunner(TestRunner):
         return QSFP_WARMBOOT_CHECK_FILE
 
     def _get_test_run_args(self, conf_file):
-        return ["--qsfp-config", args.qsfp_config]
+        arg_list = ["--qsfp-config", args.qsfp_config]
+        if args.platform_mapping_override_path is not None:
+            arg_list.extend(
+                [
+                    "--platform_mapping_override_path",
+                    args.platform_mapping_override_path,
+                ]
+            )
+        if args.bsp_platform_mapping_override_path is not None:
+            arg_list.extend(
+                [
+                    "--bsp_platform_mapping_override_path",
+                    args.bsp_platform_mapping_override_path,
+                ]
+            )
+        return arg_list
 
     def _setup_coldboot_test(self):
         subprocess.Popen(
