@@ -574,6 +574,40 @@ class AgentSflowMirrorTest : public AgentHwTest {
     verifyAcrossWarmBoots(setup, verify);
   }
 
+  void stressRecreateMirror(bool truncate = false) {
+    auto setup = [=, this]() {
+      auto ports = getPortsForSampling();
+
+      // Test for resource leaks by repeatedly creating and removing mirror.
+      for (int i = 0; i < 50; i++) {
+        XLOG(INFO) << "Add mirror iteration " << i;
+        auto config = initialConfig(*getAgentEnsemble());
+        configureMirrorWithSampling(config, 1 /*sampleRate*/);
+        applyNewConfig(config);
+        resolveRouteForMirrorDestination();
+
+        XLOG(INFO) << "Remove mirror iteration " << i;
+        config = initialConfig(*getAgentEnsemble()); // remove mirror
+        applyNewConfig(config);
+      }
+
+      XLOG(INFO) << "Final add mirror";
+      auto config = initialConfig(*getAgentEnsemble());
+      configureMirrorWithSampling(config, 1 /*sampleRate*/);
+      configureTrapAcl(config);
+      applyNewConfig(config);
+      resolveRouteForMirrorDestination();
+    };
+    auto verify = [=, this]() {
+      if (!truncate) {
+        verifySampledPacket();
+      } else {
+        verifySampledPacketWithTruncate();
+      }
+    };
+    verifyAcrossWarmBoots(setup, verify);
+  }
+
   void verifySrsPortRandomizationOnSflowPacket(uint16_t numPackets = 10) {
     auto ports = getPortsForSampling();
     getAgentEnsemble()->bringDownPorts(
@@ -919,12 +953,18 @@ SFLOW_SAMPLING_TEST_V4_V6(VerifySampledPacket, { this->testSampledPacket(); })
 SFLOW_SAMPLING_TEST_V4_V6(VerifySampledPacketRate, {
   this->testSampledPacketRate();
 })
+SFLOW_SAMPLING_TEST_V4_V6(StressRecreateMirror, {
+  this->stressRecreateMirror();
+})
 
 SFLOW_SAMPLING_TRUNCATE_TEST_V4_V6(VerifyTruncate, {
   this->testSampledPacket(true);
 })
 SFLOW_SAMPLING_TRUNCATE_TEST_V4_V6(VerifySampledPacketRate, {
   this->testSampledPacketRate(true);
+})
+SFLOW_SAMPLING_TRUNCATE_TEST_V4_V6(StressRecreateMirror, {
+  this->stressRecreateMirror(true);
 })
 
 SFLOW_SAMPLING_TRUNK_TEST_V4_V6(VerifySampledPacket, {
