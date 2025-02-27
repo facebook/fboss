@@ -78,31 +78,6 @@
         59,
         63
     ],
-    "jericho2": [
-        2,
-        3,
-        5,
-        0,
-        4,
-        8,
-        10,
-        11,
-        17,
-        20,
-        21,
-        23,
-        26,
-        28,
-        31,
-        33,
-        36,
-        37,
-        38,
-        39,
-        41,
-        40,
-        42
-    ],
     "jericho3": [
         2,
         3,
@@ -180,7 +155,7 @@
         59,
         60,
         63,
-        64
+        65
     ],
     "tomahawk3": [
         2,
@@ -229,7 +204,8 @@
         60,
         62,
         63,
-        64
+        64,
+        65
     ],
     "tomahawk4": [
         2,
@@ -445,31 +421,6 @@
         "CLASS_ID_FOR_CONNECTED_ROUTE",
         "UCMP"
     ],
-    "jericho2": [
-        "CPU_RX_TX",
-        "L3_FORWARDING",
-        "NULL_ROUTE_IN_DISCARDS_COUNTER",
-        "VOQ",
-        "ACL_PORT_IN_DISCARDS_COUNTER",
-        "COPP",
-        "DSCP_REMARKING",
-        "L3_QOS",
-        "MULTI_ACL_TABLE",
-        "ECN",
-        "WRED",
-        "JUMBO_FRAMES",
-        "SCHEDULER_PPS",
-        "PORT_TX_DISABLE",
-        "MIRROR_PACKET_TRUNCATION",
-        "INTERFACE_NEIGHBOR_TABLE",
-        "RSW_ROUTE_SCALE",
-        "FSW_ROUTE_SCALE",
-        "HGRID_DU_ROUTE_SCALE",
-        "HGRID_UU_ROUTE_SCALE",
-        "TH_ALPM_ROUTE_SCALE",
-        "HUNDRED_THOUSAND_ROUTE_SCALE",
-        "PFC"
-    ],
     "jericho3": [
         "CPU_RX_TX",
         "L3_FORWARDING",
@@ -547,7 +498,7 @@
         "CLASS_ID_FOR_CONNECTED_ROUTE",
         "SEPARATE_BYTE_AND_PACKET_ACL_COUNTERS",
         "UCMP",
-        "MULTICAST_QUEUE"
+        "MMU_TUNING"
     ],
     "tomahawk3": [
         "CPU_RX_TX",
@@ -596,7 +547,8 @@
         "SEPARATE_BYTE_AND_PACKET_ACL_COUNTERS",
         "EAPOL_TRAP",
         "UCMP",
-        "MULTICAST_QUEUE"
+        "MULTICAST_QUEUE",
+        "MMU_TUNING"
     ],
     "tomahawk4": [
         "CPU_RX_TX",
