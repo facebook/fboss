@@ -62,6 +62,8 @@ std::optional<cfg::TrafficCounter> getAclTrafficCounter(
 
 std::string kDefaultAclTableGroupName();
 
+std::string kDefaultEgressAclTableGroupName();
+
 std::vector<cfg::AclEntry>& getAcls(
     cfg::SwitchConfig* cfg,
     const std::optional<std::string>& tableName);
@@ -96,6 +98,11 @@ cfg::AclTable* addAclTable(
     const std::vector<cfg::AclTableActionType>& actionTypes,
     const std::vector<cfg::AclTableQualifier>& qualifiers,
     const std::vector<std::string>& udfGroups = {});
+
+cfg::AclTable* getAclTable(
+    cfg::SwitchConfig& cfg,
+    cfg::AclStage aclStage,
+    const std::string& aclTableName);
 
 void delAclTable(cfg::SwitchConfig* cfg, const std::string& aclTableName);
 
@@ -159,5 +166,9 @@ cfg::AclTableGroup* FOLLY_NULLABLE
 getAclTableGroup(cfg::SwitchConfig& config, cfg::AclStage aclStage);
 
 void setupDefaultAclTableGroups(cfg::SwitchConfig& config);
+
+void setupDefaultEgressAclTableGroup(cfg::SwitchConfig& config);
+
+void setupDefaultIngressAclTableGroup(cfg::SwitchConfig& config);
 
 } // namespace facebook::fboss::utility
