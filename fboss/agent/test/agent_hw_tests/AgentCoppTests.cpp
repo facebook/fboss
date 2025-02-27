@@ -888,20 +888,6 @@ TYPED_TEST(AgentCoppTest, SlowProtocolsMacToHighPriQ) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(AgentCoppTest, EapolToHighPriQ) {
-  auto setup = [=, this]() { this->setup(); };
-
-  auto verify = [=, this]() {
-    this->sendPktAndVerifyEthPacketsCpuQueue(
-        utility::getCoppHighPriQueueId(utility::checkSameAndGetAsic(
-            this->getAgentEnsemble()->getL3Asics())),
-        facebook::fboss::ETHERTYPE::ETHERTYPE_EAPOL,
-        folly::MacAddress("ff:ff:ff:ff:ff:ff"));
-  };
-
-  this->verifyAcrossWarmBoots(setup, verify);
-}
-
 TYPED_TEST(AgentCoppTest, DstIpNetworkControlDscpToHighPriQ) {
   auto setup = [=, this]() { this->setup(); };
 
@@ -1895,6 +1881,40 @@ TEST_F(AgentCoppQosTest, HighVsLowerPriorityCpuQueueTrafficPrioritization) {
             lowPriorityWaterMarkBytes > watermarkBytesLow);
       });
     }
+  };
+
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+template <typename TestType>
+class AgentCoppEapolTest : public AgentCoppTest<TestType> {
+ public:
+  std::vector<production_features::ProductionFeature>
+  getProductionFeaturesVerified() const override {
+    if constexpr (std::is_same_v<TestType, PortID>) {
+      return {
+          production_features::ProductionFeature::COPP,
+          production_features::ProductionFeature::EAPOL_TRAP};
+    } else {
+      return {
+          production_features::ProductionFeature::COPP,
+          production_features::ProductionFeature::LAG,
+          production_features::ProductionFeature::EAPOL_TRAP};
+    }
+  }
+};
+
+TYPED_TEST_SUITE(AgentCoppEapolTest, TestTypes);
+
+TYPED_TEST(AgentCoppEapolTest, EapolToHighPriQ) {
+  auto setup = [=, this]() { this->setup(); };
+
+  auto verify = [=, this]() {
+    this->sendPktAndVerifyEthPacketsCpuQueue(
+        utility::getCoppHighPriQueueId(utility::checkSameAndGetAsic(
+            this->getAgentEnsemble()->getL3Asics())),
+        facebook::fboss::ETHERTYPE::ETHERTYPE_EAPOL,
+        folly::MacAddress("ff:ff:ff:ff:ff:ff"));
   };
 
   this->verifyAcrossWarmBoots(setup, verify);
