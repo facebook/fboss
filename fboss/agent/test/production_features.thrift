@@ -72,6 +72,7 @@ enum ProductionFeature {
   CLASS_ID_FOR_CONNECTED_ROUTE = 59,
   SEPARATE_BYTE_AND_PACKET_ACL_COUNTERS = 60,
   NETWORKAI_QOS = 61,
+  EAPOL_TRAP = 62,
   # production feature which is present on all platforms, keep it at the end
   HW_SWITCH = 65536,
 }
