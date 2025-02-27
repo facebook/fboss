@@ -291,87 +291,6 @@ TEST_F(AgentEcmpTest, L2UnresolvedNhopsECMPInHWEmpty) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(AgentEcmpTest, UcmpOverflowZero) {
-  std::vector<NextHopWeight> swWs, hwWs;
-  if (FLAGS_ecmp_width == 64) {
-    // default ecmp_width for td2 and tomahawk
-    swWs = {50, 50, 1, 1};
-    hwWs = {31, 31, 1, 1};
-  } else if (FLAGS_ecmp_width == 128) {
-    // for tomahawk3
-    swWs = {100, 100, 1, 1};
-    hwWs = {63, 63, 1, 1};
-  } else {
-    FAIL()
-        << "Do not support ecmp_width other than 64 or 128, please extend the test";
-  }
-  runSimpleUcmpTest(swWs, hwWs);
-}
-TEST_F(AgentEcmpTest, UcmpOverflowZeroNotEnoughToRoundUp) {
-  std::vector<NextHopWeight> swWs, hwWs;
-  if (FLAGS_ecmp_width == 64) {
-    // default ecmp_width for td2 and tomahawk
-    swWs = {50, 50, 1, 1, 1, 1, 1, 1};
-    hwWs = {29, 29, 1, 1, 1, 1, 1, 1};
-  } else if (FLAGS_ecmp_width == 128) {
-    // for tomahawk3
-    swWs = {100, 100, 1, 1, 1, 1, 1, 1};
-    hwWs = {61, 61, 1, 1, 1, 1, 1, 1};
-  } else {
-    FAIL()
-        << "Do not support ecmp_width other than 64 or 128, please extend the test";
-  }
-  runSimpleUcmpTest(swWs, hwWs);
-}
-
-TEST_F(AgentEcmpTest, UcmpRoutesWithSameNextHopsDifferentWeights) {
-  std::vector<NextHopWeight> swWs, hwWs;
-
-  if (FLAGS_ecmp_width == 64) {
-    // default ecmp_width for td2 and tomahawk
-    swWs = {50, 50, 1, 1};
-    hwWs = {31, 31, 1, 1};
-  } else if (FLAGS_ecmp_width == 128) {
-    // for tomahawk3
-    swWs = {100, 100, 1, 1};
-    hwWs = {63, 63, 1, 1};
-  } else {
-    FAIL()
-        << "Do not support ecmp_width other than 64 or 128, please extend the test";
-  }
-
-  std::vector<NextHopWeight> swWs2 = {8, 8, 8, 40};
-  const std::vector<NextHopWeight>& hwWs2 = {1, 1, 1, 5};
-
-  EXPECT_EQ(swWs.size(), hwWs.size());
-  EXPECT_LE(swWs.size(), kNumNextHops);
-  auto setup = [this, &swWs, &swWs2]() {
-    utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
-    auto nHops = swWs.size();
-    auto wrapper = getSw()->getRouteUpdater();
-    ecmpHelper.programRoutes(
-        &wrapper,
-        nHops,
-        {kDefaultRoute},
-        std::vector<NextHopWeight>(swWs.begin(), swWs.begin() + nHops));
-
-    auto nHops2 = swWs2.size();
-    ecmpHelper.programRoutes(
-        &wrapper,
-        nHops2,
-        {kRoute2},
-        std::vector<NextHopWeight>(swWs2.begin(), swWs2.begin() + nHops2));
-
-    resolveNhops(swWs.size());
-  };
-
-  auto verify = [this, &hwWs, &hwWs2]() {
-    verifyResolvedUcmp(kDefaultRoutePrefix, hwWs);
-    verifyResolvedUcmp(kRoute2Prefix, hwWs2);
-  };
-  verifyAcrossWarmBoots(setup, verify);
-}
-
 class AgentWideEcmpTest : public AgentEcmpTest {
   void setCmdLineFlagOverrides() const override {
     FLAGS_ecmp_width = 512;
@@ -472,34 +391,6 @@ TEST_F(AgentWideEcmpTest, WideUcmpCheckMultipleSlotUnderflow) {
       {1, 242}, {4, 61}, {1, 24}, {2, 1}};
   fillNhops(normalizedNhops, nhopsAndWeightsNormalized);
   runSimpleUcmpTest(nhops, normalizedNhops);
-}
-
-// Test link down in UCMP scenario
-TEST_F(AgentEcmpTest, UcmpL2ResolveAllNhopsInThenLinkDown) {
-  utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
-  programResolvedUcmp({3, 1, 1, 1, 1, 1, 1, 1}, {3, 1, 1, 1, 1, 1, 1, 1});
-  bringDownPort(ecmpHelper.nhop(0).portDesc.phyPortID());
-  WITH_RETRIES({
-    auto pathsInHwCount = getEcmpSizeInHw();
-    EXPECT_EVENTUALLY_EQ(7, pathsInHwCount);
-  });
-}
-
-// Test link flap in UCMP scenario
-TEST_F(AgentEcmpTest, UcmpL2ResolveBothNhopsInThenLinkFlap) {
-  utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
-  programResolvedUcmp({3, 1, 1, 1, 1, 1, 1, 1}, {3, 1, 1, 1, 1, 1, 1, 1});
-  auto nhop = ecmpHelper.nhop(0);
-  bringDownPort(nhop.portDesc.phyPortID());
-
-  WITH_RETRIES({ EXPECT_EVENTUALLY_EQ(7, getEcmpSizeInHw()); });
-
-  bringUpPort(nhop.portDesc.phyPortID());
-  WITH_RETRIES({ EXPECT_EVENTUALLY_EQ(7, getEcmpSizeInHw()); });
-
-  unresolveNhops(1);
-  resolveNhops(1);
-  WITH_RETRIES({ EXPECT_EVENTUALLY_EQ(10, getEcmpSizeInHw()); });
 }
 
 template <bool enableIntfNbrTable>
@@ -605,6 +496,126 @@ TYPED_TEST(AgentEcmpNeighborTest, ResolvePendingResolveNexthop) {
     WITH_RETRIES({ EXPECT_EVENTUALLY_EQ(this->getEcmpSizeInHw(), 2); });
   };
   this->verifyAcrossWarmBoots(setup, verify);
+}
+
+class AgentUcmpTest : public AgentEcmpTest {
+ protected:
+  std::vector<production_features::ProductionFeature>
+  getProductionFeaturesVerified() const override {
+    return {
+        production_features::ProductionFeature::L3_FORWARDING,
+        production_features::ProductionFeature::UCMP};
+  }
+};
+
+TEST_F(AgentUcmpTest, UcmpOverflowZero) {
+  std::vector<NextHopWeight> swWs, hwWs;
+  if (FLAGS_ecmp_width == 64) {
+    // default ecmp_width for td2 and tomahawk
+    swWs = {50, 50, 1, 1};
+    hwWs = {31, 31, 1, 1};
+  } else if (FLAGS_ecmp_width == 128) {
+    // for tomahawk3
+    swWs = {100, 100, 1, 1};
+    hwWs = {63, 63, 1, 1};
+  } else {
+    FAIL()
+        << "Do not support ecmp_width other than 64 or 128, please extend the test";
+  }
+  runSimpleUcmpTest(swWs, hwWs);
+}
+
+TEST_F(AgentUcmpTest, UcmpOverflowZeroNotEnoughToRoundUp) {
+  std::vector<NextHopWeight> swWs, hwWs;
+  if (FLAGS_ecmp_width == 64) {
+    // default ecmp_width for td2 and tomahawk
+    swWs = {50, 50, 1, 1, 1, 1, 1, 1};
+    hwWs = {29, 29, 1, 1, 1, 1, 1, 1};
+  } else if (FLAGS_ecmp_width == 128) {
+    // for tomahawk3
+    swWs = {100, 100, 1, 1, 1, 1, 1, 1};
+    hwWs = {61, 61, 1, 1, 1, 1, 1, 1};
+  } else {
+    FAIL()
+        << "Do not support ecmp_width other than 64 or 128, please extend the test";
+  }
+  runSimpleUcmpTest(swWs, hwWs);
+}
+
+TEST_F(AgentUcmpTest, UcmpRoutesWithSameNextHopsDifferentWeights) {
+  std::vector<NextHopWeight> swWs, hwWs;
+
+  if (FLAGS_ecmp_width == 64) {
+    // default ecmp_width for td2 and tomahawk
+    swWs = {50, 50, 1, 1};
+    hwWs = {31, 31, 1, 1};
+  } else if (FLAGS_ecmp_width == 128) {
+    // for tomahawk3
+    swWs = {100, 100, 1, 1};
+    hwWs = {63, 63, 1, 1};
+  } else {
+    FAIL()
+        << "Do not support ecmp_width other than 64 or 128, please extend the test";
+  }
+
+  std::vector<NextHopWeight> swWs2 = {8, 8, 8, 40};
+  const std::vector<NextHopWeight>& hwWs2 = {1, 1, 1, 5};
+
+  EXPECT_EQ(swWs.size(), hwWs.size());
+  EXPECT_LE(swWs.size(), kNumNextHops);
+  auto setup = [this, &swWs, &swWs2]() {
+    utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+    auto nHops = swWs.size();
+    auto wrapper = getSw()->getRouteUpdater();
+    ecmpHelper.programRoutes(
+        &wrapper,
+        nHops,
+        {kDefaultRoute},
+        std::vector<NextHopWeight>(swWs.begin(), swWs.begin() + nHops));
+
+    auto nHops2 = swWs2.size();
+    ecmpHelper.programRoutes(
+        &wrapper,
+        nHops2,
+        {kRoute2},
+        std::vector<NextHopWeight>(swWs2.begin(), swWs2.begin() + nHops2));
+
+    resolveNhops(swWs.size());
+  };
+
+  auto verify = [this, &hwWs, &hwWs2]() {
+    verifyResolvedUcmp(kDefaultRoutePrefix, hwWs);
+    verifyResolvedUcmp(kRoute2Prefix, hwWs2);
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+// Test link down in UCMP scenario
+TEST_F(AgentUcmpTest, UcmpL2ResolveAllNhopsInThenLinkDown) {
+  utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+  programResolvedUcmp({3, 1, 1, 1, 1, 1, 1, 1}, {3, 1, 1, 1, 1, 1, 1, 1});
+  bringDownPort(ecmpHelper.nhop(0).portDesc.phyPortID());
+  WITH_RETRIES({
+    auto pathsInHwCount = getEcmpSizeInHw();
+    EXPECT_EVENTUALLY_EQ(7, pathsInHwCount);
+  });
+}
+
+// Test link flap in UCMP scenario
+TEST_F(AgentUcmpTest, UcmpL2ResolveBothNhopsInThenLinkFlap) {
+  utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+  programResolvedUcmp({3, 1, 1, 1, 1, 1, 1, 1}, {3, 1, 1, 1, 1, 1, 1, 1});
+  auto nhop = ecmpHelper.nhop(0);
+  bringDownPort(nhop.portDesc.phyPortID());
+
+  WITH_RETRIES({ EXPECT_EVENTUALLY_EQ(7, getEcmpSizeInHw()); });
+
+  bringUpPort(nhop.portDesc.phyPortID());
+  WITH_RETRIES({ EXPECT_EVENTUALLY_EQ(7, getEcmpSizeInHw()); });
+
+  unresolveNhops(1);
+  resolveNhops(1);
+  WITH_RETRIES({ EXPECT_EVENTUALLY_EQ(10, getEcmpSizeInHw()); });
 }
 
 } // namespace facebook::fboss
