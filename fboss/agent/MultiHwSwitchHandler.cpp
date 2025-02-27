@@ -261,7 +261,7 @@ bool MultiHwSwitchHandler::sendPacketOutOfPortAsync(
 }
 
 bool MultiHwSwitchHandler::sendPacketSwitchedSync(
-    std::unique_ptr<TxPacket> pkt) {
+    std::unique_ptr<TxPacket> pkt) noexcept {
   CHECK_GE(hwSwitchSyncers_.size(), 1);
   // use first available connected switch to send pkt
   for (auto& hwSwitchHandler : hwSwitchSyncers_) {
@@ -269,11 +269,11 @@ bool MultiHwSwitchHandler::sendPacketSwitchedSync(
       return hwSwitchHandler.second->sendPacketSwitchedSync(std::move(pkt));
     }
   }
-  throw FbossError("No connected switch found to send packet");
+  return false;
 }
 
 bool MultiHwSwitchHandler::sendPacketSwitchedAsync(
-    std::unique_ptr<TxPacket> pkt) {
+    std::unique_ptr<TxPacket> pkt) noexcept {
   CHECK_GE(hwSwitchSyncers_.size(), 1);
   // use first available connected switch to send pkt
   for (auto& hwSwitchHandler : hwSwitchSyncers_) {
@@ -281,7 +281,7 @@ bool MultiHwSwitchHandler::sendPacketSwitchedAsync(
       return hwSwitchHandler.second->sendPacketSwitchedAsync(std::move(pkt));
     }
   }
-  throw FbossError("No connected switch found to send packet");
+  return false;
 }
 
 std::map<SwitchID, HwSwitchHandler*> MultiHwSwitchHandler::getHwSwitchHandlers()
