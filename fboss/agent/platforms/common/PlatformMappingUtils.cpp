@@ -29,6 +29,7 @@
 #include "fboss/agent/platforms/common/meru800bfa/Meru800bfaPlatformMapping.h"
 #include "fboss/agent/platforms/common/meru800bia/Meru800biaPlatformMapping.h"
 #include "fboss/agent/platforms/common/minipack/MinipackPlatformMapping.h"
+#include "fboss/agent/platforms/common/minipack3n/Minipack3NPlatformMapping.h"
 #include "fboss/agent/platforms/common/montblanc/MontblancPlatformMapping.h"
 #include "fboss/agent/platforms/common/morgan800cc/Morgan800ccPlatformMapping.h"
 #include "fboss/agent/platforms/common/tahan800bc/Tahan800bcPlatformMapping.h"
@@ -178,6 +179,10 @@ std::unique_ptr<PlatformMapping> initPlatformMapping(PlatformType type) {
       return platformMappingStr.empty()
           ? std::make_unique<YangraPlatformMapping>()
           : std::make_unique<YangraPlatformMapping>(platformMappingStr);
+    case PlatformType::PLATFORM_MINIPACK3N:
+      return platformMappingStr.empty()
+          ? std::make_unique<Minipack3NPlatformMapping>()
+          : std::make_unique<Minipack3NPlatformMapping>(platformMappingStr);
     case PlatformType::PLATFORM_FAKE_SAI: {
       std::vector<int> controllingPorts = getFakeSaiControllingPortIDs();
       return std::make_unique<FakeTestPlatformMapping>(controllingPorts);
@@ -188,7 +193,6 @@ std::unique_ptr<PlatformMapping> initPlatformMapping(PlatformType type) {
     case PlatformType::PLATFORM_WEDGE400C_FABRIC:
     case PlatformType::PLATFORM_WEDGE400C_VOQ:
     case PlatformType::PLATFORM_SANDIA:
-    case PlatformType::PLATFORM_MINIPACK3N:
       throw FbossError("Unsupported platform type");
   }
   return nullptr;
