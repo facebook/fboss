@@ -35,6 +35,15 @@ SaiYangraPlatform::SaiYangraPlatform(
               : std::make_unique<YangraPlatformMapping>(platformMappingStr),
           localMac) {}
 
+SaiYangraPlatform::SaiYangraPlatform(
+    std::unique_ptr<PlatformProductInfo> productInfo,
+    folly::MacAddress localMac,
+    std::unique_ptr<PlatformMapping> platformMapping)
+    : SaiPlatform(
+          std::move(productInfo),
+          std::move(platformMapping),
+          localMac) {}
+
 void SaiYangraPlatform::setupAsic(
     std::optional<int64_t> switchId,
     const cfg::SwitchInfo& switchInfo,

@@ -21,6 +21,10 @@ class SaiYangraPlatform : public SaiPlatform {
       std::unique_ptr<PlatformProductInfo> productInfo,
       folly::MacAddress localMac,
       const std::string& platformMappingStr);
+  SaiYangraPlatform(
+      std::unique_ptr<PlatformProductInfo> productInfo,
+      folly::MacAddress localMac,
+      std::unique_ptr<PlatformMapping> platformMapping);
   ~SaiYangraPlatform() override;
 
   std::optional<SaiSwitchTraits::Attributes::AclFieldList> getAclFieldList()
