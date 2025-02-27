@@ -94,6 +94,28 @@ bool PlatformFsUtils::writeStringToFile(
   return errorCode == 0;
 }
 
+bool PlatformFsUtils::writeStringToSysfs(
+    const std::string& content,
+    const fs::path& path) const {
+  // TODO: Look into whether there's any reasonable way to unit test sysfs.
+  // const fs::path& prefixedPath = concat(rootDir_, path);
+  int errorCode = 0;
+  bool written = folly::writeFile(content + "\n", path.c_str(), O_WRONLY);
+  // errno will be set to 2 when the file did not exist but was successfully
+  // created & written. Only set errCode on failed writes.
+  if (!written) {
+    errorCode = errno;
+  }
+  if (errorCode != 0) {
+    XLOG(ERR) << fmt::format(
+        "Received error code {} from writing to path {}: {}",
+        errorCode,
+        path.string(),
+        folly::errnoStr(errorCode));
+  }
+  return errorCode == 0;
+}
+
 std::optional<std::string> PlatformFsUtils::getStringFileContent(
     const fs::path& path) const {
   std::string value{};

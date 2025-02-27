@@ -93,6 +93,7 @@ cpp_library(
         ":i2c_explorer",
         ":platform_manager_config-cpp2-types",
         ":utils",
+        "//fboss/platform/helpers:platform_fs_utils",
         "//folly:file_util",
         "//folly:string",
         "//folly/logging:logging",

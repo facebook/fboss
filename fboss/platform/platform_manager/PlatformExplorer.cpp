@@ -138,13 +138,14 @@ namespace constants = platform_manager_config_constants;
 
 PlatformExplorer::PlatformExplorer(
     const PlatformConfig& config,
-    const std::shared_ptr<PlatformFsUtils> platformFsUtils)
+    std::shared_ptr<PlatformFsUtils> platformFsUtils)
     : explorationSummary_(platformConfig_, dataStore_),
       platformConfig_(config),
+      pciExplorer_(platformFsUtils),
       dataStore_(platformConfig_),
       devicePathResolver_(dataStore_),
       presenceChecker_(devicePathResolver_),
-      platformFsUtils_(platformFsUtils) {
+      platformFsUtils_(std::move(platformFsUtils)) {
   updatePmStatus(createPmStatus(ExplorationStatus::UNSTARTED));
 }
 
@@ -476,7 +477,7 @@ void PlatformExplorer::explorePciDevices(
     const std::string& slotPath,
     const std::vector<PciDeviceConfig>& pciDeviceConfigs) {
   for (const auto& pciDeviceConfig : pciDeviceConfigs) {
-    auto pciDevice = PciDevice(pciDeviceConfig);
+    auto pciDevice = PciDevice(pciDeviceConfig, platformFsUtils_);
     auto instId =
         getFpgaInstanceId(slotPath, *pciDeviceConfig.pmUnitScopedName());
     createPciSubDevices(
