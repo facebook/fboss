@@ -40,7 +40,8 @@ class AgentMmuTuningTest : public AgentHwTest {
   getProductionFeaturesVerified() const override {
     return {
         production_features::ProductionFeature::L3_QOS,
-        production_features::ProductionFeature::PORT_TX_DISABLE};
+        production_features::ProductionFeature::PORT_TX_DISABLE,
+        production_features::ProductionFeature::MMU_TUNING};
   }
 
   void setup() {
