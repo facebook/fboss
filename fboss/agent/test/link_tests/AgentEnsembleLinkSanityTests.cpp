@@ -111,6 +111,7 @@ TEST_F(AgentEnsembleLinkTest, asicLinkFlap) {
       ASSERT_NO_THROW(waitForAllCabledPorts(true));
       ASSERT_NO_THROW(utility::waitForAllTransceiverStates(
           true, getCabledTranceivers(), 60, 5s));
+      ASSERT_NO_THROW(checkQsfpServiceMemoryInBounds());
     }
   };
 

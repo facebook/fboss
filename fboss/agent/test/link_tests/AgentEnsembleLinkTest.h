@@ -65,6 +65,9 @@ class AgentEnsembleLinkTest : public AgentEnsembleTest {
   const std::vector<PortID>& getCabledFabricPorts() const {
     return cabledFabricPorts_;
   }
+
+  void checkQsfpServiceMemoryInBounds() const;
+
   /*
    * Program default (v6) route over ports
    */

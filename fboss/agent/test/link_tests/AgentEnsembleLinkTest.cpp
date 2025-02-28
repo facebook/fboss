@@ -47,6 +47,11 @@ const std::vector<std::string> l1LinkTestNames = {
     "verifyIphyFecBerCounters"};
 
 const std::vector<std::string> l2LinkTestNames = {"trafficRxTx", "ecmpShrink"};
+
+#ifndef IS_OSS
+static constexpr auto kQsfpRssCounter = "proc_rss_mem_bytes";
+static auto kQsfpMemLimit = 3.75 * 1000 * 1000 * 1000; // 3.75GB
+#endif
 } // namespace
 
 namespace facebook::fboss {
@@ -80,6 +85,24 @@ void AgentEnsembleLinkTest::TearDown() {
         << "QSFP Service run state no longer active after the test";
     AgentEnsembleTest::TearDown();
   }
+}
+
+void AgentEnsembleLinkTest::checkQsfpServiceMemoryInBounds() const {
+#ifndef IS_OSS
+  std::map<std::string, int64_t> qsfpCounters;
+  auto qsfpServiceClient = utils::createQsfpServiceClient();
+  qsfpServiceClient.get()->sync_getRegexCounters(qsfpCounters, kQsfpRssCounter);
+  if (qsfpCounters.find(kQsfpRssCounter) == qsfpCounters.end()) {
+    throw FbossError(
+        "Qsfp Service RSS memory counter ", kQsfpRssCounter, " not found");
+  }
+  if (qsfpCounters[kQsfpRssCounter] > kQsfpMemLimit) {
+    throw FbossError(
+        "Qsfp Service RSS memory ",
+        qsfpCounters[kQsfpRssCounter],
+        " above 3.75GB");
+  }
+#endif
 }
 
 void AgentEnsembleLinkTest::setCmdLineFlagOverrides() const {
