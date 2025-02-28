@@ -809,6 +809,21 @@ class AgentSflowMirrorWithLineRateTrafficTest
   }
 
   void verifySflowEgressPortNotStuck(int iterations) {
+    if (checkSameAndGetAsic()->isSupported(
+            HwAsic::Feature::EVENTOR_PORT_FOR_SFLOW)) {
+      // Ensure eventor port stats keep incrementing
+      const PortID kEventorPortId =
+          masterLogicalPortIds({cfg::PortType::EVENTOR_PORT})[0];
+      auto eventorStatsBefore = getLatestPortStats(kEventorPortId);
+      WITH_RETRIES({
+        auto eventorStatsAfter = getLatestPortStats(kEventorPortId);
+        XLOG(DBG0) << "Eventor port outPackets: "
+                   << *eventorStatsAfter.outUnicastPkts_();
+        EXPECT_EVENTUALLY_GT(
+            *eventorStatsAfter.outUnicastPkts_(),
+            *eventorStatsBefore.outUnicastPkts_());
+      });
+    }
     auto portId = getNonSflowSampledInterfacePort();
     // Expect atleast 1Gbps of mirror traffic!
     const uint64_t kDesiredMirroredTrafficRate{1000000000};
