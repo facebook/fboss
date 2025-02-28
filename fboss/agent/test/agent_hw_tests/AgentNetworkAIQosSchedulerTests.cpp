@@ -101,14 +101,12 @@ void AgentNetworkAIQosSchedulerTest::verifyWRRAndSP(
     utility::addNetworkAIQueueConfig(
         &newCfg,
         streamType,
-        cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN,
+        cfg::QueueScheduling::STRICT_PRIORITY,
         hwAsic,
         false,
         true,
-        {{utility::NetworkAIQueueType::MONITORING,
-          cfg::QueueScheduling::STRICT_PRIORITY},
-         {utility::NetworkAIQueueType::NC,
-          cfg::QueueScheduling::STRICT_PRIORITY}});
+        {{utility::NetworkAIQueueType::RDMA,
+          cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN}});
     applyNewConfig(newCfg);
   };
 
