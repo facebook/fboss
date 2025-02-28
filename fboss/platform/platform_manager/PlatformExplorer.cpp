@@ -639,7 +639,9 @@ void PlatformExplorer::createDeviceSymLink(
       } else {
         targetPath = devicePathResolver_.resolvePciDevicePath(devicePath);
       }
-    } else if (linkParentPath.string() == "/run/devmap/fpgas") {
+    } else if (
+        linkParentPath.string() == "/run/devmap/fpgas" ||
+        linkParentPath.string() == "/run/devmap/inforoms") {
       targetPath = devicePathResolver_.resolvePciDevicePath(devicePath);
     } else if (linkParentPath.string() == "/run/devmap/i2c-busses") {
       targetPath = devicePathResolver_.resolveI2cBusPath(devicePath);
@@ -692,7 +694,7 @@ void PlatformExplorer::createDeviceSymLink(
 void PlatformExplorer::publishFirmwareVersions() {
   for (const auto& [linkPath, _] :
        *platformConfig_.symbolicLinkToDevicePath()) {
-    // TODO: Replace fpgas with inforoms when updating configs.
+    // TODO: Replace fpgas with inforoms after updating configs.
     if (!linkPath.starts_with("/run/devmap/cplds") &&
         !linkPath.starts_with("/run/devmap/fpgas")) {
       continue;

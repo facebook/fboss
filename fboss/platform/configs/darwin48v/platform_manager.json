@@ -968,6 +968,7 @@
     "/run/devmap/cplds/ROOK_CPU_CPLD_INFO_ROM": "/[ROOK_CPU_CPLD_INFO_ROM]",
     "/run/devmap/fpgas/SCD_FPGA": "/[SCD_FPGA]",
     "/run/devmap/fpgas/SCD_FPGA_INFO_ROM": "/[SCD_FPGA_INFO_ROM]",
+    "/run/devmap/inforoms/SCD_FPGA_INFO_ROM": "/[SCD_FPGA_INFO_ROM]",
     "/run/devmap/i2c-busses/ROOK_SMBUS0_CH0": "/[ROOK_SMBUS0@0]",
     "/run/devmap/i2c-busses/ROOK_SMBUS0_CH1": "/[ROOK_SMBUS0@1]",
     "/run/devmap/i2c-busses/ROOK_SMBUS0_CH2": "/[ROOK_SMBUS0@2]",
