@@ -53,6 +53,9 @@ using std::mutex;
 
 static constexpr int kAllowedFwUpgradeAttempts = 3;
 
+// Refresh all transceiver pages every 100 refresh cycles.
+static constexpr int kRefreshAllPagesCycles = 100;
+
 namespace facebook {
 namespace fboss {
 
@@ -800,6 +803,18 @@ prbs::InterfacePrbsState QsfpModule::getPortPrbsState(
   return state;
 }
 
+void QsfpModule::periodicUpdateQsfpData() {
+  bool updatedAllPages = false;
+  refreshCycleCount_++;
+  if (refreshCycleCount_ >= kRefreshAllPagesCycles) {
+    updatedAllPages = true;
+    // reset cycle count
+    refreshCycleCount_ = 0;
+    QSFP_LOG(DBG2, this) << "Refreshing all pages";
+  }
+  updateQsfpData(updatedAllPages);
+}
+
 void QsfpModule::refresh() {
   lock_guard<std::mutex> g(qsfpModuleMutex_);
   refreshLocked();
@@ -875,7 +890,7 @@ void QsfpModule::refreshLocked() {
 
   // If it's just regular refresh
   if (willRefresh) {
-    updateQsfpData(false);
+    periodicUpdateQsfpData();
     updateCmisStateChanged(moduleStatus);
   }
 

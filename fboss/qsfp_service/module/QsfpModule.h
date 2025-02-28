@@ -510,6 +510,22 @@ class QsfpModule : public Transceiver {
    * function that reads cache data is called
    */
   virtual bool cacheIsValid() const;
+
+  /*
+   * This function is called during the periodic refresh of the QSFP data
+   * When the transceiver is in a stable active state. We will refresh
+   * all pages once every ~100 periodic refresh cycles, and refresh the
+   * dynamic data pages every polling cycle.
+   * The purpose of this function is to avoid very stale calculation of
+   * checksum data on the static pages in case there is a corruption/bit flip
+   * in those pages. Without this periodic refresh, we may get a lot of
+   * checksum errors (from many machines) when we do a QSFP service warm boot
+   * in the fleet (e.g. upgrade), as it refreshes all pages and we may get
+   * a storm of checksum failures. Instead, this will catch those checksum
+   * failures faster.
+   */
+  void periodicUpdateQsfpData();
+
   /*
    * Update the cached data with the information from the physical QSFP.
    *
@@ -795,6 +811,7 @@ class QsfpModule : public Transceiver {
   std::string primaryPortName_;
   std::set<std::string> portNames_;
   std::string tcvrName_;
+  int refreshCycleCount_ = {0};
 
   std::time_t getLastDatapathResetTime(int lane) {
     if (lastDatapathResetTimes_.find(lane) == lastDatapathResetTimes_.end()) {
