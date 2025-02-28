@@ -251,6 +251,17 @@ class AgentTrafficPfcTest : public AgentHwTest {
     return {production_features::ProductionFeature::PFC};
   }
 
+  std::string portDesc(const PortID& portId) {
+    const auto& cfg = getAgentEnsemble()->getCurrentConfig();
+    for (const auto& port : *cfg.ports()) {
+      if (PortID(*port.logicalID()) == portId) {
+        return folly::sformat(
+            "portId={} name={}", *port.logicalID(), *port.name());
+      }
+    }
+    return "";
+  }
+
   std::vector<PortID> portIdsForTest() {
     return {
         masterLogicalInterfacePortIds()[0], masterLogicalInterfacePortIds()[1]};
@@ -452,6 +463,9 @@ class AgentTrafficPfcTest : public AgentHwTest {
           const std::vector<PortID>& portIdsToValidate)> validateCounterFn =
           validatePfcCountersIncreased) {
     std::vector<PortID> portIds = portIdsForTest();
+    for (const auto& portId : portIds) {
+      XLOG(INFO) << "Testing port: " << portDesc(portId);
+    }
 
     auto setup = [&]() {
       // Setup PFC
@@ -764,6 +778,8 @@ class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcTest {
 TEST_F(AgentTrafficPfcWatchdogTest, PfcWatchdogDetection) {
   PortID portId = masterLogicalInterfacePortIds()[0];
   PortID txOffPortId = masterLogicalInterfacePortIds()[1];
+  XLOG(DBG3) << "Injection port: " << portDesc(portId);
+  XLOG(DBG3) << "Tx off port: " << portDesc(txOffPortId);
   auto ip = kDestIps()[0];
 
   auto setup = [&]() {
@@ -786,6 +802,8 @@ TEST_F(AgentTrafficPfcWatchdogTest, PfcWatchdogDetection) {
 TEST_F(AgentTrafficPfcWatchdogTest, PfcWatchdogReset) {
   PortID portId = masterLogicalInterfacePortIds()[0];
   PortID txOffPortId = masterLogicalInterfacePortIds()[1];
+  XLOG(DBG3) << "Injection port: " << portDesc(portId);
+  XLOG(DBG3) << "Tx off port: " << portDesc(txOffPortId);
   auto ip = kDestIps()[0];
 
   int deadlockCtrBefore = 0;
