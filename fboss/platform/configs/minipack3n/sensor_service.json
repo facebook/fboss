@@ -976,7 +976,7 @@
     },
     {
       "slotPath": "/FCBBOTTOM_SLOT@0",
-      "pmUnitName": "MINIPACK3N_FCB_B",
+      "pmUnitName": "FCB_B",
       "sensors": [
         {
           "name": "FCB_B_U1_TEMP",
@@ -1002,7 +1002,7 @@
     },
     {
       "slotPath": "/FCBTOP_SLOT@0",
-      "pmUnitName": "MINIPACK3N_FCB_T",
+      "pmUnitName": "FCB_T",
       "sensors": [
         {
           "name": "FCB_T_U1_TEMP",
@@ -1028,7 +1028,7 @@
     },
     {
       "slotPath": "/PDBLEFT_SLOT@0",
-      "pmUnitName": "MINIPACK3N_PDB_L",
+      "pmUnitName": "PDB_L",
       "sensors": [
         {
           "name": "PDB_L_U1_TEMP",
@@ -1164,7 +1164,7 @@
     },
     {
       "slotPath": "/PDBRIGHT_SLOT@0",
-      "pmUnitName": "MINIPACK3N_PDB_R",
+      "pmUnitName": "PDB_R",
       "sensors": [
         {
           "name": "PDB_R_U1_TEMP",
@@ -1300,7 +1300,7 @@
     },
     {
       "slotPath": "/SCM_SLOT@0",
-      "pmUnitName": "MINIPACK3N_SCM",
+      "pmUnitName": "SCM",
       "sensors": [
         {
           "name": "COME_U18_INLET_SENSOR_TMP75_TEMP",
@@ -1524,7 +1524,7 @@
     },
     {
       "slotPath": "/SMB_SLOT@0",
-      "pmUnitName": "MINIPACK3N_SMB",
+      "pmUnitName": "SMB",
       "sensors": [
         {
           "name": "XP3R3V_CLK",
@@ -2430,7 +2430,7 @@
     },
     {
       "slotPath": "/SMB_SLOT@0/OPTICL_SLOT@0",
-      "pmUnitName": "3_V_3_L_CARD",
+      "pmUnitName": "3V3_L",
       "sensors": [
         {
           "name": "SMB_3V3_L_U8_TEMP",
@@ -2506,7 +2506,7 @@
     },
     {
       "slotPath": "/SMB_SLOT@0/OPTICR_SLOT@0",
-      "pmUnitName": "3_V_3_R_CARD",
+      "pmUnitName": "3V3_R",
       "sensors": [
         {
           "name": "SMB_3V3_R_U8_TEMP",

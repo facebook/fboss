@@ -19,7 +19,7 @@
         "address": "0x54",
         "kernelDeviceName": "24c64"
       },
-      "pmUnitName": "MINIPACK3N_SCM"
+      "pmUnitName": "SCM"
     },
     "RUNBMC_SLOT": {
       "numOutgoingI2cBuses": 1,
@@ -28,7 +28,7 @@
         "address": "0x51",
         "kernelDeviceName": "24c64"
       },
-      "pmUnitName": "MINIPACK3N_BMC"
+      "pmUnitName": "BMC"
     },
     "PDBLEFT_SLOT": {
       "numOutgoingI2cBuses": 1,
@@ -37,7 +37,7 @@
         "address": "0x55",
         "kernelDeviceName": "24c02"
       },
-      "pmUnitName": "MINIPACK3N_PDB_L"
+      "pmUnitName": "PDB_L"
     },
     "PDBRIGHT_SLOT": {
       "numOutgoingI2cBuses": 1,
@@ -46,7 +46,7 @@
         "address": "0x55",
         "kernelDeviceName": "24c02"
       },
-      "pmUnitName": "MINIPACK3N_PDB_R"
+      "pmUnitName": "PDB_R"
     },
     "SMB_SLOT": {
       "numOutgoingI2cBuses": 6,
@@ -55,7 +55,7 @@
         "address": "0x50",
         "kernelDeviceName": "24c64"
       },
-      "pmUnitName": "MINIPACK3N_SMB"
+      "pmUnitName": "SMB"
     },
     "FCBBOTTOM_SLOT": {
       "numOutgoingI2cBuses": 1,
@@ -64,7 +64,7 @@
         "address": "0x51",
         "kernelDeviceName": "24c64"
       },
-      "pmUnitName": "MINIPACK3N_FCB_B"
+      "pmUnitName": "FCB_B"
     },
     "FCBTOP_SLOT": {
       "numOutgoingI2cBuses": 2,
@@ -73,7 +73,7 @@
         "address": "0x51",
         "kernelDeviceName": "24c64"
       },
-      "pmUnitName": "MINIPACK3N_FCB_T"
+      "pmUnitName": "FCB_T"
     },
     "COMESE_SLOT": {
       "numOutgoingI2cBuses": 2,
@@ -91,7 +91,7 @@
         "address": "0x51",
         "kernelDeviceName": "24c02"
       },
-      "pmUnitName": "3_V_3_L_CARD"
+      "pmUnitName": "3V3_L"
     },
     "OPTICR_SLOT": {
       "numOutgoingI2cBuses": 1,
@@ -100,7 +100,7 @@
         "address": "0x51",
         "kernelDeviceName": "24c02"
       },
-      "pmUnitName": "3_V_3_R_CARD"
+      "pmUnitName": "3V3_R"
     }
   },
   "i2cAdaptersFromCpu": [
@@ -2786,7 +2786,7 @@
         }
       }
     },
-    "MINIPACK3N_SCM": {
+    "SCM": {
       "pluggedInSlotType": "SCM_SLOT",
       "embeddedSensorConfigs": [
         {
@@ -2886,7 +2886,7 @@
         }
       }
     },
-    "MINIPACK3N_BMC": {
+    "BMC": {
       "pluggedInSlotType": "RUNBMC_SLOT",
       "i2cDeviceConfigs": [
         {
@@ -2897,7 +2897,7 @@
         }
       ]
     },
-    "MINIPACK3N_PDB_L": {
+    "PDB_L": {
       "pluggedInSlotType": "PDBLEFT_SLOT",
       "i2cDeviceConfigs": [
         {
@@ -2920,7 +2920,7 @@
         }
       ]
     },
-    "MINIPACK3N_PDB_R": {
+    "PDB_R": {
       "pluggedInSlotType": "PDBRIGHT_SLOT",
       "i2cDeviceConfigs": [
         {
@@ -2943,7 +2943,7 @@
         }
       ]
     },
-    "MINIPACK3N_SMB": {
+    "SMB": {
       "pluggedInSlotType": "SMB_SLOT",
       "i2cDeviceConfigs": [
         {
@@ -3046,7 +3046,7 @@
         }
       }
     },
-    "MINIPACK3N_FCB_T": {
+    "FCB_T": {
       "pluggedInSlotType": "FCBTOP_SLOT",
       "i2cDeviceConfigs": [
         {
@@ -3069,7 +3069,7 @@
         }
       ]
     },
-    "MINIPACK3N_FCB_B": {
+    "FCB_B": {
       "pluggedInSlotType": "FCBBOTTOM_SLOT",
       "i2cDeviceConfigs": [
         {
@@ -3121,7 +3121,7 @@
         }
       ]
     },
-    "3_V_3_L_CARD": {
+    "3V3_L": {
       "pluggedInSlotType": "OPTICL_SLOT",
       "i2cDeviceConfigs": [
         {
@@ -3138,7 +3138,7 @@
         }
       ]
     },
-    "3_V_3_R_CARD": {
+    "3V3_R": {
       "pluggedInSlotType": "OPTICR_SLOT",
       "i2cDeviceConfigs": [
         {
