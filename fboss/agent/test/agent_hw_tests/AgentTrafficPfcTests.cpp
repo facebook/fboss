@@ -565,6 +565,12 @@ INSTANTIATE_TEST_SUITE_P(
             .name = "WithZeroGlobalHeadRoomCfg",
             .buffer = PfcBufferParams{.globalHeadroom = 0},
             .expectDrop = true,
+        },
+        TrafficTestParams{
+            .name = "WithScaleCfgInCongestionDrops",
+            .buffer = PfcBufferParams{.pgHeadroom = 0},
+            .expectDrop = true,
+            .scale = true,
         }),
     [](const ::testing::TestParamInfo<TrafficTestParams>& info) {
       return info.param.name;
