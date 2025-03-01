@@ -225,6 +225,38 @@
             }
           ]
       },
+      "EOLO-168HG-5H-4B": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.3"
+            }
+          ]
+      },
+      "EOLO-168HG-5H-4T": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.3"
+            }
+          ]
+      },
+      "EOLO-168HG-5H-8B": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.3"
+            }
+          ]
+      },
+      "EOLO-168HG-5H-8T": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.3"
+            }
+          ]
+      },
       "FTCD4313E2PCLFBC": {
           "versions": [
             {
@@ -238,6 +270,14 @@
             {
               "fwType": 1,
               "version": "3.5"
+            }
+          ]
+      },
+      "FTCE2707E1PCB-FB": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "2.3"
             }
           ]
       },
@@ -370,6 +410,22 @@
             {
               "fwType": 1,
               "version": "36.196"
+            }
+          ]
+      },
+      "T-OL8CNH-NFL": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "114.148"
+            }
+          ]
+      },
+      "T-OL8CNH-NFM": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "114.148"
             }
           ]
       },
