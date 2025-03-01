@@ -10885,9 +10885,6 @@
     ],
     "leaba/1.42.8/1.42.8/gibraltar/mono": [
         {
-          "test_name_regex": "warm_boot.AgentTrunkTest$"
-        },
-        {
           "test_name_regex": "warm_boot.AgentTrunkTest.TrunkMemberPortDownMinLinksViolated$"
         },
         {
@@ -11063,6 +11060,9 @@
         },
         {
           "test_name_regex": "AgentHwAclStatTest.*$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/1.VerifyCoppPpsLowPri$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
@@ -11361,6 +11361,9 @@
           "test_name_regex": "AgentHwAclStatTest.*$"
         },
         {
+          "test_name_regex": "AgentCoppTest/1.VerifyCoppPpsLowPri$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -11503,6 +11506,9 @@
         }
     ],
     "leaba/24.8.3001/24.8.3001/gibraltar/mono": [
+        {
+          "test_name_regex": "warm_boot.AgentTrunkTest.TrunkMemberPortDownMinLinksViolated$"
+        },
         {
           "test_name_regex": "AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
@@ -11673,6 +11679,9 @@
         },
         {
           "test_name_regex": "warm_boot.AgentHwResourceStatsTest.l3Stats$"
+        },
+        {
+          "test_name_regex": "AgentRouteTest/[01].VerifyClassIdWithNhopResolutionFlap$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
@@ -11966,6 +11975,9 @@
         },
         {
           "test_name_regex": "warm_boot.AgentHwResourceStatsTest.l3Stats$"
+        },
+        {
+          "test_name_regex": "AgentRouteTest/[01].VerifyClassIdWithNhopResolutionFlap$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
