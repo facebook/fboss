@@ -262,15 +262,18 @@ class AgentTrafficPfcTest : public AgentHwTest {
     return "";
   }
 
-  std::vector<PortID> portIdsForTest() {
-    return {
-        masterLogicalInterfacePortIds()[0], masterLogicalInterfacePortIds()[1]};
+  std::vector<PortID> portIdsForTest(bool scaleTest = false) {
+    auto allPorts = masterLogicalInterfacePortIds();
+    int numPorts = scaleTest ? allPorts.size() : 2;
+    return std::vector<PortID>(allPorts.begin(), allPorts.begin() + numPorts);
   }
 
-  std::vector<folly::IPAddressV6> kDestIps() const {
-    return {
-        folly::IPAddressV6("2620:0:1cfe:face:b00c::4"),
-        folly::IPAddressV6("2620:0:1cfe:face:b00c::5")};
+  std::vector<folly::IPAddressV6> getDestinationIps(int count = 2) const {
+    std::vector<folly::IPAddressV6> ips;
+    for (int i = 4; i < count + 4; i++) {
+      ips.emplace_back(folly::sformat("2620:0:1cfe:face:b00c::{}", i));
+    }
+    return ips;
   }
 
   folly::MacAddress getIntfMac() const {
@@ -323,9 +326,10 @@ class AgentTrafficPfcTest : public AgentHwTest {
   }
 
   void setupEcmpTraffic(const std::vector<PortID>& portIds) {
-    CHECK_LE(portIds.size(), kDestIps().size());
+    auto ips = getDestinationIps(portIds.size());
+    CHECK_EQ(portIds.size(), ips.size());
     for (int i = 0; i < portIds.size(); ++i) {
-      setupEcmpTraffic(portIds[i], kDestIps()[i]);
+      setupEcmpTraffic(portIds[i], ips[i]);
     }
   }
 
@@ -436,12 +440,9 @@ class AgentTrafficPfcTest : public AgentHwTest {
     }
   }
 
-  void pumpTraffic(const int priority) {
-    std::vector<PortID> portIds;
-    for (int i = 0; i < kDestIps().size(); i++) {
-      portIds.push_back(masterLogicalInterfacePortIds()[i]);
-    }
-    pumpTraffic(priority, portIds, kDestIps());
+  void pumpTraffic(const int priority, bool scaleTest) {
+    std::vector<PortID> portIds = portIdsForTest(scaleTest);
+    pumpTraffic(priority, portIds, getDestinationIps(portIds.size()));
   }
 
   void stopTraffic(const std::vector<PortID>& portIds) {
@@ -462,7 +463,7 @@ class AgentTrafficPfcTest : public AgentHwTest {
           const int pri,
           const std::vector<PortID>& portIdsToValidate)> validateCounterFn =
           validatePfcCountersIncreased) {
-    std::vector<PortID> portIds = portIdsForTest();
+    std::vector<PortID> portIds = portIdsForTest(testParams.scale);
     for (const auto& portId : portIds) {
       XLOG(INFO) << "Testing port: " << portDesc(portId);
     }
@@ -470,15 +471,11 @@ class AgentTrafficPfcTest : public AgentHwTest {
     auto setup = [&]() {
       // Setup PFC
       auto cfg = getAgentEnsemble()->getCurrentConfig();
-      std::vector<PortID> portIdsToConfigure = portIds;
-      if (testParams.scale) {
-        // Apply PFC config to all ports
-        portIdsToConfigure = masterLogicalInterfacePortIds();
-      }
+      // Apply PFC config to all ports of interest
       utility::setupPfcBuffers(
           getAgentEnsemble(),
           cfg,
-          portIdsToConfigure,
+          portIds,
           kLosslessPgIds,
           tcToPgOverride,
           testParams.buffer);
@@ -512,7 +509,7 @@ class AgentTrafficPfcTest : public AgentHwTest {
       validateInitPfcCounters(portIds, pfcPriority);
     };
     auto verifyCommon = [&](bool postWb) {
-      pumpTraffic(trafficClass);
+      pumpTraffic(trafficClass, testParams.scale);
       // Sleep for a bit before validation, so that the test will fail if
       // traffic doesn't actually build up, instead of passing by luck.
       // NOLINTNEXTLINE(facebook-hte-BadCall-sleep)
@@ -780,7 +777,7 @@ TEST_F(AgentTrafficPfcWatchdogTest, PfcWatchdogDetection) {
   PortID txOffPortId = masterLogicalInterfacePortIds()[1];
   XLOG(DBG3) << "Injection port: " << portDesc(portId);
   XLOG(DBG3) << "Tx off port: " << portDesc(txOffPortId);
-  auto ip = kDestIps()[0];
+  auto ip = getDestinationIps()[0];
 
   auto setup = [&]() {
     setupConfigAndEcmpTraffic(portId, txOffPortId, ip);
@@ -804,7 +801,7 @@ TEST_F(AgentTrafficPfcWatchdogTest, PfcWatchdogReset) {
   PortID txOffPortId = masterLogicalInterfacePortIds()[1];
   XLOG(DBG3) << "Injection port: " << portDesc(portId);
   XLOG(DBG3) << "Tx off port: " << portDesc(txOffPortId);
-  auto ip = kDestIps()[0];
+  auto ip = getDestinationIps()[0];
 
   int deadlockCtrBefore = 0;
   int recoveryCtrBefore = 0;
