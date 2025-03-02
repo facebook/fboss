@@ -42,10 +42,8 @@ void SaiVendorSwitchManager::vendorSwitchEventNotificationCallback(
 #if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
   sai_vendor_switch_event_info_t* eventInfo =
       (sai_vendor_switch_event_info_t*)(buffer);
-  // TODO: Generalize and add event_id to string conversion
-  XLOG(WARNING) << "Vendor switch event notification, ID: "
-                << eventInfo->event_id << ", index: " << eventInfo->index
-                << ", at " << eventInfo->time;
+  XLOG(WARNING) << "ERROR INTERRUPT: "
+                << getVendorSwitchEventName(eventInfo->event_id);
 #endif
 }
 
