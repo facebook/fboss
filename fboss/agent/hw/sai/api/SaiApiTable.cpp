@@ -215,6 +215,12 @@ const MacsecApi& SaiApiTable::macsecApi() const {
   return getApi<MacsecApi>();
 }
 
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+const VendorSwitchApi& SaiApiTable::vendorSwitchApi() const {
+  return getApi<VendorSwitchApi>();
+}
+#endif
+
 void SaiApiTable::enableLogging(const std::string& logLevelStr) const {
   auto logLevel = saiLogLevelFromString(logLevelStr);
   for (uint32_t api = SAI_API_UNSPECIFIED; api < SAI_API_MAX; api++) {

@@ -99,6 +99,7 @@ cpp_library(
         "TunnelApi.h",
         "Types.h",
         "UdfApi.h",
+        "VendorSwitchApi.h",
         "VirtualRouterApi.h",
         "VlanApi.h",
         "WredApi.h",

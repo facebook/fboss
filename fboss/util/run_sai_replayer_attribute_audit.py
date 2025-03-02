@@ -19,7 +19,12 @@ TRACER_FILES_TO_SEARCH = "fboss/agent/hw/sai/tracer/*ApiTracer.cpp"
 
 # There are certain calls replayer don't wrap (e.g. RxPacket as it's callback from SDK).
 # Exclude these patterns when we audit the attributes.
-PATTERN_TO_EXCLUDE = ["RxPacket", "TcBufferLimit"]
+PATTERN_TO_EXCLUDE = [
+    "RxPacket",
+    "TcBufferLimit",
+    # Fixed in later diff in the stack
+    "VendorSwitch",
+]
 
 
 def get_used_attributes():

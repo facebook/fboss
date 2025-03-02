@@ -654,6 +654,9 @@ class SaiStore {
       SaiObjectStore<SaiTamTransportTraits>,
       SaiObjectStore<SaiTamCollectorTraits>,
       SaiObjectStore<SaiTunnelTraits>,
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+      SaiObjectStore<SaiVendorSwitchTraits>,
+#endif
       SaiObjectStore<SaiP2MPTunnelTermTraits>,
       SaiObjectStore<SaiP2PTunnelTermTraits>,
       SaiObjectStore<SaiLagTraits>,

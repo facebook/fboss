@@ -25,6 +25,13 @@ extern "C" {
 #include <saiexperimentaltameventaginggroup.h>
 #endif
 #endif
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+#ifndef IS_OSS_BRCM_SAI
+#include <experimental/saiexperimentalvendorswitch.h>
+#else
+#include <saiexperimentalvendorswitch.h>
+#endif
+#endif
 }
 
 namespace facebook::fboss {
@@ -35,6 +42,10 @@ folly::StringPiece saiApiTypeToString(sai_api_t apiType) {
     switch (static_cast<sai_api_extensions_t>(apiType)) {
       case SAI_API_TAM_EVENT_AGING_GROUP:
         return "tam-event-aging-group";
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+      case SAI_API_VENDOR_SWITCH:
+        return "vendor-switch";
+#endif
       default:
         break;
     }
@@ -154,6 +165,10 @@ folly::StringPiece saiObjectTypeToString(sai_object_type_t objectType) {
     switch (static_cast<sai_object_type_extensions_t>(objectType)) {
       case SAI_OBJECT_TYPE_TAM_EVENT_AGING_GROUP:
         return "tam-event-aging-group";
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+      case SAI_OBJECT_TYPE_VENDOR_SWITCH:
+        return "vendor-switch";
+#endif
       default:
         throw FbossError("object type extension invalid: ", objectType);
     }

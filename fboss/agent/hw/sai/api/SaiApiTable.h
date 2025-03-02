@@ -39,6 +39,7 @@
 #include "fboss/agent/hw/sai/api/TamEventAgingGroupApi.h"
 #include "fboss/agent/hw/sai/api/TunnelApi.h"
 #include "fboss/agent/hw/sai/api/UdfApi.h"
+#include "fboss/agent/hw/sai/api/VendorSwitchApi.h"
 #include "fboss/agent/hw/sai/api/VirtualRouterApi.h"
 #include "fboss/agent/hw/sai/api/VlanApi.h"
 #include "fboss/agent/hw/sai/api/WredApi.h"
@@ -138,6 +139,10 @@ class SaiApiTable {
 
   const MacsecApi& macsecApi() const;
 
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  const VendorSwitchApi& vendorSwitchApi() const;
+#endif
+
   template <typename SaiApiT>
   SaiApiT& getApi() {
     return *std::get<std::unique_ptr<SaiApiT>>(apis_);
@@ -195,6 +200,9 @@ class SaiApiTable {
 #endif
       std::unique_ptr<TunnelApi>,
       std::unique_ptr<LagApi>,
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+      std::unique_ptr<VendorSwitchApi>,
+#endif
       std::unique_ptr<MacsecApi>>
       apis_;
   bool apisQueried_{false};
