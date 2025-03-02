@@ -22,8 +22,6 @@ TRACER_FILES_TO_SEARCH = "fboss/agent/hw/sai/tracer/*ApiTracer.cpp"
 PATTERN_TO_EXCLUDE = [
     "RxPacket",
     "TcBufferLimit",
-    # Fixed in later diff in the stack
-    "VendorSwitch",
 ]
 
 

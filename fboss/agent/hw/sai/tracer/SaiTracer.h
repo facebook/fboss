@@ -36,6 +36,14 @@ extern "C" {
 #include <saiexperimentaltameventaginggroup.h>
 #endif
 #endif
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+#include <saiextensions.h>
+#ifndef IS_OSS_BRCM_SAI
+#include <experimental/saiexperimentalvendorswitch.h>
+#else
+#include <saiexperimentalvendorswitch.h>
+#endif
+#endif
 }
 
 DECLARE_bool(enable_replayer);
@@ -251,6 +259,9 @@ class SaiTracer {
 #endif
   sai_tunnel_api_t* tunnelApi_;
   sai_udf_api_t* udfApi_;
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  sai_vendor_switch_api_t* vendorSwitchApi_;
+#endif
   sai_virtual_router_api_t* virtualRouterApi_;
   sai_vlan_api_t* vlanApi_;
   sai_wred_api_t* wredApi_;
@@ -436,6 +447,9 @@ class SaiTracer {
       {SAI_OBJECT_TYPE_UDF, "udf_"},
       {SAI_OBJECT_TYPE_UDF_MATCH, "udfMatch_"},
       {SAI_OBJECT_TYPE_UDF_GROUP, "udfGroup_"},
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+      {static_cast<sai_object_type_t>(SAI_OBJECT_TYPE_VENDOR_SWITCH), "vendorSwitch_"},
+#endif
       {SAI_OBJECT_TYPE_VIRTUAL_ROUTER, "virtualRouter_"},
       {SAI_OBJECT_TYPE_VLAN, "vlan_"},
       {SAI_OBJECT_TYPE_VLAN_MEMBER, "vlanMember_"},
@@ -505,6 +519,10 @@ class SaiTracer {
       {SAI_OBJECT_TYPE_UDF, "udf_api->"},
       {SAI_OBJECT_TYPE_UDF_MATCH, "udf_api->"},
       {SAI_OBJECT_TYPE_UDF_GROUP, "udf_api->"},
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+      {static_cast<sai_object_type_t>(SAI_OBJECT_TYPE_VENDOR_SWITCH),
+          "vendor_switch_api->"},
+#endif
       {SAI_OBJECT_TYPE_VIRTUAL_ROUTER, "virtual_router_api->"},
       {SAI_OBJECT_TYPE_VLAN, "vlan_api->"},
       {SAI_OBJECT_TYPE_VLAN_MEMBER, "vlan_api->"},

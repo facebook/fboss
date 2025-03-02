@@ -46,6 +46,7 @@
 #include "fboss/agent/hw/sai/tracer/TamEventAgingGroupApiTracer.h" // NOLINT(facebook-unused-include-check)
 #include "fboss/agent/hw/sai/tracer/TunnelApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/UdfApiTracer.h"
+#include "fboss/agent/hw/sai/tracer/VendorSwitchApiTracer.h" // NOLINT(facebook-unused-include-check)
 #include "fboss/agent/hw/sai/tracer/VirtualRouterApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/VlanApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/WredApiTracer.h"
@@ -206,6 +207,14 @@ sai_status_t __wrap_sai_api_query(
         SaiTracer::getInstance()->logApiQuery(
             sai_api_id, "tam_event_aging_group_api");
         break;
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+      case SAI_API_VENDOR_SWITCH:
+        SaiTracer::getInstance()->vendorSwitchApi_ =
+            static_cast<sai_vendor_switch_api_t*>(*api_method_table);
+        *api_method_table = facebook::fboss::wrappedVendorSwitchApi();
+        SaiTracer::getInstance()->logApiQuery(sai_api_id, "vendor_switch_api");
+        break;
+#endif
       default:
         break;
     }
@@ -1356,6 +1365,11 @@ vector<string> SaiTracer::setAttrList(
       case SAI_OBJECT_TYPE_TAM_EVENT_AGING_GROUP:
         setTamEventAgingGroupAttributes(attr_list, attr_count, attrLines, rv);
         break;
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+      case SAI_OBJECT_TYPE_VENDOR_SWITCH:
+        setVendorSwitchAttributes(attr_list, attr_count, attrLines, rv);
+        break;
+#endif
       default:
         break;
     }
@@ -1904,6 +1918,10 @@ void SaiTracer::initVarCounts() {
   varCounts_.emplace(SAI_OBJECT_TYPE_UDF, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_UDF_MATCH, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_UDF_GROUP, 0);
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  varCounts_.emplace(
+      static_cast<sai_object_type_t>(SAI_OBJECT_TYPE_VENDOR_SWITCH), 0);
+#endif
   varCounts_.emplace(SAI_OBJECT_TYPE_VIRTUAL_ROUTER, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_VLAN, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_VLAN_MEMBER, 0);
