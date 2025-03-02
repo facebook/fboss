@@ -102,6 +102,7 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::CPU_QUEUE_WATERMARK_STATS:
     case HwAsic::Feature::SAMPLE_RATE_CONFIG_PER_MIRROR:
     case HwAsic::Feature::SFLOW_SAMPLES_PACKING:
+    case HwAsic::Feature::VENDOR_SWITCH_NOTIFICATION:
       return true;
     // Features not expected to work on SIM
     case HwAsic::Feature::SHARED_INGRESS_EGRESS_BUFFER_POOL:

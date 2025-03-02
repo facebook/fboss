@@ -209,6 +209,7 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::EGRESS_CELL_ERROR_STATS:
     case HwAsic::Feature::SAMPLE_RATE_CONFIG_PER_MIRROR:
     case HwAsic::Feature::SFLOW_SAMPLES_PACKING:
+    case HwAsic::Feature::VENDOR_SWITCH_NOTIFICATION:
       return false;
   }
   return false;
