@@ -56,6 +56,7 @@ class SaiTunnelManager;
 class SaiUdfManager;
 class SaiVirtualRouterManager;
 class SaiVlanManager;
+class SaiVendorSwitchManager;
 class SaiWredManager;
 class SaiStore;
 class UnsupportedFeatureManager;
@@ -175,6 +176,9 @@ class SaiManagerTable {
   SaiUdfManager& udfManager();
   const SaiUdfManager& udfManager() const;
 
+  SaiVendorSwitchManager& vendorSwitchManager();
+  const SaiVendorSwitchManager& vendorSwitchManager() const;
+
   void reset(bool skipSwitchManager);
 
  private:
@@ -213,6 +217,7 @@ class SaiManagerTable {
   std::unique_ptr<SaiTunnelManager> tunnelManager_;
   std::unique_ptr<UnsupportedFeatureManager> teFlowEntryManager_;
   std::unique_ptr<SaiUdfManager> udfManager_;
+  std::unique_ptr<SaiVendorSwitchManager> vendorSwitchManager_;
 };
 
 } // namespace facebook::fboss

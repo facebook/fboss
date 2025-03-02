@@ -43,6 +43,7 @@
 #include "fboss/agent/hw/sai/switch/SaiTamManager.h"
 #include "fboss/agent/hw/sai/switch/SaiTunnelManager.h"
 #include "fboss/agent/hw/sai/switch/SaiUdfManager.h"
+#include "fboss/agent/hw/sai/switch/SaiVendorSwitchManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVirtualRouterManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVlanManager.h"
 #include "fboss/agent/hw/sai/switch/SaiWredManager.h"
@@ -118,6 +119,8 @@ void SaiManagerTable::createSaiTableManagers(
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
   udfManager_ = std::make_unique<SaiUdfManager>(saiStore, this, platform);
 #endif
+  vendorSwitchManager_ =
+      std::make_unique<SaiVendorSwitchManager>(saiStore, this, platform);
 }
 
 SaiManagerTable::~SaiManagerTable() {
@@ -224,6 +227,8 @@ void SaiManagerTable::reset(bool skipSwitchManager) {
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
   udfManager_.reset();
 #endif
+
+  vendorSwitchManager_.reset();
 
   if (!skipSwitchManager) {
     switchManager_.reset();
@@ -475,4 +480,13 @@ SaiUdfManager& SaiManagerTable::udfManager() {
 const SaiUdfManager& SaiManagerTable::udfManager() const {
   return *udfManager_;
 }
+
+SaiVendorSwitchManager& SaiManagerTable::vendorSwitchManager() {
+  return *vendorSwitchManager_;
+}
+
+const SaiVendorSwitchManager& SaiManagerTable::vendorSwitchManager() const {
+  return *vendorSwitchManager_;
+}
+
 } // namespace facebook::fboss
