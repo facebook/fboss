@@ -21,4 +21,9 @@ const std::vector<uint32_t>& SaiVendorSwitchManager::getAllInterruptEvents() {
   return kInterruptEvents;
 }
 
+const std::vector<uint32_t>&
+SaiVendorSwitchManager::getInterruptEventsToBeEnabled() {
+  static const std::vector<uint32_t> kEnabledInterruptEvents;
+  return kEnabledInterruptEvents;
+}
 } // namespace facebook::fboss

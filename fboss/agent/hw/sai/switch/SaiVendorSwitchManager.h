@@ -33,6 +33,7 @@ class SaiVendorSwitchManager {
       uint32_t eventType);
 
   const std::vector<uint32_t>& getAllInterruptEvents();
+  const std::vector<uint32_t>& getInterruptEventsToBeEnabled();
 
  private:
   SaiStore* saiStore_;
