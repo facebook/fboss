@@ -5,6 +5,9 @@
 #include "fboss/agent/hw/sai/api/VendorSwitchApi.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
 
+#include <cstdint>
+#include <vector>
+
 namespace facebook::fboss {
 
 class SaiManagerTable;
@@ -21,6 +24,15 @@ class SaiVendorSwitchManager {
       SaiStore* saiStore,
       SaiManagerTable* managerTable,
       SaiPlatform* platform);
+
+  void initVendorSwitchEvents();
+
+  void vendorSwitchEventNotificationCallback(
+      sai_size_t bufferSize,
+      const void* buffer,
+      uint32_t eventType);
+
+  const std::vector<uint32_t>& getAllInterruptEvents();
 
  private:
   SaiStore* saiStore_;

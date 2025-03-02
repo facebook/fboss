@@ -8,4 +8,17 @@ SaiVendorSwitchManager::SaiVendorSwitchManager(
     SaiStore* /*saiStore*/,
     SaiManagerTable* /*managerTable*/,
     SaiPlatform* /*platform*/) {}
+
+void SaiVendorSwitchManager::initVendorSwitchEvents() {}
+
+void SaiVendorSwitchManager::vendorSwitchEventNotificationCallback(
+    sai_size_t /*bufferSize*/,
+    const void* /*buffer*/,
+    uint32_t /*eventType*/) {}
+
+const std::vector<uint32_t>& SaiVendorSwitchManager::getAllInterruptEvents() {
+  static const std::vector<uint32_t> kInterruptEvents;
+  return kInterruptEvents;
+}
+
 } // namespace facebook::fboss
