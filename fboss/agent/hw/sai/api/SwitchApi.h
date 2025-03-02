@@ -25,6 +25,13 @@
 
 extern "C" {
 #include <sai.h>
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+#ifndef IS_OSS_BRCM_SAI
+#include <experimental/saiexperimentalvendorswitch.h>
+#else
+#include <saiexperimentalvendorswitch.h>
+#endif
+#endif
 }
 
 namespace facebook::fboss {
@@ -979,6 +986,12 @@ class SwitchApi : public SaiApi<SwitchApi> {
       sai_port_host_tx_ready_notification_fn port_state_change_cb) const;
 #endif
 
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  void registerVendorSwitchEventNotifyCallback(
+      const SwitchSaiId& id,
+      sai_vendor_switch_event_notification_fn event_notify_cb) const;
+#endif
+
   void unregisterRxCallback(SwitchSaiId switch_id) const {
     registerRxCallback(switch_id, nullptr);
   }
@@ -1000,6 +1013,12 @@ class SwitchApi : public SaiApi<SwitchApi> {
 #if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
   void unregisterTxReadyStatusChangeCallback(SwitchSaiId id) const {
     registerTxReadyStatusChangeCallback(id, nullptr);
+  }
+#endif
+
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  void unregisterVendorSwitchEventNotifyCallback(const SwitchSaiId& id) const {
+    registerVendorSwitchEventNotifyCallback(id, nullptr);
   }
 #endif
 
