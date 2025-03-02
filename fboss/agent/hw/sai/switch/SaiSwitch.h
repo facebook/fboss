@@ -157,6 +157,10 @@ class SaiSwitch : public HwSwitch {
       uint8_t queueId,
       sai_queue_pfc_deadlock_event_type_t deadlockEvent,
       uint32_t count);
+  void vendorSwitchEventNotificationCallback(
+      sai_size_t bufferSize,
+      const void* buffer,
+      uint32_t eventType);
 
   void txReadyStatusChangeCallbackTopHalf(SwitchSaiId switchId);
   void linkConnectivityChanged(

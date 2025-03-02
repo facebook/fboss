@@ -55,6 +55,7 @@
 #include "fboss/agent/hw/sai/switch/SaiTunnelManager.h"
 #include "fboss/agent/hw/sai/switch/SaiTxPacket.h"
 #include "fboss/agent/hw/sai/switch/SaiUdfManager.h"
+#include "fboss/agent/hw/sai/switch/SaiVendorSwitchManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVlanManager.h"
 #include "fboss/agent/packet/EthHdr.h"
 #include "fboss/agent/packet/PktUtil.h"
@@ -242,6 +243,14 @@ void _gPfcDeadlockNotificationCallback(
       SaiQueueTraits::Attributes::Index{});
   __gSaiIdToSwitch.begin()->second->pfcDeadlockNotificationCallback(
       static_cast<PortSaiId>(portSaiId), queueId, data->event, count);
+}
+
+void __gVendorSwitchEventNotificationCallback(
+    sai_size_t buffer_size,
+    const void* buffer,
+    uint32_t event_type) {
+  __gSaiIdToSwitch.begin()->second->vendorSwitchEventNotificationCallback(
+      buffer_size, buffer, event_type);
 }
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
@@ -3299,6 +3308,12 @@ void SaiSwitch::unregisterCallbacksLocked(
     }
   }
 #endif
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::VENDOR_SWITCH_NOTIFICATION)) {
+    switchApi.unregisterVendorSwitchEventNotifyCallback(saiSwitchId_);
+  }
+#endif
 }
 
 bool SaiSwitch::isValidStateUpdateLocked(
@@ -3615,6 +3630,16 @@ void SaiSwitch::switchRunStateChangedImplLocked(
               HwAsic::Feature::SWITCH_REACHABILITY_CHANGE_NOTIFY)) {
         initSwitchReachabilityChangeLocked(lock);
       }
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+      if (platform_->getAsic()->isSupported(
+              HwAsic::Feature::VENDOR_SWITCH_NOTIFICATION)) {
+        auto& switchApi = SaiApiTable::getInstance()->switchApi();
+        switchApi.registerVendorSwitchEventNotifyCallback(
+            saiSwitchId_, __gVendorSwitchEventNotificationCallback);
+        // Init the vendor switch events now that callback is registered
+        managerTable_->vendorSwitchManager().initVendorSwitchEvents();
+      }
+#endif
     } break;
     default:
       break;
@@ -4340,6 +4365,17 @@ void SaiSwitch::pfcDeadlockNotificationCallback(
       XLOG(ERR) << "Unknown event " << deadlockEvent
                 << " in PFC deadlock notify callback";
   }
+}
+
+void SaiSwitch::vendorSwitchEventNotificationCallback(
+    sai_size_t bufferSize,
+    const void* buffer,
+    uint32_t eventType) {
+  // The vendor switch event callback should at most increment a counter
+  // and log the event, no additional processing expected. Hence not
+  // splitting the callback to bottom / top half processing.
+  managerTable_->vendorSwitchManager().vendorSwitchEventNotificationCallback(
+      bufferSize, buffer, eventType);
 }
 
 TeFlowStats SaiSwitch::getTeFlowStats() const {
