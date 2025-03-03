@@ -16931,10 +16931,10 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": 4,
+                      "pre": 5,
                       "pre2": 0,
                       "main": 31,
-                      "post": 8,
+                      "post": 0,
                       "post2": 0,
                       "post3": 0
                     }
@@ -16945,10 +16945,10 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": 4,
+                      "pre": 5,
                       "pre2": 0,
                       "main": 31,
-                      "post": 8,
+                      "post": 0,
                       "post2": 0,
                       "post3": 0
                     }
@@ -16959,10 +16959,10 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": 4,
+                      "pre": 5,
                       "pre2": 0,
                       "main": 31,
-                      "post": 8,
+                      "post": 0,
                       "post2": 0,
                       "post3": 0
                     }
@@ -16973,10 +16973,10 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": 4,
+                      "pre": 5,
                       "pre2": 0,
                       "main": 31,
-                      "post": 8,
+                      "post": 0,
                       "post2": 0,
                       "post3": 0
                     }
@@ -17017,56 +17017,24 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core18",
                       "lane": 0
-                    },
-                    "tx": {
-                      "pre": 3,
-                      "pre2": 0,
-                      "main": 31,
-                      "post": 13,
-                      "post2": 0,
-                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core18",
                       "lane": 1
-                    },
-                    "tx": {
-                      "pre": 3,
-                      "pre2": 0,
-                      "main": 31,
-                      "post": 13,
-                      "post2": 0,
-                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core18",
                       "lane": 2
-                    },
-                    "tx": {
-                      "pre": 3,
-                      "pre2": 0,
-                      "main": 31,
-                      "post": 13,
-                      "post2": 0,
-                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core18",
                       "lane": 3
-                    },
-                    "tx": {
-                      "pre": 3,
-                      "pre2": 0,
-                      "main": 31,
-                      "post": 13,
-                      "post2": 0,
-                      "post3": 0
                     }
                   }
                 ],
@@ -17438,13 +17406,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -17453,13 +17421,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -17468,13 +17436,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -17483,13 +17451,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   }
                 ],
@@ -17533,13 +17501,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -17548,13 +17516,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -17563,13 +17531,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -17578,13 +17546,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -17593,13 +17561,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 4
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -17608,13 +17576,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 5
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -17623,13 +17591,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 6
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -17638,13 +17606,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   }
                 ],
@@ -17941,13 +17909,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 4
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -17956,13 +17924,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 5
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -17971,13 +17939,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 6
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -17986,13 +17954,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   }
                 ],
@@ -18420,13 +18388,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -18435,13 +18403,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -18450,13 +18418,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -18465,13 +18433,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   }
                 ],
@@ -18515,13 +18483,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -18530,13 +18498,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -18545,13 +18513,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -18560,13 +18528,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -18575,13 +18543,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 4
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -18590,13 +18558,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 5
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -18605,13 +18573,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 6
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -18620,13 +18588,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   }
                 ],
@@ -18923,13 +18891,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 4
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -18938,13 +18906,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 5
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -18953,13 +18921,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 6
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -18968,13 +18936,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   }
                 ],
@@ -23705,12 +23673,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -23759,12 +23728,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -23813,12 +23783,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -23867,12 +23838,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -23921,12 +23893,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 4
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -23975,12 +23948,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 5
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -24029,12 +24003,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 6
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -24083,12 +24058,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -24137,12 +24113,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -24191,12 +24168,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -24245,12 +24223,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -24299,12 +24278,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -24353,12 +24333,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 4
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -24407,12 +24388,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 5
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -24461,12 +24443,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 6
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -24515,12 +24498,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -24569,12 +24553,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -24623,12 +24608,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -24677,12 +24663,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -24731,12 +24718,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -24785,12 +24773,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 4
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -24839,12 +24828,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 5
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -24893,12 +24883,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 6
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -24947,12 +24938,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -25001,12 +24993,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -25055,12 +25048,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -25109,12 +25103,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -25163,12 +25158,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -25217,12 +25213,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 4
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -25271,12 +25268,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 5
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -25325,12 +25323,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 6
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -25379,12 +25378,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -25433,12 +25433,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -25487,12 +25488,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -25541,12 +25543,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -25595,12 +25598,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -25649,12 +25653,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 4
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -25703,12 +25708,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 5
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -25757,12 +25763,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 6
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -25811,12 +25818,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -25865,12 +25873,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -25919,12 +25928,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -25973,12 +25983,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -26027,12 +26038,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -26081,12 +26093,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 4
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -26135,12 +26148,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 5
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -26189,12 +26203,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 6
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -26243,12 +26258,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -26297,12 +26313,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -26351,12 +26368,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -26405,12 +26423,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -26459,12 +26478,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -26513,12 +26533,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 4
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -26567,12 +26588,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 5
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -26621,12 +26643,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 6
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -26675,12 +26698,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -26729,12 +26753,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -26783,12 +26808,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -26837,12 +26863,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -26891,12 +26918,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -26945,12 +26973,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 4
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -26999,12 +27028,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 5
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -27053,12 +27083,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 6
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -27107,12 +27138,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -27161,12 +27193,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -24,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 128,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -27215,12 +27248,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -24,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 128,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -27269,12 +27303,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -24,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 128,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -27323,12 +27358,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -24,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 128,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -27377,12 +27413,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 4
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -24,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 128,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -27431,12 +27468,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 5
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -24,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 128,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -27485,12 +27523,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 6
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -24,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 128,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -27539,12 +27578,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -24,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 128,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -27593,12 +27633,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -24,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 128,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -27647,12 +27688,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -24,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 128,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -27701,12 +27743,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -24,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 128,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -27755,12 +27798,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -24,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 128,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -27809,12 +27853,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 4
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -24,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 128,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -27863,12 +27908,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 5
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -24,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 128,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -27917,12 +27963,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 6
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -24,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 128,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -27971,12 +28018,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -24,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 128,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -28025,12 +28073,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -28079,12 +28128,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -28133,12 +28183,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -28187,12 +28238,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -28241,12 +28293,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 4
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -28295,12 +28348,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 5
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -28349,12 +28403,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 6
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -28403,12 +28458,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -28457,12 +28513,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -28511,12 +28568,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -28565,12 +28623,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -28619,12 +28678,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -28673,12 +28733,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 4
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -28727,12 +28788,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 5
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -28781,12 +28843,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 6
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -28835,12 +28898,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -28889,12 +28953,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -28943,12 +29008,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -28997,12 +29063,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -29051,12 +29118,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -29105,12 +29173,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 4
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -29159,12 +29228,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 5
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -29213,12 +29283,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 6
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -29267,12 +29338,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -29321,12 +29393,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -29375,12 +29448,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -29429,12 +29503,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -29483,12 +29558,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -29537,12 +29613,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 4
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -29591,12 +29668,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 5
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -29645,12 +29723,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 6
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -29699,12 +29778,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -29753,12 +29833,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -29807,12 +29888,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -29861,12 +29943,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -29915,12 +29998,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -29969,12 +30053,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 4
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -30023,12 +30108,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 5
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -30077,12 +30163,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 6
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -30131,12 +30218,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -30185,12 +30273,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -30239,12 +30328,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -30293,12 +30383,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -30347,12 +30438,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -30401,12 +30493,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 4
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -30455,12 +30548,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 5
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -30509,12 +30603,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 6
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -30563,12 +30658,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -30617,12 +30713,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -30671,12 +30768,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -30725,12 +30823,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -30779,12 +30878,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -30833,12 +30933,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 4
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -30887,12 +30988,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 5
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -30941,12 +31043,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 6
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -30995,12 +31098,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -31049,12 +31153,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -31103,12 +31208,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -31157,12 +31263,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -31211,12 +31318,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -31265,12 +31373,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 4
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -31319,12 +31428,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 5
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -31373,12 +31483,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 6
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -31427,12 +31538,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -31481,12 +31593,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -24,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 128,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -31535,12 +31648,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -24,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 128,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -31589,12 +31703,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -24,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 128,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -31643,12 +31758,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -24,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 128,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -31697,12 +31813,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 4
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -24,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 128,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -31751,12 +31868,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 5
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -24,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 128,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -31805,12 +31923,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 6
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -24,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 128,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -31859,12 +31978,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -24,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 128,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -31913,12 +32033,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -31967,12 +32088,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -32021,12 +32143,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -32075,12 +32198,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -32129,12 +32253,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 4
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -32183,12 +32308,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 5
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -32237,12 +32363,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 6
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -32291,12 +32418,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -32587,10 +32715,10 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": 4,
+                      "pre": 5,
                       "pre2": 0,
                       "main": 31,
-                      "post": 8,
+                      "post": 0,
                       "post2": 0,
                       "post3": 0
                     }
@@ -32601,10 +32729,10 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": 4,
+                      "pre": 5,
                       "pre2": 0,
                       "main": 31,
-                      "post": 8,
+                      "post": 0,
                       "post2": 0,
                       "post3": 0
                     }
@@ -32615,10 +32743,10 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": 4,
+                      "pre": 5,
                       "pre2": 0,
                       "main": 31,
-                      "post": 8,
+                      "post": 0,
                       "post2": 0,
                       "post3": 0
                     }
@@ -32629,10 +32757,10 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": 4,
+                      "pre": 5,
                       "pre2": 0,
                       "main": 31,
-                      "post": 8,
+                      "post": 0,
                       "post2": 0,
                       "post3": 0
                     }
@@ -32673,56 +32801,24 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip2/core18",
                       "lane": 0
-                    },
-                    "tx": {
-                      "pre": 3,
-                      "pre2": 0,
-                      "main": 31,
-                      "post": 13,
-                      "post2": 0,
-                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip2/core18",
                       "lane": 1
-                    },
-                    "tx": {
-                      "pre": 3,
-                      "pre2": 0,
-                      "main": 31,
-                      "post": 13,
-                      "post2": 0,
-                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip2/core18",
                       "lane": 2
-                    },
-                    "tx": {
-                      "pre": 3,
-                      "pre2": 0,
-                      "main": 31,
-                      "post": 13,
-                      "post2": 0,
-                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip2/core18",
                       "lane": 3
-                    },
-                    "tx": {
-                      "pre": 3,
-                      "pre2": 0,
-                      "main": 31,
-                      "post": 13,
-                      "post2": 0,
-                      "post3": 0
                     }
                   }
                 ],
@@ -33094,13 +33190,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -33109,13 +33205,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -33124,13 +33220,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -33139,13 +33235,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   }
                 ],
@@ -33189,13 +33285,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -33204,13 +33300,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -33219,13 +33315,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -33234,13 +33330,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -33249,13 +33345,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 4
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -33264,13 +33360,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 5
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -33279,13 +33375,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 6
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -33294,13 +33390,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   }
                 ],
@@ -33597,13 +33693,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 4
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -33612,13 +33708,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 5
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -33627,13 +33723,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 6
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -33642,13 +33738,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   }
                 ],
@@ -34076,9 +34172,9 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
@@ -34091,13 +34187,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -34106,13 +34202,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -34121,13 +34217,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   }
                 ],
@@ -34171,9 +34267,9 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 168,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
@@ -34186,13 +34282,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -34201,13 +34297,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -34216,13 +34312,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -34231,13 +34327,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 4
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -34246,13 +34342,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 5
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -34261,13 +34357,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 6
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -34276,13 +34372,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   }
                 ],
@@ -34579,13 +34675,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 4
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -34594,13 +34690,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 5
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -34609,13 +34705,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 6
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -34624,13 +34720,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   }
                 ],
@@ -39361,12 +39457,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -39415,12 +39512,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -39469,12 +39567,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -39523,12 +39622,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -39577,12 +39677,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 4
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -39631,12 +39732,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 5
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -39685,12 +39787,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 6
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -39739,12 +39842,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -39793,12 +39897,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -39847,12 +39952,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -39901,12 +40007,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -39955,12 +40062,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -40009,12 +40117,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 4
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -40063,12 +40172,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 5
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -40117,12 +40227,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 6
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -40171,12 +40282,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -40225,12 +40337,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -40279,12 +40392,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -40333,12 +40447,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -40387,12 +40502,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -40441,12 +40557,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 4
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -40495,12 +40612,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 5
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -40549,12 +40667,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 6
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -40603,12 +40722,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -40657,12 +40777,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -40711,12 +40832,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -40765,12 +40887,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -40819,12 +40942,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -40873,12 +40997,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 4
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -40927,12 +41052,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 5
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -40981,12 +41107,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 6
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -41035,12 +41162,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -41089,12 +41217,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -41143,12 +41272,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -41197,12 +41327,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -41251,12 +41382,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -41305,12 +41437,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 4
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -41359,12 +41492,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 5
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -41413,12 +41547,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 6
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -41467,12 +41602,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -41521,12 +41657,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -41575,12 +41712,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -41629,12 +41767,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -41683,12 +41822,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -41737,12 +41877,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 4
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -41791,12 +41932,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 5
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -41845,12 +41987,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 6
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -41899,12 +42042,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -41953,12 +42097,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -42007,12 +42152,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -42061,12 +42207,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -42115,12 +42262,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -42169,12 +42317,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 4
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -42223,12 +42372,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 5
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -42277,12 +42427,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 6
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -42331,12 +42482,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -42385,12 +42537,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -42439,12 +42592,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -42493,12 +42647,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -42547,12 +42702,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -42601,12 +42757,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 4
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -42655,12 +42812,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 5
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -42709,12 +42867,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 6
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -42763,12 +42922,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -42817,12 +42977,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -42871,12 +43032,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -42925,12 +43087,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -42979,12 +43142,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -43033,12 +43197,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 4
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -43087,12 +43252,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 5
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -43141,12 +43307,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 6
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -43195,12 +43362,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -43249,12 +43417,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -43303,12 +43472,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -43357,12 +43527,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -43411,12 +43582,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -43465,12 +43637,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 4
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -43519,12 +43692,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 5
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -43573,12 +43747,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 6
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -43627,12 +43802,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -43681,12 +43857,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -43735,12 +43912,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -43789,12 +43967,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -43843,12 +44022,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -43897,12 +44077,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 4
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -43951,12 +44132,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 5
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -44005,12 +44187,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 6
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -44059,12 +44242,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -44113,12 +44297,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -44167,12 +44352,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -44221,12 +44407,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -44275,12 +44462,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -44329,12 +44517,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 4
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -44383,12 +44572,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 5
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -44437,12 +44627,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 6
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -44491,12 +44682,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -44545,12 +44737,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -44599,12 +44792,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -44653,12 +44847,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -44707,12 +44902,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -44761,12 +44957,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 4
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -44815,12 +45012,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 5
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -44869,12 +45067,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 6
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -44923,12 +45122,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -44977,12 +45177,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -45031,12 +45232,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -45085,12 +45287,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -45139,12 +45342,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -45193,12 +45397,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 4
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -45247,12 +45452,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 5
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -45301,12 +45507,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 6
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -45355,12 +45562,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -45409,12 +45617,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -45463,12 +45672,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -45517,12 +45727,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -45571,12 +45782,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -45625,12 +45837,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 4
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -45679,12 +45892,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 5
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -45733,12 +45947,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 6
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -45787,12 +46002,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -45841,12 +46057,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -45895,12 +46112,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -45949,12 +46167,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -46003,12 +46222,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -46057,12 +46277,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 4
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -46111,12 +46332,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 5
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -46165,12 +46387,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 6
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -46219,12 +46442,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -46273,12 +46497,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -46327,12 +46552,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -46381,12 +46607,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -46435,12 +46662,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -46489,12 +46717,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 4
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -46543,12 +46772,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 5
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -46597,12 +46827,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 6
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -46651,12 +46882,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -46705,12 +46937,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -46759,12 +46992,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -46813,12 +47047,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -46867,12 +47102,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -46921,12 +47157,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 4
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -46975,12 +47212,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 5
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -47029,12 +47267,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 6
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -47083,12 +47322,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -47137,12 +47377,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -47191,12 +47432,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -47245,12 +47487,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -47299,12 +47542,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -47353,12 +47597,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 4
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -47407,12 +47652,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 5
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -47461,12 +47707,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 6
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -47515,12 +47762,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -47569,12 +47817,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -47623,12 +47872,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -47677,12 +47927,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -47731,12 +47982,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -47785,12 +48037,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 4
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -47839,12 +48092,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 5
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -47893,12 +48147,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 6
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -47947,12 +48202,13 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
