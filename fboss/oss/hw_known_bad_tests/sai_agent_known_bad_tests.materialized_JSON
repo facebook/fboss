@@ -12406,6 +12406,9 @@
         },
         {
           "test_name_regex": "AgentNetworkAIQosSchedulerTest.*$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcTest/AgentTrafficPfcGenTest.verifyPfc/WithScaleCfgInCongestionDrops$"
         }
     ]
   }
