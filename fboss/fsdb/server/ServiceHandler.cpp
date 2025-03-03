@@ -262,7 +262,7 @@ ServiceHandler::ServiceHandler(
               std::chrono::milliseconds(FLAGS_statsSubscriptionServe_ms),
               std::chrono::seconds(FLAGS_statsSubscriptionHeartbeat_s),
               FLAGS_trackMetadata,
-              "fsdb",
+              "stats",
               options_.serveIdPathSubs)) {
   num_instances_.incrementValue(1);
 
