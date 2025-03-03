@@ -85,6 +85,15 @@ void AgentEnsembleLinkTest::TearDown() {
         QsfpServiceRunState::ACTIVE,
         qsfpServiceClient.get()->sync_getQsfpServiceRunState())
         << "QSFP Service run state no longer active after the test";
+
+#ifndef IS_OSS
+    // FSDB is not fully supported in OSS
+    auto fsdbClient = utils::createFsdbClient();
+    EXPECT_EQ(
+        facebook::fb303::cpp2::fb_status::ALIVE,
+        fsdbClient.get()->sync_getStatus())
+        << "FSDB no longer alive after the test";
+#endif
     AgentEnsembleTest::TearDown();
   }
 }
