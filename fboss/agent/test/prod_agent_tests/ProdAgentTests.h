@@ -1,7 +1,7 @@
 #pragma once
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortDescriptor.h"
-#include "fboss/agent/test/AgentEnsembleTest.h"
+#include "fboss/agent/test/AgentTest.h"
 
 DECLARE_string(config);
 DECLARE_bool(enable_lldp);
@@ -10,10 +10,10 @@ DECLARE_bool(disable_neighbor_updates);
 
 namespace facebook::fboss {
 
-class ProdAgentTests : public AgentEnsembleTest {
+class ProdAgentTests : public AgentTest {
  protected:
   void SetUp() override;
-  void setupConfigFlag();
+  void setupConfigFlag() override;
   void setCmdLineFlagOverrides() const override;
 };
 } // namespace facebook::fboss

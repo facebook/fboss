@@ -15,12 +15,10 @@ oncall("fboss_agent_push")
         deps = [
             "fbsource//third-party/googletest:gtest",
             "//fboss/agent:main-bcm",
-            "//fboss/agent/hw/bcm/tests:agent_hw_test_thrift_handler",
             "//fboss/agent/hw/bcm/tests:bcm_acl_utils",
             "//fboss/agent/hw/bcm/tests:bcm_copp_utils",
             "//fboss/agent/hw/bcm/tests:bcm_ecmp_utils",
             "//fboss/agent/platforms/wedge:platform",
-            "//fboss/agent/test:mono_agent_ensemble",
             "//fboss/agent/test/prod_agent_tests:invariant_agent_tests",
         ],
         external_deps = [
@@ -51,9 +49,7 @@ _sai_invariant_agent_test_prefix = "sai_invariant_agent_test"
             sai_impl.sdk_name: sai_impl.version,
         },
         deps = [
-            "//fboss/agent/test:mono_agent_ensemble",
             "//fboss/agent/test/prod_agent_tests:invariant_agent_tests",
-            "//fboss/agent/hw/sai/hw_test:{}".format(sai_switch_dependent_name("agent_hw_test_thrift_handler", sai_impl, True)),
             "//fboss/agent:main-sai-{}".format(to_impl_lib_name(sai_impl)),
             "//fboss/agent/hw/sai/hw_test:sai_acl_utils{}".format(to_impl_suffix(sai_impl)),
             "//fboss/agent/hw/sai/hw_test:sai_copp_utils{}".format(to_impl_suffix(sai_impl)),

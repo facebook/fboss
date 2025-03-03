@@ -9,7 +9,7 @@ void ProdAgentTests::setCmdLineFlagOverrides() const {
   FLAGS_enable_lldp = false;
   // tunnel interface enable especially on fboss2000 results
   FLAGS_tun_intf = false;
-  AgentEnsembleTest::setCmdLineFlagOverrides();
+  AgentTest::setCmdLineFlagOverrides();
 }
 
 } // namespace facebook::fboss

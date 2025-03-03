@@ -9,11 +9,13 @@ class HwSwitch;
 
 namespace facebook::fboss {
 
+void verifyHwSwitchHandler();
+
 class ProdInvariantTest : public ProdAgentTests {
  protected:
   virtual void SetUp() override;
-  virtual void setupConfigFlag();
-  cfg::SwitchConfig initialConfig(const AgentEnsemble& ensemble) override;
+  virtual void setupConfigFlag() override;
+  virtual cfg::SwitchConfig initialConfig();
   virtual cfg::SwitchConfig getConfigFromFlag();
   void verifyAcl();
   void verifyCopp();
@@ -25,16 +27,12 @@ class ProdInvariantTest : public ProdAgentTests {
   bool checkBaseConfigPortsEmpty();
   void verifyThriftHandler();
   void verifySwSwitchHandler();
-  void verifyHwSwitchHandler();
   void set_mmu_lossless(bool mmu_lossless) {
     mmuLosslessMode_ = mmu_lossless;
   }
   bool is_mmu_lossless_mode() {
     return mmuLosslessMode_;
   }
-  std::vector<PortID> getAllPlatformPorts(
-      const std::map<int32_t, cfg::PlatformPortEntry>& platformPorts);
-  void printDiagCmd(const std::string& cmd);
 
  protected:
   std::optional<bool> useProdConfig_ = std::nullopt;

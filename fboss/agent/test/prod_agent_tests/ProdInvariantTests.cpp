@@ -8,7 +8,6 @@
 #include "fboss/agent/RouteUpdateWrapper.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
-#include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/gen-cpp2/validated_shell_commands_constants.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestAclUtils.h"
@@ -50,23 +49,22 @@ void ProdInvariantTest::setupAgentTestEcmp(
   auto forProdConfig =
       useProdConfig_.has_value() ? useProdConfig_.value() : false;
   utility::EcmpSetupTargetedPorts6 ecmp6(
-      getSw()->getState(), forProdConfig, {cfg::PortType::INTERFACE_PORT});
+      sw()->getState(), forProdConfig, {cfg::PortType::INTERFACE_PORT});
 
-  getSw()->updateStateBlocking("Resolve nhops", [&](auto state) {
+  sw()->updateStateBlocking("Resolve nhops", [&](auto state) {
     return ecmp6.resolveNextHops(state, ports);
   });
 
   ecmp6.programRoutes(
-      std::make_unique<SwSwitchRouteUpdateWrapper>(getSw()->getRouteUpdater()),
+      std::make_unique<SwSwitchRouteUpdateWrapper>(sw()->getRouteUpdater()),
       ports);
 }
 
 void ProdInvariantTest::SetUp() {
-  AgentEnsembleTest::SetUp();
-  AgentEnsemble* ensemble = getAgentEnsemble();
+  AgentTest::SetUp();
   auto ecmpUplinlinkPorts = utility::getAllUplinkDownlinkPorts(
-                                getSw()->getPlatformType(),
-                                initialConfig(*ensemble),
+                                platform()->getHwSwitch(),
+                                initialConfig(),
                                 kEcmpWidth,
                                 is_mmu_lossless_mode())
                                 .first;
@@ -77,7 +75,7 @@ void ProdInvariantTest::SetUp() {
   XLOG(DBG2) << "ProdInvariantTest setup done";
 }
 
-std::vector<PortID> ProdInvariantTest::getAllPlatformPorts(
+std::vector<PortID> getAllPlatformPorts(
     const std::map<int32_t, cfg::PlatformPortEntry>& platformPorts) {
   std::vector<PortID> ports;
   ports.reserve(0);
@@ -88,8 +86,8 @@ std::vector<PortID> ProdInvariantTest::getAllPlatformPorts(
   return ports;
 }
 bool ProdInvariantTest::checkBaseConfigPortsEmpty() {
-  const auto baseSwitchConfig = getConfigFromFlag();
-  return baseSwitchConfig.ports()->empty();
+  const auto& baseSwitchConfig = platform()->config()->thrift.sw();
+  return baseSwitchConfig->ports()->empty();
 }
 
 cfg::SwitchConfig ProdInvariantTest::getConfigFromFlag() {
@@ -109,25 +107,17 @@ cfg::SwitchConfig ProdInvariantTest::getConfigFromFlag() {
   return config;
 }
 
-cfg::SwitchConfig ProdInvariantTest::initialConfig(
-    const AgentEnsemble& ensemble) {
+cfg::SwitchConfig ProdInvariantTest::initialConfig() {
   if (useProdConfig_.has_value()) {
-    return *(ensemble.getSw()->getAgentConfig().sw());
+    return *(platform()->config()->thrift.sw());
   }
   cfg::SwitchConfig cfg;
   std::vector<PortID> ports;
   ports.reserve(0);
   if (checkBaseConfigPortsEmpty()) {
     useProdConfig_ = false;
-    ports = getAllPlatformPorts(ensemble.getPlatformPorts());
-    cfg = utility::createProdRswConfig(
-        ensemble.getL3Asics(),
-        ensemble.getSw()->getPlatformType(),
-        ensemble.getSw()->getPlatformMapping(),
-        ensemble.getSw()->getPlatformSupportsAddRemovePort(),
-        ports,
-        ensemble.isSai());
-
+    ports = getAllPlatformPorts(platform()->getPlatformPorts());
+    cfg = utility::createProdRswConfig(platform()->getHwSwitch(), ports);
     return cfg;
   } else {
     useProdConfig_ = true;
@@ -136,19 +126,17 @@ cfg::SwitchConfig ProdInvariantTest::initialConfig(
 }
 
 void ProdInvariantTest::setupConfigFlag() {
-  AgentEnsemble* ensemble = getAgentEnsemble();
   cfg::AgentConfig testConfig;
-  auto hwAsics = ensemble->getSw()->getHwAsicTable()->getL3Asics();
-  auto asic = utility::checkSameAndGetAsic(hwAsics);
   utility::setPortToDefaultProfileIDMap(
       std::make_shared<MultiSwitchPortMap>(),
-      ensemble->getPlatformMapping(),
-      asic,
-      ensemble->supportsAddRemovePort());
-  testConfig.sw() = initialConfig(*ensemble);
-  const auto& baseConfig = ensemble->getSw()->getAgentConfig();
-  testConfig.defaultCommandLineArgs() = *baseConfig.defaultCommandLineArgs();
-  testConfig.platform() = *baseConfig.platform();
+      platform()->getPlatformMapping(),
+      platform()->getAsic(),
+      platform()->supportsAddRemovePort());
+  testConfig.sw() = initialConfig();
+  const auto& baseConfig = platform()->config();
+  testConfig.defaultCommandLineArgs() =
+      *baseConfig->thrift.defaultCommandLineArgs();
+  testConfig.platform() = *baseConfig->thrift.platform();
   auto newCfg = AgentConfig(
       testConfig,
       apache::thrift::SimpleJSONSerializer::serialize<std::string>(testConfig));
@@ -156,29 +144,43 @@ void ProdInvariantTest::setupConfigFlag() {
   newCfg.dumpConfig(newCfgFile);
   FLAGS_config = newCfgFile;
   // reload config so that test config is loaded
-  ensemble->reloadPlatformConfig();
+  platform()->reloadConfig();
 }
 
 void ProdInvariantTest::sendTraffic() {
   auto mac = utility::getInterfaceMac(
-      getSw()->getState(), getSw()->getState()->getVlans()->getFirstVlanID());
+      sw()->getState(), sw()->getState()->getVlans()->getFirstVlanID());
   utility::pumpTraffic(
       true,
-      utility::getAllocatePktFn(getSw()),
-      utility::getSendPktFunc(getSw()),
+      utility::getAllocatePktFn(sw()),
+      utility::getSendPktFunc(sw()),
       mac,
-      getSw()->getState()->getVlans()->getFirstVlanID());
+      sw()->getState()->getVlans()->getFirstVlanID());
 }
 
 PortID ProdInvariantTest::getDownlinkPort() {
   // pick the first downlink in the list
   auto downlinkPort = utility::getAllUplinkDownlinkPorts(
-                          getSw()->getPlatformType(),
-                          getSw()->getConfig(),
+                          platform()->getHwSwitch(),
+                          initialConfig(),
                           kEcmpWidth,
                           is_mmu_lossless_mode())
                           .second[0];
   return downlinkPort;
+}
+
+std::map<PortID, HwPortStats> ProdInvariantTest::getLatestPortStats(
+    const std::vector<PortID>& ports) {
+  std::map<PortID, HwPortStats> portIdStatsMap;
+  auto portNameStatsMap = platform()->getHwSwitch()->getPortStats();
+  for (auto [portName, stats] : portNameStatsMap) {
+    auto portId = sw()->getState()->getPorts()->getPort(portName)->getID();
+    if (std::find(ports.begin(), ports.end(), (PortID)portId) == ports.end()) {
+      continue;
+    }
+    portIdStatsMap.emplace((PortID)portId, stats);
+  }
+  return portIdStatsMap;
 }
 
 std::vector<PortID> ProdInvariantTest::getEcmpPortIds() {
@@ -192,36 +194,26 @@ std::vector<PortID> ProdInvariantTest::getEcmpPortIds() {
 }
 
 void ProdInvariantTest::verifyAcl() {
-  AgentEnsemble* ensemble = getAgentEnsemble();
-  auto switchConfig = getSw()->getConfig();
-  auto aclTableGroup = utility::getAclTableGroup(switchConfig);
-  auto switchId = getSw()->getScopeResolver()->scope(*aclTableGroup).switchId();
-  auto client = ensemble->getHwAgentTestClient(switchId);
-
-  WITH_RETRIES(
-      { EXPECT_EVENTUALLY_TRUE(client->sync_isDefaultAclTableEnabled()); });
-
+  auto isEnabled = utility::verifyAclEnabled(platform()->getHwSwitch());
+  EXPECT_TRUE(isEnabled);
   XLOG(DBG2) << "Verify ACL Done";
   std::this_thread::sleep_for(std::chrono::seconds(1));
 }
 
 void ProdInvariantTest::verifyCopp() {
-  AgentEnsemble* ensemble = getAgentEnsemble();
-  std::vector<PortID> ports = getAllPlatformPorts(ensemble->getPlatformPorts());
-  auto switchId = getSw()->getScopeResolver()->scope(ports).switchId();
-  auto asic = getSw()->getHwAsicTable()->getHwAsic(switchId);
-
   utility::verifyCoppInvariantHelper(
-      getSw(), switchId, asic, getSw()->getState(), getDownlinkPort());
+      platform()->getHwSwitch(),
+      platform()->getAsic(),
+      sw()->getState(),
+      getDownlinkPort());
   XLOG(DBG2) << "Verify COPP Done";
   std::this_thread::sleep_for(std::chrono::seconds(1));
 }
 
 void ProdInvariantTest::verifyLoadBalancing() {
-  AgentEnsemble* ensemble = getAgentEnsemble();
   std::function<std::map<PortID, HwPortStats>(const std::vector<PortID>&)>
       getPortStatsFn = [&](const std::vector<PortID>& portIds) {
-        return ensemble->getLatestPortStats(portIds);
+        return getLatestPortStats(portIds);
       };
   utility::pumpTrafficAndVerifyLoadBalanced(
       [=]() { sendTraffic(); },
@@ -231,7 +223,7 @@ void ProdInvariantTest::verifyLoadBalancing() {
         for (auto ecmpPortId : ecmpPortIds) {
           ports->push_back(static_cast<int32_t>(ecmpPortId));
         }
-        ensemble->clearPortStats(ports);
+        platform()->getHwSwitch()->clearPortStats(ports);
       },
       [=]() {
         return utility::isLoadBalanced(
@@ -245,17 +237,13 @@ void ProdInvariantTest::verifyLoadBalancing() {
 }
 
 void ProdInvariantTest::verifyDscpToQueueMapping() {
-  AgentEnsemble* ensemble = getAgentEnsemble();
-  auto hwAsics = ensemble->getSw()->getHwAsicTable()->getL3Asics();
-  auto asic = utility::checkSameAndGetAsic(hwAsics);
-
-  if (!asic->isSupported(HwAsic::Feature::L3_QOS)) {
+  if (!platform()->getAsic()->isSupported(HwAsic::Feature::L3_QOS)) {
     return;
   }
 
   auto uplinkDownlinkPorts = utility::getAllUplinkDownlinkPorts(
-      getSw()->getPlatformType(),
-      getSw()->getConfig(),
+      platform()->getHwSwitch(),
+      initialConfig(),
       kEcmpWidth,
       is_mmu_lossless_mode());
 
@@ -268,17 +256,16 @@ void ProdInvariantTest::verifyDscpToQueueMapping() {
   }
 
   auto getPortStatsFn = [&]() -> std::map<PortID, HwPortStats> {
-    return ensemble->getLatestPortStats(portIds);
+    return getLatestPortStats(portIds);
   };
 
-  auto config = ensemble->getSw()->getConfig();
-  auto q2dscpMap = utility::getOlympicQosMaps(config);
+  auto q2dscpMap = utility::getOlympicQosMaps(initialConfig());
   // To account for switches that take longer to update port stats, bump sleep
   // time to 100ms.
   EXPECT_TRUE(utility::verifyQueueMappingsInvariantHelper(
       q2dscpMap,
-      getSw(),
-      getSw()->getState(),
+      platform()->getHwSwitch(),
+      sw()->getState(),
       getPortStatsFn,
       getEcmpPortIds(),
       100 /* sleep in ms */));
@@ -287,9 +274,8 @@ void ProdInvariantTest::verifyDscpToQueueMapping() {
 }
 
 void ProdInvariantTest::verifyQueuePerHostMapping(bool dscpMarkingTest) {
-  AgentEnsemble* ensemble = getAgentEnsemble();
-  auto vlanId = utility::firstVlanID(getSw()->getState());
-  auto intfMac = utility::getFirstInterfaceMac(getSw()->getState());
+  auto vlanId = utility::firstVlanID(sw()->getState());
+  auto intfMac = utility::getFirstInterfaceMac(sw()->getState());
   auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO());
 
   // if DscpMarkingTest is set, send unmarked packet matching DSCP marking ACL,
@@ -301,9 +287,15 @@ void ProdInvariantTest::verifyQueuePerHostMapping(bool dscpMarkingTest) {
     l4SrcPort = utility::kUdpPorts().front();
     dscp = 0;
   }
+  auto getHwPortStatsFn =
+      [&](const std::vector<PortID>& portIds) -> std::map<PortID, HwPortStats> {
+    return getLatestPortStats(portIds);
+  };
 
   utility::verifyQueuePerHostMapping(
-      ensemble,
+      platform()->getHwSwitch(),
+      sw()->getState(),
+      getEcmpPortIds(),
       vlanId,
       srcMac,
       intfMac,
@@ -311,6 +303,7 @@ void ProdInvariantTest::verifyQueuePerHostMapping(bool dscpMarkingTest) {
       folly::IPAddressV4("10.10.1.2"),
       true /* useFrontPanel */,
       false /* blockNeighbor */,
+      getHwPortStatsFn,
       l4SrcPort,
       std::nullopt, /* l4DstPort */
       dscp);
@@ -318,25 +311,9 @@ void ProdInvariantTest::verifyQueuePerHostMapping(bool dscpMarkingTest) {
   std::this_thread::sleep_for(std::chrono::seconds(1));
 }
 
-void ProdInvariantTest::printDiagCmd(const std::string& cmd) {
-  AgentEnsemble* ensemble = getAgentEnsemble();
-  auto hwSwitchRunStateMap =
-      getSw()->getHwSwitchHandler()->getHwSwitchRunStates();
-  // validate safe diag commands on all switches
-  for (auto& [switchId, runState] : hwSwitchRunStateMap) {
-    auto client = ensemble->getHwAgentTestClient(SwitchID(switchId));
-    client = ensemble->getHwAgentTestClient(SwitchID(switchId));
-    client->sync_printDiagCmd(cmd);
-  }
-}
-
 void ProdInvariantTest::verifySafeDiagCommands() {
-  AgentEnsemble* ensemble = getAgentEnsemble();
   std::set<std::string> diagCmds;
-  auto hwAsics = ensemble->getSw()->getHwAsicTable()->getL3Asics();
-  auto asic = utility::checkSameAndGetAsic(hwAsics);
-
-  switch (asic->getAsicType()) {
+  switch (platform()->getAsic()->getAsicType()) {
     case cfg::AsicType::ASIC_TYPE_FAKE:
     case cfg::AsicType::ASIC_TYPE_MOCK:
     case cfg::AsicType::ASIC_TYPE_EBRO:
@@ -369,12 +346,11 @@ void ProdInvariantTest::verifySafeDiagCommands() {
     for (auto i = 0; i < 10; ++i) {
       for (auto cmd : diagCmds) {
         std::string out;
-        printDiagCmd(cmd + "\n");
+        platform()->getHwSwitch()->printDiagCmd(cmd + "\n");
       }
     }
-
     std::string out;
-    printDiagCmd("quit\n");
+    platform()->getHwSwitch()->printDiagCmd("quit\n");
   }
   XLOG(DBG2) << "Verify Safe Diagnostic Commands Done";
   std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -387,18 +363,9 @@ void ProdInvariantTest::verifySwSwitchHandler() {
   EXPECT_GE(runState, SwitchRunState::CONFIGURED);
 }
 
-void ProdInvariantTest::verifyHwSwitchHandler() {
-  auto hwSwitchRunStateMap =
-      getSw()->getHwSwitchHandler()->getHwSwitchRunStates();
-  for (auto& [switchId, runState] : hwSwitchRunStateMap) {
-    EXPECT_GE(runState, SwitchRunState::CONFIGURED);
-  }
-}
-
 void ProdInvariantTest::verifyThriftHandler() {
   verifySwSwitchHandler();
   verifyHwSwitchHandler();
-
   XLOG(DBG2) << "Verify Thrift Handler Done";
   std::this_thread::sleep_for(std::chrono::seconds(1));
 }
@@ -408,7 +375,7 @@ int ProdInvariantTestMain(
     char** argv,
     PlatformInitFn initPlatformFn) {
   ::testing::InitGoogleTest(&argc, argv);
-  initAgentEnsembleTest(argc, argv, initPlatformFn);
+  initAgentTest(argc, argv, initPlatformFn);
   return RUN_ALL_TESTS();
 }
 
@@ -431,10 +398,10 @@ class ProdInvariantRswMhnicTest : public ProdInvariantTest {
  protected:
   void SetUp() override {
     // Todo: Refractor could be done here to avoid code duplication.
-    AgentEnsembleTest::SetUp();
+    AgentTest::SetUp();
     auto ecmpUplinlinkPorts =
         utility::getAllUplinkDownlinkPorts(
-            getSw()->getPlatformType(), getSw()->getConfig(), kEcmpWidth, false)
+            platform()->getHwSwitch(), initialConfig(), kEcmpWidth, false)
             .first;
     for (auto& uplinkPort : ecmpUplinlinkPorts) {
       ecmpPorts_.push_back(PortDescriptor(uplinkPort));
@@ -442,25 +409,17 @@ class ProdInvariantRswMhnicTest : public ProdInvariantTest {
     setupRSWMhnicEcmpV4(ecmpPorts_);
     XLOG(DBG2) << "ProdInvariantTest setup done";
   }
-
-  cfg::SwitchConfig initialConfig(const AgentEnsemble& ensemble) override {
+  cfg::SwitchConfig initialConfig() override {
     if (useProdConfig_.has_value()) {
-      return *(ensemble.getSw()->getAgentConfig().sw());
+      return *(platform()->config()->thrift.sw());
     }
 
-    // TODO: Currently ProdInvariantTests only has support for BCM
-    // switches. That's why we're passing false in the call below.
+    // TODO: Currently ProdInvariantTests only has support for BCM switches.
+    // That's why we're passing false in the call below.
     if (checkBaseConfigPortsEmpty()) {
-      std::vector<PortID> ports =
-          getAllPlatformPorts(ensemble.getPlatformPorts());
-      auto switchId = getSw()->getScopeResolver()->scope(ports).switchId();
-      auto asic = getSw()->getHwAsicTable()->getHwAsic(switchId);
       auto config = utility::createProdRswMhnicConfig(
-          asic,
-          ensemble.getSw()->getPlatformType(),
-          ensemble.getSw()->getPlatformMapping(),
-          ensemble.getSw()->getPlatformSupportsAddRemovePort(),
-          ports,
+          platform()->getHwSwitch(),
+          getAllPlatformPorts(platform()->getPlatformPorts()),
           false /* isSai() */);
       useProdConfig_ = false;
       return config;
@@ -486,15 +445,14 @@ class ProdInvariantRswMhnicTest : public ProdInvariantTest {
       ports.insert(ecmpPort);
     });
 
-    getSw()->updateStateBlocking("Resolve nhops", [&](auto state) {
+    sw()->updateStateBlocking("Resolve nhops", [&](auto state) {
       utility::EcmpSetupTargetedPorts4 ecmp4(state);
       return ecmp4.resolveNextHops(state, ports);
     });
 
-    utility::EcmpSetupTargetedPorts4 ecmp4(getSw()->getState());
+    utility::EcmpSetupTargetedPorts4 ecmp4(sw()->getState());
     ecmp4.programRoutes(
-        std::make_unique<SwSwitchRouteUpdateWrapper>(
-            getSw()->getRouteUpdater()),
+        std::make_unique<SwSwitchRouteUpdateWrapper>(sw()->getRouteUpdater()),
         ports,
         {kGetRoutePrefix()});
   }
@@ -509,8 +467,8 @@ TEST_F(ProdInvariantRswMhnicTest, verifyInvariants) {
   // does not have any pkts. Show c log shows that there are 2 pkts going
   // through ce1.
   auto setup = [&]() {
-    auto updaterPointer = std::make_unique<SwSwitchRouteUpdateWrapper>(
-        getSw()->getRouteUpdater());
+    auto updaterPointer =
+        std::make_unique<SwSwitchRouteUpdateWrapper>(sw()->getRouteUpdater());
     utility::updateRoutesClassID(
         {{kGetRoutePrefix(),
           cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_2}},
@@ -581,10 +539,9 @@ class ProdInvariantRtswTest : public ProdInvariantTest {
   }
 
   void verifyEEcmp() {
-    AgentEnsemble* ensemble = getAgentEnsemble();
     std::function<std::map<PortID, HwPortStats>(const std::vector<PortID>&)>
         getPortStatsFn = [&](const std::vector<PortID>& portIds) {
-          return ensemble->getLatestPortStats(portIds);
+          return getLatestPortStats(portIds);
         };
     utility::pumpTrafficAndVerifyLoadBalanced(
         [=, this]() {
@@ -596,7 +553,7 @@ class ProdInvariantRtswTest : public ProdInvariantTest {
           for (auto ecmpPortId : ecmpPortIds) {
             ports->push_back(static_cast<int32_t>(ecmpPortId));
           }
-          ensemble->clearPortStats(ports);
+          platform()->getHwSwitch()->clearPortStats(ports);
         },
         [=, this]() {
           return utility::isLoadBalanced(
@@ -610,14 +567,7 @@ class ProdInvariantRtswTest : public ProdInvariantTest {
 
   void verifyDlbGroups() {
     // DLB groups can be either spray or flowlet
-    std::vector<EcmpDetails> ecmpGroups;
-
-    if (getSw()->isRunModeMonolithic()) {
-      ecmpGroups = getSw()->getMonolithicHwSwitchHandler()->getAllEcmpDetails();
-    } else {
-      throw FbossError(
-          "getAllEcmpDetails is not supported in multi-switch mode");
-    }
+    auto ecmpGroups = platform()->getHwSwitch()->getAllEcmpDetails();
     XLOG(DBG2) << "ECMP group count " << ecmpGroups.size();
     for (auto ecmpGroup : ecmpGroups) {
       XLOG(DBG2) << "ECMP ID: " << *(ecmpGroup.ecmpId());
@@ -629,14 +579,14 @@ class ProdInvariantRtswTest : public ProdInvariantTest {
  private:
   void sendRoCETraffic(int opcode, int packetCount = 1) {
     auto mac = utility::getInterfaceMac(
-        getSw()->getState(), getSw()->getState()->getVlans()->getFirstVlanID());
+        sw()->getState(), sw()->getState()->getVlans()->getFirstVlanID());
 
     utility::pumpRoCETraffic(
         true,
-        utility::getAllocatePktFn(getSw()),
-        utility::getSendPktFunc(getSw()),
+        utility::getAllocatePktFn(sw()),
+        utility::getSendPktFunc(sw()),
         mac,
-        getSw()->getState()->getVlans()->getFirstVlanID(),
+        sw()->getState()->getVlans()->getFirstVlanID(),
         getDownlinkPort(),
         utility::kUdfL4DstPort,
         255,
@@ -652,17 +602,16 @@ class ProdInvariantRtswTest : public ProdInvariantTest {
       const std::string& counterName) {
     // DLB configuration is still evolving so we will opportunistically test
     // ACLs if they are present on a given device
-    auto config = getSw()->getConfig();
-    if (!utility::checkConfigHasAclEntry(config, aclName)) {
+    if (!utility::checkConfigHasAclEntry(initialConfig(), aclName)) {
       XLOG(DBG2) << aclName << " ACL entry not found, skipping verification";
       return;
     }
 
-    auto aclPktCountBefore = utility::getAclInOutPackets(getSw(), counterName);
+    auto aclPktCountBefore = utility::getAclInOutPackets(sw(), counterName);
     sendRoCETraffic(opcode);
 
     WITH_RETRIES({
-      auto aclPktCountAfter = utility::getAclInOutPackets(getSw(), counterName);
+      auto aclPktCountAfter = utility::getAclInOutPackets(sw(), counterName);
 
       XLOG(DBG2) << "\n"
                  << "aclPacketCounter(" << counterName
