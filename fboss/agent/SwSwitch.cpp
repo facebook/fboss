@@ -1950,10 +1950,22 @@ PortDescriptor SwSwitch::getPortFromPkt(const RxPacket* pkt) const {
 }
 
 void SwSwitch::handlePacket(std::unique_ptr<RxPacket> pkt) {
+  auto port = getPortFromPkt(pkt.get());
+
+  // Handle packets for CPU port separately
+  if (port.type() == PortDescriptor::PortType::PHYSICAL &&
+      port.phyPortID() == PortID(0)) {
+    XLOG(DBG2) << "Dropping packet received from CPU port (" << port.str()
+               << ").";
+    portStats(port.phyPortID())->pktDropped();
+    return;
+  }
+
   if (FLAGS_intf_nbr_tables) {
-    auto intf = getState()->getInterfaces()->getNodeIf(
-        getState()->getInterfaceIDForPort(getPortFromPkt(pkt.get())));
-    handlePacketImpl(std::move(pkt), intf);
+    handlePacketImpl(
+        std::move(pkt),
+        getState()->getInterfaces()->getNodeIf(
+            getState()->getInterfaceIDForPort(port)));
   } else {
     auto vlan =
         getState()->getVlans()->getNodeIf(getVlanIDHelper(pkt->getSrcVlanIf()));
