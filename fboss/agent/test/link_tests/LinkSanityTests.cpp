@@ -105,6 +105,7 @@ TEST_F(LinkTest, asicLinkFlap) {
           true, getCabledTranceivers(), 60, 5s));
       ASSERT_NO_THROW(checkQsfpServiceMemoryInBounds());
       ASSERT_NO_THROW(checkFsdbMemoryInBounds());
+      ASSERT_NO_THROW(checkAgentMemoryInBounds());
     }
   };
 

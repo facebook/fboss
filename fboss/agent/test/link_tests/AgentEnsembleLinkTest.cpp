@@ -23,6 +23,10 @@
 #include "fboss/lib/phy/gen-cpp2/phy_types_custom_protocol.h"
 #include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
 
+#ifndef IS_OSS
+#include "common/base/Proc.h"
+#endif
+
 DEFINE_bool(
     list_production_feature,
     false,
@@ -53,6 +57,7 @@ static constexpr auto kQsfpRssCounter = "proc_rss_mem_bytes";
 static auto kQsfpMemLimit = 3.75 * 1000 * 1000 * 1000; // 3.75GB
 static constexpr auto kFsdbRssCounter = "fsdb.rss.avg.60";
 static auto kFsdbMemLimit = 2.4 * 1000 * 1000 * 1000; // 2.4GB
+static auto kSwAgentMemLimit = 3 * 1000 * 1000 * 1000L; // 3GB
 #endif
 } // namespace
 
@@ -127,6 +132,15 @@ void AgentEnsembleLinkTest::checkFsdbMemoryInBounds() const {
   if (fsdbCounters[kFsdbRssCounter] > kFsdbMemLimit) {
     throw FbossError(
         "FSDB RSS memory ", fsdbCounters[kFsdbRssCounter], " above 2.4GB");
+  }
+#endif
+}
+
+void AgentEnsembleLinkTest::checkAgentMemoryInBounds() const {
+#ifndef IS_OSS
+  int64_t memUsage = facebook::Proc::getMemoryUsage();
+  if (memUsage > kSwAgentMemLimit) {
+    throw FbossError("SW Agent RSS memory ", memUsage, " above 3GB");
   }
 #endif
 }

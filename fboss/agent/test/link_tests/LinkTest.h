@@ -74,6 +74,7 @@ class LinkTest : public AgentTest {
 
   void checkQsfpServiceMemoryInBounds() const;
   void checkFsdbMemoryInBounds() const;
+  void checkAgentMemoryInBounds() const;
 
   /*
    * Program default (v6) route over ports
