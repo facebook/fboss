@@ -64,6 +64,10 @@ void OvertempCondition::processSensorData(
 
 bool OvertempCondition::checkIfOvertemp() {
   int overtempCount = 0;
+  if (numOvertempForShutdown <= 0) {
+    // Overtemp condition is not enabled
+    return false;
+  }
   for (auto overtempItem = entries.begin(); overtempItem != entries.end();
        overtempItem++) {
     auto& entry = overtempItem->second;
