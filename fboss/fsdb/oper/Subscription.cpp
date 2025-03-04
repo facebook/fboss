@@ -7,6 +7,22 @@
 #include <folly/coro/Sleep.h>
 #include <optional>
 
+// default queue size for subscription serve updates
+// is chosen to be large enough so that in prod we
+// should not see any dropped updates. This value will
+// be tuned to lower value after monitoring and max-scale
+// testing.
+// Rationale for choice of this specific large value:
+// * minimum enqueue interval is state subscription serve interval (50msec).
+// * Thrift streams holds ~100 updates before pipe queue starts building up.
+// So with 1024 default queue size, pipe can get full
+// only in the exceptional scenario where subscriber does not
+// read any update for > 1 min.
+DEFINE_int32(
+    subscriptionServeQueueSize,
+    1024,
+    "Max subscription serve updates to queue, default 1024");
+
 namespace facebook::fboss::fsdb {
 
 namespace {
@@ -105,7 +121,8 @@ DeltaSubscription::create(
     std::optional<std::string> publisherRoot,
     folly::EventBase* heartbeatEvb,
     std::chrono::milliseconds heartbeatInterval) {
-  auto [generator, pipe] = folly::coro::AsyncPipe<OperDelta>::create();
+  auto [generator, pipe] = folly::coro::BoundedAsyncPipe<OperDelta>::create(
+      FLAGS_subscriptionServeQueueSize);
   std::vector<std::string> path(begin, end);
   auto subscription = std::make_unique<DeltaSubscription>(
       std::move(subscriber),
@@ -122,12 +139,12 @@ void DeltaSubscription::flush(
     const SubscriptionMetadataServer& metadataServer) {
   auto delta = moveFromCurrDelta(metadataServer);
   if (delta) {
-    pipe_.write(*delta);
+    tryWrite(pipe_, std::move(*delta), "delta.flush");
   }
 }
 
 void DeltaSubscription::serveHeartbeat() {
-  pipe_.write(OperDelta());
+  tryWrite(pipe_, OperDelta(), "delta.hb");
 }
 
 bool DeltaSubscription::isActive() const {
@@ -137,7 +154,10 @@ bool DeltaSubscription::isActive() const {
 void DeltaSubscription::allPublishersGone(
     FsdbErrorCode disconnectReason,
     const std::string& msg) {
-  pipe_.write(Utils::createFsdbException(disconnectReason, msg));
+  tryWrite(
+      pipe_,
+      Utils::createFsdbException(disconnectReason, msg),
+      "delta.pubsGone");
 }
 
 FullyResolvedExtendedPathSubscription::FullyResolvedExtendedPathSubscription(
@@ -262,7 +282,8 @@ ExtendedPathSubscription::create(
     OperProtocol protocol,
     folly::EventBase* heartbeatEvb,
     std::chrono::milliseconds heartbeatInterval) {
-  auto [generator, pipe] = folly::coro::AsyncPipe<gen_type>::create();
+  auto [generator, pipe] = folly::coro::BoundedAsyncPipe<gen_type>::create(
+      FLAGS_subscriptionServeQueueSize);
   auto subscription = std::make_shared<ExtendedPathSubscription>(
       std::move(subscriber),
       makeSimplePathMap(paths),
@@ -290,7 +311,7 @@ void ExtendedPathSubscription::flush(
 
   std::optional<gen_type> toServe;
   toServe.swap(buffered_);
-  pipe_.write(std::move(toServe).value());
+  tryWrite(pipe_, std::move(toServe).value(), "ExtPath.flush");
 }
 
 std::unique_ptr<Subscription> ExtendedPathSubscription::resolve(
@@ -306,7 +327,10 @@ bool ExtendedPathSubscription::isActive() const {
 void ExtendedPathSubscription::allPublishersGone(
     FsdbErrorCode disconnectReason,
     const std::string& msg) {
-  pipe_.write(Utils::createFsdbException(disconnectReason, msg));
+  tryWrite(
+      pipe_,
+      Utils::createFsdbException(disconnectReason, msg),
+      "ExtPath.pubsGone");
 }
 
 std::pair<
@@ -319,7 +343,8 @@ ExtendedDeltaSubscription::create(
     OperProtocol protocol,
     folly::EventBase* heartbeatEvb,
     std::chrono::milliseconds heartbeatInterval) {
-  auto [generator, pipe] = folly::coro::AsyncPipe<gen_type>::create();
+  auto [generator, pipe] = folly::coro::BoundedAsyncPipe<gen_type>::create(
+      FLAGS_subscriptionServeQueueSize);
   auto subscription = std::make_shared<ExtendedDeltaSubscription>(
       std::move(subscriber),
       makeSimplePathMap(paths),
@@ -353,7 +378,7 @@ void ExtendedDeltaSubscription::flush(
 
   std::optional<gen_type> toServe;
   toServe.swap(buffered_);
-  pipe_.write(std::move(toServe).value());
+  tryWrite(pipe_, std::move(toServe).value(), "ExtDelta.flush");
 }
 
 void ExtendedDeltaSubscription::serveHeartbeat() {}
@@ -365,7 +390,10 @@ bool ExtendedDeltaSubscription::isActive() const {
 void ExtendedDeltaSubscription::allPublishersGone(
     FsdbErrorCode disconnectReason,
     const std::string& msg) {
-  pipe_.write(Utils::createFsdbException(disconnectReason, msg));
+  tryWrite(
+      pipe_,
+      Utils::createFsdbException(disconnectReason, msg),
+      "ExtDelta.pubsGone");
 }
 
 PatchSubscription::PatchSubscription(
@@ -471,7 +499,8 @@ ExtendedPatchSubscription::create(
     std::optional<std::string> publisherRoot,
     folly::EventBase* heartbeatEvb,
     std::chrono::milliseconds heartbeatInterval) {
-  auto [generator, pipe] = folly::coro::AsyncPipe<gen_type>::create();
+  auto [generator, pipe] = folly::coro::BoundedAsyncPipe<gen_type>::create(
+      FLAGS_subscriptionServeQueueSize);
   auto subscription = std::make_unique<ExtendedPatchSubscription>(
       std::move(subscriber),
       std::move(paths),
@@ -517,14 +546,14 @@ void ExtendedPatchSubscription::flush(
   if (auto chunk = moveCurChunk(metadataServer)) {
     SubscriberMessage msg;
     msg.set_chunk(std::move(*chunk));
-    pipe_.write(std::move(msg));
+    tryWrite(pipe_, std::move(msg), "ExtPatch.flush");
   }
 }
 
 void ExtendedPatchSubscription::serveHeartbeat() {
   SubscriberMessage msg;
   msg.set_heartbeat();
-  pipe_.write(std::move(msg));
+  tryWrite(pipe_, std::move(msg), "ExtPatch.hb");
 }
 
 bool ExtendedPatchSubscription::isActive() const {
@@ -534,7 +563,10 @@ bool ExtendedPatchSubscription::isActive() const {
 void ExtendedPatchSubscription::allPublishersGone(
     FsdbErrorCode disconnectReason,
     const std::string& msg) {
-  pipe_.write(Utils::createFsdbException(disconnectReason, msg));
+  tryWrite(
+      pipe_,
+      Utils::createFsdbException(disconnectReason, msg),
+      "ExtPatch.pubsGone");
 }
 
 } // namespace facebook::fboss::fsdb
