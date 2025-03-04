@@ -72,18 +72,23 @@ class TestFsdbSubscriber : public PubSubT::SubscriberT {
       const PathT& subscribePath,
       folly::EventBase* streamEvb,
       folly::EventBase* connRetryEvb,
-      bool subscribeStats = false)
+      bool subscribeStats = false,
+      std::optional<std::function<void()>> onInitialSync = std::nullopt,
+      std::optional<std::function<void()>> onDisconnect = std::nullopt)
       : BaseT(
             clientId,
             subscribePath,
             streamEvb,
             connRetryEvb,
-            [this](SubUnitT&& unit) {
+            [this, onInitialSync](SubUnitT&& unit) {
               initialSyncDone_ = true;
               publishedQueue_.wlock()->emplace_back(std::move(unit));
+              if (onInitialSync.has_value()) {
+                onInitialSync.value()();
+              }
             },
             subscribeStats,
-            [this](
+            [this, onDisconnect](
                 SubscriptionState /*oldState*/,
                 SubscriptionState newState,
                 std::optional<bool> /*initialSyncHasData*/) {
@@ -91,6 +96,9 @@ class TestFsdbSubscriber : public PubSubT::SubscriberT {
                 XLOG(DBG2) << " Subscriber: " << this->clientId()
                            << " not connected";
                 initialSyncDone_ = false;
+                if (onDisconnect.has_value()) {
+                  onDisconnect.value()();
+                }
               }
             }) {}
   ~TestFsdbSubscriber() override {

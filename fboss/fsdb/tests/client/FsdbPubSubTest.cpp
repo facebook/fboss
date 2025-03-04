@@ -16,6 +16,8 @@
 
 namespace {
 
+const uint32_t kStateServeIntervalMs = 1;
+const uint32_t kStatsServeIntervalMs = 1;
 auto constexpr kSubscriberId = "fsdb_test_subscriber";
 auto constexpr kPublisherId = "fsdb_test_publisher";
 auto constexpr kUnknownPublisherId = "publisher_unknown";
@@ -42,7 +44,8 @@ class FsdbPubSubTest : public ::testing::Test {
     folly::LoggerDB::get().setLevel("fboss.thrift_cow", folly::LogLevel::DBG4);
     folly::LoggerDB::get().setLevel("fboss.fsdb", folly::LogLevel::DBG4);
     auto config = getFsdbConfig();
-    fsdbTestServer_ = std::make_unique<FsdbTestServer>(std::move(config));
+    fsdbTestServer_ = std::make_unique<FsdbTestServer>(
+        std::move(config), 0, kStateServeIntervalMs, kStatsServeIntervalMs);
     publisherStreamEvbThread_ =
         std::make_unique<folly::ScopedEventBaseThread>();
     subscriberStreamEvbThread_ =
@@ -67,13 +70,18 @@ class FsdbPubSubTest : public ::testing::Test {
     return FsdbConfig::fromRaw(rawConfig);
   }
   template <typename SubsT>
-  std::unique_ptr<SubsT> createSubscriberImpl(const std::string& id) const {
+  std::unique_ptr<SubsT> createSubscriberImpl(
+      const std::string& id,
+      std::optional<std::function<void()>> onInitialSync = std::nullopt,
+      std::optional<std::function<void()>> onDisconnect = std::nullopt) const {
     return std::make_unique<SubsT>(
         id,
         getSubscribePath<SubsT>(),
         subscriberStreamEvbThread_->getEventBase(),
         connRetryEvbThread_->getEventBase(),
-        TestParam::PubSubStats);
+        TestParam::PubSubStats,
+        onInitialSync,
+        onDisconnect);
   }
   template <typename SubsT>
   auto getSubscribePath() const {
@@ -85,8 +93,11 @@ class FsdbPubSubTest : public ::testing::Test {
       return kPublishRoot;
     }
   }
-  std::unique_ptr<SubscriberT> createSubscriber(const std::string& id) const {
-    return createSubscriberImpl<SubscriberT>(id);
+  std::unique_ptr<SubscriberT> createSubscriber(
+      const std::string& id,
+      std::optional<std::function<void()>> onInitialSync = std::nullopt,
+      std::optional<std::function<void()>> onDisconnect = std::nullopt) const {
+    return createSubscriberImpl<SubscriberT>(id, onInitialSync, onDisconnect);
   }
   std::unique_ptr<PublisherT> createPublisherImpl(
       const std::string& id,
