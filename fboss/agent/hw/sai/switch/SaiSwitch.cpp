@@ -235,14 +235,8 @@ void __gTamEventCallback(
 void _gPfcDeadlockNotificationCallback(
     uint32_t count,
     const sai_queue_deadlock_notification_data_t* data) {
-  auto portSaiId = SaiApiTable::getInstance()->queueApi().getAttribute(
-      static_cast<QueueSaiId>(data->queue_id),
-      SaiQueueTraits::Attributes::Port{});
-  auto queueId = SaiApiTable::getInstance()->queueApi().getAttribute(
-      static_cast<QueueSaiId>(data->queue_id),
-      SaiQueueTraits::Attributes::Index{});
   __gSaiIdToSwitch.begin()->second->pfcDeadlockNotificationCallback(
-      static_cast<PortSaiId>(portSaiId), queueId, data->event, count);
+      count, data);
 }
 
 void __gVendorSwitchEventNotificationCallback(
@@ -4340,30 +4334,46 @@ void SaiSwitch::processFlowletSwitchingConfigDelta(
 }
 
 void SaiSwitch::pfcDeadlockNotificationCallback(
-    PortSaiId portSaiId,
-    uint8_t queueId,
-    sai_queue_pfc_deadlock_event_type_t deadlockEvent,
-    uint32_t /* count */) {
-  const auto portItr = concurrentIndices_->portSaiId2PortInfo.find(portSaiId);
-  if (portItr == concurrentIndices_->portSaiId2PortInfo.cend()) {
-    XLOG(ERR) << "Unable to map Sai Port ID " << portSaiId
-              << " in PFC deadlock notification processing to a valid port!";
-    return;
-  }
-  PortID portId = portItr->second.portID;
-  XLOG_EVERY_MS(WARNING, 5000)
-      << "PFC deadlock notification callback invoked for qid: " << queueId
-      << ", on port: " << portId << ", with event: " << deadlockEvent;
-  switch (deadlockEvent) {
-    case SAI_QUEUE_PFC_DEADLOCK_EVENT_TYPE_DETECTED:
-      callback_->pfcWatchdogStateChanged(portId, true);
-      break;
-    case SAI_QUEUE_PFC_DEADLOCK_EVENT_TYPE_RECOVERED:
-      callback_->pfcWatchdogStateChanged(portId, false);
-      break;
-    default:
-      XLOG(ERR) << "Unknown event " << deadlockEvent
-                << " in PFC deadlock notify callback";
+    uint32_t count,
+    const sai_queue_deadlock_notification_data_t* data) {
+  // The handling for PFC deadlock notification is pretty simple and
+  // should just increment a counter at port level for PFC deadlock
+  // detection or recovery. No further actions are expected and do not
+  // expect a callback into SDK. If more processing is needed, we'll
+  // need to switch to a tophalf/bottom half model, avoiding it for now.
+  for (int idx = 0; idx < count; ++idx) {
+    auto queueSaiId = static_cast<QueueSaiId>(data[idx].queue_id);
+    auto queueInfo =
+        managerTable_->queueManager().getQueueIndexAndPortSaiId(queueSaiId);
+    if (!queueInfo.has_value()) {
+      XLOG(ERR) << "PFC deadlock notification callback failure getting queue "
+                   "ID/port SAI ID, port deadlock counter not incremented!";
+      continue;
+    }
+    auto [qId, portSaiId] = *queueInfo;
+
+    auto deadlockEvent = data[idx].event;
+    const auto portItr = concurrentIndices_->portSaiId2PortInfo.find(portSaiId);
+    if (portItr == concurrentIndices_->portSaiId2PortInfo.cend()) {
+      XLOG(ERR) << "Unable to map Sai Port ID " << portSaiId << "in PFC"
+                << " deadlock notification processing to a valid port!";
+      continue;
+    }
+    PortID portId = portItr->second.portID;
+    XLOG_EVERY_MS(WARNING, 5000)
+        << "PFC deadlock notification callback invoked for qid: " << qId
+        << ", on port: " << portId << ", with event: " << deadlockEvent;
+    switch (deadlockEvent) {
+      case SAI_QUEUE_PFC_DEADLOCK_EVENT_TYPE_DETECTED:
+        callback_->pfcWatchdogStateChanged(portId, true);
+        break;
+      case SAI_QUEUE_PFC_DEADLOCK_EVENT_TYPE_RECOVERED:
+        callback_->pfcWatchdogStateChanged(portId, false);
+        break;
+      default:
+        XLOG(ERR) << "Unknown event " << deadlockEvent
+                  << " in PFC deadlock notify callback";
+    }
   }
 }
 
