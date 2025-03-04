@@ -75,6 +75,7 @@ class YubaAsic : public TajoAsic {
     // 256 physical lanes + cpu
     return 257;
   }
+
   uint16_t getMirrorTruncateSize() const override {
     return 220;
   }
@@ -131,6 +132,10 @@ class YubaAsic : public TajoAsic {
         prbs::PrbsPolynomial::PRBS15,
         prbs::PrbsPolynomial::PRBS31,
     };
+  }
+
+  cfg::IpTunnelMode getTunnelDscpMode() const override {
+    return cfg::IpTunnelMode::UNIFORM;
   }
 
  private:

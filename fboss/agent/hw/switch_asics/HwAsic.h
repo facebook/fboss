@@ -453,6 +453,11 @@ class HwAsic {
     return 0x88be;
   }
 
+  // Applicable only when IP_IN_IP_DECAP feature is enabled.
+  virtual cfg::IpTunnelMode getTunnelDscpMode() const {
+    return cfg::IpTunnelMode::PIPE;
+  }
+
  protected:
   static cfg::Range64 makeRange(int64_t min, int64_t max);
 
