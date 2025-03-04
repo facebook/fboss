@@ -40,7 +40,7 @@ namespace {
 constexpr int kUsecBetweenPowerModeFlap = 100000;
 constexpr int kUsecBetweenLaneInit = 10000;
 constexpr int kUsecVdmLatchHold = 100000;
-constexpr int kUsecDiagSelectLatchWait = 100000;
+constexpr int kUsecDiagSelectLatchWait = 200000;
 constexpr int kUsecAfterAppProgramming = 500000;
 constexpr int kUsecDatapathStateUpdateTime = 5000000; // 5 seconds
 constexpr int kUsecDatapathStatePollTime = 500000; // 500 ms
