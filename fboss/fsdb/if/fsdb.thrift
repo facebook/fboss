@@ -43,6 +43,7 @@ struct OperSubscriberInfo {
   // TODO: replace path above
   7: optional map<fsdb_oper.SubscriptionKey, fsdb_oper.RawOperPath> paths;
   8: optional i64 subscriptionUid;
+  9: optional i32 subscriptionQueueWatermark;
 }
 
 @cpp.Type{template = "folly::F14FastMap"}

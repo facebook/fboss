@@ -318,7 +318,7 @@ class ServiceHandler : public FsdbServiceSvIf,
   folly::Synchronized<ActiveSubscriptions> activeSubscriptions_;
   folly::Synchronized<ActivePublishers> activePublishers_;
   std::shared_ptr<apache::thrift::ThriftServer> server_;
-  std::atomic<uint64_t> lastSubscriptionUid_{0};
+  std::atomic<uint64_t> lastSubscriptionUid_{1};
 };
 
 } // namespace facebook::fboss::fsdb

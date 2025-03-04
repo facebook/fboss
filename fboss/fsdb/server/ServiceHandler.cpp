@@ -1358,6 +1358,34 @@ ServiceHandler::co_getOperPublisherInfos(
   co_return publishers;
 }
 
+// helper to merge values from OperSubscriberInfo
+void mergeOperSubscriberInfo(
+    SubscriberIdToOperSubscriberInfos& infos,
+    const std::vector<OperSubscriberInfo>& mergeInfo) {
+  std::map<uint64_t, SubscriberId> subscriberUids;
+  for (const auto& it : infos) {
+    for (const auto& sub : it.second) {
+      CHECK(sub.subscriptionUid().has_value());
+      subscriberUids[*sub.subscriptionUid()] = *sub.subscriberId();
+    }
+  }
+  for (const auto& subInfo : mergeInfo) {
+    CHECK(subInfo.subscriptionUid().has_value());
+    auto it = subscriberUids.find(*subInfo.subscriptionUid());
+    if (it != subscriberUids.end()) {
+      for (auto& sub : infos[it->second]) {
+        CHECK(sub.subscriptionUid().has_value());
+        if (*sub.subscriptionUid() == *subInfo.subscriptionUid()) {
+          if (subInfo.subscriptionQueueWatermark().has_value()) {
+            sub.subscriptionQueueWatermark() =
+                *subInfo.subscriptionQueueWatermark();
+          }
+        }
+      }
+    }
+  }
+}
+
 folly::coro::Task<std::unique_ptr<SubscriberIdToOperSubscriberInfos>>
 ServiceHandler::co_getAllOperSubscriberInfos() {
   auto log = LOG_THRIFT_CALL(INFO);
@@ -1368,6 +1396,8 @@ ServiceHandler::co_getAllOperSubscriberInfos() {
       (*subscriptions)[*subscription.subscriberId()].push_back(subscription);
     }
   });
+  mergeOperSubscriberInfo(*subscriptions, operStorage_.getSubscriptions());
+  mergeOperSubscriberInfo(*subscriptions, operStatsStorage_.getSubscriptions());
   co_return subscriptions;
 }
 
@@ -1386,6 +1416,8 @@ ServiceHandler::co_getOperSubscriberInfos(
       (*subscriptions)[*subscription.subscriberId()].push_back(subscription);
     }
   });
+  mergeOperSubscriberInfo(*subscriptions, operStorage_.getSubscriptions());
+  mergeOperSubscriberInfo(*subscriptions, operStatsStorage_.getSubscriptions());
   co_return subscriptions;
 }
 

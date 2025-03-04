@@ -34,6 +34,10 @@ class BaseSubscription {
     return subId_.subscriberId();
   }
 
+  uint64_t subscriptionUid() const {
+    return subId_.uid();
+  }
+
   virtual ~BaseSubscription();
 
   virtual bool shouldConvertToDynamic() const {

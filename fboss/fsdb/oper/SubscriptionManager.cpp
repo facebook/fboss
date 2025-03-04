@@ -38,7 +38,8 @@ std::vector<OperSubscriberInfo> SubscriptionManagerBase::getSubscriptions()
     const {
   std::vector<OperSubscriberInfo> toRet;
   auto store = store_.rlock();
-  toRet.reserve(store->subscriptions().size());
+  toRet.reserve(
+      store->subscriptions().size() + store->extendedSubscriptions().size());
   for (auto& [id, subscription] : store->subscriptions()) {
     OperSubscriberInfo info;
     info.subscriberId() = subscription->subscriberId();
@@ -46,6 +47,27 @@ std::vector<OperSubscriberInfo> SubscriptionManagerBase::getSubscriptions()
     OperPath p;
     p.raw() = subscription->path();
     info.path() = std::move(p);
+    info.subscriptionUid() = subscription->subscriptionUid();
+    info.subscriptionQueueWatermark() = subscription->getQueueWatermark();
+    toRet.push_back(std::move(info));
+  }
+  for (auto& [id, subscription] : store->extendedSubscriptions()) {
+    OperSubscriberInfo info;
+    info.subscriberId() = subscription->subscriberId();
+    info.type() = subscription->type();
+
+    auto subscribedPaths = subscription->paths();
+    std::vector<ExtendedOperPath> paths(subscribedPaths.size());
+    std::transform(
+        subscribedPaths.begin(),
+        subscribedPaths.end(),
+        paths.begin(),
+        [](const auto& pair) { return pair.second; });
+    info.extendedPaths() = std::move(paths);
+
+    info.subscriptionUid() = subscription->subscriptionUid();
+    info.subscriptionQueueWatermark() = subscription->getQueueWatermark();
+    info.subscriptionUid() = subscription->subscriptionUid();
     toRet.push_back(std::move(info));
   }
   return toRet;
