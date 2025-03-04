@@ -159,11 +159,16 @@ Path buildPathUnion(facebook::fboss::fsdb::OperPublisherInfo info) {
 void updateMetadata(facebook::fboss::fsdb::OperMetadata& metadata) {
   // Timestamp at server if chunk was not timestamped
   // by publisher
-  if (!metadata.lastConfirmedAt()) {
-    auto now = std::chrono::system_clock::now();
-    metadata.lastConfirmedAt() =
-        std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch())
-            .count();
+  if (!metadata.lastConfirmedAt() || !metadata.lastPublishedAt()) {
+    auto now = std::chrono::system_clock::now().time_since_epoch();
+    if (!metadata.lastConfirmedAt()) {
+      metadata.lastConfirmedAt() =
+          std::chrono::duration_cast<std::chrono::seconds>(now).count();
+    }
+    if (!metadata.lastPublishedAt()) {
+      metadata.lastPublishedAt() =
+          std::chrono::duration_cast<std::chrono::milliseconds>(now).count();
+    }
   }
 }
 
