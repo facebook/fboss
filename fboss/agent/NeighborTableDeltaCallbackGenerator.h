@@ -64,7 +64,7 @@ class NeighborTableDeltaCallbackGenerator {
     } else if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
       if (FLAGS_intf_nbr_tables) {
         auto interface =
-            switchState->getInterfaces()->getNode(vlan->getInterfaceID());
+            switchState->getInterfaces()->getNodeIf(vlan->getInterfaceID());
         CHECK(interface);
         return interface->getArpTable();
       } else {
@@ -73,7 +73,7 @@ class NeighborTableDeltaCallbackGenerator {
     } else {
       if (FLAGS_intf_nbr_tables) {
         auto interface =
-            switchState->getInterfaces()->getNode(vlan->getInterfaceID());
+            switchState->getInterfaces()->getNodeIf(vlan->getInterfaceID());
         CHECK(interface);
         return interface->getNdpTable();
       } else {
