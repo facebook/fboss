@@ -81,6 +81,10 @@ class BaseSubscription {
     return heartbeatInterval_;
   }
 
+  uint32_t getQueueWatermark() const {
+    return *queueWatermark_.rlock();
+  }
+
   void stop();
 
  protected:
@@ -96,6 +100,12 @@ class BaseSubscription {
       folly::coro::BoundedAsyncPipe<T>& pipe,
       V&& val,
       const std::string& dbgStr) {
+    queueWatermark_.withWLock([&](auto& queueWatermark) {
+      auto queuedChunks = pipe.getOccupiedSpace();
+      if (queuedChunks > queueWatermark) {
+        queueWatermark = queuedChunks;
+      }
+    });
     if (!pipe.try_write(std::forward<V>(val))) {
       if (pipe.isClosed()) {
         XLOG(DBG0) << "Subscription " << subscriberId()
@@ -127,6 +137,7 @@ class BaseSubscription {
   folly::EventBase* heartbeatEvb_;
   folly::coro::CancellableAsyncScope backgroundScope_;
   std::chrono::milliseconds heartbeatInterval_;
+  folly::Synchronized<uint32_t> queueWatermark_{0};
 };
 
 class Subscription : public BaseSubscription {
