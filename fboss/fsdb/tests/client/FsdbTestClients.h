@@ -81,11 +81,11 @@ class TestFsdbSubscriber : public PubSubT::SubscriberT {
             streamEvb,
             connRetryEvb,
             [this, onInitialSync](SubUnitT&& unit) {
-              initialSyncDone_ = true;
               publishedQueue_.wlock()->emplace_back(std::move(unit));
-              if (onInitialSync.has_value()) {
+              if (!initialSyncDone_ && onInitialSync.has_value()) {
                 onInitialSync.value()();
               }
+              initialSyncDone_ = true;
             },
             subscribeStats,
             [this, onDisconnect](
