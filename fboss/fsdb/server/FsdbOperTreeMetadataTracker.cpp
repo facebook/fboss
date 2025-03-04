@@ -43,9 +43,16 @@ void FsdbOperTreeMetadataTracker::updateMetadata(
       operMetadata.lastConfirmedAt() = std::max(
           *operMetadata.lastConfirmedAt(), *metadata.lastConfirmedAt());
     }
+    if (metadata.lastPublishedAt().has_value()) {
+      operMetadata.lastPublishedAt() = std::max(
+          metadata.lastPublishedAt().value(),
+          operMetadata.lastPublishedAt().value_or(0));
+    }
   } else {
     operMetadata.lastConfirmedAt() =
         metadata.lastConfirmedAt().value_or(*operMetadata.lastConfirmedAt());
+    operMetadata.lastPublishedAt() = metadata.lastPublishedAt().value_or(
+        operMetadata.lastPublishedAt().value_or(0));
   }
 }
 

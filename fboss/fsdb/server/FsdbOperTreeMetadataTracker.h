@@ -10,6 +10,7 @@ namespace facebook::fboss::fsdb {
 struct FsdbOperTreeMetadata {
   FsdbOperTreeMetadata() {
     operMetadata.lastConfirmedAt() = 0;
+    operMetadata.lastPublishedAt() = 0;
   }
   OperMetadata operMetadata;
   uint64_t numOpenConnections{0};
