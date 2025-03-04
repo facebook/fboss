@@ -23,6 +23,11 @@ DEFINE_int32(
     1024,
     "Max subscription serve updates to queue, default 1024");
 
+DEFINE_bool(
+    forceCloseSlowSubscriber,
+    false,
+    "Force close slow subscriber if subscription serve queue gets full, default false");
+
 namespace facebook::fboss::fsdb {
 
 namespace {

@@ -18,6 +18,7 @@
 #include <folly/json/dynamic.h>
 
 DECLARE_int32(subscriptionServeQueueSize);
+DECLARE_bool(forceCloseSlowSubscriber);
 
 namespace facebook::fboss::fsdb {
 
@@ -102,8 +103,17 @@ class BaseSubscription {
         return;
       } else {
         // queue full, avoid unbounded queue build up.
-        XLOG(INFO) << "Slow subscription: " << subscriberId() << " pipe full.";
-        // TODO: handle pipe full by closing slow subscriber
+        if (FLAGS_forceCloseSlowSubscriber) {
+          XLOG(INFO) << "Slow subscription: " << subscriberId()
+                     << " pipe full. Force closing subscription.";
+          std::move(pipe).close(Utils::createFsdbException(
+              FsdbErrorCode::SUBSCRIPTION_SERVE_QUEUE_FULL,
+              "Slow subscription: {} pipe full. Force closing subscription.",
+              subscriberId()));
+        } else {
+          XLOG(ERR) << "Slow subscription: " << subscriberId()
+                    << " pipe full, update dropped!";
+        }
       }
     }
   }
