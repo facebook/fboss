@@ -54,11 +54,16 @@ void FsdbPublisher<PubUnit>::handleStateChange(
 template <typename PubUnit>
 bool FsdbPublisher<PubUnit>::write(PubUnit&& pubUnit) {
   pubUnit.metadata().ensure();
-  if (!pubUnit.metadata()->lastConfirmedAt()) {
-    auto now = std::chrono::system_clock::now();
-    pubUnit.metadata()->lastConfirmedAt() =
-        std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch())
-            .count();
+  {
+    auto ts = std::chrono::system_clock::now().time_since_epoch();
+    if (!pubUnit.metadata()->lastConfirmedAt()) {
+      pubUnit.metadata()->lastConfirmedAt() =
+          std::chrono::duration_cast<std::chrono::seconds>(ts).count();
+    }
+    if (!pubUnit.metadata()->lastPublishedAt()) {
+      pubUnit.metadata()->lastPublishedAt() =
+          std::chrono::duration_cast<std::chrono::milliseconds>(ts).count();
+    }
   }
 #if FOLLY_HAS_COROUTINES
   auto pipeUPtr = asyncPipe_.ulock();
