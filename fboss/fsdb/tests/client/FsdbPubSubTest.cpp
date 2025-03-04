@@ -463,7 +463,60 @@ TYPED_TEST(FsdbPubSubTest, slowSubscriber) {
   ASSERT_EQ(
       info.state,
       FsdbStreamClient::ReconnectingThriftClient::State::DISCONNECTED);
+  ASSERT_EQ(
+      info.disconnectReason, FsdbErrorCode::SUBSCRIPTION_SERVE_QUEUE_FULL);
   resumeReconnect.post();
+}
+
+TYPED_TEST(FsdbPubSubTest, slowSubscriberQueueWatermark) {
+  FLAGS_subscriptionServeQueueSize = 100;
+  FLAGS_forceCloseSlowSubscriber = false;
+
+  // publishInterval: wait for subscriptionServeIntervalMs+delta to prevent
+  // published updates from being coalesced
+  uint32_t updatesPublished = 200;
+  uint32_t subscriptionServeIntervalMs =
+      this->pubSubStats() ? kStatsServeIntervalMs : kStateServeIntervalMs;
+  uint32_t publishIntervalMs = subscriptionServeIntervalMs + 20;
+  this->setupConnection(*this->publisher_, false);
+  this->checkPublishing({this->publisher_->clientId()});
+
+  // pause subscriber on initial sync long enough for all updates to be
+  // published and served so that queue builds up.
+  folly::Baton<> resumeDataCb;
+  auto slowSub = this->createSubscriber(
+      "fsdb_slow_subscriber", [&resumeDataCb]() { resumeDataCb.wait(); });
+  this->setupConnection(*slowSub);
+  this->checkSubscribed({slowSub->clientId()});
+  for (int updateNum = 1; updateNum <= updatesPublished; updateNum++) {
+    if (this->pubSubStats()) {
+      this->publishPortStats(makePortStats(updateNum));
+    } else {
+      std::string testStr = folly::to<std::string>("bar", updateNum);
+      this->publishAgentConfig(makeAgentConfig({{"foo", testStr}}));
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(publishIntervalMs));
+  }
+  WITH_RETRIES({
+    auto subscriberId = slowSub->clientId();
+    auto subscriberToInfo = folly::coro::blockingWait(
+        this->fsdbTestServer_->getClient()->co_getOperSubscriberInfos(
+            {subscriberId}));
+    auto sitr = subscriberToInfo.find(subscriberId);
+    ASSERT_EVENTUALLY_NE(sitr, subscriberToInfo.end());
+    ASSERT_EVENTUALLY_EQ(sitr->second.size(), 1);
+    if (sitr != subscriberToInfo.end()) {
+      auto info = sitr->second;
+      OperSubscriberInfo expectedInfo = sitr->second[0];
+      ASSERT_EVENTUALLY_EQ(
+          expectedInfo.subscriptionQueueWatermark().has_value(), true);
+      if (expectedInfo.subscriptionQueueWatermark().has_value()) {
+        ASSERT_EVENTUALLY_GT(*expectedInfo.subscriptionQueueWatermark(), 0);
+      }
+    }
+  });
+  // resume subscriber data callback after all updates are published
+  resumeDataCb.post();
 }
 
 TYPED_TEST(FsdbPubSubTest, multiplePublishers) {
