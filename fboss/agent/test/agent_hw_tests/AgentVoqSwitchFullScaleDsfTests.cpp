@@ -33,9 +33,10 @@ class AgentVoqSwitchFullScaleDsfNodesTest : public AgentVoqSwitchTest {
 
  protected:
   int getMaxEcmpWidth() const {
-    // J2 and J3 only supports variable width
-    return utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
-        ->getMaxVariableWidthEcmpSize();
+    // J3 starting to support ECMP width of 2K in 12.x.
+    // Since the test is also running on 11.x, use 512 that's supported on all
+    // SDK versions.
+    return 512;
   }
 
   int getMaxEcmpGroup() const {
