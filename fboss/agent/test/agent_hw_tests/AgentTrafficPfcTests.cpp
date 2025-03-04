@@ -756,9 +756,10 @@ class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcTest {
     };
   }
 
-  void validatePfcWatchdogCountersIncrease(const PortID& portId) {
-    auto [deadlockCtrBefore, recoveryCtrBefore] =
-        getPfcDeadlockCounters(portId);
+  void validatePfcWatchdogCountersIncrease(
+      const PortID& portId,
+      const uint64_t& deadlockCtrBefore,
+      const uint64_t& recoveryCtrBefore) {
     WITH_RETRIES_N_TIMED(10, std::chrono::milliseconds(1000), {
       auto [deadlockCtr, recoveryCtr] = getPfcDeadlockCounters(portId);
       XLOG(DBG0) << "For port: " << portId << " deadlockCtr = " << deadlockCtr
@@ -790,8 +791,11 @@ TEST_F(AgentTrafficPfcWatchdogTest, PfcWatchdogDetection) {
     setupWatchdog({portId}, true /* enable watchdog */);
   };
   auto verify = [&]() {
+    auto [deadlockCtrBefore, recoveryCtrBefore] =
+        getPfcDeadlockCounters(portId);
     triggerPfcDeadlockDetection(portId, txOffPortId, ip);
-    validatePfcWatchdogCountersIncrease(portId);
+    validatePfcWatchdogCountersIncrease(
+        portId, deadlockCtrBefore, recoveryCtrBefore);
     reEnablePort(txOffPortId);
   };
   verifyAcrossWarmBoots(setup, verify);
@@ -815,9 +819,12 @@ TEST_F(AgentTrafficPfcWatchdogTest, PfcWatchdogReset) {
   auto setup = [&]() {
     setupConfigAndEcmpTraffic(portId, txOffPortId, ip);
     setupWatchdog({portId}, true /* enable watchdog */);
+    std::tie(deadlockCtrBefore, recoveryCtrBefore) =
+        getPfcDeadlockCounters(portId);
     triggerPfcDeadlockDetection(portId, txOffPortId, ip);
     // lets wait for the watchdog counters to be populated
-    validatePfcWatchdogCountersIncrease(portId);
+    validatePfcWatchdogCountersIncrease(
+        portId, deadlockCtrBefore, recoveryCtrBefore);
     // reset watchdog
     setupWatchdog({portId}, false /* disable */);
     // sleep a bit to let counters stabilize
