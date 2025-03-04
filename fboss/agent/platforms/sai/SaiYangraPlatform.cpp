@@ -59,6 +59,7 @@ HwAsic* SaiYangraPlatform::getAsic() const {
 const std::unordered_map<std::string, std::string>
 SaiYangraPlatform::getSaiProfileVendorExtensionValues() const {
   std::unordered_map<std::string, std::string> kv_map;
+  kv_map.insert(std::make_pair("SAI_KEY_AUTO_POPULATE_PORT_DB", "1"));
   kv_map.insert(std::make_pair("SAI_KEY_NOT_DROP_SMAC_DMAC_EQUAL", "1"));
   kv_map.insert(std::make_pair("SAI_KEY_RECLAIM_BUFFER_ENABLED", "0"));
   kv_map.insert(std::make_pair("SAI_KEY_TRAP_PACKETS_USING_CALLBACK", "1"));

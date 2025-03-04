@@ -295,8 +295,11 @@ std::string SaiPlatform::getHwAsicConfig(
 }
 
 void SaiPlatform::initSaiProfileValues() {
-  kSaiProfileValues.insert(
-      std::make_pair(SAI_KEY_INIT_CONFIG_FILE, getHwConfigDumpFile()));
+  if (getType() != PlatformType::PLATFORM_YANGRA &&
+      getType() != PlatformType::PLATFORM_MINIPACK3N) {
+    kSaiProfileValues.insert(
+        std::make_pair(SAI_KEY_INIT_CONFIG_FILE, getHwConfigDumpFile()));
+  }
   kSaiProfileValues.insert(std::make_pair(
       SAI_KEY_WARM_BOOT_READ_FILE, getWarmBootHelper()->warmBootDataPath()));
   kSaiProfileValues.insert(std::make_pair(
