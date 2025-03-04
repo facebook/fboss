@@ -226,6 +226,8 @@ class NaivePeriodicSubscribableStorage
   }
 
   folly::coro::Task<void> serveSubscriptions() override {
+    std::map<std::string, uint64_t> lastServedPublisherRootUpdates;
+
     while (true) {
       auto start = std::chrono::steady_clock::now();
 
@@ -236,7 +238,7 @@ class NaivePeriodicSubscribableStorage
       auto [oldRoot, newRoot, metadataServer] = publishCurrentState();
       subscriptions_.serveSubscriptions(oldRoot, newRoot, metadataServer);
 
-      exportServeMetrics(start, metadataServer);
+      exportServeMetrics(start, metadataServer, lastServedPublisherRootUpdates);
 
       co_await folly::coro::sleep(params_.subscriptionServeInterval_);
     }

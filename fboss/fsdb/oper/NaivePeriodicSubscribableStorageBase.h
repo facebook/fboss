@@ -192,7 +192,8 @@ class NaivePeriodicSubscribableStorageBase {
   SubscriptionMetadataServer getCurrentMetadataServer();
   void exportServeMetrics(
       std::chrono::steady_clock::time_point serveStartTime,
-      SubscriptionMetadataServer& metadata) const;
+      SubscriptionMetadataServer& metadata,
+      std::map<std::string, uint64_t>& lastServedPublisherRootUpdates) const;
 
   std::optional<std::string> getPublisherRoot(PathIter begin, PathIter end)
       const;

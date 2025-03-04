@@ -206,7 +206,13 @@ NaivePeriodicSubscribableStorageBase::getCurrentMetadataServer() {
 
 void NaivePeriodicSubscribableStorageBase::exportServeMetrics(
     std::chrono::steady_clock::time_point serveStartTime,
-    SubscriptionMetadataServer& metadata) const {
+    SubscriptionMetadataServer& metadata,
+    std::map<std::string, uint64_t>& lastServedPublisherRootUpdates) const {
+  auto currentTimestamp =
+      std::chrono::duration_cast<std::chrono::milliseconds>(
+          std::chrono::system_clock::now().time_since_epoch())
+          .count();
+
   int64_t memUsage = getMemoryUsage(); // RSS
   fb303::ThreadCachedServiceData::get()->addStatValue(
       rss_, memUsage, fb303::AVG);
@@ -229,30 +235,39 @@ void NaivePeriodicSubscribableStorageBase::exportServeMetrics(
   fb303::ThreadCachedServiceData::get()->addStatValue(
       serveSubNum_, 1, fb303::SUM);
 
-  // for each publisher root, export publish/serve times for last processed
-  // update
-  auto allMds = metadata.getAllPublishersMetadata();
-  if (!allMds.has_value()) {
-    return;
-  }
-  auto currentTimestamp =
-      std::chrono::duration_cast<std::chrono::milliseconds>(
-          std::chrono::system_clock::now().time_since_epoch())
-          .count();
-  for (auto& [root, md] : allMds.value()) {
-    CHECK(md.operMetadata.lastPublishedAt().has_value());
-    auto it = registeredPublisherRoots_.rlock()->find(root);
-    if (it == registeredPublisherRoots_.rlock()->end()) {
-      continue;
+  // for each publisher root that had updates served in this iteration,
+  // export publish/serve times for last processed update
+  auto served = metadata.getAllPublishersMetadata();
+  if (served.has_value()) {
+    for (auto& [root, md] : served.value()) {
+      auto it = registeredPublisherRoots_.rlock()->find(root);
+      if (it == registeredPublisherRoots_.rlock()->end()) {
+        continue;
+      }
+
+      // skip root if there was no update since last served
+      if (md.operMetadata.lastPublishedAt().value_or(0) == 0) {
+        continue;
+      }
+      auto mitr = lastServedPublisherRootUpdates.find(root);
+      if (mitr != lastServedPublisherRootUpdates.end()) {
+        if (mitr->second == md.operMetadata.lastPublishedAt().value()) {
+          continue;
+        }
+      }
+      lastServedPublisherRootUpdates[root] =
+          md.operMetadata.lastPublishedAt().value();
+
+      // export metrics for the served root
+      auto publishTime = md.lastPublishedUpdateProcessedAt -
+          md.operMetadata.lastPublishedAt().value();
+      auto serveTime =
+          currentTimestamp - md.operMetadata.lastPublishedAt().value();
+      fb303::ThreadCachedServiceData::get()->addHistogramValue(
+          fmt::format("{}.{}", publishTimePrefix_, it->second), publishTime);
+      fb303::ThreadCachedServiceData::get()->addHistogramValue(
+          fmt::format("{}.{}", subscribeTimePrefix_, it->second), serveTime);
     }
-    auto publishTime = md.lastPublishedUpdateProcessedAt -
-        md.operMetadata.lastPublishedAt().value();
-    auto serveTime =
-        currentTimestamp - md.operMetadata.lastPublishedAt().value();
-    fb303::ThreadCachedServiceData::get()->addHistogramValue(
-        fmt::format("{}.{}", publishTimePrefix_, it->second), publishTime);
-    fb303::ThreadCachedServiceData::get()->addHistogramValue(
-        fmt::format("{}.{}", subscribeTimePrefix_, it->second), serveTime);
   }
 }
 
