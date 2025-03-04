@@ -42,7 +42,11 @@ NaivePeriodicSubscribableStorageBase::NaivePeriodicSubscribableStorageBase(
       nPathStoreAllocs_(
           fmt::format("{}.{}", params_.metricPrefix_, kPathStoreAllocs)),
       serveSubMs_(fmt::format("{}.{}", params_.metricPrefix_, kServeSubMs)),
-      serveSubNum_(fmt::format("{}.{}", params_.metricPrefix_, kServeSubNum)) {
+      serveSubNum_(fmt::format("{}.{}", params_.metricPrefix_, kServeSubNum)),
+      publishTimePrefix_(
+          fmt::format("{}.{}", params_.metricPrefix_, kPublishTimePrefix)),
+      subscribeTimePrefix_(
+          fmt::format("{}.{}", params_.metricPrefix_, kSubscribeTimePrefix)) {
   if (params_.trackMetadata_) {
     metadataTracker_ = std::make_unique<FsdbOperTreeMetadataTracker>();
   }
@@ -142,9 +146,30 @@ void NaivePeriodicSubscribableStorageBase::registerPublisher(
   if (!params_.trackMetadata_) {
     return;
   }
+  auto publisherRoot = getPublisherRoot(begin, end);
+  CHECK(publisherRoot.has_value());
+  registeredPublisherRoots_.withWLock([&](auto& roots) {
+    if (roots.find(publisherRoot.value()) == roots.end()) {
+      roots[publisherRoot.value()] = *begin;
+      // add histograms for per-publisherRoot stats
+      // publish time: histogram range [0, 1s], 10ms width (100 bins)
+      auto publishTimeMetric = fmt::format("{}.{}", publishTimePrefix_, *begin);
+      fb303::ThreadCachedServiceData::get()->addHistogram(
+          publishTimeMetric, 10, 0, 1000);
+      fb303::ThreadCachedServiceData::get()->exportHistogram(
+          publishTimeMetric, 50, 95, 99);
+      // subscribe time: histogram range [0, 10s], 100ms width (100 bins)
+      auto subscribeTimeMetric =
+          fmt::format("{}.{}", subscribeTimePrefix_, *begin);
+      fb303::ThreadCachedServiceData::get()->addHistogram(
+          subscribeTimeMetric, 100, 0, 1000);
+      fb303::ThreadCachedServiceData::get()->exportHistogram(
+          subscribeTimeMetric, 50, 95, 99);
+    }
+  });
   metadataTracker_.withWLock([&](auto& tracker) {
     CHECK(tracker);
-    tracker->registerPublisherRoot(*getPublisherRoot(begin, end));
+    tracker->registerPublisherRoot(publisherRoot.value());
   });
 }
 
@@ -180,7 +205,8 @@ NaivePeriodicSubscribableStorageBase::getCurrentMetadataServer() {
 }
 
 void NaivePeriodicSubscribableStorageBase::exportServeMetrics(
-    std::chrono::steady_clock::time_point serveStartTime) const {
+    std::chrono::steady_clock::time_point serveStartTime,
+    SubscriptionMetadataServer& metadata) const {
   int64_t memUsage = getMemoryUsage(); // RSS
   fb303::ThreadCachedServiceData::get()->addStatValue(
       rss_, memUsage, fb303::AVG);
@@ -202,6 +228,32 @@ void NaivePeriodicSubscribableStorageBase::exportServeMetrics(
   }
   fb303::ThreadCachedServiceData::get()->addStatValue(
       serveSubNum_, 1, fb303::SUM);
+
+  // for each publisher root, export publish/serve times for last processed
+  // update
+  auto allMds = metadata.getAllPublishersMetadata();
+  if (!allMds.has_value()) {
+    return;
+  }
+  auto currentTimestamp =
+      std::chrono::duration_cast<std::chrono::milliseconds>(
+          std::chrono::system_clock::now().time_since_epoch())
+          .count();
+  for (auto& [root, md] : allMds.value()) {
+    CHECK(md.operMetadata.lastPublishedAt().has_value());
+    auto it = registeredPublisherRoots_.rlock()->find(root);
+    if (it == registeredPublisherRoots_.rlock()->end()) {
+      continue;
+    }
+    auto publishTime = md.lastPublishedUpdateProcessedAt -
+        md.operMetadata.lastPublishedAt().value();
+    auto serveTime =
+        currentTimestamp - md.operMetadata.lastPublishedAt().value();
+    fb303::ThreadCachedServiceData::get()->addHistogramValue(
+        fmt::format("{}.{}", publishTimePrefix_, it->second), publishTime);
+    fb303::ThreadCachedServiceData::get()->addHistogramValue(
+        fmt::format("{}.{}", subscribeTimePrefix_, it->second), serveTime);
+  }
 }
 
 std::optional<std::string>

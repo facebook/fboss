@@ -26,6 +26,8 @@ inline constexpr std::string_view kRss{"rss"};
 inline constexpr std::string_view kRegisteredSubs{"subscriptions.registered"};
 inline constexpr std::string_view kPathStoreNum{"object.count.pathStores"};
 inline constexpr std::string_view kPathStoreAllocs{"object.allocs.pathStores"};
+inline constexpr std::string_view kPublishTimePrefix{"publish_time_ms"};
+inline constexpr std::string_view kSubscribeTimePrefix{"subscribe_time_ms"};
 
 // non-templated parts of NaivePeriodicSubscribableStorage to help with
 // compilation
@@ -189,7 +191,8 @@ class NaivePeriodicSubscribableStorageBase {
 
   SubscriptionMetadataServer getCurrentMetadataServer();
   void exportServeMetrics(
-      std::chrono::steady_clock::time_point serveStartTime) const;
+      std::chrono::steady_clock::time_point serveStartTime,
+      SubscriptionMetadataServer& metadata) const;
 
   std::optional<std::string> getPublisherRoot(PathIter begin, PathIter end)
       const;
@@ -225,6 +228,8 @@ class NaivePeriodicSubscribableStorageBase {
   const OperProtocol patchOperProtocol_{OperProtocol::COMPACT};
 
  private:
+  folly::Synchronized<std::map<std::string, std::string>>
+      registeredPublisherRoots_;
   folly::coro::CancellableAsyncScope backgroundScope_;
   std::unique_ptr<std::thread> subscriptionServingThread_;
   folly::EventBase evb_;
@@ -239,6 +244,9 @@ class NaivePeriodicSubscribableStorageBase {
   const std::string nPathStoreAllocs_{""};
   const std::string serveSubMs_{""};
   const std::string serveSubNum_{""};
+  // per-PublisherRoot metrics
+  const std::string publishTimePrefix_;
+  const std::string subscribeTimePrefix_;
 
   // delete copy constructors
   NaivePeriodicSubscribableStorageBase(

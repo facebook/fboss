@@ -236,7 +236,7 @@ class NaivePeriodicSubscribableStorage
       auto [oldRoot, newRoot, metadataServer] = publishCurrentState();
       subscriptions_.serveSubscriptions(oldRoot, newRoot, metadataServer);
 
-      exportServeMetrics(start);
+      exportServeMetrics(start, metadataServer);
 
       co_await folly::coro::sleep(params_.subscriptionServeInterval_);
     }
