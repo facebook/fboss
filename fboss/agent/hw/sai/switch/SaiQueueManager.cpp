@@ -646,4 +646,19 @@ QueueConfig SaiQueueManager::getQueueSettings(
   return queueConfig;
 }
 
+std::optional<std::tuple<uint8_t, PortSaiId>>
+SaiQueueManager::getQueueIndexAndPortSaiId(const QueueSaiId& queueSaiId) {
+  auto& store = saiStore_->get<SaiQueueTraits>();
+  auto queue = store.find(queueSaiId);
+  if (!queue) {
+    XLOG(ERR) << "Unable to find queueSaiId 0x" << std::hex << queueSaiId
+              << " in sai store!";
+    return std::nullopt;
+  }
+  uint8_t queueId = GET_ATTR(Queue, Index, queue->attributes());
+  PortSaiId portSaiId =
+      static_cast<PortSaiId>(GET_ATTR(Queue, Port, queue->attributes()));
+  return std::make_tuple(queueId, portSaiId);
+}
+
 } // namespace facebook::fboss
