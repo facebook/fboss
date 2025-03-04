@@ -14,6 +14,7 @@ struct FsdbOperTreeMetadata {
   }
   OperMetadata operMetadata;
   uint64_t numOpenConnections{0};
+  uint64_t lastPublishedUpdateProcessedAt{0};
 };
 class FsdbOperTreeMetadataTracker {
  public:
