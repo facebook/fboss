@@ -734,6 +734,14 @@ class AgentSflowMirrorWithLineRateTrafficTest
         production_features::ProductionFeature::LINERATE_SFLOW);
     return productionFeatures;
   }
+
+  void setCmdLineFlagOverrides() const override {
+    AgentSflowMirrorTruncateTest::setCmdLineFlagOverrides();
+    // VerifySflowEgressCongestionShort is also used in n-warmboot tests, where
+    // we want to test basic fabric port init.
+    FLAGS_hide_fabric_ports = false;
+  }
+
   static const int kLosslessPriority{2};
   void testSflowEgressCongestion(int iterations) {
     constexpr int kNumDataTrafficPorts{6};
