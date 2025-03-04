@@ -81,8 +81,10 @@ TEST_F(AgentVoqSwitchInterruptTest, itppError) {
   auto verify = [=, this]() {
     std::string out;
     runCmd("s itpp_interrupt_mask_register 0x3f\n");
+    runCmd("s itpp_interrupt_register_test 0x0\n");
     runCmd("s itpp_interrupt_register_test 0x2\n");
     runCmd("s itppd_interrupt_mask_register 0x3f\n");
+    runCmd("s itppd_interrupt_register_test 0x0\n");
     runCmd("s itppd_interrupt_register_test 0x2\n");
     WITH_RETRIES({
       auto asicErrors = getVoqAsicErrors();
