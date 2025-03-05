@@ -63,8 +63,13 @@ class NeighborTableDeltaCallbackGenerator {
       return vlan->getMacTable();
     } else if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
       if (FLAGS_intf_nbr_tables) {
-        auto interface =
-            switchState->getInterfaces()->getNodeIf(vlan->getInterfaceID());
+        auto interfaceID = vlan->getInterfaceID();
+        if (interfaceID == InterfaceID(0)) {
+          XLOG(DBG2) << "No interface ID (or 0) found for VLAN "
+                     << vlan->getID() << ". Returning empty ARP table.";
+          return std::make_shared<ArpTable>();
+        }
+        auto interface = switchState->getInterfaces()->getNodeIf(interfaceID);
         CHECK(interface);
         return interface->getArpTable();
       } else {
@@ -72,8 +77,13 @@ class NeighborTableDeltaCallbackGenerator {
       }
     } else {
       if (FLAGS_intf_nbr_tables) {
-        auto interface =
-            switchState->getInterfaces()->getNodeIf(vlan->getInterfaceID());
+        auto interfaceID = vlan->getInterfaceID();
+        if (interfaceID == InterfaceID(0)) {
+          XLOG(DBG2) << "No interface ID (or 0) found for VLAN "
+                     << vlan->getID() << ". Returning empty NDP table.";
+          return std::make_shared<NdpTable>();
+        }
+        auto interface = switchState->getInterfaces()->getNodeIf(interfaceID);
         CHECK(interface);
         return interface->getNdpTable();
       } else {

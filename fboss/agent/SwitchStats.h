@@ -9,10 +9,10 @@
  */
 #pragma once
 
-#include <boost/container/flat_map.hpp>
 #include <boost/noncopyable.hpp>
 #include <fb303/ThreadCachedServiceData.h>
 #include <fb303/detail/QuantileStatWrappers.h>
+#include <folly/concurrency/ConcurrentHashMap.h>
 #include <chrono>
 #include "fboss/agent/AggregatePortStats.h"
 #include "fboss/agent/InterfaceStats.h"
@@ -25,12 +25,12 @@ namespace facebook::fboss {
 
 class PortStats;
 
-typedef boost::container::flat_map<PortID, std::unique_ptr<PortStats>>
-    PortStatsMap;
-using AggregatePortStatsMap = boost::container::
-    flat_map<AggregatePortID, std::unique_ptr<AggregatePortStats>>;
+using PortStatsMap =
+    folly::ConcurrentHashMap<PortID, std::unique_ptr<PortStats>>;
+using AggregatePortStatsMap = folly::
+    ConcurrentHashMap<AggregatePortID, std::unique_ptr<AggregatePortStats>>;
 using InterfaceStatsMap =
-    boost::container::flat_map<InterfaceID, std::unique_ptr<InterfaceStats>>;
+    folly::ConcurrentHashMap<InterfaceID, std::unique_ptr<InterfaceStats>>;
 
 class SwitchStats : public boost::noncopyable {
  public:
@@ -86,6 +86,11 @@ class SwitchStats : public boost::noncopyable {
   void deleteInterfaceStats(InterfaceID intfID) {
     intfIDToStats_.erase(intfID);
   }
+
+  /*
+   * Change the name of a port. This will also reset its counters.
+   */
+  PortStats* updatePortName(PortID portID, const std::string& portName);
 
   void trappedPkt() {
     trapPkts_.addValue(1);

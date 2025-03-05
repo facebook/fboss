@@ -175,10 +175,10 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
           RATE),
       fabricConnectivityMissingCount_(
           map,
-          getCounterPrefix() + "fabric_reachability_missing"),
+          getCounterPrefix() + "fabric_connectivity_missing"),
       fabricConnectivityMismatchCount_(
           map,
-          getCounterPrefix() + "fabric_reachability_mismatch"),
+          getCounterPrefix() + "fabric_connectivity_mismatch"),
       fabricConnectivityBogusCount_(
           map,
           getCounterPrefix() + "fabric_connectivity_bogus"),

@@ -489,6 +489,9 @@ TransceiverManager::getPortsRequiringOpticsFwUpgrade() const {
   if (!isFullyInitialized()) {
     throw FbossError("Service is still initializing...");
   }
+  if (!FLAGS_firmware_upgrade_supported) {
+    return ports;
+  }
   auto lockedTransceivers = transceivers_.rlock();
   for (const auto& tcvrIt : *lockedTransceivers) {
     auto firmwareUpgradeData = getFirmwareUpgradeData(*tcvrIt.second);
@@ -507,6 +510,9 @@ TransceiverManager::triggerAllOpticsFwUpgrade() {
   }
   if (isUpgradingFirmware()) {
     throw FbossError("Service is already upgrading firmware...");
+  }
+  if (!FLAGS_firmware_upgrade_supported) {
+    throw FbossError("Firmware upgrade is not supported...");
   }
   auto portsForFwUpgrade = getPortsRequiringOpticsFwUpgrade();
   auto tcvrsToUpgradeWLock = tcvrsForFwUpgrade.wlock();
