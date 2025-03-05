@@ -103,6 +103,7 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAMPLE_RATE_CONFIG_PER_MIRROR:
     case HwAsic::Feature::SFLOW_SAMPLES_PACKING:
     case HwAsic::Feature::VENDOR_SWITCH_NOTIFICATION:
+    case HwAsic::Feature::SDK_REGISTER_DUMP:
       return true;
     // Features not expected to work on SIM
     case HwAsic::Feature::SHARED_INGRESS_EGRESS_BUFFER_POOL:
