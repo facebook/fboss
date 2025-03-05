@@ -448,6 +448,21 @@ InterfaceStats* SwitchStats::createInterfaceStats(
   return it->second.get();
 }
 
+PortStats* SwitchStats::updatePortName(
+    PortID portID,
+    const std::string& portName) {
+  auto existing = ports_.find(portID);
+  if (existing != ports_.end()) {
+    existing->second->clearCounters();
+  }
+
+  auto rv = ports_.insert_or_assign(
+      portID, std::make_unique<PortStats>(portID, portName, this));
+  DCHECK(rv.second);
+  const auto& it = rv.first;
+  return it->second.get();
+}
+
 InterfaceStats* FOLLY_NULLABLE SwitchStats::intf(InterfaceID intfID) {
   auto it = intfIDToStats_.find(intfID);
   if (it != intfIDToStats_.end()) {

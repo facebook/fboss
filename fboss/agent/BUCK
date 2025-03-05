@@ -609,11 +609,11 @@ cpp_library(
         "//folly:range",
         "//folly:string",
         "//folly:utility",
+        "//folly/concurrency:concurrent_hash_map",
         "//folly/logging:logging",
     ],
     exported_external_deps = [
         "boost",
-        ("boost", None, "boost_container"),
     ],
 )
 
