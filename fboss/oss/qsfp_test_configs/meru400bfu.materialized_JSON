@@ -59,7 +59,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "3.3"
+              "version": "3.4"
             }
           ]
       },
@@ -67,7 +67,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "3.3"
+              "version": "3.4"
             }
           ]
       },
@@ -75,7 +75,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "3.3"
+              "version": "3.4"
             }
           ]
       },
@@ -83,7 +83,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "3.3"
+              "version": "3.4"
             }
           ]
       },
@@ -247,7 +247,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "114.148"
+              "version": "114.149"
             }
           ]
       },
@@ -255,7 +255,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "114.148"
+              "version": "114.149"
             }
           ]
       },
