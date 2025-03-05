@@ -42,7 +42,7 @@ class SaiYangraPlatform : public SaiPlatform {
 
   const std::set<sai_api_t>& getSupportedApiList() const override;
 
-  const std::unordered_map<std::string, std::string>
+  virtual const std::unordered_map<std::string, std::string>
   getSaiProfileVendorExtensionValues() const override;
 
   std::string getHwConfig() override;

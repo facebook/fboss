@@ -20,6 +20,9 @@ class SaiMinipack3NPlatform : public SaiYangraPlatform {
       folly::MacAddress localMac,
       const std::string& platformMappingStr);
   ~SaiMinipack3NPlatform() override;
+
+  const std::unordered_map<std::string, std::string>
+  getSaiProfileVendorExtensionValues() const override;
 };
 
 } // namespace facebook::fboss
