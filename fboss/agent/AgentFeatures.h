@@ -89,3 +89,5 @@ DECLARE_uint32(counter_refresh_interval);
 
 DECLARE_bool(run_forever);
 DECLARE_bool(run_forever_on_failure);
+
+DECLARE_string(sdk_reg_dump_path_prefix);

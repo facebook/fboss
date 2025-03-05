@@ -247,3 +247,8 @@ DEFINE_uint32(
 
 DEFINE_bool(run_forever, false, "run the test forever");
 DEFINE_bool(run_forever_on_failure, false, "run the test forever on failure");
+
+DEFINE_string(
+    sdk_reg_dump_path_prefix,
+    "/var/facebook/logs/fboss/sdk/reg_dump",
+    "File path prefix for SDK register dump");
