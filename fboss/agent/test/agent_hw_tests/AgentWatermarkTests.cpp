@@ -284,6 +284,10 @@ class AgentWatermarkTest : public AgentHwTest {
         auto interface = getProgrammedState()->getInterfaces()->getNodeIf(
             interfaceId.value());
         populateNdpNeighborsToCache(interface);
+      } else {
+        XLOG(WARN)
+            << "Interface ID " << interfaceId.value()
+            << " not found in ECMP setup. Skipping resolution of NDP neighbor";
       }
     }
   }
