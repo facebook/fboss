@@ -1050,6 +1050,10 @@ const string DEFAULT_INGRESS_ACL_TABLE_GROUP = "ingress-ACL-Table-Group";
 
 const string DEFAULT_INGRESS_ACL_TABLE = "AclTable1";
 
+const string DEFAULT_POST_LOOKUP_INGRESS_ACL_TABLE_GROUP = "post-lookup-ingress-ACL-Table-Group";
+
+const string DEFAULT_POST_LOOKUP_INGRESS_ACL_TABLE = "PostLookupAclTable1";
+
 enum PortType {
   INTERFACE_PORT = 0,
   FABRIC_PORT = 1,

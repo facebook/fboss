@@ -139,10 +139,6 @@ std::string kDefaultAclTableGroupName() {
   return "acl-table-group-ingress";
 }
 
-std::string kDefaultEgressAclTableGroupName() {
-  return "acl-table-group-egress";
-}
-
 std::vector<cfg::AclEntry>& getAcls(
     cfg::SwitchConfig* cfg,
     const std::optional<std::string>& tableName) {
@@ -456,7 +452,7 @@ getAclTableGroup(cfg::SwitchConfig& config, cfg::AclStage aclStage) {
   return nullptr;
 }
 
-void setupDefaultEgressAclTableGroup(cfg::SwitchConfig& config) {
+void setupDefaultPostLookupIngressAclTableGroup(cfg::SwitchConfig& config) {
   if (config.switchSettings()->switchIdToSwitchInfo()->empty()) {
     return;
   }
@@ -478,11 +474,12 @@ void setupDefaultEgressAclTableGroup(cfg::SwitchConfig& config) {
   utility::addAclTableGroup(
       &config,
       cfg::AclStage::INGRESS_POST_LOOKUP,
-      kDefaultEgressAclTableGroupName());
+      cfg::switch_config_constants::
+          DEFAULT_POST_LOOKUP_INGRESS_ACL_TABLE_GROUP());
   utility::addAclTable(
       &config,
       cfg::AclStage::INGRESS_POST_LOOKUP,
-      "eAclTable1",
+      cfg::switch_config_constants::DEFAULT_POST_LOOKUP_INGRESS_ACL_TABLE(),
       0,
       {
           cfg::AclTableActionType::PACKET_ACTION,
@@ -505,7 +502,7 @@ void setupDefaultIngressAclTableGroup(cfg::SwitchConfig& config) {
 
 void setupDefaultAclTableGroups(cfg::SwitchConfig& config) {
   setupDefaultIngressAclTableGroup(config);
-  setupDefaultEgressAclTableGroup(config);
+  setupDefaultPostLookupIngressAclTableGroup(config);
 }
 
 cfg::AclTable* getAclTable(

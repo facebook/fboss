@@ -62,8 +62,6 @@ std::optional<cfg::TrafficCounter> getAclTrafficCounter(
 
 std::string kDefaultAclTableGroupName();
 
-std::string kDefaultEgressAclTableGroupName();
-
 std::vector<cfg::AclEntry>& getAcls(
     cfg::SwitchConfig* cfg,
     const std::optional<std::string>& tableName);
@@ -167,7 +165,7 @@ getAclTableGroup(cfg::SwitchConfig& config, cfg::AclStage aclStage);
 
 void setupDefaultAclTableGroups(cfg::SwitchConfig& config);
 
-void setupDefaultEgressAclTableGroup(cfg::SwitchConfig& config);
+void setupDefaultPostLookupIngressAclTableGroup(cfg::SwitchConfig& config);
 
 void setupDefaultIngressAclTableGroup(cfg::SwitchConfig& config);
 
