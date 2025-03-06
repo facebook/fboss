@@ -472,14 +472,16 @@ void setupDefaultEgressAclTableGroup(cfg::SwitchConfig& config) {
     return;
   }
 
-  if (getAclTableGroup(config, cfg::AclStage::EGRESS)) {
+  if (getAclTableGroup(config, cfg::AclStage::INGRESS_POST_LOOKUP)) {
     return;
   }
   utility::addAclTableGroup(
-      &config, cfg::AclStage::EGRESS, kDefaultEgressAclTableGroupName());
+      &config,
+      cfg::AclStage::INGRESS_POST_LOOKUP,
+      kDefaultEgressAclTableGroupName());
   utility::addAclTable(
       &config,
-      cfg::AclStage::EGRESS,
+      cfg::AclStage::INGRESS_POST_LOOKUP,
       "eAclTable1",
       0,
       {
