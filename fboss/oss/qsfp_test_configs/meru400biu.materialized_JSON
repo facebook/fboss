@@ -1,5 +1,8 @@
 {
   "defaultCommandLineArgs": {
+    "firmware_upgrade_on_coldboot": "true",
+    "firmware_upgrade_on_tcvr_insert": "true",
+    "firmware_upgrade_supported": "true",
     "mode": "meru400biu"
   },
   "transceiverConfigOverrides": [
