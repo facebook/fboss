@@ -4532,6 +4532,7 @@ void SaiSwitch::injectSwitchReachabilityChangeNotification() {
 }
 
 HwResourceStats SaiSwitch::getResourceStats() const {
+  std::lock_guard<std::mutex> lock(saiSwitchMutex_);
   return hwResourceStats_;
 }
 } // namespace facebook::fboss
