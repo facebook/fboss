@@ -7,6 +7,7 @@
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/TrunkUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
+#include "fboss/agent/test/utils/MultiPortTrafficTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
 #include "fboss/agent/test/gen-cpp2/production_features_types.h"
@@ -222,25 +223,32 @@ TEST_F(AgentPacketSendTest, ArpRequestToFrontPanelPortSwitched) {
 }
 
 TEST_F(AgentPacketSendTest, PortTxEnableTest) {
-  auto setup = [=]() {};
-  auto verify = [=, this]() {
-    constexpr auto kNumPacketsToSend{100};
-    auto vlanId = utility::firstVlanID(getProgrammedState());
-    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
-    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
-
-    auto sendTcpPkts = [=, this](int numPacketsToSend) {
-      int dscpVal = 0;
-      for (int i = 0; i < numPacketsToSend; i++) {
+  auto setup = [this]() {
+    auto config = getSw()->getConfig();
+    utility::setTTLZeroCpuConfig(getAgentEnsemble()->getL3Asics(), config);
+    applyNewConfig(config);
+    utility::setupEcmpDataplaneLoopOnAllPorts(getAgentEnsemble());
+  };
+  auto verify = [this]() {
+    std::vector<PortID> portsUnderTest{
+        masterLogicalInterfacePortIds()[0], masterLogicalInterfacePortIds()[1]};
+    auto createHighRateTraffic = [=, this]() {
+      auto sendPacket = [=, this](
+                            AgentEnsemble* ensemble,
+                            const folly::IPAddressV6& dstIpv6Addr) {
+        auto vlanId = utility::firstVlanID(getProgrammedState());
+        auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
+        auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
+        constexpr auto kPayLoadLen{1000};
+        int dscpVal = 0;
         auto kECT1 = 0x01; // ECN capable transport ECT(1)
-        constexpr auto kPayLoadLen{200};
         auto txPacket = utility::makeTCPTxPacket(
             this->getSw(),
             vlanId,
             srcMac,
             intfMac,
             folly::IPAddressV6("2620:0:1cfe:face:b00c::3"),
-            folly::IPAddressV6("2620:0:1cfe:face:b00c::4"),
+            dstIpv6Addr,
             8001,
             8000,
             /*
@@ -251,67 +259,40 @@ TEST_F(AgentPacketSendTest, PortTxEnableTest) {
             255,
             std::vector<uint8_t>(kPayLoadLen, 0xff));
 
-        getSw()->sendPacketOutOfPortAsync(
-            std::move(txPacket), masterLogicalInterfacePortIds()[0]);
+        ensemble->getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+      };
+      utility::createTrafficOnMultiplePorts(
+          getAgentEnsemble(), 2, sendPacket, 10 /* desiredPct*/
+      );
+      for (const auto& port : portsUnderTest) {
+        // Port rate is at least 1Gbps
+        constexpr uint64_t kOneGbps = (uint64_t)10 * 1024 * 1024 * 1024;
+        getAgentEnsemble()->waitForSpecificRateOnPort(port, kOneGbps);
       }
     };
-
-    auto getOutPacketDelta = [](auto& after, auto& before) {
-      return (
-          (*after.outMulticastPkts_() + *after.outBroadcastPkts_() +
-           *after.outUnicastPkts_()) -
-          (*before.outMulticastPkts_() + *before.outBroadcastPkts_() +
-           *before.outUnicastPkts_()));
-    };
-
+    createHighRateTraffic();
     // Disable TX on port
-    enablePortTx(masterLogicalInterfacePortIds()[0], false);
-
-    /* wait until port stats stop incrementing */
-    auto portStatsT0 = getLatestPortStats(masterLogicalInterfacePortIds()[0]);
-    sendTcpPkts(kNumPacketsToSend);
+    enablePortTx(portsUnderTest[0], false);
+    // wait until paused port gets paused
+    auto portStatsT0 = getNextUpdatedPortStats(portsUnderTest);
     auto newStats = portStatsT0;
     WITH_RETRIES({
       auto oldStats = newStats;
-      sendTcpPkts(1);
-      newStats = getNextUpdatedPortStats(masterLogicalInterfacePortIds()[0]);
-      EXPECT_EVENTUALLY_GT(*newStats.timestamp_(), *oldStats.timestamp_());
+      auto pausedPort = portsUnderTest[0];
+      auto nonPausedPort = portsUnderTest[1];
+      newStats = getNextUpdatedPortStats(portsUnderTest);
+      EXPECT_EVENTUALLY_GT(
+          *newStats[nonPausedPort].outUnicastPkts_(),
+          *oldStats[nonPausedPort].outUnicastPkts_());
       EXPECT_EVENTUALLY_EQ(
-          *newStats.outUnicastPkts_(), *oldStats.outUnicastPkts_());
+          *newStats[pausedPort].outUnicastPkts_(),
+          *oldStats[pausedPort].outUnicastPkts_());
     });
-    // tx is fully disabled now, stats no longer increment.
-    auto portStatsT1 = getLatestPortStats(masterLogicalInterfacePortIds()[0]);
-    /*
-     * Most platforms would allow some packets to be TXed even after TX
-     * disable is set. But after the initial set of packets TX, no further
-     * TX happens, verify the same.
-     */
-    sendTcpPkts(kNumPacketsToSend);
-    auto portStatsT2 = getLatestPortStats(masterLogicalInterfacePortIds()[0]);
 
-    // Enable TX on port, and wait for a while for packets to TX
-    enablePortTx(masterLogicalInterfacePortIds()[0], true);
-
-    /*
-     * For most platforms where TX disable will not drop traffic, will have
-     * the out count increment. However, there are implementations like in
-     * native TH where the packets are just dropped and TH4 where there is
-     * no accounting for these packets at all. Below API would wait for out
-     * or drop counts to increment, if neither, return after a timeout.
-     */
-    waitForTxDoneOnPort(
-        masterLogicalInterfacePortIds()[0], kNumPacketsToSend, portStatsT1);
-
-    auto portStatsT3 = getLatestPortStats(masterLogicalInterfacePortIds()[0]);
-    XLOG(DBG0) << "Expected number of packets to be TXed: "
-               << kNumPacketsToSend * 2;
-    XLOG(DBG0) << "Delta packets during test, T0:T1 -> "
-               << getOutPacketDelta(portStatsT1, portStatsT0) << ", T1:T2 -> "
-               << getOutPacketDelta(portStatsT2, portStatsT1) << ", T2:T3 -> "
-               << getOutPacketDelta(portStatsT3, portStatsT2);
-
-    // TX disable works if no TX is seen between T1 and T2
-    EXPECT_EQ(0, getOutPacketDelta(portStatsT2, portStatsT1));
+    // Enable TX on port
+    enablePortTx(portsUnderTest[0], true);
+    // Traffic goes back to high rate after we enable TX again
+    createHighRateTraffic();
   };
   verifyAcrossWarmBoots(setup, verify);
 }
