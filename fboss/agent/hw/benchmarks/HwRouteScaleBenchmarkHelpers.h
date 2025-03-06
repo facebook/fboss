@@ -225,10 +225,6 @@ voqRouteBenchmark(bool add, uint32_t ecmpGroup, uint32_t ecmpWidth) {
             folly::sformat("Update state for node: {}", 0), updateDsfStateFn);
       });
 
-  // Trigger config apply to add remote interface routes as directly connected
-  // in RIB. This is to resolve ECMP members pointing to remote nexthops.
-  ensemble->applyNewConfig(voqInitialConfig(*ensemble));
-
   utility::EcmpSetupTargetedPorts6 ecmpHelper(ensemble->getProgrammedState());
   auto portDescriptor = utility::resolveRemoteNhops(ensemble.get(), ecmpHelper);
 
