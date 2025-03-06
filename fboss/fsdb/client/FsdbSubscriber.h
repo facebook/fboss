@@ -17,6 +17,8 @@
 
 namespace facebook::fboss::fsdb {
 
+constexpr std::string_view kSubscribeLatencyMetric = "subscribe_latency_ms";
+
 enum class SubscriptionState : uint16_t {
   DISCONNECTED,
   DISCONNECTED_GR_HOLD,
@@ -178,6 +180,10 @@ class FsdbSubscriber : public FsdbSubscriberBase {
               handleConnectionState(oldState, newState);
             }),
         operSubUnitUpdate_(operSubUnitUpdate),
+        subscribeLatencyMetric_(folly::sformat(
+            "{}.{}",
+            getCounterPrefix(),
+            kSubscribeLatencyMetric)),
         subscribePaths_(subscribePaths),
         subscriptionOptions_(std::move(options)),
         subscriptionState_(
@@ -318,6 +324,9 @@ class FsdbSubscriber : public FsdbSubscriberBase {
   }
 
   FsdbSubUnitUpdateCb operSubUnitUpdate_;
+
+ protected:
+  const std::string subscribeLatencyMetric_;
 
  private:
   const Paths subscribePaths_;

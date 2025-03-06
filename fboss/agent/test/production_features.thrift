@@ -77,6 +77,7 @@ enum ProductionFeature {
   MULTICAST_QUEUE = 64,
   MMU_TUNING = 65,
   OLYMPIC_QOS = 66,
+  MPLS = 67,
   # production feature which is present on all platforms, keep it at the end
   HW_SWITCH = 65536,
 }

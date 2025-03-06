@@ -40,7 +40,7 @@ class AgentIpInIpTunnelTest : public AgentHwTest {
         ensemble.masterLogicalPortIds()[1],
         ensemble.getSw()->getPlatformSupportsAddRemovePort(),
         asic->desiredLoopbackModes());
-    addTunnelConfig(cfg);
+    addTunnelConfig(cfg, asic);
     auto port = ensemble.masterLogicalInterfacePortIds()[0];
     utility::addTrapPacketAcl(asic, &cfg, port);
     return cfg;
@@ -65,19 +65,21 @@ class AgentIpInIpTunnelTest : public AgentHwTest {
   }
 
  private:
-  void addTunnelConfig(cfg::SwitchConfig& cfg) const {
+  void addTunnelConfig(cfg::SwitchConfig& cfg, const HwAsic* asic) const {
     std::vector<cfg::IpInIpTunnel> tunnelList;
     tunnelList.push_back(makeTunnelConfig(
         "hwTestTunnel",
         kTunnelTermDstIp,
-        (InterfaceID)cfg.interfaces()[0].intfID().value()));
+        (InterfaceID)cfg.interfaces()[0].intfID().value(),
+        asic));
     cfg.ipInIpTunnels() = tunnelList;
   }
 
   cfg::IpInIpTunnel makeTunnelConfig(
       std::string name,
       std::string dstIp,
-      InterfaceID interfaceId) const {
+      InterfaceID interfaceId,
+      const HwAsic* asic) const {
     cfg::IpInIpTunnel tunnel;
     tunnel.ipInIpTunnelId() = name;
     tunnel.underlayIntfID() = interfaceId;
@@ -86,7 +88,7 @@ class AgentIpInIpTunnelTest : public AgentHwTest {
     tunnel.tunnelTermType() = cfg::TunnelTerminationType::P2MP;
     tunnel.tunnelType() = cfg::TunnelType::IP_IN_IP;
     tunnel.ttlMode() = cfg::IpTunnelMode::PIPE;
-    tunnel.dscpMode() = cfg::IpTunnelMode::PIPE;
+    tunnel.dscpMode() = asic->getTunnelDscpMode();
     tunnel.ecnMode() = cfg::IpTunnelMode::PIPE;
 
     return tunnel;

@@ -323,9 +323,10 @@ BaseEcmpSetupHelper<AddrT, NextHopT>::resolveNextHop(
     bool useLinkLocal,
     std::optional<int64_t> encapIdx) const {
   auto intfID = portDesc2Interface_.find(nhop.portDesc)->second;
-  auto intf = inputState->getInterfaces()->getNodeIf(intfID)
-      ? inputState->getInterfaces()->getNode(intfID)
-      : inputState->getRemoteInterfaces()->getNodeIf(intfID);
+  auto intf = inputState->getInterfaces()->getNodeIf(intfID);
+  if (intf == nullptr) {
+    intf = inputState->getRemoteInterfaces()->getNodeIf(intfID);
+  }
   switch (intf->getType()) {
     case cfg::InterfaceType::VLAN:
       CHECK(!encapIdx.has_value())
