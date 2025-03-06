@@ -189,7 +189,7 @@ bool YubaAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::EGRESS_GVOQ_WATERMARK_BYTES:
     case HwAsic::Feature::ENABLE_DELAY_DROP_CONGESTION_THRESHOLD:
     case HwAsic::Feature::PORT_MTU_ERROR_TRAP:
-    case HwAsic::Feature::EGRESS_ACL_TABLE:
+    case HwAsic::Feature::INGRESS_POST_LOOKUP_ACL_TABLE:
     case HwAsic::Feature::FAST_LLFC_COUNTER:
     case HwAsic::Feature::INGRESS_SRAM_MIN_BUFFER_WATERMARK:
     case HwAsic::Feature::FDR_FIFO_WATERMARK:

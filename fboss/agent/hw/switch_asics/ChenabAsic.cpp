@@ -72,7 +72,7 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::SAI_TTL0_PACKET_FORWARD_ENABLE:
     case HwAsic::Feature::L3_INTF_MTU:
     case HwAsic::Feature::SWITCH_ATTR_INGRESS_ACL:
-    case HwAsic::Feature::EGRESS_ACL_TABLE:
+    case HwAsic::Feature::INGRESS_POST_LOOKUP_ACL_TABLE:
     case HwAsic::Feature::SAI_USER_DEFINED_TRAP:
     case HwAsic::Feature::ACL_ENTRY_ETHER_TYPE:
     case HwAsic::Feature::DEDICATED_CPU_BUFFER_POOL:

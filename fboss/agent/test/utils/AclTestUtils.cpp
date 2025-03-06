@@ -468,7 +468,7 @@ void setupDefaultEgressAclTableGroup(cfg::SwitchConfig& config) {
 
   HwAsicTable asicTable(switchId2SwitchInfo, version);
   if (!asicTable.isFeatureSupportedOnAnyAsic(
-          HwAsic::Feature::EGRESS_ACL_TABLE)) {
+          HwAsic::Feature::INGRESS_POST_LOOKUP_ACL_TABLE)) {
     return;
   }
 
