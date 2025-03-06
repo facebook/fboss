@@ -41,10 +41,6 @@ void addAclEntry(cfg::SwitchConfig& cfg, cfg::AclEntry* acl) {
 namespace facebook::fboss {
 
 class AgentAclPriorityTest : public AgentHwTest {
-  void setCmdLineFlagOverrides() const override {
-    AgentHwTest::setCmdLineFlagOverrides();
-  }
-
  public:
   std::vector<production_features::ProductionFeature>
   getProductionFeaturesVerified() const override {

@@ -25,6 +25,7 @@ class AgentTrafficPauseTest : public AgentHwTest {
   }
 
   void setCmdLineFlagOverrides() const override {
+    AgentHwTest::setCmdLineFlagOverrides();
     // Turn on Leaba SDK shadow cache to avoid test case timeout
     FLAGS_counter_refresh_interval = 1;
   }
