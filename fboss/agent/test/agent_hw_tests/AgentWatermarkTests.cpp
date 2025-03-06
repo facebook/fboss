@@ -277,6 +277,13 @@ class AgentWatermarkTest : public AgentHwTest {
     applyNewState([&](const std::shared_ptr<SwitchState>& in) {
       return ecmpHelper6.resolveNextHops(in, {portDesc});
     });
+
+    if (needTrafficLoop) {
+      const auto& nextHop = ecmpHelper6.nhop(portDesc);
+      utility::ttlDecrementHandlingForLoopbackTraffic(
+          getAgentEnsemble(), ecmpHelper6.getRouterId(), nextHop);
+    }
+
     if (FLAGS_intf_nbr_tables) {
       auto interfaceId =
           ecmpHelper6.getInterface(portDesc, getProgrammedState());
