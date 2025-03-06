@@ -102,7 +102,8 @@ void PlatformProductInfo::initMode() {
     } else if (
         modelName.find("Montblanc") == 0 || modelName.find("MONTBLANC") == 0 ||
         modelName.find("MINIPACK3_CHASSIS_BUNDLE") == 0 ||
-        modelName.find("MINIPACK3") == 0) {
+        modelName.find("MINIPACK3") == 0 ||
+        modelName.find("MINIPACK3-48V-ORV3") == 0) {
       type_ = PlatformType::PLATFORM_MONTBLANC;
     } else if (
         modelName.find("MINIPACK") == 0 || modelName.find("MINIPHOTON") == 0) {

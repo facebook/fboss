@@ -406,6 +406,7 @@ class AgentTrafficPfcTest : public AgentHwTest {
 
   void pumpTraffic(
       const int priority,
+      const std::optional<uint8_t> queue,
       const std::vector<PortID>& portIds,
       const std::vector<folly::IPAddressV6>& ips) {
     auto vlanId = utility::firstVlanID(getProgrammedState());
@@ -418,6 +419,7 @@ class AgentTrafficPfcTest : public AgentHwTest {
     // Some asics (e.g. Yuba) won't let traffic build up evenly if all packets
     // were sent to one port before another. It's better to alternate the ports.
     for (int i = 0; i < numPacketsPerFlow; i++) {
+      XLOG_EVERY_N(INFO, 100) << "Sending packet " << i;
       for (int j = 0; j < ips.size(); j++) {
         auto txPacket = utility::makeUDPTxPacket(
             getSw(),
@@ -432,17 +434,18 @@ class AgentTrafficPfcTest : public AgentHwTest {
             255,
             std::vector<uint8_t>(2000, 0xff));
 
-        // If we don't specify the outgoing port, watermarks sometimes end up as
-        // 0, but it's not clear why.
+        // TODO(maxgg): Investigate TH3/4 WithScaleCfg failure when queue is
+        // set to losslessPriority (2).
         getAgentEnsemble()->sendPacketAsync(
-            std::move(txPacket), PortDescriptor(portIds[j]), std::nullopt);
+            std::move(txPacket), PortDescriptor(portIds[j]), queue);
       }
     }
   }
 
   void pumpTraffic(const int priority, bool scaleTest) {
     std::vector<PortID> portIds = portIdsForTest(scaleTest);
-    pumpTraffic(priority, portIds, getDestinationIps(portIds.size()));
+    pumpTraffic(
+        priority, std::nullopt, portIds, getDestinationIps(portIds.size()));
   }
 
   void stopTraffic(const std::vector<PortID>& portIds) {
@@ -725,7 +728,7 @@ class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcTest {
       // Disable Tx on the outbound port so that queues will build up.
       utility::setCreditWatchdogAndPortTx(
           getAgentEnsemble(), txOffPortId, false);
-      pumpTraffic(kLosslessTrafficClass, {port}, {ip});
+      pumpTraffic(kLosslessTrafficClass, kLosslessPriority, {port}, {ip});
       validatePfcCounterIncrement(port, kLosslessPriority);
     }
   }

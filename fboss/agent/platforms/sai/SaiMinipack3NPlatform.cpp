@@ -26,5 +26,12 @@ SaiMinipack3NPlatform::SaiMinipack3NPlatform(
               : std::make_unique<Minipack3NPlatformMapping>(
                     platformMappingStr)) {}
 
+const std::unordered_map<std::string, std::string>
+SaiMinipack3NPlatform::getSaiProfileVendorExtensionValues() const {
+  auto kv_map = SaiYangraPlatform::getSaiProfileVendorExtensionValues();
+  kv_map.insert(std::make_pair("SAI_KEY_INDEPENDENT_MODULE_MODE", "2"));
+  return kv_map;
+}
+
 SaiMinipack3NPlatform::~SaiMinipack3NPlatform() = default;
 } // namespace facebook::fboss

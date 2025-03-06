@@ -34,7 +34,9 @@ class AgentWatermarkTest : public AgentHwTest {
 
   std::vector<production_features::ProductionFeature>
   getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::L3_QOS};
+    return {
+        production_features::ProductionFeature::L3_QOS,
+        production_features::ProductionFeature::OLYMPIC_QOS};
   }
 
   void setCmdLineFlagOverrides() const override {

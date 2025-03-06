@@ -1137,12 +1137,6 @@ void SaiSwitchManager::setShelConfig(
     switch_->setOptionalAttribute(
         SaiSwitchTraits::Attributes::ShelPeriodicInterval{static_cast<uint32_t>(
             *shelConfig.value().shelPeriodicIntervalMS())});
-  } else {
-    switch_->setOptionalAttribute(SaiSwitchTraits::Attributes::ShelSrcMac{});
-    switch_->setOptionalAttribute(SaiSwitchTraits::Attributes::ShelSrcIp{});
-    switch_->setOptionalAttribute(SaiSwitchTraits::Attributes::ShelDstIp{});
-    switch_->setOptionalAttribute(
-        SaiSwitchTraits::Attributes::ShelPeriodicInterval{0});
   }
 }
 

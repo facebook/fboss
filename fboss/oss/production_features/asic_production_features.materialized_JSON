@@ -158,7 +158,8 @@
         59,
         60,
         63,
-        65
+        65,
+        67
     ],
     "tomahawk3": [
         2,
@@ -209,7 +210,8 @@
         62,
         63,
         64,
-        65
+        65,
+        67
     ],
     "tomahawk4": [
         2,
@@ -258,7 +260,8 @@
         60,
         62,
         63,
-        64
+        64,
+        67
     ],
     "tomahawk5": [
         2,
@@ -508,7 +511,8 @@
         "CLASS_ID_FOR_CONNECTED_ROUTE",
         "SEPARATE_BYTE_AND_PACKET_ACL_COUNTERS",
         "UCMP",
-        "MMU_TUNING"
+        "MMU_TUNING",
+        "UNTRUNCATED_SFLOW"
     ],
     "tomahawk3": [
         "CPU_RX_TX",
@@ -559,7 +563,8 @@
         "EAPOL_TRAP",
         "UCMP",
         "MULTICAST_QUEUE",
-        "MMU_TUNING"
+        "MMU_TUNING",
+        "UNTRUNCATED_SFLOW"
     ],
     "tomahawk4": [
         "CPU_RX_TX",
@@ -608,7 +613,8 @@
         "SEPARATE_BYTE_AND_PACKET_ACL_COUNTERS",
         "EAPOL_TRAP",
         "UCMP",
-        "MULTICAST_QUEUE"
+        "MULTICAST_QUEUE",
+        "UNTRUNCATED_SFLOW"
     ],
     "tomahawk5": [
         "CPU_RX_TX",
