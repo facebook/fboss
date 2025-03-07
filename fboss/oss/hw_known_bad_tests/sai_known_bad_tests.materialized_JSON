@@ -9558,8 +9558,16 @@
           "test_name_regex": "HwTest_PROFILE_10G_1_NRZ_NOFEC_OPTICAL"
         }
     ],
-    "chenab/1.14.130/1.14.130/chenab": [
-        
+    "chenab/1.15.3/1.15.3/chenab": [
+        {
+          "test_name_regex": "SaiRollbackTest.*"
+        },
+        {
+          "test_name_regex": "SaiRouteRollbackTest.*"
+        },
+        {
+          "test_name_regex": "SaiQPHRollbackTest.*"
+        }
     ],
     "leaba/1.42.8/1.42.8/gibraltar": [
         {
