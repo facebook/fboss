@@ -587,6 +587,8 @@ class AgentCoppTest : public AgentHwTest {
 
   void
   sendDHCPv6Pkts(int numPktsToSend, DHCPv6Type type, int ttl, bool outOfPort) {
+    auto intfId = utility::firstInterfaceID(getProgrammedState());
+    auto myIpv6 = utility::getIntfAddrsV6(getProgrammedState(), intfId)[0];
     auto vlanId = utility::firstVlanID(getProgrammedState());
     auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
     auto neighborMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
@@ -611,7 +613,7 @@ class AgentCoppTest : public AgentHwTest {
                 intfMac, // dstMac: Switch/our MAC
                 kDhcpV6ServerGlobalUnicastAddress, // srcIp: Server's global
                                                    // unicast address
-                folly::IPAddressV6("1::"), // dstIp: Switch/our IP
+                myIpv6, // dstIp: Switch/our IP
                 kRandomPort, // SrcPort:DHCPv6 server's random port
                 DHCPv6Packet::DHCP6_SERVERAGENT_UDPPORT, // DstPort: 547
                 0 /* dscp */,
@@ -1332,8 +1334,12 @@ TYPED_TEST(AgentCoppTest, DhcpPacketToMidPriQ) {
   auto setup = [=, this]() { this->setup(); };
 
   auto verify = [=, this]() {
-    std::array<folly::IPAddress, 2> dstIP{
-        folly::IPAddress("1.0.0.10"), folly::IPAddress("1::10")};
+    auto intfID = utility::firstInterfaceID(this->getProgrammedState());
+    auto v4IntfAddr =
+        utility::getIntfAddrsV4(this->getProgrammedState(), intfID)[0];
+    auto v6IntfAddr =
+        utility::getIntfAddrsV6(this->getProgrammedState(), intfID)[0];
+    std::array<folly::IPAddress, 2> dstIP{v4IntfAddr, v6IntfAddr};
     std::array<std::pair<int, int>, 2> dhcpPortPairs{
         std::make_pair(67, 68), std::make_pair(546, 547)};
     for (int i = 0; i < 2; i++) {
