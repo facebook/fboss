@@ -587,7 +587,7 @@ class AgentCoppTest : public AgentHwTest {
 
   void
   sendDHCPv6Pkts(int numPktsToSend, DHCPv6Type type, int ttl, bool outOfPort) {
-    auto intfId = utility::firstInterfaceID(getProgrammedState());
+    auto intfId = utility::firstInterfaceIDWithPorts(getProgrammedState());
     auto myIpv6 = utility::getIntfAddrsV6(getProgrammedState(), intfId)[0];
     auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
     auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
@@ -1334,7 +1334,8 @@ TYPED_TEST(AgentCoppTest, DhcpPacketToMidPriQ) {
   auto setup = [=, this]() { this->setup(); };
 
   auto verify = [=, this]() {
-    auto intfID = utility::firstInterfaceID(this->getProgrammedState());
+    auto intfID =
+        utility::firstInterfaceIDWithPorts(this->getProgrammedState());
     auto v4IntfAddr =
         utility::getIntfAddrsV4(this->getProgrammedState(), intfID)[0];
     auto v6IntfAddr =

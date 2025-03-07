@@ -30,7 +30,7 @@ class AgentL3ForwardingTest : public AgentHwTest {
     return utility::firstVlanIDWithPorts(getProgrammedState());
   }
   InterfaceID kIntfID() const {
-    return utility::firstInterfaceID(getProgrammedState());
+    return utility::firstInterfaceIDWithPorts(getProgrammedState());
   }
 
   folly::MacAddress kNeighborMac() const {

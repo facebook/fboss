@@ -184,7 +184,7 @@ class AgentNeighborTest : public AgentHwTest {
       if (!isIntfNbrTable) {
         return InterfaceID(static_cast<int>(kVlanID()));
       } else {
-        return utility::firstInterfaceID(getProgrammedState());
+        return utility::firstInterfaceIDWithPorts(getProgrammedState());
       }
     } else if (switchType == cfg::SwitchType::VOQ) {
       CHECK(!programToTrunk) << " Trunks not supported yet on VOQ switches";
