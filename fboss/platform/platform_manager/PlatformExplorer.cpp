@@ -480,6 +480,10 @@ void PlatformExplorer::explorePciDevices(
     auto pciDevice = PciDevice(pciDeviceConfig, platformFsUtils_);
     auto instId =
         getFpgaInstanceId(slotPath, *pciDeviceConfig.pmUnitScopedName());
+    auto pciDevicePath = Utils().createDevicePath(slotPath, pciDevice.name());
+    dataStore_.updateSysfsPath(pciDevicePath, pciDevice.sysfsPath());
+    dataStore_.updateCharDevPath(pciDevicePath, pciDevice.charDevPath());
+
     createPciSubDevices(
         slotPath,
         *pciDeviceConfig.i2cAdapterConfigs(),

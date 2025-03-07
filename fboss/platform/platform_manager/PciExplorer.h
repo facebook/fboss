@@ -31,6 +31,7 @@ struct PciDevice {
           std::make_shared<PlatformFsUtils>());
   std::string sysfsPath() const;
   std::string charDevPath() const;
+  std::string name() const;
 
  private:
   std::string name_{};
