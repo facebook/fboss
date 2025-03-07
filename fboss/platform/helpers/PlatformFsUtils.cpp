@@ -70,6 +70,16 @@ bool PlatformFsUtils::writeStringToFile(
   if (!createDirectories(path.parent_path())) {
     return false;
   }
+  // Note: Folly automatically escapes unprintable characters by default.
+  // See docs at https://fburl.com/g0rrb1uh
+  XLOGF(
+      DBG2,
+      "Writing \"{}\"{} to file: {}, flags: {}, atomic: {}",
+      content.substr(0, 128),
+      content.size() > 128 ? "..." : "",
+      prefixedPath.string(),
+      flags,
+      atomic);
   int errorCode = 0;
   if (atomic) {
     auto options = folly::WriteFileAtomicOptions();
@@ -99,6 +109,15 @@ bool PlatformFsUtils::writeStringToSysfs(
     const fs::path& path) const {
   // TODO: Look into whether there's any reasonable way to unit test sysfs.
   // const fs::path& prefixedPath = concat(rootDir_, path);
+
+  // Note: Folly automatically escapes unprintable characters by default.
+  // See docs at https://fburl.com/g0rrb1uh
+  XLOGF(
+      DBG2,
+      "Writing \"{}\"{} to sysfs file: {}",
+      content.substr(0, 128),
+      content.size() > 128 ? "..." : "",
+      path.string());
   int errorCode = 0;
   bool written = folly::writeFile(content + "\n", path.c_str(), O_WRONLY);
   // errno will be set to 2 when the file did not exist but was successfully
