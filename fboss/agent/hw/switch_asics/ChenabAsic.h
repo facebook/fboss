@@ -28,7 +28,7 @@ class ChenabAsic : public HwAsic {
   bool isSupported(Feature feature) const override;
   cfg::AsicType getAsicType() const override;
   int getBufferDynThreshFromScalingFactor(
-      cfg::MMUScalingFactor /* scalingFactor */) const override;
+      cfg::MMUScalingFactor scalingFactor) const override;
   bool scalingFactorBasedDynamicThresholdSupported() const override;
   phy::DataPlanePhyChipType getDataPlanePhyChipType() const override;
   cfg::PortSpeed getMaxPortSpeed() const override;
