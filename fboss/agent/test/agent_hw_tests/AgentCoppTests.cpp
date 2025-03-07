@@ -149,7 +149,7 @@ class AgentCoppTest : public AgentHwTest {
       const std::optional<folly::MacAddress>& dstMac = std::nullopt,
       uint8_t trafficClass = 0,
       std::optional<std::vector<uint8_t>> payload = std::nullopt) {
-    auto vlanId = utility::firstVlanID(getProgrammedState());
+    auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
     auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
     utility::sendTcpPkts(
         getSw(),
@@ -246,7 +246,7 @@ class AgentCoppTest : public AgentHwTest {
       bool outOfPort = true,
       bool skipTtlDecrement = true) {
     const auto kNumPktsToSend = 1;
-    auto vlanId = utility::firstVlanID(getProgrammedState());
+    auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
     auto destinationMac =
         dstMac.value_or(utility::getFirstInterfaceMac(getProgrammedState()));
     auto sendAndInspect = [=, this]() {
@@ -281,7 +281,7 @@ class AgentCoppTest : public AgentHwTest {
       uint8_t ttl,
       bool outOfPort,
       bool expectPktTrap) {
-    auto vlanId = utility::firstVlanID(getProgrammedState());
+    auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
     auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
     // arbit
     const auto srcIp =
@@ -344,7 +344,7 @@ class AgentCoppTest : public AgentHwTest {
       facebook::fboss::ETHERTYPE etherType,
       const std::optional<folly::MacAddress>& dstMac = std::nullopt,
       std::optional<std::vector<uint8_t>> payload = std::nullopt) {
-    auto vlanId = utility::firstVlanID(getProgrammedState());
+    auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
     auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
 
     for (int i = 0; i < numPktsToSend; i++) {
@@ -421,7 +421,7 @@ class AgentCoppTest : public AgentHwTest {
       const folly::IPAddress& dstIpAddress,
       ARP_OPER arpType,
       bool outOfPort) {
-    auto vlanId = utility::firstVlanID(getProgrammedState());
+    auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
     auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
     for (int i = 0; i < numPktsToSend; i++) {
@@ -475,7 +475,7 @@ class AgentCoppTest : public AgentHwTest {
       bool outOfPort,
       bool selfSolicit,
       bool expectRxPacket = true) {
-    auto vlanId = utility::firstVlanID(getProgrammedState());
+    auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
     auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
     auto neighborMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
 
@@ -544,7 +544,7 @@ class AgentCoppTest : public AgentHwTest {
       int queueId,
       const int numPktsToSend = 1,
       const int expectedPktDelta = 1) {
-    auto vlanId = utility::firstVlanID(getProgrammedState());
+    auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
     auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
     auto neighborMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
     auto beforeOutPkts = utility::getQueueOutPacketsWithRetry(
@@ -589,7 +589,7 @@ class AgentCoppTest : public AgentHwTest {
   sendDHCPv6Pkts(int numPktsToSend, DHCPv6Type type, int ttl, bool outOfPort) {
     auto intfId = utility::firstInterfaceID(getProgrammedState());
     auto myIpv6 = utility::getIntfAddrsV6(getProgrammedState(), intfId)[0];
-    auto vlanId = utility::firstVlanID(getProgrammedState());
+    auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
     auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
     auto neighborMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
 
@@ -1721,7 +1721,7 @@ TEST_F(AgentCoppQueueStuckTest, CpuQueueHighRateTraffic) {
 
   auto verify = [&]() {
     // Create dataplane loop with lowerPriority traffic on port0
-    auto baseVlan = utility::firstVlanID(getProgrammedState());
+    auto baseVlan = utility::firstVlanIDWithPorts(getProgrammedState());
     createLineRateTrafficOnPort(
         masterLogicalInterfacePortIds()[0], baseVlan, kIpForLowPriorityQueue);
 
@@ -1781,7 +1781,7 @@ TEST_F(AgentCoppQosTest, HighVsLowerPriorityCpuQueueTrafficPrioritization) {
     const auto ipForHigherPriorityQueue =
         folly::IPAddress::createNetwork(configIntf.ipAddresses()[1], -1, false)
             .first;
-    auto baseVlan = utility::firstVlanID(getProgrammedState());
+    auto baseVlan = utility::firstVlanIDWithPorts(getProgrammedState());
 
     // Create dataplane loop with lowerPriority traffic on port0
     createLineRateTrafficOnPort(

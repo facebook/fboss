@@ -75,7 +75,7 @@ TEST_F(AgentPacketSendTest, LldpToFrontPanelOutOfPort) {
   auto verify = [=, this]() {
     auto portStatsBefore =
         getLatestPortStats(masterLogicalInterfacePortIds()[0]);
-    auto vlanId = utility::firstVlanID(getProgrammedState());
+    auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
     auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
     auto payLoadSize = 256;
@@ -122,7 +122,7 @@ TEST_F(AgentPacketSendTest, LldpToFrontPanelOutOfPortWithBufClone) {
   auto verify = [=, this]() {
     auto portStatsBefore =
         getLatestPortStats(masterLogicalInterfacePortIds()[0]);
-    auto vlanId = utility::firstVlanID(getProgrammedState());
+    auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
     auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
     auto payLoadSize = 256;
@@ -183,7 +183,7 @@ TEST_F(AgentPacketSendTest, ArpRequestToFrontPanelPortSwitched) {
   auto verify = [=, this]() {
     auto portStatsBefore =
         getLatestPortStats(masterLogicalInterfacePortIds()[0]);
-    auto vlanId = utility::firstVlanID(getProgrammedState());
+    auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
     auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
     auto randomIP = folly::IPAddressV4("1.1.1.5");
@@ -236,7 +236,7 @@ TEST_F(AgentPacketSendTest, PortTxEnableTest) {
       auto sendPacket = [=, this](
                             AgentEnsemble* ensemble,
                             const folly::IPAddressV6& dstIpv6Addr) {
-        auto vlanId = utility::firstVlanID(getProgrammedState());
+        auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
         auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
         auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
         constexpr auto kPayLoadLen{1000};
@@ -336,7 +336,7 @@ TEST_F(AgentPacketSendReceiveTest, LldpPacketReceiveSrcPort) {
   auto verify = [=, this]() {
     getAgentEnsemble()->getSw()->getPacketObservers()->registerPacketObserver(
         this, "LldpPacketReceiveSrcPort");
-    auto vlanId = utility::firstVlanID(getProgrammedState());
+    auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
     auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
     auto payLoadSize = 256;
@@ -417,7 +417,7 @@ TEST_F(AgentPacketSendReceiveLagTest, LacpPacketReceiveSrcPort) {
   auto verify = [=, this]() {
     getAgentEnsemble()->getSw()->getPacketObservers()->registerPacketObserver(
         this, "LacpPacketReceiveSrcPort");
-    auto vlanId = utility::firstVlanID(getProgrammedState());
+    auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
     auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
     auto payLoadSize = 256;
     static auto payload = std::vector<uint8_t>(payLoadSize, 0xff);
@@ -516,7 +516,7 @@ TEST_F(AgentPacketFloodTest, ArpRequestFloodTest) {
   auto setup = [=]() {};
   auto verify = [=, this]() {
     auto portStatsBefore = getLatestPortStats(masterLogicalPortIds());
-    auto vlanId = utility::firstVlanID(getProgrammedState());
+    auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
     auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
     auto randomIP = folly::IPAddressV4("1.1.1.5");
@@ -540,7 +540,7 @@ TEST_F(AgentPacketFloodTest, NdpFloodTest) {
   auto setup = [=]() {};
   auto verify = [=, this]() {
     auto retries = 5;
-    auto vlanId = utility::firstVlanID(getProgrammedState());
+    auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
     auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
     auto suceess = false;
     while (retries--) {

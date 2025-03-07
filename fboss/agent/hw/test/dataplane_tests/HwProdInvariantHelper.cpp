@@ -219,7 +219,7 @@ void HwProdInvariantHelper::disableTtl() {
 }
 
 void HwProdInvariantHelper::verifyQueuePerHostMapping(bool dscpMarkingTest) {
-  auto vlanId = utility::firstVlanID(getProgrammedState());
+  auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
   auto intfMac = utility::getFirstInterfaceMac(ensemble_->getProgrammedState());
   auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO());
 

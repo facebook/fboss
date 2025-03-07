@@ -67,7 +67,7 @@ class HwL3Test : public HwLinkStateDependentTest {
     auto setup = [=]() {};
 
     auto verify = [=]() {
-      auto vlanId = utility::firstVlanID(initialConfig());
+      auto vlanId = utility::firstVlanIDWithPorts(initialConfig());
       auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
       RoutePrefix<folly::IPAddressV4> prefix4(kGetRoutePrefixIPv4());
       RoutePrefix<folly::IPAddressV6> prefix6(kGetRoutePrefixIPv6());
@@ -145,7 +145,7 @@ class HwL3Test : public HwLinkStateDependentTest {
     };
 
     auto verify = [=]() {
-      auto vlanId = utility::firstVlanID(initialConfig());
+      auto vlanId = utility::firstVlanIDWithPorts(initialConfig());
       auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
       // Verify hit bit NOT set on both neighbor entries
       EXPECT_FALSE(utility::isHostHit(this->getHwSwitch(), kNbrIPv4()));

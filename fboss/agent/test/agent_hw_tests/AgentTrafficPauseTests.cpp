@@ -39,7 +39,7 @@ class AgentTrafficPauseTest : public AgentHwTest {
     for (int idx = 0; idx < count; idx++) {
       auto pkt = utility::makeEthTxPacket(
           getSw(),
-          utility::firstVlanID(getProgrammedState()),
+          utility::firstVlanIDWithPorts(getProgrammedState()),
           utility::MacAddressGenerator().get(intfMac.u64NBO() + 1),
           folly::MacAddress("01:80:C2:00:00:01"),
           ETHERTYPE::ETHERTYPE_EPON,
@@ -60,7 +60,7 @@ class AgentTrafficPauseTest : public AgentHwTest {
   static void sendPacket(
       AgentEnsemble* ensemble,
       const folly::IPAddressV6& destIpv6Addr) {
-    auto vlanId = utility::firstVlanID(ensemble->getProgrammedState());
+    auto vlanId = utility::firstVlanIDWithPorts(ensemble->getProgrammedState());
     auto intfMac =
         utility::getFirstInterfaceMac(ensemble->getProgrammedState());
     auto dscp = utility::kOlympicQueueToDscp().at(0).front();

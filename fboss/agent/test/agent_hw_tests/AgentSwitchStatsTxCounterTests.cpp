@@ -37,7 +37,7 @@ void AgentSwitchStatsTxCounterTest::checkTxCounters() {
 }
 
 std::unique_ptr<TxPacket> AgentSwitchStatsTxCounterTest::createL3Packet() {
-  auto vlanId = utility::firstVlanID(getProgrammedState());
+  auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
   auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
   return utility::makeUDPTxPacket(
       getSw(),

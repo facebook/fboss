@@ -274,7 +274,7 @@ void ProdInvariantTest::verifyDscpToQueueMapping() {
 }
 
 void ProdInvariantTest::verifyQueuePerHostMapping(bool dscpMarkingTest) {
-  auto vlanId = utility::firstVlanID(sw()->getState());
+  auto vlanId = utility::firstVlanIDWithPorts(sw()->getState());
   auto intfMac = utility::getFirstInterfaceMac(sw()->getState());
   auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO());
 

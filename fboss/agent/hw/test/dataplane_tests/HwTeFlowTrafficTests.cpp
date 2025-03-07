@@ -76,7 +76,7 @@ class HwTeFlowTrafficTest : public HwLinkStateDependentTest {
       PortID from,
       std::optional<DSCP> dscp = std::nullopt) {
     // TODO: Remove the dependency on VLAN below
-    auto vlan = utility::firstVlanID(initialConfig());
+    auto vlan = utility::firstVlanIDWithPorts(initialConfig());
     if (!vlan) {
       throw FbossError("VLAN id unavailable for test");
     }
@@ -145,7 +145,7 @@ class HwTeFlowTrafficTest : public HwLinkStateDependentTest {
 
   void createL3DataplaneFlood(folly::IPAddressV6 dstIp, PortID from) {
     XLOG(INFO) << "creating data plane flood";
-    auto vlan = utility::firstVlanID(initialConfig());
+    auto vlan = utility::firstVlanIDWithPorts(initialConfig());
     if (!vlan) {
       throw FbossError("VLAN id unavailable for test");
     }

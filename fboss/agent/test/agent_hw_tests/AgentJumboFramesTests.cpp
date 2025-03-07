@@ -42,7 +42,7 @@ class AgentJumboFramesTest : public AgentHwTest {
     auto mac = utility::getFirstInterfaceMac(getProgrammedState());
     auto txPacket = utility::makeUDPTxPacket(
         getSw(),
-        utility::firstVlanID(getProgrammedState()),
+        utility::firstVlanIDWithPorts(getProgrammedState()),
         mac,
         mac,
         folly::IPAddressV6("2620:0:1cfe:face:b00c::3"),

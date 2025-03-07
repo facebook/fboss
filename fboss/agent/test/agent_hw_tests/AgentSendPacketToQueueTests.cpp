@@ -56,7 +56,7 @@ void AgentSendPacketToQueueTest::checkSendPacket(
 
     auto beforeOutPkts =
         getLatestPortStats(port).get_queueOutPackets_().at(queueID);
-    auto vlanId = utility::firstVlanID(getProgrammedState());
+    auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
     auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
     // packet format shouldn't be matter in this test
     auto pkt = utility::makeUDPTxPacket(
@@ -153,7 +153,7 @@ TEST_F(AgentSendPacketToMulticastQueueTest, SendPacketOutOfPortToMCQueue) {
     if (getSw()->getBootType() == BootType::WARM_BOOT) {
       return;
     }
-    auto vlanId = utility::firstVlanID(getProgrammedState());
+    auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
     auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
     auto randomMac = folly::MacAddress("01:02:03:04:05:06");
     // send packets with random dst mac to flood the vlan

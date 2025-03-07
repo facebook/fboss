@@ -41,7 +41,7 @@ class Agent2QueueToOlympicQoSTest : public AgentHwTest {
 
   std::unique_ptr<facebook::fboss::TxPacket> createUdpPkt(
       uint8_t dscpVal) const {
-    auto vlanId = utility::firstVlanID(getProgrammedState());
+    auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
     auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
 

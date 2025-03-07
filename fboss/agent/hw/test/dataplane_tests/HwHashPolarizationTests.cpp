@@ -123,7 +123,7 @@ class HwHashPolarizationTests : public HwLinkStateDependentTest {
 
   void runFirstHash(const std::vector<cfg::LoadBalancer>& firstHashes) {
     auto ecmpPorts = getEcmpPorts();
-    auto firstVlan = utility::firstVlanID(getProgrammedState());
+    auto firstVlan = utility::firstVlanIDWithPorts(getProgrammedState());
     auto mac = utility::getFirstInterfaceMac(getProgrammedState());
     auto preTestStats = getHwSwitchEnsemble()->getLatestPortStats(ecmpPorts);
     {
@@ -161,7 +161,7 @@ class HwHashPolarizationTests : public HwLinkStateDependentTest {
       bool expectPolarization) {
     XLOG(DBG2) << " Num captured packets: " << rxPackets.size();
     auto ecmpPorts = getEcmpPorts();
-    auto firstVlan = utility::firstVlanID(getProgrammedState());
+    auto firstVlan = utility::firstVlanIDWithPorts(getProgrammedState());
     auto mac = utility::getFirstInterfaceMac(getProgrammedState());
     auto preTestStats = getHwSwitchEnsemble()->getLatestPortStats(ecmpPorts);
 
@@ -503,7 +503,7 @@ class HwHashTrunkPolarizationTests : public HwHashPolarizationTests {
 
   void runFirstHashTrunkTest(const std::vector<cfg::LoadBalancer>& hashes) {
     auto ports = getEgressPorts(kNumAggregatePorts / 2);
-    auto firstVlan = utility::firstVlanID(getProgrammedState());
+    auto firstVlan = utility::firstVlanIDWithPorts(getProgrammedState());
     auto mac = utility::getFirstInterfaceMac(getProgrammedState());
     auto preTestStats =
         getHwSwitchEnsemble()->getLatestPortStats(getEgressPorts());
@@ -543,7 +543,7 @@ class HwHashTrunkPolarizationTests : public HwHashPolarizationTests {
       bool expectPolarization) {
     XLOG(DBG2) << " Num captured packets: " << rxPackets.size();
     auto ports = getEgressPorts();
-    auto firstVlan = utility::firstVlanID(getProgrammedState());
+    auto firstVlan = utility::firstVlanIDWithPorts(getProgrammedState());
     auto mac = utility::getFirstInterfaceMac(getProgrammedState());
     auto preTestStats = getHwSwitchEnsemble()->getLatestPortStats(ports);
 

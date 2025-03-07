@@ -183,7 +183,7 @@ class AgentDscpMarkingTest : public AgentHwTest {
       IP_PROTO proto,
       std::optional<uint16_t> l4SrcPort,
       std::optional<uint16_t> l4DstPort) {
-    auto vlanId = utility::firstVlanID(getProgrammedState());
+    auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
     auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
 

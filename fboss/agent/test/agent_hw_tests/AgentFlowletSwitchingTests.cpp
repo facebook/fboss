@@ -225,7 +225,7 @@ class AgentAclCounterTestBase : public AgentHwTest {
       int roceOpcode = utility::kUdfRoceOpcodeAck,
       std::optional<std::vector<uint8_t>> nxtHdr =
           std::optional<std::vector<uint8_t>>()) {
-    auto vlanId = utility::firstVlanID(getProgrammedState());
+    auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
     auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
     return utility::pumpRoCETraffic(
         true,

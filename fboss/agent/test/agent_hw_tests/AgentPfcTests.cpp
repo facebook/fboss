@@ -41,7 +41,7 @@ class AgentPfcTest : public AgentHwTest {
       payload.insert(payload.end(), padding.begin(), padding.end());
 
       // Send it out
-      auto vlanId = utility::firstVlanID(getProgrammedState());
+      auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
       auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
       auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
       auto pkt = utility::makeEthTxPacket(

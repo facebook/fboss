@@ -77,7 +77,7 @@ BENCHMARK(RxSlowPathArpBenchmark) {
   const auto kSrcMac = folly::MacAddress{"fa:ce:b0:00:00:0c"};
   auto broadcastMac = folly::MacAddress("FF:FF:FF:FF:FF:FF");
   //  Send packet
-  auto vlanId = utility::firstVlanID(ensemble->getProgrammedState());
+  auto vlanId = utility::firstVlanIDWithPorts(ensemble->getProgrammedState());
   auto constexpr kPacketToSend = 10;
   for (int i = 0; i < kPacketToSend; i++) {
     auto txPacket = utility::makeARPTxPacket(

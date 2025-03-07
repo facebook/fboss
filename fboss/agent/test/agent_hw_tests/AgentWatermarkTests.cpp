@@ -75,7 +75,7 @@ class AgentWatermarkTest : public AgentHwTest {
       const folly::IPAddressV6& dst,
       int payloadSize,
       std::optional<PortID> port) {
-    auto vlanId = utility::firstVlanID(getProgrammedState());
+    auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
     auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
 

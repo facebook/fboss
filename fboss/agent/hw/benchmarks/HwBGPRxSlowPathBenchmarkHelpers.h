@@ -44,7 +44,7 @@ void rxSlowPathBGPRouteChangeBenchmark(BgpRxMode mode) {
 
   const auto kSrcMac = folly::MacAddress{"fa:ce:b0:00:00:0c"};
   // Send packet
-  auto vlanId = utility::firstVlanID(ensemble->getProgrammedState());
+  auto vlanId = utility::firstVlanIDWithPorts(ensemble->getProgrammedState());
   auto constexpr kPacketToSend = 10;
   for (int i = 0; i < kPacketToSend; i++) {
     auto txPacket = utility::makeTCPTxPacket(

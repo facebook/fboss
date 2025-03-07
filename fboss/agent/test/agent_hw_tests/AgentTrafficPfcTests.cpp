@@ -409,7 +409,7 @@ class AgentTrafficPfcTest : public AgentHwTest {
       const std::optional<uint8_t> queue,
       const std::vector<PortID>& portIds,
       const std::vector<folly::IPAddressV6>& ips) {
-    auto vlanId = utility::firstVlanID(getProgrammedState());
+    auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
     auto intfMac = getIntfMac();
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
     // pri = 7 => dscp 56
