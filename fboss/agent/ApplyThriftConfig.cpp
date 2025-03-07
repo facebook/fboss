@@ -1975,8 +1975,15 @@ std::shared_ptr<PortPgConfig> ThriftConfigApplier::createPortPg(
   if (const auto headroom = cfg->headroomLimitBytes()) {
     pgCfg->setHeadroomLimitBytes(*headroom);
   }
+  if (cfg->resumeBytes().has_value() && cfg->resumeOffsetBytes().has_value()) {
+    throw FbossError(
+        "resumeBytes and resumeOffsetBytes should not be set together");
+  }
   if (const auto resumeOffsetBytes = cfg->resumeOffsetBytes()) {
     pgCfg->setResumeOffsetBytes(*resumeOffsetBytes);
+  }
+  if (const auto resumeBytes = cfg->resumeBytes()) {
+    pgCfg->setResumeBytes(*resumeBytes);
   }
   pgCfg->setBufferPoolName(*cfg->bufferPoolName());
   if (const auto maxSharedXoffThresholdBytes =

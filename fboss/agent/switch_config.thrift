@@ -1901,6 +1901,7 @@ struct PortPgConfig {
   // packets
   5: optional i32 headroomLimitBytes;
   // Offset from XOFF before allowing XON
+  // resumeOffsetBytes and resumeBytes should not be set at the same time.
   6: optional i32 resumeOffsetBytes;
   // global buffer pool as used by this PG
   7: string bufferPoolName;
@@ -1912,6 +1913,10 @@ struct PortPgConfig {
   11: optional i64 minSramXoffThresholdBytes;
   // Offset from XOFF in SRAM before allowing XON
   12: optional i64 sramResumeOffsetBytes;
+  // Not all implementations support specifying an offset at which to send XON.
+  // Allowing configuring an absolute value at which to send XON in such cases.
+  // resumeOffsetBytes and resumeBytes should not be set at the same time.
+  13: optional i32 resumeBytes;
 }
 
 // asicSdk: Native SDK version. may or may not support SAI

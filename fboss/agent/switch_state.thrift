@@ -34,6 +34,9 @@ struct PortPgFields {
   11: optional i64 maxSramXoffThresholdBytes;
   12: optional i64 minSramXoffThresholdBytes;
   13: optional i64 sramResumeOffsetBytes;
+  // Not all implementations support specifying an offset at which to send XON.
+  // Allowing configuring an absolute value at which to send XON in such cases.
+  14: optional i64 resumeBytes;
 }
 
 struct MKASakKey {

@@ -108,6 +108,17 @@ class PortPgConfig
     set<switch_state_tags::resumeOffsetBytes>(resumeOffsetBytes);
   }
 
+  std::optional<int> getResumeBytes() const {
+    if (auto resumeBytes = safe_cref<switch_state_tags::resumeBytes>()) {
+      return resumeBytes->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  void setResumeBytes(int resumeBytes) {
+    set<switch_state_tags::resumeBytes>(resumeBytes);
+  }
+
   std::string getBufferPoolName() const {
     return safe_cref<switch_state_tags::bufferPoolName>()->toThrift();
   }

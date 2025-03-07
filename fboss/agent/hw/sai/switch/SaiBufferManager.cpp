@@ -665,7 +665,10 @@ SaiBufferManager::ingressProfileCreateAttrs(
   if (config.headroomLimitBytes()) {
     xoffTh = *config.headroomLimitBytes();
   }
-  SaiBufferProfileTraits::Attributes::XonTh xonTh{0}; // Not configured!
+  SaiBufferProfileTraits::Attributes::XonTh xonTh{0};
+  if (config.resumeBytes()) {
+    xonTh = *config.resumeBytes();
+  }
   std::optional<SaiBufferProfileTraits::Attributes::XonOffsetTh> xonOffsetTh{};
   if (config.resumeOffsetBytes()) {
     xonOffsetTh = *config.resumeOffsetBytes();

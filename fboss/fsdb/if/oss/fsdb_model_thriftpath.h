@@ -4048,7 +4048,8 @@ std::pair<strings::maxSharedXoffThresholdBytes, Child<::std::int64_t, ::apache::
 std::pair<strings::minSharedXoffThresholdBytes, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
 std::pair<strings::maxSramXoffThresholdBytes, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
 std::pair<strings::minSramXoffThresholdBytes, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
-std::pair<strings::sramResumeOffsetBytes, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
+std::pair<strings::sramResumeOffsetBytes, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+std::pair<strings::resumeBytes, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, Child<::std::int16_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i16_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
@@ -4061,7 +4062,8 @@ std::pair<strings::sramResumeOffsetBytes, Child<::std::int64_t, ::apache::thrift
    std::pair<std::integral_constant<apache::thrift::field_id_t, 10>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 11>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 12>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 13>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 13>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 14>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
   template <typename Name>
   using NameToId = fatal::tuple<std::pair<strings::id, std::integral_constant<apache::thrift::field_id_t, 1>>,
 std::pair<strings::minLimitBytes, std::integral_constant<apache::thrift::field_id_t, 2>>,
@@ -4075,7 +4077,8 @@ std::pair<strings::maxSharedXoffThresholdBytes, std::integral_constant<apache::t
 std::pair<strings::minSharedXoffThresholdBytes, std::integral_constant<apache::thrift::field_id_t, 10>>,
 std::pair<strings::maxSramXoffThresholdBytes, std::integral_constant<apache::thrift::field_id_t, 11>>,
 std::pair<strings::minSramXoffThresholdBytes, std::integral_constant<apache::thrift::field_id_t, 12>>,
-std::pair<strings::sramResumeOffsetBytes, std::integral_constant<apache::thrift::field_id_t, 13>>>::template type_of<Name>;
+std::pair<strings::sramResumeOffsetBytes, std::integral_constant<apache::thrift::field_id_t, 13>>,
+std::pair<strings::resumeBytes, std::integral_constant<apache::thrift::field_id_t, 14>>>::template type_of<Name>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -4094,6 +4097,7 @@ std::pair<strings::sramResumeOffsetBytes, std::integral_constant<apache::thrift:
     STRUCT_CHILD_GETTERS(maxSramXoffThresholdBytes, 11);
     STRUCT_CHILD_GETTERS(minSramXoffThresholdBytes, 12);
     STRUCT_CHILD_GETTERS(sramResumeOffsetBytes, 13);
+    STRUCT_CHILD_GETTERS(resumeBytes, 14);
 
   template <apache::thrift::field_id_t __id>
   auto operator()(const std::integral_constant<apache::thrift::field_id_t, __id>&) {
@@ -4110,6 +4114,7 @@ std::pair<strings::sramResumeOffsetBytes, std::integral_constant<apache::thrift:
     else if constexpr (__id == 11) { return maxSramXoffThresholdBytes(); }
     else if constexpr (__id == 12) { return minSramXoffThresholdBytes(); }
     else if constexpr (__id == 13) { return sramResumeOffsetBytes(); }
+    else if constexpr (__id == 14) { return resumeBytes(); }
   }
 
   template <typename T, T... Values>
@@ -7646,7 +7651,8 @@ std::pair<strings::maxSharedXoffThresholdBytes, Child<::std::int64_t, ::apache::
 std::pair<strings::minSharedXoffThresholdBytes, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
 std::pair<strings::maxSramXoffThresholdBytes, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
 std::pair<strings::minSramXoffThresholdBytes, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
-std::pair<strings::sramResumeOffsetBytes, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
+std::pair<strings::sramResumeOffsetBytes, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+std::pair<strings::resumeBytes, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, Child<::std::int16_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i16_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, Child<::facebook::fboss::cfg::MMUScalingFactor, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::cfg::MMUScalingFactor>>>,
@@ -7658,7 +7664,8 @@ std::pair<strings::sramResumeOffsetBytes, Child<::std::int64_t, ::apache::thrift
    std::pair<std::integral_constant<apache::thrift::field_id_t, 9>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 10>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 11>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 12>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 12>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 13>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>>;
   template <typename Name>
   using NameToId = fatal::tuple<std::pair<strings::id, std::integral_constant<apache::thrift::field_id_t, 1>>,
 std::pair<strings::name, std::integral_constant<apache::thrift::field_id_t, 2>>,
@@ -7671,7 +7678,8 @@ std::pair<strings::maxSharedXoffThresholdBytes, std::integral_constant<apache::t
 std::pair<strings::minSharedXoffThresholdBytes, std::integral_constant<apache::thrift::field_id_t, 9>>,
 std::pair<strings::maxSramXoffThresholdBytes, std::integral_constant<apache::thrift::field_id_t, 10>>,
 std::pair<strings::minSramXoffThresholdBytes, std::integral_constant<apache::thrift::field_id_t, 11>>,
-std::pair<strings::sramResumeOffsetBytes, std::integral_constant<apache::thrift::field_id_t, 12>>>::template type_of<Name>;
+std::pair<strings::sramResumeOffsetBytes, std::integral_constant<apache::thrift::field_id_t, 12>>,
+std::pair<strings::resumeBytes, std::integral_constant<apache::thrift::field_id_t, 13>>>::template type_of<Name>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -7689,6 +7697,7 @@ std::pair<strings::sramResumeOffsetBytes, std::integral_constant<apache::thrift:
     STRUCT_CHILD_GETTERS(maxSramXoffThresholdBytes, 10);
     STRUCT_CHILD_GETTERS(minSramXoffThresholdBytes, 11);
     STRUCT_CHILD_GETTERS(sramResumeOffsetBytes, 12);
+    STRUCT_CHILD_GETTERS(resumeBytes, 13);
 
   template <apache::thrift::field_id_t __id>
   auto operator()(const std::integral_constant<apache::thrift::field_id_t, __id>&) {
@@ -7704,6 +7713,7 @@ std::pair<strings::sramResumeOffsetBytes, std::integral_constant<apache::thrift:
     else if constexpr (__id == 10) { return maxSramXoffThresholdBytes(); }
     else if constexpr (__id == 11) { return minSramXoffThresholdBytes(); }
     else if constexpr (__id == 12) { return sramResumeOffsetBytes(); }
+    else if constexpr (__id == 13) { return resumeBytes(); }
   }
 
   template <typename T, T... Values>
