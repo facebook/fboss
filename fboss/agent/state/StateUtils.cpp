@@ -72,4 +72,41 @@ InterfaceID firstInterfaceID(const std::shared_ptr<SwitchState>& state) {
   }
   throw FbossError("No interface found in state");
 }
+
+std::vector<folly::IPAddress> getIntfAddrs(
+    const std::shared_ptr<SwitchState>& state,
+    const InterfaceID& intf) {
+  std::vector<folly::IPAddress> addrs;
+  auto intfNode = state->getInterfaces()->getNode(intf);
+  for (const auto& addr : std::as_const(*intfNode->getAddresses())) {
+    addrs.emplace_back(addr.first);
+  }
+  return addrs;
+}
+
+std::vector<folly::IPAddressV4> getIntfAddrsV4(
+    const std::shared_ptr<SwitchState>& state,
+    const InterfaceID& intf) {
+  std::vector<folly::IPAddressV4> addrs;
+
+  for (auto addr : getIntfAddrs(state, intf)) {
+    if (addr.isV4()) {
+      addrs.emplace_back(addr.asV4());
+    }
+  }
+  return addrs;
+}
+
+std::vector<folly::IPAddressV6> getIntfAddrsV6(
+    const std::shared_ptr<SwitchState>& state,
+    const InterfaceID& intf) {
+  std::vector<folly::IPAddressV6> addrs;
+
+  for (auto addr : getIntfAddrs(state, intf)) {
+    if (addr.isV6()) {
+      addrs.emplace_back(addr.asV6());
+    }
+  }
+  return addrs;
+}
 } // namespace facebook::fboss::utility

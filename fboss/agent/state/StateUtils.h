@@ -13,6 +13,7 @@
 
 #include "fboss/agent/types.h"
 
+#include <folly/IPAddress.h>
 #include <folly/MacAddress.h>
 
 namespace facebook::fboss {
@@ -48,5 +49,15 @@ folly::MacAddress getFirstInterfaceMac(
 std::optional<VlanID> firstVlanID(const std::shared_ptr<SwitchState>& state);
 VlanID getIngressVlan(const std::shared_ptr<SwitchState>& state, PortID port);
 InterfaceID firstInterfaceID(const std::shared_ptr<SwitchState>& state);
+std::vector<folly::IPAddress> getIntfAddrs(
+    const std::shared_ptr<SwitchState>& state,
+    const InterfaceID& intf);
+std::vector<folly::IPAddressV4> getIntfAddrsV4(
+    const std::shared_ptr<SwitchState>& state,
+    const InterfaceID& intf);
+std::vector<folly::IPAddressV6> getIntfAddrsV6(
+    const std::shared_ptr<SwitchState>& state,
+    const InterfaceID& intf);
+
 } // namespace utility
 } // namespace facebook::fboss
