@@ -23,6 +23,8 @@ class SaiMinipack3NPlatform : public SaiYangraPlatform {
 
   const std::unordered_map<std::string, std::string>
   getSaiProfileVendorExtensionValues() const override;
+
+  std::string getHwConfig() override;
 };
 
 } // namespace facebook::fboss
