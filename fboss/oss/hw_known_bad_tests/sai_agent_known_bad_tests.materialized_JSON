@@ -10615,7 +10615,7 @@
           "test_name_regex": "AgentTrafficPfcTest.verifyIngressPriorityGroupWatermarks$"
         }
     ],
-    "chenab/1.14.130/1.14.130/chenab/mono": [
+    "chenab/1.15.3/1.15.3/chenab/mono": [
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
@@ -10731,7 +10731,7 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSendPacketToQueueTest.SendPacketOutOfPortToMCQueue$"
         }
     ],
-    "chenab/1.14.130/1.14.130/chenab/multi_switch": [
+    "chenab/1.15.3/1.15.3/chenab/multi_switch": [
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
