@@ -2244,7 +2244,7 @@
           "test_name_regex": "HwAsicDefaultProgrammingTest.*$"
         }
     ],
-    "chenab/1.14.130/1.14.130/chenab": [
+    "chenab/1.15.3/1.15.3/chenab": [
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*HwTest_PROFILE_400G_8_PAM4_RS544X2N_COPPER"
         },
@@ -2292,6 +2292,63 @@
         },
         {
           "test_name_regex": "HwUdfAcl.*$"
+        },
+        {
+          "test_name_regex": "HwLabelEdgeRouteTest.*"
+        },
+        {
+          "test_name_regex": "HwLabelSwitchRouteTest.*"
+        },
+        {
+          "test_name_regex": "HwMPLSTest.*"
+        },
+        {
+          "test_name_regex": "HwTrunkTest.TrunkPortStatsWithMplsPush"
+        },
+        {
+          "test_name_regex": "HwTrunkTest.TrunkPortStatsWithMplsPush"
+        },
+        {
+          "test_name_regex": "HwTrunkLoadBalancerTest.ECMPFullTrunkHalf4X3WideTrunksV6MplsFrontPanelTraffic"
+        },
+        {
+          "test_name_regex": "HwTrunkLoadBalancerTest.ECMPFullTrunkHalf4X3WideTrunksV4MplsFrontPanelTraffic"
+        },
+        {
+          "test_name_regex": "HwTrunkLoadBalancerTest.ECMPFullTrunkHalf4X3WideTrunksV6MplsSwapFrontPanelTraffic"
+        },
+        {
+          "test_name_regex": "HwTrunkLoadBalancerTest.ECMPFullTrunkHalf4X3WideTrunksV4MplsSwapFrontPanelTraffic"
+        },
+        {
+          "test_name_regex": "HwTrunkLoadBalancerTest.ECMPFullTrunkHalf4X3WideTrunksV6MplsPhpFrontPanelTraffic"
+        },
+        {
+          "test_name_regex": "HwTrunkLoadBalancerTest.ECMPFullTrunkHalf4X3WideTrunksV4MplsPhpFrontPanelTraffic"
+        },
+        {
+          "test_name_regex": "HwTrunkLoadBalancerTest.ECMPFullTrunkHalf4X2WideTrunksV6MplsFrontPanelTraffic"
+        },
+        {
+          "test_name_regex": "HwTrunkLoadBalancerTest.ECMPFullTrunkHalf4X2WideTrunksV4MplsFrontPanelTraffic"
+        },
+        {
+          "test_name_regex": "HwTrunkLoadBalancerTest.ECMPFullTrunkHalf4X2WideTrunksV6MplsSwapFrontPanelTraffic"
+        },
+        {
+          "test_name_regex": "HwTrunkLoadBalancerTest.ECMPFullTrunkHalf4X2WideTrunksV4MplsSwapFrontPanelTraffic"
+        },
+        {
+          "test_name_regex": "HwTrunkLoadBalancerTest.ECMPFullTrunkHalf4X2WideTrunksV6MplsPhpFrontPanelTraffic"
+        },
+        {
+          "test_name_regex": "HwTrunkLoadBalancerTest.ECMPFullTrunkHalf4X2WideTrunksV4MplsPhpFrontPanelTraffic"
+        },
+        {
+          "test_name_regex": "HwTeFlowTest.*"
+        },
+        {
+          "test_name_regex": "HwTeFlowTrafficTest.*"
         }
     ],
     "leaba/1.42.8/1.42.8/gibraltar": [
