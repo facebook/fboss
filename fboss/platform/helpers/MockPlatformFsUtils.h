@@ -26,5 +26,10 @@ class MockPlatformFsUtils : public PlatformFsUtils {
       getStringFileContent,
       (const std::filesystem::path&),
       (const));
+  MOCK_METHOD(
+      (bool),
+      writeStringToSysfs,
+      (const std::string& content, const std::filesystem::path& path),
+      (const));
 };
 } // namespace facebook::fboss::platform

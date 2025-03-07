@@ -157,21 +157,18 @@ void I2cExplorer::createI2cDevice(
         addr.hex2Str(),
         existingDeviceName.value_or("READ_ERROR")));
   }
-  auto cmd = fmt::format(
-      "echo {} {} > /sys/bus/i2c/devices/i2c-{}/new_device",
-      deviceName,
-      addr.hex2Str(),
-      busNum);
-  auto [exitStatus, standardOut] = platformUtils_->execCommand(cmd);
-  XLOG_IF(INFO, !standardOut.empty()) << standardOut;
-  if (exitStatus != 0) {
+  // https://www.kernel.org/doc/Documentation/i2c/instantiating-devices
+  auto content = fmt::format("{} {}", deviceName, addr.hex2Str());
+  auto filepath = fmt::format("/sys/bus/i2c/devices/i2c-{}/new_device", busNum);
+  bool written = platformFsUtils_->writeStringToSysfs(content, filepath);
+  if (!written) {
     throw std::runtime_error(fmt::format(
-        "Failed to create i2c device for {} ({}) at bus: {}, addr: {} with exit status {}",
+        "Failed to create i2c device for {} ({}) at bus: {}, addr: {} ; errno: {}",
         pmUnitScopedName,
         deviceName,
         busNum,
         addr.hex2Str(),
-        exitStatus));
+        errno));
   }
   if (!Utils().checkDeviceReadiness(
           [&]() -> bool { return isI2cDevicePresent(busNum, addr); },
