@@ -204,6 +204,10 @@ TEST_F(AgentIpInIpTunnelTest, IpinIpNoTunnelConfigured) {
 TEST_F(AgentIpInIpTunnelTest, DecapPacketParsing) {
   auto setup = [=, this]() { setupHelper(); };
   auto verify = [=, this]() {
+    auto ensemble = getAgentEnsemble();
+    auto l3Asics = ensemble->getSw()->getHwAsicTable()->getL3Asics();
+    auto asic = utility::checkSameAndGetAsic(l3Asics);
+
     utility::SwSwitchPacketSnooper snooper(getSw(), "snooper");
     sendIpInIpPacketPort(kTunnelTermDstIp, "dead::1", 0xFA, 0xCE);
     auto capturedPktBuf = snooper.waitForPacket(1);
@@ -215,8 +219,16 @@ TEST_F(AgentIpInIpTunnelTest, DecapPacketParsing) {
     auto hdr = v6Pkt->header();
     EXPECT_EQ(hdr.dstAddr, folly::IPAddress("dead::1"));
     EXPECT_EQ(hdr.srcAddr, folly::IPAddress("4004::23"));
-    // using PIPE mode: inner DSCP and ECN should not be changed
-    EXPECT_EQ(hdr.trafficClass, 0xCE);
+
+    if (cfg::IpTunnelMode::PIPE == asic->getTunnelDscpMode()) {
+      // using PIPE mode: inner DSCP and ECN should not be changed
+      EXPECT_EQ(hdr.trafficClass, 0xCE);
+    } else {
+      // using UNIFORM mode: Where the DSCP field is preserved end-to-end by
+      // copying into the outer header on encapsulation and copying from the
+      // outer header on decapsulation.
+      EXPECT_EQ(hdr.trafficClass, 0xF8);
+    }
 
     auto udpPkt = v6Pkt->udpPayload();
     auto payload = udpPkt->payload();
