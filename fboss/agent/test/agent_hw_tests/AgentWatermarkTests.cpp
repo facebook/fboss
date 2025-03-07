@@ -268,12 +268,13 @@ class AgentWatermarkTest : public AgentHwTest {
   void resolveNdpNeighbors(
       PortDescriptor portDesc,
       bool needTrafficLoop = false) {
-    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
-    std::optional<folly::MacAddress> macAddr{};
-    if (needTrafficLoop) {
-      macAddr = intfMac;
-    }
-    utility::EcmpSetupTargetedPorts6 ecmpHelper6{getProgrammedState(), macAddr};
+    utility::EcmpSetupTargetedPorts6 ecmpHelper6{
+        getProgrammedState(),
+        (needTrafficLoop
+             ? std::make_optional<folly::MacAddress>(
+                   utility::getFirstInterfaceMac(getProgrammedState()))
+             : std::nullopt)};
+
     applyNewState([&](const std::shared_ptr<SwitchState>& in) {
       return ecmpHelper6.resolveNextHops(in, {portDesc});
     });
