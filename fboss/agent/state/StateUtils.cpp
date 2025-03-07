@@ -47,28 +47,29 @@ folly::MacAddress getInterfaceMac(
 
 folly::MacAddress getFirstInterfaceMac(
     const std::shared_ptr<SwitchState>& state) {
-  const auto& intfMap = state->getInterfaces()->cbegin()->second;
-  const auto& intf = std::as_const(*intfMap->cbegin()).second;
-  return intf->getMac();
+  auto intfID = firstInterfaceID(state);
+  return getInterfaceMac(state, intfID);
 }
 
 std::optional<VlanID> firstVlanID(const std::shared_ptr<SwitchState>& state) {
   std::optional<VlanID> firstVlanId;
-  if (state->getVlans()->numNodes()) {
-    for (const auto& vlan :
-         std::as_const(*(state->getVlans()->cbegin()->second))) {
-      if (!vlan.second->getPorts().empty()) {
-        firstVlanId = vlan.second->getID();
-        break;
-      }
-    }
+  auto intfID = firstInterfaceID(state);
+  auto intf = state->getInterfaces()->getNode(intfID);
+  if (intf->getType() == cfg::InterfaceType::VLAN) {
+    firstVlanId = intf->getVlanID();
   }
   return firstVlanId;
 }
 
 InterfaceID firstInterfaceID(const std::shared_ptr<SwitchState>& state) {
   const auto& intfMap = state->getInterfaces()->cbegin()->second;
-  const auto& intf = std::as_const(*intfMap->cbegin()).second;
-  return intf->getID();
+  for (const auto& [intfID, intf] : std::as_const(*intfMap)) {
+    if (intf->isVirtual()) {
+      // virtual interfaces do not have associated ports
+      continue;
+    }
+    return InterfaceID(intfID);
+  }
+  throw FbossError("No interface found in state");
 }
 } // namespace facebook::fboss::utility
