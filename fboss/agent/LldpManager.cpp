@@ -146,6 +146,7 @@ void LldpManager::handlePacket(
         auto newState = state->clone();
         auto newPort = state->getPorts()->getNodeIf(pid)->modify(&newState);
         newPort->setLedPortExternalState(PortLedExternalState::NONE);
+        newPort->removeError(PortError::MISMATCHED_NEIGHBOR);
         return newState;
       };
       sw_->updateState("clear port LED state from lldp", updateFn);

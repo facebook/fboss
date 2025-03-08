@@ -394,6 +394,7 @@ TEST(LldpManagerTest, MismatchedNeighbor) {
     waitForStateUpdates(sw);
     port = sw->getState()->getPorts()->getNodeIf(portID);
     EXPECT_EQ(port->getLedPortExternalState(), PortLedExternalState::NONE);
+    EXPECT_EQ(port->getActiveErrors().size(), 0);
   };
 
   lldpValidationFailHelper(cfg::SwitchType::NPU, PortID(1), VlanID(1));
