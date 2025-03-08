@@ -4569,4 +4569,9 @@ HwResourceStats SaiSwitch::getResourceStats() const {
   std::lock_guard<std::mutex> lock(saiSwitchMutex_);
   return hwResourceStats_;
 }
+
+// TODO: add support in SAI
+bool SaiSwitch::getArsExhaustionStatus() {
+  return false;
+}
 } // namespace facebook::fboss

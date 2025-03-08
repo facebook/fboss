@@ -91,6 +91,10 @@ class SimSwitch : public HwSwitch {
     return;
   }
 
+  bool getArsExhaustionStatus() override {
+    return false;
+  }
+
   void resetTxCount() {
     txCount_ = 0;
   }

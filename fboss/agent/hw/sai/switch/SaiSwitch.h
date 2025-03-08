@@ -245,6 +245,8 @@ class SaiSwitch : public HwSwitch {
 
   void injectSwitchReachabilityChangeNotification() override;
 
+  bool getArsExhaustionStatus() override;
+
  private:
   void gracefulExitImpl() override;
 

@@ -3199,6 +3199,13 @@ void BcmSwitch::updateGlobalStats() {
   }
 }
 
+bool BcmSwitch::getArsExhaustionStatus() {
+  if (multiPathNextHopTable_) {
+    return multiPathNextHopTable_->getDlbExhaustedStat();
+  }
+  return false;
+}
+
 std::map<PortID, phy::PhyInfo> BcmSwitch::updateAllPhyInfoImpl() {
   return portTable_->updateIPhyInfo();
 }

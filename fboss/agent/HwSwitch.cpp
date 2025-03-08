@@ -186,6 +186,7 @@ multiswitch::HwSwitchStats HwSwitch::getHwSwitchStats() {
   hwSwitchStats.aclStats() = getAclStats();
   hwSwitchStats.switchWatermarkStats() = getSwitchWatermarkStats();
   hwSwitchStats.hwResourceStats() = getResourceStats();
+  hwSwitchStats.arsExhausted() = getArsExhaustionStatus();
   return hwSwitchStats;
 }
 

@@ -389,6 +389,8 @@ class HwSwitch {
 
   virtual void injectSwitchReachabilityChangeNotification() = 0;
 
+  virtual bool getArsExhaustionStatus() = 0;
+
  protected:
   void setProgrammedState(const std::shared_ptr<SwitchState>& state);
 
