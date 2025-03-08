@@ -304,6 +304,7 @@ cpp_library(
         "commands/clear/facebook/bgp/ribpolicy/CmdClearBgpRibPolicyCrf.h",
         "commands/clear/facebook/bgp/ribpolicy/CmdClearBgpRibPolicyCte.h",
         "commands/clear/facebook/bgp/ribpolicy/CmdClearBgpRibPolicyGoldenPrefixes.h",
+        "commands/clear/facebook/bgp/ribpolicy/CmdClearBgpRibPolicyRouteFilters.h",
         "commands/clear/facebook/bgp/ribpolicy/Constants.h",
         "commands/clear/facebook/teflow/CmdClearTeFlow.h",
         "commands/clear/interface/CmdClearInterface.h",
