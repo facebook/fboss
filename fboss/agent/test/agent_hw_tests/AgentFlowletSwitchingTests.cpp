@@ -1080,6 +1080,35 @@ TEST_F(AgentFlowletResourceTest, CreateMaxDlbGroups) {
       EXPECT_THROW(
           helper_->programRoutes(&wrapper, nhopSets128, prefixes128),
           FbossError);
+
+      // overflow the dlb groups and ensure that the dlb resource stat
+      // is updated. Also once routes are removed, the stat should reset.
+      // TODO - Add support for SAI
+      if (!getAgentEnsemble()->isSai()) {
+        FLAGS_dlbResourceCheckEnable = false;
+        std::vector<RoutePrefixV6> prefixes129 = {
+            prefixes.begin(), prefixes.begin() + kMaxDlbEcmpGroup + 1};
+        std::vector<flat_set<PortDescriptor>> nhopSets129 = {
+            nhopSets.begin(), nhopSets.begin() + kMaxDlbEcmpGroup + 1};
+        EXPECT_NO_THROW(
+            helper_->programRoutes(&wrapper, nhopSets129, prefixes129));
+        auto switchId = getSw()
+                            ->getScopeResolver()
+                            ->scope(masterLogicalPortIds()[0])
+                            .switchId();
+        WITH_RETRIES({
+          auto stats =
+              getAgentEnsemble()->getSw()->getHwSwitchStatsExpensive(switchId);
+          EXPECT_EVENTUALLY_TRUE(*stats.arsExhausted());
+        });
+        helper_->unprogramRoutes(&wrapper, prefixes129);
+        WITH_RETRIES({
+          auto stats =
+              getAgentEnsemble()->getSw()->getHwSwitchStatsExpensive(switchId);
+          EXPECT_EVENTUALLY_FALSE(*stats.arsExhausted());
+        });
+        FLAGS_dlbResourceCheckEnable = true;
+      }
     }
     // install 10% of max DLB ecmp groups
     {
@@ -1091,7 +1120,8 @@ TEST_F(AgentFlowletResourceTest, CreateMaxDlbGroups) {
       std::vector<flat_set<PortDescriptor>> nhopSets10 = {
           nhopSets.begin() + kMaxDlbEcmpGroup,
           nhopSets.begin() + kMaxDlbEcmpGroup + count};
-      helper_->programRoutes(&wrapper, nhopSets10, prefixes10);
+      EXPECT_NO_THROW(helper_->programRoutes(&wrapper, nhopSets10, prefixes10));
+      helper_->unprogramRoutes(&wrapper, prefixes10);
     }
   };
   verifyAcrossWarmBoots(setup, verify);
