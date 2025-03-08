@@ -267,7 +267,10 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
           map,
           getCounterPrefix() + "invalid_queue_rx_packets",
           SUM,
-          RATE) {}
+          RATE),
+      arsResourceExhausted_(
+          map,
+          getCounterPrefix() + "ars_resource_exhausted") {}
 
 void HwSwitchFb303Stats::update(const HwSwitchDropStats& dropStats) {
   if (dropStats.globalDrops().has_value()) {
@@ -543,6 +546,10 @@ void HwSwitchFb303Stats::bcmSaiSdkVer(int64_t ver) {
 
 void HwSwitchFb303Stats::leabaSdkVer(int64_t ver) {
   fb303::fbData->setCounter(leabaSdkVer_.name(), ver);
+}
+
+void HwSwitchFb303Stats::arsResourceExhausted(bool exhausted) {
+  fb303::fbData->setCounter(arsResourceExhausted_.name(), exhausted ? 1 : 0);
 }
 
 int64_t HwSwitchFb303Stats::getFabricConnectivityMismatchCount() const {

@@ -133,6 +133,8 @@ class HwSwitchFb303Stats {
   void update(const HwSwitchDropStats& dropStats);
   void update(const HwSwitchCreditStats& creditStats);
 
+  void arsResourceExhausted(bool exhausted);
+
   int64_t getTxPktAllocCount() const {
     return txPktAlloc_.count();
   }
@@ -295,6 +297,7 @@ class HwSwitchFb303Stats {
   TLTimeseries hwStatsCollectionFailed_;
   TLTimeseries phyInfoCollectionFailed_;
   TLTimeseries invalidQueueRxPackets_;
+  TLCounter arsResourceExhausted_;
 };
 
 } // namespace facebook::fboss

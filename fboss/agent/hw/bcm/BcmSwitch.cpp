@@ -3191,6 +3191,12 @@ void BcmSwitch::updateGlobalStats() {
     bstStatsUpdateTime_ = now;
     bstStatsMgr_->updateStats();
   }
+  if (FLAGS_flowletSwitchingEnable) {
+    if (multiPathNextHopTable_) {
+      auto dlbExhausted = multiPathNextHopTable_->getDlbExhaustedStat();
+      getSwitchStats()->arsResourceExhausted(dlbExhausted);
+    }
+  }
 }
 
 std::map<PortID, phy::PhyInfo> BcmSwitch::updateAllPhyInfoImpl() {
