@@ -40,7 +40,8 @@
         53,
         59,
         60,
-        63
+        63,
+        69
     ],
     "ebro": [
         2,
@@ -78,7 +79,8 @@
         53,
         54,
         59,
-        63
+        63,
+        69
     ],
     "jericho3": [
         2,
@@ -159,7 +161,8 @@
         60,
         63,
         65,
-        67
+        67,
+        69
     ],
     "tomahawk3": [
         2,
@@ -211,7 +214,8 @@
         63,
         64,
         65,
-        67
+        67,
+        69
     ],
     "tomahawk4": [
         2,
@@ -261,7 +265,8 @@
         62,
         63,
         64,
-        67
+        67,
+        69
     ],
     "tomahawk5": [
         2,
@@ -308,7 +313,8 @@
         59,
         60,
         62,
-        63
+        63,
+        69
     ],
     "yuba": [
         2,
@@ -349,7 +355,8 @@
         54,
         59,
         60,
-        63
+        63,
+        69
     ]
   },
   "asicToFeatureNames": {
@@ -393,7 +400,8 @@
         "ERSPANV6_MIRRORING",
         "CLASS_ID_FOR_CONNECTED_ROUTE",
         "SEPARATE_BYTE_AND_PACKET_ACL_COUNTERS",
-        "UCMP"
+        "UCMP",
+        "PTP_TC"
     ],
     "ebro": [
         "CPU_RX_TX",
@@ -431,7 +439,8 @@
         "ERSPANV6_MIRRORING",
         "IP_IN_IP_DECAP",
         "CLASS_ID_FOR_CONNECTED_ROUTE",
-        "UCMP"
+        "UCMP",
+        "PTP_TC"
     ],
     "jericho3": [
         "CPU_RX_TX",
@@ -512,7 +521,8 @@
         "SEPARATE_BYTE_AND_PACKET_ACL_COUNTERS",
         "UCMP",
         "MMU_TUNING",
-        "UNTRUNCATED_SFLOW"
+        "UNTRUNCATED_SFLOW",
+        "PTP_TC"
     ],
     "tomahawk3": [
         "CPU_RX_TX",
@@ -564,7 +574,8 @@
         "UCMP",
         "MULTICAST_QUEUE",
         "MMU_TUNING",
-        "UNTRUNCATED_SFLOW"
+        "UNTRUNCATED_SFLOW",
+        "PTP_TC"
     ],
     "tomahawk4": [
         "CPU_RX_TX",
@@ -614,7 +625,8 @@
         "EAPOL_TRAP",
         "UCMP",
         "MULTICAST_QUEUE",
-        "UNTRUNCATED_SFLOW"
+        "UNTRUNCATED_SFLOW",
+        "PTP_TC"
     ],
     "tomahawk5": [
         "CPU_RX_TX",
@@ -661,7 +673,8 @@
         "CLASS_ID_FOR_CONNECTED_ROUTE",
         "SEPARATE_BYTE_AND_PACKET_ACL_COUNTERS",
         "EAPOL_TRAP",
-        "UCMP"
+        "UCMP",
+        "PTP_TC"
     ],
     "yuba": [
         "CPU_RX_TX",
@@ -702,7 +715,8 @@
         "IP_IN_IP_DECAP",
         "CLASS_ID_FOR_CONNECTED_ROUTE",
         "SEPARATE_BYTE_AND_PACKET_ACL_COUNTERS",
-        "UCMP"
+        "UCMP",
+        "PTP_TC"
     ]
   }
 }
