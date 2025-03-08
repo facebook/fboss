@@ -30,7 +30,7 @@ auto constexpr kEcmpWidthForTest = 1;
 class AgentQosSchedulerTestBase : public AgentHwTest {
  protected:
   MacAddress dstMac() const {
-    return utility::getFirstInterfaceMac(getProgrammedState());
+    return utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
   }
   PortID outPort() const {
     utility::EcmpSetupAnyNPorts6 ecmpHelper6(getProgrammedState());

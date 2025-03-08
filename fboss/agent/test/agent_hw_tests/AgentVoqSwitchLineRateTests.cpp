@@ -18,7 +18,7 @@ class AgentVoqSwitchLineRateTest : public AgentVoqSwitchTest {
   }
 
   folly::MacAddress getIntfMac() const {
-    return utility::getFirstInterfaceMac(getProgrammedState());
+    return utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
   }
 
   void sendPacket(

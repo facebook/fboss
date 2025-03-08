@@ -45,7 +45,7 @@ folly::MacAddress getInterfaceMac(
   return state->getInterfaces()->getNode(intf)->getMac();
 }
 
-folly::MacAddress getFirstInterfaceMac(
+folly::MacAddress getMacForFirstInterfaceWithPorts(
     const std::shared_ptr<SwitchState>& state) {
   auto intfID = firstInterfaceIDWithPorts(state);
   return getInterfaceMac(state, intfID);

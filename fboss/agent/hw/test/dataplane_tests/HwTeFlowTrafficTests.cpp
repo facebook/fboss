@@ -124,7 +124,7 @@ class HwTeFlowTrafficTest : public HwLinkStateDependentTest {
   }
 
   folly::MacAddress getIntfMac() const {
-    return utility::getFirstInterfaceMac(getProgrammedState());
+    return utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
   }
 
   PortDescriptor portDesc1() const {

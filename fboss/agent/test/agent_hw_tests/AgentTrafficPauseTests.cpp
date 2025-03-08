@@ -35,7 +35,8 @@ class AgentTrafficPauseTest : public AgentHwTest {
     std::vector<uint8_t> payload{0x00, 0x01, 0xff, 0xff};
     std::vector<uint8_t> padding(42, 0);
     payload.insert(payload.end(), padding.begin(), padding.end());
-    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
+    auto intfMac =
+        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     for (int idx = 0; idx < count; idx++) {
       auto pkt = utility::makeEthTxPacket(
           getSw(),
@@ -61,8 +62,8 @@ class AgentTrafficPauseTest : public AgentHwTest {
       AgentEnsemble* ensemble,
       const folly::IPAddressV6& destIpv6Addr) {
     auto vlanId = utility::firstVlanIDWithPorts(ensemble->getProgrammedState());
-    auto intfMac =
-        utility::getFirstInterfaceMac(ensemble->getProgrammedState());
+    auto intfMac = utility::getMacForFirstInterfaceWithPorts(
+        ensemble->getProgrammedState());
     auto dscp = utility::kOlympicQueueToDscp().at(0).front();
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
     auto txPacket = utility::makeUDPTxPacket(

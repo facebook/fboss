@@ -76,7 +76,8 @@ TEST_F(AgentPacketSendTest, LldpToFrontPanelOutOfPort) {
     auto portStatsBefore =
         getLatestPortStats(masterLogicalInterfacePortIds()[0]);
     auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
-    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
+    auto intfMac =
+        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
     auto payLoadSize = 256;
     auto txPacket = utility::makeEthTxPacket(
@@ -123,7 +124,8 @@ TEST_F(AgentPacketSendTest, LldpToFrontPanelOutOfPortWithBufClone) {
     auto portStatsBefore =
         getLatestPortStats(masterLogicalInterfacePortIds()[0]);
     auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
-    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
+    auto intfMac =
+        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
     auto payLoadSize = 256;
     auto numPkts = 20;
@@ -184,7 +186,8 @@ TEST_F(AgentPacketSendTest, ArpRequestToFrontPanelPortSwitched) {
     auto portStatsBefore =
         getLatestPortStats(masterLogicalInterfacePortIds()[0]);
     auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
-    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
+    auto intfMac =
+        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
     auto randomIP = folly::IPAddressV4("1.1.1.5");
     auto txPacket = utility::makeARPTxPacket(
@@ -237,7 +240,8 @@ TEST_F(AgentPacketSendTest, PortTxEnableTest) {
                             AgentEnsemble* ensemble,
                             const folly::IPAddressV6& dstIpv6Addr) {
         auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
-        auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
+        auto intfMac =
+            utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
         auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
         constexpr auto kPayLoadLen{1000};
         int dscpVal = 0;
@@ -337,7 +341,8 @@ TEST_F(AgentPacketSendReceiveTest, LldpPacketReceiveSrcPort) {
     getAgentEnsemble()->getSw()->getPacketObservers()->registerPacketObserver(
         this, "LldpPacketReceiveSrcPort");
     auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
-    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
+    auto intfMac =
+        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
     auto payLoadSize = 256;
     auto expectedNumPktsReceived = 1;
@@ -418,7 +423,8 @@ TEST_F(AgentPacketSendReceiveLagTest, LacpPacketReceiveSrcPort) {
     getAgentEnsemble()->getSw()->getPacketObservers()->registerPacketObserver(
         this, "LacpPacketReceiveSrcPort");
     auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
-    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
+    auto intfMac =
+        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     auto payLoadSize = 256;
     static auto payload = std::vector<uint8_t>(payLoadSize, 0xff);
     payload[0] = 0x1; // sub-version of lacp packet
@@ -517,7 +523,8 @@ TEST_F(AgentPacketFloodTest, ArpRequestFloodTest) {
   auto verify = [=, this]() {
     auto portStatsBefore = getLatestPortStats(masterLogicalPortIds());
     auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
-    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
+    auto intfMac =
+        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
     auto randomIP = folly::IPAddressV4("1.1.1.5");
     auto txPacket = utility::makeARPTxPacket(
@@ -541,7 +548,8 @@ TEST_F(AgentPacketFloodTest, NdpFloodTest) {
   auto verify = [=, this]() {
     auto retries = 5;
     auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
-    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
+    auto intfMac =
+        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     auto suceess = false;
     while (retries--) {
       auto portStatsBefore = getLatestPortStats(masterLogicalPortIds());

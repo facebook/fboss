@@ -231,7 +231,7 @@ class AgentMirrorOnDropTest
         getSw(),
         utility::firstVlanIDWithPorts(getProgrammedState()),
         utility::kLocalCpuMac(),
-        utility::getFirstInterfaceMac(getProgrammedState()),
+        utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
         folly::IPAddressV6{"2401:2222:2222:2222:2222:2222:2222:2222"},
         dstIp,
         0x4444,

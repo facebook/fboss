@@ -125,7 +125,7 @@ class AgentMmuTuningTest : public AgentHwTest {
     });
   }
   MacAddress dstMac() const {
-    return utility::getFirstInterfaceMac(getProgrammedState());
+    return utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
   }
   std::unique_ptr<facebook::fboss::TxPacket> createUdpPkt(
       uint8_t dscpVal) const {

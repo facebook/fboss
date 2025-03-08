@@ -225,7 +225,8 @@ class AgentAclCounterTest : public AgentHwTest {
 
   size_t sendRoceTraffic(const PortID frontPanelEgrPort, AclType aclType) {
     auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
-    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
+    auto intfMac =
+        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     uint8_t opcode = (aclType == AclType::UDF_OPCODE_WRITE_IMMEDIATE)
         ? utility::kUdfRoceOpcodeWriteImmediate
         : utility::kUdfRoceOpcodeAck;
@@ -251,7 +252,8 @@ class AgentAclCounterTest : public AgentHwTest {
         ? 200
         : 10;
     auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
-    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
+    auto intfMac =
+        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
     int l4DstPort = kL4DstPort();
     if (aclType == AclType::L4_DST_PORT) {

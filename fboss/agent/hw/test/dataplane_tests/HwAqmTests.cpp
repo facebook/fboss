@@ -224,7 +224,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
     }
   }
   folly::MacAddress getIntfMac() const {
-    return utility::getFirstInterfaceMac(getProgrammedState());
+    return utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
   }
 
   void queueShaperAndBurstSetup(

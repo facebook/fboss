@@ -289,7 +289,7 @@ class AgentSflowMirrorTest : public AgentHwTest {
   void setupEcmpTraffic() {
     utility::EcmpSetupTargetedPorts6 ecmpHelper{
         getProgrammedState(),
-        utility::getFirstInterfaceMac(getProgrammedState())};
+        utility::getMacForFirstInterfaceWithPorts(getProgrammedState())};
 
     const PortDescriptor port(getDataTrafficPort());
     RoutePrefixV6 route{
@@ -311,7 +311,8 @@ class AgentSflowMirrorTest : public AgentHwTest {
       int portIndex,
       size_t payloadSize) {
     auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
-    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
+    auto intfMac =
+        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     folly::IPAddressV6 sip{"2401:db00:dead:beef::2401"};
     folly::IPAddressV6 dip{getTrafficDestinationIp(portIndex)};
     uint16_t sport = 9701;
@@ -796,8 +797,8 @@ class AgentSflowMirrorWithLineRateTrafficTest
       facebook::fboss::AgentEnsemble* ensemble,
       const folly::IPAddressV6& dstIp) {
     folly::IPAddressV6 kSrcIp("2402::1");
-    const auto dstMac =
-        utility::getFirstInterfaceMac(ensemble->getProgrammedState());
+    const auto dstMac = utility::getMacForFirstInterfaceWithPorts(
+        ensemble->getProgrammedState());
     const auto srcMac = utility::MacAddressGenerator().get(dstMac.u64NBO() + 1);
 
     auto txPacket = utility::makeUDPTxPacket(

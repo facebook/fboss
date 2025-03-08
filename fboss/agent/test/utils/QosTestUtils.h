@@ -196,7 +196,7 @@ bool verifyQueueMappingsInvariantHelper(
     uint32_t sleep = 20) {
   auto portStatsBefore = getAllHwPortStats();
   auto vlanId = utility::firstVlanIDWithPorts(swState);
-  auto intfMac = utility::getFirstInterfaceMac(swState);
+  auto intfMac = utility::getMacForFirstInterfaceWithPorts(swState);
   auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
 
   for (const auto& q2dscps : q2dscpMap) {

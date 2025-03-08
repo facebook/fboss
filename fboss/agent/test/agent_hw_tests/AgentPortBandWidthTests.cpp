@@ -133,7 +133,7 @@ class AgentPortBandwidthTest : public AgentHwTest {
   }
 
   MacAddress dstMac() const {
-    return utility::getFirstInterfaceMac(getProgrammedState());
+    return utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
   }
 
   folly::IPAddressV6 kDestIp() const {

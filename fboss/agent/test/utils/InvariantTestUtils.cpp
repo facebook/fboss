@@ -85,7 +85,8 @@ void verifyLoadBalance(
       };
   utility::pumpTrafficAndVerifyLoadBalanced(
       [=]() {
-        auto intfMac = utility::getFirstInterfaceMac(sw->getState());
+        auto intfMac =
+            utility::getMacForFirstInterfaceWithPorts(sw->getState());
         utility::pumpTraffic(
             true,
             utility::getAllocatePktFn(sw),

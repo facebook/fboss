@@ -150,7 +150,8 @@ class AgentCoppTest : public AgentHwTest {
       uint8_t trafficClass = 0,
       std::optional<std::vector<uint8_t>> payload = std::nullopt) {
     auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
-    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
+    auto intfMac =
+        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     utility::sendTcpPkts(
         getSw(),
         numPktsToSend,
@@ -247,8 +248,8 @@ class AgentCoppTest : public AgentHwTest {
       bool skipTtlDecrement = true) {
     const auto kNumPktsToSend = 1;
     auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
-    auto destinationMac =
-        dstMac.value_or(utility::getFirstInterfaceMac(getProgrammedState()));
+    auto destinationMac = dstMac.value_or(
+        utility::getMacForFirstInterfaceWithPorts(getProgrammedState()));
     auto sendAndInspect = [=, this]() {
       auto pkt = utility::makeTCPTxPacket(
           getSw(),
@@ -282,7 +283,8 @@ class AgentCoppTest : public AgentHwTest {
       bool outOfPort,
       bool expectPktTrap) {
     auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
-    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
+    auto intfMac =
+        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     // arbit
     const auto srcIp =
         folly::IPAddress(dstIpAddress.isV4() ? "1.0.0.11" : "1::11");
@@ -345,7 +347,8 @@ class AgentCoppTest : public AgentHwTest {
       const std::optional<folly::MacAddress>& dstMac = std::nullopt,
       std::optional<std::vector<uint8_t>> payload = std::nullopt) {
     auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
-    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
+    auto intfMac =
+        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
 
     for (int i = 0; i < numPktsToSend; i++) {
       auto txPacket = utility::makeEthTxPacket(
@@ -397,14 +400,16 @@ class AgentCoppTest : public AgentHwTest {
     if constexpr (!isTrunk) {
       utility::EcmpSetupAnyNPorts6 ecmpHelper(
           getProgrammedState(),
-          useInterfaceMac ? utility::getFirstInterfaceMac(getProgrammedState())
-                          : getLocalMacAddress());
+          useInterfaceMac
+              ? utility::getMacForFirstInterfaceWithPorts(getProgrammedState())
+              : getLocalMacAddress());
       resolveNeigborAndProgramRoutes(ecmpHelper, 1);
     } else {
       utility::EcmpSetupTargetedPorts6 ecmpHelper(
           getProgrammedState(),
-          useInterfaceMac ? utility::getFirstInterfaceMac(getProgrammedState())
-                          : getLocalMacAddress());
+          useInterfaceMac
+              ? utility::getMacForFirstInterfaceWithPorts(getProgrammedState())
+              : getLocalMacAddress());
       flat_set<PortDescriptor> ports;
       ports.insert(PortDescriptor(AggregatePortID(1)));
       applyNewState(
@@ -422,7 +427,8 @@ class AgentCoppTest : public AgentHwTest {
       ARP_OPER arpType,
       bool outOfPort) {
     auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
-    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
+    auto intfMac =
+        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
     for (int i = 0; i < numPktsToSend; i++) {
       auto txPacket = utility::makeARPTxPacket(
@@ -476,7 +482,8 @@ class AgentCoppTest : public AgentHwTest {
       bool selfSolicit,
       bool expectRxPacket = true) {
     auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
-    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
+    auto intfMac =
+        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     auto neighborMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
 
     for (int i = 0; i < numPktsToSend; i++) {
@@ -545,7 +552,8 @@ class AgentCoppTest : public AgentHwTest {
       const int numPktsToSend = 1,
       const int expectedPktDelta = 1) {
     auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
-    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
+    auto intfMac =
+        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     auto neighborMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
     auto beforeOutPkts = utility::getQueueOutPacketsWithRetry(
         getSw(),
@@ -590,7 +598,8 @@ class AgentCoppTest : public AgentHwTest {
     auto intfId = utility::firstInterfaceIDWithPorts(getProgrammedState());
     auto myIpv6 = utility::getIntfAddrsV6(getProgrammedState(), intfId)[0];
     auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
-    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
+    auto intfMac =
+        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     auto neighborMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
 
     for (int i = 0; i < numPktsToSend; i++) {
@@ -989,7 +998,8 @@ TYPED_TEST(AgentCoppTest, CpuPortIpv6LinkLocalUcastIp) {
       skipTtlDecrement = true;
     } else {
       // use interface mac, otherwise would be dropped on dnx
-      dstMac = utility::getFirstInterfaceMac(this->getProgrammedState());
+      dstMac =
+          utility::getMacForFirstInterfaceWithPorts(this->getProgrammedState());
       skipTtlDecrement = false;
     }
     auto nbrLinkLocalAddr = folly::IPAddressV6("fe80:face:b11c::1");
@@ -1435,7 +1445,8 @@ class AgentCoppQosTest : public AgentHwTest {
   }
 
   void setupEcmpDataplaneLoop() {
-    auto dstMac = utility::getFirstInterfaceMac(getProgrammedState());
+    auto dstMac =
+        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
 
     utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState(), dstMac);
     resolveNeigborAndProgramRoutes(ecmpHelper, 1);
@@ -1474,7 +1485,8 @@ class AgentCoppQosTest : public AgentHwTest {
       const std::optional<folly::MacAddress>& dstMac = std::nullopt,
       uint8_t trafficClass = 0,
       std::optional<std::vector<uint8_t>> payload = std::nullopt) {
-    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
+    auto intfMac =
+        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     utility::sendTcpPkts(
         getSw(),
         numPktsToSend,
@@ -1496,7 +1508,8 @@ class AgentCoppQosTest : public AgentHwTest {
     // when its done in conjunction with copying the pkt to cpu
     auto minPktsForLineRate =
         getAgentEnsemble()->getMinPktsForLineRate(port) * 2;
-    auto dstMac = utility::getFirstInterfaceMac(getProgrammedState());
+    auto dstMac =
+        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
 
     // Create a loop with specified destination packets.
     // We want to send atleast 2 traffic streams to ensure we dont run

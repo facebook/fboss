@@ -114,7 +114,8 @@ class HwHashConsistencyTest : public HwLinkStateDependentTest {
 
   void sendFlowWithPort(uint16_t l4SrcPort, uint16_t l4DstPort, FlowType type) {
     auto vlanId = utility::firstVlanIDWithPorts(initialConfig());
-    auto dstMac = utility::getFirstInterfaceMac(getProgrammedState());
+    auto dstMac =
+        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
 
     auto tcpPkt = utility::makeTCPTxPacket(
         getHwSwitch(),

@@ -18,7 +18,8 @@ std::vector<folly::IPAddressV6> getOneRemoteHostIpPerInterfacePort(
 
 void setupEcmpDataplaneLoopOnAllPorts(
     facebook::fboss::AgentEnsemble* ensemble) {
-  auto intfMac = utility::getFirstInterfaceMac(ensemble->getProgrammedState());
+  auto intfMac =
+      utility::getMacForFirstInterfaceWithPorts(ensemble->getProgrammedState());
   utility::EcmpSetupTargetedPorts6 ecmpHelper(
       ensemble->getProgrammedState(), intfMac);
   std::vector<PortDescriptor> portDescriptors;

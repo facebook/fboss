@@ -159,7 +159,8 @@ TEST_F(AgentL3ForwardingTest, ttl255) {
     auto pumpTraffic = [=, this]() {
       for (auto isV6 : {true, false}) {
         auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
-        auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
+        auto intfMac =
+            utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
         auto srcIp = folly::IPAddress(isV6 ? "1001::1" : "10.0.0.1");
         auto dstIp =
             folly::IPAddress(isV6 ? "100:100:100::1" : "100.100.100.1");

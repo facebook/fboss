@@ -47,7 +47,8 @@ TEST_F(AgentEgressForwardingDiscardsCounterTest, outForwardingDiscards) {
     auto port = egressPortDesc.phyPortID();
     auto portStatsBefore = getLatestPortStats(port);
     auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
-    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
+    auto intfMac =
+        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
     auto pkt = utility::makeUDPTxPacket(
         getSw(),

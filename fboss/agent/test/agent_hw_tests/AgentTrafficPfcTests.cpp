@@ -277,7 +277,7 @@ class AgentTrafficPfcTest : public AgentHwTest {
   }
 
   folly::MacAddress getIntfMac() const {
-    return utility::getFirstInterfaceMac(getProgrammedState());
+    return utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
   }
 
  protected:

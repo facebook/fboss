@@ -152,7 +152,8 @@ void AgentVoqSwitchTest::sendLocalServiceDiscoveryMulticastPacket(
     const PortID outPort,
     const int numPackets) {
   auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
-  auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
+  auto intfMac =
+      utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
   auto srcIp = folly::IPAddressV6("fe80::ff:fe00:f0b");
   auto dstIp = folly::IPAddressV6("ff15::efc0:988f");
   auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);

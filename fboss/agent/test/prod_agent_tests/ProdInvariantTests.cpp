@@ -275,7 +275,7 @@ void ProdInvariantTest::verifyDscpToQueueMapping() {
 
 void ProdInvariantTest::verifyQueuePerHostMapping(bool dscpMarkingTest) {
   auto vlanId = utility::firstVlanIDWithPorts(sw()->getState());
-  auto intfMac = utility::getFirstInterfaceMac(sw()->getState());
+  auto intfMac = utility::getMacForFirstInterfaceWithPorts(sw()->getState());
   auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO());
 
   // if DscpMarkingTest is set, send unmarked packet matching DSCP marking ACL,

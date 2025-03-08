@@ -226,7 +226,8 @@ class AgentAclCounterTestBase : public AgentHwTest {
       std::optional<std::vector<uint8_t>> nxtHdr =
           std::optional<std::vector<uint8_t>>()) {
     auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
-    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
+    auto intfMac =
+        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     return utility::pumpRoCETraffic(
         true,
         utility::getAllocatePktFn(getAgentEnsemble()),

@@ -39,7 +39,7 @@ class AgentJumboFramesTest : public AgentHwTest {
   }
 
   void sendPkt(int payloadSize) {
-    auto mac = utility::getFirstInterfaceMac(getProgrammedState());
+    auto mac = utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     auto txPacket = utility::makeUDPTxPacket(
         getSw(),
         utility::firstVlanIDWithPorts(getProgrammedState()),

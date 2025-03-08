@@ -82,7 +82,8 @@ BENCHMARK(RxSlowPathBenchmark) {
       createAgentEnsemble(initialConfigFn, false /*disableLinkStateToggler*/);
 
   // capture packet exiting port 0 (entering due to loopback)
-  auto dstMac = utility::getFirstInterfaceMac(ensemble->getProgrammedState());
+  auto dstMac =
+      utility::getMacForFirstInterfaceWithPorts(ensemble->getProgrammedState());
   auto ecmpHelper =
       utility::EcmpSetupAnyNPorts6(ensemble->getProgrammedState(), dstMac);
   flat_set<PortDescriptor> firstIntfPort;

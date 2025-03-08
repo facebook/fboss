@@ -5580,7 +5580,7 @@ ThriftConfigApplier::createMirrorOnDropReport(
       *config->truncateSize(),
       static_cast<uint8_t>(*config->dscp()),
       getLocalMacAddress().toString(),
-      utility::getFirstInterfaceMac(new_).toString(),
+      utility::getMacForFirstInterfaceWithPorts(new_).toString(),
       *config->modEventToConfigMap(),
       *config->agingGroupAgingIntervalUsecs());
 }
