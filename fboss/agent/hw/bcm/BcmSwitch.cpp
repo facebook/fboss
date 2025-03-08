@@ -2910,6 +2910,7 @@ void BcmSwitch::processRemovedRoutes(const StateDelta& delta) {
       [this](RouterID rid, const auto& deleted) {
         processRemovedRoute(rid, deleted);
       });
+  multiPathNextHopTable_->updateDlbExhaustionStat();
 }
 
 void BcmSwitch::processAddedChangedRoutes(
@@ -2917,6 +2918,7 @@ void BcmSwitch::processAddedChangedRoutes(
     std::shared_ptr<SwitchState>* appliedState) {
   processRouteTableDelta<folly::IPAddressV4>(delta, appliedState);
   processRouteTableDelta<folly::IPAddressV6>(delta, appliedState);
+  multiPathNextHopTable_->updateDlbExhaustionStat();
 }
 
 template <typename AddrT>
