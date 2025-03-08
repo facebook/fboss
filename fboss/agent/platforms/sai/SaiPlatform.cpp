@@ -856,6 +856,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       std::nullopt, // Shel Periodic Interval
       maxSwitchId, // Max switch Id
       sflowNofSamples, // Sflow aggr number of samples
+      std::nullopt, // SDK Register dump log path
   };
 }
 

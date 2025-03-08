@@ -91,6 +91,7 @@ typedef enum _sai_switch_extensions_attr_t {
   SAI_SWITCH_ATTR_FIRMWARE_LOG_FILE,
   SAI_SWITCH_ATTR_MAX_SWITCH_ID,
   SAI_SWITCH_ATTR_SFLOW_AGGR_NOF_SAMPLES,
+  SAI_SWITCH_ATTR_SDK_REG_DUMP_LOG_PATH,
 } sai_switch_extensions_attr_t;
 
 typedef enum _sai_tam_event_extensions_attr_t {

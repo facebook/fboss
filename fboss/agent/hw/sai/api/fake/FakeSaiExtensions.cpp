@@ -606,4 +606,9 @@ SaiSwitchTraits::Attributes::AttributeArsAvailableFlows::operator()() {
   return std::nullopt;
 }
 
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeSdkRegDumpLogPath::operator()() {
+  return SAI_SWITCH_ATTR_SDK_REG_DUMP_LOG_PATH;
+}
+
 } // namespace facebook::fboss
