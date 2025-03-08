@@ -47,6 +47,8 @@
 #include <re2/re2.h>
 #include <chrono>
 #include <exception>
+#include <filesystem>
+#include <fstream>
 #include <iostream>
 
 using folly::IPAddressV4;
@@ -1164,4 +1166,23 @@ const std::vector<cfg::AclLookupClass>& getToCpuClassIds() {
   };
   return toCpuClassIds;
 }
+
+bool isStringInFile(
+    const std::string& filename,
+    const std::string& str,
+    int maxLinesToSearch) {
+  std::ifstream file(filename);
+  if (!file.is_open()) {
+    return false;
+  }
+  std::string line;
+  for (int i = 0; i < maxLinesToSearch && std::getline(file, line); ++i) {
+    if (line.find(str) != std::string::npos) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 } // namespace facebook::fboss
