@@ -3577,6 +3577,27 @@ void SaiSwitch::switchRunStateChangedImplLocked(
 
     } break;
     case SwitchRunState::CONFIGURED: {
+      if (platform_->getAsic()->isSupported(
+              HwAsic::Feature::SDK_REGISTER_DUMP)) {
+        std::vector<int8_t> sdkRegDumpLogPathArray;
+        std::string sdkRegDumpLogPathStr = folly::to<std::string>(
+            FLAGS_sdk_reg_dump_path_prefix,
+            "_",
+            platform_->getAsic()->getSwitchId().value(),
+            ".log");
+        std::copy(
+            sdkRegDumpLogPathStr.c_str(),
+            sdkRegDumpLogPathStr.c_str() + sdkRegDumpLogPathStr.size() + 1,
+            std::back_inserter(sdkRegDumpLogPathArray));
+
+        std::optional<SaiSwitchTraits::Attributes::SdkRegDumpLogPath>
+            sdkRegDumpLogPath{std::nullopt};
+        sdkRegDumpLogPath = sdkRegDumpLogPathArray;
+
+        auto& switchApi = SaiApiTable::getInstance()->switchApi();
+        switchApi.setAttribute(saiSwitchId_, sdkRegDumpLogPath);
+      }
+
       if (getFeaturesDesired() & FeaturesDesired::LINKSCAN_DESIRED) {
         /*
          * Post warmboot synchronize hw link state with switch state
