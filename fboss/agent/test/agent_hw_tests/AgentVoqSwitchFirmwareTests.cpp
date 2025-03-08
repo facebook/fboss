@@ -153,6 +153,23 @@ class AgentVoqSwitchIsolationFirmwareTest : public AgentVoqSwitchTest {
     });
   }
 
+  std::map<int32_t, std::string> getSdkRegDumpFiles() const {
+    std::map<int32_t, std::string> switchIdToSdkRegDumpFile;
+
+    auto config = initialConfig(*getAgentEnsemble());
+    auto fwCapableSwitchIndices = getFWCapableSwitchIndices(config);
+    for (auto& [switchId, switchInfo] :
+         *config.switchSettings()->switchIdToSwitchInfo()) {
+      if (fwCapableSwitchIndices.find(*switchInfo.switchIndex()) !=
+          fwCapableSwitchIndices.end()) {
+        switchIdToSdkRegDumpFile[switchId] = folly::to<std::string>(
+            sdkRegDumpPathPrefix_, "_", switchId, ".log");
+      }
+    }
+
+    return switchIdToSdkRegDumpFile;
+  }
+
  private:
   void setCmdLineFlagOverrides() const override {
     AgentHwTest::setCmdLineFlagOverrides();
