@@ -3577,6 +3577,19 @@ void SaiSwitch::switchRunStateChangedImplLocked(
 
     } break;
     case SwitchRunState::CONFIGURED: {
+      /*
+       * SDK can notify FBOSS of an error condition via callback. For some
+       * scenarios e.g. RX FIFO stuck, Firmware isolation etc., to further
+       * debug, we may want to capture the system state as soon as the error
+       * condition occurs. SDK issuing a callback to FBOSS and then relying on
+       * FBOSS to collect system state info adds latency, and some state might
+       * be lost. Thus, we follow a model where SDK dumps the state to a log
+       * file before issuing callback.
+       *
+       * FBOSS programs the file path for SDK to write such state to. An error
+       * callback can be issued as soon as it is registered. Thus, set the
+       * file path before registering any error callback.
+       */
       if (platform_->getAsic()->isSupported(
               HwAsic::Feature::SDK_REGISTER_DUMP)) {
         std::vector<int8_t> sdkRegDumpLogPathArray;
