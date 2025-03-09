@@ -497,6 +497,8 @@ TYPED_TEST(FsdbPubSubTest, slowSubscriberQueueWatermark) {
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(publishIntervalMs));
   }
+
+  // validate subscription serve queue watermark counter
   WITH_RETRIES({
     auto subscriberId = slowSub->clientId();
     auto subscriberToInfo = folly::coro::blockingWait(
@@ -514,6 +516,14 @@ TYPED_TEST(FsdbPubSubTest, slowSubscriberQueueWatermark) {
         ASSERT_EVENTUALLY_GT(*expectedInfo.subscriptionQueueWatermark(), 0);
       }
     }
+    // Also validate fb303 counter for subscription serve queue watermark
+    // In tests, we don't start the publisher threads
+    fb303::ThreadCachedServiceData::get()->publishStats();
+    auto counterName = folly::sformat(
+        "{}.subscriber.{}.queue_watermark.avg.60",
+        this->pubSubStats() ? "stats" : "fsdb",
+        "unspecified");
+    EXPECT_EVENTUALLY_GT(fb303::ServiceData::get()->getCounter(counterName), 0);
   });
   // resume subscriber data callback after all updates are published
   resumeDataCb.post();

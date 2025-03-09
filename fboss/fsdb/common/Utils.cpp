@@ -27,6 +27,12 @@ FsdbClient string2FsdbClient(const std::string& clientId) {
   }
 }
 
+std::string fsdbClient2string(const FsdbClient& clientId) {
+  std::string str = apache::thrift::util::enumNameSafe(clientId);
+  transform(str.begin(), str.end(), str.begin(), ::tolower);
+  return str;
+}
+
 ClientId subscriberId2ClientId(const SubscriberId& subscriberId) {
   ClientId clientId;
 

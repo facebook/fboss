@@ -28,6 +28,9 @@ inline constexpr std::string_view kPathStoreNum{"object.count.pathStores"};
 inline constexpr std::string_view kPathStoreAllocs{"object.allocs.pathStores"};
 inline constexpr std::string_view kPublishTimePrefix{"publish_time_ms"};
 inline constexpr std::string_view kSubscribeTimePrefix{"subscribe_time_ms"};
+inline constexpr std::string_view kSubscriberPrefix{"subscriber"};
+inline constexpr std::string_view kSubscriptionQueueWatermark{
+    "queue_watermark"};
 
 // non-templated parts of NaivePeriodicSubscribableStorage to help with
 // compilation
@@ -248,6 +251,8 @@ class NaivePeriodicSubscribableStorageBase {
   // per-PublisherRoot metrics
   const std::string publishTimePrefix_;
   const std::string subscribeTimePrefix_;
+  // per-subscriber metrics
+  const std::string subscriberPrefix_;
 
   // delete copy constructors
   NaivePeriodicSubscribableStorageBase(

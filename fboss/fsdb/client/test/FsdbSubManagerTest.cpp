@@ -250,6 +250,7 @@ TEST(FsdbSubManagerTest, subscriberIdParsing) {
   EXPECT_EQ(subscriberId2ClientId(agentId).client(), FsdbClient::AGENT);
   EXPECT_EQ(subscriberId2ClientId(agentId).instanceId(), "");
   EXPECT_EQ(string2FsdbClient(agentId), FsdbClient::AGENT);
+  EXPECT_EQ(fsdbClient2string(string2FsdbClient(agentId)), agentId);
 
   SubscriberId foo = "foo";
   EXPECT_EQ(subscriberId2ClientId(foo).client(), FsdbClient::UNSPECIFIED);
