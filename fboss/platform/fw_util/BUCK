@@ -31,6 +31,7 @@ cpp_binary(
         "//folly:format",
         "//folly:string",
         "//folly:subprocess",
+        "//folly/logging:init",
         "//folly/logging:logging",
         "//folly/system:shell",
         "//thrift/lib/cpp2/protocol:protocol",

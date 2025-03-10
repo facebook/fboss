@@ -1,5 +1,6 @@
 //  Copyright 2021-present Facebook. All Rights Reserved.
 
+#include <folly/logging/Init.h>
 #include <folly/logging/xlog.h>
 
 #include <filesystem>
@@ -10,6 +11,9 @@
 
 using namespace facebook::fboss::platform::fw_util;
 using namespace facebook::fboss::platform;
+
+// We want to log all commands run by fw_util.
+FOLLY_INIT_LOGGING_CONFIG("fboss=DBG2; default:async=true");
 
 /*
  * This utility will perform firmware upgrade for

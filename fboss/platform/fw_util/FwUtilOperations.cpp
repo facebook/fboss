@@ -28,15 +28,13 @@ void FwUtilImpl::doJtagOperation(
 void FwUtilImpl::doGpiosetOperation(
     const GpiosetConfig& config,
     const std::string& fpd) {
-  bool printCommand = true;
   XLOG(INFO) << "setting gpio register for " << fpd
              << " as preUpgrade operation";
   std::string gpioChip = getGpioChip(*config.gpioChip());
   // Execute the gpioset command
   std::vector<std::string> gpiosetCmd = {
       "/usr/bin/gpioset", gpioChip, *config.gpioChipPin() + "=1"};
-  auto [exitStatus, standardOut] =
-      PlatformUtils().runCommand(gpiosetCmd, printCommand);
+  auto [exitStatus, standardOut] = PlatformUtils().runCommand(gpiosetCmd);
   checkCmdStatus(gpiosetCmd, exitStatus);
 }
 
@@ -83,16 +81,13 @@ void FwUtilImpl::doGpiogetOperation(
   std::string gpioChip = getGpioChip(*config.gpioChip());
   std::vector<std::string> gpiogetCmd = {
       "/usr/bin/gpioget", gpioChip, *config.gpioChipPin()};
-  bool printCommand = true;
-  auto [exitStatus, standardOut] =
-      PlatformUtils().runCommand(gpiogetCmd, printCommand);
+  auto [exitStatus, standardOut] = PlatformUtils().runCommand(gpiogetCmd);
   checkCmdStatus(gpiogetCmd, exitStatus);
 }
 
 void FwUtilImpl::performJamUpgrade(
     const JamConfig& jamConfig,
     const std::string& fpd) {
-  bool printCommand = true;
   // Check if the firmware binary file is present
   if (!std::filesystem::exists(FLAGS_fw_binary_file)) {
     throw std::runtime_error(
@@ -113,8 +108,7 @@ void FwUtilImpl::performJamUpgrade(
   jamCmd.push_back(FLAGS_fw_binary_file);
 
   // Execute the JAM command
-  auto [exitStatus, standardOut] =
-      PlatformUtils().runCommand(jamCmd, printCommand);
+  auto [exitStatus, standardOut] = PlatformUtils().runCommand(jamCmd);
 
   // we want to see the output of the command first
   XLOG(INFO) << standardOut;
@@ -126,7 +120,6 @@ void FwUtilImpl::performJamUpgrade(
 void FwUtilImpl::performXappUpgrade(
     const XappConfig& xappConfig,
     const std::string& fpd) {
-  bool printCommand = true;
   // Check if the firmware binary file is present
   if (!std::filesystem::exists(FLAGS_fw_binary_file)) {
     throw std::runtime_error(
@@ -146,8 +139,7 @@ void FwUtilImpl::performXappUpgrade(
   xappCmd.push_back(FLAGS_fw_binary_file);
 
   // Execute the XAPP command
-  auto [exitStatus, standardOut] =
-      PlatformUtils().runCommand(xappCmd, printCommand);
+  auto [exitStatus, standardOut] = PlatformUtils().runCommand(xappCmd);
 
   // we want to see the output of the command first
   XLOG(INFO) << standardOut;

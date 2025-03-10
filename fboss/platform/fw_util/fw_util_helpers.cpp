@@ -55,11 +55,9 @@ void verifySha1sum(const std::string& fpd, const std::string& configSha1sum) {
   // Verify SHA1 sum
   // Execute the sha1sum command
   XLOG(INFO) << "Verifying sha1sum of " << FLAGS_fw_binary_file;
-  bool printCommand = true;
   std::vector<std::string> sha1sumCmd = {
       "/usr/bin/sha1sum", FLAGS_fw_binary_file};
-  auto [exitStatus, standardOut] =
-      PlatformUtils().runCommand(sha1sumCmd, printCommand);
+  auto [exitStatus, standardOut] = PlatformUtils().runCommand(sha1sumCmd);
   checkCmdStatus(sha1sumCmd, exitStatus);
 
   // Parse the output to extract the SHA1 sum
@@ -80,20 +78,19 @@ void verifySha1sum(const std::string& fpd, const std::string& configSha1sum) {
 }
 
 std::string getGpioChip(const std::string& gpiochip) {
-  bool printCommand = true;
   auto [exitStatus, gpiodetectOutput] =
-      PlatformUtils().runCommand({"/usr/bin/gpiodetect"}, printCommand);
+      PlatformUtils().runCommand({"/usr/bin/gpiodetect"});
   XLOG(INFO) << "Gpio detect output: " << gpiodetectOutput;
   checkCmdStatus({"/usr/bin/gpiodetect"}, exitStatus);
 
   // Execute the grep command with the output of gpiodetect as input
   auto [exitStatus2, gpioChipStr] = PlatformUtils().runCommandWithStdin(
-      {"/usr/bin/grep", "-Ei", gpiochip}, gpiodetectOutput, printCommand);
+      {"/usr/bin/grep", "-Ei", gpiochip}, gpiodetectOutput);
 
   checkCmdStatus({"/usr/bin/grep", "-Ei", gpiochip}, exitStatus2);
   // Execute the awk command with the output of grep as input
   auto [exitStatus3, gpioChipNumber] = PlatformUtils().runCommandWithStdin(
-      {"/usr/bin/awk", "{print $1}"}, gpioChipStr, printCommand);
+      {"/usr/bin/awk", "{print $1}"}, gpioChipStr);
   checkCmdStatus({"/usr/bin/awk", "{print $1}"}, exitStatus3);
   // Remove trailing whitespace
   gpioChipNumber = folly::trimWhitespace(gpioChipNumber).str();
