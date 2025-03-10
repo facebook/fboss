@@ -75,6 +75,7 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::SAI_USER_DEFINED_TRAP:
     case HwAsic::Feature::ACL_ENTRY_ETHER_TYPE:
     case HwAsic::Feature::DEDICATED_CPU_BUFFER_POOL:
+    case HwAsic::Feature::ROUTE_METADATA:
       return true;
     case HwAsic::Feature::PORT_MTU_ERROR_TRAP:
     case HwAsic::Feature::EVENTOR_PORT_FOR_SFLOW:
@@ -95,7 +96,6 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::FEC_AM_LOCK_STATUS:
     case HwAsic::Feature::PCS_RX_LINK_STATUS:
     case HwAsic::Feature::ACL_COUNTER_LABEL:
-    case HwAsic::Feature::ROUTE_METADATA:
     case HwAsic::Feature::MEDIA_TYPE:
     case HwAsic::Feature::PORT_TTL_DECREMENT_DISABLE:
     case HwAsic::Feature::COUNTER_REFRESH_INTERVAL:
