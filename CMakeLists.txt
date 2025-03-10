@@ -765,20 +765,37 @@ endforeach(cmakeFile)
 
 add_custom_target(fboss_platform_services)
 add_dependencies(fboss_platform_services
+  # Services
   sensor_service
-  sensor_service_hw_test
-  sensor_service_sw_test
   fan_service
-  fan_service_sw_test
-  fan_service_hw_test
   rackmon
-  rackmon_test
   platform_manager
-  platform_manager_hw_test
   fw_util
   weutil
   led_service
   data_corral_service
+  # Unit Tests
+  platform_config_lib_config_lib_test
+  platform_manager_device_path_resolver_test
+  platform_manager_platform_explorer_test
+  platform_data_corral_sw_test
+  platform_manager_utils_test
+  platform_helpers_platform_name_lib_test
+  platform_manager_data_store_test
+  platform_manager_config_validator_test
+  platform_manager_presence_checker_test
+  platform_manager_i2c_explorer_test
+  weutil_crc16_ccitt_test
+  weutil_fboss_eeprom_parser_test
+  sensor_service_sw_test
+  sensor_service_utils_test
+  rackmon_test
+  fan_service_sw_test
+  data_corral_service_hw_test
+  fan_service_hw_test
+  sensor_service_hw_test
+  weutil_hw_test
+  platform_manager_hw_test
 )
 
 add_custom_target(qsfp_targets)
