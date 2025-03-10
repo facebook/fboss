@@ -486,6 +486,7 @@ void setupDefaultPostLookupIngressAclTableGroup(cfg::SwitchConfig& config) {
       },
       {
           cfg::AclTableQualifier::DSCP,
+          cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE,
       },
       {});
 }
