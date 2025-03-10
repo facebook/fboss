@@ -56,7 +56,6 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::L3_MTU_ERROR_TRAP:
     case HwAsic::Feature::SAI_PORT_SERDES_PROGRAMMING:
     case HwAsic::Feature::PORT_WRED_COUNTER:
-    case HwAsic::Feature::WARMBOOT:
     case HwAsic::Feature::PORT_SERDES_ZERO_PREEMPHASIS:
     case HwAsic::Feature::SAI_UDF_HASH:
     case HwAsic::Feature::IN_PAUSE_INCREMENTS_DISCARDS:
@@ -204,6 +203,8 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::SFLOW_SAMPLES_PACKING:
     case HwAsic::Feature::VENDOR_SWITCH_NOTIFICATION:
     case HwAsic::Feature::SDK_REGISTER_DUMP:
+    case HwAsic::Feature::WARMBOOT: // TODO: add support for warmboot once SDK
+                                    // supports it
       return false;
   }
   return false;
