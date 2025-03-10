@@ -557,4 +557,12 @@ SaiSwitchTraits::Attributes::AttributeSdkRegDumpLogPath::operator()() {
   return std::nullopt;
 }
 
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeFirmwareObjectList::operator()() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_7)
+  return SAI_SWITCH_ATTR_FIRMWARE_OBJECT_LIST;
+#endif
+  return std::nullopt;
+}
+
 } // namespace facebook::fboss

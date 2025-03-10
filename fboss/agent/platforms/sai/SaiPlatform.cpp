@@ -857,6 +857,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       maxSwitchId, // Max switch Id
       sflowNofSamples, // Sflow aggr number of samples
       std::nullopt, // SDK Register dump log path
+      std::nullopt, // Firmware Object list
   };
 }
 
