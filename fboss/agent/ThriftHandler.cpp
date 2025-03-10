@@ -1054,14 +1054,11 @@ void ThriftHandler::getNdpTable(std::vector<NdpEntryThrift>& ndpTable) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
 
-  // Lookup neighbor entries in the interface neighborTable.
-  // If empty, fallback to looking up vlan neighborTable.
-  // TODO(skhare) Remove this fallback logic once we completely cut over to
-  // interface neighborTable.
-  auto entries = sw_->getNeighborUpdater()->getNdpCacheDataForIntf().get();
-  if (entries.size() == 0) {
-    XLOG(DBG5)
-        << "Interface NDP table is empty, fallback to using VLAN neighbor table";
+  // Look up neighbor table entries
+  std::list<facebook::fboss::NdpEntryThrift> entries;
+  if (FLAGS_intf_nbr_tables) {
+    entries = sw_->getNeighborUpdater()->getNdpCacheDataForIntf().get();
+  } else {
     entries = sw_->getNeighborUpdater()->getNdpCacheData().get();
   }
 
@@ -1078,14 +1075,11 @@ void ThriftHandler::getArpTable(std::vector<ArpEntryThrift>& arpTable) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
 
-  // Lookup neighbor entries in the interface neighborTable.
-  // If empty, fallback to looking up vlan neighborTable.
-  // TODO(skhare) Remove this fallback logic once we completely cut over to
-  // interface neighborTable.
-  auto entries = sw_->getNeighborUpdater()->getArpCacheDataForIntf().get();
-  if (entries.size() == 0) {
-    XLOG(DBG5)
-        << "Interface ARP table is empty, fallback to using VLAN neighbor table";
+  // Look up neighbor table entries
+  std::list<facebook::fboss::ArpEntryThrift> entries;
+  if (FLAGS_intf_nbr_tables) {
+    entries = sw_->getNeighborUpdater()->getArpCacheDataForIntf().get();
+  } else {
     entries = sw_->getNeighborUpdater()->getArpCacheData().get();
   }
 
