@@ -1,0 +1,31 @@
+load("@fbcode_macros//build_defs:python_binary.bzl", "python_binary")
+load("@fbcode_macros//build_defs:python_library.bzl", "python_library")
+load("//fbpkg:fbpkg.bzl", "fbpkg")
+
+oncall("fboss_platform")
+
+python_library(
+    name = "fixmyfboss_library",
+    srcs = [
+        "fbosscheck.py",
+        "remediation.py",
+        "status.py",
+        "utils.py",
+    ] + glob(["modules/*.py"]),
+)
+
+python_binary(
+    name = "fixmyfboss",
+    srcs = ["main.py"],
+    main_function = ".main.main",
+    deps = [
+        ":fixmyfboss_library",
+    ],
+)
+
+fbpkg.builder(
+    name = "fboss.fixmyfboss",
+    path_actions = {
+        "fixmyfboss": "//fboss/util/fixmyfboss:fixmyfboss",
+    },
+)
