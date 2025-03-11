@@ -738,6 +738,9 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         std::nullopt, // CondEntropyRehashPeriodUS
         std::nullopt, // CondEntropyRehashSeed
         std::nullopt, // ShelEnable
+#if defined(CHENAB_SDK)
+        false,
+#endif
     };
   }
   std::optional<SaiPortTraits::Attributes::PortVlanId> vlanIdAttr{vlanId};
@@ -817,6 +820,9 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       std::nullopt, // CondEntropyRehashPeriodUS
       std::nullopt, // CondEntropyRehashSeed
       std::nullopt, // ShelEnable
+#if defined(CHENAB_SDK)
+      false,
+#endif
   };
 }
 

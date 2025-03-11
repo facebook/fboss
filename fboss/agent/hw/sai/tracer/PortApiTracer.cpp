@@ -108,6 +108,9 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _PortMap{
     SAI_ATTR_MAP(Port, ArsPortLoadPastWeight),
     SAI_ATTR_MAP(Port, ArsPortLoadFutureWeight),
 #endif
+#if defined(CHENAB_SDK)
+    SAI_ATTR_MAP(Port, AutoNegotiationMode),
+#endif
 };
 
 std::map<int32_t, std::pair<std::string, std::size_t>> _PortSerdesMap{
