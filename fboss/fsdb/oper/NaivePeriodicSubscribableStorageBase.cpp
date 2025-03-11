@@ -273,16 +273,18 @@ void NaivePeriodicSubscribableStorageBase::exportServeMetrics(
     }
   }
 
-  // export per-subscriber metrics
-  std::map<FsdbClient, SubscriberStats> stats = subMgr().getSubscriberStats();
-  for (const auto& [key, stat] : stats) {
-    auto counterName = fmt::format(
-        "{}.{}.{}",
-        subscriberPrefix_,
-        fsdbClient2string(key),
-        kSubscriptionQueueWatermark);
-    fb303::ThreadCachedServiceData::get()->addStatValue(
-        counterName, stat.subscriptionServeQueueWatermark, fb303::AVG);
+  if (params_.exportPerSubscriberMetrics_) {
+    // export per-subscriber metrics
+    std::map<FsdbClient, SubscriberStats> stats = subMgr().getSubscriberStats();
+    for (const auto& [key, stat] : stats) {
+      auto counterName = fmt::format(
+          "{}.{}.{}",
+          subscriberPrefix_,
+          fsdbClient2string(key),
+          kSubscriptionQueueWatermark);
+      fb303::ThreadCachedServiceData::get()->addStatValue(
+          counterName, stat.subscriptionServeQueueWatermark, fb303::AVG);
+    }
   }
 }
 

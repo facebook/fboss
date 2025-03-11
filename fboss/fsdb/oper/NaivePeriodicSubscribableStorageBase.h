@@ -50,13 +50,15 @@ class NaivePeriodicSubscribableStorageBase {
         bool trackMetadata = false,
         const std::string& metricPrefix = "fsdb",
         bool convertToIDPaths = false,
-        bool requireResponseOnInitialSync = false)
+        bool requireResponseOnInitialSync = false,
+        bool exportPerSubscriberMetrics = false)
         : subscriptionServeInterval_(subscriptionServeInterval),
           subscriptionHeartbeatInterval_(subscriptionHeartbeatInterval),
           trackMetadata_(trackMetadata),
           metricPrefix_(metricPrefix),
           convertSubsToIDPaths_(convertToIDPaths),
-          requireResponseOnInitialSync_(requireResponseOnInitialSync) {}
+          requireResponseOnInitialSync_(requireResponseOnInitialSync),
+          exportPerSubscriberMetrics_(exportPerSubscriberMetrics) {}
 
     const std::chrono::milliseconds subscriptionServeInterval_;
     const std::chrono::milliseconds subscriptionHeartbeatInterval_;
@@ -64,6 +66,7 @@ class NaivePeriodicSubscribableStorageBase {
     const std::string& metricPrefix_;
     bool convertSubsToIDPaths_;
     const bool requireResponseOnInitialSync_;
+    const bool exportPerSubscriberMetrics_;
   };
 
   explicit NaivePeriodicSubscribableStorageBase(StorageParams params);
