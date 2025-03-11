@@ -80,7 +80,7 @@
           "test_name_regex": "warm_boot.AgentEcmpTestWithWBWrites.L2ResolveOneNhopThenLinkDownThenUp$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.verifyL4SrcPortRandomization$"
+          "test_name_regex": "AgentSflowMirror(Untruncate)?TestV6.verifyL4SrcPortRandomization$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion.*$"
@@ -221,7 +221,7 @@
           "test_name_regex": "warm_boot.AgentEcmpTestWithWBWrites.L2ResolveOneNhopThenLinkDownThenUp$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.verifyL4SrcPortRandomization$"
+          "test_name_regex": "AgentSflowMirror(Untruncate)?TestV6.verifyL4SrcPortRandomization$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion.*$"
@@ -493,7 +493,7 @@
           "test_name_regex": "warm_boot.AgentEcmpTestWithWBWrites.L2ResolveOneNhopThenLinkDownThenUp$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.verifyL4SrcPortRandomization$"
+          "test_name_regex": "AgentSflowMirror(Untruncate)?TestV6.verifyL4SrcPortRandomization$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion.*$"
@@ -613,7 +613,7 @@
           "test_name_regex": "warm_boot.AgentEcmpTestWithWBWrites.L2ResolveOneNhopThenLinkDownThenUp$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.verifyL4SrcPortRandomization$"
+          "test_name_regex": "AgentSflowMirror(Untruncate)?TestV6.verifyL4SrcPortRandomization$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion.*$"
@@ -760,7 +760,7 @@
           "test_name_regex": "AgentEgressAclErspanMirroringTest/[01].ErspanAclMirror$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV[46].VerifySampledPacketRate$"
+          "test_name_regex": "AgentSflowMirror.*TestV[46].VerifySampledPacketRate$"
         },
         {
           "test_name_regex": "AgentSflowMirrorOnTrunkTestV[46].*$"
@@ -772,10 +772,7 @@
           "test_name_regex": "AgentMirroringScaleTest/[67].MaxMirroringTest$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacketRate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTestV4.MoveToV6$"
+          "test_name_regex": "AgentSflowMirror.*TestV4.MoveToV6$"
         },
         {
           "test_name_regex": "AgentMacOverFlowTest.*$"
@@ -918,7 +915,7 @@
           "test_name_regex": "warm_boot.AgentEcmpTestWithWBWrites.L2ResolveOneNhopThenLinkDownThenUp$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.verifyL4SrcPortRandomization$"
+          "test_name_regex": "AgentSflowMirror(Untruncate)?TestV6.verifyL4SrcPortRandomization$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion.*$"
@@ -1059,7 +1056,7 @@
           "test_name_regex": "warm_boot.AgentEcmpTestWithWBWrites.L2ResolveOneNhopThenLinkDownThenUp$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.verifyL4SrcPortRandomization$"
+          "test_name_regex": "AgentSflowMirror(Untruncate)?TestV6.verifyL4SrcPortRandomization$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion.*$"
@@ -1188,7 +1185,7 @@
           "test_name_regex": "AgentEgressAclErspanMirroringTest/[01].ErspanAclMirror$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV[46].VerifySampledPacketRate$"
+          "test_name_regex": "AgentSflowMirror.*TestV[46].VerifySampledPacketRate$"
         },
         {
           "test_name_regex": "AgentSflowMirrorOnTrunkTestV[46].*$"
@@ -1200,10 +1197,7 @@
           "test_name_regex": "AgentMirroringScaleTest/[67].MaxMirroringTest$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacketRate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTestV4.MoveToV6$"
+          "test_name_regex": "AgentSflowMirror.*TestV4.MoveToV6$"
         },
         {
           "test_name_regex": "AgentQueuePerHostTest/[0123].VerifyHostToQueueMappingClassIDsAfterResolve.*$"
@@ -1295,7 +1289,7 @@
           "test_name_regex": "warm_boot.AgentEcmpTestWithWBWrites.L2ResolveOneNhopThenLinkDownThenUp$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.verifyL4SrcPortRandomization$"
+          "test_name_regex": "AgentSflowMirror(Untruncate)?TestV6.verifyL4SrcPortRandomization$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion.*$"
@@ -1415,7 +1409,7 @@
           "test_name_regex": "warm_boot.AgentEcmpTestWithWBWrites.L2ResolveOneNhopThenLinkDownThenUp$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.verifyL4SrcPortRandomization$"
+          "test_name_regex": "AgentSflowMirror(Untruncate)?TestV6.verifyL4SrcPortRandomization$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion.*$"
@@ -1607,16 +1601,13 @@
           "test_name_regex": "AgentEgressAclErspanMirroringTest/[01].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV[46].VerifySampledPacketRate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV[46].VerifySampledPacketRate$"
+          "test_name_regex": "AgentSflowMirror.*TestV[46].VerifySampledPacketRate$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTruncateTestV6.verifyL4SrcPortRandomization$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV4.MoveToV6$"
+          "test_name_regex": "AgentSflowMirror.*TestV4.MoveToV6$"
         },
         {
           "test_name_regex": "AgentTrafficPfcWatchdogTest.*$"
@@ -1720,7 +1711,7 @@
           "test_name_regex": "warm_boot.AgentEcmpTestWithWBWrites.L2ResolveOneNhopThenLinkDownThenUp$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.verifyL4SrcPortRandomization$"
+          "test_name_regex": "AgentSflowMirror(Untruncate)?TestV6.verifyL4SrcPortRandomization$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion.*$"
@@ -1861,7 +1852,7 @@
           "test_name_regex": "warm_boot.AgentEcmpTestWithWBWrites.L2ResolveOneNhopThenLinkDownThenUp$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.verifyL4SrcPortRandomization$"
+          "test_name_regex": "AgentSflowMirror(Untruncate)?TestV6.verifyL4SrcPortRandomization$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion.*$"
@@ -2035,16 +2026,13 @@
           "test_name_regex": "AgentEgressAclErspanMirroringTest/[01].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV[46].VerifySampledPacketRate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV[46].VerifySampledPacketRate$"
+          "test_name_regex": "AgentSflowMirror.*TestV[46].VerifySampledPacketRate$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTruncateTestV6.verifyL4SrcPortRandomization$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV4.MoveToV6$"
+          "test_name_regex": "AgentSflowMirror.*TestV4.MoveToV6$"
         },
         {
           "test_name_regex": "AgentTrafficPfcWatchdogTest.*$"
@@ -2139,16 +2127,13 @@
           "test_name_regex": "AgentEgressPortSpanMirroringTest/[01].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV[46].VerifySampledPacketRate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV[46].VerifySampledPacketRate$"
+          "test_name_regex": "AgentSflowMirror.*TestV[46].VerifySampledPacketRate$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTruncateTestV6.verifyL4SrcPortRandomization$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV4.MoveToV6$"
+          "test_name_regex": "AgentSflowMirror.*TestV4.MoveToV6$"
         },
         {
           "test_name_regex": "AgentTrafficPfcWatchdogTest.*$"
@@ -2241,7 +2226,7 @@
           "test_name_regex": "warm_boot.AgentEcmpTestWithWBWrites.L2ResolveOneNhopThenLinkDownThenUp$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.verifyL4SrcPortRandomization$"
+          "test_name_regex": "AgentSflowMirror(Untruncate)?TestV6.verifyL4SrcPortRandomization$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion.*$"
@@ -2361,7 +2346,7 @@
           "test_name_regex": "warm_boot.AgentEcmpTestWithWBWrites.L2ResolveOneNhopThenLinkDownThenUp$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.verifyL4SrcPortRandomization$"
+          "test_name_regex": "AgentSflowMirror(Untruncate)?TestV6.verifyL4SrcPortRandomization$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion.*$"
@@ -2600,16 +2585,13 @@
           "test_name_regex": "AgentEgressPortSpanMirroringTest/[01].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV[46].VerifySampledPacketRate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV[46].VerifySampledPacketRate$"
+          "test_name_regex": "AgentSflowMirror.*TestV[46].VerifySampledPacketRate$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTruncateTestV6.verifyL4SrcPortRandomization$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV4.MoveToV6$"
+          "test_name_regex": "AgentSflowMirror.*TestV4.MoveToV6$"
         },
         {
           "test_name_regex": "AgentTrafficPfcWatchdogTest.*$"
@@ -2702,7 +2684,7 @@
           "test_name_regex": "warm_boot.AgentEcmpTestWithWBWrites.L2ResolveOneNhopThenLinkDownThenUp$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.verifyL4SrcPortRandomization$"
+          "test_name_regex": "AgentSflowMirror(Untruncate)?TestV6.verifyL4SrcPortRandomization$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion.*$"
@@ -2843,7 +2825,7 @@
           "test_name_regex": "warm_boot.AgentEcmpTestWithWBWrites.L2ResolveOneNhopThenLinkDownThenUp$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.verifyL4SrcPortRandomization$"
+          "test_name_regex": "AgentSflowMirror(Untruncate)?TestV6.verifyL4SrcPortRandomization$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion.*$"
@@ -3115,7 +3097,7 @@
           "test_name_regex": "warm_boot.AgentEcmpTestWithWBWrites.L2ResolveOneNhopThenLinkDownThenUp$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.verifyL4SrcPortRandomization$"
+          "test_name_regex": "AgentSflowMirror(Untruncate)?TestV6.verifyL4SrcPortRandomization$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion.*$"
@@ -3235,7 +3217,7 @@
           "test_name_regex": "warm_boot.AgentEcmpTestWithWBWrites.L2ResolveOneNhopThenLinkDownThenUp$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.verifyL4SrcPortRandomization$"
+          "test_name_regex": "AgentSflowMirror(Untruncate)?TestV6.verifyL4SrcPortRandomization$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion.*$"
@@ -3504,16 +3486,13 @@
           "test_name_regex": "AgentEgressPortSpanMirroringTest/[01].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV[46].VerifySampledPacketRate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV[46].VerifySampledPacketRate$"
+          "test_name_regex": "AgentSflowMirror.*TestV[46].VerifySampledPacketRate$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTruncateTestV6.verifyL4SrcPortRandomization$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV4.MoveToV6$"
+          "test_name_regex": "AgentSflowMirror.*TestV4.MoveToV6$"
         },
         {
           "test_name_regex": "AgentTrafficPfcWatchdogTest.*$"
@@ -3606,7 +3585,7 @@
           "test_name_regex": "warm_boot.AgentEcmpTestWithWBWrites.L2ResolveOneNhopThenLinkDownThenUp$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.verifyL4SrcPortRandomization$"
+          "test_name_regex": "AgentSflowMirror(Untruncate)?TestV6.verifyL4SrcPortRandomization$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion.*$"
@@ -3747,7 +3726,7 @@
           "test_name_regex": "warm_boot.AgentEcmpTestWithWBWrites.L2ResolveOneNhopThenLinkDownThenUp$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.verifyL4SrcPortRandomization$"
+          "test_name_regex": "AgentSflowMirror(Untruncate)?TestV6.verifyL4SrcPortRandomization$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion.*$"
@@ -4007,7 +3986,7 @@
           "test_name_regex": "warm_boot.AgentEcmpTestWithWBWrites.L2ResolveOneNhopThenLinkDownThenUp$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.verifyL4SrcPortRandomization$"
+          "test_name_regex": "AgentSflowMirror(Untruncate)?TestV6.verifyL4SrcPortRandomization$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion.*$"
@@ -4127,7 +4106,7 @@
           "test_name_regex": "warm_boot.AgentEcmpTestWithWBWrites.L2ResolveOneNhopThenLinkDownThenUp$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.verifyL4SrcPortRandomization$"
+          "test_name_regex": "AgentSflowMirror(Untruncate)?TestV6.verifyL4SrcPortRandomization$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion.*$"
@@ -4268,9 +4247,6 @@
           "test_name_regex": "AgentPacketSendTest.ArpRequestToFrontPanelPortSwitched"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.*"
-        },
-        {
           "test_name_regex": "warm_boot.AgentTrafficPfcWatchdogTest.PfcWatchdogDetection"
         },
         {
@@ -4357,7 +4333,7 @@
           "test_name_regex": "warm_boot.AgentEcmpTestWithWBWrites.L2ResolveOneNhopThenLinkDownThenUp$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.verifyL4SrcPortRandomization$"
+          "test_name_regex": "AgentSflowMirror(Untruncate)?TestV6.verifyL4SrcPortRandomization$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion.*$"
@@ -4498,7 +4474,7 @@
           "test_name_regex": "warm_boot.AgentEcmpTestWithWBWrites.L2ResolveOneNhopThenLinkDownThenUp$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.verifyL4SrcPortRandomization$"
+          "test_name_regex": "AgentSflowMirror(Untruncate)?TestV6.verifyL4SrcPortRandomization$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion.*$"
@@ -4621,9 +4597,6 @@
           "test_name_regex": "AgentPacketSendTest.ArpRequestToFrontPanelPortSwitched"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.*"
-        },
-        {
           "test_name_regex": "warm_boot.AgentTrafficPfcWatchdogTest.PfcWatchdogDetection"
         },
         {
@@ -4713,7 +4686,7 @@
           "test_name_regex": "warm_boot.AgentEcmpTestWithWBWrites.L2ResolveOneNhopThenLinkDownThenUp$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.verifyL4SrcPortRandomization$"
+          "test_name_regex": "AgentSflowMirror(Untruncate)?TestV6.verifyL4SrcPortRandomization$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion.*$"
@@ -4854,7 +4827,7 @@
           "test_name_regex": "warm_boot.AgentEcmpTestWithWBWrites.L2ResolveOneNhopThenLinkDownThenUp$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.verifyL4SrcPortRandomization$"
+          "test_name_regex": "AgentSflowMirror(Untruncate)?TestV6.verifyL4SrcPortRandomization$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion.*$"
@@ -5066,7 +5039,7 @@
           "test_name_regex": "warm_boot.AgentEcmpTestWithWBWrites.L2ResolveOneNhopThenLinkDownThenUp$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.verifyL4SrcPortRandomization$"
+          "test_name_regex": "AgentSflowMirror(Untruncate)?TestV6.verifyL4SrcPortRandomization$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion.*$"
@@ -5186,7 +5159,7 @@
           "test_name_regex": "warm_boot.AgentEcmpTestWithWBWrites.L2ResolveOneNhopThenLinkDownThenUp$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.verifyL4SrcPortRandomization$"
+          "test_name_regex": "AgentSflowMirror(Untruncate)?TestV6.verifyL4SrcPortRandomization$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion.*$"
@@ -5327,9 +5300,6 @@
           "test_name_regex": "AgentPacketSendTest.ArpRequestToFrontPanelPortSwitched"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.*"
-        },
-        {
           "test_name_regex": "warm_boot.AgentTrafficPfcWatchdogTest.PfcWatchdogDetection"
         },
         {
@@ -5416,7 +5386,7 @@
           "test_name_regex": "warm_boot.AgentEcmpTestWithWBWrites.L2ResolveOneNhopThenLinkDownThenUp$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.verifyL4SrcPortRandomization$"
+          "test_name_regex": "AgentSflowMirror(Untruncate)?TestV6.verifyL4SrcPortRandomization$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion.*$"
@@ -5557,7 +5527,7 @@
           "test_name_regex": "warm_boot.AgentEcmpTestWithWBWrites.L2ResolveOneNhopThenLinkDownThenUp$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.verifyL4SrcPortRandomization$"
+          "test_name_regex": "AgentSflowMirror(Untruncate)?TestV6.verifyL4SrcPortRandomization$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion.*$"
@@ -5680,9 +5650,6 @@
           "test_name_regex": "AgentPacketSendTest.ArpRequestToFrontPanelPortSwitched"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.*"
-        },
-        {
           "test_name_regex": "warm_boot.AgentTrafficPfcWatchdogTest.PfcWatchdogDetection"
         },
         {
@@ -5772,7 +5739,7 @@
           "test_name_regex": "warm_boot.AgentEcmpTestWithWBWrites.L2ResolveOneNhopThenLinkDownThenUp$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.verifyL4SrcPortRandomization$"
+          "test_name_regex": "AgentSflowMirror(Untruncate)?TestV6.verifyL4SrcPortRandomization$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion.*$"
@@ -5913,7 +5880,7 @@
           "test_name_regex": "warm_boot.AgentEcmpTestWithWBWrites.L2ResolveOneNhopThenLinkDownThenUp$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.verifyL4SrcPortRandomization$"
+          "test_name_regex": "AgentSflowMirror(Untruncate)?TestV6.verifyL4SrcPortRandomization$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion.*$"
@@ -6179,7 +6146,7 @@
           "test_name_regex": "warm_boot.AgentEcmpTestWithWBWrites.L2ResolveOneNhopThenLinkDownThenUp$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.verifyL4SrcPortRandomization$"
+          "test_name_regex": "AgentSflowMirror(Untruncate)?TestV6.verifyL4SrcPortRandomization$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion.*$"
@@ -6299,7 +6266,7 @@
           "test_name_regex": "warm_boot.AgentEcmpTestWithWBWrites.L2ResolveOneNhopThenLinkDownThenUp$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.verifyL4SrcPortRandomization$"
+          "test_name_regex": "AgentSflowMirror(Untruncate)?TestV6.verifyL4SrcPortRandomization$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion.*$"
@@ -6568,16 +6535,13 @@
           "test_name_regex": "AgentEgressPortSpanMirroringTest/[01].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV[46].VerifySampledPacketRate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV[46].VerifySampledPacketRate$"
+          "test_name_regex": "AgentSflowMirror.*TestV[46].VerifySampledPacketRate$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTruncateTestV6.verifyL4SrcPortRandomization$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV4.MoveToV6$"
+          "test_name_regex": "AgentSflowMirror.*TestV4.MoveToV6$"
         },
         {
           "test_name_regex": "AgentTrafficPfcWatchdogTest.*$"
@@ -6670,7 +6634,7 @@
           "test_name_regex": "warm_boot.AgentEcmpTestWithWBWrites.L2ResolveOneNhopThenLinkDownThenUp$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.verifyL4SrcPortRandomization$"
+          "test_name_regex": "AgentSflowMirror(Untruncate)?TestV6.verifyL4SrcPortRandomization$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion.*$"
@@ -6811,7 +6775,7 @@
           "test_name_regex": "warm_boot.AgentEcmpTestWithWBWrites.L2ResolveOneNhopThenLinkDownThenUp$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.verifyL4SrcPortRandomization$"
+          "test_name_regex": "AgentSflowMirror(Untruncate)?TestV6.verifyL4SrcPortRandomization$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion.*$"
@@ -7071,7 +7035,7 @@
           "test_name_regex": "warm_boot.AgentEcmpTestWithWBWrites.L2ResolveOneNhopThenLinkDownThenUp$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.verifyL4SrcPortRandomization$"
+          "test_name_regex": "AgentSflowMirror(Untruncate)?TestV6.verifyL4SrcPortRandomization$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion.*$"
@@ -7191,7 +7155,7 @@
           "test_name_regex": "warm_boot.AgentEcmpTestWithWBWrites.L2ResolveOneNhopThenLinkDownThenUp$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.verifyL4SrcPortRandomization$"
+          "test_name_regex": "AgentSflowMirror(Untruncate)?TestV6.verifyL4SrcPortRandomization$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion.*$"
@@ -7332,9 +7296,6 @@
           "test_name_regex": "AgentPacketSendTest.ArpRequestToFrontPanelPortSwitched"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.*"
-        },
-        {
           "test_name_regex": "warm_boot.AgentTrafficPfcWatchdogTest.PfcWatchdogDetection"
         },
         {
@@ -7421,7 +7382,7 @@
           "test_name_regex": "warm_boot.AgentEcmpTestWithWBWrites.L2ResolveOneNhopThenLinkDownThenUp$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.verifyL4SrcPortRandomization$"
+          "test_name_regex": "AgentSflowMirror(Untruncate)?TestV6.verifyL4SrcPortRandomization$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion.*$"
@@ -7562,7 +7523,7 @@
           "test_name_regex": "warm_boot.AgentEcmpTestWithWBWrites.L2ResolveOneNhopThenLinkDownThenUp$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.verifyL4SrcPortRandomization$"
+          "test_name_regex": "AgentSflowMirror(Untruncate)?TestV6.verifyL4SrcPortRandomization$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion.*$"
@@ -7685,9 +7646,6 @@
           "test_name_regex": "AgentPacketSendTest.ArpRequestToFrontPanelPortSwitched"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.*"
-        },
-        {
           "test_name_regex": "warm_boot.AgentTrafficPfcWatchdogTest.PfcWatchdogDetection"
         },
         {
@@ -7777,7 +7735,7 @@
           "test_name_regex": "warm_boot.AgentEcmpTestWithWBWrites.L2ResolveOneNhopThenLinkDownThenUp$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.verifyL4SrcPortRandomization$"
+          "test_name_regex": "AgentSflowMirror(Untruncate)?TestV6.verifyL4SrcPortRandomization$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion.*$"
@@ -7918,7 +7876,7 @@
           "test_name_regex": "warm_boot.AgentEcmpTestWithWBWrites.L2ResolveOneNhopThenLinkDownThenUp$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.verifyL4SrcPortRandomization$"
+          "test_name_regex": "AgentSflowMirror(Untruncate)?TestV6.verifyL4SrcPortRandomization$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion.*$"
@@ -8187,7 +8145,7 @@
           "test_name_regex": "warm_boot.AgentEcmpTestWithWBWrites.L2ResolveOneNhopThenLinkDownThenUp$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.verifyL4SrcPortRandomization$"
+          "test_name_regex": "AgentSflowMirror(Untruncate)?TestV6.verifyL4SrcPortRandomization$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion.*$"
@@ -8307,7 +8265,7 @@
           "test_name_regex": "warm_boot.AgentEcmpTestWithWBWrites.L2ResolveOneNhopThenLinkDownThenUp$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.verifyL4SrcPortRandomization$"
+          "test_name_regex": "AgentSflowMirror(Untruncate)?TestV6.verifyL4SrcPortRandomization$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion.*$"
@@ -8454,7 +8412,7 @@
           "test_name_regex": "AgentEgressAclErspanMirroringTest/[01].ErspanAclMirror$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV[46].VerifySampledPacketRate$"
+          "test_name_regex": "AgentSflowMirror.*TestV[46].VerifySampledPacketRate$"
         },
         {
           "test_name_regex": "AgentSflowMirrorOnTrunkTestV[46].*$"
@@ -8466,10 +8424,7 @@
           "test_name_regex": "AgentMirroringScaleTest/[67].MaxMirroringTest$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacketRate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTestV4.MoveToV6$"
+          "test_name_regex": "AgentSflowMirror.*TestV4.MoveToV6$"
         }
     ],
     "brcm/8.2.0.0_odp/8.2.0.0_odp/tomahawk/multi_switch": [
@@ -8606,7 +8561,7 @@
           "test_name_regex": "warm_boot.AgentEcmpTestWithWBWrites.L2ResolveOneNhopThenLinkDownThenUp$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.verifyL4SrcPortRandomization$"
+          "test_name_regex": "AgentSflowMirror(Untruncate)?TestV6.verifyL4SrcPortRandomization$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion.*$"
@@ -8747,7 +8702,7 @@
           "test_name_regex": "warm_boot.AgentEcmpTestWithWBWrites.L2ResolveOneNhopThenLinkDownThenUp$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.verifyL4SrcPortRandomization$"
+          "test_name_regex": "AgentSflowMirror(Untruncate)?TestV6.verifyL4SrcPortRandomization$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion.*$"
@@ -8876,7 +8831,7 @@
           "test_name_regex": "AgentEgressAclErspanMirroringTest/[01].ErspanAclMirror$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV[46].VerifySampledPacketRate$"
+          "test_name_regex": "AgentSflowMirror.*TestV[46].VerifySampledPacketRate$"
         },
         {
           "test_name_regex": "AgentSflowMirrorOnTrunkTestV[46].*$"
@@ -8888,10 +8843,7 @@
           "test_name_regex": "AgentMirroringScaleTest/[67].MaxMirroringTest$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacketRate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTestV4.MoveToV6$"
+          "test_name_regex": "AgentSflowMirror.*TestV4.MoveToV6$"
         },
         {
           "test_name_regex": "AgentQueuePerHostTest/[0123].VerifyHostToQueueMappingClassIDsAfterResolve.*$"
@@ -8977,7 +8929,7 @@
           "test_name_regex": "warm_boot.AgentEcmpTestWithWBWrites.L2ResolveOneNhopThenLinkDownThenUp$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.verifyL4SrcPortRandomization$"
+          "test_name_regex": "AgentSflowMirror(Untruncate)?TestV6.verifyL4SrcPortRandomization$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion.*$"
@@ -9097,7 +9049,7 @@
           "test_name_regex": "warm_boot.AgentEcmpTestWithWBWrites.L2ResolveOneNhopThenLinkDownThenUp$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.verifyL4SrcPortRandomization$"
+          "test_name_regex": "AgentSflowMirror(Untruncate)?TestV6.verifyL4SrcPortRandomization$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion.*$"
@@ -9289,16 +9241,13 @@
           "test_name_regex": "AgentEgressAclErspanMirroringTest/[01].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV[46].VerifySampledPacketRate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV[46].VerifySampledPacketRate$"
+          "test_name_regex": "AgentSflowMirror.*TestV[46].VerifySampledPacketRate$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTruncateTestV6.verifyL4SrcPortRandomization$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV4.MoveToV6$"
+          "test_name_regex": "AgentSflowMirror.*TestV4.MoveToV6$"
         },
         {
           "test_name_regex": "AgentTrafficPfcWatchdogTest.*$"
@@ -9396,7 +9345,7 @@
           "test_name_regex": "warm_boot.AgentEcmpTestWithWBWrites.L2ResolveOneNhopThenLinkDownThenUp$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.verifyL4SrcPortRandomization$"
+          "test_name_regex": "AgentSflowMirror(Untruncate)?TestV6.verifyL4SrcPortRandomization$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion.*$"
@@ -9537,7 +9486,7 @@
           "test_name_regex": "warm_boot.AgentEcmpTestWithWBWrites.L2ResolveOneNhopThenLinkDownThenUp$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.verifyL4SrcPortRandomization$"
+          "test_name_regex": "AgentSflowMirror(Untruncate)?TestV6.verifyL4SrcPortRandomization$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion.*$"
@@ -9711,16 +9660,13 @@
           "test_name_regex": "AgentEgressAclErspanMirroringTest/[01].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV[46].VerifySampledPacketRate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV[46].VerifySampledPacketRate$"
+          "test_name_regex": "AgentSflowMirror.*TestV[46].VerifySampledPacketRate$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTruncateTestV6.verifyL4SrcPortRandomization$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV4.MoveToV6$"
+          "test_name_regex": "AgentSflowMirror.*TestV4.MoveToV6$"
         },
         {
           "test_name_regex": "AgentTrafficPfcWatchdogTest.*$"
@@ -9809,16 +9755,13 @@
           "test_name_regex": "AgentEgressPortSpanMirroringTest/[01].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV[46].VerifySampledPacketRate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV[46].VerifySampledPacketRate$"
+          "test_name_regex": "AgentSflowMirror.*TestV[46].VerifySampledPacketRate$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTruncateTestV6.verifyL4SrcPortRandomization$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV4.MoveToV6$"
+          "test_name_regex": "AgentSflowMirror.*TestV4.MoveToV6$"
         },
         {
           "test_name_regex": "AgentTrafficPfcWatchdogTest.*$"
@@ -9911,7 +9854,7 @@
           "test_name_regex": "warm_boot.AgentEcmpTestWithWBWrites.L2ResolveOneNhopThenLinkDownThenUp$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.verifyL4SrcPortRandomization$"
+          "test_name_regex": "AgentSflowMirror(Untruncate)?TestV6.verifyL4SrcPortRandomization$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion.*$"
@@ -10031,7 +9974,7 @@
           "test_name_regex": "warm_boot.AgentEcmpTestWithWBWrites.L2ResolveOneNhopThenLinkDownThenUp$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.verifyL4SrcPortRandomization$"
+          "test_name_regex": "AgentSflowMirror(Untruncate)?TestV6.verifyL4SrcPortRandomization$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion.*$"
@@ -10252,16 +10195,13 @@
           "test_name_regex": "AgentEgressPortSpanMirroringTest/[01].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV[46].VerifySampledPacketRate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV[46].VerifySampledPacketRate$"
+          "test_name_regex": "AgentSflowMirror.*TestV[46].VerifySampledPacketRate$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTruncateTestV6.verifyL4SrcPortRandomization$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV4.MoveToV6$"
+          "test_name_regex": "AgentSflowMirror.*TestV4.MoveToV6$"
         },
         {
           "test_name_regex": "AgentTrafficPfcWatchdogTest.*$"
@@ -10354,7 +10294,7 @@
           "test_name_regex": "warm_boot.AgentEcmpTestWithWBWrites.L2ResolveOneNhopThenLinkDownThenUp$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.verifyL4SrcPortRandomization$"
+          "test_name_regex": "AgentSflowMirror(Untruncate)?TestV6.verifyL4SrcPortRandomization$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion.*$"
@@ -10495,7 +10435,7 @@
           "test_name_regex": "warm_boot.AgentEcmpTestWithWBWrites.L2ResolveOneNhopThenLinkDownThenUp$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.verifyL4SrcPortRandomization$"
+          "test_name_regex": "AgentSflowMirror(Untruncate)?TestV6.verifyL4SrcPortRandomization$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion.*$"
@@ -10695,7 +10635,7 @@
           "test_name_regex": "warm_boot.AgentEcmpTestWithWBWrites.L2ResolveOneNhopThenLinkDownThenUp$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.verifyL4SrcPortRandomization$"
+          "test_name_regex": "AgentSflowMirror(Untruncate)?TestV6.verifyL4SrcPortRandomization$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion.*$"
@@ -10811,7 +10751,7 @@
           "test_name_regex": "warm_boot.AgentEcmpTestWithWBWrites.L2ResolveOneNhopThenLinkDownThenUp$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.verifyL4SrcPortRandomization$"
+          "test_name_regex": "AgentSflowMirror(Untruncate)?TestV6.verifyL4SrcPortRandomization$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion.*$"
@@ -11107,7 +11047,7 @@
           "test_name_regex": "warm_boot.AgentEcmpTestWithWBWrites.L2ResolveOneNhopThenLinkDownThenUp$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.verifyL4SrcPortRandomization$"
+          "test_name_regex": "AgentSflowMirror(Untruncate)?TestV6.verifyL4SrcPortRandomization$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion.*$"
@@ -11406,7 +11346,7 @@
           "test_name_regex": "warm_boot.AgentEcmpTestWithWBWrites.L2ResolveOneNhopThenLinkDownThenUp$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.verifyL4SrcPortRandomization$"
+          "test_name_regex": "AgentSflowMirror(Untruncate)?TestV6.verifyL4SrcPortRandomization$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion.*$"
@@ -11726,7 +11666,7 @@
           "test_name_regex": "warm_boot.AgentEcmpTestWithWBWrites.L2ResolveOneNhopThenLinkDownThenUp$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.verifyL4SrcPortRandomization$"
+          "test_name_regex": "AgentSflowMirror(Untruncate)?TestV6.verifyL4SrcPortRandomization$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion.*$"
@@ -12022,7 +11962,7 @@
           "test_name_regex": "warm_boot.AgentEcmpTestWithWBWrites.L2ResolveOneNhopThenLinkDownThenUp$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.verifyL4SrcPortRandomization$"
+          "test_name_regex": "AgentSflowMirror(Untruncate)?TestV6.verifyL4SrcPortRandomization$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion.*$"
