@@ -70,7 +70,9 @@ class AgentSflowMirrorTest : public AgentHwTest {
     return cfg;
   }
 
-  virtual void configureMirror(
+  virtual bool enableTruncation() const = 0;
+
+  void configureMirror(
       cfg::SwitchConfig& cfg,
       std::optional<bool> isV4Addr = std::nullopt,
       uint32_t udpSrcPort = 6545,
@@ -81,7 +83,7 @@ class AgentSflowMirrorTest : public AgentHwTest {
     utility::configureSflowMirror(
         cfg,
         kSflowMirror,
-        false,
+        enableTruncation(),
         utility::getSflowMirrorDestination(v4).str(),
         udpSrcPort,
         udpDstPort,
@@ -544,7 +546,7 @@ class AgentSflowMirrorTest : public AgentHwTest {
     getAgentEnsemble()->clearPortStats();
   }
 
-  virtual void testSampledPacket(bool truncate = false) {
+  virtual void testSampledPacket() {
     auto setup = [=, this]() {
       auto ports = getPortsForSampling();
       auto config = initialConfig(*getAgentEnsemble());
@@ -554,16 +556,16 @@ class AgentSflowMirrorTest : public AgentHwTest {
       resolveRouteForMirrorDestination();
     };
     auto verify = [=, this]() {
-      if (!truncate) {
-        verifySampledPacket();
-      } else {
+      if (enableTruncation()) {
         verifySampledPacketWithTruncate();
+      } else {
+        verifySampledPacket();
       }
     };
     verifyAcrossWarmBoots(setup, verify);
   }
 
-  void testSampledPacketRate(bool truncate = false) {
+  void testSampledPacketRate() {
     auto setup = [=, this]() {
       auto config = initialConfig(*getAgentEnsemble());
       configureMirrorWithSampling(config, FLAGS_sflow_test_rate /*sampleRate*/);
@@ -575,7 +577,7 @@ class AgentSflowMirrorTest : public AgentHwTest {
     verifyAcrossWarmBoots(setup, verify);
   }
 
-  void stressRecreateMirror(bool truncate = false) {
+  void stressRecreateMirror() {
     auto setup = [=, this]() {
       auto ports = getPortsForSampling();
 
@@ -600,10 +602,10 @@ class AgentSflowMirrorTest : public AgentHwTest {
       resolveRouteForMirrorDestination();
     };
     auto verify = [=, this]() {
-      if (!truncate) {
-        verifySampledPacket();
-      } else {
+      if (enableTruncation()) {
         verifySampledPacketWithTruncate();
+      } else {
+        verifySampledPacket();
       }
     };
     verifyAcrossWarmBoots(setup, verify);
@@ -647,6 +649,27 @@ class AgentSflowMirrorTest : public AgentHwTest {
 };
 
 template <typename AddrT>
+class AgentSflowMirrorUntruncateTest : public AgentSflowMirrorTest<AddrT> {
+ public:
+  std::vector<production_features::ProductionFeature>
+  getProductionFeaturesVerified() const override {
+    if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
+      return {
+          production_features::ProductionFeature::SFLOWv4_SAMPLING,
+          production_features::ProductionFeature::UNTRUNCATED_SFLOW};
+    } else {
+      return {
+          production_features::ProductionFeature::SFLOWv6_SAMPLING,
+          production_features::ProductionFeature::UNTRUNCATED_SFLOW};
+    }
+  }
+
+  virtual bool enableTruncation() const override {
+    return false;
+  }
+};
+
+template <typename AddrT>
 class AgentSflowMirrorTruncateTest : public AgentSflowMirrorTest<AddrT> {
  public:
   std::vector<production_features::ProductionFeature>
@@ -662,23 +685,8 @@ class AgentSflowMirrorTruncateTest : public AgentSflowMirrorTest<AddrT> {
     }
   }
 
-  virtual void configureMirror(
-      cfg::SwitchConfig& cfg,
-      std::optional<bool> isV4Addr = std::nullopt,
-      uint32_t udpSrcPort = 6545,
-      uint32_t udpDstPort = 6343,
-      std::optional<int> sampleRate = std::nullopt) const override {
-    bool v4 = isV4Addr.has_value() ? *isV4Addr
-                                   : std::is_same_v<AddrT, folly::IPAddressV4>;
-    utility::configureSflowMirror(
-        cfg,
-        kSflowMirror,
-        true /* truncate */,
-        utility::getSflowMirrorDestination(v4).str(),
-        udpSrcPort,
-        udpDstPort,
-        v4,
-        sampleRate);
+  virtual bool enableTruncation() const override {
+    return true;
   }
 };
 
@@ -945,8 +953,10 @@ class AgentSflowMirrorTruncateWithSamplesPackingTestV6
   }
 };
 
-using AgentSflowMirrorTestV4 = AgentSflowMirrorTest<folly::IPAddressV4>;
-using AgentSflowMirrorTestV6 = AgentSflowMirrorTest<folly::IPAddressV6>;
+using AgentSflowMirrorUntruncateTestV4 =
+    AgentSflowMirrorUntruncateTest<folly::IPAddressV4>;
+using AgentSflowMirrorUntruncateTestV6 =
+    AgentSflowMirrorUntruncateTest<folly::IPAddressV6>;
 using AgentSflowMirrorTruncateTestV4 =
     AgentSflowMirrorTruncateTest<folly::IPAddressV4>;
 using AgentSflowMirrorTruncateTestV6 =
@@ -961,9 +971,9 @@ using AgentSflowMirrorOnTrunkTestV6 =
     { code }                                     \
   }
 
-#define SFLOW_SAMPLING_TEST_V4_V6(name, code)             \
-  SFLOW_SAMPLING_TEST(AgentSflowMirrorTestV4, name, code) \
-  SFLOW_SAMPLING_TEST(AgentSflowMirrorTestV6, name, code)
+#define SFLOW_SAMPLING_UNTRUNCATE_TEST_V4_V6(name, code)            \
+  SFLOW_SAMPLING_TEST(AgentSflowMirrorUntruncateTestV4, name, code) \
+  SFLOW_SAMPLING_TEST(AgentSflowMirrorUntruncateTestV6, name, code)
 
 #define SFLOW_SAMPLING_TRUNCATE_TEST_V4_V6(name, code)            \
   SFLOW_SAMPLING_TEST(AgentSflowMirrorTruncateTestV4, name, code) \
@@ -973,29 +983,31 @@ using AgentSflowMirrorOnTrunkTestV6 =
   SFLOW_SAMPLING_TEST(AgentSflowMirrorOnTrunkTestV4, name, code) \
   SFLOW_SAMPLING_TEST(AgentSflowMirrorOnTrunkTestV6, name, code)
 
-SFLOW_SAMPLING_TEST_V4_V6(VerifySampledPacket, { this->testSampledPacket(); })
-SFLOW_SAMPLING_TEST_V4_V6(VerifySampledPacketRate, {
+SFLOW_SAMPLING_UNTRUNCATE_TEST_V4_V6(VerifySampledPacket, {
+  this->testSampledPacket();
+})
+SFLOW_SAMPLING_UNTRUNCATE_TEST_V4_V6(VerifySampledPacketRate, {
   this->testSampledPacketRate();
 })
-SFLOW_SAMPLING_TEST_V4_V6(StressRecreateMirror, {
+SFLOW_SAMPLING_UNTRUNCATE_TEST_V4_V6(StressRecreateMirror, {
   this->stressRecreateMirror();
 })
 
 SFLOW_SAMPLING_TRUNCATE_TEST_V4_V6(VerifyTruncate, {
-  this->testSampledPacket(true);
+  this->testSampledPacket();
 })
 SFLOW_SAMPLING_TRUNCATE_TEST_V4_V6(VerifySampledPacketRate, {
-  this->testSampledPacketRate(true);
+  this->testSampledPacketRate();
 })
 SFLOW_SAMPLING_TRUNCATE_TEST_V4_V6(StressRecreateMirror, {
-  this->stressRecreateMirror(true);
+  this->stressRecreateMirror();
 })
 
 SFLOW_SAMPLING_TRUNK_TEST_V4_V6(VerifySampledPacket, {
-  this->testSampledPacket(true);
+  this->testSampledPacket();
 })
 SFLOW_SAMPLING_TRUNK_TEST_V4_V6(VerifySampledPacketRate, {
-  this->testSampledPacketRate(true);
+  this->testSampledPacketRate();
 })
 
 TEST_F(AgentSflowMirrorWithLineRateTrafficTest, VerifySflowEgressCongestion) {
@@ -1009,7 +1021,8 @@ TEST_F(
   this->testSflowEgressCongestion(1);
 }
 
-TEST_F(AgentSflowMirrorTestV4, MoveToV6) {
+// TODO(maxgg): Switch to TruncateTest
+TEST_F(AgentSflowMirrorUntruncateTestV4, MoveToV6) {
   // Test to migrate v4 mirror to v6
   auto setup = [=, this]() {
     auto config = initialConfig(*getAgentEnsemble());
@@ -1032,7 +1045,8 @@ TEST_F(AgentSflowMirrorTestV4, MoveToV6) {
       setup, verify, setupPostWb, [=, this]() { verifySampledPacket(false); });
 }
 
-TEST_F(AgentSflowMirrorTestV6, MoveToV4) {
+// TODO(maxgg): Switch to TruncateTest
+TEST_F(AgentSflowMirrorUntruncateTestV6, MoveToV4) {
   // Test to migrate v6 mirror to v4
   auto setup = [=, this]() {
     auto config = initialConfig(*getAgentEnsemble());
