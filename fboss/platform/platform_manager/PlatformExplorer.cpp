@@ -285,7 +285,7 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
   auto slotTypeConfig = platformConfig_.slotTypeConfigs_ref()->at(slotType);
   CHECK(slotTypeConfig.idpromConfig() || slotTypeConfig.pmUnitName());
   std::optional<std::string> pmUnitNameInEeprom{std::nullopt};
-  std::optional<int> productProductionStateInEeprom{std::nullopt};
+  std::optional<int> productionStateInEeprom{std::nullopt};
   std::optional<int> productVersionInEeprom{std::nullopt};
   std::optional<int> productSubVersionInEeprom{std::nullopt};
   if (slotTypeConfig.idpromConfig_ref()) {
@@ -335,23 +335,25 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
       eepromPath = eepromPath + "/eeprom";
     }
     try {
+      dataStore_.updateEepromContents(
+          Utils().createDevicePath(slotPath, "IDPROM"),
+          eepromParser_.getContents(eepromPath, *idpromConfig.offset()));
       pmUnitNameInEeprom =
           eepromParser_.getProductName(eepromPath, *idpromConfig.offset());
       // TODO: Avoid this side effect in this function.
       // I think we can refactor this simpler once I2CDevicePaths are also
       // stored in DataStore. 1/ Create IDPROMs 2/ Read contents from eepromPath
       // stored in DataStore.
-      productProductionStateInEeprom =
+      productionStateInEeprom =
           eepromParser_.getProductionState(eepromPath, *idpromConfig.offset());
       productVersionInEeprom = eepromParser_.getProductionSubState(
           eepromPath, *idpromConfig.offset());
       productSubVersionInEeprom =
           eepromParser_.getVariantVersion(eepromPath, *idpromConfig.offset());
       XLOG(INFO) << fmt::format(
-          "Found ProductProductionState `{}` ProductVersion `{}` ProductSubVersion `{}` in IDPROM {} at {}",
-          productProductionStateInEeprom
-              ? std::to_string(*productProductionStateInEeprom)
-              : "<ABSENT>",
+          "Found ProductionState `{}` ProductVersion `{}` ProductSubVersion `{}` in IDPROM {} at {}",
+          productionStateInEeprom ? std::to_string(*productionStateInEeprom)
+                                  : "<ABSENT>",
           productVersionInEeprom ? std::to_string(*productVersionInEeprom)
                                  : "<ABSENT>",
           productSubVersionInEeprom ? std::to_string(*productSubVersionInEeprom)
@@ -403,7 +405,7 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
   dataStore_.updatePmUnitInfo(
       slotPath,
       *pmUnitName,
-      productProductionStateInEeprom,
+      productionStateInEeprom,
       productVersionInEeprom,
       productSubVersionInEeprom);
   return pmUnitName;
