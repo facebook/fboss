@@ -3409,6 +3409,12 @@
           "test_name_regex": "AgentSflowMirror.*$"
         },
         {
+          "test_name_regex": "AgentIngressBufferPoolTest.*$"
+        },
+        {
+          "test_name_regex": "AgentIngressBufferTest.*$"
+        },
+        {
           "test_name_regex": "AgentMacOverFlowTest.*$"
         },
         {
@@ -3898,6 +3904,12 @@
         },
         {
           "test_name_regex": "AgentSflowMirror.*$"
+        },
+        {
+          "test_name_regex": "AgentIngressBufferPoolTest.*$"
+        },
+        {
+          "test_name_regex": "AgentIngressBufferTest.*$"
         },
         {
           "test_name_regex": "AgentMacOverFlowTest.*$"
@@ -6458,6 +6470,12 @@
           "test_name_regex": "AgentSflowMirror.*$"
         },
         {
+          "test_name_regex": "AgentIngressBufferPoolTest.*$"
+        },
+        {
+          "test_name_regex": "AgentIngressBufferTest.*$"
+        },
+        {
           "test_name_regex": "AgentMacOverFlowTest.*$"
         },
         {
@@ -6947,6 +6965,12 @@
         },
         {
           "test_name_regex": "AgentSflowMirror.*$"
+        },
+        {
+          "test_name_regex": "AgentIngressBufferPoolTest.*$"
+        },
+        {
+          "test_name_regex": "AgentIngressBufferTest.*$"
         },
         {
           "test_name_regex": "AgentMacOverFlowTest.*$"
