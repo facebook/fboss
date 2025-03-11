@@ -12324,7 +12324,7 @@
           "test_name_regex": "AgentTunnelMgrTest.*$"
         },
         {
-          "test_name_regex": "AgentIpInIpTunnelTest.*$"
+          "test_name_regex": "warm_boot.AgentIpInIpTunnelTest.*$"
         },
         {
           "test_name_regex": "AgentSflowMirror.*$"
@@ -12614,7 +12614,7 @@
           "test_name_regex": "AgentTunnelMgrTest.*$"
         },
         {
-          "test_name_regex": "AgentIpInIpTunnelTest.*$"
+          "test_name_regex": "warm_boot.AgentIpInIpTunnelTest.*$"
         },
         {
           "test_name_regex": "AgentSflowMirror.*$"
