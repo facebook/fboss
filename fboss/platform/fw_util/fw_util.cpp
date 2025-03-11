@@ -12,9 +12,6 @@
 using namespace facebook::fboss::platform::fw_util;
 using namespace facebook::fboss::platform;
 
-// We want to log all commands run by fw_util.
-FOLLY_INIT_LOGGING_CONFIG("fboss=DBG2; default:async=true");
-
 /*
  * This utility will perform firmware upgrade for
  * all BMC Lite platform. Firmware upgrade will
@@ -67,6 +64,11 @@ int main(int argc, char* argv[]) {
   } else if (
       FLAGS_fw_action == "program" || FLAGS_fw_action == "verify" ||
       FLAGS_fw_action == "read") {
+    // For actions which involve more than just reading versions/config, we want
+    // to always log all the commands that are run.
+    folly::LoggerDB::get()
+        .getCategory("fboss.platform.helpers.PlatformUtils")
+        ->setLevel(folly::LogLevel::DBG2);
     fwUtilImpl.doFirmwareAction(
         toLower(FLAGS_fw_target_name), toLower(FLAGS_fw_action));
   } else if (FLAGS_fw_action == "list") {
