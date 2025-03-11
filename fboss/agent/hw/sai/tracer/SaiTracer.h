@@ -31,8 +31,10 @@ extern "C" {
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
 #include <saiextensions.h>
 #ifndef IS_OSS_BRCM_SAI
+#include <experimental/saiexperimentalfirmware.h>
 #include <experimental/saiexperimentaltameventaginggroup.h>
 #else
+#include <saiexperimentalfirmware.h>
 #include <saiexperimentaltameventaginggroup.h>
 #endif
 #endif
@@ -235,6 +237,9 @@ class SaiTracer {
   sai_counter_api_t* counterApi_;
   sai_debug_counter_api_t* debugCounterApi_;
   sai_fdb_api_t* fdbApi_;
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+  sai_firmware_api_t* firmwareApi_;
+#endif
   sai_hash_api_t* hashApi_;
   sai_hostif_api_t* hostifApi_;
   sai_lag_api_t* lagApi_;
@@ -403,6 +408,9 @@ class SaiTracer {
       {SAI_OBJECT_TYPE_BUFFER_PROFILE, "bufferProfile_"},
       {SAI_OBJECT_TYPE_COUNTER, "counter_"},
       {SAI_OBJECT_TYPE_DEBUG_COUNTER, "debugCounter_"},
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+      {static_cast<sai_object_type_t>(SAI_OBJECT_TYPE_FIRMWARE), "firmware_"},
+#endif
       {SAI_OBJECT_TYPE_HASH, "hash_"},
       {SAI_OBJECT_TYPE_HOSTIF, "hostif_"},
       {SAI_OBJECT_TYPE_HOSTIF_TRAP, "hostifTrap_"},
@@ -473,6 +481,9 @@ class SaiTracer {
       {SAI_OBJECT_TYPE_COUNTER, "counter_api->"},
       {SAI_OBJECT_TYPE_DEBUG_COUNTER, "debug_counter_api->"},
       {SAI_OBJECT_TYPE_FDB_ENTRY, "fdb_api->"},
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+      {static_cast<sai_object_type_t>(SAI_OBJECT_TYPE_FIRMWARE), "firmware_api->"},
+#endif
       {SAI_OBJECT_TYPE_HASH, "hash_api->"},
       {SAI_OBJECT_TYPE_HOSTIF, "hostif_api->"},
       {SAI_OBJECT_TYPE_HOSTIF_TRAP, "hostif_api->"},

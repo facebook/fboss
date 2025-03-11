@@ -23,6 +23,7 @@
 #include "fboss/agent/hw/sai/tracer/CounterApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/DebugCounterApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/FdbApiTracer.h"
+#include "fboss/agent/hw/sai/tracer/FirmwareApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/HashApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/HostifApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/LagApiTracer.h"
@@ -215,6 +216,12 @@ sai_status_t __wrap_sai_api_query(
         SaiTracer::getInstance()->logApiQuery(sai_api_id, "vendor_switch_api");
         break;
 #endif
+      case SAI_API_FIRMWARE:
+        SaiTracer::getInstance()->firmwareApi_ =
+            static_cast<sai_firmware_api_t*>(*api_method_table);
+        *api_method_table = facebook::fboss::wrappedFirmwareApi();
+        SaiTracer::getInstance()->logApiQuery(sai_api_id, "firmware_api");
+        break;
       default:
         break;
     }
@@ -1370,6 +1377,9 @@ vector<string> SaiTracer::setAttrList(
         setVendorSwitchAttributes(attr_list, attr_count, attrLines, rv);
         break;
 #endif
+      case SAI_OBJECT_TYPE_FIRMWARE:
+        setFirmwareAttributes(attr_list, attr_count, attrLines, rv);
+        break;
       default:
         break;
     }
@@ -1874,6 +1884,10 @@ void SaiTracer::initVarCounts() {
   varCounts_.emplace(SAI_OBJECT_TYPE_BUFFER_PROFILE, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_COUNTER, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_DEBUG_COUNTER, 0);
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+  varCounts_.emplace(
+      static_cast<sai_object_type_t>(SAI_OBJECT_TYPE_FIRMWARE), 0);
+#endif
   varCounts_.emplace(SAI_OBJECT_TYPE_HASH, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_HOSTIF, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_HOSTIF_TRAP, 0);

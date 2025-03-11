@@ -46,6 +46,8 @@ folly::StringPiece saiApiTypeToString(sai_api_t apiType) {
       case SAI_API_VENDOR_SWITCH:
         return "vendor-switch";
 #endif
+      case SAI_API_FIRMWARE:
+        return "firmware";
       default:
         break;
     }
@@ -169,6 +171,8 @@ folly::StringPiece saiObjectTypeToString(sai_object_type_t objectType) {
       case SAI_OBJECT_TYPE_VENDOR_SWITCH:
         return "vendor-switch";
 #endif
+      case SAI_OBJECT_TYPE_FIRMWARE:
+        return "firmware";
       default:
         throw FbossError("object type extension invalid: ", objectType);
     }

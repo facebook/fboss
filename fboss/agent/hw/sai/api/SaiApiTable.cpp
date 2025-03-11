@@ -113,6 +113,12 @@ const FdbApi& SaiApiTable::fdbApi() const {
   return getApi<FdbApi>();
 }
 
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+const FirmwareApi& SaiApiTable::firmwareApi() const {
+  return getApi<FirmwareApi>();
+}
+#endif
+
 const HashApi& SaiApiTable::hashApi() const {
   return getApi<HashApi>();
 }
