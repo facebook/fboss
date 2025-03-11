@@ -11,6 +11,8 @@
 
 #include <string>
 
+#include <re2/re2.h>
+
 #include <boost/assign.hpp>
 
 #include <folly/io/IOBuf.h>
@@ -774,6 +776,21 @@ bool QsfpModule::isTransceiverFeatureSupported(
 bool QsfpModule::isVdmSupported(uint8_t maxGroupRequested) const {
   if (!isTransceiverFeatureSupported(TransceiverFeature::VDM)) {
     return false;
+  }
+
+  // Intel SPTSHP3CLCKS / SPTSHP3CLCK2 has a bug and needs FW Update.
+  // Tracked by T209278325
+  auto cachedTcvrInfo = getTransceiverInfo();
+  auto vendor = cachedTcvrInfo.tcvrState()->vendor();
+  if (vendor.has_value()) {
+    re2::RE2 portNameRe("Intel");
+    if (re2::RE2::PartialMatch(vendor->name().value(), portNameRe) &&
+        ((vendor->partNumber().value() == "SPTSHP3CLCKS") ||
+         (vendor->partNumber().value() == "SPTSHP3CLCK2"))) {
+      QSFP_LOG(WARN, this)
+          << "Found Intel SPTSHP3CLCKS / SPTSHP3CLCK2. VDM is not supported";
+      return false;
+    }
   }
   if (!maxGroupRequested) {
     return true;
