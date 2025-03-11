@@ -19,12 +19,11 @@ FsdbClient string2FsdbClient(const std::string& clientId) {
       clientIdUpper.end(),
       clientIdUpper.begin(),
       ::toupper);
-  try {
-    return apache::thrift::util::enumValueOrThrow<FsdbClient>(
-        clientIdUpper.c_str());
-  } catch (const std::exception& ex) {
-    return FsdbClient::UNSPECIFIED;
+  FsdbClient result = FsdbClient::UNSPECIFIED;
+  if (apache::thrift::util::tryParseEnum(clientIdUpper.c_str(), &result)) {
+    return result;
   }
+  return FsdbClient::UNSPECIFIED;
 }
 
 std::string fsdbClient2string(const FsdbClient& clientId) {
