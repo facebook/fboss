@@ -4263,6 +4263,9 @@
         },
         {
           "test_name_regex": "AgentTunnelMgrTest.*"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTest.*"
         }
     ],
     "brcm/11.7.0.0_dnx_odp/11.7.0.0_dnx_odp/jericho3/multi_switch": [
@@ -4613,6 +4616,9 @@
         },
         {
           "test_name_regex": "AgentTunnelMgrTest.*"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTest.*"
         }
     ],
     "brcm/11.7.0.0_dnx_odp/11.7.0.0_dnx_odp/ramon3/mono": [
@@ -5316,6 +5322,9 @@
         },
         {
           "test_name_regex": "AgentTunnelMgrTest.*"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTest.*"
         }
     ],
     "brcm/11.7.0.0_dnx_odp/12.0_ea_dnx_odp/jericho3/multi_switch": [
@@ -5666,6 +5675,9 @@
         },
         {
           "test_name_regex": "AgentTunnelMgrTest.*"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTest.*"
         }
     ],
     "brcm/11.7.0.0_dnx_odp/12.0_ea_dnx_odp/ramon3/mono": [
@@ -7324,6 +7336,9 @@
         },
         {
           "test_name_regex": "AgentTunnelMgrTest.*"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTest.*"
         }
     ],
     "brcm/12.0_ea_dnx_odp/12.0_ea_dnx_odp/jericho3/multi_switch": [
@@ -7674,6 +7689,9 @@
         },
         {
           "test_name_regex": "AgentTunnelMgrTest.*"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTest.*"
         }
     ],
     "brcm/12.0_ea_dnx_odp/12.0_ea_dnx_odp/ramon3/mono": [
