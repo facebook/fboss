@@ -6,7 +6,7 @@ from typing import Dict, List
 
 from fboss.util.fixmyfboss import status
 
-from fboss.util.fixmyfboss.fbosscheck import _checks, FbossCheck, load_checks
+from fboss.util.fixmyfboss.check import _checks, Check, load_checks
 from fboss.util.fixmyfboss.remediation import Remediation
 from fboss.util.fixmyfboss.utils import (
     bold,
@@ -35,7 +35,7 @@ def main() -> int:
     return all(isinstance(s, status.Ok) for s in statuses)
 
 
-def run_checks(checks: Dict[str, FbossCheck]) -> List[status.Status]:
+def run_checks(checks: Dict[str, Check]) -> List[status.Status]:
     results: List[status.Status] = []
     for name, check in checks.items():
         overwrite_print(f"Checking: {name}")
@@ -64,7 +64,7 @@ def run_remediations(auto_remediations: List[Remediation]) -> None:
         print("Skipping remediations")
 
 
-def show_result_summary(checks: List[FbossCheck]) -> None:
+def show_result_summary(checks: List[Check]) -> None:
     print(f"Ran {len(checks)} checks")
     print("-----")
     passed = [check for check in checks if isinstance(check.result, status.Ok)]
@@ -125,7 +125,7 @@ def show_remediations(
             print(indent(r.description, level=2))
 
 
-def get_manual_remediations(checks: List[FbossCheck]) -> List[str]:
+def get_manual_remediations(checks: List[Check]) -> List[str]:
     problems = [check for check in checks if isinstance(check.result, status.Problem)]
     return [
         problem.result.manual_remediation
@@ -134,7 +134,7 @@ def get_manual_remediations(checks: List[FbossCheck]) -> List[str]:
     ]
 
 
-def get_auto_remediations(checks: List[FbossCheck]) -> List[Remediation]:
+def get_auto_remediations(checks: List[Check]) -> List[Remediation]:
     problems = [check for check in checks if isinstance(check.result, status.Problem)]
     return [
         problem.result.remediation

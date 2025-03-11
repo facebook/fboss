@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 
 from pathlib import Path
 
-from fboss.util.fixmyfboss.fbosscheck import fbossCheck
+from fboss.util.fixmyfboss.check import check
 from fboss.util.fixmyfboss.status import Problem, Warning
 
 var_secure_logfile = Path("/var/log/secure")
@@ -54,7 +54,7 @@ def grep_file_for_pattern(file_path: Path, pattern: str) -> list[str]:
     return matching_lines
 
 
-@fbossCheck
+@check
 def recent_manual_reboot() -> Warning | None:
     """
     Check if a reboot has been performed recently (in last 1 day)
@@ -74,7 +74,7 @@ def recent_manual_reboot() -> Warning | None:
     return Warning(description=(desc_str))
 
 
-@fbossCheck
+@check
 def recent_kernel_panic() -> Problem | None:
     """
     Check if a kernel panic has occured recently (last 7 days)
@@ -110,7 +110,7 @@ def recent_kernel_panic() -> Problem | None:
     )
 
 
-@fbossCheck
+@check
 def watchdog_did_not_stop() -> Problem | Warning | None:
     """
     Check dmesg for logs indicating that a watchdog did not stop (within the last 3 hours).

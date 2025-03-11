@@ -7,7 +7,7 @@ oncall("fboss_platform")
 python_library(
     name = "fixmyfboss_library",
     srcs = [
-        "fbosscheck.py",
+        "check.py",
         "remediation.py",
         "status.py",
         "utils.py",

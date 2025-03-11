@@ -1,10 +1,10 @@
 # pyre-unsafe
 
-from fboss.util.fixmyfboss.fbosscheck import fbossCheck
+from fboss.util.fixmyfboss.check import check
 from fboss.util.fixmyfboss.status import Problem
 
 
-@fbossCheck
+@check
 def expected_kernel_version():
     """
     Check that we are running a stable image

@@ -6,10 +6,10 @@ from typing import Callable, Dict
 
 from fboss.util.fixmyfboss import status
 
-_checks: Dict[str, "FbossCheck"] = {}
+_checks: Dict[str, "Check"] = {}
 
 
-class FbossCheck:
+class Check:
     def __init__(
         self,
         name: str,
@@ -36,7 +36,7 @@ class FbossCheck:
         return f"<Check {self.name}>"
 
 
-def fbossCheck(
+def check(
     func=None,
 ):
     def check_decorator(func):
@@ -49,7 +49,7 @@ def fbossCheck(
                 return status.Ok()
             return result
 
-        check = FbossCheck(
+        check = Check(
             name,
             func=returnStatusOkWrapper,
         )
