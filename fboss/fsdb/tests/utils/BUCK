@@ -1,3 +1,4 @@
+load("@fbcode_macros//build_defs:cpp_benchmark.bzl", "cpp_benchmark")
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 
 oncall("fboss_agent_push")
@@ -31,5 +32,23 @@ cpp_library(
         "//fboss/fsdb/client:fsdb_pub_sub",
         "//fboss/fsdb/if:fsdb_model",
         "//folly:synchronized",
+    ],
+)
+
+cpp_benchmark(
+    name = "fsdb_utils_bench",
+    srcs = [
+        "FsdbUtilsBenchmark.cpp",
+    ],
+    deps = [
+        "fbsource//third-party/googletest:gtest",
+        "//fboss/fsdb/common:utils",
+        "//folly:benchmark",
+        "//folly/init:init",
+        "//folly/json:dynamic",
+        "//folly/logging:logging",
+    ],
+    external_deps = [
+        "gflags",
     ],
 )
