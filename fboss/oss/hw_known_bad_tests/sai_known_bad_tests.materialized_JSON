@@ -11092,9 +11092,6 @@
           "test_name_regex": "HwAqmTest.verifyWredThreshold$"
         },
         {
-          "test_name_regex": "warm_boot.HwAqmTest.verifyPerQueueWredDropStats$"
-        },
-        {
           "test_name_regex": "HwHashConsistencyTest.TcpEgressLinks$"
         },
         {
@@ -11240,9 +11237,6 @@
         },
         {
           "test_name_regex": "HwVerifyPfcConfigInHwTest.PfcRxEnabledTxDisabled$"
-        },
-        {
-          "test_name_regex": "HwVerifyPfcConfigInHwTest.PfcWatchdogProgrammingSequence$"
         },
         {
           "test_name_regex": "SaiRouteRollbackTest.rollbackAllWithTrunk$"
@@ -11322,9 +11316,6 @@
           "test_name_regex": "HwAqmTest.verifyWredThreshold$"
         },
         {
-          "test_name_regex": "warm_boot.HwAqmTest.verifyPerQueueWredDropStats$"
-        },
-        {
           "test_name_regex": "HwHashConsistencyTest.TcpEgressLinks$"
         },
         {
@@ -11470,9 +11461,6 @@
         },
         {
           "test_name_regex": "HwVerifyPfcConfigInHwTest.PfcRxEnabledTxDisabled$"
-        },
-        {
-          "test_name_regex": "HwVerifyPfcConfigInHwTest.PfcWatchdogProgrammingSequence$"
         },
         {
           "test_name_regex": "SaiRouteRollbackTest.rollbackAllWithTrunk$"
