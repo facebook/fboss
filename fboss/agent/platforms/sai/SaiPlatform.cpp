@@ -683,7 +683,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
 #endif
   std::optional<SaiSwitchTraits::Attributes::DelayDropCongThreshold>
       delayDropCongThreshold{std::nullopt};
-#if defined(TAJO_SDK_VERSION_1_42_8)
+#if defined(TAJO_SDK_EBRO)
   if (getAsic()->isSupported(
           HwAsic::Feature::ENABLE_DELAY_DROP_CONGESTION_THRESHOLD) &&
       FLAGS_enable_delay_drop_congestion_threshold) {
