@@ -681,3 +681,21 @@ cpp_library(
         "//fboss/agent/test:agent_ensemble",
     ],
 )
+
+cpp_library(
+    name = "mac_learning_flood_helper",
+    srcs = [
+        "MacLearningFloodHelper.cpp",
+    ],
+    headers = [
+        "MacLearningFloodHelper.h",
+    ],
+    exported_deps = [
+        ":qos_test_utils",
+        "//fboss/agent:packet",
+        "//fboss/agent/packet:packet_factory",
+        "//fboss/agent/test:agent_ensemble",
+        "//fboss/agent/test:ecmp_helper",
+        "//folly:network_address",
+    ],
+)
