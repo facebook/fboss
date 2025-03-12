@@ -1441,6 +1441,7 @@ enum AsicType {
   ASIC_TYPE_YUBA = 15,
   ASIC_TYPE_RAMON3 = 16,
   ASIC_TYPE_CHENAB = 17,
+  ASIC_TYPE_TOMAHAWK6 = 18,
 }
 /**
  * The configuration for an interface

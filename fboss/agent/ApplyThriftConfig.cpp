@@ -1075,6 +1075,7 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
           case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
           case cfg::AsicType::ASIC_TYPE_RAMON:
           case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
+          case cfg::AsicType::ASIC_TYPE_TOMAHAWK6:
           case cfg::AsicType::ASIC_TYPE_YUBA:
           case cfg::AsicType::ASIC_TYPE_RAMON3:
             throw FbossError(
