@@ -458,6 +458,7 @@ cpp_library(
         "commands/show/sdk/dump/CmdShowSdkDump.h",
         "commands/show/systemport/CmdShowSystemPort.h",
         "commands/show/platformshowtech/CmdShowPlatformShowtech.h",
+        "commands/show/platformshowtech/Showtech.h",
         "commands/show/platformshowtech/utils.h",
         "commands/show/teflow/CmdShowTeFlow.h",
         "commands/show/transceiver/CmdShowTransceiver.h",

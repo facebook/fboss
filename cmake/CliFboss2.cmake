@@ -422,6 +422,7 @@ add_executable(fboss2
   fboss/cli/fboss2/commands/show/systemport/CmdShowSystemPort.h
   fboss/cli/fboss2/commands/show/cpuport/CmdShowCpuPort.h
   fboss/cli/fboss2/commands/show/platformshowtech/CmdShowPlatformShowtech.h
+  fboss/cli/fboss2/commands/show/platformshowtech/Showtech.cpp
   fboss/cli/fboss2/commands/show/platformshowtech/utils.cpp
   fboss/cli/fboss2/commands/show/teflow/CmdShowTeFlow.h
   fboss/cli/fboss2/commands/show/transceiver/CmdShowTransceiver.h

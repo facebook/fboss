@@ -6,6 +6,7 @@
 #include "fboss/cli/fboss2/CmdLocalOptions.h"
 #include "fboss/cli/fboss2/commands/show/platformshowtech/gen-cpp2/model_types.h"
 #include "fboss/cli/fboss2/utils/CmdClientUtils.h"
+#include "fboss/cli/fboss2/commands/show/platformshowtech/Showtech.h"
 
 namespace facebook::fboss {
 
@@ -23,6 +24,8 @@ class CmdShowPlatformShowtech : public CmdHandler<CmdShowPlatformShowtech,
  public:
   using ObjectArgType = CmdShowPlatformShowtechTraits::ObjectArgType;
   using RetType = CmdShowPlatformShowtechTraits::RetType;
+  using Showtech = show::platformshowtech::Showtech;
+  using GenericShowtech = show::platformshowtech::GenericShowtech;
 
   std::string version = "1.4";
 
@@ -47,7 +50,19 @@ class CmdShowPlatformShowtech : public CmdHandler<CmdShowPlatformShowtech,
   }
 
   void printOutput(const RetType& model, std::ostream& out = std::cout) {
-    out << "unimplemented" << std::endl;
+    bool verbose = true;
+    std::unique_ptr<Showtech> platformShowtech;
+
+    if (model.get_quite()) {
+        verbose = false;
+    }
+
+    platformShowtech = get_platform_showtech(verbose);
+    platformShowtech->printShowtech();
+  }
+
+  std::unique_ptr<Showtech> get_platform_showtech(bool verbose) {
+    return std::make_unique<GenericShowtech>(verbose);
   }
 };
 
