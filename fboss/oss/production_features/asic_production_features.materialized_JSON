@@ -118,7 +118,8 @@
         34,
         48,
         49,
-        58
+        58,
+        70
     ],
     "ramon": [
         1
@@ -478,7 +479,8 @@
         "INGRESS_MIRRORING",
         "LINERATE_SFLOW",
         "MIRROR_ON_DROP",
-        "SFLOW_SAMPLES_PACKING"
+        "SFLOW_SAMPLES_PACKING",
+        "SELF_HEALING_ECMP_LAG"
     ],
     "ramon": [
         "FABRIC"
