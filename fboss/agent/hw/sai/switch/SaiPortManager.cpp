@@ -55,11 +55,6 @@ DEFINE_int32(
     10,
     "Interval in seconds for reading fec counters");
 
-DEFINE_int32(
-    prbs_update_interval_s,
-    10,
-    "Interval in seconds for reading PRBS RX State");
-
 using namespace std::chrono;
 
 namespace facebook::fboss {

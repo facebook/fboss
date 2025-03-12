@@ -37,6 +37,7 @@ struct dynamic;
 
 DECLARE_bool(flowletStatsEnable);
 DECLARE_int32(update_voq_stats_interval_s);
+DECLARE_int32(prbs_update_interval_s);
 
 namespace facebook::fboss {
 
