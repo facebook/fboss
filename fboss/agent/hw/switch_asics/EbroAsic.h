@@ -142,7 +142,7 @@ class EbroAsic : public TajoAsic {
  private:
   bool isSupportedFabric(Feature feature) const;
   bool isSupportedNonFabric(Feature feature) const;
-  static constexpr auto p4WarmbootBaseSdk = "24.4.90";
+  static constexpr auto p4WarmbootBaseSdk = "24.8.3001";
   std::optional<uint64_t> currentSdkVersion_{std::nullopt};
 };
 

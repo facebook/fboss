@@ -116,28 +116,19 @@
  *   - TAJO_SDK_EBRO: Flags for all EBRO(GB) SDK
  *   - TAJO_SDK_MORGAN: Flags for Morgan(G200) SDK
  *   - TAJO_P4_WB_SDK: Flags for P4 WB SDK
- *   - TAJO_SDK_GTE_24_4_90: Flags for SDK >= 24.4.90
+ *   - TAJO_SDK_GTE_24_8_3001: Flags for SDK >= 24.8.3001
  *   - TAJO_SDK: Flags for all TAJO SDK
  */
-#if defined(TAJO_SDK_VERSION_24_4_90) || defined(TAJO_SDK_VERSION_24_7_0) ||  \
-    defined(TAJO_SDK_VERSION_24_8_3001) ||                                    \
-    defined(TAJO_SDK_VERSION_24_10_0) || defined(TAJO_SDK_VERSION_24_8_90) || \
-    defined(TAJO_SDK_VERSION_24_8_91)
+#if defined(TAJO_SDK_VERSION_24_8_3001)
 #define TAJO_P4_WB_SDK
 #endif
 
-#if defined(TAJO_SDK_VERSION_1_42_8) || defined(TAJO_SDK_VERSION_24_4_90) ||   \
-    defined(TAJO_SDK_VERSION_24_7_0) || defined(TAJO_SDK_VERSION_24_8_3001) || \
-    defined(TAJO_SDK_VERSION_24_10_0) || defined(TAJO_SDK_VERSION_24_8_90) ||  \
-    defined(TAJO_SDK_VERSION_24_8_91)
+#if defined(TAJO_SDK_VERSION_1_42_8) || defined(TAJO_SDK_VERSION_24_8_3001)
 #define TAJO_SDK_EBRO
 #endif
 
-#if defined(TAJO_SDK_VERSION_24_4_90) || defined(TAJO_SDK_VERSION_24_7_0) ||  \
-    defined(TAJO_SDK_VERSION_24_8_3001) ||                                    \
-    defined(TAJO_SDK_VERSION_24_10_0) || defined(TAJO_SDK_VERSION_24_8_90) || \
-    defined(TAJO_SDK_VERSION_24_8_91)
-#define TAJO_SDK_GTE_24_4_90
+#if defined(TAJO_SDK_VERSION_24_8_3001)
+#define TAJO_SDK_GTE_24_8_3001
 #endif
 
 #if defined(TAJO_SDK_EBRO) || defined(TAJO_SDK_MORGAN)

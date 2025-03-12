@@ -36,7 +36,7 @@ void SaiCloudRipperPlatform::setupAsic(
     std::optional<HwAsic::FabricNodeRole> fabricNodeRole) {
   CHECK(!fabricNodeRole.has_value());
   std::optional<cfg::SdkVersion> sdkVersion;
-#if defined(TAJO_SDK_GTE_24_4_90)
+#if defined(TAJO_SDK_GTE_24_8_3001)
   /*
    * HwAsic table instance in the sw switch reads the SDK version
    * from the agent config for prod and from sai switch ensemble
@@ -48,7 +48,7 @@ void SaiCloudRipperPlatform::setupAsic(
     sdkVersion = agentConfig->thrift.sw()->sdkVersion().value();
   } else {
     sdkVersion = cfg::SdkVersion{};
-    sdkVersion->asicSdk() = "24.4.90";
+    sdkVersion->asicSdk() = "24.8.3001";
   }
 #endif
   asic_ = std::make_unique<EbroAsic>(switchId, switchInfo, sdkVersion);
