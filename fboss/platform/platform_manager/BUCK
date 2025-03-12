@@ -9,7 +9,6 @@ thrift_library(
     languages = [
         "cpp2",
         "python",
-        "py3",
     ],
     thrift_cpp2_options = ["json"],
     thrift_srcs = {
@@ -22,7 +21,7 @@ thrift_library(
     name = "platform_manager_snapshot",
     languages = [
         "cpp2",
-        "py3",
+        "python",
     ],
     thrift_cpp2_options = ["json"],
     thrift_srcs = {
@@ -34,7 +33,7 @@ thrift_library(
     name = "platform_manager_service",
     languages = [
         "cpp2",
-        "py3",
+        "python",
     ],
     thrift_cpp2_options = ["json"],
     thrift_srcs = {"platform_manager_service.thrift": ["PlatformManagerService"]},
