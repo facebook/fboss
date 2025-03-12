@@ -360,6 +360,12 @@ Table::StyledCell styledFecTail(int tail) {
   return Table::StyledCell(folly::to<std::string>(tail), Table::Style::GOOD);
 }
 
+cfg::SwitchType getSwitchType(apache::thrift::Client<FbossCtrl>& client) {
+  std::map<int64_t, cfg::SwitchInfo> switchIdToSwitchInfo;
+  client.sync_getSwitchIdToSwitchInfo(switchIdToSwitchInfo);
+  return getSwitchType(std::move(switchIdToSwitchInfo));
+}
+
 cfg::SwitchType getSwitchType(
     std::map<int64_t, cfg::SwitchInfo> switchIdToSwitchInfo) {
   CHECK_GE(switchIdToSwitchInfo.size(), 1);
@@ -374,6 +380,11 @@ cfg::SwitchType getSwitchType(
       }));
 
   return switchType;
+}
+
+bool isVoqOrFabric(cfg::SwitchType switchType) {
+  return switchType == cfg::SwitchType::VOQ ||
+      switchType == cfg::SwitchType::FABRIC;
 }
 
 std::map<std::string, FabricEndpoint> getFabricEndpoints(
