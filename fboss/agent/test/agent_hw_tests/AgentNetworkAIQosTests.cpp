@@ -9,11 +9,12 @@
  */
 
 #include "fboss/agent/test/agent_hw_tests/AgentQosTestBase.h"
-#include "fboss/agent/test/utils/OlympicTestUtils.h"
+#include "fboss/agent/test/utils/AsicUtils.h"
+#include "fboss/agent/test/utils/NetworkAITestUtils.h"
 
 namespace facebook::fboss {
 
-class AgentOlympicQosTests : public AgentQosTestBase {
+class AgentNetworkAIQosTests : public AgentQosTestBase {
  protected:
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
@@ -21,8 +22,12 @@ class AgentOlympicQosTests : public AgentQosTestBase {
         ensemble.getSw(),
         ensemble.masterLogicalPortIds(),
         true /*interfaceHasSubnet*/);
-    utility::addOlympicQueueConfig(&cfg, ensemble.getL3Asics());
-    utility::addOlympicQosMaps(cfg, ensemble.getL3Asics());
+    auto hwAsic = utility::checkSameAndGetAsic(ensemble.getL3Asics());
+    auto streamType =
+        *hwAsic->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin();
+    utility::addNetworkAIQueueConfig(
+        &cfg, streamType, cfg::QueueScheduling::STRICT_PRIORITY, hwAsic);
+    utility::addNetworkAIQosMaps(cfg, ensemble.getL3Asics());
     return cfg;
   }
 
@@ -30,14 +35,14 @@ class AgentOlympicQosTests : public AgentQosTestBase {
   getProductionFeaturesVerified() const override {
     return {
         production_features::ProductionFeature::L3_QOS,
-        production_features::ProductionFeature::OLYMPIC_QOS};
+        production_features::ProductionFeature::NETWORKAI_QOS};
   }
 };
 
 // Verify that traffic arriving on a front panel/cpu port is qos mapped to the
 // correct queue for each olympic dscp value.
-TEST_F(AgentOlympicQosTests, VerifyDscpQueueMapping) {
-  verifyDscpQueueMapping(utility::kOlympicQueueToDscp());
+TEST_F(AgentNetworkAIQosTests, VerifyDscpQueueMapping) {
+  verifyDscpQueueMapping(utility::kNetworkAIQueueToDscp());
 }
 
 } // namespace facebook::fboss

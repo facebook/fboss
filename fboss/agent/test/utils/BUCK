@@ -228,6 +228,8 @@ cpp_library(
     ],
     exported_deps = [
         "fbsource//third-party/googletest:gtest",
+        ":asic_test_utils",
+        ":voq_test_utils",
         "//fboss/agent:core",
         "//fboss/agent:fboss-types",
         "//fboss/agent:hw_asic_table",
