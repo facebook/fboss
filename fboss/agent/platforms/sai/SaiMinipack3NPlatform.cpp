@@ -41,31 +41,16 @@ SaiMinipack3NPlatform::getSaiProfileVendorExtensionValues() const {
 SaiMinipack3NPlatform::~SaiMinipack3NPlatform() = default;
 
 std::string SaiMinipack3NPlatform::getHwConfig() {
-  // TODO: remove this XML file processing once XML file is embeded in agent
-  // config
-  std::string xml_filename =
-      *config()->thrift.platform()->get_chip().get_asic().config();
-  std::string base_filename =
-      xml_filename.substr(0, xml_filename.find(".xml") + 4);
-  std::ifstream xml_file(base_filename);
-  std::string xml_config(
-      (std::istreambuf_iterator<char>(xml_file)),
-      std::istreambuf_iterator<char>());
-  // std::cout << "Read config from: " << xml_filename << std::endl;
-  // std::cout << "Content:" << std::endl << xml_config << std::endl;
-  if (xml_filename.find(";disable_lb_filter") != std::string::npos) {
-    std::string keyTag = "</issu-enabled>";
-    std::string newKeyTag = "<lb_filter_disable>1</lb_filter_disable>";
-    int indentSpaces = 8;
-
-    size_t pos = xml_config.find(keyTag);
-    if (pos != std::string::npos) {
-      xml_config.insert(
-          pos + keyTag.length(), std::string(indentSpaces, ' ') + newKeyTag);
-    } else {
-      std::cerr << "Tag " << keyTag << " not found in XML." << std::endl;
-    }
+  auto hwConfig = config()
+                      ->thrift.platform()
+                      ->chip()
+                      ->get_asicConfig()
+                      .common()
+                      ->get_config();
+  auto constexpr kMinipack3nXml = "minipack3n.xml";
+  if (hwConfig.find(kMinipack3nXml) == hwConfig.end()) {
+    throw FbossError("xml config not found in hw config");
   }
-  return xml_config;
+  return hwConfig[kMinipack3nXml];
 }
 } // namespace facebook::fboss
