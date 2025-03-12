@@ -389,6 +389,11 @@ void BcmStatUpdater::clearPortAsicPrbsStats(PortID portId) {
   }
   auto& prbsStatsTable = portAsicPrbsStatIter->second;
   for (auto& prbsStatsEntry : prbsStatsTable) {
+    uint32 status;
+    bcm_gport_t gport = prbsStatsEntry.getGportId();
+    // Read PRBS stats to reset the clear-on-read counter in hardware
+    bcm_port_phy_control_get(
+        hw_->getUnit(), gport, BCM_PORT_PHY_CONTROL_PRBS_RX_STATUS, &status);
     prbsStatsEntry.clearPrbsStats();
   }
 }
