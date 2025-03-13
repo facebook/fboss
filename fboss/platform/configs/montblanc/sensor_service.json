@@ -1471,7 +1471,7 @@
           "compute": "@/1000"
         },
         {
-          "name": "PSU2_L_12V_STBY_VOUT",
+          "name": "PSU2_R_12V_STBY_VOUT",
           "sysfsPath": "/run/devmap/sensors/PDB_R_PMBUS/in3_input",
           "type": 1,
           "thresholds": {
