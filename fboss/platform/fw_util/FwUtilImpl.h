@@ -64,6 +64,7 @@ class FwUtilImpl {
       const FlashromConfig&,
       std::vector<std::string>&,
       const std::string&);
+  bool createCustomContentFile(const std::string&, const int &, const std::string&);
   std::string detectFlashromChip(const FlashromConfig&, const std::string&);
   void performJamUpgrade(const JamConfig&, const std::string&);
   void performXappUpgrade(const XappConfig&, const std::string&);
@@ -77,7 +78,10 @@ class FwUtilImpl {
       const ReadFirmwareOperationConfig&,
       const std::string&);
   void performFlashromRead(const FlashromConfig&, const std::string&);
-  void addFileOption(const std::string&, std::vector<std::string>&);
+  void addFileOption(
+      const std::string&,
+      std::vector<std::string>&,
+      std::optional<std::string>&);
   void performFlashromVerify(const FlashromConfig&, const std::string&);
   void performVerify(const VerifyFirmwareOperationConfig&, const std::string&);
   void doWriteToPortOperation(const WriteToPortConfig&, const std::string&);
