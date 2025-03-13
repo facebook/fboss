@@ -12069,42 +12069,6 @@
     ],
     "leaba/24.8.3001/24.8.3001/graphene200/mono": [
         {
-          "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X2WideTrunksV4MplsFrontPanelTraffic$"
-        },
-        {
-          "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X2WideTrunksV4MplsPhpFrontPanelTraffic$"
-        },
-        {
-          "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X2WideTrunksV4MplsSwapFrontPanelTraffic$"
-        },
-        {
-          "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X2WideTrunksV6MplsFrontPanelTraffic$"
-        },
-        {
-          "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X2WideTrunksV6MplsPhpFrontPanelTraffic$"
-        },
-        {
-          "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X2WideTrunksV6MplsSwapFrontPanelTraffic$"
-        },
-        {
-          "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X3WideTrunksV4MplsFrontPanelTraffic$"
-        },
-        {
-          "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X3WideTrunksV4MplsPhpFrontPanelTraffic$"
-        },
-        {
-          "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X3WideTrunksV4MplsSwapFrontPanelTraffic$"
-        },
-        {
-          "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X3WideTrunksV6MplsFrontPanelTraffic$"
-        },
-        {
-          "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X3WideTrunksV6MplsPhpFrontPanelTraffic$"
-        },
-        {
-          "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X3WideTrunksV6MplsSwapFrontPanelTraffic$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/1.UnresolvedRoutesToLowPriQueue$"
         },
         {
@@ -12168,22 +12132,7 @@
           "test_name_regex": "AgentTrafficPfcTest/AgentTrafficPfcGenTest.verifyPfc/WithScaleCfg$"
         },
         {
-          "test_name_regex": "AgentTrafficPfcTest/AgentTrafficPfcGenTest.verifyPfc/WithZeroPgHeadRoomCfg$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcTest/AgentTrafficPfcGenTest.verifyPfc/WithZeroGlobalHeadRoomCfg$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcTest.verifyBufferPoolWatermarks$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcWatchdogTest.*$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcTest.verifyIngressPriorityGroupWatermarks$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+          "test_name_regex": "warm_boot.AgentTrafficPfcTest.verifyIngressPriorityGroupWatermarksAgentIngressAclSpanMirroringTest/[01].*$"
         },
         {
           "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
@@ -12273,9 +12222,6 @@
           "test_name_regex": "AgentAclAndDscpQueueMappingTest.VerifyAclAndQosMap$"
         },
         {
-          "test_name_regex": "AgentDeepPacketInspectionTest.l3ForwardedPkt$"
-        },
-        {
           "test_name_regex": "AgentHundredThousandRouteScaleTest.hundredThousandRouteScaleTest$"
         },
         {
@@ -12312,21 +12258,6 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
-          "test_name_regex": "AgentCoppQosTest.HighVsLowerPriorityCpuQueueTrafficPrioritization$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/1.VerifyCoppPpsLowPri$"
-        },
-        {
-          "test_name_regex": "AgentHgridUuRouteScaleTest.hgridUuScaleTest$"
-        },
-        {
-          "test_name_regex": "AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
-        },
-        {
-          "test_name_regex": "AgentThAlpmRouteScaleTest.thAlpmScale$"
-        },
-        {
           "test_name_regex": "AgentDiagShellStressTest.stressDiagCmds$"
         },
         {
@@ -12339,13 +12270,7 @@
           "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
         },
         {
-          "test_name_regex": "AgentTunnelMgrTest.*$"
-        },
-        {
           "test_name_regex": "warm_boot.AgentIpInIpTunnelTest.*$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirror.*$"
         },
         {
           "test_name_regex": "AgentMirroringScaleTest/[15].MaxMirroringTest$"
@@ -12355,46 +12280,22 @@
         },
         {
           "test_name_regex": "AgentTrafficPfcTest/AgentTrafficPfcGenTest.verifyPfc/WithScaleCfgInCongestionDrops$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentSflowMirrorTestV4.MoveToV6$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV6.verifyL4SrcPortRandomization$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV6.StressRecreateMirror$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV4.StressRecreateMirror$"
         }
     ],
     "leaba/24.8.3001_yuba/24.8.3001_yuba/graphene200/mono": [
         {
-          "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X2WideTrunksV4MplsFrontPanelTraffic$"
-        },
-        {
-          "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X2WideTrunksV4MplsPhpFrontPanelTraffic$"
-        },
-        {
-          "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X2WideTrunksV4MplsSwapFrontPanelTraffic$"
-        },
-        {
-          "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X2WideTrunksV6MplsFrontPanelTraffic$"
-        },
-        {
-          "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X2WideTrunksV6MplsPhpFrontPanelTraffic$"
-        },
-        {
-          "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X2WideTrunksV6MplsSwapFrontPanelTraffic$"
-        },
-        {
-          "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X3WideTrunksV4MplsFrontPanelTraffic$"
-        },
-        {
-          "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X3WideTrunksV4MplsPhpFrontPanelTraffic$"
-        },
-        {
-          "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X3WideTrunksV4MplsSwapFrontPanelTraffic$"
-        },
-        {
-          "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X3WideTrunksV6MplsFrontPanelTraffic$"
-        },
-        {
-          "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X3WideTrunksV6MplsPhpFrontPanelTraffic$"
-        },
-        {
-          "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X3WideTrunksV6MplsSwapFrontPanelTraffic$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/1.UnresolvedRoutesToLowPriQueue$"
         },
         {
@@ -12458,22 +12359,7 @@
           "test_name_regex": "AgentTrafficPfcTest/AgentTrafficPfcGenTest.verifyPfc/WithScaleCfg$"
         },
         {
-          "test_name_regex": "AgentTrafficPfcTest/AgentTrafficPfcGenTest.verifyPfc/WithZeroPgHeadRoomCfg$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcTest/AgentTrafficPfcGenTest.verifyPfc/WithZeroGlobalHeadRoomCfg$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcTest.verifyBufferPoolWatermarks$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcWatchdogTest.*$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcTest.verifyIngressPriorityGroupWatermarks$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+          "test_name_regex": "warm_boot.AgentTrafficPfcTest.verifyIngressPriorityGroupWatermarksAgentIngressAclSpanMirroringTest/[01].*$"
         },
         {
           "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
@@ -12563,9 +12449,6 @@
           "test_name_regex": "AgentAclAndDscpQueueMappingTest.VerifyAclAndQosMap$"
         },
         {
-          "test_name_regex": "AgentDeepPacketInspectionTest.l3ForwardedPkt$"
-        },
-        {
           "test_name_regex": "AgentHundredThousandRouteScaleTest.hundredThousandRouteScaleTest$"
         },
         {
@@ -12602,21 +12485,6 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
-          "test_name_regex": "AgentCoppQosTest.HighVsLowerPriorityCpuQueueTrafficPrioritization$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/1.VerifyCoppPpsLowPri$"
-        },
-        {
-          "test_name_regex": "AgentHgridUuRouteScaleTest.hgridUuScaleTest$"
-        },
-        {
-          "test_name_regex": "AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
-        },
-        {
-          "test_name_regex": "AgentThAlpmRouteScaleTest.thAlpmScale$"
-        },
-        {
           "test_name_regex": "AgentDiagShellStressTest.stressDiagCmds$"
         },
         {
@@ -12629,13 +12497,7 @@
           "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
         },
         {
-          "test_name_regex": "AgentTunnelMgrTest.*$"
-        },
-        {
           "test_name_regex": "warm_boot.AgentIpInIpTunnelTest.*$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirror.*$"
         },
         {
           "test_name_regex": "AgentMirroringScaleTest/[15].MaxMirroringTest$"
@@ -12645,6 +12507,18 @@
         },
         {
           "test_name_regex": "AgentTrafficPfcTest/AgentTrafficPfcGenTest.verifyPfc/WithScaleCfgInCongestionDrops$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentSflowMirrorTestV4.MoveToV6$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV6.verifyL4SrcPortRandomization$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV6.StressRecreateMirror$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV4.StressRecreateMirror$"
         }
     ]
   }
