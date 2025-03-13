@@ -17,7 +17,8 @@ class OvertempCondition {
   };
 
  public:
-  void setupShutdownConditions(const FanServiceConfig& config);
+  std::vector<std::string> setupShutdownConditions(
+      const FanServiceConfig& config);
   void processSensorData(std::string sensorName, float sensorValue);
   void addSensorForTracking(std::string name, float threshold, int windowSize);
   bool checkIfOvertemp();

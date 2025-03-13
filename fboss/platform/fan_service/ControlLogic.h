@@ -56,6 +56,7 @@ class ControlLogic {
  private:
   const FanServiceConfig config_;
   OvertempCondition overtempCondition_;
+  std::vector<std::string> overtempWatchList_;
   std::shared_ptr<Bsp> pBsp_;
   std::shared_ptr<SensorData> pSensor_;
   // Internal variable storing the number of failed sensors and fans
