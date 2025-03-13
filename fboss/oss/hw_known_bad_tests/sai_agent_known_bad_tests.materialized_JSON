@@ -12132,7 +12132,10 @@
           "test_name_regex": "AgentTrafficPfcTest/AgentTrafficPfcGenTest.verifyPfc/WithScaleCfg$"
         },
         {
-          "test_name_regex": "warm_boot.AgentTrafficPfcTest.verifyIngressPriorityGroupWatermarksAgentIngressAclSpanMirroringTest/[01].*$"
+          "test_name_regex": "warm_boot.AgentTrafficPfcTest.verifyIngressPriorityGroupWatermarks$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
         },
         {
           "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
@@ -12359,7 +12362,10 @@
           "test_name_regex": "AgentTrafficPfcTest/AgentTrafficPfcGenTest.verifyPfc/WithScaleCfg$"
         },
         {
-          "test_name_regex": "warm_boot.AgentTrafficPfcTest.verifyIngressPriorityGroupWatermarksAgentIngressAclSpanMirroringTest/[01].*$"
+          "test_name_regex": "warm_boot.AgentTrafficPfcTest.verifyIngressPriorityGroupWatermarks$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
         },
         {
           "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
