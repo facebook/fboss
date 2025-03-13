@@ -3748,10 +3748,11 @@
     "/run/devmap/xcvrs/xcvr_ctrl_65": "/[SMB_DOM2_XCVR_CTRL_PORT_65]"
   },
   "bspKmodsRpmName": "fboss_bsp_kmods",
-  "bspKmodsRpmVersion": "2.6.0-1",
+  "bspKmodsRpmVersion": "2.8.1-1",
   "requiredKmodsToLoad": [
     "i2c_i801",
     "spidev",
-    "fboss_iob_pci"
+    "fboss_iob_pci",
+    "ledtrig_timer"
   ]
 }
