@@ -26,7 +26,7 @@ using namespace folly::literals::shell_literals;
 namespace facebook::fboss::platform::fw_util {
 void FwUtilImpl::init() {
   platformName_ = helpers::PlatformNameLib().getPlatformName().value();
-  std::string fwUtilConfJson = ConfigLib().getFwUtilConfig(platformName_);
+  std::string fwUtilConfJson = ConfigLib().getFwUtilConfig();
   try {
     apache::thrift::SimpleJSONSerializer::deserialize<NewFwUtilConfig>(
         fwUtilConfJson, fwUtilConfig_);
