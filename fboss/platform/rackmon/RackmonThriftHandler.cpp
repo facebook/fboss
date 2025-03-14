@@ -260,9 +260,11 @@ void ThriftHandler::transformMonitorDataFilter(
     rackmon::ModbusDeviceFilter& devFilter,
     rackmon::ModbusRegisterFilter& regFilter,
     bool& latestOnly) {
-  const DeviceFilter* reqDevFilter = filter.get_deviceFilter();
-  const RegisterFilter* reqRegFilter = filter.get_registerFilter();
-  latestOnly = filter.get_latestValueOnly();
+  const DeviceFilter* reqDevFilter =
+      apache::thrift::get_pointer(filter.deviceFilter());
+  const RegisterFilter* reqRegFilter =
+      apache::thrift::get_pointer(filter.registerFilter());
+  latestOnly = folly::copy(filter.latestValueOnly().value());
   if (reqDevFilter) {
     if (reqDevFilter->addressFilter_ref().has_value()) {
       std::set<int16_t> devs = reqDevFilter->get_addressFilter();
@@ -333,7 +335,7 @@ void ThriftHandler::reload(
 void ThriftHandler::readHoldingRegisters(
     ReadWordRegistersResponse& response,
     std::unique_ptr<ReadWordRegistersRequest> request) {
-  if (request->get_numRegisters() > kMaxNumRegisters) {
+  if (folly::copy(request->numRegisters().value()) > kMaxNumRegisters) {
     // Modbus protocol has a 1 byte size field, anything
     // more than 128 registers would fail. Return error
     // early.
@@ -341,10 +343,10 @@ void ThriftHandler::readHoldingRegisters(
     return;
   }
   try {
-    std::vector<uint16_t> regs(request->get_numRegisters());
-    int32_t* timeout = request->get_timeout();
-    uint8_t devAddr = request->get_devAddress();
-    uint16_t regAddr = request->get_regAddress();
+    std::vector<uint16_t> regs(folly::copy(request->numRegisters().value()));
+    int32_t* timeout = apache::thrift::get_pointer(request->timeout());
+    uint8_t devAddr = folly::copy(request->devAddress().value());
+    uint16_t regAddr = folly::copy(request->regAddress().value());
     if (timeout) {
       rackmon::ModbusTime tmo(*timeout);
       rackmond_.readHoldingRegisters(devAddr, regAddr, regs, tmo);
@@ -362,10 +364,10 @@ void ThriftHandler::readHoldingRegisters(
 RackmonStatusCode ThriftHandler::writeSingleRegister(
     std::unique_ptr<WriteSingleRegisterRequest> request) {
   try {
-    int32_t* timeout = request->get_timeout();
-    uint8_t devAddr = request->get_devAddress();
-    uint16_t regAddr = request->get_regAddress();
-    uint16_t regValue = request->get_regValue();
+    int32_t* timeout = apache::thrift::get_pointer(request->timeout());
+    uint8_t devAddr = folly::copy(request->devAddress().value());
+    uint16_t regAddr = folly::copy(request->regAddress().value());
+    uint16_t regValue = folly::copy(request->regValue().value());
     if (timeout) {
       rackmon::ModbusTime tmo(*timeout);
       rackmond_.writeSingleRegister(devAddr, regAddr, regValue, tmo);
@@ -380,17 +382,17 @@ RackmonStatusCode ThriftHandler::writeSingleRegister(
 
 RackmonStatusCode ThriftHandler::presetMultipleRegisters(
     std::unique_ptr<PresetMultipleRegistersRequest> request) {
-  if (request->get_regValue().size() > kMaxNumRegisters) {
+  if (request->regValue().value().size() > kMaxNumRegisters) {
     return RackmonStatusCode::ERR_INVALID_ARGS;
   }
   try {
-    int32_t* timeout = request->get_timeout();
-    uint8_t devAddr = request->get_devAddress();
-    uint16_t regAddr = request->get_regAddress();
+    int32_t* timeout = apache::thrift::get_pointer(request->timeout());
+    uint8_t devAddr = folly::copy(request->devAddress().value());
+    uint16_t regAddr = folly::copy(request->regAddress().value());
     std::vector<uint16_t> regValues;
     std::copy(
-        request->get_regValue().begin(),
-        request->get_regValue().end(),
+        request->regValue().value().begin(),
+        request->regValue().value().end(),
         std::back_inserter(regValues));
     if (timeout) {
       rackmon::ModbusTime tmo(*timeout);
@@ -408,17 +410,17 @@ void ThriftHandler::readFileRecord(
     ReadFileRecordResponse& response,
     std::unique_ptr<ReadFileRecordRequest> request) {
   try {
-    int32_t* timeout = request->get_timeout();
-    uint8_t devAddr = request->get_devAddress();
+    int32_t* timeout = apache::thrift::get_pointer(request->timeout());
+    uint8_t devAddr = folly::copy(request->devAddress().value());
     std::vector<rackmon::FileRecord> records;
-    for (const auto& rec : request->get_records()) {
-      if (rec.get_dataSize() > kMaxNumRegisters) {
+    for (const auto& rec : request->records().value()) {
+      if (folly::copy(rec.dataSize().value()) > kMaxNumRegisters) {
         throw std::out_of_range("Request Registers");
       }
       records.emplace_back(
-          (uint16_t)rec.get_fileNum(),
-          (uint16_t)rec.get_recordNum(),
-          (size_t)rec.get_dataSize());
+          (uint16_t)folly::copy(rec.fileNum().value()),
+          (uint16_t)folly::copy(rec.recordNum().value()),
+          (size_t)folly::copy(rec.dataSize().value()));
     }
     if (timeout) {
       rackmon::ModbusTime tmo(*timeout);
