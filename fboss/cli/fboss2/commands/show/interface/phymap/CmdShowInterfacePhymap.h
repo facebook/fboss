@@ -83,7 +83,7 @@ class CmdShowInterfacePhymap
       out << table << std::endl;
     };
 
-    auto& portsPhyMap = model.get_portsPhyMap();
+    auto& portsPhyMap = model.portsPhyMap().value();
     if (!portsPhyMap.macsecPortPhyMap().is_set()) {
       out << "No Phy port map for this platform" << std::endl;
       return;

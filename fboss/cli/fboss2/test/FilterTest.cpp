@@ -168,8 +168,9 @@ TEST_F(FilterTestFixture, singleTermFiltering) {
   const auto& filteredResult =
       filterOutput<CmdShowPort>(model, singleTermFilter, validFilterMap);
   // check that all linkState are "Up" in the filtered model.
-  for (const auto& portInfo : filteredResult.get_portEntries()) {
-    const auto& linkState = folly::to<std::string>(portInfo.get_linkState());
+  for (const auto& portInfo : filteredResult.portEntries().value()) {
+    const auto& linkState =
+        folly::to<std::string>(portInfo.linkState().value());
     EXPECT_EQ(linkState, "Up");
   }
 }
@@ -180,9 +181,11 @@ TEST_F(FilterTestFixture, itersectionFiltering) {
       filterOutput<CmdShowPort>(model, intersectionFilter, validFilterMap);
   // check that all linkState are "Down" AND adminState are "Disabled" in the
   // filtered model.
-  for (const auto& portInfo : filteredResult.get_portEntries()) {
-    const auto& linkState = folly::to<std::string>(portInfo.get_linkState());
-    const auto& adminState = folly::to<std::string>(portInfo.get_adminState());
+  for (const auto& portInfo : filteredResult.portEntries().value()) {
+    const auto& linkState =
+        folly::to<std::string>(portInfo.linkState().value());
+    const auto& adminState =
+        folly::to<std::string>(portInfo.adminState().value());
     EXPECT_EQ(linkState, "Down");
     EXPECT_EQ(adminState, "Disabled");
   }
@@ -194,9 +197,9 @@ TEST_F(FilterTestFixture, unionFiltering) {
       filterOutput<CmdShowPort>(model, unionFilter, validFilterMap);
   // check that all id > 7 OR tcvrPresent is "Absent" in the
   // filtered model.
-  for (const auto& portInfo : filteredResult.get_portEntries()) {
-    const auto& id = folly::to<int>(portInfo.get_id());
-    const auto& tcvr = folly::to<std::string>(portInfo.get_tcvrPresent());
+  for (const auto& portInfo : filteredResult.portEntries().value()) {
+    const auto& id = folly::to<int>(folly::copy(portInfo.id().value()));
+    const auto& tcvr = folly::to<std::string>(portInfo.tcvrPresent().value());
     EXPECT_TRUE((id > 7 || tcvr == "Absent"));
   }
 }
@@ -207,11 +210,13 @@ TEST_F(FilterTestFixture, complicatedFiltering) {
       filterOutput<CmdShowPort>(model, compFilter, validFilterMap);
   // check that (id > 3 && tcvrPresent == "Present") || (linkState == "Up" &&
   // adminState == "Disabled") in all rows of the filtered model.
-  for (const auto& portInfo : filteredResult.get_portEntries()) {
-    const auto& id = folly::to<int>(portInfo.get_id());
-    const auto& tcvr = folly::to<std::string>(portInfo.get_tcvrPresent());
-    const auto& linkState = folly::to<std::string>(portInfo.get_linkState());
-    const auto& adminState = folly::to<std::string>(portInfo.get_adminState());
+  for (const auto& portInfo : filteredResult.portEntries().value()) {
+    const auto& id = folly::to<int>(folly::copy(portInfo.id().value()));
+    const auto& tcvr = folly::to<std::string>(portInfo.tcvrPresent().value());
+    const auto& linkState =
+        folly::to<std::string>(portInfo.linkState().value());
+    const auto& adminState =
+        folly::to<std::string>(portInfo.adminState().value());
     EXPECT_TRUE(
         (id > 3 && tcvr == "Present") ||
         (adminState == "Disabled" && linkState == "Up"));

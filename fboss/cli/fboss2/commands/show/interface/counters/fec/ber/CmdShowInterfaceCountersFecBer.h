@@ -108,7 +108,7 @@ class CmdShowInterfaceCountersFecBer
     if (sideStats && sideStats->pcs()) {
       auto& pcsStats = *sideStats->pcs();
       if (auto fecStats = pcsStats.rsFec()) {
-        return fecStats->get_preFECBer();
+        return folly::copy(fecStats->preFECBer().value());
       }
     }
     return std::nullopt;

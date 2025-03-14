@@ -39,60 +39,64 @@ class CmdShowProductDetails
 
   RetType createModel(const ProductInfo& productInfo) {
     RetType model;
-    model.product() = productInfo.get_product();
-    model.oem() = productInfo.get_oem();
-    model.serial() = productInfo.get_serial();
-    model.mgmtMac() = productInfo.get_mgmtMac();
-    model.bmcMac() = productInfo.get_bmcMac();
-    model.macRangeStart() = productInfo.get_macRangeStart();
+    model.product() = productInfo.product().value();
+    model.oem() = productInfo.oem().value();
+    model.serial() = productInfo.serial().value();
+    model.mgmtMac() = productInfo.mgmtMac().value();
+    model.bmcMac() = productInfo.bmcMac().value();
+    model.macRangeStart() = productInfo.macRangeStart().value();
     model.macRangeSize() =
-        folly::to<std::string>(productInfo.get_macRangeSize());
-    model.assembledAt() = productInfo.get_assembledAt();
-    model.assetTag() = productInfo.get_assetTag();
-    model.partNumber() = productInfo.get_partNumber();
-    model.productionState() =
-        folly::to<std::string>(productInfo.get_productionState());
-    model.subVersion() = folly::to<std::string>(productInfo.get_subVersion());
-    model.productVersion() =
-        folly::to<std::string>(productInfo.get_productVersion());
-    model.systemPartNumber() = productInfo.get_systemPartNumber();
-    model.mfgDate() = productInfo.get_mfgDate();
-    model.pcbManufacturer() = productInfo.get_pcbManufacturer();
-    model.fbPcbaPartNumber() = productInfo.get_fbPcbaPartNumber();
-    model.fbPcbPartNumber() = productInfo.get_fbPcbPartNumber();
-    model.odmPcbaPartNumber() = productInfo.get_odmPcbaPartNumber();
-    model.odmPcbaSerial() = productInfo.get_odmPcbaSerial();
-    model.version() = folly::to<std::string>(productInfo.get_version());
+        folly::to<std::string>(folly::copy(productInfo.macRangeSize().value()));
+    model.assembledAt() = productInfo.assembledAt().value();
+    model.assetTag() = productInfo.assetTag().value();
+    model.partNumber() = productInfo.partNumber().value();
+    model.productionState() = folly::to<std::string>(
+        folly::copy(productInfo.productionState().value()));
+    model.subVersion() =
+        folly::to<std::string>(folly::copy(productInfo.subVersion().value()));
+    model.productVersion() = folly::to<std::string>(
+        folly::copy(productInfo.productVersion().value()));
+    model.systemPartNumber() = productInfo.systemPartNumber().value();
+    model.mfgDate() = productInfo.mfgDate().value();
+    model.pcbManufacturer() = productInfo.pcbManufacturer().value();
+    model.fbPcbaPartNumber() = productInfo.fbPcbaPartNumber().value();
+    model.fbPcbPartNumber() = productInfo.fbPcbPartNumber().value();
+    model.odmPcbaPartNumber() = productInfo.odmPcbaPartNumber().value();
+    model.odmPcbaSerial() = productInfo.odmPcbaSerial().value();
+    model.version() =
+        folly::to<std::string>(folly::copy(productInfo.version().value()));
     return model;
   }
 
   void printOutput(const RetType& model, std::ostream& out = std::cout) {
-    out << "Product: " << model.get_product() << std::endl;
-    out << "OEM: " << model.get_oem() << std::endl;
-    out << "Serial: " << model.get_serial() << std::endl;
-    out << "Management MAC Address: " << model.get_mgmtMac() << std::endl;
-    out << "BMC MAC Address: " << model.get_bmcMac() << std::endl;
-    out << "Extended MAC Start: " << model.get_macRangeStart() << std::endl;
-    out << "Extended MAC Size: " << model.get_macRangeSize() << std::endl;
-    out << "Assembled At: " << model.get_assembledAt() << std::endl;
-    out << "Product Asset Tag: " << model.get_assetTag() << std::endl;
-    out << "Product Part Number: " << model.get_partNumber() << std::endl;
-    out << "Product Production State: " << model.get_productionState()
+    out << "Product: " << model.product().value() << std::endl;
+    out << "OEM: " << model.oem().value() << std::endl;
+    out << "Serial: " << model.serial().value() << std::endl;
+    out << "Management MAC Address: " << model.mgmtMac().value() << std::endl;
+    out << "BMC MAC Address: " << model.bmcMac().value() << std::endl;
+    out << "Extended MAC Start: " << model.macRangeStart().value() << std::endl;
+    out << "Extended MAC Size: " << model.macRangeSize().value() << std::endl;
+    out << "Assembled At: " << model.assembledAt().value() << std::endl;
+    out << "Product Asset Tag: " << model.assetTag().value() << std::endl;
+    out << "Product Part Number: " << model.partNumber().value() << std::endl;
+    out << "Product Production State: " << model.productionState().value()
         << std::endl;
-    out << "Product Sub-Version: " << model.get_subVersion() << std::endl;
-    out << "Product Version: " << model.get_productVersion() << std::endl;
-    out << "System Assembly Part Number: " << model.get_systemPartNumber()
+    out << "Product Sub-Version: " << model.subVersion().value() << std::endl;
+    out << "Product Version: " << model.productVersion().value() << std::endl;
+    out << "System Assembly Part Number: " << model.systemPartNumber().value()
         << std::endl;
-    out << "System Manufacturing Date: " << model.get_mfgDate() << std::endl;
-    out << "PCB Manufacturer: " << model.get_pcbManufacturer() << std::endl;
-    out << "Facebook PCBA Part Number: " << model.get_fbPcbaPartNumber()
+    out << "System Manufacturing Date: " << model.mfgDate().value()
         << std::endl;
-    out << "Facebook PCB Part Number: " << model.get_fbPcbPartNumber()
+    out << "PCB Manufacturer: " << model.pcbManufacturer().value() << std::endl;
+    out << "Facebook PCBA Part Number: " << model.fbPcbaPartNumber().value()
         << std::endl;
-    out << "ODM PCBA Part Number: " << model.get_odmPcbaPartNumber()
+    out << "Facebook PCB Part Number: " << model.fbPcbPartNumber().value()
         << std::endl;
-    out << "ODM PCBA Serial Number: " << model.get_odmPcbaSerial() << std::endl;
-    out << "Version: " << model.get_version() << std::endl;
+    out << "ODM PCBA Part Number: " << model.odmPcbaPartNumber().value()
+        << std::endl;
+    out << "ODM PCBA Serial Number: " << model.odmPcbaSerial().value()
+        << std::endl;
+    out << "Version: " << model.version().value() << std::endl;
   }
 };
 

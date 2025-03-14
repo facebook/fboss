@@ -60,7 +60,7 @@ class CmdShowHardware
     // Product info helps us make some decisions when there need to be per
     // platform treatment of certain outputs
     wedgeClient->sync_getProductInfo(product_info);
-    std::string product = product_info.get_product();
+    std::string product = product_info.product().value();
 
     // AliveSince calls use the inherited FB303 counters
     std::int64_t bgpAliveSince = bgpClient->sync_aliveSince();
@@ -128,7 +128,7 @@ class CmdShowHardware
         hwmod.moduleType() = "PIM";
         hwmod.serialNumber() = data["PIMSERIAL"][pim].asString();
         std::string lower_pim =
-            boost::algorithm::to_lower_copy(hwmod.get_moduleName());
+            boost::algorithm::to_lower_copy(hwmod.moduleName().value());
         std::string pim_status = "";
         // Unfortunately, BMC does not adhere to a single standard so detecting
         // PIM presence is on a per platform basis.  So far we have observerd
@@ -202,7 +202,7 @@ class CmdShowHardware
         ret.modules()->begin(),
         ret.modules()->end(),
         [](cli::HWModule& a, cli::HWModule& b) {
-          return a.get_moduleName() < b.get_moduleName();
+          return a.moduleName().value() < b.moduleName().value();
         });
     return ret;
   }
@@ -216,24 +216,24 @@ class CmdShowHardware
     table.setHeader(
         {"Module", "Type", "Serial", "MAC", "Status", "FPGA Version"});
 
-    for (auto const& data : model.get_modules()) {
+    for (auto const& data : model.modules().value()) {
       table.addRow({
-          data.get_moduleName() != "" ? data.get_moduleName() : "N/A",
-          data.get_moduleType() != "" ? data.get_moduleType() : "N/A",
-          data.get_serialNumber() != ""
-              ? data.get_serialNumber()
+          data.moduleName().value() != "" ? data.moduleName().value() : "N/A",
+          data.moduleType().value() != "" ? data.moduleType().value() : "N/A",
+          data.serialNumber().value() != ""
+              ? data.serialNumber().value()
               : Table::StyledCell("N/A", Table::Style::ERROR),
-          data.get_macAddress() != "" ? data.get_macAddress() : "N/A",
-          data.get_modStatus() == "OK"
+          data.macAddress().value() != "" ? data.macAddress().value() : "N/A",
+          data.modStatus().value() == "OK"
               ? Table::StyledCell("OK", Table::Style::GOOD)
               : Table::StyledCell("N/A", Table::Style::ERROR),
-          data.get_fpgaVersion() != "" ? data.get_fpgaVersion() : "N/A",
+          data.fpgaVersion().value() != "" ? data.fpgaVersion().value() : "N/A",
       });
     }
 
     out << table << std::endl;
-    out << "BGPD Uptime: " + model.get_ctrlUptime() << std::endl;
-    out << "Wedge Agent Uptime: " + model.get_bgpdUptime() << std::endl;
+    out << "BGPD Uptime: " + model.ctrlUptime().value() << std::endl;
+    out << "Wedge Agent Uptime: " + model.bgpdUptime().value() << std::endl;
   }
 };
 

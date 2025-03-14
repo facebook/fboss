@@ -99,24 +99,26 @@ class CmdShowInterfaceTraffic : public CmdHandler<
     // Create counter object for each interface
     for (const auto& portEntry : portCounters) {
       auto portInfo = portEntry.second;
-      if (queriedIfs.size() == 0 || queriedSet.count(portInfo.get_name())) {
+      if (queriedIfs.size() == 0 || queriedSet.count(portInfo.name().value())) {
         cli::TrafficErrorCounters errorCounters;
 
-        std::string pname = portInfo.get_name();
+        std::string pname = portInfo.name().value();
 
         // FBOSS devices only have 2 error counters, so extract those here
         // The other counters are placeholders to match EOS output
-        int64_t inputErrors = portInfo.get_input().get_errors().get_errors();
-        int64_t outputErrors = portInfo.get_output().get_errors().get_errors();
+        int64_t inputErrors =
+            portInfo.input().value().get_errors().get_errors();
+        int64_t outputErrors =
+            portInfo.output().value().get_errors().get_errors();
 
-        const auto operState = portInfo.get_operState();
+        const auto operState = folly::copy(portInfo.operState().value());
 
         // As mentioned above, only tx and rx errors are meaningful to FBOSS.
         // The other fields are statically set just to provide output parity
         // with EOS
         errorCounters.interfaceName() = pname;
         errorCounters.peerIf() =
-            extractExpectedPort(portInfo.get_description());
+            extractExpectedPort(portInfo.description().value());
         errorCounters.ifStatus() =
             (operState == facebook::fboss::PortOperState::UP) ? "up" : "down";
         errorCounters.fcsErrors() = 0;
@@ -129,7 +131,7 @@ class CmdShowInterfaceTraffic : public CmdHandler<
 
         cli::TrafficCounters trafficCounters;
         // Getting various counters and converting to Mbps
-        int64_t portSpeed = portInfo.get_speedMbps();
+        int64_t portSpeed = folly::copy(portInfo.speedMbps().value());
 
         long inSpeedBps = intCounters[pname + ".in_bytes.rate.60"] * 8;
 
@@ -151,7 +153,7 @@ class CmdShowInterfaceTraffic : public CmdHandler<
 
         trafficCounters.interfaceName() = pname;
         trafficCounters.peerIf() =
-            extractExpectedPort(portInfo.get_description());
+            extractExpectedPort(portInfo.description().value());
         trafficCounters.inMbps() = inSpeedMbps;
         trafficCounters.inPct() =
             calculateUtilizationPercent(inSpeedMbps, portSpeed);
@@ -178,14 +180,14 @@ class CmdShowInterfaceTraffic : public CmdHandler<
         ret.error_counters()->begin(),
         ret.error_counters()->end(),
         [](cli::TrafficErrorCounters& a, cli::TrafficErrorCounters b) {
-          return a.get_interfaceName() < b.get_interfaceName();
+          return a.interfaceName().value() < b.interfaceName().value();
         });
 
     std::sort(
         ret.traffic_counters()->begin(),
         ret.traffic_counters()->end(),
         [](cli::TrafficCounters& a, cli::TrafficCounters b) {
-          return a.get_interfaceName() < b.get_interfaceName();
+          return a.interfaceName().value() < b.interfaceName().value();
         });
     return ret;
   }
@@ -241,16 +243,20 @@ class CmdShowInterfaceTraffic : public CmdHandler<
   }
 
   bool isInterestingTraffic(cli::TrafficCounters& tc) {
-    if (tc.get_inMbps() < 0.1 && tc.get_inPct() < 0.1 &&
-        tc.get_inKpps() < 0.1 && tc.get_outMbps() < 0.1 &&
-        tc.get_outPct() < 0.1 && tc.get_outKpps() < 0.1) {
+    if (folly::copy(tc.inMbps().value()) < 0.1 &&
+        folly::copy(tc.inPct().value()) < 0.1 &&
+        folly::copy(tc.inKpps().value()) < 0.1 &&
+        folly::copy(tc.outMbps().value()) < 0.1 &&
+        folly::copy(tc.outPct().value()) < 0.1 &&
+        folly::copy(tc.outKpps().value()) < 0.1) {
       return false;
     }
     return true;
   }
 
   bool isNonZeroErrors(cli::TrafficErrorCounters& ec) {
-    if (ec.get_rxErrors() <= 0 && ec.get_txErrors() <= 0) {
+    if (folly::copy(ec.rxErrors().value()) <= 0 &&
+        folly::copy(ec.txErrors().value()) <= 0) {
       return false;
     }
     return true;
@@ -267,11 +273,11 @@ class CmdShowInterfaceTraffic : public CmdHandler<
     double totalBW = 0.0;
 
     for (auto& tc : trafficCounters) {
-      inMbpsT += tc.get_inMbps();
-      inKppsT += tc.get_inKpps();
-      outMbpsT += tc.get_outMbps();
-      outKppsT += tc.get_outKpps();
-      totalBW += tc.get_portSpeed();
+      inMbpsT += folly::copy(tc.inMbps().value());
+      inKppsT += folly::copy(tc.inKpps().value());
+      outMbpsT += folly::copy(tc.outMbps().value());
+      outKppsT += folly::copy(tc.outKpps().value());
+      totalBW += folly::copy(tc.portSpeed().value());
     }
 
     inPctT = (inMbpsT / totalBW) * 100;
@@ -347,7 +353,7 @@ class CmdShowInterfaceTraffic : public CmdHandler<
       printColor = true;
     }
 
-    if (model.get_error_counters().size() != 0) {
+    if (model.error_counters().value().size() != 0) {
       constexpr std::string_view errorsString =
           "ERRORS {} interfaces, watch for any incrementing counters:\n";
 
@@ -355,10 +361,11 @@ class CmdShowInterfaceTraffic : public CmdHandler<
         fmt::print(
             fg(fmt::color::red),
             errorsString,
-            std::to_string(model.get_error_counters().size()));
+            std::to_string(model.error_counters().value().size()));
       } else {
         out << fmt::format(
-            errorsString, std::to_string(model.get_error_counters().size()));
+            errorsString,
+            std::to_string(model.error_counters().value().size()));
       }
 
       errorTable.setHeader({
@@ -374,18 +381,32 @@ class CmdShowInterfaceTraffic : public CmdHandler<
           "Tx",
       });
 
-      for (const auto& counter : model.get_error_counters()) {
+      for (const auto& counter : model.error_counters().value()) {
         errorTable.addRow({
-            makeColorCell(counter.get_interfaceName(), "ERROR"),
-            makeColorCell(counter.get_peerIf(), "ERROR"),
-            makeColorCell(counter.get_ifStatus(), "ERROR"),
-            makeColorCell(std::to_string(counter.get_fcsErrors()), "ERROR"),
-            makeColorCell(std::to_string(counter.get_alignErrors()), "ERROR"),
-            makeColorCell(std::to_string(counter.get_symbolErrors()), "ERROR"),
-            makeColorCell(std::to_string(counter.get_rxErrors()), "ERROR"),
-            makeColorCell(std::to_string(counter.get_runtErrors()), "ERROR"),
-            makeColorCell(std::to_string(counter.get_giantErrors()), "ERROR"),
-            makeColorCell(std::to_string(counter.get_txErrors()), "ERROR"),
+            makeColorCell(counter.interfaceName().value(), "ERROR"),
+            makeColorCell(counter.peerIf().value(), "ERROR"),
+            makeColorCell(counter.ifStatus().value(), "ERROR"),
+            makeColorCell(
+                std::to_string(folly::copy(counter.fcsErrors().value())),
+                "ERROR"),
+            makeColorCell(
+                std::to_string(folly::copy(counter.alignErrors().value())),
+                "ERROR"),
+            makeColorCell(
+                std::to_string(folly::copy(counter.symbolErrors().value())),
+                "ERROR"),
+            makeColorCell(
+                std::to_string(folly::copy(counter.rxErrors().value())),
+                "ERROR"),
+            makeColorCell(
+                std::to_string(folly::copy(counter.runtErrors().value())),
+                "ERROR"),
+            makeColorCell(
+                std::to_string(folly::copy(counter.giantErrors().value())),
+                "ERROR"),
+            makeColorCell(
+                std::to_string(folly::copy(counter.txErrors().value())),
+                "ERROR"),
         });
       }
 
@@ -411,36 +432,49 @@ class CmdShowInterfaceTraffic : public CmdHandler<
         "OutKpps",
     });
 
-    for (const auto& trafficCounter : model.get_traffic_counters()) {
-      std::vector<std::string> rowColors =
-          getRowColors(trafficCounter.get_inPct(), trafficCounter.get_outPct());
+    for (const auto& trafficCounter : model.traffic_counters().value()) {
+      std::vector<std::string> rowColors = getRowColors(
+          folly::copy(trafficCounter.inPct().value()),
+          folly::copy(trafficCounter.outPct().value()));
 
       std::string ifNameColor = rowColors[2];
       std::string rxColor = rowColors[0];
       std::string txColor = rowColors[1];
 
       trafficTable.addRow(
-          {makeColorCell(trafficCounter.get_interfaceName(), ifNameColor),
-           makeColorCell(trafficCounter.get_peerIf(), ifNameColor),
+          {makeColorCell(trafficCounter.interfaceName().value(), ifNameColor),
+           makeColorCell(trafficCounter.peerIf().value(), ifNameColor),
            makeColorCell("0:60", ifNameColor),
            makeColorCell(
-               fmt::format("{:.2f}", trafficCounter.get_inMbps()), rxColor),
-           makeColorCell(
-               fmt::format("{:.2f}", trafficCounter.get_inPct()) + "%",
+               fmt::format(
+                   "{:.2f}", folly::copy(trafficCounter.inMbps().value())),
                rxColor),
            makeColorCell(
-               fmt::format("{:.2f}", trafficCounter.get_inKpps()), rxColor),
+               fmt::format(
+                   "{:.2f}", folly::copy(trafficCounter.inPct().value())) +
+                   "%",
+               rxColor),
            makeColorCell(
-               fmt::format("{:.2f}", trafficCounter.get_outMbps()), txColor),
+               fmt::format(
+                   "{:.2f}", folly::copy(trafficCounter.inKpps().value())),
+               rxColor),
            makeColorCell(
-               fmt::format("{:.2f}", trafficCounter.get_outPct()) + "%",
+               fmt::format(
+                   "{:.2f}", folly::copy(trafficCounter.outMbps().value())),
                txColor),
            makeColorCell(
-               fmt::format("{:.2f}", trafficCounter.get_outKpps()), txColor)});
+               fmt::format(
+                   "{:.2f}", folly::copy(trafficCounter.outPct().value())) +
+                   "%",
+               txColor),
+           makeColorCell(
+               fmt::format(
+                   "{:.2f}", folly::copy(trafficCounter.outKpps().value())),
+               txColor)});
     }
 
     std::vector<double> totalTraffic =
-        getTrafficTotals(model.get_traffic_counters());
+        getTrafficTotals(model.traffic_counters().value());
 
     trafficTable.addRow({
         makeColorCell("Total", "INFO"),

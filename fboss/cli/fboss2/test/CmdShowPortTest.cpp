@@ -122,12 +122,12 @@ std::map<int32_t, PortInfoThrift> createPortEntries() {
   portEntry6.coreId() = 6;
   portEntry6.virtualDeviceId() = 6;
 
-  portMap[portEntry1.get_portId()] = portEntry1;
-  portMap[portEntry2.get_portId()] = portEntry2;
-  portMap[portEntry3.get_portId()] = portEntry3;
-  portMap[portEntry4.get_portId()] = portEntry4;
-  portMap[portEntry5.get_portId()] = portEntry5;
-  portMap[portEntry6.get_portId()] = portEntry6;
+  portMap[folly::copy(portEntry1.portId().value())] = portEntry1;
+  portMap[folly::copy(portEntry2.portId().value())] = portEntry2;
+  portMap[folly::copy(portEntry3.portId().value())] = portEntry3;
+  portMap[folly::copy(portEntry4.portId().value())] = portEntry4;
+  portMap[folly::copy(portEntry5.portId().value())] = portEntry5;
+  portMap[folly::copy(portEntry6.portId().value())] = portEntry6;
   return portMap;
 }
 
@@ -145,8 +145,8 @@ std::map<int32_t, PortInfoThrift> createInvalidPortEntries() {
   portEntry2.portId() = 2;
   portEntry2.name() = "eth/5/1";
 
-  portMap[portEntry1.get_portId()] = portEntry1;
-  portMap[portEntry2.get_portId()] = portEntry2;
+  portMap[folly::copy(portEntry1.portId().value())] = portEntry1;
+  portMap[folly::copy(portEntry2.portId().value())] = portEntry2;
   return portMap;
 }
 

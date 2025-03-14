@@ -64,8 +64,8 @@ std::map<int32_t, facebook::fboss::PortInfoThrift> createPortThriftEntries() {
   portEntry2.portId() = 102;
   portEntry2.name() = "eth2/1/1";
 
-  portEntries[portEntry1.get_portId()] = portEntry1;
-  portEntries[portEntry2.get_portId()] = portEntry2;
+  portEntries[folly::copy(portEntry1.portId().value())] = portEntry1;
+  portEntries[folly::copy(portEntry2.portId().value())] = portEntry2;
 
   return portEntries;
 }
@@ -87,7 +87,7 @@ TEST_F(CmdShowNdpTestFixture, createModel) {
   auto cmd = CmdShowNdp();
   CmdShowNdpTraits::ObjectArgType queriedEntries;
   auto model = cmd.createModel(ndpEntries, queriedEntries, portEntries, {});
-  auto entries = model.get_ndpEntries();
+  auto entries = model.ndpEntries().value();
 
   EXPECT_EQ(entries.size(), 2);
 

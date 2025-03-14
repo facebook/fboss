@@ -62,7 +62,8 @@ class CmdShowInterfaceStatus
     std::vector<int32_t> requiredTransceivers;
     for (const auto& port : portEntries) {
       if (auto transIdx = port.second.transceiverIdx()) {
-        requiredTransceivers.push_back(transIdx->get_transceiverId());
+        requiredTransceivers.push_back(
+            folly::copy(transIdx->transceiverId().value()));
       }
     }
     return requiredTransceivers;
@@ -92,30 +93,34 @@ class CmdShowInterfaceStatus
     std::unordered_set<std::string> queriedSet(
         queriedIfs.begin(), queriedIfs.end());
     for (const auto& [portId, portInfo] : portEntries) {
-      if (queriedIfs.size() == 0 || queriedSet.count(portInfo.get_name())) {
+      if (queriedIfs.size() == 0 || queriedSet.count(portInfo.name().value())) {
         cli::InterfaceStatus ifStatus;
-        const auto operState = portInfo.get_operState();
+        const auto operState = folly::copy(portInfo.operState().value());
 
-        ifStatus.name() = portInfo.get_name();
-        ifStatus.description() = portInfo.get_description();
+        ifStatus.name() = portInfo.name().value();
+        ifStatus.description() = portInfo.description().value();
         ifStatus.status() =
             (operState == facebook::fboss::PortOperState::UP) ? "up" : "down";
-        if (portInfo.get_vlans().size()) {
-          ifStatus.vlan() = portInfo.get_vlans()[0];
+        if (portInfo.vlans().value().size()) {
+          ifStatus.vlan() = portInfo.vlans().value()[0];
         }
         ifStatus.speed() =
-            std::to_string(portInfo.get_speedMbps() / 1000) + "G";
+            std::to_string(folly::copy(portInfo.speedMbps().value()) / 1000) +
+            "G";
 
         ifStatus.vendor() = "Not Present";
         ifStatus.mpn() = "Not Present";
         if (auto transceiverIdx = portInfo.transceiverIdx()) {
-          int32_t transceiverId = transceiverIdx->get_transceiverId();
+          int32_t transceiverId =
+              folly::copy(transceiverIdx->transceiverId().value());
           const auto& transceiver = transceiverEntries[transceiverId];
-          if (transceiver.tcvrState()->get_vendor()) {
+          if (apache::thrift::get_pointer(transceiver.tcvrState()->vendor())) {
             ifStatus.vendor() =
-                transceiver.tcvrState()->get_vendor()->get_name();
+                apache::thrift::get_pointer(transceiver.tcvrState()->vendor())
+                    ->get_name();
             ifStatus.mpn() =
-                transceiver.tcvrState()->get_vendor()->get_partNumber();
+                apache::thrift::get_pointer(transceiver.tcvrState()->vendor())
+                    ->get_partNumber();
           }
         }
 
@@ -126,7 +131,7 @@ class CmdShowInterfaceStatus
         model.interfaces()->begin(),
         model.interfaces()->end(),
         [](cli::InterfaceStatus& a, cli::InterfaceStatus b) {
-          return a.get_name() < b.get_name();
+          return a.name().value() < b.name().value();
         });
     return model;
   }
@@ -144,17 +149,17 @@ class CmdShowInterfaceStatus
         "Part Number",
     });
 
-    for (const auto& portStatus : model.get_interfaces()) {
+    for (const auto& portStatus : model.interfaces().value()) {
       outTable.addRow({
-          portStatus.get_name(),
-          portStatus.get_description(),
-          colorStatusCell(portStatus.get_status()),
+          portStatus.name().value(),
+          portStatus.description().value(),
+          colorStatusCell(portStatus.status().value()),
           (portStatus.vlan().has_value()
-               ? std::to_string(*portStatus.get_vlan())
+               ? std::to_string(*apache::thrift::get_pointer(portStatus.vlan()))
                : "--"),
-          portStatus.get_speed(),
-          colorTransCell(portStatus.get_vendor()),
-          colorTransCell(portStatus.get_mpn()),
+          portStatus.speed().value(),
+          colorTransCell(portStatus.vendor().value()),
+          colorTransCell(portStatus.mpn().value()),
       });
     }
 

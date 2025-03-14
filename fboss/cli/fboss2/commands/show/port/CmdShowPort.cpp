@@ -177,19 +177,22 @@ RetType CmdShowPort::createModel(
 
   for (const auto& entry : portEntries) {
     auto portInfo = entry.second;
-    auto portName = portInfo.get_name();
-    auto operState = getOperStateStr(portInfo.get_operState());
-    auto activeState = getActiveStateStr(portInfo.get_activeState());
+    auto portName = portInfo.name().value();
+    auto operState = getOperStateStr(folly::copy(portInfo.operState().value()));
+    auto activeState =
+        getActiveStateStr(apache::thrift::get_pointer(portInfo.activeState()));
 
     if (queriedPorts.size() == 0 || queriedSet.count(portName)) {
       cli::PortEntry portDetails;
-      portDetails.id() = portInfo.get_portId();
-      portDetails.name() = portInfo.get_name();
-      portDetails.adminState() = getAdminStateStr(portInfo.get_adminState());
+      portDetails.id() = folly::copy(portInfo.portId().value());
+      portDetails.name() = portInfo.name().value();
+      portDetails.adminState() =
+          getAdminStateStr(folly::copy(portInfo.adminState().value()));
       portDetails.linkState() = operState;
       portDetails.activeState() = activeState;
-      portDetails.speed() = utils::getSpeedGbps(portInfo.get_speedMbps());
-      portDetails.profileId() = portInfo.get_profileID();
+      portDetails.speed() =
+          utils::getSpeedGbps(folly::copy(portInfo.speedMbps().value()));
+      portDetails.profileId() = portInfo.profileID().value();
       portDetails.coreId() = getOptionalIntStr(portInfo.coreId().to_optional());
       portDetails.virtualDeviceId() =
           getOptionalIntStr(portInfo.virtualDeviceId().to_optional());
@@ -212,16 +215,16 @@ RetType CmdShowPort::createModel(
       if ((std::find(
                drainedInterfaces.begin(), drainedInterfaces.end(), portName) !=
            drainedInterfaces.end()) ||
-          portInfo.get_isDrained()) {
+          folly::copy(portInfo.isDrained().value())) {
         portDetails.isDrained() = "Yes";
       }
       if (auto tcvrId = portInfo.transceiverIdx()) {
-        const auto transceiverId = tcvrId->get_transceiverId();
+        const auto transceiverId = folly::copy(tcvrId->transceiverId().value());
         portDetails.tcvrID() = transceiverId;
         portDetails.tcvrPresent() =
             getTransceiverStr(transceiverEntries, transceiverId);
       }
-      if (auto pfc = portInfo.get_pfc()) {
+      if (auto pfc = apache::thrift::get_pointer(portInfo.pfc())) {
         std::string pfcString = "";
         if (*pfc->tx()) {
           pfcString = "TX ";
@@ -235,19 +238,19 @@ RetType CmdShowPort::createModel(
         portDetails.pfc() = pfcString;
       } else {
         std::string pauseString = "";
-        if (portInfo.get_txPause()) {
+        if (folly::copy(portInfo.txPause().value())) {
           pauseString = "TX ";
         }
-        if (portInfo.get_rxPause()) {
+        if (folly::copy(portInfo.rxPause().value())) {
           pauseString += "RX";
         }
         portDetails.pause() = pauseString;
       }
-      portDetails.numUnicastQueues() = portInfo.get_portQueues().size();
-      for (const auto& queue : portInfo.get_portQueues()) {
-        if (!queue.get_name().empty()) {
+      portDetails.numUnicastQueues() = portInfo.portQueues().value().size();
+      for (const auto& queue : portInfo.portQueues().value()) {
+        if (!queue.name().value().empty()) {
           portDetails.queueIdToName()->insert(
-              {queue.get_id(), queue.get_name()});
+              {folly::copy(queue.id().value()), queue.name().value()});
         }
       }
 
@@ -255,28 +258,41 @@ RetType CmdShowPort::createModel(
       if (iter != portStats.end()) {
         auto portHwStatsEntry = iter->second;
         cli::PortHwStatsEntry cliPortStats;
-        cliPortStats.inUnicastPkts() = portHwStatsEntry.get_inUnicastPkts_();
-        cliPortStats.inDiscardPkts() = portHwStatsEntry.get_inDiscards_();
-        cliPortStats.inErrorPkts() = portHwStatsEntry.get_inErrors_();
-        cliPortStats.outDiscardPkts() = portHwStatsEntry.get_outDiscards_();
+        cliPortStats.inUnicastPkts() =
+            folly::copy(portHwStatsEntry.inUnicastPkts_().value());
+        cliPortStats.inDiscardPkts() =
+            folly::copy(portHwStatsEntry.inDiscards_().value());
+        cliPortStats.inErrorPkts() =
+            folly::copy(portHwStatsEntry.inErrors_().value());
+        cliPortStats.outDiscardPkts() =
+            folly::copy(portHwStatsEntry.outDiscards_().value());
         cliPortStats.outCongestionDiscardPkts() =
-            portHwStatsEntry.get_outCongestionDiscardPkts_();
+            folly::copy(portHwStatsEntry.outCongestionDiscardPkts_().value());
         cliPortStats.queueOutDiscardBytes() =
-            portHwStatsEntry.get_queueOutDiscardBytes_();
+            portHwStatsEntry.queueOutDiscardBytes_().value();
         cliPortStats.inCongestionDiscards() =
-            portHwStatsEntry.get_inCongestionDiscards_();
-        cliPortStats.queueOutBytes() = portHwStatsEntry.get_queueOutBytes_();
-        if (portInfo.get_pfc()) {
-          cliPortStats.outPfcPriorityPackets() = portHwStatsEntry.get_outPfc_();
-          cliPortStats.inPfcPriorityPackets() = portHwStatsEntry.get_inPfc_();
-          cliPortStats.outPfcPackets() = portHwStatsEntry.get_outPfcCtrl_();
-          cliPortStats.inPfcPackets() = portHwStatsEntry.get_inPfcCtrl_();
+            folly::copy(portHwStatsEntry.inCongestionDiscards_().value());
+        cliPortStats.queueOutBytes() =
+            portHwStatsEntry.queueOutBytes_().value();
+        if (apache::thrift::get_pointer(portInfo.pfc())) {
+          cliPortStats.outPfcPriorityPackets() =
+              portHwStatsEntry.outPfc_().value();
+          cliPortStats.inPfcPriorityPackets() =
+              portHwStatsEntry.inPfc_().value();
+          cliPortStats.outPfcPackets() =
+              folly::copy(portHwStatsEntry.outPfcCtrl_().value());
+          cliPortStats.inPfcPackets() =
+              folly::copy(portHwStatsEntry.inPfcCtrl_().value());
         } else {
-          cliPortStats.outPausePackets() = portHwStatsEntry.get_outPause_();
-          cliPortStats.inPausePackets() = portHwStatsEntry.get_inPause_();
+          cliPortStats.outPausePackets() =
+              folly::copy(portHwStatsEntry.outPause_().value());
+          cliPortStats.inPausePackets() =
+              folly::copy(portHwStatsEntry.inPause_().value());
         }
-        cliPortStats.ingressBytes() = portHwStatsEntry.get_inBytes_();
-        cliPortStats.egressBytes() = portHwStatsEntry.get_outBytes_();
+        cliPortStats.ingressBytes() =
+            folly::copy(portHwStatsEntry.inBytes_().value());
+        cliPortStats.egressBytes() =
+            folly::copy(portHwStatsEntry.outBytes_().value());
         portDetails.hwPortStats() = cliPortStats;
       }
       model.portEntries()->push_back(portDetails);
@@ -287,7 +303,7 @@ RetType CmdShowPort::createModel(
       model.portEntries()->begin(),
       model.portEntries()->end(),
       [&](const cli::PortEntry& a, const cli::PortEntry& b) {
-        return utils::comparePortName(a.get_name(), b.get_name());
+        return utils::comparePortName(a.name().value(), b.name().value());
       });
 
   return model;
@@ -298,58 +314,62 @@ void CmdShowPort::printOutput(const RetType& model, std::ostream& out) {
   auto opt = CmdGlobalOptions::getInstance();
 
   if (opt->isDetailed()) {
-    for (auto const& portInfo : model.get_portEntries()) {
+    for (auto const& portInfo : model.portEntries().value()) {
       std::string hwLogicalPortId;
       if (auto portId = portInfo.hwLogicalPortId()) {
         hwLogicalPortId = folly::to<std::string>(*portId);
       }
 
-      const auto& portHwStats = portInfo.get_hwPortStats();
+      const auto& portHwStats = portInfo.hwPortStats().value();
       detailedOutput.emplace_back("");
       detailedOutput.emplace_back(
-          fmt::format("Name:           \t\t {}", portInfo.get_name()));
+          fmt::format("Name:           \t\t {}", portInfo.name().value()));
       detailedOutput.emplace_back(fmt::format(
           "ID:             \t\t {}",
-          folly::to<std::string>(portInfo.get_id())));
+          folly::to<std::string>(folly::copy(portInfo.id().value()))));
+      detailedOutput.emplace_back(fmt::format(
+          "Admin State:    \t\t {}", portInfo.adminState().value()));
       detailedOutput.emplace_back(
-          fmt::format("Admin State:    \t\t {}", portInfo.get_adminState()));
+          fmt::format("Speed:          \t\t {}", portInfo.speed().value()));
       detailedOutput.emplace_back(
-          fmt::format("Speed:          \t\t {}", portInfo.get_speed()));
-      detailedOutput.emplace_back(
-          fmt::format("LinkState:      \t\t {}", portInfo.get_linkState()));
+          fmt::format("LinkState:      \t\t {}", portInfo.linkState().value()));
       detailedOutput.emplace_back(fmt::format(
           "TcvrID:         \t\t {}",
-          folly::to<std::string>(portInfo.get_tcvrID())));
+          folly::to<std::string>(folly::copy(portInfo.tcvrID().value()))));
+      detailedOutput.emplace_back(fmt::format(
+          "Transceiver:    \t\t {}", portInfo.tcvrPresent().value()));
       detailedOutput.emplace_back(
-          fmt::format("Transceiver:    \t\t {}", portInfo.get_tcvrPresent()));
-      detailedOutput.emplace_back(
-          fmt::format("ProfileID:      \t\t {}", portInfo.get_profileId()));
+          fmt::format("ProfileID:      \t\t {}", portInfo.profileId().value()));
       detailedOutput.emplace_back(
           fmt::format("ProfileID:      \t\t {}", hwLogicalPortId));
-      detailedOutput.emplace_back(
-          fmt::format("Core ID:             \t\t {}", portInfo.get_coreId()));
       detailedOutput.emplace_back(fmt::format(
-          "Virtual device ID:    \t\t {}", portInfo.get_virtualDeviceId()));
-      if (portInfo.get_pause()) {
-        detailedOutput.emplace_back(
-            fmt::format("Pause:          \t\t {}", *portInfo.get_pause()));
-      } else if (portInfo.get_pfc()) {
-        detailedOutput.emplace_back(
-            fmt::format("PFC:            \t\t {}", *portInfo.get_pfc()));
+          "Core ID:             \t\t {}", portInfo.coreId().value()));
+      detailedOutput.emplace_back(fmt::format(
+          "Virtual device ID:    \t\t {}", portInfo.virtualDeviceId().value()));
+      if (apache::thrift::get_pointer(portInfo.pause())) {
+        detailedOutput.emplace_back(fmt::format(
+            "Pause:          \t\t {}",
+            *apache::thrift::get_pointer(portInfo.pause())));
+      } else if (apache::thrift::get_pointer(portInfo.pfc())) {
+        detailedOutput.emplace_back(fmt::format(
+            "PFC:            \t\t {}",
+            *apache::thrift::get_pointer(portInfo.pfc())));
       }
       detailedOutput.emplace_back(fmt::format(
           "Unicast queues: \t\t {}",
-          folly::to<std::string>(portInfo.get_numUnicastQueues())));
+          folly::to<std::string>(
+              folly::copy(portInfo.numUnicastQueues().value()))));
       detailedOutput.emplace_back(fmt::format(
           "    Ingress (bytes)               \t\t {}",
-          portHwStats.get_ingressBytes()));
+          folly::copy(portHwStats.ingressBytes().value())));
       detailedOutput.emplace_back(fmt::format(
           "    Egress (bytes)                \t\t {}",
-          portHwStats.get_egressBytes()));
-      for (const auto& queueBytes : portHwStats.get_queueOutBytes()) {
-        const auto iter = portInfo.get_queueIdToName().find(queueBytes.first);
+          folly::copy(portHwStats.egressBytes().value())));
+      for (const auto& queueBytes : portHwStats.queueOutBytes().value()) {
+        const auto iter =
+            portInfo.queueIdToName().value().find(queueBytes.first);
         std::string queueName = "";
-        if (iter != portInfo.get_queueIdToName().end()) {
+        if (iter != portInfo.queueIdToName().value().end()) {
           queueName = folly::to<std::string>("(", iter->second, ")");
         }
         // print either if the queue is valid or queue has non zero traffic
@@ -363,25 +383,25 @@ void CmdShowPort::printOutput(const RetType& model, std::ostream& out) {
       }
       detailedOutput.emplace_back(fmt::format(
           "    Received Unicast (pkts)       \t\t {}",
-          portHwStats.get_inUnicastPkts()));
+          folly::copy(portHwStats.inUnicastPkts().value())));
       detailedOutput.emplace_back(fmt::format(
           "    In Errors (pkts)              \t\t {}",
-          portHwStats.get_inErrorPkts()));
+          folly::copy(portHwStats.inErrorPkts().value())));
       detailedOutput.emplace_back(fmt::format(
           "    In Discards (pkts)            \t\t {}",
-          portHwStats.get_inDiscardPkts()));
+          folly::copy(portHwStats.inDiscardPkts().value())));
       detailedOutput.emplace_back(fmt::format(
           "    Out Discards (pkts)           \t\t {}",
-          portHwStats.get_outDiscardPkts()));
+          folly::copy(portHwStats.outDiscardPkts().value())));
       detailedOutput.emplace_back(fmt::format(
           "    Out Congestion Discards (pkts)\t\t {}",
-          portHwStats.get_outCongestionDiscardPkts()));
+          folly::copy(portHwStats.outCongestionDiscardPkts().value())));
       for (const auto& queueDiscardBytes :
-           portHwStats.get_queueOutDiscardBytes()) {
+           portHwStats.queueOutDiscardBytes().value()) {
         const auto iter =
-            portInfo.get_queueIdToName().find(queueDiscardBytes.first);
+            portInfo.queueIdToName().value().find(queueDiscardBytes.first);
         std::string queueName = "";
-        if (iter != portInfo.get_queueIdToName().end()) {
+        if (iter != portInfo.queueIdToName().value().end()) {
           queueName = folly::to<std::string>("(", iter->second, ")");
         }
         // print either if the queue is valid or queue has non zero traffic
@@ -395,14 +415,14 @@ void CmdShowPort::printOutput(const RetType& model, std::ostream& out) {
       }
       detailedOutput.emplace_back(fmt::format(
           "    In Congestion Discards (pkts)\t\t {}",
-          portHwStats.get_inCongestionDiscards()));
-      if (portHwStats.get_outPfcPackets()) {
+          folly::copy(portHwStats.inCongestionDiscards().value())));
+      if (apache::thrift::get_pointer(portHwStats.outPfcPackets())) {
         detailedOutput.emplace_back(fmt::format(
             "    PFC Output (pkts)             \t\t {}",
-            *portHwStats.get_outPfcPackets()));
-        if (portHwStats.get_outPfcPriorityPackets()) {
-          for (const auto& pfcPriortyCounter :
-               *portHwStats.get_outPfcPriorityPackets()) {
+            *apache::thrift::get_pointer(portHwStats.outPfcPackets())));
+        if (apache::thrift::get_pointer(portHwStats.outPfcPriorityPackets())) {
+          for (const auto& pfcPriortyCounter : *apache::thrift::get_pointer(
+                   portHwStats.outPfcPriorityPackets())) {
             detailedOutput.emplace_back(fmt::format(
                 "\tPriority {}                 \t\t {}",
                 pfcPriortyCounter.first,
@@ -410,13 +430,13 @@ void CmdShowPort::printOutput(const RetType& model, std::ostream& out) {
           }
         }
       }
-      if (portHwStats.get_inPfcPackets()) {
+      if (apache::thrift::get_pointer(portHwStats.inPfcPackets())) {
         detailedOutput.emplace_back(fmt::format(
             "    PFC Input (pkts)              \t\t {}",
-            *portHwStats.get_inPfcPackets()));
-        if (portHwStats.get_inPfcPriorityPackets()) {
-          for (const auto& pfcPriortyCounter :
-               *portHwStats.get_inPfcPriorityPackets()) {
+            *apache::thrift::get_pointer(portHwStats.inPfcPackets())));
+        if (apache::thrift::get_pointer(portHwStats.inPfcPriorityPackets())) {
+          for (const auto& pfcPriortyCounter : *apache::thrift::get_pointer(
+                   portHwStats.inPfcPriorityPackets())) {
             detailedOutput.emplace_back(fmt::format(
                 "\tPriority {}                 \t\t {}",
                 pfcPriortyCounter.first,
@@ -424,15 +444,15 @@ void CmdShowPort::printOutput(const RetType& model, std::ostream& out) {
           }
         }
       }
-      if (portHwStats.get_outPausePackets()) {
+      if (apache::thrift::get_pointer(portHwStats.outPausePackets())) {
         detailedOutput.emplace_back(fmt::format(
             "    Pause Output (pkts)           \t\t {}",
-            *portHwStats.get_outPausePackets()));
+            *apache::thrift::get_pointer(portHwStats.outPausePackets())));
       }
-      if (portHwStats.get_inPausePackets()) {
+      if (apache::thrift::get_pointer(portHwStats.inPausePackets())) {
         detailedOutput.emplace_back(fmt::format(
             "    Pause Input (pkts)            \t\t {}",
-            *portHwStats.get_inPausePackets()));
+            *apache::thrift::get_pointer(portHwStats.inPausePackets())));
       }
     }
     out << folly::join("\n", detailedOutput) << std::endl;
@@ -455,26 +475,26 @@ void CmdShowPort::printOutput(const RetType& model, std::ostream& out) {
         "Virtual device Id",
     });
 
-    for (auto const& portInfo : model.get_portEntries()) {
+    for (auto const& portInfo : model.portEntries().value()) {
       std::string hwLogicalPortId;
       if (auto portId = portInfo.hwLogicalPortId()) {
         hwLogicalPortId = folly::to<std::string>(*portId);
       }
       table.addRow(
-          {folly::to<std::string>(portInfo.get_id()),
-           portInfo.get_name(),
-           portInfo.get_adminState(),
-           getStyledLinkState(portInfo.get_linkState()),
-           getStyledActiveState(portInfo.get_activeState()),
-           portInfo.get_tcvrPresent(),
-           folly::to<std::string>(portInfo.get_tcvrID()),
-           portInfo.get_speed(),
-           portInfo.get_profileId(),
+          {folly::to<std::string>(folly::copy(portInfo.id().value())),
+           portInfo.name().value(),
+           portInfo.adminState().value(),
+           getStyledLinkState(portInfo.linkState().value()),
+           getStyledActiveState(portInfo.activeState().value()),
+           portInfo.tcvrPresent().value(),
+           folly::to<std::string>(folly::copy(portInfo.tcvrID().value())),
+           portInfo.speed().value(),
+           portInfo.profileId().value(),
            hwLogicalPortId,
-           portInfo.get_isDrained(),
-           getStyledErrors(portInfo.get_activeErrors()),
-           portInfo.get_coreId(),
-           portInfo.get_virtualDeviceId()});
+           portInfo.isDrained().value(),
+           getStyledErrors(portInfo.activeErrors().value()),
+           portInfo.coreId().value(),
+           portInfo.virtualDeviceId().value()});
     }
     out << table << std::endl;
   }

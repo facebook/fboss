@@ -40,54 +40,66 @@ class CmdShowAcl : public CmdHandler<CmdShowAcl, CmdShowAclTraits> {
   }
 
   void printOutput(const RetType& model, std::ostream& out = std::cout) {
-    for (const auto& aclTable : model.get_aclTableEntries()) {
+    for (const auto& aclTable : model.aclTableEntries().value()) {
       out << "ACL Table Name: " << aclTable.first << std::endl;
       for (const auto& aclEntry : aclTable.second) {
-        out << "Acl: " << aclEntry.get_name() << std::endl;
-        out << "   priority: " << aclEntry.get_priority() << std::endl;
-        if (aclEntry.get_proto()) {
-          out << "   proto: " << aclEntry.get_proto() << std::endl;
-        }
-        if (aclEntry.get_srcPort()) {
-          out << "   src port: " << aclEntry.get_srcPort() << std::endl;
-        }
-        if (aclEntry.get_dstPort()) {
-          out << "   dst port: " << aclEntry.get_dstPort() << std::endl;
-        }
-        if (aclEntry.get_ipFrag()) {
-          out << "   ip fragment: " << aclEntry.get_ipFrag() << std::endl;
-        }
-        if (aclEntry.get_dscp()) {
-          out << "   dscp: " << aclEntry.get_dscp() << std::endl;
-        }
-        if (aclEntry.get_ipType()) {
-          out << "   ip type: " << aclEntry.get_ipType() << std::endl;
-        }
-        if (aclEntry.get_icmpType()) {
-          out << "   icmp type: " << aclEntry.get_icmpType() << std::endl;
-        }
-        if (aclEntry.get_icmpCode()) {
-          out << "   icmp code: " << aclEntry.get_icmpCode() << std::endl;
-        }
-        if (aclEntry.get_ttl()) {
-          out << "   ttl: " << aclEntry.get_ttl() << std::endl;
-        }
-        if (aclEntry.get_l4SrcPort()) {
-          out << "   L4 src port: " << aclEntry.get_l4SrcPort() << std::endl;
-        }
-        if (aclEntry.get_l4DstPort()) {
-          out << "   L4 dst port: " << aclEntry.get_l4DstPort() << std::endl;
-        }
-        if (aclEntry.get_dstMac() != "") {
-          out << "   dst mac: " << aclEntry.get_dstMac() << std::endl;
-        }
-        if (aclEntry.get_lookupClassL2()) {
-          out << "   lookup class L2: " << aclEntry.get_lookupClassL2()
+        out << "Acl: " << aclEntry.name().value() << std::endl;
+        out << "   priority: " << folly::copy(aclEntry.priority().value())
+            << std::endl;
+        if (folly::copy(aclEntry.proto().value())) {
+          out << "   proto: " << folly::copy(aclEntry.proto().value())
               << std::endl;
         }
-        out << "   action: " << aclEntry.get_actionType() << std::endl;
-        if (aclEntry.get_enabled()) {
-          out << "   enabled: " << aclEntry.get_enabled() << std::endl;
+        if (folly::copy(aclEntry.srcPort().value())) {
+          out << "   src port: " << folly::copy(aclEntry.srcPort().value())
+              << std::endl;
+        }
+        if (folly::copy(aclEntry.dstPort().value())) {
+          out << "   dst port: " << folly::copy(aclEntry.dstPort().value())
+              << std::endl;
+        }
+        if (folly::copy(aclEntry.ipFrag().value())) {
+          out << "   ip fragment: " << folly::copy(aclEntry.ipFrag().value())
+              << std::endl;
+        }
+        if (folly::copy(aclEntry.dscp().value())) {
+          out << "   dscp: " << folly::copy(aclEntry.dscp().value())
+              << std::endl;
+        }
+        if (folly::copy(aclEntry.ipType().value())) {
+          out << "   ip type: " << folly::copy(aclEntry.ipType().value())
+              << std::endl;
+        }
+        if (folly::copy(aclEntry.icmpType().value())) {
+          out << "   icmp type: " << folly::copy(aclEntry.icmpType().value())
+              << std::endl;
+        }
+        if (folly::copy(aclEntry.icmpCode().value())) {
+          out << "   icmp code: " << folly::copy(aclEntry.icmpCode().value())
+              << std::endl;
+        }
+        if (folly::copy(aclEntry.ttl().value())) {
+          out << "   ttl: " << folly::copy(aclEntry.ttl().value()) << std::endl;
+        }
+        if (folly::copy(aclEntry.l4SrcPort().value())) {
+          out << "   L4 src port: " << folly::copy(aclEntry.l4SrcPort().value())
+              << std::endl;
+        }
+        if (folly::copy(aclEntry.l4DstPort().value())) {
+          out << "   L4 dst port: " << folly::copy(aclEntry.l4DstPort().value())
+              << std::endl;
+        }
+        if (aclEntry.dstMac().value() != "") {
+          out << "   dst mac: " << aclEntry.dstMac().value() << std::endl;
+        }
+        if (folly::copy(aclEntry.lookupClassL2().value())) {
+          out << "   lookup class L2: "
+              << folly::copy(aclEntry.lookupClassL2().value()) << std::endl;
+        }
+        out << "   action: " << aclEntry.actionType().value() << std::endl;
+        if (folly::copy(aclEntry.enabled().value())) {
+          out << "   enabled: " << folly::copy(aclEntry.enabled().value())
+              << std::endl;
         }
         out << std::endl;
       }
@@ -97,57 +109,65 @@ class CmdShowAcl : public CmdHandler<CmdShowAcl, CmdShowAclTraits> {
   RetType createModel(facebook::fboss::AclTableThrift entries) {
     RetType model;
     std::map<std::string, std::vector<facebook::fboss::AclEntryThrift>>
-        aclTableEntries = entries.get_aclTableEntries();
+        aclTableEntries = entries.aclTableEntries().value();
 
     for (auto& [aclTableName, aclEntries] : aclTableEntries) {
       for (const auto& entry : aclEntries) {
         cli::AclEntry aclDetails;
 
-        aclDetails.name() = entry.get_name();
-        aclDetails.priority() = entry.get_priority();
-        if (entry.get_proto()) {
-          aclDetails.proto() = static_cast<int16_t>(*entry.get_proto());
+        aclDetails.name() = entry.name().value();
+        aclDetails.priority() = folly::copy(entry.priority().value());
+        if (apache::thrift::get_pointer(entry.proto())) {
+          aclDetails.proto() =
+              static_cast<int16_t>(*apache::thrift::get_pointer(entry.proto()));
         }
-        if (entry.get_srcPort()) {
-          aclDetails.srcPort() = *entry.get_srcPort();
+        if (apache::thrift::get_pointer(entry.srcPort())) {
+          aclDetails.srcPort() = *apache::thrift::get_pointer(entry.srcPort());
         }
-        if (entry.get_dstPort()) {
-          aclDetails.dstPort() = *entry.get_dstPort();
+        if (apache::thrift::get_pointer(entry.dstPort())) {
+          aclDetails.dstPort() = *apache::thrift::get_pointer(entry.dstPort());
         }
-        if (entry.get_ipFrag()) {
-          aclDetails.ipFrag() = static_cast<int16_t>(*entry.get_ipFrag());
+        if (apache::thrift::get_pointer(entry.ipFrag())) {
+          aclDetails.ipFrag() = static_cast<int16_t>(
+              *apache::thrift::get_pointer(entry.ipFrag()));
         }
-        if (entry.get_dscp()) {
-          aclDetails.dscp() = static_cast<int16_t>(*entry.get_dscp());
+        if (apache::thrift::get_pointer(entry.dscp())) {
+          aclDetails.dscp() =
+              static_cast<int16_t>(*apache::thrift::get_pointer(entry.dscp()));
         }
-        if (entry.get_ipType()) {
-          aclDetails.ipType() = static_cast<int16_t>(*entry.get_ipType());
+        if (apache::thrift::get_pointer(entry.ipType())) {
+          aclDetails.ipType() = static_cast<int16_t>(
+              *apache::thrift::get_pointer(entry.ipType()));
         }
-        if (entry.get_icmpType()) {
-          aclDetails.icmpType() = static_cast<int16_t>(*entry.get_icmpType());
+        if (apache::thrift::get_pointer(entry.icmpType())) {
+          aclDetails.icmpType() = static_cast<int16_t>(
+              *apache::thrift::get_pointer(entry.icmpType()));
         }
-        if (entry.get_icmpCode()) {
-          aclDetails.icmpCode() = static_cast<int16_t>(*entry.get_icmpCode());
+        if (apache::thrift::get_pointer(entry.icmpCode())) {
+          aclDetails.icmpCode() = static_cast<int16_t>(
+              *apache::thrift::get_pointer(entry.icmpCode()));
         }
-        if (entry.get_ttl()) {
-          aclDetails.ttl() = *entry.get_ttl();
+        if (apache::thrift::get_pointer(entry.ttl())) {
+          aclDetails.ttl() = *apache::thrift::get_pointer(entry.ttl());
         }
-        if (entry.get_l4SrcPort()) {
-          aclDetails.l4SrcPort() = *entry.get_l4SrcPort();
+        if (apache::thrift::get_pointer(entry.l4SrcPort())) {
+          aclDetails.l4SrcPort() =
+              *apache::thrift::get_pointer(entry.l4SrcPort());
         }
-        if (entry.get_l4DstPort()) {
-          aclDetails.l4DstPort() = *entry.get_l4DstPort();
+        if (apache::thrift::get_pointer(entry.l4DstPort())) {
+          aclDetails.l4DstPort() =
+              *apache::thrift::get_pointer(entry.l4DstPort());
         }
-        if (entry.get_dstMac()) {
-          aclDetails.dstMac() = *entry.get_dstMac();
+        if (apache::thrift::get_pointer(entry.dstMac())) {
+          aclDetails.dstMac() = *apache::thrift::get_pointer(entry.dstMac());
         }
-        if (entry.get_lookupClassL2()) {
-          aclDetails.lookupClassL2() =
-              static_cast<int16_t>(*entry.get_lookupClassL2());
+        if (apache::thrift::get_pointer(entry.lookupClassL2())) {
+          aclDetails.lookupClassL2() = static_cast<int16_t>(
+              *apache::thrift::get_pointer(entry.lookupClassL2()));
         }
-        aclDetails.actionType() = entry.get_actionType();
-        if (entry.get_enabled()) {
-          aclDetails.enabled() = *entry.get_enabled();
+        aclDetails.actionType() = entry.actionType().value();
+        if (apache::thrift::get_pointer(entry.enabled())) {
+          aclDetails.enabled() = *apache::thrift::get_pointer(entry.enabled());
         }
         model.aclTableEntries()[aclTableName].push_back(aclDetails);
       }

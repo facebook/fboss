@@ -100,7 +100,7 @@ class CmdShowInterfaceFlaps
         ret.flap_counters()->begin(),
         ret.flap_counters()->end(),
         [](cli::FlapCounters& a, cli::FlapCounters b) {
-          return a.get_interfaceName() < b.get_interfaceName();
+          return a.interfaceName().value() < b.interfaceName().value();
         });
 
     return ret;
@@ -125,21 +125,21 @@ class CmdShowInterfaceFlaps
          "60 Min",
          "Total (since last reboot)"});
 
-    for (const auto& counter : model.get_flap_counters()) {
+    for (const auto& counter : model.flap_counters().value()) {
       table.addRow({
-          counter.get_interfaceName(),
+          counter.interfaceName().value(),
           Table::StyledCell(
-              std::to_string(counter.get_oneMinute()),
-              get_FlapStyle(counter.get_oneMinute())),
+              std::to_string(folly::copy(counter.oneMinute().value())),
+              get_FlapStyle(folly::copy(counter.oneMinute().value()))),
           Table::StyledCell(
-              std::to_string(counter.get_tenMinute()),
-              get_FlapStyle(counter.get_tenMinute())),
+              std::to_string(folly::copy(counter.tenMinute().value())),
+              get_FlapStyle(folly::copy(counter.tenMinute().value()))),
           Table::StyledCell(
-              std::to_string(counter.get_oneHour()),
-              get_FlapStyle(counter.get_oneHour())),
+              std::to_string(folly::copy(counter.oneHour().value())),
+              get_FlapStyle(folly::copy(counter.oneHour().value()))),
           Table::StyledCell(
-              std::to_string(counter.get_totalFlaps()),
-              get_FlapStyle(counter.get_totalFlaps())),
+              std::to_string(folly::copy(counter.totalFlaps().value())),
+              get_FlapStyle(folly::copy(counter.totalFlaps().value()))),
       });
     }
 

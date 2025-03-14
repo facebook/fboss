@@ -80,21 +80,21 @@ class CmdShowMirror : public CmdHandler<CmdShowMirror, CmdShowMirrorTraits> {
          "Dst UDP Port",
          "DSCP",
          "TTL"});
-    for (const auto& mirrorEntry : model.get_mirrorEntries()) {
+    for (const auto& mirrorEntry : model.mirrorEntries().value()) {
       table.addRow(
-          {mirrorEntry.get_mirror(),
-           mirrorEntry.get_status(),
-           mirrorEntry.get_egressPort(),
-           mirrorEntry.get_egressPortName(),
-           mirrorEntry.get_mirrorTunnelType(),
-           mirrorEntry.get_srcMAC(),
-           mirrorEntry.get_srcIP(),
-           mirrorEntry.get_srcUDPPort(),
-           mirrorEntry.get_dstMAC(),
-           mirrorEntry.get_dstIP(),
-           mirrorEntry.get_dstUDPPort(),
-           mirrorEntry.get_dscp(),
-           mirrorEntry.get_ttl()});
+          {mirrorEntry.mirror().value(),
+           mirrorEntry.status().value(),
+           mirrorEntry.egressPort().value(),
+           mirrorEntry.egressPortName().value(),
+           mirrorEntry.mirrorTunnelType().value(),
+           mirrorEntry.srcMAC().value(),
+           mirrorEntry.srcIP().value(),
+           mirrorEntry.srcUDPPort().value(),
+           mirrorEntry.dstMAC().value(),
+           mirrorEntry.dstIP().value(),
+           mirrorEntry.dstUDPPort().value(),
+           mirrorEntry.dscp().value(),
+           mirrorEntry.ttl().value()});
     }
     out << table << std::endl;
   }
@@ -106,7 +106,7 @@ class CmdShowMirror : public CmdHandler<CmdShowMirror, CmdShowMirrorTraits> {
     auto egressPortInfoEntry = portInfoEntries.find(egressPortID);
     if (egressPortInfoEntry != portInfoEntries.end()) {
       const auto& egressPortInfo = egressPortInfoEntry->second;
-      return egressPortInfo.get_name();
+      return egressPortInfo.name().value();
     }
     return "Unknown";
   }

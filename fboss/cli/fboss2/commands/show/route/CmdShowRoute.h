@@ -45,10 +45,11 @@ class CmdShowRoute : public CmdHandler<CmdShowRoute, CmdShowRouteTraits> {
   }
 
   void printOutput(const RetType& model, std::ostream& out = std::cout) {
-    for (const auto& entry : model.get_routeEntries()) {
-      out << fmt::format("Network Address: {}\n", entry.get_networkAddress());
+    for (const auto& entry : model.routeEntries().value()) {
+      out << fmt::format(
+          "Network Address: {}\n", entry.networkAddress().value());
 
-      for (const auto& nextHop : entry.get_nextHops()) {
+      for (const auto& nextHop : entry.nextHops().value()) {
         out << fmt::format(
             "\tvia {}\n", show::route::utils::getNextHopInfoStr(nextHop));
       }
@@ -64,7 +65,8 @@ class CmdShowRoute : public CmdHandler<CmdShowRoute, CmdShowRouteTraits> {
       return false;
     }
     for (const auto& nh : nextHops) {
-      if (nextHops[0].get_weight() != nh.get_weight()) {
+      if (folly::copy(nextHops[0].weight().value()) !=
+          folly::copy(nh.weight().value())) {
         return true;
       }
     }
@@ -76,7 +78,7 @@ class CmdShowRoute : public CmdHandler<CmdShowRoute, CmdShowRouteTraits> {
     RetType model;
 
     for (const auto& entry : routeEntries) {
-      auto& nextHops = entry.get_nextHops();
+      auto& nextHops = entry.nextHops().value();
 
       auto ipStr = utils::getAddrStr(*entry.dest()->ip());
       auto ipPrefix =
@@ -97,7 +99,7 @@ class CmdShowRoute : public CmdHandler<CmdShowRoute, CmdShowRouteTraits> {
           routeEntry.nextHops()->emplace_back(nextHopInfo);
         }
       } else {
-        for (const auto& address : entry.get_nextHopAddrs()) {
+        for (const auto& address : entry.nextHopAddrs().value()) {
           cli::NextHopInfo nextHopInfo;
           show::route::utils::getNextHopInfoAddr(address, nextHopInfo);
           routeEntry.nextHops()->emplace_back(nextHopInfo);

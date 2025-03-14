@@ -48,12 +48,14 @@ class CmdShowCpuPort : public CmdHandler<CmdShowCpuPort, CmdShowCpuPortTraits> {
     table.setHeader(
         {"CPU Queue ID", "Queue Name", "Ingress Packets", "Discard Packets"});
 
-    for (auto const& cpuQueueEntry : model.get_cpuQueueEntries()) {
+    for (auto const& cpuQueueEntry : model.cpuQueueEntries().value()) {
       table.addRow(
-          {folly::to<std::string>(cpuQueueEntry.get_id()),
-           cpuQueueEntry.get_name(),
-           folly::to<std::string>(cpuQueueEntry.get_ingressPackets()),
-           folly::to<std::string>(cpuQueueEntry.get_discardPackets())});
+          {folly::to<std::string>(folly::copy(cpuQueueEntry.id().value())),
+           cpuQueueEntry.name().value(),
+           folly::to<std::string>(
+               folly::copy(cpuQueueEntry.ingressPackets().value())),
+           folly::to<std::string>(
+               folly::copy(cpuQueueEntry.discardPackets().value()))});
     }
     out << table << std::endl;
   }
@@ -61,19 +63,19 @@ class CmdShowCpuPort : public CmdHandler<CmdShowCpuPort, CmdShowCpuPortTraits> {
   RetType createModel(facebook::fboss::CpuPortStats& cpuPortStats) {
     RetType model;
 
-    for (const auto& queueId2Name : cpuPortStats.get_queueToName_()) {
+    for (const auto& queueId2Name : cpuPortStats.queueToName_().value()) {
       cli::CpuPortQueueEntry cpuPortQueueEntry;
 
       cpuPortQueueEntry.id() = queueId2Name.first;
       cpuPortQueueEntry.name() = queueId2Name.second;
-      const auto& ingressPktMap = cpuPortStats.get_queueInPackets_();
+      const auto& ingressPktMap = cpuPortStats.queueInPackets_().value();
       const auto& ingressPktIter = ingressPktMap.find(queueId2Name.first);
-      if (ingressPktIter != cpuPortStats.get_queueInPackets_().end()) {
+      if (ingressPktIter != cpuPortStats.queueInPackets_().value().end()) {
         cpuPortQueueEntry.ingressPackets() = ingressPktIter->second;
       }
-      const auto& discardPktMap = cpuPortStats.get_queueDiscardPackets_();
+      const auto& discardPktMap = cpuPortStats.queueDiscardPackets_().value();
       const auto& discardPktIter = discardPktMap.find(queueId2Name.first);
-      if (discardPktIter != cpuPortStats.get_queueDiscardPackets_().end()) {
+      if (discardPktIter != cpuPortStats.queueDiscardPackets_().value().end()) {
         cpuPortQueueEntry.discardPackets() = discardPktIter->second;
       }
       model.cpuQueueEntries()->push_back(cpuPortQueueEntry);

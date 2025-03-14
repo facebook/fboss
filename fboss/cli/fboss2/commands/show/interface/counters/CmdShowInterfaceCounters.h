@@ -64,20 +64,22 @@ class CmdShowInterfaceCounters : public CmdHandler<
 
     for (const auto& port : portCounters) {
       auto portInfo = port.second;
-      if (queriedIfs.size() == 0 || queriedSet.count(portInfo.get_name())) {
+      if (queriedIfs.size() == 0 || queriedSet.count(portInfo.name().value())) {
         cli::InterfaceCounters counter;
 
-        counter.interfaceName() = portInfo.get_name();
-        counter.inputBytes() = portInfo.get_input().get_bytes();
-        counter.inputUcastPkts() = portInfo.get_input().get_ucastPkts();
-        counter.inputMulticastPkts() = portInfo.get_input().get_multicastPkts();
-        counter.inputBroadcastPkts() = portInfo.get_input().get_broadcastPkts();
-        counter.outputBytes() = portInfo.get_output().get_bytes();
-        counter.outputUcastPkts() = portInfo.get_output().get_ucastPkts();
+        counter.interfaceName() = portInfo.name().value();
+        counter.inputBytes() = portInfo.input().value().get_bytes();
+        counter.inputUcastPkts() = portInfo.input().value().get_ucastPkts();
+        counter.inputMulticastPkts() =
+            portInfo.input().value().get_multicastPkts();
+        counter.inputBroadcastPkts() =
+            portInfo.input().value().get_broadcastPkts();
+        counter.outputBytes() = portInfo.output().value().get_bytes();
+        counter.outputUcastPkts() = portInfo.output().value().get_ucastPkts();
         counter.outputMulticastPkts() =
-            portInfo.get_output().get_multicastPkts();
+            portInfo.output().value().get_multicastPkts();
         counter.outputBroadcastPkts() =
-            portInfo.get_output().get_broadcastPkts();
+            portInfo.output().value().get_broadcastPkts();
 
         ret.int_counters()->push_back(counter);
       }
@@ -87,7 +89,7 @@ class CmdShowInterfaceCounters : public CmdHandler<
         ret.int_counters()->begin(),
         ret.int_counters()->end(),
         [](cli::InterfaceCounters& a, cli::InterfaceCounters b) {
-          return a.get_interfaceName() < b.get_interfaceName();
+          return a.interfaceName().value() < b.interfaceName().value();
         });
 
     return ret;
@@ -112,17 +114,17 @@ class CmdShowInterfaceCounters : public CmdHandler<
           ? kNA
           : std::to_string(counterVal);
     };
-    for (const auto& counter : model.get_int_counters()) {
+    for (const auto& counter : model.int_counters().value()) {
       table.addRow({
-          counter.get_interfaceName(),
-          makeStr(counter.get_inputBytes()),
-          makeStr(counter.get_inputUcastPkts()),
-          makeStr(counter.get_inputMulticastPkts()),
-          makeStr(counter.get_inputBroadcastPkts()),
-          makeStr(counter.get_outputBytes()),
-          makeStr(counter.get_outputUcastPkts()),
-          makeStr(counter.get_outputMulticastPkts()),
-          makeStr(counter.get_outputBroadcastPkts()),
+          counter.interfaceName().value(),
+          makeStr(folly::copy(counter.inputBytes().value())),
+          makeStr(folly::copy(counter.inputUcastPkts().value())),
+          makeStr(folly::copy(counter.inputMulticastPkts().value())),
+          makeStr(folly::copy(counter.inputBroadcastPkts().value())),
+          makeStr(folly::copy(counter.outputBytes().value())),
+          makeStr(folly::copy(counter.outputUcastPkts().value())),
+          makeStr(folly::copy(counter.outputMulticastPkts().value())),
+          makeStr(folly::copy(counter.outputBroadcastPkts().value())),
 
       });
     }

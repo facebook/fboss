@@ -47,11 +47,11 @@ class CmdShowRouteSummary
         "{:-10} v6 routes (bigger than /64)\n"
         "{:-10} v6 routes (total)\n"
         "{:-10} approximate hw entries used\n\n",
-        model.get_numV4Routes(),
-        model.get_numV6Small(),
-        model.get_numV6Big(),
-        model.get_numV6(),
-        model.get_hwEntriesUsed());
+        folly::copy(model.numV4Routes().value()),
+        folly::copy(model.numV6Small().value()),
+        folly::copy(model.numV6Big().value()),
+        folly::copy(model.numV6().value()),
+        folly::copy(model.hwEntriesUsed().value()));
   }
 
   RetType createModel(std::vector<facebook::fboss::UnicastRoute> routeEntries) {
