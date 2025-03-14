@@ -424,7 +424,7 @@ TEST(PlatformConfigUtilsTests, GetPlatformPortsByChip) {
       kPortWithXphyID, kPortWithoutXphyID, kPortWithoutXphyAndTcvr};
   std::set<int32_t> actualPortsWithIphy;
   for (const auto& port : portsWithIphy) {
-    actualPortsWithIphy.insert(port.get_mapping().get_id());
+    actualPortsWithIphy.insert(port.mapping().value().get_id());
   }
   EXPECT_EQ(actualPortsWithIphy, expectedPortsWithIphy);
 
@@ -434,7 +434,7 @@ TEST(PlatformConfigUtilsTests, GetPlatformPortsByChip) {
   const std::set<int32_t> expectedPortsWithXphy = {kPortWithXphyID};
   std::set<int32_t> actualPortsWithXphy;
   for (const auto& port : portsWithXphy) {
-    actualPortsWithXphy.insert(port.get_mapping().get_id());
+    actualPortsWithXphy.insert(port.mapping().value().get_id());
   }
   EXPECT_EQ(actualPortsWithXphy, expectedPortsWithXphy);
 
@@ -445,7 +445,7 @@ TEST(PlatformConfigUtilsTests, GetPlatformPortsByChip) {
       kPortWithXphyID, kPortWithoutXphyID};
   std::set<int32_t> actualPortsWithTcvr;
   for (const auto& port : portsWithTcvr) {
-    actualPortsWithTcvr.insert(port.get_mapping().get_id());
+    actualPortsWithTcvr.insert(port.mapping().value().get_id());
   }
   EXPECT_EQ(actualPortsWithTcvr, expectedPortsWithTcvr);
 
