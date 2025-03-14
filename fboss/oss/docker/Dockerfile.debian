@@ -22,3 +22,4 @@ RUN apt install -y python3-git
 RUN apt install -y python3-mesonpy
 RUN apt install -y python3-jinja2
 RUN apt install -y gperf libcap-dev libmount-dev
+RUN apt install -y icu-devtools libicu-dev libicu72
