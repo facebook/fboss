@@ -94,6 +94,9 @@ class AgentTunnelMgrTest : public AgentHwTest {
       iss >> subs;
       // Delete the matching fboss interface from the kernel
       if (subs.find("fboss") != std::string::npos) {
+        if (subs.find(':') != std::string::npos) {
+          subs = subs.substr(0, subs.find(':'));
+        }
         cmd = folly::to<std::string>("ip link delete ", subs);
         runShellCmd(cmd);
         XLOG(DBG2) << "clearKernelEntries Cmd: " << cmd;
@@ -120,6 +123,9 @@ class AgentTunnelMgrTest : public AgentHwTest {
       iss2 >> subs;
       // Delete the matching fboss interface from the kernel
       if (subs.find("fboss") != std::string::npos) {
+        if (subs.find(':') != std::string::npos) {
+          subs = subs.substr(0, subs.find(':'));
+        }
         cmd = folly::to<std::string>("ip link delete ", subs);
         runShellCmd(cmd);
         XLOG(DBG2) << "clearKernelEntries Cmd: " << cmd;
@@ -178,7 +184,7 @@ class AgentTunnelMgrTest : public AgentHwTest {
     }
 
     // Get the String
-    cmd = folly::to<std::string>("ip route list | grep -w fboss");
+    cmd = folly::to<std::string>("ip route list | grep fboss");
     output = runShellCmd(cmd);
 
     XLOG(DBG2) << "clearAllKernelEntries Cmd: " << cmd;
@@ -193,15 +199,21 @@ class AgentTunnelMgrTest : public AgentHwTest {
         iss3 >> subs;
         // Delete the matching fboss interface from the kernel
         if (subs.find("fboss") != std::string::npos) {
+          if (subs.find(':') != std::string::npos) {
+            subs = subs.substr(0, subs.find(':'));
+          }
           cmd = folly::to<std::string>("ip link delete ", subs);
           runShellCmd(cmd);
           XLOG(DBG2) << "clearKernelEntries Cmd: " << cmd;
           break;
         }
       } while (iss3);
+
+      cmd = folly::to<std::string>("ip route list | grep fboss");
+      output = runShellCmd(cmd);
     }
 
-    cmd = folly::to<std::string>("ip -6 route list | grep -w fboss");
+    cmd = folly::to<std::string>("ip -6 route list | grep fboss");
     output = runShellCmd(cmd);
 
     XLOG(DBG2) << "clearAllKernelEntries Cmd: " << cmd;
@@ -216,16 +228,22 @@ class AgentTunnelMgrTest : public AgentHwTest {
         iss4 >> subs;
         // Delete the matching fboss interface from the kernel
         if (subs.find("fboss") != std::string::npos) {
+          if (subs.find(':') != std::string::npos) {
+            subs = subs.substr(0, subs.find(':'));
+          }
           cmd = folly::to<std::string>("ip link delete ", subs);
           runShellCmd(cmd);
           XLOG(DBG2) << "clearKernelEntries Cmd: " << cmd;
           break;
         }
       } while (iss4);
+
+      cmd = folly::to<std::string>("ip -6 route list | grep fboss");
+      output = runShellCmd(cmd);
     }
 
     // Get the String
-    cmd = folly::to<std::string>("ip addr list | grep -w fboss");
+    cmd = folly::to<std::string>("ip addr list | grep fboss");
     output = runShellCmd(cmd);
 
     XLOG(DBG2) << "clearAllKernelEntries Cmd: " << cmd;
@@ -240,15 +258,21 @@ class AgentTunnelMgrTest : public AgentHwTest {
         iss5 >> subs;
         // Delete the matching fboss interface from the kernel
         if (subs.find("fboss") != std::string::npos) {
+          if (subs.find(':') != std::string::npos) {
+            subs = subs.substr(0, subs.find(':'));
+          }
           cmd = folly::to<std::string>("ip link delete ", subs);
           runShellCmd(cmd);
           XLOG(DBG2) << "clearKernelEntries Cmd: " << cmd;
           break;
         }
       } while (iss5);
+
+      cmd = folly::to<std::string>("ip addr list | grep fboss");
+      output = runShellCmd(cmd);
     }
 
-    cmd = folly::to<std::string>("ip -6 addr list | grep -w fboss");
+    cmd = folly::to<std::string>("ip -6 addr list | grep fboss");
     output = runShellCmd(cmd);
 
     XLOG(DBG2) << "clearAllKernelEntries Cmd: " << cmd;
@@ -263,12 +287,17 @@ class AgentTunnelMgrTest : public AgentHwTest {
         iss6 >> subs;
         // Delete the matching fboss interface from the kernel
         if (subs.find("fboss") != std::string::npos) {
+          if (subs.find(':') != std::string::npos) {
+            subs = subs.substr(0, subs.find(':'));
+          }
           cmd = folly::to<std::string>("ip link delete ", subs);
           runShellCmd(cmd);
           XLOG(DBG2) << "clearKernelEntries Cmd: " << cmd;
           break;
         }
       } while (iss6);
+      cmd = folly::to<std::string>("ip -6 addr list | grep fboss");
+      output = runShellCmd(cmd);
     }
   }
 
@@ -470,6 +499,8 @@ TEST_F(AgentTunnelMgrTest, checkKernelIPv4Entries) {
       checkKernelEntriesRemoved(
           folly::to<std::string>(intfIPv4), folly::to<std::string>(intfIPv6));
     }
+
+    clearAllKernelEntries();
   };
 
   verifyAcrossWarmBoots(setup, verify);
@@ -526,6 +557,8 @@ TEST_F(AgentTunnelMgrTest, checkKernelIPv6Entries) {
       checkKernelEntriesRemoved(
           folly::to<std::string>(intfIPv4), folly::to<std::string>(intfIPv6));
     }
+
+    clearAllKernelEntries();
   };
 
   verifyAcrossWarmBoots(setup, verify);
@@ -606,6 +639,8 @@ TEST_F(AgentTunnelMgrTest, changeIPv4Address) {
       checkKernelEntriesRemoved(
           folly::to<std::string>(intfIPv4), folly::to<std::string>(intfIPv6));
     }
+
+    clearAllKernelEntries();
   };
 
   verifyAcrossWarmBoots(setup, verify);
@@ -686,6 +721,8 @@ TEST_F(AgentTunnelMgrTest, changeIPv6Address) {
       checkKernelEntriesRemoved(
           folly::to<std::string>(intfIPv4), folly::to<std::string>(intfIPv6));
     }
+
+    clearAllKernelEntries();
   };
 
   verifyAcrossWarmBoots(setup, verify);
@@ -704,9 +741,12 @@ TEST_F(AgentTunnelMgrTest, checkDuplicateEntries) {
     std::string intfIPv4;
     std::string intfIPv6;
     for (int i = 0; i < config.interfaces()->size(); i++) {
+      XLOG(DBG2) << "Interface Id: "
+                 << (InterfaceID)config.interfaces()[i].intfID().value();
       if (config.interfaces()[i].scope() == cfg::Scope::GLOBAL) {
         continue;
       }
+
       for (int j = 0; j < config.interfaces()[i].ipAddresses()->size(); j++) {
         std::string intfIP = folly::to<std::string>(
             folly::IPAddress::createNetwork(
@@ -790,6 +830,8 @@ TEST_F(AgentTunnelMgrTest, checkDuplicateEntries) {
           folly::to<std::string>(intfIPv4New),
           folly::to<std::string>(intfIPv6New));
     }
+
+    clearAllKernelEntries();
   };
 
   verifyAcrossWarmBoots(setup, verify);
