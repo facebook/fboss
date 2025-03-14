@@ -380,7 +380,6 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
   }
 
   auto pmUnitName = pmUnitNameInEeprom;
-  XLOG(INFO) << "SlotType PmUnitName: " << *slotTypeConfig.pmUnitName();
   if (slotTypeConfig.pmUnitName()) {
     if (pmUnitNameInEeprom &&
         *pmUnitNameInEeprom != *slotTypeConfig.pmUnitName()) {
