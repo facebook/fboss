@@ -111,85 +111,88 @@ BspPlatformMappingThrift Parser::getBspPlatformMappingFromCsv(
   auto tcrList = getTransceiverConfigRowsFromCsv(csv);
   std::map<int, std::vector<TransceiverConfigRow>> tcrMap;
   for (auto& tl : tcrList) {
-    tcrMap[tl.get_tcvrId()].push_back(tl);
+    tcrMap[folly::copy(tl.tcvrId().value())].push_back(tl);
   }
 
   std::map<int, BspTransceiverMapping> tcvrMap;
   for (auto& [tcvrId, tcrList] : tcrMap) {
     auto first = tcrList[0];
     BspResetPinInfo resetPinInfo;
-    resetPinInfo.sysfsPath() = first.get_resetPath();
-    resetPinInfo.mask() = first.get_resetMask();
+    resetPinInfo.sysfsPath() = first.resetPath().value();
+    resetPinInfo.mask() = folly::copy(first.resetMask().value());
     resetPinInfo.gpioOffset() = 0;
-    resetPinInfo.resetHoldHi() = first.get_resetHoldHi();
+    resetPinInfo.resetHoldHi() = folly::copy(first.resetHoldHi().value());
 
     BspPresencePinInfo presentInfo;
-    presentInfo.sysfsPath() = first.get_presentPath();
-    presentInfo.mask() = first.get_presentMask();
+    presentInfo.sysfsPath() = first.presentPath().value();
+    presentInfo.mask() = folly::copy(first.presentMask().value());
     presentInfo.gpioOffset() = 0;
-    presentInfo.presentHoldHi() = first.get_presentHoldHi();
+    presentInfo.presentHoldHi() = folly::copy(first.presentHoldHi().value());
 
     BspTransceiverAccessControllerInfo accessControllerInfo;
-    accessControllerInfo.controllerId() = first.get_accessCtrlId();
-    accessControllerInfo.type() = first.get_accessCtrlType();
+    accessControllerInfo.controllerId() = first.accessCtrlId().value();
+    accessControllerInfo.type() = folly::copy(first.accessCtrlType().value());
     accessControllerInfo.reset() = resetPinInfo;
     accessControllerInfo.presence() = presentInfo;
     accessControllerInfo.gpioChip() = "";
 
     BspTransceiverIOControllerInfo ioControlInfo;
-    ioControlInfo.controllerId() = first.get_ioCtrlId();
-    ioControlInfo.type() = first.get_ioCtrlType();
-    ioControlInfo.devicePath() = first.get_ioPath();
+    ioControlInfo.controllerId() = first.ioCtrlId().value();
+    ioControlInfo.type() = folly::copy(first.ioCtrlType().value());
+    ioControlInfo.devicePath() = first.ioPath().value();
     std::map<int, int> laneToLedMap;
     for (auto& ledLine : tcrList) {
-      if (ledLine.get_tcvrLaneIdList() == nullptr) {
+      if (apache::thrift::get_pointer(ledLine.tcvrLaneIdList()) == nullptr) {
         continue;
       }
-      for (auto iter = (*ledLine.get_tcvrLaneIdList()).begin();
-           iter != (*ledLine.get_tcvrLaneIdList()).end();
+      for (auto iter =
+               (*apache::thrift::get_pointer(ledLine.tcvrLaneIdList())).begin();
+           iter !=
+           (*apache::thrift::get_pointer(ledLine.tcvrLaneIdList())).end();
            iter++) {
         int laneId = *iter;
         if (laneId < MIN_LANE_ID || laneId > MAX_LANE_ID) {
           throw std::runtime_error("Invalid lane id");
         }
-        if (ledLine.get_ledId() != nullptr) {
-          laneToLedMap[laneId] = *ledLine.get_ledId();
+        if (apache::thrift::get_pointer(ledLine.ledId()) != nullptr) {
+          laneToLedMap[laneId] = *apache::thrift::get_pointer(ledLine.ledId());
         }
       }
     }
 
     BspTransceiverMapping singleTcvrMap;
-    singleTcvrMap.tcvrId() = first.get_tcvrId();
+    singleTcvrMap.tcvrId() = folly::copy(first.tcvrId().value());
     singleTcvrMap.accessControl() = accessControllerInfo;
     singleTcvrMap.io() = ioControlInfo;
     singleTcvrMap.tcvrLaneToLedId() = laneToLedMap;
 
-    tcvrMap[first.get_tcvrId()] = singleTcvrMap;
+    tcvrMap[folly::copy(first.tcvrId().value())] = singleTcvrMap;
   }
 
   std::map<int, LedMapping> ledsMap;
   for (auto& tl : tcrList) {
-    if (tl.get_ledId() == nullptr) {
+    if (apache::thrift::get_pointer(tl.ledId()) == nullptr) {
       continue;
     }
 
     LedMapping singleLedMap;
-    singleLedMap.id() = *tl.get_ledId();
-    singleLedMap.bluePath() = *tl.get_ledBluePath();
-    singleLedMap.yellowPath() = *tl.get_ledYellowPath();
-    singleLedMap.transceiverId() = tl.get_tcvrId();
-    ledsMap[*tl.get_ledId()] = singleLedMap;
+    singleLedMap.id() = *apache::thrift::get_pointer(tl.ledId());
+    singleLedMap.bluePath() = *apache::thrift::get_pointer(tl.ledBluePath());
+    singleLedMap.yellowPath() =
+        *apache::thrift::get_pointer(tl.ledYellowPath());
+    singleLedMap.transceiverId() = folly::copy(tl.tcvrId().value());
+    ledsMap[*apache::thrift::get_pointer(tl.ledId())] = singleLedMap;
   }
 
   BspPimMapping bspPimMapping;
-  bspPimMapping.pimID() = tcrList.back().get_pimId();
+  bspPimMapping.pimID() = folly::copy(tcrList.back().pimId().value());
   bspPimMapping.tcvrMapping() = tcvrMap;
   bspPimMapping.phyMapping() = {};
   bspPimMapping.phyIOControllers() = {};
   bspPimMapping.ledMapping() = ledsMap;
 
   std::map<int, BspPimMapping> bspPlatformMap;
-  bspPlatformMap[tcrList.back().get_pimId()] = bspPimMapping;
+  bspPlatformMap[folly::copy(tcrList.back().pimId().value())] = bspPimMapping;
   BspPlatformMappingThrift bspPlatformMapping;
   bspPlatformMapping.pimMapping() = bspPlatformMap;
 
