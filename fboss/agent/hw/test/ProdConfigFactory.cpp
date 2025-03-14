@@ -150,6 +150,9 @@ cfg::PortSpeed getPortSpeed(
     case PlatformType::PLATFORM_MONTBLANC:
       portSpeed = cfg::PortSpeed::FOURHUNDREDG;
       break;
+    case PlatformType::PLATFORM_TAHAN800BC:
+      portSpeed = cfg::PortSpeed::FOURHUNDREDG;
+      break;
     default:
       /* do nothing */
       break;
