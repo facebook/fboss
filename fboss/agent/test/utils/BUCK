@@ -696,6 +696,5 @@ cpp_library(
         "//fboss/agent/packet:packet_factory",
         "//fboss/agent/test:agent_ensemble",
         "//fboss/agent/test:ecmp_helper",
-        "//folly:network_address",
     ],
 )

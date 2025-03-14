@@ -34,6 +34,8 @@ void MacLearningFloodHelper::sendMacTestTraffic() {
   // Send packet
   for (auto mac : macs_) {
     char macByteHex[2];
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-truncation"
     std::snprintf(macByteHex, sizeof(macByteHex), "%lx", mac.u64HBO() & 0xffff);
     auto txPacket = utility::makeTCPTxPacket(
         ensemble_->getSw(),
@@ -50,6 +52,7 @@ void MacLearningFloodHelper::sendMacTestTraffic() {
         std::move(txPacket), dstPortID_);
   }
 }
+#pragma GCC diagnostic pop
 
 void MacLearningFloodHelper::macFlap() {
   XLOG(DBG2) << "MacLearningFloodHelper started thread id: " << gettid();
