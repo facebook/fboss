@@ -611,7 +611,7 @@ class AgentSflowMirrorTest : public AgentHwTest {
     verifyAcrossWarmBoots(setup, verify);
   }
 
-  void verifySrsPortRandomizationOnSflowPacket(uint16_t numPackets = 10) {
+  void verifySrcPortRandomizationOnSflowPacket(uint16_t numPackets = 10) {
     auto ports = getPortsForSampling();
     getAgentEnsemble()->bringDownPorts(
         std::vector<PortID>(ports.begin() + 2, ports.end()));
@@ -630,13 +630,14 @@ class AgentSflowMirrorTest : public AgentHwTest {
       });
       folly::io::Cursor capturedPktCursor{capturedPktBuf->get()};
       auto capturedPkt = utility::EthFrame(capturedPktCursor);
-      auto udpHeader = capturedPkt.v6PayLoad()->udpPayload()->header();
-      l4SrcPorts.insert(udpHeader.srcPort);
-      /*
-       * J3 randomize the source based on the time stamp in the asic.
-       * Add a delay to ensure the source ports are different for
-       * every packet that is trapped to CPU with SFLOW header.
-       */
+      auto udpPayload = capturedPkt.v6PayLoad()->udpPayload();
+      // Validate UDP checksum added to the packet is accurate
+      verifySflowPacketUdpChecksum(
+          capturedPktBuf->get(), capturedPkt, udpPayload);
+      l4SrcPorts.insert(udpPayload->header().srcPort);
+      // J3 randomize the source based on the time stamp in the asic.
+      // Add a delay to ensure the source ports are different for
+      // every packet that is trapped to CPU with SFLOW header.
       sleep(2);
     }
     EXPECT_GT(l4SrcPorts.size(), 1);
@@ -1079,7 +1080,7 @@ TEST_F(AgentSflowMirrorTruncateTestV6, verifyL4SrcPortRandomization) {
     resolveRouteForMirrorDestination();
   };
   auto verify = [=, this]() {
-    this->verifySrsPortRandomizationOnSflowPacket();
+    this->verifySrcPortRandomizationOnSflowPacket();
   };
   verifyAcrossWarmBoots(setup, verify);
 }
