@@ -625,6 +625,7 @@ cpp_library(
         ":copp_test_utils",
         ":scale_test_utils",
         "//fboss/agent:agent_features",
+        "//fboss/agent:handler",
         "//fboss/agent:packet",
         "//fboss/agent/benchmarks:agent_benchmarks_h",  # @manual
         "//fboss/agent/hw/test:config_factory",
