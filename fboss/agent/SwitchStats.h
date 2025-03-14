@@ -265,15 +265,6 @@ class SwitchStats : public boost::noncopyable {
     updateState_.addValue(us.count());
   }
 
-  void routeUpdate(std::chrono::microseconds us, uint64_t routes) {
-    // As syncFib() could include no routes.
-    if (routes == 0) {
-      routes = 1;
-    }
-    // TODO: add support for addRepeatedValue() in FSDB client-side library
-    routeUpdate_.addRepeatedValue(us.count() / routes, routes);
-  }
-
   void bgHeartbeatDelay(int delay) {
     bgHeartbeatDelay_.addValue(delay);
   }
@@ -886,11 +877,6 @@ class SwitchStats : public boost::noncopyable {
    * Histogram for time used for SwSwitch::updateState() (in microsecond)
    */
   fb303::detail::QuantileStatWrapper updateState_;
-
-  /**
-   * Histogram for time used for route update (in microsecond)
-   */
-  TLHistogram routeUpdate_;
 
   /**
    * Background thread heartbeat delay (ms)

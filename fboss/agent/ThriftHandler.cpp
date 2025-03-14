@@ -677,29 +677,6 @@ void addRecylePortRifNeighbors(
 
 namespace facebook::fboss {
 
-class RouteUpdateStats {
- public:
-  RouteUpdateStats(SwSwitch* sw, const std::string& func, uint32_t routes)
-      : sw_(sw),
-        func_(func),
-        routes_(routes),
-        start_(std::chrono::steady_clock::now()) {}
-  ~RouteUpdateStats() {
-    auto end = std::chrono::steady_clock::now();
-    auto duration =
-        std::chrono::duration_cast<std::chrono::microseconds>(end - start_);
-    sw_->stats()->routeUpdate(duration, routes_);
-    XLOG(DBG0) << func_ << " " << routes_ << " routes took " << duration.count()
-               << "us";
-  }
-
- private:
-  SwSwitch* sw_;
-  const std::string func_;
-  uint32_t routes_;
-  std::chrono::time_point<std::chrono::steady_clock> start_;
-};
-
 ThriftHandler::ThriftHandler(SwSwitch* sw) : FacebookBase2("FBOSS"), sw_(sw) {}
 
 fb_status ThriftHandler::getStatus() {
