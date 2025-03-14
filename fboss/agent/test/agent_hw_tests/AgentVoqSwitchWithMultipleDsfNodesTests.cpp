@@ -628,6 +628,28 @@ TEST_F(AgentVoqShelSwitchTest, init) {
       }
     }
   };
-  verifyAcrossWarmBoots(setup, verify);
+  auto setupPostWarmboot = [this]() {
+    auto config = getSw()->getConfig();
+    config.switchSettings()->selfHealingEcmpLagConfig().reset();
+    // Disable selfHealingEcmpLag on Interface Ports
+    for (auto& port : *config.ports()) {
+      if (port.portType() == cfg::PortType::INTERFACE_PORT) {
+        port.selfHealingECMPLagEnable() = false;
+      }
+    }
+    applyNewConfig(config);
+  };
+  auto verifyPostWarmboot = [this]() {
+    auto state = getProgrammedState();
+    for (const auto& portMap : std::as_const(*state->getPorts())) {
+      for (const auto& port : std::as_const(*portMap.second)) {
+        if (port.second->getPortType() == cfg::PortType::INTERFACE_PORT) {
+          EXPECT_TRUE(port.second->getSelfHealingECMPLagEnable().has_value());
+          EXPECT_FALSE(port.second->getSelfHealingECMPLagEnable().value());
+        }
+      }
+    }
+  };
+  verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
 }
 } // namespace facebook::fboss
