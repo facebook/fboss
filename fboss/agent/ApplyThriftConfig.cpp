@@ -589,6 +589,7 @@ class ThriftConfigApplier {
   std::optional<QueueConfig> getDefaultVoqConfigIfChanged(
       std::shared_ptr<SwitchSettings> switchSettings);
   QueueConfig getVoqConfig(PortID portId);
+  void updateSystemPortSelfHealingEcmpLagDestinationEnable(bool enable);
 
   std::shared_ptr<SwitchState> orig_;
   std::shared_ptr<SwitchState> new_;
@@ -1203,9 +1204,8 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
         getRemotePortNumVoqs(intfRole, cfg::PortType::RECYCLE_PORT));
 
     sysPort->setScope(cfg::Scope::GLOBAL);
-    if (cfg_->switchSettings()->selfHealingEcmpLagConfig().has_value()) {
-      sysPort->setShelDestinationEnabled(true);
-    }
+    sysPort->setShelDestinationEnabled(
+        cfg_->switchSettings()->selfHealingEcmpLagConfig().has_value());
     sysPort->resetPortQueues(getVoqConfig(localInbandPortId));
     if (auto dataPlaneTrafficPolicy = cfg_->dataPlaneTrafficPolicy()) {
       if (auto portIdToQosPolicy =
@@ -1758,11 +1758,10 @@ shared_ptr<SystemPortMap> ThriftConfigApplier::updateSystemPorts(
           (int)platformPort.mapping()->scope().value(),
           (int)port.second->getScope());
       sysPort->setScope(port.second->getScope());
-      if (cfg_->switchSettings()->selfHealingEcmpLagConfig().has_value()) {
-        sysPort->setShelDestinationEnabled(
-            port.second->getPortType() == cfg::PortType::RECYCLE_PORT &&
-            port.second->getScope() == cfg::Scope::GLOBAL);
-      }
+      sysPort->setShelDestinationEnabled(
+          cfg_->switchSettings()->selfHealingEcmpLagConfig().has_value() &&
+          port.second->getPortType() == cfg::PortType::RECYCLE_PORT &&
+          port.second->getScope() == cfg::Scope::GLOBAL);
       sysPorts->addSystemPort(std::move(sysPort));
     }
   }
@@ -1778,9 +1777,9 @@ ThriftConfigApplier::updateRemoteSystemPorts(
     // remote system ports are applicable only for voq switches
     // remote system ports are updated on config only when more than voq
     // switches are configured on a given SwSwitch
-    return orig_->getRemoteSystemPorts();
+    return new_->getRemoteSystemPorts();
   }
-  auto remoteSystemPorts = orig_->getRemoteSystemPorts()->clone();
+  auto remoteSystemPorts = new_->getRemoteSystemPorts()->clone();
   for (const auto& [matcherStr, singleSwitchIdSysPorts] :
        std::as_const(*systemPorts)) {
     auto matcher = HwSwitchMatcher(matcherStr);
@@ -2632,14 +2631,14 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
   newPort->setScope(*portConf->scope());
   newPort->setConditionalEntropyRehash(*portConf->conditionalEntropyRehash());
   if (auto selfHealingECMPLagEnable = portConf->selfHealingECMPLagEnable()) {
-    if (*selfHealingECMPLagEnable &&
+    if (selfHealingECMPLagEnable.value() &&
         !cfg_->switchSettings()->selfHealingEcmpLagConfig().has_value()) {
       throw FbossError(
           "Switch selfHealingEcmpLagConfig needs to be enabled for port ",
           newPort->getName(),
           " to have selfHealingEcmpLag enable");
     }
-    newPort->setSelfHealingECMPLagEnable(*selfHealingECMPLagEnable);
+    newPort->setSelfHealingECMPLagEnable(selfHealingECMPLagEnable.value());
   }
   return newPort;
 }
@@ -5010,6 +5009,8 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings(
     if (newSwitchShelConfig !=
         origSwitchSettings->getSelfHealingEcmpLagConfig()) {
       newSwitchSettings->setSelfHealingEcmpLagConfig(newSwitchShelConfig);
+      updateSystemPortSelfHealingEcmpLagDestinationEnable(
+          newSwitchShelConfig.has_value());
       switchSettingsChange = true;
     }
   }
@@ -5920,6 +5921,40 @@ void ThriftConfigApplier::addRemoteIntfRoute() {
                 folly::to<std::string>(addr, "/", mask->toThrift())),
             std::make_pair(remoteInterface->getID(), addr));
       }
+    }
+  }
+}
+
+void ThriftConfigApplier::updateSystemPortSelfHealingEcmpLagDestinationEnable(
+    bool enable) {
+  CHECK(getAnyVoqSwitchId().has_value());
+  for (const auto& [id, dsfNode] : *cfg_->dsfNodes()) {
+    if (dsfNode.type().value() != cfg::DsfNodeType::INTERFACE_NODE) {
+      continue;
+    }
+    CHECK(dsfNode.inbandPortId().has_value());
+    CHECK(dsfNode.globalSystemPortOffset().has_value());
+    // TODO factor in multi npu nodes where portId range maybe
+    // different
+    const auto inbandSystemPortId = dsfNode.inbandPortId().value() +
+        dsfNode.globalSystemPortOffset().value();
+
+    const auto& switchIdToSwitchInfo =
+        cfg_->switchSettings()->switchIdToSwitchInfo();
+    const bool isLocal =
+        switchIdToSwitchInfo->find(id) != switchIdToSwitchInfo.value().end();
+
+    auto inbandSystemPort = isLocal
+        ? new_->getSystemPorts()->getNodeIf(inbandSystemPortId)
+        : new_->getRemoteSystemPorts()->getNodeIf(inbandSystemPortId);
+    if (inbandSystemPort) {
+      auto systemPorts = isLocal ? new_->getSystemPorts()->modify(&new_)
+                                 : new_->getRemoteSystemPorts()->modify(&new_);
+      auto newInbandPort = inbandSystemPort->clone();
+      newInbandPort->setShelDestinationEnabled(enable);
+      systemPorts->updateNode(
+          std::move(newInbandPort),
+          scopeResolver_.scope(SystemPortID(inbandSystemPortId)));
     }
   }
 }
