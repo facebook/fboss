@@ -121,26 +121,12 @@ std::vector<cfg::PortQueue> getDefaultNifVoqCfg() {
     defaultQueue.scheduling() = cfg::QueueScheduling::INTERNAL;
     voqs.push_back(defaultQueue);
 
-    cfg::PortQueue queue1;
-    queue1.id() = 1;
-    queue1.name() = "queue1";
-    queue1.streamType() = cfg::StreamType::UNICAST;
-    queue1.scheduling() = cfg::QueueScheduling::INTERNAL;
-    voqs.push_back(queue1);
-
     cfg::PortQueue rdmaQueue;
     rdmaQueue.id() = 2;
     rdmaQueue.name() = "rdma";
     rdmaQueue.streamType() = cfg::StreamType::UNICAST;
     rdmaQueue.scheduling() = cfg::QueueScheduling::INTERNAL;
     voqs.push_back(rdmaQueue);
-
-    cfg::PortQueue queue4;
-    queue4.id() = 4;
-    queue4.name() = "queue4";
-    queue4.streamType() = cfg::StreamType::UNICAST;
-    queue4.scheduling() = cfg::QueueScheduling::INTERNAL;
-    voqs.push_back(queue4);
 
     cfg::PortQueue monitoringQueue;
     monitoringQueue.id() = 6;
