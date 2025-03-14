@@ -639,7 +639,8 @@ void HwTransceiverUtils::verifyDatapathResetTimestamp(
       apache::thrift::can_throw(tcvrState.transceiverManagementInterface());
   auto cable = apache::thrift::can_throw(tcvrState.cable());
   if (mgmtInterface != TransceiverManagementInterface::CMIS ||
-      cable->get_transmitterTech() == TransmitterTechnology::COPPER) {
+      folly::copy(cable->transmitterTech().value()) ==
+          TransmitterTechnology::COPPER) {
     // Datapath reset timestamp is only supported for CMIS optical modules
     return;
   }

@@ -99,7 +99,8 @@ TEST_F(HwXphyFirmwareTest, CheckDefaultXphyFirmwareVersion) {
     return;
   }
   for (auto chip : chips) {
-    if (chip.second.get_type() != phy::DataPlanePhyChipType::XPHY) {
+    if (folly::copy(chip.second.type().value()) !=
+        phy::DataPlanePhyChipType::XPHY) {
       continue;
     }
 
@@ -109,10 +110,10 @@ TEST_F(HwXphyFirmwareTest, CheckDefaultXphyFirmwareVersion) {
     phy::ExternalPhy* xphy;
     try {
       xphy = getHwQsfpEnsemble()->getPhyManager()->getExternalPhy(
-          GlobalXphyID(chip.second.get_physicalID()));
+          GlobalXphyID(folly::copy(chip.second.physicalID().value())));
     } catch (FbossError&) {
       XLOG(ERR) << "XPHY not present in system "
-                << GlobalXphyID(chip.second.get_physicalID());
+                << GlobalXphyID(folly::copy(chip.second.physicalID().value()));
       continue;
     }
 

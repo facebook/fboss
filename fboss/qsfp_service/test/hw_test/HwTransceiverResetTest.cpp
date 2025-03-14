@@ -68,12 +68,12 @@ class HwTransceiverResetTest : public HwTransceiverTest {
       return false;
     }
     auto curr = currentResponse[cmisTcvrID];
-    if (!curr.get_valid()) {
+    if (!folly::copy(curr.valid().value())) {
       return false;
     }
-    auto moduleState =
-        (CmisModuleState)((curr.get_data().data()[0] & MODULE_STATUS_MASK) >>
-                          MODULE_STATUS_BITSHIFT);
+    auto moduleState = (CmisModuleState)((curr.data().value().data()[0] &
+                                          MODULE_STATUS_MASK) >>
+                                         MODULE_STATUS_BITSHIFT);
 
     if (expectInReset && moduleState != CmisModuleState::UNKNOWN) {
       return false;
