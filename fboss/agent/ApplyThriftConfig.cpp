@@ -2639,6 +2639,8 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
           " to have selfHealingEcmpLag enable");
     }
     newPort->setSelfHealingECMPLagEnable(selfHealingECMPLagEnable.value());
+  } else {
+    newPort->setSelfHealingECMPLagEnable(std::nullopt);
   }
   return newPort;
 }
