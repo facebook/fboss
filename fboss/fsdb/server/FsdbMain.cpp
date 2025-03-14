@@ -17,7 +17,7 @@ namespace facebook::fboss::fsdb {
 int fsdbMain(int argc, char** argv) {
   setVersionString();
   auto fsdbConfig = parseConfig(argc, argv);
-  initFlagDefaults(fsdbConfig->getThrift().get_defaultCommandLineArgs());
+  initFlagDefaults(fsdbConfig->getThrift().defaultCommandLineArgs().value());
 
   if (FLAGS_memoryProfiling) {
     setenv("MALLOC_CONF", "prof:true", 1); // Enable heap profile
