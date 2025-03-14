@@ -247,7 +247,18 @@ void initAndExitBenchmarkHelper(
      */
     ScopedCallTimer timeIt;
     switch (switchType) {
-      case cfg::SwitchType::VOQ:
+      case cfg::SwitchType::VOQ: {
+        // Program ECMP routes - 8x512 for single stage and 16x2K for dual
+        // stage
+        auto ecmpWidth = 512;
+        auto ecmpGroup = 64;
+        if (isDualStage3Q2QMode()) {
+          ecmpWidth = 2048;
+          ecmpGroup = 16;
+        }
+        FLAGS_ecmp_resource_percentage = 100;
+        FLAGS_ecmp_width = ecmpWidth;
+
         ensemble = createAgentEnsemble(
             voqInitialConfig, false /*disableLinkStateToggler*/);
         if (ensemble->getSw()->getBootType() == BootType::COLD_BOOT) {
@@ -277,8 +288,30 @@ void initAndExitBenchmarkHelper(
                     folly::sformat("Update state for node: {}", 0),
                     updateDsfStateFn);
               });
+
+          utility::EcmpSetupTargetedPorts6 ecmpHelper(
+              ensemble->getProgrammedState());
+          auto portDescriptor =
+              utility::resolveRemoteNhops(ensemble.get(), ecmpHelper);
+
+          std::vector<RoutePrefixV6> prefixes;
+          std::vector<flat_set<PortDescriptor>> nhopSets;
+          CHECK_GE(portDescriptor.size(), ecmpWidth + ecmpGroup - 1);
+          for (int i = 0; i < ecmpGroup; i++) {
+            // For default route 0::0, need to use 0 as prefix length
+            prefixes.emplace_back(
+                folly::IPAddressV6(folly::to<std::string>(i, "::", i)),
+                static_cast<uint8_t>(i == 0 ? 0 : 128));
+            nhopSets.emplace_back(
+                std::make_move_iterator(portDescriptor.begin() + i),
+                std::make_move_iterator(
+                    portDescriptor.begin() + i + ecmpWidth));
+          }
+          auto updater = ensemble->getSw()->getRouteUpdater();
+          ecmpHelper.programRoutes(&updater, nhopSets, prefixes);
         }
         break;
+      }
       case cfg::SwitchType::NPU:
         ensemble = createAgentEnsemble(
             npuInitialConfig, false /*disableLinkStateToggler*/);
@@ -293,8 +326,9 @@ void initAndExitBenchmarkHelper(
   }
   suspender.rehire();
   // Fabric switch does not support route programming
+  // VOQ switch already programs ECMP routes above
   if (ensemble->getBootType() == BootType::COLD_BOOT &&
-      switchType != cfg::SwitchType::FABRIC) {
+      switchType == cfg::SwitchType::NPU) {
     auto routeChunks = getRoutes(ensemble.get());
     auto updater = ensemble->getSw()->getRouteUpdater();
     ensemble->programRoutes(RouterID(0), ClientID::BGPD, routeChunks);
