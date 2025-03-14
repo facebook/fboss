@@ -379,6 +379,21 @@ template <typename LockPolicyT>
 void SaiSwitch::processLocalCapsuleSwitchIdsDelta(
     const StateDelta& delta,
     const LockPolicyT& lockPolicy) {
+  if (FLAGS_dual_stage_edsw_3q_2q) {
+    /*
+     * We run dual stage EDSWs in a de-facto single pipe mode. This
+     * is done for 2-reasons,
+     * 1. There is barely any east<->west (EDSW<->EDSW) traffic. So the
+     * default 2-stage buffer partitioning is inefficient. The default
+     * partitioning splits buffers into 2 to handle line rate traffic
+     * on both pipes, while we only need line rate on one pipe.
+     * 2. It allows for a longer cable len for EDSW<->FDSW segment,
+     * since we can size the fabric buffer on EDSW to absorb more in-flight
+     * traffic, while the EDSWs send flow control to FDSWs upon experiencing
+     * congestion.
+     */
+    return;
+  }
   SwitchID mySwitchId =
       static_cast<SwitchID>(platform_->getAsic()->getSwitchId().value());
   auto dsfNodesDelta = delta.getDsfNodesDelta();
