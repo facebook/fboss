@@ -4,6 +4,7 @@
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
+#include "fboss/agent/test/TestEnsembleIf.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
 
 namespace facebook::fboss::utility {
@@ -54,7 +55,7 @@ void setupQosMapForPfc(
 }
 
 void setupPfc(
-    facebook::fboss::AgentEnsemble* ensemble,
+    TestEnsembleIf* ensemble,
     cfg::SwitchConfig& cfg,
     const std::vector<PortID>& ports,
     const std::map<int, int>& tcToPgOverride) {
@@ -122,20 +123,20 @@ void setupBufferPoolConfig(
 }
 
 void setupPortPgConfig(
-    const facebook::fboss::AgentEnsemble* ensemble,
+    const TestEnsembleIf* ensemble,
     std::map<std::string, std::vector<cfg::PortPgConfig>>& portPgConfigMap,
     const std::vector<int>& losslessPgIds,
     const PfcBufferParams& buffer) {
   std::vector<cfg::PortPgConfig> portPgConfigs;
 
   // Chenab requires at least 2xMTU, otherwise packets are dropped on ingress.
-  int pgLimit = buffer.pgLimit;
+  int minLimit = buffer.minLimit;
   if (ensemble->getHwAsicTable()
               ->getHwAsics()
               .cbegin()
               ->second->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB &&
-      pgLimit < 20480) {
-    pgLimit = 20480;
+      minLimit < 20480) {
+    minLimit = 20480;
   }
 
   // create 2 pgs
@@ -144,7 +145,7 @@ void setupPortPgConfig(
     pgConfig.id() = pgId;
     pgConfig.bufferPoolName() = "bufferNew";
     // provide atleast 1 cell worth of minLimit
-    pgConfig.minLimitBytes() = pgLimit;
+    pgConfig.minLimitBytes() = minLimit;
     // set large enough headroom to avoid drop
     pgConfig.headroomLimitBytes() = buffer.pgHeadroom;
     // resume offset
@@ -180,7 +181,7 @@ void setupPortPgConfig(
       pgConfig.id() = pgId;
       pgConfig.bufferPoolName() = "bufferNew";
       // provide atleast 1 cell worth of minLimit
-      pgConfig.minLimitBytes() = pgLimit;
+      pgConfig.minLimitBytes() = minLimit;
       // headroom set 0 identifies lossy pgs
       pgConfig.headroomLimitBytes() = 0;
       // resume offset
@@ -199,7 +200,7 @@ void setupPortPgConfig(
 } // namespace
 
 void setupPfcBuffers(
-    facebook::fboss::AgentEnsemble* ensemble,
+    TestEnsembleIf* ensemble,
     cfg::SwitchConfig& cfg,
     const std::vector<PortID>& ports,
     const std::vector<int>& losslessPgIds,

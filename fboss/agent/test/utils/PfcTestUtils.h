@@ -5,7 +5,7 @@
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
-#include "fboss/agent/test/AgentEnsemble.h"
+#include "fboss/agent/test/TestEnsembleIf.h"
 
 namespace facebook::fboss::utility {
 
@@ -17,14 +17,14 @@ struct PfcBufferParams {
 
   int globalShared = kGlobalSharedBytes;
   int globalHeadroom = kGlobalHeadroomBytes;
-  int pgLimit = 2200;
+  int minLimit = 2200;
   int pgHeadroom = 2200; // keep this lower than globalShared
   std::optional<facebook::fboss::cfg::MMUScalingFactor> scalingFactor;
   int resumeOffset = 1800;
 };
 
 void setupPfcBuffers(
-    facebook::fboss::AgentEnsemble* ensemble,
+    TestEnsembleIf* ensemble,
     cfg::SwitchConfig& cfg,
     const std::vector<PortID>& ports,
     const std::vector<int>& losslessPgIds,
