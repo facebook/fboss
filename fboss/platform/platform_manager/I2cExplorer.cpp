@@ -122,7 +122,8 @@ void I2cExplorer::setupI2cDevice(
         size,
         *regInfo.regOffset());
     const uint8_t* buf = (const uint8_t*)regInfo.ioBuf()->data();
-    i2cIoHandle->write(addr.raw(), regInfo.get_regOffset(), buf, size);
+    i2cIoHandle->write(
+        addr.raw(), folly::copy(regInfo.regOffset().value()), buf, size);
   }
 }
 
