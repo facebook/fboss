@@ -43,7 +43,7 @@ std::string SaiBcmPlatform::getHwConfig() {
       if (supportsDynamicBcmConfig()) {
         BcmYamlConfig bcmYamlConfig;
         bcmYamlConfig.setBaseConfig(yamlConfig);
-        auto ports = config()->thrift.sw()->get_ports();
+        auto ports = config()->thrift.sw()->ports().value();
         bcmYamlConfig.modifyCoreMaps(
             getPlatformMapping()->getCorePinMapping(ports));
         return bcmYamlConfig.getConfig();

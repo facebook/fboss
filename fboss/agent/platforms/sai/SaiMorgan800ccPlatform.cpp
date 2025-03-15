@@ -45,11 +45,12 @@ std::string SaiMorgan800ccPlatform::getHwConfig() {
   if (chipConfigType != facebook::fboss::cfg::ChipConfig::asicConfig) {
     // TODO(vsp) : Remove this if check once we move ASIC config in
     // G200 simulator agent_unified.conf to v2 format.
-    return *config()->thrift.platform()->get_chip().get_asic().config();
+    return *config()->thrift.platform()->chip().value().get_asic().config();
   }
 
-  auto& asicConfig = config()->thrift.platform()->get_chip().get_asicConfig();
-  return asicConfig.get_common().get_jsonConfig();
+  auto& asicConfig =
+      config()->thrift.platform()->chip().value().get_asicConfig();
+  return asicConfig.common().value().get_jsonConfig();
 }
 
 std::vector<PortID> SaiMorgan800ccPlatform::getAllPortsInGroup(
