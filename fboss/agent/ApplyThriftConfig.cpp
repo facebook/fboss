@@ -852,7 +852,7 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
 
   {
     LoadBalancerConfigApplier loadBalancerConfigApplier(
-        orig_->getLoadBalancers(), cfg_->get_loadBalancers());
+        orig_->getLoadBalancers(), cfg_->loadBalancers().value());
     auto newLoadBalancers = loadBalancerConfigApplier.updateLoadBalancers(
         generateDeterministicSeed(cfg::LoadBalancerID::ECMP),
         generateDeterministicSeed(cfg::LoadBalancerID::AGGREGATE_PORT));
@@ -1391,9 +1391,9 @@ void ThriftConfigApplier::validateUdfConfig(const UdfConfig& newUdfConfig) {
     return;
   }
 
-  for (const auto& loadBalancerConfig : cfg_->get_loadBalancers()) {
-    auto loadBalancerId = loadBalancerConfig.get_id();
-    auto udfGroups = loadBalancerConfig.get_fieldSelection().udfGroups();
+  for (const auto& loadBalancerConfig : cfg_->loadBalancers().value()) {
+    auto loadBalancerId = folly::copy(loadBalancerConfig.id().value());
+    auto udfGroups = loadBalancerConfig.fieldSelection().value().udfGroups();
     for (auto& udfGroupName : *udfGroups) {
       if (udfGroupMap->find(udfGroupName) == udfGroupMap->end()) {
         throw FbossError(
@@ -5457,8 +5457,8 @@ std::shared_ptr<Mirror> ThriftConfigApplier::createMirror(
     }
   }
 
-  uint8_t dscpMark = mirrorConfig->get_dscp();
-  bool truncate = mirrorConfig->get_truncate();
+  uint8_t dscpMark = folly::copy(mirrorConfig->dscp().value());
+  bool truncate = folly::copy(mirrorConfig->truncate().value());
 
   std::optional<PortDescriptor> egressPortDesc;
   if (mirrorEgressPort.has_value()) {
@@ -5776,19 +5776,19 @@ ThriftConfigApplier::updateStaticMplsRoutes(
   for (auto& staticMplsRouteEntry : staticMplsRoutesWithNhops) {
     RouteNextHopSet resolvedNextHops{};
     // resolve next hops if any next hop is unresolved.
-    for (auto nexthop : staticMplsRouteEntry.get_nexthops()) {
+    for (auto nexthop : staticMplsRouteEntry.nexthops().value()) {
       auto nhop = util::fromThrift(nexthop);
       if (!nhop.labelForwardingAction()) {
         throw FbossError(
             "static mpls route for label ",
-            staticMplsRouteEntry.get_ingressLabel(),
+            folly::copy(staticMplsRouteEntry.ingressLabel().value()),
             " has next hop without label action");
       }
       folly::IPAddress nhopAddress(nhop.addr());
       if (nhopAddress.isLinkLocal() && !nhop.isResolved()) {
         throw FbossError(
             "static mpls route for label ",
-            staticMplsRouteEntry.get_ingressLabel(),
+            folly::copy(staticMplsRouteEntry.ingressLabel().value()),
             " has link local next hop without interface");
       }
       if (nhop.isResolved() ||
@@ -5804,7 +5804,7 @@ ThriftConfigApplier::updateStaticMplsRoutes(
       if (!inftToReach) {
         throw FbossError(
             "static mpls route for label ",
-            staticMplsRouteEntry.get_ingressLabel(),
+            folly::copy(staticMplsRouteEntry.ingressLabel().value()),
             " has nexthop ",
             nhopAddress.str(),
             " out of interface subnets");
@@ -5815,10 +5815,11 @@ ThriftConfigApplier::updateStaticMplsRoutes(
           nhop.weight(),
           nhop.labelForwardingAction()));
     }
-    auto entry = labelFib->getNodeIf(staticMplsRouteEntry.get_ingressLabel());
+    auto entry = labelFib->getNodeIf(
+        folly::copy(staticMplsRouteEntry.ingressLabel().value()));
     if (!entry) {
       auto node = createLabelForwardingEntry(
-          staticMplsRouteEntry.get_ingressLabel(),
+          folly::copy(staticMplsRouteEntry.ingressLabel().value()),
           LabelNextHopEntry::Action::NEXTHOPS,
           resolvedNextHops);
       MultiLabelForwardingInformationBase::resolve(node);
@@ -5835,10 +5836,11 @@ ThriftConfigApplier::updateStaticMplsRoutes(
   }
 
   for (auto& staticMplsRouteEntry : staticMplsRoutesToNull) {
-    auto entry = labelFib->getNodeIf(staticMplsRouteEntry.get_ingressLabel());
+    auto entry = labelFib->getNodeIf(
+        folly::copy(staticMplsRouteEntry.ingressLabel().value()));
     if (!entry) {
       auto node = createLabelForwardingEntry(
-          staticMplsRouteEntry.get_ingressLabel(),
+          folly::copy(staticMplsRouteEntry.ingressLabel().value()),
           LabelNextHopEntry::Action::DROP,
           LabelNextHopSet());
       MultiLabelForwardingInformationBase::resolve(node);
@@ -5855,10 +5857,11 @@ ThriftConfigApplier::updateStaticMplsRoutes(
   }
 
   for (auto& staticMplsRouteEntry : staticMplsRoutesToCPU) {
-    auto entry = labelFib->getNodeIf(staticMplsRouteEntry.get_ingressLabel());
+    auto entry = labelFib->getNodeIf(
+        folly::copy(staticMplsRouteEntry.ingressLabel().value()));
     if (!entry) {
       auto node = createLabelForwardingEntry(
-          staticMplsRouteEntry.get_ingressLabel(),
+          folly::copy(staticMplsRouteEntry.ingressLabel().value()),
           LabelNextHopEntry::Action::TO_CPU,
           LabelNextHopSet());
       MultiLabelForwardingInformationBase::resolve(node);

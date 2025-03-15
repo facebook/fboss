@@ -250,10 +250,11 @@ std::string getDrainStateChangedStr(
 }
 
 std::string getAsicSdkVersion(const std::optional<SdkVersion>& sdkVersion) {
-  return sdkVersion.has_value() ? (sdkVersion.value().get_asicSdk() != nullptr
-                                       ? *(sdkVersion.value().get_asicSdk())
-                                       : std::string("Not found"))
-                                : std::string("Not found");
+  return sdkVersion.has_value()
+      ? (apache::thrift::get_pointer(sdkVersion.value().asicSdk()) != nullptr
+             ? *(apache::thrift::get_pointer(sdkVersion.value().asicSdk()))
+             : std::string("Not found"))
+      : std::string("Not found");
 }
 
 // Create string about upper/lower port threshold for draining/undraining
@@ -346,16 +347,16 @@ void updatePhyFb303Stats(
   for (auto& [portID, phyInfo] : phyInfoMap) {
     auto& phyStats = *phyInfo.stats();
     auto& phyState = *phyInfo.state();
-    if (phyState.get_name().empty()) {
+    if (phyState.name().value().empty()) {
       continue;
     }
     if (auto pcs = phyStats.line()->pcs()) {
       if (auto fec = pcs->rsFec()) {
-        auto preFECBer = fec->get_preFECBer();
+        auto preFECBer = folly::copy(fec->preFECBer().value());
         // Pre-FEC BER should be >= 0 and <= 1
         if (preFECBer < 0 || preFECBer > 1) {
           XLOG(ERR) << "Invalid preFECBer value: " << preFECBer
-                    << " for port: " << phyState.get_name();
+                    << " for port: " << phyState.name().value();
           continue;
         }
         // For a BER of 2.2e-10, we will just log the exponent -10 to FB303
@@ -367,9 +368,10 @@ void updatePhyFb303Stats(
           preFECBerForFb303 = std::floor(std::log10(preFECBer));
         }
         facebook::fb303::fbData->setCounter(
-            "port." + phyState.get_name() + ".preFecBerLog", preFECBerForFb303);
+            "port." + phyState.name().value() + ".preFecBerLog",
+            preFECBerForFb303);
         if (auto fecTail = fec->fecTail()) {
-          STATS_port_fec_tail.addValue(*fecTail, phyState.get_name());
+          STATS_port_fec_tail.addValue(*fecTail, phyState.name().value());
         }
       }
     }
@@ -822,7 +824,7 @@ AgentStats SwSwitch::fillFsdbStats() {
           {switchIdx, *hwSwitchStats.switchDropStats()});
       for (auto& [_, phyInfo] : *hwSwitchStats.phyInfo()) {
         auto portName = phyInfo.state()->name().value();
-        agentStats.phyStats()->insert({portName, phyInfo.get_stats()});
+        agentStats.phyStats()->insert({portName, phyInfo.stats().value()});
       }
       agentStats.flowletStatsMap()->insert(
           {switchIdx, *hwSwitchStats.flowletStats()});

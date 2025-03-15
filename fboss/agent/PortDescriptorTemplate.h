@@ -141,13 +141,16 @@ class PortDescriptorTemplate {
   }
 
   static PortDescriptorTemplate fromThrift(const cfg::PortDescriptor& portTh) {
-    switch (portTh.get_portType()) {
+    switch (folly::copy(portTh.portType().value())) {
       case cfg::PortDescriptorType::Physical:
-        return PortDescriptorTemplate(PortIdType(portTh.get_portId()));
+        return PortDescriptorTemplate(
+            PortIdType(folly::copy(portTh.portId().value())));
       case cfg::PortDescriptorType::Aggregate:
-        return PortDescriptorTemplate(TrunkIdType(portTh.get_portId()));
+        return PortDescriptorTemplate(
+            TrunkIdType(folly::copy(portTh.portId().value())));
       case cfg::PortDescriptorType::SystemPort:
-        return PortDescriptorTemplate(SystemPortIdType(portTh.get_portId()));
+        return PortDescriptorTemplate(
+            SystemPortIdType(folly::copy(portTh.portId().value())));
     }
     XLOG(FATAL) << "Unknown port type";
   }

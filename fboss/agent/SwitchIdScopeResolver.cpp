@@ -356,7 +356,7 @@ HwSwitchMatcher SwitchIdScopeResolver::scope(
 
 HwSwitchMatcher SwitchIdScopeResolver::scope(
     const cfg::MirrorOnDropReport& report) const {
-  return scope(PortID(report.get_mirrorPortId()));
+  return scope(PortID(folly::copy(report.mirrorPortId().value())));
 }
 
 HwSwitchMatcher SwitchIdScopeResolver::scope(
