@@ -140,6 +140,27 @@ class HwSwitchFb303Stats {
   void onChipBufferMemoryError() {
     onChipBufferMemoryErrors_.addValue(1);
   }
+  void packetDescriptorMemoryError() {
+    packetDescriptorMemoryErrors_.addValue(1);
+  }
+  void packetQueueProcessorError() {
+    packetQueueProcessorErrors_.addValue(1);
+  }
+  void receiveQueueProcessorError() {
+    receiveQueueProcessorErrors_.addValue(1);
+  }
+  void schedulerError() {
+    schedulerErrors_.addValue(1);
+  }
+  void sramPacketBufferError() {
+    sramPacketBufferErrors_.addValue(1);
+  }
+  void sramQueueManagementError() {
+    sramQueueManagementErrors_.addValue(1);
+  }
+  void tmActionResolutionError() {
+    tmActionResolutionErrors_.addValue(1);
+  }
   void hwInitializedTime(uint64_t ms) {
     hwInitializedTimeMs_.addValue(ms);
   }
@@ -255,6 +276,13 @@ class HwSwitchFb303Stats {
   int64_t getNifBufferUnitErrors() const;
   int64_t getNifManagementErrors() const;
   int64_t getOnChipBufferMemoryErrors() const;
+  int64_t getPacketDescriptorMemoryErrors() const;
+  int64_t getPacketQueueProcessorErrors() const;
+  int64_t getReceiveQueueProcessorErrors() const;
+  int64_t getSchedulerErrors() const;
+  int64_t getSramPacketBufferErrors() const;
+  int64_t getSramQueueManagementErrors() const;
+  int64_t getTmActionResolutionErrors() const;
 
   // FW Errors
   int64_t getIsolationFirmwareCrashes() const;
@@ -371,6 +399,13 @@ class HwSwitchFb303Stats {
   TLTimeseries nifBufferUnitErrors_;
   TLTimeseries nifManagementErrors_;
   TLTimeseries onChipBufferMemoryErrors_;
+  TLTimeseries packetDescriptorMemoryErrors_;
+  TLTimeseries packetQueueProcessorErrors_;
+  TLTimeseries receiveQueueProcessorErrors_;
+  TLTimeseries schedulerErrors_;
+  TLTimeseries sramPacketBufferErrors_;
+  TLTimeseries sramQueueManagementErrors_;
+  TLTimeseries tmActionResolutionErrors_;
   TLTimeseries hwInitializedTimeMs_;
   TLTimeseries bootTimeMs_;
   TLTimeseries coldBoot_;

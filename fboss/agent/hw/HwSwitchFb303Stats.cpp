@@ -319,6 +319,41 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
           getCounterPrefix() + vendor + ".on_chip_buffer_memory.errors",
           SUM,
           RATE),
+      packetDescriptorMemoryErrors_(
+          map,
+          getCounterPrefix() + vendor + ".packet_descriptor_memory.errors",
+          SUM,
+          RATE),
+      packetQueueProcessorErrors_(
+          map,
+          getCounterPrefix() + vendor + ".packet_queue_processor.errors",
+          SUM,
+          RATE),
+      receiveQueueProcessorErrors_(
+          map,
+          getCounterPrefix() + vendor + ".receive_queue_processor.errors",
+          SUM,
+          RATE),
+      schedulerErrors_(
+          map,
+          getCounterPrefix() + vendor + ".scheduler.errors",
+          SUM,
+          RATE),
+      sramPacketBufferErrors_(
+          map,
+          getCounterPrefix() + vendor + ".sram_packet_buffer.errors",
+          SUM,
+          RATE),
+      sramQueueManagementErrors_(
+          map,
+          getCounterPrefix() + vendor + ".sram_queue_management.errors",
+          SUM,
+          RATE),
+      tmActionResolutionErrors_(
+          map,
+          getCounterPrefix() + vendor + ".tm_action_resolution.errors",
+          SUM,
+          RATE),
       hwInitializedTimeMs_(
           map,
           getCounterPrefix() + vendor + ".hw_initialized_time_ms",
@@ -584,6 +619,34 @@ int64_t HwSwitchFb303Stats::getOnChipBufferMemoryErrors() const {
   return getCumulativeValue(onChipBufferMemoryErrors_);
 }
 
+int64_t HwSwitchFb303Stats::getPacketDescriptorMemoryErrors() const {
+  return getCumulativeValue(packetDescriptorMemoryErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getPacketQueueProcessorErrors() const {
+  return getCumulativeValue(packetQueueProcessorErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getReceiveQueueProcessorErrors() const {
+  return getCumulativeValue(receiveQueueProcessorErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getSchedulerErrors() const {
+  return getCumulativeValue(schedulerErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getSramPacketBufferErrors() const {
+  return getCumulativeValue(sramPacketBufferErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getSramQueueManagementErrors() const {
+  return getCumulativeValue(sramQueueManagementErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getTmActionResolutionErrors() const {
+  return getCumulativeValue(tmActionResolutionErrors_);
+}
+
 int64_t HwSwitchFb303Stats::getIsolationFirmwareCrashes() const {
   return getCumulativeValue(isolationFirmwareCrashes_);
 }
@@ -672,6 +735,13 @@ HwAsicErrors HwSwitchFb303Stats::getHwAsicErrors() const {
   asicErrors.nifBufferUnitErrors() = getNifBufferUnitErrors();
   asicErrors.nifManagementErrors() = getNifManagementErrors();
   asicErrors.onChipBufferMemoryErrors() = getOnChipBufferMemoryErrors();
+  asicErrors.packetDescriptorMemoryErrors() = getPacketDescriptorMemoryErrors();
+  asicErrors.packetQueueProcessorErrors() = getPacketQueueProcessorErrors();
+  asicErrors.receiveQueueProcessorErrors() = getReceiveQueueProcessorErrors();
+  asicErrors.schedulerErrors() = getSchedulerErrors();
+  asicErrors.sramPacketBufferErrors() = getSramPacketBufferErrors();
+  asicErrors.sramQueueManagementErrors() = getSramQueueManagementErrors();
+  asicErrors.tmActionResolutionErrors() = getTmActionResolutionErrors();
   return asicErrors;
 }
 
