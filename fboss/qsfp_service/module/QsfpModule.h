@@ -217,9 +217,9 @@ class QsfpModule : public Transceiver {
       return std::vector<prbs::PrbsPolynomial>();
     }
     if (side == phy::Side::SYSTEM) {
-      return (*diagsCapability).value().get_prbsSystemCapabilities();
+      return (*diagsCapability).value().prbsSystemCapabilities().value();
     }
-    return (*diagsCapability).value().get_prbsLineCapabilities();
+    return (*diagsCapability).value().prbsLineCapabilities().value();
   }
 
   void clearTransceiverPrbsStats(const std::string& portName, phy::Side side)

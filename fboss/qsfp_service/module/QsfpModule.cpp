@@ -177,7 +177,7 @@ std::string QsfpModule::getFwStorageHandle() const {
     return std::string();
   }
 
-  return getFwStorageHandle(vendor->get_partNumber());
+  return getFwStorageHandle(vendor->partNumber().value());
 }
 
 bool QsfpModule::upgradeFirmwareLocked(
@@ -286,7 +286,7 @@ std::string QsfpModule::getPartNumber() const {
     const auto& cachedTcvrState = transceiverInfo.tcvrState();
     const auto& vendor = cachedTcvrState.value().vendor();
     if (vendor.has_value()) {
-      partNumber = vendor.value().get_partNumber();
+      partNumber = vendor.value().partNumber().value();
     }
   } catch (const std::exception& ex) {
     QSFP_LOG(ERR, this) << "Error calling getTransceiverInfo(): " << ex.what();
