@@ -289,6 +289,36 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
           getCounterPrefix() + vendor + ".fabric_mac.errors",
           SUM,
           RATE),
+      ingressPacketSchedulerErrors_(
+          map,
+          getCounterPrefix() + vendor + ".ingress_packet_scheduler.errors",
+          SUM,
+          RATE),
+      ingressPacketTransmitErrors_(
+          map,
+          getCounterPrefix() + vendor + ".ingress_packet_transmit.errors",
+          SUM,
+          RATE),
+      managementUnitErrors_(
+          map,
+          getCounterPrefix() + vendor + ".management_unit.errors",
+          SUM,
+          RATE),
+      nifBufferUnitErrors_(
+          map,
+          getCounterPrefix() + vendor + ".nif_buffer.errors",
+          SUM,
+          RATE),
+      nifManagementErrors_(
+          map,
+          getCounterPrefix() + vendor + ".nif_management.errors",
+          SUM,
+          RATE),
+      onChipBufferMemoryErrors_(
+          map,
+          getCounterPrefix() + vendor + ".on_chip_buffer_memory.errors",
+          SUM,
+          RATE),
       hwInitializedTimeMs_(
           map,
           getCounterPrefix() + vendor + ".hw_initialized_time_ms",
@@ -530,6 +560,30 @@ int64_t HwSwitchFb303Stats::getFabricMacErrors() const {
   return getCumulativeValue(fabricMacErrors_);
 }
 
+int64_t HwSwitchFb303Stats::getIngressPacketSchedulerErrors() const {
+  return getCumulativeValue(ingressPacketSchedulerErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getIngressPacketTransmitErrors() const {
+  return getCumulativeValue(ingressPacketTransmitErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getManagementUnitErrors() const {
+  return getCumulativeValue(managementUnitErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getNifBufferUnitErrors() const {
+  return getCumulativeValue(nifBufferUnitErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getNifManagementErrors() const {
+  return getCumulativeValue(nifManagementErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getOnChipBufferMemoryErrors() const {
+  return getCumulativeValue(onChipBufferMemoryErrors_);
+}
+
 int64_t HwSwitchFb303Stats::getIsolationFirmwareCrashes() const {
   return getCumulativeValue(isolationFirmwareCrashes_);
 }
@@ -612,6 +666,12 @@ HwAsicErrors HwSwitchFb303Stats::getHwAsicErrors() const {
   asicErrors.fabricDataReceiveErrors() = getFabricDataReceiveErrors();
   asicErrors.fabricDataTransmitErrors() = getFabricDataTransmitErrors();
   asicErrors.fabricMacErrors() = getFabricMacErrors();
+  asicErrors.ingressPacketSchedulerErrors() = getIngressPacketSchedulerErrors();
+  asicErrors.ingressPacketTransmitErrors() = getIngressPacketTransmitErrors();
+  asicErrors.managementUnitErrors() = getManagementUnitErrors();
+  asicErrors.nifBufferUnitErrors() = getNifBufferUnitErrors();
+  asicErrors.nifManagementErrors() = getNifManagementErrors();
+  asicErrors.onChipBufferMemoryErrors() = getOnChipBufferMemoryErrors();
   return asicErrors;
 }
 

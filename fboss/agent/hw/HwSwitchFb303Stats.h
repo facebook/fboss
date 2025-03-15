@@ -122,6 +122,24 @@ class HwSwitchFb303Stats {
   void fabricMacError() {
     fabricMacErrors_.addValue(1);
   }
+  void ingressPacketSchedulerError() {
+    ingressPacketSchedulerErrors_.addValue(1);
+  }
+  void ingressPacketTransmitError() {
+    ingressPacketTransmitErrors_.addValue(1);
+  }
+  void managementUnitError() {
+    managementUnitErrors_.addValue(1);
+  }
+  void nifBufferUnitError() {
+    nifBufferUnitErrors_.addValue(1);
+  }
+  void nifManagementError() {
+    nifManagementErrors_.addValue(1);
+  }
+  void onChipBufferMemoryError() {
+    onChipBufferMemoryErrors_.addValue(1);
+  }
   void hwInitializedTime(uint64_t ms) {
     hwInitializedTimeMs_.addValue(ms);
   }
@@ -231,6 +249,12 @@ class HwSwitchFb303Stats {
   int64_t getFabricDataReceiveErrors() const;
   int64_t getFabricDataTransmitErrors() const;
   int64_t getFabricMacErrors() const;
+  int64_t getIngressPacketSchedulerErrors() const;
+  int64_t getIngressPacketTransmitErrors() const;
+  int64_t getManagementUnitErrors() const;
+  int64_t getNifBufferUnitErrors() const;
+  int64_t getNifManagementErrors() const;
+  int64_t getOnChipBufferMemoryErrors() const;
 
   // FW Errors
   int64_t getIsolationFirmwareCrashes() const;
@@ -341,6 +365,12 @@ class HwSwitchFb303Stats {
   TLTimeseries fabricDataReceiveErrors_;
   TLTimeseries fabricDataTransmitErrors_;
   TLTimeseries fabricMacErrors_;
+  TLTimeseries ingressPacketSchedulerErrors_;
+  TLTimeseries ingressPacketTransmitErrors_;
+  TLTimeseries managementUnitErrors_;
+  TLTimeseries nifBufferUnitErrors_;
+  TLTimeseries nifManagementErrors_;
+  TLTimeseries onChipBufferMemoryErrors_;
   TLTimeseries hwInitializedTimeMs_;
   TLTimeseries bootTimeMs_;
   TLTimeseries coldBoot_;
