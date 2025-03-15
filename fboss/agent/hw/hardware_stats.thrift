@@ -236,6 +236,30 @@ struct HwAsicErrors {
   13: optional i64 fdaFifoOverflowErrors;
   14: optional i64 isolationFirmwareCrashes;
   15: optional i64 rxFifoStuckDetected;
+  16: optional i64 congestionManagementErrors;
+  17: optional i64 dramDataPathErrors;
+  18: optional i64 dramQueueManagementErrors;
+  19: optional i64 egressCongestionManagementErrors;
+  20: optional i64 egressDataBufferErrors;
+  21: optional i64 fabricControlReceiveErrors;
+  22: optional i64 fabricControlTransmitErrors;
+  23: optional i64 fabricDataAggregateErrors;
+  24: optional i64 fabricDataReceiveErrors;
+  25: optional i64 fabricDataTransmitErrors;
+  26: optional i64 fabricMacErrors;
+  27: optional i64 ingressPacketSchedulerErrors;
+  28: optional i64 ingressPacketTransmitErrors;
+  29: optional i64 managementUnitErrors;
+  30: optional i64 nifBufferUnitErrors;
+  31: optional i64 nifManagementErrors;
+  32: optional i64 onChipBufferMemoryErrors;
+  33: optional i64 packetDescriptorMemoryErrors;
+  34: optional i64 packetQueueProcessorErrors;
+  35: optional i64 receiveQueueProcessorErrors;
+  36: optional i64 schedulerErrors;
+  37: optional i64 sramPacketBufferErrors;
+  38: optional i64 sramQueueManagementErrors;
+  39: optional i64 tmActionResolutionErrors;
 }
 
 struct HwTeFlowStats {
