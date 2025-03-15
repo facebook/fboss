@@ -2142,7 +2142,7 @@
         "parserType": 1,
         "routable": true,
         "ingressVlan": 2067,
-        "speed": 800000,
+        "speed": 400000,
         "name": "eth1/34/1",
         "description": "",
         "queues_DEPRECATED": [
@@ -2161,7 +2161,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 39,
+        "profileID": 38,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -2178,7 +2178,7 @@
         "parserType": 1,
         "routable": true,
         "ingressVlan": 2069,
-        "speed": 800000,
+        "speed": 400000,
         "name": "eth1/35/1",
         "description": "",
         "queues_DEPRECATED": [
@@ -2197,7 +2197,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 39,
+        "profileID": 38,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -2214,7 +2214,7 @@
         "parserType": 1,
         "routable": true,
         "ingressVlan": 2071,
-        "speed": 800000,
+        "speed": 400000,
         "name": "eth1/36/1",
         "description": "",
         "queues_DEPRECATED": [
@@ -2233,7 +2233,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 39,
+        "profileID": 38,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -2250,7 +2250,7 @@
         "parserType": 1,
         "routable": true,
         "ingressVlan": 2073,
-        "speed": 800000,
+        "speed": 400000,
         "name": "eth1/37/1",
         "description": "",
         "queues_DEPRECATED": [
@@ -2269,7 +2269,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 39,
+        "profileID": 38,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -2286,7 +2286,7 @@
         "parserType": 1,
         "routable": true,
         "ingressVlan": 2075,
-        "speed": 800000,
+        "speed": 400000,
         "name": "eth1/38/1",
         "description": "",
         "queues_DEPRECATED": [
@@ -2305,7 +2305,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 39,
+        "profileID": 38,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -2322,7 +2322,7 @@
         "parserType": 1,
         "routable": true,
         "ingressVlan": 2077,
-        "speed": 800000,
+        "speed": 400000,
         "name": "eth1/39/1",
         "description": "",
         "queues_DEPRECATED": [
@@ -2341,7 +2341,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 39,
+        "profileID": 38,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -2358,7 +2358,7 @@
         "parserType": 1,
         "routable": true,
         "ingressVlan": 2079,
-        "speed": 800000,
+        "speed": 400000,
         "name": "eth1/40/1",
         "description": "",
         "queues_DEPRECATED": [
@@ -2377,7 +2377,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 39,
+        "profileID": 38,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -2394,7 +2394,7 @@
         "parserType": 1,
         "routable": true,
         "ingressVlan": 2081,
-        "speed": 800000,
+        "speed": 400000,
         "name": "eth1/41/1",
         "description": "",
         "queues_DEPRECATED": [
@@ -2413,7 +2413,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 39,
+        "profileID": 38,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -2430,7 +2430,7 @@
         "parserType": 1,
         "routable": true,
         "ingressVlan": 2083,
-        "speed": 800000,
+        "speed": 400000,
         "name": "eth1/42/1",
         "description": "",
         "queues_DEPRECATED": [
@@ -2449,7 +2449,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 39,
+        "profileID": 38,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -2466,7 +2466,7 @@
         "parserType": 1,
         "routable": true,
         "ingressVlan": 2085,
-        "speed": 800000,
+        "speed": 400000,
         "name": "eth1/43/1",
         "description": "",
         "queues_DEPRECATED": [
@@ -2485,7 +2485,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 39,
+        "profileID": 38,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -2502,7 +2502,7 @@
         "parserType": 1,
         "routable": true,
         "ingressVlan": 2087,
-        "speed": 800000,
+        "speed": 400000,
         "name": "eth1/44/1",
         "description": "",
         "queues_DEPRECATED": [
@@ -2521,7 +2521,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 39,
+        "profileID": 38,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -2538,7 +2538,7 @@
         "parserType": 1,
         "routable": true,
         "ingressVlan": 2089,
-        "speed": 800000,
+        "speed": 400000,
         "name": "eth1/45/1",
         "description": "",
         "queues_DEPRECATED": [
@@ -2557,7 +2557,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 39,
+        "profileID": 38,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -2574,7 +2574,7 @@
         "parserType": 1,
         "routable": true,
         "ingressVlan": 2091,
-        "speed": 800000,
+        "speed": 400000,
         "name": "eth1/46/1",
         "description": "",
         "queues_DEPRECATED": [
@@ -2593,7 +2593,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 39,
+        "profileID": 38,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -2610,7 +2610,7 @@
         "parserType": 1,
         "routable": true,
         "ingressVlan": 2093,
-        "speed": 800000,
+        "speed": 400000,
         "name": "eth1/47/1",
         "description": "",
         "queues_DEPRECATED": [
@@ -2629,7 +2629,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 39,
+        "profileID": 38,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -2646,7 +2646,7 @@
         "parserType": 1,
         "routable": true,
         "ingressVlan": 2095,
-        "speed": 800000,
+        "speed": 400000,
         "name": "eth1/48/1",
         "description": "",
         "queues_DEPRECATED": [
@@ -2665,7 +2665,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 39,
+        "profileID": 38,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -2682,7 +2682,7 @@
         "parserType": 1,
         "routable": true,
         "ingressVlan": 2097,
-        "speed": 800000,
+        "speed": 400000,
         "name": "eth1/49/1",
         "description": "",
         "queues_DEPRECATED": [
@@ -2701,7 +2701,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 39,
+        "profileID": 38,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -2718,7 +2718,7 @@
         "parserType": 1,
         "routable": true,
         "ingressVlan": 2099,
-        "speed": 800000,
+        "speed": 400000,
         "name": "eth1/50/1",
         "description": "",
         "queues_DEPRECATED": [
@@ -2737,7 +2737,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 39,
+        "profileID": 38,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -2754,7 +2754,7 @@
         "parserType": 1,
         "routable": true,
         "ingressVlan": 2101,
-        "speed": 800000,
+        "speed": 400000,
         "name": "eth1/51/1",
         "description": "",
         "queues_DEPRECATED": [
@@ -2773,7 +2773,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 39,
+        "profileID": 38,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -2790,7 +2790,7 @@
         "parserType": 1,
         "routable": true,
         "ingressVlan": 2103,
-        "speed": 800000,
+        "speed": 400000,
         "name": "eth1/52/1",
         "description": "",
         "queues_DEPRECATED": [
@@ -2809,7 +2809,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 39,
+        "profileID": 38,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -2826,7 +2826,7 @@
         "parserType": 1,
         "routable": true,
         "ingressVlan": 2105,
-        "speed": 800000,
+        "speed": 400000,
         "name": "eth1/53/1",
         "description": "",
         "queues_DEPRECATED": [
@@ -2845,7 +2845,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 39,
+        "profileID": 38,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -2862,7 +2862,7 @@
         "parserType": 1,
         "routable": true,
         "ingressVlan": 2107,
-        "speed": 800000,
+        "speed": 400000,
         "name": "eth1/54/1",
         "description": "",
         "queues_DEPRECATED": [
@@ -2881,7 +2881,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 39,
+        "profileID": 38,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -2898,7 +2898,7 @@
         "parserType": 1,
         "routable": true,
         "ingressVlan": 2109,
-        "speed": 800000,
+        "speed": 400000,
         "name": "eth1/55/1",
         "description": "",
         "queues_DEPRECATED": [
@@ -2917,7 +2917,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 39,
+        "profileID": 38,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -2934,7 +2934,7 @@
         "parserType": 1,
         "routable": true,
         "ingressVlan": 2111,
-        "speed": 800000,
+        "speed": 400000,
         "name": "eth1/56/1",
         "description": "",
         "queues_DEPRECATED": [
@@ -2953,7 +2953,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 39,
+        "profileID": 38,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -2970,7 +2970,7 @@
         "parserType": 1,
         "routable": true,
         "ingressVlan": 2113,
-        "speed": 800000,
+        "speed": 400000,
         "name": "eth1/57/1",
         "description": "",
         "queues_DEPRECATED": [
@@ -2989,7 +2989,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 39,
+        "profileID": 38,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -3006,7 +3006,7 @@
         "parserType": 1,
         "routable": true,
         "ingressVlan": 2115,
-        "speed": 800000,
+        "speed": 400000,
         "name": "eth1/58/1",
         "description": "",
         "queues_DEPRECATED": [
@@ -3025,7 +3025,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 39,
+        "profileID": 38,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -3042,7 +3042,7 @@
         "parserType": 1,
         "routable": true,
         "ingressVlan": 2117,
-        "speed": 800000,
+        "speed": 400000,
         "name": "eth1/59/1",
         "description": "",
         "queues_DEPRECATED": [
@@ -3061,7 +3061,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 39,
+        "profileID": 38,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -3078,7 +3078,7 @@
         "parserType": 1,
         "routable": true,
         "ingressVlan": 2119,
-        "speed": 800000,
+        "speed": 400000,
         "name": "eth1/60/1",
         "description": "",
         "queues_DEPRECATED": [
@@ -3097,7 +3097,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 39,
+        "profileID": 38,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -3114,7 +3114,7 @@
         "parserType": 1,
         "routable": true,
         "ingressVlan": 2121,
-        "speed": 800000,
+        "speed": 400000,
         "name": "eth1/61/1",
         "description": "",
         "queues_DEPRECATED": [
@@ -3133,7 +3133,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 39,
+        "profileID": 38,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -3150,7 +3150,7 @@
         "parserType": 1,
         "routable": true,
         "ingressVlan": 2123,
-        "speed": 800000,
+        "speed": 400000,
         "name": "eth1/62/1",
         "description": "",
         "queues_DEPRECATED": [
@@ -3169,7 +3169,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 39,
+        "profileID": 38,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -3186,7 +3186,7 @@
         "parserType": 1,
         "routable": true,
         "ingressVlan": 2125,
-        "speed": 800000,
+        "speed": 400000,
         "name": "eth1/63/1",
         "description": "",
         "queues_DEPRECATED": [
@@ -3205,7 +3205,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 39,
+        "profileID": 38,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -3222,7 +3222,7 @@
         "parserType": 1,
         "routable": true,
         "ingressVlan": 2127,
-        "speed": 800000,
+        "speed": 400000,
         "name": "eth1/64/1",
         "description": "",
         "queues_DEPRECATED": [
@@ -3241,7 +3241,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 39,
+        "profileID": 38,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -3258,7 +3258,7 @@
         "parserType": 1,
         "routable": true,
         "ingressVlan": 2129,
-        "speed": 800000,
+        "speed": 400000,
         "name": "eth1/65/1",
         "description": "",
         "queues_DEPRECATED": [
@@ -3277,7 +3277,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 39,
+        "profileID": 38,
         "portType": 0,
         "expectedNeighborReachability": [
           
