@@ -761,14 +761,14 @@ state::SwitchState SwitchState::toThrift() const {
   const auto& matcher = HwSwitchMatcher::defaultHwSwitchMatcherKey();
   if (FLAGS_enable_acl_table_group) {
     if ((aclMaps->find(matcher) != aclMaps->end()) &&
-        !data.get_aclMaps().at(matcher).empty() &&
+        !data.aclMaps().value().at(matcher).empty() &&
         (aclTableGroupMaps->empty() ||
          aclTableGroupMaps->find(matcher) == aclTableGroupMaps->end() ||
          aclTableGroupMaps->find(matcher)->second.empty())) {
       data.aclTableGroupMaps()->emplace(
           matcher,
           AclTableGroupMap::createDefaultAclTableGroupMapFromThrift(
-              data.get_aclMaps().at(matcher))
+              data.aclMaps().value().at(matcher))
               ->toThrift());
     }
     aclMaps->clear();

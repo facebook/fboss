@@ -34,9 +34,10 @@ NextHop fromThrift(const NextHopThrift& nht, bool allowV6NonLinkLocal) {
   // Only honor interface specified over thrift if the address
   // is a v6 link-local. Otherwise, consume it as an unresolved
   // next hop and let route resolution populate the interface.
-  if (nht.address()->get_ifName() and (v6LinkLocal or allowV6NonLinkLocal)) {
-    InterfaceID intfID =
-        utility::getIDFromTunIntfName(*(nht.address()->get_ifName()));
+  if (apache::thrift::get_pointer(nht.address()->ifName()) and
+      (v6LinkLocal or allowV6NonLinkLocal)) {
+    InterfaceID intfID = utility::getIDFromTunIntfName(
+        *(apache::thrift::get_pointer(nht.address()->ifName())));
     return ResolvedNextHop(
         std::move(address), intfID, weight, action, disableTTLDecrement);
   } else {
