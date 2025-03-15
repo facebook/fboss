@@ -100,9 +100,9 @@ std::map<int, facebook::fboss::NpuPortStatus> getNpuPortStatus(
   for (const auto& [portId, status] : portStatus) {
     facebook::fboss::NpuPortStatus npuStatus;
     npuStatus.portId = portId;
-    npuStatus.operState = status.get_up();
-    npuStatus.portEnabled = status.get_enabled();
-    npuStatus.profileID = status.get_profileID();
+    npuStatus.operState = folly::copy(status.up().value());
+    npuStatus.portEnabled = folly::copy(status.enabled().value());
+    npuStatus.profileID = status.profileID().value();
     npuPortStatus.emplace(portId, npuStatus);
   }
   return npuPortStatus;
@@ -595,11 +595,11 @@ std::optional<cfg::Firmware> TransceiverManager::getFirmwareFromCfg(
   }
 
   auto fwVersionInCfgIt =
-      qsfpCfgFw->versionsMap()->find(vendor->get_partNumber());
+      qsfpCfgFw->versionsMap()->find(vendor->partNumber().value());
   if (fwVersionInCfgIt == qsfpCfgFw->versionsMap()->end()) {
     FW_LOG(DBG4, tcvrID)
         << " transceiverFirmwareVersions doesn't have a firmware version for part number "
-        << vendor->get_partNumber();
+        << vendor->partNumber().value();
     return std::nullopt;
   }
 
@@ -642,34 +642,34 @@ std::optional<FirmwareUpgradeData> TransceiverManager::getFirmwareUpgradeData(
 
   auto& versions = *fwFromConfig->versions();
   for (auto fwIt : versions) {
-    const auto& fwType = fwIt.get_fwType();
+    const auto& fwType = folly::copy(fwIt.fwType().value());
     if (fwType == cfg::FirmwareType::APPLICATION && fwStatus->version() &&
-        fwIt.get_version() != *fwStatus->version()) {
+        fwIt.version().value() != *fwStatus->version()) {
       FW_LOG(INFO, tcvrID)
           << " Part Number " << partNumber
-          << " Application Version in cfg=" << fwIt.get_version()
+          << " Application Version in cfg=" << fwIt.version().value()
           << " current operational version= " << *fwStatus->version()
           << ". Returning valid getFirmwareUpgradeData for tcvr="
           << tcvr.getID();
       fwUpgradeData.currentFirmwareVersion() = *fwStatus->version();
-      fwUpgradeData.desiredFirmwareVersion() = fwIt.get_version();
+      fwUpgradeData.desiredFirmwareVersion() = fwIt.version().value();
       return fwUpgradeData;
     }
     if (fwType == cfg::FirmwareType::DSP && fwStatus->dspFwVer() &&
-        fwIt.get_version() != *fwStatus->dspFwVer()) {
+        fwIt.version().value() != *fwStatus->dspFwVer()) {
       FW_LOG(INFO, tcvrID)
           << " Part Number " << partNumber
-          << " DSP Version in cfg=" << fwIt.get_version()
+          << " DSP Version in cfg=" << fwIt.version().value()
           << " current operational version= " << *fwStatus->dspFwVer()
           << ". Returning valid getFirmwareUpgradeData for tcvr="
           << tcvr.getID();
       fwUpgradeData.currentFirmwareVersion() = *fwStatus->dspFwVer();
-      fwUpgradeData.desiredFirmwareVersion() = fwIt.get_version();
+      fwUpgradeData.desiredFirmwareVersion() = fwIt.version().value();
       return fwUpgradeData;
     }
     FW_LOG(DBG, tcvrID) << " Part Number " << partNumber << " FW Type Cfg "
                         << apache::thrift::util::enumNameSafe(fwType)
-                        << " FW Version CFG " << fwIt.get_version()
+                        << " FW Version CFG " << fwIt.version().value()
                         << " FW Version Status "
                         << fwStatus->version().value_or("NOT_SET");
   }
