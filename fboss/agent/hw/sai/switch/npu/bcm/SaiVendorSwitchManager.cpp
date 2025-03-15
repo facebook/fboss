@@ -44,6 +44,7 @@ void SaiVendorSwitchManager::vendorSwitchEventNotificationCallback(
       (sai_vendor_switch_event_info_t*)(buffer);
   XLOG(WARNING) << "ERROR INTERRUPT: "
                 << getVendorSwitchEventName(eventInfo->event_id);
+  incrementInterruptEventCounter(eventInfo->event_id);
 #endif
 }
 

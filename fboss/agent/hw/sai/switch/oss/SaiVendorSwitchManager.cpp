@@ -31,4 +31,8 @@ const std::string SaiVendorSwitchManager::getVendorSwitchEventName(
     uint32_t /*eventId*/) {
   return std::string();
 }
+
+void SaiVendorSwitchManager::incrementInterruptEventCounter(
+    uint32_t /*eventId*/) {}
+
 } // namespace facebook::fboss
