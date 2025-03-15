@@ -259,6 +259,36 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
           getCounterPrefix() + vendor + ".egress_data_buffer.errors",
           SUM,
           RATE),
+      fabricControlReceiveErrors_(
+          map,
+          getCounterPrefix() + vendor + ".fabric_control_receive.errors",
+          SUM,
+          RATE),
+      fabricControlTransmitErrors_(
+          map,
+          getCounterPrefix() + vendor + ".fabric_control_transmit.errors",
+          SUM,
+          RATE),
+      fabricDataAggregateErrors_(
+          map,
+          getCounterPrefix() + vendor + ".fabric_data_aggregate.errors",
+          SUM,
+          RATE),
+      fabricDataReceiveErrors_(
+          map,
+          getCounterPrefix() + vendor + ".fabric_data_receive.errors",
+          SUM,
+          RATE),
+      fabricDataTransmitErrors_(
+          map,
+          getCounterPrefix() + vendor + ".fabric_data_transmit.errors",
+          SUM,
+          RATE),
+      fabricMacErrors_(
+          map,
+          getCounterPrefix() + vendor + ".fabric_mac.errors",
+          SUM,
+          RATE),
       hwInitializedTimeMs_(
           map,
           getCounterPrefix() + vendor + ".hw_initialized_time_ms",
@@ -476,6 +506,30 @@ int64_t HwSwitchFb303Stats::getEgressDataBufferErrors() const {
   return getCumulativeValue(egressDataBufferErrors_);
 }
 
+int64_t HwSwitchFb303Stats::getFabricControlReceiveErrors() const {
+  return getCumulativeValue(fabricControlReceiveErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getFabricControlTransmitErrors() const {
+  return getCumulativeValue(fabricControlTransmitErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getFabricDataAggregateErrors() const {
+  return getCumulativeValue(fabricDataAggregateErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getFabricDataReceiveErrors() const {
+  return getCumulativeValue(fabricDataReceiveErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getFabricDataTransmitErrors() const {
+  return getCumulativeValue(fabricDataTransmitErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getFabricMacErrors() const {
+  return getCumulativeValue(fabricMacErrors_);
+}
+
 int64_t HwSwitchFb303Stats::getIsolationFirmwareCrashes() const {
   return getCumulativeValue(isolationFirmwareCrashes_);
 }
@@ -552,6 +606,12 @@ HwAsicErrors HwSwitchFb303Stats::getHwAsicErrors() const {
   asicErrors.egressCongestionManagementErrors() =
       getEgressCongestionManagementErrors();
   asicErrors.egressDataBufferErrors() = getEgressDataBufferErrors();
+  asicErrors.fabricControlReceiveErrors() = getFabricControlReceiveErrors();
+  asicErrors.fabricControlTransmitErrors() = getFabricControlTransmitErrors();
+  asicErrors.fabricDataAggregateErrors() = getFabricDataAggregateErrors();
+  asicErrors.fabricDataReceiveErrors() = getFabricDataReceiveErrors();
+  asicErrors.fabricDataTransmitErrors() = getFabricDataTransmitErrors();
+  asicErrors.fabricMacErrors() = getFabricMacErrors();
   return asicErrors;
 }
 

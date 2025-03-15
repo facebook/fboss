@@ -104,6 +104,24 @@ class HwSwitchFb303Stats {
   void egressDataBufferError() {
     egressDataBufferErrors_.addValue(1);
   }
+  void fabricControlReceiveError() {
+    fabricControlReceiveErrors_.addValue(1);
+  }
+  void fabricControlTransmitError() {
+    fabricControlTransmitErrors_.addValue(1);
+  }
+  void fabricDataAggregateError() {
+    fabricDataAggregateErrors_.addValue(1);
+  }
+  void fabricDataReceiveError() {
+    fabricDataReceiveErrors_.addValue(1);
+  }
+  void fabricDataTransmitError() {
+    fabricDataTransmitErrors_.addValue(1);
+  }
+  void fabricMacError() {
+    fabricMacErrors_.addValue(1);
+  }
   void hwInitializedTime(uint64_t ms) {
     hwInitializedTimeMs_.addValue(ms);
   }
@@ -207,6 +225,12 @@ class HwSwitchFb303Stats {
   int64_t getDramQueueManagementErrors() const;
   int64_t getEgressCongestionManagementErrors() const;
   int64_t getEgressDataBufferErrors() const;
+  int64_t getFabricControlReceiveErrors() const;
+  int64_t getFabricControlTransmitErrors() const;
+  int64_t getFabricDataAggregateErrors() const;
+  int64_t getFabricDataReceiveErrors() const;
+  int64_t getFabricDataTransmitErrors() const;
+  int64_t getFabricMacErrors() const;
 
   // FW Errors
   int64_t getIsolationFirmwareCrashes() const;
@@ -311,6 +335,12 @@ class HwSwitchFb303Stats {
   TLTimeseries dramQueueManagementErrors_;
   TLTimeseries egressCongestionManagementErrors_;
   TLTimeseries egressDataBufferErrors_;
+  TLTimeseries fabricControlReceiveErrors_;
+  TLTimeseries fabricControlTransmitErrors_;
+  TLTimeseries fabricDataAggregateErrors_;
+  TLTimeseries fabricDataReceiveErrors_;
+  TLTimeseries fabricDataTransmitErrors_;
+  TLTimeseries fabricMacErrors_;
   TLTimeseries hwInitializedTimeMs_;
   TLTimeseries bootTimeMs_;
   TLTimeseries coldBoot_;
