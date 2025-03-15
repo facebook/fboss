@@ -265,8 +265,9 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, voqDelete) {
       if (!isSupportedOnAllAsics(HwAsic::Feature::VOQ_DELETE_COUNTER)) {
         return 0L;
       }
-      return getLatestSysPortStats(kRemoteSysPortId)
-          .get_queueCreditWatchdogDeletedPackets_()
+      return folly::copy(getLatestSysPortStats(kRemoteSysPortId)
+                             .queueCreditWatchdogDeletedPackets_()
+                             .value())
           .at(utility::getDefaultQueue());
     };
 
@@ -379,8 +380,8 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, stressAddRemoveObjects) {
       }
     }
     assertVoqTailDrops(kNeighborIp, kRemoteSysPortId);
-    auto beforePkts =
-        getLatestPortStats(kPort.phyPortID()).get_outUnicastPkts_();
+    auto beforePkts = folly::copy(
+        getLatestPortStats(kPort.phyPortID()).outUnicastPkts_().value());
     // CPU send
     sendPacket(ecmpHelper.ip(kPort), std::nullopt);
     auto frontPanelPort = ecmpHelper.ecmpPortDescriptorAt(1).phyPortID();

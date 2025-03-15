@@ -198,13 +198,14 @@ class AgentAqmTest : public AgentHwTest {
     if (useQueueStatsForAqm) {
       if (isSupportedOnAllAsics(HwAsic::Feature::QUEUE_ECN_COUNTER)) {
         stats.outEcnCounter +=
-            portStats.get_queueEcnMarkedPackets_().find(queueId)->second;
+            portStats.queueEcnMarkedPackets_().value().find(queueId)->second;
       }
       stats.wredDroppedPackets +=
-          portStats.get_queueWredDroppedPackets_().find(queueId)->second;
+          portStats.queueWredDroppedPackets_().value().find(queueId)->second;
     } else {
-      stats.outEcnCounter += portStats.get_outEcnCounter_();
-      stats.wredDroppedPackets += portStats.get_wredDroppedPackets_();
+      stats.outEcnCounter += folly::copy(portStats.outEcnCounter_().value());
+      stats.wredDroppedPackets +=
+          folly::copy(portStats.wredDroppedPackets_().value());
     }
     // Always populate outPackets
     stats.outPackets += utility::getPortOutPkts(portStats);
@@ -218,8 +219,8 @@ class AgentAqmTest : public AgentHwTest {
       const uint8_t& queueId,
       AqmTestStats& stats) const {
     stats.wredDroppedPackets +=
-        sysPortStats.get_queueWredDroppedPackets_().find(queueId)->second;
-    stats.outPackets += portStats.get_queueOutPackets_().at(queueId);
+        sysPortStats.queueWredDroppedPackets_().value().find(queueId)->second;
+    stats.outPackets += portStats.queueOutPackets_().value().at(queueId);
   }
 
   template <typename StatsT>

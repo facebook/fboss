@@ -401,7 +401,8 @@ std::set<std::pair<PortID, PortID>> LinkTest::getConnectedPairs() const {
         XLOG(DBG2) << " No fabric end points on : " << getPortName(cabledPort);
         continue;
       }
-      neighborPort = PortID(fabricPortEndpoint->second.get_portId()) +
+      neighborPort =
+          PortID(folly::copy(fabricPortEndpoint->second.portId().value())) +
           getRemotePortOffset(platform()->getType());
     } else {
       auto lldpNeighbors =

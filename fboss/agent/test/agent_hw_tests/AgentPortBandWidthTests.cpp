@@ -451,7 +451,7 @@ void AgentPortBandwidthTest::verifyPortRateTraffic(cfg::PortSpeed portSpeed) {
 
 TEST_F(AgentPortBandwidthTest, VerifyKbps) {
   auto getKbits = [this](const HwPortStats& stats) {
-    auto outBytes = stats.get_queueOutBytes_().at(kQueueId1());
+    auto outBytes = stats.queueOutBytes_().value().at(kQueueId1());
     return (outBytes * 8) / 1000;
   };
 
@@ -460,7 +460,7 @@ TEST_F(AgentPortBandwidthTest, VerifyKbps) {
 
 TEST_F(AgentPortBandwidthTest, VerifyKbpsDynamicChanges) {
   auto getKbits = [this](const HwPortStats& stats) {
-    auto outBytes = stats.get_queueOutBytes_().at(kQueueId1());
+    auto outBytes = stats.queueOutBytes_().value().at(kQueueId1());
     return (outBytes * 8) / 1000;
   };
 
@@ -487,7 +487,7 @@ TEST_P(AgentPortBandwidthParamTest, VerifyPortRateTraffic) {
 
 TEST_F(AgentPortBandwidthPpsTest, VerifyPps) {
   auto getPackets = [this](const HwPortStats& stats) {
-    return stats.get_queueOutPackets_().at(kQueueId0());
+    return stats.queueOutPackets_().value().at(kQueueId0());
   };
 
   verifyRate("pps", kQueueId0Dscp(), kMaxPpsValues().front(), getPackets);
@@ -495,7 +495,7 @@ TEST_F(AgentPortBandwidthPpsTest, VerifyPps) {
 
 TEST_F(AgentPortBandwidthPpsTest, VerifyPpsDynamicChanges) {
   auto getPackets = [this](const HwPortStats& stats) {
-    return stats.get_queueOutPackets_().at(kQueueId0());
+    return stats.queueOutPackets_().value().at(kQueueId0());
   };
 
   verifyRateDynamicChanges("pps", kQueueId0Dscp(), getPackets);

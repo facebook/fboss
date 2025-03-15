@@ -559,8 +559,9 @@ TEST_F(AgentEnsembleLinkTest, verifyIphyFecBerCounters) {
         EXPECT_LT(rsFecNow->get_preFECBer(), preFecBerThreshold);
         // If there were corrected codewords in the interval, expect pre-FEC
         // BER non-zero
-        bool hasCorrectedCodewords = rsFecNow->get_correctedCodewords() !=
-            rsFecBefore->get_correctedCodewords();
+        bool hasCorrectedCodewords =
+            folly::copy(rsFecNow->correctedCodewords().value()) !=
+            folly::copy(rsFecBefore->correctedCodewords().value());
         if (hasCorrectedCodewords) {
           EXPECT_NE(rsFecNow->get_preFECBer(), 0);
         }
@@ -568,7 +569,7 @@ TEST_F(AgentEnsembleLinkTest, verifyIphyFecBerCounters) {
         // 16. For Rs528, there are 8 codeword bins. For Rs544, there are 15.
         // We need to add 1 to the expected codewordStats keys since the first
         // key will be for codewords with 0 corrections
-        if (!rsFecNow->get_codewordStats().empty()) {
+        if (!rsFecNow->codewordStats().value().empty()) {
           EXPECT_TRUE(
               rsFecNow->codewordStats()->size() ==
                   (kRsFec528CodewordBins + 1) ||

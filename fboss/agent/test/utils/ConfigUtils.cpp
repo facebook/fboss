@@ -114,12 +114,12 @@ const std::map<cfg::PortType, cfg::PortLoopbackMode>& kDefaultLoopbackMap() {
 bool isEnabledPortWithSubnet(
     const cfg::Port& port,
     const cfg::SwitchConfig& config) {
-  auto ingressVlan = port.get_ingressVlan();
+  auto ingressVlan = folly::copy(port.ingressVlan().value());
   for (const auto& intf : *config.interfaces()) {
-    if (intf.get_vlanID() == ingressVlan) {
+    if (folly::copy(intf.vlanID().value()) == ingressVlan) {
       return (
-          !intf.get_ipAddresses().empty() &&
-          port.get_state() == cfg::PortState::ENABLED);
+          !intf.ipAddresses().value().empty() &&
+          folly::copy(port.state().value()) == cfg::PortState::ENABLED);
     }
   }
   return false;
@@ -857,11 +857,11 @@ cfg::SwitchConfig genPortVlanCfg(
   auto kPortMTU = 9412;
   for (auto portID : ports) {
     auto portCfg = findCfgPort(config, portID);
-    auto iter = lbModeMap.find(portCfg->get_portType());
+    auto iter = lbModeMap.find(folly::copy(portCfg->portType().value()));
     if (iter == lbModeMap.end()) {
       throw FbossError(
           "Unable to find the desired loopback mode for port type: ",
-          portCfg->get_portType());
+          folly::copy(portCfg->portType().value()));
     }
     portCfg->loopbackMode() = iter->second;
     if (portCfg->portType() == cfg::PortType::FABRIC_PORT) {
@@ -1222,13 +1222,13 @@ UplinkDownlinkPair getRswUplinkDownlinkPorts(
   XLOG_IF(WARN, confPorts.empty()) << "no ports found in config.ports_ref()";
 
   for (const auto& port : confPorts) {
-    auto logId = port.get_logicalID();
-    if (port.get_state() != cfg::PortState::ENABLED) {
+    auto logId = folly::copy(port.logicalID().value());
+    if (folly::copy(port.state().value()) != cfg::PortState::ENABLED) {
       continue;
     }
 
     auto portId = PortID(logId);
-    auto vlanId = port.get_ingressVlan();
+    auto vlanId = folly::copy(port.ingressVlan().value());
     if (vlanId == kDownlinkBaseVlanId) {
       downlinks.push_back(portId);
     } else if (uplinks.size() < ecmpWidth) {
@@ -1250,8 +1250,8 @@ UplinkDownlinkPair getRtswUplinkDownlinkPorts(
   XLOG_IF(WARN, confPorts.empty()) << "no ports found in config.ports_ref()";
 
   for (const auto& port : confPorts) {
-    auto logId = port.get_logicalID();
-    if (port.get_state() != cfg::PortState::ENABLED) {
+    auto logId = folly::copy(port.logicalID().value());
+    if (folly::copy(port.state().value()) != cfg::PortState::ENABLED) {
       continue;
     }
 
@@ -1307,7 +1307,7 @@ UplinkDownlinkPair getAllUplinkDownlinkPorts(
 
   for (const auto& port : *config.ports()) {
     if (isEnabledPortWithSubnet(port, config)) {
-      masterPorts.push_back(PortID(port.get_logicalID()));
+      masterPorts.push_back(PortID(folly::copy(port.logicalID().value())));
     }
   }
 

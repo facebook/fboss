@@ -1519,7 +1519,7 @@ std::map<int, std::vector<uint8_t>> getOlympicQosMaps(
   std::map<int, std::vector<uint8_t>> queueToDscp;
 
   for (const auto& qosPolicy : *config.qosPolicies()) {
-    const auto& qosName = qosPolicy.get_name();
+    const auto& qosName = qosPolicy.name().value();
     XLOG(DBG2) << "Iterating over QoS policies: found qosPolicy " << qosName;
 
     // Optional thrift field access
@@ -1527,7 +1527,7 @@ std::map<int, std::vector<uint8_t>> getOlympicQosMaps(
       const auto& dscpMaps = *qosMap->dscpMaps();
 
       for (const auto& dscpMap : dscpMaps) {
-        auto queueId = dscpMap.get_internalTrafficClass();
+        auto queueId = folly::copy(dscpMap.internalTrafficClass().value());
         // Internally (i.e. in thrift), the mapping is implemented as a
         // map<int16_t, vector<int8_t>>; however, in functions like
         // verifyQueueMapping in HwTestQosUtils, the argument used is of the

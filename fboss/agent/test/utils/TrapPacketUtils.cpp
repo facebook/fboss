@@ -34,7 +34,7 @@ void addTrapPacketAcl(
   action.userDefinedTrap() = userDefinedTrap;
 
   cfg::MatchToAction match2Action;
-  match2Action.matcher() = entry.get_name();
+  match2Action.matcher() = entry.name().value();
   match2Action.action() = action;
 
   cfg::TrafficPolicyConfig trafficPolicy;
@@ -85,7 +85,7 @@ void addTrapPacketAcl(
   action.userDefinedTrap() = userDefinedTrap;
 
   cfg::MatchToAction match2Action;
-  match2Action.matcher() = entry.get_name();
+  match2Action.matcher() = entry.name().value();
   match2Action.action() = action;
 
   cfg::TrafficPolicyConfig trafficPolicy;
@@ -136,7 +136,7 @@ void addTrapPacketAcl(
   action.userDefinedTrap() = userDefinedTrap;
 
   cfg::MatchToAction match2Action;
-  match2Action.matcher() = entry.get_name();
+  match2Action.matcher() = entry.name().value();
   match2Action.action() = action;
 
   cfg::TrafficPolicyConfig trafficPolicy;

@@ -54,17 +54,19 @@ void validateVdm(
          phy::Side side,
          const VdmPerfMonitorPortSideStats& vdmPerfMon,
          OpticsSidePerformanceMonitoringThresholds thresholds) {
-        auto& preFecBer = vdmPerfMon.get_datapathBER();
+        auto& preFecBer = vdmPerfMon.datapathBER().value();
         // Fec tail is not implemented on all modules that support VDM. FEC tail
         // is available starting CMIS 5.0 (2x400G-[D|F]R4)
         auto fecTailMax = vdmPerfMon.fecTailMax().value_or({});
-        auto& laneSnr = vdmPerfMon.get_laneSNR();
+        auto& laneSnr = vdmPerfMon.laneSNR().value();
 
         XLOG(DBG2) << "Validating VDM performance monitoring for " << portName
                    << ", side: " << apache::thrift::util::enumNameSafe(side);
         EXPECT_LE(preFecBer.get_max(), thresholds.preFecBer.maxThreshold)
             << folly::sformat(
-                   "PreFecBer Max for {} is {}", portName, preFecBer.get_max());
+                   "PreFecBer Max for {} is {}",
+                   portName,
+                   folly::copy(preFecBer.max().value()));
         EXPECT_LE(fecTailMax, thresholds.fecTailMax.maxThreshold)
             << folly::sformat("FecTail Max for {} is {}", portName, fecTailMax);
         for (auto& [lane, snr] : laneSnr) {
@@ -79,8 +81,8 @@ void validateVdm(
     auto vdmPerfMonitorStats =
         txInfoItr->second.tcvrStats()->vdmPerfMonitorStats();
     ASSERT_TRUE(vdmPerfMonitorStats.has_value());
-    auto& mediaStats = vdmPerfMonitorStats->get_mediaPortVdmStats();
-    auto& hostStats = vdmPerfMonitorStats->get_hostPortVdmStats();
+    auto& mediaStats = vdmPerfMonitorStats->mediaPortVdmStats().value();
+    auto& hostStats = vdmPerfMonitorStats->hostPortVdmStats().value();
 
     auto validateSideStats =
         [&, validatePerfMon](
@@ -152,11 +154,11 @@ TEST_F(OpticsTest, verifyTxRxLatches) {
   for (auto& tcvrInfo : allTcvrInfos) {
     auto& tcvrState = *tcvrInfo.second.tcvrState();
     cachedHostLanes.insert(
-        tcvrState.get_portNameToHostLanes().begin(),
-        tcvrState.get_portNameToHostLanes().end());
+        tcvrState.portNameToHostLanes().value().begin(),
+        tcvrState.portNameToHostLanes().value().end());
     cachedMediaLanes.insert(
-        tcvrState.get_portNameToMediaLanes().begin(),
-        tcvrState.get_portNameToMediaLanes().end());
+        tcvrState.portNameToMediaLanes().value().begin(),
+        tcvrState.portNameToMediaLanes().value().end());
   }
 
   // Pause remediation because we don't want transceivers to remediate while

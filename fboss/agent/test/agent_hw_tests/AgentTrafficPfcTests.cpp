@@ -66,11 +66,11 @@ std::tuple<int, int, int> getPfcTxRxXonHwPortStats(
     const facebook::fboss::HwPortStats& portStats,
     const int pfcPriority) {
   return {
-      folly::get_default(portStats.get_outPfc_(), pfcPriority, 0),
-      folly::get_default(portStats.get_inPfc_(), pfcPriority, 0),
+      folly::get_default(portStats.outPfc_().value(), pfcPriority, 0),
+      folly::get_default(portStats.inPfc_().value(), pfcPriority, 0),
       ensemble->getSw()->getHwAsicTable()->isFeatureSupportedOnAllAsic(
           facebook::fboss::HwAsic::Feature::PFC_XON_TO_XOFF_COUNTER)
-          ? folly::get_default(portStats.get_inPfcXon_(), pfcPriority, 0)
+          ? folly::get_default(portStats.inPfcXon_().value(), pfcPriority, 0)
           : 0};
 }
 

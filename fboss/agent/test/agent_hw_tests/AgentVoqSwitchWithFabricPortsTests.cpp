@@ -53,8 +53,8 @@ class AgentVoqSwitchWithFabricPortsTest : public AgentVoqSwitchTest {
     const auto kPort = ecmpHelper.ecmpPortDescriptorAt(0);
     addRemoveNeighbor(kPort, true /* add neighbor*/);
     auto sendPktAndVerify = [&](bool isFrontPanel) {
-      auto beforeOutPkts =
-          getLatestPortStats(kPort.phyPortID()).get_outUnicastPkts_();
+      auto beforeOutPkts = folly::copy(
+          getLatestPortStats(kPort.phyPortID()).outUnicastPkts_().value());
       std::optional<PortID> frontPanelPort;
       if (isFrontPanel) {
         frontPanelPort = ecmpHelper.ecmpPortDescriptorAt(1).phyPortID();
@@ -330,8 +330,10 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, verifyNifMulticastTrafficDropped) {
   auto setup = []() {};
 
   auto verify = [=, this]() {
-    auto beforePkts = getLatestPortStats(masterLogicalInterfacePortIds()[0])
-                          .get_outUnicastPkts_();
+    auto beforePkts =
+        folly::copy(getLatestPortStats(masterLogicalInterfacePortIds()[0])
+                        .outUnicastPkts_()
+                        .value());
     sendLocalServiceDiscoveryMulticastPacket(
         masterLogicalInterfacePortIds()[0], kNumPacketsToSend);
     WITH_RETRIES({
@@ -347,7 +349,7 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, verifyNifMulticastTrafficDropped) {
     auto fabricPortStats = getLatestPortStats(masterLogicalFabricPortIds());
     auto fabricBytes = 0;
     for (const auto& idAndStats : fabricPortStats) {
-      fabricBytes += idAndStats.second.get_outBytes_();
+      fabricBytes += folly::copy(idAndStats.second.outBytes_().value());
     }
     // Even though NIF will see RX/TX bytes, fabric will always be zero
     // as these packets are expected to be dropped without being sent
@@ -419,8 +421,8 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, checkFabricPortSprayWithIsolate) {
   };
 
   auto verify = [this, kPort, ecmpHelper]() {
-    auto beforePkts =
-        getLatestPortStats(kPort.phyPortID()).get_outUnicastPkts_();
+    auto beforePkts = folly::copy(
+        getLatestPortStats(kPort.phyPortID()).outUnicastPkts_().value());
 
     // Drain a fabric port
     auto fabricPortId =
@@ -481,8 +483,8 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, checkFabricPortSpray) {
   };
 
   auto verify = [this, kPort, ecmpHelper]() {
-    auto beforePkts =
-        getLatestPortStats(kPort.phyPortID()).get_outUnicastPkts_();
+    auto beforePkts = folly::copy(
+        getLatestPortStats(kPort.phyPortID()).outUnicastPkts_().value());
     for (auto i = 0; i < 10000; ++i) {
       sendPacket(
           ecmpHelper.ip(kPort), ecmpHelper.ecmpPortDescriptorAt(1).phyPortID());

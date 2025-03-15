@@ -55,7 +55,8 @@ void AgentSendPacketToQueueTest::checkSendPacket(
     const uint8_t queueID = ucQueue ? *ucQueue : kDefaultQueue;
 
     auto beforeOutPkts =
-        getLatestPortStats(port).get_queueOutPackets_().at(queueID);
+        folly::copy(getLatestPortStats(port).queueOutPackets_().value())
+            .at(queueID);
     auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
