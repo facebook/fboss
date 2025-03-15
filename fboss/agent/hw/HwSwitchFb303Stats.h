@@ -89,6 +89,21 @@ class HwSwitchFb303Stats {
   void fdaFifoOverflowError() {
     fdaFifoOverflowErrors_.addValue(1);
   }
+  void congestionManagementError() {
+    congestionManagementErrors_.addValue(1);
+  }
+  void dramDataPathError() {
+    dramDataPathErrors_.addValue(1);
+  }
+  void dramQueueManagementError() {
+    dramQueueManagementErrors_.addValue(1);
+  }
+  void egressCongestionManagementError() {
+    egressCongestionManagementErrors_.addValue(1);
+  }
+  void egressDataBufferError() {
+    egressDataBufferErrors_.addValue(1);
+  }
   void hwInitializedTime(uint64_t ms) {
     hwInitializedTimeMs_.addValue(ms);
   }
@@ -187,6 +202,12 @@ class HwSwitchFb303Stats {
   int64_t getFdaFifoOverflowErrors() const;
   int64_t getForwardingQueueProcessorErrors() const;
   int64_t getAllReassemblyContextsTakenError() const;
+  int64_t getCongestionManagementErrors() const;
+  int64_t getDramDataPathErrors() const;
+  int64_t getDramQueueManagementErrors() const;
+  int64_t getEgressCongestionManagementErrors() const;
+  int64_t getEgressDataBufferErrors() const;
+
   // FW Errors
   int64_t getIsolationFirmwareCrashes() const;
   int64_t getRxFifoStuckDetected() const;
@@ -285,6 +306,11 @@ class HwSwitchFb303Stats {
   TLTimeseries allReassemblyContextsTaken_;
   TLTimeseries isolationFirmwareCrashes_;
   TLTimeseries rxFifoStuckDetected_;
+  TLTimeseries congestionManagementErrors_;
+  TLTimeseries dramDataPathErrors_;
+  TLTimeseries dramQueueManagementErrors_;
+  TLTimeseries egressCongestionManagementErrors_;
+  TLTimeseries egressDataBufferErrors_;
   TLTimeseries hwInitializedTimeMs_;
   TLTimeseries bootTimeMs_;
   TLTimeseries coldBoot_;

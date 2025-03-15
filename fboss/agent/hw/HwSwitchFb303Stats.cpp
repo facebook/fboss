@@ -234,6 +234,31 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
           getCounterPrefix() + vendor + ".rxFifoStuckDetected.errors",
           SUM,
           RATE),
+      congestionManagementErrors_(
+          map,
+          getCounterPrefix() + vendor + ".congestion_management.errors",
+          SUM,
+          RATE),
+      dramDataPathErrors_(
+          map,
+          getCounterPrefix() + vendor + ".dram_data_path.errors",
+          SUM,
+          RATE),
+      dramQueueManagementErrors_(
+          map,
+          getCounterPrefix() + vendor + ".dram_queue_management.errors",
+          SUM,
+          RATE),
+      egressCongestionManagementErrors_(
+          map,
+          getCounterPrefix() + vendor + ".egress_congestion_management.errors",
+          SUM,
+          RATE),
+      egressDataBufferErrors_(
+          map,
+          getCounterPrefix() + vendor + ".egress_data_buffer.errors",
+          SUM,
+          RATE),
       hwInitializedTimeMs_(
           map,
           getCounterPrefix() + vendor + ".hw_initialized_time_ms",
@@ -431,6 +456,26 @@ int64_t HwSwitchFb303Stats::getAllReassemblyContextsTakenError() const {
   return getCumulativeValue(allReassemblyContextsTaken_);
 }
 
+int64_t HwSwitchFb303Stats::getCongestionManagementErrors() const {
+  return getCumulativeValue(congestionManagementErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getDramDataPathErrors() const {
+  return getCumulativeValue(dramDataPathErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getDramQueueManagementErrors() const {
+  return getCumulativeValue(dramQueueManagementErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getEgressCongestionManagementErrors() const {
+  return getCumulativeValue(egressCongestionManagementErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getEgressDataBufferErrors() const {
+  return getCumulativeValue(egressDataBufferErrors_);
+}
+
 int64_t HwSwitchFb303Stats::getIsolationFirmwareCrashes() const {
   return getCumulativeValue(isolationFirmwareCrashes_);
 }
@@ -501,6 +546,12 @@ HwAsicErrors HwSwitchFb303Stats::getHwAsicErrors() const {
       getAllReassemblyContextsTakenError();
   asicErrors.isolationFirmwareCrashes() = getIsolationFirmwareCrashes();
   asicErrors.rxFifoStuckDetected() = getRxFifoStuckDetected();
+  asicErrors.congestionManagementErrors() = getCongestionManagementErrors();
+  asicErrors.dramDataPathErrors() = getDramDataPathErrors();
+  asicErrors.dramQueueManagementErrors() = getDramQueueManagementErrors();
+  asicErrors.egressCongestionManagementErrors() =
+      getEgressCongestionManagementErrors();
+  asicErrors.egressDataBufferErrors() = getEgressDataBufferErrors();
   return asicErrors;
 }
 
