@@ -6,11 +6,15 @@ cpp_unittest(
     name = "fan_service_sw_test",
     srcs = [
         "BspTests.cpp",
+        "ConfigValidatorTest.cpp",
         "ControlLogicTests.cpp",
+        "OvertempTests.cpp",
         "PidLogicTests.cpp",
     ],
     deps = [
         "fbsource//third-party/googletest:gmock",
+        "//fboss/agent:fboss-error",
+        "//fboss/platform/fan_service:config_validator",
         "//fboss/platform/fan_service:core",
         "//fboss/platform/fan_service:pid_logic_library",
         "//fboss/platform/fan_service/if:fan_service-cpp2-types",

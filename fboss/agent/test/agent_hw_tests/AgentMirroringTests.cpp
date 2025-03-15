@@ -72,8 +72,9 @@ class AgentMirroringTest : public AgentHwTest {
 
   void sendPackets(int count, size_t payloadSize = 1) {
     auto params = utility::getMirrorTestParams<AddrT>();
-    auto vlanId = utility::firstVlanID(getProgrammedState());
-    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
+    auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
+    auto intfMac =
+        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     std::vector<uint8_t> payload(payloadSize, 0xff);
     auto trafficPort = getTrafficPort(*getAgentEnsemble());
     auto oldPacketStats = getLatestPortStats(trafficPort);
@@ -192,8 +193,7 @@ class AgentMirroringTest : public AgentHwTest {
     utility::addAclEntry(cfg, aclEntry, utility::kDefaultAclTable());
 
     cfg::MatchAction matchAction = cfg::MatchAction();
-    if (mirrorName == utility::kIngressErspan ||
-        mirrorName == utility::kEgressErspan) {
+    if (mirrorName == utility::kIngressErspan) {
       matchAction.ingressMirror() = mirrorName;
     } else {
       matchAction.egressMirror() = mirrorName;
@@ -471,7 +471,9 @@ class AgentIngressAclSpanMirroringTest : public AgentMirroringTest<AddrT> {
  public:
   std::vector<production_features::ProductionFeature>
   getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::INGRESS_MIRRORING};
+    return {
+        production_features::ProductionFeature::INGRESS_MIRRORING,
+        production_features::ProductionFeature::INGRESS_ACL_MIRRORING};
   }
 
   cfg::SwitchConfig initialConfig(
@@ -493,7 +495,9 @@ class AgentIngressAclErspanMirroringTest : public AgentMirroringTest<AddrT> {
  public:
   std::vector<production_features::ProductionFeature>
   getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::INGRESS_MIRRORING};
+    return {
+        production_features::ProductionFeature::INGRESS_MIRRORING,
+        production_features::ProductionFeature::INGRESS_ACL_MIRRORING};
   }
 
   cfg::SwitchConfig initialConfig(
@@ -585,7 +589,9 @@ class AgentEgressAclSpanMirroringTest : public AgentMirroringTest<AddrT> {
  public:
   std::vector<production_features::ProductionFeature>
   getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::EGRESS_MIRRORING};
+    return {
+        production_features::ProductionFeature::EGRESS_MIRRORING,
+        production_features::ProductionFeature::EGRESS_ACL_MIRRORING};
   }
 
   cfg::SwitchConfig initialConfig(
@@ -607,7 +613,9 @@ class AgentEgressAclErspanMirroringTest : public AgentMirroringTest<AddrT> {
  public:
   std::vector<production_features::ProductionFeature>
   getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::EGRESS_MIRRORING};
+    return {
+        production_features::ProductionFeature::EGRESS_MIRRORING,
+        production_features::ProductionFeature::EGRESS_ACL_MIRRORING};
   }
 
   cfg::SwitchConfig initialConfig(

@@ -83,6 +83,7 @@ class MockHwSwitch : public HwSwitch {
   MOCK_CONST_METHOD0(toFollyDynamic, folly::dynamic());
   MOCK_CONST_METHOD0(exitFatal, void());
   MOCK_METHOD0(unregisterCallbacks, void());
+  MOCK_METHOD0(getArsExhaustionStatus, bool());
   MOCK_CONST_METHOD1(isValidStateUpdate, bool(const StateDelta& delta));
   MOCK_CONST_METHOD1(isPortUp, bool(PortID port));
   MOCK_CONST_METHOD1(getPortMaxSpeed, cfg::PortSpeed(PortID port));

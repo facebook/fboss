@@ -1,4 +1,4 @@
-load("@fbcode_macros//build_defs:export_files.bzl", "export_file")
+load("@fbcode_macros//build_defs:native_rules.bzl", "buck_filegroup")
 load("//fbpkg:fbpkg.bzl", "fbpkg")
 
 oncall("fboss_platform")
@@ -19,15 +19,13 @@ fbpkg.builder(
         "rackmon.service": "facebook/rackmon.service",
         "sensor_service": "//fboss/platform/sensor_service:sensor_service",
         "sensor_service.service": "facebook/sensor_service.service",
+        "sensor_service_client": "//fboss/platform/sensor_service:sensor_service_client",
         "weutil": "//fboss/platform/weutil:weutil",
     },
     split_debuginfo = True,
 )
 
-export_file(
+buck_filegroup(
     name = "configs",
-    src = "configs",
-    visibility = [
-        "PUBLIC",
-    ],
+    srcs = glob(["**/*.json"]),
 )

@@ -22,6 +22,7 @@
 #include "fboss/agent/hw/switch_asics/Tomahawk3Asic.h"
 #include "fboss/agent/hw/switch_asics/Tomahawk4Asic.h"
 #include "fboss/agent/hw/switch_asics/Tomahawk5Asic.h"
+#include "fboss/agent/hw/switch_asics/Tomahawk6Asic.h"
 #include "fboss/agent/hw/switch_asics/TomahawkAsic.h"
 #include "fboss/agent/hw/switch_asics/Trident2Asic.h"
 #include "fboss/agent/hw/switch_asics/YubaAsic.h"
@@ -93,6 +94,8 @@ std::unique_ptr<HwAsic> HwAsic::makeAsic(
       return std::make_unique<Tomahawk4Asic>(switchId, switchInfo, sdkVersion);
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
       return std::make_unique<Tomahawk5Asic>(switchId, switchInfo, sdkVersion);
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK6:
+      return std::make_unique<Tomahawk6Asic>(switchId, switchInfo, sdkVersion);
     case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
       return std::make_unique<CredoPhyAsic>(switchId, switchInfo, sdkVersion);
     case cfg::AsicType::ASIC_TYPE_EBRO:
@@ -150,8 +153,13 @@ cfg::Range64 HwAsic::getReservedEncapIndexRange() const {
       "Reserved encap idx range unimplemented for: ", getAsicTypeStr());
 }
 
-HwAsic::RecyclePortInfo HwAsic::getRecyclePortInfo() const {
+HwAsic::RecyclePortInfo HwAsic::getRecyclePortInfo(
+    InterfaceNodeRole /* intfRole */) const {
   throw FbossError("Recycle port info unimplemented for: ", getAsicTypeStr());
+}
+
+uint32_t HwAsic::getMaxSwitchId() const {
+  throw FbossError("Max switchId unimplemented for: ", getAsicTypeStr());
 }
 
 cfg::Range64 HwAsic::makeRange(int64_t min, int64_t max) {

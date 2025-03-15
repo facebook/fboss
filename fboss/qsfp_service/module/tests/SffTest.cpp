@@ -30,7 +30,8 @@ class SffTest : public TransceiverManagerTestHelper {
             std::make_unique<SffModule>(
                 transceiverManager_->getPortNames(id),
                 qsfpImpls_.back().get(),
-                tcvrConfig_)));
+                tcvrConfig_,
+                transceiverManager_->getTransceiverName(id))));
 
     if (willRefresh) {
       // Refresh once to make sure the override transceiver finishes refresh
@@ -353,11 +354,12 @@ class SfpTest : public TransceiverManagerTestHelper {
         static_cast<int>(id) + 1,
         uint8_t(TransceiverModuleIdentifier::SFP_PLUS));
     auto portNames = transceiverManager_->getPortNames(id);
+    auto tcvrName = transceiverManager_->getTransceiverName(id);
     auto xcvr = static_cast<Sff8472Module*>(
         transceiverManager_->overrideTransceiverForTesting(
             id,
             std::make_unique<Sff8472Module>(
-                portNames, qsfpImpls_.back().get())));
+                portNames, qsfpImpls_.back().get(), tcvrName)));
     // Refresh once to make sure the override transceiver finishes refresh
     transceiverManager_->refreshStateMachines();
 

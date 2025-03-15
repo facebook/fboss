@@ -6,6 +6,7 @@
 #include <chrono>
 
 #include <exprtk.hpp>
+#include <folly/logging/xlog.h>
 #include <re2/re2.h>
 
 #include "fboss/platform/config_lib/ConfigLib.h"
@@ -15,36 +16,36 @@
 namespace facebook::fboss::platform::sensor_service {
 
 namespace {
-// Compare the two array reprsentation of
-// productionState,productVersion,productSubVersion.
-// Return true if l1 >= l2, false otherwise.
-bool greaterEqual(
-    std::array<int16_t, 3> l1,
-    std::array<int16_t, 3> l2,
-    uint8_t i = 0) {
-  if (i == 3) {
-    return true;
+// Strict weak ordering of VersionedSensorComparator(lhs,rhs)
+// Returns true if lhs > rhs, false otherwise.
+struct {
+  bool operator()(
+      const std::array<int16_t, 3>& l1,
+      const std::array<int16_t, 3>& l2,
+      uint8_t i = 0) {
+    if (i == 3) {
+      return false;
+    }
+    if (l1[i] > l2[i]) {
+      return true;
+    }
+    if (l1[i] < l2[i]) {
+      return false;
+    }
+    return (*this)(l1, l2, ++i);
   }
-  if (l1[i] > l2[i]) {
-    return true;
+  bool operator()(
+      const VersionedPmSensor& vSensor1,
+      const VersionedPmSensor& vSensor2) {
+    return (*this)(
+        {*vSensor1.productProductionState(),
+         *vSensor1.productVersion(),
+         *vSensor1.productSubVersion()},
+        {*vSensor2.productProductionState(),
+         *vSensor2.productVersion(),
+         *vSensor2.productSubVersion()});
   }
-  if (l1[i] < l2[i]) {
-    return false;
-  }
-  return greaterEqual(l1, l2, ++i);
-}
-// Same as above greaterEqual except it takes VersionedPmSensor
-bool greaterEqual(
-    const VersionedPmSensor& vSensor1,
-    const VersionedPmSensor& vSensor2) {
-  return greaterEqual(
-      {*vSensor1.productProductionState(),
-       *vSensor1.productVersion(),
-       *vSensor1.productSubVersion()},
-      {*vSensor2.productProductionState(),
-       *vSensor2.productVersion(),
-       *vSensor2.productSubVersion()});
-}
+} VersionedSensorComparator;
 } // namespace
 
 uint64_t Utils::nowInSecs() {
@@ -80,31 +81,43 @@ float Utils::computeExpression(
 std::optional<VersionedPmSensor> Utils::resolveVersionedSensors(
     const PmUnitInfoFetcher& fetcher,
     const std::string& slotPath,
-    const std::vector<VersionedPmSensor>& versionedSensors) {
+    std::vector<VersionedPmSensor> versionedSensors) {
   if (versionedSensors.empty()) {
     return std::nullopt;
   }
+  // Sort in a descending order.
+  std::sort(
+      versionedSensors.begin(),
+      versionedSensors.end(),
+      VersionedSensorComparator);
   const auto pmUnitInfo = fetcher.fetch(slotPath);
+  // Use the latest PmUnitInfo as the best effort because eventually the latest
+  // respins will only be deployed to DC. So more merits to tailor towards them
+  // with an assumption that latest respions will mainly be in the DC.
   if (!pmUnitInfo) {
-    return std::nullopt;
+    XLOG(INFO) << fmt::format(
+        "Fail to fetch PmUnitInfo at {} from PlatformManager. "
+        "Fall back to the latest VersionedPmSensor",
+        slotPath);
+    return versionedSensors.front();
   }
-  std::optional<VersionedPmSensor> resolvedVersionedSensor{std::nullopt};
   for (const auto& versionedSensor : versionedSensors) {
-    if (greaterEqual(
-            *pmUnitInfo,
+    // Find a VersionedSensor that satisfies fetched PmUnitInfo version.
+    // i.e. PmUnitInfo version >= VersionedSensor sensor
+    if (!VersionedSensorComparator(
             {*versionedSensor.productProductionState(),
              *versionedSensor.productVersion(),
-             *versionedSensor.productSubVersion()})) {
-      resolvedVersionedSensor = std::max(
-          versionedSensor,
-          // Default VersionedPmSensor if null i.e (0,0,0)
-          resolvedVersionedSensor.value_or(VersionedPmSensor{}),
-          [](const auto& vSensor1, const auto& vSensor2) {
-            return !greaterEqual(vSensor1, vSensor2);
-          });
+             *versionedSensor.productSubVersion()},
+            *pmUnitInfo)) {
+      XLOG(INFO) << fmt::format(
+          "Resolved to VersionedPmSensor of version {}.{}.{}",
+          *versionedSensor.productProductionState(),
+          *versionedSensor.productVersion(),
+          *versionedSensor.productSubVersion());
+      return versionedSensor;
     }
   }
-  return resolvedVersionedSensor;
+  return std::nullopt;
 }
 
 SensorConfig Utils::getConfig() {
@@ -112,15 +125,7 @@ SensorConfig Utils::getConfig() {
   SensorConfig sensorConfig =
       apache::thrift::SimpleJSONSerializer::deserialize<SensorConfig>(
           ConfigLib().getSensorServiceConfig(platformName));
-  std::optional<platform_manager::PlatformConfig> platformConfig{std::nullopt};
-  // TODO(T207042263) Enable cross-service config validation for Darwin
-  // once Darwin onboards PM.
-  if (platformName != "DARWIN") {
-    platformConfig = apache::thrift::SimpleJSONSerializer::deserialize<
-        platform_manager::PlatformConfig>(
-        ConfigLib().getPlatformManagerConfig(platformName));
-  }
-  if (!ConfigValidator().isValid(sensorConfig, platformConfig)) {
+  if (!ConfigValidator().isValid(sensorConfig, std::nullopt)) {
     throw std::runtime_error("Invalid sensor config");
   }
   return sensorConfig;

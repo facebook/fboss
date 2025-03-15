@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # Copyright (C) 2004-present Facebook. All Rights Reserved
 
+# pyre-unsafe
+
 import contextlib
 import socket
 from argparse import ArgumentParser
@@ -100,9 +102,7 @@ def list_optics(args):
 def list_ports(args):
     details = args.details
     with get_client(args) as client:
-        for idx, intf in client.getPortStatus(
-            list(range(1, 65))
-        ).items():  # noqa: B301 T25377293 Grandfathered in
+        for idx, intf in client.getPortStatus(list(range(1, 65))).items():  # noqa: B301 T25377293 Grandfathered in
             stats = ""
             if details:
                 stats = " (%s)" % client.getPortStats(idx)

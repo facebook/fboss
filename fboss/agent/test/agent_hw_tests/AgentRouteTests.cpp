@@ -232,9 +232,22 @@ class AgentRouteTest : public AgentHwTest {
   }
 };
 
+template <typename AddrT>
+class AgentClassIDRouteTest : public AgentRouteTest<AddrT> {
+ public:
+  std::vector<production_features::ProductionFeature>
+  getProductionFeaturesVerified() const override {
+    auto features = AgentRouteTest<AddrT>::getProductionFeaturesVerified();
+    features.push_back(
+        production_features::ProductionFeature::CLASS_ID_FOR_CONNECTED_ROUTE);
+    return features;
+  }
+};
+
 using IpTypes = ::testing::Types<folly::IPAddressV4, folly::IPAddressV6>;
 
 TYPED_TEST_SUITE(AgentRouteTest, IpTypes);
+TYPED_TEST_SUITE(AgentClassIDRouteTest, IpTypes);
 
 TYPED_TEST(AgentRouteTest, VerifyClassID) {
   auto setup = [=, this]() {
@@ -277,26 +290,6 @@ TYPED_TEST(AgentRouteTest, VerifyClassID) {
   };
 
   this->verifyAcrossWarmBoots(setup, verify);
-}
-
-TYPED_TEST(AgentRouteTest, VerifyClassIDForConnectedRoute) {
-  auto verify = [=, this]() {
-    auto ipAddr = this->getSubnetIpForInterface();
-    // verify if the connected route of the interface is present
-    auto routeInfo = getRouteInfo(
-        ipAddr.network(), ipAddr.mask(), *this->getAgentEnsemble());
-    EXPECT_TRUE(*routeInfo.exists());
-    auto asic =
-        utility::checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics());
-    if (asic->getAsicVendor() != HwAsic::AsicVendor::ASIC_VENDOR_TAJO) {
-      if (FLAGS_set_classid_for_my_subnet_and_ip_routes) {
-        this->verifyClassIDHelper(
-            ipAddr, cfg::AclLookupClass::DST_CLASS_L3_LOCAL_2);
-      }
-    }
-  };
-
-  this->verifyAcrossWarmBoots([] {}, verify);
 }
 
 TYPED_TEST(AgentRouteTest, VerifyClassIdWithNhopResolutionFlap) {
@@ -580,8 +573,9 @@ TYPED_TEST(AgentRouteTest, VerifyRouting) {
   };
   auto verify = [=, this]() {
     const auto egressPort = ports[0].phyPortID();
-    auto vlanId = utility::firstVlanID(this->getProgrammedState());
-    auto intfMac = utility::getFirstInterfaceMac(this->getProgrammedState());
+    auto vlanId = utility::firstVlanIDWithPorts(this->getProgrammedState());
+    auto intfMac =
+        utility::getMacForFirstInterfaceWithPorts(this->getProgrammedState());
 
     auto beforeOutPkts =
         *this->getLatestPortStats(egressPort).outUnicastPkts__ref();
@@ -713,8 +707,9 @@ TYPED_TEST(AgentRouteTest, verifyCpuRouteChange) {
 
     // Verify routing
     const auto egressPort = ports[1].phyPortID();
-    auto vlanId = utility::firstVlanID(this->getProgrammedState());
-    auto intfMac = utility::getFirstInterfaceMac(this->getProgrammedState());
+    auto vlanId = utility::firstVlanIDWithPorts(this->getProgrammedState());
+    auto intfMac =
+        utility::getMacForFirstInterfaceWithPorts(this->getProgrammedState());
     auto beforeOutPkts =
         *this->getLatestPortStats(egressPort).outUnicastPkts__ref();
     auto v6TxPkt = utility::makeUDPTxPacket(
@@ -798,6 +793,26 @@ TYPED_TEST(AgentRouteTest, VerifyDefaultRoute) {
         getRouteInfo(folly::IPAddress("0.0.0.0"), 0, *this->getAgentEnsemble());
     EXPECT_TRUE(*routeInfo1.exists());
   };
+  this->verifyAcrossWarmBoots([] {}, verify);
+}
+
+TYPED_TEST(AgentClassIDRouteTest, VerifyClassIDForConnectedRoute) {
+  auto verify = [=, this]() {
+    auto ipAddr = this->getSubnetIpForInterface();
+    // verify if the connected route of the interface is present
+    auto routeInfo = getRouteInfo(
+        ipAddr.network(), ipAddr.mask(), *this->getAgentEnsemble());
+    EXPECT_TRUE(*routeInfo.exists());
+    auto asic =
+        utility::checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics());
+    if (asic->getAsicVendor() != HwAsic::AsicVendor::ASIC_VENDOR_TAJO) {
+      if (FLAGS_set_classid_for_my_subnet_and_ip_routes) {
+        this->verifyClassIDHelper(
+            ipAddr, cfg::AclLookupClass::DST_CLASS_L3_LOCAL_2);
+      }
+    }
+  };
+
   this->verifyAcrossWarmBoots([] {}, verify);
 }
 } // namespace facebook::fboss

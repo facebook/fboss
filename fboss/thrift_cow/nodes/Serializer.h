@@ -10,13 +10,37 @@
 
 #pragma once
 
+#include <folly/DynamicConverter.h>
 #include <folly/io/IOBufQueue.h>
+#include <thrift/lib/cpp2/folly_dynamic/folly_dynamic.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 #include <thrift/lib/cpp2/protocol/detail/protocol_methods.h>
+#include <thrift/lib/cpp2/reflection/reflection.h>
 #include <utility>
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 
 namespace facebook::fboss::thrift_cow {
+
+// Parse keys for maps and sets. Keeping this outside nodes to reduce
+// instatiations because it only depends on the type and tc of the key, not the
+// type of the node itself.
+template <typename KeyT, typename KeyTC>
+std::optional<KeyT> tryParseKey(const std::string& token) {
+  if constexpr (std::
+                    is_same_v<KeyTC, apache::thrift::type_class::enumeration>) {
+    // special handling for enum keyed maps
+    KeyT enumKey;
+    if (apache::thrift::util::tryParseEnum(token, &enumKey)) {
+      return enumKey;
+    }
+  }
+  auto key = folly::tryTo<KeyT>(token);
+  if (key.hasValue()) {
+    return *key;
+  }
+
+  return std::nullopt;
+}
 
 struct FieldBaseType {};
 
@@ -64,63 +88,62 @@ struct Serializer {
   using Writer = typename Serializers::Writer;
   using TSerializer = apache::thrift::Serializer<Reader, Writer>;
 
-  template <
-      typename TC,
-      typename TType,
-      std::enable_if_t<detail::tc_is_struct_or_union<TC>, bool> = true>
-  static folly::fbstring serialize(const TType& ttype) {
+  // default size to serialize is 1KB instead of 16KB in writer::setOutput()
+  static const size_t maxGrowth = 1024;
+
+  template <typename TC, typename TType>
+  static folly::fbstring serialize(const TType& ttype)
+    requires(detail::tc_is_struct_or_union<TC>)
+  {
     folly::fbstring encoded;
     TSerializer::serialize(ttype, &encoded);
     encoded.shrink_to_fit();
     return encoded;
   }
 
-  template <
-      typename TC,
-      typename TType,
-      std::enable_if_t<!detail::tc_is_struct_or_union<TC>, bool> = true>
-  static folly::fbstring serialize(const TType& ttype) {
+  template <typename TC, typename TType>
+  static folly::fbstring serialize(const TType& ttype)
+    requires(!detail::tc_is_struct_or_union<TC>)
+  {
     auto str = serializeBuf<TC>(ttype).moveToFbString();
     str.shrink_to_fit();
     return str;
   }
 
-  template <
-      typename TC,
-      typename TType,
-      std::enable_if_t<detail::tc_is_struct_or_union<TC>, bool> = true>
-  static folly::IOBuf serializeBuf(const TType& ttype) {
+  template <typename TC, typename TType>
+  static folly::IOBuf serializeBuf(const TType& ttype)
+    requires(detail::tc_is_struct_or_union<TC>)
+  {
     folly::IOBufQueue queue;
-    TSerializer::serialize(ttype, &queue);
+    Writer writer;
+    writer.setOutput(&queue, maxGrowth);
+    apache::thrift::Cpp2Ops<TType>::write(&writer, &ttype);
     return queue.moveAsValue();
   }
 
-  template <
-      typename TC,
-      typename TType,
-      std::enable_if_t<!detail::tc_is_struct_or_union<TC>, bool> = true>
-  static folly::IOBuf serializeBuf(const TType& ttype) {
+  template <typename TC, typename TType>
+  static folly::IOBuf serializeBuf(const TType& ttype)
+    requires(!detail::tc_is_struct_or_union<TC>)
+  {
     folly::IOBufQueue queue;
     Writer writer;
-    writer.setOutput(&queue);
+    writer.setOutput(&queue, maxGrowth);
     apache::thrift::detail::pm::protocol_methods<TC, TType>::write(
         writer, ttype);
     return queue.moveAsValue();
   }
 
-  template <
-      typename TC,
-      typename TType,
-      std::enable_if_t<detail::tc_is_struct_or_union<TC>, bool> = true>
-  static TType deserialize(const folly::fbstring& encoded) {
+  template <typename TC, typename TType>
+  static TType deserialize(const folly::fbstring& encoded)
+    requires(detail::tc_is_struct_or_union<TC>)
+  {
     return TSerializer::template deserialize<TType>(encoded.toStdString());
   }
 
-  template <
-      typename TC,
-      typename TType,
-      std::enable_if_t<!detail::tc_is_struct_or_union<TC>, bool> = true>
-  static TType deserialize(const folly::fbstring& encoded) {
+  template <typename TC, typename TType>
+  static TType deserialize(const folly::fbstring& encoded)
+    requires(!detail::tc_is_struct_or_union<TC>)
+  {
     Reader reader;
     auto buf = folly::IOBuf::copyBuffer(encoded.data(), encoded.length());
     reader.setInput(buf.get());
@@ -130,19 +153,17 @@ struct Serializer {
     return recovered;
   }
 
-  template <
-      typename TC,
-      typename TType,
-      std::enable_if_t<detail::tc_is_struct_or_union<TC>, bool> = true>
-  static TType deserializeBuf(folly::IOBuf&& buf) {
+  template <typename TC, typename TType>
+  static TType deserializeBuf(folly::IOBuf&& buf)
+    requires(detail::tc_is_struct_or_union<TC>)
+  {
     return TSerializer::template deserialize<TType>(&buf);
   }
 
-  template <
-      typename TC,
-      typename TType,
-      std::enable_if_t<!detail::tc_is_struct_or_union<TC>, bool> = true>
-  static TType deserializeBuf(folly::IOBuf&& buf) {
+  template <typename TC, typename TType>
+  static TType deserializeBuf(folly::IOBuf&& buf)
+    requires(!detail::tc_is_struct_or_union<TC>)
+  {
     Reader reader;
     reader.setInput(&buf);
     TType recovered;
@@ -224,7 +245,9 @@ struct Serializable {
   virtual ~Serializable() = default;
 
   folly::fbstring encode(fsdb::OperProtocol proto) const {
-    return encodeBuf(proto).moveToFbString();
+    auto str = encodeBuf(proto).moveToFbString();
+    str.shrink_to_fit();
+    return str;
   }
 
   virtual folly::IOBuf encodeBuf(fsdb::OperProtocol proto) const = 0;
@@ -238,5 +261,262 @@ struct Serializable {
   virtual void fromEncodedBuf(
       fsdb::OperProtocol proto,
       folly::IOBuf&& encoded) = 0;
+
+  virtual folly::dynamic toFollyDynamic() const = 0;
 };
+
+struct ThriftObject {};
+
+template <typename TC, typename TType>
+class SerializableWrapper : public Serializable {
+ public:
+  using CowType = ThriftObject;
+  explicit SerializableWrapper(TType& node) : node_(node) {}
+
+  folly::IOBuf encodeBuf(fsdb::OperProtocol proto) const override {
+    switch (proto) {
+      case fsdb::OperProtocol::BINARY:
+        return Serializer<fsdb::OperProtocol::BINARY>::template serializeBuf<
+            TC>(node_);
+      case fsdb::OperProtocol::SIMPLE_JSON:
+        return Serializer<
+            fsdb::OperProtocol::SIMPLE_JSON>::template serializeBuf<TC>(node_);
+      case fsdb::OperProtocol::COMPACT:
+        return Serializer<fsdb::OperProtocol::COMPACT>::template serializeBuf<
+            TC>(node_);
+      default:
+        throw std::runtime_error(folly::to<std::string>(
+            "Unknown protocol: ", static_cast<int>(proto)));
+    }
+  }
+
+  void fromEncodedBuf(fsdb::OperProtocol proto, folly::IOBuf&& encoded)
+      override {
+    node_ = deserializeBuf<TC, TType>(proto, std::move(encoded));
+  }
+
+#ifdef ENABLE_DYNAMIC_APIS
+  folly::dynamic toFollyDynamic() const override {
+    folly::dynamic dyn;
+    facebook::thrift::to_dynamic(
+        dyn, node_, facebook::thrift::dynamic_format::JSON_1);
+    return dyn;
+  }
+#else
+  folly::dynamic toFollyDynamic() const override {
+    return {};
+  }
+#endif
+
+ private:
+  TType& node_;
+};
+
+template <typename TC>
+struct WritableImpl;
+
+/**
+ * primitives
+ */
+template <typename TC>
+struct WritableImpl {
+  static_assert(
+      !std::is_same<apache::thrift::type_class::unknown, TC>::value,
+      "No static reflection support for the given type. "
+      "Forgot to specify reflection option or include fatal header file? "
+      "Refer to thrift/lib/cpp2/reflection/reflection.h");
+  template <typename TType>
+  static inline bool remove(TType&, const std::string& token) {
+    throw std::runtime_error(folly::to<std::string>(
+        "Cannot remove a child from a primitive node: ", token));
+  }
+
+  template <typename TType>
+  static inline void
+  modify(TType& node, const std::string& token, bool construct) {
+    throw std::runtime_error("Cannot mutate an immutable primitive node");
+  }
+};
+
+/**
+ * structure
+ */
+template <>
+struct WritableImpl<apache::thrift::type_class::structure> {
+  template <typename TType>
+  static inline bool remove(TType& node, const std::string& token) {
+    bool removed = false;
+    fatal::foreach<typename apache::thrift::reflect_struct<TType>::members>(
+        [&](auto indexed) {
+          using member = decltype(fatal::tag_type(indexed));
+          const std::string fieldNameStr =
+              fatal::to_instance<std::string, typename member::name>();
+          if (fieldNameStr != token) {
+            return;
+          }
+          if constexpr (
+              member::optional::value ==
+              apache::thrift::optionality::optional) {
+            if (member::is_set(node)) {
+              member::mark_set(node, false);
+              removed = true;
+            }
+          }
+          return;
+        });
+    return removed;
+  }
+
+  template <typename TType>
+  static inline void
+  modify(TType& node, const std::string& token, bool construct) {
+    if (!construct) {
+      return;
+    }
+    fatal::foreach<typename apache::thrift::reflect_struct<TType>::members>(
+        [&](auto indexed) {
+          using member = decltype(fatal::tag_type(indexed));
+          const std::string fieldNameStr =
+              fatal::to_instance<std::string, typename member::name>();
+          if (fieldNameStr != token) {
+            return;
+          }
+          if constexpr (
+              member::optional::value ==
+              apache::thrift::optionality::optional) {
+            if (!member::is_set(node)) {
+              member::mark_set(node, true);
+              return;
+            }
+          }
+          return;
+        });
+  }
+};
+
+/**
+ * Variant
+ */
+template <>
+struct WritableImpl<apache::thrift::type_class::variant> {
+  template <typename TType>
+  static inline bool remove(TType&, const std::string&) {
+    throw std::runtime_error("not implemented remove variant");
+  }
+
+  template <typename TType>
+  static inline void
+  modify(TType& node, const std::string& token, bool construct) {
+    throw std::runtime_error("not implemented modify variant");
+  }
+};
+
+/**
+ * Map
+ */
+template <typename KeyTypeClass, typename MappedTypeClass>
+struct WritableImpl<
+    apache::thrift::type_class::map<KeyTypeClass, MappedTypeClass>> {
+  template <typename TType>
+  static inline bool remove(TType& node, const std::string& token) {
+    if constexpr (std::is_same_v<typename TType::key_type, std::string>) {
+      return node.erase(token);
+    } else if (auto key = folly::tryTo<typename TType::key_type>(token)) {
+      return node.erase(key.value());
+    }
+    return false;
+  }
+
+  template <typename TType>
+  static inline void
+  modify(TType& node, const std::string& token, bool construct) {
+    if (auto parsedKey =
+            tryParseKey<typename TType::key_type, KeyTypeClass>(token)) {
+      if (auto it = node.find(parsedKey.value()); it != node.end()) {
+        // key exists
+      } else if (construct) {
+        // create unpublished default constructed child if missing
+        node.try_emplace(parsedKey.value());
+      }
+    }
+  }
+};
+
+/**
+ * List
+ */
+template <typename ValueTypeClass>
+struct WritableImpl<apache::thrift::type_class::list<ValueTypeClass>> {
+  template <typename TType>
+  static inline bool remove(TType& node, const std::string& token) {
+    auto index = folly::tryTo<std::size_t>(token);
+    if (index.hasValue()) {
+      if (index.value() < node.size()) {
+        node.erase(node.begin() + index.value());
+        return true;
+      }
+    }
+    return false;
+  }
+
+  template <typename TType>
+  static inline void
+  modify(TType& node, const std::string& token, bool construct) {
+    auto index = folly::tryTo<std::size_t>(token);
+    if (construct) {
+      if (index.hasValue()) {
+        while (node.size() <= index.value()) {
+          node.emplace_back();
+        }
+      }
+    }
+  }
+};
+
+/**
+ * Set
+ */
+template <typename ValueTypeClass>
+struct WritableImpl<apache::thrift::type_class::set<ValueTypeClass>> {
+  template <typename TType>
+  static inline bool remove(TType& node, const std::string& token) {
+    if constexpr (std::is_same_v<typename TType::value_type, std::string>) {
+      return node.erase(token);
+    } else if (auto key = folly::tryTo<typename TType::value_type>(token)) {
+      return node.erase(key.value());
+    }
+    return false;
+  }
+
+  template <typename TType>
+  static inline void
+  modify(TType& node, const std::string& token, bool construct) {
+    if (!construct) {
+      return;
+    }
+    if constexpr (std::is_same_v<typename TType::value_type, std::string>) {
+      node.insert(token);
+    } else if (auto key = folly::tryTo<typename TType::value_type>(token)) {
+      node.insert(key.value());
+    }
+  }
+};
+
+template <typename TC, typename TType>
+class WritableWrapper {
+ public:
+  using CowType = ThriftObject;
+  explicit WritableWrapper(TType& node) : node_(node) {}
+
+  bool remove(const std::string& token) {
+    return WritableImpl<TC>::remove(node_, token);
+  }
+
+  void modify(const std::string& token, bool construct = true) {
+    WritableImpl<TC>::modify(node_, token, construct);
+  }
+
+  TType& node_;
+};
+
 } // namespace facebook::fboss::thrift_cow

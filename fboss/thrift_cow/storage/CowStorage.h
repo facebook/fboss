@@ -27,28 +27,24 @@ class CowStorage : public Storage<Root, CowStorage<Root, Node>> {
   using Base = Storage<Root, CowStorage<Root, Node>>;
   using RootT = Root;
   using StorageImpl = Node;
-  using Self = CowStorage<Root>;
   using PathIter = typename Base::PathIter;
   using ExtPath = typename Base::ExtPath;
   using ExtPathIter = typename Base::ExtPathIter;
 
-  template <
-      typename T,
-      std::enable_if_t<std::is_same_v<std::decay_t<T>, Root>, bool> = true>
+  template <typename T>
   explicit CowStorage(T&& root)
+    requires(std::is_same_v<std::decay_t<T>, Root>)
       : root_(std::make_shared<StorageImpl>(std::forward<T>(root))) {}
 
-  template <
-      typename T,
-      std::enable_if_t<std::is_same_v<std::decay_t<T>, Root>, bool> = true>
-  explicit CowStorage(std::shared_ptr<T> root) : root_(root) {}
+  template <typename T>
+  explicit CowStorage(std::shared_ptr<T> root)
+    requires(std::is_same_v<std::decay_t<T>, Root>)
+      : root_(root) {}
 
-  template <
-      typename T,
-      std::enable_if_t<
-          std::is_same_v<std::decay_t<T>, std::shared_ptr<StorageImpl>>,
-          bool> = true>
-  explicit CowStorage(T&& storage) : root_(std::forward<T>(storage)) {}
+  template <typename T>
+  explicit CowStorage(T&& storage)
+    requires(std::is_same_v<std::decay_t<T>, std::shared_ptr<StorageImpl>>)
+      : root_(std::forward<T>(storage)) {}
 
   bool isPublished_impl() {
     return root_->isPublished();
@@ -70,12 +66,23 @@ class CowStorage : public Storage<Root, CowStorage<Root, Node>> {
   typename Base::template Result<T> get_impl(PathIter begin, PathIter end)
       const {
     T out;
-    auto op = thrift_cow::pvlambda([&](auto& node) {
-      auto val = node.toThrift();
-      if constexpr (std::is_assignable_v<decltype(out)&, decltype(val)>) {
-        out = std::move(val);
+    auto op = thrift_cow::pvlambda([&](auto& node,
+                                       auto /* begin */,
+                                       auto /* end */) {
+      if constexpr (!thrift_cow::is_cow_type_v<decltype(node)>) {
+        // Thrift object under HybridNode
+        if constexpr (std::is_assignable_v<decltype(out)&, decltype(node)>) {
+          out = std::move(node);
+        } else {
+          throw std::runtime_error("Type mismatch");
+        }
       } else {
-        throw std::runtime_error("Type mismatch");
+        auto val = node.toThrift();
+        if constexpr (std::is_assignable_v<decltype(out)&, decltype(val)>) {
+          out = std::move(val);
+        } else {
+          throw std::runtime_error("Type mismatch");
+        }
       }
     });
     const auto& rootNode = *root_;
@@ -134,16 +141,26 @@ class CowStorage : public Storage<Root, CowStorage<Root, Node>> {
   std::optional<StorageError>
   set_impl(PathIter begin, PathIter end, T&& value) {
     StorageImpl::modifyPath(&root_, begin, end);
-    auto op = thrift_cow::pvlambda([&](auto& node) {
-      using NodeT = typename folly::remove_cvref_t<decltype(node)>;
-      using TType = typename NodeT::ThriftType;
-      using ValueT = typename folly::remove_cvref_t<decltype(value)>;
-      if constexpr (std::is_same_v<ValueT, TType>) {
-        node.fromThrift(std::forward<T>(value));
-      } else {
-        throw std::runtime_error("set: type mismatch for passed in path");
-      }
-    });
+    using ValueT = typename folly::remove_cvref_t<decltype(value)>;
+    auto op =
+        thrift_cow::pvlambda([&](auto& node, auto /*begin*/, auto /*end*/) {
+          using NodeT = typename folly::remove_cvref_t<decltype(node)>;
+          if constexpr (!thrift_cow::is_cow_type_v<NodeT>) {
+            // Thrift object under HybridNode
+            if constexpr (std::is_same_v<ValueT, NodeT>) {
+              node = std::forward<T>(value);
+            } else {
+              throw std::runtime_error("set: type mismatch for passed in path");
+            }
+          } else {
+            using TType = typename NodeT::ThriftType;
+            if constexpr (std::is_same_v<ValueT, TType>) {
+              node.fromThrift(std::forward<T>(value));
+            } else {
+              throw std::runtime_error("set: type mismatch for passed in path");
+            }
+          }
+        });
     auto traverseResult = thrift_cow::RootPathVisitor::visit(
         *root_, begin, end, thrift_cow::PathVisitMode::LEAF, op);
     return detail::parseTraverseResult(traverseResult);
@@ -170,14 +187,15 @@ class CowStorage : public Storage<Root, CowStorage<Root, Node>> {
       return detail::parseTraverseResult(modifyResult);
     }
     thrift_cow::PatchApplyResult patchResult;
-    auto op = thrift_cow::pvlambda([&](auto& node) {
-      using NodeT = typename folly::remove_cvref_t<decltype(node)>;
-      using TC = typename NodeT::TC;
-      patchResult = thrift_cow::PatchApplier<TC>::apply(
-          node, std::move(*patch.patch()), *patch.protocol());
-      XLOG(DBG5) << "Visited base path. patch result "
-                 << apache::thrift::util::enumNameSafe(patchResult);
-    });
+    auto op =
+        thrift_cow::pvlambda([&](auto& node, auto /*begin*/, auto /*end*/) {
+          using NodeT = typename folly::remove_cvref_t<decltype(node)>;
+          using TC = typename NodeT::TC;
+          patchResult = thrift_cow::PatchApplier<TC>::apply(
+              node, std::move(*patch.patch()), *patch.protocol());
+          XLOG(DBG5) << "Visited base path. patch result "
+                     << apache::thrift::util::enumNameSafe(patchResult);
+        });
     auto visitResult = thrift_cow::RootPathVisitor::visit(
         *root_, begin, end, thrift_cow::PathVisitMode::LEAF, op);
     auto visitError = detail::parseTraverseResult(visitResult);
@@ -246,13 +264,17 @@ class CowStorage : public Storage<Root, CowStorage<Root, Node>> {
   std::shared_ptr<StorageImpl> root_;
 };
 
-template <typename Root>
-bool operator==(const CowStorage<Root>& first, const CowStorage<Root>& second) {
+template <typename Root, typename Node>
+bool operator==(
+    const CowStorage<Root, Node>& first,
+    const CowStorage<Root, Node>& second) {
   return first.root() == second.root();
 }
 
-template <typename Root>
-bool operator!=(const CowStorage<Root>& first, const CowStorage<Root>& second) {
+template <typename Root, typename Node>
+bool operator!=(
+    const CowStorage<Root, Node>& first,
+    const CowStorage<Root, Node>& second) {
   return first.root() != second.root();
 }
 

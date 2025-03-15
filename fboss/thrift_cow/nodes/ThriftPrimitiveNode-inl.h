@@ -37,12 +37,16 @@ class ThriftPrimitiveNode : public thrift_cow::Serializable {
   explicit ThriftPrimitiveNode(ThriftType obj) : obj_(std::move(obj)) {}
 
   template <typename T = Self>
-  auto set(const ThriftType& obj) -> std::enable_if_t<!T::immutable, void> {
+  void set(const ThriftType& obj)
+    requires(!T::immutable)
+  {
     obj_ = obj;
   }
 
   template <typename T = Self>
-  auto set(const ThriftType&) const -> std::enable_if_t<T::immutable, void> {
+  void set(const ThriftType&) const
+    requires(T::immutable)
+  {
     throwImmutableException();
   }
 
@@ -75,29 +79,36 @@ class ThriftPrimitiveNode : public thrift_cow::Serializable {
   }
 
   template <typename T = Self>
-  auto fromThrift(const ThriftType& obj)
-      -> std::enable_if_t<!T::immutable, void> {
+  void fromThrift(const ThriftType& obj)
+    requires(!T::immutable)
+  {
     set(obj);
   }
 
   template <typename T = Self>
-  auto fromThrift(const ThriftType&) const
-      -> std::enable_if_t<T::immutable, void> {
+  void fromThrift(const ThriftType&) const
+    requires(T::immutable)
+  {
     throwImmutableException();
   }
 
 #ifdef ENABLE_DYNAMIC_APIS
 
-  folly::dynamic toFollyDynamic() const {
+  virtual folly::dynamic toFollyDynamic() const override {
     folly::dynamic out;
-    facebook::thrift::to_dynamic(
-        out, toThrift(), facebook::thrift::dynamic_format::JSON_1);
+    if constexpr (std::is_same_v<ThriftType, folly::basic_fbstring<char>>) {
+      out = folly::dynamic(obj_.c_str());
+    } else {
+      facebook::thrift::to_dynamic(
+          out, toThrift(), facebook::thrift::dynamic_format::JSON_1);
+    }
     return out;
   }
 
   template <typename T = Self>
-  auto fromFollyDynamic(const folly::dynamic& value)
-      -> std::enable_if_t<!T::immutable, void> {
+  void fromFollyDynamic(const folly::dynamic& value)
+    requires(!T::immutable)
+  {
     ThriftType thrift;
     facebook::thrift::from_dynamic(
         thrift, value, facebook::thrift::dynamic_format::JSON_1);
@@ -105,9 +116,14 @@ class ThriftPrimitiveNode : public thrift_cow::Serializable {
   }
 
   template <typename T = Self>
-  auto fromFollyDynamic(const folly::dynamic&) const
-      -> std::enable_if_t<T::immutable, void> {
+  void fromFollyDynamic(const folly::dynamic&) const
+    requires(T::immutable)
+  {
     throwImmutableException();
+  }
+#else
+  virtual folly::dynamic toFollyDynamic() const override {
+    return {};
   }
 #endif
 

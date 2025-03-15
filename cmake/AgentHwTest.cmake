@@ -182,6 +182,7 @@ target_link_libraries(prod_config_utils
   switch_config_cpp2
   traffic_policy_utils
   olympic_qos_utils
+  network_ai_qos_utils
   hw_copp_utils
 )
 
@@ -196,7 +197,6 @@ add_fbthrift_cpp_library(
 set(hw_switch_test_srcs
   fboss/agent/hw/test/HwTestFabricUtils.cpp
   fboss/agent/hw/test/HwFlexPortTests.cpp
-  fboss/agent/hw/test/HwIngressBufferTests.cpp
   fboss/agent/hw/test/HwEcmpTrunkTests.cpp
   fboss/agent/hw/test/HwLabelEdgeRouteTest.cpp
   fboss/agent/hw/test/HwLabelSwitchRouteTest.cpp
@@ -213,7 +213,6 @@ set(hw_switch_test_srcs
   fboss/agent/hw/test/HwAclStatTests.cpp
   fboss/agent/hw/test/HwPortProfileTests.cpp
   fboss/agent/hw/test/HwPortStressTests.cpp
-  fboss/agent/hw/test/HwResourceStatsTests.cpp
   fboss/agent/hw/test/HwSwitchStateReplayTest.cpp
   fboss/agent/hw/test/HwParityErrorTest.cpp
   fboss/agent/hw/test/HwPtpTcTests.cpp
@@ -223,7 +222,6 @@ set(hw_switch_test_srcs
   fboss/agent/hw/test/HwTestPfcUtils.cpp
   fboss/agent/hw/test/dataplane_tests/HwAqmTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwInPauseDiscardsTests.cpp
-  fboss/agent/hw/test/dataplane_tests/HwIpInIpTunnelTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwMPLSTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwLoadBalancerTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwTeFlowTrafficTests.cpp
@@ -270,6 +268,7 @@ target_link_libraries(hw_switch_test
   config_utils
   aqm_test_utils
   copp_test_utils
+  dsf_config_utils
   dscp_marking_utils
   ecmp_dataplane_test_util
   hw_packet_utils
@@ -280,6 +279,7 @@ target_link_libraries(hw_switch_test
   mac_test_utils
   mirror_test_utils
   olympic_qos_utils
+  network_ai_qos_utils
   prod_config_factory
   prod_config_utils
   qos_test_utils
@@ -298,7 +298,6 @@ target_link_libraries(hw_switch_test
   validated_shell_commands_cpp2
   hwswitch_matcher
   switchid_scope_resolver
-  hw_stat_printers
   port_stats_test_utils
   agent_hw_test_constants
   sai_switch_ensemble
@@ -325,6 +324,7 @@ target_link_libraries(prod_config_factory
   hw_copp_utils
   dscp_marking_utils
   olympic_qos_utils
+  network_ai_qos_utils
   queue_per_host_test_utils
   load_balancer_utils
   load_balancer_test_utils

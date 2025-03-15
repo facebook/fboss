@@ -45,6 +45,7 @@ TEST_F(HwXphyFirmwareTest, CheckDefaultXphyFirmwareVersion) {
     case PlatformType::PLATFORM_WEDGE400:
     case PlatformType::PLATFORM_WEDGE400_GRANDTETON:
     case PlatformType::PLATFORM_DARWIN:
+    case PlatformType::PLATFORM_DARWIN48V:
     case PlatformType::PLATFORM_LASSEN_DEPRECATED:
     case PlatformType::PLATFORM_MERU400BIU:
     case PlatformType::PLATFORM_MERU800BIA:
@@ -58,6 +59,7 @@ TEST_F(HwXphyFirmwareTest, CheckDefaultXphyFirmwareVersion) {
     case PlatformType::PLATFORM_JANGA800BIC:
     case PlatformType::PLATFORM_TAHAN800BC:
     case PlatformType::PLATFORM_YANGRA:
+    case PlatformType::PLATFORM_MINIPACK3N:
       throw FbossError("No xphys to check FW version on");
     case PlatformType::PLATFORM_ELBERT:
       desiredFw.version() = 1;

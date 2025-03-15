@@ -179,9 +179,12 @@ void SaiSwitchEnsemble::init(
   hwAsicTableEntry->setDefaultStreamType(
       getPlatform()->getAsic()->getDefaultStreamType());
   getPlatform()->initLEDs();
+#if !defined(CHENAB_SAI_SDK)
   auto hw = static_cast<SaiSwitch*>(getHwSwitch());
+  // TODO(pshaikh): hacking to skip this for Chenab for now
   diagShell_ = std::make_unique<DiagShell>(hw);
   diagCmdServer_ = std::make_unique<DiagCmdServer>(hw, diagShell_.get());
+#endif
 }
 
 void SaiSwitchEnsemble::gracefulExit() {

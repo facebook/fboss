@@ -57,9 +57,8 @@ class CmdShowInterfaceCountersFecUncorrectable
     qsfpClient->sync_getCounters(fb303CountersXPhyEgressUcSum);
     qsfpClient->sync_getCounters(fb303CountersTcvrEgressUcSum);
 #else
-    agentClient->sync_getRegexCounters(
-        fb303CountersIPhyIngressUcSum,
-        "^(eth|fab).*fec_uncorrectable_errors.sum.*");
+    fb303CountersIPhyIngressUcSum = utils::getAgentFb303RegexCounters(
+        hostInfo, "^(eth|fab).*fec_uncorrectable_errors.sum.*");
     qsfpClient->sync_getRegexCounters(
         fb303CountersXPhyIngressUcSum, ".*xphy.line.fec_uncorrectable.sum.*");
     qsfpClient->sync_getRegexCounters(

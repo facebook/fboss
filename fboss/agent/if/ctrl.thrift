@@ -57,6 +57,8 @@ enum PortLedExternalState {
 enum PortError {
   ERROR_DISABLE_LOOP_DETECTED = 1,
   LANE_SWAP_DETECTED = 2,
+  MISMATCHED_NEIGHBOR = 3,
+  MISSING_EXPECTED_NEIGHBOR = 4,
 }
 
 struct IpPrefix {
@@ -430,6 +432,8 @@ struct SystemPortThrift {
    */
   13: optional common.LivenessStatus remoteSystemPortLivenessStatus;
   14: switch_config.Scope scope = switch_config.Scope.LOCAL;
+  15: bool shelDestinationEnabled_DEPRECATED = false;
+  16: optional bool shelDestinationEnabled;
 }
 
 struct PortHardwareDetails {
@@ -493,7 +497,7 @@ enum CpuCosQueueId {
 
 struct RxCaptureFilter {
   1: list<CpuCosQueueId> cosQueues;
-# can put additional Rx filters here if need be
+  # can put additional Rx filters here if need be
 }
 
 struct CaptureFilter {
@@ -1387,21 +1391,25 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
     1: list<switch_config.MacAndVlan> macAddrsToblock,
   ) throws (1: fboss.FbossBaseError error);
 
+  # Deprecated
   void addTeFlows(1: list<FlowEntry> teFlowEntries) throws (
     1: fboss.FbossBaseError error,
     2: FbossTeUpdateError teFlowError,
   );
 
+  # Deprecated
   void deleteTeFlows(1: list<TeFlow> teFlows) throws (
     1: fboss.FbossBaseError error,
     2: FbossTeUpdateError teFlowError,
   );
 
+  # Deprecated
   void syncTeFlows(1: list<FlowEntry> teFlowEntries) throws (
     1: fboss.FbossBaseError error,
     2: FbossTeUpdateError teFlowError,
   );
 
+  # Deprecated
   list<TeFlowDetails> getTeFlowTableDetails() throws (
     1: fboss.FbossBaseError error,
   );

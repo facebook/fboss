@@ -8,6 +8,7 @@
  *
  */
 
+#include "fboss/agent/gen-cpp2/switch_config_constants.h"
 #include "fboss/agent/hw/HwPortFb303Stats.h"
 #include "fboss/agent/hw/StatsConstants.h"
 
@@ -152,6 +153,14 @@ HwPortStats getInitedStats() {
       1, // cableLengthMeters
       true, // dataCellsFilterIsOn
       {{1, 0}, {2, 0}}, // egressGvoqWatermarkBytes_
+      {{0, 1},
+       {1, 2},
+       {2, 3},
+       {3, 4},
+       {4, 5},
+       {5, 6},
+       {6, 7},
+       {7, 8}}, // pgInCongestionDiscards_
   };
 }
 
@@ -242,6 +251,10 @@ HwPortStats getEmptyStats() {
       *empty.queueOutBytes_() = *empty.queueOutPackets_() =
           *empty.queueWatermarkBytes_() = *empty.queueEcnMarkedPackets_() =
               *empty.queueWredDroppedPackets_() = {{1, 0}, {2, 0}};
+  // Populate priority group stats
+  for (int i = 0; i <= cfg::switch_config_constants::PORT_PG_VALUE_MAX(); ++i) {
+    empty.pgInCongestionDiscards_()[i] = 0;
+  }
   return empty;
 }
 
@@ -305,6 +318,16 @@ void verifyUpdatedStats(const HwPortFb303Stats& portStats) {
           curValue++);
     }
   }
+  curValue = 1;
+  for (auto counterName : portStats.kPriorityGroupCounterStatKeys()) {
+    for (int i = 0; i <= cfg::switch_config_constants::PORT_PG_VALUE_MAX();
+         ++i) {
+      EXPECT_EQ(
+          portStats.getCounterLastIncrement(
+              HwPortFb303Stats::pgStatName(counterName, kPortName, i)),
+          curValue++);
+    }
+  }
 }
 } // namespace
 
@@ -336,6 +359,13 @@ TEST(HwPortFb303StatsTest, StatsInit) {
     }
     EXPECT_TRUE(fbData->getStatMap()->contains(
         HwPortFb303Stats::statName(statKey, kPortName)));
+  }
+  for (auto statKey : stats.kPriorityGroupCounterStatKeys()) {
+    for (int i = 0; i <= cfg::switch_config_constants::PORT_PG_VALUE_MAX();
+         ++i) {
+      EXPECT_TRUE(fbData->getStatMap()->contains(
+          HwPortFb303Stats::pgStatName(statKey, kPortName, i)));
+    }
   }
 }
 
@@ -415,6 +445,15 @@ TEST(HwPortFb303StatsTest, ReInit) {
         HwPortFb303Stats::statName(statKey, kNewPortName)));
     EXPECT_FALSE(fbData->getStatMap()->contains(
         HwPortFb303Stats::statName(statKey, kPortName)));
+  }
+  for (auto statKey : stats.kPriorityGroupCounterStatKeys()) {
+    for (int i = 0; i <= cfg::switch_config_constants::PORT_PG_VALUE_MAX();
+         ++i) {
+      EXPECT_TRUE(fbData->getStatMap()->contains(
+          HwPortFb303Stats::pgStatName(statKey, kNewPortName, i)));
+      EXPECT_FALSE(fbData->getStatMap()->contains(
+          HwPortFb303Stats::pgStatName(statKey, kPortName, i)));
+    }
   }
 }
 

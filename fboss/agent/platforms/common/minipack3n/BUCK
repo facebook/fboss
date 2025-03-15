@@ -1,0 +1,16 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    name = "minipack3n_platform_mapping",
+    srcs = [
+        "facebook/Minipack3NPlatformMapping.cpp",
+    ],
+    headers = [
+        "Minipack3NPlatformMapping.h",
+    ],
+    exported_deps = [
+        "//fboss/agent/platforms/common:platform_mapping",
+    ],
+)

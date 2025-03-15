@@ -16,10 +16,20 @@ TEST(RackmonConfig, Interface) {
 
 TEST(RackmonConfig, RegisterMap) {
   const std::vector<std::string> mapsConfig = getRegisterMapConfig();
-  ASSERT_EQ(mapsConfig.size(), 1);
+  ASSERT_EQ(mapsConfig.size(), 3);
   json maps = json::parse(mapsConfig.at(0));
   ASSERT_EQ(maps["name"], "ORV2_PSU");
   ASSERT_EQ(maps["probe_register"], 104);
   ASSERT_GE(maps["registers"].size(), 30);
   ASSERT_EQ(maps["registers"][0]["name"], "PSU MFR MODEL");
+  maps = json::parse(mapsConfig.at(1));
+  ASSERT_EQ(maps["name"], "ORV3_BBU");
+  ASSERT_EQ(maps["probe_register"], 8);
+  ASSERT_GE(maps["registers"].size(), 30);
+  ASSERT_EQ(maps["registers"][0]["name"], "Manufacture_Name");
+  maps = json::parse(mapsConfig.at(2));
+  ASSERT_EQ(maps["name"], "ORV3_PSU");
+  ASSERT_EQ(maps["probe_register"], 8);
+  ASSERT_GE(maps["registers"].size(), 30);
+  ASSERT_EQ(maps["registers"][0]["name"], "PSU_FBPN");
 }

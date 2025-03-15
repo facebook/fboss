@@ -76,7 +76,7 @@ class AgentDscpMarkingTest : public AgentHwTest {
     auto setup = [=, this]() {
       utility::EcmpSetupAnyNPorts6 ecmpHelper(
           getProgrammedState(),
-          utility::getFirstInterfaceMac(getProgrammedState()),
+          utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
           RouterID(0),
           false,
           {cfg::PortType::INTERFACE_PORT});
@@ -86,7 +86,7 @@ class AgentDscpMarkingTest : public AgentHwTest {
     auto verify = [=, this]() {
       utility::EcmpSetupAnyNPorts6 ecmpHelper(
           getProgrammedState(),
-          utility::getFirstInterfaceMac(getProgrammedState()),
+          utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
           RouterID(0),
           false,
           {cfg::PortType::INTERFACE_PORT});
@@ -183,8 +183,9 @@ class AgentDscpMarkingTest : public AgentHwTest {
       IP_PROTO proto,
       std::optional<uint16_t> l4SrcPort,
       std::optional<uint16_t> l4DstPort) {
-    auto vlanId = utility::firstVlanID(getProgrammedState());
-    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
+    auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
+    auto intfMac =
+        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
 
     std::unique_ptr<facebook::fboss::TxPacket> txPacket;
@@ -224,7 +225,7 @@ class AgentDscpMarkingTest : public AgentHwTest {
     if (frontPanel) {
       utility::EcmpSetupAnyNPorts6 ecmpHelper(
           getProgrammedState(),
-          utility::getFirstInterfaceMac(getProgrammedState()),
+          utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
           RouterID(0),
           false,
           {cfg::PortType::INTERFACE_PORT});

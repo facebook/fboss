@@ -32,6 +32,13 @@ add_fbthrift_cpp_library(
 )
 
 add_fbthrift_cpp_library(
+  show_example_model
+  fboss/cli/fboss2/commands/show/example/model.thrift
+  OPTIONS
+    json
+)
+
+add_fbthrift_cpp_library(
   show_flowlet_model
   fboss/cli/fboss2/commands/show/flowlet/model.thrift
   OPTIONS
@@ -364,6 +371,7 @@ add_executable(fboss2
   fboss/cli/fboss2/commands/show/dsf/CmdShowDsf.h
   fboss/cli/fboss2/commands/show/dsf/subscription/CmdShowDsfSubscription.h
   fboss/cli/fboss2/commands/show/dsfnodes/CmdShowDsfNodes.h
+  fboss/cli/fboss2/commands/show/example/CmdShowExample.h
   fboss/cli/fboss2/commands/show/fabric/CmdShowFabric.h
   fboss/cli/fboss2/commands/show/fabric/reachability/CmdShowFabricReachability.h
   fboss/cli/fboss2/commands/show/flowlet/CmdShowFlowlet.h
@@ -374,6 +382,7 @@ add_executable(fboss2
   fboss/cli/fboss2/commands/show/lldp/CmdShowLldp.h
   fboss/cli/fboss2/commands/show/ndp/CmdShowNdp.h
   fboss/cli/fboss2/commands/show/port/CmdShowPort.h
+  fboss/cli/fboss2/commands/show/port/CmdShowPort.cpp
   fboss/cli/fboss2/commands/show/port/CmdShowPortQueue.h
   fboss/cli/fboss2/commands/show/product/CmdShowProduct.h
   fboss/cli/fboss2/commands/show/product/CmdShowProductDetails.h
@@ -391,7 +400,7 @@ add_executable(fboss2
   fboss/cli/fboss2/commands/show/interface/counters/fec/CmdShowInterfaceCountersFec.h
   fboss/cli/fboss2/commands/show/interface/counters/fec/ber/CmdShowInterfaceCountersFecBer.h
   fboss/cli/fboss2/commands/show/interface/counters/fec/uncorrectable/CmdShowInterfaceCountersFecUncorrectable.h
-    fboss/cli/fboss2/commands/show/interface/counters/fec/tail/CmdShowInterfaceCountersFecTail.h
+  fboss/cli/fboss2/commands/show/interface/counters/fec/tail/CmdShowInterfaceCountersFecTail.h
   fboss/cli/fboss2/commands/show/interface/counters/fec/histogram/CmdShowInterfaceCountersFecHistogram.h
   fboss/cli/fboss2/commands/show/interface/counters/mka/CmdShowInterfaceCountersMKA.h
   fboss/cli/fboss2/commands/show/interface/phy/CmdShowInterfacePhy.h
@@ -452,6 +461,7 @@ target_link_libraries(fboss2
   show_agent_model
   show_aggregateport_model
   show_arp_model
+  show_example_model
   show_flowlet_model
   show_dsf_subcription_model
   show_dsfnodes_model

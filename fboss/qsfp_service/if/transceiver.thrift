@@ -8,6 +8,7 @@ namespace py.asyncio neteng.fboss.asyncio.transceiver
 include "fboss/lib/phy/link.thrift"
 include "fboss/lib/phy/prbs.thrift"
 include "thrift/annotation/cpp.thrift"
+include "thrift/annotation/thrift.thrift"
 
 /*
  * UNINITIALIZED - when transceiverManager has just been created and init() is not yet called
@@ -217,6 +218,7 @@ enum MediaInterfaceCode {
   DR4_400G = 14,
   FR8_800G = 15,
   CR_10G = 16,
+  FR4_LITE_2x400G = 17,
 }
 
 // The extended specification compliance code of the transceiver module.
@@ -386,6 +388,7 @@ struct VdmPerfMonitorPortSideStats {
   9: map<i32, double> lanePam4LTP;
   10: optional i16 fecTailMax;
   11: optional i16 fecTailCurr;
+  12: optional i16 maxSupportedFecTail;
 }
 
 struct VdmPerfMonitorStats {
@@ -519,6 +522,8 @@ struct TcvrState {
   23: i64 timeCollected;
   24: DiagsCapability diagCapability;
   25: bool fwUpgradeInProgress;
+  26: set<string> interfaces;
+  27: string tcvrName;
 }
 
 struct TcvrStats {
@@ -537,53 +542,107 @@ struct TcvrStats {
   13: optional VdmPerfMonitorStatsForOds vdmPerfMonitorStatsForOds;
   14: map<string, CdbDatapathSymErrHistogram> cdbDatapathSymErrHistogram;
   15: map<string, i64> lastDatapathResetTime;
+  16: set<string> interfaces;
+  17: string tcvrName;
 }
 
 struct TransceiverInfo {
-  1: optional bool present (deprecated = "Moved to state/stats");
-  2: optional TransceiverType transceiver (deprecated = "Moved to state/stats");
-  3: optional i32 port (deprecated = "Moved to state/stats"); // physical port number
-  4: optional GlobalSensors sensor (deprecated = "Moved to state/stats");
-  5: optional AlarmThreshold thresholds (deprecated = "Moved to state/stats");
-  9: optional Vendor vendor (deprecated = "Moved to state/stats");
-  10: optional Cable cable (deprecated = "Moved to state/stats");
-  12: optional list<Channel> channels (deprecated = "Moved to state/stats");
-  13: optional TransceiverSettings settings (
-    deprecated = "Moved to state/stats",
-  );
-  14: optional TransceiverStats stats (deprecated = "Moved to state/stats");
-  15: optional SignalFlags signalFlag (deprecated = "Moved to state/stats");
-  16: optional ExtendedSpecComplianceCode extendedSpecificationComplianceCode (
-    deprecated = "Moved to state/stats",
-  );
-  17: optional TransceiverManagementInterface transceiverManagementInterface (
-    deprecated = "Moved to state/stats",
-  );
-  18: optional TransceiverModuleIdentifier identifier (
-    deprecated = "Moved to state/stats",
-  );
-  19: optional ModuleStatus status (deprecated = "Moved to state/stats");
-  20: optional list<MediaLaneSignals> mediaLaneSignals (
-    deprecated = "Moved to state/stats",
-  );
-  21: optional list<HostLaneSignals> hostLaneSignals (
-    deprecated = "Moved to state/stats",
-  );
-  22: optional i64 timeCollected (deprecated = "Moved to state/stats");
-  23: optional i64 remediationCounter (deprecated = "Moved to state/stats");
-  24: optional VdmDiagsStats vdmDiagsStats (
-    deprecated = "Moved to state/stats",
-  );
-  25: bool eepromCsumValid (deprecated = "Moved to state/stats");
-  26: optional MediaInterfaceCode moduleMediaInterface (
-    deprecated = "Moved to state/stats",
-  );
-  27: optional TransceiverStateMachineState stateMachineState (
-    deprecated = "Moved to state/stats",
-  );
-  28: optional VdmDiagsStats vdmDiagsStatsForOds (
-    deprecated = "Moved to state/stats",
-  );
+  @thrift.DeprecatedUnvalidatedAnnotations{
+    items = {"deprecated": "Moved to state/stats"},
+  }
+  1: optional bool present;
+  @thrift.DeprecatedUnvalidatedAnnotations{
+    items = {"deprecated": "Moved to state/stats"},
+  }
+  2: optional TransceiverType transceiver;
+  @thrift.DeprecatedUnvalidatedAnnotations{
+    items = {"deprecated": "Moved to state/stats"},
+  }
+  3: optional i32 port; // physical port number
+  @thrift.DeprecatedUnvalidatedAnnotations{
+    items = {"deprecated": "Moved to state/stats"},
+  }
+  4: optional GlobalSensors sensor;
+  @thrift.DeprecatedUnvalidatedAnnotations{
+    items = {"deprecated": "Moved to state/stats"},
+  }
+  5: optional AlarmThreshold thresholds;
+  @thrift.DeprecatedUnvalidatedAnnotations{
+    items = {"deprecated": "Moved to state/stats"},
+  }
+  9: optional Vendor vendor;
+  @thrift.DeprecatedUnvalidatedAnnotations{
+    items = {"deprecated": "Moved to state/stats"},
+  }
+  10: optional Cable cable;
+  @thrift.DeprecatedUnvalidatedAnnotations{
+    items = {"deprecated": "Moved to state/stats"},
+  }
+  12: optional list<Channel> channels;
+  @thrift.DeprecatedUnvalidatedAnnotations{
+    items = {"deprecated": "Moved to state/stats"},
+  }
+  13: optional TransceiverSettings settings;
+  @thrift.DeprecatedUnvalidatedAnnotations{
+    items = {"deprecated": "Moved to state/stats"},
+  }
+  14: optional TransceiverStats stats;
+  @thrift.DeprecatedUnvalidatedAnnotations{
+    items = {"deprecated": "Moved to state/stats"},
+  }
+  15: optional SignalFlags signalFlag;
+  @thrift.DeprecatedUnvalidatedAnnotations{
+    items = {"deprecated": "Moved to state/stats"},
+  }
+  16: optional ExtendedSpecComplianceCode extendedSpecificationComplianceCode;
+  @thrift.DeprecatedUnvalidatedAnnotations{
+    items = {"deprecated": "Moved to state/stats"},
+  }
+  17: optional TransceiverManagementInterface transceiverManagementInterface;
+  @thrift.DeprecatedUnvalidatedAnnotations{
+    items = {"deprecated": "Moved to state/stats"},
+  }
+  18: optional TransceiverModuleIdentifier identifier;
+  @thrift.DeprecatedUnvalidatedAnnotations{
+    items = {"deprecated": "Moved to state/stats"},
+  }
+  19: optional ModuleStatus status;
+  @thrift.DeprecatedUnvalidatedAnnotations{
+    items = {"deprecated": "Moved to state/stats"},
+  }
+  20: optional list<MediaLaneSignals> mediaLaneSignals;
+  @thrift.DeprecatedUnvalidatedAnnotations{
+    items = {"deprecated": "Moved to state/stats"},
+  }
+  21: optional list<HostLaneSignals> hostLaneSignals;
+  @thrift.DeprecatedUnvalidatedAnnotations{
+    items = {"deprecated": "Moved to state/stats"},
+  }
+  22: optional i64 timeCollected;
+  @thrift.DeprecatedUnvalidatedAnnotations{
+    items = {"deprecated": "Moved to state/stats"},
+  }
+  23: optional i64 remediationCounter;
+  @thrift.DeprecatedUnvalidatedAnnotations{
+    items = {"deprecated": "Moved to state/stats"},
+  }
+  24: optional VdmDiagsStats vdmDiagsStats;
+  @thrift.DeprecatedUnvalidatedAnnotations{
+    items = {"deprecated": "Moved to state/stats"},
+  }
+  25: bool eepromCsumValid;
+  @thrift.DeprecatedUnvalidatedAnnotations{
+    items = {"deprecated": "Moved to state/stats"},
+  }
+  26: optional MediaInterfaceCode moduleMediaInterface;
+  @thrift.DeprecatedUnvalidatedAnnotations{
+    items = {"deprecated": "Moved to state/stats"},
+  }
+  27: optional TransceiverStateMachineState stateMachineState;
+  @thrift.DeprecatedUnvalidatedAnnotations{
+    items = {"deprecated": "Moved to state/stats"},
+  }
+  28: optional VdmDiagsStats vdmDiagsStatsForOds;
   // During the transition, the new state and states will be optional.
   // Both new and old fields will be filled in by QSFP service. Users
   // should checked the new fields and use it if available but fall back
@@ -659,7 +718,7 @@ struct CmisData {
 struct TransceiverIOParameters {
   1: i32 offset; // should range from 0 - 255
   2: optional i32 page; // can be used to access bytes 128-255 from a different page than page0
-  3: optional i32 length; // Number of bytes to read. Not applicable for a write
+  3: optional i32 length; // Number of bytes to read. Also can represent number of bytes to write for multi-byte writes.
 }
 
 struct ReadRequest {
@@ -676,6 +735,7 @@ struct WriteRequest {
   1: list<i32> ids;
   2: TransceiverIOParameters parameter;
   3: byte data; // The data to write for a write request
+  4: optional list<byte> bytes; // The data to write for multi-byte write requests (preferred)
 }
 
 struct WriteResponse {

@@ -565,8 +565,12 @@ cfg::SwitchConfig testConfigFabricSwitch(
         cfg::PortProfileID::PROFILE_25G_1_NRZ_CL74_COPPER;
     cfg.ports()[p].portType() = cfg::PortType::FABRIC_PORT;
   }
-  auto myNode =
-      makeDsfNodeCfg(kFabricSwitchIdBegin, cfg::DsfNodeType::FABRIC_NODE);
+  auto myNode = makeDsfNodeCfg(
+      kFabricSwitchIdBegin,
+      cfg::DsfNodeType::FABRIC_NODE,
+      std::nullopt,
+      cfg::AsicType::ASIC_TYPE_RAMON3,
+      fabricLevel);
   cfg.dsfNodes()->insert({*myNode.switchId(), myNode});
 
   auto nextFabricSwitchId = kFabricSwitchIdBegin + switchIdGap;
@@ -583,9 +587,14 @@ cfg::SwitchConfig testConfigFabricSwitch(
       if (fabricLevel == 2) {
         clusterId = i + 1;
         remoteFabricLevel = 1;
-      } else if (i >= dualStageNeighborLevel2FabricNodes.value()) {
-        clusterId = 1;
-        remoteFabricLevel = 2;
+      } else {
+        if (i < dualStageNeighborLevel2FabricNodes.value()) {
+          // Fabric nodes
+          remoteFabricLevel = 2;
+        } else {
+          // Interface nodes
+          clusterId = 1;
+        }
       }
     }
 
@@ -646,6 +655,33 @@ cfg::SwitchConfig testConfigB() {
 
 cfg::SwitchConfig testConfigAWithLookupClasses() {
   return testConfigAImpl(true, cfg::SwitchType::NPU);
+}
+
+cfg::SwitchConfig testConfigAWithPortInterfaces() {
+  auto config = testConfigA(cfg::SwitchType::NPU);
+
+  config.vlans()->clear();
+  config.interfaces()->clear();
+  config.vlanPorts()->clear();
+
+  for (auto& port : *config.ports()) {
+    cfg::Interface intf;
+    intf.intfID() = 6000 + *(port.logicalID());
+    intf.vlanID() = 0;
+    intf.portID() = *port.logicalID();
+    intf.routerID() = 0;
+    intf.type() = cfg::InterfaceType::PORT;
+    intf.name() = folly::sformat("fboss{}", *intf.intfID());
+    intf.mtu() = 9000;
+    intf.mac() = "00:02:00:00:00:55";
+    intf.ipAddresses()->resize(2);
+    intf.ipAddresses()[0] =
+        folly::sformat("2601:db00:2110:30{:02x}::1/64", *port.logicalID());
+    intf.ipAddresses()[1] = folly::sformat("100.0.{}.1/24", *port.logicalID());
+
+    config.interfaces()->push_back(intf);
+  }
+  return config;
 }
 
 shared_ptr<SwitchState> bringAllPortsUp(const shared_ptr<SwitchState>& in) {

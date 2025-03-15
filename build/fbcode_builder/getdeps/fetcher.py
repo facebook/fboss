@@ -9,6 +9,7 @@
 import errno
 import hashlib
 import os
+import random
 import re
 import shutil
 import stat
@@ -244,7 +245,9 @@ class GitFetcher(Fetcher):
                     if not m:
                         raise Exception("Failed to parse rev from %s" % hash_file)
                     rev = m.group(1)
-                    print("Using pinned rev %s for %s" % (rev, repo_url))
+                    print(
+                        "Using pinned rev %s for %s" % (rev, repo_url), file=sys.stderr
+                    )
 
         self.rev = rev or "main"
         self.origin_repo = repo_url
@@ -366,10 +369,8 @@ def copy_if_different(src_name, dest_name) -> bool:
             if exc.errno != errno.ENOENT:
                 raise
         target = os.readlink(src_name)
-        print("Symlinking %s -> %s" % (dest_name, target))
         os.symlink(target, dest_name)
     else:
-        print("Copying %s -> %s" % (src_name, dest_name))
         shutil.copy2(src_name, dest_name)
 
     return True
@@ -474,7 +475,7 @@ class ShipitPathMap(object):
                 raise Exception(
                     "%s doesn't exist; check your sparse profile!" % dir_to_mirror
                 )
-
+            update_count = 0
             for root, dirs, files in os.walk(dir_to_mirror):
                 dirs[:] = [d for d in dirs if root_dev == st_dev(os.path.join(root, d))]
 
@@ -488,6 +489,13 @@ class ShipitPathMap(object):
                         full_file_list.add(target_name)
                         if copy_if_different(full_name, target_name):
                             change_status.record_change(target_name)
+                            if update_count < 10:
+                                print("Updated %s -> %s" % (full_name, target_name))
+                            elif update_count == 10:
+                                print("...")
+                            update_count += 1
+            if update_count:
+                print("Updated %s for %s" % (update_count, fbsource_subdir))
 
         # Compare the list of previously shipped files; if a file is
         # in the old list but not the new list then it has been
@@ -830,7 +838,20 @@ class ArchiveFetcher(Fetcher):
 
     def _download(self) -> None:
         self._download_dir()
-        download_url_to_file_with_progress(self.url, self.file_name)
+        max_attempts = 5
+        delay = 1
+        for attempt in range(max_attempts):
+            try:
+                download_url_to_file_with_progress(self.url, self.file_name)
+                break
+            except TransientFailure as tf:
+                if attempt < max_attempts - 1:
+                    delay *= 2
+                    delay_with_jitter = delay * (1 + random.random() * 0.1)
+                    time.sleep(min(delay_with_jitter, 10))
+                else:
+                    print(f"Failed after retries: {tf}")
+                    raise
         self._verify_hash()
 
     def clean(self) -> None:
@@ -868,6 +889,7 @@ class ArchiveFetcher(Fetcher):
 
         if not os.path.exists(self.file_name):
             self._download()
+            self._verify_hash()
 
         if tarfile.is_tarfile(self.file_name):
             opener = tarfile.open
@@ -877,19 +899,20 @@ class ArchiveFetcher(Fetcher):
             raise Exception("don't know how to extract %s" % self.file_name)
         os.makedirs(self.src_dir)
         print("Extract %s -> %s" % (self.file_name, self.src_dir))
-        t = opener(self.file_name)
         if is_windows():
             # Ensure that we don't fall over when dealing with long paths
             # on windows
             src = r"\\?\%s" % os.path.normpath(self.src_dir)
         else:
             src = self.src_dir
-        # The `str` here is necessary to ensure that we don't pass a unicode
-        # object down to tarfile.extractall on python2.  When extracting
-        # the boost tarball it makes some assumptions and tries to convert
-        # a non-ascii path to ascii and throws.
-        src = str(src)
-        t.extractall(src)
+
+        with opener(self.file_name) as t:
+            # The `str` here is necessary to ensure that we don't pass a unicode
+            # object down to tarfile.extractall on python2.  When extracting
+            # the boost tarball it makes some assumptions and tries to convert
+            # a non-ascii path to ascii and throws.
+            src = str(src)
+            t.extractall(src)
 
         with open(self.hash_file, "w") as f:
             f.write(self.sha256)

@@ -8,6 +8,8 @@
 #  of patent rights can be found in the PATENTS file in the same directory.
 #
 
+# pyre-unsafe
+
 import ipaddress
 import typing as t
 from contextlib import ExitStack

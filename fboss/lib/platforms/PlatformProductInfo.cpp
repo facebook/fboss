@@ -79,6 +79,8 @@ void PlatformProductInfo::initMode() {
     } else if (
         modelName.find("Wedge400") == 0 || modelName.find("WEDGE400") == 0) {
       type_ = PlatformType::PLATFORM_WEDGE400;
+    } else if (modelName.find("DARWIN48V") == 0) {
+      type_ = PlatformType::PLATFORM_DARWIN48V;
     } else if (
         modelName.find("Darwin") == 0 || modelName.find("DARWIN") == 0 ||
         modelName.find("DCS-7060") == 0 || modelName.find("Rackhawk") == 0) {
@@ -94,9 +96,14 @@ void PlatformProductInfo::initMode() {
       // TODO remove FAB once fruid.json is fixed on Galaxy fabric cards
       type_ = PlatformType::PLATFORM_GALAXY_FC;
     } else if (
+        modelName.find("Minipack3N") == 0 ||
+        modelName.find("MINIPACK3N") == 0) {
+      type_ = PlatformType::PLATFORM_MINIPACK3N;
+    } else if (
         modelName.find("Montblanc") == 0 || modelName.find("MONTBLANC") == 0 ||
         modelName.find("MINIPACK3_CHASSIS_BUNDLE") == 0 ||
-        modelName.find("MINIPACK3") == 0) {
+        modelName.find("MINIPACK3") == 0 ||
+        modelName.find("MINIPACK3-48V-ORV3") == 0) {
       type_ = PlatformType::PLATFORM_MONTBLANC;
     } else if (
         modelName.find("MINIPACK") == 0 || modelName.find("MINIPHOTON") == 0) {
@@ -134,7 +141,14 @@ void PlatformProductInfo::initMode() {
         modelName.find("ASY-92458-104") == 0 ||
         modelName.find("DCS-DL-7700R4C-38PE-AC-F") == 0 ||
         modelName.find("DCS-DL-7700R4C-38PE-DC-F") == 0 ||
-        modelName.find("DCS-DL-7700R4C-38PE-B-F") == 0) {
+        modelName.find("DCS-DL-7700R4C-38PE-B-F") == 0 ||
+        modelName.find("DCS-7700R4C-38PE-DC-F") == 0 ||
+        modelName.find("DCS-DES-VIPER-ORV3") == 0 ||
+        modelName.find("DCS-DES-VIPER-AC") == 0 ||
+        modelName.find("DCS-DES-VIPER-ORV3N") == 0 ||
+        modelName.find("DCS-7700R4C-38PE-DC-F-RV3") == 0 ||
+        modelName.find("DCS-7700R4C-38PE-DC-F") == 0 ||
+        modelName.find("DCS-7700R4C-38PE-F") == 0) {
       type_ = PlatformType::PLATFORM_MERU800BIA;
     } else if (
         modelName.find("Meru800biab") == 0 ||
@@ -148,11 +162,16 @@ void PlatformProductInfo::initMode() {
         modelName.find("Meru800bfa") == 0 ||
         modelName.find("MERU800BFA") == 0 ||
         modelName.find("ASY-57651-102") == 0 ||
-        modelName.find("DCS-DS-7720R4-128PE-AC-F") == 0) {
+        modelName.find("DCS-DS-7720R4-128PE-AC-F") == 0 ||
+        modelName.find("DCS-DEC-WHISTLER-AC") == 0 ||
+        modelName.find("DCS-DEC-WHISTLER-DC") == 0 ||
+        modelName.find("DCS-7720R4-128PE") == 0) {
       type_ = PlatformType::PLATFORM_MERU800BFA;
     } else if (
         modelName.find("MORGAN800CC") == 0 ||
-        modelName.find("8501-SYS-MT") == 0) {
+        modelName.find("8501-SYS-MT") == 0 ||
+        modelName.find("8501-SYS-MT-PVT") == 0 ||
+        modelName.find("8501-SYS-MT-DC") == 0) {
       type_ = PlatformType::PLATFORM_MORGAN800CC;
     } else if (modelName.find("YANGRA") == 0) {
       type_ = PlatformType::PLATFORM_YANGRA;
@@ -229,6 +248,8 @@ void PlatformProductInfo::initMode() {
       type_ = PlatformType::PLATFORM_MORGAN800CC;
     } else if (FLAGS_mode == "yangra") {
       type_ = PlatformType::PLATFORM_YANGRA;
+    } else if (FLAGS_mode == "minipack3n") {
+      type_ = PlatformType::PLATFORM_MINIPACK3N;
     } else {
       throw std::runtime_error("invalid mode " + FLAGS_mode);
     }

@@ -182,11 +182,10 @@ struct ThriftStructFields : public FieldBaseType {
 
   template <typename Name>
   constexpr bool isSkipThriftCowEnabled() const {
-    if constexpr (EnableHybridStorage) {
-      if constexpr (HasSkipThriftCow<Name>::value) {
-        return true;
-      }
+    if constexpr (EnableHybridStorage && HasSkipThriftCow<Name>::value) {
+      return true;
     }
+
     return false;
   }
 
@@ -550,6 +549,13 @@ class ThriftStructNode : public NodeBaseT<
           auto clonedChild = child->clone();
           child.swap(clonedChild);
         }
+      } else if constexpr (
+          EnableHybridStorage &&
+          Fields::template HasSkipThriftCow<Name>::value) {
+        using UnderlyingType =
+            typename Fields::template TypeFor<Name>::element_type;
+        auto clonedChild = std::make_shared<UnderlyingType>(child->ref());
+        child.swap(clonedChild);
       }
     } else if (construct) {
       this->template constructMember<Name>();
@@ -589,7 +595,7 @@ class ThriftStructNode : public NodeBaseT<
     auto result = ThriftTraverseResult::OK;
     if (begin != end) {
       // TODO: can probably remove lambda use here
-      auto op = pvlambda([](auto&& node, auto begin, auto end) {
+      auto op = writablelambda([](auto&& node, auto begin, auto end) {
         if (begin == end) {
           return;
         }
@@ -618,10 +624,11 @@ class ThriftStructNode : public NodeBaseT<
     auto newRoot = ((*root)->isPublished()) ? (*root)->clone() : *root;
 
     // TODO: can probably remove lambda use here
-    auto op = pvlambda([](auto&& node, auto begin, auto end) {
+    auto op = writablelambda([](auto&& node, auto begin, auto end) {
       auto tok = *begin;
       if (begin == end) {
         node.remove(tok);
+
       } else {
         node.modify(tok, false);
       }

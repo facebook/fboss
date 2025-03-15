@@ -80,6 +80,15 @@ class HwSwitchFb303Stats {
   void allReassemblyContextsTaken() {
     allReassemblyContextsTaken_.addValue(1);
   }
+  void reassemblyError() {
+    reassemblyErrors_.addValue(1);
+  }
+  void fdrFifoOverflowError() {
+    fdrFifoOverflowErrors_.addValue(1);
+  }
+  void fdaFifoOverflowError() {
+    fdaFifoOverflowErrors_.addValue(1);
+  }
   void hwInitializedTime(uint64_t ms) {
     hwInitializedTimeMs_.addValue(ms);
   }
@@ -104,8 +113,15 @@ class HwSwitchFb303Stats {
   void invalidQueueRxPackets() {
     invalidQueueRxPackets_.addValue(1);
   }
-  void fabricReachabilityMissingCount(int64_t value);
-  void fabricReachabilityMismatchCount(int64_t value);
+  void isolationFirmwareCrash() {
+    isolationFirmwareCrashes_.addValue(1);
+  }
+  void rxFifoStuckDetected() {
+    rxFifoStuckDetected_.addValue(1);
+  }
+  void fabricConnectivityMissingCount(int64_t value);
+  void fabricConnectivityMismatchCount(int64_t value);
+  void fabricConnectivityBogusCount(int64_t value);
   void virtualDevicesWithAsymmetricConnectivity(int64_t value);
   void portGroupSkew(int64_t value);
 
@@ -116,6 +132,8 @@ class HwSwitchFb303Stats {
   void update(const HwSwitchDramStats& dramStats);
   void update(const HwSwitchDropStats& dropStats);
   void update(const HwSwitchCreditStats& creditStats);
+
+  void arsResourceExhausted(bool exhausted);
 
   int64_t getTxPktAllocCount() const {
     return txPktAlloc_.count();
@@ -144,8 +162,9 @@ class HwSwitchFb303Stats {
   int64_t getAsicErrorCount() const {
     return asicErrors_.count();
   }
-  int64_t getFabricReachabilityMismatchCount() const;
-  int64_t getFabricReachabilityMissingCount() const;
+  int64_t getFabricConnectivityMismatchCount() const;
+  int64_t getFabricConnectivityMissingCount() const;
+  int64_t getFabricConnectivityBogusCount() const;
   int64_t getVirtualDevicesWithAsymmetricConnectivityCount() const;
   int64_t getPortGroupSkewCount() const;
   int64_t getSwitchReachabilityChangeCount() const;
@@ -163,8 +182,14 @@ class HwSwitchFb303Stats {
   int64_t getItppErrors() const;
   int64_t getEpniErrors() const;
   int64_t getAlignerErrors() const;
+  int64_t getReassemblyErrors() const;
+  int64_t getFdrFifoOverflowErrors() const;
+  int64_t getFdaFifoOverflowErrors() const;
   int64_t getForwardingQueueProcessorErrors() const;
   int64_t getAllReassemblyContextsTakenError() const;
+  // FW Errors
+  int64_t getIsolationFirmwareCrashes() const;
+  int64_t getRxFifoStuckDetected() const;
 
   // Switch drops
   int64_t getPacketIntegrityDrops() const;
@@ -237,9 +262,15 @@ class HwSwitchFb303Stats {
   TLTimeseries dramBlockedTimeNsec_;
   // Credit stats
   TLTimeseries deletedCreditBytes_;
-  // fabric reachability errors
-  TLCounter fabricReachabilityMissingCount_;
-  TLCounter fabricReachabilityMismatchCount_;
+  // RQP errors
+  TLTimeseries rqpFabricCellCorruptionDrops_;
+  TLTimeseries rqpNonFabricCellCorruptionDrops_;
+  TLTimeseries rqpNonFabricCellMissingDrops_;
+  TLTimeseries rqpParityErrorDrops_;
+  // fabric connectivity errors
+  TLCounter fabricConnectivityMissingCount_;
+  TLCounter fabricConnectivityMismatchCount_;
+  TLCounter fabricConnectivityBogusCount_;
   TLCounter virtualDevicesWithAsymmetricConnectivity_;
   TLCounter portGroupSkew_;
   TLTimeseries switchReachabilityChangeCount_;
@@ -247,8 +278,13 @@ class HwSwitchFb303Stats {
   TLTimeseries itppErrors_;
   TLTimeseries epniErrors_;
   TLTimeseries alignerErrors_;
+  TLTimeseries reassemblyErrors_;
+  TLTimeseries fdrFifoOverflowErrors_;
+  TLTimeseries fdaFifoOverflowErrors_;
   TLTimeseries forwardingQueueProcessorErrors_;
   TLTimeseries allReassemblyContextsTaken_;
+  TLTimeseries isolationFirmwareCrashes_;
+  TLTimeseries rxFifoStuckDetected_;
   TLTimeseries hwInitializedTimeMs_;
   TLTimeseries bootTimeMs_;
   TLTimeseries coldBoot_;
@@ -261,6 +297,7 @@ class HwSwitchFb303Stats {
   TLTimeseries hwStatsCollectionFailed_;
   TLTimeseries phyInfoCollectionFailed_;
   TLTimeseries invalidQueueRxPackets_;
+  TLCounter arsResourceExhausted_;
 };
 
 } // namespace facebook::fboss

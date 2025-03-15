@@ -113,6 +113,12 @@ const FdbApi& SaiApiTable::fdbApi() const {
   return getApi<FdbApi>();
 }
 
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+const FirmwareApi& SaiApiTable::firmwareApi() const {
+  return getApi<FirmwareApi>();
+}
+#endif
+
 const HashApi& SaiApiTable::hashApi() const {
   return getApi<HashApi>();
 }
@@ -197,7 +203,7 @@ const TamApi& SaiApiTable::tamApi() const {
   return getApi<TamApi>();
 }
 
-#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
 const TamEventAgingGroupApi& SaiApiTable::tamEventAgingGroupApi() const {
   return getApi<TamEventAgingGroupApi>();
 }
@@ -214,6 +220,12 @@ const LagApi& SaiApiTable::lagApi() const {
 const MacsecApi& SaiApiTable::macsecApi() const {
   return getApi<MacsecApi>();
 }
+
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+const VendorSwitchApi& SaiApiTable::vendorSwitchApi() const {
+  return getApi<VendorSwitchApi>();
+}
+#endif
 
 void SaiApiTable::enableLogging(const std::string& logLevelStr) const {
   auto logLevel = saiLogLevelFromString(logLevelStr);

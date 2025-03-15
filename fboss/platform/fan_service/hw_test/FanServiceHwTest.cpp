@@ -28,14 +28,14 @@ class FanServiceHwTest : public ::testing::Test {
  public:
   void SetUp() override {
     std::string fanServiceConfJson = ConfigLib().getFanServiceConfig();
-    auto config =
+    fanServiceConfig_ =
         apache::thrift::SimpleJSONSerializer::deserialize<FanServiceConfig>(
             fanServiceConfJson);
-    XLOG(INFO) << apache::thrift::SimpleJSONSerializer::serialize<std::string>(
-        config);
-    auto pBsp = std::make_shared<Bsp>(config);
+    auto pBsp = std::make_shared<Bsp>(fanServiceConfig_);
     EXPECT_NO_THROW(
-        controlLogic_ = std::make_unique<ControlLogic>(config, pBsp));
+        controlLogic_ =
+            std::make_unique<ControlLogic>(fanServiceConfig_, pBsp));
+    EXPECT_FALSE(fanServiceConfig_.fans()->empty());
   }
 
   std::unique_ptr<ControlLogic> controlLogic_;

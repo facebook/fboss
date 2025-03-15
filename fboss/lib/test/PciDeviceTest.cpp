@@ -11,7 +11,6 @@
 #include <folly/Singleton.h>
 #include <glog/logging.h>
 #include <gtest/gtest.h>
-#include <stdexcept>
 
 extern "C" {
 #include <pciaccess.h>
@@ -24,8 +23,8 @@ TEST(PciDevice, InitAnyDevice) {
   PciDevice pciDevice(PCI_MATCH_ANY, PCI_MATCH_ANY);
   EXPECT_NO_THROW(pciDevice.open());
   CHECK_EQ(pciDevice.isGood(), true);
-  EXPECT_NO_THROW({ (void*)pciDevice.getMemoryRegionAddress(); });
-  EXPECT_NO_THROW({ (void*)pciDevice.getMemoryRegionSize(); });
+  EXPECT_NO_THROW({ std::ignore = pciDevice.getMemoryRegionAddress(); });
+  EXPECT_NO_THROW({ std::ignore = pciDevice.getMemoryRegionSize(); });
   EXPECT_NO_THROW(pciDevice.close());
 }
 
@@ -40,9 +39,9 @@ TEST(PciDevice, StaleDevice) {
   CHECK_EQ(pciDevice.isGood(), true);
   pciDevice.close();
   EXPECT_THROW(
-      { auto bar0 = pciDevice.getMemoryRegionAddress(); }, std::exception);
+      { std::ignore = pciDevice.getMemoryRegionAddress(); }, std::exception);
   EXPECT_THROW(
-      { auto barSize0 = pciDevice.getMemoryRegionSize(); }, std::exception);
+      { std::ignore = pciDevice.getMemoryRegionSize(); }, std::exception);
 }
 
 TEST(PciDevice, TwoDevices) {
@@ -58,7 +57,7 @@ TEST(PciDevice, TwoDevices) {
 
   // Close first device and access second
   pciDevice1.close();
-  EXPECT_NO_THROW({ auto barSize0 = pciDevice2.getMemoryRegionSize(); });
+  EXPECT_NO_THROW({ std::ignore = pciDevice2.getMemoryRegionSize(); });
 
   // Close second device
   EXPECT_NO_THROW(pciDevice2.close());

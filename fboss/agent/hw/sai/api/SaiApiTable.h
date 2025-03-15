@@ -17,6 +17,7 @@
 #include "fboss/agent/hw/sai/api/CounterApi.h"
 #include "fboss/agent/hw/sai/api/DebugCounterApi.h"
 #include "fboss/agent/hw/sai/api/FdbApi.h"
+#include "fboss/agent/hw/sai/api/FirmwareApi.h"
 #include "fboss/agent/hw/sai/api/HashApi.h"
 #include "fboss/agent/hw/sai/api/HostifApi.h"
 #include "fboss/agent/hw/sai/api/LagApi.h"
@@ -39,6 +40,7 @@
 #include "fboss/agent/hw/sai/api/TamEventAgingGroupApi.h"
 #include "fboss/agent/hw/sai/api/TunnelApi.h"
 #include "fboss/agent/hw/sai/api/UdfApi.h"
+#include "fboss/agent/hw/sai/api/VendorSwitchApi.h"
 #include "fboss/agent/hw/sai/api/VirtualRouterApi.h"
 #include "fboss/agent/hw/sai/api/VlanApi.h"
 #include "fboss/agent/hw/sai/api/WredApi.h"
@@ -86,6 +88,10 @@ class SaiApiTable {
 
   const FdbApi& fdbApi() const;
 
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+  const FirmwareApi& firmwareApi() const;
+#endif
+
   const HashApi& hashApi() const;
 
   const HostifApi& hostifApi() const;
@@ -128,7 +134,7 @@ class SaiApiTable {
 
   const TamApi& tamApi() const;
 
-#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   const TamEventAgingGroupApi& tamEventAgingGroupApi() const;
 #endif
 
@@ -137,6 +143,10 @@ class SaiApiTable {
   const LagApi& lagApi() const;
 
   const MacsecApi& macsecApi() const;
+
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  const VendorSwitchApi& vendorSwitchApi() const;
+#endif
 
   template <typename SaiApiT>
   SaiApiT& getApi() {
@@ -169,6 +179,9 @@ class SaiApiTable {
 #endif
       std::unique_ptr<DebugCounterApi>,
       std::unique_ptr<FdbApi>,
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+      std::unique_ptr<FirmwareApi>,
+#endif
       std::unique_ptr<HashApi>,
       std::unique_ptr<HostifApi>,
       std::unique_ptr<NextHopApi>,
@@ -190,11 +203,14 @@ class SaiApiTable {
       std::unique_ptr<VlanApi>,
       std::unique_ptr<WredApi>,
       std::unique_ptr<TamApi>,
-#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
       std::unique_ptr<TamEventAgingGroupApi>,
 #endif
       std::unique_ptr<TunnelApi>,
       std::unique_ptr<LagApi>,
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+      std::unique_ptr<VendorSwitchApi>,
+#endif
       std::unique_ptr<MacsecApi>>
       apis_;
   bool apisQueried_{false};

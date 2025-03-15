@@ -55,9 +55,6 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
         {masterLogicalPortIds()[0], masterLogicalPortIds()[1]},
         getAsic()->desiredLoopbackModes());
 
-    utility::addAclTableGroup(
-        &cfg, cfg::AclStage::INGRESS, utility::kDefaultAclTableGroupName());
-
     return cfg;
   }
 
@@ -396,7 +393,7 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
        */
       bool addAllQualifiers = false;
       resolveNeigborAndProgramRoutes(*helper_, kEcmpWidth);
-#if defined(TAJO_SDK_GTE_24_4_90)
+#if defined(TAJO_SDK_GTE_24_8_3001)
       addAllQualifiers = true;
 #endif
 
@@ -559,7 +556,7 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
        */
       bool addAllQualifiers = false;
       resolveNeigborAndProgramRoutes(*helper_, kEcmpWidth);
-#if defined(TAJO_SDK_GTE_24_4_90)
+#if defined(TAJO_SDK_GTE_24_8_3001)
       addAllQualifiers = true;
 #endif
 
@@ -573,6 +570,7 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
         utility::addOlympicQosMaps(newCfg, {getAsic()});
         utility::addDscpAclTable(
             &newCfg,
+            getAsic(),
             1 /*priority*/,
             addAllQualifiers,
             this->getHwSwitchEnsemble()->isSai());

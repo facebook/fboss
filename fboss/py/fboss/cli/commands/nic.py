@@ -7,6 +7,8 @@
 #  LICENSE file in the root directory of this source tree. An additional grant
 #  of patent rights can be found in the PATENTS file in the same directory.
 
+# pyre-unsafe
+
 
 from fboss.cli.commands import commands as cmds
 from fboss.cli.data.oui_to_vendor_ieee import oui_vendor_map

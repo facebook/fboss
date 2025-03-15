@@ -27,12 +27,14 @@ void AgentCommandExecutor::runAndRemoveScript(
 void AgentCommandExecutor::enableService(
     const std::string& serviceName,
     bool throwOnError) {
+  XLOG(INFO) << "Enabling service " << serviceName;
   this->runCommand({"/usr/bin/systemctl", "enable", serviceName}, throwOnError);
 }
 
 void AgentCommandExecutor::disableService(
     const std::string& serviceName,
     bool throwOnError) {
+  XLOG(INFO) << "Disabling service " << serviceName;
   this->runCommand(
       {"/usr/bin/systemctl", "disable", serviceName}, throwOnError);
 }
@@ -40,12 +42,14 @@ void AgentCommandExecutor::disableService(
 void AgentCommandExecutor::startService(
     const std::string& serviceName,
     bool throwOnError) {
+  XLOG(INFO) << "Starting service " << serviceName;
   this->runCommand({"/usr/bin/systemctl", "start", serviceName}, throwOnError);
 }
 
 void AgentCommandExecutor::stopService(
     const std::string& serviceName,
     bool throwOnError) {
+  XLOG(INFO) << "Stopping service " << serviceName;
   this->runCommand({"/usr/bin/systemctl", "stop", serviceName}, throwOnError);
 }
 

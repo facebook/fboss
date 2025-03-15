@@ -14,6 +14,7 @@
 #include "fboss/agent/LldpManager.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/TxPacket.h"
+#include "fboss/agent/VoqUtils.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/packet/ICMPHdr.h"
 #include "fboss/agent/packet/PktFactory.h"
@@ -109,14 +110,16 @@ uint16_t getCoppHighPriQueueId(const HwAsic* hwAsic) {
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK3:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK6:
       return 9;
     case cfg::AsicType::ASIC_TYPE_EBRO:
     case cfg::AsicType::ASIC_TYPE_GARONNE:
     case cfg::AsicType::ASIC_TYPE_YUBA:
     case cfg::AsicType::ASIC_TYPE_JERICHO2:
     case cfg::AsicType::ASIC_TYPE_JERICHO3:
-    case cfg::AsicType::ASIC_TYPE_CHENAB:
       return 7;
+    case cfg::AsicType::ASIC_TYPE_CHENAB:
+      return 3;
     case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
     case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
     case cfg::AsicType::ASIC_TYPE_RAMON:
@@ -149,6 +152,7 @@ cfg::ToCpuAction getCpuActionType(const HwAsic* hwAsic) {
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK3:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK6:
     case cfg::AsicType::ASIC_TYPE_EBRO:
     case cfg::AsicType::ASIC_TYPE_GARONNE:
     case cfg::AsicType::ASIC_TYPE_YUBA:
@@ -174,6 +178,14 @@ cfg::StreamType getCpuDefaultStreamType(const HwAsic* hwAsic) {
     defaultStreamType = *streamTypes.begin();
   }
   return defaultStreamType;
+}
+
+cfg::QueueScheduling getCpuDefaultQueueScheduling(const HwAsic* hwAsic) {
+  if (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    // prevent scheduling configuration on chenab for cpu queues
+    return cfg::QueueScheduling::INTERNAL;
+  }
+  return cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
 }
 
 uint32_t getCoppQueuePps(const HwAsic* hwAsic, uint16_t queueId) {
@@ -249,7 +261,7 @@ void addCpuQueueConfig(
   queue0.id() = kCoppLowPriQueueId;
   queue0.name() = "cpuQueue-low";
   queue0.streamType() = getCpuDefaultStreamType(hwAsic);
-  queue0.scheduling() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+  queue0.scheduling() = getCpuDefaultQueueScheduling(hwAsic);
   queue0.weight() = kCoppLowPriWeight;
   if (setQueueRate) {
     queue0.portQueueRate() = setPortQueueRate(hwAsic, kCoppLowPriQueueId);
@@ -266,8 +278,10 @@ void addCpuQueueConfig(
     queue1.id() = kCoppDefaultPriQueueId;
     queue1.name() = "cpuQueue-default";
     queue1.streamType() = getCpuDefaultStreamType(hwAsic);
-    queue1.scheduling() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
-    queue1.weight() = kCoppDefaultPriWeight;
+    queue1.scheduling() = getCpuDefaultQueueScheduling(hwAsic);
+    queue1.weight() = *queue1.scheduling() == cfg::QueueScheduling::INTERNAL
+        ? 0
+        : kCoppDefaultPriWeight;
     if (setQueueRate) {
       queue1.portQueueRate() = setPortQueueRate(hwAsic, kCoppDefaultPriQueueId);
     }
@@ -276,14 +290,24 @@ void addCpuQueueConfig(
     }
     setPortQueueSharedBytes(queue1, isSai);
     cpuQueues.push_back(queue1);
+  } else if (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    cfg::PortQueue queue1;
+    queue1.id() = kCoppDefaultPriQueueId;
+    queue1.name() = "cpuQueue-default";
+    queue1.streamType() = getCpuDefaultStreamType(hwAsic);
+    queue1.scheduling() = cfg::QueueScheduling::INTERNAL;
+    queue1.weight() = 0;
+    cpuQueues.push_back(queue1);
   }
 
   cfg::PortQueue queue2;
   queue2.id() = getCoppMidPriQueueId({hwAsic});
   queue2.name() = "cpuQueue-mid";
   queue2.streamType() = getCpuDefaultStreamType(hwAsic);
-  queue2.scheduling() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
-  queue2.weight() = kCoppMidPriWeight;
+  queue2.scheduling() = getCpuDefaultQueueScheduling(hwAsic);
+  queue2.weight() = *queue2.scheduling() == cfg::QueueScheduling::INTERNAL
+      ? 0
+      : kCoppMidPriWeight;
   setPortQueueMaxDynamicSharedBytes(queue2, hwAsic);
   cpuQueues.push_back(queue2);
 
@@ -291,11 +315,43 @@ void addCpuQueueConfig(
   queue9.id() = getCoppHighPriQueueId(hwAsic);
   queue9.name() = "cpuQueue-high";
   queue9.streamType() = getCpuDefaultStreamType(hwAsic);
-  queue9.scheduling() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
-  queue9.weight() = kCoppHighPriWeight;
+  queue9.scheduling() = getCpuDefaultQueueScheduling(hwAsic);
+  queue9.weight() = *queue9.scheduling() == cfg::QueueScheduling::INTERNAL
+      ? 0
+      : kCoppHighPriWeight;
   cpuQueues.push_back(queue9);
 
   *config.cpuQueues() = cpuQueues;
+
+  if (hwAsic->isSupported(HwAsic::Feature::VOQ)) {
+    std::vector<cfg::PortQueue> cpuVoqs;
+    cfg::PortQueue voq0;
+    voq0.id() = kCoppLowPriQueueId;
+    voq0.name() = "cpuVoq-low";
+    voq0.streamType() = getCpuDefaultStreamType(hwAsic);
+    voq0.scheduling() = cfg::QueueScheduling::INTERNAL;
+    voq0.maxDynamicSharedBytes() = kDnxCoppLowMaxDynamicSharedBytes;
+    cpuVoqs.push_back(voq0);
+
+    cfg::PortQueue voq1;
+    voq1.id() = isDualStage3Q2QQos() ? 1 : getCoppMidPriQueueId({hwAsic});
+    voq1.name() = "cpuVoq-mid";
+    voq1.streamType() = getCpuDefaultStreamType(hwAsic);
+    voq1.scheduling() = cfg::QueueScheduling::INTERNAL;
+    voq1.maxDynamicSharedBytes() = kDnxCoppMidMaxDynamicSharedBytes;
+    cpuVoqs.push_back(voq1);
+
+    cfg::PortQueue voq2;
+    voq2.id() = isDualStage3Q2QQos()
+        ? 2
+        : getLocalPortNumVoqs(cfg::PortType::CPU_PORT, cfg::Scope::LOCAL) - 1;
+    voq2.name() = "cpuVoq-high";
+    voq2.streamType() = getCpuDefaultStreamType(hwAsic);
+    voq2.scheduling() = cfg::QueueScheduling::INTERNAL;
+    cpuVoqs.push_back(voq2);
+
+    config.cpuVoqs() = cpuVoqs;
+  }
 }
 
 void setDefaultCpuTrafficPolicyConfig(
@@ -510,6 +566,7 @@ void addHighPriAclForNdp(
 
   cfg::AclEntry acl1;
   acl1.etherType() = cfg::EtherType::IPv6;
+  acl1.proto() = static_cast<uint8_t>(IP_PROTO::IP_PROTO_IPV6_ICMP);
   acl1.ttl() = ttl;
   acl1.icmpType() =
       static_cast<uint16_t>(ICMPv6Type::ICMPV6_TYPE_NDP_ROUTER_SOLICITATION);
@@ -519,6 +576,7 @@ void addHighPriAclForNdp(
 
   cfg::AclEntry acl2;
   acl2.etherType() = cfg::EtherType::IPv6;
+  acl2.proto() = static_cast<uint8_t>(IP_PROTO::IP_PROTO_IPV6_ICMP);
   acl2.ttl() = ttl;
   acl2.icmpType() =
       static_cast<uint16_t>(ICMPv6Type::ICMPV6_TYPE_NDP_ROUTER_ADVERTISEMENT);
@@ -528,6 +586,7 @@ void addHighPriAclForNdp(
 
   cfg::AclEntry acl3;
   acl3.etherType() = cfg::EtherType::IPv6;
+  acl3.proto() = static_cast<uint8_t>(IP_PROTO::IP_PROTO_IPV6_ICMP);
   acl3.ttl() = ttl;
   acl3.icmpType() =
       static_cast<uint16_t>(ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION);
@@ -537,6 +596,7 @@ void addHighPriAclForNdp(
 
   cfg::AclEntry acl4;
   acl4.etherType() = cfg::EtherType::IPv6;
+  acl4.proto() = static_cast<uint8_t>(IP_PROTO::IP_PROTO_IPV6_ICMP);
   acl4.ttl() = ttl;
   acl4.icmpType() =
       static_cast<uint16_t>(ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT);
@@ -546,6 +606,7 @@ void addHighPriAclForNdp(
 
   cfg::AclEntry acl5;
   acl5.etherType() = cfg::EtherType::IPv6;
+  acl5.proto() = static_cast<uint8_t>(IP_PROTO::IP_PROTO_IPV6_ICMP);
   acl5.ttl() = ttl;
   acl5.icmpType() =
       static_cast<uint16_t>(ICMPv6Type::ICMPV6_TYPE_NDP_REDIRECT_MESSAGE);
@@ -648,7 +709,7 @@ void setTTLZeroCpuConfig(
     // don't configure if not supported
     return;
   }
-
+  excludeTTL1TrapConfig(config);
   std::vector<cfg::PacketRxReasonToQueue> rxReasons;
   bool addTtlRxReason = true;
   if (config.cpuTrafficPolicy().has_value() &&
@@ -682,20 +743,20 @@ void setTTLZeroCpuConfig(
 }
 
 void excludeTTL1TrapConfig(cfg::SwitchConfig& config) {
-  std::vector<cfg::PacketRxReasonToQueue> rxReasons;
-  // Exclude TTL_1 trap since on some devices we disable it
-  // to set up data plane loops
-  CHECK(config.cpuTrafficPolicy().has_value());
-  CHECK(config.cpuTrafficPolicy()->rxReasonToQueueOrderedList().has_value());
-  if (config.cpuTrafficPolicy()->rxReasonToQueueOrderedList()->size()) {
+  if (config.cpuTrafficPolicy().has_value() &&
+      config.cpuTrafficPolicy()->rxReasonToQueueOrderedList().has_value() &&
+      config.cpuTrafficPolicy()->rxReasonToQueueOrderedList()->size()) {
+    std::vector<cfg::PacketRxReasonToQueue> rxReasons;
+    // Exclude TTL_1 trap since on some devices we disable it
+    // to set up data plane loops
     for (auto rxReasonAndQueue :
          *config.cpuTrafficPolicy()->rxReasonToQueueOrderedList()) {
       if (*rxReasonAndQueue.rxReason() != cfg::PacketRxReason::TTL_1) {
         rxReasons.push_back(rxReasonAndQueue);
       }
     }
+    config.cpuTrafficPolicy()->rxReasonToQueueOrderedList() = rxReasons;
   }
-  config.cpuTrafficPolicy()->rxReasonToQueueOrderedList() = rxReasons;
 }
 
 void setPortQueueSharedBytes(cfg::PortQueue& queue, bool isSai) {
@@ -713,7 +774,7 @@ void setPortQueueSharedBytes(cfg::PortQueue& queue, bool isSai) {
 void setPortQueueMaxDynamicSharedBytes(
     cfg::PortQueue& queue,
     const HwAsic* hwAsic) {
-  if (hwAsic->isSupported(HwAsic::Feature::CPU_VOQ_BUFFER_PROFILE)) {
+  if (hwAsic->isSupported(HwAsic::Feature::VOQ)) {
     if (queue.id() == kCoppLowPriQueueId) {
       queue.maxDynamicSharedBytes() = kDnxCoppLowMaxDynamicSharedBytes;
     } else if (queue.id() == getCoppMidPriQueueId({hwAsic})) {
@@ -1135,9 +1196,13 @@ cfg::MatchAction getToQueueActionForSai(
     const std::optional<cfg::ToCpuAction> toCpuAction) {
   cfg::MatchAction action;
   if (FLAGS_sai_user_defined_trap) {
-    cfg::UserDefinedTrapAction userDefinedTrap;
-    userDefinedTrap.queueId() = queueId;
-    action.userDefinedTrap() = userDefinedTrap;
+    if (toCpuAction.has_value()) {
+      // if toCpuAction is null, then its forward by default, so don't add a
+      // user defined trap as packet neither copied nor trapped to CPU
+      cfg::UserDefinedTrapAction userDefinedTrap;
+      userDefinedTrap.queueId() = queueId;
+      action.userDefinedTrap() = userDefinedTrap;
+    }
     // assume tc i maps to queue i for all i on sai switches
     cfg::SetTcAction setTc;
     setTc.tcValue() = queueId;
@@ -1349,8 +1414,8 @@ void sendAndVerifyPkts(
     PortID srcPort,
     uint8_t trafficClass) {
   auto sendPkts = [&] {
-    auto vlanId = utility::firstVlanID(swState);
-    auto intfMac = utility::getFirstInterfaceMac(swState);
+    auto vlanId = utility::firstVlanIDWithPorts(swState);
+    auto intfMac = utility::getMacForFirstInterfaceWithPorts(swState);
     utility::sendTcpPkts(
         switchPtr,
         1 /*numPktsToSend*/,

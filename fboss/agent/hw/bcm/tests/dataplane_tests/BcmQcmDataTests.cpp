@@ -242,7 +242,7 @@ class BcmQcmDataTest : public BcmLinkStateDependentTests {
       PortID from,
       const std::optional<folly::IPAddress>& srcIp = std::nullopt) {
     // TODO: Remove the dependency on VLAN below
-    auto vlan = utility::firstVlanID(initialConfig());
+    auto vlan = utility::firstVlanIDWithPorts(initialConfig());
     if (!vlan) {
       throw FbossError("VLAN id unavailable for test");
     }

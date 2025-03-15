@@ -121,7 +121,7 @@ struct SaiPortTraits {
         EnumType,
         SAI_PORT_ATTR_PORT_VLAN_ID,
         sai_uint16_t,
-        SaiIntDefault<sai_uint16_t>>;
+        SaiVlanIdDefault>;
     using Mtu = SaiAttribute<
         EnumType,
         SAI_PORT_ATTR_MTU,
@@ -403,6 +403,11 @@ struct SaiPortTraits {
         sai_uint32_t,
         SaiIntDefault<sai_uint32_t>>;
 #endif
+    using AutoNegotiationMode = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_AUTO_NEG_MODE,
+        bool,
+        SaiBoolDefaultFalse>;
     struct AttributeCablePropogationDelayNS {
       std::optional<sai_attr_id_t> operator()();
     };
@@ -559,7 +564,12 @@ struct SaiPortTraits {
       std::optional<Attributes::CondEntropyRehashEnable>,
       std::optional<Attributes::CondEntropyRehashPeriodUS>,
       std::optional<Attributes::CondEntropyRehashSeed>,
-      std::optional<Attributes::ShelEnable>>;
+      std::optional<Attributes::ShelEnable>
+#if defined(CHENAB_SDK)
+      ,
+      std::optional<Attributes::AutoNegotiationMode>
+#endif
+      >;
   static constexpr std::array<sai_stat_id_t, 16> CounterIdsToRead = {
       SAI_PORT_STAT_IF_IN_OCTETS,
       SAI_PORT_STAT_IF_IN_UCAST_PKTS,
@@ -715,6 +725,10 @@ SAI_ATTRIBUTE_NAME(Port, CondEntropyRehashEnable)
 SAI_ATTRIBUTE_NAME(Port, CondEntropyRehashPeriodUS)
 SAI_ATTRIBUTE_NAME(Port, CondEntropyRehashSeed)
 SAI_ATTRIBUTE_NAME(Port, ShelEnable)
+
+#if defined(CHENAB_SDK)
+SAI_ATTRIBUTE_NAME(Port, AutoNegotiationMode)
+#endif
 
 template <>
 struct SaiObjectHasStats<SaiPortTraits> : public std::true_type {};

@@ -225,8 +225,6 @@ class AgentEnsemble : public TestEnsembleIf {
       override;
   void unregisterStateObserver(StateObserver* observer) override;
 
-  virtual HwSwitch* getHwSwitch() = 0;
-  virtual const HwSwitch* getHwSwitch() const = 0;
   void runDiagCommand(
       const std::string& input,
       std::string& output,
@@ -290,6 +288,13 @@ class AgentEnsemble : public TestEnsembleIf {
   std::unique_ptr<apache::thrift::Client<utility::AgentHwTestCtrl>>
   getHwAgentTestClient(SwitchID switchId);
   BootType getBootType() const;
+  static void writeConfig(
+      const cfg::AgentConfig& config,
+      const std::string& file);
+
+  const std::string& configFileName() const {
+    return configFile_;
+  }
 
  protected:
   void joinAsyncInitThread() {
@@ -307,7 +312,6 @@ class AgentEnsemble : public TestEnsembleIf {
 
   void writeConfig(const cfg::SwitchConfig& config);
   void writeConfig(const cfg::AgentConfig& config);
-  void writeConfig(const cfg::AgentConfig& config, const std::string& file);
   bool waitForRateOnPort(
       PortID port,
       uint64_t desiredBps,

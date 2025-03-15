@@ -84,6 +84,17 @@ SaiPortTraits::AdapterHostKey getPortAdapterHostKeyFromAttr(
   return portKey;
 }
 
+static const std::vector<PfcPriority> allPfcPriorities() {
+  static std::vector<PfcPriority> priorities;
+  if (priorities.empty()) {
+    for (int i = 0; i <= cfg::switch_config_constants::PFC_PRIORITY_VALUE_MAX();
+         i++) {
+      priorities.push_back(PfcPriority(i));
+    }
+  }
+  return priorities;
+}
+
 } // namespace
 
 void SaiPortManager::fillInSupportedStats(PortID port) {
@@ -246,7 +257,7 @@ PortSaiId SaiPortManager::addPortImpl(const std::shared_ptr<Port>& swPort) {
     portStats_.emplace(
         swPort->getID(),
         std::make_unique<HwPortFb303Stats>(
-            swPort->getName(), queueId2Name, swPort->getPfcPriorities()));
+            swPort->getName(), queueId2Name, allPfcPriorities()));
   }
 
   bool samplingMirror = swPort->getSampleDestination().has_value() &&
@@ -260,7 +271,7 @@ PortSaiId SaiPortManager::addPortImpl(const std::shared_ptr<Port>& swPort) {
   addSamplePacket(swPort);
   addNode(swPort);
   addPfc(swPort);
-  programPfcBuffers(swPort);
+  changePfcBuffers(nullptr, swPort);
 
   // set platform port's speed
   auto platformPort = platform_->getPort(swPort->getID());
@@ -344,7 +355,7 @@ void SaiPortManager::changePortImpl(
   changePfc(oldPort, newPort);
   changeRxLaneSquelch(oldPort, newPort);
   changeTxEnable(oldPort, newPort);
-  programPfcBuffers(newPort);
+  changePfcBuffers(oldPort, newPort);
 
   if (newPort->isEnabled()) {
     if (!oldPort->isEnabled()) {
@@ -445,6 +456,18 @@ void SaiPortManager::attributesFromSaiStore(
       port->attributes(),
       attributes,
       SaiPortTraits::Attributes::QosPfcPriorityToQueueMap{});
+  getAndSetAttribute(
+      port->attributes(), attributes, SaiPortTraits::Attributes::TamObject{});
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
+  getAndSetAttribute(
+      port->attributes(),
+      attributes,
+      SaiPortTraits::Attributes::PfcTcDldInterval{});
+  getAndSetAttribute(
+      port->attributes(),
+      attributes,
+      SaiPortTraits::Attributes::PfcTcDlrInterval{});
+#endif
   if (platform_->getAsic()->isSupported(
           HwAsic::Feature::PORT_TTL_DECREMENT_DISABLE)) {
     getAndSetAttribute(
@@ -612,7 +635,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   auto portPfcInfo = getPortPfcAttributes(swPort);
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
-  std::optional<SaiPortTraits::Attributes::ArsEnable> arsEnable = false;
+  std::optional<SaiPortTraits::Attributes::ArsEnable> arsEnable = std::nullopt;
   std::optional<SaiPortTraits::Attributes::ArsPortLoadScalingFactor>
       arsPortLoadScalingFactor = std::nullopt;
   std::optional<SaiPortTraits::Attributes::ArsPortLoadPastWeight>
@@ -644,11 +667,9 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
 
   std::optional<SaiPortTraits::Attributes::CondEntropyRehashEnable>
       condEntropyRehashEnable{};
-// TODO(zecheng): Update flag when new 12.0 release has the attribute
-#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   condEntropyRehashEnable = swPort->getConditionalEntropyRehash();
 #endif
-
   if (basicAttributeOnly) {
     return SaiPortTraits::CreateAttributes{
 #if defined(BRCM_SAI_SDK_DNX)
@@ -717,8 +738,17 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         std::nullopt, // CondEntropyRehashPeriodUS
         std::nullopt, // CondEntropyRehashSeed
         std::nullopt, // ShelEnable
+#if defined(CHENAB_SDK)
+        false,
+#endif
     };
   }
+  std::optional<SaiPortTraits::Attributes::PortVlanId> vlanIdAttr{vlanId};
+  if (vlanId == 0) {
+    // vlan ID with value 0 is invalid
+    vlanIdAttr.reset();
+  }
+
   return SaiPortTraits::CreateAttributes{
 #if defined(BRCM_SAI_SDK_DNX)
       getPortTypeFromCfg(swPort->getPortType()),
@@ -741,7 +771,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
 #endif
       mediaType,
       globalFlowControlMode,
-      vlanId,
+      vlanIdAttr,
       mtu,
       std::nullopt,
       std::nullopt,
@@ -786,10 +816,13 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       arsPortLoadFutureWeight, // ARS port load future weight
 #endif
       reachabilityGroup,
-      condEntropyRehashEnable, // CondEntropyRehashEnable
+      condEntropyRehashEnable,
       std::nullopt, // CondEntropyRehashPeriodUS
       std::nullopt, // CondEntropyRehashSeed
       std::nullopt, // ShelEnable
+#if defined(CHENAB_SDK)
+      false,
+#endif
   };
 }
 
@@ -978,6 +1011,26 @@ void SaiPortManager::programSerdes(
           cfg::AsicType::ASIC_TYPE_TOMAHAWK3 &&
       swPort->getZeroPreemphasis()) {
     createSerdesWithZeroPreemphasis(portHandle, swPort->getPinConfigs());
+  }
+  if (platform_->getAsic()->getAsicType() ==
+      cfg::AsicType::ASIC_TYPE_TOMAHAWK5) {
+    // set main txfir only first to avoid programming errors, see CS00012393198
+    auto attributes = serdesAttributes;
+    auto newTxFirMain =
+        std::get<std::optional<SaiPortSerdesTraits::Attributes::TxFirMain>>(
+            serdesAttributes);
+    auto numLanes = newTxFirMain.value().value().size();
+    SaiPortSerdesTraits::Attributes::TxFirPre1::ValueType txPre1;
+    txPre1.resize(numLanes, 0);
+    std::get<std::optional<SaiPortSerdesTraits::Attributes::TxFirPre1>>(
+        attributes) = txPre1;
+    std::get<std::optional<SaiPortSerdesTraits::Attributes::TxFirMain>>(
+        attributes) = newTxFirMain;
+    SaiPortSerdesTraits::Attributes::TxFirPre1::ValueType txPost1;
+    txPost1.resize(numLanes, 0);
+    std::get<std::optional<SaiPortSerdesTraits::Attributes::TxFirPost1>>(
+        attributes) = txPost1;
+    portHandle->serdes = store.setObject(serdesKey, attributes);
   }
   // create if serdes doesn't exist or update existing serdes
   portHandle->serdes = store.setObject(serdesKey, serdesAttributes);
@@ -1237,7 +1290,7 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
         HwAsic::AsicVendor::ASIC_VENDOR_TAJO) {
       setTxRxAttr(
           attrs, SaiPortSerdesTraits::Attributes::TxLutMode{}, txLutMode);
-#if defined(TAJO_SDK_GTE_24_4_90)
+#if defined(TAJO_SDK_GTE_24_8_3001)
       setTxRxAttr(
           attrs,
           SaiPortSerdesTraits::Attributes::TxDiffEncoderEn{},

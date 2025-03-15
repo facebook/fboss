@@ -42,7 +42,7 @@ struct ThriftListFields : public FieldBaseType {
   using ChildTypeClass =
       typename list_helpers::ExtractValueTypeClass<TypeClass>::type;
   using ChildTType = typename TType::value_type;
-  using ChildTraits = ConvertToNodeTraits<ChildTypeClass, ChildTType>;
+  using ChildTraits = ConvertToNodeTraits<false, ChildTypeClass, ChildTType>;
   using value_type = typename ChildTraits::type;
   using StorageType = std::vector<value_type>;
   using iterator = typename StorageType::iterator;

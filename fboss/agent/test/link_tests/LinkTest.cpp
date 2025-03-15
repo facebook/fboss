@@ -25,6 +25,10 @@
 #include "fboss/lib/phy/gen-cpp2/phy_types_custom_protocol.h"
 #include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
 
+#ifndef IS_OSS
+#include "common/base/Proc.h"
+#endif
+
 DEFINE_bool(
     list_production_feature,
     false,
@@ -49,6 +53,14 @@ const std::vector<std::string> l1LinkTestNames = {
     "verifyIphyFecBerCounters"};
 
 const std::vector<std::string> l2LinkTestNames = {"trafficRxTx", "ecmpShrink"};
+
+#ifndef IS_OSS
+static constexpr auto kQsfpRssCounter = "proc_rss_mem_bytes";
+static auto kQsfpMemLimit = 3.75 * 1000 * 1000 * 1000; // 3.75GB
+static constexpr auto kFsdbRssCounter = "fsdb.rss.avg.60";
+static auto kFsdbMemLimit = 2.4 * 1000 * 1000 * 1000; // 2.4GB
+static auto kAgentMemLimit = 9 * 1000 * 1000 * 1000L; // 9GB
+#endif
 } // namespace
 
 namespace facebook::fboss {
@@ -86,8 +98,58 @@ void LinkTest::TearDown() {
         QsfpServiceRunState::ACTIVE,
         qsfpServiceClient.get()->sync_getQsfpServiceRunState())
         << "QSFP Service run state no longer active after the test";
+#ifndef IS_OSS
+    // FSDB is not fully supported in OSS
+    auto fsdbClient = utils::createFsdbClient();
+    EXPECT_EQ(
+        facebook::fb303::cpp2::fb_status::ALIVE,
+        fsdbClient.get()->sync_getStatus())
+        << "FSDB no longer alive after the test";
+#endif
     AgentTest::TearDown();
   }
+}
+
+void LinkTest::checkQsfpServiceMemoryInBounds() const {
+#ifndef IS_OSS
+  std::map<std::string, int64_t> qsfpCounters;
+  auto qsfpServiceClient = utils::createQsfpServiceClient();
+  qsfpServiceClient.get()->sync_getRegexCounters(qsfpCounters, kQsfpRssCounter);
+  if (qsfpCounters.find(kQsfpRssCounter) == qsfpCounters.end()) {
+    throw FbossError(
+        "Qsfp Service RSS memory counter ", kQsfpRssCounter, " not found");
+  }
+  if (qsfpCounters[kQsfpRssCounter] > kQsfpMemLimit) {
+    throw FbossError(
+        "Qsfp Service RSS memory ",
+        qsfpCounters[kQsfpRssCounter],
+        " above 3.75GB");
+  }
+#endif
+}
+
+void LinkTest::checkFsdbMemoryInBounds() const {
+#ifndef IS_OSS
+  std::map<std::string, int64_t> fsdbCounters;
+  auto fsdbClient = utils::createFsdbClient();
+  fsdbClient.get()->sync_getRegexCounters(fsdbCounters, kFsdbRssCounter);
+  if (fsdbCounters.find(kFsdbRssCounter) == fsdbCounters.end()) {
+    throw FbossError("FSDB RSS memory counter ", kFsdbRssCounter, " not found");
+  }
+  if (fsdbCounters[kFsdbRssCounter] > kFsdbMemLimit) {
+    throw FbossError(
+        "FSDB RSS memory ", fsdbCounters[kFsdbRssCounter], " above 2.4GB");
+  }
+#endif
+}
+
+void LinkTest::checkAgentMemoryInBounds() const {
+#ifndef IS_OSS
+  int64_t memUsage = facebook::Proc::getMemoryUsage();
+  if (memUsage > kAgentMemLimit) {
+    throw FbossError("Agent RSS memory ", memUsage, " above 9GB");
+  }
+#endif
 }
 
 void LinkTest::setCmdLineFlagOverrides() const {
@@ -241,7 +303,12 @@ void LinkTest::programDefaultRoute(
 void LinkTest::programDefaultRoute(
     const boost::container::flat_set<PortDescriptor>& ecmpPorts,
     std::optional<folly::MacAddress> dstMac) {
-  utility::EcmpSetupTargetedPorts6 ecmp6(sw()->getState(), dstMac);
+  utility::EcmpSetupTargetedPorts6 ecmp6(
+      sw()->getState(),
+      dstMac,
+      RouterID(0),
+      false,
+      {cfg::PortType::INTERFACE_PORT, cfg::PortType::MANAGEMENT_PORT});
   programDefaultRoute(ecmpPorts, ecmp6);
 }
 
@@ -252,7 +319,7 @@ void LinkTest::createL3DataplaneFlood(
       sw()->getState(), sw()->getLocalMac(switchId));
   programDefaultRoute(ecmpPorts, ecmp6);
   utility::disableTTLDecrements(sw(), ecmpPorts);
-  auto vlanID = utility::firstVlanID(sw()->getState());
+  auto vlanID = utility::firstVlanIDWithPorts(sw()->getState());
   utility::pumpTraffic(
       true,
       utility::getAllocatePktFn(sw()),
@@ -306,8 +373,10 @@ std::vector<std::string> LinkTest::getPortName(
   return portNames;
 }
 
-std::optional<PortID> LinkTest::getPeerPortID(PortID portId) const {
-  for (auto portPair : getConnectedPairs()) {
+std::optional<PortID> LinkTest::getPeerPortID(
+    PortID portId,
+    const std::set<std::pair<PortID, PortID>>& connectedPairs) const {
+  for (auto portPair : connectedPairs) {
     if (portPair.first == portId) {
       return portPair.second;
     } else if (portPair.second == portId) {

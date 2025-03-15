@@ -39,10 +39,10 @@ class AgentJumboFramesTest : public AgentHwTest {
   }
 
   void sendPkt(int payloadSize) {
-    auto mac = utility::getFirstInterfaceMac(getProgrammedState());
+    auto mac = utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     auto txPacket = utility::makeUDPTxPacket(
         getSw(),
-        utility::firstVlanID(getProgrammedState()),
+        utility::firstVlanIDWithPorts(getProgrammedState()),
         mac,
         mac,
         folly::IPAddressV6("2620:0:1cfe:face:b00c::3"),

@@ -3,6 +3,7 @@
 #include "fboss/fsdb/client/FsdbPatchPublisher.h"
 #include "fboss/fsdb/client/instantiations/FsdbCowStateSubManager.h"
 #include "fboss/fsdb/client/instantiations/FsdbCowStatsSubManager.h"
+#include "fboss/fsdb/common/Utils.h"
 #include "fboss/fsdb/tests/utils/FsdbTestServer.h"
 #include "fboss/lib/CommonUtils.h"
 #include "fboss/lib/thrift_service_client/ConnectionOptions.h"
@@ -244,6 +245,26 @@ class FsdbSubManagerTest : public ::testing::Test,
   std::optional<utils::ConnectionOptions> connectionOptions_;
 };
 
+TEST(FsdbSubManagerTest, subscriberIdParsing) {
+  SubscriberId agentId = "agent";
+  EXPECT_EQ(subscriberId2ClientId(agentId).client(), FsdbClient::AGENT);
+  EXPECT_EQ(subscriberId2ClientId(agentId).instanceId(), "");
+  EXPECT_EQ(string2FsdbClient(agentId), FsdbClient::AGENT);
+  EXPECT_EQ(fsdbClient2string(string2FsdbClient(agentId)), agentId);
+
+  SubscriberId foo = "foo";
+  EXPECT_EQ(subscriberId2ClientId(foo).client(), FsdbClient::UNSPECIFIED);
+  EXPECT_EQ(subscriberId2ClientId(foo).instanceId(), "");
+  EXPECT_EQ(string2FsdbClient(foo), FsdbClient::UNSPECIFIED);
+
+  SubscriberId agentWithInstance = "agent:some_instance";
+  EXPECT_EQ(
+      subscriberId2ClientId(agentWithInstance).client(), FsdbClient::AGENT);
+  EXPECT_EQ(
+      subscriberId2ClientId(agentWithInstance).instanceId(), "some_instance");
+  EXPECT_EQ(string2FsdbClient(agentWithInstance), FsdbClient::UNSPECIFIED);
+}
+
 using SubscriberTypes =
     ::testing::Types<FsdbCowStateSubManager, FsdbCowStatsSubManager>;
 
@@ -356,7 +377,9 @@ TYPED_TEST(FsdbSubManagerTest, restartPublisher) {
   std::optional<SubscriptionState> lastStateSeen;
   auto subscriber = this->createSubscriber("test", this->root().agent());
   auto boundData = subscriber->subscribeBound(
-      [&](auto, auto newState) { lastStateSeen = newState; });
+      [&](auto, auto newState, std::optional<bool> /*initialSyncHasData*/) {
+        lastStateSeen = newState;
+      });
 
   WITH_RETRIES({
     ASSERT_EVENTUALLY_TRUE(this->isSubscribed("test"));
@@ -385,7 +408,9 @@ TYPED_TEST(FsdbSubManagerTest, verifyGR) {
       this->createSubscriber("test", this->root().agent(), 3 /* grHoldTimer */);
   subscriber->subscribe(
       [&](auto update) { numUpdates++; },
-      [&](auto, auto newState) { lastStateSeen = newState; });
+      [&](auto, auto newState, std::optional<bool> /*initialSyncHasData*/) {
+        lastStateSeen = newState;
+      });
   WITH_RETRIES({
     ASSERT_EVENTUALLY_EQ(lastStateSeen, SubscriptionState::CONNECTED);
     ASSERT_EVENTUALLY_EQ(numUpdates, 1);

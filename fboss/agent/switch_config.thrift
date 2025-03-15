@@ -14,6 +14,7 @@ include "fboss/agent/if/mpls.thrift"
 include "fboss/lib/if/fboss_common.thrift"
 include "thrift/annotation/cpp.thrift"
 include "thrift/annotation/python.thrift"
+include "thrift/annotation/thrift.thrift"
 
 @cpp.Type{name = "uint64_t"}
 typedef i64 u64
@@ -225,6 +226,7 @@ enum IpType {
   IP6 = 3,
   ARP_REQUEST = 4,
   ARP_REPLY = 5,
+  NON_IP = 6,
 }
 
 enum EtherType {
@@ -369,6 +371,44 @@ struct Mirror {
   5: optional i32 samplingRate;
 }
 
+/*
+ * Aggregation of mirror-on-drop reasons. The exact drop reasons corresponding to each
+ * enum is platform-specific and is converted in the platform-specific SaiTamManagers.
+ */
+enum MirrorOnDropReasonAggregation {
+  UNEXPECTED_REASON_DISCARDS = 0,
+
+  INGRESS_MISC_DISCARDS = 1,
+  INGRESS_PACKET_PROCESSING_DISCARDS = 2,
+  INGRESS_QUEUE_RESOLUTION_DISCARDS = 3,
+  INGRESS_SOURCE_CONGESTION_DISCARDS = 4, // e.g. VSQ
+  INGRESS_DESTINATION_CONGESTION_DISCARDS = 5, // e.g. VOQ
+  INGRESS_GLOBAL_CONGESTION_DISCARDS = 6,
+}
+
+/**
+ * Aging group of an event, which controls the granularity at which MOD packets
+ * are sent:
+ * - At most one packet per interval will be generated for GLOBAL events
+ * - At most one packet per port pre interval will be generated for PORT events
+ * - ...and so on
+ */
+enum MirrorOnDropAgingGroup {
+  GLOBAL = 0,
+  PORT = 1,
+  PRIORITY_GROUP = 2,
+  VOQ = 3,
+}
+
+/**
+ * Configuration for each event ID under a MirrorOnDropReport. An event can have its own
+ * aging granularity setting and associated drop reasons.
+ */
+struct MirrorOnDropEventConfig {
+  1: list<MirrorOnDropReasonAggregation> dropReasonAggregations;
+  2: optional MirrorOnDropAgingGroup agingGroup; // defaults to 0 i.e. GLOBAL
+}
+
 struct MirrorOnDropReport {
   1: string name;
   /*
@@ -386,8 +426,17 @@ struct MirrorOnDropReport {
   // Contents of the dropped packet will be truncated when mirroring.
   7: i16 truncateSize = 128;
   8: byte dscp = 0;
-  // At most one mirrored packet will be sent per port/PG/VOQ within an interval. Granularity is not configurable as of now.
-  9: optional i32 agingIntervalUsecs;
+  @thrift.DeprecatedUnvalidatedAnnotations{items = {"deprecated": "1"}}
+  9: optional i32 agingIntervalUsecs_DEPRECATED;
+  @thrift.DeprecatedUnvalidatedAnnotations{items = {"deprecated": "1"}}
+  10: map<
+    byte,
+    list<MirrorOnDropReasonAggregation>
+  > eventIdToDropReasons_DEPRECATED;
+  // Configuration for each event ID.
+  11: map<byte, MirrorOnDropEventConfig> modEventToConfigMap;
+  // Aging interval (how often to send packets) for each aging group in usecs.
+  12: map<MirrorOnDropAgingGroup, i32> agingGroupAgingIntervalUsecs;
 }
 
 /**
@@ -591,7 +640,7 @@ enum AclTableQualifier {
   DST_IPV4 = 3,
   L4_SRC_PORT = 4,
   L4_DST_PORT = 5,
-  IP_PROTOCOL = 6,
+  IP_PROTOCOL_NUMBER = 6,
   TCP_FLAGS = 7,
   SRC_PORT = 8,
   OUT_PORT = 9,
@@ -627,7 +676,7 @@ enum AclStage {
   INGRESS = 0,
   INGRESS_MACSEC = 1,
   EGRESS_MACSEC = 2,
-  EGRESS = 3,
+  INGRESS_POST_LOOKUP = 3,
 }
 
 // startdocs_AclTableGroup_struct
@@ -993,11 +1042,17 @@ typedef string BufferPoolConfigName
 
 typedef string PortFlowletConfigName
 
+typedef string FirmwareName
+
 const i32 DEFAULT_PORT_MTU = 9412;
 
 const string DEFAULT_INGRESS_ACL_TABLE_GROUP = "ingress-ACL-Table-Group";
 
 const string DEFAULT_INGRESS_ACL_TABLE = "AclTable1";
+
+const string DEFAULT_POST_LOOKUP_INGRESS_ACL_TABLE_GROUP = "post-lookup-ingress-ACL-Table-Group";
+
+const string DEFAULT_POST_LOOKUP_INGRESS_ACL_TABLE = "PostLookupAclTable1";
 
 enum PortType {
   INTERFACE_PORT = 0,
@@ -1188,6 +1243,11 @@ struct Port {
    * DSF Interface node to enable conditional entropy, rotating hash seed periodically to increase entropy.
    */
   33: bool conditionalEntropyRehash = false;
+
+  /*
+   * DSF Interface node to enable SHEL messages - port UP/DOWN notification to other interface nodes.
+   */
+  34: optional bool selfHealingECMPLagEnable;
 }
 
 enum LacpPortRate {
@@ -1360,6 +1420,7 @@ struct NdpConfig {
 enum InterfaceType {
   VLAN = 1,
   SYSTEM_PORT = 2,
+  PORT = 3,
 }
 
 enum AsicType {
@@ -1380,6 +1441,7 @@ enum AsicType {
   ASIC_TYPE_YUBA = 15,
   ASIC_TYPE_RAMON3 = 16,
   ASIC_TYPE_CHENAB = 17,
+  ASIC_TYPE_TOMAHAWK6 = 18,
 }
 /**
  * The configuration for an interface
@@ -1440,6 +1502,9 @@ struct Interface {
   14: optional map<string, string> dhcpRelayOverridesV4;
   15: optional map<string, string> dhcpRelayOverridesV6;
   16: Scope scope = Scope.LOCAL;
+
+  /* valid only for port type of interface */
+  17: optional i32 portID;
 }
 
 struct StaticRouteWithNextHops {
@@ -1656,6 +1721,24 @@ struct SystemPortRanges {
   1: list<Range64> systemPortRanges;
 }
 
+enum FirmwareLoadType {
+  FIRMWARE_LOAD_TYPE_START = 0,
+  FIRMWARE_LOAD_TYPE_STOP = 1,
+}
+
+struct FirmwareInfo {
+  1: i32 coreToUse;
+  2: string path;
+  3: string logPath;
+  4: FirmwareLoadType firmwareLoadType;
+}
+
+struct SelfHealingEcmpLagConfig {
+  1: string shelSrcIp;
+  2: string shelDstIp;
+  3: i32 shelPeriodicIntervalMS;
+}
+
 struct SwitchInfo {
   1: SwitchType switchType;
   2: AsicType asicType;
@@ -1677,6 +1760,31 @@ struct SwitchInfo {
   // as part of config for other nodes to bootstrap
   // communication to this node
   11: optional i32 inbandPortId;
+  12: map<FirmwareName, FirmwareInfo> firmwareNameToFirmwareInfo;
+
+  /*
+   * VOQ switch may use these thresholds as below:
+   *  - During init, create switch device Isolated.
+   *  - When numActiveLinks > minLinksToJoinVOQDomain => Unisolate device.
+   *  - When numActiveLinks < minLinksToRemainInVOQDomain => Isolate device.
+   *
+   * In practice, these thresholds will be configured to provide hysteresis:
+   *  - 0 < minLinksToRemainInVOQDomain < minLinksToJoinVOQDomain < maxActiveLinks
+   *  - numActiveLinks in [0, minLinksToRemainInVOQDomain) => device isolated.
+   *  - numActiveLinks in (minLinksToJoinVOQDomain, maxActiveLinks] => device unisolated
+   *  - numActiveLinks in [minLinksToRemainInVOQDomain, minLinksToJoinVOQDomain]
+   *    => Whether or not the device is isolated depends on how we got to this state.
+   *    => For example, during init, as links gradually turn active, the device
+   *       will be isolated for these numActiveLinks as minLinksToJoinVOQDomain is not
+   *       yet hit.
+   *    => On the other hand, if the links are active but start turning inactive,
+   *       the device will be unisolated for these numActiveLinks since
+   *       minLinksToRemainInVOQDomain is not yet thit.
+   *
+   * TODO: This will be enhanced to work for Fabric switches as well.
+   */
+  13: optional i32 minLinksPerDeviceToRemainInVOQDomain;
+  14: optional i32 minLinksPerDeviceToJoinVOQDomain;
 }
 
 /*
@@ -1753,6 +1861,18 @@ struct SwitchSettings {
   // Conditional Entropy Rehash Period for VOQ devices
   23: optional i32 conditionalEntropyRehashPeriodUS;
   24: optional string firmwarePath;
+  // SHEL attributes to configure 1. SHEL message SrcIP, 2. DstIp, and 3. Interval for SHEL periodic messages
+  25: optional SelfHealingEcmpLagConfig selfHealingEcmpLagConfig;
+  // Specify the maximum expected latency for local, remote l1,
+  // remote l2 VOQs. Any latency exceeding the specified latency
+  // will be flagged in the VoQ latency watermark counters with
+  // the out of bounds latency value configured.
+  26: optional i32 localVoqMaxExpectedLatencyNsec;
+  27: optional i32 remoteL1VoqMaxExpectedLatencyNsec;
+  28: optional i32 remoteL2VoqMaxExpectedLatencyNsec;
+  29: optional i32 voqOutOfBoundsLatencyNsec;
+  // Number of sflow samples to pack in a single packet being sent out
+  30: optional byte numberOfSflowSamplesPerPacket;
 }
 
 // Global buffer pool
@@ -1782,6 +1902,7 @@ struct PortPgConfig {
   // packets
   5: optional i32 headroomLimitBytes;
   // Offset from XOFF before allowing XON
+  // resumeOffsetBytes and resumeBytes should not be set at the same time.
   6: optional i32 resumeOffsetBytes;
   // global buffer pool as used by this PG
   7: string bufferPoolName;
@@ -1793,6 +1914,10 @@ struct PortPgConfig {
   11: optional i64 minSramXoffThresholdBytes;
   // Offset from XOFF in SRAM before allowing XON
   12: optional i64 sramResumeOffsetBytes;
+  // Not all implementations support specifying an offset at which to send XON.
+  // Allowing configuring an absolute value at which to send XON in such cases.
+  // resumeOffsetBytes and resumeBytes should not be set at the same time.
+  13: optional i32 resumeBytes;
 }
 
 // asicSdk: Native SDK version. may or may not support SAI

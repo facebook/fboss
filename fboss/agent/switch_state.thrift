@@ -14,6 +14,7 @@ include "fboss/qsfp_service/if/transceiver.thrift"
 include "common/network/if/Address.thrift"
 include "fboss/agent/if/ctrl.thrift"
 include "fboss/mka_service/if/mka_structs.thrift"
+include "thrift/annotation/thrift.thrift"
 
 struct VlanInfo {
   1: bool tagged;
@@ -33,6 +34,9 @@ struct PortPgFields {
   11: optional i64 maxSramXoffThresholdBytes;
   12: optional i64 minSramXoffThresholdBytes;
   13: optional i64 sramResumeOffsetBytes;
+  // Not all implementations support specifying an offset at which to send XON.
+  // Allowing configuring an absolute value at which to send XON in such cases.
+  14: optional i64 resumeBytes;
 }
 
 struct MKASakKey {
@@ -136,6 +140,8 @@ struct PortFields {
   54: optional i32 reachabilityGroupId;
   // DSF Interface node to enable conditional entropy, rotating hash seed periodically to increase entropy.
   55: bool conditionalEntropyRehash = false;
+  56: bool selfHealingECMPLagEnable_DEPRECATED = false;
+  57: optional bool selfHealingECMPLagEnable;
 }
 
 typedef ctrl.SystemPortThrift SystemPortFields
@@ -327,8 +333,18 @@ struct MirrorOnDropReportFields {
   7: i16 mtu;
   8: i16 truncateSize;
   9: byte dscp;
-  10: optional i32 agingIntervalUsecs;
+  10: optional i32 agingIntervalUsecs_DEPRECATED;
   11: string switchMac; // Populated at runtime
+  12: string firstInterfaceMac; // Populated at runtime
+  13: map<
+    byte,
+    list<switch_config.MirrorOnDropReasonAggregation>
+  > eventIdToDropReasons_DEPRECATED;
+  14: map<byte, switch_config.MirrorOnDropEventConfig> modEventToConfigMap;
+  15: map<
+    switch_config.MirrorOnDropAgingGroup,
+    i32
+  > agingGroupAgingIntervalUsecs;
 }
 
 struct ControlPlaneFields {
@@ -405,7 +421,7 @@ struct SwitchSettingsFields {
   // When there's no IPv4 addresses configured, what address to use to source IPv4 ICMP packets from.
   42: Address.BinaryAddress icmpV4UnavailableSrcAddress;
   // Switch property of reachability group size, for the use of input balanced mode.
-  43: optional i32 reachabilityGroupListSize;
+  43: optional i32 reachabilityGroupListSize_DEPRECATED;
   // SRAM global thresholds to send PFC XOFF/XON
   44: optional byte sramGlobalFreePercentXoffThreshold;
   45: optional byte sramGlobalFreePercentXonThreshold;
@@ -414,6 +430,18 @@ struct SwitchSettingsFields {
   // Conditional Entropy Rehash Period for VOQ devices
   48: optional i32 conditionalEntropyRehashPeriodUS;
   49: optional string firmwarePath;
+  50: list<i32> reachabilityGroups = [];
+  51: optional switch_config.SelfHealingEcmpLagConfig selfHealingEcmpLagConfig;
+  // Specify the maximum expected latency for local, remote l1,
+  // remote l2 VOQs. Any latency exceeding the specified latency
+  // will be flagged in the VoQ latency watermark counters with
+  // the out of bounds latency value configured.
+  52: optional i32 localVoqMaxExpectedLatencyNsec;
+  53: optional i32 remoteL1VoqMaxExpectedLatencyNsec;
+  54: optional i32 remoteL2VoqMaxExpectedLatencyNsec;
+  55: optional i32 voqOutOfBoundsLatencyNsec;
+  // Number of sflow samples to pack in a single packet being sent out
+  56: optional byte numberOfSflowSamplesPerPacket;
 }
 
 struct RoutePrefix {
@@ -541,6 +569,9 @@ struct InterfaceFields {
    */
   21: optional common.LivenessStatus remoteIntfLivenessStatus;
   22: switch_config.Scope scope = switch_config.Scope.LOCAL;
+
+  /* applicable only for port type of interface */
+  23: optional i32 portId;
 }
 
 enum LacpState {
@@ -637,6 +668,7 @@ struct QcmCfgFields {
 // eg: "Id:124,125,130" indicates a table applicable to SwitchIds 124, 125 and 130
 typedef string SwitchIdList
 
+@thrift.DeprecatedUnvalidatedAnnotations{items = {"thriftpath.root": "1"}}
 struct SwitchState {
   100: map<SwitchIdList, map<i16, PortFields>> portMaps;
   101: map<SwitchIdList, map<i16, VlanFields>> vlanMaps;
@@ -675,7 +707,7 @@ struct SwitchState {
   // Remote object maps
   600: map<SwitchIdList, map<i64, SystemPortFields>> remoteSystemPortMaps;
   601: map<SwitchIdList, map<i32, InterfaceFields>> remoteInterfaceMaps;
-} (thriftpath.root)
+}
 
 struct RouteTableFields {
   1: map<string, RouteFields> v4NetworkToRoute;
@@ -686,5 +718,5 @@ struct RouteTableFields {
 struct WarmbootState {
   1: SwitchState swSwitchState;
   2: map<i32, RouteTableFields> routeTables;
-// TODO: Extend for hwSwitchState
+  // TODO: Extend for hwSwitchState
 }

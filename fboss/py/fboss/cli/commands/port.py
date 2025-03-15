@@ -8,6 +8,8 @@
 #  of patent rights can be found in the PATENTS file in the same directory.
 #
 
+# pyre-unsafe
+
 import collections
 import itertools
 import time
@@ -26,7 +28,6 @@ from thrift.transport.TTransport import TTransportException
 
 class PortDetailsCmd(cmds.FbossCmd):
     def run(self, ports, show_down=True):
-
         with self._create_agent_client() as client:
             try:
                 resp = client.getAllPortInfo()

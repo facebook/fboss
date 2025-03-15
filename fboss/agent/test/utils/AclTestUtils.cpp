@@ -33,7 +33,7 @@ std::vector<cfg::AclTableQualifier> genAclQualifiersConfig(
       cfg::AclTableQualifier::DST_IPV4,
       cfg::AclTableQualifier::L4_SRC_PORT,
       cfg::AclTableQualifier::L4_DST_PORT,
-      cfg::AclTableQualifier::IP_PROTOCOL,
+      cfg::AclTableQualifier::IP_PROTOCOL_NUMBER,
       cfg::AclTableQualifier::DSCP,
       cfg::AclTableQualifier::TTL,
       cfg::AclTableQualifier::ICMPV4_TYPE,
@@ -48,14 +48,8 @@ std::vector<cfg::AclTableQualifier> genAclQualifiersConfig(
 }
 
 int getAclTableIndex(
-    cfg::SwitchConfig* cfg,
-    const std::string& tableName,
-    const std::string& tableGroupName) {
-  auto aclTableGroup = getAclTableGroup(*cfg, tableGroupName);
-  if (!aclTableGroup) {
-    throw FbossError(
-        "Multiple acl tables flag enabled but config leaves aclTableGroup empty");
-  }
+    cfg::AclTableGroup* aclTableGroup,
+    const std::string& tableName) {
   int tableIndex;
   std::vector<cfg::AclTable> aclTables = *aclTableGroup->aclTables();
   std::vector<cfg::AclTable>::iterator it = std::find_if(
@@ -77,8 +71,7 @@ cfg::AclEntry* addAclEntry(
     const std::string& aclTableName) {
   if (FLAGS_enable_acl_table_group) {
     auto aclTableGroup = getAclTableGroup(*cfg);
-    int tableNumber =
-        getAclTableIndex(cfg, aclTableName, *aclTableGroup->name());
+    int tableNumber = getAclTableIndex(aclTableGroup, aclTableName);
     CHECK(aclTableGroup);
     aclTableGroup->aclTables()[tableNumber].aclEntries()->push_back(acl);
     return &aclTableGroup->aclTables()[tableNumber].aclEntries()->back();
@@ -156,8 +149,7 @@ std::vector<cfg::AclEntry>& getAcls(
     auto* aclTableGroup = getAclTableGroup(*cfg);
     CHECK(aclTableGroup);
     return *aclTableGroup
-                ->aclTables()[getAclTableIndex(
-                    cfg, aclTableName, *aclTableGroup->name())]
+                ->aclTables()[getAclTableIndex(aclTableGroup, aclTableName)]
                 .aclEntries();
   }
   return *cfg->acls();
@@ -189,7 +181,14 @@ void addAclTableGroup(
   cfg::AclTableGroup cfgTableGroup;
   cfgTableGroup.name() = aclTableGroupName;
   cfgTableGroup.stage() = aclStage;
-  cfg->aclTableGroups() = {std::move(cfgTableGroup)};
+  if (auto aclTableGroup = getAclTableGroup(*cfg, aclStage)) {
+    *aclTableGroup = cfgTableGroup;
+    return;
+  }
+  if (!cfg->aclTableGroups()) {
+    cfg->aclTableGroups() = {};
+  }
+  cfg->aclTableGroups()->push_back(std::move(cfgTableGroup));
 }
 
 void addDefaultAclTable(cfg::SwitchConfig& cfg) {
@@ -209,11 +208,32 @@ cfg::AclTable* addAclTable(
     const std::string& aclTableName,
     const int aclTablePriority,
     const std::vector<cfg::AclTableActionType>& actionTypes,
-    const std::vector<cfg::AclTableQualifier>& qualifiers) {
-  auto aclTableGroup = getAclTableGroup(*cfg);
+    const std::vector<cfg::AclTableQualifier>& qualifiers,
+    const std::vector<std::string>& udfGroups) {
+  return addAclTable(
+      cfg,
+      cfg::AclStage::INGRESS,
+      aclTableName,
+      aclTablePriority,
+      actionTypes,
+      qualifiers,
+      udfGroups);
+}
+
+cfg::AclTable* addAclTable(
+    cfg::SwitchConfig* cfg,
+    cfg::AclStage aclStage,
+    const std::string& aclTableName,
+    const int aclTablePriority,
+    const std::vector<cfg::AclTableActionType>& actionTypes,
+    const std::vector<cfg::AclTableQualifier>& qualifiers,
+    const std::vector<std::string>& udfGroups) {
+  auto aclTableGroup = getAclTableGroup(*cfg, aclStage);
   if (!aclTableGroup) {
     throw FbossError(
-        "Attempted to add acl table without first creating acl table group");
+        "Attempted to add acl table ",
+        aclTableName,
+        " without first creating acl table group");
   }
 
   cfg::AclTable aclTable;
@@ -221,6 +241,7 @@ cfg::AclTable* addAclTable(
   aclTable.priority() = aclTablePriority;
   aclTable.actionTypes() = actionTypes;
   aclTable.qualifiers() = qualifiers;
+  aclTable.udfGroups() = udfGroups;
 
   aclTableGroup->aclTables()->push_back(aclTable);
   return &aclTableGroup->aclTables()->back();
@@ -412,26 +433,91 @@ std::shared_ptr<AclEntry> getAclEntry(
   return state->getAcl(name);
 }
 
+cfg::AclTableGroup* FOLLY_NULLABLE getAclTableGroup(cfg::SwitchConfig& config) {
+  return getAclTableGroup(config, cfg::AclStage::INGRESS);
+}
+
 cfg::AclTableGroup* FOLLY_NULLABLE
-getAclTableGroup(cfg::SwitchConfig& config, const std::string& name) {
+getAclTableGroup(cfg::SwitchConfig& config, cfg::AclStage aclStage) {
   if (!config.aclTableGroups()) {
     return nullptr;
   }
   for (auto iter = config.aclTableGroups()->begin();
        iter != config.aclTableGroups()->end();
        iter++) {
-    if (iter->name_ref() == name) {
+    if (iter->stage().value() == aclStage) {
       return std::addressof(*iter);
     }
   }
   return nullptr;
 }
 
-cfg::AclTableGroup* FOLLY_NULLABLE getAclTableGroup(cfg::SwitchConfig& config) {
-  if (!config.aclTableGroups() ||
-      config.aclTableGroups()->begin() == config.aclTableGroups()->end()) {
+void setupDefaultPostLookupIngressAclTableGroup(cfg::SwitchConfig& config) {
+  if (config.switchSettings()->switchIdToSwitchInfo()->empty()) {
+    return;
+  }
+  auto switchId2SwitchInfo = *config.switchSettings()->switchIdToSwitchInfo();
+  std::optional<cfg::SdkVersion> version{};
+  if (config.sdkVersion()) {
+    version = *config.sdkVersion();
+  }
+
+  HwAsicTable asicTable(switchId2SwitchInfo, version);
+  if (!asicTable.isFeatureSupportedOnAnyAsic(
+          HwAsic::Feature::INGRESS_POST_LOOKUP_ACL_TABLE)) {
+    return;
+  }
+
+  if (getAclTableGroup(config, cfg::AclStage::INGRESS_POST_LOOKUP)) {
+    return;
+  }
+  utility::addAclTableGroup(
+      &config,
+      cfg::AclStage::INGRESS_POST_LOOKUP,
+      cfg::switch_config_constants::
+          DEFAULT_POST_LOOKUP_INGRESS_ACL_TABLE_GROUP());
+  utility::addAclTable(
+      &config,
+      cfg::AclStage::INGRESS_POST_LOOKUP,
+      cfg::switch_config_constants::DEFAULT_POST_LOOKUP_INGRESS_ACL_TABLE(),
+      0,
+      {
+          cfg::AclTableActionType::PACKET_ACTION,
+      },
+      {
+          cfg::AclTableQualifier::DSCP,
+      },
+      {});
+}
+
+void setupDefaultIngressAclTableGroup(cfg::SwitchConfig& config) {
+  if (getAclTableGroup(config, cfg::AclStage::INGRESS)) {
+    // default table group already exists
+    return;
+  }
+  utility::addAclTableGroup(
+      &config, cfg::AclStage::INGRESS, utility::kDefaultAclTableGroupName());
+  utility::addDefaultAclTable(config);
+}
+
+void setupDefaultAclTableGroups(cfg::SwitchConfig& config) {
+  setupDefaultIngressAclTableGroup(config);
+  setupDefaultPostLookupIngressAclTableGroup(config);
+}
+
+cfg::AclTable* getAclTable(
+    cfg::SwitchConfig& cfg,
+    cfg::AclStage aclStage,
+    const std::string& aclTableName) {
+  auto aclTableGroup = getAclTableGroup(cfg, aclStage);
+  if (!aclTableGroup) {
     return nullptr;
   }
-  return (*config.aclTableGroups()).data();
+  for (auto& aclTable : *aclTableGroup->aclTables()) {
+    if (*aclTable.name() == aclTableName) {
+      return &aclTable;
+    }
+  }
+  return nullptr;
 }
 } // namespace facebook::fboss::utility

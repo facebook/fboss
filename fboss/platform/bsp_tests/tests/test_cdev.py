@@ -1,10 +1,12 @@
+# pyre-strict
 import fcntl
 import os
 from time import sleep
 
 import pytest
 
-from fboss.platform.bsp_tests.utils.cdev_types import (
+from fboss.platform.bsp_tests.cdev_types import (
+    FpgaSpec,
     get_empty_aux_data,
     get_invalid_aux_data,
 )
@@ -17,13 +19,13 @@ from fboss.platform.bsp_tests.utils.cdev_utils import (
 )
 
 
-def test_cdev_is_created(platform_fpgas) -> None:
+def test_cdev_is_created(platform_fpgas: list[FpgaSpec]) -> None:
     for fpga in platform_fpgas:
         path = make_cdev_path(fpga)
         assert os.path.exists(path)
 
 
-def test_empty_aux_data(platform_fpgas) -> None:
+def test_empty_aux_data(platform_fpgas: list[FpgaSpec]) -> None:
     """
     Tests that cdev file is behaving appropriately in
     a failure case
@@ -41,7 +43,7 @@ def test_empty_aux_data(platform_fpgas) -> None:
             os.close(fd)
 
 
-def test_cdev_rejects_invalid_data(platform_fpgas) -> None:
+def test_cdev_rejects_invalid_data(platform_fpgas: list[FpgaSpec]) -> None:
     """
     Tests that cdev file is behaving appropriately in
     a failure case
@@ -55,7 +57,7 @@ def test_cdev_rejects_invalid_data(platform_fpgas) -> None:
         os.close(fd)
 
 
-def test_cdev_create_and_delete(platform_fpgas) -> None:
+def test_cdev_create_and_delete(platform_fpgas: list[FpgaSpec]) -> None:
     """
     Tests that ioctl commands to create and delete
     a device work

@@ -376,6 +376,9 @@ InterfaceID ManagerTestBase::getIntfID(int id, cfg::InterfaceType type) const {
       return InterfaceID(id);
     case cfg::InterfaceType::SYSTEM_PORT:
       return InterfaceID(getSysPortId(id));
+    case cfg::InterfaceType::PORT:
+      return InterfaceID(id);
+      break;
   }
   XLOG(FATAL) << "Unhandled interface type";
 }
@@ -403,6 +406,9 @@ std::shared_ptr<Interface> ManagerTestBase::makeInterface(
   addresses.emplace(
       testInterface.subnet.first.asV4(), testInterface.subnet.second);
   interface->setAddresses(addresses);
+  if (type == cfg::InterfaceType::PORT) {
+    interface->setPortID(PortID(testInterface.id));
+  }
   return interface;
 }
 

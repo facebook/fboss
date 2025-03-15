@@ -41,6 +41,8 @@ custom_rule(
         "configs/interface/rackmon.conf",
         "configs/interface/rackmon_pls.conf",
         "configs/register_map/orv2_psu.json",
+        "configs/register_map/orv3_bbu.json",
+        "configs/register_map/orv3_psu.json",
     ],
     add_install_dir = True,
     build_script_dep = ":generate_rackmon_config.sh",
@@ -61,6 +63,8 @@ buck_filegroup(
         "configs/interface/rackmon.conf",
         "configs/interface/rackmon_pls.conf",
         "configs/register_map/orv2_psu.json",
+        "configs/register_map/orv3_bbu.json",
+        "configs/register_map/orv3_psu.json",
     ],
 )
 
@@ -120,6 +124,8 @@ cpp_binary(
         "configs/interface/rackmon.conf",
         "configs/interface/rackmon_pls.conf",
         "configs/register_map/orv2_psu.json",
+        "configs/register_map/orv3_bbu.json",
+        "configs/register_map/orv3_psu.json",
     ],
     deps = [
         ":handler",

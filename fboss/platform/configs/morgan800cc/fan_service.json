@@ -1,11 +1,11 @@
 {
   "pwmBoostOnNumDeadFan": 1,
   "pwmBoostOnNumDeadSensor": 0,
-  "pwmBoostOnNoQsfpAfterInSec": 90,
-  "pwmBoostValue": 60,
-  "pwmTransitionValue": 70,
-  "pwmLowerThreshold": 20,
-  "pwmUpperThreshold": 100,
+  "pwmBoostOnNoQsfpAfterInSec": 55,
+  "pwmBoostValue": 50,
+  "pwmTransitionValue": 45,
+  "pwmLowerThreshold": 25,
+  "pwmUpperThreshold": 70,
   "sensors": [
     {
       "sensorName": "SCM_INLET",
@@ -13,81 +13,199 @@
         "accessType": "ACCESS_TYPE_THRIFT"
       },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
-      "scale": 1,
       "normalUpTable": {
-        "10": 38,
-        "27": 38,
-        "28": 40,
-        "30": 40
+        "15": 19,
+        "16": 19,
+        "17": 19,
+        "18": 19,
+        "19": 19,
+        "20": 20,
+        "21": 20,
+        "22": 21,
+        "23": 22,
+        "24": 22,
+        "25": 23,
+        "26": 24,
+        "27": 25,
+        "28": 26,
+        "29": 27,
+        "30": 28,
+        "31": 29,
+        "32": 30,
+        "33": 31,
+        "34": 32,
+        "35": 34,
+        "36": 35,
+        "37": 37,
+        "38": 38,
+        "39": 40,
+        "40": 41,
+        "41": 42,
+        "42": 44,
+        "43": 46,
+        "44": 48,
+        "45": 50,
+        "46": 52,
+        "47": 54,
+        "48": 56
       },
       "normalDownTable": {
-        "10": 38,
-        "24": 38
+        "15": 18,
+        "16": 18,
+        "17": 18,
+        "18": 18,
+        "19": 18,
+        "20": 19,
+        "21": 19,
+        "22": 20,
+        "23": 20,
+        "24": 21,
+        "25": 22,
+        "26": 22,
+        "27": 23,
+        "28": 24,
+        "29": 25,
+        "30": 26,
+        "31": 27,
+        "32": 28,
+        "33": 29,
+        "34": 30,
+        "35": 31,
+        "36": 32,
+        "37": 34,
+        "38": 35,
+        "39": 37,
+        "40": 38,
+        "41": 40,
+        "42": 41,
+        "43": 42,
+        "44": 44,
+        "45": 46,
+        "46": 48,
+        "47": 50,
+        "48": 52
       },
       "failUpTable": {
-        "10": 38,
-        "27": 38,
-        "28": 40,
-        "30": 40
+        "15": 19,
+        "16": 19,
+        "17": 19,
+        "18": 19,
+        "19": 19,
+        "20": 20,
+        "21": 20,
+        "22": 21,
+        "23": 22,
+        "24": 22,
+        "25": 23,
+        "26": 24,
+        "27": 25,
+        "28": 26,
+        "29": 27,
+        "30": 28,
+        "31": 29,
+        "32": 30,
+        "33": 31,
+        "34": 32,
+        "35": 34,
+        "36": 35,
+        "37": 37,
+        "38": 38,
+        "39": 40,
+        "40": 41,
+        "41": 42,
+        "42": 44,
+        "43": 46,
+        "44": 48,
+        "45": 50,
+        "46": 52,
+        "47": 54,
+        "48": 56
       },
       "failDownTable": {
-        "10": 38,
-        "24": 38
+        "15": 18,
+        "16": 18,
+        "17": 18,
+        "18": 18,
+        "19": 18,
+        "20": 19,
+        "21": 19,
+        "22": 20,
+        "23": 20,
+        "24": 21,
+        "25": 22,
+        "26": 22,
+        "27": 23,
+        "28": 24,
+        "29": 25,
+        "30": 26,
+        "31": 27,
+        "32": 28,
+        "33": 29,
+        "34": 30,
+        "35": 31,
+        "36": 32,
+        "37": 34,
+        "38": 35,
+        "39": 37,
+        "40": 38,
+        "41": 40,
+        "42": 41,
+        "43": 42,
+        "44": 44,
+        "45": 46,
+        "46": 48,
+        "47": 50,
+        "48": 52
       }
     }
   ],
   "optics": [
     {
-      "opticName": "QSFP_GROUP_1",
+      "opticName": "qsfp_group_1",
       "access": {
         "accessType": "ACCESS_TYPE_QSFP"
       },
       "portList": [],
-      "aggregationType": "OPTIC_AGGREGATION_TYPE_MAX",
-      "tempToPwmMaps": {
-        "OPTIC_TYPE_100_GENERIC": {
-          "5": 24,
-          "38": 26,
-          "40": 28,
-          "41": 30,
-          "42": 32,
-          "44": 34,
-          "45": 36,
-          "48": 38,
-          "49": 40,
-          "52": 44,
-          "53": 46,
-          "54": 50
-        },
-        "OPTIC_TYPE_200_GENERIC": {
-          "5": 26,
-          "43": 28,
-          "45": 30,
-          "47": 32,
-          "49": 34,
-          "50": 36,
-          "54": 40,
-          "56": 44,
-          "58": 46,
-          "61": 50
+      "aggregationType": "OPTIC_AGGREGATION_TYPE_PID",
+      "pidSettings": {
+        "OPTIC_TYPE_800_GENERIC": {
+          "kp": -2,
+          "ki": 0,
+          "kd": -0.33,
+          "setPoint": 70,
+          "posHysteresis": 0,
+          "negHysteresis": 2
         },
         "OPTIC_TYPE_400_GENERIC": {
-          "5": 36,
-          "59": 40,
-          "62": 42,
-          "66": 46,
-          "67": 48,
-          "68": 50,
-          "71": 52,
-          "73": 55,
-          "74": 60
+          "kp": -2,
+          "ki": 0,
+          "kd": -0.33,
+          "setPoint": 70,
+          "posHysteresis": 0,
+          "negHysteresis": 2
+        },
+        "OPTIC_TYPE_200_GENERIC": {
+          "kp": -2,
+          "ki": 0,
+          "kd": -0.33,
+          "setPoint": 70,
+          "posHysteresis": 0,
+          "negHysteresis": 2
+        },
+        "OPTIC_TYPE_100_GENERIC": {
+          "kp": -2,
+          "ki": 0,
+          "kd": -0.33,
+          "setPoint": 70,
+          "posHysteresis": 0,
+          "negHysteresis": 2
         }
       }
     }
   ],
   "fans": [
     {
-      "fanName": "fan_1",
+      "fanName": "FAN1_F",
       "rpmSysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan1_input",
       "pwmSysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/pwm1",
       "presenceSysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan1_presence",
@@ -100,7 +218,7 @@
       "fanFailLedVal": 1
     },
     {
-      "fanName": "fan_2",
+      "fanName": "FAN1_R",
       "rpmSysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan2_input",
       "pwmSysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/pwm2",
       "presenceSysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan1_presence",
@@ -113,7 +231,7 @@
       "fanFailLedVal": 1
     },
     {
-      "fanName": "fan_3",
+      "fanName": "FAN2_F",
       "rpmSysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan3_input",
       "pwmSysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/pwm3",
       "presenceSysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan2_presence",
@@ -126,7 +244,7 @@
       "fanFailLedVal": 1
     },
     {
-      "fanName": "fan_4",
+      "fanName": "FAN2_R",
       "rpmSysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan4_input",
       "pwmSysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/pwm4",
       "presenceSysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan2_presence",
@@ -139,7 +257,7 @@
       "fanFailLedVal": 1
     },
     {
-      "fanName": "fan_5",
+      "fanName": "FAN3_F",
       "rpmSysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan5_input",
       "pwmSysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/pwm5",
       "presenceSysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan3_presence",
@@ -152,7 +270,7 @@
       "fanFailLedVal": 1
     },
     {
-      "fanName": "fan_6",
+      "fanName": "FAN3_R",
       "rpmSysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan6_input",
       "pwmSysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/pwm6",
       "presenceSysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan3_presence",
@@ -165,7 +283,7 @@
       "fanFailLedVal": 1
     },
     {
-      "fanName": "fan_7",
+      "fanName": "FAN4_F",
       "rpmSysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan7_input",
       "pwmSysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/pwm7",
       "presenceSysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan4_presence",
@@ -178,7 +296,7 @@
       "fanFailLedVal": 1
     },
     {
-      "fanName": "fan_8",
+      "fanName": "FAN4_R",
       "rpmSysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan8_input",
       "pwmSysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/pwm8",
       "presenceSysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan4_presence",
@@ -191,7 +309,7 @@
       "fanFailLedVal": 1
     },
     {
-      "fanName": "fan_9",
+      "fanName": "FAN5_F",
       "rpmSysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan9_input",
       "pwmSysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/pwm9",
       "presenceSysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan5_presence",
@@ -204,7 +322,7 @@
       "fanFailLedVal": 1
     },
     {
-      "fanName": "fan_10",
+      "fanName": "FAN5_R",
       "rpmSysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan10_input",
       "pwmSysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/pwm10",
       "presenceSysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan5_presence",
@@ -217,7 +335,7 @@
       "fanFailLedVal": 1
     },
     {
-      "fanName": "fan_11",
+      "fanName": "FAN6_F",
       "rpmSysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan11_input",
       "pwmSysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/pwm11",
       "presenceSysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan6_presence",
@@ -230,7 +348,7 @@
       "fanFailLedVal": 1
     },
     {
-      "fanName": "fan_12",
+      "fanName": "FAN6_R",
       "rpmSysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan12_input",
       "pwmSysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/pwm12",
       "presenceSysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan6_presence",
@@ -243,7 +361,7 @@
       "fanFailLedVal": 1
     },
     {
-      "fanName": "fan_13",
+      "fanName": "FAN7_F",
       "rpmSysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan13_input",
       "pwmSysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/pwm13",
       "presenceSysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan7_presence",
@@ -256,7 +374,7 @@
       "fanFailLedVal": 1
     },
     {
-      "fanName": "fan_14",
+      "fanName": "FAN7_R",
       "rpmSysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan14_input",
       "pwmSysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/pwm14",
       "presenceSysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan7_presence",
@@ -269,7 +387,7 @@
       "fanFailLedVal": 1
     },
     {
-      "fanName": "fan_15",
+      "fanName": "FAN8_F",
       "rpmSysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan15_input",
       "pwmSysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/pwm15",
       "presenceSysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan8_presence",
@@ -282,7 +400,7 @@
       "fanFailLedVal": 1
     },
     {
-      "fanName": "fan_16",
+      "fanName": "FAN8_R",
       "rpmSysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan16_input",
       "pwmSysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/pwm16",
       "presenceSysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan8_presence",
@@ -301,27 +419,27 @@
       "zoneName": "zone1",
       "sensorNames": [
         "SCM_INLET",
-        "QSFP_GROUP_1"
+        "qsfp_group_1"
       ],
       "fanNames": [
-        "fan_1",
-        "fan_2",
-        "fan_3",
-        "fan_4",
-        "fan_5",
-        "fan_6",
-        "fan_7",
-        "fan_8",
-        "fan_9",
-        "fan_10",
-        "fan_11",
-        "fan_12",
-        "fan_13",
-        "fan_14",
-        "fan_15",
-        "fan_16"
+        "FAN1_F",
+        "FAN1_R",
+        "FAN2_F",
+        "FAN2_R",
+        "FAN3_F",
+        "FAN3_R",
+        "FAN4_F",
+        "FAN4_R",
+        "FAN5_F",
+        "FAN5_R",
+        "FAN6_F",
+        "FAN6_R",
+        "FAN7_F",
+        "FAN7_R",
+        "FAN8_F",
+        "FAN8_R"
       ],
-      "slope": 3
+      "slope": 10
     }
   ]
 }

@@ -125,7 +125,9 @@ void Sff8472Module::readSff8472Field(Sff8472Field field, uint8_t* data) {
   getSfpFieldAddress(
       field, dataPage, dataOffset, dataLength, transceiverI2CAddress);
   qsfpImpl_->readTransceiver(
-      {transceiverI2CAddress, dataOffset, dataLength}, data);
+      {transceiverI2CAddress, dataOffset, dataLength},
+      data,
+      CAST_TO_INT(field));
 }
 
 void Sff8472Module::writeSff8472Field(Sff8472Field field, uint8_t* data) {
@@ -136,7 +138,8 @@ void Sff8472Module::writeSff8472Field(Sff8472Field field, uint8_t* data) {
   qsfpImpl_->writeTransceiver(
       {transceiverI2CAddress, dataOffset, dataLength},
       data,
-      POST_I2C_WRITE_DELAY_US);
+      POST_I2C_WRITE_DELAY_US,
+      CAST_TO_INT(field));
 }
 
 void Sff8472Module::getSfpValue(
@@ -167,8 +170,9 @@ uint8_t Sff8472Module::getSettingsValue(Sff8472Field field, uint8_t mask)
 
 Sff8472Module::Sff8472Module(
     std::set<std::string> portNames,
-    TransceiverImpl* qsfpImpl)
-    : QsfpModule(std::move(portNames), qsfpImpl) {}
+    TransceiverImpl* qsfpImpl,
+    std::string tcvrName)
+    : QsfpModule(std::move(portNames), qsfpImpl, std::move(tcvrName)) {}
 
 Sff8472Module::~Sff8472Module() {}
 

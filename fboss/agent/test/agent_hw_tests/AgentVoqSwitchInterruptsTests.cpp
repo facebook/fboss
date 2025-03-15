@@ -61,6 +61,7 @@ TEST_F(AgentVoqSwitchInterruptTest, ireError) {
   event_ctrl.event_id = 2064;
   event_ctrl.index = 0; /* core ID */
   event_ctrl.action = bcmSwitchEventForce;
+  print bcm_switch_event_control_set(0, BCM_SWITCH_EVENT_DEVICE_INTERRUPT, event_ctrl, 0);
   print bcm_switch_event_control_set(0, BCM_SWITCH_EVENT_DEVICE_INTERRUPT, event_ctrl, 1);
   )";
     runCint(kIreErrorIncjectorCintStr);
@@ -80,8 +81,10 @@ TEST_F(AgentVoqSwitchInterruptTest, itppError) {
   auto verify = [=, this]() {
     std::string out;
     runCmd("s itpp_interrupt_mask_register 0x3f\n");
+    runCmd("s itpp_interrupt_register_test 0x0\n");
     runCmd("s itpp_interrupt_register_test 0x2\n");
     runCmd("s itppd_interrupt_mask_register 0x3f\n");
+    runCmd("s itppd_interrupt_register_test 0x0\n");
     runCmd("s itppd_interrupt_register_test 0x2\n");
     WITH_RETRIES({
       auto asicErrors = getVoqAsicErrors();
@@ -103,6 +106,7 @@ TEST_F(AgentVoqSwitchInterruptTest, epniError) {
   event_ctrl.event_id = 717;  // JR3_INT_EPNI_FIFO_OVERFLOW_INT
   event_ctrl.index = 0; /* core ID */
   event_ctrl.action = bcmSwitchEventForce;
+  print bcm_switch_event_control_set(0, BCM_SWITCH_EVENT_DEVICE_INTERRUPT, event_ctrl, 0);
   print bcm_switch_event_control_set(0, BCM_SWITCH_EVENT_DEVICE_INTERRUPT, event_ctrl, 1);
   )";
     runCint(kEpniErrorIncjectorCintStr);
@@ -127,6 +131,7 @@ TEST_F(AgentVoqSwitchInterruptTest, alignerError) {
   event_ctrl.event_id = 8;  // JR3_INT_ALIGNER_PKT_SIZE_EOP_MISMATCH_INT
   event_ctrl.index = 0; /* core ID */
   event_ctrl.action = bcmSwitchEventForce;
+  print bcm_switch_event_control_set(0, BCM_SWITCH_EVENT_DEVICE_INTERRUPT, event_ctrl, 0);
   print bcm_switch_event_control_set(0, BCM_SWITCH_EVENT_DEVICE_INTERRUPT, event_ctrl, 1);
   )";
     runCint(kAlignerErrorIncjectorCintStr);
@@ -151,6 +156,7 @@ TEST_F(AgentVoqSwitchInterruptTest, fqpError) {
   event_ctrl.event_id = 1294;  // JR3_INT_FQP_ECC_ECC_1B_ERR_INT
   event_ctrl.index = 0; /* core ID */
   event_ctrl.action = bcmSwitchEventForce;
+  print bcm_switch_event_control_set(0, BCM_SWITCH_EVENT_DEVICE_INTERRUPT, event_ctrl, 0);
   print bcm_switch_event_control_set(0, BCM_SWITCH_EVENT_DEVICE_INTERRUPT, event_ctrl, 1);
   )";
     runCint(kFqpErrorIncjectorCintStr);

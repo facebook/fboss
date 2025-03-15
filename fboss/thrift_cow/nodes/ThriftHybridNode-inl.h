@@ -12,8 +12,6 @@
 
 #include <folly/DynamicConverter.h>
 #include <thrift/lib/cpp2/reflection/reflection.h>
-#include "fboss/agent/state/NodeBase-defs.h"
-#include "fboss/thrift_cow/nodes/NodeUtils.h"
 #include "fboss/thrift_cow/nodes/Serializer.h"
 #include "fboss/thrift_cow/nodes/Types.h"
 
@@ -74,16 +72,6 @@ struct ThriftHybridNode : public thrift_cow::Serializable {
     fromThrift(deserializeBuf<TypeClass, TType>(proto, std::move(encoded)));
   }
 
-  bool remove(const std::string& token) {
-    throw std::runtime_error(folly::to<std::string>(
-        "Cannot remove a child from a ThriftHybridNode: ", token));
-  }
-
-  bool remove(const std::string& token) const {
-    throw std::runtime_error(folly::to<std::string>(
-        "Cannot remove a child from a ThriftHybridNode: ", token));
-  }
-
   void modify(const std::string&) {}
 
   TType& ref() {
@@ -103,7 +91,7 @@ struct ThriftHybridNode : public thrift_cow::Serializable {
   }
 
 #ifdef ENABLE_DYNAMIC_APIS
-  folly::dynamic toFollyDynamic() const {
+  folly::dynamic toFollyDynamic() const override {
     folly::dynamic dyn;
     facebook::thrift::to_dynamic(
         dyn, this->ref(), facebook::thrift::dynamic_format::JSON_1);
@@ -116,7 +104,7 @@ struct ThriftHybridNode : public thrift_cow::Serializable {
         this->ref(), obj, facebook::thrift::dynamic_format::JSON_1);
   }
 #else
-  folly::dynamic toFollyDynamic() const {
+  folly::dynamic toFollyDynamic() const override {
     return {};
   }
 #endif

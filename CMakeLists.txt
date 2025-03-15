@@ -78,6 +78,15 @@ if ($ENV{CHENAB_SAI_SDK})
   set (CHENAB_SAI_SDK ON)
   link_directories(/var/FBOSS/sai_impl/lib)
   link_directories(/var/FBOSS/sdk/usr/lib64)
+  add_definitions (-DCHENAB_SAI_SDK)
+endif()
+
+if (NOT $ENV{SAI_VERSION} EQUAL "")
+  message(STATUS "ENV SAI_VERSION is set")
+  set (SAI_VERSION $ENV{SAI_VERSION})
+else()
+  message(STATUS "ENV SAI_VERSION is not set, using default:1.14.0")
+  set (SAI_VERSION "1.14.0")
 endif()
 
 option(BUILD_SAI_FAKE_LINK_TEST "Building of SAI Fake Link Test binaries" OFF)
@@ -99,9 +108,18 @@ if (SAI_BRCM_IMPL)
   set(SAI_SDK_VERSION "SAI_VERSION_11_0_EA_DNX_ODP")
 endif()
 
-set(SAI_VER_MAJOR "1")
-set(SAI_VER_MINOR "14")
-set(SAI_VER_RELEASE "0")
+# SAI version is set. Extract MAJOR, MINOR, RELEASE ver
+strtok(${SAI_VERSION} "." tokens)
+set(listLength 0)
+list(LENGTH tokens listLength)
+if(NOT ${listLength} EQUAL 3)
+  message(Invalid SAI_VERSION in env variable $ENV{SAI_VERSION})
+else()
+  list(GET tokens 0 SAI_VER_MAJOR)
+  list(GET tokens 1 SAI_VER_MINOR)
+  list(GET tokens 2 SAI_VER_RELEASE)
+endif()
+#endif
 
 if (NOT "$ENV{SAI_SDK_VERSION}" STREQUAL "")
   message(STATUS "ENV SAI_SDK_VERSION is set to $ENV{SAI_SDK_VERSION}")
@@ -182,11 +200,7 @@ include_directories(${FATAL_INCLUDE_DIR})
 find_library(NLOHMANN_JSON nlohmann-json)
 find_path(NLOHMANN_JSON_INCLUDE_DIRS NAMES nlohmann/json.hpp)
 include_directories(${NLOHMANN_JSON_INCLUDE_DIRS})
-
-# (TODO): Pinning python version to 3.8 to compile in lego-linux since
-# python 3.10 is causing link failures for sai test binary. Undo
-# this once lego-linux is compatible with python3.10
-find_package(Python3 3.8 EXACT COMPONENTS Interpreter Development)
+find_package(Python3 COMPONENTS Interpreter Development)
 include_directories(${Python3_INCLUDE_DIR})
 
 find_path(SAI_INCLUDE_DIR NAMES sai.h)
@@ -340,6 +354,13 @@ add_fbthrift_cpp_library(
     prbs_cpp2
 )
 add_fbthrift_cpp_library(
+  pim_state_cpp2
+  fboss/lib/if/pim_state.thrift
+  OPTIONS
+    json
+    reflection
+)
+add_fbthrift_cpp_library(
   transceiver_validation_cpp2
   fboss/qsfp_service/if/transceiver_validation.thrift
   OPTIONS
@@ -371,6 +392,7 @@ add_fbthrift_cpp_library(
     qsfp_config_cpp2
     phy_cpp2
     transceiver_cpp2
+    pim_state_cpp2
 )
 add_fbthrift_cpp_library(
   qsfp_stats_cpp2
@@ -382,6 +404,27 @@ add_fbthrift_cpp_library(
     hardware_stats_cpp2
     phy_cpp2
     transceiver_cpp2
+)
+add_fbthrift_cpp_library(
+  cmis_cpp2
+  fboss/qsfp_service/module/cmis/cmis.thrift
+  OPTIONS
+    json
+    reflection
+)
+add_fbthrift_cpp_library(
+  sff_cpp2
+  fboss/qsfp_service/module/sff/sff.thrift
+  OPTIONS
+    json
+    reflection
+)
+add_fbthrift_cpp_library(
+  sff8472_cpp2
+  fboss/qsfp_service/module/sff/sff8472.thrift
+  OPTIONS
+    json
+    reflection
 )
 add_fbthrift_cpp_library(
   sensor_service_stats_cpp2
@@ -722,19 +765,37 @@ endforeach(cmakeFile)
 
 add_custom_target(fboss_platform_services)
 add_dependencies(fboss_platform_services
+  # Services
   sensor_service
-  sensor_service_hw_test
-  sensor_service_sw_test
   fan_service
-  fan_service_sw_test
-  fan_service_hw_test
   rackmon
-  rackmon_test
   platform_manager
   fw_util
   weutil
   led_service
   data_corral_service
+  # Unit Tests
+  platform_config_lib_config_lib_test
+  platform_manager_device_path_resolver_test
+  platform_manager_platform_explorer_test
+  platform_data_corral_sw_test
+  platform_manager_utils_test
+  platform_helpers_platform_name_lib_test
+  platform_manager_data_store_test
+  platform_manager_config_validator_test
+  platform_manager_presence_checker_test
+  platform_manager_i2c_explorer_test
+  weutil_crc16_ccitt_test
+  weutil_fboss_eeprom_parser_test
+  sensor_service_sw_test
+  sensor_service_utils_test
+  rackmon_test
+  fan_service_sw_test
+  data_corral_service_hw_test
+  fan_service_hw_test
+  sensor_service_hw_test
+  weutil_hw_test
+  platform_manager_hw_test
 )
 
 add_custom_target(qsfp_targets)
@@ -797,36 +858,10 @@ endif()
 endif()
 
 if (GITHUB_ACTIONS_BUILD)
-  add_custom_target(github_actions_fboss_platform_services)
-  add_dependencies(github_actions_fboss_platform_services
+  add_custom_target(github_actions_fboss_other_services)
+  add_dependencies(github_actions_fboss_other_services
     # Services
-    sensor_service
-    fan_service
-    rackmon
-    platform_manager
-    fw_util
-    weutil
-    led_service
-    data_corral_service
-    # Unit Tests
-    platform_manager_device_path_resolver_test
-    platform_manager_platform_explorer_test
-    platform_data_corral_sw_test
-    platform_manager_utils_test
-    platform_helpers_platform_name_lib_test
-    platform_manager_data_store_test
-    platform_manager_config_validator_test
-    platform_manager_presence_checker_test
-    platform_manager_i2c_explorer_test
-    weutil_crc16_ccitt_test
-    weutil_fboss_eeprom_parser_test
-    sensor_service_sw_test
-    sensor_service_utils_tests
-    rackmon_test
-    fan_service_sw_test
-    data_corral_service_hw_test
-    fan_service_hw_test
-    sensor_service_hw_test
-    weutil_hw_test
+    fboss2
+    fsdb
   )
 endif()

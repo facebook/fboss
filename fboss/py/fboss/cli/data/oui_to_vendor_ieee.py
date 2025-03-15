@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+# pyre-unsafe
+
 # -*- coding: utf-8 -*-
 # @allow-sane-utf8
 

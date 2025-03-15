@@ -22,8 +22,6 @@ std::optional<facebook::fboss::cfg::StreamType> streamTypeOpt{std::nullopt};
 } // unnamed namespace
 
 DEFINE_bool(setup_for_warmboot, false, "Set up test for warmboot");
-DEFINE_bool(run_forever, false, "run the test forever");
-DEFINE_bool(run_forever_on_failure, false, "run the test forever on failure");
 
 DECLARE_string(config);
 DECLARE_bool(disable_looped_fabric_ports);
@@ -188,13 +186,15 @@ void AgentTest::waitForLinkStatus(
     badPorts.clear();
     for (const auto& port : portsToCheck) {
       if (*portStatus[port].up() != up) {
-        std::this_thread::sleep_for(msBetweenRetry);
         portStatus = sw()->getPortStatus();
         badPorts.push_back(port);
       }
     }
     if (badPorts.empty()) {
       return;
+    } else {
+      /* sleep override */
+      std::this_thread::sleep_for(msBetweenRetry);
     }
   }
 

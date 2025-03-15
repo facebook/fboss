@@ -118,7 +118,9 @@ void verifyResolvedMirror(
     EXPECT_EQ(udpPorts.value().udpDstPort, mirror_dest.udp_dst_port);
     EXPECT_NE(0, mirror_dest.flags & BCM_MIRROR_DEST_TUNNEL_SFLOW);
   } else {
-    EXPECT_EQ(tunnel->greProtocol, mirror_dest.gre_protocol);
+    EXPECT_EQ(
+        hwSwitch->getPlatform()->getAsic()->getGreProtocol(),
+        mirror_dest.gre_protocol);
     EXPECT_NE(0, mirror_dest.flags & BCM_MIRROR_DEST_TUNNEL_IP_GRE);
   }
   if (mirror->getDestinationIp()->isV4()) {

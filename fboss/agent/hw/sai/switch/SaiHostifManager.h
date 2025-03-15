@@ -102,6 +102,7 @@ class SaiHostifManager {
   void updateStats(bool updateWatermarks = false);
   HwPortStats getCpuPortStats() const;
   QueueConfig getQueueSettings() const;
+  QueueConfig getVoqSettings() const;
   const HwCpuFb303Stats& getCpuFb303Stats() const {
     return cpuStats_;
   }
@@ -123,6 +124,7 @@ class SaiHostifManager {
   void setCpuSystemPortQosPolicy(QosMapSaiId tcToQueue);
   std::shared_ptr<SaiHostifTrapGroup> ensureHostifTrapGroup(uint32_t queueId);
   void processQueueDelta(const DeltaValue<ControlPlane>& delta);
+  void processVoqDelta(const DeltaValue<ControlPlane>& delta);
   void processRxReasonToQueueDelta(const DeltaValue<ControlPlane>& delta);
   void processQosDelta(const DeltaValue<ControlPlane>& delta);
 
@@ -130,6 +132,9 @@ class SaiHostifManager {
   void loadCpuPortQueues();
   void loadCpuSystemPortVoqs();
   void changeCpuQueue(
+      const ControlPlane::PortQueues& oldQueueConfig,
+      const ControlPlane::PortQueues& newQueueConfig);
+  void changeCpuVoq(
       const ControlPlane::PortQueues& oldQueueConfig,
       const ControlPlane::PortQueues& newQueueConfig);
   SaiQueueHandle* getQueueHandleImpl(

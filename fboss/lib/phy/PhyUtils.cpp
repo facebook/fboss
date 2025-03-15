@@ -84,6 +84,45 @@ void updateCorrectedBitsAndPreFECBer(
       utility::ber(correctedBitsDelta, speed, timeDeltaInSeconds);
 }
 
+void updateFecTail(
+    phy::RsFecInfo& fecInfo,
+    const phy::RsFecInfo& oldRsFecInfo,
+    phy::FecMode fecMode) {
+  if (fecInfo.codewordStats()->empty()) {
+    return;
+  }
+
+  short fecTail = 0;
+  for (const auto& codewordStat : *fecInfo.codewordStats()) {
+    long previousCodewords = 0;
+    if (oldRsFecInfo.codewordStats()->find(codewordStat.first) !=
+        oldRsFecInfo.codewordStats()->end()) {
+      previousCodewords = oldRsFecInfo.codewordStats()->at(codewordStat.first);
+    }
+    if (previousCodewords < codewordStat.second) {
+      // If we have more codewords for a given symbol now than the previous
+      // codeword, update the fec tail if its more than the previous tail
+      fecTail = fecTail > codewordStat.first ? fecTail : codewordStat.first;
+    }
+  }
+  fecInfo.fecTail() = fecTail;
+
+  switch (fecMode) {
+    case phy::FecMode::CL91:
+    case phy::FecMode::RS528:
+      fecInfo.maxSupportedFecTail() = 7;
+      break;
+    case phy::FecMode::RS544:
+    case phy::FecMode::RS544_2N:
+    case phy::FecMode::RS545:
+      fecInfo.maxSupportedFecTail() = 15;
+      break;
+    case phy::FecMode::NONE:
+    case phy::FecMode::CL74:
+      break;
+  }
+}
+
 void updateSignalDetectChangedCount(
     int changedCount,
     int lane,

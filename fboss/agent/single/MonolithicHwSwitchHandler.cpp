@@ -247,6 +247,7 @@ void MonolithicHwSwitchHandler::getHwStats(
   // update global stats
   hwStats.fb303GlobalStats() = hw_->getSwitchStats()->getAllFb303Stats();
   hwStats.hwResourceStats() = hw_->getResourceStats();
+  hwStats.arsExhausted() = hw_->getArsExhaustionStatus();
 }
 
 } // namespace facebook::fboss

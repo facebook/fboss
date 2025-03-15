@@ -10,10 +10,10 @@ thrift_library(
     languages = [
         "cpp2",
         "go",
-        "py",
         "py3",
         "py-asyncio",
         "rust",
+        "py-deprecated",
     ],
     no_plugin_deps = [
         "//thrift/annotation:cpp",
@@ -47,10 +47,10 @@ thrift_library(
     languages = [
         "cpp2",
         "go",
-        "py",
         "py3",
         "py-asyncio",
         "rust",
+        "py-deprecated",
     ],
     py3_namespace = "neteng.fboss.platform.sensor_config",
     py_asyncio_base_module = "neteng.fboss.platform.asyncio",

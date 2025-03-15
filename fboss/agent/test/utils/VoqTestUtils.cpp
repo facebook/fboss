@@ -9,9 +9,11 @@
  */
 
 #include "fboss/agent/test/utils/VoqTestUtils.h"
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/DsfStateUpdaterUtil.h"
 #include "fboss/agent/SwSwitch.h"
-#include "fboss/agent/hw/test/ConfigFactory.h"
+#include "fboss/agent/VoqUtils.h"
+#include "fboss/agent/platforms/common/meru800bia/Meru800biaPlatformMapping.h"
 #include "fboss/agent/test/TestEnsembleIf.h"
 
 namespace facebook::fboss::utility {
@@ -21,22 +23,25 @@ constexpr auto kNumPortPerCore = 10;
 // 0: CPU port, 1: gloabl rcy port, 2-5: local recycle port, 6: eventor port,
 // 7: mgm port, 8-43 front panel nif
 constexpr auto kRemoteSysPortOffset = 7;
-constexpr auto kNumVoq = 8;
 constexpr auto kNumRdswSysPort = 44;
 constexpr auto kNumEdswSysPort = 26;
+constexpr uint8_t kDefaultQueue = 0;
+constexpr uint8_t kDualStage3Q2QDefaultQueue = 1;
 
 std::shared_ptr<SystemPort> makeRemoteSysPort(
     SystemPortID portId,
     SwitchID remoteSwitchId,
     int coreIndex,
     int corePortIndex,
-    int64_t speed) {
+    int64_t speed,
+    HwAsic::InterfaceNodeRole intfRole,
+    cfg::PortType portType) {
   auto remoteSysPort = std::make_shared<SystemPort>(portId);
-  auto voqConfig = getDefaultVoqConfig();
+  auto voqConfig = getDefaultVoqConfig(portType);
   remoteSysPort->setName(folly::to<std::string>(
       "hwTestSwitch", remoteSwitchId, ":eth/", portId, "/1"));
   remoteSysPort->setSwitchId(remoteSwitchId);
-  remoteSysPort->setNumVoqs(kNumVoq);
+  remoteSysPort->setNumVoqs(getRemotePortNumVoqs(intfRole, portType));
   remoteSysPort->setCoreIndex(coreIndex);
   remoteSysPort->setCorePortIndex(corePortIndex);
   remoteSysPort->setSpeedMbps(speed);
@@ -84,6 +89,114 @@ void updateRemoteIntfWithNeighbor(
   ndpTable->emplace(neighborIp.str(), std::move(ndp));
   remoteIntf->setNdpTable(ndpTable->toThrift());
 }
+
+std::vector<cfg::PortQueue> getDefaultNifVoqCfg() {
+  std::vector<cfg::PortQueue> voqs;
+  if (isDualStage3Q2QQos()) {
+    cfg::PortQueue rdmaQueue;
+    rdmaQueue.id() = 0;
+    rdmaQueue.name() = "rdma";
+    rdmaQueue.streamType() = cfg::StreamType::UNICAST;
+    rdmaQueue.scheduling() = cfg::QueueScheduling::INTERNAL;
+    voqs.push_back(rdmaQueue);
+
+    cfg::PortQueue monitoringQueue;
+    monitoringQueue.id() = 1;
+    monitoringQueue.name() = "monitoring";
+    monitoringQueue.streamType() = cfg::StreamType::UNICAST;
+    monitoringQueue.scheduling() = cfg::QueueScheduling::INTERNAL;
+    voqs.push_back(monitoringQueue);
+
+    cfg::PortQueue ncQueue;
+    ncQueue.id() = 2;
+    ncQueue.name() = "nc";
+    ncQueue.streamType() = cfg::StreamType::UNICAST;
+    ncQueue.scheduling() = cfg::QueueScheduling::INTERNAL;
+    voqs.push_back(ncQueue);
+  } else {
+    cfg::PortQueue defaultQueue;
+    defaultQueue.id() = 0;
+    defaultQueue.name() = "default";
+    defaultQueue.streamType() = cfg::StreamType::UNICAST;
+    defaultQueue.scheduling() = cfg::QueueScheduling::INTERNAL;
+    voqs.push_back(defaultQueue);
+
+    cfg::PortQueue rdmaQueue;
+    rdmaQueue.id() = 2;
+    rdmaQueue.name() = "rdma";
+    rdmaQueue.streamType() = cfg::StreamType::UNICAST;
+    rdmaQueue.scheduling() = cfg::QueueScheduling::INTERNAL;
+    voqs.push_back(rdmaQueue);
+
+    cfg::PortQueue monitoringQueue;
+    monitoringQueue.id() = 6;
+    monitoringQueue.name() = "monitoring";
+    monitoringQueue.streamType() = cfg::StreamType::UNICAST;
+    monitoringQueue.scheduling() = cfg::QueueScheduling::INTERNAL;
+    voqs.push_back(monitoringQueue);
+
+    cfg::PortQueue ncQueue;
+    ncQueue.id() = 7;
+    ncQueue.name() = "nc";
+    ncQueue.streamType() = cfg::StreamType::UNICAST;
+    ncQueue.scheduling() = cfg::QueueScheduling::INTERNAL;
+    voqs.push_back(ncQueue);
+  }
+  return voqs;
+}
+
+std::vector<cfg::PortQueue> get2VoqCfg() {
+  std::vector<cfg::PortQueue> voqs;
+  cfg::PortQueue lowQueue;
+  lowQueue.id() = 0;
+  lowQueue.name() = "low";
+  lowQueue.streamType() = cfg::StreamType::UNICAST;
+  lowQueue.scheduling() = cfg::QueueScheduling::INTERNAL;
+  voqs.push_back(lowQueue);
+
+  cfg::PortQueue highQueue;
+  highQueue.id() = 1;
+  highQueue.name() = "high";
+  highQueue.streamType() = cfg::StreamType::UNICAST;
+  highQueue.scheduling() = cfg::QueueScheduling::INTERNAL;
+  voqs.push_back(highQueue);
+  return voqs;
+}
+
+std::vector<cfg::PortQueue> get3VoqCfg() {
+  std::vector<cfg::PortQueue> voqs;
+  cfg::PortQueue lowQueue;
+  lowQueue.id() = 0;
+  lowQueue.name() = "low";
+  lowQueue.streamType() = cfg::StreamType::UNICAST;
+  lowQueue.scheduling() = cfg::QueueScheduling::INTERNAL;
+  voqs.push_back(lowQueue);
+
+  cfg::PortQueue midQueue;
+  midQueue.id() = 1;
+  midQueue.name() = "mid";
+  midQueue.streamType() = cfg::StreamType::UNICAST;
+  midQueue.scheduling() = cfg::QueueScheduling::INTERNAL;
+  voqs.push_back(midQueue);
+
+  cfg::PortQueue highQueue;
+  highQueue.id() = 2;
+  highQueue.name() = "high";
+  highQueue.streamType() = cfg::StreamType::UNICAST;
+  highQueue.scheduling() = cfg::QueueScheduling::INTERNAL;
+  voqs.push_back(highQueue);
+  return voqs;
+}
+
+std::shared_ptr<PortQueue> makeSwitchStateVoq(const cfg::PortQueue& cfgQueue) {
+  auto queue =
+      std::make_shared<PortQueue>(static_cast<uint8_t>(cfgQueue.id().value()));
+  queue->setStreamType(cfgQueue.streamType().value());
+  queue->setScheduling(cfgQueue.scheduling().value());
+  queue->setName(cfgQueue.name().value());
+  queue->setScalingFactor(cfg::MMUScalingFactor::ONE_32768TH);
+  return queue;
+}
 } // namespace
 
 std::shared_ptr<SwitchState> addRemoteSysPort(
@@ -92,7 +205,9 @@ std::shared_ptr<SwitchState> addRemoteSysPort(
     SystemPortID portId,
     SwitchID remoteSwitchId,
     int coreIndex,
-    int corePortIndex) {
+    int corePortIndex,
+    HwAsic::InterfaceNodeRole intfRole,
+    cfg::PortType portType) {
   auto newState = currState->clone();
   const auto& localPorts = newState->getSystemPorts()->cbegin()->second;
   auto localPort = localPorts->cbegin()->second;
@@ -102,7 +217,9 @@ std::shared_ptr<SwitchState> addRemoteSysPort(
       remoteSwitchId,
       coreIndex,
       corePortIndex,
-      localPort->getSpeedMbps());
+      localPort->getSpeedMbps(),
+      intfRole,
+      portType);
   remoteSystemPorts->addNode(remoteSysPort, scopeResolver.scope(remoteSysPort));
   return newState;
 }
@@ -176,7 +293,7 @@ void populateRemoteIntfAndSysPorts(
     std::map<SwitchID, std::shared_ptr<InterfaceMap>>& switchId2Rifs,
     const cfg::SwitchConfig& config,
     bool useEncapIndex) {
-  for (const auto& [remoteSwitchId, dsfNode] : *config.dsfNodes()) {
+  for (const auto& [remoteSwitchId, remoteDsfNode] : *config.dsfNodes()) {
     if ((*config.switchSettings())
             .switchIdToSwitchInfo()
             ->contains(remoteSwitchId)) {
@@ -185,92 +302,158 @@ void populateRemoteIntfAndSysPorts(
     std::shared_ptr<SystemPortMap> remoteSysPorts =
         std::make_shared<SystemPortMap>();
     std::shared_ptr<InterfaceMap> remoteRifs = std::make_shared<InterfaceMap>();
-    CHECK(!dsfNode.systemPortRanges()->systemPortRanges()->empty());
-    for (auto sysPortRange : *dsfNode.systemPortRanges()->systemPortRanges()) {
-      const auto minPortID = *sysPortRange.minimum();
-      const auto maxPortID = *sysPortRange.maximum();
-      // TODO(zecheng): Update num of ports for dual stage
-      const auto numPorts = maxPortID - minPortID + 1;
-      CHECK(numPorts == kNumRdswSysPort || numPorts == kNumEdswSysPort);
-      for (int i = minPortID + kRemoteSysPortOffset; i <= maxPortID; i++) {
-        const SystemPortID remoteSysPortId(i);
-        const InterfaceID remoteIntfId(i);
-        const PortDescriptor portDesc(remoteSysPortId);
-        const std::optional<uint64_t> encapEndx = useEncapIndex
-            ? std::optional<uint64_t>(0x200001 + i)
-            : std::nullopt;
+    CHECK(!remoteDsfNode.systemPortRanges()->systemPortRanges()->empty());
 
-        // Use subnet 100+(dsfNodeId/256):(dsfNodeId%256):(localIntfId)::1/64
-        // and 100+(dsfNodeId/256).(dsfNodeId%256).(localIntfId).1/24
-        auto firstOctet = 100 + remoteSwitchId / 256;
-        auto secondOctet = remoteSwitchId % 256;
-        auto thirdOctet = i - minPortID;
-        folly::IPAddressV6 neighborIp(folly::to<std::string>(
-            firstOctet, ":", secondOctet, ":", thirdOctet, "::2"));
-        auto portSpeed = i == minPortID + kRemoteSysPortOffset
-            ? cfg::PortSpeed::HUNDREDG
-            : numPorts == kNumRdswSysPort ? cfg::PortSpeed::FOURHUNDREDG
-                                          : cfg::PortSpeed::EIGHTHUNDREDG;
-        auto remoteSysPort = makeRemoteSysPort(
-            remoteSysPortId,
-            SwitchID(remoteSwitchId),
-            (i - minPortID - kRemoteSysPortOffset) / kNumPortPerCore,
-            (i - minPortID) % kNumPortPerCore,
-            static_cast<int64_t>(portSpeed));
-        remoteSysPorts->addSystemPort(remoteSysPort);
+    auto addSingleStageSysPort = [&remoteSysPorts, &remoteRifs, useEncapIndex](
+                                     const auto& dsfNode,
+                                     const auto& switchId) {
+      for (auto sysPortRange :
+           *dsfNode.systemPortRanges()->systemPortRanges()) {
+        const auto minPortID = *sysPortRange.minimum();
+        const auto maxPortID = *sysPortRange.maximum();
+        const auto numPorts = maxPortID - minPortID + 1;
+        CHECK(numPorts == kNumRdswSysPort || numPorts == kNumEdswSysPort);
+        for (int i = minPortID + kRemoteSysPortOffset; i <= maxPortID; i++) {
+          const SystemPortID remoteSysPortId(i);
+          const InterfaceID remoteIntfId(i);
+          const PortDescriptor portDesc(remoteSysPortId);
+          const std::optional<uint64_t> encapEndx = useEncapIndex
+              ? std::optional<uint64_t>(0x200001 + i)
+              : std::nullopt;
 
-        auto remoteRif = makeRemoteInterface(
-            remoteIntfId,
-            {
-                {folly::IPAddress(folly::to<std::string>(
-                     firstOctet, ":", secondOctet, ":", thirdOctet, "::1")),
-                 64},
-                {folly::IPAddress(folly::to<std::string>(
-                     firstOctet, ".", secondOctet, ".", thirdOctet, ".1")),
-                 24},
-            });
+          // Use subnet 100+(dsfNodeId/256):(dsfNodeId%256):(localIntfId)::1/64
+          // and 100+(dsfNodeId/256).(dsfNodeId%256).(localIntfId).1/24
+          auto firstOctet = 100 + switchId / 256;
+          auto secondOctet = switchId % 256;
+          auto thirdOctet = i - minPortID;
+          folly::IPAddressV6 neighborIp(folly::to<std::string>(
+              firstOctet, ":", secondOctet, ":", thirdOctet, "::2"));
+          auto portSpeed = i == minPortID + kRemoteSysPortOffset
+              ? cfg::PortSpeed::HUNDREDG
+              : numPorts == kNumRdswSysPort ? cfg::PortSpeed::FOURHUNDREDG
+                                            : cfg::PortSpeed::EIGHTHUNDREDG;
+          auto remoteSysPort = makeRemoteSysPort(
+              remoteSysPortId,
+              SwitchID(switchId),
+              (i - minPortID - kRemoteSysPortOffset) / kNumPortPerCore,
+              (i - minPortID) % kNumPortPerCore,
+              static_cast<int64_t>(portSpeed),
+              HwAsic::InterfaceNodeRole::IN_CLUSTER_NODE,
+              cfg::PortType::INTERFACE_PORT);
+          remoteSysPorts->addSystemPort(remoteSysPort);
 
-        updateRemoteIntfWithNeighbor(
-            remoteRif, remoteIntfId, portDesc, neighborIp, encapEndx);
-        remoteRifs->addNode(remoteRif);
+          auto remoteRif = makeRemoteInterface(
+              remoteIntfId,
+              {
+                  {folly::IPAddress(folly::to<std::string>(
+                       firstOctet, ":", secondOctet, ":", thirdOctet, "::1")),
+                   64},
+                  {folly::IPAddress(folly::to<std::string>(
+                       firstOctet, ".", secondOctet, ".", thirdOctet, ".1")),
+                   24},
+              });
+
+          updateRemoteIntfWithNeighbor(
+              remoteRif, remoteIntfId, portDesc, neighborIp, encapEndx);
+          remoteRifs->addNode(remoteRif);
+        }
       }
+    };
+
+    auto addDualStageSysPort = [&remoteSysPorts, &remoteRifs, useEncapIndex](
+                                   const auto& dsfNode, const auto& switchId) {
+      CHECK_EQ(dsfNode.systemPortRanges()->systemPortRanges()->size(), 2);
+      // TODO(zecheng): Initialize correct global offset for DsfNode
+      const auto globalOffset = dsfNode.systemPortRanges()
+                                    ->systemPortRanges()
+                                    ->at(0)
+                                    .minimum()
+                                    .value() -
+          1;
+      static const auto rdswPlatformMapping =
+          Meru800biaPlatformMapping(HwAsic::InterfaceNodeRole::IN_CLUSTER_NODE);
+      static const auto edswPlatformMapping = Meru800biaPlatformMapping(
+          HwAsic::InterfaceNodeRole::DUAL_STAGE_EDGE_NODE);
+      const auto& platformMapping =
+          *dsfNode.clusterId() >= k2StageEdgePodClusterId ? edswPlatformMapping
+                                                          : rdswPlatformMapping;
+
+      for (const auto& [portID, platformPort] :
+           platformMapping.getPlatformPorts()) {
+        auto mapping = *platformPort.mapping();
+        if (*mapping.scope() == cfg::Scope::GLOBAL &&
+            (*mapping.portType() == cfg::PortType::INTERFACE_PORT ||
+             *mapping.portType() == cfg::PortType::MANAGEMENT_PORT)) {
+          const auto remoteSysPortId =
+              static_cast<SystemPortID>(portID + globalOffset);
+          const auto remoteIntfId = static_cast<InterfaceID>(remoteSysPortId);
+          const PortDescriptor portDesc(remoteSysPortId);
+          const std::optional<uint64_t> encapEndx = useEncapIndex
+              ? std::optional<uint64_t>(0x200001 + portID)
+              : std::nullopt;
+
+          // Use subnet
+          // 100+(dsfNodeId/256):(dsfNodeId%256):(localIntfId%256)::1/64 and
+          // 100+(dsfNodeId/256).(dsfNodeId%256).(localIntfId%256).1/24
+          auto firstOctet = 100 + switchId / 256;
+          auto secondOctet = switchId % 256;
+          // For >16K ports, use the second half of 128 range in the octet.
+          auto thirdOctet = portID < 256 ? portID : (portID + 128) % 256;
+          folly::IPAddressV6 neighborIp(folly::to<std::string>(
+              firstOctet, ":", secondOctet, ":", thirdOctet, "::2"));
+          auto portSpeed = *mapping.portType() == cfg::PortType::MANAGEMENT_PORT
+              ? cfg::PortSpeed::HUNDREDG
+              : (*dsfNode.clusterId() >= k2StageEdgePodClusterId
+                     ? cfg::PortSpeed::EIGHTHUNDREDG
+                     : cfg::PortSpeed::FOURHUNDREDG);
+          auto remoteSysPort = makeRemoteSysPort(
+              remoteSysPortId,
+              SwitchID(switchId),
+              *mapping.attachedCoreId(),
+              *mapping.attachedCorePortIndex(),
+              static_cast<int64_t>(portSpeed),
+              *dsfNode.clusterId() >= k2StageEdgePodClusterId
+                  ? HwAsic::InterfaceNodeRole::DUAL_STAGE_EDGE_NODE
+                  : HwAsic::InterfaceNodeRole::IN_CLUSTER_NODE,
+              *mapping.portType());
+          remoteSysPorts->addSystemPort(remoteSysPort);
+
+          auto remoteRif = makeRemoteInterface(
+              remoteIntfId,
+              {
+                  {folly::IPAddress(folly::to<std::string>(
+                       firstOctet, ":", secondOctet, ":", thirdOctet, "::1")),
+                   64},
+                  {folly::IPAddress(folly::to<std::string>(
+                       firstOctet, ".", secondOctet, ".", thirdOctet, ".1")),
+                   24},
+              });
+
+          updateRemoteIntfWithNeighbor(
+              remoteRif, remoteIntfId, portDesc, neighborIp, encapEndx);
+          remoteRifs->addNode(remoteRif);
+        }
+      }
+    };
+
+    if (isDualStage3Q2QMode()) {
+      addDualStageSysPort(remoteDsfNode, remoteSwitchId);
+    } else {
+      addSingleStageSysPort(remoteDsfNode, remoteSwitchId);
     }
+
     switchId2SystemPorts[SwitchID(remoteSwitchId)] = remoteSysPorts;
     switchId2Rifs[SwitchID(remoteSwitchId)] = remoteRifs;
   }
 }
 
-QueueConfig getDefaultVoqConfig() {
+QueueConfig getDefaultVoqConfig(cfg::PortType portType) {
   QueueConfig queueCfg;
-
-  auto defaultQueue = std::make_shared<PortQueue>(static_cast<uint8_t>(0));
-  defaultQueue->setStreamType(cfg::StreamType::UNICAST);
-  defaultQueue->setScheduling(cfg::QueueScheduling::INTERNAL);
-  defaultQueue->setName("default");
-  defaultQueue->setScalingFactor(cfg::MMUScalingFactor::ONE_32768TH);
-  queueCfg.push_back(defaultQueue);
-
-  auto rdmaQueue = std::make_shared<PortQueue>(static_cast<uint8_t>(2));
-  rdmaQueue->setStreamType(cfg::StreamType::UNICAST);
-  rdmaQueue->setScheduling(cfg::QueueScheduling::INTERNAL);
-  rdmaQueue->setName("rdma");
-  defaultQueue->setScalingFactor(cfg::MMUScalingFactor::ONE_32768TH);
-  queueCfg.push_back(rdmaQueue);
-
-  auto monitoringQueue = std::make_shared<PortQueue>(static_cast<uint8_t>(6));
-  monitoringQueue->setStreamType(cfg::StreamType::UNICAST);
-  monitoringQueue->setScheduling(cfg::QueueScheduling::INTERNAL);
-  monitoringQueue->setName("monitoring");
-  defaultQueue->setScalingFactor(cfg::MMUScalingFactor::ONE_32768TH);
-  queueCfg.push_back(monitoringQueue);
-
-  auto ncQueue = std::make_shared<PortQueue>(static_cast<uint8_t>(7));
-  ncQueue->setStreamType(cfg::StreamType::UNICAST);
-  ncQueue->setScheduling(cfg::QueueScheduling::INTERNAL);
-  ncQueue->setName("nc");
-  defaultQueue->setScalingFactor(cfg::MMUScalingFactor::ONE_32768TH);
-  queueCfg.push_back(ncQueue);
-
+  auto nameAndDefaultVoq = getNameAndDefaultVoqCfg(portType);
+  CHECK(nameAndDefaultVoq);
+  for (const auto& cfgQueue : nameAndDefaultVoq.value().queueConfig) {
+    queueCfg.push_back(makeSwitchStateVoq(cfgQueue));
+  }
   return queueCfg;
 }
 
@@ -325,6 +508,64 @@ void setupRemoteIntfAndSysPorts(SwSwitch* swSwitch, bool useEncapIndex) {
     swSwitch->updateStateWithHwFailureProtection(
         folly::sformat("Update state for node: {}", 0), updateDsfStateFn);
   });
+}
+
+std::optional<QueueConfigAndName> getNameAndDefaultVoqCfg(
+    cfg::PortType portType) {
+  switch (portType) {
+    case cfg::PortType::INTERFACE_PORT:
+      return QueueConfigAndName{"defaultVoqCofig", getDefaultNifVoqCfg()};
+    case cfg::PortType::CPU_PORT:
+      if (isDualStage3Q2QMode()) {
+        return QueueConfigAndName{"3VoqConfig", get3VoqCfg()};
+      }
+      break;
+    case cfg::PortType::MANAGEMENT_PORT:
+    case cfg::PortType::RECYCLE_PORT:
+    case cfg::PortType::EVENTOR_PORT:
+      if (isDualStage3Q2QMode()) {
+        return QueueConfigAndName{"2VoqConfig", get2VoqCfg()};
+      }
+      break;
+    case cfg::PortType::FABRIC_PORT:
+      XLOG(FATAL) << " No VOQ configs for fabric ports";
+      break;
+  }
+  return std::nullopt;
+}
+
+uint8_t getDefaultQueue() {
+  return isDualStage3Q2QMode() ? kDualStage3Q2QDefaultQueue : kDefaultQueue;
+}
+
+int getTrafficClassToVoqId(const HwAsic* hwAsic, int trafficClass) {
+  if (hwAsic->isSupported(HwAsic::Feature::VOQ) && isDualStage3Q2QQos()) {
+    if (trafficClass == 7) {
+      // tc 7 -> nc voq 2
+      return 2;
+    } else if (trafficClass == 2) {
+      // tc 2 -> rdma voq 0
+      return 0;
+    }
+    // all other tc -> default voq 1
+    return 1;
+  }
+  return trafficClass;
+}
+
+int getTrafficClassToCpuVoqId(const HwAsic* hwAsic, int trafficClass) {
+  if (hwAsic->isSupported(HwAsic::Feature::VOQ) && isDualStage3Q2QQos()) {
+    if (trafficClass == 7) {
+      // tc 7 -> high queue 2
+      return 2;
+    } else if (trafficClass == 3) {
+      // tc 3 -> mid queue 1
+      return 1;
+    }
+    // all other tc -> low queue 0
+    return 0;
+  }
+  return trafficClass;
 }
 
 } // namespace facebook::fboss::utility

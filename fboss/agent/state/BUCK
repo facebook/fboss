@@ -70,6 +70,8 @@ cpp_library(
         "MatchAction.cpp",
         "Mirror.cpp",
         "MirrorMap.cpp",
+        "MirrorOnDropReport.cpp",
+        "MirrorOnDropReportMap.cpp",
         "NdpEntry.cpp",
         "NdpResponseEntry.cpp",
         "NdpResponseTable.cpp",

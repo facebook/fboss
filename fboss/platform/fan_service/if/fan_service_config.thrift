@@ -15,7 +15,6 @@ const string OPTIC_TYPE_800_GENERIC = "OPTIC_TYPE_800_GENERIC";
 const string OPTIC_AGGREGATION_TYPE_MAX = "OPTIC_AGGREGATION_TYPE_MAX";
 const string OPTIC_AGGREGATION_TYPE_PID = "OPTIC_AGGREGATION_TYPE_PID";
 const string SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE = "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE";
-const string SENSOR_PWM_CALC_TYPE_INCREMENT_PID = "SENSOR_PWM_CALC_TYPE_INCREMENT_PID";
 const string SENSOR_PWM_CALC_TYPE_PID = "SENSOR_PWM_CALC_TYPE_PID";
 
 struct AccessMethod {
@@ -84,7 +83,7 @@ struct Fan {
 }
 
 struct Watchdog {
-  1: AccessMethod access;
+  1: string sysfsPath;
   2: i32 value;
 }
 
@@ -92,7 +91,6 @@ struct Sensor {
   1: string sensorName;
   2: AccessMethod access;
   6: string pwmCalcType;
-  7: float scale;
   8: TempToPwmMap normalUpTable;
   9: TempToPwmMap normalDownTable;
   10: TempToPwmMap failUpTable;
@@ -103,6 +101,17 @@ struct Sensor {
 struct ControlInterval {
   1: i32 sensorReadInterval;
   2: i32 pwmUpdateInterval;
+}
+
+struct OvertempEntry {
+  1: string sensorName;
+  2: float overtempThreshold;
+  3: optional i32 slidingWindowSize;
+}
+
+struct ShutdownCondition {
+  1: i32 numOvertempSensorForShutdown;
+  2: list<OvertempEntry> conditions;
 }
 
 struct FanServiceConfig {
@@ -120,4 +129,5 @@ struct FanServiceConfig {
   15: i16 pwmTransitionValue;
   16: i16 pwmUpperThreshold;
   17: i16 pwmLowerThreshold;
+  18: optional ShutdownCondition shutdownCondition;
 }

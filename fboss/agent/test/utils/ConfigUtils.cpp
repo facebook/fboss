@@ -18,6 +18,7 @@
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/PortTestUtils.h"
+#include "fboss/agent/test/utils/VoqTestUtils.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 
 #include <folly/Format.h>
@@ -82,6 +83,13 @@ int getSysPortIdsAllocated(
   }
   return portsConsumed;
 }
+
+cfg::InterfaceType getInterfaceType(const HwAsic& asic) {
+  if (asic.getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    return cfg::InterfaceType::PORT;
+  }
+  return cfg::InterfaceType::VLAN;
+}
 } // namespace
 folly::MacAddress kLocalCpuMac() {
   static const folly::MacAddress kLocalMac(
@@ -91,40 +99,6 @@ folly::MacAddress kLocalCpuMac() {
 
 std::string getLocalCpuMacStr() {
   return kLocalCpuMac().toString();
-}
-
-std::vector<cfg::PortQueue> getDefaultVoqCfg() {
-  std::vector<cfg::PortQueue> voqs;
-
-  cfg::PortQueue defaultQueue;
-  defaultQueue.id() = 0;
-  defaultQueue.name() = "default";
-  defaultQueue.streamType() = cfg::StreamType::UNICAST;
-  defaultQueue.scheduling() = cfg::QueueScheduling::INTERNAL;
-  voqs.push_back(defaultQueue);
-
-  cfg::PortQueue rdmaQueue;
-  rdmaQueue.id() = 2;
-  rdmaQueue.name() = "rdma";
-  rdmaQueue.streamType() = cfg::StreamType::UNICAST;
-  rdmaQueue.scheduling() = cfg::QueueScheduling::INTERNAL;
-  voqs.push_back(rdmaQueue);
-
-  cfg::PortQueue monitoringQueue;
-  monitoringQueue.id() = 6;
-  monitoringQueue.name() = "monitoring";
-  monitoringQueue.streamType() = cfg::StreamType::UNICAST;
-  monitoringQueue.scheduling() = cfg::QueueScheduling::INTERNAL;
-  voqs.push_back(monitoringQueue);
-
-  cfg::PortQueue ncQueue;
-  ncQueue.id() = 7;
-  ncQueue.name() = "nc";
-  ncQueue.streamType() = cfg::StreamType::UNICAST;
-  ncQueue.scheduling() = cfg::QueueScheduling::INTERNAL;
-  voqs.push_back(ncQueue);
-
-  return voqs;
 }
 
 const std::map<cfg::PortType, cfg::PortLoopbackMode>& kDefaultLoopbackMap() {
@@ -240,13 +214,14 @@ std::unordered_map<PortID, cfg::PortProfileID> getSafeProfileIDs(
     }
 
     auto asicType = asic->getAsicType();
-    bool isJericho2 = asicType == cfg::AsicType::ASIC_TYPE_JERICHO2;
 
     auto bestSpeed = cfg::PortSpeed::DEFAULT;
-    if (isJericho2) {
-      // For J2c we always want to choose the following
-      // speeds since that's what we have in hw chip config
-      // and J2c does not support dynamic port speed change yet.
+    auto bestProfile = cfg::PortProfileID::PROFILE_DEFAULT;
+    if (asicType == cfg::AsicType::ASIC_TYPE_JERICHO3 &&
+        FLAGS_dual_stage_rdsw_3q_2q) {
+      // When using dual_stage_rdsw_3q_2q mapping. Pick NIF port
+      // speed to be 400G, since that's what we have in chip config
+      // and J3 does not support dynamic port speed change yet.
       auto portId = group.first;
       auto platPortItr = platformMapping->getPlatformPorts().find(portId);
       if (platPortItr == platformMapping->getPlatformPorts().end()) {
@@ -254,33 +229,43 @@ std::unordered_map<PortID, cfg::PortProfileID> getSafeProfileIDs(
       }
       switch (*platPortItr->second.mapping()->portType()) {
         case cfg::PortType::INTERFACE_PORT:
-        case cfg::PortType::MANAGEMENT_PORT:
-          bestSpeed = getDefaultInterfaceSpeed(asicType);
+          bestSpeed = cfg::PortSpeed::FOURHUNDREDG;
           break;
         case cfg::PortType::FABRIC_PORT:
-          bestSpeed = getDefaultFabricSpeed(asicType);
-          break;
+        case cfg::PortType::MANAGEMENT_PORT:
         case cfg::PortType::RECYCLE_PORT:
         case cfg::PortType::EVENTOR_PORT:
-          bestSpeed = cfg::PortSpeed::XG;
-          break;
         case cfg::PortType::CPU_PORT:
           break;
       }
+    } else if (asicType == cfg::AsicType::ASIC_TYPE_CHENAB) {
+      // For chenab pick both profile and speed to be 400G, since that's what is
+      // expected in production and chenab does not support dynamic port profile
+      // change, as it may lead to recreation of ports by delete and add. the
+      // usecase of recreating ports by delete and add is not supported in
+      // chenab.
+      bestSpeed = cfg::PortSpeed::FOURHUNDREDG;
+      bestProfile = cfg::PortProfileID::PROFILE_400G_4_PAM4_RS544X2N_OPTICAL;
     }
-
-    auto bestProfile = cfg::PortProfileID::PROFILE_DEFAULT;
     // If bestSpeed is default - pick the largest speed from the safe profiles
     auto pickMaxSpeed = bestSpeed == cfg::PortSpeed::DEFAULT;
-    for (auto profileID : safeProfiles) {
-      auto speed = getSpeed(profileID);
-      if (pickMaxSpeed) {
-        if (static_cast<int>(bestSpeed) < static_cast<int>(speed)) {
-          bestSpeed = speed;
+    auto pickBestProfile = bestProfile == cfg::PortProfileID::PROFILE_DEFAULT;
+    if (pickBestProfile) {
+      for (auto profileID : safeProfiles) {
+        auto speed = getSpeed(profileID);
+        if (pickMaxSpeed) {
+          if (static_cast<int>(bestSpeed) < static_cast<int>(speed)) {
+            bestSpeed = speed;
+            bestProfile = profileID;
+          }
+        } else if (speed == bestSpeed) {
           bestProfile = profileID;
         }
-      } else if (speed == bestSpeed) {
-        bestProfile = profileID;
+      }
+    } else {
+      if (getSpeed(bestProfile) != bestSpeed) {
+        throw FbossError(
+            "Invalid profile:", bestProfile, " for speed ", bestSpeed);
       }
     }
 
@@ -329,14 +314,14 @@ cfg::Port createDefaultPortConfig(
   defaultConfig.profileID() = defaultProfileID;
 
   defaultConfig.logicalID() = id;
-  defaultConfig.ingressVlan() = kDefaultVlanId;
+  defaultConfig.ingressVlan() = kDefaultVlanId4094;
   defaultConfig.state() = cfg::PortState::DISABLED;
   defaultConfig.portType() = *entry.mapping()->portType();
   if (asic->getSwitchType() == cfg::SwitchType::VOQ ||
       asic->getSwitchType() == cfg::SwitchType::FABRIC) {
     defaultConfig.ingressVlan() = 0;
   } else {
-    defaultConfig.ingressVlan() = kDefaultVlanId;
+    defaultConfig.ingressVlan() = kDefaultVlanId4094;
   }
   defaultConfig.scope() = *entry.mapping()->scope();
   return defaultConfig;
@@ -413,9 +398,10 @@ int getLocalSystemPortOffset(const cfg::SystemPortRanges& ranges) {
 }
 
 cfg::DsfNode dsfNodeConfig(
-    const HwAsic& myAsic,
+    const HwAsic& firstAsic,
     int64_t otherSwitchId,
-    const std::optional<PlatformType> platformType) {
+    const std::optional<PlatformType> platformType,
+    const std::optional<int> clusterId) {
   auto getPlatformType = [](const auto& asic, auto& platformType) {
     if (platformType.has_value()) {
       return *platformType;
@@ -462,16 +448,20 @@ cfg::DsfNode dsfNodeConfig(
   cfg::DsfNode dsfNode;
   dsfNode.switchId() = otherSwitchId;
   dsfNode.name() = folly::sformat("hwTestSwitch{}", *dsfNode.switchId());
-  switch (myAsic.getSwitchType()) {
+  switch (firstAsic.getSwitchType()) {
     case cfg::SwitchType::VOQ: {
       dsfNode.type() = cfg::DsfNodeType::INTERFACE_NODE;
-      auto sysPortRanges = getSystemPortRanges(myAsic, otherSwitchId);
+      auto sysPortRanges = getSystemPortRanges(firstAsic, otherSwitchId);
       dsfNode.systemPortRanges() = sysPortRanges;
       dsfNode.localSystemPortOffset() = getLocalSystemPortOffset(sysPortRanges);
-      dsfNode.globalSystemPortOffset() =
-          *sysPortRanges.systemPortRanges()->begin()->minimum();
-      CHECK(myAsic.getInbandPortId().has_value());
-      dsfNode.inbandPortId() = *myAsic.getInbandPortId();
+      // In single-stage sys port ranges, 0th port is reserved for CPU.
+      // For dual stage, no implicit reservation for 0th port, hence offset
+      // should be 1 less.
+      dsfNode.globalSystemPortOffset() = isDualStage3Q2QMode()
+          ? *sysPortRanges.systemPortRanges()->begin()->minimum() - 1
+          : *sysPortRanges.systemPortRanges()->begin()->minimum();
+      CHECK(firstAsic.getInbandPortId().has_value());
+      dsfNode.inbandPortId() = *firstAsic.getInbandPortId();
       dsfNode.nodeMac() = kLocalCpuMac().toString();
       dsfNode.loopbackIps() = getLoopbackIps(SwitchID(*dsfNode.switchId()));
     } break;
@@ -480,27 +470,31 @@ cfg::DsfNode dsfNodeConfig(
       break;
     case cfg::SwitchType::NPU:
     case cfg::SwitchType::PHY:
-      throw FbossError("Unexpected switch type: ", myAsic.getSwitchType());
+      throw FbossError("Unexpected switch type: ", firstAsic.getSwitchType());
   }
-  dsfNode.asicType() = myAsic.getAsicType();
-  dsfNode.platformType() = getPlatformType(myAsic, platformType);
+  dsfNode.asicType() = firstAsic.getAsicType();
+  dsfNode.platformType() = getPlatformType(firstAsic, platformType);
+  if (clusterId.has_value()) {
+    dsfNode.clusterId() = clusterId.value();
+  }
   return dsfNode;
 }
 
-cfg::SwitchConfig onePortPerInterfaceConfig(
+cfg::SwitchConfig onePortPerInterfaceConfigImpl(
     const SwSwitch* swSwitch,
     const std::vector<PortID>& ports,
     bool interfaceHasSubnet,
     bool setInterfaceMac,
     int baseIntfId,
-    bool enableFabricPorts) {
+    bool enableFabricPorts,
+    cfg::InterfaceType intfType) {
   std::vector<const HwAsic*> asics;
   auto switchIds = swSwitch->getHwAsicTable()->getSwitchIDs();
   for (const auto& switchId : switchIds) {
     asics.push_back(swSwitch->getHwAsicTable()->getHwAsic(switchId));
   }
   auto asic = checkSameAndGetAsic(asics);
-  return onePortPerInterfaceConfig(
+  return onePortPerInterfaceConfigImpl(
       swSwitch->getPlatformMapping(),
       asic,
       ports,
@@ -513,10 +507,11 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
       // Use SwitchInfo from --config if SwSwitch is provided
       swSwitch->getSwitchInfoTable().getSwitchIdToSwitchInfo(),
       swSwitch->getHwAsicTable()->getHwAsics(),
-      swSwitch->getPlatformType());
+      swSwitch->getPlatformType(),
+      intfType);
 }
 
-cfg::SwitchConfig onePortPerInterfaceConfig(
+cfg::SwitchConfig onePortPerInterfaceConfigImpl(
     const PlatformMapping* platformMapping,
     const HwAsic* asic,
     const std::vector<PortID>& ports,
@@ -529,7 +524,8 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
     const std::optional<std::map<SwitchID, cfg::SwitchInfo>>&
         switchIdToSwitchInfo,
     const std::optional<std::map<SwitchID, const HwAsic*>>& hwAsicTable,
-    const std::optional<PlatformType> platformType) {
+    const std::optional<PlatformType> platformType,
+    cfg::InterfaceType intfType) {
   return multiplePortsPerIntfConfig(
       platformMapping,
       asic,
@@ -543,23 +539,25 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
       enableFabricPorts,
       switchIdToSwitchInfo,
       hwAsicTable,
-      platformType);
+      platformType,
+      intfType);
 }
 
-cfg::SwitchConfig onePortPerInterfaceConfig(
+cfg::SwitchConfig onePortPerInterfaceConfigImpl(
     const TestEnsembleIf* ensemble,
     const std::vector<PortID>& ports,
     bool interfaceHasSubnet,
     bool setInterfaceMac,
     int baseIntfId,
-    bool enableFabricPorts) {
+    bool enableFabricPorts,
+    cfg::InterfaceType intfType) {
   auto platformMapping = ensemble->getPlatformMapping();
   auto switchIds = ensemble->getHwAsicTable()->getSwitchIDs();
   CHECK_GE(switchIds.size(), 1);
   auto asic = ensemble->getHwAsicTable()->getHwAsic(*switchIds.cbegin());
   auto supportsAddRemovePort = ensemble->supportsAddRemovePort();
 
-  return onePortPerInterfaceConfig(
+  return onePortPerInterfaceConfigImpl(
       platformMapping,
       asic,
       ports,
@@ -568,7 +566,11 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
       interfaceHasSubnet,
       setInterfaceMac,
       baseIntfId,
-      enableFabricPorts);
+      enableFabricPorts,
+      std::nullopt, // switchIdToSwitchInfo
+      std::nullopt, // hwAsicTable
+      std::nullopt, // platformType
+      intfType);
 }
 
 cfg::SwitchConfig multiplePortsPerIntfConfig(
@@ -585,7 +587,8 @@ cfg::SwitchConfig multiplePortsPerIntfConfig(
     const std::optional<std::map<SwitchID, cfg::SwitchInfo>>&
         switchIdToSwitchInfo,
     const std::optional<std::map<SwitchID, const HwAsic*>>& hwAsicTable,
-    const std::optional<PlatformType> platformType) {
+    const std::optional<PlatformType> platformType,
+    cfg::InterfaceType intfType) {
   std::map<PortID, VlanID> port2vlan;
   std::vector<VlanID> vlans;
   std::vector<PortID> vlanPorts;
@@ -601,7 +604,8 @@ cfg::SwitchConfig multiplePortsPerIntfConfig(
     }
     // For non NPU switch type vendor SAI impls don't support
     // tagging packet at port ingress.
-    if (switchType == cfg::SwitchType::NPU) {
+    if (switchType == cfg::SwitchType::NPU &&
+        intfType == cfg::InterfaceType::VLAN) {
       port2vlan[port] = VlanID(vlan);
       idx++;
       // If current vlan has portsPerIntf port,
@@ -645,6 +649,9 @@ cfg::SwitchConfig multiplePortsPerIntfConfig(
     if (setMac) {
       config.interfaces()[i].mac() = getLocalCpuMacStr();
     }
+    if (type == cfg::InterfaceType::PORT) {
+      config.interfaces()[i].portID() = intfId;
+    }
     config.interfaces()[i].mtu() = 9000;
     if (hasSubnet) {
       if (subnets) {
@@ -661,15 +668,28 @@ cfg::SwitchConfig multiplePortsPerIntfConfig(
       }
     }
   };
-  for (auto i = 0; i < vlans.size(); ++i) {
-    addInterface(
-        vlans[i],
-        vlans[i],
-        cfg::InterfaceType::VLAN,
-        setInterfaceMac,
-        interfaceHasSubnet,
-        std::nullopt,
-        cfg::Scope::LOCAL);
+  if (cfg::InterfaceType::VLAN == intfType) {
+    for (auto i = 0; i < vlans.size(); ++i) {
+      addInterface(
+          vlans[i],
+          vlans[i],
+          intfType,
+          setInterfaceMac,
+          interfaceHasSubnet,
+          std::nullopt,
+          cfg::Scope::LOCAL);
+    }
+  } else if (cfg::InterfaceType::PORT == intfType) {
+    for (auto i = 0; i < ports.size(); ++i) {
+      addInterface(
+          ports[i],
+          0,
+          intfType,
+          setInterfaceMac,
+          interfaceHasSubnet,
+          std::nullopt,
+          cfg::Scope::LOCAL);
+    }
   }
   // Create interfaces for local sys ports on VOQ switches
   if (switchType == cfg::SwitchType::VOQ) {
@@ -731,11 +751,6 @@ cfg::SwitchConfig genPortVlanCfg(
     const std::optional<std::map<SwitchID, const HwAsic*>>& hwAsicTable,
     const std::optional<PlatformType> platformType) {
   cfg::SwitchConfig config;
-  if (FLAGS_enable_acl_table_group) {
-    utility::addAclTableGroup(
-        &config, cfg::AclStage::INGRESS, utility::kDefaultAclTableGroupName());
-    utility::addDefaultAclTable(config);
-  }
   if (switchIdToSwitchInfo.has_value() && hwAsicTable.has_value()) {
     populateSwitchInfo(
         config,
@@ -793,10 +808,20 @@ cfg::SwitchConfig genPortVlanCfg(
     populateSwitchInfo(
         config, defaultSwitchIdToSwitchInfo, defaultHwAsicTable, platformType);
   }
+  if (FLAGS_enable_acl_table_group) {
+    utility::setupDefaultAclTableGroups(config);
+  }
   auto switchType = asic->getSwitchType();
   // VOQ config
   if (switchType == cfg::SwitchType::VOQ) {
-    config.defaultVoqConfig() = getDefaultVoqCfg();
+    auto nameAndDefaultVoqCfg =
+        getNameAndDefaultVoqCfg(cfg::PortType::INTERFACE_PORT);
+    CHECK(nameAndDefaultVoqCfg.has_value());
+    config.defaultVoqConfig() = nameAndDefaultVoqCfg->queueConfig;
+    auto cpuVoqConfigAndName = getNameAndDefaultVoqCfg(cfg::PortType::CPU_PORT);
+    if (cpuVoqConfigAndName) {
+      config.cpuVoqs() = cpuVoqConfigAndName->queueConfig;
+    }
   }
 
   // Use getPortToDefaultProfileIDMap() to genetate the default config instead
@@ -853,12 +878,21 @@ cfg::SwitchConfig genPortVlanCfg(
       portCfg->state() = cfg::PortState::ENABLED;
       portCfg->ingressVlan() = port2vlan.find(portID)->second;
       portCfg->maxFrameSize() = kPortMTU;
+      if (switchType == cfg::SwitchType::VOQ &&
+          *portCfg->portType() != cfg::PortType::INTERFACE_PORT) {
+        auto nameAndVoqConfig = getNameAndDefaultVoqCfg(*portCfg->portType());
+        if (nameAndVoqConfig.has_value()) {
+          config.portQueueConfigs()[nameAndVoqConfig->name] =
+              nameAndVoqConfig->queueConfig;
+          portCfg->portVoqConfigName() = nameAndVoqConfig->name;
+        }
+      }
     }
     portCfg->routable() = true;
     portCfg->parserType() = cfg::ParserType::L3;
   }
 
-  if (vlans.size()) {
+  if (switchType == cfg::SwitchType::NPU) {
     // Vlan config
     for (auto vlanID : vlans) {
       cfg::Vlan vlan;
@@ -868,12 +902,17 @@ cfg::SwitchConfig genPortVlanCfg(
       config.vlans()->push_back(vlan);
     }
 
+    auto defaultVlanId =
+        (asic->getAsicType() != cfg::AsicType::ASIC_TYPE_CHENAB)
+        ? kDefaultVlanId4094
+        : kDefaultVlanId1;
     cfg::Vlan defaultVlan;
-    defaultVlan.id() = kDefaultVlanId;
-    defaultVlan.name() = folly::sformat("vlan{}", kDefaultVlanId);
+    defaultVlan.id() = defaultVlanId;
+    defaultVlan.name() = folly::sformat("vlan{}", defaultVlanId);
+    defaultVlan.intfID() = kDefaultVlanId4094;
     defaultVlan.routable() = true;
     config.vlans()->push_back(defaultVlan);
-    config.defaultVlan() = kDefaultVlanId;
+    config.defaultVlan() = defaultVlanId;
 
     // Vlan port config
     for (auto vlanPortPair : port2vlan) {
@@ -885,6 +924,24 @@ cfg::SwitchConfig genPortVlanCfg(
       config.vlanPorts()->push_back(vlanPort);
     }
   }
+  if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    /*
+     * TODO(pshaikh): Chenab-Hack pipeline lookup for traffic injected by cpu
+     * requires vlan rif in default vlan.
+     */
+    cfg::Interface intf1;
+    intf1.intfID() = kDefaultVlanId4094; /* prevent conflict with port rifs */
+    intf1.name() = "default_vlan_rif";
+    intf1.vlanID() = kDefaultVlanId1;
+    intf1.mac() = getLocalCpuMacStr();
+    intf1.type() = cfg::InterfaceType::VLAN;
+    intf1.routerID() = 0;
+    intf1.mtu() = 9000;
+    intf1.isVirtual() = true;
+    intf1.ipAddresses()->emplace_back("192.168.0.1/24");
+    intf1.ipAddresses()->emplace_back("fd00::1/64");
+    config.interfaces()->push_back(intf1);
+  }
   return config;
 }
 
@@ -895,6 +952,13 @@ void populateSwitchInfo(
     const std::optional<PlatformType> platformType) {
   std::map<long, cfg::SwitchInfo> newSwitchIdToSwitchInfo;
   std::map<long, cfg::DsfNode> newDsfNodes;
+  // save the firsthwAsic to create dsfNodeConfig
+  SwitchID switchId{0};
+  auto firstHwAsicTableItr = hwAsicTable.find(switchId);
+  if (firstHwAsicTableItr == hwAsicTable.end()) {
+    throw FbossError("HwAsic not found for SwitchID: ", switchId);
+  }
+  const auto& firstHwAsic = firstHwAsicTableItr->second;
   for (const auto& [switchId, switchInfo] : switchIdToSwitchInfo) {
     newSwitchIdToSwitchInfo.insert({switchId, switchInfo});
     auto hwAsicTableItr = hwAsicTable.find(switchId);
@@ -905,7 +969,7 @@ void populateSwitchInfo(
     if (hwAsic->getSwitchType() == cfg::SwitchType::VOQ ||
         hwAsic->getSwitchType() == cfg::SwitchType::FABRIC) {
       newDsfNodes.insert(
-          {switchId, dsfNodeConfig(*hwAsic, switchId, platformType)});
+          {switchId, dsfNodeConfig(*firstHwAsic, switchId, platformType)});
     }
   }
   config.switchSettings()->switchIdToSwitchInfo() = newSwitchIdToSwitchInfo;
@@ -968,6 +1032,7 @@ cfg::SwitchConfig oneL3IntfNPortConfig(
   config.interfaces()->resize(1);
   config.interfaces()[0].intfID() = baseVlanId;
   config.interfaces()[0].vlanID() = baseVlanId;
+  config.interfaces()[0].type() = cfg::InterfaceType::VLAN;
   *config.interfaces()[0].routerID() = 0;
   if (setInterfaceMac) {
     config.interfaces()[0].mac() = getLocalCpuMacStr();
@@ -987,14 +1052,16 @@ cfg::SwitchConfig twoL3IntfConfig(
     SwSwitch* swSwitch,
     PortID port1,
     PortID port2,
-    const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap) {
+    const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap,
+    cfg::InterfaceType intfType) {
   return twoL3IntfConfig(
       swSwitch->getPlatformMapping(),
       swSwitch->getHwAsicTable()->getL3Asics(),
       swSwitch->getPlatformSupportsAddRemovePort(),
       port1,
       port2,
-      lbModeMap);
+      lbModeMap,
+      intfType);
 }
 
 cfg::SwitchConfig twoL3IntfConfig(
@@ -1003,7 +1070,8 @@ cfg::SwitchConfig twoL3IntfConfig(
     bool supportsAddRemovePort,
     PortID port1,
     PortID port2,
-    const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap) {
+    const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap,
+    cfg::InterfaceType intfType) {
   auto asic = checkSameAndGetAsic(asics);
   std::map<PortID, VlanID> port2vlan;
   std::vector<PortID> ports{port1, port2};
@@ -1070,8 +1138,13 @@ cfg::SwitchConfig twoL3IntfConfig(
     intf.mac() = getLocalCpuMacStr();
     intf.mtu() = 9000;
     intf.routerID() = 0;
+    if (switchType == cfg::SwitchType::NPU) {
+      if (intfType == cfg::InterfaceType::SYSTEM_PORT) {
+        throw FbossError("System port not supported for NPU switch type");
+      }
+    }
     intf.type() = switchType == cfg::SwitchType::NPU
-        ? cfg::InterfaceType::VLAN
+        ? intfType
         : cfg::InterfaceType::SYSTEM_PORT;
     if (switchType == cfg::SwitchType::VOQ) {
       auto portScope =
@@ -1432,6 +1505,89 @@ void modifyPlatformConfig(
       modifyMapFunc(common.mutable_config());
     }
   }
+}
+
+cfg::SwitchConfig onePortPerInterfaceConfig(
+    const SwSwitch* swSwitch,
+    const std::vector<PortID>& ports,
+    bool interfaceHasSubnet,
+    bool setInterfaceMac,
+    int baseIntfId,
+    bool enableFabricPorts,
+    const std::optional<cfg::InterfaceType>& intfType) {
+  auto switchID = swSwitch->getScopeResolver()->scope(ports[0]).switchId();
+  auto asic = swSwitch->getHwAsicTable()->getHwAsicIf(switchID);
+  cfg::InterfaceType intfTypeVal = getInterfaceType(*asic);
+  if (intfType) {
+    intfTypeVal = intfType.value();
+  }
+  return onePortPerInterfaceConfigImpl(
+      swSwitch,
+      ports,
+      interfaceHasSubnet,
+      setInterfaceMac,
+      baseIntfId,
+      enableFabricPorts,
+      intfTypeVal);
+}
+
+cfg::SwitchConfig onePortPerInterfaceConfig(
+    const PlatformMapping* platformMapping,
+    const HwAsic* asic,
+    const std::vector<PortID>& ports,
+    bool supportsAddRemovePort,
+    const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap,
+    bool interfaceHasSubnet,
+    bool setInterfaceMac,
+    int baseIntfId,
+    bool enableFabricPorts,
+    const std::optional<std::map<SwitchID, cfg::SwitchInfo>>&
+        switchIdToSwitchInfo,
+    const std::optional<std::map<SwitchID, const HwAsic*>>& hwAsicTable,
+    const std::optional<PlatformType> platformType,
+    const std::optional<cfg::InterfaceType>& intfType) {
+  cfg::InterfaceType intfTypeVal = getInterfaceType(*asic);
+  if (intfType) {
+    intfTypeVal = *intfType;
+  }
+  return onePortPerInterfaceConfigImpl(
+      platformMapping,
+      asic,
+      ports,
+      supportsAddRemovePort,
+      lbModeMap,
+      interfaceHasSubnet,
+      setInterfaceMac,
+      baseIntfId,
+      enableFabricPorts,
+      switchIdToSwitchInfo,
+      hwAsicTable,
+      platformType,
+      intfTypeVal);
+}
+
+cfg::SwitchConfig onePortPerInterfaceConfig(
+    const TestEnsembleIf* ensemble,
+    const std::vector<PortID>& ports,
+    bool interfaceHasSubnet,
+    bool setInterfaceMac,
+    int baseIntfId,
+    bool enableFabricPorts,
+    const std::optional<cfg::InterfaceType>& intfType) {
+  auto switchID = ensemble->scopeResolver().scope(ports[0]).switchId();
+  auto asic = ensemble->getHwAsicTable()->getHwAsicIf(switchID);
+  cfg::InterfaceType intfTypeVal = getInterfaceType(*asic);
+  if (intfType) {
+    intfTypeVal = intfType.value();
+  }
+  return onePortPerInterfaceConfigImpl(
+      ensemble,
+      ports,
+      interfaceHasSubnet,
+      setInterfaceMac,
+      baseIntfId,
+      enableFabricPorts,
+      intfTypeVal);
 }
 
 } // namespace facebook::fboss::utility

@@ -60,4 +60,5 @@ target_link_libraries(packet_factory
   ctrl_cpp2
   switch_config_cpp2
   Folly::folly
+  sflow_structs
 )

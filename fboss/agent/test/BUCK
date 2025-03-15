@@ -27,6 +27,7 @@ cpp_unittest(
         "ICMPTest.cpp",
         "IPv4Test.cpp",
         "LabelForwardingTests.cpp",
+        "LinkConnectivityProcessorTest.cpp",
         "LldpManagerTest.cpp",
         "LookupClassRouteUpdaterTests.cpp",
         "LookupClassUpdaterTests.cpp",
@@ -46,6 +47,7 @@ cpp_unittest(
         "RouteUpdateLoggerTest.cpp",
         "RouteUpdateLoggingTrackerTest.cpp",
         "RoutingTest.cpp",
+        "SelfHealingEcmpLagTests.cpp",
         "StaticL2ForNeighborObserverTests.cpp",
         "StaticRoutes.cpp",
         "SwSwitchTest.cpp",
@@ -423,6 +425,7 @@ cpp_library(
     undefined_symbols = True,
     exported_deps = [
         "fbsource//third-party/googletest:gtest",
+        "//fboss/agent:agent_features",
         "//fboss/agent:fboss_common_init",
         "//fboss/agent:hw_asic_table",
         "//fboss/agent:hw_switch",
@@ -462,6 +465,7 @@ cpp_library(
         "//fboss/agent/hw:hardware_stats-cpp2-types",
         "//fboss/agent/hw/switch_asics:switch_asics",
         "//fboss/agent/state:state",
+        "//fboss/agent/test/utils:asic_test_utils",
         "//fboss/agent/test/utils:qos_test_utils",
         "//fboss/qsfp_service/lib:qsfp-service-client",
         "//folly/gen:base",
@@ -492,6 +496,25 @@ cpp_library(
 )
 
 cpp_library(
+    name = "agent_ensemble_integration_test_base",
+    srcs = [
+        "AgentEnsembleIntegrationTestBase.cpp",
+    ],
+    headers = [
+        "AgentEnsembleIntegrationTestBase.h",
+    ],
+    exported_deps = [
+        ":agent_ensemble_test",
+        "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent/hw/test:config_factory",
+        "//fboss/agent/test/utils:asic_test_utils",
+        "//folly:synchronized",
+        "//folly/gen:base",
+        "//folly/logging:logging",
+    ],
+)
+
+cpp_library(
     name = "agent_hw_test",
     srcs = [
         "AgentHwTest.cpp",
@@ -504,6 +527,7 @@ cpp_library(
         "fbsource//third-party/googletest:gtest",
         ":agent_ensemble",
         ":production_features-cpp2-types",
+        "//fboss/agent:agent_features",
         "//fboss/agent:core",
         "//fboss/agent:fboss_init_h",
         "//fboss/agent:hw_asic_table",
@@ -511,6 +535,7 @@ cpp_library(
         "//fboss/agent/hw/switch_asics:switch_asics",
         "//fboss/agent/hw/test:config_factory",
         "//fboss/agent/hw/test:hw_copp_utils",
+        "//fboss/agent/if:multiswitch_ctrl-cpp2-types",
         "//fboss/agent/test/utils:acl_test_utils",
         "//fboss/agent/test/utils:agent_hw_test_constants",
         "//fboss/agent/test/utils:stats_test_utils",
@@ -873,10 +898,10 @@ thrift_library(
     languages = [
         "cpp2",
         "go",
-        "py",
         "py3",
         "py-asyncio",
         "rust",
+        "py-deprecated",
     ],
     py3_namespace = "neteng.fboss",
     py_asyncio_base_module = "neteng.fboss.asyncio",

@@ -469,7 +469,16 @@ std::map<int16_t, std::vector<std::string>> getSwitchIndicesForInterfaces(
 Table::StyledCell styledBer(double ber);
 Table::StyledCell styledFecTail(int tail);
 
+cfg::SwitchType getSwitchType(apache::thrift::Client<FbossCtrl>& client);
 cfg::SwitchType getSwitchType(
     std::map<int64_t, cfg::SwitchInfo> switchIdToSwitchInfo);
+bool isVoqOrFabric(cfg::SwitchType switchType);
+
+std::map<std::string, FabricEndpoint> getFabricEndpoints(
+    const HostInfo& hostInfo);
+
+std::map<std::string, int64_t> getAgentFb303RegexCounters(
+    const HostInfo& hostInfo,
+    const std::string& regex);
 
 } // namespace facebook::fboss::utils

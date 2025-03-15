@@ -1,18 +1,18 @@
+# pyre-strict
 import ctypes
 import fcntl
 import glob
 import os
 import struct
-from typing import Set
 
 from ioctl_opt import IOR, IOWR
 
 # Watchog IOCTL commands defined here:
 # https://github.com/torvalds/linux/blob/master/include/uapi/linux/watchdog.h
-WATCHDOG_IOCTL_BASE = ord("W")
-WDIOC_KEEPALIVE = IOR(WATCHDOG_IOCTL_BASE, 5, ctypes.c_int)
-WDIOC_SETTIMEOUT = IOWR(WATCHDOG_IOCTL_BASE, 6, ctypes.c_int)
-WDIOC_GETTIMEOUT = IOR(WATCHDOG_IOCTL_BASE, 7, ctypes.c_int)
+WATCHDOG_IOCTL_BASE: int = ord("W")
+WDIOC_KEEPALIVE: int = IOR(WATCHDOG_IOCTL_BASE, 5, ctypes.c_int)
+WDIOC_SETTIMEOUT: int = IOWR(WATCHDOG_IOCTL_BASE, 6, ctypes.c_int)
+WDIOC_GETTIMEOUT: int = IOR(WATCHDOG_IOCTL_BASE, 7, ctypes.c_int)
 
 
 def get_watchdogs() -> set[str]:

@@ -7,13 +7,13 @@
 #include <thrift/lib/cpp2/protocol/DebugProtocol.h>
 
 #include <thrift/lib/cpp/util/EnumUtils.h>
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/PlatformPort.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/hw/test/HwTestPortUtils.h"
 #include "fboss/agent/test/link_tests/LinkTest.h"
 #include "fboss/lib/CommonUtils.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
-#include "fboss/lib/phy/gen-cpp2/phy_types_custom_protocol.h"
 #include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
@@ -70,6 +70,8 @@ void validateInterfaceAndMedium(
                phy::InterfaceType::KR2,
                phy::InterfaceType::KR4,
                phy::InterfaceType::KR8,
+               phy::InterfaceType::SR4, // Used on J3 serdes
+               phy::InterfaceType::SR8, // Used on J3 serdes
                // Results in backplane medium in
                // BcmPortUtils::getDesiredPhyLaneConfig
                phy::InterfaceType::CAUI4_C2C,
@@ -591,6 +593,19 @@ TEST_F(LinkTest, verifyIphyFecBerCounters) {
           if (hasCorrectedCodewords) {
             EXPECT_GT(countNonZeroBins, 0);
           }
+          // Expect the fec tail to be populated when codeword stats is since it
+          // is derived from that
+          EXPECT_TRUE(rsFecNow->fecTail().has_value());
+          EXPECT_TRUE(rsFecNow->maxSupportedFecTail().has_value());
+          // Codeword stats always has an extra stat for bin 0 (codewords which
+          // didn't need correction). Thus compare maxSupportedFecTail with
+          // codewordStats.size - 1
+          EXPECT_EQ(
+              rsFecNow->maxSupportedFecTail().value(),
+              rsFecNow->codewordStats()->size() - 1);
+          EXPECT_LE(
+              rsFecNow->fecTail().value(),
+              rsFecNow->maxSupportedFecTail().value());
         }
       }
       previousPhyInfo = currentPhyInfo;

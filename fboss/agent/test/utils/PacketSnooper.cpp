@@ -17,6 +17,16 @@ void PacketSnooper::packetReceived(const RxPacket* pkt) noexcept {
   auto data = pkt->buf()->clone();
   folly::io::Cursor cursor{data.get()};
   auto frame = std::make_unique<utility::EthFrame>(cursor);
+
+  if (packetComparator_.has_value() && expectedFrame_.has_value()) {
+    if (!packetComparator_.value()(*expectedFrame_, *frame)) {
+      XLOG(DBG2) << " Unexpected packet received "
+                 << " expected: " << *expectedFrame_ << std::endl
+                 << " got: " << *frame;
+      return;
+    }
+  }
+
   if (expectedFrame_.has_value() && *expectedFrame_ != *frame) {
     XLOG(DBG2) << " Unexpected packet received "
                << " expected: " << *expectedFrame_ << std::endl
@@ -52,8 +62,11 @@ SwSwitchPacketSnooper::SwSwitchPacketSnooper(
     SwSwitch* sw,
     const std::string& name,
     std::optional<PortID> port,
-    std::optional<utility::EthFrame> expectedFrame)
-    : PacketSnooper(port, std::move(expectedFrame)), sw_(sw), name_(name) {
+    std::optional<utility::EthFrame> expectedFrame,
+    PacketComparatorFn packetComparator)
+    : PacketSnooper(port, std::move(expectedFrame), packetComparator),
+      sw_(sw),
+      name_(name) {
   sw_->getPacketObservers()->registerPacketObserver(this, name_);
 }
 

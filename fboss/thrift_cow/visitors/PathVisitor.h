@@ -31,44 +31,9 @@ using PathIter = typename std::vector<std::string>::const_iterator;
 // instantiations
 class BasePathVisitorOperator {
  public:
-  template <typename TType>
-  class SerializableWrapper : public Serializable {
-    using TC = apache::thrift::type_class::structure;
-
-   public:
-    explicit SerializableWrapper(TType& node) : node_(node) {}
-
-    folly::IOBuf encodeBuf(fsdb::OperProtocol proto) const override {
-      folly::IOBufQueue queue;
-      switch (proto) {
-        case fsdb::OperProtocol::BINARY:
-          apache::thrift::BinarySerializer::serialize(node_, &queue);
-          break;
-        case fsdb::OperProtocol::COMPACT:
-          apache::thrift::CompactSerializer::serialize(node_, &queue);
-          break;
-        case fsdb::OperProtocol::SIMPLE_JSON:
-          apache::thrift::SimpleJSONSerializer::serialize(node_, &queue);
-          break;
-        default:
-          throw std::runtime_error(folly::to<std::string>(
-              "Unknown protocol: ", static_cast<int>(proto)));
-      }
-      return queue.moveAsValue();
-    }
-
-    void fromEncodedBuf(fsdb::OperProtocol proto, folly::IOBuf&& encoded)
-        override {
-      node_ = deserializeBuf<TC, TType>(proto, std::move(encoded));
-    }
-
-   private:
-    TType& node_;
-  };
-
   virtual ~BasePathVisitorOperator() = default;
 
-  template <typename Node>
+  template <typename TC, typename Node>
   inline void
   visitTyped(Node& node, pv_detail::PathIter begin, pv_detail::PathIter end)
     requires(is_cow_type_v<Node>)
@@ -82,13 +47,13 @@ class BasePathVisitorOperator {
     }
   }
 
-  template <typename Node>
+  template <typename TC, typename Node>
   inline void
   visitTyped(Node& node, pv_detail::PathIter begin, pv_detail::PathIter end)
     requires(!is_cow_type_v<Node>)
   {
     // Node is not a Serializable, dispatch with wrapper
-    SerializableWrapper wrapper(node);
+    SerializableWrapper<TC, Node> wrapper(node);
     if constexpr (std::is_const_v<Node>) {
       cvisit(wrapper, begin, end);
       cvisit(wrapper);
@@ -221,23 +186,65 @@ template <typename Func>
 struct LambdaPathVisitorOperator {
   explicit LambdaPathVisitorOperator(Func&& f) : f_(std::forward<Func>(f)) {}
 
-  template <typename Node>
+  template <typename TC, typename Node>
   inline auto
   visitTyped(Node& node, pv_detail::PathIter begin, pv_detail::PathIter end)
-      -> std::invoke_result_t<
-          Func,
-          Node&,
-          pv_detail::PathIter,
-          pv_detail::PathIter> {
+    requires(is_cow_type_v<Node>)
+  {
     return f_(node, begin, end);
   }
 
-  template <typename Node>
-  inline auto visitTyped(
-      Node& node,
-      pv_detail::PathIter /* begin */,
-      pv_detail::PathIter /* end */) -> std::invoke_result_t<Func, Node&> {
-    return f_(node);
+  template <typename TC, typename Node>
+  inline auto
+  visitTyped(Node& node, pv_detail::PathIter begin, pv_detail::PathIter end)
+    requires(!is_cow_type_v<Node>)
+  {
+    // Node is not a Serializable, dispatch with wrapper
+    SerializableWrapper<TC, Node> wrapper(node);
+    return f_(wrapper, begin, end);
+  }
+
+ private:
+  Func f_;
+};
+
+// Similar to LambdaPathVisitorOperator, only that if the node is thrift object,
+// this operator wraps it in a writable wrapper that provides write interface to
+// caller such as remove(tok), modify(tok)
+template <typename Func>
+struct WritablePathVisitorOperator {
+  explicit WritablePathVisitorOperator(Func&& f) : f_(std::forward<Func>(f)) {}
+
+  template <typename TC, typename Node>
+  inline auto
+  visitTyped(Node& node, pv_detail::PathIter begin, pv_detail::PathIter end)
+    requires(
+        is_cow_type_v<Node> &&
+        !std::is_same_v<typename Node::CowType, HybridNodeType>)
+  {
+    return f_(node, begin, end);
+  }
+
+  template <typename TC, typename Node>
+  inline auto
+  visitTyped(Node& node, pv_detail::PathIter begin, pv_detail::PathIter end)
+    requires(
+        is_cow_type_v<Node> &&
+        std::is_same_v<typename Node::CowType, HybridNodeType>)
+  {
+    // Node is not a Serializable, dispatch with a writable wrapper
+    WritableWrapper<TC, typename Node::ThriftType> wrapper(node.ref());
+    return f_(wrapper, begin, end);
+  }
+
+  template <typename TC, typename Node>
+  inline auto
+  visitTyped(Node& node, pv_detail::PathIter begin, pv_detail::PathIter end)
+    requires(!is_cow_type_v<Node>)
+  {
+    // Node is not a Serializable, dispatch with a writable wrapper
+    WritableWrapper<TC, Node> wrapper(node);
+    return f_(wrapper, begin, end);
   }
 
  private:
@@ -252,7 +259,7 @@ visitNode(Node& node, const VisitImplParams<Op>& params, PathIter cursor)
 {
   if (params.mode == PathVisitMode::FULL || cursor == params.end) {
     try {
-      params.op.visitTyped(node, cursor, params.end);
+      params.op.template visitTyped<TC, Node>(node, cursor, params.end);
       if (cursor == params.end) {
         return ThriftTraverseResult::OK;
       }
@@ -288,17 +295,80 @@ struct PathVisitorImpl<apache::thrift::type_class::set<ValueTypeClass>> {
     return pv_detail::visitNode<TC>(node, params, cursor);
   }
 
+  template <typename Obj, typename Op>
+  static inline ThriftTraverseResult
+  visit(Obj& tObj, const VisitImplParams<Op>& params, PathIter cursor)
+    requires(!is_cow_type_v<Obj> && !is_field_type_v<Obj>)
+  {
+    try {
+      if (params.mode == PathVisitMode::FULL || cursor == params.end) {
+        params.op.template visitTyped<TC, Obj>(tObj, cursor, params.end);
+        if (cursor == params.end) {
+          return ThriftTraverseResult::OK;
+        }
+      }
+    } catch (const std::exception& ex) {
+      XLOG(ERR) << "Exception while traversing path: "
+                << folly::join("/", params.begin, params.end)
+                << " at: " << (cursor == params.end ? "(end)" : *cursor)
+                << ", exception: " << ex.what();
+      return ThriftTraverseResult::VISITOR_EXCEPTION;
+    }
+    using ValueTType = typename Obj::value_type;
+
+    // Get value
+    auto token = *cursor++;
+
+    if (auto value = tryParseKey<ValueTType, ValueTypeClass>(token)) {
+      if (auto it = tObj.find(*value); it != tObj.end()) {
+        // Recurse further
+        return PathVisitorImpl<ValueTypeClass>::visit(*it, params, cursor);
+      } else {
+        return ThriftTraverseResult::NON_EXISTENT_NODE;
+      }
+    }
+    // if we get here, we must have a malformed value
+    return ThriftTraverseResult::INVALID_SET_MEMBER;
+  }
+
   template <typename Node, typename Op>
-  static ThriftTraverseResult
-  visit(Node& /* node */, const VisitImplParams<Op>& params, PathIter cursor)
+  static ThriftTraverseResult visit(
+      Node& node /* node */,
+      const VisitImplParams<Op>& params,
+      PathIter cursor)
       // only enable for HybridNode types
     requires(std::is_same_v<typename Node::CowType, HybridNodeType>)
   {
-    // TODO: implement specialization for hybrid nodes
-    XLOG(ERR) << "Unimplemented visitation for hybrid node: path: "
-              << folly::join("/", params.begin, params.end)
-              << " at: " << (cursor == params.end ? "(end)" : *cursor);
-    return ThriftTraverseResult::VISITOR_EXCEPTION;
+    try {
+      if (params.mode == PathVisitMode::FULL || cursor == params.end) {
+        params.op.template visitTyped<TC, Node>(node, cursor, params.end);
+        if (cursor == params.end) {
+          return ThriftTraverseResult::OK;
+        }
+      }
+    } catch (const std::exception& ex) {
+      XLOG(ERR) << "Exception while traversing path: "
+                << folly::join("/", params.begin, params.end)
+                << " at: " << (cursor == params.end ? "(end)" : *cursor)
+                << ", exception: " << ex.what();
+      return ThriftTraverseResult::VISITOR_EXCEPTION;
+    }
+    auto& tObj = node.ref();
+    using ValueTType = typename Node::ThriftType::value_type;
+
+    // Get value
+    auto token = *cursor++;
+
+    if (auto value = tryParseKey<ValueTType, ValueTypeClass>(token)) {
+      if (auto it = tObj.find(*value); it != tObj.end()) {
+        // Recurse further
+        return PathVisitorImpl<ValueTypeClass>::visit(*it, params, cursor);
+      } else {
+        return ThriftTraverseResult::NON_EXISTENT_NODE;
+      }
+    }
+    // if we get here, we must have a malformed value
+    return ThriftTraverseResult::INVALID_SET_MEMBER;
   }
 
   template <typename Fields, typename Op>
@@ -344,17 +414,63 @@ struct PathVisitorImpl<apache::thrift::type_class::list<ValueTypeClass>> {
     return pv_detail::visitNode<TC>(node, params, cursor);
   }
 
+  template <typename Obj, typename Op>
+  static inline ThriftTraverseResult
+  visit(Obj& tObj, const VisitImplParams<Op>& params, PathIter cursor)
+    requires(!is_cow_type_v<Obj> && !is_field_type_v<Obj>)
+  {
+    try {
+      if (params.mode == PathVisitMode::FULL || cursor == params.end) {
+        params.op.template visitTyped<TC, Obj>(tObj, cursor, params.end);
+        if (cursor == params.end) {
+          return ThriftTraverseResult::OK;
+        }
+      }
+    } catch (const std::exception& ex) {
+      XLOG(ERR) << "Exception while traversing path: "
+                << folly::join("/", params.begin, params.end)
+                << " at: " << (cursor == params.end ? "(end)" : *cursor)
+                << ", exception: " << ex.what();
+      return ThriftTraverseResult::VISITOR_EXCEPTION;
+    }
+    // Parse and pop token. Also check for index bound
+    auto index = folly::tryTo<size_t>(*cursor++);
+    if (index.hasError() || index.value() >= tObj.size()) {
+      return ThriftTraverseResult::INVALID_ARRAY_INDEX;
+    }
+    return PathVisitorImpl<ValueTypeClass>::visit(
+        tObj.at(index.value()), params, cursor);
+  }
+
   template <typename Node, typename Op>
   static ThriftTraverseResult
-  visit(Node& /* node */, const VisitImplParams<Op>& params, PathIter cursor)
+  visit(Node& node, const VisitImplParams<Op>& params, PathIter cursor)
       // only enable for HybridNode types
     requires(std::is_same_v<typename Node::CowType, HybridNodeType>)
   {
-    // TODO: implement specialization for hybrid nodes
-    XLOG(ERR) << "Unimplemented visitation for hybrid node: path: "
-              << folly::join("/", params.begin, params.end)
-              << " at: " << (cursor == params.end ? "(end)" : *cursor);
-    return ThriftTraverseResult::VISITOR_EXCEPTION;
+    try {
+      if (params.mode == PathVisitMode::FULL || cursor == params.end) {
+        params.op.template visitTyped<TC, Node>(node, cursor, params.end);
+        if (cursor == params.end) {
+          return ThriftTraverseResult::OK;
+        }
+      }
+    } catch (const std::exception& ex) {
+      XLOG(ERR) << "Exception while traversing path: "
+                << folly::join("/", params.begin, params.end)
+                << " at: " << (cursor == params.end ? "(end)" : *cursor)
+                << ", exception: " << ex.what();
+      return ThriftTraverseResult::VISITOR_EXCEPTION;
+    }
+    // get the value based on the key
+    auto& tObj = node.ref();
+    // Parse and pop token. Also check for index bound
+    auto index = folly::tryTo<size_t>(*cursor++);
+    if (index.hasError() || index.value() >= tObj.size()) {
+      return ThriftTraverseResult::INVALID_ARRAY_INDEX;
+    }
+    return PathVisitorImpl<ValueTypeClass>::visit(
+        tObj.at(index.value()), params, cursor);
   }
 
   template <typename Fields, typename Op>
@@ -406,7 +522,7 @@ struct PathVisitorImpl<
   {
     try {
       if (params.mode == PathVisitMode::FULL || cursor == params.end) {
-        params.op.visitTyped(tObj, cursor, params.end);
+        params.op.template visitTyped<TC, Obj>(tObj, cursor, params.end);
         if (cursor == params.end) {
           return ThriftTraverseResult::OK;
         }
@@ -423,8 +539,10 @@ struct PathVisitorImpl<
     // Get key
     auto token = *cursor++;
     auto key = folly::tryTo<KeyT>(token);
-    if (!key.hasValue() || tObj.find(key.value()) == tObj.end()) {
+    if (!key.hasValue()) {
       return ThriftTraverseResult::INVALID_MAP_KEY;
+    } else if (tObj.find(key.value()) == tObj.end()) {
+      return ThriftTraverseResult::NON_EXISTENT_NODE;
     }
     return PathVisitorImpl<MappedTypeClass>::visit(
         tObj.at(*key), params, cursor);
@@ -438,7 +556,7 @@ struct PathVisitorImpl<
   {
     try {
       if (params.mode == PathVisitMode::FULL || cursor == params.end) {
-        params.op.visitTyped(node, cursor, params.end);
+        params.op.template visitTyped<TC, Node>(node, cursor, params.end);
         if (cursor == params.end) {
           return ThriftTraverseResult::OK;
         }
@@ -456,8 +574,10 @@ struct PathVisitorImpl<
     // Get key
     auto token = *cursor++;
     auto key = folly::tryTo<KeyT>(token);
-    if (!key.hasValue() || tObj.find(key.value()) == tObj.end()) {
+    if (!key.hasValue()) {
       return ThriftTraverseResult::INVALID_MAP_KEY;
+    } else if (tObj.find(key.value()) == tObj.end()) {
+      return ThriftTraverseResult::NON_EXISTENT_NODE;
     }
     return PathVisitorImpl<MappedTypeClass>::visit(
         tObj.at(*key), params, cursor);
@@ -589,8 +709,7 @@ struct PathVisitorImpl<apache::thrift::type_class::structure> {
   {
     try {
       if (params.mode == PathVisitMode::FULL || cursor == params.end) {
-        params.op.visitTyped(
-            *const_cast<std::remove_const_t<Node>*>(&node), cursor, params.end);
+        params.op.template visitTyped<TC, Node>(node, cursor, params.end);
         if (cursor == params.end) {
           return ThriftTraverseResult::OK;
         }
@@ -612,10 +731,18 @@ struct PathVisitorImpl<apache::thrift::type_class::structure> {
     visitMember<Members>(key, [&](auto indexed) {
       using member = decltype(fatal::tag_type(indexed));
       using tc = typename member::type_class;
-      typename member::getter getter;
-
+      using getter = typename member::getter;
+      const std::string fieldNameStr =
+          fatal::to_instance<std::string, typename member::name>();
+      if constexpr (
+          member::optional::value == apache::thrift::optionality::optional) {
+        if (!member::is_set(tObj)) {
+          result = ThriftTraverseResult::NON_EXISTENT_NODE;
+          return;
+        }
+      }
       // Recurse further
-      auto& child = getter(tObj);
+      auto& child = getter{}(tObj);
       result = PathVisitorImpl<tc>::visit(child, params, cursor);
     });
 
@@ -629,7 +756,7 @@ struct PathVisitorImpl<apache::thrift::type_class::structure> {
   {
     try {
       if (params.mode == PathVisitMode::FULL || cursor == params.end) {
-        params.op.visitTyped(tObj, cursor, params.end);
+        params.op.template visitTyped<TC, Obj>(tObj, cursor, params.end);
         if (cursor == params.end) {
           return ThriftTraverseResult::OK;
         }
@@ -649,10 +776,18 @@ struct PathVisitorImpl<apache::thrift::type_class::structure> {
     visitMember<Members>(key, [&](auto indexed) {
       using member = decltype(fatal::tag_type(indexed));
       using tc = typename member::type_class;
-      typename member::getter getter;
-
+      using getter = typename member::getter;
+      const std::string fieldNameStr =
+          fatal::to_instance<std::string, typename member::name>();
+      if constexpr (
+          member::optional::value == apache::thrift::optionality::optional) {
+        if (!member::is_set(tObj)) {
+          result = ThriftTraverseResult::NON_EXISTENT_NODE;
+          return;
+        }
+      }
       // Recurse further
-      auto& child = getter(tObj);
+      auto& child = getter{}(tObj);
       result = PathVisitorImpl<tc>::visit(child, params, cursor);
     });
 
@@ -727,7 +862,9 @@ struct PathVisitorImpl {
         // take a const param. Here we cast away the const and rely on
         // primitive node's functions throwing an exception if the node is
         // immutable.
-        params.op.visitTyped(
+        params.op.template visitTyped<
+            std::remove_const_t<TC>,
+            std::remove_const_t<Node>>(
             *const_cast<std::remove_const_t<Node>*>(&node), cursor, params.end);
         if (cursor == params.end) {
           return ThriftTraverseResult::OK;
@@ -753,20 +890,24 @@ inline pv_detail::LambdaPathVisitorOperator<Func> pvlambda(Func&& f) {
   return pv_detail::LambdaPathVisitorOperator<Func>(std::forward<Func>(f));
 }
 
+template <typename Func>
+inline pv_detail::WritablePathVisitorOperator<Func> writablelambda(Func&& f) {
+  return pv_detail::WritablePathVisitorOperator<Func>(std::forward<Func>(f));
+}
+
 template <typename TC>
 struct PathVisitor {
-  template <typename Node, typename Func>
+  template <typename Node, typename Op>
   static inline ThriftTraverseResult visit(
       Node& node,
       pv_detail::PathIter begin,
       pv_detail::PathIter end,
       const PathVisitMode& mode,
-      pv_detail::LambdaPathVisitorOperator<Func>& op)
+      Op& op)
       // only enable for Node types
     requires(std::is_same_v<typename Node::CowType, NodeType>)
   {
-    pv_detail::VisitImplParams<pv_detail::LambdaPathVisitorOperator<Func>>
-        params(begin, end, mode, op);
+    pv_detail::VisitImplParams<Op> params(begin, end, mode, op);
     return pv_detail::PathVisitorImpl<TC>::visit(node, params, begin);
   }
 
@@ -785,20 +926,19 @@ struct PathVisitor {
     return pv_detail::PathVisitorImpl<TC>::visit(node, params, begin);
   }
 
-  template <typename Fields, typename Func>
+  template <typename Fields, typename Op>
   inline static ThriftTraverseResult visit(
       Fields& fields,
       pv_detail::PathIter begin,
       pv_detail::PathIter end,
       const PathVisitMode& mode,
-      pv_detail::LambdaPathVisitorOperator<Func>& op)
+      Op& op)
       // only enable for Fields types
     requires(
         is_field_type_v<Fields> &&
         std::is_same_v<typename Fields::CowType, FieldsType>)
   {
-    pv_detail::VisitImplParams<pv_detail::LambdaPathVisitorOperator<Func>>
-        params(begin, end, mode, op);
+    pv_detail::VisitImplParams<Op> params(begin, end, mode, op);
     return pv_detail::PathVisitorImpl<TC>::visit(fields, params, begin);
   }
 

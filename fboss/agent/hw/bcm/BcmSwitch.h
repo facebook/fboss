@@ -652,6 +652,8 @@ class BcmSwitch : public BcmSwitchIf {
 
   void injectSwitchReachabilityChangeNotification() override {}
 
+  bool getArsExhaustionStatus() override;
+
  private:
   enum Flags : uint32_t {
     RX_REGISTERED = 0x01,

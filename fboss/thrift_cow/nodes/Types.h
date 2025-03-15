@@ -43,38 +43,38 @@ struct ReferenceWrapper : std::reference_wrapper<Type> {
   using Base = std::reference_wrapper<Type>;
   using Base::Base;
 
-  template <
-      typename T = Type,
-      std::enable_if_t<!std::is_const_v<T>, bool> = true>
-  auto& operator*() {
+  template <typename T = Type>
+  auto& operator*()
+    requires(!std::is_const_v<T>)
+  {
     return *(this->get());
   }
 
-  template <
-      typename T = Type,
-      std::enable_if_t<std::is_const_v<T>, bool> = true>
-  const auto& operator*() const {
+  template <typename T = Type>
+  const auto& operator*() const
+    requires(std::is_const_v<T>)
+  {
     return std::as_const(*(this->get()));
   }
 
-  template <
-      typename T = Type,
-      std::enable_if_t<!std::is_const_v<T>, bool> = true>
-  auto* operator->() {
+  template <typename T = Type>
+  auto* operator->()
+    requires(!std::is_const_v<T>)
+  {
     return std::addressof(**this);
   }
 
-  template <
-      typename T = Type,
-      std::enable_if_t<std::is_const_v<T>, bool> = true>
-  const auto* operator->() const {
+  template <typename T = Type>
+  const auto* operator->() const
+    requires(std::is_const_v<T>)
+  {
     return std::addressof(**this);
   }
 
-  template <
-      typename T = Type,
-      std::enable_if_t<!std::is_const_v<T>, bool> = true>
-  void reset() {
+  template <typename T = Type>
+  void reset()
+    requires(!std::is_const_v<T>)
+  {
     this->get().reset();
   }
 

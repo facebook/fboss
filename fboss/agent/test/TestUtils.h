@@ -313,6 +313,11 @@ cfg::SwitchConfig testConfigB();
 cfg::SwitchConfig testConfigAWithLookupClasses();
 
 /*
+ * NPU switch configuration with only port interfaces
+ */
+cfg::SwitchConfig testConfigAWithPortInterfaces();
+
+/*
  * Convenience macro that wraps EXPECT_CALL() on the underlying MockHwSwitch
  */
 #define EXPECT_HW_CALL(sw, method) EXPECT_CALL(*getMockHw(sw), method)

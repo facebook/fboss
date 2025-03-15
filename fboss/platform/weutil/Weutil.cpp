@@ -16,8 +16,7 @@ namespace {
 
 weutil_config::WeutilConfig getWeUtilConfig() {
   weutil_config::WeutilConfig thriftConfig;
-  auto platformName = helpers::PlatformNameLib().getPlatformName();
-  std::string weutilConfigJson = ConfigLib().getWeutilConfig(platformName);
+  std::string weutilConfigJson = ConfigLib().getWeutilConfig();
   apache::thrift::SimpleJSONSerializer::deserialize<
       weutil_config::WeutilConfig>(weutilConfigJson, thriftConfig);
   XLOG(DBG1) << apache::thrift::SimpleJSONSerializer::serialize<std::string>(

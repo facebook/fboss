@@ -1,5 +1,8 @@
 {
   "defaultCommandLineArgs": {
+    "firmware_upgrade_on_coldboot": "true",
+    "firmware_upgrade_on_link_down": "false",
+    "firmware_upgrade_on_tcvr_insert": "true",
     "firmware_upgrade_supported": "true",
     "mode": "janga800bic",
     "multi_npu_platform_mapping": "true",
@@ -11,13 +14,23 @@
   "qsfpTestConfig": {
     "cabledPortPairs": [
       {
-        "aPortName": "eth1/2/5",
-        "zPortName": "eth1/1/1",
+        "aPortName": "eth1/1/1",
+        "zPortName": "eth1/2/1",
         "profileID": 38
       },
       {
         "aPortName": "eth1/1/5",
-        "zPortName": "eth1/2/1",
+        "zPortName": "eth1/2/5",
+        "profileID": 38
+      },
+      {
+        "aPortName": "eth1/45/1",
+        "zPortName": "eth1/46/1",
+        "profileID": 38
+      },
+      {
+        "aPortName": "eth1/45/5",
+        "zPortName": "eth1/46/5",
         "profileID": 38
       },
       {
@@ -26,583 +39,163 @@
         "profileID": 22
       },
       {
-        "aPortName": "fab1/7/1",
-        "zPortName": "fab1/6/5",
+        "aPortName": "fab1/3/1",
+        "zPortName": "fab1/4/1",
         "profileID": 42
       },
       {
-        "aPortName": "fab1/8/1",
-        "zPortName": "fab1/7/5",
+        "aPortName": "fab1/3/2",
+        "zPortName": "fab1/4/2",
         "profileID": 42
       },
       {
-        "aPortName": "fab1/9/1",
-        "zPortName": "fab1/8/5",
+        "aPortName": "fab1/3/3",
+        "zPortName": "fab1/4/3",
         "profileID": 42
       },
       {
-        "aPortName": "fab1/10/1",
-        "zPortName": "fab1/9/5",
+        "aPortName": "fab1/3/4",
+        "zPortName": "fab1/4/4",
         "profileID": 42
       },
       {
-        "aPortName": "fab1/11/1",
-        "zPortName": "fab1/10/5",
+        "aPortName": "fab1/3/5",
+        "zPortName": "fab1/4/5",
         "profileID": 42
       },
       {
-        "aPortName": "fab1/12/1",
-        "zPortName": "fab1/11/5",
+        "aPortName": "fab1/3/6",
+        "zPortName": "fab1/4/6",
         "profileID": 42
       },
       {
-        "aPortName": "fab1/13/1",
-        "zPortName": "fab1/12/5",
+        "aPortName": "fab1/3/7",
+        "zPortName": "fab1/4/7",
         "profileID": 42
       },
       {
-        "aPortName": "fab1/14/1",
-        "zPortName": "fab1/13/5",
+        "aPortName": "fab1/3/8",
+        "zPortName": "fab1/4/8",
         "profileID": 42
       },
       {
         "aPortName": "fab1/15/1",
-        "zPortName": "fab1/14/5",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/16/1",
-        "zPortName": "fab1/15/5",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/17/1",
-        "zPortName": "fab1/16/5",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/18/1",
-        "zPortName": "fab1/17/5",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/19/1",
-        "zPortName": "fab1/18/5",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/20/1",
-        "zPortName": "fab1/19/5",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/21/1",
-        "zPortName": "fab1/20/5",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/22/1",
-        "zPortName": "fab1/21/5",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/23/1",
-        "zPortName": "fab1/22/5",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/24/1",
-        "zPortName": "fab1/23/5",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/25/1",
-        "zPortName": "fab1/24/5",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/26/1",
-        "zPortName": "fab1/25/5",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/27/1",
-        "zPortName": "fab1/26/5",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/28/1",
-        "zPortName": "fab1/27/5",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/29/1",
-        "zPortName": "fab1/28/5",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/30/1",
-        "zPortName": "fab1/29/5",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/31/1",
-        "zPortName": "fab1/30/5",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/32/1",
-        "zPortName": "fab1/31/5",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/33/1",
-        "zPortName": "fab1/32/5",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/34/1",
-        "zPortName": "fab1/33/5",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/35/1",
-        "zPortName": "fab1/34/5",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/7/2",
-        "zPortName": "fab1/6/6",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/8/2",
-        "zPortName": "fab1/7/6",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/9/2",
-        "zPortName": "fab1/8/6",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/10/2",
-        "zPortName": "fab1/9/6",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/11/2",
-        "zPortName": "fab1/10/6",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/12/2",
-        "zPortName": "fab1/11/6",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/13/2",
-        "zPortName": "fab1/12/6",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/14/2",
-        "zPortName": "fab1/13/6",
+        "zPortName": "fab1/16/1",
         "profileID": 42
       },
       {
         "aPortName": "fab1/15/2",
-        "zPortName": "fab1/14/6",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/16/2",
-        "zPortName": "fab1/15/6",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/17/2",
-        "zPortName": "fab1/16/6",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/18/2",
-        "zPortName": "fab1/17/6",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/19/2",
-        "zPortName": "fab1/18/6",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/20/2",
-        "zPortName": "fab1/19/6",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/21/2",
-        "zPortName": "fab1/20/6",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/22/2",
-        "zPortName": "fab1/21/6",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/23/2",
-        "zPortName": "fab1/22/6",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/24/2",
-        "zPortName": "fab1/23/6",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/25/2",
-        "zPortName": "fab1/24/6",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/26/2",
-        "zPortName": "fab1/25/6",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/27/2",
-        "zPortName": "fab1/26/6",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/28/2",
-        "zPortName": "fab1/27/6",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/29/2",
-        "zPortName": "fab1/28/6",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/30/2",
-        "zPortName": "fab1/29/6",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/31/2",
-        "zPortName": "fab1/30/6",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/32/2",
-        "zPortName": "fab1/31/6",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/33/2",
-        "zPortName": "fab1/32/6",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/34/2",
-        "zPortName": "fab1/33/6",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/35/2",
-        "zPortName": "fab1/34/6",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/7/3",
-        "zPortName": "fab1/6/7",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/8/3",
-        "zPortName": "fab1/7/7",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/9/3",
-        "zPortName": "fab1/8/7",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/10/3",
-        "zPortName": "fab1/9/7",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/11/3",
-        "zPortName": "fab1/10/7",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/12/3",
-        "zPortName": "fab1/11/7",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/13/3",
-        "zPortName": "fab1/12/7",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/14/3",
-        "zPortName": "fab1/13/7",
+        "zPortName": "fab1/16/2",
         "profileID": 42
       },
       {
         "aPortName": "fab1/15/3",
-        "zPortName": "fab1/14/7",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/16/3",
-        "zPortName": "fab1/15/7",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/17/3",
-        "zPortName": "fab1/16/7",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/18/3",
-        "zPortName": "fab1/17/7",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/19/3",
-        "zPortName": "fab1/18/7",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/20/3",
-        "zPortName": "fab1/19/7",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/21/3",
-        "zPortName": "fab1/20/7",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/22/3",
-        "zPortName": "fab1/21/7",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/23/3",
-        "zPortName": "fab1/22/7",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/24/3",
-        "zPortName": "fab1/23/7",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/25/3",
-        "zPortName": "fab1/24/7",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/26/3",
-        "zPortName": "fab1/25/7",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/27/3",
-        "zPortName": "fab1/26/7",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/28/3",
-        "zPortName": "fab1/27/7",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/29/3",
-        "zPortName": "fab1/28/7",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/30/3",
-        "zPortName": "fab1/29/7",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/31/3",
-        "zPortName": "fab1/30/7",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/32/3",
-        "zPortName": "fab1/31/7",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/33/3",
-        "zPortName": "fab1/32/7",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/34/3",
-        "zPortName": "fab1/33/7",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/35/3",
-        "zPortName": "fab1/34/7",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/7/4",
-        "zPortName": "fab1/6/8",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/8/4",
-        "zPortName": "fab1/7/8",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/9/4",
-        "zPortName": "fab1/8/8",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/10/4",
-        "zPortName": "fab1/9/8",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/11/4",
-        "zPortName": "fab1/10/8",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/12/4",
-        "zPortName": "fab1/11/8",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/13/4",
-        "zPortName": "fab1/12/8",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/14/4",
-        "zPortName": "fab1/13/8",
+        "zPortName": "fab1/16/3",
         "profileID": 42
       },
       {
         "aPortName": "fab1/15/4",
-        "zPortName": "fab1/14/8",
+        "zPortName": "fab1/16/4",
         "profileID": 42
       },
       {
-        "aPortName": "fab1/16/4",
-        "zPortName": "fab1/15/8",
+        "aPortName": "fab1/15/5",
+        "zPortName": "fab1/16/5",
         "profileID": 42
       },
       {
-        "aPortName": "fab1/17/4",
+        "aPortName": "fab1/15/6",
+        "zPortName": "fab1/16/6",
+        "profileID": 42
+      },
+      {
+        "aPortName": "fab1/15/7",
+        "zPortName": "fab1/16/7",
+        "profileID": 42
+      },
+      {
+        "aPortName": "fab1/15/8",
         "zPortName": "fab1/16/8",
         "profileID": 42
       },
       {
-        "aPortName": "fab1/18/4",
-        "zPortName": "fab1/17/8",
+        "aPortName": "fab1/30/1",
+        "zPortName": "fab1/31/1",
         "profileID": 42
       },
       {
-        "aPortName": "fab1/19/4",
-        "zPortName": "fab1/18/8",
+        "aPortName": "fab1/30/2",
+        "zPortName": "fab1/31/2",
         "profileID": 42
       },
       {
-        "aPortName": "fab1/20/4",
-        "zPortName": "fab1/19/8",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/21/4",
-        "zPortName": "fab1/20/8",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/22/4",
-        "zPortName": "fab1/21/8",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/23/4",
-        "zPortName": "fab1/22/8",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/24/4",
-        "zPortName": "fab1/23/8",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/25/4",
-        "zPortName": "fab1/24/8",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/26/4",
-        "zPortName": "fab1/25/8",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/27/4",
-        "zPortName": "fab1/26/8",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/28/4",
-        "zPortName": "fab1/27/8",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/29/4",
-        "zPortName": "fab1/28/8",
+        "aPortName": "fab1/30/3",
+        "zPortName": "fab1/31/3",
         "profileID": 42
       },
       {
         "aPortName": "fab1/30/4",
-        "zPortName": "fab1/29/8",
+        "zPortName": "fab1/31/4",
         "profileID": 42
       },
       {
-        "aPortName": "fab1/31/4",
-        "zPortName": "fab1/30/8",
+        "aPortName": "fab1/30/5",
+        "zPortName": "fab1/31/5",
         "profileID": 42
       },
       {
-        "aPortName": "fab1/32/4",
+        "aPortName": "fab1/30/6",
+        "zPortName": "fab1/31/6",
+        "profileID": 42
+      },
+      {
+        "aPortName": "fab1/30/7",
+        "zPortName": "fab1/31/7",
+        "profileID": 42
+      },
+      {
+        "aPortName": "fab1/30/8",
         "zPortName": "fab1/31/8",
         "profileID": 42
       },
       {
-        "aPortName": "fab1/33/4",
-        "zPortName": "fab1/32/8",
+        "aPortName": "fab1/42/1",
+        "zPortName": "fab1/43/1",
         "profileID": 42
       },
       {
-        "aPortName": "fab1/34/4",
-        "zPortName": "fab1/33/8",
+        "aPortName": "fab1/42/2",
+        "zPortName": "fab1/43/2",
         "profileID": 42
       },
       {
-        "aPortName": "fab1/35/4",
-        "zPortName": "fab1/34/8",
+        "aPortName": "fab1/42/3",
+        "zPortName": "fab1/43/3",
+        "profileID": 42
+      },
+      {
+        "aPortName": "fab1/42/4",
+        "zPortName": "fab1/43/4",
+        "profileID": 42
+      },
+      {
+        "aPortName": "fab1/42/5",
+        "zPortName": "fab1/43/5",
+        "profileID": 42
+      },
+      {
+        "aPortName": "fab1/42/6",
+        "zPortName": "fab1/43/6",
+        "profileID": 42
+      },
+      {
+        "aPortName": "fab1/42/7",
+        "zPortName": "fab1/43/7",
+        "profileID": 42
+      },
+      {
+        "aPortName": "fab1/42/8",
+        "zPortName": "fab1/43/8",
         "profileID": 42
       }
     ]
@@ -613,7 +206,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "3.1"
+              "version": "3.4"
             }
           ]
       },
@@ -633,6 +226,38 @@
             }
           ]
       },
+      "EOLO-168HG-5H-4B": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.4"
+            }
+          ]
+      },
+      "EOLO-168HG-5H-4T": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.4"
+            }
+          ]
+      },
+      "EOLO-168HG-5H-8B": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.4"
+            }
+          ]
+      },
+      "EOLO-168HG-5H-8T": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.4"
+            }
+          ]
+      },
       "FTCD4313E2PCLFBC": {
           "versions": [
             {
@@ -646,6 +271,14 @@
             {
               "fwType": 1,
               "version": "3.5"
+            }
+          ]
+      },
+      "FTCE2707E1PCB-FB": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "2.3"
             }
           ]
       },
@@ -769,7 +402,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "36.194"
+              "version": "36.196"
             }
           ]
       },
@@ -777,7 +410,23 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "36.194"
+              "version": "36.196"
+            }
+          ]
+      },
+      "T-OL8CNH-NFL": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "114.149"
+            }
+          ]
+      },
+      "T-OL8CNH-NFM": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "114.149"
             }
           ]
       },
@@ -785,7 +434,15 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "103.244"
+              "version": "103.133"
+            }
+          ]
+      },
+      "T-OL8CNT-NFL": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "103.133"
             }
           ]
       }
@@ -795,6 +452,6 @@
     "writeLog": true,
     "readLog": true,
     "disableOnFail": false,
-    "bufferSlots": 40960
+    "bufferSlots": 20480
   }
 }

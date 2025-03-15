@@ -300,7 +300,8 @@ class HwLoadBalancerTestRunner {
       auto cfg = getEnsemble()->getCurrentConfig();
       if (preMode != cfg::SwitchingMode::FIXED_ASSIGNMENT) {
         cfg.udfConfig() = utility::addUdfFlowletAclConfig();
-        utility::addFlowletConfigs(cfg, getMasterLogicalPortIds(), preMode);
+        utility::addFlowletConfigs(
+            cfg, getMasterLogicalPortIds(), getEnsemble()->isSai(), preMode);
         utility::addFlowletAcl(cfg);
       }
       getEnsemble()->applyNewConfig(cfg);
@@ -321,7 +322,8 @@ class HwLoadBalancerTestRunner {
           getEnsemble(), getMasterLogicalPortIds());
       if (postMode != cfg::SwitchingMode::FIXED_ASSIGNMENT) {
         cfg.udfConfig() = utility::addUdfFlowletAclConfig();
-        utility::addFlowletConfigs(cfg, getMasterLogicalPortIds(), postMode);
+        utility::addFlowletConfigs(
+            cfg, getMasterLogicalPortIds(), getEnsemble()->isSai(), postMode);
         utility::addFlowletAcl(cfg);
       }
       getEnsemble()->applyNewConfig(cfg);

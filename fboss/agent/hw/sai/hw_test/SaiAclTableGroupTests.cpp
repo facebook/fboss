@@ -75,7 +75,7 @@ class SaiAclTableGroupTest : public HwTest {
     std::vector<cfg::AclTableActionType> actions = {
         cfg::AclTableActionType::PACKET_ACTION,
         cfg::AclTableActionType::COUNTER};
-#if defined(TAJO_SDK_GTE_24_4_90)
+#if defined(TAJO_SDK_GTE_24_8_3001)
     qualifiers.push_back(cfg::AclTableQualifier::TTL);
     actions.push_back(cfg::AclTableActionType::COUNTER);
 #endif
@@ -215,7 +215,7 @@ class SaiAclTableGroupTest : public HwTest {
     std::vector<cfg::AclTableQualifier> qualifiers = {
         cfg::AclTableQualifier::L4_SRC_PORT,
         cfg::AclTableQualifier::L4_DST_PORT,
-        cfg::AclTableQualifier::IP_PROTOCOL,
+        cfg::AclTableQualifier::IP_PROTOCOL_NUMBER,
         cfg::AclTableQualifier::ICMPV4_TYPE,
         cfg::AclTableQualifier::ICMPV4_CODE,
         cfg::AclTableQualifier::ICMPV6_TYPE,

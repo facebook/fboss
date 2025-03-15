@@ -89,10 +89,11 @@ using StatsEventQueueType = folly::coro::UnboundedQueue<
 using FdbEventQueueType = std::queue<multiswitch::HwSwitchStats>;
 #endif
 
+// multiple sdk threads can enqueue events to the same queue
 #if FOLLY_HAS_COROUTINES
 using LinkChangeEventQueueType = folly::coro::UnboundedQueue<
     multiswitch::LinkChangeEvent,
-    true /*SingleProducer*/,
+    false /*SingleProducer*/,
     true /* SingleConsumer*/>;
 #else
 using LinkChangeEventQueueType = std::queue<multiswitch::LinkChangeEvent>;

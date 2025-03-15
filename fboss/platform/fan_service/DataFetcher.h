@@ -4,9 +4,9 @@
 // to define functions that are implemented differently in Meta in OSS.
 #pragma once
 
-#include "fboss/platform/fan_service/SensorData.h"
+#include <folly/io/async/EventBase.h>
 #include "fboss/platform/sensor_service/if/gen-cpp2/sensor_service_types.h"
-#include "fboss/qsfp_service/lib/QsfpClient.h"
+#include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
 namespace facebook::fboss::platform::fan_service {
 constexpr int kSensorSendTimeoutMs = 5000;

@@ -57,7 +57,20 @@ void SaiSwitch::updateStatsImpl() {
   if (updateCableLengths) {
     cableLengthStatsUpdateTime_ = now;
   }
-  int64_t missingCount = 0, mismatchCount = 0;
+
+  {
+    auto changePending = switchReachabilityChangePending_.wlock();
+    if (*changePending > 0) {
+      *changePending -= 1;
+      auto reachabilityInfo = getSwitchReachabilityChange();
+      switchReachabilityChangeProcessEventBase_.runInFbossEventBaseThread(
+          [this, reachabilityInfo = std::move(reachabilityInfo)]() mutable {
+            processSwitchReachabilityChange(reachabilityInfo);
+          });
+    }
+  }
+
+  int64_t missingCount = 0, mismatchCount = 0, bogusCount = 0;
   auto portsIter = concurrentIndices_->portSaiId2PortInfo.begin();
   std::map<PortID, multiswitch::FabricConnectivityDelta> connectivityDelta;
   while (portsIter != concurrentIndices_->portSaiId2PortInfo.end()) {
@@ -69,15 +82,28 @@ void SaiSwitch::updateStatsImpl() {
         auto delta = fabricConnectivityManager_->processConnectivityInfoForPort(
             portsIter->second.portID, *endpointOpt);
         if (delta) {
+          XLOG(DBG5) << "Connectivity delta found for port ID "
+                     << portsIter->second.portID;
           connectivityDelta.insert({portsIter->second.portID, *delta});
+        } else {
+          XLOG(DBG5) << "No connectivity delta for port ID "
+                     << portsIter->second.portID;
         }
         if (fabricConnectivityManager_->isConnectivityInfoMissing(
                 portsIter->second.portID)) {
           missingCount++;
+          XLOG(DBG5) << "Connectivity missing for port ID "
+                     << portsIter->second.portID;
         }
         if (fabricConnectivityManager_->isConnectivityInfoMismatch(
                 portsIter->second.portID)) {
           mismatchCount++;
+          XLOG(DBG5) << "Connectivity mismatch for port ID "
+                     << portsIter->second.portID;
+        }
+        if (fabricConnectivityManager_->isConnectivityInfoBogus(
+                portsIter->second.portID)) {
+          bogusCount++;
         }
       }
       managerTable_->portManager().updateStats(
@@ -86,8 +112,9 @@ void SaiSwitch::updateStatsImpl() {
     ++portsIter;
   }
 
-  getSwitchStats()->fabricReachabilityMissingCount(missingCount);
-  getSwitchStats()->fabricReachabilityMismatchCount(mismatchCount);
+  getSwitchStats()->fabricConnectivityMissingCount(missingCount);
+  getSwitchStats()->fabricConnectivityMismatchCount(mismatchCount);
+  getSwitchStats()->fabricConnectivityBogusCount(bogusCount);
 
   auto sysPortsIter = concurrentIndices_->sysPortIds.begin();
   while (sysPortsIter != concurrentIndices_->sysPortIds.end()) {
@@ -108,7 +135,10 @@ void SaiSwitch::updateStatsImpl() {
   }
   if (platform_->getAsic()->isSupported(HwAsic::Feature::CPU_PORT)) {
     std::lock_guard<std::mutex> locked(saiSwitchMutex_);
-    managerTable_->hostifManager().updateStats(updateWatermarks);
+    managerTable_->hostifManager().updateStats(
+        updateWatermarks &&
+        getPlatform()->getAsic()->isSupported(
+            HwAsic::Feature::CPU_QUEUE_WATERMARK_STATS));
   }
 
   {
@@ -135,6 +165,8 @@ void SaiSwitch::updateStatsImpl() {
   reportAsymmetricTopology();
   reportInterPortGroupCableSkew();
   if (!connectivityDelta.empty()) {
+    XLOG(DBG2)
+        << "Connectivity delta is not empty. Sending callback to SwSwitch";
     linkConnectivityChangeBottomHalfEventBase_.runInFbossEventBaseThread(
         [this, connectivityDelta = std::move(connectivityDelta)] {
           linkConnectivityChanged(connectivityDelta);

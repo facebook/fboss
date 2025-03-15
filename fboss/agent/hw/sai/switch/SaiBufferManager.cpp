@@ -77,11 +77,29 @@ void assertMaxBufferPoolSize(const SaiPlatform* platform) {
     case cfg::AsicType::ASIC_TYPE_JERICHO2:
     case cfg::AsicType::ASIC_TYPE_JERICHO3:
     case cfg::AsicType::ASIC_TYPE_TRIDENT2:
+      CHECK_EQ(maxEgressPoolSize, availableBuffer);
+      break;
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK3:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
-      CHECK_EQ(maxEgressPoolSize, availableBuffer);
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK6:
+      // TODO(maxgg): The maxEgressPoolSize == availableBuffer check fails when
+      // a LOSSY_AND_LOSSLESS/mmu_lossless=0x2 config is used. Disabling it
+      // while we investigate a related CSP CS00012382848.
       break;
+  }
+}
+
+void fixThresholds(
+    std::optional<SaiBufferProfileTraits::Attributes::SharedStaticThreshold>&
+        staticThreshold,
+    std::optional<SaiBufferProfileTraits::Attributes::SharedDynamicThreshold>&
+        dynamicThreshold,
+    const SaiBufferProfileTraits::Attributes::ThresholdMode& mode) {
+  if (mode == SAI_BUFFER_POOL_THRESHOLD_MODE_DYNAMIC) {
+    staticThreshold = std::nullopt;
+  } else {
+    dynamicThreshold = std::nullopt;
   }
 }
 
@@ -139,6 +157,12 @@ uint64_t SaiBufferManager::getMaxEgressPoolBytes(const SaiPlatform* platform) {
       return kCellsAvailable *
           static_cast<const Tomahawk5Asic*>(asic)->getMMUCellSize();
     }
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK6: {
+      auto saiBcmPlatform = static_cast<const SaiBcmPlatform*>(platform);
+      auto kCellsAvailable = saiBcmPlatform->numCellsAvailable();
+      return kCellsAvailable *
+          static_cast<const Tomahawk5Asic*>(asic)->getMMUCellSize();
+    }
     case cfg::AsicType::ASIC_TYPE_JERICHO2:
     case cfg::AsicType::ASIC_TYPE_JERICHO3:
       /*
@@ -180,6 +204,14 @@ void SaiBufferManager::setupEgressBufferPool(
   } else {
     poolSize = getMaxEgressPoolBytes(platform_);
   }
+  if (FLAGS_egress_buffer_pool_size > 0) {
+    uint64_t newSize = FLAGS_egress_buffer_pool_size *
+        platform_->getAsic()->getNumMemoryBuffers();
+    XLOG(WARNING) << "Overriding egress buffer pool size from " << poolSize
+                  << " to " << newSize;
+    poolSize = newSize;
+  }
+
   SaiBufferPoolTraits::CreateAttributes attributes{
       SAI_BUFFER_POOL_TYPE_EGRESS,
       poolSize,
@@ -362,14 +394,10 @@ void SaiBufferManager::updateIngressBufferPoolStats() {
   if (!counterIdsToReadAndClear.size()) {
     // TODO: Request for per ITM buffer pool stats in SAI
     counterIdsToReadAndClear.push_back(SAI_BUFFER_POOL_STAT_WATERMARK_BYTES);
-    if ((platform_->getAsic()->getAsicType() ==
-         cfg::AsicType::ASIC_TYPE_JERICHO2) ||
-        (platform_->getAsic()->getAsicType() ==
-         cfg::AsicType::ASIC_TYPE_JERICHO3)) {
-      // TODO: Wait for the fix for CS00012274607 to enable this for all!
-      counterIdsToReadAndClear.push_back(
-          SAI_BUFFER_POOL_STAT_XOFF_ROOM_WATERMARK_BYTES);
-    }
+#if !defined(BRCM_SAI_SDK_XGS) || defined(BRCM_SAI_SDK_GTE_10_0)
+    counterIdsToReadAndClear.push_back(
+        SAI_BUFFER_POOL_STAT_XOFF_ROOM_WATERMARK_BYTES);
+#endif
   }
   ingressBufferPoolHandle->bufferPool->updateStats(
       counterIdsToReadAndClear, SAI_STATS_MODE_READ_AND_CLEAR);
@@ -416,7 +444,10 @@ SaiBufferManager::supportedIngressPriorityGroupWatermarkStats() const {
       SaiIngressPriorityGroupTraits::CounterIdsToReadAndClear.end());
   if (platform_->getAsic()->isSupported(
           HwAsic::Feature::INGRESS_PRIORITY_GROUP_SHARED_WATERMARK)) {
+    // For XGS, this is only supported >= 10.0.
+#if !defined(BRCM_SAI_SDK_XGS) || defined(BRCM_SAI_SDK_GTE_10_0)
     stats.emplace_back(SAI_INGRESS_PRIORITY_GROUP_STAT_SHARED_WATERMARK_BYTES);
+#endif
   }
   if (platform_->getAsic()->isSupported(
           HwAsic::Feature::INGRESS_PRIORITY_GROUP_HEADROOM_WATERMARK)) {
@@ -463,7 +494,7 @@ void SaiBufferManager::updateIngressPriorityGroupWatermarkStats(
 
 void SaiBufferManager::updateIngressPriorityGroupNonWatermarkStats(
     const std::shared_ptr<SaiIngressPriorityGroup>& ingressPriorityGroup,
-    const IngressPriorityGroupID& /*pgId*/,
+    const IngressPriorityGroupID& pgId,
     HwPortStats& hwPortStats) {
   const auto& ingressPriorityGroupStats =
       supportedIngressPriorityGroupNonWatermarkStats();
@@ -472,8 +503,7 @@ void SaiBufferManager::updateIngressPriorityGroupNonWatermarkStats(
   auto counters = ingressPriorityGroup->getStats();
   auto iter = counters.find(SAI_INGRESS_PRIORITY_GROUP_STAT_DROPPED_PACKETS);
   if (iter != counters.end()) {
-    // In Congestion Discards are exposed at port level
-    *hwPortStats.inCongestionDiscards_() += iter->second;
+    hwPortStats.pgInCongestionDiscards_()[pgId] = iter->second;
   }
 }
 
@@ -483,6 +513,7 @@ void SaiBufferManager::updateIngressPriorityGroupStats(
     bool updateWatermarks) {
   SaiPortHandle* portHandle =
       managerTable_->portManager().getPortHandle(portId);
+  uint64_t inCongestionDiscards{0};
   for (const auto& ipgInfo : portHandle->configuredIngressPriorityGroups) {
     const auto& ingressPriorityGroup =
         ipgInfo.second.pgHandle->ingressPriorityGroup;
@@ -492,7 +523,15 @@ void SaiBufferManager::updateIngressPriorityGroupStats(
     }
     updateIngressPriorityGroupNonWatermarkStats(
         ingressPriorityGroup, ipgInfo.first, hwPortStats);
+    auto pgCongestionDiscardIter =
+        hwPortStats.pgInCongestionDiscards_()->find(ipgInfo.first);
+    if (pgCongestionDiscardIter !=
+        hwPortStats.pgInCongestionDiscards_()->end()) {
+      inCongestionDiscards += pgCongestionDiscardIter->second;
+    }
   }
+  // Port inCongestionDiscards is the sum of all PG inCongestionDiscards
+  hwPortStats.inCongestionDiscards_() = inCongestionDiscards;
 }
 
 SaiBufferProfileTraits::CreateAttributes SaiBufferManager::profileCreateAttrs(
@@ -510,8 +549,10 @@ SaiBufferProfileTraits::CreateAttributes SaiBufferManager::profileCreateAttrs(
   }
   SaiBufferProfileTraits::Attributes::ThresholdMode mode{
       SAI_BUFFER_PROFILE_THRESHOLD_MODE_DYNAMIC};
-  SaiBufferProfileTraits::Attributes::SharedDynamicThreshold dynThresh{0};
-  SaiBufferProfileTraits::Attributes::SharedStaticThreshold staticThresh{0};
+  std::optional<SaiBufferProfileTraits::Attributes::SharedDynamicThreshold>
+      dynThresh{0};
+  std::optional<SaiBufferProfileTraits::Attributes::SharedStaticThreshold>
+      staticThresh{0};
   if (queue.getSharedBytes()) {
     // If staticBytes is explicitly set, then apply the queue limit!
     staticThresh = queue.getSharedBytes().value();
@@ -521,6 +562,9 @@ SaiBufferProfileTraits::CreateAttributes SaiBufferManager::profileCreateAttrs(
       queue.getScalingFactor()) {
     dynThresh = platform_->getAsic()->getBufferDynThreshFromScalingFactor(
         queue.getScalingFactor().value());
+  }
+  if (platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    fixThresholds(staticThresh, dynThresh, mode);
   }
   std::optional<SaiBufferProfileTraits::Attributes::SharedFadtMaxTh>
       sharedFadtMaxTh;
@@ -559,7 +603,12 @@ SaiBufferProfileTraits::CreateAttributes SaiBufferManager::profileCreateAttrs(
 #endif
       0,
       0,
-      0,
+#if defined(CHENAB_SAI_SDK)
+      // Do not set xonOffset for Chenab as it is not supported
+      std::nullopt, // XonOffsetTh
+#else
+      0, // XonOffsetTh
+#endif
       sharedFadtMaxTh,
       sharedFadtMinTh,
       sramFadtMaxTh,
@@ -606,8 +655,13 @@ SaiBufferManager::ingressProfileCreateAttrs(
       *config.minLimitBytes();
   SaiBufferProfileTraits::Attributes::ThresholdMode mode{
       SAI_BUFFER_PROFILE_THRESHOLD_MODE_DYNAMIC};
-  SaiBufferProfileTraits::Attributes::SharedDynamicThreshold dynThresh{0};
-  SaiBufferProfileTraits::Attributes::SharedStaticThreshold staticThresh{0};
+  std::optional<SaiBufferProfileTraits::Attributes::SharedDynamicThreshold>
+      dynThresh{0};
+  std::optional<SaiBufferProfileTraits::Attributes::SharedStaticThreshold>
+      staticThresh{0};
+  if (platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    fixThresholds(staticThresh, dynThresh, mode);
+  }
   if (config.scalingFactor() &&
       platform_->getAsic()->scalingFactorBasedDynamicThresholdSupported()) {
     // If scalingFactor is specified, configure the same!
@@ -618,11 +672,20 @@ SaiBufferManager::ingressProfileCreateAttrs(
   if (config.headroomLimitBytes()) {
     xoffTh = *config.headroomLimitBytes();
   }
-  SaiBufferProfileTraits::Attributes::XonTh xonTh{0}; // Not configured!
-  SaiBufferProfileTraits::Attributes::XonOffsetTh xonOffsetTh{0};
+  SaiBufferProfileTraits::Attributes::XonTh xonTh{0};
+  if (config.resumeBytes()) {
+    xonTh = *config.resumeBytes();
+  }
+  std::optional<SaiBufferProfileTraits::Attributes::XonOffsetTh> xonOffsetTh{};
   if (config.resumeOffsetBytes()) {
     xonOffsetTh = *config.resumeOffsetBytes();
   }
+#if !defined(CHENAB_SAI_SDK)
+  else {
+    xonOffsetTh = 0;
+  }
+#endif
+
   std::optional<SaiBufferProfileTraits::Attributes::SharedFadtMaxTh>
       sharedFadtMaxTh;
   std::optional<SaiBufferProfileTraits::Attributes::SharedFadtMinTh>

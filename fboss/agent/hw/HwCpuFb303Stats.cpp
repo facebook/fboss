@@ -66,7 +66,6 @@ void HwCpuFb303Stats::queueChanged(int queueId, const std::string& queueName) {
 }
 
 void HwCpuFb303Stats::queueRemoved(int queueId) {
-  auto qitr = queueId2Name_.find(queueId);
   for (auto statKey : kQueueMonotonicCounterStatKeys()) {
     queueCounters_.removeStat(
         statName(statKey, queueId, queueId2Name_[queueId]));

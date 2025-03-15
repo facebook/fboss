@@ -376,6 +376,11 @@ struct LedCtrlConfig {
 // `subSystemDeviceId`: PCIe Sub System Device ID, and it must be a 4-digit
 // hexadecimal value, such as “0011”
 //
+// `desiredDriver`: The desired driver to support the device. The (optional)
+// field allows the platform_manager to pass the device ID to the desired
+// driver at run time (via "new_id" sysfs file), when the device ID cannot be
+// included in the driver's static compiled-in ID table.
+//
 // The remaining fields are configs per controller block in the FPGA
 //
 // TODO: Add MDIO support
@@ -394,6 +399,7 @@ struct PciDeviceConfig {
   12: list<XcvrCtrlConfig> xcvrCtrlConfigs;
   13: list<FpgaIpBlockConfig> infoRomConfigs;
   14: list<FpgaIpBlockConfig> miscCtrlConfigs;
+  15: optional string desiredDriver;
 }
 
 // These are the PmUnit slot types. Examples: "PIM_SLOT", "PSU_SLOT" and
@@ -536,17 +542,6 @@ struct PlatformConfig {
   21: string bspKmodsRpmName;
   22: string bspKmodsRpmVersion;
 
-  // Specify the list of names of bsp kmods to be reloaded on new rpm
-  // installation.  On every invocation of the program, they will be unloaded
-  // and reloaded
-  23: list<string> bspKmodsToReload;
-
-  // Specify the list of names of shared kmods to be reloaded on new rpm
-  // installation.  These shared kmods must be loaded before all other bsp
-  // kmods and unloaded after all other bsp kmods.
-  24: list<string> sharedKmodsToReload;
-
-  // Specify the list of non-bsp kmods which are used by the system. They are
-  // only loaded and never unloaded.
-  25: list<string> upstreamKmodsToLoad;
+  // Specify the list of kmods which are required to be loaded before PM exploration.
+  25: list<string> requiredKmodsToLoad;
 }

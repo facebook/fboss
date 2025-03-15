@@ -37,7 +37,7 @@ class TestSubscription : public Subscription {
 
   explicit TestSubscription(std::vector<std::string> path)
       : Subscription(
-            "testSubcriber",
+            SubscriptionIdentifier("testSubcriber"),
             std::move(path),
             OperProtocol::BINARY,
             std::nullopt,
@@ -68,7 +68,7 @@ class TestDeltaSubscription : public Subscription {
 
   explicit TestDeltaSubscription(std::vector<std::string> path)
       : Subscription(
-            "testSubcriber",
+            SubscriptionIdentifier("testSubcriber"),
             std::move(path),
             OperProtocol::BINARY,
             std::nullopt,
@@ -80,7 +80,7 @@ class TestExtendedSubscription : public ExtendedSubscription {
  public:
   explicit TestExtendedSubscription(ExtSubPathMap paths)
       : ExtendedSubscription(
-            "testSubcriber",
+            SubscriptionIdentifier("testSubcriber"),
             std::move(paths),
             OperProtocol::BINARY,
             std::nullopt,

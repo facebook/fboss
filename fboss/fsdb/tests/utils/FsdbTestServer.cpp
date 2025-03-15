@@ -10,12 +10,22 @@ namespace facebook::fboss::fsdb::test {
 
 FsdbTestServer::FsdbTestServer(
     std::shared_ptr<FsdbConfig> config,
-    uint16_t port) {
+    uint16_t port,
+    uint32_t stateSubscriptionServe_ms,
+    uint32_t statsSubscriptionServe_ms) {
   // Run tests faster
+  auto stateServeInterval = std::to_string(stateSubscriptionServe_ms);
+  auto statsServeInterval = std::to_string(statsSubscriptionServe_ms);
   gflags::SetCommandLineOptionWithMode(
       "snapshotInterval", "1s", gflags::SET_FLAG_IF_DEFAULT);
   gflags::SetCommandLineOptionWithMode(
-      "statsSubscriptionServe_s", "1", gflags::SET_FLAG_IF_DEFAULT);
+      "stateSubscriptionServe_ms",
+      stateServeInterval.c_str(),
+      gflags::SET_FLAG_IF_DEFAULT);
+  gflags::SetCommandLineOptionWithMode(
+      "statsSubscriptionServe_ms",
+      statsServeInterval.c_str(),
+      gflags::SET_FLAG_IF_DEFAULT);
   gflags::SetCommandLineOptionWithMode(
       "checkOperOwnership", "false", gflags::SET_FLAG_IF_DEFAULT);
 

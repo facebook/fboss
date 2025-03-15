@@ -46,4 +46,17 @@ void runAndRemoveScript(
   removeFile(script);
 }
 
+void runCommandWithRetries(
+    const std::vector<std::string>& argv,
+    const std::chrono::milliseconds& ms) {
+  while (true) {
+    try {
+      runCommand(argv);
+      break;
+    } catch (const std::exception& /*ex*/) {
+      std::this_thread::sleep_for(ms);
+      XLOG(ERR) << "Retrying...";
+    }
+  }
+}
 } // namespace facebook::fboss

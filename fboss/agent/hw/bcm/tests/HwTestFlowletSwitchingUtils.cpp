@@ -246,7 +246,8 @@ bool verifyEcmpForNonFlowlet(
 bool validatePortFlowletQuality(
     const facebook::fboss::HwSwitch* hw,
     const PortID& portId,
-    const cfg::PortFlowletConfig& cfg) {
+    const cfg::PortFlowletConfig& cfg,
+    bool /* enable */) {
   bcm_l3_ecmp_dlb_port_quality_attr_t attr;
   bcm_l3_ecmp_dlb_port_quality_attr_t_init(&attr);
   const auto bcmSwitch = static_cast<const BcmSwitch*>(hw);

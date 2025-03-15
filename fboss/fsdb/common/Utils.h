@@ -68,14 +68,15 @@ fsdb::OperDelta computeOperDelta(
   std::vector<fsdb::OperDeltaUnit> operDeltaUnits{};
 
   auto processDelta = [basePath, &operDeltaUnits](
-                          const std::vector<std::string>& path,
+                          thrift_cow::SimpleTraverseHelper& traverser,
                           auto oldNode,
                           auto newNode,
                           thrift_cow::DeltaElemTag /* visitTag */) {
     std::vector<std::string> fullPath;
-    fullPath.reserve(basePath.size() + path.size());
+    fullPath.reserve(basePath.size() + traverser.path().size());
     fullPath.insert(fullPath.end(), basePath.begin(), basePath.end());
-    fullPath.insert(fullPath.end(), path.begin(), path.end());
+    fullPath.insert(
+        fullPath.end(), traverser.path().begin(), traverser.path().end());
     // 1. TODO: metadata
     // 2. For each oper delta, hw agent only updates current state with newNode.
     //    Passing in empty oldNode to reduce memory in operDelta.
@@ -84,6 +85,7 @@ fsdb::OperDelta computeOperDelta(
         fullPath, emptyOldNode, newNode, fsdb::OperProtocol::BINARY));
   };
 
+  thrift_cow::SimpleTraverseHelper traverser;
   thrift_cow::RootDeltaVisitor::visit(
       oldNode,
       newNode,
@@ -94,5 +96,11 @@ fsdb::OperDelta computeOperDelta(
       std::move(processDelta));
   return createDelta(std::move(operDeltaUnits));
 }
+
+FsdbClient string2FsdbClient(const std::string& clientId);
+
+std::string fsdbClient2string(const FsdbClient& clientId);
+
+ClientId subscriberId2ClientId(const SubscriberId& subscriberId);
 
 } // namespace facebook::fboss::fsdb

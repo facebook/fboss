@@ -54,6 +54,14 @@ class AgentRouteScaleTest : public AgentHwTest {
     auto verify = [] {};
     verifyAcrossWarmBoots(setup, verify);
   }
+
+ private:
+  void setCmdLineFlagOverrides() const override {
+    AgentHwTest::setCmdLineFlagOverrides();
+    FLAGS_enable_route_resource_protection = false;
+    // Turn on Leaba SDK shadow cache to avoid test case timeout
+    FLAGS_counter_refresh_interval = 1;
+  }
 };
 
 class AgentRswRouteScaleTest : public AgentRouteScaleTest {

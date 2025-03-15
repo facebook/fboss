@@ -286,6 +286,8 @@ CO_TEST_F(ThriftServerTest, setPortStateSink) {
           upEvent.up() = true;
           multiswitch::LinkChangeEvent changeEvent;
           changeEvent.linkStateEvent() = upEvent;
+          changeEvent.eventType() =
+              multiswitch::LinkChangeEventType::LINK_STATE;
           co_yield std::move(changeEvent);
           verifyOperState(port5, true);
         }
@@ -296,6 +298,8 @@ CO_TEST_F(ThriftServerTest, setPortStateSink) {
           downEvent.up() = false;
           multiswitch::LinkChangeEvent changeEvent;
           changeEvent.linkStateEvent() = downEvent;
+          changeEvent.eventType() =
+              multiswitch::LinkChangeEventType::LINK_STATE;
           co_yield std::move(changeEvent);
           verifyOperState(port5, false);
         }
@@ -348,6 +352,8 @@ CO_TEST_F(ThriftServerTest, setPortActiveStateSink) {
           activeEvent.port2IsActive()->insert({port5, true});
           multiswitch::LinkChangeEvent changeEvent;
           changeEvent.linkActiveEvents() = activeEvent;
+          changeEvent.eventType() =
+              multiswitch::LinkChangeEventType::LINK_ACTIVE;
           co_yield std::move(changeEvent);
           verifyActiveState(port5, true);
         }
@@ -356,6 +362,8 @@ CO_TEST_F(ThriftServerTest, setPortActiveStateSink) {
           inactiveEvent.port2IsActive()->insert({port5, false});
           multiswitch::LinkChangeEvent changeEvent;
           changeEvent.linkActiveEvents() = inactiveEvent;
+          changeEvent.eventType() =
+              multiswitch::LinkChangeEventType::LINK_ACTIVE;
           co_yield std::move(changeEvent);
           verifyActiveState(port5, false);
         }

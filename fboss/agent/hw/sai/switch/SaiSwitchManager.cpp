@@ -35,11 +35,6 @@ extern "C" {
 #include <sai.h>
 }
 
-DEFINE_uint32(
-    counter_refresh_interval,
-    1,
-    "Counter refresh interval in seconds. Set it to 0 to fetch stats from HW");
-
 DEFINE_bool(
     skip_setting_src_mac,
     false,
@@ -201,6 +196,18 @@ SaiSwitchManager::SaiSwitchManager(
       }
       switch_->setOptionalAttribute(SaiSwitchTraits::Attributes::MacAgingTime{
           platform->getDefaultMacAgingTime()});
+    }
+    if (switchType == cfg::SwitchType::VOQ) {
+#if defined(BRCM_SAI_SDK_DNX) && defined(BRCM_SAI_SDK_GTE_11_0)
+      // We learnt of the need to set a non-default max switch id on J3 only
+      // later. And we incorporated it in create switch attributes.
+      // However, BRCM-SAI does not look at create switch attributes on
+      // warm boot. So, to cater to the systems which will only
+      // WB to this change, set the attribute post WB. It should
+      // be a no-op if already set.
+      switch_->setOptionalAttribute(SaiSwitchTraits::Attributes::MaxSwitchId{
+          platform->getAsic()->getMaxSwitchId()});
+#endif
     }
   } else {
     switch_ = std::make_unique<SaiSwitchObj>(
@@ -677,8 +684,7 @@ void SaiSwitchManager::setArsProfile(
 
 void SaiSwitchManager::resetArsProfile() {
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
-  if (FLAGS_flowletSwitchingEnable &&
-      platform_->getAsic()->isSupported(HwAsic::Feature::FLOWLET)) {
+  if (FLAGS_flowletSwitchingEnable) {
     switch_->setOptionalAttribute(
         SaiSwitchTraits::Attributes::ArsProfile{SAI_NULL_OBJECT_ID});
   }
@@ -768,6 +774,35 @@ const std::vector<sai_stat_id_t>& SaiSwitchManager::supportedDropStats() const {
   return stats;
 }
 
+const std::vector<sai_stat_id_t>& SaiSwitchManager::supportedErrorStats()
+    const {
+  static std::vector<sai_stat_id_t> stats;
+  if (stats.size()) {
+    // initialized
+    return stats;
+  }
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::EGRESS_CELL_ERROR_STATS)) {
+    stats.insert(
+        stats.end(),
+        SaiSwitchTraits::egressFabricCellError().begin(),
+        SaiSwitchTraits::egressFabricCellError().end());
+    stats.insert(
+        stats.end(),
+        SaiSwitchTraits::egressNonFabricCellError().begin(),
+        SaiSwitchTraits::egressNonFabricCellError().end());
+    stats.insert(
+        stats.end(),
+        SaiSwitchTraits::egressNonFabricCellUnpackError().begin(),
+        SaiSwitchTraits::egressNonFabricCellUnpackError().end());
+    stats.insert(
+        stats.end(),
+        SaiSwitchTraits::egressParityCellError().begin(),
+        SaiSwitchTraits::egressParityCellError().end());
+  }
+  return stats;
+}
+
 const std::vector<sai_stat_id_t>& SaiSwitchManager::supportedDramStats() const {
   static std::vector<sai_stat_id_t> stats;
   if (stats.size()) {
@@ -817,6 +852,19 @@ const std::vector<sai_stat_id_t>& SaiSwitchManager::supportedWatermarkStats()
         stats.end(),
         SaiSwitchTraits::egressCoreBufferWatermarkBytes().begin(),
         SaiSwitchTraits::egressCoreBufferWatermarkBytes().end());
+  }
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::INGRESS_SRAM_MIN_BUFFER_WATERMARK)) {
+    stats.insert(
+        stats.end(),
+        SaiSwitchTraits::sramMinBufferWatermarkBytes().begin(),
+        SaiSwitchTraits::sramMinBufferWatermarkBytes().end());
+  }
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::FDR_FIFO_WATERMARK)) {
+    stats.insert(
+        stats.end(),
+        SaiSwitchTraits::fdrFifoWatermarkBytes().begin(),
+        SaiSwitchTraits::fdrFifoWatermarkBytes().end());
   }
   return stats;
 }
@@ -906,6 +954,28 @@ void SaiSwitchManager::updateStats(bool updateWatermarks) {
     switchDropStats_.ingressPacketPipelineRejectDrops() =
         switchDropStats_.ingressPacketPipelineRejectDrops().value_or(0) +
         dropStats.ingressPacketPipelineRejectDrops().value_or(0);
+  }
+  auto errorDropStats = supportedErrorStats();
+  if (errorDropStats.size()) {
+    switch_->updateStats(errorDropStats, SAI_STATS_MODE_READ);
+    HwSwitchDropStats errorStats;
+    // Fill error stats and update drops stats
+    fillHwSwitchErrorStats(switch_->getStats(errorDropStats), errorStats);
+    switchDropStats_.rqpFabricCellCorruptionDrops() =
+        switchDropStats_.rqpFabricCellCorruptionDrops().value_or(0) +
+        errorStats.rqpFabricCellCorruptionDrops().value_or(0);
+    switchDropStats_.rqpNonFabricCellCorruptionDrops() =
+        switchDropStats_.rqpNonFabricCellCorruptionDrops().value_or(0) +
+        errorStats.rqpNonFabricCellCorruptionDrops().value_or(0);
+    switchDropStats_.rqpNonFabricCellMissingDrops() =
+        switchDropStats_.rqpNonFabricCellMissingDrops().value_or(0) +
+        errorStats.rqpNonFabricCellMissingDrops().value_or(0);
+    switchDropStats_.rqpParityErrorDrops() =
+        switchDropStats_.rqpParityErrorDrops().value_or(0) +
+        errorStats.rqpParityErrorDrops().value_or(0);
+  }
+
+  if (switchDropStats.size() || errorDropStats.size()) {
     platform_->getHwSwitch()->getSwitchStats()->update(switchDropStats_);
   }
   auto switchDramStats = supportedDramStats();
@@ -996,16 +1066,14 @@ void SaiSwitchManager::setLocalCapsuleSwitchIds(
       SaiSwitchTraits::Attributes::MultiStageLocalSwitchIds{values});
 }
 
-void SaiSwitchManager::setReachabilityGroupList(int reachabilityGroupListSize) {
+void SaiSwitchManager::setReachabilityGroupList(
+    const std::vector<int>& reachabilityGroups) {
 #if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
-  if (reachabilityGroupListSize > 0) {
-    std::vector<uint32_t> list;
-    for (int i = 0; i < reachabilityGroupListSize; i++) {
-      list.push_back(i + 1);
-    }
-    switch_->setOptionalAttribute(
-        SaiSwitchTraits::Attributes::ReachabilityGroupList{list});
-  }
+  std::vector<uint32_t> groupList(
+      reachabilityGroups.begin(), reachabilityGroups.end());
+  std::sort(groupList.begin(), groupList.end());
+  switch_->setOptionalAttribute(
+      SaiSwitchTraits::Attributes::ReachabilityGroupList{groupList});
 #endif
 }
 
@@ -1037,7 +1105,7 @@ void SaiSwitchManager::setLinkFlowControlCreditTh(
 }
 
 void SaiSwitchManager::setVoqDramBoundTh(uint32_t dramBoundThreshold) {
-#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   // There are 3 different types of rate classes available and
   // dramBound, upper and lower limits are applied to each of
   // those. However, in our case, we just need to set the same
@@ -1050,12 +1118,65 @@ void SaiSwitchManager::setVoqDramBoundTh(uint32_t dramBoundThreshold) {
 
 void SaiSwitchManager::setConditionalEntropyRehashPeriodUS(
     int conditionalEntropyRehashPeriodUS) {
-  // TODO(zecheng): Update flag when new 12.0 release has the attribute
-#if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   switch_->setOptionalAttribute(
       SaiSwitchTraits::Attributes::CondEntropyRehashPeriodUS{
           conditionalEntropyRehashPeriodUS});
 #endif
 }
 
+void SaiSwitchManager::setShelConfig(
+    const std::optional<cfg::SelfHealingEcmpLagConfig>& shelConfig) {
+  if (shelConfig.has_value()) {
+    switch_->setOptionalAttribute(
+        SaiSwitchTraits::Attributes::ShelSrcMac{platform_->getLocalMac()});
+    switch_->setOptionalAttribute(SaiSwitchTraits::Attributes::ShelSrcIp{
+        folly::IPAddressV6(*shelConfig.value().shelSrcIp())});
+    switch_->setOptionalAttribute(SaiSwitchTraits::Attributes::ShelDstIp{
+        folly::IPAddressV6(*shelConfig.value().shelDstIp())});
+    switch_->setOptionalAttribute(
+        SaiSwitchTraits::Attributes::ShelPeriodicInterval{static_cast<uint32_t>(
+            *shelConfig.value().shelPeriodicIntervalMS())});
+  }
+}
+
+void SaiSwitchManager::setLocalVoqMaxExpectedLatency(
+    int localVoqMaxExpectedLatencyNsec) {
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+  switch_->setOptionalAttribute(
+      SaiSwitchTraits::Attributes::VoqLatencyMinLocalNs{
+          localVoqMaxExpectedLatencyNsec});
+#endif
+}
+
+void SaiSwitchManager::setRemoteL1VoqMaxExpectedLatency(
+    int remoteL1VoqMaxExpectedLatencyNsec) {
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+  switch_->setOptionalAttribute(
+      SaiSwitchTraits::Attributes::VoqLatencyMinLevel1Ns{
+          remoteL1VoqMaxExpectedLatencyNsec});
+#endif
+}
+
+void SaiSwitchManager::setRemoteL2VoqMaxExpectedLatency(
+    int remoteL2VoqMaxExpectedLatencyNsec) {
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+  switch_->setOptionalAttribute(
+      SaiSwitchTraits::Attributes::VoqLatencyMinLevel2Ns{
+          remoteL2VoqMaxExpectedLatencyNsec});
+#endif
+}
+
+void SaiSwitchManager::setVoqOutOfBoundsLatency(int voqOutOfBoundsLatency) {
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+  switch_->setOptionalAttribute(
+      SaiSwitchTraits::Attributes::VoqLatencyMaxLocalNs{voqOutOfBoundsLatency});
+  switch_->setOptionalAttribute(
+      SaiSwitchTraits::Attributes::VoqLatencyMaxLevel1Ns{
+          voqOutOfBoundsLatency});
+  switch_->setOptionalAttribute(
+      SaiSwitchTraits::Attributes::VoqLatencyMaxLevel2Ns{
+          voqOutOfBoundsLatency});
+#endif
+}
 } // namespace facebook::fboss

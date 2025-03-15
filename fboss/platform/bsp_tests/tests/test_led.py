@@ -1,9 +1,10 @@
+# pyre-unsafe
 import glob
 import os
 
 import pytest
 
-from fboss.platform.bsp_tests.utils.cdev_types import LedTestData
+from fboss.platform.bsp_tests.cdev_types import LedTestData
 from fboss.platform.bsp_tests.utils.cdev_utils import create_new_device, delete_device
 from fboss.platform.bsp_tests.utils.i2c_utils import (
     create_i2c_adapter,
@@ -32,13 +33,13 @@ def test_leds_created(platform_fpgas) -> None:
 def test_device_leds_created(fpga_with_adapters) -> None:
     for fpga, adapter in fpga_with_adapters:
         for device in adapter.i2cDevices:
-            if not device.ledTestData:
+            if not device.testData or not device.testData.ledTestData:
                 continue
             try:
                 newAdapters, baseBusNum = create_i2c_adapter(fpga, adapter)
                 busNum = baseBusNum + device.channel
                 assert create_i2c_device(device, busNum)
-                for led_data in device.ledTestData:
+                for led_data in device.testData.ledTestData:
                     assert find_expected_leds(
                         led_data, led_data.ledType, led_data.ledId
                     )

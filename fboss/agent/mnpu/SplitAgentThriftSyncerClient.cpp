@@ -288,6 +288,7 @@ folly::coro::Task<void> ThriftStreamClient<StreamObjectT>::serveStream() {
     }
     auto eventObj = *event;
     eventHandlerFn_(eventObj, hw_);
+    eventReceivedCount_.add(1);
   }
   co_return;
 }

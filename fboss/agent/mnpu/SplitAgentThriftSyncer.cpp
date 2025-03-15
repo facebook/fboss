@@ -104,6 +104,7 @@ void SplitAgentThriftSyncer::linkStateChanged(
   }
   multiswitch::LinkChangeEvent changeEvent;
   changeEvent.linkStateEvent() = event;
+  changeEvent.eventType() = multiswitch::LinkChangeEventType::LINK_STATE;
   linkChangeEventSinkClient_->enqueue(std::move(changeEvent));
 }
 
@@ -124,6 +125,7 @@ void SplitAgentThriftSyncer::linkActiveStateChangedOrFwIsolated(
 
   multiswitch::LinkChangeEvent changeEvent;
   changeEvent.linkActiveEvents() = event;
+  changeEvent.eventType() = multiswitch::LinkChangeEventType::LINK_ACTIVE;
   linkChangeEventSinkClient_->enqueue(std::move(changeEvent));
 }
 
@@ -150,6 +152,7 @@ void SplitAgentThriftSyncer::linkConnectivityChanged(
 
   multiswitch::LinkChangeEvent changeEvent;
   changeEvent.linkConnectivityEvents() = event;
+  changeEvent.eventType() = multiswitch::LinkChangeEventType::LINK_CONNECTIVITY;
   linkChangeEventSinkClient_->enqueue(std::move(changeEvent));
 }
 

@@ -710,8 +710,11 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
   std::vector<PortError> getActiveErrors() const {
     return safe_cref<switch_state_tags::activeErrors>()->toThrift();
   }
+  void setActiveErrors(const std::set<PortError>& errors);
+
   void addError(PortError error);
   void removeError(PortError error);
+
   Port* modify(std::shared_ptr<SwitchState>* state);
 
   void setScope(const cfg::Scope& scope) {
@@ -743,6 +746,24 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
   }
   void setConditionalEntropyRehash(bool conditionalEntropyRehash) {
     set<switch_state_tags::conditionalEntropyRehash>(conditionalEntropyRehash);
+  }
+
+  std::optional<bool> getSelfHealingECMPLagEnable() const {
+    if (auto selfHealingECMPLagEnable =
+            cref<switch_state_tags::selfHealingECMPLagEnable>()) {
+      return selfHealingECMPLagEnable->cref();
+    }
+    return std::nullopt;
+  }
+
+  void setSelfHealingECMPLagEnable(
+      std::optional<bool> selfHealingECMPLagEnable) {
+    if (!selfHealingECMPLagEnable.has_value()) {
+      ref<switch_state_tags::selfHealingECMPLagEnable>().reset();
+    } else {
+      set<switch_state_tags::selfHealingECMPLagEnable>(
+          selfHealingECMPLagEnable.value());
+    }
   }
 
  private:

@@ -17,6 +17,7 @@
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestPfcUtils.h"
 #include "fboss/agent/test/utils/DscpMarkingUtils.h"
+#include "fboss/agent/test/utils/NetworkAITestUtils.h"
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
 #include "fboss/agent/test/utils/QueuePerHostTestUtils.h"
 
@@ -56,7 +57,8 @@ void addNetworkAIQosToConfig(cfg::SwitchConfig& config, const HwAsic* hwAsic) {
   auto streamType =
       *hwAsic->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin();
   // queue configuration is different
-  addNetworkAIQueueConfig(&config, streamType);
+  addNetworkAIQueueConfig(
+      &config, streamType, cfg::QueueScheduling::STRICT_PRIORITY, hwAsic);
 }
 
 void addNetworkAIQosToConfig(
@@ -107,6 +109,7 @@ uint16_t uplinksCountFromSwitch(PlatformType mode) {
     case PM::PLATFORM_GALAXY_LC:
     case PM::PLATFORM_GALAXY_FC:
     case PM::PLATFORM_DARWIN:
+    case PM::PLATFORM_DARWIN48V:
     case PM::PLATFORM_MONTBLANC:
       return 4;
     default:

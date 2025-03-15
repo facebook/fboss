@@ -7,6 +7,8 @@
 #  LICENSE file in the root directory of this source tree. An additional grant
 #  of patent rights can be found in the PATENTS file in the same directory.
 #
+
+# pyre-unsafe
 import ipaddress
 import sys
 
@@ -848,7 +850,6 @@ def add_modules(main_func):
 
 
 if __name__ == "__main__":
-
     # -- Add sub-commands to "Main" -- #
     add_modules(main)
 

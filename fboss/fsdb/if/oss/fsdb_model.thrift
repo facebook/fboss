@@ -11,6 +11,7 @@ include "fboss/qsfp_service/if/qsfp_state.thrift"
 include "fboss/qsfp_service/if/qsfp_stats.thrift"
 include "fboss/fsdb/if/fsdb_common.thrift"
 include "fboss/platform/sensor_service/sensor_service_stats.thrift"
+include "thrift/annotation/thrift.thrift"
 
 // mirrors of structs fboss/fsdb/if/facebook/fsdb_model.thrift with oss only portions
 struct AgentData {
@@ -23,13 +24,15 @@ struct AgentData {
   > dsfSwitchReachability = {};
 }
 
+@thrift.DeprecatedUnvalidatedAnnotations{items = {"thriftpath.root": "1"}}
 struct FsdbOperStateRoot {
   1: AgentData agent;
   4: qsfp_state.QsfpServiceData qsfp_service;
-} (thriftpath.root)
+}
 
+@thrift.DeprecatedUnvalidatedAnnotations{items = {"thriftpath.root": "1"}}
 struct FsdbOperStatsRoot {
   1: agent_stats.AgentStats agent;
   3: qsfp_stats.QsfpStats qsfp_service;
   4: sensor_service_stats.SensorServiceStats sensor_service;
-} (thriftpath.root)
+}

@@ -527,7 +527,7 @@ SMB doesn’t have to be field-replaceable. If it is a FRU:
 2. When SMB is plugged back, the same power sequencing that Hardware (Power
 sequencing CPLD or FPGA) does at system power up should happen again.
 
-**2. FRU Monitoring**
+**1. FRU Monitoring**
 
 * Each FRU must have its own FRU ID EEPROM.
 * There must be a GPIO line to indicate the presence of each FRU.
@@ -535,17 +535,22 @@ sequencing CPLD or FPGA) does at system power up should happen again.
     * The X86 CPU needs access to all the FRU IDPROMs.
     * The X86 CPU needs access to all the GPIO lines that indicate the presence
     of FRUs.
-* Additional requirements on the Chassis EEPROM:
-    * The Chassis EEPROM must contain BMC MAC address and additional # MAC
-    addresses.
-    * The Chassis EEPROM must be connected to the BMC/ASPEED I2C controller
-    directly. Two copies of Chassis EEPROM are strongly recommended, because
-    both BMC and x86 need access to the Chassis EEPROM.
-* Additional requirements on the SCM EEPROM:
-    * The SCM EEPROM must contain the X86 MAC address.
-    * The SCM EEPROM must be connected to the BMC/ASPEED I2C controller
-    directly. Two copies of SCM EEPROM are strongly recommended, because both
-    BMC and x86 need access to the SCM EEPROM.
+
+**2. FRU EEPROMs.**
+
+* The Chassis EEPROM must contain BMC MAC address and switch MAC addresses.
+* The number of switch MAC addresses should be equal or more than 
+`NumTransceivers * NumBreakoutsPerTransceiver + 16`.  For example, if there
+are 32 Transceivers and 4 breakouts suported by individual transceiver, then we
+need 144 MAC Addresses (32 * 4 + 16). The extra 16 MAC addresses are for 
+aggregated interfaces (LAG). 
+* The Chassis EEPROM must be connected to the BMC/ASPEED I2C controller 
+directly. Two copies of Chassis EEPROM are a must, since both BMC and x86 need 
+access to the Chassis EEPROM.
+* The SCM EEPROM must contain the X86 MAC address.
+* The SCM EEPROM must be connected to the BMC/ASPEED I2C controller directly. 
+Two copies of SCM EEPROM are a must, since both BMC and x86 need access to the 
+SCM EEPROM.
 
 **3. FRU EEPROM format/layout**
 

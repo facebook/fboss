@@ -19,12 +19,18 @@ class RxPacket;
 
 namespace facebook::fboss::utility {
 
+using PacketComparatorFn =
+    std::optional<std::function<bool(utility::EthFrame, utility::EthFrame)>>;
+
 class PacketSnooper : public PacketObserverIf {
  public:
   PacketSnooper(
       std::optional<PortID> port = std::nullopt,
-      std::optional<utility::EthFrame> expectedFrame = std::nullopt)
-      : port_(port), expectedFrame_(std::move(expectedFrame)) {}
+      std::optional<utility::EthFrame> expectedFrame = std::nullopt,
+      PacketComparatorFn packetComparator = std::nullopt)
+      : port_(port),
+        expectedFrame_(std::move(expectedFrame)),
+        packetComparator_(std::move(packetComparator)) {}
 
   void packetReceived(const RxPacket* pkt) noexcept override;
 
@@ -37,6 +43,7 @@ class PacketSnooper : public PacketObserverIf {
  private:
   std::optional<PortID> port_;
   std::optional<utility::EthFrame> expectedFrame_;
+  PacketComparatorFn packetComparator_;
   std::mutex mtx_;
   std::condition_variable cv_;
   std::queue<std::unique_ptr<utility::EthFrame>> receivedFrames_;
@@ -48,7 +55,8 @@ class SwSwitchPacketSnooper : public PacketSnooper {
       SwSwitch* sw,
       const std::string& name,
       std::optional<PortID> port = std::nullopt,
-      std::optional<utility::EthFrame> expectedFrame = std::nullopt);
+      std::optional<utility::EthFrame> expectedFrame = std::nullopt,
+      PacketComparatorFn packetComparator = std::nullopt);
 
   std::optional<std::unique_ptr<folly::IOBuf>> waitForPacket(
       uint32_t timeout_s);

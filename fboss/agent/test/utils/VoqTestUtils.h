@@ -4,9 +4,9 @@
 
 #include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
-#include "fboss/agent/test/utils/DsfConfigUtils.h"
 #include "fboss/agent/types.h"
 
 namespace facebook::fboss {
@@ -21,7 +21,10 @@ std::shared_ptr<SwitchState> addRemoteSysPort(
     SystemPortID portId,
     SwitchID remoteSwitchId,
     int coreIndex = 0,
-    int corePortIndex = 1);
+    int corePortIndex = 1,
+    HwAsic::InterfaceNodeRole intfRole =
+        HwAsic::InterfaceNodeRole::IN_CLUSTER_NODE,
+    cfg::PortType portType = cfg::PortType::INTERFACE_PORT);
 
 std::shared_ptr<SwitchState> removeRemoteSysPort(
     std::shared_ptr<SwitchState> currState,
@@ -46,7 +49,7 @@ std::shared_ptr<SwitchState> addRemoveRemoteNeighbor(
     bool add,
     std::optional<int64_t> encapIndex = std::nullopt);
 
-QueueConfig getDefaultVoqConfig();
+QueueConfig getDefaultVoqConfig(cfg::PortType portType);
 
 std::optional<uint64_t> getDummyEncapIndex(TestEnsembleIf* ensemble);
 
@@ -62,5 +65,17 @@ void populateRemoteIntfAndSysPorts(
 
 void setupRemoteIntfAndSysPorts(SwSwitch* swSwitch, bool useEncapIndex);
 
+struct QueueConfigAndName {
+  std::string name;
+  std::vector<cfg::PortQueue> queueConfig;
+};
+std::optional<QueueConfigAndName> getNameAndDefaultVoqCfg(
+    cfg::PortType portType);
+
+uint8_t getDefaultQueue();
+
+int getTrafficClassToVoqId(const HwAsic* hwAsic, int trafficClass);
+
+int getTrafficClassToCpuVoqId(const HwAsic* hwAsic, int trafficClass);
 } // namespace utility
 } // namespace facebook::fboss

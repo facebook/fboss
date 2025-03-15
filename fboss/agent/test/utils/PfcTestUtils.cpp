@@ -127,13 +127,24 @@ void setupPortPgConfig(
     const std::vector<int>& losslessPgIds,
     const PfcBufferParams& buffer) {
   std::vector<cfg::PortPgConfig> portPgConfigs;
+
+  // Chenab requires at least 2xMTU, otherwise packets are dropped on ingress.
+  int pgLimit = buffer.pgLimit;
+  if (ensemble->getHwAsicTable()
+              ->getHwAsics()
+              .cbegin()
+              ->second->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB &&
+      pgLimit < 20480) {
+    pgLimit = 20480;
+  }
+
   // create 2 pgs
   for (auto pgId : losslessPgIds) {
     cfg::PortPgConfig pgConfig;
     pgConfig.id() = pgId;
     pgConfig.bufferPoolName() = "bufferNew";
     // provide atleast 1 cell worth of minLimit
-    pgConfig.minLimitBytes() = buffer.pgLimit;
+    pgConfig.minLimitBytes() = pgLimit;
     // set large enough headroom to avoid drop
     pgConfig.headroomLimitBytes() = buffer.pgHeadroom;
     // resume offset
@@ -169,7 +180,7 @@ void setupPortPgConfig(
       pgConfig.id() = pgId;
       pgConfig.bufferPoolName() = "bufferNew";
       // provide atleast 1 cell worth of minLimit
-      pgConfig.minLimitBytes() = buffer.pgLimit;
+      pgConfig.minLimitBytes() = pgLimit;
       // headroom set 0 identifies lossy pgs
       pgConfig.headroomLimitBytes() = 0;
       // resume offset

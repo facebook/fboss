@@ -32,12 +32,12 @@ int CredoPhyAsic::getDefaultNumPortQueues(
     cfg::PortType /*portType*/) const {
   throw FbossError("CredoPhyAsic doesn't support queue feature");
 }
-uint64_t CredoPhyAsic::getDefaultReservedBytes(
+std::optional<uint64_t> CredoPhyAsic::getDefaultReservedBytes(
     cfg::StreamType /* streamType */,
     cfg::PortType /* portType */) const {
   throw FbossError("CredoPhyAsic doesn't support queue feature");
 }
-cfg::MMUScalingFactor CredoPhyAsic::getDefaultScalingFactor(
+std::optional<cfg::MMUScalingFactor> CredoPhyAsic::getDefaultScalingFactor(
     cfg::StreamType /* streamType */,
     bool /* cpu */) const {
   throw FbossError("CredoPhyAsic doesn't support queue feature");
@@ -56,6 +56,9 @@ uint32_t CredoPhyAsic::getMaxLabelStackDepth() const {
 uint64_t CredoPhyAsic::getMMUSizeBytes() const {
   throw FbossError("CredoPhyAsic doesn't support MMU feature");
 };
+uint64_t CredoPhyAsic::getSramSizeBytes() const {
+  throw FbossError("CredoPhyAsic doesn't support MMU feature");
+}
 int CredoPhyAsic::getMaxNumLogicalPorts() const {
   throw FbossError("CredoPhyAsic doesn't support logical ports feature");
 }

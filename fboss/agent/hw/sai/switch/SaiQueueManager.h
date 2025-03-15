@@ -75,7 +75,8 @@ class SaiQueueManager {
       const PortQueue& newPortQueue);
   void changeQueueScheduler(
       SaiQueueHandle* queueHandle,
-      const PortQueue& newPortQueue);
+      const PortQueue& newPortQueue,
+      const Port* swPort);
   void changeQueueDeadlockEnable(
       SaiQueueHandle* queueHandle,
       const Port* swPort);
@@ -99,12 +100,16 @@ class SaiQueueManager {
   void getStats(SaiQueueHandles& queueHandles, HwPortStats& hwPortStats);
   void clearStats(const std::vector<SaiQueueHandle*>& queueHandles);
   QueueConfig getQueueSettings(const SaiQueueHandles& queueHandles) const;
+  std::optional<std::tuple<uint8_t, PortSaiId>> getQueueIndexAndPortSaiId(
+      const QueueSaiId& queueSaiId);
 
  private:
   bool isVoqSwitchAndQueueHandleNotForVoq(SaiQueueHandle* queueHandle);
   const std::vector<sai_stat_id_t>& supportedNonWatermarkCounterIdsRead(
       int queueType,
       SaiQueueHandle* queueHandle) const;
+  const std::vector<sai_stat_id_t>&
+  supportedVoqWatermarkCounterIdsReadAndClear() const;
 
   const std::vector<sai_stat_id_t>& egressQueueNonWatermarkCounterIdsRead(
       int queueType) const;

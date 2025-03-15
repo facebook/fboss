@@ -8,6 +8,7 @@
 #include "fboss/agent/state/ForwardingInformationBaseMap.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/LabelForwardingEntry.h"
+#include "fboss/agent/state/MirrorOnDropReport.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortDescriptor.h"
 #include "fboss/agent/state/SflowCollector.h"
@@ -188,8 +189,9 @@ HwSwitchMatcher SwitchIdScopeResolver::scope(
     case cfg::InterfaceType::SYSTEM_PORT:
       return scope(SystemPortID(static_cast<int64_t>(intf->getID())));
     case cfg::InterfaceType::VLAN:
-      return scope(
-          state->getVlans()->getNode(VlanID(static_cast<int>(intf->getID()))));
+      return scope(state->getVlans()->getNode(intf->getVlanID()));
+    case cfg::InterfaceType::PORT:
+      return scope(intf->getPortID());
   }
   throw FbossError(
       "Unexpected interface type: ", static_cast<int>(intf->getType()));
@@ -209,21 +211,53 @@ HwSwitchMatcher SwitchIdScopeResolver::scope(
     case cfg::InterfaceType::SYSTEM_PORT:
       return scope(SystemPortID(static_cast<int64_t>(interfaceId)));
     case cfg::InterfaceType::VLAN: {
-      int vlanId(static_cast<int>(interfaceId));
+      std::optional<int> vlanId;
+      for (const auto& intf : *cfg.interfaces()) {
+        if (intf.intfID() == static_cast<int>(interfaceId)) {
+          vlanId = *intf.vlanID();
+        }
+      }
+      if (!vlanId) {
+        throw FbossError(
+            "vlan not set for vlan router interface  : ", interfaceId);
+      }
+      if (*vlanId == *cfg.defaultVlan()) {
+        return l3SwitchMatcher();
+      }
       auto vitr = std::find_if(
           cfg.vlans()->cbegin(),
           cfg.vlans()->cend(),
-          [vlanId](const auto& vlan) { return vlan.id() == vlanId; });
+          [vlanId](const auto& vlan) { return vlan.id() == *vlanId; });
       if (vitr == cfg.vlans()->cend()) {
-        throw FbossError("No vlan found for : ", vlanId);
+        throw FbossError("No vlan found for : ", *vlanId);
       }
       Vlan::MemberPorts vlanMembers;
       for (const auto& vlanPort : *cfg.vlanPorts()) {
-        if (vlanPort.vlanID() == vlanId) {
+        if (vlanPort.vlanID() == *vlanId) {
           vlanMembers.emplace(std::make_pair(*vlanPort.logicalPort(), true));
         }
       }
       return scope(std::make_shared<Vlan>(&*vitr, vlanMembers));
+    }
+    case cfg::InterfaceType::PORT: {
+      auto itr = std::find_if(
+          cfg.interfaces()->cbegin(),
+          cfg.interfaces()->cend(),
+          [interfaceId](const auto& intf) {
+            return InterfaceID(*intf.intfID()) == interfaceId;
+          });
+      if (itr == cfg.interfaces()->cend()) {
+        throw FbossError("No interface found for : ", interfaceId);
+      }
+      auto pitr = std::find_if(
+          cfg.ports()->cbegin(), cfg.ports()->cend(), [itr](const auto& port) {
+            return *port.logicalID() == *(itr->portID());
+          });
+      if (pitr == cfg.ports()->cend()) {
+        throw FbossError("No port found for : ", interfaceId);
+      }
+      const auto& port = *pitr;
+      return scope(PortID(*port.logicalID()));
     }
   }
   throw FbossError("Unexpected interface type: ", static_cast<int>(type));
@@ -318,6 +352,16 @@ HwSwitchMatcher SwitchIdScopeResolver::scope(
   std::unordered_set<SwitchID> switchIds;
   switchIds.insert(SwitchID(mirror->getSwitchId()));
   return HwSwitchMatcher(switchIds);
+}
+
+HwSwitchMatcher SwitchIdScopeResolver::scope(
+    const cfg::MirrorOnDropReport& report) const {
+  return scope(PortID(report.get_mirrorPortId()));
+}
+
+HwSwitchMatcher SwitchIdScopeResolver::scope(
+    const std::shared_ptr<MirrorOnDropReport>& report) const {
+  return scope(PortID(report->getMirrorPortId()));
 }
 
 } // namespace facebook::fboss

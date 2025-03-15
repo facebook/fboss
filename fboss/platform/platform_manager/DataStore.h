@@ -8,6 +8,9 @@
 
 #include "fboss/platform/platform_manager/gen-cpp2/platform_manager_config_types.h"
 
+using EepromContents = std::vector<
+    std::pair<std::string /* eeprom key */, std::string /* eeprom value */>>;
+
 namespace facebook::fboss::platform::platform_manager {
 class DataStore {
  public:
@@ -73,6 +76,14 @@ class DataStore {
   // Throws if none of the VersionedPmUnitConfig matches the version.
   PmUnitConfig resolvePmUnitConfig(const std::string& slotPath) const;
 
+  // Store eeprom contents at the given DevicePath.
+  void updateEepromContents(
+      const std::string& devicePath,
+      const EepromContents& contents);
+
+  // Get eeprom contents at a given SlotPath.
+  EepromContents getEepromContents(const std::string& devicePath);
+
  private:
   // Map from <pmUnitPath, pmUnitScopeBusName> to kernel i2c bus name.
   // - The pmUnitPath to the rootPmUnit is /. So a bus at root PmUnit will
@@ -92,6 +103,9 @@ class DataStore {
 
   // Map from SlotPath to its PmUnitInfo
   std::map<std::string, PmUnitInfo> slotPathToPmUnitInfo{};
+
+  // Map from DevicePath to its EEPROM (IDPROM) contents.
+  std::unordered_map<std::string, EepromContents> eepromContents_{};
 
   const PlatformConfig& platformConfig_;
 };

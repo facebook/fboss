@@ -1,6 +1,7 @@
 {
   "defaultCommandLineArgs": {
     "check_wb_handles": "true",
+    "enable_route_resource_protection": "false",
     "log_variable_name": "true",
     "skip_transceiver_programming": "true"
   },
@@ -45,6 +46,7 @@
       "1": 1,
       "2": 0,
       "3": 0,
+      "4": 0,
       "700": 255,
       "786": 10
     },
@@ -100,7 +102,7 @@
       "exactMatchTableConfigs": [
         
       ],
-      "switchIdToSwitchType": {
+      "switchIdToSwitchType_DEPRECATED": {
         
       },
       "switchDrainState": 0,
@@ -112,6 +114,9 @@
             "portIdRange": {
               "minimum": 0,
               "maximum": 2047
+            },
+            "firmwareNameToFirmwareInfo": {
+              
             }
         }
       },
@@ -130,6 +135,9 @@
       
     },
     "defaultVoqConfig": [
+      
+    ],
+    "mirrorOnDropReports": [
       
     ]
   },
@@ -273,10 +281,12 @@
           "dport_map_port_94": "127",
           "dport_map_port_95": "128",
           "dpr_clock_frequency": "1000",
+          "host_as_route_disable": "1",
           "ipv6_lpm_128b_enable": "1",
           "l2xmsg_shadow_hit_bits": "0",
           "l3_alpm_enable": "2",
           "l3_alpm_ipv6_128b_bkt_rsvd": "1",
+          "l3_max_ecmp_mode": "1",
           "load_firmware": "0x2",
           "macro_flow_hash_shuffle_random_seed": "34345645",
           "mem_cache_enable": "0",

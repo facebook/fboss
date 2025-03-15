@@ -59,6 +59,7 @@ cpp_unittest(
     deps = [
         "//fboss/lib/usb:transceiver_access_parameter",
         "//fboss/qsfp_service/module:i2c_log_buffer",
+        "//fboss/qsfp_service/module/cmis:cmis-cpp2-types",
         "//folly:random",
         "//folly/testing:test_util",
     ],

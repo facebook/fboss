@@ -105,6 +105,18 @@ class HwTestThriftHandler : public AgentHwTestCtrlSvIf {
       std::unique_ptr<::std::vector<::std::int32_t>> portIds) override;
 
   bool verifyPortLedStatus(int portId, bool status) override;
+  bool verifyPGSettings(int portId, bool pfcEnabled) override;
+  void getAggPortInfo(
+      ::std::vector<::facebook::fboss::utility::AggPortInfo>& aggPortInfos,
+      std::unique_ptr<::std::vector<::std::int32_t>> aggPortIds) override;
+  int getNumAggPorts() override;
+  bool verifyPktFromAggPort(int aggPortId) override;
+
+  void triggerParityError() override;
+
+  void printDiagCmd(std::unique_ptr<::std::string>) override;
+
+  void updateFlowletStats() override;
 
  private:
   HwSwitch* hwSwitch_;

@@ -10,6 +10,7 @@
 
 #include "fboss/agent/hw/test/HwTestMirrorUtils.h"
 
+#include <gtest/gtest.h>
 #include "fboss/agent/gen-cpp2/switch_config_constants.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
@@ -480,7 +481,7 @@ TYPED_TEST(HwMirrorTest, HwResolvedMirrorStat) {
     EXPECT_EQ(*stats.mirrors_erspan(), 1);
     EXPECT_EQ(*stats.mirrors_sflow(), 1);
   };
-  if (this->skipMirrorTest()) {
+  if (this->skipMirrorTest() || this->skipSflowTest()) {
 #if defined(GTEST_SKIP)
     GTEST_SKIP();
 #endif
@@ -557,7 +558,7 @@ TYPED_TEST(HwMirrorTest, HwUnresolvedMirrorStat) {
     EXPECT_EQ(*stats.mirrors_erspan(), 0);
     EXPECT_EQ(*stats.mirrors_sflow(), 0);
   };
-  if (this->skipMirrorTest()) {
+  if (this->skipMirrorTest() || this->skipSflowTest()) {
 #if defined(GTEST_SKIP)
     GTEST_SKIP();
 #endif

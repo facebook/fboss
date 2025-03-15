@@ -149,6 +149,21 @@ class SystemPort
         getRemoteSystemPortType().value() == RemoteSystemPortType::STATIC_ENTRY;
   }
 
+  std::optional<bool> getShelDestinationEnabled() const {
+    if (auto shelDestinationEnabled =
+            cref<ctrl_if_tags::shelDestinationEnabled>()) {
+      return shelDestinationEnabled->cref();
+    };
+    return std::nullopt;
+  }
+  void setShelDestinationEnabled(std::optional<bool> shelDestinationEnabled) {
+    if (!shelDestinationEnabled.has_value()) {
+      ref<ctrl_if_tags::shelDestinationEnabled>().reset();
+    } else {
+      set<ctrl_if_tags::shelDestinationEnabled>(shelDestinationEnabled.value());
+    }
+  }
+
  private:
   // Inherit the constructors required for clone()
   using Base::Base;

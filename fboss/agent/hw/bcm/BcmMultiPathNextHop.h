@@ -82,11 +82,17 @@ class BcmMultiPathNextHopTable : public BcmMultiPathNextHopTableBase {
   long getEcmpEgressCount() const;
   void updateEcmpsForFlowletSwitching();
   bool updateEcmpsForFlowletTableLocked();
+  void updateDlbExhaustionStat();
+  bool getDlbExhaustedStat() {
+    return dlbExhausted_.load();
+  }
 
  private:
+  static constexpr int kEcmpEgressstartId = 200000;
   bool ucmpSupported_{false};
   bool useHsdk_{false};
   bool wideEcmpSupported_{false};
+  std::atomic<bool> dlbExhausted_{false};
 };
 
 class BcmMultiPathNextHopStatsManager {

@@ -11,6 +11,7 @@
 namespace facebook::fboss {
 namespace cfg {
 class Mirror;
+class MirrorOnDropReport;
 class DsfNode;
 class IpInIpTunnel;
 class AclEntry;
@@ -22,6 +23,7 @@ class QosPolicy;
 class SflowCollector;
 } // namespace cfg
 class Mirror;
+class MirrorOnDropReport;
 class DsfNode;
 class IpTunnel;
 class AclEntry;
@@ -77,6 +79,9 @@ class SwitchIdScopeResolver {
   HwSwitchMatcher scope(const cfg::AggregatePort& aggPort) const;
   HwSwitchMatcher scope(const std::shared_ptr<AggregatePort>& aggPort) const;
   HwSwitchMatcher scope(const std::shared_ptr<Mirror>& mirror) const;
+  HwSwitchMatcher scope(const cfg::MirrorOnDropReport& report) const;
+  HwSwitchMatcher scope(
+      const std::shared_ptr<MirrorOnDropReport>& report) const;
   const HwSwitchMatcher& scope(const cfg::IpInIpTunnel& /*m*/) const {
     return l3SwitchMatcher();
   }

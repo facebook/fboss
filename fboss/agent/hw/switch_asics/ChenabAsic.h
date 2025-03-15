@@ -28,7 +28,7 @@ class ChenabAsic : public HwAsic {
   bool isSupported(Feature feature) const override;
   cfg::AsicType getAsicType() const override;
   int getBufferDynThreshFromScalingFactor(
-      cfg::MMUScalingFactor /* scalingFactor */) const override;
+      cfg::MMUScalingFactor scalingFactor) const override;
   bool scalingFactorBasedDynamicThresholdSupported() const override;
   phy::DataPlanePhyChipType getDataPlanePhyChipType() const override;
   cfg::PortSpeed getMaxPortSpeed() const override;
@@ -39,11 +39,12 @@ class ChenabAsic : public HwAsic {
       cfg::PortType /*portType*/) const override;
   uint32_t getMaxLabelStackDepth() const override;
   uint64_t getMMUSizeBytes() const override;
+  uint64_t getSramSizeBytes() const override;
   uint32_t getMaxMirrors() const override;
-  uint64_t getDefaultReservedBytes(
+  std::optional<uint64_t> getDefaultReservedBytes(
       cfg::StreamType /*streamType*/,
       cfg::PortType /*portType*/) const override;
-  cfg::MMUScalingFactor getDefaultScalingFactor(
+  std::optional<cfg::MMUScalingFactor> getDefaultScalingFactor(
       cfg::StreamType /*streamType*/,
       bool /*cpu*/) const override;
   int getMaxNumLogicalPorts() const override;
@@ -60,6 +61,7 @@ class ChenabAsic : public HwAsic {
   uint32_t getNumCores() const override;
   uint32_t getStaticQueueLimitBytes() const override;
   uint32_t getNumMemoryBuffers() const override;
+  uint16_t getGreProtocol() const override;
   cfg::Range64 getReservedEncapIndexRange() const override;
   int getMidPriCpuQueueId() const override;
   int getHiPriCpuQueueId() const override;

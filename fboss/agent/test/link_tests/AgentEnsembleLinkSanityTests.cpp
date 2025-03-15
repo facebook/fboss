@@ -3,8 +3,8 @@
 #include <folly/Random.h>
 #include <folly/Subprocess.h>
 #include <gtest/gtest.h>
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/LldpManager.h"
-#include "fboss/agent/PlatformPort.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/test/link_tests/AgentEnsembleLinkTest.h"
 #include "fboss/agent/test/link_tests/LinkTestUtils.h"
@@ -111,6 +111,9 @@ TEST_F(AgentEnsembleLinkTest, asicLinkFlap) {
       ASSERT_NO_THROW(waitForAllCabledPorts(true));
       ASSERT_NO_THROW(utility::waitForAllTransceiverStates(
           true, getCabledTranceivers(), 60, 5s));
+      ASSERT_NO_THROW(checkQsfpServiceMemoryInBounds());
+      ASSERT_NO_THROW(checkFsdbMemoryInBounds());
+      ASSERT_NO_THROW(checkAgentMemoryInBounds());
     }
   };
 
@@ -470,7 +473,7 @@ TEST_F(AgentEnsembleLinkTest, qsfpColdbootAfterAgentUp) {
         /* sleep override */
         sleep(5);
         // Assert all cabled ports are up and transceivers have ACTIVE state
-        EXPECT_NO_THROW(waitForAllCabledPorts(true));
+        EXPECT_NO_THROW(waitForAllCabledPorts(true, 60, 5s));
         EXPECT_NO_THROW(utility::waitForAllTransceiverStates(
             true, getCabledTranceivers(), 60, 5s));
       });

@@ -47,7 +47,9 @@ std::unique_ptr<Platform> createTestPlatform() {
     return std::make_unique<BcmTestYampPlatform>(std::move(productInfo));
   } else if (mode == PlatformType::PLATFORM_WEDGE400) {
     return std::make_unique<BcmTestWedge400Platform>(std::move(productInfo));
-  } else if (mode == PlatformType::PLATFORM_DARWIN) {
+  } else if (
+      mode == PlatformType::PLATFORM_DARWIN ||
+      mode == PlatformType::PLATFORM_DARWIN48V) {
     return std::make_unique<BcmTestDarwinPlatform>(std::move(productInfo));
   } else if (mode == PlatformType::PLATFORM_FUJI) {
     return std::make_unique<BcmTestFujiPlatform>(std::move(productInfo));

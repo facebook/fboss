@@ -1,9 +1,9 @@
-from typing import List, Tuple
+# pyre-strict
 
 import pytest
-from fboss.platform.bsp_tests.test_runner import FpgaSpec
 
-from fboss.platform.bsp_tests.utils.cdev_types import I2CAdapter
+from fboss.platform.bsp_tests.cdev_types import I2CAdapter
+from fboss.platform.bsp_tests.config import FpgaSpec, RuntimeConfig
 from fboss.platform.bsp_tests.utils.cdev_utils import delete_device
 from fboss.platform.bsp_tests.utils.gpio_utils import gpiodetect, gpioget, gpioinfo
 from fboss.platform.bsp_tests.utils.i2c_utils import (
@@ -13,33 +13,36 @@ from fboss.platform.bsp_tests.utils.i2c_utils import (
 from fboss.platform.bsp_tests.utils.kmod_utils import unload_kmods
 
 
-def test_gpio_is_detectable(fpga_with_adapters):
+def test_gpio_is_detectable(
+    fpga_with_adapters: list[tuple[FpgaSpec, I2CAdapter]],
+) -> None:
     for fpga, adapter in fpga_with_adapters:
         newAdapters, baseBusNum = create_i2c_adapter(fpga, adapter)
         try:
             for device in adapter.i2cDevices:
-                if not device.gpioTestData:
+                if not device.testData or not device.testData.gpioTestData:
                     continue
+                testData = device.testData.gpioTestData
                 busNum = baseBusNum + device.channel
                 create_i2c_device(device, busNum)
                 expectedLabel = f"{busNum}-{device.address[2:].zfill(4)}"
                 gpios = gpiodetect(expectedLabel)
                 assert len(gpios) == 1, f"Expected GPIO not detected: {expectedLabel}"
                 assert (
-                    gpios[0].lines == device.gpioTestData.numLines
-                ), f"Expected {device.gpioTestData.numLines}, got: {gpios[0].lines}"
+                    gpios[0].lines == testData.numLines
+                ), f"Expected {testData.numLines}, got: {gpios[0].lines}"
         finally:
             delete_device(fpga, adapter.auxDevice)
 
 
-def test_gpio_info(fpga_with_adapters):
+def test_gpio_info(fpga_with_adapters: list[tuple[FpgaSpec, I2CAdapter]]) -> None:
     for fpga, adapter in fpga_with_adapters:
         newAdapters, baseBusNum = create_i2c_adapter(fpga, adapter)
         try:
             for device in adapter.i2cDevices:
-                if not device.gpioTestData:
+                if not device.testData or not device.testData.gpioTestData:
                     continue
-                testData = device.gpioTestData
+                testData = device.testData.gpioTestData
                 busNum = baseBusNum + device.channel
                 create_i2c_device(device, busNum)
                 expectedLabel = f"{busNum}-{device.address[2:].zfill(4)}"
@@ -52,29 +55,31 @@ def test_gpio_info(fpga_with_adapters):
                     ), f"Line {i} name mismatch: expected={testData.lines[i].name}, got={line.name}"
                     assert (
                         line.direction == testData.lines[i].direction
-                    ), f"Line {i} direction mismatch: expected={testData.lines[i].dir}, got={line.direction}"
+                    ), f"Line {i} direction mismatch: expected={testData.lines[i].direction}, got={line.direction}"
         finally:
             delete_device(fpga, adapter.auxDevice)
 
 
-def test_gpio_set(platform_fpgas):
+def test_gpio_set(platform_fpgas: list[tuple[FpgaSpec, I2CAdapter]]) -> None:
     pass
 
 
-def test_gpio_get(fpga_with_adapters):
+def test_gpio_get(fpga_with_adapters: list[tuple[FpgaSpec, I2CAdapter]]) -> None:
     for fpga, adapter in fpga_with_adapters:
         newAdapters, baseBusNum = create_i2c_adapter(fpga, adapter)
         try:
             for device in adapter.i2cDevices:
-                if not device.gpioTestData:
+                if not device.testData or not device.testData.gpioTestData:
                     continue
+                testData = device.testData.gpioTestData
                 busNum = baseBusNum + device.channel
                 create_i2c_device(device, busNum)
                 expectedLabel = f"{busNum}-{device.address[2:].zfill(4)}"
                 gpios = gpiodetect(expectedLabel)
                 assert len(gpios) == 1, f"Expected GPIO not detected: {expectedLabel}"
                 gpioName = gpios[0].name
-                for i, line in enumerate(device.gpioTestData.lines):
+
+                for i, line in enumerate(testData.lines):
                     if not line.getValue:
                         continue
                     try:
@@ -89,8 +94,10 @@ def test_gpio_get(fpga_with_adapters):
             delete_device(fpga, adapter.auxDevice)
 
 
-def test_driver_unload(platform_fpgas, platform_config):
-    adaptersToUnload: list[tuple(FpgaSpec, I2CAdapter, int)] = []
+def test_driver_unload(
+    platform_fpgas: list[FpgaSpec], platform_config: RuntimeConfig
+) -> None:
+    adaptersToUnload: list[tuple[FpgaSpec, I2CAdapter, int]] = []
     id = 1
     for fpga in platform_fpgas:
         try:
@@ -99,7 +106,7 @@ def test_driver_unload(platform_fpgas, platform_config):
                 id += 1
                 adaptersToUnload.append((fpga, adapter, id))
                 for device in adapter.i2cDevices:
-                    if not device.gpioTestData:
+                    if not device.testData or not device.testData.gpioTestData:
                         continue
                     create_i2c_device(device, baseBusNum + device.channel)
         except Exception:

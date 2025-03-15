@@ -12,6 +12,7 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
+#include "fboss/agent/hw/sai/switch/SaiArsProfileManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiNeighborManager.h"
 #include "fboss/agent/hw/sai/switch/SaiNextHopManager.h"
@@ -61,13 +62,28 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(
     nextHopGroupAdapterHostKey.insert(std::make_pair(nhk, swNextHop.weight()));
   }
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+  std::optional<SaiNextHopGroupTraits::Attributes::ArsObjectId> arsObjectId{
+      std::nullopt};
+  if (FLAGS_flowletSwitchingEnable &&
+      platform_->getAsic()->isSupported(HwAsic::Feature::FLOWLET)) {
+    auto arsHandlePtr = managerTable_->arsManager().getArsHandle();
+    if (arsHandlePtr->ars) {
+      auto arsSaiId = arsHandlePtr->ars->adapterKey();
+      if (!managerTable_->arsManager().isFlowsetTableFull(arsSaiId)) {
+        arsObjectId = SaiNextHopGroupTraits::Attributes::ArsObjectId{arsSaiId};
+      }
+    }
+  }
+#endif
+
   // Create the NextHopGroup and NextHopGroupMembers
   auto& store = saiStore_->get<SaiNextHopGroupTraits>();
   SaiNextHopGroupTraits::CreateAttributes nextHopGroupAttributes{
       SAI_NEXT_HOP_GROUP_TYPE_ECMP
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
       ,
-      std::nullopt
+      arsObjectId
 #endif
   };
   nextHopGroupHandle->nextHopGroup =
@@ -135,6 +151,42 @@ SaiNextHopGroupManager::getSaiObjectFromWBCache(
     const typename SaiNextHopGroupMemberTraits::AdapterHostKey& key) {
   auto& store = saiStore_->get<SaiNextHopGroupMemberTraits>();
   return store.getWarmbootHandle(key);
+}
+
+// Convert all nexthops to ARS mode
+// Conversion depends on availability in flowset table which is of size 32k
+// If a nexthop is already in ARS mode, set operation is NOP
+void SaiNextHopGroupManager::updateArsModeAll(
+    const std::shared_ptr<FlowletSwitchingConfig>& newFlowletConfig) {
+  if (!FLAGS_flowletSwitchingEnable ||
+      !platform_->getAsic()->isSupported(HwAsic::Feature::FLOWLET)) {
+    return;
+  }
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+  auto arsHandlePtr = managerTable_->arsManager().getArsHandle();
+  CHECK(arsHandlePtr->ars);
+  auto arsSaiId = arsHandlePtr->ars->adapterKey();
+
+  for (auto entry : handles_) {
+    auto handle = entry.second;
+    auto handlePtr = handle.lock();
+    if (!handlePtr) {
+      continue;
+    }
+
+    if (newFlowletConfig) {
+      if (!managerTable_->arsManager().isFlowsetTableFull(arsSaiId)) {
+        handlePtr->nextHopGroup->setOptionalAttribute(
+            SaiNextHopGroupTraits::Attributes::ArsObjectId{arsSaiId});
+      }
+    } else {
+      // flowlet config removal scenario
+      handlePtr->nextHopGroup->setOptionalAttribute(
+          SaiNextHopGroupTraits::Attributes::ArsObjectId{SAI_NULL_OBJECT_ID});
+    }
+  }
+#endif
 }
 
 std::string SaiNextHopGroupManager::listManagedObjects() const {

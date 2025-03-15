@@ -789,4 +789,264 @@ std::unique_ptr<TxPacket> makeTCPTxPacket(
       255,
       payload);
 }
+
+template <typename IPHDR>
+std::unique_ptr<TxPacket> makeSflowV5Packet(
+    const AllocatePktFn& allocatePacket,
+    const EthHdr& ethHdr,
+    const IPHDR& ipHdr,
+    const UDPHeader& udpHdr,
+    bool computeChecksum,
+    folly::IPAddress agentIp,
+    uint32_t ingressInterface,
+    uint32_t egressInterface,
+    uint32_t samplingRate,
+    const std::vector<uint8_t>& payload) {
+  auto txPacket = allocatePacket(
+      ethHdr.size() + ipHdr.size() + udpHdr.size() + 104 + payload.size());
+
+  folly::io::RWPrivateCursor rwCursor(txPacket->buf());
+  // Write EthHdr
+  writeEthHeader(
+      txPacket,
+      &rwCursor,
+      ethHdr.getDstMac(),
+      ethHdr.getSrcMac(),
+      ethHdr.getVlanTags(),
+      ethHdr.getEtherType());
+  ipHdr.serialize(&rwCursor);
+
+  // write UDP header, payload and compute checksum
+  rwCursor.writeBE<uint16_t>(udpHdr.srcPort);
+  rwCursor.writeBE<uint16_t>(udpHdr.dstPort);
+  rwCursor.writeBE<uint16_t>(udpHdr.length);
+  // Skip 2 bytes and compuete checksum later
+  rwCursor.skip(2);
+
+  sflow::SampleDatagram datagram;
+  sflow::SampleDatagramV5 datagramV5;
+  sflow::SampleRecord record;
+  sflow::FlowSample fsample;
+  sflow::FlowRecord frecord;
+  sflow::SampledHeader hdr;
+
+  int bufSize = 1024;
+
+  hdr.protocol = sflow::HeaderProtocol::ETHERNET_ISO88023;
+  hdr.frameLength = 0;
+  hdr.stripped = 0;
+  hdr.header = payload.data();
+  hdr.headerLength = payload.size();
+  auto hdrSize = hdr.size();
+  if (hdrSize % sflow::XDR_BASIC_BLOCK_SIZE > 0) {
+    hdrSize = (hdrSize / sflow::XDR_BASIC_BLOCK_SIZE + 1) *
+        sflow::XDR_BASIC_BLOCK_SIZE;
+  }
+
+  std::vector<uint8_t> hb(bufSize);
+  auto hbuf = folly::IOBuf::wrapBuffer(hb.data(), bufSize);
+  auto hc = std::make_shared<folly::io::RWPrivateCursor>(hbuf.get());
+  hdr.serialize(hc.get());
+
+  frecord.flowFormat = 1; // single flow sample
+  frecord.flowDataLen = hdrSize;
+  frecord.flowData = hb.data();
+
+  fsample.sequenceNumber = 0;
+  fsample.sourceID = 0;
+  fsample.samplingRate = samplingRate;
+  fsample.samplePool = 0;
+  fsample.drops = 0;
+  fsample.input = ingressInterface;
+  fsample.output = egressInterface;
+  fsample.flowRecordsCnt = 1;
+  fsample.flowRecords = &frecord;
+
+  std::vector<uint8_t> fsb(bufSize);
+  auto fbuf = folly::IOBuf::wrapBuffer(fsb.data(), bufSize);
+  auto fc = std::make_shared<folly::io::RWPrivateCursor>(fbuf.get());
+  fsample.serialize(fc.get());
+  size_t fsampleSize = bufSize - fc->length();
+
+  record.sampleType = 1; // raw header
+  record.sampleDataLen = fsampleSize;
+  record.sampleData = fsb.data();
+
+  datagramV5.agentAddress = agentIp;
+  datagramV5.subAgentID = 0; // no sub agent
+  datagramV5.sequenceNumber = 0; // not used
+  datagramV5.uptime = 0; // not used
+  datagramV5.samplesCnt = 1; // So far only 1 sample encapsuled
+  datagramV5.samples = &record;
+
+  datagram.datagramV5 = datagramV5;
+  datagram.serialize(&rwCursor);
+
+  if (computeChecksum) {
+    // Need to revisit when we compute the checksum of UDP payload
+    // folly::io::Cursor payloadStart(rwCursor);
+    // uint16_t csum = udpHdr.computeChecksum(ipHdr, payloadStart);
+    // csumCursor.writeBE<uint16_t>(csum);
+  }
+  return txPacket;
+}
+
+std::unique_ptr<facebook::fboss::TxPacket> makeSflowV5Packet(
+    const AllocatePktFn& allocator,
+    std::optional<VlanID> vlan,
+    folly::MacAddress srcMac,
+    folly::MacAddress dstMac,
+    const folly::IPAddressV4& srcIp,
+    const folly::IPAddressV4& dstIp,
+    uint16_t srcPort,
+    uint16_t dstPort,
+    uint8_t dscp,
+    uint8_t ttl,
+    uint32_t ingressInterface,
+    uint32_t egressInterface,
+    uint32_t samplingRate,
+    bool computeChecksum,
+    std::optional<std::vector<uint8_t>> payload) {
+  if (!payload) {
+    payload = kDefaultPayload;
+  }
+  const auto& payloadBytes = payload.value();
+  // EthHdr
+  auto ethHdr = makeEthHdr(srcMac, dstMac, vlan, ETHERTYPE::ETHERTYPE_IPV4);
+  // TODO: This assumes the Sflow V5 packet contains one sample header
+  // and one sample record. Need to be computed dynamically.
+  auto sampleHdrSize = 104;
+
+  // IPv4Hdr - total_length field includes the payload + UDP hdr + ip hdr
+  IPv4Hdr ipHdr(
+      srcIp,
+      dstIp,
+      static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP),
+      payloadBytes.size() + UDPHeader::size() + sampleHdrSize);
+  ipHdr.dscp = dscp;
+  ipHdr.ttl = ttl;
+  ipHdr.computeChecksum();
+  // UDPHeader
+  UDPHeader udpHdr(
+      srcPort,
+      dstPort,
+      UDPHeader::size() + payloadBytes.size() + sampleHdrSize);
+
+  return makeSflowV5Packet(
+      allocator,
+      ethHdr,
+      ipHdr,
+      udpHdr,
+      computeChecksum,
+      folly::IPAddress(srcIp),
+      ingressInterface,
+      egressInterface,
+      samplingRate,
+      payloadBytes);
+}
+
+std::unique_ptr<facebook::fboss::TxPacket> makeSflowV5Packet(
+    const AllocatePktFn& allocator,
+    std::optional<VlanID> vlan,
+    folly::MacAddress srcMac,
+    folly::MacAddress dstMac,
+    const folly::IPAddressV6& srcIp,
+    const folly::IPAddressV6& dstIp,
+    uint16_t srcPort,
+    uint16_t dstPort,
+    uint8_t trafficClass,
+    uint8_t hopLimit,
+    uint32_t ingressInterface,
+    uint32_t egressInterface,
+    uint32_t samplingRate,
+    bool computeChecksum,
+    std::optional<std::vector<uint8_t>> payload) {
+  if (!payload) {
+    payload = kDefaultPayload;
+  }
+  const auto& payloadBytes = payload.value();
+  // EthHdr
+  auto ethHdr = makeEthHdr(srcMac, dstMac, vlan, ETHERTYPE::ETHERTYPE_IPV6);
+  // TODO: This assumes the Sflow V5 packet contains one sample header
+  // and one sample record. Need to be computed dynamically.
+  auto sampleHdrSize = 104;
+
+  // IPv6Hdr
+  IPv6Hdr ipHdr(srcIp, dstIp);
+  ipHdr.nextHeader = static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP);
+  ipHdr.trafficClass = trafficClass;
+  ipHdr.payloadLength = UDPHeader::size() + payloadBytes.size() + sampleHdrSize;
+  ipHdr.hopLimit = hopLimit;
+  // UDPHeader
+  UDPHeader udpHdr(
+      srcPort,
+      dstPort,
+      UDPHeader::size() + payloadBytes.size() + sampleHdrSize);
+
+  return makeSflowV5Packet(
+      allocator,
+      ethHdr,
+      ipHdr,
+      udpHdr,
+      computeChecksum,
+      folly::IPAddress(srcIp),
+      ingressInterface,
+      egressInterface,
+      samplingRate,
+      payloadBytes);
+}
+
+std::unique_ptr<facebook::fboss::TxPacket> makeSflowV5Packet(
+    const AllocatePktFn& allocator,
+    std::optional<VlanID> vlan,
+    folly::MacAddress srcMac,
+    folly::MacAddress dstMac,
+    const folly::IPAddress& srcIp,
+    const folly::IPAddress& dstIp,
+    uint16_t srcPort,
+    uint16_t dstPort,
+    uint8_t trafficClass,
+    uint8_t hopLimit,
+    uint32_t ingressInterface,
+    uint32_t egressInterface,
+    uint32_t samplingRate,
+    bool computeChecksum,
+    std::optional<std::vector<uint8_t>> payload) {
+  CHECK_EQ(srcIp.isV6(), dstIp.isV6());
+  if (srcIp.isV6()) {
+    return makeSflowV5Packet(
+        allocator,
+        vlan,
+        srcMac,
+        dstMac,
+        srcIp.asV6(),
+        dstIp.asV6(),
+        srcPort,
+        dstPort,
+        trafficClass,
+        hopLimit,
+        ingressInterface,
+        egressInterface,
+        samplingRate,
+        computeChecksum,
+        payload);
+  }
+  return makeSflowV5Packet(
+      allocator,
+      vlan,
+      srcMac,
+      dstMac,
+      srcIp.asV4(),
+      dstIp.asV4(),
+      srcPort,
+      dstPort,
+      trafficClass,
+      hopLimit,
+      ingressInterface,
+      egressInterface,
+      samplingRate,
+      computeChecksum,
+      payload);
+}
+
 } // namespace facebook::fboss::utility

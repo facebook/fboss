@@ -138,7 +138,9 @@ TEST(ThriftSetNodeTests, ThriftSetNodePrimitivesVisit) {
       node(data);
 
   folly::dynamic out;
-  auto f = [&out](auto& node) { out = node.toFollyDynamic(); };
+  auto f = [&out](auto& node, auto /*begin*/, auto /*end*/) {
+    out = node.toFollyDynamic();
+  };
 
   std::vector<std::string> path = {"1"};
   auto result = visitPath(node, path.begin(), path.end(), f);
@@ -163,8 +165,12 @@ TEST(ThriftSetNodeTests, ThriftSetNodePrimitivesVisitMutable) {
       node(data);
 
   folly::dynamic toWrite, out;
-  auto write = [&toWrite](auto& node) { node.fromFollyDynamic(toWrite); };
-  auto read = [&out](auto& node) { out = node.toFollyDynamic(); };
+  auto write = [&toWrite](auto& node, auto /*begin*/, auto /*end*/) {
+    node.fromFollyDynamic(toWrite);
+  };
+  auto read = [&out](auto& node, auto /*begin*/, auto /*end*/) {
+    out = node.toFollyDynamic();
+  };
 
   std::vector<std::string> path = {"1"};
   auto result = visitPath(node, path.begin(), path.end(), read);

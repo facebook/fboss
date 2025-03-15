@@ -243,6 +243,21 @@ static const std::string getFdrStatsKey(int errorsPerCodeword) {
   return folly::to<std::string>(kErrorsPerCodeword(), ".", errorsPerCodeword);
 }
 
+static const std::vector<PfcPriority> allPfcPriorities() {
+  static std::vector<PfcPriority> priorities;
+  if (priorities.empty()) {
+    for (int i = 0; i <= cfg::switch_config_constants::PFC_PRIORITY_VALUE_MAX();
+         i++) {
+      priorities.push_back(PfcPriority(i));
+    }
+  }
+  return priorities;
+}
+
+std::string getPriorityGroupStatsKey(folly::StringPiece statKey, int pg) {
+  return folly::to<std::string>(statKey, ".pg", pg);
+}
+
 } // namespace
 
 namespace facebook::fboss {
@@ -355,7 +370,7 @@ void BcmPort::reinitPortPfcStats(const std::shared_ptr<Port>& swPort) {
 
   XLOG(DBG3) << "Reinitializing PFC stats for " << portName;
   // Reinit per priority PFC statistics
-  for (auto priority : swPort->getPfcPriorities()) {
+  for (auto priority : allPfcPriorities()) {
     reinitPortStat(getPfcPriorityStatsKey(kInPfc(), priority), portName);
     reinitPortStat(getPfcPriorityStatsKey(kInPfcXon(), priority), portName);
     reinitPortStat(getPfcPriorityStatsKey(kOutPfc(), priority), portName);
@@ -402,6 +417,11 @@ void BcmPort::reinitPortStatsLocked(
     reinitPortPfcStats(swPort);
   }
 
+  for (int i = 0; i <= cfg::switch_config_constants::PORT_PG_VALUE_MAX(); ++i) {
+    reinitPortStat(
+        getPriorityGroupStatsKey(kInCongestionDiscards(), i), portName);
+  }
+
   if (swPort) {
     queueManager_->setPortName(portName);
     queueManager_->setupQueueCounters(swPort->getPortQueues()->impl());
@@ -439,12 +459,16 @@ void BcmPort::reinitPortFdrStats(const std::shared_ptr<Port>& swPort) {
           statName(getFdrStatsKey(i), portName),
           fb303::ExportTypeConsts::kSumRate);
     }
+    codewordStats_[i] = 0;
   }
 
   // In case max errors got reduced due to FEC mode changes
   while (fdrStats_.size() > fecMaxErrors) {
     fdrStats_.pop_back();
   }
+  std::erase_if(codewordStats_, [fecMaxErrors](auto& kv) {
+    return kv.first > fecMaxErrors;
+  });
 }
 
 BcmPort::BcmPort(BcmSwitch* hw, bcm_port_t port, BcmPlatformPort* platformPort)
@@ -1060,15 +1084,13 @@ void BcmPort::setupStatsIfNeeded(const std::shared_ptr<Port>& swPort) {
     // - updated (2,6 -> 2,7)
     // Clear the existing counters and reinit the new list
     if (savedPort) {
-      auto pfcPriorities = savedPort->getPfcPriorities();
-      removePortPfcStatsLocked(lockedPortStatsPtr, swPort, pfcPriorities);
+      removePortPfcStatsLocked(lockedPortStatsPtr, swPort, allPfcPriorities());
     }
     reinitPortStatsLocked(lockedPortStatsPtr, swPort);
   }
   if (savedPort && hasPfcStatusChangedToDisabled(savedPort, swPort)) {
     // Remove stats in case PFC is disabled for previously enabled priorities
-    auto pfcPriorities = savedPort->getPfcPriorities();
-    removePortPfcStatsLocked(lockedPortStatsPtr, swPort, pfcPriorities);
+    removePortPfcStatsLocked(lockedPortStatsPtr, swPort, allPfcPriorities());
   }
 
   // Set bcmPortControlStatOversize to max frame size so that we don't trigger
@@ -1218,6 +1240,11 @@ phy::PhyInfo BcmPort::updateIPhyInfo() {
         if (auto lastFec = lastPcs->rsFec()) {
           lastRsFec = *lastFec;
         }
+      }
+      if (hw_->getPlatform()->getAsic()->isSupported(
+              HwAsic::Feature::FEC_DIAG_COUNTERS)) {
+        rsFec.codewordStats() = codewordStats_;
+        utility::updateFecTail(rsFec, lastRsFec, fecMode);
       }
       std::optional<uint64_t> correctedBitsFromHw;
 #if defined(BCM_SDK_VERSION_GTE_6_5_26)
@@ -1451,17 +1478,19 @@ void BcmPort::updateStats() {
 
   auto settings = getProgrammedSettings();
   uint64_t inCongestionDiscards = 0;
+  std::map<int16_t, int64_t> pgInCongestionDiscards;
   if (isMmuLossless()) {
     // although this stat can be derived in the lossy world as well, but use
     // case is only for mmu lossless
-    updateInCongestionDiscardStats(now, &inCongestionDiscards);
+    updateInCongestionDiscardStats(
+        now, &inCongestionDiscards, &pgInCongestionDiscards);
     *curPortStats.inCongestionDiscards_() = inCongestionDiscards;
+    *curPortStats.pgInCongestionDiscards_() = pgInCongestionDiscards;
   }
 
   // InDiscards will be read along with PFC if PFC is enabled
   if (settings && settings->getPfc().has_value()) {
-    auto pfcPriorities = settings->getPfcPriorities();
-    updatePortPfcStats(now, curPortStats, pfcPriorities);
+    updatePortPfcStats(now, curPortStats, allPfcPriorities());
   } else {
     updateStat(
         now,
@@ -1625,6 +1654,7 @@ void BcmPort::updateFdrStats(__attribute__((unused)) std::chrono::seconds now) {
 
   for (int i = 0; i < kCodewordErrorsPageSize; ++i) {
     fdrStats_[i].incrementValue(now, increments[i]);
+    codewordStats_[i] += increments[i];
   }
 
   if (pages > 1) {
@@ -1768,7 +1798,8 @@ void BcmPort::updateStat(
 
 void BcmPort::updateInCongestionDiscardStats(
     std::chrono::seconds now,
-    uint64_t* portStatVal) {
+    uint64_t* portStatVal,
+    std::map<int16_t, int64_t>* /*portPgStatVal*/) {
   *portStatVal = 0;
   auto rv = bcm_cosq_stat_get(
       hw_->getUnit(),
@@ -1782,6 +1813,12 @@ void BcmPort::updateInCongestionDiscardStats(
   }
   auto stat = getPortCounterIf(kInCongestionDiscards());
   stat->updateValue(now, *portStatVal);
+
+  for (int16_t priority = 0;
+       priority <= cfg::switch_config_constants::PORT_PG_VALUE_MAX();
+       ++priority) {
+    // TODO(maxgg); Query flexctr
+  }
 }
 
 void BcmPort::updateWredStats(std::chrono::seconds now, int64_t* portStatVal) {
@@ -2011,6 +2048,7 @@ void BcmPort::disableStatCollection() {
           HwAsic::Feature::FEC_DIAG_COUNTERS)) {
     fdrStatConfigure(unit_, port_, false);
     fdrStats_.clear();
+    codewordStats_.clear();
   }
 
   destroyAllPortStatsLocked(lockedPortStatsPtr);

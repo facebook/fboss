@@ -294,6 +294,38 @@ const std::vector<sai_stat_id_t>& SaiQueueTraits::egressGvoqWatermarkBytes() {
   return stats;
 }
 
+const std::vector<sai_stat_id_t>&
+SaiSwitchTraits::sramMinBufferWatermarkBytes() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>& SaiSwitchTraits::fdrFifoWatermarkBytes() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>& SaiSwitchTraits::egressFabricCellError() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>& SaiSwitchTraits::egressNonFabricCellError() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>&
+SaiSwitchTraits::egressNonFabricCellUnpackError() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>& SaiSwitchTraits::egressParityCellError() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
 std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeVoqLatencyMinLocalNs::operator()() {
   return SAI_SWITCH_ATTR_VOQ_LATENCY_MIN_LOCAL;
@@ -377,6 +409,11 @@ SaiSwitchTraits::Attributes::AttributeShelSrcMac::operator()() {
 std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeShelPeriodicInterval::operator()() {
   return SAI_SWITCH_ATTR_SHEL_PERIODIC_INTERVAL;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeSflowAggrNofSamplesWrapper::operator()() {
+  return SAI_SWITCH_ATTR_SFLOW_AGGR_NOF_SAMPLES;
 }
 
 std::optional<sai_attr_id_t>
@@ -548,4 +585,35 @@ std::optional<sai_attr_id_t>
 SaiSystemPortTraits::Attributes::AttributeShelPktDstEnable::operator()() {
   return std::nullopt;
 }
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeFirmwareCoreTouse::operator()() {
+  return SAI_SWITCH_ATTR_FIRMWARE_CORE_TO_USE;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeFirmwareLogFile::operator()() {
+  return SAI_SWITCH_ATTR_FIRMWARE_LOG_FILE;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeMaxSwitchId::operator()() {
+  return SAI_SWITCH_ATTR_MAX_SWITCH_ID;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeArsAvailableFlows::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeSdkRegDumpLogPath::operator()() {
+  return SAI_SWITCH_ATTR_SDK_REG_DUMP_LOG_PATH;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeFirmwareObjectList::operator()() {
+  return SAI_SWITCH_ATTR_FIRMWARE_OBJECT_LIST;
+}
+
 } // namespace facebook::fboss

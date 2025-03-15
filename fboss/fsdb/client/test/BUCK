@@ -32,6 +32,7 @@ cpp_unittest(
         "//fboss/fsdb/client:fsdb_cow_state_sub_manager",
         "//fboss/fsdb/client:fsdb_cow_stats_sub_manager",
         "//fboss/fsdb/client:fsdb_pub_sub",
+        "//fboss/fsdb/common:utils",
         "//fboss/fsdb/tests/utils:fsdb_test_server",
         "//fboss/lib:common_utils",
         "//fboss/lib/thrift_service_client:thrift-service-client",

@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 
 namespace facebook::fboss {
@@ -16,7 +17,8 @@ namespace facebook::fboss {
 class Meru800biaPlatformMapping : public PlatformMapping {
  public:
   Meru800biaPlatformMapping();
-  Meru800biaPlatformMapping(const std::string& platformMappingStr);
+  explicit Meru800biaPlatformMapping(const std::string& platformMappingStr);
+  explicit Meru800biaPlatformMapping(HwAsic::InterfaceNodeRole intfRole);
 
  private:
   // Forbidden copy constructor and assignment operator

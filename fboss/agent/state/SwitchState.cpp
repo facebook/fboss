@@ -26,6 +26,7 @@
 #include "fboss/agent/state/IpTunnel.h"
 #include "fboss/agent/state/IpTunnelMap.h"
 #include "fboss/agent/state/LabelForwardingInformationBase.h"
+#include "fboss/agent/state/MirrorOnDropReportMap.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortMap.h"
 #include "fboss/agent/state/QosPolicyMap.h"
@@ -295,6 +296,11 @@ void SwitchState::resetMirrors(
   ref<switch_state_tags::mirrorMaps>() = mirrors;
 }
 
+void SwitchState::resetMirrorOnDropReports(
+    const std::shared_ptr<MultiSwitchMirrorOnDropReportMap>& reports) {
+  ref<switch_state_tags::mirrorOnDropReportMaps>() = reports;
+}
+
 const std::shared_ptr<MultiSwitchSflowCollectorMap>&
 SwitchState::getSflowCollectors() const {
   return safe_cref<switch_state_tags::sflowCollectorMaps>();
@@ -302,6 +308,11 @@ SwitchState::getSflowCollectors() const {
 
 const std::shared_ptr<MultiSwitchMirrorMap>& SwitchState::getMirrors() const {
   return safe_cref<switch_state_tags::mirrorMaps>();
+}
+
+const std::shared_ptr<MultiSwitchMirrorOnDropReportMap>&
+SwitchState::getMirrorOnDropReports() const {
+  return safe_cref<switch_state_tags::mirrorOnDropReportMaps>();
 }
 
 const std::shared_ptr<MultiSwitchQosPolicyMap>& SwitchState::getQosPolicies()
@@ -819,6 +830,8 @@ template MultiSwitchInterfaceMap* SwitchState::modify<
     switch_state_tags::remoteInterfaceMaps>(std::shared_ptr<SwitchState>*);
 template MultiSwitchMirrorMap* SwitchState::modify<
     switch_state_tags::mirrorMaps>(std::shared_ptr<SwitchState>*);
+template MultiSwitchMirrorOnDropReportMap* SwitchState::modify<
+    switch_state_tags::mirrorOnDropReportMaps>(std::shared_ptr<SwitchState>*);
 template MultiSwitchIpTunnelMap* SwitchState::modify<
     switch_state_tags::ipTunnelMaps>(std::shared_ptr<SwitchState>*);
 template MultiSwitchSystemPortMap* SwitchState::modify<

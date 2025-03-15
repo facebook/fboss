@@ -10,6 +10,7 @@
 #include "fboss/fsdb/common/Flags.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_common_constants.h"
 #include "fboss/fsdb/oper/PathValidator.h"
+#include "fboss/fsdb/oper/SubscriptionCommon.h"
 #include "folly/CancellationToken.h"
 
 #include <algorithm>
@@ -34,8 +35,8 @@ DEFINE_bool(
 DEFINE_bool(trackMetadata, true, "Enable metadata tracking");
 
 DEFINE_int32(
-    statsSubscriptionServe_s,
-    10,
+    statsSubscriptionServe_ms,
+    10000,
     "Interval at which stats subscriptions are served");
 
 DEFINE_int32(
@@ -158,11 +159,16 @@ Path buildPathUnion(facebook::fboss::fsdb::OperPublisherInfo info) {
 void updateMetadata(facebook::fboss::fsdb::OperMetadata& metadata) {
   // Timestamp at server if chunk was not timestamped
   // by publisher
-  if (!metadata.lastConfirmedAt()) {
-    auto now = std::chrono::system_clock::now();
-    metadata.lastConfirmedAt() =
-        std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch())
-            .count();
+  if (!metadata.lastConfirmedAt() || !metadata.lastPublishedAt()) {
+    auto now = std::chrono::system_clock::now().time_since_epoch();
+    if (!metadata.lastConfirmedAt()) {
+      metadata.lastConfirmedAt() =
+          std::chrono::duration_cast<std::chrono::seconds>(now).count();
+    }
+    if (!metadata.lastPublishedAt()) {
+      metadata.lastPublishedAt() =
+          std::chrono::duration_cast<std::chrono::milliseconds>(now).count();
+    }
   }
 }
 
@@ -254,15 +260,18 @@ ServiceHandler::ServiceHandler(
               FLAGS_trackMetadata,
               "fsdb",
               options_.serveIdPathSubs,
+              true,
               true)),
       operStatsStorage_(
           {},
           NaivePeriodicSubscribableStorageBase::StorageParams(
-              std::chrono::seconds(FLAGS_statsSubscriptionServe_s),
+              std::chrono::milliseconds(FLAGS_statsSubscriptionServe_ms),
               std::chrono::seconds(FLAGS_statsSubscriptionHeartbeat_s),
               FLAGS_trackMetadata,
-              "fsdb",
-              options_.serveIdPathSubs)) {
+              "stats",
+              options_.serveIdPathSubs,
+              true,
+              true)) {
   num_instances_.incrementValue(1);
 
   initPerStreamCounters();
@@ -593,37 +602,47 @@ ServiceHandler::co_publishStats(std::unique_ptr<PubRequest> request) {
 
 namespace {
 
-OperSubscriberInfo
-makeSubscriberInfo(const OperSubRequest& req, PubSubType type, bool isStats) {
+OperSubscriberInfo makeSubscriberInfo(
+    const OperSubRequest& req,
+    PubSubType type,
+    bool isStats,
+    uint64_t uid) {
   OperSubscriberInfo info;
   info.subscriberId() = *req.subscriberId();
   info.type() = type;
   info.path() = *req.path();
   info.isStats() = isStats;
   info.subscribedSince() = static_cast<int64_t>(std::time(nullptr));
+  info.subscriptionUid() = uid;
   return info;
 }
 
 OperSubscriberInfo makeSubscriberInfo(
     const OperSubRequestExtended& req,
     PubSubType type,
-    bool isStats) {
+    bool isStats,
+    uint64_t uid) {
   OperSubscriberInfo info;
   info.subscriberId() = *req.subscriberId();
   info.type() = type;
   info.extendedPaths() = *req.paths();
   info.isStats() = isStats;
   info.subscribedSince() = static_cast<int64_t>(std::time(nullptr));
+  info.subscriptionUid() = uid;
   return info;
 }
 
-OperSubscriberInfo
-makeSubscriberInfo(const SubRequest& req, PubSubType type, bool isStats) {
+OperSubscriberInfo makeSubscriberInfo(
+    const SubRequest& req,
+    PubSubType type,
+    bool isStats,
+    uint64_t uid) {
   OperSubscriberInfo info;
   info.subscriberId() = *req.clientId()->instanceId();
   info.type() = type;
   info.paths() = *req.paths();
   info.isStats() = isStats;
+  info.subscriptionUid() = uid;
   return info;
 }
 
@@ -638,6 +657,12 @@ void validatePaths(
 }
 
 } // namespace
+
+SubscriptionIdentifier ServiceHandler::makeSubscriptionIdentifier(
+    const OperSubscriberInfo& info) {
+  CHECK(info.subscriptionUid().has_value());
+  return SubscriptionIdentifier(*info.subscriberId(), *info.subscriptionUid());
+}
 
 void ServiceHandler::updateSubscriptionCounters(
     const OperSubscriberInfo& info,
@@ -754,31 +779,66 @@ void ServiceHandler::unregisterSubscription(const OperSubscriberInfo& info) {
 folly::coro::AsyncGenerator<DeltaValue<OperState>&&>
 ServiceHandler::makeStateStreamGenerator(
     std::unique_ptr<OperSubRequest> request,
-    bool isStats) {
+    bool isStats,
+    SubscriptionIdentifier&& subId) {
+  SubscriptionStorageParams subscriptionParams;
+  if (request->heartbeatInterval().has_value()) {
+    subscriptionParams.heartbeatInterval_ =
+        std::chrono::seconds(request->heartbeatInterval().value());
+  }
+
   return isStats ? operStatsStorage_.subscribe_encoded(
-                       *request->subscriberId(),
+                       std::move(subId),
                        request->path()->raw()->begin(),
                        request->path()->raw()->end(),
-                       *request->protocol())
+                       *request->protocol(),
+                       subscriptionParams)
                  : operStorage_.subscribe_encoded(
-                       *request->subscriberId(),
+                       std::move(subId),
                        request->path()->raw()->begin(),
                        request->path()->raw()->end(),
-                       *request->protocol());
+                       *request->protocol(),
+                       subscriptionParams);
 }
 
 folly::coro::AsyncGenerator<std::vector<DeltaValue<TaggedOperState>>&&>
 ServiceHandler::makeExtendedStateStreamGenerator(
     std::unique_ptr<OperSubRequestExtended> request,
-    bool isStats) {
+    bool isStats,
+    SubscriptionIdentifier&& subId) {
+  SubscriptionStorageParams subscriptionParams;
+  if (request->heartbeatInterval().has_value()) {
+    subscriptionParams.heartbeatInterval_ =
+        std::chrono::seconds(request->heartbeatInterval().value());
+  }
+
   return isStats ? operStatsStorage_.subscribe_encoded_extended(
-                       *request->subscriberId(),
+                       std::move(subId),
                        std::move(*request->paths()),
-                       *request->protocol())
+                       *request->protocol(),
+                       subscriptionParams)
                  : operStorage_.subscribe_encoded_extended(
-                       *request->subscriberId(),
+                       std::move(subId),
                        std::move(*request->paths()),
-                       *request->protocol());
+                       *request->protocol(),
+                       subscriptionParams);
+}
+
+folly::coro::AsyncGenerator<SubscriberMessage&&>
+ServiceHandler::makePatchStreamGenerator(
+    std::unique_ptr<SubRequest> request,
+    bool isStats,
+    SubscriptionIdentifier&& subId) {
+  SubscriptionStorageParams subscriptionParams;
+  if (request->heartbeatInterval().has_value()) {
+    subscriptionParams.heartbeatInterval_ =
+        std::chrono::seconds(request->heartbeatInterval().value());
+  }
+
+  return isStats ? operStatsStorage_.subscribe_patch(
+                       std::move(subId), *request->paths(), subscriptionParams)
+                 : operStorage_.subscribe_patch(
+                       std::move(subId), *request->paths(), subscriptionParams);
 }
 
 folly::coro::Task<
@@ -788,7 +848,9 @@ ServiceHandler::co_subscribeOperStatePath(
   auto log = LOG_THRIFT_CALL(INFO, getRequestDetails(*request));
   PathValidator::validateStatePath(*request->path()->raw());
 
-  auto subscriberInfo = makeSubscriberInfo(*request, PubSubType::PATH, false);
+  auto subscriberInfo = makeSubscriberInfo(
+      *request, PubSubType::PATH, false, lastSubscriptionUid_.fetch_add(1));
+  auto subId = makeSubscriptionIdentifier(subscriberInfo);
   registerSubscription(subscriberInfo, *request->forceSubscribe());
   auto cleanupSubscriber =
       folly::makeGuard([this, subscriberInfo = std::move(subscriberInfo)]() {
@@ -800,10 +862,11 @@ ServiceHandler::co_subscribeOperStatePath(
       folly::coro::co_invoke(
           [this,
            request = std::move(request),
+           subId = std::move(subId),
            cleanupSubscriber = std::move(cleanupSubscriber)]() mutable
           -> folly::coro::AsyncGenerator<OperState&&> {
-            auto generator =
-                makeStateStreamGenerator(std::move(request), false);
+            auto generator = makeStateStreamGenerator(
+                std::move(request), false, std::move(subId));
             while (auto item = co_await generator.next()) {
               // got value
               auto&& delta = *item;
@@ -826,7 +889,9 @@ ServiceHandler::co_subscribeOperStatsPath(
   auto log = LOG_THRIFT_CALL(INFO, getRequestDetails(*request));
   PathValidator::validateStatsPath(*request->path()->raw());
 
-  auto subscriberInfo = makeSubscriberInfo(*request, PubSubType::PATH, true);
+  auto subscriberInfo = makeSubscriberInfo(
+      *request, PubSubType::PATH, true, lastSubscriptionUid_.fetch_add(1));
+  auto subId = makeSubscriptionIdentifier(subscriberInfo);
   registerSubscription(subscriberInfo, *request->forceSubscribe());
   auto cleanupSubscriber =
       folly::makeGuard([this, subscriberInfo = std::move(subscriberInfo)]() {
@@ -838,9 +903,11 @@ ServiceHandler::co_subscribeOperStatsPath(
       folly::coro::co_invoke(
           [this,
            request = std::move(request),
+           subId = std::move(subId),
            cleanupSubscriber = std::move(cleanupSubscriber)]() mutable
           -> folly::coro::AsyncGenerator<OperState&&> {
-            auto generator = makeStateStreamGenerator(std::move(request), true);
+            auto generator = makeStateStreamGenerator(
+                std::move(request), true, std::move(subId));
             while (auto item = co_await generator.next()) {
               // got value
               auto&& delta = *item;
@@ -859,28 +926,49 @@ ServiceHandler::co_subscribeOperStatsPath(
 folly::coro::AsyncGenerator<OperDelta&&>
 ServiceHandler::makeDeltaStreamGenerator(
     std::unique_ptr<OperSubRequest> request,
-    bool isStats) {
+    bool isStats,
+    SubscriptionIdentifier&& subId) {
+  SubscriptionStorageParams subscriptionParams;
+  if (request->heartbeatInterval().has_value()) {
+    subscriptionParams.heartbeatInterval_ =
+        std::chrono::seconds(request->heartbeatInterval().value());
+  }
+
   return isStats ? operStatsStorage_.subscribe_delta(
-                       *request->subscriberId(),
+                       std::move(subId),
                        request->path()->raw()->begin(),
                        request->path()->raw()->end(),
-                       *request->protocol())
+                       *request->protocol(),
+                       subscriptionParams)
                  : operStorage_.subscribe_delta(
-                       *request->subscriberId(),
+                       std::move(subId),
                        request->path()->raw()->begin(),
                        request->path()->raw()->end(),
-                       *request->protocol());
+                       *request->protocol(),
+                       subscriptionParams);
 }
 
 folly::coro::AsyncGenerator<std::vector<TaggedOperDelta>&&>
 ServiceHandler::makeExtendedDeltaStreamGenerator(
     std::unique_ptr<OperSubRequestExtended> request,
-    bool isStats) {
-  return isStats
-      ? operStatsStorage_.subscribe_delta_extended(
-            *request->subscriberId(), *request->paths(), *request->protocol())
-      : operStorage_.subscribe_delta_extended(
-            *request->subscriberId(), *request->paths(), *request->protocol());
+    bool isStats,
+    SubscriptionIdentifier&& subId) {
+  SubscriptionStorageParams subscriptionParams;
+  if (request->heartbeatInterval().has_value()) {
+    subscriptionParams.heartbeatInterval_ =
+        std::chrono::seconds(request->heartbeatInterval().value());
+  }
+
+  return isStats ? operStatsStorage_.subscribe_delta_extended(
+                       std::move(subId),
+                       *request->paths(),
+                       *request->protocol(),
+                       subscriptionParams)
+                 : operStorage_.subscribe_delta_extended(
+                       std::move(subId),
+                       *request->paths(),
+                       *request->protocol(),
+                       subscriptionParams);
 }
 
 folly::coro::Task<
@@ -890,7 +978,9 @@ ServiceHandler::co_subscribeOperStateDelta(
   auto log = LOG_THRIFT_CALL(INFO, getRequestDetails(*request));
   PathValidator::validateStatePath(*request->path()->raw());
 
-  auto subscriberInfo = makeSubscriberInfo(*request, PubSubType::DELTA, false);
+  auto subscriberInfo = makeSubscriberInfo(
+      *request, PubSubType::DELTA, false, lastSubscriptionUid_.fetch_add(1));
+  auto subId = makeSubscriptionIdentifier(subscriberInfo);
   registerSubscription(subscriberInfo, *request->forceSubscribe());
   auto cleanupSubscriber =
       folly::makeGuard([this, subscriberInfo = std::move(subscriberInfo)]() {
@@ -902,10 +992,11 @@ ServiceHandler::co_subscribeOperStateDelta(
       folly::coro::co_invoke(
           [this,
            request = std::move(request),
+           subId = std::move(subId),
            cleanupSubscriber = std::move(cleanupSubscriber)]() mutable
           -> folly::coro::AsyncGenerator<OperDelta&&> {
-            auto generator =
-                makeDeltaStreamGenerator(std::move(request), false);
+            auto generator = makeDeltaStreamGenerator(
+                std::move(request), false, std::move(subId));
             while (auto item = co_await generator.next()) {
               // got value
               co_yield std::move(*item);
@@ -922,7 +1013,9 @@ ServiceHandler::co_subscribeOperStatePathExtended(
 
   PathValidator::validateExtendedStatePaths(*request->paths());
 
-  auto subscriberInfo = makeSubscriberInfo(*request, PubSubType::PATH, false);
+  auto subscriberInfo = makeSubscriberInfo(
+      *request, PubSubType::PATH, false, lastSubscriptionUid_.fetch_add(1));
+  auto subId = makeSubscriptionIdentifier(subscriberInfo);
   registerSubscription(subscriberInfo, *request->forceSubscribe());
   auto cleanupSubscriber =
       folly::makeGuard([this, subscriberInfo = std::move(subscriberInfo)]() {
@@ -934,10 +1027,11 @@ ServiceHandler::co_subscribeOperStatePathExtended(
       folly::coro::co_invoke(
           [this,
            request = std::move(request),
+           subId = std::move(subId),
            cleanupSubscriber = std::move(cleanupSubscriber)]() mutable
           -> folly::coro::AsyncGenerator<OperSubPathUnit&&> {
-            auto generator =
-                makeExtendedStateStreamGenerator(std::move(request), false);
+            auto generator = makeExtendedStateStreamGenerator(
+                std::move(request), false, std::move(subId));
             while (auto item = co_await generator.next()) {
               // got item
               auto&& deltas = *item;
@@ -968,7 +1062,9 @@ ServiceHandler::co_subscribeOperStateDeltaExtended(
 
   PathValidator::validateExtendedStatePaths(*request->paths());
 
-  auto subscriberInfo = makeSubscriberInfo(*request, PubSubType::DELTA, false);
+  auto subscriberInfo = makeSubscriberInfo(
+      *request, PubSubType::DELTA, false, lastSubscriptionUid_.fetch_add(1));
+  auto subId = makeSubscriptionIdentifier(subscriberInfo);
   registerSubscription(subscriberInfo, *request->forceSubscribe());
   auto cleanupSubscriber =
       folly::makeGuard([this, subscriberInfo = std::move(subscriberInfo)]() {
@@ -980,10 +1076,11 @@ ServiceHandler::co_subscribeOperStateDeltaExtended(
       folly::coro::co_invoke(
           [this,
            request = std::move(request),
+           subId = std::move(subId),
            cleanupSubscriber = std::move(cleanupSubscriber)]() mutable
           -> folly::coro::AsyncGenerator<OperSubDeltaUnit&&> {
-            auto generator =
-                makeExtendedDeltaStreamGenerator(std::move(request), false);
+            auto generator = makeExtendedDeltaStreamGenerator(
+                std::move(request), false, std::move(subId));
             while (auto item = co_await generator.next()) {
               // got item
               auto&& delta = *item;
@@ -1004,7 +1101,9 @@ ServiceHandler::co_subscribeOperStatsDelta(
   auto log = LOG_THRIFT_CALL(INFO, getRequestDetails(*request));
   PathValidator::validateStatsPath(*request->path()->raw());
 
-  auto subscriberInfo = makeSubscriberInfo(*request, PubSubType::DELTA, true);
+  auto subscriberInfo = makeSubscriberInfo(
+      *request, PubSubType::DELTA, true, lastSubscriptionUid_.fetch_add(1));
+  auto subId = makeSubscriptionIdentifier(subscriberInfo);
   registerSubscription(subscriberInfo, *request->forceSubscribe());
   auto cleanupSubscriber =
       folly::makeGuard([this, subscriberInfo = std::move(subscriberInfo)]() {
@@ -1016,9 +1115,11 @@ ServiceHandler::co_subscribeOperStatsDelta(
       folly::coro::co_invoke(
           [this,
            request = std::move(request),
+           subId = std::move(subId),
            cleanupSubscriber = std::move(cleanupSubscriber)]() mutable
           -> folly::coro::AsyncGenerator<OperDelta&&> {
-            auto generator = makeDeltaStreamGenerator(std::move(request), true);
+            auto generator = makeDeltaStreamGenerator(
+                std::move(request), true, std::move(subId));
             while (auto item = co_await generator.next()) {
               // got value
               co_yield std::move(*item);
@@ -1035,7 +1136,9 @@ ServiceHandler::co_subscribeOperStatsPathExtended(
 
   PathValidator::validateExtendedStatsPaths(*request->paths());
 
-  auto subscriberInfo = makeSubscriberInfo(*request, PubSubType::PATH, true);
+  auto subscriberInfo = makeSubscriberInfo(
+      *request, PubSubType::PATH, true, lastSubscriptionUid_.fetch_add(1));
+  auto subId = makeSubscriptionIdentifier(subscriberInfo);
   registerSubscription(subscriberInfo, *request->forceSubscribe());
   auto cleanupSubscriber =
       folly::makeGuard([this, subscriberInfo = std::move(subscriberInfo)]() {
@@ -1047,10 +1150,11 @@ ServiceHandler::co_subscribeOperStatsPathExtended(
       folly::coro::co_invoke(
           [this,
            request = std::move(request),
+           subId = std::move(subId),
            cleanupSubscriber = std::move(cleanupSubscriber)]() mutable
           -> folly::coro::AsyncGenerator<OperSubPathUnit&&> {
-            auto generator =
-                makeExtendedStateStreamGenerator(std::move(request), true);
+            auto generator = makeExtendedStateStreamGenerator(
+                std::move(request), true, std::move(subId));
             while (auto item = co_await generator.next()) {
               // got item
               auto&& deltas = *item;
@@ -1081,7 +1185,9 @@ ServiceHandler::co_subscribeOperStatsDeltaExtended(
 
   PathValidator::validateExtendedStatsPaths(*request->paths());
 
-  auto subscriberInfo = makeSubscriberInfo(*request, PubSubType::DELTA, true);
+  auto subscriberInfo = makeSubscriberInfo(
+      *request, PubSubType::DELTA, true, lastSubscriptionUid_.fetch_add(1));
+  auto subId = makeSubscriptionIdentifier(subscriberInfo);
   registerSubscription(subscriberInfo, *request->forceSubscribe());
   auto cleanupSubscriber =
       folly::makeGuard([this, subscriberInfo = std::move(subscriberInfo)]() {
@@ -1093,10 +1199,11 @@ ServiceHandler::co_subscribeOperStatsDeltaExtended(
       folly::coro::co_invoke(
           [this,
            request = std::move(request),
+           subId = std::move(subId),
            cleanupSubscriber = std::move(cleanupSubscriber)]() mutable
           -> folly::coro::AsyncGenerator<OperSubDeltaUnit&&> {
-            auto generator =
-                makeExtendedDeltaStreamGenerator(std::move(request), true);
+            auto generator = makeExtendedDeltaStreamGenerator(
+                std::move(request), true, std::move(subId));
             while (auto item = co_await generator.next()) {
               // got item
               auto&& delta = *item;
@@ -1116,7 +1223,9 @@ folly::coro::Task<apache::thrift::ResponseAndServerStream<
 ServiceHandler::co_subscribeState(std::unique_ptr<SubRequest> request) {
   auto log = LOG_THRIFT_CALL(INFO, getRequestDetails(*request));
   validatePaths(*request->paths(), false);
-  auto subscriberInfo = makeSubscriberInfo(*request, PubSubType::PATCH, false);
+  auto subscriberInfo = makeSubscriberInfo(
+      *request, PubSubType::PATCH, false, lastSubscriptionUid_.fetch_add(1));
+  auto subId = makeSubscriptionIdentifier(subscriberInfo);
   registerSubscription(subscriberInfo, *request->forceSubscribe());
   auto cleanupSubscriber =
       folly::makeGuard([this, subscriberInfo = std::move(subscriberInfo)]() {
@@ -1125,10 +1234,11 @@ ServiceHandler::co_subscribeState(std::unique_ptr<SubRequest> request) {
   auto stream = folly::coro::co_invoke(
       [this,
        request = std::move(request),
+       subId = std::move(subId),
        cleanupSubscriber = std::move(cleanupSubscriber)]() mutable
       -> folly::coro::AsyncGenerator<SubscriberMessage&&> {
-        return operStorage_.subscribe_patch(
-            *request->clientId()->instanceId(), *request->paths());
+        return makePatchStreamGenerator(
+            std::move(request), false, std::move(subId));
       });
   co_return {{}, std::move(stream)};
 }
@@ -1139,7 +1249,9 @@ folly::coro::Task<apache::thrift::ResponseAndServerStream<
 ServiceHandler::co_subscribeStats(std::unique_ptr<SubRequest> request) {
   auto log = LOG_THRIFT_CALL(INFO, getRequestDetails(*request));
   validatePaths(*request->paths(), true);
-  auto subscriberInfo = makeSubscriberInfo(*request, PubSubType::PATCH, true);
+  auto subscriberInfo = makeSubscriberInfo(
+      *request, PubSubType::PATCH, true, lastSubscriptionUid_.fetch_add(1));
+  auto subId = makeSubscriptionIdentifier(subscriberInfo);
   registerSubscription(subscriberInfo, *request->forceSubscribe());
   auto cleanupSubscriber =
       folly::makeGuard([this, subscriberInfo = std::move(subscriberInfo)]() {
@@ -1148,10 +1260,11 @@ ServiceHandler::co_subscribeStats(std::unique_ptr<SubRequest> request) {
   auto stream = folly::coro::co_invoke(
       [this,
        request = std::move(request),
+       subId = std::move(subId),
        cleanupSubscriber = std::move(cleanupSubscriber)]() mutable
       -> folly::coro::AsyncGenerator<SubscriberMessage&&> {
-        return operStatsStorage_.subscribe_patch(
-            *request->clientId()->instanceId(), *request->paths());
+        return makePatchStreamGenerator(
+            std::move(request), true, std::move(subId));
       });
   co_return {{}, std::move(stream)};
 }
@@ -1253,6 +1366,34 @@ ServiceHandler::co_getOperPublisherInfos(
   co_return publishers;
 }
 
+// helper to merge values from OperSubscriberInfo
+void mergeOperSubscriberInfo(
+    SubscriberIdToOperSubscriberInfos& infos,
+    const std::vector<OperSubscriberInfo>& mergeInfo) {
+  std::map<uint64_t, SubscriberId> subscriberUids;
+  for (const auto& it : infos) {
+    for (const auto& sub : it.second) {
+      CHECK(sub.subscriptionUid().has_value());
+      subscriberUids[*sub.subscriptionUid()] = *sub.subscriberId();
+    }
+  }
+  for (const auto& subInfo : mergeInfo) {
+    CHECK(subInfo.subscriptionUid().has_value());
+    auto it = subscriberUids.find(*subInfo.subscriptionUid());
+    if (it != subscriberUids.end()) {
+      for (auto& sub : infos[it->second]) {
+        CHECK(sub.subscriptionUid().has_value());
+        if (*sub.subscriptionUid() == *subInfo.subscriptionUid()) {
+          if (subInfo.subscriptionQueueWatermark().has_value()) {
+            sub.subscriptionQueueWatermark() =
+                *subInfo.subscriptionQueueWatermark();
+          }
+        }
+      }
+    }
+  }
+}
+
 folly::coro::Task<std::unique_ptr<SubscriberIdToOperSubscriberInfos>>
 ServiceHandler::co_getAllOperSubscriberInfos() {
   auto log = LOG_THRIFT_CALL(INFO);
@@ -1263,6 +1404,8 @@ ServiceHandler::co_getAllOperSubscriberInfos() {
       (*subscriptions)[*subscription.subscriberId()].push_back(subscription);
     }
   });
+  mergeOperSubscriberInfo(*subscriptions, operStorage_.getSubscriptions());
+  mergeOperSubscriberInfo(*subscriptions, operStatsStorage_.getSubscriptions());
   co_return subscriptions;
 }
 
@@ -1281,6 +1424,8 @@ ServiceHandler::co_getOperSubscriberInfos(
       (*subscriptions)[*subscription.subscriberId()].push_back(subscription);
     }
   });
+  mergeOperSubscriberInfo(*subscriptions, operStorage_.getSubscriptions());
+  mergeOperSubscriberInfo(*subscriptions, operStatsStorage_.getSubscriptions());
   co_return subscriptions;
 }
 

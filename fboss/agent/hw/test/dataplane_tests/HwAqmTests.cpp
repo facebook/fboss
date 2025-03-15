@@ -168,11 +168,11 @@ class HwAqmTest : public HwLinkStateDependentTest {
       bool ensure = false,
       int payloadLen = kDefaultTxPayloadBytes,
       int ttl = 255,
-      std::optional<PortID> outPort = std::nullopt) {
+      std::optional<PortID> outPort = std::nullopt,
+      std::optional<VlanID> vlanId = std::nullopt) {
     dscpVal = static_cast<uint8_t>(dscpVal << 2);
     dscpVal |= ecnVal;
 
-    auto vlanId = utility::firstVlanID(initialConfig());
     auto intfMac = getIntfMac();
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
     auto txPacket = utility::makeTCPTxPacket(
@@ -211,12 +211,20 @@ class HwAqmTest : public HwLinkStateDependentTest {
       int payloadLen = kDefaultTxPayloadBytes,
       int ttl = 255,
       std::optional<PortID> outPort = std::nullopt) {
+    auto vlanId = utility::firstVlanIDWithPorts(initialConfig());
     for (int i = 0; i < cnt; i++) {
-      sendPkt(dscpVal, ecnVal, false /* ensure */, payloadLen, ttl, outPort);
+      sendPkt(
+          dscpVal,
+          ecnVal,
+          false /* ensure */,
+          payloadLen,
+          ttl,
+          outPort,
+          vlanId);
     }
   }
   folly::MacAddress getIntfMac() const {
-    return utility::getFirstInterfaceMac(getProgrammedState());
+    return utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
   }
 
   void queueShaperAndBurstSetup(

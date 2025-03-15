@@ -10,8 +10,6 @@
 #include "fboss/agent/test/utils/StatsTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
-DEFINE_bool(run_forever, false, "run the test forever");
-DEFINE_bool(run_forever_on_failure, false, "run the test forever on failure");
 DEFINE_bool(
     list_production_feature,
     false,
@@ -31,6 +29,16 @@ constexpr auto kConfig = "config";
 } // namespace
 
 namespace facebook::fboss {
+namespace {
+bool haveL3Asics(const std::map<SwitchID, const HwAsic*>& asics) {
+  return std::any_of(asics.begin(), asics.end(), [](auto& iter) {
+    auto switchType = iter.second->getSwitchType();
+    return switchType == cfg::SwitchType::NPU ||
+        switchType == cfg::SwitchType::VOQ;
+  });
+}
+} // namespace
+
 void AgentHwTest::SetUp() {
   gflags::ParseCommandLineFlags(&kArgc, &kArgv, false);
   if (FLAGS_list_production_feature) {
@@ -190,10 +198,15 @@ void AgentHwTest::applySwitchDrainState(cfg::SwitchDrainState drainState) {
 
 cfg::SwitchConfig AgentHwTest::initialConfig(
     const AgentEnsemble& ensemble) const {
+  auto anyL3Asics =
+      haveL3Asics(ensemble.getSw()->getHwAsicTable()->getHwAsics());
   auto config = utility::onePortPerInterfaceConfig(
       ensemble.getSw(),
       ensemble.masterLogicalPortIds(),
-      true /*interfaceHasSubnet*/);
+      anyL3Asics /*interfaceHasSubnet*/,
+      anyL3Asics /*setInterfaceMac*/,
+      utility::kBaseVlanId,
+      !FLAGS_hide_fabric_ports /*enable fabric ports*/);
   return config;
 }
 
@@ -231,6 +244,29 @@ std::map<PortID, HwPortStats> AgentHwTest::getLatestPortStats(
 
 HwPortStats AgentHwTest::getLatestPortStats(const PortID& port) {
   return getLatestPortStats(std::vector<PortID>({port})).begin()->second;
+}
+
+std::map<PortID, HwPortStats> AgentHwTest::extractPortStats(
+    const std::vector<PortID>& ports,
+    const std::map<uint16_t, multiswitch::HwSwitchStats>& switch2Stats) {
+  std::map<PortID, HwPortStats> portStats;
+  for (auto portId : ports) {
+    auto portSwitchId = scopeResolver().scope(portId).switchId();
+    auto port = getProgrammedState()->getPort(portId);
+    const auto& switchStats =
+        switch2Stats.find(static_cast<uint16_t>(portSwitchId))->second;
+    portStats[portId] =
+        switchStats.hwPortStats()->find(port->getName())->second;
+  }
+  return portStats;
+}
+
+HwPortStats AgentHwTest::extractPortStats(
+    PortID port,
+    const std::map<uint16_t, multiswitch::HwSwitchStats>& switch2Stats) {
+  return extractPortStats(std::vector<PortID>({port}), switch2Stats)
+      .begin()
+      ->second;
 }
 
 std::map<PortID, HwPortStats> AgentHwTest::getNextUpdatedPortStats(
@@ -393,17 +429,38 @@ std::optional<HwSysPortStats> AgentHwTest::getLatestCpuSysPortStats() {
   return portStats;
 }
 
+multiswitch::HwSwitchStats AgentHwTest::getHwSwitchStats(
+    uint16_t switchIndex) const {
+  multiswitch::HwSwitchStats switchStats;
+  checkWithRetry(
+      [switchIndex, &switchStats, this]() {
+        auto switchIndex2Stats = getHwSwitchStats();
+        auto sitr = switchIndex2Stats.find(switchIndex);
+        if (sitr != switchIndex2Stats.end()) {
+          switchStats = std::move(sitr->second);
+          return true;
+        }
+        return false;
+      },
+      120,
+      std::chrono::milliseconds(1000),
+      " fetch multiswitch::HwSwitchStats");
+  return switchStats;
+}
+
+std::map<uint16_t, multiswitch::HwSwitchStats> AgentHwTest::getHwSwitchStats()
+    const {
+  return getSw()->getHwSwitchStatsExpensive();
+}
+
 HwSwitchDropStats AgentHwTest::getAggregatedSwitchDropStats() {
   HwSwitchDropStats hwSwitchDropStats;
   checkWithRetry([&hwSwitchDropStats, this]() {
     HwSwitchDropStats aggHwSwitchDropStats;
 
-    auto switchStats = getSw()->getHwSwitchStatsExpensive();
     for (const auto& switchId : getSw()->getHwAsicTable()->getSwitchIDs()) {
-      if (switchStats.find(switchId) == switchStats.end()) {
-        return false;
-      }
-      const auto& dropStats = *switchStats.at(switchId).switchDropStats();
+      auto switchStats = getHwSwitchStats(switchId);
+      const auto& dropStats = *switchStats.switchDropStats();
 
 #define FILL_DROP_COUNTERS(stat)                       \
   aggHwSwitchDropStats.stat##Drops() =                 \
@@ -463,8 +520,12 @@ cfg::SwitchConfig AgentHwTest::addCoppConfig(
   return config;
 }
 
-void AgentHwTest::checkNoStatsChange(int trys) {
-  auto resetTimestamp = [this](auto& statsMap) {
+void AgentHwTest::checkStatsStabilize(
+    int trys,
+    const std::function<
+        void(const std::map<uint16_t, multiswitch::HwSwitchStats>&)>&
+        assertForNoChange) {
+  auto resetDontCareValues = [](auto& statsMap) {
     for (auto& [_, stats] : statsMap) {
       stats.timestamp() = 0;
       for (auto& [_, portStats] : *stats.hwPortStats()) {
@@ -474,6 +535,9 @@ void AgentHwTest::checkNoStatsChange(int trys) {
         sysPortStats.timestamp_() = 0;
       }
       stats.teFlowStats()->timestamp() = 0;
+      // PhyInfo can be noisy and dependent on external
+      // physical params. Don't compare these
+      stats.phyInfo()->clear();
     }
   };
   auto timestampChanged = [](const auto& before, const auto& after) {
@@ -496,12 +560,11 @@ void AgentHwTest::checkNoStatsChange(int trys) {
                        std::chrono::milliseconds(100),
                        " fetch port stats");
                    EXPECT_EVENTUALLY_TRUE(timestampChanged(before, after));
-                   resetTimestamp(before);
-                   resetTimestamp(after);
-
-                   // TODO: Utilize statsMapDelta to compare stats map
-                   // differences
-                   EXPECT_EVENTUALLY_EQ(before, after);
+                   resetDontCareValues(before);
+                   resetDontCareValues(after);
+                   assertForNoChange(after);
+                   EXPECT_EVENTUALLY_EQ(before, after)
+                       << statsDelta(before, after);
                  }));
 }
 

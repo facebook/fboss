@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+# pyre-unsafe
+
 # Run as python3 fboss/util/run_sai_replayer_audit.py
 #
 #
@@ -17,7 +19,10 @@ TRACER_FILES_TO_SEARCH = "fboss/agent/hw/sai/tracer/*ApiTracer.cpp"
 
 # There are certain calls replayer don't wrap (e.g. RxPacket as it's callback from SDK).
 # Exclude these patterns when we audit the attributes.
-PATTERN_TO_EXCLUDE = ["RxPacket", "TcBufferLimit"]
+PATTERN_TO_EXCLUDE = [
+    "RxPacket",
+    "TcBufferLimit",
+]
 
 
 def get_used_attributes():

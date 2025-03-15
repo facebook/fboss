@@ -360,6 +360,12 @@ Table::StyledCell styledFecTail(int tail) {
   return Table::StyledCell(folly::to<std::string>(tail), Table::Style::GOOD);
 }
 
+cfg::SwitchType getSwitchType(apache::thrift::Client<FbossCtrl>& client) {
+  std::map<int64_t, cfg::SwitchInfo> switchIdToSwitchInfo;
+  client.sync_getSwitchIdToSwitchInfo(switchIdToSwitchInfo);
+  return getSwitchType(std::move(switchIdToSwitchInfo));
+}
+
 cfg::SwitchType getSwitchType(
     std::map<int64_t, cfg::SwitchInfo> switchIdToSwitchInfo) {
   CHECK_GE(switchIdToSwitchInfo.size(), 1);
@@ -374,6 +380,53 @@ cfg::SwitchType getSwitchType(
       }));
 
   return switchType;
+}
+
+bool isVoqOrFabric(cfg::SwitchType switchType) {
+  return switchType == cfg::SwitchType::VOQ ||
+      switchType == cfg::SwitchType::FABRIC;
+}
+
+std::map<std::string, FabricEndpoint> getFabricEndpoints(
+    const HostInfo& hostInfo) {
+  std::map<std::string, FabricEndpoint> entries;
+  if (utils::isFbossFeatureEnabled(hostInfo.getName(), "multi_switch")) {
+    auto hwAgentQueryFn =
+        [&entries](
+            apache::thrift::Client<facebook::fboss::FbossHwCtrl>& client) {
+          std::map<std::string, FabricEndpoint> hwagentEntries;
+          client.sync_getHwFabricConnectivity(hwagentEntries);
+          entries.merge(hwagentEntries);
+        };
+    utils::runOnAllHwAgents(hostInfo, hwAgentQueryFn);
+  } else {
+    utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo)
+        ->sync_getFabricConnectivity(entries);
+  }
+  return entries;
+}
+
+std::map<std::string, int64_t> getAgentFb303RegexCounters(
+    const HostInfo& hostInfo,
+    const std::string& regex) {
+  std::map<std::string, int64_t> counters;
+#ifndef IS_OSS
+  // TODO: sync_getRegexCounters is not available in OSS
+  if (utils::isFbossFeatureEnabled(hostInfo.getName(), "multi_switch")) {
+    auto hwAgentQueryFn =
+        [&counters,
+         &regex](apache::thrift::Client<facebook::fboss::FbossCtrl>& client) {
+          std::map<std::string, int64_t> hwagentCounters;
+          client.sync_getRegexCounters(hwagentCounters, regex);
+          counters.merge(hwagentCounters);
+        };
+    utils::runOnAllHwAgents(hostInfo, hwAgentQueryFn);
+  } else {
+    utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo)
+        ->sync_getRegexCounters(counters, regex);
+  }
+#endif
+  return counters;
 }
 
 } // namespace facebook::fboss::utils

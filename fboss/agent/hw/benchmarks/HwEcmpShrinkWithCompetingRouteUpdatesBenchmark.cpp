@@ -8,18 +8,15 @@
  *
  */
 
-#include "fboss/agent/HwAsicTable.h"
-#include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestEcmpUtils.h"
-#include "fboss/agent/hw/test/HwTestPortUtils.h"
+#include "fboss/agent/test/utils/ConfigUtils.h"
+#include "fboss/agent/test/utils/EcmpTestUtils.h"
 
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/RouteScaleGenerators.h"
 #include "fboss/lib/FunctionCallTimeReporter.h"
 
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
-#include "fboss/agent/SwitchStats.h"
-#include "fboss/agent/benchmarks/AgentBenchmarks.h"
 
 #include <folly/Benchmark.h>
 #include <folly/IPAddress.h>
@@ -43,8 +40,6 @@ BENCHMARK(HwEcmpGroupShrinkWithCompetingRouteUpdates) {
       };
   ensemble =
       createAgentEnsemble(initialConfigFn, false /*disableLinkStateToggler*/);
-  // TODO(zecheng): Deprecate agent access to HwSwitch
-  auto hwSwitch = ensemble->getHwSwitch();
   auto state = ensemble->getSw()->getState();
   auto ecmpHelper = utility::EcmpSetupAnyNPorts6(state);
   ensemble->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
@@ -55,10 +50,10 @@ BENCHMARK(HwEcmpGroupShrinkWithCompetingRouteUpdates) {
           ensemble->getSw(), ensemble->getSw()->getRib()),
       kEcmpWidth);
 
-  auto prefix = folly::CIDRNetwork(folly::IPAddress("::"), 0);
-  CHECK_EQ(
-      kEcmpWidth,
-      getEcmpSizeInHw(hwSwitch, prefix, ecmpHelper.getRouterId(), kEcmpWidth));
+  facebook::fboss::utility::CIDRNetwork cidr;
+  cidr.IPAddress() = "::";
+  cidr.mask() = 0;
+  CHECK_EQ(kEcmpWidth, utility::getEcmpSizeInHw(ensemble.get(), cidr));
   // Warm up the stats cache
   ensemble->getSw()->updateStats();
   auto routeChunks = utility::RouteDistributionGenerator(
@@ -78,10 +73,16 @@ BENCHMARK(HwEcmpGroupShrinkWithCompetingRouteUpdates) {
   // applyState interface. We want to start the clock ASAP post the link toggle,
   // so avoiding any extra apply state over head may give us slightly more
   // accurate reading for this micro benchmark.
-  utility::setPortLoopbackMode(
-      hwSwitch,
-      ecmpHelper.ecmpPortDescriptorAt(0).phyPortID(),
-      cfg::PortLoopbackMode::NONE);
+
+  // TODO(zecheng): Use hw test interface to set port loopback mode
+  ensemble->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+    const auto oldPort =
+        in->getPorts()->getNodeIf(ecmpHelper.nhop(0).portDesc.phyPortID());
+    std::shared_ptr<SwitchState> out{in};
+    auto newPort = oldPort->modify(&out);
+    newPort->setLoopbackMode(cfg::PortLoopbackMode::NONE);
+    return out;
+  });
   {
     ScopedCallTimer timeIt;
     // We restart benchmarking ASAP *after* we have triggered port down
@@ -99,9 +100,7 @@ BENCHMARK(HwEcmpGroupShrinkWithCompetingRouteUpdates) {
     // order of magnitude.
     suspender.dismiss();
     // Busy loop to see how soon after port down do we shrink ECMP group
-    while (getEcmpSizeInHw(
-               hwSwitch, prefix, ecmpHelper.getRouterId(), kEcmpWidth) !=
-           kEcmpWidth - 1) {
+    while (utility::getEcmpSizeInHw(ensemble.get(), cidr) != kEcmpWidth - 1) {
       // bcm_l3_ecmp_traverse() might get stuck for not getting the mutex taken
       // by bcm_l3_ecmp_get(). Thus, sleep 1us.
       usleep(1);

@@ -85,6 +85,7 @@ cpp_library(
         "//fboss/agent:fboss-types",
         "//fboss/agent:hw_switch",
         "//fboss/agent:packet",
+        "//fboss/agent/packet:sflow_structs",
         "//folly:network_address",
         "//folly/io:iobuf",
     ],

@@ -40,6 +40,7 @@ add_library(sai_platform
   fboss/agent/platforms/sai/SaiTahan800bcPlatform.cpp
   fboss/agent/platforms/sai/SaiTahan800bcPlatformPort.cpp
   fboss/agent/platforms/sai/SaiYangraPlatform.cpp
+  fboss/agent/platforms/sai/SaiMinipack3NPlatform.cpp
 
   fboss/agent/platforms/sai/oss/SaiBcmMinipackPlatform.cpp
   fboss/agent/platforms/sai/oss/SaiTajoPlatform.cpp
@@ -65,10 +66,12 @@ add_library(sai_platform
   fboss/agent/platforms/sai/oss/SaiMeru800bfaPlatformPort.cpp
   fboss/agent/platforms/sai/oss/SaiMorgan800ccPlatformPort.cpp
   fboss/agent/platforms/sai/SaiYangraPlatformPort.cpp
+  fboss/agent/platforms/sai/SaiMinipack3NPlatformPort.cpp
 )
 
 target_link_libraries(sai_platform
   handler
+  dsfnode_utils
   product_info
   sai_switch
   thrift_handler
@@ -97,6 +100,7 @@ target_link_libraries(sai_platform
   meru800bia_platform_mapping
   meru800bfa_platform_mapping
   yangra_platform_mapping
+  minipack3n_platform_mapping
   montblanc_platform_mapping
   janga800bic_platform_mapping
   tahan800bc_platform_mapping

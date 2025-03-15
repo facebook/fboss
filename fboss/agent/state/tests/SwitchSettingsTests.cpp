@@ -426,6 +426,13 @@ TEST(SwitchSettingsTest, applyVoqSwitch) {
   switchInfo2.localSystemPortOffset() = *sysPortRange.minimum();
   switchInfo2.globalSystemPortOffset() = *sysPortRange.minimum();
   switchInfo2.inbandPortId() = kSingleStageInbandPortId;
+
+  constexpr auto kMinLinksPerDeviceToRemainInVOQDomain = 5;
+  constexpr auto kMinLinksPerDeviceToJoinVOQDomain = 7;
+  switchInfo2.minLinksPerDeviceToRemainInVOQDomain() =
+      kMinLinksPerDeviceToRemainInVOQDomain;
+  switchInfo2.minLinksPerDeviceToJoinVOQDomain() =
+      kMinLinksPerDeviceToJoinVOQDomain;
   config.switchSettings()->switchIdToSwitchInfo() = {
       std::make_pair(kVoqSwitchIdBegin, switchInfo2)};
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
@@ -440,6 +447,13 @@ TEST(SwitchSettingsTest, applyVoqSwitch) {
   EXPECT_EQ(
       switchInfo3.portIdRange()->maximum(),
       cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MAX() + 1);
+  EXPECT_EQ(
+      switchInfo3.minLinksPerDeviceToRemainInVOQDomain(),
+      kMinLinksPerDeviceToRemainInVOQDomain);
+  EXPECT_EQ(
+      switchInfo3.minLinksPerDeviceToJoinVOQDomain(),
+      kMinLinksPerDeviceToJoinVOQDomain);
+
   validateNodeSerialization(*switchSettingsV1);
 }
 

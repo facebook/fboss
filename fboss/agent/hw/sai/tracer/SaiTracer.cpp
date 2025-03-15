@@ -23,6 +23,7 @@
 #include "fboss/agent/hw/sai/tracer/CounterApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/DebugCounterApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/FdbApiTracer.h"
+#include "fboss/agent/hw/sai/tracer/FirmwareApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/HashApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/HostifApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/LagApiTracer.h"
@@ -46,6 +47,7 @@
 #include "fboss/agent/hw/sai/tracer/TamEventAgingGroupApiTracer.h" // NOLINT(facebook-unused-include-check)
 #include "fboss/agent/hw/sai/tracer/TunnelApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/UdfApiTracer.h"
+#include "fboss/agent/hw/sai/tracer/VendorSwitchApiTracer.h" // NOLINT(facebook-unused-include-check)
 #include "fboss/agent/hw/sai/tracer/VirtualRouterApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/VlanApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/WredApiTracer.h"
@@ -196,7 +198,7 @@ sai_status_t __wrap_sai_api_query(
     return rv;
   }
 
-#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   if (UNLIKELY(sai_api_id >= SAI_API_MAX)) {
     switch (static_cast<sai_api_extensions_t>(sai_api_id)) {
       case SAI_API_TAM_EVENT_AGING_GROUP:
@@ -205,6 +207,20 @@ sai_status_t __wrap_sai_api_query(
         *api_method_table = facebook::fboss::wrappedTamEventAgingGroupApi();
         SaiTracer::getInstance()->logApiQuery(
             sai_api_id, "tam_event_aging_group_api");
+        break;
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+      case SAI_API_VENDOR_SWITCH:
+        SaiTracer::getInstance()->vendorSwitchApi_ =
+            static_cast<sai_vendor_switch_api_t*>(*api_method_table);
+        *api_method_table = facebook::fboss::wrappedVendorSwitchApi();
+        SaiTracer::getInstance()->logApiQuery(sai_api_id, "vendor_switch_api");
+        break;
+#endif
+      case SAI_API_FIRMWARE:
+        SaiTracer::getInstance()->firmwareApi_ =
+            static_cast<sai_firmware_api_t*>(*api_method_table);
+        *api_method_table = facebook::fboss::wrappedFirmwareApi();
+        SaiTracer::getInstance()->logApiQuery(sai_api_id, "firmware_api");
         break;
       default:
         break;
@@ -1309,7 +1325,8 @@ std::tuple<string, string> SaiTracer::declareVariable(
       varCounts_, object_type, "Unsupported Sai Object type in Sai Tracer")++;
   string varName = to<string>(varPrefix, num);
 
-  return std::make_tuple(to<string>(varType, varName), varName);
+  return std::make_tuple(
+      to<string>("[[maybe_unused]] ", varType, varName), varName);
 }
 
 string SaiTracer::getVariable(sai_object_id_t object_id) {
@@ -1349,11 +1366,19 @@ vector<string> SaiTracer::setAttrList(
         to<string>(sai_attribute, "[", i, "].id=", attr_list[i].id));
   }
 
-#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   if (UNLIKELY(object_type >= SAI_OBJECT_TYPE_MAX)) {
     switch (static_cast<sai_object_type_extensions_t>(object_type)) {
       case SAI_OBJECT_TYPE_TAM_EVENT_AGING_GROUP:
         setTamEventAgingGroupAttributes(attr_list, attr_count, attrLines, rv);
+        break;
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+      case SAI_OBJECT_TYPE_VENDOR_SWITCH:
+        setVendorSwitchAttributes(attr_list, attr_count, attrLines, rv);
+        break;
+#endif
+      case SAI_OBJECT_TYPE_FIRMWARE:
+        setFirmwareAttributes(attr_list, attr_count, attrLines, rv);
         break;
       default:
         break;
@@ -1785,40 +1810,48 @@ void SaiTracer::setupGlobals() {
   // TODO(zecheng): Handle list size that's larger than 512 bytes.
   vector<string> globalVar = {to<string>(
       to<string>(kGlobalVarStart),
-      "sai_attribute_t *s_a=(sai_attribute_t*)malloc(ATTR_SIZE * ",
+      "\n",
+      "[[maybe_unused]] sai_attribute_t *s_a=(sai_attribute_t*)malloc(ATTR_SIZE * ",
       FLAGS_default_list_size,
       ")")};
 
   if (FLAGS_enable_get_attr_log) {
     globalVar.push_back(to<string>(
-        "sai_attribute_t *get_attribute=(sai_attribute_t*)malloc(ATTR_SIZE * ",
+        "[[maybe_unused]] sai_attribute_t *get_attribute=(sai_attribute_t*)malloc(ATTR_SIZE * ",
         FLAGS_default_list_size,
         ")"));
   }
 
   for (int i = 0; i < FLAGS_default_list_count; i++) {
-    globalVar.push_back(
-        to<string>("int list_", i, "[", FLAGS_default_list_size, "]"));
+    globalVar.push_back(to<string>(
+        "[[maybe_unused]] int list_", i, "[", FLAGS_default_list_size, "]"));
   }
 
-  globalVar.push_back("uint8_t* mac");
-  globalVar.push_back("uint8_t* u");
-  globalVar.push_back("sai_status_t rv");
-  globalVar.push_back("sai_route_entry_t r_e");
-  globalVar.push_back("sai_neighbor_entry_t n_e");
-  globalVar.push_back("sai_fdb_entry_t f_e");
-  globalVar.push_back("sai_inseg_entry_t i_e");
-  globalVar.push_back("uint32_t expected_object_count");
-  globalVar.push_back("uint32_t object_count");
-  globalVar.push_back("std::vector<sai_object_key_t> object_list");
+  globalVar.push_back("[[maybe_unused]] uint8_t* mac");
+  globalVar.push_back("[[maybe_unused]] uint8_t* u");
+  globalVar.push_back("[[maybe_unused]] sai_status_t rv");
+  globalVar.push_back("[[maybe_unused]] sai_route_entry_t r_e");
+  globalVar.push_back("[[maybe_unused]] sai_neighbor_entry_t n_e");
+  globalVar.push_back("[[maybe_unused]] sai_fdb_entry_t f_e");
+  globalVar.push_back("[[maybe_unused]] sai_inseg_entry_t i_e");
+  globalVar.push_back("[[maybe_unused]] uint32_t expected_object_count");
+  globalVar.push_back("[[maybe_unused]] uint32_t object_count");
+  globalVar.push_back(
+      "[[maybe_unused]] std::vector<sai_object_key_t> object_list");
   globalVar.push_back(to<string>(
-      "sai_status_t object_statuses[", FLAGS_default_list_size, "]"));
-  globalVar.push_back(
-      to<string>("sai_object_id_t obj_list[", FLAGS_default_list_size, "]"));
-  globalVar.push_back(
-      to<string>("sai_stat_id_t counter_list[", FLAGS_default_list_size, "]"));
-  globalVar.push_back(
-      to<string>("uint64_t counter_vals[", FLAGS_default_list_size, "]"));
+      "[[maybe_unused]] sai_status_t object_statuses[",
+      FLAGS_default_list_size,
+      "]"));
+  globalVar.push_back(to<string>(
+      "[[maybe_unused]] sai_object_id_t obj_list[",
+      FLAGS_default_list_size,
+      "]"));
+  globalVar.push_back(to<string>(
+      "[[maybe_unused]] sai_stat_id_t counter_list[",
+      FLAGS_default_list_size,
+      "]"));
+  globalVar.push_back(to<string>(
+      "[[maybe_unused]] uint64_t counter_vals[", FLAGS_default_list_size, "]"));
   globalVar.push_back(to<string>(kGlobalVarEnd));
   writeToFile(globalVar);
 
@@ -1851,6 +1884,10 @@ void SaiTracer::initVarCounts() {
   varCounts_.emplace(SAI_OBJECT_TYPE_BUFFER_PROFILE, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_COUNTER, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_DEBUG_COUNTER, 0);
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+  varCounts_.emplace(
+      static_cast<sai_object_type_t>(SAI_OBJECT_TYPE_FIRMWARE), 0);
+#endif
   varCounts_.emplace(SAI_OBJECT_TYPE_HASH, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_HOSTIF, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_HOSTIF_TRAP, 0);
@@ -1884,7 +1921,7 @@ void SaiTracer::initVarCounts() {
   varCounts_.emplace(SAI_OBJECT_TYPE_TAM_TRANSPORT, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_TAM_REPORT, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_TAM_EVENT_ACTION, 0);
-#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   varCounts_.emplace(
       static_cast<sai_object_type_t>(SAI_OBJECT_TYPE_TAM_EVENT_AGING_GROUP), 0);
 #endif
@@ -1895,6 +1932,10 @@ void SaiTracer::initVarCounts() {
   varCounts_.emplace(SAI_OBJECT_TYPE_UDF, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_UDF_MATCH, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_UDF_GROUP, 0);
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  varCounts_.emplace(
+      static_cast<sai_object_type_t>(SAI_OBJECT_TYPE_VENDOR_SWITCH), 0);
+#endif
   varCounts_.emplace(SAI_OBJECT_TYPE_VIRTUAL_ROUTER, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_VLAN, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_VLAN_MEMBER, 0);

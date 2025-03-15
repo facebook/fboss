@@ -28,4 +28,7 @@ RUN dnf install bison flex -y
 RUN dnf group install "Development Tools" -y
 RUN dnf install openssl* -y
 RUN python3 -m pip install gitpython
+RUN python3 -m pip install meson
+RUN python3 -m pip install jinja2
+RUN dnf install gperf libcap-devel libmount-devel -y
 

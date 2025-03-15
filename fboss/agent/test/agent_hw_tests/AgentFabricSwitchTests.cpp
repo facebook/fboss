@@ -21,13 +21,7 @@ class AgentFabricSwitchTest : public AgentHwTest {
  public:
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
-    auto config = utility::onePortPerInterfaceConfig(
-        ensemble.getSw(),
-        ensemble.masterLogicalPortIds(),
-        false /*interfaceHasSubnet*/,
-        false /*setInterfaceMac*/,
-        utility::kBaseVlanId,
-        true /*enable fabric ports*/);
+    auto config = AgentHwTest::initialConfig(ensemble);
     utility::populatePortExpectedNeighborsToSelf(
         ensemble.masterLogicalPortIds(), config);
     return config;
@@ -114,9 +108,11 @@ TEST_F(AgentFabricSwitchTest, checkFabricConnectivityStats) {
     WITH_RETRIES({
       auto reachabilityStats = getAgentEnsemble()->getFabricReachabilityStats();
       EXPECT_EVENTUALLY_EQ(
-          reachabilityStats.missingCount(),
+          *reachabilityStats.missingCount(),
           masterLogicalFabricPortIds().size());
-      EXPECT_EVENTUALLY_EQ(reachabilityStats.mismatchCount(), 0);
+      EXPECT_EVENTUALLY_EQ(
+          *reachabilityStats.mismatchCount(),
+          masterLogicalFabricPortIds().size());
     });
   };
   verifyAcrossWarmBoots(setup, verify);
@@ -199,11 +195,20 @@ TEST_F(AgentFabricSwitchTest, fabricPortIsolate) {
               return fabricPortIds.find(portId) != fabricPortIds.end();
             }),
         undrainedPortIds.end());
-    // Only drained port will be inactive
-    utility::checkFabricPortsActiveState(
-        getAgentEnsemble(), drainedPortIds, false /*expectActive*/);
-    utility::checkFabricPortsActiveState(
-        getAgentEnsemble(), undrainedPortIds, true /*expectActive*/);
+    auto checkActiveInactiveState = [&]() {
+      // Only drained port will be inactive
+      utility::checkFabricPortsActiveState(
+          getAgentEnsemble(), drainedPortIds, false /*expectActive*/);
+      utility::checkFabricPortsActiveState(
+          getAgentEnsemble(), undrainedPortIds, true /*expectActive*/);
+    };
+    checkActiveInactiveState();
+    auto portsToFlap = drainedPortIds;
+    portsToFlap.push_back(*undrainedPortIds.begin());
+    // Flap ports. Active/inactive state should restore after
+    bringDownPorts(portsToFlap);
+    bringUpPorts(portsToFlap);
+    checkActiveInactiveState();
   };
   verifyAcrossWarmBoots(setup, verify);
 }
@@ -249,7 +254,7 @@ class AgentFabricSwitchSelfLoopTest : public AgentFabricSwitchTest {
   }
   void verifyState(cfg::PortState desiredState, std::vector<PortID>& ports)
       const {
-    WITH_RETRIES({
+    WITH_RETRIES_N(120, {
       if (desiredState == cfg::PortState::DISABLED) {
         auto numPorts = ports.size();
         auto switch2SwitchStats = getSw()->getHwSwitchStatsExpensive();
@@ -306,7 +311,13 @@ class AgentFabricSwitchSelfLoopTest : public AgentFabricSwitchTest {
   void setCmdLineFlagOverrides() const override {
     AgentFabricSwitchTest::setCmdLineFlagOverrides();
     FLAGS_disable_looped_fabric_ports = true;
-    FLAGS_detect_wrong_fabric_connections = true;
+    /*
+     * Ideally we would have liked to test with
+     * FLAGS_detect_wrong_fabric_connections = true;
+     * as well. However, with soc property that this flag
+     * turns on cannot set internal loopback mode on
+     * fabric ports.  Hence the need to keep this disabled
+     */
   }
 };
 
@@ -315,9 +326,9 @@ TEST_F(AgentFabricSwitchSelfLoopTest, selfLoopDetection) {
     auto allPorts = getProgrammedState()->getPorts()->getAllNodes();
     // Since switch is drained, ports should stay enabled
     verifyState(cfg::PortState::ENABLED, *allPorts);
-    // Regardless of drain state, data filter should be turned on
-    // upon detecting a loop
-    checkDataCellFilter(true /*expectFilterOn*/);
+    // Data filter should be turned off since we never enabled
+    // wrong_fabric_connections
+    checkDataCellFilter(false /*expectFilterOn*/);
     // Undrain
     setSwitchDrainState(getSw()->getConfig(), cfg::SwitchDrainState::UNDRAINED);
   };
@@ -346,9 +357,9 @@ TEST_F(AgentFabricSwitchSelfLoopTest, portDrained) {
     auto portsToCheck = getProgrammedState()->getPorts()->getAllNodes();
     // Since switch is drained, ports should stay enabled
     verifyState(cfg::PortState::ENABLED, *portsToCheck);
-    // Regardless of drain state, data filter should be turned on
-    // upon detecting a loop
-    checkDataCellFilter(true /*expectFilterOn*/);
+    // Data filter should be turned off since we never enabled
+    // wrong_fabric_connections
+    checkDataCellFilter(false /*expectFilterOn*/);
     // Undrain
     setSwitchDrainState(newCfg, cfg::SwitchDrainState::UNDRAINED);
   };
@@ -359,11 +370,9 @@ TEST_F(AgentFabricSwitchSelfLoopTest, portDrained) {
       portsToCheck->removeNode(port);
     }
     verifyState(cfg::PortState::DISABLED, *portsToCheck);
-    // ENABLED, but drained ports should still detect wrong connection
-    // and have filter on. For disabled ports, we stop collecting stats,
-    // so filter status is not updated.
-    checkDataCellFilter(
-        true, std::vector<PortID>(drainedPorts.begin(), drainedPorts.end()));
+    // Data filter should be turned off since we never enabled
+    // wrong_fabric_connections
+    checkDataCellFilter(false /*expectFilterOn*/);
     // Verify that global drops are zero
     auto switch2SwitchStats = getSw()->getHwSwitchStatsExpensive();
     for (const auto& [_, switchStats] : switch2SwitchStats) {
@@ -377,16 +386,14 @@ TEST_F(AgentFabricSwitchSelfLoopTest, portDrained) {
 TEST_F(AgentFabricSwitchTest, reachDiscard) {
   auto verify = [this]() {
     for (auto switchId : getFabricSwitchIdsWithPorts()) {
-      auto beforeSwitchDrops =
-          *getSw()->getHwSwitchStatsExpensive(switchId).switchDropStats();
+      auto beforeSwitchDrops = *getHwSwitchStats(switchId).switchDropStats();
       std::string out;
       getAgentEnsemble()->runDiagCommand(
           "TX 1 destination=-1 destinationModid=-1 flags=0x8000\n",
           out,
           switchId);
       WITH_RETRIES({
-        auto afterSwitchDrops =
-            *getSw()->getHwSwitchStatsExpensive(switchId).switchDropStats();
+        auto afterSwitchDrops = *getHwSwitchStats(switchId).switchDropStats();
         XLOG(INFO) << " Before reach drops: "
                    << *beforeSwitchDrops.globalReachabilityDrops()
                    << " After reach drops: "
@@ -403,7 +410,7 @@ TEST_F(AgentFabricSwitchTest, reachDiscard) {
             *afterSwitchDrops.globalDrops(), *beforeSwitchDrops.globalDrops());
       });
     }
-    checkNoStatsChange();
+    checkStatsStabilize();
   };
   verifyAcrossWarmBoots([]() {}, verify);
 }
@@ -418,17 +425,17 @@ TEST_F(AgentFabricSwitchTest, dtlQueueWatermarks) {
           true /*expectActive*/);
       WITH_RETRIES({
         auto beforeWatermarks = getAllSwitchWatermarkStats()[switchId];
-        EXPECT_EVENTUALLY_TRUE(
+        ASSERT_EVENTUALLY_TRUE(
             beforeWatermarks.dtlQueueWatermarkBytes().has_value());
         EXPECT_EVENTUALLY_EQ(*beforeWatermarks.dtlQueueWatermarkBytes(), 0);
       });
-      getAgentEnsemble()->runDiagCommand(
-          "modify RTP_RMHMT 5 1 LINK_BIT_MAP=1\ntx 1000 DeSTination=13 DeSTinationModid=5 flags=0x8000\n",
-          out,
-          switchId);
       WITH_RETRIES({
+        getAgentEnsemble()->runDiagCommand(
+            "modify RTP_RMHMT 5 1 LINK_BIT_MAP=1\ntx 1000 DeSTination=13 DeSTinationModid=5 flags=0x8000\n",
+            out,
+            switchId);
         auto afterWatermarks = getAllSwitchWatermarkStats()[switchId];
-        EXPECT_EVENTUALLY_TRUE(
+        ASSERT_EVENTUALLY_TRUE(
             afterWatermarks.dtlQueueWatermarkBytes().has_value());
         EXPECT_EVENTUALLY_GT(*afterWatermarks.dtlQueueWatermarkBytes(), 0);
         XLOG(INFO) << "SwitchId: " << switchId
@@ -481,13 +488,7 @@ class AgentBalancedInputModeTest : public AgentFabricSwitchTest {
  public:
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
-    auto config = utility::onePortPerInterfaceConfig(
-        ensemble.getSw(),
-        ensemble.masterLogicalPortIds(),
-        false /*interfaceHasSubnet*/,
-        false /*setInterfaceMac*/,
-        utility::kBaseVlanId,
-        true /*enable fabric ports*/);
+    auto config = AgentFabricSwitchTest::initialConfig(ensemble);
     // Initialize local switch as level 2 (SDSW)
     const auto selfFabricLevel = 2;
     const auto remoteFabricLevel = 1;

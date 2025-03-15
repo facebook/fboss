@@ -76,7 +76,6 @@ TEST_F(CmdShowCpuPortTestFixture, queryClient) {
       .WillOnce(Invoke([&](auto& entries) { entries = mockCpuPortEntries; }));
 
   auto cmd = CmdShowCpuPort();
-  CmdShowCpuPortTraits::ObjectArgType queriedEntries;
   auto model = cmd.queryClient(localhost());
 
   EXPECT_THRIFT_EQ(model, normalizedModel);

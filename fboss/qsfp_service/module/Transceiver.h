@@ -176,13 +176,13 @@ class Transceiver {
    */
   virtual bool writeTransceiver(
       TransceiverIOParameters param,
-      uint8_t data) = 0;
+      const uint8_t* data) = 0;
   /*
    * Future version of writeTransceiver()
    */
   virtual folly::Future<std::pair<int32_t, bool>> futureWriteTransceiver(
       TransceiverIOParameters param,
-      uint8_t data) = 0;
+      const std::vector<uint8_t>& data) = 0;
 
   /*
    * return the cached signal flags and clear it after the read like an clear
@@ -301,9 +301,6 @@ class Transceiver {
 
   virtual std::map<std::string, CdbDatapathSymErrHistogram>
   getSymbolErrorHistogram() = 0;
-
-  virtual std::vector<MediaInterfaceCode> getSupportedMediaInterfaces()
-      const = 0;
 
   virtual bool tcvrPortStateSupported(
       TransceiverPortState& portState) const = 0;

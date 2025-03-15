@@ -1259,6 +1259,11 @@ class BcmSdkInterface {
 
   virtual int bcm_flexctr_action_destroy(int unit, uint32 stat_counter_id) = 0;
 
+  virtual int bcm_flexctr_action_traverse(
+      int unit,
+      bcm_flexctr_action_traverse_cb trav_fn,
+      void* user_data) = 0;
+
   virtual int bcm_l3_route_stat_attach(
       int unit,
       bcm_l3_route_t* info,

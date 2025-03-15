@@ -2910,6 +2910,7 @@ void BcmSwitch::processRemovedRoutes(const StateDelta& delta) {
       [this](RouterID rid, const auto& deleted) {
         processRemovedRoute(rid, deleted);
       });
+  multiPathNextHopTable_->updateDlbExhaustionStat();
 }
 
 void BcmSwitch::processAddedChangedRoutes(
@@ -2917,6 +2918,7 @@ void BcmSwitch::processAddedChangedRoutes(
     std::shared_ptr<SwitchState>* appliedState) {
   processRouteTableDelta<folly::IPAddressV4>(delta, appliedState);
   processRouteTableDelta<folly::IPAddressV6>(delta, appliedState);
+  multiPathNextHopTable_->updateDlbExhaustionStat();
 }
 
 template <typename AddrT>
@@ -3189,6 +3191,19 @@ void BcmSwitch::updateGlobalStats() {
     bstStatsUpdateTime_ = now;
     bstStatsMgr_->updateStats();
   }
+  if (FLAGS_flowletSwitchingEnable) {
+    if (multiPathNextHopTable_) {
+      auto dlbExhausted = multiPathNextHopTable_->getDlbExhaustedStat();
+      getSwitchStats()->arsResourceExhausted(dlbExhausted);
+    }
+  }
+}
+
+bool BcmSwitch::getArsExhaustionStatus() {
+  if (multiPathNextHopTable_) {
+    return multiPathNextHopTable_->getDlbExhaustedStat();
+  }
+  return false;
 }
 
 std::map<PortID, phy::PhyInfo> BcmSwitch::updateAllPhyInfoImpl() {
@@ -4102,7 +4117,8 @@ void BcmSwitch::disableHotSwap() const {
         break;
       case cfg::AsicType::ASIC_TYPE_TOMAHAWK3:
       case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
-      case cfg::AsicType::ASIC_TYPE_TOMAHAWK5: {
+      case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
+      case cfg::AsicType::ASIC_TYPE_TOMAHAWK6: {
         auto rv = bcm_switch_control_set(unit_, bcmSwitchPcieHotSwapDisable, 1);
         bcmCheckError(rv, "Failed to disable hotswap");
       } break;

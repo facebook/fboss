@@ -10,9 +10,12 @@ cpp_library(
     deps = [],
     exported_deps = [
         "//fboss/fsdb/if:fsdb_oper-cpp2-types",
+        "//folly:dynamic",
         "//folly/io:iobuf",
+        "//thrift/lib/cpp2/folly_dynamic:folly_dynamic",
         "//thrift/lib/cpp2/protocol:protocol",
         "//thrift/lib/cpp2/protocol/detail:protocol_methods",
+        "//thrift/lib/cpp2/reflection:reflection",
     ],
 )
 

@@ -22,6 +22,7 @@
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
+#include "fboss/agent/hw/sai/switch/SaiUdfManager.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 
@@ -288,6 +289,8 @@ sai_acl_ip_type_t SaiAclTableManager::cfgIpTypeToSaiIpType(
       return SAI_ACL_IP_TYPE_ARP_REQUEST;
     case cfg::IpType::ARP_REPLY:
       return SAI_ACL_IP_TYPE_ARP_REPLY;
+    case cfg::IpType::NON_IP:
+      return SAI_ACL_IP_TYPE_NON_IP;
   }
   // should return in one of the cases
   throw FbossError("Unsupported IP Type option");
@@ -560,6 +563,96 @@ SaiAclTableManager::addAclCounter(
   return std::make_pair(saiAclCounter, aclCounterTypeAndName);
 }
 
+#if (                                                                  \
+    (SAI_API_VERSION >= SAI_VERSION(1, 14, 0) ||                       \
+     (defined(BRCM_SAI_SDK_GTE_11_0) && defined(BRCM_SAI_SDK_XGS))) && \
+    !defined(TAJO_SDK))
+void SaiAclTableManager::updateUdfGroupAttributes(
+    const std::shared_ptr<AclEntry>& addedAclEntry,
+    const std::string& aclTableName,
+    std::optional<AclEntryUdfGroup0>& udfGroup0,
+    std::optional<AclEntryUdfGroup1>& udfGroup1,
+    std::optional<AclEntryUdfGroup2>& udfGroup2,
+    std::optional<AclEntryUdfGroup3>& udfGroup3,
+    std::optional<AclEntryUdfGroup4>& udfGroup4) {
+  auto convertSignedCharsToUnsignedChars =
+      [](const std::vector<signed char>& vec) {
+        std::vector<unsigned char> unsignedVec;
+
+        std::transform(
+            vec.begin(),
+            vec.end(),
+            std::back_inserter(unsignedVec),
+            [](signed char c) { return static_cast<unsigned char>(c); });
+
+        return unsignedVec;
+      };
+
+  /*
+   * UDF fields in ACL entries have to match the attribute ID offset where
+   * group is defined in the ACL table
+   * If udfGroup1 is at (SAI_ACL_TABLE_ATTR_USER_DEFINED_FIELD_GROUP_MIN + 1),
+   * the corresponding ACL entry fields should also use
+   * (SAI_ACL_ENTRY_ATTR_USER_DEFINED_FIELD_GROUP_MIN + 1)
+   * https://github.com/opencomputeproject/SAI/blob/master/doc/ACL/UDF-based-ACL.md#example-1
+   *
+   * We have capability to program 5 UDF fields. The below code will try
+   * to match the UDF group SAI ID currently processed with the attribute used
+   * in the ACL table
+   */
+  if (addedAclEntry->getUdfTable()) {
+    auto& aclApi = SaiApiTable::getInstance()->aclApi();
+    auto aclTableHandle = getAclTableHandle(aclTableName);
+    auto aclTableSaiId = aclTableHandle->aclTable->adapterKey();
+    // Get the udfGroup IDs, if programmed, from each of the 5 attributes
+    auto udfGroupId0 = aclApi.getAttribute(aclTableSaiId, AclTableUdfGroup0());
+    auto udfGroupId1 = aclApi.getAttribute(aclTableSaiId, AclTableUdfGroup1());
+    auto udfGroupId2 = aclApi.getAttribute(aclTableSaiId, AclTableUdfGroup2());
+    auto udfGroupId3 = aclApi.getAttribute(aclTableSaiId, AclTableUdfGroup3());
+    auto udfGroupId4 = aclApi.getAttribute(aclTableSaiId, AclTableUdfGroup4());
+
+    const auto udfTable = addedAclEntry->getUdfTable().value();
+    for (const auto& udfEntry : udfTable) {
+      auto data = convertSignedCharsToUnsignedChars(*udfEntry.roceBytes());
+      auto mask = convertSignedCharsToUnsignedChars(*udfEntry.roceMask());
+      auto udfData = std::make_pair(std::move(data), std::move(mask));
+
+      std::vector<std::string> udfGroupNames = {*udfEntry.udfGroup()};
+      auto udfGroupSaiIds =
+          managerTable_->udfManager().getUdfGroupIds(udfGroupNames);
+      if (udfGroupSaiIds.size() == 0) {
+        throw FbossError(
+            "Invalid UdfGroup {} in ACL entry", *udfEntry.udfGroup());
+      }
+      auto udfGroupSaiId = udfGroupSaiIds[0];
+
+      // for each udfGroup used in this ACL entry, check which attribute it
+      // uses in the ACL table and use the same ACL entry attribute
+      if (udfGroupSaiId == udfGroupId0) {
+        udfGroup0 = AclEntryUdfGroup0{AclEntryFieldU8List{udfData}};
+        continue;
+      }
+      if (udfGroupSaiId == udfGroupId1) {
+        udfGroup1 = AclEntryUdfGroup1{AclEntryFieldU8List{udfData}};
+        continue;
+      }
+      if (udfGroupSaiId == udfGroupId2) {
+        udfGroup2 = AclEntryUdfGroup2{AclEntryFieldU8List{udfData}};
+        continue;
+      }
+      if (udfGroupSaiId == udfGroupId3) {
+        udfGroup3 = AclEntryUdfGroup3{AclEntryFieldU8List{udfData}};
+        continue;
+      }
+      if (udfGroupSaiId == udfGroupId4) {
+        udfGroup4 = AclEntryUdfGroup4{AclEntryFieldU8List{udfData}};
+        continue;
+      }
+    }
+  }
+}
+#endif
+
 AclEntrySaiId SaiAclTableManager::addAclEntry(
     const std::shared_ptr<AclEntry>& addedAclEntry,
     const std::string& aclTableName) {
@@ -715,7 +808,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
   auto stage = static_cast<sai_acl_stage_t>(
       GET_ATTR(AclTable, Stage, aclTableHandle->aclTable->attributes()));
   auto qualifierSet = getSupportedQualifierSet(stage);
-  if (qualifierSet.find(cfg::AclTableQualifier::IP_PROTOCOL) !=
+  if (qualifierSet.find(cfg::AclTableQualifier::IP_PROTOCOL_NUMBER) !=
           qualifierSet.end() &&
       matchV4 && addedAclEntry->getProto()) {
     fieldIpProtocol = SaiAclEntryTraits::Attributes::FieldIpProtocol{
@@ -856,7 +949,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
             addedAclEntry->getVlanID().value(), kOuterVlanIdMask))};
   }
 
-#if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_24_4_90)
+#if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_24_8_3001)
   std::optional<SaiAclEntryTraits::Attributes::FieldBthOpcode> fieldBthOpcode{
       std::nullopt};
   if (addedAclEntry->getRoceOpcode()) {
@@ -873,6 +966,26 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
         AclEntryFieldU32(cfgLookupClassToSaiFdbMetaDataAndMask(
             addedAclEntry->getLookupClassL2().value()))};
   }
+
+#if (                                                                  \
+    (SAI_API_VERSION >= SAI_VERSION(1, 14, 0) ||                       \
+     (defined(BRCM_SAI_SDK_GTE_11_0) && defined(BRCM_SAI_SDK_XGS))) && \
+    !defined(TAJO_SDK))
+  std::optional<AclEntryUdfGroup0> userDefinedGroup0{std::nullopt};
+  std::optional<AclEntryUdfGroup1> userDefinedGroup1{std::nullopt};
+  std::optional<AclEntryUdfGroup2> userDefinedGroup2{std::nullopt};
+  std::optional<AclEntryUdfGroup3> userDefinedGroup3{std::nullopt};
+  std::optional<AclEntryUdfGroup4> userDefinedGroup4{std::nullopt};
+
+  updateUdfGroupAttributes(
+      addedAclEntry,
+      aclTableName,
+      userDefinedGroup0,
+      userDefinedGroup1,
+      userDefinedGroup2,
+      userDefinedGroup3,
+      userDefinedGroup4);
+#endif
 
   // TODO(skhare) Support all other ACL actions
   std::optional<SaiAclEntryTraits::Attributes::ActionPacketAction>
@@ -1129,11 +1242,19 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
        fieldTtl.has_value() || fieldFdbDstUserMeta.has_value() ||
        fieldRouteDstUserMeta.has_value() || fieldEtherType.has_value() ||
        fieldNeighborDstUserMeta.has_value() || fieldOuterVlanId.has_value() ||
-#if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_24_4_90)
+#if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_24_8_3001)
        fieldBthOpcode.has_value() ||
 #endif
 #if !defined(TAJO_SDK) && !defined(BRCM_SAI_SDK_XGS)
        fieldIpv6NextHeader.has_value() ||
+#endif
+#if (                                                                  \
+    (SAI_API_VERSION >= SAI_VERSION(1, 14, 0) ||                       \
+     (defined(BRCM_SAI_SDK_GTE_11_0) && defined(BRCM_SAI_SDK_XGS))) && \
+    !defined(TAJO_SDK))
+       userDefinedGroup0.has_value() || userDefinedGroup1.has_value() ||
+       userDefinedGroup2.has_value() || userDefinedGroup3.has_value() ||
+       userDefinedGroup4.has_value() ||
 #endif
        platform_->getAsic()->isSupported(HwAsic::Feature::EMPTY_ACL_MATCHER));
   if (fieldSrcPort.has_value()) {
@@ -1193,7 +1314,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       fieldNeighborDstUserMeta,
       fieldEtherType,
       fieldOuterVlanId,
-#if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_24_4_90)
+#if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_24_8_3001)
       fieldBthOpcode,
 #endif
 #if !defined(TAJO_SDK) && !defined(BRCM_SAI_SDK_XGS)
@@ -1203,11 +1324,11 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
     (SAI_API_VERSION >= SAI_VERSION(1, 14, 0) ||                       \
      (defined(BRCM_SAI_SDK_GTE_11_0) && defined(BRCM_SAI_SDK_XGS))) && \
     !defined(TAJO_SDK))
-      std::nullopt,
-      std::nullopt,
-      std::nullopt,
-      std::nullopt,
-      std::nullopt,
+      userDefinedGroup0,
+      userDefinedGroup1,
+      userDefinedGroup2,
+      userDefinedGroup3,
+      userDefinedGroup4,
 #endif
       aclActionPacketAction,
       aclActionCounter,
@@ -1433,7 +1554,8 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet(
 std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet(
     sai_acl_stage_t aclStage) const {
   if (aclStage == SAI_ACL_STAGE_EGRESS &&
-      platform_->getAsic()->isSupported(HwAsic::Feature::EGRESS_ACL_TABLE)) {
+      platform_->getAsic()->isSupported(
+          HwAsic::Feature::INGRESS_POST_LOOKUP_ACL_TABLE)) {
     throw FbossError("egress acl table is not supported on switch asic");
   }
   /*
@@ -1464,7 +1586,7 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet(
         cfg::AclTableQualifier::DST_IPV6,
         cfg::AclTableQualifier::SRC_IPV4,
         cfg::AclTableQualifier::DST_IPV4,
-        cfg::AclTableQualifier::IP_PROTOCOL,
+        cfg::AclTableQualifier::IP_PROTOCOL_NUMBER,
         cfg::AclTableQualifier::DSCP,
         cfg::AclTableQualifier::IP_TYPE,
         cfg::AclTableQualifier::TTL,
@@ -1472,7 +1594,7 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet(
         cfg::AclTableQualifier::LOOKUP_CLASS_NEIGHBOR,
         cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE};
 
-#if defined(TAJO_SDK_GTE_24_4_90)
+#if defined(TAJO_SDK_GTE_24_8_3001)
     std::vector<cfg::AclTableQualifier> tajoExtraQualifierList = {
         cfg::AclTableQualifier::ETHER_TYPE,
         cfg::AclTableQualifier::BTH_OPCODE,
@@ -1500,7 +1622,7 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet(
         cfg::AclTableQualifier::DST_IPV6,
         cfg::AclTableQualifier::SRC_PORT,
         cfg::AclTableQualifier::DSCP,
-        cfg::AclTableQualifier::IP_PROTOCOL,
+        cfg::AclTableQualifier::IP_PROTOCOL_NUMBER,
         cfg::AclTableQualifier::IP_TYPE,
         cfg::AclTableQualifier::TTL,
     };
@@ -1515,7 +1637,7 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet(
         cfg::AclTableQualifier::SRC_PORT,
         cfg::AclTableQualifier::DSCP,
         cfg::AclTableQualifier::TTL,
-        cfg::AclTableQualifier::IP_PROTOCOL,
+        cfg::AclTableQualifier::IP_PROTOCOL_NUMBER,
         cfg::AclTableQualifier::IPV6_NEXT_HEADER,
         cfg::AclTableQualifier::IP_TYPE,
         cfg::AclTableQualifier::LOOKUP_CLASS_NEIGHBOR,
@@ -1533,21 +1655,23 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet(
     /* TODO(pshaikh): review the qualifiers */
     if (aclStage == SAI_ACL_STAGE_INGRESS) {
       return {
-          cfg::AclTableQualifier::SRC_IPV6,
           cfg::AclTableQualifier::DST_IPV6,
-          cfg::AclTableQualifier::SRC_IPV4,
           cfg::AclTableQualifier::DST_IPV4,
           cfg::AclTableQualifier::L4_SRC_PORT,
           cfg::AclTableQualifier::L4_DST_PORT,
-          cfg::AclTableQualifier::IP_PROTOCOL,
+          cfg::AclTableQualifier::IP_PROTOCOL_NUMBER,
+          cfg::AclTableQualifier::IPV6_NEXT_HEADER,
           cfg::AclTableQualifier::SRC_PORT,
           cfg::AclTableQualifier::DSCP,
           cfg::AclTableQualifier::TTL,
+          cfg::AclTableQualifier::IP_TYPE,
+          cfg::AclTableQualifier::ETHER_TYPE,
           cfg::AclTableQualifier::OUTER_VLAN,
           // TODO(pshaikh): Add UDF?
       };
     } else {
       return {
+          cfg::AclTableQualifier::DSCP,
           cfg::AclTableQualifier::OUT_PORT,
           cfg::AclTableQualifier::LOOKUP_CLASS_L2,
           cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE,
@@ -1561,7 +1685,7 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet(
         cfg::AclTableQualifier::DST_IPV4,
         cfg::AclTableQualifier::L4_SRC_PORT,
         cfg::AclTableQualifier::L4_DST_PORT,
-        cfg::AclTableQualifier::IP_PROTOCOL,
+        cfg::AclTableQualifier::IP_PROTOCOL_NUMBER,
         cfg::AclTableQualifier::TCP_FLAGS,
         cfg::AclTableQualifier::SRC_PORT,
         cfg::AclTableQualifier::OUT_PORT,
@@ -1673,7 +1797,7 @@ bool SaiAclTableManager::isQualifierSupported(
           std::get<
               std::optional<SaiAclTableTraits::Attributes::FieldL4DstPort>>(
               attributes));
-    case cfg::AclTableQualifier::IP_PROTOCOL:
+    case cfg::AclTableQualifier::IP_PROTOCOL_NUMBER:
       return hasField(
           std::get<
               std::optional<SaiAclTableTraits::Attributes::FieldIpProtocol>>(
@@ -1756,7 +1880,7 @@ bool SaiAclTableManager::isQualifierSupported(
               attributes));
 
     case cfg::AclTableQualifier::BTH_OPCODE:
-#if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_24_4_90)
+#if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_24_8_3001)
       return hasField(
           std::get<
               std::optional<SaiAclTableTraits::Attributes::FieldBthOpcode>>(

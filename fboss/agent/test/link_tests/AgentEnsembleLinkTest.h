@@ -1,7 +1,6 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
 #include "fboss/agent/LldpManager.h"
-#include "fboss/agent/Main.h"
 #include "fboss/agent/state/PortDescriptor.h"
 #include "fboss/agent/test/AgentEnsembleTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
@@ -12,7 +11,6 @@
 #include "fboss/agent/test/link_tests/gen-cpp2/link_test_production_features_types.h"
 
 DECLARE_string(config);
-DECLARE_bool(link_stress_test);
 DECLARE_bool(disable_neighbor_updates);
 DECLARE_bool(list_production_feature);
 
@@ -67,6 +65,11 @@ class AgentEnsembleLinkTest : public AgentEnsembleTest {
   const std::vector<PortID>& getCabledFabricPorts() const {
     return cabledFabricPorts_;
   }
+
+  void checkQsfpServiceMemoryInBounds() const;
+  void checkFsdbMemoryInBounds() const;
+  void checkAgentMemoryInBounds() const;
+
   /*
    * Program default (v6) route over ports
    */
@@ -84,11 +87,14 @@ class AgentEnsembleLinkTest : public AgentEnsembleTest {
     createL3DataplaneFlood(getSingleVlanOrRoutedCabledPorts());
   }
 
-  std::optional<PortID> getPeerPortID(PortID portId) const;
+  std::optional<PortID> getPeerPortID(
+      PortID portId,
+      const std::set<std::pair<PortID, PortID>>& connectedPairs) const;
 
   std::set<std::pair<PortID, PortID>> getConnectedOpticalPortPairWithFeature(
       TransceiverFeature feature,
-      phy::Side side) const;
+      phy::Side side,
+      bool skipLoopback = false) const;
 
   void waitForLldpOnCabledPorts(
       uint32_t retries = 60,

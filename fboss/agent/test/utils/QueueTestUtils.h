@@ -8,9 +8,9 @@
  *
  */
 
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #pragma once
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
-#include "fboss/agent/test/utils/OlympicTestUtils.h"
 #include "fboss/agent/types.h"
 
 #include <string>
@@ -37,7 +37,6 @@ void add2QueueConfig(
     cfg::SwitchConfig* config,
     cfg::StreamType streamType,
     bool scalingFactorSupported);
-void add2QueueQosMaps(cfg::SwitchConfig& cfg, const HwAsic* hwAsic);
 
 std::string get2QueueCounterNameForDscp(uint8_t dscp);
 
@@ -50,4 +49,18 @@ const std::vector<int>& k2QueueWRRAndNCQueueIds();
 
 bool is2QueueWRRQueueId(int queueId);
 
+int getTrafficClassToCpuEgressQueueId(const HwAsic* hwAsic, int trafficClass);
+
+int getTrafficClassToEgressQueueId(const HwAsic* hwAsic, int trafficClass);
+
+int getAqmGranularThreshold(const HwAsic* asic, int value);
+
+cfg::ActiveQueueManagement
+kGetEcnConfig(const HwAsic* asic, int minLength = 41600, int maxLength = 41600);
+
+cfg::ActiveQueueManagement kGetWredConfig(
+    const HwAsic* asic,
+    int minLength = 41600,
+    int maxLength = 41600,
+    int probability = 100);
 } // namespace facebook::fboss::utility

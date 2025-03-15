@@ -276,7 +276,8 @@ class BcmPort {
   void updateWredStats(std::chrono::seconds now, int64_t* portStatVal);
   void updateInCongestionDiscardStats(
       std::chrono::seconds now,
-      uint64_t* portStatVal);
+      uint64_t* portStatVal,
+      std::map<int16_t, int64_t>* portPgStatVal);
   uint32_t getCL91FECStatus() const;
   bool isCL91FECApplicable() const;
   // no copy or assignment
@@ -415,6 +416,7 @@ class BcmPort {
   fb303::ExportedHistogramMapImpl::LockableHistogram outPktLengths_;
 
   int codewordErrorsPage_{0};
+  std::map<short, long> codewordStats_;
 
   folly::Synchronized<std::shared_ptr<Port>> programmedSettings_;
 

@@ -1,5 +1,6 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/test/link_tests/AgentEnsembleLinkTest.h"
 #include "fboss/agent/test/link_tests/LinkTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
@@ -58,7 +59,6 @@ void validateVdm(
         // is available starting CMIS 5.0 (2x400G-[D|F]R4)
         auto fecTailMax = vdmPerfMon.fecTailMax().value_or({});
         auto& laneSnr = vdmPerfMon.get_laneSNR();
-        auto& lanePam4Ltp = vdmPerfMon.get_lanePam4LTP();
 
         XLOG(DBG2) << "Validating VDM performance monitoring for " << portName
                    << ", side: " << apache::thrift::util::enumNameSafe(side);
@@ -70,10 +70,6 @@ void validateVdm(
         for (auto& [lane, snr] : laneSnr) {
           EXPECT_GE(snr, thresholds.pam4eSnr.minThreshold) << folly::sformat(
               "SNR for lane {} on {} is {}", lane, portName, snr);
-        }
-        for (auto& [lane, ltp] : lanePam4Ltp) {
-          EXPECT_GE(ltp, thresholds.pam4Ltp.minThreshold) << folly::sformat(
-              "LTP for lane {} on {} is {}", lane, portName, ltp);
         }
       };
 
@@ -117,7 +113,8 @@ class AgentEnsembleOpticsTest : public AgentEnsembleLinkTest {
     // TransceiverFeature::NONE will get us all optical pairs.
     return getConnectedOpticalPortPairWithFeature(
         TransceiverFeature::NONE,
-        phy::Side::LINE /* side doesn't matter when feature is None */);
+        phy::Side::LINE /* side doesn't matter when feature is None */,
+        true /* skipLoopback */);
   }
 };
 
@@ -131,7 +128,8 @@ TEST_F(AgentEnsembleOpticsTest, verifyTxRxLatches) {
    * 6. Repeat steps 2-5 by flipping A and Z sides
    */
   auto opticalPortPairs = getConnectedOpticalPortPairs();
-  CHECK(!opticalPortPairs.empty());
+  EXPECT_FALSE(opticalPortPairs.empty())
+      << "Did not detect any optical transceivers";
 
   std::set<int32_t> allTcvrIds;
   // Gather list of all transceiverIDs so that we get their corresponding
@@ -184,6 +182,14 @@ TEST_F(AgentEnsembleOpticsTest, verifyTxRxLatches) {
 
             auto& tcvrState = *tcvrInfoInfoItr->second.tcvrState();
             auto mediaInterface = tcvrState.moduleMediaInterface().value_or({});
+            ASSERT_EVENTUALLY_TRUE(
+                cachedHostLanes.find(portName) != cachedHostLanes.end())
+                << folly::sformat(
+                       "Port {} not found in cachedHostLanes", portName);
+            ASSERT_EVENTUALLY_TRUE(
+                cachedMediaLanes.find(portName) != cachedMediaLanes.end())
+                << folly::sformat(
+                       "Port {} not found in cachedMediaLanes", portName);
             auto& hostLanes = cachedHostLanes.at(portName);
             auto& mediaLanes = cachedMediaLanes.at(portName);
             auto& hostLaneSignals = *tcvrState.hostLaneSignals();

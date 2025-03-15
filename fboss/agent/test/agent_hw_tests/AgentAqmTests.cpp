@@ -7,6 +7,7 @@
 #include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
+#include "fboss/agent/test/utils/NetworkAITestUtils.h"
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
 #include "fboss/agent/test/utils/PortStatsTestUtils.h"
 #include "fboss/agent/test/utils/QosTestUtils.h"
@@ -36,7 +37,18 @@ class AgentAqmTest : public AgentHwTest {
         true /*interfaceHasSubnet*/);
     if (ensemble.getHwAsicTable()->isFeatureSupportedOnAllAsic(
             HwAsic::Feature::L3_QOS)) {
-      utility::addOlympicQueueConfig(&config, ensemble.getL3Asics());
+      if (isDualStage3Q2QQos()) {
+        auto hwAsic = utility::checkSameAndGetAsic(ensemble.getL3Asics());
+        auto streamType =
+            *hwAsic->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin();
+        utility::addNetworkAIQueueConfig(
+            &config,
+            streamType,
+            cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN,
+            hwAsic);
+      } else {
+        utility::addOlympicQueueConfig(&config, ensemble.getL3Asics());
+      }
       utility::addOlympicQosMaps(config, ensemble.getL3Asics());
     }
     utility::setTTLZeroCpuConfig(ensemble.getL3Asics(), config);
@@ -72,7 +84,7 @@ class AgentAqmTest : public AgentHwTest {
   }
 
   folly::MacAddress getIntfMac() const {
-    return utility::getFirstInterfaceMac(getProgrammedState());
+    return utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
   }
 
   void sendPkt(
@@ -84,7 +96,7 @@ class AgentAqmTest : public AgentHwTest {
     dscpVal = static_cast<uint8_t>(dscpVal << 2);
     dscpVal |= ecnVal;
 
-    auto vlanId = utility::firstVlanID(getProgrammedState());
+    auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
     auto intfMac = getIntfMac();
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
     auto txPacket = utility::makeTCPTxPacket(
@@ -131,8 +143,26 @@ class AgentAqmTest : public AgentHwTest {
         getSw(), masterLogicalPortIds(), true /*interfaceHasSubnet*/);
     if (getAgentEnsemble()->getHwAsicTable()->isFeatureSupportedOnAllAsic(
             HwAsic::Feature::L3_QOS)) {
-      utility::addOlympicQueueConfig(
-          &config, getAgentEnsemble()->getL3Asics(), enableWred, enableEcn);
+      auto hwAsic =
+          utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+      auto streamType =
+          *hwAsic->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin();
+      if (isDualStage3Q2QQos()) {
+        utility::addNetworkAIQueueConfig(
+            &config,
+            streamType,
+            cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN,
+            hwAsic,
+            enableWred,
+            enableEcn);
+      } else {
+        utility::addOlympicQueueConfig(
+            &config, getAgentEnsemble()->getL3Asics(), enableWred, enableEcn);
+        if (hwAsic->getSwitchType() == cfg::SwitchType::VOQ) {
+          utility::addVoqAqmConfig(
+              &config, streamType, hwAsic, enableWred, enableEcn);
+        }
+      }
       utility::addOlympicQosMaps(config, getAgentEnsemble()->getL3Asics());
     }
     utility::setTTLZeroCpuConfig(getAgentEnsemble()->getL3Asics(), config);
@@ -332,6 +362,16 @@ class AgentAqmWredDropTest : public AgentAqmTest {
                ->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT)
                .begin();
       utility::addQueueWredDropConfig(&cfg, streamType, ensemble.getL3Asics());
+      // For VoQ switches, add AQM config to VoQ as well.
+      auto asic = utility::checkSameAndGetAsic(ensemble.getL3Asics());
+      if (asic->getSwitchType() == cfg::SwitchType::VOQ) {
+        utility::addVoqAqmConfig(
+            &cfg,
+            streamType,
+            asic,
+            true /*addWredConfig*/,
+            false /*addEcnConfig*/);
+      }
       utility::addOlympicQosMaps(cfg, ensemble.getL3Asics());
     }
     utility::setTTLZeroCpuConfig(ensemble.getL3Asics(), cfg);

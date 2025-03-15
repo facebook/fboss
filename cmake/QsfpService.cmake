@@ -16,6 +16,7 @@ add_library(qsfp_lib
 target_link_libraries(qsfp_lib
     qsfp_cpp2
     ctrl_cpp2
+    pim_state_cpp2
     i2c_controller_stats_cpp2
     transceiver_cpp2
     alert_logger
@@ -107,6 +108,15 @@ target_link_libraries(montblanc_bsp
   FBThrift::thriftcpp2
 )
 
+add_library(minipack3n_bsp
+  fboss/lib/bsp/minipack3n/Minipack3NBspPlatformMapping.cpp
+)
+
+target_link_libraries(minipack3n_bsp
+  bsp_platform_mapping_cpp2
+  FBThrift::thriftcpp2
+)
+
 add_library(morgan800cc_bsp
   fboss/lib/bsp/morgan800cc/Morgan800ccBspPlatformMapping.cpp
 )
@@ -162,6 +172,7 @@ target_link_libraries(qsfp_bsp_core
   meru800bia_bsp
   meru800bfa_bsp
   montblanc_bsp
+  minipack3n_bsp
   morgan800cc_bsp
   janga800bic_bsp
   tahan800bc_bsp
@@ -203,6 +214,7 @@ target_link_libraries(transceiver_manager
   fsdb_flags
   firmware_upgrader
   transceiver_validator
+  ${RE2}
 )
 
 add_library(qsfp_handler

@@ -59,7 +59,6 @@ class PackageFboss:
     }
 
     def __init__(self):
-
         self.scratch_path = args.scratch_path
         self.git_path = os.path.join(
             self.scratch_path, "repos/github.com-facebook-fboss.git"

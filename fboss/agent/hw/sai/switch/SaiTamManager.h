@@ -5,6 +5,7 @@
 #include "fboss/agent/hw/sai/api/TamApi.h"
 #include "fboss/agent/hw/sai/api/TamEventAgingGroupApi.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
+#include "fboss/agent/state/MirrorOnDropReport.h"
 
 namespace facebook::fboss {
 
@@ -16,24 +17,24 @@ using SaiTamCollector = SaiObject<SaiTamCollectorTraits>;
 using SaiTamTransport = SaiObject<SaiTamTransportTraits>;
 using SaiTamReport = SaiObject<SaiTamReportTraits>;
 using SaiTamEventAction = SaiObject<SaiTamEventActionTraits>;
-#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
 using SaiTamEventAgingGroup = SaiObject<SaiTamEventAgingGroupTraits>;
 #endif
 using SaiTamEvent = SaiObject<SaiTamEventTraits>;
 using SaiTam = SaiObject<SaiTamTraits>;
 
 struct SaiTamHandle {
-  std::shared_ptr<SaiTamCollector> collector;
-  std::shared_ptr<SaiTamTransport> transport;
   std::shared_ptr<SaiTamReport> report;
   std::shared_ptr<SaiTamEventAction> action;
-#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
-  std::shared_ptr<SaiTamEventAgingGroup> agingGroup;
+  std::shared_ptr<SaiTamTransport> transport;
+  std::shared_ptr<SaiTamCollector> collector;
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+  std::vector<std::shared_ptr<SaiTamEventAgingGroup>> agingGroups;
 #endif
-  std::shared_ptr<SaiTamEvent> event;
+  std::vector<std::shared_ptr<SaiTamEvent>> events;
   std::shared_ptr<SaiTam> tam;
+  PortID portId;
   SaiManagerTable* managerTable;
-  ~SaiTamHandle();
 };
 class SaiTamManager {
  public:
@@ -41,22 +42,31 @@ class SaiTamManager {
       SaiStore* saiStore,
       SaiManagerTable* managerTable,
       SaiPlatform* platform);
-  const SaiTamHandle* getTamHandle() const {
-    return tamHandle_.get();
+
+  void addMirrorOnDropReport(const std::shared_ptr<MirrorOnDropReport>& report);
+  void removeMirrorOnDropReport(
+      const std::shared_ptr<MirrorOnDropReport>& report);
+  void changeMirrorOnDropReport(
+      const std::shared_ptr<MirrorOnDropReport>& oldReport,
+      const std::shared_ptr<MirrorOnDropReport>& newReport);
+  std::vector<PortID> getAllMirrorOnDropPortIds();
+
+  const SaiTamHandle* getTamHandle(const std::string& name) const {
+    return tamHandles_.contains(name) ? tamHandles_.at(name).get() : nullptr;
   }
-  SaiTamHandle* getTamHandle() {
-    return tamHandle_.get();
+  SaiTamHandle* getTamHandle(const std::string& name) {
+    return tamHandles_.contains(name) ? tamHandles_.at(name).get() : nullptr;
   }
 
   void gracefulExit() {
-    tamHandle_.reset();
+    tamHandles_.clear();
   }
 
  private:
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
   SaiPlatform* platform_;
-  std::unique_ptr<SaiTamHandle> tamHandle_;
+  folly::F14FastMap<std::string, std::unique_ptr<SaiTamHandle>> tamHandles_;
 };
 
 } // namespace facebook::fboss

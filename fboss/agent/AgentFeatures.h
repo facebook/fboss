@@ -70,6 +70,24 @@ DECLARE_bool(fix_lossless_mode_per_pg);
 DECLARE_int32(fboss_event_base_queue_limit);
 DECLARE_bool(dual_stage_rdsw_3q_2q);
 DECLARE_bool(dual_stage_edsw_3q_2q);
+DECLARE_bool(dual_stage_3q_2q_qos);
 
 bool isDualStage3Q2QMode();
+bool isDualStage3Q2QQos();
 DECLARE_bool(enable_hw_update_protection);
+
+DECLARE_bool(fw_drained_unrecoverable_error);
+DECLARE_int32(neighbhor_resource_percentage);
+DECLARE_bool(enable_route_resource_protection);
+DECLARE_int32(max_mac_address_to_block);
+DECLARE_int32(max_neighbors_to_block);
+
+DECLARE_bool(link_stress_test);
+DECLARE_int32(ecmp_resource_percentage);
+DECLARE_int32(switch_index_for_testing);
+DECLARE_uint32(counter_refresh_interval);
+
+DECLARE_bool(run_forever);
+DECLARE_bool(run_forever_on_failure);
+
+DECLARE_string(sdk_reg_dump_path_prefix);

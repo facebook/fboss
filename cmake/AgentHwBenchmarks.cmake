@@ -24,6 +24,7 @@ add_library(hw_stats_collection_speed
 target_link_libraries(hw_stats_collection_speed
   config_factory
   hw_packet_utils
+  dsf_config_utils
   voq_test_utils
   ecmp_helper
   mono_agent_ensemble
@@ -176,45 +177,6 @@ target_link_libraries(hw_rib_sync_fib_speed
   Folly::follybenchmark
 )
 
-add_library(hw_teflow_scale_add
-  fboss/agent/hw/benchmarks/HwTeFlowScaleAddBenchmark.cpp
-)
-
-target_link_libraries(hw_teflow_scale_add
-  config_factory
-  hw_teflow_utils
-  mono_agent_ensemble
-  mono_agent_benchmarks
-  Folly::folly
-  Folly::follybenchmark
-)
-
-add_library(hw_teflow_scale_del
-  fboss/agent/hw/benchmarks/HwTeFlowScaleDelBenchmark.cpp
-)
-
-target_link_libraries(hw_teflow_scale_del
-  config_factory
-  hw_teflow_utils
-  mono_agent_ensemble
-  mono_agent_benchmarks
-  Folly::folly
-  Folly::follybenchmark
-)
-
-add_library(hw_teflow_stats_collection_speed
-  fboss/agent/hw/benchmarks/HwTeFlowStatsCollectionBenchmark.cpp
-)
-
-target_link_libraries(hw_teflow_stats_collection_speed
-  config_factory
-  hw_teflow_utils
-  mono_agent_ensemble
-  mono_agent_benchmarks
-  Folly::folly
-  Folly::follybenchmark
-)
-
 add_library(hw_flowlet_stats_collection_speed
   fboss/agent/hw/benchmarks/HwFlowletStatsCollectionBenchmark.cpp
 )
@@ -237,6 +199,7 @@ add_library(hw_ecmp_shrink_speed
 target_link_libraries(hw_ecmp_shrink_speed
   config_factory
   hw_packet_utils
+  ecmp_test_utils
   ecmp_helper
   mono_agent_ensemble
   mono_agent_benchmarks
@@ -253,6 +216,7 @@ target_link_libraries(hw_ecmp_shrink_with_competing_route_updates_speed
   route_distribution_gen
   config_factory
   hw_packet_utils
+  ecmp_test_utils
   ecmp_helper
   mono_agent_ensemble
   mono_agent_benchmarks
@@ -282,6 +246,23 @@ target_link_libraries(hw_rx_slow_path_arp_rate
   Folly::follybenchmark
 )
 
+add_library(hw_bgp_rx_slow_path_rate
+  fboss/agent/hw/benchmarks/HwBGPRxSlowPathBenchmark.cpp
+)
+
+target_link_libraries(hw_bgp_rx_slow_path_rate
+  packet
+  mono_agent_benchmarks
+  packet_factory
+  agent_ensemble
+  ecmp_helper
+  route_scale_gen
+  copp_test_utils
+  qos_test_utils
+  stress_test_utils
+  port_flap_helper
+)
+
 target_link_libraries(hw_rx_slow_path_rate
   config_factory
   copp_test_utils
@@ -302,6 +283,7 @@ add_library(hw_init_and_exit_benchmark_helper
 
 target_link_libraries(hw_init_and_exit_benchmark_helper
   config_factory
+  dsf_config_utils
   fabric_test_utils
   voq_test_utils
   mono_agent_ensemble
@@ -413,6 +395,7 @@ add_library(hw_voq_scale_route_add_speed
 target_link_libraries(hw_voq_scale_route_add_speed
   fabric_test_utils
   route_scale_gen
+  dsf_config_utils
   voq_test_utils
   Folly::folly
   Folly::follybenchmark
@@ -425,19 +408,23 @@ add_library(hw_voq_scale_route_del_speed
 target_link_libraries(hw_voq_scale_route_del_speed
   fabric_test_utils
   route_scale_gen
+  dsf_config_utils
   voq_test_utils
   Folly::folly
   Folly::follybenchmark
 )
 
 add_library(hw_switch_reachability_change_speed
-  fboss/agent/hw/benchmarks/HwSwitchReachabilityChangeBenchmark.cpp
+  fboss/agent/hw/benchmarks/HwSwitchReachabilityChangeBenchmarkHelper.cpp
+  fboss/agent/hw/benchmarks/HwSwitchReachabilityChangeFabricBenchmark.cpp
+  fboss/agent/hw/benchmarks/HwSwitchReachabilityChangeVoqBenchmark.cpp
 )
 
 target_link_libraries(hw_switch_reachability_change_speed
   mono_agent_ensemble
   mono_agent_benchmarks
   config_factory
+  dsf_config_utils
   voq_test_utils
   fabric_test_utils
   Folly::folly
@@ -452,5 +439,15 @@ target_link_libraries(hw_voq_sys_port_programming
   voq_test_utils
   dsf_config_utils
   Folly::folly
+  Folly::follybenchmark
+)
+
+add_library(hw_system_scale_memory_benchmark
+  fboss/agent/hw/benchmarks/HwSystemScaleMemoryBenchmark.cpp
+)
+
+target_link_libraries(hw_system_scale_memory_benchmark
+  system_scale_test_utils
+  mono_agent_ensemble
   Folly::follybenchmark
 )

@@ -113,6 +113,24 @@ void pumpMplsTraffic(
     std::optional<PortID> frontPanelPortToLoopTraffic = std::nullopt);
 
 template <typename PortIdT, typename PortStatsT>
+std::set<uint64_t> getSortedPortBytes(
+    const std::map<PortIdT, PortStatsT>& portIdToStats);
+
+template <typename PortIdT, typename PortStatsT>
+std::set<uint64_t> getSortedPortBytesIncrement(
+    const std::map<PortIdT, PortStatsT>& beforePortIdToStats,
+    const std::map<PortIdT, PortStatsT>& afterPortIdToStats);
+
+template <typename PortIdT, typename PortStatsT>
+std::pair<uint64_t, uint64_t> getHighestAndLowestBytes(
+    const std::map<PortIdT, PortStatsT>& portIdToStats);
+
+template <typename PortIdT, typename PortStatsT>
+std::pair<uint64_t, uint64_t> getHighestAndLowestBytesIncrement(
+    const std::map<PortIdT, PortStatsT>& beforePortIdToStats,
+    const std::map<PortIdT, PortStatsT>& afterPortIdToStats);
+
+template <typename PortIdT, typename PortStatsT>
 bool isLoadBalancedImpl(
     const std::map<PortIdT, PortStatsT>& portIdToStats,
     const std::vector<NextHopWeight>& weights,
@@ -178,6 +196,7 @@ bool isLoadBalanced(
       portStats, std::vector<NextHopWeight>(), maxDeviationPct);
 }
 
+inline const int kScalingFactorSai(10);
 inline const int kScalingFactor(100);
 inline const int kLoadWeight(70);
 inline const int kQueueWeight(30);
@@ -194,6 +213,7 @@ cfg::UdfConfig addUdfFlowletAclConfig();
 cfg::UdfConfig addUdfHashAclConfig();
 
 cfg::FlowletSwitchingConfig getDefaultFlowletSwitchingConfig(
+    bool isSai,
     cfg::SwitchingMode switchingMode = cfg::SwitchingMode::FLOWLET_QUALITY);
 void addFlowletAcl(
     cfg::SwitchConfig& cfg,
@@ -203,6 +223,7 @@ void addFlowletAcl(
 void addFlowletConfigs(
     cfg::SwitchConfig& cfg,
     const std::vector<PortID>& ports,
+    bool isSai = false,
     cfg::SwitchingMode switchingMode = cfg::SwitchingMode::FLOWLET_QUALITY);
 
 cfg::LoadBalancer getTrunkHalfHashConfig(

@@ -11,6 +11,10 @@
 #include <folly/String.h>
 #include <folly/logging/xlog.h>
 
+#include "fboss/qsfp_service/module/cmis/gen-cpp2/cmis_types.h"
+#include "fboss/qsfp_service/module/sff/gen-cpp2/sff8472_types.h"
+#include "fboss/qsfp_service/module/sff/gen-cpp2/sff_types.h"
+
 namespace {
 constexpr size_t kMicrosecondsPerSecond = 1000000;
 const std::string kEmptyOptional = "...";
@@ -21,9 +25,14 @@ namespace facebook::fboss {
 I2cLogBuffer::I2cLogBuffer(
     cfg::TransceiverI2cLogging config,
     std::string logFile)
-    : buffer_(config.bufferSlots().value()),
-      size_(config.bufferSlots().value()),
-      config_(config),
+    : size_(
+          config.bufferSlots().value() > kMaxNumberBufferSlots
+              ? kMaxNumberBufferSlots
+              : config.bufferSlots().value()),
+      writeLog_(config.writeLog().value()),
+      readLog_(config.readLog().value()),
+      disableOnFail_(config.disableOnFail().value()),
+      buffer_(size_),
       logFile_(logFile) {
   if (size_ == 0) {
     throw std::invalid_argument("I2cLogBuffer size must be > 0");
@@ -35,6 +44,7 @@ I2cLogBuffer::I2cLogBuffer(
 
 void I2cLogBuffer::log(
     const TransceiverAccessParameter& param,
+    const int field,
     const uint8_t* data,
     Operation op,
     bool success) {
@@ -42,19 +52,21 @@ void I2cLogBuffer::log(
     throw std::invalid_argument("I2cLogBuffer data must be non-null");
   }
   std::lock_guard<std::mutex> g(mutex_);
-  if ((op == Operation::Read && config_.readLog().value()) ||
-      (op == Operation::Write && config_.writeLog().value())) {
-    buffer_[head_].steadyTime = std::chrono::steady_clock::now();
-    buffer_[head_].systemTime = std::chrono::system_clock::now();
-    buffer_[head_].param = param;
+  if ((op == Operation::Read && readLog_) ||
+      (op == Operation::Write && writeLog_)) {
+    auto& bufferHead = buffer_[head_];
+    bufferHead.steadyTime = std::chrono::steady_clock::now();
+    bufferHead.systemTime = std::chrono::system_clock::now();
+    bufferHead.param = param;
+    bufferHead.field = field;
     const size_t len = std::min(param.len, kMaxI2clogDataSize);
-    auto& bufferData = buffer_[head_].data;
+    auto& bufferData = bufferHead.data;
     std::copy(data, data + len, bufferData.begin());
     if (len < kMaxI2clogDataSize) {
       std::fill(bufferData.begin() + len, bufferData.end(), 0);
     }
-    buffer_[head_].op = op;
-    buffer_[head_].success = success;
+    bufferHead.op = op;
+    bufferHead.success = success;
 
     // Let tail track the oldest entry.
     if ((head_ == tail_) && (totalEntries_ != 0)) {
@@ -65,15 +77,17 @@ void I2cLogBuffer::log(
     totalEntries_++;
   }
 
-  if (!success && config_.disableOnFail().value()) {
-    config_.readLog() = false;
-    config_.writeLog() = false;
+  if (!success && disableOnFail_) {
+    readLog_ = false;
+    writeLog_ = false;
   }
 }
 
 I2cLogBuffer::I2cLogHeader I2cLogBuffer::dump(
     std::vector<I2cLogEntry>& entriesOut) {
   std::lock_guard<std::mutex> g(mutex_);
+
+  auto start = std::chrono::high_resolution_clock::now();
 
   if (entriesOut.size() != size_) {
     entriesOut.resize(size_);
@@ -111,13 +125,17 @@ I2cLogBuffer::I2cLogHeader I2cLogBuffer::dump(
     }
   }
 
+  auto end = std::chrono::high_resolution_clock::now();
+  auto copyTime =
+      std::chrono::duration_cast<std::chrono::microseconds>(end - start);
   I2cLogHeader retval = {
       .mgmtIf = mgmtIf_,
       .totalEntries = totalEntries_,
       .bufferEntries = entries,
       .portNames = portNames_,
       .fwStatus = fwStatus_,
-      .vendor = vendor_};
+      .vendor = vendor_,
+      .duration = copyTime};
   totalEntries_ = head_ = tail_ = 0;
   return retval;
 }
@@ -146,14 +164,15 @@ size_t I2cLogBuffer::getHeader(
   ss << " Management Interface: "
      << apache::thrift::util::enumNameSafe(info.mgmtIf);
   ss << "\n";
-  ss << "Port Names: " << folly::join(", ", info.portNames) << "\n";
+  ss << "Port Names: " << folly::join(" ", info.portNames) << "\n";
   ss << "I2cLogBuffer: Total Entries: " << info.totalEntries
-     << " Logged: " << info.bufferEntries << "\n";
+     << " Logged: " << info.bufferEntries
+     << " Copy Lock Time: " << info.duration.count() << " us\n";
   ss << "Between the Operation <Param> and [Data], an 'F' indicates a failure in the transaction.\n";
   ss << "If the read transaction failed [Data] may not be accurate.\n";
   ss << "mmmuuu: milliseconds microseconds, steadclock_ns: time in ns between log entries \n";
   ss << "Header format: \n";
-  ss << "Month D HH:MM:SS.mmmuuu <i2c_address  offset  len  page  bank  op> F [data]  steadyclock_ns"
+  ss << "Month D HH:MM:SS.mmmuuu FIELD_NAME <i2c_address page bank offset len op> F [data]  steadyclock_ns"
      << "\n";
 
   auto str = ss.str();
@@ -174,6 +193,31 @@ void I2cLogBuffer::getEntryTime(
 
   ss << std::put_time(&tm, "%B %d %H:%M:%S");
   ss << "." << std::setfill('0') << std::setw(6) << us.count();
+}
+
+void I2cLogBuffer::getFieldName(std::stringstream& ss, const int field) {
+  std::string fieldName;
+  switch (mgmtIf_) {
+    case TransceiverManagementInterface::CMIS:
+      fieldName =
+          apache::thrift::util::enumNameSafe(static_cast<CmisField>(field));
+      break;
+    case TransceiverManagementInterface::SFF:
+      fieldName =
+          apache::thrift::util::enumNameSafe(static_cast<SffField>(field));
+      break;
+    case TransceiverManagementInterface::SFF8472:
+      fieldName =
+          apache::thrift::util::enumNameSafe(static_cast<Sff8472Field>(field));
+      break;
+    default:
+      break;
+  }
+
+  if (!fieldName.empty()) {
+    ss << std::setfill(' ') << std::setw(kI2cFieldNameLength)
+       << fieldName.substr(0, kI2cFieldNameLength);
+  }
 }
 
 template <typename T>
@@ -201,24 +245,27 @@ std::pair<size_t, size_t> I2cLogBuffer::dumpToFile() {
   TimePointSteady prev;
 
   for (size_t i = 0; i < logCount; i++) {
-    getEntryTime(ss, entriesOut[i].systemTime);
+    auto& entry = entriesOut[i];
+    getEntryTime(ss, entry.systemTime);
+    ss << " ";
+    getFieldName(ss, entry.field);
     ss << " <";
-    auto& param = entriesOut[i].param;
+    auto& param = entry.param;
     getOptional(ss, param.i2cAddress);
-    ss << std::setfill(' ') << std::setw(3) << param.offset << " ";
-    ss << std::setfill(' ') << std::setw(3) << param.len << " ";
     getOptional(ss, param.page);
     getOptional(ss, param.bank);
-    ss << (entriesOut[i].op == Operation::Read ? "R" : "W");
+    ss << std::setfill(' ') << std::setw(3) << param.offset << " ";
+    ss << std::setfill(' ') << std::setw(3) << param.len << " ";
+    ss << (entry.op == Operation::Read ? "R" : "W");
     ss << "> ";
-    if (entriesOut[i].success) {
+    if (entry.success) {
       ss << " ";
     } else {
       ss << "F";
     }
     ss << " [";
 
-    for (auto& data : entriesOut[i].data) {
+    for (auto& data : entry.data) {
       ss << std::hex << std::setfill('0') << std::setw(2) << (uint16_t)data;
     }
     ss << "] ";
@@ -228,40 +275,39 @@ std::pair<size_t, size_t> I2cLogBuffer::dumpToFile() {
       ss << 0;
     } else {
       ss << std::chrono::duration_cast<std::chrono::nanoseconds>(
-                entriesOut[i].steadyTime - prev)
+                entry.steadyTime - prev)
                 .count();
     }
-    prev = entriesOut[i].steadyTime;
+    prev = entry.steadyTime;
     ss << std::endl;
   }
   folly::writeFile(ss.str(), logFile_.c_str());
   return std::make_pair(hdrSize, logCount);
 }
 
-TransceiverAccessParameter I2cLogBuffer::getParam(std::stringstream& ss) {
+TransceiverAccessParameter I2cLogBuffer::getParam(const std::string& str) {
   TransceiverAccessParameter param(0, 0, 0);
-  std::string token;
-  ss >> token;
-  if (token != kEmptyOptional) {
-    param.i2cAddress = folly::to<uint8_t>(token);
+  std::vector<std::string> fields;
+  folly::split(' ', str, fields, true);
+  if (fields.size() < kNumParamFields) {
+    throw std::out_of_range("Invalie param fields:" + str);
   }
-  ss >> param.offset;
-  ss >> param.len;
-  ss >> token;
-  if (token != kEmptyOptional) {
-    param.page = folly::to<uint8_t>(token);
+  if (fields.at(0) != kEmptyOptional) {
+    param.i2cAddress = folly::to<uint8_t>(fields.at(0));
+  };
+  if (fields.at(1) != kEmptyOptional) {
+    param.page = folly::to<int>(fields.at(1));
   }
-  ss >> token;
-  if (token != kEmptyOptional) {
-    param.bank = folly::to<uint8_t>(token);
+  if (fields.at(2) != kEmptyOptional) {
+    param.bank = folly::to<int>(fields.at(2));
   }
+  param.offset = folly::to<int>(fields.at(3));
+  param.len = folly::to<int>(fields.at(4));
   return param;
 }
 
-I2cLogBuffer::Operation I2cLogBuffer::getOp(std::stringstream& ss) {
-  char c;
-  ss >> c;
-  switch (c) {
+I2cLogBuffer::Operation I2cLogBuffer::getOp(const char op) {
+  switch (op) {
     case 'R':
       return Operation::Read;
       break;
@@ -269,7 +315,7 @@ I2cLogBuffer::Operation I2cLogBuffer::getOp(std::stringstream& ss) {
       return Operation::Write;
       break;
     default:
-      throw std::invalid_argument(fmt::format("Invalid Operation :{}", c));
+      throw std::invalid_argument(fmt::format("Invalid Operation :{}", op));
       break;
   }
 }
@@ -337,10 +383,10 @@ std::vector<I2cLogBuffer::I2cReplayEntry> I2cLogBuffer::loadFromLog(
   }
 
   while (std::getline(file, line)) {
-    ss = std::stringstream(getField(line, '<', '>'));
-    auto param = getParam(ss);
-    auto op = getOp(ss);
-    auto str = getField(line, '[', ']');
+    auto str = getField(line, '<', '>');
+    auto param = getParam(str);
+    auto op = getOp(str.back());
+    str = getField(line, '[', ']');
     auto data = getData(str);
     auto delay = getDelay(line);
     str = getField(line, '>', '[');

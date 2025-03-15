@@ -55,30 +55,33 @@ HwSwitchMatcher scope() {
 // Validate that none of the interface/ports are in loopback mode
 // modify ports to be in loopback and check again
 TEST(Port, checkPortLoopbackMode) {
-  auto platform = createMockPlatform();
-  auto stateV0 = make_shared<SwitchState>();
-  auto config = testConfigA();
+  for (auto withPortRouterIntf : {false, true}) {
+    auto platform = createMockPlatform();
+    auto stateV0 = make_shared<SwitchState>();
+    auto config =
+        withPortRouterIntf ? testConfigA() : testConfigAWithPortInterfaces();
 
-  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
-  ASSERT_NE(nullptr, stateV1);
+    auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+    ASSERT_NE(nullptr, stateV1);
 
-  for (auto [_, intfMap] : std::as_const(*stateV1->getInterfaces())) {
-    for (auto iter : std::as_const(*intfMap)) {
-      auto intf = iter.second;
-      EXPECT_FALSE(isAnyInterfacePortInLoopbackMode(stateV1, intf));
+    for (auto [_, intfMap] : std::as_const(*stateV1->getInterfaces())) {
+      for (auto iter : std::as_const(*intfMap)) {
+        auto intf = iter.second;
+        EXPECT_FALSE(isAnyInterfacePortInLoopbackMode(stateV1, intf));
+      }
     }
-  }
 
-  // set all ports in the configuration to loopback
-  // all interfaces should also point to these loopbacks
-  for (auto& port : *config.ports()) {
-    port.loopbackMode() = cfg::PortLoopbackMode::PHY;
-  }
-  auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
+    // set all ports in the configuration to loopback
+    // all interfaces should also point to these loopbacks
+    for (auto& port : *config.ports()) {
+      port.loopbackMode() = cfg::PortLoopbackMode::PHY;
+    }
+    auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
 
-  for (auto [_, intfMap] : std::as_const(*stateV1->getInterfaces())) {
-    for (auto iter : std::as_const(*intfMap)) {
-      EXPECT_TRUE(isAnyInterfacePortInLoopbackMode(stateV2, iter.second));
+    for (auto [_, intfMap] : std::as_const(*stateV1->getInterfaces())) {
+      for (auto iter : std::as_const(*intfMap)) {
+        EXPECT_TRUE(isAnyInterfacePortInLoopbackMode(stateV2, iter.second));
+      }
     }
   }
 }

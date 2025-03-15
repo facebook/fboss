@@ -106,12 +106,7 @@ std::string DevicePathResolver::resolvePciDevicePath(
   }
   const auto [slotPath, deviceName] = Utils().parseDevicePath(devicePath);
   auto pciDeviceConfig = getPciDeviceConfig(slotPath, deviceName);
-  auto pciDevice = PciDevice(
-      *pciDeviceConfig.pmUnitScopedName(),
-      *pciDeviceConfig.vendorId(),
-      *pciDeviceConfig.deviceId(),
-      *pciDeviceConfig.subSystemVendorId(),
-      *pciDeviceConfig.subSystemDeviceId());
+  auto pciDevice = PciDevice(pciDeviceConfig);
   if (!fs::exists(pciDevice.sysfsPath())) {
     throw std::runtime_error(
         fmt::format("{} is not plugged-in to the platform", deviceName));
@@ -122,40 +117,34 @@ std::string DevicePathResolver::resolvePciDevicePath(
 std::optional<std::string> DevicePathResolver::resolvePresencePath(
     const std::string& devicePath,
     const std::string& presenceFileName) const {
+  XLOG(INFO) << fmt::format(
+      "Resolving SysfsPath for DevicePath {}", devicePath);
+  if (!dataStore_.hasSysfsPath(devicePath)) {
+    XLOG(INFO) << fmt::format(
+        "Couldn't find SysfsPath for DevicePath {}", devicePath);
+    return std::nullopt;
+  }
+  fs::path sysfsPath = dataStore_.getSysfsPath(devicePath);
+  if (fs::exists(sysfsPath / presenceFileName)) {
+    XLOG(INFO) << fmt::format(
+        "Resolved PresencePath to {}", (sysfsPath / presenceFileName).string());
+    return sysfsPath / presenceFileName;
+  }
   try {
-    XLOG(INFO) << "Resolving PresencePath with SensorPath";
     auto sensorPath = fs::path(resolveSensorPath(devicePath));
+    XLOG(INFO) << fmt::format(
+        "Resolved PresencePath to {}",
+        (sensorPath / presenceFileName).string());
     return sensorPath / presenceFileName;
   } catch (const std::exception& e) {
     XLOG(ERR) << fmt::format(
-        "Failed to resolve PresencePath with SensorPath. Reason: {}", e.what());
+        "Couldn't find PresencePath under /hwmon/hwmon[n]. Reason: {}",
+        e.what());
   }
-  XLOG(INFO) << "Resolving PresencePath with PciDevicePath";
-  const auto [slotPath, deviceName] = Utils().parseDevicePath(devicePath);
-  if (!dataStore_.hasPmUnit(slotPath)) {
-    XLOG(ERR) << fmt::format(
-        "Failed to resolve PresencePath with PciDevicePath. "
-        "Reason: No PmUnit exists at {}",
-        slotPath);
-    return std::nullopt;
-  }
-  auto pmUnitConfig = dataStore_.resolvePmUnitConfig(slotPath);
-  auto pciDeviceConfig = std::find_if(
-      pmUnitConfig.pciDeviceConfigs()->begin(),
-      pmUnitConfig.pciDeviceConfigs()->end(),
-      [deviceNameCopy = deviceName](auto pciDeviceConfig) {
-        return *pciDeviceConfig.pmUnitScopedName() == deviceNameCopy;
-      });
-  if (pciDeviceConfig != pmUnitConfig.pciDeviceConfigs()->end()) {
-    auto pciDevice = PciDevice(
-        *pciDeviceConfig->pmUnitScopedName(),
-        *pciDeviceConfig->vendorId(),
-        *pciDeviceConfig->deviceId(),
-        *pciDeviceConfig->subSystemVendorId(),
-        *pciDeviceConfig->subSystemDeviceId());
-    auto targetPath = std::filesystem::path(pciDevice.sysfsPath());
-    return targetPath / presenceFileName;
-  }
+  XLOG(ERR) << fmt::format(
+      "Failed to resolve PresencePath under ({}) nor ({})",
+      (sysfsPath / presenceFileName).string(),
+      (sysfsPath / "/hwmon/hwmon[n]").string());
   return std::nullopt;
 }
 

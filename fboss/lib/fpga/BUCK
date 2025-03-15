@@ -51,7 +51,6 @@ cpp_library(
         "//fboss/agent:utils",
         "//fboss/lib/i2c:i2c_ctrl",
         "//fboss/lib/usb:i2-api",
-        "//folly:cpp_attributes",
         "//folly:format",
         "//folly:range",
         "//folly:synchronized",
@@ -74,7 +73,6 @@ cpp_library(
         "//fboss/agent:utils",
         "//fboss/lib/i2c:i2c_ctrl",
         "//fboss/lib/usb:i2-api",
-        "//folly:cpp_attributes",
         "//folly:format",
         "//folly:range",
         "//folly:synchronized",
@@ -97,6 +95,7 @@ cpp_library(
     exported_deps = [
         ":fpga_device",
         "//fboss/agent:fboss-error",
+        "//fboss/lib/if:pim_state-cpp2-types",
     ],
 )
 
@@ -161,7 +160,6 @@ cpp_library(
         ":fb_fpga_i2c",
         ":wedge400_fpga",
         "//fboss/agent:utils",
-        "//fboss/lib:pci_access",
         "//fboss/lib/usb:i2-api",
         "//folly:format",
         "//folly/logging:logging",

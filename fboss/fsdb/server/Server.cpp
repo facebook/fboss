@@ -17,6 +17,9 @@ using namespace std::chrono_literals; // @donotremove
 
 DEFINE_bool(readConfigFile, true, "Whether config file should be read");
 
+// Refer
+// https://www.internalfb.com/intern/staticdocs/fboss_agent/docs/Features/fb/Features_fsdb/#fsdb-timeouts
+// for details
 DEFINE_int32(
     streamExpire_ms,
     1 * 15 * 60 * 1000 /* quarter hour */,

@@ -66,26 +66,17 @@ struct FieldsType;
 namespace rv_detail {
 
 /*
- * invokeVisitorFnHelper allows us to support two different visitor
- * signatures:
- *
- * 1. f(traverser, ...)
- * 2. f(path, ...)
- *
- * This allows a visitor to leverage a stateful TraverseHelper if
- * desired in the visit function.
+ * invokeVisitorFnHelper allows us to support different visitor signatures
+ * if needed.
  */
 
 template <typename Node, typename TraverseHelper, typename Func>
-auto invokeVisitorFnHelper(TraverseHelper& traverser, Node&& node, Func&& f)
-    -> std::invoke_result_t<Func, TraverseHelper&, Node&&> {
+void invokeVisitorFnHelper(
+    RecurseVisitOptions /* options */,
+    TraverseHelper& traverser,
+    Node&& node,
+    Func&& f) {
   return f(traverser, std::forward<Node>(node));
-}
-
-template <typename Node, typename TraverseHelper, typename Func>
-auto invokeVisitorFnHelper(TraverseHelper& traverser, Node&& node, Func&& f)
-    -> std::invoke_result_t<Func, const std::vector<std::string>&, Node&&> {
-  return f(traverser.path(), std::forward<Node>(node));
 }
 
 template <typename TC, typename NodePtr, typename TraverseHelper, typename Func>
@@ -110,7 +101,7 @@ void visitNode(
   bool visitIntermediate = options.mode == RecurseVisitMode::FULL ||
       options.mode == RecurseVisitMode::UNPUBLISHED;
   if (visitIntermediate && options.order == RecurseVisitOrder::PARENTS_FIRST) {
-    invokeVisitorFnHelper(traverser, node, std::forward<Func>(f));
+    invokeVisitorFnHelper(options, traverser, node, std::forward<Func>(f));
   }
 
   if constexpr (std::is_const_v<NodePtr>) {
@@ -122,7 +113,7 @@ void visitNode(
   }
 
   if (visitIntermediate && options.order == RecurseVisitOrder::CHILDREN_FIRST) {
-    invokeVisitorFnHelper(traverser, node, std::forward<Func>(f));
+    invokeVisitorFnHelper(options, traverser, node, std::forward<Func>(f));
   }
 }
 
@@ -164,14 +155,15 @@ struct RecurseVisitor<apache::thrift::type_class::set<ValueTypeClass>> {
       throw std::runtime_error(folly::to<std::string>(
           "RecurseVisitor support for hybridNodeDeepTraversal in Set not implemented"));
     }
-    rv_detail::invokeVisitorFnHelper(traverser, node, std::forward<Func>(f));
+    rv_detail::invokeVisitorFnHelper(
+        options, traverser, node, std::forward<Func>(f));
   }
 
   template <typename Fields, typename TraverseHelper, typename Func>
   static void visit(
       TraverseHelper& traverser,
       Fields& fields,
-      RecurseVisitOptions /*options*/,
+      RecurseVisitOptions options,
       Func&& f)
       // only enable for Fields types
     requires(std::is_same_v<typename Fields::CowType, FieldsType>)
@@ -180,7 +172,10 @@ struct RecurseVisitor<apache::thrift::type_class::set<ValueTypeClass>> {
       traverser.push(
           folly::to<std::string>(val->cref()), TCType<ValueTypeClass>);
       rv_detail::invokeVisitorFnHelper(
-          traverser, typename Fields::value_type{val}, std::forward<Func>(f));
+          options,
+          traverser,
+          typename Fields::value_type{val},
+          std::forward<Func>(f));
       traverser.pop(TCType<ValueTypeClass>);
     }
   }
@@ -224,21 +219,23 @@ struct RecurseVisitor<apache::thrift::type_class::list<ValueTypeClass>> {
     }
     auto& tObj = node->ref();
     bool visitIntermediate = options.mode == RecurseVisitMode::FULL ||
-        options.mode == RecurseVisitMode::UNPUBLISHED || tObj.empty();
+        options.mode == RecurseVisitMode::UNPUBLISHED;
     if (visitIntermediate &&
         options.order == RecurseVisitOrder::PARENTS_FIRST) {
-      rv_detail::invokeVisitorFnHelper(traverser, node, std::forward<Func>(f));
+      rv_detail::invokeVisitorFnHelper(
+          options, traverser, node, std::forward<Func>(f));
     }
     // visit list elements
     for (int i = 0; i < tObj.size(); ++i) {
       traverser.push(folly::to<std::string>(i), TCType<ValueTypeClass>);
       rv_detail::invokeVisitorFnHelper(
-          traverser, &tObj.at(i), std::forward<Func>(f));
+          options, traverser, &tObj.at(i), std::forward<Func>(f));
       traverser.pop(TCType<ValueTypeClass>);
     }
     if (visitIntermediate &&
         options.order == RecurseVisitOrder::CHILDREN_FIRST) {
-      rv_detail::invokeVisitorFnHelper(traverser, node, std::forward<Func>(f));
+      rv_detail::invokeVisitorFnHelper(
+          options, traverser, node, std::forward<Func>(f));
     }
   }
 
@@ -297,32 +294,38 @@ struct RecurseVisitor<
       throw std::runtime_error(folly::to<std::string>(
           "RecurseVisitor support for hybridNodeDeepTraversal in Map not implemented"));
     }
+    if (options.mode == RecurseVisitMode::UNPUBLISHED) {
+      rv_detail::invokeVisitorFnHelper(
+          options, traverser, node, std::forward<Func>(f));
+      return;
+    }
     auto& tObj = node->ref();
-    bool visitIntermediate = options.mode == RecurseVisitMode::FULL ||
-        options.mode == RecurseVisitMode::UNPUBLISHED || tObj.empty();
+    bool visitIntermediate = options.mode == RecurseVisitMode::FULL;
     if (visitIntermediate &&
         options.order == RecurseVisitOrder::PARENTS_FIRST) {
-      rv_detail::invokeVisitorFnHelper(traverser, node, std::forward<Func>(f));
+      rv_detail::invokeVisitorFnHelper(
+          options, traverser, node, std::forward<Func>(f));
     }
     // visit map entries
     if constexpr (std::is_const_v<NodePtr>) {
       for (const auto& [key, val] : tObj) {
         traverser.push(folly::to<std::string>(key), TCType<MappedTypeClass>);
         rv_detail::invokeVisitorFnHelper(
-            traverser, &val, std::forward<Func>(f));
+            options, traverser, &val, std::forward<Func>(f));
         traverser.pop(TCType<MappedTypeClass>);
       }
     } else {
       for (auto& [key, val] : tObj) {
         traverser.push(folly::to<std::string>(key), TCType<MappedTypeClass>);
         rv_detail::invokeVisitorFnHelper(
-            traverser, &val, std::forward<Func>(f));
+            options, traverser, &val, std::forward<Func>(f));
         traverser.pop(TCType<MappedTypeClass>);
       }
     }
     if (visitIntermediate &&
         options.order == RecurseVisitOrder::CHILDREN_FIRST) {
-      rv_detail::invokeVisitorFnHelper(traverser, node, std::forward<Func>(f));
+      rv_detail::invokeVisitorFnHelper(
+          options, traverser, node, std::forward<Func>(f));
     }
   }
 
@@ -389,7 +392,8 @@ struct RecurseVisitor<apache::thrift::type_class::variant> {
       throw std::runtime_error(folly::to<std::string>(
           "RecurseVisitor support for hybridNodeDeepTraversal in Variant not implemented"));
     }
-    rv_detail::invokeVisitorFnHelper(traverser, node, std::forward<Func>(f));
+    rv_detail::invokeVisitorFnHelper(
+        options, traverser, node, std::forward<Func>(f));
   }
 
   template <typename Fields, typename TraverseHelper, typename Func>
@@ -440,16 +444,6 @@ struct RecurseVisitor<apache::thrift::type_class::structure> {
     return visit(traverser, node, options, std::forward<Func>(f));
   }
 
-  template <typename NodePtr, typename Func>
-  static void visit(NodePtr& node, RecurseVisitMode mode, Func&& f) {
-    SimpleTraverseHelper traverser;
-    return visit(
-        traverser,
-        node,
-        RecurseVisitOptions(mode, RecurseVisitOrder::PARENTS_FIRST),
-        std::forward<Func>(f));
-  }
-
   template <typename NodePtr, typename TraverseHelper, typename Func>
   static inline void visit(
       TraverseHelper& traverser,
@@ -480,7 +474,8 @@ struct RecurseVisitor<apache::thrift::type_class::structure> {
       throw std::runtime_error(folly::to<std::string>(
           "RecurseVisitor support for hybridNodeDeepTraversal in Struct not implemented"));
     }
-    rv_detail::invokeVisitorFnHelper(traverser, node, std::forward<Func>(f));
+    rv_detail::invokeVisitorFnHelper(
+        options, traverser, node, std::forward<Func>(f));
   }
 
   template <typename Fields, typename TraverseHelper, typename Func>
@@ -543,7 +538,8 @@ struct RecurseVisitor {
       Fields& fields,
       RecurseVisitOptions options,
       Func&& f) {
-    rv_detail::invokeVisitorFnHelper(traverser, fields, std::forward<Func>(f));
+    rv_detail::invokeVisitorFnHelper(
+        options, traverser, fields, std::forward<Func>(f));
   }
 };
 

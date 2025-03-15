@@ -174,7 +174,6 @@ class HwAsic {
     FABRIC_LINK_DOWN_CELL_DROP_COUNTER,
     CRC_ERROR_DETECT,
     EVENTOR_PORT_FOR_SFLOW,
-    CPU_VOQ_BUFFER_PROFILE,
     SAI_ECMP_HASH_ALGORITHM,
     SWITCH_REACHABILITY_CHANGE_NOTIFY,
     CABLE_PROPOGATION_DELAY,
@@ -196,8 +195,16 @@ class HwAsic {
     PORT_MTU_ERROR_TRAP,
     L3_INTF_MTU,
     DEDICATED_CPU_BUFFER_POOL,
-    EGRESS_ACL_TABLE,
+    INGRESS_POST_LOOKUP_ACL_TABLE,
     FAST_LLFC_COUNTER,
+    INGRESS_SRAM_MIN_BUFFER_WATERMARK,
+    FDR_FIFO_WATERMARK,
+    EGRESS_CELL_ERROR_STATS,
+    CPU_QUEUE_WATERMARK_STATS,
+    SAMPLE_RATE_CONFIG_PER_MIRROR,
+    SFLOW_SAMPLES_PACKING,
+    VENDOR_SWITCH_NOTIFICATION,
+    SDK_REGISTER_DUMP,
   };
 
   enum class AsicMode {
@@ -218,6 +225,10 @@ class HwAsic {
     SINGLE_STAGE_L1,
     DUAL_STAGE_L1,
     DUAL_STAGE_L2,
+  };
+  enum InterfaceNodeRole {
+    IN_CLUSTER_NODE,
+    DUAL_STAGE_EDGE_NODE,
   };
   virtual ~HwAsic() {}
   static std::unique_ptr<HwAsic> makeAsic(
@@ -243,10 +254,10 @@ class HwAsic {
   virtual uint64_t getMMUSizeBytes() const = 0;
   virtual uint32_t getMaxMirrors() const = 0;
   virtual uint16_t getMirrorTruncateSize() const = 0;
-  virtual uint64_t getDefaultReservedBytes(
+  virtual std::optional<uint64_t> getDefaultReservedBytes(
       cfg::StreamType streamType,
       cfg::PortType portType) const = 0;
-  virtual cfg::MMUScalingFactor getDefaultScalingFactor(
+  virtual std::optional<cfg::MMUScalingFactor> getDefaultScalingFactor(
       cfg::StreamType streamType,
       bool cpu) const = 0;
   virtual const std::map<cfg::PortType, cfg::PortLoopbackMode>&
@@ -331,6 +342,22 @@ class HwAsic {
   virtual std::optional<uint32_t> getMaxDlbEcmpGroups() const {
     return std::nullopt;
   }
+  // TODO(zecheng): Define more specific limits for v4/v6 routes with different
+  // mask lengths
+  virtual std::optional<uint32_t> getMaxRoutes() const {
+    return 75000;
+  }
+
+  //  SAI implementaion doen not support attribute
+  //  SAI_SWITCH_ATTR_L3_NEIGHBOR_TABLE_SIZE yet, so decided to add these
+  //  functions to return max neighbot table size
+  virtual std::optional<uint32_t> getMaxNdpTableSize() const {
+    return std::nullopt;
+  }
+
+  virtual std::optional<uint32_t> getMaxArpTableSize() const {
+    return std::nullopt;
+  }
 
   virtual bool scalingFactorBasedDynamicThresholdSupported() const = 0;
 
@@ -374,13 +401,15 @@ class HwAsic {
     uint32_t coreId;
     uint32_t corePortIndex;
     uint32_t speedMbps;
+    uint32_t inbandPortId;
   };
 
   std::optional<cfg::SdkVersion> getSdkVersion() const {
     return sdkVersion_;
   }
 
-  virtual RecyclePortInfo getRecyclePortInfo() const;
+  virtual RecyclePortInfo getRecyclePortInfo(
+      InterfaceNodeRole /* intfRole */) const;
   cfg::PortLoopbackMode getDesiredLoopbackMode(
       cfg::PortType portType = cfg::PortType::INTERFACE_PORT) const;
 
@@ -408,6 +437,8 @@ class HwAsic {
 
   virtual int getMidPriCpuQueueId() const = 0;
   virtual int getHiPriCpuQueueId() const = 0;
+
+  virtual uint64_t getSramSizeBytes() const = 0;
   std::optional<int32_t> getGlobalSystemPortOffset() const {
     return globalSystemPortOffset_;
   }
@@ -416,6 +447,16 @@ class HwAsic {
   }
   std::optional<int32_t> getInbandPortId() const {
     return inbandPortId_;
+  }
+  virtual uint32_t getMaxSwitchId() const;
+
+  virtual uint16_t getGreProtocol() const {
+    return 0x88be;
+  }
+
+  // Applicable only when IP_IN_IP_DECAP feature is enabled.
+  virtual cfg::IpTunnelMode getTunnelDscpMode() const {
+    return cfg::IpTunnelMode::PIPE;
   }
 
  protected:

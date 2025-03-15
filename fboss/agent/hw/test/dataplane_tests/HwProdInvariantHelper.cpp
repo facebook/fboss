@@ -174,6 +174,7 @@ void HwProdInvariantHelper::verifySafeDiagCmds() {
     case cfg::AsicType::ASIC_TYPE_RAMON:
     case cfg::AsicType::ASIC_TYPE_RAMON3:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK6:
       break;
 
     case cfg::AsicType::ASIC_TYPE_TRIDENT2:
@@ -219,8 +220,9 @@ void HwProdInvariantHelper::disableTtl() {
 }
 
 void HwProdInvariantHelper::verifyQueuePerHostMapping(bool dscpMarkingTest) {
-  auto vlanId = utility::firstVlanID(getProgrammedState());
-  auto intfMac = utility::getFirstInterfaceMac(ensemble_->getProgrammedState());
+  auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
+  auto intfMac = utility::getMacForFirstInterfaceWithPorts(
+      ensemble_->getProgrammedState());
   auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO());
 
   // if DscpMarkingTest is set, send unmarked packet matching DSCP marking ACL,

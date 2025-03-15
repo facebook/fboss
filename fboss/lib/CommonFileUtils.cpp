@@ -8,7 +8,6 @@
 #include <exception>
 #include <filesystem>
 #include <fstream>
-#include <sstream>
 #include "fboss/agent/SysError.h"
 
 #include <fcntl.h>

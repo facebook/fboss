@@ -27,6 +27,7 @@ class SaiMorgan800ccPlatform : public SaiTajoPlatform {
   bool isSerdesApiSupported() const override {
     return true;
   }
+  std::vector<PortID> getAllPortsInGroup(PortID) const override;
 
  private:
   void setupAsic(

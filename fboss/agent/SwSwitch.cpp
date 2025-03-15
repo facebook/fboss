@@ -34,7 +34,6 @@
 #include "fboss/agent/LookupClassUpdater.h"
 #include "fboss/agent/ResourceAccountant.h"
 #include "fboss/agent/SwitchInfoUtils.h"
-#include "fboss/agent/hw/HwSwitchWarmBootHelper.h"
 #include "fboss/agent/state/StateUtils.h"
 #include "fboss/lib/phy/gen-cpp2/prbs_types.h"
 #if FOLLY_HAS_COROUTINES
@@ -60,7 +59,6 @@
 #include "fboss/agent/RemoteNeighborUpdater.h"
 #include "fboss/agent/ResolvedNexthopMonitor.h"
 #include "fboss/agent/ResolvedNexthopProbeScheduler.h"
-#include "fboss/agent/RestartTimeTracker.h"
 #include "fboss/agent/RouteUpdateLogger.h"
 #include "fboss/agent/RxPacket.h"
 #include "fboss/agent/StaticL2ForNeighborObserver.h"
@@ -75,8 +73,6 @@
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/capture/PcapPkt.h"
 #include "fboss/agent/capture/PktCaptureManager.h"
-#include "fboss/agent/gen-cpp2/switch_config_types_custom_protocol.h"
-#include "fboss/agent/hw/HwSwitchFb303Stats.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/packet/EthHdr.h"
 #include "fboss/agent/packet/IPv4Hdr.h"
@@ -93,9 +89,8 @@
 #include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/lib/platforms/PlatformProductInfo.h"
+#include "fboss/lib/restart_tracker/RestartTimeTracker.h"
 #include "fboss/util/Logging.h"
-
-#include "fboss/lib/CommonFileUtils.h"
 
 #include <fb303/ServiceData.h>
 #include <folly/Demangle.h>
@@ -185,11 +180,6 @@ DEFINE_bool(rx_sw_priority, false, "Enable rx packet prioritization");
 DEFINE_int32(rx_pkt_thread_timeout, 100, "Rx packet thread timeout (ms)");
 
 DEFINE_int32(max_l2_entries, 1000, "Maximum L2 entries supported");
-
-DEFINE_bool(
-    enable_mac_update_protection,
-    false,
-    "Enable MAC table update protection");
 
 using namespace facebook::fboss;
 namespace {
@@ -344,6 +334,12 @@ void accumulateGlobalCpuStats(
   }
 }
 
+DEFINE_dynamic_quantile_stat(
+    port_fec_tail,
+    "port.{}.fecTail",
+    facebook::fb303::ExportTypeConsts::kNone,
+    std::array<double, 1>{{1.0}});
+
 void updatePhyFb303Stats(
     const std::map<facebook::fboss::PortID, facebook::fboss::phy::PhyInfo>&
         phyInfoMap) {
@@ -372,6 +368,9 @@ void updatePhyFb303Stats(
         }
         facebook::fb303::fbData->setCounter(
             "port." + phyState.get_name() + ".preFecBerLog", preFECBerForFb303);
+        if (auto fecTail = fec->fecTail()) {
+          STATS_port_fec_tail.addValue(*fecTail, phyState.get_name());
+        }
       }
     }
   }
@@ -453,7 +452,8 @@ SwSwitch::SwSwitch(
       scopeResolver_(
           new SwitchIdScopeResolver(getSwitchInfoFromConfig(config))),
       switchStatsObserver_(new SwitchStatsObserver(this)),
-      resourceAccountant_(new ResourceAccountant(hwAsicTable_.get())),
+      resourceAccountant_(
+          new ResourceAccountant(hwAsicTable_.get(), scopeResolver_.get())),
       packetStreamMap_(new MultiSwitchPacketStreamMap()),
       swSwitchWarmbootHelper_(
           new SwSwitchWarmBootHelper(agentDirUtil_, hwAsicTable_.get())),
@@ -518,6 +518,12 @@ bool SwSwitch::fsdbStatPublishReady() const {
 bool SwSwitch::fsdbStatePublishReady() const {
   return fsdbSyncer_.withRLock(
       [](const auto& syncer) { return syncer->isReadyForStatePublishing(); });
+}
+
+uint64_t SwSwitch::fsdbPublishQueueLength() const {
+  return fsdbSyncer_.withRLock([](const auto& syncer) {
+    return syncer->getPendingUpdatesQueueLength();
+  });
 }
 
 void SwSwitch::stop(bool isGracefulStop, bool revertToMinAlpmState) {
@@ -883,6 +889,7 @@ void SwSwitch::updateStats() {
   updateMultiSwitchGlobalFb303Stats();
   stats()->maxNumOfPhysicalHostsPerQueue(
       getLookupClassUpdater()->getMaxNumHostsPerQueue());
+  stats()->fsdbPublishQueueLength(fsdbPublishQueueLength());
 
   if (!isRunModeMultiSwitch()) {
     multiswitch::HwSwitchStats hwStats;
@@ -1141,30 +1148,6 @@ void SwSwitch::exitFatal() const noexcept {
   }
 }
 
-void SwSwitch::publishRxPacket(RxPacket* pkt, uint16_t ethertype) {
-  RxPacketData pubPkt;
-  pubPkt.srcPort = pkt->getSrcPort();
-  pubPkt.srcVlan = pkt->getSrcVlanIf();
-
-  for (const auto& r : pkt->getReasons()) {
-    RxReason reason;
-    reason.bytes = r.bytes;
-    reason.description = r.description;
-    pubPkt.reasons.push_back(reason);
-  }
-
-  folly::IOBuf buf_copy;
-  pkt->buf()->cloneInto(buf_copy);
-  pubPkt.packetData = buf_copy.moveToFbString();
-}
-
-void SwSwitch::publishTxPacket(TxPacket* pkt, uint16_t ethertype) {
-  TxPacketData pubPkt;
-  folly::IOBuf copy_buf;
-  pkt->buf()->cloneInto(copy_buf);
-  pubPkt.packetData = copy_buf.moveToFbString();
-}
-
 std::shared_ptr<SwitchState> SwSwitch::preInit(SwitchFlags flags) {
   auto begin = steady_clock::now();
   flags_ = flags;
@@ -1248,12 +1231,12 @@ void SwSwitch::init(
   const auto initialStateDelta = StateDelta(emptyState, initialState);
 
   // Notify resource accountant of the initial state.
-  if (!resourceAccountant_->isValidRouteUpdate(initialStateDelta)) {
+  if (!resourceAccountant_->isValidUpdate(initialStateDelta)) {
     // If DLB is enabled and pre-warmboot state has >128 ECMP groups, any
     // failure is due to DLB resource check failure. Resource accounting will
     // not be enabled in this boot and stay disabled until next warmboot
     //
-    // This is the first invocation of isValidRouteUpdate. At this time,
+    // This is the first invocation of isValidUpdate. At this time,
     // ResourceAccountant::checkDlbResource_ is True by default. If the method
     // returns False, set checkDlbResource_ to False. This will disable further
     // DLB resource checks within resource accounting
@@ -1333,12 +1316,12 @@ void SwSwitch::init(const HwWriteBehavior& hwWriteBehavior, SwitchFlags flags) {
   }
   const auto initialStateDelta = StateDelta(emptyState, initialState);
   // Notify resource accountant of the initial state.
-  if (!resourceAccountant_->isValidRouteUpdate(initialStateDelta)) {
+  if (!resourceAccountant_->isValidUpdate(initialStateDelta)) {
     // If DLB is enabled and pre-warmboot state has >128 ECMP groups, any
     // failure is due to DLB resource check failure. Resource accounting will
     // not be enabled in this boot and stay disabled until next warmboot
     //
-    // This is the first invocation of isValidRouteUpdate. At this time,
+    // This is the first invocation of isValidUpdate. At this time,
     // ResourceAccountant::checkDlbResource_ is True by default. If the method
     // returns False, set checkDlbResource_ to False. This will disable further
     // DLB resource checks within resource accounting
@@ -1585,6 +1568,7 @@ void SwSwitch::handlePendingUpdates() {
   // might also end up finding 0 updates to process if a previous
   // handlePendingUpdates() call processed multiple updates.
   StateUpdateList updates;
+  auto pendingUpdateQueueLength = 0;
   {
     std::unique_lock guard(pendingUpdatesLock_);
     // When deciding how many elements to pull off the pendingUpdates_
@@ -1609,7 +1593,9 @@ void SwSwitch::handlePendingUpdates() {
     }
     updates.splice(
         updates.begin(), pendingUpdates_, pendingUpdates_.begin(), iter);
+    pendingUpdateQueueLength = pendingUpdates_.size();
   }
+  stats()->pendingStateUpdateCount(pendingUpdateQueueLength);
 
   // handlePendingUpdates() is invoked once for each update, but a previous
   // call might have already processed everything.  If we don't have anything
@@ -1643,7 +1629,8 @@ void SwSwitch::handlePendingUpdates() {
     ++iter;
 
     shared_ptr<SwitchState> intermediateState;
-    XLOG(DBG2) << "preparing state update " << update->getName();
+    XLOG(DBG2) << "preparing state update " << update->getName()
+               << "; # Pending updates " << pendingUpdateQueueLength;
     try {
       intermediateState = update->applyUpdate(newDesiredState);
     } catch (const std::exception& ex) {
@@ -1963,10 +1950,22 @@ PortDescriptor SwSwitch::getPortFromPkt(const RxPacket* pkt) const {
 }
 
 void SwSwitch::handlePacket(std::unique_ptr<RxPacket> pkt) {
+  auto port = getPortFromPkt(pkt.get());
+
+  // Handle packets for CPU port separately
+  if (port.type() == PortDescriptor::PortType::PHYSICAL &&
+      port.phyPortID() == PortID(0)) {
+    XLOG(DBG2) << "Dropping packet received from CPU port (" << port.str()
+               << ").";
+    portStats(port.phyPortID())->pktDropped();
+    return;
+  }
+
   if (FLAGS_intf_nbr_tables) {
-    auto intf = getState()->getInterfaces()->getNodeIf(
-        getState()->getInterfaceIDForPort(getPortFromPkt(pkt.get())));
-    handlePacketImpl(std::move(pkt), intf);
+    handlePacketImpl(
+        std::move(pkt),
+        getState()->getInterfaces()->getNodeIf(
+            getState()->getInterfaceIDForPort(port)));
   } else {
     auto vlan =
         getState()->getVlans()->getNodeIf(getVlanIDHelper(pkt->getSrcVlanIf()));
@@ -2238,8 +2237,13 @@ void SwSwitch::linkActiveStateChangedOrFwIsolated(
     if (fwIsolated) {
       if (isSwitchErrorFirmwareIsolate(
               numActiveFabricPortsAtFwIsolate, switchSettings)) {
-        newActualSwitchDrainState =
-            cfg::SwitchDrainState::DRAINED_DUE_TO_ASIC_ERROR;
+        stats()->fwDrainedWithHighNumActiveFabricLinks();
+        if (FLAGS_fw_drained_unrecoverable_error) {
+          newActualSwitchDrainState =
+              cfg::SwitchDrainState::DRAINED_DUE_TO_ASIC_ERROR;
+        } else {
+          newActualSwitchDrainState = cfg::SwitchDrainState::DRAINED;
+        }
       } else {
         newActualSwitchDrainState = cfg::SwitchDrainState::DRAINED;
       }
@@ -2251,6 +2255,11 @@ void SwSwitch::linkActiveStateChangedOrFwIsolated(
     auto currentActualDrainState = switchSettings->getActualSwitchDrainState();
 
     if (newActualSwitchDrainState != currentActualDrainState) {
+      auto switchInfo = switchSettings->getSwitchIdToSwitchInfo()
+                            .find(matcher.switchId())
+                            ->second;
+      stats()->setDrainState(
+          *switchInfo.switchIndex(), newActualSwitchDrainState);
       auto newSwitchSettings = switchSettings->modify(&newState);
       newSwitchSettings->setActualSwitchDrainState(newActualSwitchDrainState);
     }
@@ -2318,6 +2327,12 @@ void SwSwitch::switchReachabilityChanged(
     const std::map<SwitchID, std::set<PortID>>& switchReachabilityInfo) {
   switch_reachability::SwitchReachability newReachability;
   int currentIdx = 1;
+  uint64_t collectionTimestamp =
+      duration_cast<seconds>(system_clock::now().time_since_epoch()).count();
+  if (hwReachabilityInfo_.find(switchId) == hwReachabilityInfo_.end()) {
+    hwReachabilityInfo_[switchId] = {};
+  }
+  auto& cachedRechabilityInfo = hwReachabilityInfo_[switchId];
   std::unordered_map<std::set<PortID>, int> portGrp2Id;
   for (const auto& [destinationSwitchId, portIdSet] : switchReachabilityInfo) {
     int portGroupId;
@@ -2339,6 +2354,17 @@ void SwSwitch::switchReachabilityChanged(
     }
     newReachability.switchIdToFabricPortGroupMap()[static_cast<int64_t>(
         destinationSwitchId)] = portGroupId;
+    auto iter = cachedRechabilityInfo.find(destinationSwitchId);
+    if (iter != cachedRechabilityInfo.end() &&
+        std::get<std::set<PortID>>(iter->second) == portIdSet) {
+      newReachability.switchIdToLastUpdatedTimestamp()[static_cast<int64_t>(
+          destinationSwitchId)] = std::get<uint64_t>(iter->second);
+    } else {
+      newReachability.switchIdToLastUpdatedTimestamp()[static_cast<int64_t>(
+          destinationSwitchId)] = collectionTimestamp;
+      cachedRechabilityInfo[destinationSwitchId] =
+          std::make_tuple(portIdSet, collectionTimestamp);
+    }
   }
   // Update switch reachability info with the latest data
   (*hwSwitchReachability_.wlock())[switchId] = newReachability;
@@ -3536,6 +3562,7 @@ FabricReachabilityStats SwSwitch::getFabricReachabilityStats() {
     *reachStats.virtualDevicesWithAsymmetricConnectivity() +=
         *stats.fabricReachabilityStats()
              ->virtualDevicesWithAsymmetricConnectivity();
+    *reachStats.bogusCount() += *stats.fabricReachabilityStats()->bogusCount();
   }
   return reachStats;
 }

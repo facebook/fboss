@@ -29,6 +29,7 @@ cpp_library(
         "//fboss/qsfp_service/module:firmware_upgrader",
         "//fboss/qsfp_service/module:i2c_log_buffer",
         "//fboss/qsfp_service/module:qsfp-module",
+        "//fboss/qsfp_service/module/cmis:cmis-cpp2-types",
         "//folly:conv",
         "//folly:random",
         "//folly:range",

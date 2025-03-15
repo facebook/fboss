@@ -32,6 +32,7 @@ bool Ramon3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_ECMP_HASH_ALGORITHM:
     case HwAsic::Feature::DATA_CELL_FILTER:
     case HwAsic::Feature::SWITCH_REACHABILITY_CHANGE_NOTIFY:
+    case HwAsic::Feature::CPU_QUEUE_WATERMARK_STATS:
       return true;
     case HwAsic::Feature::SAI_PORT_SERDES_FIELDS_RESET:
     case HwAsic::Feature::FABRIC_TX_QUEUES:
@@ -74,12 +75,12 @@ int Ramon3Asic::getDefaultNumPortQueues(
   // traffic
   return 1;
 }
-uint64_t Ramon3Asic::getDefaultReservedBytes(
+std::optional<uint64_t> Ramon3Asic::getDefaultReservedBytes(
     cfg::StreamType /* streamType */,
     cfg::PortType /* portType */) const {
   throw FbossError("Ramon3 doesn't support queue feature");
 }
-cfg::MMUScalingFactor Ramon3Asic::getDefaultScalingFactor(
+std::optional<cfg::MMUScalingFactor> Ramon3Asic::getDefaultScalingFactor(
     cfg::StreamType /* streamType */,
     bool /* cpu */) const {
   throw FbossError("Ramon3 doesn't support queue feature");
@@ -98,6 +99,9 @@ uint32_t Ramon3Asic::getMaxLabelStackDepth() const {
 uint64_t Ramon3Asic::getMMUSizeBytes() const {
   throw FbossError("Ramon3 doesn't support MMU feature");
 };
+uint64_t Ramon3Asic::getSramSizeBytes() const {
+  throw FbossError("Ramon3 doesn't support MMU feature");
+}
 int Ramon3Asic::getMaxNumLogicalPorts() const {
   throw FbossError("Ramon3 doesn't support logical ports feature");
 }

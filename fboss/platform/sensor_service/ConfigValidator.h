@@ -15,13 +15,24 @@ class ConfigValidator {
   bool isValid(
       const sensor_config::SensorConfig& sensorConfig,
       const std::optional<platform_manager::PlatformConfig>& platformConfig);
-  bool isValidPmUnitSensors(
-      const sensor_config::PmUnitSensors& PmUnitSensors,
-      std::unordered_set<std::pair<std::string, std::string>>& usedSlotPaths);
-  bool isValidPmSensor(
-      const sensor_config::PmSensor& pmSensor,
-      std::unordered_set<std::string>& usedSensorNames);
+  // Local validation
+  bool isValidPmUnitSensorsList(
+      const std::vector<sensor_config::PmUnitSensors>& pmUnitSensorsList);
+  bool isValidPmSensors(const std::vector<sensor_config::PmSensor>& pmSensor);
   bool isValidSlotPath(const std::string& slotPath);
+  // PlatformManager validation
+  bool isPmValidPmUnitSensorList(
+      const platform_manager::PlatformConfig& platformConfig,
+      const std::vector<sensor_config::PmUnitSensors>& pmUnitSensorsList);
+  bool isPmValidPmSensors(
+      const platform_manager::PlatformConfig& platformConfig,
+      const std::string& pmUnitSensorsSlotPath,
+      const std::vector<sensor_config::PmSensor>& pmSensors);
+  bool isPmValidVersionedPmSensors(
+      const platform_manager::PlatformConfig& platformConfig,
+      const std::string& slotPath,
+      const std::string& pmUnitName,
+      const std::vector<sensor_config::VersionedPmSensor>& versionedPmSensors);
 
  private:
   const std::shared_ptr<platform_manager::ConfigValidator> pmConfigValidator_;

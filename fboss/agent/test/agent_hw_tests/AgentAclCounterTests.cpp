@@ -14,6 +14,7 @@
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
+#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
@@ -223,8 +224,9 @@ class AgentAclCounterTest : public AgentHwTest {
   }
 
   size_t sendRoceTraffic(const PortID frontPanelEgrPort, AclType aclType) {
-    auto vlanId = utility::firstVlanID(getProgrammedState());
-    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
+    auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
+    auto intfMac =
+        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     uint8_t opcode = (aclType == AclType::UDF_OPCODE_WRITE_IMMEDIATE)
         ? utility::kUdfRoceOpcodeWriteImmediate
         : utility::kUdfRoceOpcodeAck;
@@ -249,8 +251,9 @@ class AgentAclCounterTest : public AgentHwTest {
             (aclType == AclType::UDP_TTLD || aclType == AclType::TCP_TTLD)
         ? 200
         : 10;
-    auto vlanId = utility::firstVlanID(getProgrammedState());
-    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
+    auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
+    auto intfMac =
+        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
     int l4DstPort = kL4DstPort();
     if (aclType == AclType::L4_DST_PORT) {
@@ -444,6 +447,8 @@ class AgentAclCounterTest : public AgentHwTest {
     auto aclName = getAclName(aclType);
     auto counterName = getCounterName(aclType);
     auto acl = utility::addAcl(config, aclName, aclActionType_);
+    auto l3Asics = getAgentEnsemble()->getL3Asics();
+    auto asic = utility::checkSameAndGetAsic(l3Asics);
     switch (aclType) {
       case AclType::TCP_TTLD:
       case AclType::UDP_TTLD:
@@ -453,13 +458,18 @@ class AgentAclCounterTest : public AgentHwTest {
         acl->ttl() = cfg::Ttl();
         *acl->ttl()->value() = 128;
         *acl->ttl()->mask() = 128;
-        if (isSupportedOnAllAsics(HwAsic::Feature::ACL_ENTRY_ETHER_TYPE)) {
+        if (asic->isSupported(HwAsic::Feature::ACL_ENTRY_ETHER_TYPE)) {
           acl->etherType() = cfg::EtherType::IPv6;
         }
         break;
       case AclType::SRC_PORT:
       case AclType::SRC_PORT_DENY:
         acl->srcPort() = helper_->ecmpPortDescriptorAt(0).phyPortID();
+        if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
+          // Set the IP type to NON_IP to match all ingress packets in ASIC SRC
+          // port
+          acl->ipType() = cfg::IpType::NON_IP;
+        }
         break;
       case AclType::L4_DST_PORT:
         acl->srcPort() = helper_->ecmpPortDescriptorAt(0).phyPortID();
@@ -492,6 +502,10 @@ class AgentAclCounterTest : public AgentHwTest {
 
 // Verify that traffic arrive on a front panel port increments ACL counter.
 TEST_F(AgentAclCounterTest, VerifyCounterBumpOnTtlHitFrontPanel) {
+  auto asic = utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+  if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    GTEST_FAIL() << "TTLD ACL is not supported on chenab asic.";
+  }
   this->counterBumpOnHitHelper(
       true /* bump on hit */,
       true /* front panel port */,
@@ -515,6 +529,10 @@ TEST_F(AgentAclCounterTest, VerifyCounterBumpOnSportHitFrontPanelWithDrop) {
 }
 // Verify that traffic originating on the CPU increments ACL counter.
 TEST_F(AgentAclCounterTest, VerifyCounterBumpOnTtlHitCpu) {
+  auto asic = utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+  if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    GTEST_FAIL() << "TTLD ACL is not supported on chenab asic.";
+  }
   this->counterBumpOnHitHelper(
       true /* bump on hit */,
       false /* cpu port */,
@@ -528,6 +546,10 @@ TEST_F(AgentAclCounterTest, VerifyCounterBumpOnSportHitCpu) {
 
 // Verify that traffic arrive on a front panel port increments ACL counter.
 TEST_F(AgentAclCounterTest, VerifyCounterNoTtlHitNoBumpFrontPanel) {
+  auto asic = utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+  if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    GTEST_FAIL() << "TTLD ACL is not supported on chenab asic.";
+  }
   this->counterBumpOnHitHelper(
       false /* no hit, no bump */,
       true /* front panel port */,
@@ -536,6 +558,10 @@ TEST_F(AgentAclCounterTest, VerifyCounterNoTtlHitNoBumpFrontPanel) {
 
 // Verify that traffic originating on the CPU increments ACL counter.
 TEST_F(AgentAclCounterTest, VerifyCounterNoHitNoBumpCpu) {
+  auto asic = utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+  if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    GTEST_FAIL() << "TTLD ACL is not supported on chenab asic.";
+  }
   this->counterBumpOnHitHelper(
       false /* no hit, no bump */,
       false /* cpu port */,
@@ -737,7 +763,8 @@ class AgentFlowletAclCounterTest : public AgentAclCounterTest {
         true /*interfaceHasSubnet*/);
     cfg.udfConfig() = utility::addUdfAclConfig(
         utility::kUdfOffsetBthOpcode | utility::kUdfOffsetBthReserved);
-    utility::addFlowletConfigs(cfg, ensemble.masterLogicalPortIds());
+    utility::addFlowletConfigs(
+        cfg, ensemble.masterLogicalPortIds(), ensemble.isSai());
     return cfg;
   }
 

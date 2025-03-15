@@ -136,6 +136,26 @@ class AgentAclCounterTestBase : public AgentHwTest {
     utility::configureSflowSampling(config, kSflowMirrorName, samplePorts, 1);
   }
 
+  void addAclTableConfig(
+      cfg::SwitchConfig& config,
+      std::vector<std::string>& udfGroups) const {
+    if (FLAGS_enable_acl_table_group) {
+      std::vector<cfg::AclTableQualifier> qualifiers = {};
+      std::vector<cfg::AclTableActionType> actions = {};
+      utility::addAclTableGroup(
+          &config,
+          cfg::AclStage::INGRESS,
+          utility::kDefaultAclTableGroupName());
+      utility::addAclTable(
+          &config,
+          cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE(),
+          0 /* priority */,
+          actions,
+          qualifiers,
+          udfGroups);
+    }
+  }
+
   void resolveMirror(const std::string& mirrorName, uint8_t dstPort) {
     auto destinationPort = getAgentEnsemble()->masterLogicalPortIds(
         {cfg::PortType::INTERFACE_PORT})[dstPort];
@@ -159,7 +179,9 @@ class AgentAclCounterTestBase : public AgentHwTest {
 
   void generateApplyConfig(AclType aclType) {
     auto newCfg{initialConfig(*getAgentEnsemble())};
-    addAclAndStat(&newCfg, aclType);
+    std::vector<std::string> udfGroups = getUdfGroupsForAcl(aclType);
+    addAclTableConfig(newCfg, udfGroups);
+    addAclAndStat(&newCfg, aclType, getAgentEnsemble()->isSai());
     applyNewConfig(newCfg);
   }
 
@@ -203,8 +225,9 @@ class AgentAclCounterTestBase : public AgentHwTest {
       int roceOpcode = utility::kUdfRoceOpcodeAck,
       std::optional<std::vector<uint8_t>> nxtHdr =
           std::optional<std::vector<uint8_t>>()) {
-    auto vlanId = utility::firstVlanID(getProgrammedState());
-    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
+    auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
+    auto intfMac =
+        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     return utility::pumpRoCETraffic(
         true,
         utility::getAllocatePktFn(getAgentEnsemble()),
@@ -362,6 +385,7 @@ class AgentAclCounterTestBase : public AgentHwTest {
       cfg::SwitchConfig* config,
       const std::string& aclName,
       const std::string& counterName,
+      bool isSai,
       const std::optional<std::string>& udfGroups,
       const std::optional<int>& roceOpcode,
       const std::optional<int>& roceBytes,
@@ -373,17 +397,39 @@ class AgentAclCounterTestBase : public AgentHwTest {
     if (udfTable.has_value()) {
       acl->udfTable() = udfTable.value();
     }
-    if (udfGroups.has_value()) {
-      acl->udfGroups() = {udfGroups.value()};
-    }
-    if (roceOpcode.has_value()) {
-      acl->roceOpcode() = roceOpcode.value();
-    }
-    if (roceBytes.has_value()) {
-      acl->roceBytes() = {static_cast<signed char>(roceBytes.value())};
-    }
-    if (roceMask.has_value()) {
-      acl->roceMask() = {static_cast<signed char>(roceMask.value())};
+    if (isSai) {
+      std::vector<std::string> groups;
+      std::vector<std::vector<int8_t>> data;
+      std::vector<std::vector<int8_t>> mask;
+      if (udfGroups.has_value()) {
+        groups = {udfGroups.value()};
+      }
+      if (roceOpcode.has_value()) {
+        data = {{static_cast<signed char>(utility::kUdfRoceOpcodeAck)}};
+        mask = {{static_cast<signed char>(utility::kUdfRoceOpcodeMask)}};
+      }
+      if (roceBytes.has_value()) {
+        data = {{static_cast<signed char>(roceBytes.value())}};
+      }
+      if (roceMask.has_value()) {
+        mask = {{static_cast<signed char>(roceMask.value())}};
+      }
+      if (!udfTable.has_value()) {
+        acl->udfTable() = addUdfTable(groups, data, mask);
+      }
+    } else {
+      if (udfGroups.has_value()) {
+        acl->udfGroups() = {udfGroups.value()};
+      }
+      if (roceOpcode.has_value()) {
+        acl->roceOpcode() = roceOpcode.value();
+      }
+      if (roceBytes.has_value()) {
+        acl->roceBytes() = {static_cast<signed char>(roceBytes.value())};
+      }
+      if (roceMask.has_value()) {
+        acl->roceMask() = {static_cast<signed char>(roceMask.value())};
+      }
     }
     if (aclName == getAclName(AclType::UDF_NAK)) {
       cfg::Ttl ttl;
@@ -391,11 +437,58 @@ class AgentAclCounterTestBase : public AgentHwTest {
       ttl.mask() = 0xFF;
       acl->ttl() = ttl;
     }
+    if (aclName == getAclName(AclType::UDF_FLOWLET)) {
+      acl->proto() = 17;
+      acl->l4DstPort() = 4791;
+      acl->dstIp() = "2001::/16";
+    }
     utility::addAclStat(
         config, aclName, counterName, std::move(setCounterTypes));
   }
 
-  void addAclAndStat(cfg::SwitchConfig* config, AclType aclType) const {
+  std::vector<std::string> getUdfGroupsForAcl(AclType aclType) const {
+    std::vector<std::string> retUdfGroups = {};
+    switch (aclType) {
+      case AclType::UDF_ACK:
+        retUdfGroups.push_back(utility::kUdfAclRoceOpcodeGroupName);
+        break;
+      case AclType::UDF_NAK: {
+        retUdfGroups.push_back(utility::kUdfAclRoceOpcodeGroupName);
+        retUdfGroups.push_back(utility::kUdfAclAethNakGroupName);
+      } break;
+      case AclType::UDF_WR_IMM_ZERO: {
+        retUdfGroups.push_back(utility::kUdfAclRoceOpcodeGroupName);
+        retUdfGroups.push_back(utility::kUdfAclRethWrImmZeroGroupName);
+      } break;
+      case AclType::UDF_ACK_WITH_NAK: {
+        retUdfGroups.push_back(utility::kUdfAclRoceOpcodeGroupName);
+        retUdfGroups.push_back(utility::kUdfAclAethNakGroupName);
+      } break;
+      case AclType::FLOWLET:
+        break;
+      case AclType::FLOWLET_WITH_UDF_ACK:
+        retUdfGroups.push_back(utility::kUdfAclRoceOpcodeGroupName);
+        break;
+      case AclType::UDF_FLOWLET:
+        retUdfGroups.push_back(utility::kRoceUdfFlowletGroupName);
+        break;
+      case AclType::UDF_FLOWLET_WITH_UDF_ACK:
+        retUdfGroups.push_back(utility::kUdfAclRoceOpcodeGroupName);
+        retUdfGroups.push_back(utility::kRoceUdfFlowletGroupName);
+        break;
+      case AclType::UDF_FLOWLET_WITH_UDF_NAK: {
+        retUdfGroups.push_back(utility::kUdfAclRoceOpcodeGroupName);
+        retUdfGroups.push_back(utility::kUdfAclAethNakGroupName);
+        retUdfGroups.push_back(utility::kRoceUdfFlowletGroupName);
+      } break;
+      default:
+        break;
+    }
+    return retUdfGroups;
+  }
+
+  void addAclAndStat(cfg::SwitchConfig* config, AclType aclType, bool isSai)
+      const {
     auto aclName = getAclName(aclType);
     auto counterName = getCounterName(aclType);
     const signed char bm = 0xFF;
@@ -409,6 +502,7 @@ class AgentAclCounterTestBase : public AgentHwTest {
             config,
             aclName,
             counterName,
+            isSai,
             utility::kUdfAclRoceOpcodeGroupName,
             utility::kUdfRoceOpcodeAck,
             std::nullopt,
@@ -427,6 +521,7 @@ class AgentAclCounterTestBase : public AgentHwTest {
             config,
             aclName,
             counterName,
+            isSai,
             std::nullopt,
             std::nullopt,
             std::nullopt,
@@ -446,6 +541,7 @@ class AgentAclCounterTestBase : public AgentHwTest {
             config,
             aclName,
             counterName,
+            isSai,
             std::nullopt,
             std::nullopt,
             std::nullopt,
@@ -464,6 +560,7 @@ class AgentAclCounterTestBase : public AgentHwTest {
             config,
             aclName,
             counterName,
+            isSai,
             std::nullopt,
             std::nullopt,
             std::nullopt,
@@ -473,6 +570,7 @@ class AgentAclCounterTestBase : public AgentHwTest {
             config,
             getAclName(AclType::UDF_ACK),
             getCounterName(AclType::UDF_ACK),
+            isSai,
             utility::kUdfAclRoceOpcodeGroupName,
             utility::kUdfRoceOpcodeAck,
             std::nullopt,
@@ -489,6 +587,7 @@ class AgentAclCounterTestBase : public AgentHwTest {
             config,
             getAclName(AclType::UDF_ACK),
             getCounterName(AclType::UDF_ACK),
+            isSai,
             utility::kUdfAclRoceOpcodeGroupName,
             utility::kUdfRoceOpcodeAck,
             std::nullopt,
@@ -499,7 +598,16 @@ class AgentAclCounterTestBase : public AgentHwTest {
       case AclType::UDF_FLOWLET:
         config->udfConfig() =
             utility::addUdfAclConfig(utility::kUdfOffsetBthReserved);
-        utility::addFlowletAcl(*config, aclName, counterName);
+        addRoceAcl(
+            config,
+            getAclName(AclType::UDF_FLOWLET),
+            getCounterName(AclType::UDF_FLOWLET),
+            isSai,
+            utility::kRoceUdfFlowletGroupName,
+            std::nullopt,
+            utility::kRoceReserved,
+            utility::kRoceReserved,
+            std::nullopt);
         break;
       case AclType::UDF_FLOWLET_WITH_UDF_ACK:
         config->udfConfig() = utility::addUdfAclConfig(
@@ -508,12 +616,22 @@ class AgentAclCounterTestBase : public AgentHwTest {
             config,
             getAclName(AclType::UDF_ACK),
             getCounterName(AclType::UDF_ACK),
+            isSai,
             utility::kUdfAclRoceOpcodeGroupName,
             utility::kUdfRoceOpcodeAck,
             std::nullopt,
             std::nullopt,
             std::nullopt);
-        utility::addFlowletAcl(*config, aclName, counterName);
+        addRoceAcl(
+            config,
+            getAclName(AclType::UDF_FLOWLET),
+            getCounterName(AclType::UDF_FLOWLET),
+            isSai,
+            utility::kRoceUdfFlowletGroupName,
+            std::nullopt,
+            utility::kRoceReserved,
+            utility::kRoceReserved,
+            std::nullopt);
         break;
       case AclType::UDF_FLOWLET_WITH_UDF_NAK: {
         config->udfConfig() = utility::addUdfAclConfig(
@@ -528,12 +646,22 @@ class AgentAclCounterTestBase : public AgentHwTest {
             config,
             getAclName(AclType::UDF_NAK),
             getCounterName(AclType::UDF_NAK),
+            isSai,
             std::nullopt,
             std::nullopt,
             std::nullopt,
             std::nullopt,
             std::move(udfTable));
-        utility::addFlowletAcl(*config, aclName, counterName);
+        addRoceAcl(
+            config,
+            getAclName(AclType::UDF_FLOWLET),
+            getCounterName(AclType::UDF_FLOWLET),
+            isSai,
+            utility::kRoceUdfFlowletGroupName,
+            std::nullopt,
+            utility::kRoceReserved,
+            utility::kRoceReserved,
+            std::nullopt);
       } break;
       default:
         break;
@@ -560,7 +688,8 @@ class AgentFlowletSwitchingTest : public AgentAclCounterTestBase {
         ensemble.getSw(),
         ensemble.masterLogicalPortIds(),
         true /*interfaceHasSubnet*/);
-    utility::addFlowletConfigs(cfg, ensemble.masterLogicalPortIds());
+    utility::addFlowletConfigs(
+        cfg, ensemble.masterLogicalPortIds(), ensemble.isSai());
     return cfg;
   }
 
@@ -579,6 +708,21 @@ class AgentFlowletAclPriorityTest : public AgentFlowletSwitchingTest {
         production_features::ProductionFeature::DLB,
         production_features::ProductionFeature::UDF_WR_IMMEDIATE_ACL,
         production_features::ProductionFeature::SINGLE_ACL_TABLE};
+  }
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto cfg = AgentFlowletSwitchingTest::initialConfig(ensemble);
+    std::vector<std::string> udfGroups = {
+        utility::kUdfAclRoceOpcodeGroupName,
+        utility::kRoceUdfFlowletGroupName,
+        utility::kUdfAclAethNakGroupName,
+        utility::kUdfAclRethWrImmZeroGroupName,
+    };
+    addAclTableConfig(cfg, udfGroups);
+    cfg.udfConfig() = utility::addUdfAclConfig(
+        utility::kUdfOffsetBthOpcode | utility::kUdfOffsetBthReserved |
+        utility::kUdfOffsetAethSyndrome | utility::kUdfOffsetRethDmaLength);
+    return cfg;
   }
 };
 
@@ -604,12 +748,10 @@ class AgentFlowletMirrorTest : public AgentFlowletSwitchingTest {
  protected:
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
-    auto cfg = utility::onePortPerInterfaceConfig(
-        ensemble.getSw(),
-        ensemble.masterLogicalPortIds(),
-        true /*interfaceHasSubnet*/);
-    utility::addFlowletConfigs(cfg, ensemble.masterLogicalPortIds());
-    addAclAndStat(&cfg, AclType::UDF_NAK);
+    auto cfg = AgentFlowletSwitchingTest::initialConfig(ensemble);
+    std::vector<std::string> udfGroups = getUdfGroupsForAcl(AclType::UDF_NAK);
+    addAclTableConfig(cfg, udfGroups);
+    addAclAndStat(&cfg, AclType::UDF_NAK, ensemble.isSai());
     // overwrite existing traffic policy which only has a counter action
     // It is added in addAclAndStat above
     cfg.dataPlaneTrafficPolicy() = cfg::TrafficPolicyConfig();
@@ -739,8 +881,6 @@ TEST_F(AgentFlowletSwitchingTest, VerifyUdfAckWithNakToUdfNak) {
 TEST_F(AgentFlowletMirrorTest, VerifyUdfNakMirrorAction) {
   auto setup = [this]() {
     this->setup();
-    auto newCfg{initialConfig(*getAgentEnsemble())};
-    applyNewConfig(newCfg);
     resolveMirror(aclMirror, utility::kMirrorToPortIndex);
   };
 
@@ -797,12 +937,13 @@ TEST_F(AgentFlowletMirrorTest, VerifyUdfNakMirrorSflowDifferentVip) {
 TEST_F(AgentFlowletAclPriorityTest, VerifyUdfAclPriority) {
   auto setup = [this]() {
     this->setup();
-    auto newCfg{initialConfig(*getAgentEnsemble())};
+    const auto& ensemble = *getAgentEnsemble();
+    auto newCfg{initialConfig(ensemble)};
     // production priorities
-    addAclAndStat(&newCfg, AclType::UDF_NAK);
-    addAclAndStat(&newCfg, AclType::UDF_ACK);
-    addAclAndStat(&newCfg, AclType::UDF_WR_IMM_ZERO);
-    addAclAndStat(&newCfg, AclType::UDF_FLOWLET);
+    addAclAndStat(&newCfg, AclType::UDF_NAK, ensemble.isSai());
+    addAclAndStat(&newCfg, AclType::UDF_ACK, ensemble.isSai());
+    addAclAndStat(&newCfg, AclType::UDF_WR_IMM_ZERO, ensemble.isSai());
+    addAclAndStat(&newCfg, AclType::UDF_FLOWLET, ensemble.isSai());
     // Keep this at the end since each of the above calls update udfConfig
     // differently
     newCfg.udfConfig() = utility::addUdfAclConfig(
@@ -830,12 +971,13 @@ TEST_F(AgentFlowletAclPriorityTest, VerifyUdfAclPriorityWB) {
 
   auto setupPostWarmboot = [this]() {
     this->setup();
-    auto newCfg{initialConfig(*getAgentEnsemble())};
+    const auto& ensemble = *getAgentEnsemble();
+    auto newCfg{initialConfig(ensemble)};
     // production priorities
-    addAclAndStat(&newCfg, AclType::UDF_NAK);
-    addAclAndStat(&newCfg, AclType::UDF_ACK);
-    addAclAndStat(&newCfg, AclType::UDF_WR_IMM_ZERO);
-    addAclAndStat(&newCfg, AclType::UDF_FLOWLET);
+    addAclAndStat(&newCfg, AclType::UDF_NAK, ensemble.isSai());
+    addAclAndStat(&newCfg, AclType::UDF_ACK, ensemble.isSai());
+    addAclAndStat(&newCfg, AclType::UDF_WR_IMM_ZERO, ensemble.isSai());
+    addAclAndStat(&newCfg, AclType::UDF_FLOWLET, ensemble.isSai());
     // Keep this at the end since each of the above calls update udfConfig
     // differently
     newCfg.udfConfig() = utility::addUdfAclConfig(
@@ -939,6 +1081,35 @@ TEST_F(AgentFlowletResourceTest, CreateMaxDlbGroups) {
       EXPECT_THROW(
           helper_->programRoutes(&wrapper, nhopSets128, prefixes128),
           FbossError);
+
+      // overflow the dlb groups and ensure that the dlb resource stat
+      // is updated. Also once routes are removed, the stat should reset.
+      // TODO - Add support for SAI
+      if (!getAgentEnsemble()->isSai()) {
+        FLAGS_dlbResourceCheckEnable = false;
+        std::vector<RoutePrefixV6> prefixes129 = {
+            prefixes.begin(), prefixes.begin() + kMaxDlbEcmpGroup + 1};
+        std::vector<flat_set<PortDescriptor>> nhopSets129 = {
+            nhopSets.begin(), nhopSets.begin() + kMaxDlbEcmpGroup + 1};
+        EXPECT_NO_THROW(
+            helper_->programRoutes(&wrapper, nhopSets129, prefixes129));
+        auto switchId = getSw()
+                            ->getScopeResolver()
+                            ->scope(masterLogicalPortIds()[0])
+                            .switchId();
+        WITH_RETRIES({
+          auto stats =
+              getAgentEnsemble()->getSw()->getHwSwitchStatsExpensive(switchId);
+          EXPECT_EVENTUALLY_TRUE(*stats.arsExhausted());
+        });
+        helper_->unprogramRoutes(&wrapper, prefixes129);
+        WITH_RETRIES({
+          auto stats =
+              getAgentEnsemble()->getSw()->getHwSwitchStatsExpensive(switchId);
+          EXPECT_EVENTUALLY_FALSE(*stats.arsExhausted());
+        });
+        FLAGS_dlbResourceCheckEnable = true;
+      }
     }
     // install 10% of max DLB ecmp groups
     {
@@ -950,7 +1121,8 @@ TEST_F(AgentFlowletResourceTest, CreateMaxDlbGroups) {
       std::vector<flat_set<PortDescriptor>> nhopSets10 = {
           nhopSets.begin() + kMaxDlbEcmpGroup,
           nhopSets.begin() + kMaxDlbEcmpGroup + count};
-      helper_->programRoutes(&wrapper, nhopSets10, prefixes10);
+      EXPECT_NO_THROW(helper_->programRoutes(&wrapper, nhopSets10, prefixes10));
+      helper_->unprogramRoutes(&wrapper, prefixes10);
     }
   };
   verifyAcrossWarmBoots(setup, verify);

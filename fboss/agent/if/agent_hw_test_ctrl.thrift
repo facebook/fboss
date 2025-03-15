@@ -36,6 +36,12 @@ struct PortInfo {
   1: i32 loopbackMode;
 }
 
+struct AggPortInfo {
+  1: bool isPresent;
+  2: i32 numMembers;
+  3: i32 numActiveMembers;
+}
+
 service AgentHwTestCtrl {
   // acl utils begin
   i32 getDefaultAclTableNumAclEntries();
@@ -102,4 +108,18 @@ service AgentHwTestCtrl {
   // port utils
   list<PortInfo> getPortInfo(1: list<i32> portIds);
   bool verifyPortLedStatus(1: i32 port, 2: bool status);
+  bool verifyPGSettings(1: i32 port, 2: bool pfcEnabled);
+
+  list<AggPortInfo> getAggPortInfo(1: list<i32> aggPortIds);
+  i32 getNumAggPorts();
+  bool verifyPktFromAggPort(1: i32 aggPortId);
+
+  //tam utils
+  void triggerParityError();
+
+  // print diag
+  void printDiagCmd(1: string cmd);
+
+  // Flowlet utils
+  void updateFlowletStats();
 }

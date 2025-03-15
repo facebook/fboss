@@ -13,6 +13,11 @@
 #include "fboss/thrift_cow/nodes/Serializer.h"
 #include "fboss/util/Logging.h"
 
+DEFINE_int32(
+    dsf_subscription_chunk_timeout,
+    15,
+    "Chunk timeout in seconds for DSF FSDB subscriptions");
+
 using namespace facebook::fboss;
 namespace {
 const thriftpath::RootThriftPath<facebook::fboss::fsdb::FsdbOperStateRoot>
@@ -26,7 +31,7 @@ utils::ConnectionOptions getConnectionOptions(
   //  dstPort = FSDB port
   //  srcIP = self inband IP
   //  tos = NC
-  return utils::ConnectionOptions(dstIP, FLAGS_fsdbPort)
+  return utils::ConnectionOptions(dstIP, FLAGS_fsdbPort_high_priority)
       .setSrcAddr(srcIP)
       .setPreferEncrypted(false)
       .setTrafficClass(utils::ConnectionOptions::TrafficClass::NC)
@@ -132,9 +137,11 @@ void DsfSubscription::stop() {
 void DsfSubscription::setupSubscription() {
   auto subscriptionStateCb = [this](
                                  fsdb::SubscriptionState oldState,
-                                 fsdb::SubscriptionState newState) {
+                                 fsdb::SubscriptionState newState,
+                                 std::optional<bool> /*initialSyncHasData*/) {
     handleFsdbSubscriptionStateUpdate(oldState, newState);
   };
+  FLAGS_fsdb_state_chunk_timeout = FLAGS_dsf_subscription_chunk_timeout;
   if (FLAGS_dsf_subscribe_patch) {
     auto remoteEndpoint = makeRemoteEndpoint(localNodeName_, localIp_);
     auto sysPortPathKey = subMgr_->addPath(getSystemPortsPath());
@@ -173,7 +180,8 @@ void DsfSubscription::setupSubscription() {
         getAllSubscribePaths(localNodeName_, localIp_),
         [this](
             fsdb::SubscriptionState oldState,
-            fsdb::SubscriptionState newState) {
+            fsdb::SubscriptionState newState,
+            std::optional<bool> /*initialSyncHasData*/) {
           handleFsdbSubscriptionStateUpdate(oldState, newState);
         },
         [this](fsdb::OperSubPathUnit&& operStateUnit) {

@@ -61,6 +61,7 @@ class ManagedRouteNextHop
   std::optional<SaiRouteTraits::Attributes::Metadata> getMetadata() const;
   void setMetadata(
       std::optional<SaiRouteTraits::Attributes::Metadata> metadata);
+  ~ManagedRouteNextHop() override;
 
  private:
   void updateMetadata(
@@ -134,6 +135,8 @@ class SaiRouteManager {
 
   std::shared_ptr<SaiObject<SaiRouteTraits>> getRouteObject(
       SaiRouteTraits::AdapterHostKey routeKey);
+
+  void checkMetadata(SaiRouteTraits::RouteEntry entry);
 
  private:
   SaiRouteHandle* getRouteHandleImpl(

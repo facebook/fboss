@@ -116,6 +116,20 @@ TYPED_TEST(SwitchIdScopeResolverTest, mirrorScope) {
   }
 }
 
+TYPED_TEST(SwitchIdScopeResolverTest, mirrorOnDropReportScope) {
+  cfg::MirrorOnDropReport report;
+  report.mirrorPortId() = 6;
+  auto shared = std::make_shared<MirrorOnDropReport>();
+  shared->setMirrorPortId(PortID(6));
+
+  if (this->isFabric()) {
+    return;
+  } else {
+    this->expectSwitchId(report);
+    this->expectSwitchId(shared);
+  }
+}
+
 TYPED_TEST(SwitchIdScopeResolverTest, dsfNodeScope) {
   this->expectAll(cfg::DsfNode{});
   this->expectAll(std::shared_ptr<DsfNode>());
@@ -290,4 +304,41 @@ TYPED_TEST(SwitchIdScopeResolverTest, SwitchTypeScope) {
   auto switchTypeMatcher = resolver.scope(this->switchType);
   EXPECT_EQ(switchTypeMatcher.size(), 4);
   EXPECT_THROW(resolver.scope(cfg::SwitchType::PHY), FbossError);
+}
+
+TYPED_TEST(SwitchIdScopeResolverTest, portIntfScope) {
+  cfg::Port port;
+  port.logicalID() = 1;
+  cfg::Interface intf;
+  intf.type() = cfg::InterfaceType::PORT;
+  intf.intfID() = 6001;
+  intf.portID() = 1;
+
+  cfg::SwitchConfig cfg{};
+  cfg.ports()->resize(1);
+  cfg.ports()[0] = port;
+
+  cfg.interfaces()->resize(1);
+  cfg.interfaces()[0] = intf;
+
+  const auto& resolver = this->scopeResolver();
+  auto matcher1 = resolver.scope(PortID(1));
+  auto matcher2 =
+      resolver.scope(cfg::InterfaceType::PORT, InterfaceID(6001), cfg);
+
+  EXPECT_EQ(matcher1, matcher2);
+
+  if (this->switchType == cfg::SwitchType::NPU) {
+    auto config = testConfigAWithPortInterfaces();
+    this->addMirrorConfig(&config);
+    this->sw_->applyConfig("applyConfig", config);
+    auto state = this->sw_->getState();
+    auto intf6001 = state->getInterfaces()->getNode(InterfaceID(6001));
+
+    auto matcher3 = resolver.scope(intf6001, state);
+    EXPECT_EQ(matcher3, matcher1);
+
+    auto matcher4 = resolver.scope(intf6001, cfg);
+    EXPECT_EQ(matcher3, matcher4);
+  }
 }

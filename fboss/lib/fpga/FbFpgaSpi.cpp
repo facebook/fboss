@@ -5,7 +5,6 @@
 #include "fboss/agent/Utils.h"
 #include "fboss/lib/fpga/FbFpgaRegisters.h"
 
-#include <folly/CppAttributes.h>
 #include <folly/Format.h>
 #include <folly/Synchronized.h>
 #include <folly/futures/Future.h>

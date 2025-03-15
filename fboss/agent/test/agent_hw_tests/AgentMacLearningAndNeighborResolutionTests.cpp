@@ -10,10 +10,15 @@
 
 #include <gtest/gtest.h>
 
+#include <netinet/icmp6.h>
+#include "fboss/agent/AgentFeatures.h"
+#include "fboss/agent/FbossHwUpdateError.h"
+#include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/TrunkUtils.h"
 #include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
@@ -25,8 +30,8 @@
 DECLARE_bool(intf_nbr_tables);
 
 namespace facebook::fboss {
-
 namespace {
+constexpr auto kHundredPercentage = 100;
 const AggregatePortID kAggID{1};
 const AggregatePortID kAggID2{2};
 constexpr int kMinAgeInSecs{1};
@@ -90,8 +95,106 @@ using LearningAndPortTypes = ::testing::Types<
 
 } // namespace
 
+class AgentNeighborResolutionTest : public AgentHwTest {
+ protected:
+  std::vector<production_features::ProductionFeature>
+  getProductionFeaturesVerified() const override {
+    return {production_features::ProductionFeature::MAC_LEARNING};
+  }
+
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto switchId = ensemble.getSw()
+                        ->getScopeResolver()
+                        ->scope(ensemble.masterLogicalPortIds())
+                        .switchId();
+    auto asic = ensemble.getSw()->getHwAsicTable()->getHwAsic(switchId);
+    auto cfg = utility::oneL3IntfTwoPortConfig(
+        ensemble.getSw()->getPlatformMapping(),
+        asic,
+        ensemble.masterLogicalPortIds()[0],
+        ensemble.masterLogicalPortIds()[1],
+        ensemble.getSw()->getPlatformSupportsAddRemovePort(),
+        asic->desiredLoopbackModes());
+    return cfg;
+  }
+
+  template <typename AddrT>
+  AddrT neighborAddr() const {
+    if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
+      return folly::IPAddressV4("1.1.1.2");
+    } else {
+      return folly::IPAddressV6("1::2");
+    }
+  }
+
+  PortDescriptor portDescriptor() const {
+    return PortDescriptor(masterLogicalPortIds()[0]);
+  }
+
+  template <typename AddrT>
+  std::shared_ptr<facebook::fboss::SwitchState> updateNeighborEntry(
+      const std::shared_ptr<SwitchState>& in,
+      const PortDescriptor& port,
+      const AddrT& addr,
+      const folly::MacAddress& mac,
+      const bool isIntfNbrTable,
+      std::optional<cfg::AclLookupClass> lookupClass = std::nullopt) {
+    using NeighborTableT = typename std::conditional_t<
+        std::is_same<AddrT, folly::IPAddressV4>::value,
+        ArpTable,
+        NdpTable>;
+    auto state = in->clone();
+    NeighborTableT* neighborTable;
+    if (isIntfNbrTable) {
+      neighborTable = state->getInterfaces()
+                          ->getNode(kIntfID)
+                          ->template getNeighborEntryTable<AddrT>()
+                          ->modify(kIntfID, &state);
+    } else {
+      neighborTable = state->getVlans()
+                          ->getNode(kVlanID)
+                          ->template getNeighborEntryTable<AddrT>()
+                          ->modify(kVlanID, &state);
+    }
+
+    if (neighborTable->getEntryIf(addr)) {
+      neighborTable->updateEntry(
+          addr, mac, port, kIntfID, NeighborState::REACHABLE, lookupClass);
+    } else {
+      neighborTable->addEntry(addr, mac, port, kIntfID);
+      // Update entry to add classid if any
+      neighborTable->updateEntry(
+          addr, mac, port, kIntfID, NeighborState::REACHABLE, lookupClass);
+    }
+    return state;
+  }
+
+  // get neighbor table
+  template <typename TableT, typename AddrT>
+  const std::shared_ptr<TableT> getNeighborTable() {
+    std::shared_ptr<TableT> neighborTable;
+    auto state = getProgrammedState();
+    if (FLAGS_intf_nbr_tables) {
+      neighborTable = state->getInterfaces()
+                          ->getNode(kIntfID)
+                          ->template getNeighborEntryTable<AddrT>();
+    } else {
+      neighborTable = state->getVlans()
+                          ->getNode(kVlanID)
+                          ->template getNeighborEntryTable<AddrT>();
+    }
+    return neighborTable;
+  }
+
+  const VlanID kVlanID{utility::kBaseVlanId};
+  const InterfaceID kIntfID{utility::kBaseVlanId};
+  const folly::MacAddress kNeighborMac{"2:3:4:5:6:7"};
+};
+
 template <typename LearningModeAndPortT>
-class AgentMacLearningAndNeighborResolutionTest : public AgentHwTest {
+class AgentMacLearningAndNeighborResolutionTest
+    : public AgentNeighborResolutionTest {
  public:
   static auto constexpr kLearningMode = LearningModeAndPortT::kLearningMode;
   static auto constexpr kIsTrunk = LearningModeAndPortT::kIsTrunk;
@@ -101,6 +204,8 @@ class AgentMacLearningAndNeighborResolutionTest : public AgentHwTest {
   void setCmdLineFlagOverrides() const override {
     AgentHwTest::setCmdLineFlagOverrides();
     FLAGS_intf_nbr_tables = isIntfNbrTable;
+    // enable neighbor update failure protection
+    FLAGS_enable_hw_update_protection = true;
   }
 
   std::vector<production_features::ProductionFeature>
@@ -139,14 +244,6 @@ class AgentMacLearningAndNeighborResolutionTest : public AgentHwTest {
                     : PortDescriptor(masterLogicalPortIds()[1]);
   }
 
-  template <typename AddrT>
-  AddrT neighborAddr() const {
-    if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
-      return folly::IPAddressV4("1.1.1.2");
-    } else {
-      return folly::IPAddressV6("1::2");
-    }
-  }
   void verifyForwarding() {
     enableTrunks();
     for (auto i = 0; i < 5; ++i) {
@@ -188,7 +285,7 @@ class AgentMacLearningAndNeighborResolutionTest : public AgentHwTest {
   }
 
   void updateMacEntry(std::optional<cfg::AclLookupClass> lookupClass) {
-    applyNewState(
+    applyNewStateWithProtectionIfSupported(
         [&](const std::shared_ptr<SwitchState>& in) {
           auto newState = in->clone();
           auto vlan = newState->getVlans()->getNodeIf(kVlanID).get();
@@ -305,52 +402,27 @@ class AgentMacLearningAndNeighborResolutionTest : public AgentHwTest {
     EXPECT_TRUE(
         getAgentEnsemble()->ensureSendPacketSwitched(std::move(txPacket)));
   }
+
+  void applyNewStateWithProtectionIfSupported(
+      StateUpdateFn fn,
+      const std::string& name) {
+    if (getSw()->getHwSwitchHandler()->transactionsSupported()) {
+      applyNewStateTransaction(
+          std::move(fn), name + " with hw failure protection");
+    } else {
+      applyNewState(std::move(fn), name);
+    }
+  }
+
   template <typename AddrT>
   void programNeighbor(
-      PortDescriptor port,
+      const PortDescriptor& port,
       const AddrT& addr,
       std::optional<cfg::AclLookupClass> lookupClass = std::nullopt) {
-    using NeighborTableT = typename std::conditional_t<
-        std::is_same<AddrT, folly::IPAddressV4>::value,
-        ArpTable,
-        NdpTable>;
-
-    applyNewState(
+    applyNewStateWithProtectionIfSupported(
         [&](const std::shared_ptr<SwitchState>& in) {
-          auto state = in->clone();
-          NeighborTableT* neighborTable;
-          if (isIntfNbrTable) {
-            neighborTable = state->getInterfaces()
-                                ->getNode(kIntfID)
-                                ->template getNeighborEntryTable<AddrT>()
-                                ->modify(kIntfID, &state);
-          } else {
-            neighborTable = state->getVlans()
-                                ->getNode(kVlanID)
-                                ->template getNeighborEntryTable<AddrT>()
-                                ->modify(kVlanID, &state);
-          }
-
-          if (neighborTable->getEntryIf(addr)) {
-            neighborTable->updateEntry(
-                addr,
-                kNeighborMac,
-                port,
-                kIntfID,
-                NeighborState::REACHABLE,
-                lookupClass);
-          } else {
-            neighborTable->addEntry(addr, kNeighborMac, port, kIntfID);
-            // Update entry to add classid if any
-            neighborTable->updateEntry(
-                addr,
-                kNeighborMac,
-                port,
-                kIntfID,
-                NeighborState::REACHABLE,
-                lookupClass);
-          }
-          return state;
+          return updateNeighborEntry(
+              in, port, addr, kNeighborMac, isIntfNbrTable, lookupClass);
         },
         "program neighbor");
   }
@@ -393,7 +465,7 @@ class AgentMacLearningAndNeighborResolutionTest : public AgentHwTest {
         ArpTable,
         NdpTable>;
 
-    applyNewState(
+    applyNewStateWithProtectionIfSupported(
         [&](const std::shared_ptr<SwitchState>& in) {
           auto newState = in->clone();
           NeighborTableT* neighborTable;
@@ -414,10 +486,203 @@ class AgentMacLearningAndNeighborResolutionTest : public AgentHwTest {
         },
         "remove neighbor");
   }
-  const VlanID kVlanID{utility::kBaseVlanId};
-  const InterfaceID kIntfID{utility::kBaseVlanId};
-  const folly::MacAddress kNeighborMac{"2:3:4:5:6:7"};
 };
+
+class AgentNeighborResolutionOverFlowTest : public AgentNeighborResolutionTest {
+ protected:
+  void setCmdLineFlagOverrides() const override {
+    AgentHwTest::setCmdLineFlagOverrides();
+    FLAGS_intf_nbr_tables = false;
+    // Enable neighbor cache so that class id is set
+    FLAGS_disable_neighbor_updates = false;
+    // enable neighbor update failure protection
+    FLAGS_enable_hw_update_protection = true;
+    // set max neighbor resource percentage to 200% to bypass resourceAccountant
+    // check
+    FLAGS_neighbhor_resource_percentage = 200;
+  }
+
+  // generate IPv6 addresses, here goal is to generate 8K addresses
+  // this is achieved by incrementing the last byte of the address
+  std::vector<folly::IPAddressV6> generateIPv6Addresses(
+      folly::IPAddressV6 startAddress,
+      int numAddresses) {
+    std::vector<folly::IPAddressV6> addresses;
+    folly::IPAddressV6 currentAddress = startAddress;
+
+    for (int i = 0; i < numAddresses; ++i) {
+      addresses.push_back(currentAddress);
+
+      // Get the byte representation of the address
+      std::array<uint8_t, 16> bytes = currentAddress.toByteArray();
+
+      // Increment the last byte
+      bytes[15]++;
+      if (bytes[15] == 0) {
+        bytes[15] = 1;
+        // Increment the second to last byte
+        bytes[14]++;
+      }
+
+      // Create a new folly::IPAddressV6 object from the updated byte array
+      currentAddress = folly::IPAddressV6(bytes);
+    }
+    return addresses;
+  }
+
+  // program neighbor entries in bulk
+  template <typename AddrT>
+  void programNeighborsBulk(
+      const PortDescriptor& port,
+      const std::vector<AddrT>& ipAddresses,
+      std::optional<cfg::AclLookupClass> lookupClass = std::nullopt) {
+    applyNewStateTransaction(
+        [&](const std::shared_ptr<SwitchState>& in) {
+          return updateNeighborEntries(in, port, ipAddresses, lookupClass);
+        },
+        "program bulk neighbor with hw failure protection");
+  }
+
+  // verify neighbor entry over flow,
+  // 1. check all bulk entries are programmed without any failures from
+  // setup()
+  // 2. program additional neighbors to trigger neighbor update failure
+  // 3. check neighbor update failure
+  void verifyNeighborsOverFlow(
+      const PortDescriptor& port,
+      const std::vector<folly::IPAddressV6>& ipAddressesV6) {
+    // verify that bulk neighbor entries are programmed without any failures
+    WITH_RETRIES({
+      const std::shared_ptr<NdpTable> neighborTable =
+          getNeighborTable<NdpTable, folly::IPAddressV6>();
+
+      XLOG(DBG2) << "neighborTable->size() " << neighborTable->size();
+      EXPECT_EVENTUALLY_GE(neighborTable->size(), getkBulkProgrammedCount());
+      EXPECT_EQ(getSw()->stats()->getNeighborTableUpdateFailure(), 0);
+    });
+
+    // program additional neighbors to trigger neighbor update failure
+    programNeighborsWithNeighborUpdater(port, ipAddressesV6);
+
+    WITH_RETRIES_N_TIMED(30, std::chrono::milliseconds(1000), {
+      const std::shared_ptr<NdpTable> neighborTable =
+          getNeighborTable<NdpTable, folly::IPAddressV6>();
+      XLOG(DBG2) << "neighborTable->size() " << neighborTable->size();
+      XLOG(DBG2) << "getNeighborTableUpdateFailure() = "
+                 << getSw()->stats()->getNeighborTableUpdateFailure();
+      EXPECT_EVENTUALLY_GT(
+          getSw()->stats()->getNeighborTableUpdateFailure(), 0);
+    });
+  }
+
+  // for TH3, we can only program 5100 neighbors in single state update
+  // without HW failure. For TH4, we can program 8100 neighbors in single
+  // state update
+  uint16_t getkBulkProgrammedCount() {
+    auto switchId = getSw()
+                        ->getScopeResolver()
+                        ->scope(masterLogicalPortIds()[0])
+                        .switchId();
+    if (getSw()->getHwAsicTable()->getHwAsic(switchId)->getAsicType() ==
+        cfg::AsicType::ASIC_TYPE_TOMAHAWK3) {
+      return 5100;
+    }
+    return 8100;
+  }
+
+  // get max neighbor table size
+  uint32_t getMaxNeighborTableSize() {
+    uint32_t ndpTableSize = 0;
+    // check that all ASICs have same max neighbor table size
+    for (auto& [switchId, hwAsic] : getSw()->getHwAsicTable()->getHwAsics()) {
+      CHECK(hwAsic->getMaxNdpTableSize().has_value());
+      if (ndpTableSize > 0) {
+        CHECK_EQ(ndpTableSize, hwAsic->getMaxNdpTableSize().value());
+      }
+      ndpTableSize = hwAsic->getMaxNdpTableSize().value();
+    }
+
+    CHECK(ndpTableSize > 0);
+    return (ndpTableSize * FLAGS_neighbhor_resource_percentage) /
+        kHundredPercentage;
+  }
+
+ private:
+  // program neighbor entries with neighbor updater
+  template <typename AddrT>
+  void programNeighborsWithNeighborUpdater(
+      const PortDescriptor& port,
+      const std::vector<AddrT>& ipAddresses) {
+    for (int i = getkBulkProgrammedCount(); i < ipAddresses.size(); i++) {
+      XLOG(DBG2) << "Programming neighbor " << i << ": "
+                 << ipAddresses[i].str();
+      if (FLAGS_intf_nbr_tables) {
+        getSw()->getNeighborUpdater()->receivedNdpMineForIntf(
+            kIntfID,
+            ipAddresses[i],
+            kNeighborMac,
+            port,
+            ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION,
+            0);
+      } else {
+        getSw()->getNeighborUpdater()->receivedNdpMine(
+            kVlanID,
+            ipAddresses[i],
+            kNeighborMac,
+            port,
+            ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION,
+            0);
+      }
+
+      // wait for neighbor update to complete before enqueuing next neighbor
+      // update
+      waitForStateUpdates(getSw());
+      waitForNeighborCacheThread(getSw());
+
+      // check for neighbor update failure, if it is set, break the loop
+      // and verify rollback
+      if (getSw()->stats()->getNeighborTableUpdateFailure()) {
+        XLOG(DBG2) << "Neighbor update failure";
+        break;
+      }
+    }
+  }
+
+  // update switch state with bulk neighbor entries
+  template <typename AddrT>
+  std::shared_ptr<facebook::fboss::SwitchState> updateNeighborEntries(
+      const std::shared_ptr<SwitchState>& in,
+      const PortDescriptor& port,
+      const std::vector<AddrT>& ipAddressesV6,
+      std::optional<cfg::AclLookupClass> lookupClass = std::nullopt) {
+    auto state = in->clone();
+    for (int i = 0; i < getkBulkProgrammedCount(); i++) {
+      state = updateNeighborEntry<AddrT>(
+          state,
+          port,
+          ipAddressesV6[i],
+          kNeighborMac,
+          FLAGS_intf_nbr_tables,
+          lookupClass);
+    }
+    return state;
+  }
+};
+
+// This test is to verify neighbor table over flow with hw update failure
+// protection
+TEST_F(AgentNeighborResolutionOverFlowTest, neighborResolutionOverFlow) {
+  auto ipAddressesV6 = this->generateIPv6Addresses(
+      this->template neighborAddr<folly::IPAddressV6>(),
+      getMaxNeighborTableSize());
+  auto setup = [=, this]() {
+    this->programNeighborsBulk(this->portDescriptor(), ipAddressesV6);
+  };
+  auto verify = [=, this]() {
+    this->verifyNeighborsOverFlow(this->portDescriptor(), ipAddressesV6);
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
 
 TYPED_TEST_SUITE(
     AgentMacLearningAndNeighborResolutionTest,
@@ -440,10 +705,11 @@ TYPED_TEST(
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }
+
 // Learn MAC, program neighbors and now age MAC.
 // Packets should still be able to get through
-//  - For BCM we don't need L2 entries for switched/routed packets. So MAC aging
-//  should have no influence
+//  - For BCM we don't need L2 entries for switched/routed packets. So MAC
+//  aging should have no influence
 //  - For SAI we configure static MAC, so it should never age.
 TYPED_TEST(
     AgentMacLearningAndNeighborResolutionTest,

@@ -36,7 +36,10 @@ class Client;
 
 DECLARE_int32(fsdb_state_chunk_timeout);
 DECLARE_int32(fsdb_stat_chunk_timeout);
-DECLARE_int32(fsdb_reconnect_ms);
+DECLARE_int32(
+    fsdb_reconnect_ms); // TODO: clean up after migrating to exponential backoff
+DECLARE_int32(fsdb_initial_backoff_reconnect_ms);
+DECLARE_int32(fsdb_max_backoff_reconnect_ms);
 
 using State = facebook::fboss::ReconnectingThriftClient::State;
 
@@ -63,7 +66,9 @@ class FsdbStreamClient : public ReconnectingThriftClient {
       bool isStats = false,
       StreamStateChangeCb stateChangeCb = [](State /*old*/,
                                              State /*newState*/) {},
-      int fsdbReconnectMs = FLAGS_fsdb_reconnect_ms);
+      int fsdbInitialBackoffReconnectMs =
+          FLAGS_fsdb_initial_backoff_reconnect_ms,
+      int fsdbMaxBackoffReconnectMs = FLAGS_fsdb_max_backoff_reconnect_ms);
   virtual ~FsdbStreamClient();
 
   bool serviceLoopRunning() const {

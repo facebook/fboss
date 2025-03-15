@@ -38,6 +38,7 @@ thrift_library(
         "//fboss/lib/if:fboss_common",
         "//thrift/annotation:cpp",
         "//thrift/annotation:python",
+        "//thrift/annotation:thrift",
     ],
 )
 
@@ -68,8 +69,9 @@ thrift_library(
     ],
     thrift_srcs = {"agent_config.thrift": []},
     deps = [
-        "//fboss/agent:platform_config",
-        "//fboss/agent:switch_config",
+        ":platform_config",
+        ":switch_config",
+        "//thrift/annotation:thrift",
     ],
 )
 
@@ -143,6 +145,7 @@ thrift_library(
         "//fboss/lib/phy:phy",
         "//fboss/mka_service/if:mka_structs",
         "//fboss/qsfp_service/if:transceiver",
+        "//thrift/annotation:thrift",
     ],
 )
 
@@ -372,6 +375,22 @@ cpp_library(
 )
 
 cpp_library(
+    name = "dsfnode_utils",
+    srcs = [
+        "DsfNodeUtils.cpp",
+    ],
+    headers = [
+        "DsfNodeUtils.h",
+    ],
+    exported_deps = [
+        ":agent_config-cpp2-types",
+        ":fboss-error",
+        ":load_agent_config",
+        ":switch_config-cpp2-types",
+    ],
+)
+
+cpp_library(
     name = "switchinfo_utils",
     srcs = [
         "SwitchInfoUtils.cpp",
@@ -403,6 +422,7 @@ cpp_library(
     exported_deps = [
         ":agent_features",
         ":switch_config-cpp2-types",
+        "//fboss/agent/hw/switch_asics:switch_asics",
     ],
 )
 
@@ -471,6 +491,21 @@ cpp_library(
     ],
     exported_deps = [
         "//fboss/agent/hw/switch_asics:switch_asics",
+    ],
+)
+
+cpp_library(
+    name = "stat_printers",
+    srcs = [
+        "StatPrinters.cpp",
+    ],
+    headers = [
+        "StatPrinters.h",
+    ],
+    exported_deps = [
+        "//fboss/agent/hw:hardware_stats-cpp2-types",
+        "//fboss/lib/phy:phy-cpp2-types",
+        "//thrift/lib/cpp2/protocol:protocol",
     ],
 )
 
@@ -574,11 +609,11 @@ cpp_library(
         "//folly:range",
         "//folly:string",
         "//folly:utility",
+        "//folly/concurrency:concurrent_hash_map",
         "//folly/logging:logging",
     ],
     exported_external_deps = [
         "boost",
-        ("boost", None, "boost_container"),
     ],
 )
 
@@ -762,7 +797,6 @@ cpp_library(
         ":packet",
         ":packet_observer",
         ":phy_snapshot_lib",
-        ":restart_time_tracker",
         ":route_update_wrapper",
         ":state_observer",
         ":stats",
@@ -787,7 +821,6 @@ cpp_library(
         "//fboss/agent/capture:capture",
         "//fboss/agent/hw:hw_cpu_fb303_stats",
         "//fboss/agent/hw:hw_switch_fb303_stats",
-        "//fboss/agent/hw:hw_switch_warmboot_helper",
         "//fboss/agent/hw/switch_asics:switch_asics",
         "//fboss/agent/if:ctrl-cpp2-services",
         "//fboss/agent/if:ctrl-cpp2-types",
@@ -825,7 +858,6 @@ cpp_library(
         "//fboss/fsdb/if:fsdb_model",
         "//fboss/fsdb/if:fsdb_oper-cpp2-types",
         "//fboss/lib:alert_logger",
-        "//fboss/lib:common_file_utils",
         "//fboss/lib:common_utils",
         "//fboss/lib:exponential_back_off",
         "//fboss/lib:hw_write_behavior",
@@ -835,6 +867,7 @@ cpp_library(
         "//fboss/lib/phy:phy-cpp2-types",
         "//fboss/lib/phy:prbs-cpp2-types",
         "//fboss/lib/platforms:product-info",
+        "//fboss/lib/restart_tracker:restart_time_tracker",
         "//fboss/lib/thrift_service_client:thrift-service-client",
         "//fboss/thrift_cow/nodes:nodes",
         "//fboss/thrift_cow/nodes:serializer",
@@ -1329,27 +1362,6 @@ cpp_library(
 )
 
 cpp_library(
-    name = "restart_time_tracker",
-    srcs = [
-        "RestartTimeTracker.cpp",
-    ],
-    headers = [
-        "RestartTimeTracker.h",
-    ],
-    exported_deps = [
-        ":utils",
-        "//fb303:service_data",
-        "//folly:conv",
-        "//folly:file_util",
-        "//folly:range",
-        "//folly:synchronized",
-        "//folly/logging:logging",
-    ],
-    exported_external_deps = [
-    ],
-)
-
-cpp_library(
     name = "hwagent",
     srcs = [
         "HwAgent.cpp",
@@ -1384,7 +1396,6 @@ cpp_library(
         ":fboss_init_h",
         ":hw_switch",
         ":hwagent",
-        ":restart_time_tracker",
         ":setup_thrift",
         ":split_agent_thrift_syncer",
         ":test_utils",
@@ -1397,6 +1408,7 @@ cpp_library(
         "//fboss/agent/hw/test:hw_test_thrift_handler_h",
         "//fboss/agent/state:state",
         "//fboss/lib:common_file_utils",
+        "//fboss/lib/restart_tracker:restart_time_tracker",
         "//folly/logging:init",
         "//folly/logging:logging",
     ],
@@ -1538,7 +1550,6 @@ cpp_library(
         ":load_agent_config",
         ":monolithic_hw_switch_handler",
         ":platform_base",
-        ":restart_time_tracker",
         ":setup_thrift",
         ":stats",
         ":sw_agent_initializer",
@@ -1546,6 +1557,7 @@ cpp_library(
         "//fboss/agent/hw/switch_asics:switch_asics",
         "//fboss/lib:common_file_utils",
         "//fboss/lib:common_utils",
+        "//fboss/lib/restart_tracker:restart_time_tracker",
         "//folly:network_address",
         "//folly:scope_guard",
         "//folly:string",

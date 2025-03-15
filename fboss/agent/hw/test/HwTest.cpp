@@ -20,7 +20,6 @@
 #include "fboss/agent/Constants.h"
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/Platform.h"
-#include "fboss/agent/hw/HwStatPrinters.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/utils/StatsTestUtils.h"
@@ -229,52 +228,6 @@ HwTrunkStats HwTest::getLatestAggregatePortStats(AggregatePortID aggPort) {
 std::map<AggregatePortID, HwTrunkStats> HwTest::getLatestAggregatePortStats(
     const std::vector<AggregatePortID>& aggPorts) {
   return hwSwitchEnsemble_->getLatestAggregatePortStats(aggPorts);
-}
-
-void HwTest::checkNoStatsChange(int trys) {
-  // We don't care about timestamps changing. These will change
-  // in subsequent rounds of stat collection.
-  auto resetTimestamp = [](const auto& stat) {
-    auto stat2 = stat;
-    stat2.timestamp() = 0;
-    return stat2;
-  };
-  auto resetTimestamps = [](const auto& statMap) {
-    auto statMap2 = statMap;
-    for (auto& [_, stat] : statMap2) {
-      stat.timestamp_() = 0;
-    }
-    return statMap2;
-  };
-  WITH_RETRIES_N(
-      trys, ({
-        auto portStatsBefore = resetTimestamps(getHwSwitch()->getPortStats());
-        auto sysPortStatsBefore =
-            resetTimestamps(getHwSwitch()->getSysPortStats());
-        auto fabricReachStatsBefore =
-            getHwSwitch()->getFabricReachabilityStats();
-        auto teFlowStatsBefore = getHwSwitch()->getTeFlowStats();
-        auto flowletStatsBefore = getHwSwitch()->getHwFlowletStats();
-        auto switchDropStatsBefore = getHwSwitch()->getSwitchDropStats();
-        getHwSwitch()->updateStats();
-        auto portStatsAfter = resetTimestamps(getHwSwitch()->getPortStats());
-        EXPECT_EVENTUALLY_EQ(portStatsBefore, portStatsAfter)
-            << statsMapDelta(portStatsBefore, portStatsAfter);
-        auto sysPortStatsAfter =
-            resetTimestamps(getHwSwitch()->getSysPortStats());
-        EXPECT_EVENTUALLY_EQ(sysPortStatsBefore, sysPortStatsAfter)
-            << statsMapDelta(sysPortStatsBefore, sysPortStatsAfter);
-        EXPECT_EVENTUALLY_EQ(
-            fabricReachStatsBefore,
-            getHwSwitch()->getFabricReachabilityStats());
-        EXPECT_EVENTUALLY_EQ(
-            resetTimestamp(teFlowStatsBefore),
-            resetTimestamp(getHwSwitch()->getTeFlowStats()));
-        EXPECT_EVENTUALLY_EQ(
-            flowletStatsBefore, getHwSwitch()->getHwFlowletStats());
-        EXPECT_EVENTUALLY_EQ(
-            switchDropStatsBefore, getHwSwitch()->getSwitchDropStats());
-      }));
 }
 
 std::unique_ptr<HwSwitchEnsembleRouteUpdateWrapper> HwTest::getRouteUpdater() {

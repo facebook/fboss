@@ -29,6 +29,14 @@ namespace facebook::fboss {
  */
 
 constexpr int kMaxI2clogDataSize = 128;
+constexpr size_t kI2cFieldNameLength = 16;
+// Maximum number of buffer slots. Note that depending on the size of the log
+// element, to maintain a reasonable memory usage, we have to limit max size
+// the buffer.
+constexpr int kMaxNumberBufferSlots = 40960;
+
+// Number of address fields in TransceiverAccessParameter
+constexpr int kNumParamFields = 5;
 
 class I2cLogBuffer {
   using TimePointSteady = std::chrono::steady_clock::time_point;
@@ -47,6 +55,7 @@ class I2cLogBuffer {
     TimePointSteady steadyTime;
     TimePointSystem systemTime;
     TransceiverAccessParameter param;
+    int field;
     std::array<uint8_t, kMaxI2clogDataSize> data;
     Operation op;
     bool success{true};
@@ -62,9 +71,11 @@ class I2cLogBuffer {
     std::set<std::string> portNames;
     std::optional<FirmwareStatus> fwStatus;
     std::optional<Vendor> vendor;
+    std::chrono::microseconds duration;
   };
 
   // NOTE: The maximum number of entries is defined in config (qsfp_config.cinc)
+  // and also limited by kMaxNumberBufferSlots.
   static_assert(
       sizeof(I2cLogEntry) < 200,
       "I2cLogEntry must be < 200B to not exceed system memory limits.");
@@ -93,6 +104,7 @@ class I2cLogBuffer {
   // Insert a log entry into the buffer.
   void log(
       const TransceiverAccessParameter& param,
+      const int field,
       const uint8_t* data,
       Operation op,
       bool success = true);
@@ -118,7 +130,7 @@ class I2cLogBuffer {
 
   // Get the capacity
   size_t getI2cLogBufferCapacity() const {
-    return config_.get_bufferSlots();
+    return getSize();
   }
 
   // Dumps the buffer contents into logFile_.
@@ -142,27 +154,38 @@ class I2cLogBuffer {
       const std::optional<FirmwareStatus>& status,
       const std::optional<Vendor>& vendor);
 
+  static int getMaxNumberSlots() {
+    return kMaxNumberBufferSlots;
+  }
+
  private:
-  std::vector<I2cLogEntry> buffer_;
+  // Buffer Config.
   const size_t size_;
-  cfg::TransceiverI2cLogging config_;
+  bool writeLog_{false};
+  bool readLog_{false};
+  bool disableOnFail_{false};
+
+  std::vector<I2cLogEntry> buffer_;
+
   size_t head_{0};
   size_t tail_{0};
   size_t totalEntries_{0};
   std::string logFile_;
-  std::mutex mutex_;
-  TransceiverManagementInterface mgmtIf_;
+  mutable std::mutex mutex_;
+  TransceiverManagementInterface mgmtIf_ =
+      TransceiverManagementInterface::UNKNOWN;
   std::set<std::string> portNames_;
   std::optional<FirmwareStatus> fwStatus_;
   std::optional<Vendor> vendor_;
 
-  size_t getSize() {
+  size_t getSize() const {
     // Avoid the tsan errors. size_ is also a const member variable.
     std::lock_guard<std::mutex> g(mutex_);
     return size_;
   }
 
   void getEntryTime(std::stringstream& ss, const TimePointSystem& time_point);
+  void getFieldName(std::stringstream& ss, const int field);
 
   template <typename T>
   void getOptional(std::stringstream& ss, T value);
@@ -170,8 +193,8 @@ class I2cLogBuffer {
   // Operations to re-construct I2cReplayEntry from a log file.
   static size_t getHeader(std::stringstream& ss, const I2cLogHeader& info);
   static std::string getField(const std::string& line, char left, char right);
-  static TransceiverAccessParameter getParam(std::stringstream& ss);
-  static I2cLogBuffer::Operation getOp(std::stringstream& ss);
+  static TransceiverAccessParameter getParam(const std::string& str);
+  static I2cLogBuffer::Operation getOp(const char op);
   static std::array<uint8_t, kMaxI2clogDataSize> getData(std::string str);
   static uint64_t getDelay(const std::string& str);
   static bool getSuccess(const std::string& str);

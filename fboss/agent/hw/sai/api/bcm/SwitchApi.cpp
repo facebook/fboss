@@ -101,9 +101,17 @@ std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
 
 std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeVoqDramBoundThWrapper::operator()() {
-// TODO: Support is not yet available in 12.0
-#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   return SAI_SWITCH_ATTR_VOQ_DRAM_BOUND_TH;
+#else
+  return std::nullopt;
+#endif
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeSflowAggrNofSamplesWrapper::operator()() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  return SAI_SWITCH_ATTR_SFLOW_AGGR_NOF_SAMPLES;
 #else
   return std::nullopt;
 #endif
@@ -172,6 +180,68 @@ const std::vector<sai_stat_id_t>& SaiSwitchTraits::deletedCredits() {
   return stats;
 }
 
+const std::vector<sai_stat_id_t>&
+SaiSwitchTraits::sramMinBufferWatermarkBytes() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+  static const std::vector<sai_stat_id_t> stats{
+      SAI_SWITCH_STAT_ING_MIN_SRAM_BUFFER_BYTES};
+#else
+  static const std::vector<sai_stat_id_t> stats;
+#endif
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>& SaiSwitchTraits::fdrFifoWatermarkBytes() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+  static const std::vector<sai_stat_id_t> stats{
+      SAI_SWITCH_STAT_FDR_RX_QUEUE_WM_LEVEL};
+#else
+  static const std::vector<sai_stat_id_t> stats;
+#endif
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>& SaiSwitchTraits::egressFabricCellError() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+  static const std::vector<sai_stat_id_t> stats{
+      SAI_SWITCH_STAT_EGRESS_FABRIC_CELL_ERROR};
+#else
+  static const std::vector<sai_stat_id_t> stats;
+#endif
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>& SaiSwitchTraits::egressNonFabricCellError() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+  static const std::vector<sai_stat_id_t> stats{
+      SAI_SWITCH_STAT_EGRESS_NON_FABRIC_CELL_ERROR};
+#else
+  static const std::vector<sai_stat_id_t> stats;
+#endif
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>&
+SaiSwitchTraits::egressNonFabricCellUnpackError() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+  static const std::vector<sai_stat_id_t> stats{
+      SAI_SWITCH_STAT_EGRESS_CUP_NON_FABRIC_CELL_ERROR};
+#else
+  static const std::vector<sai_stat_id_t> stats;
+#endif
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>& SaiSwitchTraits::egressParityCellError() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+  static const std::vector<sai_stat_id_t> stats{
+      SAI_SWITCH_STAT_EGRESS_PARITY_CELL_ERROR};
+#else
+  static const std::vector<sai_stat_id_t> stats;
+#endif
+  return stats;
+}
+
 void SwitchApi::registerSwitchEventCallback(
     SwitchSaiId id,
     void* switch_event_cb) const {
@@ -182,15 +252,19 @@ void SwitchApi::registerSwitchEventCallback(
   sai_attribute_t eventAttr;
   eventAttr.id = SAI_SWITCH_ATTR_SWITCH_EVENT_TYPE;
   if (switch_event_cb) {
-    // Register switch callback function
-    auto rv = _setAttribute(id, &attr);
-    saiLogError(
-        rv, ApiType, "Unable to register parity error switch event callback");
+    // Consider the following sequence:
+    //   (A) Register switch event callback
+    //   (B) Register switch events.
+    //
+    //   Any switch events received in time between (A) and (B) will be lost,
+    //   as a SAI implementation will discard those events thinking those are
+    //   not of interest.
+    //   Thus, register switch events first, and then register the switch event
+    //   callback.
 
     // Register switch events
-#if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
-    // SAI_SWITCH_EVENT_TYPE_FIRMWARE_CRASHED is not supported on 12.0 yet
-    std::array<uint32_t, 8> events = {
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_7)
+    std::array<uint32_t, 10> events = {
         SAI_SWITCH_EVENT_TYPE_PARITY_ERROR,
         SAI_SWITCH_EVENT_TYPE_STABLE_FULL,
         SAI_SWITCH_EVENT_TYPE_STABLE_ERROR,
@@ -198,8 +272,10 @@ void SwitchApi::registerSwitchEventCallback(
         SAI_SWITCH_EVENT_TYPE_WARM_BOOT_DOWNGRADE,
         SAI_SWITCH_EVENT_TYPE_INTERRUPT,
         SAI_SWITCH_EVENT_TYPE_FABRIC_AUTO_ISOLATE,
-        SAI_SWITCH_EVENT_TYPE_FIRMWARE_CRASHED};
-#elif defined BRCM_SAI_SDK_GTE_11_0
+        SAI_SWITCH_EVENT_TYPE_FIRMWARE_CRASHED,
+        SAI_SWITCH_EVENT_TYPE_REMOTE_LINK_CHANGE,
+        SAI_SWITCH_EVENT_TYPE_RX_FIFO_STUCK_DETECTED};
+#elif defined(BRCM_SAI_SDK_GTE_11_0)
     std::array<uint32_t, 7> events = {
         SAI_SWITCH_EVENT_TYPE_PARITY_ERROR,
         SAI_SWITCH_EVENT_TYPE_STABLE_FULL,
@@ -218,17 +294,25 @@ void SwitchApi::registerSwitchEventCallback(
 #endif
     eventAttr.value.u32list.count = events.size();
     eventAttr.value.u32list.list = events.data();
-    rv = _setAttribute(id, &eventAttr);
-    saiLogError(rv, ApiType, "Unable to register parity error switch events");
-  } else {
-    // First unregister switch events
-    eventAttr.value.u32list.count = 0;
     auto rv = _setAttribute(id, &eventAttr);
-    saiLogError(rv, ApiType, "Unable to unregister switch events");
+    saiLogError(rv, ApiType, "Unable to register parity error switch events");
 
-    // Then unregister callback function
+    // Register switch event callback function
     rv = _setAttribute(id, &attr);
+    saiLogError(
+        rv, ApiType, "Unable to register parity error switch event callback");
+  } else {
+    // This is reverse of the registration sequence.
+    // First, unregister callback, then unregister events.
+
+    // First unregister callback function
+    auto rv = _setAttribute(id, &attr);
     saiLogError(rv, ApiType, "Unable to unregister TAM event callback");
+
+    // Then unregister switch events
+    eventAttr.value.u32list.count = 0;
+    rv = _setAttribute(id, &eventAttr);
+    saiLogError(rv, ApiType, "Unable to unregister switch events");
   }
 #endif
 }
@@ -395,8 +479,7 @@ SaiSwitchTraits::Attributes::AttributeMaxVoqs::operator()() {
 }
 std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeCondEntropyRehashPeriodUS::operator()() {
-// TODO(zecheng): Update flag when new 12.0 release has the attribute
-#if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   return SAI_SWITCH_ATTR_COND_ENTROPY_REHASH_PERIOD_US;
 #endif
   return std::nullopt;
@@ -404,8 +487,7 @@ SaiSwitchTraits::Attributes::AttributeCondEntropyRehashPeriodUS::operator()() {
 
 std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeShelSrcIp::operator()() {
-// TODO(zecheng): Update flag when new 12.0 release has the attribute
-#if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   return SAI_SWITCH_ATTR_SHEL_SRC_IP;
 #endif
   return std::nullopt;
@@ -413,8 +495,7 @@ SaiSwitchTraits::Attributes::AttributeShelSrcIp::operator()() {
 
 std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeShelDstIp::operator()() {
-// TODO(zecheng): Update flag when new 12.0 release has the attribute
-#if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   return SAI_SWITCH_ATTR_SHEL_DST_IP;
 #endif
   return std::nullopt;
@@ -422,8 +503,7 @@ SaiSwitchTraits::Attributes::AttributeShelDstIp::operator()() {
 
 std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeShelSrcMac::operator()() {
-// TODO(zecheng): Update flag when new 12.0 release has the attribute
-#if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   return SAI_SWITCH_ATTR_SHEL_SRC_MAC;
 #endif
   return std::nullopt;
@@ -431,10 +511,58 @@ SaiSwitchTraits::Attributes::AttributeShelSrcMac::operator()() {
 
 std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeShelPeriodicInterval::operator()() {
-// TODO(zecheng): Update flag when new 12.0 release has the attribute
-#if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   return SAI_SWITCH_ATTR_SHEL_PERIODIC_INTERVAL;
 #endif
   return std::nullopt;
 }
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeFirmwareCoreTouse::operator()() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_7)
+  return SAI_SWITCH_ATTR_FIRMWARE_CORE_TO_USE;
+#endif
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeFirmwareLogFile::operator()() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_7)
+  return SAI_SWITCH_ATTR_FIRMWARE_LOG_FILE;
+#endif
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeMaxSwitchId::operator()() {
+#if defined(BRCM_SAI_SDK_DNX) && defined(BRCM_SAI_SDK_GTE_11_0)
+  return SAI_SWITCH_ATTR_MAX_SWITCH_ID;
+#endif
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeArsAvailableFlows::operator()() {
+#if defined(BRCM_SAI_SDK_XGS) && defined(BRCM_SAI_SDK_GTE_11_0)
+  return SAI_SWITCH_ATTR_ARS_AVAILABLE_FLOWS;
+#endif
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeSdkRegDumpLogPath::operator()() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_7)
+  return SAI_SWITCH_ATTR_SDK_REG_DUMP_LOG_PATH;
+#endif
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeFirmwareObjectList::operator()() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_7)
+  return SAI_SWITCH_ATTR_FIRMWARE_OBJECT_LIST;
+#endif
+  return std::nullopt;
+}
+
 } // namespace facebook::fboss

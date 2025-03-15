@@ -34,6 +34,7 @@ thrift_library(
         "//fboss/agent/if:fboss",
         "//fboss/lib/if:fboss_io_stats",
         "//fboss/qsfp_service/if:transceiver",
+        "//thrift/annotation:thrift",
     ],
 )
 
@@ -141,7 +142,6 @@ cpp_library(
         "//fboss/mka_service/if:mka_structs-cpp2-types",
         "//folly:synchronized",
         "//folly/futures:core",
-        "//folly/json:dynamic",
         "//folly/logging:logging",
         "//thrift/lib/cpp/util:enum_utils",
     ],
@@ -177,7 +177,6 @@ cpp_library(
         "//fboss/lib/phy/facebook/credo:credo",
         "//fboss/mdio:facebook_fpga_mdio",
         "//folly:conv",
-        "//folly:random",
         "//folly/logging:logging",
     ],
 )

@@ -8,6 +8,8 @@
 #  of patent rights can be found in the PATENTS file in the same directory.
 #
 
+# pyre-unsafe
+
 import re
 
 from fboss.cli.commands import commands as cmds
@@ -17,7 +19,6 @@ AGG_PORT_NUM_RE = re.compile(r".*?(?P<port_num>[0-9]+)$")
 
 
 def get_port_num(port: str) -> str:
-
     port_num_match = AGG_PORT_NUM_RE.match(port)
     if port_num_match:
         return port_num_match.group("port_num")
@@ -26,7 +27,6 @@ def get_port_num(port: str) -> str:
 
 
 def _should_print_agg_port_info(target_port_num: str, agg_port) -> bool:
-
     # If there's no target set we print the info for all ports
     if not target_port_num:
         return True
@@ -85,7 +85,6 @@ class AggregatePortCmd(cmds.FbossCmd):
                 )
 
     def run(self, port):
-
         port_num = get_port_num(port)
         if port and not port_num:
             print(f"Invalid aggregate port name: {port}")

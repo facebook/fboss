@@ -30,7 +30,7 @@ class Utils {
   std::optional<VersionedPmSensor> resolveVersionedSensors(
       const PmUnitInfoFetcher& fetcher,
       const std::string& slotPath,
-      const std::vector<VersionedPmSensor>& versionedSensors);
+      std::vector<VersionedPmSensor> versionedSensors);
 
   SensorConfig getConfig();
 };

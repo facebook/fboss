@@ -51,17 +51,21 @@ class EbroAsic : public TajoAsic {
   uint64_t getMMUSizeBytes() const override {
     return 108 * 1024 * 1024;
   }
+  uint64_t getSramSizeBytes() const override {
+    // No HBM!
+    return getMMUSizeBytes();
+  }
   uint32_t getMaxMirrors() const override {
     // TODO - verify this
     return 4;
   }
-  uint64_t getDefaultReservedBytes(
+  std::optional<uint64_t> getDefaultReservedBytes(
       cfg::StreamType /*streamType*/,
       cfg::PortType /*portType*/) const override {
     // Concept of reserved bytes does not apply to GB
     return 0;
   }
-  cfg::MMUScalingFactor getDefaultScalingFactor(
+  std::optional<cfg::MMUScalingFactor> getDefaultScalingFactor(
       cfg::StreamType /*streamType*/,
       bool /*cpu*/) const override {
     // Concept of scaling factor does not apply returning the same value TH3
@@ -113,6 +117,12 @@ class EbroAsic : public TajoAsic {
     // MAX_NEXT_HOP_GROUP_MEMBERS = 32768
     return 32768;
   }
+  std::optional<uint32_t> getMaxNdpTableSize() const override {
+    return 88465;
+  }
+  std::optional<uint32_t> getMaxArpTableSize() const override {
+    return 176881;
+  }
   uint32_t getNumCores() const override {
     return 12;
   }
@@ -132,7 +142,7 @@ class EbroAsic : public TajoAsic {
  private:
   bool isSupportedFabric(Feature feature) const;
   bool isSupportedNonFabric(Feature feature) const;
-  static constexpr auto p4WarmbootBaseSdk = "24.4.90";
+  static constexpr auto p4WarmbootBaseSdk = "24.8.3001";
   std::optional<uint64_t> currentSdkVersion_{std::nullopt};
 };
 

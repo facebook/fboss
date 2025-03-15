@@ -1,71 +1,383 @@
 {
-  "fwConfigs": {
+  "newFwConfigs": {
     "bios": {
-      "preUpgradeCmd": "echo -e '\\x15' | dd of=/dev/port bs=1 seek=$((0xb2)) count=1",
-      "getVersionCmd": "dmidecode -s bios-version",
-      "priority": 1,
-      "upgradeCmd": "bios_filename=$(head -n 1 /home/bios_filename.txt);flashrom -p internal --ifd -i bios --noverify-all -w $bios_filename",
-      "postUpgradeCmd": "echo -e '\\x16' | dd of=/dev/port bs=1 seek=$((0xb2)) count=1"
+      "preUpgrade": [
+        {
+          "commandType": "writeToPort",
+          "writeToPortArgs": {
+            "hexByteValue": "0x15",
+            "portFile": "/dev/port",
+            "hexOffset": "0xb2"
+          }
+        }
+      ],
+      "upgrade": [
+        {
+          "commandType": "flashrom",
+          "flashromArgs": {
+            "programmer_type": "internal",
+            "flashromExtraArgs": [
+              "--ifd",
+              "-i",
+              "bios",
+              "--noverify-all"
+            ]
+          }
+        }
+      ],
+      "postUpgrade": [
+        {
+          "commandType": "writeToPort",
+          "writeToPortArgs": {
+            "HexByteValue": "0x16",
+            "portFile": "/dev/port",
+            "hexOffset": "0xb2"
+          }
+        }
+      ],
+      "version": {
+        "versionType": "sysfs",
+        "path": "/sys/devices/virtual/dmi/id/bios_version"
+      },
+      "priority": 1
     },
     "iob_fpga": {
-      "getVersionCmd": "cat /run/devmap/fpgas/MCB_IOB_INFO_ROM/fw_ver",
-      "priority": 2,
-      "upgradeCmd": "iob_fpga_filename=$(head -n 1 /home/iob_fpga_filename.txt);flashrom -p linux_spi:dev=/run/devmap/flashes/MCB_SPI_MASTER_1_DEVICE_1;flashrom -p linux_spi:dev=/run/devmap/flashes/MCB_SPI_MASTER_1_DEVICE_1 -w $iob_fpga_filename -c N25Q128..3E",
-      "verifyFwCmd": "iob_fpga_filename=$(head -n 1 /home/iob_fpga_filename.txt);flashrom -p linux_spi:dev=/run/devmap/flashes/MCB_SPI_MASTER_1_DEVICE_1;flashrom -p linux_spi:dev=/run/devmap/flashes/MCB_SPI_MASTER_1_DEVICE_1 -v $iob_fpga_filename -c N25Q128..3E",
-      "readFwCmd": "flashrom -p linux_spi:dev=/run/devmap/flashes/MCB_SPI_MASTER_1_DEVICE_1;flashrom -p linux_spi:dev=/run/devmap/flashes/MCB_SPI_MASTER_1_DEVICE_1 -r /tmp/iob_fpga_file_backup -c N25Q128..3E"
+      "upgrade": [
+        {
+          "commandType": "flashrom",
+          "flashromArgs": {
+            "programmer_type": "linux_spi:dev=",
+            "programmer": "/run/devmap/flashes/MCB_SPI_MASTER_1_DEVICE_1",
+            "chip": [
+              "N25Q128..3E",
+              "W25Q128.V..M"
+            ]
+          }
+        }
+      ],
+      "verify": {
+        "commandType": "flashrom",
+        "flashromArgs": {
+          "programmer_type": "linux_spi:dev=",
+          "programmer": "/run/devmap/flashes/MCB_SPI_MASTER_1_DEVICE_1",
+          "chip": [
+            "N25Q128..3E",
+            "W25Q128.V..M"
+          ]
+        }
+      },
+      "read": {
+        "commandType": "flashrom",
+        "flashromArgs": {
+          "programmer_type": "linux_spi:dev=",
+          "programmer": "/run/devmap/flashes/MCB_SPI_MASTER_1_DEVICE_1",
+          "chip": [
+            "N25Q128..3E",
+            "W25Q128.V..M"
+          ]
+        }
+      },
+      "version": {
+        "versionType": "sysfs",
+        "path": "/run/devmap/inforoms/MCB_IOB_INFO_ROM/fw_ver"
+      },
+      "priority": 2
     },
     "dom1_fpga": {
-      "preUpgradeCmd": "gpioset $(gpiodetect | grep -E 'fboss_iob_pci.gpiochip.*' | awk '{print $1}') 9=1",
-      "getVersionCmd": "cat /run/devmap/fpgas/SMB_DOM1_INFO_ROM/fw_ver",
-      "priority": 3,
-      "upgradeCmd": "dom1_fpga_filename=$(head -n 1 /home/dom1_fpga_filename.txt);flashrom -p linux_spi:dev=/run/devmap/flashes/MCB_SPI_MASTER_2_DEVICE_1 -w $dom1_fpga_filename -c N25Q128..3E",
-      "verifyFwCmd": "dom1_fpga_filename=$(head -n 1 /home/dom1_fpga_filename.txt);flashrom -p linux_spi:dev=/run/devmap/flashes/MCB_SPI_MASTER_2_DEVICE_1 -v $dom1_fpga_filename -c N25Q128..3E",
-      "readFwCmd": "flashrom -p linux_spi:dev=/run/devmap/flashes/MCB_SPI_MASTER_2_DEVICE_1 -r /tmp/dom1_fpga_file_backup -c N25Q128..3E",
-      "postUpgradeCmd": "gpioget $(gpiodetect | grep -E 'fboss_iob_pci.gpiochip.*' | awk '{print $1}') 9"
+      "preUpgrade": [
+        {
+          "commandType": "gpioset",
+          "gpiosetArgs": {
+            "gpioChip": "fboss_iob_pci.gpiochip.*",
+            "gpioChipValue": "1",
+            "gpioChipPin": "9"
+          }
+        }
+      ],
+      "upgrade": [
+        {
+          "commandType": "flashrom",
+          "flashromArgs": {
+            "programmer_type": "linux_spi:dev=",
+            "programmer": "/run/devmap/flashes/MCB_SPI_MASTER_2_DEVICE_1",
+            "chip": [
+              "N25Q128..3E",
+              "W25Q128.V..M"
+            ]
+          }
+        }
+      ],
+      "postUpgrade": [
+        {
+          "commandType": "gpioget",
+          "gpiogetArgs": {
+            "gpioChip": "fboss_iob_pci.gpiochip.*",
+            "gpioChipPin": "9"
+          }
+        }
+      ],
+      "verify": {
+        "commandType": "flashrom",
+        "flashromArgs": {
+          "programmer_type": "linux_spi:dev=",
+          "programmer": "/run/devmap/flashes/MCB_SPI_MASTER_2_DEVICE_1",
+          "chip": [
+            "N25Q128..3E",
+            "W25Q128.V..M"
+          ]
+        }
+      },
+      "read": {
+        "commandType": "flashrom",
+        "flashromArgs": {
+          "programmer_type": "linux_spi:dev=",
+          "programmer": "/run/devmap/flashes/MCB_SPI_MASTER_2_DEVICE_1",
+          "chip": [
+            "N25Q128..3E",
+            "W25Q128.V..M"
+          ]
+        }
+      },
+      "version": {
+        "versionType": "sysfs",
+        "path": "/run/devmap/inforoms/SMB_DOM1_INFO_ROM/fw_ver"
+      },
+      "priority": 3
     },
     "dom2_fpga": {
-      "preUpgradeCmd": "gpioset $(gpiodetect | grep -E 'fboss_iob_pci.gpiochip.*' | awk '{print $1}') 10=1",
-      "getVersionCmd": "cat /run/devmap/fpgas/SMB_DOM2_INFO_ROM/fw_ver",
-      "priority": 4,
-      "upgradeCmd": "dom2_fpga_filename=$(head -n 1 /home/dom2_fpga_filename.txt);flashrom -p linux_spi:dev=/run/devmap/flashes/MCB_SPI_MASTER_3_DEVICE_1 -w $dom2_fpga_filename -c N25Q128..3E",
-      "verifyFwCmd": "dom2_fpga_filename=$(head -n 1 /home/dom2_fpga_filename.txt);flashrom -p linux_spi:dev=/run/devmap/flashes/MCB_SPI_MASTER_3_DEVICE_1 -v $dom2_fpga_filename -c N25Q128..3E",
-      "readFwCmd": "flashrom -p linux_spi:dev=/run/devmap/flashes/MCB_SPI_MASTER_3_DEVICE_1 -r /tmp/dom2_fpga_file_backup -c N25Q128..3E",
-      "postUpgradeCmd": "gpioget $(gpiodetect | grep -E 'fboss_iob_pci.gpiochip.*' | awk '{print $1}') 10"
+      "preUpgrade": [
+        {
+          "commandType": "gpioset",
+          "gpiosetArgs": {
+            "gpioChip": "fboss_iob_pci.gpiochip.*",
+            "gpioChipValue": "1",
+            "gpioChipPin": "10"
+          }
+        }
+      ],
+      "upgrade": [
+        {
+          "commandType": "flashrom",
+          "flashromArgs": {
+            "programmer_type": "linux_spi:dev=",
+            "programmer": "/run/devmap/flashes/MCB_SPI_MASTER_3_DEVICE_1",
+            "chip": [
+              "N25Q128..3E",
+              "W25Q128.V..M"
+            ]
+          }
+        }
+      ],
+      "postUpgrade": [
+        {
+          "commandType": "gpioget",
+          "gpiogetArgs": {
+            "gpioChip": "fboss_iob_pci.gpiochip.*",
+            "gpioChipPin": "10"
+          }
+        }
+      ],
+      "verify": {
+        "commandType": "flashrom",
+        "flashromArgs": {
+          "programmer_type": "linux_spi:dev=",
+          "programmer": "/run/devmap/flashes/MCB_SPI_MASTER_3_DEVICE_1",
+          "chip": [
+            "N25Q128..3E",
+            "W25Q128.V..M"
+          ]
+        }
+      },
+      "read": {
+        "commandType": "flashrom",
+        "flashromArgs": {
+          "programmer_type": "linux_spi:dev=",
+          "programmer": "/run/devmap/flashes/MCB_SPI_MASTER_3_DEVICE_1",
+          "chip": [
+            "N25Q128..3E",
+            "W25Q128.V..M"
+          ]
+        }
+      },
+      "version": {
+        "versionType": "sysfs",
+        "path": "/run/devmap/inforoms/SMB_DOM2_INFO_ROM/fw_ver"
+      },
+      "priority": 4
     },
     "mcb_cpld": {
-      "preUpgradeCmd": "gpioset $(gpiodetect | grep -E 'fboss_iob_pci.gpiochip.*' | awk '{print $1}') 3=1",
-      "getVersionCmd": "cat /run/devmap/cplds/MCB_CPLD/fw_ver",
-      "priority": 5,
-      "upgradeCmd": "mcb_cpld_filename=$(head -n 1 /home/mcb_cpld_filename.txt);flashrom -p linux_spi:dev=/run/devmap/flashes/MCB_SPI_MASTER_4_DEVICE_1 -w $mcb_cpld_filename -c W25X20",
-      "verifyFwCmd": "mcb_cpld_filename=$(head -n 1 /home/mcb_cpld_filename.txt);flashrom -p linux_spi:dev=/run/devmap/flashes/MCB_SPI_MASTER_4_DEVICE_1 -v $mcb_cpld_filename -c W25X20",
-      "readFwCmd": "flashrom -p linux_spi:dev=/run/devmap/flashes/MCB_SPI_MASTER_4_DEVICE_1 -r /tmp/mcb_cpld_file_backup -c W25X20",
-      "postUpgradeCmd": "gpioget $(gpiodetect | grep -E 'fboss_iob_pci.gpiochip.*' | awk '{print $1}') 3"
+      "preUpgrade": [
+        {
+          "commandType": "gpioset",
+          "gpiosetArgs": {
+            "gpioChip": "fboss_iob_pci.gpiochip.*",
+            "gpioChipValue": "1",
+            "gpioChipPin": "3"
+          }
+        }
+      ],
+      "upgrade": [
+        {
+          "commandType": "flashrom",
+          "flashromArgs": {
+            "programmer_type": "linux_spi:dev=",
+            "programmer": "/run/devmap/flashes/MCB_SPI_MASTER_4_DEVICE_1",
+            "chip": [
+              "W25X20"
+            ]
+          }
+        }
+      ],
+      "postUpgrade": [
+        {
+          "commandType": "gpioget",
+          "gpiogetArgs": {
+            "gpioChip": "fboss_iob_pci.gpiochip.*",
+            "gpioChipPin": "3"
+          }
+        }
+      ],
+      "verify": {
+        "commandType": "flashrom",
+        "flashromArgs": {
+          "programmer_type": "linux_spi:dev=",
+          "programmer": "/run/devmap/flashes/MCB_SPI_MASTER_4_DEVICE_1",
+          "chip": [
+            "W25X20"
+          ]
+        }
+      },
+      "read": {
+        "commandType": "flashrom",
+        "flashromArgs": {
+          "programmer_type": "linux_spi:dev=",
+          "programmer": "/run/devmap/flashes/MCB_SPI_MASTER_4_DEVICE_1",
+          "chip": [
+            "W25X20"
+          ]
+        }
+      },
+      "version": {
+        "versionType": "sysfs",
+        "path": "/run/devmap/cplds/MCB_CPLD/fw_ver"
+      },
+      "priority": 5
     },
     "smb_cpld": {
-      "preUpgradeCmd": "gpioset $(gpiodetect | grep -E 'fboss_iob_pci.gpiochip.*' | awk '{print $1}') 7=1",
-      "getVersionCmd": "cat /run/devmap/cplds/SMB_CPLD/fw_ver",
-      "priority": 6,
-      "upgradeCmd": "smb_cpld_filename=$(head -n 1 /home/smb_cpld_filename.txt);flashrom -p linux_spi:dev=/run/devmap/flashes/MCB_SPI_MASTER_5_DEVICE_1 -w $smb_cpld_filename -c W25X20",
-      "verifyFwCmd": "smb_cpld_filename=$(head -n 1 /home/smb_cpld_filename.txt);flashrom -p linux_spi:dev=/run/devmap/flashes/MCB_SPI_MASTER_5_DEVICE_1 -v $smb_cpld_filename -c W25X20",
-      "readFwCmd": "flashrom -p linux_spi:dev=/run/devmap/flashes/MCB_SPI_MASTER_5_DEVICE_1 -r /tmp/smb_cpld_file_backup -c W25X20",
-      "postUpgradeCmd": "gpioget $(gpiodetect | grep -E 'fboss_iob_pci.gpiochip.*' | awk '{print $1}') 7"
+      "preUpgrade": [
+        {
+          "commandType": "gpioset",
+          "gpiosetArgs": {
+            "gpioChip": "fboss_iob_pci.gpiochip.*",
+            "gpioChipValue": "1",
+            "gpioChipPin": "7"
+          }
+        }
+      ],
+      "upgrade": [
+        {
+          "commandType": "flashrom",
+          "flashromArgs": {
+            "programmer_type": "linux_spi:dev=",
+            "programmer": "/run/devmap/flashes/MCB_SPI_MASTER_5_DEVICE_1",
+            "chip": [
+              "W25X20"
+            ]
+          }
+        }
+      ],
+      "postUpgrade": [
+        {
+          "commandType": "gpioget",
+          "gpiogetArgs": {
+            "gpioChip": "fboss_iob_pci.gpiochip.*",
+            "gpioChipPin": "7"
+          }
+        }
+      ],
+      "verify": {
+        "commandType": "flashrom",
+        "flashromArgs": {
+          "programmer_type": "linux_spi:dev=",
+          "programmer": "/run/devmap/flashes/MCB_SPI_MASTER_5_DEVICE_1",
+          "chip": [
+            "W25X20"
+          ]
+        }
+      },
+      "read": {
+        "commandType": "flashrom",
+        "flashromArgs": {
+          "programmer_type": "linux_spi:dev=",
+          "programmer": "/run/devmap/flashes/MCB_SPI_MASTER_5_DEVICE_1",
+          "chip": [
+            "W25X20"
+          ]
+        }
+      },
+      "version": {
+        "versionType": "sysfs",
+        "path": "/run/devmap/cplds/SMB_CPLD/fw_ver"
+      },
+      "priority": 6
     },
     "scm_cpld": {
-      "preUpgradeCmd": "gpioset $(gpiodetect | grep -E 'fboss_iob_pci.gpiochip.*' | awk '{print $1}') 1=1",
-      "getVersionCmd": "cat /run/devmap/cplds/SCM_CPLD/fw_ver",
-      "priority": 7,
-      "upgradeCmd": "scm_cpld_filename=$(head -n 1 /home/scm_cpld_filename.txt);flashrom -p linux_spi:dev=/run/devmap/flashes/MCB_SPI_MASTER_7_DEVICE_1 -w $scm_cpld_filename -c W25X20",
-      "verifyFwCmd": "scm_cpld_filename=$(head -n 1 /home/scm_cpld_filename.txt);flashrom -p linux_spi:dev=/run/devmap/flashes/MCB_SPI_MASTER_7_DEVICE_1 -v $scm_cpld_filename -c W25X20",
-      "readFwCmd": "flashrom -p linux_spi:dev=/run/devmap/flashes/MCB_SPI_MASTER_7_DEVICE_1 -r /tmp/scm_cpld_file_backup -c W25X20",
-      "postUpgradeCmd": "gpioget $(gpiodetect | grep -E 'fboss_iob_pci.gpiochip.*' | awk '{print $1}') 1"
-    },
-    "oob_eeprom": {
-      "preUpgradeCmd": "oob_bus=$(echo /sys/bus/i2c/devices/$(basename $(readlink /run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_1))/*-0070/channel-4);echo '24c02' '0x50' > ${oob_bus}/new_device",
-      "getVersionCmd": "echo 'Not Applicable'",
-      "priority": 8,
-      "upgradeCmd": "oob_bus=$(echo /sys/bus/i2c/devices/$(basename $(readlink /run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_1))/*-0070/channel-4);oob_eeprom_filename=$(head -n 1 /home/oob_eeprom_filename.txt);dd if=$oob_eeprom_filename of=$(echo ${oob_bus}/*-0050/eeprom);",
-      "readFwCmd": "oob_bus=$(echo /sys/bus/i2c/devices/$(basename $(readlink /run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_1))/*-0070/channel-4);dd if=$(echo ${oob_bus}/*-0050/eeprom) of=/tmp/oob_eeprom_backup;echo '0x50' > ${oob_bus}/delete_device",
-      "postUpgradeCmd": "oob_bus=$(echo /sys/bus/i2c/devices/$(basename $(readlink /run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_1))/*-0070/channel-4);echo '0x50' > ${oob_bus}/delete_device"
+      "preUpgrade": [
+        {
+          "commandType": "gpioset",
+          "gpiosetArgs": {
+            "gpioChip": "fboss_iob_pci.gpiochip.*",
+            "gpioChipValue": "1",
+            "gpioChipPin": "1"
+          }
+        }
+      ],
+      "upgrade": [
+        {
+          "commandType": "flashrom",
+          "flashromArgs": {
+            "programmer_type": "linux_spi:dev=",
+            "programmer": "/run/devmap/flashes/MCB_SPI_MASTER_7_DEVICE_1",
+            "chip": [
+              "W25X20"
+            ]
+          }
+        }
+      ],
+      "postUpgrade": [
+        {
+          "commandType": "gpioget",
+          "gpiogetArgs": {
+            "gpioChip": "fboss_iob_pci.gpiochip.*",
+            "gpioChipPin": "1"
+          }
+        }
+      ],
+      "verify": {
+        "commandType": "flashrom",
+        "flashromArgs": {
+          "programmer_type": "linux_spi:dev=",
+          "programmer": "/run/devmap/flashes/MCB_SPI_MASTER_7_DEVICE_1",
+          "chip": [
+            "W25X20"
+          ]
+        }
+      },
+      "read": {
+        "commandType": "flashrom",
+        "flashromArgs": {
+          "programmer_type": "linux_spi:dev=",
+          "programmer": "/run/devmap/flashes/MCB_SPI_MASTER_7_DEVICE_1",
+          "chip": [
+            "W25X20"
+          ]
+        }
+      },
+      "version": {
+        "versionType": "sysfs",
+        "path": "/run/devmap/cplds/SCM_CPLD/fw_ver"
+      },
+      "priority": 7
     }
   }
 }

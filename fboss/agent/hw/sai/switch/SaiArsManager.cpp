@@ -13,6 +13,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
+#include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 
@@ -69,6 +70,32 @@ void SaiArsManager::changeArs(
 
 SaiArsHandle* SaiArsManager::getArsHandle() {
   return arsHandle_.get();
+}
+
+// Use custom attribute SAI_SWITCH_ATTR_ARS_AVAILABLE_FLOWS to query remaining
+// entries in flowset table
+bool SaiArsManager::isFlowsetTableFull(ArsSaiId arsSaiId) {
+  if (!FLAGS_flowletSwitchingEnable ||
+      !platform_->getAsic()->isSupported(HwAsic::Feature::FLOWLET)) {
+    return false;
+  }
+
+  auto switchId = managerTable_->switchManager().getSwitchSaiId();
+  auto arsAvailableFlows = SaiApiTable::getInstance()->switchApi().getAttribute(
+      switchId, SaiSwitchTraits::Attributes::ArsAvailableFlows{});
+
+  // get required flowlet table entries per nexthop
+  auto flowletTableSize = SaiApiTable::getInstance()->arsApi().getAttribute(
+      arsSaiId, SaiArsTraits::Attributes::MaxFlows());
+  if (arsAvailableFlows >= flowletTableSize) {
+    return false;
+  } else {
+    XLOG(DBG2) << "Flowset table full, available entries: "
+               << arsAvailableFlows;
+    return true;
+  }
+
+  return false;
 }
 #endif
 

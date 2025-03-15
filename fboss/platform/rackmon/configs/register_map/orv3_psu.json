@@ -1,0 +1,423 @@
+{
+    "name": "ORV3_PSU",
+    "address_range": [
+        [200, 205],
+        [232, 237],
+        [240, 242]
+    ],
+    "probe_register": 8,
+    "baudrate": 19200,
+    "special_handlers": [
+      {
+        "reg": 98,
+        "len": 2,
+        "period": 3600,
+        "action": "write",
+        "info": {
+          "interpret": "INTEGER",
+          "shell": "date +%s"
+        }
+      }
+    ],
+    "registers": [
+        {
+            "begin": 0,
+            "length": 8,
+            "format": "STRING",
+            "name": "PSU_FBPN"
+        },
+        {
+            "begin": 8,
+            "length": 8,
+            "format": "STRING",
+            "name": "PSU_MFR_Model"
+        },
+        {
+            "begin": 16,
+            "length": 8,
+            "format": "STRING",
+            "name": "PSU_MFR_Date"
+        },
+        {
+            "begin": 24,
+            "length": 16,
+            "format": "STRING",
+            "name": "PSU_MFR_Serial"
+        },
+        {
+            "begin": 40,
+            "length": 4,
+            "format": "STRING",
+            "name": "PSU_Workorder"
+        },
+        {
+            "begin": 44,
+            "length": 4,
+            "format": "STRING",
+            "name": "PSU_HW_Revision"
+        },
+        {
+            "begin": 48,
+            "length": 4,
+            "format": "STRING",
+            "name": "PSU_FW_Revision"
+        },
+        {
+            "begin": 52,
+            "length": 2,
+            "format": "INTEGER",
+            "name": "Total_Up_Time"
+        },
+        {
+            "begin": 54,
+            "length": 2,
+            "format": "INTEGER",
+            "name": "Time_Since_Last_On"
+        },
+        {
+            "begin": 56,
+            "length": 1,
+            "format": "INTEGER",
+            "name": "AC_Power_Cycle_Counter"
+        },
+        {
+            "begin": 57,
+            "length": 1,
+            "format": "INTEGER",
+            "name": "AC_Outage_Counter"
+        },
+        {
+            "begin": 60,
+            "length": 1,
+            "keep": 10,
+            "changes_only": true,
+            "format": "FLAGS",
+            "flags": [
+                [11, "Fan_Alarm"],
+                [10, "Temp_Alarm"],
+                [9, "DCDC_Converter_Failure"],
+                [8, "PFC_Converter_Fail"],
+                [3, "Communication"],
+                [2, "Temperature"],
+                [1, "DCDC"],
+                [0, "PFC"]
+            ],
+            "name": "General_Alarm_Status_Register"
+        },
+        {
+            "begin": 61,
+            "length": 1,
+            "keep": 10,
+            "changes_only": true,
+            "format": "FLAGS",
+            "flags": [
+                [11, "PFC_Fail"],
+                [10, "Input_Relay_Off"],
+                [9, "Bulk_Not_Ok"],
+                [8, "AC_Not_OK"],
+                [5, "Freq_High"],
+                [4, "Freq_Low"],
+                [1, "AC_OVP"],
+                [0, "AC_UVP"]
+            ],
+            "name": "PFC_Alarm_Status_Register"
+        },
+        {
+            "begin": 62,
+            "length": 1,
+            "keep": 10,
+            "changes_only": true,
+            "format": "FLAGS",
+            "flags": [
+                [10, "Oring_Fail"],
+                [9, "Secondary_MCU_Fail"],
+                [8, "DCDC_Fail"],
+                [3, "Main_SCKT"],
+                [2, "Main_OCP"],
+                [1, "Main_OVP"],
+                [0, "Main_UVP"]
+            ],
+            "name": "DCDC_Alarm_Status_Register"
+        },
+        {
+            "begin": 63,
+            "length": 1,
+            "keep": 10,
+            "changes_only": true,
+            "format": "FLAGS",
+            "flags": [
+                [8, "Fan_Failure"],
+                [5, "PFC_Temp_Alarm"],
+                [4, "LLC_Temp_Alarm"],
+                [3, "Sync_Temp_Alarm"],
+                [2, "Oring_Temp_Alarm"],
+                [1, "Inlet_Temp_Alarm"],
+                [0, "Outlet_Temp_Alarm"]
+            ],
+            "name": "Temperature_Alarm_Status_Register"
+        },
+        {
+            "begin": 64,
+            "length": 1,
+            "keep": 10,
+            "changes_only": true,
+            "format": "FLAGS",
+            "flags": [
+                [9, "PMBus_Active"],
+                [8, "Modbus_Active"],
+                [1, "Secondary_Logic_MCU_Fault"],
+                [0, "Primary_Secondary_MCU_Fault"]
+            ],
+            "name": "Communication_Alarm_Status_Register"
+        },
+        {
+            "begin": 67,
+            "length": 1,
+            "keep": 10,
+            "format": "INTEGER",
+            "name": "PSU_RPM_Fan0"
+        },
+        {
+            "begin": 68,
+            "length": 1,
+            "keep": 10,
+            "format": "INTEGER",
+            "name": "PSU_RPM_Fan1"
+        },
+        {
+            "begin": 69,
+            "length": 1,
+            "keep": 10,
+            "format": "FLOAT",
+            "precision": 7,
+            "sign": true,
+            "name": "PSU_Temp0_Inlet"
+        },
+        {
+            "begin": 70,
+            "length": 1,
+            "keep": 10,
+            "format": "FLOAT",
+            "precision": 7,
+            "sign": true,
+            "name": "PSU_Temp1_Outlet"
+        },
+        {
+            "begin": 71,
+            "length": 1,
+            "keep": 10,
+            "format": "FLOAT",
+            "precision": 7,
+            "sign": true,
+            "name": "PSU_Max_Temp"
+        },
+        {
+            "begin": 72,
+            "length": 1,
+            "keep": 10,
+            "format": "FLOAT",
+            "precision": 7,
+            "sign": true,
+            "name": "PSU_Min_Temp"
+        },
+        {
+            "begin": 73,
+            "length": 2,
+            "format": "INTEGER",
+            "name": "PSU_Position_Number"
+        },
+        {
+            "begin": 75,
+            "length": 2,
+            "format": "INTEGER",
+            "name": "CRC_Error_Counter"
+        },
+        {
+            "begin": 77,
+            "length": 2,
+            "format": "INTEGER",
+            "name": "Timeout_Error_Counter"
+        },
+        {
+            "begin": 79,
+            "length": 1,
+            "format": "FLOAT",
+            "precision": 10,
+            "name": "PSU_Output_Voltage"
+        },
+        {
+            "begin": 80,
+            "length": 1,
+            "format": "FLOAT",
+            "precision": 6,
+            "name": "PSU_Output_Current"
+        },
+        {
+            "begin": 81,
+            "length": 1,
+            "format": "FLOAT",
+            "precision": 6,
+            "name": "I_Share_Current_Value"
+        },
+        {
+            "begin": 82,
+            "length": 1,
+            "format": "FLOAT",
+            "precision": 3,
+            "name": "PSU_Output_Power"
+        },
+        {
+            "begin": 83,
+            "length": 1,
+            "format": "FLOAT",
+            "precision": 6,
+            "name": "PSU_Bulk_Cap_Voltage"
+        },
+        {
+            "begin": 84,
+            "length": 1,
+            "format": "FLOAT",
+            "precision": 0,
+            "name": "PSU_Input_Frequency_AC"
+        },
+        {
+            "begin": 85,
+            "length": 1,
+            "format": "FLOAT",
+            "precision": 9,
+            "name": "PSU_ITHD"
+        },
+        {
+            "begin": 86,
+            "length": 1,
+            "format": "FLOAT",
+            "precision": 9,
+            "name": "PSU_Power_Factor"
+        },
+        {
+            "begin": 87,
+            "length": 1,
+            "format": "FLOAT",
+            "precision": 3,
+            "name": "PSU_Input_Power"
+        },
+        {
+            "begin": 88,
+            "length": 1,
+            "format": "FLOAT",
+            "precision": 6,
+            "name": "PSU_Input_Voltage_AC"
+        },
+        {
+            "begin": 89,
+            "length": 1,
+            "format": "FLOAT",
+            "precision": 10,
+            "name": "PSU_Input_Current_AC"
+        },
+        {
+            "begin": 90,
+            "length": 1,
+            "format": "INTEGER",
+            "name": "PSU_Fault_Counter"
+        },
+        {
+            "begin": 92,
+            "length": 2,
+            "format": "INTEGER",
+            "name": "Power_Cycle_Unix_Time"
+        },
+        {
+            "begin": 94,
+            "length": 1,
+            "format": "FLAGS",
+            "flags": [
+                [15, "Power_Cycle_5s"],
+                [14, "Clear_Faults_Latch"],
+                [13, "VO_Sel_Pin_Enable"],
+                [12, "HW_Reset_Pin_Enable"],
+                [11, "Active_Current_Sharing_Enable"],
+                [10, "Operation_At_Low_Voltage"],
+                [9, "Output_Voltage_Setting_51V_48V"],
+                [8, "PLS_Enable_Disable"],
+                [0, "PSU_Write_Enable"]
+            ],
+            "name": "PSU_Setting_Register"
+        },
+        {
+            "begin": 95,
+            "length": 1,
+            "format": "INTEGER",
+            "name": "Communication_Baud_Rate"
+        },
+        {
+            "begin": 96,
+            "length": 1,
+            "format": "INTEGER",
+            "name": "Fan_Duty_Cycle_Override"
+        },
+        {
+            "begin": 97,
+            "length": 1,
+            "format": "FLAGS",
+            "flags": [
+                [6, "Amber_LED"],
+                [5, "Blue_LED"],
+                [0, "LED_Override"]
+            ],
+            "name": "LED_Override"
+        },
+        {
+            "begin": 98,
+            "length": 2,
+            "format": "INTEGER",
+            "name": "Unix_Time"
+        },
+        {
+            "begin": 100,
+            "length": 1,
+            "format": "INTEGER",
+            "name": "Configurable_PLS_Timing"
+        },
+        {
+            "begin": 101,
+            "length": 1,
+            "format": "FLOAT",
+            "precision": 6,
+            "name": "Vin_Min"
+        },
+        {
+            "begin": 102,
+            "length": 1,
+            "format": "FLOAT",
+            "precision": 6,
+            "name": "Vin_Max"
+        },
+        {
+            "begin": 103,
+            "length": 1,
+            "format": "FLOAT",
+            "precision": 10,
+            "name": "Vout_Setpoint_H"
+        },
+        {
+            "begin": 104,
+            "length": 1,
+            "format": "FLOAT",
+            "precision": 10,
+            "name": "Vout_Setpoint_L"
+        },
+        {
+            "begin": 105,
+            "length": 1,
+            "format": "INTEGER",
+            "name": "Vout_Change_Timer"
+        },
+        {
+            "begin": 106,
+            "length": 4,
+            "format": "STRING",
+            "name": "PSU_FBL_FW_Revision"
+        }
+    ]
+}

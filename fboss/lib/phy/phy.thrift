@@ -14,6 +14,7 @@ include "common/fb303/if/fb303.thrift"
 include "fboss/agent/if/fboss.thrift"
 include "fboss/lib/phy/prbs.thrift"
 include "fboss/lib/if/io_stats.thrift"
+include "thrift/annotation/thrift.thrift"
 
 enum IpModulation {
   NRZ = 1,
@@ -356,16 +357,46 @@ struct PrbsStats {
 
 // structs for Phy(both IPHY and XPHY) diagnostic info
 struct PhyInfo {
-  1: optional DataPlanePhyChip phyChip (deprecated = "Moved to state/stats");
-  2: optional PhyFwVersion fwVersion (deprecated = "Moved to state/stats");
-  3: switch_config.PortSpeed speed (deprecated = "Moved to state/stats");
-  4: string name (deprecated = "Moved to state/stats"); // port name
-  5: optional bool linkState (deprecated = "Moved to state/stats");
-  6: optional i64 linkFlapCount (deprecated = "Moved to state/stats");
-  10: optional PhySideInfo system (deprecated = "Moved to state/stats");
-  11: optional PhySideInfo line (deprecated = "Moved to state/stats");
-  12: i32 timeCollected (deprecated = "Moved to state/stats"); // Time the diagnostic info was collected at
-  13: optional i32 switchID (deprecated = "Moved to state/stats");
+  @thrift.DeprecatedUnvalidatedAnnotations{
+    items = {"deprecated": "Moved to state/stats"},
+  }
+  1: optional DataPlanePhyChip phyChip;
+  @thrift.DeprecatedUnvalidatedAnnotations{
+    items = {"deprecated": "Moved to state/stats"},
+  }
+  2: optional PhyFwVersion fwVersion;
+  @thrift.DeprecatedUnvalidatedAnnotations{
+    items = {"deprecated": "Moved to state/stats"},
+  }
+  3: switch_config.PortSpeed speed;
+  @thrift.DeprecatedUnvalidatedAnnotations{
+    items = {"deprecated": "Moved to state/stats"},
+  }
+  4: string name; // port name
+  @thrift.DeprecatedUnvalidatedAnnotations{
+    items = {"deprecated": "Moved to state/stats"},
+  }
+  5: optional bool linkState;
+  @thrift.DeprecatedUnvalidatedAnnotations{
+    items = {"deprecated": "Moved to state/stats"},
+  }
+  6: optional i64 linkFlapCount;
+  @thrift.DeprecatedUnvalidatedAnnotations{
+    items = {"deprecated": "Moved to state/stats"},
+  }
+  10: optional PhySideInfo system;
+  @thrift.DeprecatedUnvalidatedAnnotations{
+    items = {"deprecated": "Moved to state/stats"},
+  }
+  11: optional PhySideInfo line;
+  @thrift.DeprecatedUnvalidatedAnnotations{
+    items = {"deprecated": "Moved to state/stats"},
+  }
+  12: i32 timeCollected; // Time the diagnostic info was collected at
+  @thrift.DeprecatedUnvalidatedAnnotations{
+    items = {"deprecated": "Moved to state/stats"},
+  }
+  13: optional i32 switchID;
   14: PhyState state;
   15: PhyStats stats;
 }
@@ -431,6 +462,9 @@ struct RsFecInfo {
   // Map of symbol error to number of codewords with that many symbol errors.
   // Stores cumulative counts
   5: map<i16, i64> codewordStats;
+  6: optional i16 fecTail;
+  // maxSupportedFecTail = 7 for RS-528, 15 for RS-544
+  7: optional i16 maxSupportedFecTail;
 }
 
 struct PmdInfo {

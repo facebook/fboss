@@ -28,21 +28,32 @@ class SubscriptionTests : public ::testing::Test {
 
   auto makeSubscription() {
     std::vector<std::string> path = {"test"};
-    return SubscriptionT::create(
-        "test-sub",
-        path.begin(),
-        path.end(),
-        OperProtocol::BINARY,
-        std::nullopt,
-        heartbeatThread_->getEventBase(),
-        std::chrono::milliseconds(100));
+    if constexpr (std::is_same_v<SubscriptionT, ExtendedPatchSubscription>) {
+      return SubscriptionT::create(
+          SubscriptionIdentifier("test-sub"),
+          path,
+          OperProtocol::BINARY,
+          std::nullopt,
+          heartbeatThread_->getEventBase(),
+          std::chrono::milliseconds(100));
+    } else {
+      return SubscriptionT::create(
+          SubscriptionIdentifier("test-sub"),
+          path.begin(),
+          path.end(),
+          OperProtocol::BINARY,
+          std::nullopt,
+          heartbeatThread_->getEventBase(),
+          std::chrono::milliseconds(100));
+    }
   }
 
  private:
   std::shared_ptr<folly::ScopedEventBaseThread> heartbeatThread_;
 };
 
-using SimpleSubTypes = ::testing::Types<PathSubscription, DeltaSubscription>;
+using SimpleSubTypes = ::testing::
+    Types<PathSubscription, DeltaSubscription, ExtendedPatchSubscription>;
 TYPED_TEST_SUITE(SubscriptionTests, SimpleSubTypes);
 
 TYPED_TEST(SubscriptionTests, verifyHeartbeat) {

@@ -42,6 +42,7 @@ using ::testing::_;
 namespace {
 // TODO(joseph5wu) Network control strict priority queue
 const uint8_t kNCStrictPriorityQueue = 7;
+
 unique_ptr<HwTestHandle> setupTestHandle(bool enableLldp = false) {
   // Setup a default state object
   // reusing this, as this seems to be legit RSW config under which we should
@@ -315,19 +316,21 @@ TEST(LldpManagerTest, LldpValidationPass) {
   lldpValidationPassHelper(cfg::SwitchType::VOQ, std::nullopt /* vlanID */);
 }
 
-TEST(LldpManagerTest, LldpValidationFail) {
+TEST(LldpManagerTest, MismatchedNeighbor) {
   auto lldpValidationFailHelper = [](cfg::SwitchType switchType,
                                      PortID portID,
                                      std::optional<VlanID> vlanID) {
+    auto systemName = "somesysname0";
+    auto portName = "portname";
+
     cfg::SwitchConfig config = testConfigA(switchType);
     *config.ports()[0].routable() = true;
     config.ports()[0].Port::name() = "FooP0";
     config.ports()[0].Port::description() = "FooP0 Port Description here";
 
     config.ports()[0].expectedLLDPValues()[cfg::LLDPTag::SYSTEM_NAME] =
-        "somesysname0";
-    config.ports()[0].expectedLLDPValues()[cfg::LLDPTag::PORT_DESC] =
-        "someportdesc0";
+        systemName;
+    config.ports()[0].expectedLLDPValues()[cfg::LLDPTag::PORT] = portName;
 
     for (const auto& v : *config.ports()[0].expectedLLDPValues()) {
       auto port_name = std::string("<no name set>");
@@ -372,14 +375,16 @@ TEST(LldpManagerTest, LldpValidationFail) {
     EXPECT_EQ(
         port->getLedPortExternalState().value(),
         PortLedExternalState::CABLING_ERROR);
+    EXPECT_EQ(port->getActiveErrors().size(), 1);
+    EXPECT_EQ(port->getActiveErrors().at(0), PortError::MISMATCHED_NEIGHBOR);
 
     auto validPkt = LldpManager::createLldpPkt(
         sw,
         MacAddress("2:2:2:2:2:10"),
         vlanID,
-        "somesysname0",
-        "someportdesc0",
-        "somedesc",
+        systemName,
+        portName,
+        "someportdesc",
         1,
         LldpManager::SYSTEM_CAPABILITY_ROUTER);
     handle->rxPacket(
@@ -389,10 +394,12 @@ TEST(LldpManagerTest, LldpValidationFail) {
     waitForStateUpdates(sw);
     port = sw->getState()->getPorts()->getNodeIf(portID);
     EXPECT_EQ(port->getLedPortExternalState(), PortLedExternalState::NONE);
+    EXPECT_EQ(port->getActiveErrors().size(), 0);
   };
 
   lldpValidationFailHelper(cfg::SwitchType::NPU, PortID(1), VlanID(1));
   lldpValidationFailHelper(
       cfg::SwitchType::VOQ, PortID(5), std::nullopt /* vlanID */);
 }
+
 } // unnamed namespace

@@ -1,17 +1,22 @@
+# pyre-strict
 import os
 import subprocess
-from collections import namedtuple
-from typing import List, Set, Tuple
+from typing import NamedTuple
 
-from fboss.platform.bsp_tests.utils.cdev_types import FpgaSpec, I2CAdapter, I2CDevice
+from fboss.platform.bsp_tests.cdev_types import FpgaSpec, I2CAdapter, I2CDevice
 from fboss.platform.bsp_tests.utils.cdev_utils import create_new_device
 from fboss.platform.bsp_tests.utils.cmd_utils import run_cmd
 
+
 # structures the output of `i2cdetect -l`
-I2CBus = namedtuple("I2CBus", ["busNum", "type", "name", "description"])
+class I2CBus(NamedTuple):
+    busNum: int
+    type: str
+    name: str
+    description: str
 
 
-def parse_i2cdetect_line(line):
+def parse_i2cdetect_line(line: str) -> I2CBus:
     parts = line.split("\t")
     return I2CBus(
         busNum=int(parts[0].split("-")[1]),

@@ -62,7 +62,6 @@
         "accessType": "ACCESS_TYPE_THRIFT"
       },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
-      "scale": 1000,
       "normalUpTable": {
         "15": 24,
         "110": 100
@@ -86,7 +85,6 @@
         "accessType": "ACCESS_TYPE_THRIFT"
       },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
-      "scale": 1000,
       "type": "linear_four_curves",
       "normalUpTable": {
         "15": 24,
@@ -181,8 +179,7 @@
         "SC_TH3_DIODE1_TEMP"
       ],
       "fanNames": [
-        "fan_5",
-        "fan_6"
+        "fan_5"
       ],
       "slope": 3
     },

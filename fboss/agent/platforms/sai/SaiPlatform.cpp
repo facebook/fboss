@@ -10,11 +10,11 @@
 
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 
+#include "fboss/agent/DsfNodeUtils.h"
 #include "fboss/agent/hw/HwSwitchWarmBootHelper.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/hw/switch_asics/EbroAsic.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
-#include "fboss/agent/hw/switch_asics/Jericho2Asic.h"
 #include "fboss/agent/hw/switch_asics/Jericho3Asic.h"
 #include "fboss/agent/platforms/sai/SaiBcmDarwinPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmElbertPlatformPort.h"
@@ -34,6 +34,7 @@
 #include "fboss/agent/platforms/sai/SaiMeru400biuPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiMeru800bfaPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiMeru800biaPlatformPort.h"
+#include "fboss/agent/platforms/sai/SaiMinipack3NPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiMorgan800ccPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiTahan800bcPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiWedge400CPlatformPort.h"
@@ -123,6 +124,18 @@ SaiSwitchTraits::Attributes::HwInfo getHwInfo(SaiPlatform* platform) {
   }
   return connectionHandle;
 }
+
+const auto& getFirmwareForSwitch(
+    const auto& switchIdToSwitchInfo,
+    int64_t switchId) {
+  auto iter = switchIdToSwitchInfo.value().find(switchId);
+  if (iter == switchIdToSwitchInfo.value().end()) {
+    throw FbossError("SwitchId not found: ", switchId);
+  }
+
+  return *iter->second.firmwareNameToFirmwareInfo();
+}
+
 } // namespace
 
 namespace facebook::fboss {
@@ -334,7 +347,9 @@ void SaiPlatform::initPorts() {
         platformMode == PlatformType::PLATFORM_WEDGE400 ||
         platformMode == PlatformType::PLATFORM_WEDGE400_GRANDTETON) {
       saiPort = std::make_unique<SaiBcmWedge400PlatformPort>(portId, this);
-    } else if (platformMode == PlatformType::PLATFORM_DARWIN) {
+    } else if (
+        platformMode == PlatformType::PLATFORM_DARWIN ||
+        platformMode == PlatformType::PLATFORM_DARWIN48V) {
       saiPort = std::make_unique<SaiBcmDarwinPlatformPort>(portId, this);
     } else if (platformMode == PlatformType::PLATFORM_MINIPACK) {
       saiPort = std::make_unique<SaiBcmMinipackPlatformPort>(portId, this);
@@ -373,6 +388,8 @@ void SaiPlatform::initPorts() {
       saiPort = std::make_unique<SaiTahan800bcPlatformPort>(portId, this);
     } else if (platformMode == PlatformType::PLATFORM_YANGRA) {
       saiPort = std::make_unique<SaiYangraPlatformPort>(portId, this);
+    } else if (platformMode == PlatformType::PLATFORM_MINIPACK3N) {
+      saiPort = std::make_unique<SaiMinipack3NPlatformPort>(portId, this);
     } else {
       saiPort = std::make_unique<SaiFakePlatformPort>(portId, this);
     }
@@ -494,20 +511,12 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       swInfo.switchIndex() = 0;
       swInfo.switchType() = cfg::SwitchType::VOQ;
       swInfo.switchMac() = localMac.toString();
-      const Jericho2Asic j2(0, swInfo);
       const Jericho3Asic j3(0, swInfo);
       for (const auto& [id, dsfNode] : *agentCfg->thrift.sw()->dsfNodes()) {
         if (dsfNode.type() != cfg::DsfNodeType::INTERFACE_NODE) {
           continue;
         }
         switch (*dsfNode.asicType()) {
-          case cfg::AsicType::ASIC_TYPE_JERICHO2:
-            // for directly connected interface nodes we don't expect
-            // asic type to change across dsf nodes
-            maxCoreCount = std::max(j2.getNumCores(), maxCoreCount);
-            maxSystemCoreCount =
-                std::max(maxSystemCoreCount, uint32_t(id + j2.getNumCores()));
-            break;
           case cfg::AsicType::ASIC_TYPE_JERICHO3:
             // for directly connected interface nodes we don't expect
             // asic type to change across dsf nodes
@@ -524,6 +533,18 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       maxSystemCores = maxSystemCoreCount;
       sysPortConfigs = SaiSwitchTraits::Attributes::SysPortConfigList{
           getInternalSystemPortConfig()};
+    }
+  }
+  std::optional<SaiSwitchTraits::Attributes::SflowAggrNofSamples>
+      sflowNofSamples{std::nullopt};
+  if (getAsic()->isSupported(HwAsic::Feature::SFLOW_SAMPLES_PACKING)) {
+    auto agentCfg = config();
+    if (agentCfg->thrift.sw()
+            ->switchSettings()
+            ->numberOfSflowSamplesPerPacket()) {
+      sflowNofSamples = *agentCfg->thrift.sw()
+                             ->switchSettings()
+                             ->numberOfSflowSamplesPerPacket();
     }
   }
   std::optional<SaiSwitchTraits::Attributes::DllPath> dllPath;
@@ -570,6 +591,65 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
     }
   }
 
+  std::optional<SaiSwitchTraits::Attributes::FirmwareCoreToUse>
+      firmwareCoreToUse{std::nullopt};
+  std::optional<SaiSwitchTraits::Attributes::FirmwareLogFile> firmwareLogFile{
+      std::nullopt};
+  std::optional<SaiSwitchTraits::Attributes::FirmwareLoadType> firmwareLoadType{
+      std::nullopt};
+
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_7)
+  if (swId.has_value()) {
+    const auto& firmwareNameToFirmwareInfo = getFirmwareForSwitch(
+        switchSettings->switchIdToSwitchInfo(), swId.value());
+
+    if (firmwareNameToFirmwareInfo.size() != 0) {
+      if (firmwareNameToFirmwareInfo.size() > 1) {
+        throw FbossError("Setting only one firmware is supported today");
+      }
+      auto [firmwareName, firmwareInfo] = *firmwareNameToFirmwareInfo.begin();
+      XLOG(DBG2) << "FirmwareName: " << firmwareName
+                 << " coreToUse: " << *firmwareInfo.coreToUse()
+                 << " path: " << *firmwareInfo.path()
+                 << " logPath: " << *firmwareInfo.logPath()
+                 << " firmwareLoadType: "
+                 << apache::thrift::util::enumNameSafe(
+                        *firmwareInfo.firmwareLoadType());
+
+      // Set Core
+      firmwareCoreToUse = *firmwareInfo.coreToUse();
+
+      // Set firmware path
+      std::string firmwarePath = *firmwareInfo.path();
+      std::vector<int8_t> firmwarePathNameArray;
+      std::copy(
+          firmwarePath.c_str(),
+          firmwarePath.c_str() + firmwarePath.size() + 1,
+          std::back_inserter(firmwarePathNameArray));
+      firmwarePathName = firmwarePathNameArray;
+
+      // Set firmware log path
+      std::string firmwareLogPath = *firmwareInfo.logPath();
+      std::vector<int8_t> firmwareLogPathArray;
+      std::copy(
+          firmwareLogPath.c_str(),
+          firmwareLogPath.c_str() + firmwareLogPath.size() + 1,
+          std::back_inserter(firmwareLogPathArray));
+      firmwareLogFile = firmwareLogPathArray;
+
+      // Set firmware load type
+      switch (*firmwareInfo.firmwareLoadType()) {
+        case cfg::FirmwareLoadType::FIRMWARE_LOAD_TYPE_START:
+          firmwareLoadType = SAI_SWITCH_FIRMWARE_LOAD_TYPE_AUTO;
+          break;
+        case cfg::FirmwareLoadType::FIRMWARE_LOAD_TYPE_STOP:
+          firmwareLoadType = SAI_SWITCH_FIRMWARE_LOAD_TYPE_STOP;
+          break;
+      }
+    }
+  }
+#endif
+
   std::optional<SaiSwitchTraits::Attributes::SwitchIsolate> switchIsolate{
       std::nullopt};
   if (getAsic()->isSupported(HwAsic::Feature::LINK_INACTIVE_BASED_ISOLATE)) {
@@ -603,7 +683,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
 #endif
   std::optional<SaiSwitchTraits::Attributes::DelayDropCongThreshold>
       delayDropCongThreshold{std::nullopt};
-#if defined(TAJO_SDK_VERSION_1_42_8)
+#if defined(TAJO_SDK_EBRO)
   if (getAsic()->isSupported(
           HwAsic::Feature::ENABLE_DELAY_DROP_CONGESTION_THRESHOLD) &&
       FLAGS_enable_delay_drop_congestion_threshold) {
@@ -618,12 +698,53 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
   std::optional<int32_t> maxLocalSystemPortId;
   std::optional<int32_t> maxSystemPorts;
   std::optional<int32_t> maxVoqs;
+  std::optional<int32_t> maxSwitchId;
+#if defined(BRCM_SAI_SDK_DNX) && defined(BRCM_SAI_SDK_GTE_11_0)
+  if (getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_RAMON3 ||
+      getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
+    // R3/J3 asics have a HW bug, whereby we need to constrain the max
+    // switch id that's used in their deployment to be below the
+    // default (HW advertised) value.
+    auto agentConfig = config();
+    bool isL2FabricNode = false;
+    if (swType == cfg::SwitchType::FABRIC) {
+      auto fabricNodeRole = getAsic()->getFabricNodeRole();
+      isL2FabricNode =
+          fabricNodeRole == HwAsic::FabricNodeRole::DUAL_STAGE_L1 ||
+          fabricNodeRole == HwAsic::FabricNodeRole::DUAL_STAGE_L2;
+    }
+    auto isDualStage = utility::isDualStage(*agentConfig) ||
+        // Use isDualStage3Q2QMode and fabricNodeRole so we set
+        // max switch-id in single node tests as well
+        isDualStage3Q2QMode() || isL2FabricNode;
+    if (isDualStage) {
+      maxSwitchId = getAsic()->getMaxSwitchId();
+    } else {
+      // Single stage FAP-ID on J3/R3 are limited to 1K.
+      // With 4 cores we are limited to 1K switch-ids.
+      // Then with 80 R3 chips we get 160 more switch-ids
+      // so we are well within the 2K (vendor) recommended
+      // limit.
+      // TODO: Programatically calculate the max switch-id and
+      // assert that we are are within this limit
+      maxSwitchId = 2 * 1024;
+    }
+    auto maxDsfConfigSwitchId = utility::maxDsfSwitchId(*agentConfig) +
+        std::max(getAsic()->getNumCores(),
+                 (maxCores.has_value() ? maxCores->value() : 0));
+
+    XLOG(DBG2) << "Set max switch-id to: " << *maxSwitchId
+               << " got maxDsfConfigSwitchId: " << maxDsfConfigSwitchId;
+    CHECK_GE(*maxSwitchId, maxDsfConfigSwitchId);
+    CHECK_LE(*maxSwitchId, getAsic()->getMaxSwitchId());
+  }
+#endif
 #if defined(BRCM_SAI_SDK_DNX) && defined(BRCM_SAI_SDK_GTE_12_0)
   if (getAsic()->getSwitchType() == cfg::SwitchType::FABRIC &&
       getAsic()->getFabricNodeRole() == HwAsic::FabricNodeRole::DUAL_STAGE_L1) {
     CHECK(getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_RAMON3)
-        << " LLFC threshold values for no R3 chips in DUAL_STAGE_L1 role needs to figured out";
-    // Vendor suggested valie
+        << " LLFC threshold values for non R3 chips in DUAL_STAGE_L1 role needs to figured out";
+    // Vendor suggested value
     constexpr uint32_t kRamon3LlfcThreshold{800};
     fabricLLFC = std::vector<uint32_t>({kRamon3LlfcThreshold});
   }
@@ -631,7 +752,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
     maxSystemPortId = 32515;
     maxLocalSystemPortId = 5;
     maxSystemPorts = 21766;
-    maxVoqs = 64512;
+    maxVoqs = 64536;
   } else {
     maxSystemPortId = 6143;
     maxLocalSystemPortId = -1;
@@ -643,6 +764,14 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
     // FABRIC switches should always start in isolated state until we configure
     // the switch
     switchIsolate = true;
+  }
+
+  std::optional<SaiSwitchTraits::Attributes::NoAclsForTraps> noAclsForTraps{
+      std::nullopt};
+  if (getAsic()->isSupported(HwAsic::Feature::NO_RX_REASON_TRAP)) {
+#if defined(BRCM_SAI_SDK_DNX) && defined(BRCM_SAI_SDK_GTE_12_0)
+    noAclsForTraps = true;
+#endif
   }
 
   return {
@@ -669,9 +798,11 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       std::nullopt, // tam object list
       useEcnThresholds,
       std::nullopt, // counter refresh interval
+      firmwareCoreToUse,
       firmwarePathName, // Firmware path name
+      firmwareLogFile, // Firmware log file
       std::nullopt, // Firmware load method
-      std::nullopt, // Firmware load type
+      firmwareLoadType, // Firmware load type
       std::nullopt, // Hardware access bus
       std::nullopt, // Platform context
       std::nullopt, // Switch profile id
@@ -711,7 +842,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       fabricLLFC,
       std::nullopt, // SRAM free percent XOFF threshold
       std::nullopt, // SRAM free percent XON threshold
-      std::nullopt, // No acls for traps
+      noAclsForTraps, // No acls for traps
       maxSystemPortId,
       maxLocalSystemPortId,
       maxSystemPorts,
@@ -723,6 +854,10 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       std::nullopt, // Shel Destination IP
       std::nullopt, // Shel Source MAC
       std::nullopt, // Shel Periodic Interval
+      maxSwitchId, // Max switch Id
+      sflowNofSamples, // Sflow aggr number of samples
+      std::nullopt, // SDK Register dump log path
+      std::nullopt, // Firmware Object list
   };
 }
 

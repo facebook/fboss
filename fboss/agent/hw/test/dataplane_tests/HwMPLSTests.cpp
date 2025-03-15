@@ -150,7 +150,9 @@ class HwMPLSTest : public HwLinkStateDependentTest {
         getHwSwitchEnsemble()->getL3Asics(),
         getHwSwitchEnsemble()->isSai());
 
-    utility::addTrapPacketAcl(&config, masterLogicalPortIds()[0]);
+    auto asic =
+        utility::checkSameAndGetAsic(getHwSwitchEnsemble()->getL3Asics());
+    utility::addTrapPacketAcl(asic, &config, masterLogicalPortIds()[0]);
     return config;
   }
 
@@ -215,7 +217,7 @@ class HwMPLSTest : public HwLinkStateDependentTest {
       std::optional<DSCP> dscp = std::nullopt) {
     CHECK(ecmpHelper_);
     // TODO: Remove the dependency on VLAN below
-    auto vlan = utility::firstVlanID(initialConfig());
+    auto vlan = utility::firstVlanIDWithPorts(initialConfig());
     if (!vlan) {
       throw FbossError("VLAN id unavailable for test");
     }
@@ -258,7 +260,7 @@ class HwMPLSTest : public HwLinkStateDependentTest {
     const auto dstMac = utility::kLocalCpuMac(); /* for l3 switching */
 
     // TODO: Remove the dependency on VLAN below
-    auto vlan = utility::firstVlanID(initialConfig());
+    auto vlan = utility::firstVlanIDWithPorts(initialConfig());
     if (!vlan) {
       throw FbossError("VLAN id unavailable for test");
     }

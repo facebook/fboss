@@ -31,6 +31,7 @@ target_link_libraries(qsfp_platforms_wedge
   meru800bia_platform_mapping
   meru800bfa_platform_mapping
   montblanc_platform_mapping
+  minipack3n_platform_mapping
   morgan_platform_mapping
   janga800bic_platform_mapping
   tahan800bc_platform_mapping

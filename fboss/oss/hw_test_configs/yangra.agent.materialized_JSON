@@ -152,9 +152,8 @@
   },
   "platform": {
     "chip": {
-      "bcm": {
-        "config": {
-        }
+      "asic": {
+        "config": "/usr/share/sai_5600.xml"
       }
     }
   }

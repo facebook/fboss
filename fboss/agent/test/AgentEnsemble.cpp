@@ -117,7 +117,7 @@ void AgentEnsemble::setupEnsemble(
   }
   startAgent(failHwCallsOnWarmboot);
 
-  for (const auto& switchId : getSw()->getSwitchInfoTable().getSwitchIDs()) {
+  for (const auto& switchId : getSw()->getSwitchInfoTable().getL3SwitchIDs()) {
     ensureHwSwitchConnected(switchId);
   }
 }

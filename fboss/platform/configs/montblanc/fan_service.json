@@ -7,10 +7,7 @@
   "pwmLowerThreshold": 25,
   "pwmUpperThreshold": 70,
   "watchdog": {
-    "access": {
-      "accessType": "ACCESS_TYPE_SYSFS",
-      "path": "/run/devmap/watchdogs/FAN_WATCHDOG"
-    },
+    "sysfsPath": "/run/devmap/watchdogs/FAN_WATCHDOG",
     "value": 0
   },
   "controlInterval": {
@@ -64,7 +61,6 @@
   "sensors": [
     {
       "sensorName": "CPU_UNCORE_TEMP",
-      "scale": 1,
       "access": {
         "accessType": "ACCESS_TYPE_THRIFT"
       },
@@ -84,7 +80,6 @@
         "accessType": "ACCESS_TYPE_THRIFT"
       },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
-      "scale": 1,
       "normalUpTable": {
         "31": 25,
         "32": 30,
@@ -112,7 +107,6 @@
     },
     {
       "sensorName": "SMB_TH5_TEMP",
-      "scale": 1,
       "access": {
         "accessType": "ACCESS_TYPE_THRIFT"
       },

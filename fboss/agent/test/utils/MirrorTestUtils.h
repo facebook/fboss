@@ -48,10 +48,11 @@ void addMirrorConfig(
     const AgentEnsemble& ensemble,
     const std::string& mirrorName,
     bool truncate,
-    uint8_t dscp = kDscpDefault);
+    uint8_t dscp = kDscpDefault,
+    uint16_t mirrorToPortIndex = kMirrorToPortIndex);
 
 folly::IPAddress getSflowMirrorDestination(bool isV4);
-folly::IPAddress getSflowMirrorSource();
+folly::IPAddress getSflowMirrorSource(bool isV4);
 
 void configureSflowMirror(
     cfg::SwitchConfig& config,
@@ -59,7 +60,9 @@ void configureSflowMirror(
     bool truncate,
     const std::string& destinationIp,
     uint32_t udpSrcPort = 6545,
-    uint32_t udpDstPort = 6343);
+    uint32_t udpDstPort = 6343,
+    bool isV4 = false,
+    std::optional<int> sampleRate = std::nullopt);
 
 void configureSflowSampling(
     cfg::SwitchConfig& config,
@@ -67,7 +70,10 @@ void configureSflowSampling(
     const std::vector<PortID>& ports,
     int sampleRate);
 
-void configureTrapAcl(cfg::SwitchConfig& config, bool isV4);
-void configureTrapAcl(cfg::SwitchConfig& config, PortID portId);
+void configureTrapAcl(const HwAsic* asic, cfg::SwitchConfig& config, bool isV4);
+void configureTrapAcl(
+    const HwAsic* asic,
+    cfg::SwitchConfig& config,
+    PortID portId);
 
 } // namespace facebook::fboss::utility

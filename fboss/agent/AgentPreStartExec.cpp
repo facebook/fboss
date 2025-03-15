@@ -14,6 +14,7 @@
 
 DEFINE_bool(netos, false, "Execute netos native environment");
 DEFINE_int32(switch_index, 0, "Applicable for hardware agent, switch index");
+DEFINE_bool(cpp_wedge_agent_wrapper, false, "Execute cpp wedge agent wrapper");
 
 namespace facebook::fboss {
 
@@ -27,7 +28,7 @@ void AgentPreStartExec::run() {
       std::make_unique<AgentNetWhoAmI>(),
       dirUtil,
       std::move(config),
-      cppWedgeAgentWrapper,
+      cppWedgeAgentWrapper || FLAGS_cpp_wedge_agent_wrapper,
       FLAGS_netos,
       FLAGS_switch_index);
 }
@@ -41,6 +42,9 @@ void AgentPreStartExec::run(
     bool isNetOS,
     int switchIndex) {
   auto mode = config->getRunMode();
+
+  XLOG(INFO) << "Agent pre start, cpp wrapper:" << cppWedgeAgentWrapper
+             << " netos:" << isNetOS << " switch index:" << switchIndex;
 
   if (cppWedgeAgentWrapper) {
     runAndRemoveScript(dirUtil.getPreStartShellScript());

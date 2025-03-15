@@ -21,6 +21,10 @@ class SaiYangraPlatform : public SaiPlatform {
       std::unique_ptr<PlatformProductInfo> productInfo,
       folly::MacAddress localMac,
       const std::string& platformMappingStr);
+  SaiYangraPlatform(
+      std::unique_ptr<PlatformProductInfo> productInfo,
+      folly::MacAddress localMac,
+      std::unique_ptr<PlatformMapping> platformMapping);
   ~SaiYangraPlatform() override;
 
   std::optional<SaiSwitchTraits::Attributes::AclFieldList> getAclFieldList()
@@ -38,7 +42,7 @@ class SaiYangraPlatform : public SaiPlatform {
 
   const std::set<sai_api_t>& getSupportedApiList() const override;
 
-  const std::unordered_map<std::string, std::string>
+  virtual const std::unordered_map<std::string, std::string>
   getSaiProfileVendorExtensionValues() const override;
 
   std::string getHwConfig() override;
@@ -48,6 +52,11 @@ class SaiYangraPlatform : public SaiPlatform {
       cfg::SwitchType switchType,
       std::optional<int64_t> switchId,
       BootType bootType) override;
+
+  std::shared_ptr<apache::thrift::AsyncProcessorFactory> createHandler()
+      override {
+    return nullptr;
+  }
 
  private:
   void setupAsic(

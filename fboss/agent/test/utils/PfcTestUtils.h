@@ -5,17 +5,21 @@
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
-#include "fboss/agent/test/AgentHwTest.h"
+#include "fboss/agent/test/AgentEnsemble.h"
 
 namespace facebook::fboss::utility {
 
 struct PfcBufferParams {
-  int globalShared = 20000;
-  int globalHeadroom = 5000; // keep this lower than globalShared
+  // TODO(maxgg): Change this back to 20000 once CS00012382848 is fixed.
+  static constexpr auto kGlobalSharedBytes{1000000};
+  static constexpr auto kGlobalHeadroomBytes{
+      5000}; // keep this lower than globalShared
+
+  int globalShared = kGlobalSharedBytes;
+  int globalHeadroom = kGlobalHeadroomBytes;
   int pgLimit = 2200;
   int pgHeadroom = 2200; // keep this lower than globalShared
-  std::optional<facebook::fboss::cfg::MMUScalingFactor> scalingFactor =
-      facebook::fboss::cfg::MMUScalingFactor::ONE_128TH;
+  std::optional<facebook::fboss::cfg::MMUScalingFactor> scalingFactor;
   int resumeOffset = 1800;
 };
 

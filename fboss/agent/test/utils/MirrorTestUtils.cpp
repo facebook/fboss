@@ -28,12 +28,13 @@ folly::IPAddress getSflowMirrorDestination(bool isV4) {
               : folly::IPAddress("2401:101:101::101");
 }
 
-folly::IPAddress getSflowMirrorSource() {
+folly::IPAddress getSflowMirrorSource(bool isV4) {
   /*
    * This is the source IP for sflow mirror packets.
    * We will be supporting only v6 on future platforms.
    */
-  return folly::IPAddress("2401::100");
+  return isV4 ? folly::IPAddress("100.100.100.100")
+              : folly::IPAddress("2401::100");
 }
 
 /*
@@ -46,14 +47,17 @@ void addMirrorConfig(
     const AgentEnsemble& ensemble,
     const std::string& mirrorName,
     bool truncate,
-    uint8_t dscp) {
+    uint8_t dscp,
+    uint16_t mirrorToPortIndex) {
+  CHECK_LE(mirrorToPortIndex, ensemble.masterLogicalInterfacePortIds().size());
   auto mirrorToPort = ensemble.masterLogicalPortIds(
-      {cfg::PortType::INTERFACE_PORT})[kMirrorToPortIndex];
+      {cfg::PortType::INTERFACE_PORT})[mirrorToPortIndex];
   auto params = getMirrorTestParams<AddrT>();
   cfg::MirrorDestination destination;
   destination.egressPort() = cfg::MirrorEgressPort();
   destination.egressPort()->logicalID_ref() = mirrorToPort;
-  if (mirrorName == kIngressErspan || mirrorName == kEgressErspan) {
+  if (mirrorName.compare(0, kIngressErspan.length(), kIngressErspan) == 0 ||
+      mirrorName.compare(0, kEgressErspan.length(), kEgressErspan) == 0) {
     cfg::MirrorTunnel tunnel;
     cfg::GreTunnel greTunnel;
     greTunnel.ip() = params.mirrorDestinationIp.str();
@@ -73,13 +77,15 @@ template void addMirrorConfig<folly::IPAddressV4>(
     const AgentEnsemble& ensemble,
     const std::string& mirrorName,
     bool truncate,
-    uint8_t dscp);
+    uint8_t dscp,
+    uint16_t mirrorToPortIndex);
 template void addMirrorConfig<folly::IPAddressV6>(
     cfg::SwitchConfig* cfg,
     const AgentEnsemble& ensemble,
     const std::string& mirrorName,
     bool truncate,
-    uint8_t dscp);
+    uint8_t dscp,
+    uint16_t mirrorToPortIndex);
 
 void configureSflowMirror(
     cfg::SwitchConfig& config,
@@ -87,14 +93,16 @@ void configureSflowMirror(
     bool truncate,
     const std::string& destinationIp,
     uint32_t udpSrcPort,
-    uint32_t udpDstPort) {
+    uint32_t udpDstPort,
+    bool isV4,
+    std::optional<int> sampleRate) {
   cfg::SflowTunnel sflowTunnel;
   sflowTunnel.ip() = destinationIp;
   sflowTunnel.udpSrcPort() = udpSrcPort;
   sflowTunnel.udpDstPort() = udpDstPort;
 
   cfg::MirrorTunnel tunnel;
-  tunnel.srcIp() = getSflowMirrorSource().str();
+  tunnel.srcIp() = getSflowMirrorSource(isV4).str();
   tunnel.sflowTunnel() = sflowTunnel;
 
   cfg::MirrorDestination destination;
@@ -104,18 +112,27 @@ void configureSflowMirror(
   mirror.name() = mirrorName;
   mirror.destination() = destination;
   mirror.truncate() = truncate;
+  if (sampleRate.has_value()) {
+    mirror.samplingRate() = *sampleRate;
+  }
 
   config.mirrors()->push_back(mirror);
 }
 
-void configureTrapAcl(cfg::SwitchConfig& config, bool isV4) {
+void configureTrapAcl(
+    const HwAsic* asic,
+    cfg::SwitchConfig& config,
+    bool isV4) {
   folly::CIDRNetwork cidr{
       getSflowMirrorDestination(isV4).str(), (isV4 ? 32 : 128)};
-  utility::addTrapPacketAcl(&config, cidr);
+  utility::addTrapPacketAcl(asic, &config, cidr);
 }
 
-void configureTrapAcl(cfg::SwitchConfig& config, PortID portId) {
-  utility::addTrapPacketAcl(&config, portId);
+void configureTrapAcl(
+    const HwAsic* asic,
+    cfg::SwitchConfig& config,
+    PortID portId) {
+  utility::addTrapPacketAcl(asic, &config, portId);
 }
 
 void configureSflowSampling(

@@ -43,6 +43,7 @@
 #include "fboss/agent/hw/sai/switch/SaiTamManager.h"
 #include "fboss/agent/hw/sai/switch/SaiTunnelManager.h"
 #include "fboss/agent/hw/sai/switch/SaiUdfManager.h"
+#include "fboss/agent/hw/sai/switch/SaiVendorSwitchManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVirtualRouterManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVlanManager.h"
 #include "fboss/agent/hw/sai/switch/SaiWredManager.h"
@@ -111,16 +112,15 @@ void SaiManagerTable::createSaiTableManagers(
   lagManager_ = std::make_unique<SaiLagManager>(
       saiStore, this, platform, concurrentIndices);
   wredManager_ = std::make_unique<SaiWredManager>(saiStore, this, platform);
-  // CSP CS00011823810
-#if !defined(BRCM_SAI_SDK_XGS_AND_DNX)
   tamManager_ = std::make_unique<SaiTamManager>(saiStore, this, platform);
-#endif
   tunnelManager_ = std::make_unique<SaiTunnelManager>(saiStore, this, platform);
   teFlowEntryManager_ =
       std::make_unique<UnsupportedFeatureManager>("EM entries");
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
   udfManager_ = std::make_unique<SaiUdfManager>(saiStore, this, platform);
 #endif
+  vendorSwitchManager_ =
+      std::make_unique<SaiVendorSwitchManager>(saiStore, this, platform);
 }
 
 SaiManagerTable::~SaiManagerTable() {
@@ -178,6 +178,7 @@ void SaiManagerTable::reset(bool skipSwitchManager) {
   switchManager_->resetQosMaps();
   samplePacketManager_.reset();
 
+  switchManager_->resetArsProfile();
   arsProfileManager_.reset();
   arsManager_.reset();
 
@@ -198,6 +199,17 @@ void SaiManagerTable::reset(bool skipSwitchManager) {
   hostifManager_.reset();
   wredManager_.reset();
 
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+  // Must unbind Tam objects before resetting Tam manager.
+  // Note that we can't use SaiTamManager::removeMirrorOnDropReport(), because
+  // it relies on SaiManagerTable, which is undergoing destruction.
+  switchManager_->resetTamObject();
+  for (auto portId : tamManager_->getAllMirrorOnDropPortIds()) {
+    portManager_->resetTamObject(portId);
+  }
+#endif
+  tamManager_.reset();
+
   // ports may be referenced in acls, reset ports after acls
   systemPortManager_.reset();
   portManager_.reset();
@@ -206,10 +218,6 @@ void SaiManagerTable::reset(bool skipSwitchManager) {
   qosMapManager_.reset();
   bufferManager_.reset();
 
-  // CSP CS00011823810
-#if !defined(BRCM_SAI_SDK_XGS_AND_DNX)
-  tamManager_.reset();
-#endif
   tunnelManager_.reset();
   queueManager_.reset();
   routeManager_.reset();
@@ -219,6 +227,8 @@ void SaiManagerTable::reset(bool skipSwitchManager) {
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
   udfManager_.reset();
 #endif
+
+  vendorSwitchManager_.reset();
 
   if (!skipSwitchManager) {
     switchManager_.reset();
@@ -470,4 +480,13 @@ SaiUdfManager& SaiManagerTable::udfManager() {
 const SaiUdfManager& SaiManagerTable::udfManager() const {
   return *udfManager_;
 }
+
+SaiVendorSwitchManager& SaiManagerTable::vendorSwitchManager() {
+  return *vendorSwitchManager_;
+}
+
+const SaiVendorSwitchManager& SaiManagerTable::vendorSwitchManager() const {
+  return *vendorSwitchManager_;
+}
+
 } // namespace facebook::fboss

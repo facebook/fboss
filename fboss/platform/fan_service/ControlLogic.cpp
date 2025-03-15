@@ -8,7 +8,7 @@
 #include <folly/logging/xlog.h>
 #include <gpiod.h>
 
-#include "common/time/Time.h"
+#include "fboss/agent/FbossError.h"
 #include "fboss/lib/GpiodLine.h"
 #include "fboss/platform/fan_service/SensorData.h"
 #include "fboss/platform/fan_service/if/gen-cpp2/fan_service_config_constants.h"
@@ -64,6 +64,7 @@ ControlLogic::ControlLogic(FanServiceConfig config, std::shared_ptr<Bsp> bsp)
   pSensorData_ = std::make_shared<SensorData>();
 
   setupPidLogics();
+  overtempWatchList_ = overtempCondition_.setupShutdownConditions(config_);
 
   XLOG(INFO)
       << "Upon fan_service start up, program all fan pwm with transitional value of "
@@ -231,12 +232,11 @@ void ControlLogic::getSensorUpdate() {
     // STEP 1: Get reading.
     auto sensorEntry = pSensor_->getSensorEntry(sensorName);
     if (sensorEntry) {
-      float readValue = sensorEntry->value / *sensor.scale();
-      readCache.lastReadValue = readValue;
+      readCache.lastReadValue = sensorEntry->value;
       readCache.lastUpdatedTime = sensorEntry->lastUpdated;
       readCache.sensorFailed = false;
       XLOG(ERR) << fmt::format(
-          "{}: Sensor read value (after scaling) is {}", sensorName, readValue);
+          "{}: Sensor read value is {}", sensorName, sensorEntry->value);
     } else {
       XLOG(INFO) << fmt::format(
           "{}: Failure to get data (either wrong entry or read failure)",
@@ -468,7 +468,7 @@ void ControlLogic::programLed(const Fan& fan, bool fanFailed) {
         (fanFailed ? "Fail" : "Good"),
         valueToWrite);
   } else {
-    XLOG(DBG1) << fmt::format(
+    XLOG(INFO) << fmt::format(
         "{}: FAN LED sysfs path is empty. It's likely that FAN LED is controlled by hardware.",
         *fan.fanName());
   }
@@ -627,6 +627,18 @@ void ControlLogic::updateControl(std::shared_ptr<SensorData> pS) {
   // STEP 3: Read optics values and calculate their PWM
   XLOG(INFO) << "Processing Optics ...";
   getOpticsUpdate();
+
+  // STEP 3.5: Shutdown the system if overtemp is detected
+  for (auto& sensorName : overtempWatchList_) {
+    auto sensorEntry = pSensor_->getSensorEntry(sensorName);
+    if (sensorEntry) {
+      overtempCondition_.processSensorData(sensorName, sensorEntry->value);
+    }
+  }
+  if (overtempCondition_.checkIfOvertemp()) {
+    XLOG(ERR) << fmt::format("Running shutdown command");
+    pBsp_->emergencyShutdown(true);
+  }
 
   // STEP 4: Determine whether boost mode is necessary
   uint64_t secondsSinceLastOpticsUpdate =

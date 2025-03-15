@@ -44,14 +44,6 @@ bool MonoAgentEnsemble::isSai() const {
   return agentInitializer_.platform()->isSai();
 }
 
-HwSwitch* MonoAgentEnsemble::getHwSwitch() {
-  return agentInitializer_.platform()->getHwSwitch();
-}
-
-const HwSwitch* MonoAgentEnsemble::getHwSwitch() const {
-  return agentInitializer_.platform()->getHwSwitch();
-}
-
 std::vector<std::shared_ptr<apache::thrift::AsyncProcessorFactory>>
 MonolithicTestAgentInitializer::getThrifthandlers() {
   auto handlers = MonolithicAgentInitializer::getThrifthandlers();

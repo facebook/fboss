@@ -276,6 +276,9 @@ sai_status_t set_switch_attribute_fn(
       sw.setPfcDlrPacketAction(
           static_cast<sai_packet_action_t>(attr->value.s32));
       break;
+    case SAI_SWITCH_ATTR_TAM_OBJECT_ID:
+      sw.setTamObjectId(attr->value.oid);
+      break;
     default:
       res = SAI_STATUS_INVALID_PARAMETER;
       break;
@@ -530,6 +533,9 @@ sai_status_t get_switch_attribute_fn(
 #endif
       case SAI_SWITCH_ATTR_PFC_DLR_PACKET_ACTION:
         attr[i].value.s32 = sw.getPfcDlrPacketAction();
+        break;
+      case SAI_SWITCH_ATTR_TAM_OBJECT_ID:
+        attr[i].value.oid = sw.getTamObjectId();
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;

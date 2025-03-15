@@ -1,6 +1,6 @@
+# pyre-strict
 import re
 from dataclasses import dataclass
-from typing import List, Optional
 
 from fboss.platform.bsp_tests.utils.cmd_utils import run_cmd
 

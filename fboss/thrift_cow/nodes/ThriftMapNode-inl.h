@@ -52,8 +52,8 @@ struct ThriftMapFields : public FieldBaseType {
   using ValueTypeClass =
       typename map_helpers::ExtractTypeClass<TypeClass>::value_type;
   using ValueTType = typename TType::mapped_type;
-  using ValueTraits =
-      typename Traits::template ConvertToNodeTraits<ValueTypeClass, ValueTType>;
+  using ValueTraits = typename Traits::
+      template ConvertToNodeTraits<std::false_type, ValueTypeClass, ValueTType>;
   using key_type = typename TType::key_type;
   using value_type = typename ValueTraits::type;
   using StorageType =
@@ -186,11 +186,11 @@ struct ThriftMapFields : public FieldBaseType {
   }
 
   template <typename T = Self>
-  auto remove(const key_type& key) -> std::enable_if_t<
-                                       !std::is_same_v<
-                                           typename T::KeyTypeClass,
-                                           apache::thrift::type_class::string>,
-                                       bool> {
+  bool remove(const key_type& key)
+    requires(!std::is_same_v<
+             typename T::KeyTypeClass,
+             apache::thrift::type_class::string>)
+  {
     return storage_.erase(key);
   }
 
@@ -383,11 +383,11 @@ class ThriftMapNode
   }
 
   template <typename T = Fields>
-  auto remove(const key_type& key) -> std::enable_if_t<
-                                       !std::is_same_v<
-                                           typename T::KeyTypeClass,
-                                           apache::thrift::type_class::string>,
-                                       bool> {
+  bool remove(const key_type& key)
+    requires(!std::is_same_v<
+             typename T::KeyTypeClass,
+             apache::thrift::type_class::string>)
+  {
     return this->writableFields()->remove(key);
   }
 
@@ -469,7 +469,7 @@ class ThriftMapNode
       }
     } else if (construct) {
       // create unpublished default constructed child if missing
-      this->emplace(key).first->second;
+      this->emplace(key);
     }
   }
 

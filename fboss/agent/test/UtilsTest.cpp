@@ -8,7 +8,9 @@
  *
  */
 #include "fboss/agent/Utils.h"
+#include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/TrapPacketUtils.h"
@@ -43,7 +45,10 @@ TEST_F(UtilsTest, getPortsForInterface) {
 TEST_F(UtilsTest, AddTrapPacketAcl) {
   auto state = sw->getState();
   auto config = testConfigA();
-  utility::addTrapPacketAcl(&config, folly::CIDRNetwork{"10.0.0.1", 128});
+  auto hwAsicTable = sw->getHwAsicTable();
+  auto hwAsic = hwAsicTable->getHwAsicIf(SwitchID(0));
+  utility::addTrapPacketAcl(
+      hwAsic, &config, folly::CIDRNetwork{"10.0.0.1", 128});
   sw->applyConfig("AddTrapPacketAcl", config);
   EXPECT_NE(sw->getState()->getAcls()->getNodeIf("trap-10.0.0.1"), nullptr);
 }
@@ -100,4 +105,49 @@ TEST_F(UtilsTest, numFabricLevelsL2Dsf) {
            cfg::AsicType::ASIC_TYPE_MOCK,
            2)});
   EXPECT_EQ(numFabricLevels(dsfNodes), 2);
+}
+
+TEST_F(UtilsTest, coveringSysPortRange) {
+  cfg::SwitchInfo switchInfo;
+  cfg::Range64 lowerRange, higherRange;
+  lowerRange.minimum() = 100;
+  lowerRange.maximum() = 200;
+  higherRange.minimum() = 16100;
+  higherRange.maximum() = 16200;
+  cfg::SystemPortRanges ranges;
+  ranges.systemPortRanges()->push_back(lowerRange);
+  ranges.systemPortRanges()->push_back(higherRange);
+  switchInfo.systemPortRanges() = ranges;
+  std::map<int64_t, cfg::SwitchInfo> switchIdToInfo{{1, switchInfo}};
+  auto expectInLowerRange = [&](int64_t id) {
+    EXPECT_EQ(
+        getCoveringSysPortRange(InterfaceID(id), switchIdToInfo), lowerRange);
+
+    EXPECT_EQ(
+        getCoveringSysPortRange(SystemPortID(id), switchIdToInfo), lowerRange);
+  };
+  auto expectInHigherRange = [&](int64_t id) {
+    EXPECT_EQ(
+        getCoveringSysPortRange(InterfaceID(id), switchIdToInfo), higherRange);
+
+    EXPECT_EQ(
+        getCoveringSysPortRange(SystemPortID(id), switchIdToInfo), higherRange);
+  };
+  auto expectThrow = [&](int64_t id) {
+    EXPECT_THROW(
+        getCoveringSysPortRange(InterfaceID(id), switchIdToInfo), FbossError);
+
+    EXPECT_THROW(
+        getCoveringSysPortRange(SystemPortID(id), switchIdToInfo), FbossError);
+  };
+  expectInLowerRange(100);
+  expectInLowerRange(110);
+  expectInLowerRange(200);
+  expectThrow(99);
+  expectThrow(299);
+  expectInHigherRange(16100);
+  expectInHigherRange(16110);
+  expectInHigherRange(16200);
+  expectThrow(15099);
+  expectThrow(17299);
 }

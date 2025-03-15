@@ -245,7 +245,8 @@ void SaiQueueManager::changeQueueBufferProfile(
 
 void SaiQueueManager::changeQueueScheduler(
     SaiQueueHandle* queueHandle,
-    const PortQueue& newPortQueue) {
+    const PortQueue& newPortQueue,
+    const Port* swPort) {
   std::shared_ptr<SaiScheduler> newScheduler;
   if (newPortQueue.getScheduling() != cfg::QueueScheduling::INTERNAL) {
     newScheduler =
@@ -256,6 +257,16 @@ void SaiQueueManager::changeQueueScheduler(
     queueHandle->queue->setOptionalAttribute(
         SaiQueueTraits::Attributes::SchedulerProfileId(
             newScheduler ? newScheduler->adapterKey() : SAI_NULL_OBJECT_ID));
+    if (platform_->getAsic()->getAsicType() ==
+        cfg::AsicType::ASIC_TYPE_CHENAB) {
+      // Signal to SAI to use non-hierarchial QoS by setting the parent
+      // scheduler node to the port.
+      auto portHandle =
+          managerTable_->portManager().getPortHandle(swPort->getID());
+      queueHandle->queue->setOptionalAttribute(
+          SaiQueueTraits::Attributes::ParentSchedulerNode(
+              portHandle->port->adapterKey()));
+    }
     // Update scheduler reference after we have set the queue
     // scheduler attribute, else if this is the last queue
     // referring to this scheduler, we will try to delete it
@@ -309,7 +320,7 @@ void SaiQueueManager::changeQueue(
   if ((queueType != SAI_QUEUE_TYPE_UNICAST_VOQ) &&
       (queueType != SAI_QUEUE_TYPE_MULTICAST_VOQ)) {
     if (platform_->getAsic()->isSupported(HwAsic::Feature::L3_QOS)) {
-      changeQueueScheduler(queueHandle, newPortQueue);
+      changeQueueScheduler(queueHandle, newPortQueue, swPort);
     }
   }
   changeQueueEcnWred(queueHandle, newPortQueue);
@@ -416,13 +427,6 @@ SaiQueueManager::voqNonWatermarkCounterIdsRead(
           SaiQueueTraits::VoqWatchDogDeleteCounterIdsToRead.begin(),
           SaiQueueTraits::VoqWatchDogDeleteCounterIdsToRead.end());
     }
-    if (platform_->getAsic()->isSupported(
-            HwAsic::Feature::VOQ_LATENCY_WATERMARK_BIN)) {
-      baseCounterIds.insert(
-          baseCounterIds.end(),
-          SaiQueueTraits::VoqLatencyWatermarkCounterIdsToRead.begin(),
-          SaiQueueTraits::VoqLatencyWatermarkCounterIdsToRead.end());
-    }
     basePlusWredCounterIds.resize(
         baseCounterIds.size() + SaiQueueTraits::WredCounterIdsToRead.size());
     std::set_union(
@@ -485,6 +489,25 @@ SaiQueueManager::egressQueueNonWatermarkCounterIdsRead(int queueType) const {
 }
 
 const std::vector<sai_stat_id_t>&
+SaiQueueManager::supportedVoqWatermarkCounterIdsReadAndClear() const {
+  static std::vector<sai_stat_id_t> voqWatermarkStats{};
+  if (voqWatermarkStats.empty()) {
+    voqWatermarkStats.insert(
+        voqWatermarkStats.end(),
+        SaiQueueTraits::WatermarkByteCounterIdsToReadAndClear.begin(),
+        SaiQueueTraits::WatermarkByteCounterIdsToReadAndClear.end());
+    if (platform_->getAsic()->isSupported(
+            HwAsic::Feature::VOQ_LATENCY_WATERMARK_BIN)) {
+      voqWatermarkStats.insert(
+          voqWatermarkStats.end(),
+          SaiQueueTraits::VoqLatencyWatermarkCounterIdsToRead.begin(),
+          SaiQueueTraits::VoqLatencyWatermarkCounterIdsToRead.end());
+    }
+  }
+  return voqWatermarkStats;
+}
+
+const std::vector<sai_stat_id_t>&
 SaiQueueManager::supportedWatermarkCounterIdsReadAndClear(int queueType) const {
   if (queueType == SAI_QUEUE_TYPE_FABRIC_TX) {
     static const std::vector<sai_stat_id_t> kFabricQueueWatermarksStats{
@@ -492,6 +515,7 @@ SaiQueueManager::supportedWatermarkCounterIdsReadAndClear(int queueType) const {
         SaiQueueTraits::WatermarkLevelCounterIdsToReadAndClear.end()};
     return kFabricQueueWatermarksStats;
   }
+
   static std::vector<sai_stat_id_t> watermarkStats{};
   if (watermarkStats.empty()) {
     watermarkStats.insert(
@@ -580,9 +604,6 @@ void SaiQueueManager::updateStats(
   static std::vector<sai_stat_id_t> nonWatermarkStatsReadAndClear(
       SaiQueueTraits::VoqNonWatermarkCounterIdsToReadAndClear.begin(),
       SaiQueueTraits::VoqNonWatermarkCounterIdsToReadAndClear.end());
-  static std::vector<sai_stat_id_t> watermarkStatsReadAndClear(
-      SaiQueueTraits::WatermarkByteCounterIdsToReadAndClear.begin(),
-      SaiQueueTraits::WatermarkByteCounterIdsToReadAndClear.end());
   for (auto queueHandle : queueHandles) {
     auto queueType = GET_ATTR(Queue, Type, queueHandle->queue->attributes());
     if (updateVoqStats) {
@@ -594,7 +615,8 @@ void SaiQueueManager::updateStats(
     }
     if (updateWatermarks) {
       queueHandle->queue->updateStats(
-          watermarkStatsReadAndClear, SAI_STATS_MODE_READ_AND_CLEAR);
+          supportedVoqWatermarkCounterIdsReadAndClear(),
+          SAI_STATS_MODE_READ_AND_CLEAR);
     }
     const auto& counters = queueHandle->queue->getStats();
     auto queueId = SaiApiTable::getInstance()->queueApi().getAttribute(
@@ -608,11 +630,35 @@ QueueConfig SaiQueueManager::getQueueSettings(
   for (auto& queueHandle : queueHandles) {
     auto portQueue = std::make_shared<PortQueue>(queueHandle.first.first);
     portQueue->setStreamType(queueHandle.first.second);
-    managerTable_->schedulerManager().fillSchedulerSettings(
-        queueHandle.second->scheduler.get(), portQueue.get());
+    if (auto scheduler = queueHandle.second->scheduler.get()) {
+      managerTable_->schedulerManager().fillSchedulerSettings(
+          scheduler, portQueue.get());
+    } else if (
+        platform_->getAsic()->getAsicType() ==
+        cfg::AsicType::ASIC_TYPE_CHENAB) {
+      //  TODO(Chenab): For now, set scheduler as internal for chenab,
+      //  however identify settings which may be used to construct cold boot
+      //  state and use them in config
+      portQueue->setScheduling(cfg::QueueScheduling::INTERNAL);
+    }
     queueConfig.push_back(std::move(portQueue));
   }
   return queueConfig;
+}
+
+std::optional<std::tuple<uint8_t, PortSaiId>>
+SaiQueueManager::getQueueIndexAndPortSaiId(const QueueSaiId& queueSaiId) {
+  auto& store = saiStore_->get<SaiQueueTraits>();
+  auto queue = store.find(queueSaiId);
+  if (!queue) {
+    XLOG(ERR) << "Unable to find queueSaiId 0x" << std::hex << queueSaiId
+              << " in sai store!";
+    return std::nullopt;
+  }
+  uint8_t queueId = GET_ATTR(Queue, Index, queue->attributes());
+  PortSaiId portSaiId =
+      static_cast<PortSaiId>(GET_ATTR(Queue, Port, queue->attributes()));
+  return std::make_tuple(queueId, portSaiId);
 }
 
 } // namespace facebook::fboss

@@ -184,6 +184,7 @@ cpp_library(
         "//common/stats:macros",
         "//fb303:service_data",
         "//fboss/agent:fboss-types",
+        "//fboss/agent:switch_config-cpp2-types",
         "//folly/container:f14_hash",
         "//folly/logging:logging",
         "//thrift/lib/cpp2/protocol:protocol",
@@ -202,17 +203,6 @@ cpp_library(
         ":stats_constants",
         "//folly/container:f14_hash",
         "//folly/logging:logging",
-    ],
-)
-
-cpp_library(
-    name = "hw_stat_printers",
-    srcs = [
-        "HwStatPrinters.cpp",
-    ],
-    exported_deps = [
-        ":hardware_stats-cpp2-types",
-        "//thrift/lib/cpp2/protocol:protocol",
     ],
 )
 

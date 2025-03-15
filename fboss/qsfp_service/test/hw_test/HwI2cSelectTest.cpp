@@ -74,11 +74,11 @@ TEST_F(HwTest, i2cUniqueSerialNumbers) {
 
       auto transmitterTech =
           *(transceiverInfo[tcvrId].tcvrState()->cable()->transmitterTech());
-      EXPECT_TRUE(TransmitterTechnology::COPPER == transmitterTech);
+      EXPECT_EQ(TransmitterTechnology::COPPER, transmitterTech);
 
       transmitterTech = *(
           transceiverInfo[neighborId].tcvrState()->cable()->transmitterTech());
-      EXPECT_TRUE(TransmitterTechnology::COPPER == transmitterTech);
+      EXPECT_EQ(TransmitterTechnology::COPPER, transmitterTech);
     }
   }
 }

@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # Copyright (c) 2004-present, Facebook, Inc. All rights reserved.
 
+# pyre-unsafe
+
 import argparse
 import random
 import time

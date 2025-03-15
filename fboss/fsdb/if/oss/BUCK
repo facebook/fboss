@@ -16,8 +16,8 @@ thrift_library(
     languages = [
         "cpp2",
         "go",
-        "py",
         "py3",
+        "py-deprecated",
     ],
     plugins = [
         thrift_plugin_thriftpath(),
@@ -38,6 +38,7 @@ thrift_library(
         "//fboss/platform/sensor_service:sensor_service_stats",
         "//fboss/qsfp_service/if:state",
         "//fboss/qsfp_service/if:stats",
+        "//thrift/annotation:thrift",
     ],
 )
 

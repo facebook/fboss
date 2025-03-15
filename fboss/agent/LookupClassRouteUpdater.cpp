@@ -343,6 +343,7 @@ void LookupClassRouteUpdater::processInterfaceAdded(
     const StateDelta& stateDelta,
     const std::shared_ptr<Interface>& addedInterface) {
   CHECK(addedInterface);
+  // TODO(Chenab): Support port router interface
   if (addedInterface->getType() != cfg::InterfaceType::VLAN) {
     // TODO: Start handling interface types for PORT once we
     // we support class IDs on VOQ switches
@@ -453,6 +454,7 @@ void LookupClassRouteUpdater::processInterfaceRemoved(
     const StateDelta& stateDelta,
     const std::shared_ptr<Interface>& removedInterface) {
   CHECK(removedInterface);
+  // TODO(Chenab): Support port router interface
   if (removedInterface->getType() != cfg::InterfaceType::VLAN) {
     // TODO: Start handling interface types for PORT once we
     // we support class IDs on VOQ switches

@@ -34,7 +34,9 @@ class AgentWatermarkTest : public AgentHwTest {
 
   std::vector<production_features::ProductionFeature>
   getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::L3_QOS};
+    return {
+        production_features::ProductionFeature::L3_QOS,
+        production_features::ProductionFeature::OLYMPIC_QOS};
   }
 
   void setCmdLineFlagOverrides() const override {
@@ -73,8 +75,9 @@ class AgentWatermarkTest : public AgentHwTest {
       const folly::IPAddressV6& dst,
       int payloadSize,
       std::optional<PortID> port) {
-    auto vlanId = utility::firstVlanID(getProgrammedState());
-    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
+    auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
+    auto intfMac =
+        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
 
     auto kECT1 = 0x01; // ECN capable transport ECT(1)
@@ -266,15 +269,23 @@ class AgentWatermarkTest : public AgentHwTest {
   void resolveNdpNeighbors(
       PortDescriptor portDesc,
       bool needTrafficLoop = false) {
-    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
-    std::optional<folly::MacAddress> macAddr{};
-    if (needTrafficLoop) {
-      macAddr = intfMac;
-    }
-    utility::EcmpSetupTargetedPorts6 ecmpHelper6{getProgrammedState(), macAddr};
+    utility::EcmpSetupTargetedPorts6 ecmpHelper6{
+        getProgrammedState(),
+        (needTrafficLoop ? std::make_optional<folly::MacAddress>(
+                               utility::getMacForFirstInterfaceWithPorts(
+                                   getProgrammedState()))
+                         : std::nullopt)};
+
     applyNewState([&](const std::shared_ptr<SwitchState>& in) {
       return ecmpHelper6.resolveNextHops(in, {portDesc});
     });
+
+    if (needTrafficLoop) {
+      const auto& nextHop = ecmpHelper6.nhop(portDesc);
+      utility::ttlDecrementHandlingForLoopbackTraffic(
+          getAgentEnsemble(), ecmpHelper6.getRouterId(), nextHop);
+    }
+
     if (FLAGS_intf_nbr_tables) {
       auto interfaceId =
           ecmpHelper6.getInterface(portDesc, getProgrammedState());
@@ -282,12 +293,17 @@ class AgentWatermarkTest : public AgentHwTest {
         auto interface = getProgrammedState()->getInterfaces()->getNodeIf(
             interfaceId.value());
         populateNdpNeighborsToCache(interface);
+      } else {
+        XLOG(WARN)
+            << "Interface ID " << interfaceId.value()
+            << " not found in ECMP setup. Skipping resolution of NDP neighbor";
       }
     }
   }
 
   void _setup(bool needTrafficLoop = false) {
-    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
+    auto intfMac =
+        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     std::optional<folly::MacAddress> macAddr{};
     if (needTrafficLoop) {
       macAddr = intfMac;

@@ -34,7 +34,7 @@ class PtpTests : public LinkTest {
       PTPMessageType ptpType) {
     // note: we are not creating flood here, but want routing
     // of packets so that TTL goes down from 255 -> 0
-    auto vlan = utility::firstVlanID(sw()->getState());
+    auto vlan = utility::firstVlanIDWithPorts(sw()->getState());
     // TODO: Remove the dependency on VLAN below
     if (!vlan) {
       throw FbossError("VLAN id unavailable for test");
@@ -177,7 +177,8 @@ class PtpTests : public LinkTest {
 
   void trapPackets(const folly::CIDRNetwork& prefix) {
     cfg::SwitchConfig cfg = sw()->getConfig();
-    utility::addTrapPacketAcl(&cfg, prefix);
+    auto asic = platform()->getHwSwitch()->getPlatform()->getAsic();
+    utility::addTrapPacketAcl(asic, &cfg, prefix);
     sw()->applyConfig("trapPackets", cfg);
   }
 

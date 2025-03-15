@@ -1,7 +1,7 @@
 // Copyright 2021- Facebook. All rights reserved.
 
+#include <csignal>
 #include <memory>
-#include <mutex>
 #include <string>
 
 #include <fb303/FollyLoggingHandler.h>
@@ -12,9 +12,9 @@
 #include <gflags/gflags.h>
 
 #include "fboss/platform/config_lib/ConfigLib.h"
+#include "fboss/platform/fan_service/ConfigValidator.h"
 #include "fboss/platform/fan_service/ControlLogic.h"
 #include "fboss/platform/fan_service/FanServiceHandler.h"
-#include "fboss/platform/fan_service/Utils.h"
 #include "fboss/platform/helpers/Init.h"
 #include "fboss/platform/helpers/PlatformNameLib.h"
 
@@ -28,7 +28,19 @@ DEFINE_int32(
     1,
     "How often we will check whether sensor read and pwm control is needed");
 
+// This signal handler is used to stop the thrift server and service, resulting
+// in a clean exit of the program ensuring all resources are released/destroyed.
+std::shared_ptr<apache::thrift::ThriftServer> server;
+void handleSignal(int sig) {
+  XLOG(INFO) << "Received signal " << sig << ", shutting down...";
+  if (server) {
+    server->stop();
+  }
+}
+
 int main(int argc, char** argv) {
+  std::signal(SIGTERM, handleSignal);
+  std::signal(SIGINT, handleSignal);
   fb303::registerFollyLoggingOptionHandlers();
   helpers::init(&argc, &argv);
 
@@ -40,13 +52,13 @@ int main(int argc, char** argv) {
           fanServiceConfJson);
   XLOG(INFO) << apache::thrift::SimpleJSONSerializer::serialize<std::string>(
       config);
-  if (!Utils().isValidConfig(config)) {
+  if (!ConfigValidator().isValid(config)) {
     XLOG(ERR) << "Invalid config! Aborting...";
     throw std::runtime_error("Invalid Config.  Aborting...");
   }
 
   auto pBsp = std::make_shared<Bsp>(config);
-  auto server = std::make_shared<apache::thrift::ThriftServer>();
+  server = std::make_shared<apache::thrift::ThriftServer>();
   auto controlLogic = std::make_shared<ControlLogic>(config, pBsp);
   auto handler = std::make_shared<FanServiceHandler>(controlLogic);
 
@@ -62,5 +74,6 @@ int main(int argc, char** argv) {
   server->setAllowPlaintextOnLoopback(true);
   helpers::runThriftService(server, handler, "FanService", FLAGS_thrift_port);
 
+  XLOG(INFO) << "FanService stopped";
   return 0;
 }

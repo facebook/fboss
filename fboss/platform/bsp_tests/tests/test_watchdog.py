@@ -1,4 +1,8 @@
+# pyre-strict
 import pytest
+from fboss.platform.bsp_tests.cdev_types import I2CAdapter
+
+from fboss.platform.bsp_tests.config import FpgaSpec, RuntimeConfig
 
 from fboss.platform.bsp_tests.utils.cdev_utils import delete_device
 from fboss.platform.bsp_tests.utils.i2c_utils import (
@@ -15,18 +19,19 @@ from fboss.platform.bsp_tests.utils.watchdog_utils import (
 )
 
 
-def test_watchdog_start(fpga_with_adapters):
+def test_watchdog_start(fpga_with_adapters: list[tuple[FpgaSpec, I2CAdapter]]) -> None:
     for fpga, adapter in fpga_with_adapters:
         newAdapters, baseBusNum = create_i2c_adapter(fpga, adapter)
         try:
             for device in adapter.i2cDevices:
-                if not device.watchdogTestData:
+                if not device.testData or not device.testData.watchdogTestData:
                     continue
+                testData = device.testData.watchdogTestData
                 existingWdts = get_watchdogs()
                 busNum = baseBusNum + device.channel
                 create_i2c_device(device, busNum)
                 newWdts = get_watchdogs() - existingWdts
-                assert len(newWdts) == device.watchdogTestData.numWatchdogs
+                assert len(newWdts) == testData.numWatchdogs
                 for watchdog in newWdts:
                     try:
                         with open(watchdog, "w") as f:
@@ -38,18 +43,19 @@ def test_watchdog_start(fpga_with_adapters):
             delete_device(fpga, adapter.auxDevice)
 
 
-def test_watchdog_ping(fpga_with_adapters):
+def test_watchdog_ping(fpga_with_adapters: list[tuple[FpgaSpec, I2CAdapter]]) -> None:
     for fpga, adapter in fpga_with_adapters:
         newAdapters, baseBusNum = create_i2c_adapter(fpga, adapter)
         try:
             for device in adapter.i2cDevices:
-                if not device.watchdogTestData:
+                if not device.testData or not device.testData.watchdogTestData:
                     continue
+                testData = device.testData.watchdogTestData
                 existingWdts = get_watchdogs()
                 busNum = baseBusNum + device.channel
                 create_i2c_device(device, busNum)
                 newWdts = get_watchdogs() - existingWdts
-                assert len(newWdts) == device.watchdogTestData.numWatchdogs
+                assert len(newWdts) == testData.numWatchdogs
                 for watchdog in newWdts:
                     try:
                         with open(watchdog, "w") as f:
@@ -60,13 +66,13 @@ def test_watchdog_ping(fpga_with_adapters):
             delete_device(fpga, adapter.auxDevice)
 
 
-def test_watchdog_set_timeout(platform_fpgas):
+def test_watchdog_set_timeout(platform_fpgas: list[FpgaSpec]) -> None:
     for fpga in platform_fpgas:
         for adapter in fpga.i2cAdapters:
             newAdapters, baseBusNum = create_i2c_adapter(fpga, adapter)
             try:
                 for device in adapter.i2cDevices:
-                    if not device.watchdogTestData:
+                    if not device.testData or not device.testData.watchdogTestData:
                         continue
                     existingWdts = get_watchdogs()
                     busNum = baseBusNum + device.channel
@@ -91,18 +97,21 @@ def test_watchdog_set_timeout(platform_fpgas):
 # TODO: We need to add a requirement that the option
 # get_timeleft is enabled in order to reliably
 # test the magic close feature
-def test_watchdog_magic_close(fpga_with_adapters):
+def test_watchdog_magic_close(
+    fpga_with_adapters: list[tuple[FpgaSpec, I2CAdapter]],
+) -> None:
     for fpga, adapter in fpga_with_adapters:
         newAdapters, baseBusNum = create_i2c_adapter(fpga, adapter)
         try:
             for device in adapter.i2cDevices:
-                if not device.watchdogTestData:
+                if not device.testData or not device.testData.watchdogTestData:
                     continue
+                testData = device.testData.watchdogTestData
                 existingWdts = get_watchdogs()
                 busNum = baseBusNum + device.channel
                 create_i2c_device(device, busNum)
                 newWdts = get_watchdogs() - existingWdts
-                assert len(newWdts) == device.watchdogTestData.numWatchdogs
+                assert len(newWdts) == testData.numWatchdogs
                 for watchdog in newWdts:
                     try:
                         with open(watchdog, "w") as f:
@@ -113,7 +122,10 @@ def test_watchdog_magic_close(fpga_with_adapters):
             delete_device(fpga, adapter.auxDevice)
 
 
-def test_watchdog_driver_unload(fpga_with_adapters, platform_config):
+def test_watchdog_driver_unload(
+    fpga_with_adapters: list[tuple[FpgaSpec, I2CAdapter]],
+    platform_config: RuntimeConfig,
+) -> None:
     existing_wdts = get_watchdogs()
     expected_wdts = 0
     id = 1
@@ -121,9 +133,9 @@ def test_watchdog_driver_unload(fpga_with_adapters, platform_config):
         newAdapters, baseBusNum = create_i2c_adapter(fpga, adapter, id)
         id += 1
         for device in adapter.i2cDevices:
-            if not device.watchdogTestData:
+            if not device.testData or not device.testData.watchdogTestData:
                 continue
-            expected_wdts += device.watchdogTestData.numWatchdogs
+            expected_wdts += device.testData.watchdogTestData.numWatchdogs
             busNum = baseBusNum + device.channel
             create_i2c_device(device, busNum)
     new_wdts = get_watchdogs() - existing_wdts

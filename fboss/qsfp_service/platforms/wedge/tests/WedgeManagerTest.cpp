@@ -79,6 +79,9 @@ TEST_F(WedgeManagerTest, getTransceiverInfoBasic) {
     EXPECT_EQ(
         *transInfo[i].tcvrState()->present(),
         i != 4); // ID 5 was marked as absent
+    std::string expectedTcvrName = fmt::format("eth1/{}", (i + 1));
+    EXPECT_EQ(*transInfo[i].tcvrState()->tcvrName(), expectedTcvrName);
+    EXPECT_EQ(*transInfo[i].tcvrStats()->tcvrName(), expectedTcvrName);
   }
 }
 
@@ -158,6 +161,22 @@ TEST_F(WedgeManagerTest, writeTransceiver) {
   }
 }
 
+TEST_F(WedgeManagerTest, writeTransceiverMultiByte) {
+  std::map<int32_t, WriteResponse> response;
+  std::unique_ptr<WriteRequest> request(new WriteRequest);
+  TransceiverIOParameters param;
+  std::vector<int32_t> data = {1, 3, 7};
+  request->ids() = data;
+  param.offset() = 0x10;
+  request->parameter() = param;
+  request->bytes() = {0, 16, 41};
+
+  transceiverManager_->writeTransceiverRegister(response, std::move(request));
+  for (const auto& i : data) {
+    EXPECT_NE(response.find(i), response.end());
+  }
+}
+
 TEST_F(WedgeManagerTest, modulePresenceTest) {
   // Tests that the module insertion is handled smoothly
   auto currentModules = transceiverManager_->mgmtInterfaces();
@@ -194,7 +213,6 @@ TEST_F(WedgeManagerTest, moduleNotPresentTest) {
     auto synchronizedTransceivers =
         transceiverManager_->getSynchronizedTransceivers().rlock();
     for (const auto& trans : *synchronizedTransceivers) {
-      QsfpModule* qsfp = dynamic_cast<QsfpModule*>(trans.second.get());
       // id is 0 based here
       EXPECT_EQ(
           transceiverManager_->getCurrentState(TransceiverID(trans.first)),
@@ -747,7 +765,8 @@ TEST_F(WedgeManagerTest, validateTransceiverConfigByIdTest) {
             std::make_unique<MockSffModule>(
                 transceiverManager_->getPortNames(tcvrID),
                 qsfpImpls_.back().get(),
-                tcvrConfig_)));
+                tcvrConfig_,
+                transceiverManager_->getTransceiverName(tcvrID))));
     tcvr->detectPresence();
     tcvr->overrideVendorInfo("fbossTwo", "TR-FC13H-HFZ", defaultSerialNumber);
     tcvr->setFwVersion("1", "2");

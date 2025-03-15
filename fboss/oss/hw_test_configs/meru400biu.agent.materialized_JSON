@@ -131,10 +131,6 @@
               "minimum": 0,
               "maximum": 2047
             },
-            "systemPortRange": {
-              "minimum": 10,
-              "maximum": 29
-            },
             "switchMac": "02:00:00:00:00:01",
             "connectionHandle": "68:00",
             "systemPortRanges": {
@@ -147,7 +143,10 @@
             },
             "localSystemPortOffset": 10,
             "globalSystemPortOffset": 10,
-            "inbandPortId": 1
+            "inbandPortId": 1,
+            "firmwareNameToFirmwareInfo": {
+              
+            }
         }
       },
       "vendorMacOuis": [
@@ -192,10 +191,6 @@
           "loopbackIps": [
             
           ],
-          "systemPortRange": {
-            "minimum": 10,
-            "maximum": 29
-          },
           "nodeMac": "02:00:00:00:0F:0B",
           "asicType": 11,
           "platformType": 18,
@@ -213,6 +208,33 @@
       }
     },
     "defaultVoqConfig": [
+      
+    ],
+    "aclTableGroups": [
+      {
+        "name": "acl-table-group-ingress",
+        "aclTables": [
+          {
+            "name": "AclTable1",
+            "priority": 0,
+            "aclEntries": [
+              
+            ],
+            "actionTypes": [
+              
+            ],
+            "qualifiers": [
+              
+            ],
+            "udfGroups": [
+              
+            ]
+          }
+        ],
+        "stage": 0
+      }
+    ],
+    "mirrorOnDropReports": [
       
     ]
   },

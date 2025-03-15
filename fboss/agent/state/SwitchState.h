@@ -35,6 +35,7 @@
 #include "fboss/agent/state/LabelForwardingInformationBase.h"
 #include "fboss/agent/state/LoadBalancerMap.h"
 #include "fboss/agent/state/MirrorMap.h"
+#include "fboss/agent/state/MirrorOnDropReportMap.h"
 #include "fboss/agent/state/NodeBase.h"
 #include "fboss/agent/state/PortFlowletConfig.h"
 #include "fboss/agent/state/PortFlowletConfigMap.h"
@@ -81,6 +82,10 @@ RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::mirrorMaps,
     MultiSwitchMirrorMap);
+RESOLVE_STRUCT_MEMBER(
+    SwitchState,
+    switch_state_tags::mirrorOnDropReportMaps,
+    MultiSwitchMirrorOnDropReportMap);
 RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::sflowCollectorMaps,
@@ -435,6 +440,8 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   const std::shared_ptr<MultiSwitchLoadBalancerMap>& getLoadBalancers() const;
   const std::shared_ptr<MultiTeFlowTable> getTeFlowTable() const;
   const std::shared_ptr<MultiSwitchMirrorMap>& getMirrors() const;
+  const std::shared_ptr<MultiSwitchMirrorOnDropReportMap>&
+  getMirrorOnDropReports() const;
   const std::shared_ptr<MultiSwitchForwardingInformationBaseMap>& getFibs()
       const;
   const std::shared_ptr<MultiLabelForwardingInformationBase>&
@@ -485,6 +492,8 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
    */
 
   void resetMirrors(const std::shared_ptr<MultiSwitchMirrorMap>& mirrors);
+  void resetMirrorOnDropReports(
+      const std::shared_ptr<MultiSwitchMirrorOnDropReportMap>& reports);
   void resetPorts(std::shared_ptr<MultiSwitchPortMap> ports);
   void resetAggregatePorts(
       std::shared_ptr<MultiSwitchAggregatePortMap> aggPorts);

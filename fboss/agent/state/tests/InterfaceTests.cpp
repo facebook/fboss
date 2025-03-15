@@ -37,8 +37,16 @@ void validateSerialization(const std::shared_ptr<InterfaceMap>& node) {
   auto nodeBack = std::make_shared<InterfaceMap>(node->toThrift());
   EXPECT_EQ(node->toThrift(), nodeBack->toThrift());
 }
+
+template <cfg::InterfaceType intfType>
+struct TestType {
+  static constexpr cfg::InterfaceType type = intfType;
+};
+using TestVlanIntf = TestType<cfg::InterfaceType::VLAN>;
+using TestPortIntf = TestType<cfg::InterfaceType::PORT>;
 } // namespace
 
+template <typename Type>
 class InterfaceTest : public ::testing::Test {
  private:
   cfg::SwitchConfig genConfigWithLLs(
@@ -79,12 +87,49 @@ class InterfaceTest : public ::testing::Test {
     return config;
   }
 
+  cfg::SwitchConfig genPortRouterInterfaceConfigWithLLs(
+      std::set<std::string> intfLinkLocals,
+      std::optional<std::string> raRouterAddr) {
+    cfg::SwitchConfig config;
+
+    /* add router port interfaces along side vlan interfaces */
+    config.ports()->resize(2);
+    preparedMockPortConfig(config.ports()[0], 1);
+    preparedMockPortConfig(config.ports()[1], 2);
+
+    for (auto port : *config.ports()) {
+      cfg::Interface portIntf{};
+      portIntf.intfID() = *port.logicalID();
+      portIntf.type() = cfg::InterfaceType::PORT;
+      portIntf.portID() = *port.logicalID();
+      portIntf.routerID() = *port.logicalID();
+      portIntf.name() = folly::to<std::string>("port-", *port.logicalID());
+      portIntf.ipAddresses()->push_back("10.1.1.1/24");
+      portIntf.ipAddresses()->push_back("20.1.1.2/24");
+      portIntf.ipAddresses()->push_back("::22:33:44/120");
+      portIntf.ipAddresses()->push_back("::11:11:11/120");
+
+      if (raRouterAddr) {
+        portIntf.ndp() = cfg::NdpConfig{};
+        portIntf.ndp()->routerAddress() = *raRouterAddr;
+      }
+      for (const auto& intfAddr : intfLinkLocals) {
+        portIntf.ipAddresses()->push_back(intfAddr);
+      }
+      config.interfaces()->push_back(portIntf);
+    }
+    return config;
+  }
+
  protected:
+  static auto constexpr interfaceType = Type::type;
   std::shared_ptr<SwitchState> setup(
       std::set<std::string> intfLinkLocals,
       std::optional<std::string> raRouterAddr) {
     platform_ = createMockPlatform();
-    auto config = genConfigWithLLs(intfLinkLocals, raRouterAddr);
+    auto config = interfaceType == cfg::InterfaceType::VLAN
+        ? genConfigWithLLs(intfLinkLocals, raRouterAddr)
+        : genPortRouterInterfaceConfigWithLLs(intfLinkLocals, raRouterAddr);
     return publishAndApplyConfig(
         std::make_shared<SwitchState>(), &config, platform_.get());
   }
@@ -93,8 +138,13 @@ class InterfaceTest : public ::testing::Test {
   std::unique_ptr<Platform> platform_;
 };
 
-TEST_F(InterfaceTest, addrToReach) {
-  auto state = setup({"fe80::face:b00c/64"}, std::nullopt);
+using InterfaceTypes = ::testing::Types<
+    TestType<cfg::InterfaceType::VLAN>,
+    TestType<cfg::InterfaceType::PORT>>;
+
+TYPED_TEST_SUITE(InterfaceTest, InterfaceTypes);
+TYPED_TEST(InterfaceTest, addrToReach) {
+  auto state = this->setup({"fe80::face:b00c/64"}, std::nullopt);
   ASSERT_NE(nullptr, state);
   const auto& intfs = state->getInterfaces();
   const auto& intf1 = intfs->getNode(InterfaceID(1));
@@ -133,51 +183,51 @@ TEST_F(InterfaceTest, addrToReach) {
       intf1->getAddressToReach(IPAddress("fe80::9a03:9bff:fe7d:656a"))->first);
 }
 
-TEST_F(InterfaceTest, addrToReachBackendNw) {
-  auto state =
-      setup({"fe80::face:b00b/64", "fe80::be:face:b00c/64"}, std::nullopt);
+TYPED_TEST(InterfaceTest, addrToReachBackendNw) {
+  auto state = this->setup(
+      {"fe80::face:b00b/64", "fe80::be:face:b00c/64"}, std::nullopt);
   const auto& intf1 = state->getInterfaces()->getNode(InterfaceID(1));
   EXPECT_EQ(
       IPAddress("fe80::face:b00b"),
       intf1->getAddressToReach(IPAddress("fe80::9a03:9bff:fe7d:656a"))->first);
 }
 
-TEST_F(InterfaceTest, addrToReachBackendNwNewConfig) {
+TYPED_TEST(InterfaceTest, addrToReachBackendNwNewConfig) {
   auto platform = createMockPlatform();
-  auto state = setup({"fe80::be:face:b00c/64"}, std::nullopt);
+  auto state = this->setup({"fe80::be:face:b00c/64"}, std::nullopt);
   const auto& intf1 = state->getInterfaces()->getNode(InterfaceID(1));
   EXPECT_EQ(
       IPAddress("fe80::be:face:b00c"),
       intf1->getAddressToReach(IPAddress("fe80::9a03:9bff:fe7d:656a"))->first);
 }
 
-TEST_F(InterfaceTest, addrToReachWithRouterAddrConfigured) {
-  auto state = setup({"fe80::face:b00c/64"}, "fe80::face:b00c");
+TYPED_TEST(InterfaceTest, addrToReachWithRouterAddrConfigured) {
+  auto state = this->setup({"fe80::face:b00c/64"}, "fe80::face:b00c");
   const auto& intf1 = state->getInterfaces()->getNode(InterfaceID(1));
   EXPECT_EQ(
       MockPlatform::getMockLinkLocalIp6(),
       intf1->getAddressToReach(IPAddress("fe80::9a03:9bff:fe7d:656a"))->first);
 }
 
-TEST_F(InterfaceTest, addrToReachBackendRouterAddrConfigured) {
-  auto state =
-      setup({"fe80::face:b00b/64", "fe80::be:face:b00c/64"}, "fe80::face:b00b");
+TYPED_TEST(InterfaceTest, addrToReachBackendRouterAddrConfigured) {
+  auto state = this->setup(
+      {"fe80::face:b00b/64", "fe80::be:face:b00c/64"}, "fe80::face:b00b");
   const auto& intf1 = state->getInterfaces()->getNode(InterfaceID(1));
   EXPECT_EQ(
       MockPlatform::getMockLinkLocalIp6(),
       intf1->getAddressToReach(IPAddress("fe80::9a03:9bff:fe7d:656a"))->first);
 }
 
-TEST_F(InterfaceTest, addrToReachBackendNewConfigRouterAddrConfigured) {
-  auto state = setup({"fe80::be:face:b00c/64"}, "fe80::be:face:b00c");
+TYPED_TEST(InterfaceTest, addrToReachBackendNewConfigRouterAddrConfigured) {
+  auto state = this->setup({"fe80::be:face:b00c/64"}, "fe80::be:face:b00c");
   const auto& intf1 = state->getInterfaces()->getNode(InterfaceID(1));
   EXPECT_EQ(
       MockPlatform::getMockLinkLocalIp6(),
       intf1->getAddressToReach(IPAddress("fe80::9a03:9bff:fe7d:656a"))->first);
 }
 
-TEST_F(InterfaceTest, getSetArpTable) {
-  auto state = setup({}, std::nullopt);
+TYPED_TEST(InterfaceTest, getSetArpTable) {
+  auto state = this->setup({}, std::nullopt);
   state::NeighborEntries arpTable;
   state::NeighborEntryFields arp;
   arp.ipaddress() = "10.1.1.100";
@@ -193,13 +243,15 @@ TEST_F(InterfaceTest, getSetArpTable) {
   intf1->setArpTable(arpTable);
   EXPECT_EQ(arpTable, intf1->getArpTable()->toThrift());
   EXPECT_EQ(
-      arpTable, intf1->getNeighborEntryTable<folly::IPAddressV4>()->toThrift());
+      arpTable,
+      intf1->template getNeighborEntryTable<folly::IPAddressV4>()->toThrift());
   EXPECT_NE(
-      arpTable, intf1->getNeighborEntryTable<folly::IPAddressV6>()->toThrift());
+      arpTable,
+      intf1->template getNeighborEntryTable<folly::IPAddressV6>()->toThrift());
 }
 
-TEST_F(InterfaceTest, getSetNdpTable) {
-  auto state = setup({}, std::nullopt);
+TYPED_TEST(InterfaceTest, getSetNdpTable) {
+  auto state = this->setup({}, std::nullopt);
   state::NeighborEntries ndpTable;
   state::NeighborEntryFields ndp;
   ndp.ipaddress() = "::22:33:4f";
@@ -215,9 +267,11 @@ TEST_F(InterfaceTest, getSetNdpTable) {
   intf1->setNdpTable(ndpTable);
   EXPECT_EQ(ndpTable, intf1->getNdpTable()->toThrift());
   EXPECT_EQ(
-      ndpTable, intf1->getNeighborEntryTable<folly::IPAddressV6>()->toThrift());
+      ndpTable,
+      intf1->template getNeighborEntryTable<folly::IPAddressV6>()->toThrift());
   EXPECT_NE(
-      ndpTable, intf1->getNeighborEntryTable<folly::IPAddressV4>()->toThrift());
+      ndpTable,
+      intf1->template getNeighborEntryTable<folly::IPAddressV4>()->toThrift());
 }
 
 TEST(Interface, Modify) {
@@ -264,6 +318,7 @@ TEST(Interface, RemoteInterfaceModify) {
 
   HwSwitchMatcher scope(std::unordered_set<SwitchID>({SwitchID{1}}));
   auto sysPort1 = makeSysPort("olympic", 1001, 100);
+  sysPort1->setScope(cfg::Scope::GLOBAL);
   remoteSysPorts->addNode(sysPort1, scope);
   auto remoteInterfaces = stateV1->getRemoteInterfaces()->modify(&stateV1);
   InterfaceID kIntf(1001);
@@ -277,6 +332,7 @@ TEST(Interface, RemoteInterfaceModify) {
       false,
       false,
       cfg::InterfaceType::SYSTEM_PORT);
+  rif->setScope(cfg::Scope::GLOBAL);
 
   remoteInterfaces->addNode(rif, scope);
   stateV1->publish();
@@ -816,7 +872,7 @@ TEST(Interface, getInterfacePortsVoqSwitch) {
   EXPECT_EQ(getPortsForInterface(intf->getID(), stateV1).size(), 1);
 }
 
-TEST(Interface, getInterfacePorts) {
+TEST(Interface, getVlanInterfacePorts) {
   auto platform = createMockPlatform();
   auto stateV0 = std::make_shared<SwitchState>();
   auto config = testConfigA();
@@ -825,6 +881,17 @@ TEST(Interface, getInterfacePorts) {
   auto multiIntfs = stateV1->getInterfaces();
   auto intf = multiIntfs->cbegin()->second->cbegin()->second;
   EXPECT_EQ(getPortsForInterface(intf->getID(), stateV1).size(), 11);
+}
+
+TEST(Interface, getPortInterfacePorts) {
+  auto platform = createMockPlatform();
+  auto stateV0 = std::make_shared<SwitchState>();
+  auto config = testConfigAWithPortInterfaces();
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  ASSERT_NE(nullptr, stateV1);
+  auto multiIntfs = stateV1->getInterfaces();
+  auto intf = multiIntfs->cbegin()->second->cbegin()->second;
+  EXPECT_EQ(getPortsForInterface(intf->getID(), stateV1).size(), 1);
 }
 
 TEST(Interface, modify) {

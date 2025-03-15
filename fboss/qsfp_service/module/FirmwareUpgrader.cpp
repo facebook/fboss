@@ -16,6 +16,8 @@
 
 #include "fboss/qsfp_service/module/TransceiverImpl.h"
 
+#include "fboss/qsfp_service/module/cmis/gen-cpp2/cmis_types.h"
+
 using folly::MutableByteRange;
 using folly::StringPiece;
 using std::make_pair;
@@ -31,6 +33,9 @@ constexpr uint8_t kfirmwareVersionReg = 39;
 constexpr uint8_t kModulePasswordEntryReg = 122;
 
 constexpr int moduleDatapathInitDurationUsec = 5000000;
+
+// CMIS FW Upgrade
+constexpr int kFwUpgrade = static_cast<int>(CmisField::FW_UPGRADE);
 
 /*
  * CmisFirmwareUpgrader
@@ -105,7 +110,8 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
   bus_->writeTransceiver(
       {TransceiverAccessParameter::ADDR_QSFP, kModulePasswordEntryReg, 4},
       msaPassword_.data(),
-      POST_I2C_WRITE_NO_DELAY_US);
+      POST_I2C_WRITE_NO_DELAY_US,
+      kFwUpgrade);
 
   CdbCommandBlock commandBlockBuf;
   CdbCommandBlock* commandBlock = &commandBlockBuf;
@@ -305,7 +311,8 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
   bus_->writeTransceiver(
       {TransceiverAccessParameter::ADDR_QSFP, kModulePasswordEntryReg, 4},
       msaPassword_.data(),
-      POST_I2C_WRITE_NO_DELAY_US);
+      POST_I2C_WRITE_NO_DELAY_US,
+      kFwUpgrade);
 
   // Step 5: Issue CDB command: Commit the downloaded firmware
   commandBlock->createCdbCmdFwCommit();
@@ -335,7 +342,8 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
   bus_->writeTransceiver(
       {TransceiverAccessParameter::ADDR_QSFP, kModulePasswordEntryReg, 4},
       msaPassword_.data(),
-      POST_I2C_WRITE_NO_DELAY_US);
+      POST_I2C_WRITE_NO_DELAY_US,
+      kFwUpgrade);
 
   // Print IO profiling info
   auto ioTiming = bus_->getI2cTimeProfileMsec();
@@ -381,7 +389,8 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareUpgrade() {
   bus_->writeTransceiver(
       {TransceiverAccessParameter::ADDR_QSFP, kModulePasswordEntryReg, 4},
       msaPassword_.data(),
-      POST_I2C_WRITE_NO_DELAY_US);
+      POST_I2C_WRITE_NO_DELAY_US,
+      kFwUpgrade);
   if (!result) {
     // If the download failed then print the message and return. No need
     // to do any recovery here
@@ -395,7 +404,8 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareUpgrade() {
   // Find out the current version running on module
   bus_->readTransceiver(
       {TransceiverAccessParameter::ADDR_QSFP, kfirmwareVersionReg, 2},
-      versionNumber.data());
+      versionNumber.data(),
+      kFwUpgrade);
   XLOG(INFO) << folly::sformat(
       "cmisModuleFirmwareUpgrade: Mod{:d}: Module Active Firmware Revision now: {:d}.{:d}",
       moduleId_,

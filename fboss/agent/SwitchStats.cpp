@@ -101,7 +101,10 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map, int numSwitches)
           kCounterPrefix + "ip.dst_lookup_failure",
           SUM,
           RATE),
-      updateState_(map, kCounterPrefix + "state_update.us", 50000, 0, 1000000),
+      updateState_(
+          kCounterPrefix + "state_update.us",
+          facebook::fb303::ExportTypeConsts::kCountAvg,
+          facebook::fb303::QuantileConsts::kP50_P95_P99_P100),
       routeUpdate_(map, kCounterPrefix + "route_update.us", 50, 0, 500),
       bgHeartbeatDelay_(
           map,
@@ -245,6 +248,13 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map, int numSwitches)
           0,
           200,
           AVG),
+      pendingStateUpdateCount_(
+          map,
+          kCounterPrefix + "pending_state_update_count",
+          1,
+          0,
+          10000,
+          AVG),
       linkStateChange_(map, kCounterPrefix + "link_state.flap", SUM),
       linkActiveStateChange_(
           map,
@@ -353,6 +363,13 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map, int numSwitches)
           SUM,
           RATE),
       loPriPktsDropped_(map, kCounterPrefix + "lo_pri_pkts_dropped", SUM, RATE),
+      fsdbPublishQueueLength_(
+          map,
+          kCounterPrefix + "fsdb_publish_queue_length",
+          1,
+          0,
+          1000,
+          AVG),
       multiSwitchStatus_(map, kCounterPrefix + "multi_switch", SUM, RATE),
       neighborTableUpdateFailure_(
           map,
@@ -362,6 +379,11 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map, int numSwitches)
       macTableUpdateFailure_(
           map,
           kCounterPrefix + "mac_table_update_failure",
+          SUM,
+          RATE),
+      fwDrainedWithHighNumActiveFabricLinks_(
+          map,
+          kCounterPrefix + "fw_drained_with_high_num_active_fabric_links",
           SUM,
           RATE)
 
@@ -421,6 +443,21 @@ InterfaceStats* SwitchStats::createInterfaceStats(
     std::string intfName) {
   auto rv = intfIDToStats_.emplace(
       intfID, std::make_unique<InterfaceStats>(intfID, intfName, this));
+  DCHECK(rv.second);
+  const auto& it = rv.first;
+  return it->second.get();
+}
+
+PortStats* SwitchStats::updatePortName(
+    PortID portID,
+    const std::string& portName) {
+  auto existing = ports_.find(portID);
+  if (existing != ports_.end()) {
+    existing->second->clearCounters();
+  }
+
+  auto rv = ports_.insert_or_assign(
+      portID, std::make_unique<PortStats>(portID, portName, this));
   DCHECK(rv.second);
   const auto& it = rv.first;
   return it->second.get();
@@ -700,4 +737,13 @@ void SwitchStats::failedDsfSubscription(
   auto counter = failedDsfSubscriptionByPeerSwitchName_.find(peerName);
   counter->second.incrementValue(value);
 }
+
+void SwitchStats::setDrainState(
+    int16_t switchIndex,
+    cfg::SwitchDrainState drainState) {
+  auto drainStateCounter =
+      folly::to<std::string>("switch.", switchIndex, ".drain_state");
+  fb303::fbData->setCounter(drainStateCounter, static_cast<int>(drainState));
+}
+
 } // namespace facebook::fboss

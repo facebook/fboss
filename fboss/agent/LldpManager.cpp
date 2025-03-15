@@ -32,37 +32,39 @@ using folly::StringPiece;
 using folly::io::RWPrivateCursor;
 using std::shared_ptr;
 
-/**
- * False if the given LLDP tag has an Expected value configured, and
- * the value received was not as expected.
- *
- * True otherwise.
+namespace {
+
+/*
+ * Checks if the tag is present in the LLDP config, and if the received value
+ * matches the expected value.
  */
-bool checkTag(
+LldpValidationResult checkTag(
     facebook::fboss::PortID id,
     const facebook::fboss::Port::LLDPValidations& lldpmap,
     facebook::fboss::cfg::LLDPTag tag,
     const std::string& val) {
   auto res = lldpmap.find(tag);
-
   if (res == lldpmap.end()) {
-    XLOG(DBG4) << "Port " << id << ": " << std::to_string(static_cast<int>(tag))
-               << ": Not present in config";
-    return true;
+    XLOG(WARNING) << "Port " << id << ": "
+                  << std::to_string(static_cast<int>(tag))
+                  << ": Not present in config";
+    return LldpValidationResult::MISSING;
   }
 
   auto expect = res->second;
   if (val.find(expect) != std::string::npos) {
     XLOG(DBG4) << "Port " << id << std::to_string(static_cast<int>(tag))
                << ", matches: \"" << expect << "\", got: \"" << val << "\"";
-    return true;
+    return LldpValidationResult::SUCCESS;
   }
 
   XLOG(WARNING) << "Port " << id << ", LLDP tag "
                 << std::to_string(static_cast<int>(tag)) << ", expected: \""
                 << expect << "\", got: \"" << val << "\"";
-  return false;
+  return LldpValidationResult::MISMATCH;
 }
+
+} // namespace
 
 namespace facebook::fboss {
 
@@ -109,8 +111,8 @@ void LldpManager::handlePacket(
              << " port=" << neighbor->humanReadablePortId()
              << " name=" << neighbor->getSystemName();
 
-  auto port = sw_->getState()->getPorts()->getNodeIf(pkt->getSrcPort());
-  PortID pid = pkt->getSrcPort();
+  auto pid = pkt->getSrcPort();
+  auto port = sw_->getState()->getPorts()->getNodeIf(pid);
 
   XLOG(DBG4) << "Port " << pid << ", local name: " << port->getName()
              << ", local desc: " << port->getDescription()
@@ -119,25 +121,22 @@ void LldpManager::handlePacket(
              << ", LLDP dsc: " << neighbor->getPortDescription();
 
   auto lldpmap = port->getLLDPValidations();
-  if (!(checkTag(
-            pid,
-            lldpmap,
-            cfg::LLDPTag::SYSTEM_NAME,
-            neighbor->getSystemName()) &&
-        checkTag(
-            pid,
-            lldpmap,
-            cfg::LLDPTag::PORT,
-            neighbor->humanReadablePortId()))) {
+  auto systemNameValidation = checkTag(
+      pid, lldpmap, cfg::LLDPTag::SYSTEM_NAME, neighbor->getSystemName());
+  auto portIdValidation = checkTag(
+      pid, lldpmap, cfg::LLDPTag::PORT, neighbor->humanReadablePortId());
+  if (systemNameValidation == LldpValidationResult::MISMATCH ||
+      portIdValidation == LldpValidationResult::MISMATCH) {
     sw_->stats()->LldpValidateMisMatch();
     XLOG(DBG4) << "LLDP expected/recvd value mismatch!";
     auto updateFn = [pid](const shared_ptr<SwitchState>& state) {
       auto newState = state->clone();
       auto newPort = state->getPorts()->getNodeIf(pid)->modify(&newState);
       newPort->setLedPortExternalState(PortLedExternalState::CABLING_ERROR);
+      newPort->addError(PortError::MISMATCHED_NEIGHBOR);
       return newState;
     };
-    sw_->updateState("set port LED state from lldp", updateFn);
+    sw_->updateState("set port error and LED state from lldp", updateFn);
   } else {
     // clear the cabling error led state if needed
     if (port->getLedPortExternalState().has_value() &&
@@ -147,6 +146,7 @@ void LldpManager::handlePacket(
         auto newState = state->clone();
         auto newPort = state->getPorts()->getNodeIf(pid)->modify(&newState);
         newPort->setLedPortExternalState(PortLedExternalState::NONE);
+        newPort->removeError(PortError::MISMATCHED_NEIGHBOR);
         return newState;
       };
       sw_->updateState("clear port LED state from lldp", updateFn);
@@ -169,9 +169,9 @@ void LldpManager::sendLldpOnAllPorts() {
   // send lldp frames through all the ports here.
   std::shared_ptr<SwitchState> state = sw_->getState();
   for (const auto& portMap : std::as_const(*state->getPorts())) {
-    for (const auto& port : std::as_const(*portMap.second)) {
+    for (const auto& [_, port] : std::as_const(*portMap.second)) {
       bool sendLldp = false;
-      switch (port.second->getPortType()) {
+      switch (port->getPortType()) {
         case cfg::PortType::INTERFACE_PORT:
         case cfg::PortType::MANAGEMENT_PORT:
           sendLldp = true;
@@ -182,10 +182,10 @@ void LldpManager::sendLldpOnAllPorts() {
         case cfg::PortType::EVENTOR_PORT:
           break;
       }
-      if (sendLldp && port.second->isPortUp()) {
-        sendLldpInfo(port.second);
+      if (sendLldp && port->isPortUp()) {
+        sendLldpInfo(port);
       } else {
-        XLOG(DBG5) << "Skipping LLDP send on port: " << port.second->getID();
+        XLOG(DBG5) << "Skipping LLDP send on port: " << port->getID();
       }
     }
   }

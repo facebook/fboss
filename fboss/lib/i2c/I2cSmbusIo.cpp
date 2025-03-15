@@ -2,12 +2,7 @@
 
 #include "fboss/lib/i2c/I2cSmbusIo.h"
 #include <errno.h>
-#include <fcntl.h>
 #include <folly/Format.h>
-#include <folly/Range.h>
-#include <folly/lang/Bits.h>
-#include <folly/logging/xlog.h>
-#include <gflags/gflags.h>
 #include <linux/i2c-dev.h>
 #include <linux/i2c.h>
 #include <stdint.h>

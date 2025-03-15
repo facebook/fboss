@@ -49,26 +49,33 @@ class YubaAsic : public TajoAsic {
   uint64_t getMMUSizeBytes() const override {
     return 256 * 1024 * 1024;
   }
+  uint64_t getSramSizeBytes() const override {
+    // No HBM!
+    return getMMUSizeBytes();
+  }
   uint32_t getMaxMirrors() const override {
     // TODO - verify this
     return 4;
   }
-  uint64_t getDefaultReservedBytes(
+  std::optional<uint64_t> getDefaultReservedBytes(
       cfg::StreamType /*streamType*/,
       cfg::PortType /*portType*/) const override {
     // Concept of reserved bytes does not apply to GB
     return 0;
   }
-  cfg::MMUScalingFactor getDefaultScalingFactor(
+  std::optional<cfg::MMUScalingFactor> getDefaultScalingFactor(
       cfg::StreamType /*streamType*/,
       bool /*cpu*/) const override {
     // Concept of scaling factor does not apply returning the same value TH3
     return cfg::MMUScalingFactor::TWO;
   }
+  const std::map<cfg::PortType, cfg::PortLoopbackMode>& desiredLoopbackModes()
+      const override;
   int getMaxNumLogicalPorts() const override {
     // 256 physical lanes + cpu
     return 257;
   }
+
   uint16_t getMirrorTruncateSize() const override {
     return 220;
   }
@@ -125,6 +132,10 @@ class YubaAsic : public TajoAsic {
         prbs::PrbsPolynomial::PRBS15,
         prbs::PrbsPolynomial::PRBS31,
     };
+  }
+
+  cfg::IpTunnelMode getTunnelDscpMode() const override {
+    return cfg::IpTunnelMode::UNIFORM;
   }
 
  private:

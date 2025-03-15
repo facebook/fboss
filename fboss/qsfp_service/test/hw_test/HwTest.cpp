@@ -234,4 +234,26 @@ void HwTest::printProductionFeatures() const {
   std::cout << "Feature List: " << folly::join(",", supportedFeatures) << "\n";
   GTEST_SKIP();
 }
+
+TEST_F(HwTest, CheckTcvrNameAndInterfaces) {
+  auto wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
+  std::map<int32_t, TransceiverInfo> transceivers;
+  wedgeManager->getTransceiversInfo(
+      transceivers, std::make_unique<std::vector<int32_t>>());
+  CHECK(!transceivers.empty());
+  for (auto& [id, tcvr] : transceivers) {
+    auto tcvrStateName = *tcvr.tcvrState()->tcvrName();
+    auto tcvrStatsName = *tcvr.tcvrState()->tcvrName();
+    EXPECT_EQ(tcvrStateName, tcvrStatsName);
+    EXPECT_TRUE(
+        tcvrStateName.starts_with("eth") || tcvrStateName.starts_with("fab"));
+    auto portName = wedgeManager->getPortName(TransceiverID(id));
+    EXPECT_EQ(tcvrStateName + "/1", portName);
+
+    auto ports = wedgeManager->getPortNames(TransceiverID(id));
+    EXPECT_FALSE(ports.empty());
+    EXPECT_EQ(*tcvr.tcvrState()->interfaces(), ports);
+    EXPECT_EQ(*tcvr.tcvrStats()->interfaces(), ports);
+  }
+}
 } // namespace facebook::fboss

@@ -100,7 +100,8 @@ class PortRifNeighbor {
       std::optional<sai_uint32_t> metadata,
       std::optional<sai_uint32_t> encapIndex,
       bool isLocal,
-      std::optional<bool> noHostRoute);
+      std::optional<bool> noHostRoute,
+      cfg::InterfaceType intfType);
 
   void handleLinkDown();
 
@@ -118,6 +119,10 @@ class PortRifNeighbor {
     return std::get<SaiPortDescriptor>(saiPortAndIntf_);
   }
 
+  cfg::InterfaceType getRifType() const {
+    return intfType_;
+  }
+
  private:
   RouterInterfaceSaiId getRouterInterfaceSaiId() const {
     return std::get<RouterInterfaceSaiId>(saiPortAndIntf_);
@@ -127,6 +132,7 @@ class PortRifNeighbor {
   std::tuple<SaiPortDescriptor, RouterInterfaceSaiId> saiPortAndIntf_;
   std::shared_ptr<SaiNeighbor> neighbor_;
   std::unique_ptr<SaiNeighborHandle> handle_;
+  cfg::InterfaceType intfType_;
 };
 
 class SaiNeighborEntry {

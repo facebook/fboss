@@ -1,6 +1,7 @@
 {
   "defaultCommandLineArgs": {
     "check_wb_handles": "true",
+    "enable_route_resource_protection": "false",
     "intf_nbr_tables": "true",
     "log_variable_name": "true",
     "skip_transceiver_programming": "true"
@@ -84,6 +85,7 @@
       "1": 1,
       "2": 0,
       "3": 0,
+      "4": 0,
       "700": 255,
       "786": 10
     },
@@ -140,7 +142,7 @@
       "exactMatchTableConfigs": [
         
       ],
-      "switchIdToSwitchType": {
+      "switchIdToSwitchType_DEPRECATED": {
         
       },
       "switchDrainState": 0,
@@ -153,12 +155,27 @@
               "minimum": 0,
               "maximum": 2047
             },
-            "systemPortRange": {
-              "minimum": 10,
-              "maximum": 53
-            },
             "switchMac": "02:00:00:00:00:01",
-            "connectionHandle": "15:00"
+            "connectionHandle": "15:00",
+            "systemPortRanges": {
+              "systemPortRanges": [
+                {
+                  "minimum": 10,
+                  "maximum": 53
+                }
+              ]
+            },
+            "localSystemPortOffset": 10,
+            "globalSystemPortOffset": 10,
+            "inbandPortId": 1,
+            "firmwareNameToFirmwareInfo": {
+              "isolationFW": {
+                  "coreToUse": 5,
+                  "path": "/tmp/db/jericho3ai_a0/fi-2.4.0.1-GA.elf",
+                  "logPath": "/tmp/edk.log",
+                  "firmwareLoadType": 0
+              }
+            }
         }
       },
       "vendorMacOuis": [
@@ -180,16 +197,26 @@
           "loopbackIps": [
             
           ],
-          "systemPortRange": {
-            "minimum": 10,
-            "maximum": 53
-          },
           "nodeMac": "18*800G-8",
           "asicType": 14,
-          "platformType": 28
+          "platformType": 28,
+          "localSystemPortOffset": 10,
+          "globalSystemPortOffset": 10,
+          "systemPortRanges": {
+            "systemPortRanges": [
+              {
+                "minimum": 10,
+                "maximum": 53
+              }
+            ]
+          },
+          "inbandPortId": 1
       }
     },
     "defaultVoqConfig": [
+      
+    ],
+    "mirrorOnDropReports": [
       
     ]
   },
@@ -198,6 +225,7 @@
       "asicConfig": {
         "common": {
           "config": {
+            "AI23_mode": "1",
             "appl_enable_oam.BCM8889X": "0",
             "appl_param_rcy_mirror_ports_range.BCM8889X": "100-143",
             "bcm_stat_interval": "1000000",
@@ -210,6 +238,7 @@
             "custom_feature_statdma_enable": "0",
             "custom_feature_use_new_access.BCM8889X": "1",
             "custom_feature_use_new_access.BCM8889X_ADAPTER": "1",
+            "custom_feature_vsqd_lossless_reject_enable": "1",
             "dpp_db_path": "/tmp/db",
             "dram_temperature_monitor_enable.BCM8889X_ADAPTER": "0",
             "dtm_flow_mapping_mode_region_65.BCM8889X": "3",
@@ -243,13 +272,11 @@
             "dtm_flow_mapping_mode_region_93.BCM8889X": "3",
             "dtm_flow_mapping_mode_region_94.BCM8889X": "3",
             "dtm_flow_nof_remote_cores_region.BCM8889X": "4",
+            "eventor_sbus_dma_channels.BCM8889X": "0,6,0,7",
             "fabric_connect_mode.BCM8889X": "FE",
             "fabric_connectivity_based_on_integrity": "0",
             "fabric_distributed_system_enable": "1",
             "fail_on_unsupported_attribute": "1",
-            "fw_auto_isolation_arm_core_to_use.0": "5",
-            "fw_auto_isolation_image_filename.0": "/tmp/db/jericho3ai_a0/BCM8889X_fi.elf",
-            "fw_auto_isolation_log_filename.0": "/tmp/edk_fi.log",
             "l3_ecmp_max_group_size": "512",
             "lane_to_serdes_map_fabric_lane0.BCM8889X": "rx0:tx5",
             "lane_to_serdes_map_fabric_lane1.BCM8889X": "rx1:tx3",
@@ -1248,24 +1275,15 @@
             "rcy_mirror_to_forward_port_map_140.BCM8889X": "40",
             "rcy_mirror_to_forward_port_map_142.BCM8889X": "42",
             "rif_id_max": "0x2000",
-            "sai_acl_qset_optimization": "0x1",
-            "sai_async_fdb_nbr_enable": "0x1",
-            "sai_common_hash_crc": "0x1",
             "sai_dis_ctr_incr_on_port_ln_dn": "0",
             "sai_disable_srcmacqedstmac_ctrl": "0x1",
             "sai_eventor_port_lane_base": "500",
             "sai_global_scoped_rcy_port": "1",
-            "sai_ifp_enable_on_cpu_tx": "0x1",
             "sai_l3_max_ecmp_paths": "512",
-            "sai_macro_flow_based_hash": "1",
-            "sai_mmu_qgroups_default": "1",
-            "sai_optimize_acl_ipv6_addr_qual": "0",
-            "sai_optimized_mmu": "0x1",
+            "sai_ocb_fc_config": "2",
             "sai_pfc_defaults_disable": "0x1",
-            "sai_pkt_rx_cfg_ppc": "16",
-            "sai_pkt_rx_custom_cfg": "1",
-            "sai_pkt_rx_pkt_size": "16512",
             "sai_recycle_port_lane_base": "440",
+            "sai_tc_mirror_buffer_size_bytes": "1",
             "sai_trigger_linkscan_remote_local_faults": "1",
             "sai_voq_wm_latency_enable": "1",
             "sat_enable.BCM8889X_ADAPTER": "1",

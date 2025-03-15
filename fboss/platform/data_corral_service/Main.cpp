@@ -10,7 +10,6 @@
 #include "fboss/platform/data_corral_service/ConfigValidator.h"
 #include "fboss/platform/data_corral_service/DataCorralServiceThriftHandler.h"
 #include "fboss/platform/data_corral_service/FruPresenceExplorer.h"
-#include "fboss/platform/data_corral_service/if/gen-cpp2/data_corral_service_types.h"
 #include "fboss/platform/helpers/Init.h"
 #include "fboss/platform/helpers/PlatformNameLib.h"
 

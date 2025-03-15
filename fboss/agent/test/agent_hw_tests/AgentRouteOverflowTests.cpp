@@ -50,6 +50,7 @@ TEST_F(AgentRouteOverflowTest, overflowRoutes) {
     case PlatformType::PLATFORM_MINIPACK:
     case PlatformType::PLATFORM_YAMP:
     case PlatformType::PLATFORM_DARWIN:
+    case PlatformType::PLATFORM_DARWIN48V:
       /*
        * A route distribution 200,000 /128 does overflow the ASIC tables
        * but it takes 15min to generate, program and clean up such a
@@ -107,7 +108,8 @@ TEST_F(AgentRouteOverflowTest, overflowRoutes) {
     case PlatformType::PLATFORM_TAHAN800BC:
       break;
     case PlatformType::PLATFORM_YANGRA:
-      // No overflow test for Yangra
+    case PlatformType::PLATFORM_MINIPACK3N:
+      XLOG(WARNING) << " No overflow test for YANGRA/MP3N yet";
       break;
   }
   if (routeChunks.size() == 0) {

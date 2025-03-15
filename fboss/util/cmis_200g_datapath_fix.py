@@ -7,6 +7,7 @@ configured in 100G mode (2) The optics state machine is in DATAPATH_INITIALIZED
 state. This script identifies all such bad ports on a given list of swicthes
 and remediates them by re-applying the optics Stage set 0 config once again
 """
+
 import subprocess
 from time import sleep
 

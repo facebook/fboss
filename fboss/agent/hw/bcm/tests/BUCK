@@ -594,11 +594,14 @@ cpp_library(
     name = "agent_hw_test_thrift_handler",
     srcs = [
         "HwTestAclUtilsThriftHandler.cpp",
+        "HwTestCommonUtilsThriftHandler.cpp",
         "HwTestEcmpUtilsThriftHandler.cpp",
+        "HwTestFlowletUtilsThriftHandler.cpp",
         "HwTestMirrorUtilsThriftHandler.cpp",
         "HwTestNeighborUtilsThriftHandler.cpp",
         "HwTestPortUtilsThriftHandler.cpp",
         "HwTestRouteUtilsThriftHandler.cpp",
+        "HwTestTamUtilsThriftHandler.cpp",
         "HwTestThriftHandler.cpp",
         "HwTestVoqSwitchUtilsThriftHandler.cpp",
     ],
@@ -606,6 +609,7 @@ cpp_library(
     ],
     undefined_symbols = "True",  # The sai/bcm implementations will define some functions
     exported_deps = [
+        ":bcm_trunk_utils",
         "//fboss/agent:fboss-types",
         "//fboss/agent:hw_switch",
         "//fboss/agent/hw/bcm:bcm",

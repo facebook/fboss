@@ -4,15 +4,14 @@
 
 #include <boost/assign.hpp>
 #include <boost/bimap.hpp>
+#include <folly/io/IOBuf.h>
+#include <folly/io/async/EventBase.h>
+#include <folly/logging/xlog.h>
 #include <cmath>
-#include <iomanip>
 #include <string>
 #include "common/time/Time.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/lib/phy/gen-cpp2/prbs_types.h"
-#include "fboss/lib/platforms/PlatformMode.h"
-#include "fboss/lib/usb/TransceiverI2CApi.h"
-#include "fboss/qsfp_service/StatsPublisher.h"
 #include "fboss/qsfp_service/if/gen-cpp2/qsfp_service_config_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 #include "fboss/qsfp_service/lib/QsfpConfigParserHelper.h"
@@ -21,10 +20,7 @@
 #include "fboss/qsfp_service/module/QsfpHelper.h"
 #include "fboss/qsfp_service/module/TransceiverImpl.h"
 #include "fboss/qsfp_service/module/cmis/CmisFieldInfo.h"
-
-#include <folly/io/IOBuf.h>
-#include <folly/io/async/EventBase.h>
-#include <folly/logging/xlog.h>
+#include "fboss/qsfp_service/module/cmis/CmisHelper.h"
 
 #include <thrift/lib/cpp/util/EnumUtils.h>
 
@@ -34,17 +30,23 @@ using std::memcpy;
 using std::mutex;
 using namespace apache::thrift;
 
+DEFINE_bool(
+    set_max_fec_sampling,
+    false,
+    "Flag to enable setting max FEC sampling for module");
+
 namespace {
 
 constexpr int kUsecBetweenPowerModeFlap = 100000;
 constexpr int kUsecBetweenLaneInit = 10000;
 constexpr int kUsecVdmLatchHold = 100000;
-constexpr int kUsecDiagSelectLatchWait = 10000;
+constexpr int kUsecDiagSelectLatchWait = 200000;
 constexpr int kUsecAfterAppProgramming = 500000;
 constexpr int kUsecDatapathStateUpdateTime = 5000000; // 5 seconds
 constexpr int kUsecDatapathStatePollTime = 500000; // 500 ms
 constexpr double kU16TypeLsbDivisor = 256.0;
 constexpr int kVdmDescriptorLength = 2;
+constexpr int kFR4LiteSMFLength = 500; // 500 meters
 
 // Definitions for CDB Histogram
 constexpr int kCdbSymErrHistBinSize = 6;
@@ -52,6 +54,9 @@ constexpr int kCdbSymErrHistMaxOffset = 1;
 constexpr int kCdbSymErrHistAvgOffset = 3;
 constexpr int kCdbSymErrHistCurOffset = 5;
 
+constexpr int kMaxFecTailRs544 = 15;
+
+// TODO @sanabani: Change To Map
 std::array<std::string, 9> channelConfigErrorMsg = {
     "No status available, config under progress",
     "Config accepted and applied",
@@ -78,7 +83,7 @@ enum DiagnosticFeatureEncoding {
 };
 
 // As per CMIS4.0
-static QsfpFieldInfo<CmisField, CmisPages>::QsfpFieldMap cmisFields = {
+static const QsfpFieldInfo<CmisField, CmisPages>::QsfpFieldMap cmisFields = {
     // Lower Page
     {CmisField::PAGE_LOWER, {CmisPages::LOWER, 0, 128}},
     {CmisField::IDENTIFIER, {CmisPages::LOWER, 0, 1}},
@@ -95,6 +100,7 @@ static QsfpFieldInfo<CmisField, CmisPages>::QsfpFieldMap cmisFields = {
     {CmisField::VCC, {CmisPages::LOWER, 16, 2}},
     {CmisField::MODULE_CONTROL, {CmisPages::LOWER, 26, 1}},
     {CmisField::FIRMWARE_REVISION, {CmisPages::LOWER, 39, 2}},
+    {CmisField::FEC_SAMPLING_PCT, {CmisPages::LOWER, 65, 1}},
     {CmisField::MEDIA_TYPE_ENCODINGS, {CmisPages::LOWER, 85, 1}},
     {CmisField::APPLICATION_ADVERTISING1, {CmisPages::LOWER, 86, 4}},
     {CmisField::BANK_SELECT, {CmisPages::LOWER, 126, 1}},
@@ -313,32 +319,10 @@ static CmisFieldMultiplier qsfpMultiplier = {
     {CmisField::LENGTH_COPPER, 0.1},
 };
 
-static SpeedApplicationMapping speedApplicationMapping = {
-    {cfg::PortSpeed::FIFTYTHREEPOINTONETWOFIVEG,
-     {SMFMediaInterfaceCode::FR4_200G}},
-    {cfg::PortSpeed::HUNDREDG,
-     {SMFMediaInterfaceCode::CWDM4_100G, SMFMediaInterfaceCode::FR1_100G}},
-    {cfg::PortSpeed::HUNDREDANDSIXPOINTTWOFIVEG,
-     {SMFMediaInterfaceCode::FR1_100G}},
-    {cfg::PortSpeed::TWOHUNDREDG, {SMFMediaInterfaceCode::FR4_200G}},
-    {cfg::PortSpeed::FOURHUNDREDG,
-     {SMFMediaInterfaceCode::FR4_400G,
-      SMFMediaInterfaceCode::LR4_10_400G,
-      SMFMediaInterfaceCode::DR4_400G}},
-    {
-        cfg::PortSpeed::EIGHTHUNDREDG,
-        {SMFMediaInterfaceCode::FR8_800G},
-    }};
-
-static std::map<SMFMediaInterfaceCode, MediaInterfaceCode>
-    mediaInterfaceMapping = {
-        {SMFMediaInterfaceCode::CWDM4_100G, MediaInterfaceCode::CWDM4_100G},
-        {SMFMediaInterfaceCode::FR1_100G, MediaInterfaceCode::FR1_100G},
-        {SMFMediaInterfaceCode::FR4_200G, MediaInterfaceCode::FR4_200G},
-        {SMFMediaInterfaceCode::FR4_400G, MediaInterfaceCode::FR4_400G},
-        {SMFMediaInterfaceCode::LR4_10_400G, MediaInterfaceCode::LR4_400G_10KM},
-        {SMFMediaInterfaceCode::DR4_400G, MediaInterfaceCode::DR4_400G},
-        {SMFMediaInterfaceCode::FR8_800G, MediaInterfaceCode::FR8_800G},
+// A map of programmable FEC sampling pct per Module Media type.
+static const std::unordered_map<MediaInterfaceCode, uint8_t>
+    kMaxProgFecSamplingSupportedMap_ = {
+        {MediaInterfaceCode::FR4_2x400G, 20},
 };
 
 constexpr uint8_t kPage0CsumRangeStart = 128;
@@ -407,88 +391,6 @@ std::array<CmisField, 4> prbsChkHostPatternFields = {
     CmisField::HOST_CHECKER_PATTERN_SELECT_LANE_8_7,
 };
 
-const std::vector<
-    std::array<SMFMediaInterfaceCode, CmisModule::kMaxOsfpNumLanes>>
-    osfpValidSpeedCombination = {
-        {
-            // 2x400G-FR4
-            SMFMediaInterfaceCode::FR4_400G,
-            SMFMediaInterfaceCode::FR4_400G,
-            SMFMediaInterfaceCode::FR4_400G,
-            SMFMediaInterfaceCode::FR4_400G,
-            SMFMediaInterfaceCode::FR4_400G,
-            SMFMediaInterfaceCode::FR4_400G,
-            SMFMediaInterfaceCode::FR4_400G,
-            SMFMediaInterfaceCode::FR4_400G,
-        },
-        {
-            // 2x200G-FR4
-            SMFMediaInterfaceCode::FR4_200G,
-            SMFMediaInterfaceCode::FR4_200G,
-            SMFMediaInterfaceCode::FR4_200G,
-            SMFMediaInterfaceCode::FR4_200G,
-            SMFMediaInterfaceCode::FR4_200G,
-            SMFMediaInterfaceCode::FR4_200G,
-            SMFMediaInterfaceCode::FR4_200G,
-            SMFMediaInterfaceCode::FR4_200G,
-        },
-        {
-            // 400G-FR4 + 200G-FR4
-            SMFMediaInterfaceCode::FR4_400G,
-            SMFMediaInterfaceCode::FR4_400G,
-            SMFMediaInterfaceCode::FR4_400G,
-            SMFMediaInterfaceCode::FR4_400G,
-            SMFMediaInterfaceCode::FR4_200G,
-            SMFMediaInterfaceCode::FR4_200G,
-            SMFMediaInterfaceCode::FR4_200G,
-            SMFMediaInterfaceCode::FR4_200G,
-        },
-        {
-            // 200G-FR4 + 400G-FR4
-            SMFMediaInterfaceCode::FR4_200G,
-            SMFMediaInterfaceCode::FR4_200G,
-            SMFMediaInterfaceCode::FR4_200G,
-            SMFMediaInterfaceCode::FR4_200G,
-            SMFMediaInterfaceCode::FR4_400G,
-            SMFMediaInterfaceCode::FR4_400G,
-            SMFMediaInterfaceCode::FR4_400G,
-            SMFMediaInterfaceCode::FR4_400G,
-        },
-        {
-            // 8x100G-FR1
-            SMFMediaInterfaceCode::FR1_100G,
-            SMFMediaInterfaceCode::FR1_100G,
-            SMFMediaInterfaceCode::FR1_100G,
-            SMFMediaInterfaceCode::FR1_100G,
-            SMFMediaInterfaceCode::FR1_100G,
-            SMFMediaInterfaceCode::FR1_100G,
-            SMFMediaInterfaceCode::FR1_100G,
-            SMFMediaInterfaceCode::FR1_100G,
-        },
-        {
-            // 2x100G-CWDM4
-            SMFMediaInterfaceCode::CWDM4_100G,
-            SMFMediaInterfaceCode::CWDM4_100G,
-            SMFMediaInterfaceCode::CWDM4_100G,
-            SMFMediaInterfaceCode::CWDM4_100G,
-            SMFMediaInterfaceCode::CWDM4_100G,
-            SMFMediaInterfaceCode::CWDM4_100G,
-            SMFMediaInterfaceCode::CWDM4_100G,
-            SMFMediaInterfaceCode::CWDM4_100G,
-        },
-        {
-            // 1x800G-2FR4
-            SMFMediaInterfaceCode::FR8_800G,
-            SMFMediaInterfaceCode::FR8_800G,
-            SMFMediaInterfaceCode::FR8_800G,
-            SMFMediaInterfaceCode::FR8_800G,
-            SMFMediaInterfaceCode::FR8_800G,
-            SMFMediaInterfaceCode::FR8_800G,
-            SMFMediaInterfaceCode::FR8_800G,
-            SMFMediaInterfaceCode::FR8_800G,
-        },
-};
-
 void getQsfpFieldAddress(
     CmisField field,
     int& dataAddress,
@@ -499,10 +401,6 @@ void getQsfpFieldAddress(
   dataAddress = info.dataAddress;
   offset = info.offset;
   length = info.length;
-}
-
-uint8_t laneMask(uint8_t startLane, uint8_t numLanes) {
-  return ((1 << numLanes) - 1) << startLane;
 }
 
 bool isValidVdmConfigType(int vdmConf) {
@@ -554,23 +452,13 @@ CmisModule::getApplicationField(uint8_t application, uint8_t startHostLane)
   return std::nullopt;
 }
 
-SMFMediaInterfaceCode CmisModule::getApplicationFromApSelCode(
-    uint8_t apSelCode) const {
-  for (const auto& capability : moduleCapabilities_) {
-    if (capability.ApSelCode == apSelCode) {
-      return static_cast<SMFMediaInterfaceCode>(
-          capability.moduleMediaInterface);
-    }
-  }
-  return SMFMediaInterfaceCode::UNKNOWN;
-}
-
 CmisModule::CmisModule(
     std::set<std::string> portNames,
     TransceiverImpl* qsfpImpl,
     std::shared_ptr<const TransceiverConfig> cfg,
-    bool supportRemediate)
-    : QsfpModule(std::move(portNames), qsfpImpl),
+    bool supportRemediate,
+    std::string tcvrName)
+    : QsfpModule(std::move(portNames), qsfpImpl, std::move(tcvrName)),
       tcvrConfig_(std::move(cfg)),
       supportRemediate_(supportRemediate) {}
 
@@ -593,11 +481,13 @@ void CmisModule::readCmisField(
          sizeof(page),
          static_cast<int>(CmisPages::LOWER)},
         &page,
-        POST_I2C_WRITE_DELAY_US);
+        POST_I2C_WRITE_DELAY_US,
+        CAST_TO_INT(CmisField::PAGE_CHANGE));
   }
   qsfpImpl_->readTransceiver(
       {TransceiverAccessParameter::ADDR_QSFP, dataOffset, dataLength, dataPage},
-      data);
+      data,
+      CAST_TO_INT(field));
 }
 
 void CmisModule::writeCmisField(
@@ -617,12 +507,14 @@ void CmisModule::writeCmisField(
          sizeof(page),
          static_cast<int>(CmisPages::LOWER)},
         &page,
-        POST_I2C_WRITE_DELAY_US);
+        POST_I2C_WRITE_DELAY_US,
+        CAST_TO_INT(CmisField::PAGE_CHANGE));
   }
   qsfpImpl_->writeTransceiver(
       {TransceiverAccessParameter::ADDR_QSFP, dataOffset, dataLength, dataPage},
       data,
-      POST_I2C_WRITE_DELAY_US);
+      POST_I2C_WRITE_DELAY_US,
+      CAST_TO_INT(field));
 }
 
 FlagLevels CmisModule::getQsfpSensorFlags(CmisField fieldName, int offset) {
@@ -964,7 +856,7 @@ uint8_t CmisModule::currentConfiguredMediaInterfaceCode(
   auto mediaTypeEncoding = getMediaTypeEncoding();
   uint8_t application = 0;
   if (mediaTypeEncoding == MediaTypeEncodings::OPTICAL_SMF) {
-    application = static_cast<uint8_t>(getSmfMediaInterface(hostLane));
+    application = getCurrentApplication(hostLane);
   } else if (
       mediaTypeEncoding == MediaTypeEncodings::PASSIVE_CU &&
       !moduleCapabilities_.empty()) {
@@ -1048,10 +940,11 @@ std::vector<uint8_t> CmisModule::configuredMediaLanes(
   return cfgLanes;
 }
 
-SMFMediaInterfaceCode CmisModule::getSmfMediaInterface(uint8_t lane) const {
+uint8_t CmisModule::getCurrentApplication(uint8_t lane) const {
   if (lane >= 8) {
     QSFP_LOG(ERR, this) << "Invalid lane number " << lane;
-    return SMFMediaInterfaceCode::UNKNOWN;
+    // Based on SFF-8024, an App / App Sel of 0 is undefined/Unknown.
+    return 0;
   }
   // Pick the first application for flatMem modules. FlatMem modules don't
   // support page11h that contains the current operational app sel code
@@ -1064,7 +957,8 @@ SMFMediaInterfaceCode CmisModule::getSmfMediaInterface(uint8_t lane) const {
   // Application select value 0 means application is not selected by module yet
   if (currentApplicationSel == 0) {
     QSFP_LOG(ERR, this) << "Module has not selected application yet";
-    return SMFMediaInterfaceCode::UNKNOWN;
+    // Based on SFF-8024, an App / App Sel of 0 is undefined/Unknown.
+    return 0;
   }
 
   uint8_t currentApplication;
@@ -1090,23 +984,7 @@ SMFMediaInterfaceCode CmisModule::getSmfMediaInterface(uint8_t lane) const {
 
   getQsfpValue(dataAddress, offset, 1, &currentApplication);
 
-  return (SMFMediaInterfaceCode)currentApplication;
-}
-
-std::vector<MediaInterfaceCode> CmisModule::getSupportedMediaInterfacesLocked()
-    const {
-  std::vector<MediaInterfaceCode> supportedMediaInterfaces;
-
-  for (const auto& capability : moduleCapabilities_) {
-    auto smfMediaInterface =
-        static_cast<SMFMediaInterfaceCode>(capability.moduleMediaInterface);
-    if (mediaInterfaceMapping.find(smfMediaInterface) !=
-        mediaInterfaceMapping.end()) {
-      supportedMediaInterfaces.push_back(
-          mediaInterfaceMapping.at(smfMediaInterface));
-    }
-  }
-  return supportedMediaInterfaces;
+  return currentApplication;
 }
 
 MediaTypeEncodings CmisModule::getMediaTypeEncoding() const {
@@ -1124,14 +1002,12 @@ bool CmisModule::getMediaInterfaceId(
       mediaInterface[lane].lane() = lane;
       MediaInterfaceUnion media;
       media.smfCode_ref() = smfMediaInterface;
-      if (auto it = mediaInterfaceMapping.find(smfMediaInterface);
-          it != mediaInterfaceMapping.end()) {
-        mediaInterface[lane].code() = it->second;
-      } else {
+      mediaInterface[lane].code() =
+          CmisHelper::getMediaInterfaceCode(smfMediaInterface);
+      if (mediaInterface[lane].code() == MediaInterfaceCode::UNKNOWN) {
         QSFP_LOG(ERR, this)
             << "Unable to find MediaInterfaceCode for "
             << apache::thrift::util::enumNameSafe(smfMediaInterface);
-        mediaInterface[lane].code() = MediaInterfaceCode::UNKNOWN;
       }
       mediaInterface[lane].media() = media;
     }
@@ -2283,12 +2159,21 @@ void CmisModule::setApplicationSelectCodeAllPorts(
     uint8_t startHostLane,
     uint8_t numHostLanes,
     uint8_t hostLaneMask) {
-  if (auto laneProgramValues =
-          getValidMultiportSpeedConfig(speed, startHostLane, numHostLanes)) {
-    std::array<uint8_t, kMaxOsfpNumLanes> stageSet0Config;
+  auto laneProgramValues =
+      CmisHelper::getValidMultiportSpeedConfig<SMFMediaInterfaceCode>(
+          speed,
+          startHostLane,
+          numHostLanes,
+          laneMask(startHostLane, numHostLanes),
+          getNameString(),
+          moduleCapabilities_,
+          CmisHelper::getSmfValidSpeedCombinations(),
+          CmisHelper::getSmfSpeedApplicationMapping());
+  if (laneProgramValues.size() == kMaxOsfpNumLanes) {
+    AllLaneConfig stageSet0Config;
     for (auto lane = 0; lane < kMaxOsfpNumLanes;) {
-      if (auto laneCapability = getApplicationField(
-              static_cast<uint8_t>(laneProgramValues.value()[lane]), lane)) {
+      if (auto laneCapability =
+              getApplicationField(laneProgramValues[lane], lane)) {
         uint8_t currApSelCode = laneCapability.value().ApSelCode;
         for (auto currApLane = lane;
              currApLane < lane + laneCapability.value().hostLaneCount;
@@ -2314,6 +2199,29 @@ void CmisModule::setApplicationSelectCodeAllPorts(
 }
 
 /*
+ * setMaxFecSamplingLocked
+ *
+ * Sets the FEC monitor sampling ratio to maximum.
+ * Datapath state or module operation would not be interrupted during this
+ * configuration
+ */
+void CmisModule::setMaxFecSamplingLocked() {
+  // FLAGS_set_max_fec_sampling is used to roll out the feature
+  if (FLAGS_set_max_fec_sampling) {
+    auto mediaInterface = getModuleMediaInterface();
+    auto itr = kMaxProgFecSamplingSupportedMap_.find(mediaInterface);
+    if (itr != kMaxProgFecSamplingSupportedMap_.end()) {
+      uint8_t max = itr->second;
+      writeCmisField(CmisField::FEC_SAMPLING_PCT, &max);
+      QSFP_LOG(INFO, this) << folly::sformat(
+          "set sampling rate to max: {} for module media interface {}",
+          max,
+          apache::thrift::util::enumNameSafe(mediaInterface));
+    }
+  }
+}
+
+/*
  * setApplicationCodeLocked
  *
  * This function programs the application select code for a port using the speed
@@ -2330,9 +2238,9 @@ void CmisModule::setApplicationCodeLocked(
       "Trying to set application code for speed {} on startHostLane {}",
       apache::thrift::util::enumNameSafe(speed),
       startHostLane);
-  auto applicationIter = speedApplicationMapping.find(speed);
-
-  if (applicationIter == speedApplicationMapping.end()) {
+  auto appCodes = CmisHelper::getInterfaceCode(
+      speed, CmisHelper::getSmfSpeedApplicationMapping());
+  if (appCodes.empty()) {
     QSFP_LOG(INFO, this) << "Unsupported Speed.";
     throw FbossError(folly::to<std::string>(
         "Transceiver: ",
@@ -2386,9 +2294,8 @@ void CmisModule::setApplicationCodeLocked(
   // Loop through all the applications that we support for the given speed and
   // check if any of those are present in the moduleCapabilities. We configure
   // the first application that both we support and the module supports
-  for (auto application : applicationIter->second) {
-    auto capability =
-        getApplicationField(static_cast<uint8_t>(application), startHostLane);
+  for (auto application : appCodes) {
+    auto capability = getApplicationField(application, startHostLane);
 
     // Check if the module supports the application
     if (!capability) {
@@ -2405,7 +2312,7 @@ void CmisModule::setApplicationCodeLocked(
 
     // If the currently configured application is the same as what we are trying
     // to configure, then skip the configuration
-    if (static_cast<uint8_t>(application) == currentApplication) {
+    if (application == currentApplication) {
       QSFP_LOG(INFO, this) << "Speed matches. Doing nothing";
       // Make sure the datapath is initialized, otherwise initialize it before
       // returning
@@ -2457,6 +2364,7 @@ void CmisModule::setApplicationCodeLocked(
     usleep(kUsecAfterAppProgramming);
 
     // Check if the config has been applied correctly or not
+    // TODO: This is a failure scenario. We should Fail somehow !
     if (!checkLaneConfigError(startHostLane, numHostLanes)) {
       QSFP_LOG(ERR, this) << folly::sformat(
           "application {:#x} could not be set",
@@ -2474,42 +2382,12 @@ void CmisModule::setApplicationCodeLocked(
 }
 
 /*
- * getMediaIntfCodeFromSpeed
- *
- * Returns the media interface code for a given speed and the number of lanes on
- * this optics. This function uses the optics static value from register cache.
- * Pl note that the different optics can implement the same media interface code
- * using diferent number of lanes. ie: QSFP 400G-FR4 implements 400G-FR4 (code
- * 0x1d) using 8 lanes of 50G serdes on host whereas OSFP 2x400G-FR4 implements
- * the same 400G-FR4 (code 0x1d) using 4 lanes of 100G serdes on host.
- */
-SMFMediaInterfaceCode CmisModule::getMediaIntfCodeFromSpeed(
-    cfg::PortSpeed speed,
-    uint8_t numLanes) {
-  auto applicationIter = speedApplicationMapping.find(speed);
-  if (applicationIter == speedApplicationMapping.end()) {
-    return SMFMediaInterfaceCode::UNKNOWN;
-  }
-
-  for (auto application : applicationIter->second) {
-    for (const auto& capability : moduleCapabilities_) {
-      if (capability.moduleMediaInterface ==
-              static_cast<uint8_t>(application) &&
-          capability.hostLaneCount == numLanes) {
-        return application;
-      }
-    }
-  }
-  return SMFMediaInterfaceCode::UNKNOWN;
-}
-
-/*
  * isRequestValidMultiportSpeedConfig
  *
  * This function returns if the requested speed on given number of lanes will
  * result in valid config on the overall optics. If the requested config on
  * given lanes will result in non-supported speed config (as described in static
- * list osfpValidSpeedCombination) then this function returns false otherwise
+ * list getSmfValidSpeedCombinations) then this function returns false otherwise
  * returns true. This function does not rely on cache and does the directHW read
  * to know the current speed config on the lanes.
  */
@@ -2522,107 +2400,27 @@ bool CmisModule::isRequestValidMultiportSpeedConfig(
     return true;
   }
 
-  // Sanity check
-  auto desiredMediaIntfCode = getMediaIntfCodeFromSpeed(speed, numLanes);
-  if (desiredMediaIntfCode == SMFMediaInterfaceCode::UNKNOWN) {
-    QSFP_LOG(ERR, this) << "Unsupported Speed "
-                        << apache::thrift::util::enumNameSafe(speed);
-    return false;
-  }
-
   // Get the current speed config on the Multiport optics lanes. Avoid cache
   // and read from HW directly
-  std::array<uint8_t, kMaxOsfpNumLanes> currHwSpeedConfig;
+  AllLaneConfig currHwSpeedConfig;
   readCmisField(CmisField::ACTIVE_CTRL_ALL_LANES, currHwSpeedConfig.data());
   for (int laneId = 0; laneId < kMaxOsfpNumLanes; laneId++) {
     currHwSpeedConfig[laneId] =
         (currHwSpeedConfig[laneId] & APP_SEL_MASK) >> APP_SEL_BITSHIFT;
   }
 
-  // Find what will be the new config after applying the requested config
-  std::array<SMFMediaInterfaceCode, kMaxOsfpNumLanes> desiredSpeedConfig;
-  for (int laneId = 0; laneId < kMaxOsfpNumLanes; laneId++) {
-    if (laneId >= startHostLane && laneId < startHostLane + numLanes) {
-      desiredSpeedConfig[laneId] = desiredMediaIntfCode;
-    } else {
-      desiredSpeedConfig[laneId] =
-          getApplicationFromApSelCode(currHwSpeedConfig[laneId]);
-    }
-  }
-
-  // Check if this is supported speed config combo on this optics and return
-  for (auto& validSpeedCombo : osfpValidSpeedCombination) {
-    bool combolValid = true;
-    for (int laneId = 0; laneId < kMaxOsfpNumLanes; laneId++) {
-      if (validSpeedCombo[laneId] != desiredSpeedConfig[laneId]) {
-        combolValid = false;
-        break;
-      }
-    }
-    if (combolValid) {
-      QSFP_LOG(DBG2, this) << folly::sformat(
-          "Found the valid speed combo of media intf id {:s} for lanemask {:#x}",
-          apache::thrift::util::enumNameSafe(desiredMediaIntfCode),
-          laneMask(startHostLane, numLanes));
-      return true;
-    }
-  }
-  QSFP_LOG(DBG2, this) << folly::sformat(
-      "Could not find the valid speed combo of media intf id {:s} for lanemask {:#x}",
-      apache::thrift::util::enumNameSafe(desiredMediaIntfCode),
-      laneMask(startHostLane, numLanes));
-  return false;
-}
-
-/*
- * getValidMultiportSpeedConfig
- *
- * Returns the valid speed config for all the lanes of the multi-port optics
- * which matches closely with the supported speed combo on the optics. If no
- * valid speed combo is found then returns nullopt
- */
-std::optional<std::array<SMFMediaInterfaceCode, CmisModule::kMaxOsfpNumLanes>>
-CmisModule::getValidMultiportSpeedConfig(
-    cfg::PortSpeed speed,
-    uint8_t startHostLane,
-    uint8_t numLanes) {
-  auto desiredMediaIntfCode = getMediaIntfCodeFromSpeed(speed, numLanes);
-  if (desiredMediaIntfCode == SMFMediaInterfaceCode::UNKNOWN) {
-    QSFP_LOG(ERR, this) << "Unsupported Speed "
-                        << apache::thrift::util::enumNameSafe(speed);
-    return std::nullopt;
-  }
-
-  CHECK_LE(startHostLane + numLanes, kMaxOsfpNumLanes);
-  for (auto& validSpeedCombo : osfpValidSpeedCombination) {
-    bool combolValid = true;
-    for (int laneId = startHostLane; laneId < startHostLane + numLanes;
-         laneId++) {
-      if (validSpeedCombo[laneId] != desiredMediaIntfCode) {
-        combolValid = false;
-        break;
-      }
-    }
-    if (combolValid) {
-      std::string speedCfgCombo;
-      for (int laneId = 0; laneId < kMaxOsfpNumLanes; laneId++) {
-        speedCfgCombo +=
-            apache::thrift::util::enumNameSafe(validSpeedCombo[laneId]);
-        speedCfgCombo += " ";
-      }
-      QSFP_LOG(DBG2, this) << folly::sformat(
-          "Returning the valid speed combo of media intf id {:s} for lanemask {:#x} = {:s}",
-          apache::thrift::util::enumNameSafe(desiredMediaIntfCode),
-          laneMask(startHostLane, numLanes),
-          speedCfgCombo);
-      return validSpeedCombo;
-    }
-  }
-  QSFP_LOG(ERR, this) << folly::sformat(
-      "No valid speed combo found for speed {:s} and lanemask {:#x}",
-      apache::thrift::util::enumNameSafe(speed),
-      laneMask(startHostLane, numLanes));
-  return std::nullopt;
+  uint8_t mask = laneMask(startHostLane, numLanes);
+  auto tcvrName = getNameString();
+  return CmisHelper::checkSpeedCombo<SMFMediaInterfaceCode>(
+      speed,
+      startHostLane,
+      numLanes,
+      mask,
+      tcvrName,
+      moduleCapabilities_,
+      currHwSpeedConfig,
+      CmisHelper::getSmfValidSpeedCombinations(),
+      CmisHelper::getSmfSpeedApplicationMapping());
 }
 
 /*
@@ -2809,16 +2607,15 @@ bool CmisModule::tcvrPortStateSupported(TransceiverPortState& portState) const {
   auto speed = portState.speed;
   auto startHostLane = portState.startHostLane;
   auto numHostLanes = portState.numHostLanes;
-  auto applicationIter = speedApplicationMapping.find(speed);
-
-  if (applicationIter == speedApplicationMapping.end()) {
+  auto appCodes = CmisHelper::getInterfaceCode(
+      speed, CmisHelper::getSmfSpeedApplicationMapping());
+  if (appCodes.empty()) {
     // Speed Not supported
     return false;
   }
 
-  for (auto application : applicationIter->second) {
-    if (auto capability = getApplicationField(
-            static_cast<uint8_t>(application), startHostLane)) {
+  for (auto application : appCodes) {
+    if (auto capability = getApplicationField(application, startHostLane)) {
       // Application supported on the starting host lane
       auto hostLaneCount = capability->hostLaneCount;
       if (numHostLanes == hostLaneCount) {
@@ -2861,6 +2658,8 @@ void CmisModule::customizeTransceiverLocked(TransceiverPortState& portState) {
       writeCmisField(CmisField::RX_SQUELCH_DISABLE, &squelchDisableValue);
       QSFP_LOG(DBG1, this) << "Disabled TX and RX Squelch";
     }
+    // Set the FEC sampling if applicable.
+    setMaxFecSamplingLocked();
   } else {
     QSFP_LOG(DBG1, this) << "Customization not supported";
   }
@@ -3001,13 +2800,17 @@ MediaInterfaceCode CmisModule::getModuleMediaInterface() const {
         firstModuleCapability->moduleMediaInterface);
     if (smfCode == SMFMediaInterfaceCode::FR4_400G &&
         firstModuleCapability->hostStartLanes.size() == 2) {
-      moduleMediaInterface = MediaInterfaceCode::FR4_2x400G;
+      if (getQsfpSMFLength() == kFR4LiteSMFLength) {
+        moduleMediaInterface = MediaInterfaceCode::FR4_LITE_2x400G;
+      } else {
+        moduleMediaInterface = MediaInterfaceCode::FR4_2x400G;
+      }
     } else if (
         smfCode == SMFMediaInterfaceCode::DR4_400G &&
         firstModuleCapability->hostStartLanes.size() == 2) {
       moduleMediaInterface = MediaInterfaceCode::DR4_2x400G;
     } else {
-      moduleMediaInterface = mediaInterfaceMapping[smfCode];
+      moduleMediaInterface = CmisHelper::getMediaInterfaceCode(smfCode);
     }
   }
 
@@ -3550,8 +3353,8 @@ bool CmisModule::setPortPrbsLocked(
 
   // Step 3: Set the pattern for Checker (for starting case)
   if (startChk) {
-    auto cmisFields = (side == phy::Side::LINE) ? prbsChkMediaPatternFields
-                                                : prbsChkHostPatternFields;
+    auto& fields = (side == phy::Side::LINE) ? prbsChkMediaPatternFields
+                                             : prbsChkHostPatternFields;
 
     // Check that a valid polynomial is provided
     if (prbsPatternItr == prbsPatternMap.left.end()) {
@@ -3564,7 +3367,7 @@ bool CmisModule::setPortPrbsLocked(
     // There are 4 bytes, each contains pattern for 2 lanes
     uint8_t patternVal;
     for (auto lane : tcvrLanes) {
-      auto cmisReg = cmisFields[lane / 2];
+      auto cmisReg = fields[lane / 2];
       readCmisField(cmisReg, &patternVal);
       patternVal = (lane % 2 == 0)
           ? (patternVal & 0xF0) | (prbsPolynominal & 0x0F)
@@ -4336,6 +4139,10 @@ bool CmisModule::fillVdmPerfMonitorFecTail(VdmPerfMonitorStats& vdmStats) {
     if (auto fecTailMax =
             captureVdmFecTailValues(FEC_TAIL_MEDIA_IN_MAX, startLane)) {
       vdmStats.mediaPortVdmStats()[portName].fecTailMax() = fecTailMax.value();
+      // FIXME: We should check FEC type and set the max supported FEC tail. FEC
+      // Type is currently not available and hence hardcoding to 15 for now
+      vdmStats.mediaPortVdmStats()[portName].maxSupportedFecTail() =
+          kMaxFecTailRs544;
     }
     if (auto fecTailCurr =
             captureVdmFecTailValues(FEC_TAIL_MEDIA_IN_CURR, startLane)) {
@@ -4352,6 +4159,10 @@ bool CmisModule::fillVdmPerfMonitorFecTail(VdmPerfMonitorStats& vdmStats) {
     if (auto fecTailMax =
             captureVdmFecTailValues(FEC_TAIL_HOST_IN_MAX, startLane)) {
       vdmStats.hostPortVdmStats()[portName].fecTailMax() = fecTailMax.value();
+      // FIXME: We should check FEC type and set the max supported FEC tail. FEC
+      // Type is currently not available and hence hardcoding to 15 for now
+      vdmStats.hostPortVdmStats()[portName].maxSupportedFecTail() =
+          kMaxFecTailRs544;
     }
     if (auto fecTailCurr =
             captureVdmFecTailValues(FEC_TAIL_HOST_IN_CURR, startLane)) {

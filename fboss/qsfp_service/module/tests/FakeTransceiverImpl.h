@@ -28,12 +28,14 @@ class FakeTransceiverImpl : public TransceiverImpl {
   /* This function is used to read the SFP EEprom */
   int readTransceiver(
       const TransceiverAccessParameter& param,
-      uint8_t* fieldValue) override;
+      uint8_t* fieldValue,
+      const int field) override;
   /* write to the eeprom (usually to change the page setting) */
   int writeTransceiver(
       const TransceiverAccessParameter& param,
       const uint8_t* fieldValue,
-      uint64_t sleep) override;
+      uint64_t sleep,
+      const int field) override;
   /* This function detects if a SFP is present on the particular port */
   bool detectTransceiver() override;
   /* Returns the name for the port */
@@ -136,6 +138,11 @@ class Cmis400GFr4MultiPortTransceiver : public FakeTransceiverImpl {
 class Cmis2x400GFr4Transceiver : public FakeTransceiverImpl {
  public:
   explicit Cmis2x400GFr4Transceiver(int module, TransceiverManager* mgr);
+};
+
+class Cmis2x400GFr4LiteTransceiver : public FakeTransceiverImpl {
+ public:
+  explicit Cmis2x400GFr4LiteTransceiver(int module, TransceiverManager* mgr);
 };
 
 class Cmis2x400GDr4Transceiver : public FakeTransceiverImpl {

@@ -116,10 +116,18 @@ class CmdShowInterface
     populateVlanToPrefixes(vlanToPrefixes, intfDetails);
 
     std::optional<int32_t> localSysPortOffset, globalSysPortOffset;
-    for (const auto& idAndNode : dsfNodes) {
-      const auto& node = idAndNode.second;
-      if (utils::removeFbDomains(hostInfo.getName()) ==
-          utils::removeFbDomains(*node.name())) {
+
+    // Convert localhost to correct hostname
+    std::string hostname = hostInfo.getName();
+    auto hostnameOpt = utils::getMyHostname(hostname);
+    if (hostnameOpt.has_value()) {
+      hostname = hostnameOpt.value();
+    } else {
+      std::cerr << "Could not retrieve hostname." << std::endl;
+    }
+
+    for (const auto& [id, node] : dsfNodes) {
+      if (hostname == utils::removeFbDomains(*node.name())) {
         if (node.localSystemPortOffset().has_value()) {
           localSysPortOffset = *node.localSystemPortOffset();
         }

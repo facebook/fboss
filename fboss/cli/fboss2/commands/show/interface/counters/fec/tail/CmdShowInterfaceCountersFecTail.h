@@ -110,14 +110,8 @@ class CmdShowInterfaceCountersFecTail
     if (sideStats && sideStats->pcs()) {
       auto& pcsStats = *sideStats->pcs();
       if (auto fecStats = pcsStats.rsFec()) {
-        if (!fecStats->codewordStats()->empty()) {
-          int fecTail = 0;
-          for (auto it : *fecStats->codewordStats()) {
-            if (it.second) {
-              fecTail = fecTail > it.first ? fecTail : it.first;
-            }
-          }
-          return fecTail;
+        if (fecStats->fecTail().has_value()) {
+          return *fecStats->fecTail();
         }
       }
     }

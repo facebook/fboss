@@ -37,6 +37,7 @@
 #include <chrono>
 
 DECLARE_string(mac);
+DECLARE_uint64(egress_buffer_pool_size);
 DECLARE_uint64(ingress_egress_buffer_pool_size);
 DECLARE_bool(allow_zero_headroom_for_lossless_pg);
 namespace folly {
@@ -271,6 +272,14 @@ SystemPortID getInbandSystemPortID(
 cfg::Range64 getFirstSwitchSystemPortIdRange(
     const std::map<int64_t, cfg::SwitchInfo>& switchToSwitchInfo);
 
+cfg::Range64 getCoveringSysPortRange(
+    InterfaceID intf,
+    const std::map<int64_t, cfg::SwitchInfo>& switchIdToSwitchInfo);
+
+cfg::Range64 getCoveringSysPortRange(
+    SystemPortID intf,
+    const std::map<int64_t, cfg::SwitchInfo>& switchIdToSwitchInfo);
+
 std::vector<PortID> getPortsForInterface(
     InterfaceID intf,
     const std::shared_ptr<SwitchState>& state);
@@ -437,6 +446,10 @@ InterfaceID getInbandPortIntfID(
 std::pair<std::string, std::string> getExpectedNeighborAndPortName(
     const cfg::Port& port);
 
+const facebook::fboss::PlatformMapping* FOLLY_NULLABLE
+getPlatformMappingForPlatformType(
+    const facebook::fboss::PlatformType platformType);
+
 int getRemoteSwitchID(
     const cfg::SwitchConfig* cfg,
     const cfg::Port& port,
@@ -448,4 +461,12 @@ CpuCosQueueId hwQueueIdToCpuCosQueueId(
     const HwAsic* asic,
     HwSwitchFb303Stats* hwswitchStats);
 int numFabricLevels(const std::map<int64_t, cfg::DsfNode>& dsfNodes);
+
+const std::vector<cfg::AclLookupClass>& getToCpuClassIds();
+
+bool isStringInFile(
+    const std::string& filename,
+    const std::string& str,
+    int maxLinesToSearch);
+
 } // namespace facebook::fboss

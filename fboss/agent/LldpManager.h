@@ -24,6 +24,8 @@ class Cursor;
 }
 } // namespace folly
 
+enum LldpValidationResult { SUCCESS, MISMATCH, MISSING };
+
 namespace facebook::fboss {
 
 class RxPacket;

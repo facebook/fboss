@@ -38,16 +38,20 @@ class Tomahawk4Asic : public BroadcomXgsAsic {
   uint64_t getMMUSizeBytes() const override {
     return 2 * 234606 * 254;
   }
+  uint64_t getSramSizeBytes() const override {
+    // No HBM!
+    return getMMUSizeBytes();
+  }
   uint32_t getMMUCellSize() const {
     return 254;
   }
-  uint64_t getDefaultReservedBytes(
+  std::optional<uint64_t> getDefaultReservedBytes(
       cfg::StreamType /*streamType*/,
       cfg::PortType portType) const override {
     /* TODO: Mimicking TH3 size here, figure out the defaults for TH4*/
     return portType == cfg::PortType::CPU_PORT ? 1778 : 0;
   }
-  cfg::MMUScalingFactor getDefaultScalingFactor(
+  std::optional<cfg::MMUScalingFactor> getDefaultScalingFactor(
       cfg::StreamType /*streamType*/,
       bool /*cpu*/) const override {
     /* TODO: Mimicking TH3 size here, figure out the defaults for TH4*/
@@ -111,6 +115,13 @@ class Tomahawk4Asic : public BroadcomXgsAsic {
   std::optional<uint32_t> getMaxAclEntries() const override {
     // Max ACL entries per ACL table
     return 256;
+  }
+  std::optional<uint32_t> getMaxNdpTableSize() const override {
+    return 8192;
+  }
+
+  std::optional<uint32_t> getMaxArpTableSize() const override {
+    return 16384;
   }
 };
 

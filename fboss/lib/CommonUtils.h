@@ -95,7 +95,8 @@ inline int64_t getCumulativeValue(const StatT& stat, bool hasSumSuffix = true) {
         std::this_thread::sleep_for(sleepTime);                         \
       }                                                                 \
       /* Only switch to hard test on last retry */                      \
-      bool WITH_RETRIES_softTest = WITH_RETRIES_tries != maxRetries;    \
+      [[maybe_unused]] bool WITH_RETRIES_softTest =                     \
+          WITH_RETRIES_tries != maxRetries;                             \
       bool WITH_RETRIES_pass = true;                                    \
       /* _ASSERT_EVENTUALLY and _EXPECT_EVENTUALLY will read            \
        * WITH_RETRIES_softTest to decide how to assert.                 \
@@ -211,5 +212,8 @@ void runAndRemoveScript(
     const std::vector<std::string>& args = {});
 void runShellCommand(const std::string& command, bool throwOnError = true);
 void runCommand(const std::vector<std::string>& argv, bool throwOnError = true);
+void runCommandWithRetries(
+    const std::vector<std::string>& argv,
+    const std::chrono::milliseconds& ms = std::chrono::milliseconds(500));
 
 } // namespace facebook::fboss

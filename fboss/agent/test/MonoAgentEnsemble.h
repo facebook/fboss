@@ -25,8 +25,6 @@ class MonoAgentEnsemble : public AgentEnsemble {
       PlatformInitFn initPlatform) override;
   void reloadPlatformConfig() override;
   bool isSai() const override;
-  HwSwitch* getHwSwitch() override;
-  const HwSwitch* getHwSwitch() const override;
   void ensureHwSwitchConnected(SwitchID /*switchId*/) override {
     // nothing to do for monolithic agent
   }

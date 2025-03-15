@@ -1,8 +1,8 @@
+# pyre-strict
 import fcntl
 import os
-from typing import Dict, List
 
-from fboss.platform.bsp_tests.utils.cdev_types import (
+from fboss.platform.bsp_tests.cdev_types import (
     AuxDevice,
     fbiob_aux_data,
     FpgaSpec,
@@ -11,9 +11,9 @@ from fboss.platform.bsp_tests.utils.cdev_types import (
 from ioctl_opt import IOW
 
 
-FBIOB_IOC_MAGIC = ord("F")
-FBIOB_IOC_NEW_DEVICE = IOW(FBIOB_IOC_MAGIC, 1, fbiob_aux_data)
-FBIOB_IOC_DEL_DEVICE = IOW(FBIOB_IOC_MAGIC, 2, fbiob_aux_data)  # noqa
+FBIOB_IOC_MAGIC: int = ord("F")
+FBIOB_IOC_NEW_DEVICE: int = IOW(FBIOB_IOC_MAGIC, 1, fbiob_aux_data)
+FBIOB_IOC_DEL_DEVICE: int = IOW(FBIOB_IOC_MAGIC, 2, fbiob_aux_data)  # noqa
 
 
 def create_new_device(fpga: FpgaSpec, device: AuxDevice, id: int = 1) -> None:
@@ -53,6 +53,12 @@ def make_cdev_path(fpga: FpgaSpec) -> str:
     return f"/dev/fbiob_{vendor}.{device}.{subsystemVendor}.{subsystemDevice}"
 
 
+def make_fpga_name(fpga: FpgaSpec) -> str:
+    return ".".join(
+        [fpga.vendorId, fpga.deviceId, fpga.subSystemVendorId, fpga.subSystemDeviceId]
+    )
+
+
 def find_fpga_dirs(fpgas: list[FpgaSpec]) -> dict[str, str]:
     ret: dict[str, str] = {}
     for fpga in fpgas:
@@ -63,7 +69,7 @@ def find_fpga_dirs(fpgas: list[FpgaSpec]) -> dict[str, str]:
                 continue
             if check_files_for_fpga(fpga, subdir_path):
                 found = True
-                ret[fpga.name] = subdir_path
+                ret[make_fpga_name(fpga)] = subdir_path
                 break
         if not found:
             raise Exception(f"Could not find dir for fpga {fpga}")

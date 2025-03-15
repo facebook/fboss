@@ -153,12 +153,35 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
           getCounterPrefix() + "deleted_credit_bytes",
           SUM,
           RATE),
-      fabricReachabilityMissingCount_(
+      rqpFabricCellCorruptionDrops_(
           map,
-          getCounterPrefix() + "fabric_reachability_missing"),
-      fabricReachabilityMismatchCount_(
+          getCounterPrefix() + "rqp_fabric_cell_corruption_drops",
+          SUM,
+          RATE),
+      rqpNonFabricCellCorruptionDrops_(
           map,
-          getCounterPrefix() + "fabric_reachability_mismatch"),
+          getCounterPrefix() + "rqp_non_fabric_cell_corruption_drops",
+          SUM,
+          RATE),
+      rqpNonFabricCellMissingDrops_(
+          map,
+          getCounterPrefix() + "rqp_non_fabric_cell_missing_drops",
+          SUM,
+          RATE),
+      rqpParityErrorDrops_(
+          map,
+          getCounterPrefix() + "rqp_parity_error_drops",
+          SUM,
+          RATE),
+      fabricConnectivityMissingCount_(
+          map,
+          getCounterPrefix() + "fabric_connectivity_missing"),
+      fabricConnectivityMismatchCount_(
+          map,
+          getCounterPrefix() + "fabric_connectivity_mismatch"),
+      fabricConnectivityBogusCount_(
+          map,
+          getCounterPrefix() + "fabric_connectivity_bogus"),
       virtualDevicesWithAsymmetricConnectivity_(
           map,
           getCounterPrefix() + "virtual_devices_with_asymmetric_connectivity"),
@@ -176,6 +199,21 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
           getCounterPrefix() + vendor + ".aligner.errors",
           SUM,
           RATE),
+      reassemblyErrors_(
+          map,
+          getCounterPrefix() + vendor + ".reassembly.errors",
+          SUM,
+          RATE),
+      fdrFifoOverflowErrors_(
+          map,
+          getCounterPrefix() + vendor + ".fdr.fifo_overflow.errors",
+          SUM,
+          RATE),
+      fdaFifoOverflowErrors_(
+          map,
+          getCounterPrefix() + vendor + ".fda.fifo_overflow.errors",
+          SUM,
+          RATE),
       forwardingQueueProcessorErrors_(
           map,
           getCounterPrefix() + vendor + ".forwardingQueueProcessor.errors",
@@ -184,6 +222,16 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
       allReassemblyContextsTaken_(
           map,
           getCounterPrefix() + vendor + ".allReassemblyContextsTaken.errors",
+          SUM,
+          RATE),
+      isolationFirmwareCrashes_(
+          map,
+          getCounterPrefix() + vendor + ".isolationFirmwareCrash",
+          SUM,
+          RATE),
+      rxFifoStuckDetected_(
+          map,
+          getCounterPrefix() + vendor + ".rxFifoStuckDetected.errors",
           SUM,
           RATE),
       hwInitializedTimeMs_(
@@ -219,7 +267,10 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
           map,
           getCounterPrefix() + "invalid_queue_rx_packets",
           SUM,
-          RATE) {}
+          RATE),
+      arsResourceExhausted_(
+          map,
+          getCounterPrefix() + "ars_resource_exhausted") {}
 
 void HwSwitchFb303Stats::update(const HwSwitchDropStats& dropStats) {
   if (dropStats.globalDrops().has_value()) {
@@ -286,6 +337,27 @@ void HwSwitchFb303Stats::update(const HwSwitchDropStats& dropStats) {
         *dropStats.missingCellPacketIntegrityDrops() -
         currentDropStats_.missingCellPacketIntegrityDrops().value_or(0));
   }
+  if (dropStats.rqpFabricCellCorruptionDrops().has_value()) {
+    rqpFabricCellCorruptionDrops_.addValue(
+        *dropStats.rqpFabricCellCorruptionDrops() -
+        currentDropStats_.rqpFabricCellCorruptionDrops().value_or(0));
+  }
+  if (dropStats.rqpNonFabricCellCorruptionDrops().has_value()) {
+    rqpNonFabricCellCorruptionDrops_.addValue(
+        *dropStats.rqpNonFabricCellCorruptionDrops() -
+        currentDropStats_.rqpNonFabricCellCorruptionDrops().value_or(0));
+  }
+  if (dropStats.rqpNonFabricCellMissingDrops().has_value()) {
+    rqpNonFabricCellMissingDrops_.addValue(
+        *dropStats.rqpNonFabricCellMissingDrops() -
+        currentDropStats_.rqpNonFabricCellMissingDrops().value_or(0));
+  }
+  if (dropStats.rqpParityErrorDrops().has_value()) {
+    rqpParityErrorDrops_.addValue(
+        *dropStats.rqpParityErrorDrops() -
+        currentDropStats_.rqpParityErrorDrops().value_or(0));
+  }
+
   currentDropStats_ = dropStats;
 }
 
@@ -339,6 +411,18 @@ int64_t HwSwitchFb303Stats::getAlignerErrors() const {
   return getCumulativeValue(alignerErrors_);
 }
 
+int64_t HwSwitchFb303Stats::getReassemblyErrors() const {
+  return getCumulativeValue(reassemblyErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getFdrFifoOverflowErrors() const {
+  return getCumulativeValue(fdrFifoOverflowErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getFdaFifoOverflowErrors() const {
+  return getCumulativeValue(fdaFifoOverflowErrors_);
+}
+
 int64_t HwSwitchFb303Stats::getForwardingQueueProcessorErrors() const {
   return getCumulativeValue(forwardingQueueProcessorErrors_);
 }
@@ -346,6 +430,15 @@ int64_t HwSwitchFb303Stats::getForwardingQueueProcessorErrors() const {
 int64_t HwSwitchFb303Stats::getAllReassemblyContextsTakenError() const {
   return getCumulativeValue(allReassemblyContextsTaken_);
 }
+
+int64_t HwSwitchFb303Stats::getIsolationFirmwareCrashes() const {
+  return getCumulativeValue(isolationFirmwareCrashes_);
+}
+
+int64_t HwSwitchFb303Stats::getRxFifoStuckDetected() const {
+  return getCumulativeValue(rxFifoStuckDetected_);
+}
+
 int64_t HwSwitchFb303Stats::getPacketIntegrityDrops() const {
   return currentDropStats_.packetIntegrityDrops().value_or(0);
 }
@@ -401,27 +494,37 @@ HwAsicErrors HwSwitchFb303Stats::getHwAsicErrors() const {
   asicErrors.alignerErrors() = getAlignerErrors();
   asicErrors.forwardingQueueProcessorErrors() =
       getForwardingQueueProcessorErrors();
+  asicErrors.reassemblyErrors() = getReassemblyErrors();
+  asicErrors.fdrFifoOverflowErrors() = getFdrFifoOverflowErrors();
+  asicErrors.fdaFifoOverflowErrors() = getFdaFifoOverflowErrors();
   asicErrors.allReassemblyContextsTaken() =
       getAllReassemblyContextsTakenError();
+  asicErrors.isolationFirmwareCrashes() = getIsolationFirmwareCrashes();
+  asicErrors.rxFifoStuckDetected() = getRxFifoStuckDetected();
   return asicErrors;
 }
 
 FabricReachabilityStats HwSwitchFb303Stats::getFabricReachabilityStats() {
   FabricReachabilityStats stats;
-  stats.mismatchCount() = getFabricReachabilityMismatchCount();
-  stats.missingCount() = getFabricReachabilityMissingCount();
+  stats.mismatchCount() = getFabricConnectivityMismatchCount();
+  stats.missingCount() = getFabricConnectivityMissingCount();
   stats.virtualDevicesWithAsymmetricConnectivity() =
       getVirtualDevicesWithAsymmetricConnectivityCount();
   stats.switchReachabilityChangeCount() = getSwitchReachabilityChangeCount();
+  stats.bogusCount() = getFabricConnectivityBogusCount();
   return stats;
 }
 
-void HwSwitchFb303Stats::fabricReachabilityMissingCount(int64_t value) {
-  fb303::fbData->setCounter(fabricReachabilityMissingCount_.name(), value);
+void HwSwitchFb303Stats::fabricConnectivityMissingCount(int64_t value) {
+  fb303::fbData->setCounter(fabricConnectivityMissingCount_.name(), value);
 }
 
-void HwSwitchFb303Stats::fabricReachabilityMismatchCount(int64_t value) {
-  fb303::fbData->setCounter(fabricReachabilityMismatchCount_.name(), value);
+void HwSwitchFb303Stats::fabricConnectivityMismatchCount(int64_t value) {
+  fb303::fbData->setCounter(fabricConnectivityMismatchCount_.name(), value);
+}
+
+void HwSwitchFb303Stats::fabricConnectivityBogusCount(int64_t value) {
+  fb303::fbData->setCounter(fabricConnectivityBogusCount_.name(), value);
 }
 
 void HwSwitchFb303Stats::virtualDevicesWithAsymmetricConnectivity(
@@ -445,15 +548,25 @@ void HwSwitchFb303Stats::leabaSdkVer(int64_t ver) {
   fb303::fbData->setCounter(leabaSdkVer_.name(), ver);
 }
 
-int64_t HwSwitchFb303Stats::getFabricReachabilityMismatchCount() const {
+void HwSwitchFb303Stats::arsResourceExhausted(bool exhausted) {
+  fb303::fbData->setCounter(arsResourceExhausted_.name(), exhausted ? 1 : 0);
+}
+
+int64_t HwSwitchFb303Stats::getFabricConnectivityMismatchCount() const {
   auto counterVal = fb303::fbData->getCounterIfExists(
-      fabricReachabilityMismatchCount_.name());
+      fabricConnectivityMismatchCount_.name());
   return counterVal ? *counterVal : 0;
 }
 
-int64_t HwSwitchFb303Stats::getFabricReachabilityMissingCount() const {
+int64_t HwSwitchFb303Stats::getFabricConnectivityMissingCount() const {
   auto counterVal =
-      fb303::fbData->getCounterIfExists(fabricReachabilityMissingCount_.name());
+      fb303::fbData->getCounterIfExists(fabricConnectivityMissingCount_.name());
+  return counterVal ? *counterVal : 0;
+}
+
+int64_t HwSwitchFb303Stats::getFabricConnectivityBogusCount() const {
+  auto counterVal =
+      fb303::fbData->getCounterIfExists(fabricConnectivityBogusCount_.name());
   return counterVal ? *counterVal : 0;
 }
 
@@ -487,9 +600,10 @@ HwSwitchFb303GlobalStats HwSwitchFb303Stats::getAllFb303Stats() const {
   hwFb303Stats.dram_blocked_time_ns() =
       getCumulativeValue(dramBlockedTimeNsec_);
   hwFb303Stats.fabric_reachability_missing() =
-      getFabricReachabilityMismatchCount();
+      getFabricConnectivityMismatchCount();
   hwFb303Stats.fabric_reachability_mismatch() =
-      getFabricReachabilityMissingCount();
+      getFabricConnectivityMissingCount();
+  hwFb303Stats.fabric_connectivity_bogus() = getFabricConnectivityBogusCount();
   hwFb303Stats.virtual_devices_with_asymmetric_connectivity() =
       getVirtualDevicesWithAsymmetricConnectivityCount();
   hwFb303Stats.switch_reachability_change() =
@@ -541,11 +655,14 @@ void HwSwitchFb303Stats::updateStats(HwSwitchFb303GlobalStats& globalStats) {
       switchReachabilityChangeCount_,
       *globalStats.switch_reachability_change());
   fb303::fbData->setCounter(
-      fabricReachabilityMissingCount_.name(),
+      fabricConnectivityMissingCount_.name(),
       *globalStats.fabric_reachability_missing());
   fb303::fbData->setCounter(
-      fabricReachabilityMismatchCount_.name(),
+      fabricConnectivityMismatchCount_.name(),
       *globalStats.fabric_reachability_mismatch());
+  fb303::fbData->setCounter(
+      fabricConnectivityBogusCount_.name(),
+      *globalStats.fabric_connectivity_bogus());
 }
 
 } // namespace facebook::fboss

@@ -35,6 +35,15 @@ SaiYangraPlatform::SaiYangraPlatform(
               : std::make_unique<YangraPlatformMapping>(platformMappingStr),
           localMac) {}
 
+SaiYangraPlatform::SaiYangraPlatform(
+    std::unique_ptr<PlatformProductInfo> productInfo,
+    folly::MacAddress localMac,
+    std::unique_ptr<PlatformMapping> platformMapping)
+    : SaiPlatform(
+          std::move(productInfo),
+          std::move(platformMapping),
+          localMac) {}
+
 void SaiYangraPlatform::setupAsic(
     std::optional<int64_t> switchId,
     const cfg::SwitchInfo& switchInfo,
@@ -49,7 +58,12 @@ HwAsic* SaiYangraPlatform::getAsic() const {
 }
 const std::unordered_map<std::string, std::string>
 SaiYangraPlatform::getSaiProfileVendorExtensionValues() const {
-  return std::unordered_map<std::string, std::string>();
+  std::unordered_map<std::string, std::string> kv_map;
+  kv_map.insert(std::make_pair("SAI_KEY_AUTO_POPULATE_PORT_DB", "1"));
+  kv_map.insert(std::make_pair("SAI_KEY_NOT_DROP_SMAC_DMAC_EQUAL", "1"));
+  kv_map.insert(std::make_pair("SAI_KEY_RECLAIM_BUFFER_ENABLED", "0"));
+  kv_map.insert(std::make_pair("SAI_KEY_TRAP_PACKETS_USING_CALLBACK", "1"));
+  return kv_map;
 }
 
 const std::set<sai_api_t>& SaiYangraPlatform::getSupportedApiList() const {
@@ -70,13 +84,29 @@ SaiYangraPlatform::getAclFieldList() const {
   return std::nullopt;
 }
 std::string SaiYangraPlatform::getHwConfig() {
-  std::string xml_filename = "/usr/share/sai_5600.xml";
-  std::ifstream xml_file(xml_filename);
+  std::string xml_filename =
+      *config()->thrift.platform()->get_chip().get_asic().config();
+  std::string base_filename =
+      xml_filename.substr(0, xml_filename.find(".xml") + 4);
+  std::ifstream xml_file(base_filename);
   std::string xml_config(
       (std::istreambuf_iterator<char>(xml_file)),
       std::istreambuf_iterator<char>());
   // std::cout << "Read config from: " << xml_filename << std::endl;
   // std::cout << "Content:" << std::endl << xml_config << std::endl;
+  if (xml_filename.find(";disable_lb_filter") != std::string::npos) {
+    std::string keyTag = "</issu-enabled>";
+    std::string newKeyTag = "<lb_filter_disable>1</lb_filter_disable>";
+    int indentSpaces = 8;
+
+    size_t pos = xml_config.find(keyTag);
+    if (pos != std::string::npos) {
+      xml_config.insert(
+          pos + keyTag.length(), std::string(indentSpaces, ' ') + newKeyTag);
+    } else {
+      std::cerr << "Tag " << keyTag << " not found in XML." << std::endl;
+    }
+  }
   return xml_config;
 }
 

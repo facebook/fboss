@@ -74,6 +74,12 @@ class HwBasePortFb303Stats {
       folly::StringPiece portName,
       PfcPriority priority);
 
+  /*
+   * Priority group stat name
+   */
+  static std::string
+  pgStatName(folly::StringPiece statName, folly::StringPiece portName, int pg);
+
   int64_t getCounterLastIncrement(
       folly::StringPiece statKey,
       std::optional<int64_t> defaultVal = std::nullopt) const;
@@ -84,11 +90,15 @@ class HwBasePortFb303Stats {
       const = 0;
   virtual const std::vector<folly::StringPiece>&
   kQueueMonotonicCounterStatKeys() const = 0;
+  virtual const std::vector<folly::StringPiece>& kQueueFb303CounterStatKeys()
+      const = 0;
   virtual const std::vector<folly::StringPiece>&
   kInMacsecPortMonotonicCounterStatKeys() const = 0;
   virtual const std::vector<folly::StringPiece>&
   kOutMacsecPortMonotonicCounterStatKeys() const = 0;
   virtual const std::vector<folly::StringPiece>& kPfcMonotonicCounterStatKeys()
+      const = 0;
+  virtual const std::vector<folly::StringPiece>& kPriorityGroupCounterStatKeys()
       const = 0;
 
  protected:
@@ -116,6 +126,14 @@ class HwBasePortFb303Stats {
       const std::chrono::seconds& now,
       folly::StringPiece statKey,
       PfcPriority priority,
+      int64_t val);
+  /*
+   * update port priority group stat
+   */
+  void updatePgStat(
+      const std::chrono::seconds& now,
+      folly::StringPiece statKey,
+      int pg,
       int64_t val);
 
   void updateQueueWatermarkStats(

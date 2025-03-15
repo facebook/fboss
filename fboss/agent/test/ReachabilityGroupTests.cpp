@@ -32,15 +32,7 @@ class ReachabilityGroupTest : public ::testing::Test {
     const auto& state = sw_->getState();
     for (const auto& [_, switchSettings] :
          std::as_const(*state->getSwitchSettings())) {
-      if (expectedSize > 0) {
-        EXPECT_TRUE(switchSettings->getReachabilityGroupListSize().has_value());
-        EXPECT_EQ(
-            switchSettings->getReachabilityGroupListSize().value(),
-            expectedSize);
-      } else {
-        EXPECT_FALSE(
-            switchSettings->getReachabilityGroupListSize().has_value());
-      }
+      EXPECT_EQ(switchSettings->getReachabilityGroups().size(), expectedSize);
     }
   }
 
@@ -161,8 +153,11 @@ TEST_F(ReachabilityGroupSingleStageFdswNoParallelIntfLinkTest, test) {
 TEST_F(ReachabilityGroupDualStageFdswNoParallelIntfLinkTest, test) {
   // Dual stage FDSW with no parallel links to interface node.
   // One group for uplinks to SDSW (1) and one group for downlink to RDSW (2).
-  verifyReachabilityGroupListSize(2);
+  // However, SDK requires one group per RDSW downlink, hence we have 1 group
+  // for uplinks to SDSW and 18 groups to RDSW.
+  verifyReachabilityGroupListSize(19);
 
+  int expectedInterfaceNodeReachabilityGroup = 129;
   for (const auto& [_, portMap] : std::as_const(*sw_->getState()->getPorts())) {
     for (const auto& [_, port] : std::as_const(*portMap)) {
       auto neighborDsfNodeType =
@@ -171,7 +166,9 @@ TEST_F(ReachabilityGroupDualStageFdswNoParallelIntfLinkTest, test) {
       EXPECT_TRUE(port->getReachabilityGroupId().has_value());
       EXPECT_EQ(
           port->getReachabilityGroupId().value(),
-          neighborDsfNodeType == cfg::DsfNodeType::FABRIC_NODE ? 1 : 2);
+          neighborDsfNodeType == cfg::DsfNodeType::FABRIC_NODE
+              ? 1
+              : expectedInterfaceNodeReachabilityGroup++);
     }
   }
 }
@@ -229,7 +226,9 @@ TEST_F(
     configUpdateToParallelIntfLinks) {
   // Dual stage FDSW with no parallel links to interface node.
   // One group for uplinks to SDSW (1) and one group for downlink to RDSW (2).
-  verifyReachabilityGroupListSize(2);
+  // However, SDK requires one group per RDSW downlink, hence we have 1 group
+  // for uplinks to SDSW and 18 groups to RDSW.
+  verifyReachabilityGroupListSize(19);
 
   const auto newConfig = testConfigFabricSwitch(
       true /* dualStage*/,
@@ -318,4 +317,15 @@ TEST_F(ReachabilityGroupSingleStageFdswTest, changeNumParallelLinks) {
   }
 }
 
+TEST_F(
+    ReachabilityGroupDualStageFdswNoParallelIntfLinkTest,
+    invalidIntfLinkConfig) {
+  // Have last two ports facing the same neighbor - this is incorrect interface
+  // link setting for balanced input mode.
+  auto newConfig = initialConfig();
+  auto numPorts = newConfig.ports()->size();
+  (*newConfig.ports())[numPorts - 1].expectedNeighborReachability() =
+      *(*newConfig.ports())[numPorts - 2].expectedNeighborReachability();
+  EXPECT_THROW(sw_->applyConfig("Invalid config", newConfig), FbossError);
+}
 } // namespace facebook::fboss

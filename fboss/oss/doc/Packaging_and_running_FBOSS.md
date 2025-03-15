@@ -2,8 +2,8 @@
 
 ## Requirements
  - FBOSS OSS binaries built as per the instructions in Building FBOSS OSS on Containers
- - HW switch running CentOS 8
- - ASIC sendor SDK kmods built as per the instructions from ASIC vendor and installed on the HW switch
+ - HW switch running CentOS 9
+ - ASIC vendor SDK kmods built as per the instructions from ASIC vendor and installed on the HW switch
 
 ## Packaging FBOSS
 
@@ -89,3 +89,60 @@ FBOSS tests can be launched by executing the test runner script. The script auto
 ```
 ./bin/run_test.py sai --sai-bin sai_test-sai_impl-1.12.0 --config ./share/hw_test_configs/meru400biu.agent.materialized_JSON --filter=HwVoqSwitchWithFabricPortsTest.*
 ```
+
+## How to use run_test.py
+
+The `run_test.py` script is a helper utility to simplify the process of running various types of FBOSS-related tests on a hardware device. It can be used to run the following types of tests:
+
+- BCM tests
+- SAI tests
+- QSFP Hardware tests
+- Link tests
+- SAI Agent tests
+
+Examples of the command to run for each of the various tyeps of tests are shown below.
+
+### SAI tests
+
+```
+# Run sanity tests for Jericho2
+./run_test.py sai --config meru400biu.agent.materialized_JSON --coldboot_only --filter_file=/root/jericho2_sanity_tests
+
+# Run sanity tests for Ramon
+./run_test.py sai --config meru400bfu.agent.materialized_JSON --coldboot_only --filter_file=/root/ramon_sanity_tests
+
+# Run entire BCM SAI XGS Regression for a specific ASIC type and SDK
+./run_test.py sai --config fuji.agent.materialized_JSON --skip-known-bad-tests "brcm/8.2.0.0_odp/8.2.0.0_odp/tomahawk4"
+
+# Run entire SAI DNX regression for Jericho2 and SDK
+./run_test.py sai --config meru400biu.agent.materialized_JSON --skip-known-bad-tests "brcm/9.0_ea_dnx_odp/9.0_ea_dnx_odp/jericho2"
+```
+
+### QSFP Hardware tests
+
+```
+# Run all QSFP HW tests
+./run_test.py qsfp --qsfp-config $qsfpConfFile
+
+# Run EmptyHwTest.CheckInit using non-default platform mapping configs.
+./run_test.py qsfp --qsfp-config ./test_qsfp_config_current --filter=EmptyHwTest.CheckInit --bsp_platform_mapping_override_path /fake/bad/path --platform_mapping_override_path /another/bad/path
+```
+
+Special flags:
+
+1. `--filter`: FBOSS uses GTEST for it's test cases, and supports filtering tests via `--gtest_filter` ([doc](https://google.github.io/googletest/advanced.html#running-a-subset-of-the-tests)). The filter is passed through to the test binary.
+1. `--bsp_platform_mapping_override_path`: an optional flag to override the BSP platform mapping. This value is passed through to the QSFP HW test binary.
+1. `--platform_mapping_override_path`: an optioanl flag to override the ASIC platform mapping. This value is passed through to the QSFP HW test binary.
+
+### Link tests
+
+```
+# Run LinkTest.asicLinkFlap for meru400bia using non-default platform mapping configs.
+./bin/run_test.py link --config share/link_test_configs/meru400bia.materialized_JSON --qsfp-config share/qsfp_test_configs/meru400bia.materialized_JSON --filter=LinkTest.asicLinkFlap --platform_mapping_override_path /path/to/something --bsp_platform_mapping_override_path /path/to/something/else
+```
+
+Special flags:
+
+1. `--filter`: FBOSS uses GTEST for it's test cases, and supports filtering tests via `--gtest_filter` ([doc](https://google.github.io/googletest/advanced.html#running-a-subset-of-the-tests)). The filter is passed through to the test binary.
+1. `--bsp_platform_mapping_override_path`: an optional flag to override the BSP platform mapping. This value is passed through to the QSFP service binary.
+1. `--platform_mapping_override_path`: an optioanl flag to override the ASIC platform mapping. This value is passed through to the QSFP service binary and the link tests binary.

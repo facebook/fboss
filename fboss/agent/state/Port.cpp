@@ -85,6 +85,11 @@ InterfaceID Port::getInterfaceID() const {
   return InterfaceID(intfs.at(0));
 }
 
+void Port::setActiveErrors(const std::set<PortError>& errors) {
+  set<switch_state_tags::activeErrors>(
+      std::vector<PortError>(errors.begin(), errors.end()));
+}
+
 void Port::addError(PortError error) {
   auto& errors = safe_cref<switch_state_tags::activeErrors>()->impl();
   if (std::find(errors.cbegin(), errors.cend(), error) != errors.end()) {

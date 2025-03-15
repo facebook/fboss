@@ -15,6 +15,7 @@ cpp_library(
         "//fboss/fsdb/client:fsdb_syncer",
         "//fboss/fsdb/common:flags",
         "//fboss/fsdb/if:fsdb_model",
+        "//fboss/lib/if:pim_state-cpp2-types",
         "//fboss/lib/phy:phy-cpp2-reflection",
         "//fboss/lib/phy:phy-cpp2-types",
         "//fboss/qsfp_service/if:config-cpp2-types",

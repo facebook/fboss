@@ -39,16 +39,22 @@ class Jericho2Asic : public BroadcomAsic {
     // OBM+HBM is available to user of the total ~8G.
     return uint64_t(6) * 1024 * 1024 * 1024;
   }
+
+  uint64_t getSramSizeBytes() const override {
+    // 64MB
+    return 64 * 1024 * 1024;
+  }
+
   uint32_t getMMUCellSize() const {
     return 254;
   }
   uint32_t getMaxMirrors() const override {
     return 4;
   }
-  uint64_t getDefaultReservedBytes(
+  std::optional<uint64_t> getDefaultReservedBytes(
       cfg::StreamType streamType,
       cfg::PortType portType) const override;
-  cfg::MMUScalingFactor getDefaultScalingFactor(
+  std::optional<cfg::MMUScalingFactor> getDefaultScalingFactor(
       cfg::StreamType /*streamType*/,
       bool /*cpu*/) const override {
     return cfg::MMUScalingFactor::TWO;
@@ -94,7 +100,8 @@ class Jericho2Asic : public BroadcomAsic {
     return true;
   }
   cfg::Range64 getReservedEncapIndexRange() const override;
-  HwAsic::RecyclePortInfo getRecyclePortInfo() const override;
+  HwAsic::RecyclePortInfo getRecyclePortInfo(
+      InterfaceNodeRole intfRole) const override;
   uint32_t getNumMemoryBuffers() const override {
     return 2;
   }

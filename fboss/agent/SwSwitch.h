@@ -15,7 +15,6 @@
 #include "fboss/agent/MultiHwSwitchHandler.h"
 #include "fboss/agent/MultiSwitchFb303Stats.h"
 #include "fboss/agent/PacketObserver.h"
-#include "fboss/agent/RestartTimeTracker.h"
 #include "fboss/agent/SwRxPacket.h"
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
 #include "fboss/agent/SwitchInfoTable.h"
@@ -33,6 +32,7 @@
 #include "fboss/lib/HwWriteBehavior.h"
 #include "fboss/lib/ThreadHeartbeat.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
+#include "fboss/lib/restart_tracker/RestartTimeTracker.h"
 
 #include <folly/IntrusiveList.h>
 #include <folly/Range.h>
@@ -837,8 +837,6 @@ class SwSwitch : public HwSwitchCallback {
   cfg::AgentConfig getAgentConfig() const;
 
   AdminDistance clientIdToAdminDistance(int clientId) const;
-  void publishRxPacket(RxPacket* packet, uint16_t ethertype);
-  void publishTxPacket(TxPacket* packet, uint16_t ethertype);
 
   /*
    * Clear PortStats of the specified port.
@@ -1072,6 +1070,8 @@ class SwSwitch : public HwSwitchCallback {
       SwitchRunState newState);
 
   void onSwitchRunStateChange(SwitchRunState newState);
+
+  uint64_t fsdbPublishQueueLength() const;
 
   // Sets the counter that tracks port status
   void setPortStatusCounter(PortID port, bool up);
@@ -1329,6 +1329,10 @@ class SwSwitch : public HwSwitchCallback {
   folly::Synchronized<
       std::map<SwitchID, switch_reachability::SwitchReachability>>
       hwSwitchReachability_;
+  std::unordered_map<
+      SwitchID,
+      std::map<SwitchID, std::tuple<std::set<PortID>, uint64_t>>>
+      hwReachabilityInfo_;
 #if FOLLY_HAS_COROUTINES
   RxPacketHandlerQueues rxPacketHandlerQueues_;
 #endif

@@ -48,17 +48,13 @@ struct ThriftPathVisitor;
  */
 template <typename T, typename Options>
 struct ThriftPathVisitor<apache::thrift::type::enum_t<T>, Options> {
-  template <
-      typename Node,
-      typename PathIter,
-      typename Func,
-      typename = std::enable_if_t<
-          std::is_same_v<
-              typename std::iterator_traits<PathIter>::value_type,
-              std::string>,
-          void>>
+  template <typename Node, typename PathIter, typename Func>
   static ThriftTraverseResult
-  visit(Node&& node, PathIter begin, PathIter end, Func&& f) {
+  visit(Node&& node, PathIter begin, PathIter end, Func&& f)
+    requires(std::is_same_v<
+             typename std::iterator_traits<PathIter>::value_type,
+             std::string>)
+  {
     using Tag = apache::thrift::type::enum_t<T>;
 
     // Check for terminal condition
@@ -80,17 +76,13 @@ struct ThriftPathVisitor<apache::thrift::type::enum_t<T>, Options> {
  */
 template <typename ValueTag, typename Options>
 struct ThriftPathVisitor<apache::thrift::type::set<ValueTag>, Options> {
-  template <
-      typename Node,
-      typename PathIter,
-      typename Func,
-      typename = std::enable_if_t<
-          std::is_same_v<
-              typename std::iterator_traits<PathIter>::value_type,
-              std::string>,
-          void>>
+  template <typename Node, typename PathIter, typename Func>
   static ThriftTraverseResult
-  visit(Node&& node, PathIter begin, PathIter end, Func&& f) {
+  visit(Node&& node, PathIter begin, PathIter end, Func&& f)
+    requires(std::is_same_v<
+             typename std::iterator_traits<PathIter>::value_type,
+             std::string>)
+  {
     using Tag = apache::thrift::type::set<ValueTag>;
     using ValueT = typename folly::remove_cvref_t<Node>::value_type;
 
@@ -157,17 +149,13 @@ struct ThriftPathVisitor<apache::thrift::type::set<ValueTag>, Options> {
  */
 template <typename ValueTag, typename Options>
 struct ThriftPathVisitor<apache::thrift::type::list<ValueTag>, Options> {
-  template <
-      typename Node,
-      typename PathIter,
-      typename Func,
-      typename = std::enable_if_t<
-          std::is_same_v<
-              typename std::iterator_traits<PathIter>::value_type,
-              std::string>,
-          void>>
+  template <typename Node, typename PathIter, typename Func>
   static ThriftTraverseResult
-  visit(Node&& node, PathIter begin, PathIter end, Func&& f) {
+  visit(Node&& node, PathIter begin, PathIter end, Func&& f)
+    requires(std::is_same_v<
+             typename std::iterator_traits<PathIter>::value_type,
+             std::string>)
+  {
     using Tag = apache::thrift::type::list<ValueTag>;
 
     static_assert(
@@ -211,17 +199,13 @@ template <typename KeyTag, typename MappedTag, typename Options>
 struct ThriftPathVisitor<
     apache::thrift::type::map<KeyTag, MappedTag>,
     Options> {
-  template <
-      typename Node,
-      typename PathIter,
-      typename Func,
-      typename = std::enable_if_t<
-          std::is_same_v<
-              typename std::iterator_traits<PathIter>::value_type,
-              std::string>,
-          void>>
+  template <typename Node, typename PathIter, typename Func>
   static ThriftTraverseResult
-  visit(Node&& node, PathIter begin, PathIter end, Func&& f) {
+  visit(Node&& node, PathIter begin, PathIter end, Func&& f)
+    requires(std::is_same_v<
+             typename std::iterator_traits<PathIter>::value_type,
+             std::string>)
+  {
     using Tag = apache::thrift::type::map<KeyTag, MappedTag>;
 
     static_assert(
@@ -277,17 +261,13 @@ struct ThriftPathVisitor<
  */
 template <typename T, typename Options>
 struct ThriftPathVisitor<apache::thrift::type::union_t<T>, Options> {
-  template <
-      typename Node,
-      typename PathIter,
-      typename Func,
-      typename = std::enable_if_t<
-          std::is_same_v<
-              typename std::iterator_traits<PathIter>::value_type,
-              std::string>,
-          void>>
+  template <typename Node, typename PathIter, typename Func>
   static ThriftTraverseResult
-  visit(Node&& node, PathIter begin, PathIter end, Func&& f) {
+  visit(Node&& node, PathIter begin, PathIter end, Func&& f)
+    requires(std::is_same_v<
+             typename std::iterator_traits<PathIter>::value_type,
+             std::string>)
+  {
     static_assert(
         !(shouldCreateNodeIfMissing<Options> && isConst<Node>),
         "Cannot use CreateNodeIfMissing option against a const node");
@@ -339,17 +319,13 @@ struct ThriftPathVisitor<apache::thrift::type::union_t<T>, Options> {
  */
 template <typename T, typename Options>
 struct ThriftPathVisitor<apache::thrift::type::struct_t<T>, Options> {
-  template <
-      typename Node,
-      typename PathIter,
-      typename Func,
-      typename = std::enable_if_t<
-          std::is_same_v<
-              typename std::iterator_traits<PathIter>::value_type,
-              std::string>,
-          void>>
+  template <typename Node, typename PathIter, typename Func>
   static ThriftTraverseResult
-  visit(Node&& node, PathIter begin, PathIter end, Func&& f) {
+  visit(Node&& node, PathIter begin, PathIter end, Func&& f)
+    requires(std::is_same_v<
+             typename std::iterator_traits<PathIter>::value_type,
+             std::string>)
+  {
     static_assert(
         !(shouldCreateNodeIfMissing<Options> && isConst<Node>),
         "Cannot use CreateNodeIfMissing option against a const node");
@@ -417,17 +393,13 @@ struct ThriftPathVisitor {
       apache::thrift::type::is_a_v<Tag, apache::thrift::type::primitive_c>,
       "expected primitive type");
 
-  template <
-      typename Node,
-      typename PathIter,
-      typename Func,
-      typename = std::enable_if_t<
-          std::is_same_v<
-              typename std::iterator_traits<PathIter>::value_type,
-              std::string>,
-          void>>
+  template <typename Node, typename PathIter, typename Func>
   static ThriftTraverseResult
-  visit(Node&& node, PathIter begin, PathIter end, Func&& f) {
+  visit(Node&& node, PathIter begin, PathIter end, Func&& f)
+    requires(std::is_same_v<
+             typename std::iterator_traits<PathIter>::value_type,
+             std::string>)
+  {
     if (begin == end) {
       try {
         f(std::forward<Node>(node), Tag{});

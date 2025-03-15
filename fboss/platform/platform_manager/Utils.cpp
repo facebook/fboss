@@ -3,19 +3,13 @@
 #include "fboss/platform/platform_manager/Utils.h"
 
 #include <gpiod.h>
-#include <cctype>
 #include <filesystem>
 #include <stdexcept>
 
-#include <folly/FileUtil.h>
 #include <folly/logging/xlog.h>
 #include <re2/re2.h>
-#include <thrift/lib/cpp2/protocol/Serializer.h>
 
 #include "fboss/lib/GpiodLine.h"
-#include "fboss/platform/config_lib/ConfigLib.h"
-#include "fboss/platform/helpers/PlatformNameLib.h"
-#include "fboss/platform/platform_manager/ConfigValidator.h"
 
 namespace fs = std::filesystem;
 using namespace facebook::fboss::platform;
@@ -27,59 +21,10 @@ const std::string kGpioChip = "gpiochip";
 
 const re2::RE2 kWatchdogNameRe{"watchdog(\\d+)"};
 const std::string kWatchdog = "watchdog";
+constexpr auto kWatchdogDevCreationWaitSecs = std::chrono::seconds(5);
 } // namespace
 
 namespace facebook::fboss::platform::platform_manager {
-
-// Verify that the platform name from the config and dmidecode match.  This
-// is necessary to prevent an incorrect config from being used on any platform.
-void verifyPlatformNameMatches(
-    const std::string& platformNameInConfig,
-    const std::string& platformNameFromBios) {
-  std::string platformNameInConfigUpper(platformNameInConfig);
-  std::transform(
-      platformNameInConfigUpper.begin(),
-      platformNameInConfigUpper.end(),
-      platformNameInConfigUpper.begin(),
-      ::toupper);
-
-  if (platformNameInConfigUpper == platformNameFromBios) {
-    return;
-  }
-
-  XLOGF(
-      FATAL,
-      "Platform name in config does not match the inferred platform name from "
-      "bios. Config: {}, Inferred name from BIOS {} ",
-      platformNameInConfigUpper,
-      platformNameFromBios);
-}
-
-PlatformConfig Utils::getConfig() {
-  std::string platformNameFromBios =
-      helpers::PlatformNameLib().getPlatformNameFromBios(true);
-  std::string configJson =
-      ConfigLib().getPlatformManagerConfig(platformNameFromBios);
-  PlatformConfig config;
-  try {
-    apache::thrift::SimpleJSONSerializer::deserialize<PlatformConfig>(
-        configJson, config);
-  } catch (const std::exception& e) {
-    XLOG(ERR) << "Failed to deserialize platform config: " << e.what();
-    throw;
-  }
-  XLOG(DBG2) << apache::thrift::SimpleJSONSerializer::serialize<std::string>(
-      config);
-
-  verifyPlatformNameMatches(*config.platformName(), platformNameFromBios);
-
-  if (!ConfigValidator().isValid(config)) {
-    XLOG(ERR) << "Invalid platform config";
-    throw std::runtime_error("Invalid platform config");
-  }
-  return config;
-}
-
 std::pair<std::string, std::string> Utils::parseDevicePath(
     const std::string& devicePath) {
   std::string slotPath, deviceName;
@@ -132,7 +77,12 @@ std::string Utils::resolveWatchdogCharDevPath(const std::string& sysfsPath) {
   }
 
   fs::path watchdogDir = fs::path(sysfsPath) / "watchdog";
-  if (!fs::exists(watchdogDir)) {
+  if (!Utils().checkDeviceReadiness(
+          [&]() -> bool { return fs::exists(watchdogDir); },
+          fmt::format(
+              "Watchdog SysfsPath is not created. Waited for at most {}s",
+              kWatchdogDevCreationWaitSecs.count()),
+          kWatchdogDevCreationWaitSecs)) {
     throw std::runtime_error(fmt::format(
         "{}. Reason: Couldn't find watchdog directory under {}",
         failMsg,
@@ -152,7 +102,12 @@ std::string Utils::resolveWatchdogCharDevPath(const std::string& sysfsPath) {
         "{}. Reason: Couldn't find watchdog under {}", failMsg, sysfsPath));
   }
   auto charDevPath = fmt::format("/dev/watchdog{}", *watchdogNum);
-  if (!fs::exists(charDevPath)) {
+  if (!Utils().checkDeviceReadiness(
+          [&]() -> bool { return fs::exists(charDevPath); },
+          fmt::format(
+              "Watchdog CharDevPath is not created. Waited for at most {}s",
+              kWatchdogDevCreationWaitSecs.count()),
+          kWatchdogDevCreationWaitSecs)) {
     throw std::runtime_error(fmt::format(
         "{}. Reason: {} does not exist in the system", failMsg, charDevPath));
   }

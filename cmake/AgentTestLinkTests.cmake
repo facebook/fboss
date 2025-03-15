@@ -27,6 +27,7 @@ target_link_libraries(link_tests
   load_balancer_test_utils
   load_balancer_utils
   olympic_qos_utils
+  network_ai_qos_utils
   port_test_utils
   copp_test_utils
   packet_snooper
@@ -54,6 +55,7 @@ add_library(agent_ensemble_link_tests
   fboss/agent/test/link_tests/AgentEnsembleDependencyTest.cpp
   fboss/agent/test/link_tests/AgentEnsembleLinkSanityTests.cpp
   fboss/agent/test/link_tests/AgentEnsemblePhyInfoTest.cpp
+  fboss/agent/test/link_tests/AgentEnsembleFabricLinkTests.cpp
 )
 
 target_link_libraries(agent_ensemble_link_tests
@@ -65,6 +67,7 @@ target_link_libraries(agent_ensemble_link_tests
   load_balancer_test_utils
   load_balancer_utils
   olympic_qos_utils
+  network_ai_qos_utils
   port_test_utils
   copp_test_utils
   packet_snooper

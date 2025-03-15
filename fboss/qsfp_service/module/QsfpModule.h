@@ -33,6 +33,8 @@
 #define QSFP_LOG_IF(level, cond, tcvr) \
   XLOG_IF(level, cond) << "Transceiver " << tcvr->getNameString() << ": "
 
+#define CAST_TO_INT(FIELD) static_cast<int>((FIELD))
+
 namespace facebook {
 namespace fboss {
 
@@ -82,7 +84,8 @@ class QsfpModule : public Transceiver {
 
   explicit QsfpModule(
       std::set<std::string> portNames,
-      TransceiverImpl* qsfpImpl);
+      TransceiverImpl* qsfpImpl,
+      std::string tcvrName);
   virtual ~QsfpModule() override;
 
   /*
@@ -138,7 +141,8 @@ class QsfpModule : public Transceiver {
   /*
    * Perform a raw register write on the transceiver
    */
-  bool writeTransceiver(TransceiverIOParameters param, uint8_t data) override;
+  bool writeTransceiver(TransceiverIOParameters param, const uint8_t* data)
+      override;
 
   /*
    * The size of the pages used by QSFP.  See below for an explanation of
@@ -279,9 +283,6 @@ class QsfpModule : public Transceiver {
       const uint8_t moduleId,
       const unsigned int oneBasedPort);
 
-  virtual std::vector<MediaInterfaceCode> getSupportedMediaInterfaces()
-      const override;
-
   virtual std::vector<uint8_t> configuredHostLanes(
       uint8_t hostStartLane) const = 0;
 
@@ -324,6 +325,14 @@ class QsfpModule : public Transceiver {
 
   std::map<std::string, CdbDatapathSymErrHistogram> getSymbolErrorHistogram()
       override;
+
+  std::set<std::string> getInterfaces() {
+    return portNames_;
+  }
+
+  std::string getTcvrName() {
+    return tcvrName_;
+  }
 
  protected:
   /* Qsfp Internal Implementation */
@@ -486,11 +495,6 @@ class QsfpModule : public Transceiver {
     return std::nullopt;
   }
 
-  virtual std::vector<MediaInterfaceCode> getSupportedMediaInterfacesLocked()
-      const {
-    return std::vector<MediaInterfaceCode>();
-  }
-
   double mwToDb(double value);
 
   /*
@@ -506,6 +510,22 @@ class QsfpModule : public Transceiver {
    * function that reads cache data is called
    */
   virtual bool cacheIsValid() const;
+
+  /*
+   * This function is called during the periodic refresh of the QSFP data
+   * When the transceiver is in a stable active state. We will refresh
+   * all pages once every ~100 periodic refresh cycles, and refresh the
+   * dynamic data pages every polling cycle.
+   * The purpose of this function is to avoid very stale calculation of
+   * checksum data on the static pages in case there is a corruption/bit flip
+   * in those pages. Without this periodic refresh, we may get a lot of
+   * checksum errors (from many machines) when we do a QSFP service warm boot
+   * in the fleet (e.g. upgrade), as it refreshes all pages and we may get
+   * a storm of checksum failures. Instead, this will catch those checksum
+   * failures faster.
+   */
+  void periodicUpdateQsfpData();
+
   /*
    * Update the cached data with the information from the physical QSFP.
    *
@@ -702,13 +722,15 @@ class QsfpModule : public Transceiver {
    * Perform a raw register write on the transceiver
    * This must be called with a lock held on qsfpModuleMutex_
    */
-  bool writeTransceiverLocked(TransceiverIOParameters param, uint8_t data);
+  bool writeTransceiverLocked(
+      TransceiverIOParameters param,
+      const uint8_t* data);
   /*
    * Future version of writeTransceiver()
    */
   folly::Future<std::pair<int32_t, bool>> futureWriteTransceiver(
       TransceiverIOParameters param,
-      uint8_t data) override;
+      const std::vector<uint8_t>& data) override;
 
   bool upgradeFirmware(
       std::vector<std::unique_ptr<FbossFirmware>>& fwList) override;
@@ -787,6 +809,9 @@ class QsfpModule : public Transceiver {
       bool upgradeInProgress) override;
 
   std::string primaryPortName_;
+  std::set<std::string> portNames_;
+  std::string tcvrName_;
+  int refreshCycleCount_ = {0};
 
   std::time_t getLastDatapathResetTime(int lane) {
     if (lastDatapathResetTimes_.find(lane) == lastDatapathResetTimes_.end()) {

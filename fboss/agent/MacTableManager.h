@@ -11,8 +11,6 @@
 
 #include "fboss/agent/L2Entry.h"
 
-DECLARE_bool(enable_mac_update_protection);
-
 namespace facebook::fboss {
 
 class SwSwitch;

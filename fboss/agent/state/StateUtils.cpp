@@ -45,25 +45,70 @@ folly::MacAddress getInterfaceMac(
   return state->getInterfaces()->getNode(intf)->getMac();
 }
 
-folly::MacAddress getFirstInterfaceMac(
+folly::MacAddress getMacForFirstInterfaceWithPorts(
     const std::shared_ptr<SwitchState>& state) {
-  const auto& intfMap = state->getInterfaces()->cbegin()->second;
-  const auto& intf = std::as_const(*intfMap->cbegin()).second;
-  return intf->getMac();
+  auto intfID = firstInterfaceIDWithPorts(state);
+  return getInterfaceMac(state, intfID);
 }
 
-std::optional<VlanID> firstVlanID(const std::shared_ptr<SwitchState>& state) {
+std::optional<VlanID> firstVlanIDWithPorts(
+    const std::shared_ptr<SwitchState>& state) {
   std::optional<VlanID> firstVlanId;
-  if (state->getVlans()->numNodes()) {
-    firstVlanId =
-        utility::getFirstMap(state->getVlans())->cbegin()->second->getID();
+  auto intfID = firstInterfaceIDWithPorts(state);
+  auto intf = state->getInterfaces()->getNode(intfID);
+  if (intf->getType() == cfg::InterfaceType::VLAN) {
+    firstVlanId = intf->getVlanID();
   }
   return firstVlanId;
 }
 
-InterfaceID firstInterfaceID(const std::shared_ptr<SwitchState>& state) {
+InterfaceID firstInterfaceIDWithPorts(
+    const std::shared_ptr<SwitchState>& state) {
   const auto& intfMap = state->getInterfaces()->cbegin()->second;
-  const auto& intf = std::as_const(*intfMap->cbegin()).second;
-  return intf->getID();
+  for (const auto& [intfID, intf] : std::as_const(*intfMap)) {
+    if (intf->isVirtual()) {
+      // virtual interfaces do not have associated ports
+      continue;
+    }
+    return InterfaceID(intfID);
+  }
+  throw FbossError("No interface found in state");
+}
+
+std::vector<folly::IPAddress> getIntfAddrs(
+    const std::shared_ptr<SwitchState>& state,
+    const InterfaceID& intf) {
+  std::vector<folly::IPAddress> addrs;
+  auto intfNode = state->getInterfaces()->getNode(intf);
+  for (const auto& addr : std::as_const(*intfNode->getAddresses())) {
+    addrs.emplace_back(addr.first);
+  }
+  return addrs;
+}
+
+std::vector<folly::IPAddressV4> getIntfAddrsV4(
+    const std::shared_ptr<SwitchState>& state,
+    const InterfaceID& intf) {
+  std::vector<folly::IPAddressV4> addrs;
+
+  for (auto addr : getIntfAddrs(state, intf)) {
+    if (addr.isV4()) {
+      addrs.emplace_back(addr.asV4());
+    }
+  }
+  return addrs;
+}
+
+std::vector<folly::IPAddressV6> getIntfAddrsV6(
+    const std::shared_ptr<SwitchState>& state,
+    const InterfaceID& intf) {
+  std::vector<folly::IPAddressV6> addrs;
+
+  for (auto addr : getIntfAddrs(state, intf)) {
+    if (addr.isV6()) {
+      addrs.emplace_back(addr.asV6());
+    }
+  }
+  return addrs;
 }
 } // namespace facebook::fboss::utility

@@ -13,8 +13,11 @@ bool verifyResolvedLocalMirror(
     const SaiSwitch* saiSwitch,
     const state::MirrorFields& mirror,
     SaiMirrorHandle* mirrorHandle) {
+  auto egressPort =
+      PortDescriptor::fromCfgCfgPortDescriptor(*mirror.egressPortDesc())
+          .phyPortID();
   auto portHandle = saiSwitch->managerTable()->portManager().getPortHandle(
-      PortID(*mirror.get_egressPort()));
+      PortID(egressPort));
   if (!portHandle) {
     return false;
   }

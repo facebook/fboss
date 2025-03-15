@@ -9,10 +9,10 @@
  */
 #pragma once
 
-#include <boost/container/flat_map.hpp>
 #include <boost/noncopyable.hpp>
 #include <fb303/ThreadCachedServiceData.h>
 #include <fb303/detail/QuantileStatWrappers.h>
+#include <folly/concurrency/ConcurrentHashMap.h>
 #include <chrono>
 #include "fboss/agent/AggregatePortStats.h"
 #include "fboss/agent/InterfaceStats.h"
@@ -25,12 +25,12 @@ namespace facebook::fboss {
 
 class PortStats;
 
-typedef boost::container::flat_map<PortID, std::unique_ptr<PortStats>>
-    PortStatsMap;
-using AggregatePortStatsMap = boost::container::
-    flat_map<AggregatePortID, std::unique_ptr<AggregatePortStats>>;
+using PortStatsMap =
+    folly::ConcurrentHashMap<PortID, std::unique_ptr<PortStats>>;
+using AggregatePortStatsMap = folly::
+    ConcurrentHashMap<AggregatePortID, std::unique_ptr<AggregatePortStats>>;
 using InterfaceStatsMap =
-    boost::container::flat_map<InterfaceID, std::unique_ptr<InterfaceStats>>;
+    folly::ConcurrentHashMap<InterfaceID, std::unique_ptr<InterfaceStats>>;
 
 class SwitchStats : public boost::noncopyable {
  public:
@@ -86,6 +86,11 @@ class SwitchStats : public boost::noncopyable {
   void deleteInterfaceStats(InterfaceID intfID) {
     intfIDToStats_.erase(intfID);
   }
+
+  /*
+   * Change the name of a port. This will also reset its counters.
+   */
+  PortStats* updatePortName(PortID portID, const std::string& portName);
 
   void trappedPkt() {
     trapPkts_.addValue(1);
@@ -333,6 +338,10 @@ class SwitchStats : public boost::noncopyable {
     maxNumOfPhysicalHostsPerQueue_.addValue(value);
   }
 
+  void pendingStateUpdateCount(int value) {
+    pendingStateUpdateCount_.addValue(value);
+  }
+
   void linkStateChange() {
     linkStateChange_.addValue(1);
   }
@@ -436,6 +445,10 @@ class SwitchStats : public boost::noncopyable {
   }
   void failedDsfSubscription(const std::string& peerName, int value);
 
+  void fsdbPublishQueueLength(uint64_t value) {
+    fsdbPublishQueueLength_.addValue(value);
+  }
+
   void fillAgentStats(AgentStats& agentStats) const;
   void fillFabricReachabilityStats(
       FabricReachabilityStats& fabricReachabilityStats) const;
@@ -458,6 +471,10 @@ class SwitchStats : public boost::noncopyable {
 
   int getMacTableUpdateFailure() const {
     return getCumulativeValue(macTableUpdateFailure_);
+  }
+
+  void fwDrainedWithHighNumActiveFabricLinks() {
+    fwDrainedWithHighNumActiveFabricLinks_.addValue(1);
   }
 
   void neighborTableUpdateFailure() {
@@ -492,6 +509,8 @@ class SwitchStats : public boost::noncopyable {
     switchConfiguredMs_.addValue(ms);
   }
   void setFabricOverdrainPct(int16_t switchIndex, int16_t overdrainPct);
+
+  void setDrainState(int16_t switchIndex, cfg::SwitchDrainState drainState);
 
   void hwAgentConnectionStatus(int switchIndex, bool connected) {
     CHECK_LT(switchIndex, hwAgentConnectionStatus_.size());
@@ -864,9 +883,9 @@ class SwitchStats : public boost::noncopyable {
   TLTimeseries dstLookupFailure_;
 
   /**
-   * Histogram for time used for SwSwitch::updateState() (in ms)
+   * Histogram for time used for SwSwitch::updateState() (in microsecond)
    */
-  TLHistogram updateState_;
+  fb303::detail::QuantileStatWrapper updateState_;
 
   /**
    * Histogram for time used for route update (in microsecond)
@@ -940,6 +959,10 @@ class SwitchStats : public boost::noncopyable {
    * should be 0 or 1, alert when >=2
    */
   TLHistogram maxNumOfPhysicalHostsPerQueue_;
+  /**
+   * Number of state updates queued in state update queue
+   */
+  TLHistogram pendingStateUpdateCount_;
 
   /**
    * Link state up/down change count
@@ -1037,11 +1060,18 @@ class SwitchStats : public boost::noncopyable {
   TLTimeseries midPriPktsDropped_;
   TLTimeseries loPriPktsDropped_;
 
+  /**
+   * Number of updates queued in FSDB publish queue
+   */
+  TLHistogram fsdbPublishQueueLength_;
+
   // TODO: delete this once multi_switch becomes default
   TLTimeseries multiSwitchStatus_;
   TLTimeseries neighborTableUpdateFailure_;
 
   TLTimeseries macTableUpdateFailure_;
+
+  TLTimeseries fwDrainedWithHighNumActiveFabricLinks_;
 
   std::vector<TLCounter> hwAgentConnectionStatus_;
   std::vector<TLTimeseries> hwAgentUpdateTimeouts_;

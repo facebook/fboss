@@ -34,8 +34,6 @@ enum class OlympicQueueType {
 
 enum class OlympicV2QueueType { NCNF, BRONZE, SILVER, GOLD, ICP, NC };
 
-enum class NetworkAIQueueType { DEFAULT, MONITORING, RDMA, NC };
-
 /* Olympic QoS queues */
 constexpr int kOlympicSilverQueueId = 0;
 constexpr int kOlympicGoldQueueId = 1;
@@ -106,22 +104,6 @@ constexpr int kQueueConfigAqmsEcnThresholdMinMax = 40600;
 constexpr int kQueueConfigAqmsWredThresholdMinMax = 48600;
 constexpr int kQueueConfigAqmsWredDropProbability = 100;
 
-/* network AI Qos queues*/
-constexpr int kNetworkAIMonitoringQueueId = 6;
-constexpr int kNetworkAIRdmaQueueId = 2;
-constexpr int kNetworkAINCQueueId = 7;
-constexpr int kNetworkAIDefaultQueueId = 0;
-
-constexpr int kNetworkAIHighestQueueId = kNetworkAINCQueueId;
-
-void addNetworkAIQueueConfig(
-    cfg::SwitchConfig* config,
-    cfg::StreamType streamType);
-
-void addNetworkAIQosMaps(
-    cfg::SwitchConfig& cfg,
-    const std::vector<const HwAsic*>& asics);
-
 void addOlympicQueueConfig(
     cfg::SwitchConfig* config,
     const std::vector<const HwAsic*>& asics,
@@ -155,11 +137,11 @@ void addOlympicAllSPQueueConfig(
 void addOlympicV2QosMaps(
     cfg::SwitchConfig& cfg,
     const std::vector<const HwAsic*>& asics);
+void add2QueueQosMaps(cfg::SwitchConfig& cfg, const HwAsic* hwAsic);
 
 std::string getOlympicCounterNameForDscp(uint8_t dscp);
 
 const std::map<int, std::vector<uint8_t>> kOlympicQueueToDscp();
-const std::map<int, std::vector<uint8_t>> kNetworkAIV2QueueToDscp();
 const std::map<int, uint8_t> kOlympicWRRQueueToWeight();
 const std::map<int, uint8_t> kOlympicV2WRRQueueToWeight();
 
@@ -171,19 +153,6 @@ const std::vector<int> kOlympicWRRAndNCQueueIds();
 const std::vector<int> kOlympicAllSPQueueIds();
 const std::map<int, std::vector<uint8_t>> kOlympicV2QueueToDscp();
 
-int getMaxWeightWRRQueue(const std::map<int, uint8_t>& queueToWeight);
-
-int getAqmGranularThreshold(const HwAsic* asic, int value);
-
-cfg::ActiveQueueManagement kGetOlympicEcnConfig(
-    const HwAsic* asic,
-    int minLength = 41600,
-    int maxLength = 41600);
-cfg::ActiveQueueManagement kGetWredConfig(
-    const HwAsic* asic,
-    int minLength = 41600,
-    int maxLength = 41600,
-    int probability = 100);
 void addQueueEcnConfig(
     cfg::SwitchConfig* config,
     const std::vector<const HwAsic*>& asics,
@@ -209,13 +178,10 @@ void addQueueBurstSizeConfig(
     const int queueId,
     const uint32_t minKbits,
     const uint32_t maxKbits);
-void addEventorVoqConfig(cfg::SwitchConfig* config, cfg::StreamType streamType);
 
 int getOlympicQueueId(OlympicQueueType queueType);
 
 int getOlympicV2QueueId(OlympicV2QueueType queueType);
-
-int getNetworkAIQueueId(NetworkAIQueueType queueType);
 
 std::set<cfg::StreamType> getStreamType(
     cfg::PortType portType,

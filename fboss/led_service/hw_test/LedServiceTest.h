@@ -33,6 +33,7 @@ class LedServiceTest : public ::testing::Test {
   void TearDown() override;
   // Check the LED color.
   void checkLedColor(PortID port, led::LedColor color, int testNum);
+  void checkLedBlink(PortID port, led::Blink blink, int testNum);
 
   facebook::fboss::LedManager* ledManager_ = nullptr;
   const facebook::fboss::PlatformMapping* platformMap_ = nullptr;

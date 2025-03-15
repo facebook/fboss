@@ -167,11 +167,12 @@ cpp_unittest(
     srcs = [
         "CommonFileUtilsTest.cpp",
         "CommonPortUtilsTest.cpp",
+        "CommonThriftUtilsTest.cpp",
     ],
     deps = [
-        "//fboss/agent:fboss-error",
         "//fboss/lib:common_file_utils",
         "//fboss/lib:common_port_utils",
+        "//fboss/lib:common_thrift_utils",
         "//folly:format",
         "//folly:singleton",
         "//folly/logging:logging",
@@ -179,6 +180,5 @@ cpp_unittest(
     ],
     external_deps = [
         "glog",
-        ("boost", None, "boost_filesystem"),
     ],
 )

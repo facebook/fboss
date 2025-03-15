@@ -59,6 +59,12 @@ void fillHwSwitchWatermarkStats(
       case SAI_SWITCH_STAT_DEVICE_EGRESS_DB_WM:
         hwSwitchWatermarkStats.egressCoreBufferWatermarkBytes() = value;
         break;
+      case SAI_SWITCH_STAT_ING_MIN_SRAM_BUFFER_BYTES:
+        hwSwitchWatermarkStats.sramMinBufferWatermarkBytes() = value;
+        break;
+      case SAI_SWITCH_STAT_FDR_RX_QUEUE_WM_LEVEL:
+        hwSwitchWatermarkStats.fdrFifoWatermarkBytes() = value;
+        break;
 #endif
       default:
         throw FbossError("Got unexpected switch counter id: ", counterId);
@@ -75,6 +81,32 @@ void fillHwSwitchCreditStats(
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
       case SAI_SWITCH_STAT_DEVICE_DELETED_CREDIT_COUNTER:
         hwSwitchCreditStats.deletedCreditBytes() = value;
+        break;
+#endif
+      default:
+        throw FbossError("Got unexpected switch counter id: ", counterId);
+    }
+  }
+}
+
+void fillHwSwitchErrorStats(
+    const folly::F14FastMap<sai_stat_id_t, uint64_t>& counterId2Value,
+    HwSwitchDropStats& dropStats) {
+  for (auto counterIdAndValue : counterId2Value) {
+    auto [counterId, value] = counterIdAndValue;
+    switch (counterId) {
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+      case SAI_SWITCH_STAT_EGRESS_FABRIC_CELL_ERROR:
+        dropStats.rqpFabricCellCorruptionDrops() = value;
+        break;
+      case SAI_SWITCH_STAT_EGRESS_NON_FABRIC_CELL_ERROR:
+        dropStats.rqpNonFabricCellCorruptionDrops() = value;
+        break;
+      case SAI_SWITCH_STAT_EGRESS_CUP_NON_FABRIC_CELL_ERROR:
+        dropStats.rqpNonFabricCellMissingDrops() = value;
+        break;
+      case SAI_SWITCH_STAT_EGRESS_PARITY_CELL_ERROR:
+        dropStats.rqpParityErrorDrops() = value;
         break;
 #endif
       default:

@@ -163,7 +163,9 @@ TEST(ThriftListNodeTests, ThriftListNodePrimitivesVisit) {
       fields(data);
 
   folly::dynamic out;
-  auto f = [&out](auto& node) { out = node.toFollyDynamic(); };
+  auto f = [&out](auto& node, auto /*begin*/, auto /*end*/) {
+    out = node.toFollyDynamic();
+  };
 
   std::vector<std::string> path = {"0"};
   auto result = visitPath(fields, path.begin(), path.end(), f);
@@ -188,8 +190,12 @@ TEST(ThriftListNodeTests, ThriftListNodePrimitivesVisitMutable) {
       fields(data);
 
   folly::dynamic toWrite, out;
-  auto write = [&toWrite](auto& node) { node.fromFollyDynamic(toWrite); };
-  auto read = [&out](auto& node) { out = node.toFollyDynamic(); };
+  auto write = [&toWrite](auto& node, auto /*begin*/, auto /*end*/) {
+    node.fromFollyDynamic(toWrite);
+  };
+  auto read = [&out](auto& node, auto /*begin*/, auto /*end*/) {
+    out = node.toFollyDynamic();
+  };
 
   std::vector<std::string> path = {"0"};
   auto result = visitPath(fields, path.begin(), path.end(), read);
@@ -357,7 +363,9 @@ TEST(ThriftListNodeTests, ThriftListNodeStructsVisit) {
       fields(data);
 
   folly::dynamic out;
-  auto f = [&out](auto& node) { out = node.toFollyDynamic(); };
+  auto f = [&out](auto& node, auto /*begin*/, auto /*end*/) {
+    out = node.toFollyDynamic();
+  };
 
   std::vector<std::string> path = {"0"};
   auto result = visitPath(fields, path.begin(), path.end(), f);
@@ -398,8 +406,12 @@ TEST(ThriftListNodeTests, ThriftListNodeStructsVisitMutable) {
       fields(data);
 
   folly::dynamic toWrite, out;
-  auto write = [&toWrite](auto& node) { node.fromFollyDynamic(toWrite); };
-  auto read = [&out](auto& node) { out = node.toFollyDynamic(); };
+  auto write = [&toWrite](auto& node, auto /*begin*/, auto /*end*/) {
+    node.fromFollyDynamic(toWrite);
+  };
+  auto read = [&out](auto& node, auto /*begin*/, auto /*end*/) {
+    out = node.toFollyDynamic();
+  };
 
   std::vector<std::string> path = {"0"};
   auto result = visitPath(fields, path.begin(), path.end(), read);
@@ -528,7 +540,7 @@ TEST(ThriftListNodeTests, ThriftListConstness) {
   node.publish();
   const auto& list = node.cref<k::listOfPrimitives>();
   auto fn = [list]() {
-    for (const auto& item : *list) {
+    for ([[maybe_unused]] const auto& item : *list) {
       // Check failed: !isPublished() from begin
     }
   };
@@ -543,7 +555,7 @@ TEST(ThriftListNodeTests, Cref) {
   ASSERT_TRUE(
       std::is_const_v<std::remove_reference_t<decltype(*constWrappedRef)>>);
   // ASSERT_NO_DEATH
-  for (auto& item : *constWrappedRef) {
+  for ([[maybe_unused]] auto& item : *constWrappedRef) {
   }
 
   ThriftStructNode<TestStruct> anotherNode;
@@ -553,7 +565,8 @@ TEST(ThriftListNodeTests, Cref) {
   ASSERT_DEATH(gn(), "");
 
   auto fn = [&node]() {
-    for (auto& item : *(node.safe_ref<k::listOfPrimitives>())) {
+    for ([[maybe_unused]] auto& item :
+         *(node.safe_ref<k::listOfPrimitives>())) {
       // Check failed: !isPublished() from begin
     }
   };

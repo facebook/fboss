@@ -37,47 +37,6 @@ namespace {
 
 using namespace facebook::fboss;
 
-static const PlatformMapping* FOLLY_NULLABLE
-getPlatformMappingForDsfNode(const PlatformType platformType) {
-  switch (platformType) {
-    case PlatformType::PLATFORM_MERU400BIU: {
-      static Meru400biuPlatformMapping meru400biu;
-      return &meru400biu;
-    }
-    case PlatformType::PLATFORM_MERU400BIA: {
-      static Meru400biaPlatformMapping meru400bia;
-      return &meru400bia;
-    }
-    case PlatformType::PLATFORM_MERU400BFU: {
-      static Meru400bfuPlatformMapping meru400bfu;
-      return &meru400bfu;
-    }
-    case PlatformType::PLATFORM_MERU800BFA: {
-      static Meru800bfaPlatformMapping meru800bfa{
-          true /*multiNpuPlatformMapping*/};
-      return &meru800bfa;
-    }
-    case PlatformType::PLATFORM_MERU800BFA_P1: {
-      static Meru800bfaP1PlatformMapping meru800bfa{
-          true /*multiNpuPlatformMapping*/};
-      return &meru800bfa;
-    }
-    case PlatformType::PLATFORM_MERU800BIA:
-    case PlatformType::PLATFORM_MERU800BIAB: {
-      static Meru800biaPlatformMapping meru800bia;
-      return &meru800bia;
-    }
-    case PlatformType::PLATFORM_JANGA800BIC: {
-      static Janga800bicPlatformMapping janga800bic{
-          !FLAGS_janga_single_npu_for_testing /*multiNpuPlatformMapping*/};
-      return &janga800bic;
-    }
-    default:
-      break;
-  }
-  return nullptr;
-}
-
 std::string toStr(const RemoteEndpoint& r) {
   std::stringstream ss;
   ss << " switchId : " << *r.switchId() << " switch name: " << *r.switchName()
@@ -90,9 +49,9 @@ std::string toStr(const FabricEndpoint& endpoint) {
   ss << " Attached: " << *endpoint.isAttached() << std::endl;
   if (*endpoint.isAttached()) {
     ss << " Remote switch, id: " << *endpoint.switchId()
-       << " name:" << endpoint.switchName().value_or("--") << std::endl;
+       << " name: " << endpoint.switchName().value_or("--") << std::endl;
     ss << " Remote port, id: " << *endpoint.portId()
-       << " name:" << endpoint.portName().value_or("--") << std::endl;
+       << " name: " << endpoint.portName().value_or("--") << std::endl;
     ss << " Switch Type: "
        << apache::thrift::util::enumNameSafe(*endpoint.switchType())
        << std::endl;
@@ -187,7 +146,11 @@ void FabricConnectivityManager::updateExpectedSwitchIdAndPortIdForPort(
   }
 
   auto baseSwitchId = *it->second.begin();
-  const auto platformMapping = getPlatformMappingForDsfNode(
+  if (switchIdToDsfNode_.find(baseSwitchId) == switchIdToDsfNode_.end()) {
+    XLOG(WARN) << "no dsf node for switch id " << baseSwitchId;
+    return;
+  }
+  const auto platformMapping = getPlatformMappingForPlatformType(
       switchIdToDsfNode_[baseSwitchId]->getPlatformType());
 
   if (!platformMapping) {
@@ -385,7 +348,7 @@ FabricConnectivityManager::getActualSwitchNameAndPortName(
     auto actualPortId = getActualPortIdForSwitch(
         PortID(portId), SwitchID(switchId), baseSwitchId, switchName.value());
     if (actualPortId.has_value()) {
-      const auto platformMapping = getPlatformMappingForDsfNode(
+      const auto platformMapping = getPlatformMappingForPlatformType(
           switchIdToDsfNode_[baseSwitchId]->getPlatformType());
       if (!platformMapping) {
         throw FbossError("Unable to find platform mapping for port: ", portId);
@@ -427,8 +390,10 @@ FabricConnectivityManager::processConnectivityInfoForPort(
       // actual{switchID, portID} == expected{switchID, portID}
       iter->second.switchName() = iter->second.expectedSwitchName().value();
       iter->second.portName() = iter->second.expectedPortName().value();
-    } else {
-      // Miscabling:
+      XLOG(DBG5) << "Cabling is correct on port ID "
+                 << static_cast<int>(portId);
+    } else if (*iter->second.isAttached()) {
+      // Attached but miscabled:
       //    - Connected to expected Switch but on wrong port
       //    - Connected to non-expected Switch
       // Expected switchName/portName are not set
@@ -444,17 +409,30 @@ FabricConnectivityManager::processConnectivityInfoForPort(
       if (portName.has_value()) {
         iter->second.portName() = portName.value();
       }
+      XLOG(DBG5) << "Attached but miscabled on port ID "
+                 << static_cast<int>(portId) << ". Switch name: "
+                 << iter->second.switchName().value_or("unknown")
+                 << " Port name: "
+                 << iter->second.portName().value_or("unknown");
     }
   } else {
+    XLOG(DBG2) << "Adding new entry for port ID " << static_cast<int>(portId);
     iter = currentNeighborConnectivity_.insert({portId, hwEndpoint}).first;
   }
+
   if (!old || (old != iter->second)) {
+    XLOG(DBG5) << "Connectivity changed on port ID " << static_cast<int>(portId)
+               << ". Processing delta.";
     delta = multiswitch::FabricConnectivityDelta();
     if (old.has_value()) {
       delta->oldConnectivity() = *old;
     }
     delta->newConnectivity() = iter->second;
+  } else {
+    XLOG(DBG5) << "No connectivity change on port ID "
+               << static_cast<int>(portId) << ".";
   }
+
   return delta;
 }
 
@@ -489,31 +467,8 @@ bool FabricConnectivityManager::isConnectivityInfoMismatch(
   return false;
 }
 
-bool FabricConnectivityManager::isConnectivityInfoMismatch(
-    const PortID& portId) {
-  const auto& iter = currentNeighborConnectivity_.find(portId);
-  if (iter != currentNeighborConnectivity_.end()) {
-    const auto& endpoint = iter->second;
-    return isConnectivityInfoMismatch(endpoint);
-  }
-
-  // no mismatch
-  return false;
-}
-
-// Detect missing info. Points to configuration issue where expected
-// connectivity info is not populated.
 bool FabricConnectivityManager::isConnectivityInfoMissing(
-    const PortID& portId) {
-  const auto& iter = currentNeighborConnectivity_.find(portId);
-  if (iter == currentNeighborConnectivity_.end()) {
-    // specific port is missing from the reachability DB and
-    // also switch state (else we would have added it during addPort).
-    // So no connectivity is expected here
-    return false;
-  }
-
-  const auto& endpoint = iter->second;
+    const FabricEndpoint& endpoint) {
   if (!*endpoint.isAttached()) {
     // endpoint not attached, points to cabling connectivity issues
     // unless in cfg also we don't expect it to be present
@@ -541,6 +496,56 @@ bool FabricConnectivityManager::isConnectivityInfoMissing(
   return false;
 }
 
+bool FabricConnectivityManager::isConnectivityInfoMismatch(
+    const PortID& portId) {
+  const auto& iter = currentNeighborConnectivity_.find(portId);
+  if (iter != currentNeighborConnectivity_.end()) {
+    const auto& endpoint = iter->second;
+    return isConnectivityInfoMismatch(endpoint);
+  }
+
+  // no mismatch
+  return false;
+}
+
+// Detect missing info. Points to configuration issue where expected
+// connectivity info is not populated.
+bool FabricConnectivityManager::isConnectivityInfoMissing(
+    const PortID& portId) {
+  const auto& iter = currentNeighborConnectivity_.find(portId);
+  if (iter == currentNeighborConnectivity_.end()) {
+    // specific port is missing from the reachability DB and
+    // also switch state (else we would have added it during addPort).
+    // So no connectivity is expected here
+    return false;
+  }
+
+  const auto& endpoint = iter->second;
+  return isConnectivityInfoMissing(endpoint);
+}
+
+bool FabricConnectivityManager::isConnectivityInfoBogus(const PortID& portId) {
+  const auto& iter = currentNeighborConnectivity_.find(portId);
+  if (iter == currentNeighborConnectivity_.end()) {
+    return false;
+  }
+
+  const auto& endpoint = iter->second;
+  auto switchId = *endpoint.switchId();
+  if (switchIdToDsfNode_.find(switchId) == switchIdToDsfNode_.end()) {
+    // invalid switch id
+    return true;
+  }
+  auto switchType = *endpoint.switchType();
+  if (switchType != cfg::SwitchType::VOQ &&
+      switchType != cfg::SwitchType::FABRIC) {
+    // invalid switch type
+    return true;
+  }
+  // nothing invliad
+  return false;
+}
+
 const std::map<PortID, FabricEndpoint>&
 FabricConnectivityManager::getConnectivityInfo() const {
   return currentNeighborConnectivity_;
@@ -562,8 +567,6 @@ FabricConnectivityManager::getVirtualDeviceToRemoteConnectionGroups(
     }
     auto portName = fabricPortId2Name_.find(portId)->second;
     auto virtualDeviceId = portToVirtualDevice(portId);
-    //      platform_->getPlatformPort(portId)->getVirtualDeviceId();
-    // CHECK(virtualDeviceId.has_value());
     // get connections for virtual device
     auto& virtualDeviceRemoteEndpoints =
         virtualDevice2RemoteEndpoints[virtualDeviceId];

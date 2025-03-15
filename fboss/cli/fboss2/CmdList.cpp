@@ -34,6 +34,8 @@
 #include "fboss/cli/fboss2/commands/show/dsf/CmdShowDsf.h"
 #include "fboss/cli/fboss2/commands/show/dsf/subscription/CmdShowDsfSubscription.h"
 #include "fboss/cli/fboss2/commands/show/dsfnodes/CmdShowDsfNodes.h"
+#include "fboss/cli/fboss2/commands/show/example/CmdShowExample.h"
+#include "fboss/cli/fboss2/commands/show/example/gen-cpp2/model_visitation.h"
 #include "fboss/cli/fboss2/commands/show/fabric/CmdShowFabric.h"
 #include "fboss/cli/fboss2/commands/show/fabric/reachability/CmdShowFabricReachability.h"
 #include "fboss/cli/fboss2/commands/show/fabric/topology/CmdShowFabricTopology.h"
@@ -136,6 +138,12 @@ const CommandTree& kCommandTree() {
        "Show Flowlet information",
        commandHandler<CmdShowFlowlet>,
        argTypeHandler<CmdShowFlowletTraits>},
+
+      {"show",
+       "example",
+       "Example command help message",
+       commandHandler<CmdShowExample>,
+       argTypeHandler<CmdShowExampleTraits>},
 
       {"show",
        "dsf",

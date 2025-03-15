@@ -50,7 +50,7 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _AclTableMap{
     SAI_ATTR_MAP(AclTable, AvailableCounter),
     SAI_ATTR_MAP(AclTable, FieldEthertype),
     SAI_ATTR_MAP(AclTable, FieldOuterVlanId),
-#if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_24_4_90)
+#if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_24_8_3001)
     SAI_ATTR_MAP(AclTable, FieldBthOpcode),
 #endif
 #if !defined(TAJO_SDK) && !defined(BRCM_SAI_SDK_XGS)
@@ -120,7 +120,7 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _AclEntryMap{
     SAI_ATTR_MAP(AclEntry, FieldNeighborDstUserMeta),
     SAI_ATTR_MAP(AclEntry, FieldEthertype),
     SAI_ATTR_MAP(AclEntry, FieldOuterVlanId),
-#if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_24_4_90)
+#if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_24_8_3001)
     SAI_ATTR_MAP(AclEntry, FieldBthOpcode),
 #endif
 #if !defined(TAJO_SDK) && !defined(BRCM_SAI_SDK_XGS)

@@ -20,12 +20,15 @@ namespace fboss {
 
 class MockTransceiverImpl : public TransceiverImpl {
  public:
-  MOCK_METHOD2(
-      readTransceiver,
-      int(const TransceiverAccessParameter&, uint8_t*));
   MOCK_METHOD3(
+      readTransceiver,
+      int(const TransceiverAccessParameter&, uint8_t*, const int));
+  MOCK_METHOD4(
       writeTransceiver,
-      int(const TransceiverAccessParameter&, const uint8_t*, uint64_t));
+      int(const TransceiverAccessParameter&,
+          const uint8_t*,
+          uint64_t,
+          const int));
   MOCK_METHOD0(detectTransceiver, bool());
   MOCK_METHOD0(getName, folly::StringPiece());
   MOCK_CONST_METHOD0(getNum, int());

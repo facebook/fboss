@@ -7,7 +7,7 @@ thrift_library(
     name = "i2c_controller_stats",
     languages = [
         "cpp2",
-        "py",
+        "py-deprecated",
     ],
     py_base_module = "neteng.fboss",
     thrift_srcs = {"i2c_controller_stats.thrift": []},
@@ -44,13 +44,8 @@ cpp_library(
         ":i2c_controller_stats-cpp2-types",
         "//fboss/agent:utils",
         "//folly:format",
-        "//folly:range",
         "//folly:synchronized",
         "//folly/io/async:async_base",
-        "//folly/lang:bits",
         "//folly/logging:logging",
-    ],
-    exported_external_deps = [
-        "gflags",
     ],
 )

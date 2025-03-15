@@ -2,7 +2,6 @@
 
 #include "fboss/lib/bsp/BspTransceiverGpioAccess.h"
 #include <folly/Format.h>
-#include <gflags/gflags.h>
 #include <stdint.h>
 #include "fboss/lib/CommonFileUtils.h"
 #include "fboss/lib/GpiodLine.h"

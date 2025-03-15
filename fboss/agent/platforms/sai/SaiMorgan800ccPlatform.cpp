@@ -11,6 +11,7 @@
 #include "fboss/agent/platforms/sai/SaiMorgan800ccPlatform.h"
 #include "fboss/agent/hw/switch_asics/YubaAsic.h"
 #include "fboss/agent/platforms/common/morgan800cc/Morgan800ccPlatformMapping.h"
+#include "fboss/lib/config/PlatformConfigUtils.h"
 
 namespace facebook::fboss {
 
@@ -49,6 +50,19 @@ std::string SaiMorgan800ccPlatform::getHwConfig() {
 
   auto& asicConfig = config()->thrift.platform()->get_chip().get_asicConfig();
   return asicConfig.get_common().get_jsonConfig();
+}
+
+std::vector<PortID> SaiMorgan800ccPlatform::getAllPortsInGroup(
+    PortID portID) const {
+  std::vector<PortID> allPortsinGroup;
+  if (const auto& platformPorts = getPlatformPorts(); !platformPorts.empty()) {
+    const auto& portList =
+        utility::getPlatformPortsByControllingPort(platformPorts, portID);
+    for (const auto& port : portList) {
+      allPortsinGroup.emplace_back(*port.mapping()->id());
+    }
+  }
+  return allPortsinGroup;
 }
 
 SaiMorgan800ccPlatform::~SaiMorgan800ccPlatform() = default;

@@ -21,6 +21,9 @@ namespace facebook::fboss {
 
 class PhyManager;
 
+// Temperatures to report to FSDB.
+constexpr size_t kMaxTcvrTemperaturesToReport = 256;
+
 class WedgeManager : public TransceiverManager {
  public:
   using TransceiverMap = std::map<int32_t, TransceiverInfo>;
@@ -62,6 +65,14 @@ class WedgeManager : public TransceiverManager {
   }
   std::vector<TransceiverID> refreshTransceivers() override;
   void publishTransceiversToFsdb() override;
+
+  void publishPimStatesToFsdb() override;
+
+  // Retrieves PIM states (which includes PIM errors) by querying respective
+  // system containers
+  virtual std::map<int, PimState> getPimStates() const {
+    return {};
+  }
 
   int scanTransceiverPresence(
       std::unique_ptr<std::vector<int32_t>> ids) override;
@@ -176,6 +187,10 @@ class WedgeManager : public TransceiverManager {
 
   std::string getQsfpToBmcSyncDataSerialized() const;
 
+  std::map<int, PimState> getLastPimState() const {
+    return pimStates_;
+  }
+
  protected:
   void initTransceiverMap() override;
 
@@ -194,6 +209,8 @@ class WedgeManager : public TransceiverManager {
       TransceiverID tcvrID,
       facebook::fboss::TcvrState&& newState) override;
 
+  void updatePimStateInFsdb(int pimID, facebook::fboss::PimState&& newState);
+
   void initQsfpImplMap();
 
  private:
@@ -211,6 +228,7 @@ class WedgeManager : public TransceiverManager {
   std::string dataCenter_{""};
   std::string hostnameScheme_{""};
   time_t nextOpticsToBmcSyncTime_{0};
+  std::map<int, PimState> pimStates_;
   std::vector<std::unique_ptr<WedgeQsfp>> qsfpImpls_;
 };
 } // namespace facebook::fboss

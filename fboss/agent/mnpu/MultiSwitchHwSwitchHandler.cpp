@@ -41,6 +41,14 @@ bool MultiSwitchHwSwitchHandler::sendPacketSwitchedAsync(
 
 bool MultiSwitchHwSwitchHandler::transactionsSupported(
     std::optional<cfg::SdkVersion> sdkVersion) const {
+  auto asicType = getSwitchInfo().asicType().value();
+  if (asicType == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    return false;
+  }
+  if (asicType == cfg::AsicType::ASIC_TYPE_EBRO ||
+      asicType == cfg::AsicType::ASIC_TYPE_YUBA) {
+    return true;
+  }
   if (sdkVersion.has_value() && sdkVersion.value().saiSdk().has_value()) {
     return true;
   }
@@ -66,6 +74,9 @@ FabricReachabilityStats MultiSwitchHwSwitchHandler::getFabricReachabilityStats()
 
 bool MultiSwitchHwSwitchHandler::needL2EntryForNeighbor(
     const cfg::SwitchConfig* config) const {
+  if (cfg::AsicType::ASIC_TYPE_CHENAB == getSwitchInfo().asicType().value()) {
+    return false;
+  }
   // if config is not present, fall back to true
   // if sdk version is not set (for test configs), fall back to true
   // if sai, return true else false

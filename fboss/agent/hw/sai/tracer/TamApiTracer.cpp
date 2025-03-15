@@ -130,7 +130,7 @@ sai_tam_api_t* wrappedTamApi() {
   tamWrappers.create_tam_collector = &wrap_create_tam_collector;
   tamWrappers.remove_tam_collector = &wrap_remove_tam_collector;
   tamWrappers.set_tam_collector_attribute = &wrap_set_tam_collector_attribute;
-  tamWrappers.get_tam_collector_attribute = &wrap_get_tam_transport_attribute;
+  tamWrappers.get_tam_collector_attribute = &wrap_get_tam_collector_attribute;
 
   return &tamWrappers;
 }

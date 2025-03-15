@@ -55,9 +55,8 @@ BENCHMARK(RxSlowPathBenchmark) {
           ensemble.masterLogicalPortIds({cfg::PortType::RECYCLE_PORT})[0]);
     }
     auto config = utility::onePortPerInterfaceConfig(ensemble.getSw(), ports);
-    utility::addAclTableGroup(
-        &config, cfg::AclStage::INGRESS, utility::kDefaultAclTableGroupName());
-    utility::addDefaultAclTable(config);
+    utility::setupDefaultAclTableGroups(config);
+
     // We don't want to set queue rate that limits the number of rx pkts
     utility::addCpuQueueConfig(
         config,
@@ -65,7 +64,8 @@ BENCHMARK(RxSlowPathBenchmark) {
         ensemble.isSai(),
         /* setQueueRate */ false);
     auto trapDstIp = folly::CIDRNetwork{kDstIp, 128};
-    utility::addTrapPacketAcl(&config, trapDstIp);
+    auto asic = utility::checkSameAndGetAsic(ensemble.getL3Asics());
+    utility::addTrapPacketAcl(asic, &config, trapDstIp);
 
     // Since J2 and J3 does not support disabling TLL on port, create TRAP to
     // forward TTL=0 packet. Also not send icmp time exceeded packet, since CPU
@@ -82,7 +82,8 @@ BENCHMARK(RxSlowPathBenchmark) {
       createAgentEnsemble(initialConfigFn, false /*disableLinkStateToggler*/);
 
   // capture packet exiting port 0 (entering due to loopback)
-  auto dstMac = utility::getFirstInterfaceMac(ensemble->getProgrammedState());
+  auto dstMac =
+      utility::getMacForFirstInterfaceWithPorts(ensemble->getProgrammedState());
   auto ecmpHelper =
       utility::EcmpSetupAnyNPorts6(ensemble->getProgrammedState(), dstMac);
   flat_set<PortDescriptor> firstIntfPort;
@@ -102,7 +103,7 @@ BENCHMARK(RxSlowPathBenchmark) {
 
   const auto kSrcMac = folly::MacAddress{"fa:ce:b0:00:00:0c"};
   // Send packet
-  auto vlanId = utility::firstVlanID(ensemble->getProgrammedState());
+  auto vlanId = utility::firstVlanIDWithPorts(ensemble->getProgrammedState());
   auto constexpr kPacketToSend = 10;
   for (int i = 0; i < kPacketToSend; i++) {
     auto txPacket = utility::makeUDPTxPacket(

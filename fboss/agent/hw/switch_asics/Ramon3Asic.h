@@ -39,6 +39,12 @@ class Ramon3Asic : public BroadcomAsic {
     return cfg::PortSpeed::FOURHUNDREDG;
   }
 
+  uint32_t getMaxSwitchId() const override {
+    // Even though R3 HW can support switchIds upto 8K.
+    // Due to a bug in reachability table update logic,
+    // we can use only 4064 (not 4K) out of that 8K range
+    return 4064;
+  }
   std::set<cfg::StreamType> getQueueStreamTypes(
       cfg::PortType portType) const override;
   int getDefaultNumPortQueues(
@@ -46,11 +52,12 @@ class Ramon3Asic : public BroadcomAsic {
       cfg::PortType portType) const override;
   uint32_t getMaxLabelStackDepth() const override;
   uint64_t getMMUSizeBytes() const override;
+  uint64_t getSramSizeBytes() const override;
   uint32_t getMaxMirrors() const override;
-  uint64_t getDefaultReservedBytes(
+  std::optional<uint64_t> getDefaultReservedBytes(
       cfg::StreamType streamType,
       cfg::PortType portType) const override;
-  cfg::MMUScalingFactor getDefaultScalingFactor(
+  std::optional<cfg::MMUScalingFactor> getDefaultScalingFactor(
       cfg::StreamType streamType,
       bool cpu) const override;
   int getMaxNumLogicalPorts() const override;

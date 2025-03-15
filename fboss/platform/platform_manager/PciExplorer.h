@@ -3,34 +3,56 @@
 #pragma once
 
 #include <re2/re2.h>
+#include "fboss/platform/helpers/PlatformFsUtils.h"
 
 #include "fboss/platform/platform_manager/gen-cpp2/platform_manager_config_types.h"
 #include "fboss/platform/platform_manager/uapi/fbiob-ioctl.h"
 
 namespace facebook::fboss::platform::platform_manager {
+class PciSubDeviceRuntimeError : public std::runtime_error {
+ public:
+  explicit PciSubDeviceRuntimeError(
+      const std::string& msg,
+      const std::string& pmUnitScopedName)
+      : std::runtime_error(msg), pmUnitScopedName_(pmUnitScopedName) {}
+  std::string getPmUnitScopedName() {
+    return pmUnitScopedName_;
+  }
+
+ private:
+  std::string pmUnitScopedName_;
+};
 
 struct PciDevice {
  public:
-  PciDevice(
-      const std::string& name,
-      const std::string& vendorId,
-      const std::string& deviceId,
-      const std::string& subSystemVendorId,
-      const std::string& subSystemDeviceId);
+  explicit PciDevice(
+      const PciDeviceConfig& pciDevConfig,
+      std::shared_ptr<PlatformFsUtils> platformFsUtils =
+          std::make_shared<PlatformFsUtils>());
   std::string sysfsPath() const;
   std::string charDevPath() const;
+  std::string name() const;
 
  private:
+  std::string name_{};
   std::string vendorId_{};
   std::string deviceId_{};
   std::string subSystemVendorId_{};
   std::string subSystemDeviceId_{};
   std::string charDevPath_{};
   std::string sysfsPath_{};
+  const std::shared_ptr<PlatformFsUtils> platformFsUtils_;
+
+  void checkSysfsReadiness();
+  void bindDriver(const std::string& desiredDriver);
+  void checkCharDevReadiness();
 };
 
 class PciExplorer {
  public:
+  explicit PciExplorer(
+      std::shared_ptr<PlatformFsUtils> platformFsUtils =
+          std::make_shared<PlatformFsUtils>());
   // Create the I2C Adapter based on the given i2cAdapterConfig residing
   // at the given PciDevice path. It returns the the kernel assigned i2c bus
   // number(s) for the created adapter(s). Throw std::runtime_error on failure.
@@ -119,6 +141,8 @@ class PciExplorer {
       uint32_t instanceId);
 
  private:
+  const std::shared_ptr<PlatformFsUtils> platformFsUtils_;
+
   std::vector<uint16_t> getI2cAdapterBusNums(
       const PciDevice& pciDevice,
       const I2cAdapterConfig& i2cAdapterConfig,

@@ -2,8 +2,7 @@
 
 #include <gtest/gtest.h>
 #include <chrono>
-#include "fboss/agent/PlatformPort.h"
-#include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/test/link_tests/AgentEnsembleLinkTest.h"
 #include "fboss/agent/test/link_tests/LinkTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
@@ -749,5 +748,9 @@ PRBS_PHY_TRANSCEIVER_SYSTEM_TEST(FR4_200G, PRBS31, ASIC, PRBS31Q);
 PRBS_PHY_TRANSCEIVER_SYSTEM_TEST(FR4_400G, PRBS31, ASIC, PRBS31Q);
 
 PRBS_PHY_TRANSCEIVER_SYSTEM_TEST(FR1_100G, PRBS31, ASIC, PRBS31Q);
+
+PRBS_PHY_TRANSCEIVER_SYSTEM_TEST(DR4_400G, PRBS31, ASIC, PRBS31Q);
+
+PRBS_TRANSCEIVER_LINE_TRANSCEIVER_LINE_TEST(DR4_400G, PRBS31Q);
 
 PRBS_ASIC_ASIC_TEST(PRBS31);

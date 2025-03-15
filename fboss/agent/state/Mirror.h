@@ -44,9 +44,7 @@ struct MirrorTunnel {
   folly::MacAddress srcMac, dstMac;
   std::optional<TunnelUdpPorts> udpPorts;
   uint8_t ttl;
-  uint16_t greProtocol;
   static constexpr auto kTTL = 127;
-  static constexpr auto kGreProto = 0x88be;
 
   MirrorTunnel(
       const folly::IPAddress& srcIp,
@@ -59,8 +57,7 @@ struct MirrorTunnel {
         srcMac(srcMac),
         dstMac(dstMac),
         udpPorts(std::nullopt),
-        ttl(ttl),
-        greProtocol(kGreProto) {}
+        ttl(ttl) {}
 
   MirrorTunnel(
       const folly::IPAddress& srcIp,
@@ -74,25 +71,22 @@ struct MirrorTunnel {
         srcMac(srcMac),
         dstMac(dstMac),
         udpPorts(sflowPorts),
-        ttl(ttl),
-        greProtocol(0) {}
+        ttl(ttl) {}
 
   bool operator==(const MirrorTunnel& rhs) const {
     return srcIp == rhs.srcIp && dstIp == rhs.dstIp && srcMac == rhs.srcMac &&
-        dstMac == rhs.dstMac && udpPorts == rhs.udpPorts && ttl == rhs.ttl &&
-        greProtocol == rhs.greProtocol;
+        dstMac == rhs.dstMac && udpPorts == rhs.udpPorts && ttl == rhs.ttl;
   }
 
   bool operator<(const MirrorTunnel& rhs) const {
-    return std::tie(srcIp, dstIp, srcMac, dstMac, udpPorts, ttl, greProtocol) <
+    return std::tie(srcIp, dstIp, srcMac, dstMac, udpPorts, ttl) <
         std::tie(
                rhs.srcIp,
                rhs.dstIp,
                rhs.srcMac,
                rhs.dstMac,
                rhs.udpPorts,
-               rhs.ttl,
-               rhs.greProtocol);
+               rhs.ttl);
   }
 
   state::MirrorTunnel toThrift() const {

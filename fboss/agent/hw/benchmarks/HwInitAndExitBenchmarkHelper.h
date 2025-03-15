@@ -19,14 +19,14 @@
 
 namespace facebook::fboss::utility {
 
-void initandExitBenchmarkHelper(
+void initAndExitBenchmarkHelper(
     cfg::PortSpeed uplinkPortSpeed,
     cfg::PortSpeed downlinkPortSpeed,
     cfg::SwitchType switchType);
 
 #define INIT_AND_EXIT_BENCHMARK_HELPER(name, uplinkSpeed, downlinkSpeed) \
   BENCHMARK(name) {                                                      \
-    utility::initandExitBenchmarkHelper(                                 \
+    utility::initAndExitBenchmarkHelper(                                 \
         uplinkSpeed, downlinkSpeed, cfg::SwitchType::NPU);               \
   }
 

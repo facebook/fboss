@@ -6,6 +6,12 @@
 #include "fboss/cli/fboss2/utils/HostInfo.h"
 
 namespace facebook::fboss {
+
+using facebook::netwhoami::Role;
+
 std::optional<facebook::netwhoami::NetWhoAmI> getNetWhoAmI(
     const HostInfo& hostInfo);
+
+bool isDsfRole(Role role);
+
 } // namespace facebook::fboss

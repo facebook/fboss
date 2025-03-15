@@ -51,6 +51,8 @@ enum OperProtocol {
 struct OperMetadata {
   // lastConfirmedAt measured in seconds since epoch
   1: optional i64 lastConfirmedAt;
+  // timestamp in msec since epoch when publisher enqueued last update
+  2: optional i64 lastPublishedAt;
 }
 
 struct OperState {
@@ -97,6 +99,7 @@ struct OperSubRequest {
   3: fsdb_common.SubscriberId subscriberId;
   // Forcefully subscribe even if there is already a subscriber with the same SubscriberId
   4: bool forceSubscribe = false;
+  5: optional i64 heartbeatInterval;
 }
 
 struct OperSubInitResponse {}
@@ -108,6 +111,7 @@ struct OperSubRequestExtended {
   3: fsdb_common.SubscriberId subscriberId;
   // Forcefully subscribe even if there is already a subscriber with the same SubscriberId
   4: bool forceSubscribe = false;
+  5: optional i64 heartbeatInterval;
 }
 
 struct OperSubPathUnit {
@@ -136,6 +140,7 @@ struct SubRequest {
   3: fsdb_common.ClientId clientId;
   // Forcefully subscribe even if there is already a subscriber with the same SubscriberId
   4: bool forceSubscribe = false;
+  5: optional i64 heartbeatInterval;
 }
 
 struct Patch {
@@ -147,7 +152,7 @@ struct Patch {
 
 union PublisherMessage {
   1: Patch patch;
-// TODO: heartbeat
+  // TODO: heartbeat
 }
 
 struct SubscriberChunk {

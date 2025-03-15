@@ -30,6 +30,30 @@ DEFINE_int32(
     "Interval at which stats subscriptions are served");
 
 namespace facebook::fboss::platform::sensor_service {
+namespace {
+void monitorSensorValue(const SensorData& sensorData) {
+  // Don't monitor if thresholds aren't defined to prevent false data.
+  if (!sensorData.thresholds()->upperCriticalVal() &&
+      !sensorData.thresholds()->lowerCriticalVal()) {
+    return;
+  }
+  // Skip reporting if there's no sensor value.
+  if (!sensorData.value()) {
+    return;
+  }
+  // At least one of upperCriticalVal or lowerCriticalVal exist.
+  bool thresholdViolation = *sensorData.value() >
+          sensorData.thresholds()->upperCriticalVal().value_or(INT_MAX) ||
+      *sensorData.value() <
+          sensorData.thresholds()->lowerCriticalVal().value_or(INT_MIN);
+  fb303::fbData->setCounter(
+      fmt::format(
+          SensorServiceImpl::kCriticalThresholdViolation,
+          *sensorData.name(),
+          apache::thrift::util::enumNameSafe(*sensorData.sensorType())),
+      thresholdViolation);
+}
+} // namespace
 
 SensorServiceImpl::SensorServiceImpl(const SensorConfig& sensorConfig)
     : sensorConfig_(sensorConfig) {
@@ -63,11 +87,13 @@ std::map<std::string, SensorData> SensorServiceImpl::getAllSensorData() {
 void SensorServiceImpl::fetchSensorData() {
   std::map<std::string, SensorData> polledData;
   uint readFailures{0};
-  XLOG(INFO) << "Reading SensorData using PM based sensor structs...";
+  XLOG(INFO) << fmt::format(
+      "Reading SensorData for {} PMUnits",
+      sensorConfig_.pmUnitSensorsList()->size());
   for (const auto& pmUnitSensors : *sensorConfig_.pmUnitSensorsList()) {
     auto pmSensors = resolveSensors(pmUnitSensors);
     XLOG(INFO) << fmt::format(
-        "Processing {} unit {} sensors",
+        "Processing {} PMUnit: {} sensors",
         *pmUnitSensors.pmUnitName(),
         pmSensors.size());
     for (const auto& sensor : pmSensors) {
@@ -98,7 +124,7 @@ void SensorServiceImpl::fetchSensorData() {
   fb303::fbData->setCounter(kTotalReadFailure, readFailures);
   fb303::fbData->setCounter(kHasReadFailure, readFailures > 0 ? 1 : 0);
   XLOG(INFO) << fmt::format(
-      "In Total, Processed {} Sensors. {} Failures.",
+      "Summary: Processed {} Sensors. {} Failures.",
       polledData.size(),
       readFailures);
   polledData_.swap(polledData);
@@ -168,6 +194,7 @@ SensorData SensorServiceImpl::fetchSensorDataImpl(
   }
   sensorData.thresholds() = thresholds ? *thresholds : Thresholds();
   sensorData.sensorType() = sensorType;
+  monitorSensorValue(sensorData);
   return sensorData;
 }
 

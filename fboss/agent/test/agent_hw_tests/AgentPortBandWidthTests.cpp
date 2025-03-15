@@ -23,7 +23,9 @@ class AgentPortBandwidthTest : public AgentHwTest {
  public:
   std::vector<production_features::ProductionFeature>
   getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::L3_QOS};
+    return {
+        production_features::ProductionFeature::L3_QOS,
+        production_features::ProductionFeature::NIF_POLICER};
   }
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
@@ -48,6 +50,12 @@ class AgentPortBandwidthTest : public AgentHwTest {
 
   PortID getPort0(SwitchID switchID = SwitchID(0)) const {
     return getPort0(*getAgentEnsemble(), switchID);
+  }
+
+  const HwAsic* getHwAsic() {
+    auto asics = getAgentEnsemble()->getSw()->getHwAsicTable()->getL3Asics();
+    CHECK(!asics.empty());
+    return utility::checkSameAndGetAsic(asics);
   }
 
   void _configureBandwidth(
@@ -91,7 +99,7 @@ class AgentPortBandwidthTest : public AgentHwTest {
   }
 
   void sendUdpPkt(uint8_t dscpVal, int payloadLen) {
-    auto vlanId = utility::firstVlanID(getProgrammedState());
+    auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(dstMac().u64NBO() + 1);
     std::optional<std::vector<uint8_t>> payload = payloadLen
         ? std::vector<uint8_t>(payloadLen, 0xff)
@@ -110,8 +118,12 @@ class AgentPortBandwidthTest : public AgentHwTest {
         255 /* Hop limit */,
         payload);
 
+    std::optional<PortDescriptor> port{};
+    if (getHwAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+      port = PortDescriptor(getPort0());
+    }
     getAgentEnsemble()->sendPacketAsync(
-        std::move(txPacket), std::nullopt, std::nullopt);
+        std::move(txPacket), port, std::nullopt);
   }
 
   void sendUdpPkts(uint8_t dscpVal, int cnt = 256, int payloadLen = 0) {
@@ -121,7 +133,7 @@ class AgentPortBandwidthTest : public AgentHwTest {
   }
 
   MacAddress dstMac() const {
-    return utility::getFirstInterfaceMac(getProgrammedState());
+    return utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
   }
 
   folly::IPAddressV6 kDestIp() const {
@@ -248,9 +260,10 @@ class AgentPortBandwidthPpsTest : public AgentPortBandwidthTest {
  public:
   std::vector<production_features::ProductionFeature>
   getProductionFeaturesVerified() const override {
-    return {
-        production_features::ProductionFeature::L3_QOS,
-        production_features::ProductionFeature::SCHEDULER_PPS};
+    auto prodFeatures = AgentPortBandwidthTest::getProductionFeaturesVerified();
+    prodFeatures.push_back(
+        production_features::ProductionFeature::SCHEDULER_PPS);
+    return prodFeatures;
   }
 };
 
@@ -408,17 +421,21 @@ void AgentPortBandwidthTest::verifyQueueShaper() {
 
 void AgentPortBandwidthTest::verifyPortRateTraffic(cfg::PortSpeed portSpeed) {
   auto setup = [&]() {
-    auto newCfg{initialConfig(*(this->getAgentEnsemble()))};
-    utility::configurePortGroup(
-        getAgentEnsemble()->getPlatformMapping(),
-        getAgentEnsemble()->getSw()->getPlatformSupportsAddRemovePort(),
-        newCfg,
-        portSpeed,
-        utility::getAllPortsInGroup(
-            getAgentEnsemble()->getPlatformMapping(), getPort0()));
-    XLOG(DBG0) << "Port " << getPort0() << " speed set to "
-               << static_cast<int>(portSpeed) << " bps";
-    applyNewConfig(newCfg);
+    auto port = getProgrammedState()->getPorts()->getNodeIf(getPort0());
+    if (port->getSpeed() != portSpeed ||
+        getHwAsic()->getAsicType() != cfg::AsicType::ASIC_TYPE_CHENAB) {
+      auto newCfg{initialConfig(*(this->getAgentEnsemble()))};
+      utility::configurePortGroup(
+          getAgentEnsemble()->getPlatformMapping(),
+          getAgentEnsemble()->getSw()->getPlatformSupportsAddRemovePort(),
+          newCfg,
+          portSpeed,
+          utility::getAllPortsInGroup(
+              getAgentEnsemble()->getPlatformMapping(), getPort0()));
+      XLOG(DBG0) << "Port " << getPort0() << " speed set to "
+                 << static_cast<int>(portSpeed) << " bps";
+      applyNewConfig(newCfg);
+    }
     setupHelper();
 
     auto pktsToSend = getAgentEnsemble()->getMinPktsForLineRate(getPort0());
@@ -490,6 +507,7 @@ INSTANTIATE_TEST_CASE_P(
     ::testing::Values(
         cfg::PortSpeed::FORTYG,
         cfg::PortSpeed::HUNDREDG,
-        cfg::PortSpeed::TWOHUNDREDG));
+        cfg::PortSpeed::TWOHUNDREDG,
+        cfg::PortSpeed::FOURHUNDREDG));
 
 } // namespace facebook::fboss

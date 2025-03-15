@@ -60,7 +60,7 @@ std::set<cfg::AclTableQualifier> AclEntry::getRequiredAclTableQualifiers()
       cfg::AclTableQualifier::DST_IPV6);
 
   if (getProto()) {
-    qualifiers.insert(cfg::AclTableQualifier::IP_PROTOCOL);
+    qualifiers.insert(cfg::AclTableQualifier::IP_PROTOCOL_NUMBER);
   }
   if (getTcpFlagsBitMap()) {
     qualifiers.insert(cfg::AclTableQualifier::TCP_FLAGS);

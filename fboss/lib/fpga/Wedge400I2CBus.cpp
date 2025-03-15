@@ -3,7 +3,6 @@
 #include "fboss/lib/fpga/Wedge400I2CBus.h"
 
 #include "fboss/agent/Utils.h"
-#include "fboss/lib/PciAccess.h"
 #include "fboss/lib/fpga/Wedge400Fpga.h"
 #include "fboss/lib/usb/TransceiverI2CApi.h"
 

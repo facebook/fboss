@@ -10,6 +10,7 @@
 
 #include <gtest/gtest.h>
 
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/L2Entry.h"
 #include "fboss/agent/ResourceAccountant.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -29,7 +30,7 @@ class MacTableManagerTest : public ::testing::Test {
   void SetUp() override {
     handle_ = createTestHandle(testStateA());
     sw_ = handle_->getSw();
-    FLAGS_enable_mac_update_protection = true;
+    FLAGS_enable_hw_update_protection = true;
   }
 
   void verifyStateUpdate(Func func) {

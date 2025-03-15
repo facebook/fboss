@@ -1261,7 +1261,7 @@ TEST(Acl, GetRequiredAclTableQualifiers) {
   std::set<cfg::AclTableQualifier> qualifiers0{
       cfg::AclTableQualifier::SRC_IPV4,
       cfg::AclTableQualifier::DST_IPV4,
-      cfg::AclTableQualifier::IP_PROTOCOL,
+      cfg::AclTableQualifier::IP_PROTOCOL_NUMBER,
       cfg::AclTableQualifier::TCP_FLAGS,
       cfg::AclTableQualifier::IP_FRAG,
       cfg::AclTableQualifier::DSCP,
@@ -1280,7 +1280,7 @@ TEST(Acl, GetRequiredAclTableQualifiers) {
   std::set<cfg::AclTableQualifier> qualifiers1{
       cfg::AclTableQualifier::SRC_IPV6,
       cfg::AclTableQualifier::DST_IPV6,
-      cfg::AclTableQualifier::IP_PROTOCOL,
+      cfg::AclTableQualifier::IP_PROTOCOL_NUMBER,
       cfg::AclTableQualifier::TCP_FLAGS,
       cfg::AclTableQualifier::IP_FRAG,
       cfg::AclTableQualifier::DSCP,

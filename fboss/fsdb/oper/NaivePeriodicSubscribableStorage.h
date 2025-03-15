@@ -226,6 +226,8 @@ class NaivePeriodicSubscribableStorage
   }
 
   folly::coro::Task<void> serveSubscriptions() override {
+    std::map<std::string, uint64_t> lastServedPublisherRootUpdates;
+
     while (true) {
       auto start = std::chrono::steady_clock::now();
 
@@ -236,7 +238,7 @@ class NaivePeriodicSubscribableStorage
       auto [oldRoot, newRoot, metadataServer] = publishCurrentState();
       subscriptions_.serveSubscriptions(oldRoot, newRoot, metadataServer);
 
-      exportServeMetrics(start);
+      exportServeMetrics(start, metadataServer, lastServedPublisherRootUpdates);
 
       co_await folly::coro::sleep(params_.subscriptionServeInterval_);
     }
@@ -303,8 +305,16 @@ NaivePeriodicSubscribableStorage<Storage, SubscribeManager>::convertPath(
       : path;
 }
 
-template <typename Root>
+template <typename Root, bool EnableHybridStorage = false>
 using NaivePeriodicSubscribableCowStorage = NaivePeriodicSubscribableStorage<
-    CowStorage<Root>,
-    CowSubscriptionManager<thrift_cow::ThriftStructNode<Root>>>;
+    CowStorage<
+        Root,
+        thrift_cow::ThriftStructNode<
+            Root,
+            thrift_cow::ThriftStructResolver<Root, EnableHybridStorage>,
+            EnableHybridStorage>>,
+    CowSubscriptionManager<thrift_cow::ThriftStructNode<
+        Root,
+        thrift_cow::ThriftStructResolver<Root, EnableHybridStorage>,
+        EnableHybridStorage>>>;
 } // namespace facebook::fboss::fsdb
