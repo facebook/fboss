@@ -12102,6 +12102,9 @@
           "test_name_regex": "AgentCoppQueueStuckTest.CpuQueueHighRateTraffic$"
         },
         {
+          "test_name_regex": "AgentCoppTest/1.VerifyCoppPpsLowPri$"
+        },
+        {
           "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForTrunk$"
         },
         {
@@ -12133,6 +12136,9 @@
         },
         {
           "test_name_regex": "warm_boot.AgentTrafficPfcTest.verifyIngressPriorityGroupWatermarks$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
         },
         {
           "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
@@ -12332,6 +12338,9 @@
           "test_name_regex": "AgentCoppQueueStuckTest.CpuQueueHighRateTraffic$"
         },
         {
+          "test_name_regex": "AgentCoppTest/1.VerifyCoppPpsLowPri$"
+        },
+        {
           "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForTrunk$"
         },
         {
@@ -12363,6 +12372,9 @@
         },
         {
           "test_name_regex": "warm_boot.AgentTrafficPfcTest.verifyIngressPriorityGroupWatermarks$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
         },
         {
           "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
