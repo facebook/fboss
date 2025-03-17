@@ -166,6 +166,7 @@ void PlatformExplorer::explore() {
     createDeviceSymLink(linkPath, devicePath);
   }
   publishFirmwareVersions();
+  genHumanReadableEeproms();
   auto explorationStatus = explorationSummary_.summarize();
   updatePmStatus(createPmStatus(
       explorationStatus,
@@ -811,6 +812,47 @@ void PlatformExplorer::createPciSubDevices(
       explorationSummary_.addError(
           errorType, slotPath, ex.getPmUnitScopedName(), errMsg);
     }
+  }
+}
+
+void PlatformExplorer::genHumanReadableEeproms() {
+  const auto writeEepromContent = [&](const auto& devicePath,
+                                      const auto& eepromRuntimePath) {
+    // Parse the eeproms which are defined as just I2cDeviceConfig (and not
+    // IdpromConfig). All eeproms in IdpromConfigs are parsed during ...
+    if (!dataStore_.hasEepromContents(devicePath)) {
+      // Eeproms defined in I2cDeviceConfig doesn't have offset defined.
+      dataStore_.updateEepromContents(
+          devicePath,
+          eepromParser_.getContents(eepromRuntimePath, /*offset*/ 0));
+    }
+    auto contents = dataStore_.getEepromContents(devicePath);
+    std::ostringstream os;
+    for (const auto& [key, value] : contents) {
+      os << fmt::format("{}: {}\n", key, value);
+    }
+    platformFsUtils_->writeStringToFile(
+        os.str(), fmt::format("{}_PARSED", eepromRuntimePath));
+  };
+
+  for (const auto& [linkPath, devicePath] :
+       *platformConfig_.symbolicLinkToDevicePath()) {
+    if (!linkPath.starts_with("/run/devmap/eeproms")) {
+      continue;
+    }
+    // DSF P1 is sunsetting until then ignore.
+    if (devicePath == "/[SCM_IDPROM_P1]") {
+      continue;
+    }
+    writeEepromContent(devicePath, linkPath);
+  }
+
+  // In DSF, there's the kernel driver binding issue at the eeproms' addresses,
+  // Hence, the eeproms were created through custom utility and not listed under
+  // `symbolicLinkToDevicePath()`
+  // See: https://github.com/facebookexternal/fboss.bsp.arista/pull/31/files
+  if (std::filesystem::exists("/run/devmap/eeproms/MERU_SCM_EEPROM")) {
+    writeEepromContent("/[IDPROM]", "/run/devmap/eeproms/MERU_SCM_EEPROM");
   }
 }
 } // namespace facebook::fboss::platform::platform_manager

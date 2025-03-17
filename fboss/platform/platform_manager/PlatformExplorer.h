@@ -116,6 +116,7 @@ class PlatformExplorer {
       const std::vector<T>& pciSubDeviceConfigs,
       ExplorationErrorType errorType,
       auto&& deviceCreationLambda);
+  void genHumanReadableEeproms();
 
   PlatformConfig platformConfig_{};
   I2cExplorer i2cExplorer_{};
