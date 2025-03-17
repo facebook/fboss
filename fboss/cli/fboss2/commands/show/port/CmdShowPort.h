@@ -59,6 +59,8 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
       std::map<int32_t, facebook::fboss::TransceiverInfo> transceiverEntries,
       const ObjectArgType& queriedPorts,
       std::map<std::string, facebook::fboss::HwPortStats> portStats,
+      const std::unordered_map<std::string, cfg::SwitchDrainState>&
+          peerDrainStates,
       const std::vector<std::string>& drainedInterfaces);
 
   void printOutput(const RetType& model, std::ostream& out = std::cout);

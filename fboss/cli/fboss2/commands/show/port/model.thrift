@@ -24,6 +24,7 @@ struct PortEntry {
   17: string activeErrors;
   18: string coreId;
   19: string virtualDeviceId;
+  20: string peerSwitchDrained;
 }
 
 struct PortHwStatsEntry {

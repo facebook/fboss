@@ -219,11 +219,19 @@ RetType CmdShowPort::queryClient(
     std::cerr << "Cannot connect to qsfp_service\n";
   }
 
+  // Get peer drain state
+  std::unordered_map<std::string, cfg::SwitchDrainState> peerDrainStates;
+  if (utils::isVoqOrFabric(utils::getSwitchType(*client))) {
+    auto [portToPeer, peers] = getFabPortPeerInfo(hostInfo);
+    peerDrainStates = getPeerDrainStates(portToPeer, peers);
+  }
+
   return createModel(
       portEntries,
       transceiverEntries,
       queriedPorts.data(),
       portStats,
+      peerDrainStates,
       utils::getBgpDrainedInterafces(hostInfo));
 }
 
@@ -232,6 +240,8 @@ RetType CmdShowPort::createModel(
     std::map<int32_t, facebook::fboss::TransceiverInfo> transceiverEntries,
     const ObjectArgType& queriedPorts,
     std::map<std::string, facebook::fboss::HwPortStats> portStats,
+    const std::unordered_map<std::string, cfg::SwitchDrainState>&
+        peerDrainStates,
     const std::vector<std::string>& drainedInterfaces) {
   RetType model;
   std::unordered_set<std::string> queriedSet(
@@ -245,6 +255,12 @@ RetType CmdShowPort::createModel(
         getActiveStateStr(apache::thrift::get_pointer(portInfo.activeState()));
 
     if (queriedPorts.size() == 0 || queriedSet.count(portName)) {
+      std::optional<bool> isPeerDrained;
+      if (peerDrainStates.contains(portName)) {
+        isPeerDrained =
+            (peerDrainStates.at(portName) == cfg::SwitchDrainState::DRAINED);
+      }
+
       cli::PortEntry portDetails;
       portDetails.id() = folly::copy(portInfo.portId().value());
       portDetails.name() = portInfo.name().value();
@@ -280,6 +296,9 @@ RetType CmdShowPort::createModel(
           folly::copy(portInfo.isDrained().value())) {
         portDetails.isDrained() = "Yes";
       }
+      portDetails.peerSwitchDrained() = isPeerDrained.has_value()
+          ? (isPeerDrained.value() ? "Yes" : "No")
+          : "--";
       if (auto tcvrId = portInfo.transceiverIdx()) {
         const auto transceiverId = folly::copy(tcvrId->transceiverId().value());
         portDetails.tcvrID() = transceiverId;
@@ -532,6 +551,7 @@ void CmdShowPort::printOutput(const RetType& model, std::ostream& out) {
         "ProfileID",
         "HwLogicalPortId",
         "Drained",
+        "PeerSwitchDrained",
         "Errors",
         "Core Id",
         "Virtual device Id",
@@ -542,6 +562,7 @@ void CmdShowPort::printOutput(const RetType& model, std::ostream& out) {
       if (auto portId = portInfo.hwLogicalPortId()) {
         hwLogicalPortId = folly::to<std::string>(*portId);
       }
+
       table.addRow(
           {folly::to<std::string>(folly::copy(portInfo.id().value())),
            portInfo.name().value(),
@@ -554,6 +575,7 @@ void CmdShowPort::printOutput(const RetType& model, std::ostream& out) {
            portInfo.profileId().value(),
            hwLogicalPortId,
            portInfo.isDrained().value(),
+           portInfo.peerSwitchDrained().value(),
            getStyledErrors(portInfo.activeErrors().value()),
            portInfo.coreId().value(),
            portInfo.virtualDeviceId().value()});
