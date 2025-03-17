@@ -3053,7 +3053,7 @@
           "busName": "INCOMING@0",
           "address": "0x53",
           "kernelDeviceName": "24c64",
-          "pmUnitScopedName": "FCB_T_IDPROM"
+          "pmUnitScopedName": "CHASSIS_IDPROM"
         },
         {
           "busName": "INCOMING@1",
@@ -3168,7 +3168,7 @@
     "/run/devmap/eeproms/SMB_EEPROM": "/SMB_SLOT@0/[IDPROM]",
     "/run/devmap/eeproms/FCB_B_EEPROM": "/FCBBOTTOM_SLOT@0/[IDPROM]",
     "/run/devmap/eeproms/FCB_T_EEPROM": "/FCBTOP_SLOT@0/[IDPROM]",
-    "/run/devmap/eeproms/CHASSIS_EEPROM": "/FCBTOP_SLOT@0/[FCB_T_IDPROM]",
+    "/run/devmap/eeproms/CHASSIS_EEPROM": "/FCBTOP_SLOT@0/[CHASSIS_IDPROM]",
     "/run/devmap/eeproms/3V3_L_EEPROM": "/SMB_SLOT@0/OPTICL_SLOT@0/[IDPROM]",
     "/run/devmap/eeproms/3V3_R_EEPROM": "/SMB_SLOT@0/OPTICR_SLOT@0/[IDPROM]",
     "/run/devmap/sensors/CPU_CORE_TEMP": "/[CPU_CORE_TEMP]",
