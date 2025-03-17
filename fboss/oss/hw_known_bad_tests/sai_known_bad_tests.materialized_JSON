@@ -11246,6 +11246,9 @@
         },
         {
           "test_name_regex": "warm_boot.SaiAclTableRecreateTests.AclEntryCount$"
+        },
+        {
+          "test_name_regex": "HwHashTrunk8x3PolarizationTests.FullHalfxFullHalf$"
         }
     ],
     "leaba/24.8.3001_yuba/24.8.3001_yuba/graphene200": [
@@ -11470,6 +11473,9 @@
         },
         {
           "test_name_regex": "warm_boot.SaiAclTableRecreateTests.AclEntryCount$"
+        },
+        {
+          "test_name_regex": "HwHashTrunk8x3PolarizationTests.FullHalfxFullHalf$"
         }
     ]
   }
