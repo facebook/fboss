@@ -205,6 +205,7 @@ class HwAsic {
     SFLOW_SAMPLES_PACKING,
     VENDOR_SWITCH_NOTIFICATION,
     SDK_REGISTER_DUMP,
+    FEC_ERROR_DETECT_ENABLE,
   };
 
   enum class AsicMode {
