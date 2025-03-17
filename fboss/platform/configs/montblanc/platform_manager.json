@@ -3175,7 +3175,14 @@
           "slotType": "PSU_SLOT",
           "outgoingI2cBusNames": [
             "INCOMING@0"
-          ]
+          ],
+          "presenceDetection": {
+            "sysfsFileHandle": {
+              "devicePath": "/[MCB_CPLD]",
+              "presenceFileName": "psu_l_present",
+              "desiredValue": 1
+            }
+          }
         }
       }
     },
@@ -3194,7 +3201,14 @@
           "slotType": "PSU_SLOT",
           "outgoingI2cBusNames": [
             "INCOMING@0"
-          ]
+          ],
+          "presenceDetection": {
+            "sysfsFileHandle": {
+              "devicePath": "/[MCB_CPLD]",
+              "presenceFileName": "psu_r_present",
+              "desiredValue": 1
+            }
+          }
         }
       }
     },
