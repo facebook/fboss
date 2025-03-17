@@ -11,6 +11,7 @@
 
 #include <sys/resource.h>
 #include <sys/syscall.h>
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/FsdbHelper.h"
@@ -1077,7 +1078,8 @@ getPlatformMappingForPlatformType(
     }
     case facebook::fboss::PlatformType::PLATFORM_JANGA800BIC: {
       static facebook::fboss::Janga800bicPlatformMapping janga800bic{
-          true /*multiNpuPlatformMapping*/};
+          !FLAGS_type_dctype1_janga /*multiNpuPlatformMapping*/
+      };
       return &janga800bic;
     }
     default:
