@@ -128,6 +128,68 @@ CmdShowPort::getAcceptedFilterValues() {
   };
 }
 
+PeerInfo CmdShowPort::getFabPortPeerInfo(const auto& hostInfo) const {
+  auto fabricEntries = utils::getFabricEndpoints(hostInfo);
+  std::unordered_map<std::string, std::string> portToPeer;
+  std::unordered_set<std::string> peers;
+  for (auto const& [localPort, endpoint] : fabricEntries) {
+    if (endpoint.switchName()) {
+      portToPeer[localPort] = *endpoint.switchName();
+      peers.insert(*endpoint.switchName());
+    }
+  }
+  return {portToPeer, peers};
+}
+
+PeerDrainState CmdShowPort::asyncGetDrainState(
+    std::shared_ptr<apache::thrift::Client<FbossCtrl>> client) const {
+  PeerDrainState entries;
+  try {
+    client->sync_getActualSwitchDrainState(entries);
+  } catch (const std::exception&) {
+    // Continue
+  }
+  return entries;
+}
+
+std::unordered_map<std::string, cfg::SwitchDrainState>
+CmdShowPort::getPeerDrainStates(
+    const std::unordered_map<std::string, std::string>& portToPeer,
+    const std::unordered_set<std::string>& peers) {
+  // Launch futures
+  std::unordered_set<std::string> peersChecked;
+  std::unordered_map<std::string, std::shared_future<PeerDrainState>> futures;
+  for (const auto& peer : peers) {
+    if (!clients.contains(peer)) {
+      clients[peer] = utils::createClient<apache::thrift::Client<FbossCtrl>>(
+          HostInfo(peer), peerTimeout);
+    }
+    futures[peer] = std::async(
+        std::launch::async,
+        &CmdShowPort::asyncGetDrainState,
+        this,
+        clients[peer]);
+  };
+
+  // Get results
+  std::unordered_map<std::string, cfg::SwitchDrainState> peerToDrainState;
+  for (const auto& [peer, f] : futures) {
+    auto entries = f.get();
+    if (!entries.empty()) {
+      peerToDrainState[peer] = entries.begin()->second;
+    }
+  }
+
+  // Map local port to peer drain state
+  std::unordered_map<std::string, cfg::SwitchDrainState> portToPeerDrainState;
+  for (const auto& [localPort, peer] : portToPeer) {
+    if (peerToDrainState.contains(peer)) {
+      portToPeerDrainState[localPort] = peerToDrainState[peer];
+    }
+  }
+  return portToPeerDrainState;
+}
+
 RetType CmdShowPort::queryClient(
     const HostInfo& hostInfo,
     const ObjectArgType& queriedPorts) {

@@ -26,6 +26,7 @@
 namespace facebook::fboss {
 
 using utils::Table;
+using PeerDrainState = std::map<int64_t, cfg::SwitchDrainState>;
 
 struct CmdShowPortTraits : public BaseCommandTraits {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
@@ -34,6 +35,11 @@ struct CmdShowPortTraits : public BaseCommandTraits {
   using RetType = cli::ShowPortModel;
   static constexpr bool ALLOW_FILTERING = true;
   static constexpr bool ALLOW_AGGREGATION = true;
+};
+
+struct PeerInfo {
+  std::unordered_map<std::string, std::string> fabPort2Peer;
+  std::unordered_set<std::string> allPeers;
 };
 
 class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
@@ -56,6 +62,22 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
       const std::vector<std::string>& drainedInterfaces);
 
   void printOutput(const RetType& model, std::ostream& out = std::cout);
+
+ private:
+  std::chrono::seconds peerTimeout = std::chrono::seconds(1);
+
+  std::unordered_map<
+      std::string,
+      std::shared_ptr<apache::thrift::Client<FbossCtrl>>>
+      clients;
+
+  PeerInfo getFabPortPeerInfo(const auto& hostInfo) const;
+
+  PeerDrainState asyncGetDrainState(
+      std::shared_ptr<apache::thrift::Client<FbossCtrl>> client) const;
+  std::unordered_map<std::string, cfg::SwitchDrainState> getPeerDrainStates(
+      const std::unordered_map<std::string, std::string>& portToPeer,
+      const std::unordered_set<std::string>& peers);
 };
 
 } // namespace facebook::fboss
