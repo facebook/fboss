@@ -571,12 +571,11 @@ struct SaiPortTraits {
       std::optional<Attributes::CondEntropyRehashEnable>,
       std::optional<Attributes::CondEntropyRehashPeriodUS>,
       std::optional<Attributes::CondEntropyRehashSeed>,
-      std::optional<Attributes::ShelEnable>
+      std::optional<Attributes::ShelEnable>,
 #if defined(CHENAB_SDK)
-      ,
-      std::optional<Attributes::AutoNegotiationMode>
+      std::optional<Attributes::AutoNegotiationMode>,
 #endif
-      >;
+      std::optional<Attributes::FecErrorDetectEnable>>;
   static constexpr std::array<sai_stat_id_t, 16> CounterIdsToRead = {
       SAI_PORT_STAT_IF_IN_OCTETS,
       SAI_PORT_STAT_IF_IN_UCAST_PKTS,

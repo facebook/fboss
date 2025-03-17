@@ -670,6 +670,18 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   condEntropyRehashEnable = swPort->getConditionalEntropyRehash();
 #endif
+
+  std::optional<SaiPortTraits::Attributes::FecErrorDetectEnable>
+      fecErrorDetectEnable{};
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+  if ((swPort->getPortType() == cfg::PortType::FABRIC_PORT) &&
+      platform_->getAsic()->isSupported(
+          HwAsic::Feature::FEC_ERROR_DETECT_ENABLE)) {
+    fecErrorDetectEnable =
+        SaiPortTraits::Attributes::FecErrorDetectEnable{true};
+  }
+#endif
+
   if (basicAttributeOnly) {
     return SaiPortTraits::CreateAttributes{
 #if defined(BRCM_SAI_SDK_DNX)
@@ -741,6 +753,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
 #if defined(CHENAB_SDK)
         false,
 #endif
+        fecErrorDetectEnable,
     };
   }
   std::optional<SaiPortTraits::Attributes::PortVlanId> vlanIdAttr{vlanId};
@@ -823,6 +836,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
 #if defined(CHENAB_SDK)
       false,
 #endif
+      fecErrorDetectEnable,
   };
 }
 
