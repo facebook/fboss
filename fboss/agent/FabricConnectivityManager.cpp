@@ -147,7 +147,9 @@ void FabricConnectivityManager::updateExpectedSwitchIdAndPortIdForPort(
 
   auto baseSwitchId = *it->second.begin();
   if (switchIdToDsfNode_.find(baseSwitchId) == switchIdToDsfNode_.end()) {
-    XLOG(WARN) << "no dsf node for switch id " << baseSwitchId;
+    XLOG(WARN) << "No DSF node for switch ID " << baseSwitchId
+               << ". Unable to assign expected switch and port IDs for peer "
+               << expectedSwitchName << " on port " << expectedPortName << ".";
     return;
   }
   const auto platformMapping = getPlatformMappingForPlatformType(
@@ -193,7 +195,7 @@ void FabricConnectivityManager::updateExpectedSwitchIdAndPortIdForPort(
 
 void FabricConnectivityManager::addOrUpdatePort(
     const std::shared_ptr<Port>& swPort) {
-  // Non-Faric port connectivity is handled by LLDP
+  // Non-Fabric port connectivity is handled by LLDP
   if (swPort->getPortType() != cfg::PortType::FABRIC_PORT) {
     return;
   }
