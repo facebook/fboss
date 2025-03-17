@@ -455,6 +455,13 @@ struct SaiPortTraits {
     };
     using ShelEnable =
         SaiExtensionAttribute<bool, AttributeShelEnable, SaiBoolDefaultFalse>;
+    struct AttributeFecErrorDetectEnable {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using FecErrorDetectEnable = SaiExtensionAttribute<
+        bool,
+        AttributeFecErrorDetectEnable,
+        SaiBoolDefaultFalse>;
   };
   using AdapterKey = PortSaiId;
 
@@ -725,6 +732,7 @@ SAI_ATTRIBUTE_NAME(Port, CondEntropyRehashEnable)
 SAI_ATTRIBUTE_NAME(Port, CondEntropyRehashPeriodUS)
 SAI_ATTRIBUTE_NAME(Port, CondEntropyRehashSeed)
 SAI_ATTRIBUTE_NAME(Port, ShelEnable)
+SAI_ATTRIBUTE_NAME(Port, FecErrorDetectEnable)
 
 #if defined(CHENAB_SDK)
 SAI_ATTRIBUTE_NAME(Port, AutoNegotiationMode)

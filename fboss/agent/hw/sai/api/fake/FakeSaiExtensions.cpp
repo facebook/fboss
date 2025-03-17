@@ -159,6 +159,11 @@ SaiPortTraits::Attributes::AttributeReachabilityGroup::operator()() {
 }
 
 std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeFecErrorDetectEnable::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeRestartIssuWrapper::operator()() {
   return SAI_SWITCH_ATTR_EXT_RESTART_ISSU;
 }
