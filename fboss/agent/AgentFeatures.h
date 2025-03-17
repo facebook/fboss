@@ -91,3 +91,4 @@ DECLARE_bool(run_forever);
 DECLARE_bool(run_forever_on_failure);
 
 DECLARE_string(sdk_reg_dump_path_prefix);
+DECLARE_bool(type_dctype1_janga);

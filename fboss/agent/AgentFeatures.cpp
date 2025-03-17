@@ -252,3 +252,8 @@ DEFINE_string(
     sdk_reg_dump_path_prefix,
     "/var/facebook/logs/fboss/sdk/reg_dump",
     "File path prefix for SDK register dump");
+
+DEFINE_bool(
+    type_dctype1_janga,
+    false,
+    "Enable support for single NPU config on Janga for MTIA");
