@@ -11098,6 +11098,12 @@
           "test_name_regex": "HwHashConsistencyTest.UdpEgressLinks$"
         },
         {
+          "test_name_regex": "HwHashConsistencyTest.UdpEgressLinksOnEcmpExpand$"
+        },
+        {
+          "test_name_regex": "HwHashConsistencyTest.TcpEgressLinksOnEcmpExpand$"
+        },
+        {
           "test_name_regex": "HwHashConsistencyTest.VerifyMemberOrderEffect$"
         },
         {
@@ -11323,6 +11329,12 @@
         },
         {
           "test_name_regex": "HwHashConsistencyTest.UdpEgressLinks$"
+        },
+        {
+          "test_name_regex": "HwHashConsistencyTest.UdpEgressLinksOnEcmpExpand$"
+        },
+        {
+          "test_name_regex": "HwHashConsistencyTest.TcpEgressLinksOnEcmpExpand$"
         },
         {
           "test_name_regex": "HwHashConsistencyTest.VerifyMemberOrderEffect$"
