@@ -955,7 +955,7 @@
           "test_name_regex": "HwLoadBalancerNegativeTestV6RoCE"
         },
         {
-          "test_name_regex": "HwTrafficPfcTest"
+          "test_name_regex": "HwVerifyPfcConfigInHwTest"
         },
         {
           "test_name_regex": "HwProdInvariantsRswTest"
@@ -3066,7 +3066,7 @@
           "test_name_regex": "HwLoadBalancerNegativeTestV6RoCE"
         },
         {
-          "test_name_regex": "HwTrafficPfcTest"
+          "test_name_regex": "HwVerifyPfcConfigInHwTest"
         },
         {
           "test_name_regex": "HwProdInvariantsRswTest"
@@ -3687,7 +3687,7 @@
           "test_name_regex": "HwLoadBalancerNegativeTestV6RoCE"
         },
         {
-          "test_name_regex": "HwTrafficPfcTest"
+          "test_name_regex": "HwVerifyPfcConfigInHwTest"
         },
         {
           "test_name_regex": "HwProdInvariantsRswTest"
