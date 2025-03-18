@@ -1861,7 +1861,7 @@ bool SaiAclTableManager::isQualifierSupported(
     case cfg::AclTableQualifier::LOOKUP_CLASS_NEIGHBOR:
       return hasField(
           std::get<std::optional<
-              SaiAclTableTraits::Attributes::FieldRouteDstUserMeta>>(
+              SaiAclTableTraits::Attributes::FieldNeighborDstUserMeta>>(
               attributes));
     case cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE:
       return hasField(
