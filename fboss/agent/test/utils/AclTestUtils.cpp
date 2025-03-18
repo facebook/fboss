@@ -192,15 +192,52 @@ void addAclTableGroup(
 }
 
 void addDefaultAclTable(cfg::SwitchConfig& cfg) {
+  std::optional<cfg::SdkVersion> version{};
+  if (cfg.sdkVersion()) {
+    version = *cfg.sdkVersion();
+  }
+
+  HwAsicTable asicTable(
+      *cfg.switchSettings()->switchIdToSwitchInfo(), std::move(version));
+  // TODO (pshaikh): create a method to return AclTables for a given asic type
+  // and acl stage and retire this check
+  auto asic = utility::checkSameAndGetAsic(asicTable.getL3Asics());
+  auto split = asic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB;
+
   /* Create default ACL table similar to whats being done in Agent today */
   std::vector<cfg::AclTableQualifier> qualifiers = {};
   std::vector<cfg::AclTableActionType> actions = {};
-  addAclTable(
-      &cfg,
-      cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE(),
-      0 /* priority */,
-      actions,
-      qualifiers);
+  if (!split) {
+    addAclTable(
+        &cfg,
+        cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE(),
+        0 /* priority */,
+        actions,
+        qualifiers);
+
+  } else {
+    /* full set of supported and required qualifiers do not fit in single table.
+     * default acl table support all use cases except TTLD and ARS */
+    addAclTable(
+        &cfg,
+        cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE(),
+        0 /* priority */,
+        actions,
+        {
+            cfg::AclTableQualifier::DST_IPV6,
+            cfg::AclTableQualifier::DST_IPV4,
+            cfg::AclTableQualifier::L4_SRC_PORT,
+            cfg::AclTableQualifier::L4_DST_PORT,
+            cfg::AclTableQualifier::IP_PROTOCOL_NUMBER,
+            cfg::AclTableQualifier::IPV6_NEXT_HEADER,
+            cfg::AclTableQualifier::SRC_PORT,
+            cfg::AclTableQualifier::DSCP,
+            cfg::AclTableQualifier::TTL,
+            cfg::AclTableQualifier::IP_TYPE,
+            cfg::AclTableQualifier::ETHER_TYPE,
+            cfg::AclTableQualifier::OUTER_VLAN,
+        });
+  }
 }
 
 cfg::AclTable* addAclTable(
