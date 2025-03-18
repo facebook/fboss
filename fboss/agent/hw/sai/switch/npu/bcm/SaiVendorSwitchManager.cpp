@@ -48,4 +48,20 @@ void SaiVendorSwitchManager::vendorSwitchEventNotificationCallback(
 #endif
 }
 
+void SaiVendorSwitchManager::logCgmErrors() const {
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  sai_uint64_t cgmRejectBitmap =
+      SaiApiTable::getInstance()->vendorSwitchApi().getAttribute(
+          vendorSwitch_->adapterKey(),
+          SaiVendorSwitchTraits::Attributes::CgmRejectStatusBitmap{});
+  while (cgmRejectBitmap != 0) {
+    // Brian Kernighan's algorithm to find set bits in the bitmap.
+    uint64_t rightmostSetBit = cgmRejectBitmap & -cgmRejectBitmap;
+    XLOG(WARNING) << "CGM REJECT: "
+                  << getCgmDropReasonName(std::countr_zero(rightmostSetBit));
+    cgmRejectBitmap -= rightmostSetBit;
+  }
+#endif
+}
+
 } // namespace facebook::fboss

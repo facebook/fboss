@@ -32,10 +32,13 @@ class SaiVendorSwitchManager {
       const void* buffer,
       uint32_t eventType);
 
+  void logCgmErrors() const;
+
   const std::vector<uint32_t>& getAllInterruptEvents();
   const std::vector<uint32_t>& getInterruptEventsToBeEnabled();
   const std::string getVendorSwitchEventName(uint32_t eventId);
   void incrementInterruptEventCounter(uint32_t eventId);
+  const std::string getCgmDropReasonName(int reason) const;
 
  private:
   SaiStore* saiStore_;
