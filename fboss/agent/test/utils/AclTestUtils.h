@@ -29,6 +29,8 @@ using AclStatGetFunc = std::function<int64_t(
 
 std::string kDefaultAclTable();
 
+std::string kTtldAclTable();
+
 cfg::AclEntry* addAclEntry(
     cfg::SwitchConfig* cfg,
     cfg::AclEntry& acl,
@@ -96,6 +98,11 @@ cfg::AclTable* addAclTable(
     const std::vector<cfg::AclTableActionType>& actionTypes,
     const std::vector<cfg::AclTableQualifier>& qualifiers,
     const std::vector<std::string>& udfGroups = {});
+
+cfg::AclTable* addTtldAclTable(
+    cfg::SwitchConfig* cfg,
+    cfg::AclStage aclStage,
+    const int aclTablePriority);
 
 cfg::AclTable* getAclTable(
     cfg::SwitchConfig& cfg,

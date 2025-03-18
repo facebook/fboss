@@ -24,6 +24,10 @@ std::string kDefaultAclTable() {
   return cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE();
 }
 
+std::string kTtldAclTable() {
+  return "ttld-acl-table";
+}
+
 std::vector<cfg::AclTableQualifier> genAclQualifiersConfig(
     cfg::AsicType asicType) {
   std::vector<cfg::AclTableQualifier> qualifiers = {
@@ -237,6 +241,7 @@ void addDefaultAclTable(cfg::SwitchConfig& cfg) {
             cfg::AclTableQualifier::ETHER_TYPE,
             cfg::AclTableQualifier::OUTER_VLAN,
         });
+    addTtldAclTable(&cfg, cfg::AclStage::INGRESS, 1 /* priority */);
   }
 }
 
@@ -556,5 +561,30 @@ cfg::AclTable* getAclTable(
     }
   }
   return nullptr;
+}
+
+cfg::AclTable* addTtldAclTable(
+    cfg::SwitchConfig* cfg,
+    cfg::AclStage aclStage,
+    const int aclTablePriority) {
+  return addAclTable(
+      cfg,
+      aclStage,
+      kTtldAclTable(),
+      aclTablePriority,
+      {
+          // action types
+      },
+      {
+          cfg::AclTableQualifier::ETHER_TYPE,
+          cfg::AclTableQualifier::SRC_IPV4,
+          cfg::AclTableQualifier::SRC_IPV6,
+          cfg::AclTableQualifier::IP_PROTOCOL_NUMBER,
+          cfg::AclTableQualifier::IP_TYPE,
+          cfg::AclTableQualifier::TTL,
+      },
+      {
+          // udf groups
+      });
 }
 } // namespace facebook::fboss::utility
