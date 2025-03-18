@@ -216,7 +216,8 @@
         64,
         65,
         67,
-        69
+        69,
+        71
     ],
     "tomahawk4": [
         2,
@@ -267,7 +268,8 @@
         63,
         64,
         67,
-        69
+        69,
+        71
     ],
     "tomahawk5": [
         2,
@@ -315,7 +317,8 @@
         60,
         62,
         63,
-        69
+        69,
+        71
     ],
     "yuba": [
         2,
@@ -577,7 +580,8 @@
         "MULTICAST_QUEUE",
         "MMU_TUNING",
         "UNTRUNCATED_SFLOW",
-        "PTP_TC"
+        "PTP_TC",
+        "L4_DST_PORT_ACL"
     ],
     "tomahawk4": [
         "CPU_RX_TX",
@@ -628,7 +632,8 @@
         "UCMP",
         "MULTICAST_QUEUE",
         "UNTRUNCATED_SFLOW",
-        "PTP_TC"
+        "PTP_TC",
+        "L4_DST_PORT_ACL"
     ],
     "tomahawk5": [
         "CPU_RX_TX",
@@ -676,7 +681,8 @@
         "SEPARATE_BYTE_AND_PACKET_ACL_COUNTERS",
         "EAPOL_TRAP",
         "UCMP",
-        "PTP_TC"
+        "PTP_TC",
+        "L4_DST_PORT_ACL"
     ],
     "yuba": [
         "CPU_RX_TX",
