@@ -500,6 +500,24 @@ class AgentAclCounterTest : public AgentHwTest {
   std::unique_ptr<utility::EcmpSetupAnyNPorts6> helper_;
 };
 
+class AgentL4DstPortAclCounterTest : public AgentAclCounterTest {
+ public:
+  std::vector<production_features::ProductionFeature>
+  getProductionFeaturesVerified() const override {
+    if (!FLAGS_enable_acl_table_group) {
+      return {
+          production_features::ProductionFeature::ACL_COUNTER,
+          production_features::ProductionFeature::SINGLE_ACL_TABLE,
+          production_features::ProductionFeature::L4_DST_PORT_ACL};
+    } else {
+      return {
+          production_features::ProductionFeature::ACL_COUNTER,
+          production_features::ProductionFeature::MULTI_ACL_TABLE,
+          production_features::ProductionFeature::L4_DST_PORT_ACL};
+    }
+  }
+};
+
 // Verify that traffic arrive on a front panel port increments ACL counter.
 TEST_F(AgentAclCounterTest, VerifyCounterBumpOnTtlHitFrontPanel) {
   auto asic = utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
@@ -516,7 +534,10 @@ TEST_F(AgentAclCounterTest, VerifyCounterBumpOnSportHitFrontPanel) {
   this->counterBumpOnHitHelper(
       true /* bump on hit */, true /* front panel port */, {AclType::SRC_PORT});
 }
-TEST_F(AgentAclCounterTest, VerifyCounterBumpOnL4DstportHitFrontPanel) {
+
+TEST_F(
+    AgentL4DstPortAclCounterTest,
+    VerifyCounterBumpOnL4DstportHitFrontPanel) {
   this->counterBumpOnHitHelper(
       true /* bump on hit */,
       true /* front panel port */,
@@ -572,7 +593,7 @@ TEST_F(AgentAclCounterTest, VerifyAclPrioritySportHitFrontPanel) {
   this->aclPriorityTestHelper();
 }
 
-TEST_F(AgentAclCounterTest, VerifyAclPriorityL4DstportHitFrontPanel) {
+TEST_F(AgentL4DstPortAclCounterTest, VerifyAclPriorityL4DstportHitFrontPanel) {
   this->aclPriorityTestHelper2();
 }
 

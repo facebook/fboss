@@ -81,6 +81,7 @@ enum ProductionFeature {
   MPLS = 68,
   PTP_TC = 69,
   SELF_HEALING_ECMP_LAG = 70,
+  L4_DST_PORT_ACL = 71,
   # production feature which is present on all platforms, keep it at the end
   HW_SWITCH = 65536,
 }
