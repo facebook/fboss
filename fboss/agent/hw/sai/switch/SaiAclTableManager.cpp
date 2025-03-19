@@ -1554,7 +1554,7 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet(
 std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet(
     sai_acl_stage_t aclStage) const {
   if (aclStage == SAI_ACL_STAGE_EGRESS &&
-      platform_->getAsic()->isSupported(
+      !platform_->getAsic()->isSupported(
           HwAsic::Feature::INGRESS_POST_LOOKUP_ACL_TABLE)) {
     throw FbossError("egress acl table is not supported on switch asic");
   }
