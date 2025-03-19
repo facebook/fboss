@@ -219,7 +219,8 @@ void AgentEnsembleLinkTest::initializeCabledPorts() {
 }
 
 std::tuple<std::vector<PortID>, std::string>
-AgentEnsembleLinkTest::getOpticalCabledPortsAndNames(bool pluggableOnly) const {
+AgentEnsembleLinkTest::getOpticalAndActiveCabledPortsAndNames(
+    bool pluggableOnly) const {
   std::string opticalPortNames;
   std::vector<PortID> opticalPorts;
   std::vector<int32_t> transceiverIds;
@@ -422,7 +423,8 @@ AgentEnsembleLinkTest::getConnectedOpticalAndActivePortPairWithFeature(
     phy::Side side,
     bool skipLoopback) const {
   auto connectedPairs = getConnectedPairs();
-  auto opticalPorts = std::get<0>(getOpticalCabledPortsAndNames(false));
+  auto opticalPorts =
+      std::get<0>(getOpticalAndActiveCabledPortsAndNames(false));
 
   std::set<std::pair<PortID, PortID>> connectedOpticalPortPairs;
   for (auto connectedPair : connectedPairs) {

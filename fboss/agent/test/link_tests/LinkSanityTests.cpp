@@ -260,7 +260,8 @@ TEST_F(LinkSanityTestDataPlaneFlood, ptpEnableIsHitless) {
  * 7. Make sure all the ports come up again
  */
 TEST_F(LinkTest, opticsTxDisableRandomPorts) {
-  auto [opticalPorts, opticalPortNames] = getOpticalCabledPortsAndNames();
+  auto [opticalPorts, opticalPortNames] =
+      getOpticalAndActiveCabledPortsAndNames();
   EXPECT_FALSE(opticalPorts.empty())
       << "opticsTxDisableRandomPorts: Did not detect any optical transceivers";
 
@@ -347,7 +348,8 @@ TEST_F(LinkTest, opticsTxDisableRandomPorts) {
 }
 
 TEST_F(LinkTest, opticsTxDisableEnable) {
-  auto [opticalPorts, opticalPortNames] = getOpticalCabledPortsAndNames();
+  auto [opticalPorts, opticalPortNames] =
+      getOpticalAndActiveCabledPortsAndNames();
   EXPECT_FALSE(opticalPorts.empty())
       << "opticsTxDisableEnable: Did not detect any optical transceivers";
 

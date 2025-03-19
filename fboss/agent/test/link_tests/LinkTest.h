@@ -52,10 +52,11 @@ class LinkTest : public AgentTest {
   std::set<std::pair<PortID, PortID>> getConnectedPairs() const;
 
   /*
-   * Return plugged in optical transceivers and their names.
+   * Return plugged in Optical and Active Electrical Cable transceivers and
+   * their names.
    */
-  std::tuple<std::vector<PortID>, std::string> getOpticalCabledPortsAndNames(
-      bool pluggableOnly = false) const;
+  std::tuple<std::vector<PortID>, std::string>
+  getOpticalAndActiveCabledPortsAndNames(bool pluggableOnly = false) const;
 
   /*
    * Ports where we expect optics to be plugged in.

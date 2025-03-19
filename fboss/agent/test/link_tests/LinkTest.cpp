@@ -227,7 +227,7 @@ void LinkTest::initializeCabledPorts() {
 }
 
 std::tuple<std::vector<PortID>, std::string>
-LinkTest::getOpticalCabledPortsAndNames(bool pluggableOnly) const {
+LinkTest::getOpticalAndActiveCabledPortsAndNames(bool pluggableOnly) const {
   std::string opticalPortNames;
   std::vector<PortID> opticalPorts;
   std::vector<int32_t> transceiverIds;
@@ -438,7 +438,8 @@ LinkTest::getConnectedOpticalAndActivePortPairWithFeature(
     phy::Side side,
     bool skipLoopback) const {
   auto connectedPairs = getConnectedPairs();
-  auto opticalPorts = std::get<0>(getOpticalCabledPortsAndNames(false));
+  auto opticalPorts =
+      std::get<0>(getOpticalAndActiveCabledPortsAndNames(false));
 
   std::set<std::pair<PortID, PortID>> connectedOpticalPortPairs;
   for (auto connectedPair : connectedPairs) {
