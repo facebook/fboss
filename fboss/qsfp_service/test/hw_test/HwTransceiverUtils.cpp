@@ -132,6 +132,9 @@ void HwTransceiverUtils::verifyPortNameToLaneMap(
           case cfg::PortProfileID::PROFILE_800G_8_PAM4_RS544X2N_OPTICAL:
             expectedMediaLanes = {0, 1, 2, 3, 4, 5, 6, 7};
             break;
+          case cfg::PortProfileID::PROFILE_800G_8_PAM4_RS544X2N_COPPER:
+            expectedMediaLanes = {0, 1, 2, 3, 4, 5, 6, 7};
+            break;
           default:
             throw FbossError(
                 "Unhandled profile ",
@@ -349,7 +352,9 @@ void HwTransceiverUtils::verifyMediaInterfaceCompliance(
     case cfg::PortProfileID::PROFILE_800G_8_PAM4_RS544X2N_OPTICAL:
       verifyOptical800gProfile(mgmtInterface, mediaInterfaces);
       break;
-
+    case cfg::PortProfileID::PROFILE_800G_8_PAM4_RS544X2N_COPPER:
+      verifyActiveCopper800gProfile(mgmtInterface, mediaInterfaces);
+      break;
     default:
       throw FbossError(
           "Unhandled profile ", apache::thrift::util::enumNameSafe(profile));
@@ -499,12 +504,25 @@ void HwTransceiverUtils::verifyOptical800gProfile(
     const TransceiverManagementInterface mgmtInterface,
     const std::vector<MediaInterfaceId>& mediaInterfaces) {
   EXPECT_EQ(mgmtInterface, TransceiverManagementInterface::CMIS);
-
   for (const auto& mediaId : mediaInterfaces) {
     EXPECT_TRUE(
         *mediaId.media()->smfCode_ref() == SMFMediaInterfaceCode::FR8_800G);
     EXPECT_TRUE(*mediaId.code() == MediaInterfaceCode::FR8_800G);
   }
+}
+
+void HwTransceiverUtils::verifyActiveCopper800gProfile(
+    const TransceiverManagementInterface mgmtInterface,
+    const std::vector<MediaInterfaceId>& mediaInterfaces) {
+  EXPECT_EQ(mgmtInterface, TransceiverManagementInterface::CMIS);
+  /* Will be added once we have the code for AEC 800G added.
+  for (const auto& mediaId : mediaInterfaces) {
+    EXPECT_TRUE(
+        *mediaId.media()->activeCuCode_ref() ==
+        ActiveCuHostInterfaceCode::AUI_PAM4_8S_800G);
+    EXPECT_TRUE(*mediaId.code() == MediaInterfaceCode::CR8_800G);
+  }
+  */
 }
 
 void HwTransceiverUtils::verifyDataPathEnabled(

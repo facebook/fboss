@@ -87,6 +87,7 @@ cfg::PortSpeed getSpeed(cfg::PortProfileID profile) {
       return cfg::PortSpeed::FOURHUNDREDG;
 
     case cfg::PortProfileID::PROFILE_800G_8_PAM4_RS544X2N_OPTICAL:
+    case cfg::PortProfileID::PROFILE_800G_8_PAM4_RS544X2N_COPPER:
       return cfg::PortSpeed::EIGHTHUNDREDG;
 
     case cfg::PortProfileID::PROFILE_DEFAULT:
@@ -119,6 +120,7 @@ TransmitterTechnology getMediaType(cfg::PortProfileID profile) {
     case cfg::PortProfileID::PROFILE_400G_4_PAM4_RS544X2N_COPPER:
     case cfg::PortProfileID::PROFILE_100G_2_PAM4_RS544X2N_COPPER:
     case cfg::PortProfileID::PROFILE_100G_1_PAM4_NOFEC_COPPER:
+    case cfg::PortProfileID::PROFILE_800G_8_PAM4_RS544X2N_COPPER:
       return TransmitterTechnology::COPPER;
 
     case cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_OPTICAL:
