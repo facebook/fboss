@@ -518,6 +518,7 @@ cpp_library(
         "facebook/Utils.cpp",
     ],
     exported_deps = [
+        ":agent_features",
         ":asic_utils",
         ":fboss-error",
         ":fboss-types",
