@@ -205,6 +205,16 @@ DEFINE_int32(
     4000,
     "Maximum L2 entries supported by Resource Accountant");
 
+DEFINE_int32(
+    max_ndp_entries,
+    3500,
+    "Maximum NDP entries supported by Resource Accountant");
+
+DEFINE_int32(
+    max_arp_entries,
+    100,
+    "Maximum ARP entries supported by Resource Accountant");
+
 DEFINE_bool(
     fw_drained_unrecoverable_error,
     false,
