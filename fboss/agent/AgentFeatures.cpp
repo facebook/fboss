@@ -200,6 +200,11 @@ DEFINE_bool(
     false,
     "Enable Neighbor/MAC table hw update failure protection");
 
+DEFINE_int32(
+    max_l2_entries,
+    4000,
+    "Maximum L2 entries supported by Resource Accountant");
+
 DEFINE_bool(
     fw_drained_unrecoverable_error,
     false,

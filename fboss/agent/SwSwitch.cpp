@@ -179,8 +179,6 @@ DEFINE_bool(rx_sw_priority, false, "Enable rx packet prioritization");
 
 DEFINE_int32(rx_pkt_thread_timeout, 100, "Rx packet thread timeout (ms)");
 
-DEFINE_int32(max_l2_entries, 1000, "Maximum L2 entries supported");
-
 using namespace facebook::fboss;
 namespace {
 
