@@ -176,4 +176,11 @@ void setupDefaultPostLookupIngressAclTableGroup(cfg::SwitchConfig& config);
 
 void setupDefaultIngressAclTableGroup(cfg::SwitchConfig& config);
 
+std::set<cfg::AclTableQualifier> getRequiredQualifers(
+    const cfg::AclEntry& aclEntry);
+
+bool aclEntrySupported(
+    const cfg::AclTable* aclTable,
+    const cfg::AclEntry& aclEntry);
+
 } // namespace facebook::fboss::utility

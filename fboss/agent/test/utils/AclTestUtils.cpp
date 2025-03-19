@@ -74,11 +74,21 @@ cfg::AclEntry* addAclEntry(
     cfg::AclEntry& acl,
     const std::string& aclTableName) {
   if (FLAGS_enable_acl_table_group) {
+    // by default ingress acl table group is used to add acl entry
     auto aclTableGroup = getAclTableGroup(*cfg);
+
     int tableNumber = getAclTableIndex(aclTableGroup, aclTableName);
     CHECK(aclTableGroup);
-    aclTableGroup->aclTables()[tableNumber].aclEntries()->push_back(acl);
-    return &aclTableGroup->aclTables()[tableNumber].aclEntries()->back();
+    auto& aclTable = aclTableGroup->aclTables()[tableNumber];
+    if (!aclEntrySupported(&aclTable, acl)) {
+      throw FbossError(
+          "acl entry ",
+          *acl.name(),
+          " is can not be added in acl table ",
+          aclTableName);
+    }
+    aclTable.aclEntries()->push_back(acl);
+    return &aclTable.aclEntries()->back();
   } else {
     cfg->acls()->push_back(acl);
     return &cfg->acls()->back();
@@ -586,5 +596,185 @@ cfg::AclTable* addTtldAclTable(
       {
           // udf groups
       });
+}
+
+std::set<cfg::AclTableQualifier> getRequiredQualifers(
+    const cfg::AclEntry& aclEntry) {
+  int minValue = static_cast<int>(
+      apache::thrift::TEnumTraits<cfg::AclTableQualifier>::min());
+  int maxValue = static_cast<int>(
+      apache::thrift::TEnumTraits<cfg::AclTableQualifier>::max());
+  std::set<cfg::AclTableQualifier> requiredQualifiers{};
+
+  auto addQualier = [&requiredQualifiers](
+                        bool isSet, cfg::AclTableQualifier qualifer) {
+    if (isSet) {
+      requiredQualifiers.insert(qualifer);
+    }
+  };
+
+  for (int iter = minValue; iter != maxValue; ++iter) {
+    auto qualifier = static_cast<cfg::AclTableQualifier>(iter);
+    switch (static_cast<cfg::AclTableQualifier>(qualifier)) {
+      case cfg::AclTableQualifier::DST_IPV4:
+        addQualier(
+            aclEntry.dstIp().has_value() &&
+                folly::IPAddress::createNetwork(*aclEntry.dstIp()).first.isV4(),
+            qualifier);
+        break;
+
+      case cfg::AclTableQualifier::DST_IPV6:
+        addQualier(
+            aclEntry.dstIp().has_value() &&
+                folly::IPAddress::createNetwork(*aclEntry.dstIp()).first.isV6(),
+            qualifier);
+        break;
+
+      case cfg::AclTableQualifier::SRC_IPV4:
+        addQualier(
+            aclEntry.srcIp().has_value() &&
+                folly::IPAddress::createNetwork(*aclEntry.srcIp()).first.isV4(),
+            qualifier);
+        break;
+
+      case cfg::AclTableQualifier::SRC_IPV6:
+        addQualier(
+            aclEntry.srcIp().has_value() &&
+                folly::IPAddress::createNetwork(*aclEntry.srcIp()).first.isV6(),
+            qualifier);
+        break;
+
+      case cfg::AclTableQualifier::L4_SRC_PORT:
+        addQualier(aclEntry.l4SrcPort().has_value(), qualifier);
+        break;
+
+      case cfg::AclTableQualifier::L4_DST_PORT:
+        addQualier(aclEntry.l4DstPort().has_value(), qualifier);
+        break;
+
+      case cfg::AclTableQualifier::IP_PROTOCOL_NUMBER:
+        if (aclEntry.etherType().has_value() &&
+            *aclEntry.etherType() == cfg::EtherType::IPv4) {
+          addQualier(aclEntry.proto().has_value(), qualifier);
+        } else {
+          addQualier(aclEntry.proto().has_value(), qualifier);
+        }
+        break;
+
+      case cfg::AclTableQualifier::TCP_FLAGS:
+        addQualier(aclEntry.tcpFlagsBitMap().has_value(), qualifier);
+        break;
+
+      case cfg::AclTableQualifier::SRC_PORT:
+        addQualier(aclEntry.srcPort().has_value(), qualifier);
+        break;
+
+      case cfg::AclTableQualifier::OUT_PORT:
+        addQualier(aclEntry.dstPort().has_value(), qualifier);
+        break;
+
+      case cfg::AclTableQualifier::IP_FRAG:
+        addQualier(aclEntry.ipFrag().has_value(), qualifier);
+        break;
+
+      case cfg::AclTableQualifier::ICMPV4_TYPE:
+        if (aclEntry.proto().has_value() && *aclEntry.proto() == 1) {
+          addQualier(aclEntry.icmpType().has_value(), qualifier);
+        }
+        break;
+
+      case cfg::AclTableQualifier::ICMPV4_CODE:
+        if (aclEntry.proto().has_value() && *aclEntry.proto() == 1) {
+          addQualier(aclEntry.icmpCode().has_value(), qualifier);
+        }
+        break;
+
+      case cfg::AclTableQualifier::ICMPV6_TYPE:
+        if (aclEntry.proto().has_value() && *aclEntry.proto() == 58) {
+          addQualier(aclEntry.icmpType().has_value(), qualifier);
+        }
+        break;
+
+      case cfg::AclTableQualifier::ICMPV6_CODE:
+        if (aclEntry.proto().has_value() && *aclEntry.proto() == 58) {
+          addQualier(aclEntry.icmpCode().has_value(), qualifier);
+        }
+        break;
+
+      case cfg::AclTableQualifier::DSCP:
+        addQualier(aclEntry.dscp().has_value(), qualifier);
+        break;
+
+      case cfg::AclTableQualifier::DST_MAC:
+        addQualier(aclEntry.dstMac().has_value(), qualifier);
+        break;
+
+      case cfg::AclTableQualifier::IP_TYPE:
+        addQualier(aclEntry.ipType().has_value(), qualifier);
+        break;
+
+      case cfg::AclTableQualifier::TTL:
+        addQualier(aclEntry.ttl().has_value(), qualifier);
+        break;
+
+      case cfg::AclTableQualifier::LOOKUP_CLASS_L2:
+        addQualier(aclEntry.lookupClassL2().has_value(), qualifier);
+        break;
+
+      case cfg::AclTableQualifier::LOOKUP_CLASS_NEIGHBOR:
+        addQualier(aclEntry.lookupClassNeighbor().has_value(), qualifier);
+        break;
+
+      case cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE:
+        addQualier(aclEntry.lookupClassRoute().has_value(), qualifier);
+        break;
+
+      case cfg::AclTableQualifier::ETHER_TYPE:
+        addQualier(aclEntry.etherType().has_value(), qualifier);
+        break;
+
+      case cfg::AclTableQualifier::OUTER_VLAN:
+        addQualier(aclEntry.vlanID().has_value(), qualifier);
+        break;
+
+      case cfg::AclTableQualifier::IPV6_NEXT_HEADER:
+        if (aclEntry.etherType().has_value() &&
+            *aclEntry.etherType() == cfg::EtherType::IPv6) {
+          addQualier(aclEntry.proto().has_value(), qualifier);
+        } else {
+          addQualier(aclEntry.proto().has_value(), qualifier);
+        }
+        break;
+
+      case cfg::AclTableQualifier::UDF:
+      case cfg::AclTableQualifier::BTH_OPCODE:
+        // TODO: identify when these qualifiers are required
+        break;
+    }
+  }
+  return requiredQualifiers;
+}
+
+bool aclEntrySupported(
+    const cfg::AclTable* aclTable,
+    const cfg::AclEntry& aclEntry) {
+  auto aclTableQualifiers = aclTable->qualifiers();
+
+  if (aclTableQualifiers->empty()) {
+    // acl table supports all supported qualifiers
+    return true;
+  }
+  auto requiredQualifiers = getRequiredQualifers(aclEntry);
+  std::set<cfg::AclTableQualifier> aclTableQualifiersSet(
+      aclTableQualifiers->begin(), aclTableQualifiers->end());
+  std::set<cfg::AclTableQualifier> difference{};
+  std::set_difference(
+      requiredQualifiers.begin(),
+      requiredQualifiers.end(),
+      aclTableQualifiersSet.begin(),
+      aclTableQualifiersSet.end(),
+      std::inserter(difference, difference.begin()));
+
+  return difference.empty();
 }
 } // namespace facebook::fboss::utility
