@@ -145,34 +145,35 @@ void addDscpMarkingAclsTableHelper(
     bool isSai) {
   auto asicType = utility::checkSameAndGetAsicType(*config);
   for (auto port : ports) {
-    auto l4SrcPortAclName = getDscpAclName(proto, "src", port);
-    auto dscpSrcMarkingAcl = utility::addAcl_DEPRECATED(
-        config, l4SrcPortAclName, cfg::AclActionType::PERMIT, aclTableName);
+    cfg::AclEntry dscpSrcMarkingAcl;
+    dscpSrcMarkingAcl.name() = getDscpAclName(proto, "src", port);
+    dscpSrcMarkingAcl.actionType() = cfg::AclActionType::PERMIT;
+    dscpSrcMarkingAcl.proto() = static_cast<int>(proto);
+    dscpSrcMarkingAcl.l4SrcPort() = port;
     if (asicType == cfg::AsicType::ASIC_TYPE_CHENAB) {
-      // Add ethertype so that proto is interpreted correctly
-      dscpSrcMarkingAcl->etherType() = cfg::EtherType::IPv6;
+      dscpSrcMarkingAcl.etherType() = cfg::EtherType::IPv6;
     }
-    dscpSrcMarkingAcl->proto() = static_cast<int>(proto);
-    dscpSrcMarkingAcl->l4SrcPort() = port;
+    addAclEntry(config, dscpSrcMarkingAcl, aclTableName);
+
     utility::addSetDscpAndEgressQueueActionToCfg(
         config,
-        l4SrcPortAclName,
+        *dscpSrcMarkingAcl.name(),
         kIcpDscp(),
         utility::getOlympicQueueId(utility::OlympicQueueType::ICP),
         isSai);
 
-    auto l4DstPortAclName = getDscpAclName(proto, "dst", port);
-    auto dscpDstMarkingAcl = utility::addAcl_DEPRECATED(
-        config, l4DstPortAclName, cfg::AclActionType::PERMIT, aclTableName);
+    cfg::AclEntry dscpDstMarkingAcl;
+    dscpDstMarkingAcl.name() = getDscpAclName(proto, "dst", port);
+    dscpDstMarkingAcl.actionType() = cfg::AclActionType::PERMIT;
+    dscpDstMarkingAcl.proto() = static_cast<int>(proto);
+    dscpDstMarkingAcl.l4DstPort() = port;
     if (asicType == cfg::AsicType::ASIC_TYPE_CHENAB) {
-      // Add ethertype so that proto is interpreted correctly
-      dscpSrcMarkingAcl->etherType() = cfg::EtherType::IPv6;
+      dscpDstMarkingAcl.etherType() = cfg::EtherType::IPv6;
     }
-    dscpDstMarkingAcl->proto() = static_cast<int>(proto);
-    dscpDstMarkingAcl->l4DstPort() = port;
+    utility::addAclEntry(config, dscpDstMarkingAcl, aclTableName);
     utility::addSetDscpAndEgressQueueActionToCfg(
         config,
-        l4DstPortAclName,
+        *dscpDstMarkingAcl.name(),
         kIcpDscp(),
         utility::getOlympicQueueId(utility::OlympicQueueType::ICP),
         isSai);
@@ -195,9 +196,11 @@ void addDscpAclEntryWithCounter(
     bool isSai) {
   std::vector<cfg::CounterType> counterTypes{cfg::CounterType::PACKETS};
   utility::addTrafficCounter(config, kCounterName(), counterTypes);
-  auto* dscpAcl = utility::addAcl_DEPRECATED(
-      config, kDscpCounterAclName(), cfg::AclActionType::PERMIT, aclTableName);
-  dscpAcl->dscp() = utility::kIcpDscp();
+  cfg::AclEntry dscpAcl;
+  dscpAcl.name() = kDscpCounterAclName();
+  dscpAcl.actionType() = cfg::AclActionType::PERMIT;
+  dscpAcl.dscp() = utility::kIcpDscp();
+  utility::addAclEntry(config, dscpAcl, aclTableName);
 
   utility::addAclStat(
       config, kDscpCounterAclName(), kCounterName(), counterTypes);

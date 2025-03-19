@@ -273,15 +273,19 @@ void addFlowletAcl(
     const std::string& aclName,
     const std::string& aclCounterName,
     bool udfFlowlet) {
-  auto* acl = utility::addAcl_DEPRECATED(&cfg, aclName);
-  acl->proto() = 17;
-  acl->l4DstPort() = 4791;
-  acl->dstIp() = "2001::/16";
+  cfg::AclEntry acl;
+  acl.name() = aclName;
+  acl.actionType() = cfg::AclActionType::PERMIT;
+  acl.proto() = 17;
+  acl.l4DstPort() = 4791;
+  acl.dstIp() = "2001::/16";
   if (udfFlowlet) {
-    acl->udfGroups() = {utility::kRoceUdfFlowletGroupName};
-    acl->roceBytes() = {utility::kRoceReserved};
-    acl->roceMask() = {utility::kRoceReserved};
+    acl.udfGroups() = {utility::kRoceUdfFlowletGroupName};
+    acl.roceBytes() = {utility::kRoceReserved};
+    acl.roceMask() = {utility::kRoceReserved};
   }
+  utility::addAcl(&cfg, acl);
+
   cfg::MatchAction matchAction = cfg::MatchAction();
   matchAction.flowletAction() = cfg::FlowletAction::FORWARD;
   matchAction.counter() = aclCounterName;
