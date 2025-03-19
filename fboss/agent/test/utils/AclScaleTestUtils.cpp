@@ -64,8 +64,8 @@ void addAclEntries(
     const std::string& tableName) {
   for (auto i = 0; i < maxEntries; i++) {
     std::string aclEntryName = "Entry" + std::to_string(i);
-    auto* aclEntry =
-        utility::addAcl(cfg, aclEntryName, cfg::AclActionType::DENY, tableName);
+    auto* aclEntry = utility::addAcl_DEPRECATED(
+        cfg, aclEntryName, cfg::AclActionType::DENY, tableName);
     updateAclEntryFields(aclEntry, width);
   }
 }

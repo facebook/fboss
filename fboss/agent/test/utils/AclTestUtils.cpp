@@ -95,7 +95,7 @@ cfg::AclEntry* addAclEntry(
   }
 }
 
-cfg::AclEntry* addAcl(
+cfg::AclEntry* addAcl_DEPRECATED(
     cfg::SwitchConfig* cfg,
     const std::string& aclName,
     const cfg::AclActionType& aclActionType,

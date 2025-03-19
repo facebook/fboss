@@ -155,7 +155,7 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
   }
 
   void addFlowletAcl(cfg::SwitchConfig& cfg) const {
-    auto* acl = utility::addAcl(&cfg, kAclName);
+    auto* acl = utility::addAcl_DEPRECATED(&cfg, kAclName);
     acl->proto() = kUdpProto;
     acl->l4DstPort() = kUdpDstPort;
     acl->dstIp() = kDstIp;

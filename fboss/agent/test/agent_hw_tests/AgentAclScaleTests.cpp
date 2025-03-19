@@ -95,7 +95,7 @@ class AgentAclScaleTest : public AgentHwTest {
       const std::string& tableName) {
     for (auto i = 0; i < maxEntries; i++) {
       std::string aclEntryName = "Entry" + std::to_string(i);
-      auto* aclEntry = utility::addAcl(
+      auto* aclEntry = utility::addAcl_DEPRECATED(
           cfg, aclEntryName, cfg::AclActionType::DENY, tableName);
       updateAclEntryFields(aclEntry, width);
     }
@@ -136,7 +136,7 @@ class AgentAclScaleTest : public AgentHwTest {
         utility::addAclTable(
             &cfg, aclTableName, i /* priority */, {}, qualifiers);
 
-        auto* aclEntry = utility::addAcl(
+        auto* aclEntry = utility::addAcl_DEPRECATED(
             &cfg, "Entry0", cfg::AclActionType::DENY, aclTableName);
         updateAclEntryFields(aclEntry, AclWidth::SINGLE_WIDE);
       }
@@ -157,7 +157,7 @@ class AgentAclScaleTest : public AgentHwTest {
         utility::addAclTable(
             &cfg, aclTableName, i /* priority */, {}, qualifiers);
 
-        auto* aclEntry = utility::addAcl(
+        auto* aclEntry = utility::addAcl_DEPRECATED(
             &cfg, "Entry0", cfg::AclActionType::PERMIT, aclTableName);
         updateAclEntryFields(aclEntry, AclWidth::DOUBLE_WIDE);
       }
@@ -183,7 +183,7 @@ class AgentAclScaleTest : public AgentHwTest {
         utility::addAclTable(
             &cfg, aclTableName, i /* priority */, {}, qualifiers);
 
-        auto* aclEntry = utility::addAcl(
+        auto* aclEntry = utility::addAcl_DEPRECATED(
             &cfg, "Entry0", cfg::AclActionType::PERMIT, aclTableName);
         updateAclEntryFields(aclEntry, AclWidth::TRIPLE_WIDE);
       }
@@ -202,13 +202,13 @@ class AgentAclScaleTest : public AgentHwTest {
           setAclQualifiers(AclWidth::TRIPLE_WIDE);
 
       utility::addAclTable(&cfg, "aclTable0", 0 /* priority */, {}, qualifiers);
-      auto* aclEntry0 = utility::addAcl(
+      auto* aclEntry0 = utility::addAcl_DEPRECATED(
           &cfg, "Entry0", cfg::AclActionType::PERMIT, "aclTable0");
       updateAclEntryFields(aclEntry0, AclWidth::TRIPLE_WIDE);
 
       qualifiers = setAclQualifiers(AclWidth::DOUBLE_WIDE);
       utility::addAclTable(&cfg, "aclTable1", 1 /* priority */, {}, qualifiers);
-      auto* aclEntry1 = utility::addAcl(
+      auto* aclEntry1 = utility::addAcl_DEPRECATED(
           &cfg, "Entry0", cfg::AclActionType::PERMIT, "aclTable1");
       updateAclEntryFields(aclEntry1, AclWidth::DOUBLE_WIDE);
 
@@ -220,7 +220,7 @@ class AgentAclScaleTest : public AgentHwTest {
         utility::addAclTable(
             &cfg, aclTableName, i /* priority */, {}, qualifiers);
 
-        auto* aclEntry = utility::addAcl(
+        auto* aclEntry = utility::addAcl_DEPRECATED(
             &cfg, "Entry0", cfg::AclActionType::PERMIT, aclTableName);
         updateAclEntryFields(aclEntry, AclWidth::SINGLE_WIDE);
       }

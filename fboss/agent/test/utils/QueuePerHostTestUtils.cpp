@@ -369,7 +369,8 @@ void addQueuePerHostAcls(cfg::SwitchConfig* config, bool isSai) {
   }
 
   // TTL only
-  auto* ttlAcl = utility::addAcl(config, getQueuePerHostTtlAclName());
+  auto* ttlAcl =
+      utility::addAcl_DEPRECATED(config, getQueuePerHostTtlAclName());
   ttlAcl->ttl() = ttl;
   std::vector<cfg::CounterType> setCounterTypes{
       cfg::CounterType::PACKETS, cfg::CounterType::BYTES};
@@ -394,7 +395,7 @@ void addTtlAclEntry(
       cfg::CounterType::PACKETS, cfg::CounterType::BYTES};
   utility::addTrafficCounter(config, ttlCounterName, counterTypes);
 
-  auto* ttlAcl = utility::addAcl(
+  auto* ttlAcl = utility::addAcl_DEPRECATED(
       config,
       getQueuePerHostTtlAclName(),
       cfg::AclActionType::PERMIT,
@@ -453,19 +454,19 @@ void addQueuePerHostAclEntry(
     auto classID = kQueuePerHostQueueToClass().at(queueId);
 
     auto l2AclName = getQueuePerHostL2AclNameForQueue(queueId);
-    auto aclL2 = utility::addAcl(
+    auto aclL2 = utility::addAcl_DEPRECATED(
         config, l2AclName, cfg::AclActionType::PERMIT, aclTableName);
     aclL2->lookupClassL2() = classID;
     utility::addQueueMatcher(config, l2AclName, queueId, isSai);
 
     auto neighborAclName = getQueuePerHostNeighborAclNameForQueue(queueId);
-    auto aclNeighbor = utility::addAcl(
+    auto aclNeighbor = utility::addAcl_DEPRECATED(
         config, neighborAclName, cfg::AclActionType::PERMIT, aclTableName);
     aclNeighbor->lookupClassNeighbor() = classID;
     utility::addQueueMatcher(config, neighborAclName, queueId, isSai);
 
     auto routeAclName = getQueuePerHostRouteAclNameForQueue(queueId);
-    auto aclRoute = utility::addAcl(
+    auto aclRoute = utility::addAcl_DEPRECATED(
         config, routeAclName, cfg::AclActionType::PERMIT, aclTableName);
     aclRoute->lookupClassRoute() = classID;
     utility::addQueueMatcher(config, routeAclName, queueId, isSai);

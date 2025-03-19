@@ -98,13 +98,13 @@ class SaiAclTableGroupTest : public HwTest {
   void addAclTable1Entry1(
       cfg::SwitchConfig& cfg,
       const std::string& aclTableName) {
-    auto* acl1 = utility::addAcl(
+    auto* acl1 = utility::addAcl_DEPRECATED(
         &cfg, kAclTable1Entry1(), cfg::AclActionType::DENY, aclTableName);
     acl1->dscp() = 0x20;
   }
 
   void addAclTable2Entry1(cfg::SwitchConfig& cfg) {
-    auto* acl2 = utility::addAcl(
+    auto* acl2 = utility::addAcl_DEPRECATED(
         &cfg, kAclTable2Entry1(), cfg::AclActionType::DENY, kAclTable2());
     cfg::Ttl ttl;
     std::tie(*ttl.value(), *ttl.mask()) = std::make_tuple(0x80, 0x80);
@@ -320,7 +320,7 @@ class SaiAclTableGroupTest : public HwTest {
       uint8_t dscp,
       bool addVlan = false) {
     std::vector<cfg::CounterType> counterTypes{cfg::CounterType::PACKETS};
-    auto* counterAcl = utility::addAcl(
+    auto* counterAcl = utility::addAcl_DEPRECATED(
         cfg, aclEntryName, cfg::AclActionType::PERMIT, aclTableName);
     utility::addAclStat(cfg, aclEntryName, counterName, counterTypes);
     counterAcl->dscp() = dscp;

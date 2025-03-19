@@ -146,7 +146,7 @@ void addDscpMarkingAclsTableHelper(
   auto asicType = utility::checkSameAndGetAsicType(*config);
   for (auto port : ports) {
     auto l4SrcPortAclName = getDscpAclName(proto, "src", port);
-    auto dscpSrcMarkingAcl = utility::addAcl(
+    auto dscpSrcMarkingAcl = utility::addAcl_DEPRECATED(
         config, l4SrcPortAclName, cfg::AclActionType::PERMIT, aclTableName);
     if (asicType == cfg::AsicType::ASIC_TYPE_CHENAB) {
       // Add ethertype so that proto is interpreted correctly
@@ -162,7 +162,7 @@ void addDscpMarkingAclsTableHelper(
         isSai);
 
     auto l4DstPortAclName = getDscpAclName(proto, "dst", port);
-    auto dscpDstMarkingAcl = utility::addAcl(
+    auto dscpDstMarkingAcl = utility::addAcl_DEPRECATED(
         config, l4DstPortAclName, cfg::AclActionType::PERMIT, aclTableName);
     if (asicType == cfg::AsicType::ASIC_TYPE_CHENAB) {
       // Add ethertype so that proto is interpreted correctly
@@ -195,7 +195,7 @@ void addDscpAclEntryWithCounter(
     bool isSai) {
   std::vector<cfg::CounterType> counterTypes{cfg::CounterType::PACKETS};
   utility::addTrafficCounter(config, kCounterName(), counterTypes);
-  auto* dscpAcl = utility::addAcl(
+  auto* dscpAcl = utility::addAcl_DEPRECATED(
       config, kDscpCounterAclName(), cfg::AclActionType::PERMIT, aclTableName);
   dscpAcl->dscp() = utility::kIcpDscp();
 

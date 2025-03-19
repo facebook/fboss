@@ -446,7 +446,7 @@ class AgentAclCounterTest : public AgentHwTest {
   void addAclAndStat(cfg::SwitchConfig* config, AclType aclType) const {
     auto aclName = getAclName(aclType);
     auto counterName = getCounterName(aclType);
-    auto acl = utility::addAcl(config, aclName, aclActionType_);
+    auto acl = utility::addAcl_DEPRECATED(config, aclName, aclActionType_);
     auto l3Asics = getAgentEnsemble()->getL3Asics();
     auto asic = utility::checkSameAndGetAsic(l3Asics);
     switch (aclType) {

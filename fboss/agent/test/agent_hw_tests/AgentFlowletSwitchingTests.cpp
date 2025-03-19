@@ -391,7 +391,7 @@ class AgentAclCounterTestBase : public AgentHwTest {
       const std::optional<int>& roceBytes,
       const std::optional<int>& roceMask,
       const std::optional<std::vector<cfg::AclUdfEntry>>& udfTable) const {
-    auto acl = utility::addAcl(config, aclName, aclActionType_);
+    auto acl = utility::addAcl_DEPRECATED(config, aclName, aclActionType_);
     std::vector<cfg::CounterType> setCounterTypes{
         cfg::CounterType::PACKETS, cfg::CounterType::BYTES};
     if (udfTable.has_value()) {

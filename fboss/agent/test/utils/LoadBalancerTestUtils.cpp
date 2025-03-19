@@ -273,7 +273,7 @@ void addFlowletAcl(
     const std::string& aclName,
     const std::string& aclCounterName,
     bool udfFlowlet) {
-  auto* acl = utility::addAcl(&cfg, aclName);
+  auto* acl = utility::addAcl_DEPRECATED(&cfg, aclName);
   acl->proto() = 17;
   acl->l4DstPort() = 4791;
   acl->dstIp() = "2001::/16";

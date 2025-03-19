@@ -113,7 +113,7 @@ TEST_F(HwUdfTest, deleteUdfAclConfig) {
   newCfg.udfConfig() = utility::addUdfAclConfig();
 
   // Add ACL configuration
-  auto acl = utility::addAcl(&newCfg, "test-udf-acl");
+  auto acl = utility::addAcl_DEPRECATED(&newCfg, "test-udf-acl");
   acl->udfGroups() = {utility::kUdfAclRoceOpcodeGroupName};
   acl->roceOpcode() = utility::kUdfRoceOpcodeAck;
   applyNewConfig(newCfg);

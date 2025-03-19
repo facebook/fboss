@@ -47,7 +47,7 @@ class HwAclStatTest : public HwTest {
   cfg::AclEntry* addDscpAcl(
       cfg::SwitchConfig* cfg,
       const std::string& aclName) {
-    auto* acl = utility::addAcl(cfg, aclName);
+    auto* acl = utility::addAcl_DEPRECATED(cfg, aclName);
     // ACL requires at least one qualifier
     acl->dscp() = 0x24;
     utility::addEtherTypeToAcl(getAsic(), acl, cfg::EtherType::IPv6);

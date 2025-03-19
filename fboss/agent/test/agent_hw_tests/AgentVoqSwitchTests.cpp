@@ -233,7 +233,7 @@ SystemPortID AgentVoqSwitchTest::getSystemPortID(
 
 void AgentVoqSwitchTest::addDscpAclWithCounter() {
   auto newCfg = initialConfig(*getAgentEnsemble());
-  auto* acl = utility::addAcl(&newCfg, kDscpAclName());
+  auto* acl = utility::addAcl_DEPRECATED(&newCfg, kDscpAclName());
   auto asic = utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
   acl->dscp() = 0x24;
   utility::addEtherTypeToAcl(asic, acl, cfg::EtherType::IPv6);
