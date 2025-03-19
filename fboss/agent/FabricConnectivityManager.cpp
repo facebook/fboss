@@ -423,7 +423,7 @@ FabricConnectivityManager::processConnectivityInfoForPort(
   }
 
   if (!old || (old != iter->second)) {
-    XLOG(DBG5) << "Connectivity changed on port ID " << static_cast<int>(portId)
+    XLOG(DBG2) << "Connectivity changed on port ID " << static_cast<int>(portId)
                << ". Processing delta.";
     delta = multiswitch::FabricConnectivityDelta();
     if (old.has_value()) {
