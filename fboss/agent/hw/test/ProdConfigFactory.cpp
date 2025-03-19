@@ -105,7 +105,6 @@ uint16_t uplinksCountFromSwitch(PlatformType mode) {
     case PM::PLATFORM_MINIPACK:
     case PM::PLATFORM_ELBERT:
     case PM::PLATFORM_FUJI:
-    case PM::PLATFORM_CLOUDRIPPER:
     case PM::PLATFORM_GALAXY_LC:
     case PM::PLATFORM_GALAXY_FC:
     case PM::PLATFORM_DARWIN:

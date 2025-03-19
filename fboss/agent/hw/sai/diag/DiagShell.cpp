@@ -177,9 +177,9 @@ std::unique_ptr<Repl> DiagShell::makeRepl() const {
     case PlatformType::PLATFORM_WEDGE400C_VOQ:
     case PlatformType::PLATFORM_WEDGE400C_FABRIC:
     case PlatformType::PLATFORM_WEDGE400C_GRANDTETON:
-    case PlatformType::PLATFORM_CLOUDRIPPER:
-    case PlatformType::PLATFORM_CLOUDRIPPER_VOQ:
-    case PlatformType::PLATFORM_CLOUDRIPPER_FABRIC:
+    case PlatformType::PLATFORM_CLOUDRIPPER_DEPRECATED:
+    case PlatformType::PLATFORM_CLOUDRIPPER_VOQ_DEPRECATED:
+    case PlatformType::PLATFORM_CLOUDRIPPER_FABRIC_DEPRECATED:
     case PlatformType::PLATFORM_SANDIA:
     case PlatformType::PLATFORM_MORGAN800CC:
       return std::make_unique<PythonRepl>(ptys_->file.fd());
@@ -414,9 +414,9 @@ std::string DiagCmdServer::getDelimiterDiagCmd(const std::string& UUID) const {
     case PlatformType::PLATFORM_WEDGE400C_VOQ:
     case PlatformType::PLATFORM_WEDGE400C_FABRIC:
     case PlatformType::PLATFORM_WEDGE400C_GRANDTETON:
-    case PlatformType::PLATFORM_CLOUDRIPPER:
-    case PlatformType::PLATFORM_CLOUDRIPPER_VOQ:
-    case PlatformType::PLATFORM_CLOUDRIPPER_FABRIC:
+    case PlatformType::PLATFORM_CLOUDRIPPER_DEPRECATED:
+    case PlatformType::PLATFORM_CLOUDRIPPER_VOQ_DEPRECATED:
+    case PlatformType::PLATFORM_CLOUDRIPPER_FABRIC_DEPRECATED:
     case PlatformType::PLATFORM_SANDIA:
     case PlatformType::PLATFORM_MORGAN800CC:
       return folly::to<std::string>("print('", UUID, "')\n");
@@ -484,9 +484,9 @@ std::string& DiagCmdServer::cleanUpOutput(
     case PlatformType::PLATFORM_SANDIA:
     case PlatformType::PLATFORM_MORGAN800CC:
       return output;
-    case PlatformType::PLATFORM_CLOUDRIPPER:
-    case PlatformType::PLATFORM_CLOUDRIPPER_VOQ:
-    case PlatformType::PLATFORM_CLOUDRIPPER_FABRIC:
+    case PlatformType::PLATFORM_CLOUDRIPPER_DEPRECATED:
+    case PlatformType::PLATFORM_CLOUDRIPPER_VOQ_DEPRECATED:
+    case PlatformType::PLATFORM_CLOUDRIPPER_FABRIC_DEPRECATED:
       throw FbossError("Shell not supported for cloud ripper platform");
     case PlatformType::PLATFORM_LASSEN_DEPRECATED:
       throw FbossError("Shell not supported for lassen platform");
