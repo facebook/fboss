@@ -264,7 +264,7 @@ TEST_F(LinkTest, opticsTxDisableRandomPorts) {
   EXPECT_FALSE(opticalPorts.empty())
       << "opticsTxDisableRandomPorts: Did not detect any optical transceivers";
 
-  auto connectedPairPortIds = getConnectedOpticalPortPairWithFeature(
+  auto connectedPairPortIds = getConnectedOpticalAndActivePortPairWithFeature(
       TransceiverFeature::TX_DISABLE, phy::Side::LINE);
 
   std::vector<PortID> disabledPorts; // List of PortID of disabled ports
@@ -388,7 +388,7 @@ TEST_F(LinkTest, testOpticsRemediation) {
     // Bring down the link on all the optical cabled ports having tx_disable
     // feature supported. The link should go down and the remediation should
     // get triggered bringing it up
-    auto connectedPairPortIds = getConnectedOpticalPortPairWithFeature(
+    auto connectedPairPortIds = getConnectedOpticalAndActivePortPairWithFeature(
         TransceiverFeature::TX_DISABLE, phy::Side::LINE);
 
     EXPECT_GT(connectedPairPortIds.size(), 0);

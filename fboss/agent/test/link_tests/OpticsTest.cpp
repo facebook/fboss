@@ -113,7 +113,7 @@ class OpticsTest : public LinkTest {
  public:
   std::set<std::pair<PortID, PortID>> getConnectedOpticalPortPairs() const {
     // TransceiverFeature::NONE will get us all optical pairs.
-    return getConnectedOpticalPortPairWithFeature(
+    return getConnectedOpticalAndActivePortPairWithFeature(
         TransceiverFeature::NONE,
         phy::Side::LINE /* side doesn't matter when feature is None */,
         true /* skipLoopback */);
@@ -309,7 +309,7 @@ TEST_F(OpticsTest, verifyTxRxLatches) {
  */
 TEST_F(LinkTest, opticsVdmPerformanceMonitoring) {
   // 1. Find the list of optical ports with VDM supported optics
-  auto connectedPairPortIds = getConnectedOpticalPortPairWithFeature(
+  auto connectedPairPortIds = getConnectedOpticalAndActivePortPairWithFeature(
       TransceiverFeature::VDM, phy::Side::LINE);
   CHECK(!connectedPairPortIds.empty())
       << "opticsVdmPerformanceMonitoring: No optics capable of this test";

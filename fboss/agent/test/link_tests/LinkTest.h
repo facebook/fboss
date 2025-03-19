@@ -100,7 +100,8 @@ class LinkTest : public AgentTest {
       PortID portId,
       const std::set<std::pair<PortID, PortID>>& connectedPairs) const;
 
-  std::set<std::pair<PortID, PortID>> getConnectedOpticalPortPairWithFeature(
+  std::set<std::pair<PortID, PortID>>
+  getConnectedOpticalAndActivePortPairWithFeature(
       TransceiverFeature feature,
       phy::Side side,
       bool skipLoopback = false) const;
