@@ -66,8 +66,6 @@ class AgentEnsembleLinkTest : public AgentEnsembleTest {
     return cabledFabricPorts_;
   }
 
-  void checkQsfpServiceMemoryInBounds() const;
-  void checkFsdbMemoryInBounds() const;
   void checkAgentMemoryInBounds() const;
 
   /*
