@@ -277,7 +277,7 @@ TEST_F(HwTransceiverResetTest, verifyResetControl) {
 
   auto wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
   // Only work with optical transceivers
-  auto opticalTransceivers = getCabledOpticalTransceiverIDs();
+  auto opticalTransceivers = getCabledOpticalAndActiveTransceiverIDs();
 
   EXPECT_TRUE(!opticalTransceivers.empty());
 

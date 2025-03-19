@@ -4,6 +4,7 @@
 
 #include "fboss/qsfp_service/test/hw_test/HwPortUtils.h"
 #include "fboss/qsfp_service/test/hw_test/HwQsfpEnsemble.h"
+#include "fboss/qsfp_service/test/hw_test/HwTransceiverUtils.h"
 
 #include <folly/gen/Base.h>
 #include <folly/portability/Filesystem.h>
@@ -86,7 +87,7 @@ TEST_F(HwTest, i2cStressWrite) {
   // Only work with optical transceivers. The offset that this test is
   // writing is not writable on copper/flatMem modules
 
-  auto opticalTransceivers = getCabledOpticalTransceiverIDs();
+  auto opticalTransceivers = getCabledOpticalAndActiveTransceiverIDs();
 
   EXPECT_TRUE(!opticalTransceivers.empty());
 
@@ -169,7 +170,7 @@ TEST_F(HwTest, i2cLogCapacityRead) {
 
 TEST_F(HwTest, i2cLogCapacityWrite) {
   auto wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
-  auto transceivers = getCabledOpticalTransceiverIDs();
+  auto transceivers = getCabledOpticalAndActiveTransceiverIDs();
   EXPECT_TRUE(!transceivers.empty());
   WriteRequest request;
   request.ids() = transceivers;
@@ -225,12 +226,7 @@ TEST_F(HwTest, cmisPageChange) {
       folly::gen::filter([&transceiversInfo](int32_t tcvrId) {
         const auto& tcvrInfo = transceiversInfo[tcvrId];
         const auto& tcvrState = *tcvrInfo.tcvrState();
-        auto transmitterTech =
-            *tcvrState.cable().value_or({}).transmitterTech();
-        auto mgmtInterface =
-            tcvrState.transceiverManagementInterface().value_or({});
-        return transmitterTech == TransmitterTechnology::OPTICAL &&
-            mgmtInterface == TransceiverManagementInterface::CMIS;
+        return utility::HwTransceiverUtils::opticalOrActiveCmisCable(tcvrState);
       }) |
       folly::gen::as<std::vector>();
 

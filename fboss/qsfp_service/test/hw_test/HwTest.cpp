@@ -19,6 +19,7 @@
 #include "fboss/qsfp_service/QsfpServer.h"
 #include "fboss/qsfp_service/test/hw_test/HwPortUtils.h"
 #include "fboss/qsfp_service/test/hw_test/HwQsfpEnsemble.h"
+#include "fboss/qsfp_service/test/hw_test/HwTransceiverUtils.h"
 
 DEFINE_bool(
     setup_for_warmboot,
@@ -204,7 +205,7 @@ void HwTest::waitTillCabledTcvrProgrammed(int numRetries) {
       "Never got all transceivers programmed");
 }
 
-std::vector<int> HwTest::getCabledOpticalTransceiverIDs() {
+std::vector<int> HwTest::getCabledOpticalAndActiveTransceiverIDs() {
   auto transceivers = utility::legacyTransceiverIds(
       utility::getCabledPortTranceivers(getHwQsfpEnsemble()));
   std::map<int32_t, TransceiverInfo> transceiversInfo;
@@ -214,9 +215,8 @@ std::vector<int> HwTest::getCabledOpticalTransceiverIDs() {
   return folly::gen::from(transceivers) |
       folly::gen::filter([&transceiversInfo](int32_t tcvrId) {
            auto& tcvrInfo = transceiversInfo[tcvrId];
-           auto transmitterTech =
-               *tcvrInfo.tcvrState()->cable().value_or({}).transmitterTech();
-           return transmitterTech == TransmitterTechnology::OPTICAL;
+           return utility::HwTransceiverUtils::opticalOrActiveCable(
+               *tcvrInfo.tcvrState());
          }) |
       folly::gen::as<std::vector>();
 }

@@ -14,6 +14,7 @@
 #include "fboss/qsfp_service/test/hw_test/HwPortUtils.h"
 #include "fboss/qsfp_service/test/hw_test/HwQsfpEnsemble.h"
 #include "fboss/qsfp_service/test/hw_test/HwTest.h"
+#include "fboss/qsfp_service/test/hw_test/HwTransceiverUtils.h"
 
 namespace facebook::fboss {
 
@@ -335,8 +336,6 @@ TEST_F(HwTest, transceiverIOStats) {
         TransceiverID(tcvrID));
     auto& tcvrState = *tcvrInfo.tcvrState();
     auto& tcvrStats = *tcvrInfo.tcvrStats();
-    auto& mgmtInterface = tcvrState.transceiverManagementInterface().ensure();
-    auto& cable = tcvrState.cable().ensure();
     TransceiverStats& tcvrStatsAfter = tcvrStats.stats().ensure();
 
     XLOG(DBG3) << "tcvrID: " << tcvrID << " Stats Before Refresh: "
@@ -354,9 +353,7 @@ TEST_F(HwTest, transceiverIOStats) {
     EXPECT_GT(
         tcvrStatsAfter.get_numReadAttempted(),
         tcvrStatsBefore[tcvrID].get_numReadAttempted());
-    if (mgmtInterface == TransceiverManagementInterface::CMIS &&
-        folly::copy(cable.transmitterTech().value()) ==
-            TransmitterTechnology::OPTICAL) {
+    if (utility::HwTransceiverUtils::opticalOrActiveCmisCable(tcvrState)) {
       EXPECT_GT(
           tcvrStatsAfter.get_numWriteAttempted(),
           tcvrStatsBefore[tcvrID].get_numWriteAttempted());

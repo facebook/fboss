@@ -673,4 +673,26 @@ void HwTransceiverUtils::verifyDatapathResetTimestamp(
     }
   }
 }
+
+bool HwTransceiverUtils::opticalOrActiveCmisCable(const TcvrState& tcvrState) {
+  if (tcvrState.transceiverManagementInterface().has_value() &&
+      tcvrState.transceiverManagementInterface().value() ==
+          TransceiverManagementInterface::CMIS &&
+      opticalOrActiveCable(tcvrState)) {
+    return true;
+  }
+  return false;
+}
+
+bool HwTransceiverUtils::opticalOrActiveCable(const TcvrState& tcvrState) {
+  if (tcvrState.cable().has_value() &&
+      ((tcvrState.cable()->transmitterTech() ==
+        TransmitterTechnology::OPTICAL) ||
+       (tcvrState.cable()->mediaTypeEncoding() ==
+        MediaTypeEncodings::ACTIVE_CABLES))) {
+    return true;
+  }
+  return false;
+}
+
 } // namespace facebook::fboss::utility
