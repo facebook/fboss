@@ -185,4 +185,7 @@ bool aclEntrySupported(
     const cfg::AclTable* aclTable,
     const cfg::AclEntry& aclEntry);
 
+std::string getAclTableForAclEntry(
+    cfg::SwitchConfig& config,
+    const cfg::AclEntry& aclEntry);
 } // namespace facebook::fboss::utility

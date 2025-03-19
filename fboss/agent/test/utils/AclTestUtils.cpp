@@ -115,7 +115,8 @@ cfg::AclEntry* addAcl(cfg::SwitchConfig* cfg, const cfg::AclEntry& acl) {
     cfg->acls()->push_back(acl);
     return &cfg->acls()->back();
   }
-  return addAclEntry(cfg, acl, kDefaultAclTable());
+  auto selectedTableName = getAclTableForAclEntry(*cfg, acl);
+  return addAclEntry(cfg, acl, selectedTableName);
 }
 
 void addEtherTypeToAcl(
@@ -785,4 +786,20 @@ bool aclEntrySupported(
 
   return difference.empty();
 }
+
+std::string getAclTableForAclEntry(
+    cfg::SwitchConfig& config,
+    const cfg::AclEntry& aclEntry) {
+  auto aclTableGroup = getAclTableGroup(config);
+  if (!aclTableGroup) {
+    throw FbossError("Acl table group not found");
+  }
+  for (auto& aclTable : *aclTableGroup->aclTables()) {
+    if (aclEntrySupported(&aclTable, aclEntry)) {
+      return *aclTable.name();
+    }
+  }
+  throw FbossError("No acl table found for acl entry ", *aclEntry.name());
+}
+
 } // namespace facebook::fboss::utility
