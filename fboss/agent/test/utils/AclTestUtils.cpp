@@ -71,7 +71,7 @@ int getAclTableIndex(
 
 cfg::AclEntry* addAclEntry(
     cfg::SwitchConfig* cfg,
-    cfg::AclEntry& acl,
+    const cfg::AclEntry& acl,
     const std::string& aclTableName) {
   if (FLAGS_enable_acl_table_group) {
     // by default ingress acl table group is used to add acl entry
@@ -108,6 +108,14 @@ cfg::AclEntry* addAcl_DEPRECATED(
     return addAclEntry(cfg, acl, kDefaultAclTable());
   }
   return addAclEntry(cfg, acl, *tableName);
+}
+
+cfg::AclEntry* addAcl(cfg::SwitchConfig* cfg, const cfg::AclEntry& acl) {
+  if (!FLAGS_enable_acl_table_group) {
+    cfg->acls()->push_back(acl);
+    return &cfg->acls()->back();
+  }
+  return addAclEntry(cfg, acl, kDefaultAclTable());
 }
 
 void addEtherTypeToAcl(

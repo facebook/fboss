@@ -33,7 +33,7 @@ std::string kTtldAclTable();
 
 cfg::AclEntry* addAclEntry(
     cfg::SwitchConfig* cfg,
-    cfg::AclEntry& acl,
+    const cfg::AclEntry& acl,
     const std::string& tableName);
 
 cfg::AclEntry* addAcl_DEPRECATED(
@@ -41,6 +41,8 @@ cfg::AclEntry* addAcl_DEPRECATED(
     const std::string& aclName,
     const cfg::AclActionType& aclActionType = cfg::AclActionType::PERMIT,
     const std::optional<std::string>& tableName = std::nullopt);
+
+cfg::AclEntry* addAcl(cfg::SwitchConfig* cfg, const cfg::AclEntry& acl);
 
 void addEtherTypeToAcl(
     const HwAsic* asic,
