@@ -86,6 +86,8 @@ class CmisModule : public QsfpModule {
   };
 
   static constexpr int kMaxOsfpNumLanes = 8;
+  static constexpr int kHostInterfaceCodeOffset = 0;
+  static constexpr int kMediaInterfaceCodeOffset = 1;
 
   using ApplicationAdvertisingFields = std::vector<ApplicationAdvertisingField>;
 
@@ -202,6 +204,18 @@ class CmisModule : public QsfpModule {
    * This must be called with a lock held on qsfpModuleMutex_
    */
   void customizeTransceiverLocked(TransceiverPortState& portState) override;
+
+  /*
+   * Returns whether customization is supported at all.
+   * Checks if something is plugged in and checks if it is optical (SMF)
+   * or an active electrical cable.
+   * We do not support customization (for now) on passive copper cables.
+   */
+  virtual bool customizationSupported() const override {
+    return present_ &&
+        (getQsfpTransmitterTechnology() == TransmitterTechnology::OPTICAL ||
+         getMediaTypeEncoding() == MediaTypeEncodings::ACTIVE_CABLES);
+  }
 
   /*
    * If the current power state is not same as desired one then change it and
@@ -343,8 +357,12 @@ class CmisModule : public QsfpModule {
   /*
    * Get the curent application set for the lane (i.e. programmed in the
    * transceiver). Based on Interface codes from SFF-8024.
+   * For Optical SMF transceivers, the application is the media interface code,
+   * so the offset is 1.
+   * For Active Cables, the application is the host interface code, so the
+   * offset is 0.
    */
-  uint8_t getCurrentApplication(uint8_t lane) const;
+  uint8_t getCurrentApplication(uint8_t lane, int offset) const;
 
   /*
    * Get the SMF Media Interface Code for the lane. uses
@@ -353,7 +371,19 @@ class CmisModule : public QsfpModule {
    * supported or defined in thrift.
    */
   SMFMediaInterfaceCode getSmfMediaInterface(uint8_t lane) const {
-    return (SMFMediaInterfaceCode)getCurrentApplication(lane);
+    return (SMFMediaInterfaceCode)getCurrentApplication(
+        lane, kMediaInterfaceCodeOffset);
+  }
+
+  /*
+   * Get the Active Cable Interface Code for the lane. uses
+   * getCurrentApplication.
+   * TODO: Should add a check for translation is to an enum that is
+   * supported or defined in thrift.
+   */
+  ActiveCuHostInterfaceCode getActiveCuMediaInterface(uint8_t lane) const {
+    return (ActiveCuHostInterfaceCode)getCurrentApplication(
+        lane, kHostInterfaceCodeOffset);
   }
 
   /*

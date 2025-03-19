@@ -856,7 +856,7 @@ uint8_t CmisModule::currentConfiguredMediaInterfaceCode(
   auto mediaTypeEncoding = getMediaTypeEncoding();
   uint8_t application = 0;
   if (mediaTypeEncoding == MediaTypeEncodings::OPTICAL_SMF) {
-    application = getCurrentApplication(hostLane);
+    application = getCurrentApplication(hostLane, kMediaInterfaceCodeOffset);
   } else if (
       mediaTypeEncoding == MediaTypeEncodings::PASSIVE_CU &&
       !moduleCapabilities_.empty()) {
@@ -864,6 +864,8 @@ uint8_t CmisModule::currentConfiguredMediaInterfaceCode(
     // interface code for the first capability.
     auto firstModuleCapability = moduleCapabilities_.begin();
     application = firstModuleCapability->moduleMediaInterface;
+  } else if (mediaTypeEncoding == MediaTypeEncodings::ACTIVE_CABLES) {
+    application = getCurrentApplication(hostLane, kHostInterfaceCodeOffset);
   }
   return application;
 }
@@ -940,7 +942,7 @@ std::vector<uint8_t> CmisModule::configuredMediaLanes(
   return cfgLanes;
 }
 
-uint8_t CmisModule::getCurrentApplication(uint8_t lane) const {
+uint8_t CmisModule::getCurrentApplication(uint8_t lane, int byteOffset) const {
   if (lane >= 8) {
     QSFP_LOG(ERR, this) << "Invalid lane number " << lane;
     // Based on SFF-8024, an App / App Sel of 0 is undefined/Unknown.
@@ -973,13 +975,13 @@ uint8_t CmisModule::getCurrentApplication(uint8_t lane) const {
         CmisField::APPLICATION_ADVERTISING1, dataAddress, offset, length);
     // We use the module Media Interface ID, which is located at the second byte
     // of the field, as Application ID here.
-    offset += (currentApplicationSel - 1) * length + 1;
+    offset += (currentApplicationSel - 1) * length + byteOffset;
   } else {
     getQsfpFieldAddress(
         CmisField::APPLICATION_ADVERTISING2, dataAddress, offset, length);
     // This page contains Module media interface id on second byte of field
     // for ApSel 9 onwards
-    offset += (currentApplicationSel - 9) * length + 1;
+    offset += (currentApplicationSel - 9) * length + byteOffset;
   }
 
   getQsfpValue(dataAddress, offset, 1, &currentApplication);
@@ -1003,7 +1005,8 @@ bool CmisModule::getMediaInterfaceId(
       MediaInterfaceUnion media;
       media.smfCode_ref() = smfMediaInterface;
       mediaInterface[lane].code() =
-          CmisHelper::getMediaInterfaceCode(smfMediaInterface);
+          CmisHelper::getMediaInterfaceCode<SMFMediaInterfaceCode>(
+              smfMediaInterface, CmisHelper::getSmfMediaInterfaceMapping());
       if (mediaInterface[lane].code() == MediaInterfaceCode::UNKNOWN) {
         QSFP_LOG(ERR, this)
             << "Unable to find MediaInterfaceCode for "
@@ -1025,6 +1028,23 @@ bool CmisModule::getMediaInterfaceId(
       // FIXME: Remove CR8_400G hardcoding and derive this from number of
       // lanes/host electrical interface instead
       mediaInterface[lane].code() = MediaInterfaceCode::CR8_400G;
+      mediaInterface[lane].media() = media;
+    }
+  } else if (encoding == MediaTypeEncodings::ACTIVE_CABLES) {
+    for (int lane = 0; lane < mediaInterface.size(); lane++) {
+      auto activeCuInterfaceCode = getActiveCuMediaInterface(lane);
+      mediaInterface[lane].lane() = lane;
+      MediaInterfaceUnion media;
+      media.activeCuCode_ref() = activeCuInterfaceCode;
+      mediaInterface[lane].code() =
+          CmisHelper::getMediaInterfaceCode<ActiveCuHostInterfaceCode>(
+              activeCuInterfaceCode,
+              CmisHelper::getActiveMediaInterfaceMapping());
+      if (mediaInterface[lane].code() == MediaInterfaceCode::UNKNOWN) {
+        QSFP_LOG(ERR, this)
+            << "Unable to find MediaInterfaceCode for "
+            << apache::thrift::util::enumNameSafe(activeCuInterfaceCode);
+      }
       mediaInterface[lane].media() = media;
     }
   } else {
@@ -1054,7 +1074,15 @@ void CmisModule::getApplicationCapabilities() {
         "Adding module capability: {:#x} at position {:d}", data[1], i + 1);
     ApplicationAdvertisingField applicationAdvertisingField;
     applicationAdvertisingField.ApSelCode = (i + 1);
-    applicationAdvertisingField.moduleMediaInterface = data[1];
+    // For Active cables, we use the Host Interface Code as the designated
+    // identifier for the rate of the application. The Media side of active
+    // cables, per spec, specifies only the BER for the cable, which might
+    // be the same for all the supported rates.
+    if (getMediaTypeEncoding() == MediaTypeEncodings::ACTIVE_CABLES) {
+      applicationAdvertisingField.moduleMediaInterface = data[0];
+    } else {
+      applicationAdvertisingField.moduleMediaInterface = data[1];
+    }
     applicationAdvertisingField.hostLaneCount =
         (data[2] & FieldMasks::UPPER_FOUR_BITS_MASK) >> 4;
     applicationAdvertisingField.mediaLaneCount =
@@ -1327,6 +1355,8 @@ TransmitterTechnology CmisModule::getQsfpTransmitterTechnology() const {
   } else if (transTech <= DeviceTechnologyCmis::OPTICAL_MAX_VALUE_CMIS) {
     return TransmitterTechnology::OPTICAL;
   } else {
+    // TODO: Fix this, copper is 0xA to 0xF, and there is also tunable lasers
+    // for C-Band (0x10) and L-Band (0x11).
     return TransmitterTechnology::COPPER;
   }
 }
@@ -2159,16 +2189,30 @@ void CmisModule::setApplicationSelectCodeAllPorts(
     uint8_t startHostLane,
     uint8_t numHostLanes,
     uint8_t hostLaneMask) {
-  auto laneProgramValues =
-      CmisHelper::getValidMultiportSpeedConfig<SMFMediaInterfaceCode>(
-          speed,
-          startHostLane,
-          numHostLanes,
-          laneMask(startHostLane, numHostLanes),
-          getNameString(),
-          moduleCapabilities_,
-          CmisHelper::getSmfValidSpeedCombinations(),
-          CmisHelper::getSmfSpeedApplicationMapping());
+  std::vector<uint8_t> laneProgramValues;
+  if (getMediaTypeEncoding() == MediaTypeEncodings::ACTIVE_CABLES) {
+    laneProgramValues =
+        CmisHelper::getValidMultiportSpeedConfig<ActiveCuHostInterfaceCode>(
+            speed,
+            startHostLane,
+            numHostLanes,
+            laneMask(startHostLane, numHostLanes),
+            getNameString(),
+            moduleCapabilities_,
+            CmisHelper::getActiveValidSpeedCombinations(),
+            CmisHelper::getActiveSpeedApplication());
+  } else {
+    laneProgramValues =
+        CmisHelper::getValidMultiportSpeedConfig<SMFMediaInterfaceCode>(
+            speed,
+            startHostLane,
+            numHostLanes,
+            laneMask(startHostLane, numHostLanes),
+            getNameString(),
+            moduleCapabilities_,
+            CmisHelper::getSmfValidSpeedCombinations(),
+            CmisHelper::getSmfSpeedApplicationMapping());
+  }
   if (laneProgramValues.size() == kMaxOsfpNumLanes) {
     AllLaneConfig stageSet0Config;
     for (auto lane = 0; lane < kMaxOsfpNumLanes;) {
@@ -2238,8 +2282,14 @@ void CmisModule::setApplicationCodeLocked(
       "Trying to set application code for speed {} on startHostLane {}",
       apache::thrift::util::enumNameSafe(speed),
       startHostLane);
-  auto appCodes = CmisHelper::getInterfaceCode(
-      speed, CmisHelper::getSmfSpeedApplicationMapping());
+  std::vector<uint8_t> appCodes;
+  if (getMediaTypeEncoding() == MediaTypeEncodings::ACTIVE_CABLES) {
+    appCodes = CmisHelper::getInterfaceCode<ActiveCuHostInterfaceCode>(
+        speed, CmisHelper::getActiveSpeedApplication());
+  } else {
+    appCodes = CmisHelper::getInterfaceCode<SMFMediaInterfaceCode>(
+        speed, CmisHelper::getSmfSpeedApplicationMapping());
+  }
   if (appCodes.empty()) {
     QSFP_LOG(INFO, this) << "Unsupported Speed.";
     throw FbossError(folly::to<std::string>(
@@ -2411,16 +2461,30 @@ bool CmisModule::isRequestValidMultiportSpeedConfig(
 
   uint8_t mask = laneMask(startHostLane, numLanes);
   auto tcvrName = getNameString();
-  return CmisHelper::checkSpeedCombo<SMFMediaInterfaceCode>(
-      speed,
-      startHostLane,
-      numLanes,
-      mask,
-      tcvrName,
-      moduleCapabilities_,
-      currHwSpeedConfig,
-      CmisHelper::getSmfValidSpeedCombinations(),
-      CmisHelper::getSmfSpeedApplicationMapping());
+
+  if (getMediaTypeEncoding() == MediaTypeEncodings::ACTIVE_CABLES) {
+    return CmisHelper::checkSpeedCombo<ActiveCuHostInterfaceCode>(
+        speed,
+        startHostLane,
+        numLanes,
+        mask,
+        tcvrName,
+        moduleCapabilities_,
+        currHwSpeedConfig,
+        CmisHelper::getActiveValidSpeedCombinations(),
+        CmisHelper::getActiveSpeedApplication());
+  } else {
+    return CmisHelper::checkSpeedCombo<SMFMediaInterfaceCode>(
+        speed,
+        startHostLane,
+        numLanes,
+        mask,
+        tcvrName,
+        moduleCapabilities_,
+        currHwSpeedConfig,
+        CmisHelper::getSmfValidSpeedCombinations(),
+        CmisHelper::getSmfSpeedApplicationMapping());
+  }
 }
 
 /*
@@ -2592,23 +2656,36 @@ void CmisModule::ensureRxOutputSquelchEnabled(
 
 bool CmisModule::tcvrPortStateSupported(TransceiverPortState& portState) const {
   auto currTransmitterTechnology = getQsfpTransmitterTechnology();
+  bool activeElectricalCable = false;
+  if (getMediaTypeEncoding() == MediaTypeEncodings::ACTIVE_CABLES) {
+    activeElectricalCable = true;
+  }
   if (currTransmitterTechnology == TransmitterTechnology::OPTICAL &&
       (portState.transmitterTech != TransmitterTechnology::OPTICAL &&
        portState.transmitterTech != TransmitterTechnology::BACKPLANE)) {
     // For optics, we allow both BACKPLANE and OPTICAL media in platform mapping
     return false;
-  } else if (currTransmitterTechnology == TransmitterTechnology::COPPER) {
-    // Return true irrespective of speed as the copper cables are mostly
-    // flexible with all speeds. We can change this later when we know of any
-    // limitations
+  } else if (
+      currTransmitterTechnology == TransmitterTechnology::COPPER &&
+      !activeElectricalCable) {
+    // For Active cables, the tcvr is configrable, so we need to check.
+    // For passive copper cables, return true irrespective of speed as the
+    // copper cables are mostly flexible with all speeds. We can change this
+    // later when we know of any limitations.
     return true;
   }
 
   auto speed = portState.speed;
   auto startHostLane = portState.startHostLane;
   auto numHostLanes = portState.numHostLanes;
-  auto appCodes = CmisHelper::getInterfaceCode(
-      speed, CmisHelper::getSmfSpeedApplicationMapping());
+  std::vector<uint8_t> appCodes;
+  if (activeElectricalCable) {
+    appCodes = CmisHelper::getInterfaceCode(
+        speed, CmisHelper::getActiveSpeedApplication());
+  } else {
+    appCodes = CmisHelper::getInterfaceCode(
+        speed, CmisHelper::getSmfSpeedApplicationMapping());
+  }
   if (appCodes.empty()) {
     // Speed Not supported
     return false;
@@ -2740,8 +2817,13 @@ bool CmisModule::ensureTransceiverReadyLocked() {
  * the setting is specified in the qsfp config
  */
 void CmisModule::configureModule(uint8_t startHostLane) {
-  if (getMediaTypeEncoding() == MediaTypeEncodings::PASSIVE_CU) {
+  auto moduleTypeEncoding = getMediaTypeEncoding();
+  if (moduleTypeEncoding == MediaTypeEncodings::PASSIVE_CU ||
+      moduleTypeEncoding == MediaTypeEncodings::ACTIVE_CABLES) {
     // Nothing to configure for passive copper modules
+    // TODO: The getModuleConfigOverrideFactor and config expect SMF
+    // values. These values dont seem to be applicable to Active Cables,
+    // so we will ignore this for now.
     return;
   }
 
@@ -2810,8 +2892,15 @@ MediaInterfaceCode CmisModule::getModuleMediaInterface() const {
         firstModuleCapability->hostStartLanes.size() == 2) {
       moduleMediaInterface = MediaInterfaceCode::DR4_2x400G;
     } else {
-      moduleMediaInterface = CmisHelper::getMediaInterfaceCode(smfCode);
+      moduleMediaInterface =
+          CmisHelper::getMediaInterfaceCode<SMFMediaInterfaceCode>(
+              smfCode, CmisHelper::getSmfMediaInterfaceMapping());
     }
+  } else if (mediaTypeEncoding == MediaTypeEncodings::ACTIVE_CABLES) {
+    // TODO: For now, we only support the 8x100G Active Electrical Cable.
+    // We can use the number of lanes and Interface codes to derive
+    // the MediaInterfaceCode.
+    moduleMediaInterface = MediaInterfaceCode::CR8_800G;
   }
 
   return moduleMediaInterface;

@@ -347,6 +347,7 @@ unsigned int QsfpModule::numHostLanes() const {
     case MediaInterfaceCode::FR1_100G:
     case MediaInterfaceCode::FR4_200G:
     case MediaInterfaceCode::CR4_200G:
+    case MediaInterfaceCode::CR4_400G:
       return 4;
     case MediaInterfaceCode::FR4_400G:
     case MediaInterfaceCode::LR4_400G_10KM:
@@ -356,6 +357,7 @@ unsigned int QsfpModule::numHostLanes() const {
     case MediaInterfaceCode::DR4_400G:
     case MediaInterfaceCode::DR4_2x400G:
     case MediaInterfaceCode::FR8_800G:
+    case MediaInterfaceCode::CR8_800G:
       return 8;
     case MediaInterfaceCode::UNKNOWN:
       return 0;
@@ -379,12 +381,14 @@ unsigned int QsfpModule::numMediaLanes() const {
     case MediaInterfaceCode::FR4_400G:
     case MediaInterfaceCode::LR4_400G_10KM:
     case MediaInterfaceCode::DR4_400G:
+    case MediaInterfaceCode::CR4_400G:
       return 4;
     case MediaInterfaceCode::CR8_400G:
     case MediaInterfaceCode::FR4_2x400G:
     case MediaInterfaceCode::FR4_LITE_2x400G:
     case MediaInterfaceCode::DR4_2x400G:
     case MediaInterfaceCode::FR8_800G:
+    case MediaInterfaceCode::CR8_800G:
       return 8;
     case MediaInterfaceCode::UNKNOWN:
       return 0;
@@ -572,7 +576,7 @@ void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
 
 bool QsfpModule::customizationSupported() const {
   // Customization is allowed on present Optical modules only. We should skip
-  // other types
+  // other types. Overridden in derived classes if needed.
   auto tech = getQsfpTransmitterTechnology();
   return present_ && tech == TransmitterTechnology::OPTICAL;
 }

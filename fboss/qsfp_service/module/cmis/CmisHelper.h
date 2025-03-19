@@ -8,18 +8,24 @@
 
 namespace facebook {
 namespace fboss {
-using SmfMediaInterfaceMap =
-    std::unordered_map<SMFMediaInterfaceCode, MediaInterfaceCode>;
+template <typename InterfaceCode>
+using MediaInterfaceMap = std::unordered_map<InterfaceCode, MediaInterfaceCode>;
+using SmfMediaInterfaceMap = MediaInterfaceMap<SMFMediaInterfaceCode>;
+using ActiveMediaInterfaceMap = MediaInterfaceMap<ActiveCuHostInterfaceCode>;
 
 template <typename InterfaceCode>
 using SpeedApplicationMap = std::
     unordered_map<facebook::fboss::cfg::PortSpeed, std::vector<InterfaceCode>>;
 using SmfSpeedApplicationMap = SpeedApplicationMap<SMFMediaInterfaceCode>;
+using ActiveSpeedApplicationMap =
+    SpeedApplicationMap<ActiveCuHostInterfaceCode>;
 
 template <typename InterfaceCode>
 using ValidSpeedCombinations =
     std::vector<std::array<InterfaceCode, CmisModule::kMaxOsfpNumLanes>>;
 using SmfValidSpeedCombinations = ValidSpeedCombinations<SMFMediaInterfaceCode>;
+using ActiveValidSpeedCombinations =
+    ValidSpeedCombinations<ActiveCuHostInterfaceCode>;
 
 template <typename InterfaceCode>
 using MultiportSpeedConfig =
@@ -59,8 +65,7 @@ class CmisHelper final {
     return smfSpeedApplicationMapping_;
   }
 
-  static MediaInterfaceCode getMediaInterfaceCode(
-      SMFMediaInterfaceCode mediaInterfaceCode) {
+  static const SmfMediaInterfaceMap& getSmfMediaInterfaceMapping() {
     static const SmfMediaInterfaceMap smfMediaInterfaceMapping_ = {
         {SMFMediaInterfaceCode::CWDM4_100G, MediaInterfaceCode::CWDM4_100G},
         {SMFMediaInterfaceCode::FR1_100G, MediaInterfaceCode::FR1_100G},
@@ -70,11 +75,7 @@ class CmisHelper final {
         {SMFMediaInterfaceCode::DR4_400G, MediaInterfaceCode::DR4_400G},
         {SMFMediaInterfaceCode::FR8_800G, MediaInterfaceCode::FR8_800G},
     };
-    const auto itr = smfMediaInterfaceMapping_.find(mediaInterfaceCode);
-    if (itr != smfMediaInterfaceMapping_.end()) {
-      return itr->second;
-    }
-    return MediaInterfaceCode::UNKNOWN;
+    return smfMediaInterfaceMapping_;
   }
 
   static const SmfValidSpeedCombinations& getSmfValidSpeedCombinations() {
@@ -158,6 +159,109 @@ class CmisHelper final {
         },
     };
     return smfOsfpValidSpeedCombinations_;
+  }
+
+  static const ActiveMediaInterfaceMap& getActiveMediaInterfaceMapping() {
+    static const ActiveMediaInterfaceMap activeMediaInterfaceMapping_ = {
+        {ActiveCuHostInterfaceCode::AUI_PAM4_1S_100G,
+         MediaInterfaceCode::CR4_100G},
+        {ActiveCuHostInterfaceCode::AUI_PAM4_2S_200G,
+         MediaInterfaceCode::CR4_200G},
+        {ActiveCuHostInterfaceCode::AUI_PAM4_4S_400G,
+         MediaInterfaceCode::CR4_400G},
+        {ActiveCuHostInterfaceCode::AUI_PAM4_8S_800G,
+         MediaInterfaceCode::CR8_800G},
+    };
+    return activeMediaInterfaceMapping_;
+  }
+
+  static const ActiveSpeedApplicationMap& getActiveSpeedApplication() {
+    // Map for Speed to Application select for Active Cables
+    static const ActiveSpeedApplicationMap activeSpeedApplicationMapping_ = {
+        {cfg::PortSpeed::HUNDREDG,
+         {ActiveCuHostInterfaceCode::AUI_PAM4_1S_100G}},
+        {cfg::PortSpeed::TWOHUNDREDG,
+         {ActiveCuHostInterfaceCode::AUI_PAM4_2S_200G}},
+        {cfg::PortSpeed::FOURHUNDREDG,
+         {ActiveCuHostInterfaceCode::AUI_PAM4_4S_400G}},
+        {cfg::PortSpeed::EIGHTHUNDREDG,
+         {ActiveCuHostInterfaceCode::AUI_PAM4_8S_800G}}};
+    return activeSpeedApplicationMapping_;
+  }
+
+  static const ActiveValidSpeedCombinations& getActiveValidSpeedCombinations() {
+    // Valid speed combinations for AEC. Note that for now, only
+    // 8x100G CR8_800G has been tested.
+    static const ActiveValidSpeedCombinations
+        activeOsfpValidSpeedCombinations_ = {
+            /* These rates are not supported/tested as of now
+                        {
+                            // 2xCR4_100G
+                            ActiveCuHostInterfaceCode::AUI_PAM4_1S_100G,
+                            ActiveCuHostInterfaceCode::AUI_PAM4_1S_100G,
+                            ActiveCuHostInterfaceCode::AUI_PAM4_1S_100G,
+                            ActiveCuHostInterfaceCode::AUI_PAM4_1S_100G,
+                            ActiveCuHostInterfaceCode::AUI_PAM4_1S_100G,
+                            ActiveCuHostInterfaceCode::AUI_PAM4_1S_100G,
+                            ActiveCuHostInterfaceCode::AUI_PAM4_1S_100G,
+                            ActiveCuHostInterfaceCode::AUI_PAM4_1S_100G,
+                        },
+                        {
+                            // 2xCR4_200G
+                            ActiveCuHostInterfaceCode::AUI_PAM4_2S_200G,
+                            ActiveCuHostInterfaceCode::AUI_PAM4_2S_200G,
+                            ActiveCuHostInterfaceCode::AUI_PAM4_2S_200G,
+                            ActiveCuHostInterfaceCode::AUI_PAM4_2S_200G,
+                            ActiveCuHostInterfaceCode::AUI_PAM4_2S_200G,
+                            ActiveCuHostInterfaceCode::AUI_PAM4_2S_200G,
+                            ActiveCuHostInterfaceCode::AUI_PAM4_2S_200G,
+                            ActiveCuHostInterfaceCode::AUI_PAM4_2S_200G,
+                        },
+                        {
+                            // 2xCR4_400G
+                            ActiveCuHostInterfaceCode::AUI_PAM4_4S_400G,
+                            ActiveCuHostInterfaceCode::AUI_PAM4_4S_400G,
+                            ActiveCuHostInterfaceCode::AUI_PAM4_4S_400G,
+                            ActiveCuHostInterfaceCode::AUI_PAM4_4S_400G,
+                            ActiveCuHostInterfaceCode::AUI_PAM4_4S_400G,
+                            ActiveCuHostInterfaceCode::AUI_PAM4_4S_400G,
+                            ActiveCuHostInterfaceCode::AUI_PAM4_4S_400G,
+                            ActiveCuHostInterfaceCode::AUI_PAM4_4S_400G,
+                        },
+            */
+            {
+                // 8x100G CR8_800G
+                ActiveCuHostInterfaceCode::AUI_PAM4_8S_800G,
+                ActiveCuHostInterfaceCode::AUI_PAM4_8S_800G,
+                ActiveCuHostInterfaceCode::AUI_PAM4_8S_800G,
+                ActiveCuHostInterfaceCode::AUI_PAM4_8S_800G,
+                ActiveCuHostInterfaceCode::AUI_PAM4_8S_800G,
+                ActiveCuHostInterfaceCode::AUI_PAM4_8S_800G,
+                ActiveCuHostInterfaceCode::AUI_PAM4_8S_800G,
+                ActiveCuHostInterfaceCode::AUI_PAM4_8S_800G,
+            },
+        };
+    return activeOsfpValidSpeedCombinations_;
+  }
+
+  /*
+   * getMediaInterfaceCode
+   * A function used to translate the Module interface map based on what
+   * is carried in its media side (for SMF, its media interface code, for AEC
+   * its the host interface code) given a translation map which the module type
+   * supports. if the Module media interface code is does not have a pair in the
+   * map, we will return UNKNOWN (0) based on the Table4-7 SM media interface
+   * codes in Sff-8024 which specify 0 as an UNKNOWN application.
+   */
+  template <typename InterfaceCode>
+  static MediaInterfaceCode getMediaInterfaceCode(
+      InterfaceCode mediaInterfaceCode,
+      const MediaInterfaceMap<InterfaceCode>& speedMap) {
+    const auto itr = speedMap.find(mediaInterfaceCode);
+    if (itr != speedMap.end()) {
+      return itr->second;
+    }
+    return MediaInterfaceCode::UNKNOWN;
   }
 
   /*

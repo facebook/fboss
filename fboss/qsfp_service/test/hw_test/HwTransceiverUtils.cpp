@@ -517,14 +517,12 @@ void HwTransceiverUtils::verifyActiveCopper800gProfile(
     const TransceiverManagementInterface mgmtInterface,
     const std::vector<MediaInterfaceId>& mediaInterfaces) {
   EXPECT_EQ(mgmtInterface, TransceiverManagementInterface::CMIS);
-  /* Will be added once we have the code for AEC 800G added.
   for (const auto& mediaId : mediaInterfaces) {
     EXPECT_TRUE(
         *mediaId.media()->activeCuCode_ref() ==
         ActiveCuHostInterfaceCode::AUI_PAM4_8S_800G);
     EXPECT_TRUE(*mediaId.code() == MediaInterfaceCode::CR8_800G);
   }
-  */
 }
 
 void HwTransceiverUtils::verifyDataPathEnabled(
