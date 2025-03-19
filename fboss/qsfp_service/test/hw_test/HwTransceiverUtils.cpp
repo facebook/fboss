@@ -110,6 +110,7 @@ void HwTransceiverUtils::verifyPortNameToLaneMap(
       case MediaInterfaceCode::FR4_2x400G:
       case MediaInterfaceCode::FR4_LITE_2x400G:
       case MediaInterfaceCode::DR4_2x400G:
+      case MediaInterfaceCode::CR8_800G:
         switch (profile) {
           case cfg::PortProfileID::PROFILE_400G_4_PAM4_RS544X2N_OPTICAL:
           case cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N_OPTICAL:
@@ -151,6 +152,7 @@ void HwTransceiverUtils::verifyPortNameToLaneMap(
       case MediaInterfaceCode::UNKNOWN:
       case MediaInterfaceCode::CR4_100G:
       case MediaInterfaceCode::CR4_200G:
+      case MediaInterfaceCode::CR4_400G:
       case MediaInterfaceCode::CR8_400G:
         expectedMediaLanes = {};
         break;

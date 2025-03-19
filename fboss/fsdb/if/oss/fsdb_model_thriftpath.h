@@ -2459,16 +2459,19 @@ class ChildThriftPath<::facebook::fboss::MediaInterfaceUnion, ::facebook::fboss:
   using Children = fatal::tuple<std::pair<strings::smfCode, Child<::facebook::fboss::SMFMediaInterfaceCode, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::SMFMediaInterfaceCode>>>,
 std::pair<strings::extendedSpecificationComplianceCode, Child<::facebook::fboss::ExtendedSpecComplianceCode, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::ExtendedSpecComplianceCode>>>,
 std::pair<strings::ethernet10GComplianceCode, Child<::facebook::fboss::Ethernet10GComplianceCode, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::Ethernet10GComplianceCode>>>,
-std::pair<strings::passiveCuCode, Child<::facebook::fboss::PassiveCuMediaInterfaceCode, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::PassiveCuMediaInterfaceCode>>>>;
+std::pair<strings::passiveCuCode, Child<::facebook::fboss::PassiveCuMediaInterfaceCode, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::PassiveCuMediaInterfaceCode>>>,
+std::pair<strings::activeCuCode, Child<::facebook::fboss::ActiveCuHostInterfaceCode, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::ActiveCuHostInterfaceCode>>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, Child<::facebook::fboss::SMFMediaInterfaceCode, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::SMFMediaInterfaceCode>>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, Child<::facebook::fboss::ExtendedSpecComplianceCode, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::ExtendedSpecComplianceCode>>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, Child<::facebook::fboss::Ethernet10GComplianceCode, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::Ethernet10GComplianceCode>>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 4>, Child<::facebook::fboss::PassiveCuMediaInterfaceCode, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::PassiveCuMediaInterfaceCode>>>>;
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 4>, Child<::facebook::fboss::PassiveCuMediaInterfaceCode, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::PassiveCuMediaInterfaceCode>>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 5>, Child<::facebook::fboss::ActiveCuHostInterfaceCode, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::ActiveCuHostInterfaceCode>>>>;
   template <typename Name>
   using NameToId = fatal::tuple<std::pair<strings::smfCode, std::integral_constant<apache::thrift::field_id_t, 1>>,
 std::pair<strings::extendedSpecificationComplianceCode, std::integral_constant<apache::thrift::field_id_t, 2>>,
 std::pair<strings::ethernet10GComplianceCode, std::integral_constant<apache::thrift::field_id_t, 3>>,
-std::pair<strings::passiveCuCode, std::integral_constant<apache::thrift::field_id_t, 4>>>::template type_of<Name>;
+std::pair<strings::passiveCuCode, std::integral_constant<apache::thrift::field_id_t, 4>>,
+std::pair<strings::activeCuCode, std::integral_constant<apache::thrift::field_id_t, 5>>>::template type_of<Name>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -2478,6 +2481,7 @@ std::pair<strings::passiveCuCode, std::integral_constant<apache::thrift::field_i
     STRUCT_CHILD_GETTERS(extendedSpecificationComplianceCode, 2);
     STRUCT_CHILD_GETTERS(ethernet10GComplianceCode, 3);
     STRUCT_CHILD_GETTERS(passiveCuCode, 4);
+    STRUCT_CHILD_GETTERS(activeCuCode, 5);
 
   template <apache::thrift::field_id_t __id>
   auto operator()(const std::integral_constant<apache::thrift::field_id_t, __id>&) {
@@ -2485,6 +2489,7 @@ std::pair<strings::passiveCuCode, std::integral_constant<apache::thrift::field_i
     else if constexpr (__id == 2) { return extendedSpecificationComplianceCode(); }
     else if constexpr (__id == 3) { return ethernet10GComplianceCode(); }
     else if constexpr (__id == 4) { return passiveCuCode(); }
+    else if constexpr (__id == 5) { return activeCuCode(); }
   }
 
   template <typename T, T... Values>
