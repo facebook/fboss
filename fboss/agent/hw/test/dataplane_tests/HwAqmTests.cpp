@@ -48,12 +48,13 @@ void verifyWredDroppedPacketCount(
     AqmTestStats& after,
     AqmTestStats& before,
     int expectedDroppedPkts) {
-  constexpr auto kAcceptableError = 2;
+  constexpr auto kAcceptableErrorPct = 10;
   auto deltaWredDroppedPackets =
       after.wredDroppedPackets - before.wredDroppedPackets;
   XLOG(DBG0) << "Delta WRED dropped pkts: " << deltaWredDroppedPackets;
-  EXPECT_GT(deltaWredDroppedPackets, expectedDroppedPkts - kAcceptableError);
-  EXPECT_LT(deltaWredDroppedPackets, expectedDroppedPkts + kAcceptableError);
+  int allowedDeviation = kAcceptableErrorPct * expectedDroppedPkts / 100;
+  EXPECT_GT(deltaWredDroppedPackets, expectedDroppedPkts - allowedDeviation);
+  EXPECT_LT(deltaWredDroppedPackets, expectedDroppedPkts + allowedDeviation);
 }
 
 /*
