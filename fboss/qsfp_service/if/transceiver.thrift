@@ -142,6 +142,7 @@ struct Cable {
   9: optional i32 gauge;
   10: optional i32 om4;
   11: optional i32 om5;
+  12: optional MediaTypeEncodings mediaTypeEncoding;
 }
 
 struct Channel {
@@ -322,7 +323,7 @@ union MediaInterfaceUnion {
 }
 
 enum MediaTypeEncodings {
-  UNDEFINED = 0x0,
+  UNKNOWN = 0x0,
   OPTICAL_MMF = 0x1,
   OPTICAL_SMF = 0x2,
   PASSIVE_CU = 0x3,

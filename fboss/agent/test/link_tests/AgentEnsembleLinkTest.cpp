@@ -221,8 +221,8 @@ void AgentEnsembleLinkTest::initializeCabledPorts() {
 std::tuple<std::vector<PortID>, std::string>
 AgentEnsembleLinkTest::getOpticalAndActiveCabledPortsAndNames(
     bool pluggableOnly) const {
-  std::string opticalPortNames;
-  std::vector<PortID> opticalPorts;
+  std::string portNames;
+  std::vector<PortID> ports;
   std::vector<int32_t> transceiverIds;
   for (const auto& port : getCabledPorts()) {
     auto portName = getPortName(port);
@@ -247,12 +247,17 @@ AgentEnsembleLinkTest::getOpticalAndActiveCabledPortsAndNames(
             (pluggableOnly &&
              (tcvrState.identifier().value_or({}) !=
               TransceiverModuleIdentifier::MINIPHOTON_OBO))) {
-          opticalPorts.push_back(port);
-          opticalPortNames += portName + " ";
+          ports.push_back(port);
+          portNames += portName + " ";
         } else {
           XLOG(DBG2) << "Transceiver: " << tcvrId + 1 << ", " << portName
                      << ", is on-board optics, skip it";
         }
+      } else if (
+          tcvrState.cable().value_or({}).mediaTypeEncoding() ==
+          MediaTypeEncodings::ACTIVE_CABLES) {
+        ports.push_back(port);
+        portNames += portName + " ";
       } else {
         XLOG(DBG2) << "Transceiver: " << tcvrId + 1 << ", " << portName
                    << ", is not optics, skip it";
@@ -263,7 +268,7 @@ AgentEnsembleLinkTest::getOpticalAndActiveCabledPortsAndNames(
     }
   }
 
-  return {opticalPorts, opticalPortNames};
+  return {ports, portNames};
 }
 
 const std::vector<PortID>& AgentEnsembleLinkTest::getCabledPorts() const {

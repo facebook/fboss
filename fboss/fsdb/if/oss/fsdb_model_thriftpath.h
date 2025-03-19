@@ -2037,7 +2037,8 @@ std::pair<strings::transmitterTech, Child<::facebook::fboss::TransmitterTechnolo
 std::pair<strings::length, Child<double, ::apache::thrift::type_class::floating_point, ::apache::thrift::type::double_t>>,
 std::pair<strings::gauge, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
 std::pair<strings::om4, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
-std::pair<strings::om5, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>>;
+std::pair<strings::om5, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
+std::pair<strings::mediaTypeEncoding, Child<::facebook::fboss::MediaTypeEncodings, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::MediaTypeEncodings>>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
@@ -2048,7 +2049,8 @@ std::pair<strings::om5, Child<::std::int32_t, ::apache::thrift::type_class::inte
    std::pair<std::integral_constant<apache::thrift::field_id_t, 8>, Child<double, ::apache::thrift::type_class::floating_point, ::apache::thrift::type::double_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 9>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 10>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 11>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>>;
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 11>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 12>, Child<::facebook::fboss::MediaTypeEncodings, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::MediaTypeEncodings>>>>;
   template <typename Name>
   using NameToId = fatal::tuple<std::pair<strings::singleModeKm, std::integral_constant<apache::thrift::field_id_t, 1>>,
 std::pair<strings::singleMode, std::integral_constant<apache::thrift::field_id_t, 2>>,
@@ -2060,7 +2062,8 @@ std::pair<strings::transmitterTech, std::integral_constant<apache::thrift::field
 std::pair<strings::length, std::integral_constant<apache::thrift::field_id_t, 8>>,
 std::pair<strings::gauge, std::integral_constant<apache::thrift::field_id_t, 9>>,
 std::pair<strings::om4, std::integral_constant<apache::thrift::field_id_t, 10>>,
-std::pair<strings::om5, std::integral_constant<apache::thrift::field_id_t, 11>>>::template type_of<Name>;
+std::pair<strings::om5, std::integral_constant<apache::thrift::field_id_t, 11>>,
+std::pair<strings::mediaTypeEncoding, std::integral_constant<apache::thrift::field_id_t, 12>>>::template type_of<Name>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -2077,6 +2080,7 @@ std::pair<strings::om5, std::integral_constant<apache::thrift::field_id_t, 11>>>
     STRUCT_CHILD_GETTERS(gauge, 9);
     STRUCT_CHILD_GETTERS(om4, 10);
     STRUCT_CHILD_GETTERS(om5, 11);
+    STRUCT_CHILD_GETTERS(mediaTypeEncoding, 12);
 
   template <apache::thrift::field_id_t __id>
   auto operator()(const std::integral_constant<apache::thrift::field_id_t, __id>&) {
@@ -2091,6 +2095,7 @@ std::pair<strings::om5, std::integral_constant<apache::thrift::field_id_t, 11>>>
     else if constexpr (__id == 9) { return gauge(); }
     else if constexpr (__id == 10) { return om4(); }
     else if constexpr (__id == 11) { return om5(); }
+    else if constexpr (__id == 12) { return mediaTypeEncoding(); }
   }
 
   template <typename T, T... Values>

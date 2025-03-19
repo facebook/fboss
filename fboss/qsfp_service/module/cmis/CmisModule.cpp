@@ -618,6 +618,7 @@ std::array<std::string, 3> CmisModule::getFwRevisions() {
 Cable CmisModule::getCableInfo() {
   Cable cable = Cable();
   cable.transmitterTech() = getQsfpTransmitterTechnology();
+  cable.mediaTypeEncoding() = getMediaTypeEncoding();
 
   if (auto length = getQsfpSMFLength(); length != 0) {
     cable.singleMode() = length;

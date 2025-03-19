@@ -332,6 +332,7 @@ Vendor SffModule::getVendorInfo() {
 Cable SffModule::getCableInfo() {
   Cable cable = Cable();
   cable.transmitterTech() = getQsfpTransmitterTechnology();
+  cable.mediaTypeEncoding() = MediaTypeEncodings::OPTICAL_SMF;
 
   cable.singleMode() = getQsfpCableLength(SffField::LENGTH_SM_KM);
   if (cable.singleMode().value_or({}) == 0) {
@@ -358,6 +359,9 @@ Cable SffModule::getCableInfo() {
     // TODO: migrate all cable types
     return cable;
   }
+
+  // For now, we only have passive copper SFF cables.
+  cable.mediaTypeEncoding() = MediaTypeEncodings::PASSIVE_CU;
 
   auto overrideDacCableInfo = getDACCableOverride();
   if (overrideDacCableInfo) {
