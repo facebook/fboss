@@ -163,7 +163,9 @@ void SaiSwitch::updateStatsImpl() {
     std::lock_guard<std::mutex> locked(saiSwitchMutex_);
     managerTable_->switchManager().updateStats(updateWatermarks);
   }
-  if (updateWatermarks) {
+  if (updateWatermarks &&
+      platform_->getAsic()->isSupported(
+          HwAsic::Feature::VENDOR_SWITCH_NOTIFICATION)) {
     // Use the same frequency as watermark updates to log CGM errors.
     std::lock_guard<std::mutex> locked(saiSwitchMutex_);
     managerTable_->vendorSwitchManager().logCgmErrors();
