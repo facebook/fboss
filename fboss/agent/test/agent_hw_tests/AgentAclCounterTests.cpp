@@ -446,7 +446,10 @@ class AgentAclCounterTest : public AgentHwTest {
   void addAclAndStat(cfg::SwitchConfig* config, AclType aclType) const {
     auto aclName = getAclName(aclType);
     auto counterName = getCounterName(aclType);
-    auto acl = utility::addAcl_DEPRECATED(config, aclName, aclActionType_);
+    cfg::AclEntry aclEntry;
+    aclEntry.name() = aclName;
+    aclEntry.actionType() = aclActionType_;
+    auto* acl = &aclEntry;
     auto l3Asics = getAgentEnsemble()->getL3Asics();
     auto asic = utility::checkSameAndGetAsic(l3Asics);
     switch (aclType) {
@@ -491,6 +494,8 @@ class AgentAclCounterTest : public AgentHwTest {
       case AclType::UDF_FLOWLET:
         break;
     }
+    utility::addAcl(config, aclEntry);
+
     std::vector<cfg::CounterType> setCounterTypes{
         cfg::CounterType::PACKETS, cfg::CounterType::BYTES};
     utility::addAclStat(config, aclName, counterName, setCounterTypes);
@@ -520,10 +525,6 @@ class AgentL4DstPortAclCounterTest : public AgentAclCounterTest {
 
 // Verify that traffic arrive on a front panel port increments ACL counter.
 TEST_F(AgentAclCounterTest, VerifyCounterBumpOnTtlHitFrontPanel) {
-  auto asic = utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
-  if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
-    GTEST_FAIL() << "TTLD ACL is not supported on chenab asic.";
-  }
   this->counterBumpOnHitHelper(
       true /* bump on hit */,
       true /* front panel port */,
@@ -550,10 +551,6 @@ TEST_F(AgentAclCounterTest, VerifyCounterBumpOnSportHitFrontPanelWithDrop) {
 }
 // Verify that traffic originating on the CPU increments ACL counter.
 TEST_F(AgentAclCounterTest, VerifyCounterBumpOnTtlHitCpu) {
-  auto asic = utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
-  if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
-    GTEST_FAIL() << "TTLD ACL is not supported on chenab asic.";
-  }
   this->counterBumpOnHitHelper(
       true /* bump on hit */,
       false /* cpu port */,
@@ -567,10 +564,6 @@ TEST_F(AgentAclCounterTest, VerifyCounterBumpOnSportHitCpu) {
 
 // Verify that traffic arrive on a front panel port increments ACL counter.
 TEST_F(AgentAclCounterTest, VerifyCounterNoTtlHitNoBumpFrontPanel) {
-  auto asic = utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
-  if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
-    GTEST_FAIL() << "TTLD ACL is not supported on chenab asic.";
-  }
   this->counterBumpOnHitHelper(
       false /* no hit, no bump */,
       true /* front panel port */,
@@ -579,10 +572,6 @@ TEST_F(AgentAclCounterTest, VerifyCounterNoTtlHitNoBumpFrontPanel) {
 
 // Verify that traffic originating on the CPU increments ACL counter.
 TEST_F(AgentAclCounterTest, VerifyCounterNoHitNoBumpCpu) {
-  auto asic = utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
-  if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
-    GTEST_FAIL() << "TTLD ACL is not supported on chenab asic.";
-  }
   this->counterBumpOnHitHelper(
       false /* no hit, no bump */,
       false /* cpu port */,

@@ -3253,7 +3253,7 @@ std::shared_ptr<AclTableGroupMap> ThriftConfigApplier::updateAclTableGroups() {
   } else {
     for (const auto& entry : *cfg_->aclTableGroups()) {
       // acl entry names must be unique across all acl table groups.
-      changed = updateAclTableGroupsInternal(entry);
+      changed |= updateAclTableGroupsInternal(entry);
     }
   }
 

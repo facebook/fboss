@@ -24,12 +24,15 @@ class AgentHwAclStatTest : public AgentHwTest {
       cfg::SwitchConfig* cfg,
       const std::string& aclName,
       SwitchID switchID = SwitchID(0)) {
-    auto* acl = utility::addAcl_DEPRECATED(cfg, aclName);
+    cfg::AclEntry acl{};
+    acl.name() = aclName;
+    acl.actionType() = cfg::AclActionType::PERMIT;
     // ACL requires at least one qualifier
-    acl->dscp() = 0x24;
+    acl.dscp() = 0x24;
     utility::addEtherTypeToAcl(
-        hwAsicForSwitch(switchID), acl, cfg::EtherType::IPv6);
-    return acl;
+        hwAsicForSwitch(switchID), &acl, cfg::EtherType::IPv6);
+
+    return utility::addAcl(cfg, acl);
   }
 };
 
