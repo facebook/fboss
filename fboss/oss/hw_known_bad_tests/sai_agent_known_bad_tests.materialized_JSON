@@ -10716,7 +10716,10 @@
           "test_name_regex": "AgentMacSwLearningModeTest.VerifyCallbacksOnMacEntryChange$"
         },
         {
-          "test_name_regex": "AgentTrafficPfcTest/AgentTrafficPfcGenTest.verifyPfc/WithScaleCfg$"
+          "test_name_regex": "AgentTrafficPfcTest.*WithScaleCfg$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcTest.*WithScaleCfgInCongestionDrops$"
         },
         {
           "test_name_regex": "warm_boot.AgentTrafficPfcTest.verifyIngressPriorityGroupWatermarks$"
@@ -10873,9 +10876,6 @@
         },
         {
           "test_name_regex": "AgentNetworkAIQosSchedulerTest.*$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcTest/AgentTrafficPfcGenTest.verifyPfc/WithScaleCfgInCongestionDrops$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTruncateTestV6.verifyL4SrcPortRandomization$"
@@ -10952,7 +10952,10 @@
           "test_name_regex": "AgentMacSwLearningModeTest.VerifyCallbacksOnMacEntryChange$"
         },
         {
-          "test_name_regex": "AgentTrafficPfcTest/AgentTrafficPfcGenTest.verifyPfc/WithScaleCfg$"
+          "test_name_regex": "AgentTrafficPfcTest.*WithScaleCfg$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcTest.*WithScaleCfgInCongestionDrops$"
         },
         {
           "test_name_regex": "warm_boot.AgentTrafficPfcTest.verifyIngressPriorityGroupWatermarks$"
@@ -11109,9 +11112,6 @@
         },
         {
           "test_name_regex": "AgentNetworkAIQosSchedulerTest.*$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcTest/AgentTrafficPfcGenTest.verifyPfc/WithScaleCfgInCongestionDrops$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTruncateTestV6.verifyL4SrcPortRandomization$"
