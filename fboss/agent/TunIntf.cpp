@@ -179,6 +179,7 @@ void TunIntf::stop() {
 
 void TunIntf::start() {
   if (fd_ != -1 && !isHandlerRegistered()) {
+    XLOG(DBG2) << "Starting listening on " << name_ << ": fd " << fd_;
     changeHandlerFD(folly::NetworkSocket::fromFd(fd_));
     registerHandler(folly::EventHandler::READ | folly::EventHandler::PERSIST);
   }

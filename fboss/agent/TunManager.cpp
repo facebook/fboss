@@ -647,12 +647,15 @@ void TunManager::probe() {
 }
 
 void TunManager::doProbe(std::lock_guard<std::mutex>& /* lock */) {
+  XLOG(DBG2) << "Starting to probe() for linux interfaces...";
+
   const auto startTs = std::chrono::steady_clock::now();
   SCOPE_EXIT {
     const auto endTs = std::chrono::steady_clock::now();
     auto elapsedMs =
         std::chrono::duration_cast<std::chrono::milliseconds>(endTs - startTs);
-    XLOG(DBG2) << "Probing of linux state took " << elapsedMs.count() << "ms.";
+    XLOG(DBG2) << "Probing of linux state took " << elapsedMs.count()
+               << "ms. success=" << (probeDone_ ? "true" : "false");
   };
 
   CHECK(!probeDone_); // Callers must check for probeDone before calling
