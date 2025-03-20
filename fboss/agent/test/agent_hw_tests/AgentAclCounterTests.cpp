@@ -601,6 +601,14 @@ class AgentUdfAclCounterTest : public AgentAclCounterTest {
     cfg.udfConfig() = utility::addUdfAclConfig();
     return cfg;
   }
+
+  std::vector<production_features::ProductionFeature>
+  getProductionFeaturesVerified() const override {
+    auto features = AgentAclCounterTest::getProductionFeaturesVerified();
+    features.push_back(
+        production_features::ProductionFeature::UDF_WR_IMMEDIATE_ACL);
+    return features;
+  }
 };
 
 TEST_F(AgentUdfAclCounterTest, VerifyUdf) {
