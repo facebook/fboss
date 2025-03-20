@@ -460,7 +460,7 @@ class AgentTrafficPfcTest : public AgentHwTest {
       const int trafficClass,
       const int pfcPriority,
       const std::map<int, int>& tcToPgOverride,
-      TrafficTestParams testParams,
+      const TrafficTestParams& testParams,
       std::function<void(
           AgentEnsemble* ensemble,
           const int pri,
@@ -533,58 +533,19 @@ class AgentTrafficPfcTest : public AgentHwTest {
   }
 };
 
-class AgentTrafficPfcGenTest
-    : public AgentTrafficPfcTest,
-      public testing::WithParamInterface<TrafficTestParams> {
-  void setCmdLineFlagOverrides() const override {
-    AgentTrafficPfcTest::setCmdLineFlagOverrides();
-    if (GetParam().buffer.pgHeadroom == 0) {
-      // Force headroom 0 for lossless PG
-      FLAGS_allow_zero_headroom_for_lossless_pg = true;
-    }
-    // Some platforms (TH4, TH5) requires same egress/ingress buffer pool sizes.
-    FLAGS_egress_buffer_pool_size =
-        GetParam().buffer.globalShared + GetParam().buffer.globalHeadroom;
-  }
-};
+TEST_F(AgentTrafficPfcTest, verifyPfcWithDefaultCfg) {
+  TrafficTestParams param{
+      .buffer = defaultPfcBufferParams(),
+  };
+  runTestWithCfg(kLosslessTrafficClass, kLosslessPriority, {}, param);
+}
 
-INSTANTIATE_TEST_SUITE_P(
-    AgentTrafficPfcTest,
-    AgentTrafficPfcGenTest,
-    testing::Values(
-        TrafficTestParams{
-            .name = "WithDefaultCfg",
-        },
-        TrafficTestParams{
-            .name = "WithScaleCfg",
-            .scale = true,
-        },
-        TrafficTestParams{
-            .name = "WithZeroPgHeadRoomCfg",
-            .buffer = PfcBufferParams{.pgHeadroom = 0},
-            .expectDrop = true,
-        },
-        TrafficTestParams{
-            .name = "WithZeroGlobalHeadRoomCfg",
-            .buffer = PfcBufferParams{.globalHeadroom = 0},
-            .expectDrop = true,
-        },
-        TrafficTestParams{
-            .name = "WithScaleCfgInCongestionDrops",
-            .buffer = PfcBufferParams{.pgHeadroom = 0},
-            .expectDrop = true,
-            .scale = true,
-        }),
-    [](const ::testing::TestParamInfo<TrafficTestParams>& info) {
-      return info.param.name;
-    });
-
-TEST_P(AgentTrafficPfcGenTest, verifyPfc) {
-  const int trafficClass = kLosslessTrafficClass;
-  const int pfcPriority = kLosslessPriority;
-  auto param = GetParam();
-  param.buffer = defaultPfcBufferParams(param.buffer);
-  runTestWithCfg(trafficClass, pfcPriority, {}, param);
+TEST_F(AgentTrafficPfcTest, verifyPfcWithScaleCfg) {
+  TrafficTestParams param{
+      .buffer = defaultPfcBufferParams(),
+      .scale = true,
+  };
+  runTestWithCfg(kLosslessTrafficClass, kLosslessPriority, {}, param);
 }
 
 // intent of this test is to send traffic so that it maps to
@@ -635,6 +596,47 @@ TEST_F(AgentTrafficPfcTest, verifyIngressPriorityGroupWatermarks) {
       {},
       TrafficTestParams{.buffer = defaultPfcBufferParams()},
       validateIngressPriorityGroupWatermarkCounters);
+}
+
+class AgentTrafficPfcZeroPgHeadroomTest : public AgentTrafficPfcTest {
+  void setCmdLineFlagOverrides() const override {
+    AgentTrafficPfcTest::setCmdLineFlagOverrides();
+    FLAGS_allow_zero_headroom_for_lossless_pg = true;
+  }
+};
+
+TEST_F(AgentTrafficPfcZeroPgHeadroomTest, verifyPfcWithZeroPgHeadRoomCfg) {
+  TrafficTestParams param{
+      .buffer = defaultPfcBufferParams({.pgHeadroom = 0}),
+      .expectDrop = true,
+  };
+  runTestWithCfg(kLosslessTrafficClass, kLosslessPriority, {}, param);
+}
+
+TEST_F(AgentTrafficPfcZeroPgHeadroomTest, verifyWithScaleCfgInCongestionDrops) {
+  TrafficTestParams param{
+      .buffer = defaultPfcBufferParams({.pgHeadroom = 0}),
+      .expectDrop = true,
+      .scale = true,
+  };
+  runTestWithCfg(kLosslessTrafficClass, kLosslessPriority, {}, param);
+}
+
+class AgentTrafficPfcZeroGlobalHeadroomTest : public AgentTrafficPfcTest {
+  void setCmdLineFlagOverrides() const override {
+    AgentTrafficPfcTest::setCmdLineFlagOverrides();
+    // Some platforms (TH4, TH5) requires same egress/ingress buffer pool sizes.
+    // Global headroom will be 0 in this test.
+    FLAGS_egress_buffer_pool_size = PfcBufferParams::kGlobalSharedBytes;
+  }
+};
+
+TEST_F(AgentTrafficPfcTest, verifyPfcWithZeroGlobalHeadRoomCfg) {
+  TrafficTestParams param{
+      .buffer = defaultPfcBufferParams({.globalHeadroom = 0}),
+      .expectDrop = true,
+  };
+  runTestWithCfg(kLosslessTrafficClass, kLosslessPriority, {}, param);
 }
 
 class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcTest {
