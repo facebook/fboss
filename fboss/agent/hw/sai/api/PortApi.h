@@ -572,7 +572,7 @@ struct SaiPortTraits {
       std::optional<Attributes::CondEntropyRehashPeriodUS>,
       std::optional<Attributes::CondEntropyRehashSeed>,
       std::optional<Attributes::ShelEnable>,
-#if defined(CHENAB_SDK)
+#if defined(CHENAB_SAI_SDK)
       std::optional<Attributes::AutoNegotiationMode>,
 #endif
       std::optional<Attributes::FecErrorDetectEnable>>;
@@ -733,7 +733,7 @@ SAI_ATTRIBUTE_NAME(Port, CondEntropyRehashSeed)
 SAI_ATTRIBUTE_NAME(Port, ShelEnable)
 SAI_ATTRIBUTE_NAME(Port, FecErrorDetectEnable)
 
-#if defined(CHENAB_SDK)
+#if defined(CHENAB_SAI_SDK)
 SAI_ATTRIBUTE_NAME(Port, AutoNegotiationMode)
 #endif
 

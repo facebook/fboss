@@ -750,7 +750,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         std::nullopt, // CondEntropyRehashPeriodUS
         std::nullopt, // CondEntropyRehashSeed
         std::nullopt, // ShelEnable
-#if defined(CHENAB_SDK)
+#if defined(CHENAB_SAI_SDK)
         false,
 #endif
         fecErrorDetectEnable,
@@ -833,7 +833,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       std::nullopt, // CondEntropyRehashPeriodUS
       std::nullopt, // CondEntropyRehashSeed
       std::nullopt, // ShelEnable
-#if defined(CHENAB_SDK)
+#if defined(CHENAB_SAI_SDK)
       false,
 #endif
       fecErrorDetectEnable,
