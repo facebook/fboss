@@ -447,6 +447,7 @@ add_library(hw_system_scale_memory_benchmark
 )
 
 target_link_libraries(hw_system_scale_memory_benchmark
+  fsdb_model
   system_scale_test_utils
   mono_agent_ensemble
   Folly::follybenchmark

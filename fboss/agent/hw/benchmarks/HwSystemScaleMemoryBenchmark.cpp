@@ -2,8 +2,7 @@
 #include "fboss/agent/test/AgentEnsemble.h"
 #include "fboss/agent/test/utils/SystemScaleTestUtils.h"
 #include "fboss/fsdb/client/FsdbPubSubManager.h"
-#include "fboss/fsdb/if/facebook/gen-cpp2-thriftpath/fsdb_model.h" // @manual=//fboss/fsdb/if/facebook:fsdb_model-cpp2-thriftpath
-#include "fboss/fsdb/if/facebook/gen-cpp2/fsdb_model_types.h"
+#include "fboss/fsdb/if/FsdbModel.h"
 #include "gflags/gflags.h"
 
 #include <folly/Benchmark.h>
