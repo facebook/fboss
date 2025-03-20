@@ -676,9 +676,6 @@
           "test_name_regex": "AgentMirroringScaleTest/[67].MaxMirroringTest$"
         },
         {
-          "test_name_regex": "AgentSflowMirror.*MoveToV6$"
-        },
-        {
           "test_name_regex": "AgentMacOverFlowTest.*$"
         },
         {
@@ -1053,9 +1050,6 @@
           "test_name_regex": "AgentMirroringScaleTest/[67].MaxMirroringTest$"
         },
         {
-          "test_name_regex": "AgentSflowMirror.*MoveToV6$"
-        },
-        {
           "test_name_regex": "AgentQueuePerHostTest/[0123].VerifyHostToQueueMappingClassIDsAfterResolve.*$"
         },
         {
@@ -1413,9 +1407,6 @@
         },
         {
           "test_name_regex": "AgentSflowMirrorTruncateTestV6.verifyL4SrcPortRandomization$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirror.*MoveToV6$"
         },
         {
           "test_name_regex": "AgentTrafficPfcWatchdogTest.*$"
@@ -1792,9 +1783,6 @@
           "test_name_regex": "AgentSflowMirrorTruncateTestV6.verifyL4SrcPortRandomization$"
         },
         {
-          "test_name_regex": "AgentSflowMirror.*MoveToV6$"
-        },
-        {
           "test_name_regex": "AgentTrafficPfcWatchdogTest.*$"
         },
         {
@@ -1891,9 +1879,6 @@
         },
         {
           "test_name_regex": "AgentSflowMirrorTruncateTestV6.verifyL4SrcPortRandomization$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirror.*MoveToV6$"
         },
         {
           "test_name_regex": "AgentTrafficPfcWatchdogTest.*$"
@@ -2301,9 +2286,6 @@
         },
         {
           "test_name_regex": "AgentSflowMirrorTruncateTestV6.verifyL4SrcPortRandomization$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirror.*MoveToV6$"
         },
         {
           "test_name_regex": "AgentTrafficPfcWatchdogTest.*$"
@@ -3112,9 +3094,6 @@
         },
         {
           "test_name_regex": "AgentSflowMirrorTruncateTestV6.verifyL4SrcPortRandomization$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirror.*MoveToV6$"
         },
         {
           "test_name_regex": "AgentTrafficPfcWatchdogTest.*$"
@@ -5755,9 +5734,6 @@
           "test_name_regex": "AgentSflowMirrorTruncateTestV6.verifyL4SrcPortRandomization$"
         },
         {
-          "test_name_regex": "AgentSflowMirror.*MoveToV6$"
-        },
-        {
           "test_name_regex": "AgentTrafficPfcWatchdogTest.*$"
         },
         {
@@ -7384,9 +7360,6 @@
         },
         {
           "test_name_regex": "AgentMirroringScaleTest/[67].MaxMirroringTest$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirror.*MoveToV6$"
         }
     ],
     "brcm/8.2.0.0_odp/8.2.0.0_odp/tomahawk/multi_switch": [
@@ -7757,9 +7730,6 @@
           "test_name_regex": "AgentMirroringScaleTest/[67].MaxMirroringTest$"
         },
         {
-          "test_name_regex": "AgentSflowMirror.*MoveToV6$"
-        },
-        {
           "test_name_regex": "AgentQueuePerHostTest/[0123].VerifyHostToQueueMappingClassIDsAfterResolve.*$"
         }
     ],
@@ -8111,9 +8081,6 @@
         },
         {
           "test_name_regex": "AgentSflowMirrorTruncateTestV6.verifyL4SrcPortRandomization$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirror.*MoveToV6$"
         },
         {
           "test_name_regex": "AgentTrafficPfcWatchdogTest.*$"
@@ -8484,9 +8451,6 @@
           "test_name_regex": "AgentSflowMirrorTruncateTestV6.verifyL4SrcPortRandomization$"
         },
         {
-          "test_name_regex": "AgentSflowMirror.*MoveToV6$"
-        },
-        {
           "test_name_regex": "AgentTrafficPfcWatchdogTest.*$"
         },
         {
@@ -8577,9 +8541,6 @@
         },
         {
           "test_name_regex": "AgentSflowMirrorTruncateTestV6.verifyL4SrcPortRandomization$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirror.*MoveToV6$"
         },
         {
           "test_name_regex": "AgentTrafficPfcWatchdogTest.*$"
@@ -8969,9 +8930,6 @@
         },
         {
           "test_name_regex": "AgentSflowMirrorTruncateTestV6.verifyL4SrcPortRandomization$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirror.*MoveToV6$"
         },
         {
           "test_name_regex": "AgentTrafficPfcWatchdogTest.*$"
@@ -10920,9 +10878,6 @@
           "test_name_regex": "AgentTrafficPfcTest/AgentTrafficPfcGenTest.verifyPfc/WithScaleCfgInCongestionDrops$"
         },
         {
-          "test_name_regex": "warm_boot.AgentSflowMirror.*MoveToV6$"
-        },
-        {
           "test_name_regex": "AgentSflowMirrorTruncateTestV6.verifyL4SrcPortRandomization$"
         },
         {
@@ -11157,9 +11112,6 @@
         },
         {
           "test_name_regex": "AgentTrafficPfcTest/AgentTrafficPfcGenTest.verifyPfc/WithScaleCfgInCongestionDrops$"
-        },
-        {
-          "test_name_regex": "warm_boot.AgentSflowMirror.*MoveToV6$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTruncateTestV6.verifyL4SrcPortRandomization$"
