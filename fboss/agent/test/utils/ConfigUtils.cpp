@@ -24,6 +24,7 @@
 #include <folly/Format.h>
 
 DEFINE_bool(nodeZ, false, "Setup test config as node Z");
+DECLARE_string(mode);
 
 namespace facebook::fboss::utility {
 
@@ -239,13 +240,15 @@ std::unordered_map<PortID, cfg::PortProfileID> getSafeProfileIDs(
           break;
       }
     } else if (asicType == cfg::AsicType::ASIC_TYPE_CHENAB) {
-      // For chenab pick both profile and speed to be 400G, since that's what is
-      // expected in production and chenab does not support dynamic port profile
-      // change, as it may lead to recreation of ports by delete and add. the
-      // usecase of recreating ports by delete and add is not supported in
-      // chenab.
-      bestSpeed = cfg::PortSpeed::FOURHUNDREDG;
-      bestProfile = cfg::PortProfileID::PROFILE_400G_4_PAM4_RS544X2N_OPTICAL;
+      if (FLAGS_mode == "yangra") {
+        // For yangra pick both profile and speed to be 400G, since that's what
+        // is expected in production and chenab does not support dynamic port
+        // profile change, as it may lead to recreation of ports by delete and
+        // add. the usecase of recreating ports by delete and add is not
+        // supported in chenab. Minipack3n has max port speed of 400G only
+        bestSpeed = cfg::PortSpeed::FOURHUNDREDG;
+        bestProfile = cfg::PortProfileID::PROFILE_400G_4_PAM4_RS544X2N_OPTICAL;
+      }
     }
     // If bestSpeed is default - pick the largest speed from the safe profiles
     auto pickMaxSpeed = bestSpeed == cfg::PortSpeed::DEFAULT;
