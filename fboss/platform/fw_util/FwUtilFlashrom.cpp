@@ -57,8 +57,25 @@ void FwUtilImpl::addCommonFlashromArgs(
     const std::string& fpd,
     const std::string& operation,
     std::vector<std::string>& flashromCmd) {
+  std::optional<std::string> customContentFile;
+
   // layout file will be added to the command if present
   addLayoutFile(flashromConfig, flashromCmd, fpd);
+
+  if (flashromConfig.custom_content().has_value() &&
+      flashromConfig.custom_content_offset().has_value()) {
+     /* Create a file with custom_content written at custom_content_offset.
+        The flashrom command would use this file instead of the firmware image */
+    const std::string customContentFileName = "/tmp/" + fpd + "_custom_content.bin";
+    if (createCustomContentFile(
+            *flashromConfig.custom_content(),
+            *flashromConfig.custom_content_offset(),
+            customContentFileName)) {
+      customContentFile = customContentFileName;
+    } else {
+      throw std::runtime_error("Error creating custom content file for " + fpd);
+    }
+  }
 
   // Add extra arguments if present
   if (flashromConfig.flashromExtraArgs().has_value()) {
@@ -68,7 +85,7 @@ void FwUtilImpl::addCommonFlashromArgs(
   }
 
   // Add file option
-  addFileOption(operation, flashromCmd);
+  addFileOption(operation, flashromCmd, customContentFile);
 }
 
 void FwUtilImpl::setProgrammerAndChip(
@@ -114,9 +131,34 @@ void FwUtilImpl::addLayoutFile(
   }
 }
 
+bool FwUtilImpl::createCustomContentFile(
+    const std::string& customContent,
+    const int& customContentOffset,
+    const std::string& customContentFileName) {
+  std::uintmax_t customContentFileSize;
+  std::ofstream customContentFile;
+
+  if (!std::filesystem::exists(FLAGS_fw_binary_file)) {
+    return false;
+  }
+
+  /* Use firmware image size to determine the flash chip size.
+     The custom content file should have the same size as the image */
+  customContentFileSize = std::filesystem::file_size(FLAGS_fw_binary_file);
+  customContentFile.open(
+      customContentFileName,
+      std::ofstream::out | std::ofstream::binary);
+  std::filesystem::resize_file(customContentFileName, customContentFileSize);
+  customContentFile.seekp(customContentOffset);
+  customContentFile << customContent;
+  customContentFile.close();
+  return true;
+}
+
 void FwUtilImpl::addFileOption(
     const std::string& operation,
-    std::vector<std::string>& flashromCmd) {
+    std::vector<std::string>& flashromCmd,
+    std::optional<std::string>& customContent) {
   if (operation == "read") {
     flashromCmd.push_back("-r");
   } else if (operation == "write" || operation == "verify") {
@@ -132,7 +174,12 @@ void FwUtilImpl::addFileOption(
   } else {
     XLOG(ERR) << "Unsupported operation: " << operation;
   }
-  flashromCmd.push_back(FLAGS_fw_binary_file);
+  /* Use firmware image or custom content file based on the command description */
+  if (customContent.has_value()) {
+    flashromCmd.push_back(*customContent);
+  } else {
+    flashromCmd.push_back(FLAGS_fw_binary_file);
+  }
 }
 
 void FwUtilImpl::performFlashromUpgrade(
