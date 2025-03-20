@@ -9,8 +9,8 @@
  */
 #include "fboss/agent/test/utils/QueueTestUtils.h"
 #include "fboss/agent/AgentFeatures.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
-#include "fboss/agent/test/utils/ConfigUtils.h"
 
 namespace facebook::fboss::utility {
 
@@ -143,13 +143,13 @@ int getTrafficClassToEgressQueueId(const HwAsic* hwAsic, int trafficClass) {
   return trafficClass;
 }
 
-int getAqmGranularThreshold(const HwAsic* asic, int value) {
-  return ceil(value / asic->getThresholdGranularity()) *
-      asic->getThresholdGranularity();
+int getAqmGranularThreshold(const HwAsic& asic, int value) {
+  return ceil(value / asic.getThresholdGranularity()) *
+      asic.getThresholdGranularity();
 }
 
 cfg::ActiveQueueManagement
-kGetEcnConfig(const HwAsic* asic, int minLength, int maxLength) {
+GetEcnConfig(const HwAsic& asic, int minLength, int maxLength) {
   cfg::ActiveQueueManagement ecnAQM;
   cfg::LinearQueueCongestionDetection ecnLQCD;
   ecnLQCD.minimumLength() = getAqmGranularThreshold(asic, minLength);
@@ -159,8 +159,8 @@ kGetEcnConfig(const HwAsic* asic, int minLength, int maxLength) {
   return ecnAQM;
 }
 
-cfg::ActiveQueueManagement kGetWredConfig(
-    const HwAsic* asic,
+cfg::ActiveQueueManagement GetWredConfig(
+    const HwAsic& asic,
     int minLength,
     int maxLength,
     int probability) {

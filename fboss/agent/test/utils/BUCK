@@ -514,7 +514,6 @@ cpp_library(
         "QueueTestUtils.h",
     ],
     exported_deps = [
-        ":config_utils",
         "//fboss/agent:agent_features",
         "//fboss/agent:fboss-types",
         "//fboss/agent:switch_config-cpp2-types",

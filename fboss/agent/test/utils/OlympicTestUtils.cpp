@@ -73,10 +73,10 @@ void addOlympicQueueOptionalEcnWredConfigWithSchedulingHelper(
   }
   queue2.aqms() = {};
   if (addEcnConfig) {
-    queue2.aqms()->push_back(kGetEcnConfig(asic));
+    queue2.aqms()->push_back(GetEcnConfig(*asic));
   }
   if (addWredConfig) {
-    queue2.aqms()->push_back(kGetWredConfig(asic));
+    queue2.aqms()->push_back(GetWredConfig(*asic));
   }
   portQueues.push_back(queue2);
 
@@ -210,7 +210,7 @@ void addQueueEcnConfig(
   if (!queue.aqms().has_value()) {
     queue.aqms() = {};
   }
-  queue.aqms()->push_back(kGetEcnConfig(asic, minLen, maxLen));
+  queue.aqms()->push_back(GetEcnConfig(*asic, minLen, maxLen));
 }
 
 void addQueueWredConfig(
@@ -226,7 +226,7 @@ void addQueueWredConfig(
   if (!queue.aqms().has_value()) {
     queue.aqms() = {};
   }
-  queue.aqms()->push_back(kGetWredConfig(asic, minLen, maxLen, probability));
+  queue.aqms()->push_back(GetWredConfig(*asic, minLen, maxLen, probability));
 }
 
 void addOlympicQueueConfig(
@@ -275,7 +275,7 @@ void addQueueWredDropConfig(
     queue0.scalingFactor() = cfg::MMUScalingFactor::ONE;
   }
   queue0.aqms() = {};
-  queue0.aqms()->push_back(kGetWredConfig(asic, 1, maxThresh, 0));
+  queue0.aqms()->push_back(GetWredConfig(*asic, 1, maxThresh, 0));
   portQueues.push_back(queue0);
 
   cfg::PortQueue queue2;
@@ -288,7 +288,7 @@ void addQueueWredDropConfig(
     queue2.scalingFactor() = cfg::MMUScalingFactor::ONE;
   }
   queue2.aqms() = {};
-  queue2.aqms()->push_back(kGetWredConfig(asic, 1, maxThresh, 5));
+  queue2.aqms()->push_back(GetWredConfig(*asic, 1, maxThresh, 5));
   portQueues.push_back(queue2);
 
   config->portQueueConfigs()["queue_config"] = portQueues;
@@ -379,9 +379,9 @@ void addOlympicV2WRRQueueConfig(
     queue2.scalingFactor() = cfg::MMUScalingFactor::ONE;
   }
   queue2.aqms() = {};
-  queue2.aqms()->push_back(kGetEcnConfig(asic));
+  queue2.aqms()->push_back(GetEcnConfig(*asic));
   if (addWredConfig) {
-    queue2.aqms()->push_back(kGetWredConfig(asic));
+    queue2.aqms()->push_back(GetWredConfig(*asic));
   }
   portQueues.push_back(queue2);
 
