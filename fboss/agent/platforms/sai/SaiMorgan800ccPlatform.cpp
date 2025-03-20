@@ -42,7 +42,7 @@ HwAsic* SaiMorgan800ccPlatform::getAsic() const {
 
 std::string SaiMorgan800ccPlatform::getHwConfig() {
   auto chipConfigType = config()->thrift.platform()->chip()->getType();
-  if (chipConfigType != facebook::fboss::cfg::ChipConfig::asicConfig) {
+  if (chipConfigType != facebook::fboss::cfg::ChipConfig::Type::asicConfig) {
     // TODO(vsp) : Remove this if check once we move ASIC config in
     // G200 simulator agent_unified.conf to v2 format.
     return *config()->thrift.platform()->chip().value().get_asic().config();
