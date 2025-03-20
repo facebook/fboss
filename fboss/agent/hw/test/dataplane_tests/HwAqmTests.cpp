@@ -251,7 +251,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
     for (auto queueId : queueIds) {
       if (isEcn) {
         utility::addQueueEcnConfig(
-            &cfg,
+            cfg,
             {getPlatform()->getAsic()},
             queueId,
             utility::kQueueConfigAqmsEcnThresholdMinMax,
@@ -259,7 +259,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
             isVoq);
       } else {
         utility::addQueueWredConfig(
-            &cfg,
+            cfg,
             {getPlatform()->getAsic()},
             queueId,
             utility::kQueueConfigAqmsWredThresholdMinMax,
