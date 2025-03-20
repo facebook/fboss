@@ -24,8 +24,6 @@ namespace {
 
 using facebook::fboss::utility::PfcBufferParams;
 
-// TODO(maxgg): Change the overall default to 20000 once CS00012382848 is fixed.
-static constexpr auto kSmallGlobalSharedSize{20000};
 static constexpr auto kGlobalIngressEgressBufferPoolSize{
     5064760}; // Keep a high pool size for DNX
 static constexpr auto kLosslessTrafficClass{2};
@@ -55,7 +53,6 @@ static const std::
 };
 
 struct TrafficTestParams {
-  std::string name;
   PfcBufferParams buffer = PfcBufferParams{};
   bool expectDrop = false;
   bool scale = false;
@@ -281,30 +278,9 @@ class AgentTrafficPfcTest : public AgentHwTest {
   }
 
  protected:
-  PfcBufferParams defaultPfcBufferParams(
-      PfcBufferParams buffer = PfcBufferParams{}) {
-    auto asic = utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
-    switch (asic->getAsicType()) {
-      case cfg::AsicType::ASIC_TYPE_JERICHO2:
-      case cfg::AsicType::ASIC_TYPE_JERICHO3:
-        buffer.globalShared = kSmallGlobalSharedSize;
-        break;
-      default:
-        break;
-    }
-    if (!buffer.scalingFactor.has_value()) {
-      switch (asic->getAsicType()) {
-        case cfg::AsicType::ASIC_TYPE_TOMAHAWK3:
-        case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
-        case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
-          buffer.scalingFactor = cfg::MMUScalingFactor::ONE_HALF;
-          break;
-        default:
-          buffer.scalingFactor = cfg::MMUScalingFactor::ONE_128TH;
-          break;
-      }
-    }
-    return buffer;
+  PfcBufferParams defaultPfcBufferParams() const {
+    return PfcBufferParams::getPfcBufferParams(utility::checkSameAndGetAsicType(
+        getAgentEnsemble()->getCurrentConfig()));
   }
 
   void setupEcmpTraffic(const PortID& portId, const folly::IPAddressV6& ip) {
@@ -607,18 +583,20 @@ class AgentTrafficPfcZeroPgHeadroomTest : public AgentTrafficPfcTest {
 
 TEST_F(AgentTrafficPfcZeroPgHeadroomTest, verifyPfcWithZeroPgHeadRoomCfg) {
   TrafficTestParams param{
-      .buffer = defaultPfcBufferParams({.pgHeadroom = 0}),
+      .buffer = defaultPfcBufferParams(),
       .expectDrop = true,
   };
+  param.buffer.pgHeadroom = 0;
   runTestWithCfg(kLosslessTrafficClass, kLosslessPriority, {}, param);
 }
 
 TEST_F(AgentTrafficPfcZeroPgHeadroomTest, verifyWithScaleCfgInCongestionDrops) {
   TrafficTestParams param{
-      .buffer = defaultPfcBufferParams({.pgHeadroom = 0}),
+      .buffer = defaultPfcBufferParams(),
       .expectDrop = true,
       .scale = true,
   };
+  param.buffer.pgHeadroom = 0;
   runTestWithCfg(kLosslessTrafficClass, kLosslessPriority, {}, param);
 }
 
@@ -633,9 +611,10 @@ class AgentTrafficPfcZeroGlobalHeadroomTest : public AgentTrafficPfcTest {
 
 TEST_F(AgentTrafficPfcTest, verifyPfcWithZeroGlobalHeadRoomCfg) {
   TrafficTestParams param{
-      .buffer = defaultPfcBufferParams({.globalHeadroom = 0}),
+      .buffer = defaultPfcBufferParams(),
       .expectDrop = true,
   };
+  param.buffer.globalHeadroom = 0;
   runTestWithCfg(kLosslessTrafficClass, kLosslessPriority, {}, param);
 }
 

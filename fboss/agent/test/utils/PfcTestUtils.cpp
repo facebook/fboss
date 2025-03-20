@@ -6,6 +6,7 @@
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/test/TestEnsembleIf.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
+#include "fboss/agent/test/utils/AsicUtils.h"
 
 namespace facebook::fboss::utility {
 
@@ -129,23 +130,12 @@ void setupPortPgConfig(
     const PfcBufferParams& buffer) {
   std::vector<cfg::PortPgConfig> portPgConfigs;
 
-  // Chenab requires at least 2xMTU, otherwise packets are dropped on ingress.
-  int minLimit = buffer.minLimit;
-  if (ensemble->getHwAsicTable()
-              ->getHwAsics()
-              .cbegin()
-              ->second->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB &&
-      minLimit < 20480) {
-    minLimit = 20480;
-  }
-
   // create 2 pgs
   for (auto pgId : losslessPgIds) {
     cfg::PortPgConfig pgConfig;
     pgConfig.id() = pgId;
     pgConfig.bufferPoolName() = "bufferNew";
-    // provide atleast 1 cell worth of minLimit
-    pgConfig.minLimitBytes() = minLimit;
+    pgConfig.minLimitBytes() = buffer.minLimit;
     // set large enough headroom to avoid drop
     pgConfig.headroomLimitBytes() = buffer.pgHeadroom;
     // resume offset
@@ -163,9 +153,7 @@ void setupPortPgConfig(
     }
     pgConfig.resumeOffsetBytes() = buffer.resumeOffset;
     // set scaling factor
-    if (buffer.scalingFactor) {
-      pgConfig.scalingFactor() = *buffer.scalingFactor;
-    }
+    pgConfig.scalingFactor() = buffer.scalingFactor;
     portPgConfigs.emplace_back(pgConfig);
   }
 
@@ -180,16 +168,13 @@ void setupPortPgConfig(
       cfg::PortPgConfig pgConfig;
       pgConfig.id() = pgId;
       pgConfig.bufferPoolName() = "bufferNew";
-      // provide atleast 1 cell worth of minLimit
-      pgConfig.minLimitBytes() = minLimit;
+      pgConfig.minLimitBytes() = buffer.minLimit;
       // headroom set 0 identifies lossy pgs
       pgConfig.headroomLimitBytes() = 0;
       // resume offset
       pgConfig.resumeOffsetBytes() = buffer.resumeOffset;
       // set scaling factor
-      if (buffer.scalingFactor) {
-        pgConfig.scalingFactor() = *buffer.scalingFactor;
-      }
+      pgConfig.scalingFactor() = buffer.scalingFactor;
       portPgConfigs.emplace_back(pgConfig);
     }
   }
@@ -198,6 +183,52 @@ void setupPortPgConfig(
 }
 
 } // namespace
+
+PfcBufferParams PfcBufferParams::getPfcBufferParams(cfg::AsicType asicType) {
+  PfcBufferParams buffer;
+
+  if (asicType == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    buffer.minLimit = 20480;
+  }
+
+  switch (asicType) {
+    case cfg::AsicType::ASIC_TYPE_JERICHO2:
+    case cfg::AsicType::ASIC_TYPE_JERICHO3:
+      buffer.globalShared = kSmallGlobalSharedBytes;
+      break;
+    default:
+      break;
+  }
+
+  switch (asicType) {
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK3:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
+      buffer.scalingFactor = cfg::MMUScalingFactor::ONE_HALF;
+      break;
+    default:
+      buffer.scalingFactor = cfg::MMUScalingFactor::ONE_128TH;
+      break;
+  }
+
+  return buffer;
+}
+
+void setupPfcBuffers(
+    TestEnsembleIf* ensemble,
+    cfg::SwitchConfig& cfg,
+    const std::vector<PortID>& ports,
+    const std::vector<int>& losslessPgIds,
+    const std::map<int, int>& tcToPgOverride) {
+  auto asicType = checkSameAndGetAsicType(cfg);
+  setupPfcBuffers(
+      ensemble,
+      cfg,
+      ports,
+      losslessPgIds,
+      tcToPgOverride,
+      PfcBufferParams::getPfcBufferParams(asicType));
+}
 
 void setupPfcBuffers(
     TestEnsembleIf* ensemble,

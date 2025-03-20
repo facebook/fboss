@@ -58,14 +58,8 @@ TEST_F(AgentInNullRouteDiscardsCounterTest, nullRouteHit) {
       std::vector<int> losslessPgIds = {2};
       // Make sure default traffic goes to PG2, which is lossless
       const std::map<int, int> tcToPgOverride{{0, 2}};
-      const auto bufferParams = PfcBufferParams{};
       utility::setupPfcBuffers(
-          getAgentEnsemble(),
-          cfg,
-          portIds,
-          losslessPgIds,
-          tcToPgOverride,
-          bufferParams);
+          getAgentEnsemble(), cfg, portIds, losslessPgIds, tcToPgOverride);
       applyNewConfig(cfg);
     }
   };

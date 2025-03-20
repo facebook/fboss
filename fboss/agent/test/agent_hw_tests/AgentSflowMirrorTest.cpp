@@ -778,9 +778,12 @@ class AgentSflowMirrorWithLineRateTrafficTest
       // PFC buffer configurations to ensure we have lossless traffic
       const std::map<int, int> tcToPgOverride{};
       // We dont want PFC here, so set global shared threshold to be high
-      const utility::PfcBufferParams bufferParams{
-          .globalShared = 20 * 1024 * 1024,
-          .scalingFactor = cfg::MMUScalingFactor::ONE};
+      auto asicType = utility::checkSameAndGetAsicType(
+          this->initialConfig(*getAgentEnsemble()));
+      auto bufferParams =
+          utility::PfcBufferParams::getPfcBufferParams(asicType);
+      bufferParams.globalShared = 20 * 1024 * 1024;
+      bufferParams.scalingFactor = cfg::MMUScalingFactor::ONE;
       utility::setupPfcBuffers(
           getAgentEnsemble(),
           config,
