@@ -673,10 +673,18 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
 
   std::optional<SaiPortTraits::Attributes::FecErrorDetectEnable>
       fecErrorDetectEnable{};
-#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
   if ((swPort->getPortType() == cfg::PortType::FABRIC_PORT) &&
       platform_->getAsic()->isSupported(
-          HwAsic::Feature::FEC_ERROR_DETECT_ENABLE)) {
+          HwAsic::Feature::FEC_ERROR_DETECT_ENABLE) &&
+      (platform_->getHwSwitch()->getBootType() == BootType::COLD_BOOT) &&
+      ((platform_->getAsic()->getAsicType() ==
+        cfg::AsicType::ASIC_TYPE_RAMON3) ||
+       isDualStage3Q2QMode())) {
+    // FEC error detection enabling is needed for dual stage only and
+    // should be enabled on cold boot on fabric ports. Feature is
+    // enabled for 2-stage R3 devices only, however, for J3, check
+    // explicitly to restrict enabling this for 2-stage alone.
     fecErrorDetectEnable =
         SaiPortTraits::Attributes::FecErrorDetectEnable{true};
   }
