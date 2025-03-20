@@ -118,6 +118,8 @@ class HwTestThriftHandler : public AgentHwTestCtrlSvIf {
 
   void updateFlowletStats() override;
 
+  bool getPtpTcEnabled() override;
+
  private:
   HwSwitch* hwSwitch_;
 };

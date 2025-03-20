@@ -122,4 +122,7 @@ service AgentHwTestCtrl {
 
   // Flowlet utils
   void updateFlowletStats();
+
+  // PtcTc utils
+  bool getPtpTcEnabled();
 }
