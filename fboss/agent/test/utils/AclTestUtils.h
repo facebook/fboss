@@ -34,7 +34,8 @@ std::string kTtldAclTable();
 cfg::AclEntry* addAclEntry(
     cfg::SwitchConfig* cfg,
     const cfg::AclEntry& acl,
-    const std::string& tableName);
+    const std::string& tableName,
+    cfg::AclStage aclStage = cfg::AclStage::INGRESS);
 
 cfg::AclEntry* addAcl_DEPRECATED(
     cfg::SwitchConfig* cfg,
@@ -42,7 +43,10 @@ cfg::AclEntry* addAcl_DEPRECATED(
     const cfg::AclActionType& aclActionType = cfg::AclActionType::PERMIT,
     const std::optional<std::string>& tableName = std::nullopt);
 
-cfg::AclEntry* addAcl(cfg::SwitchConfig* cfg, const cfg::AclEntry& acl);
+cfg::AclEntry* addAcl(
+    cfg::SwitchConfig* cfg,
+    const cfg::AclEntry& acl,
+    cfg::AclStage aclStage);
 
 void addEtherTypeToAcl(
     const HwAsic* asic,
@@ -187,5 +191,6 @@ bool aclEntrySupported(
 
 std::string getAclTableForAclEntry(
     cfg::SwitchConfig& config,
-    const cfg::AclEntry& aclEntry);
+    const cfg::AclEntry& aclEntry,
+    cfg::AclStage stage = cfg::AclStage::INGRESS);
 } // namespace facebook::fboss::utility

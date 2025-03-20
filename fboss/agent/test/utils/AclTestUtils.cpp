@@ -72,10 +72,10 @@ int getAclTableIndex(
 cfg::AclEntry* addAclEntry(
     cfg::SwitchConfig* cfg,
     const cfg::AclEntry& acl,
-    const std::string& aclTableName) {
+    const std::string& aclTableName,
+    cfg::AclStage aclStage) {
   if (FLAGS_enable_acl_table_group) {
-    // by default ingress acl table group is used to add acl entry
-    auto aclTableGroup = getAclTableGroup(*cfg);
+    auto aclTableGroup = getAclTableGroup(*cfg, aclStage);
 
     int tableNumber = getAclTableIndex(aclTableGroup, aclTableName);
     CHECK(aclTableGroup);
@@ -110,13 +110,20 @@ cfg::AclEntry* addAcl_DEPRECATED(
   return addAclEntry(cfg, acl, *tableName);
 }
 
-cfg::AclEntry* addAcl(cfg::SwitchConfig* cfg, const cfg::AclEntry& acl) {
+cfg::AclEntry* addAcl(
+    cfg::SwitchConfig* cfg,
+    const cfg::AclEntry& acl,
+    cfg::AclStage aclStage) {
   if (!FLAGS_enable_acl_table_group) {
+    if (aclStage != cfg::AclStage::INGRESS) {
+      throw FbossError(
+          "Only Ingress ACL Stage is supported with single ACL table");
+    }
     cfg->acls()->push_back(acl);
     return &cfg->acls()->back();
   }
-  auto selectedTableName = getAclTableForAclEntry(*cfg, acl);
-  return addAclEntry(cfg, acl, selectedTableName);
+  auto selectedTableName = getAclTableForAclEntry(*cfg, acl, aclStage);
+  return addAclEntry(cfg, acl, selectedTableName, aclStage);
 }
 
 void addEtherTypeToAcl(
@@ -789,8 +796,9 @@ bool aclEntrySupported(
 
 std::string getAclTableForAclEntry(
     cfg::SwitchConfig& config,
-    const cfg::AclEntry& aclEntry) {
-  auto aclTableGroup = getAclTableGroup(config);
+    const cfg::AclEntry& aclEntry,
+    cfg::AclStage stage) {
+  auto aclTableGroup = getAclTableGroup(config, stage);
   if (!aclTableGroup) {
     throw FbossError("Acl table group not found");
   }

@@ -32,7 +32,7 @@ class AgentHwAclStatTest : public AgentHwTest {
     utility::addEtherTypeToAcl(
         hwAsicForSwitch(switchID), &acl, cfg::EtherType::IPv6);
 
-    return utility::addAcl(cfg, acl);
+    return utility::addAcl(cfg, acl, cfg::AclStage::INGRESS);
   }
 };
 

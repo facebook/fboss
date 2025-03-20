@@ -494,7 +494,7 @@ class AgentAclCounterTest : public AgentHwTest {
       case AclType::UDF_FLOWLET:
         break;
     }
-    utility::addAcl(config, aclEntry);
+    utility::addAcl(config, aclEntry, cfg::AclStage::INGRESS);
 
     std::vector<cfg::CounterType> setCounterTypes{
         cfg::CounterType::PACKETS, cfg::CounterType::BYTES};

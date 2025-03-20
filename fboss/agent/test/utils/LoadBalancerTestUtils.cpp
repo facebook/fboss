@@ -284,7 +284,7 @@ void addFlowletAcl(
     acl.roceBytes() = {utility::kRoceReserved};
     acl.roceMask() = {utility::kRoceReserved};
   }
-  utility::addAcl(&cfg, acl);
+  utility::addAcl(&cfg, acl, cfg::AclStage::INGRESS);
 
   cfg::MatchAction matchAction = cfg::MatchAction();
   matchAction.flowletAction() = cfg::FlowletAction::FORWARD;

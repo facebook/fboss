@@ -53,7 +53,7 @@ class HwAclStatTest : public HwTest {
     // ACL requires at least one qualifier
     acl.dscp() = 0x24;
     utility::addEtherTypeToAcl(getAsic(), &acl, cfg::EtherType::IPv6);
-    return utility::addAcl(cfg, acl);
+    return utility::addAcl(cfg, acl, cfg::AclStage::INGRESS);
   }
 };
 

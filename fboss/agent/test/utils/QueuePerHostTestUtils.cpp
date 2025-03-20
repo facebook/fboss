@@ -374,7 +374,7 @@ void addQueuePerHostAcls(cfg::SwitchConfig* config, bool isSai) {
   ttlAcl.actionType() = cfg::AclActionType::PERMIT;
   ttlAcl.ttl() = ttl;
 
-  utility::addAcl(config, ttlAcl);
+  utility::addAcl(config, ttlAcl, cfg::AclStage::INGRESS);
   std::vector<cfg::CounterType> setCounterTypes{
       cfg::CounterType::PACKETS, cfg::CounterType::BYTES};
 
