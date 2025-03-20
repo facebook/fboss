@@ -34,11 +34,21 @@ int16_t PidLogic::calculatePwm(float measurement) {
     newPwm = 100;
   }
 
+  // When measurement is lower than setPoint for a prolonged period of time,
+  // integral_ will grow to a very large value. This will cause delay in
+  // increasing pwm when measurement is higher than setPoint. To avoid this,
+  // we reset integral_ when measurement is lower than setPoint.
+  if (measurement <= maxVal) {
+    integral_ = pwmDelta / *pidSetting_.ki();
+  }
+
   XLOG(DBG2) << fmt::format(
-      "Measurement: {}, Error: {}, Last PWM: {}, PWM Delta: {}, New PWM: {}",
+      "Measurement: {}, Error: {}, Last PWM: {}, integral_: {}, "
+      "PWM Delta: {}, New PWM: {}",
       measurement,
       error.value_or(0),
       lastPwm_,
+      integral_,
       pwmDelta,
       newPwm);
 
