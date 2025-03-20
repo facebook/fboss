@@ -37,6 +37,13 @@ struct CmdShowPortTraits : public BaseCommandTraits {
   static constexpr bool ALLOW_AGGREGATION = true;
 };
 
+struct Endpoint {
+  bool isAttached;
+  std::string expectedSwitchName;
+  std::string attachedSwitchName;
+  std::string attachedRemotePortName;
+};
+
 struct PeerInfo {
   std::unordered_map<std::string, std::string> fabPort2Peer;
   std::unordered_set<std::string> allPeers;
