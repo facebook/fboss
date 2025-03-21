@@ -69,7 +69,7 @@ class CmdShowTransceiver
     outTable.setHeader(
         {"Interface",
          "Status",
-         "Present",
+         "Transceiver",
          "CfgValidated",
          "Reason",
          "Vendor",
@@ -88,7 +88,10 @@ class CmdShowTransceiver
       outTable.addRow({
           details.name().value(),
           statusToString(folly::copy(details.isUp().value())),
-          (folly::copy(details.isPresent().value())) ? "Present" : "Absent",
+          (folly::copy(details.isPresent().value()))
+              ? apache::thrift::util::enumNameSafe(
+                    details.mediaInterface().value())
+              : "Absent",
           details.validationStatus().value(),
           details.notValidatedReason().value(),
           details.vendor().value(),
@@ -269,6 +272,7 @@ class CmdShowTransceiver
       const auto& tcvrStats = *transceiver.tcvrStats();
       details.isUp() = folly::copy(portEntry.up().value());
       details.isPresent() = folly::copy(tcvrState.present().value());
+      details.mediaInterface() = tcvrState.moduleMediaInterface().value_or({});
       const auto& validationStringPair = getTransceiverValidationStrings(
           transceiverValidationEntries, transceiverId);
       details.validationStatus() = validationStringPair.first;
