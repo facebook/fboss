@@ -797,6 +797,16 @@ add_dependencies(fboss_fake_agent_benchmarks
 )
 endif()
 
+add_custom_target(fboss_agent_benchmark_libs)
+add_dependencies(fboss_agent_benchmark_libs
+  hw_flowlet_stats_collection_speed
+  hw_rx_slow_path_arp_rate
+  hw_bgp_rx_slow_path_rate
+  hw_init_and_exit_benchmark_helper
+  hw_system_scale_memory_benchmark
+)
+
+
 add_custom_target(fboss_platform_services)
 add_dependencies(fboss_platform_services
   # Services
