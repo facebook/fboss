@@ -12,8 +12,10 @@
 #include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/ScaleTestUtils.h"
+#include "folly/Benchmark.h"
 
 DECLARE_bool(intf_nbr_tables);
+DECLARE_bool(json);
 
 namespace {
 constexpr int kNumMacs = 8000;
@@ -279,10 +281,12 @@ void configureMaxRouteEntries(AgentEnsemble* ensemble) {
         allThriftRoutes.begin() + allThriftRoutes.size() / 4);
     std::unique_ptr<std::vector<UnicastRoute>> routesPtr =
         std::make_unique<std::vector<UnicastRoute>>(quarterThriftRoutes);
+    StopWatch timer("program_routes_msecs", FLAGS_json);
     handler.syncFib((int)ClientID::BGPD, std::move(routesPtr));
   } else {
     std::unique_ptr<std::vector<UnicastRoute>> routesPtr =
         std::make_unique<std::vector<UnicastRoute>>(allThriftRoutes);
+    StopWatch timer("program_routes_msecs", FLAGS_json);
     handler.syncFib((int)ClientID::BGPD, std::move(routesPtr));
   }
   int route_count = 0;
