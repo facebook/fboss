@@ -193,6 +193,30 @@ void I2cExplorer::createI2cDevice(
       getDeviceI2cPath(busNum, addr));
 }
 
+void I2cExplorer::deleteI2cDevice(uint16_t busNum, const I2cAddr& addr) {
+  if (!isI2cDevicePresent(busNum, addr)) {
+    XLOG(INFO) << fmt::format(
+        "Device at bus: {}, addr: {} not present. "
+        "Skipping deletion.",
+        busNum,
+        addr.hex2Str());
+        return;
+  }
+  // https://www.kernel.org/doc/Documentation/i2c/instantiating-devices
+  auto content = fmt::format("{}", addr.hex2Str());
+  auto filepath = fmt::format("/sys/bus/i2c/devices/i2c-{}/delete_device", busNum);
+  bool written = platformFsUtils_->writeStringToSysfs(content, filepath);
+  if (!written) {
+    throw std::runtime_error(fmt::format(
+        "Failed to delete i2c device at bus: {}, addr: {} ; errno: {}",
+        busNum,
+        addr.hex2Str(),
+        errno));
+  }
+  XLOG(INFO) << fmt::format(
+      "Deleted i2c device  at {}", getDeviceI2cPath(busNum, addr));
+}
+
 std::map<uint16_t, uint16_t> I2cExplorer::getMuxChannelI2CBuses(
     uint16_t busNum,
     const I2cAddr& addr) {
@@ -228,6 +252,21 @@ std::string I2cExplorer::getDeviceI2cPath(
     uint16_t busNum,
     const I2cAddr& addr) {
   return fmt::format("/sys/bus/i2c/devices/{}-{}", busNum, addr.hex4Str());
+}
+
+std::string I2cExplorer::getI2cEepromPath(
+    uint16_t busNum,
+    const I2cAddr& addr) {
+  auto eepromPath = getDeviceI2cPath(busNum, addr) + "/eeprom";
+  // Check if the eepromPath file exists
+  if (!fs::exists(eepromPath)) {
+    throw std::runtime_error(fmt::format(
+        "EEPROM file {} does not exist for bus: {}, addr: {}",
+        eepromPath,
+        busNum,
+        addr.hex2Str()));
+  }
+  return eepromPath;
 }
 
 std::string I2cExplorer::getI2cBusCharDevPath(uint16_t busNum) {

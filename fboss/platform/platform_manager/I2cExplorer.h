@@ -55,6 +55,9 @@ class I2cExplorer {
       uint16_t busNum,
       const I2cAddr& addr);
 
+  // Deletes an i2c device at `addr` on `busNum`.
+  void deleteI2cDevice(uint16_t busNum, const I2cAddr& addr);
+
   // Setup/Initialize an I2C device by updating device registers with
   // the supplied values. Called before createI2cDevice().
   void setupI2cDevice(
@@ -73,6 +76,9 @@ class I2cExplorer {
 
   // Return sysfs path to the device at `addr` on `busNum`.
   static std::string getDeviceI2cPath(uint16_t busNum, const I2cAddr& addr);
+
+  // Return eepromsysfs path to the device at `addr` on `busNum`.
+  std::string getI2cEepromPath(uint16_t busNum, const I2cAddr& addr);
 
   // Return character device path (/dev/i2c-#) of the given i2c bus.
   static std::string getI2cBusCharDevPath(uint16_t busNum);
