@@ -763,6 +763,40 @@ foreach(cmakeFile ${cmakeFiles})
   INCLUDE(${cmakeFile})
 endforeach(cmakeFile)
 
+if(BUILD_SAI_FAKE AND BUILD_SAI_FAKE_BENCHMARKS)
+add_custom_target(fboss_fake_agent_benchmarks)
+add_dependencies(fboss_fake_agent_benchmarks
+  sai_fsw_scale_route_add_speed-fake
+  sai_fsw_scale_route_del_speed-fake
+  sai_th_alpm_scale_route_add_speed-fake
+  sai_th_alpm_scale_route_del_speed-fake
+  sai_hgrid_du_scale_route_add_speed-fake
+  sai_hgrid_du_scale_route_del_speed-fake
+  sai_hgrid_uu_scale_route_add_speed-fake
+  sai_hgrid_uu_scale_route_del_speed-fake
+  sai_anticipated_scale_route_add_speed-fake
+  sai_anticipated_scale_route_del_speed-fake
+  sai_stats_collection_speed-fake
+  sai_tx_slow_path_rate-fake
+  sai_ecmp_shrink_speed-fake
+  sai_ecmp_shrink_with_competing_route_updates_speed-fake
+  sai_rx_slow_path_rate-fake
+  sai_init_and_exit_40Gx10G-fake
+  sai_init_and_exit_100Gx10G-fake
+  sai_init_and_exit_100Gx25G-fake
+  sai_init_and_exit_100Gx50G-fake
+  sai_init_and_exit_100Gx100G-fake
+  sai_init_and_exit_voq-fake
+  sai_init_and_exit_fabric-fake
+  sai_rib_resolution_speed-fake
+  sai_rib_sync_fib_speed-fake
+  sai_voq_scale_route_add_speed-fake
+  sai_voq_scale_route_del_speed-fake
+  sai_switch_reachability_change_speed-fake
+  sai_voq_sys_port_programming-fake
+)
+endif()
+
 add_custom_target(fboss_platform_services)
 add_dependencies(fboss_platform_services
   # Services
