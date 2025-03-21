@@ -215,6 +215,36 @@ PortInfoMap CmdShowPort::asyncGetPortInfo(
   return entries;
 }
 
+std::unordered_map<std::string, PortInfoMap> CmdShowPort::getPortInfoMap(
+    const std::unordered_set<std::string>& hosts) {
+  // Launch futures
+  std::unordered_map<std::string, std::shared_future<PortInfoMap>> futures;
+  for (const auto& host : hosts) {
+    if (!clients.contains(host)) {
+      clients[host] = utils::createClient<apache::thrift::Client<FbossCtrl>>(
+          HostInfo(host), peerTimeout);
+    }
+    futures[host] = std::async(
+        std::launch::async,
+        &CmdShowPort::asyncGetPortInfo,
+        this,
+        clients[host]);
+  }
+
+  // Get results
+  std::
+      unordered_map<std::string, std::map<int, facebook::fboss::PortInfoThrift>>
+          portInfoMap;
+  for (const auto& [peer, f] : futures) {
+    auto& entries = f.get();
+    if (entries.empty()) {
+      continue;
+    }
+    portInfoMap[peer] = entries;
+  }
+  return portInfoMap;
+}
+
 RetType CmdShowPort::queryClient(
     const HostInfo& hostInfo,
     const ObjectArgType& queriedPorts) {

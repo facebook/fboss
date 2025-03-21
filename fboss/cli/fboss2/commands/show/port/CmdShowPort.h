@@ -91,6 +91,8 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
 
   PortInfoMap asyncGetPortInfo(
       std::shared_ptr<apache::thrift::Client<FbossCtrl>> client) const;
+  std::unordered_map<std::string, PortInfoMap> getPortInfoMap(
+      const std::unordered_set<std::string>& hosts);
 };
 
 } // namespace facebook::fboss
