@@ -2748,12 +2748,26 @@
         },
         "PDBLEFT_SLOT@0": {
           "slotType": "PDBLEFT_SLOT",
+          "presenceDetection": {
+            "sysfsFileHandle": {
+              "devicePath": "/[MCB_CPLD]",
+              "presenceFileName": "psu_l_present",
+              "desiredValue": 1
+            }
+          },
           "outgoingI2cBusNames": [
             "MCB_IOB_I2C_MASTER_5"
           ]
         },
         "PDBRIGHT_SLOT@0": {
           "slotType": "PDBRIGHT_SLOT",
+          "presenceDetection": {
+            "sysfsFileHandle": {
+              "devicePath": "/[MCB_CPLD]",
+              "presenceFileName": "psu_r_present",
+              "desiredValue": 1
+            }
+          },
           "outgoingI2cBusNames": [
             "MCB_IOB_I2C_MASTER_6"
           ]
@@ -2773,12 +2787,107 @@
         },
         "FCBBOTTOM_SLOT@0": {
           "slotType": "FCBBOTTOM_SLOT",
+          "presenceDetection": {
+            "sysfsFileHandle": {
+              "devicePath": "/[MCB_FAN_CPLD]",
+              "presenceFileName": "fan2_present",
+              "desiredValue": 1
+            }
+          },
+          "outgoingI2cBusNames": [
+            "MCB_IOB_I2C_MASTER_17"
+          ]
+        },
+        "FCBBOTTOM_SLOT@1": {
+          "slotType": "FCBBOTTOM_SLOT",
+          "presenceDetection": {
+            "sysfsFileHandle": {
+              "devicePath": "/[MCB_FAN_CPLD]",
+              "presenceFileName": "fan4_present",
+              "desiredValue": 1
+            }
+          },
+          "outgoingI2cBusNames": [
+            "MCB_IOB_I2C_MASTER_17"
+          ]
+        },
+        "FCBBOTTOM_SLOT@2": {
+          "slotType": "FCBBOTTOM_SLOT",
+          "presenceDetection": {
+            "sysfsFileHandle": {
+              "devicePath": "/[MCB_FAN_CPLD]",
+              "presenceFileName": "fan6_present",
+              "desiredValue": 1
+            }
+          },
+          "outgoingI2cBusNames": [
+            "MCB_IOB_I2C_MASTER_17"
+          ]
+        },
+        "FCBBOTTOM_SLOT@3": {
+          "slotType": "FCBBOTTOM_SLOT",
+          "presenceDetection": {
+            "sysfsFileHandle": {
+              "devicePath": "/[MCB_FAN_CPLD]",
+              "presenceFileName": "fan8_present",
+              "desiredValue": 1
+            }
+          },
           "outgoingI2cBusNames": [
             "MCB_IOB_I2C_MASTER_17"
           ]
         },
         "FCBTOP_SLOT@0": {
           "slotType": "FCBTOP_SLOT",
+          "presenceDetection": {
+            "sysfsFileHandle": {
+              "devicePath": "/[MCB_FAN_CPLD]",
+              "presenceFileName": "fan1_present",
+              "desiredValue": 1
+            }
+          },
+          "outgoingI2cBusNames": [
+            "MCB_IOB_I2C_MASTER_15",
+            "MCB_IOB_I2C_MASTER_16"
+          ]
+        },
+        "FCBTOP_SLOT@1": {
+          "slotType": "FCBTOP_SLOT",
+          "presenceDetection": {
+            "sysfsFileHandle": {
+              "devicePath": "/[MCB_FAN_CPLD]",
+              "presenceFileName": "fan3_present",
+              "desiredValue": 1
+            }
+          },
+          "outgoingI2cBusNames": [
+            "MCB_IOB_I2C_MASTER_15",
+            "MCB_IOB_I2C_MASTER_16"
+          ]
+        },
+        "FCBTOP_SLOT@2": {
+          "slotType": "FCBTOP_SLOT",
+          "presenceDetection": {
+            "sysfsFileHandle": {
+              "devicePath": "/[MCB_FAN_CPLD]",
+              "presenceFileName": "fan5_present",
+              "desiredValue": 1
+            }
+          },
+          "outgoingI2cBusNames": [
+            "MCB_IOB_I2C_MASTER_15",
+            "MCB_IOB_I2C_MASTER_16"
+          ]
+        },
+        "FCBTOP_SLOT@3": {
+          "slotType": "FCBTOP_SLOT",
+          "presenceDetection": {
+            "sysfsFileHandle": {
+              "devicePath": "/[MCB_FAN_CPLD]",
+              "presenceFileName": "fan7_present",
+              "desiredValue": 1
+            }
+          },
           "outgoingI2cBusNames": [
             "MCB_IOB_I2C_MASTER_15",
             "MCB_IOB_I2C_MASTER_16"
