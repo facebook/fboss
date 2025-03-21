@@ -359,11 +359,11 @@ void setDefaultCpuTrafficPolicyConfig(
     const std::vector<const HwAsic*>& asics,
     bool isSai) {
   auto hwAsic = checkSameAndGetAsic(asics);
-  auto cpuAcls = utility::defaultCpuAcls(hwAsic, config, isSai);
+  auto cpuAcls =
+      utility::defaultCpuAcls(hwAsic, config, isSai, cfg::AclStage::INGRESS);
 
   for (int i = 0; i < cpuAcls.size(); i++) {
-    utility::addAclEntry(
-        &config, cpuAcls[i].first, utility::kDefaultAclTable());
+    utility::addAcl(&config, cpuAcls[i].first, cfg::AclStage::INGRESS);
   }
 
   // prepare cpu traffic config
@@ -387,11 +387,6 @@ void setDefaultCpuTrafficPolicyConfig(
     cpuConfig.rxReasonToQueueOrderedList() = rxReasonToQueues;
   }
   config.cpuTrafficPolicy() = cpuConfig;
-}
-
-uint16_t getNumDefaultCpuAcls(const HwAsic* hwAsic, bool isSai) {
-  cfg::SwitchConfig config; // unused
-  return utility::defaultCpuAcls(hwAsic, config, isSai).size();
 }
 
 cfg::MatchAction
@@ -804,7 +799,8 @@ void addNoActionAclForUnicastLinkLocal(
 
 std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAclsForSai(
     const HwAsic* hwAsic,
-    cfg::SwitchConfig& /* unused */) {
+    cfg::SwitchConfig& /* unused */,
+    cfg::AclStage /*aclStage*/) {
   std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> acls;
 
   // Unicast link local from cpu
@@ -1071,9 +1067,12 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAclsForBcm(
   return acls;
 }
 
-std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>>
-defaultCpuAcls(const HwAsic* hwAsic, cfg::SwitchConfig& config, bool isSai) {
-  return isSai ? defaultCpuAclsForSai(hwAsic, config)
+std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
+    const HwAsic* hwAsic,
+    cfg::SwitchConfig& config,
+    bool isSai,
+    cfg::AclStage aclStage) {
+  return isSai ? defaultCpuAclsForSai(hwAsic, config, aclStage)
                : defaultCpuAclsForBcm(hwAsic, config);
 }
 

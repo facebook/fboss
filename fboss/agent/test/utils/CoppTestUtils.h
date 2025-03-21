@@ -87,10 +87,11 @@ folly::CIDRNetwork kIPv6NdpSolicitNetwork();
 cfg::MatchAction
 createQueueMatchAction(int queueId, bool isSai, cfg::ToCpuAction toCpuAction);
 
-std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>>
-defaultCpuAcls(const HwAsic* hwAsic, cfg::SwitchConfig& config, bool isSai);
-
-uint16_t getNumDefaultCpuAcls(const HwAsic* hwAsic, bool isSai);
+std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
+    const HwAsic* hwAsic,
+    cfg::SwitchConfig& config,
+    bool isSai,
+    cfg::AclStage aclStage);
 
 std::string getMplsDestNoMatchCounterName(void);
 
