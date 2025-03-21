@@ -1121,7 +1121,7 @@ void SaiSwitchManager::setConditionalEntropyRehashPeriodUS(
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   switch_->setOptionalAttribute(
       SaiSwitchTraits::Attributes::CondEntropyRehashPeriodUS{
-          conditionalEntropyRehashPeriodUS});
+          static_cast<uint32_t>(conditionalEntropyRehashPeriodUS)});
 #endif
 }
 

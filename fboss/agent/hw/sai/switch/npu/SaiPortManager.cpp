@@ -661,7 +661,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
 #if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
   if (auto reachabilityGroupId = swPort->getReachabilityGroupId()) {
     reachabilityGroup = SaiPortTraits::Attributes::ReachabilityGroup{
-        reachabilityGroupId.value()};
+        static_cast<uint32_t>(reachabilityGroupId.value())};
   }
 #endif
 
