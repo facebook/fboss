@@ -27,6 +27,7 @@ namespace facebook::fboss {
 
 using utils::Table;
 using PeerDrainState = std::map<int64_t, cfg::SwitchDrainState>;
+using PortInfoMap = std::map<int32_t, facebook::fboss::PortInfoThrift>;
 
 struct CmdShowPortTraits : public BaseCommandTraits {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
@@ -87,6 +88,9 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
   std::unordered_map<std::string, cfg::SwitchDrainState> getPeerDrainStates(
       const std::unordered_map<std::string, Endpoint>& portToPeer,
       const std::unordered_set<std::string>& peers);
+
+  PortInfoMap asyncGetPortInfo(
+      std::shared_ptr<apache::thrift::Client<FbossCtrl>> client) const;
 };
 
 } // namespace facebook::fboss

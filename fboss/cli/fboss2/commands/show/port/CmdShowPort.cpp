@@ -204,6 +204,17 @@ CmdShowPort::getPeerDrainStates(
   return portToPeerDrainState;
 }
 
+PortInfoMap CmdShowPort::asyncGetPortInfo(
+    std::shared_ptr<apache::thrift::Client<FbossCtrl>> client) const {
+  PortInfoMap entries;
+  try {
+    client->sync_getAllPortInfo(entries);
+  } catch (const std::exception&) {
+    // Continue
+  }
+  return entries;
+}
+
 RetType CmdShowPort::queryClient(
     const HostInfo& hostInfo,
     const ObjectArgType& queriedPorts) {
