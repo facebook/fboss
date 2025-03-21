@@ -13,6 +13,7 @@ sai_mono_agent_benchmark(
         "//fboss/agent/hw/benchmarks:hw_anticipated_scale_route_add_speed",
         "//fboss/agent/hw/benchmarks:hw_anticipated_scale_route_del_speed",
         "//fboss/agent/hw/benchmarks:hw_bgp_rx_slow_path_rate",
+        "//fboss/agent/hw/benchmarks:hw_clear_interface_phy_counters",
         "//fboss/agent/hw/benchmarks:hw_ecmp_shrink_speed",
         "//fboss/agent/hw/benchmarks:hw_ecmp_shrink_with_competing_route_updates_speed",
         "//fboss/agent/hw/benchmarks:hw_fsw_scale_route_add_speed",

@@ -452,3 +452,14 @@ target_link_libraries(hw_system_scale_memory_benchmark
   mono_agent_ensemble
   Folly::follybenchmark
 )
+
+add_library(hw_clear_interface_counters_phy_benchmark
+  fboss/agent/hw/benchmarks/HwClearInterfacePhyCountersBenchmark.cpp
+)
+
+target_link_libraries(hw_clear_interface_counters_phy_benchmark
+  config_factory
+  mono_agent_ensemble
+  mono_agent_benchmarks
+  Folly::follybenchmark
+)

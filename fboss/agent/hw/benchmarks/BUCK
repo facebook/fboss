@@ -387,3 +387,9 @@ agent_benchmark_lib(
     srcs = ["HwVoqSysPortProgrammingBenchmark.cpp"],
     extra_deps = [],
 )
+
+agent_benchmark_lib(
+    name = "hw_clear_interface_phy_counters",
+    srcs = ["HwClearInterfacePhyCountersBenchmark.cpp"],
+    extra_deps = [],
+)
