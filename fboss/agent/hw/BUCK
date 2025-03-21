@@ -10,7 +10,7 @@ thrift_library(
     },
     languages = [
         "cpp2",
-        "py",
+        "py-deprecated",
         "go",
         "py3",
         "py-asyncio",
@@ -35,7 +35,7 @@ thrift_library(
     name = "hw_test_ctrl",
     languages = [
         "cpp2",
-        "py",
+        "py-deprecated",
         "py3",
     ],
     py3_namespace = "neteng.fboss",
