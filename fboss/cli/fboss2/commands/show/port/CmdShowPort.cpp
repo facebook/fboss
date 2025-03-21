@@ -130,15 +130,28 @@ CmdShowPort::getAcceptedFilterValues() {
 
 PeerInfo CmdShowPort::getFabPortPeerInfo(const auto& hostInfo) const {
   auto fabricEntries = utils::getFabricEndpoints(hostInfo);
-  std::unordered_map<std::string, std::string> portToPeer;
+  std::unordered_map<std::string, Endpoint> portToPeer;
   std::unordered_set<std::string> peers;
   for (auto const& [localPort, endpoint] : fabricEntries) {
-    if (endpoint.switchName()) {
-      portToPeer[localPort] = *endpoint.switchName();
+    Endpoint ep;
+    ep.isAttached = endpoint.isAttached().value();
+    if (endpoint.expectedSwitchName()) {
+      ep.expectedSwitchName = *endpoint.expectedSwitchName();
+    }
+    if (endpoint.isAttached().value() && endpoint.switchName()) {
+      ep.attachedSwitchName = *endpoint.switchName();
       peers.insert(*endpoint.switchName());
     }
+    if (endpoint.isAttached().value() && endpoint.portName()) {
+      ep.attachedRemotePortName = *endpoint.portName();
+    }
+    portToPeer[localPort] = ep;
   }
-  return {portToPeer, peers};
+
+  PeerInfo peerInfo;
+  peerInfo.fabPort2Peer = portToPeer;
+  peerInfo.allPeers = peers;
+  return peerInfo;
 }
 
 PeerDrainState CmdShowPort::asyncGetDrainState(
@@ -154,7 +167,7 @@ PeerDrainState CmdShowPort::asyncGetDrainState(
 
 std::unordered_map<std::string, cfg::SwitchDrainState>
 CmdShowPort::getPeerDrainStates(
-    const std::unordered_map<std::string, std::string>& portToPeer,
+    const std::unordered_map<std::string, Endpoint>& portToPeer,
     const std::unordered_set<std::string>& peers) {
   // Launch futures
   std::unordered_set<std::string> peersChecked;
@@ -183,8 +196,9 @@ CmdShowPort::getPeerDrainStates(
   // Map local port to peer drain state
   std::unordered_map<std::string, cfg::SwitchDrainState> portToPeerDrainState;
   for (const auto& [localPort, peer] : portToPeer) {
-    if (peerToDrainState.contains(peer)) {
-      portToPeerDrainState[localPort] = peerToDrainState[peer];
+    auto& attachedPeer = peer.attachedSwitchName;
+    if (peerToDrainState.contains(attachedPeer)) {
+      portToPeerDrainState[localPort] = peerToDrainState[attachedPeer];
     }
   }
   return portToPeerDrainState;

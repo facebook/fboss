@@ -45,7 +45,7 @@ struct Endpoint {
 };
 
 struct PeerInfo {
-  std::unordered_map<std::string, std::string> fabPort2Peer;
+  std::unordered_map<std::string, Endpoint> fabPort2Peer;
   std::unordered_set<std::string> allPeers;
 };
 
@@ -85,7 +85,7 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
   PeerDrainState asyncGetDrainState(
       std::shared_ptr<apache::thrift::Client<FbossCtrl>> client) const;
   std::unordered_map<std::string, cfg::SwitchDrainState> getPeerDrainStates(
-      const std::unordered_map<std::string, std::string>& portToPeer,
+      const std::unordered_map<std::string, Endpoint>& portToPeer,
       const std::unordered_set<std::string>& peers);
 };
 
