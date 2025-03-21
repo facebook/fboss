@@ -28,6 +28,9 @@ target_link_libraries(hw_stats_collection_speed
   voq_test_utils
   ecmp_helper
   mono_agent_ensemble
+  load_balancer_test_utils
+  copp_test_utils
+  network_ai_qos_utils
   mono_agent_benchmarks
   Folly::folly
   Folly::follybenchmark
