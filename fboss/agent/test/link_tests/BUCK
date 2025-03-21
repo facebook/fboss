@@ -40,6 +40,7 @@ cpp_library(
     exported_deps = [
         "fbsource//third-party/googletest:gtest",
         ":link_test_production_features-cpp2-types",
+        "//common/base:proc",
         "//common/process:process",
         "//fboss/agent:agent_features",
         "//fboss/agent:agent_stats-cpp2-types",
@@ -139,6 +140,7 @@ cpp_library(
     exported_deps = [
         "fbsource//third-party/googletest:gtest",
         ":link_test_production_features-cpp2-types",
+        "//common/base:proc",
         "//fboss/agent:core",
         "//fboss/agent:fboss-error",
         "//fboss/agent:fboss-types",
@@ -216,6 +218,7 @@ cpp_library(
     exported_deps = [
         "fbsource//third-party/googletest:gtest",
         ":link_test_production_features-cpp2-types",
+        "//common/base:proc",
         "//common/process:process",
         "//fboss/agent:agent_features",
         "//fboss/agent:agent_stats-cpp2-types",

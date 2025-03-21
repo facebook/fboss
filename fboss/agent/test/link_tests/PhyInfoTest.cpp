@@ -614,3 +614,63 @@ TEST_F(LinkTest, verifyIphyFecBerCounters) {
   };
   verifyAcrossWarmBoots([]() {}, verify);
 }
+
+TEST_F(LinkTest, clearIphyInterfaceCounters) {
+  auto cabledPorts = getCabledPorts();
+  std::map<PortID, const phy::PhyInfo> phyInfoBefore;
+  auto startTime = std::chrono::duration_cast<std::chrono::seconds>(
+      std::chrono::system_clock::now().time_since_epoch());
+
+  // Wait for update stats
+  WITH_RETRIES_N_TIMED(
+      20 /* retries */, std::chrono::milliseconds(1000) /* msBetweenRetry */, {
+        phyInfoBefore = sw()->getIPhyInfo(cabledPorts);
+        for (const auto& port : cabledPorts) {
+          auto phyIt = phyInfoBefore.find(port);
+          ASSERT_EVENTUALLY_NE(phyIt, phyInfoBefore.end());
+          EXPECT_EVENTUALLY_GT(
+              phyIt->second.state()->timeCollected(), startTime.count());
+          EXPECT_EVENTUALLY_GT(
+              phyIt->second.stats()->timeCollected(), startTime.count());
+          EXPECT_EVENTUALLY_TRUE(
+              phyIt->second.state()->linkState().value_or({}));
+        }
+      });
+
+  // Clear the counters
+  std::vector<int32_t> cabledPortsVec;
+  cabledPortsVec.reserve(cabledPorts.size());
+  for (auto port : cabledPorts) {
+    cabledPortsVec.push_back(static_cast<int32_t>(port));
+  }
+  platform()->getHwSwitch()->clearInterfacePhyCounters(
+      std::make_unique<std::vector<int32_t>>(cabledPortsVec));
+
+  std::map<PortID, const phy::PhyInfo> phyInfoAfterClear;
+  WITH_RETRIES_N_TIMED(
+      35 /* retries */, std::chrono::milliseconds(1000) /* msBetweenRetry */, {
+        phyInfoAfterClear = sw()->getIPhyInfo(cabledPorts);
+        for (const auto& port : cabledPorts) {
+          auto phyIt = phyInfoAfterClear.find(port);
+          ASSERT_EVENTUALLY_NE(phyIt, phyInfoAfterClear.end());
+          EXPECT_EVENTUALLY_GE(
+              *(phyInfoAfterClear[port].stats()->timeCollected()) -
+                  *(phyInfoBefore[port].stats()->timeCollected()),
+              20);
+        }
+        for (auto port : cabledPortsVec) {
+          XLOG(INFO) << "Verifying port " << port;
+          PortID portId = PortID(port);
+          auto laneInfoAfter =
+              phyInfoAfterClear[portId].stats()->line()->pmd()->lanes();
+          for (const auto& [laneId, laneInfo] : *laneInfoAfter) {
+            if (laneInfo.cdrLockChangedCount().has_value()) {
+              EXPECT_EVENTUALLY_EQ(*laneInfo.cdrLockChangedCount(), 0);
+            }
+            if (laneInfo.signalDetectChangedCount().has_value()) {
+              EXPECT_EVENTUALLY_EQ(*laneInfo.signalDetectChangedCount(), 0);
+            }
+          }
+        }
+      });
+}
