@@ -251,6 +251,8 @@ class BcmPort {
   void setPortFlowletConfig(const std::shared_ptr<Port>& port);
   void updatePortFlowletConfig(const std::shared_ptr<Port>& port);
 
+  void clearInterfacePhyCounters();
+
  private:
   class BcmPortStats {
     // All actions or instantiations of this class need to be done in a

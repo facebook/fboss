@@ -3483,6 +3483,13 @@ prbs::InterfacePrbsState BcmSwitch::getPortPrbsState(PortID portId) {
   return getBcmPortPrbsState(unit_, portTable_->getBcmPortId(portId));
 }
 
+void BcmSwitch::clearInterfacePhyCounters(
+    const std::unique_ptr<std::vector<int32_t>>& ports) {
+  for (auto portId : *ports) {
+    getPortTable()->getBcmPort(portId)->clearInterfacePhyCounters();
+  }
+}
+
 std::vector<phy::PrbsLaneStats> BcmSwitch::getPortAsicPrbsStats(PortID portId) {
   return bcmStatUpdater_->getPortAsicPrbsStats(portId);
 }
