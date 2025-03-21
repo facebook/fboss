@@ -251,6 +251,7 @@ class BcmPort {
   void setPortFlowletConfig(const std::shared_ptr<Port>& port);
   void updatePortFlowletConfig(const std::shared_ptr<Port>& port);
 
+  void clearSignalDetectAndLockStatusChangedStats();
   void clearInterfacePhyCounters();
 
  private:

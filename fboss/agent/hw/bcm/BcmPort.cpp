@@ -775,6 +775,18 @@ void BcmPort::updatePortFlowletConfig(const std::shared_ptr<Port>& port) {
   }
 }
 
+void BcmPort::clearSignalDetectAndLockStatusChangedStats() {
+  auto lastPmdStats = lastPhyInfo_.stats()->line()->pmd();
+  for (auto& [laneId, laneStat] : *lastPmdStats->lanes()) {
+    if (laneStat.signalDetectChangedCount().has_value()) {
+      laneStat.signalDetectChangedCount() = 0;
+    }
+    if (laneStat.cdrLockChangedCount().has_value()) {
+      laneStat.cdrLockChangedCount() = 0;
+    }
+  }
+}
+
 void BcmPort::clearInterfacePhyCounters() {
   auto lockedPortStatsPtr = portStats_.wlock();
   if (!lockedPortStatsPtr->has_value()) {
@@ -799,6 +811,8 @@ void BcmPort::clearInterfacePhyCounters() {
   resetPortStat(kFecUncorrectable(), portName);
 
   *lockedPortStatsPtr = BcmPortStats(std::move(curPortStats), now);
+
+  clearSignalDetectAndLockStatusChangedStats();
 }
 
 void BcmPort::cacheFaultStatus(phy::LinkFaultStatus faultStatus) {
