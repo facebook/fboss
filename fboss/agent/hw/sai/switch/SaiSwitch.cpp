@@ -2211,12 +2211,31 @@ void SaiSwitch::clearPortAsicPrbsStats(PortID portId) {
   managerTable_->portManager().clearPortAsicPrbsStats(portId);
 }
 
+void SaiSwitch::clearSignalDetectAndLockChangedStats(const PortID& portId) {
+  auto phyItr = lastPhyInfos_.find(portId);
+  if (phyItr == lastPhyInfos_.end()) {
+    return;
+  }
+
+  const auto& lineLanes = phyItr->second.stats()->line()->pmd()->lanes();
+  for (auto& [laneId, laneStat] : *lineLanes) {
+    if (laneStat.signalDetectChangedCount().has_value()) {
+      laneStat.signalDetectChangedCount() = 0;
+    }
+    if (laneStat.cdrLockChangedCount().has_value()) {
+      laneStat.cdrLockChangedCount() = 0;
+    }
+  }
+}
+
 void SaiSwitch::clearInterfacePhyCounters(
     const std::unique_ptr<std::vector<int32_t>>& ports) {
   auto& portManager = managerTable_->portManager();
   for (auto port : *ports) {
     std::lock_guard<std::mutex> lock(saiSwitchMutex_);
-    portManager.clearInterfacePhyCounters(static_cast<PortID>(port));
+    auto portId = static_cast<PortID>(port);
+    portManager.clearInterfacePhyCounters(portId);
+    clearSignalDetectAndLockChangedStats(portId);
   }
 }
 

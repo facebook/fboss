@@ -139,6 +139,7 @@ class SaiSwitch : public HwSwitch {
   void clearPortAsicPrbsStats(PortID portId) override;
   prbs::InterfacePrbsState getPortPrbsState(PortID portId) override;
 
+  void clearSignalDetectAndLockChangedStats(const PortID& portId);
   void clearInterfacePhyCounters(
       const std::unique_ptr<std::vector<int32_t>>& ports) override;
 
