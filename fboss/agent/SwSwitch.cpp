@@ -2326,7 +2326,8 @@ void SwSwitch::switchReachabilityChanged(
     const SwitchID switchId,
     const std::map<SwitchID, std::set<PortID>>& switchReachabilityInfo) {
   switch_reachability::SwitchReachability newReachability;
-  int currentIdx = 1;
+  const int kEmptyFabricPortGroupId = 0;
+  int nextUsableFabricPortGroupId = 1;
   uint64_t collectionTimestamp =
       duration_cast<seconds>(system_clock::now().time_since_epoch()).count();
   if (hwReachabilityInfo_.find(switchId) == hwReachabilityInfo_.end()) {
@@ -2336,21 +2337,34 @@ void SwSwitch::switchReachabilityChanged(
   std::unordered_map<std::set<PortID>, int> portGrp2Id;
   for (const auto& [destinationSwitchId, portIdSet] : switchReachabilityInfo) {
     int portGroupId;
-    auto [_, inserted] = portGrp2Id.insert({portIdSet, currentIdx});
-    if (inserted) {
-      std::vector<std::string> portGroup(portIdSet.size());
-      std::transform(
-          portIdSet.begin(),
-          portIdSet.end(),
-          portGroup.begin(),
-          [this](PortID portId) {
-            return getState()->getPorts()->getNode(portId)->getName();
-          });
-      newReachability.fabricPortGroupMap()[currentIdx] = std::move(portGroup);
-      portGroupId = currentIdx++;
+    // When a switchID is unreachable, the portIdSet will be empty. In this
+    // case, use 0 as the fabricPortGroupId. With this, clients looking up
+    // switchID in switchIdToFabricPortGroupMap can conclude that the switch
+    // is unreachable if it has a fabricPortGroupId of 0 and reachable
+    // otherwise.
+    if (!portIdSet.size()) {
+      portGroupId = kEmptyFabricPortGroupId;
+      newReachability.fabricPortGroupMap()[portGroupId] =
+          std::vector<std::string>();
     } else {
-      // Need to find the ID for the portIdSet that was already added
-      portGroupId = portGrp2Id.find(portIdSet)->second;
+      auto [_, inserted] =
+          portGrp2Id.insert({portIdSet, nextUsableFabricPortGroupId});
+      if (inserted) {
+        std::vector<std::string> portGroup(portIdSet.size());
+        std::transform(
+            portIdSet.begin(),
+            portIdSet.end(),
+            portGroup.begin(),
+            [this](PortID portId) {
+              return getState()->getPorts()->getNode(portId)->getName();
+            });
+        portGroupId = nextUsableFabricPortGroupId++;
+        newReachability.fabricPortGroupMap()[portGroupId] =
+            std::move(portGroup);
+      } else {
+        // Need to find the ID for the portIdSet that was already added
+        portGroupId = portGrp2Id.find(portIdSet)->second;
+      }
     }
     newReachability.switchIdToFabricPortGroupMap()[static_cast<int64_t>(
         destinationSwitchId)] = portGroupId;
