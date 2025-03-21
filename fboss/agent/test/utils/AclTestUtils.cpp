@@ -550,7 +550,10 @@ void setupDefaultPostLookupIngressAclTableGroup(cfg::SwitchConfig& config) {
       cfg::switch_config_constants::DEFAULT_POST_LOOKUP_INGRESS_ACL_TABLE(),
       0,
       {
+          cfg::AclTableActionType::COUNTER,
           cfg::AclTableActionType::PACKET_ACTION,
+          cfg::AclTableActionType::SET_USER_DEFINED_TRAP,
+          cfg::AclTableActionType::SET_DSCP,
       },
       {
           cfg::AclTableQualifier::DSCP,
