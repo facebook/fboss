@@ -297,7 +297,7 @@ bool isFbossFeatureEnabled(
 std::string getSubscriptionPathStr(const fsdb::OperSubscriberInfo& subscriber) {
   if (apache::thrift::get_pointer(subscriber.path())) {
     return folly::join(
-        "/", apache::thrift::get_pointer(subscriber.path())->get_raw());
+        "/", apache::thrift::get_pointer(subscriber.path())->raw().value());
   }
   std::vector<std::string> extPaths;
   if (auto subExtPaths =

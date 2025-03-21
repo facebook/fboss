@@ -99,15 +99,16 @@ class CmdShowNdp : public CmdHandler<CmdShowNdp, CmdShowNdpTraits> {
         queriedNdpEntries.begin(), queriedNdpEntries.end());
 
     for (const auto& entry : ndpEntries) {
-      auto ip = folly::IPAddress::fromBinary(
-          folly::ByteRange(folly::StringPiece(entry.ip().value().get_addr())));
+      auto ip = folly::IPAddress::fromBinary(folly::ByteRange(
+          folly::StringPiece(entry.ip().value().addr().value())));
 
       if (queriedNdpEntries.size() == 0 || queriedSet.count(ip.str())) {
         cli::NdpEntry ndpDetails;
         ndpDetails.ip() = ip.str();
         ndpDetails.mac() = entry.mac().value();
         if (*entry.isLocal()) {
-          ndpDetails.port() = portEntries[entry.get_port()].name().value();
+          ndpDetails.port() =
+              portEntries[folly::copy(entry.port().value())].name().value();
         } else {
           ndpDetails.port() =
               folly::to<std::string>(folly::copy(entry.port().value()));

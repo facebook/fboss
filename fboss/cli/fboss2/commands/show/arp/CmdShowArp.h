@@ -97,8 +97,8 @@ class CmdShowArp : public CmdHandler<CmdShowArp, CmdShowArpTraits> {
             " (", folly::copy(entry.vlanID().value()), ")");
       }
 
-      auto ip = folly::IPAddress::fromBinary(
-          folly::ByteRange(folly::StringPiece(entry.ip().value().get_addr())));
+      auto ip = folly::IPAddress::fromBinary(folly::ByteRange(
+          folly::StringPiece(entry.ip().value().addr().value())));
       arpDetails.ip() = ip.str();
       arpDetails.mac() = entry.mac().value();
       arpDetails.port() = folly::copy(entry.port().value());
@@ -107,7 +107,8 @@ class CmdShowArp : public CmdHandler<CmdShowArp, CmdShowArpTraits> {
       arpDetails.ttl() = folly::copy(entry.ttl().value());
       arpDetails.classID() = folly::copy(entry.classID().value());
       if (*entry.isLocal()) {
-        arpDetails.ifName() = portEntries[entry.get_port()].name().value();
+        arpDetails.ifName() =
+            portEntries[folly::copy(entry.port().value())].name().value();
       } else {
         arpDetails.ifName() =
             folly::to<std::string>(folly::copy(entry.port().value()));

@@ -95,13 +95,13 @@ class CmdShowHost : public CmdHandler<CmdShowHost, CmdShowHostTraits> {
             folly::copy(ndpEntryPortInfo.speedMbps().value()));
         hostDetails.fecMode() = ndpEntryPortInfo.fecMode().value();
         hostDetails.inErrors() =
-            ndpEntryPortInfo.input().value().get_errors().get_errors();
+            ndpEntryPortInfo.input().value().errors().value().get_errors();
         hostDetails.inDiscards() =
-            ndpEntryPortInfo.input().value().get_errors().get_discards();
+            ndpEntryPortInfo.input().value().errors().value().get_discards();
         hostDetails.outErrors() =
-            ndpEntryPortInfo.output().value().get_errors().get_errors();
+            ndpEntryPortInfo.output().value().errors().value().get_errors();
         hostDetails.outDiscards() =
-            ndpEntryPortInfo.output().value().get_errors().get_discards();
+            ndpEntryPortInfo.output().value().errors().value().get_discards();
       } else {
         continue;
       }

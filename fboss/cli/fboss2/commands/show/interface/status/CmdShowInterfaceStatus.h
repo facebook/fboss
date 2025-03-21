@@ -117,10 +117,12 @@ class CmdShowInterfaceStatus
           if (apache::thrift::get_pointer(transceiver.tcvrState()->vendor())) {
             ifStatus.vendor() =
                 apache::thrift::get_pointer(transceiver.tcvrState()->vendor())
-                    ->get_name();
+                    ->name()
+                    .value();
             ifStatus.mpn() =
                 apache::thrift::get_pointer(transceiver.tcvrState()->vendor())
-                    ->get_partNumber();
+                    ->partNumber()
+                    .value();
           }
         }
 

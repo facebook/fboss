@@ -67,13 +67,13 @@ class CmdShowInterfaceErrors
 
         counter.interfaceName() = portInfo.name().value();
         counter.inputErrors() =
-            portInfo.input().value().get_errors().get_errors();
+            portInfo.input().value().errors().value().get_errors();
         counter.inputDiscards() =
-            portInfo.input().value().get_errors().get_discards();
+            portInfo.input().value().errors().value().get_discards();
         counter.outputErrors() =
-            portInfo.output().value().get_errors().get_errors();
+            portInfo.output().value().errors().value().get_errors();
         counter.outputDiscards() =
-            portInfo.output().value().get_errors().get_discards();
+            portInfo.output().value().errors().value().get_discards();
 
         ret.error_counters()->push_back(counter);
       }
