@@ -556,7 +556,9 @@ void setupDefaultPostLookupIngressAclTableGroup(cfg::SwitchConfig& config) {
           cfg::AclTableActionType::SET_DSCP,
       },
       {
+          cfg::AclTableQualifier::ETHER_TYPE,
           cfg::AclTableQualifier::DSCP,
+          cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE,
       },
       {});
 }
@@ -794,6 +796,11 @@ bool aclEntrySupported(
       aclTableQualifiersSet.end(),
       std::inserter(difference, difference.begin()));
 
+  if (!difference.empty()) {
+    XLOG(ERR) << "Acl table " << *aclTable->name()
+              << " does not support qualifiers: "
+              << folly::join(",", difference);
+  }
   return difference.empty();
 }
 

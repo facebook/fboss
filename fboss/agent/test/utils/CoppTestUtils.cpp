@@ -359,11 +359,24 @@ void setDefaultCpuTrafficPolicyConfig(
     const std::vector<const HwAsic*>& asics,
     bool isSai) {
   auto hwAsic = checkSameAndGetAsic(asics);
-  auto cpuAcls =
-      utility::defaultCpuAcls(hwAsic, config, isSai, cfg::AclStage::INGRESS);
+  std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> cpuAcls;
 
-  for (int i = 0; i < cpuAcls.size(); i++) {
-    utility::addAcl(&config, cpuAcls[i].first, cfg::AclStage::INGRESS);
+  if (!isSai) {
+    cpuAcls =
+        utility::defaultCpuAcls(hwAsic, config, isSai, cfg::AclStage::INGRESS);
+  } else {
+    for (auto stage :
+         {cfg::AclStage::INGRESS, cfg::AclStage::INGRESS_POST_LOOKUP}) {
+      auto stageCpuAcls = utility::defaultCpuAcls(hwAsic, config, isSai, stage);
+
+      for (int i = 0; i < stageCpuAcls.size(); i++) {
+        utility::addAcl(&config, stageCpuAcls[i].first, stage);
+      }
+      cpuAcls.insert(
+          cpuAcls.end(),
+          std::make_move_iterator(stageCpuAcls.begin()),
+          std::make_move_iterator(stageCpuAcls.end()));
+    }
   }
 
   // prepare cpu traffic config
@@ -797,10 +810,10 @@ void addNoActionAclForUnicastLinkLocal(
       {nw.first.isV6() ? cfg::EtherType::IPv6 : cfg::EtherType::IPv4});
 }
 
-std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAclsForSai(
+std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>>
+defaultIngressCpuAclsForSai(
     const HwAsic* hwAsic,
-    cfg::SwitchConfig& /* unused */,
-    cfg::AclStage /*aclStage*/) {
+    cfg::SwitchConfig& /* unused */) {
   std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> acls;
 
   // Unicast link local from cpu
@@ -843,6 +856,7 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAclsForSai(
       getCoppMidPriQueueId({hwAsic}));
 
   if (hwAsic->isSupported(HwAsic::Feature::ACL_METADATA_QUALIFER)) {
+    // metadata qualifiers are in post ingress stage
     addHighPriAclForMyIPNetworkControl(
         hwAsic,
         cfg::ToCpuAction::TRAP,
@@ -885,6 +899,50 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAclsForSai(
   }
 
   return acls;
+}
+
+std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>>
+defaultPostIngressCpuAclsForSai(
+    const HwAsic* hwAsic,
+    cfg::SwitchConfig& /* unused */) {
+  std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> acls;
+  if (hwAsic->getAsicType() != cfg::AsicType::ASIC_TYPE_CHENAB) {
+    return acls;
+  }
+  addHighPriAclForMyIPNetworkControl(
+      hwAsic,
+      cfg::ToCpuAction::TRAP,
+      getCoppHighPriQueueId(hwAsic),
+      acls,
+      true /*isSai*/);
+  /*
+   * Unresolved route class ID to low pri queue.
+   * For unresolved route ACL, both the hostif trap and the ACL will
+   * be hit on TAJO and 2 packets will be punted to CPU.
+   * Do not rely on getCpuActionType but explicitly configure
+   * the cpu action to TRAP. Connected subnet route has the same class ID
+   * and also goes to low pri queue
+   */
+  addLowPriAclForUnresolvedRoutes(
+      hwAsic, cfg::ToCpuAction::TRAP, acls, true /*isSai*/);
+
+  return acls;
+}
+
+std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAclsForSai(
+    const HwAsic* hwAsic,
+    cfg::SwitchConfig& cfg,
+    cfg::AclStage aclStage) {
+  switch (aclStage) {
+    case cfg::AclStage::INGRESS:
+      return defaultIngressCpuAclsForSai(hwAsic, cfg);
+    case cfg::AclStage::INGRESS_POST_LOOKUP:
+      return defaultPostIngressCpuAclsForSai(hwAsic, cfg);
+    case cfg::AclStage::EGRESS_MACSEC:
+    case cfg::AclStage::INGRESS_MACSEC:
+      throw FbossError("MACSEC stage not supported for CPU ACLs");
+  }
+  return {};
 }
 
 std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAclsForBcm(
