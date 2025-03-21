@@ -145,6 +145,13 @@ void SaiHandler::clearAllHwPortStats() {
   clearHwPortStats(std::move(allPorts));
 }
 
+void SaiHandler::clearInterfacePhyCounters(
+    std::unique_ptr<std::vector<int32_t>> ports) {
+  auto log = LOG_THRIFT_CALL(DBG1, *ports);
+  hw_->ensureConfigured(__func__);
+  hw_->clearInterfacePhyCounters(ports);
+}
+
 void SaiHandler::getHwL2Table(std::vector<L2EntryThrift>& l2Table) {
   auto log = LOG_THRIFT_CALL(DBG1);
   hw_->ensureConfigured(__func__);

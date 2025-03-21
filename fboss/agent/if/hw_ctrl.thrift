@@ -119,6 +119,11 @@ service FbossHwCtrl {
   ) throws (1: fboss.FbossBaseError error);
 
   /*
+   * Clear FEC and signal locked / changed lock counters per port.
+   */
+  void clearInterfacePhyCounters(1: list<i32> ports);
+
+  /*
    * Reconstruct switch state.
    */
   switch_state.SwitchState reconstructSwitchState() throws (

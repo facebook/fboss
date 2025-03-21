@@ -50,6 +50,8 @@ class SaiHandler : public apache::thrift::ServiceHandler<SaiCtrl> {
       std::unique_ptr<::std::vector<::std::string>> switchNames) override;
   void clearHwPortStats(std::unique_ptr<std::vector<int32_t>> ports) override;
   void clearAllHwPortStats() override;
+  void clearInterfacePhyCounters(
+      std::unique_ptr<std::vector<int32_t>> ports) override;
   void getHwL2Table(std::vector<L2EntryThrift>& l2Table) override;
   void getVirtualDeviceToConnectionGroups(
       std::map<
