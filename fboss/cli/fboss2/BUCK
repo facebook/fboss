@@ -308,6 +308,7 @@ cpp_library(
         "commands/clear/facebook/bgp/ribpolicy/Constants.h",
         "commands/clear/facebook/teflow/CmdClearTeFlow.h",
         "commands/clear/interface/CmdClearInterface.h",
+        "commands/clear/interface/counters/phy/CmdClearInterfaceCountersPhy.h",
         "commands/clear/interface/prbs/CmdClearInterfacePrbs.h",
         "commands/clear/interface/prbs/stats/CmdClearInterfacePrbsStats.h",
         "commands/create/facebook/CmdCreateConfig.h",

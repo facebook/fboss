@@ -15,6 +15,7 @@
 #include "fboss/cli/fboss2/commands/clear/CmdClearInterfaceCounters.h"
 #include "fboss/cli/fboss2/commands/clear/CmdClearNdp.h"
 #include "fboss/cli/fboss2/commands/clear/interface/CmdClearInterface.h"
+#include "fboss/cli/fboss2/commands/clear/interface/counters/phy/CmdClearInterfaceCountersPhy.h"
 #include "fboss/cli/fboss2/commands/clear/interface/prbs/CmdClearInterfacePrbs.h"
 #include "fboss/cli/fboss2/commands/clear/interface/prbs/stats/CmdClearInterfacePrbsStats.h"
 #include "fboss/cli/fboss2/commands/get/pcap/CmdGetPcap.h"
@@ -210,6 +211,9 @@ template void CmdHandler<CmdShowCpuPort, CmdShowCpuPortTraits>::run();
 template void CmdHandler<CmdShowTransceiver, CmdShowTransceiverTraits>::run();
 
 template void CmdHandler<CmdClearInterface, CmdClearInterfaceTraits>::run();
+template void CmdHandler<
+    CmdClearInterfaceCountersPhy,
+    CmdClearInterfaceCountersPhyTraits>::run();
 template void
 CmdHandler<CmdClearInterfacePrbs, CmdClearInterfacePrbsTraits>::run();
 template void

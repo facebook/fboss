@@ -17,6 +17,7 @@
 #include "fboss/cli/fboss2/commands/clear/CmdClearInterfaceCounters.h"
 #include "fboss/cli/fboss2/commands/clear/CmdClearNdp.h"
 #include "fboss/cli/fboss2/commands/clear/interface/CmdClearInterface.h"
+#include "fboss/cli/fboss2/commands/clear/interface/counters/phy/CmdClearInterfaceCountersPhy.h"
 #include "fboss/cli/fboss2/commands/clear/interface/prbs/CmdClearInterfacePrbs.h"
 #include "fboss/cli/fboss2/commands/clear/interface/prbs/stats/CmdClearInterfacePrbsStats.h"
 #include "fboss/cli/fboss2/commands/get/pcap/CmdGetPcap.h"
@@ -411,7 +412,11 @@ const CommandTree& kCommandTree() {
               {"counters",
                "Clear Interface Counters",
                commandHandler<CmdClearInterfaceCounters>,
-               argTypeHandler<CmdClearInterfaceCountersTraits>},
+               argTypeHandler<CmdClearInterfaceCountersTraits>,
+               {{"phy",
+                 "Clear Interface Phy Counters",
+                 commandHandler<CmdClearInterfaceCountersPhy>,
+                 argTypeHandler<CmdClearInterfaceCountersPhyTraits>}}},
               {
                   "prbs",
                   "Clear PRBS Information",
