@@ -35,6 +35,24 @@ custom_rule(
 )
 
 cpp_library(
+    name = "cross_service_config_validator",
+    srcs = [
+        "ConfigValidator.cpp",
+    ],
+    exported_deps = [
+        "fbsource//third-party/fmt:fmt",
+        "//fboss/platform/platform_manager:config_validator",
+        "//fboss/platform/platform_manager:platform_manager_config-cpp2-types",
+        "//fboss/platform/platform_manager:utils",
+        "//fboss/platform/sensor_service/if:sensor_config-cpp2-types",
+        "//folly/logging:logging",
+    ],
+    exported_external_deps = [
+        "re2",
+    ],
+)
+
+cpp_library(
     name = "config_lib",
     srcs = [
         "ConfigLib.cpp",

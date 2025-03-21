@@ -4,11 +4,11 @@
 # cmake/FooBar.cmake
 
 
-file(GLOB_RECURSE required_configs 
+file(GLOB_RECURSE required_configs
   ${CMAKE_CURRENT_SOURCE_DIR}/fboss/platform/configs/*.json
 )
 
-set(generated_header 
+set(generated_header
   ${CMAKE_CURRENT_BINARY_DIR}/fboss/platform/config_lib/GeneratedConfig.h
 )
 
@@ -23,10 +23,10 @@ add_custom_command(
   COMMAND
     ${CMAKE_COMMAND} -E make_directory ${output_dir}
   COMMAND
-    ${CMAKE_CURRENT_BINARY_DIR}/platform_config_lib_config_generator 
-    --json_config_dir 
-    ${CMAKE_CURRENT_SOURCE_DIR}/fboss/platform/configs 
-    --install_dir 
+    ${CMAKE_CURRENT_BINARY_DIR}/platform_config_lib_config_generator
+    --json_config_dir
+    ${CMAKE_CURRENT_SOURCE_DIR}/fboss/platform/configs
+    --install_dir
     ${output_dir}
   DEPENDS
     ${required_configs}
@@ -35,6 +35,7 @@ add_custom_command(
 
 add_executable(platform_config_lib_config_generator
   fboss/platform/config_lib/ConfigGenerator.cpp
+  fboss/platform/config_lib/ConfigValidator.cpp
 )
 
 target_link_libraries(platform_config_lib_config_generator
