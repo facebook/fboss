@@ -10890,10 +10890,13 @@
           "test_name_regex": "AgentMacSwLearningModeTest.VerifyCallbacksOnMacEntryChange$"
         },
         {
-          "test_name_regex": "AgentTrafficPfcTest.*WithScaleCfg$"
+          "test_name_regex": "AgentTrafficPfc.*WithScaleCfg$"
         },
         {
-          "test_name_regex": "AgentTrafficPfcTest.*WithScaleCfgInCongestionDrops$"
+          "test_name_regex": "AgentTrafficPfc.*WithScaleCfgInCongestionDrops$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcTest.verifyPfcWithZeroGlobalHeadRoomCfg$"
         },
         {
           "test_name_regex": "warm_boot.AgentTrafficPfcTest.verifyIngressPriorityGroupWatermarks$"
@@ -11126,10 +11129,13 @@
           "test_name_regex": "AgentMacSwLearningModeTest.VerifyCallbacksOnMacEntryChange$"
         },
         {
-          "test_name_regex": "AgentTrafficPfcTest.*WithScaleCfg$"
+          "test_name_regex": "AgentTrafficPfc.*WithScaleCfg$"
         },
         {
-          "test_name_regex": "AgentTrafficPfcTest.*WithScaleCfgInCongestionDrops$"
+          "test_name_regex": "AgentTrafficPfc.*WithScaleCfgInCongestionDrops$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcTest.verifyPfcWithZeroGlobalHeadRoomCfg$"
         },
         {
           "test_name_regex": "warm_boot.AgentTrafficPfcTest.verifyIngressPriorityGroupWatermarks$"
