@@ -13,6 +13,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/CounterUtils.h"
 #include "fboss/agent/hw/HwPortFb303Stats.h"
+#include "fboss/agent/hw/StatsConstants.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_constants.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/ConcurrentIndices.h"
@@ -2082,6 +2083,24 @@ void SaiPortManager::clearStats(PortID port) {
       statsToClear.end());
   portHandle->port->clearStats(statsToClear);
   managerTable_->queueManager().clearStats(portHandle->configuredQueues);
+}
+
+void SaiPortManager::clearInterfacePhyCounters(const PortID& portId) {
+  auto portStatItr = portStats_.find(portId);
+  if (portStatItr == portStats_.end()) {
+    return;
+  }
+
+  // Clear accumulated FEC counters
+  auto curPortStats = portStatItr->second->portStats();
+  curPortStats.fecCorrectableErrors() = 0;
+  curPortStats.fecUncorrectableErrors() = 0;
+
+  portStatItr->second->clearStat(kFecCorrectable());
+  portStatItr->second->clearStat(kFecUncorrectable());
+
+  auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
+  portStatItr->second->updateStats(curPortStats, now);
 }
 
 const HwPortFb303Stats* SaiPortManager::getLastPortStat(PortID port) const {

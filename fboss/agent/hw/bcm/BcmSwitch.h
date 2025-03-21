@@ -654,6 +654,11 @@ class BcmSwitch : public BcmSwitchIf {
 
   bool getArsExhaustionStatus() override;
 
+  void clearInterfacePhyCounters(
+      const std::unique_ptr<std::vector<int32_t>>& /*ports*/) override {
+    // TODO: implement for BcmSwitch
+  }
+
  private:
   enum Flags : uint32_t {
     RX_REGISTERED = 0x01,

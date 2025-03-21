@@ -392,6 +392,9 @@ class HwSwitch {
 
   virtual bool getArsExhaustionStatus() = 0;
 
+  virtual void clearInterfacePhyCounters(
+      const std::unique_ptr<std::vector<int32_t>>& ports) = 0;
+
  protected:
   void setProgrammedState(const std::shared_ptr<SwitchState>& state);
 

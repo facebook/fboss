@@ -115,6 +115,9 @@ class MockHwSwitch : public HwSwitch {
 
   void injectSwitchReachabilityChangeNotification() override {}
 
+  void clearInterfacePhyCounters(
+      const std::unique_ptr<std::vector<int32_t>>& /*ports*/) override {}
+
   uint32_t generateDeterministicSeed(
       LoadBalancerID loadBalancerID,
       folly::MacAddress mac) const override {

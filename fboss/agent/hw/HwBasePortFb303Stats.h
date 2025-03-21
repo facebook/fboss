@@ -73,6 +73,10 @@ class HwBasePortFb303Stats {
       folly::StringPiece statName,
       folly::StringPiece portName,
       PfcPriority priority);
+  /*
+   * clear port stat
+   */
+  void clearStat(folly::StringPiece statKey);
 
   /*
    * Priority group stat name

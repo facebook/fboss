@@ -165,6 +165,9 @@ class SimSwitch : public HwSwitch {
 
   void injectSwitchReachabilityChangeNotification() override {}
 
+  void clearInterfacePhyCounters(
+      const std::unique_ptr<std::vector<int32_t>>& /*ports*/) override {}
+
  private:
   void switchRunStateChangedImpl(SwitchRunState newState) override {}
   // TODO
