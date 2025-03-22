@@ -364,6 +364,10 @@ void setDefaultCpuTrafficPolicyConfig(
   if (!isSai) {
     cpuAcls =
         utility::defaultCpuAcls(hwAsic, config, isSai, cfg::AclStage::INGRESS);
+
+    for (int i = 0; i < cpuAcls.size(); i++) {
+      utility::addAcl(&config, cpuAcls[i].first, cfg::AclStage::INGRESS);
+    }
   } else {
     for (auto stage :
          {cfg::AclStage::INGRESS, cfg::AclStage::INGRESS_POST_LOOKUP}) {
