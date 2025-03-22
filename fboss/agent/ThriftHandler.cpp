@@ -2751,18 +2751,8 @@ void ThriftHandler::getBlockedNeighbors(
     std::vector<cfg::Neighbor>& blockedNeighbors) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
-  const auto& switchSettings =
-      utility::getFirstNodeIf(sw_->getState()->getSwitchSettings());
-  for (const auto& iter : *(switchSettings->getBlockNeighbors())) {
-    cfg::Neighbor blockedNeighbor;
-    blockedNeighbor.vlanID() =
-        iter->cref<switch_state_tags::blockNeighborVlanID>()->toThrift();
-    blockedNeighbor.ipAddress() =
-        network::toIPAddress(
-            iter->cref<switch_state_tags::blockNeighborIP>()->toThrift())
-            .str();
-    blockedNeighbors.emplace_back(std::move(blockedNeighbor));
-  }
+  throw FbossError(
+      "Deprecated thrift API. Please use setMacAddrsToBlock/getMacAddrsToBlock.");
 }
 
 void ThriftHandler::setNeighborsToBlock(
@@ -2805,13 +2795,6 @@ void ThriftHandler::setMacAddrsToBlock(
           macAddrsToBlock->size(),
           " exceeds limit ",
           FLAGS_max_mac_address_to_block);
-    }
-    if ((*macAddrsToBlock).size() != 0 &&
-        utility::getFirstNodeIf(sw_->getState()->getSwitchSettings())
-                ->getBlockNeighbors()
-                ->size() != 0) {
-      throw FbossError(
-          "Setting MAC addr blocklist and Neighbor blocklist simultaneously is not supported");
     }
 
     for (const auto& macAddrToBlock : *macAddrsToBlock) {
