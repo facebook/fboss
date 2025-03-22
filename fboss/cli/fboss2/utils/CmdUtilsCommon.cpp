@@ -151,7 +151,8 @@ const std::string getDurationStr(folly::stop_watch<>& watch) {
   auto duration = watch.elapsed();
   auto durationInMills =
       std::chrono::duration_cast<std::chrono::milliseconds>(duration);
-  float seconds = (float)durationInMills.count() / (float)1000;
+  float seconds =
+      static_cast<float>(durationInMills.count()) / static_cast<float>(1000);
   return fmt::format("{:.3f} sec", seconds);
 }
 
