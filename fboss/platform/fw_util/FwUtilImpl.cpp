@@ -74,15 +74,6 @@ void FwUtilImpl::doFirmwareAction(
     // PM on darwin and then make a few changes in the config
     // so we will treat it as not supported for upgrade right now
 
-    // TODO: remove this logic after we move darwin to PM
-    auto lowerCasePlatformName = toLower(platformName_);
-    if (lowerCasePlatformName == "darwin" ||
-        lowerCasePlatformName == "darwin48v") {
-      XLOG(INFO)
-          << "darwin fw_util not supported yet. This will be done after we move to PM. Please use KPP packages and run the  run-script to upgrade the box";
-      return;
-    }
-
     // Fw_util is build as part of ramdisk once every 24 hours
     // assuming no test failure. if we force sha1sum check in the fw_util,
     // we will end up blocking provisioning until a new ramdisk is built
