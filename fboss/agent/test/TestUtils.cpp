@@ -1344,27 +1344,6 @@ void programRoutes(
   updater.program();
 }
 
-void updateBlockedNeighbor(
-    SwSwitch* sw,
-    const std::vector<std::pair<VlanID, folly::IPAddress>>& blockNeighbors) {
-  sw->updateStateBlocking(
-      "Update blocked neighbors ",
-      [=](const std::shared_ptr<SwitchState>& state) {
-        std::shared_ptr<SwitchState> newState{state};
-
-        auto switchSettings =
-            utility::getFirstNodeIf(state->getSwitchSettings());
-        auto newSwitchSettings = switchSettings->modify(&newState);
-        newSwitchSettings->setBlockNeighbors(blockNeighbors);
-        return newState;
-      });
-
-  waitForStateUpdates(sw);
-  sw->getNeighborUpdater()->waitForPendingUpdates();
-  waitForBackgroundThread(sw);
-  waitForStateUpdates(sw);
-}
-
 void updateMacAddrsToBlock(
     SwSwitch* sw,
     const std::vector<std::pair<VlanID, folly::MacAddress>>& macAddrsToBlock) {
