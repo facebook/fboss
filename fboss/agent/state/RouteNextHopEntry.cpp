@@ -266,7 +266,7 @@ void RouteNextHopEntry::normalize(
     auto index = 0;
     for (auto entry : scaledWeights) {
       // percentage weight of total weight allocation for this member
-      auto allocation = (double)entry / scaledTotalWeight;
+      auto allocation = static_cast<double>(entry) / scaledTotalWeight;
       // measure of percentage weight deviation from ideal
       auto error = (allocation - idealWeights[index]) / idealWeights[index];
       // record the max error entry and it's key
