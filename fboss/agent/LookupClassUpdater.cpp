@@ -171,23 +171,6 @@ void LookupClassUpdater::initPort(
 }
 
 template <typename NewEntryT>
-bool LookupClassUpdater::isPresentInBlockList(
-    VlanID vlanID,
-    const std::shared_ptr<NewEntryT>& newEntry) {
-  if constexpr (std::is_same_v<NewEntryT, MacEntry>) {
-    // neighbor block list comprises of IPs, no MACs.
-    // processBlockNeighborUpdatesHelper handles update to MAC addresses by
-    // removing classID for neighbor IP and MAC before adding new classID for
-    // neighbor as well as MAC.
-    return false;
-  } else {
-    auto it = blockedNeighbors_.find(
-        std::make_pair(vlanID, folly::IPAddress(newEntry->getIP())));
-    return it != blockedNeighbors_.end();
-  }
-}
-
-template <typename NewEntryT>
 bool LookupClassUpdater::isPresentInMacAddrsBlockList(
     VlanID vlanID,
     const std::shared_ptr<NewEntryT>& newEntry) {
@@ -212,8 +195,7 @@ void LookupClassUpdater::updateNeighborClassID(
 
   auto noLookupClasses = !portHasClassID(port);
 
-  auto setDropClassID = isPresentInBlockList(vlanID, newEntry) ||
-      isPresentInMacAddrsBlockList(vlanID, newEntry);
+  auto setDropClassID = isPresentInMacAddrsBlockList(vlanID, newEntry);
 
   auto mac = newEntry->getMac();
   auto& macAndVlan2ClassIDAndRefCnt = port2MacAndVlanEntries_[port->getID()];
@@ -793,131 +775,6 @@ void LookupClassUpdater::updateStateObserverLocalCache(
 }
 
 template <typename AddrT>
-void LookupClassUpdater::processBlockNeighborUpdatesHelper(
-    const std::shared_ptr<SwitchState>& switchState,
-    const std::shared_ptr<Vlan>& vlan,
-    const AddrT& ipAddress) {
-  using NeighborEntryT = std::conditional_t<
-      std::is_same<AddrT, folly::IPAddressV4>::value,
-      ArpEntry,
-      NdpEntry>;
-  std::shared_ptr<NeighborEntryT> neighborEntry;
-
-  neighborEntry =
-      NeighborTableDeltaCallbackGenerator::getTable<AddrT>(switchState, vlan)
-          ->getEntryIf(ipAddress);
-  if (!neighborEntry) {
-    return;
-  }
-
-  // Remove classID for neighbor entry and corresponding MAC
-  removeClassIDForPortAndMac(switchState, vlan->getID(), neighborEntry);
-
-  std::shared_ptr<MacEntry> macEntry = nullptr;
-  if (neighborEntry->isReachable()) {
-    macEntry = vlan->getMacTable()->getMacIf(neighborEntry->getMac());
-    if (macEntry) {
-      removeClassIDForPortAndMac(switchState, vlan->getID(), macEntry);
-    }
-  }
-
-  // Re-Add classID for neighbor entry and corresponding MAC
-  updateNeighborClassID(switchState, vlan->getID(), neighborEntry);
-
-  if (macEntry) {
-    updateNeighborClassID(switchState, vlan->getID(), macEntry);
-  }
-}
-
-void LookupClassUpdater::processBlockNeighborUpdates(
-    const StateDelta& stateDelta) {
-  auto newState = stateDelta.newState();
-  /*
-   * Set of currently blocked neighbors: set A
-   * New set of neighbors to block: set B
-   *
-   * A - B: set of neighbors to unblock
-   * B - A: set of neighbors to block
-   *
-   * In this case:
-   *  A is blockedNeighbors_
-   *  B is newState->getSwitchSettings()->getBlockNeighbors()
-   *
-   *  Approach:
-   *   - Compute symmetric difference (disjunctive union) i.e. set of elements
-   *     which are in either A or B, but not in their intersection.
-   *   - Update blockedNeighbors_ to newState's blockNeighbors.
-   *   - For every neighbor in the symmetric difference, remove classID
-   *     associated with it and re-add (update) classID.
-   *
-   *  Note:
-   *   - macAndVlan2ClassIDAndRefCnt stores (MAC + VLAN) to (classID + refCnt)
-   *     mapping. It does not store the neighbor IP address.
-   *   - macAndVlan2ClassIDAndRefCnt typically has refCnt = 3 for any MAC. One
-   *     for each of the below: Neighbor Entry, L2 Entry, Link local IP.
-   *   - Neighbor blocked list comprises of IPs, no MACs.
-   *
-   *  Thus, to remove and re-add classID:
-   *   - Remove classID associated with the neighbor entry.
-   *   - Derive link local IP from the neighbor entry, and remove its classID.
-   *   - Remove classID associated with corresponding mac entry.
-   *   - Re-add classID for neighbor entry.
-   *   - Re-add classID for link local IP.
-   *   - Re-add classID for corresponding MAC entry.
-   *
-   *  We re-add classID for neighbor entry first (so its gets CLASS_DROP or
-   *  queue-per-host classID as appropriate).
-   *
-   *  Neighbor Entry, Link local IP and MAC Entry all reference the same
-   *  MacAndVlan2ClassIDAndRefCnt entry, and thus they inherit the classID
-   *  chosen for neighbor entry (DROP or queue-per-host).
-   *
-   *  Since blockedNeighbors_ is updated before calling remove/re-add, if a
-   *  neighbor is being blocked, remove will remove queue-per-host classID
-   *  and re-add will associate CLASS_DROP.
-   *  Similarly, if a negihbor is being unblocked, remove will remove
-   *  CLASS_DROP and re-add will associate queue-per-hot classID.
-   */
-
-  std::set<std::pair<VlanID, folly::IPAddress>> newBlockedNeighbors;
-  for ([[maybe_unused]] const auto& [_, switchSettings] :
-       std::as_const(*newState->getSwitchSettings())) {
-    for (const auto& iter : *(switchSettings->getBlockNeighbors())) {
-      auto vlanID = VlanID(
-          iter->cref<switch_state_tags::blockNeighborVlanID>()->toThrift());
-      auto ipAddress = network::toIPAddress(
-          iter->cref<switch_state_tags::blockNeighborIP>()->toThrift());
-      newBlockedNeighbors.insert(std::make_pair(vlanID, ipAddress));
-    }
-  }
-
-  std::vector<std::pair<VlanID, folly::IPAddress>> toBeUpdatedBlockNeighbors;
-  std::set_symmetric_difference(
-      blockedNeighbors_.begin(),
-      blockedNeighbors_.end(),
-      newBlockedNeighbors.begin(),
-      newBlockedNeighbors.end(),
-      std::inserter(
-          toBeUpdatedBlockNeighbors, toBeUpdatedBlockNeighbors.end()));
-
-  blockedNeighbors_ = newBlockedNeighbors;
-  for (const auto& [vlanID, ipAddress] : toBeUpdatedBlockNeighbors) {
-    auto vlan = newState->getVlans()->getNodeIf(vlanID);
-    if (!vlan) {
-      continue;
-    }
-
-    if (ipAddress.isV4()) {
-      processBlockNeighborUpdatesHelper<folly::IPAddressV4>(
-          newState, vlan, ipAddress.asV4());
-    } else {
-      processBlockNeighborUpdatesHelper<folly::IPAddressV6>(
-          newState, vlan, ipAddress.asV6());
-    }
-  }
-}
-
-template <typename AddrT>
 void LookupClassUpdater::updateClassIDForEveryNeighborForMac(
     const std::shared_ptr<SwitchState>& switchState,
     const std::shared_ptr<Vlan>& vlan,
@@ -1217,7 +1074,6 @@ void LookupClassUpdater::stateUpdated(const StateDelta& stateDelta) {
   }
   NeighborTableDeltaCallbackGenerator::genCallbacks(stateDelta, *this);
   processPortUpdates(stateDelta);
-  processBlockNeighborUpdates(stateDelta);
   processMacAddrsToBlockUpdates(stateDelta);
   updateMaxNumHostsPerQueueCounter();
   inited_ = true;
