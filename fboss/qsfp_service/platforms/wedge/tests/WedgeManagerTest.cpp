@@ -60,7 +60,8 @@ TEST_F(WedgeManagerTest, getTransceiverInfoBasic) {
     auto synchronizedTransceivers =
         transceiverManager_->getSynchronizedTransceivers().rlock();
     for (const auto& trans : *synchronizedTransceivers) {
-      if (std::find(data.begin(), data.end(), (int)trans.first) == data.end()) {
+      if (std::find(data.begin(), data.end(), static_cast<int>(trans.first)) ==
+          data.end()) {
         EXPECT_EQ(transInfo.find(trans.first), transInfo.end());
       } else {
         EXPECT_NE(transInfo.find(trans.first), transInfo.end());
