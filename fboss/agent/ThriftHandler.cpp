@@ -2770,54 +2770,7 @@ void ThriftHandler::setNeighborsToBlock(
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureNPU(__func__);
   ensureConfigured(__func__);
-  std::string neighborsToBlockStr;
-  std::vector<std::pair<VlanID, folly::IPAddress>> blockNeighbors;
-
-  auto switchSettings =
-      utility::getFirstNodeIf(sw_->getState()->getSwitchSettings());
-  if (neighborsToBlock) {
-    if (neighborsToBlock->size() > FLAGS_max_neighbors_to_block) {
-      throw FbossError(
-          "Neighbor entries to block list size ",
-          neighborsToBlock->size(),
-          " exceeds limit ",
-          FLAGS_max_neighbors_to_block);
-    }
-    if ((*neighborsToBlock).size() != 0 &&
-        switchSettings->getMacAddrsToBlock()->size() != 0) {
-      throw FbossError(
-          "Setting MAC addr blocklist and Neighbor blocklist simultaneously is not supported");
-    }
-
-    for (const auto& neighborToBlock : *neighborsToBlock) {
-      if (!folly::IPAddress::validate(*neighborToBlock.ipAddress())) {
-        throw FbossError("Invalid IP address: ", *neighborToBlock.ipAddress());
-      }
-
-      auto neighborToBlockStr = folly::to<std::string>(
-          "[vlan: ",
-          *neighborToBlock.vlanID(),
-          " ip: ",
-          *neighborToBlock.ipAddress(),
-          "], ");
-      neighborsToBlockStr.append(neighborToBlockStr);
-
-      blockNeighbors.emplace_back(
-          VlanID(*neighborToBlock.vlanID()),
-          folly::IPAddress(*neighborToBlock.ipAddress()));
-    }
-  }
-
-  sw_->updateStateBlocking(
-      "Update blocked neighbors ",
-      [blockNeighbors](const std::shared_ptr<SwitchState>& state) {
-        std::shared_ptr<SwitchState> newState{state};
-        auto newSwitchSettings =
-            utility::getFirstNodeIf(state->getSwitchSettings())
-                ->modify(&newState);
-        newSwitchSettings->setBlockNeighbors(blockNeighbors);
-        return newState;
-      });
+  throw FbossError("Deprecated thrift API. Please use setMacAddrsToBlock");
 }
 
 void ThriftHandler::getMacAddrsToBlock(
