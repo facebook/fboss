@@ -490,7 +490,8 @@ class LookupClassUpdaterTest : public ::testing::Test {
     int minCnt = INT_MAX;
     int maxCnt = 0;
     for (auto it : classID2Cnt) {
-      XLOG(DBG2) << "class id " << (int)it.first << " => cnt " << it.second;
+      XLOG(DBG2) << "class id " << static_cast<int>(it.first) << " => cnt "
+                 << it.second;
       minCnt = std::min(minCnt, it.second);
       maxCnt = std::max(maxCnt, it.second);
     }
