@@ -267,7 +267,8 @@
           "thresholds": {
             "upperCriticalVal": 3.795,
             "lowerCriticalVal": 2.8
-          }
+          },
+          "compute": "@/1000.0"
         },
         {
           "name": "POS_12V",
