@@ -226,7 +226,7 @@ void I2cLogBuffer::getFieldName(std::stringstream& ss, const int field) {
 template <typename T>
 void I2cLogBuffer::getOptional(std::stringstream& ss, T value) {
   if (value.has_value()) {
-    ss << std::setfill(' ') << std::setw(3) << (int)value.value();
+    ss << std::setfill(' ') << std::setw(3) << static_cast<int>(value.value());
   } else {
     ss << kEmptyOptional;
   }
