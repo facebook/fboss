@@ -512,7 +512,8 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
     // [5] ==> [3]
     // ......
     std::vector<uint32_t> pportList;
-    for (int i = 0; i < std::max(1, (int)hwLaneList.size() / 2); i++) {
+    for (int i = 0; i < std::max(1, static_cast<int>(hwLaneList.size()) / 2);
+         i++) {
       pportList.push_back((hwLaneList[i * 2] + 1) / 2);
     }
     hwLaneList = pportList;
