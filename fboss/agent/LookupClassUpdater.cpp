@@ -662,8 +662,8 @@ void LookupClassUpdater::removeNeighborFromLocalCacheForEntry(
       macAndVlan2ClassIDAndRefCnt[std::make_pair(mac, vlanID)];
   auto& classID2Count = port2ClassIDAndCount_[portID];
 
-  XLOG(DBG2) << "Reference count: " << (int)refCnt
-             << " for classID: " << (int)classID;
+  XLOG(DBG2) << "Reference count: " << static_cast<int>(refCnt)
+             << " for classID: " << static_cast<int>(classID);
   CHECK_GT(refCnt, 0);
 
   refCnt--;
@@ -715,7 +715,8 @@ void LookupClassUpdater::updateStateObserverLocalCacheForEntry(
   } else {
     auto& [classID_, refCnt] = iter->second;
     XLOG(DBG2) << "Neighbor entry already exists: " << newEntry->str()
-               << ", expected classID by LookupClassUpdater " << (int)classID_;
+               << ", expected classID by LookupClassUpdater "
+               << static_cast<int>(classID_);
     CHECK(classID_ == classID);
     refCnt++;
   }
@@ -1052,7 +1053,7 @@ void LookupClassUpdater::updateMaxNumHostsPerQueueCounter() {
       maxNumHostsPerQueue_ != preMaxNumHostsPerQueue) {
     XLOG(WARN) << maxNumHostsPerQueue_
                << " physical hosts are allocated to port " << maxPortID
-               << " classID " << (int)maxClassID;
+               << " classID " << static_cast<int>(maxClassID);
   }
 }
 
