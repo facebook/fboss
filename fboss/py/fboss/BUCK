@@ -7,7 +7,7 @@ python_library(
     ],
     deps = [
         "//fboss/agent/if:ctrl-py",
-        "//fboss/qsfp_service/if:qsfp-py",
+        "//fboss/qsfp_service/if:qsfp-py-deprecated",
         "//thrift/lib/py:server_base",
     ],
 )

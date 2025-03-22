@@ -13,7 +13,7 @@ python_binary(
         "fbsource//third-party/pypi/ipaddr:ipaddr",
         "//common/network/if:if-py-deprecated",
         "//fboss/agent/if:ctrl-py",
-        "//fboss/qsfp_service/if:qsfp-py",
+        "//fboss/qsfp_service/if:qsfp-py-deprecated",
         "//thrift/lib/py:server_base",
     ],
 )
