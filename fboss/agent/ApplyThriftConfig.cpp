@@ -4612,12 +4612,6 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings(
         network::toBinaryAddress(folly::IPAddress(*blockNeighbor.ipAddress()));
     cfgBlockNeighbors.emplace_back(neighbor);
   }
-  // THRIFT_COPY
-  if (origSwitchSettings->getBlockNeighbors()->toThrift() !=
-      cfgBlockNeighbors) {
-    newSwitchSettings->setBlockNeighbors(cfgBlockNeighbors);
-    switchSettingsChange = true;
-  }
 
   std::vector<std::pair<VlanID, folly::MacAddress>> cfgMacAddrsToBlock;
   for (const auto& macAddrToBlock :
