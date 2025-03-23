@@ -1582,6 +1582,17 @@ std::shared_ptr<Port> SaiPortManager::swPortFromAttributes(
   }
 #endif
 
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_7)
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::FEC_ERROR_DETECT_ENABLE)) {
+    auto fecErrorDetectEnable =
+        GET_OPT_ATTR(Port, FecErrorDetectEnable, attributes);
+    if (fecErrorDetectEnable) {
+      port->setFecErrorDetectEnable(fecErrorDetectEnable);
+    }
+  }
+#endif
+
   return port;
 }
 
