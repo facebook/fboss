@@ -748,6 +748,23 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
     set<switch_state_tags::conditionalEntropyRehash>(conditionalEntropyRehash);
   }
 
+  std::optional<bool> getFecErrorDetectEnable() const {
+    if (auto fecErrorDetectEnable =
+            cref<switch_state_tags::fecErrorDetectEnable>()) {
+      return fecErrorDetectEnable->cref();
+    }
+    return std::nullopt;
+  }
+
+  void setFecErrorDetectEnable(std::optional<bool> fecErrorDetectEnable) {
+    if (!fecErrorDetectEnable.has_value()) {
+      ref<switch_state_tags::fecErrorDetectEnable>().reset();
+    } else {
+      set<switch_state_tags::fecErrorDetectEnable>(
+          fecErrorDetectEnable.value());
+    }
+  }
+
   std::optional<bool> getSelfHealingECMPLagEnable() const {
     if (auto selfHealingECMPLagEnable =
             cref<switch_state_tags::selfHealingECMPLagEnable>()) {
