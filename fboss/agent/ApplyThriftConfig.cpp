@@ -2586,7 +2586,9 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
       *portConf->conditionalEntropyRehash() ==
           orig->getConditionalEntropyRehash() &&
       portConf->selfHealingECMPLagEnable().value_or(false) ==
-          orig->getSelfHealingECMPLagEnable().value_or(false)) {
+          orig->getSelfHealingECMPLagEnable().value_or(false) &&
+      portConf->fecErrorDetectEnable().value_or(false) ==
+          orig->getFecErrorDetectEnable().value_or(false)) {
     return nullptr;
   }
 
@@ -2641,6 +2643,11 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
     newPort->setSelfHealingECMPLagEnable(selfHealingECMPLagEnable.value());
   } else {
     newPort->setSelfHealingECMPLagEnable(std::nullopt);
+  }
+  if (portConf->fecErrorDetectEnable().has_value()) {
+    newPort->setFecErrorDetectEnable(portConf->fecErrorDetectEnable().value());
+  } else {
+    newPort->setFecErrorDetectEnable(std::nullopt);
   }
   return newPort;
 }
