@@ -72,4 +72,14 @@ string EthHdr::toString() const {
   return ss.str();
 }
 
+std::string EthHdr::printVlanTags() {
+  std::stringstream ss;
+  ss << "[";
+  for (auto vlanTag : vlanTags) {
+    ss << std::hex << vlanTag.toString() << " ";
+  }
+  ss << "]";
+  return ss.str();
+}
+
 } // namespace facebook::fboss
