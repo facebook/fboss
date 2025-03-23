@@ -8187,6 +8187,7 @@
             "custom_feature_cmicx_gen2_pdma_interface_optimization": "1",
             "custom_feature_fabric_cgm_ddc_th_tune.BCM8889X": "1",
             "custom_feature_programmability_standard_image_name.BCM8889X": "AI23",
+            "custom_feature_rx_fifo_monitoring_interval_ms": "200",
             "custom_feature_ser_event_generate": "1",
             "custom_feature_shel_arm_enable": "1",
             "custom_feature_statdma_enable": "0",
