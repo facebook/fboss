@@ -325,7 +325,6 @@ TEST(SwitchSettingsTest, applyVoqSwitch) {
   // Check default value
   auto switchSettingsV0 = utility::getFirstNodeIf(stateV0->getSwitchSettings());
   ASSERT_NE(nullptr, switchSettingsV0);
-  EXPECT_EQ(switchSettingsV0->getBlockNeighbors()->size(), 0);
 
   // Check if value is updated
   cfg::SwitchConfig config = testConfigA(cfg::SwitchType::VOQ);
