@@ -66,12 +66,14 @@ TunIntf::TunIntf(
     SwSwitch* sw,
     folly::EventBase* evb,
     InterfaceID ifID,
+    cfg::InterfaceType type,
     int ifIndex,
     int mtu)
     : folly::EventHandler(evb),
       sw_(sw),
       name_(utility::createTunIntfName(ifID)),
       ifID_(ifID),
+      type_(type),
       ifIndex_(ifIndex),
       mtu_(mtu) {
   DCHECK(sw) << "NULL pointer to SwSwitch.";
@@ -95,6 +97,7 @@ TunIntf::TunIntf(
     SwSwitch* sw,
     folly::EventBase* evb,
     InterfaceID ifID,
+    cfg::InterfaceType type,
     bool status,
     const Interface::Addresses& addr,
     int mtu)
@@ -102,6 +105,7 @@ TunIntf::TunIntf(
       sw_(sw),
       name_(utility::createTunIntfName(ifID)),
       ifID_(ifID),
+      type_(type),
       status_(status),
       addrs_(addr),
       mtu_(mtu) {
