@@ -888,7 +888,9 @@ class SwSwitch : public HwSwitchCallback {
 
   TeFlowStats getTeFlowStats();
 
-  VlanID getVlanIDHelper(std::optional<VlanID> vlanID) const;
+  VlanID getVlanIDHelper(
+      std::optional<VlanID> vlanID,
+      cfg::InterfaceType intfType = cfg::InterfaceType::VLAN) const;
 
   InterfaceID getInterfaceIDForAggregatePort(
       AggregatePortID aggregatePortID) const;

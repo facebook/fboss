@@ -1967,6 +1967,8 @@ void SwSwitch::handlePacket(std::unique_ptr<RxPacket> pkt) {
         getState()->getInterfaces()->getNodeIf(
             getState()->getInterfaceIDForPort(port)));
   } else {
+    // TODO: get rid of getVlanIDHelper, packet must have a valid vlan here if
+    // vlans are maintained
     auto vlan =
         getState()->getVlans()->getNodeIf(getVlanIDHelper(pkt->getSrcVlanIf()));
     handlePacketImpl(std::move(pkt), vlan);
@@ -3303,9 +3305,11 @@ bool SwSwitch::sendNdpSolicitationHelper(
   return sent;
 }
 
-VlanID SwSwitch::getVlanIDHelper(std::optional<VlanID> vlanID) const {
-  // if vlanID does not have value, it must be VOQ or FABRIC switch
-  CHECK(vlanID.has_value() || !getSwitchInfoTable().vlansSupported());
+VlanID SwSwitch::getVlanIDHelper(
+    std::optional<VlanID> vlanID,
+    cfg::InterfaceType type) const {
+  // if vlanID does have value, it must be VLAN interface
+  CHECK(vlanID.has_value() && (type == cfg::InterfaceType::VLAN));
 
   // TODO(skhare)
   // VOQ/Fabric switches require that the packets are not tagged with any
@@ -3335,7 +3339,7 @@ void SwSwitch::sentArpRequest(
     getNeighborUpdater()->sentArpRequestForIntf(intf->getID(), target);
   } else {
     getNeighborUpdater()->sentArpRequest(
-        getVlanIDHelper(intf->getVlanIDIf()), target);
+        getVlanIDHelper(intf->getVlanIDIf(), intf->getType()), target);
   }
 }
 
@@ -3347,7 +3351,7 @@ void SwSwitch::sentNeighborSolicitation(
         intf->getID(), target);
   } else {
     getNeighborUpdater()->sentNeighborSolicitation(
-        getVlanIDHelper(intf->getVlanIDIf()), target);
+        getVlanIDHelper(intf->getVlanIDIf(), intf->getType()), target);
   }
 }
 
