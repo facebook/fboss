@@ -316,9 +316,9 @@ class AgentTrafficPfcTest : public AgentHwTest {
     // no need to retry if looking for baseline counter
     for (const auto& portId : portIds) {
       auto portStats = getLatestPortStats(portId);
+      XLOG(INFO) << "Port: " << portId << " "
+                 << facebook::fboss::utility::pfcStatsString(portStats);
       auto ingressDropRaw = *portStats.inDiscardsRaw_();
-      XLOG(DBG0) << " validateInitPfcCounters: Port: " << portId
-                 << " IngressDropRaw: " << ingressDropRaw;
       EXPECT_TRUE(ingressDropRaw == 0);
       std::tie(txPfcCtr, rxPfcCtr, rxPfcXonCtr) =
           getPfcTxRxXonHwPortStats(getAgentEnsemble(), portStats, pfcPriority);

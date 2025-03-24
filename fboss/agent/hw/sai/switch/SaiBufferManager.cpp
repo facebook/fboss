@@ -255,12 +255,10 @@ void SaiBufferManager::setupIngressBufferPool(
       platform_->getAsic()->getNumMemoryBuffers();
   // XoffSize configuration is needed only when PFC is supported
   std::optional<SaiBufferPoolTraits::Attributes::XoffSize> xoffSize;
-#if defined(TAJO_SDK) || defined(BRCM_SAI_SDK_XGS_AND_DNX)
   if (platform_->getAsic()->isSupported(HwAsic::Feature::PFC)) {
     xoffSize = *bufferPoolCfg.headroomBytes() *
         platform_->getAsic()->getNumMemoryBuffers();
   }
-#endif
   SaiBufferPoolTraits::CreateAttributes attributes{
       SAI_BUFFER_POOL_TYPE_INGRESS,
       poolSize,

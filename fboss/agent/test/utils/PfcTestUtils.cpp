@@ -138,7 +138,13 @@ void setupPortPgConfig(
     pgConfig.minLimitBytes() = buffer.minLimit;
     // set large enough headroom to avoid drop
     pgConfig.headroomLimitBytes() = buffer.pgHeadroom;
-    // resume offset
+    // resume threshold/offset
+    if (buffer.resumeThreshold.has_value()) {
+      pgConfig.resumeBytes() = *buffer.resumeThreshold;
+    }
+    if (buffer.resumeOffset.has_value()) {
+      pgConfig.resumeOffsetBytes() = *buffer.resumeOffset;
+    }
     if (ensemble->getHwAsicTable()
             ->getHwAsics()
             .cbegin()
@@ -151,7 +157,6 @@ void setupPortPgConfig(
       pgConfig.minSramXoffThresholdBytes() = 256 * 16 * 256;
       pgConfig.sramResumeOffsetBytes() = 128 * 16 * 256;
     }
-    pgConfig.resumeOffsetBytes() = buffer.resumeOffset;
     // set scaling factor
     pgConfig.scalingFactor() = buffer.scalingFactor;
     portPgConfigs.emplace_back(pgConfig);
@@ -171,8 +176,6 @@ void setupPortPgConfig(
       pgConfig.minLimitBytes() = buffer.minLimit;
       // headroom set 0 identifies lossy pgs
       pgConfig.headroomLimitBytes() = 0;
-      // resume offset
-      pgConfig.resumeOffsetBytes() = buffer.resumeOffset;
       // set scaling factor
       pgConfig.scalingFactor() = buffer.scalingFactor;
       portPgConfigs.emplace_back(pgConfig);
@@ -187,8 +190,15 @@ void setupPortPgConfig(
 PfcBufferParams PfcBufferParams::getPfcBufferParams(cfg::AsicType asicType) {
   PfcBufferParams buffer;
 
+  buffer.pgHeadroom = 2200; // keep this lower than globalShared (why?)
   if (asicType == cfg::AsicType::ASIC_TYPE_CHENAB) {
-    buffer.minLimit = 20480;
+    // CHENAB requires at least 2x MTU of reserved buffers.
+    // Also, in shared headroom pool mode (SAI_BUFFER_POOL_XOFF_SIZE is set,
+    // i.e. our setup), XON and reserved size must be the same.
+    buffer.resumeThreshold = buffer.minLimit = 20480;
+  } else {
+    buffer.minLimit = 2200;
+    buffer.resumeOffset = 1800; // less than pgHeadroom
   }
 
   switch (asicType) {
