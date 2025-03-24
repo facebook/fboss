@@ -48,6 +48,15 @@
       },
       "pmUnitName": "PDB_R"
     },
+    "PSU_SLOT": {
+      "numOutgoingI2cBuses": 1,
+      "idpromConfig": {
+        "busName": "INCOMING@0",
+        "address": "0x51",
+        "kernelDeviceName": "24c02"
+      },
+      "pmUnitName": "PSU"
+    },
     "SMB_SLOT": {
       "numOutgoingI2cBuses": 6,
       "idpromConfig": {
@@ -2902,44 +2911,47 @@
       "i2cDeviceConfigs": [
         {
           "busName": "INCOMING@0",
-          "address": "0x59",
-          "kernelDeviceName": "pmbus",
-          "pmUnitScopedName": "PDB_L_PMBUS"
-        },
-        {
-          "busName": "INCOMING@0",
-          "address": "0x51",
-          "kernelDeviceName": "24c02",
-          "pmUnitScopedName": "PSU1_EEPROM"
-        },
-        {
-          "busName": "INCOMING@0",
           "address": "0x48",
           "kernelDeviceName": "tmp1075",
           "pmUnitScopedName": "PDB_L_TSENSOR"
         }
-      ]
+      ],
+      "outgoingSlotConfigs": {
+        "PSU_SLOT@0": {
+          "slotType": "PSU_SLOT",
+          "outgoingI2cBusNames": [
+            "INCOMING@0"
+          ]
+        }
+      }
     },
     "PDB_R": {
       "pluggedInSlotType": "PDBRIGHT_SLOT",
       "i2cDeviceConfigs": [
         {
           "busName": "INCOMING@0",
-          "address": "0x59",
-          "kernelDeviceName": "pmbus",
-          "pmUnitScopedName": "PDB_R_PMBUS"
-        },
-        {
-          "busName": "INCOMING@0",
-          "address": "0x51",
-          "kernelDeviceName": "24c02",
-          "pmUnitScopedName": "PSU2_EEPROM"
-        },
-        {
-          "busName": "INCOMING@0",
           "address": "0x48",
           "kernelDeviceName": "tmp1075",
           "pmUnitScopedName": "PDB_R_TSENSOR"
+        }
+      ],
+      "outgoingSlotConfigs": {
+        "PSU_SLOT@0": {
+          "slotType": "PSU_SLOT",
+          "outgoingI2cBusNames": [
+            "INCOMING@0"
+          ]
+        }
+      }
+    },
+    "PSU": {
+      "pluggedInSlotType": "PSU_SLOT",
+      "i2cDeviceConfigs": [
+        {
+          "busName": "INCOMING@0",
+          "address": "0x59",
+          "kernelDeviceName": "pmbus",
+          "pmUnitScopedName": "PMBUS"
         }
       ]
     },
@@ -3161,8 +3173,8 @@
     "/run/devmap/eeproms/COME_EEPROM": "/SCM_SLOT@0/COMESE_SLOT@0/[IDPROM]",
     "/run/devmap/eeproms/SCM_EEPROM": "/SCM_SLOT@0/[IDPROM]",
     "/run/devmap/eeproms/RUNBMC_EEPROM": "/SCM_SLOT@0/RUNBMC_SLOT@0/[IDPROM]",
-    "/run/devmap/eeproms/PSU1_EEPROM": "/PDBLEFT_SLOT@0/[PSU1_EEPROM]",
-    "/run/devmap/eeproms/PSU2_EEPROM": "/PDBRIGHT_SLOT@0/[PSU2_EEPROM]",
+    "/run/devmap/eeproms/PSU1_EEPROM": "/PDBLEFT_SLOT@0/PSU_SLOT@0/[IDPROM]",
+    "/run/devmap/eeproms/PSU2_EEPROM": "/PDBRIGHT_SLOT@0/PSU_SLOT@0/[IDPROM]",
     "/run/devmap/eeproms/PDB_L_EEPROM": "/PDBLEFT_SLOT@0/[IDPROM]",
     "/run/devmap/eeproms/PDB_R_EEPROM": "/PDBRIGHT_SLOT@0/[IDPROM]",
     "/run/devmap/eeproms/SMB_EEPROM": "/SMB_SLOT@0/[IDPROM]",
@@ -3190,9 +3202,9 @@
     "/run/devmap/sensors/SCM_VOLTAGE_MONITOR1": "/SCM_SLOT@0/[SCM_VOLTAGE_MONITOR1]",
     "/run/devmap/sensors/SCM_VOLTAGE_MONITOR2": "/SCM_SLOT@0/[SCM_VOLTAGE_MONITOR2]",
     "/run/devmap/sensors/RUNBMC_THERMAL_SENSOR": "/SCM_SLOT@0/RUNBMC_SLOT@0/[RUNBMC_THERMAL_SENSOR]",
-    "/run/devmap/sensors/PDB_L_PMBUS": "/PDBLEFT_SLOT@0/[PDB_L_PMBUS]",
+    "/run/devmap/sensors/PDB_L_PMBUS": "/PDBLEFT_SLOT@0/PSU_SLOT@0/[PMBUS]",
     "/run/devmap/sensors/PDB_L_TSENSOR": "/PDBLEFT_SLOT@0/[PDB_L_TSENSOR]",
-    "/run/devmap/sensors/PDB_R_PMBUS": "/PDBRIGHT_SLOT@0/[PDB_R_PMBUS]",
+    "/run/devmap/sensors/PDB_R_PMBUS": "/PDBRIGHT_SLOT@0/PSU_SLOT@0/[PMBUS]",
     "/run/devmap/sensors/PDB_R_TSENSOR": "/PDBRIGHT_SLOT@0/[PDB_R_TSENSOR]",
     "/run/devmap/sensors/SMB_VRM1": "/SMB_SLOT@0/[SMB_VRM1]",
     "/run/devmap/sensors/SMB_VOLTAGE_MONITOR1": "/SMB_SLOT@0/[SMB_VOLTAGE_MONITOR1]",
