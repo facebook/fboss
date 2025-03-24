@@ -75,6 +75,10 @@
       },
       "pmUnitName": "FCB_T"
     },
+    "FAN_SLOT": {
+      "numOutgoingI2cBuses": 0,
+      "pmUnitName": "FAN"
+    },
     "COMESE_SLOT": {
       "numOutgoingI2cBuses": 2,
       "idpromConfig": {
@@ -3067,7 +3071,49 @@
           "kernelDeviceName": "tmp1075",
           "pmUnitScopedName": "FCB_T_TSENSOR2"
         }
-      ]
+      ],
+      "outgoingSlotConfigs": {
+        "FAN_SLOT@0": {
+          "slotType": "FAN_SLOT",
+          "presenceDetection": {
+            "sysfsFileHandle": {
+              "devicePath": "/[MCB_FAN_CPLD]",
+              "presenceFileName": "fan1_present",
+              "desiredValue": 1
+            }
+          }
+        },
+        "FAN_SLOT@1": {
+          "slotType": "FAN_SLOT",
+          "presenceDetection": {
+            "sysfsFileHandle": {
+              "devicePath": "/[MCB_FAN_CPLD]",
+              "presenceFileName": "fan3_present",
+              "desiredValue": 1
+            }
+          }
+        },
+        "FAN_SLOT@2": {
+          "slotType": "FAN_SLOT",
+          "presenceDetection": {
+            "sysfsFileHandle": {
+              "devicePath": "/[MCB_FAN_CPLD]",
+              "presenceFileName": "fan5_present",
+              "desiredValue": 1
+            }
+          }
+        },
+        "FAN_SLOT@3": {
+          "slotType": "FAN_SLOT",
+          "presenceDetection": {
+            "sysfsFileHandle": {
+              "devicePath": "/[MCB_FAN_CPLD]",
+              "presenceFileName": "fan7_present",
+              "desiredValue": 1
+            }
+          }
+        }
+      }
     },
     "FCB_B": {
       "pluggedInSlotType": "FCBBOTTOM_SLOT",
@@ -3084,7 +3130,52 @@
           "kernelDeviceName": "tmp1075",
           "pmUnitScopedName": "FCB_B_TSENSOR2"
         }
-      ]
+      ],
+      "outgoingSlotConfigs": {
+        "FAN_SLOT@0": {
+          "slotType": "FAN_SLOT",
+          "presenceDetection": {
+            "sysfsFileHandle": {
+              "devicePath": "/[MCB_FAN_CPLD]",
+              "presenceFileName": "fan2_present",
+              "desiredValue": 1
+            }
+          }
+        },
+        "FAN_SLOT@1": {
+          "slotType": "FAN_SLOT",
+          "presenceDetection": {
+            "sysfsFileHandle": {
+              "devicePath": "/[MCB_FAN_CPLD]",
+              "presenceFileName": "fan4_present",
+              "desiredValue": 1
+            }
+          }
+        },
+        "FAN_SLOT@2": {
+          "slotType": "FAN_SLOT",
+          "presenceDetection": {
+            "sysfsFileHandle": {
+              "devicePath": "/[MCB_FAN_CPLD]",
+              "presenceFileName": "fan6_present",
+              "desiredValue": 1
+            }
+          }
+        },
+        "FAN_SLOT@3": {
+          "slotType": "FAN_SLOT",
+          "presenceDetection": {
+            "sysfsFileHandle": {
+              "devicePath": "/[MCB_FAN_CPLD]",
+              "presenceFileName": "fan8_present",
+              "desiredValue": 1
+            }
+          }
+        }
+      }
+    },
+    "FAN": {
+      "pluggedInSlotType": "FAN_SLOT"
     },
     "NETLAKE": {
       "pluggedInSlotType": "COMESE_SLOT",
