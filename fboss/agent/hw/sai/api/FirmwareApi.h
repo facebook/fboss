@@ -22,7 +22,6 @@
 #include <tuple>
 
 extern "C" {
-#include <experimental/saiexperimentalfirmware.h>
 #include <sai.h>
 #include <saiextensions.h>
 
