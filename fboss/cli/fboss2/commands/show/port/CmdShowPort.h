@@ -63,10 +63,10 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
       const ObjectArgType& queriedPorts);
 
   RetType createModel(
-      std::map<int32_t, facebook::fboss::PortInfoThrift> portEntries,
+      const std::map<int32_t, facebook::fboss::PortInfoThrift>& portEntries,
       std::map<int32_t, facebook::fboss::TransceiverInfo> transceiverEntries,
       const ObjectArgType& queriedPorts,
-      std::map<std::string, facebook::fboss::HwPortStats> portStats,
+      const std::map<std::string, facebook::fboss::HwPortStats>& portStats,
       const std::unordered_map<std::string, cfg::SwitchDrainState>&
           peerDrainStates,
       const std::vector<std::string>& drainedInterfaces);
