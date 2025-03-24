@@ -2208,15 +2208,18 @@ void ThriftHandler::txPktL3(unique_ptr<fbstring> payload) {
     throw FbossError("No interface configured");
   }
   std::optional<InterfaceID> intfID;
+  cfg::InterfaceType type{cfg::InterfaceType::VLAN};
   for (const auto& [_, intfs] : std::as_const(*interfaceMap)) {
     if (!intfs->empty()) {
       intfID = intfs->at(0)->getID();
+      type = intfs->at(0)->getType();
       break;
     }
   }
   CHECK(intfID.has_value());
 
-  unique_ptr<TxPacket> pkt = sw_->allocateL3TxPacket(payload->size());
+  unique_ptr<TxPacket> pkt = sw_->allocateL3TxPacket(
+      payload->size(), (type == cfg::InterfaceType::VLAN));
   RWPrivateCursor cursor(pkt->buf());
   cursor.push(StringPiece(*payload));
 

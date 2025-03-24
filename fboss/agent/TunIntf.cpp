@@ -329,7 +329,7 @@ void TunIntf::handlerReady(uint16_t /*events*/) noexcept {
   try {
     while (sent + dropped < kMaxSentOneTime) {
       std::unique_ptr<TxPacket> pkt;
-      pkt = sw_->allocateL3TxPacket(mtu_);
+      pkt = sw_->allocateL3TxPacket(mtu_, (type_ == cfg::InterfaceType::VLAN));
       auto buf = pkt->buf();
       int ret = 0;
       do {

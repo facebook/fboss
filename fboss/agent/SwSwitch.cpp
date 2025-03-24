@@ -2634,18 +2634,18 @@ void SwSwitch::threadLoop(StringPiece name, folly::EventBase* eventBase) {
   eventBase->loopForever();
 }
 
-uint32_t SwSwitch::getEthernetHeaderSize() const {
-  // VOQ/Fabric switches require that the packets are not VLAN tagged.
-  return getSwitchInfoTable().vlansSupported() ? EthHdr::SIZE
-                                               : EthHdr::UNTAGGED_PKT_SIZE;
+uint32_t SwSwitch::getEthernetHeaderSize(bool tagged) const {
+  return tagged ? EthHdr::SIZE : EthHdr::UNTAGGED_PKT_SIZE;
 }
 
 std::unique_ptr<TxPacket> SwSwitch::allocatePacket(uint32_t size) const {
   return multiHwSwitchHandler_->allocatePacket(size);
 }
 
-std::unique_ptr<TxPacket> SwSwitch::allocateL3TxPacket(uint32_t l3Len) {
-  const uint32_t l2Len = getEthernetHeaderSize();
+std::unique_ptr<TxPacket> SwSwitch::allocateL3TxPacket(
+    uint32_t l3Len,
+    bool tagged) {
+  const uint32_t l2Len = getEthernetHeaderSize(tagged);
   const uint32_t minLen = 68;
   auto len = std::max(l2Len + l3Len, minLen);
   auto pkt = multiHwSwitchHandler_->allocatePacket(len);
@@ -2840,6 +2840,15 @@ void SwSwitch::sendL3Packet(
     return;
   }
 
+  auto state = getState();
+
+  auto intf = state->getInterfaces()->getNodeIf(ifID);
+  if (!intf) {
+    XLOG(ERR) << "Interface " << ifID << " doesn't exists in state.";
+    stats()->pktDropped();
+    return;
+  }
+
   // Buffer should not be shared.
   folly::IOBuf* buf = pkt->buf();
   CHECK(!buf->isShared());
@@ -2847,7 +2856,8 @@ void SwSwitch::sendL3Packet(
   // Add L2 header to L3 packet. Information doesn't need to be complete
   // make sure the packet has enough headroom for L2 header and large enough
   // for the minimum size packet.
-  const uint32_t l2Len = getEthernetHeaderSize();
+  const uint32_t l2Len =
+      getEthernetHeaderSize(intf->getType() == cfg::InterfaceType::VLAN);
   const uint32_t l3Len = buf->length();
   const uint32_t minLen = 68;
   uint32_t tailRoom = (l2Len + l3Len >= minLen) ? 0 : minLen - l2Len - l3Len;
@@ -2856,15 +2866,6 @@ void SwSwitch::sendL3Packet(
               << " required=" << l2Len << ", tailroom=" << buf->tailroom()
               << " required=" << tailRoom;
     stats()->pktError();
-    return;
-  }
-
-  auto state = getState();
-
-  auto intf = state->getInterfaces()->getNodeIf(ifID);
-  if (!intf) {
-    XLOG(ERR) << "Interface " << ifID << " doesn't exists in state.";
-    stats()->pktDropped();
     return;
   }
 
