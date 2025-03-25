@@ -618,7 +618,7 @@ SaiSwitchTraits::Attributes::AttributeSdkRegDumpLogPath::operator()() {
 
 std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeFirmwareObjectList::operator()() {
-  return SAI_SWITCH_ATTR_FIRMWARE_OBJECT_LIST;
+  return SAI_SWITCH_ATTR_FIRMWARE_OBJECTS;
 }
 
 } // namespace facebook::fboss

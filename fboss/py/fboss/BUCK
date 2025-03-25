@@ -6,8 +6,8 @@ python_library(
         "thrift_clients.py",
     ],
     deps = [
-        "//fboss/agent/if:ctrl-py",
-        "//fboss/qsfp_service/if:qsfp-py",
+        "//fboss/agent/if:ctrl-py-deprecated",
+        "//fboss/qsfp_service/if:qsfp-py-deprecated",
         "//thrift/lib/py:server_base",
     ],
 )

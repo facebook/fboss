@@ -234,6 +234,8 @@ class EthHdr {
     setVlans({vlan}, ether);
   }
 
+  std::string printVlanTags();
+
  public:
   /*
    * Destination Address

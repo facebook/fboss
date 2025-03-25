@@ -57,9 +57,9 @@ void ArpHdr::serialize(folly::io::RWPrivateCursor* cursor) const {
 std::string ArpHdr::toString() const {
   std::stringstream ss;
   ss << " header type: " << htype << " protocol type: " << ptype
-     << " header len: " << (int)hlen << " protocol len: " << (int)plen
-     << "smac: " << sha << "src ip: " << spa << " dmac: " << tha
-     << " dst ip: " << tpa;
+     << " header len: " << static_cast<int>(hlen)
+     << " protocol len: " << static_cast<int>(plen) << "smac: " << sha
+     << "src ip: " << spa << " dmac: " << tha << " dst ip: " << tpa;
   return ss.str();
 }
 } // namespace facebook::fboss

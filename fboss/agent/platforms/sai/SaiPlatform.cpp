@@ -436,7 +436,10 @@ SaiPlatform::findPortIDAndProfiles(
     }
   }
   throw FbossError(
-      "platform port not found ", (PortID)portSaiId, " speed: ", (int)speed);
+      "platform port not found ",
+      (PortID)portSaiId,
+      " speed: ",
+      static_cast<int>(speed));
 }
 
 std::vector<SaiPlatformPort*> SaiPlatform::getPortsWithTransceiverID(

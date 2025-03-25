@@ -122,9 +122,9 @@ void RegisterValue::makeFloat(
   makeInteger(reg, RegisterEndian::BIG, sign);
   float intValue;
   if (std::holds_alternative<int64_t>(value)) {
-    intValue = (float)std::get<int64_t>(value);
+    intValue = static_cast<float>(std::get<int64_t>(value));
   } else {
-    intValue = (float)std::get<int32_t>(value);
+    intValue = static_cast<float>(std::get<int32_t>(value));
   }
   // Y = shift + scale * (X / 2^N)
   value = shift + (scale * (intValue / float(1 << precision)));

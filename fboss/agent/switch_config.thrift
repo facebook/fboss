@@ -1249,6 +1249,12 @@ struct Port {
    * DSF Interface node to enable SHEL messages - port UP/DOWN notification to other interface nodes.
    */
   34: optional bool selfHealingECMPLagEnable;
+
+  /*
+   * DSF option to enable FEC error detection on port to prevent any
+   * errored cells from making it to the forwarding pipeline.
+   */
+  35: optional bool fecErrorDetectEnable;
 }
 
 enum LacpPortRate {

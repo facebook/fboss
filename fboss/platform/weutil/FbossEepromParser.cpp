@@ -274,7 +274,7 @@ int FbossEepromParser::loadEeprom(
   try {
     file.seekg(offset, std::ios::beg);
     file.read((char*)&output[0], bytesToRead);
-    readCount = (int)file.gcount();
+    readCount = static_cast<int>(file.gcount());
     file.close();
   } catch (std::exception& ex) {
     std::cout << "Failed to read EEPROM contents " << ex.what() << std::endl;
@@ -350,7 +350,7 @@ std::unordered_map<int, std::string> FbossEepromParser::parseEepromBlobTLV(
     // Very important to do this.
     juice = juice + 1;
     // First, get the itemCode of the TLV (T)
-    int itemCode = (int)buffer[cursor];
+    int itemCode = static_cast<int>(buffer[cursor]);
     entryType itemType = FIELD_INVALID;
     std::string key;
 
@@ -521,7 +521,8 @@ std::string FbossEepromParser::parseLeHex(int len, unsigned char* ptr) {
   for (int i = 0; i < len; i++) {
     int val = ptr[cursor];
     std::string converter = "0123456789abcdef";
-    retVal = retVal + converter[(int)(val / 16)] + converter[val % 16];
+    retVal =
+        retVal + converter[static_cast<int>(val / 16)] + converter[val % 16];
     cursor -= 1;
   }
   return "0x" + retVal;
@@ -532,7 +533,8 @@ std::string FbossEepromParser::parseBeHex(int len, unsigned char* ptr) {
   for (int i = 0; i < len; i++) {
     int val = ptr[i];
     std::string converter = "0123456789abcdef";
-    retVal = retVal + converter[(int)(val / 16)] + converter[val % 16];
+    retVal =
+        retVal + converter[static_cast<int>(val / 16)] + converter[val % 16];
   }
   return "0x" + retVal;
 }

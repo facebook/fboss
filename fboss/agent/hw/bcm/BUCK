@@ -260,7 +260,7 @@ thrift_library(
     },
     languages = [
         "cpp2",
-        "py",
+        "py-deprecated",
         "py3",
         "go",
         "py-asyncio",
@@ -279,7 +279,7 @@ thrift_library(
     name = "packettrace",
     languages = [
         "cpp2",
-        "py",
+        "py-deprecated",
         "py3",
     ],
     py3_namespace = "neteng.fboss",
@@ -439,7 +439,7 @@ thrift_library(
     name = "if",
     languages = [
         "cpp2",
-        "py",
+        "py-deprecated",
         "py3",
     ],
     py3_namespace = "neteng.fboss",

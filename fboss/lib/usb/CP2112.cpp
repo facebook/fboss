@@ -324,7 +324,7 @@ void CP2112::write(uint8_t address, ByteRange buf, milliseconds timeout) {
   }
   ensureGoodState();
 
-  VLOG(5) << "writing to i2c address " << std::hex << (int)address;
+  VLOG(5) << "writing to i2c address " << std::hex << static_cast<int>(address);
 
   // Send the write request
   uint8_t usbBuf[64];
@@ -490,7 +490,7 @@ void CP2112::flushTransfers() {
     try {
       intrIn(buf, sizeof(buf), milliseconds(3));
       VLOG(1) << "discarding stale USB interrupt response packet "
-              << (int)buf[0];
+              << static_cast<int>(buf[0]);
     } catch (const LibusbError& ex) {
       if (ex.errorCode() != LIBUSB_ERROR_TIMEOUT) {
         throw;
@@ -649,15 +649,15 @@ void CP2112::processReadResponse(MutableByteRange buf, milliseconds timeout) {
       // and we are out of sync with the device state.
       LOG(DFATAL) << "received unexpected interrupt response while waiting on "
                      "read response: "
-                  << (int)usbBuf[0];
+                  << static_cast<int>(usbBuf[0]);
       busGood_ = false;
       throw UsbError("unexpected device status waiting on read response");
     }
 
     uint8_t status = usbBuf[1];
     uint8_t length = usbBuf[2];
-    VLOG(5) << "SMBus read response: status=" << (int)status
-            << ", length=" << (int)length;
+    VLOG(5) << "SMBus read response: status=" << static_cast<int>(status)
+            << ", length=" << static_cast<int>(length);
 
     if (bytesRead + length > buf.size() || length + 3 > usbBuf.size()) {
       throw UsbError("Read would cause overrun");
@@ -747,7 +747,9 @@ void CP2112::getTransferStatusImpl(
     DCHECK_EQ(loopIter, 1); // This should only happen on the first loop.
     if (usbBuf[2] != 0) {
       throw UsbError(
-          "unexepected response length ", (int)usbBuf[2], "should be 0.");
+          "unexepected response length ",
+          static_cast<int>(usbBuf[2]),
+          "should be 0.");
     }
 
     // Ignore the read response, and do another ead to receive our
@@ -759,11 +761,12 @@ void CP2112::getTransferStatusImpl(
     // This shouldn't happen unless communication has gotten out of sync
     // between us and the device.
     LOG(DFATAL) << "received unexpected interrupt response while waiting on "
-                << operation << " transfer status: " << (int)usbBuf[0];
+                << operation
+                << " transfer status: " << static_cast<int>(usbBuf[0]);
     busGood_ = false;
     throw UsbError(
         "unexpected response ",
-        (int)usbBuf[0],
+        static_cast<int>(usbBuf[0]),
         "while waiting on ",
         operation,
         " transfer status");
@@ -786,8 +789,9 @@ milliseconds CP2112::waitForTransfer(
     uint8_t status1 = usbBuf[2];
     // Bytes 3-4 are status2, and bytes 5-6 are status3.  However we currently
     // don't use these values other than logging them here.
-    VLOG(5) << operation << " xfer status:" << " status0=" << (int)status0
-            << " status1=" << (int)status1
+    VLOG(5) << operation
+            << " xfer status:" << " status0=" << static_cast<int>(status0)
+            << " status1=" << static_cast<int>(status1)
             << " status2=" << readBE<uint16_t>(usbBuf + 3)
             << " status3=" << readBE<uint16_t>(usbBuf + 5);
 

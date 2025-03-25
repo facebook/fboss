@@ -110,8 +110,8 @@ void TunManager::addExistingIntf(const std::string& ifName, int ifIndex) {
   SCOPE_FAIL {
     intfs_.erase(ret.first);
   };
-  ret.first->second.reset(
-      new TunIntf(sw_, evb_, ifID, ifIndex, getInterfaceMtu(ifID)));
+  ret.first->second.reset(new TunIntf(
+      sw_, evb_, ifID, getInterfaceType(ifID), ifIndex, getInterfaceMtu(ifID)));
 }
 
 void TunManager::addNewIntf(
@@ -127,7 +127,13 @@ void TunManager::addNewIntf(
     intfs_.erase(ret.first);
   };
   auto intf = std::make_unique<TunIntf>(
-      sw_, evb_, ifID, isUp, addrs, getInterfaceMtu(ifID));
+      sw_,
+      evb_,
+      ifID,
+      getInterfaceType(ifID),
+      isUp,
+      addrs,
+      getInterfaceMtu(ifID));
 
   SCOPE_FAIL {
     intf->setDelete();
@@ -337,6 +343,11 @@ int TunManager::getTableIdForVoq(InterfaceID ifID) const {
 int TunManager::getInterfaceMtu(InterfaceID ifID) const {
   auto interface = sw_->getState()->getInterfaces()->getNodeIf(ifID);
   return interface ? interface->getMtu() : kDefaultMtu;
+}
+
+cfg::InterfaceType TunManager::getInterfaceType(InterfaceID ifID) const {
+  auto interface = sw_->getState()->getInterfaces()->getNodeIf(ifID);
+  return interface ? interface->getType() : cfg::InterfaceType::VLAN;
 }
 
 void TunManager::addRemoveRouteTable(InterfaceID ifID, int ifIndex, bool add) {

@@ -345,7 +345,7 @@ TxMatchFn checkDHCPPkt(
         if (!DHCPv4Packet::getOptionSlow(option.op, dhcpPkt.options, optData)) {
           throw FbossError(
               "expected option ",
-              (int)option.op,
+              static_cast<int>(option.op),
               " to be "
               "present, but not found");
         }
@@ -353,11 +353,13 @@ TxMatchFn checkDHCPPkt(
                 option.optData.begin(),
                 option.optData.end(),
                 optData.begin())) {
-          throw FbossError("unmatched data for option ", (int)option.op);
+          throw FbossError(
+              "unmatched data for option ", static_cast<int>(option.op));
         }
       } else {
         if (DHCPv4Packet::getOptionSlow(option.op, dhcpPkt.options, optData)) {
-          throw FbossError("unexpected option ", (int)option.op, " found ");
+          throw FbossError(
+              "unexpected option ", static_cast<int>(option.op), " found ");
         }
       }
     }

@@ -18,10 +18,11 @@ struct PfcBufferParams {
 
   int globalShared = kGlobalSharedBytes;
   int globalHeadroom = kGlobalHeadroomBytes;
-  int minLimit = 2200;
-  int pgHeadroom = 2200; // keep this lower than globalShared
+  int minLimit{0};
+  int pgHeadroom{0};
   facebook::fboss::cfg::MMUScalingFactor scalingFactor;
-  int resumeOffset = 1800;
+  std::optional<int> resumeOffset;
+  std::optional<int> resumeThreshold;
 
   static PfcBufferParams getPfcBufferParams(cfg::AsicType asicType);
 };

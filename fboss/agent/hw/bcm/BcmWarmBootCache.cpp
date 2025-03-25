@@ -1518,7 +1518,7 @@ void BcmWarmBootCache::checkUnclaimedQosMaps() {
     for (const auto& qosMapKey2Qos : qosMapKey2QosMapId_) {
       const auto& qosMapKey2QosPairKey = qosMapKey2Qos.first;
       XLOG(ERR) << " Policy name: " << qosMapKey2QosPairKey.first
-                << ", type: " << (int)qosMapKey2QosPairKey.second;
+                << ", type: " << static_cast<int>(qosMapKey2QosPairKey.second);
     }
     XLOG(ERR) << "]";
   }

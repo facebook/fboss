@@ -364,6 +364,10 @@ void setDefaultCpuTrafficPolicyConfig(
   if (!isSai) {
     cpuAcls =
         utility::defaultCpuAcls(hwAsic, config, isSai, cfg::AclStage::INGRESS);
+
+    for (int i = 0; i < cpuAcls.size(); i++) {
+      utility::addAcl(&config, cpuAcls[i].first, cfg::AclStage::INGRESS);
+    }
   } else {
     for (auto stage :
          {cfg::AclStage::INGRESS, cfg::AclStage::INGRESS_POST_LOOKUP}) {
@@ -1595,7 +1599,7 @@ std::map<int, std::vector<uint8_t>> getOlympicQosMaps(
         for (auto val : *dscpMap.fromDscpToTrafficClass()) {
           dscps.push_back((uint8_t)val);
         }
-        queueToDscp[(int)queueId] = std::move(dscps);
+        queueToDscp[static_cast<int>(queueId)] = std::move(dscps);
       }
     } else {
       XLOG(ERR) << "qosMap not found in qosPolicy: " << qosName;

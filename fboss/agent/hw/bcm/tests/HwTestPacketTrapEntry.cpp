@@ -57,8 +57,8 @@ HwTestPacketTrapEntry::HwTestPacketTrapEntry(
   bcmCheckError(rv, "HwTestPacketTrapEntry creation failed");
   entries_.push_back(entry);
 
-  XLOG(DBG2) << "Installed the copy to CPU acl in group " << (int)gid
-             << "for l4DstPort: " << l4DstPort;
+  XLOG(DBG2) << "Installed the copy to CPU acl in group "
+             << static_cast<int>(gid) << "for l4DstPort: " << l4DstPort;
 }
 
 HwTestPacketTrapEntry::HwTestPacketTrapEntry(

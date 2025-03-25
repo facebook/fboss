@@ -39,7 +39,7 @@ BENCHMARK(HwClearInterfacePhyCounters) {
   const std::vector<int32_t> portIds(
       allPorts.begin(),
       allPorts.begin() +
-          std::min((int)allPorts.size(), numPortsToCollectStats));
+          std::min(static_cast<int>(allPorts.size()), numPortsToCollectStats));
 
   auto switchId = ensemble->getSw()
                       ->getScopeResolver()

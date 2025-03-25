@@ -2,6 +2,7 @@
 
 #include <string.h>
 #include <sysexits.h>
+#include <unistd.h>
 #include <iostream>
 #include <memory>
 
@@ -49,6 +50,11 @@ bool validFlags(int argc) {
 int main(int argc, char* argv[]) {
   helpers::initCli(&argc, &argv, "weutil");
   std::unique_ptr<WeutilInterface> weutilInstance;
+
+  if (geteuid() != 0) {
+    std::cerr << "Please run this program as root" << std::endl;
+    return 1;
+  }
 
   if (!validFlags(argc)) {
     return 1;

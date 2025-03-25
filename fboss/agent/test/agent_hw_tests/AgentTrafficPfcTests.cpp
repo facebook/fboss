@@ -29,27 +29,23 @@ static constexpr auto kGlobalIngressEgressBufferPoolSize{
 static constexpr auto kLosslessTrafficClass{2};
 static constexpr auto kLosslessPriority{2};
 static const std::vector<int> kLosslessPgIds{2, 3};
-// Hardcoding register value to force PFC generation for port 2,
-// kLosslessPriority for DNX. This needs to be modified if the
-// port used in test or PFC priority changes! Details of how to
-// compute the value to use for a port/priority is captured in
-// CS00012321021. To summarize,
-//    value = 1 << ((port_first_phy - core_first_phy)*8 + priority,
-// with port_first_phy from "port management dump full port=<>",
-// core_first_phy from "dnx data dump nif.phys.nof_phys_per_core".
-static const std::
-    map<std::tuple<facebook::fboss::cfg::AsicType, int, int>, std::string>
-        kRegValToForcePfcTxForPriorityOnPortDnx = {
-            {std::make_tuple(
-                 facebook::fboss::cfg::AsicType::ASIC_TYPE_JERICHO2,
-                 2,
-                 2),
-             "0x40000000000000000"},
-            {std::make_tuple(
-                 facebook::fboss::cfg::AsicType::ASIC_TYPE_JERICHO3,
-                 8,
-                 2),
-             "4"},
+
+// On DNX, PFC deadlock cannot be triggered by our test, instead we have to
+// force constant PFC generation by setting the N-th bit of FRC_NIF_ETH_PFC,
+// where N = (port_first_phy - core_first_phy)*8 + priority
+//
+// port_first_phy is from "port management dump full port=<>"
+// core_first_phy is from "dnx data dump nif.phys.nof_phys_per_core"
+//
+// This hardcoded map needs to be updated when a different port is chosen.
+// The map stores a string because the register won't fit in any integer type.
+// See CS00012321021 for details.
+static const std::map<std::tuple<int, int>, std::string>
+    kRegValToForcePfcTxForPriorityOnPortDnx = {
+        // Single-stage: portID=8, port_first_phy=0, core_first_phy=0
+        {std::make_tuple(8, 2), "0x4"},
+        // Dual-stage: portID=1, port_first_phy=8, core_first_phy=0
+        {std::make_tuple(1, 2), "0x40000000000000000"},
 };
 
 struct TrafficTestParams {
@@ -115,7 +111,7 @@ void validatePfcCountersIncreased(
 void validateBufferPoolWatermarkCounters(
     facebook::fboss::AgentEnsemble* ensemble,
     const int /* pri */,
-    const std::vector<facebook::fboss::PortID>& /* portIds */) {
+    const std::vector<facebook::fboss::PortID>& portIds) {
   uint64_t globalHeadroomWatermark{};
   uint64_t globalSharedWatermark{};
   WITH_RETRIES({
@@ -130,6 +126,12 @@ void validateBufferPoolWatermarkCounters(
            *stats.switchWatermarkStats()->globalSharedWatermarkBytes()) {
         globalSharedWatermark += bytes;
       }
+    }
+    for (auto portId : portIds) {
+      XLOG(INFO) << "validateBufferPoolWatermarkCounters: Port " << portId
+                 << ": "
+                 << facebook::fboss::utility::pfcStatsString(
+                        ensemble->getLatestPortStats(portId));
     }
     XLOG(DBG0) << "Global headroom watermark: " << globalHeadroomWatermark
                << ", Global shared watermark: " << globalSharedWatermark;
@@ -156,6 +158,10 @@ void validateIngressPriorityGroupWatermarkCounters(
   }
   WITH_RETRIES({
     for (const auto& portId : portIds) {
+      XLOG(INFO) << "validateIngressPriorityGroupWatermarkCounters: Port "
+                 << portId << ": "
+                 << facebook::fboss::utility::pfcStatsString(
+                        ensemble->getLatestPortStats(portId));
       const auto& portName = ensemble->getProgrammedState()
                                  ->getPorts()
                                  ->getNodeIf(portId)
@@ -316,13 +322,15 @@ class AgentTrafficPfcTest : public AgentHwTest {
     // no need to retry if looking for baseline counter
     for (const auto& portId : portIds) {
       auto portStats = getLatestPortStats(portId);
+      XLOG(INFO) << "validateInitPfcCounters: Port " << portId << ": "
+                 << facebook::fboss::utility::pfcStatsString(portStats);
       auto ingressDropRaw = *portStats.inDiscardsRaw_();
-      XLOG(DBG0) << " validateInitPfcCounters: Port: " << portId
-                 << " IngressDropRaw: " << ingressDropRaw;
-      EXPECT_TRUE(ingressDropRaw == 0);
+      EXPECT_EQ(ingressDropRaw, 0);
       std::tie(txPfcCtr, rxPfcCtr, rxPfcXonCtr) =
           getPfcTxRxXonHwPortStats(getAgentEnsemble(), portStats, pfcPriority);
-      EXPECT_TRUE((txPfcCtr == 0) && (rxPfcCtr == 0) && (rxPfcXonCtr == 0));
+      EXPECT_EQ(txPfcCtr, 0);
+      EXPECT_EQ(rxPfcCtr, 0);
+      EXPECT_EQ(rxPfcXonCtr, 0);
     }
   }
 
@@ -691,19 +699,18 @@ class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcTest {
       const PortID& txOffPortId,
       const folly::IPAddressV6& ip) {
     auto asic = utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
-    if ((asic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO2) ||
-        (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3)) {
+    if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
       // As traffic cannot trigger deadlock for DNX, force back
       // to back PFC frame generation which causes a deadlock!
       XLOG(DBG0) << "Triggering PFC deadlock detection on port ID : "
                  << static_cast<int>(port);
-      auto iter = kRegValToForcePfcTxForPriorityOnPortDnx.find(std::make_tuple(
-          asic->getAsicType(), static_cast<int>(port), kLosslessPriority));
-      EXPECT_FALSE(iter == kRegValToForcePfcTxForPriorityOnPortDnx.end());
+      auto iter = kRegValToForcePfcTxForPriorityOnPortDnx.find(
+          std::make_tuple(static_cast<int>(port), kLosslessPriority));
+      ASSERT_FALSE(iter == kRegValToForcePfcTxForPriorityOnPortDnx.end());
       std::string out;
       getAgentEnsemble()->runDiagCommand(
-          "modreg CFC_FRC_NIF_ETH_PFC FRC_NIF_ETH_PFC=" + iter->second +
-              "\nquit\n",
+          fmt::format(
+              "modreg CFC_FRC_NIF_ETH_PFC FRC_NIF_ETH_PFC={}\n", iter->second),
           out);
     } else {
       // Disable Tx on the outbound port so that queues will build up.

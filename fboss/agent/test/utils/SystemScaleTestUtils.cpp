@@ -282,12 +282,12 @@ void configureMaxRouteEntries(AgentEnsemble* ensemble) {
     std::unique_ptr<std::vector<UnicastRoute>> routesPtr =
         std::make_unique<std::vector<UnicastRoute>>(quarterThriftRoutes);
     StopWatch timer("program_routes_msecs", FLAGS_json);
-    handler.syncFib((int)ClientID::BGPD, std::move(routesPtr));
+    handler.syncFib(static_cast<int>(ClientID::BGPD), std::move(routesPtr));
   } else {
     std::unique_ptr<std::vector<UnicastRoute>> routesPtr =
         std::make_unique<std::vector<UnicastRoute>>(allThriftRoutes);
     StopWatch timer("program_routes_msecs", FLAGS_json);
-    handler.syncFib((int)ClientID::BGPD, std::move(routesPtr));
+    handler.syncFib(static_cast<int>(ClientID::BGPD), std::move(routesPtr));
   }
   int route_count = 0;
   auto countRoutes = [&route_count](RouterID, auto&) { ++route_count; };

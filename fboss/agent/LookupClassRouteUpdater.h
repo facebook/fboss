@@ -188,24 +188,10 @@ class LookupClassRouteUpdater : public StateObserver {
       VlanID vlanID,
       const folly::CIDRNetwork& addressToSearch) const;
 
-  bool isSubnetCachedByBlockedNeighborIP(
-      const std::shared_ptr<SwitchState>& switchState,
-      VlanID vlanID,
-      const folly::CIDRNetwork& addressToSearch) const;
-
   std::optional<folly::CIDRNetwork> getInterfaceSubnetForIPIf(
       const std::shared_ptr<SwitchState>& switchState,
       VlanID vlanID,
       const folly::IPAddress& ipAddress) const;
-
-  void processBlockNeighborAdded(
-      const StateDelta& stateDelta,
-      std::vector<std::pair<VlanID, folly::IPAddress>> toBeAddedBlockNeighbors);
-  void processBlockNeighborRemoved(
-      const StateDelta& stateDelta,
-      std::vector<std::pair<VlanID, folly::IPAddress>>
-          toBeRemovedBlockNeighbors);
-  void processBlockNeighborUpdates(const StateDelta& stateDelta);
 
   void updatePrefixesWithMultiNextHops(
       const std::set<folly::IPAddress>& neighborsWithClassId,

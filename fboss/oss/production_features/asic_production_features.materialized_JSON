@@ -41,7 +41,8 @@
         59,
         60,
         63,
-        69
+        69,
+        72
     ],
     "ebro": [
         2,
@@ -80,7 +81,8 @@
         54,
         59,
         63,
-        69
+        69,
+        72
     ],
     "jericho3": [
         2,
@@ -163,7 +165,8 @@
         63,
         65,
         67,
-        69
+        69,
+        72
     ],
     "tomahawk3": [
         2,
@@ -217,7 +220,8 @@
         65,
         67,
         69,
-        71
+        71,
+        72
     ],
     "tomahawk4": [
         2,
@@ -269,7 +273,8 @@
         64,
         67,
         69,
-        71
+        71,
+        72
     ],
     "tomahawk5": [
         2,
@@ -318,7 +323,8 @@
         62,
         63,
         69,
-        71
+        71,
+        72
     ],
     "yuba": [
         2,
@@ -360,7 +366,8 @@
         59,
         60,
         63,
-        69
+        69,
+        72
     ]
   },
   "asicToFeatureNames": {
@@ -405,7 +412,8 @@
         "CLASS_ID_FOR_CONNECTED_ROUTE",
         "SEPARATE_BYTE_AND_PACKET_ACL_COUNTERS",
         "UCMP",
-        "PTP_TC"
+        "PTP_TC",
+        "MODIFY_ACL_QUALIFIERS"
     ],
     "ebro": [
         "CPU_RX_TX",
@@ -444,7 +452,8 @@
         "IP_IN_IP_DECAP",
         "CLASS_ID_FOR_CONNECTED_ROUTE",
         "UCMP",
-        "PTP_TC"
+        "PTP_TC",
+        "MODIFY_ACL_QUALIFIERS"
     ],
     "jericho3": [
         "CPU_RX_TX",
@@ -527,7 +536,8 @@
         "UCMP",
         "MMU_TUNING",
         "UNTRUNCATED_SFLOW",
-        "PTP_TC"
+        "PTP_TC",
+        "MODIFY_ACL_QUALIFIERS"
     ],
     "tomahawk3": [
         "CPU_RX_TX",
@@ -581,7 +591,8 @@
         "MMU_TUNING",
         "UNTRUNCATED_SFLOW",
         "PTP_TC",
-        "L4_DST_PORT_ACL"
+        "L4_DST_PORT_ACL",
+        "MODIFY_ACL_QUALIFIERS"
     ],
     "tomahawk4": [
         "CPU_RX_TX",
@@ -633,7 +644,8 @@
         "MULTICAST_QUEUE",
         "UNTRUNCATED_SFLOW",
         "PTP_TC",
-        "L4_DST_PORT_ACL"
+        "L4_DST_PORT_ACL",
+        "MODIFY_ACL_QUALIFIERS"
     ],
     "tomahawk5": [
         "CPU_RX_TX",
@@ -682,7 +694,8 @@
         "EAPOL_TRAP",
         "UCMP",
         "PTP_TC",
-        "L4_DST_PORT_ACL"
+        "L4_DST_PORT_ACL",
+        "MODIFY_ACL_QUALIFIERS"
     ],
     "yuba": [
         "CPU_RX_TX",
@@ -724,7 +737,8 @@
         "CLASS_ID_FOR_CONNECTED_ROUTE",
         "SEPARATE_BYTE_AND_PACKET_ACL_COUNTERS",
         "UCMP",
-        "PTP_TC"
+        "PTP_TC",
+        "MODIFY_ACL_QUALIFIERS"
     ]
   }
 }

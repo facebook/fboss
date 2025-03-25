@@ -1755,8 +1755,8 @@ shared_ptr<SystemPortMap> ThriftConfigApplier::updateSystemPorts(
       // TODO(daiweix): remove this CHECK_EQ after verifying scope config is
       // always correct
       CHECK_EQ(
-          (int)platformPort.mapping()->scope().value(),
-          (int)port.second->getScope());
+          static_cast<int>(platformPort.mapping()->scope().value()),
+          static_cast<int>(port.second->getScope()));
       sysPort->setScope(port.second->getScope());
       sysPort->setShelDestinationEnabled(
           cfg_->switchSettings()->selfHealingEcmpLagConfig().has_value() &&
@@ -2586,7 +2586,9 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
       *portConf->conditionalEntropyRehash() ==
           orig->getConditionalEntropyRehash() &&
       portConf->selfHealingECMPLagEnable().value_or(false) ==
-          orig->getSelfHealingECMPLagEnable().value_or(false)) {
+          orig->getSelfHealingECMPLagEnable().value_or(false) &&
+      portConf->fecErrorDetectEnable().value_or(false) ==
+          orig->getFecErrorDetectEnable().value_or(false)) {
     return nullptr;
   }
 
@@ -2641,6 +2643,11 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
     newPort->setSelfHealingECMPLagEnable(selfHealingECMPLagEnable.value());
   } else {
     newPort->setSelfHealingECMPLagEnable(std::nullopt);
+  }
+  if (portConf->fecErrorDetectEnable().has_value()) {
+    newPort->setFecErrorDetectEnable(portConf->fecErrorDetectEnable().value());
+  } else {
+    newPort->setFecErrorDetectEnable(std::nullopt);
   }
   return newPort;
 }
@@ -3951,7 +3958,9 @@ std::shared_ptr<InterfaceMap> ThriftConfigApplier::updateInterfaces() {
             "is out of range for corresponding VOQ switch.",
             "sys port range");
       }
-      CHECK_EQ((int)sysPort->getScope(), (int)(*interfaceCfg.scope()));
+      CHECK_EQ(
+          static_cast<int>(sysPort->getScope()),
+          static_cast<int>(*interfaceCfg.scope()));
     }
     if (interfaceCfg.type() == cfg::InterfaceType::PORT) {
       if (auto port = interfaceCfg.portID()) {
@@ -4611,12 +4620,6 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings(
     neighbor.blockNeighborIP_ref() =
         network::toBinaryAddress(folly::IPAddress(*blockNeighbor.ipAddress()));
     cfgBlockNeighbors.emplace_back(neighbor);
-  }
-  // THRIFT_COPY
-  if (origSwitchSettings->getBlockNeighbors()->toThrift() !=
-      cfgBlockNeighbors) {
-    newSwitchSettings->setBlockNeighbors(cfgBlockNeighbors);
-    switchSettingsChange = true;
   }
 
   std::vector<std::pair<VlanID, folly::MacAddress>> cfgMacAddrsToBlock;

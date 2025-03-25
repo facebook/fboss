@@ -112,9 +112,13 @@ class AgentHwAclQualifierTest : public AgentHwTest {
   std::vector<production_features::ProductionFeature>
   getProductionFeaturesVerified() const override {
     if (!FLAGS_enable_acl_table_group) {
-      return {production_features::ProductionFeature::SINGLE_ACL_TABLE};
+      return {
+          production_features::ProductionFeature::SINGLE_ACL_TABLE,
+          production_features::ProductionFeature::MODIFY_ACL_QUALIFIERS};
     }
-    return {production_features::ProductionFeature::MULTI_ACL_TABLE};
+    return {
+        production_features::ProductionFeature::MULTI_ACL_TABLE,
+        production_features::ProductionFeature::MODIFY_ACL_QUALIFIERS};
   }
 
   void configureAllHwQualifiers(

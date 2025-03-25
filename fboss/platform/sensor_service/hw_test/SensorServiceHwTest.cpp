@@ -132,7 +132,7 @@ TEST_F(SensorServiceHwTest, GetSomeSensors) {
     }
     total++;
   }
-  EXPECT_GT((float)valid / total, 0.9);
+  EXPECT_GT(static_cast<float>(valid) / total, 0.9);
 }
 
 TEST_F(SensorServiceHwTest, GetSomeSensorsViaThrift) {

@@ -232,7 +232,7 @@ python_binary(
     ],
     main_function = "fboss.util.stress_route_insertion.main",
     deps = [
-        "//fboss/agent/if:ctrl-py",
+        "//fboss/agent/if:ctrl-py-deprecated",
         "//fboss/py/fboss:thrift_clients",
         "//fboss/py/fboss/cli:fboss_cli_lib",
     ],

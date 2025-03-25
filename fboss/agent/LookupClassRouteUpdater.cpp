@@ -366,35 +366,6 @@ void LookupClassRouteUpdater::processInterfaceAdded(
     processPortAdded(stateDelta, port, false /* don't re-add all routes */);
   }
 
-  // TODO(zecheng): Remove this logic once block neighbor support is removed.
-  /*
-   * processBlockNeighborUpdates would not cache subnet corresponding to newly
-   * added blocked neighbor if there is no interface for that subnet.
-   * Thus, when an interface is added, process blocked neighbor list again.
-   */
-  for ([[maybe_unused]] const auto& [_, switchSettings] :
-       std::as_const(*switchState->getSwitchSettings())) {
-    for (const auto& settingsIter : *(switchSettings->getBlockNeighbors())) {
-      auto blockedVlanID =
-          VlanID(settingsIter->cref<switch_state_tags::blockNeighborVlanID>()
-                     ->toThrift());
-      auto blockedNeighborIP = network::toIPAddress(
-          settingsIter->cref<switch_state_tags::blockNeighborIP>()->toThrift());
-      if (blockedVlanID != vlanID) {
-        continue;
-      }
-
-      for (auto iter : std::as_const(*addedInterface->getAddresses())) {
-        std::pair<folly::IPAddress, uint8_t> address(
-            folly::IPAddress(iter.first), iter.second->ref());
-        if (blockedNeighborIP.inSubnet(address.first, address.second)) {
-          auto& subnetsCache = vlan2SubnetsCache_[vlanID];
-          subnetsCache.insert(address);
-        }
-      }
-    }
-  }
-
   /*
    * processMacAddrsToBlockUpdates would not cache subnet corresponding to newly
    * added blocked mac address if there is no interface for that subnet.
@@ -1222,32 +1193,6 @@ LookupClassRouteUpdater::getInterfaceSubnetForIPIf(
   return std::nullopt;
 }
 
-bool LookupClassRouteUpdater::isSubnetCachedByBlockedNeighborIP(
-    const std::shared_ptr<SwitchState>& switchState,
-    VlanID vlanID,
-    const folly::CIDRNetwork& addressToSearch) const {
-  for ([[maybe_unused]] const auto& [_, switchSettings] :
-       std::as_const(*switchState->getSwitchSettings())) {
-    for (const auto& iter : *(switchSettings->getBlockNeighbors())) {
-      auto blockedVlanID = VlanID(
-          iter->cref<switch_state_tags::blockNeighborVlanID>()->toThrift());
-      auto blockedNeighborIP = network::toIPAddress(
-          iter->cref<switch_state_tags::blockNeighborIP>()->toThrift());
-      if (blockedVlanID != vlanID) {
-        continue;
-      }
-
-      auto address =
-          getInterfaceSubnetForIPIf(switchState, vlanID, blockedNeighborIP);
-      if (address.has_value() && address.value() == addressToSearch) {
-        return true;
-      }
-    }
-  }
-
-  return false;
-}
-
 bool LookupClassRouteUpdater::isSubnetCachedByLookupClasses(
     const std::shared_ptr<SwitchState>& switchState,
     VlanID vlanID,
@@ -1296,104 +1241,6 @@ bool LookupClassRouteUpdater::isSubnetCachedByLookupClasses(
   }
 
   return false;
-}
-
-void LookupClassRouteUpdater::processBlockNeighborAdded(
-    const StateDelta& stateDelta,
-    std::vector<std::pair<VlanID, folly::IPAddress>> toBeAddedBlockNeighbors) {
-  auto newState = stateDelta.newState();
-
-  bool subnetCacheUpdated = false;
-  for (const auto& [vlanID, blockedNeighborIP] : toBeAddedBlockNeighbors) {
-    auto address =
-        getInterfaceSubnetForIPIf(newState, vlanID, blockedNeighborIP);
-    if (address.has_value()) {
-      auto& subnetsCache = vlan2SubnetsCache_[vlanID];
-      subnetCacheUpdated |= subnetsCache.insert(address.value()).second;
-    }
-  }
-
-  if (subnetCacheUpdated) {
-    /*
-     * When a new subnet is added to the cache, the nextHops of existing
-     * routes may become eligible for caching in
-     * nextHopAndVlan2Prefixes_. Furthermore, such a nextHop may have
-     * classID associated with it, and in that case, the corresponding
-     * route could inherit that classID. Thus, re-add all the routes.
-     */
-    reAddAllRoutes(stateDelta);
-  }
-}
-
-void LookupClassRouteUpdater::processBlockNeighborRemoved(
-    const StateDelta& stateDelta,
-    std::vector<std::pair<VlanID, folly::IPAddress>>
-        toBeRemovedBlockNeighbors) {
-  auto newState = stateDelta.newState();
-
-  for (const auto& [vlanID, blockedNeighborIP] : toBeRemovedBlockNeighbors) {
-    auto address =
-        getInterfaceSubnetForIPIf(newState, vlanID, blockedNeighborIP);
-    /*
-     * Remove subnet corresponding to blockedNeighborIP being removed if and
-     * only if it would not be cached by neither lookup class caching nor
-     * by any other blocked neighbor ip caching.
-     */
-    if (address.has_value() &&
-        !isSubnetCachedByLookupClasses(newState, vlanID, address.value()) &&
-        !isSubnetCachedByBlockedNeighborIP(newState, vlanID, address.value())) {
-      auto vlan = newState->getVlans()->getNodeIf(vlanID);
-      if (!vlan) {
-        continue;
-      }
-
-      auto& subnetsCache = vlan2SubnetsCache_[vlanID];
-      removeNextHopsForSubnet(stateDelta, address.value(), vlan);
-      subnetsCache.erase(address.value());
-    }
-  }
-}
-
-void LookupClassRouteUpdater::processBlockNeighborUpdates(
-    const StateDelta& stateDelta) {
-  auto oldState = stateDelta.oldState();
-  auto newState = stateDelta.newState();
-
-  auto oldSwitchSettings = oldState->getSwitchSettings()->size()
-      ? oldState->getSwitchSettings()->cbegin()->second
-      : std::make_shared<SwitchSettings>();
-  auto newSwitchSettings = newState->getSwitchSettings()->size()
-      ? newState->getSwitchSettings()->cbegin()->second
-      : std::make_shared<SwitchSettings>();
-
-  auto oldBlockedNeighbors{oldSwitchSettings->getBlockNeighbors_DEPRECATED()};
-  auto newBlockedNeighbors{newSwitchSettings->getBlockNeighbors_DEPRECATED()};
-
-  sort(oldBlockedNeighbors.begin(), oldBlockedNeighbors.end());
-  sort(newBlockedNeighbors.begin(), newBlockedNeighbors.end());
-
-  if (oldBlockedNeighbors == newBlockedNeighbors) {
-    return;
-  }
-
-  std::vector<std::pair<VlanID, folly::IPAddress>> toBeRemovedBlockNeighbors;
-  std::set_difference(
-      oldBlockedNeighbors.begin(),
-      oldBlockedNeighbors.end(),
-      newBlockedNeighbors.begin(),
-      newBlockedNeighbors.end(),
-      std::inserter(
-          toBeRemovedBlockNeighbors, toBeRemovedBlockNeighbors.end()));
-  processBlockNeighborRemoved(stateDelta, toBeRemovedBlockNeighbors);
-
-  std::vector<std::pair<VlanID, folly::IPAddress>> toBeAddedBlockNeighbors;
-  std::set_difference(
-      newBlockedNeighbors.begin(),
-      newBlockedNeighbors.end(),
-      oldBlockedNeighbors.begin(),
-      oldBlockedNeighbors.end(),
-      std::inserter(toBeAddedBlockNeighbors, toBeAddedBlockNeighbors.end()));
-  processBlockNeighborAdded(stateDelta, toBeAddedBlockNeighbors);
 }
 
 template <typename AddrT>
@@ -1586,8 +1433,6 @@ void LookupClassRouteUpdater::stateUpdated(const StateDelta& stateDelta) {
   processPortUpdates(stateDelta);
 
   processInterfaceUpdates(stateDelta);
-
-  processBlockNeighborUpdates(stateDelta);
 
   processMacAddrsToBlockUpdates(stateDelta);
 

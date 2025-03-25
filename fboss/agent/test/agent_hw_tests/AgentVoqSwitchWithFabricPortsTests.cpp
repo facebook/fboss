@@ -630,4 +630,18 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, fabricLinkDownCellDropCounter) {
   };
   verifyAcrossWarmBoots(setup, verify);
 }
+
+TEST_F(AgentVoqSwitchWithFabricPortsTest, ValidateFecErrorDetect) {
+  auto verify = [this]() {
+    utility::setupFecErrorDetectEnable(
+        getAgentEnsemble(), true /*fecErrorDetectEnable*/);
+    utility::validateFecErrorDetectInState(
+        getProgrammedState().get(), true /*fecErrorDetectEnable*/);
+    utility::setupFecErrorDetectEnable(
+        getAgentEnsemble(), false /*fecErrorDetectEnable*/);
+    utility::validateFecErrorDetectInState(
+        getProgrammedState().get(), false /*fecErrorDetectEnable*/);
+  };
+  verifyAcrossWarmBoots([]() {}, verify);
+}
 } // namespace facebook::fboss

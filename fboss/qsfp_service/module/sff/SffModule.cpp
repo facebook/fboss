@@ -1257,9 +1257,9 @@ void SffModule::setPowerOverrideIfSupportedLocked(
 
   QSFP_LOG(DBG1, this) << "Power control "
                        << apache::thrift::util::enumNameSafe(currentState)
-                       << " Ext ID " << std::hex << (int)*extId
-                       << " Ethernet compliance " << std::hex << (int)*ether
-                       << " Desired power control "
+                       << " Ext ID " << std::hex << static_cast<int>(*extId)
+                       << " Ethernet compliance " << std::hex
+                       << static_cast<int>(*ether) << " Desired power control "
                        << apache::thrift::util::enumNameSafe(desiredSetting);
 
   if (currentState == desiredSetting) {

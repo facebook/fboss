@@ -1528,7 +1528,7 @@ class AgentCoppQosTest : public AgentHwTest {
     }
     std::string vlanStr = (vlanId ? folly::to<std::string>(*vlanId) : "None");
     XLOG(DBG0) << "Sent " << minPktsForLineRate << " TCP packets on port "
-               << (int)port << " / VLAN " << vlanStr;
+               << static_cast<int>(port) << " / VLAN " << vlanStr;
 
     // Wait for packet loop buildup
     getAgentEnsemble()->waitForLineRateOnPort(port);
@@ -1616,9 +1616,9 @@ class AgentCoppQosTest : public AgentHwTest {
       });
     }
     std::string vlanStr = (vlanId ? folly::to<std::string>(*vlanId) : "None");
-    XLOG(DBG0) << "Sent " << packetCount << " TCP packets on port " << (int)port
-               << " / VLAN " << vlanStr << " in bursts of " << packetsPerBurst
-               << " packets";
+    XLOG(DBG0) << "Sent " << packetCount << " TCP packets on port "
+               << static_cast<int>(port) << " / VLAN " << vlanStr
+               << " in bursts of " << packetsPerBurst << " packets";
   }
 
   /*

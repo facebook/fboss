@@ -39,7 +39,7 @@ folly::ByteRange Wedge40LedUtils::defaultLedCode() {
 }
 
 int Wedge40LedUtils::getPortIndex(PortID port) {
-  return (int)port - 1;
+  return static_cast<int>(port) - 1;
 }
 
 size_t Wedge40LedUtils::getPortOffset(int index) {
