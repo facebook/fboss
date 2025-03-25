@@ -127,6 +127,23 @@ target_link_libraries(agent_hw_test_src
   ecmp_test_utils
 )
 
+add_library(agent_scale_test_src
+  fboss/agent/test/agent_hw_tests/AgentAclScaleTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentEcmpScaleTests.cpp
+)
+
+target_link_libraries(agent_scale_test_src
+  config_factory
+  packet_factory
+  agent_hw_test_src
+  ecmp_helper
+  production_features_cpp2
+  acl_test_utils
+  asic_test_utils
+  scale_test_utils
+  Folly::folly
+)
+
 add_executable(multi_switch_agent_hw_test
   fboss/agent/test/agent_hw_tests/MultiSwitchAgentHwTest.cpp
 )
