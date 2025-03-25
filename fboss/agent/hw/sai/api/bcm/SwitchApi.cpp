@@ -567,4 +567,12 @@ SaiSwitchTraits::Attributes::AttributeFirmwareObjectList::operator()() {
   return std::nullopt;
 }
 
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeTcRateLimitList::operator()() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  return SAI_SWITCH_ATTR_TC_RATE_LIMIT_LIST;
+#endif
+  return std::nullopt;
+}
+
 } // namespace facebook::fboss
