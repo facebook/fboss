@@ -3141,8 +3141,7 @@ void SaiSwitch::packetRxCallbackPort(
     cfg::PacketRxReason rxReason,
     uint8_t queueId) {
   PortID swPortId(0);
-  std::optional<VlanID> swVlanId = (getSwitchType() == cfg::SwitchType::VOQ ||
-                                    getSwitchType() == cfg::SwitchType::FABRIC)
+  std::optional<VlanID> swVlanId = processVlanUntaggedPackets()
       ? std::nullopt
       : std::make_optional(VlanID(0));
   auto swVlanIdStr = [swVlanId]() {
@@ -3155,7 +3154,7 @@ void SaiSwitch::packetRxCallbackPort(
       buffer_size,
       (void*)((char*)(buffer)),
       PortID(0),
-      VlanID(0),
+      swVlanId,
       rxReason,
       queueId);
   const auto portItr = concurrentIndices_->portSaiId2PortInfo.find(portSaiId);
@@ -3176,8 +3175,7 @@ void SaiSwitch::packetRxCallbackPort(
    * We use the cached cpu port id to avoid holding manager table locks in
    * the Rx path.
    */
-  if (!(getSwitchType() == cfg::SwitchType::VOQ ||
-        getSwitchType() == cfg::SwitchType::FABRIC)) {
+  if (!processVlanUntaggedPackets()) {
     if (portSaiId == getCPUPortSaiId() ||
         (allowMissingSrcPort &&
          portItr == concurrentIndices_->portSaiId2PortInfo.cend())) {
@@ -3218,7 +3216,7 @@ void SaiSwitch::packetRxCallbackPort(
         return;
       } else {
         swPortId = portItr->second.portID;
-        XLOG(DBG6) << "VOQ RX packet with sai id: 0x" << std::hex << portSaiId
+        XLOG(DBG6) << "RX packet with sai id: 0x" << std::hex << portSaiId
                    << " portID: " << swPortId;
       }
     }
@@ -3251,7 +3249,7 @@ void SaiSwitch::packetRxCallbackLag(
   PortID swPortId(0);
   VlanID swVlanId(0);
   auto rxPacket = std::make_unique<SaiRxPacket>(
-      buffer_size, buffer, PortID(0), VlanID(0), rxReason, queueId);
+      buffer_size, buffer, PortID(0), swVlanId, rxReason, queueId);
 
   const auto aggPortItr = concurrentIndices_->aggregatePortIds.find(lagSaiId);
 
@@ -4616,5 +4614,11 @@ HwResourceStats SaiSwitch::getResourceStats() const {
 // TODO: add support in SAI
 bool SaiSwitch::getArsExhaustionStatus() {
   return false;
+}
+
+bool SaiSwitch::processVlanUntaggedPackets() const {
+  return FLAGS_rx_vlan_untagged_packets ||
+      (getSwitchType() == cfg::SwitchType::VOQ ||
+       getSwitchType() == cfg::SwitchType::FABRIC);
 }
 } // namespace facebook::fboss

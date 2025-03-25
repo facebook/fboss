@@ -84,8 +84,11 @@ folly::CIDRNetwork kIPv6LinkLocalUcastNetwork();
 
 folly::CIDRNetwork kIPv6NdpSolicitNetwork();
 
-cfg::MatchAction
-createQueueMatchAction(int queueId, bool isSai, cfg::ToCpuAction toCpuAction);
+cfg::MatchAction createQueueMatchAction(
+    const HwAsic* hwAsic,
+    int queueId,
+    bool isSai,
+    cfg::ToCpuAction toCpuAction);
 
 std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
     const HwAsic* hwAsic,
@@ -173,6 +176,7 @@ void addTrafficCounter(
     std::optional<std::vector<cfg::CounterType>> counterTypes);
 
 cfg::MatchAction getToQueueAction(
+    const HwAsic* hwAsic,
     const int queueId,
     bool isSai,
     const std::optional<cfg::ToCpuAction> toCpuAction = std::nullopt);
