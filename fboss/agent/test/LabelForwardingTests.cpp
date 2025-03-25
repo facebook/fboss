@@ -131,7 +131,8 @@ TEST_P(LabelForwardingTest, modifyMplsRoutes) {
 }
 TEST_F(LabelForwardingTest, addMplsRecursiveRoutes) {
   FLAGS_mpls_rib = true;
-  auto clientAdmin = this->sw->clientIdToAdminDistance((int)ClientID::OPENR);
+  auto clientAdmin =
+      this->sw->clientIdToAdminDistance(static_cast<int>(ClientID::OPENR));
   MplsRoute mplsRoute;
   mplsRoute.topLabel() = 10010;
 
@@ -146,7 +147,7 @@ TEST_F(LabelForwardingTest, addMplsRecursiveRoutes) {
 
   for (int i = 0; i < 2; i++) {
     this->thriftHandler->addUnicastRoute(
-        (int)ClientID::OPENR,
+        static_cast<int>(ClientID::OPENR),
         util::makeUnicastRoute(
             recursiveIps[i].str(), 24, connectedIps[i].str(), clientAdmin));
   }

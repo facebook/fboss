@@ -255,12 +255,10 @@ void SaiBufferManager::setupIngressBufferPool(
       platform_->getAsic()->getNumMemoryBuffers();
   // XoffSize configuration is needed only when PFC is supported
   std::optional<SaiBufferPoolTraits::Attributes::XoffSize> xoffSize;
-#if defined(TAJO_SDK) || defined(BRCM_SAI_SDK_XGS_AND_DNX)
   if (platform_->getAsic()->isSupported(HwAsic::Feature::PFC)) {
     xoffSize = *bufferPoolCfg.headroomBytes() *
         platform_->getAsic()->getNumMemoryBuffers();
   }
-#endif
   SaiBufferPoolTraits::CreateAttributes attributes{
       SAI_BUFFER_POOL_TYPE_INGRESS,
       poolSize,
@@ -395,8 +393,11 @@ void SaiBufferManager::updateIngressBufferPoolStats() {
     // TODO: Request for per ITM buffer pool stats in SAI
     counterIdsToReadAndClear.push_back(SAI_BUFFER_POOL_STAT_WATERMARK_BYTES);
 #if !defined(BRCM_SAI_SDK_XGS) || defined(BRCM_SAI_SDK_GTE_10_0)
-    counterIdsToReadAndClear.push_back(
-        SAI_BUFFER_POOL_STAT_XOFF_ROOM_WATERMARK_BYTES);
+    if (platform_->getAsic()->isSupported(
+            HwAsic::Feature::BUFFER_POOL_HEADROOM_WATERMARK)) {
+      counterIdsToReadAndClear.push_back(
+          SAI_BUFFER_POOL_STAT_XOFF_ROOM_WATERMARK_BYTES);
+    }
 #endif
   }
   ingressBufferPoolHandle->bufferPool->updateStats(

@@ -425,9 +425,8 @@ std::pair<bool, int16_t> ControlLogic::programFan(
     XLOG(INFO) << "Using hold PWM " << newFanPwm;
   }
 
-  int pwmRawValue =
-      (int)(((*fan.pwmMax()) - (*fan.pwmMin())) * newFanPwm / 100.0 +
-            *fan.pwmMin());
+  int pwmRawValue = static_cast<int>(
+      ((*fan.pwmMax()) - (*fan.pwmMin())) * newFanPwm / 100.0 + *fan.pwmMin());
   if (pwmRawValue < *fan.pwmMin()) {
     pwmRawValue = *fan.pwmMin();
   } else if (pwmRawValue > *fan.pwmMax()) {

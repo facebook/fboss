@@ -209,13 +209,6 @@ void waitForNeighborCacheThread(SwSwitch* sw);
 void waitForRibUpdates(SwSwitch* sw);
 
 /*
- * Update Blocked Neighbors list and wait for updates
- */
-void updateBlockedNeighbor(
-    SwSwitch* sw,
-    const std::vector<std::pair<VlanID, folly::IPAddress>>& ipAddresses);
-
-/*
  * Update Blocked MAC addr list and wait for updates
  */
 void updateMacAddrsToBlock(

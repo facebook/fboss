@@ -80,6 +80,7 @@ cpp_library(
         "//fboss/agent:stats",
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent/hw/test:config_factory",
+        "//fboss/agent/test:agent_ensemble",
         "//fboss/agent/test:test_ensemble_if",
         "//fboss/lib:common_utils",
     ],

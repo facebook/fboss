@@ -18,6 +18,7 @@
 #include <cstring>
 #include <future>
 #include <iostream>
+#include <queue>
 #include <stdexcept>
 
 template <typename CmdTypeT>
@@ -248,12 +249,20 @@ void CmdHandler<CmdTypeT, CmdTypeTraits>::runHelper() {
     printAggregate<CmdTypeT>(parsedAggregationInput, futureList, validAggs);
   }
 
+  std::queue<std::pair<std::string, std::string>> executionFailures{};
+
   for (auto& fut : futureList) {
     auto [host, data, errStr] = fut.get();
-    // exit with failure if any of the calls failed
     if (!errStr.empty()) {
-      throw std::runtime_error("Error in command execution");
+      executionFailures.push({host, errStr});
     }
+  }
+
+  // Collect errors and display at end of execution
+  while (!executionFailures.empty()) {
+    auto [host, errStr] = executionFailures.front();
+    executionFailures.pop();
+    XLOG(ERR) << host << " - Error in command execution: " << errStr;
   }
 }
 

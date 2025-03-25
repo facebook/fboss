@@ -1758,8 +1758,8 @@ int BcmSwitch::pfcDeadlockRecoveryEventCallback(
   Callback* callback = (Callback*)userdata;
   XLOG_EVERY_MS(WARNING, 5000)
       << "PFC deadlock recovery callback invoked for unit " << unit << " port "
-      << (int)port << " cosq " << (int)cosq << " recovery state "
-      << (int)recovery_state;
+      << static_cast<int>(port) << " cosq " << static_cast<int>(cosq)
+      << " recovery state " << static_cast<int>(recovery_state);
 
   CHECK(callback);
   if (recovery_state == bcmCosqPfcDeadlockRecoveryEventBegin) {

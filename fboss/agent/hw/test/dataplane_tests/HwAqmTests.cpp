@@ -534,8 +534,8 @@ class HwAqmTest : public HwLinkStateDependentTest {
      */
     int numPacketsToSend =
         ceil(
-            (double)utility::getRoundedBufferThreshold(
-                getHwSwitch(), thresholdBytes, roundUp) /
+            static_cast<double>(utility::getRoundedBufferThreshold(
+                getHwSwitch(), thresholdBytes, roundUp)) /
             utility::getEffectiveBytesPerPacket(getHwSwitch(), kTxPacketLen)) +
         expectedMarkedOrDroppedPacketCount;
     auto setup = [=, this]() {

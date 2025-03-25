@@ -3190,7 +3190,7 @@ void SaiSwitch::packetRxCallbackPort(
                    << "Found vlan from packet: " << swVlanIdStr();
       } else {
         XLOG(ERR) << "RX packet on cpu port has no vlan tag "
-                  << "or multiple vlan tags: 0x" << std::hex << portSaiId;
+                  << "or multiple vlan tags: " << ethHdr.printVlanTags();
         return;
       }
     } else if (portItr == concurrentIndices_->portSaiId2PortInfo.cend()) {

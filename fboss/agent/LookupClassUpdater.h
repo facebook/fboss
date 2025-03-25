@@ -156,19 +156,6 @@ class LookupClassUpdater : public StateObserver {
       PortID portID);
 
   template <typename NewEntryT>
-  bool isPresentInBlockList(
-      VlanID vlanID,
-      const std::shared_ptr<NewEntryT>& newEntry);
-
-  template <typename AddrT>
-  void processBlockNeighborUpdatesHelper(
-      const std::shared_ptr<SwitchState>& switchState,
-      const std::shared_ptr<Vlan>& vlan,
-      const AddrT& ipAddress);
-
-  void processBlockNeighborUpdates(const StateDelta& stateDelta);
-
-  template <typename NewEntryT>
   bool isPresentInMacAddrsBlockList(
       VlanID vlanID,
       const std::shared_ptr<NewEntryT>& newEntry);
@@ -239,24 +226,6 @@ class LookupClassUpdater : public StateObserver {
   boost::container::flat_map<PortID, MacAndVlan2ClassIDAndRefCnt>
       port2MacAndVlanEntries_;
   bool port2MacAndVlanEntriesUpdated_{false};
-
-  /*
-   * Some use cases (e.g. DR) requires blocking traffic to specific neighbors.
-   * This solution has two parts viz.:
-   *
-   * static configuration:
-   *  ACL:: matcher: CLASS_DROP action: Drop. One each for L2, neighbor and
-   * route.
-   *
-   * dynamic configuration:
-   *  Dynamically associate/disassociate CLASS_DROP with provided neighbors to
-   *  block/unblock traffic egress to them.
-   *  LookupClassUpdater implements this.
-   *
-   *  blockedNeighbors_ maintains the current set of neighbors to block traffic
-   *  to.
-   */
-  std::set<std::pair<VlanID, folly::IPAddress>> blockedNeighbors_;
 
   /*
    * The approach to use IPs to block traffic to a server has few challenges
