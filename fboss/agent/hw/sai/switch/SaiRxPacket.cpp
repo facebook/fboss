@@ -25,7 +25,7 @@ SaiRxPacket::SaiRxPacket(
     size_t buffer_size,
     const void* buffer,
     PortID portId,
-    VlanID vlanId,
+    std::optional<VlanID> vlanId,
     cfg::PacketRxReason rxReason,
     uint8_t queueId) {
   buf_ = folly::IOBuf::takeOwnership(
@@ -41,7 +41,7 @@ SaiRxPacket::SaiRxPacket(
     size_t buffer_size,
     const void* buffer,
     AggregatePortID aggregatePortID,
-    VlanID vlanId,
+    std::optional<VlanID> vlanId,
     cfg::PacketRxReason rxReason,
     uint8_t queueId) {
   buf_ = folly::IOBuf::takeOwnership(

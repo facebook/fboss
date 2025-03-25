@@ -12,10 +12,15 @@
 #include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/ScaleTestUtils.h"
+#include "fboss/lib/CommonFileUtils.h"
 #include "folly/Benchmark.h"
 
 DECLARE_bool(intf_nbr_tables);
 DECLARE_bool(json);
+DEFINE_string(
+    write_agent_config_marker_for_fsdb,
+    "",
+    "Write marker file for FSDB");
 
 namespace {
 constexpr int kNumMacs = 8000;
@@ -338,10 +343,32 @@ cfg::SwitchConfig getSystemScaleTestSwitchConfiguration(
   return config;
 };
 
+void writeAgentConfigMarkerForFsdb() {
+  auto filePath =
+      folly::to<std::string>(FLAGS_write_agent_config_marker_for_fsdb);
+
+  if (createFile(filePath) < 0) {
+    XLOG(DBG2) << "Failed to create file: " << filePath;
+    return;
+  }
+
+  while (true) {
+    if (!checkFileExists(filePath)) {
+      XLOG(DBG2) << "FSDB done with benchmarking and has deleted marker file";
+      break;
+    } else {
+      std::this_thread::sleep_for(std::chrono::seconds(1));
+    }
+  }
+}
+
 void initSystemScaleTest(AgentEnsemble* ensemble) {
   configureMaxAclEntries(ensemble);
   configureMaxRouteEntries(ensemble);
   configureMaxMacEntries(ensemble);
   configureMaxNeighborEntries(ensemble);
+  if (FLAGS_write_agent_config_marker_for_fsdb != "") {
+    writeAgentConfigMarkerForFsdb();
+  }
 }
 } // namespace facebook::fboss::utility

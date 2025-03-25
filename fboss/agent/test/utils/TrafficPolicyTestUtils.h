@@ -42,6 +42,7 @@ void addL4DstPortAclToCfg(
     uint32_t l4DstPort);
 
 void addSetDscpAndEgressQueueActionToCfg(
+    const HwAsic* hwAsic,
     cfg::SwitchConfig* config,
     const std::string& aclName,
     uint8_t dscp,

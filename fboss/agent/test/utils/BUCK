@@ -95,6 +95,7 @@ cpp_library(
     exported_deps = [
         ":acl_test_utils",
         ":copp_test_utils",
+        "//fboss/agent:hw_asic_table",
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent/hw/switch_asics:switch_asics",
         "//fboss/agent/hw/test:config_factory",
@@ -284,6 +285,7 @@ cpp_library(
         ":olympic_qos_utils",
         ":traffic_policy_utils",
         "//fboss/agent:fboss-types",
+        "//fboss/agent:hw_asic_table",
         "//fboss/agent:switch_config-cpp2-types",
     ],
 )
@@ -634,6 +636,7 @@ cpp_library(
         "//fboss/agent/test:agent_ensemble",
         "//fboss/agent/test:ecmp_helper",
         "//fboss/agent/test:route_scale_gen",
+        "//fboss/lib:common_file_utils",
         "//folly:benchmark",
     ],
 )
