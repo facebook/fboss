@@ -321,38 +321,19 @@
             "gpioChipValue": "1",
             "gpioChipPin": "55"
           }
-        },
-        {
-          "commandType": "i2cBusRead",
-          "path": "/run/devmap/i2c-busses/SMB_IOB_I2C_MASTER_6"
-        },
-        {
-          "commandType": "createI2cDevice",
-          "deviceId": "24c02",
-          "deviceAddress": "0x50",
-          "path": "/sys/bus/i2c/devices/{BUS}/new_device"
         }
       ],
       "upgrade": [
         {
-          "commandType": "ddDynamicBus",
-          "ddArgs": {
-            "if": "/sys/bus/i2c/devices/${oob_bus}/*-0050/eeprom"
+          "commandType": "i2cEeprom",
+          "i2cEepromArgs": {
+            "driverName": "24c02",
+            "deviceAddress": "0x50",   
+            "path": "/run/devmap/i2c-busses/SMB_IOB_I2C_MASTER_6"
           }
         }
       ],
-      "read": {
-        "commandType": "ddDynamicBus",
-        "ddArgs": {
-          "if": "/sys/bus/i2c/devices/${oob_bus}/*-0050/eeprom"
-        }
-      },
       "postUpgrade": [
-        {
-          "commandType": "deleteI2cdevice",
-          "deviceAddress": "0x50",
-          "path": "/sys/bus/i2c/devices/{BUS}/delete_device"
-        },
         {
           "commandType": "gpioset",
           "gpiosetArgs": {
