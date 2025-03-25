@@ -204,9 +204,9 @@ CmdShowPort::getPeerDrainStates(
   return portToPeerDrainState;
 }
 
-PortInfoMap CmdShowPort::asyncGetPortInfo(
+PortIdToInfo CmdShowPort::asyncGetPortInfo(
     std::shared_ptr<apache::thrift::Client<FbossCtrl>> client) const {
-  PortInfoMap entries;
+  PortIdToInfo entries;
   try {
     client->sync_getAllPortInfo(entries);
   } catch (const std::exception&) {
@@ -215,10 +215,10 @@ PortInfoMap CmdShowPort::asyncGetPortInfo(
   return entries;
 }
 
-std::unordered_map<std::string, PortInfoMap> CmdShowPort::getPortInfoMap(
+std::unordered_map<std::string, PortIdToInfo> CmdShowPort::getPeerToPorts(
     const std::unordered_set<std::string>& hosts) {
   // Launch futures
-  std::unordered_map<std::string, std::shared_future<PortInfoMap>> futures;
+  std::unordered_map<std::string, std::shared_future<PortIdToInfo>> futures;
   for (const auto& host : hosts) {
     if (!clients.contains(host)) {
       clients[host] = utils::createClient<apache::thrift::Client<FbossCtrl>>(
@@ -232,17 +232,15 @@ std::unordered_map<std::string, PortInfoMap> CmdShowPort::getPortInfoMap(
   }
 
   // Get results
-  std::
-      unordered_map<std::string, std::map<int, facebook::fboss::PortInfoThrift>>
-          portInfoMap;
+  std::unordered_map<std::string, PortIdToInfo> peerToPorts;
   for (const auto& [peer, f] : futures) {
     auto& entries = f.get();
     if (entries.empty()) {
       continue;
     }
-    portInfoMap[peer] = entries;
+    peerToPorts[peer] = entries;
   }
-  return portInfoMap;
+  return peerToPorts;
 }
 
 RetType CmdShowPort::queryClient(
