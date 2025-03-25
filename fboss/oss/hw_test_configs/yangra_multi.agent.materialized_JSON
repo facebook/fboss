@@ -6,6 +6,7 @@
     "intf_nbr_tables": "true",
     "log_variable_name": "true",
     "mode": "yangra",
+    "multi_switch": "true",
     "rx_vlan_untagged_packets": "true",
     "sai_user_defined_trap": "true",
     "set_classid_for_my_subnet_and_ip_routes": "true",
