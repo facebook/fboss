@@ -83,7 +83,8 @@ BENCHMARK(HwStatsCollection) {
 
         if (!hasVoq && !hasFabric) {
           // Limit ports for non-VOQ and non-fabric switches
-          portsNew.resize(std::min((int)ports.size(), numPortsToCollectStats));
+          portsNew.resize(
+              std::min(static_cast<int>(ports.size()), numPortsToCollectStats));
         }
 
         auto config = utility::onePortPerInterfaceConfig(
@@ -128,7 +129,8 @@ BENCHMARK(HwStatsCollection) {
   }
 
   std::vector<PortID> ports = ensemble->masterLogicalPortIds();
-  ports.resize(std::min((int)ports.size(), numPortsToCollectStats));
+  ports.resize(
+      std::min(static_cast<int>(ports.size()), numPortsToCollectStats));
 
   if (ensemble->getSw()->getHwAsicTable()->isFeatureSupportedOnAnyAsic(
           HwAsic::Feature::ROUTE_COUNTERS)) {

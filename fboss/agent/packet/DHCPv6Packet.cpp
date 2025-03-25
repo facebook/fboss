@@ -160,12 +160,12 @@ std::vector<DHCPv6Option> DHCPv6Packet::extractOptions(
 string DHCPv6Packet::toString() const {
   stringstream ss;
   if (isDHCPv6Relay()) {
-    ss << "DHCPv6Packet (relay) { type: " << (int)type
-       << " hopCount: " << (int)hopCount << " linkAddr: " << linkAddr.str()
-       << " peerAddr: " << peerAddr.str() << " option len: " << options.size()
-       << " }";
+    ss << "DHCPv6Packet (relay) { type: " << static_cast<int>(type)
+       << " hopCount: " << static_cast<int>(hopCount)
+       << " linkAddr: " << linkAddr.str() << " peerAddr: " << peerAddr.str()
+       << " option len: " << options.size() << " }";
   } else {
-    ss << "DHCPv6Packet { type: " << (int)type
+    ss << "DHCPv6Packet { type: " << static_cast<int>(type)
        << " transaction id: " << transactionId
        << " option len: " << options.size() << " }";
   }

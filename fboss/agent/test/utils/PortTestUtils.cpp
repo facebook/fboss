@@ -166,7 +166,8 @@ cfg::PortSpeed getDefaultInterfaceSpeed(const cfg::AsicType& asicType) {
       return cfg::PortSpeed::FOURHUNDREDG;
     default:
       throw FbossError(
-          "Unsupported interface speed for asic type: ", (int)asicType);
+          "Unsupported interface speed for asic type: ",
+          static_cast<int>(asicType));
   }
 }
 
@@ -178,7 +179,8 @@ cfg::PortSpeed getDefaultFabricSpeed(const cfg::AsicType& asicType) {
       return cfg::PortSpeed::HUNDREDANDSIXPOINTTWOFIVEG;
     default:
       throw FbossError(
-          "Unsupported fabric speed for asic type: ", (int)asicType);
+          "Unsupported fabric speed for asic type: ",
+          static_cast<int>(asicType));
   }
 }
 

@@ -11,6 +11,7 @@
 #pragma once
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/test/AgentEnsemble.h"
 #include "fboss/agent/test/TestEnsembleIf.h"
 #include "fboss/agent/types.h"
 
@@ -32,4 +33,10 @@ void checkFabricPortsActiveState(
     TestEnsembleIf* ensemble,
     const std::vector<PortID>& fabricPortIds,
     bool expectActive);
+void validateFecErrorDetectInState(
+    const SwitchState* switchState,
+    bool fecErrorDetectEnable);
+void setupFecErrorDetectEnable(
+    AgentEnsemble* ensemble,
+    bool fecErrorDetectEnable);
 } // namespace facebook::fboss::utility

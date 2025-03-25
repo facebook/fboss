@@ -512,7 +512,8 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
     // [5] ==> [3]
     // ......
     std::vector<uint32_t> pportList;
-    for (int i = 0; i < std::max(1, (int)hwLaneList.size() / 2); i++) {
+    for (int i = 0; i < std::max(1, static_cast<int>(hwLaneList.size()) / 2);
+         i++) {
       pportList.push_back((hwLaneList[i * 2] + 1) / 2);
     }
     hwLaneList = pportList;
@@ -673,20 +674,10 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
 
   std::optional<SaiPortTraits::Attributes::FecErrorDetectEnable>
       fecErrorDetectEnable{};
-#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
-  if ((swPort->getPortType() == cfg::PortType::FABRIC_PORT) &&
-      platform_->getAsic()->isSupported(
-          HwAsic::Feature::FEC_ERROR_DETECT_ENABLE) &&
-      (platform_->getHwSwitch()->getBootType() == BootType::COLD_BOOT) &&
-      ((platform_->getAsic()->getAsicType() ==
-        cfg::AsicType::ASIC_TYPE_RAMON3) ||
-       isDualStage3Q2QMode())) {
-    // FEC error detection enabling is needed for dual stage only and
-    // should be enabled on cold boot on fabric ports. Feature is
-    // enabled for 2-stage R3 devices only, however, for J3, check
-    // explicitly to restrict enabling this for 2-stage alone.
-    fecErrorDetectEnable =
-        SaiPortTraits::Attributes::FecErrorDetectEnable{true};
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_7)
+  if (auto portFecErrorDetectEnable = swPort->getFecErrorDetectEnable()) {
+    fecErrorDetectEnable = SaiPortTraits::Attributes::FecErrorDetectEnable{
+        *portFecErrorDetectEnable};
   }
 #endif
 

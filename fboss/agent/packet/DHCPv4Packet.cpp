@@ -85,7 +85,8 @@ bool DHCPv4Packet::operator==(const DHCPv4Packet& r) const {
 
 size_t
 DHCPv4Packet::appendOption(uint8_t op, uint8_t len, const uint8_t* bytes) {
-  XLOG(DBG4) << "Appending option: " << (int)op << " of length: " << (int)len;
+  XLOG(DBG4) << "Appending option: " << static_cast<int>(op)
+             << " of length: " << static_cast<int>(len);
 
   if (isOptionWithoutLength(op)) {
     options.push_back(op);

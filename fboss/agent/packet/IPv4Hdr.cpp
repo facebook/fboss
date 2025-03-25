@@ -114,14 +114,17 @@ uint32_t IPv4Hdr::pseudoHdrPartialCsum(uint32_t payloadLength) const {
 
 string IPv4Hdr::toString() const {
   stringstream ss;
-  ss << " Version : " << (int)version << " Ihl : " << (int)ihl
-     << " Dscp : " << (int)dscp << " Ecn : " << (int)ecn
-     << " Length : " << length << " Id : " << id
+  ss << " Version : " << static_cast<int>(version)
+     << " Ihl : " << static_cast<int>(ihl)
+     << " Dscp : " << static_cast<int>(dscp)
+     << " Ecn : " << static_cast<int>(ecn) << " Length : " << length
+     << " Id : " << id
      << " DontFragment : " << (dontFragment ? "True" : "False")
      << " MoreFragments : " << (moreFragments ? "True" : "False")
-     << " FragmentOffset : " << fragmentOffset << " Ttl :" << (int)ttl
-     << " Protocol : " << "0x" << std::hex << (int)protocol << std::dec
-     << " Csum :" << csum << " SrcAddr :" << srcAddr << " DstAddr :" << dstAddr;
+     << " FragmentOffset : " << fragmentOffset
+     << " Ttl :" << static_cast<int>(ttl) << " Protocol : " << "0x" << std::hex
+     << static_cast<int>(protocol) << std::dec << " Csum :" << csum
+     << " SrcAddr :" << srcAddr << " DstAddr :" << dstAddr;
   return ss.str();
 }
 
