@@ -101,14 +101,17 @@ std::string getActiveStateStr(PortActiveState* activeState) {
 }
 
 std::string getTransceiverStr(
-    std::map<int32_t, facebook::fboss::TransceiverInfo>& transceiverEntries,
+    const std::map<int32_t, facebook::fboss::TransceiverInfo>&
+        transceiverEntries,
     int32_t transceiverId) {
-  if (transceiverEntries.count(transceiverId) == 0) {
+  auto entry = transceiverEntries.find(transceiverId);
+  if (entry == transceiverEntries.end()) {
     return "";
   }
-  auto isPresent = *transceiverEntries[transceiverId].tcvrState()->present();
-  if (isPresent)
+
+  if (*entry->second.tcvrState()->present()) {
     return "Present";
+  }
   return "Absent";
 }
 
@@ -334,7 +337,8 @@ RetType CmdShowPort::queryClient(
 
 RetType CmdShowPort::createModel(
     const std::map<int32_t, facebook::fboss::PortInfoThrift>& portEntries,
-    std::map<int32_t, facebook::fboss::TransceiverInfo> transceiverEntries,
+    const std::map<int32_t, facebook::fboss::TransceiverInfo>&
+        transceiverEntries,
     const ObjectArgType& queriedPorts,
     const std::map<std::string, facebook::fboss::HwPortStats>& portStats,
     const std::unordered_map<std::string, Endpoint>& portToPeer,

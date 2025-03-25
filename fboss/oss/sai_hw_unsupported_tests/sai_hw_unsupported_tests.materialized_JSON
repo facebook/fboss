@@ -2303,52 +2303,43 @@
           "test_name_regex": "HwMPLSTest.*"
         },
         {
-          "test_name_regex": "HwTrunkTest.TrunkPortStatsWithMplsPush"
-        },
-        {
-          "test_name_regex": "HwTrunkTest.TrunkPortStatsWithMplsPush"
-        },
-        {
-          "test_name_regex": "HwTrunkLoadBalancerTest.ECMPFullTrunkHalf4X3WideTrunksV6MplsFrontPanelTraffic"
-        },
-        {
-          "test_name_regex": "HwTrunkLoadBalancerTest.ECMPFullTrunkHalf4X3WideTrunksV4MplsFrontPanelTraffic"
-        },
-        {
-          "test_name_regex": "HwTrunkLoadBalancerTest.ECMPFullTrunkHalf4X3WideTrunksV6MplsSwapFrontPanelTraffic"
-        },
-        {
-          "test_name_regex": "HwTrunkLoadBalancerTest.ECMPFullTrunkHalf4X3WideTrunksV4MplsSwapFrontPanelTraffic"
-        },
-        {
-          "test_name_regex": "HwTrunkLoadBalancerTest.ECMPFullTrunkHalf4X3WideTrunksV6MplsPhpFrontPanelTraffic"
-        },
-        {
-          "test_name_regex": "HwTrunkLoadBalancerTest.ECMPFullTrunkHalf4X3WideTrunksV4MplsPhpFrontPanelTraffic"
-        },
-        {
-          "test_name_regex": "HwTrunkLoadBalancerTest.ECMPFullTrunkHalf4X2WideTrunksV6MplsFrontPanelTraffic"
-        },
-        {
-          "test_name_regex": "HwTrunkLoadBalancerTest.ECMPFullTrunkHalf4X2WideTrunksV4MplsFrontPanelTraffic"
-        },
-        {
-          "test_name_regex": "HwTrunkLoadBalancerTest.ECMPFullTrunkHalf4X2WideTrunksV6MplsSwapFrontPanelTraffic"
-        },
-        {
-          "test_name_regex": "HwTrunkLoadBalancerTest.ECMPFullTrunkHalf4X2WideTrunksV4MplsSwapFrontPanelTraffic"
-        },
-        {
-          "test_name_regex": "HwTrunkLoadBalancerTest.ECMPFullTrunkHalf4X2WideTrunksV6MplsPhpFrontPanelTraffic"
-        },
-        {
-          "test_name_regex": "HwTrunkLoadBalancerTest.ECMPFullTrunkHalf4X2WideTrunksV4MplsPhpFrontPanelTraffic"
+          "test_name_regex": "HwTeFlowTrafficTest.*"
         },
         {
           "test_name_regex": "HwTeFlowTest.*"
         },
         {
-          "test_name_regex": "HwTeFlowTrafficTest.*"
+          "test_name_regex": "HwMirrorTest/[01].SampleOnePort"
+        },
+        {
+          "test_name_regex": "HwMirrorTest/[01].SampleAllPorts"
+        },
+        {
+          "test_name_regex": "HwMirrorTest/[01].SflowMirrorWithErspanMirror"
+        },
+        {
+          "test_name_regex": "HwMirrorTest/[01].SflowMirrorWithErspanMirrorOnePortSflow"
+        },
+        {
+          "test_name_regex": "HwMirrorTest/[01].SflowMirrorWithErspanMirrorNoPortSflow"
+        },
+        {
+          "test_name_regex": "HwMirrorTest/[01].SampleAllPortsMirrorUnresolved"
+        },
+        {
+          "test_name_regex": "HwMirrorTest/[01].SampleAllPortsMirrorUnresolvedResolved"
+        },
+        {
+          "test_name_regex": "HwMirrorTest/[01].SampleAllPortsMirrorUpdate"
+        },
+        {
+          "test_name_regex": "HwMirrorTest/[01].RemoveSampleAllPorts"
+        },
+        {
+          "test_name_regex": "HwMirrorTest/[01].RemoveSampleAllPortsAfterWarmBoot"
+        },
+        {
+          "test_name_regex": "HwMirrorTest/[01].SampleAllPortsReloadConfig"
         }
     ],
     "leaba/1.42.8/1.42.8/gibraltar": [

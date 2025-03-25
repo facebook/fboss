@@ -855,6 +855,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       sflowNofSamples, // Sflow aggr number of samples
       std::nullopt, // SDK Register dump log path
       std::nullopt, // Firmware Object list
+      std::nullopt, // tc rate limit list
   };
 }
 

@@ -16,6 +16,7 @@
 
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/lib/phy/gen-cpp2/prbs_types.h"
+#include "fboss/lib/restart_tracker/RestartTimeTracker.h"
 #include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
 #include "fboss/qsfp_service/TransceiverStateMachineUpdate.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
@@ -198,6 +199,7 @@ TransceiverManager::~TransceiverManager() {
     setGracefulExitingFlag();
     stopThreads();
   }
+  restart_time::stop();
 }
 
 void TransceiverManager::initPortToModuleMap() {
@@ -259,6 +261,9 @@ void TransceiverManager::init() {
   // Check whether we can warm boot
   canWarmBoot_ = checkWarmBootFlags();
   XLOG(INFO) << "Will attempt " << (canWarmBoot_ ? "WARM" : "COLD") << " boot";
+
+  restart_time::init(FLAGS_qsfp_service_volatile_dir, canWarmBoot_);
+
   if (canWarmBoot_) {
     // Read the warm boot state file for a warm boot
     readWarmBootStateFile();
@@ -278,6 +283,7 @@ void TransceiverManager::init() {
 
   if (!isSystemInitialized_) {
     isSystemInitialized_ = true;
+    restart_time::mark(RestartEvent::INITIALIZED);
   }
 }
 
@@ -2031,6 +2037,8 @@ void TransceiverManager::refreshStateMachines() {
     // On successful initialization, set warm boot flag in case of a
     // qsfp_service crash (no gracefulExit).
     setCanWarmBoot();
+
+    restart_time::mark(RestartEvent::CONFIGURED);
   }
 
   publishPimStatesToFsdb();
