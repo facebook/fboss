@@ -14,7 +14,7 @@ thrift_library(
     languages = [
         "cpp2",
         "go",
-        "py",
+        "py-deprecated",
         "py3",
         "py-asyncio",
         "python",
@@ -42,7 +42,7 @@ thrift_library(
     languages = [
         "cpp2",
         "go",
-        "py",
+        "py-deprecated",
         "py3",
         "py-asyncio",
         "rust",
@@ -73,7 +73,7 @@ thrift_library(
     name = "fsdb_config",
     languages = [
         "cpp2",
-        "py",
+        "py-deprecated",
         "py3",
         "py-asyncio",
         "python",
@@ -105,7 +105,7 @@ thrift_library(
     languages = [
         "cpp2",
         "go",
-        "py",
+        "py-deprecated",
         "py3",
         "py-asyncio",
         "python",
