@@ -67,8 +67,8 @@ TEST_F(HwAclStatTest, AclStatMultipleActions) {
         "acl0",
         "stat0",
         utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics()));
-    cfg::MatchAction matchAction =
-        utility::getToQueueAction(0, this->getHwSwitchEnsemble()->isSai());
+    cfg::MatchAction matchAction = utility::getToQueueAction(
+        getPlatform()->getAsic(), 0, this->getHwSwitchEnsemble()->isSai());
     cfg::MatchToAction action = cfg::MatchToAction();
     *action.matcher() = "acl0";
     *action.action() = matchAction;

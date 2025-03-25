@@ -481,7 +481,14 @@ class AgentCoppTest : public AgentHwTest {
       bool outOfPort,
       bool selfSolicit,
       bool expectRxPacket = true) {
-    auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
+    InterfaceID intfId =
+        utility::firstInterfaceIDWithPorts(getProgrammedState());
+    auto intf = getProgrammedState()->getInterfaces()->getNode(intfId);
+    std::optional<VlanID> vlanId{};
+    if (intf->getType() == cfg::InterfaceType::VLAN) {
+      vlanId = intf->getVlanID();
+    }
+    auto myAddr = utility::getIntfAddrsV6(getProgrammedState(), intfId)[0];
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     auto neighborMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
@@ -494,7 +501,7 @@ class AgentCoppTest : public AgentHwTest {
                 vlanId,
                 selfSolicit ? neighborMac : intfMac, // solicitar mac
                 neighborIp, // solicitar ip
-                selfSolicit ? folly::IPAddressV6("1::1")
+                selfSolicit ? myAddr
                             : folly::IPAddressV6("1::2")) // solicited address
           : utility::makeNeighborAdvertisement(
                 getSw(),
@@ -502,7 +509,7 @@ class AgentCoppTest : public AgentHwTest {
                 neighborMac, // sender mac
                 intfMac, // my mac
                 neighborIp, // sender ip
-                folly::IPAddressV6("1::")); // sent to me
+                myAddr); // sent to me
       sendPkt(std::move(txPacket), outOfPort, expectRxPacket);
     }
   }

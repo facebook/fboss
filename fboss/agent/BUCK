@@ -1189,6 +1189,9 @@ cpp_library(
 
 cpp_library(
     name = "packet",
+    srcs = [
+        "Packet.cpp",
+    ],
     headers = [
         "Packet.h",
         "RxPacket.h",
@@ -1199,6 +1202,9 @@ cpp_library(
         ":fboss-types",
         "//folly:network_address",
         "//folly/io:iobuf",
+    ],
+    exported_external_deps = [
+        "gflags",
     ],
 )
 

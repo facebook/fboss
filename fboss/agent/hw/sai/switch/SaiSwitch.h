@@ -589,6 +589,8 @@ class SaiSwitch : public HwSwitch {
       std::optional<cfg::PfcWatchdogRecoveryAction> recoveryAction);
   void setFabricPortOwnershipToAdapter();
 
+  bool processVlanUntaggedPackets() const;
+
   /* reconstruction state apis */
   std::shared_ptr<MultiSwitchAclTableGroupMap>
   reconstructMultiSwitchAclTableGroupMap() const;

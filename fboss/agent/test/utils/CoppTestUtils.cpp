@@ -406,13 +406,16 @@ void setDefaultCpuTrafficPolicyConfig(
   config.cpuTrafficPolicy() = cpuConfig;
 }
 
-cfg::MatchAction
-createQueueMatchAction(int queueId, bool isSai, cfg::ToCpuAction toCpuAction) {
+cfg::MatchAction createQueueMatchAction(
+    const HwAsic* hwAsic,
+    int queueId,
+    bool isSai,
+    cfg::ToCpuAction toCpuAction) {
   if (toCpuAction != cfg::ToCpuAction::COPY &&
       toCpuAction != cfg::ToCpuAction::TRAP) {
     throw FbossError("Unsupported CounterType for ACL");
   }
-  return utility::getToQueueAction(queueId, isSai, toCpuAction);
+  return utility::getToQueueAction(hwAsic, queueId, isSai, toCpuAction);
 }
 
 void addEtherTypeToAcl(
@@ -473,7 +476,7 @@ void addHighPriAclForNwAndNetworkControlDscp(
       hwAsic,
       acl,
       acls,
-      createQueueMatchAction(highPriQueueId, isSai, toCpuAction),
+      createQueueMatchAction(hwAsic, highPriQueueId, isSai, toCpuAction),
       {dstNetwork.first.isV6() ? cfg::EtherType::IPv6 : cfg::EtherType::IPv4});
 }
 
@@ -492,7 +495,7 @@ void addMidPriAclForNw(
       hwAsic,
       acl,
       acls,
-      createQueueMatchAction(midPriQueueId, isSai, toCpuAction),
+      createQueueMatchAction(hwAsic, midPriQueueId, isSai, toCpuAction),
       {dstNetwork.first.isV6() ? cfg::EtherType::IPv6 : cfg::EtherType::IPv4});
 }
 
@@ -511,7 +514,7 @@ void addHighPriAclForMyIPNetworkControl(
       hwAsic,
       acl,
       acls,
-      createQueueMatchAction(highPriQueueId, isSai, toCpuAction),
+      createQueueMatchAction(hwAsic, highPriQueueId, isSai, toCpuAction),
       {cfg::EtherType::IPv4, cfg::EtherType::IPv6});
 }
 
@@ -531,7 +534,7 @@ void addHighPriAclForBgp(
       hwAsic,
       dstPortAcl,
       acls,
-      createQueueMatchAction(highPriQueueId, isSai, toCpuAction),
+      createQueueMatchAction(hwAsic, highPriQueueId, isSai, toCpuAction),
       {cfg::EtherType::IPv4, cfg::EtherType::IPv6});
 
   cfg::AclEntry srcPortAcl;
@@ -544,11 +547,12 @@ void addHighPriAclForBgp(
       hwAsic,
       srcPortAcl,
       acls,
-      createQueueMatchAction(highPriQueueId, isSai, toCpuAction),
+      createQueueMatchAction(hwAsic, highPriQueueId, isSai, toCpuAction),
       {cfg::EtherType::IPv4, cfg::EtherType::IPv6});
 }
 
 void addHighPriAclForArp(
+    const HwAsic* hwAsic,
     cfg::ToCpuAction toCpuAction,
     int highPriQueueId,
     std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>>& acls,
@@ -557,7 +561,8 @@ void addHighPriAclForArp(
   acl1.etherType() = cfg::EtherType::ARP;
   acl1.ipType() = cfg::IpType::ARP_REQUEST;
   acl1.name() = folly::to<std::string>("cpuPolicing-high-arp-request-acl");
-  auto action = createQueueMatchAction(highPriQueueId, isSai, toCpuAction);
+  auto action =
+      createQueueMatchAction(hwAsic, highPriQueueId, isSai, toCpuAction);
   acls.push_back(std::make_pair(acl1, action));
   cfg::AclEntry acl2;
   acl2.etherType() = cfg::EtherType::ARP;
@@ -567,6 +572,7 @@ void addHighPriAclForArp(
 }
 
 void addHighPriAclForNdp(
+    const HwAsic* hwAsic,
     cfg::ToCpuAction toCpuAction,
     int highPriQueueId,
     std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>>& acls,
@@ -574,7 +580,8 @@ void addHighPriAclForNdp(
   cfg::Ttl ttl;
   ttl.value() = 255;
   ttl.mask() = 0xff;
-  auto action = createQueueMatchAction(highPriQueueId, isSai, toCpuAction);
+  auto action =
+      createQueueMatchAction(hwAsic, highPriQueueId, isSai, toCpuAction);
 
   cfg::AclEntry acl1;
   acl1.etherType() = cfg::EtherType::IPv6;
@@ -627,6 +634,7 @@ void addHighPriAclForNdp(
 }
 
 void addHighPriAclForLacp(
+    const HwAsic* hwAsic,
     cfg::ToCpuAction toCpuAction,
     int highPriQueueId,
     std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>>& acls,
@@ -635,11 +643,13 @@ void addHighPriAclForLacp(
   acl.etherType() = cfg::EtherType::LACP;
   acl.dstMac() = LACPDU::kSlowProtocolsDstMac().toString();
   acl.name() = folly::to<std::string>("cpuPolicing-high-lacp-acl");
-  auto action = createQueueMatchAction(highPriQueueId, isSai, toCpuAction);
+  auto action =
+      createQueueMatchAction(hwAsic, highPriQueueId, isSai, toCpuAction);
   acls.push_back(std::make_pair(acl, action));
 }
 
 void addMidPriAclForLldp(
+    const HwAsic* hwAsic,
     cfg::ToCpuAction toCpuAction,
     int midPriQueueId,
     std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>>& acls,
@@ -648,7 +658,8 @@ void addMidPriAclForLldp(
   acl.etherType() = cfg::EtherType::LLDP;
   acl.dstMac() = LldpManager::LLDP_DEST_MAC.toString();
   acl.name() = folly::to<std::string>("cpuPolicing-mid-lldp-acl");
-  auto action = createQueueMatchAction(midPriQueueId, isSai, toCpuAction);
+  auto action =
+      createQueueMatchAction(hwAsic, midPriQueueId, isSai, toCpuAction);
   acls.push_back(std::make_pair(acl, action));
 }
 
@@ -665,7 +676,7 @@ void addMidPriAclForIp2Me(
       hwAsic,
       acl,
       acls,
-      createQueueMatchAction(midPriQueueId, isSai, toCpuAction),
+      createQueueMatchAction(hwAsic, midPriQueueId, isSai, toCpuAction),
       {cfg::EtherType::IPv4, cfg::EtherType::IPv6});
 }
 
@@ -681,7 +692,8 @@ void addLowPriAclForUnresolvedRoutes(
       hwAsic,
       acl,
       acls,
-      createQueueMatchAction(utility::kCoppLowPriQueueId, isSai, toCpuAction),
+      createQueueMatchAction(
+          hwAsic, utility::kCoppLowPriQueueId, isSai, toCpuAction),
       {cfg::EtherType::IPv4, cfg::EtherType::IPv6});
 }
 
@@ -880,9 +892,17 @@ defaultIngressCpuAclsForSai(
 
     if (hwAsic->isSupported(HwAsic::Feature::NO_RX_REASON_TRAP)) {
       addHighPriAclForArp(
-          cfg::ToCpuAction::TRAP, getCoppHighPriQueueId(hwAsic), acls, true);
+          hwAsic,
+          cfg::ToCpuAction::TRAP,
+          getCoppHighPriQueueId(hwAsic),
+          acls,
+          true);
       addHighPriAclForNdp(
-          cfg::ToCpuAction::TRAP, getCoppHighPriQueueId(hwAsic), acls, true);
+          hwAsic,
+          cfg::ToCpuAction::TRAP,
+          getCoppHighPriQueueId(hwAsic),
+          acls,
+          true);
       addHighPriAclForBgp(
           hwAsic,
           cfg::ToCpuAction::TRAP,
@@ -896,9 +916,17 @@ defaultIngressCpuAclsForSai(
           acls,
           true);
       addHighPriAclForLacp(
-          cfg::ToCpuAction::TRAP, getCoppHighPriQueueId(hwAsic), acls, true);
+          hwAsic,
+          cfg::ToCpuAction::TRAP,
+          getCoppHighPriQueueId(hwAsic),
+          acls,
+          true);
       addMidPriAclForLldp(
-          cfg::ToCpuAction::TRAP, getCoppMidPriQueueId({hwAsic}), acls, true);
+          hwAsic,
+          cfg::ToCpuAction::TRAP,
+          getCoppMidPriQueueId({hwAsic}),
+          acls,
+          true);
     }
   }
 
@@ -969,7 +997,10 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAclsForBcm(
     acls.emplace_back(
         acl,
         createQueueMatchAction(
-            getCoppHighPriQueueId(hwAsic), isSai, getCpuActionType(hwAsic)));
+            hwAsic,
+            getCoppHighPriQueueId(hwAsic),
+            isSai,
+            getCpuActionType(hwAsic)));
   }
 
   // EAPOL
@@ -982,7 +1013,10 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAclsForBcm(
       acls.emplace_back(
           acl,
           createQueueMatchAction(
-              getCoppHighPriQueueId(hwAsic), isSai, getCpuActionType(hwAsic)));
+              hwAsic,
+              getCoppHighPriQueueId(hwAsic),
+              isSai,
+              getCpuActionType(hwAsic)));
     }
   }
 
@@ -1009,7 +1043,10 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAclsForBcm(
     acls.emplace_back(
         acl,
         createQueueMatchAction(
-            getCoppHighPriQueueId(hwAsic), isSai, getCpuActionType(hwAsic)));
+            hwAsic,
+            getCoppHighPriQueueId(hwAsic),
+            isSai,
+            getCpuActionType(hwAsic)));
   };
   addHighPriDstClassL3BgpAcl(true /*v4*/, true /*srcPort*/);
   addHighPriDstClassL3BgpAcl(true /*v4*/, false /*dstPort*/);
@@ -1031,7 +1068,10 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAclsForBcm(
     acls.emplace_back(
         acl,
         createQueueMatchAction(
-            getCoppHighPriQueueId(hwAsic), isSai, getCpuActionType(hwAsic)));
+            hwAsic,
+            getCoppHighPriQueueId(hwAsic),
+            isSai,
+            getCpuActionType(hwAsic)));
   };
   addHigPriLocalIpNetworkControlAcl(true);
   addHigPriLocalIpNetworkControlAcl(false);
@@ -1048,6 +1088,7 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAclsForBcm(
         acls.emplace_back(
             acl,
             createQueueMatchAction(
+                hwAsic,
                 getCoppHighPriQueueId(hwAsic),
                 isSai,
                 getCpuActionType(hwAsic)));
@@ -1066,7 +1107,10 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAclsForBcm(
     acls.emplace_back(
         acl,
         createQueueMatchAction(
-            getCoppHighPriQueueId(hwAsic), isSai, getCpuActionType(hwAsic)));
+            hwAsic,
+            getCoppHighPriQueueId(hwAsic),
+            isSai,
+            getCpuActionType(hwAsic)));
   }
 
   // Now steer traffic destined to this (local) interface IP
@@ -1085,6 +1129,7 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAclsForBcm(
     acls.emplace_back(
         acl,
         createQueueMatchAction(
+            hwAsic,
             utility::getCoppMidPriQueueId({hwAsic}),
             isSai,
             getCpuActionType(hwAsic)));
@@ -1120,8 +1165,8 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAclsForBcm(
       utility::addTrafficCounter(
           &config, kMplsDestNoMatchCounterName, counterTypes);
       auto queue = utility::kCoppLowPriQueueId;
-      auto action =
-          createQueueMatchAction(queue, isSai, getCpuActionType(hwAsic));
+      auto action = createQueueMatchAction(
+          hwAsic, queue, isSai, getCpuActionType(hwAsic));
       action.counter() = kMplsDestNoMatchCounterName;
       acls.emplace_back(acl, action);
     }
@@ -1253,6 +1298,7 @@ std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueues(
 }
 
 cfg::MatchAction getToQueueActionForSai(
+    const HwAsic* hwAsic,
     const int queueId,
     const std::optional<cfg::ToCpuAction> toCpuAction) {
   cfg::MatchAction action;
@@ -1264,10 +1310,15 @@ cfg::MatchAction getToQueueActionForSai(
       userDefinedTrap.queueId() = queueId;
       action.userDefinedTrap() = userDefinedTrap;
     }
-    // assume tc i maps to queue i for all i on sai switches
-    cfg::SetTcAction setTc;
-    setTc.tcValue() = queueId;
-    action.setTc() = setTc;
+    if (hwAsic->isSupported(
+            HwAsic::Feature::SAI_SET_TC_FOR_USER_DEFINED_TRAP)) {
+      // TODO-Chenab: remove this once required sdk support to be able to set
+      // "setTC" action is available with user defined trap.
+      // assume tc i maps to queue i for all i on sai switches
+      cfg::SetTcAction setTc;
+      setTc.tcValue() = queueId;
+      action.setTc() = setTc;
+    }
   } else {
     cfg::QueueMatchAction queueAction;
     queueAction.queueId() = queueId;
@@ -1293,10 +1344,11 @@ cfg::MatchAction getToQueueActionForBcm(
 }
 
 cfg::MatchAction getToQueueAction(
+    const HwAsic* hwAsic,
     const int queueId,
     bool isSai,
     const std::optional<cfg::ToCpuAction> toCpuAction) {
-  return isSai ? getToQueueActionForSai(queueId, toCpuAction)
+  return isSai ? getToQueueActionForSai(hwAsic, queueId, toCpuAction)
                : getToQueueActionForBcm(queueId, toCpuAction);
 }
 

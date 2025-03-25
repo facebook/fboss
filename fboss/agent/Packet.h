@@ -11,7 +11,10 @@
 
 #include <folly/io/IOBuf.h>
 
+#include <gflags/gflags.h>
 #include <cstdint>
+
+DECLARE_bool(rx_vlan_untagged_packets);
 
 namespace facebook::fboss {
 

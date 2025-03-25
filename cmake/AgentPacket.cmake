@@ -4,6 +4,7 @@
 # cmake/FooBar.cmake
 
 add_library(packet
+  fboss/agent/Packet.cpp
   fboss/agent/packet/ArpHdr.cpp
   fboss/agent/packet/DHCPv4Packet.cpp
   fboss/agent/packet/DHCPv6Packet.cpp

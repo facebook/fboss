@@ -10,6 +10,7 @@
 
 #include "fboss/agent/test/utils/DscpMarkingUtils.h"
 
+#include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
@@ -74,6 +75,7 @@ void addDscpMarkingAclsHelper(
     utility::addL4SrcPortAclToCfg(
         hwAsic, config, l4SrcPortAclName, proto, port);
     utility::addSetDscpAndEgressQueueActionToCfg(
+        hwAsic,
         config,
         l4SrcPortAclName,
         kIcpDscp(),
@@ -84,6 +86,7 @@ void addDscpMarkingAclsHelper(
     utility::addL4DstPortAclToCfg(
         hwAsic, config, l4DstPortAclName, proto, port);
     utility::addSetDscpAndEgressQueueActionToCfg(
+        hwAsic,
         config,
         l4DstPortAclName,
         kIcpDscp(),
@@ -143,6 +146,8 @@ void addDscpMarkingAclsTableHelper(
     const std::vector<uint32_t>& ports,
     const std::string& aclTableName,
     bool isSai) {
+  HwAsicTable asicTable(
+      config->switchSettings()->switchIdToSwitchInfo().value(), std::nullopt);
   auto asicType = utility::checkSameAndGetAsicType(*config);
   for (auto port : ports) {
     cfg::AclEntry dscpSrcMarkingAcl;
@@ -156,6 +161,7 @@ void addDscpMarkingAclsTableHelper(
     addAclEntry(config, dscpSrcMarkingAcl, aclTableName);
 
     utility::addSetDscpAndEgressQueueActionToCfg(
+        utility::checkSameAndGetAsic(asicTable.getL3Asics()),
         config,
         *dscpSrcMarkingAcl.name(),
         kIcpDscp(),
@@ -172,6 +178,7 @@ void addDscpMarkingAclsTableHelper(
     }
     utility::addAclEntry(config, dscpDstMarkingAcl, aclTableName);
     utility::addSetDscpAndEgressQueueActionToCfg(
+        utility::checkSameAndGetAsic(asicTable.getL3Asics()),
         config,
         *dscpDstMarkingAcl.name(),
         kIcpDscp(),
