@@ -215,7 +215,7 @@ PortIdToInfo CmdShowPort::asyncGetPortInfo(
   return entries;
 }
 
-std::unordered_map<std::string, PortIdToInfo> CmdShowPort::getPeerToPorts(
+std::unordered_map<std::string, PortNameToInfo> CmdShowPort::getPeerToPorts(
     const std::unordered_set<std::string>& hosts) {
   // Launch futures
   std::unordered_map<std::string, std::shared_future<PortIdToInfo>> futures;
@@ -232,13 +232,19 @@ std::unordered_map<std::string, PortIdToInfo> CmdShowPort::getPeerToPorts(
   }
 
   // Get results
-  std::unordered_map<std::string, PortIdToInfo> peerToPorts;
+  std::unordered_map<std::string, PortNameToInfo> peerToPorts;
   for (const auto& [peer, f] : futures) {
-    auto& entries = f.get();
-    if (entries.empty()) {
+    auto& portIdToInfo = f.get();
+    if (portIdToInfo.empty()) {
       continue;
     }
-    peerToPorts[peer] = entries;
+
+    // Remap key from portId to portName
+    PortNameToInfo portNameToInfo{};
+    for (const auto& [_, portInfo] : portIdToInfo) {
+      portNameToInfo[portInfo.name().value()] = portInfo;
+    }
+    peerToPorts[peer] = portNameToInfo;
   }
   return peerToPorts;
 }
