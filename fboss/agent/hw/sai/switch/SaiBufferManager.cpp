@@ -393,8 +393,11 @@ void SaiBufferManager::updateIngressBufferPoolStats() {
     // TODO: Request for per ITM buffer pool stats in SAI
     counterIdsToReadAndClear.push_back(SAI_BUFFER_POOL_STAT_WATERMARK_BYTES);
 #if !defined(BRCM_SAI_SDK_XGS) || defined(BRCM_SAI_SDK_GTE_10_0)
-    counterIdsToReadAndClear.push_back(
-        SAI_BUFFER_POOL_STAT_XOFF_ROOM_WATERMARK_BYTES);
+    if (platform_->getAsic()->isSupported(
+            HwAsic::Feature::BUFFER_POOL_HEADROOM_WATERMARK)) {
+      counterIdsToReadAndClear.push_back(
+          SAI_BUFFER_POOL_STAT_XOFF_ROOM_WATERMARK_BYTES);
+    }
 #endif
   }
   ingressBufferPoolHandle->bufferPool->updateStats(
