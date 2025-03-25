@@ -3141,10 +3141,7 @@ void SaiSwitch::packetRxCallbackPort(
     cfg::PacketRxReason rxReason,
     uint8_t queueId) {
   PortID swPortId(0);
-  std::optional<VlanID> swVlanId =
-      (getSwitchType() == cfg::SwitchType::VOQ ||
-       getSwitchType() == cfg::SwitchType::FABRIC ||
-       asicType_ == cfg::AsicType::ASIC_TYPE_CHENAB)
+  std::optional<VlanID> swVlanId = processVlanUntaggedPackets()
       ? std::nullopt
       : std::make_optional(VlanID(0));
   auto swVlanIdStr = [swVlanId]() {
@@ -3178,9 +3175,7 @@ void SaiSwitch::packetRxCallbackPort(
    * We use the cached cpu port id to avoid holding manager table locks in
    * the Rx path.
    */
-  if (!(getSwitchType() == cfg::SwitchType::VOQ ||
-        getSwitchType() == cfg::SwitchType::FABRIC ||
-        asicType_ == cfg::AsicType::ASIC_TYPE_CHENAB)) {
+  if (!processVlanUntaggedPackets()) {
     if (portSaiId == getCPUPortSaiId() ||
         (allowMissingSrcPort &&
          portItr == concurrentIndices_->portSaiId2PortInfo.cend())) {
@@ -4619,5 +4614,11 @@ HwResourceStats SaiSwitch::getResourceStats() const {
 // TODO: add support in SAI
 bool SaiSwitch::getArsExhaustionStatus() {
   return false;
+}
+
+bool SaiSwitch::processVlanUntaggedPackets() const {
+  return FLAGS_rx_vlan_untagged_packets ||
+      (getSwitchType() == cfg::SwitchType::VOQ ||
+       getSwitchType() == cfg::SwitchType::FABRIC);
 }
 } // namespace facebook::fboss
