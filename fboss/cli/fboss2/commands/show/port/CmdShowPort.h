@@ -94,6 +94,8 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
       std::shared_ptr<apache::thrift::Client<FbossCtrl>> client) const;
   std::unordered_map<std::string, PortNameToInfo> getPeerToPorts(
       const std::unordered_set<std::string>& hosts);
+  std::unordered_map<std::string, bool> getPeerPortDrainedOrDown(
+      const PeerInfo& peerInfo);
 };
 
 } // namespace facebook::fboss

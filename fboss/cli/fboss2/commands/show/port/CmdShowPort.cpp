@@ -249,6 +249,39 @@ std::unordered_map<std::string, PortNameToInfo> CmdShowPort::getPeerToPorts(
   return peerToPorts;
 }
 
+std::unordered_map<std::string, bool> CmdShowPort::getPeerPortDrainedOrDown(
+    const PeerInfo& peerInfo) {
+  auto peerToPorts = getPeerToPorts(peerInfo.allPeers);
+
+  // Populate peer port states
+  std::unordered_map<std::string, bool> peerPortDrainedOrDown;
+  for (const auto& [localPort, peer] : peerInfo.fabPort2Peer) {
+    if (peer.attachedSwitchName.empty() ||
+        peer.attachedRemotePortName.empty()) {
+      continue;
+    }
+
+    auto peerPortMapIt = peerToPorts.find(peer.attachedSwitchName);
+    if (peerPortMapIt == peerToPorts.end()) {
+      continue;
+    }
+    auto peerPortNameToInfo = peerPortMapIt->second;
+
+    auto peerPortInfoIt = peerPortNameToInfo.find(peer.attachedRemotePortName);
+    if (peerPortInfoIt == peerPortNameToInfo.end()) {
+      continue;
+    }
+    auto peerPortInfo = peerPortInfoIt->second;
+
+    peerPortDrainedOrDown[localPort] =
+        (peerPortInfo.operState().value() == PortOperState::DOWN ||
+         peerPortInfo.adminState().value() == PortAdminState::DISABLED ||
+         peerPortInfo.isDrained().value() == true);
+  }
+
+  return peerPortDrainedOrDown;
+}
+
 RetType CmdShowPort::queryClient(
     const HostInfo& hostInfo,
     const ObjectArgType& queriedPorts) {
