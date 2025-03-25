@@ -219,6 +219,7 @@ cli::ShowPortModel createPortModel() {
   entry1.isDrained() = "Yes";
   entry1.activeErrors() = "--";
   entry1.peerSwitchDrained() = "--";
+  entry1.peerPortDrainedOrDown() = "--";
   entry1.coreId() = "1";
   entry1.virtualDeviceId() = "1";
 
@@ -237,6 +238,7 @@ cli::ShowPortModel createPortModel() {
   entry2.isDrained() = "No";
   entry2.activeErrors() = "--";
   entry2.peerSwitchDrained() = "--";
+  entry2.peerPortDrainedOrDown() = "--";
   entry2.coreId() = "2";
   entry2.virtualDeviceId() = "2";
 
@@ -255,6 +257,7 @@ cli::ShowPortModel createPortModel() {
   entry3.isDrained() = "No";
   entry3.activeErrors() = "--";
   entry3.peerSwitchDrained() = "--";
+  entry3.peerPortDrainedOrDown() = "--";
   entry3.coreId() = "3";
   entry3.virtualDeviceId() = "3";
 
@@ -273,6 +276,7 @@ cli::ShowPortModel createPortModel() {
   entry4.isDrained() = "Yes";
   entry4.activeErrors() = "--";
   entry4.peerSwitchDrained() = "--";
+  entry4.peerPortDrainedOrDown() = "--";
   entry4.coreId() = "--";
   entry4.virtualDeviceId() = "--";
 
@@ -291,6 +295,7 @@ cli::ShowPortModel createPortModel() {
   entry5.isDrained() = "No";
   entry5.activeErrors() = "--";
   entry5.peerSwitchDrained() = "--";
+  entry5.peerPortDrainedOrDown() = "--";
   entry5.coreId() = "5";
   entry5.virtualDeviceId() = "5";
 
@@ -309,6 +314,7 @@ cli::ShowPortModel createPortModel() {
   entry6.isDrained() = "Yes";
   entry6.activeErrors() = "--";
   entry6.peerSwitchDrained() = "--";
+  entry6.peerPortDrainedOrDown() = "--";
   entry6.coreId() = "6";
   entry6.virtualDeviceId() = "6";
 
@@ -318,6 +324,10 @@ cli::ShowPortModel createPortModel() {
 }
 
 std::unordered_map<std::string, cfg::SwitchDrainState> createPeerDrainStates() {
+  return {};
+}
+
+std::unordered_map<std::string, bool> createPeerPortStates() {
   return {};
 }
 
@@ -343,6 +353,7 @@ class CmdShowPortTestFixture : public CmdHandlerTestBase {
   std::map<int32_t, facebook::fboss::TransceiverInfo> mockTransceiverEntries;
   std::map<std::string, facebook::fboss::HwPortStats> mockPortStats;
   std::unordered_map<std::string, cfg::SwitchDrainState> mockPeerDrainStates;
+  std::unordered_map<std::string, bool> mockPeerPortStates;
   cli::ShowPortModel normalizedModel;
   std::vector<std::string> mockDrainedInterfaces;
   std::string mockBgpRunningConfig;
@@ -355,6 +366,7 @@ class CmdShowPortTestFixture : public CmdHandlerTestBase {
     mockTransceiverEntries = createTransceiverEntries();
     normalizedModel = createPortModel();
     mockPeerDrainStates = createPeerDrainStates();
+    mockPeerPortStates = createPeerPortStates();
     mockDrainedInterfaces = createDrainedInterfaces();
     mockBgpRunningConfig = createMockedBgpConfig();
   }
@@ -367,6 +379,7 @@ TEST_F(CmdShowPortTestFixture, sortByName) {
       queriedEntries,
       mockPortStats,
       mockPeerDrainStates,
+      mockPeerPortStates,
       mockDrainedInterfaces);
 
   EXPECT_THRIFT_EQ(model, normalizedModel);
@@ -382,6 +395,7 @@ TEST_F(CmdShowPortTestFixture, invalidPortName) {
         queriedEntries,
         mockPortStats,
         mockPeerDrainStates,
+        mockPeerPortStates,
         mockDrainedInterfaces);
     FAIL();
   } catch (const std::invalid_argument& expected) {

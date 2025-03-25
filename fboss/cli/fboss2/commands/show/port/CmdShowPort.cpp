@@ -311,9 +311,11 @@ RetType CmdShowPort::queryClient(
 
   // Get peer drain state
   std::unordered_map<std::string, cfg::SwitchDrainState> peerDrainStates;
+  std::unordered_map<std::string, bool> peerPortDrainedOrDown;
   if (utils::isVoqOrFabric(utils::getSwitchType(*client))) {
     auto peerInfo = getFabPortPeerInfo(hostInfo);
     peerDrainStates = getPeerDrainStates(peerInfo);
+    peerPortDrainedOrDown = getPeerPortDrainedOrDown(peerInfo);
   }
 
   return createModel(
@@ -322,6 +324,7 @@ RetType CmdShowPort::queryClient(
       queriedPorts.data(),
       portStats,
       peerDrainStates,
+      peerPortDrainedOrDown,
       utils::getBgpDrainedInterafces(hostInfo));
 }
 
@@ -332,6 +335,7 @@ RetType CmdShowPort::createModel(
     const std::map<std::string, facebook::fboss::HwPortStats>& portStats,
     const std::unordered_map<std::string, cfg::SwitchDrainState>&
         peerDrainStates,
+    const std::unordered_map<std::string, bool>& peerPortDrainedOrDown,
     const std::vector<std::string>& drainedInterfaces) {
   RetType model;
   std::unordered_set<std::string> queriedSet(
@@ -349,6 +353,11 @@ RetType CmdShowPort::createModel(
       if (peerDrainStates.contains(portName)) {
         isPeerDrained =
             (peerDrainStates.at(portName) == cfg::SwitchDrainState::DRAINED);
+      }
+      std::optional<bool> isPeerPortDrainedOrDown;
+      auto it = peerPortDrainedOrDown.find(portName);
+      if (it != peerPortDrainedOrDown.end()) {
+        isPeerPortDrainedOrDown = it->second;
       }
 
       cli::PortEntry portDetails;
@@ -388,6 +397,9 @@ RetType CmdShowPort::createModel(
       }
       portDetails.peerSwitchDrained() = isPeerDrained.has_value()
           ? (isPeerDrained.value() ? "Yes" : "No")
+          : "--";
+      portDetails.peerPortDrainedOrDown() = isPeerPortDrainedOrDown.has_value()
+          ? (isPeerPortDrainedOrDown.value() ? "Yes" : "No")
           : "--";
       if (auto tcvrId = portInfo.transceiverIdx()) {
         const auto transceiverId = folly::copy(tcvrId->transceiverId().value());
@@ -642,6 +654,7 @@ void CmdShowPort::printOutput(const RetType& model, std::ostream& out) {
         "HwLogicalPortId",
         "Drained",
         "PeerSwitchDrained",
+        "PeerPortDrainedOrDown",
         "Errors",
         "Core Id",
         "Virtual device Id",
@@ -666,6 +679,7 @@ void CmdShowPort::printOutput(const RetType& model, std::ostream& out) {
            hwLogicalPortId,
            portInfo.isDrained().value(),
            portInfo.peerSwitchDrained().value(),
+           portInfo.peerPortDrainedOrDown().value(),
            getStyledErrors(portInfo.activeErrors().value()),
            portInfo.coreId().value(),
            portInfo.virtualDeviceId().value()});

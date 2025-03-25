@@ -70,6 +70,7 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
       const std::map<std::string, facebook::fboss::HwPortStats>& portStats,
       const std::unordered_map<std::string, cfg::SwitchDrainState>&
           peerDrainStates,
+      const std::unordered_map<std::string, bool>& peerPortDrainedOrDown,
       const std::vector<std::string>& drainedInterfaces);
 
   void printOutput(const RetType& model, std::ostream& out = std::cout);
