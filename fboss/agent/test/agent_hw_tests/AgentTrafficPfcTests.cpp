@@ -115,7 +115,7 @@ void validatePfcCountersIncreased(
 void validateBufferPoolWatermarkCounters(
     facebook::fboss::AgentEnsemble* ensemble,
     const int /* pri */,
-    const std::vector<facebook::fboss::PortID>& /* portIds */) {
+    const std::vector<facebook::fboss::PortID>& portIds) {
   uint64_t globalHeadroomWatermark{};
   uint64_t globalSharedWatermark{};
   WITH_RETRIES({
@@ -130,6 +130,12 @@ void validateBufferPoolWatermarkCounters(
            *stats.switchWatermarkStats()->globalSharedWatermarkBytes()) {
         globalSharedWatermark += bytes;
       }
+    }
+    for (auto portId : portIds) {
+      XLOG(INFO) << "validateBufferPoolWatermarkCounters: Port " << portId
+                 << ": "
+                 << facebook::fboss::utility::pfcStatsString(
+                        ensemble->getLatestPortStats(portId));
     }
     XLOG(DBG0) << "Global headroom watermark: " << globalHeadroomWatermark
                << ", Global shared watermark: " << globalSharedWatermark;
@@ -156,6 +162,10 @@ void validateIngressPriorityGroupWatermarkCounters(
   }
   WITH_RETRIES({
     for (const auto& portId : portIds) {
+      XLOG(INFO) << "validateIngressPriorityGroupWatermarkCounters: Port "
+                 << portId << ": "
+                 << facebook::fboss::utility::pfcStatsString(
+                        ensemble->getLatestPortStats(portId));
       const auto& portName = ensemble->getProgrammedState()
                                  ->getPorts()
                                  ->getNodeIf(portId)
@@ -316,13 +326,15 @@ class AgentTrafficPfcTest : public AgentHwTest {
     // no need to retry if looking for baseline counter
     for (const auto& portId : portIds) {
       auto portStats = getLatestPortStats(portId);
-      XLOG(INFO) << "Port: " << portId << " "
+      XLOG(INFO) << "validateInitPfcCounters: Port " << portId << ": "
                  << facebook::fboss::utility::pfcStatsString(portStats);
       auto ingressDropRaw = *portStats.inDiscardsRaw_();
-      EXPECT_TRUE(ingressDropRaw == 0);
+      EXPECT_EQ(ingressDropRaw, 0);
       std::tie(txPfcCtr, rxPfcCtr, rxPfcXonCtr) =
           getPfcTxRxXonHwPortStats(getAgentEnsemble(), portStats, pfcPriority);
-      EXPECT_TRUE((txPfcCtr == 0) && (rxPfcCtr == 0) && (rxPfcXonCtr == 0));
+      EXPECT_EQ(txPfcCtr, 0);
+      EXPECT_EQ(rxPfcCtr, 0);
+      EXPECT_EQ(rxPfcXonCtr, 0);
     }
   }
 

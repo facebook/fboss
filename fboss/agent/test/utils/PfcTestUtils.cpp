@@ -294,17 +294,16 @@ void addPuntPfcPacketAcl(cfg::SwitchConfig& cfg, uint16_t queueId) {
 
 std::string pfcStatsString(const HwPortStats& stats) {
   std::stringstream ss;
-  ss << "outBytes=" << stats.get_outBytes_()
-     << " inBytes=" << stats.get_inBytes_()
-     << " outUnicastPkts=" << stats.get_outUnicastPkts_()
-     << " inUnicastPkts=" << stats.get_inUnicastPkts_()
-     << " inDiscards=" << stats.get_inDiscards_()
-     << " inErrors=" << stats.get_inErrors_();
-  for (auto [qos, value] : stats.get_inPfc_()) {
-    ss << " inPfc[" << qos << "]=" << value;
+  ss << "outBytes=" << *stats.outBytes_() << " inBytes=" << *stats.inBytes_()
+     << " outUnicastPkts=" << *stats.outUnicastPkts_()
+     << " inUnicastPkts=" << *stats.inUnicastPkts_()
+     << " inDiscardsRaw=" << *stats.inDiscardsRaw_()
+     << " inErrors=" << *stats.inErrors_();
+  for (auto [qos, value] : *stats.inPfc_()) {
+    ss << " inPfc." << qos << "=" << value;
   }
-  for (auto [qos, value] : stats.get_outPfc_()) {
-    ss << " outPfc[" << qos << "]=" << value;
+  for (auto [qos, value] : *stats.outPfc_()) {
+    ss << " outPfc." << qos << "=" << value;
   }
   return ss.str();
 }
