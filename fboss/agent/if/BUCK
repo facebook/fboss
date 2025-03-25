@@ -9,7 +9,7 @@ thrift_library(
     },
     languages = [
         "cpp2",
-        "py",
+        "py-deprecated",
         "py3",
         "py-asyncio",
         "go",
@@ -64,7 +64,7 @@ thrift_library(
     },
     languages = [
         "cpp2",
-        "py",
+        "py-deprecated",
         "py3",
         "py-asyncio",
         "go",
@@ -87,7 +87,7 @@ thrift_library(
     },
     languages = [
         "cpp2",
-        "py",
+        "py-deprecated",
         "py3",
         "py-asyncio",
         "go",
@@ -119,7 +119,7 @@ thrift_library(
     },
     languages = [
         "cpp2",
-        "py",
+        "py-deprecated",
         "py3",
         "py-asyncio",
         "go",
@@ -143,7 +143,7 @@ thrift_library(
     },
     languages = [
         "cpp2",
-        "py",
+        "py-deprecated",
         "py3",
         "py-asyncio",
         "go",
@@ -172,7 +172,7 @@ thrift_library(
     name = "sflow",
     languages = [
         "cpp2",
-        "py",
+        "py-deprecated",
         "py3",
         "python",
     ],
@@ -188,7 +188,7 @@ thrift_library(
     },
     languages = [
         "cpp2",
-        "py",
+        "py-deprecated",
         "py3",
         "py-asyncio",
         "go",
@@ -228,7 +228,7 @@ thrift_library(
     },
     languages = [
         "cpp2",
-        "py",
+        "py-deprecated",
         "py3",
         "py-asyncio",
         "go",
@@ -265,7 +265,7 @@ thrift_library(
     },
     languages = [
         "cpp2",
-        "py",
+        "py-deprecated",
         "py3",
         "py-asyncio",
         "go",
