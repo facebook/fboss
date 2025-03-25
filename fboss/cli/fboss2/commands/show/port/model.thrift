@@ -26,6 +26,7 @@ struct PortEntry {
   19: string virtualDeviceId;
   20: string peerSwitchDrained;
   21: string peerPortDrainedOrDown;
+  22: bool activeStateMismatch;
 }
 
 struct PortHwStatsEntry {

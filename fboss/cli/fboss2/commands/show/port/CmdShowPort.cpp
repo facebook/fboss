@@ -310,10 +310,12 @@ RetType CmdShowPort::queryClient(
   }
 
   // Get peer drain state
+  std::unordered_map<std::string, Endpoint> portToPeer;
   std::unordered_map<std::string, cfg::SwitchDrainState> peerDrainStates;
   std::unordered_map<std::string, bool> peerPortDrainedOrDown;
   if (utils::isVoqOrFabric(utils::getSwitchType(*client))) {
     auto peerInfo = getFabPortPeerInfo(hostInfo);
+    portToPeer = peerInfo.fabPort2Peer;
     peerDrainStates = getPeerDrainStates(peerInfo);
     peerPortDrainedOrDown = getPeerPortDrainedOrDown(peerInfo);
   }
@@ -323,6 +325,7 @@ RetType CmdShowPort::queryClient(
       transceiverEntries,
       queriedPorts.data(),
       portStats,
+      portToPeer,
       peerDrainStates,
       peerPortDrainedOrDown,
       utils::getBgpDrainedInterafces(hostInfo));
@@ -333,6 +336,7 @@ RetType CmdShowPort::createModel(
     std::map<int32_t, facebook::fboss::TransceiverInfo> transceiverEntries,
     const ObjectArgType& queriedPorts,
     const std::map<std::string, facebook::fboss::HwPortStats>& portStats,
+    const std::unordered_map<std::string, Endpoint>& portToPeer,
     const std::unordered_map<std::string, cfg::SwitchDrainState>&
         peerDrainStates,
     const std::unordered_map<std::string, bool>& peerPortDrainedOrDown,
@@ -349,6 +353,22 @@ RetType CmdShowPort::createModel(
         getActiveStateStr(apache::thrift::get_pointer(portInfo.activeState()));
 
     if (queriedPorts.size() == 0 || queriedSet.count(portName)) {
+      bool isPortDetached = false;
+      if (auto peer = portToPeer.find(portName); peer != portToPeer.end()) {
+        isPortDetached = !peer->second.isAttached;
+      }
+      bool isPortDisabled =
+          (portInfo.adminState().value() == PortAdminState::DISABLED);
+      bool isPortDrained =
+          (std::find(
+               drainedInterfaces.begin(), drainedInterfaces.end(), portName) !=
+           drainedInterfaces.end()) ||
+          portInfo.isDrained().value();
+
+      std::optional<bool> isActive;
+      if (portInfo.activeState().has_value()) {
+        isActive = (portInfo.activeState().value() == PortActiveState::ACTIVE);
+      }
       std::optional<bool> isPeerDrained;
       if (peerDrainStates.contains(portName)) {
         isPeerDrained =
@@ -360,6 +380,15 @@ RetType CmdShowPort::createModel(
         isPeerPortDrainedOrDown = it->second;
       }
 
+      bool expectedActive =
+          !isPortDetached && !isPortDisabled && !isPortDrained;
+      if (isPeerDrained.has_value()) {
+        expectedActive &= !isPeerDrained.value();
+      }
+      if (isPeerPortDrainedOrDown.has_value()) {
+        expectedActive &= !isPeerPortDrainedOrDown.value();
+      }
+
       cli::PortEntry portDetails;
       portDetails.id() = folly::copy(portInfo.portId().value());
       portDetails.name() = portInfo.name().value();
@@ -367,6 +396,8 @@ RetType CmdShowPort::createModel(
           getAdminStateStr(folly::copy(portInfo.adminState().value()));
       portDetails.linkState() = operState;
       portDetails.activeState() = activeState;
+      portDetails.activeStateMismatch() =
+          (isActive.has_value() ? (isActive.value() != expectedActive) : false);
       portDetails.speed() =
           utils::getSpeedGbps(folly::copy(portInfo.speedMbps().value()));
       portDetails.profileId() = portInfo.profileID().value();
@@ -666,12 +697,15 @@ void CmdShowPort::printOutput(const RetType& model, std::ostream& out) {
         hwLogicalPortId = folly::to<std::string>(*portId);
       }
 
+      bool activeStateMismatch = portInfo.activeStateMismatch().value();
       table.addRow(
           {folly::to<std::string>(folly::copy(portInfo.id().value())),
            portInfo.name().value(),
            portInfo.adminState().value(),
            getStyledLinkState(portInfo.linkState().value()),
-           getStyledActiveState(portInfo.activeState().value()),
+           getStyledActiveState(
+               portInfo.activeState().value() +
+               (activeStateMismatch ? " (Mismatch)" : "")),
            portInfo.tcvrPresent().value(),
            folly::to<std::string>(folly::copy(portInfo.tcvrID().value())),
            portInfo.speed().value(),

@@ -351,6 +351,7 @@ class CmdShowPortTestFixture : public CmdHandlerTestBase {
   std::map<int32_t, facebook::fboss::PortInfoThrift> mockPortEntries;
   std::map<std::string, FabricEndpoint> mockFabricConnectivity;
   std::map<int32_t, facebook::fboss::TransceiverInfo> mockTransceiverEntries;
+  std::unordered_map<std::string, Endpoint> mockPortToPeer;
   std::map<std::string, facebook::fboss::HwPortStats> mockPortStats;
   std::unordered_map<std::string, cfg::SwitchDrainState> mockPeerDrainStates;
   std::unordered_map<std::string, bool> mockPeerPortStates;
@@ -378,6 +379,7 @@ TEST_F(CmdShowPortTestFixture, sortByName) {
       mockTransceiverEntries,
       queriedEntries,
       mockPortStats,
+      mockPortToPeer,
       mockPeerDrainStates,
       mockPeerPortStates,
       mockDrainedInterfaces);
@@ -394,6 +396,7 @@ TEST_F(CmdShowPortTestFixture, invalidPortName) {
         mockTransceiverEntries,
         queriedEntries,
         mockPortStats,
+        mockPortToPeer,
         mockPeerDrainStates,
         mockPeerPortStates,
         mockDrainedInterfaces);
