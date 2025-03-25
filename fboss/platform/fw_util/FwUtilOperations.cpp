@@ -1,11 +1,16 @@
 #include <folly/logging/xlog.h>
 #include <filesystem>
 #include <fstream>
+#include <fmt/format.h>
+#include "fboss/platform/fw_util/Flags.h"
 #include "fboss/platform/fw_util/FwUtilImpl.h"
 #include "fboss/platform/fw_util/fw_util_helpers.h"
 #include "fboss/platform/helpers/PlatformUtils.h"
+#include "fboss/platform/platform_manager/I2cExplorer.h"
 
 namespace facebook::fboss::platform::fw_util {
+
+using namespace facebook::fboss::platform::platform_manager;
 
 void FwUtilImpl::doJtagOperation(
     const JtagConfig& config,
@@ -146,4 +151,35 @@ void FwUtilImpl::performXappUpgrade(
   checkCmdStatus(xappCmd, exitStatus);
 }
 
-} // namespace facebook::fboss::platform::fw_util
+// Function to firwmare upgrade and read for I2cEeprom
+void FwUtilImpl::performI2cEepromOperation(
+    const I2cEepromConfig& config, const std::string& fpd) {
+  std::string cmd, eepromPath;
+  std::string driverName = *config.driverName();
+  std::string deviceAddress = *config.deviceAddress();
+  uint16_t i2cBusNum;
+  I2cExplorer i2cExplorer;
+  I2cAddr addr(deviceAddress);
+
+  // 1.Getting the i2cbus number from config path
+  i2cBusNum =
+      i2cExplorer.extractBusNumFromPath(std::filesystem::read_symlink(*config.path()));    
+
+  // 2.Bind the driver and get the eeprom path
+  i2cExplorer.createI2cDevice("i2cEeprom", driverName, i2cBusNum, addr);
+  eepromPath = i2cExplorer.getI2cEepromPath(i2cBusNum, addr);
+
+  // 3.Run the DD command for FW write or read
+  cmd = fmt::format(
+      "dd if={} of={}", FLAGS_fw_binary_file, eepromPath);  
+  auto [exitStatus, standardOut] = PlatformUtils().execCommand(cmd);
+  if (exitStatus != 0) {
+    throw std::runtime_error("Run " + cmd + " failed!");
+  }
+  XLOG(INFO) << standardOut;
+
+  // 4.Unbind the driver
+  i2cExplorer.deleteI2cDevice(i2cBusNum, addr);
+}
+
+}  // namespace facebook::fboss::platform::fw_util
