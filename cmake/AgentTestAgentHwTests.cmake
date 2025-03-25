@@ -127,23 +127,6 @@ target_link_libraries(agent_hw_test_src
   ecmp_test_utils
 )
 
-add_library(agent_scale_test_src
-  fboss/agent/test/agent_hw_tests/AgentAclScaleTests.cpp
-  fboss/agent/test/agent_hw_tests/AgentEcmpScaleTests.cpp
-)
-
-target_link_libraries(agent_scale_test_src
-  config_factory
-  packet_factory
-  agent_hw_test_src
-  ecmp_helper
-  production_features_cpp2
-  acl_test_utils
-  asic_test_utils
-  scale_test_utils
-  Folly::folly
-)
-
 add_executable(multi_switch_agent_hw_test
   fboss/agent/test/agent_hw_tests/MultiSwitchAgentHwTest.cpp
 )
@@ -193,13 +176,50 @@ function(BUILD_SAI_AGENT_HW_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
     -Wl,--no-whole-archive
   )
 
-set_target_properties(sai_agent_hw_test-${SAI_IMPL_NAME}
-  PROPERTIES COMPILE_FLAGS
-  "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
-  -DSAI_VER_MINOR=${SAI_VER_MINOR} \
-  -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
-)
+  set_target_properties(sai_agent_hw_test-${SAI_IMPL_NAME}
+    PROPERTIES COMPILE_FLAGS
+    "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
+    -DSAI_VER_MINOR=${SAI_VER_MINOR} \
+    -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
+  )
 
+  add_library(agent_scale_test_src
+    fboss/agent/test/agent_hw_tests/AgentAclScaleTests.cpp
+    fboss/agent/test/agent_hw_tests/AgentEcmpScaleTests.cpp
+  )
+
+  add_sai_sdk_dependencies(agent_scale_test_src)
+
+  target_link_libraries(agent_scale_test_src
+    config_factory
+    packet_factory
+    agent_hw_test_src
+    ecmp_helper
+    production_features_cpp2
+    acl_test_utils
+    asic_test_utils
+    scale_test_utils
+    Folly::folly
+  )
+
+  add_executable(sai_agent_scale_test-${SAI_IMPL_NAME}
+    fboss/agent/test/agent_hw_tests/SaiAgentHwTest.cpp
+  )
+
+  add_sai_sdk_dependencies(sai_agent_scale_test-${SAI_IMPL_NAME})
+
+  target_link_libraries(sai_agent_scale_test-${SAI_IMPL_NAME}
+    -Wl,--whole-archive
+    ${SAI_IMPL_ARG}
+    agent_scale_test_src
+    agent_hw_test
+    sai_acl_utils
+    mono_agent_ensemble
+    agent_hw_test_thrift_handler
+    -Wl,--no-whole-archive
+    ${GTEST}
+    ${LIBGMOCK_LIBRARIES}
+  )
 endfunction()
 
 if(BUILD_SAI_FAKE)
