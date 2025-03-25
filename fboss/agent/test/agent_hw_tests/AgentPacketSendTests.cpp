@@ -487,7 +487,9 @@ class AgentPacketFloodTest : public AgentHwTest {
   std::vector<production_features::ProductionFeature>
   getProductionFeaturesVerified() const override {
     // PKTIO feature
-    return {production_features::ProductionFeature::CPU_RX_TX};
+    return {
+        production_features::ProductionFeature::CPU_RX_TX,
+        production_features::ProductionFeature::VLAN};
   }
 
   bool checkPacketFlooding(
