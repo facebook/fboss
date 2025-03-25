@@ -60,16 +60,17 @@ std::string getOperStateStr(PortOperState operState) {
       "Unsupported LinkState: " + std::to_string(static_cast<int>(operState)));
 }
 
-Table::StyledCell getStyledActiveState(std::string activeState) {
-  if (activeState == "Inactive") {
-    return Table::StyledCell("Inactive", Table::Style::ERROR);
+Table::StyledCell getStyledActiveState(
+    const std::string& activeState,
+    bool isMismatch) {
+  if (isMismatch) {
+    return Table::StyledCell(activeState + " (Mismatch)", Table::Style::ERROR);
+  } else if (activeState == "Inactive") {
+    return Table::StyledCell(activeState, Table::Style::ERROR);
   } else if (activeState == "Active") {
-    return Table::StyledCell("Active", Table::Style::GOOD);
-  } else {
-    return Table::StyledCell("--", Table::Style::NONE);
+    return Table::StyledCell(activeState, Table::Style::GOOD);
   }
-
-  throw std::runtime_error("Unsupported ActiveState: " + activeState);
+  return Table::StyledCell("--", Table::Style::NONE);
 }
 
 Table::StyledCell getStyledLinkState(std::string linkState) {
@@ -704,8 +705,7 @@ void CmdShowPort::printOutput(const RetType& model, std::ostream& out) {
            portInfo.adminState().value(),
            getStyledLinkState(portInfo.linkState().value()),
            getStyledActiveState(
-               portInfo.activeState().value() +
-               (activeStateMismatch ? " (Mismatch)" : "")),
+               portInfo.activeState().value(), activeStateMismatch),
            portInfo.tcvrPresent().value(),
            folly::to<std::string>(folly::copy(portInfo.tcvrID().value())),
            portInfo.speed().value(),
