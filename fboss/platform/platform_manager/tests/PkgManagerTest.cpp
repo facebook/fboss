@@ -90,6 +90,7 @@ TEST_F(PkgManagerTest, EnablePkgMgmnt) {
         .WillOnce(Return(false));
     EXPECT_CALL(mockPkgManager_, unloadBspKmods()).Times(1);
     EXPECT_CALL(mockPkgManager_, processRpms()).Times(1);
+    EXPECT_CALL(mockPkgManager_, unloadBspKmods()).Times(1);
     EXPECT_CALL(mockPkgManager_, loadRequiredKmods()).Times(1);
   }
   EXPECT_NO_THROW(mockPkgManager_.processAll());
@@ -110,13 +111,14 @@ TEST_F(PkgManagerTest, EnablePkgMgmntWithReloadKmods) {
   FLAGS_reload_kmods = true;
 
   EXPECT_CALL(mockPkgManager_, processLocalRpms()).Times(0);
-  // Case 1: When new rpm installed and expect to reload kmods once.
+  // Case 1: When new rpm installed and expect to reload kmods twice.
   {
     InSequence seq;
     EXPECT_CALL(*mockSystemInterface_, isRpmInstalled(_))
         .WillOnce(Return(false));
     EXPECT_CALL(mockPkgManager_, unloadBspKmods()).Times(1);
     EXPECT_CALL(mockPkgManager_, processRpms()).Times(1);
+    EXPECT_CALL(mockPkgManager_, unloadBspKmods()).Times(1);
     EXPECT_CALL(mockPkgManager_, loadRequiredKmods()).Times(1);
   }
   EXPECT_NO_THROW(mockPkgManager_.processAll());
