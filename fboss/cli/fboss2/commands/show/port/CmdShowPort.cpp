@@ -166,13 +166,11 @@ PeerDrainState CmdShowPort::asyncGetDrainState(
 }
 
 std::unordered_map<std::string, cfg::SwitchDrainState>
-CmdShowPort::getPeerDrainStates(
-    const std::unordered_map<std::string, Endpoint>& portToPeer,
-    const std::unordered_set<std::string>& peers) {
+CmdShowPort::getPeerDrainStates(const PeerInfo& peerInfo) {
   // Launch futures
   std::unordered_set<std::string> peersChecked;
   std::unordered_map<std::string, std::shared_future<PeerDrainState>> futures;
-  for (const auto& peer : peers) {
+  for (const auto& peer : peerInfo.allPeers) {
     if (!clients.contains(peer)) {
       clients[peer] = utils::createClient<apache::thrift::Client<FbossCtrl>>(
           HostInfo(peer), peerTimeout);
@@ -195,7 +193,7 @@ CmdShowPort::getPeerDrainStates(
 
   // Map local port to peer drain state
   std::unordered_map<std::string, cfg::SwitchDrainState> portToPeerDrainState;
-  for (const auto& [localPort, peer] : portToPeer) {
+  for (const auto& [localPort, peer] : peerInfo.fabPort2Peer) {
     auto& attachedPeer = peer.attachedSwitchName;
     if (peerToDrainState.contains(attachedPeer)) {
       portToPeerDrainState[localPort] = peerToDrainState[attachedPeer];
@@ -314,8 +312,8 @@ RetType CmdShowPort::queryClient(
   // Get peer drain state
   std::unordered_map<std::string, cfg::SwitchDrainState> peerDrainStates;
   if (utils::isVoqOrFabric(utils::getSwitchType(*client))) {
-    auto [portToPeer, peers] = getFabPortPeerInfo(hostInfo);
-    peerDrainStates = getPeerDrainStates(portToPeer, peers);
+    auto peerInfo = getFabPortPeerInfo(hostInfo);
+    peerDrainStates = getPeerDrainStates(peerInfo);
   }
 
   return createModel(

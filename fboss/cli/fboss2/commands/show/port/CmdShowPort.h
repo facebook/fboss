@@ -87,8 +87,7 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
   PeerDrainState asyncGetDrainState(
       std::shared_ptr<apache::thrift::Client<FbossCtrl>> client) const;
   std::unordered_map<std::string, cfg::SwitchDrainState> getPeerDrainStates(
-      const std::unordered_map<std::string, Endpoint>& portToPeer,
-      const std::unordered_set<std::string>& peers);
+      const PeerInfo& peerInfo);
 
   PortIdToInfo asyncGetPortInfo(
       std::shared_ptr<apache::thrift::Client<FbossCtrl>> client) const;
