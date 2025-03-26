@@ -10117,6 +10117,9 @@
           "test_name_regex": "AgentCoppTest/1.VerifyCoppPpsLowPri$"
         },
         {
+          "test_name_regex": "AgentAqmWredPerQueueDropStatsTest.*$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -10414,6 +10417,9 @@
         },
         {
           "test_name_regex": "AgentCoppTest/1.VerifyCoppPpsLowPri$"
+        },
+        {
+          "test_name_regex": "AgentAqmWredPerQueueDropStatsTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
