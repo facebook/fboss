@@ -157,6 +157,65 @@ TEST_F(AgentFabricSwitchTest, checkFabricConnectivity) {
   verifyAcrossWarmBoots([] {}, verify);
 }
 
+TEST_F(AgentFabricSwitchTest, configUpdateForExpectedFabricPortConnectivity) {
+  std::map<SwitchID, PortID> switchId2FabricPortId;
+  std::set<PortID> fabricPortIds;
+
+  for (const auto& [switchId, portIds] : switch2FabricPortIds()) {
+    for (const auto& portId : portIds) {
+      fabricPortIds.insert(portId);
+      switchId2FabricPortId.insert({switchId, portId});
+    }
+  }
+  ASSERT_GT(fabricPortIds.size(), 0);
+  ASSERT_GT(switchId2FabricPortId.size(), 0);
+
+  EXPECT_GT(getProgrammedState()->getPorts()->numNodes(), 0);
+  for (const auto& switchId : getFabricSwitchIdsWithPorts()) {
+    utility::checkFabricConnectivity(getAgentEnsemble(), switchId);
+  }
+
+  auto verify = [=, this]() {
+    cfg::PortNeighbor wrongNeighbor;
+    wrongNeighbor.remoteSystem() = "wrongSystemName";
+    wrongNeighbor.remotePort() = "wrongPortName";
+
+    // Apply config update for mismatched neighbor
+    auto newCfg = getSw()->getConfig();
+    for (auto& portCfg : *newCfg.ports()) {
+      if (fabricPortIds.find(PortID(*portCfg.logicalID())) !=
+          fabricPortIds.end()) {
+        *portCfg.expectedNeighborReachability() = {wrongNeighbor};
+      }
+    }
+    applyNewConfig(newCfg);
+
+    // Check that the config update is reflected and mismatches are discovered
+    for (auto [switchId, fabricPortId] : switchId2FabricPortId) {
+      utility::checkPortFabricReachability(
+          getAgentEnsemble(), switchId, fabricPortId);
+    }
+    EXPECT_EQ(
+        *(getAgentEnsemble()->getFabricReachabilityStats().mismatchCount()),
+        fabricPortIds.size());
+
+    // Apply config update for correct cabling
+    newCfg = getSw()->getConfig();
+    utility::populatePortExpectedNeighborsToSelf(
+        getAgentEnsemble()->masterLogicalPortIds(), newCfg);
+    applyNewConfig(newCfg);
+
+    //  Check that the config update is reflected and mismatches are cleared
+    for (auto [switchId, fabricPortId] : switchId2FabricPortId) {
+      utility::checkPortFabricReachability(
+          getAgentEnsemble(), switchId, fabricPortId);
+    }
+    EXPECT_EQ(
+        *(getAgentEnsemble()->getFabricReachabilityStats().mismatchCount()), 0);
+  };
+  verifyAcrossWarmBoots([] {}, verify);
+}
+
 TEST_F(AgentFabricSwitchTest, fabricPortIsolate) {
   std::map<SwitchID, PortID> switchId2FabricPortId;
   std::set<PortID> fabricPortIds;
