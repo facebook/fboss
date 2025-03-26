@@ -31,10 +31,7 @@ class AgentAqmTest : public AgentHwTest {
  public:
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
-    auto config = utility::onePortPerInterfaceConfig(
-        ensemble.getSw(),
-        ensemble.masterLogicalPortIds(),
-        true /*interfaceHasSubnet*/);
+    cfg::SwitchConfig config = baseConfig(ensemble);
     if (ensemble.getHwAsicTable()->isFeatureSupportedOnAllAsic(
             HwAsic::Feature::L3_QOS)) {
       if (isDualStage3Q2QQos()) {
@@ -49,9 +46,7 @@ class AgentAqmTest : public AgentHwTest {
       } else {
         utility::addOlympicQueueConfig(&config, ensemble.getL3Asics());
       }
-      utility::addOlympicQosMaps(config, ensemble.getL3Asics());
     }
-    utility::setTTLZeroCpuConfig(ensemble.getL3Asics(), config);
     return config;
   }
 
@@ -85,6 +80,17 @@ class AgentAqmTest : public AgentHwTest {
 
   folly::MacAddress getIntfMac() const {
     return utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+  }
+
+  cfg::SwitchConfig baseConfig(const AgentEnsemble& ensemble) const {
+    cfg::SwitchConfig config = utility::onePortPerInterfaceConfig(
+        ensemble.getSw(), ensemble.masterLogicalPortIds());
+    if (ensemble.getHwAsicTable()->isFeatureSupportedOnAllAsic(
+            HwAsic::Feature::L3_QOS)) {
+      utility::addOlympicQosMaps(config, ensemble.getL3Asics());
+    }
+    utility::setTTLZeroCpuConfig(ensemble.getL3Asics(), config);
+    return config;
   }
 
   void sendPkt(
@@ -352,31 +358,27 @@ class AgentAqmWredDropTest : public AgentAqmTest {
  public:
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
-    auto cfg = utility::onePortPerInterfaceConfig(
-        ensemble.getSw(),
-        ensemble.masterLogicalPortIds(),
-        true /*interfaceHasSubnet*/);
+    cfg::SwitchConfig config = baseConfig(ensemble);
     if (ensemble.getHwAsicTable()->isFeatureSupportedOnAllAsic(
             HwAsic::Feature::L3_QOS)) {
       auto streamType =
           *utility::checkSameAndGetAsic(ensemble.getL3Asics())
                ->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT)
                .begin();
-      utility::addQueueWredDropConfig(&cfg, streamType, ensemble.getL3Asics());
+      utility::addQueueWredDropConfig(
+          &config, streamType, ensemble.getL3Asics());
       // For VoQ switches, add AQM config to VoQ as well.
       auto asic = utility::checkSameAndGetAsic(ensemble.getL3Asics());
       if (asic->getSwitchType() == cfg::SwitchType::VOQ) {
         utility::addVoqAqmConfig(
-            &cfg,
+            &config,
             streamType,
             asic,
             true /*addWredConfig*/,
             false /*addEcnConfig*/);
       }
-      utility::addOlympicQosMaps(cfg, ensemble.getL3Asics());
     }
-    utility::setTTLZeroCpuConfig(ensemble.getL3Asics(), cfg);
-    return cfg;
+    return config;
   }
 
   void runWredDropTest() {
