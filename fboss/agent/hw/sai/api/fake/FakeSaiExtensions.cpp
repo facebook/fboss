@@ -108,6 +108,7 @@ std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributeSystemPortId::operator()() {
   return SAI_PORT_ATTR_EXT_FAKE_SYSTEM_PORT_ID;
 }
+
 std::optional<sai_attr_id_t> SaiPortSerdesTraits::Attributes::
     AttributeRxAfeAdaptiveEnableWrapper::operator()() {
   return SAI_PORT_SERDES_ATTR_EXT_FAKE_RX_AFE_ADAPTIVE_ENABLE;
@@ -588,6 +589,11 @@ SaiPortTraits::Attributes::AttributeShelEnable::operator()() {
 
 std::optional<sai_attr_id_t>
 SaiSystemPortTraits::Attributes::AttributeShelPktDstEnable::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiSystemPortTraits::Attributes::AttributeTcRateLimitExclude::operator()() {
   return std::nullopt;
 }
 

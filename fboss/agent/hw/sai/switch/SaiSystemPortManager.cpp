@@ -102,7 +102,8 @@ SaiSystemPortManager::attributesFromSwSystemPort(
       config,
       true /*enabled*/,
       qosTcToQueueMap,
-      std::nullopt /* shelPktDstEnable */};
+      std::nullopt /* shelPktDstEnable */,
+      std::nullopt /* tcRateLimitExclude */};
 }
 
 SystemPortSaiId SaiSystemPortManager::addSystemPort(
