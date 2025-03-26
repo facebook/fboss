@@ -440,7 +440,11 @@ FabricConnectivityManager::processConnectivityInfoForPort(
 }
 
 bool FabricConnectivityManager::isUpdatedConfigForPort(const PortID& portId) {
-  return (portsWithUpdatedConfig_.erase(portId) > 0);
+  return portsWithUpdatedConfig_.contains(portId);
+}
+
+void FabricConnectivityManager::clearUpdatedConfigFlag(const PortID& portId) {
+  portsWithUpdatedConfig_.erase(portId); // No-op if not present
 }
 
 // Detect mismatch in expected vs. actual connectivity.

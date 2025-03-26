@@ -286,7 +286,8 @@ TEST_F(FabricConnectivityManagerTest, configUpdateForPort) {
       fabricConnectivityManager_->isUpdatedConfigForPort(portId);
   EXPECT_TRUE(isUpdatedConfig);
 
-  // Clears after the first update
+  // Clear and verify
+  fabricConnectivityManager_->clearUpdatedConfigFlag(portId);
   isUpdatedConfig = fabricConnectivityManager_->isUpdatedConfigForPort(portId);
   EXPECT_FALSE(isUpdatedConfig);
 }

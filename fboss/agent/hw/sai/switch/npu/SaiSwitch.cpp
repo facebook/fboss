@@ -84,6 +84,10 @@ void SaiSwitch::updateStatsImpl() {
             portsIter->second.portID, *endpointOpt);
         bool updatedConfig = fabricConnectivityManager_->isUpdatedConfigForPort(
             portsIter->second.portID);
+        if (updatedConfig) {
+          fabricConnectivityManager_->clearUpdatedConfigFlag(
+              portsIter->second.portID);
+        }
 
         if (delta) {
           XLOG(DBG5) << "C" << (updatedConfig ? "onfig and c" : "")
@@ -93,6 +97,7 @@ void SaiSwitch::updateStatsImpl() {
         } else if (updatedConfig) {
           XLOG(DBG5) << "Config delta found for port ID "
                      << portsIter->second.portID;
+
           delta = multiswitch::FabricConnectivityDelta{};
           delta->oldConnectivity() = endpointOpt.value();
           delta->newConnectivity() = endpointOpt.value();

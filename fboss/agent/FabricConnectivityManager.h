@@ -52,6 +52,7 @@ class FabricConnectivityManager {
       const PortID& portId,
       const FabricEndpoint& hwConnectivity);
   bool isUpdatedConfigForPort(const PortID& portId);
+  void clearUpdatedConfigFlag(const PortID& portId);
   bool isConnectivityInfoMissing(const PortID& portId);
   static bool isConnectivityInfoMissing(const FabricEndpoint& endpoint);
   bool isConnectivityInfoMismatch(const PortID& portId);
