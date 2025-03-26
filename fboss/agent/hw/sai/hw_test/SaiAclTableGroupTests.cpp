@@ -98,17 +98,21 @@ class SaiAclTableGroupTest : public HwTest {
   void addAclTable1Entry1(
       cfg::SwitchConfig& cfg,
       const std::string& aclTableName) {
-    auto* acl1 = utility::addAcl_DEPRECATED(
-        &cfg, kAclTable1Entry1(), cfg::AclActionType::DENY, aclTableName);
-    acl1->dscp() = 0x20;
+    cfg::AclEntry acl1{};
+    acl1.name() = kAclTable1Entry1();
+    acl1.actionType() = cfg::AclActionType::DENY;
+    acl1.dscp() = 0x20;
+    utility::addAclEntry(&cfg, acl1, aclTableName);
   }
 
   void addAclTable2Entry1(cfg::SwitchConfig& cfg) {
-    auto* acl2 = utility::addAcl_DEPRECATED(
-        &cfg, kAclTable2Entry1(), cfg::AclActionType::DENY, kAclTable2());
+    cfg::AclEntry acl2{};
+    acl2.name() = kAclTable2Entry1();
+    acl2.actionType() = cfg::AclActionType::DENY;
     cfg::Ttl ttl;
     std::tie(*ttl.value(), *ttl.mask()) = std::make_tuple(0x80, 0x80);
-    acl2->ttl() = ttl;
+    acl2.ttl() = ttl;
+    utility::addAclEntry(&cfg, acl2, kAclTable2());
   }
 
   void verifyAclTableHelper(
@@ -320,13 +324,15 @@ class SaiAclTableGroupTest : public HwTest {
       uint8_t dscp,
       bool addVlan = false) {
     std::vector<cfg::CounterType> counterTypes{cfg::CounterType::PACKETS};
-    auto* counterAcl = utility::addAcl_DEPRECATED(
-        cfg, aclEntryName, cfg::AclActionType::PERMIT, aclTableName);
-    utility::addAclStat(cfg, aclEntryName, counterName, counterTypes);
-    counterAcl->dscp() = dscp;
+    cfg::AclEntry counterAcl;
+    counterAcl.name() = aclEntryName;
+    counterAcl.actionType() = cfg::AclActionType::PERMIT;
+    counterAcl.dscp() = dscp;
     if (addVlan) {
-      counterAcl->vlanID() = 2000;
+      counterAcl.vlanID() = 2000;
     }
+    utility::addAclEntry(cfg, counterAcl, aclTableName);
+    utility::addAclStat(cfg, aclEntryName, counterName, counterTypes);
   }
 
   void addCounterAclsToQphTable(cfg::SwitchConfig* cfg) {
