@@ -1,6 +1,12 @@
 name: Deploy to GitHub Pages
 
+defaults:
+  run:
+    working-directory: ./docs
+
 on:
+  workflow_dispatch:
+  pull_request:
   push:
     branches:
       - main
@@ -15,13 +21,12 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
       - uses: actions/setup-node@v4
         with:
           node-version: 18
           cache: yarn
-
-      - name: Change directory to docs/
-        run: cd docs/
+          cache-dependency-path: docs/yarn.lock
       - name: Install dependencies
         run: yarn install --frozen-lockfile
       - name: Build website
