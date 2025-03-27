@@ -204,6 +204,7 @@ cpp_library(
         "//fboss/lib/config:fboss_config_utils",
         "//folly:format",
         "//folly:network_address",
+        "//folly/testing:test_util",
     ],
 )
 

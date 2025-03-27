@@ -331,4 +331,6 @@ void modifyPlatformConfig(
     const std::function<void(std::map<std::string, std::string>&)>&
         modifyMapFunc);
 
+void runCintScript(TestEnsembleIf* ensemble, const std::string& cintStr);
+
 } // namespace facebook::fboss::utility

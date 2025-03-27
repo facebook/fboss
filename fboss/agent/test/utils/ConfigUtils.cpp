@@ -22,6 +22,7 @@
 #include "fboss/lib/config/PlatformConfigUtils.h"
 
 #include <folly/Format.h>
+#include "folly/testing/TestUtil.h"
 
 DEFINE_bool(nodeZ, false, "Setup test config as node Z");
 DECLARE_string(mode);
@@ -1591,6 +1592,15 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
       baseIntfId,
       enableFabricPorts,
       intfTypeVal);
+}
+
+void runCintScript(TestEnsembleIf* ensemble, const std::string& cintStr) {
+  folly::test::TemporaryFile file;
+  XLOG(INFO) << " Cint file " << file.path().c_str();
+  folly::writeFull(file.fd(), cintStr.c_str(), cintStr.size());
+  auto cmd = folly::sformat("cint {}\n", file.path().c_str());
+  std::string out;
+  ensemble->runDiagCommand(cmd, out, std::nullopt);
 }
 
 } // namespace facebook::fboss::utility
