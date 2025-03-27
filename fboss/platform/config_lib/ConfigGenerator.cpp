@@ -180,7 +180,9 @@ int main(int argc, char* argv[]) {
            << "{" << std::endl;
     for (const auto& [platformName, config] : configsByPlatform) {
       stream << fmt::format(
-                    "{{\"{}\", R\"({})\"}},", platformName.c_str(), config)
+                    "{{\"{}\", R\"EOFEOF({})EOFEOF\"}},",
+                    platformName.c_str(),
+                    config)
              << std::endl;
     }
     stream << "};" << std::endl;
