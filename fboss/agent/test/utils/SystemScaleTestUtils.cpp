@@ -14,6 +14,7 @@
 #include "fboss/agent/test/utils/MacLearningFloodHelper.h"
 #include "fboss/agent/test/utils/PortFlapHelper.h"
 #include "fboss/agent/test/utils/ScaleTestUtils.h"
+#include "fboss/agent/test/utils/TrapPacketUtils.h"
 #include "fboss/lib/CommonFileUtils.h"
 #include "folly/Benchmark.h"
 
@@ -39,6 +40,7 @@ constexpr int kMaxScaleMacTxPortIdx = 1;
 constexpr int kMaxScaleMacRxPortIdx = 0;
 constexpr int kMacChurnTxPortIdx = 2;
 constexpr int kMacChurnRxPortIdx = 3;
+constexpr int kRxMeasurePortIdx = 4;
 } // namespace
 
 namespace facebook::fboss::utility {
@@ -105,7 +107,7 @@ std::vector<std::pair<AddrT, folly::MacAddress>> neighborAddrs(
       ipStream << "100.100." << (i >> 8 & 0xff) << "." << (i & 0xff);
     }
     AddrT ip(ipStream.str());
-    uint64_t macBytes = kBaseMac + 1;
+    uint64_t macBytes = kNeighborBaseMac + 1;
     folly::MacAddress mac = folly::MacAddress::fromHBO(macBytes);
     macIPPairs.push_back(std::make_pair(ip, mac));
   }
@@ -230,9 +232,9 @@ void configureMaxMacEntries(AgentEnsemble* ensemble) {
 
   for (int i = 0; i < FLAGS_max_l2_entries; ++i) {
     std::stringstream ipStream;
-    ipStream << "2001:0db8:85a3:0000:0000:8a2e:0370:" << std::hex << i;
+    ipStream << "2620:0:1cfe:face:b10c::5" << std::hex << i;
     folly::IPAddressV6 ip(ipStream.str());
-    uint64_t macBytes = kNeighborBaseMac;
+    uint64_t macBytes = kBaseMac;
     folly::MacAddress mac = folly::MacAddress::fromHBO(macBytes + i);
     macIPv6Pairs.push_back(std::make_pair(ip, mac));
   }
@@ -391,6 +393,62 @@ void configureMaxAclEntries(AgentEnsemble* ensemble) {
   ensemble->applyNewConfig(cfg);
 }
 
+void addPort2NewVlan(cfg::SwitchConfig& config, PortID portID) {
+  auto vlanIfExist = std::find_if(
+      config.vlans()->begin(), config.vlans()->end(), [](auto vlan) {
+        return vlan.id() == kBaseVlanId + 1;
+      });
+  if (vlanIfExist != config.vlans()->end()) {
+    throw FbossError("The vlan to add already exists");
+  }
+
+  // add vlan
+  auto newVlan = cfg::Vlan();
+  newVlan.name() = "rx tx test";
+  newVlan.id() = VlanID(kBaseVlanId + 1);
+  newVlan.routable() = true;
+  config.vlans()->push_back(newVlan);
+
+  // change the vlan id of ingressVlan of port
+  for (auto& port : *config.ports()) {
+    if (port.logicalID() == static_cast<int>(portID)) {
+      port.ingressVlan() = kBaseVlanId + 1;
+    }
+  }
+
+  // change vlan port mapping
+  auto vlanPort = std::find_if(
+      config.vlanPorts()->begin(),
+      config.vlanPorts()->end(),
+      [portID](auto vlanPort) {
+        return vlanPort.logicalPort() == static_cast<int>(portID);
+      });
+  if (vlanPort == config.vlanPorts()->end()) {
+    throw FbossError("The port not not found in vlan port mapping");
+  }
+  vlanPort->vlanID() = kBaseVlanId + 1;
+
+  auto interfaceIfExist = std::find_if(
+      config.interfaces()->begin(),
+      config.interfaces()->end(),
+      [](auto interface) { return interface.intfID() == kBaseVlanId + 1; });
+  if (interfaceIfExist != config.interfaces()->end()) {
+    throw FbossError("The vlan interface to add already exists");
+  }
+
+  // add l3 interface to vlan
+  auto newInterface = cfg::Interface();
+  newInterface.intfID() = kBaseVlanId + 1;
+  newInterface.vlanID() = kBaseVlanId + 1;
+  newInterface.routerID() = 0;
+  newInterface.mac() = utility::kLocalCpuMac().toString();
+  newInterface.mtu() = 9000;
+  newInterface.ipAddresses()->resize(2);
+  newInterface.ipAddresses()[0] = "192.1.1.1/24";
+  newInterface.ipAddresses()[1] = "2001::1/64";
+  config.interfaces()->push_back(newInterface);
+}
+
 cfg::SwitchConfig getSystemScaleTestSwitchConfiguration(
     const AgentEnsemble& ensemble) {
   FLAGS_sai_user_defined_trap = true;
@@ -416,6 +474,8 @@ cfg::SwitchConfig getSystemScaleTestSwitchConfiguration(
       config, ensemble.getL3Asics(), ensemble.isSai());
 
   config.switchSettings()->l2LearningMode() = cfg::L2LearningMode::SOFTWARE;
+  addPort2NewVlan(
+      config, ensemble.masterLogicalInterfacePortIds()[kRxMeasurePortIdx]);
   return config;
 };
 

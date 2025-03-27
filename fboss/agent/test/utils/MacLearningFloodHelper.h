@@ -47,6 +47,7 @@ class MacLearningFloodHelper {
   PortID dstPortID_;
   VlanID vlan_;
   uint64_t macBase_ = 0xFEEEC2000010;
+  bool ifCleanMacTable_;
   std::vector<folly::MacAddress> macs_;
   std::thread clearMacTableThread_;
   std::atomic<bool> done_ = true;
