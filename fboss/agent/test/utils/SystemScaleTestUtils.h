@@ -4,6 +4,7 @@
 namespace facebook::fboss::utility {
 
 void initSystemScaleTest(AgentEnsemble* ensemble);
+void initSystemScaleChurnTest(AgentEnsemble* ensemble);
 cfg::SwitchConfig getSystemScaleTestSwitchConfiguration(
     const AgentEnsemble& ensemble);
 
