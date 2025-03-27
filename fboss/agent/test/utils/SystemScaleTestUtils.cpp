@@ -19,14 +19,18 @@
 
 DECLARE_bool(intf_nbr_tables);
 DECLARE_bool(json);
+DECLARE_int32(max_l2_entries);
+DECLARE_int32(max_ndp_entries);
+DECLARE_int32(max_arp_entries);
+
 DEFINE_string(
     write_agent_config_marker_for_fsdb,
     "",
     "Write marker file for FSDB");
 
 namespace {
-constexpr int kNumMacs = 8000;
 constexpr uint64_t kBaseMac = 0xFEEEC2000010;
+constexpr uint64_t kNeighborBaseMac = 0xF0EEC2000010;
 // the number of rounds to add/churn fboss routes and neighbors is limited by
 // the time to run the test. The number of rounds is chosen to finish in test in
 // 15mins
@@ -183,23 +187,9 @@ void programNeighbors(
     const PortDescriptor& port,
     std::optional<cfg::AclLookupClass> lookupClass) {
   int numNDPNeighbors, numARPNeighbors;
-  auto asic =
-      utility::checkSameAndGetAsic(ensemble->getHwAsicTable()->getL3Asics());
 
-  if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK4 ||
-      asic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK5) {
-    numNDPNeighbors = 4000;
-    numARPNeighbors = 4000;
-  } else if (
-      asic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK3 ||
-      asic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK ||
-      asic->getAsicType() == cfg::AsicType::ASIC_TYPE_EBRO) {
-    numNDPNeighbors = 2000;
-    numARPNeighbors = 2000;
-  } else {
-    numNDPNeighbors = 2000;
-    numARPNeighbors = 2000;
-  }
+  numNDPNeighbors = FLAGS_max_ndp_entries;
+  numARPNeighbors = FLAGS_max_arp_entries;
   XLOG(DBG2) << "Max NDP neighbors: " << numNDPNeighbors << " Max ARP neighbors"
              << numARPNeighbors;
 
@@ -238,11 +228,11 @@ void configureMaxMacEntries(AgentEnsemble* ensemble) {
 
   std::vector<std::pair<folly::IPAddressV6, folly::MacAddress>> macIPv6Pairs;
 
-  for (int i = 0; i < kNumMacs; ++i) {
+  for (int i = 0; i < FLAGS_max_l2_entries; ++i) {
     std::stringstream ipStream;
     ipStream << "2001:0db8:85a3:0000:0000:8a2e:0370:" << std::hex << i;
     folly::IPAddressV6 ip(ipStream.str());
-    uint64_t macBytes = 0xFEEEC2000010;
+    uint64_t macBytes = kNeighborBaseMac;
     folly::MacAddress mac = folly::MacAddress::fromHBO(macBytes + i);
     macIPv6Pairs.push_back(std::make_pair(ip, mac));
   }
