@@ -1670,7 +1670,7 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet(
           cfg::AclTableQualifier::IP_TYPE,
           cfg::AclTableQualifier::ETHER_TYPE,
           cfg::AclTableQualifier::OUTER_VLAN,
-          // TODO(pshaikh): Add UDF?
+          cfg::AclTableQualifier::UDF,
       };
     } else {
       return {
