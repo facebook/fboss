@@ -31,6 +31,7 @@ SaiArsProfileManager::SaiArsProfileManager(
 
 SaiArsProfileTraits::CreateAttributes SaiArsProfileManager::createAttributes(
     const std::shared_ptr<FlowletSwitchingConfig>& flowletSwitchConfig) {
+#if !defined(CHENAB_SAI_SDK)
   auto samplingInterval = flowletSwitchConfig->getDynamicSampleRate();
   sai_uint32_t randomSeed = kArsRandomSeed;
   auto portLoadPastWeight = flowletSwitchConfig->getDynamicEgressLoadExponent();
@@ -51,7 +52,13 @@ SaiArsProfileTraits::CreateAttributes SaiArsProfileManager::createAttributes(
       flowletSwitchConfig->getDynamicQueueMinThresholdBytes() >> 1;
   auto loadCurrentMaxVal =
       flowletSwitchConfig->getDynamicQueueMaxThresholdBytes() >> 1;
+#endif
   SaiArsProfileTraits::CreateAttributes attributes{
+  // Chenab will use the default when 0 is passed in. We will replace these
+  // with config values in the future
+#if defined(CHENAB_SAI_SDK)
+      0, 0, 0};
+#else
       SAI_ARS_PROFILE_ALGO_EWMA,
       samplingInterval,
       randomSeed,
@@ -69,6 +76,7 @@ SaiArsProfileTraits::CreateAttributes SaiArsProfileManager::createAttributes(
       portLoadExponent,
       loadCurrentMinVal,
       loadCurrentMaxVal};
+#endif
 
   return attributes;
 }
