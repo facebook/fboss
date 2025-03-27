@@ -738,15 +738,21 @@ void SwSwitch::gracefulExit() {
                       stopThreadsAndHandlersDone - neighborFloodDone)
                       .count();
 
-    auto thriftSwitchState = gracefulExitState();
-    // write exit state
-    steady_clock::time_point switchStateToFollyDone = steady_clock::now();
-    XLOG(DBG2) << "[Exit] Switch state to folly dynamic "
-               << duration_cast<duration<float>>(
-                      switchStateToFollyDone - stopThreadsAndHandlersDone)
-                      .count();
+    state::WarmbootState thriftSwitchState;
+    std::thread swWarmbootStateThread([this,
+                                       &thriftSwitchState,
+                                       stopThreadsAndHandlersDone]() {
+      thriftSwitchState = gracefulExitState();
+      steady_clock::time_point switchStateToThriftDone = steady_clock::now();
+      XLOG(DBG2) << "[Exit] Switch state to thrift "
+                 << duration_cast<duration<float>>(
+                        switchStateToThriftDone - stopThreadsAndHandlersDone)
+                        .count();
+    });
     // Cleanup if we ever initialized
     stopHwSwitchHandler();
+
+    swWarmbootStateThread.join();
     storeWarmBootState(thriftSwitchState);
     XLOG(DBG2)
         << "[Exit] SwSwitch Graceful Exit time "
