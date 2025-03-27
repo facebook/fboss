@@ -210,7 +210,62 @@ void configureMaxNeighborEntries(AgentEnsemble* ensemble) {
       std::nullopt);
 }
 
-void configureMaxMacEntries(AgentEnsemble* ensemble) {
+std::vector<L2Entry> generateL2Entries(
+    AgentEnsemble* ensemble,
+    const std::vector<folly::MacAddress>& macs,
+    PortID portID) {
+  std::vector<L2Entry> l2Entries;
+  const auto portDescr = PortDescriptor(portID);
+  auto vlan = ensemble->getProgrammedState()
+                  ->getPorts()
+                  ->getNodeIf(portID)
+                  ->getIngressVlan();
+  l2Entries.reserve(macs.size());
+  for (auto& mac : macs) {
+    l2Entries.emplace_back(
+        mac, vlan, portDescr, L2Entry::L2EntryType::L2_ENTRY_TYPE_VALIDATED);
+  }
+  return l2Entries;
+}
+
+void configureMaxMacEntriesViaL2LearningUpdate(AgentEnsemble* ensemble) {
+  std::vector<folly::MacAddress> macs;
+  // mac learned from port
+  auto rxPort =
+      PortID(ensemble->masterLogicalInterfacePortIds()[kMaxScaleMacRxPortIdx]);
+  auto vlan = ensemble->getProgrammedState()
+                  ->getPorts()
+                  ->getNodeIf(rxPort)
+                  ->getIngressVlan();
+  for (int i = 0; i < FLAGS_max_l2_entries; ++i) {
+    folly::MacAddress mac = folly::MacAddress::fromHBO(kBaseMac + i);
+    macs.push_back(mac);
+  }
+  auto l2Entries = generateL2Entries(ensemble, macs, rxPort);
+  for (int i = 0; i < l2Entries.size(); i++) {
+    XLOG(DBG2) << "Adding i " << i << " MAC " << l2Entries[i].str();
+    ensemble->getSw()->l2LearningUpdateReceived(
+        l2Entries[i], L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_ADD);
+  }
+  int numMacs;
+  std::condition_variable cv;
+  std::chrono::milliseconds waitForMacInstalled =
+      std::chrono::milliseconds(1000);
+  std::mutex mutex;
+  std::unique_lock<std::mutex> lock(mutex);
+
+  do {
+    numMacs = ensemble->getProgrammedState()
+                  ->getVlans()
+                  ->getNodeIf(vlan)
+                  ->getMacTable()
+                  ->size();
+    XLOG(DBG2) << "mac table size: " << numMacs;
+    cv.wait_for(lock, waitForMacInstalled, [] { return false; });
+  } while (numMacs < FLAGS_max_l2_entries);
+}
+
+void configureMaxMacEntriesViaPacketIn(AgentEnsemble* ensemble) {
   CHECK_GE(ensemble->masterLogicalInterfacePortIds().size(), 2);
   PortID txPort =
       PortID(ensemble->masterLogicalInterfacePortIds()[kMaxScaleMacTxPortIdx]);
@@ -253,6 +308,17 @@ void configureMaxMacEntries(AgentEnsemble* ensemble) {
         srcPort,
         dstPort);
     ensemble->getSw()->sendPacketOutOfPortAsync(std::move(txPacket), txPort);
+  }
+}
+void configureMaxMacEntries(AgentEnsemble* ensemble) {
+  auto asic =
+      utility::checkSameAndGetAsic(ensemble->getHwAsicTable()->getL3Asics());
+  // TH3 had existing slowness of l2 callbacks. To exercise the callback path,
+  // we utilize l2 callback on sw switch to simulate large scale of l2 callback
+  if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK3) {
+    configureMaxMacEntriesViaL2LearningUpdate(ensemble);
+  } else {
+    configureMaxMacEntriesViaPacketIn(ensemble);
   }
 }
 
