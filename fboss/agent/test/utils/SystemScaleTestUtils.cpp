@@ -25,6 +25,10 @@ DEFINE_string(
 namespace {
 constexpr int kNumMacs = 8000;
 constexpr uint64_t kBaseMac = 0xFEEEC2000010;
+// the number of rounds to add/churn fboss routes and neighbors is limited by
+// the time to run the test. The number of rounds is chosen to finish in test in
+// 15mins
+constexpr int kNumChurn = 3;
 } // namespace
 
 namespace facebook::fboss::utility {
@@ -205,6 +209,19 @@ void configureMaxMacEntries(AgentEnsemble* ensemble) {
   }
 }
 
+void syncFib(
+    SwSwitchRouteUpdateWrapper& updater,
+    const RouterID kRid,
+    const utility::RouteDistributionGenerator::ThriftRouteChunk& routes) {
+  std::for_each(
+      routes.begin(), routes.end(), [&updater, kRid](const auto& route) {
+        updater.addRoute(kRid, ClientID::BGPD, route);
+      });
+  updater.program(
+      {{{kRid, ClientID::BGPD}},
+       RouteUpdateWrapper::SyncFibInfo::SyncFibType::IP_ONLY});
+}
+
 void configureMaxRouteEntries(AgentEnsemble* ensemble) {
   auto switchIds = ensemble->getHwAsicTable()->getSwitchIDs();
   CHECK_EQ(switchIds.size(), 1);
@@ -304,6 +321,18 @@ void configureMaxRouteEntries(AgentEnsemble* ensemble) {
   }
 }
 
+void removeAllRouteEntries(AgentEnsemble* ensemble) {
+  const RouterID kRid(0);
+  auto updater = ensemble->getSw()->getRouteUpdater();
+  syncFib(updater, kRid, {});
+  int route_count = 0;
+  auto countRoutes = [&route_count](RouterID, auto&) { ++route_count; };
+  forAllRoutes(ensemble->getSw()->getState(), countRoutes);
+  auto directlyConnectedInterfaces =
+      ensemble->getProgrammedState()->getInterfaces()->numNodes();
+  CHECK_LE(route_count, 2 * (directlyConnectedInterfaces + 1) + 1);
+}
+
 void configureMaxAclEntries(AgentEnsemble* ensemble) {
   auto cfg = ensemble->getCurrentConfig();
   const auto maxAclEntries = getMaxAclEntries(ensemble->getL3Asics());
@@ -371,4 +400,15 @@ void initSystemScaleTest(AgentEnsemble* ensemble) {
     writeAgentConfigMarkerForFsdb();
   }
 }
+
+void initSystemScaleChurnTest(AgentEnsemble* ensemble) {
+  configureMaxAclEntries(ensemble);
+
+  for (auto i = 0; i < kNumChurn; i++) {
+    configureMaxRouteEntries(ensemble);
+    removeAllRouteEntries(ensemble);
+    configureMaxNeighborEntries(ensemble);
+  }
+}
+
 } // namespace facebook::fboss::utility
