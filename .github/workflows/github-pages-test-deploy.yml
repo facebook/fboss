@@ -1,5 +1,9 @@
 name: Test deployment
 
+defaults:
+  run:
+    working-directory: ./docs
+
 on:
   pull_request:
     branches:
@@ -19,8 +23,7 @@ jobs:
         with:
           node-version: 18
           cache: yarn
-      - name: Change directory to docs/
-        run: cd docs/
+          cache-dependency-path: docs/yarn.lock
       - name: Install dependencies
         run: yarn install --frozen-lockfile
       - name: Test build website

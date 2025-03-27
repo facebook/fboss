@@ -20,6 +20,7 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
   favicon: 'img/favicon.ico',
   organizationName: 'facebook',
   projectName: 'fboss', // TODO
+  deploymentBranch: 'main',
   customFields: {
     fbRepoName: 'fbsource',
     ossRepoPath: 'fbcode/fboss/github/docs',
