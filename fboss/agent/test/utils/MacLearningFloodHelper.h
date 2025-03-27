@@ -24,8 +24,7 @@ class MacLearningFloodHelper {
     vlan_ = vlan;
     for (int i = 0; i < kNumOfMacs; i++) {
       // randomly generate mac address
-      uint64_t bytes = 0xFEEEC2000000;
-      macs_.push_back(folly::MacAddress::fromHBO(bytes + i));
+      macs_.push_back(folly::MacAddress::fromHBO(macBase_ + i));
     }
   }
   ~MacLearningFloodHelper() {
@@ -33,20 +32,21 @@ class MacLearningFloodHelper {
     if (done_) {
       return;
     }
-    stopClearMacTable();
+    stopChurnMacTable();
   }
-  void startClearMacTable();
+  void startChurnMacTable();
 
-  void stopClearMacTable();
+  void stopChurnMacTable();
 
  protected:
   void macFlap();
-  void clearMacTable();
+  void clearMacEntries();
   void sendMacTestTraffic();
   AgentEnsemble* ensemble_;
   PortID srcPortID_;
   PortID dstPortID_;
   VlanID vlan_;
+  uint64_t macBase_ = 0xFEEEC2000010;
   std::vector<folly::MacAddress> macs_;
   std::thread clearMacTableThread_;
   std::atomic<bool> done_ = true;

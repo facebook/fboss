@@ -627,6 +627,7 @@ cpp_library(
         ":acl_test_utils",
         ":asic_test_utils",
         ":copp_test_utils",
+        ":mac_learning_flood_helper",
         ":port_flap_helper",
         ":scale_test_utils",
         "//fboss/agent:agent_features",

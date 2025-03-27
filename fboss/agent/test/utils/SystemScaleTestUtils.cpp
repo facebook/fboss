@@ -11,6 +11,7 @@
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
+#include "fboss/agent/test/utils/MacLearningFloodHelper.h"
 #include "fboss/agent/test/utils/PortFlapHelper.h"
 #include "fboss/agent/test/utils/ScaleTestUtils.h"
 #include "fboss/lib/CommonFileUtils.h"
@@ -30,6 +31,10 @@ constexpr uint64_t kBaseMac = 0xFEEEC2000010;
 // the time to run the test. The number of rounds is chosen to finish in test in
 // 15mins
 constexpr int kNumChurn = 3;
+constexpr int kMaxScaleMacTxPortIdx = 1;
+constexpr int kMaxScaleMacRxPortIdx = 0;
+constexpr int kMacChurnTxPortIdx = 2;
+constexpr int kMacChurnRxPortIdx = 3;
 } // namespace
 
 namespace facebook::fboss::utility {
@@ -215,9 +220,10 @@ void configureMaxNeighborEntries(AgentEnsemble* ensemble) {
 
 void configureMaxMacEntries(AgentEnsemble* ensemble) {
   CHECK_GE(ensemble->masterLogicalInterfacePortIds().size(), 2);
-  PortID txPort = PortID(ensemble->masterLogicalInterfacePortIds()[1]);
-  PortID rxPort = PortID(ensemble->masterLogicalInterfacePortIds()[0]);
-
+  PortID txPort =
+      PortID(ensemble->masterLogicalInterfacePortIds()[kMaxScaleMacTxPortIdx]);
+  PortID rxPort =
+      PortID(ensemble->masterLogicalInterfacePortIds()[kMaxScaleMacRxPortIdx]);
   auto vlan = ensemble->getProgrammedState()
                   ->getPorts()
                   ->getNodeIf(rxPort)
@@ -418,6 +424,8 @@ cfg::SwitchConfig getSystemScaleTestSwitchConfiguration(
       /* setQueueRate */ false);
   utility::setDefaultCpuTrafficPolicyConfig(
       config, ensemble.getL3Asics(), ensemble.isSai());
+
+  config.switchSettings()->l2LearningMode() = cfg::L2LearningMode::SOFTWARE;
   return config;
 };
 
@@ -456,8 +464,15 @@ void initSystemScaleChurnTest(AgentEnsemble* ensemble) {
   std::vector<PortID> portToFlap = {
       ensemble->masterLogicalInterfacePortIds()[0]};
   auto portFlapHelper = PortFlapHelper(ensemble, portToFlap);
-
+  CHECK_GT(ensemble->masterLogicalInterfacePortIds().size(), 2);
+  auto macLearningFloodHelper = MacLearningFloodHelper(
+      ensemble,
+      ensemble->masterLogicalInterfacePortIds()[kMacChurnTxPortIdx],
+      ensemble->masterLogicalInterfacePortIds()[kMacChurnRxPortIdx],
+      VlanID(kBaseVlanId));
+  configureMaxMacEntries(ensemble);
   portFlapHelper.startPortFlap();
+  macLearningFloodHelper.startChurnMacTable();
 
   for (auto i = 0; i < kNumChurn; i++) {
     configureMaxRouteEntries(ensemble);
@@ -466,6 +481,7 @@ void initSystemScaleChurnTest(AgentEnsemble* ensemble) {
     removeAllNeighbors(ensemble);
   }
   portFlapHelper.stopPortFlap();
+  macLearningFloodHelper.stopChurnMacTable();
 }
 
 } // namespace facebook::fboss::utility
