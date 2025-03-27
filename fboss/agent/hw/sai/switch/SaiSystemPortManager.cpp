@@ -124,7 +124,9 @@ SystemPortSaiId SaiSystemPortManager::addSystemPort(
       std::make_unique<HwSysPortFb303Stats>(
           swSystemPort->getName(),
           HwBasePortFb303Stats::QueueId2Name(),
-          platform_->getMultiSwitchStatsPrefix()));
+          platform_->getMultiSwitchStatsPrefix(),
+          swSystemPort->getRemoteSystemPortType() !=
+              RemoteSystemPortType::DYNAMIC_ENTRY));
   auto handle = std::make_unique<SaiSystemPortHandle>();
 
   auto& systemPortStore = saiStore_->get<SaiSystemPortTraits>();
