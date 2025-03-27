@@ -177,10 +177,12 @@ class CmdShowTransceiver
   }
 
   Table::StyledCell coloredSensorValue(std::string value, FlagLevels flags) {
-    if (flags.alarm().value().get_high() || flags.alarm().value().get_low()) {
+    if (folly::copy(flags.alarm().value().high().value()) ||
+        folly::copy(flags.alarm().value().low().value())) {
       return Table::StyledCell(value, Table::Style::ERROR);
     } else if (
-        flags.warn().value().get_high() || flags.warn().value().get_low()) {
+        folly::copy(flags.warn().value().high().value()) ||
+        folly::copy(flags.warn().value().low().value())) {
       return Table::StyledCell(value, Table::Style::WARN);
     } else {
       return Table::StyledCell(value, Table::Style::GOOD);
@@ -282,17 +284,21 @@ class CmdShowTransceiver
         details.serial() = vendor->serialNumber().value();
         details.partNumber() = vendor->partNumber().value();
         details.temperature() = apache::thrift::get_pointer(tcvrStats.sensor())
-                                    ->get_temp()
+                                    ->temp()
+                                    .value()
                                     .get_value();
         details.voltage() = apache::thrift::get_pointer(tcvrStats.sensor())
-                                ->get_vcc()
+                                ->vcc()
+                                .value()
                                 .get_value();
         details.tempFlags() = apache::thrift::get_pointer(tcvrStats.sensor())
-                                  ->get_temp()
+                                  ->temp()
+                                  .value()
                                   .flags()
                                   .value_or({});
         details.vccFlags() = apache::thrift::get_pointer(tcvrStats.sensor())
-                                 ->get_vcc()
+                                 ->vcc()
+                                 .value()
                                  .flags()
                                  .value_or({});
 
@@ -327,11 +333,14 @@ class CmdShowTransceiver
             // If the port doesn't exist in the map, it's likely not configured
             // yet. Display all channels in this case
           }
-          current.push_back(channel.sensors().value().get_txBias().get_value());
+          current.push_back(
+              channel.sensors().value().txBias().value().get_value());
           txPower.push_back(
-              channel.sensors().value().get_txPwrdBm()->get_value());
+              apache::thrift::get_pointer(channel.sensors().value().txPwrdBm())
+                  ->get_value());
           rxPower.push_back(
-              channel.sensors().value().get_rxPwrdBm()->get_value());
+              apache::thrift::get_pointer(channel.sensors().value().rxPwrdBm())
+                  ->get_value());
           if (const auto& snr = channel.sensors().value().rxSnr()) {
             rxSnr.push_back(folly::copy(snr->value().value()));
           }

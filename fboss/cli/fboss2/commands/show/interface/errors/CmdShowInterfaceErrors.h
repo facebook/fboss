@@ -66,14 +66,14 @@ class CmdShowInterfaceErrors
         cli::ErrorCounters counter;
 
         counter.interfaceName() = portInfo.name().value();
-        counter.inputErrors() =
-            portInfo.input().value().errors().value().get_errors();
-        counter.inputDiscards() =
-            portInfo.input().value().errors().value().get_discards();
-        counter.outputErrors() =
-            portInfo.output().value().errors().value().get_errors();
-        counter.outputDiscards() =
-            portInfo.output().value().errors().value().get_discards();
+        counter.inputErrors() = folly::copy(
+            portInfo.input().value().errors().value().errors().value());
+        counter.inputDiscards() = folly::copy(
+            portInfo.input().value().errors().value().discards().value());
+        counter.outputErrors() = folly::copy(
+            portInfo.output().value().errors().value().errors().value());
+        counter.outputDiscards() = folly::copy(
+            portInfo.output().value().errors().value().discards().value());
 
         ret.error_counters()->push_back(counter);
       }

@@ -94,14 +94,26 @@ class CmdShowHost : public CmdHandler<CmdShowHost, CmdShowHostTraits> {
         hostDetails.speed() = utils::getSpeedGbps(
             folly::copy(ndpEntryPortInfo.speedMbps().value()));
         hostDetails.fecMode() = ndpEntryPortInfo.fecMode().value();
-        hostDetails.inErrors() =
-            ndpEntryPortInfo.input().value().errors().value().get_errors();
-        hostDetails.inDiscards() =
-            ndpEntryPortInfo.input().value().errors().value().get_discards();
-        hostDetails.outErrors() =
-            ndpEntryPortInfo.output().value().errors().value().get_errors();
-        hostDetails.outDiscards() =
-            ndpEntryPortInfo.output().value().errors().value().get_discards();
+        hostDetails.inErrors() = folly::copy(
+            ndpEntryPortInfo.input().value().errors().value().errors().value());
+        hostDetails.inDiscards() = folly::copy(ndpEntryPortInfo.input()
+                                                   .value()
+                                                   .errors()
+                                                   .value()
+                                                   .discards()
+                                                   .value());
+        hostDetails.outErrors() = folly::copy(ndpEntryPortInfo.output()
+                                                  .value()
+                                                  .errors()
+                                                  .value()
+                                                  .errors()
+                                                  .value());
+        hostDetails.outDiscards() = folly::copy(ndpEntryPortInfo.output()
+                                                    .value()
+                                                    .errors()
+                                                    .value()
+                                                    .discards()
+                                                    .value());
       } else {
         continue;
       }
