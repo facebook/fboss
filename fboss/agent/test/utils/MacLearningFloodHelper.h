@@ -2,8 +2,10 @@
 #include "fboss/agent/test/AgentEnsemble.h"
 
 namespace {
-const int kNumOfMacs = 1024;
-}
+// tomahawk can only do 128 macs per second
+// tomahawk4 1024 macs per second
+const int kNumOfMacsFlooding = 128;
+} // namespace
 
 DECLARE_bool(intf_nbr_tables);
 
@@ -22,7 +24,7 @@ class MacLearningFloodHelper {
     macTableFlushIntervalMs_ =
         std::chrono::milliseconds(macTableFlushIntervalMs);
     vlan_ = vlan;
-    for (int i = 0; i < kNumOfMacs; i++) {
+    for (int i = 0; i < kNumOfMacsFlooding; i++) {
       // randomly generate mac address
       macs_.push_back(folly::MacAddress::fromHBO(macBase_ + i));
     }
