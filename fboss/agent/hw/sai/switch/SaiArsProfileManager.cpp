@@ -29,58 +29,6 @@ SaiArsProfileManager::SaiArsProfileManager(
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
 
-SaiArsProfileTraits::CreateAttributes SaiArsProfileManager::createAttributes(
-    const std::shared_ptr<FlowletSwitchingConfig>& flowletSwitchConfig) {
-#if !defined(CHENAB_SAI_SDK)
-  auto samplingInterval = flowletSwitchConfig->getDynamicSampleRate();
-  sai_uint32_t randomSeed = kArsRandomSeed;
-  auto portLoadPastWeight = flowletSwitchConfig->getDynamicEgressLoadExponent();
-  auto portLoadFutureWeight = flowletSwitchConfig->getDynamicQueueExponent();
-  auto portLoadExponent =
-      flowletSwitchConfig->getDynamicPhysicalQueueExponent();
-  auto loadPastMinVal =
-      flowletSwitchConfig->getDynamicEgressMinThresholdBytes();
-  auto loadPastMaxVal =
-      flowletSwitchConfig->getDynamicEgressMaxThresholdBytes();
-  auto loadFutureMinVal =
-      flowletSwitchConfig->getDynamicQueueMinThresholdBytes();
-  auto loadFutureMaxVal =
-      flowletSwitchConfig->getDynamicQueueMaxThresholdBytes();
-  // this is per ITM and should be half of newDynamicQueueMinThresholdBytes
-  // above (as we have 2 ITMs)
-  auto loadCurrentMinVal =
-      flowletSwitchConfig->getDynamicQueueMinThresholdBytes() >> 1;
-  auto loadCurrentMaxVal =
-      flowletSwitchConfig->getDynamicQueueMaxThresholdBytes() >> 1;
-#endif
-  SaiArsProfileTraits::CreateAttributes attributes{
-  // Chenab will use the default when 0 is passed in. We will replace these
-  // with config values in the future
-#if defined(CHENAB_SAI_SDK)
-      0, 0, 0};
-#else
-      SAI_ARS_PROFILE_ALGO_EWMA,
-      samplingInterval,
-      randomSeed,
-      false, // EnableIPv4
-      false, // EnableIPv6
-      true,
-      portLoadPastWeight,
-      loadPastMinVal,
-      loadPastMaxVal,
-      true,
-      portLoadFutureWeight,
-      loadFutureMinVal,
-      loadFutureMaxVal,
-      true,
-      portLoadExponent,
-      loadCurrentMinVal,
-      loadCurrentMaxVal};
-#endif
-
-  return attributes;
-}
-
 void SaiArsProfileManager::addArsProfile(
     const std::shared_ptr<FlowletSwitchingConfig>& flowletSwitchConfig) {
   auto attributes = createAttributes(flowletSwitchConfig);
