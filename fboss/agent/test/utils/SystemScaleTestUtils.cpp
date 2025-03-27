@@ -34,6 +34,54 @@ constexpr int kNumChurn = 3;
 namespace facebook::fboss::utility {
 
 template <typename AddrT>
+void removeNeighbor(AgentEnsemble* ensemble) {
+  ensemble->applyNewState(
+      [&](const std::shared_ptr<SwitchState>& in) {
+        auto newState = in->clone();
+        if (FLAGS_intf_nbr_tables) {
+          auto intfID =
+              ensemble->getProgrammedState()
+                  ->getPorts()
+                  ->getNodeIf(ensemble->masterLogicalInterfacePortIds()[0])
+                  ->getInterfaceID();
+          Interface* interface =
+              newState->getInterfaces()->getNode(intfID).get();
+          interface = interface->modify(&newState);
+          if (std::is_same<AddrT, folly::IPAddressV4>::value) {
+            XLOG(DBG2) << "# arp entries" << interface->getArpTable()->size();
+            interface->setArpTable(std::make_shared<ArpTable>());
+          } else {
+            XLOG(DBG2) << "# ndp entries" << interface->getNdpTable()->size();
+            interface->setNdpTable(std::make_shared<NdpTable>());
+          }
+        } else {
+          auto vlanID =
+              ensemble->getProgrammedState()
+                  ->getPorts()
+                  ->getNodeIf(ensemble->masterLogicalInterfacePortIds()[0])
+                  ->getIngressVlan();
+          Vlan* vlan = newState->getVlans()->getNode(vlanID).get();
+          vlan = vlan->modify(&newState);
+          if (std::is_same<AddrT, folly::IPAddressV4>::value) {
+            XLOG(DBG2) << "# arp entries" << vlan->getArpTable()->size();
+            vlan->setArpTable(std::make_shared<ArpTable>());
+          } else {
+            XLOG(DBG2) << "# ndp entries" << vlan->getNdpTable()->size();
+            vlan->setNdpTable(std::make_shared<NdpTable>());
+          }
+        }
+        return newState;
+      },
+      "remove neighbor",
+      false);
+}
+
+void removeAllNeighbors(AgentEnsemble* ensemble) {
+  removeNeighbor<folly::IPAddressV4>(ensemble);
+  removeNeighbor<folly::IPAddressV6>(ensemble);
+}
+
+template <typename AddrT>
 std::vector<std::pair<AddrT, folly::MacAddress>> neighborAddrs(
     int numNeighbors) {
   std::vector<std::pair<AddrT, folly::MacAddress>> macIPPairs;
@@ -408,6 +456,7 @@ void initSystemScaleChurnTest(AgentEnsemble* ensemble) {
     configureMaxRouteEntries(ensemble);
     removeAllRouteEntries(ensemble);
     configureMaxNeighborEntries(ensemble);
+    removeAllNeighbors(ensemble);
   }
 }
 
