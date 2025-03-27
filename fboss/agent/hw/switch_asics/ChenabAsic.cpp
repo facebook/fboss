@@ -390,7 +390,7 @@ std::optional<uint32_t> ChenabAsic::getPortSerdesPreemphasis() const {
   return 50;
 }
 uint32_t ChenabAsic::getPacketBufferUnitSize() const {
-  return 512;
+  return 192;
 }
 uint32_t ChenabAsic::getPacketBufferDescriptorSize() const {
   return 40;

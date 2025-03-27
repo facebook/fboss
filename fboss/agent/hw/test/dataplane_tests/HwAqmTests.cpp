@@ -575,7 +575,9 @@ class HwAqmTest : public HwLinkStateDependentTest {
             utility::kOlympicQueueToDscp().at(kQueueId).front(),
             ecnVal,
             numPacketsToSend,
-            kPayloadLength);
+            kPayloadLength,
+            255,
+            masterLogicalInterfacePortIds()[1]);
       };
 
       // Send traffic with queue buildup and get the stats at the start!
