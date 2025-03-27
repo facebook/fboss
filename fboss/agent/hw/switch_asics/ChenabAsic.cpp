@@ -76,10 +76,10 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::ACL_ENTRY_ETHER_TYPE:
     case HwAsic::Feature::DEDICATED_CPU_BUFFER_POOL:
     case HwAsic::Feature::ROUTE_METADATA:
+    case HwAsic::Feature::SAI_ECMP_HASH_ALGORITHM:
       return true;
     case HwAsic::Feature::PORT_MTU_ERROR_TRAP:
     case HwAsic::Feature::EVENTOR_PORT_FOR_SFLOW:
-    case HwAsic::Feature::SAI_ECMP_HASH_ALGORITHM:
     case HwAsic::Feature::SWITCH_REACHABILITY_CHANGE_NOTIFY:
     case HwAsic::Feature::CABLE_PROPOGATION_DELAY:
     case HwAsic::Feature::DRAM_BLOCK_TIME:
