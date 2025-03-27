@@ -11,6 +11,7 @@
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
+#include "fboss/agent/test/utils/PortFlapHelper.h"
 #include "fboss/agent/test/utils/ScaleTestUtils.h"
 #include "fboss/lib/CommonFileUtils.h"
 #include "folly/Benchmark.h"
@@ -452,12 +453,19 @@ void initSystemScaleTest(AgentEnsemble* ensemble) {
 void initSystemScaleChurnTest(AgentEnsemble* ensemble) {
   configureMaxAclEntries(ensemble);
 
+  std::vector<PortID> portToFlap = {
+      ensemble->masterLogicalInterfacePortIds()[0]};
+  auto portFlapHelper = PortFlapHelper(ensemble, portToFlap);
+
+  portFlapHelper.startPortFlap();
+
   for (auto i = 0; i < kNumChurn; i++) {
     configureMaxRouteEntries(ensemble);
     removeAllRouteEntries(ensemble);
     configureMaxNeighborEntries(ensemble);
     removeAllNeighbors(ensemble);
   }
+  portFlapHelper.stopPortFlap();
 }
 
 } // namespace facebook::fboss::utility
