@@ -893,6 +893,7 @@ add_dependencies(fboss_fake_agent_targets
   sai_agent_hw_test-fake
   multi_switch_agent_hw_test
   fboss_agent_thrift_libs
+  fboss_sw_agent
 )
 if (BUILD_SAI_FAKE_LINK_TEST)
 add_dependencies(fboss_fake_agent_targets
