@@ -1085,7 +1085,8 @@ TEST_F(PlatformMappingTest, VerifyWedge100DownlinkPortIphyPinConfigs) {
   for (auto& port : mapping->getPlatformPorts()) {
     const auto& chipName = port.second.mapping()
                                .value()
-                               .get_pins()[0]
+                               .pins()
+                               .value()[0]
                                .get_z()
                                ->get_end()
                                .get_chip();
@@ -1141,7 +1142,8 @@ TEST_F(PlatformMappingTest, VerifyWedge100YV3T1DownlinkPortIphyPinConfigs) {
   for (auto& port : mapping->getPlatformPorts()) {
     const auto& chipName = port.second.mapping()
                                .value()
-                               .get_pins()[0]
+                               .pins()
+                               .value()[0]
                                .get_z()
                                ->get_end()
                                .get_chip();
@@ -1202,7 +1204,8 @@ TEST_F(PlatformMappingTest, VerifyWedge100UplinkPortIphyPinConfigs) {
   for (auto& port : mapping->getPlatformPorts()) {
     const auto& chipName = port.second.mapping()
                                .value()
-                               .get_pins()[0]
+                               .pins()
+                               .value()[0]
                                .get_z()
                                ->get_end()
                                .get_chip();
