@@ -22,6 +22,17 @@ struct RemoteEndpoint {
 
 service FbossHwCtrl {
   /*
+   *  counter part of the similar API in ctrl.thrift
+   *  i.e Serialize switch state at thrift path
+   */
+  string getCurrentHwStateJSON(1: string path);
+
+  /*
+   * Get live serialized switch state for provided paths
+   */
+  map<string, string> getCurrentHwStateJSONForPaths(1: list<string> paths);
+
+  /*
    * Enables submitting diag cmds to the switch
    */
   common.fbstring diagCmd(

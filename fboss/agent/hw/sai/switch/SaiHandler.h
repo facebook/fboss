@@ -24,6 +24,18 @@ class SaiHandler : public apache::thrift::ServiceHandler<SaiCtrl> {
  public:
   explicit SaiHandler(SaiSwitch* hw);
   ~SaiHandler() override;
+
+  void getCurrentHwStateJSON(
+      std::string& ret,
+      std::unique_ptr<std::string> path) override;
+
+  /*
+   * Get live serialized switch state for provided paths
+   */
+  void getCurrentHwStateJSONForPaths(
+      std::map<std::string, std::string>& pathToState,
+      std::unique_ptr<std::vector<std::string>> paths) override;
+
   apache::thrift::ResponseAndServerStream<std::string, std::string>
   startDiagShell() override;
   void produceDiagShellInput(

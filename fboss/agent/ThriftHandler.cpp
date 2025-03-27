@@ -1271,36 +1271,7 @@ void ThriftHandler::getCurrentStateJSON(
   ensureConfigured(__func__);
 
   if (path) {
-    ret = getCurrentStateJSONForPath(*path);
-  }
-}
-
-std::string ThriftHandler::getCurrentStateJSONForPath(
-    const std::string& path) const {
-  // Split path into vector of string
-  std::vector<std::string> thriftPath;
-  auto start = 0;
-  for (auto end = 0; (end = path.find("/", end)) != std::string::npos; ++end) {
-    thriftPath.push_back(path.substr(start, end - start));
-    start = end + 1;
-  }
-  thriftPath.push_back(path.substr(start));
-
-  thrift_cow::GetEncodedPathVisitorOperator op(fsdb::OperProtocol::SIMPLE_JSON);
-  auto traverseResult = thrift_cow::RootPathVisitor::visit(
-      *std::const_pointer_cast<const SwitchState>(sw_->getState()),
-      thriftPath.begin(),
-      thriftPath.end(),
-      thrift_cow::PathVisitMode::LEAF,
-      op);
-
-  switch (traverseResult) {
-    case thrift_cow::ThriftTraverseResult::OK:
-      return op.val->toStdString();
-    case thrift_cow::ThriftTraverseResult::VISITOR_EXCEPTION:
-      throw FbossError("Visitor exception when traversing thrift path.");
-    default:
-      throw FbossError("Invalid thrift path provided.");
+    ret = utility::getCurrentStateJSONForPathHelper(*path, sw_->getState());
   }
 }
 
@@ -1311,7 +1282,8 @@ void ThriftHandler::getCurrentStateJSONForPaths(
   ensureConfigured(__func__);
 
   for (auto& path : *paths) {
-    pathToState[path] = getCurrentStateJSONForPath(path);
+    pathToState[path] =
+        utility::getCurrentStateJSONForPathHelper(path, sw_->getState());
   }
 }
 
