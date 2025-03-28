@@ -161,6 +161,10 @@ class SaiAclTableGroupTest : public HwTest {
     return "qph_dscp_table";
   }
 
+  std::string kDscpTable() const {
+    return "acl-table-dscp";
+  }
+
   std::string kAclTable3() const {
     return kQphDscpTable();
   }
@@ -268,11 +272,67 @@ class SaiAclTableGroupTest : public HwTest {
     }
   }
 
+  void addDscpAclTable(
+      cfg::SwitchConfig* newCfg,
+      bool addExtraQualifier = false) {
+    std::vector<cfg::AclTableQualifier> qualifiers = {
+        cfg::AclTableQualifier::L4_SRC_PORT,
+        cfg::AclTableQualifier::L4_DST_PORT,
+        cfg::AclTableQualifier::IP_PROTOCOL_NUMBER,
+        cfg::AclTableQualifier::IPV6_NEXT_HEADER,
+        cfg::AclTableQualifier::ICMPV4_TYPE,
+        cfg::AclTableQualifier::ICMPV4_CODE,
+        cfg::AclTableQualifier::ICMPV6_TYPE,
+        cfg::AclTableQualifier::ICMPV6_CODE,
+
+        cfg::AclTableQualifier::DSCP};
+
+    if (addExtraQualifier) {
+      /*
+       * This field is used to modify the properties of the ACL table.
+       * This will force a recreate of the acl table during delta processing.
+       */
+      qualifiers.push_back(cfg::AclTableQualifier::OUTER_VLAN);
+    }
+
+    // Table 1: For QPH and Dscp Acl.
+    utility::addAclTable(
+        newCfg,
+        kDscpTable(),
+        1 /* priority */,
+        {cfg::AclTableActionType::PACKET_ACTION,
+         cfg::AclTableActionType::COUNTER,
+         cfg::AclTableActionType::SET_TC,
+         cfg::AclTableActionType::SET_DSCP},
+        qualifiers);
+  }
+
+  void addDscpAclTableWithEntry(
+      cfg::SwitchConfig* newCfg,
+      bool addExtraQualifier,
+      bool withStats) {
+    addDscpAclTable(newCfg, addExtraQualifier);
+    cfg::AclEntry dscpAcl;
+    dscpAcl.name() = utility::kDscpCounterAclName();
+    dscpAcl.actionType() = cfg::AclActionType::PERMIT;
+    dscpAcl.dscp() = utility::kIcpDscp();
+    utility::addAclEntry(newCfg, dscpAcl, kDscpTable());
+
+    if (withStats) {
+      utility::addDscpAclEntryWithCounter(
+          newCfg, kQphDscpTable(), getHwSwitchEnsemble()->isSai());
+    }
+  }
+
   void addAclTable3WithEntry(
       cfg::SwitchConfig* newCfg,
       bool addExtraQualifier = false,
       bool withStats = true) {
-    addQphDscpAclTableWithEntry(newCfg, addExtraQualifier, withStats);
+    if (isSupported(HwAsic::Feature::ACL_METADATA_QUALIFER)) {
+      addQphDscpAclTableWithEntry(newCfg, addExtraQualifier, withStats);
+    } else {
+      addDscpAclTableWithEntry(newCfg, addExtraQualifier, withStats);
+    }
   }
 
   void addTwoAclTables(cfg::SwitchConfig* newCfg) {
