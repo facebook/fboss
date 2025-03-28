@@ -53,16 +53,24 @@ struct SaiFirmwareTraits {
         SAI_FIRMWARE_ATTR_OP_STATUS,
         sai_int32_t,
         SaiIntDefault<int32_t>>;
+    using FunctionalStatus = SaiAttribute<
+        EnumType,
+        SAI_FIRMWARE_ATTR_FUNCTIONAL_STATUS,
+        sai_int32_t,
+        SaiIntDefault<int32_t>>;
   };
 
   using AdapterKey = FirmwareSaiId;
   using AdapterHostKey = std::monostate;
-  using CreateAttributes =
-      std::tuple<Attributes::Version, Attributes::OpStatus>;
+  using CreateAttributes = std::tuple<
+      Attributes::Version,
+      Attributes::OpStatus,
+      Attributes::FunctionalStatus>;
 };
 
 SAI_ATTRIBUTE_NAME(Firmware, Version)
 SAI_ATTRIBUTE_NAME(Firmware, OpStatus)
+SAI_ATTRIBUTE_NAME(Firmware, FunctionalStatus)
 
 class FirmwareApi : public SaiApi<FirmwareApi> {
  public:

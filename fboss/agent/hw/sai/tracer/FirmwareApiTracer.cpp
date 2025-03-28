@@ -22,6 +22,7 @@ namespace {
 std::map<int32_t, std::pair<std::string, std::size_t>> _FirmwareMap{
     SAI_ATTR_MAP(Firmware, Version),
     SAI_ATTR_MAP(Firmware, OpStatus),
+    SAI_ATTR_MAP(Firmware, FunctionalStatus),
 };
 #endif
 
