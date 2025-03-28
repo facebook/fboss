@@ -480,11 +480,13 @@ class AgentAclCounterTest : public AgentHwTest {
         break;
       case AclType::UDF_OPCODE_ACK:
         acl->udfGroups() = {utility::kUdfAclRoceOpcodeGroupName};
-        acl->roceOpcode() = utility::kUdfRoceOpcodeAck;
+        acl->roceBytes() = {utility::kUdfRoceOpcodeAck};
+        acl->roceMask() = {utility::kUdfRoceOpcodeMask};
         break;
       case AclType::UDF_OPCODE_WRITE_IMMEDIATE:
         acl->udfGroups() = {utility::kUdfAclRoceOpcodeGroupName};
-        acl->roceOpcode() = utility::kUdfRoceOpcodeWriteImmediate;
+        acl->roceBytes() = {utility::kUdfRoceOpcodeWriteImmediate};
+        acl->roceMask() = {utility::kUdfRoceOpcodeMask};
         break;
       case AclType::BTH_OPCODE:
         acl->etherType() = cfg::EtherType::IPv6;
