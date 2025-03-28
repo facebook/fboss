@@ -93,13 +93,13 @@ class AgentAclCounterTest : public AgentHwTest {
         aclName = "test-l4-port-acl";
         break;
       case AclType::UDF_OPCODE_ACK:
-        aclName = "test-udf-opcode-ack-acl";
+        aclName = "test-udf-opc-ack-acl";
         break;
       case AclType::UDF_OPCODE_WRITE_IMMEDIATE:
-        aclName = "test-udf-opcode-write-immediate-acl";
+        aclName = "test-udf-opc-wrt-immdt-acl";
         break;
       case AclType::BTH_OPCODE:
-        aclName = "test-bth-opcode-acl";
+        aclName = "test-bth-opc-acl";
         break;
       case AclType::FLOWLET:
         aclName = "test-flowlet-acl";
@@ -130,13 +130,13 @@ class AgentAclCounterTest : public AgentHwTest {
         counterName = "test-l4-port-acl-stats";
         break;
       case AclType::UDF_OPCODE_ACK:
-        counterName = "test-udf-opcode-ack-acl-stats";
+        counterName = "test-udf-opc-ack-acl-stats";
         break;
       case AclType::UDF_OPCODE_WRITE_IMMEDIATE:
-        counterName = "test-udf-opcode-write-immediate-acl-stats";
+        counterName = "test-udf-opc-wrt-immdt-acl-cnt";
         break;
       case AclType::BTH_OPCODE:
-        counterName = "test-bth-opcode-acl-stats";
+        counterName = "test-bth-opc-acl-stats";
         break;
       case AclType::FLOWLET:
         counterName = "test-flowlet-acl-stats";
