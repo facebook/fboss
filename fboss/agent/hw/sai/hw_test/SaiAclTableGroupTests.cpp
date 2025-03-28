@@ -249,14 +249,19 @@ class SaiAclTableGroupTest : public HwTest {
         qualifiers);
   }
 
-  void addQphDscpAclTableWithEntry(cfg::SwitchConfig* newCfg) {
+  void addQphDscpAclTableWithEntry(
+      cfg::SwitchConfig* newCfg,
+      bool addExtraQualifier = false,
+      bool withStats = true) {
     // Table 1: For QPH and Dscp Acl.
-    addQphDscpAclTable(newCfg);
+    addQphDscpAclTable(newCfg, addExtraQualifier);
 
     utility::addQueuePerHostAclEntry(
         newCfg, kQphDscpTable(), getHwSwitchEnsemble()->isSai());
-    utility::addDscpAclEntryWithCounter(
-        newCfg, kQphDscpTable(), getHwSwitchEnsemble()->isSai());
+    if (withStats) {
+      utility::addDscpAclEntryWithCounter(
+          newCfg, kQphDscpTable(), getHwSwitchEnsemble()->isSai());
+    }
   }
 
   void addTwoAclTables(cfg::SwitchConfig* newCfg) {
@@ -395,9 +400,7 @@ class SaiAclTableGroupTest : public HwTest {
     auto newCfg = initialConfig();
 
     utility::addAclTableGroup(&newCfg, kAclStage(), kAclTableGroup());
-    addQphDscpAclTable(&newCfg, addExtraQualifier);
-    utility::addQueuePerHostAclEntry(
-        &newCfg, kQphDscpTable(), getHwSwitchEnsemble()->isSai());
+    addQphDscpAclTableWithEntry(&newCfg, addExtraQualifier, false);
     utility::addTtlAclTable(&newCfg, 2 /* priority */, addExtraQualifier);
 
     return newCfg;
