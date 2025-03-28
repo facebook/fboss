@@ -482,6 +482,8 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   void getSwitchIdToSwitchInfo(
       std::map<int64_t, cfg::SwitchInfo>& switchIdToSwitchInfo) override;
 
+  void getFirmwareInfo(FirmwareInfo& firmwareInfo) override;
+
   /*
    * A pointer to the SwSwitch.  We don't own this.
    * It's the main program's responsibility to ensure that the SwSwitch exists
