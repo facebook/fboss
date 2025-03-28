@@ -1,7 +1,6 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/agent/test/utils/PfcTestUtils.h"
-#include "fboss/agent/Utils.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/test/TestEnsembleIf.h"
@@ -11,8 +10,6 @@
 namespace facebook::fboss::utility {
 
 namespace {
-
-static const std::vector<int> kLossyPgIds{0};
 
 void setupQosMapForPfc(
     cfg::QosMap& qosMap,
@@ -127,10 +124,10 @@ void setupPortPgConfig(
     const TestEnsembleIf* ensemble,
     std::map<std::string, std::vector<cfg::PortPgConfig>>& portPgConfigMap,
     const std::vector<int>& losslessPgIds,
+    const std::vector<int>& lossyPgIds,
     const PfcBufferParams& buffer) {
   std::vector<cfg::PortPgConfig> portPgConfigs;
 
-  // create 2 pgs
   for (auto pgId : losslessPgIds) {
     cfg::PortPgConfig pgConfig;
     pgConfig.id() = pgId;
@@ -162,24 +159,16 @@ void setupPortPgConfig(
     portPgConfigs.emplace_back(pgConfig);
   }
 
-  // create lossy pgs
-  if (!FLAGS_allow_zero_headroom_for_lossless_pg) {
-    // If the flag is set, we already have lossless PGs being created
-    // with headroom as 0 and there is no way to differentiate lossy
-    // and lossless PGs now that headroom is set to zero for lossless.
-    // So, avoid creating lossy PGs as this will result in PFC being
-    // enabled for 3 priorities, which is not supported for TAJO.
-    for (auto pgId : kLossyPgIds) {
-      cfg::PortPgConfig pgConfig;
-      pgConfig.id() = pgId;
-      pgConfig.bufferPoolName() = "bufferNew";
-      pgConfig.minLimitBytes() = buffer.minLimit;
-      // headroom set 0 identifies lossy pgs
-      pgConfig.headroomLimitBytes() = 0;
-      // set scaling factor
-      pgConfig.scalingFactor() = buffer.scalingFactor;
-      portPgConfigs.emplace_back(pgConfig);
-    }
+  for (auto pgId : lossyPgIds) {
+    cfg::PortPgConfig pgConfig;
+    pgConfig.id() = pgId;
+    pgConfig.bufferPoolName() = "bufferNew";
+    pgConfig.minLimitBytes() = buffer.minLimit;
+    // headroom set 0 identifies lossy pgs
+    pgConfig.headroomLimitBytes() = 0;
+    // set scaling factor
+    pgConfig.scalingFactor() = buffer.scalingFactor;
+    portPgConfigs.emplace_back(pgConfig);
   }
 
   portPgConfigMap["foo"] = std::move(portPgConfigs);
@@ -229,6 +218,7 @@ void setupPfcBuffers(
     cfg::SwitchConfig& cfg,
     const std::vector<PortID>& ports,
     const std::vector<int>& losslessPgIds,
+    const std::vector<int>& lossyPgIds,
     const std::map<int, int>& tcToPgOverride) {
   auto asicType = checkSameAndGetAsicType(cfg);
   setupPfcBuffers(
@@ -236,6 +226,7 @@ void setupPfcBuffers(
       cfg,
       ports,
       losslessPgIds,
+      lossyPgIds,
       tcToPgOverride,
       PfcBufferParams::getPfcBufferParams(asicType));
 }
@@ -245,12 +236,14 @@ void setupPfcBuffers(
     cfg::SwitchConfig& cfg,
     const std::vector<PortID>& ports,
     const std::vector<int>& losslessPgIds,
+    const std::vector<int>& lossyPgIds,
     const std::map<int, int>& tcToPgOverride,
     PfcBufferParams buffer) {
   setupPfc(ensemble, cfg, ports, tcToPgOverride);
 
   std::map<std::string, std::vector<cfg::PortPgConfig>> portPgConfigMap;
-  setupPortPgConfig(ensemble, portPgConfigMap, losslessPgIds, buffer);
+  setupPortPgConfig(
+      ensemble, portPgConfigMap, losslessPgIds, lossyPgIds, buffer);
   cfg.portPgConfigs() = std::move(portPgConfigMap);
 
   // create buffer pool

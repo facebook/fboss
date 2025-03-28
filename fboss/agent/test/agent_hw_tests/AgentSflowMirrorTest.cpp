@@ -772,6 +772,7 @@ class AgentSflowMirrorWithLineRateTrafficTest
       std::vector<PortID> portIds(
           allPorts.begin(), allPorts.begin() + kNumDataTrafficPorts);
       std::vector<int> losslessPgIds = {kLosslessPriority};
+      std::vector<int> lossyPgIds = {0};
       auto config = initialConfig(*getAgentEnsemble());
       // Configure 1:1 sampling to ensure high rate on mirror egress port
       configureMirrorWithSampling(config, 1 /*sampleRate*/);
@@ -789,6 +790,7 @@ class AgentSflowMirrorWithLineRateTrafficTest
           config,
           portIds,
           losslessPgIds,
+          lossyPgIds,
           tcToPgOverride,
           bufferParams);
       // Make sure that traffic is going to loop for ever!

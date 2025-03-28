@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include "fboss/agent/Utils.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/test/TestEnsembleIf.h"
@@ -32,6 +31,7 @@ void setupPfcBuffers(
     cfg::SwitchConfig& cfg,
     const std::vector<PortID>& ports,
     const std::vector<int>& losslessPgIds,
+    const std::vector<int>& lossyPgIds,
     const std::map<int, int>& tcToPgOverride = {});
 
 void setupPfcBuffers(
@@ -39,6 +39,7 @@ void setupPfcBuffers(
     cfg::SwitchConfig& cfg,
     const std::vector<PortID>& ports,
     const std::vector<int>& losslessPgIds,
+    const std::vector<int>& lossyPgIds,
     const std::map<int, int>& tcToPgOverride,
     PfcBufferParams buffer);
 

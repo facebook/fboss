@@ -56,10 +56,16 @@ TEST_F(AgentInNullRouteDiscardsCounterTest, nullRouteHit) {
       cfg::SwitchConfig cfg = initialConfig(*getAgentEnsemble());
       std::vector<PortID> portIds = {masterLogicalInterfacePortIds()[0]};
       std::vector<int> losslessPgIds = {2};
+      std::vector<int> lossyPgIds = {0};
       // Make sure default traffic goes to PG2, which is lossless
       const std::map<int, int> tcToPgOverride{{0, 2}};
       utility::setupPfcBuffers(
-          getAgentEnsemble(), cfg, portIds, losslessPgIds, tcToPgOverride);
+          getAgentEnsemble(),
+          cfg,
+          portIds,
+          losslessPgIds,
+          lossyPgIds,
+          tcToPgOverride);
       applyNewConfig(cfg);
     }
   };

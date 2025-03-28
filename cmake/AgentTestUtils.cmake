@@ -395,7 +395,6 @@ target_link_libraries(pfc_test_utils
   acl_test_utils
   hardware_stats_cpp2
   switch_config_cpp2
-  utils
 )
 
 add_library(queue_test_utils

@@ -29,6 +29,7 @@ static constexpr auto kGlobalIngressEgressBufferPoolSize{
 static constexpr auto kLosslessTrafficClass{2};
 static constexpr auto kLosslessPriority{2};
 static const std::vector<int> kLosslessPgIds{2, 3};
+static const std::vector<int> kLossyPgIds{0};
 
 // On DNX, PFC deadlock cannot be triggered by our test, instead we have to
 // force constant PFC generation by setting the N-th bit of FRC_NIF_ETH_PFC,
@@ -459,11 +460,21 @@ class AgentTrafficPfcTest : public AgentHwTest {
       // Setup PFC
       auto cfg = getAgentEnsemble()->getCurrentConfig();
       // Apply PFC config to all ports of interest
+      auto lossyPgIds = kLossyPgIds;
+      if (FLAGS_allow_zero_headroom_for_lossless_pg) {
+        // If the flag is set, we already have lossless PGs being created
+        // with headroom as 0 and there is no way to differentiate lossy
+        // and lossless PGs now that headroom is set to zero for lossless.
+        // So, avoid creating lossy PGs as this will result in PFC being
+        // enabled for 3 priorities, which is not supported for TAJO.
+        lossyPgIds.clear();
+      }
       utility::setupPfcBuffers(
           getAgentEnsemble(),
           cfg,
           portIds,
           kLosslessPgIds,
+          lossyPgIds,
           tcToPgOverride,
           testParams.buffer);
       auto asic =
@@ -636,7 +647,13 @@ class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcTest {
     PfcBufferParams buffer = defaultPfcBufferParams();
     buffer.scalingFactor = cfg::MMUScalingFactor::ONE_128TH;
     utility::setupPfcBuffers(
-        getAgentEnsemble(), cfg, {portId}, kLosslessPgIds, {}, buffer);
+        getAgentEnsemble(),
+        cfg,
+        {portId},
+        kLosslessPgIds,
+        kLossyPgIds,
+        {},
+        buffer);
     applyNewConfig(cfg);
     setupEcmpTraffic(txOffPortId, ip);
   }
