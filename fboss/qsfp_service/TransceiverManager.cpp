@@ -1278,6 +1278,10 @@ TransceiverInfo TransceiverManager::getTransceiverInfo(TransceiverID id) const {
 
     absentTcvr.tcvrState()->timeCollected() = std::time(nullptr);
     absentTcvr.tcvrStats()->timeCollected() = std::time(nullptr);
+
+    // To avoid reporting false checksum-invalid on absent transceivers,
+    // we set the checksum to a valid.
+    absentTcvr.tcvrState()->eepromCsumValid() = true;
     return absentTcvr;
   }
 }
