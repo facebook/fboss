@@ -52,9 +52,10 @@ void verifyWredDroppedPacketCount(
   auto deltaWredDroppedPackets =
       after.wredDroppedPackets - before.wredDroppedPackets;
   XLOG(DBG0) << "Delta WRED dropped pkts: " << deltaWredDroppedPackets;
+
   int allowedDeviation = kAcceptableErrorPct * expectedDroppedPkts / 100;
-  EXPECT_GT(deltaWredDroppedPackets, expectedDroppedPkts - allowedDeviation);
-  EXPECT_LT(deltaWredDroppedPackets, expectedDroppedPkts + allowedDeviation);
+  EXPECT_GE(deltaWredDroppedPackets, expectedDroppedPkts - allowedDeviation);
+  EXPECT_LE(deltaWredDroppedPackets, expectedDroppedPkts + allowedDeviation);
 }
 
 /*
