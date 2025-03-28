@@ -60,13 +60,13 @@ class SaiAclTableGroupTest : public HwTest {
         getAsic()->desiredLoopbackModes());
   }
 
-  bool isSupported() const {
-    bool multipleAclTableSupport =
-        HwTest::isSupported(HwAsic::Feature::MULTIPLE_ACL_TABLES);
+  bool isSupported(HwAsic::Feature feature) const {
 #if defined(TAJO_SDK_VERSION_1_42_8)
-    multipleAclTableSupport = false;
+    if (feature == HwAsic::Feature::MULTIPLE_ACL_TABLES) {
+      return false;
+    }
 #endif
-    return multipleAclTableSupport;
+    return HwTest::isSupported(feature);
   }
 
   void addAclTable1(cfg::SwitchConfig& cfg) {
@@ -446,7 +446,7 @@ class SaiAclTableGroupTest : public HwTest {
   void verifyAclEntryModificationTestHelper(
       bool canaryOn,
       bool addRemoveAclQualifier) {
-    ASSERT_TRUE(isSupported());
+    ASSERT_TRUE(isSupported(HwAsic::Feature::MULTIPLE_ACL_TABLES));
 
     auto setup = [this]() {
       /*
@@ -524,7 +524,7 @@ class SaiAclTableGroupTest : public HwTest {
 };
 
 TEST_F(SaiAclTableGroupTest, SingleAclTableGroup) {
-  ASSERT_TRUE(isSupported());
+  ASSERT_TRUE(isSupported(HwAsic::Feature::MULTIPLE_ACL_TABLES));
 
   auto setup = [this]() {
     auto newCfg = initialConfig();
@@ -542,7 +542,7 @@ TEST_F(SaiAclTableGroupTest, SingleAclTableGroup) {
 }
 
 TEST_F(SaiAclTableGroupTest, MultipleTablesNoEntries) {
-  ASSERT_TRUE(isSupported());
+  ASSERT_TRUE(isSupported(HwAsic::Feature::MULTIPLE_ACL_TABLES));
 
   auto setup = [this]() {
     auto newCfg = initialConfig();
@@ -564,7 +564,7 @@ TEST_F(SaiAclTableGroupTest, MultipleTablesNoEntries) {
 }
 
 TEST_F(SaiAclTableGroupTest, MultipleTablesWithEntries) {
-  ASSERT_TRUE(isSupported());
+  ASSERT_TRUE(isSupported(HwAsic::Feature::MULTIPLE_ACL_TABLES));
 
   auto setup = [this]() {
     auto newCfg = initialConfig();
@@ -584,7 +584,7 @@ TEST_F(SaiAclTableGroupTest, MultipleTablesWithEntries) {
 }
 
 TEST_F(SaiAclTableGroupTest, AddTablesThenEntries) {
-  ASSERT_TRUE(isSupported());
+  ASSERT_TRUE(isSupported(HwAsic::Feature::MULTIPLE_ACL_TABLES));
 
   auto setup = [this]() {
     auto newCfg = initialConfig();
@@ -605,7 +605,7 @@ TEST_F(SaiAclTableGroupTest, AddTablesThenEntries) {
 }
 
 TEST_F(SaiAclTableGroupTest, RemoveAclTable) {
-  ASSERT_TRUE(isSupported());
+  ASSERT_TRUE(isSupported(HwAsic::Feature::MULTIPLE_ACL_TABLES));
 
   auto setup = [this]() {
     auto newCfg = initialConfig();
@@ -637,7 +637,7 @@ TEST_F(SaiAclTableGroupTest, RemoveAclTable) {
  * then tests deletion and addition of these tables in the config
  */
 TEST_F(SaiAclTableGroupTest, AddTwoTablesDeleteFirst) {
-  ASSERT_TRUE(isSupported());
+  ASSERT_TRUE(isSupported(HwAsic::Feature::MULTIPLE_ACL_TABLES));
 
   auto setup = [this]() {
     auto newCfg = initialConfig();
@@ -657,7 +657,7 @@ TEST_F(SaiAclTableGroupTest, AddTwoTablesDeleteFirst) {
 }
 
 TEST_F(SaiAclTableGroupTest, AddTwoTablesDeleteSecond) {
-  ASSERT_TRUE(isSupported());
+  ASSERT_TRUE(isSupported(HwAsic::Feature::MULTIPLE_ACL_TABLES));
 
   auto setup = [this]() {
     auto newCfg = initialConfig();
@@ -677,7 +677,7 @@ TEST_F(SaiAclTableGroupTest, AddTwoTablesDeleteSecond) {
 }
 
 TEST_F(SaiAclTableGroupTest, AddTwoTablesDeleteAddFirst) {
-  ASSERT_TRUE(isSupported());
+  ASSERT_TRUE(isSupported(HwAsic::Feature::MULTIPLE_ACL_TABLES));
 
   auto setup = [this]() {
     auto newCfg = initialConfig();
@@ -699,7 +699,7 @@ TEST_F(SaiAclTableGroupTest, AddTwoTablesDeleteAddFirst) {
 }
 
 TEST_F(SaiAclTableGroupTest, AddTwoTablesDeleteAddSecond) {
-  ASSERT_TRUE(isSupported());
+  ASSERT_TRUE(isSupported(HwAsic::Feature::MULTIPLE_ACL_TABLES));
 
   auto setup = [this]() {
     auto newCfg = initialConfig();
@@ -721,7 +721,7 @@ TEST_F(SaiAclTableGroupTest, AddTwoTablesDeleteAddSecond) {
 }
 
 TEST_F(SaiAclTableGroupTest, AddFirstTableAfterWarmboot) {
-  ASSERT_TRUE(isSupported());
+  ASSERT_TRUE(isSupported(HwAsic::Feature::MULTIPLE_ACL_TABLES));
 
   auto setup = [this]() { warmbootSetupHelper(tableAddType::table2); };
 
@@ -740,7 +740,7 @@ TEST_F(SaiAclTableGroupTest, AddFirstTableAfterWarmboot) {
 }
 
 TEST_F(SaiAclTableGroupTest, AddSecondTableAfterWarmboot) {
-  ASSERT_TRUE(isSupported());
+  ASSERT_TRUE(isSupported(HwAsic::Feature::MULTIPLE_ACL_TABLES));
 
   auto setup = [this]() { warmbootSetupHelper(tableAddType::table1); };
 
@@ -759,7 +759,7 @@ TEST_F(SaiAclTableGroupTest, AddSecondTableAfterWarmboot) {
 }
 
 TEST_F(SaiAclTableGroupTest, DeleteFirstTableAfterWarmboot) {
-  ASSERT_TRUE(isSupported());
+  ASSERT_TRUE(isSupported(HwAsic::Feature::MULTIPLE_ACL_TABLES));
 
   auto setup = [this]() { warmbootSetupHelper(tableAddType::tableBoth); };
 
@@ -778,7 +778,7 @@ TEST_F(SaiAclTableGroupTest, DeleteFirstTableAfterWarmboot) {
 }
 
 TEST_F(SaiAclTableGroupTest, DeleteSecondTableAfterWarmboot) {
-  ASSERT_TRUE(isSupported());
+  ASSERT_TRUE(isSupported(HwAsic::Feature::MULTIPLE_ACL_TABLES));
 
   auto setup = [this]() { warmbootSetupHelper(tableAddType::tableBoth); };
 
@@ -797,7 +797,7 @@ TEST_F(SaiAclTableGroupTest, DeleteSecondTableAfterWarmboot) {
 }
 
 TEST_F(SaiAclTableGroupTest, TestAclTableGroupRoundtrip) {
-  ASSERT_TRUE(isSupported());
+  ASSERT_TRUE(isSupported(HwAsic::Feature::MULTIPLE_ACL_TABLES));
   /*
    * Create ACL table group in the same format as the current agent config.
    * This will allow us to test warmboot roundtrip tests from and to prod
@@ -826,7 +826,7 @@ TEST_F(SaiAclTableGroupTest, TestAclTableGroupRoundtrip) {
 }
 
 TEST_F(SaiAclTableGroupTest, RepositionAclEntriesPostWarmboot) {
-  ASSERT_TRUE(isSupported());
+  ASSERT_TRUE(isSupported(HwAsic::Feature::MULTIPLE_ACL_TABLES));
 
   auto setup = [this]() {
     auto newCfg = initialConfig();
