@@ -90,9 +90,16 @@ void FwUtilImpl::doFirmwareAction(
     // failures. Hence, we are adding a flag to make sha1sum check optional.
     // We will enforce sha1sum check in the run_script of the FIS packages.
 
-    if (FLAGS_verify_sha1sum && fwConfig.sha1sum().has_value()) {
-      verifySha1sum(fpd, *fwConfig.sha1sum());
+    if (FLAGS_verify_sha1sum) {
+      if (fwConfig.sha1sum().has_value()) {
+        verifySha1sum(fpd, *fwConfig.sha1sum());
+      } else {
+        XLOG(WARN) << "sha1sum is not set in the " << platformName_
+                   << " config file. Skipping the action.";
+        return;
+      }
     }
+
     if (fwConfig.preUpgrade().has_value()) {
       doPreUpgrade(fpd);
     }
