@@ -2,6 +2,8 @@
 
 #include <unordered_map>
 
+#include <folly/Format.h>
+
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 #include "fboss/qsfp_service/module/cmis/CmisModule.h"
