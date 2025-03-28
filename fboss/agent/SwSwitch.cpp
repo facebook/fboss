@@ -1956,22 +1956,10 @@ PortDescriptor SwSwitch::getPortFromPkt(const RxPacket* pkt) const {
 }
 
 void SwSwitch::handlePacket(std::unique_ptr<RxPacket> pkt) {
-  auto port = getPortFromPkt(pkt.get());
-
-  // Handle packets for CPU port separately
-  if (port.type() == PortDescriptor::PortType::PHYSICAL &&
-      port.phyPortID() == PortID(0)) {
-    XLOG(DBG2) << "Dropping packet received from CPU port (" << port.str()
-               << ").";
-    portStats(port.phyPortID())->pktDropped();
-    return;
-  }
-
   if (FLAGS_intf_nbr_tables) {
-    handlePacketImpl(
-        std::move(pkt),
-        getState()->getInterfaces()->getNodeIf(
-            getState()->getInterfaceIDForPort(port)));
+    auto intf = getState()->getInterfaces()->getNodeIf(
+        getState()->getInterfaceIDForPort(getPortFromPkt(pkt.get())));
+    handlePacketImpl(std::move(pkt), intf);
   } else {
     // TODO: get rid of getVlanIDHelper, packet must have a valid vlan here if
     // vlans are maintained
@@ -3315,7 +3303,9 @@ VlanID SwSwitch::getVlanIDHelper(
     std::optional<VlanID> vlanID,
     cfg::InterfaceType type) const {
   // if vlanID does have value, it must be VLAN interface
-  CHECK(vlanID.has_value() && (type == cfg::InterfaceType::VLAN));
+  if (vlanID.has_value()) {
+    CHECK(type == cfg::InterfaceType::VLAN);
+  }
 
   // TODO(skhare)
   // VOQ/Fabric switches require that the packets are not tagged with any
