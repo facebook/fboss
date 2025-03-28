@@ -7,7 +7,7 @@ thrift_library(
     name = "if",
     languages = [
         "cpp2",
-        "py3",
+        "py3-deprecated",
         "py-deprecated",
     ],
     py3_namespace = "neteng.fboss",
