@@ -17,6 +17,7 @@
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiHashManager.h"
 #include "fboss/agent/hw/sai/switch/SaiQosMapManager.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/types.h"
 
 #include <folly/MacAddress.h>
@@ -179,4 +180,5 @@ void fillHwSwitchErrorStats(
     const folly::F14FastMap<sai_stat_id_t, uint64_t>& counterId2Value,
     HwSwitchDropStats& switchDropStats);
 void publishSwitchWatermarks(HwSwitchWatermarkStats& watermarkStats);
+void switchPreInitSequence(HwAsic* asic);
 } // namespace facebook::fboss
