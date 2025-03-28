@@ -10,7 +10,7 @@ thrift_library(
     languages = [
         "cpp2",
         "py-deprecated",
-        "py3",
+        "py3-deprecated",
         "go",
         "py-asyncio",
         "rust",
