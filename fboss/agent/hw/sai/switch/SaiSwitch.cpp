@@ -92,6 +92,7 @@ extern "C" {
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
 #include <saiextensions.h>
 #ifndef IS_OSS_BRCM_SAI
+#include <experimental/saiexperimentalfirmware.h>
 #include <experimental/saiexperimentaltameventaginggroup.h>
 #else
 #include <saiexperimentaltameventaginggroup.h>
@@ -4151,6 +4152,12 @@ std::string SaiSwitch::listObjects(
         break;
       case HwObjectType::SYSTEM_PORT:
         objTypes.push_back(SAI_OBJECT_TYPE_SYSTEM_PORT);
+        break;
+      case HwObjectType::FIRMWARE:
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+        objTypes.push_back(
+            static_cast<sai_object_type_t>(SAI_OBJECT_TYPE_FIRMWARE));
+#endif
         break;
     }
   }
