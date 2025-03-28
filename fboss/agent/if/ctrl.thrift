@@ -773,6 +773,27 @@ struct EcmpDetails {
   4: i32 flowletTableSize;
 }
 
+enum FirmwareOpStatus {
+  UNKNOWN = 0,
+  LOADED = 1,
+  NOT_LOADED = 2,
+  RUNNING = 3,
+  STOPPED = 4,
+  ERROR = 5,
+}
+
+enum FirmwareFuncStatus {
+  UNKNOWN = 0,
+  ISOLATED = 1,
+  MONITORING = 2,
+}
+
+struct FirmwareInfo {
+  1: string version;
+  2: FirmwareOpStatus opStatus;
+  3: FirmwareFuncStatus funcStatus;
+}
+
 service FbossCtrl extends phy.FbossCommonPhyCtrl {
   /*
    * Retrieve up-to-date counters from the hardware, and publish all
