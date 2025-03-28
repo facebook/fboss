@@ -1880,7 +1880,7 @@ struct SwitchSettings {
   29: optional i32 voqOutOfBoundsLatencyNsec;
   // Number of sflow samples to pack in a single packet being sent out
   30: optional byte numberOfSflowSamplesPerPacket;
-  31: optional map<i16, i16> tcToRateLimitKbps;
+  31: optional map<i32, i32> tcToRateLimitKbps;
 }
 
 // Global buffer pool
