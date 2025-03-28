@@ -8,6 +8,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -83,6 +86,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -162,6 +168,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -237,6 +246,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -316,6 +328,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -391,6 +406,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -470,6 +488,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -545,6 +566,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -624,6 +648,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -701,6 +728,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -773,6 +803,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -849,6 +882,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -921,6 +957,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -997,6 +1036,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -1069,6 +1111,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -1145,6 +1190,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -1217,6 +1265,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -1293,6 +1344,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -1365,6 +1419,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -1441,6 +1498,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -1515,6 +1575,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -1587,6 +1650,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -1666,6 +1732,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -1741,6 +1810,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -1820,6 +1892,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -1895,6 +1970,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -1974,6 +2052,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -2049,6 +2130,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -2128,6 +2212,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -2203,6 +2290,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -2282,6 +2372,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -2354,6 +2447,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -2430,6 +2526,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -2502,6 +2601,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -2578,6 +2680,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -2650,6 +2755,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -2726,6 +2834,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -2798,6 +2909,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -2874,6 +2988,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -2946,6 +3063,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -3022,6 +3142,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -3096,6 +3219,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -3168,6 +3294,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -3247,6 +3376,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -3322,6 +3454,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -3401,6 +3536,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -3476,6 +3614,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -3555,6 +3696,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -3630,6 +3774,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -3709,6 +3856,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -3784,6 +3934,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -3863,6 +4016,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -3935,6 +4091,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -4011,6 +4170,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -4083,6 +4245,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -4159,6 +4324,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -4231,6 +4399,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -4307,6 +4478,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -4379,6 +4553,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -4455,6 +4632,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -4527,6 +4707,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -4603,6 +4786,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -4677,6 +4863,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -4749,6 +4938,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -4834,6 +5026,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -4915,6 +5110,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -5000,6 +5198,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -5081,6 +5282,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -5166,6 +5370,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -5247,6 +5454,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -5332,6 +5542,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -5413,6 +5626,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -5498,6 +5714,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -5576,6 +5795,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -5658,6 +5880,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -5736,6 +5961,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -5818,6 +6046,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -5896,6 +6127,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -5978,6 +6212,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -6056,6 +6293,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -6138,6 +6378,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -6216,6 +6459,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -6298,6 +6544,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -6378,6 +6627,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -6456,6 +6708,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -6541,6 +6796,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -6622,6 +6880,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -6707,6 +6968,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -6788,6 +7052,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -6873,6 +7140,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -6954,6 +7224,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -7039,6 +7312,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -7120,6 +7396,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -7205,6 +7484,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -7283,6 +7565,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -7365,6 +7650,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -7443,6 +7731,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -7525,6 +7816,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -7603,6 +7897,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -7685,6 +7982,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -7763,6 +8063,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -7845,6 +8148,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -7923,6 +8229,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -8005,6 +8314,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -8085,6 +8397,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -8163,6 +8478,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -8272,6 +8590,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -8377,6 +8698,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -8486,6 +8810,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -8591,6 +8918,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -8700,6 +9030,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -8805,6 +9138,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -8914,6 +9250,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -9019,6 +9358,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -9128,6 +9470,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -9227,6 +9572,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -9330,6 +9678,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -9429,6 +9780,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -9532,6 +9886,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -9631,6 +9988,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -9734,6 +10094,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -9833,6 +10196,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -9936,6 +10302,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -10035,6 +10404,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -10138,6 +10510,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -10237,6 +10612,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -10340,6 +10718,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -10409,6 +10790,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -10482,6 +10866,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -10551,6 +10938,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -10624,6 +11014,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -10693,6 +11086,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -10766,6 +11162,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -10835,6 +11234,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -10908,6 +11310,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -10977,6 +11382,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -11050,6 +11458,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -11119,6 +11530,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -11192,6 +11606,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -11261,6 +11678,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -11334,6 +11754,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -11403,6 +11826,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -11476,6 +11902,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -11545,6 +11974,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -11618,6 +12050,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -11687,6 +12122,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -11760,6 +12198,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -11826,6 +12267,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -11896,6 +12340,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -11962,6 +12409,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -12032,6 +12482,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -12098,6 +12551,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -12168,6 +12624,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -12236,6 +12695,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -12302,6 +12764,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -12378,6 +12843,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -12450,6 +12918,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -12526,6 +12997,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -12598,6 +13072,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -12674,6 +13151,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -12746,6 +13226,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -12822,6 +13305,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -12896,6 +13382,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -12968,6 +13457,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -13089,6 +13581,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -13206,6 +13701,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -13327,6 +13825,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -13444,6 +13945,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -13565,6 +14069,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -13682,6 +14189,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -13803,6 +14313,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -13920,6 +14433,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -14041,6 +14557,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -14155,6 +14674,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -14273,6 +14795,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -14387,6 +14912,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -14505,6 +15033,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -14619,6 +15150,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -14737,6 +15271,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -14853,6 +15390,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -14967,6 +15507,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -15115,6 +15658,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -15223,6 +15769,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -15335,6 +15884,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -15443,6 +15995,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -15555,6 +16110,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -15663,6 +16221,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -15775,6 +16336,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -15883,6 +16447,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -15995,6 +16562,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -16075,6 +16645,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -16147,6 +16720,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -16223,6 +16799,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -16295,6 +16874,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -16371,6 +16953,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -16443,6 +17028,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -16519,6 +17107,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -16591,6 +17182,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -16667,6 +17261,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -16741,6 +17338,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -16807,6 +17407,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -16877,6 +17480,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -16943,6 +17549,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -17013,6 +17622,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -17079,6 +17691,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -17149,6 +17764,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -17212,6 +17830,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -17279,6 +17900,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -17342,6 +17966,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -17409,6 +18036,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -17472,6 +18102,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -17539,6 +18172,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -17604,6 +18240,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -17667,6 +18306,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -17752,6 +18394,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -17833,6 +18478,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -17918,6 +18566,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -17999,6 +18650,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -18084,6 +18738,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -18165,6 +18822,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -18250,6 +18910,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -18331,6 +18994,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -18416,6 +19082,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -18494,6 +19163,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -18576,6 +19248,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -18654,6 +19329,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -18736,6 +19414,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -18814,6 +19495,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -18896,6 +19580,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -18974,6 +19661,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -19056,6 +19746,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -19134,6 +19827,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -19216,6 +19912,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -19294,6 +19993,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -19376,6 +20078,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -19445,6 +20150,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -19518,6 +20226,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -19587,6 +20298,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -19660,6 +20374,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -19729,6 +20446,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -19802,6 +20522,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -19871,6 +20594,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -19944,6 +20670,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -20013,6 +20742,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -20086,6 +20818,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -20157,6 +20892,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -20226,6 +20964,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -20317,6 +21058,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -20404,6 +21148,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -20495,6 +21242,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -20582,6 +21332,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -20673,6 +21426,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -20760,6 +21516,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -20851,6 +21610,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -20938,6 +21700,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -21029,6 +21794,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -21113,6 +21881,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -21201,6 +21972,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -21285,6 +22059,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -21373,6 +22150,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -21457,6 +22237,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -21545,6 +22328,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -21629,6 +22415,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -21717,6 +22506,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -21801,6 +22593,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -21889,6 +22684,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -21973,6 +22771,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -22061,6 +22862,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -22142,6 +22946,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -22227,6 +23034,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -22308,6 +23118,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -22393,6 +23206,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -22474,6 +23290,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -22559,6 +23378,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -22640,6 +23462,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -22725,6 +23550,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -22808,6 +23636,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -22886,6 +23717,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -22968,6 +23802,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -23046,6 +23883,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -23128,6 +23968,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -23206,6 +24049,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -23288,6 +24134,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -23366,6 +24215,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -23448,6 +24300,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -23526,6 +24381,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -23608,6 +24466,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -23688,6 +24549,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -23766,6 +24630,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -23869,6 +24736,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -23968,6 +24838,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -24071,6 +24944,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -24170,6 +25046,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -24273,6 +25152,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -24372,6 +25254,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -24475,6 +25360,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -24574,6 +25462,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -24677,6 +25568,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -24773,6 +25667,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -24873,6 +25770,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -24969,6 +25869,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -25069,6 +25972,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -25165,6 +26071,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -25265,6 +26174,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -25361,6 +26273,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -25461,6 +26376,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -25557,6 +26475,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -25657,6 +26578,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -25753,6 +26677,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -25853,6 +26780,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -25946,6 +26876,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -26043,6 +26976,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -26136,6 +27072,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -26233,6 +27172,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -26326,6 +27268,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -26423,6 +27368,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -26516,6 +27464,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -26613,6 +27564,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -26706,6 +27660,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -26803,6 +27760,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -26896,6 +27856,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -26993,6 +27956,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -27086,6 +28052,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -27183,6 +28152,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -27276,6 +28248,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -27373,6 +28348,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -27466,6 +28444,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -27563,6 +28544,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -27656,6 +28640,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -27753,6 +28740,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -27848,6 +28838,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -27938,6 +28931,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -28032,6 +29028,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -28122,6 +29121,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -28216,6 +29218,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -28306,6 +29311,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -28400,6 +29408,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -28490,6 +29501,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -28584,6 +29598,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -28674,6 +29691,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -28768,6 +29788,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -28858,6 +29881,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
