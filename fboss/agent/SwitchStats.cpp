@@ -384,6 +384,11 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map, int numSwitches)
           map,
           kCounterPrefix + "fw_drained_with_high_num_active_fabric_links",
           SUM,
+          RATE),
+      resourceAccountantRejectedUpdates_(
+          map,
+          kCounterPrefix + "resource_accountant_rejected_updates",
+          SUM,
           RATE)
 
 {

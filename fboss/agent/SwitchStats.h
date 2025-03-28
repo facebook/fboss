@@ -496,6 +496,10 @@ class SwitchStats : public boost::noncopyable {
     loPriPktsDropped_.addValue(1);
   }
 
+  void resourceAccountantRejectedUpdates() {
+    resourceAccountantRejectedUpdates_.addValue(1);
+  }
+
   void switchConfiguredMs(uint64_t ms) {
     switchConfiguredMs_.addValue(ms);
   }
@@ -1058,6 +1062,11 @@ class SwitchStats : public boost::noncopyable {
   TLTimeseries macTableUpdateFailure_;
 
   TLTimeseries fwDrainedWithHighNumActiveFabricLinks_;
+
+  /**
+   * Number of state updates rejected by resource accountant
+   */
+  TLTimeseries resourceAccountantRejectedUpdates_;
 
   std::vector<TLCounter> hwAgentConnectionStatus_;
   std::vector<TLTimeseries> hwAgentUpdateTimeouts_;
