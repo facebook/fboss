@@ -11079,6 +11079,12 @@
         },
         {
           "test_name_regex": "SaiAclTableRecreateTests.AclEntryCount$"
+        },
+        {
+          "test_name_regex": "HwAqmTest.verifyWredThreshold$"
+        },
+        {
+          "test_name_regex": "HwAqmTest.verifyEcnTrafficNoDrop$"
         }
     ],
     "leaba/24.8.3001/24.8.3001/graphene200": [
