@@ -166,7 +166,10 @@ class SaiAclTableGroupTest : public HwTest {
   }
 
   std::string kAclTable3() const {
-    return kQphDscpTable();
+    if (HwTest::isSupported(HwAsic::Feature::ACL_METADATA_QUALIFER)) {
+      return kQphDscpTable();
+    }
+    return kDscpTable();
   }
 
   std::string kTable1CounterAcl1() const {
@@ -284,7 +287,7 @@ class SaiAclTableGroupTest : public HwTest {
         cfg::AclTableQualifier::ICMPV4_CODE,
         cfg::AclTableQualifier::ICMPV6_TYPE,
         cfg::AclTableQualifier::ICMPV6_CODE,
-
+        cfg::AclTableQualifier::ETHER_TYPE,
         cfg::AclTableQualifier::DSCP};
 
     if (addExtraQualifier) {
@@ -320,7 +323,7 @@ class SaiAclTableGroupTest : public HwTest {
 
     if (withStats) {
       utility::addDscpAclEntryWithCounter(
-          newCfg, kQphDscpTable(), getHwSwitchEnsemble()->isSai());
+          newCfg, kDscpTable(), getHwSwitchEnsemble()->isSai());
     }
   }
 
@@ -356,7 +359,13 @@ class SaiAclTableGroupTest : public HwTest {
   }
 
   void deleteAclTable3(cfg::SwitchConfig* newCfg) {
-    deleteQphDscpAclTable(newCfg);
+    if (isSupported(HwAsic::Feature::ACL_METADATA_QUALIFER)) {
+      deleteQphDscpAclTable(newCfg);
+    } else {
+      utility::delAclTable(newCfg, kDscpTable());
+      utility::delDscpMatchers(newCfg);
+      applyNewConfig(*newCfg);
+    }
   }
 
   // Delete the TtlAclTable
@@ -524,8 +533,13 @@ class SaiAclTableGroupTest : public HwTest {
     };
 
     auto verify = [=, this]() {
-      verifyAclEntryTestHelper(
-          17 /* table1EntryCount*/, 3 /*table2EntryCount*/);
+      if (HwTest::isSupported(HwAsic::Feature::ACL_METADATA_QUALIFER)) {
+        verifyAclEntryTestHelper(
+            17 /* table1EntryCount*/, 3 /*table2EntryCount*/);
+      } else {
+        verifyAclEntryTestHelper(
+            3 /* table1EntryCount*/, 3 /*table2EntryCount*/);
+      }
     };
 
     auto setupPostWarmboot = [=, this]() {
@@ -569,8 +583,13 @@ class SaiAclTableGroupTest : public HwTest {
     };
 
     auto verifyPostWarmboot = [=, this]() {
-      verifyAclEntryTestHelper(
-          38 /* table1EntryCount*/, 3 /* table1EntryCount*/);
+      if (HwTest::isSupported(HwAsic::Feature::ACL_METADATA_QUALIFER)) {
+        verifyAclEntryTestHelper(
+            38 /* table1EntryCount*/, 3 /* table1EntryCount*/);
+      } else {
+        verifyAclEntryTestHelper(
+            23 /* table1EntryCount*/, 3 /* table1EntryCount*/);
+      }
     };
 
     if (canaryOn) {
@@ -743,7 +762,7 @@ TEST_F(SaiAclTableGroupTest, AddTwoTablesDeleteAddFirst) {
     auto newCfg = initialConfig();
     addTwoAclTables(&newCfg);
     // Delete and Readd the first Acl Table
-    deleteQphDscpAclTable(&newCfg);
+    deleteAclTable3(&newCfg);
     addAclTable3WithEntry(&newCfg);
     applyNewConfig(newCfg);
   };
@@ -919,7 +938,7 @@ TEST_F(SaiAclTableGroupTest, RepositionAclEntriesPostWarmboot) {
   auto verifyPostWarmboot = [=, this]() {
     verifyAclStatCount(
         kAclTable1(),
-        /*ACLs*/ kMaxDefaultAcls,
+        /*ACLs*/ kMaxDefaultAcls, // 5
         /*stats*/ kMaxDefaultAcls,
         /*counters*/ kMaxDefaultAcls);
     verifyAclStatCount(

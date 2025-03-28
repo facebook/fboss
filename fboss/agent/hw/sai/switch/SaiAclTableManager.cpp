@@ -1670,6 +1670,10 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet(
           cfg::AclTableQualifier::IP_TYPE,
           cfg::AclTableQualifier::ETHER_TYPE,
           cfg::AclTableQualifier::OUTER_VLAN,
+          cfg::AclTableQualifier::ICMPV4_TYPE,
+          cfg::AclTableQualifier::ICMPV4_CODE,
+          cfg::AclTableQualifier::ICMPV6_TYPE,
+          cfg::AclTableQualifier::ICMPV6_CODE,
           cfg::AclTableQualifier::UDF,
       };
     } else {
