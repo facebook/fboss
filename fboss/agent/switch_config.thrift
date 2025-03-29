@@ -2103,6 +2103,8 @@ enum SwitchingMode {
   PER_PACKET_QUALITY = 1,
   // flowlet is disabled
   FIXED_ASSIGNMENT = 2,
+  // per packet random, no quality
+  PER_PACKET_RANDOM = 3,
 }
 
 struct FlowletSwitchingConfig {
@@ -2133,6 +2135,8 @@ struct FlowletSwitchingConfig {
   11: i16 maxLinks;
   // switching mode
   12: SwitchingMode switchingMode = FLOWLET_QUALITY;
+  // fall back switching mode if DLB groups are exhausted
+  13: SwitchingMode backupSwitchingMode = FIXED_ASSIGNMENT;
 }
 
 /**
