@@ -2195,6 +2195,18 @@ void SwSwitch::linkActiveStateChangedOrFwIsolated(
       return newState;
     }
 
+    // Pick matcher for any port.
+    // This is OK because the matcher is used to retrieve switchSettings which
+    // are same for all the ports of a HwSwitch.
+    // And, SwSwitch::linkActiveStateChanged is invoked by a HwSwitch and thus
+    // passed port2IsActive always contains ports from a single HwSwitch.
+    auto matcher = getScopeResolver()->scope(port2IsActive.cbegin()->first);
+    auto switchSettings =
+        state->getSwitchSettings()->getNodeIf(matcher.matcherString());
+    auto switchInfo = switchSettings->getSwitchIdToSwitchInfo()
+                          .find(matcher.switchId())
+                          ->second;
+
     auto numActiveFabricPorts = 0;
     for (const auto& [portID, isActive] : port2IsActive) {
       auto* port = newState->getPorts()->getNodeIf(portID).get();
@@ -2222,15 +2234,6 @@ void SwSwitch::linkActiveStateChangedOrFwIsolated(
       }
     }
 
-    // Pick matcher for any port.
-    // This is OK because the matcher is used to retrieve switchSettings which
-    // are same for all the ports of a HwSwitch.
-    // And, SwSwitch::linkActiveStateChanged is invoked by a HwSwitch and thus
-    // passed port2IsActive always contains ports from a single HwSwitch.
-    auto matcher = getScopeResolver()->scope(port2IsActive.cbegin()->first);
-    auto switchSettings =
-        state->getSwitchSettings()->getNodeIf(matcher.matcherString());
-
     SwitchDrainState newActualSwitchDrainState;
     if (fwIsolated) {
       if (isSwitchErrorFirmwareIsolate(
@@ -2253,9 +2256,6 @@ void SwSwitch::linkActiveStateChangedOrFwIsolated(
     auto currentActualDrainState = switchSettings->getActualSwitchDrainState();
 
     if (newActualSwitchDrainState != currentActualDrainState) {
-      auto switchInfo = switchSettings->getSwitchIdToSwitchInfo()
-                            .find(matcher.switchId())
-                            ->second;
       stats()->setDrainState(
           *switchInfo.switchIndex(), newActualSwitchDrainState);
       auto newSwitchSettings = switchSettings->modify(&newState);
