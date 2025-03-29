@@ -622,8 +622,10 @@ void HwSwitchEnsemble::setupEnsemble(
   switchInfo.portIdRange() = portIdRange;
   auto switchIdToSwitchInfo = std::map<int64_t, cfg::SwitchInfo>(
       {{asic->getSwitchId() ? *asic->getSwitchId() : 0, switchInfo}});
-  hwAsicTable_ =
-      std::make_unique<HwAsicTable>(switchIdToSwitchInfo, std::nullopt);
+  // TODO pass agentConfig to setupEnsemble and populate switchIdToDsfNodes
+  const std::map<int64_t, cfg::DsfNode> switchIdToDsfNodes;
+  hwAsicTable_ = std::make_unique<HwAsicTable>(
+      switchIdToSwitchInfo, std::nullopt, switchIdToDsfNodes);
   swSwitchWarmBootHelper_ = std::make_unique<SwSwitchWarmBootHelper>(
       getPlatform()->getDirectoryUtil(), hwAsicTable_.get());
   scopeResolver_ =

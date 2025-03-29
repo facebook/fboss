@@ -228,7 +228,9 @@ void addDefaultAclTable(cfg::SwitchConfig& cfg) {
   }
 
   HwAsicTable asicTable(
-      *cfg.switchSettings()->switchIdToSwitchInfo(), std::move(version));
+      *cfg.switchSettings()->switchIdToSwitchInfo(),
+      std::move(version),
+      *cfg.dsfNodes());
   // TODO (pshaikh): create a method to return AclTables for a given asic type
   // and acl stage and retire this check
   auto asic = utility::checkSameAndGetAsic(asicTable.getL3Asics());
@@ -530,7 +532,8 @@ void setupDefaultPostLookupIngressAclTableGroup(cfg::SwitchConfig& config) {
     version = *config.sdkVersion();
   }
 
-  HwAsicTable asicTable(switchId2SwitchInfo, version);
+  HwAsicTable asicTable(switchId2SwitchInfo, version, *config.dsfNodes());
+
   if (!asicTable.isFeatureSupportedOnAnyAsic(
           HwAsic::Feature::INGRESS_POST_LOOKUP_ACL_TABLE)) {
     return;

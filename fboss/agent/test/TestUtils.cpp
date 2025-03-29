@@ -743,7 +743,8 @@ shared_ptr<SwitchState> publishAndApplyConfig(
           ? *config->switchSettings()->switchIdToSwitchInfo()
           : std::map<int64_t, cfg::SwitchInfo>(
                 {{0, createSwitchInfo(cfg::SwitchType::NPU)}}),
-      std::nullopt);
+      std::nullopt,
+      *config->dsfNodes());
   return applyThriftConfig(
       state,
       config,

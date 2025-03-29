@@ -165,7 +165,9 @@ void addQueueMatcher(
     bool isSai,
     const std::optional<std::string>& counterName) {
   auto asicTable = HwAsicTable(
-      *config->switchSettings()->switchIdToSwitchInfo(), std::nullopt);
+      *config->switchSettings()->switchIdToSwitchInfo(),
+      std::nullopt,
+      *config->dsfNodes());
   cfg::MatchAction matchAction = utility::getToQueueAction(
       utility::checkSameAndGetAsic(asicTable.getL3Asics()), queueId, isSai);
 

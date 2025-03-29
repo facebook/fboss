@@ -147,7 +147,9 @@ void addDscpMarkingAclsTableHelper(
     const std::string& aclTableName,
     bool isSai) {
   HwAsicTable asicTable(
-      config->switchSettings()->switchIdToSwitchInfo().value(), std::nullopt);
+      config->switchSettings()->switchIdToSwitchInfo().value(),
+      std::nullopt,
+      *config->dsfNodes());
   auto asicType = utility::checkSameAndGetAsicType(*config);
   for (auto port : ports) {
     cfg::AclEntry dscpSrcMarkingAcl;
