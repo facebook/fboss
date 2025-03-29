@@ -207,4 +207,10 @@ HwAsic::FabricNodeRole HwAsic::getFabricNodeRole() const {
   throw FbossError(
       "Derived class must override getFabricNodeRole, where applicable");
 }
+
+const std::set<uint16_t>& HwAsic::getL1FabricPortsToConnectToL2() const {
+  throw FbossError(
+      "Derived class must override getL1FabricPortsToConnectToL2, where applicable");
+}
+
 } // namespace facebook::fboss

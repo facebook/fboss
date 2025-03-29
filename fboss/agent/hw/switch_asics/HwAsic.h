@@ -269,6 +269,8 @@ class HwAsic {
     return false;
   }
   virtual FabricNodeRole getFabricNodeRole() const;
+  virtual const std::set<uint16_t>& getL1FabricPortsToConnectToL2() const;
+
   // Get the smallest packet buffer unit for ASIC, cell size for BCM
   virtual uint32_t getPacketBufferUnitSize() const = 0;
 

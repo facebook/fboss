@@ -101,6 +101,7 @@ class Ramon3Asic : public BroadcomAsic {
   FabricNodeRole getFabricNodeRole() const override {
     return fabricNodeRole_;
   }
+  const std::set<uint16_t>& getL1FabricPortsToConnectToL2() const override;
   int getMidPriCpuQueueId() const override {
     throw FbossError("Ramon3 ASIC does not support cpu queue");
   }

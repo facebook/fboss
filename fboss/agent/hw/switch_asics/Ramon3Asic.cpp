@@ -177,4 +177,8 @@ const std::set<uint16_t>& Ramon3Asic::getL1BaseFabricPortsToConnectToL2() {
   return l1BaseFabricPortsToConnectToL2;
 }
 
+const std::set<uint16_t>& Ramon3Asic::getL1FabricPortsToConnectToL2() const {
+  return l1FabricPortsToConnectToL2_;
+}
+
 }; // namespace facebook::fboss
