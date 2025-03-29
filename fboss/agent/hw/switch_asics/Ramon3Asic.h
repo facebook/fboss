@@ -98,6 +98,8 @@ class Ramon3Asic : public BroadcomAsic {
   }
 
  private:
+  static const std::set<uint16_t>& getL1BaseFabricPortsToConnectToL2();
+
   FabricNodeRole fabricNodeRole_;
 };
 } // namespace facebook::fboss
