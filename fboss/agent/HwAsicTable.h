@@ -12,7 +12,7 @@ class HwAsicTable {
  public:
   HwAsicTable(
       const std::map<int64_t, cfg::SwitchInfo>& switchIdToSwitchInfo,
-      std::optional<cfg::SdkVersion> sdkVersion,
+      const std::optional<cfg::SdkVersion>& sdkVersion,
       const std::map<int64_t, cfg::DsfNode> switchIdToDsfNodes);
   const HwAsic* getHwAsicIf(SwitchID switchID) const;
   HwAsic* getHwAsicIf(SwitchID switchID);
