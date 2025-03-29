@@ -2223,12 +2223,44 @@ void SwSwitch::linkActiveStateChangedOrFwIsolated(
                           ->second;
     std::map<int32_t, int32_t> virtualDeviceIdToEligibleNumActivePorts;
 
+    const auto platformMapping =
+        getPlatformMappingForPlatformType(getPlatformType());
+    auto hwAsic = getHwAsicTable()->getHwAsicIf(matcher.switchId());
+
     auto numActiveFabricPorts = 0;
     for (const auto& [portID, isActive] : port2IsActive) {
       auto* port = newState->getPorts()->getNodeIf(portID).get();
       if (port) {
         if (isActive) {
           numActiveFabricPorts++;
+
+          if (platformMapping) {
+            auto virtualDeviceId =
+                platformMapping->getVirtualDeviceID(port->getName());
+            CHECK(virtualDeviceId.has_value());
+
+            switch (*switchInfo.switchType()) {
+              case cfg::SwitchType::VOQ:
+                virtualDeviceIdToEligibleNumActivePorts[virtualDeviceId
+                                                            .value()]++;
+                break;
+              case cfg::SwitchType::FABRIC: {
+                auto it = hwAsic->getL1FabricPortsToConnectToL2().find(
+                    static_cast<int16_t>(port->getID()));
+                if (it != hwAsic->getL1FabricPortsToConnectToL2().end()) {
+                  virtualDeviceIdToEligibleNumActivePorts[virtualDeviceId
+                                                              .value()]++;
+                }
+                break;
+              }
+              case cfg::SwitchType::NPU:
+              case cfg::SwitchType::PHY:
+                throw FbossError(
+                    "Only SwitchTypes with fabric ports can get active/inactive callback: ",
+                    apache::thrift::util::enumNameSafe(
+                        *switchInfo.switchType()));
+            }
+          }
         }
 
         if (port->isActive() != isActive) {
