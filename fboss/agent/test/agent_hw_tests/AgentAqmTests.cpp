@@ -337,6 +337,70 @@ class AgentAqmTest : public AgentHwTest {
 
     verifyAcrossWarmBoots(setup, verify);
   }
+
+  void runPerQueueWredDropStatsTest() {
+    const std::array<int, 3> wredQueueIds = {
+        utility::getOlympicQueueId(utility::OlympicQueueType::SILVER),
+        utility::getOlympicQueueId(utility::OlympicQueueType::GOLD),
+        utility::getOlympicQueueId(utility::OlympicQueueType::ECN1)};
+
+    auto setup = [&]() {
+      const AgentEnsemble& ensemble = *getAgentEnsemble();
+      const std::vector<const HwAsic*> asics = ensemble.getL3Asics();
+      cfg::SwitchConfig config = initialConfig(ensemble);
+      if (ensemble.getHwAsicTable()->isFeatureSupportedOnAllAsic(
+              HwAsic::Feature::L3_QOS)) {
+        utility::addOlympicQueueConfig(&config, asics);
+      }
+      bool isVoq = utility::checkSameAndGetAsic(asics)->getSwitchType() ==
+          cfg::SwitchType::VOQ;
+      for (int queueId : wredQueueIds) {
+        utility::addQueueWredConfig(
+            config,
+            asics,
+            queueId,
+            utility::kQueueConfigAqmsWredThresholdMinMax,
+            utility::kQueueConfigAqmsWredThresholdMinMax,
+            utility::kQueueConfigAqmsWredDropProbability,
+            isVoq);
+      }
+      applyNewConfig(config);
+      setupEcmpTraffic();
+    };
+
+    auto verify = [&]() {
+      // Using delta stats in this function, so get the stats before starting
+      const HwPortStats beforeStats =
+          getLatestPortStats(masterLogicalInterfacePortIds()[0]);
+      const std::map<int16_t, int64_t>& beforeDroppedPacketsMap =
+          *beforeStats.queueWredDroppedPackets_();
+
+      // Send traffic to all queues
+      constexpr int kNumPacketsToSend{1000};
+      for (int queueId : wredQueueIds) {
+        sendPkts(
+            utility::kOlympicQueueToDscp().at(queueId).front(),
+            false,
+            kNumPacketsToSend);
+      }
+
+      WITH_RETRIES({
+        // Current map of queue to WRED dropped packets
+        const std::map<std::int16_t, std::int64_t> droppedPacketsMap =
+            *getLatestPortStats(masterLogicalPortIds())
+                 .find(masterLogicalInterfacePortIds()[0])
+                 ->second.queueWredDroppedPackets_();
+        for (int queueId : wredQueueIds) {
+          int64_t wredDrops = droppedPacketsMap.find(queueId)->second -
+              beforeDroppedPacketsMap.find(queueId)->second;
+          XLOG(DBG3) << "Queue : " << queueId << ", wredDrops : " << wredDrops;
+          EXPECT_EVENTUALLY_GT(wredDrops, 0);
+        }
+      });
+    };
+
+    verifyAcrossWarmBoots(setup, verify);
+  }
 };
 
 class AgentAqmWredDropTest : public AgentAqmTest {
@@ -427,6 +491,10 @@ TEST_F(AgentAqmTest, verifyWred) {
 
 TEST_F(AgentAqmWredDropTest, verifyWredDrop) {
   runWredDropTest();
+}
+
+TEST_F(AgentAqmTest, verifyPerQueueWredDropStats) {
+  runPerQueueWredDropStatsTest();
 }
 
 } // namespace facebook::fboss
