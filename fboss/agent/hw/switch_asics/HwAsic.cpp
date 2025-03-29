@@ -112,7 +112,12 @@ std::unique_ptr<HwAsic> HwAsic::makeAsic(
     case cfg::AsicType::ASIC_TYPE_RAMON:
       return std::make_unique<RamonAsic>(switchId, switchInfo, sdkVersion);
     case cfg::AsicType::ASIC_TYPE_RAMON3:
-      return std::make_unique<Ramon3Asic>(switchId, switchInfo, sdkVersion);
+      if (fabricNodeRole.has_value()) {
+        return std::make_unique<Ramon3Asic>(
+            switchId, switchInfo, sdkVersion, fabricNodeRole.value());
+      } else {
+        return std::make_unique<Ramon3Asic>(switchId, switchInfo, sdkVersion);
+      }
     case cfg::AsicType::ASIC_TYPE_GARONNE:
     case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
       throw FbossError("Unexcepted asic type: ", *switchInfo.asicType());
