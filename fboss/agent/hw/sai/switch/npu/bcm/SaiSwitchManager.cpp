@@ -118,11 +118,10 @@ void fillHwSwitchErrorStats(
 }
 
 void switchPreInitSequence(HwAsic* asic) {
-  // Below sequence is to avoid traffic drops on 2-stage R3
-  // switches on drain/undrain as reported in S503928.
+  // Below sequence is to avoid traffic drops on FE13 in 2-stage
+  // on drain/undrain as reported in S503928.
   if ((asic->getSwitchType() != cfg::SwitchType::FABRIC) ||
-      ((asic->getFabricNodeRole() != HwAsic::FabricNodeRole::DUAL_STAGE_L1) &&
-       (asic->getFabricNodeRole() != HwAsic::FabricNodeRole::DUAL_STAGE_L2))) {
+      (asic->getFabricNodeRole() != HwAsic::FabricNodeRole::DUAL_STAGE_L1)) {
     return;
   }
   const std::string kSaiPostInitCmdFileContent{
