@@ -22889,6 +22889,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation"
         },
         {
+          "test_name_regex": "QsfpFsdbTest.tcvr"
+        },
+        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -22973,6 +22976,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation"
+        },
+        {
+          "test_name_regex": "QsfpFsdbTest.tcvr"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -23061,6 +23067,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation"
         },
         {
+          "test_name_regex": "QsfpFsdbTest.tcvr"
+        },
+        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -23145,6 +23154,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation"
+        },
+        {
+          "test_name_regex": "QsfpFsdbTest.tcvr"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -23233,6 +23245,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation"
         },
         {
+          "test_name_regex": "QsfpFsdbTest.tcvr"
+        },
+        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -23317,6 +23332,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation"
+        },
+        {
+          "test_name_regex": "QsfpFsdbTest.tcvr"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -23405,6 +23423,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation"
         },
         {
+          "test_name_regex": "QsfpFsdbTest.tcvr"
+        },
+        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -23489,6 +23510,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation"
+        },
+        {
+          "test_name_regex": "QsfpFsdbTest.tcvr"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -23577,6 +23601,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation"
         },
         {
+          "test_name_regex": "QsfpFsdbTest.tcvr"
+        },
+        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -23663,6 +23690,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation"
         },
         {
+          "test_name_regex": "QsfpFsdbTest.tcvr"
+        },
+        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -23744,6 +23774,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation"
+        },
+        {
+          "test_name_regex": "QsfpFsdbTest.tcvr"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -23829,6 +23862,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation"
         },
         {
+          "test_name_regex": "QsfpFsdbTest.tcvr"
+        },
+        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -23910,6 +23946,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation"
+        },
+        {
+          "test_name_regex": "QsfpFsdbTest.tcvr"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -23995,6 +24034,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation"
         },
         {
+          "test_name_regex": "QsfpFsdbTest.tcvr"
+        },
+        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -24076,6 +24118,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation"
+        },
+        {
+          "test_name_regex": "QsfpFsdbTest.tcvr"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -24161,6 +24206,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation"
         },
         {
+          "test_name_regex": "QsfpFsdbTest.tcvr"
+        },
+        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -24242,6 +24290,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation"
+        },
+        {
+          "test_name_regex": "QsfpFsdbTest.tcvr"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -24327,6 +24378,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation"
         },
         {
+          "test_name_regex": "QsfpFsdbTest.tcvr"
+        },
+        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -24408,6 +24462,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation"
+        },
+        {
+          "test_name_regex": "QsfpFsdbTest.tcvr"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -24493,6 +24550,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation"
         },
         {
+          "test_name_regex": "QsfpFsdbTest.tcvr"
+        },
+        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -24574,6 +24634,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation"
+        },
+        {
+          "test_name_regex": "QsfpFsdbTest.tcvr"
         },
         {
           "test_name_regex": "Prbs.*$"
