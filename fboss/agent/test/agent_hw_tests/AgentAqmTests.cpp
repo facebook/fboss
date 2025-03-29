@@ -1,5 +1,10 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
+#include <array>
+#include <cstdint>
+#include <map>
+#include <vector>
+
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
@@ -31,22 +36,13 @@ class AgentAqmTest : public AgentHwTest {
  public:
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
-    cfg::SwitchConfig config = baseConfig(ensemble);
+    cfg::SwitchConfig config = utility::onePortPerInterfaceConfig(
+        ensemble.getSw(), ensemble.masterLogicalPortIds());
     if (ensemble.getHwAsicTable()->isFeatureSupportedOnAllAsic(
             HwAsic::Feature::L3_QOS)) {
-      if (isDualStage3Q2QQos()) {
-        auto hwAsic = utility::checkSameAndGetAsic(ensemble.getL3Asics());
-        auto streamType =
-            *hwAsic->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin();
-        utility::addNetworkAIQueueConfig(
-            &config,
-            streamType,
-            cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN,
-            hwAsic);
-      } else {
-        utility::addOlympicQueueConfig(&config, ensemble.getL3Asics());
-      }
+      utility::addOlympicQosMaps(config, ensemble.getL3Asics());
     }
+    utility::setTTLZeroCpuConfig(ensemble.getL3Asics(), config);
     return config;
   }
 
@@ -80,17 +76,6 @@ class AgentAqmTest : public AgentHwTest {
 
   folly::MacAddress getIntfMac() const {
     return utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
-  }
-
-  cfg::SwitchConfig baseConfig(const AgentEnsemble& ensemble) const {
-    cfg::SwitchConfig config = utility::onePortPerInterfaceConfig(
-        ensemble.getSw(), ensemble.masterLogicalPortIds());
-    if (ensemble.getHwAsicTable()->isFeatureSupportedOnAllAsic(
-            HwAsic::Feature::L3_QOS)) {
-      utility::addOlympicQosMaps(config, ensemble.getL3Asics());
-    }
-    utility::setTTLZeroCpuConfig(ensemble.getL3Asics(), config);
-    return config;
   }
 
   void sendPkt(
@@ -358,10 +343,10 @@ class AgentAqmWredDropTest : public AgentAqmTest {
  public:
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
-    cfg::SwitchConfig config = baseConfig(ensemble);
+    cfg::SwitchConfig config = AgentAqmTest::initialConfig(ensemble);
     if (ensemble.getHwAsicTable()->isFeatureSupportedOnAllAsic(
             HwAsic::Feature::L3_QOS)) {
-      auto streamType =
+      cfg::StreamType streamType =
           *utility::checkSameAndGetAsic(ensemble.getL3Asics())
                ->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT)
                .begin();
