@@ -2282,6 +2282,13 @@ void SwSwitch::linkActiveStateChangedOrFwIsolated(
       }
     }
 
+    // Update per VD num Active port counter
+    for (const auto& [virtualDeviceId, numActivePorts] :
+         virtualDeviceIdToEligibleNumActivePorts) {
+      stats()->setNumActiveFabricLinksEligibleForMinLink(
+          virtualDeviceId, numActivePorts);
+    }
+
     SwitchDrainState newActualSwitchDrainState;
     if (fwIsolated) {
       if (isSwitchErrorFirmwareIsolate(
