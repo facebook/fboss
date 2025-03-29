@@ -1974,9 +1974,18 @@ void SaiPortManager::updateStats(
   if (logicalPortId) {
     curPortStats.logicalPortId() = *logicalPortId;
   }
-  if (updateCableLengths && portType == cfg::PortType::FABRIC_PORT &&
-      platform_->getAsic()->isSupported(
-          HwAsic::Feature::CABLE_PROPOGATION_DELAY)) {
+
+  const auto& asic = platform_->getAsic();
+  if (updateCableLengths && isPortUp(portId) &&
+      portType == cfg::PortType::FABRIC_PORT &&
+      asic->isSupported(HwAsic::Feature::CABLE_PROPOGATION_DELAY)) {
+    bool cableLenAvailableOnPort = true;
+    if (asic->getSwitchType() == cfg::SwitchType::FABRIC &&
+        asic->getFabricNodeRole() == HwAsic::FabricNodeRole::DUAL_STAGE_L1) {
+      cableLenAvailableOnPort =
+          asic->getL1FabricPortsToConnectToL2().contains(portId);
+    }
+
     /*
     ** Cable length collection is expensive, taking upto 50ms per
     ** port. Cable length can really only change in face of recabling. So
@@ -1984,47 +1993,33 @@ void SaiPortManager::updateStats(
     ** - Reset cable len on port down event
     ** - Collect cable len only for up ports that don't have cable len set.
 
-    ** The reason for resetting on port down event and not on stats collection
-    ** round is that stats collection is periodic. So consider a port getting
+    ** The reason for resetting on port down event and not on stats
+    collection
+    ** round is that stats collection is periodic. So consider a port
+    getting
     ** recabled, if it got recabled and came up within our stats collection
     ** interval, we would not recollect cable len until next warm/cold boot.
     ** Reason for not collecting cable len stat on port Up and doing it
     ** in periodic stat collection is that we may need to try multiple times
     ** since when port comes up, not everything  is synchronized immediately
     */
-    if (isPortUp(portId) && !curPortStats.cableLengthMeters().has_value()) {
-      std::optional<SaiPortTraits::Attributes::CablePropogationDelayNS> attrT =
-          SaiPortTraits::Attributes::CablePropogationDelayNS{};
-
-      std::optional<uint32_t> cablePropogationDelayNS;
+    if (cableLenAvailableOnPort &&
+        !curPortStats.cableLengthMeters().has_value()) {
       try {
-        cablePropogationDelayNS =
-            *SaiApiTable::getInstance()->portApi().getAttribute(
-                handle->port->adapterKey(), attrT);
-      } catch (const SaiApiError& e) {
-        // On FE13 role cable len is supported only on FE2
-        // facing ports. So we allow for SAI_STATUS_INVALID_PORT
-        // error
-        if (e.getSaiStatus() != SAI_STATUS_INVALID_PORT_NUMBER) {
-          throw;
-        }
-        cablePropogationDelayNS = std::numeric_limits<uint32_t>::max();
-      }
-      if (cablePropogationDelayNS.has_value() &&
-          *cablePropogationDelayNS != std::numeric_limits<uint32_t>::max()) {
+        uint32_t cablePropogationDelayNS =
+            SaiApiTable::getInstance()->portApi().getAttribute(
+                handle->port->adapterKey(),
+                SaiPortTraits::Attributes::CablePropogationDelayNS{});
         // In fiber it takes about 5ns for light to travel 1 meter
         curPortStats.cableLengthMeters() =
-            std::ceil(*cablePropogationDelayNS / 5.0);
-      } else if (cablePropogationDelayNS.has_value()) {
-        // Assign null or int_max value to cable length.
-        // In case of invalid port (FE13->FAP facing ports)
-        // we will set cableLengthMeters to int_max.  So then
-        // next time around, we don't need to collect this
-        // expensive stat.
-        curPortStats.cableLengthMeters() = *cablePropogationDelayNS;
+            std::ceil(cablePropogationDelayNS / 5.0);
+      } catch (const SaiApiError& e) {
+        XLOG(ERR) << "Failed to get cable propogation delay for port " << portId
+                  << ": " << e.what();
       }
     }
   }
+
   if (portType == cfg::PortType::FABRIC_PORT &&
       platform_->getAsic()->isSupported(HwAsic::Feature::DATA_CELL_FILTER)) {
     std::optional<SaiPortTraits::Attributes::FabricDataCellsFilterStatus>
