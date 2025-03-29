@@ -741,9 +741,11 @@ class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcTest {
   void validatePfcCounterIncrement(const PortID& port, const int pfcPriority) {
     // CS00012381334 - MAC loopback doesn't work on TH5 and Rx PFC counters
     // doesn't increase. Tx counters should work for all platforms.
-    int txPfcCtrOld = getLatestPortStats(port).outPfc_()->at(pfcPriority);
+    int txPfcCtrOld =
+        folly::get_default(*getLatestPortStats(port).outPfc_(), pfcPriority, 0);
     WITH_RETRIES_N_TIMED(3, std::chrono::milliseconds(1000), {
-      int txPfcCtrNew = getLatestPortStats(port).outPfc_()->at(pfcPriority);
+      int txPfcCtrNew = folly::get_default(
+          *getLatestPortStats(port).outPfc_(), pfcPriority, 0);
       EXPECT_EVENTUALLY_GT(txPfcCtrNew, txPfcCtrOld);
     });
   }
