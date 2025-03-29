@@ -18,7 +18,18 @@ class Ramon3Asic : public BroadcomAsic {
             switchInfo,
             sdkVersion,
             {cfg::SwitchType::FABRIC}),
-        fabricNodeRole_(fabricNodeRole) {}
+        fabricNodeRole_(fabricNodeRole) {
+    if (fabricNodeRole_ == FabricNodeRole::DUAL_STAGE_L1) {
+      std::transform(
+          Ramon3Asic::getL1BaseFabricPortsToConnectToL2().begin(),
+          Ramon3Asic::getL1BaseFabricPortsToConnectToL2().end(),
+          std::inserter(
+              l1FabricPortsToConnectToL2_, l1FabricPortsToConnectToL2_.end()),
+          [offset = *switchInfo.portIdRange()->minimum()](uint16_t port) {
+            return port + offset;
+          });
+    }
+  }
   bool isSupported(Feature feature) const override;
   const std::map<cfg::PortType, cfg::PortLoopbackMode>& desiredLoopbackModes()
       const override;
@@ -101,5 +112,6 @@ class Ramon3Asic : public BroadcomAsic {
   static const std::set<uint16_t>& getL1BaseFabricPortsToConnectToL2();
 
   FabricNodeRole fabricNodeRole_;
+  std::set<uint16_t> l1FabricPortsToConnectToL2_;
 };
 } // namespace facebook::fboss
