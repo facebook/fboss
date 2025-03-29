@@ -24,6 +24,26 @@ HwAsicTable::HwAsicTable(
     }
 
     std::optional<HwAsic::FabricNodeRole> fabricNodeRole{std::nullopt};
+    auto switchId = switchIdAndSwitchInfo.first;
+    auto switchType = *switchInfo.switchType();
+    if (switchType == cfg::SwitchType::FABRIC) {
+      fabricNodeRole = HwAsic::FabricNodeRole::SINGLE_STAGE_L1;
+      const auto& dsfNodesConfig = switchIdToDsfNodes;
+      const auto& dsfNodeConfig = dsfNodesConfig.find(switchId);
+      if (dsfNodeConfig != dsfNodesConfig.end() &&
+          dsfNodeConfig->second.fabricLevel().has_value()) {
+        auto fabricLevel = *dsfNodeConfig->second.fabricLevel();
+        if (fabricLevel == 2) {
+          fabricNodeRole = HwAsic::FabricNodeRole::DUAL_STAGE_L2;
+        } else if (numFabricLevels(dsfNodesConfig) == 2) {
+          // fabric level can only be 1 or 2
+          CHECK_EQ(fabricLevel, 1);
+          // Dual stage, node fabric level == 1
+          fabricNodeRole = HwAsic::FabricNodeRole::DUAL_STAGE_L1;
+        }
+      }
+    }
+
     hwAsics_.emplace(
         SwitchID(switchIdAndSwitchInfo.first),
         HwAsic::makeAsic(
