@@ -1526,6 +1526,7 @@ cpp_library(
         ":switch_config-cpp2-types",
         "//fb303:service_data",
         "//fboss/agent/state:state",
+        "//fboss/thrift_cow/visitors:visitors",
         "//folly:string",
     ],
 )
