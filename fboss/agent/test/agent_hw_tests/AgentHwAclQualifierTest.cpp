@@ -242,32 +242,34 @@ class AgentHwAclQualifierTest : public AgentHwTest {
           actions,
           qualifiers);
     }
-    auto* acl = utility::addAcl_DEPRECATED(
-        &newCfg, kAclName(), cfg::AclActionType::DENY);
+
+    cfg::AclEntry acl{};
+    acl.name() = kAclName();
+    acl.actionType() = cfg::AclActionType::DENY;
 
     if (isIpV4) {
-      configureIp4QualifiersHelper(acl, switchID);
+      configureIp4QualifiersHelper(&acl, switchID);
     } else {
-      configureIp6QualifiersHelper(acl, switchID);
+      configureIp6QualifiersHelper(&acl, switchID);
     }
 
     switch (lookupClassType) {
       case QualifierType::LOOKUPCLASS_L2:
         configureQualifier(
-            acl->lookupClassL2(),
+            acl.lookupClassL2(),
             true,
             cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1);
         break;
       case QualifierType::LOOKUPCLASS_NEIGHBOR:
         configureQualifier(
-            acl->lookupClassNeighbor(),
+            acl.lookupClassNeighbor(),
             true,
             isIpV4 ? cfg::AclLookupClass::DST_CLASS_L3_LOCAL_1
                    : cfg::AclLookupClass::DST_CLASS_L3_LOCAL_2);
         break;
       case QualifierType::LOOKUPCLASS_ROUTE:
         configureQualifier(
-            acl->lookupClassRoute(),
+            acl.lookupClassRoute(),
             true,
             isIpV4 ? cfg::AclLookupClass::DST_CLASS_L3_LOCAL_1
                    : cfg::AclLookupClass::DST_CLASS_L3_LOCAL_2);
@@ -278,6 +280,7 @@ class AgentHwAclQualifierTest : public AgentHwTest {
       default:
         CHECK(false);
     }
+    utility::addAcl(&newCfg, acl, cfg::AclStage::INGRESS);
 
     applyNewConfig(newCfg);
   }
@@ -305,12 +308,15 @@ TEST_F(AgentHwAclQualifierTest, AclIp4TcpQualifiers) {
     auto newCfg = initialConfig(ensemble);
     auto l3Asics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
 
-    auto* acl1 = utility::addAcl_DEPRECATED(
-        &newCfg, "ip4_tcp", cfg::AclActionType::DENY);
-    configureAllHwQualifiers(acl1, true);
-    configureAllL2QualifiersHelper(acl1);
-    configureAllIpQualifiers(acl1, true, cfg::IpType::IP4, getAsicType());
-    configureAllTcpQualifiers(acl1, true, getAsicType());
+    cfg::AclEntry acl1{};
+    acl1.name() = "ip4_tcp";
+    acl1.actionType() = cfg::AclActionType::DENY;
+
+    configureAllHwQualifiers(&acl1, true);
+    configureAllL2QualifiersHelper(&acl1);
+    configureAllIpQualifiers(&acl1, true, cfg::IpType::IP4, getAsicType());
+    configureAllTcpQualifiers(&acl1, true, getAsicType());
+    utility::addAcl(&newCfg, acl1, cfg::AclStage::INGRESS);
     applyNewConfig(newCfg);
   };
 
@@ -333,12 +339,16 @@ TEST_F(AgentHwAclQualifierTest, AclIp6TcpQualifiers) {
     auto newCfg = initialConfig(ensemble);
     auto l3Asics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
 
-    auto* acl1 = utility::addAcl_DEPRECATED(
-        &newCfg, "ip6_tcp", cfg::AclActionType::DENY);
-    configureAllHwQualifiers(acl1, true);
-    configureAllL2QualifiersHelper(acl1);
-    configureAllIpQualifiers(acl1, true, cfg::IpType::IP6, this->getAsicType());
-    configureAllTcpQualifiers(acl1, true, getAsicType());
+    cfg::AclEntry acl1{};
+    acl1.name() = "ip6_tcp";
+    acl1.actionType() = cfg::AclActionType::DENY;
+
+    configureAllHwQualifiers(&acl1, true);
+    configureAllL2QualifiersHelper(&acl1);
+    configureAllIpQualifiers(
+        &acl1, true, cfg::IpType::IP6, this->getAsicType());
+    configureAllTcpQualifiers(&acl1, true, getAsicType());
+    utility::addAcl(&newCfg, acl1, cfg::AclStage::INGRESS);
 
     applyNewConfig(newCfg);
   };
@@ -364,11 +374,15 @@ TEST_F(AgentHwAclQualifierTest, AclIcmp4Qualifiers) {
     auto newCfg = initialConfig(ensemble);
     auto l3Asics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
 
-    auto* acl1 =
-        utility::addAcl_DEPRECATED(&newCfg, "icmp4", cfg::AclActionType::DENY);
-    configureAllHwQualifiers(acl1, true);
-    configureAllL2QualifiersHelper(acl1);
-    configureAllIcmpQualifiers(acl1, true, cfg::IpType::IP4, getAsicType());
+    cfg::AclEntry acl1{};
+    acl1.name() = "icmp4";
+    acl1.actionType() = cfg::AclActionType::DENY;
+
+    configureAllHwQualifiers(&acl1, true);
+    configureAllL2QualifiersHelper(&acl1);
+    configureAllIcmpQualifiers(&acl1, true, cfg::IpType::IP4, getAsicType());
+
+    utility::addAcl(&newCfg, acl1, cfg::AclStage::INGRESS);
     applyNewConfig(newCfg);
   };
 
@@ -393,11 +407,14 @@ TEST_F(AgentHwAclQualifierTest, AclIcmp6Qualifiers) {
     auto newCfg = initialConfig(ensemble);
     auto l3Asics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
 
-    auto* acl1 =
-        utility::addAcl_DEPRECATED(&newCfg, "icmp6", cfg::AclActionType::DENY);
-    configureAllHwQualifiers(acl1, true);
-    configureAllL2QualifiersHelper(acl1);
-    configureAllIcmpQualifiers(acl1, true, cfg::IpType::IP6, getAsicType());
+    cfg::AclEntry acl1{};
+    acl1.name() = "icmp6";
+    acl1.actionType() = cfg::AclActionType::DENY;
+
+    configureAllHwQualifiers(&acl1, true);
+    configureAllL2QualifiersHelper(&acl1);
+    configureAllIcmpQualifiers(&acl1, true, cfg::IpType::IP6, getAsicType());
+    utility::addAcl(&newCfg, acl1, cfg::AclStage::INGRESS);
     applyNewConfig(newCfg);
   };
 
@@ -420,18 +437,22 @@ TEST_F(AgentHwAclQualifierTest, AclRemove) {
     auto l3Asics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
     auto asic = utility::checkSameAndGetAsic(l3Asics);
 
-    auto* acl0 =
-        utility::addAcl_DEPRECATED(&newCfg, "acl0", cfg::AclActionType::DENY);
-    acl0->proto() = 6;
+    cfg::AclEntry acl0{};
+    acl0.name() = "acl0";
+    acl0.proto() = 6;
     if (asic->isSupported(HwAsic::Feature::ACL_ENTRY_ETHER_TYPE)) {
-      acl0->etherType() = cfg::EtherType::IPv6;
+      acl0.etherType() = cfg::EtherType::IPv6;
     }
-    auto* acl1 =
-        utility::addAcl_DEPRECATED(&newCfg, "acl1", cfg::AclActionType::DENY);
-    acl1->proto() = 58;
+    acl0.actionType() = cfg::AclActionType::DENY;
+    utility::addAcl(&newCfg, acl0, cfg::AclStage::INGRESS);
+    cfg::AclEntry acl1{};
+    acl1.name() = "acl1";
+    acl1.proto() = 58;
+    acl1.actionType() = cfg::AclActionType::DENY;
     if (asic->isSupported(HwAsic::Feature::ACL_ENTRY_ETHER_TYPE)) {
-      acl1->etherType() = cfg::EtherType::IPv6;
+      acl1.etherType() = cfg::EtherType::IPv6;
     }
+    utility::addAcl(&newCfg, acl1, cfg::AclStage::INGRESS);
     applyNewConfig(newCfg);
 
     utility::delAcl(&newCfg, "acl0");
@@ -456,23 +477,30 @@ TEST_F(AgentHwAclQualifierTest, AclModifyQualifier) {
   auto setup = [=, this]() {
     auto& ensemble = *getAgentEnsemble();
     auto newCfg = initialConfig(ensemble);
-    auto* acl =
-        utility::addAcl_DEPRECATED(&newCfg, "acl0", cfg::AclActionType::DENY);
+    cfg::AclEntry acl{};
+    acl.name() = "acl0";
+    acl.actionType() = cfg::AclActionType::DENY;
     // icmp6
-    this->configureAllHwQualifiers(acl, true);
-    this->configureAllL2QualifiersHelper(acl);
+    this->configureAllHwQualifiers(&acl, true);
+    this->configureAllL2QualifiersHelper(&acl);
     configureAllIcmpQualifiers(
-        acl, true, cfg::IpType::IP6, this->getAsicType());
+        &acl, true, cfg::IpType::IP6, this->getAsicType());
+    utility::addAcl(&newCfg, acl, cfg::AclStage::INGRESS);
     applyNewConfig(newCfg);
     // ip6 tcp
     configureAllIcmpQualifiers(
-        acl, false, cfg::IpType::IP6, this->getAsicType());
-    configureAllIpQualifiers(acl, true, cfg::IpType::IP6, this->getAsicType());
+        &acl, false, cfg::IpType::IP6, this->getAsicType());
+    configureAllIpQualifiers(&acl, true, cfg::IpType::IP6, this->getAsicType());
+    newCfg = initialConfig(ensemble);
+    utility::addAcl(&newCfg, acl, cfg::AclStage::INGRESS);
     applyNewConfig(newCfg);
     // imcp6
-    configureAllIpQualifiers(acl, false, cfg::IpType::IP6, this->getAsicType());
+    configureAllIpQualifiers(
+        &acl, false, cfg::IpType::IP6, this->getAsicType());
     configureAllIcmpQualifiers(
-        acl, true, cfg::IpType::IP6, this->getAsicType());
+        &acl, true, cfg::IpType::IP6, this->getAsicType());
+    newCfg = initialConfig(ensemble);
+    utility::addAcl(&newCfg, acl, cfg::AclStage::INGRESS);
     applyNewConfig(newCfg);
   };
 
@@ -492,18 +520,23 @@ TEST_F(AgentHwAclQualifierTest, AclEmptyCodeIcmp) {
     auto& ensemble = *getAgentEnsemble();
     auto newCfg = initialConfig(ensemble);
 
-    auto* acl =
-        utility::addAcl_DEPRECATED(&newCfg, "acl0", cfg::AclActionType::DENY);
+    cfg::AclEntry acl{};
     // add a icmp rule w/ type and code value
     // Destination Unreachable(type=3):Source host isolated(code=8)
-    acl->proto() = 58;
-    acl->icmpType() = 3;
-    acl->icmpCode() = 8;
-    this->applyNewConfig(newCfg);
+    acl.name() = "acl0";
+    acl.proto() = 58;
+    acl.icmpType() = 3;
+    acl.icmpCode() = 8;
+    acl.actionType() = cfg::AclActionType::DENY;
+    auto cfg1 = newCfg;
+    utility::addAcl(&cfg1, acl, cfg::AclStage::INGRESS);
+    this->applyNewConfig(cfg1);
+
     // change the rule to empty code icmp rule
     // Reserved for security(type=19 code is unset)
-    acl->icmpType() = 19;
-    acl->icmpCode().reset();
+    acl.icmpType() = 19;
+    acl.icmpCode().reset();
+    utility::addAcl(&newCfg, acl, cfg::AclStage::INGRESS);
     applyNewConfig(newCfg);
   };
 
@@ -524,9 +557,11 @@ TEST_F(AgentHwAclQualifierTest, AclVlanIDQualifier) {
   auto setup = [=, this]() {
     auto& ensemble = *getAgentEnsemble();
     auto newCfg = initialConfig(ensemble);
-    auto* acl =
-        utility::addAcl_DEPRECATED(&newCfg, "acl0", cfg::AclActionType::DENY);
-    acl->vlanID() = 2001;
+    cfg::AclEntry acl{};
+    acl.name() = "acl0";
+    acl.actionType() = cfg::AclActionType::DENY;
+    acl.vlanID() = 2001;
+    utility::addAcl(&newCfg, acl, cfg::AclStage::INGRESS);
     applyNewConfig(newCfg);
   };
 
@@ -548,9 +583,11 @@ TEST_F(AgentHwAclQualifierTest, AclIp4Qualifiers) {
     auto& ensemble = *getAgentEnsemble();
     auto newCfg = initialConfig(ensemble);
 
-    auto* acl =
-        utility::addAcl_DEPRECATED(&newCfg, "ip4", cfg::AclActionType::DENY);
-    configureIp4QualifiersHelper(acl);
+    cfg::AclEntry acl{};
+    acl.name() = "ip4";
+    acl.actionType() = cfg::AclActionType::DENY;
+    configureIp4QualifiersHelper(&acl);
+    utility::addAcl(&newCfg, acl, cfg::AclStage::INGRESS);
     applyNewConfig(newCfg);
   };
 
@@ -575,13 +612,15 @@ TEST_F(AgentHwAclQualifierTest, AclIp6Qualifiers) {
     auto l3Asics = ensemble.getL3Asics();
     auto asic = utility::checkSameAndGetAsic(l3Asics);
 
-    auto* acl =
-        utility::addAcl_DEPRECATED(&newCfg, "ip6", cfg::AclActionType::DENY);
+    cfg::AclEntry acl{};
+    acl.name() = "ip6";
+    acl.actionType() = cfg::AclActionType::DENY;
     if (asic->isSupported(HwAsic::Feature::ACL_ENTRY_ETHER_TYPE)) {
-      acl->etherType() = cfg::EtherType::IPv6;
+      acl.etherType() = cfg::EtherType::IPv6;
     }
+    configureIp6QualifiersHelper(&acl);
+    utility::addAcl(&newCfg, acl, cfg::AclStage::INGRESS);
 
-    configureIp6QualifiersHelper(acl);
     applyNewConfig(newCfg);
   };
 
