@@ -165,6 +165,8 @@ class SaiSwitchManager {
   std::optional<bool> isPtpTcEnabled_{std::nullopt};
   HwSwitchDropStats switchDropStats_;
   HwSwitchWatermarkStats switchWatermarkStats_;
+
+  std::optional<FirmwareSaiId> firmwareSaiId;
 };
 
 void fillHwSwitchDramStats(

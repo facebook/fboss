@@ -238,6 +238,31 @@ SaiSwitchManager::SaiSwitchManager(
     }
 #endif
   }
+
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  auto firmwareObjectList =
+      SaiApiTable::getInstance()->switchApi().getAttribute(
+          switch_->adapterKey(),
+          SaiSwitchTraits::Attributes::FirmwareObjectList{});
+
+  // If Firmware is not configured,
+  //   - firmwareObjectList.size() will be 0.
+  // If Firmware is configured,
+  //   - firmwareObjectList.size() will be 1.
+  //   - This is because the current API supports only a single Firmware.
+  //   - In future, when multiple Firmwares are supported, SAI impls
+  //     will expose additional create APIs, and get attrs (e.g. PATH)
+  //     to determine which Firmware OID belongs to which Firmware.
+  // In the current programming model, the Firmware is configured during switch
+  // create and cannot change later. Thus, we can cache Firmware OID post
+  // switch create.
+  CHECK(firmwareObjectList.size() == 0 || firmwareObjectList.size() == 1);
+  if (firmwareObjectList.size() == 1) {
+    firmwareSaiId = *firmwareObjectList.begin();
+    XLOG(DBG2) << "Firmware OID: " << firmwareSaiId.value();
+  }
+#endif
+
   if (platform_->getAsic()->isSupported(HwAsic::Feature::CPU_PORT)) {
     initCpuPort();
   }
