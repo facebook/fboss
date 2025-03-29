@@ -527,8 +527,10 @@ SaiSwitchTraits::Attributes::AttributeFirmwareCoreTouse::operator()() {
 
 std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeFirmwareLogFile::operator()() {
-#if defined(BRCM_SAI_SDK_DNX_GTE_11_7)
+#if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
   return SAI_SWITCH_ATTR_FIRMWARE_LOG_FILE;
+#elif defined(SAI_VERSION_12_0_EA_DNX_ODP)
+  return SAI_SWITCH_ATTR_FIRMWARE_LOG_PATH_NAME;
 #endif
   return std::nullopt;
 }
@@ -551,8 +553,10 @@ SaiSwitchTraits::Attributes::AttributeArsAvailableFlows::operator()() {
 
 std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeSdkRegDumpLogPath::operator()() {
-#if defined(BRCM_SAI_SDK_DNX_GTE_11_7)
+#if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
   return SAI_SWITCH_ATTR_SDK_REG_DUMP_LOG_PATH;
+#elif defined(SAI_VERSION_12_0_EA_DNX_ODP)
+  return SAI_SWITCH_ATTR_SDK_DUMP_LOG_PATH_NAME;
 #endif
   return std::nullopt;
 }
