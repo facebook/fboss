@@ -13,6 +13,7 @@
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
+#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 #include "fboss/agent/test/utils/MirrorTestUtils.h"
@@ -464,6 +465,9 @@ class AgentAclCounterTestBase : public AgentHwTest {
       acl->proto() = 17;
       acl->l4DstPort() = 4791;
       acl->dstIp() = "2001::/16";
+      auto asic =
+          utility::checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics());
+      utility::addEtherTypeToAcl(asic, acl, cfg::EtherType::IPv6);
     }
     utility::addAclStat(
         config, aclName, counterName, std::move(setCounterTypes));

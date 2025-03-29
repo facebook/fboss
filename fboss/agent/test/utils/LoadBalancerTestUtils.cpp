@@ -279,6 +279,10 @@ void addFlowletAcl(
   acl.proto() = 17;
   acl.l4DstPort() = 4791;
   acl.dstIp() = "2001::/16";
+  if (utility::checkSameAndGetAsicType(cfg) ==
+      cfg::AsicType::ASIC_TYPE_CHENAB) {
+    acl.etherType() = cfg::EtherType::IPv6;
+  }
   if (udfFlowlet) {
     acl.udfGroups() = {utility::kRoceUdfFlowletGroupName};
     acl.roceBytes() = {utility::kRoceReserved};

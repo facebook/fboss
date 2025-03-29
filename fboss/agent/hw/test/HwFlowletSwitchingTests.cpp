@@ -162,6 +162,8 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
     acl->udfGroups() = {utility::kRoceUdfFlowletGroupName};
     acl->roceBytes() = {utility::kRoceReserved};
     acl->roceMask() = {utility::kRoceReserved};
+    utility::addEtherTypeToAcl(
+        getPlatform()->getAsic(), acl, cfg::EtherType::IPv6);
     cfg::MatchAction matchAction = cfg::MatchAction();
     matchAction.flowletAction() = cfg::FlowletAction::FORWARD;
     // presence of UDF configuration causes the FP group to be cleared out
