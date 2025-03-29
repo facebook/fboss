@@ -82,6 +82,41 @@ const std::map<int64_t, cfg::SwitchInfo> getSwitchInfoFromConfig(
   return getSwitchInfoFromConfig(&swConfig);
 }
 
+const std::map<int64_t, cfg::DsfNode> getDsfNodesFromConfigImpl(
+    const cfg::SwitchConfig* config) {
+  return *config->dsfNodes();
+}
+
+const std::map<int64_t, cfg::DsfNode> getDsfNodesFromConfig() {
+  std::unique_ptr<AgentConfig> config;
+  try {
+    config = AgentConfig::fromDefaultFile();
+  } catch (const std::exception&) {
+    // expected on devservers where no config file is available
+    return std::map<int64_t, cfg::DsfNode>();
+  }
+  auto swConfig = config->thrift.sw();
+  return getDsfNodesFromConfigImpl(&(swConfig.value()));
+}
+
+const std::map<int64_t, cfg::DsfNode> getDsfNodesFromConfig(
+    const cfg::SwitchConfig* config) {
+  if (!config) {
+    return getDsfNodesFromConfig();
+  } else {
+    return getDsfNodesFromConfigImpl(config);
+  }
+}
+
+const std::map<int64_t, cfg::DsfNode> getDsfNodesFromConfig(
+    const AgentConfig* config) {
+  if (!config) {
+    return getDsfNodesFromConfig();
+  }
+  auto& swConfig = config->thrift.sw().value();
+  return getDsfNodesFromConfig(&swConfig);
+}
+
 const std::optional<cfg::SdkVersion> getSdkVersionFromConfigImpl(
     const cfg::SwitchConfig* config) {
   std::optional<cfg::SdkVersion> sdkVersion = std::nullopt;
