@@ -385,6 +385,21 @@ bool isPortDrained(
       HwSwitchMatcher(std::unordered_set<SwitchID>({portSwitchId})));
   return switchSettings->isSwitchDrained() || port->isDrained();
 }
+
+std::string getVirtualDeviceIdToEligibleNumActivePortsStr(
+    const std::map<int32_t, int32_t>& virtualDeviceIdToEligibleNumActivePorts) {
+  std::vector<std::string> stringPairs;
+  std::transform(
+      virtualDeviceIdToEligibleNumActivePorts.begin(),
+      virtualDeviceIdToEligibleNumActivePorts.end(),
+      std::back_inserter(stringPairs),
+      [](const auto& pair) {
+        return std::to_string(pair.first) + ": " + std::to_string(pair.second);
+      });
+
+  return folly::to<std::string>("{", folly::join(", ", stringPairs), "}");
+}
+
 } // anonymous namespace
 
 namespace std {
@@ -2206,6 +2221,7 @@ void SwSwitch::linkActiveStateChangedOrFwIsolated(
     auto switchInfo = switchSettings->getSwitchIdToSwitchInfo()
                           .find(matcher.switchId())
                           ->second;
+    std::map<int32_t, int32_t> virtualDeviceIdToEligibleNumActivePorts;
 
     auto numActiveFabricPorts = 0;
     for (const auto& [portID, isActive] : port2IsActive) {
@@ -2275,7 +2291,9 @@ void SwSwitch::linkActiveStateChangedOrFwIsolated(
                << port2IsActive.size() << " ("
                << getDrainThresholdStr(
                       newActualSwitchDrainState, switchSettings.get())
-               << ")";
+               << ")  virtualDeviceIdToEligibleNumActivePorts: "
+               << getVirtualDeviceIdToEligibleNumActivePortsStr(
+                      virtualDeviceIdToEligibleNumActivePorts);
 
     return newState;
   };
