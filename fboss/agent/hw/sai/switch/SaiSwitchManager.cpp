@@ -1205,4 +1205,17 @@ void SaiSwitchManager::setVoqOutOfBoundsLatency(int voqOutOfBoundsLatency) {
           voqOutOfBoundsLatency});
 #endif
 }
+
+std::optional<std::string> SaiSwitchManager::getFirmwareVersion() const {
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  if (firmwareSaiId.has_value()) {
+    auto version = SaiApiTable::getInstance()->firmwareApi().getAttribute(
+        firmwareSaiId.value(), SaiFirmwareTraits::Attributes::Version{});
+    return std::string(version.begin(), version.end());
+  }
+#endif
+
+  return std::nullopt;
+}
+
 } // namespace facebook::fboss

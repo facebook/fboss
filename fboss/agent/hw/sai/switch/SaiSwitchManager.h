@@ -117,6 +117,8 @@ class SaiSwitchManager {
   void setRemoteL2VoqMaxExpectedLatency(int remoteL2VoqMaxExpectedLatencyNsec);
   void setVoqOutOfBoundsLatency(int voqOutOfBoundsLatencyNsec);
 
+  std::optional<std::string> getFirmwareVersion() const;
+
  private:
   void programEcmpLoadBalancerParams(
       std::optional<sai_uint32_t> seed,
