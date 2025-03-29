@@ -638,68 +638,6 @@ TEST_F(AgentHwAclQualifierTest, AclIp6Qualifiers) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(AgentHwAclQualifierTest, AclIp4LookupClassL2) {
-  auto setup = [=, this]() {
-    this->aclSetupHelper(true /* isIpV4 */, QualifierType::LOOKUPCLASS_L2);
-  };
-
-  auto verify = [=, this]() { this->aclVerifyHelper(); };
-
-  this->verifyAcrossWarmBoots(setup, verify);
-}
-
-TEST_F(AgentHwAclQualifierTest, AclIp4LookupClassNeighbor) {
-  auto setup = [=, this]() {
-    this->aclSetupHelper(
-        true /* isIpV4 */, QualifierType::LOOKUPCLASS_NEIGHBOR);
-  };
-
-  auto verify = [=, this]() { this->aclVerifyHelper(); };
-
-  this->verifyAcrossWarmBoots(setup, verify);
-}
-
-TEST_F(AgentHwAclQualifierTest, AclIp4LookupClassRoute) {
-  auto setup = [=, this]() {
-    this->aclSetupHelper(true /* isIpV4 */, QualifierType::LOOKUPCLASS_ROUTE);
-  };
-
-  auto verify = [=, this]() { this->aclVerifyHelper(); };
-
-  this->verifyAcrossWarmBoots(setup, verify);
-}
-
-TEST_F(AgentHwAclQualifierTest, AclIp6LookupClassL2) {
-  auto setup = [=, this]() {
-    this->aclSetupHelper(false /* isIpV6 */, QualifierType::LOOKUPCLASS_L2);
-  };
-
-  auto verify = [=, this]() { this->aclVerifyHelper(); };
-
-  this->verifyAcrossWarmBoots(setup, verify);
-}
-
-TEST_F(AgentHwAclQualifierTest, AclIp6LookupClassNeighbor) {
-  auto setup = [=, this]() {
-    this->aclSetupHelper(
-        false /* isIpV6 */, QualifierType::LOOKUPCLASS_NEIGHBOR);
-  };
-
-  auto verify = [=, this]() { this->aclVerifyHelper(); };
-
-  this->verifyAcrossWarmBoots(setup, verify);
-}
-
-TEST_F(AgentHwAclQualifierTest, AclIp6LookupClassRoute) {
-  auto setup = [=, this]() {
-    this->aclSetupHelper(false /* isIpV6 */, QualifierType::LOOKUPCLASS_ROUTE);
-  };
-
-  auto verify = [=, this]() { this->aclVerifyHelper(); };
-
-  this->verifyAcrossWarmBoots(setup, verify);
-}
-
 // canary on for qualifiers from default to coop
 TEST_F(AgentHwAclQualifierTest, AclQualifiersCanaryOn) {
   auto setup = [=, this]() {
@@ -728,6 +666,79 @@ TEST_F(AgentHwAclQualifierTest, AclQualifiersCanaryOff) {
   };
 
   this->verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, []() {});
+}
+
+struct AgentHwAclLookupClassQualifierTest : public AgentHwAclQualifierTest {
+  std::vector<production_features::ProductionFeature>
+  getProductionFeaturesVerified() const override {
+    auto productionFeatures =
+        AgentHwAclQualifierTest::getProductionFeaturesVerified();
+    productionFeatures.push_back(
+        production_features::ProductionFeature::QUEUE_PER_HOST);
+    return productionFeatures;
+  }
+};
+
+TEST_F(AgentHwAclLookupClassQualifierTest, AclIp4LookupClassL2) {
+  auto setup = [=, this]() {
+    this->aclSetupHelper(true /* isIpV4 */, QualifierType::LOOKUPCLASS_L2);
+  };
+
+  auto verify = [=, this]() { this->aclVerifyHelper(); };
+
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(AgentHwAclLookupClassQualifierTest, AclIp4LookupClassNeighbor) {
+  auto setup = [=, this]() {
+    this->aclSetupHelper(
+        true /* isIpV4 */, QualifierType::LOOKUPCLASS_NEIGHBOR);
+  };
+
+  auto verify = [=, this]() { this->aclVerifyHelper(); };
+
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(AgentHwAclLookupClassQualifierTest, AclIp4LookupClassRoute) {
+  auto setup = [=, this]() {
+    this->aclSetupHelper(true /* isIpV4 */, QualifierType::LOOKUPCLASS_ROUTE);
+  };
+
+  auto verify = [=, this]() { this->aclVerifyHelper(); };
+
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(AgentHwAclLookupClassQualifierTest, AclIp6LookupClassL2) {
+  auto setup = [=, this]() {
+    this->aclSetupHelper(false /* isIpV6 */, QualifierType::LOOKUPCLASS_L2);
+  };
+
+  auto verify = [=, this]() { this->aclVerifyHelper(); };
+
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(AgentHwAclLookupClassQualifierTest, AclIp6LookupClassNeighbor) {
+  auto setup = [=, this]() {
+    this->aclSetupHelper(
+        false /* isIpV6 */, QualifierType::LOOKUPCLASS_NEIGHBOR);
+  };
+
+  auto verify = [=, this]() { this->aclVerifyHelper(); };
+
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(AgentHwAclLookupClassQualifierTest, AclIp6LookupClassRoute) {
+  auto setup = [=, this]() {
+    this->aclSetupHelper(false /* isIpV6 */, QualifierType::LOOKUPCLASS_ROUTE);
+  };
+
+  auto verify = [=, this]() { this->aclVerifyHelper(); };
+
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 
 } // namespace facebook::fboss
