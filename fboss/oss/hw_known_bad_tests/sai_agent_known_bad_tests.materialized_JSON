@@ -4588,6 +4588,9 @@
         },
         {
           "test_name_regex": "AgentFabricSwitchTest.reachDiscard"
+        },
+        {
+          "test_name_regex": "AgentFabricSwitchTest.configUpdateForExpectedFabricPortConnectivity"
         }
     ],
     "brcm/11.7.0.0_dnx_odp/12.0_ea_dnx_odp/jericho3/mono": [
@@ -5533,6 +5536,9 @@
         },
         {
           "test_name_regex": "AgentFabricSwitchTest.reachDiscard"
+        },
+        {
+          "test_name_regex": "AgentFabricSwitchTest.configUpdateForExpectedFabricPortConnectivity"
         }
     ],
     "brcm/11.7.0.0_odp/11.7.0.0_odp/tomahawk5/mono": [
@@ -7388,6 +7394,9 @@
         },
         {
           "test_name_regex": "AgentFabricSwitchTest.reachDiscard"
+        },
+        {
+          "test_name_regex": "AgentFabricSwitchTest.configUpdateForExpectedFabricPortConnectivity"
         },
         {
           "test_name_regex": "AgentHwParityErrorTest.verifyParityError$"
