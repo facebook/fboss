@@ -507,6 +507,14 @@ class SwitchStats : public boost::noncopyable {
 
   void setDrainState(int16_t switchIndex, cfg::SwitchDrainState drainState);
 
+  void setNumActiveFabricLinksEligibleForMinLink(
+      int32_t virtualDeviceId,
+      int32_t numLinks);
+
+  void setNumActivePortsPerVirtualDevice(
+      int32_t virtualDeviceId,
+      int32_t numActivePorts);
+
   void hwAgentConnectionStatus(int switchIndex, bool connected) {
     CHECK_LT(switchIndex, hwAgentConnectionStatus_.size());
     hwAgentConnectionStatus_[switchIndex].incrementValue(connected ? 1 : -1);

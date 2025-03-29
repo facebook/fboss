@@ -750,4 +750,13 @@ void SwitchStats::setDrainState(
   fb303::fbData->setCounter(drainStateCounter, static_cast<int>(drainState));
 }
 
+void SwitchStats::setNumActiveFabricLinksEligibleForMinLink(
+    int32_t virtualDeviceId,
+    int32_t numLinks) {
+  auto counterName = folly::to<std::string>(
+      "vid.", virtualDeviceId, ".active_eligible_min_links");
+
+  fb303::fbData->setCounter(counterName, static_cast<int>(numLinks));
+}
+
 } // namespace facebook::fboss
