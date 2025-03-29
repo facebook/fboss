@@ -195,9 +195,11 @@ TEST_F(AgentFabricSwitchTest, configUpdateForExpectedFabricPortConnectivity) {
       utility::checkPortFabricReachability(
           getAgentEnsemble(), switchId, fabricPortId);
     }
-    EXPECT_EQ(
-        *(getAgentEnsemble()->getFabricReachabilityStats().mismatchCount()),
-        fabricPortIds.size());
+    WITH_RETRIES({
+      EXPECT_EVENTUALLY_EQ(
+          *(getAgentEnsemble()->getFabricReachabilityStats().mismatchCount()),
+          fabricPortIds.size());
+    });
 
     // Apply config update for correct cabling
     newCfg = getSw()->getConfig();
@@ -210,8 +212,11 @@ TEST_F(AgentFabricSwitchTest, configUpdateForExpectedFabricPortConnectivity) {
       utility::checkPortFabricReachability(
           getAgentEnsemble(), switchId, fabricPortId);
     }
-    EXPECT_EQ(
-        *(getAgentEnsemble()->getFabricReachabilityStats().mismatchCount()), 0);
+    WITH_RETRIES({
+      EXPECT_EVENTUALLY_EQ(
+          *(getAgentEnsemble()->getFabricReachabilityStats().mismatchCount()),
+          0);
+    });
   };
   verifyAcrossWarmBoots([] {}, verify);
 }
