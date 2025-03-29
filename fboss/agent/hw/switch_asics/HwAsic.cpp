@@ -78,7 +78,8 @@ int HwAsic::getDefaultACLGroupID() const {
 std::unique_ptr<HwAsic> HwAsic::makeAsic(
     std::optional<int64_t> switchId,
     const cfg::SwitchInfo& switchInfo,
-    std::optional<cfg::SdkVersion> sdkVersion) {
+    std::optional<cfg::SdkVersion> sdkVersion,
+    std::optional<HwAsic::FabricNodeRole> fabricNodeRole) {
   switch (*switchInfo.asicType()) {
     case cfg::AsicType::ASIC_TYPE_FAKE:
       return std::make_unique<FakeAsic>(switchId, switchInfo, sdkVersion);

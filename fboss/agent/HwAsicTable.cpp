@@ -22,9 +22,15 @@ HwAsicTable::HwAsicTable(
         switchInfo.switchMac() = folly::MacAddress().toString();
       }
     }
+
+    std::optional<HwAsic::FabricNodeRole> fabricNodeRole{std::nullopt};
     hwAsics_.emplace(
         SwitchID(switchIdAndSwitchInfo.first),
-        HwAsic::makeAsic(switchIdAndSwitchInfo.first, switchInfo, sdkVersion));
+        HwAsic::makeAsic(
+            switchIdAndSwitchInfo.first,
+            switchInfo,
+            sdkVersion,
+            fabricNodeRole));
   }
 }
 

@@ -237,7 +237,9 @@ class HwAsic {
   static std::unique_ptr<HwAsic> makeAsic(
       std::optional<int64_t> switchID,
       const cfg::SwitchInfo& switchInfo,
-      std::optional<cfg::SdkVersion> sdkVersion);
+      std::optional<cfg::SdkVersion> sdkVersion,
+      std::optional<HwAsic::FabricNodeRole> fabricNodeRole);
+
   virtual bool isSupported(Feature) const = 0;
   virtual cfg::AsicType getAsicType() const = 0;
   std::string getAsicTypeStr() const;

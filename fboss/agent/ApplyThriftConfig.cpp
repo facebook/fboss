@@ -1121,7 +1121,10 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
     switchInfo.globalSystemPortOffset() = *node->getGlobalSystemPortOffset();
     switchInfo.inbandPortId() = *node->getInbandPortId();
     return HwAsic::makeAsic(
-        static_cast<int64_t>(node->getSwitchId()), switchInfo, std::nullopt);
+        static_cast<int64_t>(node->getSwitchId()),
+        switchInfo,
+        std::nullopt,
+        std::nullopt /* fabricNodeRole is N/A for VOQ switches */);
   };
   auto processLoopbacks = [&](const std::shared_ptr<DsfNode>& node,
                               const HwAsic* dsfNodeAsic) {
