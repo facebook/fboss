@@ -65,6 +65,18 @@ python_library(
 )
 
 python_library(
+    name = "profile_settings",
+    srcs = ["profile_settings.py"],
+    labels = ["autodeps2_generated"],
+    deps = [
+        ":helpers",
+        ":platform_mapping_config-py",
+        "//fboss/agent:switch_config-py-deprecated",
+        "//fboss/lib/phy:phy-py-deprecated",
+    ],
+)
+
+python_library(
     name = "port_profile_mapping",
     srcs = ["port_profile_mapping.py"],
     labels = ["autodeps2_generated"],
