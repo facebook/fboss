@@ -3,6 +3,21 @@ load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
 
 oncall("fboss_optics_phy")
 
+python_library(
+    name = "helpers",
+    srcs = ["helpers.py"],
+    labels = ["autodeps2_generated"],
+    deps = [
+        ":platform_mapping_config-py",
+        ":si_settings",
+        ":static_mapping",
+        "//fboss/agent:platform_config-py-deprecated",
+        "//fboss/agent:switch_config-py-deprecated",
+        "//fboss/lib/phy:phy-py-deprecated",
+        "//fboss/qsfp_service/if:transceiver-py-deprecated",
+    ],
+)
+
 thrift_library(
     name = "platform_mapping_config",
     go_thrift_namespaces = {
