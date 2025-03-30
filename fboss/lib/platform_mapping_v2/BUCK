@@ -1,3 +1,4 @@
+load("@fbcode_macros//build_defs:python_library.bzl", "python_library")
 load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
 
 oncall("fboss_optics_phy")
@@ -25,5 +26,14 @@ thrift_library(
         "//fboss/agent:switch_config",
         "//fboss/lib/phy:phy",
         "//fboss/qsfp_service/if:transceiver",
+    ],
+)
+
+python_library(
+    name = "static_mapping",
+    srcs = ["static_mapping.py"],
+    labels = ["autodeps2_generated"],
+    deps = [
+        ":platform_mapping_config-py",
     ],
 )
