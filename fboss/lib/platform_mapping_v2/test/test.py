@@ -151,6 +151,119 @@ class TestPlatformMappingGeneration(BaseFacebookTestCase):
         )
         return {1: port_one_mapping, 2: port_two_mapping}
 
+    def _get_expected_multi_npu_test_ports(self) -> Dict[int, PlatformPortEntry]:
+        multi_npu_port_one = PlatformPortEntry(
+            mapping=PlatformPortMapping(
+                id=102,
+                name="eth1/3/1",
+                controllingPort=102,
+                pins=[
+                    PinConnection(
+                        a=PinID(chip="NPU-TH5_NIF-slot1/chip2/core0", lane=0),
+                        z=Pin(end=PinID(chip="TRANSCEIVER-OSFP-slot1/chip3", lane=0)),
+                    ),
+                    PinConnection(
+                        a=PinID(chip="NPU-TH5_NIF-slot1/chip2/core0", lane=1),
+                        z=Pin(end=PinID(chip="TRANSCEIVER-OSFP-slot1/chip3", lane=1)),
+                    ),
+                    PinConnection(
+                        a=PinID(chip="NPU-TH5_NIF-slot1/chip2/core0", lane=2),
+                        z=Pin(end=PinID(chip="TRANSCEIVER-OSFP-slot1/chip3", lane=2)),
+                    ),
+                    PinConnection(
+                        a=PinID(chip="NPU-TH5_NIF-slot1/chip2/core0", lane=3),
+                        z=Pin(end=PinID(chip="TRANSCEIVER-OSFP-slot1/chip3", lane=3)),
+                    ),
+                ],
+                portType=PortType.INTERFACE_PORT,
+                scope=Scope.LOCAL,
+            ),
+            supportedProfiles={
+                PortProfileID.PROFILE_100G_4_NRZ_RS528_OPTICAL: PlatformPortConfig(
+                    subsumedPorts=[103],
+                    pins=PortPinConfig(
+                        iphy=[
+                            PinConfig(
+                                id=PinID(chip="NPU-TH5_NIF-slot1/chip2/core0", lane=0)
+                            ),
+                            PinConfig(
+                                id=PinID(chip="NPU-TH5_NIF-slot1/chip2/core0", lane=1)
+                            ),
+                            PinConfig(
+                                id=PinID(chip="NPU-TH5_NIF-slot1/chip2/core0", lane=2)
+                            ),
+                            PinConfig(
+                                id=PinID(chip="NPU-TH5_NIF-slot1/chip2/core0", lane=3)
+                            ),
+                        ],
+                        transceiver=[
+                            PinConfig(
+                                id=PinID(chip="TRANSCEIVER-OSFP-slot1/chip3", lane=0)
+                            ),
+                            PinConfig(
+                                id=PinID(chip="TRANSCEIVER-OSFP-slot1/chip3", lane=1)
+                            ),
+                            PinConfig(
+                                id=PinID(chip="TRANSCEIVER-OSFP-slot1/chip3", lane=2)
+                            ),
+                            PinConfig(
+                                id=PinID(chip="TRANSCEIVER-OSFP-slot1/chip3", lane=3)
+                            ),
+                        ],
+                    ),
+                ),
+                PortProfileID.PROFILE_100G_1_PAM4_RS544_OPTICAL: PlatformPortConfig(
+                    pins=PortPinConfig(
+                        iphy=[
+                            PinConfig(
+                                id=PinID(chip="NPU-TH5_NIF-slot1/chip2/core0", lane=0)
+                            )
+                        ],
+                        transceiver=[
+                            PinConfig(
+                                id=PinID(chip="TRANSCEIVER-OSFP-slot1/chip3", lane=0)
+                            )
+                        ],
+                    )
+                ),
+            },
+        )
+        multi_npu_port_two = PlatformPortEntry(
+            mapping=PlatformPortMapping(
+                id=103,
+                name="eth1/3/2",
+                controllingPort=102,
+                pins=[
+                    PinConnection(
+                        a=PinID(chip="NPU-TH5_NIF-slot1/chip2/core0", lane=1),
+                        z=Pin(end=PinID(chip="TRANSCEIVER-OSFP-slot1/chip3", lane=1)),
+                    )
+                ],
+                portType=PortType.INTERFACE_PORT,
+                scope=Scope.LOCAL,
+            ),
+            supportedProfiles={
+                PortProfileID.PROFILE_100G_1_PAM4_RS544_OPTICAL: PlatformPortConfig(
+                    pins=PortPinConfig(
+                        iphy=[
+                            PinConfig(
+                                id=PinID(chip="NPU-TH5_NIF-slot1/chip2/core0", lane=1)
+                            )
+                        ],
+                        transceiver=[
+                            PinConfig(
+                                id=PinID(chip="TRANSCEIVER-OSFP-slot1/chip3", lane=1)
+                            )
+                        ],
+                    )
+                )
+            },
+        )
+        return self._get_expected_single_npu_test_ports() | {
+            102: multi_npu_port_one,
+            103: multi_npu_port_two,
+        }
+
     def _get_expected_single_npu_test_chips(self) -> List[DataPlanePhyChip]:
         chip_one = DataPlanePhyChip(
             name="NPU-TH5_NIF-slot1/chip1/core0",
@@ -168,6 +281,15 @@ class TestPlatformMappingGeneration(BaseFacebookTestCase):
             physicalID=2,
         )
         return [chip_one, chip_two, chip_three]
+
+    def _get_expected_multi_npu_test_chips(self) -> List[DataPlanePhyChip]:
+        return self._get_expected_single_npu_test_chips() + [
+            DataPlanePhyChip(
+                name="NPU-TH5_NIF-slot1/chip2/core0",
+                type=DataPlanePhyChipType.IPHY,
+                physicalID=0,
+            )
+        ]
 
     def _get_expected_single_npu_supported_profiles(
         self,
@@ -223,6 +345,34 @@ class TestPlatformMappingGeneration(BaseFacebookTestCase):
         )
 
         # Verify supportedProfiles
+        supportedProfiles = platform_mapping.get_platform_profiles()
+        self.assertEqual(len(supportedProfiles), 2)
+        self.assertTrue(
+            all(
+                entry in supportedProfiles
+                for entry in self._get_expected_single_npu_supported_profiles()
+            )
+        )
+
+    def test_get_platform_mapping_multi_npu(self) -> None:
+        platform_mapping = PlatformMappingV2(
+            self._get_test_vendor_data(), "test", multi_npu=True
+        )
+
+        # Verify ports
+        self.assertEqual(
+            platform_mapping.get_platform_port_map(),
+            self._get_expected_multi_npu_test_ports(),
+        )
+
+        # Verify chips
+        chips = platform_mapping.get_chips()
+        self.assertEqual(len(chips), 4)
+        self.assertTrue(
+            all(chip in chips for chip in self._get_expected_multi_npu_test_chips())
+        )
+
+        # Verify supportedProfiles (supportedProfiles should be the same for both single and multi NPU)
         supportedProfiles = platform_mapping.get_platform_profiles()
         self.assertEqual(len(supportedProfiles), 2)
         self.assertTrue(
