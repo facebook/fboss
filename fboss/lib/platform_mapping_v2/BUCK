@@ -48,3 +48,13 @@ python_library(
         "//fboss/qsfp_service/if:transceiver-py-deprecated",
     ],
 )
+
+python_library(
+    name = "port_profile_mapping",
+    srcs = ["port_profile_mapping.py"],
+    labels = ["autodeps2_generated"],
+    deps = [
+        ":platform_mapping_config-py",
+        "//fboss/agent:switch_config-py-deprecated",
+    ],
+)
