@@ -1,7 +1,12 @@
 # pyre-strict
 import argparse
 import os
+import sys
 from typing import Dict, Tuple
+
+from fboss.lib.platform_mapping_v2.platform_mapping_v2 import PlatformMappingV2
+from thrift.protocol import TSimpleJSONProtocol
+from thrift.util import Serializer
 
 
 def get_command_line_args() -> Tuple[str, str, str, bool]:
@@ -50,3 +55,34 @@ def read_vendor_data(input_file_path: str) -> Dict[str, str]:
             vendor_data[filename] = content
 
     return vendor_data
+
+
+def generate_platform_mappings() -> None:
+    input_dir, output_dir, platform_name, is_multi_npu = get_command_line_args()
+
+    print(f"Finding vendor data in {input_dir}...", file=sys.stderr)
+    vendor_data_map = {platform_name: read_vendor_data(os.path.expanduser(input_dir))}
+
+    if not vendor_data_map:
+        print("No vendor data found in the input directory.", file=sys.stderr)
+        exit(1)
+
+    print("Generating platform mapping...", file=sys.stderr)
+    platform_mapping = PlatformMappingV2(
+        vendor_data_map, platform_name, is_multi_npu
+    ).get_platform_mapping()
+
+    print("Writing to file...", file=sys.stderr)
+    platform_mapping_serialized = Serializer.serialize(
+        TSimpleJSONProtocol.TSimpleJSONProtocolFactory(), platform_mapping
+    )
+    output_dir = os.path.expanduser(output_dir)
+    os.makedirs(output_dir, exist_ok=True)
+    with open(
+        os.path.expanduser(f"{output_dir}/{platform_name}-platform-mapping.json"), "wb"
+    ) as f:
+        f.write(platform_mapping_serialized)
+
+
+if __name__ == "__main__":
+    generate_platform_mappings()

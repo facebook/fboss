@@ -135,4 +135,9 @@ python_library(
     name = "gen",
     srcs = ["gen.py"],
     labels = ["autodeps2_generated"],
+    deps = [
+        ":platform_mapping_v2",
+        "//thrift/lib/py:server_base",
+        "//thrift/lib/py/util:py_util",
+    ],
 )
