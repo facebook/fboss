@@ -37,3 +37,14 @@ python_library(
         ":platform_mapping_config-py",
     ],
 )
+
+python_library(
+    name = "si_settings",
+    srcs = ["si_settings.py"],
+    labels = ["autodeps2_generated"],
+    deps = [
+        ":platform_mapping_config-py",
+        "//fboss/agent:switch_config-py-deprecated",
+        "//fboss/qsfp_service/if:transceiver-py-deprecated",
+    ],
+)
