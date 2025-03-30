@@ -54,6 +54,24 @@ python_library(
 )
 
 python_library(
+    name = "read_files_utils",
+    srcs = ["read_files_utils.py"],
+    labels = ["autodeps2_generated"],
+    deps = [
+        ":asic_vendor_config",
+        ":platform_mapping_config-py",
+        ":port_profile_mapping",
+        ":profile_settings",
+        ":si_settings",
+        ":static_mapping",
+        "//fboss/agent:switch_config-py-deprecated",
+        "//fboss/agent/hw/config:asic_config_v2-py-deprecated",
+        "//fboss/lib/phy:phy-py-deprecated",
+        "//fboss/qsfp_service/if:transceiver-py-deprecated",
+    ],
+)
+
+python_library(
     name = "si_settings",
     srcs = ["si_settings.py"],
     labels = ["autodeps2_generated"],
