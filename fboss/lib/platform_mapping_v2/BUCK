@@ -1,0 +1,29 @@
+load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
+
+oncall("fboss_optics_phy")
+
+thrift_library(
+    name = "platform_mapping_config",
+    go_thrift_namespaces = {
+        "platform_mapping_config.thrift": "neteng.fboss.platform_mapping_config",
+    },
+    languages = [
+        "py",
+        "py3",
+        "python",
+        "py-asyncio",
+    ],
+    py3_namespace = "neteng.fboss",
+    py_asyncio_base_module = "neteng.fboss.asyncio",
+    py_base_module = "neteng.fboss",
+    thrift_cpp2_options = "json",
+    thrift_py_options = "json,sort_keys",
+    thrift_srcs = {
+        "platform_mapping_config.thrift": [],
+    },
+    deps = [
+        "//fboss/agent:switch_config",
+        "//fboss/lib/phy:phy",
+        "//fboss/qsfp_service/if:transceiver",
+    ],
+)
