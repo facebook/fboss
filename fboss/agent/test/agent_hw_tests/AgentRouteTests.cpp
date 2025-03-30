@@ -123,11 +123,11 @@ class AgentRouteTest : public AgentHwTest {
     }
     return ports;
   }
+
   RoutePrefix<AddrT> getSubnetIpForInterface() const {
     auto state = this->getProgrammedState();
-    const VlanID vlanID{utility::kBaseVlanId};
-    auto vlan = state->getVlans()->getNodeIf(vlanID);
-    auto interface = state->getInterfaces()->getNodeIf(vlan->getInterfaceID());
+    InterfaceID intfID = utility::firstInterfaceIDWithPorts(state);
+    auto interface = state->getInterfaces()->getNodeIf(intfID);
     if (interface) {
       for (auto iter : std::as_const(*interface->getAddresses())) {
         std::pair<folly::IPAddress, uint8_t> address(
@@ -145,7 +145,7 @@ class AgentRouteTest : public AgentHwTest {
         }
       }
     }
-    XLOG(FATAL) << "Invald configuration vlan " << utility::kBaseVlanId;
+    XLOG(FATAL) << "No interface found";
   }
   const std::vector<RoutePrefix<AddrT>> kGetRoutePrefixes() const {
     if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
