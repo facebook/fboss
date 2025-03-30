@@ -389,3 +389,17 @@ def transmitter_tech_from_profile(
     ]:
         return [TransmitterTechnology.COPPER]
     raise Exception("Can't figure out transmitter tech for profile ", profile)
+
+
+def get_unique_connection_pairs(
+    connection_pairs: List[ConnectionPair],
+) -> List[ConnectionPair]:
+    connection_pair_strs = set()
+    unique_connection_pairs = []
+
+    for connection_pair in connection_pairs:
+        connection_pair_str = str(connection_pair)
+        if connection_pair_str not in connection_pair_strs:
+            connection_pair_strs.add(connection_pair_str)
+            unique_connection_pairs.append(connection_pair)
+    return unique_connection_pairs

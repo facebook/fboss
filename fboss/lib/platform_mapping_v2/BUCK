@@ -18,6 +18,24 @@ python_library(
     ],
 )
 
+python_library(
+    name = "platform_mapping_v2",
+    srcs = ["platform_mapping_v2.py"],
+    labels = ["autodeps2_generated"],
+    deps = [
+        ":asic_vendor_config",
+        ":helpers",
+        ":port_profile_mapping",
+        ":profile_settings",
+        ":read_files_utils",
+        ":si_settings",
+        ":static_mapping",
+        "//fboss/agent:platform_config-py-deprecated",
+        "//fboss/agent:switch_config-py-deprecated",
+        "//fboss/lib/phy:phy-py-deprecated",
+    ],
+)
+
 thrift_library(
     name = "platform_mapping_config",
     go_thrift_namespaces = {
