@@ -170,6 +170,9 @@ class PlatformMappingV2:
     def get_platform_port_map(self) -> Dict[int, PlatformPortEntry]:
         return self.platform_mapping.ports
 
+    def get_chips(self) -> List[DataPlanePhyChip]:
+        return self.platform_mapping.chips
+
     def _generate_platform_mapping(self) -> PlatformMapping:
         return PlatformMapping(
             ports=self._generate_ports(),
