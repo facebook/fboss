@@ -58,3 +58,12 @@ python_library(
         "//fboss/agent:switch_config-py-deprecated",
     ],
 )
+
+python_library(
+    name = "asic_vendor_config",
+    srcs = ["asic_vendor_config.py"],
+    labels = ["autodeps2_generated"],
+    deps = [
+        "//fboss/agent/hw/config:asic_config_v2-py-deprecated",
+    ],
+)
