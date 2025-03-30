@@ -190,7 +190,7 @@ find_package(fb303 CONFIG REQUIRED)
 find_package(fizz CONFIG REQUIRED)
 find_package(fmt CONFIG REQUIRED)
 find_package(wangle CONFIG REQUIRED)
-find_package(FBThrift CONFIG REQUIRED)
+find_package(FBThrift CONFIG REQUIRED COMPONENTS)
 find_package(range-v3 REQUIRED)
 include_directories(${FB303_INCLUDE_DIR})
 find_path(FATAL_INCLUDE_DIR NAMES fatal/portability.h)
@@ -246,6 +246,7 @@ message(STATUS "Found YAML_INCLUDE_DIR: ${YAML_INCLUDE_DIR}")
 
 # Generate thrift deps and libraries
 include(FBThriftCppLibrary)
+include(FBThriftPyLibrary)
 
 # Thrift libraries
 add_fbthrift_cpp_library(
@@ -257,12 +258,27 @@ add_fbthrift_cpp_library(
     json
     reflection
 )
+add_fbthrift_py_library(
+  fb303_py
+  common/fb303/if/fb303.thrift
+  SERVICES
+    FacebookService
+  OPTIONS
+    json
+)
 add_fbthrift_cpp_library(
   network_address_cpp2
   common/network/if/Address.thrift
   OPTIONS
     json
     reflection
+)
+add_fbthrift_py_library(
+  network_address_py
+  common/network/if/Address.thrift
+  NAMESPACE "facebook.network.Address"
+  OPTIONS
+    json
 )
 add_fbthrift_cpp_library(
   mpls_cpp2
@@ -271,12 +287,26 @@ add_fbthrift_cpp_library(
     json
     reflection
 )
+add_fbthrift_py_library(
+  mpls_py
+  fboss/agent/if/mpls.thrift
+  NAMESPACE "neteng.fboss.mpls"
+  OPTIONS
+    json
+)
 add_fbthrift_cpp_library(
   fboss_common_cpp2
   fboss/lib/if/fboss_common.thrift
   OPTIONS
     json
     reflection
+)
+add_fbthrift_py_library(
+  fboss_common_py
+  fboss/lib/if/fboss_common.thrift
+  NAMESPACE "neteng.fboss.fboss_common"
+  OPTIONS
+    json
 )
 add_fbthrift_cpp_library(
   switch_config_cpp2
@@ -288,6 +318,17 @@ add_fbthrift_cpp_library(
     common_cpp2
     fboss_common_cpp2
     mpls_cpp2
+)
+add_fbthrift_py_library(
+  switch_config_py
+  fboss/agent/switch_config.thrift
+  NAMESPACE "neteng.fboss.switch_config"
+  OPTIONS
+    json
+  DEPENDS
+    common_py
+    fboss_common_py
+    mpls_py
 )
 add_fbthrift_cpp_library(
   agent_config_cpp2
@@ -310,6 +351,18 @@ add_fbthrift_cpp_library(
     asic_config_cpp2
     asic_config_v2_cpp2
     phy_cpp2
+)
+add_fbthrift_py_library(
+  platform_config_py
+  fboss/agent/platform_config.thrift
+  NAMESPACE "neteng.fboss.platform_config"
+  OPTIONS
+    json
+  DEPENDS
+    bcm_config_py
+    asic_config_py
+    asic_config_v2_py
+    phy_py
 )
 add_fbthrift_cpp_library(
   switch_reachability_cpp2
@@ -336,12 +389,26 @@ add_fbthrift_cpp_library(
     json
     reflection
 )
+add_fbthrift_py_library(
+  prbs_py
+  fboss/lib/phy/prbs.thrift
+  NAMESPACE "neteng.fboss.prbs"
+  OPTIONS
+    json
+)
 add_fbthrift_cpp_library(
   link_cpp2
   fboss/lib/phy/link.thrift
   OPTIONS
     json
     reflection
+)
+add_fbthrift_py_library(
+  link_py
+  fboss/lib/phy/link.thrift
+  NAMESPACE "neteng.fboss.link"
+  OPTIONS
+    json
 )
 add_fbthrift_cpp_library(
   transceiver_cpp2
@@ -352,6 +419,16 @@ add_fbthrift_cpp_library(
   DEPENDS
     link_cpp2
     prbs_cpp2
+)
+add_fbthrift_py_library(
+  transceiver_py
+  fboss/qsfp_service/if/transceiver.thrift
+  NAMESPACE "neteng.fboss.transceiver"
+  OPTIONS
+    json
+  DEPENDS
+    link_py
+    prbs_py
 )
 add_fbthrift_cpp_library(
   pim_state_cpp2
@@ -450,6 +527,19 @@ add_fbthrift_cpp_library(
     fb303_cpp2
     io_stats_cpp2
 )
+add_fbthrift_py_library(
+  phy_py
+  fboss/lib/phy/phy.thrift
+  NAMESPACE "neteng.fboss.phy"
+  OPTIONS
+    json
+  DEPENDS
+    switch_config_py
+    transceiver_py
+    fboss_py
+    fb303_py
+    io_stats_py
+)
 add_fbthrift_cpp_library(
   optic_cpp2
   fboss/agent/if/optic.thrift
@@ -466,6 +556,13 @@ add_fbthrift_cpp_library(
     json
     reflection
 )
+add_fbthrift_py_library(
+  fboss_py
+  fboss/agent/if/fboss.thrift
+  NAMESPACE "neteng.fboss"
+  OPTIONS
+    json
+)
 add_fbthrift_cpp_library(
   sflow_cpp2
   fboss/agent/if/sflow.thrift
@@ -481,6 +578,16 @@ add_fbthrift_cpp_library(
   DEPENDS
     mpls_cpp2
     network_address_cpp2
+)
+add_fbthrift_py_library(
+  common_py
+  fboss/agent/if/common.thrift
+  NAMESPACE "neteng.fboss.common"
+  OPTIONS
+    json
+  DEPENDS
+    mpls_py
+    network_address_py
 )
 add_fbthrift_cpp_library(
   product_info_cpp2
@@ -539,6 +646,13 @@ add_fbthrift_cpp_library(
     json
     reflection
 )
+add_fbthrift_py_library(
+    bcm_config_py
+  fboss/agent/hw/bcm/bcm_config.thrift
+  NAMESPACE "neteng.fboss.bcm_config"
+  OPTIONS
+    json
+)
 add_fbthrift_cpp_library(
   asic_config_cpp2
   fboss/agent/hw/sai/config/asic_config.thrift
@@ -546,12 +660,26 @@ add_fbthrift_cpp_library(
     json
     reflection
 )
+add_fbthrift_py_library(
+  asic_config_py
+  fboss/agent/hw/sai/config/asic_config.thrift
+  NAMESPACE "neteng.fboss.asic_config"
+  OPTIONS
+    json
+)
 add_fbthrift_cpp_library(
   asic_config_v2_cpp2
   fboss/agent/hw/config/asic_config_v2.thrift
   OPTIONS
     json
     reflection
+)
+add_fbthrift_py_library(
+  asic_config_v2_py
+  fboss/agent/hw/config/asic_config_v2.thrift
+  NAMESPACE "neteng.fboss.asic_config_v2"
+  OPTIONS
+    json
 )
 add_fbthrift_cpp_library(
   mka_structs_cpp2
@@ -602,6 +730,14 @@ add_fbthrift_cpp_library(
   OPTIONS
     json
     reflection
+)
+
+add_fbthrift_py_library(
+  io_stats_py
+  fboss/lib/if/io_stats.thrift
+  NAMESPACE "neteng.fboss.io_stats"
+  OPTIONS
+    json
 )
 
 add_fbthrift_cpp_library(
@@ -717,6 +853,14 @@ add_fbthrift_cpp_library(
     mpls_cpp2
     phy_cpp2
     prbs_cpp2
+  OPTIONS
+    json
+)
+
+add_fbthrift_py_library(
+  platform_mapping_config_py
+  fboss/lib/platform_mapping_v2/platform_mapping_config.thrift
+  NAMESPACE "neteng.fboss.platform_mapping_config"
   OPTIONS
     json
 )

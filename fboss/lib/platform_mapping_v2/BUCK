@@ -1,3 +1,4 @@
+load("@fbcode_macros//build_defs:python_binary.bzl", "python_binary")
 load("@fbcode_macros//build_defs:python_library.bzl", "python_library")
 load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
 
@@ -131,10 +132,12 @@ python_library(
     ],
 )
 
-python_library(
+python_binary(
     name = "gen",
     srcs = ["gen.py"],
     labels = ["autodeps2_generated"],
+    main_module = "fboss.lib.platform_mapping_v2.gen",
+    par_style = "xar",
     deps = [
         ":platform_mapping_v2",
         "//thrift/lib/py:server_base",
