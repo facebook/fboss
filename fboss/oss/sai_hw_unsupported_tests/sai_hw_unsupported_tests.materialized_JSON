@@ -2340,6 +2340,12 @@
         },
         {
           "test_name_regex": "HwMirrorTest/[01].SampleAllPortsReloadConfig"
+        },
+        {
+          "test_name_regex": "HwSflowTest.SflowSamplingEnabled"
+        },
+        {
+          "test_name_regex": "HwSflowTest.SflowSamplingDisabled"
         }
     ],
     "leaba/1.42.8/1.42.8/gibraltar": [
