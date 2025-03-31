@@ -13,7 +13,7 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
   title: 'fboss', // TODO
   tagline: 'fboss is cool', // TODO
   url: 'https://internalfb.com',
-  baseUrl: '/',
+  baseUrl: '/fboss/',
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'throw',
   trailingSlash: true,
