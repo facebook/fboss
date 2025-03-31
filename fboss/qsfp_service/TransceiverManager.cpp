@@ -2474,10 +2474,11 @@ std::optional<TransceiverID> TransceiverManager::getTransceiverID(
   return swPortInfo->second.tcvrID;
 }
 
-bool TransceiverManager::verifyEepromChecksums(TransceiverID id) {
-  auto lockedTransceivers = transceivers_.rlock();
-  auto tcvrIt = lockedTransceivers->find(id);
-  if (tcvrIt == lockedTransceivers->end()) {
+bool TransceiverManager::verifyEepromChecksumsLocked(TransceiverID id) {
+  ensureTransceiversMapLocked(
+      "verifyEepromChecksumsLocked: transceivers_ is not locked.");
+  auto tcvrIt = transceivers_.unsafeGetUnlocked().find(id);
+  if (tcvrIt == transceivers_.unsafeGetUnlocked().end()) {
     XLOG(DBG2) << "Skip verifying eeprom checksum for Transceiver=" << id
                << ". Transceiver is not present";
     return true;
@@ -2876,10 +2877,12 @@ std::optional<DiagsCapability> TransceiverManager::getDiagsCapability(
   return std::nullopt;
 }
 
-void TransceiverManager::setDiagsCapability(TransceiverID id) {
-  auto lockedTransceivers = transceivers_.rlock();
-  if (auto it = lockedTransceivers->find(id); it != lockedTransceivers->end()) {
-    return it->second->setDiagsCapability();
+void TransceiverManager::setDiagsCapabilityLocked(TransceiverID id) {
+  ensureTransceiversMapLocked(
+      "setDiagsCapabilityLocked: transceivers_ is not locked.");
+  auto tcvrIt = transceivers_.unsafeGetUnlocked().find(id);
+  if (tcvrIt != transceivers_.unsafeGetUnlocked().end()) {
+    return tcvrIt->second->setDiagsCapability();
   }
   XLOG(DBG2) << "Skip setting DiagsCapability for Transceiver=" << id
              << ". Transceiver is not present";
@@ -3252,6 +3255,17 @@ bool TransceiverManager::validateTransceiverConfiguration(
     return false;
   }
   return tcvrValidator_->validateTcvr(tcvrInfo, notValidatedReason);
+}
+
+bool TransceiverManager::isTransceiversMapLocked() const {
+  return !static_cast<bool>(transceivers_.tryWLock());
+}
+
+void TransceiverManager::ensureTransceiversMapLocked(
+    std::string message) const {
+  if (!isTransceiversMapLocked()) {
+    throw FbossError(message);
+  }
 }
 
 } // namespace facebook::fboss
