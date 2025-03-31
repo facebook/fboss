@@ -28,8 +28,8 @@ using namespace facebook::fboss::platform::fw_util_config;
 
 class FwUtilImpl {
  public:
-  explicit FwUtilImpl(const std::string& fwBinaryFile)
-      : fwBinaryFile_(fwBinaryFile) {
+  explicit FwUtilImpl(const std::string& fwBinaryFile, bool verifySha1sum)
+      : fwBinaryFile_(fwBinaryFile), verifySha1sum_(verifySha1sum) {
     init();
   }
   void doVersionAudit();
@@ -93,6 +93,7 @@ class FwUtilImpl {
   std::map<std::string, std::vector<std::string>> spiChip_;
   std::string platformName_;
   std::string fwBinaryFile_;
+  bool verifySha1sum_;
 
   void init();
 
