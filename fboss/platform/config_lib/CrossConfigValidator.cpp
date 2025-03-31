@@ -9,7 +9,8 @@
 #include "fboss/platform/platform_manager/ConfigValidator.h"
 
 namespace {
-const re2::RE2 kSensorSymlinkRegex{"(?P<Path>/run/devmap/sensors/.+)(/.+)+"};
+const re2::RE2 kRuntimePathRegex{
+    "(?P<Path>/run/devmap/(sensors|gpiochips)/[A-Z_0-9]+)($|(/.+)+)"};
 }; // namespace
 
 namespace facebook::fboss::platform {
@@ -47,25 +48,31 @@ bool CrossConfigValidator::isValidSensorConfig(
   return true;
 }
 
+bool CrossConfigValidator::isValidFanServiceConfig(
+    const fan_service::FanServiceConfig& fanConfig) {
+  for (const auto& fan : *fanConfig.fans()) {
+    if (!isValidRuntimePath(*fan.rpmSysfsPath()) ||
+        !isValidRuntimePath(*fan.pwmSysfsPath())) {
+      return false;
+    }
+    if (fan.presenceSysfsPath() &&
+        !isValidRuntimePath(*fan.presenceSysfsPath())) {
+      return false;
+    }
+    if (fan.presenceGpio() &&
+        !isValidRuntimePath(*fan.presenceGpio()->path())) {
+      return false;
+    }
+  }
+  return true;
+}
+
 bool CrossConfigValidator::isValidPmSensors(
     const std::string& slotPath,
     const std::string& pmUnitName,
     const std::vector<sensor_config::PmSensor>& pmSensors) {
   for (const auto& pmSensor : pmSensors) {
-    std::string symlink;
-    if (!re2::RE2::FullMatch(
-            *pmSensor.sysfsPath(), kSensorSymlinkRegex, &symlink)) {
-      XLOG(ERR) << fmt::format(
-          "Fail to extract sensor symlink from {} for {} at {}",
-          *pmSensor.sysfsPath(),
-          pmUnitName,
-          slotPath);
-      return false;
-    }
-    if (!pmConfig_.symbolicLinkToDevicePath()->contains(symlink)) {
-      XLOG(ERR) << fmt::format(
-          "{} is not defined in PlatformConfig::symbolicLinkToDevicePath",
-          symlink);
+    if (!isValidRuntimePath(*pmSensor.sysfsPath())) {
       return false;
     }
   }
@@ -91,6 +98,21 @@ bool CrossConfigValidator::isValidVersionedPmSensors(
     if (!isValidPmSensors(slotPath, pmUnitName, *versionedPmSensor.sensors())) {
       return false;
     }
+  }
+  return true;
+}
+
+bool CrossConfigValidator::isValidRuntimePath(const std::string& path) {
+  std::string symlink;
+  if (!re2::RE2::FullMatch(path, kRuntimePathRegex, &symlink)) {
+    XLOG(ERR) << fmt::format("Fail to extract runtime path from {}", path);
+    return false;
+  }
+  if (!pmConfig_.symbolicLinkToDevicePath()->contains(symlink)) {
+    XLOG(ERR) << fmt::format(
+        "{} is not defined in PlatformConfig::symbolicLinkToDevicePath",
+        symlink);
+    return false;
   }
   return true;
 }

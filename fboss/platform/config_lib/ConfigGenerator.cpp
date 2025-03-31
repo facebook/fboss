@@ -148,6 +148,9 @@ std::map<std::string, std::map<std::string, std::string>> getConfigs() {
       if (!fan_service::ConfigValidator().isValid(config)) {
         throw std::runtime_error("Invalid fan_service configuration");
       }
+      if (crossConfigValidator) {
+        crossConfigValidator->isValidFanServiceConfig(config);
+      }
     }
   } // end per platform iteration
 

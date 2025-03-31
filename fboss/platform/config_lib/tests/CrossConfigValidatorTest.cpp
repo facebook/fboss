@@ -41,7 +41,8 @@ class CrossConfigValidatorTest : public testing::Test {
         {"MCB", mcbPmUnitConfig}, {"BCB", bcbPmUnitConfig}};
     platformConfig.symbolicLinkToDevicePath() = {
         {"/run/devmap/sensors/CPU_CORE_TEMP", "/[CPU_CORE_TEMP]"},
-        {"/run/devmap/sensors/BCB_FAN_CPLD", "/BCB_SLOT@0/[BCB_FAN_CPLD]"}};
+        {"/run/devmap/sensors/BCB_FAN_CPLD", "/BCB_SLOT@0/[BCB_FAN_CPLD]"},
+        {"/run/devmap/gpiochips/MCB_GPIO_CHIP_1", "/[MCB_GPIO_CHIP_1]"}};
 
     crossConfigValidator_ = CrossConfigValidator(platformConfig);
   }
@@ -94,4 +95,57 @@ TEST_F(CrossConfigValidatorTest, InvalidSensorConfig) {
   pmUnitSensors.sensors() = {};
   config.pmUnitSensorsList() = {pmUnitSensors};
   EXPECT_FALSE(crossConfigValidator_->isValidSensorConfig(config));
+}
+
+TEST_F(CrossConfigValidatorTest, ValidFanConfig) {
+  auto config = fan_service::FanServiceConfig();
+  fan_service::Fan fan1, fan2;
+  fan1.rpmSysfsPath() = "/run/devmap/sensors/BCB_FAN_CPLD/fan1_input";
+  fan1.pwmSysfsPath() = "/run/devmap/sensors/BCB_FAN_CPLD/pwm3";
+  fan1.presenceSysfsPath() = "/run/devmap/sensors/BCB_FAN_CPLD/fan1_present";
+  fan2.rpmSysfsPath() = "/run/devmap/sensors/BCB_FAN_CPLD/fan2_input";
+  fan2.pwmSysfsPath() = "/run/devmap/sensors/BCB_FAN_CPLD/pwm3";
+  fan_service::Gpio gpio;
+  gpio.path() = "/run/devmap/gpiochips/MCB_GPIO_CHIP_1";
+  fan2.presenceGpio() = gpio;
+  config.fans() = {fan1, fan2};
+
+  EXPECT_TRUE(crossConfigValidator_->isValidFanServiceConfig(config));
+}
+
+TEST_F(CrossConfigValidatorTest, InvalidFanConfig) {
+  auto config = fan_service::FanServiceConfig();
+
+  fan_service::Fan validFan;
+  validFan.rpmSysfsPath() = "/run/devmap/sensors/BCB_FAN_CPLD/fan1_input";
+  validFan.pwmSysfsPath() = "/run/devmap/sensors/BCB_FAN_CPLD/pwm3";
+  validFan.presenceSysfsPath() =
+      "/run/devmap/sensors/BCB_FAN_CPLD/fan1_present";
+  EXPECT_TRUE(crossConfigValidator_->isValidFanServiceConfig(config));
+
+  fan_service::Fan fan;
+  // Undefined rpm path
+  fan.rpmSysfsPath() = "/run/devmap/sensors/FAN_CPLD1/fan1_input";
+  config.fans() = {fan};
+  EXPECT_FALSE(crossConfigValidator_->isValidFanServiceConfig(config));
+
+  // Undefined pwm path
+  fan.rpmSysfsPath() = *validFan.rpmSysfsPath();
+  fan.pwmSysfsPath() = "/run/devmap/sensors/FAN_CPLD1/pwm";
+  config.fans() = {fan};
+  EXPECT_FALSE(crossConfigValidator_->isValidFanServiceConfig(config));
+
+  // Undefined presence path
+  fan.pwmSysfsPath() = *validFan.pwmSysfsPath();
+  fan.presenceSysfsPath() = "/run/devmap/sensors/FAN_CPLD1/fan1_present";
+  config.fans() = {fan};
+  EXPECT_FALSE(crossConfigValidator_->isValidFanServiceConfig(config));
+
+  // Undefined gpio path
+  fan.presenceSysfsPath().reset();
+  fan_service::Gpio gpio;
+  gpio.path() = "/run/devmap/gpiochips/MCB_GPIO_CHIP_UNDEFINED";
+  fan.presenceGpio() = gpio;
+  config.fans() = {fan};
+  EXPECT_FALSE(crossConfigValidator_->isValidFanServiceConfig(config));
 }
