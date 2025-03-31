@@ -44,7 +44,7 @@ thrift_library(
     },
     languages = [
         "py",
-        "py3",
+        "py3-deprecated",
         "python",
         "py-asyncio",
         "cpp2",
