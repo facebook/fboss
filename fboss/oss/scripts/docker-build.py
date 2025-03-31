@@ -18,6 +18,7 @@ OPT_ARG_NO_DOCKER_OUTPUT = "--no-docker-output"
 OPT_ARG_NO_SYSTEM_DEPS = "--no-system-deps"
 OPT_ARG_ADD_BUILD_ENV_VAR = "--env-var"
 OPT_ARG_LOCAL = "--local"
+OPT_ARG_NUM_JOBS = "--num-jobs"
 
 FBOSS_IMAGE_NAME = "fboss_image"
 FBOSS_CONTAINER_NAME = "FBOSS_BUILD_CONTAINER"
@@ -146,6 +147,15 @@ def parse_args():
         default=False,
         action="store_true",
     )
+    parser.add_argument(
+        OPT_ARG_NUM_JOBS,
+        type=int,
+        required=False,
+        help=(
+            "Tell getdeps.py how many concurrent jobs to use while building. "
+            "If unspecified, the default is the number of cpus. (CPU(s) in lspcu output)"
+        ),
+    )
 
     return parser.parse_args()
 
@@ -198,6 +208,7 @@ def run_fboss_build(
     use_system_deps: bool,
     env_vars: list[str],
     use_local: bool,
+    num_jobs: Optional[int],
 ):
     cmd_args = ["sudo", "docker", "run"]
     # Add build environment variables, if any.
@@ -230,6 +241,9 @@ def run_fboss_build(
         "--scratch-path",
         f"{CONTAINER_SCRATCH_PATH}",
     ]
+    if num_jobs is not None:
+        build_cmd.append("--num-jobs")
+        build_cmd.append(str(num_jobs))
     if use_system_deps:
         build_cmd.append("--allow-system-packages")
     if target is not None:
@@ -289,6 +303,7 @@ def main():
         args.use_system_deps,
         args.env_vars,
         args.local,
+        args.num_jobs,
     )
 
     cleanup_fboss_build_container()
