@@ -445,6 +445,7 @@ struct SwitchSettingsFields {
   55: optional i32 voqOutOfBoundsLatencyNsec;
   // Number of sflow samples to pack in a single packet being sent out
   56: optional byte numberOfSflowSamplesPerPacket;
+  57: optional map<i32, i32> tcToRateLimitKbps;
 }
 
 struct RoutePrefix {

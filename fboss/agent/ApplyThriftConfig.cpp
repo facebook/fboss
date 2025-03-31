@@ -4836,6 +4836,14 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings(
         newVoqOutOfBoundsLatencyNsec);
     switchSettingsChange = true;
   }
+  std::optional<std::map<int32_t, int32_t>> newTcToRateLimitKbps;
+  if (cfg_->switchSettings()->tcToRateLimitKbps()) {
+    newTcToRateLimitKbps = *cfg_->switchSettings()->tcToRateLimitKbps();
+  }
+  if (newTcToRateLimitKbps != origSwitchSettings->getTcToRateLimitKbps()) {
+    newSwitchSettings->setTcToRateLimitKbps(newTcToRateLimitKbps);
+    switchSettingsChange = true;
+  }
 
   if (origSwitchSettings->getSwitchDrainState() !=
       *cfg_->switchSettings()->switchDrainState()) {
