@@ -61,6 +61,7 @@ cpp_library(
         "//thrift/lib/cpp/util:enum_utils",
     ],
     exported_external_deps = [
+        "re2",
         ("boost", None, "boost_assign"),
         ("boost", None, "boost_bimap"),
     ],
