@@ -89,9 +89,9 @@ void FwUtilImpl::performJamUpgrade(
     const JamConfig& jamConfig,
     const std::string& fpd) {
   // Check if the firmware binary file is present
-  if (!std::filesystem::exists(FLAGS_fw_binary_file)) {
+  if (!std::filesystem::exists(fwBinaryFile_)) {
     throw std::runtime_error(
-        "Firmware binary file not found: " + FLAGS_fw_binary_file);
+        "Firmware binary file not found: " + fwBinaryFile_);
   }
 
   // Determine the JAM binary location
@@ -105,7 +105,7 @@ void FwUtilImpl::performJamUpgrade(
     }
   }
 
-  jamCmd.push_back(FLAGS_fw_binary_file);
+  jamCmd.push_back(fwBinaryFile_);
 
   // Execute the JAM command
   auto [exitStatus, standardOut] = PlatformUtils().runCommand(jamCmd);
@@ -121,9 +121,9 @@ void FwUtilImpl::performXappUpgrade(
     const XappConfig& xappConfig,
     const std::string& fpd) {
   // Check if the firmware binary file is present
-  if (!std::filesystem::exists(FLAGS_fw_binary_file)) {
+  if (!std::filesystem::exists(fwBinaryFile_)) {
     throw std::runtime_error(
-        "Firmware binary file not found: " + FLAGS_fw_binary_file);
+        "Firmware binary file not found: " + fwBinaryFile_);
   }
 
   // Determine the XAPP binary location
@@ -136,7 +136,7 @@ void FwUtilImpl::performXappUpgrade(
       xappCmd.push_back(arg);
     }
   }
-  xappCmd.push_back(FLAGS_fw_binary_file);
+  xappCmd.push_back(fwBinaryFile_);
 
   // Execute the XAPP command
   auto [exitStatus, standardOut] = PlatformUtils().runCommand(xappCmd);
