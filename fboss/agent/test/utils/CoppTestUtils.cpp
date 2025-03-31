@@ -1261,6 +1261,10 @@ std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueuesForSai(
     rxReasonToQueues.push_back(ControlPlane::makeRxReasonToQueueEntry(
         cfg::PacketRxReason::PORT_MTU_ERROR, kCoppLowPriQueueId));
   }
+  if (hwAsic->isSupported(HwAsic::Feature::SAI_HOST_MISS_TRAP)) {
+    rxReasonToQueues.push_back(ControlPlane::makeRxReasonToQueueEntry(
+        cfg::PacketRxReason::HOST_MISS, kCoppLowPriQueueId));
+  }
 
   return rxReasonToQueues;
 }

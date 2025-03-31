@@ -1008,6 +1008,7 @@ enum PacketRxReason {
   TTL_0 = 19, // Packets with TTL as 0
   EAPOL = 20, // EAPOL for Macsec
   PORT_MTU_ERROR = 21, // Packet size exceeds port MTU, should not use together with L3_MTU_ERROR
+  HOST_MISS = 22, // Packet is destined for an unresolved neighbor in the subnet of a connected RIF
 }
 
 enum PortLoopbackMode {
