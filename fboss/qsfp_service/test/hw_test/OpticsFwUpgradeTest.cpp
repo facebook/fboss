@@ -25,18 +25,22 @@ class OpticsFwUpgradeTest : public HwTest {
     gflags::SetCommandLineOptionWithMode(
         "firmware_upgrade_supported", "1", gflags::SET_FLAGS_DEFAULT);
     // Set max concurrent evb fw upgrade to 8 for cold boot init before the test
-    // starts This ensures that all the transceivers have a chance to upgrade to
-    // the latest version of the firmware from the config before the actual test
-    // starts later
+    // starts. This ensures that all the transceivers have a chance to upgrade
+    // to the latest version of the firmware from the config before the actual
+    // test starts later
     gflags::SetCommandLineOptionWithMode(
         "max_concurrent_evb_fw_upgrade", "8", gflags::SET_FLAGS_DEFAULT);
+    // Set the firmware upgrade on coldboot flag to true so that any optics
+    // running old firmware from previous tests get upgraded at start up
     gflags::SetCommandLineOptionWithMode(
         "firmware_upgrade_on_coldboot", "1", gflags::SET_FLAGS_DEFAULT);
+    HwTest::SetUp();
+    // Set the firmware upgrade on link down and firmware upgrade on tcvr insert
+    // flag to true for the tests
     gflags::SetCommandLineOptionWithMode(
         "firmware_upgrade_on_link_down", "1", gflags::SET_FLAGS_DEFAULT);
     gflags::SetCommandLineOptionWithMode(
         "firmware_upgrade_on_tcvr_insert", "1", gflags::SET_FLAGS_DEFAULT);
-    HwTest::SetUp();
     // Revert the max_concurrent_evb_fw_upgrade back to 1 which is the default
     gflags::SetCommandLineOptionWithMode(
         "max_concurrent_evb_fw_upgrade", "1", gflags::SET_FLAGS_DEFAULT);
