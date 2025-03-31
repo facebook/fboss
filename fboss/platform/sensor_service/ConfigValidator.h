@@ -13,5 +13,9 @@ class ConfigValidator {
       const std::vector<sensor_config::PmUnitSensors>& pmUnitSensorsList);
   bool isValidPmSensors(const std::vector<sensor_config::PmSensor>& pmSensor);
   bool isValidSlotPath(const std::string& slotPath);
+  // Cross service validation
+  bool isValidSensorName(
+      const sensor_config::SensorConfig& sensorConfig,
+      const std::string& sensorName);
 };
 } // namespace facebook::fboss::platform::sensor_service

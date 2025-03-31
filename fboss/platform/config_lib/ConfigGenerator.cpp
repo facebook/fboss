@@ -148,8 +148,13 @@ std::map<std::string, std::map<std::string, std::string>> getConfigs() {
       if (!fan_service::ConfigValidator().isValid(config)) {
         throw std::runtime_error("Invalid fan_service configuration");
       }
+      std::optional<SensorConfig> sensorConfig = std::nullopt;
+      if (deserializedConfigs.contains("sensor_service")) {
+        sensorConfig = std::any_cast<SensorConfig>(
+            deserializedConfigs.at("sensor_service"));
+      }
       if (crossConfigValidator) {
-        crossConfigValidator->isValidFanServiceConfig(config);
+        crossConfigValidator->isValidFanServiceConfig(config, sensorConfig);
       }
     }
   } // end per platform iteration

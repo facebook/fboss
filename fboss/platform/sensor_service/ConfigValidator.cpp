@@ -65,4 +65,20 @@ bool ConfigValidator::isValidPmSensors(const std::vector<PmSensor>& pmSensors) {
   }
   return true;
 }
+
+bool ConfigValidator::isValidSensorName(
+    const sensor_config::SensorConfig& sensorConfig,
+    const std::string& sensorName) {
+  for (const auto& pmUnitSensors : *sensorConfig.pmUnitSensorsList()) {
+    for (const auto& pmSensor : *pmUnitSensors.sensors()) {
+      if (sensorName == *pmSensor.name()) {
+        return true;
+      }
+    }
+  }
+  XLOG(ERR) << fmt::format(
+      "Sensor `{}` is not defined in SensorConfig", sensorName);
+  return false;
+}
+
 } // namespace facebook::fboss::platform::sensor_service

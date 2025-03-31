@@ -13,7 +13,9 @@ class CrossConfigValidator {
   explicit CrossConfigValidator(
       const platform_manager::PlatformConfig& pmConfig);
   bool isValidSensorConfig(const sensor_config::SensorConfig& sensorConfig);
-  bool isValidFanServiceConfig(const fan_service::FanServiceConfig& fanConfig);
+  bool isValidFanServiceConfig(
+      const fan_service::FanServiceConfig& fanConfig,
+      const std::optional<sensor_config::SensorConfig>& sensorConfig);
 
  private:
   // Sensor Service

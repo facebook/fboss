@@ -7,6 +7,7 @@
 #include <re2/re2.h>
 
 #include "fboss/platform/platform_manager/ConfigValidator.h"
+#include "fboss/platform/sensor_service/ConfigValidator.h"
 
 namespace {
 const re2::RE2 kRuntimePathRegex{
@@ -49,7 +50,8 @@ bool CrossConfigValidator::isValidSensorConfig(
 }
 
 bool CrossConfigValidator::isValidFanServiceConfig(
-    const fan_service::FanServiceConfig& fanConfig) {
+    const fan_service::FanServiceConfig& fanConfig,
+    const std::optional<sensor_config::SensorConfig>& sensorConfig) {
   for (const auto& fan : *fanConfig.fans()) {
     if (!isValidRuntimePath(*fan.rpmSysfsPath()) ||
         !isValidRuntimePath(*fan.pwmSysfsPath())) {
@@ -61,6 +63,19 @@ bool CrossConfigValidator::isValidFanServiceConfig(
     }
     if (fan.presenceGpio() &&
         !isValidRuntimePath(*fan.presenceGpio()->path())) {
+      return false;
+    }
+  }
+  if (!fanConfig.sensors()->empty() && !sensorConfig) {
+    XLOG(ERR) << fmt::format(
+        "Failed validate SensorNames in FanServiceConfig. "
+        "Undefined SensorConfig in {}",
+        *pmConfig_.platformName());
+    return false;
+  }
+  for (const auto& sensor : *fanConfig.sensors()) {
+    if (!sensor_service::ConfigValidator().isValidSensorName(
+            *sensorConfig, *sensor.sensorName())) {
       return false;
     }
   }

@@ -110,7 +110,21 @@ TEST_F(CrossConfigValidatorTest, ValidFanConfig) {
   fan2.presenceGpio() = gpio;
   config.fans() = {fan1, fan2};
 
-  EXPECT_TRUE(crossConfigValidator_->isValidFanServiceConfig(config));
+  // Test sysfs paths
+  EXPECT_TRUE(
+      crossConfigValidator_->isValidFanServiceConfig(config, std::nullopt));
+
+  // Test sensor names
+  sensor_config::SensorConfig sensorConfig;
+  sensor_config::PmUnitSensors pmUnitSensors;
+  pmUnitSensors.sensors() = {
+      createPmSensor("sensor1", "/run/devmap/sensors/SMB_E1S_SSD_TEMP/input1")};
+  sensorConfig.pmUnitSensorsList() = {pmUnitSensors};
+  fan_service::Sensor fanSensor;
+  fanSensor.sensorName() = "sensor1";
+  config.sensors() = {fanSensor};
+  EXPECT_TRUE(
+      crossConfigValidator_->isValidFanServiceConfig(config, sensorConfig));
 }
 
 TEST_F(CrossConfigValidatorTest, InvalidFanConfig) {
@@ -121,25 +135,29 @@ TEST_F(CrossConfigValidatorTest, InvalidFanConfig) {
   validFan.pwmSysfsPath() = "/run/devmap/sensors/BCB_FAN_CPLD/pwm3";
   validFan.presenceSysfsPath() =
       "/run/devmap/sensors/BCB_FAN_CPLD/fan1_present";
-  EXPECT_TRUE(crossConfigValidator_->isValidFanServiceConfig(config));
+  EXPECT_TRUE(
+      crossConfigValidator_->isValidFanServiceConfig(config, std::nullopt));
 
   fan_service::Fan fan;
   // Undefined rpm path
   fan.rpmSysfsPath() = "/run/devmap/sensors/FAN_CPLD1/fan1_input";
   config.fans() = {fan};
-  EXPECT_FALSE(crossConfigValidator_->isValidFanServiceConfig(config));
+  EXPECT_FALSE(
+      crossConfigValidator_->isValidFanServiceConfig(config, std::nullopt));
 
   // Undefined pwm path
   fan.rpmSysfsPath() = *validFan.rpmSysfsPath();
   fan.pwmSysfsPath() = "/run/devmap/sensors/FAN_CPLD1/pwm";
   config.fans() = {fan};
-  EXPECT_FALSE(crossConfigValidator_->isValidFanServiceConfig(config));
+  EXPECT_FALSE(
+      crossConfigValidator_->isValidFanServiceConfig(config, std::nullopt));
 
   // Undefined presence path
   fan.pwmSysfsPath() = *validFan.pwmSysfsPath();
   fan.presenceSysfsPath() = "/run/devmap/sensors/FAN_CPLD1/fan1_present";
   config.fans() = {fan};
-  EXPECT_FALSE(crossConfigValidator_->isValidFanServiceConfig(config));
+  EXPECT_FALSE(
+      crossConfigValidator_->isValidFanServiceConfig(config, std::nullopt));
 
   // Undefined gpio path
   fan.presenceSysfsPath().reset();
@@ -147,5 +165,21 @@ TEST_F(CrossConfigValidatorTest, InvalidFanConfig) {
   gpio.path() = "/run/devmap/gpiochips/MCB_GPIO_CHIP_UNDEFINED";
   fan.presenceGpio() = gpio;
   config.fans() = {fan};
-  EXPECT_FALSE(crossConfigValidator_->isValidFanServiceConfig(config));
+  EXPECT_FALSE(
+      crossConfigValidator_->isValidFanServiceConfig(config, std::nullopt));
+
+  // Undefined SensorConfig
+  fan_service::Sensor fanSensor;
+  fanSensor.sensorName() = "sensor1";
+  config.sensors() = {fanSensor};
+  EXPECT_FALSE(
+      crossConfigValidator_->isValidFanServiceConfig(config, std::nullopt));
+
+  // Nonexistent sensor name
+  sensor_config::SensorConfig sensorConfig;
+  sensor_config::PmUnitSensors pmUnitSensors;
+  pmUnitSensors.sensors() = {};
+  sensorConfig.pmUnitSensorsList() = {pmUnitSensors};
+  EXPECT_FALSE(
+      crossConfigValidator_->isValidFanServiceConfig(config, sensorConfig));
 }
