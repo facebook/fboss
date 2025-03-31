@@ -789,17 +789,13 @@ TEST_F(AgentTunnelMgrTest, checkDuplicateEntries) {
       std::string intfIPv6New;
       // change ipv4 and ipv6 address of the interface
       for (int j = 0; j < config.interfaces()[i].ipAddresses()->size(); j++) {
-        auto ipDecimal =
-            folly::sformat("{}", i + config.interfaces()->size() + 10);
         if (config.interfaces()[i].ipAddresses()[j].find("::") ==
             std::string::npos) {
-          config.interfaces()[i].ipAddresses()[j] =
-              folly::sformat("{}.2.2.2/24", ipDecimal);
-          intfIPv4New = folly::sformat("{}.2.2.2", ipDecimal);
+          intfIPv4New = utility::genInterfaceAddress(i + 1, true, 31, 31);
+          config.interfaces()[i].ipAddresses()[j] = intfIPv4New;
         } else {
-          config.interfaces()[i].ipAddresses()[j] =
-              folly::sformat("{}::2/64", ipDecimal);
-          intfIPv6New = folly::sformat("{}::2", ipDecimal);
+          intfIPv6New = utility::genInterfaceAddress(i + 1, false, 127, 127);
+          config.interfaces()[i].ipAddresses()[j] = intfIPv6New;
         }
       }
 

@@ -333,4 +333,7 @@ void modifyPlatformConfig(
 
 void runCintScript(TestEnsembleIf* ensemble, const std::string& cintStr);
 
+std::string
+genInterfaceAddress(int ipDecimal, bool isV4, int host, int subnetMask);
+
 } // namespace facebook::fboss::utility
