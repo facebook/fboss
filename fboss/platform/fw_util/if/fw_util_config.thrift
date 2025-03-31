@@ -52,6 +52,16 @@ struct GpiogetConfig {
   2: string gpioChipPin; // GPIO chip pin for gpioget
 }
 
+// Define a struct for I2cEepromConfig
+struct I2cEepromConfig {
+  // I2C driver name of the i2cEeprom	
+  1: string driverName;
+  // I2C address of the i2cEeprom
+  2: string deviceAddress;
+  // I2C device path of the i2cEeprom
+  3: string path;
+}
+
 // Define struct for jtag register configuration
 struct JtagConfig {
   // path to write to
@@ -112,6 +122,8 @@ struct UpgradeConfig {
   3: optional JamConfig jamArgs;
   // cases where xam is being used
   4: optional XappConfig xappArgs;
+  // configuration for the i2cEeprom firmware
+  5: optional I2cEepromConfig i2cEepromArgs;
 }
 
 // Define a struct for version configuration
