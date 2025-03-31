@@ -28,7 +28,8 @@ using namespace facebook::fboss::platform::fw_util_config;
 
 class FwUtilImpl {
  public:
-  explicit FwUtilImpl() {
+  explicit FwUtilImpl(const std::string& fwBinaryFile)
+      : fwBinaryFile_(fwBinaryFile) {
     init();
   }
   void doVersionAudit();
@@ -91,6 +92,7 @@ class FwUtilImpl {
   NewFwUtilConfig fwUtilConfig_{};
   std::map<std::string, std::vector<std::string>> spiChip_;
   std::string platformName_;
+  std::string fwBinaryFile_;
 
   void init();
 

@@ -51,12 +51,14 @@ std::string getUpgradeToolBinaryPath(const std::string& toolName) {
   return binaryPath;
 }
 
-void verifySha1sum(const std::string& fpd, const std::string& configSha1sum) {
+void verifySha1sum(
+    const std::string& fpd,
+    const std::string& configSha1sum,
+    const std::string& binaryFile) {
   // Verify SHA1 sum
   // Execute the sha1sum command
-  XLOG(INFO) << "Verifying sha1sum of " << FLAGS_fw_binary_file;
-  std::vector<std::string> sha1sumCmd = {
-      "/usr/bin/sha1sum", FLAGS_fw_binary_file};
+  XLOG(INFO) << "Verifying sha1sum of " << binaryFile;
+  std::vector<std::string> sha1sumCmd = {"/usr/bin/sha1sum", binaryFile};
   auto [exitStatus, standardOut] = PlatformUtils().runCommand(sha1sumCmd);
   checkCmdStatus(sha1sumCmd, exitStatus);
 

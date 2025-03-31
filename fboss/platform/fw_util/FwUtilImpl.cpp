@@ -92,7 +92,7 @@ void FwUtilImpl::doFirmwareAction(
 
     if (FLAGS_verify_sha1sum) {
       if (fwConfig.sha1sum().has_value()) {
-        verifySha1sum(fpd, *fwConfig.sha1sum());
+        verifySha1sum(fpd, *fwConfig.sha1sum(), fwBinaryFile_);
       } else {
         XLOG(WARN) << "sha1sum is not set in the " << platformName_
                    << " config file. Skipping the action.";
