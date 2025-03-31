@@ -77,7 +77,20 @@ void setupPfc(
     auto qosPolicy = cfg::QosPolicy();
     *qosPolicy.name() = name;
     qosPolicy.qosMap() = std::move(qosMap);
-    cfg.qosPolicies()->push_back(qosPolicy);
+
+    // add or replace existing policy (don't add the same policy twice!)
+    bool found = false;
+    for (auto& existing : *cfg.qosPolicies()) {
+      if (existing.name() == name) {
+        existing = qosPolicy;
+        found = true;
+        break;
+      }
+    }
+    if (!found) {
+      cfg.qosPolicies()->push_back(qosPolicy);
+    }
+
     cfg::TrafficPolicyConfig trafficPolicy;
     trafficPolicy.defaultQosPolicy() = name;
     return trafficPolicy;
