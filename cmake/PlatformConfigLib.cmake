@@ -35,7 +35,7 @@ add_custom_command(
 
 add_executable(platform_config_lib_config_generator
   fboss/platform/config_lib/ConfigGenerator.cpp
-  fboss/platform/config_lib/ConfigValidator.cpp
+  fboss/platform/config_lib/CrossConfigValidator.cpp
 )
 
 target_link_libraries(platform_config_lib_config_generator

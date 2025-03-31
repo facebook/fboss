@@ -104,8 +104,6 @@ cpp_library(
     ],
     exported_deps = [
         "fbsource//third-party/fmt:fmt",
-        "//fboss/platform/platform_manager:config_validator",
-        "//fboss/platform/platform_manager:utils",
         "//fboss/platform/sensor_service/if:sensor_config-cpp2-types",
         "//folly/logging:logging",
     ],

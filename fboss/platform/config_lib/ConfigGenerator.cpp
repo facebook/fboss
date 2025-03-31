@@ -9,6 +9,7 @@
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
+#include "fboss/platform/config_lib/CrossConfigValidator.h"
 #include "fboss/platform/data_corral_service/if/gen-cpp2/led_manager_config_types.h"
 #include "fboss/platform/fan_service/ConfigValidator.h"
 #include "fboss/platform/fan_service/if/gen-cpp2/fan_service_config_types.h"
@@ -121,30 +122,24 @@ std::map<std::string, std::map<std::string, std::string>> getConfigs() {
     }
 
     // Validate service configs.
+    std::optional<CrossConfigValidator> crossConfigValidator{std::nullopt};
     if (deserializedConfigs.contains("platform_manager")) {
       auto config = std::any_cast<PlatformConfig>(
           deserializedConfigs.at("platform_manager"));
       if (!platform_manager::ConfigValidator().isValid(config)) {
         throw std::runtime_error("Invalid platform_manager configuration");
       }
+      crossConfigValidator = CrossConfigValidator(config);
     }
     if (deserializedConfigs.contains("sensor_service")) {
       auto sensorConfig =
           std::any_cast<SensorConfig>(deserializedConfigs.at("sensor_service"));
       std::optional<PlatformConfig> platformConfig{std::nullopt};
-      // TODO(T207042263) Enable cross-service config validation for
-      // Darwin once Darwin onboards PM.
-      if (platformName != "darwin") {
-        if (!deserializedConfigs.contains("platform_manager")) {
-          throw std::runtime_error(fmt::format(
-              "Platform Manager config doesn't exist for {}", platformName));
-        }
-        platformConfig = std::any_cast<PlatformConfig>(
-            deserializedConfigs.at("platform_manager"));
-      }
-      if (!sensor_service::ConfigValidator().isValid(
-              sensorConfig, platformConfig)) {
+      if (!sensor_service::ConfigValidator().isValid(sensorConfig)) {
         throw std::runtime_error("Invalid sensor_service configuration");
+      }
+      if (crossConfigValidator) {
+        crossConfigValidator->isValidSensorConfig(sensorConfig);
       }
     }
     if (deserializedConfigs.contains("fan_service")) {
