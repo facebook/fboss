@@ -11,20 +11,16 @@ SaiVendorSwitchManager::SaiVendorSwitchManager(
     SaiStore* saiStore,
     SaiManagerTable* managerTable,
     SaiPlatform* platform)
-    : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {}
-
-void SaiVendorSwitchManager::initVendorSwitchEvents() {
+    : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {
 #if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
   std::vector<sai_map_t> eventIdToOptions;
-  // TODO: As of now, creating vendor switch with enabled interrupt events
-  // alone. However, once the outstanding issues are addressed as part of
-  // CS00012393425, we'll need to pass in all interrupts in the event list
-  // during create, with enabled ones specified with EVENT_OPTION_ENABLE.
+  // Create VendorSwitch with all interrupts disabled
   eventIdToOptions.reserve(getInterruptEventsToBeEnabled().size());
   for (auto interruptEventId : getInterruptEventsToBeEnabled()) {
     sai_map_t mapping{};
     mapping.key = interruptEventId;
-    mapping.value = SAI_VENDOR_SWITCH_EVENT_OPTION_ENABLE;
+    // Keep interrupts disabled
+    mapping.value = 0;
     eventIdToOptions.push_back(mapping);
   }
   auto& vendorSwitchStore = saiStore_->get<SaiVendorSwitchTraits>();
@@ -32,6 +28,25 @@ void SaiVendorSwitchManager::initVendorSwitchEvents() {
       SaiVendorSwitchTraits::CreateAttributes{eventIdToOptions};
   vendorSwitch_ =
       vendorSwitchStore.setObject(std::monostate{}, vendorSwitchTraits);
+#endif
+}
+
+void SaiVendorSwitchManager::setVendorSwitchEventEnableState(bool enable) {
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  std::vector<uint32_t> interruptsOfInterest = getInterruptEventsToBeEnabled();
+  if (enable) {
+    // Enable all interrupt events
+    SaiApiTable::getInstance()->vendorSwitchApi().setAttribute(
+        vendorSwitch_->adapterKey(),
+        SaiVendorSwitchTraits::Attributes::EnableEventList{
+            interruptsOfInterest});
+  } else {
+    // Disable all interrupt events
+    SaiApiTable::getInstance()->vendorSwitchApi().setAttribute(
+        vendorSwitch_->adapterKey(),
+        SaiVendorSwitchTraits::Attributes::DisableEventList{
+            interruptsOfInterest});
+  }
 #endif
 }
 

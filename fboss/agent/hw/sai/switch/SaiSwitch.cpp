@@ -3347,6 +3347,9 @@ void SaiSwitch::unregisterCallbacksLocked(
 #if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
   if (platform_->getAsic()->isSupported(
           HwAsic::Feature::VENDOR_SWITCH_NOTIFICATION)) {
+    // Disable vendor switch interrupts before unregistering callback
+    managerTable_->vendorSwitchManager().setVendorSwitchEventEnableState(
+        false /*enable*/);
     switchApi.unregisterVendorSwitchEventNotifyCallback(saiSwitchId_);
   }
 #endif
@@ -3706,8 +3709,9 @@ void SaiSwitch::switchRunStateChangedImplLocked(
         auto& switchApi = SaiApiTable::getInstance()->switchApi();
         switchApi.registerVendorSwitchEventNotifyCallback(
             saiSwitchId_, __gVendorSwitchEventNotificationCallback);
-        // Init the vendor switch events now that callback is registered
-        managerTable_->vendorSwitchManager().initVendorSwitchEvents();
+        // Enable vendor switch events now that callback is registered
+        managerTable_->vendorSwitchManager().setVendorSwitchEventEnableState(
+            true /*enable*/);
       }
 #endif
     } break;
