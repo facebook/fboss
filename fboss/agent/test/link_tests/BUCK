@@ -24,6 +24,7 @@ cpp_library(
         "PhyInfoTest.cpp",
         "PrbsTest.cpp",
         "PtpTests.cpp",
+        "QsfpServiceThriftDeadlockTest.cpp",
         "SpeedChangeTest.cpp",
         "facebook/FsdbTests.cpp",
         "facebook/MacsecFsdbTests.cpp",
