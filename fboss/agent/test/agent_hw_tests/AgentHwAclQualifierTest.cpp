@@ -37,6 +37,11 @@ void configureAllIpQualifiers(
   std::tie(*ttl.value(), *ttl.mask()) = std::make_tuple(0x80, 0x80);
   bool enableSrcIpQualifier =
       (asicType != cfg::AsicType::ASIC_TYPE_CHENAB) && enable;
+  bool enableIpFragQualifier =
+      (asicType != cfg::AsicType::ASIC_TYPE_CHENAB) && enable;
+  bool enableLookupClass =
+      (asicType != cfg::AsicType::ASIC_TYPE_CHENAB) && enable;
+  bool enableEtherTpe = (asicType == cfg::AsicType::ASIC_TYPE_CHENAB) && enable;
 
   if (asicType != cfg::AsicType::ASIC_TYPE_JERICHO3) {
     // TODO(daiweix): remove after J3 ACL supports IP_TYPE
@@ -49,11 +54,11 @@ void configureAllIpQualifiers(
 
     configureQualifier(
         acl->lookupClassNeighbor(),
-        enable,
+        enableLookupClass,
         cfg::AclLookupClass::DST_CLASS_L3_LOCAL_2);
     configureQualifier(
         acl->lookupClassRoute(),
-        enable,
+        enableLookupClass,
         cfg::AclLookupClass::DST_CLASS_L3_LOCAL_2);
 
   } else {
@@ -62,42 +67,58 @@ void configureAllIpQualifiers(
 
     configureQualifier(
         acl->lookupClassNeighbor(),
-        enable,
+        enableLookupClass,
         cfg::AclLookupClass::DST_CLASS_L3_LOCAL_1);
     configureQualifier(
         acl->lookupClassRoute(),
-        enable,
+        enableLookupClass,
         cfg::AclLookupClass::DST_CLASS_L3_LOCAL_1);
   }
   configureQualifier(
-      acl->ipFrag(), enable, cfg::IpFragMatch::MATCH_FIRST_FRAGMENT);
+      acl->ipFrag(),
+      enableIpFragQualifier,
+      cfg::IpFragMatch::MATCH_FIRST_FRAGMENT);
   configureQualifier(acl->dscp(), enable, 0x24);
   configureQualifier(acl->ttl(), enable, ttl);
+
+  if (ipType == cfg::IpType::IP6) {
+    configureQualifier(acl->etherType(), enableEtherTpe, cfg::EtherType::IPv6);
+  } else {
+    configureQualifier(acl->etherType(), enableEtherTpe, cfg::EtherType::IPv4);
+  }
 }
 
 void configureAllTcpQualifiers(
     cfg::AclEntry* acl,
     bool enable,
-    cfg::AsicType /*asicType*/) {
+    cfg::AsicType asicType) {
   configureQualifier(acl->l4SrcPort(), enable, 10);
   configureQualifier(acl->l4DstPort(), enable, 20);
   configureQualifier(acl->proto(), enable, 6);
-  configureQualifier(acl->tcpFlagsBitMap(), enable, 16);
+  bool enableTcpFlags =
+      (enable && (asicType != cfg::AsicType::ASIC_TYPE_CHENAB));
+  configureQualifier(acl->tcpFlagsBitMap(), enableTcpFlags, 16);
 }
 
 void configureAllIcmpQualifiers(
     cfg::AclEntry* acl,
     bool enable,
     cfg::IpType ipType,
-    cfg::AsicType /*asicType*/) {
+    cfg::AsicType asicType) {
+  bool enableEtherTypeQualifier = (asicType == cfg::AsicType::ASIC_TYPE_CHENAB);
+
   if (ipType == cfg::IpType::IP6) {
     configureQualifier(acl->proto(), enable, 58); // Icmp v6
     configureQualifier(acl->icmpType(), enable, 1); // Destination unreachable
     configureQualifier(acl->icmpCode(), enable, 4); // Port unreachable
+    configureQualifier(
+        acl->etherType(), enableEtherTypeQualifier, cfg::EtherType::IPv6);
   } else {
     configureQualifier(acl->proto(), enable, 1); // Icmp v4
     configureQualifier(acl->icmpType(), enable, 3); // Destination unreachable
     configureQualifier(acl->icmpCode(), enable, 3); // Port unreachable
+    configureQualifier(
+        acl->etherType(), enableEtherTypeQualifier, cfg::EtherType::IPv4);
   }
 }
 
@@ -121,6 +142,34 @@ class AgentHwAclQualifierTest : public AgentHwTest {
         production_features::ProductionFeature::MODIFY_ACL_QUALIFIERS};
   }
 
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto newCfg = AgentHwTest::initialConfig(ensemble);
+    if (utility::checkSameAndGetAsicType(newCfg) ==
+        cfg::AsicType::ASIC_TYPE_CHENAB) {
+      utility::addAclTable(
+          &newCfg,
+          "icmp_acl_table",
+          2 /* priority */,
+          {},
+          {
+              cfg::AclTableQualifier::SRC_PORT,
+              cfg::AclTableQualifier::ETHER_TYPE,
+              cfg::AclTableQualifier::SRC_IPV4,
+              cfg::AclTableQualifier::DST_IPV4,
+              cfg::AclTableQualifier::IP_PROTOCOL_NUMBER,
+              cfg::AclTableQualifier::ICMPV4_TYPE,
+              cfg::AclTableQualifier::ICMPV4_CODE,
+              cfg::AclTableQualifier::SRC_IPV6,
+              cfg::AclTableQualifier::DST_IPV6,
+              cfg::AclTableQualifier::IPV6_NEXT_HEADER,
+              cfg::AclTableQualifier::ICMPV6_TYPE,
+              cfg::AclTableQualifier::ICMPV6_CODE,
+          });
+    }
+    return newCfg;
+  }
+
   void configureAllHwQualifiers(
       cfg::AclEntry* acl,
       bool enable,
@@ -131,8 +180,11 @@ class AgentHwAclQualifierTest : public AgentHwTest {
     if ((hwAsicForSwitch(switchID)->getAsicType() !=
          cfg::AsicType::ASIC_TYPE_JERICHO2) &&
         (hwAsicForSwitch(switchID)->getAsicType() !=
+         cfg::AsicType::ASIC_TYPE_CHENAB) &&
+        (hwAsicForSwitch(switchID)->getAsicType() !=
          cfg::AsicType::ASIC_TYPE_JERICHO3)) {
       // No out port support on J2. Out port not used in prod
+      // No out support on Chenab in ingress stage
       configureQualifier(acl->dstPort(), enable, masterLogicalPorts[1]);
     }
   }
@@ -140,7 +192,10 @@ class AgentHwAclQualifierTest : public AgentHwTest {
   void configureAllL2QualifiersHelper(
       cfg::AclEntry* acl,
       SwitchID switchID = SwitchID(0)) {
-    configureQualifier(acl->dstMac(), true, "00:11:22:33:44:55");
+    auto asic = hwAsicForSwitch(switchID);
+    bool dstMacEnabled =
+        (asic->getAsicType() != cfg::AsicType::ASIC_TYPE_CHENAB);
+    configureQualifier(acl->dstMac(), dstMacEnabled, "00:11:22:33:44:55");
     /*
      * lookupClassL2 is not configured for Trident2 or else we run out of
      * resources.
@@ -148,8 +203,6 @@ class AgentHwAclQualifierTest : public AgentHwTest {
      * However, the solution is not applicable for Trident2 as we don't
      * implement queues on trident2.
      */
-    auto asic = hwAsicForSwitch(switchID);
-
     auto switchType = getAgentEnsemble()
                           ->getSw()
                           ->getSwitchInfoTable()
@@ -158,7 +211,10 @@ class AgentHwAclQualifierTest : public AgentHwTest {
                           .switchType()
                           .value();
     if (asic->getAsicType() != cfg::AsicType::ASIC_TYPE_TRIDENT2 &&
-        // L2 switching only on NPU type switch
+        asic->getAsicType() !=
+            cfg::AsicType::ASIC_TYPE_CHENAB && // no l2 lookup class in chenab
+                                               // in ingress stage L2 switching
+                                               // only on NPU type switch
         switchType == cfg::SwitchType::NPU) {
       configureQualifier(
           acl->lookupClassL2(),
@@ -231,10 +287,29 @@ class AgentHwAclQualifierTest : public AgentHwTest {
           &newCfg,
           cfg::AclStage::INGRESS,
           utility::kDefaultAclTableGroupName());
+
+      std::vector<cfg::AclTableQualifier> defaultQualifiers = {
+          cfg::AclTableQualifier::DST_IPV6,
+          cfg::AclTableQualifier::DST_IPV4,
+          cfg::AclTableQualifier::L4_SRC_PORT,
+          cfg::AclTableQualifier::L4_DST_PORT,
+          cfg::AclTableQualifier::IP_PROTOCOL_NUMBER,
+          cfg::AclTableQualifier::IPV6_NEXT_HEADER,
+          cfg::AclTableQualifier::SRC_PORT,
+          cfg::AclTableQualifier::DSCP,
+          cfg::AclTableQualifier::TTL,
+          cfg::AclTableQualifier::IP_TYPE,
+          cfg::AclTableQualifier::ETHER_TYPE,
+          cfg::AclTableQualifier::OUTER_VLAN,
+      };
+
+      if (getAsicType() != cfg::AsicType::ASIC_TYPE_CHENAB) {
+        defaultQualifiers.clear();
+      }
       std::vector<cfg::AclTableActionType> actions = {};
       std::vector<cfg::AclTableQualifier> qualifiers = addQualifiers
           ? utility::genAclQualifiersConfig(this->getAsicType())
-          : std::vector<cfg::AclTableQualifier>();
+          : defaultQualifiers;
       utility::addAclTable(
           &newCfg,
           utility::kDefaultAclTable(),
@@ -288,12 +363,12 @@ class AgentHwAclQualifierTest : public AgentHwTest {
   void aclVerifyHelper() {
     auto client = getAgentEnsemble()->getHwAgentTestClient(SwitchID(0));
     auto state = getAgentEnsemble()->getProgrammedState();
-
-    EXPECT_EQ(
-        client->sync_getAclTableNumAclEntries(utility::kDefaultAclTable()), 1);
     auto acl =
         utility::getAclEntry(state, kAclName(), FLAGS_enable_acl_table_group)
             ->toThrift();
+
+    EXPECT_EQ(
+        client->sync_getAclTableNumAclEntries(utility::kDefaultAclTable()), 1);
     EXPECT_TRUE(client->sync_isAclEntrySame(acl, utility::kDefaultAclTable()));
   }
 
@@ -393,9 +468,16 @@ TEST_F(AgentHwAclQualifierTest, AclIcmp4Qualifiers) {
         utility::getAclEntry(state, "icmp4", FLAGS_enable_acl_table_group)
             ->toThrift();
 
-    EXPECT_EQ(
-        client->sync_getAclTableNumAclEntries(utility::kDefaultAclTable()), 1);
-    EXPECT_TRUE(client->sync_isAclEntrySame(acl, utility::kDefaultAclTable()));
+    if (getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+      EXPECT_EQ(client->sync_getAclTableNumAclEntries("icmp_acl_table"), 1);
+      EXPECT_TRUE(client->sync_isAclEntrySame(acl, "icmp_acl_table"));
+    } else {
+      EXPECT_EQ(
+          client->sync_getAclTableNumAclEntries(utility::kDefaultAclTable()),
+          1);
+      EXPECT_TRUE(
+          client->sync_isAclEntrySame(acl, utility::kDefaultAclTable()));
+    }
   };
 
   this->verifyAcrossWarmBoots(setup, verify);
@@ -424,7 +506,17 @@ TEST_F(AgentHwAclQualifierTest, AclIcmp6Qualifiers) {
     auto acl =
         utility::getAclEntry(state, "icmp6", FLAGS_enable_acl_table_group)
             ->toThrift();
-    EXPECT_TRUE(client->sync_isAclEntrySame(acl, utility::kDefaultAclTable()));
+    if (getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+      EXPECT_EQ(client->sync_getAclTableNumAclEntries("icmp_acl_table"), 1);
+      EXPECT_TRUE(client->sync_isAclEntrySame(acl, "icmp_acl_table"));
+
+    } else {
+      EXPECT_EQ(
+          client->sync_getAclTableNumAclEntries(utility::kDefaultAclTable()),
+          1);
+      EXPECT_TRUE(
+          client->sync_isAclEntrySame(acl, utility::kDefaultAclTable()));
+    }
   };
 
   this->verifyAcrossWarmBoots(setup, verify);
@@ -509,7 +601,16 @@ TEST_F(AgentHwAclQualifierTest, AclModifyQualifier) {
     auto state = getAgentEnsemble()->getProgrammedState();
     auto acl = utility::getAclEntry(state, "acl0", FLAGS_enable_acl_table_group)
                    ->toThrift();
-    EXPECT_TRUE(client->sync_isAclEntrySame(acl, utility::kDefaultAclTable()));
+    if (getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+      EXPECT_EQ(client->sync_getAclTableNumAclEntries("icmp_acl_table"), 1);
+      EXPECT_TRUE(client->sync_isAclEntrySame(acl, "icmp_acl_table"));
+    } else {
+      EXPECT_EQ(
+          client->sync_getAclTableNumAclEntries(utility::kDefaultAclTable()),
+          1);
+      EXPECT_TRUE(
+          client->sync_isAclEntrySame(acl, utility::kDefaultAclTable()));
+    }
   };
 
   this->verifyAcrossWarmBoots(setup, verify);
@@ -524,6 +625,11 @@ TEST_F(AgentHwAclQualifierTest, AclEmptyCodeIcmp) {
     // add a icmp rule w/ type and code value
     // Destination Unreachable(type=3):Source host isolated(code=8)
     acl.name() = "acl0";
+    auto l3Asics = ensemble.getL3Asics();
+    auto asic = utility::checkSameAndGetAsic(l3Asics);
+    if (asic->isSupported(HwAsic::Feature::ACL_ENTRY_ETHER_TYPE)) {
+      acl.etherType() = cfg::EtherType::IPv4;
+    }
     acl.proto() = 58;
     acl.icmpType() = 3;
     acl.icmpCode() = 8;
@@ -543,11 +649,16 @@ TEST_F(AgentHwAclQualifierTest, AclEmptyCodeIcmp) {
   auto verify = [=, this]() {
     auto client = getAgentEnsemble()->getHwAgentTestClient(SwitchID(0));
     auto state = getAgentEnsemble()->getProgrammedState();
-    EXPECT_EQ(
-        client->sync_getAclTableNumAclEntries(utility::kDefaultAclTable()), 1);
-    auto acl = utility::getAclEntry(state, "acl0", FLAGS_enable_acl_table_group)
-                   ->toThrift();
-    EXPECT_TRUE(client->sync_isAclEntrySame(acl, utility::kDefaultAclTable()));
+    auto acl =
+        utility::getAclEntry(state, "acl0", FLAGS_enable_acl_table_group);
+    ASSERT_NE(acl, nullptr);
+    auto aclThrift = acl->toThrift();
+    if (this->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+      EXPECT_TRUE(client->sync_isAclEntrySame(aclThrift, "icmp_acl_table"));
+    } else {
+      EXPECT_TRUE(
+          client->sync_isAclEntrySame(aclThrift, utility::kDefaultAclTable()));
+    }
   };
 
   this->verifyAcrossWarmBoots(setup, verify);

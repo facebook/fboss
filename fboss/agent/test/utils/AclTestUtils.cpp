@@ -48,6 +48,25 @@ std::vector<cfg::AclTableQualifier> genAclQualifiersConfig(
   if (asicType != cfg::AsicType::ASIC_TYPE_JERICHO3) {
     qualifiers.push_back(cfg::AclTableQualifier::IP_TYPE);
   }
+  if (asicType == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    std::set<cfg::AclTableQualifier> remove{
+        cfg::AclTableQualifier::SRC_IPV6,
+        cfg::AclTableQualifier::DST_IPV6,
+        cfg::AclTableQualifier::OUTER_VLAN,
+    };
+    auto iter = qualifiers.begin();
+    while (iter != qualifiers.end()) {
+      if (remove.find(*iter) != remove.end()) {
+        iter = qualifiers.erase(iter);
+      } else {
+        ++iter;
+      }
+    }
+  }
+  if (asicType == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    qualifiers.push_back(cfg::AclTableQualifier::ETHER_TYPE);
+  }
+
   return qualifiers;
 }
 
@@ -489,16 +508,41 @@ uint64_t getAclInOutPackets(
   return statValue;
 }
 
+std::shared_ptr<AclEntry> getAclEntryByName(
+    const std::shared_ptr<SwitchState> state,
+    cfg::AclStage aclStage,
+    const std::string& tableName,
+    const std::string& aclName) {
+  return state->getAclsForTable(aclStage, tableName)->getNodeIf(aclName);
+}
+
 std::shared_ptr<AclEntry> getAclEntry(
     const std::shared_ptr<SwitchState>& state,
     const std::string& name,
     bool enableAclTableGroup) {
   if (enableAclTableGroup) {
-    return state
-        ->getAclsForTable(
-            cfg::AclStage::INGRESS,
-            cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE())
-        ->getNodeIf(name);
+    auto entry =
+        state
+            ->getAclsForTable(
+                cfg::AclStage::INGRESS,
+                cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE())
+            ->getNodeIf(name);
+    // acl entries are expected to have unique name across all groups
+    if (!entry) {
+      for (const auto& groupMap : std::as_const(*state->getAclTableGroups())) {
+        for (const auto& [stage, group] : std::as_const(*groupMap.second)) {
+          for (const auto& [tableName, table] :
+               std::as_const(*group->getAclTableMap())) {
+            std::ignore = tableName;
+            entry = getAclEntryByName(state, stage, tableName, name);
+            if (entry) {
+              return entry;
+            }
+          }
+        }
+      }
+    }
+    return entry;
   }
   return state->getAcl(name);
 }
@@ -800,9 +844,13 @@ bool aclEntrySupported(
       std::inserter(difference, difference.begin()));
 
   if (!difference.empty()) {
+    std::stringstream ss;
+    for (const auto& qualifier : difference) {
+      ss << apache::thrift::util::enumNameSafe(qualifier) << ", ";
+    }
     XLOG(ERR) << "Acl table " << *aclTable->name()
-              << " does not support qualifiers: "
-              << folly::join(",", difference);
+              << " does not support qualifiers: " << ss.str() << " for acl "
+              << *aclEntry.name();
   }
   return difference.empty();
 }

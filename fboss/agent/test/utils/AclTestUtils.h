@@ -62,6 +62,12 @@ int getAclTableIndex(
 
 std::shared_ptr<AclEntry> getAclEntryByName(
     const std::shared_ptr<SwitchState> state,
+    cfg::AclStage aclStage,
+    const std::string& tableName,
+    const std::string& aclName);
+
+std::shared_ptr<AclEntry> getAclEntryByName(
+    const std::shared_ptr<SwitchState> state,
     const std::string& aclName);
 
 std::optional<cfg::TrafficCounter> getAclTrafficCounter(
