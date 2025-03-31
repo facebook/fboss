@@ -5,7 +5,6 @@
 #include <cstdlib>
 #include <filesystem>
 #include <stdexcept>
-#include "Flags.h"
 #include "fboss/platform/helpers/PlatformUtils.h"
 
 namespace facebook::fboss::platform::fw_util {

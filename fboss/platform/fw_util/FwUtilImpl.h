@@ -18,7 +18,6 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include "fboss/platform/fw_util/Flags.h"
 #include "fboss/platform/fw_util/if/gen-cpp2/fw_util_config_types.h"
 #include "fboss/platform/helpers/PlatformUtils.h"
 

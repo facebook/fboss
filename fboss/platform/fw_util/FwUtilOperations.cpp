@@ -1,7 +1,6 @@
 #include <folly/logging/xlog.h>
 #include <filesystem>
 #include <fstream>
-#include "fboss/platform/fw_util/Flags.h"
 #include "fboss/platform/fw_util/FwUtilImpl.h"
 #include "fboss/platform/fw_util/fw_util_helpers.h"
 #include "fboss/platform/helpers/PlatformUtils.h"
