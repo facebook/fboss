@@ -28,6 +28,7 @@
 #include "fboss/cli/fboss2/commands/set/port/CmdSetPort.h"
 #include "fboss/cli/fboss2/commands/set/port/state/CmdSetPortState.h"
 #include "fboss/cli/fboss2/commands/show/acl/CmdShowAcl.h"
+#include "fboss/cli/fboss2/commands/show/agent/CmdShowAgentFirmware.h"
 #include "fboss/cli/fboss2/commands/show/agent/CmdShowAgentSsl.h"
 #include "fboss/cli/fboss2/commands/show/aggregateport/CmdShowAggregatePort.h"
 #include "fboss/cli/fboss2/commands/show/arp/CmdShowArp.h"
@@ -99,10 +100,16 @@ const CommandTree& kCommandTree() {
       {"show",
        "agent",
        "Show Agent state",
-       {{"ssl",
-         "Show Agent SSL information",
-         commandHandler<CmdShowAgentSsl>,
-         argTypeHandler<CmdShowAgentSslTraits>}}},
+       {
+           {"ssl",
+            "Show Agent SSL information",
+            commandHandler<CmdShowAgentSsl>,
+            argTypeHandler<CmdShowAgentSslTraits>},
+           {"firmware",
+            "Show Agent Firmware information",
+            commandHandler<CmdShowAgentFirmware>,
+            argTypeHandler<CmdShowAgentFirmwareTraits>},
+       }},
 
       {"show",
        "aggregate-port",
