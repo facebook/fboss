@@ -10,6 +10,7 @@ thrift_library(
     languages = [
         "cpp2",
         "py3-deprecated",
+        "python",
     ],
     no_plugin_deps = [
         "//thrift/annotation:cpp",

@@ -13,6 +13,7 @@ thrift_library(
         "go",
         "rust",
         "py-deprecated",
+        "python",
     ],
     py3_namespace = "",
     py_base_module = "rackmonsvc",

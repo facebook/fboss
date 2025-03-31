@@ -902,6 +902,7 @@ thrift_library(
         "py-asyncio",
         "rust",
         "py-deprecated",
+        "python",
     ],
     py3_namespace = "neteng.fboss",
     py_asyncio_base_module = "neteng.fboss.asyncio",

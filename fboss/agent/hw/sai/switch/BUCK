@@ -9,6 +9,7 @@ thrift_library(
         "cpp2",
         "py3-deprecated",
         "py-deprecated",
+        "python",
     ],
     py3_namespace = "neteng.fboss",
     py_base_module = "neteng.fboss",
