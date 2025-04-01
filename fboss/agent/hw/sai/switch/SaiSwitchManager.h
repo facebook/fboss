@@ -118,6 +118,7 @@ class SaiSwitchManager {
   void setVoqOutOfBoundsLatency(int voqOutOfBoundsLatencyNsec);
 
   std::optional<std::string> getFirmwareVersion() const;
+  std::optional<FirmwareOpStatus> getFirmwareOpStatus() const;
 
  private:
   void programEcmpLoadBalancerParams(

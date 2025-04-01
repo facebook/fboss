@@ -1270,4 +1270,17 @@ std::optional<std::string> SaiSwitchManager::getFirmwareVersion() const {
   return std::nullopt;
 }
 
+std::optional<FirmwareOpStatus> SaiSwitchManager::getFirmwareOpStatus() const {
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  if (firmwareSaiId.has_value()) {
+    auto opStatus = SaiApiTable::getInstance()->firmwareApi().getAttribute(
+        firmwareSaiId.value(), SaiFirmwareTraits::Attributes::OpStatus{});
+    return saiFirmwareOpStatusToFirmwareOpStatus(
+        static_cast<sai_firmware_op_status_t>(opStatus));
+  }
+#endif
+
+  return std::nullopt;
+}
+
 } // namespace facebook::fboss
