@@ -31,6 +31,8 @@
 
 #include <folly/logging/xlog.h>
 
+#include <re2/re2.h>
+
 extern "C" {
 #include <sai.h>
 }
@@ -168,6 +170,26 @@ void fillHwSwitchDropStats(
     }
   }
 }
+
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+int64_t getIsolationFirmwareIntForString(const std::string& firmwareVersion) {
+  // Firmware Version is of the form 2.4.0-EA9
+  static const re2::RE2 pattern("^([0-9]+)\\.([0-9]+)\\.([0-9]+)-EA([0-9]+)$");
+
+  int major, minor, patch, release;
+  if (RE2::FullMatch(
+          firmwareVersion, pattern, &major, &minor, &patch, &release)) {
+    int64_t versionInt =
+        (major * 10000000) + (minor * 100000) + (patch * 1000) + release;
+    return versionInt;
+  } else {
+    XLOG(WARNING) << "Failed to match Firmware version to Int: "
+                  << firmwareVersion;
+    return 0;
+  }
+}
+#endif
+
 } // namespace
 
 namespace facebook::fboss {
@@ -259,7 +281,17 @@ SaiSwitchManager::SaiSwitchManager(
   CHECK(firmwareObjectList.size() == 0 || firmwareObjectList.size() == 1);
   if (firmwareObjectList.size() == 1) {
     firmwareSaiId = *firmwareObjectList.begin();
-    XLOG(DBG2) << "Firmware OID: " << firmwareSaiId.value();
+
+    auto firmwareVersion = getFirmwareVersion();
+    CHECK(firmwareVersion.has_value());
+    auto firmwareVersionInt =
+        getIsolationFirmwareIntForString(firmwareVersion.value());
+    platform_->getHwSwitch()->getSwitchStats()->isolationFirmwareVersion(
+        firmwareVersionInt);
+
+    XLOG(DBG2) << "Firmware OID: " << firmwareSaiId.value()
+               << " Firmware Version: " << firmwareVersion.value()
+               << " Firmware Version Int: " << firmwareVersionInt;
   }
 #endif
 
