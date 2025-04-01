@@ -107,4 +107,8 @@ void SaiPortManager::changePortByRecreate(
   }
 }
 
+void SaiPortManager::changePortFlowletConfig(
+    const std::shared_ptr<Port>& /* unused */,
+    const std::shared_ptr<Port>& /* unused */) {}
+
 } // namespace facebook::fboss

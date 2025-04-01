@@ -21,4 +21,8 @@ void SaiPortManager::changePortByRecreate(
   addPort(newPort);
 }
 
+void SaiPortManager::changePortFlowletConfig(
+    const std::shared_ptr<Port>& /* unused */,
+    const std::shared_ptr<Port>& /* unused */) {}
+
 } // namespace facebook::fboss

@@ -75,6 +75,7 @@ elseif (CHENAB_SAI_SDK)
 # Chenab-TODO: Use non-default files here
   list(APPEND SAI_SWITCH_SRC
     fboss/agent/hw/sai/switch/npu/chenab/SaiArsProfileManager.cpp
+    fboss/agent/hw/sai/switch/npu/chenab/SaiPortManager.cpp
     fboss/agent/hw/sai/switch/oss/SaiSwitch.cpp
     fboss/agent/hw/sai/switch/oss/SaiTamManager.cpp
     fboss/agent/hw/sai/switch/oss/SaiPortManager.cpp

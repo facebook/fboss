@@ -650,9 +650,12 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         swPort->getPortFlowletConfig().has_value()) {
       auto flowletCfgPtr = swPort->getPortFlowletConfig().value();
       arsEnable = true;
-      arsPortLoadScalingFactor = flowletCfgPtr->getScalingFactor();
-      arsPortLoadPastWeight = flowletCfgPtr->getLoadWeight();
-      arsPortLoadFutureWeight = flowletCfgPtr->getQueueWeight();
+      if (platform_->getAsic()->getAsicType() !=
+          cfg::AsicType::ASIC_TYPE_CHENAB) {
+        arsPortLoadScalingFactor = flowletCfgPtr->getScalingFactor();
+        arsPortLoadPastWeight = flowletCfgPtr->getLoadWeight();
+        arsPortLoadFutureWeight = flowletCfgPtr->getQueueWeight();
+      }
     }
   }
 #endif
