@@ -74,28 +74,94 @@ void getNextHopInfoThrift(
   }
 }
 
-std::string getNextHopInfoStr(const cli::NextHopInfo& nextHopInfo) {
-  auto ifNamePtr = apache::thrift::get_pointer(nextHopInfo.ifName());
-  std::string viaStr;
-  if (ifNamePtr != nullptr) {
-    viaStr = fmt::format(" dev {}", *ifNamePtr);
-  }
+std::string getMplsLabelStr(const cli::NextHopInfo& nextHopInfo) {
   std::string labelStr;
   auto mplsActionInfoPtr =
       apache::thrift::get_pointer(nextHopInfo.mplsAction());
   if (mplsActionInfoPtr != nullptr) {
     labelStr = getMplsActionInfoStr(*mplsActionInfoPtr);
   }
-  auto interfaceIDPtr = apache::thrift::get_pointer(nextHopInfo.interfaceID());
+  return labelStr;
+}
+std::string getInterfaceIDStr(const cli::NextHopInfo& nextHopInfo) {
   std::string interfaceIDStr;
+  auto interfaceIDPtr = apache::thrift::get_pointer(nextHopInfo.interfaceID());
   if (interfaceIDPtr != nullptr) {
     interfaceIDStr = fmt::format("(i/f {}) ", *interfaceIDPtr);
   }
+  return interfaceIDStr;
+}
+std::string getWeightStr(const cli::NextHopInfo& nextHopInfo) {
   std::string weightStr;
   if (folly::copy(nextHopInfo.weight().value())) {
     weightStr =
         fmt::format(" weight {}", folly::copy(nextHopInfo.weight().value()));
   }
+  return weightStr;
+}
+
+std::string getNextHopInfoStr(const cli::NextHopInfo& nextHopInfo) {
+  auto ifNamePtr = apache::thrift::get_pointer(nextHopInfo.ifName());
+  std::string viaStr;
+  if (ifNamePtr != nullptr) {
+    viaStr = fmt::format(" dev {}", *ifNamePtr);
+  }
+  std::string labelStr = getMplsLabelStr(nextHopInfo);
+  std::string interfaceIDStr = getInterfaceIDStr(nextHopInfo);
+  std::string weightStr = getWeightStr(nextHopInfo);
+  auto ret = fmt::format(
+      "{}{}{}{}{}",
+      interfaceIDStr,
+      nextHopInfo.addr().value(),
+      viaStr,
+      weightStr,
+      labelStr);
+  return ret;
+}
+
+std::string getViaStr(
+    const std::basic_string<char>* ifNamePtr,
+    const std::map<std::string, std::string>& vlanAggregatePortMap,
+    const std::map<
+        std::string,
+        std::map<std::string, std::vector<std::string>>>& vlanPortMap) {
+  std::string fbossStr = "fboss";
+  std::string viaStr;
+  if (ifNamePtr != nullptr) {
+    std::string vlanId = *ifNamePtr;
+    if (vlanId.rfind(fbossStr, 0) == 0) {
+      vlanId = vlanId.substr(fbossStr.length());
+    }
+    if (vlanAggregatePortMap.find(vlanId) != vlanAggregatePortMap.end()) {
+      viaStr = fmt::format(" dev {}", vlanAggregatePortMap.at(*ifNamePtr));
+    } else if (vlanPortMap.find(vlanId) != vlanPortMap.end()) {
+      std::vector<std::string> port_names;
+      for (const auto& ports : vlanPortMap.at(vlanId)) {
+        for (const auto& port : ports.second) {
+          port_names.push_back(port);
+        }
+      }
+      if (!port_names.empty()) {
+        viaStr = fmt::format(" dev {}", folly::join(", ", port_names));
+      }
+    } else {
+      viaStr = fmt::format(" dev {}", *ifNamePtr);
+    }
+  }
+  return viaStr;
+}
+
+std::string getNextHopInfoStr(
+    const cli::NextHopInfo& nextHopInfo,
+    const std::map<std::string, std::string>& vlanAggregatePortMap,
+    const std::map<
+        std::string,
+        std::map<std::string, std::vector<std::string>>>& vlanPortMap) {
+  auto ifNamePtr = apache::thrift::get_pointer(nextHopInfo.ifName());
+  auto viaStr = getViaStr(ifNamePtr, vlanAggregatePortMap, vlanPortMap);
+  std::string labelStr = getMplsLabelStr(nextHopInfo);
+  std::string interfaceIDStr = getInterfaceIDStr(nextHopInfo);
+  std::string weightStr = getWeightStr(nextHopInfo);
   auto ret = fmt::format(
       "{}{}{}{}{}",
       interfaceIDStr,
