@@ -390,7 +390,7 @@ class AgentAqmTest : public AgentHwTest {
           void(cfg::SwitchConfig&, std::vector<int>, const int txPacketLen)>>&
           setupFn = std::nullopt,
       int maxQueueFillLevel = 0) {
-    [[maybe_unused]] int kQueueId =
+    const int kQueueId =
         utility::getOlympicQueueId(utility::OlympicQueueType::SILVER);
     // Good to keep the payload size such that the whole packet with headers
     // can fit in a single buffer in ASIC to keep computation simple and
@@ -417,7 +417,7 @@ class AgentAqmTest : public AgentHwTest {
     // configured ECN/WRED threshold, then send a fixed number of
     // additional packets to get marked / dropped.
     auto ceilFn = [](int a, int b) -> int { return a / b + (a % b != 0); };
-    [[maybe_unused]] int numPacketsToSend =
+    int numPacketsToSend =
         ceilFn(
             utility::getRoundedBufferThreshold(asic, thresholdBytes, roundUp),
             utility::getEffectiveBytesPerPacket(asic, kTxPacketLen)) +
@@ -477,9 +477,60 @@ class AgentAqmTest : public AgentHwTest {
           beforePortStats, kQueueId, false /*useQueueStatsForAqm*/, before);
 
       // For ECN all packets are sent out, for WRED, account for drops!
-      [[maybe_unused]] const uint64_t kExpectedOutPackets = isEct(ecnCodePoint)
+      const uint64_t kExpectedOutPackets = isEct(ecnCodePoint)
           ? numPacketsToSend
           : numPacketsToSend - expectedMarkedOrDroppedPacketCount;
+
+      bool useQueueStatsForAqm = asic->getSwitchType() == cfg::SwitchType::VOQ;
+      WITH_RETRIES_N_TIMED(10, std::chrono::milliseconds(1000), {
+        uint64_t outPackets{0}, wredDrops{0}, ecnMarking{0};
+        // For VoQ switch, AQM stats are collected from queue!
+        AqmTestStats aqmStats = getAqmTestStats(
+            ecnCodePoint,
+            masterLogicalInterfacePortIds()[0],
+            kQueueId,
+            useQueueStatsForAqm);
+
+        outPackets = aqmStats.outPackets - before.outPackets;
+        if (isEct(ecnCodePoint)) {
+          ecnMarking = aqmStats.outEcnCounter - before.outEcnCounter;
+        } else {
+          wredDrops = aqmStats.wredDroppedPackets - before.wredDroppedPackets;
+        }
+
+        // Check for outpackets as expected and ensure that ECN or WRED
+        // counters are incrementing too!
+        // - In case of WRED, make sure that dropped packets + out packets
+        //   >= expected drop + out packets.
+        // - In case of ECN, ensure that ECN marked packet count is >= the
+        //   expected marked packet count, this will ensure test case
+        //   waiting long enough to for all marked packets to be seen.
+        EXPECT_EVENTUALLY_GT(outPackets, kExpectedOutPackets);
+        if (isEct(ecnCodePoint)) {
+          EXPECT_EVENTUALLY_GE(ecnMarking, expectedMarkedOrDroppedPacketCount);
+        } else {
+          EXPECT_EVENTUALLY_GE(
+              wredDrops + outPackets,
+              kExpectedOutPackets + expectedMarkedOrDroppedPacketCount);
+        }
+      });
+      AqmTestStats after = getAqmTestStats(
+          ecnCodePoint,
+          masterLogicalInterfacePortIds()[0],
+          kQueueId,
+          useQueueStatsForAqm);
+      int64_t deltaOutPackets =
+          static_cast<int64_t>(after.outPackets) - before.outPackets;
+
+      // Might see more outPackets than expected due to
+      // utility::sendPacketsWithQueueBuildup()
+      EXPECT_GE(deltaOutPackets, kExpectedOutPackets);
+      XLOG(DBG0) << "Delta out pkts: " << deltaOutPackets;
+
+      if (verifyPacketCountFn.has_value()) {
+        (*verifyPacketCountFn)(
+            after, before, expectedMarkedOrDroppedPacketCount);
+      }
     };
 
     verifyAcrossWarmBoots(setup, verify);
