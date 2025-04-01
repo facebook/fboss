@@ -278,9 +278,7 @@ class AgentAqmTest : public AgentHwTest {
   // front end network or with just WRED.
   void runTest(const uint8_t ecnVal, bool enableWred, bool enableEcn) {
     if (!isSupportedOnAllAsics(HwAsic::Feature::L3_QOS)) {
-#if defined(GTEST_SKIP)
       GTEST_SKIP();
-#endif
       return;
     }
 
