@@ -1539,6 +1539,14 @@ void SaiSwitch::processSwitchSettingsChangeSansDrainedEntryLocked(
           newVoqOutOfBoundsLatencyNs.value_or(0));
     }
   }
+
+  {
+    const auto oldTcToRateLimitKbps = oldSwitchSettings->getTcToRateLimitKbps();
+    const auto newTcToRateLimitKbps = newSwitchSettings->getTcToRateLimitKbps();
+    if (oldTcToRateLimitKbps != newTcToRateLimitKbps) {
+      managerTable_->switchManager().setTcRateLimitList(newTcToRateLimitKbps);
+    }
+  }
 }
 
 template <typename LockPolicyT>

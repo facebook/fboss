@@ -1295,4 +1295,21 @@ std::optional<FirmwareOpStatus> SaiSwitchManager::getFirmwareOpStatus() const {
   return std::nullopt;
 }
 
+void SaiSwitchManager::setTcRateLimitList(
+    const std::optional<std::map<int32_t, int32_t>>& tcToRateLimitKbps) {
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  std::vector<sai_map_t> mapToValueList;
+  if (tcToRateLimitKbps) {
+    for (const auto& [tc, rateLimit] : *tcToRateLimitKbps) {
+      sai_map_t mapping{};
+      mapping.key = tc;
+      mapping.value = rateLimit;
+      mapToValueList.push_back(mapping);
+    }
+  }
+  // empty list will remove rate limit
+  switch_->setOptionalAttribute(
+      SaiSwitchTraits::Attributes::TcRateLimitList{mapToValueList});
+#endif
+}
 } // namespace facebook::fboss

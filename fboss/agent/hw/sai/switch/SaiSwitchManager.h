@@ -116,6 +116,8 @@ class SaiSwitchManager {
   void setRemoteL1VoqMaxExpectedLatency(int remoteL1VoqMaxExpectedLatencyNsec);
   void setRemoteL2VoqMaxExpectedLatency(int remoteL2VoqMaxExpectedLatencyNsec);
   void setVoqOutOfBoundsLatency(int voqOutOfBoundsLatencyNsec);
+  void setTcRateLimitList(
+      const std::optional<std::map<int32_t, int32_t>>& tcToRateLimitKbps);
 
   std::optional<std::string> getFirmwareVersion() const;
   std::optional<FirmwareOpStatus> getFirmwareOpStatus() const;
