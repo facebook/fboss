@@ -337,6 +337,23 @@ class AgentAqmTest : public AgentHwTest {
     verifyAcrossWarmBoots(setup, verify);
   }
 
+  void queueWredThresholdSetup(
+      cfg::SwitchConfig& config,
+      std::span<const int> queueIds) {
+    auto asic = utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+    bool isVoq = asic->getSwitchType() == cfg::SwitchType::VOQ;
+    for (int queueId : queueIds) {
+      utility::addQueueWredConfig(
+          config,
+          getAgentEnsemble()->getL3Asics(),
+          queueId,
+          utility::kQueueConfigAqmsWredThresholdMinMax,
+          utility::kQueueConfigAqmsWredThresholdMinMax,
+          utility::kQueueConfigAqmsWredDropProbability,
+          isVoq);
+    }
+  }
+
   void runPerQueueWredDropStatsTest() {
     const std::array<int, 3> wredQueueIds = {
         utility::getOlympicQueueId(utility::OlympicQueueType::SILVER),
@@ -432,9 +449,9 @@ class AgentAqmWredDropTest : public AgentAqmTest {
   void runWredDropTest() {
     auto setup = [=, this]() { setupEcmpTraffic(); };
     auto verify = [=, this]() {
-      // Send packets to queue0 and queue2 (both configured to the same weight).
-      // Queue0 is configured with 0% drop probability and queue2 is configured
-      // with 5% drop probability.
+      // Send packets to queue0 and queue2 (both configured to the same
+      // weight). Queue0 is configured with 0% drop probability and queue2 is
+      // configured with 5% drop probability.
       sendPkts(kDscp(), false);
       sendPkts(kSilverDscp(), false);
 
