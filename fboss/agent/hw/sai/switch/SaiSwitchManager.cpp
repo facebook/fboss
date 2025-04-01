@@ -208,6 +208,18 @@ FirmwareOpStatus saiFirmwareOpStatusToFirmwareOpStatus(
       return FirmwareOpStatus::ERROR;
   }
 }
+
+FirmwareFuncStatus saiFirmwareFuncStatusToFirmwareFuncStatus(
+    sai_firmware_func_status_t funcStatus) {
+  switch (funcStatus) {
+    case SAI_FIRMWARE_FUNC_STATUS_UNKNOWN:
+      return FirmwareFuncStatus::UNKNOWN;
+    case SAI_FIRMWARE_FUNC_STATUS_ISOLATED:
+      return FirmwareFuncStatus::ISOLATED;
+    case SAI_FIRMWARE_FUNC_STATUS_MONITORING:
+      return FirmwareFuncStatus::MONITORING;
+  }
+}
 #endif
 
 } // namespace
