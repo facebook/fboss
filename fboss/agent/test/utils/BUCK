@@ -449,6 +449,23 @@ cpp_library(
 )
 
 cpp_library(
+    name = "agent_fsdb_integ_bench_helper",
+    srcs = ["AgentFsdbIntegrationBenchmarkHelper.cpp"],
+    headers = ["AgentFsdbIntegrationBenchmarkHelper.h"],
+    exported_deps = [
+        "//fboss/agent:agent_fsdb_sync_manager",
+        "//fboss/agent/test:agent_ensemble",
+        "//fboss/fsdb/client:fsdb_pub_sub",
+        "//fboss/fsdb/common:flags",
+        "//fboss/fsdb/if:fsdb_model",
+        "//folly/synchronization:baton",
+    ],
+    exported_external_deps = [
+        "gflags",
+    ],
+)
+
+cpp_library(
     name = "invariant_test_utils",
     srcs = [
         "InvariantTestUtils.cpp",
