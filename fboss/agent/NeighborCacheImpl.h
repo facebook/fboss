@@ -164,11 +164,10 @@ class NeighborCacheImpl {
   void setCacheEntry(std::shared_ptr<Entry> entry);
   bool removeEntry(AddressType ip);
 
-  Entry* setEntryInternal(
+  Entry* addOrUpdateEntryInternal(
       const EntryFields& fields,
       NeighborEntryState state,
-      state::NeighborEntryType type,
-      bool add = true);
+      state::NeighborEntryType type);
 
   // Forbidden copy constructor and assignment operator
   NeighborCacheImpl(NeighborCacheImpl const&) = delete;
