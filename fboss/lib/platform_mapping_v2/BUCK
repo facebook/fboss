@@ -9,7 +9,7 @@ python_library(
     srcs = ["helpers.py"],
     labels = ["autodeps2_generated"],
     deps = [
-        ":platform_mapping_config-py",
+        ":platform_mapping_config-py-deprecated",
         ":si_settings",
         ":static_mapping",
         "//fboss/agent:platform_config-py-deprecated",
@@ -43,7 +43,7 @@ thrift_library(
         "platform_mapping_config.thrift": "neteng.fboss.platform_mapping_config",
     },
     languages = [
-        "py",
+        "py-deprecated",
         "py3-deprecated",
         "python",
         "py-asyncio",
@@ -69,7 +69,7 @@ python_library(
     srcs = ["static_mapping.py"],
     labels = ["autodeps2_generated"],
     deps = [
-        ":platform_mapping_config-py",
+        ":platform_mapping_config-py-deprecated",
     ],
 )
 
@@ -79,7 +79,7 @@ python_library(
     labels = ["autodeps2_generated"],
     deps = [
         ":asic_vendor_config",
-        ":platform_mapping_config-py",
+        ":platform_mapping_config-py-deprecated",
         ":port_profile_mapping",
         ":profile_settings",
         ":si_settings",
@@ -96,7 +96,7 @@ python_library(
     srcs = ["si_settings.py"],
     labels = ["autodeps2_generated"],
     deps = [
-        ":platform_mapping_config-py",
+        ":platform_mapping_config-py-deprecated",
         "//fboss/agent:switch_config-py-deprecated",
         "//fboss/qsfp_service/if:transceiver-py-deprecated",
     ],
@@ -108,7 +108,7 @@ python_library(
     labels = ["autodeps2_generated"],
     deps = [
         ":helpers",
-        ":platform_mapping_config-py",
+        ":platform_mapping_config-py-deprecated",
         "//fboss/agent:switch_config-py-deprecated",
         "//fboss/lib/phy:phy-py-deprecated",
     ],
@@ -119,7 +119,7 @@ python_library(
     srcs = ["port_profile_mapping.py"],
     labels = ["autodeps2_generated"],
     deps = [
-        ":platform_mapping_config-py",
+        ":platform_mapping_config-py-deprecated",
         "//fboss/agent:switch_config-py-deprecated",
     ],
 )
