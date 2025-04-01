@@ -62,31 +62,31 @@
             {
               "busName": "INCOMING@0",
               "address": "0x11",
-              "kernelDeviceName": "bp4f_mp9941",
+              "kernelDeviceName": "mp9941",
               "pmUnitScopedName": "COME_VOLTAGE_MONITOR1"
             },
             {
               "busName": "INCOMING@0",
               "address": "0x22",
-              "kernelDeviceName": "bp4f_mp9941",
+              "kernelDeviceName": "mp9941",
               "pmUnitScopedName": "COME_VOLTAGE_MONITOR2"
             },
             {
               "busName": "INCOMING@0",
               "address": "0x45",
-              "kernelDeviceName": "bp4f_mp9941",
+              "kernelDeviceName": "mp9941",
               "pmUnitScopedName": "COME_VOLTAGE_MONITOR3"
             },
             {
               "busName": "INCOMING@0",
               "address": "0x66",
-              "kernelDeviceName": "bp4f_mp9941",
+              "kernelDeviceName": "mp9941",
               "pmUnitScopedName": "COME_VOLTAGE_MONITOR4"
             },
             {
               "busName": "INCOMING@0",
               "address": "0x76",
-              "kernelDeviceName": "bp4f_mp2993",
+              "kernelDeviceName": "mp2993",
               "pmUnitScopedName": "COME_VOLTAGE_MONITOR5"
             }
           ]
@@ -2686,25 +2686,25 @@
         {
           "busName": "MCB_IOB_I2C_MASTER_19",
           "address": "0x40",
-          "kernelDeviceName": "bp4f_ina238",
+          "kernelDeviceName": "ina238",
           "pmUnitScopedName": "MCB_VOLTAGE_MONITOR1"
         },
         {
           "busName": "MCB_IOB_I2C_MASTER_20",
           "address": "0x41",
-          "kernelDeviceName": "bp4f_ina238",
+          "kernelDeviceName": "ina238",
           "pmUnitScopedName": "MCB_VOLTAGE_MONITOR2"
         },
         {
           "busName": "MCB_IOB_I2C_MASTER_21",
           "address": "0x44",
-          "kernelDeviceName": "bp4f_ina238",
+          "kernelDeviceName": "ina238",
           "pmUnitScopedName": "MCB_VOLTAGE_MONITOR3"
         },
         {
           "busName": "MCB_IOB_I2C_MASTER_22",
           "address": "0x45",
-          "kernelDeviceName": "bp4f_ina238",
+          "kernelDeviceName": "ina238",
           "pmUnitScopedName": "MCB_VOLTAGE_MONITOR4"
         },
         {
@@ -2803,31 +2803,31 @@
         {
           "busName": "INCOMING@0",
           "address": "0x11",
-          "kernelDeviceName": "bp4f_tda38640",
+          "kernelDeviceName": "tda38640",
           "pmUnitScopedName": "COME_VOLTAGE_MONITOR1"
         },
         {
           "busName": "INCOMING@0",
           "address": "0x22",
-          "kernelDeviceName": "bp4f_tda38640",
+          "kernelDeviceName": "tda38640",
           "pmUnitScopedName": "COME_VOLTAGE_MONITOR2"
         },
         {
           "busName": "INCOMING@0",
           "address": "0x45",
-          "kernelDeviceName": "bp4f_tda38640",
+          "kernelDeviceName": "tda38640",
           "pmUnitScopedName": "COME_VOLTAGE_MONITOR3"
         },
         {
           "busName": "INCOMING@0",
           "address": "0x66",
-          "kernelDeviceName": "bp4f_tda38640",
+          "kernelDeviceName": "tda38640",
           "pmUnitScopedName": "COME_VOLTAGE_MONITOR4"
         },
         {
           "busName": "INCOMING@0",
           "address": "0x76",
-          "kernelDeviceName": "bp4f_xdpe15284",
+          "kernelDeviceName": "xdpe15284",
           "pmUnitScopedName": "COME_VOLTAGE_MONITOR5"
         }
       ]
