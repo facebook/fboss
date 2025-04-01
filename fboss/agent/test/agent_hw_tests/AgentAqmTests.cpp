@@ -5,9 +5,13 @@
 #include <map>
 #include <vector>
 
+#include "fboss/agent/packet/EthHdr.h"
+#include "fboss/agent/packet/IPv6Hdr.h"
 #include "fboss/agent/packet/PktFactory.h"
+#include "fboss/agent/packet/TCPHeader.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/utils/AqmTestUtils.h"
 #include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
@@ -350,6 +354,61 @@ class AgentAqmTest : public AgentHwTest {
           utility::kQueueConfigAqmsWredDropProbability,
           isVoq);
     }
+  }
+
+  /*
+   * This function validates the ECN/WRED thresholds configured on a queue.
+   * If more AQM configurations are added, this function needs to reassess
+   * whether thresholds are supported and the logic is applicable.
+   */
+  void validateAqmThresholds(
+      const uint8_t ecnCodePoint,
+      int thresholdBytes,
+      int expectedMarkedOrDroppedPacketCount,
+      const std::optional<
+          std::function<void(AqmTestStats&, AqmTestStats&, int)>>&
+          verifyPacketCountFn = std::nullopt,
+      const std::optional<std::function<
+          void(cfg::SwitchConfig&, std::vector<int>, const int txPacketLen)>>&
+          setupFn = std::nullopt,
+      int maxQueueFillLevel = 0) {
+    [[maybe_unused]] int kQueueId =
+        utility::getOlympicQueueId(utility::OlympicQueueType::SILVER);
+    // Good to keep the payload size such that the whole packet with headers
+    // can fit in a single buffer in ASIC to keep computation simple and
+    // accurate.
+    constexpr int kPayloadLength{30};
+    const int kTxPacketLen =
+        kPayloadLength + EthHdr::SIZE + IPv6Hdr::size() + TCPHeader::size();
+    auto asic = utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+    // The ECN/WRED threshold are rounded down for TAJO as opposed to being
+    // rounded up to the next cell size for Broadcom.
+    bool roundUp = asic->getAsicType() != cfg::AsicType::ASIC_TYPE_EBRO;
+
+    if (expectedMarkedOrDroppedPacketCount == 0 && maxQueueFillLevel > 0) {
+      // The expectedMarkedOrDroppedPacketCount is not set, instead, it needs
+      // to be computed based on the maxQueueFillLevel specified as param!
+      expectedMarkedOrDroppedPacketCount =
+          (maxQueueFillLevel -
+           utility::getRoundedBufferThreshold(asic, thresholdBytes, roundUp)) /
+          utility::getEffectiveBytesPerPacket(asic, kTxPacketLen);
+    }
+
+    // Send enough packets such that the queue gets filled up to the
+    // configured ECN/WRED threshold, then send a fixed number of
+    // additional packets to get marked / dropped.
+    auto ceilFn = [](int a, int b) -> int { return a / b + (a % b != 0); };
+    [[maybe_unused]] int numPacketsToSend =
+        ceilFn(
+            utility::getRoundedBufferThreshold(asic, thresholdBytes, roundUp),
+            utility::getEffectiveBytesPerPacket(asic, kTxPacketLen)) +
+        expectedMarkedOrDroppedPacketCount;
+
+    auto setup = []() {};
+
+    auto verify = []() {};
+
+    verifyAcrossWarmBoots(setup, verify);
   }
 
   void runPerQueueWredDropStatsTest() {
