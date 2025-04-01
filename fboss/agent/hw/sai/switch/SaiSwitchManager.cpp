@@ -733,6 +733,42 @@ void SaiSwitchManager::resetIngressAcl() {
   }
 }
 
+void SaiSwitchManager::setEgressAcl() {
+  CHECK(platform_->getAsic()->isSupported(
+      HwAsic::Feature::INGRESS_POST_LOOKUP_ACL_TABLE))
+      << "INGRESS_POST_LOOKUP_ACL_TABLE ACL not supported";
+  auto aclTableGroupHandle = managerTable_->aclTableGroupManager()
+                                 .getAclTableGroupHandle(SAI_ACL_STAGE_EGRESS)
+                                 ->aclTableGroup;
+  setEgressAcl(aclTableGroupHandle->adapterKey());
+  isIngressPostLookupAclSupported_ = true;
+}
+
+void SaiSwitchManager::setEgressAcl(sai_object_id_t id) {
+  XLOG(DBG2) << "Set egress ACL; " << id;
+  switch_->setOptionalAttribute(SaiSwitchTraits::Attributes::EgressAcl{id});
+}
+
+void SaiSwitchManager::resetEgressAcl() {
+  if (!isIngressPostLookupAclSupported_) {
+    return;
+  }
+  // Since resetIngressAcl() will be called in SaiManagerTable destructor.,
+  // we can't call pure virtual function HwAsic::isSupported() to check
+  // whether an asic supports INGRESS_POST_LOOKUP_ACL_TABLE
+  // Therefore, we will try to read from SaiObject to see whether there's a
+  // egress acl set. If there's a not null id set, we set it to null
+  auto egressAcl =
+      std::get<std::optional<SaiSwitchTraits::Attributes::EgressAcl>>(
+          switch_->attributes());
+  if (egressAcl && egressAcl->value() != SAI_NULL_OBJECT_ID) {
+    XLOG(DBG2) << "Reset current egress acl:" << egressAcl->value()
+               << " back to null";
+    switch_->setOptionalAttribute(
+        SaiSwitchTraits::Attributes::EgressAcl{SAI_NULL_OBJECT_ID});
+  }
+}
+
 void SaiSwitchManager::gracefulExit() {
   // On graceful exit we trigger the warm boot path on
   // ASIC by destroying the switch (and thus calling the

@@ -263,6 +263,11 @@ struct SaiSwitchTraits {
         SAI_SWITCH_ATTR_INGRESS_ACL,
         SaiObjectIdT,
         SaiObjectIdDefault>;
+    using EgressAcl = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_EGRESS_ACL,
+        SaiObjectIdT,
+        SaiObjectIdDefault>;
     using TamObject = SaiAttribute<
         EnumType,
         SAI_SWITCH_ATTR_TAM_OBJECT_ID,
@@ -745,6 +750,7 @@ struct SaiSwitchTraits {
       std::optional<Attributes::QosTcToExpMap>,
       std::optional<Attributes::MacAgingTime>,
       std::optional<Attributes::IngressAcl>,
+      std::optional<Attributes::EgressAcl>,
       std::optional<Attributes::AclFieldList>,
       std::optional<Attributes::TamObject>,
       std::optional<Attributes::UseEcnThresholds>,
@@ -891,6 +897,7 @@ SAI_ATTRIBUTE_NAME(Switch, Led)
 SAI_ATTRIBUTE_NAME(Switch, LedReset)
 
 SAI_ATTRIBUTE_NAME(Switch, IngressAcl)
+SAI_ATTRIBUTE_NAME(Switch, EgressAcl)
 
 SAI_ATTRIBUTE_NAME(Switch, AclFieldList)
 SAI_ATTRIBUTE_NAME(Switch, TamObject)
@@ -951,17 +958,17 @@ SAI_ATTRIBUTE_NAME(Switch, VoqLatencyMaxLevel2Ns)
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
 SAI_ATTRIBUTE_NAME(Switch, ArsProfile)
 #endif
-SAI_ATTRIBUTE_NAME(Switch, ReachabilityGroupList);
-SAI_ATTRIBUTE_NAME(Switch, FabricLinkLayerFlowControlThreshold);
-SAI_ATTRIBUTE_NAME(Switch, SramFreePercentXoffTh);
-SAI_ATTRIBUTE_NAME(Switch, SramFreePercentXonTh);
-SAI_ATTRIBUTE_NAME(Switch, NoAclsForTraps);
-SAI_ATTRIBUTE_NAME(Switch, MaxSystemPortId);
-SAI_ATTRIBUTE_NAME(Switch, MaxLocalSystemPortId);
-SAI_ATTRIBUTE_NAME(Switch, MaxSystemPorts);
-SAI_ATTRIBUTE_NAME(Switch, MaxVoqs);
-SAI_ATTRIBUTE_NAME(Switch, FabricCllfcTxCreditTh);
-SAI_ATTRIBUTE_NAME(Switch, VoqDramBoundTh);
+SAI_ATTRIBUTE_NAME(Switch, ReachabilityGroupList)
+SAI_ATTRIBUTE_NAME(Switch, FabricLinkLayerFlowControlThreshold)
+SAI_ATTRIBUTE_NAME(Switch, SramFreePercentXoffTh)
+SAI_ATTRIBUTE_NAME(Switch, SramFreePercentXonTh)
+SAI_ATTRIBUTE_NAME(Switch, NoAclsForTraps)
+SAI_ATTRIBUTE_NAME(Switch, MaxSystemPortId)
+SAI_ATTRIBUTE_NAME(Switch, MaxLocalSystemPortId)
+SAI_ATTRIBUTE_NAME(Switch, MaxSystemPorts)
+SAI_ATTRIBUTE_NAME(Switch, MaxVoqs)
+SAI_ATTRIBUTE_NAME(Switch, FabricCllfcTxCreditTh)
+SAI_ATTRIBUTE_NAME(Switch, VoqDramBoundTh)
 SAI_ATTRIBUTE_NAME(Switch, CondEntropyRehashPeriodUS)
 SAI_ATTRIBUTE_NAME(Switch, ShelSrcIp)
 SAI_ATTRIBUTE_NAME(Switch, ShelDstIp)

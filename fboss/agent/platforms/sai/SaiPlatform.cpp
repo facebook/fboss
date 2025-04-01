@@ -791,6 +791,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       std::nullopt, // qos tc to exp map
       macAgingTime,
       std::nullopt, // ingress acl
+      std::nullopt, // egress acl
       aclFieldList,
       std::nullopt, // tam object list
       useEcnThresholds,
