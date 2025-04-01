@@ -201,6 +201,8 @@ class HwSwitchFb303Stats {
   void bcmSaiSdkVer(int64_t ver);
   void leabaSdkVer(int64_t ver);
 
+  void isolationFirmwareVersion(int64_t ver);
+
   void update(const HwSwitchDramStats& dramStats);
   void update(const HwSwitchDropStats& dropStats);
   void update(const HwSwitchCreditStats& creditStats);
@@ -419,6 +421,7 @@ class HwSwitchFb303Stats {
   TLTimeseries phyInfoCollectionFailed_;
   TLTimeseries invalidQueueRxPackets_;
   TLCounter arsResourceExhausted_;
+  TLCounter isolationFirmwareVersion_;
 };
 
 } // namespace facebook::fboss
