@@ -122,7 +122,7 @@ class AgentMirroringTest : public AgentHwTest {
     auto mirrorToPort = getMirrorToPort(*getAgentEnsemble());
     EXPECT_EQ(trafficPort, ecmpHelper.nhop(0).portDesc.phyPortID());
     EXPECT_EQ(mirrorToPort, ecmpHelper.nhop(1).portDesc.phyPortID());
-    resolveNeigborAndProgramRoutes(ecmpHelper, 1);
+    resolveNeighborAndProgramRoutes(ecmpHelper, 1);
     applyNewState([&](const std::shared_ptr<SwitchState>& in) {
       boost::container::flat_set<PortDescriptor> nhopPorts{
           PortDescriptor(mirrorToPort)};

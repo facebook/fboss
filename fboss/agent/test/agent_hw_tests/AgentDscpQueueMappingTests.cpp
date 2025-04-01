@@ -31,7 +31,7 @@ class AgentDscpQueueMappingTestBase : public AgentHwTest {
 
   void setupHelper() {
     utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
-    resolveNeigborAndProgramRoutes(ecmpHelper, kEcmpWidth);
+    resolveNeighborAndProgramRoutes(ecmpHelper, kEcmpWidth);
   }
 
   void sendPacket(bool frontPanel, uint8_t ttl = 64) {

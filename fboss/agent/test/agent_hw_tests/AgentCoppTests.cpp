@@ -403,7 +403,7 @@ class AgentCoppTest : public AgentHwTest {
           useInterfaceMac
               ? utility::getMacForFirstInterfaceWithPorts(getProgrammedState())
               : getLocalMacAddress());
-      resolveNeigborAndProgramRoutes(ecmpHelper, 1);
+      resolveNeighborAndProgramRoutes(ecmpHelper, 1);
     } else {
       utility::EcmpSetupTargetedPorts6 ecmpHelper(
           getProgrammedState(),
@@ -1456,7 +1456,7 @@ class AgentCoppQosTest : public AgentHwTest {
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
 
     utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState(), dstMac);
-    resolveNeigborAndProgramRoutes(ecmpHelper, 1);
+    resolveNeighborAndProgramRoutes(ecmpHelper, 1);
     auto& nextHop = ecmpHelper.getNextHops()[0];
     utility::ttlDecrementHandlingForLoopbackTraffic(
         getAgentEnsemble(), ecmpHelper.getRouterId(), nextHop);

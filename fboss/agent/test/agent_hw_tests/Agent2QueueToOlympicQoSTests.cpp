@@ -104,7 +104,7 @@ class Agent2QueueToOlympicQoSTest : public AgentHwTest {
       auto portId = ecmpHelper.ecmpPortDescriptorAt(0).phyPortID();
       auto switchId = getSw()->getScopeResolver()->scope(portId).switchId();
       auto asic = getSw()->getHwAsicTable()->getHwAsic(switchId);
-      resolveNeigborAndProgramRoutes(ecmpHelper, kEcmpWidth);
+      resolveNeighborAndProgramRoutes(ecmpHelper, kEcmpWidth);
       auto newCfg{initialConfig(*getAgentEnsemble())};
       auto streamType =
           *(asic->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin());

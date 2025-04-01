@@ -181,7 +181,7 @@ class AgentAclCounterTestBase : public AgentHwTest {
   void resolveMirror(const std::string& mirrorName, uint8_t dstPort) {
     auto destinationPort = getAgentEnsemble()->masterLogicalPortIds(
         {cfg::PortType::INTERFACE_PORT})[dstPort];
-    resolveNeigborAndProgramRoutes(*helper_, 1);
+    resolveNeighborAndProgramRoutes(*helper_, 1);
     applyNewState([&](const std::shared_ptr<SwitchState>& in) {
       boost::container::flat_set<PortDescriptor> nhopPorts{
           PortDescriptor(destinationPort)};

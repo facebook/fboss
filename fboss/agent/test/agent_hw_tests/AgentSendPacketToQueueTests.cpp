@@ -45,7 +45,7 @@ void AgentSendPacketToQueueTest::checkSendPacket(
       // need to set up ecmp for switching
       auto kEcmpWidthForTest = 1;
       utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState()};
-      resolveNeigborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
+      resolveNeighborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
     }
   };
 
