@@ -82,31 +82,14 @@ void SaiSwitch::updateStatsImpl() {
       if (endpointOpt.has_value()) {
         auto delta = fabricConnectivityManager_->processConnectivityInfoForPort(
             portsIter->second.portID, *endpointOpt);
-        bool updatedConfig = fabricConnectivityManager_->isUpdatedConfigForPort(
-            portsIter->second.portID);
-        if (updatedConfig) {
-          fabricConnectivityManager_->clearUpdatedConfigFlag(
-              portsIter->second.portID);
-        }
-
         if (delta) {
-          XLOG(DBG5) << "C" << (updatedConfig ? "onfig and c" : "")
-                     << "onnectivity delta found for port ID "
+          XLOG(DBG5) << "Connectivity delta found for port ID "
                      << portsIter->second.portID;
-          connectivityDelta.insert({portsIter->second.portID, *delta});
-        } else if (updatedConfig) {
-          XLOG(DBG5) << "Config delta found for port ID "
-                     << portsIter->second.portID;
-
-          delta = multiswitch::FabricConnectivityDelta{};
-          delta->oldConnectivity() = endpointOpt.value();
-          delta->newConnectivity() = endpointOpt.value();
           connectivityDelta.insert({portsIter->second.portID, *delta});
         } else {
           XLOG(DBG5) << "No connectivity delta for port ID "
                      << portsIter->second.portID;
         }
-
         if (fabricConnectivityManager_->isConnectivityInfoMissing(
                 portsIter->second.portID)) {
           missingCount++;
