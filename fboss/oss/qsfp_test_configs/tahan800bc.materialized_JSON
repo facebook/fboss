@@ -122,6 +122,14 @@
             }
           ]
       },
+      "FTCD4313E2PCL-FB": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "2.19"
+            }
+          ]
+      },
       "FTCD4313E2PCLFBC": {
           "versions": [
             {
