@@ -2,6 +2,7 @@
 
 #include <array>
 #include <cstdint>
+#include <functional>
 #include <map>
 #include <vector>
 
@@ -352,6 +353,22 @@ class AgentAqmTest : public AgentHwTest {
           utility::kQueueConfigAqmsWredThresholdMinMax,
           utility::kQueueConfigAqmsWredThresholdMinMax,
           utility::kQueueConfigAqmsWredDropProbability,
+          isVoq);
+    }
+  }
+
+  void queueEcnThresholdSetup(
+      cfg::SwitchConfig& config,
+      std::span<const int> queueIds) {
+    auto asic = utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+    bool isVoq = asic->getSwitchType() == cfg::SwitchType::VOQ;
+    for (int queueId : queueIds) {
+      utility::addQueueEcnConfig(
+          config,
+          getAgentEnsemble()->getL3Asics(),
+          queueId,
+          utility::kQueueConfigAqmsEcnThresholdMinMax,
+          utility::kQueueConfigAqmsEcnThresholdMinMax,
           isVoq);
     }
   }
