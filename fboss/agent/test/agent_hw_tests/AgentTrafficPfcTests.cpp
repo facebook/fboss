@@ -766,7 +766,7 @@ class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcTest {
     };
   }
 
-  void validatePfcWatchdogCountersIncrease(
+  void validatePfcWatchdogCountersIncrement(
       const PortID& portId,
       const uint64_t& deadlockCtrBefore,
       const uint64_t& recoveryCtrBefore) {
@@ -776,6 +776,23 @@ class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcTest {
                  << " recoveryCtr = " << recoveryCtr;
       EXPECT_EVENTUALLY_GT(deadlockCtr, deadlockCtrBefore);
       EXPECT_EVENTUALLY_GT(recoveryCtr, recoveryCtrBefore);
+    });
+  }
+
+  void validateNoPfcWatchdogCountersIncrement(
+      const PortID& portId,
+      const uint64_t& deadlockCtrBefore,
+      const uint64_t& recoveryCtrBefore) {
+    int noIncrementIterations = 0;
+    WITH_RETRIES({
+      auto [deadlockCtr, recoveryCtr] = getPfcDeadlockCounters(portId);
+      XLOG(DBG0) << "For port: " << portId << " deadlockCtr = " << deadlockCtr
+                 << " recoveryCtr = " << recoveryCtr;
+      EXPECT_EQ(deadlockCtr, deadlockCtrBefore);
+      EXPECT_EQ(recoveryCtr, recoveryCtrBefore);
+      noIncrementIterations++;
+      // No increment seen in 5 iterations
+      EXPECT_EVENTUALLY_EQ(noIncrementIterations, 5);
     });
   }
 
@@ -801,13 +818,9 @@ class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcTest {
     });
   }
 
-  void reEnablePort(const PortID& txOffPortId) {
-    // Enable credit WD and TX on port
-    utility::setCreditWatchdogAndPortTx(getAgentEnsemble(), txOffPortId, true);
-  }
-
   void cleanupPfcDeadlockDetectionTrigger(const PortID& portId) {
-    reEnablePort(portId);
+    // Enable credit WD and TX on port
+    utility::setCreditWatchdogAndPortTx(getAgentEnsemble(), portId, true);
     auto asic = utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
     if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
       std::string out;
@@ -843,7 +856,7 @@ TEST_F(AgentTrafficPfcWatchdogTest, PfcWatchdogDetection) {
     auto [deadlockCtrBefore, recoveryCtrBefore] =
         getPfcDeadlockCounters(portId);
     triggerPfcDeadlockDetection(portId, txOffPortId, ip);
-    validatePfcWatchdogCountersIncrease(
+    validatePfcWatchdogCountersIncrement(
         portId, deadlockCtrBefore, recoveryCtrBefore);
     cleanupPfcDeadlockDetectionTrigger(txOffPortId);
   };
@@ -871,39 +884,27 @@ TEST_F(AgentTrafficPfcWatchdogTest, PfcWatchdogReset) {
     std::tie(deadlockCtrBefore, recoveryCtrBefore) =
         getPfcDeadlockCounters(portId);
     triggerPfcDeadlockDetection(portId, txOffPortId, ip);
-    // lets wait for the watchdog counters to be populated
-    validatePfcWatchdogCountersIncrease(
+    // Lets wait for the watchdog counters to be populated
+    validatePfcWatchdogCountersIncrement(
         portId, deadlockCtrBefore, recoveryCtrBefore);
-    // reset watchdog
+    // Stop PFC trigger
+    cleanupPfcDeadlockDetectionTrigger(txOffPortId);
+    // Reset watchdog
     setupWatchdog({portId}, false /* disable */);
-    // sleep a bit to let counters stabilize
-    std::this_thread::sleep_for(std::chrono::seconds(1));
-    std::tie(deadlockCtrBefore, recoveryCtrBefore) =
-        getPfcDeadlockCounters(portId);
   };
 
   auto verify = [&]() {
-    // ensure that PFC counters continues to increment
-    validatePfcCounterIncrement(portId, kLosslessPriority);
-    // validate that pfc watchdog counters do not increment anymore
-    auto [deadlockCtr, recoveryCtr] = getPfcDeadlockCounters(portId);
-    XLOG(DBG0) << "For port: " << portId << " deadlockCtr = " << deadlockCtr
-               << " recoveryCtr = " << recoveryCtr;
-    EXPECT_EQ(deadlockCtr, deadlockCtrBefore);
-    EXPECT_EQ(recoveryCtr, recoveryCtrBefore);
-
-    // SDK will be unhappy if we don't re-enable the port before shutdown.
-    if (!FLAGS_setup_for_warmboot) {
-      reEnablePort(txOffPortId);
-    }
+    std::tie(deadlockCtrBefore, recoveryCtrBefore) =
+        getPfcDeadlockCounters(portId);
+    // Retrigger PFC WD detection/recovery
+    triggerPfcDeadlockDetection(portId, txOffPortId, ip);
+    validateNoPfcWatchdogCountersIncrement(
+        portId, deadlockCtrBefore, recoveryCtrBefore);
+    // Stop PFC trigger
+    cleanupPfcDeadlockDetectionTrigger(txOffPortId);
   };
 
-  auto verifyPostWb = [&]() {
-    // SDK will be unhappy if we don't re-enable the port before shutdown.
-    reEnablePort(txOffPortId);
-  };
-
-  verifyAcrossWarmBoots(setup, verify, []() {}, verifyPostWb);
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 } // namespace facebook::fboss
