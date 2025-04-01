@@ -190,6 +190,26 @@ int64_t getIsolationFirmwareIntForString(const std::string& firmwareVersion) {
 }
 #endif
 
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+FirmwareOpStatus saiFirmwareOpStatusToFirmwareOpStatus(
+    sai_firmware_op_status_t opStatus) {
+  switch (opStatus) {
+    case SAI_FIRMWARE_OP_STATUS_UNKNOWN:
+      return FirmwareOpStatus::UNKNOWN;
+    case SAI_FIRMWARE_OP_STATUS_LOADED:
+      return FirmwareOpStatus::LOADED;
+    case SAI_FIRMWARE_OP_STATUS_NOT_LOADED:
+      return FirmwareOpStatus::NOT_LOADED;
+    case SAI_FIRMWARE_OP_STATUS_RUNNING:
+      return FirmwareOpStatus::RUNNING;
+    case SAI_FIRMWARE_OP_STATUS_STOPPED:
+      return FirmwareOpStatus::STOPPED;
+    case SAI_FIRMWARE_OP_STATUS_ERROR:
+      return FirmwareOpStatus::ERROR;
+  }
+}
+#endif
+
 } // namespace
 
 namespace facebook::fboss {
