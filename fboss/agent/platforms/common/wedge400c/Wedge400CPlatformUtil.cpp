@@ -34,7 +34,8 @@ bool isWedge400CPlatformRackTypeInferenceNetwhoami() {
     if (auto rackType = whoami.rack_type()) {
       auto role = whoami.role();
       XLOG(DBG2) << "isWedge400CPlatformRackTypeGrandTeton rackType: "
-                 << (int)(*rackType) << "role: " << (int)(*role);
+                 << static_cast<int>(*rackType)
+                 << "role: " << static_cast<int>(*role);
       // Checking both role and rack type to determine which
       // wedge 400c platform mapping to pick
       if (isRackTypeInference(rackType) &&

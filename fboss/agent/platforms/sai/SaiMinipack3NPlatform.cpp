@@ -29,9 +29,28 @@ SaiMinipack3NPlatform::SaiMinipack3NPlatform(
 const std::unordered_map<std::string, std::string>
 SaiMinipack3NPlatform::getSaiProfileVendorExtensionValues() const {
   auto kv_map = SaiYangraPlatform::getSaiProfileVendorExtensionValues();
-  kv_map.insert(std::make_pair("SAI_KEY_INDEPENDENT_MODULE_MODE", "2"));
+  auto itr = kv_map.find("SAI_KEY_AUTO_POPULATE_PORT_DB");
+  if (itr != kv_map.end()) {
+    // no auto discovery of ports for minipack3n
+    kv_map.erase(itr);
+  }
+  kv_map.insert(std::make_pair("SAI_INDEPENDENT_MODULE_MODE", "2"));
   return kv_map;
 }
 
 SaiMinipack3NPlatform::~SaiMinipack3NPlatform() = default;
+
+std::string SaiMinipack3NPlatform::getHwConfig() {
+  auto hwConfig = config()
+                      ->thrift.platform()
+                      ->chip()
+                      ->get_asicConfig()
+                      .common()
+                      ->get_config();
+  auto constexpr kMinipack3nXml = "minipack3n.xml";
+  if (hwConfig.find(kMinipack3nXml) == hwConfig.end()) {
+    throw FbossError("xml config not found in hw config");
+  }
+  return hwConfig[kMinipack3nXml];
+}
 } // namespace facebook::fboss

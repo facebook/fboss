@@ -151,8 +151,9 @@ void AgentVoqSwitchTest::rxPacketToCpuHelper(
 void AgentVoqSwitchTest::sendLocalServiceDiscoveryMulticastPacket(
     const PortID outPort,
     const int numPackets) {
-  auto vlanId = utility::firstVlanID(getProgrammedState());
-  auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
+  auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
+  auto intfMac =
+      utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
   auto srcIp = folly::IPAddressV6("fe80::ff:fe00:f0b");
   auto dstIp = folly::IPAddressV6("ff15::efc0:988f");
   auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
@@ -232,7 +233,7 @@ SystemPortID AgentVoqSwitchTest::getSystemPortID(
 
 void AgentVoqSwitchTest::addDscpAclWithCounter() {
   auto newCfg = initialConfig(*getAgentEnsemble());
-  auto* acl = utility::addAcl(&newCfg, kDscpAclName());
+  auto* acl = utility::addAcl_DEPRECATED(&newCfg, kDscpAclName());
   auto asic = utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
   acl->dscp() = 0x24;
   utility::addEtherTypeToAcl(asic, acl, cfg::EtherType::IPv6);
@@ -364,19 +365,24 @@ TEST_F(AgentVoqSwitchTest, sendPacketCpuAndFrontPanel) {
                                              bool isFrontPanel) {
       auto getPortOutPktsBytes = [this](PortID port) {
         return std::make_pair(
-            getLatestPortStats(port).get_outUnicastPkts_(),
-            getLatestPortStats(port).get_outBytes_());
+            folly::copy(getLatestPortStats(port).outUnicastPkts_().value()),
+            folly::copy(getLatestPortStats(port).outBytes_().value()));
       };
 
       auto getAllQueueOutPktsBytes = [kPortDesc, this]() {
         return std::make_pair(
-            getLatestPortStats(kPortDesc.phyPortID()).get_queueOutPackets_(),
-            getLatestPortStats(kPortDesc.phyPortID()).get_queueOutBytes_());
+            folly::copy(getLatestPortStats(kPortDesc.phyPortID())
+                            .queueOutPackets_()
+                            .value()),
+            folly::copy(getLatestPortStats(kPortDesc.phyPortID())
+                            .queueOutBytes_()
+                            .value()));
       };
       auto getAllVoQOutBytes = [kPortDesc, this]() {
-        return getLatestSysPortStats(
-                   getSystemPortID(kPortDesc, cfg::Scope::GLOBAL))
-            .get_queueOutBytes_();
+        return folly::copy(getLatestSysPortStats(
+                               getSystemPortID(kPortDesc, cfg::Scope::GLOBAL))
+                               .queueOutBytes_()
+                               .value());
       };
       auto getAclPackets = [this]() {
         return utility::getAclInOutPackets(getSw(), kDscpAclCounterName());
@@ -625,8 +631,8 @@ TEST_F(AgentVoqSwitchTest, localForwardingPostIsolate) {
 
   auto verify = [this, kPortDesc, &ecmpHelper]() {
     auto sendPktAndVerify = [&](std::optional<PortID> portToSendFrom) {
-      auto beforePkts =
-          getLatestPortStats(kPortDesc.phyPortID()).get_outUnicastPkts_();
+      auto beforePkts = folly::copy(
+          getLatestPortStats(kPortDesc.phyPortID()).outUnicastPkts_().value());
       sendPacket(ecmpHelper.ip(kPortDesc), portToSendFrom);
       WITH_RETRIES({
         auto afterPkts =
@@ -656,8 +662,8 @@ TEST_F(AgentVoqSwitchTest, stressLocalForwardingPostIsolate) {
   };
 
   auto verify = [this, kPortDesc, &ecmpHelper]() {
-    auto beforePkts =
-        getLatestPortStats(kPortDesc.phyPortID()).get_outUnicastPkts_();
+    auto beforePkts = folly::copy(
+        getLatestPortStats(kPortDesc.phyPortID()).outUnicastPkts_().value());
     for (auto i = 0; i < 10000; ++i) {
       // CPU send
       sendPacket(ecmpHelper.ip(kPortDesc), std::nullopt);

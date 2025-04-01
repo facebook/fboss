@@ -47,7 +47,7 @@
         6
     ],
     "janga800bic": [
-        
+        7
     ],
     "meru400bfu": [
         
@@ -56,10 +56,13 @@
         
     ],
     "meru800bfa": [
-        
+        7
     ],
     "meru800bia": [
-        
+        7
+    ],
+    "minipack3n": [
+        7
     ],
     "minipack_7x16Q_1x16O": [
         1,
@@ -68,13 +71,13 @@
         5
     ],
     "montblanc": [
-        2
+        7
     ],
     "morgan800cc": [
-        2
+        7
     ],
     "tahan800bc": [
-        2
+        7
     ],
     "wedge100s": [
         
@@ -141,7 +144,7 @@
         "XPHY_LINE_PAM4_PROFILE"
     ],
     "janga800bic": [
-        
+        "TRANSCEIVER_PRBS"
     ],
     "meru400bfu": [
         
@@ -150,10 +153,13 @@
         
     ],
     "meru800bfa": [
-        
+        "TRANSCEIVER_PRBS"
     ],
     "meru800bia": [
-        
+        "TRANSCEIVER_PRBS"
+    ],
+    "minipack3n": [
+        "TRANSCEIVER_PRBS"
     ],
     "minipack_7x16Q_1x16O": [
         "EXTERNAL_PHY",
@@ -162,13 +168,13 @@
         "XPHY_LINE_NRZ_PROFILE"
     ],
     "montblanc": [
-        "PIM"
+        "TRANSCEIVER_PRBS"
     ],
     "morgan800cc": [
-        "PIM"
+        "TRANSCEIVER_PRBS"
     ],
     "tahan800bc": [
-        "PIM"
+        "TRANSCEIVER_PRBS"
     ],
     "wedge100s": [
         

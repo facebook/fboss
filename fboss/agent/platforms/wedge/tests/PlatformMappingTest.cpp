@@ -1084,9 +1084,12 @@ TEST_F(PlatformMappingTest, VerifyWedge100DownlinkPortIphyPinConfigs) {
   auto mapping = std::make_unique<Wedge100PlatformMapping>();
   for (auto& port : mapping->getPlatformPorts()) {
     const auto& chipName =
-        port.second.get_mapping().get_pins()[0].get_z()->get_end().get_chip();
+        apache::thrift::get_pointer(
+            port.second.mapping().value().pins().value()[0].z())
+            ->get_end()
+            .get_chip();
     const auto& chip = mapping->getChips().at(chipName);
-    auto transID = chip.get_physicalID();
+    auto transID = folly::copy(chip.physicalID().value());
     // Skip uplinks
     if (transID >= kWedge100DownlinkPortGroupMapping.size()) {
       continue;
@@ -1136,9 +1139,12 @@ TEST_F(PlatformMappingTest, VerifyWedge100YV3T1DownlinkPortIphyPinConfigs) {
   auto mapping = std::make_unique<Wedge100PlatformMapping>();
   for (auto& port : mapping->getPlatformPorts()) {
     const auto& chipName =
-        port.second.get_mapping().get_pins()[0].get_z()->get_end().get_chip();
+        apache::thrift::get_pointer(
+            port.second.mapping().value().pins().value()[0].z())
+            ->get_end()
+            .get_chip();
     const auto& chip = mapping->getChips().at(chipName);
-    auto transID = chip.get_physicalID();
+    auto transID = folly::copy(chip.physicalID().value());
     // Skip uplinks
     if (transID > kLastYV3T1DownlinkTransceiverID) {
       continue;
@@ -1193,9 +1199,12 @@ TEST_F(PlatformMappingTest, VerifyWedge100UplinkPortIphyPinConfigs) {
   auto mapping = std::make_unique<Wedge100PlatformMapping>();
   for (auto& port : mapping->getPlatformPorts()) {
     const auto& chipName =
-        port.second.get_mapping().get_pins()[0].get_z()->get_end().get_chip();
+        apache::thrift::get_pointer(
+            port.second.mapping().value().pins().value()[0].z())
+            ->get_end()
+            .get_chip();
     const auto& chip = mapping->getChips().at(chipName);
-    auto transID = chip.get_physicalID();
+    auto transID = folly::copy(chip.physicalID().value());
     // skip downlinks
     if (transID < 24) {
       continue;

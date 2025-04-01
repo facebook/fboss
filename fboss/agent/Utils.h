@@ -463,4 +463,10 @@ CpuCosQueueId hwQueueIdToCpuCosQueueId(
 int numFabricLevels(const std::map<int64_t, cfg::DsfNode>& dsfNodes);
 
 const std::vector<cfg::AclLookupClass>& getToCpuClassIds();
+
+bool isStringInFile(
+    const std::string& filename,
+    const std::string& str,
+    int maxLinesToSearch);
+
 } // namespace facebook::fboss

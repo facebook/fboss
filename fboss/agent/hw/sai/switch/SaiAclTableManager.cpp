@@ -949,7 +949,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
             addedAclEntry->getVlanID().value(), kOuterVlanIdMask))};
   }
 
-#if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_24_4_90)
+#if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_24_8_3001)
   std::optional<SaiAclEntryTraits::Attributes::FieldBthOpcode> fieldBthOpcode{
       std::nullopt};
   if (addedAclEntry->getRoceOpcode()) {
@@ -1242,7 +1242,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
        fieldTtl.has_value() || fieldFdbDstUserMeta.has_value() ||
        fieldRouteDstUserMeta.has_value() || fieldEtherType.has_value() ||
        fieldNeighborDstUserMeta.has_value() || fieldOuterVlanId.has_value() ||
-#if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_24_4_90)
+#if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_24_8_3001)
        fieldBthOpcode.has_value() ||
 #endif
 #if !defined(TAJO_SDK) && !defined(BRCM_SAI_SDK_XGS)
@@ -1314,7 +1314,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       fieldNeighborDstUserMeta,
       fieldEtherType,
       fieldOuterVlanId,
-#if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_24_4_90)
+#if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_24_8_3001)
       fieldBthOpcode,
 #endif
 #if !defined(TAJO_SDK) && !defined(BRCM_SAI_SDK_XGS)
@@ -1554,7 +1554,7 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet(
 std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet(
     sai_acl_stage_t aclStage) const {
   if (aclStage == SAI_ACL_STAGE_EGRESS &&
-      platform_->getAsic()->isSupported(
+      !platform_->getAsic()->isSupported(
           HwAsic::Feature::INGRESS_POST_LOOKUP_ACL_TABLE)) {
     throw FbossError("egress acl table is not supported on switch asic");
   }
@@ -1594,7 +1594,7 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet(
         cfg::AclTableQualifier::LOOKUP_CLASS_NEIGHBOR,
         cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE};
 
-#if defined(TAJO_SDK_GTE_24_4_90)
+#if defined(TAJO_SDK_GTE_24_8_3001)
     std::vector<cfg::AclTableQualifier> tajoExtraQualifierList = {
         cfg::AclTableQualifier::ETHER_TYPE,
         cfg::AclTableQualifier::BTH_OPCODE,
@@ -1654,9 +1654,12 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet(
   } else if (isChenab) {
     /* TODO(pshaikh): review the qualifiers */
     if (aclStage == SAI_ACL_STAGE_INGRESS) {
+      // full set of qualifiers supported but cant fit in single acl table
       return {
           cfg::AclTableQualifier::DST_IPV6,
           cfg::AclTableQualifier::DST_IPV4,
+          cfg::AclTableQualifier::SRC_IPV6,
+          cfg::AclTableQualifier::SRC_IPV4,
           cfg::AclTableQualifier::L4_SRC_PORT,
           cfg::AclTableQualifier::L4_DST_PORT,
           cfg::AclTableQualifier::IP_PROTOCOL_NUMBER,
@@ -1667,7 +1670,11 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet(
           cfg::AclTableQualifier::IP_TYPE,
           cfg::AclTableQualifier::ETHER_TYPE,
           cfg::AclTableQualifier::OUTER_VLAN,
-          // TODO(pshaikh): Add UDF?
+          cfg::AclTableQualifier::ICMPV4_TYPE,
+          cfg::AclTableQualifier::ICMPV4_CODE,
+          cfg::AclTableQualifier::ICMPV6_TYPE,
+          cfg::AclTableQualifier::ICMPV6_CODE,
+          cfg::AclTableQualifier::UDF,
       };
     } else {
       return {
@@ -1861,7 +1868,7 @@ bool SaiAclTableManager::isQualifierSupported(
     case cfg::AclTableQualifier::LOOKUP_CLASS_NEIGHBOR:
       return hasField(
           std::get<std::optional<
-              SaiAclTableTraits::Attributes::FieldRouteDstUserMeta>>(
+              SaiAclTableTraits::Attributes::FieldNeighborDstUserMeta>>(
               attributes));
     case cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE:
       return hasField(
@@ -1880,7 +1887,7 @@ bool SaiAclTableManager::isQualifierSupported(
               attributes));
 
     case cfg::AclTableQualifier::BTH_OPCODE:
-#if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_24_4_90)
+#if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_24_8_3001)
       return hasField(
           std::get<
               std::optional<SaiAclTableTraits::Attributes::FieldBthOpcode>>(

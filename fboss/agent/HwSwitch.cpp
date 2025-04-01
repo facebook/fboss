@@ -62,6 +62,11 @@ DEFINE_int32(
     600,
     "Update cable length stats interval in seconds");
 
+DEFINE_int32(
+    prbs_update_interval_s,
+    10,
+    "Interval in seconds for reading PRBS RX State");
+
 namespace {
 constexpr auto kBuildSdkVersion = "SDK Version";
 
@@ -186,6 +191,7 @@ multiswitch::HwSwitchStats HwSwitch::getHwSwitchStats() {
   hwSwitchStats.aclStats() = getAclStats();
   hwSwitchStats.switchWatermarkStats() = getSwitchWatermarkStats();
   hwSwitchStats.hwResourceStats() = getResourceStats();
+  hwSwitchStats.arsExhausted() = getArsExhaustionStatus();
   return hwSwitchStats;
 }
 

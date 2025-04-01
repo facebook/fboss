@@ -60,6 +60,9 @@ TEST_F(HwXphyFirmwareTest, CheckDefaultXphyFirmwareVersion) {
     case PlatformType::PLATFORM_TAHAN800BC:
     case PlatformType::PLATFORM_YANGRA:
     case PlatformType::PLATFORM_MINIPACK3N:
+    case PlatformType::PLATFORM_CLOUDRIPPER_DEPRECATED:
+    case PlatformType::PLATFORM_CLOUDRIPPER_VOQ_DEPRECATED:
+    case PlatformType::PLATFORM_CLOUDRIPPER_FABRIC_DEPRECATED:
       throw FbossError("No xphys to check FW version on");
     case PlatformType::PLATFORM_ELBERT:
       desiredFw.version() = 1;
@@ -69,13 +72,6 @@ TEST_F(HwXphyFirmwareTest, CheckDefaultXphyFirmwareVersion) {
     case PlatformType::PLATFORM_FUJI:
       desiredFw.version() = 0xD008;
       desiredFw.crc() = 0x4dcf6a59;
-      break;
-    case PlatformType::PLATFORM_CLOUDRIPPER:
-    case PlatformType::PLATFORM_CLOUDRIPPER_VOQ:
-    case PlatformType::PLATFORM_CLOUDRIPPER_FABRIC:
-      desiredFw.version() = 1;
-      desiredFw.versionStr() = "1.92";
-      desiredFw.minorVersion() = 92;
       break;
     case PlatformType::PLATFORM_MINIPACK:
       desiredFw.version() = 0xD037;
@@ -99,7 +95,8 @@ TEST_F(HwXphyFirmwareTest, CheckDefaultXphyFirmwareVersion) {
     return;
   }
   for (auto chip : chips) {
-    if (chip.second.get_type() != phy::DataPlanePhyChipType::XPHY) {
+    if (folly::copy(chip.second.type().value()) !=
+        phy::DataPlanePhyChipType::XPHY) {
       continue;
     }
 
@@ -109,10 +106,10 @@ TEST_F(HwXphyFirmwareTest, CheckDefaultXphyFirmwareVersion) {
     phy::ExternalPhy* xphy;
     try {
       xphy = getHwQsfpEnsemble()->getPhyManager()->getExternalPhy(
-          GlobalXphyID(chip.second.get_physicalID()));
+          GlobalXphyID(folly::copy(chip.second.physicalID().value())));
     } catch (FbossError&) {
       XLOG(ERR) << "XPHY not present in system "
-                << GlobalXphyID(chip.second.get_physicalID());
+                << GlobalXphyID(folly::copy(chip.second.physicalID().value()));
       continue;
     }
 

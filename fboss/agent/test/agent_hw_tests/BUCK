@@ -49,6 +49,7 @@ cpp_library(
         "AgentMmuTuningTests.cpp",
         "AgentNeighborTests.cpp",
         "AgentNetworkAIQosSchedulerTests.cpp",
+        "AgentNetworkAIQosTests.cpp",
         "AgentOlympicQosSchedulerTests.cpp",
         "AgentOlympicQosTests.cpp",
         "AgentOverflowTestBase.cpp",
@@ -58,6 +59,7 @@ cpp_library(
         "AgentPortLedTests.cpp",
         "AgentPrbsTests.cpp",
         "AgentQosSchedulerTestBase.cpp",
+        "AgentQosTestBase.cpp",
         "AgentQueuePerHostL2Tests.cpp",
         "AgentQueuePerHostRouteTests.cpp",
         "AgentQueuePerHostTests.cpp",
@@ -302,7 +304,7 @@ _sai_agent_scale_test_prefix = "sai_agent_scale_test"
         linker_flags = [
             "--export-dynamic",
             "--unresolved-symbols=ignore-all",
-        ] if sai_impl.name == "nv" else [],
+        ] if sai_impl.name == "nvda" else [],
         versions = {
             sai_impl.sdk_name: sai_impl.version,
         },

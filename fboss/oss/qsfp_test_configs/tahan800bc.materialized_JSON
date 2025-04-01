@@ -15,32 +15,17 @@
       {
         "aPortName": "eth1/1/1",
         "zPortName": "eth1/2/1",
-        "profileID": 38
-      },
-      {
-        "aPortName": "eth1/1/5",
-        "zPortName": "eth1/2/5",
-        "profileID": 38
+        "profileID": 39
       },
       {
         "aPortName": "eth1/3/1",
         "zPortName": "eth1/6/1",
-        "profileID": 38
-      },
-      {
-        "aPortName": "eth1/3/5",
-        "zPortName": "eth1/6/5",
-        "profileID": 38
+        "profileID": 39
       },
       {
         "aPortName": "eth1/13/1",
         "zPortName": "eth1/14/1",
-        "profileID": 38
-      },
-      {
-        "aPortName": "eth1/13/5",
-        "zPortName": "eth1/14/5",
-        "profileID": 38
+        "profileID": 39
       },
       {
         "aPortName": "eth1/22/1",
@@ -85,7 +70,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "3.4"
+              "version": "3.5"
             }
           ]
       },
@@ -134,6 +119,14 @@
             {
               "fwType": 1,
               "version": "3.4"
+            }
+          ]
+      },
+      "FTCD4313E2PCL-FB": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "2.19"
             }
           ]
       },
@@ -281,7 +274,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "36.196"
+              "version": "36.197"
             }
           ]
       },
@@ -289,7 +282,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "36.196"
+              "version": "36.197"
             }
           ]
       },

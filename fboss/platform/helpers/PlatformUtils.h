@@ -13,12 +13,10 @@ class PlatformUtils {
   // Executes command and returns exit status and standard output
   virtual std::pair<int, std::string> execCommand(const std::string& cmd) const;
   virtual std::pair<int, std::string> runCommand(
-      const std::vector<std::string>& args,
-      bool = false) const;
+      const std::vector<std::string>& args) const;
   virtual std::pair<int, std::string> runCommandWithStdin(
-      const std::vector<std::string>&,
-      const std::string&,
-      bool = false) const;
+      const std::vector<std::string>& args,
+      const std::string& input) const;
 };
 
 } // namespace facebook::fboss::platform

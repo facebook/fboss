@@ -1,6 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/fsdb/oper/NaivePeriodicSubscribableStorageBase.h"
+#include "fboss/fsdb/common/Utils.h"
 
 #include <fb303/ThreadCachedServiceData.h>
 #include <folly/coro/BlockingWait.h>
@@ -46,7 +47,9 @@ NaivePeriodicSubscribableStorageBase::NaivePeriodicSubscribableStorageBase(
       publishTimePrefix_(
           fmt::format("{}.{}", params_.metricPrefix_, kPublishTimePrefix)),
       subscribeTimePrefix_(
-          fmt::format("{}.{}", params_.metricPrefix_, kSubscribeTimePrefix)) {
+          fmt::format("{}.{}", params_.metricPrefix_, kSubscribeTimePrefix)),
+      subscriberPrefix_(
+          fmt::format("{}.{}", params_.metricPrefix_, kSubscriberPrefix)) {
   if (params_.trackMetadata_) {
     metadataTracker_ = std::make_unique<FsdbOperTreeMetadataTracker>();
   }
@@ -267,6 +270,20 @@ void NaivePeriodicSubscribableStorageBase::exportServeMetrics(
           fmt::format("{}.{}", publishTimePrefix_, it->second), publishTime);
       fb303::ThreadCachedServiceData::get()->addHistogramValue(
           fmt::format("{}.{}", subscribeTimePrefix_, it->second), serveTime);
+    }
+  }
+
+  if (params_.exportPerSubscriberMetrics_) {
+    // export per-subscriber metrics
+    std::map<FsdbClient, SubscriberStats> stats = subMgr().getSubscriberStats();
+    for (const auto& [key, stat] : stats) {
+      auto counterName = fmt::format(
+          "{}.{}.{}",
+          subscriberPrefix_,
+          fsdbClient2string(key),
+          kSubscriptionQueueWatermark);
+      fb303::ThreadCachedServiceData::get()->addStatValue(
+          counterName, stat.subscriptionServeQueueWatermark, fb303::AVG);
     }
   }
 }

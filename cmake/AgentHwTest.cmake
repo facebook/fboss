@@ -220,6 +220,7 @@ set(hw_switch_test_srcs
   fboss/agent/hw/test/HwTeFlowTests.cpp
   fboss/agent/hw/test/HwUdfTests.cpp
   fboss/agent/hw/test/HwTestPfcUtils.cpp
+  fboss/agent/hw/test/dataplane_tests/HwHashConsistencyTest.cpp
   fboss/agent/hw/test/dataplane_tests/HwAqmTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwInPauseDiscardsTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwMPLSTests.cpp
@@ -280,6 +281,7 @@ target_link_libraries(hw_switch_test
   mirror_test_utils
   olympic_qos_utils
   network_ai_qos_utils
+  pfc_test_utils
   prod_config_factory
   prod_config_utils
   qos_test_utils

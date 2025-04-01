@@ -479,10 +479,10 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
       const std::shared_ptr<SwitchState> state,
       std::vector<NeighborThriftT>& nbrs) const;
 
-  std::string getCurrentStateJSONForPath(const std::string& path) const;
-
   void getSwitchIdToSwitchInfo(
       std::map<int64_t, cfg::SwitchInfo>& switchIdToSwitchInfo) override;
+
+  void getFirmwareInfo(FirmwareInfo& firmwareInfo) override;
 
   /*
    * A pointer to the SwSwitch.  We don't own this.

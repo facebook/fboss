@@ -62,17 +62,18 @@ class CmdShowInterfaceErrors
 
     for (const auto& port : portCounters) {
       auto portInfo = port.second;
-      if (queriedIfs.size() == 0 || queriedSet.count(portInfo.get_name())) {
+      if (queriedIfs.size() == 0 || queriedSet.count(portInfo.name().value())) {
         cli::ErrorCounters counter;
 
-        counter.interfaceName() = portInfo.get_name();
-        counter.inputErrors() = portInfo.get_input().get_errors().get_errors();
-        counter.inputDiscards() =
-            portInfo.get_input().get_errors().get_discards();
-        counter.outputErrors() =
-            portInfo.get_output().get_errors().get_errors();
-        counter.outputDiscards() =
-            portInfo.get_output().get_errors().get_discards();
+        counter.interfaceName() = portInfo.name().value();
+        counter.inputErrors() = folly::copy(
+            portInfo.input().value().errors().value().errors().value());
+        counter.inputDiscards() = folly::copy(
+            portInfo.input().value().errors().value().discards().value());
+        counter.outputErrors() = folly::copy(
+            portInfo.output().value().errors().value().errors().value());
+        counter.outputDiscards() = folly::copy(
+            portInfo.output().value().errors().value().discards().value());
 
         ret.error_counters()->push_back(counter);
       }
@@ -82,7 +83,7 @@ class CmdShowInterfaceErrors
         ret.error_counters()->begin(),
         ret.error_counters()->end(),
         [](cli::ErrorCounters& a, cli::ErrorCounters b) {
-          return a.get_interfaceName() < b.get_interfaceName();
+          return a.interfaceName().value() < b.interfaceName().value();
         });
 
     return ret;
@@ -103,13 +104,13 @@ class CmdShowInterfaceErrors
          "Output Errors",
          "Output Discards"});
 
-    for (const auto& counter : model.get_error_counters()) {
+    for (const auto& counter : model.error_counters().value()) {
       table.addRow({
-          counter.get_interfaceName(),
-          stylizeCounterValue(counter.get_inputErrors()),
-          stylizeCounterValue(counter.get_inputDiscards()),
-          stylizeCounterValue(counter.get_outputErrors()),
-          stylizeCounterValue(counter.get_outputDiscards()),
+          counter.interfaceName().value(),
+          stylizeCounterValue(folly::copy(counter.inputErrors().value())),
+          stylizeCounterValue(folly::copy(counter.inputDiscards().value())),
+          stylizeCounterValue(folly::copy(counter.outputErrors().value())),
+          stylizeCounterValue(folly::copy(counter.outputDiscards().value())),
       });
     }
     out << table << std::endl;

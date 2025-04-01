@@ -76,7 +76,7 @@ class HwTeFlowTrafficTest : public HwLinkStateDependentTest {
       PortID from,
       std::optional<DSCP> dscp = std::nullopt) {
     // TODO: Remove the dependency on VLAN below
-    auto vlan = utility::firstVlanID(initialConfig());
+    auto vlan = utility::firstVlanIDWithPorts(initialConfig());
     if (!vlan) {
       throw FbossError("VLAN id unavailable for test");
     }
@@ -124,7 +124,7 @@ class HwTeFlowTrafficTest : public HwLinkStateDependentTest {
   }
 
   folly::MacAddress getIntfMac() const {
-    return utility::getFirstInterfaceMac(getProgrammedState());
+    return utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
   }
 
   PortDescriptor portDesc1() const {
@@ -145,7 +145,7 @@ class HwTeFlowTrafficTest : public HwLinkStateDependentTest {
 
   void createL3DataplaneFlood(folly::IPAddressV6 dstIp, PortID from) {
     XLOG(INFO) << "creating data plane flood";
-    auto vlan = utility::firstVlanID(initialConfig());
+    auto vlan = utility::firstVlanIDWithPorts(initialConfig());
     if (!vlan) {
       throw FbossError("VLAN id unavailable for test");
     }
@@ -525,7 +525,7 @@ class HwUdfAclTeFlowTrafficTest : public HwTeFlowTrafficTest {
     utility::setTTLZeroCpuConfig(getHwSwitchEnsemble()->getL3Asics(), cfg);
     // run exact match with UDF acls
     cfg.udfConfig() = utility::addUdfAclConfig();
-    auto acl = utility::addAcl(&cfg, kUdfAclName);
+    auto acl = utility::addAcl_DEPRECATED(&cfg, kUdfAclName);
     acl->udfGroups() = {utility::kUdfAclRoceOpcodeGroupName};
     acl->roceOpcode() = utility::kUdfRoceOpcodeAck;
     utility::addAclStat(&cfg, kUdfAclName, kUdfAclStatName);

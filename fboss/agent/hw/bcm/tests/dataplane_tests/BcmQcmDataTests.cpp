@@ -201,7 +201,7 @@ class BcmQcmDataTest : public BcmLinkStateDependentTests {
 
     auto qcmCfg = getQcmConfig(isIpv6);
     // add an acl
-    auto* acl = utility::addAcl(&newCfg, kCollectorAcl);
+    auto* acl = utility::addAcl_DEPRECATED(&newCfg, kCollectorAcl);
     acl->dstMac() = BcmQcmCollector::getCollectorDstMac().toString();
     if (!isIpv6) {
       acl->dstIp() = kCollectorDstIpv4;
@@ -242,7 +242,7 @@ class BcmQcmDataTest : public BcmLinkStateDependentTests {
       PortID from,
       const std::optional<folly::IPAddress>& srcIp = std::nullopt) {
     // TODO: Remove the dependency on VLAN below
-    auto vlan = utility::firstVlanID(initialConfig());
+    auto vlan = utility::firstVlanIDWithPorts(initialConfig());
     if (!vlan) {
       throw FbossError("VLAN id unavailable for test");
     }

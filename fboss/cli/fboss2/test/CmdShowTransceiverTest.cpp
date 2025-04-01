@@ -99,6 +99,8 @@ std::map<int32_t, TransceiverInfo> createShowTransceiverTestEntries() {
   transceiverEntry1.tcvrState()->vendor() = makeVendor("vendorOne", "aa", "1");
   transceiverEntry1.tcvrState()->status() = makeModuleForFirmware("1", "2");
   transceiverEntry1.tcvrState()->present() = true;
+  transceiverEntry1.tcvrState()->moduleMediaInterface() =
+      MediaInterfaceCode::FR4_400G;
   transceiverEntry1.tcvrStats()->sensor() = makeSensor(50.0, 25.0);
   transceiverEntry1.tcvrStats()->channels() = {};
 
@@ -111,6 +113,8 @@ std::map<int32_t, TransceiverInfo> createShowTransceiverTestEntries() {
   TransceiverInfo transceiverEntry3;
   transceiverEntry3.tcvrState()->vendor() = makeVendor("vendorOne", "ab", "1");
   transceiverEntry3.tcvrState()->present() = false;
+  transceiverEntry3.tcvrState()->moduleMediaInterface() =
+      MediaInterfaceCode::UNKNOWN;
   transceiverEntry3.tcvrStats()->sensor() = makeSensor(0.0, 0.0);
   transceiverEntry3.tcvrStats()->channels() = {};
 
@@ -123,6 +127,8 @@ std::map<int32_t, TransceiverInfo> createShowTransceiverTestEntries() {
   TransceiverInfo transceiverEntry5;
   transceiverEntry5.tcvrState()->vendor() = makeVendor("vendorOne", "ad", "2");
   transceiverEntry5.tcvrState()->present() = true;
+  transceiverEntry5.tcvrState()->moduleMediaInterface() =
+      MediaInterfaceCode::LR4_400G_10KM;
   transceiverEntry5.tcvrStats()->sensor() = makeSensor(0.0, 0.0);
   transceiverEntry5.tcvrStats()->channels() = {};
 
@@ -130,6 +136,8 @@ std::map<int32_t, TransceiverInfo> createShowTransceiverTestEntries() {
   transceiverEntry6.tcvrState()->vendor() = makeVendor("vendorThree", "c", "4");
   transceiverEntry6.tcvrState()->status() = makeModuleForFirmware("3", "4");
   transceiverEntry6.tcvrState()->present() = true;
+  transceiverEntry6.tcvrState()->moduleMediaInterface() =
+      MediaInterfaceCode::FR4_LITE_2x400G;
   transceiverEntry6.tcvrStats()->sensor() = makeSensor(30.0, 30.0);
   transceiverEntry6.tcvrStats()->channels() = {};
 
@@ -152,11 +160,16 @@ std::map<int32_t, std::string> createTransceiverValidationEntries() {
 }
 
 cli::ShowTransceiverModel createTransceiverModel() {
-  auto makeDefaultTcvrDetail = [](std::string name, bool isUp, bool isPresent) {
+  auto makeDefaultTcvrDetail = [](std::string name,
+                                  bool isUp,
+                                  bool isPresent,
+                                  MediaInterfaceCode media) {
     cli::TransceiverDetail detail;
     detail.name() = name;
     detail.isUp() = isUp;
     detail.isPresent() = isPresent;
+    detail.mediaInterface() = media;
+
     return detail;
   };
   auto setConfigAttributes = [](cli::TransceiverDetail& detail,
@@ -189,32 +202,38 @@ cli::ShowTransceiverModel createTransceiverModel() {
 
   cli::ShowTransceiverModel model;
 
-  auto entry1 = makeDefaultTcvrDetail("eth1/1/1", true, true);
+  auto entry1 = makeDefaultTcvrDetail(
+      "eth1/1/1", true, true, MediaInterfaceCode::FR4_400G);
   setConfigAttributes(entry1, "vendorOne", "aa", "1", "1", "2");
   setValidationStatus(entry1, "Not Validated", "nonValidatedVendorPartNumber");
   setOperAttributes(entry1, 50.0, 25.0);
 
-  auto entry2 = makeDefaultTcvrDetail("eth1/2/1", true, true);
+  auto entry2 = makeDefaultTcvrDetail(
+      "eth1/2/1", true, true, MediaInterfaceCode::UNKNOWN);
   setConfigAttributes(entry2, "vendorTwo", "b", "3", "", "");
   setValidationStatus(entry2, "Not Validated", "missingVendor");
   setOperAttributes(entry2, 40.0, 25.0);
 
-  auto entry3 = makeDefaultTcvrDetail("eth1/3/1", false, false);
+  auto entry3 = makeDefaultTcvrDetail(
+      "eth1/3/1", false, false, MediaInterfaceCode::UNKNOWN);
   setConfigAttributes(entry3, "vendorOne", "ab", "1", "", "");
   setValidationStatus(entry3, "--", "--");
   setOperAttributes(entry3, 0.0, 0.0);
 
-  auto entry4 = makeDefaultTcvrDetail("eth1/4/1", false, false);
+  auto entry4 = makeDefaultTcvrDetail(
+      "eth1/4/1", false, false, MediaInterfaceCode::UNKNOWN);
   setConfigAttributes(entry4, "vendorOne", "ac", "1", "", "");
   setValidationStatus(entry4, "--", "--");
   setOperAttributes(entry4, 0.0, 0.0);
 
-  auto entry5 = makeDefaultTcvrDetail("eth1/5/1", true, true);
+  auto entry5 = makeDefaultTcvrDetail(
+      "eth1/5/1", true, true, MediaInterfaceCode::LR4_400G_10KM);
   setConfigAttributes(entry5, "vendorOne", "ad", "2", "", "");
   setValidationStatus(entry5, "Not Validated", "invalidEepromChecksums");
   setOperAttributes(entry5, 0.0, 0.0);
 
-  auto entry6 = makeDefaultTcvrDetail("eth1/6/1", true, true);
+  auto entry6 = makeDefaultTcvrDetail(
+      "eth1/6/1", true, true, MediaInterfaceCode::FR4_LITE_2x400G);
   setConfigAttributes(entry6, "vendorThree", "c", "4", "3", "4");
   setValidationStatus(entry6, "Validated", "--");
   setOperAttributes(entry6, 30.0, 30.0);
@@ -276,14 +295,14 @@ TEST_F(CmdShowTransceiverTestFixture, printOutput) {
 
   std::string output = ss.str();
   std::string expectOutput =
-      " Interface  Status  Present  CfgValidated   Reason                        Vendor       Serial  Part Number  FW App Version  FW DSP Version  Temperature (C)  Voltage (V)  Current (mA)  Tx Power (dBm)  Rx Power (dBm)  Rx SNR \n"
-      "------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-      " eth1/1/1   Up      Present  Not Validated  nonValidatedVendorPartNumber  vendorOne    aa      1            1               2               50.00            25.00                                                             \n"
-      " eth1/2/1   Up      Present  Not Validated  missingVendor                 vendorTwo    b       3                                            40.00            25.00                                                             \n"
-      " eth1/3/1   Down    Absent   --             --                            vendorOne    ab      1                                            0.00             0.00                                                              \n"
-      " eth1/4/1   Down    Absent   --             --                            vendorOne    ac      1                                            0.00             0.00                                                              \n"
-      " eth1/5/1   Up      Present  Not Validated  invalidEepromChecksums        vendorOne    ad      2                                            0.00             0.00                                                              \n"
-      " eth1/6/1   Up      Present  Validated      --                            vendorThree  c       4            3               4               30.00            30.00                                                             \n\n";
+      " Interface  Status  Transceiver      CfgValidated   Reason                        Vendor       Serial  Part Number  FW App Version  FW DSP Version  Temperature (C)  Voltage (V)  Current (mA)  Tx Power (dBm)  Rx Power (dBm)  Rx SNR \n"
+      "--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+      " eth1/1/1   Up      FR4_400G         Not Validated  nonValidatedVendorPartNumber  vendorOne    aa      1            1               2               50.00            25.00                                                             \n"
+      " eth1/2/1   Up      UNKNOWN          Not Validated  missingVendor                 vendorTwo    b       3                                            40.00            25.00                                                             \n"
+      " eth1/3/1   Down    Absent           --             --                            vendorOne    ab      1                                            0.00             0.00                                                              \n"
+      " eth1/4/1   Down    Absent           --             --                            vendorOne    ac      1                                            0.00             0.00                                                              \n"
+      " eth1/5/1   Up      LR4_400G_10KM    Not Validated  invalidEepromChecksums        vendorOne    ad      2                                            0.00             0.00                                                              \n"
+      " eth1/6/1   Up      FR4_LITE_2x400G  Validated      --                            vendorThree  c       4            3               4               30.00            30.00                                                             \n\n";
 
   EXPECT_EQ(output, expectOutput);
 }

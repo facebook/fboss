@@ -80,9 +80,7 @@ front-panel management ethernet port. Refer to section I-6 for details.
     2. Alternate (2nd) Boot Recovery function should be enabled at manufacturing
     by strap OTP trap_en_bspiabr. The OTP bit can be programmed for 6 times, but
     it should be used only once during manufacturing, meaning still 5 times left.
-4. **TPM 2.0**
-    1. Please refer to Meta Platform Security Requirements [[2]](#2-meta-network-platform-security-requirements)
-5. **eMMC**
+4. **eMMC**
     1. 8GB eMMC is recommended. **(SD)**
     2. The eMMC should support a secure way of  erasing contents.  Secure erase
     is usually done by the “trim/erase + sanitize” command, but it may vary
@@ -694,13 +692,6 @@ the PR should follow the Meta PR request guidelines[[7]](#7-metaopenbmc-pull-req
 
 # CHAPTER IV : System Security Requirements
 
-
-## IV-1. System Security
-
-**The vendor will meet all the system security requirements defined in Meta’s
-“Network Platform Security Requirements” documentation.**[[2]](#2-meta-network-platform-security-requirements)
-Still, please note that :
-
 * As of Aug 2023, Meta does not require the switch system to have PRoT (root of
 trust device solution) on X86 side.
 * As of Aug 2023, Meta does not require the BMC of the switch system to run
@@ -783,14 +774,12 @@ touch/config/remote access of the switch.
 # References
 1: [FBOSS: BSP Kernel Module Requirements](./bsp_requirements.md)
 
-2: [Meta Network Platform Security Requirements](./platform_security_requirements.md)
+2: [Provisioning Requirements - NPI](./provisioning/provisioning_requirements_npi.md)
 
-3: [Provisioning Requirements - NPI](./provisioning/provisioning_requirements_npi.md)
+3: [Meta FBOSS Switch Platform Service Support Requirement](./services_support_requirements.md)
 
-4: [Meta FBOSS Switch Platform Service Support Requirement](./services_support_requirements.md)
+4: OCP Panel Indicator Specification - TBD
 
-5: OCP Panel Indicator Specification - TBD
+5: Partner SW Deliverables Schedule - Reach out to get access.
 
-6: Partner SW Deliverables Schedule - Reach out to get access.
-
-7: [Meta/OpenBMC Pull Request Guidelines](./openbmc_pr_guidelines.md)
+6: [Meta/OpenBMC Pull Request Guidelines](./openbmc_pr_guidelines.md)

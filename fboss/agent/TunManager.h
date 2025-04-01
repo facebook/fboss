@@ -208,6 +208,11 @@ class TunManager : public StateObserver {
   int getInterfaceMtu(InterfaceID ifID) const;
 
   /**
+   * Get the interface type for a given interface ID
+   */
+  cfg::InterfaceType getInterfaceType(InterfaceID ifID) const;
+
+  /**
    * Get Interface statuses map from a given SwitchState. In switch each
    * Interface/VLAN consists of multiple Ports. We derive state of Interface
    * to be UP if alteast one of the port belonging to that interface is UP.

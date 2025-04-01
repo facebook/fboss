@@ -531,7 +531,7 @@ int main(int argc, char* argv[]) {
   struct nic_info_s nicInfo;
   nicInfo.mapSize = 0x10000;
   nicInfo.mapAddr = (unsigned char*)mmap(
-      0, 0x10000, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+      nullptr, 0x10000, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
   if (nicInfo.mapAddr == MAP_FAILED) {
     printf("mmap failed for resource\n");
     close(fd);

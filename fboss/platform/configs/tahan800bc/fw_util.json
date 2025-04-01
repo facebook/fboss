@@ -76,7 +76,7 @@
       },
       "version": {
         "versionType": "sysfs",
-        "path": "/run/devmap/fpgas/SMB_IOB_INFO_ROM/fw_ver"
+        "path": "/run/devmap/inforoms/SMB_IOB_INFO_ROM/fw_ver"
       },
       "priority": 2
     },
@@ -134,7 +134,7 @@
       },
       "version": {
         "versionType": "sysfs",
-        "path": "/run/devmap/fpgas/SMB_DOM_INFO_ROM/fw_ver"
+        "path": "/run/devmap/inforoms/SMB_DOM_INFO_ROM/fw_ver"
       },
       "priority": 3
     },

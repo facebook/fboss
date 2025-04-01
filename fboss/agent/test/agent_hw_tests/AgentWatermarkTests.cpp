@@ -75,8 +75,9 @@ class AgentWatermarkTest : public AgentHwTest {
       const folly::IPAddressV6& dst,
       int payloadSize,
       std::optional<PortID> port) {
-    auto vlanId = utility::firstVlanID(getProgrammedState());
-    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
+    auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
+    auto intfMac =
+        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
 
     auto kECT1 = 0x01; // ECN capable transport ECT(1)
@@ -270,10 +271,10 @@ class AgentWatermarkTest : public AgentHwTest {
       bool needTrafficLoop = false) {
     utility::EcmpSetupTargetedPorts6 ecmpHelper6{
         getProgrammedState(),
-        (needTrafficLoop
-             ? std::make_optional<folly::MacAddress>(
-                   utility::getFirstInterfaceMac(getProgrammedState()))
-             : std::nullopt)};
+        (needTrafficLoop ? std::make_optional<folly::MacAddress>(
+                               utility::getMacForFirstInterfaceWithPorts(
+                                   getProgrammedState()))
+                         : std::nullopt)};
 
     applyNewState([&](const std::shared_ptr<SwitchState>& in) {
       return ecmpHelper6.resolveNextHops(in, {portDesc});
@@ -301,7 +302,8 @@ class AgentWatermarkTest : public AgentHwTest {
   }
 
   void _setup(bool needTrafficLoop = false) {
-    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
+    auto intfMac =
+        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     std::optional<folly::MacAddress> macAddr{};
     if (needTrafficLoop) {
       macAddr = intfMac;

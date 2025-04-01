@@ -668,6 +668,7 @@ enum HwObjectType {
   SAI_MANAGED_OBJECTS = 23,
   IPTUNNEL = 24,
   SYSTEM_PORT = 25,
+  FIRMWARE = 26,
 }
 
 exception FbossFibUpdateError {
@@ -770,6 +771,27 @@ struct EcmpDetails {
   2: bool flowletEnabled;
   3: i16 flowletInterval;
   4: i32 flowletTableSize;
+}
+
+enum FirmwareOpStatus {
+  UNKNOWN = 0,
+  LOADED = 1,
+  NOT_LOADED = 2,
+  RUNNING = 3,
+  STOPPED = 4,
+  ERROR = 5,
+}
+
+enum FirmwareFuncStatus {
+  UNKNOWN = 0,
+  ISOLATED = 1,
+  MONITORING = 2,
+}
+
+struct FirmwareInfo {
+  1: string version;
+  2: FirmwareOpStatus opStatus;
+  3: FirmwareFuncStatus funcStatus;
 }
 
 service FbossCtrl extends phy.FbossCommonPhyCtrl {
@@ -1471,6 +1493,11 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
    * Get SwitchID to SwitchInfo for all SwitchIDs.
    */
   map<i64, switch_config.SwitchInfo> getSwitchIdToSwitchInfo();
+
+  /*
+   * Get Firmware Information.
+   */
+  FirmwareInfo getFirmwareInfo();
 }
 
 service NeighborListenerClient extends fb303.FacebookService {

@@ -34,6 +34,14 @@ struct NextHopThrift {
   // MPLS encapsulation information for IP->MPLS and MPLS routes
   3: optional mpls.MplsAction mplsAction;
   4: optional bool disableTTLDecrement;
+
+  /**
+  * For capturing remote capacity information to assist Agent path pruning decisions
+  */
+  10: optional i32 planeId;
+  11: optional i32 remotePodCapacity;
+  12: optional i32 spineCapacity;
+  13: optional i32 rackCapacity;
 }
 
 /*

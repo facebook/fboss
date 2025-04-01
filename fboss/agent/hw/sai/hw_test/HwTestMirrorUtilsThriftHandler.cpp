@@ -41,7 +41,7 @@ bool verifyResolvedMirror(
     const state::MirrorFields& mirror,
     SaiMirrorHandle* mirrorHandle,
     sai_mirror_session_type_t session_type) {
-  auto cfgPortDesc = mirror.get_egressPortDesc();
+  auto cfgPortDesc = apache::thrift::get_pointer(mirror.egressPortDesc());
   auto egressPort =
       PortDescriptor::fromCfgCfgPortDescriptor(*cfgPortDesc).phyPortID();
   auto portHandle =
@@ -68,11 +68,11 @@ bool verifyResolvedMirror(
   auto tos = SaiApiTable::getInstance()->mirrorApi().getAttribute(
       mirrorHandle->adapterKey(),
       SaiEnhancedRemoteMirrorTraits::Attributes::Tos());
-  if (tos != mirror.get_dscp()) {
+  if (tos != folly::copy(mirror.dscp().value())) {
     return false;
   }
 
-  const auto& tunnel = mirror.get_tunnel();
+  const auto& tunnel = apache::thrift::get_pointer(mirror.tunnel());
   if (!tunnel) {
     return false;
   }
@@ -81,13 +81,13 @@ bool verifyResolvedMirror(
   auto srcIp = SaiApiTable::getInstance()->mirrorApi().getAttribute(
       mirrorHandle->adapterKey(),
       SaiEnhancedRemoteMirrorTraits::Attributes::SrcIpAddress());
-  if (srcIp != network::toIPAddress(tunnel->get_srcIp())) {
+  if (srcIp != network::toIPAddress(tunnel->srcIp().value())) {
     return false;
   }
   auto dstIp = SaiApiTable::getInstance()->mirrorApi().getAttribute(
       mirrorHandle->adapterKey(),
       SaiEnhancedRemoteMirrorTraits::Attributes::DstIpAddress());
-  if (dstIp != network::toIPAddress(tunnel->get_dstIp())) {
+  if (dstIp != network::toIPAddress(tunnel->dstIp().value())) {
     return false;
   }
 
@@ -95,13 +95,13 @@ bool verifyResolvedMirror(
   auto srcMac = SaiApiTable::getInstance()->mirrorApi().getAttribute(
       mirrorHandle->adapterKey(),
       SaiEnhancedRemoteMirrorTraits::Attributes::SrcMacAddress());
-  if (srcMac != folly::MacAddress(tunnel->get_srcMac())) {
+  if (srcMac != folly::MacAddress(tunnel->srcMac().value())) {
     return false;
   }
   auto dstMac = SaiApiTable::getInstance()->mirrorApi().getAttribute(
       mirrorHandle->adapterKey(),
       SaiEnhancedRemoteMirrorTraits::Attributes::DstMacAddress());
-  if (dstMac != folly::MacAddress(tunnel->get_dstMac())) {
+  if (dstMac != folly::MacAddress(tunnel->dstMac().value())) {
     return false;
   }
 
@@ -110,7 +110,7 @@ bool verifyResolvedMirror(
       mirrorHandle->adapterKey(),
       SaiEnhancedRemoteMirrorTraits::Attributes::Ttl());
 
-  if (ttl != tunnel->get_ttl()) {
+  if (ttl != folly::copy(tunnel->ttl().value())) {
     return false;
   }
   return true;
@@ -138,8 +138,10 @@ bool verifyResolvedSflowMirror(
       mirrorHandle->adapterKey(),
       SaiSflowMirrorTraits::Attributes::UdpSrcPort());
 
-  auto srcPort = mirror.get_tunnel()->get_udpSrcPort();
-  auto dstPort = mirror.get_tunnel()->get_udpDstPort();
+  auto srcPort = apache::thrift::get_pointer(
+      apache::thrift::get_pointer(mirror.tunnel())->udpSrcPort());
+  auto dstPort = apache::thrift::get_pointer(
+      apache::thrift::get_pointer(mirror.tunnel())->udpDstPort());
 
   if (udpSrcPort != *srcPort) {
     return false;
@@ -159,12 +161,13 @@ bool HwTestThriftHandler::isMirrorProgrammed(
   if (!mirror) {
     throw FbossError("isMirrorProgrammed: mirror is null");
   }
-  if (!mirror->get_isResolved()) {
-    XLOG(INFO) << "isMirrorProgrammed: " << mirror->get_name()
+  if (!folly::copy(mirror->isResolved().value())) {
+    XLOG(INFO) << "isMirrorProgrammed: " << mirror->name().value()
                << " is not resolved";
     return false;
   }
-  XLOG(INFO) << "isMirrorProgrammed: " << mirror->get_name() << " is resolved";
+  XLOG(INFO) << "isMirrorProgrammed: " << mirror->name().value()
+             << " is resolved";
 
   std::string jsonStr;
   apache::thrift::SimpleJSONSerializer::serialize(*mirror, &jsonStr);
@@ -173,16 +176,16 @@ bool HwTestThriftHandler::isMirrorProgrammed(
   auto saiSwitch = static_cast<SaiSwitch*>(hwSwitch_);
   auto mirrorHandle =
       saiSwitch->managerTable()->mirrorManager().getMirrorHandle(
-          mirror->get_name());
+          mirror->name().value());
   if (!mirrorHandle) {
     return false;
   }
-  auto tunnel = mirror->get_tunnel();
+  auto tunnel = apache::thrift::get_pointer(mirror->tunnel());
   if (!tunnel) {
     // regular local mirror
     return verifyResolvedLocalMirror(saiSwitch, *mirror, mirrorHandle);
   }
-  if (tunnel->get_udpSrcPort()) {
+  if (apache::thrift::get_pointer(tunnel->udpSrcPort())) {
     // sflow mirror
     return verifyResolvedSflowMirror(saiSwitch, *mirror, mirrorHandle);
   }

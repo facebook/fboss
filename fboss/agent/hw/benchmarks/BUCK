@@ -75,6 +75,18 @@ agent_benchmark_lib(
     name = "hw_system_scale_memory_benchmark",
     srcs = ["HwSystemScaleMemoryBenchmark.cpp"],
     extra_deps = [
+        "//fboss/agent/test/utils:agent_fsdb_integ_bench_helper",
+        "//fboss/agent/test/utils:system_scale_test_utils",
+        "//fboss/agent/benchmarks:agent_benchmarks_h",  # @manual
+        "//folly/init:init",
+    ],
+)
+
+agent_benchmark_lib(
+    name = "hw_system_scale_churn_memory_benchmark",
+    srcs = ["HwSystemScaleChurnMemoryBenchmark.cpp"],
+    extra_deps = [
+        "//fboss/agent/test/utils:agent_fsdb_integ_bench_helper",
         "//fboss/agent/test/utils:system_scale_test_utils",
         "//fboss/agent/benchmarks:agent_benchmarks_h",  # @manual
         "//folly/init:init",
@@ -385,5 +397,11 @@ agent_benchmark_lib(
 agent_benchmark_lib(
     name = "hw_voq_sys_port_programming",
     srcs = ["HwVoqSysPortProgrammingBenchmark.cpp"],
+    extra_deps = [],
+)
+
+agent_benchmark_lib(
+    name = "hw_clear_interface_phy_counters",
+    srcs = ["HwClearInterfacePhyCountersBenchmark.cpp"],
     extra_deps = [],
 )

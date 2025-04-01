@@ -21,7 +21,7 @@ AgentQosSchedulerTestBase::createUdpPkt(uint8_t dscpVal) const {
 
   return utility::makeUDPTxPacket(
       getSw(),
-      utility::firstVlanID(getProgrammedState()),
+      utility::firstVlanIDWithPorts(getProgrammedState()),
       srcMac,
       dstMac(),
       folly::IPAddressV6("2620:0:1cfe:face:b00c::3"),
@@ -58,7 +58,7 @@ void AgentQosSchedulerTestBase::sendUdpPkts(
 
 void AgentQosSchedulerTestBase::_setup(
     const utility::EcmpSetupAnyNPorts6& ecmpHelper6) {
-  resolveNeigborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
+  resolveNeighborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
   utility::ttlDecrementHandlingForLoopbackTraffic(
       getAgentEnsemble(), ecmpHelper6.getRouterId(), ecmpHelper6.nhop(0));
 }

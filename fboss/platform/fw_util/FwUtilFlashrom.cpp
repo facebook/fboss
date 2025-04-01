@@ -7,8 +7,6 @@ namespace facebook::fboss::platform::fw_util {
 std::string FwUtilImpl::detectFlashromChip(
     const FlashromConfig& flashromConfig,
     const std::string& fpd) {
-  bool printCommand = true;
-
   // Construct the command to detect the chip
   XLOG(INFO) << "Detecting chip for " << fpd;
 
@@ -27,8 +25,7 @@ std::string FwUtilImpl::detectFlashromChip(
         "No programmer or programmer type set for " + fpd +
         "while detecting chip");
   }
-  auto [exitStatus, standardOut] =
-      PlatformUtils().runCommand(cmd, printCommand);
+  auto [exitStatus, standardOut] = PlatformUtils().runCommand(cmd);
 
   /*
    * For some platform, we have to determine the type of the chip
@@ -43,7 +40,7 @@ std::string FwUtilImpl::detectFlashromChip(
   for (const auto& chip : spiChip_[fpd]) {
     std::vector<std::string> grepCmd = {"/bin/grep", "-q", chip};
     auto [exitStatus2, standardOut2] =
-        PlatformUtils().runCommandWithStdin(grepCmd, standardOut, printCommand);
+        PlatformUtils().runCommandWithStdin(grepCmd, standardOut);
     if (exitStatus2 == 0) {
       // Chip detected, return the chip name
       XLOG(INFO) << "Detected chip: " << chip;
@@ -123,9 +120,9 @@ void FwUtilImpl::addFileOption(
   if (operation == "read") {
     flashromCmd.push_back("-r");
   } else if (operation == "write" || operation == "verify") {
-    if (!std::filesystem::exists(FLAGS_fw_binary_file)) {
+    if (!std::filesystem::exists(fwBinaryFile_)) {
       throw std::runtime_error(
-          "Firmware binary file not found: " + FLAGS_fw_binary_file);
+          "Firmware binary file not found: " + fwBinaryFile_);
     }
     if (operation == "write") {
       flashromCmd.push_back("-w");
@@ -135,21 +132,19 @@ void FwUtilImpl::addFileOption(
   } else {
     XLOG(ERR) << "Unsupported operation: " << operation;
   }
-  flashromCmd.push_back(FLAGS_fw_binary_file);
+  flashromCmd.push_back(fwBinaryFile_);
 }
 
 void FwUtilImpl::performFlashromUpgrade(
     const FlashromConfig& flashromConfig,
     const std::string& fpd) {
-  bool printCommand = true;
   std::vector<std::string> flashromCmd = {"/usr/bin/flashrom"};
 
   setProgrammerAndChip(flashromConfig, fpd, flashromCmd);
   addCommonFlashromArgs(flashromConfig, fpd, "write", flashromCmd);
 
   // Execute the flashrom command
-  auto [exitStatus, standardOut] =
-      PlatformUtils().runCommand(flashromCmd, printCommand);
+  auto [exitStatus, standardOut] = PlatformUtils().runCommand(flashromCmd);
   checkCmdStatus(flashromCmd, exitStatus);
   XLOG(INFO) << standardOut;
 }
@@ -157,16 +152,13 @@ void FwUtilImpl::performFlashromUpgrade(
 void FwUtilImpl::performFlashromRead(
     const FlashromConfig& flashromConfig,
     const std::string& fpd) {
-  bool printCommand = true;
-
   std::vector<std::string> flashromCmd = {"/usr/bin/flashrom"};
 
   setProgrammerAndChip(flashromConfig, fpd, flashromCmd);
   addCommonFlashromArgs(flashromConfig, fpd, "read", flashromCmd);
 
   // Execute the flashrom command
-  auto [exitStatus, standardOut] =
-      PlatformUtils().runCommand(flashromCmd, printCommand);
+  auto [exitStatus, standardOut] = PlatformUtils().runCommand(flashromCmd);
   checkCmdStatus(flashromCmd, exitStatus);
   XLOG(INFO) << standardOut;
 }
@@ -174,14 +166,11 @@ void FwUtilImpl::performFlashromRead(
 void FwUtilImpl::performFlashromVerify(
     const FlashromConfig& flashromConfig,
     const std::string& fpd) {
-  bool printCommand = true;
-
   std::vector<std::string> flashromCmd = {"/usr/bin/flashrom"};
   setProgrammerAndChip(flashromConfig, fpd, flashromCmd);
   addCommonFlashromArgs(flashromConfig, fpd, "verify", flashromCmd);
   // Execute the flashrom command
-  auto [exitStatus, standardOut] =
-      PlatformUtils().runCommand(flashromCmd, printCommand);
+  auto [exitStatus, standardOut] = PlatformUtils().runCommand(flashromCmd);
   checkCmdStatus(flashromCmd, exitStatus);
   XLOG(INFO) << standardOut;
 }

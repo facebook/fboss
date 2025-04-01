@@ -17,6 +17,7 @@
 #include "fboss/agent/hw/sai/api/CounterApi.h"
 #include "fboss/agent/hw/sai/api/DebugCounterApi.h"
 #include "fboss/agent/hw/sai/api/FdbApi.h"
+#include "fboss/agent/hw/sai/api/FirmwareApi.h"
 #include "fboss/agent/hw/sai/api/HashApi.h"
 #include "fboss/agent/hw/sai/api/HostifApi.h"
 #include "fboss/agent/hw/sai/api/LagApi.h"
@@ -86,6 +87,10 @@ class SaiApiTable {
   const DebugCounterApi& debugCounterApi() const;
 
   const FdbApi& fdbApi() const;
+
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+  const FirmwareApi& firmwareApi() const;
+#endif
 
   const HashApi& hashApi() const;
 
@@ -174,6 +179,9 @@ class SaiApiTable {
 #endif
       std::unique_ptr<DebugCounterApi>,
       std::unique_ptr<FdbApi>,
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+      std::unique_ptr<FirmwareApi>,
+#endif
       std::unique_ptr<HashApi>,
       std::unique_ptr<HostifApi>,
       std::unique_ptr<NextHopApi>,

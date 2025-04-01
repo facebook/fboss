@@ -33,7 +33,8 @@ state::AclTtl AclTtl::toThrift() const {
 }
 
 AclTtl AclTtl::fromThrift(state::AclTtl const& ttl) {
-  return AclTtl(ttl.get_value(), ttl.get_mask());
+  return AclTtl(
+      folly::copy(ttl.value().value()), folly::copy(ttl.mask().value()));
 }
 
 std::set<cfg::AclTableQualifier> AclEntry::getRequiredAclTableQualifiers()

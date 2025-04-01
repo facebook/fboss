@@ -37,8 +37,9 @@ class AgentInNullRouteDiscardsCounterTest : public AgentHwTest {
 
  protected:
   void pumpTraffic(bool isV6) {
-    auto vlanId = utility::firstVlanID(getProgrammedState());
-    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
+    auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
+    auto intfMac =
+        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     auto srcIp = folly::IPAddress(isV6 ? "1001::1" : "10.0.0.1");
     auto dstIp = folly::IPAddress(isV6 ? "100:100:100::1" : "100.100.100.1");
     auto pkt = utility::makeUDPTxPacket(
@@ -55,16 +56,16 @@ TEST_F(AgentInNullRouteDiscardsCounterTest, nullRouteHit) {
       cfg::SwitchConfig cfg = initialConfig(*getAgentEnsemble());
       std::vector<PortID> portIds = {masterLogicalInterfacePortIds()[0]};
       std::vector<int> losslessPgIds = {2};
+      std::vector<int> lossyPgIds = {0};
       // Make sure default traffic goes to PG2, which is lossless
       const std::map<int, int> tcToPgOverride{{0, 2}};
-      const auto bufferParams = PfcBufferParams{};
       utility::setupPfcBuffers(
           getAgentEnsemble(),
           cfg,
           portIds,
           losslessPgIds,
-          tcToPgOverride,
-          bufferParams);
+          lossyPgIds,
+          tcToPgOverride);
       applyNewConfig(cfg);
     }
   };

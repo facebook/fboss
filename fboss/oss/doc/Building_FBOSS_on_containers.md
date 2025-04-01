@@ -146,6 +146,7 @@ but are listed below for convenience. Default value is "SAI_VERSION_11_0_EA_DNX_
     - `SAI_VERSION_11_3_0_0_DNX_ODP`
     - `SAI_VERSION_11_7_0_0_DNX_ODP`
     - `SAI_VERSION_12_0_EA_DNX_ODP`
+    - `SAI_VERSION_13_0_EA_ODP`
 
 ### Build Options
 

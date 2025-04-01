@@ -412,17 +412,17 @@ class AgentEnsemblePrbsTest : public AgentEnsembleLinkTest {
       bool initial,
       time_t testStartTime) {
     ASSERT_FALSE(stats.get_laneStats().empty());
-    for (const auto& laneStat : stats.get_laneStats()) {
+    for (const auto& laneStat : stats.laneStats().value()) {
       XLOG(DBG2) << folly::sformat(
           "Interface {:s}, component {:s}, lane: {:d}, locked: {:d}, numLossOfLock: {:d}, ber: {:e}, maxBer: {:e}, timeSinceLastLock: {:d}",
           interfaceName,
           apache::thrift::util::enumNameSafe(component),
-          laneStat.get_laneId(),
-          laneStat.get_locked(),
-          laneStat.get_numLossOfLock(),
-          laneStat.get_ber(),
-          laneStat.get_maxBer(),
-          laneStat.get_timeSinceLastLocked());
+          folly::copy(laneStat.laneId().value()),
+          folly::copy(laneStat.locked().value()),
+          folly::copy(laneStat.numLossOfLock().value()),
+          folly::copy(laneStat.ber().value()),
+          folly::copy(laneStat.maxBer().value()),
+          folly::copy(laneStat.timeSinceLastLocked().value()));
       EXPECT_TRUE(laneStat.get_locked());
       auto currentTime = std::time(nullptr);
       EXPECT_LE(
@@ -498,7 +498,7 @@ class AgentEnsemblePrbsTest : public AgentEnsembleLinkTest {
       phy::PrbsStats stats;
       client->sync_getInterfacePrbsStats(stats, interfaceName, component);
       EXPECT_FALSE(stats.get_laneStats().empty());
-      for (const auto& laneStat : stats.get_laneStats()) {
+      for (const auto& laneStat : stats.laneStats().value()) {
         // Don't check lock status because clear would have cleared it too and
         // we may not have had an update of stats yet
         EXPECT_EQ(laneStat.get_numLossOfLock(), 0);

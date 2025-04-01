@@ -21,6 +21,7 @@
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSystemPortManager.h"
+#include "fboss/agent/hw/sai/switch/SaiVendorSwitchManager.h"
 
 DECLARE_int32(update_cable_length_stats_s);
 
@@ -161,6 +162,13 @@ void SaiSwitch::updateStatsImpl() {
   {
     std::lock_guard<std::mutex> locked(saiSwitchMutex_);
     managerTable_->switchManager().updateStats(updateWatermarks);
+  }
+  if (updateWatermarks &&
+      platform_->getAsic()->isSupported(
+          HwAsic::Feature::VENDOR_SWITCH_NOTIFICATION)) {
+    // Use the same frequency as watermark updates to log CGM errors.
+    std::lock_guard<std::mutex> locked(saiSwitchMutex_);
+    managerTable_->vendorSwitchManager().logCgmErrors();
   }
   reportAsymmetricTopology();
   reportInterPortGroupCableSkew();

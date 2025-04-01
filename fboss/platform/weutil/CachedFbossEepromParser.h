@@ -12,7 +12,7 @@ class CachedFbossEepromParser {
 
   std::vector<std::pair<std::string, std::string>> getContents(
       const std::string& eepromFilePath,
-      uint16_t offset = 0) {
+      uint16_t offset) {
     auto eepromPtr = std::make_pair(eepromFilePath, offset);
     if (cache_.find(eepromPtr) == cache_.end()) {
       auto contents = FbossEepromParser(eepromFilePath, offset).getContents();
@@ -25,7 +25,7 @@ class CachedFbossEepromParser {
 
   std::optional<std::string> getProductName(
       const std::string& eepromFilePath,
-      uint16_t offset = 0) {
+      uint16_t offset) {
     for (const auto& [key, value] : getContents(eepromFilePath, offset)) {
       if (key == "Product Name") {
         return value;
@@ -36,7 +36,7 @@ class CachedFbossEepromParser {
 
   std::optional<int> getProductionState(
       const std::string& eepromFilePath,
-      uint16_t offset = 0) {
+      uint16_t offset) {
     for (const auto& [key, value] : getContents(eepromFilePath, offset)) {
       // < V6 - "Product Production State"
       // = V6 - "Production State"
@@ -49,7 +49,7 @@ class CachedFbossEepromParser {
 
   std::optional<int> getProductionSubState(
       const std::string& eepromFilePath,
-      uint16_t offset = 0) {
+      uint16_t offset) {
     for (const auto& [key, value] : getContents(eepromFilePath, offset)) {
       // < V6 - "Product Version"
       // = V6 - "Production Sub-State"

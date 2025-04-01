@@ -30,7 +30,7 @@ jobs:
           --scratch-path
           ${{ github.workspace }}/build-output
           --target
-          github_actions_fboss_platform_services
+          fboss_platform_services
           --no-docker-output
           --no-system-deps
           --env-var

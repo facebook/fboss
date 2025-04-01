@@ -93,13 +93,13 @@ class AgentAclCounterTest : public AgentHwTest {
         aclName = "test-l4-port-acl";
         break;
       case AclType::UDF_OPCODE_ACK:
-        aclName = "test-udf-opcode-ack-acl";
+        aclName = "test-udf-opc-ack-acl";
         break;
       case AclType::UDF_OPCODE_WRITE_IMMEDIATE:
-        aclName = "test-udf-opcode-write-immediate-acl";
+        aclName = "test-udf-opc-wrt-immdt-acl";
         break;
       case AclType::BTH_OPCODE:
-        aclName = "test-bth-opcode-acl";
+        aclName = "test-bth-opc-acl";
         break;
       case AclType::FLOWLET:
         aclName = "test-flowlet-acl";
@@ -130,13 +130,13 @@ class AgentAclCounterTest : public AgentHwTest {
         counterName = "test-l4-port-acl-stats";
         break;
       case AclType::UDF_OPCODE_ACK:
-        counterName = "test-udf-opcode-ack-acl-stats";
+        counterName = "test-udf-opc-ack-acl-stats";
         break;
       case AclType::UDF_OPCODE_WRITE_IMMEDIATE:
-        counterName = "test-udf-opcode-write-immediate-acl-stats";
+        counterName = "test-udf-opc-wrt-immdt-acl-cnt";
         break;
       case AclType::BTH_OPCODE:
-        counterName = "test-bth-opcode-acl-stats";
+        counterName = "test-bth-opc-acl-stats";
         break;
       case AclType::FLOWLET:
         counterName = "test-flowlet-acl-stats";
@@ -224,8 +224,9 @@ class AgentAclCounterTest : public AgentHwTest {
   }
 
   size_t sendRoceTraffic(const PortID frontPanelEgrPort, AclType aclType) {
-    auto vlanId = utility::firstVlanID(getProgrammedState());
-    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
+    auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
+    auto intfMac =
+        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     uint8_t opcode = (aclType == AclType::UDF_OPCODE_WRITE_IMMEDIATE)
         ? utility::kUdfRoceOpcodeWriteImmediate
         : utility::kUdfRoceOpcodeAck;
@@ -250,8 +251,9 @@ class AgentAclCounterTest : public AgentHwTest {
             (aclType == AclType::UDP_TTLD || aclType == AclType::TCP_TTLD)
         ? 200
         : 10;
-    auto vlanId = utility::firstVlanID(getProgrammedState());
-    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
+    auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
+    auto intfMac =
+        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
     int l4DstPort = kL4DstPort();
     if (aclType == AclType::L4_DST_PORT) {
@@ -444,7 +446,10 @@ class AgentAclCounterTest : public AgentHwTest {
   void addAclAndStat(cfg::SwitchConfig* config, AclType aclType) const {
     auto aclName = getAclName(aclType);
     auto counterName = getCounterName(aclType);
-    auto acl = utility::addAcl(config, aclName, aclActionType_);
+    cfg::AclEntry aclEntry;
+    aclEntry.name() = aclName;
+    aclEntry.actionType() = aclActionType_;
+    auto* acl = &aclEntry;
     auto l3Asics = getAgentEnsemble()->getL3Asics();
     auto asic = utility::checkSameAndGetAsic(l3Asics);
     switch (aclType) {
@@ -475,11 +480,13 @@ class AgentAclCounterTest : public AgentHwTest {
         break;
       case AclType::UDF_OPCODE_ACK:
         acl->udfGroups() = {utility::kUdfAclRoceOpcodeGroupName};
-        acl->roceOpcode() = utility::kUdfRoceOpcodeAck;
+        acl->roceBytes() = {utility::kUdfRoceOpcodeAck};
+        acl->roceMask() = {utility::kUdfRoceOpcodeMask};
         break;
       case AclType::UDF_OPCODE_WRITE_IMMEDIATE:
         acl->udfGroups() = {utility::kUdfAclRoceOpcodeGroupName};
-        acl->roceOpcode() = utility::kUdfRoceOpcodeWriteImmediate;
+        acl->roceBytes() = {utility::kUdfRoceOpcodeWriteImmediate};
+        acl->roceMask() = {utility::kUdfRoceOpcodeMask};
         break;
       case AclType::BTH_OPCODE:
         acl->etherType() = cfg::EtherType::IPv6;
@@ -489,6 +496,8 @@ class AgentAclCounterTest : public AgentHwTest {
       case AclType::UDF_FLOWLET:
         break;
     }
+    utility::addAcl(config, aclEntry, cfg::AclStage::INGRESS);
+
     std::vector<cfg::CounterType> setCounterTypes{
         cfg::CounterType::PACKETS, cfg::CounterType::BYTES};
     utility::addAclStat(config, aclName, counterName, setCounterTypes);
@@ -498,12 +507,26 @@ class AgentAclCounterTest : public AgentHwTest {
   std::unique_ptr<utility::EcmpSetupAnyNPorts6> helper_;
 };
 
+class AgentL4DstPortAclCounterTest : public AgentAclCounterTest {
+ public:
+  std::vector<production_features::ProductionFeature>
+  getProductionFeaturesVerified() const override {
+    if (!FLAGS_enable_acl_table_group) {
+      return {
+          production_features::ProductionFeature::ACL_COUNTER,
+          production_features::ProductionFeature::SINGLE_ACL_TABLE,
+          production_features::ProductionFeature::L4_DST_PORT_ACL};
+    } else {
+      return {
+          production_features::ProductionFeature::ACL_COUNTER,
+          production_features::ProductionFeature::MULTI_ACL_TABLE,
+          production_features::ProductionFeature::L4_DST_PORT_ACL};
+    }
+  }
+};
+
 // Verify that traffic arrive on a front panel port increments ACL counter.
 TEST_F(AgentAclCounterTest, VerifyCounterBumpOnTtlHitFrontPanel) {
-  auto asic = utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
-  if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
-    GTEST_FAIL() << "TTLD ACL is not supported on chenab asic.";
-  }
   this->counterBumpOnHitHelper(
       true /* bump on hit */,
       true /* front panel port */,
@@ -514,7 +537,10 @@ TEST_F(AgentAclCounterTest, VerifyCounterBumpOnSportHitFrontPanel) {
   this->counterBumpOnHitHelper(
       true /* bump on hit */, true /* front panel port */, {AclType::SRC_PORT});
 }
-TEST_F(AgentAclCounterTest, VerifyCounterBumpOnL4DstportHitFrontPanel) {
+
+TEST_F(
+    AgentL4DstPortAclCounterTest,
+    VerifyCounterBumpOnL4DstportHitFrontPanel) {
   this->counterBumpOnHitHelper(
       true /* bump on hit */,
       true /* front panel port */,
@@ -527,10 +553,6 @@ TEST_F(AgentAclCounterTest, VerifyCounterBumpOnSportHitFrontPanelWithDrop) {
 }
 // Verify that traffic originating on the CPU increments ACL counter.
 TEST_F(AgentAclCounterTest, VerifyCounterBumpOnTtlHitCpu) {
-  auto asic = utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
-  if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
-    GTEST_FAIL() << "TTLD ACL is not supported on chenab asic.";
-  }
   this->counterBumpOnHitHelper(
       true /* bump on hit */,
       false /* cpu port */,
@@ -544,10 +566,6 @@ TEST_F(AgentAclCounterTest, VerifyCounterBumpOnSportHitCpu) {
 
 // Verify that traffic arrive on a front panel port increments ACL counter.
 TEST_F(AgentAclCounterTest, VerifyCounterNoTtlHitNoBumpFrontPanel) {
-  auto asic = utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
-  if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
-    GTEST_FAIL() << "TTLD ACL is not supported on chenab asic.";
-  }
   this->counterBumpOnHitHelper(
       false /* no hit, no bump */,
       true /* front panel port */,
@@ -556,10 +574,6 @@ TEST_F(AgentAclCounterTest, VerifyCounterNoTtlHitNoBumpFrontPanel) {
 
 // Verify that traffic originating on the CPU increments ACL counter.
 TEST_F(AgentAclCounterTest, VerifyCounterNoHitNoBumpCpu) {
-  auto asic = utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
-  if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
-    GTEST_FAIL() << "TTLD ACL is not supported on chenab asic.";
-  }
   this->counterBumpOnHitHelper(
       false /* no hit, no bump */,
       false /* cpu port */,
@@ -570,7 +584,7 @@ TEST_F(AgentAclCounterTest, VerifyAclPrioritySportHitFrontPanel) {
   this->aclPriorityTestHelper();
 }
 
-TEST_F(AgentAclCounterTest, VerifyAclPriorityL4DstportHitFrontPanel) {
+TEST_F(AgentL4DstPortAclCounterTest, VerifyAclPriorityL4DstportHitFrontPanel) {
   this->aclPriorityTestHelper2();
 }
 
@@ -588,6 +602,14 @@ class AgentUdfAclCounterTest : public AgentAclCounterTest {
         true /*interfaceHasSubnet*/);
     cfg.udfConfig() = utility::addUdfAclConfig();
     return cfg;
+  }
+
+  std::vector<production_features::ProductionFeature>
+  getProductionFeaturesVerified() const override {
+    auto features = AgentAclCounterTest::getProductionFeaturesVerified();
+    features.push_back(
+        production_features::ProductionFeature::UDF_WR_IMMEDIATE_ACL);
+    return features;
   }
 };
 

@@ -28,6 +28,9 @@ inline constexpr std::string_view kPathStoreNum{"object.count.pathStores"};
 inline constexpr std::string_view kPathStoreAllocs{"object.allocs.pathStores"};
 inline constexpr std::string_view kPublishTimePrefix{"publish_time_ms"};
 inline constexpr std::string_view kSubscribeTimePrefix{"subscribe_time_ms"};
+inline constexpr std::string_view kSubscriberPrefix{"subscriber"};
+inline constexpr std::string_view kSubscriptionQueueWatermark{
+    "queue_watermark"};
 
 // non-templated parts of NaivePeriodicSubscribableStorage to help with
 // compilation
@@ -47,13 +50,15 @@ class NaivePeriodicSubscribableStorageBase {
         bool trackMetadata = false,
         const std::string& metricPrefix = "fsdb",
         bool convertToIDPaths = false,
-        bool requireResponseOnInitialSync = false)
+        bool requireResponseOnInitialSync = false,
+        bool exportPerSubscriberMetrics = false)
         : subscriptionServeInterval_(subscriptionServeInterval),
           subscriptionHeartbeatInterval_(subscriptionHeartbeatInterval),
           trackMetadata_(trackMetadata),
           metricPrefix_(metricPrefix),
           convertSubsToIDPaths_(convertToIDPaths),
-          requireResponseOnInitialSync_(requireResponseOnInitialSync) {}
+          requireResponseOnInitialSync_(requireResponseOnInitialSync),
+          exportPerSubscriberMetrics_(exportPerSubscriberMetrics) {}
 
     const std::chrono::milliseconds subscriptionServeInterval_;
     const std::chrono::milliseconds subscriptionHeartbeatInterval_;
@@ -61,6 +66,7 @@ class NaivePeriodicSubscribableStorageBase {
     const std::string& metricPrefix_;
     bool convertSubsToIDPaths_;
     const bool requireResponseOnInitialSync_;
+    const bool exportPerSubscriberMetrics_;
   };
 
   explicit NaivePeriodicSubscribableStorageBase(StorageParams params);
@@ -248,6 +254,8 @@ class NaivePeriodicSubscribableStorageBase {
   // per-PublisherRoot metrics
   const std::string publishTimePrefix_;
   const std::string subscribeTimePrefix_;
+  // per-subscriber metrics
+  const std::string subscriberPrefix_;
 
   // delete copy constructors
   NaivePeriodicSubscribableStorageBase(

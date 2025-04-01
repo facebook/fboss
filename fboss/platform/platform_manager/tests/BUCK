@@ -20,7 +20,7 @@ cpp_unittest(
         "I2cExplorerTest.cpp",
     ],
     deps = [
-        "//fboss/platform/helpers:mock_platform_utils",
+        "//fboss/platform/helpers:mock_platform_fs_utils",
         "//fboss/platform/platform_manager:i2c_explorer",
     ],
 )

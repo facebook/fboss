@@ -166,6 +166,7 @@ void PlatformExplorer::explore() {
     createDeviceSymLink(linkPath, devicePath);
   }
   publishFirmwareVersions();
+  genHumanReadableEeproms();
   auto explorationStatus = explorationSummary_.summarize();
   updatePmStatus(createPmStatus(
       explorationStatus,
@@ -285,7 +286,7 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
   auto slotTypeConfig = platformConfig_.slotTypeConfigs_ref()->at(slotType);
   CHECK(slotTypeConfig.idpromConfig() || slotTypeConfig.pmUnitName());
   std::optional<std::string> pmUnitNameInEeprom{std::nullopt};
-  std::optional<int> productProductionStateInEeprom{std::nullopt};
+  std::optional<int> productionStateInEeprom{std::nullopt};
   std::optional<int> productVersionInEeprom{std::nullopt};
   std::optional<int> productSubVersionInEeprom{std::nullopt};
   if (slotTypeConfig.idpromConfig_ref()) {
@@ -335,23 +336,25 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
       eepromPath = eepromPath + "/eeprom";
     }
     try {
+      dataStore_.updateEepromContents(
+          Utils().createDevicePath(slotPath, "IDPROM"),
+          eepromParser_.getContents(eepromPath, *idpromConfig.offset()));
       pmUnitNameInEeprom =
           eepromParser_.getProductName(eepromPath, *idpromConfig.offset());
       // TODO: Avoid this side effect in this function.
       // I think we can refactor this simpler once I2CDevicePaths are also
       // stored in DataStore. 1/ Create IDPROMs 2/ Read contents from eepromPath
       // stored in DataStore.
-      productProductionStateInEeprom =
+      productionStateInEeprom =
           eepromParser_.getProductionState(eepromPath, *idpromConfig.offset());
       productVersionInEeprom = eepromParser_.getProductionSubState(
           eepromPath, *idpromConfig.offset());
       productSubVersionInEeprom =
           eepromParser_.getVariantVersion(eepromPath, *idpromConfig.offset());
       XLOG(INFO) << fmt::format(
-          "Found ProductProductionState `{}` ProductVersion `{}` ProductSubVersion `{}` in IDPROM {} at {}",
-          productProductionStateInEeprom
-              ? std::to_string(*productProductionStateInEeprom)
-              : "<ABSENT>",
+          "Found ProductionState `{}` ProductVersion `{}` ProductSubVersion `{}` in IDPROM {} at {}",
+          productionStateInEeprom ? std::to_string(*productionStateInEeprom)
+                                  : "<ABSENT>",
           productVersionInEeprom ? std::to_string(*productVersionInEeprom)
                                  : "<ABSENT>",
           productSubVersionInEeprom ? std::to_string(*productSubVersionInEeprom)
@@ -378,7 +381,6 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
   }
 
   auto pmUnitName = pmUnitNameInEeprom;
-  XLOG(INFO) << "SlotType PmUnitName: " << *slotTypeConfig.pmUnitName();
   if (slotTypeConfig.pmUnitName()) {
     if (pmUnitNameInEeprom &&
         *pmUnitNameInEeprom != *slotTypeConfig.pmUnitName()) {
@@ -403,7 +405,7 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
   dataStore_.updatePmUnitInfo(
       slotPath,
       *pmUnitName,
-      productProductionStateInEeprom,
+      productionStateInEeprom,
       productVersionInEeprom,
       productSubVersionInEeprom);
   return pmUnitName;
@@ -480,6 +482,10 @@ void PlatformExplorer::explorePciDevices(
     auto pciDevice = PciDevice(pciDeviceConfig, platformFsUtils_);
     auto instId =
         getFpgaInstanceId(slotPath, *pciDeviceConfig.pmUnitScopedName());
+    auto pciDevicePath = Utils().createDevicePath(slotPath, pciDevice.name());
+    dataStore_.updateSysfsPath(pciDevicePath, pciDevice.sysfsPath());
+    dataStore_.updateCharDevPath(pciDevicePath, pciDevice.charDevPath());
+
     createPciSubDevices(
         slotPath,
         *pciDeviceConfig.i2cAdapterConfigs(),
@@ -806,6 +812,47 @@ void PlatformExplorer::createPciSubDevices(
       explorationSummary_.addError(
           errorType, slotPath, ex.getPmUnitScopedName(), errMsg);
     }
+  }
+}
+
+void PlatformExplorer::genHumanReadableEeproms() {
+  const auto writeEepromContent = [&](const auto& devicePath,
+                                      const auto& eepromRuntimePath) {
+    // Parse the eeproms which are defined as just I2cDeviceConfig (and not
+    // IdpromConfig). All eeproms in IdpromConfigs are parsed during ...
+    if (!dataStore_.hasEepromContents(devicePath)) {
+      // Eeproms defined in I2cDeviceConfig doesn't have offset defined.
+      dataStore_.updateEepromContents(
+          devicePath,
+          eepromParser_.getContents(eepromRuntimePath, /*offset*/ 0));
+    }
+    auto contents = dataStore_.getEepromContents(devicePath);
+    std::ostringstream os;
+    for (const auto& [key, value] : contents) {
+      os << fmt::format("{}: {}\n", key, value);
+    }
+    platformFsUtils_->writeStringToFile(
+        os.str(), fmt::format("{}_PARSED", eepromRuntimePath));
+  };
+
+  for (const auto& [linkPath, devicePath] :
+       *platformConfig_.symbolicLinkToDevicePath()) {
+    if (!linkPath.starts_with("/run/devmap/eeproms")) {
+      continue;
+    }
+    // DSF P1 is sunsetting until then ignore.
+    if (devicePath == "/[SCM_IDPROM_P1]") {
+      continue;
+    }
+    writeEepromContent(devicePath, linkPath);
+  }
+
+  // In DSF, there's the kernel driver binding issue at the eeproms' addresses,
+  // Hence, the eeproms were created through custom utility and not listed under
+  // `symbolicLinkToDevicePath()`
+  // See: https://github.com/facebookexternal/fboss.bsp.arista/pull/31/files
+  if (std::filesystem::exists("/run/devmap/eeproms/MERU_SCM_EEPROM")) {
+    writeEepromContent("/[IDPROM]", "/run/devmap/eeproms/MERU_SCM_EEPROM");
   }
 }
 } // namespace facebook::fboss::platform::platform_manager

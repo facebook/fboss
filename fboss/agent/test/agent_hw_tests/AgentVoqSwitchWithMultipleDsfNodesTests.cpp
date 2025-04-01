@@ -265,8 +265,9 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, voqDelete) {
       if (!isSupportedOnAllAsics(HwAsic::Feature::VOQ_DELETE_COUNTER)) {
         return 0L;
       }
-      return getLatestSysPortStats(kRemoteSysPortId)
-          .get_queueCreditWatchdogDeletedPackets_()
+      return folly::copy(getLatestSysPortStats(kRemoteSysPortId)
+                             .queueCreditWatchdogDeletedPackets_()
+                             .value())
           .at(utility::getDefaultQueue());
     };
 
@@ -379,8 +380,8 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, stressAddRemoveObjects) {
       }
     }
     assertVoqTailDrops(kNeighborIp, kRemoteSysPortId);
-    auto beforePkts =
-        getLatestPortStats(kPort.phyPortID()).get_outUnicastPkts_();
+    auto beforePkts = folly::copy(
+        getLatestPortStats(kPort.phyPortID()).outUnicastPkts_().value());
     // CPU send
     sendPacket(ecmpHelper.ip(kPort), std::nullopt);
     auto frontPanelPort = ecmpHelper.ecmpPortDescriptorAt(1).phyPortID();
@@ -628,6 +629,28 @@ TEST_F(AgentVoqShelSwitchTest, init) {
       }
     }
   };
-  verifyAcrossWarmBoots(setup, verify);
+  auto setupPostWarmboot = [this]() {
+    auto config = getSw()->getConfig();
+    config.switchSettings()->selfHealingEcmpLagConfig().reset();
+    // Disable selfHealingEcmpLag on Interface Ports
+    for (auto& port : *config.ports()) {
+      if (port.portType() == cfg::PortType::INTERFACE_PORT) {
+        port.selfHealingECMPLagEnable() = false;
+      }
+    }
+    applyNewConfig(config);
+  };
+  auto verifyPostWarmboot = [this]() {
+    auto state = getProgrammedState();
+    for (const auto& portMap : std::as_const(*state->getPorts())) {
+      for (const auto& port : std::as_const(*portMap.second)) {
+        if (port.second->getPortType() == cfg::PortType::INTERFACE_PORT) {
+          EXPECT_TRUE(port.second->getSelfHealingECMPLagEnable().has_value());
+          EXPECT_FALSE(port.second->getSelfHealingECMPLagEnable().value());
+        }
+      }
+    }
+  };
+  verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
 }
 } // namespace facebook::fboss

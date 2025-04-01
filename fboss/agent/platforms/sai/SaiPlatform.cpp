@@ -25,7 +25,6 @@
 #include "fboss/agent/platforms/sai/SaiBcmWedge100PlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmWedge400PlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmYampPlatformPort.h"
-#include "fboss/agent/platforms/sai/SaiCloudRipperPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiElbert8DDPhyPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiFakePlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiJanga800bicPlatformPort.h"
@@ -295,11 +294,8 @@ std::string SaiPlatform::getHwAsicConfig(
 }
 
 void SaiPlatform::initSaiProfileValues() {
-  if (getType() != PlatformType::PLATFORM_YANGRA &&
-      getType() != PlatformType::PLATFORM_MINIPACK3N) {
-    kSaiProfileValues.insert(
-        std::make_pair(SAI_KEY_INIT_CONFIG_FILE, getHwConfigDumpFile()));
-  }
+  kSaiProfileValues.insert(
+      std::make_pair(SAI_KEY_INIT_CONFIG_FILE, getHwConfigDumpFile()));
   kSaiProfileValues.insert(std::make_pair(
       SAI_KEY_WARM_BOOT_READ_FILE, getWarmBootHelper()->warmBootDataPath()));
   kSaiProfileValues.insert(std::make_pair(
@@ -339,11 +335,6 @@ void SaiPlatform::initPorts() {
         platformMode == PlatformType::PLATFORM_WEDGE400C_VOQ ||
         platformMode == PlatformType::PLATFORM_WEDGE400C_FABRIC) {
       saiPort = std::make_unique<SaiWedge400CPlatformPort>(portId, this);
-    } else if (
-        platformMode == PlatformType::PLATFORM_CLOUDRIPPER ||
-        platformMode == PlatformType::PLATFORM_CLOUDRIPPER_VOQ ||
-        platformMode == PlatformType::PLATFORM_CLOUDRIPPER_FABRIC) {
-      saiPort = std::make_unique<SaiCloudRipperPlatformPort>(portId, this);
     } else if (platformMode == PlatformType::PLATFORM_WEDGE100) {
       saiPort = std::make_unique<SaiBcmWedge100PlatformPort>(portId, this);
     } else if (
@@ -445,7 +436,10 @@ SaiPlatform::findPortIDAndProfiles(
     }
   }
   throw FbossError(
-      "platform port not found ", (PortID)portSaiId, " speed: ", (int)speed);
+      "platform port not found ",
+      (PortID)portSaiId,
+      " speed: ",
+      static_cast<int>(speed));
 }
 
 std::vector<SaiPlatformPort*> SaiPlatform::getPortsWithTransceiverID(
@@ -686,7 +680,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
 #endif
   std::optional<SaiSwitchTraits::Attributes::DelayDropCongThreshold>
       delayDropCongThreshold{std::nullopt};
-#if defined(TAJO_SDK_VERSION_1_42_8)
+#if defined(TAJO_SDK_EBRO)
   if (getAsic()->isSupported(
           HwAsic::Feature::ENABLE_DELAY_DROP_CONGESTION_THRESHOLD) &&
       FLAGS_enable_delay_drop_congestion_threshold) {
@@ -859,6 +853,9 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       std::nullopt, // Shel Periodic Interval
       maxSwitchId, // Max switch Id
       sflowNofSamples, // Sflow aggr number of samples
+      std::nullopt, // SDK Register dump log path
+      std::nullopt, // Firmware Object list
+      std::nullopt, // tc rate limit list
   };
 }
 

@@ -93,11 +93,12 @@ struct NeighborEntryFields {
 
   static NeighborEntryFields fromThrift(
       state::NeighborEntryFields const& entryTh) {
-    IPADDR ip(entryTh.get_ipaddress());
-    folly::MacAddress mac(entryTh.get_mac());
-    auto port = PortDescriptor::fromThrift(entryTh.get_portId());
-    InterfaceID intf(entryTh.get_interfaceId());
-    auto state = NeighborState(static_cast<int>(entryTh.get_state()));
+    IPADDR ip(entryTh.ipaddress().value());
+    folly::MacAddress mac(entryTh.mac().value());
+    auto port = PortDescriptor::fromThrift(entryTh.portId().value());
+    InterfaceID intf(folly::copy(entryTh.interfaceId().value()));
+    auto state =
+        NeighborState(static_cast<int>(folly::copy(entryTh.state().value())));
     std::optional<int64_t> encapIndex;
     if (entryTh.encapIndex().has_value()) {
       encapIndex = *entryTh.encapIndex();

@@ -56,7 +56,6 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::L3_MTU_ERROR_TRAP:
     case HwAsic::Feature::SAI_PORT_SERDES_PROGRAMMING:
     case HwAsic::Feature::PORT_WRED_COUNTER:
-    case HwAsic::Feature::WARMBOOT:
     case HwAsic::Feature::PORT_SERDES_ZERO_PREEMPHASIS:
     case HwAsic::Feature::SAI_UDF_HASH:
     case HwAsic::Feature::IN_PAUSE_INCREMENTS_DISCARDS:
@@ -76,10 +75,11 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::SAI_USER_DEFINED_TRAP:
     case HwAsic::Feature::ACL_ENTRY_ETHER_TYPE:
     case HwAsic::Feature::DEDICATED_CPU_BUFFER_POOL:
+    case HwAsic::Feature::ROUTE_METADATA:
+    case HwAsic::Feature::SAI_ECMP_HASH_ALGORITHM:
       return true;
     case HwAsic::Feature::PORT_MTU_ERROR_TRAP:
     case HwAsic::Feature::EVENTOR_PORT_FOR_SFLOW:
-    case HwAsic::Feature::SAI_ECMP_HASH_ALGORITHM:
     case HwAsic::Feature::SWITCH_REACHABILITY_CHANGE_NOTIFY:
     case HwAsic::Feature::CABLE_PROPOGATION_DELAY:
     case HwAsic::Feature::DRAM_BLOCK_TIME:
@@ -96,7 +96,6 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::FEC_AM_LOCK_STATUS:
     case HwAsic::Feature::PCS_RX_LINK_STATUS:
     case HwAsic::Feature::ACL_COUNTER_LABEL:
-    case HwAsic::Feature::ROUTE_METADATA:
     case HwAsic::Feature::MEDIA_TYPE:
     case HwAsic::Feature::PORT_TTL_DECREMENT_DISABLE:
     case HwAsic::Feature::COUNTER_REFRESH_INTERVAL:
@@ -204,6 +203,12 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::SFLOW_SAMPLES_PACKING:
     case HwAsic::Feature::VENDOR_SWITCH_NOTIFICATION:
     case HwAsic::Feature::SDK_REGISTER_DUMP:
+    case HwAsic::Feature::FEC_ERROR_DETECT_ENABLE:
+    case HwAsic::Feature::BUFFER_POOL_HEADROOM_WATERMARK:
+    case HwAsic::Feature::WARMBOOT: // TODO: add support for warmboot once SDK
+                                    // supports it
+    case HwAsic::Feature::SAI_SET_TC_FOR_USER_DEFINED_TRAP:
+    case HwAsic::Feature::SAI_HOST_MISS_TRAP:
       return false;
   }
   return false;
@@ -290,11 +295,40 @@ cfg::AsicType ChenabAsic::getAsicType() const {
   return cfg::AsicType::ASIC_TYPE_CHENAB;
 }
 int ChenabAsic::getBufferDynThreshFromScalingFactor(
-    cfg::MMUScalingFactor /* scalingFactor */) const {
-  throw FbossError("Dynamic buffer threshold unsupported!");
+    cfg::MMUScalingFactor scalingFactor) const {
+  switch (scalingFactor) {
+    case cfg::MMUScalingFactor::ONE:
+      return 0;
+    case cfg::MMUScalingFactor::EIGHT:
+      return 3;
+    case cfg::MMUScalingFactor::ONE_128TH:
+      return -7;
+    case cfg::MMUScalingFactor::ONE_64TH:
+      return -6;
+    case cfg::MMUScalingFactor::ONE_32TH:
+      return -5;
+    case cfg::MMUScalingFactor::ONE_16TH:
+      return -4;
+    case cfg::MMUScalingFactor::ONE_8TH:
+      return -3;
+    case cfg::MMUScalingFactor::ONE_QUARTER:
+      return -2;
+    case cfg::MMUScalingFactor::ONE_HALF:
+      return -1;
+    case cfg::MMUScalingFactor::TWO:
+      return 1;
+    case cfg::MMUScalingFactor::FOUR:
+      return 2;
+    case cfg::MMUScalingFactor::ONE_32768TH:
+      // Unsupported
+      throw FbossError(
+          "Unsupported scaling factor : ",
+          apache::thrift::util::enumNameSafe(scalingFactor));
+  }
+  throw FbossError("Unknown scaling factor : ", scalingFactor);
 }
 bool ChenabAsic::scalingFactorBasedDynamicThresholdSupported() const {
-  return false;
+  return true;
 }
 phy::DataPlanePhyChipType ChenabAsic::getDataPlanePhyChipType() const {
   return phy::DataPlanePhyChipType::IPHY;
@@ -357,7 +391,7 @@ std::optional<uint32_t> ChenabAsic::getPortSerdesPreemphasis() const {
   return 50;
 }
 uint32_t ChenabAsic::getPacketBufferUnitSize() const {
-  return 512;
+  return 192;
 }
 uint32_t ChenabAsic::getPacketBufferDescriptorSize() const {
   return 40;

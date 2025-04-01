@@ -289,10 +289,10 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": 4,
+                      "pre": 5,
                       "pre2": 0,
                       "main": 31,
-                      "post": 8,
+                      "post": 0,
                       "post2": 0,
                       "post3": 0
                     }
@@ -303,10 +303,10 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": 4,
+                      "pre": 5,
                       "pre2": 0,
                       "main": 31,
-                      "post": 8,
+                      "post": 0,
                       "post2": 0,
                       "post3": 0
                     }
@@ -317,10 +317,10 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": 4,
+                      "pre": 5,
                       "pre2": 0,
                       "main": 31,
-                      "post": 8,
+                      "post": 0,
                       "post2": 0,
                       "post3": 0
                     }
@@ -331,10 +331,10 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": 4,
+                      "pre": 5,
                       "pre2": 0,
                       "main": 31,
-                      "post": 8,
+                      "post": 0,
                       "post2": 0,
                       "post3": 0
                     }
@@ -375,56 +375,24 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core18",
                       "lane": 0
-                    },
-                    "tx": {
-                      "pre": 3,
-                      "pre2": 0,
-                      "main": 31,
-                      "post": 13,
-                      "post2": 0,
-                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core18",
                       "lane": 1
-                    },
-                    "tx": {
-                      "pre": 3,
-                      "pre2": 0,
-                      "main": 31,
-                      "post": 13,
-                      "post2": 0,
-                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core18",
                       "lane": 2
-                    },
-                    "tx": {
-                      "pre": 3,
-                      "pre2": 0,
-                      "main": 31,
-                      "post": 13,
-                      "post2": 0,
-                      "post3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core18",
                       "lane": 3
-                    },
-                    "tx": {
-                      "pre": 3,
-                      "pre2": 0,
-                      "main": 31,
-                      "post": 13,
-                      "post2": 0,
-                      "post3": 0
                     }
                   }
                 ],
@@ -796,13 +764,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -811,13 +779,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -826,13 +794,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -841,13 +809,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   }
                 ],
@@ -891,13 +859,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -906,13 +874,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -921,13 +889,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -936,13 +904,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -951,13 +919,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 4
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -966,13 +934,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 5
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -981,13 +949,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 6
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -996,13 +964,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   }
                 ],
@@ -1299,13 +1267,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 4
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -1314,13 +1282,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 5
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -1329,13 +1297,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 6
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -1344,13 +1312,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   }
                 ],
@@ -1778,13 +1746,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -1793,13 +1761,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -1808,13 +1776,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -1823,13 +1791,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   }
                 ],
@@ -1873,13 +1841,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -1888,13 +1856,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -1903,13 +1871,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -1918,13 +1886,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -1933,13 +1901,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 4
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -1948,13 +1916,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 5
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -1963,13 +1931,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 6
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -1978,13 +1946,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   }
                 ],
@@ -2281,13 +2249,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 4
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -2296,13 +2264,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 5
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -2311,13 +2279,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 6
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   },
                   {
@@ -2326,13 +2294,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -36,
-                      "pre2": 12,
-                      "main": 116,
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
                       "post3": 0,
-                      "pre3": -4
+                      "pre3": 0
                     }
                   }
                 ],
@@ -7033,7 +7001,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1024": {
         "mapping": {
           "id": 1024,
-          "name": "fab1/22/1",
+          "name": "fab1/22/4",
           "controllingPort": 1024,
           "pins": [
             {
@@ -7044,7 +7012,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip22",
-                  "lane": 0
+                  "lane": 3
                 }
               }
             }
@@ -7063,12 +7031,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -7076,7 +7045,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip22",
-                      "lane": 0
+                      "lane": 3
                     }
                   }
                 ]
@@ -7087,7 +7056,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1025": {
         "mapping": {
           "id": 1025,
-          "name": "fab1/22/2",
+          "name": "fab1/22/8",
           "controllingPort": 1025,
           "pins": [
             {
@@ -7098,7 +7067,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip22",
-                  "lane": 1
+                  "lane": 7
                 }
               }
             }
@@ -7117,12 +7086,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -7130,7 +7100,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip22",
-                      "lane": 1
+                      "lane": 7
                     }
                   }
                 ]
@@ -7141,121 +7111,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1026": {
         "mapping": {
           "id": 1026,
-          "name": "fab1/22/3",
+          "name": "fab1/22/5",
           "controllingPort": 1026,
           "pins": [
             {
               "a": {
                 "chip": "NPU-J3_FE-slot1/chip1/core0",
                 "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip22",
-                  "lane": 2
-                }
-              }
-            }
-          ],
-          "portType": 1,
-          "virtualDeviceId": 0,
-          "scope": 0
-        },
-        "supportedProfiles": {
-          "42": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-J3_FE-slot1/chip1/core0",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 4,
-                      "main": 96,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip22",
-                      "lane": 2
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "1027": {
-        "mapping": {
-          "id": 1027,
-          "name": "fab1/22/4",
-          "controllingPort": 1027,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-J3_FE-slot1/chip1/core0",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip22",
-                  "lane": 3
-                }
-              }
-            }
-          ],
-          "portType": 1,
-          "virtualDeviceId": 0,
-          "scope": 0
-        },
-        "supportedProfiles": {
-          "42": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-J3_FE-slot1/chip1/core0",
-                      "lane": 3
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 4,
-                      "main": 96,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip22",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "1028": {
-        "mapping": {
-          "id": 1028,
-          "name": "fab1/22/5",
-          "controllingPort": 1028,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-J3_FE-slot1/chip1/core0",
-                "lane": 4
               },
               "z": {
                 "end": {
@@ -7276,15 +7138,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "NPU-J3_FE-slot1/chip1/core0",
-                      "lane": 4
+                      "lane": 2
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -7300,70 +7163,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
           }
         }
     },
-    "1029": {
+    "1027": {
         "mapping": {
-          "id": 1029,
-          "name": "fab1/22/6",
-          "controllingPort": 1029,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-J3_FE-slot1/chip1/core0",
-                "lane": 5
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip22",
-                  "lane": 5
-                }
-              }
-            }
-          ],
-          "portType": 1,
-          "virtualDeviceId": 0,
-          "scope": 0
-        },
-        "supportedProfiles": {
-          "42": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-J3_FE-slot1/chip1/core0",
-                      "lane": 5
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 4,
-                      "main": 96,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip22",
-                      "lane": 5
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "1030": {
-        "mapping": {
-          "id": 1030,
+          "id": 1027,
           "name": "fab1/22/7",
-          "controllingPort": 1030,
+          "controllingPort": 1027,
           "pins": [
             {
               "a": {
                 "chip": "NPU-J3_FE-slot1/chip1/core0",
-                "lane": 6
+                "lane": 3
               },
               "z": {
                 "end": {
@@ -7384,15 +7193,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "NPU-J3_FE-slot1/chip1/core0",
-                      "lane": 6
+                      "lane": 3
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -7408,10 +7218,175 @@ constexpr auto kJsonPlatformMappingStr = R"(
           }
         }
     },
+    "1028": {
+        "mapping": {
+          "id": 1028,
+          "name": "fab1/22/1",
+          "controllingPort": 1028,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-J3_FE-slot1/chip1/core0",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip22",
+                  "lane": 0
+                }
+              }
+            }
+          ],
+          "portType": 1,
+          "virtualDeviceId": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "42": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J3_FE-slot1/chip1/core0",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip22",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "1029": {
+        "mapping": {
+          "id": 1029,
+          "name": "fab1/22/2",
+          "controllingPort": 1029,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-J3_FE-slot1/chip1/core0",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip22",
+                  "lane": 1
+                }
+              }
+            }
+          ],
+          "portType": 1,
+          "virtualDeviceId": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "42": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J3_FE-slot1/chip1/core0",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip22",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "1030": {
+        "mapping": {
+          "id": 1030,
+          "name": "fab1/22/3",
+          "controllingPort": 1030,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-J3_FE-slot1/chip1/core0",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip22",
+                  "lane": 2
+                }
+              }
+            }
+          ],
+          "portType": 1,
+          "virtualDeviceId": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "42": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J3_FE-slot1/chip1/core0",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip22",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
     "1031": {
         "mapping": {
           "id": 1031,
-          "name": "fab1/22/8",
+          "name": "fab1/22/6",
           "controllingPort": 1031,
           "pins": [
             {
@@ -7422,7 +7397,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip22",
-                  "lane": 7
+                  "lane": 5
                 }
               }
             }
@@ -7441,12 +7416,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -7454,7 +7430,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip22",
-                      "lane": 7
+                      "lane": 5
                     }
                   }
                 ]
@@ -7465,13 +7441,233 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1032": {
         "mapping": {
           "id": 1032,
-          "name": "fab1/21/1",
+          "name": "fab1/21/4",
           "controllingPort": 1032,
           "pins": [
             {
               "a": {
                 "chip": "NPU-J3_FE-slot1/chip1/core1",
                 "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip21",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 1,
+          "virtualDeviceId": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "42": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J3_FE-slot1/chip1/core1",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip21",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "1033": {
+        "mapping": {
+          "id": 1033,
+          "name": "fab1/21/6",
+          "controllingPort": 1033,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-J3_FE-slot1/chip1/core1",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip21",
+                  "lane": 5
+                }
+              }
+            }
+          ],
+          "portType": 1,
+          "virtualDeviceId": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "42": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J3_FE-slot1/chip1/core1",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip21",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "1034": {
+        "mapping": {
+          "id": 1034,
+          "name": "fab1/21/8",
+          "controllingPort": 1034,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-J3_FE-slot1/chip1/core1",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip21",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 1,
+          "virtualDeviceId": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "42": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J3_FE-slot1/chip1/core1",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip21",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "1035": {
+        "mapping": {
+          "id": 1035,
+          "name": "fab1/21/7",
+          "controllingPort": 1035,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-J3_FE-slot1/chip1/core1",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip21",
+                  "lane": 6
+                }
+              }
+            }
+          ],
+          "portType": 1,
+          "virtualDeviceId": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "42": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J3_FE-slot1/chip1/core1",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip21",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "1036": {
+        "mapping": {
+          "id": 1036,
+          "name": "fab1/21/1",
+          "controllingPort": 1036,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-J3_FE-slot1/chip1/core1",
+                "lane": 4
               },
               "z": {
                 "end": {
@@ -7492,15 +7688,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "NPU-J3_FE-slot1/chip1/core1",
-                      "lane": 0
+                      "lane": 4
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -7516,16 +7713,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
           }
         }
     },
-    "1033": {
+    "1037": {
         "mapping": {
-          "id": 1033,
+          "id": 1037,
           "name": "fab1/21/2",
-          "controllingPort": 1033,
+          "controllingPort": 1037,
           "pins": [
             {
               "a": {
                 "chip": "NPU-J3_FE-slot1/chip1/core1",
-                "lane": 1
+                "lane": 5
               },
               "z": {
                 "end": {
@@ -7546,15 +7743,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "NPU-J3_FE-slot1/chip1/core1",
-                      "lane": 1
+                      "lane": 5
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -7570,16 +7768,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
           }
         }
     },
-    "1034": {
+    "1038": {
         "mapping": {
-          "id": 1034,
+          "id": 1038,
           "name": "fab1/21/3",
-          "controllingPort": 1034,
+          "controllingPort": 1038,
           "pins": [
             {
               "a": {
                 "chip": "NPU-J3_FE-slot1/chip1/core1",
-                "lane": 2
+                "lane": 6
               },
               "z": {
                 "end": {
@@ -7600,15 +7798,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "NPU-J3_FE-slot1/chip1/core1",
-                      "lane": 2
+                      "lane": 6
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -7624,70 +7823,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
           }
         }
     },
-    "1035": {
+    "1039": {
         "mapping": {
-          "id": 1035,
-          "name": "fab1/21/4",
-          "controllingPort": 1035,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-J3_FE-slot1/chip1/core1",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip21",
-                  "lane": 3
-                }
-              }
-            }
-          ],
-          "portType": 1,
-          "virtualDeviceId": 0,
-          "scope": 0
-        },
-        "supportedProfiles": {
-          "42": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-J3_FE-slot1/chip1/core1",
-                      "lane": 3
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 4,
-                      "main": 96,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip21",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "1036": {
-        "mapping": {
-          "id": 1036,
+          "id": 1039,
           "name": "fab1/21/5",
-          "controllingPort": 1036,
+          "controllingPort": 1039,
           "pins": [
             {
               "a": {
                 "chip": "NPU-J3_FE-slot1/chip1/core1",
-                "lane": 4
+                "lane": 7
               },
               "z": {
                 "end": {
@@ -7708,177 +7853,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "NPU-J3_FE-slot1/chip1/core1",
-                      "lane": 4
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 4,
-                      "main": 96,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip21",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "1037": {
-        "mapping": {
-          "id": 1037,
-          "name": "fab1/21/6",
-          "controllingPort": 1037,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-J3_FE-slot1/chip1/core1",
-                "lane": 5
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip21",
-                  "lane": 5
-                }
-              }
-            }
-          ],
-          "portType": 1,
-          "virtualDeviceId": 0,
-          "scope": 0
-        },
-        "supportedProfiles": {
-          "42": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-J3_FE-slot1/chip1/core1",
-                      "lane": 5
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 4,
-                      "main": 96,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip21",
-                      "lane": 5
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "1038": {
-        "mapping": {
-          "id": 1038,
-          "name": "fab1/21/7",
-          "controllingPort": 1038,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-J3_FE-slot1/chip1/core1",
-                "lane": 6
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip21",
-                  "lane": 6
-                }
-              }
-            }
-          ],
-          "portType": 1,
-          "virtualDeviceId": 0,
-          "scope": 0
-        },
-        "supportedProfiles": {
-          "42": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-J3_FE-slot1/chip1/core1",
-                      "lane": 6
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 4,
-                      "main": 96,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip21",
-                      "lane": 6
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "1039": {
-        "mapping": {
-          "id": 1039,
-          "name": "fab1/21/8",
-          "controllingPort": 1039,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-J3_FE-slot1/chip1/core1",
-                "lane": 7
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip21",
-                  "lane": 7
-                }
-              }
-            }
-          ],
-          "portType": 1,
-          "virtualDeviceId": 0,
-          "scope": 0
-        },
-        "supportedProfiles": {
-          "42": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-J3_FE-slot1/chip1/core1",
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -7886,7 +7870,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip21",
-                      "lane": 7
+                      "lane": 4
                     }
                   }
                 ]
@@ -7897,7 +7881,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1040": {
         "mapping": {
           "id": 1040,
-          "name": "fab1/20/1",
+          "name": "fab1/20/5",
           "controllingPort": 1040,
           "pins": [
             {
@@ -7908,7 +7892,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip20",
-                  "lane": 0
+                  "lane": 4
                 }
               }
             }
@@ -7927,12 +7911,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -7940,7 +7925,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip20",
-                      "lane": 0
+                      "lane": 4
                     }
                   }
                 ]
@@ -7981,12 +7966,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -8005,7 +7991,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1042": {
         "mapping": {
           "id": 1042,
-          "name": "fab1/20/3",
+          "name": "fab1/20/4",
           "controllingPort": 1042,
           "pins": [
             {
@@ -8016,7 +8002,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip20",
-                  "lane": 2
+                  "lane": 3
                 }
               }
             }
@@ -8035,12 +8021,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -8048,7 +8035,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip20",
-                      "lane": 2
+                      "lane": 3
                     }
                   }
                 ]
@@ -8059,7 +8046,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1043": {
         "mapping": {
           "id": 1043,
-          "name": "fab1/20/4",
+          "name": "fab1/20/1",
           "controllingPort": 1043,
           "pins": [
             {
@@ -8070,7 +8057,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip20",
-                  "lane": 3
+                  "lane": 0
                 }
               }
             }
@@ -8089,12 +8076,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -8102,7 +8090,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip20",
-                      "lane": 3
+                      "lane": 0
                     }
                   }
                 ]
@@ -8113,7 +8101,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1044": {
         "mapping": {
           "id": 1044,
-          "name": "fab1/20/5",
+          "name": "fab1/20/8",
           "controllingPort": 1044,
           "pins": [
             {
@@ -8124,7 +8112,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip20",
-                  "lane": 4
+                  "lane": 7
                 }
               }
             }
@@ -8143,12 +8131,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 4
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -8156,7 +8145,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip20",
-                      "lane": 4
+                      "lane": 7
                     }
                   }
                 ]
@@ -8167,7 +8156,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1045": {
         "mapping": {
           "id": 1045,
-          "name": "fab1/20/6",
+          "name": "fab1/20/7",
           "controllingPort": 1045,
           "pins": [
             {
@@ -8178,7 +8167,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip20",
-                  "lane": 5
+                  "lane": 6
                 }
               }
             }
@@ -8197,12 +8186,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 5
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -8210,7 +8200,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip20",
-                      "lane": 5
+                      "lane": 6
                     }
                   }
                 ]
@@ -8221,7 +8211,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1046": {
         "mapping": {
           "id": 1046,
-          "name": "fab1/20/7",
+          "name": "fab1/20/6",
           "controllingPort": 1046,
           "pins": [
             {
@@ -8232,7 +8222,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip20",
-                  "lane": 6
+                  "lane": 5
                 }
               }
             }
@@ -8251,12 +8241,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 6
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -8264,7 +8255,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip20",
-                      "lane": 6
+                      "lane": 5
                     }
                   }
                 ]
@@ -8275,7 +8266,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1047": {
         "mapping": {
           "id": 1047,
-          "name": "fab1/20/8",
+          "name": "fab1/20/3",
           "controllingPort": 1047,
           "pins": [
             {
@@ -8286,7 +8277,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip20",
-                  "lane": 7
+                  "lane": 2
                 }
               }
             }
@@ -8305,12 +8296,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -8318,7 +8310,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip20",
-                      "lane": 7
+                      "lane": 2
                     }
                   }
                 ]
@@ -8329,7 +8321,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1048": {
         "mapping": {
           "id": 1048,
-          "name": "fab1/19/1",
+          "name": "fab1/19/4",
           "controllingPort": 1048,
           "pins": [
             {
@@ -8340,7 +8332,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip19",
-                  "lane": 0
+                  "lane": 3
                 }
               }
             }
@@ -8359,12 +8351,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -8372,7 +8365,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip19",
-                      "lane": 0
+                      "lane": 3
                     }
                   }
                 ]
@@ -8383,7 +8376,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1049": {
         "mapping": {
           "id": 1049,
-          "name": "fab1/19/2",
+          "name": "fab1/19/8",
           "controllingPort": 1049,
           "pins": [
             {
@@ -8394,7 +8387,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip19",
-                  "lane": 1
+                  "lane": 7
                 }
               }
             }
@@ -8413,12 +8406,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -8426,7 +8420,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip19",
-                      "lane": 1
+                      "lane": 7
                     }
                   }
                 ]
@@ -8437,7 +8431,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1050": {
         "mapping": {
           "id": 1050,
-          "name": "fab1/19/3",
+          "name": "fab1/19/5",
           "controllingPort": 1050,
           "pins": [
             {
@@ -8448,7 +8442,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip19",
-                  "lane": 2
+                  "lane": 4
                 }
               }
             }
@@ -8467,12 +8461,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -8480,7 +8475,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip19",
-                      "lane": 2
+                      "lane": 4
                     }
                   }
                 ]
@@ -8491,7 +8486,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1051": {
         "mapping": {
           "id": 1051,
-          "name": "fab1/19/4",
+          "name": "fab1/19/7",
           "controllingPort": 1051,
           "pins": [
             {
@@ -8502,7 +8497,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip19",
-                  "lane": 3
+                  "lane": 6
                 }
               }
             }
@@ -8521,12 +8516,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -8534,7 +8530,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip19",
-                      "lane": 3
+                      "lane": 6
                     }
                   }
                 ]
@@ -8545,7 +8541,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1052": {
         "mapping": {
           "id": 1052,
-          "name": "fab1/19/5",
+          "name": "fab1/19/1",
           "controllingPort": 1052,
           "pins": [
             {
@@ -8556,7 +8552,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip19",
-                  "lane": 4
+                  "lane": 0
                 }
               }
             }
@@ -8575,12 +8571,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 4
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -8588,7 +8585,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip19",
-                      "lane": 4
+                      "lane": 0
                     }
                   }
                 ]
@@ -8599,7 +8596,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1053": {
         "mapping": {
           "id": 1053,
-          "name": "fab1/19/6",
+          "name": "fab1/19/2",
           "controllingPort": 1053,
           "pins": [
             {
@@ -8610,7 +8607,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip19",
-                  "lane": 5
+                  "lane": 1
                 }
               }
             }
@@ -8629,12 +8626,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 5
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -8642,7 +8640,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip19",
-                      "lane": 5
+                      "lane": 1
                     }
                   }
                 ]
@@ -8653,7 +8651,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1054": {
         "mapping": {
           "id": 1054,
-          "name": "fab1/19/7",
+          "name": "fab1/19/3",
           "controllingPort": 1054,
           "pins": [
             {
@@ -8664,7 +8662,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip19",
-                  "lane": 6
+                  "lane": 2
                 }
               }
             }
@@ -8683,12 +8681,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 6
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -8696,7 +8695,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip19",
-                      "lane": 6
+                      "lane": 2
                     }
                   }
                 ]
@@ -8707,7 +8706,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1055": {
         "mapping": {
           "id": 1055,
-          "name": "fab1/19/8",
+          "name": "fab1/19/6",
           "controllingPort": 1055,
           "pins": [
             {
@@ -8718,7 +8717,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip19",
-                  "lane": 7
+                  "lane": 5
                 }
               }
             }
@@ -8737,12 +8736,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -8750,7 +8750,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip19",
-                      "lane": 7
+                      "lane": 5
                     }
                   }
                 ]
@@ -8761,175 +8761,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1056": {
         "mapping": {
           "id": 1056,
-          "name": "fab1/18/1",
+          "name": "fab1/18/4",
           "controllingPort": 1056,
           "pins": [
             {
               "a": {
                 "chip": "NPU-J3_FE-slot1/chip1/core4",
                 "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip18",
-                  "lane": 0
-                }
-              }
-            }
-          ],
-          "portType": 1,
-          "virtualDeviceId": 0,
-          "scope": 0
-        },
-        "supportedProfiles": {
-          "42": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-J3_FE-slot1/chip1/core4",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 4,
-                      "main": 96,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip18",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "1057": {
-        "mapping": {
-          "id": 1057,
-          "name": "fab1/18/2",
-          "controllingPort": 1057,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-J3_FE-slot1/chip1/core4",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip18",
-                  "lane": 1
-                }
-              }
-            }
-          ],
-          "portType": 1,
-          "virtualDeviceId": 0,
-          "scope": 0
-        },
-        "supportedProfiles": {
-          "42": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-J3_FE-slot1/chip1/core4",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 4,
-                      "main": 96,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip18",
-                      "lane": 1
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "1058": {
-        "mapping": {
-          "id": 1058,
-          "name": "fab1/18/3",
-          "controllingPort": 1058,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-J3_FE-slot1/chip1/core4",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip18",
-                  "lane": 2
-                }
-              }
-            }
-          ],
-          "portType": 1,
-          "virtualDeviceId": 0,
-          "scope": 0
-        },
-        "supportedProfiles": {
-          "42": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-J3_FE-slot1/chip1/core4",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 4,
-                      "main": 96,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip18",
-                      "lane": 2
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "1059": {
-        "mapping": {
-          "id": 1059,
-          "name": "fab1/18/4",
-          "controllingPort": 1059,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-J3_FE-slot1/chip1/core4",
-                "lane": 3
               },
               "z": {
                 "end": {
@@ -8950,15 +8788,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "NPU-J3_FE-slot1/chip1/core4",
-                      "lane": 3
+                      "lane": 0
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -8974,70 +8813,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
           }
         }
     },
-    "1060": {
+    "1057": {
         "mapping": {
-          "id": 1060,
-          "name": "fab1/18/5",
-          "controllingPort": 1060,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-J3_FE-slot1/chip1/core4",
-                "lane": 4
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip18",
-                  "lane": 4
-                }
-              }
-            }
-          ],
-          "portType": 1,
-          "virtualDeviceId": 0,
-          "scope": 0
-        },
-        "supportedProfiles": {
-          "42": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-J3_FE-slot1/chip1/core4",
-                      "lane": 4
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 4,
-                      "main": 96,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip18",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "1061": {
-        "mapping": {
-          "id": 1061,
+          "id": 1057,
           "name": "fab1/18/6",
-          "controllingPort": 1061,
+          "controllingPort": 1057,
           "pins": [
             {
               "a": {
                 "chip": "NPU-J3_FE-slot1/chip1/core4",
-                "lane": 5
+                "lane": 1
               },
               "z": {
                 "end": {
@@ -9058,15 +8843,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "NPU-J3_FE-slot1/chip1/core4",
-                      "lane": 5
+                      "lane": 1
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -9082,70 +8868,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
           }
         }
     },
-    "1062": {
+    "1058": {
         "mapping": {
-          "id": 1062,
-          "name": "fab1/18/7",
-          "controllingPort": 1062,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-J3_FE-slot1/chip1/core4",
-                "lane": 6
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip18",
-                  "lane": 6
-                }
-              }
-            }
-          ],
-          "portType": 1,
-          "virtualDeviceId": 0,
-          "scope": 0
-        },
-        "supportedProfiles": {
-          "42": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-J3_FE-slot1/chip1/core4",
-                      "lane": 6
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 4,
-                      "main": 96,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip18",
-                      "lane": 6
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "1063": {
-        "mapping": {
-          "id": 1063,
+          "id": 1058,
           "name": "fab1/18/8",
-          "controllingPort": 1063,
+          "controllingPort": 1058,
           "pins": [
             {
               "a": {
                 "chip": "NPU-J3_FE-slot1/chip1/core4",
-                "lane": 7
+                "lane": 2
               },
               "z": {
                 "end": {
@@ -9166,15 +8898,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "NPU-J3_FE-slot1/chip1/core4",
-                      "lane": 7
+                      "lane": 2
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -9190,20 +8923,75 @@ constexpr auto kJsonPlatformMappingStr = R"(
           }
         }
     },
-    "1064": {
+    "1059": {
         "mapping": {
-          "id": 1064,
-          "name": "fab1/17/1",
-          "controllingPort": 1064,
+          "id": 1059,
+          "name": "fab1/18/7",
+          "controllingPort": 1059,
           "pins": [
             {
               "a": {
-                "chip": "NPU-J3_FE-slot1/chip1/core5",
-                "lane": 0
+                "chip": "NPU-J3_FE-slot1/chip1/core4",
+                "lane": 3
               },
               "z": {
                 "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip17",
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip18",
+                  "lane": 6
+                }
+              }
+            }
+          ],
+          "portType": 1,
+          "virtualDeviceId": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "42": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J3_FE-slot1/chip1/core4",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip18",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "1060": {
+        "mapping": {
+          "id": 1060,
+          "name": "fab1/18/1",
+          "controllingPort": 1060,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-J3_FE-slot1/chip1/core4",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip18",
                   "lane": 0
                 }
               }
@@ -9219,23 +9007,24 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J3_FE-slot1/chip1/core5",
-                      "lane": 0
+                      "chip": "NPU-J3_FE-slot1/chip1/core4",
+                      "lane": 4
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip17",
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip18",
                       "lane": 0
                     }
                   }
@@ -9244,16 +9033,181 @@ constexpr auto kJsonPlatformMappingStr = R"(
           }
         }
     },
-    "1065": {
+    "1061": {
         "mapping": {
-          "id": 1065,
+          "id": 1061,
+          "name": "fab1/18/2",
+          "controllingPort": 1061,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-J3_FE-slot1/chip1/core4",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip18",
+                  "lane": 1
+                }
+              }
+            }
+          ],
+          "portType": 1,
+          "virtualDeviceId": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "42": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J3_FE-slot1/chip1/core4",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip18",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "1062": {
+        "mapping": {
+          "id": 1062,
+          "name": "fab1/18/3",
+          "controllingPort": 1062,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-J3_FE-slot1/chip1/core4",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip18",
+                  "lane": 2
+                }
+              }
+            }
+          ],
+          "portType": 1,
+          "virtualDeviceId": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "42": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J3_FE-slot1/chip1/core4",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip18",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "1063": {
+        "mapping": {
+          "id": 1063,
+          "name": "fab1/18/5",
+          "controllingPort": 1063,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-J3_FE-slot1/chip1/core4",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip18",
+                  "lane": 4
+                }
+              }
+            }
+          ],
+          "portType": 1,
+          "virtualDeviceId": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "42": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J3_FE-slot1/chip1/core4",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip18",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "1064": {
+        "mapping": {
+          "id": 1064,
           "name": "fab1/17/2",
-          "controllingPort": 1065,
+          "controllingPort": 1064,
           "pins": [
             {
               "a": {
                 "chip": "NPU-J3_FE-slot1/chip1/core5",
-                "lane": 1
+                "lane": 0
               },
               "z": {
                 "end": {
@@ -9274,15 +9228,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "NPU-J3_FE-slot1/chip1/core5",
-                      "lane": 1
+                      "lane": 0
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -9298,124 +9253,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
           }
         }
     },
-    "1066": {
+    "1065": {
         "mapping": {
-          "id": 1066,
-          "name": "fab1/17/3",
-          "controllingPort": 1066,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-J3_FE-slot1/chip1/core5",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip17",
-                  "lane": 2
-                }
-              }
-            }
-          ],
-          "portType": 1,
-          "virtualDeviceId": 0,
-          "scope": 0
-        },
-        "supportedProfiles": {
-          "42": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-J3_FE-slot1/chip1/core5",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 4,
-                      "main": 96,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip17",
-                      "lane": 2
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "1067": {
-        "mapping": {
-          "id": 1067,
-          "name": "fab1/17/4",
-          "controllingPort": 1067,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-J3_FE-slot1/chip1/core5",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip17",
-                  "lane": 3
-                }
-              }
-            }
-          ],
-          "portType": 1,
-          "virtualDeviceId": 0,
-          "scope": 0
-        },
-        "supportedProfiles": {
-          "42": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-J3_FE-slot1/chip1/core5",
-                      "lane": 3
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 4,
-                      "main": 96,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip17",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "1068": {
-        "mapping": {
-          "id": 1068,
+          "id": 1065,
           "name": "fab1/17/5",
-          "controllingPort": 1068,
+          "controllingPort": 1065,
           "pins": [
             {
               "a": {
                 "chip": "NPU-J3_FE-slot1/chip1/core5",
-                "lane": 4
+                "lane": 1
               },
               "z": {
                 "end": {
@@ -9436,15 +9283,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "NPU-J3_FE-slot1/chip1/core5",
-                      "lane": 4
+                      "lane": 1
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -9460,16 +9308,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
           }
         }
     },
-    "1069": {
+    "1066": {
         "mapping": {
-          "id": 1069,
+          "id": 1066,
           "name": "fab1/17/6",
-          "controllingPort": 1069,
+          "controllingPort": 1066,
           "pins": [
             {
               "a": {
                 "chip": "NPU-J3_FE-slot1/chip1/core5",
-                "lane": 5
+                "lane": 2
               },
               "z": {
                 "end": {
@@ -9490,15 +9338,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "NPU-J3_FE-slot1/chip1/core5",
-                      "lane": 5
+                      "lane": 2
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -9514,16 +9363,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
           }
         }
     },
-    "1070": {
+    "1067": {
         "mapping": {
-          "id": 1070,
+          "id": 1067,
           "name": "fab1/17/7",
-          "controllingPort": 1070,
+          "controllingPort": 1067,
           "pins": [
             {
               "a": {
                 "chip": "NPU-J3_FE-slot1/chip1/core5",
-                "lane": 6
+                "lane": 3
               },
               "z": {
                 "end": {
@@ -9544,15 +9393,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "NPU-J3_FE-slot1/chip1/core5",
-                      "lane": 6
+                      "lane": 3
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -9561,6 +9411,171 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip17",
                       "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "1068": {
+        "mapping": {
+          "id": 1068,
+          "name": "fab1/17/3",
+          "controllingPort": 1068,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-J3_FE-slot1/chip1/core5",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip17",
+                  "lane": 2
+                }
+              }
+            }
+          ],
+          "portType": 1,
+          "virtualDeviceId": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "42": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J3_FE-slot1/chip1/core5",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip17",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "1069": {
+        "mapping": {
+          "id": 1069,
+          "name": "fab1/17/4",
+          "controllingPort": 1069,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-J3_FE-slot1/chip1/core5",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip17",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 1,
+          "virtualDeviceId": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "42": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J3_FE-slot1/chip1/core5",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip17",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "1070": {
+        "mapping": {
+          "id": 1070,
+          "name": "fab1/17/1",
+          "controllingPort": 1070,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-J3_FE-slot1/chip1/core5",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip17",
+                  "lane": 0
+                }
+              }
+            }
+          ],
+          "portType": 1,
+          "virtualDeviceId": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "42": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J3_FE-slot1/chip1/core5",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip17",
+                      "lane": 0
                     }
                   }
                 ]
@@ -9601,12 +9616,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -9625,7 +9641,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1072": {
         "mapping": {
           "id": 1072,
-          "name": "fab1/14/1",
+          "name": "fab1/14/2",
           "controllingPort": 1072,
           "pins": [
             {
@@ -9636,7 +9652,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip14",
-                  "lane": 0
+                  "lane": 1
                 }
               }
             }
@@ -9655,12 +9671,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -9668,7 +9685,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip14",
-                      "lane": 0
+                      "lane": 1
                     }
                   }
                 ]
@@ -9679,7 +9696,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1073": {
         "mapping": {
           "id": 1073,
-          "name": "fab1/14/2",
+          "name": "fab1/14/5",
           "controllingPort": 1073,
           "pins": [
             {
@@ -9690,7 +9707,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip14",
-                  "lane": 1
+                  "lane": 4
                 }
               }
             }
@@ -9709,12 +9726,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -9722,7 +9740,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip14",
-                      "lane": 1
+                      "lane": 4
                     }
                   }
                 ]
@@ -9733,7 +9751,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1074": {
         "mapping": {
           "id": 1074,
-          "name": "fab1/14/3",
+          "name": "fab1/14/4",
           "controllingPort": 1074,
           "pins": [
             {
@@ -9744,7 +9762,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip14",
-                  "lane": 2
+                  "lane": 3
                 }
               }
             }
@@ -9763,12 +9781,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -9776,7 +9795,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip14",
-                      "lane": 2
+                      "lane": 3
                     }
                   }
                 ]
@@ -9787,7 +9806,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1075": {
         "mapping": {
           "id": 1075,
-          "name": "fab1/14/4",
+          "name": "fab1/14/8",
           "controllingPort": 1075,
           "pins": [
             {
@@ -9798,7 +9817,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip14",
-                  "lane": 3
+                  "lane": 7
                 }
               }
             }
@@ -9817,12 +9836,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -9830,7 +9850,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip14",
-                      "lane": 3
+                      "lane": 7
                     }
                   }
                 ]
@@ -9841,7 +9861,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1076": {
         "mapping": {
           "id": 1076,
-          "name": "fab1/14/5",
+          "name": "fab1/14/6",
           "controllingPort": 1076,
           "pins": [
             {
@@ -9852,7 +9872,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip14",
-                  "lane": 4
+                  "lane": 5
                 }
               }
             }
@@ -9871,12 +9891,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 4
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -9884,7 +9905,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip14",
-                      "lane": 4
+                      "lane": 5
                     }
                   }
                 ]
@@ -9895,7 +9916,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1077": {
         "mapping": {
           "id": 1077,
-          "name": "fab1/14/6",
+          "name": "fab1/14/3",
           "controllingPort": 1077,
           "pins": [
             {
@@ -9906,7 +9927,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip14",
-                  "lane": 5
+                  "lane": 2
                 }
               }
             }
@@ -9925,12 +9946,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 5
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -9938,7 +9960,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip14",
-                      "lane": 5
+                      "lane": 2
                     }
                   }
                 ]
@@ -9949,7 +9971,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1078": {
         "mapping": {
           "id": 1078,
-          "name": "fab1/14/7",
+          "name": "fab1/14/1",
           "controllingPort": 1078,
           "pins": [
             {
@@ -9960,7 +9982,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip14",
-                  "lane": 6
+                  "lane": 0
                 }
               }
             }
@@ -9979,12 +10001,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 6
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -9992,7 +10015,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip14",
-                      "lane": 6
+                      "lane": 0
                     }
                   }
                 ]
@@ -10003,7 +10026,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1079": {
         "mapping": {
           "id": 1079,
-          "name": "fab1/14/8",
+          "name": "fab1/14/7",
           "controllingPort": 1079,
           "pins": [
             {
@@ -10014,7 +10037,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip14",
-                  "lane": 7
+                  "lane": 6
                 }
               }
             }
@@ -10033,12 +10056,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -10046,7 +10070,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip14",
-                      "lane": 7
+                      "lane": 6
                     }
                   }
                 ]
@@ -10057,7 +10081,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1080": {
         "mapping": {
           "id": 1080,
-          "name": "fab1/15/1",
+          "name": "fab1/15/6",
           "controllingPort": 1080,
           "pins": [
             {
@@ -10068,7 +10092,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip15",
-                  "lane": 0
+                  "lane": 5
                 }
               }
             }
@@ -10087,12 +10111,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -10100,7 +10125,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip15",
-                      "lane": 0
+                      "lane": 5
                     }
                   }
                 ]
@@ -10111,7 +10136,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1081": {
         "mapping": {
           "id": 1081,
-          "name": "fab1/15/2",
+          "name": "fab1/15/5",
           "controllingPort": 1081,
           "pins": [
             {
@@ -10122,7 +10147,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip15",
-                  "lane": 1
+                  "lane": 4
                 }
               }
             }
@@ -10141,12 +10166,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -10154,7 +10180,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip15",
-                      "lane": 1
+                      "lane": 4
                     }
                   }
                 ]
@@ -10165,7 +10191,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1082": {
         "mapping": {
           "id": 1082,
-          "name": "fab1/15/3",
+          "name": "fab1/15/8",
           "controllingPort": 1082,
           "pins": [
             {
@@ -10176,7 +10202,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip15",
-                  "lane": 2
+                  "lane": 7
                 }
               }
             }
@@ -10195,12 +10221,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -10208,7 +10235,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip15",
-                      "lane": 2
+                      "lane": 7
                     }
                   }
                 ]
@@ -10219,7 +10246,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1083": {
         "mapping": {
           "id": 1083,
-          "name": "fab1/15/4",
+          "name": "fab1/15/7",
           "controllingPort": 1083,
           "pins": [
             {
@@ -10230,7 +10257,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip15",
-                  "lane": 3
+                  "lane": 6
                 }
               }
             }
@@ -10249,12 +10276,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -10262,7 +10290,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip15",
-                      "lane": 3
+                      "lane": 6
                     }
                   }
                 ]
@@ -10273,7 +10301,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1084": {
         "mapping": {
           "id": 1084,
-          "name": "fab1/15/5",
+          "name": "fab1/15/1",
           "controllingPort": 1084,
           "pins": [
             {
@@ -10284,7 +10312,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip15",
-                  "lane": 4
+                  "lane": 0
                 }
               }
             }
@@ -10303,12 +10331,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 4
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -10316,7 +10345,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip15",
-                      "lane": 4
+                      "lane": 0
                     }
                   }
                 ]
@@ -10327,7 +10356,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1085": {
         "mapping": {
           "id": 1085,
-          "name": "fab1/15/6",
+          "name": "fab1/15/4",
           "controllingPort": 1085,
           "pins": [
             {
@@ -10338,330 +10367,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip15",
-                  "lane": 5
-                }
-              }
-            }
-          ],
-          "portType": 1,
-          "virtualDeviceId": 0,
-          "scope": 0
-        },
-        "supportedProfiles": {
-          "42": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-J3_FE-slot1/chip1/core7",
-                      "lane": 5
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 4,
-                      "main": 96,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip15",
-                      "lane": 5
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "1086": {
-        "mapping": {
-          "id": 1086,
-          "name": "fab1/15/7",
-          "controllingPort": 1086,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-J3_FE-slot1/chip1/core7",
-                "lane": 6
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip15",
-                  "lane": 6
-                }
-              }
-            }
-          ],
-          "portType": 1,
-          "virtualDeviceId": 0,
-          "scope": 0
-        },
-        "supportedProfiles": {
-          "42": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-J3_FE-slot1/chip1/core7",
-                      "lane": 6
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 4,
-                      "main": 96,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip15",
-                      "lane": 6
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "1087": {
-        "mapping": {
-          "id": 1087,
-          "name": "fab1/15/8",
-          "controllingPort": 1087,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-J3_FE-slot1/chip1/core7",
-                "lane": 7
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip15",
-                  "lane": 7
-                }
-              }
-            }
-          ],
-          "portType": 1,
-          "virtualDeviceId": 0,
-          "scope": 0
-        },
-        "supportedProfiles": {
-          "42": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-J3_FE-slot1/chip1/core7",
-                      "lane": 7
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 4,
-                      "main": 96,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip15",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "1088": {
-        "mapping": {
-          "id": 1088,
-          "name": "fab1/16/1",
-          "controllingPort": 1088,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-J3_FE-slot1/chip1/core8",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip16",
-                  "lane": 0
-                }
-              }
-            }
-          ],
-          "portType": 1,
-          "virtualDeviceId": 0,
-          "scope": 0
-        },
-        "supportedProfiles": {
-          "42": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-J3_FE-slot1/chip1/core8",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 4,
-                      "main": 96,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip16",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "1089": {
-        "mapping": {
-          "id": 1089,
-          "name": "fab1/16/2",
-          "controllingPort": 1089,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-J3_FE-slot1/chip1/core8",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip16",
-                  "lane": 1
-                }
-              }
-            }
-          ],
-          "portType": 1,
-          "virtualDeviceId": 0,
-          "scope": 0
-        },
-        "supportedProfiles": {
-          "42": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-J3_FE-slot1/chip1/core8",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 4,
-                      "main": 96,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip16",
-                      "lane": 1
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "1090": {
-        "mapping": {
-          "id": 1090,
-          "name": "fab1/16/3",
-          "controllingPort": 1090,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-J3_FE-slot1/chip1/core8",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip16",
-                  "lane": 2
-                }
-              }
-            }
-          ],
-          "portType": 1,
-          "virtualDeviceId": 0,
-          "scope": 0
-        },
-        "supportedProfiles": {
-          "42": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-J3_FE-slot1/chip1/core8",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 4,
-                      "main": 96,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip16",
-                      "lane": 2
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "1091": {
-        "mapping": {
-          "id": 1091,
-          "name": "fab1/16/4",
-          "controllingPort": 1091,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-J3_FE-slot1/chip1/core8",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip16",
                   "lane": 3
                 }
               }
@@ -10677,23 +10382,24 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J3_FE-slot1/chip1/core8",
-                      "lane": 3
+                      "chip": "NPU-J3_FE-slot1/chip1/core7",
+                      "lane": 5
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip16",
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip15",
                       "lane": 3
                     }
                   }
@@ -10702,16 +10408,126 @@ constexpr auto kJsonPlatformMappingStr = R"(
           }
         }
     },
-    "1092": {
+    "1086": {
         "mapping": {
-          "id": 1092,
+          "id": 1086,
+          "name": "fab1/15/2",
+          "controllingPort": 1086,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-J3_FE-slot1/chip1/core7",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip15",
+                  "lane": 1
+                }
+              }
+            }
+          ],
+          "portType": 1,
+          "virtualDeviceId": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "42": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J3_FE-slot1/chip1/core7",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip15",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "1087": {
+        "mapping": {
+          "id": 1087,
+          "name": "fab1/15/3",
+          "controllingPort": 1087,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-J3_FE-slot1/chip1/core7",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip15",
+                  "lane": 2
+                }
+              }
+            }
+          ],
+          "portType": 1,
+          "virtualDeviceId": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "42": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J3_FE-slot1/chip1/core7",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip15",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "1088": {
+        "mapping": {
+          "id": 1088,
           "name": "fab1/16/5",
-          "controllingPort": 1092,
+          "controllingPort": 1088,
           "pins": [
             {
               "a": {
                 "chip": "NPU-J3_FE-slot1/chip1/core8",
-                "lane": 4
+                "lane": 0
               },
               "z": {
                 "end": {
@@ -10732,15 +10548,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "NPU-J3_FE-slot1/chip1/core8",
-                      "lane": 4
+                      "lane": 0
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -24,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 128,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -10756,124 +10573,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
           }
         }
     },
-    "1093": {
+    "1089": {
         "mapping": {
-          "id": 1093,
-          "name": "fab1/16/6",
-          "controllingPort": 1093,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-J3_FE-slot1/chip1/core8",
-                "lane": 5
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip16",
-                  "lane": 5
-                }
-              }
-            }
-          ],
-          "portType": 1,
-          "virtualDeviceId": 0,
-          "scope": 0
-        },
-        "supportedProfiles": {
-          "42": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-J3_FE-slot1/chip1/core8",
-                      "lane": 5
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 4,
-                      "main": 96,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip16",
-                      "lane": 5
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "1094": {
-        "mapping": {
-          "id": 1094,
-          "name": "fab1/16/7",
-          "controllingPort": 1094,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-J3_FE-slot1/chip1/core8",
-                "lane": 6
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip16",
-                  "lane": 6
-                }
-              }
-            }
-          ],
-          "portType": 1,
-          "virtualDeviceId": 0,
-          "scope": 0
-        },
-        "supportedProfiles": {
-          "42": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-J3_FE-slot1/chip1/core8",
-                      "lane": 6
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 4,
-                      "main": 96,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip16",
-                      "lane": 6
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "1095": {
-        "mapping": {
-          "id": 1095,
+          "id": 1089,
           "name": "fab1/16/8",
-          "controllingPort": 1095,
+          "controllingPort": 1089,
           "pins": [
             {
               "a": {
                 "chip": "NPU-J3_FE-slot1/chip1/core8",
-                "lane": 7
+                "lane": 1
               },
               "z": {
                 "end": {
@@ -10894,15 +10603,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "NPU-J3_FE-slot1/chip1/core8",
-                      "lane": 7
+                      "lane": 1
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -24,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 128,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -10918,21 +10628,21 @@ constexpr auto kJsonPlatformMappingStr = R"(
           }
         }
     },
-    "1096": {
+    "1090": {
         "mapping": {
-          "id": 1096,
-          "name": "fab1/13/1",
-          "controllingPort": 1096,
+          "id": 1090,
+          "name": "fab1/16/7",
+          "controllingPort": 1090,
           "pins": [
             {
               "a": {
-                "chip": "NPU-J3_FE-slot1/chip1/core9",
-                "lane": 0
+                "chip": "NPU-J3_FE-slot1/chip1/core8",
+                "lane": 2
               },
               "z": {
                 "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip13",
-                  "lane": 0
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip16",
+                  "lane": 6
                 }
               }
             }
@@ -10947,24 +10657,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J3_FE-slot1/chip1/core9",
-                      "lane": 0
+                      "chip": "NPU-J3_FE-slot1/chip1/core8",
+                      "lane": 2
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -24,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 128,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip13",
-                      "lane": 0
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip16",
+                      "lane": 6
                     }
                   }
                 ]
@@ -10972,20 +10683,75 @@ constexpr auto kJsonPlatformMappingStr = R"(
           }
         }
     },
-    "1097": {
+    "1091": {
         "mapping": {
-          "id": 1097,
-          "name": "fab1/13/2",
-          "controllingPort": 1097,
+          "id": 1091,
+          "name": "fab1/16/6",
+          "controllingPort": 1091,
           "pins": [
             {
               "a": {
-                "chip": "NPU-J3_FE-slot1/chip1/core9",
-                "lane": 1
+                "chip": "NPU-J3_FE-slot1/chip1/core8",
+                "lane": 3
               },
               "z": {
                 "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip13",
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip16",
+                  "lane": 5
+                }
+              }
+            }
+          ],
+          "portType": 1,
+          "virtualDeviceId": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "42": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J3_FE-slot1/chip1/core8",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 128,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip16",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "1092": {
+        "mapping": {
+          "id": 1092,
+          "name": "fab1/16/2",
+          "controllingPort": 1092,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-J3_FE-slot1/chip1/core8",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip16",
                   "lane": 1
                 }
               }
@@ -11001,23 +10767,24 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J3_FE-slot1/chip1/core9",
-                      "lane": 1
+                      "chip": "NPU-J3_FE-slot1/chip1/core8",
+                      "lane": 4
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -24,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 128,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip13",
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip16",
                       "lane": 1
                     }
                   }
@@ -11026,16 +10793,236 @@ constexpr auto kJsonPlatformMappingStr = R"(
           }
         }
     },
-    "1098": {
+    "1093": {
         "mapping": {
-          "id": 1098,
-          "name": "fab1/13/3",
-          "controllingPort": 1098,
+          "id": 1093,
+          "name": "fab1/16/3",
+          "controllingPort": 1093,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-J3_FE-slot1/chip1/core8",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip16",
+                  "lane": 2
+                }
+              }
+            }
+          ],
+          "portType": 1,
+          "virtualDeviceId": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "42": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J3_FE-slot1/chip1/core8",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 128,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip16",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "1094": {
+        "mapping": {
+          "id": 1094,
+          "name": "fab1/16/1",
+          "controllingPort": 1094,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-J3_FE-slot1/chip1/core8",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip16",
+                  "lane": 0
+                }
+              }
+            }
+          ],
+          "portType": 1,
+          "virtualDeviceId": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "42": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J3_FE-slot1/chip1/core8",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 128,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip16",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "1095": {
+        "mapping": {
+          "id": 1095,
+          "name": "fab1/16/4",
+          "controllingPort": 1095,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-J3_FE-slot1/chip1/core8",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip16",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 1,
+          "virtualDeviceId": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "42": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J3_FE-slot1/chip1/core8",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 128,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip16",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "1096": {
+        "mapping": {
+          "id": 1096,
+          "name": "fab1/13/8",
+          "controllingPort": 1096,
           "pins": [
             {
               "a": {
                 "chip": "NPU-J3_FE-slot1/chip1/core9",
-                "lane": 2
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip13",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 1,
+          "virtualDeviceId": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "42": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J3_FE-slot1/chip1/core9",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 128,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip13",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "1097": {
+        "mapping": {
+          "id": 1097,
+          "name": "fab1/13/3",
+          "controllingPort": 1097,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-J3_FE-slot1/chip1/core9",
+                "lane": 1
               },
               "z": {
                 "end": {
@@ -11056,15 +11043,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "NPU-J3_FE-slot1/chip1/core9",
-                      "lane": 2
+                      "lane": 1
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -24,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 128,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -11080,16 +11068,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
           }
         }
     },
-    "1099": {
+    "1098": {
         "mapping": {
-          "id": 1099,
+          "id": 1098,
           "name": "fab1/13/4",
-          "controllingPort": 1099,
+          "controllingPort": 1098,
           "pins": [
             {
               "a": {
                 "chip": "NPU-J3_FE-slot1/chip1/core9",
-                "lane": 3
+                "lane": 2
               },
               "z": {
                 "end": {
@@ -11110,15 +11098,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "NPU-J3_FE-slot1/chip1/core9",
-                      "lane": 3
+                      "lane": 2
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -24,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 128,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -11127,6 +11116,61 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip13",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "1099": {
+        "mapping": {
+          "id": 1099,
+          "name": "fab1/13/1",
+          "controllingPort": 1099,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-J3_FE-slot1/chip1/core9",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip13",
+                  "lane": 0
+                }
+              }
+            }
+          ],
+          "portType": 1,
+          "virtualDeviceId": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "42": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J3_FE-slot1/chip1/core9",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 128,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip13",
+                      "lane": 0
                     }
                   }
                 ]
@@ -11167,12 +11211,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 4
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -24,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 128,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -11221,12 +11266,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 5
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -24,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 128,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -11275,12 +11321,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 6
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -24,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 128,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -11299,7 +11346,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1103": {
         "mapping": {
           "id": 1103,
-          "name": "fab1/13/8",
+          "name": "fab1/13/2",
           "controllingPort": 1103,
           "pins": [
             {
@@ -11310,7 +11357,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip13",
-                  "lane": 7
+                  "lane": 1
                 }
               }
             }
@@ -11329,12 +11376,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -24,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 128,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -11342,7 +11390,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip13",
-                      "lane": 7
+                      "lane": 1
                     }
                   }
                 ]
@@ -11353,121 +11401,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1104": {
         "mapping": {
           "id": 1104,
-          "name": "fab1/4/1",
+          "name": "fab1/4/3",
           "controllingPort": 1104,
           "pins": [
             {
               "a": {
                 "chip": "NPU-J3_FE-slot1/chip1/core10",
                 "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip4",
-                  "lane": 0
-                }
-              }
-            }
-          ],
-          "portType": 1,
-          "virtualDeviceId": 0,
-          "scope": 0
-        },
-        "supportedProfiles": {
-          "42": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-J3_FE-slot1/chip1/core10",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 4,
-                      "main": 96,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip4",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "1105": {
-        "mapping": {
-          "id": 1105,
-          "name": "fab1/4/2",
-          "controllingPort": 1105,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-J3_FE-slot1/chip1/core10",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip4",
-                  "lane": 1
-                }
-              }
-            }
-          ],
-          "portType": 1,
-          "virtualDeviceId": 0,
-          "scope": 0
-        },
-        "supportedProfiles": {
-          "42": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-J3_FE-slot1/chip1/core10",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 4,
-                      "main": 96,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip4",
-                      "lane": 1
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "1106": {
-        "mapping": {
-          "id": 1106,
-          "name": "fab1/4/3",
-          "controllingPort": 1106,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-J3_FE-slot1/chip1/core10",
-                "lane": 2
               },
               "z": {
                 "end": {
@@ -11488,15 +11428,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "NPU-J3_FE-slot1/chip1/core10",
-                      "lane": 2
+                      "lane": 0
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -11512,16 +11453,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
           }
         }
     },
-    "1107": {
+    "1105": {
         "mapping": {
-          "id": 1107,
+          "id": 1105,
           "name": "fab1/4/4",
-          "controllingPort": 1107,
+          "controllingPort": 1105,
           "pins": [
             {
               "a": {
                 "chip": "NPU-J3_FE-slot1/chip1/core10",
-                "lane": 3
+                "lane": 1
               },
               "z": {
                 "end": {
@@ -11542,15 +11483,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "NPU-J3_FE-slot1/chip1/core10",
-                      "lane": 3
+                      "lane": 1
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -11566,10 +11508,120 @@ constexpr auto kJsonPlatformMappingStr = R"(
           }
         }
     },
+    "1106": {
+        "mapping": {
+          "id": 1106,
+          "name": "fab1/4/1",
+          "controllingPort": 1106,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-J3_FE-slot1/chip1/core10",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip4",
+                  "lane": 0
+                }
+              }
+            }
+          ],
+          "portType": 1,
+          "virtualDeviceId": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "42": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J3_FE-slot1/chip1/core10",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip4",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "1107": {
+        "mapping": {
+          "id": 1107,
+          "name": "fab1/4/2",
+          "controllingPort": 1107,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-J3_FE-slot1/chip1/core10",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip4",
+                  "lane": 1
+                }
+              }
+            }
+          ],
+          "portType": 1,
+          "virtualDeviceId": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "42": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J3_FE-slot1/chip1/core10",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip4",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
     "1108": {
         "mapping": {
           "id": 1108,
-          "name": "fab1/4/5",
+          "name": "fab1/4/8",
           "controllingPort": 1108,
           "pins": [
             {
@@ -11580,7 +11632,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip4",
-                  "lane": 4
+                  "lane": 7
                 }
               }
             }
@@ -11599,12 +11651,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 4
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -11612,7 +11665,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip4",
-                      "lane": 4
+                      "lane": 7
                     }
                   }
                 ]
@@ -11653,12 +11706,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 5
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -11707,12 +11761,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 6
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -11731,7 +11786,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1111": {
         "mapping": {
           "id": 1111,
-          "name": "fab1/4/8",
+          "name": "fab1/4/5",
           "controllingPort": 1111,
           "pins": [
             {
@@ -11742,7 +11797,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip4",
-                  "lane": 7
+                  "lane": 4
                 }
               }
             }
@@ -11761,12 +11816,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -11774,7 +11830,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip4",
-                      "lane": 7
+                      "lane": 4
                     }
                   }
                 ]
@@ -11785,121 +11841,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1112": {
         "mapping": {
           "id": 1112,
-          "name": "fab1/3/1",
+          "name": "fab1/3/3",
           "controllingPort": 1112,
           "pins": [
             {
               "a": {
                 "chip": "NPU-J3_FE-slot1/chip1/core11",
                 "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip3",
-                  "lane": 0
-                }
-              }
-            }
-          ],
-          "portType": 1,
-          "virtualDeviceId": 0,
-          "scope": 0
-        },
-        "supportedProfiles": {
-          "42": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-J3_FE-slot1/chip1/core11",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 4,
-                      "main": 96,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip3",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "1113": {
-        "mapping": {
-          "id": 1113,
-          "name": "fab1/3/2",
-          "controllingPort": 1113,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-J3_FE-slot1/chip1/core11",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip3",
-                  "lane": 1
-                }
-              }
-            }
-          ],
-          "portType": 1,
-          "virtualDeviceId": 0,
-          "scope": 0
-        },
-        "supportedProfiles": {
-          "42": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-J3_FE-slot1/chip1/core11",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 4,
-                      "main": 96,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip3",
-                      "lane": 1
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "1114": {
-        "mapping": {
-          "id": 1114,
-          "name": "fab1/3/3",
-          "controllingPort": 1114,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-J3_FE-slot1/chip1/core11",
-                "lane": 2
               },
               "z": {
                 "end": {
@@ -11920,15 +11868,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "NPU-J3_FE-slot1/chip1/core11",
-                      "lane": 2
+                      "lane": 0
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -11944,16 +11893,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
           }
         }
     },
-    "1115": {
+    "1113": {
         "mapping": {
-          "id": 1115,
+          "id": 1113,
           "name": "fab1/3/4",
-          "controllingPort": 1115,
+          "controllingPort": 1113,
           "pins": [
             {
               "a": {
                 "chip": "NPU-J3_FE-slot1/chip1/core11",
-                "lane": 3
+                "lane": 1
               },
               "z": {
                 "end": {
@@ -11974,15 +11923,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "NPU-J3_FE-slot1/chip1/core11",
-                      "lane": 3
+                      "lane": 1
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -11998,10 +11948,120 @@ constexpr auto kJsonPlatformMappingStr = R"(
           }
         }
     },
+    "1114": {
+        "mapping": {
+          "id": 1114,
+          "name": "fab1/3/1",
+          "controllingPort": 1114,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-J3_FE-slot1/chip1/core11",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip3",
+                  "lane": 0
+                }
+              }
+            }
+          ],
+          "portType": 1,
+          "virtualDeviceId": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "42": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J3_FE-slot1/chip1/core11",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip3",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "1115": {
+        "mapping": {
+          "id": 1115,
+          "name": "fab1/3/2",
+          "controllingPort": 1115,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-J3_FE-slot1/chip1/core11",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip3",
+                  "lane": 1
+                }
+              }
+            }
+          ],
+          "portType": 1,
+          "virtualDeviceId": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "42": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J3_FE-slot1/chip1/core11",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip3",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
     "1116": {
         "mapping": {
           "id": 1116,
-          "name": "fab1/3/5",
+          "name": "fab1/3/8",
           "controllingPort": 1116,
           "pins": [
             {
@@ -12012,7 +12072,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip3",
-                  "lane": 4
+                  "lane": 7
                 }
               }
             }
@@ -12031,12 +12091,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 4
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -12044,7 +12105,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip3",
-                      "lane": 4
+                      "lane": 7
                     }
                   }
                 ]
@@ -12085,12 +12146,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 5
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -12139,12 +12201,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 6
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -12163,7 +12226,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1119": {
         "mapping": {
           "id": 1119,
-          "name": "fab1/3/8",
+          "name": "fab1/3/5",
           "controllingPort": 1119,
           "pins": [
             {
@@ -12174,7 +12237,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip3",
-                  "lane": 7
+                  "lane": 4
                 }
               }
             }
@@ -12193,12 +12256,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -12206,7 +12270,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip3",
-                      "lane": 7
+                      "lane": 4
                     }
                   }
                 ]
@@ -12217,121 +12281,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1120": {
         "mapping": {
           "id": 1120,
-          "name": "fab1/7/1",
+          "name": "fab1/7/3",
           "controllingPort": 1120,
           "pins": [
             {
               "a": {
                 "chip": "NPU-J3_FE-slot1/chip1/core12",
                 "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip7",
-                  "lane": 0
-                }
-              }
-            }
-          ],
-          "portType": 1,
-          "virtualDeviceId": 0,
-          "scope": 0
-        },
-        "supportedProfiles": {
-          "42": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-J3_FE-slot1/chip1/core12",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 4,
-                      "main": 96,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip7",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "1121": {
-        "mapping": {
-          "id": 1121,
-          "name": "fab1/7/2",
-          "controllingPort": 1121,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-J3_FE-slot1/chip1/core12",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip7",
-                  "lane": 1
-                }
-              }
-            }
-          ],
-          "portType": 1,
-          "virtualDeviceId": 0,
-          "scope": 0
-        },
-        "supportedProfiles": {
-          "42": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-J3_FE-slot1/chip1/core12",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 4,
-                      "main": 96,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip7",
-                      "lane": 1
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "1122": {
-        "mapping": {
-          "id": 1122,
-          "name": "fab1/7/3",
-          "controllingPort": 1122,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-J3_FE-slot1/chip1/core12",
-                "lane": 2
               },
               "z": {
                 "end": {
@@ -12352,15 +12308,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "NPU-J3_FE-slot1/chip1/core12",
-                      "lane": 2
+                      "lane": 0
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -12376,16 +12333,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
           }
         }
     },
-    "1123": {
+    "1121": {
         "mapping": {
-          "id": 1123,
+          "id": 1121,
           "name": "fab1/7/4",
-          "controllingPort": 1123,
+          "controllingPort": 1121,
           "pins": [
             {
               "a": {
                 "chip": "NPU-J3_FE-slot1/chip1/core12",
-                "lane": 3
+                "lane": 1
               },
               "z": {
                 "end": {
@@ -12406,15 +12363,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "NPU-J3_FE-slot1/chip1/core12",
-                      "lane": 3
+                      "lane": 1
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -12430,16 +12388,181 @@ constexpr auto kJsonPlatformMappingStr = R"(
           }
         }
     },
+    "1122": {
+        "mapping": {
+          "id": 1122,
+          "name": "fab1/7/1",
+          "controllingPort": 1122,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-J3_FE-slot1/chip1/core12",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip7",
+                  "lane": 0
+                }
+              }
+            }
+          ],
+          "portType": 1,
+          "virtualDeviceId": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "42": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J3_FE-slot1/chip1/core12",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip7",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "1123": {
+        "mapping": {
+          "id": 1123,
+          "name": "fab1/7/2",
+          "controllingPort": 1123,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-J3_FE-slot1/chip1/core12",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip7",
+                  "lane": 1
+                }
+              }
+            }
+          ],
+          "portType": 1,
+          "virtualDeviceId": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "42": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J3_FE-slot1/chip1/core12",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip7",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
     "1124": {
         "mapping": {
           "id": 1124,
-          "name": "fab1/7/5",
+          "name": "fab1/7/8",
           "controllingPort": 1124,
           "pins": [
             {
               "a": {
                 "chip": "NPU-J3_FE-slot1/chip1/core12",
                 "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip7",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 1,
+          "virtualDeviceId": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "42": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J3_FE-slot1/chip1/core12",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip7",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "1125": {
+        "mapping": {
+          "id": 1125,
+          "name": "fab1/7/5",
+          "controllingPort": 1125,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-J3_FE-slot1/chip1/core12",
+                "lane": 5
               },
               "z": {
                 "end": {
@@ -12460,15 +12583,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "NPU-J3_FE-slot1/chip1/core12",
-                      "lane": 4
+                      "lane": 5
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -12477,60 +12601,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip7",
                       "lane": 4
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "1125": {
-        "mapping": {
-          "id": 1125,
-          "name": "fab1/7/6",
-          "controllingPort": 1125,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-J3_FE-slot1/chip1/core12",
-                "lane": 5
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip7",
-                  "lane": 5
-                }
-              }
-            }
-          ],
-          "portType": 1,
-          "virtualDeviceId": 0,
-          "scope": 0
-        },
-        "supportedProfiles": {
-          "42": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-J3_FE-slot1/chip1/core12",
-                      "lane": 5
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 4,
-                      "main": 96,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip7",
-                      "lane": 5
                     }
                   }
                 ]
@@ -12571,12 +12641,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 6
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -12595,7 +12666,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1127": {
         "mapping": {
           "id": 1127,
-          "name": "fab1/7/8",
+          "name": "fab1/7/6",
           "controllingPort": 1127,
           "pins": [
             {
@@ -12606,7 +12677,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip7",
-                  "lane": 7
+                  "lane": 5
                 }
               }
             }
@@ -12625,12 +12696,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -12638,7 +12710,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip7",
-                      "lane": 7
+                      "lane": 5
                     }
                   }
                 ]
@@ -12649,121 +12721,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1128": {
         "mapping": {
           "id": 1128,
-          "name": "fab1/6/1",
+          "name": "fab1/6/3",
           "controllingPort": 1128,
           "pins": [
             {
               "a": {
                 "chip": "NPU-J3_FE-slot1/chip1/core13",
                 "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip6",
-                  "lane": 0
-                }
-              }
-            }
-          ],
-          "portType": 1,
-          "virtualDeviceId": 0,
-          "scope": 0
-        },
-        "supportedProfiles": {
-          "42": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-J3_FE-slot1/chip1/core13",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 4,
-                      "main": 96,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip6",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "1129": {
-        "mapping": {
-          "id": 1129,
-          "name": "fab1/6/2",
-          "controllingPort": 1129,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-J3_FE-slot1/chip1/core13",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip6",
-                  "lane": 1
-                }
-              }
-            }
-          ],
-          "portType": 1,
-          "virtualDeviceId": 0,
-          "scope": 0
-        },
-        "supportedProfiles": {
-          "42": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-J3_FE-slot1/chip1/core13",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 4,
-                      "main": 96,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip6",
-                      "lane": 1
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "1130": {
-        "mapping": {
-          "id": 1130,
-          "name": "fab1/6/3",
-          "controllingPort": 1130,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-J3_FE-slot1/chip1/core13",
-                "lane": 2
               },
               "z": {
                 "end": {
@@ -12784,15 +12748,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "NPU-J3_FE-slot1/chip1/core13",
-                      "lane": 2
+                      "lane": 0
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -12808,16 +12773,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
           }
         }
     },
-    "1131": {
+    "1129": {
         "mapping": {
-          "id": 1131,
+          "id": 1129,
           "name": "fab1/6/4",
-          "controllingPort": 1131,
+          "controllingPort": 1129,
           "pins": [
             {
               "a": {
                 "chip": "NPU-J3_FE-slot1/chip1/core13",
-                "lane": 3
+                "lane": 1
               },
               "z": {
                 "end": {
@@ -12838,15 +12803,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "NPU-J3_FE-slot1/chip1/core13",
-                      "lane": 3
+                      "lane": 1
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -12862,16 +12828,181 @@ constexpr auto kJsonPlatformMappingStr = R"(
           }
         }
     },
+    "1130": {
+        "mapping": {
+          "id": 1130,
+          "name": "fab1/6/1",
+          "controllingPort": 1130,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-J3_FE-slot1/chip1/core13",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip6",
+                  "lane": 0
+                }
+              }
+            }
+          ],
+          "portType": 1,
+          "virtualDeviceId": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "42": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J3_FE-slot1/chip1/core13",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip6",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "1131": {
+        "mapping": {
+          "id": 1131,
+          "name": "fab1/6/2",
+          "controllingPort": 1131,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-J3_FE-slot1/chip1/core13",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip6",
+                  "lane": 1
+                }
+              }
+            }
+          ],
+          "portType": 1,
+          "virtualDeviceId": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "42": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J3_FE-slot1/chip1/core13",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip6",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
     "1132": {
         "mapping": {
           "id": 1132,
-          "name": "fab1/6/5",
+          "name": "fab1/6/8",
           "controllingPort": 1132,
           "pins": [
             {
               "a": {
                 "chip": "NPU-J3_FE-slot1/chip1/core13",
                 "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip6",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 1,
+          "virtualDeviceId": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "42": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J3_FE-slot1/chip1/core13",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip6",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "1133": {
+        "mapping": {
+          "id": 1133,
+          "name": "fab1/6/5",
+          "controllingPort": 1133,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-J3_FE-slot1/chip1/core13",
+                "lane": 5
               },
               "z": {
                 "end": {
@@ -12892,15 +13023,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "NPU-J3_FE-slot1/chip1/core13",
-                      "lane": 4
+                      "lane": 5
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -12909,60 +13041,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip6",
                       "lane": 4
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "1133": {
-        "mapping": {
-          "id": 1133,
-          "name": "fab1/6/6",
-          "controllingPort": 1133,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-J3_FE-slot1/chip1/core13",
-                "lane": 5
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip6",
-                  "lane": 5
-                }
-              }
-            }
-          ],
-          "portType": 1,
-          "virtualDeviceId": 0,
-          "scope": 0
-        },
-        "supportedProfiles": {
-          "42": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-J3_FE-slot1/chip1/core13",
-                      "lane": 5
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 4,
-                      "main": 96,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip6",
-                      "lane": 5
                     }
                   }
                 ]
@@ -13003,12 +13081,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 6
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -13027,7 +13106,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1135": {
         "mapping": {
           "id": 1135,
-          "name": "fab1/6/8",
+          "name": "fab1/6/6",
           "controllingPort": 1135,
           "pins": [
             {
@@ -13038,7 +13117,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip6",
-                  "lane": 7
+                  "lane": 5
                 }
               }
             }
@@ -13057,12 +13136,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -13070,7 +13150,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip6",
-                      "lane": 7
+                      "lane": 5
                     }
                   }
                 ]
@@ -13081,7 +13161,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1136": {
         "mapping": {
           "id": 1136,
-          "name": "fab1/5/1",
+          "name": "fab1/5/6",
           "controllingPort": 1136,
           "pins": [
             {
@@ -13092,7 +13172,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip5",
-                  "lane": 0
+                  "lane": 5
                 }
               }
             }
@@ -13111,12 +13191,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -13124,7 +13205,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip5",
-                      "lane": 0
+                      "lane": 5
                     }
                   }
                 ]
@@ -13135,7 +13216,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1137": {
         "mapping": {
           "id": 1137,
-          "name": "fab1/5/2",
+          "name": "fab1/5/7",
           "controllingPort": 1137,
           "pins": [
             {
@@ -13146,7 +13227,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip5",
-                  "lane": 1
+                  "lane": 6
                 }
               }
             }
@@ -13165,12 +13246,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -13178,7 +13260,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip5",
-                      "lane": 1
+                      "lane": 6
                     }
                   }
                 ]
@@ -13189,7 +13271,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1138": {
         "mapping": {
           "id": 1138,
-          "name": "fab1/5/3",
+          "name": "fab1/5/5",
           "controllingPort": 1138,
           "pins": [
             {
@@ -13200,7 +13282,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip5",
-                  "lane": 2
+                  "lane": 4
                 }
               }
             }
@@ -13219,12 +13301,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -13232,7 +13315,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip5",
-                      "lane": 2
+                      "lane": 4
                     }
                   }
                 ]
@@ -13243,7 +13326,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1139": {
         "mapping": {
           "id": 1139,
-          "name": "fab1/5/4",
+          "name": "fab1/5/8",
           "controllingPort": 1139,
           "pins": [
             {
@@ -13254,7 +13337,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip5",
-                  "lane": 3
+                  "lane": 7
                 }
               }
             }
@@ -13273,12 +13356,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -13286,7 +13370,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip5",
-                      "lane": 3
+                      "lane": 7
                     }
                   }
                 ]
@@ -13297,7 +13381,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1140": {
         "mapping": {
           "id": 1140,
-          "name": "fab1/5/5",
+          "name": "fab1/5/4",
           "controllingPort": 1140,
           "pins": [
             {
@@ -13308,7 +13392,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip5",
-                  "lane": 4
+                  "lane": 3
                 }
               }
             }
@@ -13327,12 +13411,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 4
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -13340,7 +13425,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip5",
-                      "lane": 4
+                      "lane": 3
                     }
                   }
                 ]
@@ -13351,7 +13436,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1141": {
         "mapping": {
           "id": 1141,
-          "name": "fab1/5/6",
+          "name": "fab1/5/2",
           "controllingPort": 1141,
           "pins": [
             {
@@ -13362,7 +13447,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip5",
-                  "lane": 5
+                  "lane": 1
                 }
               }
             }
@@ -13381,12 +13466,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 5
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -13394,7 +13480,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip5",
-                      "lane": 5
+                      "lane": 1
                     }
                   }
                 ]
@@ -13405,7 +13491,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1142": {
         "mapping": {
           "id": 1142,
-          "name": "fab1/5/7",
+          "name": "fab1/5/3",
           "controllingPort": 1142,
           "pins": [
             {
@@ -13416,7 +13502,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip5",
-                  "lane": 6
+                  "lane": 2
                 }
               }
             }
@@ -13435,12 +13521,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 6
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -13448,7 +13535,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip5",
-                      "lane": 6
+                      "lane": 2
                     }
                   }
                 ]
@@ -13459,7 +13546,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1143": {
         "mapping": {
           "id": 1143,
-          "name": "fab1/5/8",
+          "name": "fab1/5/1",
           "controllingPort": 1143,
           "pins": [
             {
@@ -13470,60 +13557,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip5",
-                  "lane": 7
-                }
-              }
-            }
-          ],
-          "portType": 1,
-          "virtualDeviceId": 0,
-          "scope": 0
-        },
-        "supportedProfiles": {
-          "42": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-J3_FE-slot1/chip1/core14",
-                      "lane": 7
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 4,
-                      "main": 96,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip5",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "1144": {
-        "mapping": {
-          "id": 1144,
-          "name": "fab1/10/1",
-          "controllingPort": 1144,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-J3_FE-slot1/chip1/core15",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip10",
                   "lane": 0
                 }
               }
@@ -13539,23 +13572,24 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J3_FE-slot1/chip1/core15",
-                      "lane": 0
+                      "chip": "NPU-J3_FE-slot1/chip1/core14",
+                      "lane": 7
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip10",
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip5",
                       "lane": 0
                     }
                   }
@@ -13564,70 +13598,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
           }
         }
     },
-    "1145": {
+    "1144": {
         "mapping": {
-          "id": 1145,
-          "name": "fab1/10/2",
-          "controllingPort": 1145,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-J3_FE-slot1/chip1/core15",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip10",
-                  "lane": 1
-                }
-              }
-            }
-          ],
-          "portType": 1,
-          "virtualDeviceId": 0,
-          "scope": 0
-        },
-        "supportedProfiles": {
-          "42": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-J3_FE-slot1/chip1/core15",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 4,
-                      "main": 96,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip10",
-                      "lane": 1
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "1146": {
-        "mapping": {
-          "id": 1146,
+          "id": 1144,
           "name": "fab1/10/3",
-          "controllingPort": 1146,
+          "controllingPort": 1144,
           "pins": [
             {
               "a": {
                 "chip": "NPU-J3_FE-slot1/chip1/core15",
-                "lane": 2
+                "lane": 0
               },
               "z": {
                 "end": {
@@ -13648,15 +13628,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "NPU-J3_FE-slot1/chip1/core15",
-                      "lane": 2
+                      "lane": 0
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -13672,16 +13653,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
           }
         }
     },
-    "1147": {
+    "1145": {
         "mapping": {
-          "id": 1147,
+          "id": 1145,
           "name": "fab1/10/4",
-          "controllingPort": 1147,
+          "controllingPort": 1145,
           "pins": [
             {
               "a": {
                 "chip": "NPU-J3_FE-slot1/chip1/core15",
-                "lane": 3
+                "lane": 1
               },
               "z": {
                 "end": {
@@ -13702,15 +13683,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "NPU-J3_FE-slot1/chip1/core15",
-                      "lane": 3
+                      "lane": 1
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -13726,16 +13708,181 @@ constexpr auto kJsonPlatformMappingStr = R"(
           }
         }
     },
+    "1146": {
+        "mapping": {
+          "id": 1146,
+          "name": "fab1/10/1",
+          "controllingPort": 1146,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-J3_FE-slot1/chip1/core15",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip10",
+                  "lane": 0
+                }
+              }
+            }
+          ],
+          "portType": 1,
+          "virtualDeviceId": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "42": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J3_FE-slot1/chip1/core15",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip10",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "1147": {
+        "mapping": {
+          "id": 1147,
+          "name": "fab1/10/2",
+          "controllingPort": 1147,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-J3_FE-slot1/chip1/core15",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip10",
+                  "lane": 1
+                }
+              }
+            }
+          ],
+          "portType": 1,
+          "virtualDeviceId": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "42": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J3_FE-slot1/chip1/core15",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip10",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
     "1148": {
         "mapping": {
           "id": 1148,
-          "name": "fab1/10/5",
+          "name": "fab1/10/7",
           "controllingPort": 1148,
           "pins": [
             {
               "a": {
                 "chip": "NPU-J3_FE-slot1/chip1/core15",
                 "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip10",
+                  "lane": 6
+                }
+              }
+            }
+          ],
+          "portType": 1,
+          "virtualDeviceId": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "42": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J3_FE-slot1/chip1/core15",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip10",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "1149": {
+        "mapping": {
+          "id": 1149,
+          "name": "fab1/10/5",
+          "controllingPort": 1149,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-J3_FE-slot1/chip1/core15",
+                "lane": 5
               },
               "z": {
                 "end": {
@@ -13756,15 +13903,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "NPU-J3_FE-slot1/chip1/core15",
-                      "lane": 4
+                      "lane": 5
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -13780,16 +13928,71 @@ constexpr auto kJsonPlatformMappingStr = R"(
           }
         }
     },
-    "1149": {
+    "1150": {
         "mapping": {
-          "id": 1149,
-          "name": "fab1/10/6",
-          "controllingPort": 1149,
+          "id": 1150,
+          "name": "fab1/10/8",
+          "controllingPort": 1150,
           "pins": [
             {
               "a": {
                 "chip": "NPU-J3_FE-slot1/chip1/core15",
-                "lane": 5
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip10",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 1,
+          "virtualDeviceId": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "42": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J3_FE-slot1/chip1/core15",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip10",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "1151": {
+        "mapping": {
+          "id": 1151,
+          "name": "fab1/10/6",
+          "controllingPort": 1151,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-J3_FE-slot1/chip1/core15",
+                "lane": 7
               },
               "z": {
                 "end": {
@@ -13810,123 +14013,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "NPU-J3_FE-slot1/chip1/core15",
-                      "lane": 5
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 4,
-                      "main": 96,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip10",
-                      "lane": 5
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "1150": {
-        "mapping": {
-          "id": 1150,
-          "name": "fab1/10/7",
-          "controllingPort": 1150,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-J3_FE-slot1/chip1/core15",
-                "lane": 6
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip10",
-                  "lane": 6
-                }
-              }
-            }
-          ],
-          "portType": 1,
-          "virtualDeviceId": 0,
-          "scope": 0
-        },
-        "supportedProfiles": {
-          "42": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-J3_FE-slot1/chip1/core15",
-                      "lane": 6
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 4,
-                      "main": 96,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip10",
-                      "lane": 6
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "1151": {
-        "mapping": {
-          "id": 1151,
-          "name": "fab1/10/8",
-          "controllingPort": 1151,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-J3_FE-slot1/chip1/core15",
-                "lane": 7
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip10",
-                  "lane": 7
-                }
-              }
-            }
-          ],
-          "portType": 1,
-          "virtualDeviceId": 0,
-          "scope": 0
-        },
-        "supportedProfiles": {
-          "42": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-J3_FE-slot1/chip1/core15",
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -13934,7 +14030,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip10",
-                      "lane": 7
+                      "lane": 5
                     }
                   }
                 ]
@@ -13945,175 +14041,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1152": {
         "mapping": {
           "id": 1152,
-          "name": "fab1/9/1",
+          "name": "fab1/9/4",
           "controllingPort": 1152,
           "pins": [
             {
               "a": {
                 "chip": "NPU-J3_FE-slot1/chip1/core16",
                 "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip9",
-                  "lane": 0
-                }
-              }
-            }
-          ],
-          "portType": 1,
-          "virtualDeviceId": 0,
-          "scope": 0
-        },
-        "supportedProfiles": {
-          "42": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-J3_FE-slot1/chip1/core16",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 4,
-                      "main": 96,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip9",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "1153": {
-        "mapping": {
-          "id": 1153,
-          "name": "fab1/9/2",
-          "controllingPort": 1153,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-J3_FE-slot1/chip1/core16",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip9",
-                  "lane": 1
-                }
-              }
-            }
-          ],
-          "portType": 1,
-          "virtualDeviceId": 0,
-          "scope": 0
-        },
-        "supportedProfiles": {
-          "42": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-J3_FE-slot1/chip1/core16",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 4,
-                      "main": 96,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip9",
-                      "lane": 1
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "1154": {
-        "mapping": {
-          "id": 1154,
-          "name": "fab1/9/3",
-          "controllingPort": 1154,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-J3_FE-slot1/chip1/core16",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip9",
-                  "lane": 2
-                }
-              }
-            }
-          ],
-          "portType": 1,
-          "virtualDeviceId": 0,
-          "scope": 0
-        },
-        "supportedProfiles": {
-          "42": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-J3_FE-slot1/chip1/core16",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 4,
-                      "main": 96,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip9",
-                      "lane": 2
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "1155": {
-        "mapping": {
-          "id": 1155,
-          "name": "fab1/9/4",
-          "controllingPort": 1155,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-J3_FE-slot1/chip1/core16",
-                "lane": 3
               },
               "z": {
                 "end": {
@@ -14134,15 +14068,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "NPU-J3_FE-slot1/chip1/core16",
-                      "lane": 3
+                      "lane": 0
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -14158,10 +14093,175 @@ constexpr auto kJsonPlatformMappingStr = R"(
           }
         }
     },
+    "1153": {
+        "mapping": {
+          "id": 1153,
+          "name": "fab1/9/3",
+          "controllingPort": 1153,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-J3_FE-slot1/chip1/core16",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip9",
+                  "lane": 2
+                }
+              }
+            }
+          ],
+          "portType": 1,
+          "virtualDeviceId": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "42": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J3_FE-slot1/chip1/core16",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip9",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "1154": {
+        "mapping": {
+          "id": 1154,
+          "name": "fab1/9/2",
+          "controllingPort": 1154,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-J3_FE-slot1/chip1/core16",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip9",
+                  "lane": 1
+                }
+              }
+            }
+          ],
+          "portType": 1,
+          "virtualDeviceId": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "42": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J3_FE-slot1/chip1/core16",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip9",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "1155": {
+        "mapping": {
+          "id": 1155,
+          "name": "fab1/9/1",
+          "controllingPort": 1155,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-J3_FE-slot1/chip1/core16",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip9",
+                  "lane": 0
+                }
+              }
+            }
+          ],
+          "portType": 1,
+          "virtualDeviceId": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "42": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J3_FE-slot1/chip1/core16",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip9",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
     "1156": {
         "mapping": {
           "id": 1156,
-          "name": "fab1/9/5",
+          "name": "fab1/9/8",
           "controllingPort": 1156,
           "pins": [
             {
@@ -14172,7 +14272,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip9",
-                  "lane": 4
+                  "lane": 7
                 }
               }
             }
@@ -14191,12 +14291,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 4
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -14204,7 +14305,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip9",
-                      "lane": 4
+                      "lane": 7
                     }
                   }
                 ]
@@ -14245,12 +14346,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 5
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -14299,12 +14401,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 6
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -14323,7 +14426,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1159": {
         "mapping": {
           "id": 1159,
-          "name": "fab1/9/8",
+          "name": "fab1/9/5",
           "controllingPort": 1159,
           "pins": [
             {
@@ -14334,7 +14437,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip9",
-                  "lane": 7
+                  "lane": 4
                 }
               }
             }
@@ -14353,12 +14456,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -14366,7 +14470,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip9",
-                      "lane": 7
+                      "lane": 4
                     }
                   }
                 ]
@@ -14377,13 +14481,123 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1160": {
         "mapping": {
           "id": 1160,
-          "name": "fab1/8/1",
+          "name": "fab1/8/8",
           "controllingPort": 1160,
           "pins": [
             {
               "a": {
                 "chip": "NPU-J3_FE-slot1/chip1/core17",
                 "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip8",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 1,
+          "virtualDeviceId": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "42": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J3_FE-slot1/chip1/core17",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip8",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "1161": {
+        "mapping": {
+          "id": 1161,
+          "name": "fab1/8/6",
+          "controllingPort": 1161,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-J3_FE-slot1/chip1/core17",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip8",
+                  "lane": 5
+                }
+              }
+            }
+          ],
+          "portType": 1,
+          "virtualDeviceId": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "42": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J3_FE-slot1/chip1/core17",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip8",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "1162": {
+        "mapping": {
+          "id": 1162,
+          "name": "fab1/8/1",
+          "controllingPort": 1162,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-J3_FE-slot1/chip1/core17",
+                "lane": 2
               },
               "z": {
                 "end": {
@@ -14404,15 +14618,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "NPU-J3_FE-slot1/chip1/core17",
-                      "lane": 0
+                      "lane": 2
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -14428,16 +14643,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
           }
         }
     },
-    "1161": {
+    "1163": {
         "mapping": {
-          "id": 1161,
+          "id": 1163,
           "name": "fab1/8/2",
-          "controllingPort": 1161,
+          "controllingPort": 1163,
           "pins": [
             {
               "a": {
                 "chip": "NPU-J3_FE-slot1/chip1/core17",
-                "lane": 1
+                "lane": 3
               },
               "z": {
                 "end": {
@@ -14458,123 +14673,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "NPU-J3_FE-slot1/chip1/core17",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 4,
-                      "main": 96,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip8",
-                      "lane": 1
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "1162": {
-        "mapping": {
-          "id": 1162,
-          "name": "fab1/8/3",
-          "controllingPort": 1162,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-J3_FE-slot1/chip1/core17",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip8",
-                  "lane": 2
-                }
-              }
-            }
-          ],
-          "portType": 1,
-          "virtualDeviceId": 0,
-          "scope": 0
-        },
-        "supportedProfiles": {
-          "42": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-J3_FE-slot1/chip1/core17",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 4,
-                      "main": 96,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip8",
-                      "lane": 2
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "1163": {
-        "mapping": {
-          "id": 1163,
-          "name": "fab1/8/4",
-          "controllingPort": 1163,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-J3_FE-slot1/chip1/core17",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip8",
-                  "lane": 3
-                }
-              }
-            }
-          ],
-          "portType": 1,
-          "virtualDeviceId": 0,
-          "scope": 0
-        },
-        "supportedProfiles": {
-          "42": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-J3_FE-slot1/chip1/core17",
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -14582,7 +14690,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip8",
-                      "lane": 3
+                      "lane": 1
                     }
                   }
                 ]
@@ -14623,12 +14731,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 4
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -14647,7 +14756,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1165": {
         "mapping": {
           "id": 1165,
-          "name": "fab1/8/6",
+          "name": "fab1/8/3",
           "controllingPort": 1165,
           "pins": [
             {
@@ -14658,7 +14767,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip8",
-                  "lane": 5
+                  "lane": 2
                 }
               }
             }
@@ -14677,12 +14786,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 5
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -14690,7 +14800,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip8",
-                      "lane": 5
+                      "lane": 2
                     }
                   }
                 ]
@@ -14731,12 +14841,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 6
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -14755,7 +14866,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1167": {
         "mapping": {
           "id": 1167,
-          "name": "fab1/8/8",
+          "name": "fab1/8/4",
           "controllingPort": 1167,
           "pins": [
             {
@@ -14766,7 +14877,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip8",
-                  "lane": 7
+                  "lane": 3
                 }
               }
             }
@@ -14785,12 +14896,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -14798,7 +14910,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip8",
-                      "lane": 7
+                      "lane": 3
                     }
                   }
                 ]
@@ -14809,7 +14921,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1168": {
         "mapping": {
           "id": 1168,
-          "name": "fab1/11/1",
+          "name": "fab1/11/8",
           "controllingPort": 1168,
           "pins": [
             {
@@ -14820,7 +14932,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip11",
-                  "lane": 0
+                  "lane": 7
                 }
               }
             }
@@ -14839,12 +14951,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -24,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 128,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -14852,7 +14965,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip11",
-                      "lane": 0
+                      "lane": 7
                     }
                   }
                 ]
@@ -14863,7 +14976,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1169": {
         "mapping": {
           "id": 1169,
-          "name": "fab1/11/2",
+          "name": "fab1/11/4",
           "controllingPort": 1169,
           "pins": [
             {
@@ -14874,7 +14987,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip11",
-                  "lane": 1
+                  "lane": 3
                 }
               }
             }
@@ -14893,12 +15006,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -24,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 128,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -14906,7 +15020,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip11",
-                      "lane": 1
+                      "lane": 3
                     }
                   }
                 ]
@@ -14947,12 +15061,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -24,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 128,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -14971,7 +15086,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1171": {
         "mapping": {
           "id": 1171,
-          "name": "fab1/11/4",
+          "name": "fab1/11/1",
           "controllingPort": 1171,
           "pins": [
             {
@@ -14982,7 +15097,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip11",
-                  "lane": 3
+                  "lane": 0
                 }
               }
             }
@@ -15001,12 +15116,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -24,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 128,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -15014,7 +15130,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip11",
-                      "lane": 3
+                      "lane": 0
                     }
                   }
                 ]
@@ -15055,12 +15171,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 4
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -24,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 128,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -15109,12 +15226,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 5
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -24,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 128,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -15163,12 +15281,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 6
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -24,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 128,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -15187,7 +15306,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1175": {
         "mapping": {
           "id": 1175,
-          "name": "fab1/11/8",
+          "name": "fab1/11/2",
           "controllingPort": 1175,
           "pins": [
             {
@@ -15198,7 +15317,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip11",
-                  "lane": 7
+                  "lane": 1
                 }
               }
             }
@@ -15217,12 +15336,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -24,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 128,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -15230,7 +15350,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip11",
-                      "lane": 7
+                      "lane": 1
                     }
                   }
                 ]
@@ -15241,67 +15361,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1176": {
         "mapping": {
           "id": 1176,
-          "name": "fab1/12/1",
+          "name": "fab1/12/2",
           "controllingPort": 1176,
           "pins": [
             {
               "a": {
                 "chip": "NPU-J3_FE-slot1/chip1/core19",
                 "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip12",
-                  "lane": 0
-                }
-              }
-            }
-          ],
-          "portType": 1,
-          "virtualDeviceId": 0,
-          "scope": 0
-        },
-        "supportedProfiles": {
-          "42": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-J3_FE-slot1/chip1/core19",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 4,
-                      "main": 96,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip12",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "1177": {
-        "mapping": {
-          "id": 1177,
-          "name": "fab1/12/2",
-          "controllingPort": 1177,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-J3_FE-slot1/chip1/core19",
-                "lane": 1
               },
               "z": {
                 "end": {
@@ -15322,15 +15388,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "NPU-J3_FE-slot1/chip1/core19",
-                      "lane": 1
+                      "lane": 0
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -15339,6 +15406,61 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip12",
                       "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "1177": {
+        "mapping": {
+          "id": 1177,
+          "name": "fab1/12/6",
+          "controllingPort": 1177,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-J3_FE-slot1/chip1/core19",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip12",
+                  "lane": 5
+                }
+              }
+            }
+          ],
+          "portType": 1,
+          "virtualDeviceId": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "42": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J3_FE-slot1/chip1/core19",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip12",
+                      "lane": 5
                     }
                   }
                 ]
@@ -15379,12 +15501,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -15403,67 +15526,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1179": {
         "mapping": {
           "id": 1179,
-          "name": "fab1/12/4",
+          "name": "fab1/12/5",
           "controllingPort": 1179,
           "pins": [
             {
               "a": {
                 "chip": "NPU-J3_FE-slot1/chip1/core19",
                 "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip12",
-                  "lane": 3
-                }
-              }
-            }
-          ],
-          "portType": 1,
-          "virtualDeviceId": 0,
-          "scope": 0
-        },
-        "supportedProfiles": {
-          "42": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-J3_FE-slot1/chip1/core19",
-                      "lane": 3
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 4,
-                      "main": 96,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip12",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "1180": {
-        "mapping": {
-          "id": 1180,
-          "name": "fab1/12/5",
-          "controllingPort": 1180,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-J3_FE-slot1/chip1/core19",
-                "lane": 4
               },
               "z": {
                 "end": {
@@ -15484,15 +15553,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "NPU-J3_FE-slot1/chip1/core19",
-                      "lane": 4
+                      "lane": 3
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -15508,70 +15578,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
           }
         }
     },
-    "1181": {
+    "1180": {
         "mapping": {
-          "id": 1181,
-          "name": "fab1/12/6",
-          "controllingPort": 1181,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-J3_FE-slot1/chip1/core19",
-                "lane": 5
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-OSFP-slot1/chip12",
-                  "lane": 5
-                }
-              }
-            }
-          ],
-          "portType": 1,
-          "virtualDeviceId": 0,
-          "scope": 0
-        },
-        "supportedProfiles": {
-          "42": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-J3_FE-slot1/chip1/core19",
-                      "lane": 5
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 4,
-                      "main": 96,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip12",
-                      "lane": 5
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "1182": {
-        "mapping": {
-          "id": 1182,
+          "id": 1180,
           "name": "fab1/12/7",
-          "controllingPort": 1182,
+          "controllingPort": 1180,
           "pins": [
             {
               "a": {
                 "chip": "NPU-J3_FE-slot1/chip1/core19",
-                "lane": 6
+                "lane": 4
               },
               "z": {
                 "end": {
@@ -15592,15 +15608,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "NPU-J3_FE-slot1/chip1/core19",
-                      "lane": 6
+                      "lane": 4
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -15609,6 +15626,116 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip12",
                       "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "1181": {
+        "mapping": {
+          "id": 1181,
+          "name": "fab1/12/4",
+          "controllingPort": 1181,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-J3_FE-slot1/chip1/core19",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip12",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 1,
+          "virtualDeviceId": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "42": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J3_FE-slot1/chip1/core19",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip12",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "1182": {
+        "mapping": {
+          "id": 1182,
+          "name": "fab1/12/1",
+          "controllingPort": 1182,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-J3_FE-slot1/chip1/core19",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip12",
+                  "lane": 0
+                }
+              }
+            }
+          ],
+          "portType": 1,
+          "virtualDeviceId": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "42": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J3_FE-slot1/chip1/core19",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": -28,
+                      "pre2": 4,
+                      "main": 136,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip12",
+                      "lane": 0
                     }
                   }
                 ]
@@ -15649,12 +15776,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -16,
+                      "pre": -28,
                       "pre2": 4,
-                      "main": 96,
+                      "main": 136,
                       "post": 0,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -15683,32 +15811,12 @@ constexpr auto kJsonPlatformMappingStr = R"(
       "physicalID": 0
     },
     {
-      "name": "NPU-J3_FE-slot1/chip2/core0",
-      "type": 1,
-      "physicalID": 0
-    },
-    {
-      "name": "NPU-J3_NIF-slot1/chip2/core0",
-      "type": 1,
-      "physicalID": 0
-    },
-    {
       "name": "NPU-J3_FE-slot1/chip1/core1",
       "type": 1,
       "physicalID": 1
     },
     {
       "name": "NPU-J3_NIF-slot1/chip1/core1",
-      "type": 1,
-      "physicalID": 1
-    },
-    {
-      "name": "NPU-J3_FE-slot1/chip2/core1",
-      "type": 1,
-      "physicalID": 1
-    },
-    {
-      "name": "NPU-J3_NIF-slot1/chip2/core1",
       "type": 1,
       "physicalID": 1
     },
@@ -15721,26 +15829,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
       "name": "NPU-J3_NIF-slot1/chip1/core2",
       "type": 1,
       "physicalID": 2
-    },
-    {
-      "name": "NPU-J3_FE-slot1/chip2/core2",
-      "type": 1,
-      "physicalID": 2
-    },
-    {
-      "name": "NPU-J3_NIF-slot1/chip2/core2",
-      "type": 1,
-      "physicalID": 2
-    },
-    {
-      "name": "NPU-J3_FE-slot1/chip2/core3",
-      "type": 1,
-      "physicalID": 3
-    },
-    {
-      "name": "NPU-J3_NIF-slot1/chip2/core3",
-      "type": 1,
-      "physicalID": 3
     },
     {
       "name": "NPU-J3_FE-slot1/chip1/core3",
@@ -15763,27 +15851,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
       "physicalID": 4
     },
     {
-      "name": "NPU-J3_FE-slot1/chip2/core4",
-      "type": 1,
-      "physicalID": 4
-    },
-    {
-      "name": "NPU-J3_NIF-slot1/chip2/core4",
-      "type": 1,
-      "physicalID": 4
-    },
-    {
       "name": "NPU-J3_NIF-slot1/chip1/core5",
-      "type": 1,
-      "physicalID": 5
-    },
-    {
-      "name": "NPU-J3_FE-slot1/chip2/core5",
-      "type": 1,
-      "physicalID": 5
-    },
-    {
-      "name": "NPU-J3_NIF-slot1/chip2/core5",
       "type": 1,
       "physicalID": 5
     },
@@ -15801,26 +15869,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
       "name": "NPU-J3_NIF-slot1/chip1/core6",
       "type": 1,
       "physicalID": 6
-    },
-    {
-      "name": "NPU-J3_FE-slot1/chip2/core6",
-      "type": 1,
-      "physicalID": 6
-    },
-    {
-      "name": "NPU-J3_NIF-slot1/chip2/core6",
-      "type": 1,
-      "physicalID": 6
-    },
-    {
-      "name": "NPU-J3_FE-slot1/chip2/core7",
-      "type": 1,
-      "physicalID": 7
-    },
-    {
-      "name": "NPU-J3_NIF-slot1/chip2/core7",
-      "type": 1,
-      "physicalID": 7
     },
     {
       "name": "NPU-J3_FE-slot1/chip1/core7",
@@ -15843,26 +15891,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
       "physicalID": 8
     },
     {
-      "name": "NPU-J3_FE-slot1/chip2/core8",
-      "type": 1,
-      "physicalID": 8
-    },
-    {
-      "name": "NPU-J3_NIF-slot1/chip2/core8",
-      "type": 1,
-      "physicalID": 8
-    },
-    {
-      "name": "NPU-J3_FE-slot1/chip2/core9",
-      "type": 1,
-      "physicalID": 9
-    },
-    {
-      "name": "NPU-J3_NIF-slot1/chip2/core9",
-      "type": 1,
-      "physicalID": 9
-    },
-    {
       "name": "NPU-J3_FE-slot1/chip1/core9",
       "type": 1,
       "physicalID": 9
@@ -15881,26 +15909,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
       "name": "NPU-J3_NIF-slot1/chip1/core10",
       "type": 1,
       "physicalID": 10
-    },
-    {
-      "name": "NPU-J3_FE-slot1/chip2/core10",
-      "type": 1,
-      "physicalID": 10
-    },
-    {
-      "name": "NPU-J3_NIF-slot1/chip2/core10",
-      "type": 1,
-      "physicalID": 10
-    },
-    {
-      "name": "NPU-J3_FE-slot1/chip2/core11",
-      "type": 1,
-      "physicalID": 11
-    },
-    {
-      "name": "NPU-J3_NIF-slot1/chip2/core11",
-      "type": 1,
-      "physicalID": 11
     },
     {
       "name": "NPU-J3_FE-slot1/chip1/core11",
@@ -15923,32 +15931,12 @@ constexpr auto kJsonPlatformMappingStr = R"(
       "physicalID": 12
     },
     {
-      "name": "NPU-J3_FE-slot1/chip2/core12",
-      "type": 1,
-      "physicalID": 12
-    },
-    {
-      "name": "NPU-J3_NIF-slot1/chip2/core12",
-      "type": 1,
-      "physicalID": 12
-    },
-    {
       "name": "NPU-J3_FE-slot1/chip1/core13",
       "type": 1,
       "physicalID": 13
     },
     {
       "name": "NPU-J3_NIF-slot1/chip1/core13",
-      "type": 1,
-      "physicalID": 13
-    },
-    {
-      "name": "NPU-J3_FE-slot1/chip2/core13",
-      "type": 1,
-      "physicalID": 13
-    },
-    {
-      "name": "NPU-J3_NIF-slot1/chip2/core13",
       "type": 1,
       "physicalID": 13
     },
@@ -15963,26 +15951,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
       "physicalID": 14
     },
     {
-      "name": "NPU-J3_FE-slot1/chip2/core14",
-      "type": 1,
-      "physicalID": 14
-    },
-    {
-      "name": "NPU-J3_NIF-slot1/chip2/core14",
-      "type": 1,
-      "physicalID": 14
-    },
-    {
-      "name": "NPU-J3_FE-slot1/chip2/core15",
-      "type": 1,
-      "physicalID": 15
-    },
-    {
-      "name": "NPU-J3_NIF-slot1/chip2/core15",
-      "type": 1,
-      "physicalID": 15
-    },
-    {
       "name": "NPU-J3_FE-slot1/chip1/core15",
       "type": 1,
       "physicalID": 15
@@ -15991,16 +15959,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
       "name": "NPU-J3_NIF-slot1/chip1/core15",
       "type": 1,
       "physicalID": 15
-    },
-    {
-      "name": "NPU-J3_FE-slot1/chip2/core16",
-      "type": 1,
-      "physicalID": 16
-    },
-    {
-      "name": "NPU-J3_NIF-slot1/chip2/core16",
-      "type": 1,
-      "physicalID": 16
     },
     {
       "name": "NPU-J3_FE-slot1/chip1/core16",
@@ -16023,16 +15981,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
       "physicalID": 17
     },
     {
-      "name": "NPU-J3_FE-slot1/chip2/core17",
-      "type": 1,
-      "physicalID": 17
-    },
-    {
-      "name": "NPU-J3_NIF-slot1/chip2/core17",
-      "type": 1,
-      "physicalID": 17
-    },
-    {
       "name": "NPU-J3_FE-slot1/chip1/core18",
       "type": 1,
       "physicalID": 18
@@ -16043,29 +15991,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
       "physicalID": 18
     },
     {
-      "name": "NPU-J3_FE-slot1/chip2/core18",
-      "type": 1,
-      "physicalID": 18
-    },
-    {
-      "name": "NPU-J3_NIF-slot1/chip2/core18",
-      "type": 1,
-      "physicalID": 18
-    },
-    {
       "name": "NPU-J3_FE-slot1/chip1/core19",
       "type": 1,
       "physicalID": 19
-    },
-    {
-      "name": "NPU-J3_FE-slot1/chip2/core19",
-      "type": 1,
-      "physicalID": 19
-    },
-    {
-      "name": "NPU-J3_RCY-slot1/chip2/core441",
-      "type": 1,
-      "physicalID": 441
     },
     {
       "name": "NPU-J3_RCY-slot1/chip1/core441",
@@ -16078,16 +16006,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
       "physicalID": 442
     },
     {
-      "name": "NPU-J3_RCY-slot1/chip2/core442",
-      "type": 1,
-      "physicalID": 442
-    },
-    {
-      "name": "NPU-J3_RCY-slot1/chip2/core443",
-      "type": 1,
-      "physicalID": 443
-    },
-    {
       "name": "NPU-J3_RCY-slot1/chip1/core443",
       "type": 1,
       "physicalID": 443
@@ -16098,27 +16016,12 @@ constexpr auto kJsonPlatformMappingStr = R"(
       "physicalID": 444
     },
     {
-      "name": "NPU-J3_RCY-slot1/chip2/core444",
-      "type": 1,
-      "physicalID": 444
-    },
-    {
       "name": "NPU-J3_RCY-slot1/chip1/core445",
       "type": 1,
       "physicalID": 445
     },
     {
-      "name": "NPU-J3_RCY-slot1/chip2/core445",
-      "type": 1,
-      "physicalID": 445
-    },
-    {
       "name": "NPU-J3_EVT-slot1/chip1/core506",
-      "type": 1,
-      "physicalID": 506
-    },
-    {
-      "name": "NPU-J3_EVT-slot1/chip2/core506",
       "type": 1,
       "physicalID": 506
     },

@@ -59,7 +59,7 @@ class CmdShowFabric : public CmdHandler<CmdShowFabric, CmdShowFabricTraits> {
         "Match",
     });
 
-    for (auto const& entry : model.get_fabricEntries()) {
+    for (auto const& entry : model.fabricEntries().value()) {
       std::string remoteSwitchNameId =
           utils::removeFbDomains(*entry.remoteSwitchName());
       udpateNametoIdString(remoteSwitchNameId, *entry.remoteSwitchId());
@@ -155,7 +155,8 @@ class CmdShowFabric : public CmdHandler<CmdShowFabric, CmdShowFabricTraits> {
         model.fabricEntries()->begin(),
         model.fabricEntries()->end(),
         [](cli::FabricEntry& a, cli::FabricEntry b) {
-          return utils::comparePortName(a.get_localPort(), b.get_localPort());
+          return utils::comparePortName(
+              a.localPort().value(), b.localPort().value());
         });
 
     return model;

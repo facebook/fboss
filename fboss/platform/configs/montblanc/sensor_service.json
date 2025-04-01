@@ -1309,7 +1309,13 @@
             "maxAlarmVal": 60
           },
           "compute": "@/1000"
-        },
+        }
+      ]
+    },
+    {
+      "slotPath": "/PDBLEFT_SLOT@0/PSU_SLOT@0",
+      "pmUnitName": "PSU",
+      "sensors": [
         {
           "name": "PSU1_L_VIN",
           "sysfsPath": "/run/devmap/sensors/PDB_L_PMBUS/in1_input",
@@ -1445,7 +1451,13 @@
             "maxAlarmVal": 60
           },
           "compute": "@/1000"
-        },
+        }
+      ]
+    },
+    {
+      "slotPath": "/PDBRIGHT_SLOT@0/PSU_SLOT@0",
+      "pmUnitName": "PSU",
+      "sensors": [
         {
           "name": "PSU2_R_VIN",
           "sysfsPath": "/run/devmap/sensors/PDB_R_PMBUS/in1_input",
@@ -1471,7 +1483,7 @@
           "compute": "@/1000"
         },
         {
-          "name": "PSU2_L_12V_STBY_VOUT",
+          "name": "PSU2_R_12V_STBY_VOUT",
           "sysfsPath": "/run/devmap/sensors/PDB_R_PMBUS/in3_input",
           "type": 1,
           "thresholds": {

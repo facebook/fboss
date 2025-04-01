@@ -170,7 +170,7 @@ class AgentNeighborTest : public AgentHwTest {
   VlanID kVlanID() const {
     if (utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
             ->getSwitchType() == cfg::SwitchType::NPU) {
-      auto vlanId = utility::firstVlanID(getProgrammedState());
+      auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
       CHECK(vlanId.has_value());
       return *vlanId;
     }
@@ -184,7 +184,7 @@ class AgentNeighborTest : public AgentHwTest {
       if (!isIntfNbrTable) {
         return InterfaceID(static_cast<int>(kVlanID()));
       } else {
-        return utility::firstInterfaceID(getProgrammedState());
+        return utility::firstInterfaceIDWithPorts(getProgrammedState());
       }
     } else if (switchType == cfg::SwitchType::VOQ) {
       CHECK(!programToTrunk) << " Trunks not supported yet on VOQ switches";
@@ -515,7 +515,8 @@ class AgentNeighborOnMultiplePortsTest : public AgentHwTest {
     }
 
     // Create adjacencies on all test ports
-    auto dstMac = utility::getFirstInterfaceMac(this->getProgrammedState());
+    auto dstMac =
+        utility::getMacForFirstInterfaceWithPorts(this->getProgrammedState());
     for (int idx = 0; idx < portIds.size(); idx++) {
       this->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
         utility::EcmpSetupAnyNPorts6 ecmpHelper6(
@@ -527,7 +528,8 @@ class AgentNeighborOnMultiplePortsTest : public AgentHwTest {
     // Dump the local interface config
     XLOG(DBG0) << "Dumping port configurations:";
     for (int idx = 0; idx < portIds.size(); idx++) {
-      auto mac = utility::getFirstInterfaceMac(getProgrammedState());
+      auto mac =
+          utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
       XLOG(DBG0) << "   Port " << portIds[idx]
                  << ", IPv6: " << cfg.interfaces()[idx].ipAddresses()[1]
                  << ", Intf MAC: " << mac;

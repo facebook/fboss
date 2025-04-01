@@ -287,7 +287,7 @@ class CmdShowInterfaceCountersMKA : public CmdHandler<
       out << table << std::endl;
     };
 
-    for (auto& m : model.get_intfMKAStats()) {
+    for (auto& m : model.intfMKAStats().value()) {
       out << "Port: " << m.first << std::endl;
       out << std::string(20, '=') << std::endl;
 

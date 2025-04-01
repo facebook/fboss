@@ -1,0 +1,208 @@
+{
+  "defaultCommandLineArgs": {
+    "check_wb_handles": "true",
+    "counter_refresh_interval": "0",
+    "enable_acl_table_group": "true",
+    "intf_nbr_tables": "true",
+    "log_variable_name": "true",
+    "multi_switch": "true",
+    "rx_vlan_untagged_packets": "true",
+    "sai_user_defined_trap": "true",
+    "set_classid_for_my_subnet_and_ip_routes": "true",
+    "skip_transceiver_programming": "true"
+  },
+  "sw": {
+    "version": 0,
+    "ports": [
+      
+    ],
+    "vlans": [
+      
+    ],
+    "vlanPorts": [
+      
+    ],
+    "defaultVlan": 0,
+    "interfaces": [
+      
+    ],
+    "arpTimeoutSeconds": 60,
+    "arpRefreshSeconds": 20,
+    "arpAgerInterval": 5,
+    "proactiveArp": false,
+    "staticRoutesWithNhops": [
+      
+    ],
+    "staticRoutesToNull": [
+      
+    ],
+    "staticRoutesToCPU": [
+      
+    ],
+    "acls": [
+      
+    ],
+    "maxNeighborProbes": 300,
+    "staleEntryInterval": 10,
+    "aggregatePorts": [
+      
+    ],
+    "clientIdToAdminDistance": {
+      "0": 20,
+      "1": 1,
+      "2": 0,
+      "3": 0,
+      "4": 0,
+      "700": 255,
+      "786": 10
+    },
+    "sFlowCollectors": [
+      
+    ],
+    "cpuQueues": [
+      
+    ],
+    "loadBalancers": [
+      
+    ],
+    "mirrors": [
+      
+    ],
+    "trafficCounters": [
+      
+    ],
+    "qosPolicies": [
+      
+    ],
+    "defaultPortQueues": [
+      
+    ],
+    "staticMplsRoutesWithNhops": [
+      
+    ],
+    "staticMplsRoutesToNull": [
+      
+    ],
+    "staticMplsRoutesToCPU": [
+      
+    ],
+    "staticIp2MplsRoutes": [
+      
+    ],
+    "portQueueConfigs": {
+      
+    },
+    "switchSettings": {
+      "l2LearningMode": 0,
+      "qcmEnable": false,
+      "ptpTcEnable": false,
+      "l2AgeTimerSeconds": 300,
+      "maxRouteCounterIDs": 0,
+      "blockNeighbors": [
+        
+      ],
+      "macAddrsToBlock": [
+        
+      ],
+      "switchType": 0,
+      "exactMatchTableConfigs": [
+        
+      ],
+      "switchIdToSwitchType_DEPRECATED": {
+        
+      },
+      "switchDrainState": 0,
+      "switchIdToSwitchInfo": {
+        "0": {
+            "switchType": 0,
+            "asicType": 17,
+            "switchIndex": 0,
+            "portIdRange": {
+              "minimum": 0,
+              "maximum": 2047
+            },
+            "firmwareNameToFirmwareInfo": {
+              
+            }
+        }
+      },
+      "vendorMacOuis": [
+        
+      ],
+      "metaMacOuis": [
+        
+      ],
+      "needL2EntryForNeighbor": true
+    },
+    "aclTableGroup": {
+      "name": "acl-table-group-ingress",
+      "aclTables": [
+        {
+          "name": "AclTable1",
+          "priority": 0,
+          "aclEntries": [
+            
+          ],
+          "actionTypes": [
+            
+          ],
+          "qualifiers": [
+            
+          ],
+          "udfGroups": [
+            
+          ]
+        }
+      ],
+      "stage": 0
+    },
+    "sdkVersion": {
+      "asicSdk": "sdk",
+      "saiSdk": "sai"
+    },
+    "dsfNodes": {
+      
+    },
+    "defaultVoqConfig": [
+      
+    ],
+    "aclTableGroups": [
+      {
+        "name": "acl-table-group-ingress",
+        "aclTables": [
+          {
+            "name": "AclTable1",
+            "priority": 0,
+            "aclEntries": [
+              
+            ],
+            "actionTypes": [
+              
+            ],
+            "qualifiers": [
+              
+            ],
+            "udfGroups": [
+              
+            ]
+          }
+        ],
+        "stage": 0
+      }
+    ],
+    "mirrorOnDropReports": [
+      
+    ]
+  },
+  "platform": {
+    "chip": {
+      "asicConfig": {
+        "common": {
+          "config": {
+            "minipack3n.xml": "<?xml version=\"1.0\"?>\n<root>\n  <platform_info type=\"5600\">\n    <device-mac-address>00:02:03:04:05:00</device-mac-address>\n    <issu-enabled>1</issu-enabled>\n    <number-of-physical-ports>65</number-of-physical-ports>\n    <ports-list>\n      <port-info>\n        <local-port>241</local-port>\n        <width>8</width>\n        <module>0</module>\n        <breakout-modes>7</breakout-modes>\n        <port-speed>299264</port-speed>\n        <late-create>true</late-create>\n      </port-info>\n      <port-info>\n        <local-port>245</local-port>\n        <width>8</width>\n        <module>1</module>\n        <breakout-modes>7</breakout-modes>\n        <port-speed>299264</port-speed>\n        <late-create>true</late-create>\n      </port-info>\n      <port-info>\n        <local-port>253</local-port>\n        <width>8</width>\n        <module>2</module>\n        <breakout-modes>7</breakout-modes>\n        <port-speed>299264</port-speed>\n        <late-create>true</late-create>\n      </port-info>\n      <port-info>\n        <local-port>249</local-port>\n        <width>8</width>\n        <module>3</module>\n        <breakout-modes>7</breakout-modes>\n        <port-speed>299264</port-speed>\n        <late-create>true</late-create>\n      </port-info>\n      <port-info>\n        <local-port>225</local-port>\n        <width>8</width>\n        <module>4</module>\n        <breakout-modes>7</breakout-modes>\n        <port-speed>299264</port-speed>\n        <late-create>true</late-create>\n      </port-info>\n      <port-info>\n        <local-port>229</local-port>\n        <width>8</width>\n        <module>5</module>\n        <breakout-modes>7</breakout-modes>\n        <port-speed>299264</port-speed>\n        <late-create>true</late-create>\n      </port-info>\n      <port-info>\n        <local-port>237</local-port>\n        <width>8</width>\n        <module>6</module>\n        <breakout-modes>7</breakout-modes>\n        <port-speed>299264</port-speed>\n        <late-create>true</late-create>\n      </port-info>\n      <port-info>\n        <local-port>233</local-port>\n        <width>8</width>\n        <module>7</module>\n        <breakout-modes>7</breakout-modes>\n        <port-speed>299264</port-speed>\n        <late-create>true</late-create>\n      </port-info>\n      <port-info>\n        <local-port>209</local-port>\n        <width>8</width>\n        <module>8</module>\n        <breakout-modes>7</breakout-modes>\n        <port-speed>299264</port-speed>\n        <late-create>true</late-create>\n      </port-info>\n      <port-info>\n        <local-port>213</local-port>\n        <width>8</width>\n        <module>9</module>\n        <breakout-modes>7</breakout-modes>\n        <port-speed>299264</port-speed>\n        <late-create>true</late-create>\n      </port-info>\n      <port-info>\n        <local-port>221</local-port>\n        <width>8</width>\n        <module>10</module>\n        <breakout-modes>7</breakout-modes>\n        <port-speed>299264</port-speed>\n        <late-create>true</late-create>\n      </port-info>\n      <port-info>\n        <local-port>217</local-port>\n        <width>8</width>\n        <module>11</module>\n        <breakout-modes>7</breakout-modes>\n        <port-speed>299264</port-speed>\n        <late-create>true</late-create>\n      </port-info>\n      <port-info>\n        <local-port>193</local-port>\n        <width>8</width>\n        <module>12</module>\n        <breakout-modes>7</breakout-modes>\n        <port-speed>299264</port-speed>\n        <late-create>true</late-create>\n      </port-info>\n      <port-info>\n        <local-port>197</local-port>\n        <width>8</width>\n        <module>13</module>\n        <breakout-modes>7</breakout-modes>\n        <port-speed>299264</port-speed>\n        <late-create>true</late-create>\n      </port-info>\n      <port-info>\n        <local-port>205</local-port>\n        <width>8</width>\n        <module>14</module>\n        <breakout-modes>7</breakout-modes>\n        <port-speed>299264</port-speed>\n        <late-create>true</late-create>\n      </port-info>\n      <port-info>\n        <local-port>201</local-port>\n        <width>8</width>\n        <module>15</module>\n        <breakout-modes>7</breakout-modes>\n        <port-speed>299264</port-speed>\n        <late-create>true</late-create>\n      </port-info>\n      <port-info>\n        <local-port>181</local-port>\n        <width>8</width>\n        <module>16</module>\n        <breakout-modes>7</breakout-modes>\n        <port-speed>299264</port-speed>\n        <late-create>true</late-create>\n      </port-info>\n      <port-info>\n        <local-port>177</local-port>\n        <width>8</width>\n        <module>17</module>\n        <breakout-modes>7</breakout-modes>\n        <port-speed>299264</port-speed>\n        <late-create>true</late-create>\n      </port-info>\n      <port-info>\n        <local-port>185</local-port>\n        <width>8</width>\n        <module>18</module>\n        <breakout-modes>7</breakout-modes>\n        <port-speed>299264</port-speed>\n        <late-create>true</late-create>\n      </port-info>\n      <port-info>\n        <local-port>189</local-port>\n        <width>8</width>\n        <module>19</module>\n        <breakout-modes>7</breakout-modes>\n        <port-speed>299264</port-speed>\n        <late-create>true</late-create>\n      </port-info>\n      <port-info>\n        <local-port>165</local-port>\n        <width>8</width>\n        <module>20</module>\n        <breakout-modes>7</breakout-modes>\n        <port-speed>299264</port-speed>\n        <late-create>true</late-create>\n      </port-info>\n      <port-info>\n        <local-port>161</local-port>\n        <width>8</width>\n        <module>21</module>\n        <breakout-modes>7</breakout-modes>\n        <port-speed>299264</port-speed>\n        <late-create>true</late-create>\n      </port-info>\n      <port-info>\n        <local-port>169</local-port>\n        <width>8</width>\n        <module>22</module>\n        <breakout-modes>7</breakout-modes>\n        <port-speed>299264</port-speed>\n        <late-create>true</late-create>\n      </port-info>\n      <port-info>\n        <local-port>173</local-port>\n        <width>8</width>\n        <module>23</module>\n        <breakout-modes>7</breakout-modes>\n        <port-speed>299264</port-speed>\n        <late-create>true</late-create>\n      </port-info>\n      <port-info>\n        <local-port>149</local-port>\n        <width>8</width>\n        <module>24</module>\n        <breakout-modes>7</breakout-modes>\n        <port-speed>299264</port-speed>\n        <late-create>true</late-create>\n      </port-info>\n      <port-info>\n        <local-port>145</local-port>\n        <width>8</width>\n        <module>25</module>\n        <breakout-modes>7</breakout-modes>\n        <port-speed>299264</port-speed>\n        <late-create>true</late-create>\n      </port-info>\n      <port-info>\n        <local-port>153</local-port>\n        <width>8</width>\n        <module>26</module>\n        <breakout-modes>7</breakout-modes>\n        <port-speed>299264</port-speed>\n        <late-create>true</late-create>\n      </port-info>\n      <port-info>\n        <local-port>157</local-port>\n        <width>8</width>\n        <module>27</module>\n        <breakout-modes>7</breakout-modes>\n        <port-speed>299264</port-speed>\n        <late-create>true</late-create>\n      </port-info>\n      <port-info>\n        <local-port>133</local-port>\n        <width>8</width>\n        <module>28</module>\n        <breakout-modes>7</breakout-modes>\n        <port-speed>299264</port-speed>\n        <late-create>true</late-create>\n      </port-info>\n      <port-info>\n        <local-port>129</local-port>\n        <width>8</width>\n        <module>29</module>\n        <breakout-modes>7</breakout-modes>\n        <port-speed>299264</port-speed>\n        <late-create>true</late-create>\n      </port-info>\n      <port-info>\n        <local-port>137</local-port>\n        <width>8</width>\n        <module>30</module>\n        <breakout-modes>7</breakout-modes>\n        <port-speed>299264</port-speed>\n        <late-create>true</late-create>\n      </port-info>\n      <port-info>\n        <local-port>141</local-port>\n        <width>8</width>\n        <module>31</module>\n        <breakout-modes>7</breakout-modes>\n        <port-speed>299264</port-speed>\n        <late-create>true</late-create>\n      </port-info>\n      <port-info>\n        <local-port>13</local-port>\n        <width>8</width>\n        <module>32</module>\n        <breakout-modes>7</breakout-modes>\n        <port-speed>299264</port-speed>\n        <late-create>true</late-create>\n      </port-info>\n      <port-info>\n        <local-port>9</local-port>\n        <width>8</width>\n        <module>33</module>\n        <breakout-modes>7</breakout-modes>\n        <port-speed>299264</port-speed>\n        <late-create>true</late-create>\n      </port-info>\n      <port-info>\n        <local-port>1</local-port>\n        <width>8</width>\n        <module>34</module>\n        <breakout-modes>7</breakout-modes>\n        <port-speed>299264</port-speed>\n        <late-create>true</late-create>\n      </port-info>\n      <port-info>\n        <local-port>5</local-port>\n        <width>8</width>\n        <module>35</module>\n        <breakout-modes>7</breakout-modes>\n        <port-speed>299264</port-speed>\n        <late-create>true</late-create>\n      </port-info>\n      <port-info>\n        <local-port>29</local-port>\n        <width>8</width>\n        <module>36</module>\n        <breakout-modes>7</breakout-modes>\n        <port-speed>299264</port-speed>\n        <late-create>true</late-create>\n      </port-info>\n      <port-info>\n        <local-port>25</local-port>\n        <width>8</width>\n        <module>37</module>\n        <breakout-modes>7</breakout-modes>\n        <port-speed>299264</port-speed>\n        <late-create>true</late-create>\n      </port-info>\n      <port-info>\n        <local-port>17</local-port>\n        <width>8</width>\n        <module>38</module>\n        <breakout-modes>7</breakout-modes>\n        <port-speed>299264</port-speed>\n        <late-create>true</late-create>\n      </port-info>\n      <port-info>\n        <local-port>21</local-port>\n        <width>8</width>\n        <module>39</module>\n        <breakout-modes>7</breakout-modes>\n        <port-speed>299264</port-speed>\n        <late-create>true</late-create>\n      </port-info>\n      <port-info>\n        <local-port>45</local-port>\n        <width>8</width>\n        <module>40</module>\n        <breakout-modes>7</breakout-modes>\n        <port-speed>299264</port-speed>\n        <late-create>true</late-create>\n      </port-info>\n      <port-info>\n        <local-port>41</local-port>\n        <width>8</width>\n        <module>41</module>\n        <breakout-modes>7</breakout-modes>\n        <port-speed>299264</port-speed>\n        <late-create>true</late-create>\n      </port-info>\n      <port-info>\n        <local-port>33</local-port>\n        <width>8</width>\n        <module>42</module>\n        <breakout-modes>7</breakout-modes>\n        <port-speed>299264</port-speed>\n        <late-create>true</late-create>\n      </port-info>\n      <port-info>\n        <local-port>37</local-port>\n        <width>8</width>\n        <module>43</module>\n        <breakout-modes>7</breakout-modes>\n        <port-speed>299264</port-speed>\n        <late-create>true</late-create>\n      </port-info>\n      <port-info>\n        <local-port>61</local-port>\n        <width>8</width>\n        <module>44</module>\n        <breakout-modes>7</breakout-modes>\n        <port-speed>299264</port-speed>\n        <late-create>true</late-create>\n      </port-info>\n      <port-info>\n        <local-port>57</local-port>\n        <width>8</width>\n        <module>45</module>\n        <breakout-modes>7</breakout-modes>\n        <port-speed>299264</port-speed>\n        <late-create>true</late-create>\n      </port-info>\n      <port-info>\n        <local-port>49</local-port>\n        <width>8</width>\n        <module>46</module>\n        <breakout-modes>7</breakout-modes>\n        <port-speed>299264</port-speed>\n        <late-create>true</late-create>\n      </port-info>\n      <port-info>\n        <local-port>53</local-port>\n        <width>8</width>\n        <module>47</module>\n        <breakout-modes>7</breakout-modes>\n        <port-speed>299264</port-speed>\n        <late-create>true</late-create>\n      </port-info>\n      <port-info>\n        <local-port>73</local-port>\n        <width>8</width>\n        <module>48</module>\n        <breakout-modes>7</breakout-modes>\n        <port-speed>299264</port-speed>\n        <late-create>true</late-create>\n      </port-info>\n      <port-info>\n        <local-port>77</local-port>\n        <width>8</width>\n        <module>49</module>\n        <breakout-modes>7</breakout-modes>\n        <port-speed>299264</port-speed>\n        <late-create>true</late-create>\n      </port-info>\n      <port-info>\n        <local-port>69</local-port>\n        <width>8</width>\n        <module>50</module>\n        <breakout-modes>7</breakout-modes>\n        <port-speed>299264</port-speed>\n        <late-create>true</late-create>\n      </port-info>\n      <port-info>\n        <local-port>65</local-port>\n        <width>8</width>\n        <module>51</module>\n        <breakout-modes>7</breakout-modes>\n        <port-speed>299264</port-speed>\n        <late-create>true</late-create>\n      </port-info>\n      <port-info>\n        <local-port>89</local-port>\n        <width>8</width>\n        <module>52</module>\n        <breakout-modes>7</breakout-modes>\n        <port-speed>299264</port-speed>\n        <late-create>true</late-create>\n      </port-info>\n      <port-info>\n        <local-port>93</local-port>\n        <width>8</width>\n        <module>53</module>\n        <breakout-modes>7</breakout-modes>\n        <port-speed>299264</port-speed>\n        <late-create>true</late-create>\n      </port-info>\n      <port-info>\n        <local-port>85</local-port>\n        <width>8</width>\n        <module>54</module>\n        <breakout-modes>7</breakout-modes>\n        <port-speed>299264</port-speed>\n        <late-create>true</late-create>\n      </port-info>\n      <port-info>\n        <local-port>81</local-port>\n        <width>8</width>\n        <module>55</module>\n        <breakout-modes>7</breakout-modes>\n        <port-speed>299264</port-speed>\n        <late-create>true</late-create>\n      </port-info>\n      <port-info>\n        <local-port>105</local-port>\n        <width>8</width>\n        <module>56</module>\n        <breakout-modes>7</breakout-modes>\n        <port-speed>299264</port-speed>\n        <late-create>true</late-create>\n      </port-info>\n      <port-info>\n        <local-port>109</local-port>\n        <width>8</width>\n        <module>57</module>\n        <breakout-modes>7</breakout-modes>\n        <port-speed>299264</port-speed>\n        <late-create>true</late-create>\n      </port-info>\n      <port-info>\n        <local-port>101</local-port>\n        <width>8</width>\n        <module>58</module>\n        <breakout-modes>7</breakout-modes>\n        <port-speed>299264</port-speed>\n        <late-create>true</late-create>\n      </port-info>\n      <port-info>\n        <local-port>97</local-port>\n        <width>8</width>\n        <module>59</module>\n        <breakout-modes>7</breakout-modes>\n        <port-speed>299264</port-speed>\n        <late-create>true</late-create>\n      </port-info>\n      <port-info>\n        <local-port>121</local-port>\n        <width>8</width>\n        <module>60</module>\n        <breakout-modes>7</breakout-modes>\n        <port-speed>299264</port-speed>\n        <late-create>true</late-create>\n      </port-info>\n      <port-info>\n        <local-port>125</local-port>\n        <width>8</width>\n        <module>61</module>\n        <breakout-modes>7</breakout-modes>\n        <port-speed>299264</port-speed>\n        <late-create>true</late-create>\n      </port-info>\n      <port-info>\n        <local-port>117</local-port>\n        <width>8</width>\n        <module>62</module>\n        <breakout-modes>7</breakout-modes>\n        <port-speed>299264</port-speed>\n        <late-create>true</late-create>\n      </port-info>\n      <port-info>\n        <local-port>113</local-port>\n        <width>8</width>\n        <module>63</module>\n        <breakout-modes>7</breakout-modes>\n        <port-speed>299264</port-speed>\n        <late-create>true</late-create>\n      </port-info>\n      <port-info>\n        <local-port>257</local-port>\n        <width>2</width>\n        <module>64</module>\n        <breakout-modes>0</breakout-modes>\n        <port-speed>80</port-speed>\n        <split>2</split>\n        <late-create>true</late-create>\n      </port-info>\n    </ports-list>\n  </platform_info>\n</root>\n"
+          }
+        }
+      }
+    }
+  }
+}

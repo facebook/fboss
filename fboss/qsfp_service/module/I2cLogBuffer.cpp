@@ -147,19 +147,22 @@ size_t I2cLogBuffer::getHeader(
   // return the right number of lines in header.
   if (auto fw = info.fwStatus) {
     if (fw.value().version().has_value()) {
-      ss << "FW Version: " << *fw.value().get_version();
+      ss << "FW Version: "
+         << *apache::thrift::get_pointer(fw.value().version());
     }
     if (fw.value().dspFwVer().has_value()) {
-      ss << " DSP FW Version: " << *fw.value().get_dspFwVer();
+      ss << " DSP FW Version: "
+         << *apache::thrift::get_pointer(fw.value().dspFwVer());
     }
     if (fw.value().buildRev().has_value()) {
-      ss << " FW Build Revision: " << *fw.value().get_buildRev();
+      ss << " FW Build Revision: "
+         << *apache::thrift::get_pointer(fw.value().buildRev());
     }
   }
   if (auto vendor = info.vendor) {
-    ss << " Vendor: " << vendor.value().get_name()
-       << " Part Number: " << vendor.value().get_partNumber()
-       << " Serial Number: " << vendor.value().get_serialNumber();
+    ss << " Vendor: " << vendor.value().name().value()
+       << " Part Number: " << vendor.value().partNumber().value()
+       << " Serial Number: " << vendor.value().serialNumber().value();
   }
   ss << " Management Interface: "
      << apache::thrift::util::enumNameSafe(info.mgmtIf);
@@ -223,7 +226,7 @@ void I2cLogBuffer::getFieldName(std::stringstream& ss, const int field) {
 template <typename T>
 void I2cLogBuffer::getOptional(std::stringstream& ss, T value) {
   if (value.has_value()) {
-    ss << std::setfill(' ') << std::setw(3) << (int)value.value();
+    ss << std::setfill(' ') << std::setw(3) << static_cast<int>(value.value());
   } else {
     ss << kEmptyOptional;
   }

@@ -5,10 +5,11 @@
 #include "fboss/agent/FbossError.h"
 
 namespace facebook::fboss::platform::fan_service {
-void OvertempCondition::setupShutdownConditions(
+std::vector<std::string> OvertempCondition::setupShutdownConditions(
     const FanServiceConfig& config) {
+  std::vector<std::string> watchList;
   if (!config.shutdownCondition()) {
-    return;
+    return watchList;
   }
   setNumOvertempSensorForShutdown(
       *config.shutdownCondition()->numOvertempSensorForShutdown());
@@ -22,15 +23,19 @@ void OvertempCondition::setupShutdownConditions(
       throw facebook::fboss::FbossError(
           "Duplicate sensor name in overtemp condition is not allowed!");
     }
+    watchList.push_back(*condition.sensorName());
     int windowSize =
         (condition.slidingWindowSize() ? *condition.slidingWindowSize() : 1);
     addSensorForTracking(
         *condition.sensorName(), *condition.overtempThreshold(), windowSize);
   }
+  return watchList;
 }
+
 void OvertempCondition::setNumOvertempSensorForShutdown(int number) {
   numOvertempForShutdown = number;
 }
+
 void OvertempCondition::addSensorForTracking(
     std::string name,
     float threshold,

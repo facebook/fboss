@@ -248,4 +248,31 @@ HwFlowletStats BcmMultiPathNextHopStatsManager::getHwFlowletStats() const {
   return flowletStats;
 }
 
+// update dlb exhaustion stat. This is called from update thread
+// so no need to lock.
+void BcmMultiPathNextHopTable::updateDlbExhaustionStat() {
+  if (!FLAGS_flowletSwitchingEnable) {
+    return;
+  }
+  auto maxDlbGroups =
+      getBcmSwitch()->getPlatform()->getAsic()->getMaxDlbEcmpGroups();
+  CHECK(maxDlbGroups.has_value());
+  bool dlbExhausted = false;
+  for (const auto& nextHopsAndEcmpHostInfo : getNextHops()) {
+    auto& weakPtr = nextHopsAndEcmpHostInfo.second;
+    auto ecmpHost = weakPtr.lock();
+    if (ecmpHost) {
+      auto ecmpEgress = ecmpHost->getEgress();
+      if (!ecmpEgress) {
+        continue;
+      }
+      auto egressId = ecmpEgress->getID() - kEcmpEgressstartId;
+      if (egressId > maxDlbGroups.value()) {
+        dlbExhausted = true;
+      }
+    }
+  }
+  dlbExhausted_.store(dlbExhausted);
+}
+
 } // namespace facebook::fboss

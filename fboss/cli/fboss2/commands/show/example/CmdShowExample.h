@@ -70,7 +70,7 @@ class CmdShowExample : public CmdHandler<CmdShowExample, CmdShowExampleTraits> {
     for (const auto& [key, queriedItem] : data) {
       cli::ExampleData normalizedItem;
       normalizedItem.id() = key;
-      normalizedItem.name() = queriedItem.get_name();
+      normalizedItem.name() = queriedItem.name().value();
       ret.exampleData()->push_back(normalizedItem);
     }
     return ret;
@@ -84,12 +84,12 @@ class CmdShowExample : public CmdHandler<CmdShowExample, CmdShowExampleTraits> {
     Table table;
     table.setHeader({"ID", "Name"});
 
-    for (auto const& data : model.get_exampleData()) {
+    for (auto const& data : model.exampleData().value()) {
       table.addRow({
-          folly::to<std::string>(data.get_id()),
+          folly::to<std::string>(folly::copy(data.id().value())),
           // Can conditionally add styles to cells
-          data.get_name() != ""
-              ? data.get_name()
+          data.name().value() != ""
+              ? data.name().value()
               : Table::StyledCell("No Name!", Table::Style::WARN),
       });
     }

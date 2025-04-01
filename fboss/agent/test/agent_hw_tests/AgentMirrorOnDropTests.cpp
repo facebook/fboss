@@ -28,7 +28,7 @@ DEFINE_bool(
 
 const std::string kSflowMirror = "sflow_mirror";
 const std::string kModPacketAcl = "mod_packet_acl";
-const std::string kModPacketAclCouter = "mod_packet_acl_counter";
+const std::string kModPacketAclCounter = "mod_packet_acl_counter";
 
 namespace facebook::fboss {
 
@@ -91,10 +91,11 @@ class AgentMirrorOnDropTest
   // MOD constants.
   const int kL3DropTrapId = 0x1B;
   const int kAclDropTrapId = 0x1C;
+  const int kNoDestFoundTrapId = 0xB5;
 
   // Test constants. We switch the event IDs around to get test coverage.
   const int kL3DropEventId = 0;
-  // TODO: add null-route drop test case
+  const int kNullRouteDropEventId = 1;
   const int kAclDropEventId = 2;
   // TODO: add vsq drop test case once CS00012390029 is fixed
   const int kVoqDropEventId = 4;
@@ -159,18 +160,18 @@ class AgentMirrorOnDropTest
     config->mirrorOnDropReports()->push_back(report);
 
     // Also add an ACL for counting MOD packets
-    auto* acl = utility::addAcl(config, kModPacketAcl);
+    auto* acl = utility::addAcl_DEPRECATED(config, kModPacketAcl);
     acl->dstIp() = kCollectorIp_.str();
     acl->l4DstPort() = kMirrorDstPort;
     utility::addAclStat(
         config,
         kModPacketAcl,
-        kModPacketAclCouter,
+        kModPacketAclCounter,
         utility::getAclCounterTypes(getAgentEnsemble()->getL3Asics()));
   }
 
   void addDropPacketAcl(cfg::SwitchConfig* config, const PortID& portId) {
-    auto* acl = utility::addAcl(
+    auto* acl = utility::addAcl_DEPRECATED(
         config,
         fmt::format("drop-packet-{}", portId),
         cfg::AclActionType::DENY);
@@ -229,9 +230,9 @@ class AgentMirrorOnDropTest
 
     return utility::makeUDPTxPacket(
         getSw(),
-        utility::firstVlanID(getProgrammedState()),
+        utility::firstVlanIDWithPorts(getProgrammedState()),
         utility::kLocalCpuMac(),
-        utility::getFirstInterfaceMac(getProgrammedState()),
+        utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
         folly::IPAddressV6{"2401:2222:2222:2222:2222:2222:2222:2222"},
         dstIp,
         0x4444,
@@ -518,7 +519,80 @@ TEST_P(AgentMirrorOnDropTest, PacketProcessingDefaultRouteDrop) {
     WITH_RETRIES_N_TIMED(
         maxRetryCount, std::chrono::milliseconds(sleepTimeMsecs), {
           EXPECT_EVENTUALLY_GT(
-              utility::getAclInOutPackets(getSw(), kModPacketAclCouter), 0);
+              utility::getAclInOutPackets(getSw(), kModPacketAclCounter), 0);
+        });
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+// 1. Configure MoD with packet processing discards/drops mapped to event ID
+//    `kNullRouteDropEventId`.
+// 2. Delete the null route so the packet does not match any route and is
+//    dropped.
+// 3. Sends a packet towards a destination not matching any route.
+// 3. Packet will be dropped and a MOD packet will be sent to collector.
+// 4. Packets are trapped to CPU. We validate the MOD headers well as a
+//    truncated version of the original packet.
+TEST_P(AgentMirrorOnDropTest, PacketProcessingNullRouteDrop) {
+  PortID mirrorPortId = masterLogicalPortIds({GetParam()})[0];
+  PortID injectionPortId = masterLogicalInterfacePortIds()[0];
+  PortID collectorPortId = masterLogicalInterfacePortIds()[1];
+  XLOG(DBG3) << "MoD port: " << portDesc(mirrorPortId);
+  XLOG(DBG3) << "Injection port: " << portDesc(injectionPortId);
+  XLOG(DBG3) << "Collector port: " << portDesc(collectorPortId);
+
+  auto setup = [&]() {
+    auto config = getAgentEnsemble()->getCurrentConfig();
+    setupMirrorOnDrop(
+        &config,
+        mirrorPortId,
+        kCollectorIp_,
+        {{kNullRouteDropEventId,
+          makeEventConfig(
+              std::nullopt, // use default aging group
+              {cfg::MirrorOnDropReasonAggregation::
+                   INGRESS_PACKET_PROCESSING_DISCARDS})}});
+    utility::addTrapPacketAcl(&config, kCollectorNextHopMac_);
+    applyNewConfig(config);
+
+    setupEcmpTraffic(collectorPortId, kCollectorIp_, kCollectorNextHopMac_);
+  };
+
+  auto verify = [&]() {
+    // Delete null route so that we hit the trap drop instead of null route
+    // drop. We do this in verify since we unconditionally install null routes
+    // on both Warm/Cold boots. And removing null routes in setup, would just
+    // cause them to be restored in WB path. This then would fail the test and
+    // also trigger unexpected WB writes.
+    SwSwitchRouteUpdateWrapper routeUpdater = getSw()->getRouteUpdater();
+    routeUpdater.delRoute(
+        RouterID(0), folly::IPAddress("::"), 0, ClientID::STATIC_INTERNAL);
+    routeUpdater.delRoute(
+        RouterID(0), folly::IPAddress("0.0.0.0"), 0, ClientID::STATIC_INTERNAL);
+    routeUpdater.program();
+
+    utility::SwSwitchPacketSnooper snooper(getSw(), "snooper");
+    std::unique_ptr<TxPacket> pkt = sendPackets(
+        1,
+        FLAGS_mod_pp_test_use_pipeline_lookup
+            ? std::nullopt
+            : std::make_optional<>(injectionPortId),
+        kDropDestIp);
+    validateModPacketReceived(
+        snooper,
+        pkt->buf(),
+        GetParam(),
+        kNullRouteDropEventId,
+        makeSSPA(injectionPortId),
+        makeTrapDSPA(kNoDestFoundTrapId));
+
+    auto [maxRetryCount, sleepTimeMsecs] =
+        utility::getRetryCountAndDelay(getSw()->getHwAsicTable());
+    WITH_RETRIES_N_TIMED(
+        maxRetryCount, std::chrono::milliseconds(sleepTimeMsecs), {
+          EXPECT_EVENTUALLY_GT(
+              utility::getAclInOutPackets(getSw(), kModPacketAclCounter), 0);
         });
   };
 

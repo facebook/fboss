@@ -150,8 +150,14 @@ std::
   auto actionTypeList = getActionTypeList(addedAclTable);
 
   auto qualifierSet = getQualifierSet(aclStage, addedAclTable);
-  auto qualifierExistsFn = [qualifierSet](cfg::AclTableQualifier qualifier) {
-    return qualifierSet.find(qualifier) != qualifierSet.end();
+  auto qualifierExistsFn = [=](cfg::AclTableQualifier qualifier) {
+    auto exists = qualifierSet.find(qualifier) != qualifierSet.end();
+    if (exists) {
+      XLOG(DBG2) << "Qualifier "
+                 << apache::thrift::util::enumNameSafe(qualifier)
+                 << " exists in ACL table " << addedAclTable->getID();
+    }
+    return exists;
   };
 
   std::vector<std::optional<sai_object_id_t>> udfGroupIds(
@@ -187,11 +193,11 @@ std::
       qualifierExistsFn(cfg::AclTableQualifier::IP_TYPE),
       qualifierExistsFn(cfg::AclTableQualifier::TTL),
       qualifierExistsFn(cfg::AclTableQualifier::LOOKUP_CLASS_L2),
-      qualifierExistsFn(cfg::AclTableQualifier::LOOKUP_CLASS_NEIGHBOR),
       qualifierExistsFn(cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE),
+      qualifierExistsFn(cfg::AclTableQualifier::LOOKUP_CLASS_NEIGHBOR),
       qualifierExistsFn(cfg::AclTableQualifier::ETHER_TYPE),
       qualifierExistsFn(cfg::AclTableQualifier::OUTER_VLAN),
-#if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_24_4_90)
+#if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_24_8_3001)
       qualifierExistsFn(cfg::AclTableQualifier::BTH_OPCODE),
 #endif
 #if !defined(TAJO_SDK) && !defined(BRCM_SAI_SDK_XGS)

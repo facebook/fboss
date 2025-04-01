@@ -254,6 +254,12 @@ int HwTestThriftHandler::getNumAggPorts() {
   return saiSwitch->managerTable()->lagManager().getLagCount();
 }
 
+void HwTestThriftHandler::clearInterfacePhyCounters(
+    std::unique_ptr<::std::vector<::std::int32_t>> portIds) {
+  hwSwitch_->clearInterfacePhyCounters(
+      std::make_unique<std::vector<int32_t>>(std::move(*portIds)));
+}
+
 bool HwTestThriftHandler::verifyPktFromAggPort(int aggPortId) {
   std::array<char, 8> data{};
   // TODO (T159867926): Set the right queue ID once the vendor

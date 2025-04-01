@@ -10,6 +10,28 @@
 #include "fboss/agent/ThriftHandlerUtils.h"
 
 namespace facebook::fboss::utility {
+
+std::string getCurrentStateJSONForPathHelper(
+    const std::string& path,
+    const std::shared_ptr<SwitchState>& sw) {
+  std::vector<std::string> thriftPath;
+  folly::split('/', path, thriftPath);
+  thrift_cow::GetEncodedPathVisitorOperator op(fsdb::OperProtocol::SIMPLE_JSON);
+  auto traverseResult = thrift_cow::RootPathVisitor::visit(
+      *std::const_pointer_cast<const SwitchState>(sw),
+      thriftPath.begin(),
+      thriftPath.end(),
+      thrift_cow::PathVisitMode::LEAF,
+      op);
+  switch (traverseResult) {
+    case thrift_cow::ThriftTraverseResult::OK:
+      return op.val->toStdString();
+    case thrift_cow::ThriftTraverseResult::VISITOR_EXCEPTION:
+      throw FbossError("Visitor exception when traversing thrift path.");
+    default:
+      throw FbossError("Invalid thrift path provided.");
+  }
+}
 void clearSwPortStats(
     std::vector<int32_t>& ports,
     std::shared_ptr<SwitchState> state) {

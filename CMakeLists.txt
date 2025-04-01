@@ -190,7 +190,7 @@ find_package(fb303 CONFIG REQUIRED)
 find_package(fizz CONFIG REQUIRED)
 find_package(fmt CONFIG REQUIRED)
 find_package(wangle CONFIG REQUIRED)
-find_package(FBThrift CONFIG REQUIRED)
+find_package(FBThrift CONFIG REQUIRED COMPONENTS)
 find_package(range-v3 REQUIRED)
 include_directories(${FB303_INCLUDE_DIR})
 find_path(FATAL_INCLUDE_DIR NAMES fatal/portability.h)
@@ -246,6 +246,7 @@ message(STATUS "Found YAML_INCLUDE_DIR: ${YAML_INCLUDE_DIR}")
 
 # Generate thrift deps and libraries
 include(FBThriftCppLibrary)
+include(FBThriftPyLibrary)
 
 # Thrift libraries
 add_fbthrift_cpp_library(
@@ -257,12 +258,27 @@ add_fbthrift_cpp_library(
     json
     reflection
 )
+add_fbthrift_py_library(
+  fb303_py
+  common/fb303/if/fb303.thrift
+  SERVICES
+    FacebookService
+  OPTIONS
+    json
+)
 add_fbthrift_cpp_library(
   network_address_cpp2
   common/network/if/Address.thrift
   OPTIONS
     json
     reflection
+)
+add_fbthrift_py_library(
+  network_address_py
+  common/network/if/Address.thrift
+  NAMESPACE "facebook.network.Address"
+  OPTIONS
+    json
 )
 add_fbthrift_cpp_library(
   mpls_cpp2
@@ -271,12 +287,26 @@ add_fbthrift_cpp_library(
     json
     reflection
 )
+add_fbthrift_py_library(
+  mpls_py
+  fboss/agent/if/mpls.thrift
+  NAMESPACE "neteng.fboss.mpls"
+  OPTIONS
+    json
+)
 add_fbthrift_cpp_library(
   fboss_common_cpp2
   fboss/lib/if/fboss_common.thrift
   OPTIONS
     json
     reflection
+)
+add_fbthrift_py_library(
+  fboss_common_py
+  fboss/lib/if/fboss_common.thrift
+  NAMESPACE "neteng.fboss.fboss_common"
+  OPTIONS
+    json
 )
 add_fbthrift_cpp_library(
   switch_config_cpp2
@@ -288,6 +318,17 @@ add_fbthrift_cpp_library(
     common_cpp2
     fboss_common_cpp2
     mpls_cpp2
+)
+add_fbthrift_py_library(
+  switch_config_py
+  fboss/agent/switch_config.thrift
+  NAMESPACE "neteng.fboss.switch_config"
+  OPTIONS
+    json
+  DEPENDS
+    common_py
+    fboss_common_py
+    mpls_py
 )
 add_fbthrift_cpp_library(
   agent_config_cpp2
@@ -310,6 +351,18 @@ add_fbthrift_cpp_library(
     asic_config_cpp2
     asic_config_v2_cpp2
     phy_cpp2
+)
+add_fbthrift_py_library(
+  platform_config_py
+  fboss/agent/platform_config.thrift
+  NAMESPACE "neteng.fboss.platform_config"
+  OPTIONS
+    json
+  DEPENDS
+    bcm_config_py
+    asic_config_py
+    asic_config_v2_py
+    phy_py
 )
 add_fbthrift_cpp_library(
   switch_reachability_cpp2
@@ -336,12 +389,26 @@ add_fbthrift_cpp_library(
     json
     reflection
 )
+add_fbthrift_py_library(
+  prbs_py
+  fboss/lib/phy/prbs.thrift
+  NAMESPACE "neteng.fboss.prbs"
+  OPTIONS
+    json
+)
 add_fbthrift_cpp_library(
   link_cpp2
   fboss/lib/phy/link.thrift
   OPTIONS
     json
     reflection
+)
+add_fbthrift_py_library(
+  link_py
+  fboss/lib/phy/link.thrift
+  NAMESPACE "neteng.fboss.link"
+  OPTIONS
+    json
 )
 add_fbthrift_cpp_library(
   transceiver_cpp2
@@ -352,6 +419,16 @@ add_fbthrift_cpp_library(
   DEPENDS
     link_cpp2
     prbs_cpp2
+)
+add_fbthrift_py_library(
+  transceiver_py
+  fboss/qsfp_service/if/transceiver.thrift
+  NAMESPACE "neteng.fboss.transceiver"
+  OPTIONS
+    json
+  DEPENDS
+    link_py
+    prbs_py
 )
 add_fbthrift_cpp_library(
   pim_state_cpp2
@@ -450,6 +527,19 @@ add_fbthrift_cpp_library(
     fb303_cpp2
     io_stats_cpp2
 )
+add_fbthrift_py_library(
+  phy_py
+  fboss/lib/phy/phy.thrift
+  NAMESPACE "neteng.fboss.phy"
+  OPTIONS
+    json
+  DEPENDS
+    switch_config_py
+    transceiver_py
+    fboss_py
+    fb303_py
+    io_stats_py
+)
 add_fbthrift_cpp_library(
   optic_cpp2
   fboss/agent/if/optic.thrift
@@ -466,6 +556,13 @@ add_fbthrift_cpp_library(
     json
     reflection
 )
+add_fbthrift_py_library(
+  fboss_py
+  fboss/agent/if/fboss.thrift
+  NAMESPACE "neteng.fboss"
+  OPTIONS
+    json
+)
 add_fbthrift_cpp_library(
   sflow_cpp2
   fboss/agent/if/sflow.thrift
@@ -481,6 +578,16 @@ add_fbthrift_cpp_library(
   DEPENDS
     mpls_cpp2
     network_address_cpp2
+)
+add_fbthrift_py_library(
+  common_py
+  fboss/agent/if/common.thrift
+  NAMESPACE "neteng.fboss.common"
+  OPTIONS
+    json
+  DEPENDS
+    mpls_py
+    network_address_py
 )
 add_fbthrift_cpp_library(
   product_info_cpp2
@@ -539,6 +646,13 @@ add_fbthrift_cpp_library(
     json
     reflection
 )
+add_fbthrift_py_library(
+    bcm_config_py
+  fboss/agent/hw/bcm/bcm_config.thrift
+  NAMESPACE "neteng.fboss.bcm_config"
+  OPTIONS
+    json
+)
 add_fbthrift_cpp_library(
   asic_config_cpp2
   fboss/agent/hw/sai/config/asic_config.thrift
@@ -546,12 +660,26 @@ add_fbthrift_cpp_library(
     json
     reflection
 )
+add_fbthrift_py_library(
+  asic_config_py
+  fboss/agent/hw/sai/config/asic_config.thrift
+  NAMESPACE "neteng.fboss.asic_config"
+  OPTIONS
+    json
+)
 add_fbthrift_cpp_library(
   asic_config_v2_cpp2
   fboss/agent/hw/config/asic_config_v2.thrift
   OPTIONS
     json
     reflection
+)
+add_fbthrift_py_library(
+  asic_config_v2_py
+  fboss/agent/hw/config/asic_config_v2.thrift
+  NAMESPACE "neteng.fboss.asic_config_v2"
+  OPTIONS
+    json
 )
 add_fbthrift_cpp_library(
   mka_structs_cpp2
@@ -602,6 +730,14 @@ add_fbthrift_cpp_library(
   OPTIONS
     json
     reflection
+)
+
+add_fbthrift_py_library(
+  io_stats_py
+  fboss/lib/if/io_stats.thrift
+  NAMESPACE "neteng.fboss.io_stats"
+  OPTIONS
+    json
 )
 
 add_fbthrift_cpp_library(
@@ -721,6 +857,14 @@ add_fbthrift_cpp_library(
     json
 )
 
+add_fbthrift_py_library(
+  platform_mapping_config_py
+  fboss/lib/platform_mapping_v2/platform_mapping_config.thrift
+  NAMESPACE "neteng.fboss.platform_mapping_config"
+  OPTIONS
+    json
+)
+
 find_library(USB usb-1.0)
 find_path(USB_INCLUDE_DIR NAMES libusb-1.0/libusb.h)
 include_directories(${USB_INCLUDE_DIR})
@@ -763,22 +907,83 @@ foreach(cmakeFile ${cmakeFiles})
   INCLUDE(${cmakeFile})
 endforeach(cmakeFile)
 
+if(BUILD_SAI_FAKE AND BUILD_SAI_FAKE_BENCHMARKS)
+add_custom_target(fboss_fake_agent_benchmarks)
+add_dependencies(fboss_fake_agent_benchmarks
+  sai_fsw_scale_route_add_speed-fake
+  sai_fsw_scale_route_del_speed-fake
+  sai_th_alpm_scale_route_add_speed-fake
+  sai_th_alpm_scale_route_del_speed-fake
+  sai_hgrid_du_scale_route_add_speed-fake
+  sai_hgrid_du_scale_route_del_speed-fake
+  sai_hgrid_uu_scale_route_add_speed-fake
+  sai_hgrid_uu_scale_route_del_speed-fake
+  sai_anticipated_scale_route_add_speed-fake
+  sai_anticipated_scale_route_del_speed-fake
+  sai_stats_collection_speed-fake
+  sai_tx_slow_path_rate-fake
+  sai_ecmp_shrink_speed-fake
+  sai_ecmp_shrink_with_competing_route_updates_speed-fake
+  sai_rx_slow_path_rate-fake
+  sai_init_and_exit_40Gx10G-fake
+  sai_init_and_exit_100Gx10G-fake
+  sai_init_and_exit_100Gx25G-fake
+  sai_init_and_exit_100Gx50G-fake
+  sai_init_and_exit_100Gx100G-fake
+  sai_init_and_exit_voq-fake
+  sai_init_and_exit_fabric-fake
+  sai_rib_resolution_speed-fake
+  sai_rib_sync_fib_speed-fake
+  sai_voq_scale_route_add_speed-fake
+  sai_voq_scale_route_del_speed-fake
+  sai_switch_reachability_change_speed-fake
+  sai_voq_sys_port_programming-fake
+)
+endif()
+
+add_custom_target(fboss_agent_benchmark_libs)
+add_dependencies(fboss_agent_benchmark_libs
+  hw_flowlet_stats_collection_speed
+  hw_rx_slow_path_arp_rate
+  hw_bgp_rx_slow_path_rate
+  hw_init_and_exit_benchmark_helper
+  hw_system_scale_memory_benchmark
+)
+
+
 add_custom_target(fboss_platform_services)
 add_dependencies(fboss_platform_services
+  # Services
   sensor_service
-  sensor_service_hw_test
-  sensor_service_sw_test
   fan_service
-  fan_service_sw_test
-  fan_service_hw_test
   rackmon
-  rackmon_test
   platform_manager
-  platform_manager_hw_test
   fw_util
   weutil
   led_service
   data_corral_service
+  # Unit Tests
+  platform_config_lib_config_lib_test
+  platform_manager_device_path_resolver_test
+  platform_manager_platform_explorer_test
+  platform_data_corral_sw_test
+  platform_manager_utils_test
+  platform_helpers_platform_name_lib_test
+  platform_manager_data_store_test
+  platform_manager_config_validator_test
+  platform_manager_presence_checker_test
+  platform_manager_i2c_explorer_test
+  weutil_crc16_ccitt_test
+  weutil_fboss_eeprom_parser_test
+  sensor_service_sw_test
+  sensor_service_utils_test
+  rackmon_test
+  fan_service_sw_test
+  data_corral_service_hw_test
+  fan_service_hw_test
+  sensor_service_hw_test
+  weutil_hw_test
+  platform_manager_hw_test
 )
 
 add_custom_target(qsfp_targets)
@@ -841,41 +1046,6 @@ endif()
 endif()
 
 if (GITHUB_ACTIONS_BUILD)
-  add_custom_target(github_actions_fboss_platform_services)
-  add_dependencies(github_actions_fboss_platform_services
-    # Services
-    sensor_service
-    fan_service
-    rackmon
-    platform_manager
-    fw_util
-    weutil
-    led_service
-    data_corral_service
-    # Unit Tests
-    platform_config_lib_config_lib_test
-    platform_manager_device_path_resolver_test
-    platform_manager_platform_explorer_test
-    platform_data_corral_sw_test
-    platform_manager_utils_test
-    platform_helpers_platform_name_lib_test
-    platform_manager_data_store_test
-    platform_manager_config_validator_test
-    platform_manager_presence_checker_test
-    platform_manager_i2c_explorer_test
-    weutil_crc16_ccitt_test
-    weutil_fboss_eeprom_parser_test
-    sensor_service_sw_test
-    sensor_service_utils_test
-    rackmon_test
-    fan_service_sw_test
-    data_corral_service_hw_test
-    fan_service_hw_test
-    sensor_service_hw_test
-    weutil_hw_test
-    platform_manager_hw_test
-  )
-
   add_custom_target(github_actions_fboss_other_services)
   add_dependencies(github_actions_fboss_other_services
     # Services

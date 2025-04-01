@@ -176,7 +176,7 @@ class AgentHwTest : public ::testing::Test {
       const cfg::SwitchConfig& in) const;
 
   template <typename EcmpHelperT>
-  void resolveNeigborAndProgramRoutes(const EcmpHelperT& ecmp, int width) {
+  void resolveNeighborAndProgramRoutes(const EcmpHelperT& ecmp, int width) {
     applyNewState([this, &ecmp, &width](std::shared_ptr<SwitchState> /*in*/) {
       return ecmp.resolveNextHops(getProgrammedState(), width);
     });

@@ -9,12 +9,14 @@ SaiVendorSwitchManager::SaiVendorSwitchManager(
     SaiManagerTable* /*managerTable*/,
     SaiPlatform* /*platform*/) {}
 
-void SaiVendorSwitchManager::initVendorSwitchEvents() {}
+void SaiVendorSwitchManager::setVendorSwitchEventEnableState(bool /*enable*/) {}
 
 void SaiVendorSwitchManager::vendorSwitchEventNotificationCallback(
     sai_size_t /*bufferSize*/,
     const void* /*buffer*/,
     uint32_t /*eventType*/) {}
+
+void SaiVendorSwitchManager::logCgmErrors() const {}
 
 const std::vector<uint32_t>& SaiVendorSwitchManager::getAllInterruptEvents() {
   static const std::vector<uint32_t> kInterruptEvents;
@@ -31,4 +33,13 @@ const std::string SaiVendorSwitchManager::getVendorSwitchEventName(
     uint32_t /*eventId*/) {
   return std::string();
 }
+
+void SaiVendorSwitchManager::incrementInterruptEventCounter(
+    uint32_t /*eventId*/) {}
+
+const std::string SaiVendorSwitchManager::getCgmDropReasonName(
+    int /*reason*/) const {
+  return std::string();
+}
+
 } // namespace facebook::fboss

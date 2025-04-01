@@ -15,8 +15,8 @@ thrift_library(
     languages = [
         "cpp2",
         "go",
-        "py",
-        "py3",
+        "py-deprecated",
+        "py3-deprecated",
         "python",
         "py-asyncio",
         "rust",
@@ -50,10 +50,11 @@ thrift_library(
     languages = [
         "cpp2",
         "go",
-        "py",
+        "py-deprecated",
         "py-asyncio",
-        "py3",
+        "py3-deprecated",
         "rust",
+        "python",
     ],
     plugins = [
         thrift_plugin_thriftpath(),
@@ -89,10 +90,11 @@ thrift_library(
     languages = [
         "cpp2",
         "go",
-        "py",
-        "py3",
+        "py-deprecated",
+        "py3-deprecated",
         "py-asyncio",
         "rust",
+        "python",
     ],
     py3_namespace = "neteng.fboss.platform_config",
     py_asyncio_base_module = "neteng.fboss.asyncio",
@@ -121,11 +123,12 @@ thrift_library(
     },
     languages = [
         "cpp2",
-        "py",
-        "py3",
+        "py-deprecated",
+        "py3-deprecated",
         "py-asyncio",
         "go",
         "rust",
+        "python",
     ],
     plugins = [
         thrift_plugin_thriftpath(),
@@ -156,11 +159,12 @@ thrift_library(
     },
     languages = [
         "cpp2",
-        "py",
-        "py3",
+        "py-deprecated",
+        "py3-deprecated",
         "py-asyncio",
         "go",
         "rust",
+        "python",
     ],
     plugins = [
         thrift_plugin_thriftpath(),
@@ -179,7 +183,8 @@ thrift_library(
     name = "validated_shell_commands",
     languages = [
         "cpp2",
-        "py3",
+        "py3-deprecated",
+        "python",
     ],
     py3_namespace = "neteng.fboss",
     thrift_cpp2_options = "json",
@@ -197,11 +202,12 @@ thrift_library(
     },
     languages = [
         "cpp2",
-        "py",
+        "py-deprecated",
         "go",
-        "py3",
+        "py3-deprecated",
         "py-asyncio",
         "rust",
+        "python",
     ],
     no_plugin_deps = ["//thrift/annotation:all"],
     py3_namespace = "neteng.fboss",
@@ -518,6 +524,7 @@ cpp_library(
         "facebook/Utils.cpp",
     ],
     exported_deps = [
+        ":agent_features",
         ":asic_utils",
         ":fboss-error",
         ":fboss-types",
@@ -1188,6 +1195,9 @@ cpp_library(
 
 cpp_library(
     name = "packet",
+    srcs = [
+        "Packet.cpp",
+    ],
     headers = [
         "Packet.h",
         "RxPacket.h",
@@ -1198,6 +1208,9 @@ cpp_library(
         ":fboss-types",
         "//folly:network_address",
         "//folly/io:iobuf",
+    ],
+    exported_external_deps = [
+        "gflags",
     ],
 )
 
@@ -1519,6 +1532,7 @@ cpp_library(
         ":switch_config-cpp2-types",
         "//fb303:service_data",
         "//fboss/agent/state:state",
+        "//fboss/thrift_cow/visitors:visitors",
         "//folly:string",
     ],
 )

@@ -57,7 +57,6 @@ void FwUtilImpl::printVersion(const std::string& fpd) {
 }
 
 std::string FwUtilImpl::getSingleVersion(const std::string& fpd) {
-  bool printCommand = false;
   std::string version;
   // printing single version
   auto iter = fwUtilConfig_.newFwConfigs()->find(fpd);
@@ -90,8 +89,7 @@ std::string FwUtilImpl::getSingleVersion(const std::string& fpd) {
       throw std::runtime_error("Failed to glob file: " + *versionConfig.path());
     }
     std::vector<std::string> cmd = {"/usr/bin/cat", globbuf.gl_pathv[0]};
-    auto [exitStatus, standardOut] =
-        PlatformUtils().runCommand(cmd, printCommand);
+    auto [exitStatus, standardOut] = PlatformUtils().runCommand(cmd);
     checkCmdStatus(cmd, exitStatus);
     version = folly::trimWhitespace(standardOut).str();
     globfree(&globbuf);

@@ -18,20 +18,20 @@ using namespace facebook::fboss::phy;
 bool recurseCheckPortOwnsChip(
     const PinConnection& pinConn,
     const DataPlanePhyChip& chip) {
-  if (pinConn.get_a().get_chip() == chip.get_name()) {
+  if (pinConn.a().value().chip().value() == chip.name().value()) {
     return true;
   }
   if (auto zPinRef = pinConn.z()) {
     if (zPinRef->getType() == Pin::Type::end) {
-      if (zPinRef->get_end().get_chip() == chip.get_name()) {
+      if (zPinRef->get_end().chip().value() == chip.name().value()) {
         return true;
       }
     } else if (zPinRef->getType() == Pin::Type::junction) {
       const auto& zJunction = zPinRef->get_junction();
-      if (zJunction.get_system().get_chip() == chip.get_name()) {
+      if (zJunction.system().value().chip().value() == chip.name().value()) {
         return true;
       }
-      for (const auto& connection : zJunction.get_line()) {
+      for (const auto& connection : zJunction.line().value()) {
         // Because one port can only use one iphy, one xphy, one transceiver,
         // and if one PinConnection can't find this chip, you won't find
         // this chip on another PinConnection of the same port
@@ -387,7 +387,8 @@ std::vector<cfg::PlatformPortEntry> getPlatformPortsByChip(
     const phy::DataPlanePhyChip& chip) {
   std::vector<cfg::PlatformPortEntry> ports;
   for (const auto& idAndPort : platformPorts) {
-    for (const auto& connection : idAndPort.second.get_mapping().get_pins()) {
+    for (const auto& connection :
+         idAndPort.second.mapping().value().pins().value()) {
       if (recurseCheckPortOwnsChip(connection, chip)) {
         ports.push_back(idAndPort.second);
         break;

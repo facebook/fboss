@@ -179,8 +179,6 @@ DEFINE_bool(rx_sw_priority, false, "Enable rx packet prioritization");
 
 DEFINE_int32(rx_pkt_thread_timeout, 100, "Rx packet thread timeout (ms)");
 
-DEFINE_int32(max_l2_entries, 1000, "Maximum L2 entries supported");
-
 using namespace facebook::fboss;
 namespace {
 
@@ -250,10 +248,11 @@ std::string getDrainStateChangedStr(
 }
 
 std::string getAsicSdkVersion(const std::optional<SdkVersion>& sdkVersion) {
-  return sdkVersion.has_value() ? (sdkVersion.value().get_asicSdk() != nullptr
-                                       ? *(sdkVersion.value().get_asicSdk())
-                                       : std::string("Not found"))
-                                : std::string("Not found");
+  return sdkVersion.has_value()
+      ? (apache::thrift::get_pointer(sdkVersion.value().asicSdk()) != nullptr
+             ? *(apache::thrift::get_pointer(sdkVersion.value().asicSdk()))
+             : std::string("Not found"))
+      : std::string("Not found");
 }
 
 // Create string about upper/lower port threshold for draining/undraining
@@ -346,16 +345,16 @@ void updatePhyFb303Stats(
   for (auto& [portID, phyInfo] : phyInfoMap) {
     auto& phyStats = *phyInfo.stats();
     auto& phyState = *phyInfo.state();
-    if (phyState.get_name().empty()) {
+    if (phyState.name().value().empty()) {
       continue;
     }
     if (auto pcs = phyStats.line()->pcs()) {
       if (auto fec = pcs->rsFec()) {
-        auto preFECBer = fec->get_preFECBer();
+        auto preFECBer = folly::copy(fec->preFECBer().value());
         // Pre-FEC BER should be >= 0 and <= 1
         if (preFECBer < 0 || preFECBer > 1) {
           XLOG(ERR) << "Invalid preFECBer value: " << preFECBer
-                    << " for port: " << phyState.get_name();
+                    << " for port: " << phyState.name().value();
           continue;
         }
         // For a BER of 2.2e-10, we will just log the exponent -10 to FB303
@@ -367,9 +366,10 @@ void updatePhyFb303Stats(
           preFECBerForFb303 = std::floor(std::log10(preFECBer));
         }
         facebook::fb303::fbData->setCounter(
-            "port." + phyState.get_name() + ".preFecBerLog", preFECBerForFb303);
+            "port." + phyState.name().value() + ".preFecBerLog",
+            preFECBerForFb303);
         if (auto fecTail = fec->fecTail()) {
-          STATS_port_fec_tail.addValue(*fecTail, phyState.get_name());
+          STATS_port_fec_tail.addValue(*fecTail, phyState.name().value());
         }
       }
     }
@@ -385,6 +385,21 @@ bool isPortDrained(
       HwSwitchMatcher(std::unordered_set<SwitchID>({portSwitchId})));
   return switchSettings->isSwitchDrained() || port->isDrained();
 }
+
+std::string getVirtualDeviceIdToEligibleNumActivePortsStr(
+    const std::map<int32_t, int32_t>& virtualDeviceIdToEligibleNumActivePorts) {
+  std::vector<std::string> stringPairs;
+  std::transform(
+      virtualDeviceIdToEligibleNumActivePorts.begin(),
+      virtualDeviceIdToEligibleNumActivePorts.end(),
+      std::back_inserter(stringPairs),
+      [](const auto& pair) {
+        return std::to_string(pair.first) + ": " + std::to_string(pair.second);
+      });
+
+  return folly::to<std::string>("{", folly::join(", ", stringPairs), "}");
+}
+
 } // anonymous namespace
 
 namespace std {
@@ -447,8 +462,10 @@ SwSwitch::SwSwitch(
       teFlowNextHopHandler_(new TeFlowNexthopHandler(this)),
       dsfSubscriber_(new DsfSubscriber(this)),
       switchInfoTable_(getSwitchInfoFromConfig(config)),
-      hwAsicTable_(
-          new HwAsicTable(getSwitchInfoFromConfig(config), sdkVersion_)),
+      hwAsicTable_(new HwAsicTable(
+          getSwitchInfoFromConfig(config),
+          sdkVersion_,
+          getDsfNodesFromConfig(config))),
       scopeResolver_(
           new SwitchIdScopeResolver(getSwitchInfoFromConfig(config))),
       switchStatsObserver_(new SwitchStatsObserver(this)),
@@ -738,15 +755,21 @@ void SwSwitch::gracefulExit() {
                       stopThreadsAndHandlersDone - neighborFloodDone)
                       .count();
 
-    auto thriftSwitchState = gracefulExitState();
-    // write exit state
-    steady_clock::time_point switchStateToFollyDone = steady_clock::now();
-    XLOG(DBG2) << "[Exit] Switch state to folly dynamic "
-               << duration_cast<duration<float>>(
-                      switchStateToFollyDone - stopThreadsAndHandlersDone)
-                      .count();
+    state::WarmbootState thriftSwitchState;
+    std::thread swWarmbootStateThread([this,
+                                       &thriftSwitchState,
+                                       stopThreadsAndHandlersDone]() {
+      thriftSwitchState = gracefulExitState();
+      steady_clock::time_point switchStateToThriftDone = steady_clock::now();
+      XLOG(DBG2) << "[Exit] Switch state to thrift "
+                 << duration_cast<duration<float>>(
+                        switchStateToThriftDone - stopThreadsAndHandlersDone)
+                        .count();
+    });
     // Cleanup if we ever initialized
     stopHwSwitchHandler();
+
+    swWarmbootStateThread.join();
     storeWarmBootState(thriftSwitchState);
     XLOG(DBG2)
         << "[Exit] SwSwitch Graceful Exit time "
@@ -822,7 +845,7 @@ AgentStats SwSwitch::fillFsdbStats() {
           {switchIdx, *hwSwitchStats.switchDropStats()});
       for (auto& [_, phyInfo] : *hwSwitchStats.phyInfo()) {
         auto portName = phyInfo.state()->name().value();
-        agentStats.phyStats()->insert({portName, phyInfo.get_stats()});
+        agentStats.phyStats()->insert({portName, phyInfo.stats().value()});
       }
       agentStats.flowletStatsMap()->insert(
           {switchIdx, *hwSwitchStats.flowletStats()});
@@ -1950,23 +1973,13 @@ PortDescriptor SwSwitch::getPortFromPkt(const RxPacket* pkt) const {
 }
 
 void SwSwitch::handlePacket(std::unique_ptr<RxPacket> pkt) {
-  auto port = getPortFromPkt(pkt.get());
-
-  // Handle packets for CPU port separately
-  if (port.type() == PortDescriptor::PortType::PHYSICAL &&
-      port.phyPortID() == PortID(0)) {
-    XLOG(DBG2) << "Dropping packet received from CPU port (" << port.str()
-               << ").";
-    portStats(port.phyPortID())->pktDropped();
-    return;
-  }
-
   if (FLAGS_intf_nbr_tables) {
-    handlePacketImpl(
-        std::move(pkt),
-        getState()->getInterfaces()->getNodeIf(
-            getState()->getInterfaceIDForPort(port)));
+    auto intf = getState()->getInterfaces()->getNodeIf(
+        getState()->getInterfaceIDForPort(getPortFromPkt(pkt.get())));
+    handlePacketImpl(std::move(pkt), intf);
   } else {
+    // TODO: get rid of getVlanIDHelper, packet must have a valid vlan here if
+    // vlans are maintained
     auto vlan =
         getState()->getVlans()->getNodeIf(getVlanIDHelper(pkt->getSrcVlanIf()));
     handlePacketImpl(std::move(pkt), vlan);
@@ -2197,12 +2210,57 @@ void SwSwitch::linkActiveStateChangedOrFwIsolated(
       return newState;
     }
 
+    // Pick matcher for any port.
+    // This is OK because the matcher is used to retrieve switchSettings which
+    // are same for all the ports of a HwSwitch.
+    // And, SwSwitch::linkActiveStateChanged is invoked by a HwSwitch and thus
+    // passed port2IsActive always contains ports from a single HwSwitch.
+    auto matcher = getScopeResolver()->scope(port2IsActive.cbegin()->first);
+    auto switchSettings =
+        state->getSwitchSettings()->getNodeIf(matcher.matcherString());
+    auto switchInfo = switchSettings->getSwitchIdToSwitchInfo()
+                          .find(matcher.switchId())
+                          ->second;
+    std::map<int32_t, int32_t> virtualDeviceIdToEligibleNumActivePorts;
+
+    const auto platformMapping =
+        getPlatformMappingForPlatformType(getPlatformType());
+    auto hwAsic = getHwAsicTable()->getHwAsicIf(matcher.switchId());
+
     auto numActiveFabricPorts = 0;
     for (const auto& [portID, isActive] : port2IsActive) {
       auto* port = newState->getPorts()->getNodeIf(portID).get();
       if (port) {
         if (isActive) {
           numActiveFabricPorts++;
+
+          if (platformMapping) {
+            auto virtualDeviceId =
+                platformMapping->getVirtualDeviceID(port->getName());
+            CHECK(virtualDeviceId.has_value());
+
+            switch (*switchInfo.switchType()) {
+              case cfg::SwitchType::VOQ:
+                virtualDeviceIdToEligibleNumActivePorts[virtualDeviceId
+                                                            .value()]++;
+                break;
+              case cfg::SwitchType::FABRIC: {
+                auto it = hwAsic->getL1FabricPortsToConnectToL2().find(
+                    static_cast<int16_t>(port->getID()));
+                if (it != hwAsic->getL1FabricPortsToConnectToL2().end()) {
+                  virtualDeviceIdToEligibleNumActivePorts[virtualDeviceId
+                                                              .value()]++;
+                }
+                break;
+              }
+              case cfg::SwitchType::NPU:
+              case cfg::SwitchType::PHY:
+                throw FbossError(
+                    "Only SwitchTypes with fabric ports can get active/inactive callback: ",
+                    apache::thrift::util::enumNameSafe(
+                        *switchInfo.switchType()));
+            }
+          }
         }
 
         if (port->isActive() != isActive) {
@@ -2224,14 +2282,12 @@ void SwSwitch::linkActiveStateChangedOrFwIsolated(
       }
     }
 
-    // Pick matcher for any port.
-    // This is OK because the matcher is used to retrieve switchSettings which
-    // are same for all the ports of a HwSwitch.
-    // And, SwSwitch::linkActiveStateChanged is invoked by a HwSwitch and thus
-    // passed port2IsActive always contains ports from a single HwSwitch.
-    auto matcher = getScopeResolver()->scope(port2IsActive.cbegin()->first);
-    auto switchSettings =
-        state->getSwitchSettings()->getNodeIf(matcher.matcherString());
+    // Update per VD num Active port counter
+    for (const auto& [virtualDeviceId, numActivePorts] :
+         virtualDeviceIdToEligibleNumActivePorts) {
+      stats()->setNumActiveFabricLinksEligibleForMinLink(
+          virtualDeviceId, numActivePorts);
+    }
 
     SwitchDrainState newActualSwitchDrainState;
     if (fwIsolated) {
@@ -2255,9 +2311,6 @@ void SwSwitch::linkActiveStateChangedOrFwIsolated(
     auto currentActualDrainState = switchSettings->getActualSwitchDrainState();
 
     if (newActualSwitchDrainState != currentActualDrainState) {
-      auto switchInfo = switchSettings->getSwitchIdToSwitchInfo()
-                            .find(matcher.switchId())
-                            ->second;
       stats()->setDrainState(
           *switchInfo.switchIndex(), newActualSwitchDrainState);
       auto newSwitchSettings = switchSettings->modify(&newState);
@@ -2277,7 +2330,9 @@ void SwSwitch::linkActiveStateChangedOrFwIsolated(
                << port2IsActive.size() << " ("
                << getDrainThresholdStr(
                       newActualSwitchDrainState, switchSettings.get())
-               << ")";
+               << ")  virtualDeviceIdToEligibleNumActivePorts: "
+               << getVirtualDeviceIdToEligibleNumActivePortsStr(
+                      virtualDeviceIdToEligibleNumActivePorts);
 
     return newState;
   };
@@ -2326,7 +2381,8 @@ void SwSwitch::switchReachabilityChanged(
     const SwitchID switchId,
     const std::map<SwitchID, std::set<PortID>>& switchReachabilityInfo) {
   switch_reachability::SwitchReachability newReachability;
-  int currentIdx = 1;
+  const int kEmptyFabricPortGroupId = 0;
+  int nextUsableFabricPortGroupId = 1;
   uint64_t collectionTimestamp =
       duration_cast<seconds>(system_clock::now().time_since_epoch()).count();
   if (hwReachabilityInfo_.find(switchId) == hwReachabilityInfo_.end()) {
@@ -2336,21 +2392,34 @@ void SwSwitch::switchReachabilityChanged(
   std::unordered_map<std::set<PortID>, int> portGrp2Id;
   for (const auto& [destinationSwitchId, portIdSet] : switchReachabilityInfo) {
     int portGroupId;
-    auto [_, inserted] = portGrp2Id.insert({portIdSet, currentIdx});
-    if (inserted) {
-      std::vector<std::string> portGroup(portIdSet.size());
-      std::transform(
-          portIdSet.begin(),
-          portIdSet.end(),
-          portGroup.begin(),
-          [this](PortID portId) {
-            return getState()->getPorts()->getNode(portId)->getName();
-          });
-      newReachability.fabricPortGroupMap()[currentIdx] = std::move(portGroup);
-      portGroupId = currentIdx++;
+    // When a switchID is unreachable, the portIdSet will be empty. In this
+    // case, use 0 as the fabricPortGroupId. With this, clients looking up
+    // switchID in switchIdToFabricPortGroupMap can conclude that the switch
+    // is unreachable if it has a fabricPortGroupId of 0 and reachable
+    // otherwise.
+    if (!portIdSet.size()) {
+      portGroupId = kEmptyFabricPortGroupId;
+      newReachability.fabricPortGroupMap()[portGroupId] =
+          std::vector<std::string>();
     } else {
-      // Need to find the ID for the portIdSet that was already added
-      portGroupId = portGrp2Id.find(portIdSet)->second;
+      auto [_, inserted] =
+          portGrp2Id.insert({portIdSet, nextUsableFabricPortGroupId});
+      if (inserted) {
+        std::vector<std::string> portGroup(portIdSet.size());
+        std::transform(
+            portIdSet.begin(),
+            portIdSet.end(),
+            portGroup.begin(),
+            [this](PortID portId) {
+              return getState()->getPorts()->getNode(portId)->getName();
+            });
+        portGroupId = nextUsableFabricPortGroupId++;
+        newReachability.fabricPortGroupMap()[portGroupId] =
+            std::move(portGroup);
+      } else {
+        // Need to find the ID for the portIdSet that was already added
+        portGroupId = portGrp2Id.find(portIdSet)->second;
+      }
     }
     newReachability.switchIdToFabricPortGroupMap()[static_cast<int64_t>(
         destinationSwitchId)] = portGroupId;
@@ -2620,18 +2689,18 @@ void SwSwitch::threadLoop(StringPiece name, folly::EventBase* eventBase) {
   eventBase->loopForever();
 }
 
-uint32_t SwSwitch::getEthernetHeaderSize() const {
-  // VOQ/Fabric switches require that the packets are not VLAN tagged.
-  return getSwitchInfoTable().vlansSupported() ? EthHdr::SIZE
-                                               : EthHdr::UNTAGGED_PKT_SIZE;
+uint32_t SwSwitch::getEthernetHeaderSize(bool tagged) const {
+  return tagged ? EthHdr::SIZE : EthHdr::UNTAGGED_PKT_SIZE;
 }
 
 std::unique_ptr<TxPacket> SwSwitch::allocatePacket(uint32_t size) const {
   return multiHwSwitchHandler_->allocatePacket(size);
 }
 
-std::unique_ptr<TxPacket> SwSwitch::allocateL3TxPacket(uint32_t l3Len) {
-  const uint32_t l2Len = getEthernetHeaderSize();
+std::unique_ptr<TxPacket> SwSwitch::allocateL3TxPacket(
+    uint32_t l3Len,
+    bool tagged) {
+  const uint32_t l2Len = getEthernetHeaderSize(tagged);
   const uint32_t minLen = 68;
   auto len = std::max(l2Len + l3Len, minLen);
   auto pkt = multiHwSwitchHandler_->allocatePacket(len);
@@ -2826,6 +2895,15 @@ void SwSwitch::sendL3Packet(
     return;
   }
 
+  auto state = getState();
+
+  auto intf = state->getInterfaces()->getNodeIf(ifID);
+  if (!intf) {
+    XLOG(ERR) << "Interface " << ifID << " doesn't exists in state.";
+    stats()->pktDropped();
+    return;
+  }
+
   // Buffer should not be shared.
   folly::IOBuf* buf = pkt->buf();
   CHECK(!buf->isShared());
@@ -2833,7 +2911,8 @@ void SwSwitch::sendL3Packet(
   // Add L2 header to L3 packet. Information doesn't need to be complete
   // make sure the packet has enough headroom for L2 header and large enough
   // for the minimum size packet.
-  const uint32_t l2Len = getEthernetHeaderSize();
+  const uint32_t l2Len =
+      getEthernetHeaderSize(intf->getType() == cfg::InterfaceType::VLAN);
   const uint32_t l3Len = buf->length();
   const uint32_t minLen = 68;
   uint32_t tailRoom = (l2Len + l3Len >= minLen) ? 0 : minLen - l2Len - l3Len;
@@ -2842,15 +2921,6 @@ void SwSwitch::sendL3Packet(
               << " required=" << l2Len << ", tailroom=" << buf->tailroom()
               << " required=" << tailRoom;
     stats()->pktError();
-    return;
-  }
-
-  auto state = getState();
-
-  auto intf = state->getInterfaces()->getNodeIf(ifID);
-  if (!intf) {
-    XLOG(ERR) << "Interface " << ifID << " doesn't exists in state.";
-    stats()->pktDropped();
     return;
   }
 
@@ -3288,9 +3358,13 @@ bool SwSwitch::sendNdpSolicitationHelper(
   return sent;
 }
 
-VlanID SwSwitch::getVlanIDHelper(std::optional<VlanID> vlanID) const {
-  // if vlanID does not have value, it must be VOQ or FABRIC switch
-  CHECK(vlanID.has_value() || !getSwitchInfoTable().vlansSupported());
+VlanID SwSwitch::getVlanIDHelper(
+    std::optional<VlanID> vlanID,
+    cfg::InterfaceType type) const {
+  // if vlanID does have value, it must be VLAN interface
+  if (vlanID.has_value()) {
+    CHECK(type == cfg::InterfaceType::VLAN);
+  }
 
   // TODO(skhare)
   // VOQ/Fabric switches require that the packets are not tagged with any
@@ -3299,24 +3373,6 @@ VlanID SwSwitch::getVlanIDHelper(std::optional<VlanID> vlanID) const {
   // populate SwitchState/Neighbor cache etc. data structures. Once the
   // wedge_agent changes are complete, we will no longer need this function.
   return vlanID.has_value() ? vlanID.value() : VlanID(0);
-}
-
-std::optional<VlanID> SwSwitch::getVlanIDForPkt(VlanID vlanID) const {
-  // TODO(skhare)
-  // VOQ/Fabric switches require that the packets are not tagged with any
-  // VLAN. We are gradually enhancing wedge_agent to handle tagged as well as
-  // untagged packets. During this transition, we will use VlanID 0 to
-  // populate SwitchState/Neighbor cache etc. data structures.
-  // However, the packets on wire must not carry VLANs for VOQ/Fabric
-  // switches. Once the wedge_agent changes are complete, we will no longer
-  // need this function.
-
-  if (!getSwitchInfoTable().vlansSupported()) {
-    CHECK_EQ(vlanID, VlanID(0));
-    return std::nullopt;
-  } else {
-    return vlanID;
-  }
 }
 
 InterfaceID SwSwitch::getInterfaceIDForAggregatePort(
@@ -3338,7 +3394,7 @@ void SwSwitch::sentArpRequest(
     getNeighborUpdater()->sentArpRequestForIntf(intf->getID(), target);
   } else {
     getNeighborUpdater()->sentArpRequest(
-        getVlanIDHelper(intf->getVlanIDIf()), target);
+        getVlanIDHelper(intf->getVlanIDIf(), intf->getType()), target);
   }
 }
 
@@ -3350,7 +3406,7 @@ void SwSwitch::sentNeighborSolicitation(
         intf->getID(), target);
   } else {
     getNeighborUpdater()->sentNeighborSolicitation(
-        getVlanIDHelper(intf->getVlanIDIf()), target);
+        getVlanIDHelper(intf->getVlanIDIf(), intf->getType()), target);
   }
 }
 

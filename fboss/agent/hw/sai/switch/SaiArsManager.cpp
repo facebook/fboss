@@ -39,6 +39,8 @@ sai_int32_t SaiArsManager::cfgSwitchingModeToSai(
       return SAI_ARS_MODE_PER_PACKET_QUALITY;
     case cfg::SwitchingMode::FIXED_ASSIGNMENT:
       return SAI_ARS_MODE_FIXED;
+    case cfg::SwitchingMode::PER_PACKET_RANDOM:
+      return SAI_ARS_MODE_PER_PACKET_RANDOM;
   }
 
   // should return in one of the cases

@@ -1,7 +1,6 @@
 #include <folly/logging/xlog.h>
 #include <filesystem>
 #include <fstream>
-#include "fboss/platform/fw_util/Flags.h"
 #include "fboss/platform/fw_util/FwUtilImpl.h"
 #include "fboss/platform/fw_util/fw_util_helpers.h"
 #include "fboss/platform/helpers/PlatformUtils.h"
@@ -28,15 +27,13 @@ void FwUtilImpl::doJtagOperation(
 void FwUtilImpl::doGpiosetOperation(
     const GpiosetConfig& config,
     const std::string& fpd) {
-  bool printCommand = true;
   XLOG(INFO) << "setting gpio register for " << fpd
              << " as preUpgrade operation";
   std::string gpioChip = getGpioChip(*config.gpioChip());
   // Execute the gpioset command
   std::vector<std::string> gpiosetCmd = {
       "/usr/bin/gpioset", gpioChip, *config.gpioChipPin() + "=1"};
-  auto [exitStatus, standardOut] =
-      PlatformUtils().runCommand(gpiosetCmd, printCommand);
+  auto [exitStatus, standardOut] = PlatformUtils().runCommand(gpiosetCmd);
   checkCmdStatus(gpiosetCmd, exitStatus);
 }
 
@@ -83,20 +80,17 @@ void FwUtilImpl::doGpiogetOperation(
   std::string gpioChip = getGpioChip(*config.gpioChip());
   std::vector<std::string> gpiogetCmd = {
       "/usr/bin/gpioget", gpioChip, *config.gpioChipPin()};
-  bool printCommand = true;
-  auto [exitStatus, standardOut] =
-      PlatformUtils().runCommand(gpiogetCmd, printCommand);
+  auto [exitStatus, standardOut] = PlatformUtils().runCommand(gpiogetCmd);
   checkCmdStatus(gpiogetCmd, exitStatus);
 }
 
 void FwUtilImpl::performJamUpgrade(
     const JamConfig& jamConfig,
     const std::string& fpd) {
-  bool printCommand = true;
   // Check if the firmware binary file is present
-  if (!std::filesystem::exists(FLAGS_fw_binary_file)) {
+  if (!std::filesystem::exists(fwBinaryFile_)) {
     throw std::runtime_error(
-        "Firmware binary file not found: " + FLAGS_fw_binary_file);
+        "Firmware binary file not found: " + fwBinaryFile_);
   }
 
   // Determine the JAM binary location
@@ -110,11 +104,10 @@ void FwUtilImpl::performJamUpgrade(
     }
   }
 
-  jamCmd.push_back(FLAGS_fw_binary_file);
+  jamCmd.push_back(fwBinaryFile_);
 
   // Execute the JAM command
-  auto [exitStatus, standardOut] =
-      PlatformUtils().runCommand(jamCmd, printCommand);
+  auto [exitStatus, standardOut] = PlatformUtils().runCommand(jamCmd);
 
   // we want to see the output of the command first
   XLOG(INFO) << standardOut;
@@ -126,11 +119,10 @@ void FwUtilImpl::performJamUpgrade(
 void FwUtilImpl::performXappUpgrade(
     const XappConfig& xappConfig,
     const std::string& fpd) {
-  bool printCommand = true;
   // Check if the firmware binary file is present
-  if (!std::filesystem::exists(FLAGS_fw_binary_file)) {
+  if (!std::filesystem::exists(fwBinaryFile_)) {
     throw std::runtime_error(
-        "Firmware binary file not found: " + FLAGS_fw_binary_file);
+        "Firmware binary file not found: " + fwBinaryFile_);
   }
 
   // Determine the XAPP binary location
@@ -143,11 +135,10 @@ void FwUtilImpl::performXappUpgrade(
       xappCmd.push_back(arg);
     }
   }
-  xappCmd.push_back(FLAGS_fw_binary_file);
+  xappCmd.push_back(fwBinaryFile_);
 
   // Execute the XAPP command
-  auto [exitStatus, standardOut] =
-      PlatformUtils().runCommand(xappCmd, printCommand);
+  auto [exitStatus, standardOut] = PlatformUtils().runCommand(xappCmd);
 
   // we want to see the output of the command first
   XLOG(INFO) << standardOut;

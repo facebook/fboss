@@ -82,6 +82,7 @@ void assertMaxBufferPoolSize(const SaiPlatform* platform) {
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK3:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK6:
       // TODO(maxgg): The maxEgressPoolSize == availableBuffer check fails when
       // a LOSSY_AND_LOSSLESS/mmu_lossless=0x2 config is used. Disabling it
       // while we investigate a related CSP CS00012382848.
@@ -151,6 +152,12 @@ uint64_t SaiBufferManager::getMaxEgressPoolBytes(const SaiPlatform* platform) {
           static_cast<const Tomahawk4Asic*>(asic)->getMMUCellSize();
     }
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK5: {
+      auto saiBcmPlatform = static_cast<const SaiBcmPlatform*>(platform);
+      auto kCellsAvailable = saiBcmPlatform->numCellsAvailable();
+      return kCellsAvailable *
+          static_cast<const Tomahawk5Asic*>(asic)->getMMUCellSize();
+    }
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK6: {
       auto saiBcmPlatform = static_cast<const SaiBcmPlatform*>(platform);
       auto kCellsAvailable = saiBcmPlatform->numCellsAvailable();
       return kCellsAvailable *
@@ -248,12 +255,10 @@ void SaiBufferManager::setupIngressBufferPool(
       platform_->getAsic()->getNumMemoryBuffers();
   // XoffSize configuration is needed only when PFC is supported
   std::optional<SaiBufferPoolTraits::Attributes::XoffSize> xoffSize;
-#if defined(TAJO_SDK) || defined(BRCM_SAI_SDK_XGS_AND_DNX)
   if (platform_->getAsic()->isSupported(HwAsic::Feature::PFC)) {
     xoffSize = *bufferPoolCfg.headroomBytes() *
         platform_->getAsic()->getNumMemoryBuffers();
   }
-#endif
   SaiBufferPoolTraits::CreateAttributes attributes{
       SAI_BUFFER_POOL_TYPE_INGRESS,
       poolSize,
@@ -388,8 +393,11 @@ void SaiBufferManager::updateIngressBufferPoolStats() {
     // TODO: Request for per ITM buffer pool stats in SAI
     counterIdsToReadAndClear.push_back(SAI_BUFFER_POOL_STAT_WATERMARK_BYTES);
 #if !defined(BRCM_SAI_SDK_XGS) || defined(BRCM_SAI_SDK_GTE_10_0)
-    counterIdsToReadAndClear.push_back(
-        SAI_BUFFER_POOL_STAT_XOFF_ROOM_WATERMARK_BYTES);
+    if (platform_->getAsic()->isSupported(
+            HwAsic::Feature::BUFFER_POOL_HEADROOM_WATERMARK)) {
+      counterIdsToReadAndClear.push_back(
+          SAI_BUFFER_POOL_STAT_XOFF_ROOM_WATERMARK_BYTES);
+    }
 #endif
   }
   ingressBufferPoolHandle->bufferPool->updateStats(

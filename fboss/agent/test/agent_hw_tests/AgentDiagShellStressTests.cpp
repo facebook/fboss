@@ -40,6 +40,7 @@ class AgentDiagShellStressTest : public AgentHwTest {
         case cfg::AsicType::ASIC_TYPE_TOMAHAWK3:
         case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
         case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
+        case cfg::AsicType::ASIC_TYPE_TOMAHAWK6:
           runBcmDiagCmds(switchId);
       }
     }

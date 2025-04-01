@@ -22,6 +22,22 @@ using namespace facebook::neteng::fboss::bgp::thrift;
 
 namespace facebook::fboss {
 
+std::map<int64_t, cfg::SwitchInfo> createSwitchIdToSwitchInfo() {
+  std::map<int64_t, cfg::SwitchInfo> switchIdToSwitchInfo;
+
+  cfg::SwitchInfo switchInfo1;
+  switchInfo1.switchType() = cfg::SwitchType::FABRIC;
+  switchInfo1.asicType() = cfg::AsicType::ASIC_TYPE_TRIDENT2;
+  switchInfo1.switchIndex() = 1;
+  switchIdToSwitchInfo.insert({1, switchInfo1});
+
+  return switchIdToSwitchInfo;
+}
+
+std::map<std::string, FabricEndpoint> createFabricConnectivity() {
+  return {};
+}
+
 /*
  * Set up port test data
  */
@@ -122,12 +138,12 @@ std::map<int32_t, PortInfoThrift> createPortEntries() {
   portEntry6.coreId() = 6;
   portEntry6.virtualDeviceId() = 6;
 
-  portMap[portEntry1.get_portId()] = portEntry1;
-  portMap[portEntry2.get_portId()] = portEntry2;
-  portMap[portEntry3.get_portId()] = portEntry3;
-  portMap[portEntry4.get_portId()] = portEntry4;
-  portMap[portEntry5.get_portId()] = portEntry5;
-  portMap[portEntry6.get_portId()] = portEntry6;
+  portMap[folly::copy(portEntry1.portId().value())] = portEntry1;
+  portMap[folly::copy(portEntry2.portId().value())] = portEntry2;
+  portMap[folly::copy(portEntry3.portId().value())] = portEntry3;
+  portMap[folly::copy(portEntry4.portId().value())] = portEntry4;
+  portMap[folly::copy(portEntry5.portId().value())] = portEntry5;
+  portMap[folly::copy(portEntry6.portId().value())] = portEntry6;
   return portMap;
 }
 
@@ -145,8 +161,8 @@ std::map<int32_t, PortInfoThrift> createInvalidPortEntries() {
   portEntry2.portId() = 2;
   portEntry2.name() = "eth/5/1";
 
-  portMap[portEntry1.get_portId()] = portEntry1;
-  portMap[portEntry2.get_portId()] = portEntry2;
+  portMap[folly::copy(portEntry1.portId().value())] = portEntry1;
+  portMap[folly::copy(portEntry2.portId().value())] = portEntry2;
   return portMap;
 }
 
@@ -202,6 +218,8 @@ cli::ShowPortModel createPortModel() {
   entry1.pfc() = "TX RX WD";
   entry1.isDrained() = "Yes";
   entry1.activeErrors() = "--";
+  entry1.peerSwitchDrained() = "--";
+  entry1.peerPortDrainedOrDown() = "--";
   entry1.coreId() = "1";
   entry1.virtualDeviceId() = "1";
 
@@ -219,6 +237,8 @@ cli::ShowPortModel createPortModel() {
   entry2.pause() = "RX";
   entry2.isDrained() = "No";
   entry2.activeErrors() = "--";
+  entry2.peerSwitchDrained() = "--";
+  entry2.peerPortDrainedOrDown() = "--";
   entry2.coreId() = "2";
   entry2.virtualDeviceId() = "2";
 
@@ -236,6 +256,8 @@ cli::ShowPortModel createPortModel() {
   entry3.pause() = "";
   entry3.isDrained() = "No";
   entry3.activeErrors() = "--";
+  entry3.peerSwitchDrained() = "--";
+  entry3.peerPortDrainedOrDown() = "--";
   entry3.coreId() = "3";
   entry3.virtualDeviceId() = "3";
 
@@ -253,6 +275,8 @@ cli::ShowPortModel createPortModel() {
   entry4.pause() = "";
   entry4.isDrained() = "Yes";
   entry4.activeErrors() = "--";
+  entry4.peerSwitchDrained() = "--";
+  entry4.peerPortDrainedOrDown() = "--";
   entry4.coreId() = "--";
   entry4.virtualDeviceId() = "--";
 
@@ -270,6 +294,8 @@ cli::ShowPortModel createPortModel() {
   entry5.pause() = "";
   entry5.isDrained() = "No";
   entry5.activeErrors() = "--";
+  entry5.peerSwitchDrained() = "--";
+  entry5.peerPortDrainedOrDown() = "--";
   entry5.coreId() = "5";
   entry5.virtualDeviceId() = "5";
 
@@ -287,6 +313,8 @@ cli::ShowPortModel createPortModel() {
   entry6.pause() = "";
   entry6.isDrained() = "Yes";
   entry6.activeErrors() = "--";
+  entry6.peerSwitchDrained() = "--";
+  entry6.peerPortDrainedOrDown() = "--";
   entry6.coreId() = "6";
   entry6.virtualDeviceId() = "6";
 
@@ -295,9 +323,16 @@ cli::ShowPortModel createPortModel() {
   return model;
 }
 
+std::unordered_map<std::string, cfg::SwitchDrainState> createPeerDrainStates() {
+  return {};
+}
+
+std::unordered_map<std::string, bool> createPeerPortStates() {
+  return {};
+}
+
 std::vector<std::string> createDrainedInterfaces() {
-  std::vector<std::string> drainedInterfaces{"eth1/4/1", "eth1/5/1"};
-  return drainedInterfaces;
+  return {"eth1/4/1", "eth1/5/1"};
 }
 
 std::string createMockedBgpConfig() {
@@ -312,18 +347,27 @@ std::string createMockedBgpConfig() {
 class CmdShowPortTestFixture : public CmdHandlerTestBase {
  public:
   CmdShowPortTraits::ObjectArgType queriedEntries;
+  std::map<int64_t, cfg::SwitchInfo> mockSwitchIdToSwitchInfo;
   std::map<int32_t, facebook::fboss::PortInfoThrift> mockPortEntries;
+  std::map<std::string, FabricEndpoint> mockFabricConnectivity;
   std::map<int32_t, facebook::fboss::TransceiverInfo> mockTransceiverEntries;
+  std::unordered_map<std::string, Endpoint> mockPortToPeer;
   std::map<std::string, facebook::fboss::HwPortStats> mockPortStats;
+  std::unordered_map<std::string, cfg::SwitchDrainState> mockPeerDrainStates;
+  std::unordered_map<std::string, bool> mockPeerPortStates;
   cli::ShowPortModel normalizedModel;
   std::vector<std::string> mockDrainedInterfaces;
   std::string mockBgpRunningConfig;
 
   void SetUp() override {
     CmdHandlerTestBase::SetUp();
+    mockSwitchIdToSwitchInfo = createSwitchIdToSwitchInfo();
     mockPortEntries = createPortEntries();
+    mockFabricConnectivity = createFabricConnectivity();
     mockTransceiverEntries = createTransceiverEntries();
     normalizedModel = createPortModel();
+    mockPeerDrainStates = createPeerDrainStates();
+    mockPeerPortStates = createPeerPortStates();
     mockDrainedInterfaces = createDrainedInterfaces();
     mockBgpRunningConfig = createMockedBgpConfig();
   }
@@ -335,6 +379,9 @@ TEST_F(CmdShowPortTestFixture, sortByName) {
       mockTransceiverEntries,
       queriedEntries,
       mockPortStats,
+      mockPortToPeer,
+      mockPeerDrainStates,
+      mockPeerPortStates,
       mockDrainedInterfaces);
 
   EXPECT_THRIFT_EQ(model, normalizedModel);
@@ -349,6 +396,9 @@ TEST_F(CmdShowPortTestFixture, invalidPortName) {
         mockTransceiverEntries,
         queriedEntries,
         mockPortStats,
+        mockPortToPeer,
+        mockPeerDrainStates,
+        mockPeerPortStates,
         mockDrainedInterfaces);
     FAIL();
   } catch (const std::invalid_argument& expected) {
@@ -364,6 +414,12 @@ TEST_F(CmdShowPortTestFixture, queryClient) {
   setupMockedBgpServer();
   EXPECT_CALL(getMockAgent(), getAllPortInfo(_))
       .WillOnce(Invoke([&](auto& entries) { entries = mockPortEntries; }));
+  EXPECT_CALL(getMockAgent(), getSwitchIdToSwitchInfo(_))
+      .WillOnce(
+          Invoke([&](auto& entries) { entries = mockSwitchIdToSwitchInfo; }));
+  EXPECT_CALL(getMockAgent(), getFabricConnectivity(_))
+      .WillOnce(
+          Invoke([&](auto& entries) { entries = mockFabricConnectivity; }));
 
   EXPECT_CALL(getQsfpService(), getTransceiverInfo(_, _))
       .WillOnce(Invoke(

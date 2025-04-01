@@ -265,15 +265,6 @@ class SwitchStats : public boost::noncopyable {
     updateState_.addValue(us.count());
   }
 
-  void routeUpdate(std::chrono::microseconds us, uint64_t routes) {
-    // As syncFib() could include no routes.
-    if (routes == 0) {
-      routes = 1;
-    }
-    // TODO: add support for addRepeatedValue() in FSDB client-side library
-    routeUpdate_.addRepeatedValue(us.count() / routes, routes);
-  }
-
   void bgHeartbeatDelay(int delay) {
     bgHeartbeatDelay_.addValue(delay);
   }
@@ -505,12 +496,24 @@ class SwitchStats : public boost::noncopyable {
     loPriPktsDropped_.addValue(1);
   }
 
+  void resourceAccountantRejectedUpdates() {
+    resourceAccountantRejectedUpdates_.addValue(1);
+  }
+
   void switchConfiguredMs(uint64_t ms) {
     switchConfiguredMs_.addValue(ms);
   }
   void setFabricOverdrainPct(int16_t switchIndex, int16_t overdrainPct);
 
   void setDrainState(int16_t switchIndex, cfg::SwitchDrainState drainState);
+
+  void setNumActiveFabricLinksEligibleForMinLink(
+      int32_t virtualDeviceId,
+      int32_t numLinks);
+
+  void setNumActivePortsPerVirtualDevice(
+      int32_t virtualDeviceId,
+      int32_t numActivePorts);
 
   void hwAgentConnectionStatus(int switchIndex, bool connected) {
     CHECK_LT(switchIndex, hwAgentConnectionStatus_.size());
@@ -888,11 +891,6 @@ class SwitchStats : public boost::noncopyable {
   fb303::detail::QuantileStatWrapper updateState_;
 
   /**
-   * Histogram for time used for route update (in microsecond)
-   */
-  TLHistogram routeUpdate_;
-
-  /**
    * Background thread heartbeat delay (ms)
    */
   TLHistogram bgHeartbeatDelay_;
@@ -1072,6 +1070,11 @@ class SwitchStats : public boost::noncopyable {
   TLTimeseries macTableUpdateFailure_;
 
   TLTimeseries fwDrainedWithHighNumActiveFabricLinks_;
+
+  /**
+   * Number of state updates rejected by resource accountant
+   */
+  TLTimeseries resourceAccountantRejectedUpdates_;
 
   std::vector<TLCounter> hwAgentConnectionStatus_;
   std::vector<TLTimeseries> hwAgentUpdateTimeouts_;

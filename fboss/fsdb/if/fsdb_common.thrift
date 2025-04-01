@@ -109,6 +109,8 @@ enum FsdbClient {
   SWITCH_AGENT = 11,
   FBOSS2_CLI = 12,
   ADHOC = 13,
+  SWITCH_AGENT_CORE = 14,
+  SWITCH_AGENT_CLUSTER = 15,
 }
 
 struct ClientId {

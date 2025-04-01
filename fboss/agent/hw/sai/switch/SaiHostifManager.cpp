@@ -139,6 +139,13 @@ SaiHostifManager::packetReasonToHostifTrap(
           SAI_HOSTIF_TRAP_TYPE_SAMPLEPACKET, SAI_PACKET_ACTION_TRAP);
     case cfg::PacketRxReason::EAPOL:
       return std::make_pair(SAI_HOSTIF_TRAP_TYPE_EAPOL, SAI_PACKET_ACTION_TRAP);
+    case cfg::PacketRxReason::HOST_MISS:
+#if SAI_API_VERSION >= SAI_VERSION(1, 15, 0)
+      return std::make_pair(
+          SAI_HOSTIF_TRAP_TYPE_NEIGHBOR_MISS, SAI_PACKET_ACTION_TRAP);
+#else
+      break;
+#endif
     case cfg::PacketRxReason::PORT_MTU_ERROR:
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
       return std::make_pair(
@@ -686,6 +693,13 @@ void SaiHostifManager::loadCpuPort() {
         portApi.getAttribute(cpuPortHandle_->cpuPortId, attr);
     XLOG(DBG5) << "Got cpu sai system port ID "
                << cpuPortHandle_->cpuSystemPortId.value();
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+    auto& systemPortApi = SaiApiTable::getInstance()->systemPortApi();
+    systemPortApi.setAttribute(
+        cpuPortHandle_->cpuSystemPortId.value(),
+        SaiSystemPortTraits::Attributes::TcRateLimitExclude{true});
+    XLOG(DBG5) << "Excluded cpu system port from global tc rate limit";
+#endif
   }
   loadCpuPortQueues();
   if (platform_->getAsic()->isSupported(HwAsic::Feature::VOQ)) {

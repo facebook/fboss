@@ -112,7 +112,7 @@ class CmdShowLldpTestFixture : public testing::Test {
 TEST_F(CmdShowLldpTestFixture, createModel) {
   auto cmd = CmdShowLldp();
   auto model = cmd.createModel(lldpEntries, portEntries, queriedIfs);
-  auto entries = model.get_lldpEntries();
+  auto entries = model.lldpEntries().value();
 
   EXPECT_EQ(entries.size(), 5);
 

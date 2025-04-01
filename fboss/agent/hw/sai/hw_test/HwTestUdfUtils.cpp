@@ -29,27 +29,55 @@ void validateUdfConfig(
   const auto udfGroupIter = udfManager.getUdfGroupHandles().find(udfGroupName);
   EXPECT_TRUE(udfGroupIter != udfManager.getUdfGroupHandles().cend());
   if (udfGroupIter != udfManager.getUdfGroupHandles().cend()) {
-    // Verify UdfGroup attributes
     auto saiUdfGroup = udfGroupIter->second->udfGroup;
-    EXPECT_EQ(
-        udfApi.getAttribute(
-            saiUdfGroup->adapterKey(), SaiUdfGroupTraits::Attributes::Type{}),
-        SAI_UDF_GROUP_TYPE_HASH);
-    EXPECT_EQ(
-        udfApi.getAttribute(
-            saiUdfGroup->adapterKey(), SaiUdfGroupTraits::Attributes::Length{}),
-        utility::kUdfHashDstQueuePairFieldSizeInBytes);
+    if (udfGroupName == utility::kUdfHashDstQueuePairGroupName) {
+      // Verify UdfGroup attributes
+      EXPECT_EQ(
+          udfApi.getAttribute(
+              saiUdfGroup->adapterKey(), SaiUdfGroupTraits::Attributes::Type{}),
+          SAI_UDF_GROUP_TYPE_HASH);
+      EXPECT_EQ(
+          udfApi.getAttribute(
+              saiUdfGroup->adapterKey(),
+              SaiUdfGroupTraits::Attributes::Length{}),
+          utility::kUdfHashDstQueuePairFieldSizeInBytes);
 
-    // Verify Udf attributes
-    auto saiUdf = udfGroupIter->second->udfs[udfPacketMatcherName]->udf;
-    EXPECT_EQ(
-        udfApi.getAttribute(
-            saiUdf->adapterKey(), SaiUdfTraits::Attributes::Offset{}),
-        utility::kUdfHashDstQueuePairStartOffsetInBytes);
-    EXPECT_EQ(
-        udfApi.getAttribute(
-            saiUdf->adapterKey(), SaiUdfTraits::Attributes::Base{}),
-        SAI_UDF_BASE_L4);
+      // Verify Udf attributes
+      auto saiUdf = udfGroupIter->second->udfs[udfPacketMatcherName]->udf;
+      EXPECT_EQ(
+          udfApi.getAttribute(
+              saiUdf->adapterKey(), SaiUdfTraits::Attributes::Offset{}),
+          utility::kUdfHashDstQueuePairStartOffsetInBytes);
+      EXPECT_EQ(
+          udfApi.getAttribute(
+              saiUdf->adapterKey(), SaiUdfTraits::Attributes::Base{}),
+          SAI_UDF_BASE_L4);
+    } else if (udfGroupName == utility::kUdfAclRoceOpcodeGroupName) {
+      // Verify UdfGroup attributes
+      EXPECT_EQ(
+          udfApi.getAttribute(
+              saiUdfGroup->adapterKey(), SaiUdfGroupTraits::Attributes::Type{}),
+          SAI_UDF_GROUP_TYPE_GENERIC);
+      EXPECT_EQ(
+          udfApi.getAttribute(
+              saiUdfGroup->adapterKey(),
+              SaiUdfGroupTraits::Attributes::Length{}),
+          utility::kUdfAclRoceOpcodeFieldSizeInBytes);
+
+      // Verify Udf attributes
+      auto saiUdf = udfGroupIter->second->udfs[udfPacketMatcherName]->udf;
+      EXPECT_EQ(
+          udfApi.getAttribute(
+              saiUdf->adapterKey(), SaiUdfTraits::Attributes::Offset{}),
+          utility::kUdfAclRoceOpcodeStartOffsetInBytes);
+      EXPECT_EQ(
+          udfApi.getAttribute(
+              saiUdf->adapterKey(), SaiUdfTraits::Attributes::Base{}),
+          SAI_UDF_BASE_L4);
+    } else {
+      throw FbossError(
+          "Unsupported UDF Group name " + udfGroupName + ". Cannot validate.");
+    }
   }
 
   // Verify UdfMatch attributes

@@ -280,5 +280,6 @@ bcm_agent_benchmark(
         "//fboss/agent/hw/bcm/tests:bcm_qos_utils",
         "//fboss/agent/hw/benchmarks:hw_rx_slow_path_rate",
         "//fboss/agent/hw/benchmarks:hw_tx_slow_path_rate",
+        "//fboss/agent/hw/benchmarks:hw_clear_interface_phy_counters",
     ],
 )

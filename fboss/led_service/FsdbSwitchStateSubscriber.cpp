@@ -89,7 +89,8 @@ void FsdbSwitchStateSubscriber::subscribeToState(
           // has expected neighbor. We blink the LED when either end of the link
           // is drained and hence is safe to operate on.
           bool localPortDrained =
-              onePortInfo.get_drainState() == cfg::PortDrainState::DRAINED ||
+              folly::copy(onePortInfo.drainState().value()) ==
+                  cfg::PortDrainState::DRAINED ||
               switchDrained;
           bool peerPortDrained = !portActive &&
               std::find(

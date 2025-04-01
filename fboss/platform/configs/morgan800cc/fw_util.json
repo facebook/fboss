@@ -104,7 +104,7 @@
       },
       "version": {
         "versionType": "sysfs",
-        "path": "/run/devmap/fpgas/SMB_DOM1_INFO_ROM/fw_ver"
+        "path": "/run/devmap/inforoms/SMB_DOM1_INFO_ROM/fw_ver"
       },
       "sha1sum": "27341f15c01db7d165520069e233754c98a66d6a",
       "priority": 2,
@@ -169,7 +169,7 @@
       },
       "version": {
         "versionType": "sysfs",
-        "path": "/run/devmap/fpgas/SMB_DOM2_INFO_ROM/fw_ver"
+        "path": "/run/devmap/inforoms/SMB_DOM2_INFO_ROM/fw_ver"
       },
       "sha1sum": "27341f15c01db7d165520069e233754c98a66d6a",
       "priority": 3,
@@ -234,7 +234,7 @@
       },
       "version": {
         "versionType": "sysfs",
-        "path": "/run/devmap/fpgas/MCB_MCB_INFO_ROM/fw_ver"
+        "path": "/run/devmap/inforoms/MCB_MCB_INFO_ROM/fw_ver"
       },
       "sha1sum": "5cdbcfdfe5d423b403942a3614da3e16010e29ee",
       "priority": 4,
@@ -299,7 +299,7 @@
       },
       "version": {
         "versionType": "sysfs",
-        "path": "/run/devmap/fpgas/MCB_IOB_INFO_ROM/fw_ver"
+        "path": "/run/devmap/inforoms/MCB_IOB_INFO_ROM/fw_ver"
       },
       "sha1sum": "f89fd9a93924acde0e6f48d862effe3de7495964",
       "priority": 5,
@@ -364,7 +364,7 @@
       },
       "version": {
         "versionType": "sysfs",
-        "path": "/run/devmap/fpgas/SCM_IOB_INFO_ROM/fw_ver"
+        "path": "/run/devmap/inforoms/SCM_IOB_INFO_ROM/fw_ver"
       },
       "sha1sum": "77f49218ba3a1d26b68bd73f2db03553c16e9309",
       "priority": 6,

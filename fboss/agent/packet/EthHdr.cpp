@@ -54,8 +54,8 @@ void EthHdr::addVlans(const std::vector<VlanID>& vlans, ETHERTYPE ether) {
 string VlanTag::toString() const {
   stringstream ss;
   ss << " Protocol: " << std::hex << "0x" << tpid()
-     << " priority : " << std::dec << (int)pcp()
-     << " drop eligibility: " << (int)dei() << " vlan : " << vid();
+     << " priority : " << std::dec << static_cast<int>(pcp())
+     << " drop eligibility: " << static_cast<int>(dei()) << " vlan : " << vid();
   return ss.str();
 }
 
@@ -69,6 +69,16 @@ string EthHdr::toString() const {
     ss << folly::to<std::string>("{", vlanTag, "} ");
   }
   ss << "}";
+  return ss.str();
+}
+
+std::string EthHdr::printVlanTags() {
+  std::stringstream ss;
+  ss << "[";
+  for (auto vlanTag : vlanTags) {
+    ss << std::hex << vlanTag.toString() << " ";
+  }
+  ss << "]";
   return ss.str();
 }
 

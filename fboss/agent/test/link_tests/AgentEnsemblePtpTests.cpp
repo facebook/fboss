@@ -36,7 +36,7 @@ class AgentEnsemblePtpTests : public AgentEnsembleLinkTest {
       PTPMessageType ptpType) {
     // note: we are not creating flood here, but want routing
     // of packets so that TTL goes down from 255 -> 0
-    auto vlan = utility::firstVlanID(getSw()->getState());
+    auto vlan = utility::firstVlanIDWithPorts(getSw()->getState());
     // TODO: Remove the dependency on VLAN below
     if (!vlan) {
       throw FbossError("VLAN id unavailable for test");

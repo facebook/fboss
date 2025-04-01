@@ -48,7 +48,7 @@ class CmdShowPortQueue
     RetType retVal;
     for (auto const& [portId, portInfo] : portEntries) {
       for (auto const& queriedPort : queriedPorts.data()) {
-        if (portInfo.get_name() == queriedPort) {
+        if (portInfo.name().value() == queriedPort) {
           retVal.insert(std::make_pair(portId, portInfo));
         }
       }
@@ -63,7 +63,7 @@ class CmdShowPortQueue
     for (auto const& [portId, portInfo] : portId2PortInfoThrift) {
       std::ignore = portId;
 
-      std::cout << portInfo.get_name() << "\n";
+      std::cout << portInfo.name().value() << "\n";
       std::cout << std::string(10, '=') << std::endl;
 
       std::cout << fmt::format(
@@ -76,12 +76,12 @@ class CmdShowPortQueue
           "ScalingFactor");
       std::cout << std::string(90, '-') << std::endl;
 
-      for (auto const& queue : portInfo.get_portQueues()) {
+      for (auto const& queue : portInfo.portQueues().value()) {
         std::cout << fmt::format(
             fmtString,
-            queue.get_id(),
-            queue.get_name(),
-            queue.get_mode(),
+            folly::copy(queue.id().value()),
+            queue.name().value(),
+            queue.mode().value(),
             queue.weight() ? std::to_string(*queue.weight()) : "",
             queue.reservedBytes() ? std::to_string(*queue.reservedBytes()) : "",
             queue.scalingFactor() ? *queue.scalingFactor() : "");

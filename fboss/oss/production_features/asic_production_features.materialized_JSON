@@ -40,7 +40,9 @@
         53,
         59,
         60,
-        63
+        63,
+        69,
+        72
     ],
     "ebro": [
         2,
@@ -78,7 +80,9 @@
         53,
         54,
         59,
-        63
+        63,
+        69,
+        72
     ],
     "jericho3": [
         2,
@@ -116,7 +120,8 @@
         34,
         48,
         49,
-        58
+        58,
+        70
     ],
     "ramon": [
         1
@@ -159,7 +164,9 @@
         60,
         63,
         65,
-        67
+        67,
+        69,
+        72
     ],
     "tomahawk3": [
         2,
@@ -211,7 +218,10 @@
         63,
         64,
         65,
-        67
+        67,
+        69,
+        71,
+        72
     ],
     "tomahawk4": [
         2,
@@ -261,7 +271,10 @@
         62,
         63,
         64,
-        67
+        67,
+        69,
+        71,
+        72
     ],
     "tomahawk5": [
         2,
@@ -308,7 +321,10 @@
         59,
         60,
         62,
-        63
+        63,
+        69,
+        71,
+        72
     ],
     "yuba": [
         2,
@@ -349,7 +365,9 @@
         54,
         59,
         60,
-        63
+        63,
+        69,
+        72
     ]
   },
   "asicToFeatureNames": {
@@ -393,7 +411,9 @@
         "ERSPANV6_MIRRORING",
         "CLASS_ID_FOR_CONNECTED_ROUTE",
         "SEPARATE_BYTE_AND_PACKET_ACL_COUNTERS",
-        "UCMP"
+        "UCMP",
+        "PTP_TC",
+        "MODIFY_ACL_QUALIFIERS"
     ],
     "ebro": [
         "CPU_RX_TX",
@@ -431,7 +451,9 @@
         "ERSPANV6_MIRRORING",
         "IP_IN_IP_DECAP",
         "CLASS_ID_FOR_CONNECTED_ROUTE",
-        "UCMP"
+        "UCMP",
+        "PTP_TC",
+        "MODIFY_ACL_QUALIFIERS"
     ],
     "jericho3": [
         "CPU_RX_TX",
@@ -469,7 +491,8 @@
         "INGRESS_MIRRORING",
         "LINERATE_SFLOW",
         "MIRROR_ON_DROP",
-        "SFLOW_SAMPLES_PACKING"
+        "SFLOW_SAMPLES_PACKING",
+        "SELF_HEALING_ECMP_LAG"
     ],
     "ramon": [
         "FABRIC"
@@ -512,7 +535,9 @@
         "SEPARATE_BYTE_AND_PACKET_ACL_COUNTERS",
         "UCMP",
         "MMU_TUNING",
-        "UNTRUNCATED_SFLOW"
+        "UNTRUNCATED_SFLOW",
+        "PTP_TC",
+        "MODIFY_ACL_QUALIFIERS"
     ],
     "tomahawk3": [
         "CPU_RX_TX",
@@ -564,7 +589,10 @@
         "UCMP",
         "MULTICAST_QUEUE",
         "MMU_TUNING",
-        "UNTRUNCATED_SFLOW"
+        "UNTRUNCATED_SFLOW",
+        "PTP_TC",
+        "L4_DST_PORT_ACL",
+        "MODIFY_ACL_QUALIFIERS"
     ],
     "tomahawk4": [
         "CPU_RX_TX",
@@ -614,7 +642,10 @@
         "EAPOL_TRAP",
         "UCMP",
         "MULTICAST_QUEUE",
-        "UNTRUNCATED_SFLOW"
+        "UNTRUNCATED_SFLOW",
+        "PTP_TC",
+        "L4_DST_PORT_ACL",
+        "MODIFY_ACL_QUALIFIERS"
     ],
     "tomahawk5": [
         "CPU_RX_TX",
@@ -661,7 +692,10 @@
         "CLASS_ID_FOR_CONNECTED_ROUTE",
         "SEPARATE_BYTE_AND_PACKET_ACL_COUNTERS",
         "EAPOL_TRAP",
-        "UCMP"
+        "UCMP",
+        "PTP_TC",
+        "L4_DST_PORT_ACL",
+        "MODIFY_ACL_QUALIFIERS"
     ],
     "yuba": [
         "CPU_RX_TX",
@@ -702,7 +736,9 @@
         "IP_IN_IP_DECAP",
         "CLASS_ID_FOR_CONNECTED_ROUTE",
         "SEPARATE_BYTE_AND_PACKET_ACL_COUNTERS",
-        "UCMP"
+        "UCMP",
+        "PTP_TC",
+        "MODIFY_ACL_QUALIFIERS"
     ]
   }
 }

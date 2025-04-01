@@ -169,6 +169,7 @@ add_library(agent_hw_test_thrift_handler
   fboss/agent/hw/sai/hw_test/HwTestTamUtilsThriftHandler.cpp
   fboss/agent/hw/sai/hw_test/HwTestCommonUtilsThriftHandler.cpp
   fboss/agent/hw/sai/hw_test/HwTestFlowletUtilsThriftHandler.cpp
+  fboss/agent/hw/sai/hw_test/HwTestPtpTcUtilsThriftHandler.cpp
 )
 
 target_link_libraries(agent_hw_test_thrift_handler
@@ -183,6 +184,10 @@ target_link_libraries(agent_hw_test_thrift_handler
 
 
 function(BUILD_SAI_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
+
+  target_link_libraries(agent_hw_test_thrift_handler
+    ${SAI_IMPL_ARG}
+  )
 
   message(STATUS "Building SAI_IMPL_NAME: ${SAI_IMPL_NAME} SAI_IMPL_ARG: ${SAI_IMPL_ARG}")
 

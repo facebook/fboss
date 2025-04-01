@@ -97,7 +97,7 @@ TEST_F(AgentVoqSwitchConditionalEntropyTest, verifyLoadBalancing) {
               true /* isV6 */,
               utility::getAllocatePktFn(getAgentEnsemble()),
               utility::getSendPktFunc(getAgentEnsemble()),
-              utility::getFirstInterfaceMac(getProgrammedState()),
+              utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
               std::nullopt /* vlan */,
               masterLogicalInterfacePortIds()[kIngressPort],
               utility::kUdfL4DstPort,
@@ -132,8 +132,8 @@ TEST_F(AgentVoqSwitchConditionalEntropyTest, verifyNonRoceTrafficUnbalanced) {
       auto pkt = utility::makeUDPTxPacket(
           utility::getAllocatePktFn(getAgentEnsemble()),
           std::nullopt,
-          utility::getFirstInterfaceMac(getProgrammedState()),
-          utility::getFirstInterfaceMac(getProgrammedState()),
+          utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
+          utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
           srcIp, /* fixed */
           dstIp, /* fixed */
           42, /* arbit src port, fixed */
@@ -183,7 +183,7 @@ TEST_F(
           true /* isV6 */,
           utility::getAllocatePktFn(getAgentEnsemble()),
           utility::getSendPktFunc(getAgentEnsemble()),
-          utility::getFirstInterfaceMac(getProgrammedState()),
+          utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
           std::nullopt /* vlan */,
           masterLogicalInterfacePortIds()[kIngressPort],
           utility::kUdfL4DstPort,

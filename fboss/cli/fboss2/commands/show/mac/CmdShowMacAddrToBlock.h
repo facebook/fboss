@@ -46,8 +46,11 @@ class CmdShowMacAddrToBlock
 
     out << fmt::format(fmtString, "VLAN", "MAC Address");
 
-    for (const auto& entry : model.get_macAndVlanEntries()) {
-      out << fmt::format(fmtString, entry.get_vlanID(), entry.get_macAddress());
+    for (const auto& entry : model.macAndVlanEntries().value()) {
+      out << fmt::format(
+          fmtString,
+          folly::copy(entry.vlanID().value()),
+          entry.macAddress().value());
     }
     out << std::endl;
   }
@@ -58,8 +61,8 @@ class CmdShowMacAddrToBlock
     for (const auto& entry : macAndVlanEntries) {
       cli::MacAndVlan macAndVlanDetails;
 
-      macAndVlanDetails.vlanID() = entry.get_vlanID();
-      macAndVlanDetails.macAddress() = entry.get_macAddress();
+      macAndVlanDetails.vlanID() = folly::copy(entry.vlanID().value());
+      macAndVlanDetails.macAddress() = entry.macAddress().value();
 
       model.macAndVlanEntries()->push_back(macAndVlanDetails);
     }

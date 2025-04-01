@@ -484,6 +484,20 @@ TEST_F(AgentFabricSwitchTest, switchReachability) {
   verifyAcrossWarmBoots([]() {}, verify);
 }
 
+TEST_F(AgentFabricSwitchTest, ValidateFecErrorDetect) {
+  auto verify = [this]() {
+    utility::setupFecErrorDetectEnable(
+        getAgentEnsemble(), true /*fecErrorDetectEnable*/);
+    utility::validateFecErrorDetectInState(
+        getProgrammedState().get(), true /*fecErrorDetectEnable*/);
+    utility::setupFecErrorDetectEnable(
+        getAgentEnsemble(), false /*fecErrorDetectEnable*/);
+    utility::validateFecErrorDetectInState(
+        getProgrammedState().get(), false /*fecErrorDetectEnable*/);
+  };
+  verifyAcrossWarmBoots([]() {}, verify);
+}
+
 class AgentBalancedInputModeTest : public AgentFabricSwitchTest {
  public:
   cfg::SwitchConfig initialConfig(

@@ -18,7 +18,7 @@
         "parserType": 1,
         "routable": true,
         "ingressVlan": 2001,
-        "speed": 400000,
+        "speed": 800000,
         "name": "eth1/1/1",
         "description": "",
         "queues_DEPRECATED": [
@@ -37,43 +37,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 38,
-        "portType": 0,
-        "expectedNeighborReachability": [
-          
-        ],
-        "drainState": 0,
-        "scope": 0,
-        "conditionalEntropyRehash": false
-      },
-      {
-        "logicalID": 10,
-        "state": 2,
-        "minFrameSize": 64,
-        "maxFrameSize": 9412,
-        "parserType": 1,
-        "routable": true,
-        "ingressVlan": 2002,
-        "speed": 400000,
-        "name": "eth1/1/5",
-        "description": "",
-        "queues_DEPRECATED": [
-          
-        ],
-        "pause": {
-          "tx": false,
-          "rx": false
-        },
-        "sFlowIngressRate": 0,
-        "sFlowEgressRate": 0,
-        "loopbackMode": 0,
-        "expectedLLDPValues": {
-          "2": "eth1/5/5"
-        },
-        "lookupClasses": [
-          
-        ],
-        "profileID": 38,
+        "profileID": 39,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -522,7 +486,7 @@
         "parserType": 1,
         "routable": true,
         "ingressVlan": 2009,
-        "speed": 400000,
+        "speed": 800000,
         "name": "eth1/5/1",
         "description": "",
         "queues_DEPRECATED": [
@@ -541,43 +505,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 38,
-        "portType": 0,
-        "expectedNeighborReachability": [
-          
-        ],
-        "drainState": 0,
-        "scope": 0,
-        "conditionalEntropyRehash": false
-      },
-      {
-        "logicalID": 31,
-        "state": 2,
-        "minFrameSize": 64,
-        "maxFrameSize": 9412,
-        "parserType": 1,
-        "routable": true,
-        "ingressVlan": 2010,
-        "speed": 400000,
-        "name": "eth1/5/5",
-        "description": "",
-        "queues_DEPRECATED": [
-          
-        ],
-        "pause": {
-          "tx": false,
-          "rx": false
-        },
-        "sFlowIngressRate": 0,
-        "sFlowEgressRate": 0,
-        "loopbackMode": 0,
-        "expectedLLDPValues": {
-          "2": "eth1/1/5"
-        },
-        "lookupClasses": [
-          
-        ],
-        "profileID": 38,
+        "profileID": 39,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -11380,15 +11308,6 @@
         ]
       },
       {
-        "name": "vlan2002",
-        "id": 2002,
-        "recordStats": true,
-        "routable": true,
-        "ipAddresses": [
-          
-        ]
-      },
-      {
         "name": "vlan2003",
         "id": 2003,
         "recordStats": true,
@@ -11445,15 +11364,6 @@
       {
         "name": "vlan2009",
         "id": 2009,
-        "recordStats": true,
-        "routable": true,
-        "ipAddresses": [
-          
-        ]
-      },
-      {
-        "name": "vlan2010",
-        "id": 2010,
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
@@ -12540,12 +12450,6 @@
         "emitTags": false
       },
       {
-        "vlanID": 2002,
-        "logicalPort": 10,
-        "spanningTreeState": 2,
-        "emitTags": false
-      },
-      {
         "vlanID": 2003,
         "logicalPort": 1,
         "spanningTreeState": 2,
@@ -12584,12 +12488,6 @@
       {
         "vlanID": 2009,
         "logicalPort": 30,
-        "spanningTreeState": 2,
-        "emitTags": false
-      },
-      {
-        "vlanID": 2010,
-        "logicalPort": 31,
         "spanningTreeState": 2,
         "emitTags": false
       },
@@ -13325,26 +13223,12 @@
         "scope": 0
       },
       {
-        "intfID": 2002,
-        "routerID": 0,
-        "vlanID": 2002,
-        "ipAddresses": [
-          "2401::/64",
-          "11.0.0.0/24"
-        ],
-        "mtu": 9000,
-        "isVirtual": false,
-        "isStateSyncDisabled": true,
-        "type": 1,
-        "scope": 0
-      },
-      {
         "intfID": 2003,
         "routerID": 0,
         "vlanID": 2003,
         "ipAddresses": [
-          "2402::/64",
-          "12.0.0.0/24"
+          "2401::/64",
+          "11.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -13357,8 +13241,8 @@
         "routerID": 0,
         "vlanID": 2004,
         "ipAddresses": [
-          "2403::/64",
-          "13.0.0.0/24"
+          "2402::/64",
+          "12.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -13371,8 +13255,8 @@
         "routerID": 0,
         "vlanID": 2005,
         "ipAddresses": [
-          "2404::/64",
-          "14.0.0.0/24"
+          "2403::/64",
+          "13.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -13385,8 +13269,8 @@
         "routerID": 0,
         "vlanID": 2006,
         "ipAddresses": [
-          "2405::/64",
-          "15.0.0.0/24"
+          "2404::/64",
+          "14.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -13399,8 +13283,8 @@
         "routerID": 0,
         "vlanID": 2007,
         "ipAddresses": [
-          "2406::/64",
-          "16.0.0.0/24"
+          "2405::/64",
+          "15.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -13413,8 +13297,8 @@
         "routerID": 0,
         "vlanID": 2008,
         "ipAddresses": [
-          "2407::/64",
-          "17.0.0.0/24"
+          "2406::/64",
+          "16.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -13427,22 +13311,8 @@
         "routerID": 0,
         "vlanID": 2009,
         "ipAddresses": [
-          "2408::/64",
-          "18.0.0.0/24"
-        ],
-        "mtu": 9000,
-        "isVirtual": false,
-        "isStateSyncDisabled": true,
-        "type": 1,
-        "scope": 0
-      },
-      {
-        "intfID": 2010,
-        "routerID": 0,
-        "vlanID": 2010,
-        "ipAddresses": [
-          "2409::/64",
-          "19.0.0.0/24"
+          "2407::/64",
+          "17.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -13455,8 +13325,8 @@
         "routerID": 0,
         "vlanID": 2011,
         "ipAddresses": [
-          "2410::/64",
-          "20.0.0.0/24"
+          "2408::/64",
+          "18.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -13469,8 +13339,8 @@
         "routerID": 0,
         "vlanID": 2012,
         "ipAddresses": [
-          "2411::/64",
-          "21.0.0.0/24"
+          "2409::/64",
+          "19.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -13483,8 +13353,8 @@
         "routerID": 0,
         "vlanID": 2013,
         "ipAddresses": [
-          "2412::/64",
-          "22.0.0.0/24"
+          "2410::/64",
+          "20.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -13497,8 +13367,8 @@
         "routerID": 0,
         "vlanID": 2014,
         "ipAddresses": [
-          "2413::/64",
-          "23.0.0.0/24"
+          "2411::/64",
+          "21.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -13511,8 +13381,8 @@
         "routerID": 0,
         "vlanID": 2015,
         "ipAddresses": [
-          "2414::/64",
-          "24.0.0.0/24"
+          "2412::/64",
+          "22.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -13525,8 +13395,8 @@
         "routerID": 0,
         "vlanID": 2016,
         "ipAddresses": [
-          "2415::/64",
-          "25.0.0.0/24"
+          "2413::/64",
+          "23.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -13539,8 +13409,8 @@
         "routerID": 0,
         "vlanID": 2017,
         "ipAddresses": [
-          "2416::/64",
-          "26.0.0.0/24"
+          "2414::/64",
+          "24.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -13553,8 +13423,8 @@
         "routerID": 0,
         "vlanID": 2018,
         "ipAddresses": [
-          "2417::/64",
-          "27.0.0.0/24"
+          "2415::/64",
+          "25.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -13567,8 +13437,8 @@
         "routerID": 0,
         "vlanID": 2019,
         "ipAddresses": [
-          "2418::/64",
-          "28.0.0.0/24"
+          "2416::/64",
+          "26.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -13581,8 +13451,8 @@
         "routerID": 0,
         "vlanID": 2020,
         "ipAddresses": [
-          "2419::/64",
-          "29.0.0.0/24"
+          "2417::/64",
+          "27.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -13595,8 +13465,8 @@
         "routerID": 0,
         "vlanID": 2021,
         "ipAddresses": [
-          "2420::/64",
-          "30.0.0.0/24"
+          "2418::/64",
+          "28.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -13609,8 +13479,8 @@
         "routerID": 0,
         "vlanID": 2022,
         "ipAddresses": [
-          "2421::/64",
-          "31.0.0.0/24"
+          "2419::/64",
+          "29.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -13623,8 +13493,8 @@
         "routerID": 0,
         "vlanID": 2023,
         "ipAddresses": [
-          "2422::/64",
-          "32.0.0.0/24"
+          "2420::/64",
+          "30.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -13637,8 +13507,8 @@
         "routerID": 0,
         "vlanID": 2024,
         "ipAddresses": [
-          "2423::/64",
-          "33.0.0.0/24"
+          "2421::/64",
+          "31.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -13651,8 +13521,8 @@
         "routerID": 0,
         "vlanID": 2025,
         "ipAddresses": [
-          "2424::/64",
-          "34.0.0.0/24"
+          "2422::/64",
+          "32.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -13665,8 +13535,8 @@
         "routerID": 0,
         "vlanID": 2026,
         "ipAddresses": [
-          "2425::/64",
-          "35.0.0.0/24"
+          "2423::/64",
+          "33.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -13679,8 +13549,8 @@
         "routerID": 0,
         "vlanID": 2027,
         "ipAddresses": [
-          "2426::/64",
-          "36.0.0.0/24"
+          "2424::/64",
+          "34.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -13693,8 +13563,8 @@
         "routerID": 0,
         "vlanID": 2028,
         "ipAddresses": [
-          "2427::/64",
-          "37.0.0.0/24"
+          "2425::/64",
+          "35.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -13707,8 +13577,8 @@
         "routerID": 0,
         "vlanID": 2029,
         "ipAddresses": [
-          "2428::/64",
-          "38.0.0.0/24"
+          "2426::/64",
+          "36.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -13721,8 +13591,8 @@
         "routerID": 0,
         "vlanID": 2030,
         "ipAddresses": [
-          "2429::/64",
-          "39.0.0.0/24"
+          "2427::/64",
+          "37.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -13735,8 +13605,8 @@
         "routerID": 0,
         "vlanID": 2031,
         "ipAddresses": [
-          "2430::/64",
-          "40.0.0.0/24"
+          "2428::/64",
+          "38.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -13749,8 +13619,8 @@
         "routerID": 0,
         "vlanID": 2032,
         "ipAddresses": [
-          "2431::/64",
-          "41.0.0.0/24"
+          "2429::/64",
+          "39.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -13763,8 +13633,8 @@
         "routerID": 0,
         "vlanID": 2033,
         "ipAddresses": [
-          "2432::/64",
-          "42.0.0.0/24"
+          "2430::/64",
+          "40.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -13777,8 +13647,8 @@
         "routerID": 0,
         "vlanID": 2034,
         "ipAddresses": [
-          "2433::/64",
-          "43.0.0.0/24"
+          "2431::/64",
+          "41.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -13791,8 +13661,8 @@
         "routerID": 0,
         "vlanID": 2035,
         "ipAddresses": [
-          "2434::/64",
-          "44.0.0.0/24"
+          "2432::/64",
+          "42.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -13805,8 +13675,8 @@
         "routerID": 0,
         "vlanID": 2036,
         "ipAddresses": [
-          "2435::/64",
-          "45.0.0.0/24"
+          "2433::/64",
+          "43.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -13819,8 +13689,8 @@
         "routerID": 0,
         "vlanID": 2037,
         "ipAddresses": [
-          "2436::/64",
-          "46.0.0.0/24"
+          "2434::/64",
+          "44.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -13833,8 +13703,8 @@
         "routerID": 0,
         "vlanID": 2038,
         "ipAddresses": [
-          "2437::/64",
-          "47.0.0.0/24"
+          "2435::/64",
+          "45.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -13847,8 +13717,8 @@
         "routerID": 0,
         "vlanID": 2039,
         "ipAddresses": [
-          "2438::/64",
-          "48.0.0.0/24"
+          "2436::/64",
+          "46.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -13861,8 +13731,8 @@
         "routerID": 0,
         "vlanID": 2040,
         "ipAddresses": [
-          "2439::/64",
-          "49.0.0.0/24"
+          "2437::/64",
+          "47.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -13875,8 +13745,8 @@
         "routerID": 0,
         "vlanID": 2041,
         "ipAddresses": [
-          "2440::/64",
-          "50.0.0.0/24"
+          "2438::/64",
+          "48.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -13889,8 +13759,8 @@
         "routerID": 0,
         "vlanID": 2042,
         "ipAddresses": [
-          "2441::/64",
-          "51.0.0.0/24"
+          "2439::/64",
+          "49.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -13903,8 +13773,8 @@
         "routerID": 0,
         "vlanID": 2043,
         "ipAddresses": [
-          "2442::/64",
-          "52.0.0.0/24"
+          "2440::/64",
+          "50.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -13917,8 +13787,8 @@
         "routerID": 0,
         "vlanID": 2044,
         "ipAddresses": [
-          "2443::/64",
-          "53.0.0.0/24"
+          "2441::/64",
+          "51.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -13931,8 +13801,8 @@
         "routerID": 0,
         "vlanID": 2045,
         "ipAddresses": [
-          "2444::/64",
-          "54.0.0.0/24"
+          "2442::/64",
+          "52.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -13945,8 +13815,8 @@
         "routerID": 0,
         "vlanID": 2046,
         "ipAddresses": [
-          "2445::/64",
-          "55.0.0.0/24"
+          "2443::/64",
+          "53.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -13959,8 +13829,8 @@
         "routerID": 0,
         "vlanID": 2047,
         "ipAddresses": [
-          "2446::/64",
-          "56.0.0.0/24"
+          "2444::/64",
+          "54.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -13973,8 +13843,8 @@
         "routerID": 0,
         "vlanID": 2048,
         "ipAddresses": [
-          "2447::/64",
-          "57.0.0.0/24"
+          "2445::/64",
+          "55.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -13987,8 +13857,8 @@
         "routerID": 0,
         "vlanID": 2049,
         "ipAddresses": [
-          "2448::/64",
-          "58.0.0.0/24"
+          "2446::/64",
+          "56.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -14001,8 +13871,8 @@
         "routerID": 0,
         "vlanID": 2050,
         "ipAddresses": [
-          "2449::/64",
-          "59.0.0.0/24"
+          "2447::/64",
+          "57.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -14015,8 +13885,8 @@
         "routerID": 0,
         "vlanID": 2051,
         "ipAddresses": [
-          "2450::/64",
-          "60.0.0.0/24"
+          "2448::/64",
+          "58.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -14029,8 +13899,8 @@
         "routerID": 0,
         "vlanID": 2052,
         "ipAddresses": [
-          "2451::/64",
-          "61.0.0.0/24"
+          "2449::/64",
+          "59.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -14043,8 +13913,8 @@
         "routerID": 0,
         "vlanID": 2053,
         "ipAddresses": [
-          "2452::/64",
-          "62.0.0.0/24"
+          "2450::/64",
+          "60.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -14057,8 +13927,8 @@
         "routerID": 0,
         "vlanID": 2054,
         "ipAddresses": [
-          "2453::/64",
-          "63.0.0.0/24"
+          "2451::/64",
+          "61.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -14071,8 +13941,8 @@
         "routerID": 0,
         "vlanID": 2055,
         "ipAddresses": [
-          "2454::/64",
-          "64.0.0.0/24"
+          "2452::/64",
+          "62.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -14085,8 +13955,8 @@
         "routerID": 0,
         "vlanID": 2056,
         "ipAddresses": [
-          "2455::/64",
-          "65.0.0.0/24"
+          "2453::/64",
+          "63.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -14099,8 +13969,8 @@
         "routerID": 0,
         "vlanID": 2057,
         "ipAddresses": [
-          "2456::/64",
-          "66.0.0.0/24"
+          "2454::/64",
+          "64.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -14113,8 +13983,8 @@
         "routerID": 0,
         "vlanID": 2058,
         "ipAddresses": [
-          "2457::/64",
-          "67.0.0.0/24"
+          "2455::/64",
+          "65.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -14127,8 +13997,8 @@
         "routerID": 0,
         "vlanID": 2059,
         "ipAddresses": [
-          "2458::/64",
-          "68.0.0.0/24"
+          "2456::/64",
+          "66.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -14141,8 +14011,8 @@
         "routerID": 0,
         "vlanID": 2060,
         "ipAddresses": [
-          "2459::/64",
-          "69.0.0.0/24"
+          "2457::/64",
+          "67.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -14155,8 +14025,8 @@
         "routerID": 0,
         "vlanID": 2061,
         "ipAddresses": [
-          "2460::/64",
-          "70.0.0.0/24"
+          "2458::/64",
+          "68.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -14169,8 +14039,8 @@
         "routerID": 0,
         "vlanID": 2062,
         "ipAddresses": [
-          "2461::/64",
-          "71.0.0.0/24"
+          "2459::/64",
+          "69.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -14183,8 +14053,8 @@
         "routerID": 0,
         "vlanID": 2063,
         "ipAddresses": [
-          "2462::/64",
-          "72.0.0.0/24"
+          "2460::/64",
+          "70.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -14197,8 +14067,8 @@
         "routerID": 0,
         "vlanID": 2064,
         "ipAddresses": [
-          "2463::/64",
-          "73.0.0.0/24"
+          "2461::/64",
+          "71.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -14211,8 +14081,8 @@
         "routerID": 0,
         "vlanID": 2065,
         "ipAddresses": [
-          "2464::/64",
-          "74.0.0.0/24"
+          "2462::/64",
+          "72.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -14225,8 +14095,8 @@
         "routerID": 0,
         "vlanID": 2066,
         "ipAddresses": [
-          "2465::/64",
-          "75.0.0.0/24"
+          "2463::/64",
+          "73.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -14239,8 +14109,8 @@
         "routerID": 0,
         "vlanID": 2067,
         "ipAddresses": [
-          "2466::/64",
-          "76.0.0.0/24"
+          "2464::/64",
+          "74.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -14253,8 +14123,8 @@
         "routerID": 0,
         "vlanID": 2068,
         "ipAddresses": [
-          "2467::/64",
-          "77.0.0.0/24"
+          "2465::/64",
+          "75.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -14267,8 +14137,8 @@
         "routerID": 0,
         "vlanID": 2069,
         "ipAddresses": [
-          "2468::/64",
-          "78.0.0.0/24"
+          "2466::/64",
+          "76.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -14281,8 +14151,8 @@
         "routerID": 0,
         "vlanID": 2070,
         "ipAddresses": [
-          "2469::/64",
-          "79.0.0.0/24"
+          "2467::/64",
+          "77.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -14295,8 +14165,8 @@
         "routerID": 0,
         "vlanID": 2071,
         "ipAddresses": [
-          "2470::/64",
-          "80.0.0.0/24"
+          "2468::/64",
+          "78.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -14309,8 +14179,8 @@
         "routerID": 0,
         "vlanID": 2072,
         "ipAddresses": [
-          "2471::/64",
-          "81.0.0.0/24"
+          "2469::/64",
+          "79.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -14323,8 +14193,8 @@
         "routerID": 0,
         "vlanID": 2073,
         "ipAddresses": [
-          "2472::/64",
-          "82.0.0.0/24"
+          "2470::/64",
+          "80.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -14337,8 +14207,8 @@
         "routerID": 0,
         "vlanID": 2074,
         "ipAddresses": [
-          "2473::/64",
-          "83.0.0.0/24"
+          "2471::/64",
+          "81.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -14351,8 +14221,8 @@
         "routerID": 0,
         "vlanID": 2075,
         "ipAddresses": [
-          "2474::/64",
-          "84.0.0.0/24"
+          "2472::/64",
+          "82.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -14365,8 +14235,8 @@
         "routerID": 0,
         "vlanID": 2076,
         "ipAddresses": [
-          "2475::/64",
-          "85.0.0.0/24"
+          "2473::/64",
+          "83.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -14379,8 +14249,8 @@
         "routerID": 0,
         "vlanID": 2077,
         "ipAddresses": [
-          "2476::/64",
-          "86.0.0.0/24"
+          "2474::/64",
+          "84.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -14393,8 +14263,8 @@
         "routerID": 0,
         "vlanID": 2078,
         "ipAddresses": [
-          "2477::/64",
-          "87.0.0.0/24"
+          "2475::/64",
+          "85.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -14407,8 +14277,8 @@
         "routerID": 0,
         "vlanID": 2079,
         "ipAddresses": [
-          "2478::/64",
-          "88.0.0.0/24"
+          "2476::/64",
+          "86.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -14421,8 +14291,8 @@
         "routerID": 0,
         "vlanID": 2080,
         "ipAddresses": [
-          "2479::/64",
-          "89.0.0.0/24"
+          "2477::/64",
+          "87.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -14435,8 +14305,8 @@
         "routerID": 0,
         "vlanID": 2081,
         "ipAddresses": [
-          "2480::/64",
-          "90.0.0.0/24"
+          "2478::/64",
+          "88.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -14449,8 +14319,8 @@
         "routerID": 0,
         "vlanID": 2082,
         "ipAddresses": [
-          "2481::/64",
-          "91.0.0.0/24"
+          "2479::/64",
+          "89.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -14463,8 +14333,8 @@
         "routerID": 0,
         "vlanID": 2083,
         "ipAddresses": [
-          "2482::/64",
-          "92.0.0.0/24"
+          "2480::/64",
+          "90.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -14477,8 +14347,8 @@
         "routerID": 0,
         "vlanID": 2084,
         "ipAddresses": [
-          "2483::/64",
-          "93.0.0.0/24"
+          "2481::/64",
+          "91.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -14491,8 +14361,8 @@
         "routerID": 0,
         "vlanID": 2085,
         "ipAddresses": [
-          "2484::/64",
-          "94.0.0.0/24"
+          "2482::/64",
+          "92.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -14505,8 +14375,8 @@
         "routerID": 0,
         "vlanID": 2086,
         "ipAddresses": [
-          "2485::/64",
-          "95.0.0.0/24"
+          "2483::/64",
+          "93.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -14519,8 +14389,8 @@
         "routerID": 0,
         "vlanID": 2087,
         "ipAddresses": [
-          "2486::/64",
-          "96.0.0.0/24"
+          "2484::/64",
+          "94.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -14533,8 +14403,8 @@
         "routerID": 0,
         "vlanID": 2088,
         "ipAddresses": [
-          "2487::/64",
-          "97.0.0.0/24"
+          "2485::/64",
+          "95.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -14547,8 +14417,8 @@
         "routerID": 0,
         "vlanID": 2089,
         "ipAddresses": [
-          "2488::/64",
-          "98.0.0.0/24"
+          "2486::/64",
+          "96.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -14561,8 +14431,8 @@
         "routerID": 0,
         "vlanID": 2090,
         "ipAddresses": [
-          "2489::/64",
-          "99.0.0.0/24"
+          "2487::/64",
+          "97.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -14575,8 +14445,8 @@
         "routerID": 0,
         "vlanID": 2091,
         "ipAddresses": [
-          "2490::/64",
-          "100.0.0.0/24"
+          "2488::/64",
+          "98.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -14589,8 +14459,8 @@
         "routerID": 0,
         "vlanID": 2092,
         "ipAddresses": [
-          "2491::/64",
-          "101.0.0.0/24"
+          "2489::/64",
+          "99.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -14603,8 +14473,8 @@
         "routerID": 0,
         "vlanID": 2093,
         "ipAddresses": [
-          "2492::/64",
-          "102.0.0.0/24"
+          "2490::/64",
+          "100.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -14617,8 +14487,8 @@
         "routerID": 0,
         "vlanID": 2094,
         "ipAddresses": [
-          "2493::/64",
-          "103.0.0.0/24"
+          "2491::/64",
+          "101.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -14631,8 +14501,8 @@
         "routerID": 0,
         "vlanID": 2095,
         "ipAddresses": [
-          "2494::/64",
-          "104.0.0.0/24"
+          "2492::/64",
+          "102.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -14645,8 +14515,8 @@
         "routerID": 0,
         "vlanID": 2096,
         "ipAddresses": [
-          "2495::/64",
-          "105.0.0.0/24"
+          "2493::/64",
+          "103.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -14659,8 +14529,8 @@
         "routerID": 0,
         "vlanID": 2097,
         "ipAddresses": [
-          "2496::/64",
-          "106.0.0.0/24"
+          "2494::/64",
+          "104.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -14673,8 +14543,8 @@
         "routerID": 0,
         "vlanID": 2098,
         "ipAddresses": [
-          "2497::/64",
-          "107.0.0.0/24"
+          "2495::/64",
+          "105.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -14687,8 +14557,8 @@
         "routerID": 0,
         "vlanID": 2099,
         "ipAddresses": [
-          "2498::/64",
-          "108.0.0.0/24"
+          "2496::/64",
+          "106.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -14701,8 +14571,8 @@
         "routerID": 0,
         "vlanID": 2100,
         "ipAddresses": [
-          "2499::/64",
-          "109.0.0.0/24"
+          "2497::/64",
+          "107.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -14715,8 +14585,8 @@
         "routerID": 0,
         "vlanID": 2101,
         "ipAddresses": [
-          "2500::/64",
-          "110.0.0.0/24"
+          "2498::/64",
+          "108.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -14729,8 +14599,8 @@
         "routerID": 0,
         "vlanID": 2102,
         "ipAddresses": [
-          "2501::/64",
-          "111.0.0.0/24"
+          "2499::/64",
+          "109.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -14743,8 +14613,8 @@
         "routerID": 0,
         "vlanID": 2103,
         "ipAddresses": [
-          "2502::/64",
-          "112.0.0.0/24"
+          "2500::/64",
+          "110.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -14757,8 +14627,8 @@
         "routerID": 0,
         "vlanID": 2104,
         "ipAddresses": [
-          "2503::/64",
-          "113.0.0.0/24"
+          "2501::/64",
+          "111.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -14771,8 +14641,8 @@
         "routerID": 0,
         "vlanID": 2105,
         "ipAddresses": [
-          "2504::/64",
-          "114.0.0.0/24"
+          "2502::/64",
+          "112.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -14785,8 +14655,8 @@
         "routerID": 0,
         "vlanID": 2106,
         "ipAddresses": [
-          "2505::/64",
-          "115.0.0.0/24"
+          "2503::/64",
+          "113.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -14799,8 +14669,8 @@
         "routerID": 0,
         "vlanID": 2107,
         "ipAddresses": [
-          "2506::/64",
-          "116.0.0.0/24"
+          "2504::/64",
+          "114.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -14813,8 +14683,8 @@
         "routerID": 0,
         "vlanID": 2108,
         "ipAddresses": [
-          "2507::/64",
-          "117.0.0.0/24"
+          "2505::/64",
+          "115.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -14827,8 +14697,8 @@
         "routerID": 0,
         "vlanID": 2109,
         "ipAddresses": [
-          "2508::/64",
-          "118.0.0.0/24"
+          "2506::/64",
+          "116.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -14841,8 +14711,8 @@
         "routerID": 0,
         "vlanID": 2110,
         "ipAddresses": [
-          "2509::/64",
-          "119.0.0.0/24"
+          "2507::/64",
+          "117.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -14855,8 +14725,8 @@
         "routerID": 0,
         "vlanID": 2111,
         "ipAddresses": [
-          "2510::/64",
-          "120.0.0.0/24"
+          "2508::/64",
+          "118.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -14869,8 +14739,8 @@
         "routerID": 0,
         "vlanID": 2112,
         "ipAddresses": [
-          "2511::/64",
-          "121.0.0.0/24"
+          "2509::/64",
+          "119.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -14883,8 +14753,8 @@
         "routerID": 0,
         "vlanID": 2113,
         "ipAddresses": [
-          "2512::/64",
-          "122.0.0.0/24"
+          "2510::/64",
+          "120.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -14897,8 +14767,8 @@
         "routerID": 0,
         "vlanID": 2114,
         "ipAddresses": [
-          "2513::/64",
-          "123.0.0.0/24"
+          "2511::/64",
+          "121.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -14911,8 +14781,8 @@
         "routerID": 0,
         "vlanID": 2115,
         "ipAddresses": [
-          "2514::/64",
-          "124.0.0.0/24"
+          "2512::/64",
+          "122.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -14925,8 +14795,8 @@
         "routerID": 0,
         "vlanID": 2116,
         "ipAddresses": [
-          "2515::/64",
-          "125.0.0.0/24"
+          "2513::/64",
+          "123.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -14939,8 +14809,8 @@
         "routerID": 0,
         "vlanID": 2117,
         "ipAddresses": [
-          "2516::/64",
-          "126.0.0.0/24"
+          "2514::/64",
+          "124.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -14953,8 +14823,8 @@
         "routerID": 0,
         "vlanID": 2118,
         "ipAddresses": [
-          "2517::/64",
-          "127.0.0.0/24"
+          "2515::/64",
+          "125.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -14967,8 +14837,8 @@
         "routerID": 0,
         "vlanID": 2119,
         "ipAddresses": [
-          "2518::/64",
-          "128.0.0.0/24"
+          "2516::/64",
+          "126.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -14981,8 +14851,8 @@
         "routerID": 0,
         "vlanID": 2120,
         "ipAddresses": [
-          "2519::/64",
-          "129.0.0.0/24"
+          "2517::/64",
+          "127.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -14995,8 +14865,8 @@
         "routerID": 0,
         "vlanID": 2121,
         "ipAddresses": [
-          "2520::/64",
-          "130.0.0.0/24"
+          "2518::/64",
+          "128.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -15009,8 +14879,8 @@
         "routerID": 0,
         "vlanID": 2122,
         "ipAddresses": [
-          "2521::/64",
-          "131.0.0.0/24"
+          "2519::/64",
+          "129.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -15023,8 +14893,8 @@
         "routerID": 0,
         "vlanID": 2123,
         "ipAddresses": [
-          "2522::/64",
-          "132.0.0.0/24"
+          "2520::/64",
+          "130.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -15037,8 +14907,8 @@
         "routerID": 0,
         "vlanID": 2124,
         "ipAddresses": [
-          "2523::/64",
-          "133.0.0.0/24"
+          "2521::/64",
+          "131.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -15051,8 +14921,8 @@
         "routerID": 0,
         "vlanID": 2125,
         "ipAddresses": [
-          "2524::/64",
-          "134.0.0.0/24"
+          "2522::/64",
+          "132.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -15065,8 +14935,8 @@
         "routerID": 0,
         "vlanID": 2126,
         "ipAddresses": [
-          "2525::/64",
-          "135.0.0.0/24"
+          "2523::/64",
+          "133.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -15079,8 +14949,8 @@
         "routerID": 0,
         "vlanID": 2127,
         "ipAddresses": [
-          "2526::/64",
-          "136.0.0.0/24"
+          "2524::/64",
+          "134.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -15093,8 +14963,8 @@
         "routerID": 0,
         "vlanID": 2128,
         "ipAddresses": [
-          "2527::/64",
-          "137.0.0.0/24"
+          "2525::/64",
+          "135.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -15107,8 +14977,8 @@
         "routerID": 0,
         "vlanID": 2200,
         "ipAddresses": [
-          "2528::/64",
-          "138.0.0.0/24"
+          "2526::/64",
+          "136.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": true,
@@ -15121,8 +14991,8 @@
         "routerID": 0,
         "vlanID": 10,
         "ipAddresses": [
-          "2529::/64",
-          "139.0.0.0/24"
+          "2527::/64",
+          "137.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": true,
@@ -15662,7 +15532,7 @@
     "chip": {
       "asicConfig": {
         "common": {
-          "yamlConfig": "---\ndevice:\n  0:\n    PC_PM_CORE:\n      ?\n        PC_PM_ID: 1\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x54761032\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x32107654\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x8C\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xFF\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 2\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x54761032\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x32107654\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x55\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xCC\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 3\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x23016745\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x54761032\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x33\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x00\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 4\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x52701634\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x54761032\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xAA\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xCC\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 5\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x74305612\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x21640357\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xF7\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x59\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 6\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x03562147\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x30742165\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x48\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x29\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 7\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x14567302\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x56712430\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xAF\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xFC\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 8\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x67315024\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x56217034\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xDD\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x53\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 9\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x21403765\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x20543176\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xDD\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x48\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 10\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x53062147\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x30742165\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x48\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x69\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 11\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x54067312\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x56712430\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xAF\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xFC\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 12\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x65304721\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x56217430\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xDD\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x56\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 13\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x21403765\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x20543176\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xDD\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x48\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 14\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x53062147\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x30742165\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x48\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x69\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 15\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x54067312\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x56712430\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xAF\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xFC\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 16\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x65304721\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x56217430\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xDD\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x56\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 17\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x65274130\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x56207431\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x87\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xA7\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 18\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x47306521\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x76305412\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x6C\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x86\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 19\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x02731456\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x21345076\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x99\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x07\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 20\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x30472165\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x21543076\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x6C\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xAD\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 21\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x45376120\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x56207431\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x2D\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xA7\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 22\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x40376521\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x76305412\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x3C\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x86\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 23\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x02731456\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x21345076\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x99\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x07\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 24\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x30472165\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x21543076\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x6C\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xAD\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 25\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x45376120\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x56207431\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x2D\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xA7\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 26\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x40376521\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x76305412\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x3C\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x86\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 27\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x03762514\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x21345076\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xDE\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x03\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 28\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x67125403\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x12470356\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x63\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xB2\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 29\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x32107654\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x54761032\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x22\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x66\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 30\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x32107654\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x54761032\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xCC\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x00\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 31\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x05371426\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x32107654\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x65\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x66\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 32\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x56741032\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x23016745\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x9C\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xFF\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 33\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x46751032\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x32106754\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xC9\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x55\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 34\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x54721036\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x32107654\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x22\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xCC\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 35\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x63410725\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x54761032\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x93\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xAA\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 36\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x32107645\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x54761032\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x77\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xCC\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 37\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x74260351\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x13064257\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xD8\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x21\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 38\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x10573246\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x30762145\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xC6\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x99\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 39\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x47356120\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x56702431\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x2D\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x8F\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 40\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x75016423\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x54217630\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xC9\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x58\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 41\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x01736524\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x20365174\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x96\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x52\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 42\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x10573246\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x30762145\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xC6\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xD9\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 43\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x47356120\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x56702431\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x2D\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x8F\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 44\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x75016423\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x54217630\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xC9\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x58\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 45\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x01746523\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x20365174\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x86\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x52\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 46\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x10576423\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x30762145\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xC6\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xD9\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 47\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x46357102\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x56702431\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x2D\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x8F\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 48\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x75016423\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x54216703\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xC9\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x54\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 49\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x57032146\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x54702631\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xB3\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xED\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 50\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x75102346\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x74305612\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xF3\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x66\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 51\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x32610754\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x20345176\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x95\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x60\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 52\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x01572346\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x21560347\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x0C\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xA9\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 53\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x57032146\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x54702631\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xB3\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xED\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 54\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x75102346\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x74305612\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xF3\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x66\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 55\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x32610754\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x20345176\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x95\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x60\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 56\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x01572346\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x21560347\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x0C\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xA9\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 57\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x57032146\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x54702631\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xB3\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xED\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 58\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x75102346\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x74305612\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xF3\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x66\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 59\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x32610754\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x20345176\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x95\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x20\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 60\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x64207531\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x23671045\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x0B\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xBB\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 61\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x51740362\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x54761032\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xB1\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x66\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 62\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x23016745\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x54761032\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x66\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xAA\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 63\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x54761032\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x32107654\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x00\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x66\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 64\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x54761032\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x23016745\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xD9\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xAA\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 65\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x3210\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x3210\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x00\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x0F\n        TX_POLARITY_FLIP_AUTO: 0\n...\n---\ndevice:\n  0:\n    PC_PORT_PHYS_MAP:\n      ?\n        PORT_ID: 1\n      :\n        PC_PHYS_PORT_ID: 1\n      ?\n        PORT_ID: 5\n      :\n        PC_PHYS_PORT_ID: 5\n      ?\n        PORT_ID: 9\n      :\n        PC_PHYS_PORT_ID: 9\n      ?\n        PORT_ID: 10\n      :\n        PC_PHYS_PORT_ID: 13\n      ?\n        PORT_ID: 11\n      :\n        PC_PHYS_PORT_ID: 17\n      ?\n        PORT_ID: 15\n      :\n        PC_PHYS_PORT_ID: 21\n      ?\n        PORT_ID: 19\n      :\n        PC_PHYS_PORT_ID: 25\n      ?\n        PORT_ID: 20\n      :\n        PC_PHYS_PORT_ID: 29\n      ?\n        PORT_ID: 22\n      :\n        PC_PHYS_PORT_ID: 33\n      ?\n        PORT_ID: 26\n      :\n        PC_PHYS_PORT_ID: 37\n      ?\n        PORT_ID: 30\n      :\n        PC_PHYS_PORT_ID: 41\n      ?\n        PORT_ID: 31\n      :\n        PC_PHYS_PORT_ID: 45\n      ?\n        PORT_ID: 33\n      :\n        PC_PHYS_PORT_ID: 49\n      ?\n        PORT_ID: 37\n      :\n        PC_PHYS_PORT_ID: 53\n      ?\n        PORT_ID: 41\n      :\n        PC_PHYS_PORT_ID: 57\n      ?\n        PORT_ID: 42\n      :\n        PC_PHYS_PORT_ID: 61\n      ?\n        PORT_ID: 44\n      :\n        PC_PHYS_PORT_ID: 65\n      ?\n        PORT_ID: 48\n      :\n        PC_PHYS_PORT_ID: 69\n      ?\n        PORT_ID: 52\n      :\n        PC_PHYS_PORT_ID: 73\n      ?\n        PORT_ID: 53\n      :\n        PC_PHYS_PORT_ID: 77\n      ?\n        PORT_ID: 55\n      :\n        PC_PHYS_PORT_ID: 81\n      ?\n        PORT_ID: 59\n      :\n        PC_PHYS_PORT_ID: 85\n      ?\n        PORT_ID: 63\n      :\n        PC_PHYS_PORT_ID: 89\n      ?\n        PORT_ID: 64\n      :\n        PC_PHYS_PORT_ID: 93\n      ?\n        PORT_ID: 66\n      :\n        PC_PHYS_PORT_ID: 97\n      ?\n        PORT_ID: 70\n      :\n        PC_PHYS_PORT_ID: 101\n      ?\n        PORT_ID: 74\n      :\n        PC_PHYS_PORT_ID: 105\n      ?\n        PORT_ID: 75\n      :\n        PC_PHYS_PORT_ID: 109\n      ?\n        PORT_ID: 77\n      :\n        PC_PHYS_PORT_ID: 113\n      ?\n        PORT_ID: 81\n      :\n        PC_PHYS_PORT_ID: 117\n      ?\n        PORT_ID: 85\n      :\n        PC_PHYS_PORT_ID: 121\n      ?\n        PORT_ID: 86\n      :\n        PC_PHYS_PORT_ID: 125\n      ?\n        PORT_ID: 88\n      :\n        PC_PHYS_PORT_ID: 129\n      ?\n        PORT_ID: 92\n      :\n        PC_PHYS_PORT_ID: 133\n      ?\n        PORT_ID: 96\n      :\n        PC_PHYS_PORT_ID: 137\n      ?\n        PORT_ID: 97\n      :\n        PC_PHYS_PORT_ID: 141\n      ?\n        PORT_ID: 99\n      :\n        PC_PHYS_PORT_ID: 145\n      ?\n        PORT_ID: 103\n      :\n        PC_PHYS_PORT_ID: 149\n      ?\n        PORT_ID: 107\n      :\n        PC_PHYS_PORT_ID: 153\n      ?\n        PORT_ID: 108\n      :\n        PC_PHYS_PORT_ID: 157\n      ?\n        PORT_ID: 110\n      :\n        PC_PHYS_PORT_ID: 161\n      ?\n        PORT_ID: 114\n      :\n        PC_PHYS_PORT_ID: 165\n      ?\n        PORT_ID: 118\n      :\n        PC_PHYS_PORT_ID: 169\n      ?\n        PORT_ID: 119\n      :\n        PC_PHYS_PORT_ID: 173\n      ?\n        PORT_ID: 121\n      :\n        PC_PHYS_PORT_ID: 177\n      ?\n        PORT_ID: 125\n      :\n        PC_PHYS_PORT_ID: 181\n      ?\n        PORT_ID: 129\n      :\n        PC_PHYS_PORT_ID: 185\n      ?\n        PORT_ID: 130\n      :\n        PC_PHYS_PORT_ID: 189\n      ?\n        PORT_ID: 132\n      :\n        PC_PHYS_PORT_ID: 193\n      ?\n        PORT_ID: 136\n      :\n        PC_PHYS_PORT_ID: 197\n      ?\n        PORT_ID: 140\n      :\n        PC_PHYS_PORT_ID: 201\n      ?\n        PORT_ID: 141\n      :\n        PC_PHYS_PORT_ID: 205\n      ?\n        PORT_ID: 143\n      :\n        PC_PHYS_PORT_ID: 209\n      ?\n        PORT_ID: 147\n      :\n        PC_PHYS_PORT_ID: 213\n      ?\n        PORT_ID: 151\n      :\n        PC_PHYS_PORT_ID: 217\n      ?\n        PORT_ID: 152\n      :\n        PC_PHYS_PORT_ID: 221\n      ?\n        PORT_ID: 154\n      :\n        PC_PHYS_PORT_ID: 225\n      ?\n        PORT_ID: 158\n      :\n        PC_PHYS_PORT_ID: 229\n      ?\n        PORT_ID: 162\n      :\n        PC_PHYS_PORT_ID: 233\n      ?\n        PORT_ID: 163\n      :\n        PC_PHYS_PORT_ID: 237\n      ?\n        PORT_ID: 165\n      :\n        PC_PHYS_PORT_ID: 241\n      ?\n        PORT_ID: 169\n      :\n        PC_PHYS_PORT_ID: 245\n      ?\n        PORT_ID: 173\n      :\n        PC_PHYS_PORT_ID: 249\n      ?\n        PORT_ID: 174\n      :\n        PC_PHYS_PORT_ID: 253\n      ?\n        PORT_ID: 176\n      :\n        PC_PHYS_PORT_ID: 257\n      ?\n        PORT_ID: 180\n      :\n        PC_PHYS_PORT_ID: 261\n      ?\n        PORT_ID: 184\n      :\n        PC_PHYS_PORT_ID: 265\n      ?\n        PORT_ID: 185\n      :\n        PC_PHYS_PORT_ID: 269\n      ?\n        PORT_ID: 187\n      :\n        PC_PHYS_PORT_ID: 273\n      ?\n        PORT_ID: 191\n      :\n        PC_PHYS_PORT_ID: 277\n      ?\n        PORT_ID: 195\n      :\n        PC_PHYS_PORT_ID: 281\n      ?\n        PORT_ID: 196\n      :\n        PC_PHYS_PORT_ID: 285\n      ?\n        PORT_ID: 198\n      :\n        PC_PHYS_PORT_ID: 289\n      ?\n        PORT_ID: 202\n      :\n        PC_PHYS_PORT_ID: 293\n      ?\n        PORT_ID: 206\n      :\n        PC_PHYS_PORT_ID: 297\n      ?\n        PORT_ID: 207\n      :\n        PC_PHYS_PORT_ID: 301\n      ?\n        PORT_ID: 209\n      :\n        PC_PHYS_PORT_ID: 305\n      ?\n        PORT_ID: 213\n      :\n        PC_PHYS_PORT_ID: 309\n      ?\n        PORT_ID: 217\n      :\n        PC_PHYS_PORT_ID: 313\n      ?\n        PORT_ID: 218\n      :\n        PC_PHYS_PORT_ID: 317\n      ?\n        PORT_ID: 220\n      :\n        PC_PHYS_PORT_ID: 321\n      ?\n        PORT_ID: 224\n      :\n        PC_PHYS_PORT_ID: 325\n      ?\n        PORT_ID: 228\n      :\n        PC_PHYS_PORT_ID: 329\n      ?\n        PORT_ID: 229\n      :\n        PC_PHYS_PORT_ID: 333\n      ?\n        PORT_ID: 231\n      :\n        PC_PHYS_PORT_ID: 337\n      ?\n        PORT_ID: 235\n      :\n        PC_PHYS_PORT_ID: 341\n      ?\n        PORT_ID: 239\n      :\n        PC_PHYS_PORT_ID: 345\n      ?\n        PORT_ID: 240\n      :\n        PC_PHYS_PORT_ID: 349\n      ?\n        PORT_ID: 242\n      :\n        PC_PHYS_PORT_ID: 353\n      ?\n        PORT_ID: 246\n      :\n        PC_PHYS_PORT_ID: 357\n      ?\n        PORT_ID: 250\n      :\n        PC_PHYS_PORT_ID: 361\n      ?\n        PORT_ID: 251\n      :\n        PC_PHYS_PORT_ID: 365\n      ?\n        PORT_ID: 253\n      :\n        PC_PHYS_PORT_ID: 369\n      ?\n        PORT_ID: 257\n      :\n        PC_PHYS_PORT_ID: 373\n      ?\n        PORT_ID: 261\n      :\n        PC_PHYS_PORT_ID: 377\n      ?\n        PORT_ID: 262\n      :\n        PC_PHYS_PORT_ID: 381\n      ?\n        PORT_ID: 264\n      :\n        PC_PHYS_PORT_ID: 385\n      ?\n        PORT_ID: 268\n      :\n        PC_PHYS_PORT_ID: 389\n      ?\n        PORT_ID: 272\n      :\n        PC_PHYS_PORT_ID: 393\n      ?\n        PORT_ID: 273\n      :\n        PC_PHYS_PORT_ID: 397\n      ?\n        PORT_ID: 275\n      :\n        PC_PHYS_PORT_ID: 401\n      ?\n        PORT_ID: 279\n      :\n        PC_PHYS_PORT_ID: 405\n      ?\n        PORT_ID: 283\n      :\n        PC_PHYS_PORT_ID: 409\n      ?\n        PORT_ID: 284\n      :\n        PC_PHYS_PORT_ID: 413\n      ?\n        PORT_ID: 286\n      :\n        PC_PHYS_PORT_ID: 417\n      ?\n        PORT_ID: 290\n      :\n        PC_PHYS_PORT_ID: 421\n      ?\n        PORT_ID: 294\n      :\n        PC_PHYS_PORT_ID: 425\n      ?\n        PORT_ID: 295\n      :\n        PC_PHYS_PORT_ID: 429\n      ?\n        PORT_ID: 297\n      :\n        PC_PHYS_PORT_ID: 433\n      ?\n        PORT_ID: 301\n      :\n        PC_PHYS_PORT_ID: 437\n      ?\n        PORT_ID: 305\n      :\n        PC_PHYS_PORT_ID: 441\n      ?\n        PORT_ID: 306\n      :\n        PC_PHYS_PORT_ID: 445\n      ?\n        PORT_ID: 308\n      :\n        PC_PHYS_PORT_ID: 449\n      ?\n        PORT_ID: 312\n      :\n        PC_PHYS_PORT_ID: 453\n      ?\n        PORT_ID: 316\n      :\n        PC_PHYS_PORT_ID: 457\n      ?\n        PORT_ID: 317\n      :\n        PC_PHYS_PORT_ID: 461\n      ?\n        PORT_ID: 319\n      :\n        PC_PHYS_PORT_ID: 465\n      ?\n        PORT_ID: 323\n      :\n        PC_PHYS_PORT_ID: 469\n      ?\n        PORT_ID: 327\n      :\n        PC_PHYS_PORT_ID: 473\n      ?\n        PORT_ID: 328\n      :\n        PC_PHYS_PORT_ID: 477\n      ?\n        PORT_ID: 330\n      :\n        PC_PHYS_PORT_ID: 481\n      ?\n        PORT_ID: 334\n      :\n        PC_PHYS_PORT_ID: 485\n      ?\n        PORT_ID: 338\n      :\n        PC_PHYS_PORT_ID: 489\n      ?\n        PORT_ID: 339\n      :\n        PC_PHYS_PORT_ID: 493\n      ?\n        PORT_ID: 341\n      :\n        PC_PHYS_PORT_ID: 497\n      ?\n        PORT_ID: 345\n      :\n        PC_PHYS_PORT_ID: 501\n      ?\n        PORT_ID: 349\n      :\n        PC_PHYS_PORT_ID: 505\n      ?\n        PORT_ID: 350\n      :\n        PC_PHYS_PORT_ID: 509\n      ?\n        PORT_ID: 0\n      :\n        PC_PHYS_PORT_ID: 0\n      ?\n        PORT_ID: 76\n      :\n        PC_PHYS_PORT_ID: 513\n...\n---\ndevice:\n  0:\n    PC_PORT:\n      ?\n        PORT_ID: 0\n      :\n        ENABLE: 1\n        SPEED: 10000\n        NUM_LANES: 1\n      ?\n        PORT_ID: [[1, 1], [5, 5], [9, 9], [10, 10], [11, 11], [15, 15], [19, 19],\n        [20, 20], [22, 22], [26, 26], [30, 30], [31, 31], [33, 33], [37, 37], [41,\n        41], [42, 42], [44, 44], [48, 48], [52, 52], [53, 53], [55, 55], [59, 59],\n        [63, 63], [64, 64], [66, 66], [70, 70], [74, 74], [75, 75], [77, 77], [81,\n        81], [85, 85], [86, 86], [88, 88], [92, 92], [96, 96], [97, 97], [99, 99],\n        [103, 103], [107, 107], [108, 108], [110, 110], [114, 114], [118, 118], [119,\n        119], [121, 121], [125, 125], [129, 129], [130, 130], [132, 132], [136, 136],\n        [140, 140], [141, 141], [143, 143], [147, 147], [151, 151], [152, 152], [154,\n        154], [158, 158], [162, 162], [163, 163], [165, 165], [169, 169], [173, 173],\n        [174, 174], [176, 176], [180, 180], [184, 184], [185, 185], [187, 187], [191,\n        191], [195, 195], [196, 196], [198, 198], [202, 202], [206, 206], [207, 207],\n        [209, 209], [213, 213], [217, 217], [218, 218], [220, 220], [224, 224], [228,\n        228], [229, 229], [231, 231], [235, 235], [239, 239], [240, 240], [242, 242],\n        [246, 246], [250, 250], [251, 251], [253, 253], [257, 257], [261, 261], [262,\n        262], [264, 264], [268, 268], [272, 272], [273, 273], [275, 275], [279, 279],\n        [283, 283], [284, 284], [286, 286], [290, 290], [294, 294], [295, 295], [297,\n        297], [301, 301], [305, 305], [306, 306], [308, 308], [312, 312], [316, 316],\n        [317, 317], [319, 319], [323, 323], [327, 327], [328, 328], [330, 330], [334,\n        334], [338, 338], [339, 339], [341, 341], [345, 345], [349, 349], [350, 350]]\n      :\n        ENABLE: 0\n        SPEED: 400000\n        NUM_LANES: 4\n        FEC_MODE: PC_FEC_RS544_2XN\n        MAX_FRAME_SIZE: 9416\n      ?\n        PORT_ID: 76\n      :\n        ENABLE: 0\n        SPEED: 100000\n        NUM_LANES: 4\n        FEC_MODE: PC_FEC_RS528\n        MAX_FRAME_SIZE: 9416\n...\n---\ndevice:\n  0:\n    PORT_CONFIG:\n      PORT_SYSTEM_PROFILE_OPERMODE_PIPEUNIQUE: 1\n...\n---\nbcm_device:\n  0:\n    global:\n      l3_alpm_template: 1\n      l3_alpm_hit_mode: 1\n      ipv6_lpm_128b_enable: 1\n      pktio_driver_type: 1\n      qos_map_multi_get_mode: 1\n      rx_cosq_mapping_management_mode: 0\n      l3_iif_reservation_skip: 0\n      pcie_host_intf_timeout_purge_enable: 0\n      macro_flow_hash_shuffle_random_seed: 34345645\n      bcm_linkscan_interval: 25000\n      sai_common_hash_crc: 0x1\n      sai_disable_srcmacqedstmac_ctrl: 0x1\n      sai_acl_qset_optimization: 0x1\n      sai_optimized_mmu: 0x1\n      sai_pkt_rx_custom_cfg: 1\n      sai_pkt_rx_pkt_size: 16512\n      sai_pkt_rx_cfg_ppc: 16\n      sai_async_fdb_nbr_enable: 0x1\n      sai_pfc_defaults_disable: 0x1\n      sai_ifp_enable_on_cpu_tx: 0x1\n      sai_vfp_smac_drop_filter_disable: 1\n      sai_macro_flow_based_hash: 1\n      sai_mmu_qgroups_default: 1\n      sai_dis_ctr_incr_on_port_ln_dn: 0\n      custom_feature_mesh_topology_sync_mode: 1\n      sai_ecmp_group_members_increment: 1\n      sai_field_group_auto_prioritize: 1\n      bcm_tunnel_term_compatible_mode: 1\n      sai_l2_cpu_fdb_event_suppress: 1\n      sai_port_phy_time_sync_en: 1\n      sai_stats_support_mask: 0x2\n      sai_disable_internal_port_serdes: 1\n      global_flexctr_ing_action_num_reserved: 20\n      global_flexctr_ing_pool_num_reserved: 8\n      global_flexctr_ing_op_profile_num_reserved: 20\n      global_flexctr_ing_group_num_reserved: 2\n      global_flexctr_egr_action_num_reserved: 8\n      global_flexctr_egr_pool_num_reserved: 5\n      global_flexctr_egr_op_profile_num_reserved: 10\n      global_flexctr_egr_group_num_reserved: 1\n      sai_uncached_port_stats: 0x1\n      ecmp_dlb_port_speeds: 1\n...\n---\ndevice:\n  0:\n    TM_THD_CONFIG:\n      THRESHOLD_MODE: LOSSY\n...\n---\ndevice:\n  0:\n    PORT:\n      ?\n        PORT_ID: [[1, 1], [5, 5], [9, 9], [10, 10], [11, 11], [15, 15], [19, 19],\n        [20, 20], [22, 22], [26, 26], [30, 30], [31, 31], [33, 33], [37, 37], [41,\n        41], [42, 42], [44, 44], [48, 48], [52, 52], [53, 53], [55, 55], [59, 59],\n        [63, 63], [64, 64], [66, 66], [70, 70], [74, 74], [75, 75], [77, 77], [81,\n        81], [85, 85], [86, 86], [88, 88], [92, 92], [96, 96], [97, 97], [99, 99],\n        [103, 103], [107, 107], [108, 108], [110, 110], [114, 114], [118, 118], [119,\n        119], [121, 121], [125, 125], [129, 129], [130, 130], [132, 132], [136, 136],\n        [140, 140], [141, 141], [143, 143], [147, 147], [151, 151], [152, 152], [154,\n        154], [158, 158], [162, 162], [163, 163], [165, 165], [169, 169], [173, 173],\n        [174, 174], [176, 176], [180, 180], [184, 184], [185, 185], [187, 187], [191,\n        191], [195, 195], [196, 196], [198, 198], [202, 202], [206, 206], [207, 207],\n        [209, 209], [213, 213], [217, 217], [218, 218], [220, 220], [224, 224], [228,\n        228], [229, 229], [231, 231], [235, 235], [239, 239], [240, 240], [242, 242],\n        [246, 246], [250, 250], [251, 251], [253, 253], [257, 257], [261, 261], [262,\n        262], [264, 264], [268, 268], [272, 272], [273, 273], [275, 275], [279, 279],\n        [283, 283], [284, 284], [286, 286], [290, 290], [294, 294], [295, 295], [297,\n        297], [301, 301], [305, 305], [306, 306], [308, 308], [312, 312], [316, 316],\n        [317, 317], [319, 319], [323, 323], [327, 327], [328, 328], [330, 330], [334,\n        334], [338, 338], [339, 339], [341, 341], [345, 345], [349, 349], [350, 350]]\n      :\n        MTU: 9416\n        MTU_CHECK: 1\n...\n---\ndevice:\n  0:\n    DEVICE_CONFIG:\n      AUTOLOAD_BOARD_SETTINGS: 0\n      CORE_CLK_FREQ: CLK_1125MHZ\n      PP_CLK_FREQ: CLK_675MHZ\n...\n---\ndevice:\n  0:\n    FP_CONFIG:\n      FP_ING_OPERMODE: GLOBAL_PIPE_AWARE\n...\n---\ndevice:\n  0:\n    CTR_EFLEX_CONFIG:\n      CTR_ING_EFLEX_OPERMODE_PIPEUNIQUE: 1\n      CTR_ING_EFLEX_OPERMODE_PIPE_INSTANCE_UNIQUE: 1\n      CTR_EGR_EFLEX_OPERMODE_PIPEUNIQUE: 1\n      CTR_EGR_EFLEX_OPERMODE_PIPE_INSTANCE_UNIQUE: 1\n...\n"
+          "yamlConfig": "---\ndevice:\n  0:\n    PC_PM_CORE:\n      ?\n        PC_PM_ID: 1\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x54761032\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x32107654\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x8C\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xFF\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 2\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x54761032\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x32107654\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x55\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xCC\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 3\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x23016745\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x54761032\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x33\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x00\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 4\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x52701634\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x54761032\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xAA\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xCC\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 5\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x74305612\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x21640357\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xF7\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x59\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 6\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x03562147\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x30742165\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x48\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x29\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 7\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x14567302\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x56712430\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xAF\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xFC\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 8\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x67315024\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x56217034\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xDD\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x53\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 9\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x21403765\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x20543176\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xDD\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x48\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 10\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x53062147\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x30742165\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x48\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x69\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 11\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x54067312\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x56712430\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xAF\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xFC\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 12\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x65304721\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x56217430\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xDD\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x56\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 13\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x21403765\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x20543176\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xDD\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x48\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 14\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x53062147\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x30742165\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x48\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x69\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 15\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x54067312\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x56712430\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xAF\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xFC\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 16\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x65304721\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x56217430\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xDD\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x56\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 17\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x65274130\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x56207431\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x87\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xA7\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 18\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x47306521\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x76305412\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x6C\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x86\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 19\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x02731456\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x21345076\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x99\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x07\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 20\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x30472165\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x21543076\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x6C\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xAD\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 21\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x45376120\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x56207431\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x2D\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xA7\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 22\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x40376521\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x76305412\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x3C\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x86\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 23\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x02731456\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x21345076\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x99\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x07\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 24\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x30472165\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x21543076\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x6C\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xAD\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 25\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x45376120\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x56207431\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x2D\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xA7\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 26\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x40376521\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x76305412\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x3C\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x86\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 27\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x03762514\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x21345076\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xDE\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x03\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 28\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x67125403\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x12470356\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x63\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xB2\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 29\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x32107654\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x54761032\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x22\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x66\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 30\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x32107654\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x54761032\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xCC\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x00\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 31\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x05371426\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x32107654\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x65\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x66\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 32\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x56741032\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x23016745\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x9C\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xFF\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 33\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x46751032\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x32106754\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xC9\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x55\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 34\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x54721036\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x32107654\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x22\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xCC\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 35\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x63410725\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x54761032\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x93\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xAA\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 36\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x32107645\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x54761032\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x77\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xCC\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 37\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x74260351\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x13064257\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xD8\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x21\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 38\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x10573246\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x30762145\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xC6\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x99\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 39\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x47356120\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x56702431\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x2D\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x8F\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 40\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x75016423\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x54217630\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xC9\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x58\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 41\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x01736524\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x20365174\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x96\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x52\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 42\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x10573246\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x30762145\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xC6\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xD9\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 43\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x47356120\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x56702431\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x2D\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x8F\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 44\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x75016423\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x54217630\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xC9\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x58\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 45\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x01746523\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x20365174\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x86\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x52\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 46\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x10576423\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x30762145\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xC6\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xD9\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 47\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x46357102\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x56702431\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x2D\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x8F\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 48\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x75016423\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x54216703\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xC9\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x54\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 49\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x57032146\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x54702631\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xB3\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xED\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 50\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x75102346\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x74305612\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xF3\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x66\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 51\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x32610754\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x20345176\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x95\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x60\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 52\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x01572346\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x21560347\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x0C\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xA9\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 53\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x57032146\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x54702631\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xB3\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xED\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 54\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x75102346\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x74305612\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xF3\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x66\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 55\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x32610754\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x20345176\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x95\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x60\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 56\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x01572346\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x21560347\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x0C\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xA9\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 57\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x57032146\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x54702631\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xB3\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xED\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 58\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x75102346\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x74305612\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xF3\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x66\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 59\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x32610754\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x20345176\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x95\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x20\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 60\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x64207531\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x23671045\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x0B\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xBB\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 61\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x51740362\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x54761032\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xB1\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x66\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 62\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x23016745\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x54761032\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x66\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xAA\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 63\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x54761032\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x32107654\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x00\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x66\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 64\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x54761032\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x23016745\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xD9\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xAA\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 65\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x3210\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x3210\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x00\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x0F\n        TX_POLARITY_FLIP_AUTO: 0\n...\n---\ndevice:\n  0:\n    PC_PORT_PHYS_MAP:\n      ?\n        PORT_ID: 1\n      :\n        PC_PHYS_PORT_ID: 1\n      ?\n        PORT_ID: 5\n      :\n        PC_PHYS_PORT_ID: 5\n      ?\n        PORT_ID: 9\n      :\n        PC_PHYS_PORT_ID: 9\n      ?\n        PORT_ID: 10\n      :\n        PC_PHYS_PORT_ID: 13\n      ?\n        PORT_ID: 11\n      :\n        PC_PHYS_PORT_ID: 17\n      ?\n        PORT_ID: 15\n      :\n        PC_PHYS_PORT_ID: 21\n      ?\n        PORT_ID: 19\n      :\n        PC_PHYS_PORT_ID: 25\n      ?\n        PORT_ID: 20\n      :\n        PC_PHYS_PORT_ID: 29\n      ?\n        PORT_ID: 22\n      :\n        PC_PHYS_PORT_ID: 33\n      ?\n        PORT_ID: 26\n      :\n        PC_PHYS_PORT_ID: 37\n      ?\n        PORT_ID: 30\n      :\n        PC_PHYS_PORT_ID: 41\n      ?\n        PORT_ID: 31\n      :\n        PC_PHYS_PORT_ID: 45\n      ?\n        PORT_ID: 33\n      :\n        PC_PHYS_PORT_ID: 49\n      ?\n        PORT_ID: 37\n      :\n        PC_PHYS_PORT_ID: 53\n      ?\n        PORT_ID: 41\n      :\n        PC_PHYS_PORT_ID: 57\n      ?\n        PORT_ID: 42\n      :\n        PC_PHYS_PORT_ID: 61\n      ?\n        PORT_ID: 44\n      :\n        PC_PHYS_PORT_ID: 65\n      ?\n        PORT_ID: 48\n      :\n        PC_PHYS_PORT_ID: 69\n      ?\n        PORT_ID: 52\n      :\n        PC_PHYS_PORT_ID: 73\n      ?\n        PORT_ID: 53\n      :\n        PC_PHYS_PORT_ID: 77\n      ?\n        PORT_ID: 55\n      :\n        PC_PHYS_PORT_ID: 81\n      ?\n        PORT_ID: 59\n      :\n        PC_PHYS_PORT_ID: 85\n      ?\n        PORT_ID: 63\n      :\n        PC_PHYS_PORT_ID: 89\n      ?\n        PORT_ID: 64\n      :\n        PC_PHYS_PORT_ID: 93\n      ?\n        PORT_ID: 66\n      :\n        PC_PHYS_PORT_ID: 97\n      ?\n        PORT_ID: 70\n      :\n        PC_PHYS_PORT_ID: 101\n      ?\n        PORT_ID: 74\n      :\n        PC_PHYS_PORT_ID: 105\n      ?\n        PORT_ID: 75\n      :\n        PC_PHYS_PORT_ID: 109\n      ?\n        PORT_ID: 77\n      :\n        PC_PHYS_PORT_ID: 113\n      ?\n        PORT_ID: 81\n      :\n        PC_PHYS_PORT_ID: 117\n      ?\n        PORT_ID: 85\n      :\n        PC_PHYS_PORT_ID: 121\n      ?\n        PORT_ID: 86\n      :\n        PC_PHYS_PORT_ID: 125\n      ?\n        PORT_ID: 88\n      :\n        PC_PHYS_PORT_ID: 129\n      ?\n        PORT_ID: 92\n      :\n        PC_PHYS_PORT_ID: 133\n      ?\n        PORT_ID: 96\n      :\n        PC_PHYS_PORT_ID: 137\n      ?\n        PORT_ID: 97\n      :\n        PC_PHYS_PORT_ID: 141\n      ?\n        PORT_ID: 99\n      :\n        PC_PHYS_PORT_ID: 145\n      ?\n        PORT_ID: 103\n      :\n        PC_PHYS_PORT_ID: 149\n      ?\n        PORT_ID: 107\n      :\n        PC_PHYS_PORT_ID: 153\n      ?\n        PORT_ID: 108\n      :\n        PC_PHYS_PORT_ID: 157\n      ?\n        PORT_ID: 110\n      :\n        PC_PHYS_PORT_ID: 161\n      ?\n        PORT_ID: 114\n      :\n        PC_PHYS_PORT_ID: 165\n      ?\n        PORT_ID: 118\n      :\n        PC_PHYS_PORT_ID: 169\n      ?\n        PORT_ID: 119\n      :\n        PC_PHYS_PORT_ID: 173\n      ?\n        PORT_ID: 121\n      :\n        PC_PHYS_PORT_ID: 177\n      ?\n        PORT_ID: 125\n      :\n        PC_PHYS_PORT_ID: 181\n      ?\n        PORT_ID: 129\n      :\n        PC_PHYS_PORT_ID: 185\n      ?\n        PORT_ID: 130\n      :\n        PC_PHYS_PORT_ID: 189\n      ?\n        PORT_ID: 132\n      :\n        PC_PHYS_PORT_ID: 193\n      ?\n        PORT_ID: 136\n      :\n        PC_PHYS_PORT_ID: 197\n      ?\n        PORT_ID: 140\n      :\n        PC_PHYS_PORT_ID: 201\n      ?\n        PORT_ID: 141\n      :\n        PC_PHYS_PORT_ID: 205\n      ?\n        PORT_ID: 143\n      :\n        PC_PHYS_PORT_ID: 209\n      ?\n        PORT_ID: 147\n      :\n        PC_PHYS_PORT_ID: 213\n      ?\n        PORT_ID: 151\n      :\n        PC_PHYS_PORT_ID: 217\n      ?\n        PORT_ID: 152\n      :\n        PC_PHYS_PORT_ID: 221\n      ?\n        PORT_ID: 154\n      :\n        PC_PHYS_PORT_ID: 225\n      ?\n        PORT_ID: 158\n      :\n        PC_PHYS_PORT_ID: 229\n      ?\n        PORT_ID: 162\n      :\n        PC_PHYS_PORT_ID: 233\n      ?\n        PORT_ID: 163\n      :\n        PC_PHYS_PORT_ID: 237\n      ?\n        PORT_ID: 165\n      :\n        PC_PHYS_PORT_ID: 241\n      ?\n        PORT_ID: 169\n      :\n        PC_PHYS_PORT_ID: 245\n      ?\n        PORT_ID: 173\n      :\n        PC_PHYS_PORT_ID: 249\n      ?\n        PORT_ID: 174\n      :\n        PC_PHYS_PORT_ID: 253\n      ?\n        PORT_ID: 176\n      :\n        PC_PHYS_PORT_ID: 257\n      ?\n        PORT_ID: 180\n      :\n        PC_PHYS_PORT_ID: 261\n      ?\n        PORT_ID: 184\n      :\n        PC_PHYS_PORT_ID: 265\n      ?\n        PORT_ID: 185\n      :\n        PC_PHYS_PORT_ID: 269\n      ?\n        PORT_ID: 187\n      :\n        PC_PHYS_PORT_ID: 273\n      ?\n        PORT_ID: 191\n      :\n        PC_PHYS_PORT_ID: 277\n      ?\n        PORT_ID: 195\n      :\n        PC_PHYS_PORT_ID: 281\n      ?\n        PORT_ID: 196\n      :\n        PC_PHYS_PORT_ID: 285\n      ?\n        PORT_ID: 198\n      :\n        PC_PHYS_PORT_ID: 289\n      ?\n        PORT_ID: 202\n      :\n        PC_PHYS_PORT_ID: 293\n      ?\n        PORT_ID: 206\n      :\n        PC_PHYS_PORT_ID: 297\n      ?\n        PORT_ID: 207\n      :\n        PC_PHYS_PORT_ID: 301\n      ?\n        PORT_ID: 209\n      :\n        PC_PHYS_PORT_ID: 305\n      ?\n        PORT_ID: 213\n      :\n        PC_PHYS_PORT_ID: 309\n      ?\n        PORT_ID: 217\n      :\n        PC_PHYS_PORT_ID: 313\n      ?\n        PORT_ID: 218\n      :\n        PC_PHYS_PORT_ID: 317\n      ?\n        PORT_ID: 220\n      :\n        PC_PHYS_PORT_ID: 321\n      ?\n        PORT_ID: 224\n      :\n        PC_PHYS_PORT_ID: 325\n      ?\n        PORT_ID: 228\n      :\n        PC_PHYS_PORT_ID: 329\n      ?\n        PORT_ID: 229\n      :\n        PC_PHYS_PORT_ID: 333\n      ?\n        PORT_ID: 231\n      :\n        PC_PHYS_PORT_ID: 337\n      ?\n        PORT_ID: 235\n      :\n        PC_PHYS_PORT_ID: 341\n      ?\n        PORT_ID: 239\n      :\n        PC_PHYS_PORT_ID: 345\n      ?\n        PORT_ID: 240\n      :\n        PC_PHYS_PORT_ID: 349\n      ?\n        PORT_ID: 242\n      :\n        PC_PHYS_PORT_ID: 353\n      ?\n        PORT_ID: 246\n      :\n        PC_PHYS_PORT_ID: 357\n      ?\n        PORT_ID: 250\n      :\n        PC_PHYS_PORT_ID: 361\n      ?\n        PORT_ID: 251\n      :\n        PC_PHYS_PORT_ID: 365\n      ?\n        PORT_ID: 253\n      :\n        PC_PHYS_PORT_ID: 369\n      ?\n        PORT_ID: 257\n      :\n        PC_PHYS_PORT_ID: 373\n      ?\n        PORT_ID: 261\n      :\n        PC_PHYS_PORT_ID: 377\n      ?\n        PORT_ID: 262\n      :\n        PC_PHYS_PORT_ID: 381\n      ?\n        PORT_ID: 264\n      :\n        PC_PHYS_PORT_ID: 385\n      ?\n        PORT_ID: 268\n      :\n        PC_PHYS_PORT_ID: 389\n      ?\n        PORT_ID: 272\n      :\n        PC_PHYS_PORT_ID: 393\n      ?\n        PORT_ID: 273\n      :\n        PC_PHYS_PORT_ID: 397\n      ?\n        PORT_ID: 275\n      :\n        PC_PHYS_PORT_ID: 401\n      ?\n        PORT_ID: 279\n      :\n        PC_PHYS_PORT_ID: 405\n      ?\n        PORT_ID: 283\n      :\n        PC_PHYS_PORT_ID: 409\n      ?\n        PORT_ID: 284\n      :\n        PC_PHYS_PORT_ID: 413\n      ?\n        PORT_ID: 286\n      :\n        PC_PHYS_PORT_ID: 417\n      ?\n        PORT_ID: 290\n      :\n        PC_PHYS_PORT_ID: 421\n      ?\n        PORT_ID: 294\n      :\n        PC_PHYS_PORT_ID: 425\n      ?\n        PORT_ID: 295\n      :\n        PC_PHYS_PORT_ID: 429\n      ?\n        PORT_ID: 297\n      :\n        PC_PHYS_PORT_ID: 433\n      ?\n        PORT_ID: 301\n      :\n        PC_PHYS_PORT_ID: 437\n      ?\n        PORT_ID: 305\n      :\n        PC_PHYS_PORT_ID: 441\n      ?\n        PORT_ID: 306\n      :\n        PC_PHYS_PORT_ID: 445\n      ?\n        PORT_ID: 308\n      :\n        PC_PHYS_PORT_ID: 449\n      ?\n        PORT_ID: 312\n      :\n        PC_PHYS_PORT_ID: 453\n      ?\n        PORT_ID: 316\n      :\n        PC_PHYS_PORT_ID: 457\n      ?\n        PORT_ID: 317\n      :\n        PC_PHYS_PORT_ID: 461\n      ?\n        PORT_ID: 319\n      :\n        PC_PHYS_PORT_ID: 465\n      ?\n        PORT_ID: 323\n      :\n        PC_PHYS_PORT_ID: 469\n      ?\n        PORT_ID: 327\n      :\n        PC_PHYS_PORT_ID: 473\n      ?\n        PORT_ID: 328\n      :\n        PC_PHYS_PORT_ID: 477\n      ?\n        PORT_ID: 330\n      :\n        PC_PHYS_PORT_ID: 481\n      ?\n        PORT_ID: 334\n      :\n        PC_PHYS_PORT_ID: 485\n      ?\n        PORT_ID: 338\n      :\n        PC_PHYS_PORT_ID: 489\n      ?\n        PORT_ID: 339\n      :\n        PC_PHYS_PORT_ID: 493\n      ?\n        PORT_ID: 341\n      :\n        PC_PHYS_PORT_ID: 497\n      ?\n        PORT_ID: 345\n      :\n        PC_PHYS_PORT_ID: 501\n      ?\n        PORT_ID: 349\n      :\n        PC_PHYS_PORT_ID: 505\n      ?\n        PORT_ID: 350\n      :\n        PC_PHYS_PORT_ID: 509\n      ?\n        PORT_ID: 0\n      :\n        PC_PHYS_PORT_ID: 0\n      ?\n        PORT_ID: 76\n      :\n        PC_PHYS_PORT_ID: 513\n...\n---\ndevice:\n  0:\n    PC_PORT:\n      ?\n        PORT_ID: 0\n      :\n        ENABLE: 1\n        SPEED: 10000\n        NUM_LANES: 1\n      ?\n        PORT_ID: [[1, 1], [5, 5], [9, 9], [10, 10], [11, 11], [15, 15], [19, 19],\n        [20, 20], [22, 22], [26, 26], [30, 30], [31, 31], [33, 33], [37, 37], [41,\n        41], [42, 42], [44, 44], [48, 48], [52, 52], [53, 53], [55, 55], [59, 59],\n        [63, 63], [64, 64], [66, 66], [70, 70], [74, 74], [75, 75], [77, 77], [81,\n        81], [85, 85], [86, 86], [88, 88], [92, 92], [96, 96], [97, 97], [99, 99],\n        [103, 103], [107, 107], [108, 108], [110, 110], [114, 114], [118, 118], [119,\n        119], [121, 121], [125, 125], [129, 129], [130, 130], [132, 132], [136, 136],\n        [140, 140], [141, 141], [143, 143], [147, 147], [151, 151], [152, 152], [154,\n        154], [158, 158], [162, 162], [163, 163], [165, 165], [169, 169], [173, 173],\n        [174, 174], [176, 176], [180, 180], [184, 184], [185, 185], [187, 187], [191,\n        191], [195, 195], [196, 196], [198, 198], [202, 202], [206, 206], [207, 207],\n        [209, 209], [213, 213], [217, 217], [218, 218], [220, 220], [224, 224], [228,\n        228], [229, 229], [231, 231], [235, 235], [239, 239], [240, 240], [242, 242],\n        [246, 246], [250, 250], [251, 251], [253, 253], [257, 257], [261, 261], [262,\n        262], [264, 264], [268, 268], [272, 272], [273, 273], [275, 275], [279, 279],\n        [283, 283], [284, 284], [286, 286], [290, 290], [294, 294], [295, 295], [297,\n        297], [301, 301], [305, 305], [306, 306], [308, 308], [312, 312], [316, 316],\n        [317, 317], [319, 319], [323, 323], [327, 327], [328, 328], [330, 330], [334,\n        334], [338, 338], [339, 339], [341, 341], [345, 345], [349, 349], [350, 350]]\n      :\n        ENABLE: 0\n        SPEED: 400000\n        NUM_LANES: 4\n        FEC_MODE: PC_FEC_RS544_2XN\n        MAX_FRAME_SIZE: 9416\n      ?\n        PORT_ID: 76\n      :\n        ENABLE: 0\n        SPEED: 100000\n        NUM_LANES: 4\n        FEC_MODE: PC_FEC_RS528\n        MAX_FRAME_SIZE: 9416\n...\n---\ndevice:\n  0:\n    PORT_CONFIG:\n      PORT_SYSTEM_PROFILE_OPERMODE_PIPEUNIQUE: 1\n...\n---\nbcm_device:\n  0:\n    global:\n      l3_alpm_template: 1\n      l3_alpm_hit_mode: 1\n      ipv6_lpm_128b_enable: 1\n      pktio_driver_type: 1\n      qos_map_multi_get_mode: 1\n      rx_cosq_mapping_management_mode: 0\n      l3_iif_reservation_skip: 0\n      pcie_host_intf_timeout_purge_enable: 0\n      macro_flow_hash_shuffle_random_seed: 34345645\n      bcm_linkscan_interval: 25000\n      sai_common_hash_crc: 0x1\n      sai_disable_srcmacqedstmac_ctrl: 0x1\n      sai_acl_qset_optimization: 0x1\n      sai_optimized_mmu: 0x1\n      sai_pkt_rx_custom_cfg: 1\n      sai_pkt_rx_pkt_size: 16512\n      sai_pkt_rx_cfg_ppc: 16\n      sai_async_fdb_nbr_enable: 0x1\n      sai_pfc_defaults_disable: 0x1\n      sai_ifp_enable_on_cpu_tx: 0x1\n      sai_vfp_smac_drop_filter_disable: 1\n      sai_macro_flow_based_hash: 1\n      sai_mmu_qgroups_default: 1\n      sai_dis_ctr_incr_on_port_ln_dn: 0\n      custom_feature_mesh_topology_sync_mode: 1\n      sai_ecmp_group_members_increment: 1\n      sai_field_group_auto_prioritize: 1\n      bcm_tunnel_term_compatible_mode: 1\n      sai_l2_cpu_fdb_event_suppress: 1\n      sai_port_phy_time_sync_en: 1\n      sai_stats_support_mask: 0x2\n      sai_disable_internal_port_serdes: 1\n      global_flexctr_ing_action_num_reserved: 20\n      global_flexctr_ing_pool_num_reserved: 8\n      global_flexctr_ing_op_profile_num_reserved: 20\n      global_flexctr_ing_group_num_reserved: 2\n      global_flexctr_egr_action_num_reserved: 8\n      global_flexctr_egr_pool_num_reserved: 5\n      global_flexctr_egr_op_profile_num_reserved: 10\n      global_flexctr_egr_group_num_reserved: 1\n      sai_uncached_port_stats: 0x1\n      ecmp_dlb_port_speeds: 1\n      l3_ecmp_member_secondary_mem_size: 4096\n...\n---\ndevice:\n  0:\n    TM_THD_CONFIG:\n      THRESHOLD_MODE: LOSSY\n...\n---\ndevice:\n  0:\n    PORT:\n      ?\n        PORT_ID: [[1, 1], [5, 5], [9, 9], [10, 10], [11, 11], [15, 15], [19, 19],\n        [20, 20], [22, 22], [26, 26], [30, 30], [31, 31], [33, 33], [37, 37], [41,\n        41], [42, 42], [44, 44], [48, 48], [52, 52], [53, 53], [55, 55], [59, 59],\n        [63, 63], [64, 64], [66, 66], [70, 70], [74, 74], [75, 75], [77, 77], [81,\n        81], [85, 85], [86, 86], [88, 88], [92, 92], [96, 96], [97, 97], [99, 99],\n        [103, 103], [107, 107], [108, 108], [110, 110], [114, 114], [118, 118], [119,\n        119], [121, 121], [125, 125], [129, 129], [130, 130], [132, 132], [136, 136],\n        [140, 140], [141, 141], [143, 143], [147, 147], [151, 151], [152, 152], [154,\n        154], [158, 158], [162, 162], [163, 163], [165, 165], [169, 169], [173, 173],\n        [174, 174], [176, 176], [180, 180], [184, 184], [185, 185], [187, 187], [191,\n        191], [195, 195], [196, 196], [198, 198], [202, 202], [206, 206], [207, 207],\n        [209, 209], [213, 213], [217, 217], [218, 218], [220, 220], [224, 224], [228,\n        228], [229, 229], [231, 231], [235, 235], [239, 239], [240, 240], [242, 242],\n        [246, 246], [250, 250], [251, 251], [253, 253], [257, 257], [261, 261], [262,\n        262], [264, 264], [268, 268], [272, 272], [273, 273], [275, 275], [279, 279],\n        [283, 283], [284, 284], [286, 286], [290, 290], [294, 294], [295, 295], [297,\n        297], [301, 301], [305, 305], [306, 306], [308, 308], [312, 312], [316, 316],\n        [317, 317], [319, 319], [323, 323], [327, 327], [328, 328], [330, 330], [334,\n        334], [338, 338], [339, 339], [341, 341], [345, 345], [349, 349], [350, 350]]\n      :\n        MTU: 9416\n        MTU_CHECK: 1\n...\n---\ndevice:\n  0:\n    DEVICE_CONFIG:\n      AUTOLOAD_BOARD_SETTINGS: 0\n      CORE_CLK_FREQ: CLK_1125MHZ\n      PP_CLK_FREQ: CLK_675MHZ\n...\n---\ndevice:\n  0:\n    FP_CONFIG:\n      FP_ING_OPERMODE: GLOBAL_PIPE_AWARE\n...\n---\ndevice:\n  0:\n    CTR_EFLEX_CONFIG:\n      CTR_ING_EFLEX_OPERMODE_PIPEUNIQUE: 1\n      CTR_ING_EFLEX_OPERMODE_PIPE_INSTANCE_UNIQUE: 1\n      CTR_EGR_EFLEX_OPERMODE_PIPEUNIQUE: 1\n      CTR_EGR_EFLEX_OPERMODE_PIPE_INSTANCE_UNIQUE: 1\n...\n"
         }
       }
     }

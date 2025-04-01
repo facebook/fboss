@@ -73,10 +73,10 @@ void addOlympicQueueOptionalEcnWredConfigWithSchedulingHelper(
   }
   queue2.aqms() = {};
   if (addEcnConfig) {
-    queue2.aqms()->push_back(kGetEcnConfig(asic));
+    queue2.aqms()->push_back(GetEcnConfig(*asic));
   }
   if (addWredConfig) {
-    queue2.aqms()->push_back(kGetWredConfig(asic));
+    queue2.aqms()->push_back(GetWredConfig(*asic));
   }
   portQueues.push_back(queue2);
 
@@ -164,9 +164,9 @@ int getOlympicV2QueueId(OlympicV2QueueType queueType) {
 }
 
 cfg::PortQueue&
-getPortQueueConfig(cfg::SwitchConfig* config, const int queueId, bool isVoq) {
-  auto& queueConfig = isVoq ? *config->defaultVoqConfig()
-                            : config->portQueueConfigs()["queue_config"];
+getPortQueueConfig(cfg::SwitchConfig& config, const int queueId, bool isVoq) {
+  auto& queueConfig = isVoq ? *config.defaultVoqConfig()
+                            : config.portQueueConfigs()["queue_config"];
   for (auto& queue : queueConfig) {
     if (queue.id() == queueId) {
       return queue;
@@ -183,7 +183,7 @@ void addQueueShaperConfig(
   cfg::Range kbpsRange;
   kbpsRange.minimum() = minKbps;
   kbpsRange.maximum() = maxKbps;
-  auto& queue = getPortQueueConfig(config, queueId, false /* isVoq */);
+  auto& queue = getPortQueueConfig(*config, queueId, false /* isVoq */);
   queue.portQueueRate() = cfg::PortQueueRate();
   queue.portQueueRate()->kbitsPerSec_ref() = kbpsRange;
 }
@@ -193,13 +193,13 @@ void addQueueBurstSizeConfig(
     const int queueId,
     const uint32_t minKbits,
     const uint32_t maxKbits) {
-  auto& queue = getPortQueueConfig(config, queueId, false /* isVoq */);
+  auto& queue = getPortQueueConfig(*config, queueId, false /* isVoq */);
   queue.bandwidthBurstMinKbits() = minKbits;
   queue.bandwidthBurstMaxKbits() = maxKbits;
 }
 
 void addQueueEcnConfig(
-    cfg::SwitchConfig* config,
+    cfg::SwitchConfig& config,
     const std::vector<const HwAsic*>& asics,
     const int queueId,
     const uint32_t minLen,
@@ -210,11 +210,11 @@ void addQueueEcnConfig(
   if (!queue.aqms().has_value()) {
     queue.aqms() = {};
   }
-  queue.aqms()->push_back(kGetEcnConfig(asic, minLen, maxLen));
+  queue.aqms()->push_back(GetEcnConfig(*asic, minLen, maxLen));
 }
 
 void addQueueWredConfig(
-    cfg::SwitchConfig* config,
+    cfg::SwitchConfig& config,
     const std::vector<const HwAsic*>& asics,
     const int queueId,
     const uint32_t minLen,
@@ -226,7 +226,7 @@ void addQueueWredConfig(
   if (!queue.aqms().has_value()) {
     queue.aqms() = {};
   }
-  queue.aqms()->push_back(kGetWredConfig(asic, minLen, maxLen, probability));
+  queue.aqms()->push_back(GetWredConfig(*asic, minLen, maxLen, probability));
 }
 
 void addOlympicQueueConfig(
@@ -275,7 +275,7 @@ void addQueueWredDropConfig(
     queue0.scalingFactor() = cfg::MMUScalingFactor::ONE;
   }
   queue0.aqms() = {};
-  queue0.aqms()->push_back(kGetWredConfig(asic, 1, maxThresh, 0));
+  queue0.aqms()->push_back(GetWredConfig(*asic, 1, maxThresh, 0));
   portQueues.push_back(queue0);
 
   cfg::PortQueue queue2;
@@ -288,7 +288,7 @@ void addQueueWredDropConfig(
     queue2.scalingFactor() = cfg::MMUScalingFactor::ONE;
   }
   queue2.aqms() = {};
-  queue2.aqms()->push_back(kGetWredConfig(asic, 1, maxThresh, 5));
+  queue2.aqms()->push_back(GetWredConfig(*asic, 1, maxThresh, 5));
   portQueues.push_back(queue2);
 
   config->portQueueConfigs()["queue_config"] = portQueues;
@@ -379,9 +379,9 @@ void addOlympicV2WRRQueueConfig(
     queue2.scalingFactor() = cfg::MMUScalingFactor::ONE;
   }
   queue2.aqms() = {};
-  queue2.aqms()->push_back(kGetEcnConfig(asic));
+  queue2.aqms()->push_back(GetEcnConfig(*asic));
   if (addWredConfig) {
-    queue2.aqms()->push_back(kGetWredConfig(asic));
+    queue2.aqms()->push_back(GetWredConfig(*asic));
   }
   portQueues.push_back(queue2);
 

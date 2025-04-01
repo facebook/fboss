@@ -9,6 +9,7 @@
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
+#include "fboss/platform/config_lib/CrossConfigValidator.h"
 #include "fboss/platform/data_corral_service/if/gen-cpp2/led_manager_config_types.h"
 #include "fboss/platform/fan_service/ConfigValidator.h"
 #include "fboss/platform/fan_service/if/gen-cpp2/fan_service_config_types.h"
@@ -36,6 +37,41 @@ using namespace facebook::fboss::platform::fw_util_config;
 using namespace apache::thrift;
 
 namespace {
+std::any deserialize(
+    const std::string& jsonConfigStr,
+    const std::string& serviceName,
+    const std::string& platformName) {
+  try {
+    if (serviceName == "platform_manager") {
+      return SimpleJSONSerializer::deserialize<PlatformConfig>(jsonConfigStr);
+    } else if (serviceName == "sensor_service") {
+      return SimpleJSONSerializer::deserialize<SensorConfig>(jsonConfigStr);
+    } else if (serviceName == "fan_service") {
+      return SimpleJSONSerializer::deserialize<FanServiceConfig>(jsonConfigStr);
+    } else if (serviceName == "weutil") {
+      return SimpleJSONSerializer::deserialize<WeutilConfig>(jsonConfigStr);
+    } else if (serviceName == "fw_util") {
+      return SimpleJSONSerializer::deserialize<NewFwUtilConfig>(jsonConfigStr);
+    } else if (serviceName == "led_manager") {
+      return SimpleJSONSerializer::deserialize<LedManagerConfig>(jsonConfigStr);
+    }
+    LOG(FATAL) << fmt::format("Unsupported service {}", serviceName);
+  } catch (std::exception& ex) {
+    LOG(FATAL) << fmt::format(
+        "Failed to deserialize {} config for {} with error: {}",
+        serviceName,
+        platformName,
+        ex.what());
+  }
+}
+
+const auto kX86Services = std::set<std::string>{
+    "platform_manager",
+    "sensor_service",
+    "fan_service",
+    "weutil",
+    "fw_util",
+    "led_manager"};
 constexpr auto kHdrName = "GeneratedConfig.h";
 constexpr auto kHdrBegin = R"(#pragma once
 
@@ -67,7 +103,7 @@ std::map<std::string, std::map<std::string, std::string>> getConfigs() {
         platformName,
         perPlatformDir.path().c_str());
 
-    std::vector<std::string> serviceNames;
+    std::unordered_map<std::string, std::any> deserializedConfigs;
     // Fetch service configs by iterating over each platform directory
     for (const auto& jsonConfig : fs::directory_iterator(perPlatformDir)) {
       XLOG(INFO) << "Processing Config " << jsonConfig.path();
@@ -77,63 +113,50 @@ std::map<std::string, std::map<std::string, std::string>> getConfigs() {
         continue;
       }
       std::string serviceName = jsonConfig.path().stem();
-      serviceNames.push_back(serviceName);
+      if (!kX86Services.contains(serviceName)) {
+        LOG(FATAL) << fmt::format("Unsupported service {}", serviceName);
+      }
+      deserializedConfigs[serviceName] =
+          deserialize(jsonConfigStr, serviceName, platformName);
       configs[serviceName][platformName] = std::move(jsonConfigStr);
     }
-    // Validate fetched service config.
-    for (const auto& serviceName : serviceNames) {
-      auto& jsonConfigStr = configs[serviceName][platformName];
-      try {
-        if (serviceName == "sensor_service") {
-          auto sensorConfig =
-              SimpleJSONSerializer::deserialize<SensorConfig>(jsonConfigStr);
-          std::optional<PlatformConfig> platformConfig{std::nullopt};
-          // TODO(T207042263) Enable cross-service config validation for Darwin
-          // once Darwin onboards PM.
-          if (platformName != "darwin") {
-            if (!configs["platform_manager"].contains(platformName)) {
-              throw std::runtime_error(fmt::format(
-                  "Platform Manager config doesn't exist for {}",
-                  platformName));
-            }
-            platformConfig = SimpleJSONSerializer::deserialize<PlatformConfig>(
-                configs["platform_manager"][platformName]);
-          }
-          if (!sensor_service::ConfigValidator().isValid(
-                  sensorConfig, platformConfig)) {
-            throw std::runtime_error("Invalid sensor_service configuration");
-          }
-        } else if (serviceName == "fan_service") {
-          auto config = SimpleJSONSerializer::deserialize<FanServiceConfig>(
-              jsonConfigStr);
-          if (!fan_service::ConfigValidator().isValid(config)) {
-            throw std::runtime_error("Invalid fan_service configuration");
-          }
-        } else if (serviceName == "platform_manager") {
-          auto config =
-              SimpleJSONSerializer::deserialize<PlatformConfig>(jsonConfigStr);
-          if (!platform_manager::ConfigValidator().isValid(config)) {
-            throw std::runtime_error("Invalid platform_manager configuration");
-          }
-        } else if (serviceName == "weutil") {
-          SimpleJSONSerializer::deserialize<WeutilConfig>(jsonConfigStr);
-        } else if (serviceName == "fw_util") {
-          SimpleJSONSerializer::deserialize<NewFwUtilConfig>(jsonConfigStr);
-        } else if (serviceName == "led_manager") {
-          SimpleJSONSerializer::deserialize<LedManagerConfig>(jsonConfigStr);
-        } else {
-          throw std::runtime_error(
-              fmt::format("Unknown service {}", serviceName));
-        }
-      } catch (std::exception& ex) {
-        LOG(FATAL) << fmt::format(
-            "Failed to deserialize {} config for {} with error: {}",
-            serviceName,
-            platformName,
-            ex.what());
+
+    // Validate service configs.
+    std::optional<CrossConfigValidator> crossConfigValidator{std::nullopt};
+    if (deserializedConfigs.contains("platform_manager")) {
+      auto config = std::any_cast<PlatformConfig>(
+          deserializedConfigs.at("platform_manager"));
+      if (!platform_manager::ConfigValidator().isValid(config)) {
+        throw std::runtime_error("Invalid platform_manager configuration");
+      }
+      crossConfigValidator = CrossConfigValidator(config);
+    }
+    if (deserializedConfigs.contains("sensor_service")) {
+      auto sensorConfig =
+          std::any_cast<SensorConfig>(deserializedConfigs.at("sensor_service"));
+      std::optional<PlatformConfig> platformConfig{std::nullopt};
+      if (!sensor_service::ConfigValidator().isValid(sensorConfig)) {
+        throw std::runtime_error("Invalid sensor_service configuration");
+      }
+      if (crossConfigValidator) {
+        crossConfigValidator->isValidSensorConfig(sensorConfig);
       }
     }
-
+    if (deserializedConfigs.contains("fan_service")) {
+      auto config = std::any_cast<FanServiceConfig>(
+          deserializedConfigs.at("fan_service"));
+      if (!fan_service::ConfigValidator().isValid(config)) {
+        throw std::runtime_error("Invalid fan_service configuration");
+      }
+      std::optional<SensorConfig> sensorConfig = std::nullopt;
+      if (deserializedConfigs.contains("sensor_service")) {
+        sensorConfig = std::any_cast<SensorConfig>(
+            deserializedConfigs.at("sensor_service"));
+      }
+      if (crossConfigValidator) {
+        crossConfigValidator->isValidFanServiceConfig(config, sensorConfig);
+      }
+    }
   } // end per platform iteration
 
   return configs;
@@ -160,7 +183,9 @@ int main(int argc, char* argv[]) {
            << "{" << std::endl;
     for (const auto& [platformName, config] : configsByPlatform) {
       stream << fmt::format(
-                    "{{\"{}\", R\"({})\"}},", platformName.c_str(), config)
+                    "{{\"{}\", R\"EOFEOF({})EOFEOF\"}},",
+                    platformName.c_str(),
+                    config)
              << std::endl;
     }
     stream << "};" << std::endl;

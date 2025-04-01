@@ -295,11 +295,13 @@ bool isFbossFeatureEnabled(
 }
 
 std::string getSubscriptionPathStr(const fsdb::OperSubscriberInfo& subscriber) {
-  if (subscriber.get_path()) {
-    return folly::join("/", subscriber.get_path()->get_raw());
+  if (apache::thrift::get_pointer(subscriber.path())) {
+    return folly::join(
+        "/", apache::thrift::get_pointer(subscriber.path())->raw().value());
   }
   std::vector<std::string> extPaths;
-  if (auto subExtPaths = subscriber.get_extendedPaths()) {
+  if (auto subExtPaths =
+          apache::thrift::get_pointer(subscriber.extendedPaths())) {
     for (const auto& extPath : *subExtPaths) {
       std::vector<std::string> pathElements;
       for (const auto& pathElm : *extPath.path()) {
@@ -314,10 +316,10 @@ std::string getSubscriptionPathStr(const fsdb::OperSubscriberInfo& subscriber) {
       extPaths.push_back(folly::join("/", pathElements));
     }
   }
-  auto paths = subscriber.get_paths();
+  auto paths = apache::thrift::get_pointer(subscriber.paths());
   if (paths) {
     for (const auto& path : *paths) {
-      extPaths.push_back(folly::join("/", path.second.get_path()));
+      extPaths.push_back(folly::join("/", path.second.path().value()));
     }
   }
   return folly::join(";", extPaths);
@@ -360,12 +362,19 @@ Table::StyledCell styledFecTail(int tail) {
   return Table::StyledCell(folly::to<std::string>(tail), Table::Style::GOOD);
 }
 
+cfg::SwitchType getSwitchType(apache::thrift::Client<FbossCtrl>& client) {
+  std::map<int64_t, cfg::SwitchInfo> switchIdToSwitchInfo;
+  client.sync_getSwitchIdToSwitchInfo(switchIdToSwitchInfo);
+  return getSwitchType(std::move(switchIdToSwitchInfo));
+}
+
 cfg::SwitchType getSwitchType(
     std::map<int64_t, cfg::SwitchInfo> switchIdToSwitchInfo) {
   CHECK_GE(switchIdToSwitchInfo.size(), 1);
 
   // Assert that all switches have the same switch type
-  auto switchType = switchIdToSwitchInfo.begin()->second.get_switchType();
+  auto switchType =
+      folly::copy(switchIdToSwitchInfo.begin()->second.switchType().value());
   CHECK(std::all_of(
       switchIdToSwitchInfo.begin(),
       switchIdToSwitchInfo.end(),
@@ -374,6 +383,11 @@ cfg::SwitchType getSwitchType(
       }));
 
   return switchType;
+}
+
+bool isVoqOrFabric(cfg::SwitchType switchType) {
+  return switchType == cfg::SwitchType::VOQ ||
+      switchType == cfg::SwitchType::FABRIC;
 }
 
 std::map<std::string, FabricEndpoint> getFabricEndpoints(

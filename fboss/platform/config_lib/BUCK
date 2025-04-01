@@ -11,6 +11,7 @@ cpp_binary(
         "ConfigGenerator.cpp",
     ],
     deps = [
+        ":cross_config_validator",
         "//fboss/platform/data_corral_service/if:led_manager-cpp2-types",
         "//fboss/platform/fan_service:config_validator",
         "//fboss/platform/fan_service/if:fan_service-cpp2-types",
@@ -32,6 +33,25 @@ custom_rule(
     build_args = "--json_config_dir $(location fbcode//fboss/platform:configs)/configs",
     build_script_dep = ":config_generator",
     output_gen_files = ["GeneratedConfig.h"],
+)
+
+cpp_library(
+    name = "cross_config_validator",
+    srcs = [
+        "CrossConfigValidator.cpp",
+    ],
+    exported_deps = [
+        "fbsource//third-party/fmt:fmt",
+        "//fboss/platform/fan_service/if:fan_service-cpp2-types",
+        "//fboss/platform/platform_manager:config_validator",
+        "//fboss/platform/platform_manager:platform_manager_config-cpp2-types",
+        "//fboss/platform/sensor_service:config_validator",
+        "//fboss/platform/sensor_service/if:sensor_config-cpp2-types",
+        "//folly/logging:logging",
+    ],
+    exported_external_deps = [
+        "re2",
+    ],
 )
 
 cpp_library(

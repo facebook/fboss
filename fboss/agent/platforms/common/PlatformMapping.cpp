@@ -122,7 +122,7 @@ bool PlatformPortProfileConfigMatcher::matchOverrideWithFactor(
 bool PlatformPortProfileConfigMatcher::matchProfileWithFactor(
     const PlatformMapping* pm,
     const cfg::PlatformPortConfigFactor& factor) {
-  if (factor.get_profileID() != profileID_) {
+  if (folly::copy(factor.profileID().value()) != profileID_) {
     return false;
   }
   // if we dont have pimID but the factor does, try to get it from portID
@@ -261,14 +261,14 @@ int PlatformMapping::getPimID(PortID portID) const {
 int PlatformMapping::getPimID(
     const cfg::PlatformPortEntry& platformPort) const {
   int pimID = 0;
-  auto& portName = platformPort.get_mapping().get_name();
+  auto& portName = platformPort.mapping().value().name().value();
   re2::RE2 portNameRe(kFbossPortNameRegex);
   if (!re2::RE2::FullMatch(portName, portNameRe, &pimID)) {
     throw FbossError(
         "Invalid port name: ",
         portName,
         " for port id: ",
-        platformPort.get_mapping().get_id());
+        folly::copy(platformPort.mapping().value().id().value()));
   }
   return pimID;
 }
@@ -280,7 +280,7 @@ const phy::DataPlanePhyChip& PlatformMapping::getPortIphyChip(
     throw FbossError("Unrecoganized port:", portID);
   }
   const auto& coreName =
-      itPlatformPort->second.mapping()->pins()[0].a()->get_chip();
+      itPlatformPort->second.mapping()->pins()[0].a()->chip().value();
   return chips_.at(coreName);
 }
 
@@ -570,8 +570,8 @@ PlatformMapping::getPortProfileConfig(
   }
   for (auto& supportedProfile : platformSupportedProfiles_) {
     if (profileMatcher.matchProfileWithFactor(
-            this, supportedProfile.get_factor())) {
-      return supportedProfile.get_profile();
+            this, supportedProfile.factor().value())) {
+      return supportedProfile.profile().value();
     }
   }
   XLOGF(
@@ -701,13 +701,14 @@ PlatformMapping::getCorePinMapping(const std::vector<cfg::Port>& ports) const {
   std::map<phy::DataPlanePhyChip, std::vector<phy::PinConfig>> corePinMapping;
   const auto& platformPorts = getPlatformPorts();
   for (auto& port : ports) {
-    auto portID = port.get_logicalID();
+    auto portID = folly::copy(port.logicalID().value());
     if (platformPorts.find(portID) == platformPorts.end()) {
       throw FbossError("Could not find platform port with id ", portID);
     }
     auto& platformPortEntry = platformPorts.at(portID);
-    auto profileID = port.get_profileID();
-    if (portID != platformPortEntry.mapping()->get_controllingPort()) {
+    auto profileID = folly::copy(port.profileID().value());
+    if (portID !=
+        folly::copy(platformPortEntry.mapping()->controllingPort().value())) {
       continue;
     }
     const auto& chip = getPortIphyChip(PortID(portID));

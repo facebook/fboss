@@ -333,11 +333,11 @@ cfg::SwitchConfig createUplinkDownlinkConfig(
     if (portConfig == config.ports()->end()) {
       continue;
     }
-    auto iter = lbModeMap.find(portConfig->get_portType());
+    auto iter = lbModeMap.find(folly::copy(portConfig->portType().value()));
     if (iter == lbModeMap.end()) {
       throw FbossError(
           "Unable to find the desired loopback mode for port type: ",
-          portConfig->get_portType());
+          folly::copy(portConfig->portType().value()));
     }
     portConfig->loopbackMode() = iter->second;
     portConfig->ingressVlan() = kDownlinkBaseVlanId;

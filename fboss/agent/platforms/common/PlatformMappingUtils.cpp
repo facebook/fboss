@@ -14,7 +14,6 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 #include "fboss/agent/platforms/common/PlatformMappingUtils.h"
-#include "fboss/agent/platforms/common/cloud_ripper/CloudRipperPlatformMapping.h"
 #include "fboss/agent/platforms/common/darwin/DarwinPlatformMapping.h"
 #include "fboss/agent/platforms/common/elbert/ElbertPlatformMapping.h"
 #include "fboss/agent/platforms/common/fake_test/FakeTestPlatformMapping.h"
@@ -116,10 +115,6 @@ std::unique_ptr<PlatformMapping> initPlatformMapping(PlatformType type) {
             ? std::make_unique<Wedge400CPlatformMapping>()
             : std::make_unique<Wedge400CPlatformMapping>(platformMappingStr);
       }
-    case PlatformType::PLATFORM_CLOUDRIPPER:
-      return platformMappingStr.empty()
-          ? std::make_unique<CloudRipperPlatformMapping>()
-          : std::make_unique<CloudRipperPlatformMapping>(platformMappingStr);
     case PlatformType::PLATFORM_DARWIN:
     case PlatformType::PLATFORM_DARWIN48V:
       return platformMappingStr.empty()
@@ -188,8 +183,9 @@ std::unique_ptr<PlatformMapping> initPlatformMapping(PlatformType type) {
       return std::make_unique<FakeTestPlatformMapping>(controllingPorts);
     }
     case PlatformType::PLATFORM_LASSEN_DEPRECATED:
-    case PlatformType::PLATFORM_CLOUDRIPPER_FABRIC:
-    case PlatformType::PLATFORM_CLOUDRIPPER_VOQ:
+    case PlatformType::PLATFORM_CLOUDRIPPER_DEPRECATED:
+    case PlatformType::PLATFORM_CLOUDRIPPER_FABRIC_DEPRECATED:
+    case PlatformType::PLATFORM_CLOUDRIPPER_VOQ_DEPRECATED:
     case PlatformType::PLATFORM_WEDGE400C_FABRIC:
     case PlatformType::PLATFORM_WEDGE400C_VOQ:
     case PlatformType::PLATFORM_SANDIA:

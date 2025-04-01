@@ -54,11 +54,7 @@ SaiSwitchTraits::Attributes::AttributeRestartIssuWrapper::operator()() {
 
 std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeDelayDropCongThreshold::operator()() {
-#if defined(TAJO_SDK_VERSION_1_42_8)
   return SAI_SWITCH_ATTR_EXT_DELAY_DROP_CONG_THRESHOLD;
-#else
-  return std::nullopt;
-#endif
 }
 
 std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
@@ -308,6 +304,21 @@ SaiSwitchTraits::Attributes::AttributeArsAvailableFlows::operator()() {
 
 std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeSflowAggrNofSamplesWrapper::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeSdkRegDumpLogPath::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeFirmwareObjectList::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeTcRateLimitList::operator()() {
   return std::nullopt;
 }
 

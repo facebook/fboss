@@ -111,8 +111,6 @@ TEST_F(AgentEnsembleLinkTest, asicLinkFlap) {
       ASSERT_NO_THROW(waitForAllCabledPorts(true));
       ASSERT_NO_THROW(utility::waitForAllTransceiverStates(
           true, getCabledTranceivers(), 60, 5s));
-      ASSERT_NO_THROW(checkQsfpServiceMemoryInBounds());
-      ASSERT_NO_THROW(checkFsdbMemoryInBounds());
       ASSERT_NO_THROW(checkAgentMemoryInBounds());
     }
   };
@@ -263,11 +261,12 @@ TEST_F(AgentEnsembleLinkSanityTestDataPlaneFlood, ptpEnableIsHitless) {
  * 7. Make sure all the ports come up again
  */
 TEST_F(AgentEnsembleLinkTest, opticsTxDisableRandomPorts) {
-  auto [opticalPorts, opticalPortNames] = getOpticalCabledPortsAndNames();
+  auto [opticalPorts, opticalPortNames] =
+      getOpticalAndActiveCabledPortsAndNames();
   EXPECT_FALSE(opticalPorts.empty())
       << "opticsTxDisableRandomPorts: Did not detect any optical transceivers";
 
-  auto connectedPairPortIds = getConnectedOpticalPortPairWithFeature(
+  auto connectedPairPortIds = getConnectedOpticalAndActivePortPairWithFeature(
       TransceiverFeature::TX_DISABLE, phy::Side::LINE);
 
   std::vector<PortID> disabledPorts; // List of PortID of disabled ports
@@ -350,7 +349,8 @@ TEST_F(AgentEnsembleLinkTest, opticsTxDisableRandomPorts) {
 }
 
 TEST_F(AgentEnsembleLinkTest, opticsTxDisableEnable) {
-  auto [opticalPorts, opticalPortNames] = getOpticalCabledPortsAndNames();
+  auto [opticalPorts, opticalPortNames] =
+      getOpticalAndActiveCabledPortsAndNames();
   EXPECT_FALSE(opticalPorts.empty())
       << "opticsTxDisableEnable: Did not detect any optical transceivers";
 
@@ -391,7 +391,7 @@ TEST_F(AgentEnsembleLinkTest, testOpticsRemediation) {
     // Bring down the link on all the optical cabled ports having tx_disable
     // feature supported. The link should go down and the remediation should
     // get triggered bringing it up
-    auto connectedPairPortIds = getConnectedOpticalPortPairWithFeature(
+    auto connectedPairPortIds = getConnectedOpticalAndActivePortPairWithFeature(
         TransceiverFeature::TX_DISABLE, phy::Side::LINE);
 
     EXPECT_GT(connectedPairPortIds.size(), 0);

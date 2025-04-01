@@ -589,6 +589,7 @@ class ThriftConfigApplier {
   std::optional<QueueConfig> getDefaultVoqConfigIfChanged(
       std::shared_ptr<SwitchSettings> switchSettings);
   QueueConfig getVoqConfig(PortID portId);
+  void updateSystemPortSelfHealingEcmpLagDestinationEnable(bool enable);
 
   std::shared_ptr<SwitchState> orig_;
   std::shared_ptr<SwitchState> new_;
@@ -851,7 +852,7 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
 
   {
     LoadBalancerConfigApplier loadBalancerConfigApplier(
-        orig_->getLoadBalancers(), cfg_->get_loadBalancers());
+        orig_->getLoadBalancers(), cfg_->loadBalancers().value());
     auto newLoadBalancers = loadBalancerConfigApplier.updateLoadBalancers(
         generateDeterministicSeed(cfg::LoadBalancerID::ECMP),
         generateDeterministicSeed(cfg::LoadBalancerID::AGGREGATE_PORT));
@@ -1075,6 +1076,7 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
           case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
           case cfg::AsicType::ASIC_TYPE_RAMON:
           case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
+          case cfg::AsicType::ASIC_TYPE_TOMAHAWK6:
           case cfg::AsicType::ASIC_TYPE_YUBA:
           case cfg::AsicType::ASIC_TYPE_RAMON3:
             throw FbossError(
@@ -1119,7 +1121,10 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
     switchInfo.globalSystemPortOffset() = *node->getGlobalSystemPortOffset();
     switchInfo.inbandPortId() = *node->getInbandPortId();
     return HwAsic::makeAsic(
-        static_cast<int64_t>(node->getSwitchId()), switchInfo, std::nullopt);
+        static_cast<int64_t>(node->getSwitchId()),
+        switchInfo,
+        std::nullopt,
+        std::nullopt /* fabricNodeRole is N/A for VOQ switches */);
   };
   auto processLoopbacks = [&](const std::shared_ptr<DsfNode>& node,
                               const HwAsic* dsfNodeAsic) {
@@ -1202,9 +1207,8 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
         getRemotePortNumVoqs(intfRole, cfg::PortType::RECYCLE_PORT));
 
     sysPort->setScope(cfg::Scope::GLOBAL);
-    if (cfg_->switchSettings()->selfHealingEcmpLagConfig().has_value()) {
-      sysPort->setShelDestinationEnabled(true);
-    }
+    sysPort->setShelDestinationEnabled(
+        cfg_->switchSettings()->selfHealingEcmpLagConfig().has_value());
     sysPort->resetPortQueues(getVoqConfig(localInbandPortId));
     if (auto dataPlaneTrafficPolicy = cfg_->dataPlaneTrafficPolicy()) {
       if (auto portIdToQosPolicy =
@@ -1390,9 +1394,9 @@ void ThriftConfigApplier::validateUdfConfig(const UdfConfig& newUdfConfig) {
     return;
   }
 
-  for (const auto& loadBalancerConfig : cfg_->get_loadBalancers()) {
-    auto loadBalancerId = loadBalancerConfig.get_id();
-    auto udfGroups = loadBalancerConfig.get_fieldSelection().udfGroups();
+  for (const auto& loadBalancerConfig : cfg_->loadBalancers().value()) {
+    auto loadBalancerId = folly::copy(loadBalancerConfig.id().value());
+    auto udfGroups = loadBalancerConfig.fieldSelection().value().udfGroups();
     for (auto& udfGroupName : *udfGroups) {
       if (udfGroupMap->find(udfGroupName) == udfGroupMap->end()) {
         throw FbossError(
@@ -1754,14 +1758,13 @@ shared_ptr<SystemPortMap> ThriftConfigApplier::updateSystemPorts(
       // TODO(daiweix): remove this CHECK_EQ after verifying scope config is
       // always correct
       CHECK_EQ(
-          (int)platformPort.mapping()->scope().value(),
-          (int)port.second->getScope());
+          static_cast<int>(platformPort.mapping()->scope().value()),
+          static_cast<int>(port.second->getScope()));
       sysPort->setScope(port.second->getScope());
-      if (cfg_->switchSettings()->selfHealingEcmpLagConfig().has_value()) {
-        sysPort->setShelDestinationEnabled(
-            port.second->getPortType() == cfg::PortType::RECYCLE_PORT &&
-            port.second->getScope() == cfg::Scope::GLOBAL);
-      }
+      sysPort->setShelDestinationEnabled(
+          cfg_->switchSettings()->selfHealingEcmpLagConfig().has_value() &&
+          port.second->getPortType() == cfg::PortType::RECYCLE_PORT &&
+          port.second->getScope() == cfg::Scope::GLOBAL);
       sysPorts->addSystemPort(std::move(sysPort));
     }
   }
@@ -1777,9 +1780,9 @@ ThriftConfigApplier::updateRemoteSystemPorts(
     // remote system ports are applicable only for voq switches
     // remote system ports are updated on config only when more than voq
     // switches are configured on a given SwSwitch
-    return orig_->getRemoteSystemPorts();
+    return new_->getRemoteSystemPorts();
   }
-  auto remoteSystemPorts = orig_->getRemoteSystemPorts()->clone();
+  auto remoteSystemPorts = new_->getRemoteSystemPorts()->clone();
   for (const auto& [matcherStr, singleSwitchIdSysPorts] :
        std::as_const(*systemPorts)) {
     auto matcher = HwSwitchMatcher(matcherStr);
@@ -2586,7 +2589,9 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
       *portConf->conditionalEntropyRehash() ==
           orig->getConditionalEntropyRehash() &&
       portConf->selfHealingECMPLagEnable().value_or(false) ==
-          orig->getSelfHealingECMPLagEnable().value_or(false)) {
+          orig->getSelfHealingECMPLagEnable().value_or(false) &&
+      portConf->fecErrorDetectEnable().value_or(false) ==
+          orig->getFecErrorDetectEnable().value_or(false)) {
     return nullptr;
   }
 
@@ -2631,14 +2636,21 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
   newPort->setScope(*portConf->scope());
   newPort->setConditionalEntropyRehash(*portConf->conditionalEntropyRehash());
   if (auto selfHealingECMPLagEnable = portConf->selfHealingECMPLagEnable()) {
-    if (*selfHealingECMPLagEnable &&
+    if (selfHealingECMPLagEnable.value() &&
         !cfg_->switchSettings()->selfHealingEcmpLagConfig().has_value()) {
       throw FbossError(
           "Switch selfHealingEcmpLagConfig needs to be enabled for port ",
           newPort->getName(),
           " to have selfHealingEcmpLag enable");
     }
-    newPort->setSelfHealingECMPLagEnable(*selfHealingECMPLagEnable);
+    newPort->setSelfHealingECMPLagEnable(selfHealingECMPLagEnable.value());
+  } else {
+    newPort->setSelfHealingECMPLagEnable(std::nullopt);
+  }
+  if (portConf->fecErrorDetectEnable().has_value()) {
+    newPort->setFecErrorDetectEnable(portConf->fecErrorDetectEnable().value());
+  } else {
+    newPort->setFecErrorDetectEnable(std::nullopt);
   }
   return newPort;
 }
@@ -3251,7 +3263,7 @@ std::shared_ptr<AclTableGroupMap> ThriftConfigApplier::updateAclTableGroups() {
   } else {
     for (const auto& entry : *cfg_->aclTableGroups()) {
       // acl entry names must be unique across all acl table groups.
-      changed = updateAclTableGroupsInternal(entry);
+      changed |= updateAclTableGroupsInternal(entry);
     }
   }
 
@@ -3949,7 +3961,9 @@ std::shared_ptr<InterfaceMap> ThriftConfigApplier::updateInterfaces() {
             "is out of range for corresponding VOQ switch.",
             "sys port range");
       }
-      CHECK_EQ((int)sysPort->getScope(), (int)(*interfaceCfg.scope()));
+      CHECK_EQ(
+          static_cast<int>(sysPort->getScope()),
+          static_cast<int>(*interfaceCfg.scope()));
     }
     if (interfaceCfg.type() == cfg::InterfaceType::PORT) {
       if (auto port = interfaceCfg.portID()) {
@@ -4610,12 +4624,6 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings(
         network::toBinaryAddress(folly::IPAddress(*blockNeighbor.ipAddress()));
     cfgBlockNeighbors.emplace_back(neighbor);
   }
-  // THRIFT_COPY
-  if (origSwitchSettings->getBlockNeighbors()->toThrift() !=
-      cfgBlockNeighbors) {
-    newSwitchSettings->setBlockNeighbors(cfgBlockNeighbors);
-    switchSettingsChange = true;
-  }
 
   std::vector<std::pair<VlanID, folly::MacAddress>> cfgMacAddrsToBlock;
   for (const auto& macAddrToBlock :
@@ -4828,6 +4836,14 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings(
         newVoqOutOfBoundsLatencyNsec);
     switchSettingsChange = true;
   }
+  std::optional<std::map<int32_t, int32_t>> newTcToRateLimitKbps;
+  if (cfg_->switchSettings()->tcToRateLimitKbps()) {
+    newTcToRateLimitKbps = *cfg_->switchSettings()->tcToRateLimitKbps();
+  }
+  if (newTcToRateLimitKbps != origSwitchSettings->getTcToRateLimitKbps()) {
+    newSwitchSettings->setTcToRateLimitKbps(newTcToRateLimitKbps);
+    switchSettingsChange = true;
+  }
 
   if (origSwitchSettings->getSwitchDrainState() !=
       *cfg_->switchSettings()->switchDrainState()) {
@@ -5009,6 +5025,8 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings(
     if (newSwitchShelConfig !=
         origSwitchSettings->getSelfHealingEcmpLagConfig()) {
       newSwitchSettings->setSelfHealingEcmpLagConfig(newSwitchShelConfig);
+      updateSystemPortSelfHealingEcmpLagDestinationEnable(
+          newSwitchShelConfig.has_value());
       switchSettingsChange = true;
     }
   }
@@ -5453,8 +5471,8 @@ std::shared_ptr<Mirror> ThriftConfigApplier::createMirror(
     }
   }
 
-  uint8_t dscpMark = mirrorConfig->get_dscp();
-  bool truncate = mirrorConfig->get_truncate();
+  uint8_t dscpMark = folly::copy(mirrorConfig->dscp().value());
+  bool truncate = folly::copy(mirrorConfig->truncate().value());
 
   std::optional<PortDescriptor> egressPortDesc;
   if (mirrorEgressPort.has_value()) {
@@ -5580,7 +5598,7 @@ ThriftConfigApplier::createMirrorOnDropReport(
       *config->truncateSize(),
       static_cast<uint8_t>(*config->dscp()),
       getLocalMacAddress().toString(),
-      utility::getFirstInterfaceMac(new_).toString(),
+      utility::getMacForFirstInterfaceWithPorts(new_).toString(),
       *config->modEventToConfigMap(),
       *config->agingGroupAgingIntervalUsecs());
 }
@@ -5772,19 +5790,19 @@ ThriftConfigApplier::updateStaticMplsRoutes(
   for (auto& staticMplsRouteEntry : staticMplsRoutesWithNhops) {
     RouteNextHopSet resolvedNextHops{};
     // resolve next hops if any next hop is unresolved.
-    for (auto nexthop : staticMplsRouteEntry.get_nexthops()) {
+    for (auto nexthop : staticMplsRouteEntry.nexthops().value()) {
       auto nhop = util::fromThrift(nexthop);
       if (!nhop.labelForwardingAction()) {
         throw FbossError(
             "static mpls route for label ",
-            staticMplsRouteEntry.get_ingressLabel(),
+            folly::copy(staticMplsRouteEntry.ingressLabel().value()),
             " has next hop without label action");
       }
       folly::IPAddress nhopAddress(nhop.addr());
       if (nhopAddress.isLinkLocal() && !nhop.isResolved()) {
         throw FbossError(
             "static mpls route for label ",
-            staticMplsRouteEntry.get_ingressLabel(),
+            folly::copy(staticMplsRouteEntry.ingressLabel().value()),
             " has link local next hop without interface");
       }
       if (nhop.isResolved() ||
@@ -5800,7 +5818,7 @@ ThriftConfigApplier::updateStaticMplsRoutes(
       if (!inftToReach) {
         throw FbossError(
             "static mpls route for label ",
-            staticMplsRouteEntry.get_ingressLabel(),
+            folly::copy(staticMplsRouteEntry.ingressLabel().value()),
             " has nexthop ",
             nhopAddress.str(),
             " out of interface subnets");
@@ -5811,10 +5829,11 @@ ThriftConfigApplier::updateStaticMplsRoutes(
           nhop.weight(),
           nhop.labelForwardingAction()));
     }
-    auto entry = labelFib->getNodeIf(staticMplsRouteEntry.get_ingressLabel());
+    auto entry = labelFib->getNodeIf(
+        folly::copy(staticMplsRouteEntry.ingressLabel().value()));
     if (!entry) {
       auto node = createLabelForwardingEntry(
-          staticMplsRouteEntry.get_ingressLabel(),
+          folly::copy(staticMplsRouteEntry.ingressLabel().value()),
           LabelNextHopEntry::Action::NEXTHOPS,
           resolvedNextHops);
       MultiLabelForwardingInformationBase::resolve(node);
@@ -5831,10 +5850,11 @@ ThriftConfigApplier::updateStaticMplsRoutes(
   }
 
   for (auto& staticMplsRouteEntry : staticMplsRoutesToNull) {
-    auto entry = labelFib->getNodeIf(staticMplsRouteEntry.get_ingressLabel());
+    auto entry = labelFib->getNodeIf(
+        folly::copy(staticMplsRouteEntry.ingressLabel().value()));
     if (!entry) {
       auto node = createLabelForwardingEntry(
-          staticMplsRouteEntry.get_ingressLabel(),
+          folly::copy(staticMplsRouteEntry.ingressLabel().value()),
           LabelNextHopEntry::Action::DROP,
           LabelNextHopSet());
       MultiLabelForwardingInformationBase::resolve(node);
@@ -5851,10 +5871,11 @@ ThriftConfigApplier::updateStaticMplsRoutes(
   }
 
   for (auto& staticMplsRouteEntry : staticMplsRoutesToCPU) {
-    auto entry = labelFib->getNodeIf(staticMplsRouteEntry.get_ingressLabel());
+    auto entry = labelFib->getNodeIf(
+        folly::copy(staticMplsRouteEntry.ingressLabel().value()));
     if (!entry) {
       auto node = createLabelForwardingEntry(
-          staticMplsRouteEntry.get_ingressLabel(),
+          folly::copy(staticMplsRouteEntry.ingressLabel().value()),
           LabelNextHopEntry::Action::TO_CPU,
           LabelNextHopSet());
       MultiLabelForwardingInformationBase::resolve(node);
@@ -5919,6 +5940,40 @@ void ThriftConfigApplier::addRemoteIntfRoute() {
                 folly::to<std::string>(addr, "/", mask->toThrift())),
             std::make_pair(remoteInterface->getID(), addr));
       }
+    }
+  }
+}
+
+void ThriftConfigApplier::updateSystemPortSelfHealingEcmpLagDestinationEnable(
+    bool enable) {
+  CHECK(getAnyVoqSwitchId().has_value());
+  for (const auto& [id, dsfNode] : *cfg_->dsfNodes()) {
+    if (dsfNode.type().value() != cfg::DsfNodeType::INTERFACE_NODE) {
+      continue;
+    }
+    CHECK(dsfNode.inbandPortId().has_value());
+    CHECK(dsfNode.globalSystemPortOffset().has_value());
+    // TODO factor in multi npu nodes where portId range maybe
+    // different
+    const auto inbandSystemPortId = dsfNode.inbandPortId().value() +
+        dsfNode.globalSystemPortOffset().value();
+
+    const auto& switchIdToSwitchInfo =
+        cfg_->switchSettings()->switchIdToSwitchInfo();
+    const bool isLocal =
+        switchIdToSwitchInfo->find(id) != switchIdToSwitchInfo.value().end();
+
+    auto inbandSystemPort = isLocal
+        ? new_->getSystemPorts()->getNodeIf(inbandSystemPortId)
+        : new_->getRemoteSystemPorts()->getNodeIf(inbandSystemPortId);
+    if (inbandSystemPort) {
+      auto systemPorts = isLocal ? new_->getSystemPorts()->modify(&new_)
+                                 : new_->getRemoteSystemPorts()->modify(&new_);
+      auto newInbandPort = inbandSystemPort->clone();
+      newInbandPort->setShelDestinationEnabled(enable);
+      systemPorts->updateNode(
+          std::move(newInbandPort),
+          scopeResolver_.scope(SystemPortID(inbandSystemPortId)));
     }
   }
 }

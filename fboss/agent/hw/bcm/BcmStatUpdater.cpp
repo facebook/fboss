@@ -248,23 +248,37 @@ void BcmStatUpdater::updatePrbsStats() {
   uint32 status;
   auto lockedAsicPrbsStats = portAsicPrbsStats_.wlock();
   for (auto& entry : *lockedAsicPrbsStats) {
-    auto& prbsStatsTable = entry.second;
+    auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
+    PortID portID = entry.first;
+    auto lastPrbsRxStateReadTimeIt = portId2LastPrbsReadTime_.find(portID);
+    // Only read the PRBS stats on this port if the last read was at least
+    // FLAGS_prbs_update_interval_s seconds ago
+    if (lastPrbsRxStateReadTimeIt == portId2LastPrbsReadTime_.end() ||
+        (now.count() - lastPrbsRxStateReadTimeIt->second) >=
+            FLAGS_prbs_update_interval_s) {
+      auto& prbsStatsTable = entry.second;
 
-    for (auto& prbsStatsEntry : prbsStatsTable) {
-      bcm_gport_t gport = prbsStatsEntry.getGportId();
-      bcm_port_phy_control_get(
-          hw_->getUnit(), gport, BCM_PORT_PHY_CONTROL_PRBS_RX_STATUS, &status);
-      if ((int32_t)status == -2) {
-        prbsStatsEntry.handleLossOfLock();
-      } else if ((int32_t)status == -1) {
-        prbsStatsEntry.handleNotLocked();
-      } else if (status == 0) {
-        prbsStatsEntry.handleOk();
-      } else if (status > 0) {
-        prbsStatsEntry.handleLockWithErrors(status);
-      } else {
-        continue;
+      for (auto& prbsStatsEntry : prbsStatsTable) {
+        bcm_gport_t gport = prbsStatsEntry.getGportId();
+        bcm_port_phy_control_get(
+            hw_->getUnit(),
+            gport,
+            BCM_PORT_PHY_CONTROL_PRBS_RX_STATUS,
+            &status);
+        if ((int32_t)status == -2) {
+          prbsStatsEntry.handleLossOfLock();
+        } else if ((int32_t)status == -1) {
+          prbsStatsEntry.handleNotLocked();
+        } else if (status == 0) {
+          prbsStatsEntry.handleOk();
+        } else if (status > 0) {
+          prbsStatsEntry.handleLockWithErrors(status);
+        } else {
+          continue;
+        }
       }
+
+      portId2LastPrbsReadTime_[portID] = now.count();
     }
   }
 }
@@ -292,9 +306,10 @@ double BcmStatUpdater::calculateLaneRate(std::shared_ptr<Port> swPort) {
         apache::thrift::util::enumNameSafe(profileID));
   }
 
-  auto portSpeed = static_cast<int>((*portProfileConfig).get_speed());
+  auto portSpeed =
+      static_cast<int>(folly::copy((*portProfileConfig).speed().value()));
   auto fecType = utility::phyFecModeToBcmPortPhyFec(
-      (*portProfileConfig).get_iphy().get_fec());
+      folly::copy((*portProfileConfig).iphy().value().fec().value()));
   auto numLanes = platformPortConfig->second.pins()->iphy()->size();
 
   double laneRateGb;
@@ -389,6 +404,11 @@ void BcmStatUpdater::clearPortAsicPrbsStats(PortID portId) {
   }
   auto& prbsStatsTable = portAsicPrbsStatIter->second;
   for (auto& prbsStatsEntry : prbsStatsTable) {
+    uint32 status;
+    bcm_gport_t gport = prbsStatsEntry.getGportId();
+    // Read PRBS stats to reset the clear-on-read counter in hardware
+    bcm_port_phy_control_get(
+        hw_->getUnit(), gport, BCM_PORT_PHY_CONTROL_PRBS_RX_STATUS, &status);
     prbsStatsEntry.clearPrbsStats();
   }
 }

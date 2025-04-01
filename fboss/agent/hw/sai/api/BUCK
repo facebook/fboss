@@ -65,6 +65,7 @@ cpp_library(
         "CounterApi.h",
         "DebugCounterApi.h",
         "FdbApi.h",
+        "FirmwareApi.h",
         "HashApi.h",
         "HostifApi.h",
         "LagApi.h",

@@ -92,6 +92,7 @@ extern "C" {
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
 #include <saiextensions.h>
 #ifndef IS_OSS_BRCM_SAI
+#include <experimental/saiexperimentalfirmware.h>
 #include <experimental/saiexperimentaltameventaginggroup.h>
 #else
 #include <saiexperimentaltameventaginggroup.h>
@@ -379,6 +380,21 @@ template <typename LockPolicyT>
 void SaiSwitch::processLocalCapsuleSwitchIdsDelta(
     const StateDelta& delta,
     const LockPolicyT& lockPolicy) {
+  if (FLAGS_dual_stage_edsw_3q_2q) {
+    /*
+     * We run dual stage EDSWs in a de-facto single pipe mode. This
+     * is done for 2-reasons,
+     * 1. There is barely any east<->west (EDSW<->EDSW) traffic. So the
+     * default 2-stage buffer partitioning is inefficient. The default
+     * partitioning splits buffers into 2 to handle line rate traffic
+     * on both pipes, while we only need line rate on one pipe.
+     * 2. It allows for a longer cable len for EDSW<->FDSW segment,
+     * since we can size the fabric buffer on EDSW to absorb more in-flight
+     * traffic, while the EDSWs send flow control to FDSWs upon experiencing
+     * congestion.
+     */
+    return;
+  }
   SwitchID mySwitchId =
       static_cast<SwitchID>(platform_->getAsic()->getSwitchId().value());
   auto dsfNodesDelta = delta.getDsfNodesDelta();
@@ -2196,6 +2212,34 @@ void SaiSwitch::clearPortAsicPrbsStats(PortID portId) {
   managerTable_->portManager().clearPortAsicPrbsStats(portId);
 }
 
+void SaiSwitch::clearSignalDetectAndLockChangedStats(const PortID& portId) {
+  auto phyItr = lastPhyInfos_.find(portId);
+  if (phyItr == lastPhyInfos_.end()) {
+    return;
+  }
+
+  const auto& lineLanes = phyItr->second.stats()->line()->pmd()->lanes();
+  for (auto& [laneId, laneStat] : *lineLanes) {
+    if (laneStat.signalDetectChangedCount().has_value()) {
+      laneStat.signalDetectChangedCount() = 0;
+    }
+    if (laneStat.cdrLockChangedCount().has_value()) {
+      laneStat.cdrLockChangedCount() = 0;
+    }
+  }
+}
+
+void SaiSwitch::clearInterfacePhyCounters(
+    const std::unique_ptr<std::vector<int32_t>>& ports) {
+  auto& portManager = managerTable_->portManager();
+  for (auto port : *ports) {
+    std::lock_guard<std::mutex> lock(saiSwitchMutex_);
+    auto portId = static_cast<PortID>(port);
+    portManager.clearInterfacePhyCounters(portId);
+    clearSignalDetectAndLockChangedStats(portId);
+  }
+}
+
 cfg::PortSpeed SaiSwitch::getPortMaxSpeed(PortID port) const {
   std::lock_guard<std::mutex> lock(saiSwitchMutex_);
   return getPortMaxSpeedLocked(lock, port);
@@ -3098,8 +3142,7 @@ void SaiSwitch::packetRxCallbackPort(
     cfg::PacketRxReason rxReason,
     uint8_t queueId) {
   PortID swPortId(0);
-  std::optional<VlanID> swVlanId = (getSwitchType() == cfg::SwitchType::VOQ ||
-                                    getSwitchType() == cfg::SwitchType::FABRIC)
+  std::optional<VlanID> swVlanId = processVlanUntaggedPackets()
       ? std::nullopt
       : std::make_optional(VlanID(0));
   auto swVlanIdStr = [swVlanId]() {
@@ -3112,7 +3155,7 @@ void SaiSwitch::packetRxCallbackPort(
       buffer_size,
       (void*)((char*)(buffer)),
       PortID(0),
-      VlanID(0),
+      swVlanId,
       rxReason,
       queueId);
   const auto portItr = concurrentIndices_->portSaiId2PortInfo.find(portSaiId);
@@ -3133,8 +3176,7 @@ void SaiSwitch::packetRxCallbackPort(
    * We use the cached cpu port id to avoid holding manager table locks in
    * the Rx path.
    */
-  if (!(getSwitchType() == cfg::SwitchType::VOQ ||
-        getSwitchType() == cfg::SwitchType::FABRIC)) {
+  if (!processVlanUntaggedPackets()) {
     if (portSaiId == getCPUPortSaiId() ||
         (allowMissingSrcPort &&
          portItr == concurrentIndices_->portSaiId2PortInfo.cend())) {
@@ -3147,7 +3189,7 @@ void SaiSwitch::packetRxCallbackPort(
                    << "Found vlan from packet: " << swVlanIdStr();
       } else {
         XLOG(ERR) << "RX packet on cpu port has no vlan tag "
-                  << "or multiple vlan tags: 0x" << std::hex << portSaiId;
+                  << "or multiple vlan tags: " << ethHdr.printVlanTags();
         return;
       }
     } else if (portItr == concurrentIndices_->portSaiId2PortInfo.cend()) {
@@ -3175,7 +3217,7 @@ void SaiSwitch::packetRxCallbackPort(
         return;
       } else {
         swPortId = portItr->second.portID;
-        XLOG(DBG6) << "VOQ RX packet with sai id: 0x" << std::hex << portSaiId
+        XLOG(DBG6) << "RX packet with sai id: 0x" << std::hex << portSaiId
                    << " portID: " << swPortId;
       }
     }
@@ -3208,7 +3250,7 @@ void SaiSwitch::packetRxCallbackLag(
   PortID swPortId(0);
   VlanID swVlanId(0);
   auto rxPacket = std::make_unique<SaiRxPacket>(
-      buffer_size, buffer, PortID(0), VlanID(0), rxReason, queueId);
+      buffer_size, buffer, PortID(0), swVlanId, rxReason, queueId);
 
   const auto aggPortItr = concurrentIndices_->aggregatePortIds.find(lagSaiId);
 
@@ -3305,6 +3347,9 @@ void SaiSwitch::unregisterCallbacksLocked(
 #if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
   if (platform_->getAsic()->isSupported(
           HwAsic::Feature::VENDOR_SWITCH_NOTIFICATION)) {
+    // Disable vendor switch interrupts before unregistering callback
+    managerTable_->vendorSwitchManager().setVendorSwitchEventEnableState(
+        false /*enable*/);
     switchApi.unregisterVendorSwitchEventNotifyCallback(saiSwitchId_);
   }
 #endif
@@ -3577,6 +3622,40 @@ void SaiSwitch::switchRunStateChangedImplLocked(
 
     } break;
     case SwitchRunState::CONFIGURED: {
+      /*
+       * SDK can notify FBOSS of an error condition via callback. For some
+       * scenarios e.g. RX FIFO stuck, Firmware isolation etc., to further
+       * debug, we may want to capture the system state as soon as the error
+       * condition occurs. SDK issuing a callback to FBOSS and then relying on
+       * FBOSS to collect system state info adds latency, and some state might
+       * be lost. Thus, we follow a model where SDK dumps the state to a log
+       * file before issuing callback.
+       *
+       * FBOSS programs the file path for SDK to write such state to. An error
+       * callback can be issued as soon as it is registered. Thus, set the
+       * file path before registering any error callback.
+       */
+      if (platform_->getAsic()->isSupported(
+              HwAsic::Feature::SDK_REGISTER_DUMP)) {
+        std::vector<int8_t> sdkRegDumpLogPathArray;
+        std::string sdkRegDumpLogPathStr = folly::to<std::string>(
+            FLAGS_sdk_reg_dump_path_prefix,
+            "_",
+            platform_->getAsic()->getSwitchId().value(),
+            ".log");
+        std::copy(
+            sdkRegDumpLogPathStr.c_str(),
+            sdkRegDumpLogPathStr.c_str() + sdkRegDumpLogPathStr.size() + 1,
+            std::back_inserter(sdkRegDumpLogPathArray));
+
+        std::optional<SaiSwitchTraits::Attributes::SdkRegDumpLogPath>
+            sdkRegDumpLogPath{std::nullopt};
+        sdkRegDumpLogPath = sdkRegDumpLogPathArray;
+
+        auto& switchApi = SaiApiTable::getInstance()->switchApi();
+        switchApi.setAttribute(saiSwitchId_, sdkRegDumpLogPath);
+      }
+
       if (getFeaturesDesired() & FeaturesDesired::LINKSCAN_DESIRED) {
         /*
          * Post warmboot synchronize hw link state with switch state
@@ -3630,8 +3709,9 @@ void SaiSwitch::switchRunStateChangedImplLocked(
         auto& switchApi = SaiApiTable::getInstance()->switchApi();
         switchApi.registerVendorSwitchEventNotifyCallback(
             saiSwitchId_, __gVendorSwitchEventNotificationCallback);
-        // Init the vendor switch events now that callback is registered
-        managerTable_->vendorSwitchManager().initVendorSwitchEvents();
+        // Enable vendor switch events now that callback is registered
+        managerTable_->vendorSwitchManager().setVendorSwitchEventEnableState(
+            true /*enable*/);
       }
 #endif
     } break;
@@ -4076,6 +4156,12 @@ std::string SaiSwitch::listObjects(
         break;
       case HwObjectType::SYSTEM_PORT:
         objTypes.push_back(SAI_OBJECT_TYPE_SYSTEM_PORT);
+        break;
+      case HwObjectType::FIRMWARE:
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+        objTypes.push_back(
+            static_cast<sai_object_type_t>(SAI_OBJECT_TYPE_FIRMWARE));
+#endif
         break;
     }
   }
@@ -4534,5 +4620,16 @@ void SaiSwitch::injectSwitchReachabilityChangeNotification() {
 HwResourceStats SaiSwitch::getResourceStats() const {
   std::lock_guard<std::mutex> lock(saiSwitchMutex_);
   return hwResourceStats_;
+}
+
+// TODO: add support in SAI
+bool SaiSwitch::getArsExhaustionStatus() {
+  return false;
+}
+
+bool SaiSwitch::processVlanUntaggedPackets() const {
+  return FLAGS_rx_vlan_untagged_packets ||
+      (getSwitchType() == cfg::SwitchType::VOQ ||
+       getSwitchType() == cfg::SwitchType::FABRIC);
 }
 } // namespace facebook::fboss

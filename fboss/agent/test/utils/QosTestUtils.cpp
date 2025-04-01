@@ -2,6 +2,8 @@
 
 #include "fboss/agent/test/utils/QosTestUtils.h"
 #include <folly/IPAddressV4.h>
+#include "fboss/agent/test/utils/AsicUtils.h"
+#include "fboss/agent/test/utils/VoqTestUtils.h"
 
 #include "fboss/agent/state/Port.h"
 #include "fboss/lib/CommonUtils.h"
@@ -191,24 +193,36 @@ void verifyVoQHit(
     SwSwitch* sw,
     facebook::fboss::SystemPortID egressPort,
     int delta) {
-  auto queueBytesBefore = portStatsBefore.queueOutBytes_()->find(queueId) !=
+  auto l3Asics = sw->getHwAsicTable()->getL3Asics();
+  auto asic = utility::checkSameAndGetAsic(l3Asics);
+  int voqId = getTrafficClassToVoqId(asic, queueId);
+  auto queueBytesBefore = portStatsBefore.queueOutBytes_()->find(voqId) !=
           portStatsBefore.queueOutBytes_()->end()
-      ? portStatsBefore.queueOutBytes_()->find(queueId)->second
+      ? portStatsBefore.queueOutBytes_()->find(voqId)->second
       : 0;
   WITH_RETRIES({
     int64_t queueBytesAfter = 0;
     auto latestPortStats = sw->getHwSysPortStats({egressPort});
     if (latestPortStats.find(egressPort) != latestPortStats.end()) {
       auto portStatsAfter = latestPortStats[egressPort];
-      if (portStatsAfter.queueOutBytes_()->find(queueId) !=
+      for (int i = 0; i < 8; i++) {
+        if (portStatsAfter.queueOutBytes_()->find(i) ==
+            portStatsAfter.queueOutBytes_()->end()) {
+          XLOG(DBG2) << "no voq id " << i;
+          continue;
+        }
+        queueBytesAfter = portStatsAfter.queueOutBytes_()[i];
+        XLOG(DBG2) << "Sys port: " << egressPort << " voq " << i
+                   << " queueBytesBefore " << queueBytesBefore
+                   << " queueBytesAfter " << queueBytesAfter << " delta "
+                   << delta;
+      }
+      if (portStatsAfter.queueOutBytes_()->find(voqId) !=
           portStatsAfter.queueOutBytes_()->end()) {
-        queueBytesAfter = portStatsAfter.queueOutBytes_()[queueId];
+        queueBytesAfter = portStatsAfter.queueOutBytes_()[voqId];
       }
     }
     EXPECT_EVENTUALLY_GE(queueBytesAfter, queueBytesBefore + delta);
-    XLOG(DBG2) << "Sys port: " << egressPort << " queue " << queueId
-               << " queueBytesBefore " << queueBytesBefore
-               << " queueBytesAfter " << queueBytesAfter << " delta " << delta;
   });
 }
 

@@ -19,8 +19,9 @@ class AgentInTrapDiscardsCounterTest : public AgentHwTest {
 
  protected:
   void pumpTraffic(bool isV6) {
-    auto vlanId = utility::firstVlanID(getProgrammedState());
-    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
+    auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
+    auto intfMac =
+        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     auto srcIp = folly::IPAddress(isV6 ? "1001::1" : "10.0.0.1");
     // Send packet to null IP destination - this should lead to a
     // trap drop increment.

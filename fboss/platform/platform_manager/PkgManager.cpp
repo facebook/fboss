@@ -208,7 +208,7 @@ void PkgManager::processAll() const {
       processRpms();
       // In cases where kmods.json from previous BSP installation is absent
       // (like provisioning, where this is the first run of PM), the kmods might
-      // be present in the initramfs
+      // be present in the initramfs OR ramdisk image
       unloadBspKmods();
       // Load required kmods from PM config.
       loadRequiredKmods();

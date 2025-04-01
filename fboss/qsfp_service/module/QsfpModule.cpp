@@ -11,6 +11,8 @@
 
 #include <string>
 
+#include <re2/re2.h>
+
 #include <boost/assign.hpp>
 
 #include <folly/io/IOBuf.h>
@@ -175,7 +177,7 @@ std::string QsfpModule::getFwStorageHandle() const {
     return std::string();
   }
 
-  return getFwStorageHandle(vendor->get_partNumber());
+  return getFwStorageHandle(vendor->partNumber().value());
 }
 
 bool QsfpModule::upgradeFirmwareLocked(
@@ -284,7 +286,7 @@ std::string QsfpModule::getPartNumber() const {
     const auto& cachedTcvrState = transceiverInfo.tcvrState();
     const auto& vendor = cachedTcvrState.value().vendor();
     if (vendor.has_value()) {
-      partNumber = vendor.value().get_partNumber();
+      partNumber = vendor.value().partNumber().value();
     }
   } catch (const std::exception& ex) {
     QSFP_LOG(ERR, this) << "Error calling getTransceiverInfo(): " << ex.what();
@@ -345,6 +347,7 @@ unsigned int QsfpModule::numHostLanes() const {
     case MediaInterfaceCode::FR1_100G:
     case MediaInterfaceCode::FR4_200G:
     case MediaInterfaceCode::CR4_200G:
+    case MediaInterfaceCode::CR4_400G:
       return 4;
     case MediaInterfaceCode::FR4_400G:
     case MediaInterfaceCode::LR4_400G_10KM:
@@ -354,6 +357,8 @@ unsigned int QsfpModule::numHostLanes() const {
     case MediaInterfaceCode::DR4_400G:
     case MediaInterfaceCode::DR4_2x400G:
     case MediaInterfaceCode::FR8_800G:
+    case MediaInterfaceCode::CR8_800G:
+    case MediaInterfaceCode::LR4_2x400G_10KM:
       return 8;
     case MediaInterfaceCode::UNKNOWN:
       return 0;
@@ -377,12 +382,15 @@ unsigned int QsfpModule::numMediaLanes() const {
     case MediaInterfaceCode::FR4_400G:
     case MediaInterfaceCode::LR4_400G_10KM:
     case MediaInterfaceCode::DR4_400G:
+    case MediaInterfaceCode::CR4_400G:
       return 4;
     case MediaInterfaceCode::CR8_400G:
     case MediaInterfaceCode::FR4_2x400G:
     case MediaInterfaceCode::FR4_LITE_2x400G:
     case MediaInterfaceCode::DR4_2x400G:
     case MediaInterfaceCode::FR8_800G:
+    case MediaInterfaceCode::CR8_800G:
+    case MediaInterfaceCode::LR4_2x400G_10KM:
       return 8;
     case MediaInterfaceCode::UNKNOWN:
       return 0;
@@ -570,7 +578,7 @@ void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
 
 bool QsfpModule::customizationSupported() const {
   // Customization is allowed on present Optical modules only. We should skip
-  // other types
+  // other types. Overridden in derived classes if needed.
   auto tech = getQsfpTransmitterTechnology();
   return present_ && tech == TransmitterTechnology::OPTICAL;
 }
@@ -774,6 +782,21 @@ bool QsfpModule::isTransceiverFeatureSupported(
 bool QsfpModule::isVdmSupported(uint8_t maxGroupRequested) const {
   if (!isTransceiverFeatureSupported(TransceiverFeature::VDM)) {
     return false;
+  }
+
+  // Intel SPTSHP3CLCKS / SPTSHP3CLCK2 has a bug and needs FW Update.
+  // Tracked by T209278325
+  auto cachedTcvrInfo = getTransceiverInfo();
+  auto vendor = cachedTcvrInfo.tcvrState()->vendor();
+  if (vendor.has_value()) {
+    re2::RE2 portNameRe("Intel");
+    if (re2::RE2::PartialMatch(vendor->name().value(), portNameRe) &&
+        ((vendor->partNumber().value() == "SPTSHP3CLCKS") ||
+         (vendor->partNumber().value() == "SPTSHP3CLCK2"))) {
+      QSFP_LOG(WARN, this)
+          << "Found Intel SPTSHP3CLCKS / SPTSHP3CLCK2. VDM is not supported";
+      return false;
+    }
   }
   if (!maxGroupRequested) {
     return true;

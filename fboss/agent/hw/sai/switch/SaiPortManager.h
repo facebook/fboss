@@ -229,6 +229,7 @@ class SaiPortManager {
   void updateConnectivityStats(PortID portID);
 
   void clearStats(PortID portID);
+  void clearInterfacePhyCounters(const PortID& portId);
 
   void programMirrorOnAllPorts(
       const std::string& mirrorName,

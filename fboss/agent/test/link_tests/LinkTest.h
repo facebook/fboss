@@ -52,10 +52,11 @@ class LinkTest : public AgentTest {
   std::set<std::pair<PortID, PortID>> getConnectedPairs() const;
 
   /*
-   * Return plugged in optical transceivers and their names.
+   * Return plugged in Optical and Active Electrical Cable transceivers and
+   * their names.
    */
-  std::tuple<std::vector<PortID>, std::string> getOpticalCabledPortsAndNames(
-      bool pluggableOnly = false) const;
+  std::tuple<std::vector<PortID>, std::string>
+  getOpticalAndActiveCabledPortsAndNames(bool pluggableOnly = false) const;
 
   /*
    * Ports where we expect optics to be plugged in.
@@ -72,8 +73,6 @@ class LinkTest : public AgentTest {
     return cabledFabricPorts_;
   }
 
-  void checkQsfpServiceMemoryInBounds() const;
-  void checkFsdbMemoryInBounds() const;
   void checkAgentMemoryInBounds() const;
 
   /*
@@ -100,7 +99,8 @@ class LinkTest : public AgentTest {
       PortID portId,
       const std::set<std::pair<PortID, PortID>>& connectedPairs) const;
 
-  std::set<std::pair<PortID, PortID>> getConnectedOpticalPortPairWithFeature(
+  std::set<std::pair<PortID, PortID>>
+  getConnectedOpticalAndActivePortPairWithFeature(
       TransceiverFeature feature,
       phy::Side side,
       bool skipLoopback = false) const;

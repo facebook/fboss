@@ -2244,7 +2244,7 @@
           "test_name_regex": "HwAsicDefaultProgrammingTest.*$"
         }
     ],
-    "chenab/1.14.130/1.14.130/chenab": [
+    "chenab/1.15.3/1.15.3/chenab": [
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*HwTest_PROFILE_400G_8_PAM4_RS544X2N_COPPER"
         },
@@ -2292,6 +2292,60 @@
         },
         {
           "test_name_regex": "HwUdfAcl.*$"
+        },
+        {
+          "test_name_regex": "HwLabelEdgeRouteTest.*"
+        },
+        {
+          "test_name_regex": "HwLabelSwitchRouteTest.*"
+        },
+        {
+          "test_name_regex": "HwMPLSTest.*"
+        },
+        {
+          "test_name_regex": "HwTeFlowTrafficTest.*"
+        },
+        {
+          "test_name_regex": "HwTeFlowTest.*"
+        },
+        {
+          "test_name_regex": "HwMirrorTest/[01].SampleOnePort"
+        },
+        {
+          "test_name_regex": "HwMirrorTest/[01].SampleAllPorts"
+        },
+        {
+          "test_name_regex": "HwMirrorTest/[01].SflowMirrorWithErspanMirror"
+        },
+        {
+          "test_name_regex": "HwMirrorTest/[01].SflowMirrorWithErspanMirrorOnePortSflow"
+        },
+        {
+          "test_name_regex": "HwMirrorTest/[01].SflowMirrorWithErspanMirrorNoPortSflow"
+        },
+        {
+          "test_name_regex": "HwMirrorTest/[01].SampleAllPortsMirrorUnresolved"
+        },
+        {
+          "test_name_regex": "HwMirrorTest/[01].SampleAllPortsMirrorUnresolvedResolved"
+        },
+        {
+          "test_name_regex": "HwMirrorTest/[01].SampleAllPortsMirrorUpdate"
+        },
+        {
+          "test_name_regex": "HwMirrorTest/[01].RemoveSampleAllPorts"
+        },
+        {
+          "test_name_regex": "HwMirrorTest/[01].RemoveSampleAllPortsAfterWarmBoot"
+        },
+        {
+          "test_name_regex": "HwMirrorTest/[01].SampleAllPortsReloadConfig"
+        },
+        {
+          "test_name_regex": "HwSflowTest.SflowSamplingEnabled"
+        },
+        {
+          "test_name_regex": "HwSflowTest.SflowSamplingDisabled"
         }
     ],
     "leaba/1.42.8/1.42.8/gibraltar": [
@@ -2440,6 +2494,65 @@
         }
     ],
     "leaba/24.8.3001/24.8.3001/gibraltar": [
+        {
+          "test_name_regex": "HwFlowletAclCounterTest.*$"
+        },
+        {
+          "test_name_regex": "HwFlowletSwitching.*$"
+        },
+        {
+          "test_name_regex": "HwEcmpFlowletSwitching.*$"
+        },
+        {
+          "test_name_regex": "HwLoadBalancerTestV6Flowlet.*$"
+        },
+        {
+          "test_name_regex": "HwLoadBalancerTestV6EcmpToFlowlet.*$"
+        },
+        {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
+        },
+        {
+          "test_name_regex": "HwTeFlowTest.*$"
+        },
+        {
+          "test_name_regex": "HwTeFlowTrafficTest.*$"
+        },
+        {
+          "test_name_regex": "HwUdfAcl.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*HwTest_PROFILE_400G_8_PAM4_RS544X2N_COPPER"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*SaiQPHRollbackTest.rollback"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostTest/[0123].*"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostRouteTest/[01].*"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostL2Test.*"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentAclPriorityTest/[0].*"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentPacketSendTest.PortTxEnableTest"
+        },
+        {
+          "test_name_regex": "HwAclCounterTest/[01].*$"
+        },
+        {
+          "test_name_regex": "HwAclCounterTest/[01].VerifyCounterBumpOnBthOpcodeHitFrontPanel$"
+        },
+        {
+          "test_name_regex": "HwAsicDefaultProgrammingTest.*$"
+        }
+    ],
+    "leaba/24.8.3001/24.8.3001/graphene200": [
         {
           "test_name_regex": "HwFlowletAclCounterTest.*$"
         },

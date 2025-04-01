@@ -63,6 +63,7 @@ SaiYangraPlatform::getSaiProfileVendorExtensionValues() const {
   kv_map.insert(std::make_pair("SAI_KEY_NOT_DROP_SMAC_DMAC_EQUAL", "1"));
   kv_map.insert(std::make_pair("SAI_KEY_RECLAIM_BUFFER_ENABLED", "0"));
   kv_map.insert(std::make_pair("SAI_KEY_TRAP_PACKETS_USING_CALLBACK", "1"));
+  kv_map.insert(std::make_pair("SAI_KEY_ROUTE_METADATA_FIELD_SIZE", "5"));
   return kv_map;
 }
 
@@ -85,7 +86,7 @@ SaiYangraPlatform::getAclFieldList() const {
 }
 std::string SaiYangraPlatform::getHwConfig() {
   std::string xml_filename =
-      *config()->thrift.platform()->get_chip().get_asic().config();
+      *config()->thrift.platform()->chip().value().get_asic().config();
   std::string base_filename =
       xml_filename.substr(0, xml_filename.find(".xml") + 4);
   std::ifstream xml_file(base_filename);

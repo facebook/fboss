@@ -34,6 +34,9 @@ sai_status_t create_ars_profile_fn(
   sai_uint8_t port_load_exponent = 2;
   sai_uint32_t load_current_min_val = 500;
   sai_uint32_t load_current_max_val = 5000;
+  sai_uint32_t quant_band_0_min_threshold = 0;
+  sai_uint32_t quant_band_1_min_threshold = 0;
+  sai_uint32_t quant_band_2_min_threshold = 0;
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_ARS_PROFILE_ATTR_ALGO:
@@ -87,6 +90,15 @@ sai_status_t create_ars_profile_fn(
       case SAI_ARS_PROFILE_ATTR_LOAD_CURRENT_MAX_VAL:
         load_current_max_val = attr_list[i].value.u32;
         break;
+      case SAI_ARS_PROFILE_ATTR_QUANT_BAND_0_MIN_THRESHOLD:
+        quant_band_0_min_threshold = attr_list[i].value.u32;
+        break;
+      case SAI_ARS_PROFILE_ATTR_QUANT_BAND_1_MIN_THRESHOLD:
+        quant_band_1_min_threshold = attr_list[i].value.u32;
+        break;
+      case SAI_ARS_PROFILE_ATTR_QUANT_BAND_2_MIN_THRESHOLD:
+        quant_band_2_min_threshold = attr_list[i].value.u32;
+        break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }
@@ -108,7 +120,10 @@ sai_status_t create_ars_profile_fn(
       port_load_current,
       port_load_exponent,
       load_current_min_val,
-      load_current_max_val);
+      load_current_max_val,
+      quant_band_0_min_threshold,
+      quant_band_1_min_threshold,
+      quant_band_2_min_threshold);
 
   return SAI_STATUS_SUCCESS;
 }
@@ -175,6 +190,15 @@ sai_status_t set_ars_profile_attribute_fn(
       break;
     case SAI_ARS_PROFILE_ATTR_LOAD_CURRENT_MAX_VAL:
       arsProfile.load_current_max_val = attr->value.u32;
+      break;
+    case SAI_ARS_PROFILE_ATTR_QUANT_BAND_0_MIN_THRESHOLD:
+      arsProfile.quant_band_0_min_threshold = attr->value.u32;
+      break;
+    case SAI_ARS_PROFILE_ATTR_QUANT_BAND_1_MIN_THRESHOLD:
+      arsProfile.quant_band_1_min_threshold = attr->value.u32;
+      break;
+    case SAI_ARS_PROFILE_ATTR_QUANT_BAND_2_MIN_THRESHOLD:
+      arsProfile.quant_band_2_min_threshold = attr->value.u32;
       break;
     default:
       return SAI_STATUS_INVALID_PARAMETER;
@@ -243,6 +267,15 @@ sai_status_t get_ars_profile_attribute_fn(
         break;
       case SAI_ARS_PROFILE_ATTR_MAX_FLOWS:
         attr[i].value.u32 = arsProfile.max_flows;
+        break;
+      case SAI_ARS_PROFILE_ATTR_QUANT_BAND_0_MIN_THRESHOLD:
+        attr[i].value.u32 = arsProfile.quant_band_0_min_threshold;
+        break;
+      case SAI_ARS_PROFILE_ATTR_QUANT_BAND_1_MIN_THRESHOLD:
+        attr[i].value.u32 = arsProfile.quant_band_1_min_threshold;
+        break;
+      case SAI_ARS_PROFILE_ATTR_QUANT_BAND_2_MIN_THRESHOLD:
+        attr[i].value.u32 = arsProfile.quant_band_2_min_threshold;
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;

@@ -58,7 +58,7 @@
       ],
       "version": {
         "versionType": "sysfs",
-        "path": "/run/devmap/fpgas/MERU_SCM_CPLD_INFO_ROM/fw_ver"
+        "path": "/run/devmap/inforoms/MERU_SCM_CPLD_INFO_ROM/fw_ver"
       },
       "priority": 4
     },
@@ -111,7 +111,7 @@
       ],
       "version": {
         "versionType": "sysfs",
-        "path": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0_INFO_ROM/fw_ver"
+        "path": "/run/devmap/inforoms/MERU800BFA_SMB_FPGA0_INFO_ROM/fw_ver"
       },
       "priority": 2
     },
@@ -136,7 +136,7 @@
       ],
       "version": {
         "versionType": "sysfs",
-        "path": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1_INFO_ROM/fw_ver"
+        "path": "/run/devmap/inforoms/MERU800BFA_SMB_FPGA1_INFO_ROM/fw_ver"
       },
       "priority": 2
     },
@@ -161,7 +161,7 @@
       ],
       "version": {
         "versionType": "sysfs",
-        "path": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2_INFO_ROM/fw_ver"
+        "path": "/run/devmap/inforoms/MERU800BFA_SMB_FPGA2_INFO_ROM/fw_ver"
       },
       "priority": 2
     },
@@ -186,7 +186,7 @@
       ],
       "version": {
         "versionType": "sysfs",
-        "path": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3_INFO_ROM/fw_ver"
+        "path": "/run/devmap/inforoms/MERU800BFA_SMB_FPGA3_INFO_ROM/fw_ver"
       },
       "priority": 2
     },
