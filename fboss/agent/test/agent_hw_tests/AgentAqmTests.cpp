@@ -397,7 +397,8 @@ class AgentAqmTest : public AgentHwTest {
     constexpr int kPayloadLength{30};
     const int kTxPacketLen =
         kPayloadLength + EthHdr::SIZE + IPv6Hdr::size() + TCPHeader::size();
-    auto asic = utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+    const std::vector<const HwAsic*> asics{getAgentEnsemble()->getL3Asics()};
+    auto asic = utility::checkSameAndGetAsic(asics);
     // The ECN/WRED threshold are rounded down for TAJO as opposed to being
     // rounded up to the next cell size for Broadcom.
     bool roundUp = asic->getAsicType() != cfg::AsicType::ASIC_TYPE_EBRO;
@@ -421,9 +422,27 @@ class AgentAqmTest : public AgentHwTest {
             utility::getEffectiveBytesPerPacket(asic, kTxPacketLen)) +
         expectedMarkedOrDroppedPacketCount;
 
-    auto setup = []() {};
+    auto setup = [&]() {
+      cfg::SwitchConfig config{initialConfig(*getAgentEnsemble())};
+      utility::addOlympicQueueConfig(&config, asics);
+      // Configure both WRED and ECN thresholds
+      queueEcnThresholdSetup(config, std::array{kQueueId});
+      queueWredThresholdSetup(config, std::array{kQueueId});
+      // Include any config setup needed per test case
+      if (setupFn.has_value()) {
+        (*setupFn)(config, {kQueueId}, kTxPacketLen);
+      }
+      applyNewConfig(config);
 
-    auto verify = []() {};
+      // No traffic loop needed, so send traffic to a different MAC
+      int kEcmpWidthForTest{1};
+      utility::EcmpSetupAnyNPorts6 ecmpHelper6{
+          getProgrammedState(),
+          utility::MacAddressGenerator().get(getIntfMac().u64NBO() + 10)};
+      resolveNeighborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
+    };
+
+    auto verify = [&]() {};
 
     verifyAcrossWarmBoots(setup, verify);
   }
