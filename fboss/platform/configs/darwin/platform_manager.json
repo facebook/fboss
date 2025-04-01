@@ -905,7 +905,8 @@
               "deviceName": "watchdog_darwin",
               "csrOffset": "0x304"
             }
-          ]
+          ],
+          "desiredDriver": "scd"
         }
       ],
       "embeddedSensorConfigs": [
