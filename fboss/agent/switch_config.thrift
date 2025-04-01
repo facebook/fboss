@@ -632,6 +632,7 @@ enum AclTableActionType {
   MIRROR_EGRESS = 5,
   SET_USER_DEFINED_TRAP = 6,
   DISABLE_ARS_FORWARDING = 7,
+  SET_ARS_OBJECT = 8,
 }
 
 enum AclTableQualifier {
@@ -763,6 +764,10 @@ enum FlowletAction {
   * Forward the packet to DLB engine.
   */
   FORWARD = 1,
+  /**
+  * Disable the packet to DLB engine.
+  */
+  DISABLE = 2,
 }
 
 struct MatchAction {

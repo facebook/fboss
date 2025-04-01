@@ -458,6 +458,9 @@ void BcmAclEntry::applyFlowletAction(
           hw_->getUnit(), handle_, bcmFieldActionDynamicEcmpEnable, 0, 0);
       bcmCheckError(rv, "failed to add dynamic ecmp enable action");
       break;
+    case cfg::FlowletAction::DISABLE:
+      throw FbossError("Unsupported flowlet action ", flowletAction);
+      break;
     default:
       throw FbossError("Unrecognized flowlet action ", flowletAction);
   }

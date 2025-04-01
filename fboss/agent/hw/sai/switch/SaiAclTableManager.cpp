@@ -407,6 +407,9 @@ SaiAclTableManager::cfgActionTypeListToSaiActionTypeList(
         saiActionType = SAI_ACL_ACTION_TYPE_SET_USER_TRAP_ID;
         break;
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+      case cfg::AclTableActionType::SET_ARS_OBJECT:
+        saiActionType = SAI_ACL_ACTION_TYPE_SET_ARS_OBJECT;
+        break;
       case cfg::AclTableActionType::DISABLE_ARS_FORWARDING:
         saiActionType = SAI_ACL_ACTION_TYPE_DISABLE_ARS_FORWARDING;
         break;
@@ -1219,6 +1222,10 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
             aclActionDisableArsForwarding =
                 SaiAclEntryTraits::Attributes::ActionDisableArsForwarding{
                     false};
+            break;
+          case cfg::FlowletAction::DISABLE:
+            aclActionDisableArsForwarding =
+                SaiAclEntryTraits::Attributes::ActionDisableArsForwarding{true};
             break;
         }
       }
