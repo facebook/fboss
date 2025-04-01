@@ -6,6 +6,7 @@
 #include <map>
 #include <vector>
 
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/packet/EthHdr.h"
 #include "fboss/agent/packet/IPv6Hdr.h"
 #include "fboss/agent/packet/PktFactory.h"
@@ -442,7 +443,44 @@ class AgentAqmTest : public AgentHwTest {
       resolveNeighborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
     };
 
-    auto verify = [&]() {};
+    auto verify = [&]() {
+      XLOG(DBG3) << "Rounded threshold: "
+                 << utility::getRoundedBufferThreshold(
+                        asic, thresholdBytes, roundUp)
+                 << ", effective bytes per pkt: "
+                 << utility::getEffectiveBytesPerPacket(asic, kTxPacketLen)
+                 << ", kTxPacketLen: " << kTxPacketLen
+                 << ", pkts to send: " << numPacketsToSend
+                 << ", expected marked/dropped pkts: "
+                 << expectedMarkedOrDroppedPacketCount;
+
+      auto sendPackets = [&](const PortID& /* port */, int numPacketsToSend) {
+        // Single port config, traffic gets forwarded out of the same!
+        sendPkts(
+            utility::kOlympicQueueToDscp().at(kQueueId).front(),
+            ecnCodePoint,
+            numPacketsToSend,
+            kPayloadLength,
+            /*ttl=*/255,
+            masterLogicalInterfacePortIds()[1]);
+      };
+
+      // Send traffic with queue buildup and get the stats at the start!
+      HwPortStats beforePortStats = utility::sendPacketsWithQueueBuildup(
+          sendPackets,
+          getAgentEnsemble(),
+          masterLogicalInterfacePortIds()[0],
+          numPacketsToSend);
+
+      AqmTestStats before{};
+      extractAqmTestStats(
+          beforePortStats, kQueueId, false /*useQueueStatsForAqm*/, before);
+
+      // For ECN all packets are sent out, for WRED, account for drops!
+      [[maybe_unused]] const uint64_t kExpectedOutPackets = isEct(ecnCodePoint)
+          ? numPacketsToSend
+          : numPacketsToSend - expectedMarkedOrDroppedPacketCount;
+    };
 
     verifyAcrossWarmBoots(setup, verify);
   }
