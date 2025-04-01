@@ -693,6 +693,13 @@ void SaiHostifManager::loadCpuPort() {
         portApi.getAttribute(cpuPortHandle_->cpuPortId, attr);
     XLOG(DBG5) << "Got cpu sai system port ID "
                << cpuPortHandle_->cpuSystemPortId.value();
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+    auto& systemPortApi = SaiApiTable::getInstance()->systemPortApi();
+    systemPortApi.setAttribute(
+        cpuPortHandle_->cpuSystemPortId.value(),
+        SaiSystemPortTraits::Attributes::TcRateLimitExclude{true});
+    XLOG(DBG5) << "Excluded cpu system port from global tc rate limit";
+#endif
   }
   loadCpuPortQueues();
   if (platform_->getAsic()->isSupported(HwAsic::Feature::VOQ)) {
