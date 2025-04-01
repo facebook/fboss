@@ -779,8 +779,47 @@ class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcTest {
     });
   }
 
+  void waitForPfcDeadlocksToSettle(const PortID& portId) {
+    int noIncrementIterations = 0;
+    auto [deadlockCtrBefore, recoveryCtrBefore] =
+        getPfcDeadlockCounters(portId);
+    WITH_RETRIES({
+      auto [deadlockCtr, recoveryCtr] = getPfcDeadlockCounters(portId);
+      XLOG(DBG0) << "For port: " << portId << " deadlockCtr = " << deadlockCtr
+                 << " recoveryCtr = " << recoveryCtr;
+      if (deadlockCtr == deadlockCtrBefore &&
+          recoveryCtr == recoveryCtrBefore) {
+        noIncrementIterations++;
+      } else {
+        noIncrementIterations = 0;
+        deadlockCtrBefore = deadlockCtr;
+        recoveryCtrBefore = recoveryCtr;
+      }
+      // No counter increment for 5 consecutive iterations,
+      // assume no more PFC deadlocks!
+      EXPECT_EVENTUALLY_EQ(noIncrementIterations, 5);
+    });
+  }
+
   void reEnablePort(const PortID& txOffPortId) {
+    // Enable credit WD and TX on port
     utility::setCreditWatchdogAndPortTx(getAgentEnsemble(), txOffPortId, true);
+  }
+
+  void cleanupPfcDeadlockDetectionTrigger(const PortID& portId) {
+    reEnablePort(portId);
+    auto asic = utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+    if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
+      std::string out;
+      // TODO: When PFC WD is continuously being triggered with this register
+      // config, getAttr for queue PFC WD enabled returns wrong value and is
+      // tracked in CS00012388717. Until that is fixed, work around the issue.
+      // For that, stop PFC WD being triggered continuously and wait to ensure
+      // that the PFC DL generation settles.
+      getAgentEnsemble()->runDiagCommand(
+          "modreg CFC_FRC_NIF_ETH_PFC FRC_NIF_ETH_PFC=0\n", out);
+    }
+    waitForPfcDeadlocksToSettle(portId);
   }
 };
 
@@ -806,7 +845,7 @@ TEST_F(AgentTrafficPfcWatchdogTest, PfcWatchdogDetection) {
     triggerPfcDeadlockDetection(portId, txOffPortId, ip);
     validatePfcWatchdogCountersIncrease(
         portId, deadlockCtrBefore, recoveryCtrBefore);
-    reEnablePort(txOffPortId);
+    cleanupPfcDeadlockDetectionTrigger(txOffPortId);
   };
   verifyAcrossWarmBoots(setup, verify);
 }
