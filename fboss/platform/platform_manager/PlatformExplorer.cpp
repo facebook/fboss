@@ -844,6 +844,15 @@ void PlatformExplorer::genHumanReadableEeproms() {
     if (devicePath == "/[SCM_IDPROM_P1]") {
       continue;
     }
+
+    // Ignore Darwin's I2cDeviceConfig eeproms as they don't support meta eeprom
+    // Darwin48v eeproms defined in I2cDeviceConfig aren't at offset 0
+    if (devicePath == "/RACKMON_SLOT@0/[FANSPINNER_EEPROM]" ||
+        devicePath == "/RACKMON_SLOT@0/[IDPROM]" ||
+        devicePath == "/[CHASSIS_EEPROM]") {
+      continue;
+    }
+
     writeEepromContent(devicePath, linkPath);
   }
 
