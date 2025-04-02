@@ -468,7 +468,6 @@ bool ResourceAccountant::neighborStateChangedImpl(const StateDelta& delta) {
   // Ensure new state usage does not exceed neighbor_resource_percentage
   for (const auto& [switchId, count] : getNeighborEntriesMap<TableT>()) {
     isValidUpdate &= (count <= getMaxNeighborTableSize<TableT>());
-    ;
     if (!isValidUpdate) { // log error
       std::string neighbor;
       if constexpr (std::is_same_v<TableT, NdpTable>) {
