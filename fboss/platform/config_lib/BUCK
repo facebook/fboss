@@ -12,6 +12,7 @@ cpp_binary(
     ],
     deps = [
         ":cross_config_validator",
+        "//fboss/platform/data_corral_service:config_validator",
         "//fboss/platform/data_corral_service/if:led_manager-cpp2-types",
         "//fboss/platform/fan_service:config_validator",
         "//fboss/platform/fan_service/if:fan_service-cpp2-types",
