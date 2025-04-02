@@ -500,6 +500,7 @@ class AgentNeighborResolutionOverFlowTest : public AgentNeighborResolutionTest {
     // set max neighbor resource percentage to 200% to bypass resourceAccountant
     // check
     FLAGS_neighbhor_resource_percentage = 200;
+    FLAGS_max_ndp_entries = 9000;
   }
 
   // generate IPv6 addresses, here goal is to generate 8K addresses
