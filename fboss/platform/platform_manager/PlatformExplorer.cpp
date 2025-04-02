@@ -818,13 +818,13 @@ void PlatformExplorer::createPciSubDevices(
 void PlatformExplorer::genHumanReadableEeproms() {
   const auto writeEepromContent = [&](const auto& devicePath,
                                       const auto& eepromRuntimePath) {
-    // Parse the eeproms which are defined as just I2cDeviceConfig (and not
-    // IdpromConfig). All eeproms in IdpromConfigs are parsed during ...
+    // Ignore if eeprom content wasn't populated, something went wrong in
+    // exploration.
     if (!dataStore_.hasEepromContents(devicePath)) {
-      // Eeproms defined in I2cDeviceConfig doesn't have offset defined.
-      dataStore_.updateEepromContents(
-          devicePath,
-          eepromParser_.getContents(eepromRuntimePath, /*offset*/ 0));
+      XLOG(ERR) << fmt::format(
+          "{} has empty eeprom contents. Skip generating eeprom content",
+          devicePath);
+      return;
     }
     auto contents = dataStore_.getEepromContents(devicePath);
     std::ostringstream os;
@@ -838,6 +838,12 @@ void PlatformExplorer::genHumanReadableEeproms() {
   for (const auto& [linkPath, devicePath] :
        *platformConfig_.symbolicLinkToDevicePath()) {
     if (!linkPath.starts_with("/run/devmap/eeproms")) {
+      continue;
+    }
+    const auto [slotPath, deviceName] = Utils().parseDevicePath(devicePath);
+    if (deviceName != "IDPROM") {
+      XLOG(WARNING) << fmt::format(
+          "{} is not IDPROM. Skip generating eeprom content.", linkPath);
       continue;
     }
     writeEepromContent(devicePath, linkPath);
