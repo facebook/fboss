@@ -33,23 +33,14 @@ using namespace facebook::fboss::platform::fan_service;
 namespace constants =
     facebook::fboss::platform::fan_service::fan_service_config_constants;
 
-std::optional<TempToPwmMap> getConfigOpticTable(
+template <typename T>
+std::optional<T> getConfigOpticData(
     const Optic& optic,
-    const std::string& opticType) {
-  for (const auto& [tableType, tempToPwmMap] : *optic.tempToPwmMaps()) {
+    const std::string& opticType,
+    const std::map<std::string, T>& dataMap) {
+  for (const auto& [tableType, data] : dataMap) {
     if (tableType == opticType) {
-      return tempToPwmMap;
-    }
-  }
-  return std::nullopt;
-}
-
-std::optional<PidSetting> getConfigOpticPid(
-    const Optic& optic,
-    const std::string& opticType) {
-  for (const auto& [tableType, pidSetting] : *optic.pidSettings()) {
-    if (tableType == opticType) {
-      return pidSetting;
+      return data;
     }
   }
   return std::nullopt;
@@ -281,7 +272,8 @@ void ControlLogic::getOpticsUpdate() {
       // the aggregation using the max value
       for (const auto& [opticType, value] : opticEntry->data) {
         int pwmForThis = 0;
-        auto tablePointer = getConfigOpticTable(optic, opticType);
+        auto tablePointer = getConfigOpticData<TempToPwmMap>(
+            optic, opticType, *optic.tempToPwmMaps());
         // We have <type, value> pair. If we have table entry for this
         // optics type, get the matching pwm value using the optics value
         if (tablePointer) {
@@ -321,7 +313,8 @@ void ControlLogic::getOpticsUpdate() {
       // Step 2. Get the pwm per optic type using PID
       for (const auto& [opticType, value] : maxValue) {
         // Get PID setting
-        auto pidSetting = getConfigOpticPid(optic, opticType);
+        auto pidSetting = getConfigOpticData<PidSetting>(
+            optic, opticType, *optic.pidSettings());
         if (!pidSetting) {
           XLOG(ERR) << fmt::format(
               "Optic {} does not have PID setting", opticType);
