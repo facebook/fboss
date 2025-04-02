@@ -421,6 +421,46 @@ TransmitterTechnology fromSaiMediaType(sai_port_media_type_t saiMediaType) {
       return TransmitterTechnology::UNKNOWN;
   }
 }
+/*
+ * Get the worst case optics delay we have assumed
+ * in our buffer calculations.
+ * Any delay reported by the ASIC can not factor in the
+ * optics delay. So we factor in a max optics delay
+ * in our calculations.
+ * The actual optics delay maybe less, which means
+ * we will report shorter cable lens. But short of getting
+ * real-time optics delay, this is the best agent can do.
+ */
+int getWorstCaseAssumedOpticsDelayNS(const HwAsic& asic) {
+  switch (asic.getAsicType()) {
+    case cfg::AsicType::ASIC_TYPE_FAKE:
+    case cfg::AsicType::ASIC_TYPE_MOCK:
+    case cfg::AsicType::ASIC_TYPE_TRIDENT2:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK3:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK6:
+    case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
+    case cfg::AsicType::ASIC_TYPE_EBRO:
+    case cfg::AsicType::ASIC_TYPE_YUBA:
+    case cfg::AsicType::ASIC_TYPE_CHENAB:
+    case cfg::AsicType::ASIC_TYPE_JERICHO2:
+    case cfg::AsicType::ASIC_TYPE_RAMON:
+    case cfg::AsicType::ASIC_TYPE_GARONNE:
+    case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
+      break;
+    case cfg::AsicType::ASIC_TYPE_JERICHO3:
+    case cfg::AsicType::ASIC_TYPE_RAMON3:
+      // For J3-R3, we measured max optics delay to
+      // be 110ns.
+      // TODO: get optics type info from qsfp svc and export a
+      // accurate number for optics delay based on type
+      return 110;
+  }
+  throw FbossError(
+      "Optics delay not supported on asic type: ", asic.getAsicType());
+}
 } // namespace
 
 void SaiPortHandle::resetQueues() {
@@ -2006,10 +2046,14 @@ void SaiPortManager::updateStats(
     if (cableLenAvailableOnPort &&
         !curPortStats.cableLengthMeters().has_value()) {
       try {
-        uint32_t cablePropogationDelayNS =
+        int32_t cablePropogationDelayNS =
             SaiApiTable::getInstance()->portApi().getAttribute(
                 handle->port->adapterKey(),
                 SaiPortTraits::Attributes::CablePropogationDelayNS{});
+        cablePropogationDelayNS = std::max(
+            cablePropogationDelayNS -
+                getWorstCaseAssumedOpticsDelayNS(*platform_->getAsic()),
+            0);
         // In fiber it takes about 5ns for light to travel 1 meter
         curPortStats.cableLengthMeters() =
             std::ceil(cablePropogationDelayNS / 5.0);
