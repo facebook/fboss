@@ -840,10 +840,6 @@ void PlatformExplorer::genHumanReadableEeproms() {
     if (!linkPath.starts_with("/run/devmap/eeproms")) {
       continue;
     }
-    // DSF P1 is sunsetting until then ignore.
-    if (devicePath == "/[SCM_IDPROM_P1]") {
-      continue;
-    }
     writeEepromContent(devicePath, linkPath);
   }
 
