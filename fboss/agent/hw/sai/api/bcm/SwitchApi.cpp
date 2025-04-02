@@ -3,6 +3,7 @@
 #include "fboss/agent/hw/sai/api/SwitchApi.h"
 
 extern "C" {
+#include <brcm_sai_extensions.h>
 #include <sai.h>
 
 #ifndef IS_OSS_BRCM_SAI
@@ -575,6 +576,14 @@ std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeTcRateLimitList::operator()() {
 #if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
   return SAI_SWITCH_ATTR_TC_RATE_LIMIT_LIST;
+#endif
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributePfcTcDldTimerInterval::operator()() {
+#if defined(BRCM_SAI_SDK_XGS) && defined(BRCM_SAI_SDK_GTE_11_0)
+  return SAI_SWITCH_ATTR_PFC_TC_DLD_TIMER_INTERVAL;
 #endif
   return std::nullopt;
 }

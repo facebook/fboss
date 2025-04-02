@@ -632,4 +632,9 @@ SaiSwitchTraits::Attributes::AttributeTcRateLimitList::operator()() {
   return SAI_SWITCH_ATTR_TC_RATE_LIMIT_LIST;
 }
 
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributePfcTcDldTimerInterval::operator()() {
+  return std::nullopt;
+}
+
 } // namespace facebook::fboss

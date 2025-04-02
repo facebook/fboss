@@ -857,6 +857,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       std::nullopt, // SDK Register dump log path
       std::nullopt, // Firmware Object list
       std::nullopt, // tc rate limit list
+      std::nullopt, // PFC watchdog timer granularity
   };
 }
 

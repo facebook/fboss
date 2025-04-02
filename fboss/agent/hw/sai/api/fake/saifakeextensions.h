@@ -94,6 +94,7 @@ typedef enum _sai_switch_extensions_attr_t {
   SAI_SWITCH_ATTR_SDK_REG_DUMP_LOG_PATH,
   SAI_SWITCH_ATTR_FIRMWARE_OBJECTS,
   SAI_SWITCH_ATTR_TC_RATE_LIMIT_LIST,
+  SAI_SWITCH_ATTR_PFC_TC_DLD_TIMER_INTERVAL,
 } sai_switch_extensions_attr_t;
 
 typedef enum _sai_tam_event_extensions_attr_t {
