@@ -59,6 +59,11 @@ DEFINE_bool(
     false,
     "Enable new delay drop congestion threshold in CGM");
 
+DEFINE_int32(
+    pfc_watchdog_timer_granularity_msec,
+    10,
+    "PFC watchdog timer granularity which can be 1ms, 10ms or 100ms");
+
 namespace {
 
 std::unordered_map<std::string, std::string> kSaiProfileValues;
@@ -771,6 +776,26 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
 #endif
   }
 
+  std::optional<SaiSwitchTraits::Attributes::PfcTcDldTimerInterval>
+      pfcWatchdogTimerGranularyMap;
+#if defined(BRCM_SAI_SDK_XGS) && defined(BRCM_SAI_SDK_GTE_11_0)
+  // We need to set the watchdog granularity to an appropriate value, otherwise
+  // the default granularity in SAI/SDK may be incompatible with the requested
+  // watchdog intervals. Auto-derivation is being requested in CS00012393810.
+  std::vector<sai_map_t> mapToValueList(
+      cfg::switch_config_constants::PFC_PRIORITY_VALUE_MAX() + 1);
+  for (int pri = 0;
+       pri <= cfg::switch_config_constants::PFC_PRIORITY_VALUE_MAX();
+       pri++) {
+    sai_map_t mapping{};
+    mapping.key = pri;
+    mapping.value = FLAGS_pfc_watchdog_timer_granularity_msec;
+    mapToValueList.at(pri) = mapping;
+  }
+  pfcWatchdogTimerGranularyMap =
+      SaiSwitchTraits::Attributes::PfcTcDldTimerInterval{mapToValueList};
+#endif
+
   return {
       initSwitch,
       hwInfo, // hardware info
@@ -857,7 +882,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       std::nullopt, // SDK Register dump log path
       std::nullopt, // Firmware Object list
       std::nullopt, // tc rate limit list
-      std::nullopt, // PFC watchdog timer granularity
+      pfcWatchdogTimerGranularyMap, // PFC watchdog timer granularity
   };
 }
 
