@@ -139,8 +139,10 @@ std::map<std::string, std::map<std::string, std::string>> getConfigs() {
       if (!sensor_service::ConfigValidator().isValid(sensorConfig)) {
         throw std::runtime_error("Invalid sensor_service configuration");
       }
-      if (crossConfigValidator) {
-        crossConfigValidator->isValidSensorConfig(sensorConfig);
+      if (crossConfigValidator &&
+          !crossConfigValidator->isValidSensorConfig(sensorConfig)) {
+        throw std::runtime_error(
+            "Invalid sensor_service configuration. Failed cross config validation.");
       }
     }
     if (deserializedConfigs.contains("fan_service")) {
@@ -148,14 +150,6 @@ std::map<std::string, std::map<std::string, std::string>> getConfigs() {
           deserializedConfigs.at("fan_service"));
       if (!fan_service::ConfigValidator().isValid(config)) {
         throw std::runtime_error("Invalid fan_service configuration");
-      }
-      std::optional<SensorConfig> sensorConfig = std::nullopt;
-      if (deserializedConfigs.contains("sensor_service")) {
-        sensorConfig = std::any_cast<SensorConfig>(
-            deserializedConfigs.at("sensor_service"));
-      }
-      if (crossConfigValidator) {
-        crossConfigValidator->isValidFanServiceConfig(config, sensorConfig);
       }
     }
     if (deserializedConfigs.contains("led_manager")) {
