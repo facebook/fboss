@@ -240,7 +240,9 @@ void addAclTableGroup(
   cfg->aclTableGroups()->push_back(std::move(cfgTableGroup));
 }
 
-void addDefaultAclTable(cfg::SwitchConfig& cfg) {
+void addDefaultAclTable(
+    cfg::SwitchConfig& cfg,
+    const std::vector<std::string>& udfGroups) {
   std::optional<cfg::SdkVersion> version{};
   if (cfg.sdkVersion()) {
     version = *cfg.sdkVersion();
@@ -264,7 +266,8 @@ void addDefaultAclTable(cfg::SwitchConfig& cfg) {
         cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE(),
         0 /* priority */,
         actions,
-        qualifiers);
+        qualifiers,
+        udfGroups);
 
   } else {
     /* full set of supported and required qualifiers do not fit in single table.
@@ -287,7 +290,8 @@ void addDefaultAclTable(cfg::SwitchConfig& cfg) {
             cfg::AclTableQualifier::IP_TYPE,
             cfg::AclTableQualifier::ETHER_TYPE,
             cfg::AclTableQualifier::OUTER_VLAN,
-        });
+        },
+        udfGroups);
     addTtldAclTable(&cfg, cfg::AclStage::INGRESS, 1 /* priority */);
   }
 }
@@ -814,19 +818,33 @@ std::set<cfg::AclTableQualifier> getRequiredQualifers(
         }
         break;
 
-      case cfg::AclTableQualifier::UDF:
       case cfg::AclTableQualifier::BTH_OPCODE:
-        // TODO: identify when these qualifiers are required
+        addQualier(aclEntry.roceOpcode().has_value(), qualifier);
+        break;
+
+      case cfg::AclTableQualifier::UDF:
+        // handled with getRequiredUdfGroups
         break;
     }
   }
   return requiredQualifiers;
 }
 
+std::set<std::string> getRequiredUdfGroups(const cfg::AclEntry& aclEntry) {
+  std::set<std::string> requiredUdfGroups{};
+  if (aclEntry.udfTable().has_value()) {
+    for (auto& udfTableEntry : *aclEntry.udfTable()) {
+      requiredUdfGroups.insert(udfTableEntry.udfGroup().value());
+    }
+  }
+  return requiredUdfGroups;
+}
+
 bool aclEntrySupported(
     const cfg::AclTable* aclTable,
     const cfg::AclEntry& aclEntry) {
   auto aclTableQualifiers = aclTable->qualifiers();
+  auto aclUdfGroups = aclTable->udfGroups();
 
   if (aclTableQualifiers->empty()) {
     // acl table supports all supported qualifiers
@@ -851,8 +869,32 @@ bool aclEntrySupported(
     XLOG(ERR) << "Acl table " << *aclTable->name()
               << " does not support qualifiers: " << ss.str() << " for acl "
               << *aclEntry.name();
+    return false;
   }
-  return difference.empty();
+
+  auto requiredUdfGroups = getRequiredUdfGroups(aclEntry);
+  std::set<std::string> aclTableUdfGroups(
+      aclUdfGroups->begin(), aclUdfGroups->end());
+  std::set<std::string> differenceUdfGroups{};
+  std::set_difference(
+      requiredUdfGroups.begin(),
+      requiredUdfGroups.end(),
+      aclTableUdfGroups.begin(),
+      aclTableUdfGroups.end(),
+      std::inserter(differenceUdfGroups, differenceUdfGroups.begin()));
+
+  if (!differenceUdfGroups.empty()) {
+    std::stringstream ss;
+    for (const auto& udfGroup : differenceUdfGroups) {
+      ss << udfGroup << ", ";
+    }
+    XLOG(ERR) << "Acl table " << *aclTable->name()
+              << " does not support udf groups: " << ss.str() << " for acl "
+              << *aclEntry.name();
+    return false;
+  }
+
+  return difference.empty() && differenceUdfGroups.empty();
 }
 
 std::string getAclTableForAclEntry(

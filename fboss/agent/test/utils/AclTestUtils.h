@@ -92,7 +92,9 @@ void addAclTableGroup(
     cfg::AclStage aclStage,
     const std::string& aclTableGroupName = "AclTableGroup1");
 
-void addDefaultAclTable(cfg::SwitchConfig& cfg);
+void addDefaultAclTable(
+    cfg::SwitchConfig& cfg,
+    const std::vector<std::string>& udfGroups = {});
 
 cfg::AclTable* addAclTable(
     cfg::SwitchConfig* cfg,

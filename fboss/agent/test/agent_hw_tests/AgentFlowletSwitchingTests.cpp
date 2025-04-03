@@ -168,13 +168,7 @@ class AgentAclCounterTestBase : public AgentHwTest {
           &config,
           cfg::AclStage::INGRESS,
           utility::kDefaultAclTableGroupName());
-      utility::addAclTable(
-          &config,
-          cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE(),
-          0 /* priority */,
-          actions,
-          qualifiers,
-          udfGroups);
+      utility::addDefaultAclTable(config, udfGroups);
     }
   }
 
@@ -415,7 +409,10 @@ class AgentAclCounterTestBase : public AgentHwTest {
       const std::optional<int>& roceBytes,
       const std::optional<int>& roceMask,
       const std::optional<std::vector<cfg::AclUdfEntry>>& udfTable) const {
-    auto acl = utility::addAcl_DEPRECATED(config, aclName, aclActionType_);
+    cfg::AclEntry aclEntry;
+    aclEntry.name() = aclName;
+    aclEntry.actionType() = aclActionType_;
+    auto acl = utility::addAcl(config, aclEntry, cfg::AclStage::INGRESS);
     std::vector<cfg::CounterType> setCounterTypes{
         cfg::CounterType::PACKETS, cfg::CounterType::BYTES};
     if (udfTable.has_value()) {
