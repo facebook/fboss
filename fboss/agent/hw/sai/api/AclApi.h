@@ -527,7 +527,8 @@ struct SaiAclEntryTraits {
     using ActionSetArsObject = SaiAttribute<
         EnumType,
         SAI_ACL_ENTRY_ATTR_ACTION_SET_ARS_OBJECT,
-        AclEntryActionSaiObjectIdT>;
+        AclEntryActionSaiObjectIdT,
+        SaiAclEntryActionSaiObjectDefault>;
     using ActionDisableArsForwarding = SaiAttribute<
         EnumType,
         SAI_ACL_ENTRY_ATTR_ACTION_DISABLE_ARS_FORWARDING,
