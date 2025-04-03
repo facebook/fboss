@@ -1693,10 +1693,11 @@
     "/run/devmap/xcvrs/xcvr_ctrl_39": "/SMB_SLOT@0/[QSFP_PORT39_XCVR]"
   },
   "bspKmodsRpmName": "arista_bsp_kmods",
-  "bspKmodsRpmVersion": "0.7.7-1",
+  "bspKmodsRpmVersion": "0.7.8-1",
   "requiredKmodsToLoad": [
     "spidev",
     "i2c_i801",
-    "scd"
+    "scd",
+    "ledtrig_timer"
   ]
 }
