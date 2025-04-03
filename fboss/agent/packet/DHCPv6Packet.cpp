@@ -149,7 +149,7 @@ std::vector<DHCPv6Option> DHCPv6Packet::extractOptions(
   while (i < options.size() - 4) {
     DHCPv6Option opt;
     opt.parse(options, i);
-    if (optionSelector.empty() || optionSelector.count(opt.op) > 0) {
+    if (optionSelector.empty() || optionSelector.contains(opt.op)) {
       parsedOptions.push_back(opt);
     }
     i += (opt.len + 4);
