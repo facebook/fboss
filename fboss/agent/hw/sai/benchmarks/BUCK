@@ -26,6 +26,7 @@ sai_mono_agent_benchmark(
         "//fboss/agent/hw/benchmarks:hw_init_and_exit_100Gx10G",
         "//fboss/agent/hw/benchmarks:hw_init_and_exit_100Gx25G",
         "//fboss/agent/hw/benchmarks:hw_init_and_exit_100Gx50G",
+        "//fboss/agent/hw/benchmarks:hw_init_and_exit_400Gx400G",
         "//fboss/agent/hw/benchmarks:hw_init_and_exit_40Gx10G",
         "//fboss/agent/hw/benchmarks:hw_init_and_exit_fabric",
         "//fboss/agent/hw/benchmarks:hw_init_and_exit_voq",

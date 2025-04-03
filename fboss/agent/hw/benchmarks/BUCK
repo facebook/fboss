@@ -290,6 +290,15 @@ agent_benchmark_lib(
 )
 
 agent_benchmark_lib(
+    name = "hw_init_and_exit_400Gx400G",
+    srcs = ["HwInitAndExit400Gx400GBenchmark.cpp"],
+    extra_deps = [
+        "//fboss/agent/hw/test:config_factory",
+        "//fboss/agent/hw/benchmarks:hw_init_and_exit_benchmark_helper",
+    ],
+)
+
+agent_benchmark_lib(
     name = "hw_init_and_exit_voq",
     srcs = ["HwInitAndExitVoqBenchmark.cpp"],
     extra_deps = [

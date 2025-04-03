@@ -343,6 +343,15 @@ target_link_libraries(hw_init_and_exit_100Gx100G
   hw_init_and_exit_benchmark_helper
 )
 
+add_library(hw_init_and_exit_400Gx400G
+  fboss/agent/hw/benchmarks/HwInitAndExit400Gx400GBenchmark.cpp
+)
+
+target_link_libraries(hw_init_and_exit_400Gx400G
+  config_factory
+  hw_init_and_exit_benchmark_helper
+)
+
 add_library(hw_init_and_exit_voq
   fboss/agent/hw/benchmarks/HwInitAndExitVoqBenchmark.cpp
 )
