@@ -1,0 +1,23 @@
+{
+  "chassisEepromName": "CHASSIS",
+  "fruEepromList": {
+    "CHASSIS": {
+      "path": "/run/devmap/eeproms/CHASSIS_EEPROM"
+    },
+    "COME": {
+      "path": "/run/devmap/eeproms/COME_EEPROM"
+    },
+    "MCB": {
+      "path": "/run/devmap/eeproms/MCB_EEPROM"
+    },
+    "RUNBMC": {
+      "path": "/run/devmap/eeproms/RUNBMC_EEPROM"
+    },
+    "PIC_T": {
+      "path": "/run/devmap/eeproms/PIC_T_EEPROM"
+    },
+    "PIC_B": {
+      "path": "/run/devmap/eeproms/PIC_B_EEPROM"
+    }
+  }
+}
