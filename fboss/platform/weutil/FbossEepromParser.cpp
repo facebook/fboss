@@ -435,7 +435,7 @@ std::unordered_map<int, std::string> FbossEepromParser::parseEepromBlobTLV(
 // methods to print the human readable information
 std::vector<std::pair<std::string, std::string>>
 FbossEepromParser::prepareEepromFieldMap(
-    std::unordered_map<int, std::string> parsedValue,
+    const std::unordered_map<int, std::string>& parsedValue,
     int eepromVer) {
   std::vector<std::pair<std::string, std::string>> result;
   std::vector<EepromFieldEntry> fieldDictionary;
