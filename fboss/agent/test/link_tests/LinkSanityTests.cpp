@@ -267,7 +267,7 @@ TEST_F(LinkTest, opticsTxDisableRandomPorts) {
       TransceiverFeature::TX_DISABLE, phy::Side::LINE);
 
   std::vector<PortID> disabledPorts; // List of PortID of disabled ports
-  std::string disabledPortNames = ""; // List of port Names of disabled ports
+  std::string disabledPortNames; // List of port Names of disabled ports
   std::vector<PortID> expectedDownPorts; // List of PortID of disabled ports
                                          // and their peers
   std::vector<PortID> expectedUpPorts; // opticalPorts - expectedDownPorts
@@ -394,7 +394,7 @@ TEST_F(LinkTest, testOpticsRemediation) {
     EXPECT_GT(connectedPairPortIds.size(), 0);
 
     std::vector<PortID> disabledPorts; // List of PortID of disabled ports
-    std::string disabledPortNames = ""; // List of port Names of disabled ports
+    std::string disabledPortNames; // List of port Names of disabled ports
 
     for (auto portPair : connectedPairPortIds) {
       auto port = portPair.first;
