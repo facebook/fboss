@@ -6,9 +6,9 @@
 namespace facebook::fboss {
 class SaiPlatform;
 
-void SaiPortManager::addRemovedHandle(PortID /*portID*/) {}
+void SaiPortManager::addRemovedHandle(const PortID& /*portID*/) {}
 
-void SaiPortManager::removeRemovedHandleIf(PortID /*portID*/) {}
+void SaiPortManager::removeRemovedHandleIf(const PortID& /*portID*/) {}
 
 bool SaiPortManager::checkPortSerdesAttributes(
     const SaiPortSerdesTraits::CreateAttributes& fromStore,
