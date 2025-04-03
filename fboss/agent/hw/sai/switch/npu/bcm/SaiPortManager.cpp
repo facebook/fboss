@@ -182,7 +182,7 @@ void SaiPortManager::changePortFlowletConfig(
     const std::shared_ptr<Port>& oldPort,
     const std::shared_ptr<Port>& newPort) {
   if (!FLAGS_flowletSwitchingEnable ||
-      !platform_->getAsic()->isSupported(HwAsic::Feature::FLOWLET)) {
+      !platform_->getAsic()->isSupported(HwAsic::Feature::ARS)) {
     return;
   }
 

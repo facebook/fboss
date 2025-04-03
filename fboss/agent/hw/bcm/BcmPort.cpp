@@ -769,7 +769,7 @@ void BcmPort::program(const shared_ptr<Port>& port) {
 void BcmPort::updatePortFlowletConfig(const std::shared_ptr<Port>& port) {
   setPortFlowletConfig(port);
   if (hw_->getPlatform()->getAsic()->isSupported(
-          HwAsic::Feature::FLOWLET_PORT_ATTRIBUTES)) {
+          HwAsic::Feature::ARS_PORT_ATTRIBUTES)) {
     XLOG(DBG3) << "Updating Port flowlet config for " << port->getName();
     programFlowletPortQuality(port->getPortFlowletConfig());
   }

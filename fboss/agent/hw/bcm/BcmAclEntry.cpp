@@ -439,7 +439,7 @@ void BcmAclEntry::createAclActions() {
           false /* isWarmBoot */);
     }
 
-    if (hw_->getPlatform()->getAsic()->isSupported(HwAsic::Feature::FLOWLET)) {
+    if (hw_->getPlatform()->getAsic()->isSupported(HwAsic::Feature::ARS)) {
       if (matchAction->getFlowletAction()) {
         XLOG(DBG2) << "Adding flowlet action for handle :" << handle_;
         applyFlowletAction(matchAction);

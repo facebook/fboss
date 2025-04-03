@@ -644,7 +644,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   std::optional<SaiPortTraits::Attributes::ArsPortLoadFutureWeight>
       arsPortLoadFutureWeight = std::nullopt;
   if (FLAGS_flowletSwitchingEnable &&
-      platform_->getAsic()->isSupported(HwAsic::Feature::FLOWLET)) {
+      platform_->getAsic()->isSupported(HwAsic::Feature::ARS)) {
     auto flowletCfg = swPort->getPortFlowletConfig();
     if (swPort->getFlowletConfigName().has_value() &&
         swPort->getPortFlowletConfig().has_value()) {

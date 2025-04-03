@@ -139,7 +139,7 @@ bool EbroAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::SAI_PORT_VCO_CHANGE:
     case HwAsic::Feature::SAI_TTL0_PACKET_FORWARD_ENABLE:
     case HwAsic::Feature::SHARED_INGRESS_EGRESS_BUFFER_POOL:
-    case HwAsic::Feature::FLOWLET:
+    case HwAsic::Feature::ARS:
     case HwAsic::Feature::TC_TO_QUEUE_QOS_MAP_ON_SYSTEM_PORT:
     case HwAsic::Feature::PORT_FABRIC_ISOLATE:
     case HwAsic::Feature::CPU_TX_VIA_RECYCLE_PORT:
@@ -152,7 +152,7 @@ bool EbroAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::SLOW_STAT_UPDATE:
     case HwAsic::Feature::VOQ_DELETE_COUNTER:
     case HwAsic::Feature::DRAM_ENQUEUE_DEQUEUE_STATS:
-    case HwAsic::Feature::FLOWLET_PORT_ATTRIBUTES:
+    case HwAsic::Feature::ARS_PORT_ATTRIBUTES:
     // Ebro Asic does not support EAPOL trap for Macsec. Currently this is
     // needed only for FAUU and DMAG devices.
     case HwAsic::Feature::SAI_EAPOL_TRAP:

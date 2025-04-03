@@ -281,7 +281,7 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
 
   bool skipTest() {
     return (
-        !getPlatform()->getAsic()->isSupported(HwAsic::Feature::FLOWLET) ||
+        !getPlatform()->getAsic()->isSupported(HwAsic::Feature::ARS) ||
         (getPlatform()->getAsic()->getAsicType() ==
          cfg::AsicType::ASIC_TYPE_FAKE));
   }
@@ -331,7 +331,7 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
       cfg::PortFlowletConfig& portFlowletConfig,
       bool enable = true) {
     if (getHwSwitch()->getPlatform()->getAsic()->isSupported(
-            HwAsic::Feature::FLOWLET_PORT_ATTRIBUTES)) {
+            HwAsic::Feature::ARS_PORT_ATTRIBUTES)) {
       EXPECT_TRUE(utility::validatePortFlowletQuality(
           getHwSwitch(), masterLogicalPortIds()[0], portFlowletConfig, enable));
     }
@@ -419,7 +419,7 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
         getHwSwitch(), *cfg.flowletSwitchingConfig()));
 
     if (getHwSwitch()->getPlatform()->getAsic()->isSupported(
-            HwAsic::Feature::FLOWLET_PORT_ATTRIBUTES)) {
+            HwAsic::Feature::ARS_PORT_ATTRIBUTES)) {
       // verify the flowlet config is programmed in ECMP for TH4
       EXPECT_TRUE(utility::verifyEcmpForFlowletSwitching(
           getHwSwitch(),

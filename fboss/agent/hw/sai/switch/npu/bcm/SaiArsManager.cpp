@@ -34,7 +34,7 @@ void SaiArsManager::addArs(
 bool SaiArsManager::isFlowsetTableFull(const ArsSaiId& arsSaiId) {
   // Flowset table is specific to BCM
   if (!FLAGS_flowletSwitchingEnable ||
-      !platform_->getAsic()->isSupported(HwAsic::Feature::FLOWLET)) {
+      !platform_->getAsic()->isSupported(HwAsic::Feature::ARS)) {
     return false;
   }
 

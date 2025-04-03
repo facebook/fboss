@@ -1214,7 +1214,7 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
 #endif
 
   if (FLAGS_flowletSwitchingEnable) {
-    if (platform_->getAsic()->isSupported(HwAsic::Feature::FLOWLET)) {
+    if (platform_->getAsic()->isSupported(HwAsic::Feature::ARS)) {
       processFlowletSwitchingConfigDelta(delta, lockPolicy);
     }
   }

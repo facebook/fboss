@@ -801,7 +801,7 @@ void SaiSwitchManager::setArsProfile(
     [[maybe_unused]] ArsProfileSaiId arsProfileSaiId) {
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
   if (FLAGS_flowletSwitchingEnable &&
-      platform_->getAsic()->isSupported(HwAsic::Feature::FLOWLET)) {
+      platform_->getAsic()->isSupported(HwAsic::Feature::ARS)) {
     switch_->setOptionalAttribute(
         SaiSwitchTraits::Attributes::ArsProfile{arsProfileSaiId});
   }
