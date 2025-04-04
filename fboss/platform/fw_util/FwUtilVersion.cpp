@@ -38,11 +38,19 @@ void FwUtilImpl::printDarwinVersion(const std::string& fpd) {
 }
 
 void FwUtilImpl::printVersion(const std::string& fpd) {
-  if (fpd == "all") {
-    printAllVersions();
+  // TODO: Remove this check once we have moved all Darwin systems to the latest
+  // BSP which provide a single sysfs endpoint for each firmware version
+  auto lowerCasePlatformName = toLower(platformName_);
+
+  if (lowerCasePlatformName == "darwin") {
+    printDarwinVersion(fpd);
   } else {
-    std::string version = getSingleVersion(fpd);
-    std::cout << fpd << " : " << version << std::endl;
+    if (fpd == "all") {
+      printAllVersions();
+    } else {
+      std::string version = getSingleVersion(fpd);
+      std::cout << fpd << " : " << version << std::endl;
+    }
   }
 }
 
