@@ -288,7 +288,11 @@ def split_file(input_file, output_dir, max_lines):
             unnamed_namespace.append(line)
             continue
         # Handle normal variables in the variables section, and out-of-order variables
-        if section == Section.VARIABLES or re.search(REGEX_VAR_LIST, line) is not None:
+        if (
+            section == Section.VARIABLES
+            or "[[maybe_unused]]" in line
+            or re.search(REGEX_VAR_LIST, line) is not None
+        ):
             assign = line.find("=")
             if assign == -1:
                 # Declaration only
