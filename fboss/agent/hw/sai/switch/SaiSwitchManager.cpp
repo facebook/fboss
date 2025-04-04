@@ -528,12 +528,14 @@ void SaiSwitchManager::addOrUpdateEcmpLoadBalancer(
           v4EcmpHashFields.transportFields()->insert(entry->cref());
         });
 
-    ecmpV4Hash_ =
+    auto hash =
         managerTable_->hashManager().getOrCreate(v4EcmpHashFields, udfGroupIds);
 
     // Set the new ecmp v4 hash attribute on switch obj
     setLoadBalancer<SaiSwitchTraits::Attributes::EcmpHashV4>(
-        ecmpV4Hash_, programmedLoadBalancer);
+        hash, programmedLoadBalancer);
+
+    ecmpV4Hash_ = std::move(hash);
   }
   if (newLb->getIPv6Fields().begin() != newLb->getIPv6Fields().end()) {
     // v6 ECMP
@@ -554,12 +556,14 @@ void SaiSwitchManager::addOrUpdateEcmpLoadBalancer(
         [&v6EcmpHashFields](const auto& entry) {
           v6EcmpHashFields.transportFields()->insert(entry->cref());
         });
-    ecmpV6Hash_ =
+    auto hash =
         managerTable_->hashManager().getOrCreate(v6EcmpHashFields, udfGroupIds);
 
     // Set the new ecmp v6 hash attribute on switch obj
     setLoadBalancer<SaiSwitchTraits::Attributes::EcmpHashV6>(
-        ecmpV6Hash_, programmedLoadBalancer);
+        hash, programmedLoadBalancer);
+
+    ecmpV6Hash_ = std::move(hash);
   }
 }
 

@@ -951,6 +951,9 @@ void addLoadBalancerToConfig(
     case LBHash::HALF_HASH:
       config.loadBalancers()->push_back(getEcmpHalfHashConfig({hwAsic}));
       break;
+    case LBHash::FULL_HASH_UDF:
+      config.loadBalancers()->push_back(getEcmpFullUdfHashConfig({hwAsic}));
+      break;
     default:
       throw FbossError("invalid hashing option ", hashType);
       break;

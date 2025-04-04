@@ -52,6 +52,50 @@ class HwUdfTest : public HwTest {
   }
 };
 
+TEST_F(HwUdfTest, UdfCanaryOn) {
+  auto setup = [=, this]() {
+    auto newCfg{initialConfig()};
+    utility::addLoadBalancerToConfig(
+        newCfg,
+        getHwSwitch()->getPlatform()->getAsic(),
+        utility::LBHash::FULL_HASH);
+    applyNewConfig(newCfg);
+  };
+  auto setupPostWB = [=, this]() {
+    auto newCfg{initialConfig()};
+    newCfg.udfConfig() = utility::addUdfHashConfig();
+    utility::addLoadBalancerToConfig(
+        newCfg,
+        getHwSwitch()->getPlatform()->getAsic(),
+        utility::LBHash::FULL_HASH_UDF);
+    applyNewConfig(newCfg);
+  };
+
+  verifyAcrossWarmBoots(setup, [] {}, setupPostWB, [] {});
+}
+
+TEST_F(HwUdfTest, UdfCanaryOff) {
+  auto setup = [=, this]() {
+    auto newCfg{initialConfig()};
+    newCfg.udfConfig() = utility::addUdfHashConfig();
+    utility::addLoadBalancerToConfig(
+        newCfg,
+        getHwSwitch()->getPlatform()->getAsic(),
+        utility::LBHash::FULL_HASH_UDF);
+    applyNewConfig(newCfg);
+  };
+  auto setupPostWB = [=, this]() {
+    auto newCfg{initialConfig()};
+    utility::addLoadBalancerToConfig(
+        newCfg,
+        getHwSwitch()->getPlatform()->getAsic(),
+        utility::LBHash::FULL_HASH);
+    applyNewConfig(newCfg);
+  };
+
+  verifyAcrossWarmBoots(setup, [] {}, setupPostWB, [] {});
+}
+
 TEST_F(HwUdfTest, checkUdfHashConfiguration) {
   auto setup = [=, this]() {
     applyNewState(setupUdfConfiguration(true, true));

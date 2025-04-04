@@ -647,6 +647,7 @@ cpp_library(
         ":route_distribution_gen",
         ":test_ensemble_if",
         "//fboss/agent:agent_config-cpp2-types",
+        "//fboss/agent:agent_features",
         "//fboss/agent:core",
         "//fboss/agent:fboss_common_init",
         "//fboss/agent:fboss_init_h",

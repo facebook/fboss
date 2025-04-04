@@ -268,6 +268,7 @@ void pumpTrafficAndVerifyLoadBalanced(
 enum class LBHash : uint8_t {
   FULL_HASH = 0,
   HALF_HASH = 1,
+  FULL_HASH_UDF = 2,
 };
 void addLoadBalancerToConfig(
     cfg::SwitchConfig& config,
