@@ -776,7 +776,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
 #endif
   }
 
-  std::optional<SaiSwitchTraits::Attributes::PfcTcDldTimerInterval>
+  std::optional<SaiSwitchTraits::Attributes::PfcTcDldTimerGranularityInterval>
       pfcWatchdogTimerGranularyMap;
 #if defined(BRCM_SAI_SDK_XGS) && defined(BRCM_SAI_SDK_GTE_11_0)
   // We need to set the watchdog granularity to an appropriate value, otherwise
@@ -793,7 +793,8 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
     mapToValueList.at(pri) = mapping;
   }
   pfcWatchdogTimerGranularyMap =
-      SaiSwitchTraits::Attributes::PfcTcDldTimerInterval{mapToValueList};
+      SaiSwitchTraits::Attributes::PfcTcDldTimerGranularityInterval{
+          mapToValueList};
 #endif
 
   return {

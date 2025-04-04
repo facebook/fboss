@@ -727,12 +727,12 @@ struct SaiSwitchTraits {
         std::vector<sai_map_t>,
         AttributeTcRateLimitList,
         SaiListDefault<sai_map_list_t>>;
-    struct AttributePfcTcDldTimerInterval {
+    struct AttributePfcTcDldTimerGranularityInterval {
       std::optional<sai_attr_id_t> operator()();
     };
-    using PfcTcDldTimerInterval = SaiExtensionAttribute<
+    using PfcTcDldTimerGranularityInterval = SaiExtensionAttribute<
         std::vector<sai_map_t>,
-        AttributePfcTcDldTimerInterval,
+        AttributePfcTcDldTimerGranularityInterval,
         SaiListDefault<sai_map_list_t>>;
   };
   using AdapterKey = SwitchSaiId;
@@ -825,7 +825,7 @@ struct SaiSwitchTraits {
       std::optional<Attributes::SdkRegDumpLogPath>,
       std::optional<Attributes::FirmwareObjectList>,
       std::optional<Attributes::TcRateLimitList>,
-      std::optional<Attributes::PfcTcDldTimerInterval>>;
+      std::optional<Attributes::PfcTcDldTimerGranularityInterval>>;
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
   static constexpr std::array<sai_stat_id_t, 3> CounterIdsToRead = {
@@ -989,7 +989,7 @@ SAI_ATTRIBUTE_NAME(Switch, SflowAggrNofSamples)
 SAI_ATTRIBUTE_NAME(Switch, SdkRegDumpLogPath)
 SAI_ATTRIBUTE_NAME(Switch, FirmwareObjectList)
 SAI_ATTRIBUTE_NAME(Switch, TcRateLimitList)
-SAI_ATTRIBUTE_NAME(Switch, PfcTcDldTimerInterval)
+SAI_ATTRIBUTE_NAME(Switch, PfcTcDldTimerGranularityInterval)
 
 template <>
 struct SaiObjectHasStats<SaiSwitchTraits> : public std::true_type {};

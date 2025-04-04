@@ -580,8 +580,8 @@ SaiSwitchTraits::Attributes::AttributeTcRateLimitList::operator()() {
   return std::nullopt;
 }
 
-std::optional<sai_attr_id_t>
-SaiSwitchTraits::Attributes::AttributePfcTcDldTimerInterval::operator()() {
+std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
+    AttributePfcTcDldTimerGranularityInterval::operator()() {
 #if defined(BRCM_SAI_SDK_XGS) && defined(BRCM_SAI_SDK_GTE_11_0)
   return SAI_SWITCH_ATTR_PFC_TC_DLD_TIMER_INTERVAL;
 #endif

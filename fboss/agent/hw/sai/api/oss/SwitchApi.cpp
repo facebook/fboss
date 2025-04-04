@@ -304,8 +304,8 @@ SaiSwitchTraits::Attributes::AttributeTcRateLimitList::operator()() {
   return std::nullopt;
 }
 
-std::optional<sai_attr_id_t>
-SaiSwitchTraits::Attributes::AttributePfcTcDldTimerInterval::operator()() {
+std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
+    AttributePfcTcDldTimerGranularityInterval::operator()() {
   return std::nullopt;
 }
 
