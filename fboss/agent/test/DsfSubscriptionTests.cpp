@@ -770,9 +770,8 @@ TYPED_TEST(DsfSubscriptionTest, RemoteEndpointString) {
 
   std::string expectedEndpointStr = "remote_::1";
   EXPECT_EQ(this->subscription_->remoteEndpointStr(), expectedEndpointStr);
-  // TODO: fix remoteEndpointString() so that correct endpoint string
-  // "remote_::2" is returned
-  EXPECT_EQ(subscription2->remoteEndpointStr(), expectedEndpointStr);
+  std::string expectedEndpoint2Str = "remote2_::2";
+  EXPECT_EQ(subscription2->remoteEndpointStr(), expectedEndpoint2Str);
 }
 
 } // namespace facebook::fboss

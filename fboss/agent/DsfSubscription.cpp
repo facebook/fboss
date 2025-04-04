@@ -203,11 +203,11 @@ void DsfSubscription::tearDownSubscription() {
                << "removed subscription for : " << remoteEndpointStr();
   }
 }
+
 std::string DsfSubscription::remoteEndpointStr() const {
-  static const std::string kRemoteEndpoint =
-      remoteNodeName_ + "_" + remoteIp_.str();
-  return kRemoteEndpoint;
+  return folly::sformat("{}_{}", remoteNodeName_, remoteIp_.str());
 }
+
 fsdb::FsdbStreamClient::State DsfSubscription::getStreamState() const {
   return fsdbPubSubMgr_->getStatePathSubsriptionState(
       getAllSubscribePaths(localNodeName_, localIp_), remoteIp_.str());
