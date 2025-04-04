@@ -38,7 +38,7 @@ uint64_t getEcmpMemberWeight(
   if (iter == uniquePaths.end()) {
     throw FbossError("path not found");
   }
-  return pathsInHw.contains(pathInHw);
+  return pathsInHw.count(pathInHw);
 }
 
 uint64_t getTotalEcmpMemberWeight(
