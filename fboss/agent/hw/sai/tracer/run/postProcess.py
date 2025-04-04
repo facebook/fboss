@@ -320,7 +320,10 @@ def split_file(input_file, output_dir, max_lines):
     # Outro already written from source file
     output.close()
 
-    extern_variables = [("extern " + var) for var in variables]
+    extern_variables = [
+        ("[[maybe_unused]] extern " + var.replace("[[maybe_unused]]", ""))
+        for var in variables
+    ]
 
     generate_header_file(
         includes_defines + ["\n"] + extern_variables + ["\n"] + unnamed_namespace,
