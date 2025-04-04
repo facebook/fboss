@@ -4338,6 +4338,8 @@ ThriftConfigApplier::createFlowletSwitchingConfig(
       *config.dynamicPhysicalQueueExponent());
   newFlowletSwitchingConfig->setMaxLinks(*config.maxLinks());
   newFlowletSwitchingConfig->setSwitchingMode(*config.switchingMode());
+  newFlowletSwitchingConfig->setBackupSwitchingMode(
+      *config.backupSwitchingMode());
   return newFlowletSwitchingConfig;
 }
 
