@@ -46,7 +46,7 @@ thrift_library(
         "py-deprecated",
         "py3-deprecated",
         "python",
-        "py-asyncio",
+        "py-deprecated-asyncio",
         "cpp2",
     ],
     py3_namespace = "neteng.fboss",
