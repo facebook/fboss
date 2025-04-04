@@ -309,7 +309,7 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, stressAddRemoveObjects) {
     PortDescriptor kRemotePort(kRemoteSysPortId);
     auto addObjects = [&]() {
       // add local neighbor
-      addRemoveNeighbor(kPort, true /* add neighbor*/);
+      addRemoveNeighbor(kPort, NeighborOp::ADD);
       // Remote objs
       applyNewState([&](const std::shared_ptr<SwitchState>& in) {
         return utility::addRemoteSysPort(
@@ -349,7 +349,7 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, stressAddRemoveObjects) {
       });
     };
     auto removeObjects = [&]() {
-      addRemoveNeighbor(kPort, false /* remove neighbor*/);
+      addRemoveNeighbor(kPort, NeighborOp::DEL);
       // Remove neighbor
       applyNewState([&](const std::shared_ptr<SwitchState>& in) {
         return utility::addRemoveRemoteNeighbor(

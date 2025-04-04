@@ -245,16 +245,21 @@ void AgentVoqSwitchTest::addDscpAclWithCounter() {
   applyNewConfig(newCfg);
 }
 
-void AgentVoqSwitchTest::addRemoveNeighbor(PortDescriptor port, bool add) {
+void AgentVoqSwitchTest::addRemoveNeighbor(
+    PortDescriptor port,
+    NeighborOp operation) {
   utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
-  if (add) {
-    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
-      return ecmpHelper.resolveNextHops(in, {port});
-    });
-  } else {
-    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
-      return ecmpHelper.unresolveNextHops(in, {port});
-    });
+  switch (operation) {
+    case NeighborOp::ADD:
+      applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+        return ecmpHelper.resolveNextHops(in, {port});
+      });
+      break;
+    case NeighborOp::DEL:
+      applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+        return ecmpHelper.unresolveNextHops(in, {port});
+      });
+      break;
   }
 }
 
@@ -342,9 +347,9 @@ TEST_F(AgentVoqSwitchTest, addRemoveNeighbor) {
     const PortDescriptor kPortDesc(getAgentEnsemble()->masterLogicalPortIds(
         {cfg::PortType::INTERFACE_PORT})[0]);
     // Add neighbor
-    addRemoveNeighbor(kPortDesc, true);
+    addRemoveNeighbor(kPortDesc, NeighborOp::ADD);
     // Remove neighbor
-    addRemoveNeighbor(kPortDesc, false);
+    addRemoveNeighbor(kPortDesc, NeighborOp::DEL);
   };
   verifyAcrossWarmBoots(setup, [] {});
 }
@@ -357,7 +362,7 @@ TEST_F(AgentVoqSwitchTest, sendPacketCpuAndFrontPanel) {
     if (isSupportedOnAllAsics(HwAsic::Feature::ACL_TABLE_GROUP)) {
       addDscpAclWithCounter();
     }
-    addRemoveNeighbor(kPortDesc, true /* add neighbor*/);
+    addRemoveNeighbor(kPortDesc, NeighborOp::ADD);
   };
 
   auto verify = [this, kPortDesc, ecmpHelper]() {
@@ -626,7 +631,7 @@ TEST_F(AgentVoqSwitchTest, localForwardingPostIsolate) {
     *newCfg.switchSettings()->switchDrainState() =
         cfg::SwitchDrainState::DRAINED;
     applyNewConfig(newCfg);
-    addRemoveNeighbor(kPortDesc, true /* add neighbor*/);
+    addRemoveNeighbor(kPortDesc, NeighborOp::ADD);
   };
 
   auto verify = [this, kPortDesc, &ecmpHelper]() {
@@ -658,7 +663,7 @@ TEST_F(AgentVoqSwitchTest, stressLocalForwardingPostIsolate) {
     *newCfg.switchSettings()->switchDrainState() =
         cfg::SwitchDrainState::DRAINED;
     applyNewConfig(newCfg);
-    addRemoveNeighbor(kPortDesc, true /* add neighbor*/);
+    addRemoveNeighbor(kPortDesc, NeighborOp::ADD);
   };
 
   auto verify = [this, kPortDesc, &ecmpHelper]() {
@@ -706,7 +711,7 @@ TEST_F(AgentVoqSwitchTest, localSystemPortEcmp) {
 TEST_F(AgentVoqSwitchTest, packetIntegrityError) {
   utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
   auto port = ecmpHelper.ecmpPortDescriptorAt(0);
-  auto setup = [=, this]() { addRemoveNeighbor(port, true /*add*/); };
+  auto setup = [=, this]() { addRemoveNeighbor(port, NeighborOp::ADD); };
   auto verify = [=, this]() {
     const auto dstIp = ecmpHelper.ip(port);
     auto switchId = scopeResolver().scope(port.phyPortID()).switchId();
@@ -759,7 +764,7 @@ TEST_F(AgentVoqSwitchTest, dramEnqueueDequeueBytes) {
   utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
   const auto kPortDesc = ecmpHelper.ecmpPortDescriptorAt(0);
   auto setup = [this, kPortDesc]() {
-    addRemoveNeighbor(kPortDesc, true /* add neighbor*/);
+    addRemoveNeighbor(kPortDesc, NeighborOp::ADD);
   };
 
   auto verify = [this, kPortDesc, &ecmpHelper]() {
@@ -817,7 +822,7 @@ TEST_F(AgentVoqSwitchTest, verifyQueueLatencyWatermark) {
         kRemoteL2VoqMaxExpectedLatencyNsec;
     cfg.switchSettings()->voqOutOfBoundsLatencyNsec() = kOutOfBoundsLatencyNsec;
     applyNewConfig(cfg);
-    addRemoveNeighbor(kPortDesc, true /* add neighbor*/);
+    addRemoveNeighbor(kPortDesc, NeighborOp::ADD);
   };
 
   auto verify = [&]() {
