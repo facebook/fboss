@@ -320,9 +320,12 @@ class SaiSwitch : public HwSwitch {
       const std::lock_guard<std::mutex>& lock,
       std::vector<L2EntryThrift>* l2Table) const;
 
-  const std::map<PortID, FabricEndpoint>& getFabricConnectivityLocked() const;
+  const std::map<PortID, FabricEndpoint>& getFabricConnectivityLocked(
+      const std::lock_guard<std::mutex>& lock) const;
 
-  std::vector<PortID> getSwitchReachabilityLocked(SwitchID switchId) const;
+  std::vector<PortID> getSwitchReachabilityLocked(
+      const std::lock_guard<std::mutex>& lock,
+      SwitchID switchId) const;
   std::map<int64_t, FabricConnectivityManager::RemoteConnectionGroups>
   getVirtualDeviceToRemoteConnectionGroupsLocked(
       const std::lock_guard<std::mutex>& lock) const;
