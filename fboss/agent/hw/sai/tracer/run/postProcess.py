@@ -35,6 +35,7 @@ REGEX_VARS_BEGIN = r"Global Variables Start"
 REGEX_VARS_END = r"Global Variables End"
 REGEX_UNNAMED_NAMESPACE_BEGIN = r"^namespace( )*{$"
 REGEX_UNNAMED_NAMESPACE_END = r"^}( )*\/\/( )*namespace$"
+REGEX_VAR_LIST = r"int list\_[0-9]*\[[0-9]*\]\;"
 REGEX_RUN_TRACE_FUNC = r"^void run\_trace\(\) ?{$"
 REGEX_INCLUDES = r"^\#include"
 REGEX_DEFINES = r"^\#define"
@@ -286,7 +287,8 @@ def split_file(input_file, output_dir, max_lines):
         if section == Section.UNNAMED_NAMESPACE:
             unnamed_namespace.append(line)
             continue
-        if section == Section.VARIABLES:
+        # Handle normal variables in the variables section, and out-of-order variables
+        if section == Section.VARIABLES or re.search(REGEX_VAR_LIST, line) is not None:
             assign = line.find("=")
             if assign == -1:
                 # Declaration only
