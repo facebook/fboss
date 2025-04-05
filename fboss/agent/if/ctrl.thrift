@@ -1494,11 +1494,6 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
    * Get SwitchID to SwitchInfo for all SwitchIDs.
    */
   map<i64, switch_config.SwitchInfo> getSwitchIdToSwitchInfo();
-
-  /*
-   * Get Firmware Information.
-   */
-  FirmwareInfo getFirmwareInfo();
 }
 
 service NeighborListenerClient extends fb303.FacebookService {
