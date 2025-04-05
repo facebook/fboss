@@ -941,23 +941,21 @@ defaultPostIngressCpuAclsForSai(
   if (hwAsic->getAsicType() != cfg::AsicType::ASIC_TYPE_CHENAB) {
     return acls;
   }
+  // packets addressed to rif address with network control go to high-pri
   addHighPriAclForMyIPNetworkControl(
       hwAsic,
       cfg::ToCpuAction::TRAP,
       getCoppHighPriQueueId(hwAsic),
       acls,
       true /*isSai*/);
-  /*
-   * Unresolved route class ID to low pri queue.
-   * For unresolved route ACL, both the hostif trap and the ACL will
-   * be hit on TAJO and 2 packets will be punted to CPU.
-   * Do not rely on getCpuActionType but explicitly configure
-   * the cpu action to TRAP. Connected subnet route has the same class ID
-   * and also goes to low pri queue
-   */
-  addLowPriAclForUnresolvedRoutes(
-      hwAsic, cfg::ToCpuAction::TRAP, acls, true /*isSai*/);
 
+  // packets addressed to rif address go to mid pri queue
+  addMidPriAclForIp2Me(
+      hwAsic,
+      cfg::ToCpuAction::TRAP,
+      getCoppMidPriQueueId({hwAsic}),
+      acls,
+      true /*isSai*/);
   return acls;
 }
 
@@ -1201,6 +1199,14 @@ std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueuesForSai(
     const HwAsic* hwAsic) {
   auto coppHighPriQueueId = utility::getCoppHighPriQueueId(hwAsic);
   auto coppMidPriQueueId = utility::getCoppMidPriQueueId({hwAsic});
+
+  auto ip2MeTrapQueueId = coppMidPriQueueId;
+  if (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    // for chenab, by default IP2ME trap queue is low pri queue but packets
+    // destined to my_ip are set to mid pri by acl  and packets with network
+    // control dscp destined to my_ip are set to high pri by acl
+    ip2MeTrapQueueId = utility::kCoppLowPriQueueId;
+  }
   ControlPlane::RxReasonToQueue rxReasonToQueues = {
       ControlPlane::makeRxReasonToQueueEntry(
           cfg::PacketRxReason::ARP, coppHighPriQueueId),
@@ -1213,7 +1219,7 @@ std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueuesForSai(
       ControlPlane::makeRxReasonToQueueEntry(
           cfg::PacketRxReason::BGPV6, coppHighPriQueueId),
       ControlPlane::makeRxReasonToQueueEntry(
-          cfg::PacketRxReason::CPU_IS_NHOP, coppMidPriQueueId),
+          cfg::PacketRxReason::CPU_IS_NHOP, ip2MeTrapQueueId),
       ControlPlane::makeRxReasonToQueueEntry(
           cfg::PacketRxReason::LACP, coppHighPriQueueId),
       ControlPlane::makeRxReasonToQueueEntry(

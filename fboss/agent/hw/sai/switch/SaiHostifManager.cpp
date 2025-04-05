@@ -192,7 +192,7 @@ SaiHostifManager::makeHostifUserDefinedTrapAttributes(
     std::optional<uint16_t> trapType) {
   SaiHostifUserDefinedTrapTraits::Attributes::TrapGroup trapGroup{trapGroupId};
   return SaiHostifUserDefinedTrapTraits::CreateAttributes{
-      trapGroupId, priority, trapType};
+      trapGroup, priority, trapType};
 }
 
 std::shared_ptr<SaiHostifTrapGroup> SaiHostifManager::ensureHostifTrapGroup(

@@ -1255,7 +1255,10 @@ TYPED_TEST(AgentCoppTest, UnresolvedRouteNextHopToLowPriQueue) {
       RoutePrefix<folly::IPAddressV6>{
           folly::IPAddressV6{"2803:6080:d038:3065::1"}, 128}};
   auto setup = [=, this]() {
-    FLAGS_classid_for_unresolved_routes = true;
+    auto asic =
+        utility::checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics());
+    FLAGS_classid_for_unresolved_routes =
+        (asic->getAsicType() != cfg::AsicType::ASIC_TYPE_CHENAB);
     this->setup();
     utility::EcmpSetupAnyNPorts6 ecmp6(this->getProgrammedState());
     auto wrapper = this->getSw()->getRouteUpdater();
