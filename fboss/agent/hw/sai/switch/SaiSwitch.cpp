@@ -4641,4 +4641,9 @@ bool SaiSwitch::processVlanUntaggedPackets() const {
       (getSwitchType() == cfg::SwitchType::VOQ ||
        getSwitchType() == cfg::SwitchType::FABRIC);
 }
+
+std::vector<FirmwareInfo> SaiSwitch::getAllFirmwareInfo() const {
+  return {};
+}
+
 } // namespace facebook::fboss

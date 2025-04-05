@@ -251,6 +251,8 @@ class SaiSwitch : public HwSwitch {
 
   bool getArsExhaustionStatus() override;
 
+  std::vector<FirmwareInfo> getAllFirmwareInfo() const override;
+
  private:
   void gracefulExitImpl() override;
 
