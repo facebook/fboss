@@ -4643,6 +4643,28 @@ bool SaiSwitch::processVlanUntaggedPackets() const {
 }
 
 std::vector<FirmwareInfo> SaiSwitch::getAllFirmwareInfo() const {
+  // Firmware is not supported/configured on all Platforms.
+  // The platforms that support Firmware, support only single
+  // Firmware today.
+  std::lock_guard<std::mutex> lock(saiSwitchMutex_);
+  if (managerTable_->switchManager().isFirmwareEnabled()) {
+    FirmwareInfo firmwareInfo;
+
+    auto version = managerTable_->switchManager().getFirmwareVersion();
+    CHECK(version.has_value());
+    firmwareInfo.version() = version.value();
+
+    auto opStatus = managerTable_->switchManager().getFirmwareOpStatus();
+    CHECK(opStatus.has_value());
+    firmwareInfo.opStatus() = opStatus.value();
+
+    auto funcStatus = managerTable_->switchManager().getFirmwareFuncStatus();
+    CHECK(funcStatus.has_value());
+    firmwareInfo.funcStatus() = funcStatus.value();
+
+    return {firmwareInfo};
+  }
+
   return {};
 }
 
