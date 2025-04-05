@@ -38,20 +38,18 @@ void FwUtilImpl::printDarwinVersion(const std::string& fpd) {
 }
 
 void FwUtilImpl::printVersion(const std::string& fpd) {
-  // TODO: Remove this logic once we move darwin to PM and we complete the
-  // config Darwin only uses fw_util to read version. Upgrade logic is part of
-  // KPP packages
+  // TODO: Remove this check once we have moved all Darwin systems to the latest
+  // BSP which provide a single sysfs endpoint for each firmware version
   auto lowerCasePlatformName = toLower(platformName_);
 
-  if (lowerCasePlatformName == "darwin" ||
-      lowerCasePlatformName == "darwin48v") {
+  if (lowerCasePlatformName == "darwin") {
     printDarwinVersion(fpd);
   } else {
     if (fpd == "all") {
       printAllVersions();
     } else {
       std::string version = getSingleVersion(fpd);
-      std::cout << fpd << " : " << version;
+      std::cout << fpd << " : " << version << std::endl;
     }
   }
 }
