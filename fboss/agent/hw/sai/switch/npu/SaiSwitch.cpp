@@ -125,6 +125,12 @@ void SaiSwitch::updateStatsImpl() {
       getSwitchStats()->isolationFirmwareOpStatus(
           static_cast<int64_t>(firmwareOpStatus.value()));
     }
+    auto firmwareFuncStatus =
+        managerTable_->switchManager().getFirmwareFuncStatus();
+    if (firmwareFuncStatus.has_value()) {
+      getSwitchStats()->isolationFirmwareFuncStatus(
+          static_cast<int64_t>(firmwareFuncStatus.value()));
+    }
   }
 
   auto sysPortsIter = concurrentIndices_->sysPortIds.begin();
