@@ -213,10 +213,6 @@ class NeighborCacheEntry : private folly::AsyncTimeout {
         state_ == NeighborEntryState::INCOMPLETE;
   }
 
-  state::NeighborEntryType getType() const {
-    return type_;
-  }
-
   template <typename NeighborEntryThrift>
   void populateThriftEntry(NeighborEntryThrift& entry) const {
     *entry.ip() = facebook::network::toBinaryAddress(getIP());
