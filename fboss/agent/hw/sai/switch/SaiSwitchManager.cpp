@@ -1297,6 +1297,21 @@ void SaiSwitchManager::setRemoteL2VoqMaxExpectedLatency(
 #endif
 }
 
+std::optional<FirmwareFuncStatus> SaiSwitchManager::getFirmwareFuncStatus()
+    const {
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  if (firmwareSaiId.has_value()) {
+    auto funcStatus = SaiApiTable::getInstance()->firmwareApi().getAttribute(
+        firmwareSaiId.value(),
+        SaiFirmwareTraits::Attributes::FunctionalStatus{});
+    return saiFirmwareFuncStatusToFirmwareFuncStatus(
+        static_cast<sai_firmware_func_status_t>(funcStatus));
+  }
+#endif
+
+  return std::nullopt;
+}
+
 void SaiSwitchManager::setVoqOutOfBoundsLatency(int voqOutOfBoundsLatency) {
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   switch_->setOptionalAttribute(

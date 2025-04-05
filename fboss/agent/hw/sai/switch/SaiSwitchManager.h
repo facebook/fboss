@@ -124,6 +124,7 @@ class SaiSwitchManager {
 
   std::optional<std::string> getFirmwareVersion() const;
   std::optional<FirmwareOpStatus> getFirmwareOpStatus() const;
+  std::optional<FirmwareFuncStatus> getFirmwareFuncStatus() const;
 
  private:
   void programEcmpLoadBalancerParams(
