@@ -117,6 +117,16 @@ void SaiSwitch::updateStatsImpl() {
   getSwitchStats()->fabricConnectivityMismatchCount(mismatchCount);
   getSwitchStats()->fabricConnectivityBogusCount(bogusCount);
 
+  {
+    std::lock_guard<std::mutex> locked(saiSwitchMutex_);
+    auto firmwareOpStatus =
+        managerTable_->switchManager().getFirmwareOpStatus();
+    if (firmwareOpStatus.has_value()) {
+      getSwitchStats()->isolationFirmwareOpStatus(
+          static_cast<int64_t>(firmwareOpStatus.value()));
+    }
+  }
+
   auto sysPortsIter = concurrentIndices_->sysPortIds.begin();
   while (sysPortsIter != concurrentIndices_->sysPortIds.end()) {
     {
