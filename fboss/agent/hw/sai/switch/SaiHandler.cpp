@@ -411,4 +411,13 @@ void SaiHandler::bulkClearInterfacePrbsStats(
     hw_->clearPortAsicPrbsStats(port->getID());
   }
 }
+
+void SaiHandler::getAllHwFirmwareInfo(
+    std::vector<FirmwareInfo>& firmwareInfoList) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  hw_->ensureConfigured(__func__);
+
+  firmwareInfoList = hw_->getAllFirmwareInfo();
+}
+
 } // namespace facebook::fboss
