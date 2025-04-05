@@ -126,6 +126,10 @@ class SaiSwitchManager {
   std::optional<FirmwareOpStatus> getFirmwareOpStatus() const;
   std::optional<FirmwareFuncStatus> getFirmwareFuncStatus() const;
 
+  bool isFirmwareEnabled() const {
+    return firmwareSaiId_.has_value();
+  }
+
  private:
   void programEcmpLoadBalancerParams(
       std::optional<sai_uint32_t> seed,
