@@ -2510,10 +2510,20 @@ void SwSwitch::startThreads() {
 }
 
 void SwSwitch::postInit() {
+  initLldpManager();
+  publishBootTypeStats();
+  initThreadHeartbeats();
+  startHeartbeatWatchdog();
+  setSwitchRunState(SwitchRunState::INITIALIZED);
+}
+
+void SwSwitch::initLldpManager() {
   if (flags_ & SwitchFlags::ENABLE_LLDP) {
     lldpManager_ = std::make_unique<LldpManager>(this);
   }
+}
 
+void SwSwitch::publishBootTypeStats() {
   if (flags_ & SwitchFlags::PUBLISH_STATS) {
     switch (bootType_) {
       case BootType::COLD_BOOT:
@@ -2525,12 +2535,11 @@ void SwSwitch::postInit() {
       case BootType::UNINITIALIZED:
         CHECK(0);
     }
-  }
-
-  if (flags_ & SwitchFlags::PUBLISH_STATS) {
     stats()->multiSwitchStatus(isRunModeMultiSwitch());
   }
+}
 
+void SwSwitch::initThreadHeartbeats() {
   auto bgHeartbeatStatsFunc = [this](int delay, int backLog) {
     stats()->bgHeartbeatDelay(delay);
     stats()->bgEventBacklog(backLog);
@@ -2596,7 +2605,9 @@ void SwSwitch::postInit() {
         stats()->dsfSubStreamThreadHeartbeatDelay(delay);
         stats()->dsfSubStreamThreadEventBacklog(backlog);
       });
+}
 
+void SwSwitch::startHeartbeatWatchdog() {
   heartbeatWatchdog_ = std::make_unique<ThreadHeartbeatWatchdog>(
       std::chrono::milliseconds(FLAGS_thread_heartbeat_ms * 10),
       [this]() { stats()->ThreadHeartbeatMissCount(); });
@@ -2609,9 +2620,8 @@ void SwSwitch::postInit() {
       dsfSubscriberReconnectThreadHeartbeat_);
   heartbeatWatchdog_->startMonitoringHeartbeat(
       dsfSubscriberStreamThreadHeartbeat_);
-  heartbeatWatchdog_->start();
 
-  setSwitchRunState(SwitchRunState::INITIALIZED);
+  heartbeatWatchdog_->start();
 }
 
 void SwSwitch::stopThreads() {

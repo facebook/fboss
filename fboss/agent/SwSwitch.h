@@ -1103,6 +1103,14 @@ class SwSwitch : public HwSwitchCallback {
 
   void postInit();
 
+  void initLldpManager();
+
+  void publishBootTypeStats();
+
+  void initThreadHeartbeats();
+
+  void startHeartbeatWatchdog();
+
   void updateMultiSwitchGlobalFb303Stats();
 
   void stopHwSwitchHandler();
