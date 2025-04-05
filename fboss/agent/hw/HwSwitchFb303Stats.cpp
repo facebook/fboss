@@ -394,7 +394,10 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
           getCounterPrefix() + "isolation_firmware_version"),
       isolationFirmwareOpStatus_(
           map,
-          getCounterPrefix() + "isolation_firmware_op_status") {}
+          getCounterPrefix() + "isolation_firmware_op_status"),
+      isolationFirmwareFuncStatus_(
+          map,
+          getCounterPrefix() + "isolation_firmware_functional_status") {}
 
 void HwSwitchFb303Stats::update(const HwSwitchDropStats& dropStats) {
   if (dropStats.globalDrops().has_value()) {
@@ -803,6 +806,10 @@ void HwSwitchFb303Stats::isolationFirmwareVersion(int64_t ver) {
 
 void HwSwitchFb303Stats::isolationFirmwareOpStatus(int64_t opStatus) {
   fb303::fbData->setCounter(isolationFirmwareOpStatus_.name(), opStatus);
+}
+
+void HwSwitchFb303Stats::isolationFirmwareFuncStatus(int64_t funcStatus) {
+  fb303::fbData->setCounter(isolationFirmwareFuncStatus_.name(), funcStatus);
 }
 
 int64_t HwSwitchFb303Stats::getFabricConnectivityMismatchCount() const {

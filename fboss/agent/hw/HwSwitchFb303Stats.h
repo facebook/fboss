@@ -203,6 +203,7 @@ class HwSwitchFb303Stats {
 
   void isolationFirmwareVersion(int64_t ver);
   void isolationFirmwareOpStatus(int64_t opStatus);
+  void isolationFirmwareFuncStatus(int64_t funcStatus);
 
   void update(const HwSwitchDramStats& dramStats);
   void update(const HwSwitchDropStats& dropStats);
@@ -424,6 +425,7 @@ class HwSwitchFb303Stats {
   TLCounter arsResourceExhausted_;
   TLCounter isolationFirmwareVersion_;
   TLCounter isolationFirmwareOpStatus_;
+  TLCounter isolationFirmwareFuncStatus_;
 };
 
 } // namespace facebook::fboss
