@@ -503,7 +503,7 @@ void NeighborCacheImpl<NTable>::repopulate(std::shared_ptr<NTable> table) {
 
     switch (entry->getType()) {
       case state::NeighborEntryType::DYNAMIC_ENTRY:
-        addOrUpdateEntryInternal(
+        setEntryInternal(
             EntryFields::fromThrift(entry->toThrift()),
             state,
             state::NeighborEntryType::DYNAMIC_ENTRY);
@@ -538,7 +538,7 @@ void NeighborCacheImpl<NTable>::setEntry(
 
   try {
     programEntry(entry);
-    addOrUpdateEntryInternal(
+    setEntryInternal(
         EntryFields(ip, mac, port, intfID_),
         state,
         state::NeighborEntryType::DYNAMIC_ENTRY);
@@ -650,10 +650,11 @@ void NeighborCacheImpl<NTable>::updateEntryClassID(
 }
 
 template <typename NTable>
-NeighborCacheEntry<NTable>* NeighborCacheImpl<NTable>::addOrUpdateEntryInternal(
+NeighborCacheEntry<NTable>* NeighborCacheImpl<NTable>::setEntryInternal(
     const EntryFields& fields,
     NeighborEntryState state,
-    state::NeighborEntryType type) {
+    state::NeighborEntryType type,
+    bool add) {
   auto entry = getCacheEntry(fields.ip);
   if (entry) {
     auto changed = !entry->fieldsMatch(fields);
@@ -662,7 +663,7 @@ NeighborCacheEntry<NTable>* NeighborCacheImpl<NTable>::addOrUpdateEntryInternal(
     }
     entry->updateState(state);
     return changed ? entry : nullptr;
-  } else {
+  } else if (add) {
     auto to_store = std::make_shared<Entry>(fields, evb_, cache_, state, type);
     entry = to_store.get();
     setCacheEntry(std::move(to_store));
@@ -693,10 +694,11 @@ void NeighborCacheImpl<NTable>::setPendingEntry(
   if (entry) {
     try {
       programPendingEntry(entry, port, force);
-      addOrUpdateEntryInternal(
+      setEntryInternal(
           EntryFields(ip, intfID_, NeighborState::PENDING),
           NeighborEntryState::INCOMPLETE,
-          state::NeighborEntryType::DYNAMIC_ENTRY);
+          state::NeighborEntryType::DYNAMIC_ENTRY,
+          true);
 
     } catch (const FbossHwUpdateError& e) {
       XLOG(ERR) << "Failed to program pending entry: " << e.what();
