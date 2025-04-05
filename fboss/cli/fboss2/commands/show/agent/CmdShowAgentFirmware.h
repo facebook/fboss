@@ -21,6 +21,7 @@ class CmdShowAgentFirmware
     : public CmdHandler<CmdShowAgentFirmware, CmdShowAgentFirmwareTraits> {
  public:
   RetType queryClient(const HostInfo& hostInfo);
+  RetType createModel(const std::vector<FirmwareInfo>& firmwareInfoList);
   void printOutput(const RetType& model, std::ostream& out = std::cout);
 };
 
