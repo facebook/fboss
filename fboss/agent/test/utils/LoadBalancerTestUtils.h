@@ -19,6 +19,15 @@ class SwSwitch;
 }
 namespace facebook::fboss::utility {
 
+#if defined(CHENAB_SAI_SDK)
+// Use least-significant 2 bytes of Dst Queue Pair on Chenab platform.
+inline const int kUdfHashDstQueuePairStartOffsetInBytes(14);
+inline const int kUdfHashDstQueuePairFieldSizeInBytes(2);
+#else
+inline const int kUdfHashDstQueuePairStartOffsetInBytes(13);
+inline const int kUdfHashDstQueuePairFieldSizeInBytes(3);
+#endif
+
 struct SendPktFunc {
   using FuncType3 = std::function<void(
       std::unique_ptr<TxPacket>,
