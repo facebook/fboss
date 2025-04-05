@@ -130,10 +130,10 @@ void addNetworkAIQueueConfig(
   }
   queue0.aqms() = {};
   if (addEcnConfig) {
-    queue0.aqms()->push_back(kGetEcnConfig(hwAsic));
+    queue0.aqms()->push_back(GetEcnConfig(*hwAsic));
   }
   if (addWredConfig) {
-    queue0.aqms()->push_back(kGetWredConfig(hwAsic));
+    queue0.aqms()->push_back(GetWredConfig(*hwAsic));
   }
   portQueues.push_back(queue0);
 
@@ -214,10 +214,10 @@ void addVoqAqmConfig(
     if (voqId == getTrafficClassToVoqId(asic, 2)) {
       voq.aqms() = {};
       if (addEcnConfig) {
-        voq.aqms()->push_back(kGetEcnConfig(asic));
+        voq.aqms()->push_back(GetEcnConfig(*asic));
       }
       if (addWredConfig) {
-        voq.aqms()->push_back(kGetWredConfig(asic));
+        voq.aqms()->push_back(GetWredConfig(*asic));
       }
     }
   }

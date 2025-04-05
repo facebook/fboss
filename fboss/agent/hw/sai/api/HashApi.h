@@ -87,6 +87,15 @@ class HashApi : public SaiApi<HashApi> {
   friend class SaiApi<HashApi>;
 };
 
+#if defined(CHENAB_SAI_SDK)
+
+// TODO: Chenab SDK returns two hash objects (ECMP and LAG) with same adapter
+// host key attributes which leads to a key clash in SAI store. Disable querying
+// these attributes.
+template <>
+struct GetObjectKeySupported<SaiHashTraits> : std::false_type {};
+
+#endif
 } // namespace facebook::fboss
 
 namespace std {

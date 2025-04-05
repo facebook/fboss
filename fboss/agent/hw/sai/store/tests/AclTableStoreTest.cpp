@@ -165,6 +165,10 @@ class AclTableStoreTest : public SaiStoreTest {
     return 50;
   }
 
+  sai_object_id_t kSetArsObject() const {
+    return 60;
+  }
+
   bool kDisableArsForwarding() const {
     return false;
   }
@@ -306,6 +310,7 @@ class AclTableStoreTest : public SaiStoreTest {
             AclEntryActionSaiObjectIdList(this->kMirrorEgress()),
             AclEntryActionSaiObjectIdT(this->kMacsecFlow()),
             AclEntryActionSaiObjectIdT(this->kSetUserTrap()),
+            AclEntryActionSaiObjectIdT(this->kSetArsObject()),
             AclEntryActionBool(this->kDisableArsForwarding()),
         },
         0);
@@ -497,6 +502,7 @@ TEST_P(AclTableStoreParamTest, AclEntryCreateCtor) {
       this->kMirrorEgress(),
       this->kMacsecFlow(),
       this->kSetUserTrap(),
+      this->kSetArsObject(),
       this->kDisableArsForwarding()};
 
   SaiObject<SaiAclEntryTraits> obj = createObj<SaiAclEntryTraits>(k, c, 0);

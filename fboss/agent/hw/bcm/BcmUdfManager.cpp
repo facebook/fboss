@@ -233,8 +233,8 @@ cfg::UdfGroupType BcmUdfManager::getUdfGroupType(
     throw FbossError("Unable to find : ", udfGroupName, " in the map.");
   }
 
-  XLOG(DBG3) << " For UDF group " << udfGroupName
-             << "  get udfGroupType: " << (int)iter->second->getUdfGroupType();
+  XLOG(DBG3) << " For UDF group " << udfGroupName << "  get udfGroupType: "
+             << static_cast<int>(iter->second->getUdfGroupType());
   return iter->second->getUdfGroupType();
 }
 

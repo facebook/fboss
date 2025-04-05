@@ -384,6 +384,11 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map, int numSwitches)
           map,
           kCounterPrefix + "fw_drained_with_high_num_active_fabric_links",
           SUM,
+          RATE),
+      resourceAccountantRejectedUpdates_(
+          map,
+          kCounterPrefix + "resource_accountant_rejected_updates",
+          SUM,
           RATE)
 
 {
@@ -743,6 +748,15 @@ void SwitchStats::setDrainState(
   auto drainStateCounter =
       folly::to<std::string>("switch.", switchIndex, ".drain_state");
   fb303::fbData->setCounter(drainStateCounter, static_cast<int>(drainState));
+}
+
+void SwitchStats::setNumActiveFabricLinksEligibleForMinLink(
+    int32_t virtualDeviceId,
+    int32_t numLinks) {
+  auto counterName = folly::to<std::string>(
+      "vid.", virtualDeviceId, ".active_eligible_min_links");
+
+  fb303::fbData->setCounter(counterName, static_cast<int>(numLinks));
 }
 
 } // namespace facebook::fboss

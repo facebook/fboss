@@ -273,15 +273,23 @@ void addFlowletAcl(
     const std::string& aclName,
     const std::string& aclCounterName,
     bool udfFlowlet) {
-  auto* acl = utility::addAcl(&cfg, aclName);
-  acl->proto() = 17;
-  acl->l4DstPort() = 4791;
-  acl->dstIp() = "2001::/16";
-  if (udfFlowlet) {
-    acl->udfGroups() = {utility::kRoceUdfFlowletGroupName};
-    acl->roceBytes() = {utility::kRoceReserved};
-    acl->roceMask() = {utility::kRoceReserved};
+  cfg::AclEntry acl;
+  acl.name() = aclName;
+  acl.actionType() = cfg::AclActionType::PERMIT;
+  acl.proto() = 17;
+  acl.l4DstPort() = 4791;
+  acl.dstIp() = "2001::/16";
+  if (utility::checkSameAndGetAsicType(cfg) ==
+      cfg::AsicType::ASIC_TYPE_CHENAB) {
+    acl.etherType() = cfg::EtherType::IPv6;
   }
+  if (udfFlowlet) {
+    acl.udfGroups() = {utility::kRoceUdfFlowletGroupName};
+    acl.roceBytes() = {utility::kRoceReserved};
+    acl.roceMask() = {utility::kRoceReserved};
+  }
+  utility::addAcl(&cfg, acl, cfg::AclStage::INGRESS);
+
   cfg::MatchAction matchAction = cfg::MatchAction();
   matchAction.flowletAction() = cfg::FlowletAction::FORWARD;
   matchAction.counter() = aclCounterName;
@@ -942,6 +950,9 @@ void addLoadBalancerToConfig(
       break;
     case LBHash::HALF_HASH:
       config.loadBalancers()->push_back(getEcmpHalfHashConfig({hwAsic}));
+      break;
+    case LBHash::FULL_HASH_UDF:
+      config.loadBalancers()->push_back(getEcmpFullUdfHashConfig({hwAsic}));
       break;
     default:
       throw FbossError("invalid hashing option ", hashType);

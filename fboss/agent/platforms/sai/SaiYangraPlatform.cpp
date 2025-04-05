@@ -63,6 +63,7 @@ SaiYangraPlatform::getSaiProfileVendorExtensionValues() const {
   kv_map.insert(std::make_pair("SAI_KEY_NOT_DROP_SMAC_DMAC_EQUAL", "1"));
   kv_map.insert(std::make_pair("SAI_KEY_RECLAIM_BUFFER_ENABLED", "0"));
   kv_map.insert(std::make_pair("SAI_KEY_TRAP_PACKETS_USING_CALLBACK", "1"));
+  kv_map.insert(std::make_pair("SAI_KEY_ROUTE_METADATA_FIELD_SIZE", "5"));
   return kv_map;
 }
 

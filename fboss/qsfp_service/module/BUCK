@@ -51,6 +51,7 @@ cpp_library(
         "//fboss/qsfp_service/module/cmis:cmis-cpp2-types",
         "//fboss/qsfp_service/module/sff:sff-cpp2-types",
         "//fboss/qsfp_service/module/sff:sff8472-cpp2-types",
+        "//folly:format",
         "//folly:synchronized",
         "//folly/executors:function_scheduler",
         "//folly/futures:core",
@@ -60,6 +61,7 @@ cpp_library(
         "//thrift/lib/cpp/util:enum_utils",
     ],
     exported_external_deps = [
+        "re2",
         ("boost", None, "boost_assign"),
         ("boost", None, "boost_bimap"),
     ],

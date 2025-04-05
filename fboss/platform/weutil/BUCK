@@ -24,6 +24,7 @@ cpp_library(
         "//fboss/platform/weutil/if:weutil_config-cpp2-types",
         "//folly:conv",
         "//folly:format",
+        "//folly:string",
         "//folly/json:dynamic",
         "//folly/logging:logging",
         "//thrift/lib/cpp2/protocol:protocol",

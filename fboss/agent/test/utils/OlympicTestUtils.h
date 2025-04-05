@@ -154,14 +154,14 @@ const std::vector<int> kOlympicAllSPQueueIds();
 const std::map<int, std::vector<uint8_t>> kOlympicV2QueueToDscp();
 
 void addQueueEcnConfig(
-    cfg::SwitchConfig* config,
+    cfg::SwitchConfig& config,
     const std::vector<const HwAsic*>& asics,
     const int queueId,
     const uint32_t minLen,
     const uint32_t maxLen,
     bool isVoq);
 void addQueueWredConfig(
-    cfg::SwitchConfig* config,
+    cfg::SwitchConfig& config,
     const std::vector<const HwAsic*>& asics,
     const int queueId,
     const uint32_t minLen,

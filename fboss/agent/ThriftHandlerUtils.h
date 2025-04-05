@@ -18,11 +18,17 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/types.h"
+#include "fboss/thrift_cow/visitors/PathVisitor.h"
 
 #include <fb303/ServiceData.h>
 #include <folly/String.h>
 
 namespace facebook::fboss::utility {
+
+std::string getCurrentStateJSONForPathHelper(
+    const std::string& path,
+    const std::shared_ptr<SwitchState>& sw);
+
 void clearSwPortStats(
     std::vector<int32_t>& ports,
     std::shared_ptr<SwitchState> state);

@@ -25,7 +25,7 @@ class SwRxPacket : public RxPacket {
     buf_ = std::move(other.buf_);
     len_ = other.len_;
     setSrcPort(other.getSrcPort());
-    setSrcVlan(other.getSrcVlan());
+    setSrcVlan(other.getSrcVlanIf());
     if (other.cosQueue()) {
       setCosQueue(*other.cosQueue());
     }

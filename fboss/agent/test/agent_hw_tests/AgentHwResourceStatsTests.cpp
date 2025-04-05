@@ -184,7 +184,7 @@ TEST_F(AgentHwResourceStatsTest, aclStats) {
     auto asic = utility::checkSameAndGetAsic(l3Asics);
     auto [aclEntriesFreeBefore, aclCountersFreeBefore] = getStatsFn();
     // getSw()->isRunModeMultiSwitch() ? getMultiStatsFn() : getMonoStatsFn();
-    auto acl = utility::addAcl(&newCfg, "acl0");
+    auto acl = utility::addAcl_DEPRECATED(&newCfg, "acl0");
     acl->dscp() = 0x10;
     if (asic->isSupported(HwAsic::Feature::ACL_ENTRY_ETHER_TYPE)) {
       acl->etherType() = cfg::EtherType::IPv6;

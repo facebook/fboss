@@ -118,6 +118,11 @@ class HwTestThriftHandler : public AgentHwTestCtrlSvIf {
 
   void updateFlowletStats() override;
 
+  bool getPtpTcEnabled() override;
+
+  void clearInterfacePhyCounters(
+      std::unique_ptr<::std::vector<::std::int32_t>> portIds) override;
+
  private:
   HwSwitch* hwSwitch_;
 };

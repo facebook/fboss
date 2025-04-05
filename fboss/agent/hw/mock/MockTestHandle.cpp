@@ -22,7 +22,8 @@ void MockTestHandle::rxPacket(
   auto len = buf->computeChainDataLength();
   auto pkt = std::make_unique<MockRxPacket>(std::move(buf));
   // The minimum required frame length for ethernet is 64 bytes
-  pkt->padToLength(std::max((int)len, 68)); // pad to min packet size if needed
+  pkt->padToLength(
+      std::max(static_cast<int>(len), 68)); // pad to min packet size if needed
   if (srcPort.isAggregatePort()) {
     pkt->setSrcAggregatePort(srcPort.aggPortID());
   }

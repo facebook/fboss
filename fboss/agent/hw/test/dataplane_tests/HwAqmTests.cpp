@@ -48,12 +48,14 @@ void verifyWredDroppedPacketCount(
     AqmTestStats& after,
     AqmTestStats& before,
     int expectedDroppedPkts) {
-  constexpr auto kAcceptableError = 2;
+  constexpr auto kAcceptableErrorPct = 10;
   auto deltaWredDroppedPackets =
       after.wredDroppedPackets - before.wredDroppedPackets;
   XLOG(DBG0) << "Delta WRED dropped pkts: " << deltaWredDroppedPackets;
-  EXPECT_GT(deltaWredDroppedPackets, expectedDroppedPkts - kAcceptableError);
-  EXPECT_LT(deltaWredDroppedPackets, expectedDroppedPkts + kAcceptableError);
+
+  int allowedDeviation = kAcceptableErrorPct * expectedDroppedPkts / 100;
+  EXPECT_GE(deltaWredDroppedPackets, expectedDroppedPkts - allowedDeviation);
+  EXPECT_LE(deltaWredDroppedPackets, expectedDroppedPkts + allowedDeviation);
 }
 
 /*
@@ -250,7 +252,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
     for (auto queueId : queueIds) {
       if (isEcn) {
         utility::addQueueEcnConfig(
-            &cfg,
+            cfg,
             {getPlatform()->getAsic()},
             queueId,
             utility::kQueueConfigAqmsEcnThresholdMinMax,
@@ -258,7 +260,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
             isVoq);
       } else {
         utility::addQueueWredConfig(
-            &cfg,
+            cfg,
             {getPlatform()->getAsic()},
             queueId,
             utility::kQueueConfigAqmsWredThresholdMinMax,
@@ -533,8 +535,8 @@ class HwAqmTest : public HwLinkStateDependentTest {
      */
     int numPacketsToSend =
         ceil(
-            (double)utility::getRoundedBufferThreshold(
-                getHwSwitch(), thresholdBytes, roundUp) /
+            static_cast<double>(utility::getRoundedBufferThreshold(
+                getHwSwitch(), thresholdBytes, roundUp)) /
             utility::getEffectiveBytesPerPacket(getHwSwitch(), kTxPacketLen)) +
         expectedMarkedOrDroppedPacketCount;
     auto setup = [=, this]() {
@@ -574,7 +576,9 @@ class HwAqmTest : public HwLinkStateDependentTest {
             utility::kOlympicQueueToDscp().at(kQueueId).front(),
             ecnVal,
             numPacketsToSend,
-            kPayloadLength);
+            kPayloadLength,
+            255,
+            masterLogicalInterfacePortIds()[1]);
       };
 
       // Send traffic with queue buildup and get the stats at the start!

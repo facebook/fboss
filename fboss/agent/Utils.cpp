@@ -544,12 +544,22 @@ std::optional<PortID> getInterfacePortToReach(
     const std::shared_ptr<SwitchState>& state,
     const folly::IPAddress& ipAddr) {
   auto intf = state->getInterfaces()->getIntfToReach(RouterID(0), ipAddr);
-  if (intf) {
-    CHECK(intf->getSystemPortID().has_value());
-    return getPortID(*intf->getSystemPortID(), state);
+  if (!intf) {
+    return std::nullopt;
   }
-
-  return std::nullopt;
+  auto intfType = intf->getType();
+  std::optional<PortID> port{};
+  switch (intfType) {
+    case cfg::InterfaceType::VLAN:
+      break;
+    case cfg::InterfaceType::SYSTEM_PORT:
+      port = getPortID(intf->getSystemPortID().value(), state);
+      break;
+    case cfg::InterfaceType::PORT:
+      port = intf->getPortID();
+      break;
+  }
+  return port;
 }
 
 bool isAnyInterfacePortInLoopbackMode(

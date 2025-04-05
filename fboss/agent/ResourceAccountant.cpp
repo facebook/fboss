@@ -376,6 +376,17 @@ std::optional<uint32_t> ResourceAccountant::getMaxNeighborTableSize(
   return (size * resourcePercentage) / kHundredPercentage;
 }
 
+// get max neighbor table size suported by resourceAccountant
+template <typename TableT>
+uint32_t ResourceAccountant::getMaxNeighborTableSize() {
+  if constexpr (std::is_same_v<TableT, NdpTable>) {
+    return FLAGS_max_ndp_entries;
+  } else if constexpr (std::is_same_v<TableT, ArpTable>) {
+    return FLAGS_max_arp_entries;
+  }
+  throw FbossError("Invalid resource type");
+}
+
 // check if the neighbor resource is available for the update as per limits
 template <typename TableT>
 bool ResourceAccountant::checkNeighborResource(
@@ -430,10 +441,6 @@ bool ResourceAccountant::neighborStateChangedImpl(const StateDelta& delta) {
           auto switchId =
               getSwitchIdFromNeighborEntry(delta.newState(), newNbr);
           entriesMap[switchId]++;
-
-          isValidUpdate &= checkNeighborResource<TableT>(
-              switchId, entriesMap[switchId], true); // intermediate
-
           return LoopAction::CONTINUE;
         },
         [&](const auto& deleted) {
@@ -460,7 +467,7 @@ bool ResourceAccountant::neighborStateChangedImpl(const StateDelta& delta) {
 
   // Ensure new state usage does not exceed neighbor_resource_percentage
   for (const auto& [switchId, count] : getNeighborEntriesMap<TableT>()) {
-    isValidUpdate &= checkNeighborResource<TableT>(switchId, count, false);
+    isValidUpdate &= (count <= getMaxNeighborTableSize<TableT>());
     if (!isValidUpdate) { // log error
       std::string neighbor;
       if constexpr (std::is_same_v<TableT, NdpTable>) {
@@ -472,10 +479,8 @@ bool ResourceAccountant::neighborStateChangedImpl(const StateDelta& delta) {
       }
       XLOG(ERR) << neighbor
                 << " entries are over the limit for switchId: " << switchId;
-      XLOG(ERR) << neighbor << " entries : " << count << " exceeds the limit: "
-                << getMaxNeighborTableSize<TableT>(
-                       switchId, FLAGS_neighbhor_resource_percentage)
-                       .value();
+      XLOG(ERR) << neighbor << " entries : " << count
+                << " exceeds the limit: " << getMaxNeighborTableSize<TableT>();
     }
   }
 

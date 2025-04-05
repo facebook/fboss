@@ -23,4 +23,13 @@ SaiSystemPortTraits::Attributes::AttributeShelPktDstEnable::operator()() {
 #endif
 }
 
+std::optional<sai_attr_id_t>
+SaiSystemPortTraits::Attributes::AttributeTcRateLimitExclude::operator()() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  return SAI_SYSTEM_PORT_ATTR_TC_RATE_LIMIT_EXCLUDE;
+#else
+  return std::nullopt;
+#endif
+}
+
 } // namespace facebook::fboss

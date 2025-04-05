@@ -102,8 +102,7 @@ std::unique_ptr<WedgeManager> createWedgeManager() {
   } else if (
       mode == PlatformType::PLATFORM_FUJI ||
       mode == PlatformType::PLATFORM_MINIPACK ||
-      mode == PlatformType::PLATFORM_WEDGE400 ||
-      mode == PlatformType::PLATFORM_CLOUDRIPPER) {
+      mode == PlatformType::PLATFORM_WEDGE400) {
     return createFBWedgeManager(std::move(productInfo), platformMappingStr);
   }
   return std::make_unique<Wedge40Manager>(platformMappingStr);

@@ -139,19 +139,25 @@ bool HwTestThriftHandler::verifyPGSettings(int portId, bool pfcEnabled) {
       return false;
     }
     auto bufferProfile = iter->second.bufferProfile;
-    if (pgConfig->cref<switch_state_tags::resumeOffsetBytes>()->cref() !=
-        SaiApiTable::getInstance()->bufferApi().getAttribute(
-            bufferProfile->adapterKey(),
-            SaiBufferProfileTraits::Attributes::XonOffsetTh{})) {
-      XLOG(DBG2) << "Resume offset mismatch for pg " << id;
-      return false;
+    if (auto resumeBytesOpt =
+            pgConfig->cref<switch_state_tags::resumeBytes>()) {
+      if (resumeBytesOpt->cref() !=
+          SaiApiTable::getInstance()->bufferApi().getAttribute(
+              bufferProfile->adapterKey(),
+              SaiBufferProfileTraits::Attributes::XonTh{})) {
+        XLOG(DBG2) << "Resume threshold mismatch for pg " << id;
+        return false;
+      }
     }
-    if (pgConfig->cref<switch_state_tags::minLimitBytes>()->cref() !=
-        SaiApiTable::getInstance()->bufferApi().getAttribute(
-            bufferProfile->adapterKey(),
-            SaiBufferProfileTraits::Attributes::ReservedBytes{})) {
-      XLOG(DBG2) << "Min limit mismatch for pg " << id;
-      return false;
+    if (auto resumeOffsetBytesOpt =
+            pgConfig->cref<switch_state_tags::resumeOffsetBytes>()) {
+      if (resumeOffsetBytesOpt->cref() !=
+          SaiApiTable::getInstance()->bufferApi().getAttribute(
+              bufferProfile->adapterKey(),
+              SaiBufferProfileTraits::Attributes::XonOffsetTh{})) {
+        XLOG(DBG2) << "Resume offset mismatch for pg " << id;
+        return false;
+      }
     }
     if (pgConfig->cref<switch_state_tags::minLimitBytes>()->cref() !=
         SaiApiTable::getInstance()->bufferApi().getAttribute(
@@ -252,6 +258,12 @@ void HwTestThriftHandler::getAggPortInfo(
 int HwTestThriftHandler::getNumAggPorts() {
   auto saiSwitch = static_cast<const SaiSwitch*>(hwSwitch_);
   return saiSwitch->managerTable()->lagManager().getLagCount();
+}
+
+void HwTestThriftHandler::clearInterfacePhyCounters(
+    std::unique_ptr<::std::vector<::std::int32_t>> portIds) {
+  hwSwitch_->clearInterfacePhyCounters(
+      std::make_unique<std::vector<int32_t>>(std::move(*portIds)));
 }
 
 bool HwTestThriftHandler::verifyPktFromAggPort(int aggPortId) {

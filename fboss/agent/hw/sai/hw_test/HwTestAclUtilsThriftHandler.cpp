@@ -131,18 +131,30 @@ bool HwTestThriftHandler::isStatProgrammedInAclTable(
     bool byteCountEnabledExpected = false;
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
+    SaiCharArray32 aclCounterNameGot{};
     // Counter name must match what was previously configured
     if (hwSwitch_->getPlatform()->getAsic()->isSupported(
             HwAsic::Feature::ACL_COUNTER_LABEL)) {
-      std::optional<SaiAclCounterTraits::Attributes::Label> optAttr;
-      auto aclCounterNameGot =
-          SaiApiTable::getInstance()->aclApi().getAttribute(
-              AclCounterSaiId(aclCounterIdGot), optAttr);
-      if (aclCounterNameGot) {
-        std::string aclCounterNameGotStr(aclCounterNameGot->data());
-        if (*counterName != aclCounterNameGotStr) {
-          return false;
-        }
+      if constexpr (AdapterHostKeyWarmbootRecoverable<
+                        SaiAclCounterTraits>::value) {
+        aclCounterNameGot = SaiApiTable::getInstance()->aclApi().getAttribute(
+            AclCounterSaiId(aclCounterIdGot),
+            SaiAclCounterTraits::Attributes::Label());
+      } else {
+        auto saiSwitch = static_cast<const SaiSwitch*>(hwSwitch_);
+        auto saiObject =
+            saiSwitch->getSaiStore()->get<SaiAclCounterTraits>().find(
+                AclCounterSaiId(aclCounterIdGot));
+        EXPECT_NE(saiObject, nullptr);
+
+        aclCounterNameGot =
+            GET_OPT_ATTR(AclCounter, Label, (saiObject->attributes()));
+      }
+      std::string aclCounterNameGotStr(aclCounterNameGot.data());
+      if (*counterName != aclCounterNameGotStr) {
+        XLOG(ERR) << "ACL counter name mismatch: " << *counterName << " vs "
+                  << aclCounterNameGotStr;
+        return false;
       }
     }
 

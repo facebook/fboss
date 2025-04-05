@@ -38,7 +38,7 @@ folly::Synchronized<CallbackMap> callbacks;
 // Registers a callback with the BCM library to start callbacks
 void initUnit(const int unit, BcmSwitch* bcmSwitch) {
   SYNCHRONIZED(callbacks) {
-    if (callbacks.count(unit) > 0) {
+    if (callbacks.contains(unit)) {
       auto rv = bcm_switch_event_unregister(unit, callbackDispatch, nullptr);
       bcmCheckError(rv, "failed to unregister switch event");
     }
@@ -53,7 +53,7 @@ void initUnit(const int unit, BcmSwitch* bcmSwitch) {
 // Unregisters the callback and destroys existing callbacks
 void resetUnit(const int unit) {
   SYNCHRONIZED(callbacks) {
-    if (callbacks.count(unit) == 0) {
+    if (!callbacks.contains(unit)) {
       return;
     }
 

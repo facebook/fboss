@@ -26,14 +26,19 @@ class HwSysPortFb303Stats : public HwBasePortFb303Stats {
   explicit HwSysPortFb303Stats(
       const std::string& portName,
       QueueId2Name queueId2Name = {},
-      std::optional<std::string> multiSwitchStatsPrefix = std::nullopt)
+      std::optional<std::string> multiSwitchStatsPrefix = std::nullopt,
+      bool initStats = true)
       : HwBasePortFb303Stats(
             portName,
             queueId2Name,
             {} /*enabledPfcPriorities*/,
             multiSwitchStatsPrefix) {
     portStats_.portName_() = portName;
-    reinitStats(std::nullopt);
+
+    if (initStats) {
+      reinitStats(std::nullopt);
+      initialized_ = true;
+    }
   }
 
   ~HwSysPortFb303Stats() override = default;
@@ -43,7 +48,26 @@ class HwSysPortFb303Stats : public HwBasePortFb303Stats {
 
   virtual void portNameChanged(const std::string& newName) override {
     portStats_.portName_() = newName;
-    HwBasePortFb303Stats::portNameChanged(newName);
+    if (initialized_) {
+      HwBasePortFb303Stats::portNameChanged(newName);
+    }
+  }
+
+  virtual void queueChanged(int queueId, const std::string& queueName)
+      override {
+    if (initialized_) {
+      HwBasePortFb303Stats::queueChanged(queueId, queueName);
+    } else {
+      queueId2Name_[queueId] = queueName;
+    }
+  }
+
+  virtual void queueRemoved(int queueId) override {
+    if (initialized_) {
+      HwBasePortFb303Stats::queueRemoved(queueId);
+    } else {
+      queueId2Name_.erase(queueId);
+    }
   }
 
   const HwSysPortStats& portStats() const {
@@ -74,6 +98,7 @@ class HwSysPortFb303Stats : public HwBasePortFb303Stats {
  private:
   std::chrono::seconds timeRetrieved_{0};
   HwSysPortStats portStats_;
+  bool initialized_{false};
 };
 
 } // namespace facebook::fboss

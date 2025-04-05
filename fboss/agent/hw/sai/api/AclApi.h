@@ -524,6 +524,11 @@ struct SaiAclEntryTraits {
         AclEntryActionSaiObjectIdT>;
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+    using ActionSetArsObject = SaiAttribute<
+        EnumType,
+        SAI_ACL_ENTRY_ATTR_ACTION_SET_ARS_OBJECT,
+        AclEntryActionSaiObjectIdT,
+        SaiAclEntryActionSaiObjectDefault>;
     using ActionDisableArsForwarding = SaiAttribute<
         EnumType,
         SAI_ACL_ENTRY_ATTR_ACTION_DISABLE_ARS_FORWARDING,
@@ -592,6 +597,7 @@ struct SaiAclEntryTraits {
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
       ,
+      std::optional<Attributes::ActionSetArsObject>,
       std::optional<Attributes::ActionDisableArsForwarding>
 #endif
       >;
@@ -651,6 +657,7 @@ SAI_ATTRIBUTE_NAME(AclEntry, ActionMacsecFlow);
 SAI_ATTRIBUTE_NAME(AclEntry, ActionSetUserTrap);
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+SAI_ATTRIBUTE_NAME(AclEntry, ActionSetArsObject);
 SAI_ATTRIBUTE_NAME(AclEntry, ActionDisableArsForwarding);
 #endif
 

@@ -12,8 +12,8 @@ python_binary(
     deps = [
         "fbsource//third-party/pypi/ipaddr:ipaddr",
         "//common/network/if:if-py-deprecated",
-        "//fboss/agent/if:ctrl-py",
-        "//fboss/qsfp_service/if:qsfp-py",
+        "//fboss/agent/if:ctrl-py-deprecated",
+        "//fboss/qsfp_service/if:qsfp-py-deprecated",
         "//thrift/lib/py:server_base",
     ],
 )

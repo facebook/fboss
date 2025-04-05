@@ -63,9 +63,9 @@ class AgentL4PortBlackHolingTest : public AgentHwTest {
   void runTest(bool isV6) {
     auto setup = [=, this]() {
       const RouterID kRid{0};
-      resolveNeigborAndProgramRoutes(
+      resolveNeighborAndProgramRoutes(
           utility::EcmpSetupAnyNPorts6(getProgrammedState(), kRid), 1);
-      resolveNeigborAndProgramRoutes(
+      resolveNeighborAndProgramRoutes(
           utility::EcmpSetupAnyNPorts4(getProgrammedState(), kRid), 1);
     };
     auto verify = [=, this]() {

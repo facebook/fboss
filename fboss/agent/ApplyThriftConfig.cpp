@@ -1121,7 +1121,10 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
     switchInfo.globalSystemPortOffset() = *node->getGlobalSystemPortOffset();
     switchInfo.inbandPortId() = *node->getInbandPortId();
     return HwAsic::makeAsic(
-        static_cast<int64_t>(node->getSwitchId()), switchInfo, std::nullopt);
+        static_cast<int64_t>(node->getSwitchId()),
+        switchInfo,
+        std::nullopt,
+        std::nullopt /* fabricNodeRole is N/A for VOQ switches */);
   };
   auto processLoopbacks = [&](const std::shared_ptr<DsfNode>& node,
                               const HwAsic* dsfNodeAsic) {
@@ -1207,6 +1210,7 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
     sysPort->setShelDestinationEnabled(
         cfg_->switchSettings()->selfHealingEcmpLagConfig().has_value());
     sysPort->resetPortQueues(getVoqConfig(localInbandPortId));
+    sysPort->setPortType(cfg::PortType::RECYCLE_PORT);
     if (auto dataPlaneTrafficPolicy = cfg_->dataPlaneTrafficPolicy()) {
       if (auto portIdToQosPolicy =
               dataPlaneTrafficPolicy->portIdToQosPolicy()) {
@@ -1755,13 +1759,14 @@ shared_ptr<SystemPortMap> ThriftConfigApplier::updateSystemPorts(
       // TODO(daiweix): remove this CHECK_EQ after verifying scope config is
       // always correct
       CHECK_EQ(
-          (int)platformPort.mapping()->scope().value(),
-          (int)port.second->getScope());
+          static_cast<int>(platformPort.mapping()->scope().value()),
+          static_cast<int>(port.second->getScope()));
       sysPort->setScope(port.second->getScope());
       sysPort->setShelDestinationEnabled(
           cfg_->switchSettings()->selfHealingEcmpLagConfig().has_value() &&
           port.second->getPortType() == cfg::PortType::RECYCLE_PORT &&
           port.second->getScope() == cfg::Scope::GLOBAL);
+      sysPort->setPortType(port.second->getPortType());
       sysPorts->addSystemPort(std::move(sysPort));
     }
   }
@@ -2586,7 +2591,9 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
       *portConf->conditionalEntropyRehash() ==
           orig->getConditionalEntropyRehash() &&
       portConf->selfHealingECMPLagEnable().value_or(false) ==
-          orig->getSelfHealingECMPLagEnable().value_or(false)) {
+          orig->getSelfHealingECMPLagEnable().value_or(false) &&
+      portConf->fecErrorDetectEnable().value_or(false) ==
+          orig->getFecErrorDetectEnable().value_or(false)) {
     return nullptr;
   }
 
@@ -2641,6 +2648,11 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
     newPort->setSelfHealingECMPLagEnable(selfHealingECMPLagEnable.value());
   } else {
     newPort->setSelfHealingECMPLagEnable(std::nullopt);
+  }
+  if (portConf->fecErrorDetectEnable().has_value()) {
+    newPort->setFecErrorDetectEnable(portConf->fecErrorDetectEnable().value());
+  } else {
+    newPort->setFecErrorDetectEnable(std::nullopt);
   }
   return newPort;
 }
@@ -3253,7 +3265,7 @@ std::shared_ptr<AclTableGroupMap> ThriftConfigApplier::updateAclTableGroups() {
   } else {
     for (const auto& entry : *cfg_->aclTableGroups()) {
       // acl entry names must be unique across all acl table groups.
-      changed = updateAclTableGroupsInternal(entry);
+      changed |= updateAclTableGroupsInternal(entry);
     }
   }
 
@@ -3951,7 +3963,9 @@ std::shared_ptr<InterfaceMap> ThriftConfigApplier::updateInterfaces() {
             "is out of range for corresponding VOQ switch.",
             "sys port range");
       }
-      CHECK_EQ((int)sysPort->getScope(), (int)(*interfaceCfg.scope()));
+      CHECK_EQ(
+          static_cast<int>(sysPort->getScope()),
+          static_cast<int>(*interfaceCfg.scope()));
     }
     if (interfaceCfg.type() == cfg::InterfaceType::PORT) {
       if (auto port = interfaceCfg.portID()) {
@@ -4326,6 +4340,8 @@ ThriftConfigApplier::createFlowletSwitchingConfig(
       *config.dynamicPhysicalQueueExponent());
   newFlowletSwitchingConfig->setMaxLinks(*config.maxLinks());
   newFlowletSwitchingConfig->setSwitchingMode(*config.switchingMode());
+  newFlowletSwitchingConfig->setBackupSwitchingMode(
+      *config.backupSwitchingMode());
   return newFlowletSwitchingConfig;
 }
 
@@ -4612,12 +4628,6 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings(
         network::toBinaryAddress(folly::IPAddress(*blockNeighbor.ipAddress()));
     cfgBlockNeighbors.emplace_back(neighbor);
   }
-  // THRIFT_COPY
-  if (origSwitchSettings->getBlockNeighbors()->toThrift() !=
-      cfgBlockNeighbors) {
-    newSwitchSettings->setBlockNeighbors(cfgBlockNeighbors);
-    switchSettingsChange = true;
-  }
 
   std::vector<std::pair<VlanID, folly::MacAddress>> cfgMacAddrsToBlock;
   for (const auto& macAddrToBlock :
@@ -4828,6 +4838,14 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings(
       origSwitchSettings->getVoqOutOfBoundsLatencyNsec()) {
     newSwitchSettings->setVoqOutOfBoundsLatencyNsec(
         newVoqOutOfBoundsLatencyNsec);
+    switchSettingsChange = true;
+  }
+  std::optional<std::map<int32_t, int32_t>> newTcToRateLimitKbps;
+  if (cfg_->switchSettings()->tcToRateLimitKbps()) {
+    newTcToRateLimitKbps = *cfg_->switchSettings()->tcToRateLimitKbps();
+  }
+  if (newTcToRateLimitKbps != origSwitchSettings->getTcToRateLimitKbps()) {
+    newSwitchSettings->setTcToRateLimitKbps(newTcToRateLimitKbps);
     switchSettingsChange = true;
   }
 

@@ -5,6 +5,7 @@
 #include "fboss/agent/packet/Ethertype.h"
 #include "fboss/agent/types.h"
 
+#include "fboss/agent/TxPacket.h"
 #include "fboss/agent/packet/ArpHdr.h"
 #include "fboss/agent/packet/EthHdr.h"
 #include "fboss/agent/packet/PTPHeader.h"
@@ -15,7 +16,6 @@
 namespace facebook::fboss {
 
 class HwSwitch;
-class TxPacket;
 
 namespace utility {
 

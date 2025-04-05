@@ -1758,8 +1758,8 @@ int BcmSwitch::pfcDeadlockRecoveryEventCallback(
   Callback* callback = (Callback*)userdata;
   XLOG_EVERY_MS(WARNING, 5000)
       << "PFC deadlock recovery callback invoked for unit " << unit << " port "
-      << (int)port << " cosq " << (int)cosq << " recovery state "
-      << (int)recovery_state;
+      << static_cast<int>(port) << " cosq " << static_cast<int>(cosq)
+      << " recovery state " << static_cast<int>(recovery_state);
 
   CHECK(callback);
   if (recovery_state == bcmCosqPfcDeadlockRecoveryEventBegin) {
@@ -3481,6 +3481,13 @@ std::vector<prbs::PrbsPolynomial> BcmSwitch::getPortPrbsPolynomials(
 
 prbs::InterfacePrbsState BcmSwitch::getPortPrbsState(PortID portId) {
   return getBcmPortPrbsState(unit_, portTable_->getBcmPortId(portId));
+}
+
+void BcmSwitch::clearInterfacePhyCounters(
+    const std::unique_ptr<std::vector<int32_t>>& ports) {
+  for (auto portId : *ports) {
+    getPortTable()->getBcmPort(portId)->clearInterfacePhyCounters();
+  }
 }
 
 std::vector<phy::PrbsLaneStats> BcmSwitch::getPortAsicPrbsStats(PortID portId) {

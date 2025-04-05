@@ -24,6 +24,7 @@ cpp_library(
         "PhyInfoTest.cpp",
         "PrbsTest.cpp",
         "PtpTests.cpp",
+        "QsfpServiceThriftDeadlockTest.cpp",
         "SpeedChangeTest.cpp",
         "facebook/FsdbTests.cpp",
         "facebook/MacsecFsdbTests.cpp",
@@ -40,6 +41,7 @@ cpp_library(
     exported_deps = [
         "fbsource//third-party/googletest:gtest",
         ":link_test_production_features-cpp2-types",
+        "//common/base:proc",
         "//common/process:process",
         "//fboss/agent:agent_features",
         "//fboss/agent:agent_stats-cpp2-types",
@@ -139,6 +141,7 @@ cpp_library(
     exported_deps = [
         "fbsource//third-party/googletest:gtest",
         ":link_test_production_features-cpp2-types",
+        "//common/base:proc",
         "//fboss/agent:core",
         "//fboss/agent:fboss-error",
         "//fboss/agent:fboss-types",
@@ -216,6 +219,7 @@ cpp_library(
     exported_deps = [
         "fbsource//third-party/googletest:gtest",
         ":link_test_production_features-cpp2-types",
+        "//common/base:proc",
         "//common/process:process",
         "//fboss/agent:agent_features",
         "//fboss/agent:agent_stats-cpp2-types",
@@ -372,10 +376,11 @@ thrift_library(
     languages = [
         "cpp2",
         "go",
-        "py3",
-        "py-asyncio",
+        "py3-deprecated",
+        "py-deprecated-asyncio",
         "rust",
         "py-deprecated",
+        "python",
     ],
     py3_namespace = "neteng.fboss",
     py_asyncio_base_module = "neteng.fboss.asyncio",

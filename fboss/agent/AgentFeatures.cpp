@@ -200,6 +200,21 @@ DEFINE_bool(
     false,
     "Enable Neighbor/MAC table hw update failure protection");
 
+DEFINE_int32(
+    max_l2_entries,
+    4000,
+    "Maximum L2 entries supported by Resource Accountant");
+
+DEFINE_int32(
+    max_ndp_entries,
+    3500,
+    "Maximum NDP entries supported by Resource Accountant");
+
+DEFINE_int32(
+    max_arp_entries,
+    100,
+    "Maximum ARP entries supported by Resource Accountant");
+
 DEFINE_bool(
     fw_drained_unrecoverable_error,
     false,
@@ -257,3 +272,8 @@ DEFINE_bool(
     type_dctype1_janga,
     false,
     "Enable support for single NPU config on Janga for MTIA");
+
+DEFINE_bool(
+    prod_invariant_config_test,
+    false,
+    "This flag is used to enable prod config in invariant config test");

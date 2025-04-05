@@ -41,4 +41,8 @@ BENCHMARK_MULTI(ReadRegister_DR4_2x400G) {
   return readOneByte(MediaInterfaceCode::DR4_2x400G);
 }
 
+BENCHMARK_MULTI(ReadRegister_LR4_2x400G_10KM) {
+  return readOneByte(MediaInterfaceCode::LR4_2x400G_10KM);
+}
+
 } // namespace facebook::fboss

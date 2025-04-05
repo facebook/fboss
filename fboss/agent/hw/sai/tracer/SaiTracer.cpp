@@ -1766,7 +1766,11 @@ uint32_t SaiTracer::checkListCount(
   // sai replayer will initialize more lists on stack
   if (list_count > maxListCount_) {
     writeToFile({to<string>(
-        "int list_", maxListCount_, "[", FLAGS_default_list_size, "]")});
+        "[[maybe_unused]] int list_",
+        maxListCount_,
+        "[",
+        FLAGS_default_list_size,
+        "]")});
     maxListCount_ = list_count;
   }
 

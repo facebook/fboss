@@ -448,6 +448,8 @@ folly::StringPiece packetRxReasonToString(cfg::PacketRxReason rxReason) {
       return "eapol";
     case cfg::PacketRxReason::PORT_MTU_ERROR:
       return "port-mtu-error";
+    case cfg::PacketRxReason::HOST_MISS:
+      return "host-miss";
     default:
       return "unknown-trap";
   }

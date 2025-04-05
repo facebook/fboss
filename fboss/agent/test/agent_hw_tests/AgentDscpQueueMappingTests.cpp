@@ -31,7 +31,7 @@ class AgentDscpQueueMappingTestBase : public AgentHwTest {
 
   void setupHelper() {
     utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
-    resolveNeigborAndProgramRoutes(ecmpHelper, kEcmpWidth);
+    resolveNeighborAndProgramRoutes(ecmpHelper, kEcmpWidth);
   }
 
   void sendPacket(bool frontPanel, uint8_t ttl = 64) {
@@ -175,7 +175,7 @@ class AgentAclAndDscpQueueMappingTest : public AgentDscpQueueMappingTestBase {
     utility::addOlympicQosMaps(cfg, ensemble.getL3Asics());
 
     // ACL
-    auto* acl = utility::addAcl(&cfg, "acl0");
+    auto* acl = utility::addAcl_DEPRECATED(&cfg, "acl0");
     cfg::Ttl ttl; // Match packets with hop limit > 127
     std::tie(*ttl.value(), *ttl.mask()) = std::make_tuple(0x80, 0x80);
     acl->ttl() = ttl;

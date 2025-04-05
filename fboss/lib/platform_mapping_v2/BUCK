@@ -1,0 +1,147 @@
+load("@fbcode_macros//build_defs:python_binary.bzl", "python_binary")
+load("@fbcode_macros//build_defs:python_library.bzl", "python_library")
+load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
+
+oncall("fboss_optics_phy")
+
+python_library(
+    name = "helpers",
+    srcs = ["helpers.py"],
+    labels = ["autodeps2_generated"],
+    deps = [
+        ":platform_mapping_config-py-deprecated",
+        ":si_settings",
+        ":static_mapping",
+        "//fboss/agent:platform_config-py-deprecated",
+        "//fboss/agent:switch_config-py-deprecated",
+        "//fboss/lib/phy:phy-py-deprecated",
+        "//fboss/qsfp_service/if:transceiver-py-deprecated",
+    ],
+)
+
+python_library(
+    name = "platform_mapping_v2",
+    srcs = ["platform_mapping_v2.py"],
+    labels = ["autodeps2_generated"],
+    deps = [
+        ":asic_vendor_config",
+        ":helpers",
+        ":port_profile_mapping",
+        ":profile_settings",
+        ":read_files_utils",
+        ":si_settings",
+        ":static_mapping",
+        "//fboss/agent:platform_config-py-deprecated",
+        "//fboss/agent:switch_config-py-deprecated",
+        "//fboss/lib/phy:phy-py-deprecated",
+    ],
+)
+
+thrift_library(
+    name = "platform_mapping_config",
+    go_thrift_namespaces = {
+        "platform_mapping_config.thrift": "neteng.fboss.platform_mapping_config",
+    },
+    languages = [
+        "py-deprecated",
+        "py3-deprecated",
+        "python",
+        "py-deprecated-asyncio",
+        "cpp2",
+    ],
+    py3_namespace = "neteng.fboss",
+    py_asyncio_base_module = "neteng.fboss.asyncio",
+    py_base_module = "neteng.fboss",
+    thrift_cpp2_options = "json",
+    thrift_py_options = "json,sort_keys",
+    thrift_srcs = {
+        "platform_mapping_config.thrift": [],
+    },
+    deps = [
+        "//fboss/agent:switch_config",
+        "//fboss/lib/phy:phy",
+        "//fboss/qsfp_service/if:transceiver",
+    ],
+)
+
+python_library(
+    name = "static_mapping",
+    srcs = ["static_mapping.py"],
+    labels = ["autodeps2_generated"],
+    deps = [
+        ":platform_mapping_config-py-deprecated",
+    ],
+)
+
+python_library(
+    name = "read_files_utils",
+    srcs = ["read_files_utils.py"],
+    labels = ["autodeps2_generated"],
+    deps = [
+        ":asic_vendor_config",
+        ":platform_mapping_config-py-deprecated",
+        ":port_profile_mapping",
+        ":profile_settings",
+        ":si_settings",
+        ":static_mapping",
+        "//fboss/agent:switch_config-py-deprecated",
+        "//fboss/agent/hw/config:asic_config_v2-py-deprecated",
+        "//fboss/lib/phy:phy-py-deprecated",
+        "//fboss/qsfp_service/if:transceiver-py-deprecated",
+    ],
+)
+
+python_library(
+    name = "si_settings",
+    srcs = ["si_settings.py"],
+    labels = ["autodeps2_generated"],
+    deps = [
+        ":platform_mapping_config-py-deprecated",
+        "//fboss/agent:switch_config-py-deprecated",
+        "//fboss/qsfp_service/if:transceiver-py-deprecated",
+    ],
+)
+
+python_library(
+    name = "profile_settings",
+    srcs = ["profile_settings.py"],
+    labels = ["autodeps2_generated"],
+    deps = [
+        ":helpers",
+        ":platform_mapping_config-py-deprecated",
+        "//fboss/agent:switch_config-py-deprecated",
+        "//fboss/lib/phy:phy-py-deprecated",
+    ],
+)
+
+python_library(
+    name = "port_profile_mapping",
+    srcs = ["port_profile_mapping.py"],
+    labels = ["autodeps2_generated"],
+    deps = [
+        ":platform_mapping_config-py-deprecated",
+        "//fboss/agent:switch_config-py-deprecated",
+    ],
+)
+
+python_library(
+    name = "asic_vendor_config",
+    srcs = ["asic_vendor_config.py"],
+    labels = ["autodeps2_generated"],
+    deps = [
+        "//fboss/agent/hw/config:asic_config_v2-py-deprecated",
+    ],
+)
+
+python_binary(
+    name = "gen",
+    srcs = ["gen.py"],
+    labels = ["autodeps2_generated"],
+    main_module = "fboss.lib.platform_mapping_v2.gen",
+    par_style = "xar",
+    deps = [
+        ":platform_mapping_v2",
+        "//thrift/lib/py:server_base",
+        "//thrift/lib/py/util:py_util",
+    ],
+)

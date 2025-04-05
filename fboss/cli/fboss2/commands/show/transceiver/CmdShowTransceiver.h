@@ -69,7 +69,7 @@ class CmdShowTransceiver
     outTable.setHeader(
         {"Interface",
          "Status",
-         "Present",
+         "Transceiver",
          "CfgValidated",
          "Reason",
          "Vendor",
@@ -88,7 +88,10 @@ class CmdShowTransceiver
       outTable.addRow({
           details.name().value(),
           statusToString(folly::copy(details.isUp().value())),
-          (folly::copy(details.isPresent().value())) ? "Present" : "Absent",
+          (folly::copy(details.isPresent().value()))
+              ? apache::thrift::util::enumNameSafe(
+                    details.mediaInterface().value())
+              : "Absent",
           details.validationStatus().value(),
           details.notValidatedReason().value(),
           details.vendor().value(),
@@ -174,10 +177,12 @@ class CmdShowTransceiver
   }
 
   Table::StyledCell coloredSensorValue(std::string value, FlagLevels flags) {
-    if (flags.alarm().value().get_high() || flags.alarm().value().get_low()) {
+    if (folly::copy(flags.alarm().value().high().value()) ||
+        folly::copy(flags.alarm().value().low().value())) {
       return Table::StyledCell(value, Table::Style::ERROR);
     } else if (
-        flags.warn().value().get_high() || flags.warn().value().get_low()) {
+        folly::copy(flags.warn().value().high().value()) ||
+        folly::copy(flags.warn().value().low().value())) {
       return Table::StyledCell(value, Table::Style::WARN);
     } else {
       return Table::StyledCell(value, Table::Style::GOOD);
@@ -269,6 +274,7 @@ class CmdShowTransceiver
       const auto& tcvrStats = *transceiver.tcvrStats();
       details.isUp() = folly::copy(portEntry.up().value());
       details.isPresent() = folly::copy(tcvrState.present().value());
+      details.mediaInterface() = tcvrState.moduleMediaInterface().value_or({});
       const auto& validationStringPair = getTransceiverValidationStrings(
           transceiverValidationEntries, transceiverId);
       details.validationStatus() = validationStringPair.first;
@@ -277,18 +283,26 @@ class CmdShowTransceiver
         details.vendor() = vendor->name().value();
         details.serial() = vendor->serialNumber().value();
         details.partNumber() = vendor->partNumber().value();
-        details.temperature() = apache::thrift::get_pointer(tcvrStats.sensor())
-                                    ->get_temp()
-                                    .get_value();
-        details.voltage() = apache::thrift::get_pointer(tcvrStats.sensor())
-                                ->get_vcc()
-                                .get_value();
+        details.temperature() =
+            folly::copy(apache::thrift::get_pointer(tcvrStats.sensor())
+                            ->temp()
+                            .value()
+                            .value()
+                            .value());
+        details.voltage() =
+            folly::copy(apache::thrift::get_pointer(tcvrStats.sensor())
+                            ->vcc()
+                            .value()
+                            .value()
+                            .value());
         details.tempFlags() = apache::thrift::get_pointer(tcvrStats.sensor())
-                                  ->get_temp()
+                                  ->temp()
+                                  .value()
                                   .flags()
                                   .value_or({});
         details.vccFlags() = apache::thrift::get_pointer(tcvrStats.sensor())
-                                 ->get_vcc()
+                                 ->vcc()
+                                 .value()
                                  .flags()
                                  .value_or({});
 
@@ -323,11 +337,16 @@ class CmdShowTransceiver
             // If the port doesn't exist in the map, it's likely not configured
             // yet. Display all channels in this case
           }
-          current.push_back(channel.sensors().value().get_txBias().get_value());
-          txPower.push_back(
-              channel.sensors().value().get_txPwrdBm()->get_value());
-          rxPower.push_back(
-              channel.sensors().value().get_rxPwrdBm()->get_value());
+          current.push_back(folly::copy(
+              channel.sensors().value().txBias().value().value().value()));
+          txPower.push_back(folly::copy(
+              apache::thrift::get_pointer(channel.sensors().value().txPwrdBm())
+                  ->value()
+                  .value()));
+          rxPower.push_back(folly::copy(
+              apache::thrift::get_pointer(channel.sensors().value().rxPwrdBm())
+                  ->value()
+                  .value()));
           if (const auto& snr = channel.sensors().value().rxSnr()) {
             rxSnr.push_back(folly::copy(snr->value().value()));
           }

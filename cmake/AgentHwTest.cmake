@@ -281,6 +281,7 @@ target_link_libraries(hw_switch_test
   mirror_test_utils
   olympic_qos_utils
   network_ai_qos_utils
+  pfc_test_utils
   prod_config_factory
   prod_config_utils
   qos_test_utils

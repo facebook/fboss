@@ -22,5 +22,11 @@ void getNextHopInfoThrift(
     cli::NextHopInfo& nextHopInfo);
 
 std::string getNextHopInfoStr(const cli::NextHopInfo& nextHopInfo);
+std::string getNextHopInfoStr(
+    const cli::NextHopInfo& nextHopInfo,
+    const std::map<std::string, std::string>& vlanAggregatePortMap,
+    const std::map<
+        std::string,
+        std::map<std::string, std::vector<std::string>>>& vlanPortMap);
 
 } // namespace facebook::fboss::show::route::utils

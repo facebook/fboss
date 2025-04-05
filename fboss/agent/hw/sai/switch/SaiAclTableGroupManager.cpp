@@ -82,7 +82,16 @@ AclTableGroupSaiId SaiAclTableGroupManager::addAclTableGroup(
       handles_.emplace(saiAclStage, std::move(aclTableGroupHandle));
   CHECK(inserted);
 
-  managerTable_->switchManager().setIngressAcl();
+  if (saiAclStage == SAI_ACL_STAGE_INGRESS) {
+    managerTable_->switchManager().setIngressAcl();
+  } else if (saiAclStage == SAI_ACL_STAGE_EGRESS) {
+    CHECK(platform_->getAsic()->isSupported(
+        HwAsic::Feature::INGRESS_POST_LOOKUP_ACL_TABLE))
+        << apache::thrift::util::enumNameSafe(
+               platform_->getAsic()->getAsicType())
+        << " does not support ingress post lookup acl table";
+    managerTable_->switchManager().setEgressAcl();
+  }
 
   return it->second->aclTableGroup->adapterKey();
 }

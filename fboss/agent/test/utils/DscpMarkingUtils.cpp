@@ -10,6 +10,7 @@
 
 #include "fboss/agent/test/utils/DscpMarkingUtils.h"
 
+#include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
@@ -74,6 +75,7 @@ void addDscpMarkingAclsHelper(
     utility::addL4SrcPortAclToCfg(
         hwAsic, config, l4SrcPortAclName, proto, port);
     utility::addSetDscpAndEgressQueueActionToCfg(
+        hwAsic,
         config,
         l4SrcPortAclName,
         kIcpDscp(),
@@ -84,6 +86,7 @@ void addDscpMarkingAclsHelper(
     utility::addL4DstPortAclToCfg(
         hwAsic, config, l4DstPortAclName, proto, port);
     utility::addSetDscpAndEgressQueueActionToCfg(
+        hwAsic,
         config,
         l4DstPortAclName,
         kIcpDscp(),
@@ -143,36 +146,43 @@ void addDscpMarkingAclsTableHelper(
     const std::vector<uint32_t>& ports,
     const std::string& aclTableName,
     bool isSai) {
+  HwAsicTable asicTable(
+      config->switchSettings()->switchIdToSwitchInfo().value(),
+      std::nullopt,
+      *config->dsfNodes());
   auto asicType = utility::checkSameAndGetAsicType(*config);
   for (auto port : ports) {
-    auto l4SrcPortAclName = getDscpAclName(proto, "src", port);
-    auto dscpSrcMarkingAcl = utility::addAcl(
-        config, l4SrcPortAclName, cfg::AclActionType::PERMIT, aclTableName);
+    cfg::AclEntry dscpSrcMarkingAcl;
+    dscpSrcMarkingAcl.name() = getDscpAclName(proto, "src", port);
+    dscpSrcMarkingAcl.actionType() = cfg::AclActionType::PERMIT;
+    dscpSrcMarkingAcl.proto() = static_cast<int>(proto);
+    dscpSrcMarkingAcl.l4SrcPort() = port;
     if (asicType == cfg::AsicType::ASIC_TYPE_CHENAB) {
-      // Add ethertype so that proto is interpreted correctly
-      dscpSrcMarkingAcl->etherType() = cfg::EtherType::IPv6;
+      dscpSrcMarkingAcl.etherType() = cfg::EtherType::IPv6;
     }
-    dscpSrcMarkingAcl->proto() = static_cast<int>(proto);
-    dscpSrcMarkingAcl->l4SrcPort() = port;
+    addAclEntry(config, dscpSrcMarkingAcl, aclTableName);
+
     utility::addSetDscpAndEgressQueueActionToCfg(
+        utility::checkSameAndGetAsic(asicTable.getL3Asics()),
         config,
-        l4SrcPortAclName,
+        *dscpSrcMarkingAcl.name(),
         kIcpDscp(),
         utility::getOlympicQueueId(utility::OlympicQueueType::ICP),
         isSai);
 
-    auto l4DstPortAclName = getDscpAclName(proto, "dst", port);
-    auto dscpDstMarkingAcl = utility::addAcl(
-        config, l4DstPortAclName, cfg::AclActionType::PERMIT, aclTableName);
+    cfg::AclEntry dscpDstMarkingAcl;
+    dscpDstMarkingAcl.name() = getDscpAclName(proto, "dst", port);
+    dscpDstMarkingAcl.actionType() = cfg::AclActionType::PERMIT;
+    dscpDstMarkingAcl.proto() = static_cast<int>(proto);
+    dscpDstMarkingAcl.l4DstPort() = port;
     if (asicType == cfg::AsicType::ASIC_TYPE_CHENAB) {
-      // Add ethertype so that proto is interpreted correctly
-      dscpSrcMarkingAcl->etherType() = cfg::EtherType::IPv6;
+      dscpDstMarkingAcl.etherType() = cfg::EtherType::IPv6;
     }
-    dscpDstMarkingAcl->proto() = static_cast<int>(proto);
-    dscpDstMarkingAcl->l4DstPort() = port;
+    utility::addAclEntry(config, dscpDstMarkingAcl, aclTableName);
     utility::addSetDscpAndEgressQueueActionToCfg(
+        utility::checkSameAndGetAsic(asicTable.getL3Asics()),
         config,
-        l4DstPortAclName,
+        *dscpDstMarkingAcl.name(),
         kIcpDscp(),
         utility::getOlympicQueueId(utility::OlympicQueueType::ICP),
         isSai);
@@ -195,9 +205,11 @@ void addDscpAclEntryWithCounter(
     bool isSai) {
   std::vector<cfg::CounterType> counterTypes{cfg::CounterType::PACKETS};
   utility::addTrafficCounter(config, kCounterName(), counterTypes);
-  auto* dscpAcl = utility::addAcl(
-      config, kDscpCounterAclName(), cfg::AclActionType::PERMIT, aclTableName);
-  dscpAcl->dscp() = utility::kIcpDscp();
+  cfg::AclEntry dscpAcl;
+  dscpAcl.name() = kDscpCounterAclName();
+  dscpAcl.actionType() = cfg::AclActionType::PERMIT;
+  dscpAcl.dscp() = utility::kIcpDscp();
+  utility::addAclEntry(config, dscpAcl, aclTableName);
 
   utility::addAclStat(
       config, kDscpCounterAclName(), kCounterName(), counterTypes);

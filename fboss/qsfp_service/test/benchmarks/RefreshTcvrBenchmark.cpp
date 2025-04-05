@@ -41,4 +41,8 @@ BENCHMARK_MULTI(RefreshTransceiver_FR4_2x400G) {
   return refreshTcvrs(MediaInterfaceCode::FR4_2x400G);
 }
 
+BENCHMARK_MULTI(RefreshTransceiver_LR4_2x400G_10KM) {
+  return refreshTcvrs(MediaInterfaceCode::LR4_2x400G_10KM);
+}
+
 } // namespace facebook::fboss

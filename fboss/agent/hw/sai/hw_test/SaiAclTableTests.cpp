@@ -27,13 +27,13 @@ class SaiAclTableRecreateTests : public HwTest {
 TEST_F(SaiAclTableRecreateTests, AclEntryCount) {
   auto setup = [=]() {
     auto config = initialConfig();
-    auto* acl1 =
-        utility::addAcl(&config, "aclEntry1", cfg::AclActionType::DENY);
+    auto* acl1 = utility::addAcl_DEPRECATED(
+        &config, "aclEntry1", cfg::AclActionType::DENY);
     acl1->dscp() = 0x20;
     utility::addEtherTypeToAcl(getAsic(), acl1, cfg::EtherType::IPv6);
 
-    auto* acl2 =
-        utility::addAcl(&config, "aclEntry2", cfg::AclActionType::DENY);
+    auto* acl2 = utility::addAcl_DEPRECATED(
+        &config, "aclEntry2", cfg::AclActionType::DENY);
     acl2->dscp() = 0x21;
     utility::addEtherTypeToAcl(getAsic(), acl2, cfg::EtherType::IPv6);
 

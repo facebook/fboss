@@ -68,7 +68,7 @@ class AgentLoopBackTest : public AgentHwTest {
       utility::EcmpSetupAnyNPorts6 ecmpHelper6{
           getProgrammedState(),
           utility::getMacForFirstInterfaceWithPorts(getProgrammedState())};
-      resolveNeigborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
+      resolveNeighborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
     };
     auto verify = [=, this]() {
       const auto switchType =

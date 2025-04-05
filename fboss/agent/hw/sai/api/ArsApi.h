@@ -43,8 +43,10 @@ struct SaiArsTraits {
   using AdapterKey = ArsSaiId;
   // single ARS object used for all ecmp groups
   using AdapterHostKey = std::monostate;
-  using CreateAttributes =
-      std::tuple<Attributes::Mode, Attributes::IdleTime, Attributes::MaxFlows>;
+  using CreateAttributes = std::tuple<
+      Attributes::Mode,
+      std::optional<Attributes::IdleTime>,
+      Attributes::MaxFlows>;
 };
 
 SAI_ATTRIBUTE_NAME(Ars, Mode)

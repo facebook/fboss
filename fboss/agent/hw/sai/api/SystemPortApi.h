@@ -72,6 +72,13 @@ struct SaiSystemPortTraits {
         bool,
         AttributeShelPktDstEnable,
         SaiBoolDefaultFalse>;
+    struct AttributeTcRateLimitExclude {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using TcRateLimitExclude = SaiExtensionAttribute<
+        bool,
+        AttributeTcRateLimitExclude,
+        SaiBoolDefaultFalse>;
   };
   using AdapterKey = SystemPortSaiId;
   using AdapterHostKey = Attributes::ConfigInfo;
@@ -80,7 +87,8 @@ struct SaiSystemPortTraits {
       Attributes::ConfigInfo,
       Attributes::AdminState,
       std::optional<Attributes::QosTcToQueueMap>,
-      std::optional<Attributes::ShelPktDstEnable>>;
+      std::optional<Attributes::ShelPktDstEnable>,
+      std::optional<Attributes::TcRateLimitExclude>>;
 };
 
 SAI_ATTRIBUTE_NAME(SystemPort, Type)
@@ -91,6 +99,7 @@ SAI_ATTRIBUTE_NAME(SystemPort, AdminState)
 SAI_ATTRIBUTE_NAME(SystemPort, ConfigInfo)
 SAI_ATTRIBUTE_NAME(SystemPort, QosTcToQueueMap)
 SAI_ATTRIBUTE_NAME(SystemPort, ShelPktDstEnable)
+SAI_ATTRIBUTE_NAME(SystemPort, TcRateLimitExclude)
 
 class SystemPortApi : public SaiApi<SystemPortApi> {
  public:

@@ -78,6 +78,10 @@ HwSysPortFb303Stats::kPriorityGroupCounterStatKeys() const {
 void HwSysPortFb303Stats::updateStats(
     const HwSysPortStats& curPortStats,
     const std::chrono::seconds& retrievedAt) {
+  if (!initialized_) {
+    reinitStats(std::nullopt);
+    initialized_ = true;
+  }
   timeRetrieved_ = retrievedAt;
   auto updateQueueStat = [this](
                              folly::StringPiece statKey,

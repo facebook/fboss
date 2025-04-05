@@ -87,6 +87,14 @@ cfg::SwitchConfig createProdRswMhnicConfig(
     const std::vector<PortID>& masterLogicalPortIds,
     bool isSai);
 
+cfg::SwitchConfig createProdRswMhnicConfig(
+    const HwAsic* hwAsic,
+    PlatformType platformType,
+    const PlatformMapping* platformMapping,
+    bool supportsAddRemovePort,
+    const std::vector<PortID>& masterLogicalPortIds,
+    bool isSai);
+
 cfg::SwitchConfig createProdRtswConfig(
     const HwSwitch* hwSwitch,
     const std::vector<PortID>& masterLogicalPortIds,

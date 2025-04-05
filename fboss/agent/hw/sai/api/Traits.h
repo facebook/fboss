@@ -453,5 +453,4 @@ struct GetObjectKeySupported : std::true_type {};
 
 template <typename T, typename = void>
 struct IsSaiExtensionAttribute : std::false_type {};
-
 } // namespace facebook::fboss

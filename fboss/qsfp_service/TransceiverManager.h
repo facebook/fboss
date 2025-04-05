@@ -376,9 +376,13 @@ class TransceiverManager {
 
   void markLastDownTime(TransceiverID id) noexcept;
 
-  virtual bool verifyEepromChecksums(TransceiverID id);
+  // Calling thread MUST hold lock on transceivers_ while this function
+  // executes.
+  virtual bool verifyEepromChecksumsLocked(TransceiverID id);
 
-  void setDiagsCapability(TransceiverID id);
+  // Calling thread MUST hold lock on transceivers_ while this function
+  // executes.
+  void setDiagsCapabilityLocked(TransceiverID id);
 
   void resetProgrammedIphyPortToPortInfo(TransceiverID id);
 
@@ -842,6 +846,10 @@ class TransceiverManager {
   // Returns the Firmware object from qsfp config for the given module.
   // If there is no firmware in config, returns empty optional
   std::optional<cfg::Firmware> getFirmwareFromCfg(Transceiver& tcvr) const;
+
+  bool isTransceiversMapLocked() const;
+
+  void ensureTransceiversMapLocked(std::string message) const;
 
   // Store the QSFP service state for warm boots.
   // Updated on every refresh of the state machine as well as during graceful

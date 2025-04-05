@@ -201,7 +201,7 @@ class BcmQcmDataTest : public BcmLinkStateDependentTests {
 
     auto qcmCfg = getQcmConfig(isIpv6);
     // add an acl
-    auto* acl = utility::addAcl(&newCfg, kCollectorAcl);
+    auto* acl = utility::addAcl_DEPRECATED(&newCfg, kCollectorAcl);
     acl->dstMac() = BcmQcmCollector::getCollectorDstMac().toString();
     if (!isIpv6) {
       acl->dstIp() = kCollectorDstIpv4;

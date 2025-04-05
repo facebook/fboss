@@ -209,7 +209,7 @@ void AgentOlympicQosSchedulerTest::verifyWRRToAllSPDscpToQueue() {
   utility::EcmpSetupAnyNPorts6 ecmpHelper6(getProgrammedState(), dstMac());
 
   auto setup = [=, this]() {
-    resolveNeigborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
+    resolveNeighborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
   };
 
   auto verify = [=, this]() {
@@ -281,7 +281,7 @@ void AgentOlympicQosSchedulerTest::verifyDscpToQueueOlympicToOlympicV2() {
   utility::EcmpSetupAnyNPorts6 ecmpHelper6(getProgrammedState(), dstMac());
 
   auto setup = [=, this]() {
-    resolveNeigborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
+    resolveNeighborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
   };
 
   auto verify = [=, this]() {
@@ -330,7 +330,7 @@ void AgentOlympicQosSchedulerTest::verifyDscpToQueueOlympicV2ToOlympic() {
   utility::EcmpSetupAnyNPorts6 ecmpHelper6(getProgrammedState(), dstMac());
 
   auto setup = [=, this]() {
-    resolveNeigborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
+    resolveNeighborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
   };
 
   auto verify = [=, this]() {

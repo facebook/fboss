@@ -73,9 +73,9 @@ TEST_F(AgentRouteOverflowTest, overflowRoutes) {
     case PlatformType::PLATFORM_WEDGE400C_VOQ:
     case PlatformType::PLATFORM_WEDGE400C_FABRIC:
     case PlatformType::PLATFORM_WEDGE400C_GRANDTETON:
-    case PlatformType::PLATFORM_CLOUDRIPPER:
-    case PlatformType::PLATFORM_CLOUDRIPPER_VOQ:
-    case PlatformType::PLATFORM_CLOUDRIPPER_FABRIC:
+    case PlatformType::PLATFORM_CLOUDRIPPER_DEPRECATED:
+    case PlatformType::PLATFORM_CLOUDRIPPER_VOQ_DEPRECATED:
+    case PlatformType::PLATFORM_CLOUDRIPPER_FABRIC_DEPRECATED:
     case PlatformType::PLATFORM_LASSEN_DEPRECATED:
     case PlatformType::PLATFORM_SANDIA:
     case PlatformType::PLATFORM_MORGAN800CC:

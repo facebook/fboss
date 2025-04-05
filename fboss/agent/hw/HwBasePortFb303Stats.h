@@ -29,9 +29,9 @@ class HwBasePortFb303Stats {
       QueueId2Name queueId2Name = {},
       std::vector<PfcPriority> enabledPfcPriorities = {},
       std::optional<std::string> multiSwitchStatsPrefix = std::nullopt)
-      : portName_(portName),
+      : queueId2Name_(std::move(queueId2Name)),
+        portName_(portName),
         portCounters_(HwFb303Stats(multiSwitchStatsPrefix)),
-        queueId2Name_(queueId2Name),
         enabledPfcPriorities_(enabledPfcPriorities) {}
 
   virtual ~HwBasePortFb303Stats() = default;
@@ -45,8 +45,8 @@ class HwBasePortFb303Stats {
     portName_ = newName;
     reinitStats(oldPortName);
   }
-  void queueChanged(int queueId, const std::string& queueName);
-  void queueRemoved(int queueId);
+  virtual void queueChanged(int queueId, const std::string& queueName);
+  virtual void queueRemoved(int queueId);
   void pfcPriorityChanged(std::vector<PfcPriority> enabledPriorities);
   void updateLeakyBucketFlapCnt(int cnt);
 
@@ -73,6 +73,10 @@ class HwBasePortFb303Stats {
       folly::StringPiece statName,
       folly::StringPiece portName,
       PfcPriority priority);
+  /*
+   * clear port stat
+   */
+  void clearStat(folly::StringPiece statKey);
 
   /*
    * Priority group stat name
@@ -152,6 +156,9 @@ class HwBasePortFb303Stats {
     return enabledPfcPriorities_;
   }
 
+ protected:
+  QueueId2Name queueId2Name_;
+
  private:
   /*
    * Reinit port stat
@@ -170,7 +177,6 @@ class HwBasePortFb303Stats {
 
   std::string portName_;
   HwFb303Stats portCounters_;
-  QueueId2Name queueId2Name_;
   bool macsecStatsInited_{false};
   std::vector<PfcPriority> enabledPfcPriorities_{};
 };

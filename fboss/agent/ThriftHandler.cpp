@@ -1271,36 +1271,7 @@ void ThriftHandler::getCurrentStateJSON(
   ensureConfigured(__func__);
 
   if (path) {
-    ret = getCurrentStateJSONForPath(*path);
-  }
-}
-
-std::string ThriftHandler::getCurrentStateJSONForPath(
-    const std::string& path) const {
-  // Split path into vector of string
-  std::vector<std::string> thriftPath;
-  auto start = 0;
-  for (auto end = 0; (end = path.find("/", end)) != std::string::npos; ++end) {
-    thriftPath.push_back(path.substr(start, end - start));
-    start = end + 1;
-  }
-  thriftPath.push_back(path.substr(start));
-
-  thrift_cow::GetEncodedPathVisitorOperator op(fsdb::OperProtocol::SIMPLE_JSON);
-  auto traverseResult = thrift_cow::RootPathVisitor::visit(
-      *std::const_pointer_cast<const SwitchState>(sw_->getState()),
-      thriftPath.begin(),
-      thriftPath.end(),
-      thrift_cow::PathVisitMode::LEAF,
-      op);
-
-  switch (traverseResult) {
-    case thrift_cow::ThriftTraverseResult::OK:
-      return op.val->toStdString();
-    case thrift_cow::ThriftTraverseResult::VISITOR_EXCEPTION:
-      throw FbossError("Visitor exception when traversing thrift path.");
-    default:
-      throw FbossError("Invalid thrift path provided.");
+    ret = utility::getCurrentStateJSONForPathHelper(*path, sw_->getState());
   }
 }
 
@@ -1311,7 +1282,8 @@ void ThriftHandler::getCurrentStateJSONForPaths(
   ensureConfigured(__func__);
 
   for (auto& path : *paths) {
-    pathToState[path] = getCurrentStateJSONForPath(path);
+    pathToState[path] =
+        utility::getCurrentStateJSONForPathHelper(path, sw_->getState());
   }
 }
 
@@ -2208,15 +2180,18 @@ void ThriftHandler::txPktL3(unique_ptr<fbstring> payload) {
     throw FbossError("No interface configured");
   }
   std::optional<InterfaceID> intfID;
+  cfg::InterfaceType type{cfg::InterfaceType::VLAN};
   for (const auto& [_, intfs] : std::as_const(*interfaceMap)) {
     if (!intfs->empty()) {
       intfID = intfs->at(0)->getID();
+      type = intfs->at(0)->getType();
       break;
     }
   }
   CHECK(intfID.has_value());
 
-  unique_ptr<TxPacket> pkt = sw_->allocateL3TxPacket(payload->size());
+  unique_ptr<TxPacket> pkt = sw_->allocateL3TxPacket(
+      payload->size(), (type == cfg::InterfaceType::VLAN));
   RWPrivateCursor cursor(pkt->buf());
   cursor.push(StringPiece(*payload));
 
@@ -2751,18 +2726,8 @@ void ThriftHandler::getBlockedNeighbors(
     std::vector<cfg::Neighbor>& blockedNeighbors) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
-  const auto& switchSettings =
-      utility::getFirstNodeIf(sw_->getState()->getSwitchSettings());
-  for (const auto& iter : *(switchSettings->getBlockNeighbors())) {
-    cfg::Neighbor blockedNeighbor;
-    blockedNeighbor.vlanID() =
-        iter->cref<switch_state_tags::blockNeighborVlanID>()->toThrift();
-    blockedNeighbor.ipAddress() =
-        network::toIPAddress(
-            iter->cref<switch_state_tags::blockNeighborIP>()->toThrift())
-            .str();
-    blockedNeighbors.emplace_back(std::move(blockedNeighbor));
-  }
+  throw FbossError(
+      "Deprecated thrift API. Please use setMacAddrsToBlock/getMacAddrsToBlock.");
 }
 
 void ThriftHandler::setNeighborsToBlock(
@@ -2770,54 +2735,7 @@ void ThriftHandler::setNeighborsToBlock(
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureNPU(__func__);
   ensureConfigured(__func__);
-  std::string neighborsToBlockStr;
-  std::vector<std::pair<VlanID, folly::IPAddress>> blockNeighbors;
-
-  auto switchSettings =
-      utility::getFirstNodeIf(sw_->getState()->getSwitchSettings());
-  if (neighborsToBlock) {
-    if (neighborsToBlock->size() > FLAGS_max_neighbors_to_block) {
-      throw FbossError(
-          "Neighbor entries to block list size ",
-          neighborsToBlock->size(),
-          " exceeds limit ",
-          FLAGS_max_neighbors_to_block);
-    }
-    if ((*neighborsToBlock).size() != 0 &&
-        switchSettings->getMacAddrsToBlock()->size() != 0) {
-      throw FbossError(
-          "Setting MAC addr blocklist and Neighbor blocklist simultaneously is not supported");
-    }
-
-    for (const auto& neighborToBlock : *neighborsToBlock) {
-      if (!folly::IPAddress::validate(*neighborToBlock.ipAddress())) {
-        throw FbossError("Invalid IP address: ", *neighborToBlock.ipAddress());
-      }
-
-      auto neighborToBlockStr = folly::to<std::string>(
-          "[vlan: ",
-          *neighborToBlock.vlanID(),
-          " ip: ",
-          *neighborToBlock.ipAddress(),
-          "], ");
-      neighborsToBlockStr.append(neighborToBlockStr);
-
-      blockNeighbors.emplace_back(
-          VlanID(*neighborToBlock.vlanID()),
-          folly::IPAddress(*neighborToBlock.ipAddress()));
-    }
-  }
-
-  sw_->updateStateBlocking(
-      "Update blocked neighbors ",
-      [blockNeighbors](const std::shared_ptr<SwitchState>& state) {
-        std::shared_ptr<SwitchState> newState{state};
-        auto newSwitchSettings =
-            utility::getFirstNodeIf(state->getSwitchSettings())
-                ->modify(&newState);
-        newSwitchSettings->setBlockNeighbors(blockNeighbors);
-        return newState;
-      });
+  throw FbossError("Deprecated thrift API. Please use setMacAddrsToBlock");
 }
 
 void ThriftHandler::getMacAddrsToBlock(
@@ -2852,13 +2770,6 @@ void ThriftHandler::setMacAddrsToBlock(
           macAddrsToBlock->size(),
           " exceeds limit ",
           FLAGS_max_mac_address_to_block);
-    }
-    if ((*macAddrsToBlock).size() != 0 &&
-        utility::getFirstNodeIf(sw_->getState()->getSwitchSettings())
-                ->getBlockNeighbors()
-                ->size() != 0) {
-      throw FbossError(
-          "Setting MAC addr blocklist and Neighbor blocklist simultaneously is not supported");
     }
 
     for (const auto& macAddrToBlock : *macAddrsToBlock) {
@@ -3215,6 +3126,12 @@ void ThriftHandler::getSwitchIdToSwitchInfo(
        switchSettings->getSwitchIdToSwitchInfo()) {
     switchIdToSwitchInfo[switchId] = switchInfo;
   }
+}
+
+void ThriftHandler::getFirmwareInfo(FirmwareInfo& firmwareInfo) {
+  ensureConfigured(__func__);
+
+  // TODO fill firmwareInfo
 }
 
 } // namespace facebook::fboss

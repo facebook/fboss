@@ -237,7 +237,7 @@ TEST_F(AgentEcmpTest, ecmpToDropToEcmp) {
   auto constexpr kEcmpWidthForTest = 4;
   utility::EcmpSetupAnyNPorts6 ecmpHelper(this->getProgrammedState());
   // Program ECMP route
-  resolveNeigborAndProgramRoutes(ecmpHelper, kEcmpWidthForTest);
+  resolveNeighborAndProgramRoutes(ecmpHelper, kEcmpWidthForTest);
   WITH_RETRIES({ EXPECT_EVENTUALLY_EQ(kEcmpWidthForTest, getEcmpSizeInHw()); });
 
   // Mimic neighbor entries going away and route getting removed. Since

@@ -19,6 +19,10 @@ void addTrapPacketAcl(
     entry.ipType() = cfg::IpType::NON_IP;
   }
   entry.actionType() = cfg::AclActionType::PERMIT;
+  if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    // remove ip type for chenab
+    entry.ipType().reset();
+  }
   utility::addAclEntry(config, entry, utility::kDefaultAclTable());
 
   cfg::MatchAction action;

@@ -213,6 +213,9 @@ class WedgeManager : public TransceiverManager {
 
   void initQsfpImplMap();
 
+  // Platform has enough system DRAM to support I2C Logging.
+  bool platformSupportsI2cLogging() const;
+
  private:
   void updateTransceiverLogInfo(const std::vector<TransceiverID>& tcvrs);
 

@@ -54,3 +54,13 @@ struct AsicConfigParameters {
   5: optional string portConfig;
   6: optional MultistageRole multistageRole;
 }
+
+struct AsicVendorConfigParams {
+  1: map<string, string> commonConfig;
+  2: map<string, string> prodConfig;
+  3: map<string, string> hwTestConfig;
+  4: map<string, string> linkTestConfig;
+  5: map<string, string> benchmarkConfig;
+  6: map<string, string> portMapConfig;
+  7: map<string, string> multistageConfig;
+}

@@ -16,7 +16,7 @@ void AgentQosTestBase::verifyDscpQueueMapping(
     const std::map<int, std::vector<uint8_t>>& queueToDscp) {
   auto setup = [=, this]() {
     utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
-    resolveNeigborAndProgramRoutes(ecmpHelper, kEcmpWidth);
+    resolveNeighborAndProgramRoutes(ecmpHelper, kEcmpWidth);
   };
 
   auto verify = [=, this]() {

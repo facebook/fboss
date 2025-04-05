@@ -24,8 +24,12 @@ class AgentAclInDiscardsCounterTest : public AgentHwTest {
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
     auto cfg = AgentHwTest::initialConfig(ensemble);
-    auto* acl = utility::addAcl(&cfg, "block all", cfg::AclActionType::DENY);
-    acl->dstIp() = "::/0";
+    cfg::AclEntry acl;
+    acl.name() = "block all";
+    acl.actionType() = cfg::AclActionType::DENY;
+    acl.dstIp() = "::/0";
+
+    utility::addAcl(&cfg, acl, cfg::AclStage::INGRESS);
     return cfg;
   }
 };

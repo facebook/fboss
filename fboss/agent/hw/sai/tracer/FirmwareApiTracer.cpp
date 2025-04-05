@@ -21,6 +21,8 @@ namespace {
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
 std::map<int32_t, std::pair<std::string, std::size_t>> _FirmwareMap{
     SAI_ATTR_MAP(Firmware, Version),
+    SAI_ATTR_MAP(Firmware, OpStatus),
+    SAI_ATTR_MAP(Firmware, FunctionalStatus),
 };
 #endif
 

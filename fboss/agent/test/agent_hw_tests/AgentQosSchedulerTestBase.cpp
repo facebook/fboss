@@ -58,7 +58,7 @@ void AgentQosSchedulerTestBase::sendUdpPkts(
 
 void AgentQosSchedulerTestBase::_setup(
     const utility::EcmpSetupAnyNPorts6& ecmpHelper6) {
-  resolveNeigborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
+  resolveNeighborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
   utility::ttlDecrementHandlingForLoopbackTraffic(
       getAgentEnsemble(), ecmpHelper6.getRouterId(), ecmpHelper6.nhop(0));
 }

@@ -160,7 +160,7 @@ class AgentMirrorOnDropTest
     config->mirrorOnDropReports()->push_back(report);
 
     // Also add an ACL for counting MOD packets
-    auto* acl = utility::addAcl(config, kModPacketAcl);
+    auto* acl = utility::addAcl_DEPRECATED(config, kModPacketAcl);
     acl->dstIp() = kCollectorIp_.str();
     acl->l4DstPort() = kMirrorDstPort;
     utility::addAclStat(
@@ -171,7 +171,7 @@ class AgentMirrorOnDropTest
   }
 
   void addDropPacketAcl(cfg::SwitchConfig* config, const PortID& portId) {
-    auto* acl = utility::addAcl(
+    auto* acl = utility::addAcl_DEPRECATED(
         config,
         fmt::format("drop-packet-{}", portId),
         cfg::AclActionType::DENY);

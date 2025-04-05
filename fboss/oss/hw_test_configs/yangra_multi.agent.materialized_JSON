@@ -1,0 +1,207 @@
+{
+  "defaultCommandLineArgs": {
+    "check_wb_handles": "true",
+    "counter_refresh_interval": "0",
+    "enable_acl_table_group": "true",
+    "intf_nbr_tables": "true",
+    "log_variable_name": "true",
+    "mode": "yangra",
+    "multi_switch": "true",
+    "rx_vlan_untagged_packets": "true",
+    "sai_user_defined_trap": "true",
+    "set_classid_for_my_subnet_and_ip_routes": "true",
+    "skip_transceiver_programming": "true"
+  },
+  "sw": {
+    "version": 0,
+    "ports": [
+      
+    ],
+    "vlans": [
+      
+    ],
+    "vlanPorts": [
+      
+    ],
+    "defaultVlan": 0,
+    "interfaces": [
+      
+    ],
+    "arpTimeoutSeconds": 60,
+    "arpRefreshSeconds": 20,
+    "arpAgerInterval": 5,
+    "proactiveArp": false,
+    "staticRoutesWithNhops": [
+      
+    ],
+    "staticRoutesToNull": [
+      
+    ],
+    "staticRoutesToCPU": [
+      
+    ],
+    "acls": [
+      
+    ],
+    "maxNeighborProbes": 300,
+    "staleEntryInterval": 10,
+    "aggregatePorts": [
+      
+    ],
+    "clientIdToAdminDistance": {
+      "0": 20,
+      "1": 1,
+      "2": 0,
+      "3": 0,
+      "4": 0,
+      "700": 255,
+      "786": 10
+    },
+    "sFlowCollectors": [
+      
+    ],
+    "cpuQueues": [
+      
+    ],
+    "loadBalancers": [
+      
+    ],
+    "mirrors": [
+      
+    ],
+    "trafficCounters": [
+      
+    ],
+    "qosPolicies": [
+      
+    ],
+    "defaultPortQueues": [
+      
+    ],
+    "staticMplsRoutesWithNhops": [
+      
+    ],
+    "staticMplsRoutesToNull": [
+      
+    ],
+    "staticMplsRoutesToCPU": [
+      
+    ],
+    "staticIp2MplsRoutes": [
+      
+    ],
+    "portQueueConfigs": {
+      
+    },
+    "switchSettings": {
+      "l2LearningMode": 0,
+      "qcmEnable": false,
+      "ptpTcEnable": false,
+      "l2AgeTimerSeconds": 300,
+      "maxRouteCounterIDs": 0,
+      "blockNeighbors": [
+        
+      ],
+      "macAddrsToBlock": [
+        
+      ],
+      "switchType": 0,
+      "exactMatchTableConfigs": [
+        
+      ],
+      "switchIdToSwitchType_DEPRECATED": {
+        
+      },
+      "switchDrainState": 0,
+      "switchIdToSwitchInfo": {
+        "0": {
+            "switchType": 0,
+            "asicType": 17,
+            "switchIndex": 0,
+            "portIdRange": {
+              "minimum": 0,
+              "maximum": 2047
+            },
+            "firmwareNameToFirmwareInfo": {
+              
+            }
+        }
+      },
+      "vendorMacOuis": [
+        
+      ],
+      "metaMacOuis": [
+        
+      ],
+      "needL2EntryForNeighbor": true
+    },
+    "aclTableGroup": {
+      "name": "acl-table-group-ingress",
+      "aclTables": [
+        {
+          "name": "AclTable1",
+          "priority": 0,
+          "aclEntries": [
+            
+          ],
+          "actionTypes": [
+            
+          ],
+          "qualifiers": [
+            
+          ],
+          "udfGroups": [
+            
+          ]
+        }
+      ],
+      "stage": 0
+    },
+    "sdkVersion": {
+      "asicSdk": "sdk",
+      "saiSdk": "sai"
+    },
+    "dsfNodes": {
+      
+    },
+    "defaultVoqConfig": [
+      
+    ],
+    "aclTableGroups": [
+      {
+        "name": "acl-table-group-ingress",
+        "aclTables": [
+          {
+            "name": "AclTable1",
+            "priority": 0,
+            "aclEntries": [
+              
+            ],
+            "actionTypes": [
+              
+            ],
+            "qualifiers": [
+              
+            ],
+            "udfGroups": [
+              
+            ]
+          }
+        ],
+        "stage": 0
+      }
+    ],
+    "mirrorOnDropReports": [
+      
+    ]
+  },
+  "platform": {
+    "chip": {
+      "bcm": {
+        "config": {
+          
+        }
+      }
+    }
+  }
+}

@@ -89,40 +89,6 @@ class SwitchSettings
     set<switch_state_tags::maxRouteCounterIDs>(numCounterIDs);
   }
 
-  auto getBlockNeighbors() const {
-    return safe_cref<switch_state_tags::blockNeighbors>();
-  }
-
-  // THRIFT_COPY
-  std::vector<std::pair<VlanID, folly::IPAddress>>
-  getBlockNeighbors_DEPRECATED() const {
-    std::vector<std::pair<VlanID, folly::IPAddress>> blockedNeighbors;
-    for (const auto& iter : *(getBlockNeighbors())) {
-      auto blockedVlanID = VlanID(
-          iter->cref<switch_state_tags::blockNeighborVlanID>()->toThrift());
-      auto blockedNeighborIP = network::toIPAddress(
-          iter->cref<switch_state_tags::blockNeighborIP>()->toThrift());
-      blockedNeighbors.emplace_back(blockedVlanID, blockedNeighborIP);
-    }
-    return blockedNeighbors;
-  }
-
-  void setBlockNeighbors(
-      const std::vector<std::pair<VlanID, folly::IPAddress>>& blockNeighbors) {
-    std::vector<state::BlockedNeighbor> neighbors{};
-    for (auto& entry : blockNeighbors) {
-      state::BlockedNeighbor neighbor;
-      neighbor.blockNeighborVlanID_ref() = entry.first;
-      neighbor.blockNeighborIP_ref() = network::toBinaryAddress(entry.second);
-      neighbors.push_back(neighbor);
-    }
-    setBlockNeighbors(neighbors);
-  }
-
-  void setBlockNeighbors(const std::vector<state::BlockedNeighbor>& neighbors) {
-    set<switch_state_tags::blockNeighbors>(neighbors);
-  }
-
   auto getMacAddrsToBlock() const {
     return safe_cref<switch_state_tags::macAddrsToBlock>();
   }
@@ -769,6 +735,22 @@ class SwitchSettings
     } else {
       set<switch_state_tags::voqOutOfBoundsLatencyNsec>(
           *voqOutOfBoundsLatencyNs);
+    }
+  }
+
+  std::optional<std::map<int32_t, int32_t>> getTcToRateLimitKbps() const {
+    if (auto tcToRateLimitKbps = cref<switch_state_tags::tcToRateLimitKbps>()) {
+      return tcToRateLimitKbps->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  void setTcToRateLimitKbps(
+      const std::optional<std::map<int32_t, int32_t>>& tcToRateLimitKbps) {
+    if (!tcToRateLimitKbps) {
+      ref<switch_state_tags::tcToRateLimitKbps>().reset();
+    } else {
+      set<switch_state_tags::tcToRateLimitKbps>(*tcToRateLimitKbps);
     }
   }
 

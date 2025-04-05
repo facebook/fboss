@@ -340,7 +340,7 @@ void BcmUnit::attach(bool warmBoot) {
 void BcmUnit::registerCallbackVector() {
   auto* dev = bde->get_dev(deviceIndex_);
   XLOG(DBG2) << "Initializing device " << deviceIndex_ << ": type "
-             << dev->device << " rev " << (int)dev->rev;
+             << dev->device << " rev " << static_cast<int>(dev->rev);
 
   // Initialize the device driver function vector
   soc_cm_device_vectors_t vectors;

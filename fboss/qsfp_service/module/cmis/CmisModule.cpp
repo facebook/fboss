@@ -3235,14 +3235,14 @@ bool CmisModule::verifyEepromChecksum(CmisPages pageId) {
 
   if (checkSum != expectedChecksum) {
     QSFP_LOG(ERR, this) << folly::sformat(
-        "Page {:d}: expected checksum {:#x}, actual {:#x}",
+        "Page {:d}: expected eeprom checksum {:#x}, actual {:#x}",
         static_cast<int>(pageId),
         expectedChecksum,
         checkSum);
     return false;
   } else {
     QSFP_LOG(DBG5, this) << folly::sformat(
-        "Page {:d}: checksum verified successfully {:#x}",
+        "Page {:d}: eeprom checksum verified successfully {:#x}",
         static_cast<int>(pageId),
         checkSum);
   }

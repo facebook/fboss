@@ -155,13 +155,15 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
   }
 
   void addFlowletAcl(cfg::SwitchConfig& cfg) const {
-    auto* acl = utility::addAcl(&cfg, kAclName);
+    auto* acl = utility::addAcl_DEPRECATED(&cfg, kAclName);
     acl->proto() = kUdpProto;
     acl->l4DstPort() = kUdpDstPort;
     acl->dstIp() = kDstIp;
     acl->udfGroups() = {utility::kRoceUdfFlowletGroupName};
     acl->roceBytes() = {utility::kRoceReserved};
     acl->roceMask() = {utility::kRoceReserved};
+    utility::addEtherTypeToAcl(
+        getPlatform()->getAsic(), acl, cfg::EtherType::IPv6);
     cfg::MatchAction matchAction = cfg::MatchAction();
     matchAction.flowletAction() = cfg::FlowletAction::FORWARD;
     // presence of UDF configuration causes the FP group to be cleared out
@@ -279,7 +281,7 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
 
   bool skipTest() {
     return (
-        !getPlatform()->getAsic()->isSupported(HwAsic::Feature::FLOWLET) ||
+        !getPlatform()->getAsic()->isSupported(HwAsic::Feature::ARS) ||
         (getPlatform()->getAsic()->getAsicType() ==
          cfg::AsicType::ASIC_TYPE_FAKE));
   }
@@ -329,7 +331,7 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
       cfg::PortFlowletConfig& portFlowletConfig,
       bool enable = true) {
     if (getHwSwitch()->getPlatform()->getAsic()->isSupported(
-            HwAsic::Feature::FLOWLET_PORT_ATTRIBUTES)) {
+            HwAsic::Feature::ARS_PORT_ATTRIBUTES)) {
       EXPECT_TRUE(utility::validatePortFlowletQuality(
           getHwSwitch(), masterLogicalPortIds()[0], portFlowletConfig, enable));
     }
@@ -417,7 +419,7 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
         getHwSwitch(), *cfg.flowletSwitchingConfig()));
 
     if (getHwSwitch()->getPlatform()->getAsic()->isSupported(
-            HwAsic::Feature::FLOWLET_PORT_ATTRIBUTES)) {
+            HwAsic::Feature::ARS_PORT_ATTRIBUTES)) {
       // verify the flowlet config is programmed in ECMP for TH4
       EXPECT_TRUE(utility::verifyEcmpForFlowletSwitching(
           getHwSwitch(),

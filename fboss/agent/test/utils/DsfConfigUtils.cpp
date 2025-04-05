@@ -48,8 +48,11 @@ std::optional<std::map<int64_t, cfg::DsfNode>> addRemoteIntfNodeCfg(
   switchInfo.globalSystemPortOffset() = *firstDsfNode.globalSystemPortOffset();
   switchInfo.inbandPortId() = *firstDsfNode.inbandPortId();
 
-  auto myAsic =
-      HwAsic::makeAsic(*firstDsfNode.switchId(), switchInfo, std::nullopt);
+  auto myAsic = HwAsic::makeAsic(
+      *firstDsfNode.switchId(),
+      switchInfo,
+      std::nullopt,
+      std::nullopt /* fabricNodeRole is N/A for VOQ switches */);
 
   std::unique_ptr<HwAsic> dualStageRdswAsic, dualStageEdswAsic;
   // Update inbandPortId based on InterfaceNodeRole
@@ -59,7 +62,10 @@ std::optional<std::map<int64_t, cfg::DsfNode>> addRemoteIntfNodeCfg(
         myAsic->getRecyclePortInfo(HwAsic::InterfaceNodeRole::IN_CLUSTER_NODE)
             .inbandPortId;
     dualStageRdswAsic = HwAsic::makeAsic(
-        *firstDsfNode.switchId(), dualStageRdswInfo, std::nullopt);
+        *firstDsfNode.switchId(),
+        dualStageRdswInfo,
+        std::nullopt,
+        std::nullopt /* fabricNodeRole is N/A for VOQ switches */);
 
     cfg::SwitchInfo dualStageEdswInfo = switchInfo;
     dualStageEdswInfo.inbandPortId() =
@@ -68,7 +74,10 @@ std::optional<std::map<int64_t, cfg::DsfNode>> addRemoteIntfNodeCfg(
                 HwAsic::InterfaceNodeRole::DUAL_STAGE_EDGE_NODE)
             .inbandPortId;
     dualStageEdswAsic = HwAsic::makeAsic(
-        *firstDsfNode.switchId(), dualStageEdswInfo, std::nullopt);
+        *firstDsfNode.switchId(),
+        dualStageEdswInfo,
+        std::nullopt,
+        std::nullopt /* fabricNodeRole is N/A for VOQ switches */);
   }
 
   int numCores = myAsic->getNumCores();

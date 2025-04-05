@@ -182,7 +182,8 @@ int hwAgentMain(
       SwitchRunState::INITIALIZED);
 
   restart_time::init(
-      hwAgent->getPlatform()->getDirectoryUtil()->getWarmBootDir(),
+      hwAgent->getPlatform()->getDirectoryUtil()->getWarmBootDir() +
+          "/hw_switch@" + folly::to<std::string>(FLAGS_switchIndex),
       ret.bootType == BootType::WARM_BOOT);
 
   thriftSyncer->start();

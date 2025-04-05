@@ -588,6 +588,9 @@ class BcmSwitch : public BcmSwitchIf {
       int32_t /* portId */) override;
   prbs::InterfacePrbsState getPortPrbsState(PortID portId) override;
 
+  void clearInterfacePhyCounters(
+      const std::unique_ptr<std::vector<int32_t>>& ports) override;
+
   /*
    * Friend tests. We want the abilty to test private methods
    * without comprimising encapsulation for code generally.

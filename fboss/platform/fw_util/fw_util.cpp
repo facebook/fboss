@@ -23,8 +23,6 @@ int main(int argc, char* argv[]) {
 
   helpers::initCli(&argc, &argv, "fw_util");
 
-  FwUtilImpl fwUtilImpl;
-
   // TODO: To be removed once XFN change the commands in their codes
   if (FLAGS_fw_action.empty()) {
     if (argc > 1) {
@@ -58,6 +56,8 @@ int main(int argc, char* argv[]) {
     XLOG(ERR) << "--fw_binary_file cannot be found in the specified path";
     exit(1);
   }
+
+  FwUtilImpl fwUtilImpl(FLAGS_fw_binary_file, FLAGS_verify_sha1sum);
 
   if (FLAGS_fw_action == "version" && !FLAGS_fw_target_name.empty()) {
     fwUtilImpl.printVersion(toLower(FLAGS_fw_target_name));

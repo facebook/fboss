@@ -25,7 +25,7 @@ class SaiVendorSwitchManager {
       SaiManagerTable* managerTable,
       SaiPlatform* platform);
 
-  void initVendorSwitchEvents();
+  void setVendorSwitchEventEnableState(bool enable);
 
   void vendorSwitchEventNotificationCallback(
       sai_size_t bufferSize,

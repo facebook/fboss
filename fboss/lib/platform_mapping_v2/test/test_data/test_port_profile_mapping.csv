@@ -1,0 +1,5 @@
+Global_PortID,Logical_PortID,Port_Name,Supported_Port_Profiles,Attached_CoreID,Attached_Core_PortID,Virtual_Device_ID,Port_Type,Scope
+1,1,eth1/2/1,23-47,,,,0,0
+2,2,eth1/2/2,47,,,,0,0
+102,1,eth1/3/1,23-47,,,,0,0
+103,2,eth1/3/2,47,,,,0,0

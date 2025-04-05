@@ -39,14 +39,14 @@ TEST_F(ArsStoreTest, arsLoadCtor) {
   auto arsSaiId = createArs(20000, 2000);
   auto obj = createObj<SaiArsTraits>(arsSaiId);
   EXPECT_EQ(obj.adapterKey(), arsSaiId);
-  EXPECT_EQ(GET_ATTR(Ars, IdleTime, obj.attributes()), 20000);
+  EXPECT_EQ(GET_OPT_ATTR(Ars, IdleTime, obj.attributes()), 20000);
   EXPECT_EQ(GET_ATTR(Ars, MaxFlows, obj.attributes()), 2000);
 }
 
 TEST_F(ArsStoreTest, arsCreateCtor) {
   SaiArsTraits::CreateAttributes c{SAI_ARS_MODE_FLOWLET_QUALITY, 40000, 4000};
   auto obj = createObj<SaiArsTraits>(std::monostate{}, c, 0);
-  EXPECT_EQ(GET_ATTR(Ars, IdleTime, obj.attributes()), 40000);
+  EXPECT_EQ(GET_OPT_ATTR(Ars, IdleTime, obj.attributes()), 40000);
   EXPECT_EQ(GET_ATTR(Ars, MaxFlows, obj.attributes()), 4000);
 }
 

@@ -138,8 +138,10 @@ bool verifyResolvedSflowMirror(
       mirrorHandle->adapterKey(),
       SaiSflowMirrorTraits::Attributes::UdpSrcPort());
 
-  auto srcPort = apache::thrift::get_pointer(mirror.tunnel())->get_udpSrcPort();
-  auto dstPort = apache::thrift::get_pointer(mirror.tunnel())->get_udpDstPort();
+  auto srcPort = apache::thrift::get_pointer(
+      apache::thrift::get_pointer(mirror.tunnel())->udpSrcPort());
+  auto dstPort = apache::thrift::get_pointer(
+      apache::thrift::get_pointer(mirror.tunnel())->udpDstPort());
 
   if (udpSrcPort != *srcPort) {
     return false;

@@ -11,9 +11,10 @@ thrift_library(
     languages = [
         "cpp2",
         "go",
-        "py3",
-        "py-asyncio",
+        "py3-deprecated",
+        "py-deprecated-asyncio",
         "py-deprecated",
+        "python",
     ],
     py3_namespace = "neteng.fboss.thrift_cow",
     py_asyncio_base_module = "neteng.fboss.thrift_cow.asyncio",

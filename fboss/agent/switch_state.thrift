@@ -142,6 +142,9 @@ struct PortFields {
   55: bool conditionalEntropyRehash = false;
   56: bool selfHealingECMPLagEnable_DEPRECATED = false;
   57: optional bool selfHealingECMPLagEnable;
+  // DSF option to enable FEC error detection on port to prevent any
+  // errored cells from making it to the forwarding pipeline.
+  58: optional bool fecErrorDetectEnable;
 }
 
 typedef ctrl.SystemPortThrift SystemPortFields
@@ -442,6 +445,7 @@ struct SwitchSettingsFields {
   55: optional i32 voqOutOfBoundsLatencyNsec;
   // Number of sflow samples to pack in a single packet being sent out
   56: optional byte numberOfSflowSamplesPerPacket;
+  57: optional map<i32, i32> tcToRateLimitKbps;
 }
 
 struct RoutePrefix {

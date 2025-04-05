@@ -134,7 +134,7 @@ void validateUdfIdsInQset(
 
 cfg::SwitchConfig addUdfAclRoceOpcodeConfig(cfg::SwitchConfig& cfg) {
   cfg.udfConfig() = utility::addUdfAclConfig();
-  auto acl = utility::addAcl(&cfg, utility::kUdfAclRoceOpcodeName);
+  auto acl = utility::addAcl_DEPRECATED(&cfg, utility::kUdfAclRoceOpcodeName);
   acl->udfGroups() = {utility::kUdfAclRoceOpcodeGroupName};
   acl->roceOpcode() = utility::kUdfRoceOpcodeAck;
 

@@ -18,7 +18,7 @@ using namespace facebook::fboss::phy;
 bool recurseCheckPortOwnsChip(
     const PinConnection& pinConn,
     const DataPlanePhyChip& chip) {
-  if (pinConn.a().value().get_chip() == chip.name().value()) {
+  if (pinConn.a().value().chip().value() == chip.name().value()) {
     return true;
   }
   if (auto zPinRef = pinConn.z()) {
@@ -28,7 +28,7 @@ bool recurseCheckPortOwnsChip(
       }
     } else if (zPinRef->getType() == Pin::Type::junction) {
       const auto& zJunction = zPinRef->get_junction();
-      if (zJunction.system().value().get_chip() == chip.name().value()) {
+      if (zJunction.system().value().chip().value() == chip.name().value()) {
         return true;
       }
       for (const auto& connection : zJunction.line().value()) {
@@ -388,7 +388,7 @@ std::vector<cfg::PlatformPortEntry> getPlatformPortsByChip(
   std::vector<cfg::PlatformPortEntry> ports;
   for (const auto& idAndPort : platformPorts) {
     for (const auto& connection :
-         idAndPort.second.mapping().value().get_pins()) {
+         idAndPort.second.mapping().value().pins().value()) {
       if (recurseCheckPortOwnsChip(connection, chip)) {
         ports.push_back(idAndPort.second);
         break;

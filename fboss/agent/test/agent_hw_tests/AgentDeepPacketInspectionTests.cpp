@@ -77,7 +77,8 @@ class AgentDeepPacketInspectionTest : public AgentHwTest {
     auto nhopMac = ecmpHelper().nhop(kPort()).mac;
     auto switchType = getSw()->getSwitchInfoTable().l3SwitchType();
 
-    auto ethFrame = switchType == cfg::SwitchType::VOQ
+    auto ethFrame =
+        (switchType == cfg::SwitchType::VOQ || FLAGS_rx_vlan_untagged_packets)
         ? utility::makeEthFrame(*txPacket, nhopMac)
         : utility::makeEthFrame(
               *txPacket,

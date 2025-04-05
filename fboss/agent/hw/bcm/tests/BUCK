@@ -600,6 +600,7 @@ cpp_library(
         "HwTestMirrorUtilsThriftHandler.cpp",
         "HwTestNeighborUtilsThriftHandler.cpp",
         "HwTestPortUtilsThriftHandler.cpp",
+        "HwTestPtpTcUtilsThriftHandler.cpp",
         "HwTestRouteUtilsThriftHandler.cpp",
         "HwTestTamUtilsThriftHandler.cpp",
         "HwTestThriftHandler.cpp",

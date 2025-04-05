@@ -80,6 +80,12 @@ void updateCorrectedBitsAndPreFECBer(
   }
   auto correctedBitsDelta =
       *fecInfo.correctedBits() - *oldRsFecInfo.correctedBits();
+  if (correctedBitsDelta < 0 && !correctedBitsFromHw.has_value()) {
+    // If codewords counters are cleared and the corrected bits counter is
+    // approximated, this value will temporarily be negative. Set it to 0 to
+    // avoid negative BER.
+    correctedBitsDelta = 0;
+  }
   fecInfo.preFECBer() =
       utility::ber(correctedBitsDelta, speed, timeDeltaInSeconds);
 }

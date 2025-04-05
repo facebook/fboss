@@ -80,7 +80,7 @@ class AgentDscpMarkingTest : public AgentHwTest {
           RouterID(0),
           false,
           {cfg::PortType::INTERFACE_PORT});
-      resolveNeigborAndProgramRoutes(ecmpHelper, kEcmpWidth);
+      resolveNeighborAndProgramRoutes(ecmpHelper, kEcmpWidth);
     };
 
     auto verify = [=, this]() {

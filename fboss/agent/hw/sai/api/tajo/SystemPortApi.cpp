@@ -9,4 +9,9 @@ SaiSystemPortTraits::Attributes::AttributeShelPktDstEnable::operator()() {
   return std::nullopt;
 }
 
+std::optional<sai_attr_id_t>
+SaiSystemPortTraits::Attributes::AttributeTcRateLimitExclude::operator()() {
+  return std::nullopt;
+}
+
 } // namespace facebook::fboss

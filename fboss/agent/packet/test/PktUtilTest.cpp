@@ -18,6 +18,11 @@
 #include <folly/logging/xlog.h>
 #include <gtest/gtest.h>
 
+#include "fboss/agent/IPv6Handler.h"
+#include "fboss/agent/TxPacket.h"
+#include "fboss/agent/packet/EthHdr.h"
+#include "fboss/agent/packet/PktFactory.h"
+
 using namespace facebook::fboss;
 using folly::IOBuf;
 using folly::IPAddressV4;
@@ -226,4 +231,51 @@ TEST(Checksum, TestKnownOdd) {
   uint16_t expected = 0xdef2;
   expected = ~expected;
   EXPECT_EQ(expected, PktUtil::internetChecksum(bytes, 9));
+}
+
+TEST(PktUtilTest, InsertVlanTag) {
+  auto pkt = utility::makeUDPTxPacket(
+      [](size_t size) { return TxPacket::allocateTxPacket(size); },
+      std::nullopt, // vlan
+      MacAddress("00:02:00:00:00:01"),
+      MacAddress("00:02:00:00:00:01"),
+      folly::IPAddressV6("fe80::1"),
+      folly::IPAddressV6("fe80::2"),
+      5834,
+      5835,
+      (48 << 2),
+      128);
+
+  folly::io::Cursor untagged(pkt->buf());
+  EthHdr untaggedEthHdr(untagged);
+
+  EXPECT_EQ(untaggedEthHdr.getVlanTags().size(), 0);
+  EXPECT_EQ(untaggedEthHdr.size(), EthHdr::UNTAGGED_PKT_SIZE);
+
+  auto inserVlanTag = [](TxPacket* pkt, VlanID vlan) {
+    folly::io::RWPrivateCursor cursor(pkt->buf());
+    cursor += folly::MacAddress::SIZE; // skip src mac
+    cursor += folly::MacAddress::SIZE; // skip dst mac
+    auto vlanBuffer = folly::IOBuf::create(sizeof(uint32_t));
+    vlanBuffer->append(sizeof(uint32_t));
+    folly::io::RWPrivateCursor vlanCursor(vlanBuffer.get());
+    VlanTag vlanTag(
+        vlan, /* vlan tag */
+        0x8100, /* 802.1q */
+        0, /* dei */
+        0 /* pcp */
+    );
+    vlanCursor.template writeBE<uint32_t>(vlanTag.value); // vlan tag
+    cursor.insert(std::move(vlanBuffer));
+    folly::io::RWPrivateCursor(pkt->buf()).gather(EthHdr::SIZE);
+  };
+
+  inserVlanTag(pkt.get(), VlanID(1));
+
+  folly::io::Cursor tagged(pkt->buf());
+  EthHdr taggedEthHdr(tagged);
+
+  EXPECT_EQ(taggedEthHdr.size(), EthHdr::SIZE);
+  EXPECT_EQ(taggedEthHdr.getVlanTags().size(), 1);
+  EXPECT_EQ(taggedEthHdr.getVlanTags()[0].vid(), 1);
 }

@@ -14,6 +14,13 @@
 
 #include <folly/logging/xlog.h>
 
+namespace {
+using namespace facebook;
+stats::MonotonicCounter getDefaultCounter(folly::StringPiece statKey) {
+  return stats::MonotonicCounter(statKey.str(), fb303::SUM, fb303::RATE);
+}
+} // namespace
+
 namespace facebook::fboss {
 
 HwFb303Stats::~HwFb303Stats() {
@@ -58,8 +65,8 @@ void HwFb303Stats::reinitStat(
       return;
     }
     auto stat = getCounterIf(*oldStatName);
-    stats::MonotonicCounter newStat{
-        getMonotonicCounterName(statName), fb303::SUM, fb303::RATE};
+    stats::MonotonicCounter newStat =
+        getDefaultCounter(getMonotonicCounterName(statName));
     stat->swap(newStat);
     utility::deleteCounter(newStat.getName());
     counters_.insert(
@@ -68,8 +75,7 @@ void HwFb303Stats::reinitStat(
   } else {
     counters_.emplace(
         statName,
-        HwFb303Counter(stats::MonotonicCounter(
-            getMonotonicCounterName(statName), fb303::SUM, fb303::RATE)));
+        HwFb303Counter(getDefaultCounter(getMonotonicCounterName(statName))));
   }
 }
 
@@ -104,6 +110,17 @@ const std::string HwFb303Stats::getMonotonicCounterName(
 uint64_t HwFb303Stats::getCumulativeValueIf(const std::string& statName) const {
   auto pcitr = counters_.find(statName);
   return pcitr != counters_.end() ? pcitr->second.cumulativeValue : 0;
+}
+
+void HwFb303Stats::clearStat(const std::string& statName) {
+  auto stat = getCounterIf(statName);
+  if (!stat) {
+    return;
+  }
+
+  stats::MonotonicCounter newStat =
+      getDefaultCounter(getMonotonicCounterName(statName));
+  stat->swap(newStat);
 }
 
 } // namespace facebook::fboss

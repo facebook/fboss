@@ -101,7 +101,7 @@ bool BcmMultiPathNextHopTable::updateEcmpsForFlowletTableLocked() {
     if (!ecmpEgress) {
       continue;
     }
-    if (!egressIds.count(ecmpEgress->getID())) {
+    if (!egressIds.contains(ecmpEgress->getID())) {
       // update is complete when all the ECMP flowlet objects made are dynamic
       // if not so already done
       updateCompleted = ecmpEgress->updateEcmpDynamicMode();

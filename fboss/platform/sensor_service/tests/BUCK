@@ -52,7 +52,6 @@ cpp_unittest(
         "ConfigValidatorTest.cpp",
     ],
     deps = [
-        "fbsource//third-party/googletest:gmock",
         "//fboss/platform/sensor_service:config_validator",
     ],
 )

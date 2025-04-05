@@ -106,10 +106,10 @@ class CmdShowInterfaceTraffic : public CmdHandler<
 
         // FBOSS devices only have 2 error counters, so extract those here
         // The other counters are placeholders to match EOS output
-        int64_t inputErrors =
-            portInfo.input().value().get_errors().get_errors();
-        int64_t outputErrors =
-            portInfo.output().value().get_errors().get_errors();
+        int64_t inputErrors = folly::copy(
+            portInfo.input().value().errors().value().errors().value());
+        int64_t outputErrors = folly::copy(
+            portInfo.output().value().errors().value().errors().value());
 
         const auto operState = folly::copy(portInfo.operState().value());
 

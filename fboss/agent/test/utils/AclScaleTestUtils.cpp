@@ -64,9 +64,12 @@ void addAclEntries(
     const std::string& tableName) {
   for (auto i = 0; i < maxEntries; i++) {
     std::string aclEntryName = "Entry" + std::to_string(i);
-    auto* aclEntry =
-        utility::addAcl(cfg, aclEntryName, cfg::AclActionType::DENY, tableName);
-    updateAclEntryFields(aclEntry, width);
+    cfg::AclEntry aclEntry;
+    aclEntry.name() = aclEntryName;
+    aclEntry.actionType() = cfg::AclActionType::DENY;
+    updateAclEntryFields(&aclEntry, width);
+
+    utility::addAclEntry(cfg, aclEntry, tableName);
   }
 }
 } // namespace facebook::fboss::utility

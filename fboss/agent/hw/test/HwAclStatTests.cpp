@@ -47,12 +47,13 @@ class HwAclStatTest : public HwTest {
   cfg::AclEntry* addDscpAcl(
       cfg::SwitchConfig* cfg,
       const std::string& aclName) {
-    auto* acl = utility::addAcl(cfg, aclName);
+    cfg::AclEntry acl{};
+    acl.name() = aclName;
+    acl.actionType() = cfg::AclActionType::PERMIT;
     // ACL requires at least one qualifier
-    acl->dscp() = 0x24;
-    utility::addEtherTypeToAcl(getAsic(), acl, cfg::EtherType::IPv6);
-
-    return acl;
+    acl.dscp() = 0x24;
+    utility::addEtherTypeToAcl(getAsic(), &acl, cfg::EtherType::IPv6);
+    return utility::addAcl(cfg, acl, cfg::AclStage::INGRESS);
   }
 };
 
@@ -66,8 +67,8 @@ TEST_F(HwAclStatTest, AclStatMultipleActions) {
         "acl0",
         "stat0",
         utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics()));
-    cfg::MatchAction matchAction =
-        utility::getToQueueAction(0, this->getHwSwitchEnsemble()->isSai());
+    cfg::MatchAction matchAction = utility::getToQueueAction(
+        getPlatform()->getAsic(), 0, this->getHwSwitchEnsemble()->isSai());
     cfg::MatchToAction action = cfg::MatchToAction();
     *action.matcher() = "acl0";
     *action.action() = matchAction;

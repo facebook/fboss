@@ -35,7 +35,6 @@ cpp_library(
     exported_deps = [
         ":platform_mapping",
         "//fboss/agent:fboss-error",
-        "//fboss/agent/platforms/common/cloud_ripper:cloud_ripper_platform_mapping",
         "//fboss/agent/platforms/common/darwin:darwin_platform_mapping",
         "//fboss/agent/platforms/common/elbert:elbert_platform_mapping",
         "//fboss/agent/platforms/common/fake_test:fake_test_platform_mapping",

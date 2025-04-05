@@ -264,6 +264,7 @@ TEST(LldpManagerTest, LldpParse) {
   };
 
   lldpParseHelper(cfg::SwitchType::NPU, VlanID(1));
+  FLAGS_intf_nbr_tables = true;
   lldpParseHelper(cfg::SwitchType::VOQ, std::nullopt /* vlanID */);
 }
 
@@ -313,6 +314,7 @@ TEST(LldpManagerTest, LldpValidationPass) {
   };
 
   lldpValidationPassHelper(cfg::SwitchType::NPU, VlanID(1));
+  FLAGS_intf_nbr_tables = true;
   lldpValidationPassHelper(cfg::SwitchType::VOQ, std::nullopt /* vlanID */);
 }
 
@@ -398,6 +400,7 @@ TEST(LldpManagerTest, MismatchedNeighbor) {
   };
 
   lldpValidationFailHelper(cfg::SwitchType::NPU, PortID(1), VlanID(1));
+  FLAGS_intf_nbr_tables = true;
   lldpValidationFailHelper(
       cfg::SwitchType::VOQ, PortID(5), std::nullopt /* vlanID */);
 }

@@ -204,6 +204,8 @@ uint32 getFlowletDynamicMode(const cfg::SwitchingMode& switchingMode) {
       return BCM_L3_ECMP_DYNAMIC_MODE_OPTIMAL;
     case cfg::SwitchingMode::FIXED_ASSIGNMENT:
       return BCM_L3_ECMP_DYNAMIC_MODE_DISABLED;
+    case cfg::SwitchingMode::PER_PACKET_RANDOM:
+      return BCM_L3_ECMP_DYNAMIC_MODE_RANDOM;
   }
   throw FbossError("Invalid switching mode: ", switchingMode);
 }

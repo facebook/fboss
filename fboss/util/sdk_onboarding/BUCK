@@ -6,7 +6,9 @@ oncall("fboss_agent_push")
 thrift_library(
     name = "sdk_test_config",
     languages = [
-        "py3",
+        "py3-deprecated",
+        "cpp2",
+        "python",
     ],
     py3_namespace = "neteng.fboss",
     thrift_srcs = {"sdk_test_config.thrift": []},

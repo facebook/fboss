@@ -120,6 +120,8 @@ class DsfSubscription {
   FRIEND_TEST(DsfSubscriptionTest, updateFailed);
   template <typename T>
   FRIEND_TEST(DsfSubscriptionTest, setupNeighbors);
+  template <typename T>
+  FRIEND_TEST(DsfSubscriptionTest, RemoteEndpointString);
 };
 
 } // namespace facebook::fboss

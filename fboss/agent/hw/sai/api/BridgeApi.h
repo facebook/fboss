@@ -135,4 +135,15 @@ class BridgeApi : public SaiApi<BridgeApi> {
   friend class SaiApi<BridgeApi>;
 };
 
+#if defined(CHENAB_SAI_SDK)
+
+// TODO-Chenab: Chenab SDK returns a bridge port of type 1q router which doesn't
+// have SAI_BRIDGE_PORT_ATTR_PORT_ID attribute. Adapter host key of BridgePort
+// in SaiApi is SAI_BRIDGE_PORT_ATTR_PORT_ID. Extend SaiApi to consider type of
+// BridgePort while reloading store.
+template <>
+struct GetObjectKeySupported<SaiBridgePortTraits> : std::false_type {};
+
+#endif
+
 } // namespace facebook::fboss

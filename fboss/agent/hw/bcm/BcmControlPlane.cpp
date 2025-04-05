@@ -87,6 +87,7 @@ bcm_rx_reasons_t configRxReasonToBcmReasons(cfg::PacketRxReason reason) {
     case cfg::PacketRxReason::SAMPLEPACKET:
     case cfg::PacketRxReason::TTL_0:
     case cfg::PacketRxReason::EAPOL:
+    case cfg::PacketRxReason::HOST_MISS:
       break;
   }
   throw FbossError(

@@ -258,6 +258,11 @@ std::string getPriorityGroupStatsKey(folly::StringPiece statKey, int pg) {
   return folly::to<std::string>(statKey, ".pg", pg);
 }
 
+MonotonicCounter getDefaultCounter(folly::StringPiece statKey) {
+  return MonotonicCounter(
+      statKey.str(), facebook::fb303::SUM, facebook::fb303::RATE);
+}
+
 } // namespace
 
 namespace facebook::fboss {
@@ -329,11 +334,9 @@ void BcmPort::reinitPortStat(
 
   if (!stat) {
     portCounters_.emplace(
-        statKey.str(),
-        MonotonicCounter(statName(statKey, portName), fb303::SUM, fb303::RATE));
+        statKey.str(), getDefaultCounter(statName(statKey, portName)));
   } else if (stat->getName() != statName(statKey, portName)) {
-    MonotonicCounter newStat{
-        statName(statKey, portName), fb303::SUM, fb303::RATE};
+    MonotonicCounter newStat = getDefaultCounter(statName(statKey, portName));
     stat->swap(newStat);
     utility::deleteCounter(newStat.getName());
   }
@@ -766,10 +769,50 @@ void BcmPort::program(const shared_ptr<Port>& port) {
 void BcmPort::updatePortFlowletConfig(const std::shared_ptr<Port>& port) {
   setPortFlowletConfig(port);
   if (hw_->getPlatform()->getAsic()->isSupported(
-          HwAsic::Feature::FLOWLET_PORT_ATTRIBUTES)) {
+          HwAsic::Feature::ARS_PORT_ATTRIBUTES)) {
     XLOG(DBG3) << "Updating Port flowlet config for " << port->getName();
     programFlowletPortQuality(port->getPortFlowletConfig());
   }
+}
+
+void BcmPort::clearSignalDetectAndLockStatusChangedStats() {
+  auto lastPmdStats = lastPhyInfo_.stats()->line()->pmd();
+  for (auto& [laneId, laneStat] : *lastPmdStats->lanes()) {
+    if (laneStat.signalDetectChangedCount().has_value()) {
+      laneStat.signalDetectChangedCount() = 0;
+    }
+    if (laneStat.cdrLockChangedCount().has_value()) {
+      laneStat.cdrLockChangedCount() = 0;
+    }
+  }
+}
+
+void BcmPort::clearInterfacePhyCounters() {
+  auto lockedPortStatsPtr = portStats_.wlock();
+  if (!lockedPortStatsPtr->has_value()) {
+    return;
+  }
+
+  auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
+  HwPortStats curPortStats, lastPortStats;
+  curPortStats = (*lockedPortStatsPtr)->portStats();
+
+  *curPortStats.fecCorrectableErrors() = 0;
+  *curPortStats.fecUncorrectableErrors() = 0;
+
+  auto portName = getPortName();
+  auto resetPortStat = [&](folly::StringPiece statKey,
+                           folly::StringPiece portName) {
+    auto stat = getPortCounterIf(statKey);
+    MonotonicCounter newStat = getDefaultCounter(statName(statKey, portName));
+    stat->swap(newStat);
+  };
+  resetPortStat(kFecCorrectable(), portName);
+  resetPortStat(kFecUncorrectable(), portName);
+
+  *lockedPortStatsPtr = BcmPortStats(std::move(curPortStats), now);
+
+  clearSignalDetectAndLockStatusChangedStats();
 }
 
 void BcmPort::cacheFaultStatus(phy::LinkFaultStatus faultStatus) {

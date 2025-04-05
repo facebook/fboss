@@ -436,9 +436,16 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
       PRE_UPDATE_FN preUpdate,
       VERIFY_FN verify,
       bool multiPort,
-      TransceiverType type = TransceiverType::CMIS) {
-    auto stateUpdateFn = [this, event]() {
-      transceiverManager_->updateStateBlocking(id_, event);
+      TransceiverType type = TransceiverType::CMIS,
+      bool holdTransceiversLockWhileUpdating = false) {
+    auto stateUpdateFn = [this, event, holdTransceiversLockWhileUpdating]() {
+      if (holdTransceiversLockWhileUpdating) {
+        auto lockedTransceivers =
+            transceiverManager_->getSynchronizedTransceivers().rlock();
+        transceiverManager_->updateStateBlocking(id_, event);
+      } else {
+        transceiverManager_->updateStateBlocking(id_, event);
+      }
     };
     auto stateUpdateFnStr = folly::to<std::string>(
         "Event=", TransceiverStateMachineUpdate::getEventName(event));
@@ -734,7 +741,7 @@ TEST_F(TransceiverStateMachineTest, readEeprom) {
         allStates,
         [this]() {
           // Make sure `discoverTransceiver` has been called
-          EXPECT_CALL(*transceiverManager_, verifyEepromChecksums(id_))
+          EXPECT_CALL(*transceiverManager_, verifyEepromChecksumsLocked(id_))
               .Times(1);
         },
         [this]() {
@@ -755,7 +762,9 @@ TEST_F(TransceiverStateMachineTest, readEeprom) {
               transceiverManager_->getDiagsCapability(id_),
               false /* skipCheckingIndividualCapability */);
         },
-        multiPort);
+        multiPort,
+        TransceiverType::CMIS /* type */,
+        true /* holdTransceiversLockWhileUpdating */);
     // Other states should not change even though we try to process the event
     verifyStateUnchanged(
         TransceiverStateMachineEvent::TCVR_EV_READ_EEPROM,

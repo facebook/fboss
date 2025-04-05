@@ -261,14 +261,14 @@ int PlatformMapping::getPimID(PortID portID) const {
 int PlatformMapping::getPimID(
     const cfg::PlatformPortEntry& platformPort) const {
   int pimID = 0;
-  auto& portName = platformPort.mapping().value().get_name();
+  auto& portName = platformPort.mapping().value().name().value();
   re2::RE2 portNameRe(kFbossPortNameRegex);
   if (!re2::RE2::FullMatch(portName, portNameRe, &pimID)) {
     throw FbossError(
         "Invalid port name: ",
         portName,
         " for port id: ",
-        platformPort.mapping().value().get_id());
+        folly::copy(platformPort.mapping().value().id().value()));
   }
   return pimID;
 }

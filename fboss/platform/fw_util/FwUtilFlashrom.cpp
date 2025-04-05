@@ -162,9 +162,9 @@ void FwUtilImpl::addFileOption(
   if (operation == "read") {
     flashromCmd.push_back("-r");
   } else if (operation == "write" || operation == "verify") {
-    if (!std::filesystem::exists(FLAGS_fw_binary_file)) {
+    if (!std::filesystem::exists(fwBinaryFile_)) {
       throw std::runtime_error(
-          "Firmware binary file not found: " + FLAGS_fw_binary_file);
+          "Firmware binary file not found: " + fwBinaryFile_);
     }
     if (operation == "write") {
       flashromCmd.push_back("-w");

@@ -68,18 +68,22 @@ class CmdShowInterfaceCounters : public CmdHandler<
         cli::InterfaceCounters counter;
 
         counter.interfaceName() = portInfo.name().value();
-        counter.inputBytes() = portInfo.input().value().get_bytes();
-        counter.inputUcastPkts() = portInfo.input().value().get_ucastPkts();
+        counter.inputBytes() =
+            folly::copy(portInfo.input().value().bytes().value());
+        counter.inputUcastPkts() =
+            folly::copy(portInfo.input().value().ucastPkts().value());
         counter.inputMulticastPkts() =
-            portInfo.input().value().get_multicastPkts();
+            folly::copy(portInfo.input().value().multicastPkts().value());
         counter.inputBroadcastPkts() =
-            portInfo.input().value().get_broadcastPkts();
-        counter.outputBytes() = portInfo.output().value().get_bytes();
-        counter.outputUcastPkts() = portInfo.output().value().get_ucastPkts();
+            folly::copy(portInfo.input().value().broadcastPkts().value());
+        counter.outputBytes() =
+            folly::copy(portInfo.output().value().bytes().value());
+        counter.outputUcastPkts() =
+            folly::copy(portInfo.output().value().ucastPkts().value());
         counter.outputMulticastPkts() =
-            portInfo.output().value().get_multicastPkts();
+            folly::copy(portInfo.output().value().multicastPkts().value());
         counter.outputBroadcastPkts() =
-            portInfo.output().value().get_broadcastPkts();
+            folly::copy(portInfo.output().value().broadcastPkts().value());
 
         ret.int_counters()->push_back(counter);
       }
