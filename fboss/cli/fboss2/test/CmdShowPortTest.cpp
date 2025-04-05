@@ -358,6 +358,7 @@ class CmdShowPortTestFixture : public CmdHandlerTestBase {
   cli::ShowPortModel normalizedModel;
   std::vector<std::string> mockDrainedInterfaces;
   std::string mockBgpRunningConfig;
+  MultiSwitchRunState mockMultiSwitchRunState;
 
   void SetUp() override {
     CmdHandlerTestBase::SetUp();
@@ -370,6 +371,8 @@ class CmdShowPortTestFixture : public CmdHandlerTestBase {
     mockPeerPortStates = createPeerPortStates();
     mockDrainedInterfaces = createDrainedInterfaces();
     mockBgpRunningConfig = createMockedBgpConfig();
+    mockMultiSwitchRunState.hwIndexToRunState()->insert(
+        {100, SwitchRunState::CONFIGURED});
   }
 };
 
@@ -417,10 +420,6 @@ TEST_F(CmdShowPortTestFixture, queryClient) {
   EXPECT_CALL(getMockAgent(), getSwitchIdToSwitchInfo(_))
       .WillOnce(
           Invoke([&](auto& entries) { entries = mockSwitchIdToSwitchInfo; }));
-  EXPECT_CALL(getMockAgent(), getFabricConnectivity(_))
-      .WillOnce(
-          Invoke([&](auto& entries) { entries = mockFabricConnectivity; }));
-
   EXPECT_CALL(getQsfpService(), getTransceiverInfo(_, _))
       .WillOnce(Invoke(
           [&](auto& entries, auto) { entries = mockTransceiverEntries; }));
@@ -428,6 +427,9 @@ TEST_F(CmdShowPortTestFixture, queryClient) {
   EXPECT_CALL(getBgpService(), getRunningConfig(_))
       .WillOnce(Invoke(
           [&](auto& bgpConfigStr) { bgpConfigStr = mockBgpRunningConfig; }));
+  EXPECT_CALL(getMockAgent(), getMultiSwitchRunState(_))
+      .WillOnce(
+          Invoke([&](auto& entries) { entries = mockMultiSwitchRunState; }));
 
   auto cmd = CmdShowPort();
   CmdShowPortTraits::ObjectArgType queriedEntries;
