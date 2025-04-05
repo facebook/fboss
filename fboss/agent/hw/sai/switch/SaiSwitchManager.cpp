@@ -312,7 +312,7 @@ SaiSwitchManager::SaiSwitchManager(
   // switch create.
   CHECK(firmwareObjectList.size() == 0 || firmwareObjectList.size() == 1);
   if (firmwareObjectList.size() == 1) {
-    firmwareSaiId = *firmwareObjectList.begin();
+    firmwareSaiId_ = *firmwareObjectList.begin();
 
     auto firmwareVersion = getFirmwareVersion();
     CHECK(firmwareVersion.has_value());
@@ -321,7 +321,7 @@ SaiSwitchManager::SaiSwitchManager(
     platform_->getHwSwitch()->getSwitchStats()->isolationFirmwareVersion(
         firmwareVersionInt);
 
-    XLOG(DBG2) << "Firmware OID: " << firmwareSaiId.value()
+    XLOG(DBG2) << "Firmware OID: " << firmwareSaiId_.value()
                << " Firmware Version: " << firmwareVersion.value()
                << " Firmware Version Int: " << firmwareVersionInt;
   }
@@ -1300,9 +1300,9 @@ void SaiSwitchManager::setRemoteL2VoqMaxExpectedLatency(
 std::optional<FirmwareFuncStatus> SaiSwitchManager::getFirmwareFuncStatus()
     const {
 #if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
-  if (firmwareSaiId.has_value()) {
+  if (firmwareSaiId_.has_value()) {
     auto funcStatus = SaiApiTable::getInstance()->firmwareApi().getAttribute(
-        firmwareSaiId.value(),
+        firmwareSaiId_.value(),
         SaiFirmwareTraits::Attributes::FunctionalStatus{});
     return saiFirmwareFuncStatusToFirmwareFuncStatus(
         static_cast<sai_firmware_func_status_t>(funcStatus));
@@ -1327,9 +1327,9 @@ void SaiSwitchManager::setVoqOutOfBoundsLatency(int voqOutOfBoundsLatency) {
 
 std::optional<std::string> SaiSwitchManager::getFirmwareVersion() const {
 #if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
-  if (firmwareSaiId.has_value()) {
+  if (firmwareSaiId_.has_value()) {
     auto version = SaiApiTable::getInstance()->firmwareApi().getAttribute(
-        firmwareSaiId.value(), SaiFirmwareTraits::Attributes::Version{});
+        firmwareSaiId_.value(), SaiFirmwareTraits::Attributes::Version{});
     return std::string(version.begin(), version.end());
   }
 #endif
@@ -1339,9 +1339,9 @@ std::optional<std::string> SaiSwitchManager::getFirmwareVersion() const {
 
 std::optional<FirmwareOpStatus> SaiSwitchManager::getFirmwareOpStatus() const {
 #if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
-  if (firmwareSaiId.has_value()) {
+  if (firmwareSaiId_.has_value()) {
     auto opStatus = SaiApiTable::getInstance()->firmwareApi().getAttribute(
-        firmwareSaiId.value(), SaiFirmwareTraits::Attributes::OpStatus{});
+        firmwareSaiId_.value(), SaiFirmwareTraits::Attributes::OpStatus{});
     return saiFirmwareOpStatusToFirmwareOpStatus(
         static_cast<sai_firmware_op_status_t>(opStatus));
   }

@@ -179,7 +179,7 @@ class SaiSwitchManager {
   HwSwitchDropStats switchDropStats_;
   HwSwitchWatermarkStats switchWatermarkStats_;
 
-  std::optional<FirmwareSaiId> firmwareSaiId;
+  std::optional<FirmwareSaiId> firmwareSaiId_;
 };
 
 void fillHwSwitchDramStats(
