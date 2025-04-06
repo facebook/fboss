@@ -83,8 +83,10 @@ class AgentDeepPacketInspectionTest : public AgentHwTest {
         : utility::makeEthFrame(
               *txPacket,
               nhopMac,
-              utility::getIngressVlan(
-                  getProgrammedState(), kPort().phyPortID()));
+              getProgrammedState()
+                  ->getPorts()
+                  ->getNode(kPort().phyPortID())
+                  ->getIngressVlan());
 
     utility::SwSwitchPacketSnooper snooper(
         getSw(), "snoop", std::nullopt, ethFrame);
