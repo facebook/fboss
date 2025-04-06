@@ -202,17 +202,17 @@ DEFINE_bool(
 
 DEFINE_int32(
     max_l2_entries,
-    4000,
+    5300,
     "Maximum L2 entries supported by Resource Accountant");
 
 DEFINE_int32(
     max_ndp_entries,
-    3500,
+    4000,
     "Maximum NDP entries supported by Resource Accountant");
 
 DEFINE_int32(
     max_arp_entries,
-    100,
+    1280,
     "Maximum ARP entries supported by Resource Accountant");
 
 DEFINE_bool(
