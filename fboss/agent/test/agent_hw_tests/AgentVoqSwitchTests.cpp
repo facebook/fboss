@@ -722,14 +722,18 @@ TEST_F(AgentVoqSwitchTest, packetIntegrityError) {
           "m SPB_FORCE_CRC_ERROR FORCE_CRC_ERROR_ON_DATA=1 FORCE_CRC_ERROR_ON_CRC=1\n",
           out);
     } else if (switchAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
-      getAgentEnsemble()->runDiagCommand(
-          "m IRE_FORCE_CRC_ERROR FORCE_CRC_ERROR_ON_CRC=1\n", out);
+      for (const auto& switchIdx : getSw()->getHwAsicTable()->getSwitchIDs()) {
+        getAgentEnsemble()->runDiagCommand(
+            "m IRE_FORCE_CRC_ERROR FORCE_CRC_ERROR_ON_CRC=1\n", out, switchIdx);
+      }
     } else {
       throw FbossError(
           "Unsupported ASIC type: ",
           apache::thrift::util::enumNameSafe(switchAsic->getAsicType()));
     }
-    getAgentEnsemble()->runDiagCommand("quit\n", out);
+    for (const auto& switchIdx : getSw()->getHwAsicTable()->getSwitchIDs()) {
+      getAgentEnsemble()->runDiagCommand("quit\n", out, switchIdx);
+    }
     sendPacket(dstIp, std::nullopt, std::vector<uint8_t>(1024, 0xff));
     WITH_RETRIES({
       auto switchIndex =
