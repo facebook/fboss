@@ -212,6 +212,7 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::DEDICATED_CPU_BUFFER_POOL:
     case HwAsic::Feature::INGRESS_POST_LOOKUP_ACL_TABLE:
     case HwAsic::Feature::SAI_HOST_MISS_TRAP:
+    case HwAsic::Feature::CPU_TX_PACKET_REQUIRES_VLAN_TAG:
       return false;
   }
   return false;

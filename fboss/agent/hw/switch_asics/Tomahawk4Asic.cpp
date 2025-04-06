@@ -215,6 +215,7 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SDK_REGISTER_DUMP:
     case HwAsic::Feature::FEC_ERROR_DETECT_ENABLE:
     case HwAsic::Feature::SAI_HOST_MISS_TRAP:
+    case HwAsic::Feature::CPU_TX_PACKET_REQUIRES_VLAN_TAG:
       return false;
   }
   return false;
