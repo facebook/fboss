@@ -287,7 +287,7 @@ void configureMaxMacEntriesViaPacketIn(AgentEnsemble* ensemble) {
 
   for (int i = 0; i < FLAGS_max_l2_entries; ++i) {
     std::stringstream ipStream;
-    ipStream << "2620:0:1cfe:face:b10c::5" << std::hex << i;
+    ipStream << "2620:0:1cfe:face:b10c::" << std::hex << i;
     folly::IPAddressV6 ip(ipStream.str());
     uint64_t macBytes = kBaseMac;
     folly::MacAddress mac = folly::MacAddress::fromHBO(macBytes + i);
@@ -304,7 +304,7 @@ void configureMaxMacEntriesViaPacketIn(AgentEnsemble* ensemble) {
         // if replaced by macLastInterface, then traffic won't flood
         rxInterfaceMac,
         ipV6,
-        folly::IPAddressV6("2620:0:1cfe:face:b10c::4"),
+        folly::IPAddressV6("2620:0:1cfe:face:b10b::"),
         srcPort,
         dstPort);
     ensemble->getSw()->sendPacketOutOfPortAsync(std::move(txPacket), txPort);
