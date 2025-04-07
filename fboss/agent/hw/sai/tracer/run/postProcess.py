@@ -357,11 +357,7 @@ def print_summary(input_sailog, input_bzl, output_dir, max_lines):
 def main():
     args = init_argparser().parse_args()
 
-    if args.generate_run_bzl:
-        exit("--generate_run_bzl input flag is not supported yet.")
-
     input_sailog = os.path.join(args.input, "SaiLog.cpp")
-    input_runbzl = os.path.join(args.input, "run.bzl")
 
     # Validate input
     if not os.path.exists(args.input):
@@ -374,10 +370,13 @@ def main():
     if not os.path.isfile(input_sailog):
         exit(input_sailog + " is not a file.")
 
-    if not os.path.exists(input_runbzl):
-        exit("Input file not found: " + input_runbzl)
-    if not os.path.isfile(input_runbzl):
-        exit(input_runbzl + " is not a file.")
+    input_runbzl = ""
+    if args.generate_run_bzl:
+        input_runbzl = os.path.join(args.input, "run.bzl")
+        if not os.path.exists(input_runbzl):
+            exit("run.bzl input file not found: " + input_runbzl)
+        if not os.path.isfile(input_runbzl):
+            exit(input_runbzl + " is not a file.")
 
     if args.max_lines < MIN_LINES:
         exit("Minimum value for max lines per file is " + str(MIN_LINES) + ".")
@@ -386,7 +385,8 @@ def main():
 
     prepare_output_dir(output_dir, args.clean)
     split_file(input_sailog, output_dir, args.max_lines)
-    generate_run_bzl(input_runbzl, output_dir)
+    if args.generate_run_bzl:
+        generate_run_bzl(input_runbzl, output_dir)
     print_summary(input_sailog, input_runbzl, output_dir, args.max_lines)
 
 
