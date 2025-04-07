@@ -102,6 +102,12 @@ def init_argparser():
         type=int,
         default=DEFAULT_MAX_LINES,
     )
+    parser.add_argument(
+        "--generate_run_bzl",
+        action="store_true",
+        help="Process an updated run.bzl file from the original in the given input directory.",
+        default=False,
+    )
     return parser
 
 
@@ -350,6 +356,9 @@ def print_summary(input_sailog, input_bzl, output_dir, max_lines):
 
 def main():
     args = init_argparser().parse_args()
+
+    if args.generate_run_bzl:
+        exit("--generate_run_bzl input flag is not supported yet.")
 
     input_sailog = os.path.join(args.input, "SaiLog.cpp")
     input_runbzl = os.path.join(args.input, "run.bzl")
