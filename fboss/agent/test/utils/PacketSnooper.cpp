@@ -25,9 +25,7 @@ void PacketSnooper::packetReceived(const RxPacket* pkt) noexcept {
                  << " got: " << *frame;
       return;
     }
-  }
-
-  if (expectedFrame_.has_value() && *expectedFrame_ != *frame) {
+  } else if (expectedFrame_.has_value() && *expectedFrame_ != *frame) {
     XLOG(DBG2) << " Unexpected packet received "
                << " expected: " << *expectedFrame_ << std::endl
                << " got: " << *frame;
