@@ -507,6 +507,10 @@ class SwitchStats : public boost::noncopyable {
 
   void setDrainState(int16_t switchIndex, cfg::SwitchDrainState drainState);
 
+  void setPortsWithSwitchReachabilityInconsistency(
+      int16_t switchIndex,
+      int numPorts);
+
   void setNumActiveFabricLinksEligibleForMinLink(
       int32_t virtualDeviceId,
       int32_t numLinks);
@@ -618,6 +622,11 @@ class SwitchStats : public boost::noncopyable {
   }
   int64_t getDsfUpdateFailred() const {
     return getCumulativeValue(dsfUpdateFailed_);
+  }
+
+  void switchReachabilityInconsistencyDetected(int16_t switchIndex) {
+    CHECK_LT(switchIndex, switchReachabilityInconsistencyDetected_.size());
+    switchReachabilityInconsistencyDetected_[switchIndex].addValue(1);
   }
 
   void getHwAgentStatus(
@@ -1079,6 +1088,8 @@ class SwitchStats : public boost::noncopyable {
   std::vector<TLCounter> hwAgentConnectionStatus_;
   std::vector<TLTimeseries> hwAgentUpdateTimeouts_;
   std::vector<HwAgentStreamConnectionStatus> thriftStreamConnectionStatus_;
+  std::vector<TLTimeseries> switchReachabilityInconsistencyDetected_;
+  std::vector<TLCounter> portsWithSwitchReachabilityInconsistency_;
 };
 
 } // namespace facebook::fboss

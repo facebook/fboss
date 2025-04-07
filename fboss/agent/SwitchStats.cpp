@@ -389,9 +389,7 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map, int numSwitches)
           map,
           kCounterPrefix + "resource_accountant_rejected_updates",
           SUM,
-          RATE)
-
-{
+          RATE) {
   for (auto switchIndex = 0; switchIndex < numSwitches; switchIndex++) {
     hwAgentConnectionStatus_.emplace_back(TLCounter(
         map,
@@ -404,6 +402,24 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map, int numSwitches)
         SUM,
         RATE));
     thriftStreamConnectionStatus_.emplace_back(map, switchIndex);
+    switchReachabilityInconsistencyDetected_.emplace_back(
+        map,
+        folly::to<std::string>(
+            kCounterPrefix,
+            "switch.",
+            switchIndex,
+            ".",
+            "switch_reachability_inconsistency_detected"),
+        SUM,
+        RATE);
+    portsWithSwitchReachabilityInconsistency_.emplace_back(
+        map,
+        folly::to<std::string>(
+            kCounterPrefix,
+            "switch.",
+            switchIndex,
+            ".",
+            "ports_with_switch_reachability_inconsistency"));
   }
 }
 
@@ -757,6 +773,14 @@ void SwitchStats::setNumActiveFabricLinksEligibleForMinLink(
       "vid.", virtualDeviceId, ".active_eligible_min_links");
 
   fb303::fbData->setCounter(counterName, static_cast<int>(numLinks));
+}
+
+void SwitchStats::setPortsWithSwitchReachabilityInconsistency(
+    int16_t switchIndex,
+    int numPorts) {
+  CHECK_LT(switchIndex, portsWithSwitchReachabilityInconsistency_.size());
+  fb303::fbData->setCounter(
+      portsWithSwitchReachabilityInconsistency_[switchIndex].name(), numPorts);
 }
 
 } // namespace facebook::fboss
