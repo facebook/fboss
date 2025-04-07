@@ -208,7 +208,7 @@ std::unordered_map<PortID, cfg::PortProfileID> getSafeProfileIDs(
       }
     }
     if (safeProfiles.empty()) {
-      std::string portSetStr = "";
+      std::string portSetStr;
       for (auto portID : ports) {
         portSetStr = folly::to<std::string>(portSetStr, portID, ", ");
       }
