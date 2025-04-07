@@ -167,6 +167,7 @@ void PlatformExplorer::explore() {
   }
   publishFirmwareVersions();
   genHumanReadableEeproms();
+  publishHardwareVersions();
   auto explorationStatus = explorationSummary_.summarize();
   updatePmStatus(createPmStatus(
       explorationStatus,
@@ -741,6 +742,55 @@ void PlatformExplorer::publishFirmwareVersions() {
         versionString);
     fb303::fbData->setCounter(
         fmt::format(kGroupedFirmwareVersion, deviceName, versionString), 1);
+  }
+}
+
+void PlatformExplorer::publishHardwareVersions() {
+  auto chassisDevicePath = *platformConfig_.chassisEepromDevicePath();
+  if (!dataStore_.hasEepromContents(chassisDevicePath)) {
+    XLOGF(
+        ERR,
+        "Failed to report hardware version. EEPROM contents not found for {}",
+        chassisDevicePath);
+    return;
+  }
+
+  auto chassisEepromContent = dataStore_.getEepromContents(chassisDevicePath);
+  auto prodState =
+      FbossEepromParserUtils::getProductionState(chassisEepromContent);
+  auto prodSubState =
+      FbossEepromParserUtils::getProductionSubState(chassisEepromContent);
+  auto variantVersion =
+      FbossEepromParserUtils::getVariantVersion(chassisEepromContent);
+
+  // Report production state
+  if (prodState.has_value()) {
+    XLOG(INFO) << fmt::format(
+        "Reporting Production State: {}", prodState.value());
+    fb303::fbData->setCounter(
+        fmt::format(kProductionState, prodState.value()), 1);
+  } else {
+    XLOG(ERR) << "Production State not set";
+  }
+
+  // Report production sub-state
+  if (prodSubState.has_value()) {
+    XLOG(INFO) << fmt::format(
+        "Reporting Production Sub-State: {}", prodSubState.value());
+    fb303::fbData->setCounter(
+        fmt::format(kProductionSubState, prodSubState.value()), 1);
+  } else {
+    XLOG(ERR) << "Production Sub-State not set";
+  }
+
+  // Report variant version
+  if (variantVersion.has_value()) {
+    XLOG(INFO) << fmt::format(
+        "Reporting Variant Indicator: {}", variantVersion.value());
+    fb303::fbData->setCounter(
+        fmt::format(kVariantVersion, variantVersion.value()), 1);
+  } else {
+    XLOG(ERR) << "Variant Indicator not set";
   }
 }
 
