@@ -347,7 +347,7 @@ def split_file(input_file, output_dir, max_lines):
 
 def print_summary(input_sailog, input_bzl, output_dir, max_lines):
     print("\nSUMMARY")
-    print("Source files: " + input_sailog + ", " + input_bzl)
+    print("Source files: " + input_sailog + (", " + input_bzl) if input_bzl else "")
     print("Max number of lines per file: " + str(max_lines))
     print("Generated {} files:".format(len(GENERATED_FILES)))
     for f in GENERATED_FILES:
@@ -370,7 +370,7 @@ def main():
     if not os.path.isfile(input_sailog):
         exit(input_sailog + " is not a file.")
 
-    input_runbzl = ""
+    input_runbzl = None
     if args.generate_run_bzl:
         input_runbzl = os.path.join(args.input, "run.bzl")
         if not os.path.exists(input_runbzl):
