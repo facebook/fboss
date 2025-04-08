@@ -9558,7 +9558,7 @@
           "test_name_regex": "HwTest_PROFILE_10G_1_NRZ_NOFEC_OPTICAL"
         }
     ],
-    "chenab/1.15.3/1.15.3/chenab": [
+    "chenab/1.15.7/1.15.7/chenab": [
         {
           "test_name_regex": "SaiRollbackTest.*"
         },
@@ -9567,6 +9567,21 @@
         },
         {
           "test_name_regex": "SaiQPHRollbackTest.*"
+        },
+        {
+          "test_name_regex": "SaiAclTableGroupTrafficTest/0.VerifyQueuePerHostAclTableAndTtlAclTable"
+        },
+        {
+          "test_name_regex": "SaiAclTableGroupTrafficTest/1.VerifyQueuePerHostAclTableAndTtlAclTable"
+        },
+        {
+          "test_name_regex": "SaiAclTableGroupTrafficTest/0.VerifyDscpMarkingAndTtlAclTable"
+        },
+        {
+          "test_name_regex": "HwRouteNeighborTest/0.AddHostRouteAndNeighbor"
+        },
+        {
+          "test_name_regex": "HwRouteNeighborTest/2.AddHostRouteAndNeighbor"
         },
         {
           "test_name_regex": "HwTrunkTest.TrunkPortStatsWithMplsPush"
@@ -9624,6 +9639,27 @@
         },
         {
           "test_name_regex": "HwTrunkLoadBalancerTest.*"
+        },
+        {
+          "test_name_regex": "HwMirrorTest/[0|1].ResolvedErspanMirrorOnTrunk"
+        },
+        {
+          "test_name_regex": "HwPacketSendReceiveLagTest.LacpPacketReceiveSrcPort"
+        },
+        {
+          "test_name_regex": "HwProdInvariantsRswTest.verifyInvariants"
+        },
+        {
+          "test_name_regex": "HwProdInvariantsRswStrictPriorityTest.verifyInvariants"
+        },
+        {
+          "test_name_regex": "HwProdInvariantsFswTest.verifyInvariants"
+        },
+        {
+          "test_name_regex": "HwProdInvariantsFswStrictPriorityTest.verifyInvariants"
+        },
+        {
+          "test_name_regex": "HwProdInvariantsRswMhnicTest.verifyInvariants"
         }
     ],
     "leaba/1.42.8/1.42.8/gibraltar": [
