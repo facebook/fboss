@@ -173,6 +173,7 @@ enum PortProfileID {
   PROFILE_100G_1_PAM4_RS544_OPTICAL = 47,
   PROFILE_50G_2_NRZ_RS528_OPTICAL = 48,
   PROFILE_100G_1_PAM4_NOFEC_COPPER = 49,
+  PROFILE_800G_8_PAM4_RS544X2N_COPPER = 50,
 }
 
 enum Scope {
@@ -631,6 +632,7 @@ enum AclTableActionType {
   MIRROR_EGRESS = 5,
   SET_USER_DEFINED_TRAP = 6,
   DISABLE_ARS_FORWARDING = 7,
+  SET_ARS_OBJECT = 8,
 }
 
 enum AclTableQualifier {
@@ -762,6 +764,10 @@ enum FlowletAction {
   * Forward the packet to DLB engine.
   */
   FORWARD = 1,
+  /**
+  * Disable the packet to DLB engine.
+  */
+  DISABLE = 2,
 }
 
 struct MatchAction {
@@ -1007,6 +1013,7 @@ enum PacketRxReason {
   TTL_0 = 19, // Packets with TTL as 0
   EAPOL = 20, // EAPOL for Macsec
   PORT_MTU_ERROR = 21, // Packet size exceeds port MTU, should not use together with L3_MTU_ERROR
+  HOST_MISS = 22, // Packet is destined for an unresolved neighbor in the subnet of a connected RIF
 }
 
 enum PortLoopbackMode {
@@ -1248,6 +1255,12 @@ struct Port {
    * DSF Interface node to enable SHEL messages - port UP/DOWN notification to other interface nodes.
    */
   34: optional bool selfHealingECMPLagEnable;
+
+  /*
+   * DSF option to enable FEC error detection on port to prevent any
+   * errored cells from making it to the forwarding pipeline.
+   */
+  35: optional bool fecErrorDetectEnable;
 }
 
 enum LacpPortRate {
@@ -1873,6 +1886,7 @@ struct SwitchSettings {
   29: optional i32 voqOutOfBoundsLatencyNsec;
   // Number of sflow samples to pack in a single packet being sent out
   30: optional byte numberOfSflowSamplesPerPacket;
+  31: optional map<i32, i32> tcToRateLimitKbps;
 }
 
 // Global buffer pool
@@ -2095,6 +2109,8 @@ enum SwitchingMode {
   PER_PACKET_QUALITY = 1,
   // flowlet is disabled
   FIXED_ASSIGNMENT = 2,
+  // per packet random, no quality
+  PER_PACKET_RANDOM = 3,
 }
 
 struct FlowletSwitchingConfig {
@@ -2125,6 +2141,8 @@ struct FlowletSwitchingConfig {
   11: i16 maxLinks;
   // switching mode
   12: SwitchingMode switchingMode = FLOWLET_QUALITY;
+  // fall back switching mode if DLB groups are exhausted
+  13: SwitchingMode backupSwitchingMode = FIXED_ASSIGNMENT;
 }
 
 /**

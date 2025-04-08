@@ -24,8 +24,8 @@ class RxPacketFilter {
  public:
   explicit RxPacketFilter(const RxCaptureFilter& rxCaptureFilter)
       : cosQueues_(
-            rxCaptureFilter.get_cosQueues().begin(),
-            rxCaptureFilter.get_cosQueues().end()) {}
+            rxCaptureFilter.cosQueues().value().begin(),
+            rxCaptureFilter.cosQueues().value().end()) {}
   bool passes(const RxPacket* pkt) const {
     auto cosQueue = pkt->cosQueue()
         ? static_cast<CpuCosQueueId>(*pkt->cosQueue())
@@ -41,7 +41,7 @@ class RxPacketFilter {
 class PacketFilter {
  public:
   explicit PacketFilter(const CaptureFilter& captureFilter)
-      : rxPacketFilter_(captureFilter.get_rxCaptureFilter()) {}
+      : rxPacketFilter_(captureFilter.rxCaptureFilter().value()) {}
 
   bool passes(const RxPacket* pkt) {
     return rxPacketFilter_.passes(pkt);

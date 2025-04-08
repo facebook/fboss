@@ -92,6 +92,7 @@ extern "C" {
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
 #include <saiextensions.h>
 #ifndef IS_OSS_BRCM_SAI
+#include <experimental/saiexperimentalfirmware.h>
 #include <experimental/saiexperimentaltameventaginggroup.h>
 #else
 #include <saiexperimentaltameventaginggroup.h>
@@ -1213,7 +1214,7 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
 #endif
 
   if (FLAGS_flowletSwitchingEnable) {
-    if (platform_->getAsic()->isSupported(HwAsic::Feature::FLOWLET)) {
+    if (platform_->getAsic()->isSupported(HwAsic::Feature::ARS)) {
       processFlowletSwitchingConfigDelta(delta, lockPolicy);
     }
   }
@@ -1536,6 +1537,14 @@ void SaiSwitch::processSwitchSettingsChangeSansDrainedEntryLocked(
     if (oldVoqOutOfBoundsLatencyNs != newVoqOutOfBoundsLatencyNs) {
       managerTable_->switchManager().setVoqOutOfBoundsLatency(
           newVoqOutOfBoundsLatencyNs.value_or(0));
+    }
+  }
+
+  {
+    const auto oldTcToRateLimitKbps = oldSwitchSettings->getTcToRateLimitKbps();
+    const auto newTcToRateLimitKbps = newSwitchSettings->getTcToRateLimitKbps();
+    if (oldTcToRateLimitKbps != newTcToRateLimitKbps) {
+      managerTable_->switchManager().setTcRateLimitList(newTcToRateLimitKbps);
     }
   }
 }
@@ -2076,20 +2085,21 @@ void SaiSwitch::updateRsInfo(
 const std::map<PortID, FabricEndpoint>& SaiSwitch::getFabricConnectivity()
     const {
   std::lock_guard<std::mutex> lock(saiSwitchMutex_);
-  return getFabricConnectivityLocked();
+  return getFabricConnectivityLocked(lock);
 }
 
-const std::map<PortID, FabricEndpoint>& SaiSwitch::getFabricConnectivityLocked()
-    const {
+const std::map<PortID, FabricEndpoint>& SaiSwitch::getFabricConnectivityLocked(
+    const std::lock_guard<std::mutex>& lock) const {
   return fabricConnectivityManager_->getConnectivityInfo();
 }
 
 std::vector<PortID> SaiSwitch::getSwitchReachability(SwitchID switchId) const {
   std::lock_guard<std::mutex> lock(saiSwitchMutex_);
-  return getSwitchReachabilityLocked(switchId);
+  return getSwitchReachabilityLocked(lock, switchId);
 }
 
 std::vector<PortID> SaiSwitch::getSwitchReachabilityLocked(
+    const std::lock_guard<std::mutex>& lock,
     SwitchID switchId) const {
   return managerTable_->portManager().getFabricReachabilityForSwitch(switchId);
 }
@@ -2209,6 +2219,34 @@ std::vector<phy::PrbsLaneStats> SaiSwitch::getPortAsicPrbsStats(PortID portId) {
 
 void SaiSwitch::clearPortAsicPrbsStats(PortID portId) {
   managerTable_->portManager().clearPortAsicPrbsStats(portId);
+}
+
+void SaiSwitch::clearSignalDetectAndLockChangedStats(const PortID& portId) {
+  auto phyItr = lastPhyInfos_.find(portId);
+  if (phyItr == lastPhyInfos_.end()) {
+    return;
+  }
+
+  const auto& lineLanes = phyItr->second.stats()->line()->pmd()->lanes();
+  for (auto& [laneId, laneStat] : *lineLanes) {
+    if (laneStat.signalDetectChangedCount().has_value()) {
+      laneStat.signalDetectChangedCount() = 0;
+    }
+    if (laneStat.cdrLockChangedCount().has_value()) {
+      laneStat.cdrLockChangedCount() = 0;
+    }
+  }
+}
+
+void SaiSwitch::clearInterfacePhyCounters(
+    const std::unique_ptr<std::vector<int32_t>>& ports) {
+  auto& portManager = managerTable_->portManager();
+  for (auto port : *ports) {
+    std::lock_guard<std::mutex> lock(saiSwitchMutex_);
+    auto portId = static_cast<PortID>(port);
+    portManager.clearInterfacePhyCounters(portId);
+    clearSignalDetectAndLockChangedStats(portId);
+  }
 }
 
 cfg::PortSpeed SaiSwitch::getPortMaxSpeed(PortID port) const {
@@ -3113,8 +3151,7 @@ void SaiSwitch::packetRxCallbackPort(
     cfg::PacketRxReason rxReason,
     uint8_t queueId) {
   PortID swPortId(0);
-  std::optional<VlanID> swVlanId = (getSwitchType() == cfg::SwitchType::VOQ ||
-                                    getSwitchType() == cfg::SwitchType::FABRIC)
+  std::optional<VlanID> swVlanId = processVlanUntaggedPackets()
       ? std::nullopt
       : std::make_optional(VlanID(0));
   auto swVlanIdStr = [swVlanId]() {
@@ -3127,7 +3164,7 @@ void SaiSwitch::packetRxCallbackPort(
       buffer_size,
       (void*)((char*)(buffer)),
       PortID(0),
-      VlanID(0),
+      swVlanId,
       rxReason,
       queueId);
   const auto portItr = concurrentIndices_->portSaiId2PortInfo.find(portSaiId);
@@ -3148,8 +3185,7 @@ void SaiSwitch::packetRxCallbackPort(
    * We use the cached cpu port id to avoid holding manager table locks in
    * the Rx path.
    */
-  if (!(getSwitchType() == cfg::SwitchType::VOQ ||
-        getSwitchType() == cfg::SwitchType::FABRIC)) {
+  if (!processVlanUntaggedPackets()) {
     if (portSaiId == getCPUPortSaiId() ||
         (allowMissingSrcPort &&
          portItr == concurrentIndices_->portSaiId2PortInfo.cend())) {
@@ -3162,7 +3198,7 @@ void SaiSwitch::packetRxCallbackPort(
                    << "Found vlan from packet: " << swVlanIdStr();
       } else {
         XLOG(ERR) << "RX packet on cpu port has no vlan tag "
-                  << "or multiple vlan tags: 0x" << std::hex << portSaiId;
+                  << "or multiple vlan tags: " << ethHdr.printVlanTags();
         return;
       }
     } else if (portItr == concurrentIndices_->portSaiId2PortInfo.cend()) {
@@ -3190,7 +3226,7 @@ void SaiSwitch::packetRxCallbackPort(
         return;
       } else {
         swPortId = portItr->second.portID;
-        XLOG(DBG6) << "VOQ RX packet with sai id: 0x" << std::hex << portSaiId
+        XLOG(DBG6) << "RX packet with sai id: 0x" << std::hex << portSaiId
                    << " portID: " << swPortId;
       }
     }
@@ -3223,7 +3259,7 @@ void SaiSwitch::packetRxCallbackLag(
   PortID swPortId(0);
   VlanID swVlanId(0);
   auto rxPacket = std::make_unique<SaiRxPacket>(
-      buffer_size, buffer, PortID(0), VlanID(0), rxReason, queueId);
+      buffer_size, buffer, PortID(0), swVlanId, rxReason, queueId);
 
   const auto aggPortItr = concurrentIndices_->aggregatePortIds.find(lagSaiId);
 
@@ -3320,6 +3356,9 @@ void SaiSwitch::unregisterCallbacksLocked(
 #if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
   if (platform_->getAsic()->isSupported(
           HwAsic::Feature::VENDOR_SWITCH_NOTIFICATION)) {
+    // Disable vendor switch interrupts before unregistering callback
+    managerTable_->vendorSwitchManager().setVendorSwitchEventEnableState(
+        false /*enable*/);
     switchApi.unregisterVendorSwitchEventNotifyCallback(saiSwitchId_);
   }
 #endif
@@ -3679,8 +3718,9 @@ void SaiSwitch::switchRunStateChangedImplLocked(
         auto& switchApi = SaiApiTable::getInstance()->switchApi();
         switchApi.registerVendorSwitchEventNotifyCallback(
             saiSwitchId_, __gVendorSwitchEventNotificationCallback);
-        // Init the vendor switch events now that callback is registered
-        managerTable_->vendorSwitchManager().initVendorSwitchEvents();
+        // Enable vendor switch events now that callback is registered
+        managerTable_->vendorSwitchManager().setVendorSwitchEventEnableState(
+            true /*enable*/);
       }
 #endif
     } break;
@@ -4125,6 +4165,12 @@ std::string SaiSwitch::listObjects(
         break;
       case HwObjectType::SYSTEM_PORT:
         objTypes.push_back(SAI_OBJECT_TYPE_SYSTEM_PORT);
+        break;
+      case HwObjectType::FIRMWARE:
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+        objTypes.push_back(
+            static_cast<sai_object_type_t>(SAI_OBJECT_TYPE_FIRMWARE));
+#endif
         break;
     }
   }
@@ -4589,4 +4635,37 @@ HwResourceStats SaiSwitch::getResourceStats() const {
 bool SaiSwitch::getArsExhaustionStatus() {
   return false;
 }
+
+bool SaiSwitch::processVlanUntaggedPackets() const {
+  return FLAGS_rx_vlan_untagged_packets ||
+      (getSwitchType() == cfg::SwitchType::VOQ ||
+       getSwitchType() == cfg::SwitchType::FABRIC);
+}
+
+std::vector<FirmwareInfo> SaiSwitch::getAllFirmwareInfo() const {
+  // Firmware is not supported/configured on all Platforms.
+  // The platforms that support Firmware, support only single
+  // Firmware today.
+  std::lock_guard<std::mutex> lock(saiSwitchMutex_);
+  if (managerTable_->switchManager().isFirmwareEnabled()) {
+    FirmwareInfo firmwareInfo;
+
+    auto version = managerTable_->switchManager().getFirmwareVersion();
+    CHECK(version.has_value());
+    firmwareInfo.version() = version.value();
+
+    auto opStatus = managerTable_->switchManager().getFirmwareOpStatus();
+    CHECK(opStatus.has_value());
+    firmwareInfo.opStatus() = opStatus.value();
+
+    auto funcStatus = managerTable_->switchManager().getFirmwareFuncStatus();
+    CHECK(funcStatus.has_value());
+    firmwareInfo.funcStatus() = funcStatus.value();
+
+    return {firmwareInfo};
+  }
+
+  return {};
+}
+
 } // namespace facebook::fboss

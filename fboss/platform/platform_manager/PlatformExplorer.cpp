@@ -166,6 +166,8 @@ void PlatformExplorer::explore() {
     createDeviceSymLink(linkPath, devicePath);
   }
   publishFirmwareVersions();
+  genHumanReadableEeproms();
+  publishHardwareVersions();
   auto explorationStatus = explorationSummary_.summarize();
   updatePmStatus(createPmStatus(
       explorationStatus,
@@ -380,7 +382,6 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
   }
 
   auto pmUnitName = pmUnitNameInEeprom;
-  XLOG(INFO) << "SlotType PmUnitName: " << *slotTypeConfig.pmUnitName();
   if (slotTypeConfig.pmUnitName()) {
     if (pmUnitNameInEeprom &&
         *pmUnitNameInEeprom != *slotTypeConfig.pmUnitName()) {
@@ -744,6 +745,55 @@ void PlatformExplorer::publishFirmwareVersions() {
   }
 }
 
+void PlatformExplorer::publishHardwareVersions() {
+  auto chassisDevicePath = *platformConfig_.chassisEepromDevicePath();
+  if (!dataStore_.hasEepromContents(chassisDevicePath)) {
+    XLOGF(
+        ERR,
+        "Failed to report hardware version. EEPROM contents not found for {}",
+        chassisDevicePath);
+    return;
+  }
+
+  auto chassisEepromContent = dataStore_.getEepromContents(chassisDevicePath);
+  auto prodState =
+      FbossEepromParserUtils::getProductionState(chassisEepromContent);
+  auto prodSubState =
+      FbossEepromParserUtils::getProductionSubState(chassisEepromContent);
+  auto variantVersion =
+      FbossEepromParserUtils::getVariantVersion(chassisEepromContent);
+
+  // Report production state
+  if (prodState.has_value()) {
+    XLOG(INFO) << fmt::format(
+        "Reporting Production State: {}", prodState.value());
+    fb303::fbData->setCounter(
+        fmt::format(kProductionState, prodState.value()), 1);
+  } else {
+    XLOG(ERR) << "Production State not set";
+  }
+
+  // Report production sub-state
+  if (prodSubState.has_value()) {
+    XLOG(INFO) << fmt::format(
+        "Reporting Production Sub-State: {}", prodSubState.value());
+    fb303::fbData->setCounter(
+        fmt::format(kProductionSubState, prodSubState.value()), 1);
+  } else {
+    XLOG(ERR) << "Production Sub-State not set";
+  }
+
+  // Report variant version
+  if (variantVersion.has_value()) {
+    XLOG(INFO) << fmt::format(
+        "Reporting Variant Indicator: {}", variantVersion.value());
+    fb303::fbData->setCounter(
+        fmt::format(kVariantVersion, variantVersion.value()), 1);
+  } else {
+    XLOG(ERR) << "Variant Indicator not set";
+  }
+}
+
 PlatformManagerStatus PlatformExplorer::getPMStatus() const {
   return platformManagerStatus_.copy();
 }
@@ -812,6 +862,49 @@ void PlatformExplorer::createPciSubDevices(
       explorationSummary_.addError(
           errorType, slotPath, ex.getPmUnitScopedName(), errMsg);
     }
+  }
+}
+
+void PlatformExplorer::genHumanReadableEeproms() {
+  const auto writeEepromContent = [&](const auto& devicePath,
+                                      const auto& eepromRuntimePath) {
+    // Ignore if eeprom content wasn't populated, something went wrong in
+    // exploration.
+    if (!dataStore_.hasEepromContents(devicePath)) {
+      XLOG(ERR) << fmt::format(
+          "{} has empty eeprom contents. Skip generating eeprom content",
+          devicePath);
+      return;
+    }
+    auto contents = dataStore_.getEepromContents(devicePath);
+    std::ostringstream os;
+    for (const auto& [key, value] : contents) {
+      os << fmt::format("{}: {}\n", key, value);
+    }
+    platformFsUtils_->writeStringToFile(
+        os.str(), fmt::format("{}_PARSED", eepromRuntimePath));
+  };
+
+  for (const auto& [linkPath, devicePath] :
+       *platformConfig_.symbolicLinkToDevicePath()) {
+    if (!linkPath.starts_with("/run/devmap/eeproms")) {
+      continue;
+    }
+    const auto [slotPath, deviceName] = Utils().parseDevicePath(devicePath);
+    if (deviceName != "IDPROM") {
+      XLOG(WARNING) << fmt::format(
+          "{} is not IDPROM. Skip generating eeprom content.", linkPath);
+      continue;
+    }
+    writeEepromContent(devicePath, linkPath);
+  }
+
+  // In DSF, there's the kernel driver binding issue at the eeproms' addresses,
+  // Hence, the eeproms were created through custom utility and not listed under
+  // `symbolicLinkToDevicePath()`
+  // See: https://github.com/facebookexternal/fboss.bsp.arista/pull/31/files
+  if (std::filesystem::exists("/run/devmap/eeproms/MERU_SCM_EEPROM")) {
+    writeEepromContent("/[IDPROM]", "/run/devmap/eeproms/MERU_SCM_EEPROM");
   }
 }
 } // namespace facebook::fboss::platform::platform_manager

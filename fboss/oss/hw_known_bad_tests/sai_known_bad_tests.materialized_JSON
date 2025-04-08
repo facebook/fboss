@@ -955,7 +955,7 @@
           "test_name_regex": "HwLoadBalancerNegativeTestV6RoCE"
         },
         {
-          "test_name_regex": "HwTrafficPfcTest"
+          "test_name_regex": "HwVerifyPfcConfigInHwTest"
         },
         {
           "test_name_regex": "HwProdInvariantsRswTest"
@@ -3066,7 +3066,7 @@
           "test_name_regex": "HwLoadBalancerNegativeTestV6RoCE"
         },
         {
-          "test_name_regex": "HwTrafficPfcTest"
+          "test_name_regex": "HwVerifyPfcConfigInHwTest"
         },
         {
           "test_name_regex": "HwProdInvariantsRswTest"
@@ -3687,7 +3687,7 @@
           "test_name_regex": "HwLoadBalancerNegativeTestV6RoCE"
         },
         {
-          "test_name_regex": "HwTrafficPfcTest"
+          "test_name_regex": "HwVerifyPfcConfigInHwTest"
         },
         {
           "test_name_regex": "HwProdInvariantsRswTest"
@@ -9567,6 +9567,63 @@
         },
         {
           "test_name_regex": "SaiQPHRollbackTest.*"
+        },
+        {
+          "test_name_regex": "HwTrunkTest.TrunkPortStatsWithMplsPush"
+        },
+        {
+          "test_name_regex": "HwTrunkTest.TrunkPortStatsWithMplsPush"
+        },
+        {
+          "test_name_regex": "HwTrunkLoadBalancerTest.ECMPFullTrunkHalf4X3WideTrunksV6MplsFrontPanelTraffic"
+        },
+        {
+          "test_name_regex": "HwTrunkLoadBalancerTest.ECMPFullTrunkHalf4X3WideTrunksV4MplsFrontPanelTraffic"
+        },
+        {
+          "test_name_regex": "HwTrunkLoadBalancerTest.ECMPFullTrunkHalf4X3WideTrunksV6MplsSwapFrontPanelTraffic"
+        },
+        {
+          "test_name_regex": "HwTrunkLoadBalancerTest.ECMPFullTrunkHalf4X3WideTrunksV4MplsSwapFrontPanelTraffic"
+        },
+        {
+          "test_name_regex": "HwTrunkLoadBalancerTest.ECMPFullTrunkHalf4X3WideTrunksV6MplsPhpFrontPanelTraffic"
+        },
+        {
+          "test_name_regex": "HwTrunkLoadBalancerTest.ECMPFullTrunkHalf4X3WideTrunksV4MplsPhpFrontPanelTraffic"
+        },
+        {
+          "test_name_regex": "HwTrunkLoadBalancerTest.ECMPFullTrunkHalf4X2WideTrunksV6MplsFrontPanelTraffic"
+        },
+        {
+          "test_name_regex": "HwTrunkLoadBalancerTest.ECMPFullTrunkHalf4X2WideTrunksV4MplsFrontPanelTraffic"
+        },
+        {
+          "test_name_regex": "HwTrunkLoadBalancerTest.ECMPFullTrunkHalf4X2WideTrunksV6MplsSwapFrontPanelTraffic"
+        },
+        {
+          "test_name_regex": "HwTrunkLoadBalancerTest.ECMPFullTrunkHalf4X2WideTrunksV4MplsSwapFrontPanelTraffic"
+        },
+        {
+          "test_name_regex": "HwTrunkLoadBalancerTest.ECMPFullTrunkHalf4X2WideTrunksV6MplsPhpFrontPanelTraffic"
+        },
+        {
+          "test_name_regex": "HwTrunkLoadBalancerTest.ECMPFullTrunkHalf4X2WideTrunksV4MplsPhpFrontPanelTraffic"
+        },
+        {
+          "test_name_regex": "HwEcmpTrunkTest.*"
+        },
+        {
+          "test_name_regex": "HwMirrorTest[01].ResolvedErspanMirrorOnTrunk"
+        },
+        {
+          "test_name_regex": "HwTrunkTest.*"
+        },
+        {
+          "test_name_regex": "HwHashTrunk[4|8]x[3|2]PolarizationTests.*"
+        },
+        {
+          "test_name_regex": "HwTrunkLoadBalancerTest.*"
         }
     ],
     "leaba/1.42.8/1.42.8/gibraltar": [
@@ -11022,6 +11079,12 @@
         },
         {
           "test_name_regex": "SaiAclTableRecreateTests.AclEntryCount$"
+        },
+        {
+          "test_name_regex": "HwAqmTest.verifyWredThreshold$"
+        },
+        {
+          "test_name_regex": "HwAqmTest.verifyEcnTrafficNoDrop$"
         }
     ],
     "leaba/24.8.3001/24.8.3001/graphene200": [
@@ -11098,6 +11161,12 @@
           "test_name_regex": "HwHashConsistencyTest.UdpEgressLinks$"
         },
         {
+          "test_name_regex": "HwHashConsistencyTest.UdpEgressLinksOnEcmpExpand$"
+        },
+        {
+          "test_name_regex": "HwHashConsistencyTest.TcpEgressLinksOnEcmpExpand$"
+        },
+        {
           "test_name_regex": "HwHashConsistencyTest.VerifyMemberOrderEffect$"
         },
         {
@@ -11246,6 +11315,9 @@
         },
         {
           "test_name_regex": "warm_boot.SaiAclTableRecreateTests.AclEntryCount$"
+        },
+        {
+          "test_name_regex": "HwHashTrunk8x3PolarizationTests.FullHalfxFullHalf$"
         }
     ],
     "leaba/24.8.3001_yuba/24.8.3001_yuba/graphene200": [
@@ -11322,6 +11394,12 @@
           "test_name_regex": "HwHashConsistencyTest.UdpEgressLinks$"
         },
         {
+          "test_name_regex": "HwHashConsistencyTest.UdpEgressLinksOnEcmpExpand$"
+        },
+        {
+          "test_name_regex": "HwHashConsistencyTest.TcpEgressLinksOnEcmpExpand$"
+        },
+        {
           "test_name_regex": "HwHashConsistencyTest.VerifyMemberOrderEffect$"
         },
         {
@@ -11470,6 +11548,9 @@
         },
         {
           "test_name_regex": "warm_boot.SaiAclTableRecreateTests.AclEntryCount$"
+        },
+        {
+          "test_name_regex": "HwHashTrunk8x3PolarizationTests.FullHalfxFullHalf$"
         }
     ]
   }

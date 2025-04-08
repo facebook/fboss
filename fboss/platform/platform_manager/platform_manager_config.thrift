@@ -538,6 +538,10 @@ struct PlatformConfig {
   // second-source boards/PmUnits.
   15: map<string, list<VersionedPmUnitConfig>> versionedPmUnitConfigs;
 
+  // Chassis EEPROM DevicePath. This is used to find the Production
+  // Phase (EVT/DVT/PVT/MP) and Serial Number of the chassis.
+  16: string chassisEepromDevicePath;
+
   // Name and version of the rpm containing the BSP kmods for this platform
   21: string bspKmodsRpmName;
   22: string bspKmodsRpmVersion;

@@ -105,7 +105,6 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map, int numSwitches)
           kCounterPrefix + "state_update.us",
           facebook::fb303::ExportTypeConsts::kCountAvg,
           facebook::fb303::QuantileConsts::kP50_P95_P99_P100),
-      routeUpdate_(map, kCounterPrefix + "route_update.us", 50, 0, 500),
       bgHeartbeatDelay_(
           map,
           kCounterPrefix + "bg_heartbeat_delay.ms",
@@ -385,9 +384,12 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map, int numSwitches)
           map,
           kCounterPrefix + "fw_drained_with_high_num_active_fabric_links",
           SUM,
-          RATE)
-
-{
+          RATE),
+      resourceAccountantRejectedUpdates_(
+          map,
+          kCounterPrefix + "resource_accountant_rejected_updates",
+          SUM,
+          RATE) {
   for (auto switchIndex = 0; switchIndex < numSwitches; switchIndex++) {
     hwAgentConnectionStatus_.emplace_back(TLCounter(
         map,
@@ -400,6 +402,24 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map, int numSwitches)
         SUM,
         RATE));
     thriftStreamConnectionStatus_.emplace_back(map, switchIndex);
+    switchReachabilityInconsistencyDetected_.emplace_back(
+        map,
+        folly::to<std::string>(
+            kCounterPrefix,
+            "switch.",
+            switchIndex,
+            ".",
+            "switch_reachability_inconsistency_detected"),
+        SUM,
+        RATE);
+    portsWithSwitchReachabilityInconsistency_.emplace_back(
+        map,
+        folly::to<std::string>(
+            kCounterPrefix,
+            "switch.",
+            switchIndex,
+            ".",
+            "ports_with_switch_reachability_inconsistency"));
   }
 }
 
@@ -744,6 +764,23 @@ void SwitchStats::setDrainState(
   auto drainStateCounter =
       folly::to<std::string>("switch.", switchIndex, ".drain_state");
   fb303::fbData->setCounter(drainStateCounter, static_cast<int>(drainState));
+}
+
+void SwitchStats::setNumActiveFabricLinksEligibleForMinLink(
+    int32_t virtualDeviceId,
+    int32_t numLinks) {
+  auto counterName = folly::to<std::string>(
+      "vid.", virtualDeviceId, ".active_eligible_min_links");
+
+  fb303::fbData->setCounter(counterName, static_cast<int>(numLinks));
+}
+
+void SwitchStats::setPortsWithSwitchReachabilityInconsistency(
+    int16_t switchIndex,
+    int numPorts) {
+  CHECK_LT(switchIndex, portsWithSwitchReachabilityInconsistency_.size());
+  fb303::fbData->setCounter(
+      portsWithSwitchReachabilityInconsistency_[switchIndex].name(), numPorts);
 }
 
 } // namespace facebook::fboss

@@ -53,6 +53,14 @@ class MockFbossCtrlAgent : public FbossCtrlSvIf {
   MOCK_METHOD(void, setPortState, (int32_t, bool));
   MOCK_METHOD(
       void,
+      getSwitchIdToSwitchInfo,
+      ((std::map<int64_t, cfg::SwitchInfo>&)));
+  MOCK_METHOD(
+      void,
+      getFabricConnectivity,
+      ((std::map<std::string, FabricEndpoint>&)));
+  MOCK_METHOD(
+      void,
       getAggregatePortTable,
       (std::vector<facebook::fboss::AggregatePortThrift>&));
   MOCK_METHOD(

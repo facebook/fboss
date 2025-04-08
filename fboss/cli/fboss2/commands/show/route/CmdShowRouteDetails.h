@@ -33,6 +33,64 @@ struct CmdShowRouteDetailsTraits : public BaseCommandTraits {
 
 class CmdShowRouteDetails
     : public CmdHandler<CmdShowRouteDetails, CmdShowRouteDetailsTraits> {
+ private:
+  std::map<std::string, std::string> vlanAggregatePortMap;
+  std::map<std::string, std::map<std::string, std::vector<std::string>>>
+      vlanPortMap;
+
+  std::string parseRootPort(const std::string& str) {
+    /*
+    This function parses out the root port from the port name. Example:
+    Port name: eth1/16/1
+    rootPort: eth1
+     */
+    std::string port = "";
+    size_t pos = str.find('/');
+    if (pos != std::string::npos) {
+      port = str.substr(0, pos);
+    }
+    return port;
+  }
+
+  void populateAggregatePortMap(
+      const std::unique_ptr<facebook::fboss::FbossCtrlAsyncClient>& client) {
+    std::map<std::string, std::string> vlanAggregatePortMap;
+    std::vector<::facebook::fboss::AggregatePortThrift> aggregatePortThrift;
+    client->sync_getAggregatePortTable(aggregatePortThrift);
+
+    for (auto aggregatePort : aggregatePortThrift) {
+      std::string aggPortName = *aggregatePort.name();
+      for (auto memberPort : *aggregatePort.memberPorts()) {
+        facebook::fboss::PortInfoThrift portInfoThrift;
+        client->sync_getPortInfo(portInfoThrift, memberPort.get_memberPortID());
+        auto vlans = portInfoThrift.vlans();
+        // If L3 routing with multiple vlans, we can skip this port
+        if (vlans->size() > 1) {
+          continue;
+        }
+        vlanAggregatePortMap[std::to_string(vlans[0])] = aggPortName;
+      }
+    }
+  }
+
+  void populateVlanPortMap(
+      const HostInfo& hostInfo,
+      const std::unique_ptr<facebook::fboss::FbossCtrlAsyncClient>& client) {
+    std::map<int32_t, PortInfoThrift> portInfoEntries;
+    client->sync_getAllPortInfo(portInfoEntries);
+
+    for (const auto& portInfo : portInfoEntries) {
+      if ((portInfo.second.vlans()->size() == 0) ||
+          (portInfo.second.vlans()->size() > 1)) {
+        continue;
+      }
+      auto vlan = std::to_string(portInfo.second.vlans()[0]);
+      auto portName = portInfo.second.get_name();
+      auto rootPort = parseRootPort(portName);
+      vlanPortMap[vlan][rootPort].push_back(portName);
+    }
+  }
+
  public:
   RetType queryClient(
       const HostInfo& hostInfo,
@@ -40,9 +98,9 @@ class CmdShowRouteDetails
     std::vector<facebook::fboss::RouteDetails> entries;
     auto client =
         utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(hostInfo);
-
     client->sync_getRouteTableDetails(entries);
-
+    populateAggregatePortMap(client);
+    populateVlanPortMap(hostInfo, client);
     // queriedRoutes can take 2 forms, ip address or network address
     // Treat the address as IP only if no mask is provided. Lookup the
     // network address for this IP and add it to a new list for output
@@ -96,7 +154,9 @@ class CmdShowRouteDetails
         out << fmt::format("  Forwarding via:\n");
         for (const auto& nextHop : nextHops) {
           out << fmt::format(
-              "    {}\n", show::route::utils::getNextHopInfoStr(nextHop));
+              "    {}\n",
+              show::route::utils::getNextHopInfoStr(
+                  nextHop, vlanAggregatePortMap, vlanPortMap));
         }
       } else {
         out << "  No Forwarding Info\n";

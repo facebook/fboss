@@ -22,8 +22,10 @@
 #include "fboss/lib/config/PlatformConfigUtils.h"
 
 #include <folly/Format.h>
+#include "folly/testing/TestUtil.h"
 
 DEFINE_bool(nodeZ, false, "Setup test config as node Z");
+DECLARE_string(mode);
 
 namespace facebook::fboss::utility {
 
@@ -114,12 +116,12 @@ const std::map<cfg::PortType, cfg::PortLoopbackMode>& kDefaultLoopbackMap() {
 bool isEnabledPortWithSubnet(
     const cfg::Port& port,
     const cfg::SwitchConfig& config) {
-  auto ingressVlan = port.get_ingressVlan();
+  auto ingressVlan = folly::copy(port.ingressVlan().value());
   for (const auto& intf : *config.interfaces()) {
-    if (intf.get_vlanID() == ingressVlan) {
+    if (folly::copy(intf.vlanID().value()) == ingressVlan) {
       return (
-          !intf.get_ipAddresses().empty() &&
-          port.get_state() == cfg::PortState::ENABLED);
+          !intf.ipAddresses().value().empty() &&
+          folly::copy(port.state().value()) == cfg::PortState::ENABLED);
     }
   }
   return false;
@@ -206,7 +208,7 @@ std::unordered_map<PortID, cfg::PortProfileID> getSafeProfileIDs(
       }
     }
     if (safeProfiles.empty()) {
-      std::string portSetStr = "";
+      std::string portSetStr;
       for (auto portID : ports) {
         portSetStr = folly::to<std::string>(portSetStr, portID, ", ");
       }
@@ -239,13 +241,15 @@ std::unordered_map<PortID, cfg::PortProfileID> getSafeProfileIDs(
           break;
       }
     } else if (asicType == cfg::AsicType::ASIC_TYPE_CHENAB) {
-      // For chenab pick both profile and speed to be 400G, since that's what is
-      // expected in production and chenab does not support dynamic port profile
-      // change, as it may lead to recreation of ports by delete and add. the
-      // usecase of recreating ports by delete and add is not supported in
-      // chenab.
-      bestSpeed = cfg::PortSpeed::FOURHUNDREDG;
-      bestProfile = cfg::PortProfileID::PROFILE_400G_4_PAM4_RS544X2N_OPTICAL;
+      if (FLAGS_mode == "yangra") {
+        // For yangra pick both profile and speed to be 400G, since that's what
+        // is expected in production and chenab does not support dynamic port
+        // profile change, as it may lead to recreation of ports by delete and
+        // add. the usecase of recreating ports by delete and add is not
+        // supported in chenab. Minipack3n has max port speed of 400G only
+        bestSpeed = cfg::PortSpeed::FOURHUNDREDG;
+        bestProfile = cfg::PortProfileID::PROFILE_400G_4_PAM4_RS544X2N_OPTICAL;
+      }
     }
     // If bestSpeed is default - pick the largest speed from the safe profiles
     auto pickMaxSpeed = bestSpeed == cfg::PortSpeed::DEFAULT;
@@ -638,7 +642,8 @@ cfg::SwitchConfig multiplePortsPerIntfConfig(
                           bool setMac,
                           bool hasSubnet,
                           std::optional<std::vector<std::string>> subnets,
-                          cfg::Scope scope) {
+                          cfg::Scope scope,
+                          std::optional<int32_t> port = std::nullopt) {
     auto i = config.interfaces()->size();
     config.interfaces()->push_back(cfg::Interface{});
     *config.interfaces()[i].intfID() = intfId;
@@ -650,21 +655,25 @@ cfg::SwitchConfig multiplePortsPerIntfConfig(
       config.interfaces()[i].mac() = getLocalCpuMacStr();
     }
     if (type == cfg::InterfaceType::PORT) {
-      config.interfaces()[i].portID() = intfId;
+      CHECK(port.has_value());
+      config.interfaces()[i].portID() = *port;
     }
     config.interfaces()[i].mtu() = 9000;
     if (hasSubnet) {
       if (subnets) {
         config.interfaces()[i].ipAddresses() = *subnets;
       } else {
+        auto ipDecimal = i + 1;
+        auto v4Mask = 24;
+        auto v6Mask = 64;
+        bool isV4 = true;
         config.interfaces()[i].ipAddresses()->resize(2);
-        auto ipDecimal = folly::sformat("{}", i + 1);
         config.interfaces()[i].ipAddresses()[0] = FLAGS_nodeZ
-            ? folly::sformat("{}.0.0.2/24", ipDecimal)
-            : folly::sformat("{}.0.0.1/24", ipDecimal);
+            ? genInterfaceAddress(ipDecimal, isV4, 2, v4Mask)
+            : genInterfaceAddress(ipDecimal, isV4, 1, v4Mask);
         config.interfaces()[i].ipAddresses()[1] = FLAGS_nodeZ
-            ? folly::sformat("{}::1/64", ipDecimal)
-            : folly::sformat("{}::0/64", ipDecimal);
+            ? genInterfaceAddress(ipDecimal, !isV4, 1, v6Mask)
+            : genInterfaceAddress(ipDecimal, !isV4, 0, v6Mask);
       }
     }
   };
@@ -682,13 +691,14 @@ cfg::SwitchConfig multiplePortsPerIntfConfig(
   } else if (cfg::InterfaceType::PORT == intfType) {
     for (auto i = 0; i < ports.size(); ++i) {
       addInterface(
-          ports[i],
+          kBaseVlanId + i,
           0,
           intfType,
           setInterfaceMac,
           interfaceHasSubnet,
           std::nullopt,
-          cfg::Scope::LOCAL);
+          cfg::Scope::LOCAL,
+          ports[i]);
     }
   }
   // Create interfaces for local sys ports on VOQ switches
@@ -857,11 +867,11 @@ cfg::SwitchConfig genPortVlanCfg(
   auto kPortMTU = 9412;
   for (auto portID : ports) {
     auto portCfg = findCfgPort(config, portID);
-    auto iter = lbModeMap.find(portCfg->get_portType());
+    auto iter = lbModeMap.find(folly::copy(portCfg->portType().value()));
     if (iter == lbModeMap.end()) {
       throw FbossError(
           "Unable to find the desired loopback mode for port type: ",
-          portCfg->get_portType());
+          folly::copy(portCfg->portType().value()));
     }
     portCfg->loopbackMode() = iter->second;
     if (portCfg->portType() == cfg::PortType::FABRIC_PORT) {
@@ -909,7 +919,7 @@ cfg::SwitchConfig genPortVlanCfg(
     cfg::Vlan defaultVlan;
     defaultVlan.id() = defaultVlanId;
     defaultVlan.name() = folly::sformat("vlan{}", defaultVlanId);
-    defaultVlan.intfID() = kDefaultVlanId4094;
+    defaultVlan.intfID() = 10;
     defaultVlan.routable() = true;
     config.vlans()->push_back(defaultVlan);
     config.defaultVlan() = defaultVlanId;
@@ -923,24 +933,27 @@ cfg::SwitchConfig genPortVlanCfg(
       vlanPort.emitTags() = false;
       config.vlanPorts()->push_back(vlanPort);
     }
-  }
-  if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
-    /*
-     * TODO(pshaikh): Chenab-Hack pipeline lookup for traffic injected by cpu
-     * requires vlan rif in default vlan.
-     */
-    cfg::Interface intf1;
-    intf1.intfID() = kDefaultVlanId4094; /* prevent conflict with port rifs */
-    intf1.name() = "default_vlan_rif";
-    intf1.vlanID() = kDefaultVlanId1;
-    intf1.mac() = getLocalCpuMacStr();
-    intf1.type() = cfg::InterfaceType::VLAN;
-    intf1.routerID() = 0;
-    intf1.mtu() = 9000;
-    intf1.isVirtual() = true;
-    intf1.ipAddresses()->emplace_back("192.168.0.1/24");
-    intf1.ipAddresses()->emplace_back("fd00::1/64");
-    config.interfaces()->push_back(intf1);
+    if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+      /*
+       * TODO(pshaikh): Chenab-Hack pipeline lookup for traffic injected by cpu
+       * requires vlan rif in default vlan.
+       */
+      cfg::Interface intf1;
+      intf1.intfID() = *defaultVlan.intfID();
+      intf1.name() = "default_vlan_rif";
+      intf1.vlanID() = kDefaultVlanId1;
+      intf1.mac() = getLocalCpuMacStr();
+      intf1.type() = cfg::InterfaceType::VLAN;
+      intf1.routerID() = 0;
+      intf1.mtu() = 9000;
+      intf1.isVirtual() = true;
+      auto ipDecimal = config.interfaces()->size() + 1;
+      intf1.ipAddresses()->emplace_back(
+          genInterfaceAddress(ipDecimal, true /* v4 */, 1, 24));
+      intf1.ipAddresses()->emplace_back(
+          genInterfaceAddress(ipDecimal, false /* v4 */, 0, 64));
+      config.interfaces()->push_back(intf1);
+    }
   }
   return config;
 }
@@ -1222,13 +1235,13 @@ UplinkDownlinkPair getRswUplinkDownlinkPorts(
   XLOG_IF(WARN, confPorts.empty()) << "no ports found in config.ports_ref()";
 
   for (const auto& port : confPorts) {
-    auto logId = port.get_logicalID();
-    if (port.get_state() != cfg::PortState::ENABLED) {
+    auto logId = folly::copy(port.logicalID().value());
+    if (folly::copy(port.state().value()) != cfg::PortState::ENABLED) {
       continue;
     }
 
     auto portId = PortID(logId);
-    auto vlanId = port.get_ingressVlan();
+    auto vlanId = folly::copy(port.ingressVlan().value());
     if (vlanId == kDownlinkBaseVlanId) {
       downlinks.push_back(portId);
     } else if (uplinks.size() < ecmpWidth) {
@@ -1250,8 +1263,8 @@ UplinkDownlinkPair getRtswUplinkDownlinkPorts(
   XLOG_IF(WARN, confPorts.empty()) << "no ports found in config.ports_ref()";
 
   for (const auto& port : confPorts) {
-    auto logId = port.get_logicalID();
-    if (port.get_state() != cfg::PortState::ENABLED) {
+    auto logId = folly::copy(port.logicalID().value());
+    if (folly::copy(port.state().value()) != cfg::PortState::ENABLED) {
       continue;
     }
 
@@ -1307,7 +1320,7 @@ UplinkDownlinkPair getAllUplinkDownlinkPorts(
 
   for (const auto& port : *config.ports()) {
     if (isEnabledPortWithSubnet(port, config)) {
-      masterPorts.push_back(PortID(port.get_logicalID()));
+      masterPorts.push_back(PortID(folly::copy(port.logicalID().value())));
     }
   }
 
@@ -1590,4 +1603,25 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
       intfTypeVal);
 }
 
+void runCintScript(TestEnsembleIf* ensemble, const std::string& cintStr) {
+  folly::test::TemporaryFile file;
+  XLOG(INFO) << " Cint file " << file.path().c_str();
+  folly::writeFull(file.fd(), cintStr.c_str(), cintStr.size());
+  auto cmd = folly::sformat("cint {}\n", file.path().c_str());
+  std::string out;
+  ensemble->runDiagCommand(cmd, out, std::nullopt);
+}
+
+std::string
+genInterfaceAddress(int ipDecimal, bool isV4, int host, int subnetMask) {
+  /* 224.x.x.x onwards are multicast */
+  auto ipDecimal1 = folly::sformat("{}", ipDecimal % 224);
+  auto ipDecimal2 = folly::sformat("{}", ipDecimal / 224);
+
+  auto addr = isV4 ? folly::IPAddress(folly::sformat(
+                         "{}.{}.0.{}", ipDecimal1, ipDecimal2, host))
+                   : folly::IPAddress(folly::sformat(
+                         "{}:{}::{}", ipDecimal1, ipDecimal2, host));
+  return folly::sformat("{}/{}", addr.str(), subnetMask);
+}
 } // namespace facebook::fboss::utility

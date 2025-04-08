@@ -120,9 +120,12 @@
  *   - TAJO_SDK_GTE_24_8_3001: Flags for SDK >= 24.8.3001
  *   - TAJO_SDK: Flags for all TAJO SDK
  */
-#if defined(TAJO_SDK_VERSION_24_8_3001)
-#define TAJO_P4_WB_SDK
-#endif
+
+/*
+ * TAJO_SDK_GTE_24_8_3001 can do P4 Warmboot,
+ * but it does not support switching between P4 Warmboot and normal Warmboot.
+ * Do not enable the P4 WB SDK until a future SDK release with the fix.
+ */
 
 #if defined(TAJO_SDK_VERSION_1_42_8) || defined(TAJO_SDK_VERSION_24_8_3001)
 #define TAJO_SDK_EBRO

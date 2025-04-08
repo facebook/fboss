@@ -104,8 +104,6 @@ cpp_library(
     ],
     exported_deps = [
         "fbsource//third-party/fmt:fmt",
-        "//fboss/platform/platform_manager:config_validator",
-        "//fboss/platform/platform_manager:utils",
         "//fboss/platform/sensor_service/if:sensor_config-cpp2-types",
         "//folly/logging:logging",
     ],
@@ -147,10 +145,11 @@ thrift_library(
     languages = [
         "cpp2",
         "go",
-        "py3",
-        "py-asyncio",
+        "py3-deprecated",
+        "py-deprecated-asyncio",
         "rust",
         "py-deprecated",
+        "python",
     ],
     py3_namespace = "neteng.fboss",
     py_asyncio_base_module = "neteng.fboss.asyncio",

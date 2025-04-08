@@ -330,7 +330,7 @@ bcm_field_hintid_t compressFpQualifier(
   hint.start_bit = start;
   hint.end_bit = end;
   rv = bcm_field_hints_add(unit, hint_id, &hint);
-  bcmCheckError(rv, "Failed to add hints id: ", (int)hint_id);
+  bcmCheckError(rv, "Failed to add hints id: ", static_cast<int>(hint_id));
   return hint_id;
 }
 
@@ -397,7 +397,7 @@ void createFPGroup(
     config.hintid = compressFpQualifier(unit, bcmFieldQualifySrcIp6, 0, 64);
     rv = bcm_field_group_config_create(unit, &config);
     XLOG(DBG2) << "Generate hint id for compressing srcIp6 qualifier :"
-               << (int)config.hintid;
+               << static_cast<int>(config.hintid);
   } else if (onHSDK) {
     bcm_field_group_config_t config;
     bcm_field_group_config_t_init(&config);

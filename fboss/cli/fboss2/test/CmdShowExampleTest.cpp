@@ -20,12 +20,12 @@ std::map<int32_t, facebook::fboss::PortInfoThrift> createQueriedData() {
   facebook::fboss::PortInfoThrift data1;
   data1.portId() = 1;
   data1.name() = "eth1/5/1";
-  query[data1.get_portId()] = data1;
+  query[folly::copy(data1.portId().value())] = data1;
 
   fboss::PortInfoThrift data2;
   data2.portId() = 2;
   data2.name() = "eth1/5/2";
-  query[data2.get_portId()] = data2;
+  query[folly::copy(data2.portId().value())] = data2;
 
   return query;
 }

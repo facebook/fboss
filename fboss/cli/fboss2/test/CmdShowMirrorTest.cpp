@@ -35,9 +35,9 @@ std::map<int32_t, PortInfoThrift> createPortInfoEntries() {
   portInfoEntry3.portId() = 10;
   portInfoEntry3.name() = "eth1/6/1";
 
-  portInfoMap[portInfoEntry1.get_portId()] = portInfoEntry1;
-  portInfoMap[portInfoEntry2.get_portId()] = portInfoEntry2;
-  portInfoMap[portInfoEntry3.get_portId()] = portInfoEntry3;
+  portInfoMap[folly::copy(portInfoEntry1.portId().value())] = portInfoEntry1;
+  portInfoMap[folly::copy(portInfoEntry2.portId().value())] = portInfoEntry2;
+  portInfoMap[folly::copy(portInfoEntry3.portId().value())] = portInfoEntry3;
   return portInfoMap;
 }
 

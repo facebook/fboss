@@ -142,6 +142,7 @@ struct Cable {
   9: optional i32 gauge;
   10: optional i32 om4;
   11: optional i32 om5;
+  12: optional MediaTypeEncodings mediaTypeEncoding;
 }
 
 struct Channel {
@@ -219,6 +220,9 @@ enum MediaInterfaceCode {
   FR8_800G = 15,
   CR_10G = 16,
   FR4_LITE_2x400G = 17,
+  CR4_400G = 18,
+  CR8_800G = 19,
+  LR4_2x400G_10KM = 20,
 }
 
 // The extended specification compliance code of the transceiver module.
@@ -293,15 +297,34 @@ enum PassiveCuMediaInterfaceCode {
   LOOPBACK = 0xBF,
 }
 
+// Active Electrical Cable Media Interface Code (BER 10E-4 <-> 10E-12).
+enum ActiveCuMediaInterfaceCode {
+  UNKNOWN = 0x0,
+  ACTIVE_BER_E_12 = 0x1,
+  ACTIVE_BER_E_5 = 0x2,
+  ACTIVE_BER_E_4 = 0x3,
+  ACTIVE_BER_E_6 = 0x4,
+}
+
+// Active Electrical Cable Host Interface Code.
+enum ActiveCuHostInterfaceCode {
+  UNKNOWN = 0x0,
+  AUI_PAM4_1S_100G = 0x4B,
+  AUI_PAM4_2S_200G = 0x4D,
+  AUI_PAM4_4S_400G = 0x4F,
+  AUI_PAM4_8S_800G = 0x51,
+}
+
 union MediaInterfaceUnion {
   1: SMFMediaInterfaceCode smfCode;
   2: ExtendedSpecComplianceCode extendedSpecificationComplianceCode;
   3: Ethernet10GComplianceCode ethernet10GComplianceCode;
   4: PassiveCuMediaInterfaceCode passiveCuCode;
+  5: ActiveCuHostInterfaceCode activeCuCode;
 }
 
 enum MediaTypeEncodings {
-  UNDEFINED = 0x0,
+  UNKNOWN = 0x0,
   OPTICAL_MMF = 0x1,
   OPTICAL_SMF = 0x2,
   PASSIVE_CU = 0x3,

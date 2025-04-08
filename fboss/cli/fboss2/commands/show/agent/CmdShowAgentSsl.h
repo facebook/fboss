@@ -30,7 +30,7 @@ class CmdShowAgentSsl
   }
 
   void printOutput(const RetType& model, std::ostream& out = std::cout) {
-    out << "Secure Thrift server SSL config: " << model.get_AgentSslStatus()
+    out << "Secure Thrift server SSL config: " << model.AgentSslStatus().value()
         << std::endl;
   }
 

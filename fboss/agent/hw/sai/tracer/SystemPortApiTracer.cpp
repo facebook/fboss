@@ -30,6 +30,7 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _SystemPortMap{
 
 void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(SystemPort, ShelPktDstEnable)
+  SAI_EXT_ATTR_MAP(SystemPort, TcRateLimitExclude)
 }
 } // namespace
 

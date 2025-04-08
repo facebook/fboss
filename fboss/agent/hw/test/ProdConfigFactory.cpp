@@ -105,11 +105,11 @@ uint16_t uplinksCountFromSwitch(PlatformType mode) {
     case PM::PLATFORM_MINIPACK:
     case PM::PLATFORM_ELBERT:
     case PM::PLATFORM_FUJI:
-    case PM::PLATFORM_CLOUDRIPPER:
     case PM::PLATFORM_GALAXY_LC:
     case PM::PLATFORM_GALAXY_FC:
     case PM::PLATFORM_DARWIN:
     case PM::PLATFORM_DARWIN48V:
+    case PM::PLATFORM_TAHAN800BC:
     case PM::PLATFORM_MONTBLANC:
       return 4;
     default:
@@ -147,6 +147,9 @@ cfg::PortSpeed getPortSpeed(
       portSpeed = cfg::PortSpeed::TWOHUNDREDG;
       break;
     case PlatformType::PLATFORM_MONTBLANC:
+      portSpeed = cfg::PortSpeed::FOURHUNDREDG;
+      break;
+    case PlatformType::PLATFORM_TAHAN800BC:
       portSpeed = cfg::PortSpeed::FOURHUNDREDG;
       break;
     default:

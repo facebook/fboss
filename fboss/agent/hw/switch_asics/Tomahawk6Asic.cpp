@@ -15,8 +15,6 @@ bool Tomahawk6Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SFLOWv6:
     case HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION:
     case HwAsic::Feature::ECN:
-    case HwAsic::Feature::L3_QOS:
-    case HwAsic::Feature::SCHEDULER_PPS:
     case HwAsic::Feature::NEXTHOP_TTL_DECREMENT_DISABLE:
     case HwAsic::Feature::BLACKHOLE_ROUTE_DROP_COUNTER:
     case HwAsic::Feature::RESOURCE_USAGE_STATS:
@@ -75,7 +73,7 @@ bool Tomahawk6Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::ROUTE_METADATA:
     case HwAsic::Feature::NON_UNICAST_HASH:
     case HwAsic::Feature::WEIGHTED_NEXTHOPGROUP_MEMBER:
-    case HwAsic::Feature::FLOWLET:
+    case HwAsic::Feature::ARS:
     case HwAsic::Feature::IN_PAUSE_INCREMENTS_DISCARDS:
     case HwAsic::Feature::WARMBOOT:
     case HwAsic::Feature::SAI_CONFIGURE_SIX_TAP:
@@ -83,7 +81,7 @@ bool Tomahawk6Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_SAMPLEPACKET_TRAP:
     case HwAsic::Feature::SAI_UDF_HASH:
     case HwAsic::Feature::SEPARATE_BYTE_AND_PACKET_ACL_COUNTER:
-    case HwAsic::Feature::FLOWLET_PORT_ATTRIBUTES:
+    case HwAsic::Feature::ARS_PORT_ATTRIBUTES:
     case HwAsic::Feature::SAI_EAPOL_TRAP:
     case HwAsic::Feature::L3_MTU_ERROR_TRAP:
     case HwAsic::Feature::SAI_USER_DEFINED_TRAP:
@@ -101,12 +99,16 @@ bool Tomahawk6Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::L3_INTF_MTU:
     case HwAsic::Feature::CPU_QUEUE_WATERMARK_STATS:
     case HwAsic::Feature::INGRESS_PRIORITY_GROUP_SHARED_WATERMARK:
+    case HwAsic::Feature::BUFFER_POOL_HEADROOM_WATERMARK:
+    case HwAsic::Feature::SAI_SET_TC_FOR_USER_DEFINED_TRAP:
       return true;
     // features not working well with bcmsim
     case HwAsic::Feature::MIRROR_PACKET_TRUNCATION:
     case HwAsic::Feature::SFLOW_SAMPLING:
     case HwAsic::Feature::PFC:
     case HwAsic::Feature::PFC_XON_TO_XOFF_COUNTER:
+    case HwAsic::Feature::L3_QOS:
+    case HwAsic::Feature::SCHEDULER_PPS:
       return getAsicMode() != AsicMode::ASIC_MODE_SIM;
     case HwAsic::Feature::QCM:
     case HwAsic::Feature::SMAC_EQUALS_DMAC_CHECK_ENABLED:
@@ -194,6 +196,9 @@ bool Tomahawk6Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SFLOW_SAMPLES_PACKING:
     case HwAsic::Feature::VENDOR_SWITCH_NOTIFICATION:
     case HwAsic::Feature::SDK_REGISTER_DUMP:
+    case HwAsic::Feature::FEC_ERROR_DETECT_ENABLE:
+    case HwAsic::Feature::SAI_HOST_MISS_TRAP:
+    case HwAsic::Feature::CPU_TX_PACKET_REQUIRES_VLAN_TAG:
       return false;
   }
   return false;

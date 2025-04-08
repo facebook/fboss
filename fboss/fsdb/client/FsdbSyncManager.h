@@ -132,9 +132,7 @@ class FsdbSyncManager {
   //  update internal storage of SyncManager which will then automatically be
   //  queued to be published
   void updateState(typename CowStorageManager::CowStateUpdateFn updateFun) {
-    // TODO: might be able to do coalescing before publishing has started
-    storage_.updateStateNoCoalescing(
-        "Update internal state to publish", updateFun);
+    storage_.updateState("Update internal state to publish", updateFun);
   }
 
   FsdbPubSubManager* pubSubMgr() {

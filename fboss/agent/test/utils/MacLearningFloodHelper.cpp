@@ -6,7 +6,7 @@
 
 namespace facebook::fboss::utility {
 
-void MacLearningFloodHelper::startClearMacTable() {
+void MacLearningFloodHelper::startChurnMacTable() {
   if (done_ == false) {
     throw FbossError("Mac flap already started");
   }
@@ -24,13 +24,12 @@ void MacLearningFloodHelper::startClearMacTable() {
 }
 
 void MacLearningFloodHelper::sendMacTestTraffic() {
-  /*
-  auto macLastInterface = getInterfaceMac(
+  auto macDstInterface = getInterfaceMac(
       ensemble_->getProgrammedState(),
       ensemble_->getProgrammedState()
           ->getPorts()
           ->getNodeIf(dstPortID_)
-          ->getIngressVlan());*/
+          ->getInterfaceID());
   // Send packet
   for (auto mac : macs_) {
     char macByteHex[2];
@@ -41,15 +40,14 @@ void MacLearningFloodHelper::sendMacTestTraffic() {
         ensemble_->getSw(),
         vlan_,
         mac,
-        // MacAddress::BROADCAST send from second last interface to last
-        // if replaced by macLastInterface, then traffic won't flood
-        MacAddress::BROADCAST,
+        // unicast packet to install mac entry
+        macDstInterface,
         folly::IPAddressV6("2620:0:1cfe:face:b00c::" + std::string(macByteHex)),
         folly::IPAddressV6("2620:0:1cfe:face:b10c::4"),
         47231,
         277);
     ensemble_->getSw()->sendPacketOutOfPortAsync(
-        std::move(txPacket), dstPortID_);
+        std::move(txPacket), srcPortID_);
   }
 }
 #pragma GCC diagnostic pop
@@ -58,31 +56,39 @@ void MacLearningFloodHelper::macFlap() {
   XLOG(DBG2) << "MacLearningFloodHelper started thread id: " << gettid();
   while (!done_) {
     std::unique_lock<std::mutex> lock(mutex_);
+    sendMacTestTraffic();
     cv_.wait_for(
         lock, macTableFlushIntervalMs_, [this] { return done_.load(); });
-    MacLearningFloodHelper::clearMacTable();
+    MacLearningFloodHelper::clearMacEntries();
   }
 }
 
-void MacLearningFloodHelper::clearMacTable() {
-  XLOG(DBG6) << "# of mac: "
+void MacLearningFloodHelper::clearMacEntries() {
+  XLOG(DBG2) << "# of mac: "
              << ensemble_->getProgrammedState()
                     ->getVlans()
                     ->getNodeIf(vlan_)
                     ->getMacTable()
                     ->size();
+  auto macs = macs_;
   ensemble_->applyNewState([&](const std::shared_ptr<SwitchState>& state) {
     auto newState = state->clone();
-    Vlan* vlan = newState->getVlans()->getNode(vlan_).get();
-    CHECK_NE(vlan, nullptr);
-    vlan = vlan->modify(&newState);
-    auto newMacTablePtr = std::make_shared<MacTable>();
-    vlan->setMacTable(std::move(newMacTablePtr));
+    auto vlan = newState->getVlans()->getNode(vlan_).get();
+    auto macTable = vlan->getMacTable().get();
+    macTable = macTable->modify(&vlan, &newState);
+    for (auto mac : macs) {
+      XLOG(DBG2) << "search for : " << std::hex << mac.u64HBO();
+      auto existingMacEntry = macTable->getMacIf(mac);
+      if (!existingMacEntry) {
+        XLOG(DBG2) << "not found  : " << std::hex << mac.u64HBO();
+        continue;
+      }
+      macTable->removeEntry(mac);
+    }
     return newState;
   });
 }
-
-void MacLearningFloodHelper::stopClearMacTable() {
+void MacLearningFloodHelper::stopChurnMacTable() {
   done_ = true;
   cv_.notify_one();
   if (clearMacTableThread_.joinable()) {

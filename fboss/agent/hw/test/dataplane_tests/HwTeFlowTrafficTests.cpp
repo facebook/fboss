@@ -525,7 +525,7 @@ class HwUdfAclTeFlowTrafficTest : public HwTeFlowTrafficTest {
     utility::setTTLZeroCpuConfig(getHwSwitchEnsemble()->getL3Asics(), cfg);
     // run exact match with UDF acls
     cfg.udfConfig() = utility::addUdfAclConfig();
-    auto acl = utility::addAcl(&cfg, kUdfAclName);
+    auto acl = utility::addAcl_DEPRECATED(&cfg, kUdfAclName);
     acl->udfGroups() = {utility::kUdfAclRoceOpcodeGroupName};
     acl->roceOpcode() = utility::kUdfRoceOpcodeAck;
     utility::addAclStat(&cfg, kUdfAclName, kUdfAclStatName);

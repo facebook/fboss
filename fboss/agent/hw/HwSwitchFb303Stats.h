@@ -89,6 +89,78 @@ class HwSwitchFb303Stats {
   void fdaFifoOverflowError() {
     fdaFifoOverflowErrors_.addValue(1);
   }
+  void congestionManagementError() {
+    congestionManagementErrors_.addValue(1);
+  }
+  void dramDataPathError() {
+    dramDataPathErrors_.addValue(1);
+  }
+  void dramQueueManagementError() {
+    dramQueueManagementErrors_.addValue(1);
+  }
+  void egressCongestionManagementError() {
+    egressCongestionManagementErrors_.addValue(1);
+  }
+  void egressDataBufferError() {
+    egressDataBufferErrors_.addValue(1);
+  }
+  void fabricControlReceiveError() {
+    fabricControlReceiveErrors_.addValue(1);
+  }
+  void fabricControlTransmitError() {
+    fabricControlTransmitErrors_.addValue(1);
+  }
+  void fabricDataAggregateError() {
+    fabricDataAggregateErrors_.addValue(1);
+  }
+  void fabricDataReceiveError() {
+    fabricDataReceiveErrors_.addValue(1);
+  }
+  void fabricDataTransmitError() {
+    fabricDataTransmitErrors_.addValue(1);
+  }
+  void fabricMacError() {
+    fabricMacErrors_.addValue(1);
+  }
+  void ingressPacketSchedulerError() {
+    ingressPacketSchedulerErrors_.addValue(1);
+  }
+  void ingressPacketTransmitError() {
+    ingressPacketTransmitErrors_.addValue(1);
+  }
+  void managementUnitError() {
+    managementUnitErrors_.addValue(1);
+  }
+  void nifBufferUnitError() {
+    nifBufferUnitErrors_.addValue(1);
+  }
+  void nifManagementError() {
+    nifManagementErrors_.addValue(1);
+  }
+  void onChipBufferMemoryError() {
+    onChipBufferMemoryErrors_.addValue(1);
+  }
+  void packetDescriptorMemoryError() {
+    packetDescriptorMemoryErrors_.addValue(1);
+  }
+  void packetQueueProcessorError() {
+    packetQueueProcessorErrors_.addValue(1);
+  }
+  void receiveQueueProcessorError() {
+    receiveQueueProcessorErrors_.addValue(1);
+  }
+  void schedulerError() {
+    schedulerErrors_.addValue(1);
+  }
+  void sramPacketBufferError() {
+    sramPacketBufferErrors_.addValue(1);
+  }
+  void sramQueueManagementError() {
+    sramQueueManagementErrors_.addValue(1);
+  }
+  void tmActionResolutionError() {
+    tmActionResolutionErrors_.addValue(1);
+  }
   void hwInitializedTime(uint64_t ms) {
     hwInitializedTimeMs_.addValue(ms);
   }
@@ -128,6 +200,10 @@ class HwSwitchFb303Stats {
   void bcmSdkVer(int64_t ver);
   void bcmSaiSdkVer(int64_t ver);
   void leabaSdkVer(int64_t ver);
+
+  void isolationFirmwareVersion(int64_t ver);
+  void isolationFirmwareOpStatus(int64_t opStatus);
+  void isolationFirmwareFuncStatus(int64_t funcStatus);
 
   void update(const HwSwitchDramStats& dramStats);
   void update(const HwSwitchDropStats& dropStats);
@@ -187,6 +263,31 @@ class HwSwitchFb303Stats {
   int64_t getFdaFifoOverflowErrors() const;
   int64_t getForwardingQueueProcessorErrors() const;
   int64_t getAllReassemblyContextsTakenError() const;
+  int64_t getCongestionManagementErrors() const;
+  int64_t getDramDataPathErrors() const;
+  int64_t getDramQueueManagementErrors() const;
+  int64_t getEgressCongestionManagementErrors() const;
+  int64_t getEgressDataBufferErrors() const;
+  int64_t getFabricControlReceiveErrors() const;
+  int64_t getFabricControlTransmitErrors() const;
+  int64_t getFabricDataAggregateErrors() const;
+  int64_t getFabricDataReceiveErrors() const;
+  int64_t getFabricDataTransmitErrors() const;
+  int64_t getFabricMacErrors() const;
+  int64_t getIngressPacketSchedulerErrors() const;
+  int64_t getIngressPacketTransmitErrors() const;
+  int64_t getManagementUnitErrors() const;
+  int64_t getNifBufferUnitErrors() const;
+  int64_t getNifManagementErrors() const;
+  int64_t getOnChipBufferMemoryErrors() const;
+  int64_t getPacketDescriptorMemoryErrors() const;
+  int64_t getPacketQueueProcessorErrors() const;
+  int64_t getReceiveQueueProcessorErrors() const;
+  int64_t getSchedulerErrors() const;
+  int64_t getSramPacketBufferErrors() const;
+  int64_t getSramQueueManagementErrors() const;
+  int64_t getTmActionResolutionErrors() const;
+
   // FW Errors
   int64_t getIsolationFirmwareCrashes() const;
   int64_t getRxFifoStuckDetected() const;
@@ -285,6 +386,30 @@ class HwSwitchFb303Stats {
   TLTimeseries allReassemblyContextsTaken_;
   TLTimeseries isolationFirmwareCrashes_;
   TLTimeseries rxFifoStuckDetected_;
+  TLTimeseries congestionManagementErrors_;
+  TLTimeseries dramDataPathErrors_;
+  TLTimeseries dramQueueManagementErrors_;
+  TLTimeseries egressCongestionManagementErrors_;
+  TLTimeseries egressDataBufferErrors_;
+  TLTimeseries fabricControlReceiveErrors_;
+  TLTimeseries fabricControlTransmitErrors_;
+  TLTimeseries fabricDataAggregateErrors_;
+  TLTimeseries fabricDataReceiveErrors_;
+  TLTimeseries fabricDataTransmitErrors_;
+  TLTimeseries fabricMacErrors_;
+  TLTimeseries ingressPacketSchedulerErrors_;
+  TLTimeseries ingressPacketTransmitErrors_;
+  TLTimeseries managementUnitErrors_;
+  TLTimeseries nifBufferUnitErrors_;
+  TLTimeseries nifManagementErrors_;
+  TLTimeseries onChipBufferMemoryErrors_;
+  TLTimeseries packetDescriptorMemoryErrors_;
+  TLTimeseries packetQueueProcessorErrors_;
+  TLTimeseries receiveQueueProcessorErrors_;
+  TLTimeseries schedulerErrors_;
+  TLTimeseries sramPacketBufferErrors_;
+  TLTimeseries sramQueueManagementErrors_;
+  TLTimeseries tmActionResolutionErrors_;
   TLTimeseries hwInitializedTimeMs_;
   TLTimeseries bootTimeMs_;
   TLTimeseries coldBoot_;
@@ -298,6 +423,9 @@ class HwSwitchFb303Stats {
   TLTimeseries phyInfoCollectionFailed_;
   TLTimeseries invalidQueueRxPackets_;
   TLCounter arsResourceExhausted_;
+  TLCounter isolationFirmwareVersion_;
+  TLCounter isolationFirmwareOpStatus_;
+  TLCounter isolationFirmwareFuncStatus_;
 };
 
 } // namespace facebook::fboss

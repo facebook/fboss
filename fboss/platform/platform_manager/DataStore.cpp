@@ -182,4 +182,8 @@ EepromContents DataStore::getEepromContents(const std::string& devicePath) {
   }
   return eepromContents_.at(devicePath);
 }
+
+bool DataStore::hasEepromContents(const std::string& devicePath) {
+  return eepromContents_.contains(devicePath);
+}
 } // namespace facebook::fboss::platform::platform_manager

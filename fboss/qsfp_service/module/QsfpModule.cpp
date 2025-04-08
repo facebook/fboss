@@ -177,7 +177,7 @@ std::string QsfpModule::getFwStorageHandle() const {
     return std::string();
   }
 
-  return getFwStorageHandle(vendor->get_partNumber());
+  return getFwStorageHandle(vendor->partNumber().value());
 }
 
 bool QsfpModule::upgradeFirmwareLocked(
@@ -286,7 +286,7 @@ std::string QsfpModule::getPartNumber() const {
     const auto& cachedTcvrState = transceiverInfo.tcvrState();
     const auto& vendor = cachedTcvrState.value().vendor();
     if (vendor.has_value()) {
-      partNumber = vendor.value().get_partNumber();
+      partNumber = vendor.value().partNumber().value();
     }
   } catch (const std::exception& ex) {
     QSFP_LOG(ERR, this) << "Error calling getTransceiverInfo(): " << ex.what();
@@ -347,6 +347,7 @@ unsigned int QsfpModule::numHostLanes() const {
     case MediaInterfaceCode::FR1_100G:
     case MediaInterfaceCode::FR4_200G:
     case MediaInterfaceCode::CR4_200G:
+    case MediaInterfaceCode::CR4_400G:
       return 4;
     case MediaInterfaceCode::FR4_400G:
     case MediaInterfaceCode::LR4_400G_10KM:
@@ -356,6 +357,8 @@ unsigned int QsfpModule::numHostLanes() const {
     case MediaInterfaceCode::DR4_400G:
     case MediaInterfaceCode::DR4_2x400G:
     case MediaInterfaceCode::FR8_800G:
+    case MediaInterfaceCode::CR8_800G:
+    case MediaInterfaceCode::LR4_2x400G_10KM:
       return 8;
     case MediaInterfaceCode::UNKNOWN:
       return 0;
@@ -379,12 +382,15 @@ unsigned int QsfpModule::numMediaLanes() const {
     case MediaInterfaceCode::FR4_400G:
     case MediaInterfaceCode::LR4_400G_10KM:
     case MediaInterfaceCode::DR4_400G:
+    case MediaInterfaceCode::CR4_400G:
       return 4;
     case MediaInterfaceCode::CR8_400G:
     case MediaInterfaceCode::FR4_2x400G:
     case MediaInterfaceCode::FR4_LITE_2x400G:
     case MediaInterfaceCode::DR4_2x400G:
     case MediaInterfaceCode::FR8_800G:
+    case MediaInterfaceCode::CR8_800G:
+    case MediaInterfaceCode::LR4_2x400G_10KM:
       return 8;
     case MediaInterfaceCode::UNKNOWN:
       return 0;
@@ -572,7 +578,7 @@ void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
 
 bool QsfpModule::customizationSupported() const {
   // Customization is allowed on present Optical modules only. We should skip
-  // other types
+  // other types. Overridden in derived classes if needed.
   auto tech = getQsfpTransmitterTechnology();
   return present_ && tech == TransmitterTechnology::OPTICAL;
 }
@@ -1016,24 +1022,28 @@ void QsfpModule::updatePrbsStats() {
         }
       };
 
-  auto sysPrbsState = getPortPrbsStateLocked(std::nullopt, phy::Side::SYSTEM);
-  auto linePrbsState = getPortPrbsStateLocked(std::nullopt, phy::Side::LINE);
   phy::PrbsStats stats;
-  stats = getPortPrbsStatsSideLocked(
-      phy::Side::SYSTEM,
-      sysPrbsState.checkerEnabled().has_value() &&
-          sysPrbsState.checkerEnabled().value(),
-      *systemPrbs);
-  updatePrbsStatEntry(*systemPrbs, stats);
-  *systemPrbs = stats;
+  if (isPrbsSupported(phy::Side::SYSTEM)) {
+    auto sysPrbsState = getPortPrbsStateLocked(std::nullopt, phy::Side::SYSTEM);
+    stats = getPortPrbsStatsSideLocked(
+        phy::Side::SYSTEM,
+        sysPrbsState.checkerEnabled().has_value() &&
+            sysPrbsState.checkerEnabled().value(),
+        *systemPrbs);
+    updatePrbsStatEntry(*systemPrbs, stats);
+    *systemPrbs = stats;
+  }
 
-  stats = getPortPrbsStatsSideLocked(
-      phy::Side::LINE,
-      linePrbsState.checkerEnabled().has_value() &&
-          linePrbsState.checkerEnabled().value(),
-      *linePrbs);
-  updatePrbsStatEntry(*linePrbs, stats);
-  *linePrbs = stats;
+  if (isPrbsSupported(phy::Side::LINE)) {
+    auto linePrbsState = getPortPrbsStateLocked(std::nullopt, phy::Side::LINE);
+    stats = getPortPrbsStatsSideLocked(
+        phy::Side::LINE,
+        linePrbsState.checkerEnabled().has_value() &&
+            linePrbsState.checkerEnabled().value(),
+        *linePrbs);
+    updatePrbsStatEntry(*linePrbs, stats);
+    *linePrbs = stats;
+  }
 }
 
 phy::PrbsStats QsfpModule::getPortPrbsStats(

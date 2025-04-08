@@ -61,6 +61,7 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _SwitchMap{
     SAI_ATTR_MAP(Switch, AvailableIpv4NeighborEntry),
     SAI_ATTR_MAP(Switch, AvailableIpv6NeighborEntry),
     SAI_ATTR_MAP(Switch, IngressAcl),
+    SAI_ATTR_MAP(Switch, EgressAcl),
     SAI_ATTR_MAP(Switch, TamObject),
     SAI_ATTR_MAP(Switch, NumberOfFabricPorts),
     SAI_ATTR_MAP(Switch, FabricPortList),
@@ -147,6 +148,8 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(Switch, SflowAggrNofSamples);
   SAI_EXT_ATTR_MAP(Switch, SdkRegDumpLogPath);
   SAI_EXT_ATTR_MAP(Switch, FirmwareObjectList);
+  SAI_EXT_ATTR_MAP(Switch, TcRateLimitList);
+  SAI_EXT_ATTR_MAP(Switch, PfcTcDldTimerGranularityInterval);
 }
 
 } // namespace

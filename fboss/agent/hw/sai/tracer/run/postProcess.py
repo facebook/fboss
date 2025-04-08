@@ -35,6 +35,7 @@ REGEX_VARS_BEGIN = r"Global Variables Start"
 REGEX_VARS_END = r"Global Variables End"
 REGEX_UNNAMED_NAMESPACE_BEGIN = r"^namespace( )*{$"
 REGEX_UNNAMED_NAMESPACE_END = r"^}( )*\/\/( )*namespace$"
+REGEX_VAR_LIST = r"int list\_[0-9]*\[[0-9]*\]\;"
 REGEX_RUN_TRACE_FUNC = r"^void run\_trace\(\) ?{$"
 REGEX_INCLUDES = r"^\#include"
 REGEX_DEFINES = r"^\#define"
@@ -88,7 +89,7 @@ def init_argparser():
     parser.add_argument(
         "-i",
         "--input",
-        help="Input directory with SaiLog.cpp and run.bzl files. Default: "
+        help="Input directory with SaiLog.cpp and optional run.bzl file. Default: "
         + DEFAULT_INPUT_DIR,
         nargs="?",
         default=DEFAULT_INPUT_DIR,
@@ -100,6 +101,12 @@ def init_argparser():
         nargs="?",
         type=int,
         default=DEFAULT_MAX_LINES,
+    )
+    parser.add_argument(
+        "--generate_run_bzl",
+        action="store_true",
+        help="Process an updated run.bzl file from the original in the given input directory.",
+        default=False,
     )
     return parser
 
@@ -286,7 +293,12 @@ def split_file(input_file, output_dir, max_lines):
         if section == Section.UNNAMED_NAMESPACE:
             unnamed_namespace.append(line)
             continue
-        if section == Section.VARIABLES:
+        # Handle normal variables in the variables section, and out-of-order variables
+        if (
+            section == Section.VARIABLES
+            or "[[maybe_unused]]" in line
+            or re.search(REGEX_VAR_LIST, line) is not None
+        ):
             assign = line.find("=")
             if assign == -1:
                 # Declaration only
@@ -320,7 +332,10 @@ def split_file(input_file, output_dir, max_lines):
     # Outro already written from source file
     output.close()
 
-    extern_variables = [("extern " + var) for var in variables]
+    extern_variables = [
+        ("[[maybe_unused]] extern " + var.replace("[[maybe_unused]]", ""))
+        for var in variables
+    ]
 
     generate_header_file(
         includes_defines + ["\n"] + extern_variables + ["\n"] + unnamed_namespace,
@@ -332,7 +347,7 @@ def split_file(input_file, output_dir, max_lines):
 
 def print_summary(input_sailog, input_bzl, output_dir, max_lines):
     print("\nSUMMARY")
-    print("Source files: " + input_sailog + ", " + input_bzl)
+    print("Source files: " + input_sailog + (", " + input_bzl) if input_bzl else "")
     print("Max number of lines per file: " + str(max_lines))
     print("Generated {} files:".format(len(GENERATED_FILES)))
     for f in GENERATED_FILES:
@@ -343,7 +358,6 @@ def main():
     args = init_argparser().parse_args()
 
     input_sailog = os.path.join(args.input, "SaiLog.cpp")
-    input_runbzl = os.path.join(args.input, "run.bzl")
 
     # Validate input
     if not os.path.exists(args.input):
@@ -356,10 +370,13 @@ def main():
     if not os.path.isfile(input_sailog):
         exit(input_sailog + " is not a file.")
 
-    if not os.path.exists(input_runbzl):
-        exit("Input file not found: " + input_runbzl)
-    if not os.path.isfile(input_runbzl):
-        exit(input_runbzl + " is not a file.")
+    input_runbzl = None
+    if args.generate_run_bzl:
+        input_runbzl = os.path.join(args.input, "run.bzl")
+        if not os.path.exists(input_runbzl):
+            exit("run.bzl input file not found: " + input_runbzl)
+        if not os.path.isfile(input_runbzl):
+            exit(input_runbzl + " is not a file.")
 
     if args.max_lines < MIN_LINES:
         exit("Minimum value for max lines per file is " + str(MIN_LINES) + ".")
@@ -368,7 +385,8 @@ def main():
 
     prepare_output_dir(output_dir, args.clean)
     split_file(input_sailog, output_dir, args.max_lines)
-    generate_run_bzl(input_runbzl, output_dir)
+    if args.generate_run_bzl:
+        generate_run_bzl(input_runbzl, output_dir)
     print_summary(input_sailog, input_runbzl, output_dir, args.max_lines)
 
 

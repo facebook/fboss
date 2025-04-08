@@ -175,7 +175,7 @@ std::vector<EepromFieldEntry> getEepromFieldDict(int version) {
 };
 
 std::string parseMacHelper(int len, unsigned char* ptr, bool useBigEndian) {
-  std::string retVal = "";
+  std::string retVal;
   int juice = 0;
   while (juice < len) {
     unsigned int val = useBigEndian ? ptr[juice] : ptr[len - juice - 1];
@@ -274,7 +274,7 @@ int FbossEepromParser::loadEeprom(
   try {
     file.seekg(offset, std::ios::beg);
     file.read((char*)&output[0], bytesToRead);
-    readCount = (int)file.gcount();
+    readCount = static_cast<int>(file.gcount());
     file.close();
   } catch (std::exception& ex) {
     std::cout << "Failed to read EEPROM contents " << ex.what() << std::endl;
@@ -350,7 +350,7 @@ std::unordered_map<int, std::string> FbossEepromParser::parseEepromBlobTLV(
     // Very important to do this.
     juice = juice + 1;
     // First, get the itemCode of the TLV (T)
-    int itemCode = (int)buffer[cursor];
+    int itemCode = static_cast<int>(buffer[cursor]);
     entryType itemType = FIELD_INVALID;
     std::string key;
 
@@ -435,7 +435,7 @@ std::unordered_map<int, std::string> FbossEepromParser::parseEepromBlobTLV(
 // methods to print the human readable information
 std::vector<std::pair<std::string, std::string>>
 FbossEepromParser::prepareEepromFieldMap(
-    std::unordered_map<int, std::string> parsedValue,
+    const std::unordered_map<int, std::string>& parsedValue,
     int eepromVer) {
   std::vector<std::pair<std::string, std::string>> result;
   std::vector<EepromFieldEntry> fieldDictionary;
@@ -516,29 +516,31 @@ std::string FbossEepromParser::parseBeUint(int len, unsigned char* ptr) {
 }
 
 std::string FbossEepromParser::parseLeHex(int len, unsigned char* ptr) {
-  std::string retVal = "";
+  std::string retVal;
   int cursor = len - 1;
   for (int i = 0; i < len; i++) {
     int val = ptr[cursor];
     std::string converter = "0123456789abcdef";
-    retVal = retVal + converter[(int)(val / 16)] + converter[val % 16];
+    retVal =
+        retVal + converter[static_cast<int>(val / 16)] + converter[val % 16];
     cursor -= 1;
   }
   return "0x" + retVal;
 }
 
 std::string FbossEepromParser::parseBeHex(int len, unsigned char* ptr) {
-  std::string retVal = "";
+  std::string retVal;
   for (int i = 0; i < len; i++) {
     int val = ptr[i];
     std::string converter = "0123456789abcdef";
-    retVal = retVal + converter[(int)(val / 16)] + converter[val % 16];
+    retVal =
+        retVal + converter[static_cast<int>(val / 16)] + converter[val % 16];
   }
   return "0x" + retVal;
 }
 
 std::string FbossEepromParser::parseString(int len, unsigned char* ptr) {
-  std::string retVal = "";
+  std::string retVal;
   int juice = 0;
   while ((juice < len) && (ptr[juice] != 0)) {
     retVal += (ptr[juice]);
@@ -557,7 +559,7 @@ std::string FbossEepromParser::parseV4Mac(int len, unsigned char* ptr) {
 // For EEPROM V5, Parse MAC with the format XX:XX:XX:XX:XX:XX, along with two
 // bytes MAC size
 std::string FbossEepromParser::parseV5Mac(int len, unsigned char* ptr) {
-  std::string retVal = "";
+  std::string retVal;
   // Pack two string with "," in between. This will be unpacked in the
   // dump functions.
   retVal =
@@ -568,7 +570,7 @@ std::string FbossEepromParser::parseV5Mac(int len, unsigned char* ptr) {
 // For EEPROM V3, MAC is represented as XXXXXXXXXXXX. Therefore,
 // parse the MAC into the human readable format as XX:XX:XX:XX:XX:XX
 std::string FbossEepromParser::parseLegacyMac(int len, unsigned char* ptr) {
-  std::string retVal = "";
+  std::string retVal;
   if (len != 12) {
     throw std::runtime_error("Legacy(v3) MAC field must be 12 Bytes Long!");
   }
@@ -582,7 +584,7 @@ std::string FbossEepromParser::parseLegacyMac(int len, unsigned char* ptr) {
 }
 
 std::string FbossEepromParser::parseDate(int len, unsigned char* ptr) {
-  std::string retVal = "";
+  std::string retVal;
   if (len != 4) {
     throw std::runtime_error("Date field must be 4 Bytes Long!");
   }

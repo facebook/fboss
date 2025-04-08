@@ -48,8 +48,8 @@ class AgentEnsembleLinkTest : public AgentEnsembleTest {
   /*
    * Return plugged in optical transceivers and their names.
    */
-  std::tuple<std::vector<PortID>, std::string> getOpticalCabledPortsAndNames(
-      bool pluggableOnly = false) const;
+  std::tuple<std::vector<PortID>, std::string>
+  getOpticalAndActiveCabledPortsAndNames(bool pluggableOnly = false) const;
 
   /*
    * Ports where we expect optics to be plugged in.
@@ -66,8 +66,6 @@ class AgentEnsembleLinkTest : public AgentEnsembleTest {
     return cabledFabricPorts_;
   }
 
-  void checkQsfpServiceMemoryInBounds() const;
-  void checkFsdbMemoryInBounds() const;
   void checkAgentMemoryInBounds() const;
 
   /*
@@ -91,7 +89,8 @@ class AgentEnsembleLinkTest : public AgentEnsembleTest {
       PortID portId,
       const std::set<std::pair<PortID, PortID>>& connectedPairs) const;
 
-  std::set<std::pair<PortID, PortID>> getConnectedOpticalPortPairWithFeature(
+  std::set<std::pair<PortID, PortID>>
+  getConnectedOpticalAndActivePortPairWithFeature(
       TransceiverFeature feature,
       phy::Side side,
       bool skipLoopback = false) const;

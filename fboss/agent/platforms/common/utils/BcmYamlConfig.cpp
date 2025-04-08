@@ -98,7 +98,7 @@ void BcmYamlConfig::modifyCoreMaps(
         pinMapping) {
   dirty_ = true;
   for (auto& [chip, pins] : pinMapping) {
-    auto coreNum = chip.get_physicalID();
+    auto coreNum = folly::copy(chip.physicalID().value());
     int rxMap = 0, txMap = 0, rxPolaritySwap = 0, txPolaritySwap = 0;
     for (auto pin = pins.rbegin(); pin != pins.rend(); pin++) {
       if (!pin->laneMap().has_value() || !pin->polaritySwap().has_value()) {

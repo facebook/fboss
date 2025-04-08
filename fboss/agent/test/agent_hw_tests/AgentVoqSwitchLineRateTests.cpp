@@ -206,8 +206,8 @@ TEST_F(AgentVoqSwitchLineRateTest, creditsDeleted) {
       EXPECT_EVENTUALLY_GT(deletedCreditBytes, 0);
     });
     // Stop traffic loop, so that it gets restarted after warmboot
-    addRemoveNeighbor(PortDescriptor(kPort), false);
-    addRemoveNeighbor(PortDescriptor(kPort), true);
+    addRemoveNeighbor(PortDescriptor(kPort), NeighborOp::DEL);
+    addRemoveNeighbor(PortDescriptor(kPort), NeighborOp::ADD);
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }

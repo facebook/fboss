@@ -83,9 +83,9 @@ std::map<int32_t, PortInfoThrift> createInterfaceErrorsEntries() {
   portEntry3.input() = inputCounter3;
   portEntry3.output() = outputCounter3;
 
-  portMap[portEntry1.get_portId()] = portEntry1;
-  portMap[portEntry2.get_portId()] = portEntry2;
-  portMap[portEntry3.get_portId()] = portEntry3;
+  portMap[folly::copy(portEntry1.portId().value())] = portEntry1;
+  portMap[folly::copy(portEntry2.portId().value())] = portEntry2;
+  portMap[folly::copy(portEntry3.portId().value())] = portEntry3;
 
   return portMap;
 }
@@ -116,7 +116,7 @@ TEST_F(CmdShowInterfaceErrorsTestFixture, queryClient) {
 TEST_F(CmdShowInterfaceErrorsTestFixture, createModel) {
   auto cmd = CmdShowInterfaceErrors();
   auto model = cmd.createModel(portEntries, queriedEntries);
-  auto errorCounters = model.get_error_counters();
+  auto errorCounters = model.error_counters().value();
 
   EXPECT_EQ(errorCounters.size(), 3);
 

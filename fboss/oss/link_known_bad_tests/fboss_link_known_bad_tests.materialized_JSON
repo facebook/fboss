@@ -8,6 +8,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -57,6 +60,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -82,6 +88,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -131,6 +140,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -156,6 +168,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -205,6 +220,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -230,6 +248,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -279,6 +300,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -304,6 +328,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -353,6 +380,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -378,6 +408,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -427,6 +460,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -452,6 +488,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -501,6 +540,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -526,6 +568,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -575,6 +620,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -600,6 +648,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -649,6 +700,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -674,6 +728,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -723,6 +780,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -745,6 +805,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -794,6 +857,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -816,6 +882,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -865,6 +934,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -887,6 +959,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -936,6 +1011,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -958,6 +1036,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -1007,6 +1088,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -1029,6 +1113,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -1078,6 +1165,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -1100,6 +1190,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -1149,6 +1242,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -1171,6 +1267,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -1220,6 +1319,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -1242,6 +1344,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -1291,6 +1396,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -1313,6 +1421,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -1362,6 +1473,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -1384,6 +1498,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -1433,6 +1550,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -1455,6 +1575,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -1504,6 +1627,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -1526,6 +1652,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -1575,6 +1704,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -1600,6 +1732,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -1649,6 +1784,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -1674,6 +1812,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -1723,6 +1864,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -1748,6 +1892,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -1797,6 +1944,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -1822,6 +1972,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -1871,6 +2024,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -1896,6 +2052,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -1945,6 +2104,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -1970,6 +2132,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -2019,6 +2184,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -2044,6 +2212,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -2093,6 +2264,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -2118,6 +2292,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -2167,6 +2344,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -2192,6 +2372,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -2241,6 +2424,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -2263,6 +2449,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -2312,6 +2501,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -2334,6 +2526,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -2383,6 +2578,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -2405,6 +2603,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -2454,6 +2655,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -2476,6 +2680,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -2525,6 +2732,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -2547,6 +2757,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -2596,6 +2809,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -2618,6 +2834,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -2667,6 +2886,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -2689,6 +2911,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -2738,6 +2963,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -2760,6 +2988,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -2809,6 +3040,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -2831,6 +3065,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -2880,6 +3117,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -2902,6 +3142,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -2951,6 +3194,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -2973,6 +3219,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -3024,6 +3273,9 @@
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
+        },
+        {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
         },
         {
@@ -3042,6 +3294,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -3093,6 +3348,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -3118,6 +3376,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -3167,6 +3428,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -3192,6 +3456,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -3241,6 +3508,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -3266,6 +3536,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -3315,6 +3588,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -3340,6 +3616,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -3389,6 +3668,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -3414,6 +3696,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -3463,6 +3748,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -3488,6 +3776,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -3537,6 +3828,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -3562,6 +3856,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -3611,6 +3908,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -3636,6 +3936,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -3685,6 +3988,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -3710,6 +4016,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -3759,6 +4068,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -3781,6 +4093,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -3830,6 +4145,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -3852,6 +4170,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -3901,6 +4222,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -3923,6 +4247,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -3972,6 +4299,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -3994,6 +4324,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -4043,6 +4376,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -4065,6 +4401,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -4114,6 +4453,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -4136,6 +4478,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -4185,6 +4530,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -4207,6 +4555,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -4256,6 +4607,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -4278,6 +4632,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -4327,6 +4684,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -4349,6 +4709,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -4398,6 +4761,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -4420,6 +4786,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -4469,6 +4838,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -4491,6 +4863,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -4542,6 +4917,9 @@
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
+        },
+        {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
         },
         {
@@ -4560,6 +4938,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -4617,6 +4998,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -4642,6 +5026,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -4697,6 +5084,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -4722,6 +5112,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -4777,6 +5170,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -4802,6 +5198,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -4857,6 +5256,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -4882,6 +5284,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -4937,6 +5342,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -4962,6 +5370,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -5017,6 +5428,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -5042,6 +5456,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -5097,6 +5514,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -5122,6 +5542,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -5177,6 +5600,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -5202,6 +5628,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -5257,6 +5686,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -5282,6 +5714,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -5337,6 +5772,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -5359,6 +5797,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -5414,6 +5855,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -5436,6 +5880,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -5491,6 +5938,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -5513,6 +5963,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -5568,6 +6021,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -5590,6 +6046,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -5645,6 +6104,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -5667,6 +6129,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -5722,6 +6187,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -5744,6 +6212,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -5799,6 +6270,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -5821,6 +6295,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -5876,6 +6353,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -5898,6 +6378,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -5953,6 +6436,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -5975,6 +6461,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -6030,6 +6519,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -6052,6 +6544,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -6107,6 +6602,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -6129,6 +6627,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -6184,6 +6685,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -6206,6 +6710,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -6261,6 +6768,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -6286,6 +6796,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -6341,6 +6854,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -6366,6 +6882,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -6421,6 +6940,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -6446,6 +6968,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -6501,6 +7026,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -6526,6 +7054,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -6581,6 +7112,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -6606,6 +7140,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -6661,6 +7198,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -6686,6 +7226,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -6741,6 +7284,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -6766,6 +7312,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -6821,6 +7370,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -6846,6 +7398,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -6901,6 +7456,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -6926,6 +7484,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -6981,6 +7542,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -7003,6 +7567,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -7058,6 +7625,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -7080,6 +7650,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -7135,6 +7708,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -7157,6 +7733,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -7212,6 +7791,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -7234,6 +7816,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -7289,6 +7874,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -7311,6 +7899,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -7366,6 +7957,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -7388,6 +7982,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -7443,6 +8040,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -7465,6 +8065,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -7520,6 +8123,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -7542,6 +8148,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -7597,6 +8206,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -7619,6 +8231,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -7674,6 +8289,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -7696,6 +8314,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -7751,6 +8372,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -7773,6 +8397,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -7830,6 +8457,9 @@
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
+        },
+        {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
         },
         {
@@ -7848,6 +8478,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -7929,6 +8562,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -7954,6 +8590,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -8033,6 +8672,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -8058,6 +8700,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -8137,6 +8782,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -8162,6 +8810,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -8241,6 +8892,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -8266,6 +8920,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -8345,6 +9002,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -8370,6 +9030,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -8449,6 +9112,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -8474,6 +9140,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -8553,6 +9222,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -8578,6 +9250,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -8657,6 +9332,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -8682,6 +9360,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -8761,6 +9442,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -8786,6 +9470,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -8865,6 +9552,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -8884,6 +9574,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -8963,6 +9656,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -8982,6 +9678,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -9061,6 +9760,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -9080,6 +9782,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -9159,6 +9864,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -9178,6 +9886,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -9257,6 +9968,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -9276,6 +9990,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -9355,6 +10072,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -9374,6 +10094,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -9453,6 +10176,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -9472,6 +10198,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -9551,6 +10280,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -9570,6 +10302,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -9649,6 +10384,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -9668,6 +10406,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -9747,6 +10488,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -9766,6 +10510,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -9845,6 +10592,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -9864,6 +10614,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -9945,6 +10698,9 @@
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
+        },
+        {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
         },
         {
@@ -9960,6 +10716,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -10005,6 +10764,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -10030,6 +10792,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -10073,6 +10838,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -10098,6 +10866,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -10141,6 +10912,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -10166,6 +10940,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -10209,6 +10986,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -10234,6 +11014,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -10277,6 +11060,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -10302,6 +11088,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -10345,6 +11134,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -10370,6 +11162,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -10413,6 +11208,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -10438,6 +11236,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -10481,6 +11282,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -10506,6 +11310,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -10549,6 +11356,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -10574,6 +11384,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -10617,6 +11430,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -10642,6 +11458,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -10685,6 +11504,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -10710,6 +11532,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -10753,6 +11578,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -10778,6 +11606,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -10821,6 +11652,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -10846,6 +11680,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -10889,6 +11726,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -10914,6 +11754,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -10957,6 +11800,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -10982,6 +11828,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -11025,6 +11874,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -11050,6 +11902,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -11093,6 +11948,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -11118,6 +11976,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -11161,6 +12022,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -11186,6 +12050,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -11229,6 +12096,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -11254,6 +12124,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -11297,6 +12170,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -11322,6 +12198,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -11365,6 +12244,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -11387,6 +12269,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -11430,6 +12315,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -11452,6 +12340,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -11495,6 +12386,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -11517,6 +12411,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -11560,6 +12457,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -11582,6 +12482,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -11625,6 +12528,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -11647,6 +12553,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -11690,6 +12599,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -11712,6 +12624,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -11755,6 +12670,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -11777,6 +12695,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -11822,6 +12743,9 @@
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
+        },
+        {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
         },
         {
@@ -11840,6 +12764,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -11891,6 +12818,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -11913,6 +12843,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -11962,6 +12895,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -11984,6 +12920,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -12033,6 +12972,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -12055,6 +12997,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -12104,6 +13049,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -12126,6 +13074,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -12175,6 +13126,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -12197,6 +13151,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -12246,6 +13203,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -12268,6 +13228,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -12317,6 +13280,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -12339,6 +13305,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -12388,6 +13357,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -12410,6 +13382,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -12459,6 +13434,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -12481,6 +13459,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -12575,6 +13556,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -12597,6 +13581,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -12691,6 +13678,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -12713,6 +13703,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -12807,6 +13800,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -12829,6 +13825,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -12923,6 +13922,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -12945,6 +13947,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -13039,6 +14044,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -13061,6 +14069,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -13155,6 +14166,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -13177,6 +14191,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -13271,6 +14288,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -13293,6 +14313,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -13387,6 +14410,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -13409,6 +14435,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -13505,6 +14534,9 @@
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
+        },
+        {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
         },
         {
@@ -13523,6 +14555,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -13616,6 +14651,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -13638,6 +14676,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -13729,6 +14770,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -13751,6 +14795,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -13842,6 +14889,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -13864,6 +14914,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -13955,6 +15008,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -13977,6 +15033,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -14068,6 +15127,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -14090,6 +15152,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -14181,6 +15246,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -14203,6 +15271,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -14294,6 +15365,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -14316,6 +15390,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -14407,6 +15484,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -14429,6 +15509,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -14520,6 +15603,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -14572,6 +15658,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -14627,6 +15716,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -14679,6 +15771,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -14734,6 +15829,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -14786,6 +15884,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -14841,6 +15942,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -14893,6 +15997,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -14948,6 +16055,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -15000,6 +16110,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -15055,6 +16168,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -15107,6 +16223,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -15162,6 +16281,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -15214,6 +16336,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -15269,6 +16394,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -15321,6 +16449,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -15376,6 +16507,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -15428,6 +16562,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -15485,6 +16622,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
+        },
+        {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
         },
         {
@@ -15503,6 +16643,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -15554,6 +16697,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -15576,6 +16722,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -15625,6 +16774,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -15647,6 +16799,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -15696,6 +16851,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -15718,6 +16876,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -15767,6 +16928,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -15789,6 +16953,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -15838,6 +17005,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -15860,6 +17030,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -15909,6 +17082,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -15931,6 +17107,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -15980,6 +17159,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -16002,6 +17184,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -16051,6 +17236,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -16073,6 +17261,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -16124,6 +17315,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
+        },
+        {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
         },
         {
@@ -16142,6 +17336,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -16184,6 +17381,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -16209,6 +17409,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -16249,6 +17452,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -16274,6 +17480,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -16314,6 +17523,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -16339,6 +17551,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -16379,6 +17594,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -16404,6 +17622,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -16444,6 +17665,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -16469,6 +17693,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -16509,6 +17736,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -16534,6 +17764,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -16574,6 +17807,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -16596,6 +17832,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -16636,6 +17875,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -16658,6 +17900,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -16698,6 +17943,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -16720,6 +17968,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -16760,6 +18011,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -16782,6 +18036,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -16822,6 +18079,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -16844,6 +18104,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -16884,6 +18147,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -16906,6 +18172,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -16946,6 +18215,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -16968,6 +18240,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -17010,6 +18285,9 @@
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
+        },
+        {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
         },
         {
@@ -17028,6 +18306,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -17085,6 +18366,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -17110,6 +18394,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -17165,6 +18452,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -17190,6 +18480,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -17245,6 +18538,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -17270,6 +18566,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -17325,6 +18624,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -17350,6 +18652,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -17405,6 +18710,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -17430,6 +18738,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -17485,6 +18796,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -17510,6 +18824,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -17565,6 +18882,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -17590,6 +18910,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -17645,6 +18968,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -17670,6 +18996,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -17725,6 +19054,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -17750,6 +19082,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -17805,6 +19140,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -17827,6 +19165,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -17882,6 +19223,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -17904,6 +19248,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -17959,6 +19306,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -17981,6 +19331,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -18036,6 +19389,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -18058,6 +19414,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -18113,6 +19472,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -18135,6 +19497,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -18190,6 +19555,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -18212,6 +19580,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -18267,6 +19638,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -18289,6 +19663,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -18344,6 +19721,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -18366,6 +19746,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -18421,6 +19804,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -18443,6 +19829,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -18498,6 +19887,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -18520,6 +19912,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -18575,6 +19970,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -18597,6 +19995,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -18654,6 +20055,9 @@
           "test_name_regex": "MacLearningTest.l2EntryFlap$"
         },
         {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
+        },
+        {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
         },
         {
@@ -18672,6 +20076,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -18717,6 +20124,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -18742,6 +20152,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -18785,6 +20198,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -18810,6 +20226,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -18853,6 +20272,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -18878,6 +20300,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -18921,6 +20346,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -18946,6 +20374,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -18989,6 +20420,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -19014,6 +20448,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -19057,6 +20494,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -19082,6 +20522,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -19125,6 +20568,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -19150,6 +20596,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -19193,6 +20642,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -19218,6 +20670,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -19261,6 +20716,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -19286,6 +20744,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -19329,6 +20790,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -19354,6 +20818,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -19397,6 +20864,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -19422,6 +20892,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -19467,6 +20940,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
+        },
+        {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
         },
         {
@@ -19488,6 +20964,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -19551,6 +21030,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -19576,6 +21058,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -19637,6 +21122,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -19662,6 +21150,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -19723,6 +21214,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -19748,6 +21242,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -19809,6 +21306,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -19834,6 +21334,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -19895,6 +21398,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -19920,6 +21426,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -19981,6 +21490,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -20006,6 +21518,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -20067,6 +21582,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -20092,6 +21610,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -20153,6 +21674,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -20178,6 +21702,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -20239,6 +21766,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -20264,6 +21794,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -20325,6 +21858,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -20347,6 +21883,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -20408,6 +21947,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -20430,6 +21972,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -20491,6 +22036,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -20513,6 +22061,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -20574,6 +22125,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -20596,6 +22150,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -20657,6 +22214,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -20679,6 +22239,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -20740,6 +22303,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -20762,6 +22328,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -20823,6 +22392,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -20845,6 +22417,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -20906,6 +22481,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -20928,6 +22506,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -20989,6 +22570,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -21011,6 +22595,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -21072,6 +22659,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -21094,6 +22684,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -21155,6 +22748,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -21177,6 +22773,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -21240,6 +22839,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
+        },
+        {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
         },
         {
@@ -21258,6 +22860,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -21282,6 +22887,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation"
+        },
+        {
+          "test_name_regex": "QsfpFsdbTest.tcvr"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -21315,6 +22923,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -21340,6 +22951,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -21362,6 +22976,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation"
+        },
+        {
+          "test_name_regex": "QsfpFsdbTest.tcvr"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -21395,6 +23012,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -21420,6 +23040,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -21442,6 +23065,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation"
+        },
+        {
+          "test_name_regex": "QsfpFsdbTest.tcvr"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -21475,6 +23101,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -21500,6 +23129,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -21522,6 +23154,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation"
+        },
+        {
+          "test_name_regex": "QsfpFsdbTest.tcvr"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -21555,6 +23190,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -21580,6 +23218,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -21602,6 +23243,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation"
+        },
+        {
+          "test_name_regex": "QsfpFsdbTest.tcvr"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -21635,6 +23279,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -21660,6 +23307,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -21682,6 +23332,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation"
+        },
+        {
+          "test_name_regex": "QsfpFsdbTest.tcvr"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -21715,6 +23368,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -21740,6 +23396,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -21762,6 +23421,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation"
+        },
+        {
+          "test_name_regex": "QsfpFsdbTest.tcvr"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -21795,6 +23457,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -21820,6 +23485,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -21842,6 +23510,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation"
+        },
+        {
+          "test_name_regex": "QsfpFsdbTest.tcvr"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -21875,6 +23546,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -21900,6 +23574,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -21922,6 +23599,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation"
+        },
+        {
+          "test_name_regex": "QsfpFsdbTest.tcvr"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -21955,6 +23635,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -21980,6 +23663,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -22002,6 +23688,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation"
+        },
+        {
+          "test_name_regex": "QsfpFsdbTest.tcvr"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -22035,6 +23724,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -22057,6 +23749,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -22079,6 +23774,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation"
+        },
+        {
+          "test_name_regex": "QsfpFsdbTest.tcvr"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -22112,6 +23810,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -22134,6 +23835,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -22156,6 +23860,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation"
+        },
+        {
+          "test_name_regex": "QsfpFsdbTest.tcvr"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -22189,6 +23896,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -22211,6 +23921,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -22233,6 +23946,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation"
+        },
+        {
+          "test_name_regex": "QsfpFsdbTest.tcvr"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -22266,6 +23982,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -22288,6 +24007,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -22310,6 +24032,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation"
+        },
+        {
+          "test_name_regex": "QsfpFsdbTest.tcvr"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -22343,6 +24068,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -22365,6 +24093,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -22387,6 +24118,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation"
+        },
+        {
+          "test_name_regex": "QsfpFsdbTest.tcvr"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -22420,6 +24154,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -22442,6 +24179,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -22464,6 +24204,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation"
+        },
+        {
+          "test_name_regex": "QsfpFsdbTest.tcvr"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -22497,6 +24240,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -22519,6 +24265,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -22541,6 +24290,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation"
+        },
+        {
+          "test_name_regex": "QsfpFsdbTest.tcvr"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -22574,6 +24326,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -22596,6 +24351,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -22618,6 +24376,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation"
+        },
+        {
+          "test_name_regex": "QsfpFsdbTest.tcvr"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -22651,6 +24412,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -22673,6 +24437,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -22695,6 +24462,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation"
+        },
+        {
+          "test_name_regex": "QsfpFsdbTest.tcvr"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -22728,6 +24498,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -22750,6 +24523,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -22772,6 +24548,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation"
+        },
+        {
+          "test_name_regex": "QsfpFsdbTest.tcvr"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -22805,6 +24584,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -22827,6 +24609,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -22849,6 +24634,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation"
+        },
+        {
+          "test_name_regex": "QsfpFsdbTest.tcvr"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -22884,6 +24672,9 @@
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
+        },
+        {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
         },
         {
@@ -22902,6 +24693,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -22977,6 +24771,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -23002,6 +24799,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -23075,6 +24875,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -23100,6 +24903,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -23173,6 +24979,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -23198,6 +25007,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -23271,6 +25083,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -23296,6 +25111,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -23369,6 +25187,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -23394,6 +25215,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -23467,6 +25291,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -23492,6 +25319,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -23565,6 +25395,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -23590,6 +25423,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -23663,6 +25499,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -23688,6 +25527,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -23761,6 +25603,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -23786,6 +25631,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -23859,6 +25707,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -23881,6 +25732,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -23954,6 +25808,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -23976,6 +25833,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -24049,6 +25909,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -24071,6 +25934,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -24144,6 +26010,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -24166,6 +26035,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -24239,6 +26111,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -24261,6 +26136,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -24334,6 +26212,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -24356,6 +26237,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -24429,6 +26313,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -24451,6 +26338,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -24524,6 +26414,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -24546,6 +26439,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -24619,6 +26515,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -24641,6 +26540,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -24714,6 +26616,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -24736,6 +26641,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -24809,6 +26717,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -24831,6 +26742,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -24906,6 +26820,9 @@
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
+        },
+        {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
         },
         {
@@ -24924,6 +26841,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -24993,6 +26913,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -25018,6 +26941,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -25085,6 +27011,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -25110,6 +27039,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -25177,6 +27109,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -25202,6 +27137,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -25269,6 +27207,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -25294,6 +27235,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -25361,6 +27305,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -25386,6 +27333,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -25453,6 +27403,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -25478,6 +27431,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -25545,6 +27501,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -25570,6 +27529,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -25637,6 +27599,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -25662,6 +27627,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -25729,6 +27697,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -25754,6 +27725,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -25821,6 +27795,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -25846,6 +27823,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -25913,6 +27893,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -25938,6 +27921,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -26007,6 +27993,9 @@
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
+        },
+        {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
         },
         {
@@ -26028,6 +28017,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -26097,6 +28089,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -26122,6 +28117,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -26189,6 +28187,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -26214,6 +28215,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -26281,6 +28285,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -26306,6 +28313,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -26373,6 +28383,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -26398,6 +28411,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -26465,6 +28481,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -26490,6 +28509,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -26557,6 +28579,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -26582,6 +28607,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -26649,6 +28677,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -26674,6 +28705,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -26741,6 +28775,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -26766,6 +28803,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -26833,6 +28873,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -26858,6 +28901,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -26925,6 +28971,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -26947,6 +28996,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -27014,6 +29066,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -27036,6 +29091,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -27103,6 +29161,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -27125,6 +29186,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -27192,6 +29256,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -27214,6 +29281,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -27281,6 +29351,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -27303,6 +29376,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -27370,6 +29446,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -27392,6 +29471,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -27459,6 +29541,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -27481,6 +29566,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -27548,6 +29636,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -27570,6 +29661,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -27637,6 +29731,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -27659,6 +29756,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -27726,6 +29826,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -27748,6 +29851,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -27815,6 +29921,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
@@ -27837,6 +29946,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "LinkTest.resetTransceiverDeadlockTest$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -27904,6 +30016,9 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
           "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"

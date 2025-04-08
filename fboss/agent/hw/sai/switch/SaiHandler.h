@@ -24,6 +24,18 @@ class SaiHandler : public apache::thrift::ServiceHandler<SaiCtrl> {
  public:
   explicit SaiHandler(SaiSwitch* hw);
   ~SaiHandler() override;
+
+  void getCurrentHwStateJSON(
+      std::string& ret,
+      std::unique_ptr<std::string> path) override;
+
+  /*
+   * Get live serialized switch state for provided paths
+   */
+  void getCurrentHwStateJSONForPaths(
+      std::map<std::string, std::string>& pathToState,
+      std::unique_ptr<std::vector<std::string>> paths) override;
+
   apache::thrift::ResponseAndServerStream<std::string, std::string>
   startDiagShell() override;
   void produceDiagShellInput(
@@ -50,6 +62,8 @@ class SaiHandler : public apache::thrift::ServiceHandler<SaiCtrl> {
       std::unique_ptr<::std::vector<::std::string>> switchNames) override;
   void clearHwPortStats(std::unique_ptr<std::vector<int32_t>> ports) override;
   void clearAllHwPortStats() override;
+  void clearInterfacePhyCounters(
+      std::unique_ptr<std::vector<int32_t>> ports) override;
   void getHwL2Table(std::vector<L2EntryThrift>& l2Table) override;
   void getVirtualDeviceToConnectionGroups(
       std::map<
@@ -94,6 +108,9 @@ class SaiHandler : public apache::thrift::ServiceHandler<SaiCtrl> {
     throw FbossError(
         "reconstructSwitchState Not implemented in MultiSwitchHwSwitchHandler");
   }
+
+  void getAllHwFirmwareInfo(
+      std::vector<FirmwareInfo>& firmwareInfoList) override;
 
  private:
   SaiSwitch* hw_;

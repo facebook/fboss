@@ -16,6 +16,7 @@
 #include "fboss/agent/hw/sai/api/AclApi.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiAclTableGroupManager.h"
+#include "fboss/agent/hw/sai/switch/SaiArsManager.h"
 #include "fboss/agent/hw/sai/switch/SaiHostifManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiMirrorManager.h"
@@ -407,6 +408,9 @@ SaiAclTableManager::cfgActionTypeListToSaiActionTypeList(
         saiActionType = SAI_ACL_ACTION_TYPE_SET_USER_TRAP_ID;
         break;
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+      case cfg::AclTableActionType::SET_ARS_OBJECT:
+        saiActionType = SAI_ACL_ACTION_TYPE_SET_ARS_OBJECT;
+        break;
       case cfg::AclTableActionType::DISABLE_ARS_FORWARDING:
         saiActionType = SAI_ACL_ACTION_TYPE_DISABLE_ARS_FORWARDING;
         break;
@@ -1029,6 +1033,8 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
 #endif
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+  std::optional<SaiAclEntryTraits::Attributes::ActionSetArsObject>
+      aclActionSetArsObject{std::nullopt};
   std::optional<SaiAclEntryTraits::Attributes::ActionDisableArsForwarding>
       aclActionDisableArsForwarding{std::nullopt};
 #endif
@@ -1209,16 +1215,37 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
             apache::thrift::util::enumNameSafe(*macsecFlowAction.action()));
       }
     }
+    /*
+     * Chenab supports
+     *  - Set ARS object
+     *  - Disable ARS forwarding - only true
+     * BCM supports
+     *  - Disable ARS forwarding - only false
+     */
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
     if (FLAGS_flowletSwitchingEnable &&
-        platform_->getAsic()->isSupported(HwAsic::Feature::FLOWLET)) {
+        platform_->getAsic()->isSupported(HwAsic::Feature::ARS)) {
       if (matchAction.getFlowletAction().has_value()) {
         auto flowletAction = matchAction.getFlowletAction().value();
         switch (flowletAction) {
-          case cfg::FlowletAction::FORWARD:
+          case cfg::FlowletAction::FORWARD: {
+#if defined(CHENAB_SAI_SDK)
+            auto arsHandlePtr = managerTable_->arsManager().getArsHandle();
+            if (arsHandlePtr->ars) {
+              aclActionSetArsObject =
+                  SaiAclEntryTraits::Attributes::ActionSetArsObject{
+                      AclEntryActionSaiObjectIdT(
+                          arsHandlePtr->ars->adapterKey())};
+            }
+#else
             aclActionDisableArsForwarding =
                 SaiAclEntryTraits::Attributes::ActionDisableArsForwarding{
                     false};
+#endif
+          } break;
+          case cfg::FlowletAction::DISABLE:
+            aclActionDisableArsForwarding =
+                SaiAclEntryTraits::Attributes::ActionDisableArsForwarding{true};
             break;
         }
       }
@@ -1274,7 +1301,8 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
        || aclActionSetUserTrap.has_value()
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
-       || aclActionDisableArsForwarding.has_value()
+       || aclActionSetArsObject.has_value() ||
+       aclActionDisableArsForwarding.has_value()
 #endif
       );
 
@@ -1344,6 +1372,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       aclActionSetUserTrap,
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+      aclActionSetArsObject,
       aclActionDisableArsForwarding,
 #endif
   };
@@ -1554,7 +1583,7 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet(
 std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet(
     sai_acl_stage_t aclStage) const {
   if (aclStage == SAI_ACL_STAGE_EGRESS &&
-      platform_->getAsic()->isSupported(
+      !platform_->getAsic()->isSupported(
           HwAsic::Feature::INGRESS_POST_LOOKUP_ACL_TABLE)) {
     throw FbossError("egress acl table is not supported on switch asic");
   }
@@ -1654,9 +1683,12 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet(
   } else if (isChenab) {
     /* TODO(pshaikh): review the qualifiers */
     if (aclStage == SAI_ACL_STAGE_INGRESS) {
+      // full set of qualifiers supported but cant fit in single acl table
       return {
           cfg::AclTableQualifier::DST_IPV6,
           cfg::AclTableQualifier::DST_IPV4,
+          cfg::AclTableQualifier::SRC_IPV6,
+          cfg::AclTableQualifier::SRC_IPV4,
           cfg::AclTableQualifier::L4_SRC_PORT,
           cfg::AclTableQualifier::L4_DST_PORT,
           cfg::AclTableQualifier::IP_PROTOCOL_NUMBER,
@@ -1667,7 +1699,11 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet(
           cfg::AclTableQualifier::IP_TYPE,
           cfg::AclTableQualifier::ETHER_TYPE,
           cfg::AclTableQualifier::OUTER_VLAN,
-          // TODO(pshaikh): Add UDF?
+          cfg::AclTableQualifier::ICMPV4_TYPE,
+          cfg::AclTableQualifier::ICMPV4_CODE,
+          cfg::AclTableQualifier::ICMPV6_TYPE,
+          cfg::AclTableQualifier::ICMPV6_CODE,
+          cfg::AclTableQualifier::UDF,
       };
     } else {
       return {
@@ -1861,7 +1897,7 @@ bool SaiAclTableManager::isQualifierSupported(
     case cfg::AclTableQualifier::LOOKUP_CLASS_NEIGHBOR:
       return hasField(
           std::get<std::optional<
-              SaiAclTableTraits::Attributes::FieldRouteDstUserMeta>>(
+              SaiAclTableTraits::Attributes::FieldNeighborDstUserMeta>>(
               attributes));
     case cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE:
       return hasField(

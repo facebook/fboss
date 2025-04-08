@@ -272,6 +272,7 @@ bcm_agent_benchmark(
         "//fboss/agent/hw/benchmarks:hw_init_and_exit_100Gx25G",
         "//fboss/agent/hw/benchmarks:hw_init_and_exit_100Gx50G",
         "//fboss/agent/hw/benchmarks:hw_init_and_exit_100Gx100G",
+        "//fboss/agent/hw/benchmarks:hw_init_and_exit_400Gx400G",
         "//fboss/agent/hw/bcm/tests:bcm_copp_utils",
         "//fboss/agent/hw/bcm/tests:bcm_acl_utils",
         "//fboss/agent/hw/bcm/tests:bcm_switch_ensemble",
@@ -280,5 +281,6 @@ bcm_agent_benchmark(
         "//fboss/agent/hw/bcm/tests:bcm_qos_utils",
         "//fboss/agent/hw/benchmarks:hw_rx_slow_path_rate",
         "//fboss/agent/hw/benchmarks:hw_tx_slow_path_rate",
+        "//fboss/agent/hw/benchmarks:hw_clear_interface_phy_counters",
     ],
 )

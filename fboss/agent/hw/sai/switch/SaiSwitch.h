@@ -139,6 +139,10 @@ class SaiSwitch : public HwSwitch {
   void clearPortAsicPrbsStats(PortID portId) override;
   prbs::InterfacePrbsState getPortPrbsState(PortID portId) override;
 
+  void clearSignalDetectAndLockChangedStats(const PortID& portId);
+  void clearInterfacePhyCounters(
+      const std::unique_ptr<std::vector<int32_t>>& ports) override;
+
   cfg::PortSpeed getPortMaxSpeed(PortID port) const override;
 
   void linkStateChangedCallbackTopHalf(
@@ -247,6 +251,8 @@ class SaiSwitch : public HwSwitch {
 
   bool getArsExhaustionStatus() override;
 
+  std::vector<FirmwareInfo> getAllFirmwareInfo() const override;
+
  private:
   void gracefulExitImpl() override;
 
@@ -316,9 +322,12 @@ class SaiSwitch : public HwSwitch {
       const std::lock_guard<std::mutex>& lock,
       std::vector<L2EntryThrift>* l2Table) const;
 
-  const std::map<PortID, FabricEndpoint>& getFabricConnectivityLocked() const;
+  const std::map<PortID, FabricEndpoint>& getFabricConnectivityLocked(
+      const std::lock_guard<std::mutex>& lock) const;
 
-  std::vector<PortID> getSwitchReachabilityLocked(SwitchID switchId) const;
+  std::vector<PortID> getSwitchReachabilityLocked(
+      const std::lock_guard<std::mutex>& lock,
+      SwitchID switchId) const;
   std::map<int64_t, FabricConnectivityManager::RemoteConnectionGroups>
   getVirtualDeviceToRemoteConnectionGroupsLocked(
       const std::lock_guard<std::mutex>& lock) const;
@@ -584,6 +593,8 @@ class SaiSwitch : public HwSwitch {
   void processPfcDeadlockRecoveryAction(
       std::optional<cfg::PfcWatchdogRecoveryAction> recoveryAction);
   void setFabricPortOwnershipToAdapter();
+
+  bool processVlanUntaggedPackets() const;
 
   /* reconstruction state apis */
   std::shared_ptr<MultiSwitchAclTableGroupMap>

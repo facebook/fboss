@@ -110,7 +110,47 @@ class YubaAsic : public TajoAsic {
     return 1024;
   }
   std::optional<uint32_t> getMaxEcmpMembers() const override {
-    return 32768;
+    /*
+     * G200 supports ~20K next hop group(NHG) members, but we are limiting it to
+     * 9600 for now. Reason: ASIC has two level ECMP, where: Level 1 has:
+     *        1. 512 NHG/ECMP groups
+     *        2. 10240 - 256 (max nexthop scale)
+     *                 - 256 (max neighbor entry scale)
+     *                 - 128 (max size of ECMP group) = 9600 NHG members
+     *
+     * Level 2 has:
+     *        1. 512 NHG/ECMP groups
+     *        2. 10240 - 512 (max bridge port scale)
+     *                 - 128 (max size of ECMP group) = 9600 NHG members
+     * Together:
+     *        1. 1024 NHG/ECMP groups
+     *        2. 9600 + 9600 = 19200 NHG/ECMP members
+     *
+     * Constraint:
+     *        We cannot have less than 512 ECMP group and all 19200 members,
+     *        because we will still be in only level 1. Hence if number of ECMP
+     *        groups created is less than 512, max ECMP members available will
+     *        be 9600.
+     *
+     * Keeping the above constraint in mind, we can use the below formula to
+     * calculate max ECMP members during resource accounting:
+     *
+     * Let X  := current_group_count
+     * Let Y  := current_member_count
+     * Let Y' := Y + new_add_count
+     * Let L  := (X / 513) + 1 --> Level
+     * Let MT := 0.75 * L * 9600 --> member Threshold
+     * On receiving a request to create a new NHG member:
+     *     if Y' > MT:
+     *         reject
+     *     else:
+     *         add
+     *
+     * But for now, we will limit it to 9600
+     * As cisco provides a fix to remove the constraint, we will just retun
+     * 19200.
+     */
+    return 9600;
   }
   uint32_t getNumCores() const override {
     return 12;

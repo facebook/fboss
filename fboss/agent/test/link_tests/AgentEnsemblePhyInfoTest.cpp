@@ -11,6 +11,7 @@
 #include "fboss/agent/PlatformPort.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/test/link_tests/AgentEnsembleLinkTest.h"
+#include "fboss/agent/test/link_tests/LinkTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types_custom_protocol.h"
@@ -308,7 +309,7 @@ TEST_F(AgentEnsembleLinkTest, xPhyInfoTest) {
       kSecondsBetweenXphyInfoCollectionCheck /* retry period */,
       {
         for (const auto& port : cabledPorts) {
-          if (phyInfoBefore.count(port)) {
+          if (phyInfoBefore.contains(port)) {
             continue;
           }
           auto phyInfo = getXphyInfo(port);
@@ -337,7 +338,7 @@ TEST_F(AgentEnsembleLinkTest, xPhyInfoTest) {
       kSecondsBetweenXphyInfoCollectionCheck /* retry period */,
       {
         for (const auto& port : cabledPorts) {
-          if (phyInfoAfter.count(port)) {
+          if (phyInfoAfter.contains(port)) {
             continue;
           }
           auto phyInfo = getXphyInfo(port);
@@ -559,8 +560,9 @@ TEST_F(AgentEnsembleLinkTest, verifyIphyFecBerCounters) {
         EXPECT_LT(rsFecNow->get_preFECBer(), preFecBerThreshold);
         // If there were corrected codewords in the interval, expect pre-FEC
         // BER non-zero
-        bool hasCorrectedCodewords = rsFecNow->get_correctedCodewords() !=
-            rsFecBefore->get_correctedCodewords();
+        bool hasCorrectedCodewords =
+            folly::copy(rsFecNow->correctedCodewords().value()) !=
+            folly::copy(rsFecBefore->correctedCodewords().value());
         if (hasCorrectedCodewords) {
           EXPECT_NE(rsFecNow->get_preFECBer(), 0);
         }
@@ -568,7 +570,7 @@ TEST_F(AgentEnsembleLinkTest, verifyIphyFecBerCounters) {
         // 16. For Rs528, there are 8 codeword bins. For Rs544, there are 15.
         // We need to add 1 to the expected codewordStats keys since the first
         // key will be for codewords with 0 corrections
-        if (!rsFecNow->get_codewordStats().empty()) {
+        if (!rsFecNow->codewordStats().value().empty()) {
           EXPECT_TRUE(
               rsFecNow->codewordStats()->size() ==
                   (kRsFec528CodewordBins + 1) ||
@@ -609,4 +611,70 @@ TEST_F(AgentEnsembleLinkTest, verifyIphyFecBerCounters) {
     }
   };
   verifyAcrossWarmBoots([]() {}, verify);
+}
+
+TEST_F(AgentEnsembleLinkTest, clearIphyInterfaceCounters) {
+  auto cabledPorts = getCabledPorts();
+  std::map<PortID, const phy::PhyInfo> phyInfoBefore;
+  auto startTime = std::chrono::duration_cast<std::chrono::seconds>(
+      std::chrono::system_clock::now().time_since_epoch());
+
+  // Wait for update stats
+  WITH_RETRIES_N_TIMED(
+      20 /* retries */, std::chrono::milliseconds(1000) /* msBetweenRetry */, {
+        phyInfoBefore = getSw()->getIPhyInfo(cabledPorts);
+        for (const auto& port : cabledPorts) {
+          auto phyIt = phyInfoBefore.find(port);
+          ASSERT_EVENTUALLY_NE(phyIt, phyInfoBefore.end());
+          EXPECT_EVENTUALLY_GT(
+              phyIt->second.state()->timeCollected(), startTime.count());
+          EXPECT_EVENTUALLY_GT(
+              phyIt->second.stats()->timeCollected(), startTime.count());
+          EXPECT_EVENTUALLY_TRUE(
+              phyIt->second.state()->linkState().value_or({}));
+        }
+      });
+
+  // Clear the counters
+  std::vector<int32_t> cabledPortsVec;
+  cabledPortsVec.reserve(cabledPorts.size());
+  for (auto port : cabledPorts) {
+    cabledPortsVec.push_back(static_cast<int32_t>(port));
+  }
+
+  auto clearInterfacePhyCounters = [&](const std::vector<int32_t>& ports) {
+    for (const auto& switchId : getSw()->getSwitchInfoTable().getSwitchIDs()) {
+      auto client = getAgentEnsemble()->getHwAgentTestClient(switchId);
+      client->sync_clearInterfacePhyCounters(ports);
+    }
+  };
+  clearInterfacePhyCounters(cabledPortsVec);
+
+  std::map<PortID, const phy::PhyInfo> phyInfoAfterClear;
+  WITH_RETRIES_N_TIMED(
+      35 /* retries */, std::chrono::milliseconds(1000) /* msBetweenRetry */, {
+        phyInfoAfterClear = getSw()->getIPhyInfo(cabledPorts);
+        for (const auto& port : cabledPorts) {
+          auto phyIt = phyInfoAfterClear.find(port);
+          ASSERT_EVENTUALLY_NE(phyIt, phyInfoAfterClear.end());
+          EXPECT_EVENTUALLY_GE(
+              *(phyInfoAfterClear[port].stats()->timeCollected()) -
+                  *(phyInfoBefore[port].stats()->timeCollected()),
+              20);
+        }
+        for (auto port : cabledPortsVec) {
+          XLOG(INFO) << "Verifying port " << port;
+          PortID portId = PortID(port);
+          auto laneInfoAfter =
+              phyInfoAfterClear[portId].stats()->line()->pmd()->lanes();
+          for (const auto& [laneId, laneInfo] : *laneInfoAfter) {
+            if (laneInfo.cdrLockChangedCount().has_value()) {
+              EXPECT_EVENTUALLY_EQ(*laneInfo.cdrLockChangedCount(), 0);
+            }
+            if (laneInfo.signalDetectChangedCount().has_value()) {
+              EXPECT_EVENTUALLY_EQ(*laneInfo.signalDetectChangedCount(), 0);
+            }
+          }
+        }
+      });
 }

@@ -229,6 +229,7 @@ class SaiPortManager {
   void updateConnectivityStats(PortID portID);
 
   void clearStats(PortID portID);
+  void clearInterfacePhyCounters(const PortID& portId);
 
   void programMirrorOnAllPorts(
       const std::string& mirrorName,
@@ -306,8 +307,8 @@ class SaiPortManager {
   void changePortImpl(
       const std::shared_ptr<Port>& oldPort,
       const std::shared_ptr<Port>& newPort);
-  void addRemovedHandle(PortID portID);
-  void removeRemovedHandleIf(PortID portID);
+  void addRemovedHandle(const PortID& portID);
+  void removeRemovedHandleIf(const PortID& portID);
   void releasePorts();
   void releasePortPfcBuffers();
 

@@ -48,7 +48,7 @@ inline std::string toString(PlatformType mode) {
       return "FUJI";
     case PlatformType::PLATFORM_ELBERT:
       return "ELBERT";
-    case PlatformType::PLATFORM_CLOUDRIPPER:
+    case PlatformType::PLATFORM_CLOUDRIPPER_DEPRECATED:
       return "CLOUDRIPPER";
     case PlatformType::PLATFORM_DARWIN:
       return "DARWIN";
@@ -70,9 +70,9 @@ inline std::string toString(PlatformType mode) {
       return "WEDGE400C_FABRIC";
     case PlatformType::PLATFORM_WEDGE400C_GRANDTETON:
       return "WEDGE400C_GRANDTETON";
-    case PlatformType::PLATFORM_CLOUDRIPPER_VOQ:
+    case PlatformType::PLATFORM_CLOUDRIPPER_VOQ_DEPRECATED:
       return "CLOUDRIPPER_VOQ";
-    case PlatformType::PLATFORM_CLOUDRIPPER_FABRIC:
+    case PlatformType::PLATFORM_CLOUDRIPPER_FABRIC_DEPRECATED:
       return "CLOUDRIPPER_FABRIC";
     case PlatformType::PLATFORM_MONTBLANC:
       return "MONTBLANC";

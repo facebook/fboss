@@ -63,35 +63,39 @@ class CmdShowSystemPort
     auto opt = CmdGlobalOptions::getInstance();
 
     if (opt->isDetailed()) {
-      for (auto const& systemportInfo : model.get_sysPortEntries()) {
+      for (auto const& systemportInfo : model.sysPortEntries().value()) {
         detailedOutput.emplace_back("");
-        detailedOutput.emplace_back(
-            fmt::format("Name:         \t\t {}", systemportInfo.get_name()));
+        detailedOutput.emplace_back(fmt::format(
+            "Name:         \t\t {}", systemportInfo.name().value()));
         detailedOutput.emplace_back(fmt::format(
             "ID:           \t\t {}",
-            folly::to<std::string>(systemportInfo.get_id())));
-        detailedOutput.emplace_back(
-            fmt::format("Speed:        \t\t {}", systemportInfo.get_speed()));
+            folly::to<std::string>(folly::copy(systemportInfo.id().value()))));
         detailedOutput.emplace_back(fmt::format(
-            "QosPolicy:    \t\t {}", systemportInfo.get_qosPolicy()));
+            "Speed:        \t\t {}", systemportInfo.speed().value()));
+        detailedOutput.emplace_back(fmt::format(
+            "QosPolicy:    \t\t {}", systemportInfo.qosPolicy().value()));
         detailedOutput.emplace_back(fmt::format(
             "CoreIndex:    \t\t {}",
-            folly::to<std::string>(systemportInfo.get_coreIndex())));
+            folly::to<std::string>(
+                folly::copy(systemportInfo.coreIndex().value()))));
         detailedOutput.emplace_back(fmt::format(
             "CorePortIndex:\t\t {}",
-            folly::to<std::string>(systemportInfo.get_corePortIndex())));
+            folly::to<std::string>(
+                folly::copy(systemportInfo.corePortIndex().value()))));
         detailedOutput.emplace_back(fmt::format(
             "Voqs:         \t\t {}",
-            folly::to<std::string>(systemportInfo.get_numVoqs())));
+            folly::to<std::string>(
+                folly::copy(systemportInfo.numVoqs().value()))));
 
         int voqIndex = 0;
-        int totalVoqCount = systemportInfo.get_numVoqs();
-        const auto& sysPortHwStats = systemportInfo.get_hwPortStats();
+        int totalVoqCount = folly::copy(systemportInfo.numVoqs().value());
+        const auto& sysPortHwStats = systemportInfo.hwPortStats().value();
 
-        const auto& discardBytesMap = sysPortHwStats.get_egressDiscardBytes();
-        const auto& outBytesMap = sysPortHwStats.get_egressOutBytes();
+        const auto& discardBytesMap =
+            sysPortHwStats.egressDiscardBytes().value();
+        const auto& outBytesMap = sysPortHwStats.egressOutBytes().value();
         const auto& watermarkBytesMap =
-            sysPortHwStats.get_egressWatermarkBytes();
+            sysPortHwStats.egressWatermarkBytes().value();
 
         detailedOutput.emplace_back(fmt::format("    Queue Discard (Bytes)"));
         for (voqIndex = 0; voqIndex < totalVoqCount; ++voqIndex) {
@@ -133,19 +137,23 @@ class CmdShowSystemPort
            "RemoteSystemPortLivenessStatus",
            "Scope"});
 
-      for (auto const& systemportInfo : model.get_sysPortEntries()) {
+      for (auto const& systemportInfo : model.sysPortEntries().value()) {
         table.addRow(
-            {folly::to<std::string>(systemportInfo.get_id()),
-             systemportInfo.get_name(),
-             systemportInfo.get_speed(),
-             folly::to<std::string>(systemportInfo.get_numVoqs()),
-             systemportInfo.get_qosPolicy(),
-             folly::to<std::string>(systemportInfo.get_coreIndex()),
-             folly::to<std::string>(systemportInfo.get_corePortIndex()),
-             folly::to<std::string>(systemportInfo.get_remoteSystemPortType()),
+            {folly::to<std::string>(folly::copy(systemportInfo.id().value())),
+             systemportInfo.name().value(),
+             systemportInfo.speed().value(),
              folly::to<std::string>(
-                 systemportInfo.get_remoteSystemPortLivenessStatus()),
-             systemportInfo.get_scope()});
+                 folly::copy(systemportInfo.numVoqs().value())),
+             systemportInfo.qosPolicy().value(),
+             folly::to<std::string>(
+                 folly::copy(systemportInfo.coreIndex().value())),
+             folly::to<std::string>(
+                 folly::copy(systemportInfo.corePortIndex().value())),
+             folly::to<std::string>(
+                 systemportInfo.remoteSystemPortType().value()),
+             folly::to<std::string>(
+                 systemportInfo.remoteSystemPortLivenessStatus().value()),
+             systemportInfo.scope().value()});
       }
       out << table << std::endl;
     }
@@ -162,20 +170,24 @@ class CmdShowSystemPort
 
     for (const auto& entry : systemPortEntries) {
       auto systemPortInfo = entry.second;
-      const auto& systemPortName = systemPortInfo.get_portName();
+      const auto& systemPortName = systemPortInfo.portName().value();
 
       if (queriedSystemPorts.size() == 0 || queriedSet.count(systemPortName)) {
         cli::SystemPortEntry systemPortDetails;
-        systemPortDetails.id() = systemPortInfo.get_portId();
-        systemPortDetails.name() = systemPortInfo.get_portName();
-        systemPortDetails.speed() =
-            utils::getSpeedGbps(systemPortInfo.get_speedMbps());
-        systemPortDetails.numVoqs() = systemPortInfo.get_numVoqs();
+        systemPortDetails.id() = folly::copy(systemPortInfo.portId().value());
+        systemPortDetails.name() = systemPortInfo.portName().value();
+        systemPortDetails.speed() = utils::getSpeedGbps(
+            folly::copy(systemPortInfo.speedMbps().value()));
+        systemPortDetails.numVoqs() =
+            folly::copy(systemPortInfo.numVoqs().value());
         systemPortDetails.qosPolicy() =
-            (systemPortInfo.get_qosPolicy() ? *systemPortInfo.get_qosPolicy()
-                                            : " -- ");
-        systemPortDetails.coreIndex() = systemPortInfo.get_coreIndex();
-        systemPortDetails.corePortIndex() = systemPortInfo.get_corePortIndex();
+            (apache::thrift::get_pointer(systemPortInfo.qosPolicy())
+                 ? *apache::thrift::get_pointer(systemPortInfo.qosPolicy())
+                 : " -- ");
+        systemPortDetails.coreIndex() =
+            folly::copy(systemPortInfo.coreIndex().value());
+        systemPortDetails.corePortIndex() =
+            folly::copy(systemPortInfo.corePortIndex().value());
 
         auto getRemoteSystemPortTypeStr = [](const auto& remoteSystemPortType) {
           if (remoteSystemPortType.has_value()) {
@@ -207,8 +219,8 @@ class CmdShowSystemPort
             getRemoteSystemPortLivenessStatusStr(
                 systemPortInfo.remoteSystemPortLivenessStatus());
 
-        systemPortDetails.scope() =
-            apache::thrift::util::enumNameSafe(systemPortInfo.get_scope());
+        systemPortDetails.scope() = apache::thrift::util::enumNameSafe(
+            folly::copy(systemPortInfo.scope().value()));
 
         const auto& iter = systemportHwStats.find(systemPortName);
         // see if we have any detailed hw stats
@@ -218,10 +230,11 @@ class CmdShowSystemPort
 
           // copy the maps inside the port entry
           portStats.egressDiscardBytes() =
-              systemHwStatsEntry.get_queueOutDiscardBytes_();
-          portStats.egressOutBytes() = systemHwStatsEntry.get_queueOutBytes_();
+              systemHwStatsEntry.queueOutDiscardBytes_().value();
+          portStats.egressOutBytes() =
+              systemHwStatsEntry.queueOutBytes_().value();
           portStats.egressWatermarkBytes() =
-              systemHwStatsEntry.get_queueWatermarkBytes_();
+              systemHwStatsEntry.queueWatermarkBytes_().value();
           systemPortDetails.hwPortStats() = portStats;
         }
         model.sysPortEntries()->push_back(systemPortDetails);
@@ -232,7 +245,8 @@ class CmdShowSystemPort
         model.sysPortEntries()->begin(),
         model.sysPortEntries()->end(),
         [&](const cli::SystemPortEntry& a, const cli::SystemPortEntry& b) {
-          return utils::compareSystemPortName(a.get_name(), b.get_name());
+          return utils::compareSystemPortName(
+              a.name().value(), b.name().value());
         });
 
     return model;

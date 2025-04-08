@@ -92,7 +92,7 @@ class RibMplsRouteUpdate {
       RoutingInformationBase::UpdateStatistics& stats) {
     ++stats.mplsRoutesAdded;
     return RibRoute{
-        LabelID(route.get_topLabel()),
+        LabelID(folly::copy(route.topLabel().value())),
         RouteNextHopEntry::from(route, distance, std::nullopt, std::nullopt)};
   }
 

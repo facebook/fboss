@@ -665,7 +665,12 @@ class SaiStore {
       SaiObjectStore<SaiMacsecFlowTraits>,
       SaiObjectStore<SaiMacsecPortTraits>,
       SaiObjectStore<SaiMacsecSCTraits>,
-      SaiObjectStore<SaiMacsecSATraits>>
+      SaiObjectStore<SaiMacsecSATraits>
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+      ,
+      SaiObjectStore<SaiFirmwareTraits>
+#endif
+      >
       stores_;
 };
 

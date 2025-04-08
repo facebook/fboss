@@ -27,10 +27,7 @@ class PacketSnooper : public PacketObserverIf {
   PacketSnooper(
       std::optional<PortID> port = std::nullopt,
       std::optional<utility::EthFrame> expectedFrame = std::nullopt,
-      PacketComparatorFn packetComparator = std::nullopt)
-      : port_(port),
-        expectedFrame_(std::move(expectedFrame)),
-        packetComparator_(std::move(packetComparator)) {}
+      PacketComparatorFn packetComparator = std::nullopt);
 
   void packetReceived(const RxPacket* pkt) noexcept override;
 

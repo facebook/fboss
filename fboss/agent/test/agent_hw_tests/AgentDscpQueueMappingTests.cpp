@@ -31,7 +31,7 @@ class AgentDscpQueueMappingTestBase : public AgentHwTest {
 
   void setupHelper() {
     utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
-    resolveNeigborAndProgramRoutes(ecmpHelper, kEcmpWidth);
+    resolveNeighborAndProgramRoutes(ecmpHelper, kEcmpWidth);
   }
 
   void sendPacket(bool frontPanel, uint8_t ttl = 64) {
@@ -128,8 +128,9 @@ class AgentDscpQueueMappingTest : public AgentDscpQueueMappingTestBase {
     auto verify = [this]() {
       for (bool frontPanel : {false, true}) {
         auto beforeQueueOutPkts =
-            getLatestPortStats(masterLogicalInterfacePortIds()[0])
-                .get_queueOutPackets_()
+            folly::copy(getLatestPortStats(masterLogicalInterfacePortIds()[0])
+                            .queueOutPackets_()
+                            .value())
                 .at(kQueueId());
 
         sendPacket(frontPanel);
@@ -174,7 +175,7 @@ class AgentAclAndDscpQueueMappingTest : public AgentDscpQueueMappingTestBase {
     utility::addOlympicQosMaps(cfg, ensemble.getL3Asics());
 
     // ACL
-    auto* acl = utility::addAcl(&cfg, "acl0");
+    auto* acl = utility::addAcl_DEPRECATED(&cfg, "acl0");
     cfg::Ttl ttl; // Match packets with hop limit > 127
     std::tie(*ttl.value(), *ttl.mask()) = std::make_tuple(0x80, 0x80);
     acl->ttl() = ttl;
@@ -197,8 +198,9 @@ class AgentAclAndDscpQueueMappingTest : public AgentDscpQueueMappingTestBase {
         XLOG(DBG2) << "verify send packets "
                    << (frontPanel ? "out of port" : "switched");
         auto beforeQueueOutPkts =
-            getLatestPortStats(masterLogicalInterfacePortIds()[0])
-                .get_queueOutPackets_()
+            folly::copy(getLatestPortStats(masterLogicalInterfacePortIds()[0])
+                            .queueOutPackets_()
+                            .value())
                 .at(kQueueId());
         auto beforeAclInOutPkts =
             utility::getAclInOutPackets(getSw(), kCounterName());
@@ -267,12 +269,14 @@ class AgentAclConflictAndDscpQueueMappingTest
         XLOG(DBG2) << "verify send packets "
                    << (frontPanel ? "out of port" : "switched");
         auto beforeQueueOutPktsAcl =
-            getLatestPortStats(masterLogicalInterfacePortIds()[0])
-                .get_queueOutPackets_()
+            folly::copy(getLatestPortStats(masterLogicalInterfacePortIds()[0])
+                            .queueOutPackets_()
+                            .value())
                 .at(kQueueIdAcl());
         auto beforeQueueOutPktsQosMap =
-            getLatestPortStats(masterLogicalInterfacePortIds()[0])
-                .get_queueOutPackets_()
+            folly::copy(getLatestPortStats(masterLogicalInterfacePortIds()[0])
+                            .queueOutPackets_()
+                            .value())
                 .at(kQueueIdQosMap());
         auto beforeAclInOutPkts =
             utility::getAclInOutPackets(getSw(), kCounterName());

@@ -32,6 +32,7 @@ class TunIntf : private folly::EventHandler {
       SwSwitch* sw,
       folly::EventBase* evb,
       InterfaceID ifID,
+      cfg::InterfaceType type,
       int ifIndex /* linux */,
       int mtu);
 
@@ -42,6 +43,7 @@ class TunIntf : private folly::EventHandler {
       SwSwitch* sw,
       folly::EventBase* evb,
       InterfaceID ifID, // Switch interface ID
+      cfg::InterfaceType type,
       bool status,
       const Interface::Addresses& addrs,
       int mtu);
@@ -150,6 +152,7 @@ class TunIntf : private folly::EventHandler {
 
   const std::string name_{""}; // The name in the host
   const InterfaceID ifID_{0}; // Switch interface ID
+  const cfg::InterfaceType type_{cfg::InterfaceType::VLAN}; // Interface type
 
   int ifIndex_{-1}; // The ifIndex of the interface on host
   bool toDelete_{false}; // Is the interface to be deleted from system

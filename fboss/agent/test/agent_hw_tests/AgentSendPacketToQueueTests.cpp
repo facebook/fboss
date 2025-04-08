@@ -45,7 +45,7 @@ void AgentSendPacketToQueueTest::checkSendPacket(
       // need to set up ecmp for switching
       auto kEcmpWidthForTest = 1;
       utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState()};
-      resolveNeigborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
+      resolveNeighborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
     }
   };
 
@@ -55,7 +55,8 @@ void AgentSendPacketToQueueTest::checkSendPacket(
     const uint8_t queueID = ucQueue ? *ucQueue : kDefaultQueue;
 
     auto beforeOutPkts =
-        getLatestPortStats(port).get_queueOutPackets_().at(queueID);
+        folly::copy(getLatestPortStats(port).queueOutPackets_().value())
+            .at(queueID);
     auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());

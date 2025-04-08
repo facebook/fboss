@@ -61,6 +61,8 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::IN_PAUSE_INCREMENTS_DISCARDS:
     case HwAsic::Feature::SAI_FEC_COUNTERS:
     case HwAsic::Feature::SAI_FEC_CODEWORDS_STATS:
+    case HwAsic::Feature::ARS:
+    case HwAsic::Feature::ARS_PORT_ATTRIBUTES:
     case HwAsic::Feature::PFC:
     case HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION:
     case HwAsic::Feature::ECMP_HASH_V4:
@@ -76,10 +78,16 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::ACL_ENTRY_ETHER_TYPE:
     case HwAsic::Feature::DEDICATED_CPU_BUFFER_POOL:
     case HwAsic::Feature::ROUTE_METADATA:
+    case HwAsic::Feature::SAI_ECMP_HASH_ALGORITHM:
+    case HwAsic::Feature::ACL_COUNTER_LABEL:
+    case HwAsic::Feature::INGRESS_PRIORITY_GROUP_DROPPED_PACKETS:
+    case HwAsic::Feature::INGRESS_PRIORITY_GROUP_HEADROOM_WATERMARK:
+    case HwAsic::Feature::INGRESS_PRIORITY_GROUP_SHARED_WATERMARK:
+    case HwAsic::Feature::SAI_HOST_MISS_TRAP:
+    case HwAsic::Feature::CPU_TX_PACKET_REQUIRES_VLAN_TAG:
       return true;
     case HwAsic::Feature::PORT_MTU_ERROR_TRAP:
     case HwAsic::Feature::EVENTOR_PORT_FOR_SFLOW:
-    case HwAsic::Feature::SAI_ECMP_HASH_ALGORITHM:
     case HwAsic::Feature::SWITCH_REACHABILITY_CHANGE_NOTIFY:
     case HwAsic::Feature::CABLE_PROPOGATION_DELAY:
     case HwAsic::Feature::DRAM_BLOCK_TIME:
@@ -88,14 +96,12 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::DATA_CELL_FILTER:
     case HwAsic::Feature::EGRESS_CORE_BUFFER_WATERMARK:
     case HwAsic::Feature::DELETED_CREDITS_STAT:
-    case HwAsic::Feature::INGRESS_PRIORITY_GROUP_DROPPED_PACKETS:
     case HwAsic::Feature::ACL_METADATA_QUALIFER:
     case HwAsic::Feature::PENDING_L2_ENTRY:
     case HwAsic::Feature::PMD_RX_LOCK_STATUS:
     case HwAsic::Feature::PMD_RX_SIGNAL_DETECT:
     case HwAsic::Feature::FEC_AM_LOCK_STATUS:
     case HwAsic::Feature::PCS_RX_LINK_STATUS:
-    case HwAsic::Feature::ACL_COUNTER_LABEL:
     case HwAsic::Feature::MEDIA_TYPE:
     case HwAsic::Feature::PORT_TTL_DECREMENT_DISABLE:
     case HwAsic::Feature::COUNTER_REFRESH_INTERVAL:
@@ -149,7 +155,6 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::FABRIC_TX_QUEUES:
     case HwAsic::Feature::SAI_PORT_VCO_CHANGE:
     case HwAsic::Feature::SHARED_INGRESS_EGRESS_BUFFER_POOL:
-    case HwAsic::Feature::FLOWLET:
     case HwAsic::Feature::TC_TO_QUEUE_QOS_MAP_ON_SYSTEM_PORT:
     case HwAsic::Feature::PORT_FABRIC_ISOLATE:
     case HwAsic::Feature::CPU_TX_VIA_RECYCLE_PORT:
@@ -159,13 +164,11 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::SAI_MPLS_QOS:
     case HwAsic::Feature::MPLS:
     case HwAsic::Feature::MPLS_ECMP:
-    case HwAsic::Feature::INGRESS_PRIORITY_GROUP_HEADROOM_WATERMARK:
     case HwAsic::Feature::SAI_PORT_ETHER_STATS:
     case HwAsic::Feature::RX_LANE_SQUELCH_ENABLE:
     case HwAsic::Feature::SLOW_STAT_UPDATE:
     case HwAsic::Feature::VOQ_DELETE_COUNTER:
     case HwAsic::Feature::DRAM_ENQUEUE_DEQUEUE_STATS:
-    case HwAsic::Feature::FLOWLET_PORT_ATTRIBUTES:
     case HwAsic::Feature::P4_WARMBOOT:
     case HwAsic::Feature::SAI_EAPOL_TRAP:
     case HwAsic::Feature::CREDIT_WATCHDOG:
@@ -186,7 +189,6 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::CRC_ERROR_DETECT:
     case HwAsic::Feature::NO_RX_REASON_TRAP:
     case HwAsic::Feature::EGRESS_GVOQ_WATERMARK_BYTES:
-    case HwAsic::Feature::INGRESS_PRIORITY_GROUP_SHARED_WATERMARK:
     case HwAsic::Feature::MULTIPLE_EGRESS_BUFFER_POOL:
     case HwAsic::Feature::ENABLE_DELAY_DROP_CONGESTION_THRESHOLD:
     case HwAsic::Feature::FAST_LLFC_COUNTER:
@@ -203,8 +205,11 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::SFLOW_SAMPLES_PACKING:
     case HwAsic::Feature::VENDOR_SWITCH_NOTIFICATION:
     case HwAsic::Feature::SDK_REGISTER_DUMP:
+    case HwAsic::Feature::FEC_ERROR_DETECT_ENABLE:
+    case HwAsic::Feature::BUFFER_POOL_HEADROOM_WATERMARK:
     case HwAsic::Feature::WARMBOOT: // TODO: add support for warmboot once SDK
                                     // supports it
+    case HwAsic::Feature::SAI_SET_TC_FOR_USER_DEFINED_TRAP:
       return false;
   }
   return false;
@@ -387,7 +392,7 @@ std::optional<uint32_t> ChenabAsic::getPortSerdesPreemphasis() const {
   return 50;
 }
 uint32_t ChenabAsic::getPacketBufferUnitSize() const {
-  return 512;
+  return 192;
 }
 uint32_t ChenabAsic::getPacketBufferDescriptorSize() const {
   return 40;

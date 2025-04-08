@@ -75,6 +75,9 @@ DECLARE_bool(dual_stage_3q_2q_qos);
 bool isDualStage3Q2QMode();
 bool isDualStage3Q2QQos();
 DECLARE_bool(enable_hw_update_protection);
+DECLARE_int32(max_l2_entries);
+DECLARE_int32(max_ndp_entries);
+DECLARE_int32(max_arp_entries);
 
 DECLARE_bool(fw_drained_unrecoverable_error);
 DECLARE_int32(neighbhor_resource_percentage);
@@ -91,3 +94,5 @@ DECLARE_bool(run_forever);
 DECLARE_bool(run_forever_on_failure);
 
 DECLARE_string(sdk_reg_dump_path_prefix);
+DECLARE_bool(type_dctype1_janga);
+DECLARE_bool(prod_invariant_config_test);

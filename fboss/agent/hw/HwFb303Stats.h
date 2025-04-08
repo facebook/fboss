@@ -50,6 +50,7 @@ class HwFb303Stats {
   void removeStat(const std::string& statName);
   const std::string getMonotonicCounterName(const std::string& statName) const;
   uint64_t getCumulativeValueIf(const std::string& statName) const;
+  void clearStat(const std::string& statName);
 
  private:
   /*

@@ -220,7 +220,7 @@ class Selector {
         : lagID(id), state(s) {}
     LinkAggregationGroupID lagID;
     SelectionState state;
-    bool operator==(const struct Selection& rhs) {
+    bool operator==(const struct Selection& rhs) const {
       return lagID == rhs.lagID && state == rhs.state;
     }
   };

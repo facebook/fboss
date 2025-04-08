@@ -106,6 +106,7 @@ class HwHashConsistencyTest : public HwLinkStateDependentTest {
       case FlowType::UDP:
         return isSai ? udpPortsForSai_[index] : udpPorts_[index];
     }
+    return {};
   }
   std::pair<uint16_t, uint16_t> getFlowPort(int index, FlowType type) const {
     auto isSai = getHwSwitchEnsemble()->isSai();
@@ -227,13 +228,13 @@ class HwHashConsistencyTest : public HwLinkStateDependentTest {
 };
 
 TEST_F(HwHashConsistencyTest, TcpEgressLinks) {
-  auto setup = [=]() {
+  auto setup = [this]() {
     setupHashAndProgramRoute();
     for (auto i = 0; i < kEcmpWidth4; i++) {
       resolveNhop(i /* ith nhop */, true /* resolve */);
     }
   };
-  auto verify = [=]() {
+  auto verify = [this]() {
     for (auto i = 0; i < kEcmpWidth4; i++) {
       clearPortStats();
       sendFlow(i /* flow i */, FlowType::TCP);
@@ -244,12 +245,12 @@ TEST_F(HwHashConsistencyTest, TcpEgressLinks) {
 }
 
 TEST_F(HwHashConsistencyTest, TcpEgressLinksOnEcmpExpand) {
-  auto setup = [=]() {
+  auto setup = [this]() {
     setupHashAndProgramRoute();
     resolveNhop(0 /* nhop0 */, true /* resolve */);
     resolveNhop(1 /* nhop1 */, true /* resolve */);
   };
-  auto verify = [=]() {
+  auto verify = [this]() {
     clearPortStats();
     sendFlow(0 /* flow 0 */, FlowType::TCP);
     sendFlow(1 /* flow 0 */, FlowType::TCP);
@@ -274,13 +275,13 @@ TEST_F(HwHashConsistencyTest, TcpEgressLinksOnEcmpExpand) {
 }
 
 TEST_F(HwHashConsistencyTest, UdpEgressLinks) {
-  auto setup = [=]() {
+  auto setup = [this]() {
     setupHashAndProgramRoute();
     for (auto i = 0; i < kEcmpWidth4; i++) {
       resolveNhop(i /* ith nhop */, true /* resolve */);
     }
   };
-  auto verify = [=]() {
+  auto verify = [this]() {
     for (auto i = 0; i < kEcmpWidth4; i++) {
       clearPortStats();
       sendFlow(i /* ith flow  */, FlowType::UDP);
@@ -291,12 +292,12 @@ TEST_F(HwHashConsistencyTest, UdpEgressLinks) {
 }
 
 TEST_F(HwHashConsistencyTest, UdpEgressLinksOnEcmpExpand) {
-  auto setup = [=]() {
+  auto setup = [this]() {
     setupHashAndProgramRoute();
     resolveNhop(0 /* nhop0 */, true /* resolve */);
     resolveNhop(1 /* nhop0 */, true /* resolve */);
   };
-  auto verify = [=]() {
+  auto verify = [this]() {
     clearPortStats();
     sendFlow(0 /* flow 0 */, FlowType::UDP);
     sendFlow(1 /* flow 0 */, FlowType::UDP);
@@ -321,8 +322,8 @@ TEST_F(HwHashConsistencyTest, UdpEgressLinksOnEcmpExpand) {
 }
 
 TEST_F(HwHashConsistencyTest, VerifyMemberOrderEffect) {
-  auto setup = [=]() { setupHashAndProgramRoute(); };
-  auto verify = [=]() {
+  auto setup = [this]() { setupHashAndProgramRoute(); };
+  auto verify = [this]() {
     for (auto i = 0; i < 4; i++) {
       resolveNhop(i /* nhop0 */, true /* resolve */);
     }

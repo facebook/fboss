@@ -102,10 +102,10 @@ std::map<int32_t, PortInfoThrift> createTestPortEntries() {
   tcvr4.transceiverId() = 2;
   portEntry4.transceiverIdx() = tcvr3;
 
-  portMap[portEntry1.get_portId()] = portEntry1;
-  portMap[portEntry2.get_portId()] = portEntry2;
-  portMap[portEntry3.get_portId()] = portEntry3;
-  portMap[portEntry4.get_portId()] = portEntry4;
+  portMap[folly::copy(portEntry1.portId().value())] = portEntry1;
+  portMap[folly::copy(portEntry2.portId().value())] = portEntry2;
+  portMap[folly::copy(portEntry3.portId().value())] = portEntry3;
+  portMap[folly::copy(portEntry4.portId().value())] = portEntry4;
   return portMap;
 }
 

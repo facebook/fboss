@@ -55,8 +55,8 @@ void AgentEnsembleTest::setupAgentEnsemble(bool disableLinkStateToggler) {
 void AgentEnsembleTest::setCmdLineFlagOverrides() const {
   // Looped ports are the common case in tests
   FLAGS_disable_looped_fabric_ports = false;
-  // Set HW agent connection timeout to 120 seconds
-  FLAGS_hw_agent_connection_timeout_ms = 120000;
+  // Set HW agent connection timeout to 130 seconds
+  FLAGS_hw_agent_connection_timeout_ms = 130000;
 }
 
 void AgentEnsembleTest::TearDown() {

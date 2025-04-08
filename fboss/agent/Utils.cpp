@@ -11,6 +11,7 @@
 
 #include <sys/resource.h>
 #include <sys/syscall.h>
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/FsdbHelper.h"
@@ -543,12 +544,22 @@ std::optional<PortID> getInterfacePortToReach(
     const std::shared_ptr<SwitchState>& state,
     const folly::IPAddress& ipAddr) {
   auto intf = state->getInterfaces()->getIntfToReach(RouterID(0), ipAddr);
-  if (intf) {
-    CHECK(intf->getSystemPortID().has_value());
-    return getPortID(*intf->getSystemPortID(), state);
+  if (!intf) {
+    return std::nullopt;
   }
-
-  return std::nullopt;
+  auto intfType = intf->getType();
+  std::optional<PortID> port{};
+  switch (intfType) {
+    case cfg::InterfaceType::VLAN:
+      break;
+    case cfg::InterfaceType::SYSTEM_PORT:
+      port = getPortID(intf->getSystemPortID().value(), state);
+      break;
+    case cfg::InterfaceType::PORT:
+      port = intf->getPortID();
+      break;
+  }
+  return port;
 }
 
 bool isAnyInterfacePortInLoopbackMode(
@@ -1077,7 +1088,8 @@ getPlatformMappingForPlatformType(
     }
     case facebook::fboss::PlatformType::PLATFORM_JANGA800BIC: {
       static facebook::fboss::Janga800bicPlatformMapping janga800bic{
-          true /*multiNpuPlatformMapping*/};
+          !FLAGS_type_dctype1_janga /*multiNpuPlatformMapping*/
+      };
       return &janga800bic;
     }
     default:

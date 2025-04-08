@@ -55,12 +55,15 @@ if (SAI_TAJO_IMPL)
     fboss/agent/hw/sai/switch/npu/tajo/SaiTamManager.cpp
     fboss/agent/hw/sai/switch/npu/tajo/SaiPortManager.cpp
     fboss/agent/hw/sai/switch/npu/tajo/SaiAclTableManager.cpp
+    fboss/agent/hw/sai/switch/oss/SaiArsProfileManager.cpp
+    fboss/agent/hw/sai/switch/oss/SaiArsManager.cpp
     fboss/agent/hw/sai/switch/oss/SaiSwitchManager.cpp
     fboss/agent/hw/sai/switch/oss/SaiQueueManager.cpp
     fboss/agent/hw/sai/switch/oss/SaiVendorSwitchManager.cpp
   )
 elseif (SAI_BRCM_IMPL)
   list(APPEND SAI_SWITCH_SRC
+    fboss/agent/hw/sai/switch/npu/bcm/SaiArsManager.cpp
     fboss/agent/hw/sai/switch/npu/bcm/SaiSwitch.cpp
     fboss/agent/hw/sai/switch/npu/bcm/SaiTamManager.cpp
     fboss/agent/hw/sai/switch/npu/bcm/SaiPortManager.cpp
@@ -68,11 +71,15 @@ elseif (SAI_BRCM_IMPL)
     fboss/agent/hw/sai/switch/npu/bcm/SaiSwitchManager.cpp
     fboss/agent/hw/sai/switch/npu/bcm/oss/SaiSwitchManager.cpp
     fboss/agent/hw/sai/switch/oss/SaiAclTableManager.cpp
+    fboss/agent/hw/sai/switch/oss/SaiArsProfileManager.cpp
     fboss/agent/hw/sai/switch/oss/SaiVendorSwitchManager.cpp
   )
 elseif (CHENAB_SAI_SDK)
 # Chenab-TODO: Use non-default files here
   list(APPEND SAI_SWITCH_SRC
+    fboss/agent/hw/sai/switch/npu/chenab/SaiArsProfileManager.cpp
+    fboss/agent/hw/sai/switch/npu/chenab/SaiArsManager.cpp
+    fboss/agent/hw/sai/switch/npu/chenab/SaiPortManager.cpp
     fboss/agent/hw/sai/switch/oss/SaiSwitch.cpp
     fboss/agent/hw/sai/switch/oss/SaiTamManager.cpp
     fboss/agent/hw/sai/switch/oss/SaiPortManager.cpp
@@ -83,6 +90,8 @@ elseif (CHENAB_SAI_SDK)
   )
 else()
   list(APPEND SAI_SWITCH_SRC
+    fboss/agent/hw/sai/switch/oss/SaiArsProfileManager.cpp
+    fboss/agent/hw/sai/switch/oss/SaiArsManager.cpp
     fboss/agent/hw/sai/switch/oss/SaiSwitch.cpp
     fboss/agent/hw/sai/switch/oss/SaiTamManager.cpp
     fboss/agent/hw/sai/switch/oss/SaiPortManager.cpp

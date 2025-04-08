@@ -72,6 +72,7 @@ std::optional<TimePoint> readAndRemoveTimePointFile(
 
   std::string out;
   if (folly::readFile(path.begin(), out)) {
+    XLOG(INFO) << "Read contents " << path;
     ret = TimePoint() + std::chrono::milliseconds(std::stol(out));
   } else {
     XLOG(DBG3) << "Failed to read contents " << path;
@@ -185,6 +186,8 @@ class RestartTimeTracker {
   }
 
   std::optional<TimePoint> create(RestartEvent type) {
+    XLOG(INFO) << "Creating event: " << to_string(type);
+
     switch (type) {
       case RestartEvent::PARENT_PROCESS_STARTED:
         return processStartTime(getppid());

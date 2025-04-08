@@ -110,8 +110,10 @@ std::vector<sai_int32_t> SaiAclTableManager::getActionTypeList(
       actionTypeList.push_back(SAI_ACL_ACTION_TYPE_SET_USER_TRAP_ID);
     }
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
-    if (platform_->getAsic()->isSupported(HwAsic::Feature::FLOWLET) &&
-        FLAGS_flowletSwitchingEnable) {
+    if (platform_->getAsic()->isSupported(HwAsic::Feature::ARS)) {
+      if (isChenab) {
+        actionTypeList.push_back(SAI_ACL_ACTION_TYPE_SET_ARS_OBJECT);
+      }
       actionTypeList.push_back(SAI_ACL_ACTION_TYPE_DISABLE_ARS_FORWARDING);
     }
 #endif
@@ -149,9 +151,23 @@ std::
 
   auto actionTypeList = getActionTypeList(addedAclTable);
 
+  // Log action type list to help debug warmboot test failure
+  // TODO(maxgg): Remove when no longer needed
+  std::stringstream actionTypeStr;
+  for (sai_int32_t actionType : actionTypeList) {
+    actionTypeStr << actionType << ", ";
+  }
+  XLOG(DBG2) << "actionTypeList: " << actionTypeStr.str();
+
   auto qualifierSet = getQualifierSet(aclStage, addedAclTable);
-  auto qualifierExistsFn = [qualifierSet](cfg::AclTableQualifier qualifier) {
-    return qualifierSet.find(qualifier) != qualifierSet.end();
+  auto qualifierExistsFn = [=](cfg::AclTableQualifier qualifier) {
+    auto exists = qualifierSet.find(qualifier) != qualifierSet.end();
+    if (exists) {
+      XLOG(DBG2) << "Qualifier "
+                 << apache::thrift::util::enumNameSafe(qualifier)
+                 << " exists in ACL table " << addedAclTable->getID();
+    }
+    return exists;
   };
 
   std::vector<std::optional<sai_object_id_t>> udfGroupIds(
@@ -187,8 +203,8 @@ std::
       qualifierExistsFn(cfg::AclTableQualifier::IP_TYPE),
       qualifierExistsFn(cfg::AclTableQualifier::TTL),
       qualifierExistsFn(cfg::AclTableQualifier::LOOKUP_CLASS_L2),
-      qualifierExistsFn(cfg::AclTableQualifier::LOOKUP_CLASS_NEIGHBOR),
       qualifierExistsFn(cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE),
+      qualifierExistsFn(cfg::AclTableQualifier::LOOKUP_CLASS_NEIGHBOR),
       qualifierExistsFn(cfg::AclTableQualifier::ETHER_TYPE),
       qualifierExistsFn(cfg::AclTableQualifier::OUTER_VLAN),
 #if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_24_8_3001)

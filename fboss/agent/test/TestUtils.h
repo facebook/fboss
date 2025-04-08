@@ -209,13 +209,6 @@ void waitForNeighborCacheThread(SwSwitch* sw);
 void waitForRibUpdates(SwSwitch* sw);
 
 /*
- * Update Blocked Neighbors list and wait for updates
- */
-void updateBlockedNeighbor(
-    SwSwitch* sw,
-    const std::vector<std::pair<VlanID, folly::IPAddress>>& ipAddresses);
-
-/*
  * Update Blocked MAC addr list and wait for updates
  */
 void updateMacAddrsToBlock(
@@ -359,6 +352,16 @@ inline RouteNextHopSet makeNextHops(const std::vector<AddrT>& ips) {
 RouteNextHopSet makeResolvedNextHops(
     std::vector<std::pair<InterfaceID, std::string>> intfAndIP,
     uint32_t weight = ECMP_WEIGHT);
+
+ResolvedNextHop makeResolvedNextHop(
+    const InterfaceID& intfId,
+    const std::string& nhip,
+    uint32_t weight = 1,
+    std::optional<int> planeId = std::nullopt,
+    std::optional<int> rackId = std::nullopt,
+    std::optional<int> remoteCapacity = std::nullopt,
+    std::optional<int> spineCapacity = std::nullopt,
+    std::optional<int> rackCapacity = std::nullopt);
 
 RoutePrefixV4 makePrefixV4(std::string str);
 

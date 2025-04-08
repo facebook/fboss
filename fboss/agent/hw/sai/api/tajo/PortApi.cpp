@@ -80,6 +80,11 @@ SaiPortTraits::Attributes::AttributeReachabilityGroup::operator()() {
 }
 
 std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeFecErrorDetectEnable::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
 SaiPortSerdesTraits::Attributes::AttributeTxDiffEncoderEnWrapper::operator()() {
   RETURN_SUPPORTED_ATTR(SAI_PORT_SERDES_ATTR_EXT_TX_DIFF_ENCODER_EN);
 }

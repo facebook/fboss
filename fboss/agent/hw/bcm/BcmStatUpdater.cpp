@@ -306,9 +306,10 @@ double BcmStatUpdater::calculateLaneRate(std::shared_ptr<Port> swPort) {
         apache::thrift::util::enumNameSafe(profileID));
   }
 
-  auto portSpeed = static_cast<int>((*portProfileConfig).get_speed());
+  auto portSpeed =
+      static_cast<int>(folly::copy((*portProfileConfig).speed().value()));
   auto fecType = utility::phyFecModeToBcmPortPhyFec(
-      (*portProfileConfig).get_iphy().get_fec());
+      folly::copy((*portProfileConfig).iphy().value().fec().value()));
   auto numLanes = platformPortConfig->second.pins()->iphy()->size();
 
   double laneRateGb;

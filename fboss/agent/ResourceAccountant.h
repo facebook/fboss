@@ -17,7 +17,6 @@
 
 #include <gtest/gtest.h>
 
-DECLARE_int32(max_l2_entries);
 DECLARE_bool(intf_nbr_tables);
 
 namespace facebook::fboss {
@@ -71,6 +70,8 @@ class ResourceAccountant {
   std::optional<uint32_t> getMaxNeighborTableSize(
       SwitchID switchId,
       uint8_t resourcePercentage);
+  template <typename TableT>
+  uint32_t getMaxNeighborTableSize();
   SwitchID getSwitchIdFromNeighborEntry(
       std::shared_ptr<SwitchState> newState,
       const auto& nbrEntry);

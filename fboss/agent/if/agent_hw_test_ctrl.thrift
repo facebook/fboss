@@ -122,4 +122,9 @@ service AgentHwTestCtrl {
 
   // Flowlet utils
   void updateFlowletStats();
+
+  // PtcTc utils
+  bool getPtpTcEnabled();
+
+  void clearInterfacePhyCounters(1: list<i32> portIds);
 }

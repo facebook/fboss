@@ -143,4 +143,30 @@ void checkFabricPortsActiveState(
     }
   });
 }
+
+void setupFecErrorDetectEnable(
+    AgentEnsemble* ensemble,
+    bool fecErrorDetectEnable) {
+  auto newCfg = ensemble->getSw()->getConfig();
+  for (auto& port : *newCfg.ports()) {
+    if (port.portType() == cfg::PortType::FABRIC_PORT) {
+      port.fecErrorDetectEnable() = fecErrorDetectEnable;
+    }
+  }
+  ensemble->applyNewConfig(newCfg);
+}
+
+void validateFecErrorDetectInState(
+    const SwitchState* switchState,
+    bool fecErrorDetectEnable) {
+  for (const auto& portMap : std::as_const(*switchState->getPorts())) {
+    for (const auto& port : std::as_const(*portMap.second)) {
+      if (port.second->getPortType() == cfg::PortType::FABRIC_PORT) {
+        EXPECT_EQ(
+            *port.second->getFecErrorDetectEnable(), fecErrorDetectEnable);
+      }
+    }
+  }
+}
+
 } // namespace facebook::fboss::utility

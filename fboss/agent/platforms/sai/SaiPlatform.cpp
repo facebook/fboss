@@ -25,7 +25,6 @@
 #include "fboss/agent/platforms/sai/SaiBcmWedge100PlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmWedge400PlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmYampPlatformPort.h"
-#include "fboss/agent/platforms/sai/SaiCloudRipperPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiElbert8DDPhyPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiFakePlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiJanga800bicPlatformPort.h"
@@ -59,6 +58,11 @@ DEFINE_bool(
     enable_delay_drop_congestion_threshold,
     false,
     "Enable new delay drop congestion threshold in CGM");
+
+DEFINE_int32(
+    pfc_watchdog_timer_granularity_msec,
+    10,
+    "PFC watchdog timer granularity which can be 1ms, 10ms or 100ms");
 
 namespace {
 
@@ -336,11 +340,6 @@ void SaiPlatform::initPorts() {
         platformMode == PlatformType::PLATFORM_WEDGE400C_VOQ ||
         platformMode == PlatformType::PLATFORM_WEDGE400C_FABRIC) {
       saiPort = std::make_unique<SaiWedge400CPlatformPort>(portId, this);
-    } else if (
-        platformMode == PlatformType::PLATFORM_CLOUDRIPPER ||
-        platformMode == PlatformType::PLATFORM_CLOUDRIPPER_VOQ ||
-        platformMode == PlatformType::PLATFORM_CLOUDRIPPER_FABRIC) {
-      saiPort = std::make_unique<SaiCloudRipperPlatformPort>(portId, this);
     } else if (platformMode == PlatformType::PLATFORM_WEDGE100) {
       saiPort = std::make_unique<SaiBcmWedge100PlatformPort>(portId, this);
     } else if (
@@ -442,7 +441,10 @@ SaiPlatform::findPortIDAndProfiles(
     }
   }
   throw FbossError(
-      "platform port not found ", (PortID)portSaiId, " speed: ", (int)speed);
+      "platform port not found ",
+      (PortID)portSaiId,
+      " speed: ",
+      static_cast<int>(speed));
 }
 
 std::vector<SaiPlatformPort*> SaiPlatform::getPortsWithTransceiverID(
@@ -774,6 +776,27 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
 #endif
   }
 
+  std::optional<SaiSwitchTraits::Attributes::PfcTcDldTimerGranularityInterval>
+      pfcWatchdogTimerGranularyMap;
+#if defined(BRCM_SAI_SDK_XGS) && defined(BRCM_SAI_SDK_GTE_11_0)
+  // We need to set the watchdog granularity to an appropriate value, otherwise
+  // the default granularity in SAI/SDK may be incompatible with the requested
+  // watchdog intervals. Auto-derivation is being requested in CS00012393810.
+  std::vector<sai_map_t> mapToValueList(
+      cfg::switch_config_constants::PFC_PRIORITY_VALUE_MAX() + 1);
+  for (int pri = 0;
+       pri <= cfg::switch_config_constants::PFC_PRIORITY_VALUE_MAX();
+       pri++) {
+    sai_map_t mapping{};
+    mapping.key = pri;
+    mapping.value = FLAGS_pfc_watchdog_timer_granularity_msec;
+    mapToValueList.at(pri) = mapping;
+  }
+  pfcWatchdogTimerGranularyMap =
+      SaiSwitchTraits::Attributes::PfcTcDldTimerGranularityInterval{
+          mapToValueList};
+#endif
+
   return {
       initSwitch,
       hwInfo, // hardware info
@@ -794,6 +817,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       std::nullopt, // qos tc to exp map
       macAgingTime,
       std::nullopt, // ingress acl
+      std::nullopt, // egress acl
       aclFieldList,
       std::nullopt, // tam object list
       useEcnThresholds,
@@ -858,6 +882,8 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       sflowNofSamples, // Sflow aggr number of samples
       std::nullopt, // SDK Register dump log path
       std::nullopt, // Firmware Object list
+      std::nullopt, // tc rate limit list
+      pfcWatchdogTimerGranularyMap, // PFC watchdog timer granularity
   };
 }
 

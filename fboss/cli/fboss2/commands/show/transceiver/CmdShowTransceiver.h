@@ -69,7 +69,7 @@ class CmdShowTransceiver
     outTable.setHeader(
         {"Interface",
          "Status",
-         "Present",
+         "Transceiver",
          "CfgValidated",
          "Reason",
          "Vendor",
@@ -84,29 +84,34 @@ class CmdShowTransceiver
          "Rx Power (dBm)",
          "Rx SNR"});
 
-    for (const auto& [portId, details] : model.get_transceivers()) {
+    for (const auto& [portId, details] : model.transceivers().value()) {
       outTable.addRow({
-          details.get_name(),
-          statusToString(details.get_isUp()),
-          (details.get_isPresent()) ? "Present" : "Absent",
-          details.get_validationStatus(),
-          details.get_notValidatedReason(),
-          details.get_vendor(),
-          details.get_serial(),
-          details.get_partNumber(),
-          details.get_appFwVer(),
-          details.get_dspFwVer(),
+          details.name().value(),
+          statusToString(folly::copy(details.isUp().value())),
+          (folly::copy(details.isPresent().value()))
+              ? apache::thrift::util::enumNameSafe(
+                    details.mediaInterface().value())
+              : "Absent",
+          details.validationStatus().value(),
+          details.notValidatedReason().value(),
+          details.vendor().value(),
+          details.serial().value(),
+          details.partNumber().value(),
+          details.appFwVer().value(),
+          details.dspFwVer().value(),
           coloredSensorValue(
-              fmt::format("{:.2f}", details.get_temperature()),
-              details.get_tempFlags()),
+              fmt::format("{:.2f}", folly::copy(details.temperature().value())),
+              details.tempFlags().value()),
           coloredSensorValue(
-              fmt::format("{:.2f}", details.get_voltage()),
-              details.get_vccFlags()),
+              fmt::format("{:.2f}", folly::copy(details.voltage().value())),
+              details.vccFlags().value()),
           listToString(
-              details.get_currentMA(), LOW_CURRENT_WARN, LOW_CURRENT_ERR),
-          listToString(details.get_txPower(), LOW_POWER_WARN, LOW_POWER_ERR),
-          listToString(details.get_rxPower(), LOW_POWER_WARN, LOW_POWER_ERR),
-          listToString(details.get_rxSnr(), LOW_SNR_WARN, LOW_SNR_ERR),
+              details.currentMA().value(), LOW_CURRENT_WARN, LOW_CURRENT_ERR),
+          listToString(
+              details.txPower().value(), LOW_POWER_WARN, LOW_POWER_ERR),
+          listToString(
+              details.rxPower().value(), LOW_POWER_WARN, LOW_POWER_ERR),
+          listToString(details.rxSnr().value(), LOW_SNR_WARN, LOW_SNR_ERR),
       });
     }
     out << outTable << std::endl;
@@ -135,7 +140,7 @@ class CmdShowTransceiver
     std::map<int, PortInfoThrift> filteredPortEntries;
     for (auto const& [portId, portInfo] : portEntries) {
       for (auto const& queriedPort : queriedPorts) {
-        if (portInfo.get_name() == queriedPort) {
+        if (portInfo.name().value() == queriedPort) {
           filteredPortEntries.emplace(portId, portInfo);
         }
       }
@@ -172,9 +177,12 @@ class CmdShowTransceiver
   }
 
   Table::StyledCell coloredSensorValue(std::string value, FlagLevels flags) {
-    if (flags.get_alarm().get_high() || flags.get_alarm().get_low()) {
+    if (folly::copy(flags.alarm().value().high().value()) ||
+        folly::copy(flags.alarm().value().low().value())) {
       return Table::StyledCell(value, Table::Style::ERROR);
-    } else if (flags.get_warn().get_high() || flags.get_warn().get_low()) {
+    } else if (
+        folly::copy(flags.warn().value().high().value()) ||
+        folly::copy(flags.warn().value().low().value())) {
       return Table::StyledCell(value, Table::Style::WARN);
     } else {
       return Table::StyledCell(value, Table::Style::GOOD);
@@ -200,7 +208,8 @@ class CmdShowTransceiver
     std::vector<int32_t> requiredTransceiverEntries;
     for (const auto& portStatusItr : portStatusEntries) {
       if (auto tidx = portStatusItr.second.transceiverIdx()) {
-        requiredTransceiverEntries.push_back(tidx->get_transceiverId());
+        requiredTransceiverEntries.push_back(
+            folly::copy(tidx->transceiverId().value()));
       }
     }
 
@@ -216,7 +225,8 @@ class CmdShowTransceiver
     std::vector<int32_t> requiredTransceiverEntries;
     for (const auto& portStatusItr : portStatusEntries) {
       if (auto tidx = portStatusItr.second.transceiverIdx()) {
-        requiredTransceiverEntries.push_back(tidx->get_transceiverId());
+        requiredTransceiverEntries.push_back(
+            folly::copy(tidx->transceiverId().value()));
       }
     }
 
@@ -252,32 +262,49 @@ class CmdShowTransceiver
 
     for (const auto& [portId, portEntry] : portStatusEntries) {
       cli::TransceiverDetail details;
-      details.name() = portEntries[portId].get_name();
+      details.name() = portEntries[portId].name().value();
       if (!portEntry.transceiverIdx().has_value()) {
         // No transceiver information for this port. Skip printing
         continue;
       }
       const auto transceiverId =
-          portEntry.transceiverIdx()->get_transceiverId();
+          folly::copy(portEntry.transceiverIdx()->transceiverId().value());
       const auto& transceiver = transceiverEntries[transceiverId];
       const auto& tcvrState = *transceiver.tcvrState();
       const auto& tcvrStats = *transceiver.tcvrStats();
-      details.isUp() = portEntry.get_up();
-      details.isPresent() = tcvrState.get_present();
+      details.isUp() = folly::copy(portEntry.up().value());
+      details.isPresent() = folly::copy(tcvrState.present().value());
+      details.mediaInterface() = tcvrState.moduleMediaInterface().value_or({});
       const auto& validationStringPair = getTransceiverValidationStrings(
           transceiverValidationEntries, transceiverId);
       details.validationStatus() = validationStringPair.first;
       details.notValidatedReason() = validationStringPair.second;
       if (const auto& vendor = tcvrState.vendor()) {
-        details.vendor() = vendor->get_name();
-        details.serial() = vendor->get_serialNumber();
-        details.partNumber() = vendor->get_partNumber();
-        details.temperature() = tcvrStats.get_sensor()->get_temp().get_value();
-        details.voltage() = tcvrStats.get_sensor()->get_vcc().get_value();
-        details.tempFlags() =
-            tcvrStats.get_sensor()->get_temp().flags().value_or({});
-        details.vccFlags() =
-            tcvrStats.get_sensor()->get_vcc().flags().value_or({});
+        details.vendor() = vendor->name().value();
+        details.serial() = vendor->serialNumber().value();
+        details.partNumber() = vendor->partNumber().value();
+        details.temperature() =
+            folly::copy(apache::thrift::get_pointer(tcvrStats.sensor())
+                            ->temp()
+                            .value()
+                            .value()
+                            .value());
+        details.voltage() =
+            folly::copy(apache::thrift::get_pointer(tcvrStats.sensor())
+                            ->vcc()
+                            .value()
+                            .value()
+                            .value());
+        details.tempFlags() = apache::thrift::get_pointer(tcvrStats.sensor())
+                                  ->temp()
+                                  .value()
+                                  .flags()
+                                  .value_or({});
+        details.vccFlags() = apache::thrift::get_pointer(tcvrStats.sensor())
+                                 ->vcc()
+                                 .value()
+                                 .flags()
+                                 .value_or({});
 
         if (const auto& moduleStatus = tcvrState.status()) {
           if (const auto& fwStatus = moduleStatus->fwStatus()) {
@@ -289,13 +316,13 @@ class CmdShowTransceiver
         std::vector<double> txPower;
         std::vector<double> rxPower;
         std::vector<double> rxSnr;
-        for (const auto& channel : tcvrStats.get_channels()) {
+        for (const auto& channel : tcvrStats.channels().value()) {
           // Check if the transceiverInfo is updated to have the
           // portNameToMediaLanes field
           if (tcvrStats.portNameToMediaLanes().is_set()) {
             // Need to filter out the lanes for this specific port
             auto portToLaneMapIt = tcvrStats.portNameToMediaLanes()->find(
-                portEntries[portId].get_name());
+                portEntries[portId].name().value());
             // If the port in question exists in the map and if the
             // channel number is not in the list, skip printing information
             // about this channel
@@ -303,17 +330,25 @@ class CmdShowTransceiver
                 std::find(
                     portToLaneMapIt->second.begin(),
                     portToLaneMapIt->second.end(),
-                    channel.get_channel()) == portToLaneMapIt->second.end()) {
+                    folly::copy(channel.channel().value())) ==
+                    portToLaneMapIt->second.end()) {
               continue;
             }
             // If the port doesn't exist in the map, it's likely not configured
             // yet. Display all channels in this case
           }
-          current.push_back(channel.get_sensors().get_txBias().get_value());
-          txPower.push_back(channel.get_sensors().get_txPwrdBm()->get_value());
-          rxPower.push_back(channel.get_sensors().get_rxPwrdBm()->get_value());
-          if (const auto& snr = channel.get_sensors().rxSnr()) {
-            rxSnr.push_back(snr->get_value());
+          current.push_back(folly::copy(
+              channel.sensors().value().txBias().value().value().value()));
+          txPower.push_back(folly::copy(
+              apache::thrift::get_pointer(channel.sensors().value().txPwrdBm())
+                  ->value()
+                  .value()));
+          rxPower.push_back(folly::copy(
+              apache::thrift::get_pointer(channel.sensors().value().rxPwrdBm())
+                  ->value()
+                  .value()));
+          if (const auto& snr = channel.sensors().value().rxSnr()) {
+            rxSnr.push_back(folly::copy(snr->value().value()));
           }
         }
         details.currentMA() = current;
@@ -322,7 +357,7 @@ class CmdShowTransceiver
         details.rxSnr() = rxSnr;
       }
       model.transceivers()->emplace(
-          portEntries[portId].get_name(), std::move(details));
+          portEntries[portId].name().value(), std::move(details));
     }
 
     return model;

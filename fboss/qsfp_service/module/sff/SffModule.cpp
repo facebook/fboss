@@ -332,6 +332,7 @@ Vendor SffModule::getVendorInfo() {
 Cable SffModule::getCableInfo() {
   Cable cable = Cable();
   cable.transmitterTech() = getQsfpTransmitterTechnology();
+  cable.mediaTypeEncoding() = MediaTypeEncodings::OPTICAL_SMF;
 
   cable.singleMode() = getQsfpCableLength(SffField::LENGTH_SM_KM);
   if (cable.singleMode().value_or({}) == 0) {
@@ -358,6 +359,9 @@ Cable SffModule::getCableInfo() {
     // TODO: migrate all cable types
     return cable;
   }
+
+  // For now, we only have passive copper SFF cables.
+  cable.mediaTypeEncoding() = MediaTypeEncodings::PASSIVE_CU;
 
   auto overrideDacCableInfo = getDACCableOverride();
   if (overrideDacCableInfo) {
@@ -1253,9 +1257,9 @@ void SffModule::setPowerOverrideIfSupportedLocked(
 
   QSFP_LOG(DBG1, this) << "Power control "
                        << apache::thrift::util::enumNameSafe(currentState)
-                       << " Ext ID " << std::hex << (int)*extId
-                       << " Ethernet compliance " << std::hex << (int)*ether
-                       << " Desired power control "
+                       << " Ext ID " << std::hex << static_cast<int>(*extId)
+                       << " Ethernet compliance " << std::hex
+                       << static_cast<int>(*ether) << " Desired power control "
                        << apache::thrift::util::enumNameSafe(desiredSetting);
 
   if (currentState == desiredSetting) {

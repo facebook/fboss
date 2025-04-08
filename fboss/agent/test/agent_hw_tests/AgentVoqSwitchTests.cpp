@@ -233,7 +233,7 @@ SystemPortID AgentVoqSwitchTest::getSystemPortID(
 
 void AgentVoqSwitchTest::addDscpAclWithCounter() {
   auto newCfg = initialConfig(*getAgentEnsemble());
-  auto* acl = utility::addAcl(&newCfg, kDscpAclName());
+  auto* acl = utility::addAcl_DEPRECATED(&newCfg, kDscpAclName());
   auto asic = utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
   acl->dscp() = 0x24;
   utility::addEtherTypeToAcl(asic, acl, cfg::EtherType::IPv6);
@@ -245,16 +245,21 @@ void AgentVoqSwitchTest::addDscpAclWithCounter() {
   applyNewConfig(newCfg);
 }
 
-void AgentVoqSwitchTest::addRemoveNeighbor(PortDescriptor port, bool add) {
+void AgentVoqSwitchTest::addRemoveNeighbor(
+    PortDescriptor port,
+    NeighborOp operation) {
   utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
-  if (add) {
-    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
-      return ecmpHelper.resolveNextHops(in, {port});
-    });
-  } else {
-    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
-      return ecmpHelper.unresolveNextHops(in, {port});
-    });
+  switch (operation) {
+    case NeighborOp::ADD:
+      applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+        return ecmpHelper.resolveNextHops(in, {port});
+      });
+      break;
+    case NeighborOp::DEL:
+      applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+        return ecmpHelper.unresolveNextHops(in, {port});
+      });
+      break;
   }
 }
 
@@ -342,9 +347,9 @@ TEST_F(AgentVoqSwitchTest, addRemoveNeighbor) {
     const PortDescriptor kPortDesc(getAgentEnsemble()->masterLogicalPortIds(
         {cfg::PortType::INTERFACE_PORT})[0]);
     // Add neighbor
-    addRemoveNeighbor(kPortDesc, true);
+    addRemoveNeighbor(kPortDesc, NeighborOp::ADD);
     // Remove neighbor
-    addRemoveNeighbor(kPortDesc, false);
+    addRemoveNeighbor(kPortDesc, NeighborOp::DEL);
   };
   verifyAcrossWarmBoots(setup, [] {});
 }
@@ -357,7 +362,7 @@ TEST_F(AgentVoqSwitchTest, sendPacketCpuAndFrontPanel) {
     if (isSupportedOnAllAsics(HwAsic::Feature::ACL_TABLE_GROUP)) {
       addDscpAclWithCounter();
     }
-    addRemoveNeighbor(kPortDesc, true /* add neighbor*/);
+    addRemoveNeighbor(kPortDesc, NeighborOp::ADD);
   };
 
   auto verify = [this, kPortDesc, ecmpHelper]() {
@@ -365,19 +370,24 @@ TEST_F(AgentVoqSwitchTest, sendPacketCpuAndFrontPanel) {
                                              bool isFrontPanel) {
       auto getPortOutPktsBytes = [this](PortID port) {
         return std::make_pair(
-            getLatestPortStats(port).get_outUnicastPkts_(),
-            getLatestPortStats(port).get_outBytes_());
+            folly::copy(getLatestPortStats(port).outUnicastPkts_().value()),
+            folly::copy(getLatestPortStats(port).outBytes_().value()));
       };
 
       auto getAllQueueOutPktsBytes = [kPortDesc, this]() {
         return std::make_pair(
-            getLatestPortStats(kPortDesc.phyPortID()).get_queueOutPackets_(),
-            getLatestPortStats(kPortDesc.phyPortID()).get_queueOutBytes_());
+            folly::copy(getLatestPortStats(kPortDesc.phyPortID())
+                            .queueOutPackets_()
+                            .value()),
+            folly::copy(getLatestPortStats(kPortDesc.phyPortID())
+                            .queueOutBytes_()
+                            .value()));
       };
       auto getAllVoQOutBytes = [kPortDesc, this]() {
-        return getLatestSysPortStats(
-                   getSystemPortID(kPortDesc, cfg::Scope::GLOBAL))
-            .get_queueOutBytes_();
+        return folly::copy(getLatestSysPortStats(
+                               getSystemPortID(kPortDesc, cfg::Scope::GLOBAL))
+                               .queueOutBytes_()
+                               .value());
       };
       auto getAclPackets = [this]() {
         return utility::getAclInOutPackets(getSw(), kDscpAclCounterName());
@@ -621,13 +631,13 @@ TEST_F(AgentVoqSwitchTest, localForwardingPostIsolate) {
     *newCfg.switchSettings()->switchDrainState() =
         cfg::SwitchDrainState::DRAINED;
     applyNewConfig(newCfg);
-    addRemoveNeighbor(kPortDesc, true /* add neighbor*/);
+    addRemoveNeighbor(kPortDesc, NeighborOp::ADD);
   };
 
   auto verify = [this, kPortDesc, &ecmpHelper]() {
     auto sendPktAndVerify = [&](std::optional<PortID> portToSendFrom) {
-      auto beforePkts =
-          getLatestPortStats(kPortDesc.phyPortID()).get_outUnicastPkts_();
+      auto beforePkts = folly::copy(
+          getLatestPortStats(kPortDesc.phyPortID()).outUnicastPkts_().value());
       sendPacket(ecmpHelper.ip(kPortDesc), portToSendFrom);
       WITH_RETRIES({
         auto afterPkts =
@@ -653,12 +663,12 @@ TEST_F(AgentVoqSwitchTest, stressLocalForwardingPostIsolate) {
     *newCfg.switchSettings()->switchDrainState() =
         cfg::SwitchDrainState::DRAINED;
     applyNewConfig(newCfg);
-    addRemoveNeighbor(kPortDesc, true /* add neighbor*/);
+    addRemoveNeighbor(kPortDesc, NeighborOp::ADD);
   };
 
   auto verify = [this, kPortDesc, &ecmpHelper]() {
-    auto beforePkts =
-        getLatestPortStats(kPortDesc.phyPortID()).get_outUnicastPkts_();
+    auto beforePkts = folly::copy(
+        getLatestPortStats(kPortDesc.phyPortID()).outUnicastPkts_().value());
     for (auto i = 0; i < 10000; ++i) {
       // CPU send
       sendPacket(ecmpHelper.ip(kPortDesc), std::nullopt);
@@ -701,7 +711,7 @@ TEST_F(AgentVoqSwitchTest, localSystemPortEcmp) {
 TEST_F(AgentVoqSwitchTest, packetIntegrityError) {
   utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
   auto port = ecmpHelper.ecmpPortDescriptorAt(0);
-  auto setup = [=, this]() { addRemoveNeighbor(port, true /*add*/); };
+  auto setup = [=, this]() { addRemoveNeighbor(port, NeighborOp::ADD); };
   auto verify = [=, this]() {
     const auto dstIp = ecmpHelper.ip(port);
     auto switchId = scopeResolver().scope(port.phyPortID()).switchId();
@@ -712,14 +722,18 @@ TEST_F(AgentVoqSwitchTest, packetIntegrityError) {
           "m SPB_FORCE_CRC_ERROR FORCE_CRC_ERROR_ON_DATA=1 FORCE_CRC_ERROR_ON_CRC=1\n",
           out);
     } else if (switchAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
-      getAgentEnsemble()->runDiagCommand(
-          "m IRE_FORCE_CRC_ERROR FORCE_CRC_ERROR_ON_CRC=1\n", out);
+      for (const auto& switchIdx : getSw()->getHwAsicTable()->getSwitchIDs()) {
+        getAgentEnsemble()->runDiagCommand(
+            "m IRE_FORCE_CRC_ERROR FORCE_CRC_ERROR_ON_CRC=1\n", out, switchIdx);
+      }
     } else {
       throw FbossError(
           "Unsupported ASIC type: ",
           apache::thrift::util::enumNameSafe(switchAsic->getAsicType()));
     }
-    getAgentEnsemble()->runDiagCommand("quit\n", out);
+    for (const auto& switchIdx : getSw()->getHwAsicTable()->getSwitchIDs()) {
+      getAgentEnsemble()->runDiagCommand("quit\n", out, switchIdx);
+    }
     sendPacket(dstIp, std::nullopt, std::vector<uint8_t>(1024, 0xff));
     WITH_RETRIES({
       auto switchIndex =
@@ -754,7 +768,7 @@ TEST_F(AgentVoqSwitchTest, dramEnqueueDequeueBytes) {
   utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
   const auto kPortDesc = ecmpHelper.ecmpPortDescriptorAt(0);
   auto setup = [this, kPortDesc]() {
-    addRemoveNeighbor(kPortDesc, true /* add neighbor*/);
+    addRemoveNeighbor(kPortDesc, NeighborOp::ADD);
   };
 
   auto verify = [this, kPortDesc, &ecmpHelper]() {
@@ -812,7 +826,7 @@ TEST_F(AgentVoqSwitchTest, verifyQueueLatencyWatermark) {
         kRemoteL2VoqMaxExpectedLatencyNsec;
     cfg.switchSettings()->voqOutOfBoundsLatencyNsec() = kOutOfBoundsLatencyNsec;
     applyNewConfig(cfg);
-    addRemoveNeighbor(kPortDesc, true /* add neighbor*/);
+    addRemoveNeighbor(kPortDesc, NeighborOp::ADD);
   };
 
   auto verify = [&]() {

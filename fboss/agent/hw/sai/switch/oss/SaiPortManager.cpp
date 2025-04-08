@@ -4,9 +4,9 @@
 
 namespace facebook::fboss {
 
-void SaiPortManager::addRemovedHandle(PortID /*portID*/) {}
+void SaiPortManager::addRemovedHandle(const PortID& /*portID*/) {}
 
-void SaiPortManager::removeRemovedHandleIf(PortID /*portID*/) {}
+void SaiPortManager::removeRemovedHandleIf(const PortID& /*portID*/) {}
 
 bool SaiPortManager::checkPortSerdesAttributes(
     const SaiPortSerdesTraits::CreateAttributes& fromStore,
@@ -20,5 +20,9 @@ void SaiPortManager::changePortByRecreate(
   removePort(oldPort);
   addPort(newPort);
 }
+
+void SaiPortManager::changePortFlowletConfig(
+    const std::shared_ptr<Port>& /* unused */,
+    const std::shared_ptr<Port>& /* unused */) {}
 
 } // namespace facebook::fboss

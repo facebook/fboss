@@ -59,7 +59,7 @@ class CmdShowHardwareTestFixture : public testing::Test {
 TEST_F(CmdShowHardwareTestFixture, createModel) {
   auto cmd = CmdShowHardware();
   auto model = cmd.createModel(hardwareEntries, product);
-  auto entries = model.get_modules();
+  auto entries = model.modules().value();
 
   EXPECT_EQ(entries.size(), 4);
 

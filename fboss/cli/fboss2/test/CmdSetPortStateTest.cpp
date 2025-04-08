@@ -37,9 +37,9 @@ std::map<int32_t, PortInfoThrift> createEntriesSetPortState() {
   portEntry3.name() = "eth1/5/3";
   portEntry3.adminState() = PortAdminState::ENABLED;
 
-  portMap[portEntry1.get_portId()] = portEntry1;
-  portMap[portEntry2.get_portId()] = portEntry2;
-  portMap[portEntry3.get_portId()] = portEntry3;
+  portMap[folly::copy(portEntry1.portId().value())] = portEntry1;
+  portMap[folly::copy(portEntry2.portId().value())] = portEntry2;
+  portMap[folly::copy(portEntry3.portId().value())] = portEntry3;
   return portMap;
 }
 

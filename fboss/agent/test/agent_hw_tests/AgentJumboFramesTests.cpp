@@ -60,7 +60,7 @@ class AgentJumboFramesTest : public AgentHwTest {
     auto setup = [=, this]() {
       utility::EcmpSetupAnyNPorts6 ecmpHelper(
           getProgrammedState(), RouterID(0));
-      resolveNeigborAndProgramRoutes(ecmpHelper, 1);
+      resolveNeighborAndProgramRoutes(ecmpHelper, 1);
     };
 
     auto verify = [=, this]() {

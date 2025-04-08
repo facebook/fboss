@@ -2,8 +2,10 @@
 #include "fboss/agent/test/AgentEnsemble.h"
 
 namespace {
-const int kNumOfMacs = 1024;
-}
+// tomahawk can only do 128 macs per second
+// tomahawk4 1024 macs per second
+const int kNumOfMacsFlooding = 128;
+} // namespace
 
 DECLARE_bool(intf_nbr_tables);
 
@@ -22,10 +24,9 @@ class MacLearningFloodHelper {
     macTableFlushIntervalMs_ =
         std::chrono::milliseconds(macTableFlushIntervalMs);
     vlan_ = vlan;
-    for (int i = 0; i < kNumOfMacs; i++) {
+    for (int i = 0; i < kNumOfMacsFlooding; i++) {
       // randomly generate mac address
-      uint64_t bytes = 0xFEEEC2000000;
-      macs_.push_back(folly::MacAddress::fromHBO(bytes + i));
+      macs_.push_back(folly::MacAddress::fromHBO(macBase_ + i));
     }
   }
   ~MacLearningFloodHelper() {
@@ -33,20 +34,22 @@ class MacLearningFloodHelper {
     if (done_) {
       return;
     }
-    stopClearMacTable();
+    stopChurnMacTable();
   }
-  void startClearMacTable();
+  void startChurnMacTable();
 
-  void stopClearMacTable();
+  void stopChurnMacTable();
 
  protected:
   void macFlap();
-  void clearMacTable();
+  void clearMacEntries();
   void sendMacTestTraffic();
   AgentEnsemble* ensemble_;
   PortID srcPortID_;
   PortID dstPortID_;
   VlanID vlan_;
+  uint64_t macBase_ = 0xFEEEC2000010;
+  bool ifCleanMacTable_;
   std::vector<folly::MacAddress> macs_;
   std::thread clearMacTableThread_;
   std::atomic<bool> done_ = true;
