@@ -27,6 +27,7 @@ cpp_library(
     name = "standalone_rib",
     srcs = [
         "ConfigApplier.cpp",
+        "RibRouteWeightNormalizer.cpp",
         "RouteUpdater.cpp",
         "RoutingInformationBase.cpp",
     ],
