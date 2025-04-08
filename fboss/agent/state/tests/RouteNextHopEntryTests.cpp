@@ -62,6 +62,42 @@ const folly::IPAddress nextHopAddr8 =
 // Unlike other variables, it's not const so that it can be sorted
 // in unit tests.
 std::vector<NextHop> nextHops = {
+    ResolvedNextHop(
+        nextHopAddr1,
+        InterfaceID(1),
+        ECMP_WEIGHT,
+        std::nullopt /*label*/,
+        false, /*disableTTLdecrement*/
+        1, /*planeId*/
+        3, /*remotePodCapacity*/
+        4, /*spineCapacity*/
+        5, /*rackCapacity*/
+        2, /*rackId*/
+        0 /*adjustedWeight*/),
+    UnresolvedNextHop(
+        nextHopAddr2,
+        ECMP_WEIGHT,
+        std::nullopt, /*label*/
+        false, /*disableTTLdecrement*/
+        1, /*planeId*/
+        3, /*remotePodCapacity*/
+        4, /*spineCapacity*/
+        5, /*rackCapacity*/
+        2, /*rackId*/
+        0 /*adjustedWeight*/),
+    UnresolvedNextHop(
+        nextHopAddr3,
+        ECMP_WEIGHT,
+        std::nullopt, /*label*/
+        false, /*disableTTLdecrement*/
+        1, /*planeId*/
+        3, /*remotePodCapacity*/
+        4, /*spineCapacity*/
+        5, /*rackCapacity*/
+        2, /*rackId*/
+        0 /*adjustedWeight*/)};
+
+std::vector<NextHop> nextHopsFromBinary = {
     ResolvedNextHop(nextHopAddr1, InterfaceID(1), ECMP_WEIGHT),
     UnresolvedNextHop(nextHopAddr2, ECMP_WEIGHT),
     UnresolvedNextHop(nextHopAddr3, ECMP_WEIGHT)};
@@ -90,6 +126,13 @@ std::vector<NextHopThrift> nextHopsThrift() {
     NextHopThrift nexthop;
     *nexthop.address() = createV6LinkLocalNextHop(addr);
     *nexthop.weight() = static_cast<int32_t>(ECMP_WEIGHT);
+    nexthop.disableTTLDecrement() = false;
+    nexthop.planeId() = 1;
+    nexthop.rackId() = 2;
+    nexthop.remotePodCapacity() = 3;
+    nexthop.spineCapacity() = 4;
+    nexthop.rackCapacity() = 5;
+    nexthop.adjustedWeight() = 0;
     nexthops.emplace_back(std::move(nexthop));
   }
   return nexthops;
@@ -152,12 +195,12 @@ TEST(RouteNextHopEntry, FromBinaryAddresses) {
   ASSERT_EQ(nextHopEntry.getCounterID(), counterID);
   ASSERT_EQ(nextHopEntry.getClassID(), classID);
 
-  std::sort(nextHops.begin(), nextHops.end());
+  std::sort(nextHopsFromBinary.begin(), nextHopsFromBinary.end());
   auto nextHopEntryNextHops = nextHopEntry.getNextHopSet();
   ASSERT_TRUE(std::equal(
       nextHopEntryNextHops.begin(),
       nextHopEntryNextHops.end(),
-      nextHops.begin()));
+      nextHopsFromBinary.begin()));
 }
 
 TEST(RouteNextHopEntry, OverrideDefaultAdminDistance) {
