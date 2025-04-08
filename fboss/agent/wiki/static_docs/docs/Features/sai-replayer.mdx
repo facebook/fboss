@@ -78,16 +78,14 @@ Logging for `send_hostif_packet` API is disabled by default for performance conc
 
 SAI Replayer generates C++ code by default. It is used to build buck target since main and helper functions are already defined in [Main.cpp](https://www.internalfb.com/intern/diffusion/FBS/browsefile/master/fbcode/fboss/agent/hw/sai/tracer/run/Main.cpp). Take the generated code and replace the content in [SaiLog.cpp](https://www.internalfb.com/intern/diffusion/FBS/browse/master/fbcode/fboss/agent/hw/sai/tracer/run/SaiLog.cpp). Then build the buck target, depending on the Sai implementation and sdk version - `//fboss/agent/hw/sai/tracer/run:sai_replayer-{impl}-{sdk_version}`.
 
-For example, use the following command for broadcom sai implementation.
-
+For example, use the following command for the broadcom sai implementation:
 ```bash
 export sdkVersion=brcm-5.1.0.1_odp
-buck build @mode/dbg //fboss/agent/hw/sai/tracer/run:sai_replayer-${sdkVersion}
+buck2 build --show-output @//mode/opt //fboss/agent/hw/sai/tracer/run:sai_replayer-${sdkVersion}
 ```
 The built binary can be copied to the test switch to replay SAI API calls. See appendix for building Sai Replayer code in C with gcc.
 
-For example,
-
+For example:
 ```bash
 export testSwitch=rsw1at.12.prn3
 scp buck-out/gen/fboss/agent/hw/sai/tracer/run/sai_replayer-${sdkVersion} root@$testSwitch
@@ -174,7 +172,7 @@ export testSwitch=rsw1at.12.prn3
 
 # Build and copy SAI test to test switch
 cd /data/users/$(whoami)/fbsource/fbcode
-buck build @mode/opt //fboss/agent/hw/sai/hw_test:sai_test-${sdkVersion}
+buck2 build --show-output @//mode/opt //fboss/agent/hw/sai/hw_test:sai_test-${sdkVersion}
 rsync -avz --progress buck-out/gen/fboss/agent/hw/sai/hw_test/sai_test-${sdkVersion} root@$testSwitch:/root
 
 # Run test to generate replay log
@@ -182,7 +180,7 @@ ssh root@$testSwitch ./sai_test-${sdkVersion} --config /root/wedge100_alpm.agent
 
 # Copy the log to devserver and build
 rsync -avz --progress root@$testSwitch:/tmp/sai_log.c fboss/agent/hw/sai/tracer/run/SaiLog.cpp
-buck build @mode/opt //fboss/agent/hw/sai/tracer/run:sai_replayer-${sdkVersion}
+buck2 build --show-output @//mode/opt //fboss/agent/hw/sai/tracer/run:sai_replayer-${sdkVersion}
 
 # Copy the built log file and run
 rsync -avz --progress buck-out/gen/fboss/agent/hw/sai/tracer/run/sai_replayer-${sdkVersion} root@$testSwitch:/root
