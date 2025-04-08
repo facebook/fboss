@@ -19,7 +19,7 @@ As a successor of BcmCinter, SAI Replayer is designed to be vendor-agnostic. It 
 
 The original design of SAI Replayer was to use linker wrap to intercept SAI API calls and then perform logging in the wrap function. However, we soon realized that the `sai_api_query()` returns a struct of function pointers instead of well-defined functions in the [interface](https://github.com/opencomputeproject/SAI/blob/master/inc/saiacl.h#L3216). Linker is not able to wrap these function pointers returned at runtime.
 
-![](https://lookaside.internalfb.com/intern/pixelcloudnew/asset/?id=980779499035662)
+![SAI API query diagram](https://lookaside.internalfb.com/intern/pixelcloudnew/asset/?id=980779499035662)
 Therefore, we use a combination of link wrapper and wrapped function pointers to enable SAI API logging. First, `sai_api_query()` is intercepted by the linker wrap, and before giving FBOSS the real function pointers from SAI implementation, we replace those function pointers with locally defined wrapped functions, such as
 
 ```cpp
@@ -191,7 +191,9 @@ ssh root@$testSwitch ./sai_replayer-${sdkVersion}
 # Clean up generated SaiLog.cpp
 hg revert fboss/agent/hw/sai/tracer/run/SaiLog.cpp
 ```
-![](https://lookaside.internalfb.com/intern/pixelcloudnew/asset/?id=217259949715833)
+
+![Diagram of switch state transitions](https://lookaside.internalfb.com/intern/pixelcloudnew/asset/?id=217259949715833)
+
 #### NetCastle job
 
 The verification tests are automated by the NetCastle [sai_replayer_test](https://fburl.com/tests/ra08snjb). Specifically, it does the following steps
