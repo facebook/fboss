@@ -2244,7 +2244,7 @@
           "test_name_regex": "HwAsicDefaultProgrammingTest.*$"
         }
     ],
-    "chenab/1.15.3/1.15.3/chenab": [
+    "chenab/1.15.7/1.15.7/chenab": [
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*HwTest_PROFILE_400G_8_PAM4_RS544X2N_COPPER"
         },
