@@ -60,7 +60,7 @@ Sai Replayer is enabled on all Sai switches in prod. For running tests with Sai 
 
 ### Tradeoffs
 
-Enabling Sai Replayer would consume disk space and disk I/O because of the extra logging at runtime. However, we’ve conducted extensive experiments to reduce runtime impact and limit disk space consumtion. See wiki for `Async Logger <https://www.internalfb.com/intern/wiki/Fboss/wiki/async_logger/>_` for more details.
+Enabling Sai Replayer would consume disk space and disk I/O because of the extra logging at runtime. However, we’ve conducted extensive experiments to reduce runtime impact and limit disk space consumtion. See wiki for [Async Logger](https://www.internalfb.com/intern/wiki/Fboss/wiki/async_logger/) for more details.
 
 ## Usecase
 
@@ -68,15 +68,15 @@ Sai Replayer captures all SAI APIs at runtime and auto-generates C++ code that e
 
 ## Configeration
 
-To enable logging for SAI Replayer, simply pass the flag `--enable_replayer` to the wedge agent binary or test binary. Once enabled, the generated C++ code can be found under ‘/var/facebook/logs/fboss/sdk/sai_replayer.log’, which can be compiled using buck build.
+To enable logging for SAI Replayer, simply pass the flag `--enable_replayer` to the wedge agent binary or test binary. Once enabled, the generated C++ code can be found under `/var/facebook/logs/fboss/sdk/sai_replayer.log`, which can be compiled using buck build.
 
-Logging for ‘send_hostif_packet’ API is disabled by default for performance concern, due to the overhead for logging each sent packet to the dataplane. However, if it is needed for certain scenarios, such as the verification test for port blackholing, use the flag `--enable_packet_log` to log the send packet API (be mindful that by enabling this flag, logging would introduce significant I/O overhead at runtime and a much larger SAI Replayer code).
+Logging for `send_hostif_packet` API is disabled by default for performance concern, due to the overhead for logging each sent packet to the dataplane. However, if it is needed for certain scenarios, such as the verification test for port blackholing, use the flag `--enable_packet_log` to log the send packet API (be mindful that by enabling this flag, logging would introduce significant I/O overhead at runtime and a much larger SAI Replayer code).
 
 ## Build and Test
 
 ### Compilation with buck
 
-SAI Replayer generates C++ code by default. It is used to build buck target since main and helper functions are already defined in [Main.cpp](https://www.internalfb.com/intern/diffusion/FBS/browsefile/master/fbcode/fboss/agent/hw/sai/tracer/run/Main.cpp). Take the generated code and replace the content in [SaiLog.cpp](https://www.internalfb.com/intern/diffusion/FBS/browse/master/fbcode/fboss/agent/hw/sai/tracer/run/SaiLog.cpp). Then build the buck target, depending on the Sai implementation and sdk version - ‘//fboss/agent/hw/sai/tracer/run:sai_replayer-{impl}-{sdk_version}’.
+SAI Replayer generates C++ code by default. It is used to build buck target since main and helper functions are already defined in [Main.cpp](https://www.internalfb.com/intern/diffusion/FBS/browsefile/master/fbcode/fboss/agent/hw/sai/tracer/run/Main.cpp). Take the generated code and replace the content in [SaiLog.cpp](https://www.internalfb.com/intern/diffusion/FBS/browse/master/fbcode/fboss/agent/hw/sai/tracer/run/SaiLog.cpp). Then build the buck target, depending on the Sai implementation and sdk version - `//fboss/agent/hw/sai/tracer/run:sai_replayer-{impl}-{sdk_version}`.
 
 For example, use the following command for broadcom sai implementation.
 
