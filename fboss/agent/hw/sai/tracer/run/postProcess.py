@@ -89,7 +89,7 @@ def init_argparser():
     parser.add_argument(
         "-i",
         "--input",
-        help="Input directory with SaiLog.cpp and run.bzl files. Default: "
+        help="Input directory with SaiLog.cpp and optional run.bzl file. Default: "
         + DEFAULT_INPUT_DIR,
         nargs="?",
         default=DEFAULT_INPUT_DIR,
