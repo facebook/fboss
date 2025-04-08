@@ -15,8 +15,11 @@ using namespace facebook::fboss;
 
 class RibRouteWeightNormalizerTest : public RibRouteWeightNormalizer {
  public:
-  RibRouteWeightNormalizerTest(int numRacks, int numPlanePathsPerRack)
-      : RibRouteWeightNormalizer(numRacks, numPlanePathsPerRack) {}
+  RibRouteWeightNormalizerTest(
+      int numRacks,
+      int numPlanePathsPerRack,
+      int rackId = 0)
+      : RibRouteWeightNormalizer(numRacks, numPlanePathsPerRack, rackId) {}
 };
 
 TEST(RibRouteWeightNormalizerTest, GetNumPathsToPruneForZeroFailures) {

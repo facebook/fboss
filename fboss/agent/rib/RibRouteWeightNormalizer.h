@@ -12,19 +12,27 @@
 
 #include <vector>
 
+#include "fboss/agent/state/RouteNextHopEntry.h"
+
 using RackId = int;
+using PlaneId = int;
 
 namespace facebook::fboss {
 
 class RibRouteWeightNormalizer {
  public:
-  RibRouteWeightNormalizer(int numRacks, int numPlanePathsPerRack);
+  RibRouteWeightNormalizer(int numRacks, int numPlanePathsPerRack, int rackId);
   virtual ~RibRouteWeightNormalizer() = default;
   int getNumPathsToPrune(int numFailures, RackId dstRack, RackId srcRack);
+  RouteNextHopSet getNormalizedNexthops(RouteNextHopSet& nhop);
+
+ protected:
+  void normalizeWeightsForNexthops(std::vector<ResolvedNextHop>& nhs);
 
  private:
   int numRacks_;
   int numPlanePathsPerRack_;
+  int rackId_;
   /* num failures to number of paths to be pruned for dest, src rack id */
   std::vector<std::vector<std::vector<int>>> pruneLookupTable_;
 };
