@@ -1,11 +1,8 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
-// clang-format off
-#include "fboss/agent/hw/sai/store/SaiStore.h"
-#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/sai/switch/SaiVendorSwitchManager.h"
+#include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
-// clang-format on
 
 namespace facebook::fboss {
 
