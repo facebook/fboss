@@ -19,6 +19,20 @@ struct ClientInformation {
   2: optional fbstring hostname;
 }
 
+// The field names are kept consistent with configerator/source/neteng/bgp_policy/thrift/nsf_policy.thrift
+struct NetworkTopologyInformation {
+  // identifier
+  1: optional i32 rack_id;
+  2: optional i32 plane_id;
+  // capacity
+  3: optional i32 remote_rack_capacity;
+  4: optional i32 spine_capacity;
+  5: optional i32 local_rack_capacity;
+  // NOTE: when BGP populates these fields, there will be two cases:
+  // (a) 1, 2, 3, 4
+  // (b) 1, 2, 5
+}
+
 struct NextHopThrift {
   1: Address.BinaryAddress address;
   // Default weight of 0 represents an ECMP route.
@@ -36,7 +50,7 @@ struct NextHopThrift {
   4: optional bool disableTTLDecrement;
 
   /**
-  * For capturing remote capacity information to assist Agent path pruning decisions
+  * For capturing topology information to assist Agent path pruning decisions
   */
   10: optional i32 planeId;
   11: optional i32 remotePodCapacity;
@@ -44,6 +58,7 @@ struct NextHopThrift {
   13: optional i32 rackCapacity;
   14: optional i32 rackId;
   15: optional i32 adjustedWeight;
+  16: optional NetworkTopologyInformation topologyInfo;
 }
 
 /*
