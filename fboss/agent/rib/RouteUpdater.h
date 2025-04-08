@@ -13,8 +13,11 @@
 #include "fboss/agent/types.h"
 
 #include "fboss/agent/rib/NetworkToRouteMap.h"
+#include "fboss/agent/rib/RibRouteWeightNormalizer.h"
 
 #include <folly/IPAddress.h>
+
+DECLARE_bool(enable_capacity_pruning);
 
 namespace facebook::fboss {
 
@@ -165,6 +168,11 @@ class RibRouteUpdater {
       const std::optional<LabelForwardingAction>& labelAction,
       bool* hasToCpu,
       bool* hasDrop,
+      const std::optional<int>& rackId,
+      const std::optional<int>& planeId,
+      const std::optional<int>& remotePodCapacity,
+      const std::optional<int>& spineCapacity,
+      const std::optional<int>& rackCapacity,
       RouteNextHopSet& fwd);
 
   template <typename AddressT>
@@ -183,6 +191,7 @@ class RibRouteUpdater {
    * cache resolution
    */
   std::map<RouteNextHopSet, RouteNextHopSet> unresolvedToResolvedNhops_;
+  RibRouteWeightNormalizer weightNormalizer_;
 };
 
 } // namespace facebook::fboss
