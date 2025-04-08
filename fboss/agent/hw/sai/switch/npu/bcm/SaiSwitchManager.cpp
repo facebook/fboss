@@ -1,10 +1,8 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
-#include "fboss/agent/hw/HwSwitchFb303Stats.h"
 
-#include <folly/File.h>
-#include <folly/FileUtil.h>
+#include "fboss/agent/hw/HwSwitchFb303Stats.h"
 
 extern "C" {
 #ifndef IS_OSS_BRCM_SAI
@@ -116,39 +114,4 @@ void fillHwSwitchErrorStats(
     }
   }
 }
-
-void switchPreInitSequence(HwAsic* asic) {
-  // Below sequence is to avoid traffic drops on FE13 in 2-stage
-  // on drain/undrain as reported in S503928.
-  if ((asic->getSwitchType() != cfg::SwitchType::FABRIC) ||
-      (asic->getFabricNodeRole() != HwAsic::FabricNodeRole::DUAL_STAGE_L1)) {
-    return;
-  }
-  const std::string kSaiPostInitCmdFileContent{
-      "s RTP_GRACEFUL_POWER_DOWN_CONFIGURATION 0\n"};
-  const std::string kSaiPostInitCmdFilePath{"/tmp/sai_postinit_cmd_file.soc"};
-  // Create a single file irrespective of the number of processes!
-  try {
-    folly::File file(kSaiPostInitCmdFilePath, O_WRONLY | O_CREAT | O_EXCL);
-    if (folly::writeFull(
-            file.fd(),
-            kSaiPostInitCmdFileContent.c_str(),
-            kSaiPostInitCmdFileContent.size()) == -1) {
-      XLOG(ERR) << "Error writing to " << kSaiPostInitCmdFilePath
-                << ", errno: " << errno;
-      return;
-    }
-    // Make sure that the file is in the disk as its needed post SAI/SDK init
-    fsync(file.fd());
-    XLOG(DBG2) << "Created soc file " << kSaiPostInitCmdFilePath;
-  } catch (const std::system_error& e) {
-    if (e.code().value() == EEXIST) {
-      XLOG(DBG2) << "File " << kSaiPostInitCmdFilePath << " already exists!";
-    } else {
-      XLOG(ERR) << "Error creating file: " << kSaiPostInitCmdFilePath << ", "
-                << e.what();
-    }
-  }
-}
-
 } // namespace facebook::fboss

@@ -29,6 +29,5 @@ void fillHwSwitchErrorStats(
     HwSwitchDropStats& /*dropStats*/) {
   CHECK_EQ(counterId2Value.size(), 0);
 }
-void switchPreInitSequence(HwAsic* /*asic*/) {}
 
 } // namespace facebook::fboss
