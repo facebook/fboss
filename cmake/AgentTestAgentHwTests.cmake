@@ -72,6 +72,7 @@ add_library(agent_hw_test_src
   fboss/agent/test/agent_hw_tests/AgentHwParityErrorTests.cpp
   fboss/agent/test/agent_hw_tests/AgentTrafficPfcTests.cpp
   fboss/agent/test/agent_hw_tests/AgentIpInIpTunnelTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentHwPtpTcTests.cpp
 )
 
 target_link_libraries(agent_hw_test_src
