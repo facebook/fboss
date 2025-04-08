@@ -68,6 +68,30 @@ struct INextHop {
       return folly::poly_call<4>(*this);
     }
 
+    std::optional<int32_t> planeId() const {
+      return folly::poly_call<5>(*this);
+    }
+
+    std::optional<int32_t> remotePodCapacity() const {
+      return folly::poly_call<6>(*this);
+    }
+
+    std::optional<int32_t> spineCapacity() const {
+      return folly::poly_call<7>(*this);
+    }
+
+    std::optional<int32_t> rackCapacity() const {
+      return folly::poly_call<8>(*this);
+    }
+
+    std::optional<int32_t> rackId() const {
+      return folly::poly_call<9>(*this);
+    }
+
+    std::optional<NextHopWeight> adjustedWeight() const {
+      return folly::poly_call<10>(*this);
+    }
+
     bool isResolved() const {
       return intfID().has_value();
     }
@@ -109,6 +133,24 @@ struct INextHop {
       if (auto value = disableTTLDecrement()) {
         nht.disableTTLDecrement() = value.value();
       }
+      if (auto value = planeId()) {
+        nht.planeId() = value.value();
+      }
+      if (auto value = remotePodCapacity()) {
+        nht.remotePodCapacity() = value.value();
+      }
+      if (auto value = spineCapacity()) {
+        nht.spineCapacity() = value.value();
+      }
+      if (auto value = rackCapacity()) {
+        nht.rackCapacity() = value.value();
+      }
+      if (auto value = rackId()) {
+        nht.rackId() = value.value();
+      }
+      if (auto value = adjustedWeight()) {
+        nht.adjustedWeight() = value.value();
+      }
       return nht;
     }
 
@@ -130,7 +172,13 @@ struct INextHop {
       &T::addr,
       &T::weight,
       &T::labelForwardingAction,
-      &T::disableTTLDecrement);
+      &T::disableTTLDecrement,
+      &T::planeId,
+      &T::remotePodCapacity,
+      &T::spineCapacity,
+      &T::rackCapacity,
+      &T::rackId,
+      &T::adjustedWeight);
 };
 
 using NextHop = folly::Poly<INextHop>;
@@ -152,23 +200,47 @@ class ResolvedNextHop {
       InterfaceID intfID,
       const NextHopWeight& weight,
       const std::optional<LabelForwardingAction>& action = std::nullopt,
-      const std::optional<bool>& disableTTLDecrement = std::nullopt)
+      const std::optional<bool>& disableTTLDecrement = std::nullopt,
+      const std::optional<int32_t>& planeId = std::nullopt,
+      const std::optional<int32_t>& remotePodCapacity = std::nullopt,
+      const std::optional<int32_t>& spineCapacity = std::nullopt,
+      const std::optional<int32_t>& rackCapacity = std::nullopt,
+      const std::optional<int32_t>& rackId = std::nullopt,
+      const std::optional<NextHopWeight>& adjustedWeight = std::nullopt)
       : addr_(addr),
         intfID_(intfID),
         weight_(weight),
         labelForwardingAction_(action),
-        disableTTLDecrement_(disableTTLDecrement) {}
+        disableTTLDecrement_(disableTTLDecrement),
+        planeId_(planeId),
+        remotePodCapacity_(remotePodCapacity),
+        spineCapacity_(spineCapacity),
+        rackCapacity_(rackCapacity),
+        rackId_(rackId),
+        adjustedWeight_(adjustedWeight) {}
   ResolvedNextHop(
       folly::IPAddress&& addr,
       InterfaceID intfID,
       const NextHopWeight& weight,
       std::optional<LabelForwardingAction>&& action = std::nullopt,
-      std::optional<bool>&& disableTTLDecrement = std::nullopt)
+      std::optional<bool>&& disableTTLDecrement = std::nullopt,
+      const std::optional<int32_t>& planeId = std::nullopt,
+      const std::optional<int32_t>& remotePodCapacity = std::nullopt,
+      const std::optional<int32_t>& spineCapacity = std::nullopt,
+      const std::optional<int32_t>& rackCapacity = std::nullopt,
+      const std::optional<int32_t>& rackId = std::nullopt,
+      const std::optional<NextHopWeight>& adjustedWeight = std::nullopt)
       : addr_(std::move(addr)),
         intfID_(intfID),
         weight_(weight),
         labelForwardingAction_(std::move(action)),
-        disableTTLDecrement_(std::move(disableTTLDecrement)) {}
+        disableTTLDecrement_(disableTTLDecrement),
+        planeId_(planeId),
+        remotePodCapacity_(remotePodCapacity),
+        spineCapacity_(spineCapacity),
+        rackCapacity_(rackCapacity),
+        rackId_(rackId),
+        adjustedWeight_(adjustedWeight) {}
   std::optional<InterfaceID> intfID() const {
     return intfID_;
   }
@@ -189,12 +261,66 @@ class ResolvedNextHop {
     disableTTLDecrement_ = disableTTLDecrement;
   }
 
+  std::optional<NextHopWeight> adjustedWeight() const {
+    return adjustedWeight_;
+  }
+
+  void setAdjustedWeight(std::optional<NextHopWeight> weight) {
+    adjustedWeight_ = weight;
+  }
+
+  std::optional<int32_t> planeId() const {
+    return planeId_;
+  }
+
+  void setPlaneId(std::optional<int32_t> planeId) {
+    planeId_ = planeId;
+  }
+
+  std::optional<int32_t> remotePodCapacity() const {
+    return remotePodCapacity_;
+  }
+
+  void setRemotePodCapacity(std::optional<int32_t> remotePodCapacity) {
+    remotePodCapacity_ = remotePodCapacity;
+  }
+
+  std::optional<int32_t> spineCapacity() const {
+    return spineCapacity_;
+  }
+
+  void setSpineCapacity(std::optional<int32_t> spineCapacity) {
+    spineCapacity_ = spineCapacity;
+  }
+
+  std::optional<int32_t> rackCapacity() const {
+    return rackCapacity_;
+  }
+
+  void setRackCapacity(std::optional<int32_t> rackCapacity) {
+    rackCapacity_ = rackCapacity;
+  }
+
+  std::optional<int32_t> rackId() const {
+    return rackId_;
+  }
+
+  void setRackId(std::optional<int32_t> rackId) {
+    rackId_ = rackId;
+  }
+
  private:
   folly::IPAddress addr_;
   InterfaceID intfID_;
   NextHopWeight weight_;
   std::optional<LabelForwardingAction> labelForwardingAction_;
   std::optional<bool> disableTTLDecrement_{};
+  std::optional<int32_t> planeId_{};
+  std::optional<int32_t> remotePodCapacity_{};
+  std::optional<int32_t> spineCapacity_{};
+  std::optional<int32_t> rackCapacity_{};
+  std::optional<int32_t> rackId_{};
+  std::optional<NextHopWeight> adjustedWeight_{};
 };
 
 bool operator==(const ResolvedNextHop& a, const ResolvedNextHop& b);
@@ -204,11 +330,25 @@ class UnresolvedNextHop {
   UnresolvedNextHop(
       const folly::IPAddress& addr,
       const NextHopWeight& weight,
-      const std::optional<LabelForwardingAction>& action = std::nullopt);
+      const std::optional<LabelForwardingAction>& action = std::nullopt,
+      const std::optional<bool>& disableTTLDecrement = std::nullopt,
+      const std::optional<int32_t>& planeId = std::nullopt,
+      const std::optional<int32_t>& remotePodCapacity = std::nullopt,
+      const std::optional<int32_t>& spineCapacity = std::nullopt,
+      const std::optional<int32_t>& rackCapacity = std::nullopt,
+      const std::optional<int32_t>& rackId = std::nullopt,
+      const std::optional<NextHopWeight>& adjustedWeight = std::nullopt);
   UnresolvedNextHop(
       folly::IPAddress&& addr,
       const NextHopWeight& weight,
-      std::optional<LabelForwardingAction>&& action = std::nullopt);
+      std::optional<LabelForwardingAction>&& action = std::nullopt,
+      std::optional<bool>&& disableTTLDecrement = std::nullopt,
+      const std::optional<int32_t>& planeId = std::nullopt,
+      const std::optional<int32_t>& remotePodCapacity = std::nullopt,
+      const std::optional<int32_t>& spineCapacity = std::nullopt,
+      const std::optional<int32_t>& rackCapacity = std::nullopt,
+      const std::optional<int32_t>& rackId = std::nullopt,
+      const std::optional<NextHopWeight>& adjustedWeight = std::nullopt);
   std::optional<InterfaceID> intfID() const {
     return std::nullopt;
   }
@@ -222,13 +362,38 @@ class UnresolvedNextHop {
     return labelForwardingAction_;
   }
   std::optional<bool> disableTTLDecrement() const {
-    return std::nullopt;
+    return disableTTLDecrement_;
+  }
+  std::optional<int32_t> planeId() const {
+    return planeId_;
+  }
+  std::optional<int32_t> remotePodCapacity() const {
+    return remotePodCapacity_;
+  }
+  std::optional<int32_t> spineCapacity() const {
+    return spineCapacity_;
+  }
+  std::optional<int32_t> rackCapacity() const {
+    return rackCapacity_;
+  }
+  std::optional<int32_t> rackId() const {
+    return rackId_;
+  }
+  std::optional<NextHopWeight> adjustedWeight() const {
+    return adjustedWeight_;
   }
 
  private:
   folly::IPAddress addr_;
   NextHopWeight weight_;
   std::optional<LabelForwardingAction> labelForwardingAction_;
+  std::optional<bool> disableTTLDecrement_{};
+  std::optional<int32_t> planeId_{};
+  std::optional<int32_t> remotePodCapacity_{};
+  std::optional<int32_t> spineCapacity_{};
+  std::optional<int32_t> rackCapacity_{};
+  std::optional<int32_t> rackId_{};
+  std::optional<NextHopWeight> adjustedWeight_{};
 };
 
 bool operator==(const UnresolvedNextHop& a, const UnresolvedNextHop& b);

@@ -42,6 +42,8 @@ struct NextHopThrift {
   11: optional i32 remotePodCapacity;
   12: optional i32 spineCapacity;
   13: optional i32 rackCapacity;
+  14: optional i32 rackId;
+  15: optional i32 adjustedWeight;
 }
 
 /*

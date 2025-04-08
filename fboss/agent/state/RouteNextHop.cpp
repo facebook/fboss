@@ -27,6 +27,30 @@ NextHop fromThrift(const NextHopThrift& nht, bool allowV6NonLinkLocal) {
   if (nht.disableTTLDecrement()) {
     disableTTLDecrement = *nht.disableTTLDecrement();
   }
+  std::optional<NextHopWeight> adjustedWeight = std::nullopt;
+  if (nht.adjustedWeight()) {
+    adjustedWeight = *nht.adjustedWeight();
+  }
+  std::optional<int32_t> planeId = std::nullopt;
+  if (nht.planeId()) {
+    planeId = *nht.planeId();
+  }
+  std::optional<int32_t> remotePodCapacity = std::nullopt;
+  if (nht.remotePodCapacity()) {
+    remotePodCapacity = *nht.remotePodCapacity();
+  }
+  std::optional<int32_t> spineCapacity = std::nullopt;
+  if (nht.spineCapacity()) {
+    spineCapacity = *nht.spineCapacity();
+  }
+  std::optional<int32_t> rackCapacity = std::nullopt;
+  if (nht.rackCapacity()) {
+    rackCapacity = *nht.rackCapacity();
+  }
+  std::optional<int32_t> rackId = std::nullopt;
+  if (nht.rackId()) {
+    rackId = *nht.rackId();
+  }
 
   auto address = network::toIPAddress(*nht.address());
   NextHopWeight weight = static_cast<NextHopWeight>(*nht.weight());
@@ -39,9 +63,29 @@ NextHop fromThrift(const NextHopThrift& nht, bool allowV6NonLinkLocal) {
     InterfaceID intfID = utility::getIDFromTunIntfName(
         *(apache::thrift::get_pointer(nht.address()->ifName())));
     return ResolvedNextHop(
-        std::move(address), intfID, weight, action, disableTTLDecrement);
+        std::move(address),
+        intfID,
+        weight,
+        action,
+        disableTTLDecrement,
+        planeId,
+        remotePodCapacity,
+        spineCapacity,
+        rackCapacity,
+        rackId,
+        adjustedWeight);
   } else {
-    return UnresolvedNextHop(std::move(address), weight, action);
+    return UnresolvedNextHop(
+        std::move(address),
+        weight,
+        action,
+        disableTTLDecrement,
+        planeId,
+        remotePodCapacity,
+        spineCapacity,
+        rackCapacity,
+        rackId,
+        adjustedWeight);
   }
 }
 
@@ -102,8 +146,20 @@ bool operator<(const NextHop& a, const NextHop& b) {
     return a.labelForwardingAction() < b.labelForwardingAction();
   } else if (a.weight() != b.weight()) {
     return a.weight() < b.weight();
-  } else {
+  } else if (a.disableTTLDecrement() != b.disableTTLDecrement()) {
     return a.disableTTLDecrement() < b.disableTTLDecrement();
+  } else if (a.planeId() != b.planeId()) {
+    return a.planeId() < b.planeId();
+  } else if (a.remotePodCapacity() != b.remotePodCapacity()) {
+    return a.remotePodCapacity() < b.remotePodCapacity();
+  } else if (a.spineCapacity() != b.spineCapacity()) {
+    return a.spineCapacity() < b.spineCapacity();
+  } else if (a.rackCapacity() != b.rackCapacity()) {
+    return a.rackCapacity() < b.rackCapacity();
+  } else if (a.rackId() != b.rackId()) {
+    return a.rackId() < b.rackId();
+  } else {
+    return a.adjustedWeight() < b.adjustedWeight();
   }
 }
 
@@ -124,7 +180,12 @@ bool operator==(const NextHop& a, const NextHop& b) {
       a.intfID() == b.intfID() && a.addr() == b.addr() &&
       a.weight() == b.weight() &&
       a.labelForwardingAction() == b.labelForwardingAction() &&
-      a.disableTTLDecrement() == b.disableTTLDecrement());
+      a.disableTTLDecrement() == b.disableTTLDecrement() &&
+      a.planeId() == b.planeId() &&
+      a.remotePodCapacity() == b.remotePodCapacity() &&
+      a.spineCapacity() == b.spineCapacity() &&
+      a.rackCapacity() == b.rackCapacity() && a.rackId() == b.rackId() &&
+      a.adjustedWeight() == b.adjustedWeight());
 }
 
 bool operator!=(const NextHop& a, const NextHop& b) {
@@ -134,8 +195,24 @@ bool operator!=(const NextHop& a, const NextHop& b) {
 UnresolvedNextHop::UnresolvedNextHop(
     const folly::IPAddress& addr,
     const NextHopWeight& weight,
-    const std::optional<LabelForwardingAction>& action)
-    : addr_(addr), weight_(weight), labelForwardingAction_(action) {
+    const std::optional<LabelForwardingAction>& action,
+    const std::optional<bool>& disableTTLDecrement,
+    const std::optional<int32_t>& planeId,
+    const std::optional<int32_t>& remotePodCapacity,
+    const std::optional<int32_t>& spineCapacity,
+    const std::optional<int32_t>& rackCapacity,
+    const std::optional<int32_t>& rackId,
+    const std::optional<NextHopWeight>& adjustedWeight)
+    : addr_(addr),
+      weight_(weight),
+      labelForwardingAction_(action),
+      disableTTLDecrement_(disableTTLDecrement),
+      planeId_(planeId),
+      remotePodCapacity_(remotePodCapacity),
+      spineCapacity_(spineCapacity),
+      rackCapacity_(rackCapacity),
+      rackId_(rackId),
+      adjustedWeight_(adjustedWeight) {
   if (addr_.isV6() and addr_.isLinkLocal()) {
     throw FbossError(
         "Missing interface scoping for link-local nexthop ", addr.str());
@@ -145,10 +222,24 @@ UnresolvedNextHop::UnresolvedNextHop(
 UnresolvedNextHop::UnresolvedNextHop(
     folly::IPAddress&& addr,
     const NextHopWeight& weight,
-    std::optional<LabelForwardingAction>&& action)
+    std::optional<LabelForwardingAction>&& action,
+    std::optional<bool>&& disableTTLDecrement,
+    const std::optional<int32_t>& planeId,
+    const std::optional<int32_t>& remotePodCapacity,
+    const std::optional<int32_t>& spineCapacity,
+    const std::optional<int32_t>& rackCapacity,
+    const std::optional<int32_t>& rackId,
+    const std::optional<NextHopWeight>& adjustedWeight)
     : addr_(std::move(addr)),
       weight_(weight),
-      labelForwardingAction_(std::move(action)) {
+      labelForwardingAction_(std::move(action)),
+      disableTTLDecrement_(disableTTLDecrement),
+      planeId_(planeId),
+      remotePodCapacity_(remotePodCapacity),
+      spineCapacity_(spineCapacity),
+      rackCapacity_(rackCapacity),
+      rackId_(rackId),
+      adjustedWeight_(adjustedWeight) {
   if (addr_.isV6() and addr_.isLinkLocal()) {
     throw FbossError(
         "Missing interface scoping for link-local nexthop ", addr_.str());
