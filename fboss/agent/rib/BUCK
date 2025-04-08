@@ -62,6 +62,7 @@ cpp_unittest(
         "test/FibInteractionTests.cpp",
         "test/RibLpmTests.cpp",
         "test/RibRollbackTests.cpp",
+        "test/RibRouteNormalizerTests.cpp",
         "test/RouteTests.cpp",
         "test/SerDesTests.cpp",
     ],
