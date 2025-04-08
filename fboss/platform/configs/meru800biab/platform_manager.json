@@ -1676,6 +1676,7 @@
     "/run/devmap/sensors/PSU1_PMBUS": "/SMB_SLOT@0/PSU_SLOT@0/[PSU_PMBUS]",
     "/run/devmap/sensors/PSU2_PMBUS": "/SMB_SLOT@0/PSU_SLOT@1/[PSU_PMBUS]"
   },
+  "chassisEepromDevicePath": "/SMB_SLOT@0/[IDPROM]",
   "bspKmodsRpmName": "arista_bsp_kmods",
   "bspKmodsRpmVersion": "0.7.8-1",
   "requiredKmodsToLoad": [

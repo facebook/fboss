@@ -1692,6 +1692,7 @@
     "/run/devmap/xcvrs/xcvr_io_39": "/SMB_SLOT@0/[SMB_I2C_MASTER0@4]",
     "/run/devmap/xcvrs/xcvr_ctrl_39": "/SMB_SLOT@0/[QSFP_PORT39_XCVR]"
   },
+  "chassisEepromDevicePath": "/SMB_SLOT@0/[IDPROM]",
   "bspKmodsRpmName": "arista_bsp_kmods",
   "bspKmodsRpmVersion": "0.7.8-1",
   "requiredKmodsToLoad": [
