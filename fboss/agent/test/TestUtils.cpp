@@ -1284,6 +1284,28 @@ RouteNextHopSet makeResolvedNextHops(
   return nhops;
 }
 
+ResolvedNextHop makeResolvedNextHop(
+    const InterfaceID& intfId,
+    const std::string& nhip,
+    uint32_t weight,
+    std::optional<int> planeId,
+    std::optional<int> rackId,
+    std::optional<int> remotePodCapacity,
+    std::optional<int> spineCapacity,
+    std::optional<int> rackCapacity) {
+  return ResolvedNextHop(
+      IPAddress(nhip),
+      intfId,
+      weight,
+      std::nullopt, // label action
+      false, // disableTTLDecrement
+      planeId,
+      remotePodCapacity,
+      spineCapacity,
+      rackCapacity,
+      rackId);
+}
+
 RoutePrefixV4 makePrefixV4(std::string str) {
   std::vector<std::string> vec;
   folly::split('/', str, vec);
