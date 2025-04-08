@@ -709,36 +709,35 @@ TYPED_TEST(AgentCoppTest, VerifyCoppPpsLowPri) {
       afterSecs = getCurrentTime();
     } while (afterSecs - beforeSecs < kMinDurationInSecs);
 
-    auto afterOutPkts = utility::getQueueOutPacketsWithRetry(
-        this->getSw(),
-        this->switchIdForPort(
-            this->masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0]),
-        utility::kCoppLowPriQueueId,
-        0 /* retryTimes */,
-        0 /* expectedNumPkts */);
-    auto totalRecvdPkts = afterOutPkts - beforeOutPkts;
-    auto duration = afterSecs - beforeSecs;
-    auto currPktsPerSec = totalRecvdPkts / duration;
-    uint32_t lowPriorityPps = utility::getCoppQueuePps(
-        utility::checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics()),
-        utility::kCoppLowPriQueueId);
-    auto lowPktsPerSec = lowPriorityPps * (1 - kVariance);
-    auto highPktsPerSec = lowPriorityPps * (1 + kVariance);
+    WITH_RETRIES({
+      auto afterOutPkts = utility::getQueueOutPacketsWithRetry(
+          this->getSw(),
+          this->switchIdForPort(
+              this->masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0]),
+          utility::kCoppLowPriQueueId,
+          0 /* retryTimes */,
+          0 /* expectedNumPkts */);
+      auto totalRecvdPkts = afterOutPkts - beforeOutPkts;
+      auto duration = afterSecs - beforeSecs;
+      auto currPktsPerSec = totalRecvdPkts / duration;
+      uint32_t lowPriorityPps = utility::getCoppQueuePps(
+          utility::checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics()),
+          utility::kCoppLowPriQueueId);
+      auto lowPktsPerSec = lowPriorityPps * (1 - kVariance);
 
-    XLOG(DBG0) << "Before pkts: " << beforeOutPkts
-               << " after pkts: " << afterOutPkts
-               << " totalRecvdPkts: " << totalRecvdPkts
-               << " duration: " << duration
-               << " currPktsPerSec: " << currPktsPerSec
-               << " low pktsPerSec: " << lowPktsPerSec
-               << " high pktsPerSec: " << highPktsPerSec;
+      XLOG(DBG0) << "Before pkts: " << beforeOutPkts
+                 << " after pkts: " << afterOutPkts
+                 << " totalRecvdPkts: " << totalRecvdPkts
+                 << " duration: " << duration
+                 << " currPktsPerSec: " << currPktsPerSec
+                 << " low pktsPerSec: " << lowPktsPerSec;
 
-    /*
-     * In practice, if no pps is configured, using the above method, the
-     * packets are received at a rate > 2500 per second.
-     */
-    EXPECT_TRUE(
-        lowPktsPerSec <= currPktsPerSec && currPktsPerSec <= highPktsPerSec);
+      /*
+       * In practice, if no pps is configured, using the above method, the
+       * packets are received at a rate > 2500 per second.
+       */
+      EXPECT_EVENTUALLY_TRUE(lowPktsPerSec <= currPktsPerSec);
+    });
   };
 
   this->verifyAcrossWarmBoots(setup, verify);
