@@ -459,3 +459,19 @@ TEST(RouteNextHopEntry, Thrift) {
   validateThriftStructNodeSerialization<RouteNextHopEntry>(nhops0);
   validateThriftStructNodeSerialization<RouteNextHopEntry>(nhops1);
 }
+
+TEST(RouteNextHopEntry, skipPrunedNextHops) {
+  RouteNextHopSet nhops;
+
+  nhops.emplace(ResolvedNextHop(nextHopAddr1, InterfaceID(1), 1));
+  nhops.emplace(ResolvedNextHop(nextHopAddr2, InterfaceID(2), 1));
+  auto nh = ResolvedNextHop(nextHopAddr3, InterfaceID(3), 1);
+  nh.setAdjustedWeight(0);
+  nhops.emplace(std::move(nh));
+
+  auto normalizedNextHops =
+      RouteNextHopEntry(nhops, kDefaultAdminDistance).normalizedNextHops();
+
+  // path 3 should be skipped
+  EXPECT_EQ(normalizedNextHops.size(), nhops.size() - 1);
+}
