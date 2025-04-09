@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <functional>
 #include <map>
+#include <utility>
 #include <vector>
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
@@ -34,6 +35,25 @@ struct AqmTestStats {
   uint64_t outEcnCounter;
   uint64_t outPackets;
 };
+
+/*
+ * Ensure that the number of dropped packets is as expected. Allow for
+ * an error to account for more / less drops while its worked out.
+ */
+void verifyWredDroppedPacketCount(
+    const AqmTestStats& after,
+    const AqmTestStats& before,
+    int expectedDroppedPkts) {
+  const int acceptableErrorPct{10};
+  int64_t deltaWredDroppedPackets =
+      static_cast<int64_t>(after.wredDroppedPackets) -
+      before.wredDroppedPackets;
+  XLOG(DBG0) << "Delta WRED dropped pkts: " << deltaWredDroppedPackets;
+
+  int allowedDeviation = acceptableErrorPct * expectedDroppedPkts / 100;
+  EXPECT_NEAR(deltaWredDroppedPackets, expectedDroppedPkts, allowedDeviation);
+}
+
 } // namespace
 
 namespace facebook::fboss {
@@ -539,6 +559,14 @@ class AgentAqmTest : public AgentHwTest {
     verifyAcrossWarmBoots(setup, verify);
   }
 
+  void runWredThresholdTest() {
+    validateAqmThresholds(
+        kNotECT,
+        /*thresholdBytes=*/utility::kQueueConfigAqmsWredThresholdMinMax,
+        /*expectedMarkedOrDroppedPacketCount=*/50,
+        std::move(verifyWredDroppedPacketCount));
+  }
+
   void runPerQueueWredDropStatsTest() {
     const std::array<int, 3> wredQueueIds = {
         utility::getOlympicQueueId(utility::OlympicQueueType::SILVER),
@@ -692,6 +720,10 @@ TEST_F(AgentAqmTest, verifyWred) {
 
 TEST_F(AgentAqmWredDropTest, verifyWredDrop) {
   runWredDropTest();
+}
+
+TEST_F(AgentAqmTest, verifyWredThreshold) {
+  runWredThresholdTest();
 }
 
 TEST_F(AgentAqmTest, verifyPerQueueWredDropStats) {
