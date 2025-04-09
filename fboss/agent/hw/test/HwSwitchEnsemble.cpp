@@ -1009,4 +1009,24 @@ void HwSwitchEnsemble::sendPacketAsync(
 std::unique_ptr<TxPacket> HwSwitchEnsemble::allocatePacket(uint32_t size) {
   return getHwSwitch()->allocatePacket(size);
 }
+
+std::optional<VlanID> HwSwitchEnsemble::getVlanIDForTx() const {
+  auto state = getProgrammedState();
+  auto intf = utility::firstInterfaceWithPorts(state);
+  auto vlanID = getVlanIDFromVlanOrIntf(intf);
+  if (vlanID.has_value()) {
+    return vlanID;
+  }
+  auto scope = scopeResolver_->scope(intf, state);
+  auto switchId = scope.switchId();
+  auto asic = getHwAsicTable()->getHwAsic(switchId);
+  if (asic->isSupported(HwAsic::Feature::CPU_TX_PACKET_REQUIRES_VLAN_TAG)) {
+    auto settings = state->getSwitchSettings()->getNode(scope.matcherString());
+    vlanID = settings->getDefaultVlan();
+    if (!vlanID) {
+      throw FbossError("not vlan found for cpu tx packet");
+    }
+  }
+  return vlanID;
+}
 } // namespace facebook::fboss

@@ -647,4 +647,9 @@ void AgentEnsemble::dumpConfigForHwAgent(AgentConfig* agentConf) {
   }
 }
 
+std::optional<VlanID> AgentEnsemble::getVlanIDForTx() const {
+  auto intf = utility::firstInterfaceWithPorts(getProgrammedState());
+  return getSw()->getVlanIDForTx(intf);
+}
+
 } // namespace facebook::fboss

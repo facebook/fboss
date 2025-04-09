@@ -9,7 +9,7 @@
  */
 
 #include "fboss/agent/state/StateUtils.h"
-#include "fboss/agent/FbossError.h"
+#include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/SwitchState.h"
 
 namespace {
@@ -133,5 +133,11 @@ std::optional<VlanID> getFirstVlanIDForTx_DEPRECATED(
     throw FbossError("no vlan found for tx");
   }
   return VlanID(*defaultVlan);
+}
+
+std::shared_ptr<Interface> firstInterfaceWithPorts(
+    const std::shared_ptr<SwitchState>& state) {
+  auto intfID = utility::firstInterfaceIDWithPorts(state);
+  return state->getInterfaces()->getNodeIf(intfID);
 }
 } // namespace facebook::fboss::utility

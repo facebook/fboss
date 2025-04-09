@@ -296,6 +296,8 @@ class AgentEnsemble : public TestEnsembleIf {
     return configFile_;
   }
 
+  std::optional<VlanID> getVlanIDForTx() const override;
+
  protected:
   void joinAsyncInitThread() {
     if (asyncInitThread_) {

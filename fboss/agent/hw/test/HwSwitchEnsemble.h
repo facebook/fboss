@@ -345,6 +345,8 @@ class HwSwitchEnsemble : public TestEnsembleIf {
       const HwPortStats& curPortStats,
       const int secondsBetweenStatsCollection);
 
+  std::optional<VlanID> getVlanIDForTx() const override;
+
  protected:
   /*
    * Setup ensemble

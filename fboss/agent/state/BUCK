@@ -182,7 +182,6 @@ cpp_library(
     ],
     exported_deps = [
         ":state",
-        "//fboss/agent:fboss-error",
         "//fboss/agent:fboss-types",
         "//folly:network_address",
     ],

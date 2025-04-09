@@ -65,6 +65,8 @@ class TestEnsembleIf : public HwSwitchCallback {
     return (portSpeed > cfg::PortSpeed::HUNDREDG ? 10000 : 100);
   }
 
+  virtual std::optional<VlanID> getVlanIDForTx() const = 0;
+
   virtual void applyNewState(
       StateUpdateFn fn,
       const std::string& name = "test-update",
