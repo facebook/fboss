@@ -289,7 +289,7 @@ void DHCPv6Handler::processDHCPv6Packet(
       sw,
       cpuMac,
       cpuMac,
-      vlanId,
+      sw->getVlanIDForTx(vlanOrIntf),
       dhcp6ServerIP,
       switchIp,
       DHCPv6Packet::DHCP6_SERVERAGENT_UDPPORT,
