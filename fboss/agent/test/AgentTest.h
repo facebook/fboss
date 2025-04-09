@@ -122,6 +122,8 @@ class AgentTest : public ::testing::Test, public MonolithicAgentInitializer {
 
   PortID getPortID(const std::string& portName) const;
 
+  std::optional<VlanID> getVlanIDForTx() const;
+
  private:
   template <typename AddrT>
   void resolveNeighbor(
