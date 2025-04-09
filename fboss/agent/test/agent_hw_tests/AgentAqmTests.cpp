@@ -465,7 +465,10 @@ class AgentAqmTest : public AgentHwTest {
             masterLogicalInterfacePortIds()[1]);
       };
 
-      // Send traffic with queue buildup and get the stats at the start!
+      // Send traffic with queue buildup and get the stats at the start.
+      // Update the stats to initialize them before sending packets to build up
+      // the queue.
+      getAgentEnsemble()->getSw()->updateStats();
       HwPortStats beforePortStats = utility::sendPacketsWithQueueBuildup(
           sendPackets,
           getAgentEnsemble(),
