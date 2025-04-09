@@ -3717,4 +3717,45 @@ void SwSwitch::rxPacketReceived(std::unique_ptr<SwRxPacket> pkt) {
   rxPktThreadCV_.notify_one();
 }
 
+template <typename VlanOrIntfT>
+std::optional<VlanID> SwSwitch::getVlanIDForTx(
+    const std::shared_ptr<VlanOrIntfT>& vlanOrIntf) const {
+  if (!vlanOrIntf) {
+    return std::nullopt;
+  }
+  constexpr auto kIsVlan = std::is_same_v<VlanOrIntfT, Vlan>;
+
+  auto getScope = [=, this](const std::shared_ptr<VlanOrIntfT>& vlanOrIntf) {
+    if constexpr (kIsVlan) {
+      return scopeResolver_->scope(vlanOrIntf);
+    } else {
+      return scopeResolver_->scope(vlanOrIntf, getState());
+    }
+  };
+  auto scope = getScope(vlanOrIntf);
+  auto vlanID = getVlanIDFromVlanOrIntf(vlanOrIntf);
+
+  if (vlanID.has_value()) {
+    return vlanID;
+  }
+  auto switchId = scope.switchId();
+  auto asic = getHwAsicTable()->getHwAsic(switchId);
+  if (asic->isSupported(HwAsic::Feature::CPU_TX_PACKET_REQUIRES_VLAN_TAG)) {
+    auto settings =
+        getState()->getSwitchSettings()->getNode(scope.matcherString());
+    if (auto defaultVlan = settings->getDefaultVlan()) {
+      return VlanID(*defaultVlan);
+    }
+    throw FbossError("not vlan found for cpu tx packet");
+  }
+
+  return std::nullopt;
+}
+
+template std::optional<VlanID> SwSwitch::getVlanIDForTx(
+    const std::shared_ptr<Vlan>& vlanOrIntf) const;
+
+template std::optional<VlanID> SwSwitch::getVlanIDForTx(
+    const std::shared_ptr<Interface>& vlanOrIntf) const;
+
 } // namespace facebook::fboss
