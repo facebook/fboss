@@ -111,4 +111,6 @@ void SaiPortManager::changePortFlowletConfig(
     const std::shared_ptr<Port>& /* unused */,
     const std::shared_ptr<Port>& /* unused */) {}
 
+void SaiPortManager::clearPortFlowletConfig(const PortID& /* unused */) {}
+
 } // namespace facebook::fboss

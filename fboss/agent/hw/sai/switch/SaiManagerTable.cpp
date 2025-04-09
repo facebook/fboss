@@ -171,6 +171,8 @@ void SaiManagerTable::reset(bool skipSwitchManager) {
   // to reset the queue associations.
   portManager_->resetQueues();
   portManager_->clearQosPolicy();
+  // For chenab, port config needs to be cleared before ARS profile is removed
+  portManager_->clearArsConfig();
   // Hash manager is going away, reset hashes
   switchManager_->resetHashes();
   hashManager_.reset();

@@ -2355,6 +2355,19 @@ void SaiPortManager::changeQosPolicy(
   setQosPolicy(newPort->getID(), newPort->getQosPolicy());
 }
 
+void SaiPortManager::clearArsConfig(PortID portID) {
+  if (getPortType(portID) == cfg::PortType::FABRIC_PORT) {
+    return;
+  }
+  clearPortFlowletConfig(portID);
+}
+
+void SaiPortManager::clearArsConfig() {
+  for (const auto& portIdAndHandle : handles_) {
+    clearArsConfig(portIdAndHandle.first);
+  }
+}
+
 void SaiPortManager::setTamObject(
     PortID portId,
     std::vector<sai_object_id_t> tamObjects) {

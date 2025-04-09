@@ -234,4 +234,6 @@ void SaiPortManager::changePortFlowletConfig(
   }
 }
 
+void SaiPortManager::clearPortFlowletConfig(const PortID& /* unused */) {}
+
 } // namespace facebook::fboss

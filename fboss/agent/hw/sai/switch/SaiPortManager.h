@@ -205,6 +205,9 @@ class SaiPortManager {
   void clearQosPolicy(const std::shared_ptr<QosPolicy>& qosPolicy);
   void clearQosPolicy();
 
+  void clearArsConfig(PortID portID);
+  void clearArsConfig();
+
   void setTamObject(PortID portId, std::vector<sai_object_id_t> tamObject);
   void resetTamObject(PortID portId);
 
@@ -444,6 +447,7 @@ class SaiPortManager {
   void changePortFlowletConfig(
       const std::shared_ptr<Port>& oldPort,
       const std::shared_ptr<Port>& newPort);
+  void clearPortFlowletConfig(const PortID& portId);
 
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;

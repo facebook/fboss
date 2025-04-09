@@ -54,4 +54,20 @@ void SaiPortManager::changePortFlowletConfig(
   }
 }
 
+void SaiPortManager::clearPortFlowletConfig(const PortID& portID) {
+  if (!FLAGS_flowletSwitchingEnable) {
+    return;
+  }
+
+  auto portHandle = getPortHandle(portID);
+  if (!portHandle) {
+    throw FbossError(
+        "Cannot change flowlet cfg on non existent port: ", portID);
+  }
+
+  bool arsEnable = false;
+  portHandle->port->setOptionalAttribute(
+      SaiPortTraits::Attributes::ArsEnable{arsEnable});
+}
+
 } // namespace facebook::fboss
