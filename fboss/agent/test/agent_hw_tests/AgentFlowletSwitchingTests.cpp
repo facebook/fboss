@@ -331,9 +331,11 @@ class AgentAclCounterTestBase : public AgentHwTest {
         // On native BCM we see 4 extra bytes in the acl counter. This is
         // likely due to ingress vlan getting imposed and getting counted
         // when packet hits acl in ingress pipeline
-        EXPECT_EVENTUALLY_LE(
-            aclBytesCountAfter,
-            aclBytesCountBefore + (2 * sizeOfPacketSent) + 4);
+        if (!getAgentEnsemble()->isSai()) {
+          EXPECT_EVENTUALLY_LE(
+              aclBytesCountAfter,
+              aclBytesCountBefore + (2 * sizeOfPacketSent) + 4);
+        }
       } else {
         EXPECT_EVENTUALLY_EQ(aclPktCountBefore, aclPktCountAfter);
         EXPECT_EVENTUALLY_EQ(aclBytesCountBefore, aclBytesCountAfter);

@@ -74,10 +74,6 @@ const std::set<sai_api_t>& SaiYangraPlatform::getSupportedApiList() const {
   apis.erase(facebook::fboss::VirtualRouterApi::ApiType);
   apis.erase(facebook::fboss::TamApi::ApiType);
   apis.erase(facebook::fboss::SystemPortApi::ApiType);
-#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
-  apis.erase(facebook::fboss::ArsApi::ApiType);
-  apis.erase(facebook::fboss::ArsProfileApi::ApiType);
-#endif
   return apis;
 }
 
