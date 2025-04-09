@@ -8243,22 +8243,12 @@ class ChildThriftPath<::facebook::fboss::NextHopThrift, ::facebook::fboss::fsdb:
 std::pair<strings::weight, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
 std::pair<strings::mplsAction, ChildThriftPath<::facebook::fboss::MplsAction, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
 std::pair<strings::disableTTLDecrement, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
-std::pair<strings::planeId, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
-std::pair<strings::remotePodCapacity, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
-std::pair<strings::spineCapacity, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
-std::pair<strings::rackCapacity, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
-std::pair<strings::rackId, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
 std::pair<strings::adjustedWeight, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
 std::pair<strings::topologyInfo, ChildThriftPath<::facebook::fboss::NetworkTopologyInformation, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, ChildThriftPath<::facebook::network::thrift::BinaryAddress, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, ChildThriftPath<::facebook::fboss::MplsAction, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 4>, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 10>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 11>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 12>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 13>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 14>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 15>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 16>, ChildThriftPath<::facebook::fboss::NetworkTopologyInformation, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>>;
   template <typename Name>
@@ -8266,11 +8256,6 @@ std::pair<strings::topologyInfo, ChildThriftPath<::facebook::fboss::NetworkTopol
 std::pair<strings::weight, std::integral_constant<apache::thrift::field_id_t, 2>>,
 std::pair<strings::mplsAction, std::integral_constant<apache::thrift::field_id_t, 3>>,
 std::pair<strings::disableTTLDecrement, std::integral_constant<apache::thrift::field_id_t, 4>>,
-std::pair<strings::planeId, std::integral_constant<apache::thrift::field_id_t, 10>>,
-std::pair<strings::remotePodCapacity, std::integral_constant<apache::thrift::field_id_t, 11>>,
-std::pair<strings::spineCapacity, std::integral_constant<apache::thrift::field_id_t, 12>>,
-std::pair<strings::rackCapacity, std::integral_constant<apache::thrift::field_id_t, 13>>,
-std::pair<strings::rackId, std::integral_constant<apache::thrift::field_id_t, 14>>,
 std::pair<strings::adjustedWeight, std::integral_constant<apache::thrift::field_id_t, 15>>,
 std::pair<strings::topologyInfo, std::integral_constant<apache::thrift::field_id_t, 16>>>::template type_of<Name>;
 
@@ -8282,11 +8267,6 @@ std::pair<strings::topologyInfo, std::integral_constant<apache::thrift::field_id
     STRUCT_CHILD_GETTERS(weight, 2);
     STRUCT_CHILD_GETTERS(mplsAction, 3);
     STRUCT_CHILD_GETTERS(disableTTLDecrement, 4);
-    STRUCT_CHILD_GETTERS(planeId, 10);
-    STRUCT_CHILD_GETTERS(remotePodCapacity, 11);
-    STRUCT_CHILD_GETTERS(spineCapacity, 12);
-    STRUCT_CHILD_GETTERS(rackCapacity, 13);
-    STRUCT_CHILD_GETTERS(rackId, 14);
     STRUCT_CHILD_GETTERS(adjustedWeight, 15);
     STRUCT_CHILD_GETTERS(topologyInfo, 16);
 
@@ -8296,11 +8276,6 @@ std::pair<strings::topologyInfo, std::integral_constant<apache::thrift::field_id
     else if constexpr (__id == 2) { return weight(); }
     else if constexpr (__id == 3) { return mplsAction(); }
     else if constexpr (__id == 4) { return disableTTLDecrement(); }
-    else if constexpr (__id == 10) { return planeId(); }
-    else if constexpr (__id == 11) { return remotePodCapacity(); }
-    else if constexpr (__id == 12) { return spineCapacity(); }
-    else if constexpr (__id == 13) { return rackCapacity(); }
-    else if constexpr (__id == 14) { return rackId(); }
     else if constexpr (__id == 15) { return adjustedWeight(); }
     else if constexpr (__id == 16) { return topologyInfo(); }
   }

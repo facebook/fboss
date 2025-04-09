@@ -168,11 +168,7 @@ class RibRouteUpdater {
       const std::optional<LabelForwardingAction>& labelAction,
       bool* hasToCpu,
       bool* hasDrop,
-      const std::optional<int>& rackId,
-      const std::optional<int>& planeId,
-      const std::optional<int>& remotePodCapacity,
-      const std::optional<int>& spineCapacity,
-      const std::optional<int>& rackCapacity,
+      const std::optional<NetworkTopologyInformation>& topologyInfo,
       RouteNextHopSet& fwd);
 
   template <typename AddressT>

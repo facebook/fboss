@@ -58,6 +58,16 @@ const folly::IPAddress nextHopAddr7 =
 const folly::IPAddress nextHopAddr8 =
     folly::IPAddress("2401:db00:e117:9103:1028::1b");
 
+NetworkTopologyInformation getTopologyInfo() {
+  NetworkTopologyInformation topologyInfo;
+  topologyInfo.rack_id() = 2;
+  topologyInfo.plane_id() = 1;
+  topologyInfo.remote_rack_capacity() = 3;
+  topologyInfo.spine_capacity() = 4;
+  topologyInfo.local_rack_capacity() = 5;
+  return topologyInfo;
+}
+
 // These next-hops are in our internal representation.
 // Unlike other variables, it's not const so that it can be sorted
 // in unit tests.
@@ -68,33 +78,21 @@ std::vector<NextHop> nextHops = {
         ECMP_WEIGHT,
         std::nullopt /*label*/,
         false, /*disableTTLdecrement*/
-        1, /*planeId*/
-        3, /*remotePodCapacity*/
-        4, /*spineCapacity*/
-        5, /*rackCapacity*/
-        2, /*rackId*/
+        getTopologyInfo(),
         0 /*adjustedWeight*/),
     UnresolvedNextHop(
         nextHopAddr2,
         ECMP_WEIGHT,
         std::nullopt, /*label*/
         false, /*disableTTLdecrement*/
-        1, /*planeId*/
-        3, /*remotePodCapacity*/
-        4, /*spineCapacity*/
-        5, /*rackCapacity*/
-        2, /*rackId*/
+        getTopologyInfo(),
         0 /*adjustedWeight*/),
     UnresolvedNextHop(
         nextHopAddr3,
         ECMP_WEIGHT,
         std::nullopt, /*label*/
         false, /*disableTTLdecrement*/
-        1, /*planeId*/
-        3, /*remotePodCapacity*/
-        4, /*spineCapacity*/
-        5, /*rackCapacity*/
-        2, /*rackId*/
+        getTopologyInfo(),
         0 /*adjustedWeight*/)};
 
 std::vector<NextHop> nextHopsFromBinary = {
@@ -127,12 +125,14 @@ std::vector<NextHopThrift> nextHopsThrift() {
     *nexthop.address() = createV6LinkLocalNextHop(addr);
     *nexthop.weight() = static_cast<int32_t>(ECMP_WEIGHT);
     nexthop.disableTTLDecrement() = false;
-    nexthop.planeId() = 1;
-    nexthop.rackId() = 2;
-    nexthop.remotePodCapacity() = 3;
-    nexthop.spineCapacity() = 4;
-    nexthop.rackCapacity() = 5;
     nexthop.adjustedWeight() = 0;
+    NetworkTopologyInformation toplogyInfo;
+    toplogyInfo.rack_id() = 2;
+    toplogyInfo.plane_id() = 1;
+    toplogyInfo.remote_rack_capacity() = 3;
+    toplogyInfo.spine_capacity() = 4;
+    toplogyInfo.local_rack_capacity() = 5;
+    nexthop.topologyInfo() = toplogyInfo;
     nexthops.emplace_back(std::move(nexthop));
   }
   return nexthops;

@@ -2663,14 +2663,21 @@ TEST_F(RouteTest, routePrune) {
   FLAGS_enable_capacity_pruning = true;
 
   RouteV4::Prefix prefix10{IPAddressV4("10.10.10.0"), 24};
+  NetworkTopologyInformation topologyInfo;
+  topologyInfo.plane_id() = 0;
+  topologyInfo.rack_id() = 0;
+  topologyInfo.remote_rack_capacity() = 0;
+  topologyInfo.spine_capacity() = 0;
+  topologyInfo.local_rack_capacity() = 3;
+
   auto nexthop1 =
-      makeResolvedNextHop(InterfaceID(1), "1.1.1.1", 1, 0, 0, 0, 0, 3);
+      makeResolvedNextHop(InterfaceID(1), "1.1.1.1", 1, topologyInfo);
   auto nexthop2 =
-      makeResolvedNextHop(InterfaceID(2), "2.2.2.1", 1, 0, 0, 0, 0, 3);
+      makeResolvedNextHop(InterfaceID(2), "2.2.2.1", 1, topologyInfo);
   auto nexthop3 =
-      makeResolvedNextHop(InterfaceID(3), "3.3.3.1", 1, 0, 0, 0, 0, 3);
+      makeResolvedNextHop(InterfaceID(3), "3.3.3.1", 1, topologyInfo);
   auto nexthop4 =
-      makeResolvedNextHop(InterfaceID(4), "4.4.4.1", 1, 0, 0, 0, 0, 3);
+      makeResolvedNextHop(InterfaceID(4), "4.4.4.1", 1, topologyInfo);
 
   RouteNextHopSet nexthops1;
   nexthops1.emplace(nexthop1);

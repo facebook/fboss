@@ -318,46 +318,25 @@ struct NextHopCombinedWeightsKey {
         intfId(nhop.intf()), // must be resolved next hop
         action(nhop.labelForwardingAction()),
         disableTTLDecrement(nhop.disableTTLDecrement()),
-        planeId(nhop.planeId()),
-        remotePodCapacity(nhop.remotePodCapacity()),
-        spineCapacity(nhop.spineCapacity()),
-        rackCapacity(nhop.rackCapacity()),
-        rackId(nhop.rackId()) {
+        topologyInfo(nhop.topologyInfo()) {
     /* "weightless" next hop, consider all attrs of L3 next hop except its
      * weight, this is used in computing number of required paths to next hop,
      * for correct programming of unequal cost multipath */
   }
   bool operator<(const NextHopCombinedWeightsKey& other) const {
-    return std::tie(
-               ip,
-               intfId,
-               action,
-               disableTTLDecrement,
-               planeId,
-               remotePodCapacity,
-               spineCapacity,
-               rackCapacity,
-               rackId) <
+    return std::tie(ip, intfId, action, disableTTLDecrement, topologyInfo) <
         std::tie(
                other.ip,
                other.intfId,
                other.action,
                other.disableTTLDecrement,
-               other.planeId,
-               other.remotePodCapacity,
-               other.spineCapacity,
-               other.rackCapacity,
-               other.rackId);
+               other.topologyInfo);
   }
   folly::IPAddress ip;
   InterfaceID intfId;
   std::optional<LabelForwardingAction> action;
   std::optional<bool> disableTTLDecrement;
-  std::optional<int> planeId;
-  std::optional<int> remotePodCapacity;
-  std::optional<int> spineCapacity;
-  std::optional<int> rackCapacity;
-  std::optional<int> rackId;
+  std::optional<NetworkTopologyInformation> topologyInfo;
 };
 using NextHopCombinedWeights =
     boost::container::flat_map<NextHopCombinedWeightsKey, NextHopWeight>;
@@ -412,11 +391,7 @@ RouteNextHopSet mergeForwardInfosEcmp(
           ECMP_WEIGHT,
           fnh.labelForwardingAction(),
           fnh.disableTTLDecrement(),
-          fnh.planeId(),
-          fnh.remotePodCapacity(),
-          fnh.spineCapacity(),
-          fnh.rackCapacity(),
-          fnh.rackId()));
+          fnh.topologyInfo()));
     }
   }
   return fwd;
@@ -487,23 +462,10 @@ RouteNextHopSet optimizeWeights(const NextHopCombinedWeights& cws) {
     const InterfaceID& intf = cw.first.intfId;
     const auto& action = cw.first.action;
     const auto& disableTTLDecrement = cw.first.disableTTLDecrement;
-    const auto& planeId = cw.first.planeId;
-    const auto& remotePodCapacity = cw.first.remotePodCapacity;
-    const auto& spineCapacity = cw.first.spineCapacity;
-    const auto& rackCapacity = cw.first.rackCapacity;
-    const auto& rackId = cw.first.rackId;
+    const auto& topologyInfo = cw.first.topologyInfo;
     NextHopWeight w = fwdWeightGcd ? cw.second / fwdWeightGcd : 0;
     fwd.emplace(ResolvedNextHop(
-        addr,
-        intf,
-        w,
-        action,
-        disableTTLDecrement,
-        planeId,
-        remotePodCapacity,
-        spineCapacity,
-        rackCapacity,
-        rackId));
+        addr, intf, w, action, disableTTLDecrement, topologyInfo));
   }
   return fwd;
 }
@@ -579,11 +541,7 @@ void RibRouteUpdater::getFwdInfoFromNhop(
     const std::optional<LabelForwardingAction>& labelAction,
     bool* hasToCpu,
     bool* hasDrop,
-    const std::optional<int>& rackId,
-    const std::optional<int>& planeId,
-    const std::optional<int>& remotePodCapacity,
-    const std::optional<int>& spineCapacity,
-    const std::optional<int>& rackCapacity,
+    const std::optional<NetworkTopologyInformation>& topologyInfo,
     RouteNextHopSet& fwd) {
   auto it = routes->longestMatch(nh, nh.bitCount());
   if (it == routes->end()) {
@@ -621,22 +579,12 @@ void RibRouteUpdater::getFwdInfoFromNhop(
             LabelForwardingAction::combinePushLabelStack(
                 labelAction, rtNh.labelForwardingAction()),
             rtNh.disableTTLDecrement(),
-            planeId,
-            remotePodCapacity,
-            spineCapacity,
-            rackCapacity,
-            rackId));
+            topologyInfo));
       } else {
         std::for_each(
             nhops.begin(),
             nhops.end(),
-            [&fwd,
-             labelAction,
-             planeId,
-             remotePodCapacity,
-             spineCapacity,
-             rackCapacity,
-             rackId](const auto& nhop) {
+            [&fwd, labelAction, topologyInfo](const auto& nhop) {
               fwd.insert(ResolvedNextHop(
                   nhop.addr(),
                   nhop.intf(),
@@ -644,11 +592,7 @@ void RibRouteUpdater::getFwdInfoFromNhop(
                   LabelForwardingAction::combinePushLabelStack(
                       labelAction, nhop.labelForwardingAction()),
                   nhop.disableTTLDecrement(),
-                  planeId,
-                  remotePodCapacity,
-                  spineCapacity,
-                  rackCapacity,
-                  rackId));
+                  topologyInfo));
             });
       }
     }
@@ -721,11 +665,7 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
               nh.labelForwardingAction(),
               &hasToCpu,
               &hasDrop,
-              nh.rackId(),
-              nh.planeId(),
-              nh.remotePodCapacity(),
-              nh.spineCapacity(),
-              nh.rackCapacity(),
+              nh.topologyInfo(),
               nhToFwds[nh]);
         } else {
           CHECK(addr.isV6());
@@ -735,11 +675,7 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
               nh.labelForwardingAction(),
               &hasToCpu,
               &hasDrop,
-              nh.rackId(),
-              nh.planeId(),
-              nh.remotePodCapacity(),
-              nh.spineCapacity(),
-              nh.rackCapacity(),
+              nh.topologyInfo(),
               nhToFwds[nh]);
         }
       }

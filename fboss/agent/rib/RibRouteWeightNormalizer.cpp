@@ -108,11 +108,7 @@ RouteNextHopSet RibRouteWeightNormalizer::getNormalizedNexthops(
         nhop.weight(),
         nhop.labelForwardingAction(),
         nhop.disableTTLDecrement(),
-        nhop.planeId(),
-        nhop.remotePodCapacity(),
-        nhop.spineCapacity(),
-        nhop.rackCapacity(),
-        nhop.rackId(),
+        nhop.topologyInfo(),
         nhop.adjustedWeight());
   }
   normalizeWeightsForNexthops(resolvedNexthops);
@@ -132,30 +128,37 @@ void RibRouteWeightNormalizer::normalizeWeightsForNexthops(
   // walk through the nexthops and collect the connectivity information
   for (const auto& nh : nhs) {
     // ignore prefixes that not originated by racks
-    if (!nh.rackId().has_value()) {
+    if (!nh.topologyInfo().has_value() ||
+        !nh.topologyInfo()->rack_id().has_value()) {
       return;
     }
-    dstRack = nh.rackId().value();
+    dstRack = nh.topologyInfo()->rack_id().value();
     int numRackFailures = 0;
+    NetworkTopologyInformation topologyInfo = nh.topologyInfo().value();
     // For remote pod prefixes, check rack failures
-    if (nh.remotePodCapacity() && *nh.remotePodCapacity()) {
-      numRackFailures = numPlanePathsPerRack_ - nh.remotePodCapacity().value();
-    } else if (nh.rackCapacity() && *nh.rackCapacity()) {
+    if (topologyInfo.remote_rack_capacity() &&
+        *topologyInfo.remote_rack_capacity()) {
+      numRackFailures =
+          numPlanePathsPerRack_ - *topologyInfo.remote_rack_capacity();
+    } else if (
+        topologyInfo.local_rack_capacity() &&
+        *topologyInfo.local_rack_capacity()) {
       // rack failures for local pod prefixes are handled same as remote pod
       // rack failures
-      numRackFailures = numPlanePathsPerRack_ - nh.rackCapacity().value();
+      numRackFailures =
+          numPlanePathsPerRack_ - *topologyInfo.local_rack_capacity();
     }
     int numSpineFailures = 0;
-    if (nh.spineCapacity() && *nh.spineCapacity()) {
+    if (topologyInfo.spine_capacity() && *topologyInfo.spine_capacity()) {
       // total spine capaity and rack capacity in pod should be matching
       numSpineFailures =
-          numRacks_ * numPlanePathsPerRack_ - nh.spineCapacity().value();
+          numRacks_ * numPlanePathsPerRack_ - *topologyInfo.spine_capacity();
     }
     if (numRackFailures || numSpineFailures) {
       hasFailure = true;
     }
-    CHECK(nh.planeId().has_value());
-    auto planeId = PlaneId(*nh.planeId());
+    CHECK(topologyInfo.plane_id().has_value());
+    auto planeId = PlaneId(*topologyInfo.plane_id());
     planeIdToFailures.insert(std::make_pair(
         planeId, std::make_pair(numRackFailures, numSpineFailures)));
 
@@ -194,7 +197,9 @@ void RibRouteWeightNormalizer::normalizeWeightsForNexthops(
                << spineFailures << " local failures " << numLocalFailures;
     if (numPrunesNeeded) {
       for (auto& nh : nhs) {
-        if (numPrunesNeeded && nh.planeId() && *nh.planeId() == planeId) {
+        if (numPrunesNeeded && nh.topologyInfo().has_value() &&
+            nh.topologyInfo()->plane_id().has_value() &&
+            *nh.topologyInfo()->plane_id() == planeId) {
           numPrunesNeeded--;
           // set adjusted weight to 0 to indicate that path is pruned
           nh.setAdjustedWeight(0);

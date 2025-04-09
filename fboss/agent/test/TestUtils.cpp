@@ -1288,22 +1288,14 @@ ResolvedNextHop makeResolvedNextHop(
     const InterfaceID& intfId,
     const std::string& nhip,
     uint32_t weight,
-    std::optional<int> planeId,
-    std::optional<int> rackId,
-    std::optional<int> remotePodCapacity,
-    std::optional<int> spineCapacity,
-    std::optional<int> rackCapacity) {
+    std::optional<NetworkTopologyInformation> topologyInfo) {
   return ResolvedNextHop(
       IPAddress(nhip),
       intfId,
       weight,
       std::nullopt, // label action
       false, // disableTTLDecrement
-      planeId,
-      remotePodCapacity,
-      spineCapacity,
-      rackCapacity,
-      rackId);
+      topologyInfo);
 }
 
 RoutePrefixV4 makePrefixV4(std::string str) {

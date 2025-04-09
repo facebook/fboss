@@ -357,11 +357,7 @@ ResolvedNextHop makeResolvedNextHop(
     const InterfaceID& intfId,
     const std::string& nhip,
     uint32_t weight = 1,
-    std::optional<int> planeId = std::nullopt,
-    std::optional<int> rackId = std::nullopt,
-    std::optional<int> remoteCapacity = std::nullopt,
-    std::optional<int> spineCapacity = std::nullopt,
-    std::optional<int> rackCapacity = std::nullopt);
+    std::optional<NetworkTopologyInformation> topologyInfo = std::nullopt);
 
 RoutePrefixV4 makePrefixV4(std::string str);
 

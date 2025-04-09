@@ -41,15 +41,14 @@ class RibRouteWeightNormalizerTest : public RibRouteWeightNormalizer {
         int remoteCapacity = planeIdToRemoteCapacity[planeId];
         int spineCapacity = planeIdToSpineCapacity[planeId];
         int loalRackCapacity = planeIdToLocalRackCapacity[planeId];
+        NetworkTopologyInformation topologyInfo;
+        topologyInfo.rack_id() = 0;
+        topologyInfo.plane_id() = planeId;
+        topologyInfo.remote_rack_capacity() = remoteCapacity;
+        topologyInfo.spine_capacity() = spineCapacity;
+        topologyInfo.local_rack_capacity() = loalRackCapacity;
         nhs.emplace_back(makeResolvedNextHop(
-            InterfaceID(nhid),
-            "fe80::1",
-            1 /*weight*/,
-            planeId,
-            0 /*rack id*/,
-            remoteCapacity,
-            spineCapacity,
-            loalRackCapacity));
+            InterfaceID(nhid), "fe80::1", 1 /*weight*/, topologyInfo));
         nhid++;
       }
     }
@@ -57,8 +56,8 @@ class RibRouteWeightNormalizerTest : public RibRouteWeightNormalizer {
     auto numPrunedPaths = [](const auto& nhs, const auto planeId) {
       int numPrunedPaths = 0;
       for (const auto& nh : nhs) {
-        if (nh.planeId() == planeId && nh.adjustedWeight().has_value() &&
-            nh.adjustedWeight() == 0) {
+        if (*nh.topologyInfo()->plane_id() == planeId &&
+            nh.adjustedWeight().has_value() && nh.adjustedWeight() == 0) {
           numPrunedPaths++;
         }
       }
