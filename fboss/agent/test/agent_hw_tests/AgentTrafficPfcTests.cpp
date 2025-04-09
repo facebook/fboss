@@ -19,6 +19,10 @@ DEFINE_bool(
     skip_stop_pfc_test_traffic,
     false,
     "Skip stopping traffic after traffic test!");
+DEFINE_int32(
+    num_packets_to_trigger_pfc,
+    0,
+    "Overrides the number of packets to send");
 
 namespace {
 
@@ -401,6 +405,11 @@ class AgentTrafficPfcTest : public AgentHwTest {
     int dscp = priority * 8;
     int numPacketsPerFlow = getAgentEnsemble()->getMinPktsForLineRate(
         masterLogicalInterfacePortIds()[0]);
+    if (FLAGS_num_packets_to_trigger_pfc > 0) {
+      numPacketsPerFlow = FLAGS_num_packets_to_trigger_pfc;
+    }
+
+    XLOG(INFO) << "Sending " << numPacketsPerFlow << " packets per flow";
     // Some asics (e.g. Yuba) won't let traffic build up evenly if all packets
     // were sent to one port before another. It's better to alternate the ports.
     for (int i = 0; i < numPacketsPerFlow; i++) {
