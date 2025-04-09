@@ -1805,6 +1805,19 @@ cpp_library(
     ],
 )
 
+cpp_library(
+    name = "tx_packet_utils",
+    srcs = [
+        "TxPacketUtils.cpp",
+    ],
+    exported_deps = [
+        ":hw_asic_table",
+        ":switchid_scope_resolver",
+        ":utils",
+        "//fboss/agent/state:state",
+    ],
+)
+
 export_file(name = "Main.cpp")
 
 sai_main_all()
