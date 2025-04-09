@@ -111,4 +111,27 @@ std::vector<folly::IPAddressV6> getIntfAddrsV6(
   }
   return addrs;
 }
+
+std::optional<VlanID> getFirstVlanIDForTx(
+    const std::shared_ptr<SwitchState>& state) {
+  // TODO: avoid using getFirstNodeIf
+  auto settings = utility::getFirstNodeIf(state->getSwitchSettings());
+  auto l3SwitchType = settings->l3SwitchType();
+  if (l3SwitchType == cfg::SwitchType::VOQ) {
+    // no vlan for voq switch
+    return std::nullopt;
+  }
+  const auto& switchInfo = settings->getSwitchInfo();
+  auto asicType = switchInfo.asicType().value();
+  auto vlan = firstVlanIDWithPorts(state);
+  // TODO:  avoid using asicType
+  if (vlan.has_value() || asicType != cfg::AsicType::ASIC_TYPE_CHENAB) {
+    return vlan;
+  }
+  auto defaultVlan = settings->getDefaultVlan();
+  if (!defaultVlan) {
+    throw FbossError("no vlan found for tx");
+  }
+  return VlanID(*defaultVlan);
+}
 } // namespace facebook::fboss::utility
