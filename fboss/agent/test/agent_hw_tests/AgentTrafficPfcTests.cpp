@@ -113,9 +113,9 @@ void validateBufferPoolWatermarkCounters(
     facebook::fboss::AgentEnsemble* ensemble,
     const int /* pri */,
     const std::vector<facebook::fboss::PortID>& portIds) {
-  uint64_t globalHeadroomWatermark{};
-  uint64_t globalSharedWatermark{};
   WITH_RETRIES({
+    uint64_t globalHeadroomWatermark{};
+    uint64_t globalSharedWatermark{};
     ensemble->getSw()->updateStats();
     for (const auto& [switchIdx, stats] :
          ensemble->getSw()->getHwSwitchStatsExpensive()) {
