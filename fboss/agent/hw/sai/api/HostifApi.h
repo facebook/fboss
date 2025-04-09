@@ -279,4 +279,14 @@ class HostifApi : public SaiApi<HostifApi> {
   }
 };
 
+#if defined(CHENAB_SAI_SDK)
+
+// TODO: Chenab SDK discovers default hostif trap group for queue 1, this fails
+// because there is no way to mark default hostif trap group as owned by
+// adapter.
+template <>
+struct GetObjectKeySupported<SaiHostifTrapGroupTraits> : std::false_type {};
+
+#endif
+
 } // namespace facebook::fboss
