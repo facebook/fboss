@@ -19,7 +19,7 @@ class AgentInTrapDiscardsCounterTest : public AgentHwTest {
 
  protected:
   void pumpTraffic(bool isV6) {
-    auto vlanId = utility::getFirstVlanIDForTx_DEPRECATED(getProgrammedState());
+    auto vlanId = getVlanIDForTx();
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     auto srcIp = folly::IPAddress(isV6 ? "1001::1" : "10.0.0.1");

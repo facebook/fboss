@@ -243,7 +243,7 @@ class AgentAclCounterTestBase : public AgentHwTest {
           std::optional<std::vector<uint8_t>>(),
       int packetCount = 1,
       int destPort = utility::kUdfL4DstPort) {
-    auto vlanId = utility::getFirstVlanIDForTx_DEPRECATED(getProgrammedState());
+    auto vlanId = getVlanIDForTx();
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     return utility::pumpRoCETraffic(

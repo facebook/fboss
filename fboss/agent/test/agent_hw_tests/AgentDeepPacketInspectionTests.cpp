@@ -42,31 +42,30 @@ class AgentDeepPacketInspectionTest : public AgentHwTest {
       const folly::IPAddressV6& dstIp,
       std::optional<std::vector<uint8_t>> payload =
           std::optional<std::vector<uint8_t>>()) {
-    return tcp
-        ? utility::makeTCPTxPacket(
-              getSw(),
-              utility::getFirstVlanIDForTx_DEPRECATED(getProgrammedState()),
-              utility::kLocalCpuMac(),
-              utility::kLocalCpuMac(),
-              kSrcIp(),
-              dstIp,
-              8000, // l4 src port
-              8001, // l4 dst port
-              0x24 << 2, // dscp
-              255, // hopLimit
-              payload)
-        : utility::makeUDPTxPacket(
-              getSw(),
-              utility::getFirstVlanIDForTx_DEPRECATED(getProgrammedState()),
-              utility::kLocalCpuMac(),
-              utility::kLocalCpuMac(),
-              kSrcIp(),
-              dstIp,
-              8000, // l4 src port
-              8001, // l4 dst port
-              0x24 << 2, // dscp
-              255, // hopLimit
-              payload);
+    return tcp ? utility::makeTCPTxPacket(
+                     getSw(),
+                     getVlanIDForTx(),
+                     utility::kLocalCpuMac(),
+                     utility::kLocalCpuMac(),
+                     kSrcIp(),
+                     dstIp,
+                     8000, // l4 src port
+                     8001, // l4 dst port
+                     0x24 << 2, // dscp
+                     255, // hopLimit
+                     payload)
+               : utility::makeUDPTxPacket(
+                     getSw(),
+                     getVlanIDForTx(),
+                     utility::kLocalCpuMac(),
+                     utility::kLocalCpuMac(),
+                     kSrcIp(),
+                     dstIp,
+                     8000, // l4 src port
+                     8001, // l4 dst port
+                     0x24 << 2, // dscp
+                     255, // hopLimit
+                     payload);
   }
 
   void sendPacketAndVerify(

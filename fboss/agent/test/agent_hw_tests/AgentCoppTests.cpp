@@ -149,7 +149,7 @@ class AgentCoppTest : public AgentHwTest {
       const std::optional<folly::MacAddress>& dstMac = std::nullopt,
       uint8_t trafficClass = 0,
       std::optional<std::vector<uint8_t>> payload = std::nullopt) {
-    auto vlanId = utility::getFirstVlanIDForTx_DEPRECATED(getProgrammedState());
+    auto vlanId = getVlanIDForTx();
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     utility::sendTcpPkts(
@@ -247,7 +247,7 @@ class AgentCoppTest : public AgentHwTest {
       bool outOfPort = true,
       bool skipTtlDecrement = true) {
     const auto kNumPktsToSend = 1;
-    auto vlanId = utility::getFirstVlanIDForTx_DEPRECATED(getProgrammedState());
+    auto vlanId = getVlanIDForTx();
     auto destinationMac = dstMac.value_or(
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState()));
     auto sendAndInspect = [=, this]() {
@@ -282,7 +282,7 @@ class AgentCoppTest : public AgentHwTest {
       uint8_t ttl,
       bool outOfPort,
       bool expectPktTrap) {
-    auto vlanId = utility::getFirstVlanIDForTx_DEPRECATED(getProgrammedState());
+    auto vlanId = getVlanIDForTx();
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     // arbit
@@ -346,7 +346,7 @@ class AgentCoppTest : public AgentHwTest {
       facebook::fboss::ETHERTYPE etherType,
       const std::optional<folly::MacAddress>& dstMac = std::nullopt,
       std::optional<std::vector<uint8_t>> payload = std::nullopt) {
-    auto vlanId = utility::getFirstVlanIDForTx_DEPRECATED(getProgrammedState());
+    auto vlanId = getVlanIDForTx();
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
 
@@ -426,7 +426,7 @@ class AgentCoppTest : public AgentHwTest {
       const folly::IPAddress& dstIpAddress,
       ARP_OPER arpType,
       bool outOfPort) {
-    auto vlanId = utility::getFirstVlanIDForTx_DEPRECATED(getProgrammedState());
+    auto vlanId = getVlanIDForTx();
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
@@ -558,7 +558,7 @@ class AgentCoppTest : public AgentHwTest {
       int queueId,
       const int numPktsToSend = 1,
       const int expectedPktDelta = 1) {
-    auto vlanId = utility::getFirstVlanIDForTx_DEPRECATED(getProgrammedState());
+    auto vlanId = getVlanIDForTx();
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     auto neighborMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
@@ -604,7 +604,7 @@ class AgentCoppTest : public AgentHwTest {
   sendDHCPv6Pkts(int numPktsToSend, DHCPv6Type type, int ttl, bool outOfPort) {
     auto intfId = utility::firstInterfaceIDWithPorts(getProgrammedState());
     auto myIpv6 = utility::getIntfAddrsV6(getProgrammedState(), intfId)[0];
-    auto vlanId = utility::getFirstVlanIDForTx_DEPRECATED(getProgrammedState());
+    auto vlanId = getVlanIDForTx();
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     auto neighborMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
@@ -1748,8 +1748,7 @@ TEST_F(AgentCoppQueueStuckTest, CpuQueueHighRateTraffic) {
 
   auto verify = [&]() {
     // Create dataplane loop with lowerPriority traffic on port0
-    auto baseVlan =
-        utility::getFirstVlanIDForTx_DEPRECATED(getProgrammedState());
+    auto baseVlan = getVlanIDForTx();
     createLineRateTrafficOnPort(
         masterLogicalInterfacePortIds()[0], baseVlan, kIpForLowPriorityQueue);
 
@@ -1809,8 +1808,7 @@ TEST_F(AgentCoppQosTest, HighVsLowerPriorityCpuQueueTrafficPrioritization) {
     const auto ipForHigherPriorityQueue =
         folly::IPAddress::createNetwork(configIntf.ipAddresses()[1], -1, false)
             .first;
-    auto baseVlan =
-        utility::getFirstVlanIDForTx_DEPRECATED(getProgrammedState());
+    auto baseVlan = getVlanIDForTx();
 
     // Create dataplane loop with lowerPriority traffic on port0
     createLineRateTrafficOnPort(

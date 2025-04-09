@@ -151,7 +151,7 @@ void AgentVoqSwitchTest::rxPacketToCpuHelper(
 void AgentVoqSwitchTest::sendLocalServiceDiscoveryMulticastPacket(
     const PortID outPort,
     const int numPackets) {
-  auto vlanId = utility::getFirstVlanIDForTx_DEPRECATED(getProgrammedState());
+  auto vlanId = getVlanIDForTx();
   auto intfMac =
       utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
   auto srcIp = folly::IPAddressV6("fe80::ff:fe00:f0b");
