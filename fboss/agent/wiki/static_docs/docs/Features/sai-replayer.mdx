@@ -105,6 +105,29 @@ if (status != 0) printf("Unexpected rv at 3 with status %d \n", status);
 ```
 If the return status is not the same, it will print out this message with the sequence number of the API call so that users can look at the generated code and debug from there.
 
+
+## Splitting Large Replayer logs
+
+To enable compilation with compilers which do not support large files, exceedingly large SAI replayer logs (several millions of LOC) may need be split into multiple smaller logs.
+
+The script [`postProcess.py`](https://github.com/facebook/fboss/blob/main/fboss/agent/hw/sai/tracer/run/postProcess.py) splits a single file into multiple smaller files and a header, to be compiled together into a single output binary:
+```bash
+./postProcess.py
+```
+
+By default, the script will consume a SAI Replayer log named `SaiLog.cpp` in the same directory as the executing shell, and will output the split files in the `output/` directory.
+
+Additional options are available to customize the script's behavior:
+```bash
+./postProcess.py --help
+```
+
+For buck compilation, the flag `--generate_run_bzl` can be added which will also consume a `run.bzl` file from the same input directory. An example compilation command would be:
+```bash
+buck2 build --show-output @//mode/opt //fboss/agent/hw/sai/tracer/run/output:sai_replayer-brcm-10.2.0.0_odp
+```
+
+
 ### Adding support for new APIs & Attributes
 
 As more SAI APIs and attributes in [SAI spec](https://github.com/opencomputeproject/SAI/tree/master/inc) are supported in FBOSS, these APIs and attributes will also need to be added to SAI Replayer logging. Otherwise, the generated code produced by SAI Replayer will be incomplete and thus unable to faithfully recreate the ASIC state.
