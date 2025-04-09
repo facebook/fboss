@@ -1255,23 +1255,11 @@ void SwSwitch::init(
 
   // Notify resource accountant of the initial state.
   if (!resourceAccountant_->isValidUpdate(initialStateDelta)) {
-    // If DLB is enabled and pre-warmboot state has >128 ECMP groups, any
-    // failure is due to DLB resource check failure. Resource accounting will
-    // not be enabled in this boot and stay disabled until next warmboot
-    //
-    // This is the first invocation of isValidUpdate. At this time,
-    // ResourceAccountant::checkDlbResource_ is True by default. If the method
-    // returns False, set checkDlbResource_ to False. This will disable further
-    // DLB resource checks within resource accounting
-    if (FLAGS_dlbResourceCheckEnable && FLAGS_flowletSwitchingEnable) {
-      XLOG(DBG0) << "DLB resource check disabled until next warmboot";
-      resourceAccountant_->enableDlbResourceCheck(false);
-    } else {
-      throw FbossError(
-          "Not enough resource to apply initialState. ",
-          "This should not happen given the state was previously applied, ",
-          "but possible if calculation or threshold changes across warmboot.");
-    }
+    stats()->resourceAccountantRejectedUpdates();
+    throw FbossError(
+        "Not enough resource to apply initialState. ",
+        "This should not happen given the state was previously applied, ",
+        "but possible if calculation or threshold changes across warmboot.");
   }
   multiHwSwitchHandler_->stateChanged(
       initialStateDelta, false, hwWriteBehavior);
@@ -1340,23 +1328,11 @@ void SwSwitch::init(const HwWriteBehavior& hwWriteBehavior, SwitchFlags flags) {
   const auto initialStateDelta = StateDelta(emptyState, initialState);
   // Notify resource accountant of the initial state.
   if (!resourceAccountant_->isValidUpdate(initialStateDelta)) {
-    // If DLB is enabled and pre-warmboot state has >128 ECMP groups, any
-    // failure is due to DLB resource check failure. Resource accounting will
-    // not be enabled in this boot and stay disabled until next warmboot
-    //
-    // This is the first invocation of isValidUpdate. At this time,
-    // ResourceAccountant::checkDlbResource_ is True by default. If the method
-    // returns False, set checkDlbResource_ to False. This will disable further
-    // DLB resource checks within resource accounting
-    if (FLAGS_dlbResourceCheckEnable && FLAGS_flowletSwitchingEnable) {
-      XLOG(DBG0) << "DLB resource check disabled until next warmboot";
-      resourceAccountant_->enableDlbResourceCheck(false);
-    } else {
-      throw FbossError(
-          "Not enough resource to apply initialState. ",
-          "This should not happen given the state was previously applied, ",
-          "but possible if calculation or threshold changes across warmboot.");
-    }
+    stats()->resourceAccountantRejectedUpdates();
+    throw FbossError(
+        "Not enough resource to apply initialState. ",
+        "This should not happen given the state was previously applied, ",
+        "but possible if calculation or threshold changes across warmboot.");
   }
   // Do not send cold boot state to hwswitch. This is to avoid
   // deleting any cold boot state entries that hwswitch has learned from sdk
@@ -1779,6 +1755,7 @@ std::shared_ptr<SwitchState> SwSwitch::applyUpdate(
   }
 
   if (!resourceAccountant_->isValidUpdate(delta)) {
+    stats()->resourceAccountantRejectedUpdates();
     // Notify resource account to revert back to previous state
     resourceAccountant_->stateChanged(StateDelta(newState, oldState));
     return oldState;
