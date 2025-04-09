@@ -245,7 +245,7 @@ void HwIpEcmpDataPlaneTestUtil<AddrT>::pumpTrafficThroughPort(
     std::optional<PortID> port) {
   auto* ensemble = BaseT::getEnsemble();
   auto programmedState = ensemble->getProgrammedState();
-  auto vlanId = utility::getFirstVlanIDForTx(programmedState);
+  auto vlanId = utility::getFirstVlanIDForTx_DEPRECATED(programmedState);
   auto intfMac = utility::getMacForFirstInterfaceWithPorts(programmedState);
 
   utility::pumpTraffic(
@@ -268,7 +268,7 @@ void HwIpRoCEEcmpDataPlaneTestUtil<AddrT>::pumpTrafficThroughPort(
     std::optional<PortID> port) {
   auto* ensemble = BaseT::getEnsemble();
   auto programmedState = ensemble->getProgrammedState();
-  auto vlanId = utility::getFirstVlanIDForTx(programmedState);
+  auto vlanId = utility::getFirstVlanIDForTx_DEPRECATED(programmedState);
   auto intfMac = utility::getMacForFirstInterfaceWithPorts(programmedState);
 
   utility::pumpRoCETraffic(
@@ -292,7 +292,7 @@ void HwIpRoCEEcmpDestPortDataPlaneTestUtil<AddrT>::pumpTrafficThroughPort(
     std::optional<PortID> port) {
   auto* ensemble = BaseT::getEnsemble();
   auto programmedState = ensemble->getProgrammedState();
-  auto vlanId = utility::getFirstVlanIDForTx(programmedState);
+  auto vlanId = utility::getFirstVlanIDForTx_DEPRECATED(programmedState);
   auto intfMac = utility::getMacForFirstInterfaceWithPorts(programmedState);
 
   utility::pumpRoCETraffic(

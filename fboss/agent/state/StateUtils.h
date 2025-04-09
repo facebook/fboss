@@ -60,7 +60,7 @@ std::vector<folly::IPAddressV6> getIntfAddrsV6(
     const std::shared_ptr<SwitchState>& state,
     const InterfaceID& intf);
 
-std::optional<VlanID> getFirstVlanIDForTx(
+std::optional<VlanID> getFirstVlanIDForTx_DEPRECATED(
     const std::shared_ptr<SwitchState>& state);
 
 } // namespace utility

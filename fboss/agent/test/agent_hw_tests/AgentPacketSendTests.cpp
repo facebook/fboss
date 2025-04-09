@@ -86,7 +86,7 @@ TEST_F(AgentPacketSendTest, LldpToFrontPanelOutOfPort) {
   auto verify = [=, this]() {
     auto portStatsBefore =
         getLatestPortStats(masterLogicalInterfacePortIds()[0]);
-    auto vlanId = utility::getFirstVlanIDForTx(getProgrammedState());
+    auto vlanId = utility::getFirstVlanIDForTx_DEPRECATED(getProgrammedState());
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
@@ -134,7 +134,7 @@ TEST_F(AgentPacketSendTest, LldpToFrontPanelOutOfPortWithBufClone) {
   auto verify = [=, this]() {
     auto portStatsBefore =
         getLatestPortStats(masterLogicalInterfacePortIds()[0]);
-    auto vlanId = utility::getFirstVlanIDForTx(getProgrammedState());
+    auto vlanId = utility::getFirstVlanIDForTx_DEPRECATED(getProgrammedState());
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
@@ -205,7 +205,8 @@ TEST_F(AgentPacketSendTest, PortTxEnableTest) {
       auto sendPacket = [=, this](
                             AgentEnsemble* ensemble,
                             const folly::IPAddressV6& dstIpv6Addr) {
-        auto vlanId = utility::getFirstVlanIDForTx(getProgrammedState());
+        auto vlanId =
+            utility::getFirstVlanIDForTx_DEPRECATED(getProgrammedState());
         auto intfMac =
             utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
         auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
@@ -306,7 +307,7 @@ TEST_F(AgentPacketSendReceiveTest, LldpPacketReceiveSrcPort) {
   auto verify = [=, this]() {
     getAgentEnsemble()->getSw()->getPacketObservers()->registerPacketObserver(
         this, "LldpPacketReceiveSrcPort");
-    auto vlanId = utility::getFirstVlanIDForTx(getProgrammedState());
+    auto vlanId = utility::getFirstVlanIDForTx_DEPRECATED(getProgrammedState());
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
@@ -388,7 +389,7 @@ TEST_F(AgentPacketSendReceiveLagTest, LacpPacketReceiveSrcPort) {
   auto verify = [=, this]() {
     getAgentEnsemble()->getSw()->getPacketObservers()->registerPacketObserver(
         this, "LacpPacketReceiveSrcPort");
-    auto vlanId = utility::getFirstVlanIDForTx(getProgrammedState());
+    auto vlanId = utility::getFirstVlanIDForTx_DEPRECATED(getProgrammedState());
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     auto payLoadSize = 256;
@@ -490,7 +491,7 @@ TEST_F(AgentPacketFloodTest, ArpRequestFloodTest) {
   auto setup = [=]() {};
   auto verify = [=, this]() {
     auto portStatsBefore = getLatestPortStats(masterLogicalPortIds());
-    auto vlanId = utility::getFirstVlanIDForTx(getProgrammedState());
+    auto vlanId = utility::getFirstVlanIDForTx_DEPRECATED(getProgrammedState());
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
@@ -515,7 +516,7 @@ TEST_F(AgentPacketFloodTest, NdpFloodTest) {
   auto setup = [=]() {};
   auto verify = [=, this]() {
     auto retries = 5;
-    auto vlanId = utility::getFirstVlanIDForTx(getProgrammedState());
+    auto vlanId = utility::getFirstVlanIDForTx_DEPRECATED(getProgrammedState());
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     auto suceess = false;
@@ -546,7 +547,7 @@ TEST_F(AgentSwitchedPacketSendTest, ArpRequestToFrontPanelPortSwitched) {
   auto verify = [=, this]() {
     auto portStatsBefore =
         getLatestPortStats(masterLogicalInterfacePortIds()[0]);
-    auto vlanId = utility::getFirstVlanIDForTx(getProgrammedState());
+    auto vlanId = utility::getFirstVlanIDForTx_DEPRECATED(getProgrammedState());
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);

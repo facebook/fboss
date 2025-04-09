@@ -40,7 +40,7 @@ class AgentL4PortBlackHolingTest : public AgentHwTest {
   void pumpTraffic(bool isV6) {
     auto srcIp = IPAddress(isV6 ? "1001::1" : "101.0.0.1");
     auto dstIp = IPAddress(isV6 ? "2001::1" : "201.0.0.1");
-    auto vlanId = utility::getFirstVlanIDForTx(getProgrammedState());
+    auto vlanId = utility::getFirstVlanIDForTx_DEPRECATED(getProgrammedState());
     auto mac = utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     enum class Dir { SRC_PORT, DST_PORT };
     for (auto l4Port = 1; l4Port <= kNumL4Ports(); ++l4Port) {

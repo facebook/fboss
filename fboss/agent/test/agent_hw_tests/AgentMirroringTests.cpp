@@ -72,7 +72,7 @@ class AgentMirroringTest : public AgentHwTest {
 
   void sendPackets(int count, size_t payloadSize = 1) {
     auto params = utility::getMirrorTestParams<AddrT>();
-    auto vlanId = utility::getFirstVlanIDForTx(getProgrammedState());
+    auto vlanId = utility::getFirstVlanIDForTx_DEPRECATED(getProgrammedState());
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     std::vector<uint8_t> payload(payloadSize, 0xff);

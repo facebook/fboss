@@ -112,7 +112,7 @@ std::vector<folly::IPAddressV6> getIntfAddrsV6(
   return addrs;
 }
 
-std::optional<VlanID> getFirstVlanIDForTx(
+std::optional<VlanID> getFirstVlanIDForTx_DEPRECATED(
     const std::shared_ptr<SwitchState>& state) {
   // TODO: avoid using getFirstNodeIf
   auto settings = utility::getFirstNodeIf(state->getSwitchSettings());
