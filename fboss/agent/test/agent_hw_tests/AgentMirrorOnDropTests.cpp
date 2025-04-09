@@ -230,7 +230,7 @@ class AgentMirrorOnDropTest
 
     return utility::makeUDPTxPacket(
         getSw(),
-        utility::firstVlanIDWithPorts(getProgrammedState()),
+        utility::getFirstVlanIDForTx(getProgrammedState()),
         utility::kLocalCpuMac(),
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
         folly::IPAddressV6{"2401:2222:2222:2222:2222:2222:2222:2222"},

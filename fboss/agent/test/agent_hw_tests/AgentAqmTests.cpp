@@ -114,7 +114,7 @@ class AgentAqmTest : public AgentHwTest {
     dscpVal = static_cast<uint8_t>(dscpVal << 2);
     dscpVal |= ecnVal;
 
-    auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
+    auto vlanId = utility::getFirstVlanIDForTx(getProgrammedState());
     auto intfMac = getIntfMac();
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
     auto txPacket = utility::makeTCPTxPacket(

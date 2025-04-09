@@ -57,7 +57,7 @@ void AgentSendPacketToQueueTest::checkSendPacket(
     auto beforeOutPkts =
         folly::copy(getLatestPortStats(port).queueOutPackets_().value())
             .at(queueID);
-    auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
+    auto vlanId = utility::getFirstVlanIDForTx(getProgrammedState());
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     // packet format shouldn't be matter in this test
@@ -155,7 +155,7 @@ TEST_F(AgentSendPacketToMulticastQueueTest, SendPacketOutOfPortToMCQueue) {
     if (getSw()->getBootType() == BootType::WARM_BOOT) {
       return;
     }
-    auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
+    auto vlanId = utility::getFirstVlanIDForTx(getProgrammedState());
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     auto randomMac = folly::MacAddress("01:02:03:04:05:06");

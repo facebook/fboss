@@ -1537,7 +1537,7 @@ void sendAndVerifyPkts(
     PortID srcPort,
     uint8_t trafficClass) {
   auto sendPkts = [&] {
-    auto vlanId = utility::firstVlanIDWithPorts(swState);
+    auto vlanId = utility::getFirstVlanIDForTx(swState);
     auto intfMac = utility::getMacForFirstInterfaceWithPorts(swState);
     utility::sendTcpPkts(
         switchPtr,

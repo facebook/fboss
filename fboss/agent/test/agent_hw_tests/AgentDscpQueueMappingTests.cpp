@@ -35,7 +35,7 @@ class AgentDscpQueueMappingTestBase : public AgentHwTest {
   }
 
   void sendPacket(bool frontPanel, uint8_t ttl = 64) {
-    auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
+    auto vlanId = utility::getFirstVlanIDForTx(getProgrammedState());
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);

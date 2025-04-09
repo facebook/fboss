@@ -133,7 +133,7 @@ class AgentMmuTuningTest : public AgentHwTest {
 
     return utility::makeUDPTxPacket(
         getSw(),
-        utility::firstVlanIDWithPorts(getProgrammedState()),
+        utility::getFirstVlanIDForTx(getProgrammedState()),
         srcMac,
         dstMac(),
         folly::IPAddressV6("2620:0:1cfe:face:b00c::3"),

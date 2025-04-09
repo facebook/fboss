@@ -42,7 +42,7 @@ void AgentQosTestBase::verifyDscpQueueMapping(
 }
 
 void AgentQosTestBase::sendPacket(uint8_t dscp, bool frontPanel) {
-  auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
+  auto vlanId = utility::getFirstVlanIDForTx(getProgrammedState());
   auto intfMac =
       utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
   auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);

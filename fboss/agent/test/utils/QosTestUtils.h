@@ -195,7 +195,7 @@ bool verifyQueueMappingsInvariantHelper(
     const std::vector<PortID>& ecmpPorts,
     uint32_t sleep = 20) {
   auto portStatsBefore = getAllHwPortStats();
-  auto vlanId = utility::firstVlanIDWithPorts(swState);
+  auto vlanId = utility::getFirstVlanIDForTx(swState);
   auto intfMac = utility::getMacForFirstInterfaceWithPorts(swState);
   auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
 

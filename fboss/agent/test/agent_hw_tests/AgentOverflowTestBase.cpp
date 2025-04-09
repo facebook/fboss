@@ -58,7 +58,7 @@ AgentOverflowTestBase::getProductionFeaturesVerified() const {
 void AgentOverflowTestBase::startPacketTxRxVerify() {
   CHECK(!packetRxVerifyRunning_);
   packetRxVerifyRunning_ = true;
-  auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
+  auto vlanId = utility::getFirstVlanIDForTx(getProgrammedState());
   auto intfMac =
       utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
   auto dstIp = folly::IPAddress::createNetwork(

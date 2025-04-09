@@ -170,7 +170,7 @@ class AgentNeighborTest : public AgentHwTest {
   VlanID kVlanID() const {
     if (utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
             ->getSwitchType() == cfg::SwitchType::NPU) {
-      auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
+      auto vlanId = utility::getFirstVlanIDForTx(getProgrammedState());
       CHECK(vlanId.has_value());
       return *vlanId;
     }

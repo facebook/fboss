@@ -46,7 +46,7 @@ TEST_F(AgentAclInDiscardsCounterTest, aclInDiscards) {
   auto verify = [=, this]() {
     auto port = masterLogicalInterfacePortIds()[1];
     auto portStatsBefore = getLatestPortStats(port);
-    auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
+    auto vlanId = utility::getFirstVlanIDForTx(getProgrammedState());
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);

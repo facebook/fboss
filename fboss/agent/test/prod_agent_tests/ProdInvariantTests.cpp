@@ -288,7 +288,7 @@ void ProdInvariantTest::verifyDscpToQueueMapping() {
 
 void ProdInvariantTest::verifyQueuePerHostMapping(bool dscpMarkingTest) {
   AgentEnsemble* ensemble = getAgentEnsemble();
-  auto vlanId = utility::firstVlanIDWithPorts(getSw()->getState());
+  auto vlanId = utility::getFirstVlanIDForTx(getSw()->getState());
   auto intfMac = utility::getMacForFirstInterfaceWithPorts(getSw()->getState());
   auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO());
 

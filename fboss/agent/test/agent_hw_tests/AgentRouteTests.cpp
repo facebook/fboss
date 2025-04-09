@@ -526,7 +526,7 @@ TYPED_TEST(AgentRouteTest, VerifyRouting) {
   };
   auto verify = [=, this]() {
     const auto egressPort = ports[0].phyPortID();
-    auto vlanId = utility::firstVlanIDWithPorts(this->getProgrammedState());
+    auto vlanId = utility::getFirstVlanIDForTx(this->getProgrammedState());
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(this->getProgrammedState());
 
@@ -660,7 +660,7 @@ TYPED_TEST(AgentRouteTest, verifyCpuRouteChange) {
 
     // Verify routing
     const auto egressPort = ports[1].phyPortID();
-    auto vlanId = utility::firstVlanIDWithPorts(this->getProgrammedState());
+    auto vlanId = utility::getFirstVlanIDForTx(this->getProgrammedState());
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(this->getProgrammedState());
     auto beforeOutPkts =
