@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/state/StateUtils.h"
+#include "fboss/agent/HwSwitchMatcher.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/SwitchState.h"
 

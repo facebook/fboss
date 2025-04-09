@@ -14,6 +14,7 @@
 #include "fboss/agent/LldpManager.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/TxPacket.h"
+#include "fboss/agent/Utils.h"
 #include "fboss/agent/VoqUtils.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/packet/ICMPHdr.h"
@@ -1537,8 +1538,23 @@ void sendAndVerifyPkts(
     PortID srcPort,
     uint8_t trafficClass) {
   auto sendPkts = [&] {
-    auto vlanId = utility::getFirstVlanIDForTx_DEPRECATED(swState);
-    auto intfMac = utility::getMacForFirstInterfaceWithPorts(swState);
+    auto intf = utility::firstInterfaceWithPorts(swState);
+    std::optional<VlanID> vlanId;
+    if constexpr (std::is_same_v<SwitchT, SwSwitch>) {
+      vlanId = switchPtr->getVlanIDForTx(intf);
+    } else {
+      vlanId = getVlanIDFromVlanOrIntf(intf);
+      auto asic = static_cast<HwSwitch*>(switchPtr)->getPlatform()->getAsic();
+      if (asic->isSupported(HwAsic::Feature::CPU_TX_PACKET_REQUIRES_VLAN_TAG)) {
+        HwSwitchMatcher matcher(
+            std::unordered_set<SwitchID>{switchPtr->getSwitchID()});
+        auto settings =
+            swState->getSwitchSettings()->getNode(matcher.matcherString());
+        vlanId = getDefaultTxVlanId(settings);
+      }
+    }
+
+    auto intfMac = intf->getMac();
     utility::sendTcpPkts(
         switchPtr,
         1 /*numPktsToSend*/,

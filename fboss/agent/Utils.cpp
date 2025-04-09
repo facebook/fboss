@@ -1197,4 +1197,21 @@ bool isStringInFile(
   return false;
 }
 
+std::optional<VlanID> getDefaultTxVlanIdIf(
+    const std::shared_ptr<SwitchSettings>& settings) {
+  if (auto defaultVlan = settings->getDefaultVlan()) {
+    return VlanID(*defaultVlan);
+  }
+  return std::nullopt;
+}
+
+std::optional<VlanID> getDefaultTxVlanId(
+    const std::shared_ptr<SwitchSettings>& settings) {
+  auto vlanId = getDefaultTxVlanIdIf(settings);
+  if (!vlanId) {
+    throw FbossError("default tx vlan not found");
+  }
+  return vlanId;
+}
+
 } // namespace facebook::fboss

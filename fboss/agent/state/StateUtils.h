@@ -65,6 +65,5 @@ std::vector<folly::IPAddressV6> getIntfAddrsV6(
 
 std::optional<VlanID> getFirstVlanIDForTx_DEPRECATED(
     const std::shared_ptr<SwitchState>& state);
-
 } // namespace utility
 } // namespace facebook::fboss

@@ -467,4 +467,10 @@ bool isStringInFile(
     const std::string& str,
     int maxLinesToSearch);
 
+std::optional<VlanID> getDefaultTxVlanIdIf(
+    const std::shared_ptr<SwitchSettings>& settings);
+
+std::optional<VlanID> getDefaultTxVlanId(
+    const std::shared_ptr<SwitchSettings>& settings);
+
 } // namespace facebook::fboss

@@ -183,6 +183,7 @@ cpp_library(
     exported_deps = [
         ":state",
         "//fboss/agent:fboss-types",
+        "//fboss/agent:hwswitch_matcher",
         "//folly:network_address",
     ],
 )
