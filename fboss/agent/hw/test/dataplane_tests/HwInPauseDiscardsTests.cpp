@@ -41,7 +41,7 @@ class HwInPauseDiscardsCounterTest : public HwLinkStateDependentTest {
     payload.insert(payload.end(), padding.begin(), padding.end());
     auto pkt = utility::makeEthTxPacket(
         getHwSwitch(),
-        utility::firstVlanIDWithPorts(getProgrammedState()),
+        getHwSwitchEnsemble()->getVlanIDForTx(),
         getPlatform()->getLocalMac(),
         folly::MacAddress("01:80:C2:00:00:01"),
         ETHERTYPE::ETHERTYPE_EPON,

@@ -213,7 +213,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
       int payloadLen = kDefaultTxPayloadBytes,
       int ttl = 255,
       std::optional<PortID> outPort = std::nullopt) {
-    auto vlanId = utility::firstVlanIDWithPorts(initialConfig());
+    auto vlanId = getHwSwitchEnsemble()->getVlanIDForTx();
     for (int i = 0; i < cnt; i++) {
       sendPkt(
           dscpVal,

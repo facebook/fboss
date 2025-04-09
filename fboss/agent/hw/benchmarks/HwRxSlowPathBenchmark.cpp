@@ -103,7 +103,7 @@ BENCHMARK(RxSlowPathBenchmark) {
 
   const auto kSrcMac = folly::MacAddress{"fa:ce:b0:00:00:0c"};
   // Send packet
-  auto vlanId = utility::firstVlanIDWithPorts(ensemble->getProgrammedState());
+  auto vlanId = ensemble->getVlanIDForTx();
   auto constexpr kPacketToSend = 10;
   for (int i = 0; i < kPacketToSend; i++) {
     auto txPacket = utility::makeUDPTxPacket(

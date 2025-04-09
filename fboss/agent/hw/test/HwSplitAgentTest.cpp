@@ -102,7 +102,7 @@ TEST_F(HwSplitAgentCallbackTest, txPacket) {
 
   auto intfMac =
       utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
-  auto vlanId = utility::firstVlanIDWithPorts(initialConfig());
+  auto vlanId = getHwSwitchEnsemble()->getVlanIDForTx();
   auto pkt = utility::makeIpTxPacket(
       [hwSwitch = getHwSwitch()](uint32_t size) {
         return hwSwitch->allocatePacket(size);
