@@ -813,6 +813,7 @@ cpp_library(
         ":switch_state-cpp2-types",
         ":switchid_scope_resolver",
         ":switchinfo_utils",
+        ":tx_packet_utils",
         ":utils",
         ":voq_utils",
         "//common/fbwhoami:fb_who_am_i",

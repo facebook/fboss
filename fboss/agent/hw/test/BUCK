@@ -33,6 +33,7 @@ cpp_library(
         "//fboss/agent:sw_switch_warmboot_helper",
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent:switchid_scope_resolver",
+        "//fboss/agent:tx_packet_utils",
         "//fboss/agent:utils",
         "//fboss/agent/hw:hardware_stats-cpp2-types",
         "//fboss/agent/hw/switch_asics:switch_asics",
