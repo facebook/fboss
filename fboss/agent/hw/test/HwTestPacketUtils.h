@@ -42,9 +42,6 @@ folly::MacAddress getInterfaceMac(
 folly::MacAddress getFirstInterfaceMac(const cfg::SwitchConfig& cfg);
 folly::MacAddress getFirstInterfaceMac(
     const std::shared_ptr<SwitchState>& state);
-std::optional<VlanID> firstVlanIDWithPorts(const cfg::SwitchConfig& cfg);
-std::optional<VlanID> firstVlanIDWithPorts(
-    const std::shared_ptr<SwitchState>& state);
 VlanID getIngressVlan(const std::shared_ptr<SwitchState>& state, PortID port);
 
 std::unique_ptr<facebook::fboss::TxPacket> makeLLDPPacket(
