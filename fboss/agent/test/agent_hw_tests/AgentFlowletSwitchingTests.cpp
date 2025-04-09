@@ -1241,38 +1241,6 @@ TEST_F(AgentFlowletResourceTest, CreateMaxDlbGroups) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(AgentFlowletResourceTest, IgnoreDlbResourceCheck) {
-  // Start with 128 ECMP groups
-  auto setup = [this]() {
-    const auto kMaxDlbEcmpGroup =
-        utility::getMaxDlbEcmpGroups(getAgentEnsemble()->getL3Asics());
-    FLAGS_flowletSwitchingEnable = false;
-    this->setup();
-    auto wrapper = getSw()->getRouteUpdater();
-    std::vector<RoutePrefixV6> prefixes128 = {
-        prefixes.begin(), prefixes.begin() + kMaxDlbEcmpGroup};
-    std::vector<flat_set<PortDescriptor>> nhopSets128 = {
-        nhopSets.begin(), nhopSets.begin() + kMaxDlbEcmpGroup};
-    helper_->programRoutes(&wrapper, nhopSets128, prefixes128);
-  };
-  // Post warmboot, since there are already 128, dlb resource check is disabled
-  auto setupPostWarmboot = [this]() {
-    const auto kMaxDlbEcmpGroup =
-        utility::getMaxDlbEcmpGroups(getAgentEnsemble()->getL3Asics());
-    FLAGS_flowletSwitchingEnable = true;
-    this->setup();
-    auto wrapper = getSw()->getRouteUpdater();
-    std::vector<RoutePrefixV6> prefixes128 = {
-        prefixes.begin() + kMaxDlbEcmpGroup,
-        prefixes.begin() + 2 * kMaxDlbEcmpGroup};
-    std::vector<flat_set<PortDescriptor>> nhopSets128 = {
-        nhopSets.begin() + kMaxDlbEcmpGroup,
-        nhopSets.begin() + 2 * kMaxDlbEcmpGroup};
-    helper_->programRoutes(&wrapper, nhopSets128, prefixes128);
-  };
-  verifyAcrossWarmBoots(setup, [] {}, setupPostWarmboot, [] {});
-}
-
 TEST_F(AgentFlowletResourceTest, ApplyDlbResourceCheck) {
   // Start with 60% ECMP groups
   auto setup = [this]() {
