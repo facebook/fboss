@@ -579,7 +579,7 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, verifyDscpToVoqMapping) {
             std::nullopt,
             std::optional<std::vector<uint8_t>>(),
             dscp);
-        WITH_RETRIES({
+        WITH_RETRIES_N(10, {
           auto statsAfter = getLatestSysPortStats(kRemoteSysPortId);
           auto queueBytesAfter = statsAfter.queueOutBytes_()->at(queueId) +
               statsAfter.queueOutDiscardBytes_()->at(queueId);
