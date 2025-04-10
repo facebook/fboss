@@ -87,6 +87,18 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
     return getHwSwitchEnsemble()->isSai() ? 20 : 200;
   }
 
+  int kDefaultSamplingRate() const {
+    return getHwSwitchEnsemble()->isSai() ? 1 : 500000;
+  }
+
+  // SAI is 0.5us but SDK doesn't support yet
+  // <1us not supported on TH3
+  int kMinSamplingRate() const {
+    bool isTH4 = getPlatform()->getAsic()->getAsicType() ==
+        cfg::AsicType::ASIC_TYPE_TOMAHAWK4;
+    return getHwSwitchEnsemble()->isSai() ? 1 : isTH4 ? 1953125 : 1000000;
+  }
+
   cfg::SwitchConfig initialConfig() const override {
     auto cfg = getDefaultConfig();
     updateFlowletConfigs(cfg);
@@ -200,7 +212,10 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
           cfg::SwitchingMode::FLOWLET_QUALITY,
       const int flowletTableSize = kFlowletTableSize1) const {
     auto flowletCfg = getFlowletSwitchingConfig(
-        switchingMode, kInactivityIntervalUsecs1, flowletTableSize);
+        switchingMode,
+        kInactivityIntervalUsecs1,
+        flowletTableSize,
+        kDefaultSamplingRate());
     cfg.flowletSwitchingConfig() = flowletCfg;
     updatePortFlowletConfigs(
         cfg, kScalingFactor1(), kLoadWeight1, kQueueWeight1);
@@ -245,7 +260,8 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
   cfg::FlowletSwitchingConfig getFlowletSwitchingConfig(
       cfg::SwitchingMode switchingMode,
       uint16_t inactivityIntervalUsecs,
-      int flowletTableSize) const {
+      int flowletTableSize,
+      int samplingRate) const {
     cfg::FlowletSwitchingConfig flowletCfg;
     flowletCfg.inactivityIntervalUsecs() = inactivityIntervalUsecs;
     flowletCfg.flowletTableSize() = flowletTableSize;
@@ -253,8 +269,7 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
     flowletCfg.dynamicQueueExponent() = 3;
     flowletCfg.dynamicQueueMinThresholdBytes() = 100000;
     flowletCfg.dynamicQueueMaxThresholdBytes() = 200000;
-    flowletCfg.dynamicSampleRate() =
-        getHwSwitchEnsemble()->isSai() ? 1 : 1000000;
+    flowletCfg.dynamicSampleRate() = samplingRate;
     flowletCfg.dynamicEgressMinThresholdBytes() = 1000;
     flowletCfg.dynamicEgressMaxThresholdBytes() = 10000;
     flowletCfg.dynamicPhysicalQueueExponent() = 4;
@@ -267,7 +282,8 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
     auto flowletCfg = getFlowletSwitchingConfig(
         cfg::SwitchingMode::PER_PACKET_QUALITY,
         kInactivityIntervalUsecs2,
-        kMinFlowletTableSize);
+        kMinFlowletTableSize,
+        kMinSamplingRate());
     cfg.flowletSwitchingConfig() = flowletCfg;
   }
 
@@ -374,7 +390,8 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
     auto flowletCfg = getFlowletSwitchingConfig(
         cfg::SwitchingMode::PER_PACKET_QUALITY,
         kInactivityIntervalUsecs2,
-        kMinFlowletTableSize);
+        kMinFlowletTableSize,
+        kMinSamplingRate());
 
     EXPECT_TRUE(
         utility::validateFlowletSwitchingEnabled(getHwSwitch(), flowletCfg));
@@ -387,8 +404,8 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
         kDefaultScalingFactor(), kDefaultLoadWeight(), kDefaultQueueWeight());
     verifyPortFlowletConfig(portFlowletConfig, false);
 
-    auto flowletCfg =
-        getFlowletSwitchingConfig(cfg::SwitchingMode::FIXED_ASSIGNMENT, 0, 0);
+    auto flowletCfg = getFlowletSwitchingConfig(
+        cfg::SwitchingMode::FIXED_ASSIGNMENT, 0, 0, 0);
 
     EXPECT_TRUE(utility::validateFlowletSwitchingDisabled(getHwSwitch()));
     EXPECT_TRUE(utility::verifyEcmpForFlowletSwitching(
@@ -429,8 +446,8 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
           true));
     } else {
       // verify the flowlet config is not programmed in ECMP for TH3
-      auto flowletCfg =
-          getFlowletSwitchingConfig(cfg::SwitchingMode::FIXED_ASSIGNMENT, 0, 0);
+      auto flowletCfg = getFlowletSwitchingConfig(
+          cfg::SwitchingMode::FIXED_ASSIGNMENT, 0, 0, 0);
       EXPECT_TRUE(utility::verifyEcmpForFlowletSwitching(
           getHwSwitch(), kAddr1Prefix, flowletCfg, portFlowletConfig, false));
     }
@@ -556,7 +573,8 @@ TEST_F(HwFlowletSwitchingFlowsetTests, ValidateFlowsetExceed) {
     auto flowletCfg = getFlowletSwitchingConfig(
         cfg::SwitchingMode::FLOWLET_QUALITY,
         kInactivityIntervalUsecs2,
-        KMaxFlowsetTableSize);
+        KMaxFlowsetTableSize,
+        kDefaultSamplingRate());
     cfg.flowletSwitchingConfig() = flowletCfg;
     applyNewConfig(cfg);
 
