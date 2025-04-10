@@ -260,7 +260,7 @@ std::string SaiPlatform::getHwAsicConfig(
    * be thrown to fallback to bcm or asic config.
    */
   auto chipConfigType = config()->thrift.platform()->chip()->getType();
-  if (chipConfigType != facebook::fboss::cfg::ChipConfig::asicConfig) {
+  if (chipConfigType != facebook::fboss::cfg::ChipConfig::Type::asicConfig) {
     throw FbossError("No asic config v2 found in agent config");
   }
   auto asicConfig = config()->thrift.platform()->chip()->get_asicConfig();
