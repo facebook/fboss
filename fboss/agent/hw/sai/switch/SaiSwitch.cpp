@@ -2467,6 +2467,13 @@ void SaiSwitch::txReadyStatusChangeOrFwIsolateCallbackBottomHalf(
 
   callback_->linkActiveStateChangedOrFwIsolated(
       port2IsActive, fwIsolated, numActiveFabricPortsAtFwIsolate);
+
+  // Forcing a switch reachability get from SAI/SDK once port
+  // active state change handling is complete to ensure the
+  // switch reachability data is consistent with port active
+  // state which is still an issue in S486672.
+  // TODO: Remove this once root cause of mismatch is identified.
+  setSwitchReachabilityChangePending();
 #endif
 }
 
