@@ -405,7 +405,8 @@ cfg::DsfNode dsfNodeConfig(
     const HwAsic& firstAsic,
     int64_t otherSwitchId,
     const std::optional<PlatformType> platformType,
-    const std::optional<int> clusterId) {
+    const std::optional<int> clusterId,
+    const std::string& switchNamePrefix) {
   auto getPlatformType = [](const auto& asic, auto& platformType) {
     if (platformType.has_value()) {
       return *platformType;
@@ -451,7 +452,8 @@ cfg::DsfNode dsfNodeConfig(
   };
   cfg::DsfNode dsfNode;
   dsfNode.switchId() = otherSwitchId;
-  dsfNode.name() = folly::sformat("hwTestSwitch{}", *dsfNode.switchId());
+  dsfNode.name() =
+      folly::sformat("{}{}", switchNamePrefix, *dsfNode.switchId());
   switch (firstAsic.getSwitchType()) {
     case cfg::SwitchType::VOQ: {
       dsfNode.type() = cfg::DsfNodeType::INTERFACE_NODE;
