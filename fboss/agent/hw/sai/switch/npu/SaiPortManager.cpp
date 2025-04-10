@@ -1055,10 +1055,9 @@ void SaiPortManager::programSerdes(
   // create if serdes doesn't exist or update existing serdes
   portHandle->serdes = store.setObject(serdesKey, serdesAttributes);
 
-  if (((platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_YUBA ||
-        platform_->getAsic()->getAsicType() ==
-            cfg::AsicType::ASIC_TYPE_TOMAHAWK5) &&
-       platform_->getHwSwitch()->getBootType() == BootType::COLD_BOOT) &&
+  if (platform_->getAsic()->getAsicType() ==
+          cfg::AsicType::ASIC_TYPE_TOMAHAWK5 &&
+      platform_->getHwSwitch()->getBootType() == BootType::COLD_BOOT &&
       swPort->getAdminState() == cfg::PortState::ENABLED) {
     /*
      * SI settings are not programmed to the hardware when the port is
