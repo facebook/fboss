@@ -2368,6 +2368,8 @@ void SwSwitch::switchReachabilityChanged(
   }
   auto& cachedRechabilityInfo = hwReachabilityInfo_[switchId];
   std::unordered_map<std::set<PortID>, int> portGrp2Id;
+  int reachableSwitchCount{0};
+  int unreachableSwitchCount{0};
   for (const auto& [destinationSwitchId, portIdSet] : switchReachabilityInfo) {
     int portGroupId;
     // When a switchID is unreachable, the portIdSet will be empty. In this
@@ -2379,7 +2381,14 @@ void SwSwitch::switchReachabilityChanged(
       portGroupId = kEmptyFabricPortGroupId;
       newReachability.fabricPortGroupMap()[portGroupId] =
           std::vector<std::string>();
+      const auto& node =
+          getState()->getDsfNodes()->getNodeIf(destinationSwitchId);
+      if (*node->toThrift().type() == cfg::DsfNodeType::INTERFACE_NODE) {
+        // Only interface nodes reachability needs tracking!
+        unreachableSwitchCount++;
+      }
     } else {
+      reachableSwitchCount++;
       auto [_, inserted] =
           portGrp2Id.insert({portIdSet, nextUsableFabricPortGroupId});
       if (inserted) {
@@ -2418,6 +2427,11 @@ void SwSwitch::switchReachabilityChanged(
   runFsdbSyncFunction([switchId, &newReachability](auto& syncer) {
     syncer->switchReachabilityChanged(switchId, std::move(newReachability));
   });
+  XLOG(DBG2) << "Switch reachability change processed for switch"
+             << switchInfoTable_.getSwitchIndexFromSwitchId(switchId) << ", "
+             << reachableSwitchCount << " switches reachable over "
+             << portGrp2Id.size() << " port groups, " << unreachableSwitchCount
+             << " switches unreachable!";
   // Update processing complete counter
   stats()->switchReachabilityChangeProcessed();
 }
