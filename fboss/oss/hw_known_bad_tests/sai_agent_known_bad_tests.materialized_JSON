@@ -2034,6 +2034,9 @@
           "test_name_regex": "AgentIngressBufferPoolTest.validateIngressPoolParamChange$"
         },
         {
+          "test_name_regex": "AgentAqmTest.verifyWredThreshold$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -2469,6 +2472,9 @@
         },
         {
           "test_name_regex": "AgentIngressBufferPoolTest.validateIngressPoolParamChange$"
+        },
+        {
+          "test_name_regex": "AgentAqmTest.verifyWredThreshold$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ$"
@@ -3346,6 +3352,9 @@
         },
         {
           "test_name_regex": "AgentIngressBufferPoolTest.validateIngressPoolParamChange$"
+        },
+        {
+          "test_name_regex": "AgentAqmTest.verifyWredThreshold$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ$"
@@ -6203,6 +6212,9 @@
         },
         {
           "test_name_regex": "AgentIngressBufferPoolTest.validateIngressPoolParamChange$"
+        },
+        {
+          "test_name_regex": "AgentAqmTest.verifyWredThreshold$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ$"
@@ -10537,6 +10549,9 @@
           "test_name_regex": "AgentIngressBufferPoolTest.validateIngressPoolParamChange$"
         },
         {
+          "test_name_regex": "AgentAqmTest.verifyWredThreshold$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -10951,6 +10966,9 @@
         },
         {
           "test_name_regex": "AgentIngressBufferPoolTest.validateIngressPoolParamChange$"
+        },
+        {
+          "test_name_regex": "AgentAqmTest.verifyWredThreshold$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ$"
