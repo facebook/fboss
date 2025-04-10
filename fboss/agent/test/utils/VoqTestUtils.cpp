@@ -43,7 +43,7 @@ std::shared_ptr<SystemPort> makeRemoteSysPort(
   auto remoteSysPort = std::make_shared<SystemPort>(portId);
   auto voqConfig = getDefaultVoqConfig(portType);
   remoteSysPort->setName(
-      folly::to<std::string>(remoteSwitchName, ":eth/", portId, "/1"));
+      folly::to<std::string>(remoteSwitchName, ":eth1/", portId, "/1"));
   remoteSysPort->setSwitchId(remoteSwitchId);
   remoteSysPort->setNumVoqs(getRemotePortNumVoqs(intfRole, portType));
   remoteSysPort->setCoreIndex(coreIndex);
