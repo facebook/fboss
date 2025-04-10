@@ -92,6 +92,7 @@ std::optional<std::map<int64_t, cfg::DsfNode>> addRemoteIntfNodeCfg(
   auto firstDsfNodeSysPortRanges =
       *firstDsfNode.systemPortRanges()->systemPortRanges();
 
+  std::string testSwitchNamePrefix = "hwTestSwitch";
   for (int remoteSwitchId = remoteNodeStart;
        remoteSwitchId < totalNodes * numCores;
        remoteSwitchId += numCores) {
@@ -102,17 +103,21 @@ std::optional<std::map<int64_t, cfg::DsfNode>> addRemoteIntfNodeCfg(
         clusterId = remoteSwitchId / numCores / kRdswPerCluster;
         CHECK(dualStageRdswAsic);
         hwAsic = *dualStageRdswAsic;
+        testSwitchNamePrefix = "rdsw";
       } else {
         clusterId = k2StageEdgePodClusterId;
         CHECK(dualStageEdswAsic);
         hwAsic = *dualStageEdswAsic;
+        testSwitchNamePrefix = "edsw";
       }
     }
+
     auto remoteDsfNodeCfg = dsfNodeConfig(
         hwAsic,
         SwitchID(remoteSwitchId),
         *firstDsfNode.platformType(),
-        clusterId);
+        clusterId,
+        testSwitchNamePrefix);
     dsfNodes.insert({remoteSwitchId, remoteDsfNodeCfg});
   }
   return dsfNodes;
