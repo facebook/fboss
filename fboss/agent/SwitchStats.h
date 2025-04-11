@@ -507,7 +507,11 @@ class SwitchStats : public boost::noncopyable {
 
   void setDrainState(int16_t switchIndex, cfg::SwitchDrainState drainState);
 
-  void setPortsWithSwitchReachabilityInconsistency(
+  void setActivePortsWithoutSwitchReachability(
+      int16_t switchIndex,
+      int numPorts);
+
+  void setInactivePortsWithSwitchReachability(
       int16_t switchIndex,
       int numPorts);
 
@@ -1089,7 +1093,8 @@ class SwitchStats : public boost::noncopyable {
   std::vector<TLTimeseries> hwAgentUpdateTimeouts_;
   std::vector<HwAgentStreamConnectionStatus> thriftStreamConnectionStatus_;
   std::vector<TLTimeseries> switchReachabilityInconsistencyDetected_;
-  std::vector<TLCounter> portsWithSwitchReachabilityInconsistency_;
+  std::vector<TLCounter> activePortsWithoutSwitchReachability_;
+  std::vector<TLCounter> inactivePortsWithSwitchReachability_;
 };
 
 } // namespace facebook::fboss
