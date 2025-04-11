@@ -32,7 +32,6 @@ python_library(
         ":si_settings",
         ":static_mapping",
         "//fboss/agent:platform_config-py-deprecated",
-        "//fboss/agent:switch_config-py-deprecated",
         "//fboss/lib/phy:phy-py-deprecated",
     ],
 )
