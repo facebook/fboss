@@ -9,6 +9,7 @@ load(
     "get_all_link_test_path_actions",
 )
 load("//fboss/build:fbpkg.bzl", "fboss_fbpkg_builder")
+load("//fbpkg:fbpkg.bzl", "fbpkg")
 
 oncall("fboss_agent_push")
 
@@ -52,6 +53,11 @@ fboss_fbpkg_builder(
     buck_modes = [
         "opt-asan",
     ],
+    buck_opts = fbpkg.buck_opts(
+        config = {
+            "fbcode//cxx.link_weight": "6",  # reduce concurrency to avoid OOM
+        },
+    ),
     override_log_paths = ["fboss/agent"],
     path_actions = get_all_hw_test_path_actions(),
 )
@@ -61,6 +67,11 @@ fboss_fbpkg_builder(
     buck_modes = [
         "opt-asan",
     ],
+    buck_opts = fbpkg.buck_opts(
+        config = {
+            "fbcode//cxx.link_weight": "6",  # reduce concurrency to avoid OOM
+        },
+    ),
     override_log_paths = ["fboss/agent"],
     path_actions = get_all_agent_test_path_actions(),
 )
@@ -70,6 +81,11 @@ fboss_fbpkg_builder(
     buck_modes = [
         "opt-asan",
     ],
+    buck_opts = fbpkg.buck_opts(
+        config = {
+            "fbcode//cxx.link_weight": "6",  # reduce concurrency to avoid OOM
+        },
+    ),
     override_log_paths = ["fboss/agent"],
     path_actions = get_all_link_test_path_actions(),
 )
@@ -79,6 +95,11 @@ fboss_fbpkg_builder(
     buck_modes = [
         "opt-asan",
     ],
+    buck_opts = fbpkg.buck_opts(
+        config = {
+            "fbcode//cxx.link_weight": "6",  # reduce concurrency to avoid OOM
+        },
+    ),
     override_log_paths = ["fboss/agent"],
     path_actions = get_all_fsdb_integration_test_path_actions(),
 )
@@ -88,6 +109,11 @@ fboss_fbpkg_builder(
     buck_modes = [
         "opt-asan",
     ],
+    buck_opts = fbpkg.buck_opts(
+        config = {
+            "fbcode//cxx.link_weight": "6",  # reduce concurrency to avoid OOM
+        },
+    ),
     override_log_paths = ["fboss/agent"],
     path_actions = get_all_invariant_test_path_actions(),
 )
