@@ -833,6 +833,7 @@ TEST_F(AgentVoqSwitchTest, verifyQueueLatencyWatermark) {
     auto queueId = utility::getDefaultQueue();
     auto dscpForQueue =
         utility::kOlympicQueueToDscp().find(queueId)->second.at(0);
+
     auto sendPkts = [this, kPortDesc, &ecmpHelper, dscpForQueue]() {
       for (auto i = 0; i < 10000; ++i) {
         sendPacket(
@@ -859,15 +860,20 @@ TEST_F(AgentVoqSwitchTest, verifyQueueLatencyWatermark) {
           });
         };
     // Disable both port TX and credit watchdog
+    XLOG(DBG2) << "Disabling port TX and credit watchdog";
     utility::setCreditWatchdogAndPortTx(
         getAgentEnsemble(), kPortDesc.phyPortID(), false);
+
     // Send packets and let it sit in the VoQ
+    XLOG(DBG2) << "Send packets";
     sendPkts();
-    sleep(1);
-    // Enable port TX
-    utility::setPortTx(getAgentEnsemble(), kPortDesc.phyPortID(), true);
+    XLOG(DBG2) << "Check VoQ latency watermark, expect out of bound";
     // VoQ latency exceeded the configured max latency
     waitForQueueLatencyWatermark(kOutOfBoundsLatencyNsec);
+    // Enable port TX
+    XLOG(DBG2) << "Enabling port TX";
+    utility::setPortTx(getAgentEnsemble(), kPortDesc.phyPortID(), true);
+
     // Now, send packets without any delays
     sendPkts();
     // VoQ latency is less than max expected for local VoQ
