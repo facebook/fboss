@@ -421,4 +421,12 @@ int ChenabAsic::getMidPriCpuQueueId() const {
 int ChenabAsic::getHiPriCpuQueueId() const {
   return kDefaultHiPriCpuQueueId;
 }
+
+const std::map<cfg::PortType, cfg::PortLoopbackMode>&
+ChenabAsic::desiredLoopbackModes() const {
+  static const std::map<cfg::PortType, cfg::PortLoopbackMode> kLoopbackMode = {
+      {cfg::PortType::INTERFACE_PORT, cfg::PortLoopbackMode::MAC},
+      {cfg::PortType::MANAGEMENT_PORT, cfg::PortLoopbackMode::MAC}};
+  return kLoopbackMode;
+}
 } // namespace facebook::fboss
