@@ -2665,7 +2665,7 @@ TEST_F(RouteTest, routePrune) {
   RouteV4::Prefix prefix10{IPAddressV4("10.10.10.0"), 24};
   NetworkTopologyInformation topologyInfo;
   topologyInfo.plane_id() = 0;
-  topologyInfo.rack_id() = 0;
+  topologyInfo.rack_id() = 1;
   topologyInfo.remote_rack_capacity() = 0;
   topologyInfo.spine_capacity() = 0;
   topologyInfo.local_rack_capacity() = 3;

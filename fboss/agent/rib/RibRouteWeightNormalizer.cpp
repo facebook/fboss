@@ -94,7 +94,10 @@ int RibRouteWeightNormalizer::getNumPathsToPrune(
     int numFailures,
     RackId dstRack,
     RackId srcRack) {
-  return pruneLookupTable_[numFailures][dstRack][srcRack];
+  // Rack ids are offset 1 based
+  CHECK(dstRack && dstRack <= numRacks_);
+  CHECK(srcRack && srcRack <= numRacks_);
+  return pruneLookupTable_[numFailures][dstRack - 1][srcRack - 1];
 }
 
 RouteNextHopSet RibRouteWeightNormalizer::getNormalizedNexthops(

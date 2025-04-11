@@ -28,7 +28,7 @@
 #include "fboss/agent/state/RouteTypes.h"
 #include "folly/IPAddressV4.h"
 
-DEFINE_int32(nsf_rack_id, 0, "Rack id inNSF pod");
+DEFINE_int32(nsf_rack_id, 1, "Rack id inNSF pod");
 DEFINE_int32(nsf_num_racks_per_pod, 6, "Number of racks in NSF pod");
 DEFINE_int32(nsf_num_parallel_rack_links, 6, "Parallel links in NSF pod");
 DEFINE_bool(

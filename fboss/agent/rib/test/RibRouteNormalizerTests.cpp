@@ -20,7 +20,7 @@ class RibRouteWeightNormalizerTest : public RibRouteWeightNormalizer {
   RibRouteWeightNormalizerTest(
       int numRacks,
       int numPlanePathsPerRack,
-      int rackId = 0)
+      int rackId = 1)
       : RibRouteWeightNormalizer(numRacks, numPlanePathsPerRack, rackId) {}
 
   static void runNextHopPruningTest(
@@ -42,7 +42,7 @@ class RibRouteWeightNormalizerTest : public RibRouteWeightNormalizer {
         int spineCapacity = planeIdToSpineCapacity[planeId];
         int loalRackCapacity = planeIdToLocalRackCapacity[planeId];
         NetworkTopologyInformation topologyInfo;
-        topologyInfo.rack_id() = 0;
+        topologyInfo.rack_id() = 1;
         topologyInfo.plane_id() = planeId;
         topologyInfo.remote_rack_capacity() = remoteCapacity;
         topologyInfo.spine_capacity() = spineCapacity;
@@ -74,8 +74,8 @@ class RibRouteWeightNormalizerTest : public RibRouteWeightNormalizer {
 TEST(RibRouteWeightNormalizerTest, GetNumPathsToPruneForZeroFailures) {
   RibRouteWeightNormalizerTest normalizer(6, 6);
   int numFailures = 0;
-  RackId dstRack = 0;
-  RackId srcRack = 0;
+  RackId dstRack = 1;
+  RackId srcRack = 1;
   normalizer.getNumPathsToPrune(numFailures, dstRack, srcRack);
   EXPECT_EQ(normalizer.getNumPathsToPrune(numFailures, dstRack, srcRack), 0);
 }
@@ -85,8 +85,8 @@ TEST(RibRouteWeightNormalizerTest, GetNumPathsToPruneForNonZeroFailures) {
   int numFailures = 1;
   RackId dstRack;
   RackId srcRack;
-  for (dstRack = 0; dstRack < 6; dstRack++) {
-    for (srcRack = 0; srcRack < 6; srcRack++) {
+  for (dstRack = 1; dstRack <= 6; dstRack++) {
+    for (srcRack = 1; srcRack <= 6; srcRack++) {
       int expectedPrunes = srcRack == dstRack ? 1 : 0;
       EXPECT_EQ(
           expectedPrunes,
@@ -94,8 +94,8 @@ TEST(RibRouteWeightNormalizerTest, GetNumPathsToPruneForNonZeroFailures) {
     }
   }
   numFailures = 7;
-  for (dstRack = 0; dstRack < 6; dstRack++) {
-    for (srcRack = 0; srcRack < 6; srcRack++) {
+  for (dstRack = 1; dstRack <= 6; dstRack++) {
+    for (srcRack = 1; srcRack <= 6; srcRack++) {
       int expectedPrunes = srcRack == dstRack ? 2 : 1;
       EXPECT_EQ(
           expectedPrunes,
@@ -103,8 +103,8 @@ TEST(RibRouteWeightNormalizerTest, GetNumPathsToPruneForNonZeroFailures) {
     }
   }
   numFailures = 36;
-  for (dstRack = 0; dstRack < 6; dstRack++) {
-    for (srcRack = 0; srcRack < 6; srcRack++) {
+  for (dstRack = 1; dstRack <= 6; dstRack++) {
+    for (srcRack = 1; srcRack <= 6; srcRack++) {
       int expectedPrunes = 6;
       EXPECT_EQ(
           expectedPrunes,
