@@ -1293,7 +1293,7 @@ void SwSwitch::init(
   });
 
   XLOG(DBG2)
-      << "Time to init switch and start all threads and apply the state"
+      << "Time to init switch and start all threads and apply the state "
       << duration_cast<duration<float>>(steady_clock::now() - begin).count();
 
   postInit();
