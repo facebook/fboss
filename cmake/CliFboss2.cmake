@@ -246,6 +246,8 @@ add_fbthrift_cpp_library(
   fboss/cli/fboss2/commands/show/route/model.thrift
   OPTIONS
     json
+  DEPENDS
+    ctrl_cpp2
 )
 
 add_fbthrift_cpp_library(
