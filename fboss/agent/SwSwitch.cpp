@@ -2355,6 +2355,75 @@ void SwSwitch::linkActiveStateChangedOrFwIsolated(
   }
 }
 
+void SwSwitch::validateSwitchReachabilityInformation(
+    const SwitchID& switchId,
+    const std::map<SwitchID, std::set<PortID>>& switchReachabilityInfo) {
+  // Get the ACTIVE state of ports / switch and ensure:
+  // 1. If a switch is drained, no reachability on any ports.
+  // 2. If a port is inactive, no switch is reachable over it.
+  // 3. If a port is active, atleast one switch is reachable over it.
+  std::set<PortID> portsWithSwitchReachability;
+  for (const auto& [_, portList] : switchReachabilityInfo) {
+    for (const auto& portId : portList) {
+      portsWithSwitchReachability.insert(portId);
+    }
+  }
+  int activePortsWithoutSwitchReachability{0};
+  int inactivePortsWithSwitchReachability{0};
+  const auto& switchSettings =
+      getState()->getSwitchSettings()->getSwitchSettings(
+          HwSwitchMatcher(std::unordered_set<SwitchID>({switchId})));
+  if (switchSettings->getActualSwitchDrainState() ==
+      cfg::SwitchDrainState::DRAINED) {
+    // If the switch is drained, there should be no reachability
+    // over any ports. We'll account for these mismatches if any
+    // against inactivePortsWithSwitchReachability counter.
+    inactivePortsWithSwitchReachability = portsWithSwitchReachability.size();
+  } else {
+    for (const auto& portMap : std::as_const(*getState()->getPorts())) {
+      for (const auto& [_, port] : std::as_const(*portMap.second)) {
+        auto portSwitchId = scopeResolver_->scope(port).switchId();
+        if ((portSwitchId != switchId) ||
+            (port->getPortType() != cfg::PortType::FABRIC_PORT)) {
+          // Switch reachability is only over fabric ports and we
+          // should only consider fabric ports of this switch!
+          continue;
+        }
+        bool isActive = port->getActiveState().has_value() &&
+                (*port->getActiveState() == Port::ActiveState::ACTIVE)
+            ? true
+            : false;
+        bool isReachable = portsWithSwitchReachability.find(port->getID()) !=
+            portsWithSwitchReachability.end();
+        if (isActive && !isReachable) {
+          activePortsWithoutSwitchReachability++;
+        } else if (!isActive && isReachable) {
+          inactivePortsWithSwitchReachability++;
+        }
+      }
+    }
+  }
+  // Update switch reachability inconsistency stats
+  auto switchIndex = switchInfoTable_.getSwitchIndexFromSwitchId(switchId);
+  stats()->setActivePortsWithoutSwitchReachability(
+      switchIndex, activePortsWithoutSwitchReachability);
+  stats()->setInactivePortsWithSwitchReachability(
+      switchIndex, inactivePortsWithSwitchReachability);
+  if (activePortsWithoutSwitchReachability ||
+      inactivePortsWithSwitchReachability) {
+    // Increment the number of switch reachability inconsistency seen!
+    stats()->switchReachabilityInconsistencyDetected(switchIndex);
+    XLOG(WARN) << "Switch reachability inconsistency seen on switch"
+               << switchIndex << ", active ports w/o reachability: "
+               << activePortsWithoutSwitchReachability
+               << ", inactive ports w/ reachability: "
+               << inactivePortsWithSwitchReachability;
+  } else {
+    XLOG(DBG2) << "No switch reachability inconsistency seen for switch"
+               << switchIndex;
+  }
+}
+
 void SwSwitch::switchReachabilityChanged(
     const SwitchID switchId,
     const std::map<SwitchID, std::set<PortID>>& switchReachabilityInfo) {
@@ -2434,6 +2503,7 @@ void SwSwitch::switchReachabilityChanged(
              << " switches unreachable!";
   // Update processing complete counter
   stats()->switchReachabilityChangeProcessed();
+  validateSwitchReachabilityInformation(switchId, switchReachabilityInfo);
 }
 
 void SwSwitch::packetRxThread() {

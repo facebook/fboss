@@ -1126,6 +1126,9 @@ class SwSwitch : public HwSwitchCallback {
 
   void updateAddrToLocalIntf(const StateDelta& delta);
 
+  void validateSwitchReachabilityInformation(
+      const SwitchID& switchId,
+      const std::map<SwitchID, std::set<PortID>>& switchReachabilityInfo);
 #if FOLLY_HAS_COROUTINES
   using BoundedRxPktQueue = folly::coro::BoundedQueue<
       std::unique_ptr<SwRxPacket>,
