@@ -12809,9 +12809,6 @@
           "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
         },
         {
-          "test_name_regex": "warm_boot.AgentIpInIpTunnelTest.*$"
-        },
-        {
           "test_name_regex": "AgentMirroringScaleTest/[15].MaxMirroringTest$"
         },
         {
@@ -13049,9 +13046,6 @@
         },
         {
           "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
-          "test_name_regex": "warm_boot.AgentIpInIpTunnelTest.*$"
         },
         {
           "test_name_regex": "AgentMirroringScaleTest/[15].MaxMirroringTest$"
