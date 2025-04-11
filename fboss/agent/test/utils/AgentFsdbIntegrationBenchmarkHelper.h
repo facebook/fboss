@@ -22,6 +22,8 @@ class AgentFsdbIntegrationBenchmarkHelper {
 
   void awaitCompletion(AgentEnsemble* ensemble);
 
+  void publishCompletionMarker(AgentEnsemble* ensemble);
+
   ~AgentFsdbIntegrationBenchmarkHelper();
 
  private:
@@ -31,6 +33,8 @@ class AgentFsdbIntegrationBenchmarkHelper {
   bool enablePublishToFsdb_{false};
   bool connectToFsdb_{false};
   bool waitForPublishConfirmed_{false};
+  bool waitForDummyDataPublish_{false};
+  folly::Baton<> dummyDataPublished_;
 };
 
 } // namespace facebook::fboss

@@ -1,3 +1,4 @@
+
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include <folly/Benchmark.h>
@@ -24,26 +25,15 @@ const std::vector<std::string> kPublishRoot{"agent"};
 namespace facebook::fboss::fsdb::test {
 
 BENCHMARK(FsdbSystemScaleChurn) {
-  auto filePath =
+  auto churn_pubsub_complete_marker =
       folly::to<std::string>(FLAGS_write_agent_config_marker_for_fsdb);
   auto port = FLAGS_fsdbPort;
   std::unique_ptr<fsdb::test::FsdbTestServer> fsdbTestServer_ =
       std::make_unique<FsdbTestServer>(port);
 
-  // Wait for publisher root agent to be available
-  while (true) {
-    auto md =
-        fsdbTestServer_->getPublisherRootMetadata(*kPublishRoot.begin(), false);
-    if (md.has_value()) {
-      break;
-    } else {
-      std::this_thread::sleep_for(std::chrono::milliseconds(1));
-    }
-  }
-
   // Once publisher root is available, wait until churn is complete
   while (true) {
-    if (checkFileExists(filePath)) {
+    if (checkFileExists(churn_pubsub_complete_marker)) {
       break;
     } else {
       std::this_thread::sleep_for(std::chrono::milliseconds(1));
@@ -52,6 +42,6 @@ BENCHMARK(FsdbSystemScaleChurn) {
 
   // Once churn is complete, remove the marker file and exit
   fsdbTestServer_.reset();
-  removeFile(filePath, true);
+  removeFile(churn_pubsub_complete_marker, true);
 }
 } // namespace facebook::fboss::fsdb::test
