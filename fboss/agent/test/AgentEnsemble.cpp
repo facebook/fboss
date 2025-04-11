@@ -647,4 +647,9 @@ std::optional<VlanID> AgentEnsemble::getVlanIDForTx() const {
   return getSw()->getVlanIDForTx(intf);
 }
 
+std::vector<FirmwareInfo> AgentEnsemble::getAllFirmwareInfo(
+    SwitchID switchId) const {
+  return getSw()->getHwSwitchThriftClientTable()->getAllFirmwareInfo(switchId);
+}
+
 } // namespace facebook::fboss

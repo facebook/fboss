@@ -298,6 +298,9 @@ class AgentEnsemble : public TestEnsembleIf {
 
   std::optional<VlanID> getVlanIDForTx() const override;
 
+  std::vector<FirmwareInfo> getAllFirmwareInfo(
+      SwitchID switchId) const override;
+
  protected:
   void joinAsyncInitThread() {
     if (asyncInitThread_) {

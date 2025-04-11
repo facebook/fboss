@@ -116,6 +116,8 @@ class TestEnsembleIf : public HwSwitchCallback {
   std::vector<const HwAsic*> getL3Asics() const;
   int getNumL3Asics() const;
   std::vector<SystemPortID> masterLogicalSysPortIds() const;
+  virtual std::vector<FirmwareInfo> getAllFirmwareInfo(
+      SwitchID switchId) const = 0;
 
  private:
   std::vector<PortID> masterLogicalPortIdsImpl(

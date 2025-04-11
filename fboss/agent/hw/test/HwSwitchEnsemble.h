@@ -166,6 +166,12 @@ class HwSwitchEnsemble : public TestEnsembleIf {
       SwitchID /* switchId */) const override {
     return getHwSwitch()->getFabricConnectivity();
   }
+
+  std::vector<FirmwareInfo> getAllFirmwareInfo(
+      SwitchID /* switchId */) const override {
+    return getHwSwitch()->getAllFirmwareInfo();
+  }
+
   FabricReachabilityStats getFabricReachabilityStats() const override {
     return getHwSwitch()->getFabricReachabilityStats();
   }
