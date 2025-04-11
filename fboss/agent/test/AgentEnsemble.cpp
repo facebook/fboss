@@ -353,19 +353,14 @@ void AgentEnsemble::unregisterStateObserver(StateObserver* observer) {
 
 std::map<PortID, FabricEndpoint> AgentEnsemble::getFabricConnectivity(
     SwitchID switchId) const {
-  if (FLAGS_multi_switch) {
-    std::map<PortID, FabricEndpoint> connectivity;
-    auto gotConnectivity =
-        getSw()->getHwSwitchThriftClientTable()->getFabricConnectivity(
-            switchId);
-    CHECK(gotConnectivity.has_value());
-    for (auto [portId, fabricEndpoint] : gotConnectivity.value()) {
-      connectivity.insert({PortID(portId), fabricEndpoint});
-    }
-    return connectivity;
-  } else {
-    return getSw()->getHwSwitchHandler()->getFabricConnectivity();
+  std::map<PortID, FabricEndpoint> connectivity;
+  auto gotConnectivity =
+      getSw()->getHwSwitchThriftClientTable()->getFabricConnectivity(switchId);
+  CHECK(gotConnectivity.has_value());
+  for (const auto& [portId, fabricEndpoint] : gotConnectivity.value()) {
+    connectivity.insert({PortID(portId), fabricEndpoint});
   }
+  return connectivity;
 }
 
 void AgentEnsemble::runDiagCommand(
