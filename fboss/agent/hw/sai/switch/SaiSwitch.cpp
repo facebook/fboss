@@ -3670,10 +3670,7 @@ void SaiSwitch::switchRunStateChangedImplLocked(
               HwAsic::Feature::SDK_REGISTER_DUMP)) {
         std::vector<int8_t> sdkRegDumpLogPathArray;
         std::string sdkRegDumpLogPathStr = folly::to<std::string>(
-            FLAGS_sdk_reg_dump_path_prefix,
-            "_",
-            platform_->getAsic()->getSwitchId().value(),
-            ".log");
+            FLAGS_sdk_reg_dump_path_prefix, "_", FLAGS_switchIndex, ".log");
         std::copy(
             sdkRegDumpLogPathStr.c_str(),
             sdkRegDumpLogPathStr.c_str() + sdkRegDumpLogPathStr.size() + 1,
