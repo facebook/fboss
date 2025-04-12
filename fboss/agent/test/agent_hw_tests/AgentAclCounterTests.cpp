@@ -191,6 +191,7 @@ class AgentAclCounterTest : public AgentHwTest {
           case AclType::UDF_FLOWLET:
             utility::addFlowletAcl(
                 newCfg,
+                getAgentEnsemble()->isSai(),
                 getAclName(aclType),
                 getCounterName(aclType),
                 aclType != AclType::FLOWLET);

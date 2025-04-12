@@ -270,6 +270,7 @@ cfg::FlowletSwitchingConfig getDefaultFlowletSwitchingConfig(
 
 void addFlowletAcl(
     cfg::SwitchConfig& cfg,
+    bool isSai,
     const std::string& aclName,
     const std::string& aclCounterName,
     bool udfFlowlet) {
@@ -284,9 +285,19 @@ void addFlowletAcl(
     acl.etherType() = cfg::EtherType::IPv6;
   }
   if (udfFlowlet) {
-    acl.udfGroups() = {utility::kRoceUdfFlowletGroupName};
-    acl.roceBytes() = {utility::kRoceReserved};
-    acl.roceMask() = {utility::kRoceReserved};
+    if (isSai) {
+      std::vector<cfg::AclUdfEntry> udfTable;
+      cfg::AclUdfEntry aclUdfEntry;
+      aclUdfEntry.udfGroup() = utility::kRoceUdfFlowletGroupName;
+      aclUdfEntry.roceBytes() = {utility::kRoceReserved};
+      aclUdfEntry.roceMask() = {utility::kRoceReserved};
+      udfTable.push_back(aclUdfEntry);
+      acl.udfTable() = std::move(udfTable);
+    } else {
+      acl.udfGroups() = {utility::kRoceUdfFlowletGroupName};
+      acl.roceBytes() = {utility::kRoceReserved};
+      acl.roceMask() = {utility::kRoceReserved};
+    }
   }
   utility::addAcl(&cfg, acl, cfg::AclStage::INGRESS);
 

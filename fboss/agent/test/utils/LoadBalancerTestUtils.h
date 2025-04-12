@@ -226,6 +226,7 @@ cfg::FlowletSwitchingConfig getDefaultFlowletSwitchingConfig(
     cfg::SwitchingMode switchingMode = cfg::SwitchingMode::FLOWLET_QUALITY);
 void addFlowletAcl(
     cfg::SwitchConfig& cfg,
+    bool isSai,
     const std::string& aclName = kFlowletAclName,
     const std::string& aclCounterName = kFlowletAclCounterName,
     bool udfFlowlet = true);

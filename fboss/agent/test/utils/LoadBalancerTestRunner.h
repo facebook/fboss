@@ -302,7 +302,11 @@ class HwLoadBalancerTestRunner {
         cfg.udfConfig() = utility::addUdfFlowletAclConfig();
         utility::addFlowletConfigs(
             cfg, getMasterLogicalPortIds(), getEnsemble()->isSai(), preMode);
-        utility::addFlowletAcl(cfg);
+        utility::addFlowletAcl(
+            cfg,
+            getEnsemble()->isSai(),
+            utility::kFlowletAclName,
+            utility::kFlowletAclCounterName);
       }
       getEnsemble()->applyNewConfig(cfg);
     };
@@ -324,7 +328,11 @@ class HwLoadBalancerTestRunner {
         cfg.udfConfig() = utility::addUdfFlowletAclConfig();
         utility::addFlowletConfigs(
             cfg, getMasterLogicalPortIds(), getEnsemble()->isSai(), postMode);
-        utility::addFlowletAcl(cfg);
+        utility::addFlowletAcl(
+            cfg,
+            getEnsemble()->isSai(),
+            utility::kFlowletAclName,
+            utility::kFlowletAclCounterName);
       }
       getEnsemble()->applyNewConfig(cfg);
     };
