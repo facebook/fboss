@@ -42,7 +42,11 @@ BENCHMARK(HwFlowletStatsCollection) {
         config.udfConfig() = utility::addUdfFlowletAclConfig();
         utility::addFlowletConfigs(
             config, ensemble.masterLogicalPortIds(), ensemble.isSai());
-        utility::addFlowletAcl(config);
+        utility::addFlowletAcl(
+            config,
+            ensemble.isSai(),
+            utility::kFlowletAclName,
+            utility::kFlowletAclCounterName);
         return config;
       };
 

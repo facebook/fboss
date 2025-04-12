@@ -191,6 +191,7 @@ class AgentAclCounterTest : public AgentHwTest {
           case AclType::UDF_FLOWLET:
             utility::addFlowletAcl(
                 newCfg,
+                getAgentEnsemble()->isSai(),
                 getAclName(aclType),
                 getCounterName(aclType),
                 aclType != AclType::FLOWLET);
@@ -452,6 +453,7 @@ class AgentAclCounterTest : public AgentHwTest {
     auto* acl = &aclEntry;
     auto l3Asics = getAgentEnsemble()->getL3Asics();
     auto asic = utility::checkSameAndGetAsic(l3Asics);
+    bool isSai = getAgentEnsemble()->isSai();
     switch (aclType) {
       case AclType::TCP_TTLD:
       case AclType::UDP_TTLD:
@@ -478,16 +480,32 @@ class AgentAclCounterTest : public AgentHwTest {
         acl->srcPort() = helper_->ecmpPortDescriptorAt(0).phyPortID();
         acl->l4DstPort() = kL4DstPort2();
         break;
-      case AclType::UDF_OPCODE_ACK:
-        acl->udfGroups() = {utility::kUdfAclRoceOpcodeGroupName};
-        acl->roceBytes() = {utility::kUdfRoceOpcodeAck};
-        acl->roceMask() = {utility::kUdfRoceOpcodeMask};
-        break;
-      case AclType::UDF_OPCODE_WRITE_IMMEDIATE:
-        acl->udfGroups() = {utility::kUdfAclRoceOpcodeGroupName};
-        acl->roceBytes() = {utility::kUdfRoceOpcodeWriteImmediate};
-        acl->roceMask() = {utility::kUdfRoceOpcodeMask};
-        break;
+      case AclType::UDF_OPCODE_ACK: {
+        if (isSai) {
+          utility::addUdfTableToAcl(
+              acl,
+              utility::kUdfAclRoceOpcodeGroupName,
+              {utility::kUdfRoceOpcodeAck},
+              {utility::kUdfRoceOpcodeMask});
+        } else {
+          acl->udfGroups() = {utility::kUdfAclRoceOpcodeGroupName};
+          acl->roceBytes() = {utility::kUdfRoceOpcodeAck};
+          acl->roceMask() = {utility::kUdfRoceOpcodeMask};
+        }
+      } break;
+      case AclType::UDF_OPCODE_WRITE_IMMEDIATE: {
+        if (isSai) {
+          utility::addUdfTableToAcl(
+              acl,
+              utility::kUdfAclRoceOpcodeGroupName,
+              {utility::kUdfRoceOpcodeWriteImmediate},
+              {utility::kUdfRoceOpcodeMask});
+        } else {
+          acl->udfGroups() = {utility::kUdfAclRoceOpcodeGroupName};
+          acl->roceBytes() = {utility::kUdfRoceOpcodeWriteImmediate};
+          acl->roceMask() = {utility::kUdfRoceOpcodeMask};
+        }
+      } break;
       case AclType::BTH_OPCODE:
         acl->etherType() = cfg::EtherType::IPv6;
         acl->roceOpcode() = utility::kUdfRoceOpcodeAck;
@@ -601,6 +619,13 @@ class AgentUdfAclCounterTest : public AgentAclCounterTest {
         ensemble.masterLogicalPortIds(),
         true /*interfaceHasSubnet*/);
     cfg.udfConfig() = utility::addUdfAclConfig();
+    if (FLAGS_enable_acl_table_group) {
+      std::vector<std::string> udfGroups = {
+          utility::kUdfAclRoceOpcodeGroupName};
+      utility::addAclTableGroup(
+          &cfg, cfg::AclStage::INGRESS, utility::kDefaultAclTableGroupName());
+      utility::addDefaultAclTable(cfg, udfGroups);
+    }
     return cfg;
   }
 
@@ -771,7 +796,8 @@ class AgentFlowletAclCounterTest : public AgentAclCounterTest {
   getProductionFeaturesVerified() const override {
     return {
         production_features::ProductionFeature::DLB,
-        production_features::ProductionFeature::SINGLE_ACL_TABLE};
+        production_features::ProductionFeature::SINGLE_ACL_TABLE,
+        production_features::ProductionFeature::UDF_WR_IMMEDIATE_ACL};
   }
 
  protected:
@@ -783,8 +809,14 @@ class AgentFlowletAclCounterTest : public AgentAclCounterTest {
         true /*interfaceHasSubnet*/);
     cfg.udfConfig() = utility::addUdfAclConfig(
         utility::kUdfOffsetBthOpcode | utility::kUdfOffsetBthReserved);
-    utility::addFlowletConfigs(
-        cfg, ensemble.masterLogicalPortIds(), ensemble.isSai());
+    if (FLAGS_enable_acl_table_group) {
+      std::vector<std::string> udfGroups = {
+          utility::kUdfAclRoceOpcodeGroupName,
+          utility::kRoceUdfFlowletGroupName};
+      utility::addAclTableGroup(
+          &cfg, cfg::AclStage::INGRESS, utility::kDefaultAclTableGroupName());
+      utility::addDefaultAclTable(cfg, udfGroups);
+    }
     return cfg;
   }
 

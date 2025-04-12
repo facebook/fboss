@@ -604,7 +604,7 @@ class AgentAclCounterTestBase : public AgentHwTest {
             std::nullopt);
       } break;
       case AclType::FLOWLET:
-        utility::addFlowletAcl(*config, aclName, counterName, false);
+        utility::addFlowletAcl(*config, isSai, aclName, counterName, false);
         break;
       case AclType::FLOWLET_WITH_UDF_ACK:
         config->udfConfig() =
@@ -619,7 +619,7 @@ class AgentAclCounterTestBase : public AgentHwTest {
             std::nullopt,
             std::nullopt,
             std::nullopt);
-        utility::addFlowletAcl(*config, aclName, counterName, false);
+        utility::addFlowletAcl(*config, isSai, aclName, counterName, false);
         break;
       case AclType::UDF_FLOWLET:
         config->udfConfig() =
