@@ -154,6 +154,21 @@ void addEtherTypeToAcl(
   }
 }
 
+void addUdfTableToAcl(
+    cfg::AclEntry* acl,
+    const std::string& udfGroup,
+    const std::vector<int8_t>& roceBytes,
+    const std::vector<int8_t>& roceMask) {
+  cfg::AclUdfEntry aclUdfEntry;
+  aclUdfEntry.udfGroup() = udfGroup;
+  aclUdfEntry.roceBytes() = roceBytes;
+  aclUdfEntry.roceMask() = roceMask;
+  if (!acl->udfTable()) {
+    acl->udfTable() = {};
+  }
+  acl->udfTable()->push_back(aclUdfEntry);
+}
+
 std::shared_ptr<AclEntry> getAclEntryByName(
     const std::shared_ptr<SwitchState> state,
     const std::string& aclName) {

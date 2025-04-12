@@ -53,6 +53,12 @@ void addEtherTypeToAcl(
     cfg::AclEntry* acl,
     const cfg::EtherType& etherType = cfg::EtherType::IPv6);
 
+void addUdfTableToAcl(
+    cfg::AclEntry* acl,
+    const std::string& udfGroups,
+    const std::vector<int8_t>& roceBytes,
+    const std::vector<int8_t>& roceMask);
+
 std::vector<cfg::AclTableQualifier> genAclQualifiersConfig(
     cfg::AsicType asicType);
 

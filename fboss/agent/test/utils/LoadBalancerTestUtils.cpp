@@ -286,13 +286,11 @@ void addFlowletAcl(
   }
   if (udfFlowlet) {
     if (isSai) {
-      std::vector<cfg::AclUdfEntry> udfTable;
-      cfg::AclUdfEntry aclUdfEntry;
-      aclUdfEntry.udfGroup() = utility::kRoceUdfFlowletGroupName;
-      aclUdfEntry.roceBytes() = {utility::kRoceReserved};
-      aclUdfEntry.roceMask() = {utility::kRoceReserved};
-      udfTable.push_back(aclUdfEntry);
-      acl.udfTable() = std::move(udfTable);
+      utility::addUdfTableToAcl(
+          &acl,
+          utility::kRoceUdfFlowletGroupName,
+          {utility::kRoceReserved},
+          {utility::kRoceReserved});
     } else {
       acl.udfGroups() = {utility::kRoceUdfFlowletGroupName};
       acl.roceBytes() = {utility::kRoceReserved};
