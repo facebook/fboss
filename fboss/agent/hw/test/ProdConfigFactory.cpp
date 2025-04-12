@@ -112,6 +112,8 @@ uint16_t uplinksCountFromSwitch(PlatformType mode) {
     case PM::PLATFORM_TAHAN800BC:
     case PM::PLATFORM_MONTBLANC:
       return 4;
+    case PM::PLATFORM_MINIPACK3N:
+      return 64;
     default:
       throw FbossError(
           "provided PlatformType: ",
