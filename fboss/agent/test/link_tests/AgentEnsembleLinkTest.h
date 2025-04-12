@@ -60,8 +60,8 @@ class AgentEnsembleLinkTest : public AgentEnsembleTest {
   const std::set<TransceiverID>& getCabledTranceivers() const {
     return cabledTransceivers_;
   }
-  boost::container::flat_set<PortDescriptor> getSingleVlanOrRoutedCabledPorts()
-      const;
+  boost::container::flat_set<PortDescriptor> getSingleVlanOrRoutedCabledPorts(
+      std::optional<SwitchID> switchId = std::nullopt) const;
   const std::vector<PortID>& getCabledFabricPorts() const {
     return cabledFabricPorts_;
   }

@@ -6,11 +6,11 @@ using namespace facebook::fboss;
 
 TEST_F(AgentEnsembleLinkTest, ecmpShrink) {
   auto setup = [this]() {
-    const auto cabledPorts = getSingleVlanOrRoutedCabledPorts();
+    const auto cabledPorts = getSingleVlanOrRoutedCabledPorts(SwitchID(0));
     programDefaultRoute(cabledPorts, getSw()->getLocalMac(scope(cabledPorts)));
   };
   auto verify = [this]() {
-    auto ecmpPorts = getSingleVlanOrRoutedCabledPorts();
+    auto ecmpPorts = getSingleVlanOrRoutedCabledPorts(SwitchID(0));
     EXPECT_NO_THROW(waitForAllCabledPorts(true));
     std::vector<PortID> ports;
     for (const auto& port : ecmpPorts) {
