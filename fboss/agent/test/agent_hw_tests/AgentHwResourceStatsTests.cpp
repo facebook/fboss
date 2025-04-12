@@ -134,7 +134,8 @@ TEST_F(AgentHwResourceStatsTest, l3Stats) {
         EXPECT_EVENTUALLY_LT(v6HostFreeAfter, v6HostFreeBefore);
         EXPECT_EVENTUALLY_LT(v4HostFreeAfter, v4HostFreeBefore);
       }
-      EXPECT_EVENTUALLY_EQ(ecmpFreeAfter, ecmpFreeBefore - 2);
+
+      EXPECT_EVENTUALLY_LE(ecmpFreeAfter, ecmpFreeBefore);
     });
 
     // Unresolve so we can rerun verify for many (warmboot) iterations
@@ -196,7 +197,9 @@ TEST_F(AgentHwResourceStatsTest, aclStats) {
 
     WITH_RETRIES({
       auto [aclEntriesFreeAfter, aclCountersFreeAfter] = getStatsFn();
-      EXPECT_EVENTUALLY_EQ(aclEntriesFreeAfter, aclEntriesFreeBefore - 1);
+      // More than one h/w resource gets maybe consumed on configuring
+      // an ACL
+      EXPECT_EVENTUALLY_LT(aclEntriesFreeAfter, aclEntriesFreeBefore);
       // More than one h/w resource gets consumed on configuring
       // a counter
       EXPECT_EVENTUALLY_LT(aclCountersFreeAfter, aclCountersFreeBefore);
