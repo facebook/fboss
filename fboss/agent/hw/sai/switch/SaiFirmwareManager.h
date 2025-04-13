@@ -31,6 +31,12 @@ class SaiFirmwareManager {
       SaiManagerTable* managerTable,
       SaiPlatform* platform);
 
+  // The current SAI API supports only a single Firmware.
+  // In future, when multiple Firmwares are supported, SAI APIs will expose
+  // additional APIs and get attrs (e.g. PATH) to distinguish between multiple
+  // firmwares.
+  static auto constexpr kFirmwareName = "firmware";
+
   const SaiFirmwareHandle* getFirmwareHandle(const std::string& name) const {
     return handles_.contains(name) ? handles_.at(name).get() : nullptr;
   }

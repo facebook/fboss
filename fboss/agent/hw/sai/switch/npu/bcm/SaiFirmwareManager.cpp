@@ -14,6 +14,7 @@ SaiFirmwareManager::SaiFirmwareManager(
     SaiPlatform* platform)
     : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {
 #if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  auto firmwareHandle = std::make_unique<SaiFirmwareHandle>();
   SwitchSaiId switchId = managerTable_->switchManager().getSwitchSaiId();
 
   auto firmwareObjectList =
@@ -25,8 +26,11 @@ SaiFirmwareManager::SaiFirmwareManager(
     auto firmwareSaiId = *firmwareObjectList.begin();
     XLOG(DBG2) << "Firmware OID: " << firmwareSaiId;
     auto& store = saiStore_->get<SaiFirmwareTraits>();
-    store.loadObjectOwnedByAdapter(
+    firmwareHandle->firmware = store.loadObjectOwnedByAdapter(
         SaiFirmwareTraits::AdapterKey{firmwareSaiId});
+
+    handles_.emplace(std::make_pair(
+        SaiFirmwareManager::kFirmwareName, std::move(firmwareHandle)));
   }
 #endif
 }
