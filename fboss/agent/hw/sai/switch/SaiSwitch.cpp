@@ -657,6 +657,10 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
   processSwitchSettingsChangeSansDrained(delta, lockPolicy);
   processLocalCapsuleSwitchIdsDelta(delta, lockPolicy);
 
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::ARS)) {
+    processFlowletSwitchingConfigAdded(delta, lockPolicy);
+  }
+
   // process non-default qos policies, which are stored in
   // SwitchStatae::qosPolicyMaps
   processDelta(
@@ -1214,10 +1218,8 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
       &SaiUdfManager::removeUdfGroup);
 #endif
 
-  if (FLAGS_flowletSwitchingEnable) {
-    if (platform_->getAsic()->isSupported(HwAsic::Feature::ARS)) {
-      processFlowletSwitchingConfigDelta(delta, lockPolicy);
-    }
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::ARS)) {
+    processFlowletSwitchingConfigChanged(delta, lockPolicy);
   }
 
   processPfcWatchdogGlobalDelta(delta, lockPolicy);
@@ -4381,20 +4383,52 @@ void SaiSwitch::processPfcWatchdogGlobalDelta(
   processPfcWatchdogGlobalDeltaLocked(delta, lockPolicy.lock());
 }
 
-void SaiSwitch::processFlowletSwitchingConfigDeltaLocked(
+template <typename LockPolicyT>
+void SaiSwitch::processFlowletSwitchingConfigAdded(
     const StateDelta& delta,
-    const std::lock_guard<std::mutex>& /* lock */) {
-  const auto flowletSwitchingDelta = delta.getFlowletSwitchingConfigDelta();
+    const LockPolicyT& lockPolicy) {
+  [[maybe_unused]] const auto& lock = lockPolicy.lock();
+  [[maybe_unused]] const auto flowletSwitchingDelta =
+      delta.getFlowletSwitchingConfigDelta();
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
   const auto& oldFlowletConfig = flowletSwitchingDelta.getOld();
   const auto& newFlowletConfig = flowletSwitchingDelta.getNew();
 
-  // process change in the flowlet switching config
-  if (!oldFlowletConfig && !newFlowletConfig) {
-    XLOG(DBG5) << "Flowlet switching config is null";
-    return;
+  auto& switchManager = managerTable_->switchManager();
+  auto& arsManager = managerTable_->arsManager();
+  auto& arsProfileManager = managerTable_->arsProfileManager();
+  auto& nextHopGroupManager = managerTable_->nextHopGroupManager();
+
+  if (newFlowletConfig && !oldFlowletConfig) {
+    XLOG(DBG2) << "Flowlet switching config is added";
+    // create the ARS profile object and attach to switch
+    arsProfileManager.addArsProfile(newFlowletConfig);
+    auto arsProfileHandlePtr = arsProfileManager.getArsProfileHandle();
+    CHECK(arsProfileHandlePtr);
+    switchManager.setArsProfile(arsProfileHandlePtr->arsProfile->adapterKey());
+
+    // create the ARS object and attach to all ECMP groups
+    arsManager.addArs(newFlowletConfig);
+    auto arsHandlePtr = arsManager.getArsHandle();
+    CHECK(arsHandlePtr);
+    nextHopGroupManager.updateArsModeAll(newFlowletConfig);
   }
+#endif
+}
+
+template <typename LockPolicyT>
+void SaiSwitch::processFlowletSwitchingConfigChanged(
+    const StateDelta& delta,
+    const LockPolicyT& lockPolicy) {
+  [[maybe_unused]] const auto& lock = lockPolicy.lock();
+  [[maybe_unused]] const auto flowletSwitchingDelta =
+      delta.getFlowletSwitchingConfigDelta();
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+  const auto& oldFlowletConfig = flowletSwitchingDelta.getOld();
+  const auto& newFlowletConfig = flowletSwitchingDelta.getNew();
+
   auto& switchManager = managerTable_->switchManager();
   auto& arsManager = managerTable_->arsManager();
   auto& arsProfileManager = managerTable_->arsProfileManager();
@@ -4416,20 +4450,7 @@ void SaiSwitch::processFlowletSwitchingConfigDeltaLocked(
       arsProfileManager.changeArsProfile(oldFlowletConfig, newFlowletConfig);
       arsManager.changeArs(oldFlowletConfig, newFlowletConfig);
     }
-  }
-
-  if (newFlowletConfig && !oldFlowletConfig) {
-    XLOG(DBG2) << "Flowlet switching config is added";
-    // create the ARS profile object and attach to switch
-    arsProfileManager.addArsProfile(newFlowletConfig);
-    auto arsProfileHandlePtr = arsProfileManager.getArsProfileHandle();
-    CHECK(arsProfileHandlePtr);
-    switchManager.setArsProfile(arsProfileHandlePtr->arsProfile->adapterKey());
-
-    // create the ARS object and attach to all ECMP groups
-    arsManager.addArs(newFlowletConfig);
-    auto arsHandlePtr = arsManager.getArsHandle();
-    CHECK(arsHandlePtr);
+  } else if (newFlowletConfig && !oldFlowletConfig) {
     nextHopGroupManager.updateArsModeAll(newFlowletConfig);
   } else if (oldFlowletConfig && !newFlowletConfig) {
     XLOG(DBG2) << "Flowlet switching config is removed";
@@ -4439,13 +4460,6 @@ void SaiSwitch::processFlowletSwitchingConfigDeltaLocked(
     arsProfileManager.removeArsProfile(oldFlowletConfig);
   }
 #endif
-}
-
-template <typename LockPolicyT>
-void SaiSwitch::processFlowletSwitchingConfigDelta(
-    const StateDelta& delta,
-    const LockPolicyT& lockPolicy) {
-  processFlowletSwitchingConfigDeltaLocked(delta, lockPolicy.lock());
 }
 
 void SaiSwitch::pfcDeadlockNotificationCallback(
