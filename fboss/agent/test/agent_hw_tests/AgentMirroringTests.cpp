@@ -3,10 +3,13 @@
 #include "fboss/agent/test/AgentHwTest.h"
 
 #include "fboss/agent/packet/PktFactory.h"
+#include "fboss/agent/packet/PktUtil.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
+#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/MirrorTestUtils.h"
+#include "fboss/agent/test/utils/PacketSnooper.h"
 #include "fboss/lib/CommonUtils.h"
 
 #include <folly/IPAddress.h>
@@ -710,4 +713,140 @@ TYPED_TEST(
     TrucatePortErspanMirror) {
   this->testPortMirrorWithLargePacket(utility::kEgressErspan);
 }
+
+template <class AddrT>
+class AgentErspanIngressSamplingTest
+    : public AgentIngressPortErspanMirroringTruncateTest<AddrT> {
+ public:
+  using Base = AgentIngressPortErspanMirroringTruncateTest<AddrT>;
+  std::vector<production_features::ProductionFeature>
+  getProductionFeaturesVerified() const override {
+    auto features = Base::getProductionFeaturesVerified();
+    if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
+      features.push_back(
+          production_features::ProductionFeature::ERSPANv4_SAMPLING);
+    } else if (std::is_same_v<AddrT, folly::IPAddressV6>) {
+      features.push_back(
+          production_features::ProductionFeature::ERSPANv6_SAMPLING);
+    }
+    return features;
+  }
+
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto cfg = AgentMirroringTest<AddrT>::initialConfig(ensemble);
+    utility::addMirrorConfig<AddrT>(
+        &cfg, ensemble, utility::kIngressErspan, false /* truncate */);
+    return cfg;
+  }
+
+  void configureSamping(cfg::SwitchConfig* config, int sampleRate) {
+    auto ensemble = this->getAgentEnsemble();
+    utility::configureSflowSampling(
+        *config,
+        utility::kIngressErspan,
+        {this->getTrafficPort(*ensemble)},
+        sampleRate);
+  }
+
+  void configureTrapAcl(cfg::SwitchConfig* config) {
+    auto ensemble = this->getAgentEnsemble();
+    auto asic = utility::checkSameAndGetAsic(ensemble->getL3Asics());
+    if (asic->isSupported(HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER)) {
+      utility::configureTrapAcl(
+          asic, *config, this->getMirrorToPort(*ensemble));
+    } else {
+      utility::configureTrapAcl(
+          asic, *config, std::is_same_v<AddrT, folly::IPAddressV4>);
+    }
+  }
+  bool isIngress() const override {
+    return true;
+  }
+};
+
+TYPED_TEST_SUITE(AgentErspanIngressSamplingTest, TestTypes);
+
+TYPED_TEST(AgentErspanIngressSamplingTest, ErspanIngressSampling) {
+  auto kSampleRate = 1000;
+  auto setup = [=, this]() {
+    auto config = this->initialConfig(*this->getAgentEnsemble());
+    this->configureSamping(&config, kSampleRate);
+    this->applyNewConfig(config);
+    this->resolveMirror(utility::kIngressErspan);
+  };
+  auto verify = [=, this]() {
+    auto agentEnsemble = this->getAgentEnsemble();
+    auto trafficPort = this->getTrafficPort(*agentEnsemble);
+    auto mirrorToPort = this->getMirrorToPort(*agentEnsemble);
+    WITH_RETRIES({
+      auto ingressMirror = this->getProgrammedState()->getMirrors()->getNodeIf(
+          utility::kIngressErspan);
+      ASSERT_NE(ingressMirror, nullptr);
+      EXPECT_EVENTUALLY_EQ(ingressMirror->isResolved(), true);
+    });
+    auto trafficPortPktStatsBefore = this->getLatestPortStats(trafficPort);
+    auto mirrorPortPktStatsBefore = this->getLatestPortStats(mirrorToPort);
+
+    auto trafficPortPktsBefore = *trafficPortPktStatsBefore.outUnicastPkts_();
+    auto mirroredPortPktsBefore = *trafficPortPktStatsBefore.outUnicastPkts_();
+
+    this->sendPackets(3 * kSampleRate, 1000);
+
+    WITH_RETRIES({
+      auto trafficPortPktStatsAfter = this->getLatestPortStats(trafficPort);
+      auto trafficPortPktsAfter = *trafficPortPktStatsAfter.outUnicastPkts_();
+      EXPECT_EVENTUALLY_EQ(
+          3 * kSampleRate, trafficPortPktsAfter - trafficPortPktsBefore);
+    });
+
+    auto expectedMirrorPackets = 2; /* expect at least 2 packets */
+    WITH_RETRIES({
+      auto mirrorPortPktStatsAfter = this->getLatestPortStats(mirrorToPort);
+      auto mirroredPortPktsAfter = *mirrorPortPktStatsAfter.outUnicastPkts_();
+      EXPECT_EVENTUALLY_GE(
+          mirroredPortPktsAfter - mirroredPortPktsBefore,
+          expectedMirrorPackets);
+    });
+  };
+  setup();
+  verify();
+}
+
+TYPED_TEST(AgentErspanIngressSamplingTest, SamplePacketFormat) {
+  auto setup = [=, this]() {
+    auto config = this->initialConfig(*this->getAgentEnsemble());
+    this->configureSamping(&config, 1000);
+    this->configureTrapAcl(&config);
+    this->applyNewConfig(config);
+    this->resolveMirror(utility::kIngressErspan);
+  };
+  auto verify = [=, this]() {
+    auto agentEnsemble = this->getAgentEnsemble();
+    auto mirrorToPort = this->getMirrorToPort(*agentEnsemble);
+
+    WITH_RETRIES({
+      auto ingressMirror = this->getProgrammedState()->getMirrors()->getNodeIf(
+          utility::kIngressErspan);
+      ASSERT_NE(ingressMirror, nullptr);
+      EXPECT_EVENTUALLY_EQ(ingressMirror->isResolved(), true);
+    });
+
+    WITH_RETRIES({
+      utility::SwSwitchPacketSnooper snooper(
+          this->getSw(), "snooper", mirrorToPort);
+      snooper.ignoreUnclaimedRxPkts();
+      this->sendPackets(1000, 1000);
+      auto buf = snooper.waitForPacket(1);
+      if (buf.has_value()) {
+        // Intentionally dumping to develop deep packet inspection
+        XLOG(INFO) << PktUtil::hexDump(buf.value().get());
+      }
+      EXPECT_EVENTUALLY_TRUE(buf.has_value());
+    });
+  };
+  setup();
+  verify();
+}
+
 } // namespace facebook::fboss

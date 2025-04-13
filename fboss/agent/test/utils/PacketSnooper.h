@@ -32,10 +32,15 @@ class PacketSnooper : public PacketObserverIf {
   void packetReceived(const RxPacket* pkt) noexcept override;
 
   virtual ~PacketSnooper() override {
-    EXPECT_TRUE(receivedFrames_.empty());
+    if (!ignoreUnclaimedRxPkts_) {
+      EXPECT_TRUE(receivedFrames_.empty());
+    }
   }
   // Wait until timeout (seconds), If timeout = 0, wait forever.
   std::optional<utility::EthFrame> waitForPacket(uint32_t timeout_s = 0);
+  void ignoreUnclaimedRxPkts() {
+    ignoreUnclaimedRxPkts_ = true;
+  }
 
  private:
   std::optional<PortID> port_;
@@ -44,6 +49,7 @@ class PacketSnooper : public PacketObserverIf {
   std::mutex mtx_;
   std::condition_variable cv_;
   std::queue<std::unique_ptr<utility::EthFrame>> receivedFrames_;
+  bool ignoreUnclaimedRxPkts_{false};
 };
 
 class SwSwitchPacketSnooper : public PacketSnooper {
