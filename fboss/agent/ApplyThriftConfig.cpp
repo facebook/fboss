@@ -5309,7 +5309,7 @@ std::shared_ptr<MirrorMap> ThriftConfigApplier::updateMirrors() {
     changed = true;
   }
 
-  std::set<std::string> ingressMirrors;
+  std::set<std::string> sampleIngressMirrors;
   for (auto& portMap : std::as_const(*(new_->getPorts()))) {
     for (auto& port : std::as_const(*portMap.second)) {
       auto portInMirror = port.second->getIngressMirror();
@@ -5320,19 +5320,10 @@ std::shared_ptr<MirrorMap> ThriftConfigApplier::updateMirrors() {
           throw FbossError(
               "Mirror ", portInMirror.value(), " for port is not found");
         }
-        if (port.second->getSampleDestination() &&
-            port.second->getSampleDestination().value() ==
-                cfg::SampleDestination::MIRROR &&
-            inMirrorMapEntry->second->type() != Mirror::Type::SFLOW) {
-          throw FbossError(
-              "Ingress mirror ",
-              portInMirror.value(),
-              " for sampled port ",
-              port.second->getID(),
-              " not sflow");
-        }
-        if (inMirrorMapEntry->second->type() == Mirror::Type::SFLOW) {
-          ingressMirrors.insert(portInMirror.value());
+        if (auto sampleDestination = port.second->getSampleDestination()) {
+          if (*sampleDestination == cfg::SampleDestination::MIRROR) {
+            sampleIngressMirrors.insert(portInMirror.value());
+          }
         }
       }
       if (portEgMirror.has_value() &&
@@ -5342,9 +5333,9 @@ std::shared_ptr<MirrorMap> ThriftConfigApplier::updateMirrors() {
       }
     }
   }
-  if (ingressMirrors.size() > 1) {
+  if (sampleIngressMirrors.size() > 1) {
     throw FbossError(
-        "Only one sflow mirror can be configured across all ports");
+        "Only one mirror can be configured across all ports, to sample traffic");
   }
 
   if (!changed) {
