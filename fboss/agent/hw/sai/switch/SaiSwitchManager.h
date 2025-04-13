@@ -121,14 +121,6 @@ class SaiSwitchManager {
   void setTcRateLimitList(
       const std::optional<std::map<int32_t, int32_t>>& tcToRateLimitKbps);
 
-  std::optional<std::string> getFirmwareVersion() const;
-  std::optional<FirmwareOpStatus> getFirmwareOpStatus() const;
-  std::optional<FirmwareFuncStatus> getFirmwareFuncStatus() const;
-
-  bool isFirmwareEnabled() const {
-    return firmwareSaiId_.has_value();
-  }
-
  private:
   void programEcmpLoadBalancerParams(
       std::optional<sai_uint32_t> seed,
@@ -181,8 +173,6 @@ class SaiSwitchManager {
   std::optional<bool> isPtpTcEnabled_{std::nullopt};
   HwSwitchDropStats switchDropStats_;
   HwSwitchWatermarkStats switchWatermarkStats_;
-
-  std::optional<FirmwareSaiId> firmwareSaiId_;
 };
 
 void fillHwSwitchDramStats(
