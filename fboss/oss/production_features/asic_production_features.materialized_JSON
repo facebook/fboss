@@ -40,7 +40,9 @@
         60,
         63,
         69,
-        72
+        72,
+        73,
+        74
     ],
     "ebro": [
         2,
@@ -409,7 +411,9 @@
         "SEPARATE_BYTE_AND_PACKET_ACL_COUNTERS",
         "UCMP",
         "PTP_TC",
-        "MODIFY_ACL_QUALIFIERS"
+        "MODIFY_ACL_QUALIFIERS",
+        "ERSPANv4_SAMPLING",
+        "ERSPANv6_SAMPLING"
     ],
     "ebro": [
         "CPU_RX_TX",
