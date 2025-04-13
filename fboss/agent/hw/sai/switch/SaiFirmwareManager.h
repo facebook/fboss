@@ -46,6 +46,10 @@ class SaiFirmwareManager {
     return handles_.contains(name) ? handles_.at(name).get() : nullptr;
   }
 
+  bool isFirmwareEnabled() const {
+    return handles_.contains(SaiFirmwareManager::kFirmwareName);
+  }
+
   std::optional<std::string> getFirmwareVersion() const;
   std::optional<FirmwareOpStatus> getFirmwareOpStatus() const;
   std::optional<FirmwareFuncStatus> getFirmwareFuncStatus() const;

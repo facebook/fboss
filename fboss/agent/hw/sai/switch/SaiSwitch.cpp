@@ -36,6 +36,7 @@
 #include "fboss/agent/hw/sai/switch/SaiBufferManager.h"
 #include "fboss/agent/hw/sai/switch/SaiCounterManager.h"
 #include "fboss/agent/hw/sai/switch/SaiDebugCounterManager.h"
+#include "fboss/agent/hw/sai/switch/SaiFirmwareManager.h"
 #include "fboss/agent/hw/sai/switch/SaiHashManager.h"
 #include "fboss/agent/hw/sai/switch/SaiHostifManager.h"
 #include "fboss/agent/hw/sai/switch/SaiInSegEntryManager.h"
@@ -4666,18 +4667,18 @@ std::vector<FirmwareInfo> SaiSwitch::getAllFirmwareInfo() const {
   // The platforms that support Firmware, support only single
   // Firmware today.
   std::lock_guard<std::mutex> lock(saiSwitchMutex_);
-  if (managerTable_->switchManager().isFirmwareEnabled()) {
+  if (managerTable_->firmwareManager().isFirmwareEnabled()) {
     FirmwareInfo firmwareInfo;
 
-    auto version = managerTable_->switchManager().getFirmwareVersion();
+    auto version = managerTable_->firmwareManager().getFirmwareVersion();
     CHECK(version.has_value());
     firmwareInfo.version() = version.value();
 
-    auto opStatus = managerTable_->switchManager().getFirmwareOpStatus();
+    auto opStatus = managerTable_->firmwareManager().getFirmwareOpStatus();
     CHECK(opStatus.has_value());
     firmwareInfo.opStatus() = opStatus.value();
 
-    auto funcStatus = managerTable_->switchManager().getFirmwareFuncStatus();
+    auto funcStatus = managerTable_->firmwareManager().getFirmwareFuncStatus();
     CHECK(funcStatus.has_value());
     firmwareInfo.funcStatus() = funcStatus.value();
 
