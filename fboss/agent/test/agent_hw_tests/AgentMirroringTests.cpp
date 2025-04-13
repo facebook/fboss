@@ -763,6 +763,10 @@ class AgentErspanIngressSamplingTest
   bool isIngress() const override {
     return true;
   }
+
+  bool isV4() const {
+    return std::is_same_v<AddrT, folly::IPAddressV4>;
+  }
 };
 
 TYPED_TEST_SUITE(AgentErspanIngressSamplingTest, TestTypes);
@@ -824,6 +828,7 @@ TYPED_TEST(AgentErspanIngressSamplingTest, SamplePacketFormat) {
   auto verify = [=, this]() {
     auto agentEnsemble = this->getAgentEnsemble();
     auto mirrorToPort = this->getMirrorToPort(*agentEnsemble);
+    auto trafficPort = this->getTrafficPort(*agentEnsemble);
 
     WITH_RETRIES({
       auto ingressMirror = this->getProgrammedState()->getMirrors()->getNodeIf(
@@ -841,6 +846,26 @@ TYPED_TEST(AgentErspanIngressSamplingTest, SamplePacketFormat) {
       if (buf.has_value()) {
         // Intentionally dumping to develop deep packet inspection
         XLOG(INFO) << PktUtil::hexDump(buf.value().get());
+        auto ensemble = this->getAgentEnsemble();
+        auto asic = utility::checkSameAndGetAsic(ensemble->getL3Asics());
+        if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+          folly::io::Cursor cursor(buf.value().get());
+          cursor += 14; // skip ethernet header
+          if (this->isV4()) {
+            cursor += 20; // skip IPv4 header
+          } else {
+            cursor += 40; // skip IPv6 header
+          }
+          auto gre = cursor.readBE<uint32_t>(); // read gre proto
+          EXPECT_EQ(gre, 0x8949);
+          auto port = cursor.readBE<uint16_t>(); // ingress label port
+          EXPECT_EQ(port, trafficPort);
+          auto opcode = cursor.readBE<uint8_t>(); // opcode
+          EXPECT_EQ(opcode, 0x1); // v1 erspan
+          cursor.readBE<uint8_t>(); // padding
+          cursor.readBE<uint8_t>(); // flags
+          cursor.readBE<uint8_t>(); // packet type
+        }
       }
       EXPECT_EVENTUALLY_TRUE(buf.has_value());
     });
