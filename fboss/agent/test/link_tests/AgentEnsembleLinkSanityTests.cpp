@@ -121,7 +121,7 @@ TEST_F(AgentEnsembleLinkTest, asicLinkFlap) {
 TEST_F(AgentEnsembleLinkTest, getTransceivers) {
   auto verify = [this]() {
     WITH_RETRIES({
-      auto ports = getCabledPorts();
+      auto ports = getCabledTransceiverPorts();
       // Set the port status on all cabled ports to false. The link should go
       // down
       for (const auto& port : ports) {
@@ -133,7 +133,7 @@ TEST_F(AgentEnsembleLinkTest, getTransceivers) {
     })
 
     WITH_RETRIES({
-      auto ports = getCabledPorts();
+      auto ports = getCabledTransceiverPorts();
       for (const auto& port : ports) {
         auto transceiverIndx0 = getSw()->getTransceiverIdxThrift(port);
         auto transceiverIndx1 = getSw()->getTransceiverIdxThrift(port);

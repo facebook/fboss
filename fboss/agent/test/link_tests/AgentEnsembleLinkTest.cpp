@@ -177,6 +177,7 @@ void AgentEnsembleLinkTest::initializeCabledPorts() {
           utility::getTransceiverId(platformPortEntry->second, chips);
       if (transceiverID.has_value()) {
         cabledTransceivers_.insert(*transceiverID);
+        cabledTransceiverPorts_.push_back(PortID(portID));
       }
     }
   }
@@ -188,7 +189,7 @@ AgentEnsembleLinkTest::getOpticalAndActiveCabledPortsAndNames(
   std::string portNames;
   std::vector<PortID> ports;
   std::vector<int32_t> transceiverIds;
-  for (const auto& port : getCabledPorts()) {
+  for (const auto& port : getCabledTransceiverPorts()) {
     auto portName = getPortName(port);
     // TODO to find equivalent to getPlatformPort
     auto tcvrId =
@@ -197,7 +198,7 @@ AgentEnsembleLinkTest::getOpticalAndActiveCabledPortsAndNames(
   }
 
   auto transceiverInfos = utility::waitForTransceiverInfo(transceiverIds);
-  for (const auto& port : getCabledPorts()) {
+  for (const auto& port : getCabledTransceiverPorts()) {
     auto portName = getPortName(port);
     auto tcvrId =
         getSw()->getPlatformMapping()->getTransceiverIdFromSwPort(port);
@@ -237,6 +238,11 @@ AgentEnsembleLinkTest::getOpticalAndActiveCabledPortsAndNames(
 
 const std::vector<PortID>& AgentEnsembleLinkTest::getCabledPorts() const {
   return cabledPorts_;
+}
+
+const std::vector<PortID>& AgentEnsembleLinkTest::getCabledTransceiverPorts()
+    const {
+  return cabledTransceiverPorts_;
 }
 
 boost::container::flat_set<PortDescriptor>
