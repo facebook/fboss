@@ -10,4 +10,18 @@ SaiFirmwareManager::SaiFirmwareManager(
     SaiPlatform* platform)
     : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {}
 
+std::optional<std::string> SaiFirmwareManager::getFirmwareVersion() const {
+  return std::nullopt;
+}
+
+std::optional<FirmwareOpStatus> SaiFirmwareManager::getFirmwareOpStatus()
+    const {
+  return std::nullopt;
+}
+
+std::optional<FirmwareFuncStatus> SaiFirmwareManager::getFirmwareFuncStatus()
+    const {
+  return std::nullopt;
+}
+
 } // namespace facebook::fboss

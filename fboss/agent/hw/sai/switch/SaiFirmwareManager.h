@@ -6,6 +6,7 @@
 #include "fboss/agent/hw/sai/api/FirmwareApi.h"
 #endif
 #include "fboss/agent/hw/sai/store/SaiObject.h"
+#include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 
 namespace facebook::fboss {
 
@@ -44,6 +45,10 @@ class SaiFirmwareManager {
   SaiFirmwareHandle* getFirmwareHandle(const std::string& name) {
     return handles_.contains(name) ? handles_.at(name).get() : nullptr;
   }
+
+  std::optional<std::string> getFirmwareVersion() const;
+  std::optional<FirmwareOpStatus> getFirmwareOpStatus() const;
+  std::optional<FirmwareFuncStatus> getFirmwareFuncStatus() const;
 
  private:
   SaiStore* saiStore_;
