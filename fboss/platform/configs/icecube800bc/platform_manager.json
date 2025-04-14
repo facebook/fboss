@@ -2302,6 +2302,15 @@
             },
             {
               "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_65_LED_1",
+                "deviceName": "port_led",
+                "csrOffset": "0x48510"
+              },
+              "portNumber": 65,
+              "ledId": 1
+            },
+            {
+              "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "MCB_LED_PORT_33_LED_2",
                 "deviceName": "port_led",
                 "csrOffset": "0x48414"
