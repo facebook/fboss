@@ -173,6 +173,11 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
           getCounterPrefix() + "rqp_parity_error_drops",
           SUM,
           RATE),
+      tc0RateLimitDrops_(
+          map,
+          getCounterPrefix() + "tc0_rate_limit_drops",
+          SUM,
+          RATE),
       fabricConnectivityMissingCount_(
           map,
           getCounterPrefix() + "fabric_connectivity_missing"),
@@ -483,6 +488,11 @@ void HwSwitchFb303Stats::update(const HwSwitchDropStats& dropStats) {
     rqpParityErrorDrops_.addValue(
         *dropStats.rqpParityErrorDrops() -
         currentDropStats_.rqpParityErrorDrops().value_or(0));
+  }
+  if (dropStats.tc0RateLimitDrops().has_value()) {
+    tc0RateLimitDrops_.addValue(
+        *dropStats.tc0RateLimitDrops() -
+        currentDropStats_.tc0RateLimitDrops().value_or(0));
   }
 
   currentDropStats_ = dropStats;
