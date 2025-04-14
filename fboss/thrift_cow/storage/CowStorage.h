@@ -197,10 +197,19 @@ class CowStorage : public Storage<Root, CowStorage<Root, Node>> {
         thrift_cow::pvlambda([&](auto& node, auto /*begin*/, auto /*end*/) {
           using NodeT = typename folly::remove_cvref_t<decltype(node)>;
           using TC = typename NodeT::TC;
-          patchResult = thrift_cow::PatchApplier<TC>::apply(
-              node, std::move(*patch.patch()), *patch.protocol());
-          XLOG(DBG5) << "Visited base path. patch result "
-                     << apache::thrift::util::enumNameSafe(patchResult);
+          if constexpr (std::is_same_v<
+                            typename NodeT::CowType,
+                            thrift_cow::ThriftObject>) {
+            patchResult = thrift_cow::PatchApplier<TC>::apply(
+                node.toThrift(), std::move(*patch.patch()), *patch.protocol());
+            XLOG(DBG5) << "Visited base path in Thrift obj. patch result "
+                       << apache::thrift::util::enumNameSafe(patchResult);
+          } else {
+            patchResult = thrift_cow::PatchApplier<TC>::apply(
+                node, std::move(*patch.patch()), *patch.protocol());
+            XLOG(DBG5) << "Visited base path. patch result "
+                       << apache::thrift::util::enumNameSafe(patchResult);
+          }
         });
     auto visitResult = thrift_cow::RootPathVisitor::visit(
         *root_, begin, end, thrift_cow::PathVisitMode::LEAF, op);

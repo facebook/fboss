@@ -33,6 +33,12 @@ dynamic createTestDynamic() {
       ;
 }
 
+TestStruct createTestStruct() {
+  auto testDyn = createTestDynamic();
+  return facebook::thrift::from_dynamic<TestStruct>(
+      testDyn, facebook::thrift::dynamic_format::JSON_1);
+}
+
 template <typename T, typename = void>
 struct IsPublishable : std::false_type {};
 
@@ -260,4 +266,62 @@ TYPED_TEST(CowStorageTests, PatchDelta) {
   storage.patch(delta);
 
   EXPECT_EQ(storage.get(root.tx()).value(), false);
+}
+
+TYPED_TEST(CowStorageTests, PatchRoot) {
+  using namespace facebook::fboss::fsdb;
+  using namespace facebook::fboss::thrift_cow;
+  auto testStructA = createTestStruct();
+
+  auto storage = this->initStorage(testStructA);
+  // In FSDB we only publish root, but just to test PatchApplier functionality,
+  // publish all nodes and make sure we modify itermediate nodes properly
+  publishAllNodes(storage);
+
+  auto testStructB = testStructA;
+
+  // modify various fields and create a big patch
+  testStructB.tx() = false;
+
+  auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(testStructA);
+  auto nodeB = std::make_shared<ThriftStructNode<TestStruct>>(testStructB);
+  auto patch = PatchBuilder::build(nodeA, nodeB, {});
+
+  storage.patch(std::move(patch));
+  EXPECT_EQ(storage.root()->toThrift(), testStructB);
+
+  // reset storage and patch just the one member
+  storage = this->initStorage(testStructA);
+  publishAllNodes(storage);
+}
+
+TYPED_TEST(CowStorageTests, PatchInvalidDeltaPath) {
+  using namespace facebook::fboss::fsdb;
+
+  auto testStructA = createTestStruct();
+  auto storage = this->initStorage(testStructA);
+
+  OperDelta delta;
+  OperDeltaUnit unit;
+  unit.path()->raw() = {"invalid", "path"};
+  unit.newState() = facebook::fboss::thrift_cow::serialize<
+      apache::thrift::type_class::structure>(OperProtocol::BINARY, testStructA);
+  delta.changes() = {unit};
+
+  // should fail gracefully
+  EXPECT_EQ(storage.patch(delta), StorageError::INVALID_PATH);
+
+  // partially valid path should still fail
+  unit.path()->raw() = {"inlineStruct", "invalid", "path"};
+  delta.changes() = {unit};
+  EXPECT_EQ(storage.patch(delta), StorageError::INVALID_PATH);
+}
+
+TYPED_TEST(CowStorageTests, PatchEmptyDeltaNonexistentPath) {
+  using namespace facebook::fboss::fsdb;
+
+  thriftpath::RootThriftPath<TestStruct> root;
+
+  auto testStructA = createTestStruct();
+  auto storage = this->initStorage(testStructA);
 }
