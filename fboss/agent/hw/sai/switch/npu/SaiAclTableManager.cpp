@@ -151,14 +151,6 @@ std::
 
   auto actionTypeList = getActionTypeList(addedAclTable);
 
-  // Log action type list to help debug warmboot test failure
-  // TODO(maxgg): Remove when no longer needed
-  std::stringstream actionTypeStr;
-  for (sai_int32_t actionType : actionTypeList) {
-    actionTypeStr << actionType << ", ";
-  }
-  XLOG(DBG2) << "actionTypeList: " << actionTypeStr.str();
-
   auto qualifierSet = getQualifierSet(aclStage, addedAclTable);
   auto qualifierExistsFn = [=](cfg::AclTableQualifier qualifier) {
     auto exists = qualifierSet.find(qualifier) != qualifierSet.end();
