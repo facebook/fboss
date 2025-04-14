@@ -294,7 +294,7 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
     auto idpromConfig = *slotTypeConfig.idpromConfig_ref();
     auto eepromI2cBusNum =
         dataStore_.getI2cBusNum(slotPath, *idpromConfig.busName());
-    std::string eepromPath = "";
+    std::string eepromPath;
 
     /*
     Because of upstream kernel issues, we have to manually read the
