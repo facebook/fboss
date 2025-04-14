@@ -47,8 +47,8 @@ std::shared_ptr<SwitchState> StaticL2ForNeighborSwSwitchUpdater::pruneMacEntry(
   auto newState = MacTableUtils::removeEntry(state, vlanId, mac);
   if (newState != state) {
     // Check if another neighbor still points to this MAC
-    newState =
-        MacTableUtils::updateOrAddStaticEntryIfNbrExists(newState, vlanId, mac);
+    newState = MacTableUtils::updateOrAddStaticEntryIfNbrExists(
+        newState, vlanId, mac, removedEntry->getClassID());
   }
   return newState;
 }
@@ -90,24 +90,25 @@ void StaticL2ForNeighborSwSwitchUpdater::pruneMacEntry(
     const std::shared_ptr<NeighborEntryT>& removedEntry) {
   XLOG(DBG2) << " Neighbor entry removed: " << removedEntry->str();
   auto mac = removedEntry->getMac();
-  auto removeMacEntryFn = [vlanId,
-                           mac](const std::shared_ptr<SwitchState>& state) {
-    // Note that its possible that other neighbors still refer to this MAC.
-    // Handle this in 2 steps
-    // - Remove MAC
-    // - Run ensureMacEntryIfNeighborExists
-    // State passed down to HW is the composition of these 2 steps
-    bool macPruned = false;
-    auto newState = MacTableUtils::removeEntry(state, vlanId, mac);
-    if (newState != state) {
-      // Check if another neighbor still points to this MAC
-      newState = MacTableUtils::updateOrAddStaticEntryIfNbrExists(
-          newState, vlanId, mac);
-      auto vlan = newState->getVlans()->getNodeIf(vlanId);
-      macPruned = vlan->getMacTable()->getMacIf(mac) == nullptr;
-    }
-    return macPruned ? newState : nullptr;
-  };
+  auto classID = removedEntry->getClassID();
+  auto removeMacEntryFn =
+      [vlanId, mac, classID](const std::shared_ptr<SwitchState>& state) {
+        // Note that its possible that other neighbors still refer to this MAC.
+        // Handle this in 2 steps
+        // - Remove MAC
+        // - Run ensureMacEntryIfNeighborExists
+        // State passed down to HW is the composition of these 2 steps
+        bool macPruned = false;
+        auto newState = MacTableUtils::removeEntry(state, vlanId, mac);
+        if (newState != state) {
+          // Check if another neighbor still points to this MAC
+          newState = MacTableUtils::updateOrAddStaticEntryIfNbrExists(
+              newState, vlanId, mac, classID);
+          auto vlan = newState->getVlans()->getNodeIf(vlanId);
+          macPruned = vlan->getMacTable()->getMacIf(mac) == nullptr;
+        }
+        return macPruned ? newState : nullptr;
+      };
 
   sw_->updateState(
       "Prune MAC if unreferenced: " + removedEntry->str(),
