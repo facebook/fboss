@@ -17,6 +17,7 @@
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
 #include "fboss/agent/hw/test/ProdConfigFactory.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/utils/UdfTestUtils.h"
 
 using namespace facebook::fboss::utility;
 
@@ -220,7 +221,8 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
     updatePortFlowletConfigs(
         cfg, kScalingFactor1(), kLoadWeight1, kQueueWeight1);
     if (!getHwSwitchEnsemble()->isSai()) {
-      cfg.udfConfig() = utility::addUdfFlowletAclConfig();
+      cfg.udfConfig() =
+          utility::addUdfAclConfig(utility::kUdfOffsetBthReserved);
       addFlowletAcl(cfg);
     }
   }

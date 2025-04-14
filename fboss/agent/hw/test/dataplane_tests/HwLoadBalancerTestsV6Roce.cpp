@@ -12,6 +12,7 @@
 
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
+#include "fboss/agent/test/utils/UdfTestUtils.h"
 
 namespace facebook::fboss {
 

@@ -48,6 +48,16 @@ cpp_library(
 )
 
 cpp_library(
+    name = "udf_test_utils",
+    srcs = ["UdfTestUtils.cpp"],
+    headers = ["UdfTestUtils.h"],
+    exported_deps = [
+        "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent:utils",
+    ],
+)
+
+cpp_library(
     name = "pkt_test_utils",
     srcs = [
         "PacketSendUtils.cpp",
@@ -419,6 +429,7 @@ cpp_library(
         ":config_utils",
         ":ecmp_dataplane_test_util",
         ":load_balancer_test_utils",
+        ":udf_test_utils",
     ],
     exported_external_deps = [
         ("boost", None, "boost_preprocessor"),

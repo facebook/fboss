@@ -166,6 +166,7 @@ cpp_library(
         "//fboss/agent/test/utils:traffic_policy_utils",
         "//fboss/agent/test/utils:trap_packet_utils",
         "//fboss/agent/test/utils:trunk_test_utils",
+        "//fboss/agent/test/utils:udf_test_utils",
         "//fboss/agent/test/utils:voq_test_utils",
         "//fboss/lib:common_utils",
         "//folly:file_util",
