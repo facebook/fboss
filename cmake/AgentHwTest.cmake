@@ -207,6 +207,7 @@ set(hw_switch_test_srcs
   fboss/agent/hw/test/HwTestPortUtils.cpp
   fboss/agent/hw/test/HwTestCoppUtils.cpp
   fboss/agent/hw/test/HwRouteTests.cpp
+  fboss/agent/hw/test/HwSplitAgentTest.cpp
   fboss/agent/hw/test/HwTrunkTests.cpp
   fboss/agent/hw/test/HwVlanTests.cpp
   fboss/agent/hw/test/HwVerifyPfcConfigInHwTest.cpp
@@ -220,10 +221,12 @@ set(hw_switch_test_srcs
   fboss/agent/hw/test/HwTeFlowTests.cpp
   fboss/agent/hw/test/HwUdfTests.cpp
   fboss/agent/hw/test/HwTestPfcUtils.cpp
+  fboss/agent/hw/test/HwAsicDefaultProgrammingTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwHashConsistencyTest.cpp
   fboss/agent/hw/test/dataplane_tests/HwAqmTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwInPauseDiscardsTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwMPLSTests.cpp
+  fboss/agent/hw/test/dataplane_tests/HwL3Tests.cpp
   fboss/agent/hw/test/dataplane_tests/HwLoadBalancerTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwTeFlowTrafficTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwProdInvariantHelper.cpp
