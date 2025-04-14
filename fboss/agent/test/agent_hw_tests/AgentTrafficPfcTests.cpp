@@ -141,8 +141,7 @@ void validateBufferPoolWatermarkCounters(
     XLOG(DBG0) << "Global headroom watermark: " << globalHeadroomWatermark
                << ", Global shared watermark: " << globalSharedWatermark;
     if (ensemble->getSw()->getHwAsicTable()->isFeatureSupportedOnAllAsic(
-            facebook::fboss::HwAsic::Feature::
-                INGRESS_PRIORITY_GROUP_HEADROOM_WATERMARK)) {
+            facebook::fboss::HwAsic::Feature::BUFFER_POOL_HEADROOM_WATERMARK)) {
       EXPECT_EVENTUALLY_GT(globalHeadroomWatermark, 0);
     }
     EXPECT_EVENTUALLY_GT(globalSharedWatermark, 0);
