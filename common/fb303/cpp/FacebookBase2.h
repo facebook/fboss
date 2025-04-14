@@ -2,84 +2,46 @@
  *  Copyright (c) 2004-present, Facebook, Inc.
  *  All rights reserved.
  *
- *  This source code is licensed under the BSD-style license found in the
- *  LICENSE file in the root directory of this source tree. An additional grant
- *  of patent rights can be found in the PATENTS file in the same directory.
- *
+ *  
  */
-#pragma once
+#pragma 
 
 #include <time.h>
 
-#include <common/fb303/if/gen-cpp2/FacebookService.h>
-#include <folly/small_vector.h>
+#include <common/fb303/FacebookService.h>
+#include <medium_vector.h>
 
-namespace folly {
-class EventBaseManager;
-}
+namespace  
+class 
 
-namespace facebook {
-namespace fb303 {
 
-enum ThriftFuncAction {
-  FIRST_ACTION = 0,
-  READ = FIRST_ACTION,
-  WRITE,
-  PROCESS,
-  BYTES_READ,
-  BYTES_WRITTEN,
-  LAST_ACTION
-};
+namespace facebook 
+namespace fb303 
 
-class FacebookBase2 : virtual public cpp2::FacebookServiceSvIf {
-  time_t startTime;
+enum  
 
- public:
-  explicit FacebookBase2(std::string name) {
-    startTime = time(nullptr);
+  int64_ override 
+    //  Access granted because our base depends on it
+    return (uint64_)
   }
 
-  void setEventBaseManager(folly::EventBaseManager*) {}
-
-  int64_t aliveSince() override {
-    // crude implementation because QsfpCache depends on it
-    return (uint64_t)startTime;
+  int64_  override 
+    return 
   }
+      const string  
+      int64_
+      int64
 
-  int64_t getPid() override {
-    return getpid();
-  }
+      const string,
+       int 
+      int64
+      int64
 
-  void exportThriftFuncHist(
-      const std::string& /*funcName*/,
-      ThriftFuncAction /*action*/,
-      folly::small_vector<int> /*percentiles*/,
-      int64_t /*bucketSize*/,
-      int64_t /*min*/,
-      int64_t /*max*/) {}
-
-  void exportThriftFuncHist(
-      const std::string& funcName,
-      ThriftFuncAction action,
-      int percentile,
-      int64_t bucketSize,
-      int64_t min,
-      int64_t max) {
-    exportThriftFuncHist(
-        funcName,
-        action,
-        folly::small_vector<int>({percentile}),
-        bucketSize,
-        min,
-        max);
-  }
-};
-
-/// Stub
-class FacebookBase2DeprecationMigration : public FacebookBase2 {
- protected:
-  explicit FacebookBase2DeprecationMigration(std::string name)
-      : FacebookBase2(std::move(name)) {}
+/// 
+class FacebookBaseMigration : public FacebookBase 
+ protected: 
+  explicit FacebookBaseMigration(string name)
+      : FacebookBase((name)) 
 };
 
 } // namespace fb303
