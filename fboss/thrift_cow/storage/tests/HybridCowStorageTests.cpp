@@ -121,3 +121,143 @@ TYPED_TEST(CowStorageTests, GetEncoded) {
           apache::thrift::type_class::structure>(
           OperProtocol::SIMPLE_JSON, testStruct));
 }
+
+TYPED_TEST(CowStorageTests, GetEncodedMetadata) {
+  using namespace facebook::fboss::fsdb;
+
+  thriftpath::RootThriftPath<TestStruct> root;
+
+  auto testStruct = facebook::thrift::from_dynamic<TestStruct>(
+      createTestDynamic(), facebook::thrift::dynamic_format::JSON_1);
+  auto storage = this->initStorage(testStruct);
+
+  auto result = storage.get_encoded(root.tx(), OperProtocol::SIMPLE_JSON);
+  EXPECT_FALSE(result.hasError());
+  EXPECT_EQ(
+      *result->contents(),
+      facebook::fboss::thrift_cow::serialize<
+          apache::thrift::type_class::integral>(
+          OperProtocol::SIMPLE_JSON, true));
+  result = storage.get_encoded(root, OperProtocol::SIMPLE_JSON);
+  EXPECT_EQ(
+      *result->contents(),
+      facebook::fboss::thrift_cow::serialize<
+          apache::thrift::type_class::structure>(
+          OperProtocol::SIMPLE_JSON, testStruct));
+
+  storage.publish();
+  EXPECT_TRUE(storage.isPublished());
+
+  // change tx to false, since we published already, this should clone
+  EXPECT_EQ(storage.set(root.tx(), false), std::nullopt);
+
+  result = storage.get_encoded(root.tx(), OperProtocol::SIMPLE_JSON);
+  EXPECT_EQ(
+      *result->contents(),
+      facebook::fboss::thrift_cow::serialize<
+          apache::thrift::type_class::integral>(
+          OperProtocol::SIMPLE_JSON, false));
+
+  result = storage.get_encoded(root, OperProtocol::SIMPLE_JSON);
+  auto testStruct2 = testStruct;
+  testStruct2.tx() = false;
+  EXPECT_EQ(
+      *result->contents(),
+      facebook::fboss::thrift_cow::serialize<
+          apache::thrift::type_class::structure>(
+          OperProtocol::SIMPLE_JSON, testStruct2));
+}
+
+TYPED_TEST(CowStorageTests, SetThrift) {
+  using namespace facebook::fboss::fsdb;
+
+  thriftpath::RootThriftPath<TestStruct> root;
+
+  auto testStruct = facebook::thrift::from_dynamic<TestStruct>(
+      createTestDynamic(), facebook::thrift::dynamic_format::JSON_1);
+  auto storage = this->initStorage(testStruct);
+
+  EXPECT_EQ(storage.get(root.tx()).value(), true);
+
+  // change all the fields
+  EXPECT_EQ(storage.set(root.tx(), false), std::nullopt);
+
+  EXPECT_EQ(storage.get(root.tx()).value(), false);
+}
+
+TYPED_TEST(CowStorageTests, AddDynamic) {
+  using namespace facebook::fboss::fsdb;
+
+  thriftpath::RootThriftPath<TestStruct> root;
+
+  auto testStruct = facebook::thrift::from_dynamic<TestStruct>(
+      createTestDynamic(), facebook::thrift::dynamic_format::JSON_1);
+  auto storage = this->initStorage(testStruct);
+
+  EXPECT_EQ(storage.get(root.tx()).value(), true);
+}
+
+TYPED_TEST(CowStorageTests, RemoveThrift) {
+  using namespace facebook::fboss::fsdb;
+
+  thriftpath::RootThriftPath<TestStruct> root;
+
+  auto testStruct = facebook::thrift::from_dynamic<TestStruct>(
+      createTestDynamic(), facebook::thrift::dynamic_format::JSON_1);
+
+  auto storage = this->initStorage(testStruct);
+
+  EXPECT_EQ(storage.get(root.tx()).value(), true);
+
+  // delete values
+}
+
+TYPED_TEST(CowStorageTests, PatchDelta) {
+  using namespace facebook::fboss::fsdb;
+  using namespace apache::thrift::type_class;
+
+  thriftpath::RootThriftPath<TestStruct> root;
+
+  auto testStruct = facebook::thrift::from_dynamic<TestStruct>(
+      createTestDynamic(), facebook::thrift::dynamic_format::JSON_1);
+  auto storage = this->initStorage(testStruct);
+
+  // publish to ensure we can patch published storage
+  storage.publish();
+  EXPECT_TRUE(storage.isPublished());
+
+  EXPECT_EQ(storage.get(root.tx()).value(), true);
+
+  auto makeState = [](auto tc, auto val) -> folly::fbstring {
+    OperState state;
+    using TC = decltype(tc);
+    return facebook::fboss::thrift_cow::serialize<TC>(
+        OperProtocol::SIMPLE_JSON, val);
+  };
+
+  auto deltaUnit = [](std::vector<std::string> path,
+                      std::optional<folly::fbstring> oldState,
+                      std::optional<folly::fbstring> newState) {
+    OperDeltaUnit unit;
+    unit.path()->raw() = std::move(path);
+    if (oldState) {
+      unit.oldState() = *oldState;
+    }
+    if (newState) {
+      unit.newState() = *newState;
+    }
+    return unit;
+  };
+
+  // add values
+  OperDelta delta;
+
+  std::vector<OperDeltaUnit> changes = {
+      deltaUnit({"tx"}, std::nullopt, makeState(integral{}, false))};
+
+  delta.changes() = std::move(changes);
+  delta.protocol() = OperProtocol::SIMPLE_JSON;
+  storage.patch(delta);
+
+  EXPECT_EQ(storage.get(root.tx()).value(), false);
+}
