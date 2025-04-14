@@ -3,6 +3,24 @@ load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
 oncall("fboss_agent_push")
 
 cpp_unittest(
+    name = "hybrid_storage_tests",
+    srcs = [
+        "HybridCowStorageTests.cpp",
+    ],
+    compiler_flags = ["-ftemplate-backtrace-limit=0"],
+    deps = [
+        "//fboss/fsdb/tests:hybrid_storage_test-cpp2-thriftpath",
+        "//fboss/fsdb/tests:hybrid_storage_test-cpp2-types",
+        "//fboss/thrift_cow/nodes:serializer",
+        "//fboss/thrift_cow/storage:cow_storage",
+        "//fboss/thrift_cow/visitors:visitors",
+        "//folly:string",
+        "//folly/json:dynamic",
+        "//thrift/lib/cpp2/folly_dynamic:folly_dynamic",
+    ],
+)
+
+cpp_unittest(
     name = "storage_tests",
     srcs = [
         "CowStorageMgrTests.cpp",
