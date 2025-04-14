@@ -30,4 +30,7 @@ thrift_library(
     ],
     thrift_cpp2_options = "json,reflection",
     thrift_srcs = {"hybrid_storage_test.thrift": []},
+    deps = [
+        "//thrift/annotation:cpp",
+    ],
 )
