@@ -9,6 +9,7 @@ cpp_unittest(
     ],
     compiler_flags = ["-ftemplate-backtrace-limit=0"],
     deps = [
+        "//fboss/fsdb/oper:extended_path_builder",
         "//fboss/fsdb/tests:hybrid_storage_test-cpp2-thriftpath",
         "//fboss/fsdb/tests:hybrid_storage_test-cpp2-types",
         "//fboss/thrift_cow/nodes:serializer",

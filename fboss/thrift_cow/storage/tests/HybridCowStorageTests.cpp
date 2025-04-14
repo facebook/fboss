@@ -9,6 +9,7 @@
 #include <fboss/thrift_cow/visitors/PatchBuilder.h>
 #include <fboss/thrift_cow/visitors/RecurseVisitor.h>
 #include <thrift/lib/cpp2/folly_dynamic/folly_dynamic.h>
+#include "fboss/fsdb/oper/ExtendedPathBuilder.h"
 #include "fboss/fsdb/tests/gen-cpp2-thriftpath/hybrid_storage_test.h" // @manual=//fboss/fsdb/tests:hybrid_storage_test-cpp2-thriftpath
 #include "fboss/fsdb/tests/gen-cpp2/hybrid_storage_test_types.h"
 
@@ -35,6 +36,16 @@ dynamic createTestDynamic() {
 
 TestStruct createTestStruct() {
   auto testDyn = createTestDynamic();
+  return facebook::thrift::from_dynamic<TestStruct>(
+      testDyn, facebook::thrift::dynamic_format::JSON_1);
+}
+
+TestStruct createTestStructForExtendedTests() {
+  auto testDyn = createTestDynamic();
+  for (int i = 0; i <= 20; ++i) {
+    testDyn["mapOfStringToI32"][fmt::format("test{}", i)] = i;
+  }
+
   return facebook::thrift::from_dynamic<TestStruct>(
       testDyn, facebook::thrift::dynamic_format::JSON_1);
 }
@@ -216,6 +227,80 @@ TYPED_TEST(CowStorageTests, RemoveThrift) {
   EXPECT_EQ(storage.get(root.tx()).value(), true);
 
   // delete values
+}
+
+TYPED_TEST(CowStorageTests, EncodedExtendedAccessFieldSimple) {
+  auto testStruct = createTestStructForExtendedTests();
+
+  auto storage = this->initStorage(testStruct);
+  storage.publish();
+  EXPECT_TRUE(storage.isPublished());
+
+  auto path = ext_path_builder::raw("tx").get();
+  auto result = storage.get_encoded_extended(
+      path.path()->begin(), path.path()->end(), OperProtocol::SIMPLE_JSON);
+  EXPECT_EQ(result->size(), 1);
+  EXPECT_EQ(
+      *result->at(0).state()->contents(),
+      facebook::fboss::thrift_cow::serialize<
+          apache::thrift::type_class::integral>(
+          OperProtocol::SIMPLE_JSON, true));
+}
+
+TYPED_TEST(CowStorageTests, EncodedExtendedAccessFieldInContainer) {
+  auto testStruct = createTestStructForExtendedTests();
+
+  auto storage = this->initStorage(testStruct);
+  storage.publish();
+  EXPECT_TRUE(storage.isPublished());
+}
+
+TYPED_TEST(CowStorageTests, EncodedExtendedAccessRegexMap) {
+  auto testStruct = createTestStructForExtendedTests();
+
+  auto storage = this->initStorage(testStruct);
+  storage.publish();
+  EXPECT_TRUE(storage.isPublished());
+}
+
+TYPED_TEST(CowStorageTests, EncodedExtendedAccessAnyMap) {
+  auto testStruct = createTestStructForExtendedTests();
+
+  auto storage = this->initStorage(testStruct);
+  storage.publish();
+  EXPECT_TRUE(storage.isPublished());
+}
+
+TYPED_TEST(CowStorageTests, EncodedExtendedAccessRegexList) {
+  auto testStruct = createTestStructForExtendedTests();
+
+  auto storage = this->initStorage(testStruct);
+  storage.publish();
+  EXPECT_TRUE(storage.isPublished());
+}
+
+TYPED_TEST(CowStorageTests, EncodedExtendedAccessAnyList) {
+  auto testStruct = createTestStructForExtendedTests();
+
+  auto storage = this->initStorage(testStruct);
+  storage.publish();
+  EXPECT_TRUE(storage.isPublished());
+}
+
+TYPED_TEST(CowStorageTests, EncodedExtendedAccessRegexSet) {
+  auto testStruct = createTestStructForExtendedTests();
+
+  auto storage = this->initStorage(testStruct);
+  storage.publish();
+  EXPECT_TRUE(storage.isPublished());
+}
+
+TYPED_TEST(CowStorageTests, EncodedExtendedAccessAnySet) {
+  auto testStruct = createTestStructForExtendedTests();
+
+  auto storage = this->initStorage(testStruct);
+  storage.publish();
+  EXPECT_TRUE(storage.isPublished());
 }
 
 TYPED_TEST(CowStorageTests, PatchDelta) {
