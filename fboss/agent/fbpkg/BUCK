@@ -127,5 +127,6 @@ fboss_fbpkg_builder(
         "neteng/fboss/tools/wrapper_scripts",
     ],
     path_actions = get_all_wedge_agent_nvda_path_actions(),
-    split_debuginfo = True,
+    # TODO: fix split_debuginfo for wedge_agent_nvda
+    split_debuginfo = False,
 )
