@@ -133,15 +133,16 @@ class CowStorage : public Storage<Root, CowStorage<Root, Node>> {
     thrift_cow::RootExtendedPathVisitor::visit(
         rootNode, begin, end, options, [&](auto& path, auto& node) {
           using NodeT = typename folly::remove_cvref_t<decltype(node)>;
-          if constexpr (thrift_cow::is_cow_type_v<NodeT>) {
-            // TODO: FIXME: ExtendedPathVisitor should be calling visitorFn
-            // with SerializableWrapper when visiting Thrift objects.
-            TaggedOperState state;
-            state.path()->path() = path;
-            state.state()->contents() = node.encode(protocol);
-            state.state()->protocol() = protocol;
-            result.emplace_back(std::move(state));
+          if constexpr (!thrift_cow::is_cow_type_v<NodeT>) {
+            throw std::runtime_error(fmt::format(
+                "get_encoded_extended_impl: unexpected type with ExtendedPathVisitor::visit(path={})",
+                folly::join("/", path)));
           }
+          TaggedOperState state;
+          state.path()->path() = path;
+          state.state()->contents() = node.encode(protocol);
+          state.state()->protocol() = protocol;
+          result.emplace_back(std::move(state));
         });
     return result;
   }

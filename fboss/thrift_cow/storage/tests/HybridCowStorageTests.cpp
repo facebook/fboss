@@ -422,6 +422,34 @@ TYPED_TEST(CowStorageTests, EncodedExtendedAccessRegexMap) {
   auto storage = this->initStorage(testStruct);
   storage.publish();
   EXPECT_TRUE(storage.isPublished());
+
+  std::map<std::vector<std::string>, int> expected = {
+      {{"mapOfStringToI32", "test1"}, 1},
+      {{"mapOfStringToI32", "test10"}, 10},
+      {{"mapOfStringToI32", "test11"}, 11},
+      {{"mapOfStringToI32", "test12"}, 12},
+      {{"mapOfStringToI32", "test13"}, 13},
+      {{"mapOfStringToI32", "test14"}, 14},
+      {{"mapOfStringToI32", "test15"}, 15},
+      {{"mapOfStringToI32", "test16"}, 16},
+      {{"mapOfStringToI32", "test17"}, 17},
+      {{"mapOfStringToI32", "test18"}, 18},
+      {{"mapOfStringToI32", "test19"}, 19},
+  };
+
+  auto path = ext_path_builder::raw("mapOfStringToI32").regex("test1.*").get();
+  auto result = storage.get_encoded_extended(
+      path.path()->begin(), path.path()->end(), OperProtocol::SIMPLE_JSON);
+  EXPECT_EQ(expected.size(), result->size());
+  for (const auto& taggedState : *result) {
+    const auto& elemPath = *taggedState.path()->path();
+    const auto& contents = *taggedState.state()->contents();
+    auto deserialized = facebook::fboss::thrift_cow::
+        deserialize<apache::thrift::type_class::integral, int>(
+            OperProtocol::SIMPLE_JSON, contents);
+    EXPECT_EQ(expected[elemPath], deserialized)
+        << "Mismatch at /" + folly::join('/', elemPath);
+  }
 }
 
 TYPED_TEST(CowStorageTests, EncodedExtendedAccessAnyMap) {
@@ -430,6 +458,43 @@ TYPED_TEST(CowStorageTests, EncodedExtendedAccessAnyMap) {
   auto storage = this->initStorage(testStruct);
   storage.publish();
   EXPECT_TRUE(storage.isPublished());
+
+  std::map<std::vector<std::string>, int> expected = {
+      {{"mapOfStringToI32", "test0"}, 0},
+      {{"mapOfStringToI32", "test1"}, 1},
+      {{"mapOfStringToI32", "test2"}, 2},
+      {{"mapOfStringToI32", "test3"}, 3},
+      {{"mapOfStringToI32", "test4"}, 4},
+      {{"mapOfStringToI32", "test5"}, 5},
+      {{"mapOfStringToI32", "test6"}, 6},
+      {{"mapOfStringToI32", "test7"}, 7},
+      {{"mapOfStringToI32", "test8"}, 8},
+      {{"mapOfStringToI32", "test9"}, 9},
+      {{"mapOfStringToI32", "test10"}, 10},
+      {{"mapOfStringToI32", "test11"}, 11},
+      {{"mapOfStringToI32", "test12"}, 12},
+      {{"mapOfStringToI32", "test13"}, 13},
+      {{"mapOfStringToI32", "test14"}, 14},
+      {{"mapOfStringToI32", "test15"}, 15},
+      {{"mapOfStringToI32", "test16"}, 16},
+      {{"mapOfStringToI32", "test17"}, 17},
+      {{"mapOfStringToI32", "test18"}, 18},
+      {{"mapOfStringToI32", "test19"}, 19},
+      {{"mapOfStringToI32", "test20"}, 20},
+  };
+  auto path = ext_path_builder::raw("mapOfStringToI32").any().get();
+  auto result = storage.get_encoded_extended(
+      path.path()->begin(), path.path()->end(), OperProtocol::SIMPLE_JSON);
+  EXPECT_EQ(expected.size(), result->size());
+  for (const auto& taggedState : *result) {
+    const auto& elemPath = *taggedState.path()->path();
+    const auto& contents = *taggedState.state()->contents();
+    auto deserialized = facebook::fboss::thrift_cow::
+        deserialize<apache::thrift::type_class::integral, int>(
+            OperProtocol::SIMPLE_JSON, contents);
+    EXPECT_EQ(expected[elemPath], deserialized)
+        << "Mismatch at /" + folly::join('/', elemPath);
+  }
 }
 
 TYPED_TEST(CowStorageTests, EncodedExtendedAccessRegexList) {
