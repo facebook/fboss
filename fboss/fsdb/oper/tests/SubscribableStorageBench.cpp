@@ -119,6 +119,37 @@ void bm_set(
   suspender.rehire();
 }
 
+void bm_concurrent_get_set(
+    uint32_t /* unused */,
+    uint32_t numThreads,
+    uint32_t numReadsPerTask,
+    uint32_t numWritesPerTask,
+    bool useLargeData) {
+  CHECK_GT(numThreads, 1);
+
+  folly::BenchmarkSuspender suspender;
+
+  StorageBenchmarkHelper helper;
+  helper.startStorage();
+
+  folly::coro::AsyncScope asyncScope;
+  auto executor = std::make_unique<folly::CPUThreadPoolExecutor>(numThreads);
+
+  suspender.dismiss();
+
+  asyncScope.add(helper.publishData(numWritesPerTask, useLargeData)
+                     .scheduleOn(executor.get()));
+
+  for (int i = 1; i < numThreads; i++) {
+    asyncScope.add(
+        helper.getRequest(numReadsPerTask).scheduleOn(executor.get()));
+  }
+
+  folly::coro::blockingWait(asyncScope.joinAsync());
+
+  suspender.rehire();
+}
+
 BENCHMARK_NAMED_PARAM(bm_get, threads_1, 1, kReadsPerTask);
 
 BENCHMARK_NAMED_PARAM(bm_get, threads_2, 2, kReadsPerTask);
@@ -136,6 +167,46 @@ BENCHMARK_NAMED_PARAM(bm_set, threads_1, 1, kWritesPerTask, true);
 BENCHMARK_NAMED_PARAM(bm_set, threads_4, 4, kWritesPerTask, true);
 
 BENCHMARK_NAMED_PARAM(bm_set, threads_8, 8, kWritesPerTask, true);
+
+BENCHMARK_NAMED_PARAM(
+    bm_concurrent_get_set,
+    threads_2,
+    2,
+    kReadsPerTask,
+    kWritesPerTask,
+    true);
+
+BENCHMARK_NAMED_PARAM(
+    bm_concurrent_get_set,
+    threads_4,
+    4,
+    kReadsPerTask,
+    kWritesPerTask,
+    true);
+
+BENCHMARK_NAMED_PARAM(
+    bm_concurrent_get_set,
+    threads_8,
+    8,
+    kReadsPerTask,
+    kWritesPerTask,
+    true);
+
+BENCHMARK_NAMED_PARAM(
+    bm_concurrent_get_set,
+    threads_12,
+    12,
+    kReadsPerTask,
+    kWritesPerTask,
+    true);
+
+BENCHMARK_NAMED_PARAM(
+    bm_concurrent_get_set,
+    threads_16,
+    16,
+    kReadsPerTask,
+    kWritesPerTask,
+    true);
 
 } // namespace facebook::fboss::fsdb::test
 
