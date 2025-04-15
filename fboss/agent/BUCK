@@ -690,6 +690,16 @@ cpp_library(
 )
 
 cpp_library(
+    name = "ecmp_consolidator",
+    srcs = [
+        "EcmpGroupConsolidator.cpp",
+    ],
+    exported_deps = [
+        "//fboss/agent/state:state",
+    ],
+)
+
+cpp_library(
     name = "core",
     srcs = [
         "AclNexthopHandler.cpp",
