@@ -145,7 +145,7 @@
       "fruType": "PSU",
             "presenceDetection": {
         "sysfsFileHandle": {
-          "presenceFilePath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/psu1_prsnt",
+          "presenceFilePath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/psu1_present",
           "desiredValue": 1
         }
       }
@@ -155,7 +155,7 @@
       "fruType": "PSU",
             "presenceDetection": {
         "sysfsFileHandle": {
-          "presenceFilePath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/psu2_prsnt",
+          "presenceFilePath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/psu2_present",
           "desiredValue": 1
         }
       }
@@ -165,7 +165,7 @@
       "fruType": "PSU",
             "presenceDetection": {
         "sysfsFileHandle": {
-          "presenceFilePath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/psu3_prsnt",
+          "presenceFilePath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/psu3_present",
           "desiredValue": 1
         }
       }
@@ -175,7 +175,7 @@
       "fruType": "PSU",
             "presenceDetection": {
         "sysfsFileHandle": {
-          "presenceFilePath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/psu4_prsnt",
+          "presenceFilePath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/psu4_present",
           "desiredValue": 1
         }
       }
