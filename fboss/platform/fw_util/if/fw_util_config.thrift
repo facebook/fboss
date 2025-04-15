@@ -23,6 +23,10 @@ struct FlashromConfig {
   4: optional list<string> flashromExtraArgs;
   // argument for the spi_layout
   5: optional string spi_layout;
+  // Contents for overriding sections in the binary
+  6: optional string custom_content;
+  // Offset for the custom content
+  7: optional i32 custom_content_offset;
 }
 
 // Define the struct for Jam tooling upgrade cases
