@@ -1299,6 +1299,19 @@ void SaiSwitch::updateResourceUsage(const LockPolicyT& lockPolicy) {
               << *e.message();
     hwResourceStats_.hw_table_stats_stale() = true;
   }
+  // update stats for mirrors
+  hwResourceStats_.mirrors_span() =
+      managerTable_->mirrorManager().getMirrorsCount<SaiLocalMirrorTraits>();
+  hwResourceStats_.mirrors_erspan() =
+      managerTable_->mirrorManager()
+          .getMirrorsCount<SaiEnhancedRemoteMirrorTraits>();
+  hwResourceStats_.mirrors_sflow() =
+      managerTable_->mirrorManager().getMirrorsCount<SaiSflowMirrorTraits>();
+  hwResourceStats_.mirrors_max() = getPlatform()->getAsic()->getMaxMirrors();
+  hwResourceStats_.mirrors_used() = *hwResourceStats_.mirrors_erspan() +
+      *hwResourceStats_.mirrors_span() + *hwResourceStats_.mirrors_sflow();
+  hwResourceStats_.mirrors_free() =
+      *hwResourceStats_.mirrors_max() - *hwResourceStats_.mirrors_used();
 }
 
 void SaiSwitch::processSwitchSettingsDrainStateChangeLocked(

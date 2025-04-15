@@ -247,4 +247,25 @@ sai_object_id_t SaiMirrorManager::getMonitorPort(
   return monitorPort;
 }
 
+template <typename MirrorTraits>
+uint32_t SaiMirrorManager::getMirrorsCount() const {
+  uint32_t count = 0;
+  auto iter = mirrorHandles_.cbegin();
+  while (iter != mirrorHandles_.cend()) {
+    const auto* handle = iter->second.get();
+    if (std::holds_alternative<std::shared_ptr<SaiObject<MirrorTraits>>>(
+            handle->mirror)) {
+      count++;
+    }
+    iter++;
+  }
+  return count;
+}
+
+template uint32_t SaiMirrorManager::getMirrorsCount<SaiLocalMirrorTraits>()
+    const;
+template uint32_t
+SaiMirrorManager::getMirrorsCount<SaiEnhancedRemoteMirrorTraits>() const;
+template uint32_t SaiMirrorManager::getMirrorsCount<SaiSflowMirrorTraits>()
+    const;
 } // namespace facebook::fboss
