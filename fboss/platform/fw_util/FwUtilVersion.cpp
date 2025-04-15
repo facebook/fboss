@@ -21,14 +21,14 @@ void FwUtilImpl::printDarwinVersion(const std::string& fpd) {
       auto iter = fwUtilConfig_.newFwConfigs()->find(orderedfpd.first);
       std::string versionCmd = *iter->second.version()->getVersionCmd();
       std::string version = runVersionCmdDarwin(versionCmd);
-      std::cout << orderedfpd.first << " : " << version;
+      std::cout << fmt::format("{} : {}", orderedfpd.first, version) << std::endl;
     }
   } else {
     auto iter = fwUtilConfig_.newFwConfigs()->find(fpd);
     if (iter != fwUtilConfig_.newFwConfigs()->end()) {
       std::string versionCmd = *iter->second.version()->getVersionCmd();
       std::string version = runVersionCmdDarwin(versionCmd);
-      std::cout << fpd << " : " << version;
+      std::cout << fmt::format("{} : {}", fpd, version) << std::endl;
     } else {
       XLOG(INFO)
           << fpd
@@ -51,7 +51,7 @@ void FwUtilImpl::printVersion(const std::string& fpd) {
       printAllVersions();
     } else {
       std::string version = getSingleVersion(fpd);
-      std::cout << fpd << " : " << version;
+      std::cout << fmt::format("{} : {}", fpd, version) << std::endl;
     }
   }
 }
@@ -106,7 +106,7 @@ void FwUtilImpl::printAllVersions() {
   std::string version;
   for (const auto& orderedfpd : fwDeviceNamesByPrio_) {
     version = getSingleVersion(orderedfpd.first);
-    std::cout << orderedfpd.first << " : " << version << std::endl;
+    std::cout << fmt::format("{} : {}", orderedfpd.first, version) << std::endl;
   }
 }
 
