@@ -12344,325 +12344,7 @@
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
-    "minipack3n/bcm/asicsdk-6.5.26/6.5.26": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "LinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
-        },
-        {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "minipack3n/bcm/asicsdk-6.5.26/6.5.26/physdk-credo-0.7.2/credo-0.7.2": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "LinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
-        },
-        {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "minipack3n/bcm/asicsdk-6.5.26/6.5.28": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "LinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
-        },
-        {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "minipack3n/bcm/asicsdk-6.5.26/6.5.28/physdk-credo-0.7.2/credo-0.7.2": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "LinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
-        },
-        {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "minipack3n/bcm/asicsdk-6.5.28/6.5.28": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "LinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
-        },
-        {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "minipack3n/bcm/asicsdk-6.5.28/6.5.28/physdk-credo-0.7.2/credo-0.7.2": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "LinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
-        },
-        {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "minipack3n/sai/asicsdk-10.2.0.0_odp/10.2.0.0_odp": [
+    "minipack3n/sai/asicsdk-1.15.3/1.15.3": [
         {
           "test_name_regex": "MacsecTest.*$"
         },
@@ -12706,13 +12388,10 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
-    "minipack3n/sai/asicsdk-10.2.0.0_odp/10.2.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
+    "minipack3n/sai/asicsdk-1.15.3/1.15.3/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "MacsecTest.*$"
         },
@@ -12756,13 +12435,10 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
-    "minipack3n/sai/asicsdk-11.7.0.0_odp/11.7.0.0_odp": [
+    "minipack3n/sai/asicsdk-1.15.3/1.15.7": [
         {
           "test_name_regex": "MacsecTest.*$"
         },
@@ -12806,13 +12482,10 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
-    "minipack3n/sai/asicsdk-11.7.0.0_odp/11.7.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
+    "minipack3n/sai/asicsdk-1.15.3/1.15.7/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "MacsecTest.*$"
         },
@@ -12856,13 +12529,10 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
-    "minipack3n/sai/asicsdk-8.2.0.0_odp/11.7.0.0_odp": [
+    "minipack3n/sai/asicsdk-1.15.7/1.15.7": [
         {
           "test_name_regex": "MacsecTest.*$"
         },
@@ -12906,13 +12576,10 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
-    "minipack3n/sai/asicsdk-8.2.0.0_odp/11.7.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
+    "minipack3n/sai/asicsdk-1.15.7/1.15.7/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "MacsecTest.*$"
         },
@@ -12954,109 +12621,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "minipack3n/sai/asicsdk-8.2.0.0_odp/8.2.0.0_odp": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "LinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
-        },
-        {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
-        },
-        {
-          "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "minipack3n/sai/asicsdk-8.2.0.0_odp/8.2.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "LinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
-        },
-        {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
-        },
-        {
-          "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
