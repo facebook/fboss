@@ -770,6 +770,11 @@ enum FlowletAction {
   DISABLE = 2,
 }
 
+// Support for Set Hash Algorithm action
+struct SetEcmpHashAction {
+  1: SwitchingMode switchingMode;
+}
+
 struct MatchAction {
   1: optional QueueMatchAction sendToQueue;
   2: optional PacketCounterMatchAction packetCounter_DEPRECATED;
@@ -783,6 +788,7 @@ struct MatchAction {
   10: optional SetTcAction setTc;
   11: optional UserDefinedTrapAction userDefinedTrap;
   12: optional FlowletAction flowletAction;
+  13: optional SetEcmpHashAction ecmpHashAction;
 }
 
 struct MatchToAction {
