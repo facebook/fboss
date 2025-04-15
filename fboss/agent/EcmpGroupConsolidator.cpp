@@ -10,6 +10,8 @@
 
 #include "fboss/agent/EcmpGroupConsolidator.h"
 
+#include "fboss/agent/FibHelpers.h"
+#include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/StateDelta.h"
 
 #include <gflags/gflags.h>
@@ -27,7 +29,52 @@ std::shared_ptr<SwitchState> EcmpGroupConsolidator::consolidate(
   if (!FLAGS_consolidate_ecmp_groups) {
     return delta.newState();
   }
+  processRouteUpdates<folly::IPAddressV4>(delta);
+  processRouteUpdates<folly::IPAddressV6>(delta);
   return delta.newState();
+}
+
+template <typename AddrT>
+void EcmpGroupConsolidator::routeAdded(
+    RouterID /*rid*/,
+    const std::shared_ptr<Route<AddrT>>& /*added*/) {
+  // TODO
+}
+template <typename AddrT>
+void EcmpGroupConsolidator::routeDeleted(
+    RouterID /*rid*/,
+    const std::shared_ptr<Route<AddrT>>& /*removed*/) {
+  // TODO
+}
+
+template <typename AddrT>
+void EcmpGroupConsolidator::processRouteUpdates(const StateDelta& delta) {
+  forEachChangedRoute<AddrT>(
+      delta,
+      [this](RouterID rid, const auto& oldRoute, const auto& newRoute) {
+        if (!oldRoute->isResolved() && !newRoute->isResolved()) {
+          return;
+        }
+        if (oldRoute->isResolved() && !newRoute->isResolved()) {
+          routeDeleted(rid, oldRoute);
+          return;
+        }
+        if (!oldRoute->isResolved() && newRoute->isResolved()) {
+          routeAdded(rid, newRoute);
+          return;
+        }
+        // Both old and new are resolve
+        CHECK(oldRoute->isResolved() && newRoute->isResolved());
+        if (oldRoute->getForwardInfo().getNextHopSet() !=
+            newRoute->getForwardInfo().getNextHopSet()) {
+          routeDeleted(rid, oldRoute);
+          routeAdded(rid, newRoute);
+        }
+      },
+      [this](RouterID rid, const auto& newRoute) { routeAdded(rid, newRoute); },
+      [this](RouterID rid, const auto& oldRoute) {
+        routeDeleted(rid, oldRoute);
+      });
 }
 
 EcmpGroupConsolidator::NextHopGroupId

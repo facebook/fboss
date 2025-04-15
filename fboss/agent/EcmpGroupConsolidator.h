@@ -8,6 +8,7 @@
  *
  */
 #pragma once
+#include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
 
 #include <memory>
@@ -15,6 +16,7 @@
 namespace facebook::fboss {
 class StateDelta;
 class SwitchState;
+
 class EcmpGroupConsolidator {
  public:
   using NextHopSet = RouteNextHopEntry::NextHopSet;
@@ -22,6 +24,12 @@ class EcmpGroupConsolidator {
   std::shared_ptr<SwitchState> consolidate(const StateDelta& delta);
 
  private:
+  template <typename AddrT>
+  void processRouteUpdates(const StateDelta& delta);
+  template <typename AddrT>
+  void routeAdded(RouterID rid, const std::shared_ptr<Route<AddrT>>& added);
+  template <typename AddrT>
+  void routeDeleted(RouterID rid, const std::shared_ptr<Route<AddrT>>& removed);
   static uint32_t constexpr kMinNextHopGroupId = 1;
   NextHopGroupId findNextAvailableId() const;
   std::unordered_map<NextHopSet, NextHopGroupId> nextHopGroup2Id_;

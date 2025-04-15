@@ -708,6 +708,7 @@ cpp_library(
         "EcmpGroupConsolidator.cpp",
     ],
     exported_deps = [
+        ":fib_helpers",
         "//fboss/agent/state:state",
     ],
     exported_external_deps = [
