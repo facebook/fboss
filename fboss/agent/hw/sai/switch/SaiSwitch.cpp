@@ -131,6 +131,11 @@ DEFINE_bool(
     false,
     "force recreate acl tables during warmboot.");
 
+DEFINE_bool(
+    check_tagged_tx,
+    false,
+    "Fail if untagged packet is transmitted on platform where tagged packet is required");
+
 namespace {
 /*
  * For the devices/SDK we use, the only events we should get (and process)
@@ -3532,6 +3537,14 @@ bool SaiSwitch::sendPacketSwitchedSync(std::unique_ptr<TxPacket> pkt) noexcept {
       XLOG(DBG5) << "hacked packet as source and destination mac are same";
       cursor.reset(pkt->buf());
     }
+  }
+
+  if (FLAGS_check_tagged_tx &&
+      platform_->getAsic()->isSupported(
+          HwAsic::Feature::CPU_TX_PACKET_REQUIRES_VLAN_TAG)) {
+    // use this in test to find no untagged packet is tx
+    EthHdr ethHdr{cursor};
+    CHECK_NE(ethHdr.size(), EthHdr::SIZE) << "tx packet is not tagged";
   }
   getSwitchStats()->txSent();
 
