@@ -124,10 +124,6 @@ DEFINE_bool(
     false,
     "Fail if any warm boot handles are left unclaimed.");
 
-DEFINE_int32(
-    max_unprocessed_switch_reachability_changes,
-    1,
-    "Max number of switch reachability changes that can be enqueued to bottom-half.");
 DECLARE_bool(enable_acl_table_group);
 
 DEFINE_bool(

@@ -277,3 +277,8 @@ DEFINE_bool(
     prod_invariant_config_test,
     false,
     "This flag is used to enable prod config in invariant config test");
+
+DEFINE_int32(
+    max_unprocessed_switch_reachability_changes,
+    1,
+    "Max number of switch reachability changes that can be enqueued to bottom-half.");
