@@ -1142,6 +1142,7 @@ cpp_library(
         ":route_update_wrapper",
         ":switch_config-cpp2-types",
         ":switch_state-cpp2-types",
+        ":tx_packet_utils",
         ":utils",
         "//fb303:thread_cached_service_data",
         "//fboss/agent/hw:hardware_stats-cpp2-types",

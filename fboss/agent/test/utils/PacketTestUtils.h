@@ -10,7 +10,9 @@
 
 #pragma once
 
+#include "fboss/agent/TxPacketUtils.h"
 #include "fboss/agent/packet/PktFactory.h"
+#include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/types.h"
 
 #include <folly/IPAddress.h>
@@ -64,5 +66,10 @@ void sendTcpPkts(
     }
   }
 }
+
+template <typename SwitchT, typename VlanOrIntfT>
+std::optional<VlanID> getSwitchVlanIDForTx(
+    const SwitchT* switchPtr,
+    std::shared_ptr<VlanOrIntfT> vlanOrIntf);
 } // namespace utility
 } // namespace facebook::fboss
