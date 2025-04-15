@@ -64,9 +64,9 @@ class HwL3Test : public HwLinkStateDependentTest {
   }
 
   void testRouteHitBit() {
-    auto setup = [=]() {};
+    auto setup = [this]() {};
 
-    auto verify = [=]() {
+    auto verify = [this]() {
       auto vlanId = getHwSwitchEnsemble()->getVlanIDForTx();
       auto intfMac =
           utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
@@ -137,7 +137,7 @@ class HwL3Test : public HwLinkStateDependentTest {
   }
 
   void testNeighborHitBit() {
-    auto setup = [=]() {
+    auto setup = [this]() {
       const RouterID kRid{0};
       resolveNeigborAndProgramRoutes(
           utility::EcmpSetupAnyNPorts6(getProgrammedState(), kRid), 1);
@@ -145,7 +145,7 @@ class HwL3Test : public HwLinkStateDependentTest {
           utility::EcmpSetupAnyNPorts4(getProgrammedState(), kRid), 1);
     };
 
-    auto verify = [=]() {
+    auto verify = [this]() {
       auto vlanId = getHwSwitchEnsemble()->getVlanIDForTx();
       auto intfMac =
           utility::getMacForFirstInterfaceWithPorts(getProgrammedState());

@@ -221,7 +221,6 @@ set(hw_switch_test_srcs
   fboss/agent/hw/test/HwTeFlowTests.cpp
   fboss/agent/hw/test/HwUdfTests.cpp
   fboss/agent/hw/test/HwTestPfcUtils.cpp
-  fboss/agent/hw/test/HwAsicDefaultProgrammingTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwHashConsistencyTest.cpp
   fboss/agent/hw/test/dataplane_tests/HwAqmTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwInPauseDiscardsTests.cpp
