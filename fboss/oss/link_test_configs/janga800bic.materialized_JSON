@@ -409,7 +409,7 @@
       },
       {
         "logicalID": 12,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -429,7 +429,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "eth1/48/1"
         },
         "lookupClasses": [
           
@@ -445,7 +445,7 @@
       },
       {
         "logicalID": 13,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -465,7 +465,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "eth1/47/1"
         },
         "lookupClasses": [
           
@@ -481,7 +481,7 @@
       },
       {
         "logicalID": 14,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -501,7 +501,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "eth1/64/1"
         },
         "lookupClasses": [
           
@@ -517,7 +517,7 @@
       },
       {
         "logicalID": 15,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -537,7 +537,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "eth1/63/1"
         },
         "lookupClasses": [
           
@@ -553,7 +553,7 @@
       },
       {
         "logicalID": 16,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -573,7 +573,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "eth1/70/1"
         },
         "lookupClasses": [
           
@@ -589,7 +589,7 @@
       },
       {
         "logicalID": 17,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -609,7 +609,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "eth1/69/1"
         },
         "lookupClasses": [
           
@@ -625,7 +625,7 @@
       },
       {
         "logicalID": 18,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -645,7 +645,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "eth1/54/1"
         },
         "lookupClasses": [
           
@@ -661,7 +661,7 @@
       },
       {
         "logicalID": 19,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -681,7 +681,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "eth1/53/1"
         },
         "lookupClasses": [
           
@@ -697,7 +697,7 @@
       },
       {
         "logicalID": 20,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -717,7 +717,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "eth1/74/1"
         },
         "lookupClasses": [
           
@@ -733,7 +733,7 @@
       },
       {
         "logicalID": 21,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -753,7 +753,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "eth1/73/1"
         },
         "lookupClasses": [
           
@@ -769,7 +769,7 @@
       },
       {
         "logicalID": 22,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -789,7 +789,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "eth1/58/1"
         },
         "lookupClasses": [
           
@@ -805,7 +805,7 @@
       },
       {
         "logicalID": 23,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -825,7 +825,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "eth1/57/1"
         },
         "lookupClasses": [
           
@@ -841,7 +841,7 @@
       },
       {
         "logicalID": 24,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -861,7 +861,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "eth1/60/1"
         },
         "lookupClasses": [
           
@@ -877,7 +877,7 @@
       },
       {
         "logicalID": 25,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -897,7 +897,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "eth1/59/1"
         },
         "lookupClasses": [
           
@@ -913,7 +913,7 @@
       },
       {
         "logicalID": 26,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -933,7 +933,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "eth1/76/1"
         },
         "lookupClasses": [
           
@@ -949,7 +949,7 @@
       },
       {
         "logicalID": 27,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -969,7 +969,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "eth1/75/1"
         },
         "lookupClasses": [
           
@@ -7141,7 +7141,7 @@
       },
       {
         "logicalID": 2060,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -7161,7 +7161,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "eth1/50/1"
         },
         "lookupClasses": [
           
@@ -7177,7 +7177,7 @@
       },
       {
         "logicalID": 2061,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -7197,7 +7197,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "eth1/49/1"
         },
         "lookupClasses": [
           
@@ -7213,7 +7213,7 @@
       },
       {
         "logicalID": 2062,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -7233,7 +7233,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "eth1/66/1"
         },
         "lookupClasses": [
           
@@ -7249,7 +7249,7 @@
       },
       {
         "logicalID": 2063,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -7269,7 +7269,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "eth1/65/1"
         },
         "lookupClasses": [
           
@@ -7285,7 +7285,7 @@
       },
       {
         "logicalID": 2064,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -7305,7 +7305,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "eth1/68/1"
         },
         "lookupClasses": [
           
@@ -7321,7 +7321,7 @@
       },
       {
         "logicalID": 2065,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -7341,7 +7341,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "eth1/67/1"
         },
         "lookupClasses": [
           
@@ -7357,7 +7357,7 @@
       },
       {
         "logicalID": 2066,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -7377,7 +7377,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "eth1/52/1"
         },
         "lookupClasses": [
           
@@ -7393,7 +7393,7 @@
       },
       {
         "logicalID": 2067,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -7413,7 +7413,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "eth1/51/1"
         },
         "lookupClasses": [
           
@@ -7429,7 +7429,7 @@
       },
       {
         "logicalID": 2068,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -7449,7 +7449,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "eth1/72/1"
         },
         "lookupClasses": [
           
@@ -7465,7 +7465,7 @@
       },
       {
         "logicalID": 2069,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -7485,7 +7485,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "eth1/71/1"
         },
         "lookupClasses": [
           
@@ -7501,7 +7501,7 @@
       },
       {
         "logicalID": 2070,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -7521,7 +7521,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "eth1/56/1"
         },
         "lookupClasses": [
           
@@ -7537,7 +7537,7 @@
       },
       {
         "logicalID": 2071,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -7557,7 +7557,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "eth1/55/1"
         },
         "lookupClasses": [
           
@@ -7573,7 +7573,7 @@
       },
       {
         "logicalID": 2072,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -7593,7 +7593,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "eth1/62/1"
         },
         "lookupClasses": [
           
@@ -7609,7 +7609,7 @@
       },
       {
         "logicalID": 2073,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -7629,7 +7629,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "eth1/61/1"
         },
         "lookupClasses": [
           
@@ -7645,7 +7645,7 @@
       },
       {
         "logicalID": 2074,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -7665,7 +7665,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "eth1/78/1"
         },
         "lookupClasses": [
           
@@ -7681,7 +7681,7 @@
       },
       {
         "logicalID": 2075,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -7701,7 +7701,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "eth1/77/1"
         },
         "lookupClasses": [
           
@@ -13567,7 +13567,7 @@
         "scope": 1
       },
       {
-        "intfID": 62,
+        "intfID": 22,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -13581,7 +13581,7 @@
         "scope": 1
       },
       {
-        "intfID": 63,
+        "intfID": 23,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -13595,7 +13595,7 @@
         "scope": 1
       },
       {
-        "intfID": 64,
+        "intfID": 24,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -13609,12 +13609,460 @@
         "scope": 1
       },
       {
-        "intfID": 65,
+        "intfID": 25,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
           "2407::/64",
           "17.0.0.0/24"
+        ],
+        "mtu": 9000,
+        "isVirtual": false,
+        "isStateSyncDisabled": true,
+        "type": 2,
+        "scope": 1
+      },
+      {
+        "intfID": 26,
+        "routerID": 0,
+        "vlanID": 0,
+        "ipAddresses": [
+          "2408::/64",
+          "18.0.0.0/24"
+        ],
+        "mtu": 9000,
+        "isVirtual": false,
+        "isStateSyncDisabled": true,
+        "type": 2,
+        "scope": 1
+      },
+      {
+        "intfID": 27,
+        "routerID": 0,
+        "vlanID": 0,
+        "ipAddresses": [
+          "2409::/64",
+          "19.0.0.0/24"
+        ],
+        "mtu": 9000,
+        "isVirtual": false,
+        "isStateSyncDisabled": true,
+        "type": 2,
+        "scope": 1
+      },
+      {
+        "intfID": 28,
+        "routerID": 0,
+        "vlanID": 0,
+        "ipAddresses": [
+          "2410::/64",
+          "20.0.0.0/24"
+        ],
+        "mtu": 9000,
+        "isVirtual": false,
+        "isStateSyncDisabled": true,
+        "type": 2,
+        "scope": 1
+      },
+      {
+        "intfID": 29,
+        "routerID": 0,
+        "vlanID": 0,
+        "ipAddresses": [
+          "2411::/64",
+          "21.0.0.0/24"
+        ],
+        "mtu": 9000,
+        "isVirtual": false,
+        "isStateSyncDisabled": true,
+        "type": 2,
+        "scope": 1
+      },
+      {
+        "intfID": 30,
+        "routerID": 0,
+        "vlanID": 0,
+        "ipAddresses": [
+          "2412::/64",
+          "22.0.0.0/24"
+        ],
+        "mtu": 9000,
+        "isVirtual": false,
+        "isStateSyncDisabled": true,
+        "type": 2,
+        "scope": 1
+      },
+      {
+        "intfID": 31,
+        "routerID": 0,
+        "vlanID": 0,
+        "ipAddresses": [
+          "2413::/64",
+          "23.0.0.0/24"
+        ],
+        "mtu": 9000,
+        "isVirtual": false,
+        "isStateSyncDisabled": true,
+        "type": 2,
+        "scope": 1
+      },
+      {
+        "intfID": 32,
+        "routerID": 0,
+        "vlanID": 0,
+        "ipAddresses": [
+          "2414::/64",
+          "24.0.0.0/24"
+        ],
+        "mtu": 9000,
+        "isVirtual": false,
+        "isStateSyncDisabled": true,
+        "type": 2,
+        "scope": 1
+      },
+      {
+        "intfID": 33,
+        "routerID": 0,
+        "vlanID": 0,
+        "ipAddresses": [
+          "2415::/64",
+          "25.0.0.0/24"
+        ],
+        "mtu": 9000,
+        "isVirtual": false,
+        "isStateSyncDisabled": true,
+        "type": 2,
+        "scope": 1
+      },
+      {
+        "intfID": 34,
+        "routerID": 0,
+        "vlanID": 0,
+        "ipAddresses": [
+          "2416::/64",
+          "26.0.0.0/24"
+        ],
+        "mtu": 9000,
+        "isVirtual": false,
+        "isStateSyncDisabled": true,
+        "type": 2,
+        "scope": 1
+      },
+      {
+        "intfID": 35,
+        "routerID": 0,
+        "vlanID": 0,
+        "ipAddresses": [
+          "2417::/64",
+          "27.0.0.0/24"
+        ],
+        "mtu": 9000,
+        "isVirtual": false,
+        "isStateSyncDisabled": true,
+        "type": 2,
+        "scope": 1
+      },
+      {
+        "intfID": 36,
+        "routerID": 0,
+        "vlanID": 0,
+        "ipAddresses": [
+          "2418::/64",
+          "28.0.0.0/24"
+        ],
+        "mtu": 9000,
+        "isVirtual": false,
+        "isStateSyncDisabled": true,
+        "type": 2,
+        "scope": 1
+      },
+      {
+        "intfID": 37,
+        "routerID": 0,
+        "vlanID": 0,
+        "ipAddresses": [
+          "2419::/64",
+          "29.0.0.0/24"
+        ],
+        "mtu": 9000,
+        "isVirtual": false,
+        "isStateSyncDisabled": true,
+        "type": 2,
+        "scope": 1
+      },
+      {
+        "intfID": 62,
+        "routerID": 0,
+        "vlanID": 0,
+        "ipAddresses": [
+          "2420::/64",
+          "30.0.0.0/24"
+        ],
+        "mtu": 9000,
+        "isVirtual": false,
+        "isStateSyncDisabled": true,
+        "type": 2,
+        "scope": 1
+      },
+      {
+        "intfID": 63,
+        "routerID": 0,
+        "vlanID": 0,
+        "ipAddresses": [
+          "2421::/64",
+          "31.0.0.0/24"
+        ],
+        "mtu": 9000,
+        "isVirtual": false,
+        "isStateSyncDisabled": true,
+        "type": 2,
+        "scope": 1
+      },
+      {
+        "intfID": 64,
+        "routerID": 0,
+        "vlanID": 0,
+        "ipAddresses": [
+          "2422::/64",
+          "32.0.0.0/24"
+        ],
+        "mtu": 9000,
+        "isVirtual": false,
+        "isStateSyncDisabled": true,
+        "type": 2,
+        "scope": 1
+      },
+      {
+        "intfID": 65,
+        "routerID": 0,
+        "vlanID": 0,
+        "ipAddresses": [
+          "2423::/64",
+          "33.0.0.0/24"
+        ],
+        "mtu": 9000,
+        "isVirtual": false,
+        "isStateSyncDisabled": true,
+        "type": 2,
+        "scope": 1
+      },
+      {
+        "intfID": 66,
+        "routerID": 0,
+        "vlanID": 0,
+        "ipAddresses": [
+          "2424::/64",
+          "34.0.0.0/24"
+        ],
+        "mtu": 9000,
+        "isVirtual": false,
+        "isStateSyncDisabled": true,
+        "type": 2,
+        "scope": 1
+      },
+      {
+        "intfID": 67,
+        "routerID": 0,
+        "vlanID": 0,
+        "ipAddresses": [
+          "2425::/64",
+          "35.0.0.0/24"
+        ],
+        "mtu": 9000,
+        "isVirtual": false,
+        "isStateSyncDisabled": true,
+        "type": 2,
+        "scope": 1
+      },
+      {
+        "intfID": 68,
+        "routerID": 0,
+        "vlanID": 0,
+        "ipAddresses": [
+          "2426::/64",
+          "36.0.0.0/24"
+        ],
+        "mtu": 9000,
+        "isVirtual": false,
+        "isStateSyncDisabled": true,
+        "type": 2,
+        "scope": 1
+      },
+      {
+        "intfID": 69,
+        "routerID": 0,
+        "vlanID": 0,
+        "ipAddresses": [
+          "2427::/64",
+          "37.0.0.0/24"
+        ],
+        "mtu": 9000,
+        "isVirtual": false,
+        "isStateSyncDisabled": true,
+        "type": 2,
+        "scope": 1
+      },
+      {
+        "intfID": 70,
+        "routerID": 0,
+        "vlanID": 0,
+        "ipAddresses": [
+          "2428::/64",
+          "38.0.0.0/24"
+        ],
+        "mtu": 9000,
+        "isVirtual": false,
+        "isStateSyncDisabled": true,
+        "type": 2,
+        "scope": 1
+      },
+      {
+        "intfID": 71,
+        "routerID": 0,
+        "vlanID": 0,
+        "ipAddresses": [
+          "2429::/64",
+          "39.0.0.0/24"
+        ],
+        "mtu": 9000,
+        "isVirtual": false,
+        "isStateSyncDisabled": true,
+        "type": 2,
+        "scope": 1
+      },
+      {
+        "intfID": 72,
+        "routerID": 0,
+        "vlanID": 0,
+        "ipAddresses": [
+          "2430::/64",
+          "40.0.0.0/24"
+        ],
+        "mtu": 9000,
+        "isVirtual": false,
+        "isStateSyncDisabled": true,
+        "type": 2,
+        "scope": 1
+      },
+      {
+        "intfID": 73,
+        "routerID": 0,
+        "vlanID": 0,
+        "ipAddresses": [
+          "2431::/64",
+          "41.0.0.0/24"
+        ],
+        "mtu": 9000,
+        "isVirtual": false,
+        "isStateSyncDisabled": true,
+        "type": 2,
+        "scope": 1
+      },
+      {
+        "intfID": 74,
+        "routerID": 0,
+        "vlanID": 0,
+        "ipAddresses": [
+          "2432::/64",
+          "42.0.0.0/24"
+        ],
+        "mtu": 9000,
+        "isVirtual": false,
+        "isStateSyncDisabled": true,
+        "type": 2,
+        "scope": 1
+      },
+      {
+        "intfID": 75,
+        "routerID": 0,
+        "vlanID": 0,
+        "ipAddresses": [
+          "2433::/64",
+          "43.0.0.0/24"
+        ],
+        "mtu": 9000,
+        "isVirtual": false,
+        "isStateSyncDisabled": true,
+        "type": 2,
+        "scope": 1
+      },
+      {
+        "intfID": 76,
+        "routerID": 0,
+        "vlanID": 0,
+        "ipAddresses": [
+          "2434::/64",
+          "44.0.0.0/24"
+        ],
+        "mtu": 9000,
+        "isVirtual": false,
+        "isStateSyncDisabled": true,
+        "type": 2,
+        "scope": 1
+      },
+      {
+        "intfID": 77,
+        "routerID": 0,
+        "vlanID": 0,
+        "ipAddresses": [
+          "2435::/64",
+          "45.0.0.0/24"
+        ],
+        "mtu": 9000,
+        "isVirtual": false,
+        "isStateSyncDisabled": true,
+        "type": 2,
+        "scope": 1
+      },
+      {
+        "intfID": 78,
+        "routerID": 0,
+        "vlanID": 0,
+        "ipAddresses": [
+          "2436::/64",
+          "46.0.0.0/24"
+        ],
+        "mtu": 9000,
+        "isVirtual": false,
+        "isStateSyncDisabled": true,
+        "type": 2,
+        "scope": 1
+      },
+      {
+        "intfID": 79,
+        "routerID": 0,
+        "vlanID": 0,
+        "ipAddresses": [
+          "2437::/64",
+          "47.0.0.0/24"
+        ],
+        "mtu": 9000,
+        "isVirtual": false,
+        "isStateSyncDisabled": true,
+        "type": 2,
+        "scope": 1
+      },
+      {
+        "intfID": 80,
+        "routerID": 0,
+        "vlanID": 0,
+        "ipAddresses": [
+          "2438::/64",
+          "48.0.0.0/24"
+        ],
+        "mtu": 9000,
+        "isVirtual": false,
+        "isStateSyncDisabled": true,
+        "type": 2,
+        "scope": 1
+      },
+      {
+        "intfID": 81,
+        "routerID": 0,
+        "vlanID": 0,
+        "ipAddresses": [
+          "2439::/64",
+          "49.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
