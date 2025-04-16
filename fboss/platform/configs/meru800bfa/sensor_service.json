@@ -573,7 +573,7 @@
             "upperCriticalVal": 3.96,
             "lowerCriticalVal": 2.64
           },
-          "compute": "@/1000.0"
+          "compute": "1.2*@/1000.0"
         },
         {
           "name": "SMB_VRM_OSFP_TL_TEMP_3V3",
@@ -603,7 +603,7 @@
             "upperCriticalVal": 3.96,
             "lowerCriticalVal": 2.64
           },
-          "compute": "@/1000.0"
+          "compute": "1.2*@/1000.0"
         },
         {
           "name": "SMB_VRM_OSFP_TR_TEMP_3V3",
@@ -633,7 +633,7 @@
             "upperCriticalVal": 3.96,
             "lowerCriticalVal": 2.64
           },
-          "compute": "@/1000.0"
+          "compute": "1.2*@/1000.0"
         },
         {
           "name": "SMB_VRM_OSFP_BL_TEMP_3V3",
@@ -663,7 +663,7 @@
             "upperCriticalVal": 3.96,
             "lowerCriticalVal": 2.64
           },
-          "compute": "@/1000.0"
+          "compute": "1.2*@/1000.0"
         },
         {
           "name": "SMB_VRM_OSFP_BR_TEMP_3V3",

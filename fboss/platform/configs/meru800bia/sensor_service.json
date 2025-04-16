@@ -363,7 +363,7 @@
             "upperCriticalVal": 3.96,
             "lowerCriticalVal": 2.64
           },
-          "compute": "@/1000.0"
+          "compute": "1.2*@/1000.0"
         },
         {
           "name": "SMB_VRM3_TEMP",
