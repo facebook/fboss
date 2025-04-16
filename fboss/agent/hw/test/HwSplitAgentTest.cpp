@@ -110,8 +110,8 @@ TEST_F(HwSplitAgentCallbackTest, txPacket) {
       vlanId,
       intfMac,
       intfMac,
-      folly::IPAddressV4("1.0.0.1"),
-      folly::IPAddressV4("1.0.0.2"));
+      folly::IPAddressV4("100.0.0.1"),
+      folly::IPAddressV4("100.0.0.2"));
   multiswitch::TxPacket txPacket;
   txPacket.length() = pkt->buf()->computeChainDataLength();
   txPacket.data() = Packet::extractIOBuf(std::move(pkt));
