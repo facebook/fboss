@@ -135,6 +135,11 @@ void fillHwSwitchDropStats(
       case SAI_SWITCH_STAT_IN_CONFIGURED_DROP_REASONS_6_DROPPED_PKTS:
         dropStats.ingressPacketPipelineRejectDrops() = val;
         break;
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+      case SAI_SWITCH_STAT_TC0_RATE_LIMIT_DROPPED_PACKETS:
+        dropStats.tc0RateLimitDrops() = val;
+        break;
+#endif
       default:
         throw FbossError("Unexpected configured counter id: ", counterId);
     }
@@ -808,6 +813,9 @@ const std::vector<sai_stat_id_t>& SaiSwitchManager::supportedDropStats() const {
           SAI_SWITCH_STAT_IN_CONFIGURED_DROP_REASONS_4_DROPPED_PKTS,
           SAI_SWITCH_STAT_IN_CONFIGURED_DROP_REASONS_5_DROPPED_PKTS,
           SAI_SWITCH_STAT_IN_CONFIGURED_DROP_REASONS_6_DROPPED_PKTS,
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+          SAI_SWITCH_STAT_TC0_RATE_LIMIT_DROPPED_PACKETS,
+#endif
       };
       stats.insert(
           stats.end(),
@@ -998,6 +1006,9 @@ void SaiSwitchManager::updateStats(bool updateWatermarks) {
     switchDropStats_.ingressPacketPipelineRejectDrops() =
         switchDropStats_.ingressPacketPipelineRejectDrops().value_or(0) +
         dropStats.ingressPacketPipelineRejectDrops().value_or(0);
+    switchDropStats_.tc0RateLimitDrops() =
+        switchDropStats_.tc0RateLimitDrops().value_or(0) +
+        dropStats.tc0RateLimitDrops().value_or(0);
   }
   auto errorDropStats = supportedErrorStats();
   if (errorDropStats.size()) {
