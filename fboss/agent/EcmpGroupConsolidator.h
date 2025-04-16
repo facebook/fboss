@@ -13,6 +13,8 @@
 
 #include <memory>
 
+DECLARE_bool(consolidate_ecmp_groups);
+
 namespace facebook::fboss {
 class StateDelta;
 class SwitchState;
@@ -21,6 +23,9 @@ class EcmpGroupConsolidator {
  public:
   using NextHopGroupId = uint32_t;
   std::shared_ptr<SwitchState> consolidate(const StateDelta& delta);
+  const auto& getNhopsToId() const {
+    return nextHopGroup2Id_;
+  }
 
  private:
   template <typename AddrT>

@@ -89,6 +89,7 @@ cpp_unittest(
         "//fboss/agent:core",
         "//fboss/agent:fboss-error",
         "//fboss/agent:fboss-types",
+        "//fboss/agent:fib_helpers",
         "//fboss/agent:gtest_defs",
         "//fboss/agent:handler",
         "//fboss/agent:hw_asic_table",
@@ -289,8 +290,8 @@ cpp_library(
     exported_deps = [
         ":ecmp_helper",
         ":resourcelibutil",
-        "//fboss/agent:core",
         "//fboss/agent:fboss-types",
+        "//fboss/agent:fib_helpers",
         "//fboss/agent:utils",
         "//fboss/agent/if:ctrl-cpp2-types",
         "//fboss/agent/state:state",
@@ -945,5 +946,18 @@ cpp_unittest(
     ],
     deps = [
         "//fboss/agent:fboss_event_base",
+    ],
+)
+
+cpp_unittest(
+    name = "ecmp_consolidator_test",
+    srcs = [
+        "EcmpGroupConsolidatorTests.cpp",
+    ],
+    deps = [
+        "//fboss/agent:ecmp_consolidator",
+        "//fboss/agent:fboss-types",
+        "//fboss/agent/state:state",
+        "//folly:network_address",
     ],
 )
