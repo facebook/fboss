@@ -16,6 +16,7 @@ thrift_library(
     thrift_srcs = {"thriftpath_test.thrift": []},
     deps = [
         "//thrift/annotation:cpp",
+        "//thrift/annotation:thrift",
     ],
 )
 
@@ -32,5 +33,6 @@ thrift_library(
     thrift_srcs = {"hybrid_storage_test.thrift": []},
     deps = [
         "//thrift/annotation:cpp",
+        "//thrift/annotation:thrift",
     ],
 )
