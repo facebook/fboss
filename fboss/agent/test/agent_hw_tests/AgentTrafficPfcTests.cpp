@@ -183,6 +183,41 @@ void validateIngressPriorityGroupWatermarkCounters(
   });
 }
 
+std::optional<std::string> extractPortIdsFromYaml(const std::string& yaml) {
+  using namespace std::literals;
+  size_t start = yaml.find("PORT_ID: [[");
+  if (start == std::string::npos) {
+    return std::nullopt;
+  }
+  start = yaml.find("[[", start); // skip to the [[
+  size_t end = yaml.find("]]", start);
+  if (end == std::string::npos) {
+    return std::nullopt;
+  }
+  return yaml.substr(start, end - start + 2); // +2 to include the ]]
+}
+
+void addLosslessYamlConfig(std::string& yamlCfg) {
+  auto portIds = extractPortIdsFromYaml(yamlCfg);
+  if (portIds.has_value()) {
+    yamlCfg += fmt::format(
+        R"(
+---
+device:
+  0:
+    TM_ING_PORT_PRI_GRP:
+      ?
+        PORT_ID: {}
+        TM_PRI_GRP_ID: [{}]
+      :
+        LOSSLESS: 1
+...
+)",
+        *portIds,
+        fmt::join(kLosslessPgIds, ","));
+  }
+}
+
 } // namespace
 
 namespace facebook::fboss {
@@ -230,8 +265,12 @@ class AgentTrafficPfcTest : public AgentHwTest {
               yamlCfg.replace(pos, toReplace.length(), "LOSSY_AND_LOSSLESS");
             }
           }
+
+          // TODO(maxgg): temp workaround for CS00012395772
+          addLosslessYamlConfig(yamlCfg);
         },
         [](std::map<std::string, std::string>& cfg) {
+          // These are only applicable to TH3
           cfg["mmu_lossless"] = "0x2";
           cfg["buf.mqueue.guarantee.0"] = "0C";
           cfg["mmu_config_override"] = "0";
