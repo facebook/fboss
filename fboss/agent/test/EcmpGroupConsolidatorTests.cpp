@@ -140,3 +140,20 @@ TEST_F(NextHopIdAllocatorTest, addRouteNewNhops) {
   EXPECT_EQ(nhops2Id.find(defaultNhops())->second, 1);
   EXPECT_EQ(nhops2Id.find(newNhops)->second, 2);
 }
+
+TEST_F(NextHopIdAllocatorTest, updateRouteNhops) {
+  auto newState = state_->clone();
+  auto fib6 = fib(newState);
+  auto routesBefore = fib6->size();
+  auto newNhops = defaultNhops();
+  newNhops.erase(newNhops.begin());
+  fib6->updateNode(makeRoute(makePrefix(0), newNhops));
+  EXPECT_EQ(fib6->size(), routesBefore);
+  consolidate(newState);
+  const auto& nhops2Id = consolidator_.getNhopsToId();
+  // FIXME - once we star handling ref counts for route nhops
+  // we should get a new ID allocated for new nhops and not
+  // delete the old nhops id
+  EXPECT_EQ(nhops2Id.size(), 1);
+  EXPECT_EQ(nhops2Id.find(newNhops)->second, 1);
+}
