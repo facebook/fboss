@@ -32,6 +32,6 @@ class EcmpGroupConsolidator {
   void routeDeleted(RouterID rid, const std::shared_ptr<Route<AddrT>>& removed);
   static uint32_t constexpr kMinNextHopGroupId = 1;
   NextHopGroupId findNextAvailableId() const;
-  std::unordered_map<NextHopSet, NextHopGroupId> nextHopGroup2Id_;
+  std::map<NextHopSet, NextHopGroupId> nextHopGroup2Id_;
 };
 } // namespace facebook::fboss

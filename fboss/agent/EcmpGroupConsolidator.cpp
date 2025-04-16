@@ -36,15 +36,24 @@ std::shared_ptr<SwitchState> EcmpGroupConsolidator::consolidate(
 
 template <typename AddrT>
 void EcmpGroupConsolidator::routeAdded(
-    RouterID /*rid*/,
-    const std::shared_ptr<Route<AddrT>>& /*added*/) {
-  // TODO
+    RouterID rid,
+    const std::shared_ptr<Route<AddrT>>& added) {
+  CHECK_EQ(rid, RouterID(0));
+  CHECK(added->isResolved());
+  auto nhopSet = added->getForwardInfo().getNextHopSet();
+  if (nextHopGroup2Id_.find(nhopSet) == nextHopGroup2Id_.end()) {
+    nextHopGroup2Id_.insert({std::move(nhopSet), findNextAvailableId()});
+  }
 }
 template <typename AddrT>
 void EcmpGroupConsolidator::routeDeleted(
-    RouterID /*rid*/,
-    const std::shared_ptr<Route<AddrT>>& /*removed*/) {
-  // TODO
+    RouterID rid,
+    const std::shared_ptr<Route<AddrT>>& removed) {
+  CHECK_EQ(rid, RouterID(0));
+  CHECK(removed->isResolved());
+  // TODO we should remove only when the last reference to the
+  // nhop set
+  nextHopGroup2Id_.erase(removed->getForwardInfo().getNextHopSet());
 }
 
 template <typename AddrT>
