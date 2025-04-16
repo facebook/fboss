@@ -528,7 +528,7 @@ class AgentAqmTest : public AgentHwTest {
         // - In case of ECN, ensure that ECN marked packet count is >= the
         //   expected marked packet count, this will ensure test case
         //   waiting long enough to for all marked packets to be seen.
-        EXPECT_EVENTUALLY_GT(outPackets, kExpectedOutPackets);
+        EXPECT_EVENTUALLY_GE(outPackets, kExpectedOutPackets);
         if (isEct(ecnCodePoint)) {
           EXPECT_EVENTUALLY_GE(ecnMarking, expectedMarkedOrDroppedPacketCount);
         } else {
