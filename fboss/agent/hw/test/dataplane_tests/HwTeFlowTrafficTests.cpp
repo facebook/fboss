@@ -25,6 +25,7 @@
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/TeFlowEntry.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/utils/UdfTestUtils.h"
 
 using namespace facebook::fboss::utility;
 

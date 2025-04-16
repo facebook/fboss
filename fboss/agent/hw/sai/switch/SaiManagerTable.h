@@ -60,6 +60,7 @@ class SaiVendorSwitchManager;
 class SaiWredManager;
 class SaiStore;
 class UnsupportedFeatureManager;
+class SaiFirmwareManager;
 
 class SaiManagerTable {
  public:
@@ -179,6 +180,9 @@ class SaiManagerTable {
   SaiVendorSwitchManager& vendorSwitchManager();
   const SaiVendorSwitchManager& vendorSwitchManager() const;
 
+  SaiFirmwareManager& firmwareManager();
+  const SaiFirmwareManager& firmwareManager() const;
+
   void reset(bool skipSwitchManager);
 
  private:
@@ -218,6 +222,7 @@ class SaiManagerTable {
   std::unique_ptr<UnsupportedFeatureManager> teFlowEntryManager_;
   std::unique_ptr<SaiUdfManager> udfManager_;
   std::unique_ptr<SaiVendorSwitchManager> vendorSwitchManager_;
+  std::unique_ptr<SaiFirmwareManager> firmwareManager_;
 };
 
 } // namespace facebook::fboss

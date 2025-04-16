@@ -690,6 +690,33 @@ cpp_library(
 )
 
 cpp_library(
+    name = "fib_helpers",
+    srcs = [
+        "FibHelpers.cpp",
+    ],
+    exported_deps = [
+        ":fboss-types",
+        "//fboss/agent/rib:standalone_rib",
+        "//fboss/agent/state:state",
+        "//folly:network_address",
+    ],
+)
+
+cpp_library(
+    name = "ecmp_consolidator",
+    srcs = [
+        "EcmpGroupConsolidator.cpp",
+    ],
+    exported_deps = [
+        ":fib_helpers",
+        "//fboss/agent/state:state",
+    ],
+    exported_external_deps = [
+        "gflags",
+    ],
+)
+
+cpp_library(
     name = "core",
     srcs = [
         "AclNexthopHandler.cpp",
@@ -705,7 +732,6 @@ cpp_library(
         "DsfUpdateValidator.cpp",
         "EncapIndexAllocator.cpp",
         "FabricConnectivityManager.cpp",
-        "FibHelpers.cpp",
         "FsdbSyncer.cpp",
         "HwAsicTable.cpp",
         "HwSwitchConnectionStatusTable.cpp",
@@ -793,6 +819,7 @@ cpp_library(
         ":fboss-error",
         ":fboss-types",
         ":fboss_event_base",
+        ":fib_helpers",
         ":fsdb_adapted_sub_manager",
         ":hw_switch_handler",
         ":hwswitchcallback",
@@ -949,6 +976,7 @@ cpp_library(
         ":fboss-error",
         ":fboss-types",
         ":fboss_event_base",
+        ":fib_helpers",
         ":hw_asic_table",
         ":packet",
         ":stats",
@@ -1129,6 +1157,7 @@ cpp_library(
         ":route_update_wrapper",
         ":switch_config-cpp2-types",
         ":switch_state-cpp2-types",
+        ":tx_packet_utils",
         ":utils",
         "//fb303:thread_cached_service_data",
         "//fboss/agent/hw:hardware_stats-cpp2-types",

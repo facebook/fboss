@@ -1539,20 +1539,8 @@ void sendAndVerifyPkts(
     uint8_t trafficClass) {
   auto sendPkts = [&] {
     auto intf = utility::firstInterfaceWithPorts(swState);
-    std::optional<VlanID> vlanId;
-    if constexpr (std::is_same_v<SwitchT, SwSwitch>) {
-      vlanId = switchPtr->getVlanIDForTx(intf);
-    } else {
-      vlanId = getVlanIDFromVlanOrIntf(intf);
-      auto asic = static_cast<HwSwitch*>(switchPtr)->getPlatform()->getAsic();
-      if (asic->isSupported(HwAsic::Feature::CPU_TX_PACKET_REQUIRES_VLAN_TAG)) {
-        HwSwitchMatcher matcher(
-            std::unordered_set<SwitchID>{switchPtr->getSwitchID()});
-        auto settings =
-            swState->getSwitchSettings()->getNode(matcher.matcherString());
-        vlanId = getDefaultTxVlanId(settings);
-      }
-    }
+    std::optional<VlanID> vlanId =
+        utility::getSwitchVlanIDForTx(switchPtr, intf);
 
     auto intfMac = intf->getMac();
     utility::sendTcpPkts(

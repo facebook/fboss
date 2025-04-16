@@ -67,6 +67,18 @@ class AgentAqmTest : public AgentHwTest {
         ensemble.getSw(), ensemble.masterLogicalPortIds());
     if (ensemble.getHwAsicTable()->isFeatureSupportedOnAllAsic(
             HwAsic::Feature::L3_QOS)) {
+      if (isDualStage3Q2QQos()) {
+        auto hwAsic = utility::checkSameAndGetAsic(ensemble.getL3Asics());
+        cfg::StreamType streamType =
+            *hwAsic->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin();
+        utility::addNetworkAIQueueConfig(
+            &config,
+            streamType,
+            cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN,
+            hwAsic);
+      } else {
+        utility::addOlympicQueueConfig(&config, ensemble.getL3Asics());
+      }
       utility::addOlympicQosMaps(config, ensemble.getL3Asics());
     }
     utility::setTTLZeroCpuConfig(ensemble.getL3Asics(), config);
@@ -447,8 +459,7 @@ class AgentAqmTest : public AgentHwTest {
         expectedMarkedOrDroppedPacketCount;
 
     auto setup = [&]() {
-      cfg::SwitchConfig config{initialConfig(*getAgentEnsemble())};
-      utility::addOlympicQueueConfig(&config, asics);
+      cfg::SwitchConfig config{getSw()->getConfig()};
       // Configure both WRED and ECN thresholds
       queueEcnThresholdSetup(config, std::array{kQueueId});
       queueWredThresholdSetup(config, std::array{kQueueId});
@@ -528,7 +539,7 @@ class AgentAqmTest : public AgentHwTest {
         // - In case of ECN, ensure that ECN marked packet count is >= the
         //   expected marked packet count, this will ensure test case
         //   waiting long enough to for all marked packets to be seen.
-        EXPECT_EVENTUALLY_GT(outPackets, kExpectedOutPackets);
+        EXPECT_EVENTUALLY_GE(outPackets, kExpectedOutPackets);
         if (isEct(ecnCodePoint)) {
           EXPECT_EVENTUALLY_GE(ecnMarking, expectedMarkedOrDroppedPacketCount);
         } else {

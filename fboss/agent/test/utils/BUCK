@@ -48,6 +48,16 @@ cpp_library(
 )
 
 cpp_library(
+    name = "udf_test_utils",
+    srcs = ["UdfTestUtils.cpp"],
+    headers = ["UdfTestUtils.h"],
+    exported_deps = [
+        "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent:utils",
+    ],
+)
+
+cpp_library(
     name = "pkt_test_utils",
     srcs = [
         "PacketSendUtils.cpp",
@@ -60,11 +70,14 @@ cpp_library(
     exported_deps = [
         "//fboss/agent:core",
         "//fboss/agent:fboss-types",
+        "//fboss/agent:hw_switch",
         "//fboss/agent:packet",
+        "//fboss/agent:tx_packet_utils",
         "//fboss/agent/hw:hardware_stats-cpp2-types",
         "//fboss/agent/packet:ipproto",
         "//fboss/agent/packet:packet",
         "//fboss/agent/packet:packet_factory",
+        "//fboss/agent/state:state_utils",
         "//fboss/agent/test:test_ensemble_if",
         "//folly:network_address",
         "//folly/logging:logging",
@@ -233,6 +246,7 @@ cpp_library(
     exported_deps = [
         "fbsource//third-party/googletest:gtest",
         ":asic_test_utils",
+        ":pkt_test_utils",
         ":voq_test_utils",
         "//fboss/agent:core",
         "//fboss/agent:fboss-types",
@@ -419,6 +433,7 @@ cpp_library(
         ":config_utils",
         ":ecmp_dataplane_test_util",
         ":load_balancer_test_utils",
+        ":udf_test_utils",
     ],
     exported_external_deps = [
         ("boost", None, "boost_preprocessor"),

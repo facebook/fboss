@@ -2380,7 +2380,8 @@ void SwSwitch::validateSwitchReachabilityInformation(
     // against inactivePortsWithSwitchReachability counter.
     inactivePortsWithSwitchReachability = portsWithSwitchReachability.size();
   } else {
-    for (const auto& portMap : std::as_const(*getState()->getPorts())) {
+    std::shared_ptr<MultiSwitchPortMap> portMaps = getState()->getPorts();
+    for (const auto& portMap : std::as_const(*portMaps)) {
       for (const auto& [_, port] : std::as_const(*portMap.second)) {
         auto portSwitchId = scopeResolver_->scope(port).switchId();
         if ((portSwitchId != switchId) ||

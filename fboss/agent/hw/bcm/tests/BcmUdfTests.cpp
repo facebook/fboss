@@ -16,6 +16,7 @@
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
 #include "fboss/agent/packet/IPProto.h"
 #include "fboss/agent/test/TestUtils.h"
+#include "fboss/agent/test/utils/UdfTestUtils.h"
 
 #include <memory>
 

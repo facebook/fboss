@@ -331,6 +331,7 @@ struct HwSwitchDropStats {
   15: optional i64 rqpNonFabricCellCorruptionDrops;
   16: optional i64 rqpNonFabricCellMissingDrops;
   17: optional i64 rqpParityErrorDrops;
+  18: optional i64 tc0RateLimitDrops;
 }
 
 struct HwSwitchDramStats {

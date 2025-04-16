@@ -193,6 +193,7 @@ target_link_libraries(hw_flowlet_stats_collection_speed
   mono_agent_benchmarks
   Folly::folly
   Folly::follybenchmark
+  udf_test_utils
 )
 
 add_library(hw_ecmp_shrink_speed

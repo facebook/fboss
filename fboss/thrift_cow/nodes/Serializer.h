@@ -267,9 +267,10 @@ struct Serializable {
 
 struct ThriftObject {};
 
-template <typename TC, typename TType>
+template <typename TClass, typename TType>
 class SerializableWrapper : public Serializable {
  public:
+  using TC = TClass;
   using CowType = ThriftObject;
   explicit SerializableWrapper(TType& node) : node_(node) {}
 
@@ -307,6 +308,10 @@ class SerializableWrapper : public Serializable {
     return {};
   }
 #endif
+
+  TType& toThrift() {
+    return node_;
+  }
 
  private:
   TType& node_;

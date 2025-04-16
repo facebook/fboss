@@ -177,8 +177,8 @@ class AgentHwTest : public ::testing::Test {
 
   template <typename EcmpHelperT>
   void resolveNeighborAndProgramRoutes(const EcmpHelperT& ecmp, int width) {
-    applyNewState([this, &ecmp, &width](std::shared_ptr<SwitchState> /*in*/) {
-      return ecmp.resolveNextHops(getProgrammedState(), width);
+    applyNewState([this, &ecmp, &width](std::shared_ptr<SwitchState> in) {
+      return ecmp.resolveNextHops(in, width);
     });
     auto wrapper = getSw()->getRouteUpdater();
     ecmp.programRoutes(&wrapper, width);

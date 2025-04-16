@@ -35,6 +35,7 @@
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/LinkStateToggler.h"
+#include "fboss/agent/test/utils/PacketTestUtils.h"
 
 #include <folly/executors/FunctionScheduler.h>
 #include <folly/gen/Base.h>
@@ -1013,7 +1014,6 @@ std::unique_ptr<TxPacket> HwSwitchEnsemble::allocatePacket(uint32_t size) {
 
 std::optional<VlanID> HwSwitchEnsemble::getVlanIDForTx() const {
   auto intf = utility::firstInterfaceWithPorts(getProgrammedState());
-  return utility::getVlanIDForTx(
-      intf, getProgrammedState(), scopeResolver_.get(), getHwAsicTable());
+  return utility::getSwitchVlanIDForTx(getHwSwitch(), intf);
 }
 } // namespace facebook::fboss

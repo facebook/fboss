@@ -13,6 +13,7 @@
 #include "fboss/agent/hw/sai/switch/SaiUdfManager.h"
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
 #include "fboss/agent/packet/IPProto.h"
+#include "fboss/agent/test/utils/UdfTestUtils.h"
 
 #include <gtest/gtest.h>
 

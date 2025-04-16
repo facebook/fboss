@@ -18,6 +18,7 @@
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 #include "fboss/agent/test/utils/MirrorTestUtils.h"
 #include "fboss/agent/test/utils/ScaleTestUtils.h"
+#include "fboss/agent/test/utils/UdfTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
 DECLARE_bool(flowletSwitchingEnable);

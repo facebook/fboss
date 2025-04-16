@@ -11,6 +11,7 @@
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
 #include "fboss/agent/test/TestEnsembleIf.h"
+#include "fboss/agent/test/utils/PacketTestUtils.h"
 #include "fboss/agent/types.h"
 #include "fboss/lib/CommonUtils.h"
 
@@ -197,19 +198,7 @@ bool verifyQueueMappingsInvariantHelper(
     uint32_t sleep = 20) {
   auto portStatsBefore = getAllHwPortStats();
   auto intf = utility::firstInterfaceWithPorts(swState);
-  std::optional<VlanID> vlanId;
-  if constexpr (std::is_same_v<SwitchT, SwSwitch>) {
-    vlanId = sw->getVlanIDForTx(intf);
-  } else {
-    vlanId = getVlanIDFromVlanOrIntf(intf);
-    auto asic = static_cast<HwSwitch*>(sw)->getPlatform()->getAsic();
-    if (asic->isSupported(HwAsic::Feature::CPU_TX_PACKET_REQUIRES_VLAN_TAG)) {
-      HwSwitchMatcher matcher(std::unordered_set<SwitchID>{sw->getSwitchID()});
-      auto settings =
-          swState->getSwitchSettings()->getNode(matcher.matcherString());
-      vlanId = getDefaultTxVlanId(settings);
-    }
-  }
+  std::optional<VlanID> vlanId = utility::getSwitchVlanIDForTx(sw, intf);
   auto intfMac = intf->getMac();
   auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
 

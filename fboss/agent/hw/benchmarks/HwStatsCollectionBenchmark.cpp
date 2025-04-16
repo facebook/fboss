@@ -9,12 +9,9 @@
  */
 
 #include "fboss/agent/AgentFeatures.h"
-#include "fboss/agent/HwSwitch.h"
 
-#include "fboss/agent/DsfStateUpdaterUtil.h"
 #include "fboss/agent/SwAgentInitializer.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
-#include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 #include "fboss/agent/test/AgentEnsemble.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/DsfConfigUtils.h"
