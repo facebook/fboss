@@ -208,7 +208,7 @@ struct formatter<sai_map_t> {
   template <typename FormatContext>
   auto format(const sai_map_t& map, FormatContext& ctx) const {
     return format_to(
-        ctx.out(), "(mapping: key: {}, value: {}", map.key, map.value);
+        ctx.out(), "(mapping: key: {}, value: {})", map.key, map.value);
   }
 };
 
