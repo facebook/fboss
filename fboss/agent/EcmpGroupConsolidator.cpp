@@ -80,9 +80,15 @@ void EcmpGroupConsolidator::processRouteUpdates(const StateDelta& delta) {
           routeAdded(rid, newRoute);
         }
       },
-      [this](RouterID rid, const auto& newRoute) { routeAdded(rid, newRoute); },
+      [this](RouterID rid, const auto& newRoute) {
+        if (newRoute->isResolved()) {
+          routeAdded(rid, newRoute);
+        }
+      },
       [this](RouterID rid, const auto& oldRoute) {
-        routeDeleted(rid, oldRoute);
+        if (oldRoute->isResolved()) {
+          routeDeleted(rid, oldRoute);
+        }
       });
 }
 

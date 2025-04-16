@@ -141,6 +141,37 @@ TEST_F(NextHopIdAllocatorTest, addRouteNewNhops) {
   EXPECT_EQ(nhops2Id.find(newNhops)->second, 2);
 }
 
+TEST_F(NextHopIdAllocatorTest, addRemoveRouteNewNhopsUnresolved) {
+  auto newState = state_->clone();
+  auto newNhops = defaultNhops();
+  newNhops.erase(newNhops.begin());
+  auto newRoute = makeRoute(nextPrefix(), newNhops);
+  newRoute->clearForward();
+  {
+    auto fib6 = fib(newState);
+    auto routesBefore = fib6->size();
+    fib6->addNode(newRoute);
+    EXPECT_EQ(fib6->size(), routesBefore + 1);
+    consolidate(newState);
+    const auto& nhops2Id = consolidator_.getNhopsToId();
+    EXPECT_EQ(nhops2Id.size(), 1);
+    EXPECT_EQ(nhops2Id.find(defaultNhops())->second, 1);
+    EXPECT_EQ(nhops2Id.find(newNhops), nhops2Id.end());
+  }
+  {
+    auto newerState = newState->clone();
+    auto fib6 = fib(newerState);
+    auto routesBefore = fib6->size();
+    fib6->removeNode(newRoute);
+    EXPECT_EQ(fib6->size(), routesBefore - 1);
+    consolidate(newerState);
+    const auto& nhops2Id = consolidator_.getNhopsToId();
+    EXPECT_EQ(nhops2Id.size(), 1);
+    EXPECT_EQ(nhops2Id.find(defaultNhops())->second, 1);
+    EXPECT_EQ(nhops2Id.find(newNhops), nhops2Id.end());
+  }
+}
+
 TEST_F(NextHopIdAllocatorTest, updateRouteNhops) {
   auto newState = state_->clone();
   auto fib6 = fib(newState);
