@@ -125,3 +125,18 @@ TEST_F(NextHopIdAllocatorTest, addRouteSameNhops) {
   auto id = nhops2Id.find(defaultNhops())->second;
   EXPECT_EQ(id, 1);
 }
+
+TEST_F(NextHopIdAllocatorTest, addRouteNewNhops) {
+  auto newState = state_->clone();
+  auto fib6 = fib(newState);
+  auto routesBefore = fib6->size();
+  auto newNhops = defaultNhops();
+  newNhops.erase(newNhops.begin());
+  fib6->addNode(makeRoute(nextPrefix(), newNhops));
+  EXPECT_EQ(fib6->size(), routesBefore + 1);
+  consolidate(newState);
+  const auto& nhops2Id = consolidator_.getNhopsToId();
+  EXPECT_EQ(nhops2Id.size(), 2);
+  EXPECT_EQ(nhops2Id.find(defaultNhops())->second, 1);
+  EXPECT_EQ(nhops2Id.find(newNhops)->second, 2);
+}
