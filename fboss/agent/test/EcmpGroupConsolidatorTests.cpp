@@ -52,7 +52,13 @@ std::shared_ptr<RouteV6> makeRoute(
   return rt;
 }
 
-class NextHopIdAllocatortest : public ::testing::Test {
+ForwardingInformationBaseV6* fib(std::shared_ptr<SwitchState>& newState) {
+  return newState->getFibs()
+      ->getNode(RouterID(0))
+      ->getFibV6()
+      ->modify(RouterID(0), &newState);
+}
+class NextHopIdAllocatorTest : public ::testing::Test {
  public:
   RouteNextHopSet defaultNhops() const {
     return makeNextHops(54);
@@ -65,11 +71,17 @@ class NextHopIdAllocatortest : public ::testing::Test {
     state_ = state;
     state_->publish();
   }
-  ForwardingInformationBaseV6* fib(std::shared_ptr<SwitchState>& newState) {
-    return newState->getFibs()
-        ->getNode(RouterID(0))
-        ->getFibV6()
-        ->modify(RouterID(0), &newState);
+  RouteV6::Prefix nextPrefix() const {
+    auto newState = state_->clone();
+    auto fib6 = fib(newState);
+    for (auto offset = 0; offset < std::numeric_limits<uint16_t>::max();
+         ++offset) {
+      auto pfx = makePrefix(offset);
+      if (!fib6->exactMatch(pfx)) {
+        return pfx;
+      }
+    }
+    CHECK(false) << " Should never get here";
   }
   void SetUp() override {
     FLAGS_consolidate_ecmp_groups = true;
@@ -94,7 +106,20 @@ class NextHopIdAllocatortest : public ::testing::Test {
   EcmpGroupConsolidator consolidator_;
 };
 
-TEST_F(NextHopIdAllocatortest, init) {
+TEST_F(NextHopIdAllocatorTest, init) {
+  const auto& nhops2Id = consolidator_.getNhopsToId();
+  EXPECT_EQ(nhops2Id.size(), 1);
+  auto id = nhops2Id.find(defaultNhops())->second;
+  EXPECT_EQ(id, 1);
+}
+
+TEST_F(NextHopIdAllocatorTest, addRouteSameNhops) {
+  auto newState = state_->clone();
+  auto fib6 = fib(newState);
+  auto routesBefore = fib6->size();
+  fib6->addNode(makeRoute(nextPrefix(), defaultNhops()));
+  EXPECT_EQ(fib6->size(), routesBefore + 1);
+  consolidate(newState);
   const auto& nhops2Id = consolidator_.getNhopsToId();
   EXPECT_EQ(nhops2Id.size(), 1);
   auto id = nhops2Id.find(defaultNhops())->second;
