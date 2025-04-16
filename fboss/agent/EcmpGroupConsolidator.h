@@ -19,7 +19,6 @@ class SwitchState;
 
 class EcmpGroupConsolidator {
  public:
-  using NextHopSet = RouteNextHopEntry::NextHopSet;
   using NextHopGroupId = uint32_t;
   std::shared_ptr<SwitchState> consolidate(const StateDelta& delta);
 
@@ -32,6 +31,6 @@ class EcmpGroupConsolidator {
   void routeDeleted(RouterID rid, const std::shared_ptr<Route<AddrT>>& removed);
   static uint32_t constexpr kMinNextHopGroupId = 1;
   NextHopGroupId findNextAvailableId() const;
-  std::map<NextHopSet, NextHopGroupId> nextHopGroup2Id_;
+  std::map<RouteNextHopSet, NextHopGroupId> nextHopGroup2Id_;
 };
 } // namespace facebook::fboss
