@@ -149,9 +149,6 @@
           "test_name_regex": "AgentWideEcmpTest.WideUcmpUnderflow$"
         },
         {
-          "test_name_regex": "warm_boot.AgentCoppTest/0.*$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -945,9 +942,6 @@
           "test_name_regex": "AgentWideEcmpTest.WideUcmpUnderflow$"
         },
         {
-          "test_name_regex": "warm_boot.AgentCoppTest/0.*$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -1706,9 +1700,6 @@
         },
         {
           "test_name_regex": "AgentWideEcmpTest.WideUcmpUnderflow$"
-        },
-        {
-          "test_name_regex": "warm_boot.AgentCoppTest/0.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ$"
@@ -2663,9 +2654,6 @@
           "test_name_regex": "AgentWideEcmpTest.WideUcmpUnderflow$"
         },
         {
-          "test_name_regex": "warm_boot.AgentCoppTest/0.*$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -2829,6 +2817,9 @@
         },
         {
           "test_name_regex": "AgentDiagShellStressTest.*$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentCoppTest/0.Ipv6LinkLocalMcastToMidPriQ$"
         },
         {
           "test_name_regex": "AgentMacOverFlowTest.*$"
@@ -3555,9 +3546,6 @@
           "test_name_regex": "AgentWideEcmpTest.WideUcmpUnderflow$"
         },
         {
-          "test_name_regex": "warm_boot.AgentCoppTest/0.*$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -4273,9 +4261,6 @@
           "test_name_regex": "AgentWideEcmpTest.WideUcmpUnderflow$"
         },
         {
-          "test_name_regex": "warm_boot.AgentCoppTest/0.*$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -4594,9 +4579,6 @@
         },
         {
           "test_name_regex": "AgentWideEcmpTest.WideUcmpUnderflow$"
-        },
-        {
-          "test_name_regex": "warm_boot.AgentCoppTest/0.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ$"
@@ -5245,9 +5227,6 @@
           "test_name_regex": "AgentWideEcmpTest.WideUcmpUnderflow$"
         },
         {
-          "test_name_regex": "warm_boot.AgentCoppTest/0.*$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -5566,9 +5545,6 @@
         },
         {
           "test_name_regex": "AgentWideEcmpTest.WideUcmpUnderflow$"
-        },
-        {
-          "test_name_regex": "warm_boot.AgentCoppTest/0.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ$"
@@ -6452,9 +6428,6 @@
         },
         {
           "test_name_regex": "AgentWideEcmpTest.WideUcmpUnderflow$"
-        },
-        {
-          "test_name_regex": "warm_boot.AgentCoppTest/0.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ$"
@@ -7483,9 +7456,6 @@
           "test_name_regex": "AgentWideEcmpTest.WideUcmpUnderflow$"
         },
         {
-          "test_name_regex": "warm_boot.AgentCoppTest/0.*$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -7801,9 +7771,6 @@
         },
         {
           "test_name_regex": "AgentWideEcmpTest.WideUcmpUnderflow$"
-        },
-        {
-          "test_name_regex": "warm_boot.AgentCoppTest/0.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ$"
@@ -8130,9 +8097,6 @@
         },
         {
           "test_name_regex": "AgentWideEcmpTest.WideUcmpUnderflow$"
-        },
-        {
-          "test_name_regex": "warm_boot.AgentCoppTest/0.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ$"
@@ -8473,9 +8437,6 @@
           "test_name_regex": "AgentWideEcmpTest.WideUcmpUnderflow$"
         },
         {
-          "test_name_regex": "warm_boot.AgentCoppTest/0.*$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -8812,9 +8773,6 @@
         },
         {
           "test_name_regex": "AgentWideEcmpTest.WideUcmpUnderflow$"
-        },
-        {
-          "test_name_regex": "warm_boot.AgentCoppTest/0.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ$"
@@ -9601,9 +9559,6 @@
           "test_name_regex": "AgentWideEcmpTest.WideUcmpUnderflow$"
         },
         {
-          "test_name_regex": "warm_boot.AgentCoppTest/0.*$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -10347,9 +10302,6 @@
         },
         {
           "test_name_regex": "AgentWideEcmpTest.WideUcmpUnderflow$"
-        },
-        {
-          "test_name_regex": "warm_boot.AgentCoppTest/0.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ$"
@@ -11277,9 +11229,6 @@
           "test_name_regex": "AgentWideEcmpTest.WideUcmpUnderflow$"
         },
         {
-          "test_name_regex": "warm_boot.AgentCoppTest/0.*$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -11443,6 +11392,9 @@
         },
         {
           "test_name_regex": "AgentDiagShellStressTest.*$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentCoppTest/0.Ipv6LinkLocalMcastToMidPriQ$"
         },
         {
           "test_name_regex": "AgentTrafficPfcTest.verifyIngressPriorityGroupWatermarks$"
@@ -12108,9 +12060,6 @@
         },
         {
           "test_name_regex": "AgentWideEcmpTest.WideUcmpUnderflow$"
-        },
-        {
-          "test_name_regex": "warm_boot.AgentCoppTest/0.*$"
         }
     ],
     "leaba/24.8.3001/24.8.3001/gibraltar/mono": [
@@ -12748,9 +12697,6 @@
         },
         {
           "test_name_regex": "AgentWideEcmpTest.WideUcmpUnderflow$"
-        },
-        {
-          "test_name_regex": "warm_boot.AgentCoppTest/0.*$"
         }
     ],
     "leaba/24.8.3001/24.8.3001/graphene200/mono": [
