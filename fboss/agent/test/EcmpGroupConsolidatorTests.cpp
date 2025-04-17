@@ -188,3 +188,19 @@ TEST_F(NextHopIdAllocatorTest, updateRouteNhops) {
   EXPECT_EQ(nhops2Id.size(), 1);
   EXPECT_EQ(nhops2Id.find(newNhops)->second, 1);
 }
+
+TEST_F(NextHopIdAllocatorTest, updateRouteToUnresolved) {
+  auto newState = state_->clone();
+  auto fib6 = fib(newState);
+  auto updatedRoute = fib6->exactMatch(makePrefix(0))->clone();
+  updatedRoute->clearForward();
+  auto routesBefore = fib6->size();
+  fib6->updateNode(updatedRoute);
+  EXPECT_EQ(fib6->size(), routesBefore);
+  consolidate(newState);
+  const auto& nhops2Id = consolidator_.getNhopsToId();
+  // FIXME - once we star handling ref counts for route nhops
+  // we should still retain the nhops id is retained since
+  // there are still routes pointing to these nhops
+  EXPECT_EQ(nhops2Id.size(), 0);
+}
