@@ -172,7 +172,7 @@ void validateIngressPriorityGroupWatermarkCounters(
                                  ->getName();
       std::string pg = ensemble->isSai() ? folly::sformat(".pg{}", pri) : "";
       auto regex = folly::sformat(
-          "buffer_watermark_pg_({}).{}{}.p100.60", watermarkKeys, portName, pg);
+          "buffer_watermark_pg_{}.{}{}.p100.60", watermarkKeys, portName, pg);
       auto counters = facebook::fb303::fbData->getRegexCounters(regex);
       EXPECT_EVENTUALLY_EQ(counters.size(), numKeys);
       for (const auto& ctr : counters) {
