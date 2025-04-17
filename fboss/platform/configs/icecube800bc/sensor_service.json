@@ -285,6 +285,16 @@
             "lowerCriticalVal": 4.5
           },
           "compute": "5.7*@/1000"
+        },
+        {
+          "name": "POWER_BRICK3_TEMP1",
+          "sysfsPath": "/run/devmap/sensors/PMBUS_3/temp1_input",
+          "type": 3,
+          "thresholds": {
+            "maxAlarmVal": 107,
+            "upperCriticalVal": 110
+          },
+          "compute": "@/1000"
         }
       ]
     },
