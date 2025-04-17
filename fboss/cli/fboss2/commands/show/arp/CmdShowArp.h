@@ -68,17 +68,17 @@ class CmdShowArp : public CmdHandler<CmdShowArp, CmdShowArpTraits> {
         "CLASSID",
         "Voq Switch");
 
-    for (const auto& entry : model.get_arpEntries()) {
+    for (const auto& entry : model.arpEntries().value()) {
       out << fmt::format(
           fmtString,
-          entry.get_ip(),
-          entry.get_mac(),
-          entry.get_ifName(),
-          entry.get_vlan(),
-          entry.get_state(),
-          entry.get_ttl(),
-          entry.get_classID(),
-          entry.get_switchName());
+          entry.ip().value(),
+          entry.mac().value(),
+          entry.ifName().value(),
+          entry.vlan().value(),
+          entry.state().value(),
+          folly::copy(entry.ttl().value()),
+          folly::copy(entry.classID().value()),
+          entry.switchName().value());
     }
     out << std::endl;
   }
@@ -91,24 +91,27 @@ class CmdShowArp : public CmdHandler<CmdShowArp, CmdShowArpTraits> {
 
     for (const auto& entry : arpEntries) {
       cli::ArpEntry arpDetails;
-      auto vlan = entry.get_vlanName();
-      if (entry.get_vlanID() != ctrl_constants::NO_VLAN()) {
-        vlan += folly::to<std::string>(" (", entry.get_vlanID(), ")");
+      auto vlan = entry.vlanName().value();
+      if (folly::copy(entry.vlanID().value()) != ctrl_constants::NO_VLAN()) {
+        vlan += folly::to<std::string>(
+            " (", folly::copy(entry.vlanID().value()), ")");
       }
 
-      auto ip = folly::IPAddress::fromBinary(
-          folly::ByteRange(folly::StringPiece(entry.get_ip().get_addr())));
+      auto ip = folly::IPAddress::fromBinary(folly::ByteRange(
+          folly::StringPiece(entry.ip().value().addr().value())));
       arpDetails.ip() = ip.str();
-      arpDetails.mac() = entry.get_mac();
-      arpDetails.port() = entry.get_port();
+      arpDetails.mac() = entry.mac().value();
+      arpDetails.port() = folly::copy(entry.port().value());
       arpDetails.vlan() = vlan;
-      arpDetails.state() = entry.get_state();
-      arpDetails.ttl() = entry.get_ttl();
-      arpDetails.classID() = entry.get_classID();
+      arpDetails.state() = entry.state().value();
+      arpDetails.ttl() = folly::copy(entry.ttl().value());
+      arpDetails.classID() = folly::copy(entry.classID().value());
       if (*entry.isLocal()) {
-        arpDetails.ifName() = portEntries[entry.get_port()].get_name();
+        arpDetails.ifName() =
+            portEntries[folly::copy(entry.port().value())].name().value();
       } else {
-        arpDetails.ifName() = folly::to<std::string>(entry.get_port());
+        arpDetails.ifName() =
+            folly::to<std::string>(folly::copy(entry.port().value()));
       }
       arpDetails.switchName() = "--";
       if (entry.switchId().has_value()) {

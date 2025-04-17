@@ -57,7 +57,7 @@ class PlatformMappingTest : public ::testing::Test {
         for (auto pimID : *pimIDs) {
           auto platformSupportedProfile =
               mapping->getPortProfileConfig(PlatformPortProfileConfigMatcher(
-                  factor.get_profileID(), PimID(pimID)));
+                  folly::copy(factor.profileID().value()), PimID(pimID)));
           EXPECT_TRUE(platformSupportedProfile.has_value());
           // compare with profile from previous pim. Since they are in the
           // same factor, the config should be the same
@@ -67,8 +67,9 @@ class PlatformMappingTest : public ::testing::Test {
           prevProfile = platformSupportedProfile;
         }
       } else {
-        auto platformSupportedProfile = mapping->getPortProfileConfig(
-            PlatformPortProfileConfigMatcher(factor.get_profileID()));
+        auto platformSupportedProfile =
+            mapping->getPortProfileConfig(PlatformPortProfileConfigMatcher(
+                folly::copy(factor.profileID().value())));
         EXPECT_TRUE(platformSupportedProfile.has_value());
       }
     }

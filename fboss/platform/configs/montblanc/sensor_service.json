@@ -635,6 +635,22 @@
       ]
     },
     {
+      "slotPath": "/SCM_SLOT@0/RUNBMC_SLOT@0",
+      "pmUnitName": "MINIPACK3_BMC",
+      "sensors": [
+        {
+          "name": "RUNBMC_THERMAL_SENSOR",
+          "sysfsPath": "/run/devmap/sensors/RUNBMC_THERMAL_SENSOR/temp1_input",
+          "type": 3,
+          "thresholds": {
+             "upperCriticalVal": 65,
+             "maxAlarmVal": 60
+           },
+          "compute": "@/1000"
+        }
+      ]
+    },
+    {
       "slotPath": "/SCM_SLOT@0/COMESE_SLOT@0",
       "pmUnitName": "NETLAKE",
       "sensors": [
@@ -1309,7 +1325,13 @@
             "maxAlarmVal": 60
           },
           "compute": "@/1000"
-        },
+        }
+      ]
+    },
+    {
+      "slotPath": "/PDBLEFT_SLOT@0/PSU_SLOT@0",
+      "pmUnitName": "PSU",
+      "sensors": [
         {
           "name": "PSU1_L_VIN",
           "sysfsPath": "/run/devmap/sensors/PDB_L_PMBUS/in1_input",
@@ -1445,7 +1467,13 @@
             "maxAlarmVal": 60
           },
           "compute": "@/1000"
-        },
+        }
+      ]
+    },
+    {
+      "slotPath": "/PDBRIGHT_SLOT@0/PSU_SLOT@0",
+      "pmUnitName": "PSU",
+      "sensors": [
         {
           "name": "PSU2_R_VIN",
           "sysfsPath": "/run/devmap/sensors/PDB_R_PMBUS/in1_input",
@@ -1471,7 +1499,7 @@
           "compute": "@/1000"
         },
         {
-          "name": "PSU2_L_12V_STBY_VOUT",
+          "name": "PSU2_R_12V_STBY_VOUT",
           "sysfsPath": "/run/devmap/sensors/PDB_R_PMBUS/in3_input",
           "type": 1,
           "thresholds": {

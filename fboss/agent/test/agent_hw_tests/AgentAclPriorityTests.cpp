@@ -26,8 +26,8 @@ using namespace facebook::fboss::utility;
 void addAclEntry(cfg::SwitchConfig& cfg, cfg::AclEntry* acl) {
   if (FLAGS_enable_acl_table_group) {
     auto aclTableGroup = utility::getAclTableGroup(cfg);
-    int tableNumber = getAclTableIndex(
-        &cfg, utility::kDefaultAclTable(), *aclTableGroup->name());
+    int tableNumber =
+        getAclTableIndex(aclTableGroup, utility::kDefaultAclTable());
     if (aclTableGroup) {
       aclTableGroup->aclTables()[tableNumber].aclEntries()->push_back(*acl);
     }
@@ -41,10 +41,6 @@ void addAclEntry(cfg::SwitchConfig& cfg, cfg::AclEntry* acl) {
 namespace facebook::fboss {
 
 class AgentAclPriorityTest : public AgentHwTest {
-  void setCmdLineFlagOverrides() const override {
-    AgentHwTest::setCmdLineFlagOverrides();
-  }
-
  public:
   std::vector<production_features::ProductionFeature>
   getProductionFeaturesVerified() const override {
@@ -172,7 +168,7 @@ TEST_F(AgentAclPriorityTest, AclNameChange) {
       auto* aclTableGroup = utility::getAclTableGroup(newCfg);
       *aclTableGroup
            ->aclTables()[utility::getAclTableIndex(
-               &newCfg, utility::kDefaultAclTable(), *aclTableGroup->name())]
+               aclTableGroup, utility::kDefaultAclTable())]
            .aclEntries()
            ->back()
            .name() = "AA";
@@ -225,8 +221,9 @@ TEST_F(AgentAclPriorityTest, Reprioritize) {
     cfg::CPUTrafficPolicyConfig cpuConfig;
     cfg::TrafficPolicyConfig trafficConfig;
     trafficConfig.matchToAction()->resize(2);
+    const auto& asic = getAsic(SwitchID(0));
     cfg::MatchAction matchAction = utility::getToQueueAction(
-        1, this->getAgentEnsemble()->isSai(), cfg::ToCpuAction::TRAP);
+        &asic, 1, this->getAgentEnsemble()->isSai(), cfg::ToCpuAction::TRAP);
     for (int i = 0; i < 2; i++) {
       auto& acls = utility::getAcls(&config, std::nullopt);
       trafficConfig.matchToAction()[i].matcher() = *acls[i].name();
@@ -245,8 +242,9 @@ TEST_F(AgentAclPriorityTest, Reprioritize) {
     cfg::CPUTrafficPolicyConfig cpuConfig;
     cfg::TrafficPolicyConfig trafficConfig;
     trafficConfig.matchToAction()->resize(2);
+    const auto& asic = getAsic(SwitchID(0));
     cfg::MatchAction matchAction = utility::getToQueueAction(
-        1, this->getAgentEnsemble()->isSai(), cfg::ToCpuAction::TRAP);
+        &asic, 1, this->getAgentEnsemble()->isSai(), cfg::ToCpuAction::TRAP);
     for (int i = 0; i < 2; i++) {
       auto& acls = utility::getAcls(&config, std::nullopt);
       trafficConfig.matchToAction()[i].matcher() = *acls[i].name();

@@ -2,8 +2,7 @@
 
 #include <gtest/gtest.h>
 #include <chrono>
-#include "fboss/agent/PlatformPort.h"
-#include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/test/link_tests/AgentEnsembleLinkTest.h"
 #include "fboss/agent/test/link_tests/LinkTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
@@ -413,17 +412,17 @@ class AgentEnsemblePrbsTest : public AgentEnsembleLinkTest {
       bool initial,
       time_t testStartTime) {
     ASSERT_FALSE(stats.get_laneStats().empty());
-    for (const auto& laneStat : stats.get_laneStats()) {
+    for (const auto& laneStat : stats.laneStats().value()) {
       XLOG(DBG2) << folly::sformat(
           "Interface {:s}, component {:s}, lane: {:d}, locked: {:d}, numLossOfLock: {:d}, ber: {:e}, maxBer: {:e}, timeSinceLastLock: {:d}",
           interfaceName,
           apache::thrift::util::enumNameSafe(component),
-          laneStat.get_laneId(),
-          laneStat.get_locked(),
-          laneStat.get_numLossOfLock(),
-          laneStat.get_ber(),
-          laneStat.get_maxBer(),
-          laneStat.get_timeSinceLastLocked());
+          folly::copy(laneStat.laneId().value()),
+          folly::copy(laneStat.locked().value()),
+          folly::copy(laneStat.numLossOfLock().value()),
+          folly::copy(laneStat.ber().value()),
+          folly::copy(laneStat.maxBer().value()),
+          folly::copy(laneStat.timeSinceLastLocked().value()));
       EXPECT_TRUE(laneStat.get_locked());
       auto currentTime = std::time(nullptr);
       EXPECT_LE(
@@ -499,7 +498,7 @@ class AgentEnsemblePrbsTest : public AgentEnsembleLinkTest {
       phy::PrbsStats stats;
       client->sync_getInterfacePrbsStats(stats, interfaceName, component);
       EXPECT_FALSE(stats.get_laneStats().empty());
-      for (const auto& laneStat : stats.get_laneStats()) {
+      for (const auto& laneStat : stats.laneStats().value()) {
         // Don't check lock status because clear would have cleared it too and
         // we may not have had an update of stats yet
         EXPECT_EQ(laneStat.get_numLossOfLock(), 0);
@@ -749,5 +748,9 @@ PRBS_PHY_TRANSCEIVER_SYSTEM_TEST(FR4_200G, PRBS31, ASIC, PRBS31Q);
 PRBS_PHY_TRANSCEIVER_SYSTEM_TEST(FR4_400G, PRBS31, ASIC, PRBS31Q);
 
 PRBS_PHY_TRANSCEIVER_SYSTEM_TEST(FR1_100G, PRBS31, ASIC, PRBS31Q);
+
+PRBS_PHY_TRANSCEIVER_SYSTEM_TEST(DR4_400G, PRBS31, ASIC, PRBS31Q);
+
+PRBS_TRANSCEIVER_LINE_TRANSCEIVER_LINE_TEST(DR4_400G, PRBS31Q);
 
 PRBS_ASIC_ASIC_TEST(PRBS31);

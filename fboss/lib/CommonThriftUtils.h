@@ -16,6 +16,7 @@
 #include <folly/coro/AsyncScope.h>
 
 #include <optional>
+#include <random>
 #include <string>
 
 namespace facebook::fboss {
@@ -23,6 +24,64 @@ namespace facebook::fboss {
 // helper macro to be used in ReconnectingThriftClient to output connection info
 #define STREAM_XLOG(LEVEL) \
   XLOG(LEVEL) << "[STREAM " << connectionLogStr_ << "] "
+
+class ExpBackoff {
+ public:
+  ExpBackoff(
+      int32_t _initialBackoffReconnectTimeout,
+      int32_t _maxBackoffReconnectTimeout,
+      bool useJitter = true)
+      : initialBackoffReconnectTimeout(
+            std::chrono::milliseconds(_initialBackoffReconnectTimeout)),
+        maxBackoffReconnectTimeout(
+            std::chrono::milliseconds(_maxBackoffReconnectTimeout)),
+        useJitter_(useJitter),
+        currentBackoff_(addJitter(initialBackoffReconnectTimeout)) {}
+
+  void reportSuccess() {
+    currentBackoff_ = addJitter(initialBackoffReconnectTimeout);
+  }
+
+  void reportError() {
+    currentBackoff_ = std::min(currentBackoff_ * 2, maxBackoffReconnectTimeout);
+    currentBackoff_ = addJitter(currentBackoff_);
+  }
+
+  std::chrono::milliseconds getCurTimeout() {
+    return currentBackoff_;
+  }
+
+ private:
+  /*
+   * When Agent Coldboots/warmboots, it will attempt to establish subscriptions
+   * to all remote interface nodes. If several remote interface nodes are
+   * unreachable, we will periodically attempt to reconnect to all those remote
+   * nodes. This will cause periodic spikes and may cause drops. Avoid it by
+   * spacing out reconnect requests to remote nodes.
+   *
+   * This is done by adding jitter to reconnect interval.
+   */
+  std::chrono::milliseconds addJitter(std::chrono::milliseconds t) {
+    if (!useJitter_) {
+      return t;
+    }
+    // Create a uniform distribution between 0 and value / 2
+    std::uniform_int_distribution<int> distribution(0, t.count() * 0.5);
+    int jitter = distribution(engine_);
+    bool isEven = (jitter % 2 == 0);
+    // evenly distribute jitter: add if even, subtract if odd
+    return isEven ? std::chrono::milliseconds(t.count() + jitter)
+                  : std::chrono::milliseconds(t.count() - jitter);
+  }
+
+ private:
+  std::chrono::milliseconds initialBackoffReconnectTimeout; // in ms
+  std::chrono::milliseconds maxBackoffReconnectTimeout; // in ms
+  bool useJitter_{true};
+  std::mt19937 engine_{
+      std::random_device{}()}; // for adding jitter to exp backoff
+  std::chrono::milliseconds currentBackoff_;
+};
 
 class ReconnectingThriftClient {
  public:
@@ -58,7 +117,8 @@ class ReconnectingThriftClient {
       const std::string& counterPrefix,
       const std::string& aggCounterPrefix,
       StreamStateChangeCb stateChangeCb,
-      uint32_t reconnectTimeout);
+      int initialBackoffReconnectMs,
+      int maxBackoffReconnectMs = 1000);
 
   virtual ~ReconnectingThriftClient() {}
 
@@ -132,8 +192,8 @@ class ReconnectingThriftClient {
   StreamStateChangeCb stateChangeCb_;
   folly::Synchronized<std::optional<utils::ConnectionOptions>>
       connectionOptions_;
+  ExpBackoff backoff_;
   std::unique_ptr<folly::AsyncTimeout> timer_;
-  uint32_t reconnectTimeout_;
   std::string connectionLogStr_;
   folly::Synchronized<std::optional<std::function<void()>>>
       gracefulServiceLoopCompletionCb_;

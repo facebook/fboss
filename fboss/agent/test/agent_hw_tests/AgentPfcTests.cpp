@@ -41,8 +41,9 @@ class AgentPfcTest : public AgentHwTest {
       payload.insert(payload.end(), padding.begin(), padding.end());
 
       // Send it out
-      auto vlanId = utility::firstVlanID(getProgrammedState());
-      auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
+      auto vlanId = getVlanIDForTx();
+      auto intfMac =
+          utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
       auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
       auto pkt = utility::makeEthTxPacket(
           getSw(),
@@ -60,14 +61,16 @@ TEST_F(AgentPfcTest, verifyPfcCounters) {
   std::vector<PortID> portIds = {
       masterLogicalInterfacePortIds()[0], masterLogicalInterfacePortIds()[1]};
   std::vector<int> losslessPgIds = {2};
+  std::vector<int> lossyPgIds = {0};
 
   auto setup = [&]() {
     auto cfg = getAgentEnsemble()->getCurrentConfig();
-    utility::setupPfcBuffers(getAgentEnsemble(), cfg, portIds, losslessPgIds);
+    utility::setupPfcBuffers(
+        getAgentEnsemble(), cfg, portIds, losslessPgIds, lossyPgIds);
     applyNewConfig(cfg);
 
     for (auto portId : portIds) {
-      auto inPfc = getLatestPortStats(portId).get_inPfc_();
+      auto inPfc = folly::copy(getLatestPortStats(portId).inPfc_().value());
       for (auto [qos, value] : inPfc) {
         EXPECT_EQ(value, 0);
       }
@@ -78,7 +81,7 @@ TEST_F(AgentPfcTest, verifyPfcCounters) {
     // Collect PFC counters before test
     std::map<PortID, std::map<int, int>> inPfcBefore;
     for (auto portId : portIds) {
-      auto inPfc = getLatestPortStats(portId).get_inPfc_();
+      auto inPfc = folly::copy(getLatestPortStats(portId).inPfc_().value());
       for (int pgId : losslessPgIds) {
         inPfcBefore[portId][pgId] = inPfc[pgId];
       }
@@ -114,10 +117,12 @@ class AgentPfcCaptureTest : public AgentPfcTest {
 TEST_F(AgentPfcCaptureTest, verifyPfcLoopback) {
   std::vector<PortID> portIds = {masterLogicalInterfacePortIds()[0]};
   std::vector<int> losslessPgIds = {2};
+  std::vector<int> lossyPgIds = {0};
 
   auto setup = [&]() {
     auto cfg = getAgentEnsemble()->getCurrentConfig();
-    utility::setupPfcBuffers(getAgentEnsemble(), cfg, portIds, losslessPgIds);
+    utility::setupPfcBuffers(
+        getAgentEnsemble(), cfg, portIds, losslessPgIds, lossyPgIds);
     utility::addPuntPfcPacketAcl(
         cfg, utility::getCoppMidPriQueueId(getAgentEnsemble()->getL3Asics()));
     applyNewConfig(cfg);

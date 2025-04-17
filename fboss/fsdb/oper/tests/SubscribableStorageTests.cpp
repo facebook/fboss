@@ -1095,7 +1095,8 @@ CO_TYPED_TEST(SubscribableStorageTests, SubscribeExtendedPatchUpdate) {
   auto patch = subChunk.patchGroups()->at(0).front();
   EXPECT_EQ(patch.basePath()->size(), 3);
   EXPECT_EQ(
-      patch.patch()->getType(), facebook::fboss::thrift_cow::PatchNode::del);
+      patch.patch()->getType(),
+      facebook::fboss::thrift_cow::PatchNode::Type::del);
 }
 
 CO_TYPED_TEST(SubscribableStorageTests, SubscribeExtendedPatchMultipleChanges) {

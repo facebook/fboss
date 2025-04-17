@@ -97,6 +97,17 @@ target_link_libraries(switchinfo_utils
   agent_config_cpp2
 )
 
+add_library(dsfnode_utils
+  fboss/agent/DsfNodeUtils.cpp
+)
+
+target_link_libraries(dsfnode_utils
+  agent_config_cpp2
+  fboss_error
+  load_agent_config
+  switch_config_cpp2
+)
+
 add_library(voq_utils
   fboss/agent/VoqUtils.cpp
 )
@@ -143,6 +154,7 @@ target_link_libraries(utils
   meru800bia_platform_mapping
   meru800bfa_platform_mapping
   janga800bic_platform_mapping
+  icecube800bc_platform_mapping
 )
 
 add_library(stats
@@ -161,6 +173,17 @@ target_link_libraries(stats
   Folly::folly
 )
 
+add_library(stat_printers
+  fboss/agent/StatPrinters.cpp
+)
+
+target_link_libraries(stat_printers
+  FBThrift::thriftcpp2
+  hardware_stats_cpp2
+  phy_cpp2
+  Folly::folly
+)
+
 add_library(fboss_types
   fboss/agent/types.cpp
   fboss/agent/PortDescriptorTemplate.cpp
@@ -168,6 +191,18 @@ add_library(fboss_types
 
 target_link_libraries(fboss_types
   switch_config_cpp2
+  Folly::folly
+)
+
+add_library(fib_helpers
+  fboss/agent/FibHelpers.cpp
+)
+
+target_link_libraries(fib_helpers
+  fboss_types
+  standalone_rib
+  fib_updater
+  state
   Folly::folly
 )
 
@@ -185,7 +220,6 @@ add_library(core
   fboss/agent/DsfUpdateValidator.cpp
   fboss/agent/FabricConnectivityManager.cpp
   fboss/agent/EncapIndexAllocator.cpp
-  fboss/agent/FibHelpers.cpp
   fboss/agent/FsdbAdaptedSubManager.cpp
   fboss/agent/HwAsicTable.cpp
   fboss/agent/HwSwitch.cpp
@@ -292,6 +326,7 @@ set(core_libs
   state_utils
   exponential_back_off
   fboss_config_utils
+  fib_helpers
   phy_cpp2
   phy_utils
   snapshot_manager
@@ -500,16 +535,6 @@ target_link_libraries(hwagent-main
   agent_hw_test_thrift_handler
   utils
   test_utils
-)
-
-add_library(restart_time_tracker
-  fboss/agent/RestartTimeTracker.cpp
-)
-
-target_link_libraries(restart_time_tracker
-  utils
-  fb303::fb303
-  Folly::folly
 )
 
 add_library(multiswitch_service

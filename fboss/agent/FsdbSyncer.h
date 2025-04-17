@@ -57,6 +57,8 @@ class FsdbSyncer {
     return fsdbPubSubMgr_.get();
   }
 
+  uint64_t getPendingUpdatesQueueLength() const;
+
  private:
   // Paths
   static std::vector<std::string> getAgentStatePath();

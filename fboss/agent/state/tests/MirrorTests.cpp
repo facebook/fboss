@@ -31,10 +31,16 @@ class MirrorTest : public ::testing::Test {
     config_.acls()[aclCount - 1].l4DstPort() = dstL4Port;
   }
 
-  void configurePortMirror(const std::string& mirror, PortID port) {
+  void configurePortMirror(
+      const std::string& mirror,
+      PortID port,
+      bool setSampleDestination = false) {
     int portIndex = int(port) - 1;
     config_.ports()[portIndex].ingressMirror() = mirror;
     config_.ports()[portIndex].egressMirror() = mirror;
+    if (setSampleDestination) {
+      config_.ports()[portIndex].sampleDest() = cfg::SampleDestination::MIRROR;
+    }
   }
 
   void configureAclMirror(const std::string& name, const std::string& mirror) {
@@ -372,7 +378,7 @@ TEST_F(MirrorTest, PortWrongMirror) {
   publishWithFbossError();
 }
 
-TEST_F(MirrorTest, PortManyMirrors) {
+TEST_F(MirrorTest, PortManySampleMirrors) {
   config_.mirrors()->push_back(utility::getSFlowMirror(
       "mirror1",
       8998,
@@ -390,10 +396,10 @@ TEST_F(MirrorTest, PortManyMirrors) {
       MirrorTest::dscp,
       true));
   publishWithStateUpdate();
-  configurePortMirror("mirror1", PortID(1));
-  configurePortMirror("mirror1", PortID(2));
+  configurePortMirror("mirror1", PortID(1), true);
+  configurePortMirror("mirror1", PortID(2), true);
   publishWithStateUpdate();
-  configurePortMirror("mirror2", PortID(3));
+  configurePortMirror("mirror2", PortID(3), true);
   publishWithFbossError();
 }
 

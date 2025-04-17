@@ -52,7 +52,7 @@ class CmdShowInterfacePrbsStats : public CmdHandler<
           utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
       agentClient->sync_getAllPortInfo(portEntries_);
       for (const auto& port : portEntries_) {
-        allIfs.push_back(port.second.get_name());
+        allIfs.push_back(port.second.name().value());
       }
       return createModel(hostInfo, allIfs, queriedPrbsComponents, allPrbsStats);
     } else {

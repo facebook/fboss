@@ -90,7 +90,7 @@ class CmdShowFabricTopology
         "Connecting Ports",
     });
 
-    for (auto const& entry : model.get_virtualDeviceTopology()) {
+    for (auto const& entry : model.virtualDeviceTopology().value()) {
       auto connectingPortsStr = folly::join(",", *entry.connectingPorts());
       table.addRow(
           {folly::to<std::string>(*entry.virtualDeviceId()),

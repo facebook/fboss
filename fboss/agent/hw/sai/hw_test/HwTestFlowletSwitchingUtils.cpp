@@ -36,7 +36,7 @@ void verifyArsProfile(
   ArsProfileSaiId nullArsProfileSaiId{SAI_NULL_OBJECT_ID};
   EXPECT_NE(arsProfileSaiId, nullArsProfileSaiId);
 
-#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0) && !defined(CHENAB_SAI_SDK)
   auto& arsProfileApi = SaiApiTable::getInstance()->arsProfileApi();
 
   auto samplingInterval = arsProfileApi.getAttribute(

@@ -28,7 +28,7 @@ import git
    Sample invocation:
 
       cd $HOME/fboss.git/installer/centos-8-x86_64
-      ./build-helper.py $HOME/brcm-sai/build/lib/libsai_impl.a $HOME/brcm-sai/headers/experimental/ $HOME/sai_impl_output
+      ./build-helper.py $HOME/brcm-sai/build/lib/libsai_impl.a $HOME/brcm-sai/headers/experimental/ $HOME/sai_impl_output 1.15.3
 
    After the above setup, one could simply start FBOSS build e.g.:
 
@@ -38,6 +38,24 @@ import git
 """
 
 
+def _get_url(version):
+    return {
+        "1.13.2": "https://github.com/opencomputeproject/SAI/archive/v1.13.2.tar.gz",
+        "1.14.0": "https://github.com/opencomputeproject/SAI/archive/v1.14.0.tar.gz",
+        "1.15.0": "https://github.com/opencomputeproject/SAI/archive/v1.15.0.tar.gz",
+        "1.15.3": "https://github.com/opencomputeproject/SAI/archive/v1.15.3.tar.gz",
+    }[version]
+
+
+def _get_sha256(version):
+    return {
+        "1.13.2": "d60935ba1e5cc7e4ebf2ae7d04f9e937d445e3f875822e27a359c775cb203bae",
+        "1.14.0": "4e3a1d010bda0c589db46e077725a2cd9624a5cc255c89d1caa79deb408d1fa7",
+        "1.15.0": "94b7a7dd9dbcc46bf14ba9f12b8597e9e9c2069fcb8e383a61cdf6ca172f3511",
+        "1.15.3": "fd390d86e7abb419023decf1ec254054450a35d9147b0ad6499e6d12aa860812",
+    }[version]
+
+
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("libsai_impl_path", help="Full path to libsai_impl.a")
@@ -45,8 +63,22 @@ def parse_args():
         "experiments_path", help="Full path to SAI spec experiments dir"
     )
     parser.add_argument("output_path", help="Output dir")
-
+    parser.add_argument(
+        "sai_version",
+        choices=["1.13.2", "1.14.0", "1.15.0", "1.15.3"],
+        const="1.14.0",
+        nargs="?",
+        default="1.14.0",
+        help="sai SDK Version eg: 1.14.0",
+    )
     return parser.parse_args()
+
+
+class SaiSdkInfo:
+    def __init__(self, version):
+        self._sai_ver = version
+        self._url = _get_url(version)
+        self._sha256 = _get_sha256(version)
 
 
 class BuildHelper:
@@ -69,6 +101,7 @@ class BuildHelper:
         self._libsai_impl_path = args.libsai_impl_path
         self._experiments_path = args.experiments_path
         self._output_path = args.output_path
+        self._sai_info = SaiSdkInfo(args.sai_version)
 
     def _kill_http_server(self):
         try:
@@ -134,12 +167,12 @@ class BuildHelper:
             "name = libsai\n"
             "\n"
             "[download]\n"
-            "url = https://github.com/opencomputeproject/SAI/archive/v1.14.0.tar.gz\n"
-            "sha256 = 4e3a1d010bda0c589db46e077725a2cd9624a5cc255c89d1caa79deb408d1fa7\n"
+            f"url = {self._sai_info._url}\n"
+            f"sha256 = {self._sai_info._sha256}\n"
             "\n"
             "[build]\n"
             "builder = nop\n"
-            "subdir = SAI-1.14.0\n"
+            f"subdir = SAI-{self._sai_info._sai_ver}\n"
             "\n"
             "[install.files]\n"
             "inc = include\n"

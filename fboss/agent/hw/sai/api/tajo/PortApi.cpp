@@ -8,7 +8,7 @@ extern "C" {
 #include <experimental/sai_attr_ext.h>
 }
 
-#if defined(TAJO_SDK_GTE_24_4_90)
+#if defined(TAJO_SDK_GTE_24_8_3001)
 #define RETURN_SUPPORTED_ATTR(attr) return (attr);
 #else
 #define RETURN_SUPPORTED_ATTR(attr) return std::nullopt;
@@ -76,6 +76,11 @@ SaiPortTraits::Attributes::AttributeFabricDataCellsFilterStatus::operator()() {
 
 std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributeReachabilityGroup::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeFecErrorDetectEnable::operator()() {
   return std::nullopt;
 }
 

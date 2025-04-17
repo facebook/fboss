@@ -166,7 +166,8 @@ void PortUpdateHandler::stateUpdated(const StateDelta& delta) {
             // only update the portName when the portStats exists
             PortStats* portStats = switchStats.port(newPort->getID());
             if (portStats) {
-              portStats->setPortName(newPort->getName());
+              portStats = switchStats.updatePortName(
+                  newPort->getID(), newPort->getName());
               portStats->setPortStatus(newPort->isUp());
             }
           }

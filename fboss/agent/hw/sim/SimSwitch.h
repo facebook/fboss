@@ -91,6 +91,10 @@ class SimSwitch : public HwSwitch {
     return;
   }
 
+  bool getArsExhaustionStatus() override {
+    return false;
+  }
+
   void resetTxCount() {
     txCount_ = 0;
   }
@@ -160,6 +164,13 @@ class SimSwitch : public HwSwitch {
   }
 
   void injectSwitchReachabilityChangeNotification() override {}
+
+  void clearInterfacePhyCounters(
+      const std::unique_ptr<std::vector<int32_t>>& /*ports*/) override {}
+
+  std::vector<FirmwareInfo> getAllFirmwareInfo() const override {
+    return {};
+  }
 
  private:
   void switchRunStateChangedImpl(SwitchRunState newState) override {}

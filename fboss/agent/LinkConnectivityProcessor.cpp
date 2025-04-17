@@ -24,31 +24,34 @@ std::shared_ptr<SwitchState> LinkConnectivityProcessor::process(
     const std::map<PortID, multiswitch::FabricConnectivityDelta>&
         port2ConnectivityDelta) {
   auto out = in->clone();
-  bool changed = false;
+
+  // Returns whether the LED state was modified
   auto setPortLedState =
-      [&out, &changed](PortID portId, PortLedExternalState desiredLedState) {
+      [&out](PortID portId, PortLedExternalState desiredLedState) {
         auto curPort = out->getPorts()->getNode(portId);
         if (curPort->getLedPortExternalState() == desiredLedState) {
-          return;
+          return false;
         }
         auto newPort = curPort->modify(&out);
         newPort->setLedPortExternalState(desiredLedState);
-        changed = true;
+        return true;
       };
+
+  // Returns whether the port errors were modified
   auto setPortErrors =
-      [&out, &changed](PortID portId, const std::set<PortError> updatedErrors) {
+      [&out](PortID portId, const std::set<PortError> updatedErrors) {
         auto port = out->getPorts()->getNodeIf(portId);
         auto activeErrorsVec = port->getActiveErrors();
         auto activeErrors =
             std::set(activeErrorsVec.begin(), activeErrorsVec.end());
         if (updatedErrors == activeErrors) {
-          return;
+          return false;
         }
-
-        changed = true;
         port->modify(&out)->setActiveErrors(updatedErrors);
+        return true;
       };
 
+  bool changed = false;
   for (const auto& [portId, connectivityDelta] : port2ConnectivityDelta) {
     auto port = in->getPorts()->getNodeIf(portId);
     if (!port) {
@@ -76,28 +79,28 @@ std::shared_ptr<SwitchState> LinkConnectivityProcessor::process(
         // going through that R3. With cell spraying this impact
         // can be quite wide. So can't risk config always getting this
         // righte
-        setPortLedState(
+        changed |= setPortLedState(
             portId, PortLedExternalState::CABLING_ERROR_LOOP_DETECTED);
       } else if (FabricConnectivityManager::isConnectivityInfoMissing(
                      *newConnectivity)) {
-        setPortLedState(portId, PortLedExternalState::CABLING_ERROR);
+        changed |= setPortLedState(portId, PortLedExternalState::CABLING_ERROR);
         updatedPortErrors.emplace(PortError::MISSING_EXPECTED_NEIGHBOR);
       } else if (FabricConnectivityManager::isConnectivityInfoMismatch(
                      *newConnectivity)) {
-        setPortLedState(portId, PortLedExternalState::CABLING_ERROR);
+        changed |= setPortLedState(portId, PortLedExternalState::CABLING_ERROR);
         updatedPortErrors.emplace(PortError::MISMATCHED_NEIGHBOR);
       } else {
         updatedPortErrors.erase(PortError::MISMATCHED_NEIGHBOR);
         updatedPortErrors.erase(PortError::MISSING_EXPECTED_NEIGHBOR);
-        setPortLedState(portId, PortLedExternalState::NONE);
+        changed |= setPortLedState(portId, PortLedExternalState::NONE);
       }
     } else {
       updatedPortErrors.erase(PortError::MISMATCHED_NEIGHBOR);
       updatedPortErrors.erase(PortError::MISSING_EXPECTED_NEIGHBOR);
-      setPortLedState(portId, PortLedExternalState::NONE);
+      changed |= setPortLedState(portId, PortLedExternalState::NONE);
     }
 
-    setPortErrors(portId, updatedPortErrors);
+    changed |= setPortErrors(portId, updatedPortErrors);
   }
 
   return changed ? out : std::shared_ptr<SwitchState>();

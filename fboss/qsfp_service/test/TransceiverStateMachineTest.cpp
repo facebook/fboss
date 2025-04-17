@@ -42,8 +42,9 @@ class MockSff8472Module : public Sff8472Module {
  public:
   explicit MockSff8472Module(
       std::set<std::string> portNames,
-      MockSff8472TransceiverImpl* qsfpImpl)
-      : Sff8472Module(std::move(portNames), qsfpImpl) {
+      MockSff8472TransceiverImpl* qsfpImpl,
+      std::string tcvrName)
+      : Sff8472Module(std::move(portNames), qsfpImpl, std::move(tcvrName)) {
     ON_CALL(*this, ensureTransceiverReadyLocked())
         .WillByDefault(testing::Return(true));
     ON_CALL(*this, numHostLanes()).WillByDefault(testing::Return(1));
@@ -87,8 +88,14 @@ class MockCmisModule : public CmisModule {
   explicit MockCmisModule(
       std::set<std::string> portNames,
       MockCmisTransceiverImpl* qsfpImpl,
-      std::shared_ptr<const TransceiverConfig> cfgPtr)
-      : CmisModule(portNames, qsfpImpl, cfgPtr, true /*supportRemediate*/) {
+      std::shared_ptr<const TransceiverConfig> cfgPtr,
+      std::string tcvrName)
+      : CmisModule(
+            std::move(portNames),
+            qsfpImpl,
+            cfgPtr,
+            true /*supportRemediate*/,
+            std::move(tcvrName)) {
     ON_CALL(*this, updateQsfpData(testing::_))
         .WillByDefault(testing::Assign(&dirty_, false));
     ON_CALL(*this, ensureTransceiverReadyLocked())
@@ -165,7 +172,8 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
             std::make_unique<MockCmisModule>(
                 transceiverManager_->getPortNames(id_),
                 cmisQsfpImpls_.back().get(),
-                tcvrConfig_));
+                tcvrConfig_,
+                transceiverManager_->getTransceiverName(id_)));
       } else {
         XLOG(INFO) << "Making CMIS QSFP for " << id_;
         std::unique_ptr<FakeTransceiverImpl> xcvrImpl;
@@ -183,7 +191,8 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
                 transceiverManager_->getPortNames(id_),
                 qsfpImpls_.back().get(),
                 tcvrConfig_,
-                true /*supportRemediate*/));
+                true /*supportRemediate*/,
+                transceiverManager_->getTransceiverName(id_)));
       }
     };
 
@@ -200,7 +209,8 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
           std::make_unique<MockSffModule>(
               transceiverManager_->getPortNames(id_),
               qsfpImpls_.back().get(),
-              tcvrConfig_));
+              tcvrConfig_,
+              transceiverManager_->getTransceiverName(id_)));
       return xcvr;
     };
 
@@ -217,7 +227,8 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
           id_,
           std::make_unique<MockSff8472Module>(
               transceiverManager_->getPortNames(id_),
-              sff8472QsfpImpls_.back().get()));
+              sff8472QsfpImpls_.back().get(),
+              transceiverManager_->getTransceiverName(id_)));
     };
 
     Transceiver* xcvr;
@@ -425,9 +436,16 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
       PRE_UPDATE_FN preUpdate,
       VERIFY_FN verify,
       bool multiPort,
-      TransceiverType type = TransceiverType::CMIS) {
-    auto stateUpdateFn = [this, event]() {
-      transceiverManager_->updateStateBlocking(id_, event);
+      TransceiverType type = TransceiverType::CMIS,
+      bool holdTransceiversLockWhileUpdating = false) {
+    auto stateUpdateFn = [this, event, holdTransceiversLockWhileUpdating]() {
+      if (holdTransceiversLockWhileUpdating) {
+        auto lockedTransceivers =
+            transceiverManager_->getSynchronizedTransceivers().rlock();
+        transceiverManager_->updateStateBlocking(id_, event);
+      } else {
+        transceiverManager_->updateStateBlocking(id_, event);
+      }
     };
     auto stateUpdateFnStr = folly::to<std::string>(
         "Event=", TransceiverStateMachineUpdate::getEventName(event));
@@ -723,7 +741,7 @@ TEST_F(TransceiverStateMachineTest, readEeprom) {
         allStates,
         [this]() {
           // Make sure `discoverTransceiver` has been called
-          EXPECT_CALL(*transceiverManager_, verifyEepromChecksums(id_))
+          EXPECT_CALL(*transceiverManager_, verifyEepromChecksumsLocked(id_))
               .Times(1);
         },
         [this]() {
@@ -744,7 +762,9 @@ TEST_F(TransceiverStateMachineTest, readEeprom) {
               transceiverManager_->getDiagsCapability(id_),
               false /* skipCheckingIndividualCapability */);
         },
-        multiPort);
+        multiPort,
+        TransceiverType::CMIS /* type */,
+        true /* holdTransceiversLockWhileUpdating */);
     // Other states should not change even though we try to process the event
     verifyStateUnchanged(
         TransceiverStateMachineEvent::TCVR_EV_READ_EEPROM,
@@ -2033,7 +2053,8 @@ TEST_F(TransceiverStateMachineTest, reseatTransceiver) {
               std::make_unique<MockCmisModule>(
                   transceiverManager_->getPortNames(id_),
                   cmisQsfpImpls_.back().get(),
-                  tcvrConfig_)));
+                  tcvrConfig_,
+                  transceiverManager_->getTransceiverName(id_))));
     }
 
     // Check this refreshStateMachines will:

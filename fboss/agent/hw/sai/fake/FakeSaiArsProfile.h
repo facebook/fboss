@@ -36,7 +36,10 @@ struct FakeArsProfile {
       bool port_load_current,
       sai_uint8_t port_load_exponent,
       sai_uint32_t load_current_min_val,
-      sai_uint32_t load_current_max_val)
+      sai_uint32_t load_current_max_val,
+      sai_uint32_t quant_band_0_min_threshold,
+      sai_uint32_t quant_band_1_min_threshold,
+      sai_uint32_t quant_band_2_min_threshold)
       : algo(algo),
         sampling_interval(sampling_interval),
         random_seed(random_seed),
@@ -53,7 +56,10 @@ struct FakeArsProfile {
         port_load_current(port_load_current),
         port_load_exponent(port_load_exponent),
         load_current_min_val(load_current_min_val),
-        load_current_max_val(load_current_max_val) {}
+        load_current_max_val(load_current_max_val),
+        quant_band_0_min_threshold(quant_band_0_min_threshold),
+        quant_band_1_min_threshold(quant_band_1_min_threshold),
+        quant_band_2_min_threshold(quant_band_2_min_threshold) {}
   sai_ars_profile_algo_t algo;
   sai_uint32_t sampling_interval;
   sai_uint32_t random_seed;
@@ -72,6 +78,9 @@ struct FakeArsProfile {
   sai_uint32_t load_current_min_val;
   sai_uint32_t load_current_max_val;
   sai_uint32_t max_flows = 32768;
+  sai_uint32_t quant_band_0_min_threshold;
+  sai_uint32_t quant_band_1_min_threshold;
+  sai_uint32_t quant_band_2_min_threshold;
   sai_object_id_t id;
 };
 

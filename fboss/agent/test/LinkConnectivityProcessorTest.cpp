@@ -80,6 +80,56 @@ TEST(LinkConnectivityProcessorTest, processSuccess) {
   EXPECT_EQ(port->getActiveErrors().size(), 0);
 }
 
+TEST(LinkConnectivityProcessorTest, processLoopDetected) {
+  auto switchType = cfg::SwitchType::NPU;
+  cfg::SwitchConfig config = testConfigA(switchType);
+  auto portID = PortID(1);
+
+  auto handle = createTestHandle(&config, SwitchFlags::ENABLE_LLDP);
+  auto sw = handle->getSw();
+  auto state = sw->getState();
+
+  // When
+  auto localSwitchId = 0; // Loop
+  {
+    auto endpoint = createFabricEndpoint(localSwitchId, portID);
+    std::shared_ptr<SwitchState> result = LinkConnectivityProcessor::process(
+        *sw->getScopeResolver(),
+        *sw->getHwAsicTable(),
+        state,
+        makeConnectivity(endpoint, portID));
+
+    // Then
+    auto port = result->getPorts()->getNodeIf(portID);
+    CHECK(port);
+    CHECK(port->getLedPortExternalState());
+    CHECK(port->getLedPortExternalState().has_value());
+    EXPECT_EQ(
+        port->getLedPortExternalState().value(),
+        PortLedExternalState::CABLING_ERROR_LOOP_DETECTED);
+  }
+
+  // When cabling is corrected
+  auto remoteSwitchId = getSwitchId(switchType);
+  {
+    auto endpoint = createFabricEndpoint(remoteSwitchId, portID);
+    std::shared_ptr<SwitchState> result = LinkConnectivityProcessor::process(
+        *sw->getScopeResolver(),
+        *sw->getHwAsicTable(),
+        state,
+        makeConnectivity(endpoint, portID));
+
+    // Then error should be cleared
+    auto port = result->getPorts()->getNodeIf(portID);
+    CHECK(port);
+    CHECK(port->getLedPortExternalState());
+    CHECK(port->getLedPortExternalState().has_value());
+    EXPECT_EQ(
+        port->getLedPortExternalState().value(), PortLedExternalState::NONE);
+    EXPECT_EQ(port->getActiveErrors().size(), 0);
+  }
+}
+
 TEST(LinkConnectivityProcessorTest, processMissingNeighbor) {
   auto switchType = cfg::SwitchType::NPU;
   cfg::SwitchConfig config = testConfigA(switchType);

@@ -116,6 +116,19 @@ target_link_libraries(agent_ensemble_test_lib
   ${LIBGMOCK_LIBRARIES}
 )
 
+add_library(agent_ensemble_integration_test_base
+  fboss/agent/test/AgentEnsembleIntegrationTestBase.cpp
+)
+
+target_link_libraries(agent_ensemble_integration_test_base
+  agent_ensemble_test_lib
+  main
+  config_factory
+  fboss_config_utils
+  ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
+)
+
 add_library(agent_integration_test_base
   fboss/agent/test/AgentIntegrationTestBase.cpp
 )
@@ -142,6 +155,7 @@ target_link_libraries(agent_hw_test
   hw_copp_utils
   stats_test_utils
   hardware_stats_cpp2
+  multiswitch_ctrl_cpp2
   ${GTEST}
 )
 
@@ -216,4 +230,30 @@ add_library(linkstate_toggler
 target_link_libraries(linkstate_toggler
   state
   core
+)
+
+add_library(system_scale_test_utils
+  fboss/agent/test/utils/SystemScaleTestUtils.cpp
+)
+
+target_link_libraries(system_scale_test_utils
+  agent_ensemble
+  config_factory
+  packet_factory
+  ecmp_helper
+  acl_test_utils
+  acl_scale_test_utils
+  asic_test_utils
+  copp_test_utils
+  scale_test_utils
+  route_scale_gen
+)
+
+add_library(acl_scale_test_utils
+  fboss/agent/test/utils/AclScaleTestUtils.cpp
+)
+
+target_link_libraries(acl_scale_test_utils
+  acl_test_utils
+  asic_test_utils
 )

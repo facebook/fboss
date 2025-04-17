@@ -15,6 +15,7 @@
 #include "fboss/cli/fboss2/commands/clear/CmdClearInterfaceCounters.h"
 #include "fboss/cli/fboss2/commands/clear/CmdClearNdp.h"
 #include "fboss/cli/fboss2/commands/clear/interface/CmdClearInterface.h"
+#include "fboss/cli/fboss2/commands/clear/interface/counters/phy/CmdClearInterfaceCountersPhy.h"
 #include "fboss/cli/fboss2/commands/clear/interface/prbs/CmdClearInterfacePrbs.h"
 #include "fboss/cli/fboss2/commands/clear/interface/prbs/stats/CmdClearInterfacePrbsStats.h"
 #include "fboss/cli/fboss2/commands/get/pcap/CmdGetPcap.h"
@@ -26,6 +27,7 @@
 #include "fboss/cli/fboss2/commands/set/port/state/CmdSetPortState.h"
 #include "fboss/cli/fboss2/commands/show/acl/CmdShowAcl.h"
 #include "fboss/cli/fboss2/commands/show/acl/gen-cpp2/model_visitation.h"
+#include "fboss/cli/fboss2/commands/show/agent/CmdShowAgentFirmware.h"
 #include "fboss/cli/fboss2/commands/show/agent/CmdShowAgentSsl.h"
 #include "fboss/cli/fboss2/commands/show/agent/gen-cpp2/model_visitation.h"
 #include "fboss/cli/fboss2/commands/show/aggregateport/CmdShowAggregatePort.h"
@@ -38,6 +40,8 @@
 #include "fboss/cli/fboss2/commands/show/dsf/subscription/gen-cpp2/model_visitation.h"
 #include "fboss/cli/fboss2/commands/show/dsfnodes/CmdShowDsfNodes.h"
 #include "fboss/cli/fboss2/commands/show/dsfnodes/gen-cpp2/model_visitation.h"
+#include "fboss/cli/fboss2/commands/show/example/CmdShowExample.h"
+#include "fboss/cli/fboss2/commands/show/example/gen-cpp2/model_visitation.h"
 #include "fboss/cli/fboss2/commands/show/fabric/CmdShowFabric.h"
 #include "fboss/cli/fboss2/commands/show/fabric/gen-cpp2/model_visitation.h"
 #include "fboss/cli/fboss2/commands/show/fabric/reachability/CmdShowFabricReachability.h"
@@ -129,10 +133,13 @@ namespace facebook::fboss {
 // https://isocpp.org/wiki/faq/templates#separate-template-fn-defn-from-decl
 template void CmdHandler<CmdGetPcap, CmdGetPcapTraits>::run();
 template void CmdHandler<CmdShowAcl, CmdShowAclTraits>::run();
+template void
+CmdHandler<CmdShowAgentFirmware, CmdShowAgentFirmwareTraits>::run();
 template void CmdHandler<CmdShowAgentSsl, CmdShowAgentSslTraits>::run();
 template void
 CmdHandler<CmdShowAggregatePort, CmdShowAggregatePortTraits>::run();
 template void CmdHandler<CmdShowArp, CmdShowArpTraits>::run();
+template void CmdHandler<CmdShowExample, CmdShowExampleTraits>::run();
 template void CmdHandler<CmdShowFabric, CmdShowFabricTraits>::run();
 template void CmdHandler<CmdShowFlowlet, CmdShowFlowletTraits>::run();
 template void CmdHandler<CmdShowDsf, CmdShowDsfTraits>::run();
@@ -207,6 +214,9 @@ template void CmdHandler<CmdShowCpuPort, CmdShowCpuPortTraits>::run();
 template void CmdHandler<CmdShowTransceiver, CmdShowTransceiverTraits>::run();
 
 template void CmdHandler<CmdClearInterface, CmdClearInterfaceTraits>::run();
+template void CmdHandler<
+    CmdClearInterfaceCountersPhy,
+    CmdClearInterfaceCountersPhyTraits>::run();
 template void
 CmdHandler<CmdClearInterfacePrbs, CmdClearInterfacePrbsTraits>::run();
 template void

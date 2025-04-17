@@ -40,8 +40,8 @@ class AgentL4PortBlackHolingTest : public AgentHwTest {
   void pumpTraffic(bool isV6) {
     auto srcIp = IPAddress(isV6 ? "1001::1" : "101.0.0.1");
     auto dstIp = IPAddress(isV6 ? "2001::1" : "201.0.0.1");
-    auto vlanId = utility::firstVlanID(getProgrammedState());
-    auto mac = utility::getFirstInterfaceMac(getProgrammedState());
+    auto vlanId = getVlanIDForTx();
+    auto mac = utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     enum class Dir { SRC_PORT, DST_PORT };
     for (auto l4Port = 1; l4Port <= kNumL4Ports(); ++l4Port) {
       for (auto dir : {Dir::SRC_PORT, Dir::DST_PORT}) {
@@ -63,9 +63,9 @@ class AgentL4PortBlackHolingTest : public AgentHwTest {
   void runTest(bool isV6) {
     auto setup = [=, this]() {
       const RouterID kRid{0};
-      resolveNeigborAndProgramRoutes(
+      resolveNeighborAndProgramRoutes(
           utility::EcmpSetupAnyNPorts6(getProgrammedState(), kRid), 1);
-      resolveNeigborAndProgramRoutes(
+      resolveNeighborAndProgramRoutes(
           utility::EcmpSetupAnyNPorts4(getProgrammedState(), kRid), 1);
     };
     auto verify = [=, this]() {

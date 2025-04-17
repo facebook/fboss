@@ -30,7 +30,7 @@ class SubscriptionTests : public ::testing::Test {
     std::vector<std::string> path = {"test"};
     if constexpr (std::is_same_v<SubscriptionT, ExtendedPatchSubscription>) {
       return SubscriptionT::create(
-          "test-sub",
+          SubscriptionIdentifier("test-sub"),
           path,
           OperProtocol::BINARY,
           std::nullopt,
@@ -38,7 +38,7 @@ class SubscriptionTests : public ::testing::Test {
           std::chrono::milliseconds(100));
     } else {
       return SubscriptionT::create(
-          "test-sub",
+          SubscriptionIdentifier("test-sub"),
           path.begin(),
           path.end(),
           OperProtocol::BINARY,

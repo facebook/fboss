@@ -20,6 +20,30 @@ using std::chrono::system_clock;
 
 namespace facebook::fboss {
 
+void SaiHandler::getCurrentHwStateJSON(
+    std::string& ret,
+    std::unique_ptr<std::string> path) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  hw_->ensureConfigured(__func__);
+
+  if (path) {
+    ret = utility::getCurrentStateJSONForPathHelper(
+        *path, hw_->getProgrammedState());
+  }
+}
+
+void SaiHandler::getCurrentHwStateJSONForPaths(
+    std::map<std::string, std::string>& pathToState,
+    std::unique_ptr<std::vector<std::string>> paths) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  hw_->ensureConfigured(__func__);
+
+  for (auto& path : *paths) {
+    pathToState[path] = utility::getCurrentStateJSONForPathHelper(
+        path, hw_->getProgrammedState());
+  }
+}
+
 SaiHandler::SaiHandler(SaiSwitch* hw)
     : hw_(hw), diagShell_(hw), diagCmdServer_(hw, &diagShell_) {}
 
@@ -143,6 +167,13 @@ void SaiHandler::clearAllHwPortStats() {
     }
   }
   clearHwPortStats(std::move(allPorts));
+}
+
+void SaiHandler::clearInterfacePhyCounters(
+    std::unique_ptr<std::vector<int32_t>> ports) {
+  auto log = LOG_THRIFT_CALL(DBG1, *ports);
+  hw_->ensureConfigured(__func__);
+  hw_->clearInterfacePhyCounters(ports);
 }
 
 void SaiHandler::getHwL2Table(std::vector<L2EntryThrift>& l2Table) {
@@ -380,4 +411,13 @@ void SaiHandler::bulkClearInterfacePrbsStats(
     hw_->clearPortAsicPrbsStats(port->getID());
   }
 }
+
+void SaiHandler::getAllHwFirmwareInfo(
+    std::vector<FirmwareInfo>& firmwareInfoList) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  hw_->ensureConfigured(__func__);
+
+  firmwareInfoList = hw_->getAllFirmwareInfo();
+}
+
 } // namespace facebook::fboss

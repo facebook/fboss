@@ -146,6 +146,35 @@ TEST(PortPgConfig, TestPortPgWatchdogConfigMismatch) {
   EXPECT_NO_THROW(publishAndApplyConfig(stateV0, &config, platform.get()));
 }
 
+TEST(PortPgConfig, TestResumeByteSetting) {
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+
+  cfg::SwitchConfig config;
+  config.ports()->resize(1);
+  preparedMockPortConfig(config.ports()[0], 1);
+
+  std::map<std::string, std::vector<cfg::PortPgConfig>> portPgConfigMap;
+  std::vector<cfg::PortPgConfig> portPgConfigs;
+  for (int pgId = 0; pgId < 1; pgId++) {
+    cfg::PortPgConfig pgConfig;
+    pgConfig.id() = pgId;
+    // It's an error to set both resumeBytes and resumeOffsetBytes
+    pgConfig.resumeBytes() = 100;
+    pgConfig.resumeOffsetBytes() = 100;
+    portPgConfigs.emplace_back(pgConfig);
+  }
+  portPgConfigMap["foo"] = portPgConfigs;
+  config.portPgConfigs() = portPgConfigMap;
+
+  cfg::PortPfc pfc;
+  pfc.portPgConfigName() = "foo";
+  config.ports()[0].pfc() = pfc;
+
+  EXPECT_THROW(
+      publishAndApplyConfig(stateV0, &config, platform.get()), FbossError);
+}
+
 TEST(PortPgConfig, applyConfig) {
   int pgId = 0;
   auto platform = createMockPlatform();

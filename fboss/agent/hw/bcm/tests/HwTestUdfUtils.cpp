@@ -17,6 +17,7 @@
 #include "fboss/agent/hw/test/HwTest.h"
 #include "fboss/agent/hw/test/HwTestAclUtils.h"
 #include "fboss/agent/packet/IPProto.h"
+#include "fboss/agent/test/utils/UdfTestUtils.h"
 
 #include <gtest/gtest.h>
 
@@ -134,7 +135,7 @@ void validateUdfIdsInQset(
 
 cfg::SwitchConfig addUdfAclRoceOpcodeConfig(cfg::SwitchConfig& cfg) {
   cfg.udfConfig() = utility::addUdfAclConfig();
-  auto acl = utility::addAcl(&cfg, utility::kUdfAclRoceOpcodeName);
+  auto acl = utility::addAcl_DEPRECATED(&cfg, utility::kUdfAclRoceOpcodeName);
   acl->udfGroups() = {utility::kUdfAclRoceOpcodeGroupName};
   acl->roceOpcode() = utility::kUdfRoceOpcodeAck;
 

@@ -22,8 +22,6 @@ std::optional<facebook::fboss::cfg::StreamType> streamTypeOpt{std::nullopt};
 } // unnamed namespace
 
 DEFINE_bool(setup_for_warmboot, false, "Set up test for warmboot");
-DEFINE_bool(run_forever, false, "run the test forever");
-DEFINE_bool(run_forever_on_failure, false, "run the test forever on failure");
 
 DECLARE_string(config);
 DECLARE_bool(disable_looped_fabric_ports);
@@ -297,6 +295,11 @@ PortID AgentTest::getPortID(const std::string& portName) const {
     }
   }
   throw FbossError("No port named: ", portName);
+}
+
+std::optional<VlanID> AgentTest::getVlanIDForTx() const {
+  auto intf = utility::firstInterfaceWithPorts(sw()->getState());
+  return sw()->getVlanIDForTx(intf);
 }
 
 void initAgentTest(

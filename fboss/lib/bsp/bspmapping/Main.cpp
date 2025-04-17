@@ -21,6 +21,8 @@ namespace facebook::fboss {
 const std::map<PlatformType, folly::StringPiece> kHardwareNameMap = {
     {facebook::fboss::PlatformType::PLATFORM_MONTBLANC,
      kPortMappingMontblancCsv},
+    {facebook::fboss::PlatformType::PLATFORM_MINIPACK3N,
+     kPortMappingMinipack3NCsv},
     {facebook::fboss::PlatformType::PLATFORM_MERU400BFU,
      kPortMappingMeru400bfuCsv},
     {facebook::fboss::PlatformType::PLATFORM_MERU400BIU,

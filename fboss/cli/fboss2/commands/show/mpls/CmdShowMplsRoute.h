@@ -45,21 +45,23 @@ class CmdShowMplsRoute
   }
 
   void printOutput(const RetType& model, std::ostream& out = std::cout) {
-    for (const auto& entry : model.get_mplsEntries()) {
-      out << fmt::format("MPLS Label: {}\n", entry.get_topLabel());
+    for (const auto& entry : model.mplsEntries().value()) {
+      out << fmt::format(
+          "MPLS Label: {}\n", folly::copy(entry.topLabel().value()));
 
-      for (const auto& clAndNxthops : entry.get_nextHopMulti()) {
+      for (const auto& clAndNxthops : entry.nextHopMulti().value()) {
         out << fmt::format(
-            "  Nexthops from client {}\n", clAndNxthops.get_clientId());
-        for (const auto& nextHop : clAndNxthops.get_nextHops()) {
+            "  Nexthops from client {}\n",
+            folly::copy(clAndNxthops.clientId().value()));
+        for (const auto& nextHop : clAndNxthops.nextHops().value()) {
           out << fmt::format(
               "    {}\n", show::route::utils::getNextHopInfoStr(nextHop));
         }
       }
 
-      out << fmt::format("  Action: {}\n", entry.get_action());
+      out << fmt::format("  Action: {}\n", entry.action().value());
 
-      auto& nextHops = entry.get_nextHops();
+      auto& nextHops = entry.nextHops().value();
       if (nextHops.size() > 0) {
         out << fmt::format("  Forwarding via:\n");
         for (const auto& nextHop : nextHops) {
@@ -70,7 +72,8 @@ class CmdShowMplsRoute
         out << "  No Forwarding Info\n";
       }
 
-      out << fmt::format("  Admin Distance: {}\n", entry.get_adminDistance());
+      out << fmt::format(
+          "  Admin Distance: {}\n", folly::copy(entry.adminDistance().value()));
     }
   }
 
@@ -80,17 +83,18 @@ class CmdShowMplsRoute
     for (const auto& entry : mplsEntries) {
       cli::MplsEntry mplsDetails;
 
-      mplsDetails.topLabel() = entry.get_topLabel();
-      mplsDetails.action() = entry.get_action();
-      const auto adminDistance = entry.get_adminDistance();
+      mplsDetails.topLabel() = folly::copy(entry.topLabel().value());
+      mplsDetails.action() = entry.action().value();
+      const auto adminDistance = folly::copy(entry.adminDistance().value());
       mplsDetails.adminDistance() = static_cast<int>(adminDistance);
 
-      auto& nextHopMulti = entry.get_nextHopMulti();
+      auto& nextHopMulti = entry.nextHopMulti().value();
       for (const auto& clAndNxthops : nextHopMulti) {
         cli::ClientAndNextHops clAndNxthopsCli;
-        clAndNxthopsCli.clientId() = clAndNxthops.get_clientId();
-        auto& nextHopAddrs = clAndNxthops.get_nextHopAddrs();
-        auto& nextHops = clAndNxthops.get_nextHops();
+        clAndNxthopsCli.clientId() =
+            folly::copy(clAndNxthops.clientId().value());
+        auto& nextHopAddrs = clAndNxthops.nextHopAddrs().value();
+        auto& nextHops = clAndNxthops.nextHops().value();
         if (nextHopAddrs.size() > 0) {
           for (const auto& address : nextHopAddrs) {
             cli::NextHopInfo nextHopInfo;
@@ -107,7 +111,7 @@ class CmdShowMplsRoute
         mplsDetails.nextHopMulti()->emplace_back(clAndNxthopsCli);
       }
 
-      auto& nextHops = entry.get_nextHops();
+      auto& nextHops = entry.nextHops().value();
       if (nextHops.size() > 0) {
         for (const auto& nextHop : nextHops) {
           cli::NextHopInfo nextHopInfo;

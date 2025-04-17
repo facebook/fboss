@@ -12,6 +12,7 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTest.h"
 #include "fboss/agent/hw/test/HwTestPfcUtils.h"
+#include "fboss/agent/test/utils/PfcTestUtils.h"
 #include "fboss/agent/types.h"
 
 namespace facebook::fboss {
@@ -63,40 +64,15 @@ class HwVerifyPfcConfigInHwTest : public HwTest {
       const std::vector<PortID>& ports,
       bool rxEnable = true,
       bool txEnable = true) {
-    cfg::PortPfc pfc;
-    pfc.tx() = txEnable;
-    pfc.rx() = rxEnable;
-    pfc.portPgConfigName() = "foo";
+    auto buffer = utility::PfcBufferParams::getPfcBufferParams(getAsicType());
+    utility::setupPfcBuffers(
+        getHwSwitchEnsemble(), cfg, ports, kLosslessPgs(), {}, {}, buffer);
 
     for (const auto& portID : ports) {
       auto portCfg = utility::findCfgPort(cfg, portID);
-      portCfg->pfc() = pfc;
+      portCfg->pfc()->tx() = txEnable;
+      portCfg->pfc()->rx() = rxEnable;
     }
-
-    // Copied from enablePgConfigConfig
-    std::vector<cfg::PortPgConfig> portPgConfigs;
-    std::map<std::string, std::vector<cfg::PortPgConfig>> portPgConfigMap;
-    for (const auto& pgId : kLosslessPgs()) {
-      cfg::PortPgConfig pgConfig;
-      pgConfig.id() = pgId;
-      pgConfig.bufferPoolName() = "bufferNew";
-      // provide atleast 1 cell worth of minLimit
-      pgConfig.minLimitBytes() = 300;
-      // Non zero headroom to specify this is a no-drop class
-      pgConfig.headroomLimitBytes() = 1000;
-      portPgConfigs.emplace_back(pgConfig);
-    }
-
-    // create buffer pool
-    std::map<std::string, cfg::BufferPoolConfig> bufferPoolCfgMap;
-    cfg::BufferPoolConfig poolConfig;
-    poolConfig.sharedBytes() = 10000;
-    poolConfig.headroomBytes() = 2000;
-    bufferPoolCfgMap.insert(std::make_pair("bufferNew", poolConfig));
-    cfg.bufferPoolConfigs() = bufferPoolCfgMap;
-
-    portPgConfigMap.insert({"foo", portPgConfigs});
-    cfg.portPgConfigs() = portPgConfigMap;
   }
 
   std::shared_ptr<SwitchState> setupPfcAndPfcWatchdog(
@@ -301,6 +277,42 @@ class HwVerifyPfcConfigInHwTest : public HwTest {
            2000,
            cfg::PfcWatchdogRecoveryAction::DROP,
            "Verify PFC watchdog deadlock detection timer outside range with 1600msec"});
+    } else if (getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+      // Chenab ASIC requires at minimum 200ms DLD/ 400ms DLR intervals
+      wdParams.push_back(
+          {200,
+           400,
+           cfg::PfcWatchdogRecoveryAction::DROP,
+           "Verify PFC watchdog deadlock detection boundary value 200ms, recovery boundary value 400ms"});
+      wdParams.push_back(
+          {1600,
+           2000,
+           cfg::PfcWatchdogRecoveryAction::DROP,
+           "Verify PFC watchdog deadlock detection timer longer value"});
+    } else if (getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_YUBA) {
+      // YUBA supports a min timer value of 25msec and max of 10sec. In the
+      // supported range, timer value as a multiple of 25msec is expected.
+      wdParams.push_back(
+          {25,
+           100,
+           cfg::PfcWatchdogRecoveryAction::DROP,
+           "Verify PFC watchdog deadlock detection value 25ms, recovery value 100ms"});
+      wdParams.push_back(
+          {25,
+           1000,
+           cfg::PfcWatchdogRecoveryAction::DROP,
+           "Verify PFC watchdog deadlock detection value 25ms, recovery value 1000ms"});
+      wdParams.push_back(
+          {100,
+           10000,
+           cfg::PfcWatchdogRecoveryAction::DROP,
+           "Verify PFC watchdog deadlock detection value 100ms, recovery value 10s"});
+      // Production config
+      wdParams.push_back(
+          {200,
+           1000,
+           cfg::PfcWatchdogRecoveryAction::DROP,
+           "Verify PFC watchdog deadlock detection value 200ms, recovery value 1000ms"});
     } else {
       // TODO: Param combinations for a granularity of 1msec
       wdParams.push_back(
@@ -372,21 +384,40 @@ TEST_F(HwVerifyPfcConfigInHwTest, PfcWatchdogProgrammingSequence) {
 
     // All PFC WD configuration combinations to test
     std::vector<PfcWdTestConfigs> configTest;
-    configTest.push_back(
-        {5,
-         400,
-         cfg::PfcWatchdogRecoveryAction::DROP,
-         "Verify PFC watchdog is enabled with specified configs"});
-    configTest.push_back(
-        {150,
-         400,
-         cfg::PfcWatchdogRecoveryAction::DROP,
-         "Change just the detection timer and ensure programming"});
-    configTest.push_back(
-        {150,
-         200,
-         cfg::PfcWatchdogRecoveryAction::DROP,
-         "Change just the recovery timer and ensure programming"});
+    if (getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+      // Chenab ASIC requires at minimum 200ms DLD/ 400ms DLR intervals
+      configTest.push_back(
+          {200,
+           400,
+           cfg::PfcWatchdogRecoveryAction::DROP,
+           "Verify PFC watchdog is enabled with specified configs"});
+      configTest.push_back(
+          {250,
+           400,
+           cfg::PfcWatchdogRecoveryAction::DROP,
+           "Change just the detection timer and ensure programming"});
+      configTest.push_back(
+          {250,
+           600,
+           cfg::PfcWatchdogRecoveryAction::DROP,
+           "Change just the recovery timer and ensure programming"});
+    } else {
+      configTest.push_back(
+          {5,
+           400,
+           cfg::PfcWatchdogRecoveryAction::DROP,
+           "Verify PFC watchdog is enabled with specified configs"});
+      configTest.push_back(
+          {150,
+           400,
+           cfg::PfcWatchdogRecoveryAction::DROP,
+           "Change just the detection timer and ensure programming"});
+      configTest.push_back(
+          {150,
+           200,
+           cfg::PfcWatchdogRecoveryAction::DROP,
+           "Change just the recovery timer and ensure programming"});
+    }
 
     // Enable PFC and PFC wachdog
     for (const auto& wdTestCfg : configTest) {
@@ -411,13 +442,24 @@ TEST_F(HwVerifyPfcConfigInHwTest, PfcWatchdogProgrammingSequence) {
 
     // PFC watchdog deadlock config on multiple ports
     auto portId2 = masterLogicalInterfacePortIds()[1];
-    setupPfcWdAndValidateProgramming(
-        {140,
-         500,
-         cfg::PfcWatchdogRecoveryAction::DROP,
-         "Enable PFC watchdog on more ports and validate programming"},
-        portId2,
-        currentConfig);
+    if (getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+      // Chenab ASIC requires at minimum 200ms DLD/ 400ms DLR intervals
+      setupPfcWdAndValidateProgramming(
+          {200,
+           500,
+           cfg::PfcWatchdogRecoveryAction::DROP,
+           "Enable PFC watchdog on more ports and validate programming"},
+          portId2,
+          currentConfig);
+    } else {
+      setupPfcWdAndValidateProgramming(
+          {140,
+           500,
+           cfg::PfcWatchdogRecoveryAction::DROP,
+           "Enable PFC watchdog on more ports and validate programming"},
+          portId2,
+          currentConfig);
+    }
 
     XLOG(DBG0) << "Remove PFC watchdog programming on one port and make"
                << " sure watchdog recovery action is not impacted";
@@ -437,13 +479,24 @@ TEST_F(HwVerifyPfcConfigInHwTest, PfcWatchdogProgrammingSequence) {
       // In SAI implementation, PFC and PFC WD are separate attributes
       // and are independently configured, so unconfiguring PFC will not
       // unconfigure PFC WD.
-      setupPfcWdAndValidateProgramming(
-          {20,
-           100,
-           cfg::PfcWatchdogRecoveryAction::DROP,
-           "Enable PFC watchdog config again on the port"},
-          portId,
-          currentConfig);
+      if (getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+        // Chenab ASIC requires at minimum 200ms DLD/ 400ms DLR intervals
+        setupPfcWdAndValidateProgramming(
+            {200,
+             400,
+             cfg::PfcWatchdogRecoveryAction::DROP,
+             "Enable PFC watchdog config again on the port"},
+            portId,
+            currentConfig);
+      } else {
+        setupPfcWdAndValidateProgramming(
+            {20,
+             100,
+             cfg::PfcWatchdogRecoveryAction::DROP,
+             "Enable PFC watchdog config again on the port"},
+            portId,
+            currentConfig);
+      }
 
       // Unconfigure PFC
       XLOG(DBG0)

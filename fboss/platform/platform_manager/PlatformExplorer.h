@@ -29,13 +29,20 @@ class PlatformExplorer {
   auto static constexpr kFirmwareVersion = "{}.firmware_version";
   auto static constexpr kGroupedFirmwareVersion = "{}.firmware_version.{}";
 
+  auto static constexpr kProductionState =
+      "platform_explorer.production_state.{}";
+  auto static constexpr kProductionSubState =
+      "platform_explorer.production_sub_state.{}";
+  auto static constexpr kVariantVersion =
+      "platform_explorer.variant_version.{}";
+
   auto static constexpr kFwVerErrorFileNotFound = "ERROR_FILE_NOT_FOUND";
   auto static constexpr kFwVerErrorEmptyFile = "ERROR_EMPTY_FILE";
   auto static constexpr kFwVerErrorInvalidString = "ERROR_INVALID_STRING";
 
   explicit PlatformExplorer(
       const PlatformConfig& config,
-      const std::shared_ptr<PlatformFsUtils> platformFsUtils =
+      std::shared_ptr<PlatformFsUtils> platformFsUtils =
           std::make_shared<PlatformFsUtils>());
 
   virtual ~PlatformExplorer() = default;
@@ -81,6 +88,9 @@ class PlatformExplorer {
   // Publish firmware versions read from /run/devmap files to ODS.
   void publishFirmwareVersions();
 
+  // Publish hardware versions read to ODS.
+  void publishHardwareVersions();
+
   // Get the last PlatformManagerStatus.
   PlatformManagerStatus getPMStatus() const;
 
@@ -94,6 +104,7 @@ class PlatformExplorer {
   // This member is thread safe since callers could be on different threads
   // E.g thrift API call on `getLastPmStatus`.
   folly::Synchronized<PlatformManagerStatus> platformManagerStatus_;
+  ExplorationSummary explorationSummary_;
 
  private:
   void createDeviceSymLink(
@@ -113,16 +124,17 @@ class PlatformExplorer {
   void createPciSubDevices(
       const std::string& slotPath,
       const std::vector<T>& pciSubDeviceConfigs,
+      ExplorationErrorType errorType,
       auto&& deviceCreationLambda);
+  void genHumanReadableEeproms();
 
   PlatformConfig platformConfig_{};
   I2cExplorer i2cExplorer_{};
-  PciExplorer pciExplorer_{};
+  PciExplorer pciExplorer_;
   CachedFbossEepromParser eepromParser_{};
   DataStore dataStore_;
   DevicePathResolver devicePathResolver_;
   PresenceChecker presenceChecker_;
-  ExplorationSummary explorationSummary_;
   std::shared_ptr<PlatformFsUtils> platformFsUtils_;
 
   // Map from <pmUnitPath, pmUnitScopeBusName> to kernel i2c bus name.

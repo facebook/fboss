@@ -16,6 +16,7 @@
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
 #include "fboss/agent/state/LoadBalancer.h"
 #include "fboss/agent/state/LoadBalancerMap.h"
+#include "fboss/agent/test/utils/UdfTestUtils.h"
 
 #include <memory>
 

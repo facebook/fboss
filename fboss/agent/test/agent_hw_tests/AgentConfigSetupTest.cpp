@@ -36,7 +36,8 @@ cfg::SwitchConfig AgentConfigSetupTest::setPortsToLoopback(
 
   for (auto& port : *cfg.ports()) {
     if (*port.state() == cfg::PortState::ENABLED) {
-      port.loopbackMode() = asic->getDesiredLoopbackMode(port.get_portType());
+      port.loopbackMode() =
+          asic->getDesiredLoopbackMode(folly::copy(port.portType().value()));
     }
   }
   return cfg;

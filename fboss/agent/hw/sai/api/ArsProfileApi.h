@@ -93,11 +93,28 @@ struct SaiArsProfileTraits {
         sai_uint32_t>;
     using MaxFlows =
         SaiAttribute<EnumType, SAI_ARS_PROFILE_ATTR_MAX_FLOWS, sai_uint32_t>;
+    using QuantBand0MinThreshold = SaiAttribute<
+        EnumType,
+        SAI_ARS_PROFILE_ATTR_QUANT_BAND_0_MIN_THRESHOLD,
+        sai_uint32_t>;
+    using QuantBand1MinThreshold = SaiAttribute<
+        EnumType,
+        SAI_ARS_PROFILE_ATTR_QUANT_BAND_1_MIN_THRESHOLD,
+        sai_uint32_t>;
+    using QuantBand2MinThreshold = SaiAttribute<
+        EnumType,
+        SAI_ARS_PROFILE_ATTR_QUANT_BAND_2_MIN_THRESHOLD,
+        sai_uint32_t>;
   };
 
   using AdapterKey = ArsProfileSaiId;
   using AdapterHostKey = std::monostate;
   using CreateAttributes = std::tuple<
+#if defined(CHENAB_SAI_SDK)
+      Attributes::QuantBand0MinThreshold,
+      Attributes::QuantBand1MinThreshold,
+      Attributes::QuantBand2MinThreshold>;
+#else
       Attributes::Algo,
       Attributes::SamplingInterval,
       Attributes::RandomSeed,
@@ -115,8 +132,14 @@ struct SaiArsProfileTraits {
       Attributes::PortLoadExponent,
       Attributes::LoadCurrentMinVal,
       Attributes::LoadCurrentMaxVal>;
+#endif
 };
 
+#if defined(CHENAB_SAI_SDK)
+SAI_ATTRIBUTE_NAME(ArsProfile, QuantBand0MinThreshold)
+SAI_ATTRIBUTE_NAME(ArsProfile, QuantBand1MinThreshold)
+SAI_ATTRIBUTE_NAME(ArsProfile, QuantBand2MinThreshold)
+#else
 SAI_ATTRIBUTE_NAME(ArsProfile, Algo)
 SAI_ATTRIBUTE_NAME(ArsProfile, SamplingInterval)
 SAI_ATTRIBUTE_NAME(ArsProfile, RandomSeed)
@@ -135,6 +158,7 @@ SAI_ATTRIBUTE_NAME(ArsProfile, PortLoadExponent)
 SAI_ATTRIBUTE_NAME(ArsProfile, LoadCurrentMinVal)
 SAI_ATTRIBUTE_NAME(ArsProfile, LoadCurrentMaxVal)
 SAI_ATTRIBUTE_NAME(ArsProfile, MaxFlows)
+#endif
 
 class ArsProfileApi : public SaiApi<ArsProfileApi> {
  public:

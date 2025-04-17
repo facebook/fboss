@@ -251,6 +251,9 @@ class BcmPort {
   void setPortFlowletConfig(const std::shared_ptr<Port>& port);
   void updatePortFlowletConfig(const std::shared_ptr<Port>& port);
 
+  void clearSignalDetectAndLockStatusChangedStats();
+  void clearInterfacePhyCounters();
+
  private:
   class BcmPortStats {
     // All actions or instantiations of this class need to be done in a
@@ -276,7 +279,8 @@ class BcmPort {
   void updateWredStats(std::chrono::seconds now, int64_t* portStatVal);
   void updateInCongestionDiscardStats(
       std::chrono::seconds now,
-      uint64_t* portStatVal);
+      uint64_t* portStatVal,
+      std::map<int16_t, int64_t>* portPgStatVal);
   uint32_t getCL91FECStatus() const;
   bool isCL91FECApplicable() const;
   // no copy or assignment

@@ -11,6 +11,7 @@
 
 #include <sys/resource.h>
 #include <sys/syscall.h>
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/FsdbHelper.h"
@@ -47,6 +48,8 @@
 #include <re2/re2.h>
 #include <chrono>
 #include <exception>
+#include <filesystem>
+#include <fstream>
 #include <iostream>
 
 using folly::IPAddressV4;
@@ -100,46 +103,6 @@ AddrT getIPAddress(InterfaceID intfID, const Interface::AddressesType addrs) {
     }
   }
   throw FbossError("Cannot find IP address for interface ", intfID);
-}
-
-static const facebook::fboss::PlatformMapping* FOLLY_NULLABLE
-getPlatformMappingForDsfNode(const facebook::fboss::PlatformType platformType) {
-  switch (platformType) {
-    case facebook::fboss::PlatformType::PLATFORM_MERU400BIU: {
-      static facebook::fboss::Meru400biuPlatformMapping meru400biu;
-      return &meru400biu;
-    }
-    case facebook::fboss::PlatformType::PLATFORM_MERU400BIA: {
-      static facebook::fboss::Meru400biaPlatformMapping meru400bia;
-      return &meru400bia;
-    }
-    case facebook::fboss::PlatformType::PLATFORM_MERU400BFU: {
-      static facebook::fboss::Meru400bfuPlatformMapping meru400bfu;
-      return &meru400bfu;
-    }
-    case facebook::fboss::PlatformType::PLATFORM_MERU800BFA: {
-      static facebook::fboss::Meru800bfaPlatformMapping meru800bfa{
-          true /*multiNpuPlatformMapping*/};
-      return &meru800bfa;
-    }
-    case facebook::fboss::PlatformType::PLATFORM_MERU800BFA_P1: {
-      static facebook::fboss::Meru800bfaP1PlatformMapping meru800bfa{
-          true /*multiNpuPlatformMapping*/};
-      return &meru800bfa;
-    }
-    case facebook::fboss::PlatformType::PLATFORM_MERU800BIA: {
-      static facebook::fboss::Meru800biaPlatformMapping meru800bia;
-      return &meru800bia;
-    }
-    case facebook::fboss::PlatformType::PLATFORM_JANGA800BIC: {
-      static facebook::fboss::Janga800bicPlatformMapping janga800bic{
-          true /*multiNpuPlatformMapping*/};
-      return &janga800bic;
-    }
-    default:
-      break;
-  }
-  return nullptr;
 }
 
 cfg::Range64 getCoveringSysPortRange(
@@ -581,12 +544,22 @@ std::optional<PortID> getInterfacePortToReach(
     const std::shared_ptr<SwitchState>& state,
     const folly::IPAddress& ipAddr) {
   auto intf = state->getInterfaces()->getIntfToReach(RouterID(0), ipAddr);
-  if (intf) {
-    CHECK(intf->getSystemPortID().has_value());
-    return getPortID(*intf->getSystemPortID(), state);
+  if (!intf) {
+    return std::nullopt;
   }
-
-  return std::nullopt;
+  auto intfType = intf->getType();
+  std::optional<PortID> port{};
+  switch (intfType) {
+    case cfg::InterfaceType::VLAN:
+      break;
+    case cfg::InterfaceType::SYSTEM_PORT:
+      port = getPortID(intf->getSystemPortID().value(), state);
+      break;
+    case cfg::InterfaceType::PORT:
+      port = intf->getPortID();
+      break;
+  }
+  return port;
 }
 
 bool isAnyInterfacePortInLoopbackMode(
@@ -1083,6 +1056,48 @@ std::pair<std::string, std::string> getExpectedNeighborAndPortName(
   return std::make_pair(neighborName, neighborPortName);
 };
 
+const facebook::fboss::PlatformMapping* FOLLY_NULLABLE
+getPlatformMappingForPlatformType(
+    const facebook::fboss::PlatformType platformType) {
+  switch (platformType) {
+    case facebook::fboss::PlatformType::PLATFORM_MERU400BIU: {
+      static facebook::fboss::Meru400biuPlatformMapping meru400biu;
+      return &meru400biu;
+    }
+    case facebook::fboss::PlatformType::PLATFORM_MERU400BIA: {
+      static facebook::fboss::Meru400biaPlatformMapping meru400bia;
+      return &meru400bia;
+    }
+    case facebook::fboss::PlatformType::PLATFORM_MERU400BFU: {
+      static facebook::fboss::Meru400bfuPlatformMapping meru400bfu;
+      return &meru400bfu;
+    }
+    case facebook::fboss::PlatformType::PLATFORM_MERU800BFA: {
+      static facebook::fboss::Meru800bfaPlatformMapping meru800bfa{
+          true /*multiNpuPlatformMapping*/};
+      return &meru800bfa;
+    }
+    case facebook::fboss::PlatformType::PLATFORM_MERU800BFA_P1: {
+      static facebook::fboss::Meru800bfaP1PlatformMapping meru800bfa{
+          true /*multiNpuPlatformMapping*/};
+      return &meru800bfa;
+    }
+    case facebook::fboss::PlatformType::PLATFORM_MERU800BIA: {
+      static facebook::fboss::Meru800biaPlatformMapping meru800bia;
+      return &meru800bia;
+    }
+    case facebook::fboss::PlatformType::PLATFORM_JANGA800BIC: {
+      static facebook::fboss::Janga800bicPlatformMapping janga800bic{
+          !FLAGS_type_dctype1_janga /*multiNpuPlatformMapping*/
+      };
+      return &janga800bic;
+    }
+    default:
+      break;
+  }
+  return nullptr;
+}
+
 int getRemoteSwitchID(
     const cfg::SwitchConfig* cfg,
     const cfg::Port& port,
@@ -1097,7 +1112,7 @@ int getRemoteSwitchID(
   CHECK(dsfNodeItr != cfg->dsfNodes()->end());
 
   const auto platformMapping =
-      getPlatformMappingForDsfNode(*dsfNodeItr->second.platformType());
+      getPlatformMappingForPlatformType(*dsfNodeItr->second.platformType());
 
   if (!platformMapping) {
     throw FbossError(
@@ -1155,4 +1170,48 @@ int numFabricLevels(const std::map<int64_t, cfg::DsfNode>& dsfNodes) {
       });
   return maxFabricLevel;
 }
+
+const std::vector<cfg::AclLookupClass>& getToCpuClassIds() {
+  static const std::vector<cfg::AclLookupClass> toCpuClassIds = {
+      cfg::AclLookupClass::DST_CLASS_L3_LOCAL_1,
+      cfg::AclLookupClass::DST_CLASS_L3_LOCAL_2,
+  };
+  return toCpuClassIds;
+}
+
+bool isStringInFile(
+    const std::string& filename,
+    const std::string& str,
+    int maxLinesToSearch) {
+  std::ifstream file(filename);
+  if (!file.is_open()) {
+    return false;
+  }
+  std::string line;
+  for (int i = 0; i < maxLinesToSearch && std::getline(file, line); ++i) {
+    if (line.find(str) != std::string::npos) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+std::optional<VlanID> getDefaultTxVlanIdIf(
+    const std::shared_ptr<SwitchSettings>& settings) {
+  if (auto defaultVlan = settings->getDefaultVlan()) {
+    return VlanID(*defaultVlan);
+  }
+  return std::nullopt;
+}
+
+std::optional<VlanID> getDefaultTxVlanId(
+    const std::shared_ptr<SwitchSettings>& settings) {
+  auto vlanId = getDefaultTxVlanIdIf(settings);
+  if (!vlanId) {
+    throw FbossError("default tx vlan not found");
+  }
+  return vlanId;
+}
+
 } // namespace facebook::fboss

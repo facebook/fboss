@@ -23,6 +23,7 @@ void HwTestThriftHandler::triggerParityError() {
     case cfg::AsicType::ASIC_TYPE_GARONNE:
     case cfg::AsicType::ASIC_TYPE_YUBA:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK6:
     case cfg::AsicType::ASIC_TYPE_CHENAB:
       XLOG(FATAL) << "Unsupported HwAsic: "
                   << bcmSwitch->getPlatform()->getAsic()->getAsicTypeStr();

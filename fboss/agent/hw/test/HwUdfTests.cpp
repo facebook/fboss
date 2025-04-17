@@ -12,6 +12,7 @@
 #include "fboss/agent/hw/test/HwTestAclUtils.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/HwTestUdfUtils.h"
+#include "fboss/agent/test/utils/UdfTestUtils.h"
 
 namespace facebook::fboss {
 
@@ -51,6 +52,50 @@ class HwUdfTest : public HwTest {
     return state;
   }
 };
+
+TEST_F(HwUdfTest, UdfCanaryOn) {
+  auto setup = [=, this]() {
+    auto newCfg{initialConfig()};
+    utility::addLoadBalancerToConfig(
+        newCfg,
+        getHwSwitch()->getPlatform()->getAsic(),
+        utility::LBHash::FULL_HASH);
+    applyNewConfig(newCfg);
+  };
+  auto setupPostWB = [=, this]() {
+    auto newCfg{initialConfig()};
+    newCfg.udfConfig() = utility::addUdfHashConfig();
+    utility::addLoadBalancerToConfig(
+        newCfg,
+        getHwSwitch()->getPlatform()->getAsic(),
+        utility::LBHash::FULL_HASH_UDF);
+    applyNewConfig(newCfg);
+  };
+
+  verifyAcrossWarmBoots(setup, [] {}, setupPostWB, [] {});
+}
+
+TEST_F(HwUdfTest, UdfCanaryOff) {
+  auto setup = [=, this]() {
+    auto newCfg{initialConfig()};
+    newCfg.udfConfig() = utility::addUdfHashConfig();
+    utility::addLoadBalancerToConfig(
+        newCfg,
+        getHwSwitch()->getPlatform()->getAsic(),
+        utility::LBHash::FULL_HASH_UDF);
+    applyNewConfig(newCfg);
+  };
+  auto setupPostWB = [=, this]() {
+    auto newCfg{initialConfig()};
+    utility::addLoadBalancerToConfig(
+        newCfg,
+        getHwSwitch()->getPlatform()->getAsic(),
+        utility::LBHash::FULL_HASH);
+    applyNewConfig(newCfg);
+  };
+
+  verifyAcrossWarmBoots(setup, [] {}, setupPostWB, [] {});
+}
 
 TEST_F(HwUdfTest, checkUdfHashConfiguration) {
   auto setup = [=, this]() {
@@ -113,9 +158,10 @@ TEST_F(HwUdfTest, deleteUdfAclConfig) {
   newCfg.udfConfig() = utility::addUdfAclConfig();
 
   // Add ACL configuration
-  auto acl = utility::addAcl(&newCfg, "test-udf-acl");
+  auto acl = utility::addAcl_DEPRECATED(&newCfg, "test-udf-acl");
   acl->udfGroups() = {utility::kUdfAclRoceOpcodeGroupName};
-  acl->roceOpcode() = utility::kUdfRoceOpcodeAck;
+  acl->roceMask() = {utility::kUdfRoceOpcodeMask};
+  acl->roceBytes() = {utility::kUdfRoceOpcodeAck};
   applyNewConfig(newCfg);
 
   // Get UdfGroup and PacketMatcher Ids for verify

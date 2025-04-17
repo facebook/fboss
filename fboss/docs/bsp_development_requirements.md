@@ -82,13 +82,13 @@ consistent ABIs for user space software.
 
 * **Must Have (MH)**: The BSP must satisfy “must have” requirements. By default,
  all requirements are “must have” unless they are explicitly specified
- otherwise. 
-* **Strong Desire (SD)**: The BSP must support “strong desire” requirements.
+ otherwise.
+* **Strong Desire (SD)**: The BSP must support “strong desire” requirements.
 There is a clear timeline when the requirements will be fully supported, if it
-is not supported yet. 
-* **Wish List (WL)**: “Wish list” requirements are what Meta is evaluating. Any
+is not supported yet.
+* **Wish List (WL)**: “Wish list” requirements are what Meta is evaluating. Any
 limitation on hardware/driver to support this type of requirement shall be
-explicitly stated by the chip vendor. 
+explicitly stated by the chip vendor.
 
 
 # 2. Terms and Abbreviations
@@ -412,19 +412,15 @@ The `xcvr_ctrl` driver exports following sysfs entries for each transceiver port
 
 ### 5.3.8 LED (led)
 
-The FBOSS PlatformManager create “led” auxiliary device instances for each
-“physical” LEDs. For example, if there are 64 port LEDs (32 ports, 2 LEDs per
-port), 1 system LED, 8 fan LEDs (one for each Fan), the PlatformManger would
-create 73 (64 + 1 + 8) “led” device instances.
-
-Below are the supported LED names the LED drivers need to match (in the
-auxiliary_device_id table):
-
-* `port_led`
-* `sys_led`
-* `fan_led`
-* `psu_led`
-* `smb_led`
+* PlatformManager will create “led” auxiliary device instances for each
+  “physical” LED.
+* Supported LED names the LED drivers need to match (in the auxiliary_device_id
+  table):
+  * `port_led`
+  * `sys_led`
+  * `fan_led`
+  * `psu_led`
+  * `smb_led`
 
 Please refer to [Section 11, “LED Drivers”](#11-led-drivers) for driver
 implementation details.

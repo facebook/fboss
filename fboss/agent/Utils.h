@@ -57,9 +57,7 @@ inline const std::string kUdfAclRoceOpcodeGroupName("roceOpcode");
 inline const std::string kUdfL4UdpRocePktMatcherName("l4UdpRoce");
 inline const std::string kUdfAclRoceOpcodeName("udf-roce-ack");
 inline const std::string kUdfAclRoceOpcodeStats("udf-roce-ack-stats");
-inline const int kUdfHashDstQueuePairStartOffsetInBytes(13);
 inline const int kUdfAclRoceOpcodeStartOffsetInBytes(8);
-inline const int kUdfHashDstQueuePairFieldSizeInBytes(3);
 inline const int kUdfAclRoceOpcodeFieldSizeInBytes(1);
 inline const int kUdfL4DstPort(4791);
 inline const int kRandomUdfL4SrcPort(62946);
@@ -446,6 +444,10 @@ InterfaceID getInbandPortIntfID(
 std::pair<std::string, std::string> getExpectedNeighborAndPortName(
     const cfg::Port& port);
 
+const facebook::fboss::PlatformMapping* FOLLY_NULLABLE
+getPlatformMappingForPlatformType(
+    const facebook::fboss::PlatformType platformType);
+
 int getRemoteSwitchID(
     const cfg::SwitchConfig* cfg,
     const cfg::Port& port,
@@ -457,4 +459,18 @@ CpuCosQueueId hwQueueIdToCpuCosQueueId(
     const HwAsic* asic,
     HwSwitchFb303Stats* hwswitchStats);
 int numFabricLevels(const std::map<int64_t, cfg::DsfNode>& dsfNodes);
+
+const std::vector<cfg::AclLookupClass>& getToCpuClassIds();
+
+bool isStringInFile(
+    const std::string& filename,
+    const std::string& str,
+    int maxLinesToSearch);
+
+std::optional<VlanID> getDefaultTxVlanIdIf(
+    const std::shared_ptr<SwitchSettings>& settings);
+
+std::optional<VlanID> getDefaultTxVlanId(
+    const std::shared_ptr<SwitchSettings>& settings);
+
 } // namespace facebook::fboss

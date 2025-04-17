@@ -225,6 +225,12 @@ std::string utility::EthFrame::toString() const {
                             : "");
   return ss.str();
 }
+void EthFrame::stripVlans() {
+  auto srcMac = hdr_.getSrcMac();
+  auto dstMac = hdr_.getDstMac();
+  auto etherType = hdr_.getEtherType();
+  hdr_ = EthHdr(dstMac, srcMac, {}, etherType);
+}
 
 EthFrame makeEthFrame(const TxPacket& txPkt, bool skipTtlDecrement) {
   folly::io::Cursor cursor{txPkt.buf()};

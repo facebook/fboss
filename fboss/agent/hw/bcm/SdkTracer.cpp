@@ -2055,6 +2055,11 @@ int __real_bcm_flexctr_action_create(
 
 int __real_bcm_flexctr_action_destroy(int unit, uint32 stat_counter_id);
 
+int __real_bcm_flexctr_action_traverse(
+    int unit,
+    bcm_flexctr_action_traverse_cb trav_fn,
+    void* user_data);
+
 int __real_bcm_l3_route_stat_attach(
     int unit,
     bcm_l3_route_t* info,
@@ -5803,6 +5808,17 @@ int __wrap_bcm_flexctr_action_create(
 int __wrap_bcm_flexctr_action_destroy(int unit, uint32 stat_counter_id) {
 #ifndef BCM_SDK_TYPE_DNX_ONLY
   CALL_WRAPPERS_RV(bcm_flexctr_action_destroy(unit, stat_counter_id));
+#else
+  return 0;
+#endif
+}
+
+int __wrap_bcm_flexctr_action_traverse(
+    int unit,
+    bcm_flexctr_action_traverse_cb trav_fn,
+    void* user_data) {
+#ifndef BCM_SDK_TYPE_DNX_ONLY
+  CALL_WRAPPERS_RV(bcm_flexctr_action_traverse(unit, trav_fn, user_data));
 #else
   return 0;
 #endif

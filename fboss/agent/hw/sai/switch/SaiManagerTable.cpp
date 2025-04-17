@@ -22,6 +22,7 @@
 #include "fboss/agent/hw/sai/switch/SaiCounterManager.h"
 #include "fboss/agent/hw/sai/switch/SaiDebugCounterManager.h"
 #include "fboss/agent/hw/sai/switch/SaiFdbManager.h"
+#include "fboss/agent/hw/sai/switch/SaiFirmwareManager.h"
 #include "fboss/agent/hw/sai/switch/SaiHashManager.h"
 #include "fboss/agent/hw/sai/switch/SaiHostifManager.h"
 #include "fboss/agent/hw/sai/switch/SaiInSegEntryManager.h"
@@ -43,6 +44,7 @@
 #include "fboss/agent/hw/sai/switch/SaiTamManager.h"
 #include "fboss/agent/hw/sai/switch/SaiTunnelManager.h"
 #include "fboss/agent/hw/sai/switch/SaiUdfManager.h"
+#include "fboss/agent/hw/sai/switch/SaiVendorSwitchManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVirtualRouterManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVlanManager.h"
 #include "fboss/agent/hw/sai/switch/SaiWredManager.h"
@@ -118,6 +120,10 @@ void SaiManagerTable::createSaiTableManagers(
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
   udfManager_ = std::make_unique<SaiUdfManager>(saiStore, this, platform);
 #endif
+  vendorSwitchManager_ =
+      std::make_unique<SaiVendorSwitchManager>(saiStore, this, platform);
+  firmwareManager_ =
+      std::make_unique<SaiFirmwareManager>(saiStore, this, platform);
 }
 
 SaiManagerTable::~SaiManagerTable() {
@@ -168,6 +174,8 @@ void SaiManagerTable::reset(bool skipSwitchManager) {
   // to reset the queue associations.
   portManager_->resetQueues();
   portManager_->clearQosPolicy();
+  // For chenab, port config needs to be cleared before ARS profile is removed
+  portManager_->clearArsConfig();
   // Hash manager is going away, reset hashes
   switchManager_->resetHashes();
   hashManager_.reset();
@@ -182,6 +190,7 @@ void SaiManagerTable::reset(bool skipSwitchManager) {
   // ACL Table Group is going away, reset ingressACL pointing to it
   if (!skipSwitchManager) {
     switchManager_->resetIngressAcl();
+    switchManager_->resetEgressAcl();
   }
 
   // Reset ACL Table group before Acl Table, since ACL Table group members
@@ -198,10 +207,12 @@ void SaiManagerTable::reset(bool skipSwitchManager) {
 
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   // Must unbind Tam objects before resetting Tam manager.
+  // Note that we can't use SaiTamManager::removeMirrorOnDropReport(), because
+  // it relies on SaiManagerTable, which is undergoing destruction.
+  switchManager_->resetTamObject();
   for (auto portId : tamManager_->getAllMirrorOnDropPortIds()) {
     portManager_->resetTamObject(portId);
   }
-  switchManager_->resetTamObject();
 #endif
   tamManager_.reset();
 
@@ -222,6 +233,9 @@ void SaiManagerTable::reset(bool skipSwitchManager) {
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
   udfManager_.reset();
 #endif
+
+  vendorSwitchManager_.reset();
+  firmwareManager_.reset();
 
   if (!skipSwitchManager) {
     switchManager_.reset();
@@ -473,4 +487,21 @@ SaiUdfManager& SaiManagerTable::udfManager() {
 const SaiUdfManager& SaiManagerTable::udfManager() const {
   return *udfManager_;
 }
+
+SaiVendorSwitchManager& SaiManagerTable::vendorSwitchManager() {
+  return *vendorSwitchManager_;
+}
+
+const SaiVendorSwitchManager& SaiManagerTable::vendorSwitchManager() const {
+  return *vendorSwitchManager_;
+}
+
+SaiFirmwareManager& SaiManagerTable::firmwareManager() {
+  return *firmwareManager_;
+}
+
+const SaiFirmwareManager& SaiManagerTable::firmwareManager() const {
+  return *firmwareManager_;
+}
+
 } // namespace facebook::fboss

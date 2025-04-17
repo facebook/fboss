@@ -6,6 +6,7 @@
 #include "fboss/fsdb/common/Types.h"
 #include "fboss/fsdb/server/FsdbConfig.h"
 #include "fboss/fsdb/server/ServiceHandler.h"
+#include "fboss/lib/restart_tracker/RestartTimeTracker.h"
 
 #include <signal.h>
 

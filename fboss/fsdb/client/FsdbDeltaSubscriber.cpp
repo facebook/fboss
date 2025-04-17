@@ -34,16 +34,69 @@ FsdbDeltaSubscriberImpl<SubUnit, PathElement>::setupStream() {
   }
 }
 
+template <typename SubUnit>
+uint64_t getChunkMetadataPublishTime(const SubUnit& unit) {
+  uint64_t lastPublishedAt = 0;
+  if constexpr (std::is_same_v<SubUnit, OperDelta>) {
+    if (unit.metadata().has_value()) {
+      lastPublishedAt = unit.metadata()->lastPublishedAt().value_or(0);
+    }
+  } else if constexpr (std::is_same_v<SubUnit, OperSubDeltaUnit>) {
+    if (unit.changes()->size() > 0) {
+      if (unit.changes()[0].delta()->metadata().has_value()) {
+        lastPublishedAt = unit.changes()[0]
+                              .delta()
+                              ->metadata()
+                              .value()
+                              .lastPublishedAt()
+                              .value_or(0);
+      }
+    }
+  }
+  return lastPublishedAt;
+}
+
 template <typename SubUnit, typename PathElement>
 folly::coro::Task<void>
 FsdbDeltaSubscriberImpl<SubUnit, PathElement>::serveStream(StreamT&& stream) {
   CHECK(std::holds_alternative<SubStreamT>(stream));
+  // add histogram for publish-subscribe time latency
+  // histogram range [0, 20s], 200ms width (100 bins)
+  fb303::ThreadCachedServiceData::get()->addHistogram(
+      this->clientPubsubLatencyMetric_, 200, 0, 2000);
+  fb303::ThreadCachedServiceData::get()->exportHistogram(
+      this->clientPubsubLatencyMetric_, 50, 95, 99);
+  if (this->subscriptionOptions().exportPerSubscriptionMetrics_) {
+    fb303::ThreadCachedServiceData::get()->addHistogram(
+        this->subscribeLatencyMetric_, 200, 0, 2000);
+    fb303::ThreadCachedServiceData::get()->exportHistogram(
+        this->subscribeLatencyMetric_, 50, 95, 99);
+  }
   auto gen = std::move(std::get<SubStreamT>(stream)).toAsyncGenerator();
   while (auto delta = co_await gen.next()) {
     if (this->isCancelled()) {
       XLOG(DBG2) << " Detected cancellation: " << this->clientId();
       break;
     }
+
+    if (BaseT::getSubscriptionState() == SubscriptionState::CONNECTED) {
+      // compute publish-subscribe time latency
+      auto publishTime = getChunkMetadataPublishTime(*delta);
+      if (publishTime > 0) {
+        auto currentTimestamp =
+            std::chrono::duration_cast<std::chrono::milliseconds>(
+                std::chrono::system_clock::now().time_since_epoch())
+                .count();
+        auto latency = currentTimestamp - publishTime;
+        fb303::ThreadCachedServiceData::get()->addHistogramValue(
+            this->clientPubsubLatencyMetric_, latency);
+        if (this->subscriptionOptions().exportPerSubscriptionMetrics_) {
+          fb303::ThreadCachedServiceData::get()->addHistogramValue(
+              this->subscribeLatencyMetric_, latency);
+        }
+      }
+    }
+
     if (!this->subscriptionOptions().requireInitialSyncToMarkConnect_ &&
         this->getSubscriptionState() != SubscriptionState::CONNECTED) {
       BaseT::updateSubscriptionState(SubscriptionState::CONNECTED);

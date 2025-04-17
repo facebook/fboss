@@ -1,0 +1,10 @@
+load("@fbcode_macros//build_defs:python_binary.bzl", "python_binary")
+
+oncall("fboss_optics_phy")
+
+python_binary(
+    name = "run-helper",
+    srcs = ["run-helper.py"],
+    labels = ["autodeps2_generated"],
+    main_module = "fboss.lib.oss.run-helper",
+)

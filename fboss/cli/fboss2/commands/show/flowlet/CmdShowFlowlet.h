@@ -43,14 +43,18 @@ class CmdShowFlowlet : public CmdHandler<CmdShowFlowlet, CmdShowFlowletTraits> {
   }
 
   void printOutput(const RetType& model, std::ostream& out = std::cout) {
-    for (const auto& entry : model.get_ecmpEntries()) {
-      out << fmt::format("  ECMP ID: {}\n", entry.get_ecmpId());
+    for (const auto& entry : model.ecmpEntries().value()) {
       out << fmt::format(
-          "    Flowlet Enabled: {}\n", entry.get_flowletEnabled());
+          "  ECMP ID: {}\n", folly::copy(entry.ecmpId().value()));
       out << fmt::format(
-          "    Flowlet Interval: {}\n", entry.get_flowletInterval());
+          "    Flowlet Enabled: {}\n",
+          folly::copy(entry.flowletEnabled().value()));
       out << fmt::format(
-          "    Flowlet Table Size: {}\n", entry.get_flowletTableSize());
+          "    Flowlet Interval: {}\n",
+          folly::copy(entry.flowletInterval().value()));
+      out << fmt::format(
+          "    Flowlet Table Size: {}\n",
+          folly::copy(entry.flowletTableSize().value()));
     }
   }
 

@@ -48,7 +48,8 @@ void addMirrorConfig(
     const AgentEnsemble& ensemble,
     const std::string& mirrorName,
     bool truncate,
-    uint8_t dscp = kDscpDefault);
+    uint8_t dscp = kDscpDefault,
+    uint16_t mirrorToPortIndex = kMirrorToPortIndex);
 
 folly::IPAddress getSflowMirrorDestination(bool isV4);
 folly::IPAddress getSflowMirrorSource(bool isV4);
@@ -60,7 +61,8 @@ void configureSflowMirror(
     const std::string& destinationIp,
     uint32_t udpSrcPort = 6545,
     uint32_t udpDstPort = 6343,
-    bool isV4 = false);
+    bool isV4 = false,
+    std::optional<int> sampleRate = std::nullopt);
 
 void configureSflowSampling(
     cfg::SwitchConfig& config,

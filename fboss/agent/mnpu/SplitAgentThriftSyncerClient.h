@@ -41,7 +41,8 @@ class SplitAgentThriftClient : public ReconnectingThriftClient {
       const std::string& counterPrefix,
       StreamStateChangeCb stateChangeCb,
       uint16_t serverPort,
-      SwitchID switchId);
+      const SwitchID& switchId);
+  std::shared_ptr<ThreadHeartbeat> getThriftClientHeartbeat();
   ~SplitAgentThriftClient() override;
 
  protected:
@@ -63,12 +64,13 @@ class SplitAgentThriftClient : public ReconnectingThriftClient {
 #if FOLLY_HAS_COROUTINES
   folly::coro::Task<void> serviceLoopWrapper() override;
 #endif
-
   std::shared_ptr<folly::ScopedEventBaseThread> streamEvbThread_;
   uint32_t serverPort_;
   SwitchID switchId_;
   std::unique_ptr<apache::thrift::Client<multiswitch::MultiSwitchCtrl>>
       multiSwitchClient_;
+
+  std::shared_ptr<ThreadHeartbeat> thriftClientHeartbeat_;
 };
 
 #if FOLLY_HAS_COROUTINES
@@ -89,10 +91,11 @@ using StatsEventQueueType = folly::coro::UnboundedQueue<
 using FdbEventQueueType = std::queue<multiswitch::HwSwitchStats>;
 #endif
 
+// multiple sdk threads can enqueue events to the same queue
 #if FOLLY_HAS_COROUTINES
 using LinkChangeEventQueueType = folly::coro::UnboundedQueue<
     multiswitch::LinkChangeEvent,
-    true /*SingleProducer*/,
+    false /*SingleProducer*/,
     true /* SingleConsumer*/>;
 #else
 using LinkChangeEventQueueType = std::queue<multiswitch::LinkChangeEvent>;

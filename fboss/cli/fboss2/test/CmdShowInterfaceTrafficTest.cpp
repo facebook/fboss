@@ -90,9 +90,9 @@ std::map<int32_t, facebook::fboss::PortInfoThrift> createFakePortInfo() {
   portEntry3.input() = inputCounter3;
   portEntry3.output() = outputCounter3;
 
-  portMap[portEntry1.get_portId()] = portEntry1;
-  portMap[portEntry2.get_portId()] = portEntry2;
-  portMap[portEntry3.get_portId()] = portEntry3;
+  portMap[folly::copy(portEntry1.portId().value())] = portEntry1;
+  portMap[folly::copy(portEntry2.portId().value())] = portEntry2;
+  portMap[folly::copy(portEntry3.portId().value())] = portEntry3;
 
   return portMap;
 }
@@ -144,8 +144,8 @@ class CmdShowInterfaceTrafficTestFixture : public CmdHandlerTestBase {
 TEST_F(CmdShowInterfaceTrafficTestFixture, createModel) {
   auto cmd = CmdShowInterfaceTraffic();
   auto model = cmd.createModel(portInfo, intCounters, queriedIfs);
-  auto errorCounters = model.get_error_counters();
-  auto trafficCounters = model.get_traffic_counters();
+  auto errorCounters = model.error_counters().value();
+  auto trafficCounters = model.traffic_counters().value();
 
   EXPECT_EQ(errorCounters.size(), 1);
   EXPECT_EQ(trafficCounters.size(), 3);

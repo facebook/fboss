@@ -25,6 +25,10 @@
 #include "fboss/lib/phy/gen-cpp2/phy_types_custom_protocol.h"
 #include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
 
+#ifndef IS_OSS
+#include "common/base/Proc.h"
+#endif
+
 DEFINE_bool(
     list_production_feature,
     false,
@@ -46,9 +50,15 @@ const std::vector<std::string> l1LinkTestNames = {
     "iPhyInfoTest",
     "xPhyInfoTest",
     "verifyIphyFecCounters",
-    "verifyIphyFecBerCounters"};
+    "verifyIphyFecBerCounters",
+    "clearIphyInterfaceCounters",
+    "resetTransceiverDeadlockTest"};
 
 const std::vector<std::string> l2LinkTestNames = {"trafficRxTx", "ecmpShrink"};
+
+#ifndef IS_OSS
+static auto kAgentMemLimit = 9 * 1000 * 1000 * 1000L; // 9GB
+#endif
 } // namespace
 
 namespace facebook::fboss {
@@ -86,8 +96,25 @@ void LinkTest::TearDown() {
         QsfpServiceRunState::ACTIVE,
         qsfpServiceClient.get()->sync_getQsfpServiceRunState())
         << "QSFP Service run state no longer active after the test";
+#ifndef IS_OSS
+    // FSDB is not fully supported in OSS
+    auto fsdbClient = utils::createFsdbClient();
+    EXPECT_EQ(
+        facebook::fb303::cpp2::fb_status::ALIVE,
+        fsdbClient.get()->sync_getStatus())
+        << "FSDB no longer alive after the test";
+#endif
     AgentTest::TearDown();
   }
+}
+
+void LinkTest::checkAgentMemoryInBounds() const {
+#ifndef IS_OSS
+  int64_t memUsage = facebook::Proc::getMemoryUsage();
+  if (memUsage > kAgentMemLimit) {
+    throw FbossError("Agent RSS memory ", memUsage, " above 9GB");
+  }
+#endif
 }
 
 void LinkTest::setCmdLineFlagOverrides() const {
@@ -165,9 +192,9 @@ void LinkTest::initializeCabledPorts() {
 }
 
 std::tuple<std::vector<PortID>, std::string>
-LinkTest::getOpticalCabledPortsAndNames(bool pluggableOnly) const {
-  std::string opticalPortNames;
-  std::vector<PortID> opticalPorts;
+LinkTest::getOpticalAndActiveCabledPortsAndNames(bool pluggableOnly) const {
+  std::string portNames;
+  std::vector<PortID> ports;
   std::vector<int32_t> transceiverIds;
   for (const auto& port : getCabledPorts()) {
     auto portName = getPortName(port);
@@ -189,12 +216,17 @@ LinkTest::getOpticalCabledPortsAndNames(bool pluggableOnly) const {
             (pluggableOnly &&
              (tcvrState.identifier().value_or({}) !=
               TransceiverModuleIdentifier::MINIPHOTON_OBO))) {
-          opticalPorts.push_back(port);
-          opticalPortNames += portName + " ";
+          ports.push_back(port);
+          portNames += portName + " ";
         } else {
           XLOG(DBG2) << "Transceiver: " << tcvrId + 1 << ", " << portName
                      << ", is on-board optics, skip it";
         }
+      } else if (
+          tcvrState.cable().value_or({}).mediaTypeEncoding() ==
+          MediaTypeEncodings::ACTIVE_CABLES) {
+        ports.push_back(port);
+        portNames += portName + " ";
       } else {
         XLOG(DBG2) << "Transceiver: " << tcvrId + 1 << ", " << portName
                    << ", is not optics, skip it";
@@ -205,7 +237,7 @@ LinkTest::getOpticalCabledPortsAndNames(bool pluggableOnly) const {
     }
   }
 
-  return {opticalPorts, opticalPortNames};
+  return {ports, portNames};
 }
 
 const std::vector<PortID>& LinkTest::getCabledPorts() const {
@@ -241,7 +273,12 @@ void LinkTest::programDefaultRoute(
 void LinkTest::programDefaultRoute(
     const boost::container::flat_set<PortDescriptor>& ecmpPorts,
     std::optional<folly::MacAddress> dstMac) {
-  utility::EcmpSetupTargetedPorts6 ecmp6(sw()->getState(), dstMac);
+  utility::EcmpSetupTargetedPorts6 ecmp6(
+      sw()->getState(),
+      dstMac,
+      RouterID(0),
+      false,
+      {cfg::PortType::INTERFACE_PORT, cfg::PortType::MANAGEMENT_PORT});
   programDefaultRoute(ecmpPorts, ecmp6);
 }
 
@@ -252,7 +289,7 @@ void LinkTest::createL3DataplaneFlood(
       sw()->getState(), sw()->getLocalMac(switchId));
   programDefaultRoute(ecmpPorts, ecmp6);
   utility::disableTTLDecrements(sw(), ecmpPorts);
-  auto vlanID = utility::firstVlanID(sw()->getState());
+  auto vlanID = getVlanIDForTx();
   utility::pumpTraffic(
       true,
       utility::getAllocatePktFn(sw()),
@@ -306,8 +343,10 @@ std::vector<std::string> LinkTest::getPortName(
   return portNames;
 }
 
-std::optional<PortID> LinkTest::getPeerPortID(PortID portId) const {
-  for (auto portPair : getConnectedPairs()) {
+std::optional<PortID> LinkTest::getPeerPortID(
+    PortID portId,
+    const std::set<std::pair<PortID, PortID>>& connectedPairs) const {
+  for (auto portPair : connectedPairs) {
     if (portPair.first == portId) {
       return portPair.second;
     } else if (portPair.second == portId) {
@@ -332,7 +371,8 @@ std::set<std::pair<PortID, PortID>> LinkTest::getConnectedPairs() const {
         XLOG(DBG2) << " No fabric end points on : " << getPortName(cabledPort);
         continue;
       }
-      neighborPort = PortID(fabricPortEndpoint->second.get_portId()) +
+      neighborPort =
+          PortID(folly::copy(fabricPortEndpoint->second.portId().value())) +
           getRemotePortOffset(platform()->getType());
     } else {
       auto lldpNeighbors =
@@ -356,19 +396,20 @@ std::set<std::pair<PortID, PortID>> LinkTest::getConnectedPairs() const {
 }
 
 /*
- * getConnectedOpticalPortPairWithFeature
+ * getConnectedOpticalAndActivePortPairWithFeature
  *
  * Returns the set of connected port pairs with optical link and the optics
  * supporting the given feature. For feature==None, this will return set of
  * connected port pairs using optical links
  */
 std::set<std::pair<PortID, PortID>>
-LinkTest::getConnectedOpticalPortPairWithFeature(
+LinkTest::getConnectedOpticalAndActivePortPairWithFeature(
     TransceiverFeature feature,
     phy::Side side,
     bool skipLoopback) const {
   auto connectedPairs = getConnectedPairs();
-  auto opticalPorts = std::get<0>(getOpticalCabledPortsAndNames(false));
+  auto opticalPorts =
+      std::get<0>(getOpticalAndActiveCabledPortsAndNames(false));
 
   std::set<std::pair<PortID, PortID>> connectedOpticalPortPairs;
   for (auto connectedPair : connectedPairs) {

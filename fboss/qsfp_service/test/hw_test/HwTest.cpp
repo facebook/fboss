@@ -19,6 +19,7 @@
 #include "fboss/qsfp_service/QsfpServer.h"
 #include "fboss/qsfp_service/test/hw_test/HwPortUtils.h"
 #include "fboss/qsfp_service/test/hw_test/HwQsfpEnsemble.h"
+#include "fboss/qsfp_service/test/hw_test/HwTransceiverUtils.h"
 
 DEFINE_bool(
     setup_for_warmboot,
@@ -204,7 +205,7 @@ void HwTest::waitTillCabledTcvrProgrammed(int numRetries) {
       "Never got all transceivers programmed");
 }
 
-std::vector<int> HwTest::getCabledOpticalTransceiverIDs() {
+std::vector<int> HwTest::getCabledOpticalAndActiveTransceiverIDs() {
   auto transceivers = utility::legacyTransceiverIds(
       utility::getCabledPortTranceivers(getHwQsfpEnsemble()));
   std::map<int32_t, TransceiverInfo> transceiversInfo;
@@ -214,9 +215,8 @@ std::vector<int> HwTest::getCabledOpticalTransceiverIDs() {
   return folly::gen::from(transceivers) |
       folly::gen::filter([&transceiversInfo](int32_t tcvrId) {
            auto& tcvrInfo = transceiversInfo[tcvrId];
-           auto transmitterTech =
-               *tcvrInfo.tcvrState()->cable().value_or({}).transmitterTech();
-           return transmitterTech == TransmitterTechnology::OPTICAL;
+           return utility::HwTransceiverUtils::opticalOrActiveCable(
+               *tcvrInfo.tcvrState());
          }) |
       folly::gen::as<std::vector>();
 }
@@ -233,5 +233,27 @@ void HwTest::printProductionFeatures() const {
   }
   std::cout << "Feature List: " << folly::join(",", supportedFeatures) << "\n";
   GTEST_SKIP();
+}
+
+TEST_F(HwTest, CheckTcvrNameAndInterfaces) {
+  auto wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
+  std::map<int32_t, TransceiverInfo> transceivers;
+  wedgeManager->getTransceiversInfo(
+      transceivers, std::make_unique<std::vector<int32_t>>());
+  CHECK(!transceivers.empty());
+  for (auto& [id, tcvr] : transceivers) {
+    auto tcvrStateName = *tcvr.tcvrState()->tcvrName();
+    auto tcvrStatsName = *tcvr.tcvrState()->tcvrName();
+    EXPECT_EQ(tcvrStateName, tcvrStatsName);
+    EXPECT_TRUE(
+        tcvrStateName.starts_with("eth") || tcvrStateName.starts_with("fab"));
+    auto portName = wedgeManager->getPortName(TransceiverID(id));
+    EXPECT_EQ(tcvrStateName + "/1", portName);
+
+    auto ports = wedgeManager->getPortNames(TransceiverID(id));
+    EXPECT_FALSE(ports.empty());
+    EXPECT_EQ(*tcvr.tcvrState()->interfaces(), ports);
+    EXPECT_EQ(*tcvr.tcvrStats()->interfaces(), ports);
+  }
 }
 } // namespace facebook::fboss

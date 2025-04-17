@@ -37,15 +37,26 @@ void FsdbOperTreeMetadataTracker::updateMetadata(
         "Publisher root: " + publisherRoot +
         " must be registered before adding metadata");
   }
+  itr->second.lastPublishedUpdateProcessedAt =
+      std::chrono::duration_cast<std::chrono::milliseconds>(
+          std::chrono::system_clock::now().time_since_epoch())
+          .count();
   auto& operMetadata = itr->second.operMetadata;
   if (enforceForwardProgress) {
     if (metadata.lastConfirmedAt()) {
       operMetadata.lastConfirmedAt() = std::max(
           *operMetadata.lastConfirmedAt(), *metadata.lastConfirmedAt());
     }
+    if (metadata.lastPublishedAt().has_value()) {
+      operMetadata.lastPublishedAt() = std::max(
+          metadata.lastPublishedAt().value(),
+          operMetadata.lastPublishedAt().value_or(0));
+    }
   } else {
     operMetadata.lastConfirmedAt() =
         metadata.lastConfirmedAt().value_or(*operMetadata.lastConfirmedAt());
+    operMetadata.lastPublishedAt() = metadata.lastPublishedAt().value_or(
+        operMetadata.lastPublishedAt().value_or(0));
   }
 }
 

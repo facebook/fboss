@@ -190,7 +190,8 @@ std::shared_ptr<SwitchState> MacTableUtils::removeEntry(
 std::shared_ptr<SwitchState> MacTableUtils::updateOrAddStaticEntryIfNbrExists(
     const std::shared_ptr<SwitchState>& state,
     VlanID vlanId,
-    folly::MacAddress mac) {
+    folly::MacAddress mac,
+    std::optional<cfg::AclLookupClass> classID) {
   auto findNeighbor = [mac](const auto& nbrTable) {
     return std::find_if(
         nbrTable.begin(), nbrTable.end(), [mac](const auto& iter) {
@@ -229,10 +230,7 @@ std::shared_ptr<SwitchState> MacTableUtils::updateOrAddStaticEntryIfNbrExists(
       auto newState = state->clone();
       macTable = macTable->modify(&vlan, &newState);
       auto newEntry = std::make_shared<MacEntry>(
-          mac,
-          port,
-          std::optional<cfg::AclLookupClass>(std::nullopt),
-          MacEntryType::STATIC_ENTRY);
+          mac, port, classID, MacEntryType::STATIC_ENTRY);
       macTable->addEntry(newEntry);
       return newState;
     }

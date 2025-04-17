@@ -48,11 +48,26 @@ class PlatformFsUtils {
   // the write may not be persisted after this function returns `true`.
   //
   // Note: `flags` are ignored when `atomic` = true.
+  //
+  // See writeStringToSysfsFile for sysfs writes.
   virtual bool writeStringToFile(
       const std::string& content,
       const std::filesystem::path& path,
       bool atomic = false,
       int flags = O_WRONLY | O_CREAT | O_TRUNC) const;
+
+  // Write string to sysfs file. Returns true if successful.
+  // Sysfs-specific differences:
+  //  - No directory creation.
+  //  - The only file flag set is always O_WRONLY.
+  //  - Atomic writes not supported.
+  //  - Unit testing via `rootDir` not supported.
+  //  - \n is appended to the end of the file contents, to match the behavior of
+  //    `echo`, as `echo` is the example usage specified in kernel documentation
+  //    of sysfs.
+  virtual bool writeStringToSysfs(
+      const std::string& content,
+      const std::filesystem::path& path) const;
 
   virtual std::optional<std::string> getStringFileContent(
       const std::filesystem::path& path) const;

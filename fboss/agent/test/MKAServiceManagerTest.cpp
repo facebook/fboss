@@ -154,6 +154,9 @@ class MKAServiceManagerTest : public testing::Test {
     std::unique_ptr<MockRxPacket> rxPkt =
         std::make_unique<MockRxPacket>(std::move(iobuf));
     rxPkt->setSrcPort(activePort_);
+    auto vlan =
+        sw_->getState()->getPorts()->getNodeIf(activePort_)->getIngressVlan();
+    rxPkt->setSrcVlan(vlan);
     EXPECT_NO_THROW(sw_->packetReceivedThrowExceptionOnError(std::move(rxPkt)));
   }
 

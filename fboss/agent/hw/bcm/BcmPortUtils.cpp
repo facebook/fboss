@@ -173,7 +173,7 @@ uint32_t getDesiredPhyLaneConfig(const phy::ProfileSideConfig& profileCfg) {
   }
   BCM_PORT_RESOURCE_PHY_LANE_CONFIG_MEDIUM_SET(laneConfig, medium);
 
-  switch (profileCfg.get_modulation()) {
+  switch (folly::copy(profileCfg.modulation().value())) {
     case phy::IpModulation::PAM4:
       // PAM4 + NS
       BCM_PORT_RESOURCE_PHY_LANE_CONFIG_FORCE_PAM4_SET(laneConfig);

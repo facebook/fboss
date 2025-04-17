@@ -161,19 +161,20 @@ void IPv6RAImpl::sendRouteAdvertisement() {
   cursor.push(buf_.data(), buf_.length());
 
   std::optional<PortDescriptor> portDescriptor{std::nullopt};
-  auto switchType = sw_->getSwitchInfoTable().l3SwitchType();
-  if (switchType == cfg::SwitchType::VOQ) {
-    auto intf = sw_->getState()->getInterfaces()->getNodeIf(intfID_);
-    if (!intf) {
-      XLOG(ERR) << " Skip sending router advertisement for non "
-                << "existent interface: " << intfID_;
-      return;
+  auto intf = sw_->getState()->getInterfaces()->getNodeIf(intfID_);
+  if (intf) {
+    if (intf->getType() == cfg::InterfaceType::SYSTEM_PORT) {
+      // VOQ switches don't use VLANs (no broadcast domain).
+      // Find the port to send out the pkt with pipeline bypass on.
+      portDescriptor =
+          PortDescriptor(getPortID(*intf->getSystemPortID(), sw_->getState()));
+    } else if (intf->getType() == cfg::InterfaceType::PORT) {
+      portDescriptor = PortDescriptor(intf->getPortID());
     }
-    // VOQ switches don't use VLANs (no broadcast domain).
-    // Find the port to send out the pkt with pipeline bypass on.
-    CHECK(intf->getSystemPortID().has_value());
-    portDescriptor =
-        PortDescriptor(getPortID(*intf->getSystemPortID(), sw_->getState()));
+  } else {
+    XLOG(ERR) << " Skip sending router advertisement for non "
+              << "existent interface: " << intfID_;
+    return;
   }
   sw_->sendNetworkControlPacketAsync(std::move(pkt), portDescriptor);
   sw_->interfaceStats(intfID_)->sentRouterAdvertisement();

@@ -14,13 +14,13 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 #include "fboss/agent/platforms/common/PlatformMappingUtils.h"
-#include "fboss/agent/platforms/common/cloud_ripper/CloudRipperPlatformMapping.h"
 #include "fboss/agent/platforms/common/darwin/DarwinPlatformMapping.h"
 #include "fboss/agent/platforms/common/elbert/ElbertPlatformMapping.h"
 #include "fboss/agent/platforms/common/fake_test/FakeTestPlatformMapping.h"
 #include "fboss/agent/platforms/common/fuji/FujiPlatformMapping.h"
 #include "fboss/agent/platforms/common/galaxy/GalaxyFCPlatformMapping.h"
 #include "fboss/agent/platforms/common/galaxy/GalaxyLCPlatformMapping.h"
+#include "fboss/agent/platforms/common/icecube800bc/Icecube800bcPlatformMapping.h"
 #include "fboss/agent/platforms/common/janga800bic/Janga800bicPlatformMapping.h"
 #include "fboss/agent/platforms/common/meru400bfu/Meru400bfuPlatformMapping.h"
 #include "fboss/agent/platforms/common/meru400bia/Meru400biaPlatformMapping.h"
@@ -29,6 +29,7 @@
 #include "fboss/agent/platforms/common/meru800bfa/Meru800bfaPlatformMapping.h"
 #include "fboss/agent/platforms/common/meru800bia/Meru800biaPlatformMapping.h"
 #include "fboss/agent/platforms/common/minipack/MinipackPlatformMapping.h"
+#include "fboss/agent/platforms/common/minipack3n/Minipack3NPlatformMapping.h"
 #include "fboss/agent/platforms/common/montblanc/MontblancPlatformMapping.h"
 #include "fboss/agent/platforms/common/morgan800cc/Morgan800ccPlatformMapping.h"
 #include "fboss/agent/platforms/common/tahan800bc/Tahan800bcPlatformMapping.h"
@@ -115,10 +116,6 @@ std::unique_ptr<PlatformMapping> initPlatformMapping(PlatformType type) {
             ? std::make_unique<Wedge400CPlatformMapping>()
             : std::make_unique<Wedge400CPlatformMapping>(platformMappingStr);
       }
-    case PlatformType::PLATFORM_CLOUDRIPPER:
-      return platformMappingStr.empty()
-          ? std::make_unique<CloudRipperPlatformMapping>()
-          : std::make_unique<CloudRipperPlatformMapping>(platformMappingStr);
     case PlatformType::PLATFORM_DARWIN:
     case PlatformType::PLATFORM_DARWIN48V:
       return platformMappingStr.empty()
@@ -178,13 +175,22 @@ std::unique_ptr<PlatformMapping> initPlatformMapping(PlatformType type) {
       return platformMappingStr.empty()
           ? std::make_unique<YangraPlatformMapping>()
           : std::make_unique<YangraPlatformMapping>(platformMappingStr);
+    case PlatformType::PLATFORM_MINIPACK3N:
+      return platformMappingStr.empty()
+          ? std::make_unique<Minipack3NPlatformMapping>()
+          : std::make_unique<Minipack3NPlatformMapping>(platformMappingStr);
+    case PlatformType::PLATFORM_ICECUBE800BC:
+      return platformMappingStr.empty()
+          ? std::make_unique<Icecube800bcPlatformMapping>()
+          : std::make_unique<Icecube800bcPlatformMapping>(platformMappingStr);
     case PlatformType::PLATFORM_FAKE_SAI: {
       std::vector<int> controllingPorts = getFakeSaiControllingPortIDs();
       return std::make_unique<FakeTestPlatformMapping>(controllingPorts);
     }
     case PlatformType::PLATFORM_LASSEN_DEPRECATED:
-    case PlatformType::PLATFORM_CLOUDRIPPER_FABRIC:
-    case PlatformType::PLATFORM_CLOUDRIPPER_VOQ:
+    case PlatformType::PLATFORM_CLOUDRIPPER_DEPRECATED:
+    case PlatformType::PLATFORM_CLOUDRIPPER_FABRIC_DEPRECATED:
+    case PlatformType::PLATFORM_CLOUDRIPPER_VOQ_DEPRECATED:
     case PlatformType::PLATFORM_WEDGE400C_FABRIC:
     case PlatformType::PLATFORM_WEDGE400C_VOQ:
     case PlatformType::PLATFORM_SANDIA:

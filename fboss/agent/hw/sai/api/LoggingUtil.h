@@ -208,7 +208,7 @@ struct formatter<sai_map_t> {
   template <typename FormatContext>
   auto format(const sai_map_t& map, FormatContext& ctx) const {
     return format_to(
-        ctx.out(), "(mapping: key: {}, value: {}", map.key, map.value);
+        ctx.out(), "(mapping: key: {}, value: {})", map.key, map.value);
   }
 };
 
@@ -233,6 +233,20 @@ struct formatter<sai_port_lane_eye_values_t> {
         eyeVal.right,
         eyeVal.up,
         eyeVal.down);
+  }
+};
+
+// Formatting for sai_object_type_t
+template <>
+struct formatter<sai_object_type_t> {
+  template <typename ParseContext>
+  constexpr auto parse(ParseContext& ctx) const {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const sai_object_type_t& type, FormatContext& ctx) const {
+    return format_to(ctx.out(), "{}", static_cast<int>(type));
   }
 };
 
@@ -267,19 +281,6 @@ struct formatter<sai_prbs_rx_state_t> {
         "PRBS error count: {})",
         prbsStats.rx_status,
         prbsStats.error_count);
-  }
-};
-// Formatting for sai_object_type_t
-template <>
-struct formatter<sai_object_type_t> {
-  template <typename ParseContext>
-  constexpr auto parse(ParseContext& ctx) const {
-    return ctx.begin();
-  }
-
-  template <typename FormatContext>
-  auto format(const sai_object_type_t& type, FormatContext& ctx) const {
-    return format_to(ctx.out(), "{}", static_cast<int>(type));
   }
 };
 #endif

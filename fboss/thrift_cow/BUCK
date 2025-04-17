@@ -10,10 +10,11 @@ thrift_library(
     languages = [
         "cpp2",
         "go",
-        "py",
-        "py3",
-        "py-asyncio",
+        "py3-deprecated",
+        "py-deprecated-asyncio",
         "rust",
+        "python",
+        "py-deprecated",
     ],
     no_plugin_deps = [
         "//thrift/annotation:all",

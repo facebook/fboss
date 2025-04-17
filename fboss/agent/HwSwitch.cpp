@@ -11,6 +11,7 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/HwSwitchRouteUpdateWrapper.h"
+#include "fboss/agent/TxPacketUtils.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/hw/HwSwitchFb303Stats.h"
 #include "fboss/agent/hw/HwSwitchWarmBootHelper.h"
@@ -61,6 +62,11 @@ DEFINE_int32(
     update_cable_length_stats_s,
     600,
     "Update cable length stats interval in seconds");
+
+DEFINE_int32(
+    prbs_update_interval_s,
+    10,
+    "Interval in seconds for reading PRBS RX State");
 
 namespace {
 constexpr auto kBuildSdkVersion = "SDK Version";
@@ -186,6 +192,7 @@ multiswitch::HwSwitchStats HwSwitch::getHwSwitchStats() {
   hwSwitchStats.aclStats() = getAclStats();
   hwSwitchStats.switchWatermarkStats() = getSwitchWatermarkStats();
   hwSwitchStats.hwResourceStats() = getResourceStats();
+  hwSwitchStats.arsExhausted() = getArsExhaustionStatus();
   return hwSwitchStats;
 }
 
@@ -487,4 +494,5 @@ HwInitResult HwSwitch::initLightImpl(
   });
   return ret;
 }
+
 } // namespace facebook::fboss

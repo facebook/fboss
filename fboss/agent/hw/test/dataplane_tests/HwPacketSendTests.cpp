@@ -48,9 +48,10 @@ class HwPacketSendTest : public HwLinkStateDependentTest {
       auto portStatsIter = newStats.find(port);
       if (portStatsIter != newStats.end()) {
         auto portStats = portStatsIter->second;
-        outPackets =
-            portStats.get_outUnicastPkts_() - before.get_outUnicastPkts_();
-        outDiscards = portStats.get_outDiscards_() - before.get_outDiscards_();
+        outPackets = portStats.get_outUnicastPkts_() -
+            folly::copy(before.outUnicastPkts_().value());
+        outDiscards = portStats.get_outDiscards_() -
+            folly::copy(before.outDiscards_().value());
       }
       // Check to see if outPackets + outDiscards add up to the expected!
       XLOG(DBG3) << "Port: " << port << ", out packets: " << outPackets

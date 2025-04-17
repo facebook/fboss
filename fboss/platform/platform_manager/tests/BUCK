@@ -20,7 +20,7 @@ cpp_unittest(
         "I2cExplorerTest.cpp",
     ],
     deps = [
-        "//fboss/platform/helpers:mock_platform_utils",
+        "//fboss/platform/helpers:mock_platform_fs_utils",
         "//fboss/platform/platform_manager:i2c_explorer",
     ],
 )
@@ -99,9 +99,12 @@ cpp_unittest(
     name = "pkg_manager_test",
     srcs = [
         "PkgManagerTest.cpp",
+        "SystemInterfaceTest.cpp",
     ],
     deps = [
+        "fbsource//third-party/fmt:fmt",
         "fbsource//third-party/googletest:gmock",
+        "fbsource//third-party/range-v3:range-v3",
         "//fb303:service_data",
         "//fboss/platform/platform_manager:pkg_manager",
         "//thrift/lib/cpp2/protocol:protocol",

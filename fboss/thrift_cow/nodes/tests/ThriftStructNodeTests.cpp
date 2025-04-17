@@ -528,6 +528,391 @@ TYPED_TEST(ThriftStructNodeTestSuite, ThriftStructNodeModifyPathTest) {
   visitResult = RootPathVisitor::visit(
       *node, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
   EXPECT_EQ(visitResult, ThriftTraverseResult::OK);
+
+  // remove node
+  std::vector<std::string> keyPath = {
+      "mapOfI32ToMapOfStruct", "1", "2", "mapOfI32ToMapOfStruct", "3", "4"};
+  result = ThriftStructNode<
+      RootTestStruct,
+      ThriftStructResolver<RootTestStruct, enableHybridStorage>,
+      enableHybridStorage>::removePath(&node, keyPath.begin(), keyPath.end());
+  EXPECT_EQ(result, ThriftTraverseResult::OK);
+
+  visitResult = RootPathVisitor::visit(
+      *node, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
+  EXPECT_EQ(visitResult, ThriftTraverseResult::NON_EXISTENT_NODE);
+}
+
+TYPED_TEST(
+    ThriftStructNodeTestSuite,
+    ThriftStructNodeRemoveModifyPathOnHybridNodeTest) {
+  using Param = typename TestFixture::T;
+  constexpr bool enableHybridStorage = Param::hybridStorage;
+
+  RootTestStruct root;
+  ParentTestStruct parent;
+  auto testStruct = createSimpleTestStruct();
+  parent.mapOfI32ToMapOfStruct() = {{3, {{"4", std::move(testStruct)}}}};
+  root.mapOfI32ToMapOfStruct() = {{1, {{"2", std::move(parent)}}}};
+
+  auto node = this->initNode(root);
+
+  std::vector<std::string> path{
+      "mapOfI32ToMapOfStruct",
+      "1",
+      "2",
+      "mapOfI32ToMapOfStruct",
+      "3",
+      "4",
+      "hybridMapOfI32ToStruct",
+      "10"};
+  folly::dynamic dyn;
+  auto processPath = pvlambda([&dyn](auto& node, auto begin, auto end) {
+    EXPECT_EQ(begin, end);
+    dyn = node.toFollyDynamic();
+  });
+
+  // non-existent node
+  auto visitResult = RootPathVisitor::visit(
+      *node, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
+  EXPECT_EQ(visitResult, ThriftTraverseResult::NON_EXISTENT_NODE);
+
+  // create node
+  auto result = ThriftStructNode<
+      RootTestStruct,
+      ThriftStructResolver<RootTestStruct, enableHybridStorage>,
+      enableHybridStorage>::modifyPath(&node, path.begin(), path.end());
+  EXPECT_EQ(result, ThriftTraverseResult::OK);
+
+  // node exists now
+  visitResult = RootPathVisitor::visit(
+      *node, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
+  EXPECT_EQ(visitResult, ThriftTraverseResult::OK);
+
+  // remove node
+  result = ThriftStructNode<
+      RootTestStruct,
+      ThriftStructResolver<RootTestStruct, enableHybridStorage>,
+      enableHybridStorage>::removePath(&node, path.begin(), path.end());
+  EXPECT_EQ(result, ThriftTraverseResult::OK);
+  visitResult = RootPathVisitor::visit(
+      *node, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
+  EXPECT_EQ(visitResult, ThriftTraverseResult::NON_EXISTENT_NODE);
+}
+
+TYPED_TEST(
+    ThriftStructNodeTestSuite,
+    ThriftStructNodeRemoveModifyPathOnThriftListTest) {
+  using Param = typename TestFixture::T;
+  constexpr bool enableHybridStorage = Param::hybridStorage;
+
+  RootTestStruct root;
+  ParentTestStruct parent;
+  auto testStruct = createSimpleTestStruct();
+  parent.mapOfI32ToMapOfStruct() = {{3, {{"4", std::move(testStruct)}}}};
+  root.mapOfI32ToMapOfStruct() = {{1, {{"2", std::move(parent)}}}};
+
+  auto node = this->initNode(root);
+
+  std::vector<std::string> path{
+      "mapOfI32ToMapOfStruct",
+      "1",
+      "2",
+      "mapOfI32ToMapOfStruct",
+      "3",
+      "4",
+      "hybridMapOfI32ToStruct",
+      "20",
+      "listOfStruct",
+      "2"};
+  folly::dynamic dyn;
+  auto processPath = pvlambda([&dyn](auto& node, auto begin, auto end) {
+    EXPECT_EQ(begin, end);
+    dyn = node.toFollyDynamic();
+  });
+
+  // non-existent node
+  auto visitResult = RootPathVisitor::visit(
+      *node, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
+  EXPECT_EQ(visitResult, ThriftTraverseResult::INVALID_ARRAY_INDEX);
+
+  // create node
+  auto result = ThriftStructNode<
+      RootTestStruct,
+      ThriftStructResolver<RootTestStruct, enableHybridStorage>,
+      enableHybridStorage>::modifyPath(&node, path.begin(), path.end());
+  EXPECT_EQ(result, ThriftTraverseResult::OK);
+
+  // node exists now
+  visitResult = RootPathVisitor::visit(
+      *node, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
+  EXPECT_EQ(visitResult, ThriftTraverseResult::OK);
+
+  // remove node
+  result = ThriftStructNode<
+      RootTestStruct,
+      ThriftStructResolver<RootTestStruct, enableHybridStorage>,
+      enableHybridStorage>::removePath(&node, path.begin(), path.end());
+  EXPECT_EQ(result, ThriftTraverseResult::OK);
+  visitResult = RootPathVisitor::visit(
+      *node, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
+  EXPECT_EQ(visitResult, ThriftTraverseResult::INVALID_ARRAY_INDEX);
+}
+
+TYPED_TEST(
+    ThriftStructNodeTestSuite,
+    ThriftStructNodeRemoveModifyPathOnThriftSetTest) {
+  using Param = typename TestFixture::T;
+  constexpr bool enableHybridStorage = Param::hybridStorage;
+
+  RootTestStruct root;
+  ParentTestStruct parent;
+  auto testStruct = createSimpleTestStruct();
+  parent.mapOfI32ToMapOfStruct() = {{3, {{"4", std::move(testStruct)}}}};
+  root.mapOfI32ToMapOfStruct() = {{1, {{"2", std::move(parent)}}}};
+
+  auto node = this->initNode(root);
+
+  std::vector<std::string> path{
+      "mapOfI32ToMapOfStruct",
+      "1",
+      "2",
+      "mapOfI32ToMapOfStruct",
+      "3",
+      "4",
+      "hybridMapOfI32ToStruct",
+      "20",
+      "childSet",
+      "foo"};
+  folly::dynamic dyn;
+  auto processPath = pvlambda([&dyn](auto& node, auto begin, auto end) {
+    EXPECT_EQ(begin, end);
+    dyn = node.toFollyDynamic();
+  });
+
+  // non-existent node
+  auto visitResult = RootPathVisitor::visit(
+      *node, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
+  EXPECT_EQ(visitResult, ThriftTraverseResult::NON_EXISTENT_NODE);
+
+  // create node
+  auto result = ThriftStructNode<
+      RootTestStruct,
+      ThriftStructResolver<RootTestStruct, enableHybridStorage>,
+      enableHybridStorage>::modifyPath(&node, path.begin(), path.end());
+  EXPECT_EQ(result, ThriftTraverseResult::OK);
+
+  // node exists now
+  visitResult = RootPathVisitor::visit(
+      *node, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
+  EXPECT_EQ(visitResult, ThriftTraverseResult::OK);
+
+  // remove node
+  result = ThriftStructNode<
+      RootTestStruct,
+      ThriftStructResolver<RootTestStruct, enableHybridStorage>,
+      enableHybridStorage>::removePath(&node, path.begin(), path.end());
+  EXPECT_EQ(result, ThriftTraverseResult::OK);
+  visitResult = RootPathVisitor::visit(
+      *node, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
+  EXPECT_EQ(visitResult, ThriftTraverseResult::NON_EXISTENT_NODE);
+}
+
+TYPED_TEST(ThriftStructNodeTestSuite, ThriftStructNodeRemoveOptionalFieldTest) {
+  using Param = typename TestFixture::T;
+  constexpr bool enableHybridStorage = Param::hybridStorage;
+
+  RootTestStruct root;
+  ParentTestStruct parent;
+  auto testStruct = createSimpleTestStruct();
+  parent.mapOfI32ToMapOfStruct() = {{3, {{"4", std::move(testStruct)}}}};
+  root.mapOfI32ToMapOfStruct() = {{1, {{"2", std::move(parent)}}}};
+
+  auto node = this->initNode(root);
+
+  std::vector<std::string> path{
+      "mapOfI32ToMapOfStruct",
+      "1",
+      "2",
+      "mapOfI32ToMapOfStruct",
+      "3",
+      "4",
+      "hybridMapOfI32ToStruct",
+      "20",
+      "optionalEnum"};
+  folly::dynamic dyn;
+  auto processPath = pvlambda([&dyn](auto& node, auto begin, auto end) {
+    EXPECT_EQ(begin, end);
+    dyn = node.toFollyDynamic();
+  });
+
+  // non-existent node
+  auto visitResult = RootPathVisitor::visit(
+      *node, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
+  EXPECT_EQ(visitResult, ThriftTraverseResult::NON_EXISTENT_NODE);
+
+  // create node
+  auto result = ThriftStructNode<
+      RootTestStruct,
+      ThriftStructResolver<RootTestStruct, enableHybridStorage>,
+      enableHybridStorage>::modifyPath(&node, path.begin(), path.end());
+  EXPECT_EQ(result, ThriftTraverseResult::OK);
+
+  // node exists now
+  visitResult = RootPathVisitor::visit(
+      *node, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
+  EXPECT_EQ(visitResult, ThriftTraverseResult::OK);
+
+  // remove node
+  result = ThriftStructNode<
+      RootTestStruct,
+      ThriftStructResolver<RootTestStruct, enableHybridStorage>,
+      enableHybridStorage>::removePath(&node, path.begin(), path.end());
+  EXPECT_EQ(result, ThriftTraverseResult::OK);
+  visitResult = RootPathVisitor::visit(
+      *node, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
+  EXPECT_EQ(visitResult, ThriftTraverseResult::NON_EXISTENT_NODE);
+}
+
+TYPED_TEST(
+    ThriftStructNodeTestSuite,
+    ThriftStructNodeRemovePathOnThriftMapTest) {
+  using Param = typename TestFixture::T;
+  constexpr bool enableHybridStorage = Param::hybridStorage;
+
+  RootTestStruct root;
+  ParentTestStruct parent;
+  auto testStruct = createSimpleTestStruct();
+  parent.mapOfI32ToMapOfStruct() = {{3, {{"4", std::move(testStruct)}}}};
+  root.mapOfI32ToMapOfStruct() = {{1, {{"2", std::move(parent)}}}};
+
+  auto node = this->initNode(root);
+
+  std::vector<std::string> path{
+      "mapOfI32ToMapOfStruct",
+      "1",
+      "2",
+      "mapOfI32ToMapOfStruct",
+      "3",
+      "4",
+      "hybridMapOfI32ToStruct",
+      "20",
+      "childMap",
+      "2"};
+  folly::dynamic dyn;
+  auto processPath = pvlambda([&dyn](auto& node, auto begin, auto end) {
+    EXPECT_EQ(begin, end);
+    dyn = node.toFollyDynamic();
+  });
+
+  // node exists now
+  auto visitResult = RootPathVisitor::visit(
+      *node, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
+  EXPECT_EQ(visitResult, ThriftTraverseResult::OK);
+
+  // remove node
+  auto result = ThriftStructNode<
+      RootTestStruct,
+      ThriftStructResolver<RootTestStruct, enableHybridStorage>,
+      enableHybridStorage>::removePath(&node, path.begin(), path.end());
+  EXPECT_EQ(result, ThriftTraverseResult::OK);
+  visitResult = RootPathVisitor::visit(
+      *node, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
+  EXPECT_EQ(visitResult, ThriftTraverseResult::NON_EXISTENT_NODE);
+}
+
+TYPED_TEST(
+    ThriftStructNodeTestSuite,
+    ThriftStructNodeRemovePathOnThriftListTest) {
+  using Param = typename TestFixture::T;
+  constexpr bool enableHybridStorage = Param::hybridStorage;
+
+  RootTestStruct root;
+  ParentTestStruct parent;
+  auto testStruct = createSimpleTestStruct();
+  parent.mapOfI32ToMapOfStruct() = {{3, {{"4", std::move(testStruct)}}}};
+  root.mapOfI32ToMapOfStruct() = {{1, {{"2", std::move(parent)}}}};
+
+  auto node = this->initNode(root);
+
+  std::vector<std::string> path{
+      "mapOfI32ToMapOfStruct",
+      "1",
+      "2",
+      "mapOfI32ToMapOfStruct",
+      "3",
+      "4",
+      "hybridMapOfI32ToStruct",
+      "20",
+      "listOfStruct",
+      "1"};
+  folly::dynamic dyn;
+  auto processPath = pvlambda([&dyn](auto& node, auto begin, auto end) {
+    EXPECT_EQ(begin, end);
+    dyn = node.toFollyDynamic();
+  });
+
+  // existing node
+  auto visitResult = RootPathVisitor::visit(
+      *node, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
+  EXPECT_EQ(visitResult, ThriftTraverseResult::OK);
+
+  // remove node
+  auto result = ThriftStructNode<
+      RootTestStruct,
+      ThriftStructResolver<RootTestStruct, enableHybridStorage>,
+      enableHybridStorage>::removePath(&node, path.begin(), path.end());
+  EXPECT_EQ(result, ThriftTraverseResult::OK);
+  visitResult = RootPathVisitor::visit(
+      *node, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
+  EXPECT_EQ(visitResult, ThriftTraverseResult::INVALID_ARRAY_INDEX);
+}
+
+TYPED_TEST(
+    ThriftStructNodeTestSuite,
+    ThriftStructNodeRemovePathOnThriftSetTest) {
+  using Param = typename TestFixture::T;
+  constexpr bool enableHybridStorage = Param::hybridStorage;
+
+  RootTestStruct root;
+  ParentTestStruct parent;
+  auto testStruct = createSimpleTestStruct();
+  parent.mapOfI32ToMapOfStruct() = {{3, {{"4", std::move(testStruct)}}}};
+  root.mapOfI32ToMapOfStruct() = {{1, {{"2", std::move(parent)}}}};
+
+  auto node = this->initNode(root);
+
+  std::vector<std::string> path{
+      "mapOfI32ToMapOfStruct",
+      "1",
+      "2",
+      "mapOfI32ToMapOfStruct",
+      "3",
+      "4",
+      "hybridMapOfI32ToStruct",
+      "20",
+      "childSet",
+      "test1"};
+  folly::dynamic dyn;
+  auto processPath = pvlambda([&dyn](auto& node, auto begin, auto end) {
+    EXPECT_EQ(begin, end);
+    dyn = node.toFollyDynamic();
+  });
+
+  // existing node
+  auto visitResult = RootPathVisitor::visit(
+      *node, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
+  EXPECT_EQ(visitResult, ThriftTraverseResult::OK);
+
+  // remove node
+  auto result = ThriftStructNode<
+      RootTestStruct,
+      ThriftStructResolver<RootTestStruct, enableHybridStorage>,
+      enableHybridStorage>::removePath(&node, path.begin(), path.end());
+  EXPECT_EQ(result, ThriftTraverseResult::OK);
+  visitResult = RootPathVisitor::visit(
+      *node, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
+  EXPECT_EQ(visitResult, ThriftTraverseResult::NON_EXISTENT_NODE);
 }
 
 TEST(ThriftStructNodeTests, ThriftStructNodeRemove) {

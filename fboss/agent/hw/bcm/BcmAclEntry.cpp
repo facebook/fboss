@@ -439,7 +439,7 @@ void BcmAclEntry::createAclActions() {
           false /* isWarmBoot */);
     }
 
-    if (hw_->getPlatform()->getAsic()->isSupported(HwAsic::Feature::FLOWLET)) {
+    if (hw_->getPlatform()->getAsic()->isSupported(HwAsic::Feature::ARS)) {
       if (matchAction->getFlowletAction()) {
         XLOG(DBG2) << "Adding flowlet action for handle :" << handle_;
         applyFlowletAction(matchAction);
@@ -457,6 +457,9 @@ void BcmAclEntry::applyFlowletAction(
       rv = bcm_field_action_add(
           hw_->getUnit(), handle_, bcmFieldActionDynamicEcmpEnable, 0, 0);
       bcmCheckError(rv, "failed to add dynamic ecmp enable action");
+      break;
+    case cfg::FlowletAction::DISABLE:
+      throw FbossError("Unsupported flowlet action ", flowletAction);
       break;
     default:
       throw FbossError("Unrecognized flowlet action ", flowletAction);

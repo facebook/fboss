@@ -43,6 +43,7 @@ state::MatchAction MatchAction::toThrift() const {
   }
   matchAction.userDefinedTrap().from_optional(userDefinedTrap_);
   matchAction.flowletAction().from_optional(flowletAction_);
+  matchAction.ecmpHashAction().from_optional(setEcmpHashAction_);
   return matchAction;
 }
 
@@ -50,8 +51,8 @@ MatchAction MatchAction::fromThrift(state::MatchAction const& ma) {
   auto matchAction = MatchAction();
   if (auto sendToQueue = ma.sendToQueue()) {
     auto toQueue = SendToQueue();
-    toQueue.first = sendToQueue->get_action();
-    toQueue.second = sendToQueue->get_sendToCPU();
+    toQueue.first = sendToQueue->action().value();
+    toQueue.second = folly::copy(sendToQueue->sendToCPU().value());
     matchAction.sendToQueue_ = toQueue;
   }
   matchAction.trafficCounter_ = ma.trafficCounter().to_optional();
@@ -62,8 +63,8 @@ MatchAction MatchAction::fromThrift(state::MatchAction const& ma) {
   matchAction.macsecFlow_ = ma.macsecFlow().to_optional();
   if (auto redirectToNextHop = ma.redirectToNextHop()) {
     auto redirectAction = RedirectToNextHopAction();
-    redirectAction.first = redirectToNextHop->get_action();
-    for (const auto& nh : redirectToNextHop->get_resolvedNexthops()) {
+    redirectAction.first = redirectToNextHop->action().value();
+    for (const auto& nh : redirectToNextHop->resolvedNexthops().value()) {
       redirectAction.second.insert(
           util::fromThrift(nh, true /* allowV6NonLinkLocal */));
     }
@@ -71,12 +72,13 @@ MatchAction MatchAction::fromThrift(state::MatchAction const& ma) {
   }
   if (auto setTc = ma.setTc()) {
     auto setTcVal = SetTc();
-    setTcVal.first = setTc->get_action();
-    setTcVal.second = setTc->get_sendToCPU();
+    setTcVal.first = setTc->action().value();
+    setTcVal.second = folly::copy(setTc->sendToCPU().value());
     matchAction.setTc_ = setTcVal;
   }
   matchAction.userDefinedTrap_ = ma.userDefinedTrap().to_optional();
   matchAction.flowletAction_ = ma.flowletAction().to_optional();
+  matchAction.setEcmpHashAction_ = ma.ecmpHashAction().to_optional();
   return matchAction;
 }
 

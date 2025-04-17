@@ -17,7 +17,7 @@
 
 namespace facebook::fboss {
 
-#if !defined(BRCM_SAI_SDK_XGS_AND_DNX)
+#if !defined(BRCM_SAI_SDK_XGS_AND_DNX) and !defined(CHENAB_SAI_SDK)
 constexpr auto kDefaultDropProbability = 100;
 #endif
 
@@ -55,7 +55,7 @@ SaiWredTraits::CreateAttributes SaiWredManager::profileCreateAttrs(
   // 0 here to avoid that
   std::tie(greenMin, greenMax, greenDropProbability, ecnGreenMin, ecnGreenMax) =
       std::make_tuple(0, 0, kDefaultDropProbability, 0, 0);
-#elif !defined(BRCM_SAI_SDK_XGS_AND_DNX)
+#elif !defined(BRCM_SAI_SDK_XGS_AND_DNX) and !defined(CHENAB_SAI_SDK)
   std::tie(greenMin, greenMax, greenDropProbability, ecnGreenMin, ecnGreenMax) =
       std::make_tuple(
           0, 0, kDefaultDropProbability, std::nullopt, std::nullopt);

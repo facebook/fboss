@@ -15,10 +15,10 @@ thrift_library(
     languages = [
         "cpp2",
         "go",
-        "py",
-        "py3",
+        "py-deprecated",
+        "py3-deprecated",
         "python",
-        "py-asyncio",
+        "py-deprecated-asyncio",
         "rust",
     ],
     no_plugin_deps = ["//thrift/annotation:all"],
@@ -38,6 +38,7 @@ thrift_library(
         "//fboss/lib/if:fboss_common",
         "//thrift/annotation:cpp",
         "//thrift/annotation:python",
+        "//thrift/annotation:thrift",
     ],
 )
 
@@ -49,10 +50,11 @@ thrift_library(
     languages = [
         "cpp2",
         "go",
-        "py",
-        "py-asyncio",
-        "py3",
+        "py-deprecated",
+        "py-deprecated-asyncio",
+        "py3-deprecated",
         "rust",
+        "python",
     ],
     plugins = [
         thrift_plugin_thriftpath(),
@@ -68,8 +70,9 @@ thrift_library(
     ],
     thrift_srcs = {"agent_config.thrift": []},
     deps = [
-        "//fboss/agent:platform_config",
-        "//fboss/agent:switch_config",
+        ":platform_config",
+        ":switch_config",
+        "//thrift/annotation:thrift",
     ],
 )
 
@@ -87,10 +90,11 @@ thrift_library(
     languages = [
         "cpp2",
         "go",
-        "py",
-        "py3",
-        "py-asyncio",
+        "py-deprecated",
+        "py3-deprecated",
+        "py-deprecated-asyncio",
         "rust",
+        "python",
     ],
     py3_namespace = "neteng.fboss.platform_config",
     py_asyncio_base_module = "neteng.fboss.asyncio",
@@ -119,11 +123,12 @@ thrift_library(
     },
     languages = [
         "cpp2",
-        "py",
-        "py3",
-        "py-asyncio",
+        "py-deprecated",
+        "py3-deprecated",
+        "py-deprecated-asyncio",
         "go",
         "rust",
+        "python",
     ],
     plugins = [
         thrift_plugin_thriftpath(),
@@ -143,6 +148,7 @@ thrift_library(
         "//fboss/lib/phy:phy",
         "//fboss/mka_service/if:mka_structs",
         "//fboss/qsfp_service/if:transceiver",
+        "//thrift/annotation:thrift",
     ],
 )
 
@@ -153,11 +159,12 @@ thrift_library(
     },
     languages = [
         "cpp2",
-        "py",
-        "py3",
-        "py-asyncio",
+        "py-deprecated",
+        "py3-deprecated",
+        "py-deprecated-asyncio",
         "go",
         "rust",
+        "python",
     ],
     plugins = [
         thrift_plugin_thriftpath(),
@@ -176,7 +183,8 @@ thrift_library(
     name = "validated_shell_commands",
     languages = [
         "cpp2",
-        "py3",
+        "py3-deprecated",
+        "python",
     ],
     py3_namespace = "neteng.fboss",
     thrift_cpp2_options = "json",
@@ -194,11 +202,12 @@ thrift_library(
     },
     languages = [
         "cpp2",
-        "py",
+        "py-deprecated",
         "go",
-        "py3",
-        "py-asyncio",
+        "py3-deprecated",
+        "py-deprecated-asyncio",
         "rust",
+        "python",
     ],
     no_plugin_deps = ["//thrift/annotation:all"],
     py3_namespace = "neteng.fboss",
@@ -372,6 +381,22 @@ cpp_library(
 )
 
 cpp_library(
+    name = "dsfnode_utils",
+    srcs = [
+        "DsfNodeUtils.cpp",
+    ],
+    headers = [
+        "DsfNodeUtils.h",
+    ],
+    exported_deps = [
+        ":agent_config-cpp2-types",
+        ":fboss-error",
+        ":load_agent_config",
+        ":switch_config-cpp2-types",
+    ],
+)
+
+cpp_library(
     name = "switchinfo_utils",
     srcs = [
         "SwitchInfoUtils.cpp",
@@ -476,6 +501,21 @@ cpp_library(
 )
 
 cpp_library(
+    name = "stat_printers",
+    srcs = [
+        "StatPrinters.cpp",
+    ],
+    headers = [
+        "StatPrinters.h",
+    ],
+    exported_deps = [
+        "//fboss/agent/hw:hardware_stats-cpp2-types",
+        "//fboss/lib/phy:phy-cpp2-types",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+)
+
+cpp_library(
     name = "utils",
     srcs = [
         "AlpmUtils.cpp",
@@ -484,6 +524,7 @@ cpp_library(
         "facebook/Utils.cpp",
     ],
     exported_deps = [
+        ":agent_features",
         ":asic_utils",
         ":fboss-error",
         ":fboss-types",
@@ -575,11 +616,11 @@ cpp_library(
         "//folly:range",
         "//folly:string",
         "//folly:utility",
+        "//folly/concurrency:concurrent_hash_map",
         "//folly/logging:logging",
     ],
     exported_external_deps = [
         "boost",
-        ("boost", None, "boost_container"),
     ],
 )
 
@@ -649,6 +690,33 @@ cpp_library(
 )
 
 cpp_library(
+    name = "fib_helpers",
+    srcs = [
+        "FibHelpers.cpp",
+    ],
+    exported_deps = [
+        ":fboss-types",
+        "//fboss/agent/rib:standalone_rib",
+        "//fboss/agent/state:state",
+        "//folly:network_address",
+    ],
+)
+
+cpp_library(
+    name = "ecmp_consolidator",
+    srcs = [
+        "EcmpGroupConsolidator.cpp",
+    ],
+    exported_deps = [
+        ":fib_helpers",
+        "//fboss/agent/state:state",
+    ],
+    exported_external_deps = [
+        "gflags",
+    ],
+)
+
+cpp_library(
     name = "core",
     srcs = [
         "AclNexthopHandler.cpp",
@@ -664,7 +732,6 @@ cpp_library(
         "DsfUpdateValidator.cpp",
         "EncapIndexAllocator.cpp",
         "FabricConnectivityManager.cpp",
-        "FibHelpers.cpp",
         "FsdbSyncer.cpp",
         "HwAsicTable.cpp",
         "HwSwitchConnectionStatusTable.cpp",
@@ -752,6 +819,7 @@ cpp_library(
         ":fboss-error",
         ":fboss-types",
         ":fboss_event_base",
+        ":fib_helpers",
         ":fsdb_adapted_sub_manager",
         ":hw_switch_handler",
         ":hwswitchcallback",
@@ -763,7 +831,6 @@ cpp_library(
         ":packet",
         ":packet_observer",
         ":phy_snapshot_lib",
-        ":restart_time_tracker",
         ":route_update_wrapper",
         ":state_observer",
         ":stats",
@@ -773,6 +840,7 @@ cpp_library(
         ":switch_state-cpp2-types",
         ":switchid_scope_resolver",
         ":switchinfo_utils",
+        ":tx_packet_utils",
         ":utils",
         ":voq_utils",
         "//common/fbwhoami:fb_who_am_i",
@@ -788,7 +856,6 @@ cpp_library(
         "//fboss/agent/capture:capture",
         "//fboss/agent/hw:hw_cpu_fb303_stats",
         "//fboss/agent/hw:hw_switch_fb303_stats",
-        "//fboss/agent/hw:hw_switch_warmboot_helper",
         "//fboss/agent/hw/switch_asics:switch_asics",
         "//fboss/agent/if:ctrl-cpp2-services",
         "//fboss/agent/if:ctrl-cpp2-types",
@@ -826,7 +893,6 @@ cpp_library(
         "//fboss/fsdb/if:fsdb_model",
         "//fboss/fsdb/if:fsdb_oper-cpp2-types",
         "//fboss/lib:alert_logger",
-        "//fboss/lib:common_file_utils",
         "//fboss/lib:common_utils",
         "//fboss/lib:exponential_back_off",
         "//fboss/lib:hw_write_behavior",
@@ -836,6 +902,7 @@ cpp_library(
         "//fboss/lib/phy:phy-cpp2-types",
         "//fboss/lib/phy:prbs-cpp2-types",
         "//fboss/lib/platforms:product-info",
+        "//fboss/lib/restart_tracker:restart_time_tracker",
         "//fboss/lib/thrift_service_client:thrift-service-client",
         "//fboss/thrift_cow/nodes:nodes",
         "//fboss/thrift_cow/nodes:serializer",
@@ -909,6 +976,7 @@ cpp_library(
         ":fboss-error",
         ":fboss-types",
         ":fboss_event_base",
+        ":fib_helpers",
         ":hw_asic_table",
         ":packet",
         ":stats",
@@ -1089,6 +1157,7 @@ cpp_library(
         ":route_update_wrapper",
         ":switch_config-cpp2-types",
         ":switch_state-cpp2-types",
+        ":tx_packet_utils",
         ":utils",
         "//fb303:thread_cached_service_data",
         "//fboss/agent/hw:hardware_stats-cpp2-types",
@@ -1156,6 +1225,9 @@ cpp_library(
 
 cpp_library(
     name = "packet",
+    srcs = [
+        "Packet.cpp",
+    ],
     headers = [
         "Packet.h",
         "RxPacket.h",
@@ -1166,6 +1238,9 @@ cpp_library(
         ":fboss-types",
         "//folly:network_address",
         "//folly/io:iobuf",
+    ],
+    exported_external_deps = [
+        "gflags",
     ],
 )
 
@@ -1330,27 +1405,6 @@ cpp_library(
 )
 
 cpp_library(
-    name = "restart_time_tracker",
-    srcs = [
-        "RestartTimeTracker.cpp",
-    ],
-    headers = [
-        "RestartTimeTracker.h",
-    ],
-    exported_deps = [
-        ":utils",
-        "//fb303:service_data",
-        "//folly:conv",
-        "//folly:file_util",
-        "//folly:range",
-        "//folly:synchronized",
-        "//folly/logging:logging",
-    ],
-    exported_external_deps = [
-    ],
-)
-
-cpp_library(
     name = "hwagent",
     srcs = [
         "HwAgent.cpp",
@@ -1385,7 +1439,6 @@ cpp_library(
         ":fboss_init_h",
         ":hw_switch",
         ":hwagent",
-        ":restart_time_tracker",
         ":setup_thrift",
         ":split_agent_thrift_syncer",
         ":test_utils",
@@ -1398,6 +1451,7 @@ cpp_library(
         "//fboss/agent/hw/test:hw_test_thrift_handler_h",
         "//fboss/agent/state:state",
         "//fboss/lib:common_file_utils",
+        "//fboss/lib/restart_tracker:restart_time_tracker",
         "//folly/logging:init",
         "//folly/logging:logging",
     ],
@@ -1508,6 +1562,7 @@ cpp_library(
         ":switch_config-cpp2-types",
         "//fb303:service_data",
         "//fboss/agent/state:state",
+        "//fboss/thrift_cow/visitors:visitors",
         "//folly:string",
     ],
 )
@@ -1539,7 +1594,6 @@ cpp_library(
         ":load_agent_config",
         ":monolithic_hw_switch_handler",
         ":platform_base",
-        ":restart_time_tracker",
         ":setup_thrift",
         ":stats",
         ":sw_agent_initializer",
@@ -1547,6 +1601,7 @@ cpp_library(
         "//fboss/agent/hw/switch_asics:switch_asics",
         "//fboss/lib:common_file_utils",
         "//fboss/lib:common_utils",
+        "//fboss/lib/restart_tracker:restart_time_tracker",
         "//folly:network_address",
         "//folly:scope_guard",
         "//folly:string",
@@ -1777,6 +1832,19 @@ cpp_library(
         ":load_agent_config",
         "//fboss/lib:common_file_utils",
         "//folly/logging:logging",
+    ],
+)
+
+cpp_library(
+    name = "tx_packet_utils",
+    srcs = [
+        "TxPacketUtils.cpp",
+    ],
+    exported_deps = [
+        ":hw_asic_table",
+        ":switchid_scope_resolver",
+        ":utils",
+        "//fboss/agent/state:state",
     ],
 )
 

@@ -1,6 +1,7 @@
 {
   "defaultCommandLineArgs": {
-    "firmware_upgrade_on_link_down": "true",
+    "firmware_upgrade_on_coldboot": "true",
+    "firmware_upgrade_on_link_down": "false",
     "firmware_upgrade_on_tcvr_insert": "true",
     "firmware_upgrade_supported": "true",
     "mode": "tahan800bc",
@@ -14,32 +15,17 @@
       {
         "aPortName": "eth1/1/1",
         "zPortName": "eth1/2/1",
-        "profileID": 38
-      },
-      {
-        "aPortName": "eth1/1/5",
-        "zPortName": "eth1/2/5",
-        "profileID": 38
+        "profileID": 39
       },
       {
         "aPortName": "eth1/3/1",
         "zPortName": "eth1/6/1",
-        "profileID": 38
-      },
-      {
-        "aPortName": "eth1/3/5",
-        "zPortName": "eth1/6/5",
-        "profileID": 38
+        "profileID": 39
       },
       {
         "aPortName": "eth1/13/1",
         "zPortName": "eth1/14/1",
-        "profileID": 38
-      },
-      {
-        "aPortName": "eth1/13/5",
-        "zPortName": "eth1/14/5",
-        "profileID": 38
+        "profileID": 39
       },
       {
         "aPortName": "eth1/22/1",
@@ -84,7 +70,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "3.2"
+              "version": "3.5"
             }
           ]
       },
@@ -104,6 +90,46 @@
             }
           ]
       },
+      "EOLO-168HG-5H-4B": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.4"
+            }
+          ]
+      },
+      "EOLO-168HG-5H-4T": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.4"
+            }
+          ]
+      },
+      "EOLO-168HG-5H-8B": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.4"
+            }
+          ]
+      },
+      "EOLO-168HG-5H-8T": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.4"
+            }
+          ]
+      },
+      "FTCD4313E2PCL-FB": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "2.19"
+            }
+          ]
+      },
       "FTCD4313E2PCLFBC": {
           "versions": [
             {
@@ -120,6 +146,14 @@
             }
           ]
       },
+      "FTCE2707E1PCB-FB": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "2.3"
+            }
+          ]
+      },
       "FTCE4717E1PCB-FB": {
           "versions": [
             {
@@ -132,11 +166,11 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "2.1"
+              "version": "14.3"
             },
             {
               "fwType": 2,
-              "version": "0.0"
+              "version": "209.7"
             }
           ]
       },
@@ -240,7 +274,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "36.242"
+              "version": "36.197"
             }
           ]
       },
@@ -248,7 +282,23 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "36.242"
+              "version": "36.197"
+            }
+          ]
+      },
+      "T-OL8CNH-NFL": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "114.149"
+            }
+          ]
+      },
+      "T-OL8CNH-NFM": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "114.149"
             }
           ]
       },
@@ -274,6 +324,6 @@
     "writeLog": true,
     "readLog": true,
     "disableOnFail": false,
-    "bufferSlots": 40960
+    "bufferSlots": 20480
   }
 }

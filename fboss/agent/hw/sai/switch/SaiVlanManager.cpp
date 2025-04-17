@@ -31,12 +31,13 @@ SaiVlanManager::SaiVlanManager(
     const SaiPlatform* platform)
     : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {
   if (platform_->getAsic()->isSupported(HwAsic::Feature::DEFAULT_VLAN)) {
-    // default vlan
-    // TODO(pshaikh): manage default vlan more graciously
     auto key = managerTable_->switchManager().getDefaultVlanAdapterKey();
-    auto defaultVlan =
-        saiStore_->get<SaiVlanTraits>().reloadObject(VlanSaiId(key));
-    defaultVlan->release();
+    // save the default vlan in store, so it can be loaded if needed
+    // for chenab add vlan-1 in config and router interface for vlan-1
+    // this will allow pipeline look up to work.
+
+    saiStore_->get<SaiVlanTraits>().loadObjectOwnedByAdapter(
+        VlanSaiId(key), true);
   }
 }
 

@@ -75,7 +75,7 @@ void PrefdlBase::preParse() {
 bool PrefdlBase::parseTlvField() {
   std::string sId(2, '\0');
   std::string sLen(4, '\0');
-  std::string value = "";
+  std::string value;
   int len = 0;
   strStream_.read(&sId[0], 2);
   strStream_.read(&sLen[0], 4);

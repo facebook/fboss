@@ -13,19 +13,16 @@
 #include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/SwitchState.h"
 
-DEFINE_int32(
-    ecmp_resource_percentage,
-    75,
-    "Percentage of ECMP resources (out of 100) allowed to use before ResourceAccountant rejects the update.");
-
 namespace {
 constexpr auto kHundredPercentage = 100;
 } // namespace
 
 namespace facebook::fboss {
 
-ResourceAccountant::ResourceAccountant(const HwAsicTable* asicTable)
-    : asicTable_(asicTable) {
+ResourceAccountant::ResourceAccountant(
+    const HwAsicTable* asicTable,
+    const SwitchIdScopeResolver* scopeResolver)
+    : asicTable_(asicTable), scopeResolver_(scopeResolver) {
   CHECK_EQ(
       asicTable->isFeatureSupportedOnAnyAsic(
           HwAsic::Feature::WEIGHTED_NEXTHOPGROUP_MEMBER),
@@ -329,21 +326,188 @@ bool ResourceAccountant::l2StateChangedImpl(const StateDelta& delta) {
   return true;
 }
 
+// Neighbor table resoure accounting
+
+// get switchId from neighbor entry
+SwitchID ResourceAccountant::getSwitchIdFromNeighborEntry(
+    std::shared_ptr<SwitchState> newState,
+    const auto& nbrEntry) {
+  const auto& interfaceMap = newState->getInterfaces();
+  InterfaceID interfaceId = nbrEntry->getIntfID();
+  std::shared_ptr<Interface> intf = interfaceMap->getNodeIf(interfaceId);
+  if (!intf) {
+    throw FbossError("No interface found for interfaceId: ", interfaceId);
+  }
+  SwitchID switchId = scopeResolver_->scope(intf, newState).switchId();
+
+  return switchId;
+}
+
+// check if the resource count per ASIC is set
+// return false if the resource count per ASIC is not set
+template <typename TableT>
+bool ResourceAccountant::shouldCheckNeighborUpdate(SwitchID switchId) {
+  return getMaxNeighborTableSize<TableT>(switchId, kHundredPercentage)
+      .has_value();
+}
+
+// get total neighbor table size from ASIC
+template <typename TableT>
+std::optional<uint32_t> ResourceAccountant::getMaxNeighborTableSize(
+    SwitchID switchId,
+    uint8_t resourcePercentage) {
+  uint32_t size = 0;
+  auto hwAsic = asicTable_->getHwAsicIf(SwitchID(switchId));
+
+  if constexpr (std::is_same_v<TableT, NdpTable>) {
+    size = hwAsic->getMaxNdpTableSize().has_value()
+        ? hwAsic->getMaxNdpTableSize().value()
+        : 0;
+  } else if constexpr (std::is_same_v<TableT, ArpTable>) {
+    size = hwAsic->getMaxArpTableSize().has_value()
+        ? hwAsic->getMaxArpTableSize().value()
+        : 0;
+  } else { // Invalid resource type
+    throw FbossError("Invalid resource type");
+  }
+  if (size == 0) {
+    return std::nullopt;
+  }
+  return (size * resourcePercentage) / kHundredPercentage;
+}
+
+// get max neighbor table size suported by resourceAccountant
+template <typename TableT>
+uint32_t ResourceAccountant::getMaxNeighborTableSize() {
+  if constexpr (std::is_same_v<TableT, NdpTable>) {
+    return FLAGS_max_ndp_entries;
+  } else if constexpr (std::is_same_v<TableT, ArpTable>) {
+    return FLAGS_max_arp_entries;
+  }
+  throw FbossError("Invalid resource type");
+}
+
+// check if the neighbor resource is available for the update as per limits
+template <typename TableT>
+bool ResourceAccountant::checkNeighborResource(
+    SwitchID switchId,
+    uint32_t count,
+    bool intermediateState) {
+  // There are two checks needed for neighbor resource:
+  // 1) Post each neighbor add update, check if intermediate
+  //  state exceeds HW limit.
+  // 2) Post entire state update, check if total usage is lower than
+  //  neighbor_resource_percentage.
+
+  // No need to check for neighbor resource if the max resource count per ASIC
+  // is not set
+  if (!shouldCheckNeighborUpdate<TableT>(switchId)) {
+    return true;
+  }
+
+  uint8_t resourcePercentage = intermediateState
+      ? kHundredPercentage
+      : FLAGS_neighbhor_resource_percentage;
+
+  uint32_t maxCapacity =
+      getMaxNeighborTableSize<TableT>(switchId, resourcePercentage).value();
+
+  return count <= maxCapacity;
+}
+
+template <typename TableT>
+std::unordered_map<SwitchID, uint32_t>&
+ResourceAccountant::getNeighborEntriesMap() {
+  if constexpr (std::is_same_v<TableT, NdpTable>) {
+    return ndpEntriesMap_;
+  } else if constexpr (std::is_same_v<TableT, ArpTable>) {
+    return arpEntriesMap_;
+  } else { // Invalid resource type
+    throw FbossError("Invalid resource type");
+  }
+}
+// calculate new update for neighbor entries from the delta
+template <typename TableT>
+bool ResourceAccountant::neighborStateChangedImpl(const StateDelta& delta) {
+  bool isValidUpdate = true;
+
+  auto processDelta = [&](const auto& deltaNbr, auto& entriesMap) {
+    DeltaFunctions::forEachChanged(
+        deltaNbr,
+        [&](const auto& /*old*/, const auto& /*new*/) {
+          return LoopAction::CONTINUE;
+        },
+        [&](const auto& newNbr) {
+          auto switchId =
+              getSwitchIdFromNeighborEntry(delta.newState(), newNbr);
+          entriesMap[switchId]++;
+          return LoopAction::CONTINUE;
+        },
+        [&](const auto& deleted) {
+          auto switchId =
+              getSwitchIdFromNeighborEntry(delta.newState(), deleted);
+          entriesMap[switchId]--;
+          return LoopAction::CONTINUE;
+        });
+  };
+
+  if (FLAGS_intf_nbr_tables) {
+    for (auto& intfDelta : delta.getIntfsDelta()) {
+      processDelta(
+          intfDelta.getNeighborDelta<TableT>(),
+          getNeighborEntriesMap<TableT>());
+    }
+  } else {
+    for (auto& vlanDelta : delta.getVlansDelta()) {
+      processDelta(
+          vlanDelta.getNeighborDelta<TableT>(),
+          getNeighborEntriesMap<TableT>());
+    }
+  }
+
+  // Ensure new state usage does not exceed neighbor_resource_percentage
+  for (const auto& [switchId, count] : getNeighborEntriesMap<TableT>()) {
+    isValidUpdate &= (count <= getMaxNeighborTableSize<TableT>());
+    if (!isValidUpdate) { // log error
+      std::string neighbor;
+      if constexpr (std::is_same_v<TableT, NdpTable>) {
+        neighbor = "Ndp";
+      } else if constexpr (std::is_same_v<TableT, ArpTable>) {
+        neighbor = "Arp";
+      } else { // Invalid resource type
+        throw FbossError("Invalid resource type");
+      }
+      XLOG(ERR) << neighbor
+                << " entries are over the limit for switchId: " << switchId;
+      XLOG(ERR) << neighbor << " entries : " << count
+                << " exceeds the limit: " << getMaxNeighborTableSize<TableT>();
+    }
+  }
+
+  return isValidUpdate;
+}
+// stateChanged is called when the ResourceAccountant needs to be updated
 void ResourceAccountant::stateChanged(const StateDelta& delta) {
   routeAndEcmpStateChangedImpl(delta);
+
   if (FLAGS_enable_hw_update_protection) {
     l2StateChangedImpl(delta);
+    neighborStateChangedImpl<NdpTable>(delta);
+    neighborStateChangedImpl<ArpTable>(delta);
   }
 }
 
+// check if the resource is available for the update as per fboss limits
 bool ResourceAccountant::isValidUpdate(const StateDelta& delta) {
-  bool validRouteUpdate = isValidRouteUpdate(delta);
-  bool validL2Update = true;
+  bool isValidUpdate = isValidRouteUpdate(delta);
 
   if (FLAGS_enable_hw_update_protection) {
-    validL2Update = l2StateChangedImpl(delta);
+    isValidUpdate &= l2StateChangedImpl(delta);
+    isValidUpdate &= neighborStateChangedImpl<NdpTable>(delta);
+    isValidUpdate &= neighborStateChangedImpl<ArpTable>(delta);
   }
 
-  return validRouteUpdate && validL2Update;
+  return isValidUpdate;
 }
+
 } // namespace facebook::fboss

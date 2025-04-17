@@ -15,7 +15,7 @@ from fboss.platform.bsp_tests.cdev_types import (
     I2cInfo,
 )
 
-from fboss.platform.platform_manager.platform_manager_config.types import (
+from fboss.platform.platform_manager.platform_manager_config.thrift_types import (
     BspKmodsFile,
     PlatformConfig,
 )

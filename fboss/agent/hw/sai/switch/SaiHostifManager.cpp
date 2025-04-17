@@ -139,6 +139,13 @@ SaiHostifManager::packetReasonToHostifTrap(
           SAI_HOSTIF_TRAP_TYPE_SAMPLEPACKET, SAI_PACKET_ACTION_TRAP);
     case cfg::PacketRxReason::EAPOL:
       return std::make_pair(SAI_HOSTIF_TRAP_TYPE_EAPOL, SAI_PACKET_ACTION_TRAP);
+    case cfg::PacketRxReason::HOST_MISS:
+#if SAI_API_VERSION >= SAI_VERSION(1, 15, 0)
+      return std::make_pair(
+          SAI_HOSTIF_TRAP_TYPE_NEIGHBOR_MISS, SAI_PACKET_ACTION_TRAP);
+#else
+      break;
+#endif
     case cfg::PacketRxReason::PORT_MTU_ERROR:
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
       return std::make_pair(
@@ -167,8 +174,13 @@ SaiHostifManager::makeHostifTrapAttributes(
   SaiHostifTrapTraits::Attributes::PacketAction packetAction{
       hostifPacketAction};
   SaiHostifTrapTraits::Attributes::TrapType trapType{hostifTrapId};
-  SaiHostifTrapTraits::Attributes::TrapPriority trapPriority{priority};
-  SaiHostifTrapTraits::Attributes::TrapGroup trapGroup{trapGroupId};
+  std::optional<SaiHostifTrapTraits::Attributes::TrapPriority> trapPriority{};
+  std::optional<SaiHostifTrapTraits::Attributes::TrapGroup> trapGroup{};
+  if (hostifPacketAction == SAI_PACKET_ACTION_TRAP ||
+      hostifPacketAction == SAI_PACKET_ACTION_COPY) {
+    trapPriority = priority;
+    trapGroup = SaiHostifTrapTraits::Attributes::TrapGroup(trapGroupId);
+  }
   return SaiHostifTrapTraits::CreateAttributes{
       trapType, packetAction, trapPriority, trapGroup};
 }
@@ -180,7 +192,7 @@ SaiHostifManager::makeHostifUserDefinedTrapAttributes(
     std::optional<uint16_t> trapType) {
   SaiHostifUserDefinedTrapTraits::Attributes::TrapGroup trapGroup{trapGroupId};
   return SaiHostifUserDefinedTrapTraits::CreateAttributes{
-      trapGroupId, priority, trapType};
+      trapGroup, priority, trapType};
 }
 
 std::shared_ptr<SaiHostifTrapGroup> SaiHostifManager::ensureHostifTrapGroup(
@@ -573,10 +585,6 @@ void SaiHostifManager::changeCpuVoq(
 void SaiHostifManager::changeCpuQueue(
     const ControlPlane::PortQueues& oldQueueConfig,
     const ControlPlane::PortQueues& newQueueConfig) {
-  if (platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
-    // Chenab-TODO(pshaikh): no way to configure queues on CPU port
-    return;
-  }
   cpuPortHandle_->configuredQueues.clear();
 
   const auto asic = platform_->getAsic();
@@ -594,16 +602,20 @@ void SaiHostifManager::changeCpuQueue(
         std::make_pair(newPortQueue->getID(), newPortQueue->getStreamType());
     auto queueHandle = getQueueHandle(saiQueueConfig);
     auto portQueue = newPortQueue->clone();
-    portQueue->setReservedBytes(
-        newPortQueue->getReservedBytes()
-            ? *newPortQueue->getReservedBytes()
-            : asic->getDefaultReservedBytes(
-                  newPortQueue->getStreamType(), cfg::PortType::CPU_PORT));
-    portQueue->setScalingFactor(
-        newPortQueue->getScalingFactor()
-            ? *newPortQueue->getScalingFactor()
-            : asic->getDefaultScalingFactor(
-                  newPortQueue->getStreamType(), true /*cpu port*/));
+    if (auto reservedBytes = newPortQueue->getReservedBytes()) {
+      portQueue->setReservedBytes(*reservedBytes);
+    } else if (
+        auto defaultReservedBytes = asic->getDefaultReservedBytes(
+            newPortQueue->getStreamType(), cfg::PortType::CPU_PORT)) {
+      portQueue->setReservedBytes(*defaultReservedBytes);
+    }
+    if (auto scalingFactor = newPortQueue->getScalingFactor()) {
+      portQueue->setScalingFactor(*scalingFactor);
+    } else if (
+        auto defaultScalingFactor = asic->getDefaultScalingFactor(
+            newPortQueue->getStreamType(), true /*cpu port*/)) {
+      portQueue->setScalingFactor(*defaultScalingFactor);
+    }
     managerTable_->queueManager().changeQueue(
         queueHandle, *portQueue, nullptr /*swPort*/, cfg::PortType::CPU_PORT);
     if (newPortQueue->getName().has_value()) {
@@ -673,14 +685,27 @@ void SaiHostifManager::loadCpuSystemPortVoqs() {
 void SaiHostifManager::loadCpuPort() {
   cpuPortHandle_ = std::make_unique<SaiCpuPortHandle>();
   cpuPortHandle_->cpuPortId = managerTable_->switchManager().getCpuPort();
-  XLOG(DBG5) << "Got cpu sai port ID " << cpuPortHandle_->cpuPortId;
+  XLOG(DBG2) << "Got cpu sai port ID " << cpuPortHandle_->cpuPortId;
   const auto& portApi = SaiApiTable::getInstance()->portApi();
   if (platform_->getAsic()->isSupported(HwAsic::Feature::VOQ)) {
     auto attr = SaiPortTraits::Attributes::SystemPort{};
     cpuPortHandle_->cpuSystemPortId =
         portApi.getAttribute(cpuPortHandle_->cpuPortId, attr);
-    XLOG(DBG5) << "Got cpu sai system port ID "
+    XLOG(DBG2) << "Got cpu sai system port ID "
                << cpuPortHandle_->cpuSystemPortId.value();
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+    auto& systemPortApi = SaiApiTable::getInstance()->systemPortApi();
+    auto oldTcRateLimitExclude = systemPortApi.getAttribute(
+        cpuPortHandle_->cpuSystemPortId.value(),
+        SaiSystemPortTraits::Attributes::TcRateLimitExclude{});
+    // always exclude cpu system port from global tc based rate limit
+    if (!oldTcRateLimitExclude && isDualStage3Q2QMode()) {
+      systemPortApi.setAttribute(
+          cpuPortHandle_->cpuSystemPortId.value(),
+          SaiSystemPortTraits::Attributes::TcRateLimitExclude{true});
+      XLOG(DBG2) << "Excluded cpu system port from global tc rate limit";
+    }
+#endif
   }
   loadCpuPortQueues();
   if (platform_->getAsic()->isSupported(HwAsic::Feature::VOQ)) {

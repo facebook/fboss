@@ -351,7 +351,8 @@ void BcmSwitchEnsemble::createEqualDistributedUplinkDownlinks(
   // in zionex case, we have totalLinkCount = 32
   // there are 8 pipes, we should pick 4 per pipe
   // and 2 donwlinks, 2 uplinks
-  const int perPipeCount = (int)(totalLinkCount / pipeToPortMap.size());
+  const int perPipeCount =
+      static_cast<int>(totalLinkCount / pipeToPortMap.size());
   const int upOrDownlinkCount = perPipeCount / 2;
 
   // assign ports to uplink, downlink

@@ -29,9 +29,9 @@ class HwBasePortFb303Stats {
       QueueId2Name queueId2Name = {},
       std::vector<PfcPriority> enabledPfcPriorities = {},
       std::optional<std::string> multiSwitchStatsPrefix = std::nullopt)
-      : portName_(portName),
+      : queueId2Name_(std::move(queueId2Name)),
+        portName_(portName),
         portCounters_(HwFb303Stats(multiSwitchStatsPrefix)),
-        queueId2Name_(queueId2Name),
         enabledPfcPriorities_(enabledPfcPriorities) {}
 
   virtual ~HwBasePortFb303Stats() = default;
@@ -45,8 +45,8 @@ class HwBasePortFb303Stats {
     portName_ = newName;
     reinitStats(oldPortName);
   }
-  void queueChanged(int queueId, const std::string& queueName);
-  void queueRemoved(int queueId);
+  virtual void queueChanged(int queueId, const std::string& queueName);
+  virtual void queueRemoved(int queueId);
   void pfcPriorityChanged(std::vector<PfcPriority> enabledPriorities);
   void updateLeakyBucketFlapCnt(int cnt);
 
@@ -73,6 +73,16 @@ class HwBasePortFb303Stats {
       folly::StringPiece statName,
       folly::StringPiece portName,
       PfcPriority priority);
+  /*
+   * clear port stat
+   */
+  void clearStat(folly::StringPiece statKey);
+
+  /*
+   * Priority group stat name
+   */
+  static std::string
+  pgStatName(folly::StringPiece statName, folly::StringPiece portName, int pg);
 
   int64_t getCounterLastIncrement(
       folly::StringPiece statKey,
@@ -84,11 +94,15 @@ class HwBasePortFb303Stats {
       const = 0;
   virtual const std::vector<folly::StringPiece>&
   kQueueMonotonicCounterStatKeys() const = 0;
+  virtual const std::vector<folly::StringPiece>& kQueueFb303CounterStatKeys()
+      const = 0;
   virtual const std::vector<folly::StringPiece>&
   kInMacsecPortMonotonicCounterStatKeys() const = 0;
   virtual const std::vector<folly::StringPiece>&
   kOutMacsecPortMonotonicCounterStatKeys() const = 0;
   virtual const std::vector<folly::StringPiece>& kPfcMonotonicCounterStatKeys()
+      const = 0;
+  virtual const std::vector<folly::StringPiece>& kPriorityGroupCounterStatKeys()
       const = 0;
 
  protected:
@@ -117,6 +131,14 @@ class HwBasePortFb303Stats {
       folly::StringPiece statKey,
       PfcPriority priority,
       int64_t val);
+  /*
+   * update port priority group stat
+   */
+  void updatePgStat(
+      const std::chrono::seconds& now,
+      folly::StringPiece statKey,
+      int pg,
+      int64_t val);
 
   void updateQueueWatermarkStats(
       const std::map<int16_t, int64_t>& queueWatermarkBytes) const;
@@ -133,6 +155,9 @@ class HwBasePortFb303Stats {
   const std::vector<PfcPriority> getEnabledPfcPriorities() const {
     return enabledPfcPriorities_;
   }
+
+ protected:
+  QueueId2Name queueId2Name_;
 
  private:
   /*
@@ -152,7 +177,6 @@ class HwBasePortFb303Stats {
 
   std::string portName_;
   HwFb303Stats portCounters_;
-  QueueId2Name queueId2Name_;
   bool macsecStatsInited_{false};
   std::vector<PfcPriority> enabledPfcPriorities_{};
 };

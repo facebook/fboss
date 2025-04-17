@@ -432,7 +432,9 @@ struct SystemPortThrift {
    */
   13: optional common.LivenessStatus remoteSystemPortLivenessStatus;
   14: switch_config.Scope scope = switch_config.Scope.LOCAL;
-  15: bool shelDestinationEnabled = false;
+  15: bool shelDestinationEnabled_DEPRECATED = false;
+  16: optional bool shelDestinationEnabled;
+  17: switch_config.PortType portType = switch_config.PortType.INTERFACE_PORT;
 }
 
 struct PortHardwareDetails {
@@ -496,7 +498,7 @@ enum CpuCosQueueId {
 
 struct RxCaptureFilter {
   1: list<CpuCosQueueId> cosQueues;
-# can put additional Rx filters here if need be
+  # can put additional Rx filters here if need be
 }
 
 struct CaptureFilter {
@@ -667,6 +669,7 @@ enum HwObjectType {
   SAI_MANAGED_OBJECTS = 23,
   IPTUNNEL = 24,
   SYSTEM_PORT = 25,
+  FIRMWARE = 26,
 }
 
 exception FbossFibUpdateError {
@@ -769,6 +772,27 @@ struct EcmpDetails {
   2: bool flowletEnabled;
   3: i16 flowletInterval;
   4: i32 flowletTableSize;
+}
+
+enum FirmwareOpStatus {
+  UNKNOWN = 0,
+  LOADED = 1,
+  NOT_LOADED = 2,
+  RUNNING = 3,
+  STOPPED = 4,
+  ERROR = 5,
+}
+
+enum FirmwareFuncStatus {
+  UNKNOWN = 0,
+  ISOLATED = 1,
+  MONITORING = 2,
+}
+
+struct FirmwareInfo {
+  1: string version;
+  2: FirmwareOpStatus opStatus;
+  3: FirmwareFuncStatus funcStatus;
 }
 
 service FbossCtrl extends phy.FbossCommonPhyCtrl {
@@ -1390,21 +1414,25 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
     1: list<switch_config.MacAndVlan> macAddrsToblock,
   ) throws (1: fboss.FbossBaseError error);
 
+  # Deprecated
   void addTeFlows(1: list<FlowEntry> teFlowEntries) throws (
     1: fboss.FbossBaseError error,
     2: FbossTeUpdateError teFlowError,
   );
 
+  # Deprecated
   void deleteTeFlows(1: list<TeFlow> teFlows) throws (
     1: fboss.FbossBaseError error,
     2: FbossTeUpdateError teFlowError,
   );
 
+  # Deprecated
   void syncTeFlows(1: list<FlowEntry> teFlowEntries) throws (
     1: fboss.FbossBaseError error,
     2: FbossTeUpdateError teFlowError,
   );
 
+  # Deprecated
   list<TeFlowDetails> getTeFlowTableDetails() throws (
     1: fboss.FbossBaseError error,
   );

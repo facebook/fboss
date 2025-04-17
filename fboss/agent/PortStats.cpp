@@ -41,113 +41,111 @@ PortStats::PortStats(
 
 PortStats::~PortStats() {}
 
-void PortStats::setPortName(const std::string& portName) {
-  // clear counter
+void PortStats::clearCounters() const {
   clearPortStatusCounter();
   clearPortActiveStatusCounter();
   tcData().clearCounter(getCounterKey(kLoadBearingInErrors));
   tcData().clearCounter(getCounterKey(kLoadBearingFecUncorrErrors));
-  portName_ = portName;
 }
 
-void PortStats::trappedPkt() {
+void PortStats::trappedPkt() const {
   switchStats_->trappedPkt();
 }
-void PortStats::pktDropped() {
+void PortStats::pktDropped() const {
   switchStats_->pktDropped();
 }
-void PortStats::pktBogus() {
+void PortStats::pktBogus() const {
   switchStats_->pktBogus();
 }
-void PortStats::pktError() {
+void PortStats::pktError() const {
   switchStats_->pktError();
 }
-void PortStats::pktUnhandled() {
+void PortStats::pktUnhandled() const {
   switchStats_->pktUnhandled();
 }
-void PortStats::pktToHost(uint32_t bytes) {
+void PortStats::pktToHost(uint32_t bytes) const {
   switchStats_->pktToHost(bytes);
 }
 
-void PortStats::arpPkt() {
+void PortStats::arpPkt() const {
   switchStats_->arpPkt();
 }
-void PortStats::arpUnsupported() {
+void PortStats::arpUnsupported() const {
   switchStats_->arpUnsupported();
 }
-void PortStats::arpNotMine() {
+void PortStats::arpNotMine() const {
   switchStats_->arpNotMine();
 }
-void PortStats::arpRequestRx() {
+void PortStats::arpRequestRx() const {
   switchStats_->arpRequestRx();
 }
-void PortStats::arpRequestTx() {
+void PortStats::arpRequestTx() const {
   switchStats_->arpRequestTx();
 }
-void PortStats::arpReplyRx() {
+void PortStats::arpReplyRx() const {
   switchStats_->arpReplyRx();
 }
-void PortStats::arpReplyTx() {
+void PortStats::arpReplyTx() const {
   switchStats_->arpReplyTx();
 }
-void PortStats::arpBadOp() {
+void PortStats::arpBadOp() const {
   switchStats_->arpBadOp();
 }
 
-void PortStats::ipv6NdpPkt() {
+void PortStats::ipv6NdpPkt() const {
   switchStats_->ipv6NdpPkt();
 }
-void PortStats::ipv6NdpBad() {
+void PortStats::ipv6NdpBad() const {
   switchStats_->ipv6NdpBad();
 }
 
-void PortStats::ipv4Rx() {
+void PortStats::ipv4Rx() const {
   switchStats_->ipv4Rx();
 }
-void PortStats::ipv4TooSmall() {
+void PortStats::ipv4TooSmall() const {
   switchStats_->ipv4TooSmall();
 }
-void PortStats::ipv4WrongVer() {
+void PortStats::ipv4WrongVer() const {
   switchStats_->ipv4WrongVer();
 }
-void PortStats::ipv4Nexthop() {
+void PortStats::ipv4Nexthop() const {
   switchStats_->ipv4Nexthop();
 }
-void PortStats::ipv4Mine() {
+void PortStats::ipv4Mine() const {
   switchStats_->ipv4Mine();
 }
-void PortStats::ipv4NoArp() {
+void PortStats::ipv4NoArp() const {
   switchStats_->ipv4NoArp();
 }
-void PortStats::ipv4TtlExceeded() {
+void PortStats::ipv4TtlExceeded() const {
   switchStats_->ipv4TtlExceeded();
 }
 
-void PortStats::ipv6HopExceeded() {
+void PortStats::ipv6HopExceeded() const {
   switchStats_->ipv6HopExceeded();
 }
 
-void PortStats::udpTooSmall() {
+void PortStats::udpTooSmall() const {
   switchStats_->udpTooSmall();
 }
 
-void PortStats::dhcpV4Pkt() {
+void PortStats::dhcpV4Pkt() const {
   switchStats_->dhcpV4Pkt();
 }
-void PortStats::dhcpV4BadPkt() {
+void PortStats::dhcpV4BadPkt() const {
   switchStats_->dhcpV4BadPkt();
 }
-void PortStats::dhcpV4DropPkt() {
+void PortStats::dhcpV4DropPkt() const {
   switchStats_->dhcpV4DropPkt();
 }
 
-void PortStats::dhcpV6Pkt() {
+void PortStats::dhcpV6Pkt() const {
   switchStats_->dhcpV6Pkt();
 }
-void PortStats::dhcpV6BadPkt() {
+void PortStats::dhcpV6BadPkt() const {
   switchStats_->dhcpV6BadPkt();
 }
-void PortStats::dhcpV6DropPkt() {
+void PortStats::dhcpV6DropPkt() const {
   switchStats_->dhcpV6DropPkt();
 }
 
@@ -170,7 +168,7 @@ void PortStats::updateLoadBearingTLStatValue(
 void PortStats::linkStateChange(
     bool isUp,
     bool isDrained,
-    std::optional<bool> activeState) {
+    std::optional<bool> activeState) const {
   // We decided not to maintain the TLTimeseries in PortStats and use tcData()
   // to addStatValue based on the key name, because:
   // 1) each thread has its own SwitchStats and PortStats
@@ -189,74 +187,74 @@ void PortStats::linkStateChange(
   switchStats_->linkStateChange();
 }
 
-void PortStats::linkActiveStateChange(bool isActive) {
+void PortStats::linkActiveStateChange(bool isActive) const {
   if (!portName_.empty()) {
     tcData().addStatValue(getCounterKey(kLinkActiveStateFlap), 1, SUM);
   }
   switchStats_->linkActiveStateChange();
 }
 
-void PortStats::pfcDeadlockDetectionCount() {
+void PortStats::pfcDeadlockDetectionCount() const {
   if (!portName_.empty()) {
     tcData().addStatValue(getCounterKey(kPfcDeadlockDetectionCount), 1, SUM);
   }
   switchStats_->PfcDeadlockDetectionCount();
 }
 
-void PortStats::pfcDeadlockRecoveryCount() {
+void PortStats::pfcDeadlockRecoveryCount() const {
   if (!portName_.empty()) {
     tcData().addStatValue(getCounterKey(kPfcDeadlockRecoveryCount), 1, SUM);
   }
   switchStats_->PfcDeadlockRecoveryCount();
 }
 
-void PortStats::ipv4DstLookupFailure() {
+void PortStats::ipv4DstLookupFailure() const {
   switchStats_->ipv4DstLookupFailure();
 }
 
-void PortStats::ipv6DstLookupFailure() {
+void PortStats::ipv6DstLookupFailure() const {
   switchStats_->ipv6DstLookupFailure();
 }
 
-void PortStats::setPortStatus(bool isUp) {
+void PortStats::setPortStatus(bool isUp) const {
   if (!portName_.empty()) {
     tcData().setCounter(getCounterKey(kUp), isUp);
   }
 }
 
-void PortStats::clearPortStatusCounter() {
+void PortStats::clearPortStatusCounter() const {
   if (!portName_.empty()) {
     tcData().clearCounter(getCounterKey(kUp));
   }
 }
 
-void PortStats::setPortActiveStatus(bool isActive) {
+void PortStats::setPortActiveStatus(bool isActive) const {
   if (!portName_.empty()) {
     tcData().setCounter(getCounterKey(kActive), isActive);
   }
 }
 
-void PortStats::clearPortActiveStatusCounter() {
+void PortStats::clearPortActiveStatusCounter() const {
   if (!portName_.empty()) {
     tcData().clearCounter(getCounterKey(kActive));
   }
 }
 
-void PortStats::pktTooBig() {
+void PortStats::pktTooBig() const {
   switchStats_->pktTooBig();
 }
 
-void PortStats::MkPduRecvdPkt() {
+void PortStats::MkPduRecvdPkt() const {
   switchStats_->MkPduRecvdPkt();
 }
 
-void PortStats::MkPduSendPkt() {
+void PortStats::MkPduSendPkt() const {
   switchStats_->MkPduSendPkt();
 }
-void PortStats::MkPduSendFailure() {
+void PortStats::MkPduSendFailure() const {
   switchStats_->MkPduSendFailure();
 }
-void PortStats::MkPduPortNotRegistered() {
+void PortStats::MkPduPortNotRegistered() const {
   switchStats_->MkPduPortNotRegistered();
 }
 
@@ -275,13 +273,13 @@ void PortStats::MkPduInterval() {
   lastMkPduTime_ = now;
 }
 
-void PortStats::MKAServiceSendFailue() {
+void PortStats::MKAServiceSendFailue() const {
   switchStats_->MKAServiceSendFailue();
 }
-void PortStats::MKAServiceSendSuccess() {
+void PortStats::MKAServiceSendSuccess() const {
   switchStats_->MKAServiceSendSuccess();
 }
-void PortStats::MKAServiceRecvSuccess() {
+void PortStats::MKAServiceRecvSuccess() const {
   switchStats_->MKAServiceRecvSuccess();
 }
 

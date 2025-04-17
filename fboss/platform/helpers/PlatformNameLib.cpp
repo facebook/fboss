@@ -34,6 +34,11 @@ std::string sanitizePlatformName(const std::string& platformNameFromBios) {
     return "TAHAN800BC";
   }
 
+  // MERU800BIAB and MERU800BIA have equivalent configs
+  if (platformNameUpper == "MERU800BIAB") {
+    return "MERU800BIA";
+  }
+
   return platformNameUpper;
 }
 
@@ -60,7 +65,7 @@ std::string PlatformNameLib::getPlatformNameFromBios(bool writeToCache) const {
   auto result = sanitizePlatformName(standardOut);
   XLOG(INFO) << "Platform name mapped: " << result;
   if (writeToCache) {
-    platformFsUtils_->writeStringToFile(result, kCachePath, true);
+    platformFsUtils_->writeStringToFile(result + '\n', kCachePath, true);
   }
   fb303::fbData->setCounter(kPlatformNameBiosReadFailures, 0);
   return result;

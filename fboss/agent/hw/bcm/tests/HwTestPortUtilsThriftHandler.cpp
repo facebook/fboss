@@ -209,6 +209,12 @@ bool HwTestThriftHandler::verifyPktFromAggPort(int aggPortId) {
   return true;
 }
 
+void HwTestThriftHandler::clearInterfacePhyCounters(
+    std::unique_ptr<::std::vector<::std::int32_t>> portIds) {
+  hwSwitch_->clearInterfacePhyCounters(
+      std::make_unique<std::vector<int32_t>>(std::move(*portIds)));
+}
+
 } // namespace utility
 } // namespace fboss
 } // namespace facebook

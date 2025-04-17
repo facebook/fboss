@@ -62,7 +62,7 @@ BENCHMARK(runTxSlowPathBenchmark) {
           ensemble->getSw(), ensemble->getSw()->getRib()),
       kEcmpWidth);
   auto cpuMac = ensemble->getSw()->getLocalMac(SwitchID(0));
-  auto vlanId = utility::firstVlanID(ensemble->getProgrammedState());
+  auto vlanId = ensemble->getVlanIDForTx();
   std::atomic<bool> packetTxDone{false};
   std::thread t([cpuMac, vlanId, swSwitch, &packetTxDone]() {
     const auto kSrcIp = folly::IPAddressV6("2620:0:1cfe:face:b00c::3");

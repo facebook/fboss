@@ -127,6 +127,11 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
     bool setInterfaceMac,
     int baseIntfId,
     bool enableFabricPorts) {
+  cfg::InterfaceType intfType =
+      hwSwitch->getPlatform()->getAsic()->getAsicType() ==
+          cfg::AsicType::ASIC_TYPE_CHENAB
+      ? cfg::InterfaceType::PORT
+      : cfg::InterfaceType::VLAN;
   return multiplePortsPerIntfConfig(
       hwSwitch->getPlatform()->getPlatformMapping(),
       hwSwitch->getPlatform()->getAsic(),
@@ -137,7 +142,11 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
       setInterfaceMac,
       baseIntfId,
       1, /* portPerIntf*/
-      enableFabricPorts);
+      enableFabricPorts,
+      std::nullopt, /* switchIdToSwitchInfo  */
+      std::nullopt, /* hwAsicTable */
+      std::nullopt, /* platformType */
+      intfType);
 }
 
 cfg::SwitchConfig twoL3IntfConfig(
@@ -324,11 +333,11 @@ cfg::SwitchConfig createUplinkDownlinkConfig(
     if (portConfig == config.ports()->end()) {
       continue;
     }
-    auto iter = lbModeMap.find(portConfig->get_portType());
+    auto iter = lbModeMap.find(folly::copy(portConfig->portType().value()));
     if (iter == lbModeMap.end()) {
       throw FbossError(
           "Unable to find the desired loopback mode for port type: ",
-          portConfig->get_portType());
+          folly::copy(portConfig->portType().value()));
     }
     portConfig->loopbackMode() = iter->second;
     portConfig->ingressVlan() = kDownlinkBaseVlanId;

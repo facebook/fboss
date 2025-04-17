@@ -23,8 +23,8 @@ TEST(PciDevice, InitAnyDevice) {
   PciDevice pciDevice(PCI_MATCH_ANY, PCI_MATCH_ANY);
   EXPECT_NO_THROW(pciDevice.open());
   CHECK_EQ(pciDevice.isGood(), true);
-  EXPECT_NO_THROW({ (void*)pciDevice.getMemoryRegionAddress(); });
-  EXPECT_NO_THROW({ (void*)pciDevice.getMemoryRegionSize(); });
+  EXPECT_NO_THROW({ std::ignore = pciDevice.getMemoryRegionAddress(); });
+  EXPECT_NO_THROW({ std::ignore = pciDevice.getMemoryRegionSize(); });
   EXPECT_NO_THROW(pciDevice.close());
 }
 

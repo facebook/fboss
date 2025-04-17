@@ -25,6 +25,8 @@ constexpr auto kNumPortPerCore = 10;
 constexpr auto kRemoteSysPortOffset = 7;
 constexpr auto kNumRdswSysPort = 44;
 constexpr auto kNumEdswSysPort = 26;
+constexpr uint8_t kDefaultQueue = 0;
+constexpr uint8_t kDualStage3Q2QDefaultQueue = 1;
 
 std::shared_ptr<SystemPort> makeRemoteSysPort(
     SystemPortID portId,
@@ -33,11 +35,15 @@ std::shared_ptr<SystemPort> makeRemoteSysPort(
     int corePortIndex,
     int64_t speed,
     HwAsic::InterfaceNodeRole intfRole,
-    cfg::PortType portType) {
+    cfg::PortType portType,
+    std::string remoteSwitchName = "") {
+  if (remoteSwitchName.empty()) {
+    remoteSwitchName = folly::to<std::string>("hwTestSwitch", remoteSwitchId);
+  }
   auto remoteSysPort = std::make_shared<SystemPort>(portId);
-  auto voqConfig = getDefaultVoqConfig();
-  remoteSysPort->setName(folly::to<std::string>(
-      "hwTestSwitch", remoteSwitchId, ":eth/", portId, "/1"));
+  auto voqConfig = getDefaultVoqConfig(portType);
+  remoteSysPort->setName(
+      folly::to<std::string>(remoteSwitchName, ":eth1/", portId, "/1"));
   remoteSysPort->setSwitchId(remoteSwitchId);
   remoteSysPort->setNumVoqs(getRemotePortNumVoqs(intfRole, portType));
   remoteSysPort->setCoreIndex(coreIndex);
@@ -337,7 +343,8 @@ void populateRemoteIntfAndSysPorts(
               (i - minPortID) % kNumPortPerCore,
               static_cast<int64_t>(portSpeed),
               HwAsic::InterfaceNodeRole::IN_CLUSTER_NODE,
-              cfg::PortType::INTERFACE_PORT);
+              cfg::PortType::INTERFACE_PORT,
+              *dsfNode.name());
           remoteSysPorts->addSystemPort(remoteSysPort);
 
           auto remoteRif = makeRemoteInterface(
@@ -413,7 +420,8 @@ void populateRemoteIntfAndSysPorts(
               *dsfNode.clusterId() >= k2StageEdgePodClusterId
                   ? HwAsic::InterfaceNodeRole::DUAL_STAGE_EDGE_NODE
                   : HwAsic::InterfaceNodeRole::IN_CLUSTER_NODE,
-              *mapping.portType());
+              *mapping.portType(),
+              *dsfNode.name());
           remoteSysPorts->addSystemPort(remoteSysPort);
 
           auto remoteRif = makeRemoteInterface(
@@ -445,11 +453,9 @@ void populateRemoteIntfAndSysPorts(
   }
 }
 
-QueueConfig getDefaultVoqConfig() {
+QueueConfig getDefaultVoqConfig(cfg::PortType portType) {
   QueueConfig queueCfg;
-  // TODO: One port should be mgt port with 2 queues in 3Q2Q mode
-  auto nameAndDefaultVoq =
-      getNameAndDefaultVoqCfg(cfg::PortType::INTERFACE_PORT);
+  auto nameAndDefaultVoq = getNameAndDefaultVoqCfg(portType);
   CHECK(nameAndDefaultVoq);
   for (const auto& cfgQueue : nameAndDefaultVoq.value().queueConfig) {
     queueCfg.push_back(makeSwitchStateVoq(cfgQueue));
@@ -533,4 +539,39 @@ std::optional<QueueConfigAndName> getNameAndDefaultVoqCfg(
   }
   return std::nullopt;
 }
+
+uint8_t getDefaultQueue() {
+  return isDualStage3Q2QMode() ? kDualStage3Q2QDefaultQueue : kDefaultQueue;
+}
+
+int getTrafficClassToVoqId(const HwAsic* hwAsic, int trafficClass) {
+  if (hwAsic->isSupported(HwAsic::Feature::VOQ) && isDualStage3Q2QQos()) {
+    if (trafficClass == 7) {
+      // tc 7 -> nc voq 2
+      return 2;
+    } else if (trafficClass == 2) {
+      // tc 2 -> rdma voq 0
+      return 0;
+    }
+    // all other tc -> default voq 1
+    return 1;
+  }
+  return trafficClass;
+}
+
+int getTrafficClassToCpuVoqId(const HwAsic* hwAsic, int trafficClass) {
+  if (hwAsic->isSupported(HwAsic::Feature::VOQ) && isDualStage3Q2QQos()) {
+    if (trafficClass == 7) {
+      // tc 7 -> high queue 2
+      return 2;
+    } else if (trafficClass == 3) {
+      // tc 3 -> mid queue 1
+      return 1;
+    }
+    // all other tc -> low queue 0
+    return 0;
+  }
+  return trafficClass;
+}
+
 } // namespace facebook::fboss::utility

@@ -31,6 +31,7 @@ constexpr auto kSymlinkDirs = {
     "sensors",
     "cplds",
     "fpgas",
+    "inforoms",
     "i2c-busses",
     "gpiochips",
     "xcvrs",

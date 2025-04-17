@@ -3,6 +3,7 @@
 #include "fboss/led_service/FsdbSwitchStateSubscriber.h"
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
+#include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/fsdb/client/FsdbPubSubManager.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 #include "fboss/led_service/LedManager.h"
@@ -59,6 +60,7 @@ void FsdbSwitchStateSubscriber::subscribeToState(
 
       for (auto& [switchStr, oneSwPortMap] : swPortMaps) {
         bool switchDrained = false;
+        bool portActive = true;
         if (swSettings.find(switchStr) != swSettings.end()) {
           switchDrained =
               swSettings[switchStr].actualSwitchDrainState().value() ==
@@ -78,16 +80,26 @@ void FsdbSwitchStateSubscriber::subscribeToState(
           }
           if (auto activeState = onePortInfo.portActiveState()) {
             ledSwitchStateUpdate[onePortId].activeState = *activeState;
+            portActive = *activeState;
           }
-          // We consider the port drained if either the individual port is
-          // drained or the entire switch is drained. This status is used to set
-          // blink pattern on the LEDs. We blink the LED when
-          // 1) port is inactive (other side, either port or the entire switch,
-          // is drained) 2) local port state is drained (local port is drained)
-          // 3) local switch state is drained (local switch is drained)
-          ledSwitchStateUpdate[onePortId].drained =
-              onePortInfo.get_drainState() == cfg::PortDrainState::DRAINED ||
+
+          // We consider the port drained if either the local port is
+          // drained or the local switch is drained or the peer port is drained.
+          // Peer port is considered drained when the local port is inactive but
+          // has expected neighbor. We blink the LED when either end of the link
+          // is drained and hence is safe to operate on.
+          bool localPortDrained =
+              folly::copy(onePortInfo.drainState().value()) ==
+                  cfg::PortDrainState::DRAINED ||
               switchDrained;
+          bool peerPortDrained = !portActive &&
+              std::find(
+                  onePortInfo.activeErrors()->begin(),
+                  onePortInfo.activeErrors()->end(),
+                  PortError::MISSING_EXPECTED_NEIGHBOR) ==
+                  onePortInfo.activeErrors()->end();
+          ledSwitchStateUpdate[onePortId].drained =
+              localPortDrained || peerPortDrained;
         }
       }
 

@@ -15,7 +15,6 @@
 #include "fboss/agent/MultiHwSwitchHandler.h"
 #include "fboss/agent/MultiSwitchFb303Stats.h"
 #include "fboss/agent/PacketObserver.h"
-#include "fboss/agent/RestartTimeTracker.h"
 #include "fboss/agent/SwRxPacket.h"
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
 #include "fboss/agent/SwitchInfoTable.h"
@@ -33,6 +32,7 @@
 #include "fboss/lib/HwWriteBehavior.h"
 #include "fboss/lib/ThreadHeartbeat.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
+#include "fboss/lib/restart_tracker/RestartTimeTracker.h"
 
 #include <folly/IntrusiveList.h>
 #include <folly/Range.h>
@@ -586,7 +586,7 @@ class SwSwitch : public HwSwitchCallback {
       L2EntryUpdateType l2EntryUpdateType) override;
   void exitFatal() const noexcept override;
 
-  uint32_t getEthernetHeaderSize() const;
+  uint32_t getEthernetHeaderSize(bool tagged) const;
 
   /*
    * Allocate a new TxPacket.
@@ -605,9 +605,10 @@ class SwSwitch : public HwSwitchCallback {
    * to write the L3 contents starting from writableTail().
    *
    * @param l3Len L3 packet size
+   & @param tagged VLAN tagged packet
    * @return the unique pointer to a tx packet
    */
-  std::unique_ptr<TxPacket> allocateL3TxPacket(uint32_t l3Len);
+  std::unique_ptr<TxPacket> allocateL3TxPacket(uint32_t l3Len, bool tagged);
 
   /**
    * All FBOSS Network Control packets should use this API to send out
@@ -887,8 +888,9 @@ class SwSwitch : public HwSwitchCallback {
 
   TeFlowStats getTeFlowStats();
 
-  VlanID getVlanIDHelper(std::optional<VlanID> vlanID) const;
-  std::optional<VlanID> getVlanIDForPkt(VlanID vlanID) const;
+  VlanID getVlanIDHelper(
+      std::optional<VlanID> vlanID,
+      cfg::InterfaceType intfType = cfg::InterfaceType::VLAN) const;
 
   InterfaceID getInterfaceIDForAggregatePort(
       AggregatePortID aggregatePortID) const;
@@ -985,6 +987,10 @@ class SwSwitch : public HwSwitchCallback {
   }
   void rxPacketReceived(std::unique_ptr<SwRxPacket> pkt);
 
+  template <typename VlanOrIntfT>
+  std::optional<VlanID> getVlanIDForTx(
+      const std::shared_ptr<VlanOrIntfT>& vlanOrIntf) const;
+
  private:
   std::optional<folly::MacAddress> getSourceMac(
       const std::shared_ptr<Interface>& intf) const;
@@ -1071,6 +1077,8 @@ class SwSwitch : public HwSwitchCallback {
 
   void onSwitchRunStateChange(SwitchRunState newState);
 
+  uint64_t fsdbPublishQueueLength() const;
+
   // Sets the counter that tracks port status
   void setPortStatusCounter(PortID port, bool up);
   void setPortActiveStatusCounter(PortID port, bool isActive);
@@ -1099,6 +1107,14 @@ class SwSwitch : public HwSwitchCallback {
 
   void postInit();
 
+  void initLldpManager();
+
+  void publishBootTypeStats();
+
+  void initThreadHeartbeats();
+
+  void startHeartbeatWatchdog();
+
   void updateMultiSwitchGlobalFb303Stats();
 
   void stopHwSwitchHandler();
@@ -1110,6 +1126,9 @@ class SwSwitch : public HwSwitchCallback {
 
   void updateAddrToLocalIntf(const StateDelta& delta);
 
+  void validateSwitchReachabilityInformation(
+      const SwitchID& switchId,
+      const std::map<SwitchID, std::set<PortID>>& switchReachabilityInfo);
 #if FOLLY_HAS_COROUTINES
   using BoundedRxPktQueue = folly::coro::BoundedQueue<
       std::unique_ptr<SwRxPacket>,
@@ -1327,6 +1346,10 @@ class SwSwitch : public HwSwitchCallback {
   folly::Synchronized<
       std::map<SwitchID, switch_reachability::SwitchReachability>>
       hwSwitchReachability_;
+  std::unordered_map<
+      SwitchID,
+      std::map<SwitchID, std::tuple<std::set<PortID>, uint64_t>>>
+      hwReachabilityInfo_;
 #if FOLLY_HAS_COROUTINES
   RxPacketHandlerQueues rxPacketHandlerQueues_;
 #endif

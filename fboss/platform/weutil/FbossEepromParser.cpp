@@ -122,9 +122,9 @@ const std::vector<EepromFieldEntry> kFieldDictionaryV6 = {
     {5, "Meta PCB Part Number", FIELD_STRING, 12, VARIABLE},
     {6, "ODM/JDM PCBA Part Number", FIELD_STRING, VARIABLE, VARIABLE},
     {7, "ODM/JDM PCBA Serial Number", FIELD_STRING, VARIABLE, VARIABLE},
-    {8, "Product Production State", FIELD_BE_UINT, 1, VARIABLE},
-    {9, "Product Version", FIELD_BE_UINT, 1, VARIABLE},
-    {10, "Product Sub-Version", FIELD_BE_UINT, 1, VARIABLE},
+    {8, "Production State", FIELD_BE_UINT, 1, VARIABLE},
+    {9, "Production Sub-State", FIELD_BE_UINT, 1, VARIABLE},
+    {10, "Re-Spin/Variant Indicator", FIELD_BE_UINT, 1, VARIABLE},
     {11, "Product Serial Number", FIELD_STRING, VARIABLE, VARIABLE},
     {12, "System Manufacturer", FIELD_STRING, VARIABLE, VARIABLE},
     {13, "System Manufacturing Date", FIELD_STRING, 8, VARIABLE},
@@ -175,8 +175,7 @@ std::vector<EepromFieldEntry> getEepromFieldDict(int version) {
 };
 
 std::string parseMacHelper(int len, unsigned char* ptr, bool useBigEndian) {
-  std::string retVal = "";
-  // We convert char array to string only upto len or null pointer
+  std::string retVal;
   int juice = 0;
   while (juice < len) {
     unsigned int val = useBigEndian ? ptr[juice] : ptr[len - juice - 1];
@@ -275,7 +274,7 @@ int FbossEepromParser::loadEeprom(
   try {
     file.seekg(offset, std::ios::beg);
     file.read((char*)&output[0], bytesToRead);
-    readCount = (int)file.gcount();
+    readCount = static_cast<int>(file.gcount());
     file.close();
   } catch (std::exception& ex) {
     std::cout << "Failed to read EEPROM contents " << ex.what() << std::endl;
@@ -351,7 +350,7 @@ std::unordered_map<int, std::string> FbossEepromParser::parseEepromBlobTLV(
     // Very important to do this.
     juice = juice + 1;
     // First, get the itemCode of the TLV (T)
-    int itemCode = (int)buffer[cursor];
+    int itemCode = static_cast<int>(buffer[cursor]);
     entryType itemType = FIELD_INVALID;
     std::string key;
 
@@ -436,7 +435,7 @@ std::unordered_map<int, std::string> FbossEepromParser::parseEepromBlobTLV(
 // methods to print the human readable information
 std::vector<std::pair<std::string, std::string>>
 FbossEepromParser::prepareEepromFieldMap(
-    std::unordered_map<int, std::string> parsedValue,
+    const std::unordered_map<int, std::string>& parsedValue,
     int eepromVer) {
   std::vector<std::pair<std::string, std::string>> result;
   std::vector<EepromFieldEntry> fieldDictionary;
@@ -490,15 +489,11 @@ FbossEepromParser::prepareEepromFieldMap(
   return result;
 }
 
-// Parse Little Endian Uint field
 std::string FbossEepromParser::parseLeUint(int len, unsigned char* ptr) {
-  // For now, we only support up to 4 Bytes of data
   if (len > 4) {
-    throw std::runtime_error("Unsigned int can be up to 4 bytes only.");
+    throw std::runtime_error("Unsigned int can only be up to 4 bytes.");
   }
   unsigned int readVal = 0;
-  // Values in the EEPROM is big endian
-  // Thus cursor starts from the end and goes backwards
   int cursor = len - 1;
   for (int i = 0; i < len; i++) {
     readVal <<= 8;
@@ -508,15 +503,11 @@ std::string FbossEepromParser::parseLeUint(int len, unsigned char* ptr) {
   return std::to_string(readVal);
 }
 
-// Parse Big Endian Uint field
 std::string FbossEepromParser::parseBeUint(int len, unsigned char* ptr) {
-  // For now, we only support up to 4 Bytes of data
   if (len > 4) {
-    throw std::runtime_error("Unsigned int can be up to 4 bytes only.");
+    throw std::runtime_error("Unsigned int can only be up to 4 bytes.");
   }
   unsigned int readVal = 0;
-  // Values in the EEPROM is big endian
-  // Thus cursor starts from the end and goes backwards
   for (int i = 0; i < len; i++) {
     readVal <<= 8;
     readVal |= (unsigned int)ptr[i];
@@ -525,34 +516,31 @@ std::string FbossEepromParser::parseBeUint(int len, unsigned char* ptr) {
 }
 
 std::string FbossEepromParser::parseLeHex(int len, unsigned char* ptr) {
-  std::string retVal = "";
-  // Values in the EEPROM is Little endian
-  // Thus cursor starts from the end and goes backwards
+  std::string retVal;
   int cursor = len - 1;
   for (int i = 0; i < len; i++) {
     int val = ptr[cursor];
     std::string converter = "0123456789abcdef";
-    retVal = retVal + converter[(int)(val / 16)] + converter[val % 16];
+    retVal =
+        retVal + converter[static_cast<int>(val / 16)] + converter[val % 16];
     cursor -= 1;
   }
   return "0x" + retVal;
 }
 
 std::string FbossEepromParser::parseBeHex(int len, unsigned char* ptr) {
-  std::string retVal = "";
-  // Values in the EEPROM is big endian
+  std::string retVal;
   for (int i = 0; i < len; i++) {
     int val = ptr[i];
     std::string converter = "0123456789abcdef";
-    retVal = retVal + converter[(int)(val / 16)] + converter[val % 16];
+    retVal =
+        retVal + converter[static_cast<int>(val / 16)] + converter[val % 16];
   }
   return "0x" + retVal;
 }
 
-// Parse String field
 std::string FbossEepromParser::parseString(int len, unsigned char* ptr) {
-  std::string retVal = "";
-  // We convert char array to string only upto len or null pointer
+  std::string retVal;
   int juice = 0;
   while ((juice < len) && (ptr[juice] != 0)) {
     retVal += (ptr[juice]);
@@ -571,7 +559,7 @@ std::string FbossEepromParser::parseV4Mac(int len, unsigned char* ptr) {
 // For EEPROM V5, Parse MAC with the format XX:XX:XX:XX:XX:XX, along with two
 // bytes MAC size
 std::string FbossEepromParser::parseV5Mac(int len, unsigned char* ptr) {
-  std::string retVal = "";
+  std::string retVal;
   // Pack two string with "," in between. This will be unpacked in the
   // dump functions.
   retVal =
@@ -582,7 +570,7 @@ std::string FbossEepromParser::parseV5Mac(int len, unsigned char* ptr) {
 // For EEPROM V3, MAC is represented as XXXXXXXXXXXX. Therefore,
 // parse the MAC into the human readable format as XX:XX:XX:XX:XX:XX
 std::string FbossEepromParser::parseLegacyMac(int len, unsigned char* ptr) {
-  std::string retVal = "";
+  std::string retVal;
   if (len != 12) {
     throw std::runtime_error("Legacy(v3) MAC field must be 12 Bytes Long!");
   }
@@ -596,8 +584,7 @@ std::string FbossEepromParser::parseLegacyMac(int len, unsigned char* ptr) {
 }
 
 std::string FbossEepromParser::parseDate(int len, unsigned char* ptr) {
-  std::string retVal = "";
-  // We convert char array to string only upto len or null pointer
+  std::string retVal;
   if (len != 4) {
     throw std::runtime_error("Date field must be 4 Bytes Long!");
   }

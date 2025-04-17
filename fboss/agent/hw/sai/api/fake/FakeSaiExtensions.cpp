@@ -108,6 +108,7 @@ std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributeSystemPortId::operator()() {
   return SAI_PORT_ATTR_EXT_FAKE_SYSTEM_PORT_ID;
 }
+
 std::optional<sai_attr_id_t> SaiPortSerdesTraits::Attributes::
     AttributeRxAfeAdaptiveEnableWrapper::operator()() {
   return SAI_PORT_SERDES_ATTR_EXT_FAKE_RX_AFE_ADAPTIVE_ENABLE;
@@ -155,6 +156,11 @@ SaiPortTraits::Attributes::AttributeFabricDataCellsFilterStatus::operator()() {
 
 std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributeReachabilityGroup::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeFecErrorDetectEnable::operator()() {
   return std::nullopt;
 }
 
@@ -412,6 +418,11 @@ SaiSwitchTraits::Attributes::AttributeShelPeriodicInterval::operator()() {
 }
 
 std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeSflowAggrNofSamplesWrapper::operator()() {
+  return SAI_SWITCH_ATTR_SFLOW_AGGR_NOF_SAMPLES;
+}
+
+std::optional<sai_attr_id_t>
 SaiPortSerdesTraits::Attributes::AttributeTxDiffEncoderEnWrapper::operator()() {
   return SAI_PORT_SERDES_ATTR_EXT_TX_DIFF_ENCODER_EN;
 }
@@ -582,13 +593,18 @@ SaiSystemPortTraits::Attributes::AttributeShelPktDstEnable::operator()() {
 }
 
 std::optional<sai_attr_id_t>
+SaiSystemPortTraits::Attributes::AttributeTcRateLimitExclude::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeFirmwareCoreTouse::operator()() {
   return SAI_SWITCH_ATTR_FIRMWARE_CORE_TO_USE;
 }
 
 std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeFirmwareLogFile::operator()() {
-  return SAI_SWITCH_ATTR_FIRMWARE_LOG_FILE;
+  return SAI_SWITCH_ATTR_FIRMWARE_LOG_PATH_NAME;
 }
 
 std::optional<sai_attr_id_t>
@@ -598,6 +614,26 @@ SaiSwitchTraits::Attributes::AttributeMaxSwitchId::operator()() {
 
 std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeArsAvailableFlows::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeSdkRegDumpLogPath::operator()() {
+  return SAI_SWITCH_ATTR_SDK_DUMP_LOG_PATH_NAME;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeFirmwareObjectList::operator()() {
+  return SAI_SWITCH_ATTR_FIRMWARE_OBJECTS;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeTcRateLimitList::operator()() {
+  return SAI_SWITCH_ATTR_TC_RATE_LIMIT_LIST;
+}
+
+std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
+    AttributePfcTcDldTimerGranularityInterval::operator()() {
   return std::nullopt;
 }
 

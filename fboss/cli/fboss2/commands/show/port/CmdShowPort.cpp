@@ -60,16 +60,17 @@ std::string getOperStateStr(PortOperState operState) {
       "Unsupported LinkState: " + std::to_string(static_cast<int>(operState)));
 }
 
-Table::StyledCell getStyledActiveState(std::string activeState) {
-  if (activeState == "Inactive") {
-    return Table::StyledCell("Inactive", Table::Style::ERROR);
+Table::StyledCell getStyledActiveState(
+    const std::string& activeState,
+    bool isMismatch) {
+  if (isMismatch) {
+    return Table::StyledCell(activeState + " (Mismatch)", Table::Style::ERROR);
+  } else if (activeState == "Inactive") {
+    return Table::StyledCell(activeState, Table::Style::ERROR);
   } else if (activeState == "Active") {
-    return Table::StyledCell("Active", Table::Style::GOOD);
-  } else {
-    return Table::StyledCell("--", Table::Style::NONE);
+    return Table::StyledCell(activeState, Table::Style::GOOD);
   }
-
-  throw std::runtime_error("Unsupported ActiveState: " + activeState);
+  return Table::StyledCell("--", Table::Style::NONE);
 }
 
 Table::StyledCell getStyledLinkState(std::string linkState) {
@@ -100,14 +101,17 @@ std::string getActiveStateStr(PortActiveState* activeState) {
 }
 
 std::string getTransceiverStr(
-    std::map<int32_t, facebook::fboss::TransceiverInfo>& transceiverEntries,
+    const std::map<int32_t, facebook::fboss::TransceiverInfo>&
+        transceiverEntries,
     int32_t transceiverId) {
-  if (transceiverEntries.count(transceiverId) == 0) {
+  auto entry = transceiverEntries.find(transceiverId);
+  if (entry == transceiverEntries.end()) {
     return "";
   }
-  auto isPresent = *transceiverEntries[transceiverId].tcvrState()->present();
-  if (isPresent)
+
+  if (*entry->second.tcvrState()->present()) {
     return "Present";
+  }
   return "Absent";
 }
 
@@ -126,6 +130,158 @@ CmdShowPort::getAcceptedFilterValues() {
       {"linkState", {"Up", "Down"}},
       {"activeState", {"Active", "Inactive", "--"}},
   };
+}
+
+PeerInfo CmdShowPort::getFabPortPeerInfo(const auto& hostInfo) const {
+  auto fabricEntries = utils::getFabricEndpoints(hostInfo);
+  std::unordered_map<std::string, Endpoint> portToPeer;
+  std::unordered_set<std::string> peers;
+  for (auto const& [localPort, endpoint] : fabricEntries) {
+    Endpoint ep;
+    ep.isAttached = endpoint.isAttached().value();
+    if (endpoint.expectedSwitchName()) {
+      ep.expectedSwitchName = *endpoint.expectedSwitchName();
+    }
+    if (endpoint.isAttached().value() && endpoint.switchName()) {
+      ep.attachedSwitchName = *endpoint.switchName();
+      peers.insert(*endpoint.switchName());
+    }
+    if (endpoint.isAttached().value() && endpoint.portName()) {
+      ep.attachedRemotePortName = *endpoint.portName();
+    }
+    portToPeer[localPort] = ep;
+  }
+
+  PeerInfo peerInfo;
+  peerInfo.fabPort2Peer = portToPeer;
+  peerInfo.allPeers = peers;
+  return peerInfo;
+}
+
+PeerDrainState CmdShowPort::asyncGetDrainState(
+    std::shared_ptr<apache::thrift::Client<FbossCtrl>> client) const {
+  PeerDrainState entries;
+  try {
+    client->sync_getActualSwitchDrainState(entries);
+  } catch (const std::exception&) {
+    // Continue
+  }
+  return entries;
+}
+
+std::unordered_map<std::string, cfg::SwitchDrainState>
+CmdShowPort::getPeerDrainStates(const PeerInfo& peerInfo) {
+  // Launch futures
+  std::unordered_set<std::string> peersChecked;
+  std::unordered_map<std::string, std::shared_future<PeerDrainState>> futures;
+  for (const auto& peer : peerInfo.allPeers) {
+    if (!clients.contains(peer)) {
+      clients[peer] = utils::createClient<apache::thrift::Client<FbossCtrl>>(
+          HostInfo(peer), peerTimeout);
+    }
+    futures[peer] = std::async(
+        std::launch::async,
+        &CmdShowPort::asyncGetDrainState,
+        this,
+        clients[peer]);
+  };
+
+  // Get results
+  std::unordered_map<std::string, cfg::SwitchDrainState> peerToDrainState;
+  for (const auto& [peer, f] : futures) {
+    auto entries = f.get();
+    if (!entries.empty()) {
+      peerToDrainState[peer] = entries.begin()->second;
+    }
+  }
+
+  // Map local port to peer drain state
+  std::unordered_map<std::string, cfg::SwitchDrainState> portToPeerDrainState;
+  for (const auto& [localPort, peer] : peerInfo.fabPort2Peer) {
+    auto& attachedPeer = peer.attachedSwitchName;
+    if (peerToDrainState.contains(attachedPeer)) {
+      portToPeerDrainState[localPort] = peerToDrainState[attachedPeer];
+    }
+  }
+  return portToPeerDrainState;
+}
+
+PortIdToInfo CmdShowPort::asyncGetPortInfo(
+    std::shared_ptr<apache::thrift::Client<FbossCtrl>> client) const {
+  PortIdToInfo entries;
+  try {
+    client->sync_getAllPortInfo(entries);
+  } catch (const std::exception&) {
+    // Continue
+  }
+  return entries;
+}
+
+std::unordered_map<std::string, PortNameToInfo> CmdShowPort::getPeerToPorts(
+    const std::unordered_set<std::string>& hosts) {
+  // Launch futures
+  std::unordered_map<std::string, std::shared_future<PortIdToInfo>> futures;
+  for (const auto& host : hosts) {
+    if (!clients.contains(host)) {
+      clients[host] = utils::createClient<apache::thrift::Client<FbossCtrl>>(
+          HostInfo(host), peerTimeout);
+    }
+    futures[host] = std::async(
+        std::launch::async,
+        &CmdShowPort::asyncGetPortInfo,
+        this,
+        clients[host]);
+  }
+
+  // Get results
+  std::unordered_map<std::string, PortNameToInfo> peerToPorts;
+  for (const auto& [peer, f] : futures) {
+    auto& portIdToInfo = f.get();
+    if (portIdToInfo.empty()) {
+      continue;
+    }
+
+    // Remap key from portId to portName
+    PortNameToInfo portNameToInfo{};
+    for (const auto& [_, portInfo] : portIdToInfo) {
+      portNameToInfo[portInfo.name().value()] = portInfo;
+    }
+    peerToPorts[peer] = portNameToInfo;
+  }
+  return peerToPorts;
+}
+
+std::unordered_map<std::string, bool> CmdShowPort::getPeerPortDrainedOrDown(
+    const PeerInfo& peerInfo) {
+  auto peerToPorts = getPeerToPorts(peerInfo.allPeers);
+
+  // Populate peer port states
+  std::unordered_map<std::string, bool> peerPortDrainedOrDown;
+  for (const auto& [localPort, peer] : peerInfo.fabPort2Peer) {
+    if (peer.attachedSwitchName.empty() ||
+        peer.attachedRemotePortName.empty()) {
+      continue;
+    }
+
+    auto peerPortMapIt = peerToPorts.find(peer.attachedSwitchName);
+    if (peerPortMapIt == peerToPorts.end()) {
+      continue;
+    }
+    auto peerPortNameToInfo = peerPortMapIt->second;
+
+    auto peerPortInfoIt = peerPortNameToInfo.find(peer.attachedRemotePortName);
+    if (peerPortInfoIt == peerPortNameToInfo.end()) {
+      continue;
+    }
+    auto peerPortInfo = peerPortInfoIt->second;
+
+    peerPortDrainedOrDown[localPort] =
+        (peerPortInfo.operState().value() == PortOperState::DOWN ||
+         peerPortInfo.adminState().value() == PortAdminState::DISABLED ||
+         peerPortInfo.isDrained().value() == true);
+  }
+
+  return peerPortDrainedOrDown;
 }
 
 RetType CmdShowPort::queryClient(
@@ -157,19 +313,38 @@ RetType CmdShowPort::queryClient(
     std::cerr << "Cannot connect to qsfp_service\n";
   }
 
+  // Get peer drain state
+  std::unordered_map<std::string, Endpoint> portToPeer;
+  std::unordered_map<std::string, cfg::SwitchDrainState> peerDrainStates;
+  std::unordered_map<std::string, bool> peerPortDrainedOrDown;
+  if (utils::isVoqOrFabric(utils::getSwitchType(*client))) {
+    auto peerInfo = getFabPortPeerInfo(hostInfo);
+    portToPeer = peerInfo.fabPort2Peer;
+    peerDrainStates = getPeerDrainStates(peerInfo);
+    peerPortDrainedOrDown = getPeerPortDrainedOrDown(peerInfo);
+  }
+
   return createModel(
       portEntries,
       transceiverEntries,
       queriedPorts.data(),
       portStats,
+      portToPeer,
+      peerDrainStates,
+      peerPortDrainedOrDown,
       utils::getBgpDrainedInterafces(hostInfo));
 }
 
 RetType CmdShowPort::createModel(
-    std::map<int32_t, facebook::fboss::PortInfoThrift> portEntries,
-    std::map<int32_t, facebook::fboss::TransceiverInfo> transceiverEntries,
+    const std::map<int32_t, facebook::fboss::PortInfoThrift>& portEntries,
+    const std::map<int32_t, facebook::fboss::TransceiverInfo>&
+        transceiverEntries,
     const ObjectArgType& queriedPorts,
-    std::map<std::string, facebook::fboss::HwPortStats> portStats,
+    const std::map<std::string, facebook::fboss::HwPortStats>& portStats,
+    const std::unordered_map<std::string, Endpoint>& portToPeer,
+    const std::unordered_map<std::string, cfg::SwitchDrainState>&
+        peerDrainStates,
+    const std::unordered_map<std::string, bool>& peerPortDrainedOrDown,
     const std::vector<std::string>& drainedInterfaces) {
   RetType model;
   std::unordered_set<std::string> queriedSet(
@@ -177,19 +352,60 @@ RetType CmdShowPort::createModel(
 
   for (const auto& entry : portEntries) {
     auto portInfo = entry.second;
-    auto portName = portInfo.get_name();
-    auto operState = getOperStateStr(portInfo.get_operState());
-    auto activeState = getActiveStateStr(portInfo.get_activeState());
+    auto portName = portInfo.name().value();
+    auto operState = getOperStateStr(folly::copy(portInfo.operState().value()));
+    auto activeState =
+        getActiveStateStr(apache::thrift::get_pointer(portInfo.activeState()));
 
     if (queriedPorts.size() == 0 || queriedSet.count(portName)) {
+      bool isPortDetached = false;
+      if (auto peer = portToPeer.find(portName); peer != portToPeer.end()) {
+        isPortDetached = !peer->second.isAttached;
+      }
+      bool isPortDisabled =
+          (portInfo.adminState().value() == PortAdminState::DISABLED);
+      bool isPortDrained =
+          (std::find(
+               drainedInterfaces.begin(), drainedInterfaces.end(), portName) !=
+           drainedInterfaces.end()) ||
+          portInfo.isDrained().value();
+
+      std::optional<bool> isActive;
+      if (portInfo.activeState().has_value()) {
+        isActive = (portInfo.activeState().value() == PortActiveState::ACTIVE);
+      }
+      std::optional<bool> isPeerDrained;
+      if (peerDrainStates.contains(portName)) {
+        isPeerDrained =
+            (peerDrainStates.at(portName) == cfg::SwitchDrainState::DRAINED);
+      }
+      std::optional<bool> isPeerPortDrainedOrDown;
+      auto it = peerPortDrainedOrDown.find(portName);
+      if (it != peerPortDrainedOrDown.end()) {
+        isPeerPortDrainedOrDown = it->second;
+      }
+
+      bool expectedActive =
+          !isPortDetached && !isPortDisabled && !isPortDrained;
+      if (isPeerDrained.has_value()) {
+        expectedActive &= !isPeerDrained.value();
+      }
+      if (isPeerPortDrainedOrDown.has_value()) {
+        expectedActive &= !isPeerPortDrainedOrDown.value();
+      }
+
       cli::PortEntry portDetails;
-      portDetails.id() = portInfo.get_portId();
-      portDetails.name() = portInfo.get_name();
-      portDetails.adminState() = getAdminStateStr(portInfo.get_adminState());
+      portDetails.id() = folly::copy(portInfo.portId().value());
+      portDetails.name() = portInfo.name().value();
+      portDetails.adminState() =
+          getAdminStateStr(folly::copy(portInfo.adminState().value()));
       portDetails.linkState() = operState;
       portDetails.activeState() = activeState;
-      portDetails.speed() = utils::getSpeedGbps(portInfo.get_speedMbps());
-      portDetails.profileId() = portInfo.get_profileID();
+      portDetails.activeStateMismatch() =
+          (isActive.has_value() ? (isActive.value() != expectedActive) : false);
+      portDetails.speed() =
+          utils::getSpeedGbps(folly::copy(portInfo.speedMbps().value()));
+      portDetails.profileId() = portInfo.profileID().value();
       portDetails.coreId() = getOptionalIntStr(portInfo.coreId().to_optional());
       portDetails.virtualDeviceId() =
           getOptionalIntStr(portInfo.virtualDeviceId().to_optional());
@@ -212,17 +428,23 @@ RetType CmdShowPort::createModel(
       if ((std::find(
                drainedInterfaces.begin(), drainedInterfaces.end(), portName) !=
            drainedInterfaces.end()) ||
-          portInfo.get_isDrained()) {
+          folly::copy(portInfo.isDrained().value())) {
         portDetails.isDrained() = "Yes";
       }
+      portDetails.peerSwitchDrained() = isPeerDrained.has_value()
+          ? (isPeerDrained.value() ? "Yes" : "No")
+          : "--";
+      portDetails.peerPortDrainedOrDown() = isPeerPortDrainedOrDown.has_value()
+          ? (isPeerPortDrainedOrDown.value() ? "Yes" : "No")
+          : "--";
       if (auto tcvrId = portInfo.transceiverIdx()) {
-        const auto transceiverId = tcvrId->get_transceiverId();
+        const auto transceiverId = folly::copy(tcvrId->transceiverId().value());
         portDetails.tcvrID() = transceiverId;
         portDetails.tcvrPresent() =
             getTransceiverStr(transceiverEntries, transceiverId);
       }
-      if (auto pfc = portInfo.get_pfc()) {
-        std::string pfcString = "";
+      if (auto pfc = apache::thrift::get_pointer(portInfo.pfc())) {
+        std::string pfcString;
         if (*pfc->tx()) {
           pfcString = "TX ";
         }
@@ -234,20 +456,20 @@ RetType CmdShowPort::createModel(
         }
         portDetails.pfc() = pfcString;
       } else {
-        std::string pauseString = "";
-        if (portInfo.get_txPause()) {
+        std::string pauseString;
+        if (folly::copy(portInfo.txPause().value())) {
           pauseString = "TX ";
         }
-        if (portInfo.get_rxPause()) {
+        if (folly::copy(portInfo.rxPause().value())) {
           pauseString += "RX";
         }
         portDetails.pause() = pauseString;
       }
-      portDetails.numUnicastQueues() = portInfo.get_portQueues().size();
-      for (const auto& queue : portInfo.get_portQueues()) {
-        if (!queue.get_name().empty()) {
+      portDetails.numUnicastQueues() = portInfo.portQueues().value().size();
+      for (const auto& queue : portInfo.portQueues().value()) {
+        if (!queue.name().value().empty()) {
           portDetails.queueIdToName()->insert(
-              {queue.get_id(), queue.get_name()});
+              {folly::copy(queue.id().value()), queue.name().value()});
         }
       }
 
@@ -255,28 +477,41 @@ RetType CmdShowPort::createModel(
       if (iter != portStats.end()) {
         auto portHwStatsEntry = iter->second;
         cli::PortHwStatsEntry cliPortStats;
-        cliPortStats.inUnicastPkts() = portHwStatsEntry.get_inUnicastPkts_();
-        cliPortStats.inDiscardPkts() = portHwStatsEntry.get_inDiscards_();
-        cliPortStats.inErrorPkts() = portHwStatsEntry.get_inErrors_();
-        cliPortStats.outDiscardPkts() = portHwStatsEntry.get_outDiscards_();
+        cliPortStats.inUnicastPkts() =
+            folly::copy(portHwStatsEntry.inUnicastPkts_().value());
+        cliPortStats.inDiscardPkts() =
+            folly::copy(portHwStatsEntry.inDiscards_().value());
+        cliPortStats.inErrorPkts() =
+            folly::copy(portHwStatsEntry.inErrors_().value());
+        cliPortStats.outDiscardPkts() =
+            folly::copy(portHwStatsEntry.outDiscards_().value());
         cliPortStats.outCongestionDiscardPkts() =
-            portHwStatsEntry.get_outCongestionDiscardPkts_();
+            folly::copy(portHwStatsEntry.outCongestionDiscardPkts_().value());
         cliPortStats.queueOutDiscardBytes() =
-            portHwStatsEntry.get_queueOutDiscardBytes_();
+            portHwStatsEntry.queueOutDiscardBytes_().value();
         cliPortStats.inCongestionDiscards() =
-            portHwStatsEntry.get_inCongestionDiscards_();
-        cliPortStats.queueOutBytes() = portHwStatsEntry.get_queueOutBytes_();
-        if (portInfo.get_pfc()) {
-          cliPortStats.outPfcPriorityPackets() = portHwStatsEntry.get_outPfc_();
-          cliPortStats.inPfcPriorityPackets() = portHwStatsEntry.get_inPfc_();
-          cliPortStats.outPfcPackets() = portHwStatsEntry.get_outPfcCtrl_();
-          cliPortStats.inPfcPackets() = portHwStatsEntry.get_inPfcCtrl_();
+            folly::copy(portHwStatsEntry.inCongestionDiscards_().value());
+        cliPortStats.queueOutBytes() =
+            portHwStatsEntry.queueOutBytes_().value();
+        if (apache::thrift::get_pointer(portInfo.pfc())) {
+          cliPortStats.outPfcPriorityPackets() =
+              portHwStatsEntry.outPfc_().value();
+          cliPortStats.inPfcPriorityPackets() =
+              portHwStatsEntry.inPfc_().value();
+          cliPortStats.outPfcPackets() =
+              folly::copy(portHwStatsEntry.outPfcCtrl_().value());
+          cliPortStats.inPfcPackets() =
+              folly::copy(portHwStatsEntry.inPfcCtrl_().value());
         } else {
-          cliPortStats.outPausePackets() = portHwStatsEntry.get_outPause_();
-          cliPortStats.inPausePackets() = portHwStatsEntry.get_inPause_();
+          cliPortStats.outPausePackets() =
+              folly::copy(portHwStatsEntry.outPause_().value());
+          cliPortStats.inPausePackets() =
+              folly::copy(portHwStatsEntry.inPause_().value());
         }
-        cliPortStats.ingressBytes() = portHwStatsEntry.get_inBytes_();
-        cliPortStats.egressBytes() = portHwStatsEntry.get_outBytes_();
+        cliPortStats.ingressBytes() =
+            folly::copy(portHwStatsEntry.inBytes_().value());
+        cliPortStats.egressBytes() =
+            folly::copy(portHwStatsEntry.outBytes_().value());
         portDetails.hwPortStats() = cliPortStats;
       }
       model.portEntries()->push_back(portDetails);
@@ -287,7 +522,7 @@ RetType CmdShowPort::createModel(
       model.portEntries()->begin(),
       model.portEntries()->end(),
       [&](const cli::PortEntry& a, const cli::PortEntry& b) {
-        return utils::comparePortName(a.get_name(), b.get_name());
+        return utils::comparePortName(a.name().value(), b.name().value());
       });
 
   return model;
@@ -298,58 +533,62 @@ void CmdShowPort::printOutput(const RetType& model, std::ostream& out) {
   auto opt = CmdGlobalOptions::getInstance();
 
   if (opt->isDetailed()) {
-    for (auto const& portInfo : model.get_portEntries()) {
+    for (auto const& portInfo : model.portEntries().value()) {
       std::string hwLogicalPortId;
       if (auto portId = portInfo.hwLogicalPortId()) {
         hwLogicalPortId = folly::to<std::string>(*portId);
       }
 
-      const auto& portHwStats = portInfo.get_hwPortStats();
+      const auto& portHwStats = portInfo.hwPortStats().value();
       detailedOutput.emplace_back("");
       detailedOutput.emplace_back(
-          fmt::format("Name:           \t\t {}", portInfo.get_name()));
+          fmt::format("Name:           \t\t {}", portInfo.name().value()));
       detailedOutput.emplace_back(fmt::format(
           "ID:             \t\t {}",
-          folly::to<std::string>(portInfo.get_id())));
+          folly::to<std::string>(folly::copy(portInfo.id().value()))));
+      detailedOutput.emplace_back(fmt::format(
+          "Admin State:    \t\t {}", portInfo.adminState().value()));
       detailedOutput.emplace_back(
-          fmt::format("Admin State:    \t\t {}", portInfo.get_adminState()));
+          fmt::format("Speed:          \t\t {}", portInfo.speed().value()));
       detailedOutput.emplace_back(
-          fmt::format("Speed:          \t\t {}", portInfo.get_speed()));
-      detailedOutput.emplace_back(
-          fmt::format("LinkState:      \t\t {}", portInfo.get_linkState()));
+          fmt::format("LinkState:      \t\t {}", portInfo.linkState().value()));
       detailedOutput.emplace_back(fmt::format(
           "TcvrID:         \t\t {}",
-          folly::to<std::string>(portInfo.get_tcvrID())));
+          folly::to<std::string>(folly::copy(portInfo.tcvrID().value()))));
+      detailedOutput.emplace_back(fmt::format(
+          "Transceiver:    \t\t {}", portInfo.tcvrPresent().value()));
       detailedOutput.emplace_back(
-          fmt::format("Transceiver:    \t\t {}", portInfo.get_tcvrPresent()));
-      detailedOutput.emplace_back(
-          fmt::format("ProfileID:      \t\t {}", portInfo.get_profileId()));
+          fmt::format("ProfileID:      \t\t {}", portInfo.profileId().value()));
       detailedOutput.emplace_back(
           fmt::format("ProfileID:      \t\t {}", hwLogicalPortId));
-      detailedOutput.emplace_back(
-          fmt::format("Core ID:             \t\t {}", portInfo.get_coreId()));
       detailedOutput.emplace_back(fmt::format(
-          "Virtual device ID:    \t\t {}", portInfo.get_virtualDeviceId()));
-      if (portInfo.get_pause()) {
-        detailedOutput.emplace_back(
-            fmt::format("Pause:          \t\t {}", *portInfo.get_pause()));
-      } else if (portInfo.get_pfc()) {
-        detailedOutput.emplace_back(
-            fmt::format("PFC:            \t\t {}", *portInfo.get_pfc()));
+          "Core ID:             \t\t {}", portInfo.coreId().value()));
+      detailedOutput.emplace_back(fmt::format(
+          "Virtual device ID:    \t\t {}", portInfo.virtualDeviceId().value()));
+      if (apache::thrift::get_pointer(portInfo.pause())) {
+        detailedOutput.emplace_back(fmt::format(
+            "Pause:          \t\t {}",
+            *apache::thrift::get_pointer(portInfo.pause())));
+      } else if (apache::thrift::get_pointer(portInfo.pfc())) {
+        detailedOutput.emplace_back(fmt::format(
+            "PFC:            \t\t {}",
+            *apache::thrift::get_pointer(portInfo.pfc())));
       }
       detailedOutput.emplace_back(fmt::format(
           "Unicast queues: \t\t {}",
-          folly::to<std::string>(portInfo.get_numUnicastQueues())));
+          folly::to<std::string>(
+              folly::copy(portInfo.numUnicastQueues().value()))));
       detailedOutput.emplace_back(fmt::format(
           "    Ingress (bytes)               \t\t {}",
-          portHwStats.get_ingressBytes()));
+          folly::copy(portHwStats.ingressBytes().value())));
       detailedOutput.emplace_back(fmt::format(
           "    Egress (bytes)                \t\t {}",
-          portHwStats.get_egressBytes()));
-      for (const auto& queueBytes : portHwStats.get_queueOutBytes()) {
-        const auto iter = portInfo.get_queueIdToName().find(queueBytes.first);
-        std::string queueName = "";
-        if (iter != portInfo.get_queueIdToName().end()) {
+          folly::copy(portHwStats.egressBytes().value())));
+      for (const auto& queueBytes : portHwStats.queueOutBytes().value()) {
+        const auto iter =
+            portInfo.queueIdToName().value().find(queueBytes.first);
+        std::string queueName;
+        if (iter != portInfo.queueIdToName().value().end()) {
           queueName = folly::to<std::string>("(", iter->second, ")");
         }
         // print either if the queue is valid or queue has non zero traffic
@@ -363,25 +602,25 @@ void CmdShowPort::printOutput(const RetType& model, std::ostream& out) {
       }
       detailedOutput.emplace_back(fmt::format(
           "    Received Unicast (pkts)       \t\t {}",
-          portHwStats.get_inUnicastPkts()));
+          folly::copy(portHwStats.inUnicastPkts().value())));
       detailedOutput.emplace_back(fmt::format(
           "    In Errors (pkts)              \t\t {}",
-          portHwStats.get_inErrorPkts()));
+          folly::copy(portHwStats.inErrorPkts().value())));
       detailedOutput.emplace_back(fmt::format(
           "    In Discards (pkts)            \t\t {}",
-          portHwStats.get_inDiscardPkts()));
+          folly::copy(portHwStats.inDiscardPkts().value())));
       detailedOutput.emplace_back(fmt::format(
           "    Out Discards (pkts)           \t\t {}",
-          portHwStats.get_outDiscardPkts()));
+          folly::copy(portHwStats.outDiscardPkts().value())));
       detailedOutput.emplace_back(fmt::format(
           "    Out Congestion Discards (pkts)\t\t {}",
-          portHwStats.get_outCongestionDiscardPkts()));
+          folly::copy(portHwStats.outCongestionDiscardPkts().value())));
       for (const auto& queueDiscardBytes :
-           portHwStats.get_queueOutDiscardBytes()) {
+           portHwStats.queueOutDiscardBytes().value()) {
         const auto iter =
-            portInfo.get_queueIdToName().find(queueDiscardBytes.first);
-        std::string queueName = "";
-        if (iter != portInfo.get_queueIdToName().end()) {
+            portInfo.queueIdToName().value().find(queueDiscardBytes.first);
+        std::string queueName;
+        if (iter != portInfo.queueIdToName().value().end()) {
           queueName = folly::to<std::string>("(", iter->second, ")");
         }
         // print either if the queue is valid or queue has non zero traffic
@@ -395,14 +634,14 @@ void CmdShowPort::printOutput(const RetType& model, std::ostream& out) {
       }
       detailedOutput.emplace_back(fmt::format(
           "    In Congestion Discards (pkts)\t\t {}",
-          portHwStats.get_inCongestionDiscards()));
-      if (portHwStats.get_outPfcPackets()) {
+          folly::copy(portHwStats.inCongestionDiscards().value())));
+      if (apache::thrift::get_pointer(portHwStats.outPfcPackets())) {
         detailedOutput.emplace_back(fmt::format(
             "    PFC Output (pkts)             \t\t {}",
-            *portHwStats.get_outPfcPackets()));
-        if (portHwStats.get_outPfcPriorityPackets()) {
-          for (const auto& pfcPriortyCounter :
-               *portHwStats.get_outPfcPriorityPackets()) {
+            *apache::thrift::get_pointer(portHwStats.outPfcPackets())));
+        if (apache::thrift::get_pointer(portHwStats.outPfcPriorityPackets())) {
+          for (const auto& pfcPriortyCounter : *apache::thrift::get_pointer(
+                   portHwStats.outPfcPriorityPackets())) {
             detailedOutput.emplace_back(fmt::format(
                 "\tPriority {}                 \t\t {}",
                 pfcPriortyCounter.first,
@@ -410,13 +649,13 @@ void CmdShowPort::printOutput(const RetType& model, std::ostream& out) {
           }
         }
       }
-      if (portHwStats.get_inPfcPackets()) {
+      if (apache::thrift::get_pointer(portHwStats.inPfcPackets())) {
         detailedOutput.emplace_back(fmt::format(
             "    PFC Input (pkts)              \t\t {}",
-            *portHwStats.get_inPfcPackets()));
-        if (portHwStats.get_inPfcPriorityPackets()) {
-          for (const auto& pfcPriortyCounter :
-               *portHwStats.get_inPfcPriorityPackets()) {
+            *apache::thrift::get_pointer(portHwStats.inPfcPackets())));
+        if (apache::thrift::get_pointer(portHwStats.inPfcPriorityPackets())) {
+          for (const auto& pfcPriortyCounter : *apache::thrift::get_pointer(
+                   portHwStats.inPfcPriorityPackets())) {
             detailedOutput.emplace_back(fmt::format(
                 "\tPriority {}                 \t\t {}",
                 pfcPriortyCounter.first,
@@ -424,15 +663,15 @@ void CmdShowPort::printOutput(const RetType& model, std::ostream& out) {
           }
         }
       }
-      if (portHwStats.get_outPausePackets()) {
+      if (apache::thrift::get_pointer(portHwStats.outPausePackets())) {
         detailedOutput.emplace_back(fmt::format(
             "    Pause Output (pkts)           \t\t {}",
-            *portHwStats.get_outPausePackets()));
+            *apache::thrift::get_pointer(portHwStats.outPausePackets())));
       }
-      if (portHwStats.get_inPausePackets()) {
+      if (apache::thrift::get_pointer(portHwStats.inPausePackets())) {
         detailedOutput.emplace_back(fmt::format(
             "    Pause Input (pkts)            \t\t {}",
-            *portHwStats.get_inPausePackets()));
+            *apache::thrift::get_pointer(portHwStats.inPausePackets())));
       }
     }
     out << folly::join("\n", detailedOutput) << std::endl;
@@ -450,31 +689,38 @@ void CmdShowPort::printOutput(const RetType& model, std::ostream& out) {
         "ProfileID",
         "HwLogicalPortId",
         "Drained",
+        "PeerSwitchDrained",
+        "PeerPortDrainedOrDown",
         "Errors",
         "Core Id",
         "Virtual device Id",
     });
 
-    for (auto const& portInfo : model.get_portEntries()) {
+    for (auto const& portInfo : model.portEntries().value()) {
       std::string hwLogicalPortId;
       if (auto portId = portInfo.hwLogicalPortId()) {
         hwLogicalPortId = folly::to<std::string>(*portId);
       }
+
+      bool activeStateMismatch = portInfo.activeStateMismatch().value();
       table.addRow(
-          {folly::to<std::string>(portInfo.get_id()),
-           portInfo.get_name(),
-           portInfo.get_adminState(),
-           getStyledLinkState(portInfo.get_linkState()),
-           getStyledActiveState(portInfo.get_activeState()),
-           portInfo.get_tcvrPresent(),
-           folly::to<std::string>(portInfo.get_tcvrID()),
-           portInfo.get_speed(),
-           portInfo.get_profileId(),
+          {folly::to<std::string>(folly::copy(portInfo.id().value())),
+           portInfo.name().value(),
+           portInfo.adminState().value(),
+           getStyledLinkState(portInfo.linkState().value()),
+           getStyledActiveState(
+               portInfo.activeState().value(), activeStateMismatch),
+           portInfo.tcvrPresent().value(),
+           folly::to<std::string>(folly::copy(portInfo.tcvrID().value())),
+           portInfo.speed().value(),
+           portInfo.profileId().value(),
            hwLogicalPortId,
-           portInfo.get_isDrained(),
-           getStyledErrors(portInfo.get_activeErrors()),
-           portInfo.get_coreId(),
-           portInfo.get_virtualDeviceId()});
+           portInfo.isDrained().value(),
+           portInfo.peerSwitchDrained().value(),
+           portInfo.peerPortDrainedOrDown().value(),
+           getStyledErrors(portInfo.activeErrors().value()),
+           portInfo.coreId().value(),
+           portInfo.virtualDeviceId().value()});
     }
     out << table << std::endl;
   }

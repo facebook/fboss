@@ -182,6 +182,7 @@ target_link_libraries(prod_config_utils
   switch_config_cpp2
   traffic_policy_utils
   olympic_qos_utils
+  network_ai_qos_utils
   hw_copp_utils
 )
 
@@ -206,6 +207,7 @@ set(hw_switch_test_srcs
   fboss/agent/hw/test/HwTestPortUtils.cpp
   fboss/agent/hw/test/HwTestCoppUtils.cpp
   fboss/agent/hw/test/HwRouteTests.cpp
+  fboss/agent/hw/test/HwSplitAgentTest.cpp
   fboss/agent/hw/test/HwTrunkTests.cpp
   fboss/agent/hw/test/HwVlanTests.cpp
   fboss/agent/hw/test/HwVerifyPfcConfigInHwTest.cpp
@@ -219,10 +221,11 @@ set(hw_switch_test_srcs
   fboss/agent/hw/test/HwTeFlowTests.cpp
   fboss/agent/hw/test/HwUdfTests.cpp
   fboss/agent/hw/test/HwTestPfcUtils.cpp
+  fboss/agent/hw/test/dataplane_tests/HwHashConsistencyTest.cpp
   fboss/agent/hw/test/dataplane_tests/HwAqmTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwInPauseDiscardsTests.cpp
-  fboss/agent/hw/test/dataplane_tests/HwIpInIpTunnelTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwMPLSTests.cpp
+  fboss/agent/hw/test/dataplane_tests/HwL3Tests.cpp
   fboss/agent/hw/test/dataplane_tests/HwLoadBalancerTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwTeFlowTrafficTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwProdInvariantHelper.cpp
@@ -279,6 +282,8 @@ target_link_libraries(hw_switch_test
   mac_test_utils
   mirror_test_utils
   olympic_qos_utils
+  network_ai_qos_utils
+  pfc_test_utils
   prod_config_factory
   prod_config_utils
   qos_test_utils
@@ -293,11 +298,11 @@ target_link_libraries(hw_switch_test
   route_scale_gen
   trunk_utils
   trap_packet_utils
+  udf_test_utils
   Folly::folly
   validated_shell_commands_cpp2
   hwswitch_matcher
   switchid_scope_resolver
-  hw_stat_printers
   port_stats_test_utils
   agent_hw_test_constants
   sai_switch_ensemble
@@ -324,6 +329,7 @@ target_link_libraries(prod_config_factory
   hw_copp_utils
   dscp_marking_utils
   olympic_qos_utils
+  network_ai_qos_utils
   queue_per_host_test_utils
   load_balancer_utils
   load_balancer_test_utils

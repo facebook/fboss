@@ -3,6 +3,7 @@
 #pragma once
 
 #include "fboss/platform/weutil/FbossEepromParser.h"
+#include "fboss/platform/weutil/FbossEepromParserUtils.h"
 
 namespace facebook::fboss::platform {
 
@@ -12,7 +13,7 @@ class CachedFbossEepromParser {
 
   std::vector<std::pair<std::string, std::string>> getContents(
       const std::string& eepromFilePath,
-      uint16_t offset = 0) {
+      uint16_t offset) {
     auto eepromPtr = std::make_pair(eepromFilePath, offset);
     if (cache_.find(eepromPtr) == cache_.end()) {
       auto contents = FbossEepromParser(eepromFilePath, offset).getContents();
@@ -25,46 +26,30 @@ class CachedFbossEepromParser {
 
   std::optional<std::string> getProductName(
       const std::string& eepromFilePath,
-      uint16_t offset = 0) {
-    for (const auto& [key, value] : getContents(eepromFilePath, offset)) {
-      if (key == "Product Name") {
-        return value;
-      }
-    }
-    return std::nullopt;
+      uint16_t offset) {
+    auto contents = getContents(eepromFilePath, offset);
+    return FbossEepromParserUtils::getProductName(contents);
   }
 
-  std::optional<int> getProdutProductionState(
+  std::optional<int> getProductionState(
       const std::string& eepromFilePath,
-      uint16_t offset = 0) {
-    for (const auto& [key, value] : getContents(eepromFilePath, offset)) {
-      if (key == "Product Production State") {
-        return std::stoi(value);
-      }
-    }
-    return std::nullopt;
+      uint16_t offset) {
+    auto contents = getContents(eepromFilePath, offset);
+    return FbossEepromParserUtils::getProductionState(contents);
   }
 
-  std::optional<int> getProductVersion(
+  std::optional<int> getProductionSubState(
       const std::string& eepromFilePath,
-      uint16_t offset = 0) {
-    for (const auto& [key, value] : getContents(eepromFilePath, offset)) {
-      if (key == "Product Version") {
-        return std::stoi(value);
-      }
-    }
-    return std::nullopt;
+      uint16_t offset) {
+    auto contents = getContents(eepromFilePath, offset);
+    return FbossEepromParserUtils::getProductionSubState(contents);
   }
 
-  std::optional<int> getProductSubVersion(
+  std::optional<int> getVariantVersion(
       const std::string& eepromFilePath,
       uint16_t offset = 0) {
-    for (const auto& [key, value] : getContents(eepromFilePath, offset)) {
-      if (key == "Product Sub-Version") {
-        return std::stoi(value);
-      }
-    }
-    return std::nullopt;
+    auto contents = getContents(eepromFilePath, offset);
+    return FbossEepromParserUtils::getVariantVersion(contents);
   }
 
  private:

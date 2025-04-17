@@ -9,6 +9,8 @@
 #include "fboss/lib/bsp/meru400biu/Meru400biuBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru800bfa/Meru800bfaBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru800bia/Meru800biaBspPlatformMapping.h"
+#include "fboss/lib/bsp/minipack3n/Minipack3NBspPlatformMapping.h"
+#include "fboss/lib/bsp/montblanc/MontblancBspPlatformMapping.h"
 #include "fboss/lib/bsp/morgan800cc/Morgan800ccBspPlatformMapping.h"
 #include "fboss/lib/bsp/tahan800bc/Tahan800bcBspPlatformMapping.h"
 #include "fboss/lib/fpga/Wedge400I2CBus.h"
@@ -89,6 +91,18 @@ std::pair<std::unique_ptr<TransceiverI2CApi>, int> getTransceiverAPI() {
               .get();
       auto ioBus = std::make_unique<BspIOBus>(systemContainer);
       return std::make_pair(std::move(ioBus), 0);
+    } else if (FLAGS_platform == "montblanc") {
+      auto systemContainer =
+          BspGenericSystemContainer<MontblancBspPlatformMapping>::getInstance()
+              .get();
+      auto ioBus = std::make_unique<BspIOBus>(systemContainer);
+      return std::make_pair(std::move(ioBus), 0);
+    } else if (FLAGS_platform == "minipack3n") {
+      auto systemContainer =
+          BspGenericSystemContainer<Minipack3NBspPlatformMapping>::getInstance()
+              .get();
+      auto ioBus = std::make_unique<BspIOBus>(systemContainer);
+      return std::make_pair(std::move(ioBus), 0);
     } else {
       fprintf(stderr, "Unknown platform %s\n", FLAGS_platform.c_str());
       return std::make_pair(nullptr, EX_USAGE);
@@ -142,6 +156,18 @@ std::pair<std::unique_ptr<TransceiverI2CApi>, int> getTransceiverAPI() {
     return std::make_pair(std::move(ioBus), 0);
   } else if (mode == PlatformType::PLATFORM_WEDGE400C) {
     return std::make_pair(std::make_unique<Wedge400I2CBus>(), 0);
+  } else if (mode == PlatformType::PLATFORM_MONTBLANC) {
+    auto systemContainer =
+        BspGenericSystemContainer<MontblancBspPlatformMapping>::getInstance()
+            .get();
+    auto ioBus = std::make_unique<BspIOBus>(systemContainer);
+    return std::make_pair(std::move(ioBus), 0);
+  } else if (mode == PlatformType::PLATFORM_MINIPACK3N) {
+    auto systemContainer =
+        BspGenericSystemContainer<Minipack3NBspPlatformMapping>::getInstance()
+            .get();
+    auto ioBus = std::make_unique<BspIOBus>(systemContainer);
+    return std::make_pair(std::move(ioBus), 0);
   }
 
   // TODO(klahey):  Should probably verify the other chip architecture.

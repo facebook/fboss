@@ -1,9 +1,12 @@
 //  Copyright 2021-present Facebook. All Rights Reserved.
 
+#include <folly/logging/Init.h>
 #include <folly/logging/xlog.h>
 
+#include <filesystem>
 #include "fboss/platform/fw_util/Flags.h"
 #include "fboss/platform/fw_util/FwUtilImpl.h"
+#include "fboss/platform/fw_util/fw_util_helpers.h"
 #include "fboss/platform/helpers/InitCli.h"
 
 using namespace facebook::fboss::platform::fw_util;
@@ -19,8 +22,6 @@ int main(int argc, char* argv[]) {
   // simultaneously.
 
   helpers::initCli(&argc, &argv, "fw_util");
-
-  FwUtilImpl fwUtilImpl;
 
   // TODO: To be removed once XFN change the commands in their codes
   if (FLAGS_fw_action.empty()) {
@@ -49,24 +50,27 @@ int main(int argc, char* argv[]) {
     exit(1);
   }
 
-  if (!FLAGS_fw_binary_file.empty() &&
-      !fwUtilImpl.isFilePresent(FLAGS_fw_binary_file)) {
+  // Check for file existence only for actions that require a binary file
+  if (!FLAGS_fw_binary_file.empty() && FLAGS_fw_action != "read" &&
+      !std::filesystem::exists(FLAGS_fw_binary_file)) {
     XLOG(ERR) << "--fw_binary_file cannot be found in the specified path";
     exit(1);
   }
 
+  FwUtilImpl fwUtilImpl(FLAGS_fw_binary_file, FLAGS_verify_sha1sum);
+
   if (FLAGS_fw_action == "version" && !FLAGS_fw_target_name.empty()) {
-    fwUtilImpl.printVersion(fwUtilImpl.toLower(FLAGS_fw_target_name));
+    fwUtilImpl.printVersion(toLower(FLAGS_fw_target_name));
   } else if (
       FLAGS_fw_action == "program" || FLAGS_fw_action == "verify" ||
       FLAGS_fw_action == "read") {
-    fwUtilImpl.storeFilePath(
-        fwUtilImpl.toLower(FLAGS_fw_target_name), FLAGS_fw_binary_file);
+    // For actions which involve more than just reading versions/config, we want
+    // to always log all the commands that are run.
+    folly::LoggerDB::get()
+        .getCategory("fboss.platform.helpers.PlatformUtils")
+        ->setLevel(folly::LogLevel::DBG2);
     fwUtilImpl.doFirmwareAction(
-        fwUtilImpl.toLower(FLAGS_fw_target_name),
-        fwUtilImpl.toLower(FLAGS_fw_action));
-    // remove store file path after programing
-    fwUtilImpl.removeFilePath(fwUtilImpl.toLower(FLAGS_fw_target_name));
+        toLower(FLAGS_fw_target_name), toLower(FLAGS_fw_action));
   } else if (FLAGS_fw_action == "list") {
     XLOG(INFO) << "supported Binary names are: " << fwUtilImpl.printFpdList();
   } else if (FLAGS_fw_action == "audit") {

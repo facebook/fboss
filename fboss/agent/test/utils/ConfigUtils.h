@@ -51,7 +51,8 @@ auto constexpr kBaseVlanId = 2000;
 /*
  * Default VLAN
  */
-auto constexpr kDefaultVlanId = 4094;
+auto constexpr kDefaultVlanId4094 = 4094;
+auto constexpr kDefaultVlanId1 = 1;
 auto constexpr kDownlinkBaseVlanId = 2000;
 auto constexpr kUplinkBaseVlanId = 4000;
 
@@ -73,10 +74,11 @@ int getMaxRdsw();
 int getMaxEdsw();
 
 cfg::DsfNode dsfNodeConfig(
-    const HwAsic& myAsic,
+    const HwAsic& firstAsic,
     int64_t otherSwitchId = 4,
     const std::optional<PlatformType> platformType = std::nullopt,
-    const std::optional<int> clusterId = std::nullopt);
+    const std::optional<int> clusterId = std::nullopt,
+    const std::string& switchNamePrefix = "hwTestSwitch");
 
 std::vector<cfg::Port>::iterator findCfgPort(
     cfg::SwitchConfig& cfg,
@@ -133,7 +135,8 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
     bool interfaceHasSubnet = true,
     bool setInterfaceMac = true,
     int baseIntfId = kBaseVlanId,
-    bool enableFabricPorts = false);
+    bool enableFabricPorts = false,
+    const std::optional<cfg::InterfaceType>& intfType = std::nullopt);
 
 cfg::SwitchConfig onePortPerInterfaceConfig(
     const PlatformMapping* platformMapping,
@@ -149,7 +152,8 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
         switchIdToSwitchInfo = std::nullopt,
     const std::optional<std::map<SwitchID, const HwAsic*>>& hwAsicTable =
         std::nullopt,
-    const std::optional<PlatformType> platformType = std::nullopt);
+    const std::optional<PlatformType> platformType = std::nullopt,
+    const std::optional<cfg::InterfaceType>& intfType = std::nullopt);
 
 cfg::SwitchConfig onePortPerInterfaceConfig(
     const TestEnsembleIf* ensemble,
@@ -157,7 +161,8 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
     bool interfaceHasSubnet = true,
     bool setInterfaceMac = true,
     int baseIntfId = kBaseVlanId,
-    bool enableFabricPorts = false);
+    bool enableFabricPorts = false,
+    const std::optional<cfg::InterfaceType>& intfType = std::nullopt);
 
 cfg::SwitchConfig
 oneL3IntfTwoPortConfig(const SwSwitch* sw, PortID port1, PortID port2);
@@ -326,5 +331,10 @@ void modifyPlatformConfig(
     const std::function<void(std::string&)>& modifyYamlFunc,
     const std::function<void(std::map<std::string, std::string>&)>&
         modifyMapFunc);
+
+void runCintScript(TestEnsembleIf* ensemble, const std::string& cintStr);
+
+std::string
+genInterfaceAddress(int ipDecimal, bool isV4, int host, int subnetMask);
 
 } // namespace facebook::fboss::utility

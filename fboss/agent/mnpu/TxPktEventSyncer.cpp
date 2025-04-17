@@ -66,8 +66,9 @@ fb303::TimeseriesWrapper& TxPktEventSyncer::getBadPacketCounter() {
 void TxPktEventSyncer::TxPacketEventHandler(
     multiswitch::TxPacket& txPkt,
     HwSwitch* hw) {
-  if (hw->getRunState() == SwitchRunState::EXITING) {
-    XLOG(DBG4) << "TxPktEventSyncer: hwswitch exiting, dropping packet";
+  if (hw->getRunState() != SwitchRunState::CONFIGURED) {
+    XLOG_EVERY_MS(DBG2, 5000)
+        << "TxPktEventSyncer: hwswitch not in configured state, dropping packet";
     return;
   }
   auto len = (*txPkt.data())->computeChainDataLength();

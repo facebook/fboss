@@ -14,6 +14,12 @@
 
 namespace facebook::fboss::fsdb {
 
+struct SubscriberStats {
+  uint32_t numSubscriptions{0};
+  uint32_t numExtendedSubscriptions{0};
+  uint32_t subscriptionServeQueueWatermark{0};
+};
+
 class SubscriptionMetadataServer;
 
 class SubscriptionManagerBase {
@@ -57,6 +63,8 @@ class SubscriptionManagerBase {
   }
 
   std::vector<OperSubscriberInfo> getSubscriptions() const;
+
+  std::map<FsdbClient, SubscriberStats> getSubscriberStats() const;
 
   void useIdPaths(bool idPaths) {
     useIdPaths_ = idPaths;

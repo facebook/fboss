@@ -96,9 +96,14 @@ void PlatformProductInfo::initMode() {
       // TODO remove FAB once fruid.json is fixed on Galaxy fabric cards
       type_ = PlatformType::PLATFORM_GALAXY_FC;
     } else if (
+        modelName.find("Minipack3N") == 0 ||
+        modelName.find("MINIPACK3N") == 0) {
+      type_ = PlatformType::PLATFORM_MINIPACK3N;
+    } else if (
         modelName.find("Montblanc") == 0 || modelName.find("MONTBLANC") == 0 ||
         modelName.find("MINIPACK3_CHASSIS_BUNDLE") == 0 ||
-        modelName.find("MINIPACK3") == 0) {
+        modelName.find("MINIPACK3") == 0 ||
+        modelName.find("MINIPACK3-48V-ORV3") == 0) {
       type_ = PlatformType::PLATFORM_MONTBLANC;
     } else if (
         modelName.find("MINIPACK") == 0 || modelName.find("MINIPHOTON") == 0) {
@@ -112,8 +117,6 @@ void PlatformProductInfo::initMode() {
       type_ = PlatformType::PLATFORM_FAKE_WEDGE40;
     } else if (modelName.find("fake_wedge") == 0) {
       type_ = PlatformType::PLATFORM_FAKE_WEDGE;
-    } else if (modelName.find("CLOUDRIPPER") == 0) {
-      type_ = PlatformType::PLATFORM_CLOUDRIPPER;
     } else if (
         modelName.find("Yangra") == 0 || modelName.find("yangra") == 0 ||
         modelName.find("YANGRA") == 0) {
@@ -164,7 +167,9 @@ void PlatformProductInfo::initMode() {
       type_ = PlatformType::PLATFORM_MERU800BFA;
     } else if (
         modelName.find("MORGAN800CC") == 0 ||
-        modelName.find("8501-SYS-MT") == 0) {
+        modelName.find("8501-SYS-MT") == 0 ||
+        modelName.find("8501-SYS-MT-PVT") == 0 ||
+        modelName.find("8501-SYS-MT-DC") == 0) {
       type_ = PlatformType::PLATFORM_MORGAN800CC;
     } else if (modelName.find("YANGRA") == 0) {
       type_ = PlatformType::PLATFORM_YANGRA;
@@ -177,6 +182,8 @@ void PlatformProductInfo::initMode() {
         modelName.find("TAHAN") == 0 || modelName.find("TAHAN800BC") == 0 ||
         modelName.find("R4063-F9001-01") == 0) {
       type_ = PlatformType::PLATFORM_TAHAN800BC;
+    } else if (modelName.find("ICEPACK-TH6") == 0) {
+      type_ = PlatformType::PLATFORM_ICECUBE800BC;
     } else {
       throw FbossError("invalid model name " + modelName);
     }
@@ -225,10 +232,6 @@ void PlatformProductInfo::initMode() {
       type_ = PlatformType::PLATFORM_WEDGE400C_VOQ;
     } else if (FLAGS_mode == "wedge400c_fabric") {
       type_ = PlatformType::PLATFORM_WEDGE400C_FABRIC;
-    } else if (FLAGS_mode == "cloudripper_voq") {
-      type_ = PlatformType::PLATFORM_CLOUDRIPPER_VOQ;
-    } else if (FLAGS_mode == "cloudripper_fabric") {
-      type_ = PlatformType::PLATFORM_CLOUDRIPPER_FABRIC;
     } else if (FLAGS_mode == "montblanc") {
       type_ = PlatformType::PLATFORM_MONTBLANC;
     } else if (FLAGS_mode == "fake_sai") {
@@ -241,6 +244,8 @@ void PlatformProductInfo::initMode() {
       type_ = PlatformType::PLATFORM_MORGAN800CC;
     } else if (FLAGS_mode == "yangra") {
       type_ = PlatformType::PLATFORM_YANGRA;
+    } else if (FLAGS_mode == "minipack3n") {
+      type_ = PlatformType::PLATFORM_MINIPACK3N;
     } else {
       throw std::runtime_error("invalid mode " + FLAGS_mode);
     }

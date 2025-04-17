@@ -14,6 +14,10 @@ TEST(ParserTest, GetNameForTests) {
       "montblanc");
   EXPECT_EQ(
       facebook::fboss::Parser::getNameFor(
+          facebook::fboss::PlatformType::PLATFORM_MINIPACK3N),
+      "minipack3n");
+  EXPECT_EQ(
+      facebook::fboss::Parser::getNameFor(
           facebook::fboss::PlatformType::PLATFORM_MERU400BFU),
       "meru400bfu");
   EXPECT_EQ(
@@ -149,7 +153,7 @@ TEST(ParserTest, GetBspPlatformMappingFromCsvTest) {
       bspPlatformMapping.get_pimMapping().end());
   EXPECT_EQ(bspPlatformMapping.get_pimMapping().at(1).get_pimID(), 1);
   auto tcvrMapping =
-      bspPlatformMapping.get_pimMapping().at(1).get_tcvrMapping();
+      bspPlatformMapping.pimMapping().value().at(1).tcvrMapping().value();
   EXPECT_EQ(tcvrMapping.size(), 1);
   EXPECT_TRUE(tcvrMapping.find(1) != tcvrMapping.end());
   EXPECT_EQ(tcvrMapping.at(1).get_tcvrId(), 1);
@@ -227,7 +231,7 @@ TEST(ParserTest, GetBspPlatformMappingFromCsvTest) {
   EXPECT_EQ(
       bspPlatformMapping.get_pimMapping().at(1).get_ledMapping().size(), 1);
   auto ledMapping =
-      bspPlatformMapping.get_pimMapping().at(1).get_ledMapping().at(1);
+      bspPlatformMapping.pimMapping().value().at(1).ledMapping().value().at(1);
 
   EXPECT_EQ(ledMapping.get_id(), 1);
   EXPECT_TRUE(ledMapping.get_bluePath() != nullptr);

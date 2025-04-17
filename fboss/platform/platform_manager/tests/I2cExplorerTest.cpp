@@ -1,12 +1,14 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include <gtest/gtest.h>
+#include <filesystem>
 #include <stdexcept>
 #include <string>
 
-#include "fboss/platform/helpers/MockPlatformUtils.h"
+#include "fboss/platform/helpers/MockPlatformFsUtils.h"
 #include "fboss/platform/platform_manager/I2cExplorer.h"
 
+namespace fs = std::filesystem;
 using namespace ::testing;
 using namespace facebook::fboss::platform;
 using namespace facebook::fboss::platform::platform_manager;
@@ -14,8 +16,8 @@ using namespace facebook::fboss::platform::platform_manager;
 namespace {
 class MockI2cExplorer : public I2cExplorer {
  public:
-  explicit MockI2cExplorer(std::shared_ptr<MockPlatformUtils> platformUtils)
-      : I2cExplorer(platformUtils) {}
+  explicit MockI2cExplorer(std::shared_ptr<MockPlatformFsUtils> platformFsUtils)
+      : I2cExplorer(platformFsUtils) {}
   MOCK_METHOD(bool, isI2cDevicePresent, (uint16_t, const I2cAddr&), (const));
   MOCK_METHOD(
       std::optional<std::string>,
@@ -26,17 +28,18 @@ class MockI2cExplorer : public I2cExplorer {
 } // namespace
 
 TEST(I2cExplorerTest, createI2cDeviceSuccess) {
-  auto platformUtils = std::make_shared<MockPlatformUtils>();
-  auto i2cExplorer = MockI2cExplorer(platformUtils);
+  auto platformFsUtils = std::make_shared<MockPlatformFsUtils>();
+  auto i2cExplorer = MockI2cExplorer(platformFsUtils);
 
   // CASE-1: No device present; creation succeeds.
   EXPECT_CALL(i2cExplorer, isI2cDevicePresent(4, I2cAddr(15)))
       .WillOnce(Return(false))
       .WillOnce(Return(true));
   EXPECT_CALL(
-      *platformUtils,
-      execCommand("echo lm73 0x0f > /sys/bus/i2c/devices/i2c-4/new_device"))
-      .WillOnce(Return(std::pair(0, "")));
+      *platformFsUtils,
+      writeStringToSysfs(
+          "lm73 0x0f", fs::path("/sys/bus/i2c/devices/i2c-4/new_device")))
+      .WillOnce(Return(true));
   EXPECT_NO_THROW(
       i2cExplorer.createI2cDevice("TEST_SENSOR", "lm73", 4, I2cAddr(15)));
 
@@ -50,15 +53,16 @@ TEST(I2cExplorerTest, createI2cDeviceSuccess) {
 }
 
 TEST(I2cExplorerTest, createI2cDeviceFailure) {
-  auto platformUtils = std::make_shared<MockPlatformUtils>();
-  auto i2cExplorer = MockI2cExplorer(platformUtils);
+  auto platformFsUtils = std::make_shared<MockPlatformFsUtils>();
+  auto i2cExplorer = MockI2cExplorer(platformFsUtils);
   // CASE-1: echoing lm75 15 into the new_device file fails.
   EXPECT_CALL(i2cExplorer, isI2cDevicePresent(4, I2cAddr(15)))
       .WillRepeatedly(Return(false));
   EXPECT_CALL(
-      *platformUtils,
-      execCommand("echo lm73 0x0f > /sys/bus/i2c/devices/i2c-4/new_device"))
-      .WillOnce(Return(std::pair(-1, "")));
+      *platformFsUtils,
+      writeStringToSysfs(
+          "lm73 0x0f", fs::path("/sys/bus/i2c/devices/i2c-4/new_device")))
+      .WillOnce(Return(false));
   EXPECT_THROW(
       i2cExplorer.createI2cDevice("TEST_SENSOR", "lm73", 4, I2cAddr(15)),
       std::runtime_error);
@@ -67,9 +71,10 @@ TEST(I2cExplorerTest, createI2cDeviceFailure) {
   EXPECT_CALL(i2cExplorer, isI2cDevicePresent(3, I2cAddr(16)))
       .WillRepeatedly(Return(false));
   EXPECT_CALL(
-      *platformUtils,
-      execCommand("echo pmbus 0x10 > /sys/bus/i2c/devices/i2c-3/new_device"))
-      .WillOnce(Return(std::pair(0, "")));
+      *platformFsUtils,
+      writeStringToSysfs(
+          "pmbus 0x10", fs::path("/sys/bus/i2c/devices/i2c-3/new_device")))
+      .WillOnce(Return(true));
   EXPECT_THROW(
       i2cExplorer.createI2cDevice("TEST_SENSOR", "pmbus", 3, I2cAddr(16)),
       std::runtime_error);

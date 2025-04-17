@@ -53,8 +53,8 @@ class Jericho3Asic : public BroadcomAsic {
   uint32_t getMaxSwitchId() const override {
     // Even though J3 HW can support switchIds upto 8K.
     // Due to a bug in reachability table update logic,
-    // we can use only 4K out of that 8K range
-    return 4 * 1024;
+    // we can use only 4064 (not 4K) out of that 8K range
+    return 4064;
   }
   uint32_t getMMUCellSize() const {
     return 254;
@@ -62,10 +62,10 @@ class Jericho3Asic : public BroadcomAsic {
   uint32_t getMaxMirrors() const override {
     return 4;
   }
-  uint64_t getDefaultReservedBytes(
+  std::optional<uint64_t> getDefaultReservedBytes(
       cfg::StreamType streamType,
       cfg::PortType portType) const override;
-  cfg::MMUScalingFactor getDefaultScalingFactor(
+  std::optional<cfg::MMUScalingFactor> getDefaultScalingFactor(
       cfg::StreamType /*streamType*/,
       bool /*cpu*/) const override {
     return cfg::MMUScalingFactor::TWO;
@@ -77,7 +77,7 @@ class Jericho3Asic : public BroadcomAsic {
     return 128;
   }
   uint32_t getMaxWideEcmpSize() const override {
-    return 512;
+    return 2048;
   }
   uint32_t getMaxLagMemberSize() const override {
     return 64;
@@ -89,7 +89,7 @@ class Jericho3Asic : public BroadcomAsic {
     return 40;
   }
   uint32_t getMaxVariableWidthEcmpSize() const override {
-    return 512;
+    return 2048;
   }
   uint32_t getMaxEcmpSize() const override {
     return 4096;

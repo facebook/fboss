@@ -34,6 +34,13 @@ DEFINE_bool(
     "1) Enable thrift handler for HW tests, "
     "2) Consume config file created by sw agent with overrides.");
 
+namespace {
+// The worst performance of programming acceptable route scale is 28s across
+// our platforms in production. Hence setting the queue timeout to 30s to give
+// small headroom.
+constexpr auto kThriftServerQueueTimeout = std::chrono::seconds(30);
+} // namespace
+
 namespace facebook::fboss {
 std::unique_ptr<apache::thrift::ThriftServer> setupThriftServer(
     folly::EventBase& eventBase,
@@ -52,10 +59,9 @@ std::unique_ptr<apache::thrift::ThriftServer> setupThriftServer(
           handlers);
 
   server->setInterface(handler);
-  // Since thrift calls may involve programming HW, don't
-  // set queue timeouts
-  server->setQueueTimeout(std::chrono::milliseconds(0));
-  server->setSocketQueueTimeout(std::chrono::milliseconds(0));
+
+  server->setQueueTimeout(kThriftServerQueueTimeout);
+  server->setSocketQueueTimeout(kThriftServerQueueTimeout);
 
   if (setupSSL) {
     serverSSLSetup(*server);

@@ -14,6 +14,7 @@
 #include "fboss/qsfp_service/test/hw_test/HwPortUtils.h"
 #include "fboss/qsfp_service/test/hw_test/HwQsfpEnsemble.h"
 #include "fboss/qsfp_service/test/hw_test/HwTest.h"
+#include "fboss/qsfp_service/test/hw_test/HwTransceiverUtils.h"
 
 namespace facebook::fboss {
 
@@ -166,24 +167,28 @@ class HwXphyPortInfoTest : public HwExternalPhyPortTest {
         EXPECT_FALSE(chipInfo->get_name().empty());
         if (auto sysState = portInfo.state()->system()) {
           EXPECT_EQ(sysState->get_side(), phy::Side::SYSTEM);
-          for (auto const& [lane, laneInfo] : sysState->get_pmd().get_lanes()) {
+          for (auto const& [lane, laneInfo] :
+               sysState->pmd().value().lanes().value()) {
             EXPECT_EQ(lane, laneInfo.get_lane());
           }
         }
         if (auto sysStats = portInfo.stats()->system()) {
           EXPECT_EQ(sysStats->get_side(), phy::Side::SYSTEM);
-          for (auto const& [lane, laneInfo] : sysStats->get_pmd().get_lanes()) {
+          for (auto const& [lane, laneInfo] :
+               sysStats->pmd().value().lanes().value()) {
             EXPECT_EQ(lane, laneInfo.get_lane());
           }
         }
         auto lineState = portInfo.state()->line();
         EXPECT_EQ(lineState->get_side(), phy::Side::LINE);
-        for (auto const& [lane, laneInfo] : lineState->get_pmd().get_lanes()) {
+        for (auto const& [lane, laneInfo] :
+             lineState->pmd().value().lanes().value()) {
           EXPECT_EQ(lane, laneInfo.get_lane());
         }
         auto lineStats = portInfo.stats()->line();
         EXPECT_EQ(lineStats->get_side(), phy::Side::LINE);
-        for (auto const& [lane, laneInfo] : lineStats->get_pmd().get_lanes()) {
+        for (auto const& [lane, laneInfo] :
+             lineStats->pmd().value().lanes().value()) {
           EXPECT_EQ(lane, laneInfo.get_lane());
         }
         EXPECT_GT(portInfo.state()->get_timeCollected(), 0);
@@ -331,8 +336,6 @@ TEST_F(HwTest, transceiverIOStats) {
         TransceiverID(tcvrID));
     auto& tcvrState = *tcvrInfo.tcvrState();
     auto& tcvrStats = *tcvrInfo.tcvrStats();
-    auto& mgmtInterface = tcvrState.transceiverManagementInterface().ensure();
-    auto& cable = tcvrState.cable().ensure();
     TransceiverStats& tcvrStatsAfter = tcvrStats.stats().ensure();
 
     XLOG(DBG3) << "tcvrID: " << tcvrID << " Stats Before Refresh: "
@@ -350,8 +353,7 @@ TEST_F(HwTest, transceiverIOStats) {
     EXPECT_GT(
         tcvrStatsAfter.get_numReadAttempted(),
         tcvrStatsBefore[tcvrID].get_numReadAttempted());
-    if (mgmtInterface == TransceiverManagementInterface::CMIS &&
-        cable.get_transmitterTech() == TransmitterTechnology::OPTICAL) {
+    if (utility::HwTransceiverUtils::opticalOrActiveCmisCable(tcvrState)) {
       EXPECT_GT(
           tcvrStatsAfter.get_numWriteAttempted(),
           tcvrStatsBefore[tcvrID].get_numWriteAttempted());
@@ -395,8 +397,11 @@ TEST_F(PhyIOTest, phyIOStats) {
             auto phyInfo = wedgeManager->getXphyInfo(portID);
             // Make sure the timestamp advances
             if (phyInfoToCompare.find(portID) != phyInfoToCompare.end() &&
-                phyInfo.stats()->get_timeCollected() <=
-                    phyInfoToCompare[portID].stats()->get_timeCollected()) {
+                folly::copy(phyInfo.stats()->timeCollected().value()) <=
+                    folly::copy(phyInfoToCompare[portID]
+                                    .stats()
+                                    ->timeCollected()
+                                    .value())) {
               return false;
             }
           } catch (...) {

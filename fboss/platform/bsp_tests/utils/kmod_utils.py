@@ -2,7 +2,9 @@
 import json
 
 from fboss.platform.bsp_tests.utils.cmd_utils import check_cmd, run_cmd
-from fboss.platform.platform_manager.platform_manager_config.types import BspKmodsFile
+from fboss.platform.platform_manager.platform_manager_config.thrift_types import (
+    BspKmodsFile,
+)
 from thrift.py3 import deserialize, Protocol
 
 

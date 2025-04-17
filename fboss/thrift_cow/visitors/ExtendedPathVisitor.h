@@ -3,6 +3,7 @@
 #pragma once
 
 #include <type_traits>
+#include "folly/Conv.h"
 
 #include <fboss/thrift_cow/nodes/NodeUtils.h>
 #include <fboss/thrift_cow/nodes/Serializer.h>
@@ -182,7 +183,9 @@ struct ExtendedPathVisitor<apache::thrift::type_class::set<ValueTypeClass>> {
       epv_detail::ExtPathIter end,
       const ExtPathVisitorOptions& options,
       Func&& f)
-    requires(std::is_same_v<typename Fields::CowType, FieldsType>)
+    requires(
+        is_field_type_v<Fields> &&
+        std::is_same_v<typename Fields::CowType, FieldsType>)
   {
     const auto& elem = *begin++;
 
@@ -279,7 +282,9 @@ struct ExtendedPathVisitor<apache::thrift::type_class::list<ValueTypeClass>> {
       epv_detail::ExtPathIter end,
       const ExtPathVisitorOptions& options,
       Func&& f)
-    requires(std::is_same_v<typename Fields::CowType, FieldsType>)
+    requires(
+        is_field_type_v<Fields> &&
+        std::is_same_v<typename Fields::CowType, FieldsType>)
   {
     const auto& elem = *begin++;
     for (int i = 0; i < fields.size(); ++i) {
@@ -335,6 +340,18 @@ struct ExtendedPathVisitor<
     requires(!is_cow_type_v<Node> && !is_field_type_v<Node>)
   {
     const auto& elem = *begin++;
+    if (elem.raw_ref()) {
+      using KeyT = typename folly::remove_cvref_t<decltype(node)>::key_type;
+      auto key = folly::to<KeyT>(*elem.raw_ref());
+      if (node.find(key) != node.end()) {
+        path.push_back(folly::to<std::string>(*elem.raw_ref()));
+        ExtendedPathVisitor<MappedTypeClass>::visit(
+            path, node.at(key), begin, end, options, std::forward<Func>(f));
+        path.pop_back();
+      }
+      return;
+    }
+
     for (auto& [key, val] : node) {
       auto matching = epv_detail::matchingToken<KeyTypeClass>(key, elem);
       if (matching) {
@@ -359,6 +376,24 @@ struct ExtendedPathVisitor<
     requires(std::is_same_v<typename Node::CowType, HybridNodeType>)
   {
     const auto& elem = *begin++;
+    if (elem.raw_ref()) {
+      using KeyT =
+          typename folly::remove_cvref_t<decltype(node.ref())>::key_type;
+      auto key = folly::to<KeyT>(*elem.raw_ref());
+      if (node.ref().find(key) != node.ref().end()) {
+        path.push_back(folly::to<std::string>(*elem.raw_ref()));
+        ExtendedPathVisitor<MappedTypeClass>::visit(
+            path,
+            node.ref().at(key),
+            begin,
+            end,
+            options,
+            std::forward<Func>(f));
+        path.pop_back();
+      }
+      return;
+    }
+
     for (auto& [key, val] : node.ref()) {
       auto matching = epv_detail::matchingToken<KeyTypeClass>(key, elem);
       if (matching) {
@@ -380,9 +415,32 @@ struct ExtendedPathVisitor<
       epv_detail::ExtPathIter end,
       const ExtPathVisitorOptions& options,
       Func&& f)
-    requires(std::is_same_v<typename Fields::CowType, FieldsType>)
+    requires(
+        is_field_type_v<Fields> &&
+        std::is_same_v<typename Fields::CowType, FieldsType>)
   {
     const auto& elem = *begin++;
+    if (elem.raw_ref()) {
+      using KeyT = typename folly::remove_cvref_t<decltype(fields)>::key_type;
+      auto key = folly::to<KeyT>(*elem.raw_ref());
+      if (fields.find(key) != fields.end()) {
+        path.push_back(folly::to<std::string>(*elem.raw_ref()));
+        auto& val = fields.ref(key);
+
+        // ensure we propagate constness, since children will have type
+        // const shared_ptr<T>, not shared_ptr<const T>.
+        if constexpr (std::is_const_v<Fields>) {
+          const auto& next = *val;
+          ExtendedPathVisitor<MappedTypeClass>::visit(
+              path, next, begin, end, options, std::forward<Func>(f));
+        } else {
+          ExtendedPathVisitor<MappedTypeClass>::visit(
+              path, *val, begin, end, options, std::forward<Func>(f));
+        }
+        path.pop_back();
+      }
+      return;
+    }
     for (auto& [key, val] : fields) {
       auto matching = epv_detail::matchingToken<KeyTypeClass>(key, elem);
       if (matching) {
@@ -460,7 +518,9 @@ struct ExtendedPathVisitor<apache::thrift::type_class::variant> {
       epv_detail::ExtPathIter end,
       const ExtPathVisitorOptions& options,
       Func&& f)
-    requires(std::is_same_v<typename Fields::CowType, FieldsType>)
+    requires(
+        is_field_type_v<Fields> &&
+        std::is_same_v<typename Fields::CowType, FieldsType>)
   {
     const auto& elem = *begin++;
     auto raw = elem.raw_ref();
@@ -632,7 +692,9 @@ struct ExtendedPathVisitor<apache::thrift::type_class::structure> {
       epv_detail::ExtPathIter end,
       const ExtPathVisitorOptions& options,
       Func&& f)
-    requires(std::is_same_v<typename Fields::CowType, FieldsType>)
+    requires(
+        is_field_type_v<Fields> &&
+        std::is_same_v<typename Fields::CowType, FieldsType>)
   {
     using Members = typename Fields::Members;
 
@@ -700,8 +762,26 @@ struct ExtendedPathVisitor {
       epv_detail::ExtPathIter begin,
       epv_detail::ExtPathIter end,
       const ExtPathVisitorOptions& /* options */,
-      Func&& f) {
+      Func&& f)
+    requires(is_cow_type_v<Node>)
+  {
     f(path, node);
+  }
+
+  template <typename Node, typename Func>
+  static void visit(
+      std::vector<std::string>& path,
+      Node& node,
+      epv_detail::ExtPathIter begin,
+      epv_detail::ExtPathIter end,
+      const ExtPathVisitorOptions& /* options */,
+      Func&& f)
+    requires(!is_cow_type_v<Node>)
+  {
+    // Node is not a Serializable, dispatch with wrapper
+    SerializableWrapper<TC, std::remove_const_t<Node>> wrapper(
+        *const_cast<std::remove_const_t<Node>*>(&node));
+    f(path, wrapper);
   }
 };
 

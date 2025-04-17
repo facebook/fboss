@@ -16,6 +16,7 @@ cpp_library(
         "WeutilInterface.h",
     ],
     exported_deps = [
+        ":eeprom_content_validator",
         ":fboss_eeprom_lib",
         "//fboss/platform/config_lib:config_lib",
         "//fboss/platform/helpers:platform_name_lib",
@@ -23,6 +24,7 @@ cpp_library(
         "//fboss/platform/weutil/if:weutil_config-cpp2-types",
         "//folly:conv",
         "//folly:format",
+        "//folly:string",
         "//folly/json:dynamic",
         "//folly/logging:logging",
         "//thrift/lib/cpp2/protocol:protocol",
@@ -36,14 +38,26 @@ cpp_library(
     name = "fboss_eeprom_lib",
     srcs = [
         "FbossEepromParser.cpp",
+        "FbossEepromParserUtils.cpp",
     ],
     headers = [
         "CachedFbossEepromParser.h",
         "FbossEepromParser.h",
+        "FbossEepromParserUtils.h",
     ],
     exported_deps = [
         ":crc16_ccitt_aug",
         "//folly/logging:logging",
+    ],
+)
+
+cpp_library(
+    name = "eeprom_content_validator",
+    srcs = [
+        "ContentValidator.cpp",
+    ],
+    exported_deps = [
+        "fbsource//third-party/fmt:fmt",
     ],
 )
 

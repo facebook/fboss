@@ -45,6 +45,7 @@ void addDscpAclEntryWithCounter(
     bool isSai);
 void addDscpAclTable(
     cfg::SwitchConfig* config,
+    const HwAsic* hwAsic,
     int16_t priority,
     bool addAllQualifiers,
     bool isSai);
