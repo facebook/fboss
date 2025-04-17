@@ -85,6 +85,8 @@ void waitPfcCounterIncrease(
     XLOG(DBG0) << " Port: " << portId << " PFC TX/RX PFC/RX_PFC_XON "
                << txPfcCtr << "/" << rxPfcCtr << "/" << rxPfcXonCtr
                << ", priority: " << pfcPriority;
+    // Also log in/out packet/byte counts to make sure packets are flowing.
+    XLOG(DBG0) << facebook::fboss::utility::pfcStatsString(portStats);
 
     EXPECT_EVENTUALLY_GT(txPfcCtr, 0);
 
@@ -676,11 +678,13 @@ class AgentTrafficPfcZeroGlobalHeadroomTest : public AgentTrafficPfcTest {
 };
 
 TEST_F(AgentTrafficPfcTest, verifyPfcWithZeroGlobalHeadRoomCfg) {
+  auto asicType =
+      utility::checkSameAndGetAsicType(getAgentEnsemble()->getCurrentConfig());
   TrafficTestParams param{
-      .buffer = defaultPfcBufferParams(),
+      .buffer = PfcBufferParams::getPfcBufferParams(
+          asicType, PfcBufferParams::kGlobalSharedBytes, 0 /*globalHeadroom*/),
       .expectDrop = true,
   };
-  param.buffer.globalHeadroom = 0;
   runTestWithCfg(kLosslessTrafficClass, kLosslessPriority, {}, param);
 }
 
