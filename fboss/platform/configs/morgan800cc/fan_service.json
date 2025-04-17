@@ -61,7 +61,6 @@
         "accessType": "ACCESS_TYPE_THRIFT"
       },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
-      "scale": 1,
       "normalUpTable": {
         "15": 18,
         "16": 18,
