@@ -171,7 +171,7 @@ class BcmStatUpdater {
           std::pair<std::unique_ptr<MonotonicCounter>, uint64_t>>>>
       aclStats_;
 
-  folly::Synchronized<std::map<int32_t, PrbsStatsTable>> portAsicPrbsStats_;
+  folly::Synchronized<std::map<PortID, PrbsStatsTable>> portAsicPrbsStats_;
 
   /* Route stats */
   uint64_t getRouteTrafficStats(BcmRouteCounterID id);
@@ -191,6 +191,7 @@ class BcmStatUpdater {
   folly::Synchronized<
       std::map<BcmRouteCounterID, std::unique_ptr<MonotonicCounter>>>
       routeStats_;
+  std::unordered_map<PortID, time_t> portId2LastPrbsReadTime_;
 }; // namespace facebook::fboss
 
 } // namespace facebook::fboss

@@ -7,7 +7,6 @@
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 
 #include <thrift/lib/cpp2/protocol/Serializer.h>
-#include <optional>
 
 namespace facebook::fboss {
 FsdbSyncer::FsdbSyncer()

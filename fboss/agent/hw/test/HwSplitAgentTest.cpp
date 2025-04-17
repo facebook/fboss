@@ -100,8 +100,9 @@ TEST_F(HwSplitAgentCallbackTest, txPacket) {
   resolveNeigborAndProgramRoutes(
       utility::EcmpSetupAnyNPorts4(getProgrammedState(), RouterID(0)), 1);
 
-  auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
-  auto vlanId = utility::firstVlanID(initialConfig());
+  auto intfMac =
+      utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+  auto vlanId = getHwSwitchEnsemble()->getVlanIDForTx();
   auto pkt = utility::makeIpTxPacket(
       [hwSwitch = getHwSwitch()](uint32_t size) {
         return hwSwitch->allocatePacket(size);

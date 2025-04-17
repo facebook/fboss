@@ -198,46 +198,6 @@ TEST(SwitchSettingsTest, applyMaxRouteCounterIDs) {
   EXPECT_EQ(maxRouteCounterIDs, switchSettingsV1->getMaxRouteCounterIDs());
 }
 
-TEST(SwitchSettingsTest, applyBlockNeighbors) {
-  auto platform = createMockPlatform();
-  auto stateV0 = make_shared<SwitchState>();
-  addSwitchInfo(stateV0, cfg::SwitchType::NPU, kNpuSwitchIdBegin /* switchId*/);
-
-  // Check default value
-  auto switchSettingsV0 = utility::getFirstNodeIf(stateV0->getSwitchSettings());
-  ASSERT_NE(nullptr, switchSettingsV0);
-  EXPECT_EQ(switchSettingsV0->getBlockNeighbors()->size(), 0);
-
-  // Check if value is updated
-  cfg::SwitchConfig config;
-
-  cfg::Neighbor blockNeighbor;
-  blockNeighbor.vlanID() = 1;
-  blockNeighbor.ipAddress() = "1.1.1.1";
-
-  config.switchSettings()->blockNeighbors() = {blockNeighbor};
-  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
-  EXPECT_NE(nullptr, stateV1);
-  auto switchSettingsV1 = utility::getFirstNodeIf(stateV1->getSwitchSettings());
-  ASSERT_NE(nullptr, switchSettingsV1);
-  EXPECT_FALSE(switchSettingsV1->isPublished());
-  EXPECT_EQ(switchSettingsV1->getBlockNeighbors()->size(), 1);
-
-  EXPECT_EQ(
-      switchSettingsV1->getBlockNeighbors()
-          ->at(0)
-          ->cref<switch_state_tags::blockNeighborVlanID>()
-          ->toThrift(),
-      blockNeighbor.vlanID());
-  EXPECT_EQ(
-      switchSettingsV1->getBlockNeighbors()
-          ->at(0)
-          ->cref<switch_state_tags::blockNeighborIP>()
-          ->toThrift(),
-      facebook::network::toBinaryAddress(
-          folly::IPAddress(*blockNeighbor.ipAddress())));
-}
-
 TEST(SwitchSettingsTest, applyMacAddrsToBlock) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
@@ -365,7 +325,6 @@ TEST(SwitchSettingsTest, applyVoqSwitch) {
   // Check default value
   auto switchSettingsV0 = utility::getFirstNodeIf(stateV0->getSwitchSettings());
   ASSERT_NE(nullptr, switchSettingsV0);
-  EXPECT_EQ(switchSettingsV0->getBlockNeighbors()->size(), 0);
 
   // Check if value is updated
   cfg::SwitchConfig config = testConfigA(cfg::SwitchType::VOQ);
@@ -426,6 +385,13 @@ TEST(SwitchSettingsTest, applyVoqSwitch) {
   switchInfo2.localSystemPortOffset() = *sysPortRange.minimum();
   switchInfo2.globalSystemPortOffset() = *sysPortRange.minimum();
   switchInfo2.inbandPortId() = kSingleStageInbandPortId;
+
+  constexpr auto kMinLinksPerDeviceToRemainInVOQDomain = 5;
+  constexpr auto kMinLinksPerDeviceToJoinVOQDomain = 7;
+  switchInfo2.minLinksPerDeviceToRemainInVOQDomain() =
+      kMinLinksPerDeviceToRemainInVOQDomain;
+  switchInfo2.minLinksPerDeviceToJoinVOQDomain() =
+      kMinLinksPerDeviceToJoinVOQDomain;
   config.switchSettings()->switchIdToSwitchInfo() = {
       std::make_pair(kVoqSwitchIdBegin, switchInfo2)};
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
@@ -440,6 +406,13 @@ TEST(SwitchSettingsTest, applyVoqSwitch) {
   EXPECT_EQ(
       switchInfo3.portIdRange()->maximum(),
       cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MAX() + 1);
+  EXPECT_EQ(
+      switchInfo3.minLinksPerDeviceToRemainInVOQDomain(),
+      kMinLinksPerDeviceToRemainInVOQDomain);
+  EXPECT_EQ(
+      switchInfo3.minLinksPerDeviceToJoinVOQDomain(),
+      kMinLinksPerDeviceToJoinVOQDomain);
+
   validateNodeSerialization(*switchSettingsV1);
 }
 

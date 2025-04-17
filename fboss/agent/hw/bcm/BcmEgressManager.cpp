@@ -176,7 +176,7 @@ void BcmEgressManager::updateAllEgressForFlowletSwitching() {
   //  Hence skipping the update of egress objects for TH4.
   //  TH3 needs update of all egress objects for port flowlet config changes.
   if (hw_->getPlatform()->getAsic()->isSupported(
-          HwAsic::Feature::FLOWLET_PORT_ATTRIBUTES)) {
+          HwAsic::Feature::ARS_PORT_ATTRIBUTES)) {
     return;
   }
 

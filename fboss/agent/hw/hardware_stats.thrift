@@ -95,6 +95,7 @@ struct HwPortStats {
   62: optional i64 cableLengthMeters;
   63: optional bool dataCellsFilterOn;
   64: map<i16, i64> egressGvoqWatermarkBytes_ = {};
+  65: map<i16, i64> pgInCongestionDiscards_ = {};
 }
 
 struct HwSysPortStats {
@@ -233,6 +234,32 @@ struct HwAsicErrors {
   11: optional i64 reassemblyErrors;
   12: optional i64 fdrFifoOverflowErrors;
   13: optional i64 fdaFifoOverflowErrors;
+  14: optional i64 isolationFirmwareCrashes;
+  15: optional i64 rxFifoStuckDetected;
+  16: optional i64 congestionManagementErrors;
+  17: optional i64 dramDataPathErrors;
+  18: optional i64 dramQueueManagementErrors;
+  19: optional i64 egressCongestionManagementErrors;
+  20: optional i64 egressDataBufferErrors;
+  21: optional i64 fabricControlReceiveErrors;
+  22: optional i64 fabricControlTransmitErrors;
+  23: optional i64 fabricDataAggregateErrors;
+  24: optional i64 fabricDataReceiveErrors;
+  25: optional i64 fabricDataTransmitErrors;
+  26: optional i64 fabricMacErrors;
+  27: optional i64 ingressPacketSchedulerErrors;
+  28: optional i64 ingressPacketTransmitErrors;
+  29: optional i64 managementUnitErrors;
+  30: optional i64 nifBufferUnitErrors;
+  31: optional i64 nifManagementErrors;
+  32: optional i64 onChipBufferMemoryErrors;
+  33: optional i64 packetDescriptorMemoryErrors;
+  34: optional i64 packetQueueProcessorErrors;
+  35: optional i64 receiveQueueProcessorErrors;
+  36: optional i64 schedulerErrors;
+  37: optional i64 sramPacketBufferErrors;
+  38: optional i64 sramQueueManagementErrors;
+  39: optional i64 tmActionResolutionErrors;
 }
 
 struct HwTeFlowStats {
@@ -249,6 +276,7 @@ struct FabricReachabilityStats {
   2: i64 missingCount;
   3: i64 virtualDevicesWithAsymmetricConnectivity;
   4: i64 switchReachabilityChangeCount;
+  5: i64 bogusCount;
 }
 
 struct HwRxReasonStats {
@@ -303,6 +331,7 @@ struct HwSwitchDropStats {
   15: optional i64 rqpNonFabricCellCorruptionDrops;
   16: optional i64 rqpNonFabricCellMissingDrops;
   17: optional i64 rqpParityErrorDrops;
+  18: optional i64 tc0RateLimitDrops;
 }
 
 struct HwSwitchDramStats {
@@ -362,6 +391,7 @@ struct HwSwitchFb303GlobalStats {
   31: optional i64 rqp_non_fabric_cell_corruption;
   32: optional i64 rqp_non_fabric_cell_missing;
   33: optional i64 rqp_parity_error;
+  34: i64 fabric_connectivity_bogus;
 }
 
 struct HwFlowletStats {

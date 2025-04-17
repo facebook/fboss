@@ -15,4 +15,5 @@ struct SwitchReachability {
   // This way, avoid the overhead of repeating the fabric ports
   // for each switchId
   2: map<i64, i32> switchIdToFabricPortGroupMap = {};
+  3: map<i64, i64> switchIdToLastUpdatedTimestamp = {};
 }

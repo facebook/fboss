@@ -26,6 +26,9 @@
 namespace facebook::fboss {
 
 using utils::Table;
+using PeerDrainState = std::map<int64_t, cfg::SwitchDrainState>;
+using PortIdToInfo = std::map<int32_t, facebook::fboss::PortInfoThrift>;
+using PortNameToInfo = std::map<std::string, facebook::fboss::PortInfoThrift>;
 
 struct CmdShowPortTraits : public BaseCommandTraits {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
@@ -34,6 +37,18 @@ struct CmdShowPortTraits : public BaseCommandTraits {
   using RetType = cli::ShowPortModel;
   static constexpr bool ALLOW_FILTERING = true;
   static constexpr bool ALLOW_AGGREGATION = true;
+};
+
+struct Endpoint {
+  bool isAttached;
+  std::string expectedSwitchName;
+  std::string attachedSwitchName;
+  std::string attachedRemotePortName;
+};
+
+struct PeerInfo {
+  std::unordered_map<std::string, Endpoint> fabPort2Peer;
+  std::unordered_set<std::string> allPeers;
 };
 
 class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
@@ -49,13 +64,40 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
       const ObjectArgType& queriedPorts);
 
   RetType createModel(
-      std::map<int32_t, facebook::fboss::PortInfoThrift> portEntries,
-      std::map<int32_t, facebook::fboss::TransceiverInfo> transceiverEntries,
+      const std::map<int32_t, facebook::fboss::PortInfoThrift>& portEntries,
+      const std::map<int32_t, facebook::fboss::TransceiverInfo>&
+          transceiverEntries,
       const ObjectArgType& queriedPorts,
-      std::map<std::string, facebook::fboss::HwPortStats> portStats,
+      const std::map<std::string, facebook::fboss::HwPortStats>& portStats,
+      const std::unordered_map<std::string, Endpoint>& portToPeer,
+      const std::unordered_map<std::string, cfg::SwitchDrainState>&
+          peerDrainStates,
+      const std::unordered_map<std::string, bool>& peerPortDrainedOrDown,
       const std::vector<std::string>& drainedInterfaces);
 
   void printOutput(const RetType& model, std::ostream& out = std::cout);
+
+ private:
+  std::chrono::seconds peerTimeout = std::chrono::seconds(1);
+
+  std::unordered_map<
+      std::string,
+      std::shared_ptr<apache::thrift::Client<FbossCtrl>>>
+      clients;
+
+  PeerInfo getFabPortPeerInfo(const auto& hostInfo) const;
+
+  PeerDrainState asyncGetDrainState(
+      std::shared_ptr<apache::thrift::Client<FbossCtrl>> client) const;
+  std::unordered_map<std::string, cfg::SwitchDrainState> getPeerDrainStates(
+      const PeerInfo& peerInfo);
+
+  PortIdToInfo asyncGetPortInfo(
+      std::shared_ptr<apache::thrift::Client<FbossCtrl>> client) const;
+  std::unordered_map<std::string, PortNameToInfo> getPeerToPorts(
+      const std::unordered_set<std::string>& hosts);
+  std::unordered_map<std::string, bool> getPeerPortDrainedOrDown(
+      const PeerInfo& peerInfo);
 };
 
 } // namespace facebook::fboss

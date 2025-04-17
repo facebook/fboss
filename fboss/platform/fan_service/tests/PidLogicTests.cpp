@@ -63,7 +63,7 @@ TEST(PIDLogicTest, Convergence) {
     auto lastPwm = pidLogic.getLastPwm();
     auto newPwm = pidLogic.calculatePwm(measurement);
     measurement = measurement - (newPwm - lastPwm); // Simulate system response
-    XLOG(DBG1) << fmt::format(
+    XLOG(DBG3) << fmt::format(
         "Iteration {}: Measurement = {}, newPwm = {}, Error = {}",
         i,
         measurement,
@@ -76,4 +76,31 @@ TEST(PIDLogicTest, Convergence) {
     }
   }
   EXPECT_TRUE(setpointReached);
+}
+
+TEST(PIDLogicTest, Basic2) {
+  PidSetting pidSetting;
+  pidSetting.kp() = -4;
+  pidSetting.ki() = -0.06;
+  pidSetting.kd() = 0;
+  pidSetting.setPoint() = 40;
+  pidSetting.negHysteresis() = 3;
+  pidSetting.posHysteresis() = 0;
+
+  auto pidLogic1 = PidLogic(pidSetting, 5);
+  pidLogic1.updateLastPwm(0);
+  for (int measurement = 0; measurement < 100; measurement += 1) {
+    auto newPwm = pidLogic1.calculatePwm(measurement);
+    if (measurement < 40) {
+      ASSERT_EQ(newPwm, 0);
+    }
+    if (measurement > 40) {
+      ASSERT_GT(newPwm, 0);
+    }
+    if (measurement > 50) {
+      ASSERT_EQ(newPwm, 100);
+    }
+    XLOG(DBG3) << fmt::format(
+        "Measurement = {}, newPwm = {}", measurement, newPwm);
+  }
 }

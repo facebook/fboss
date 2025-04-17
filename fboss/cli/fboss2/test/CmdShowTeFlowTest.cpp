@@ -91,7 +91,7 @@ std::map<int32_t, PortInfoThrift> createTeFlowTestPortEntries() {
   tcvr1.transceiverId() = 0;
   portEntry1.transceiverIdx() = tcvr1;
 
-  portMap[portEntry1.get_portId()] = portEntry1;
+  portMap[folly::copy(portEntry1.portId().value())] = portEntry1;
   return portMap;
 }
 

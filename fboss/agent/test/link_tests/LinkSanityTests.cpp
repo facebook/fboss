@@ -3,6 +3,7 @@
 #include <folly/Random.h>
 #include <folly/Subprocess.h>
 #include <gtest/gtest.h>
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/LldpManager.h"
 #include "fboss/agent/PlatformPort.h"
 #include "fboss/agent/SwSwitch.h"
@@ -102,6 +103,7 @@ TEST_F(LinkTest, asicLinkFlap) {
       ASSERT_NO_THROW(waitForAllCabledPorts(true));
       ASSERT_NO_THROW(utility::waitForAllTransceiverStates(
           true, getCabledTranceivers(), 60, 5s));
+      ASSERT_NO_THROW(checkAgentMemoryInBounds());
     }
   };
 
@@ -256,15 +258,16 @@ TEST_F(LinkSanityTestDataPlaneFlood, ptpEnableIsHitless) {
  * 7. Make sure all the ports come up again
  */
 TEST_F(LinkTest, opticsTxDisableRandomPorts) {
-  auto [opticalPorts, opticalPortNames] = getOpticalCabledPortsAndNames();
+  auto [opticalPorts, opticalPortNames] =
+      getOpticalAndActiveCabledPortsAndNames();
   EXPECT_FALSE(opticalPorts.empty())
       << "opticsTxDisableRandomPorts: Did not detect any optical transceivers";
 
-  auto connectedPairPortIds = getConnectedOpticalPortPairWithFeature(
+  auto connectedPairPortIds = getConnectedOpticalAndActivePortPairWithFeature(
       TransceiverFeature::TX_DISABLE, phy::Side::LINE);
 
   std::vector<PortID> disabledPorts; // List of PortID of disabled ports
-  std::string disabledPortNames = ""; // List of port Names of disabled ports
+  std::string disabledPortNames; // List of port Names of disabled ports
   std::vector<PortID> expectedDownPorts; // List of PortID of disabled ports
                                          // and their peers
   std::vector<PortID> expectedUpPorts; // opticalPorts - expectedDownPorts
@@ -343,7 +346,8 @@ TEST_F(LinkTest, opticsTxDisableRandomPorts) {
 }
 
 TEST_F(LinkTest, opticsTxDisableEnable) {
-  auto [opticalPorts, opticalPortNames] = getOpticalCabledPortsAndNames();
+  auto [opticalPorts, opticalPortNames] =
+      getOpticalAndActiveCabledPortsAndNames();
   EXPECT_FALSE(opticalPorts.empty())
       << "opticsTxDisableEnable: Did not detect any optical transceivers";
 
@@ -384,13 +388,13 @@ TEST_F(LinkTest, testOpticsRemediation) {
     // Bring down the link on all the optical cabled ports having tx_disable
     // feature supported. The link should go down and the remediation should
     // get triggered bringing it up
-    auto connectedPairPortIds = getConnectedOpticalPortPairWithFeature(
+    auto connectedPairPortIds = getConnectedOpticalAndActivePortPairWithFeature(
         TransceiverFeature::TX_DISABLE, phy::Side::LINE);
 
     EXPECT_GT(connectedPairPortIds.size(), 0);
 
     std::vector<PortID> disabledPorts; // List of PortID of disabled ports
-    std::string disabledPortNames = ""; // List of port Names of disabled ports
+    std::string disabledPortNames; // List of port Names of disabled ports
 
     for (auto portPair : connectedPairPortIds) {
       auto port = portPair.first;

@@ -34,7 +34,7 @@ const std::set<sai_api_t>& SaiTajoPlatform::getSupportedApiList() const {
 SaiTajoPlatform::~SaiTajoPlatform() {}
 
 std::string SaiTajoPlatform::getHwConfig() {
-  return *config()->thrift.platform()->get_chip().get_asic().config();
+  return *config()->thrift.platform()->chip().value().get_asic().config();
 }
 
 } // namespace facebook::fboss

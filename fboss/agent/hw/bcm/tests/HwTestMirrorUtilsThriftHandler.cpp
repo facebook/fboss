@@ -30,13 +30,13 @@ bool HwTestThriftHandler::isMirrorProgrammed(
   if (!mirror) {
     throw FbossError("isMirrorProgrammed: mirror is null");
   }
-  if (!mirror->get_isResolved()) {
+  if (!folly::copy(mirror->isResolved().value())) {
     throw FbossError("isMirrorProgrammed: mirror is not resolved");
   }
 
   BcmSwitch* bcmSwitch = static_cast<BcmSwitch*>(hwSwitch_);
   const auto* bcmMirrorTable = bcmSwitch->getBcmMirrorTable();
-  auto* bcmMirror = bcmMirrorTable->getNodeIf(mirror->get_name());
+  auto* bcmMirror = bcmMirrorTable->getNodeIf(mirror->name().value());
   if (!bcmMirror || bcmMirror->isProgrammed()) {
     return false;
   }
@@ -52,8 +52,10 @@ bool HwTestThriftHandler::isMirrorProgrammed(
   }
 
   bcm_gport_t gport;
-  if (auto egressPort = mirror->get_egressPort()) {
-    BCM_GPORT_MODPORT_SET(gport, bcmSwitch->getUnit(), *egressPort);
+  if (auto cfgPortDesc = mirror->egressPortDesc()) {
+    auto egressPort =
+        PortDescriptor::fromCfgCfgPortDescriptor(*cfgPortDesc).phyPortID();
+    BCM_GPORT_MODPORT_SET(gport, bcmSwitch->getUnit(), egressPort);
     if (mirror_dest.gport != gport) {
       return false;
     }
@@ -61,14 +63,14 @@ bool HwTestThriftHandler::isMirrorProgrammed(
     return false;
   }
 
-  if (mirror_dest.tos != mirror->get_dscp()) {
+  if (mirror_dest.tos != folly::copy(mirror->dscp().value())) {
     return false;
   }
   if (bool(mirror_dest.truncate & BCM_MIRROR_PAYLOAD_TRUNCATE) !=
-      mirror->get_truncate()) {
+      folly::copy(mirror->truncate().value())) {
     return false;
   }
-  auto tunnel = mirror->get_tunnel();
+  auto tunnel = apache::thrift::get_pointer(mirror->tunnel());
   if (!tunnel) {
     if (mirror_dest.flags & BCM_MIRROR_DEST_TUNNEL_SFLOW) {
       return false;
@@ -78,8 +80,8 @@ bool HwTestThriftHandler::isMirrorProgrammed(
     }
   }
 
-  auto dstPort = tunnel->get_udpDstPort();
-  auto srcPort = tunnel->get_udpSrcPort();
+  auto dstPort = apache::thrift::get_pointer(tunnel->udpDstPort());
+  auto srcPort = apache::thrift::get_pointer(tunnel->udpSrcPort());
   if (mirror_dest.flags & BCM_MIRROR_DEST_TUNNEL_SFLOW) {
     if (!srcPort || !dstPort) {
       return false;
@@ -92,8 +94,8 @@ bool HwTestThriftHandler::isMirrorProgrammed(
     return false;
   }
 
-  auto srcIp = network::toIPAddress(tunnel->get_srcIp());
-  auto dstIp = network::toIPAddress(tunnel->get_dstIp());
+  auto srcIp = network::toIPAddress(tunnel->srcIp().value());
+  auto dstIp = network::toIPAddress(tunnel->dstIp().value());
   if (mirror_dest.version == 4) {
     if (!srcIp.isV4() || !dstIp.isV4()) {
       return false;
@@ -116,13 +118,13 @@ bool HwTestThriftHandler::isMirrorProgrammed(
     }
   }
 
-  if (folly::MacAddress(tunnel->get_srcMac()) !=
+  if (folly::MacAddress(tunnel->srcMac().value()) !=
           macFromBcm(mirror_dest.src_mac) ||
-      folly::MacAddress(tunnel->get_dstMac()) !=
+      folly::MacAddress(tunnel->dstMac().value()) !=
           macFromBcm(mirror_dest.dst_mac)) {
     return false;
   }
-  if (tunnel->get_ttl() != mirror_dest.ttl) {
+  if (folly::copy(tunnel->ttl().value()) != mirror_dest.ttl) {
     return false;
   }
   return true;

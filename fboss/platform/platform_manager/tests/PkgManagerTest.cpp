@@ -3,6 +3,8 @@
 #include <fb303/ServiceData.h>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <range/v3/range/conversion.hpp>
+#include <range/v3/view/concat.hpp>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
 #include "fboss/platform/platform_manager/PkgManager.h"
@@ -21,7 +23,7 @@ class MockSystemInterface : public package_manager::SystemInterface {
   MOCK_METHOD(int, removeRpms, (const std::vector<std::string>&), (const));
   MOCK_METHOD(int, installRpm, (const std::string&), (const));
   MOCK_METHOD(int, depmod, (), (const));
-  MOCK_METHOD(std::string, lsmod, (), (const));
+  MOCK_METHOD(std::set<std::string>, lsmod, (), (const));
   MOCK_METHOD(bool, unloadKmod, (const std::string&), (const));
   MOCK_METHOD(bool, loadKmod, (const std::string&), (const));
   MOCK_METHOD(std::string, getHostKernelVersion, (), (const));
@@ -303,8 +305,10 @@ TEST_F(PkgManagerTest, unloadBspKmods) {
   EXPECT_CALL(*mockPlatformFsUtils_, getStringFileContent(_))
       .WillOnce(Return(jsonBspKmodsFile_));
   EXPECT_CALL(*mockSystemInterface_, lsmod())
-      .WillOnce(
-          Return(jsonBspKmodsFile_ /*any string containing kmods works*/));
+      .WillOnce(Return(
+          ranges::views::concat(
+              *bspKmodsFile_.bspKmods(), *bspKmodsFile_.sharedKmods()) |
+          ranges::to<std::set<std::string>>));
   EXPECT_CALL(*mockSystemInterface_, unloadKmod(_))
       .Times(
           bspKmodsFile_.sharedKmods()->size() +
@@ -317,7 +321,10 @@ TEST_F(PkgManagerTest, unloadBspKmods) {
   EXPECT_CALL(*mockPlatformFsUtils_, getStringFileContent(_))
       .WillOnce(Return(jsonBspKmodsFile_));
   EXPECT_CALL(*mockSystemInterface_, lsmod())
-      .WillOnce(Return(jsonBspKmodsFile_));
+      .WillOnce(Return(
+          ranges::views::concat(
+              *bspKmodsFile_.bspKmods(), *bspKmodsFile_.sharedKmods()) |
+          ranges::to<std::set<std::string>>));
   EXPECT_CALL(*mockSystemInterface_, unloadKmod(_)).WillOnce(Return(false));
   EXPECT_THROW(pkgManager_.unloadBspKmods(), std::runtime_error);
   EXPECT_EQ(
@@ -325,7 +332,8 @@ TEST_F(PkgManagerTest, unloadBspKmods) {
   // kmods.json exist and all kmods aren't loaded
   EXPECT_CALL(*mockPlatformFsUtils_, getStringFileContent(_))
       .WillOnce(Return(jsonBspKmodsFile_));
-  EXPECT_CALL(*mockSystemInterface_, lsmod()).WillOnce(Return(""));
+  EXPECT_CALL(*mockSystemInterface_, lsmod())
+      .WillOnce(Return(std::set<std::string>{}));
   EXPECT_CALL(*mockSystemInterface_, unloadKmod(_)).Times(0);
   EXPECT_NO_THROW(pkgManager_.unloadBspKmods());
   EXPECT_EQ(

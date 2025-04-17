@@ -64,8 +64,8 @@ std::map<int32_t, PortInfoThrift> createInterfaceCountersEntries() {
   portEntry2.input() = inputCounter2;
   portEntry2.output() = outputCounter2;
 
-  portMap[portEntry1.get_portId()] = portEntry1;
-  portMap[portEntry2.get_portId()] = portEntry2;
+  portMap[folly::copy(portEntry1.portId().value())] = portEntry1;
+  portMap[folly::copy(portEntry2.portId().value())] = portEntry2;
 
   return portMap;
 }
@@ -96,7 +96,7 @@ TEST_F(CmdShowInterfaceCountersTestFixture, queryClient) {
 TEST_F(CmdShowInterfaceCountersTestFixture, createModel) {
   auto cmd = CmdShowInterfaceCounters();
   auto model = cmd.createModel(portEntries, queriedEntries);
-  auto intCounters = model.get_int_counters();
+  auto intCounters = model.int_counters().value();
 
   EXPECT_EQ(intCounters.size(), 2);
 }

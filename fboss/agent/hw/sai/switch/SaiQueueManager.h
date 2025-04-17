@@ -100,6 +100,8 @@ class SaiQueueManager {
   void getStats(SaiQueueHandles& queueHandles, HwPortStats& hwPortStats);
   void clearStats(const std::vector<SaiQueueHandle*>& queueHandles);
   QueueConfig getQueueSettings(const SaiQueueHandles& queueHandles) const;
+  std::optional<std::tuple<uint8_t, PortSaiId>> getQueueIndexAndPortSaiId(
+      const QueueSaiId& queueSaiId);
 
  private:
   bool isVoqSwitchAndQueueHandleNotForVoq(SaiQueueHandle* queueHandle);

@@ -259,10 +259,11 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
       return false;
     }
     XLOG(INFO) << folly::sformat(
-        "cmisModuleFirmwareDownload: Mod{:d}: Image wrote, offset: {:d} .. {:d}",
+        "cmisModuleFirmwareDownload: Mod{:d}: Image wrote, offset: {:d} .. {:d}. Progress: {:d} %",
         moduleId_,
         imageOffset - imageChunkLen,
-        imageOffset);
+        imageOffset,
+        (imageOffset * 100) / imageLen);
   }
   XLOG(INFO) << folly::sformat(
       "cmisModuleFirmwareDownload: Mod{:d}: Step 2: Issued Firmware Download Image successfully. Downloaded file size {:d}",

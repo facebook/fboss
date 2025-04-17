@@ -62,12 +62,24 @@ struct NeighborT {
       folly::IPAddressV4> static getNeighborAddress() {
     return folly::IPAddressV4("1.0.0.2");
   }
+  template <typename AddrT = IPAddrT>
+  std::enable_if_t<
+      std::is_same<AddrT, folly::IPAddressV4>::value,
+      folly::IPAddressV4> static getLinkLocalNeighborAddress() {
+    return folly::IPAddressV4("192.168.0.1");
+  }
 
   template <typename AddrT = IPAddrT>
   std::enable_if_t<
       std::is_same<AddrT, folly::IPAddressV6>::value,
       folly::IPAddressV6> static getNeighborAddress() {
     return folly::IPAddressV6("1::2");
+  }
+  template <typename AddrT = IPAddrT>
+  std::enable_if_t<
+      std::is_same<AddrT, folly::IPAddressV6>::value,
+      folly::IPAddressV6> static getLinkLocalNeighborAddress() {
+    return folly::IPAddressV6("fe80::2ae7:1dff:fe73:f21a");
   }
 };
 
@@ -105,9 +117,9 @@ class AgentNeighborTest : public AgentHwTest {
       NdpTable>;
 
  protected:
-  void SetUp() override {
+  void setCmdLineFlagOverrides() const override {
     FLAGS_intf_nbr_tables = isIntfNbrTable;
-    AgentHwTest::SetUp();
+    AgentHwTest::setCmdLineFlagOverrides();
   }
 
   std::vector<production_features::ProductionFeature>
@@ -158,7 +170,7 @@ class AgentNeighborTest : public AgentHwTest {
   VlanID kVlanID() const {
     if (utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
             ->getSwitchType() == cfg::SwitchType::NPU) {
-      auto vlanId = utility::firstVlanID(getProgrammedState());
+      auto vlanId = getVlanIDForTx();
       CHECK(vlanId.has_value());
       return *vlanId;
     }
@@ -169,7 +181,11 @@ class AgentNeighborTest : public AgentHwTest {
         utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
             ->getSwitchType();
     if (switchType == cfg::SwitchType::NPU) {
-      return InterfaceID(static_cast<int>(kVlanID()));
+      if (!isIntfNbrTable) {
+        return InterfaceID(static_cast<int>(kVlanID()));
+      } else {
+        return utility::firstInterfaceIDWithPorts(getProgrammedState());
+      }
     } else if (switchType == cfg::SwitchType::VOQ) {
       CHECK(!programToTrunk) << " Trunks not supported yet on VOQ switches";
       auto portId = this->portDescriptor().phyPortID();
@@ -209,8 +225,9 @@ class AgentNeighborTest : public AgentHwTest {
     XLOG(FATAL) << "Unexpected switch type " << static_cast<int>(switchType);
   }
   std::shared_ptr<SwitchState> addNeighbor(
-      const std::shared_ptr<SwitchState>& inState) {
-    auto ip = NeighborT::getNeighborAddress();
+      const std::shared_ptr<SwitchState>& inState,
+      bool linkLocal = false) {
+    auto ip = getNeighborAddress(linkLocal);
     auto outState{inState->clone()};
     auto neighborTable = getNeighborTable(outState);
     neighborTable->addPendingEntry(ip, kIntfID());
@@ -218,8 +235,9 @@ class AgentNeighborTest : public AgentHwTest {
   }
 
   std::shared_ptr<SwitchState> removeNeighbor(
-      const std::shared_ptr<SwitchState>& inState) {
-    auto ip = NeighborT::getNeighborAddress();
+      const std::shared_ptr<SwitchState>& inState,
+      bool linkLocal = false) {
+    auto ip = getNeighborAddress(linkLocal);
     auto outState{inState->clone()};
 
     auto neighborTable = getNeighborTable(outState);
@@ -229,8 +247,9 @@ class AgentNeighborTest : public AgentHwTest {
 
   std::shared_ptr<SwitchState> resolveNeighbor(
       const std::shared_ptr<SwitchState>& inState,
-      std::optional<cfg::AclLookupClass> lookupClass = std::nullopt) {
-    auto ip = NeighborT::getNeighborAddress();
+      std::optional<cfg::AclLookupClass> lookupClass = std::nullopt,
+      bool linkLocal = false) {
+    auto ip = getNeighborAddress(linkLocal);
     auto outState{inState->clone()};
     auto neighborTable = getNeighborTable(outState);
     neighborTable->updateEntry(
@@ -244,11 +263,12 @@ class AgentNeighborTest : public AgentHwTest {
   }
 
   std::shared_ptr<SwitchState> unresolveNeighbor(
-      const std::shared_ptr<SwitchState>& inState) {
-    return addNeighbor(removeNeighbor(inState));
+      const std::shared_ptr<SwitchState>& inState,
+      bool linkLocal = false) {
+    return addNeighbor(removeNeighbor(inState, linkLocal), linkLocal);
   }
 
-  void verifyClassId(int classID) {
+  void verifyClassId(int classID, bool linkLocal = false) {
     /*
      * Queue-per-host classIDs are only supported for physical ports.
      * Pending entry should not have a classID (0) associated with it.
@@ -256,7 +276,7 @@ class AgentNeighborTest : public AgentHwTest {
      */
     WITH_RETRIES({
       auto neighborInfo = getNeighborInfo(
-          kIntfID(), NeighborT::getNeighborAddress(), *getAgentEnsemble());
+          kIntfID(), getNeighborAddress(linkLocal), *getAgentEnsemble());
       EXPECT_EVENTUALLY_TRUE(neighborInfo.classId().has_value());
       if (neighborInfo.classId().has_value()) {
         EXPECT_EVENTUALLY_TRUE(
@@ -265,18 +285,19 @@ class AgentNeighborTest : public AgentHwTest {
     });
   }
 
-  bool nbrExists() {
+  bool nbrExists(bool linkLocal = false) {
     auto neighborInfo = getNeighborInfo(
-        kIntfID(), NeighborT::getNeighborAddress(), *getAgentEnsemble());
+        kIntfID(), getNeighborAddress(linkLocal), *getAgentEnsemble());
     return *neighborInfo.exists();
   }
-  folly::IPAddress getNeighborAddress() const {
-    return NeighborT::getNeighborAddress();
+  IPAddrT getNeighborAddress(bool linkLocal) const {
+    return linkLocal ? NeighborT::getLinkLocalNeighborAddress()
+                     : NeighborT::getNeighborAddress();
   }
 
-  bool isProgrammedToCPU() {
+  bool isProgrammedToCPU(bool linkLocal = false) {
     auto neighborInfo = getNeighborInfo(
-        kIntfID(), NeighborT::getNeighborAddress(), *getAgentEnsemble());
+        kIntfID(), getNeighborAddress(linkLocal), *getAgentEnsemble());
     return *neighborInfo.isProgrammedToCpu();
   }
 
@@ -308,6 +329,21 @@ TYPED_TEST(AgentNeighborTest, ResolvePendingEntry) {
   };
   auto verify = [this]() { EXPECT_FALSE(this->isProgrammedToCPU()); };
   this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TYPED_TEST(AgentNeighborTest, ResolveLinkLocalEntry) {
+  bool linkLocal = true;
+  auto setup = [this, linkLocal]() {
+    this->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      auto state = this->addNeighbor(in, linkLocal);
+      return this->resolveNeighbor(state, std::nullopt, linkLocal);
+    });
+  };
+  // LL neighbors are not programmed in HW. So
+  // there is nothing to verify. However we must
+  // be able to come up and WB with LL neighbors
+  // present
+  this->verifyAcrossWarmBoots(setup, []() {});
 }
 
 TYPED_TEST(AgentNeighborTest, ResolvePendingEntryThenChangeLookupClass) {
@@ -437,9 +473,9 @@ class AgentNeighborOnMultiplePortsTest : public AgentHwTest {
   static auto constexpr isIntfNbrTable = EnableIntfNbrTableT::intfNbrTable;
 
  protected:
-  void SetUp() override {
+  void setCmdLineFlagOverrides() const override {
     FLAGS_intf_nbr_tables = isIntfNbrTable;
-    AgentHwTest::SetUp();
+    AgentHwTest::setCmdLineFlagOverrides();
   }
 
   std::vector<production_features::ProductionFeature>
@@ -449,6 +485,8 @@ class AgentNeighborOnMultiplePortsTest : public AgentHwTest {
     if (isIntfNbrTable) {
       features.push_back(
           production_features::ProductionFeature::INTERFACE_NEIGHBOR_TABLE);
+    } else {
+      features.push_back(production_features::ProductionFeature::VLAN);
     }
     return features;
   }
@@ -477,7 +515,8 @@ class AgentNeighborOnMultiplePortsTest : public AgentHwTest {
     }
 
     // Create adjacencies on all test ports
-    auto dstMac = utility::getFirstInterfaceMac(this->getProgrammedState());
+    auto dstMac =
+        utility::getMacForFirstInterfaceWithPorts(this->getProgrammedState());
     for (int idx = 0; idx < portIds.size(); idx++) {
       this->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
         utility::EcmpSetupAnyNPorts6 ecmpHelper6(
@@ -489,7 +528,8 @@ class AgentNeighborOnMultiplePortsTest : public AgentHwTest {
     // Dump the local interface config
     XLOG(DBG0) << "Dumping port configurations:";
     for (int idx = 0; idx < portIds.size(); idx++) {
-      auto mac = utility::getFirstInterfaceMac(getProgrammedState());
+      auto mac =
+          utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
       XLOG(DBG0) << "   Port " << portIds[idx]
                  << ", IPv6: " << cfg.interfaces()[idx].ipAddresses()[1]
                  << ", Intf MAC: " << mac;

@@ -118,7 +118,7 @@
       "presenceDetection": {
         "gpioLineHandle": {
           "charDevPath": "/run/devmap/gpiochips/MCB_FPGA_GPIO2",
-          "lineIndex": 47,
+          "lineIndex": 48,
           "desiredValue": 1
         }
       }

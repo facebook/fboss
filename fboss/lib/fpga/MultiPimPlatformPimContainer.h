@@ -10,6 +10,8 @@
 #pragma once
 
 #include <string>
+#include <vector>
+#include "fboss/lib/if/gen-cpp2/pim_state_types.h"
 
 namespace facebook::fboss {
 /*
@@ -37,6 +39,10 @@ class MultiPimPlatformPimContainer {
   virtual bool isPimPresent() const = 0;
 
   virtual void initHW(bool forceReset = false) = 0;
+
+  virtual PimState getPimState() const {
+    return PimState();
+  }
 
  private:
   // Forbidden copy constructor and assignment operator

@@ -60,7 +60,7 @@ void ResolvedNexthopProbeScheduler::schedule() {
     if (FLAGS_intf_nbr_tables) {
       startProbe = shouldProbe(entry.first.addr(), intf);
     } else {
-      auto vlanId = sw_->getVlanIDHelper(intf->getVlanIDIf());
+      auto vlanId = sw_->getVlanIDHelper(intf->getVlanIDIf(), intf->getType());
       auto vlan = state->getVlans()->getNode(vlanId);
       startProbe = shouldProbe(entry.first.addr(), vlan);
     }

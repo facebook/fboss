@@ -15,6 +15,7 @@
 #include "fboss/agent/platforms/common/meru400biu/Meru400biuPlatformMapping.h"
 #include "fboss/agent/platforms/common/meru800bfa/Meru800bfaPlatformMapping.h"
 #include "fboss/agent/platforms/common/meru800bia/Meru800biaPlatformMapping.h"
+#include "fboss/agent/platforms/common/minipack3n/Minipack3NPlatformMapping.h"
 #include "fboss/agent/platforms/common/montblanc/MontblancPlatformMapping.h"
 #include "fboss/agent/platforms/common/morgan800cc/Morgan800ccPlatformMapping.h"
 #include "fboss/agent/platforms/common/tahan800bc/Tahan800bcPlatformMapping.h"
@@ -25,6 +26,7 @@
 #include "fboss/lib/bsp/meru400biu/Meru400biuBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru800bfa/Meru800bfaBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru800bia/Meru800biaBspPlatformMapping.h"
+#include "fboss/lib/bsp/minipack3n/Minipack3NBspPlatformMapping.h"
 #include "fboss/lib/bsp/montblanc/MontblancBspPlatformMapping.h"
 #include "fboss/lib/bsp/morgan800cc/Morgan800ccBspPlatformMapping.h"
 #include "fboss/lib/bsp/tahan800bc/Tahan800bcBspPlatformMapping.h"
@@ -87,6 +89,8 @@ std::unique_ptr<WedgeManager> createWedgeManager() {
     return createMeru800bfaWedgeManager(platformMappingStr);
   } else if (mode == PlatformType::PLATFORM_MONTBLANC) {
     return createMontblancWedgeManager(platformMappingStr);
+  } else if (mode == PlatformType::PLATFORM_MINIPACK3N) {
+    return createMinipack3NWedgeManager(platformMappingStr);
   } else if (mode == PlatformType::PLATFORM_MORGAN800CC) {
     return createMorgan800ccWedgeManager(platformMappingStr);
   } else if (mode == PlatformType::PLATFORM_WEDGE400C) {
@@ -98,8 +102,7 @@ std::unique_ptr<WedgeManager> createWedgeManager() {
   } else if (
       mode == PlatformType::PLATFORM_FUJI ||
       mode == PlatformType::PLATFORM_MINIPACK ||
-      mode == PlatformType::PLATFORM_WEDGE400 ||
-      mode == PlatformType::PLATFORM_CLOUDRIPPER) {
+      mode == PlatformType::PLATFORM_WEDGE400) {
     return createFBWedgeManager(std::move(productInfo), platformMappingStr);
   }
   return std::make_unique<Wedge40Manager>(platformMappingStr);
@@ -187,6 +190,19 @@ std::unique_ptr<WedgeManager> createMontblancWedgeManager(
           ? std::make_unique<MontblancPlatformMapping>()
           : std::make_unique<MontblancPlatformMapping>(platformMappingStr),
       PlatformType::PLATFORM_MONTBLANC);
+}
+std::unique_ptr<WedgeManager> createMinipack3NWedgeManager(
+    const std::string& platformMappingStr) {
+  auto systemContainer =
+      BspGenericSystemContainer<Minipack3NBspPlatformMapping>::getInstance()
+          .get();
+  return std::make_unique<BspWedgeManager>(
+      systemContainer,
+      std::make_unique<BspTransceiverApi>(systemContainer),
+      platformMappingStr.empty()
+          ? std::make_unique<Minipack3NPlatformMapping>()
+          : std::make_unique<Minipack3NPlatformMapping>(platformMappingStr),
+      PlatformType::PLATFORM_MINIPACK3N);
 }
 
 std::unique_ptr<WedgeManager> createMorgan800ccWedgeManager(

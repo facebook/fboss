@@ -52,4 +52,5 @@ add_executable(fsdb
 target_link_libraries(fsdb
   fsdb_server
   fboss_init
+  restart_time_tracker
 )

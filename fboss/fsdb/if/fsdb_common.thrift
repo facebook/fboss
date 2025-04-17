@@ -60,6 +60,7 @@ enum FsdbErrorCode {
   SUBSCRIPTION_DATA_CALLBACK_ERROR = 18,
   CLIENT_CHUNK_TIMEOUT = 19,
   CLIENT_TRANSPORT_EXCEPTION = 20,
+  SUBSCRIPTION_SERVE_QUEUE_FULL = 21,
 }
 
 exception FsdbException {
@@ -108,6 +109,8 @@ enum FsdbClient {
   SWITCH_AGENT = 11,
   FBOSS2_CLI = 12,
   ADHOC = 13,
+  SWITCH_AGENT_CORE = 14,
+  SWITCH_AGENT_CLUSTER = 15,
 }
 
 struct ClientId {

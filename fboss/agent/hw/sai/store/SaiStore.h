@@ -58,6 +58,12 @@ struct AdapterHostKeyWarmbootRecoverable<SaiWredTraits> : std::false_type {};
 
 #endif
 
+#if defined(CHENAB_SAI_SDK)
+template <>
+struct AdapterHostKeyWarmbootRecoverable<SaiAclCounterTraits>
+    : std::false_type {};
+#endif
+
 /*
  * SaiObjectStore is the critical component of SaiStore,
  * it provides the needed operations on a single type of SaiObject
@@ -648,6 +654,9 @@ class SaiStore {
       SaiObjectStore<SaiTamTransportTraits>,
       SaiObjectStore<SaiTamCollectorTraits>,
       SaiObjectStore<SaiTunnelTraits>,
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+      SaiObjectStore<SaiVendorSwitchTraits>,
+#endif
       SaiObjectStore<SaiP2MPTunnelTermTraits>,
       SaiObjectStore<SaiP2PTunnelTermTraits>,
       SaiObjectStore<SaiLagTraits>,
@@ -656,7 +665,12 @@ class SaiStore {
       SaiObjectStore<SaiMacsecFlowTraits>,
       SaiObjectStore<SaiMacsecPortTraits>,
       SaiObjectStore<SaiMacsecSCTraits>,
-      SaiObjectStore<SaiMacsecSATraits>>
+      SaiObjectStore<SaiMacsecSATraits>
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+      ,
+      SaiObjectStore<SaiFirmwareTraits>
+#endif
+      >
       stores_;
 };
 

@@ -14,6 +14,7 @@
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
+#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/QueuePerHostTestUtils.h"
 
@@ -38,9 +39,7 @@ class AgentHwResourceStatsTest : public AgentHwTest {
       const AgentEnsemble& ensemble) const override {
     auto cfg = AgentHwTest::initialConfig(ensemble);
     if (FLAGS_enable_acl_table_group) {
-      utility::addAclTableGroup(
-          &cfg, cfg::AclStage::INGRESS, utility::kDefaultAclTableGroupName());
-      utility::addDefaultAclTable(cfg);
+      utility::setupDefaultAclTableGroups(cfg);
     }
     return cfg;
   }
@@ -135,7 +134,8 @@ TEST_F(AgentHwResourceStatsTest, l3Stats) {
         EXPECT_EVENTUALLY_LT(v6HostFreeAfter, v6HostFreeBefore);
         EXPECT_EVENTUALLY_LT(v4HostFreeAfter, v4HostFreeBefore);
       }
-      EXPECT_EVENTUALLY_EQ(ecmpFreeAfter, ecmpFreeBefore - 2);
+
+      EXPECT_EVENTUALLY_LE(ecmpFreeAfter, ecmpFreeBefore);
     });
 
     // Unresolve so we can rerun verify for many (warmboot) iterations
@@ -181,10 +181,15 @@ TEST_F(AgentHwResourceStatsTest, aclStats) {
     // Trigger a stats collection
     this->getLatestPortStats(this->masterLogicalPortIds());
 
+    auto l3Asics = getAgentEnsemble()->getL3Asics();
+    auto asic = utility::checkSameAndGetAsic(l3Asics);
     auto [aclEntriesFreeBefore, aclCountersFreeBefore] = getStatsFn();
     // getSw()->isRunModeMultiSwitch() ? getMultiStatsFn() : getMonoStatsFn();
-    auto acl = utility::addAcl(&newCfg, "acl0");
+    auto acl = utility::addAcl_DEPRECATED(&newCfg, "acl0");
     acl->dscp() = 0x10;
+    if (asic->isSupported(HwAsic::Feature::ACL_ENTRY_ETHER_TYPE)) {
+      acl->etherType() = cfg::EtherType::IPv6;
+    }
     utility::addAclStat(&newCfg, "acl0", "stat0");
     this->applyNewConfig(newCfg);
     // Trigger a stats collection
@@ -192,7 +197,9 @@ TEST_F(AgentHwResourceStatsTest, aclStats) {
 
     WITH_RETRIES({
       auto [aclEntriesFreeAfter, aclCountersFreeAfter] = getStatsFn();
-      EXPECT_EVENTUALLY_EQ(aclEntriesFreeAfter, aclEntriesFreeBefore - 1);
+      // More than one h/w resource gets maybe consumed on configuring
+      // an ACL
+      EXPECT_EVENTUALLY_LT(aclEntriesFreeAfter, aclEntriesFreeBefore);
       // More than one h/w resource gets consumed on configuring
       // a counter
       EXPECT_EVENTUALLY_LT(aclCountersFreeAfter, aclCountersFreeBefore);

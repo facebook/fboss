@@ -97,4 +97,10 @@ fsdb::OperDelta computeOperDelta(
   return createDelta(std::move(operDeltaUnits));
 }
 
+FsdbClient string2FsdbClient(const std::string& clientId);
+
+std::string fsdbClient2string(const FsdbClient& clientId);
+
+ClientId subscriberId2ClientId(const SubscriberId& subscriberId);
+
 } // namespace facebook::fboss::fsdb

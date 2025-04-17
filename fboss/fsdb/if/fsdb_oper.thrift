@@ -51,6 +51,8 @@ enum OperProtocol {
 struct OperMetadata {
   // lastConfirmedAt measured in seconds since epoch
   1: optional i64 lastConfirmedAt;
+  // timestamp in msec since epoch when publisher enqueued last update
+  2: optional i64 lastPublishedAt;
 }
 
 struct OperState {
@@ -150,7 +152,7 @@ struct Patch {
 
 union PublisherMessage {
   1: Patch patch;
-// TODO: heartbeat
+  // TODO: heartbeat
 }
 
 struct SubscriberChunk {

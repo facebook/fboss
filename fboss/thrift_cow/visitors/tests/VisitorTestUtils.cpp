@@ -20,10 +20,13 @@ TestStruct createSimpleTestStruct() {
       "hybridMapOfI32ToStruct",
       dynamic::object(
           20,
-          dynamic::object("childMap", dynamic::object())("leafI32", 0)(
-              "listOfStruct", dynamic::array())("strMap", dynamic::object())(
+          dynamic::object("childMap", dynamic::object(2, true))("leafI32", 0)(
+              "listOfStruct",
+              dynamic::array(dynamic::object(), dynamic::object()))(
+              "strMap", dynamic::object())(
               "structMap",
-              dynamic::object("30", dynamic::object("min", 100)("max", 200)))))(
+              dynamic::object("30", dynamic::object("min", 100)("max", 200)))(
+              "childSet", dynamic::array("test1", "test2"))))(
       "hybridMapOfMap", dynamic::object(10, dynamic::object(20, 30)))(
       "hybridStruct",
       dynamic::object(

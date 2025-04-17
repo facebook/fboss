@@ -17,6 +17,7 @@
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
 #include "fboss/agent/hw/test/ProdConfigFactory.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/utils/UdfTestUtils.h"
 
 using namespace facebook::fboss::utility;
 
@@ -87,6 +88,18 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
     return getHwSwitchEnsemble()->isSai() ? 20 : 200;
   }
 
+  int kDefaultSamplingRate() const {
+    return getHwSwitchEnsemble()->isSai() ? 1 : 500000;
+  }
+
+  // SAI is 0.5us but SDK doesn't support yet
+  // <1us not supported on TH3
+  int kMinSamplingRate() const {
+    bool isTH4 = getPlatform()->getAsic()->getAsicType() ==
+        cfg::AsicType::ASIC_TYPE_TOMAHAWK4;
+    return getHwSwitchEnsemble()->isSai() ? 1 : isTH4 ? 1953125 : 1000000;
+  }
+
   cfg::SwitchConfig initialConfig() const override {
     auto cfg = getDefaultConfig();
     updateFlowletConfigs(cfg);
@@ -155,13 +168,15 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
   }
 
   void addFlowletAcl(cfg::SwitchConfig& cfg) const {
-    auto* acl = utility::addAcl(&cfg, kAclName);
+    auto* acl = utility::addAcl_DEPRECATED(&cfg, kAclName);
     acl->proto() = kUdpProto;
     acl->l4DstPort() = kUdpDstPort;
     acl->dstIp() = kDstIp;
     acl->udfGroups() = {utility::kRoceUdfFlowletGroupName};
     acl->roceBytes() = {utility::kRoceReserved};
     acl->roceMask() = {utility::kRoceReserved};
+    utility::addEtherTypeToAcl(
+        getPlatform()->getAsic(), acl, cfg::EtherType::IPv6);
     cfg::MatchAction matchAction = cfg::MatchAction();
     matchAction.flowletAction() = cfg::FlowletAction::FORWARD;
     // presence of UDF configuration causes the FP group to be cleared out
@@ -198,12 +213,16 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
           cfg::SwitchingMode::FLOWLET_QUALITY,
       const int flowletTableSize = kFlowletTableSize1) const {
     auto flowletCfg = getFlowletSwitchingConfig(
-        switchingMode, kInactivityIntervalUsecs1, flowletTableSize);
+        switchingMode,
+        kInactivityIntervalUsecs1,
+        flowletTableSize,
+        kDefaultSamplingRate());
     cfg.flowletSwitchingConfig() = flowletCfg;
     updatePortFlowletConfigs(
         cfg, kScalingFactor1(), kLoadWeight1, kQueueWeight1);
     if (!getHwSwitchEnsemble()->isSai()) {
-      cfg.udfConfig() = utility::addUdfFlowletAclConfig();
+      cfg.udfConfig() =
+          utility::addUdfAclConfig(utility::kUdfOffsetBthReserved);
       addFlowletAcl(cfg);
     }
   }
@@ -243,7 +262,8 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
   cfg::FlowletSwitchingConfig getFlowletSwitchingConfig(
       cfg::SwitchingMode switchingMode,
       uint16_t inactivityIntervalUsecs,
-      int flowletTableSize) const {
+      int flowletTableSize,
+      int samplingRate) const {
     cfg::FlowletSwitchingConfig flowletCfg;
     flowletCfg.inactivityIntervalUsecs() = inactivityIntervalUsecs;
     flowletCfg.flowletTableSize() = flowletTableSize;
@@ -251,8 +271,7 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
     flowletCfg.dynamicQueueExponent() = 3;
     flowletCfg.dynamicQueueMinThresholdBytes() = 100000;
     flowletCfg.dynamicQueueMaxThresholdBytes() = 200000;
-    flowletCfg.dynamicSampleRate() =
-        getHwSwitchEnsemble()->isSai() ? 1 : 1000000;
+    flowletCfg.dynamicSampleRate() = samplingRate;
     flowletCfg.dynamicEgressMinThresholdBytes() = 1000;
     flowletCfg.dynamicEgressMaxThresholdBytes() = 10000;
     flowletCfg.dynamicPhysicalQueueExponent() = 4;
@@ -265,7 +284,8 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
     auto flowletCfg = getFlowletSwitchingConfig(
         cfg::SwitchingMode::PER_PACKET_QUALITY,
         kInactivityIntervalUsecs2,
-        kMinFlowletTableSize);
+        kMinFlowletTableSize,
+        kMinSamplingRate());
     cfg.flowletSwitchingConfig() = flowletCfg;
   }
 
@@ -279,7 +299,7 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
 
   bool skipTest() {
     return (
-        !getPlatform()->getAsic()->isSupported(HwAsic::Feature::FLOWLET) ||
+        !getPlatform()->getAsic()->isSupported(HwAsic::Feature::ARS) ||
         (getPlatform()->getAsic()->getAsicType() ==
          cfg::AsicType::ASIC_TYPE_FAKE));
   }
@@ -329,7 +349,7 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
       cfg::PortFlowletConfig& portFlowletConfig,
       bool enable = true) {
     if (getHwSwitch()->getPlatform()->getAsic()->isSupported(
-            HwAsic::Feature::FLOWLET_PORT_ATTRIBUTES)) {
+            HwAsic::Feature::ARS_PORT_ATTRIBUTES)) {
       EXPECT_TRUE(utility::validatePortFlowletQuality(
           getHwSwitch(), masterLogicalPortIds()[0], portFlowletConfig, enable));
     }
@@ -372,7 +392,8 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
     auto flowletCfg = getFlowletSwitchingConfig(
         cfg::SwitchingMode::PER_PACKET_QUALITY,
         kInactivityIntervalUsecs2,
-        kMinFlowletTableSize);
+        kMinFlowletTableSize,
+        kMinSamplingRate());
 
     EXPECT_TRUE(
         utility::validateFlowletSwitchingEnabled(getHwSwitch(), flowletCfg));
@@ -385,8 +406,8 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
         kDefaultScalingFactor(), kDefaultLoadWeight(), kDefaultQueueWeight());
     verifyPortFlowletConfig(portFlowletConfig, false);
 
-    auto flowletCfg =
-        getFlowletSwitchingConfig(cfg::SwitchingMode::FIXED_ASSIGNMENT, 0, 0);
+    auto flowletCfg = getFlowletSwitchingConfig(
+        cfg::SwitchingMode::FIXED_ASSIGNMENT, 0, 0, 0);
 
     EXPECT_TRUE(utility::validateFlowletSwitchingDisabled(getHwSwitch()));
     EXPECT_TRUE(utility::verifyEcmpForFlowletSwitching(
@@ -417,7 +438,7 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
         getHwSwitch(), *cfg.flowletSwitchingConfig()));
 
     if (getHwSwitch()->getPlatform()->getAsic()->isSupported(
-            HwAsic::Feature::FLOWLET_PORT_ATTRIBUTES)) {
+            HwAsic::Feature::ARS_PORT_ATTRIBUTES)) {
       // verify the flowlet config is programmed in ECMP for TH4
       EXPECT_TRUE(utility::verifyEcmpForFlowletSwitching(
           getHwSwitch(),
@@ -427,8 +448,8 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
           true));
     } else {
       // verify the flowlet config is not programmed in ECMP for TH3
-      auto flowletCfg =
-          getFlowletSwitchingConfig(cfg::SwitchingMode::FIXED_ASSIGNMENT, 0, 0);
+      auto flowletCfg = getFlowletSwitchingConfig(
+          cfg::SwitchingMode::FIXED_ASSIGNMENT, 0, 0, 0);
       EXPECT_TRUE(utility::verifyEcmpForFlowletSwitching(
           getHwSwitch(), kAddr1Prefix, flowletCfg, portFlowletConfig, false));
     }
@@ -554,7 +575,8 @@ TEST_F(HwFlowletSwitchingFlowsetTests, ValidateFlowsetExceed) {
     auto flowletCfg = getFlowletSwitchingConfig(
         cfg::SwitchingMode::FLOWLET_QUALITY,
         kInactivityIntervalUsecs2,
-        KMaxFlowsetTableSize);
+        KMaxFlowsetTableSize,
+        kDefaultSamplingRate());
     cfg.flowletSwitchingConfig() = flowletCfg;
     applyNewConfig(cfg);
 
@@ -1162,7 +1184,7 @@ TEST_F(HwFlowletSwitchingEcmpTest, VerifyEcmpSprayModeScale) {
 #endif
     return;
   }
-  int numEcmp = 63;
+  int numEcmp = kNumEcmp();
   // CS00012344837
   if (getPlatform()->getAsic()->getAsicType() ==
       cfg::AsicType::ASIC_TYPE_TOMAHAWK3) {

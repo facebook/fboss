@@ -320,6 +320,25 @@ std::string errorType(sai_switch_error_type_t type) {
     case SAI_SWITCH_ERROR_TYPE_FIRMWARE_CRASH:
       return "SAI_SWITCH_ERROR_TYPE_FIRMWARE_CRASH";
 #endif
+#if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
+    // DDP Errors
+    case SAI_SWITCH_ERROR_TYPE_DDP_EXT_MEM_ERR_PKUP_CPYDAT_ECC_2B_ERR_INT:
+      return "SAI_SWITCH_ERROR_TYPE_DDP_EXT_MEM_ERR_PKUP_CPYDAT_ECC_2B_ERR_INT";
+    case SAI_SWITCH_ERROR_TYPE_DDP_EXT_MEM_ERR_PKUP_CPYDAT_CRC_ERR_INT:
+      return "SAI_SWITCH_ERROR_TYPE_DDP_EXT_MEM_ERR_PKUP_CPYDAT_CRC_ERR_INT";
+    case SAI_SWITCH_ERROR_TYPE_DDP_EXT_MEM_ERR_PKUP_PACKET_CRC_ERR_INT:
+      return "SAI_SWITCH_ERROR_TYPE_DDP_EXT_MEM_ERR_PKUP_PACKET_CRC_ERR_INT";
+    case SAI_SWITCH_ERROR_TYPE_DDP_EXT_MEM_ERR_BTC_TDU_ECC_2B_ERR_INT:
+      return "SAI_SWITCH_ERROR_TYPE_DDP_EXT_MEM_ERR_BTC_TDU_ECC_2B_ERR_INT";
+    case SAI_SWITCH_ERROR_TYPE_DDP_EXT_MEM_ERR_PKUP_LAST_BUFF_CRC_ERR_INT:
+      return "SAI_SWITCH_ERROR_TYPE_DDP_EXT_MEM_ERR_PKUP_LAST_BUFF_CRC_ERR_INT";
+    case SAI_SWITCH_ERROR_TYPE_DDP_ERROR_UNPACK_PACKET_SIZE_ERROR:
+      return "SAI_SWITCH_ERROR_TYPE_DDP_ERROR_UNPACK_PACKET_SIZE_ERROR";
+    case SAI_SWITCH_ERROR_TYPE_DDP_DELETE_BDB_FIFO_FULL:
+      return "SAI_SWITCH_ERROR_TYPE_DDP_DELETE_BDB_FIFO_FULL";
+    case SAI_SWITCH_ERROR_TYPE_DDP_DELETE_BDB_FIFO_NOT_EMPTY:
+      return "SAI_SWITCH_ERROR_TYPE_DDP_DELETE_BDB_FIFO_NOT_EMPTY";
+#endif
     default:
       break;
   }
@@ -545,6 +564,24 @@ bool rtpTableChangedEvent(sai_switch_error_type_t type) {
   }
 }
 
+bool isDdpError(sai_switch_error_type_t type) {
+  switch (type) {
+#if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
+    case SAI_SWITCH_ERROR_TYPE_DDP_EXT_MEM_ERR_PKUP_CPYDAT_ECC_2B_ERR_INT:
+    case SAI_SWITCH_ERROR_TYPE_DDP_EXT_MEM_ERR_PKUP_CPYDAT_CRC_ERR_INT:
+    case SAI_SWITCH_ERROR_TYPE_DDP_EXT_MEM_ERR_PKUP_PACKET_CRC_ERR_INT:
+    case SAI_SWITCH_ERROR_TYPE_DDP_EXT_MEM_ERR_BTC_TDU_ECC_2B_ERR_INT:
+    case SAI_SWITCH_ERROR_TYPE_DDP_EXT_MEM_ERR_PKUP_LAST_BUFF_CRC_ERR_INT:
+    case SAI_SWITCH_ERROR_TYPE_DDP_ERROR_UNPACK_PACKET_SIZE_ERROR:
+    case SAI_SWITCH_ERROR_TYPE_DDP_DELETE_BDB_FIFO_FULL:
+    case SAI_SWITCH_ERROR_TYPE_DDP_DELETE_BDB_FIFO_NOT_EMPTY:
+      return true;
+#endif
+    default:
+      break;
+  }
+  return false;
+}
 #endif
 
 } // namespace
@@ -605,6 +642,7 @@ void SaiSwitch::switchEventCallback(
       auto eccError = isEccError(eventInfo->error_type);
       auto fdrFifoOverflowError = isFdrFifoOverflowError(eventInfo->error_type);
       auto fdaFifoOverflowError = isFdaFifoOverflowError(eventInfo->error_type);
+      auto ddpError = isDdpError(eventInfo->error_type);
       auto rtpTableChanged = rtpTableChangedEvent(eventInfo->error_type);
       XLOG(ERR) << "ERROR INTERRUPT: " << errorType(eventInfo->error_type);
       if (ireError) {
@@ -638,6 +676,9 @@ void SaiSwitch::switchEventCallback(
       }
       if (fdaFifoOverflowError) {
         getSwitchStats()->fdaFifoOverflowError();
+      }
+      if (ddpError) {
+        getSwitchStats()->dramDataPathError();
       }
       if (rtpTableChanged) {
         // RTP table change notification is vendor specific, this
@@ -681,11 +722,11 @@ void SaiSwitch::switchEventCallback(
 #endif
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_7)
     case SAI_SWITCH_EVENT_TYPE_FIRMWARE_CRASHED: {
-      // TODO(skhare) Process this callback
       XLOG(ERR) << "Firmware Crash callback received: " << " error type: "
                 << errorType(eventInfo->error_type)
                 << " reload reason: " << static_cast<int>(eventInfo->index)
                 << " reload status: " << static_cast<int>(eventInfo->index2);
+      getSwitchStats()->isolationFirmwareCrash();
       break;
     }
     case SAI_SWITCH_EVENT_TYPE_REMOTE_LINK_CHANGE: {
@@ -695,6 +736,14 @@ void SaiSwitch::switchEventCallback(
                  << static_cast<int>(isUp)
                  << " sysPortId: " << static_cast<int>(sysPortId);
       // TODO(zecheng): Handle and log remote link change
+      break;
+    }
+#endif
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_7)
+    case SAI_SWITCH_EVENT_TYPE_RX_FIFO_STUCK_DETECTED: {
+      XLOG(ERR) << "RX FIFO stuck seen on link: " << eventInfo->index
+                << ", pipe: " << eventInfo->index2;
+      getSwitchStats()->rxFifoStuckDetected();
       break;
     }
 #endif

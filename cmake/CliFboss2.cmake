@@ -32,6 +32,13 @@ add_fbthrift_cpp_library(
 )
 
 add_fbthrift_cpp_library(
+  show_example_model
+  fboss/cli/fboss2/commands/show/example/model.thrift
+  OPTIONS
+    json
+)
+
+add_fbthrift_cpp_library(
   show_flowlet_model
   fboss/cli/fboss2/commands/show/flowlet/model.thrift
   OPTIONS
@@ -239,6 +246,8 @@ add_fbthrift_cpp_library(
   fboss/cli/fboss2/commands/show/route/model.thrift
   OPTIONS
     json
+  DEPENDS
+    ctrl_cpp2
 )
 
 add_fbthrift_cpp_library(
@@ -347,6 +356,7 @@ add_executable(fboss2
   fboss/cli/fboss2/commands/clear/interface/CmdClearInterface.h
   fboss/cli/fboss2/commands/clear/interface/prbs/CmdClearInterfacePrbs.h
   fboss/cli/fboss2/commands/clear/interface/prbs/stats/CmdClearInterfacePrbsStats.h
+  fboss/cli/fboss2/commands/clear/interface/counters/phy/CmdClearInterfaceCountersPhy.h
   fboss/cli/fboss2/CmdGlobalOptions.cpp
   fboss/cli/fboss2/CmdHandler.cpp
   fboss/cli/fboss2/CmdHandlerImpl.cpp
@@ -359,11 +369,14 @@ add_executable(fboss2
   fboss/cli/fboss2/commands/set/interface/prbs/state/CmdSetInterfacePrbsState.h
   fboss/cli/fboss2/commands/show/acl/CmdShowAcl.h
   fboss/cli/fboss2/commands/show/agent/CmdShowAgentSsl.h
+  fboss/cli/fboss2/commands/show/agent/CmdShowAgentFirmware.h
+  fboss/cli/fboss2/commands/show/agent/CmdShowAgentFirmware.cpp
   fboss/cli/fboss2/commands/show/aggregateport/CmdShowAggregatePort.h
   fboss/cli/fboss2/commands/show/arp/CmdShowArp.h
   fboss/cli/fboss2/commands/show/dsf/CmdShowDsf.h
   fboss/cli/fboss2/commands/show/dsf/subscription/CmdShowDsfSubscription.h
   fboss/cli/fboss2/commands/show/dsfnodes/CmdShowDsfNodes.h
+  fboss/cli/fboss2/commands/show/example/CmdShowExample.h
   fboss/cli/fboss2/commands/show/fabric/CmdShowFabric.h
   fboss/cli/fboss2/commands/show/fabric/reachability/CmdShowFabricReachability.h
   fboss/cli/fboss2/commands/show/flowlet/CmdShowFlowlet.h
@@ -453,6 +466,7 @@ target_link_libraries(fboss2
   show_agent_model
   show_aggregateport_model
   show_arp_model
+  show_example_model
   show_flowlet_model
   show_dsf_subcription_model
   show_dsfnodes_model

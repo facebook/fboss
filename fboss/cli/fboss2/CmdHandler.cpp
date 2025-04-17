@@ -18,6 +18,7 @@
 #include <cstring>
 #include <future>
 #include <iostream>
+#include <queue>
 #include <stdexcept>
 
 template <typename CmdTypeT>
@@ -248,12 +249,20 @@ void CmdHandler<CmdTypeT, CmdTypeTraits>::runHelper() {
     printAggregate<CmdTypeT>(parsedAggregationInput, futureList, validAggs);
   }
 
+  std::queue<std::pair<std::string, std::string>> executionFailures{};
+
   for (auto& fut : futureList) {
     auto [host, data, errStr] = fut.get();
-    // exit with failure if any of the calls failed
     if (!errStr.empty()) {
-      throw std::runtime_error("Error in command execution");
+      executionFailures.push({host, errStr});
     }
+  }
+
+  // Collect errors and display at end of execution
+  while (!executionFailures.empty()) {
+    auto [host, errStr] = executionFailures.front();
+    executionFailures.pop();
+    XLOG(ERR) << host << " - Error in command execution: " << errStr;
   }
 }
 
@@ -363,10 +372,10 @@ using get_value_type_t = typename T::value_type;
 /* Logic: We first check if this thrift struct is filterable at all. If it is,
  we constuct a filter map that contains filterable fields. For now, only
  primitive fields will be added to the filter map and considered filterable.
- Also, here we are traversing the nested thrift struct using the visitation api.
- for that, we start with the RetType() object and get to the fields of the inner
- struct using reflection. This is a much cleaner approach than the one that
- redirects through each command's handler to get the inner struct.
+ Also, here we are traversing the nested thrift struct using the visitation
+ api. for that, we start with the RetType() object and get to the fields of
+ the inner struct using reflection. This is a much cleaner approach than the
+ one that redirects through each command's handler to get the inner struct.
  */
 template <typename CmdTypeT, typename CmdTypeTraits>
 const ValidFilterMapType
@@ -397,8 +406,8 @@ CmdHandler<CmdTypeT, CmdTypeTraits>::getValidFilters() {
                     const auto& fieldType = *meta.type();
                     const auto& thriftBaseType = fieldType.getType();
 
-                    // we are only supporting filtering on primitive typed keys
-                    // for now. This will be expanded as we proceed.
+                    // we are only supporting filtering on primitive typed
+                    // keys for now. This will be expanded as we proceed.
                     if (thriftBaseType == ThriftType::Type::t_primitive) {
                       const auto& thriftType = fieldType.get_t_primitive();
                       switch (thriftType) {
@@ -444,14 +453,14 @@ CmdHandler<CmdTypeT, CmdTypeTraits>::getValidFilters() {
   return filterMap;
 }
 
-/* Logic: We first check if this thrift struct is aggregatable at all. If it is,
- we constuct an aggregate map that contains aggregatable fields. Only numeric
- and string fields are aggregatable for now. The map maps to the AggInfo object
- that contains information about the operations that are permitted for this
- column. This information is subsequenlty used to perform aggregate validation.
- Also, here we are traversing the nested thrift struct using the visitation api.
- for that, we start with the RetType() object and get to the fields of the inner
- struct using reflection.
+/* Logic: We first check if this thrift struct is aggregatable at all. If it
+ is, we constuct an aggregate map that contains aggregatable fields. Only
+ numeric and string fields are aggregatable for now. The map maps to the
+ AggInfo object that contains information about the operations that are
+ permitted for this column. This information is subsequenlty used to perform
+ aggregate validation. Also, here we are traversing the nested thrift struct
+ using the visitation api. for that, we start with the RetType() object and
+ get to the fields of the inner struct using reflection.
  */
 template <typename CmdTypeT, typename CmdTypeTraits>
 const ValidAggMapType CmdHandler<CmdTypeT, CmdTypeTraits>::getValidAggs() {

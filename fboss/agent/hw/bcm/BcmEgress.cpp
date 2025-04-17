@@ -38,9 +38,9 @@ using folly::MacAddress;
 
 static bool isFlowletPortAttributesSupported(const BcmSwitchIf* hw) {
   return (
-      (hw->getPlatform()->getAsic()->isSupported(HwAsic::Feature::FLOWLET)) &&
+      (hw->getPlatform()->getAsic()->isSupported(HwAsic::Feature::ARS)) &&
       (hw->getPlatform()->getAsic()->isSupported(
-          HwAsic::Feature::FLOWLET_PORT_ATTRIBUTES)));
+          HwAsic::Feature::ARS_PORT_ATTRIBUTES)));
 }
 
 bool BcmEgress::alreadyExists(const bcm_l3_egress_t& newEgress) const {

@@ -785,6 +785,12 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
       bcm_flexctr_action_t* action,
       uint32* stat_counter_id) override;
   int bcm_flexctr_action_destroy(int unit, uint32 stat_counter_id) override;
+  int bcm_flexctr_action_traverse(
+      int /*unit*/,
+      bcm_flexctr_action_traverse_cb /*trav_fn*/,
+      void* /*user_data*/) override {
+    return 0;
+  }
 
   int bcm_l3_route_stat_attach(
       int unit,

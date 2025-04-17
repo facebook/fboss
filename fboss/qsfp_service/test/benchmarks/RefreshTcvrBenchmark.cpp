@@ -8,9 +8,7 @@
  *
  */
 #include <folly/Benchmark.h>
-#include <unordered_set>
 
-#include "fboss/qsfp_service/platforms/wedge/WedgeManager.h"
 #include "fboss/qsfp_service/test/benchmarks/HwBenchmarkUtils.h"
 
 namespace facebook::fboss {
@@ -33,6 +31,18 @@ BENCHMARK_MULTI(RefreshTransceiver_FR4_400G) {
 
 BENCHMARK_MULTI(RefreshTransceiver_LR4_400G_10KM) {
   return refreshTcvrs(MediaInterfaceCode::LR4_400G_10KM);
+}
+
+BENCHMARK_MULTI(RefreshTransceiver_DR4_2x400G) {
+  return refreshTcvrs(MediaInterfaceCode::DR4_2x400G);
+}
+
+BENCHMARK_MULTI(RefreshTransceiver_FR4_2x400G) {
+  return refreshTcvrs(MediaInterfaceCode::FR4_2x400G);
+}
+
+BENCHMARK_MULTI(RefreshTransceiver_LR4_2x400G_10KM) {
+  return refreshTcvrs(MediaInterfaceCode::LR4_2x400G_10KM);
 }
 
 } // namespace facebook::fboss

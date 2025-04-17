@@ -1,6 +1,7 @@
 {
   "defaultCommandLineArgs": {
     "check_wb_handles": "true",
+    "enable_route_resource_protection": "false",
     "log_variable_name": "true",
     "skip_transceiver_programming": "true"
   },
@@ -113,6 +114,9 @@
             "portIdRange": {
               "minimum": 0,
               "maximum": 2047
+            },
+            "firmwareNameToFirmwareInfo": {
+              
             }
         }
       },
@@ -131,6 +135,9 @@
       
     },
     "defaultVoqConfig": [
+      
+    ],
+    "mirrorOnDropReports": [
       
     ]
   },

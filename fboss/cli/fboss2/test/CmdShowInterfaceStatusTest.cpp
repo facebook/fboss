@@ -51,9 +51,9 @@ std::map<int32_t, facebook::fboss::PortInfoThrift> createStatusPorts() {
   transceiverId3.transceiverId() = 102;
   portEntry3.transceiverIdx() = transceiverId3;
 
-  portMap[portEntry1.get_portId()] = portEntry1;
-  portMap[portEntry2.get_portId()] = portEntry2;
-  portMap[portEntry3.get_portId()] = portEntry3;
+  portMap[folly::copy(portEntry1.portId().value())] = portEntry1;
+  portMap[folly::copy(portEntry2.portId().value())] = portEntry2;
+  portMap[folly::copy(portEntry3.portId().value())] = portEntry3;
 
   return portMap;
 }
@@ -94,7 +94,7 @@ class CmdShowInterfaceStatusTestFixture : public CmdHandlerTestBase {
 TEST_F(CmdShowInterfaceStatusTestFixture, createModel) {
   auto cmd = CmdShowInterfaceStatus();
   auto model = cmd.createModel(portEntries, transceiverInfo, queriedEntries);
-  auto statusModel = model.get_interfaces();
+  auto statusModel = model.interfaces().value();
 
   EXPECT_EQ(statusModel.size(), 3);
 

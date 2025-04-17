@@ -13,6 +13,12 @@
 namespace facebook::fboss {
 
 BENCHMARK(HwVoqScaleRouteDelBenchmark) {
-  voqRouteBenchmark(false /* add */);
+  // Measure 8x512 ECMP route del
+  voqRouteBenchmark(false /* add */, 8 /* ecmpGroup */, 512 /* ecmpWidth */);
+}
+
+BENCHMARK(HwVoqScale2kWideEcmpRouteDelBenchmark) {
+  // Measure 16x2048 ECMP route del
+  voqRouteBenchmark(false /* add */, 16 /* ecmpGroup */, 2048 /* ecmpWidth */);
 }
 } // namespace facebook::fboss

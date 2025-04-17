@@ -59,18 +59,24 @@ class CmdShowHwAgentStatus
          "TxPkt Sync",
          "SwitchReachability Sync"});
 
-    for (auto const& statusEntry : model.get_hwAgentStatusEntries()) {
+    for (auto const& statusEntry : model.hwAgentStatusEntries().value()) {
       table.addRow(
-          {folly::to<std::string>(statusEntry.get_switchIndex()),
-           folly::to<std::string>(statusEntry.get_switchId()),
-           statusEntry.get_runState(),
-           folly::to<std::string>(statusEntry.get_linkSyncActive()),
-           folly::to<std::string>(statusEntry.get_statsSyncActive()),
-           folly::to<std::string>(statusEntry.get_fdbSyncActive()),
-           folly::to<std::string>(statusEntry.get_rxPktSyncActive()),
-           folly::to<std::string>(statusEntry.get_txPktSyncActive()),
+          {folly::to<std::string>(
+               folly::copy(statusEntry.switchIndex().value())),
+           folly::to<std::string>(folly::copy(statusEntry.switchId().value())),
+           statusEntry.runState().value(),
            folly::to<std::string>(
-               statusEntry.get_switchReachabilityChangeSyncActive())});
+               folly::copy(statusEntry.linkSyncActive().value())),
+           folly::to<std::string>(
+               folly::copy(statusEntry.statsSyncActive().value())),
+           folly::to<std::string>(
+               folly::copy(statusEntry.fdbSyncActive().value())),
+           folly::to<std::string>(
+               folly::copy(statusEntry.rxPktSyncActive().value())),
+           folly::to<std::string>(
+               folly::copy(statusEntry.txPktSyncActive().value())),
+           folly::to<std::string>(folly::copy(
+               statusEntry.switchReachabilityChangeSyncActive().value()))});
     }
     out << table << std::endl;
   }
@@ -87,18 +93,19 @@ class CmdShowHwAgentStatus
       hwStatusEntry.switchIndex() = switchIndex;
       hwStatusEntry.runState() = getRunStateStr(runState.second);
       hwStatusEntry.linkSyncActive() =
-          hwAgentStatus[switchIndex].get_linkEventSyncActive();
-      hwStatusEntry.statsSyncActive() =
-          hwAgentStatus[switchIndex].get_statsEventSyncActive();
+          folly::copy(hwAgentStatus[switchIndex].linkEventSyncActive().value());
+      hwStatusEntry.statsSyncActive() = folly::copy(
+          hwAgentStatus[switchIndex].statsEventSyncActive().value());
       hwStatusEntry.fdbSyncActive() =
-          hwAgentStatus[switchIndex].get_fdbEventSyncActive();
-      hwStatusEntry.rxPktSyncActive() =
-          hwAgentStatus[switchIndex].get_rxPktEventSyncActive();
-      hwStatusEntry.txPktSyncActive() =
-          hwAgentStatus[switchIndex].get_txPktEventSyncActive();
+          folly::copy(hwAgentStatus[switchIndex].fdbEventSyncActive().value());
+      hwStatusEntry.rxPktSyncActive() = folly::copy(
+          hwAgentStatus[switchIndex].rxPktEventSyncActive().value());
+      hwStatusEntry.txPktSyncActive() = folly::copy(
+          hwAgentStatus[switchIndex].txPktEventSyncActive().value());
       hwStatusEntry.switchReachabilityChangeSyncActive() =
-          hwAgentStatus[switchIndex]
-              .get_switchReachabilityChangeEventSyncActive();
+          folly::copy(hwAgentStatus[switchIndex]
+                          .switchReachabilityChangeEventSyncActive()
+                          .value());
       model.hwAgentStatusEntries()->push_back(hwStatusEntry);
       switchIndex++;
     }

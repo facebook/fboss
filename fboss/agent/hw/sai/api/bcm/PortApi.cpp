@@ -114,6 +114,15 @@ SaiPortTraits::Attributes::AttributeReachabilityGroup::operator()() {
 }
 
 std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeFecErrorDetectEnable::operator()() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_7)
+  return SAI_PORT_ATTR_FEC_ERROR_DETECT_ENABLE;
+#else
+  return std::nullopt;
+#endif
+}
+
+std::optional<sai_attr_id_t>
 SaiPortSerdesTraits::Attributes::AttributeTxDiffEncoderEnWrapper::operator()() {
   return std::nullopt;
 }

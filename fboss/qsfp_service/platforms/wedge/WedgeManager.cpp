@@ -49,6 +49,12 @@ static const std::string kQsfpToBmcSyncDataVersion{"1.0"};
 
 static const int kOpticsThermalSyncInterval = 10;
 
+static constexpr auto kPimsWithError = "qsfp.pims_with_error";
+
+void setPimsWithError(int pimsWithError) {
+  facebook::tcData().setCounter(kPimsWithError, pimsWithError);
+}
+
 } // namespace
 
 using LockedTransceiversPtr = folly::Synchronized<
@@ -143,10 +149,22 @@ void WedgeManager::initTransceiverMap() {
   refreshTransceivers();
 }
 
+bool WedgeManager::platformSupportsI2cLogging() const {
+  auto platform = getPlatformType();
+  switch (platform) {
+    case PlatformType::PLATFORM_WEDGE100:
+      return false;
+      break;
+    default:
+      return true;
+  }
+  return true;
+}
+
 void WedgeManager::initQsfpImplMap() {
   auto i2cLogConfig = qsfpConfig_->thrift.transceiverI2cLogging();
   bool i2c_logging_Enabled =
-      i2cLogConfig.has_value() && FLAGS_enable_tcvr_i2c_logging;
+      i2cLogConfig.has_value() && platformSupportsI2cLogging();
   if (i2c_logging_Enabled) {
     auto logConfig = apache::thrift::can_throw(i2cLogConfig.value());
     XLOG(INFO) << fmt::format(
@@ -364,13 +382,22 @@ void WedgeManager::writeTransceiverRegister(
     // Initialize responses with success = false. This will be overwritten with
     // the correct success flag later
     responses[i].success() = false;
-
     if (isValidTransceiver(i)) {
       if (auto it = lockedTransceivers->find(TransceiverID(i));
           it != lockedTransceivers->end()) {
         auto param = *(request->parameter());
-        futResponses.push_back(
-            it->second->futureWriteTransceiver(param, *(request->data())));
+        if (request->bytes().has_value()) {
+          // Converting signed int vector (Thrift type requirement) to unsigned
+          // int vector.
+          std::vector<uint8_t> unsignedVector(
+              request->bytes()->begin(), request->bytes()->end());
+          futResponses.push_back(
+              it->second->futureWriteTransceiver(param, unsignedVector));
+        } else {
+          param.length() = 1;
+          futResponses.push_back(it->second->futureWriteTransceiver(
+              param, {static_cast<uint8_t>(*(request->data()))}));
+        }
       }
     }
   }
@@ -524,6 +551,34 @@ void WedgeManager::updateTcvrStateInFsdb(
   fsdbSyncManager_->updateTcvrState(tcvrID, std::move(newState));
 }
 
+void WedgeManager::updatePimStateInFsdb(
+    int pimID,
+    facebook::fboss::PimState&& newState) {
+  fsdbSyncManager_->updatePimState(pimID, std::move(newState));
+}
+
+void WedgeManager::publishPimStatesToFsdb() {
+  if (!FLAGS_publish_state_to_fsdb) {
+    return;
+  }
+
+  int pimsWithError = 0;
+  pimStates_ = getPimStates();
+  QsfpFsdbSyncManager::PimStatesMap pimStates = folly::copy(pimStates_);
+  for (auto& [id, pimState] : pimStates) {
+    if (!pimState.errors()->empty()) {
+      ++pimsWithError;
+      for (auto error : *pimState.errors()) {
+        XLOG(ERR) << "PIM " << id << " has error: "
+                  << apache::thrift::util::enumNameSafe(error);
+      }
+    }
+    updatePimStateInFsdb(id, std::move(pimState));
+  }
+
+  setPimsWithError(pimsWithError);
+}
+
 void WedgeManager::publishTransceiversToFsdb() {
   if (!FLAGS_publish_stats_to_fsdb) {
     return;
@@ -614,11 +669,16 @@ std::vector<TransceiverID> WedgeManager::updateTransceiverMap() {
       // here.
       // If the transceiver is held in reset, we dont create a new one in its
       // place until it is released from reset.
-      if (transceiversInReset->count(idx) == 0) {
-        tcvrsToCreate.insert(idx);
-      } else {
+      // Also only create transceivers that are defined in platform mapping
+      // (have non empty port list)
+      if (transceiversInReset->count(idx) != 0) {
         XLOG(INFO) << "TransceiverID=" << idx
-                   << " is held in reset. Not adding transceiver";
+                   << " is held in reset. Not creating transceiver";
+      } else if (getPortNames(static_cast<TransceiverID>(idx)).empty()) {
+        XLOG(INFO) << "TransceiverID=" << idx
+                   << " is not in platform mapping. Not creating transceiver";
+      } else {
+        tcvrsToCreate.insert(idx);
       }
     }
   } // end of scope for transceivers_.rlock
@@ -644,6 +704,7 @@ std::vector<TransceiverID> WedgeManager::updateTransceiverMap() {
     for (auto idx : tcvrsToCreate) {
       TransceiverID tcvrID(idx);
       auto mgmtIf = futInterfaces[idx].value();
+      auto tcvrName = getTransceiverName(tcvrID);
       if (mgmtIf == TransceiverManagementInterface::CMIS) {
         XLOG(INFO) << "Making CMIS QSFP for TransceiverID=" << idx;
         lockedTransceiversWPtr->emplace(
@@ -652,21 +713,25 @@ std::vector<TransceiverID> WedgeManager::updateTransceiverMap() {
                 getPortNames(tcvrID),
                 qsfpImpls_[idx].get(),
                 tcvrConfig,
-                cmisSupportRemediate));
+                cmisSupportRemediate,
+                tcvrName));
         retVal.push_back(TransceiverID(idx));
       } else if (mgmtIf == TransceiverManagementInterface::SFF) {
         XLOG(INFO) << "Making Sff QSFP for TransceiverID=" << idx;
         lockedTransceiversWPtr->emplace(
             tcvrID,
             std::make_unique<SffModule>(
-                getPortNames(tcvrID), qsfpImpls_[idx].get(), tcvrConfig));
+                getPortNames(tcvrID),
+                qsfpImpls_[idx].get(),
+                tcvrConfig,
+                tcvrName));
         retVal.push_back(TransceiverID(idx));
       } else if (mgmtIf == TransceiverManagementInterface::SFF8472) {
         XLOG(INFO) << "Making Sff8472 module for TransceiverID=" << idx;
         lockedTransceiversWPtr->emplace(
             tcvrID,
             std::make_unique<Sff8472Module>(
-                getPortNames(tcvrID), qsfpImpls_[idx].get()));
+                getPortNames(tcvrID), qsfpImpls_[idx].get(), tcvrName));
         retVal.push_back(TransceiverID(idx));
       } else {
         XLOG(ERR) << "Unknown Transceiver interface: "
@@ -1097,11 +1162,13 @@ QsfpToBmcSyncData WedgeManager::getQsfpToBmcSyncData() const {
   qsfpToBmcData.switchDeploymentInfo().value().hostnameScheme() =
       getSwitchRole();
 
-  // Gather Transceiver Data
-  std::map<std::string, TransceiverThermalData> tcvrData;
+  // Gather Transceiver Data. Use a max heap and then push to the
+  // returned map the top transceivers in terms of temperature (up to
+  // kMaxTcvrTemperaturesToReport transceivers).
   std::vector<int32_t> ids;
   folly::gen::range(0, getNumQsfpModules()) | folly::gen::appendTo(ids);
 
+  std::vector<std::pair<std::string, TransceiverThermalData>> temperatures;
   for (auto id : ids) {
     auto tcvrID = TransceiverID(id);
     auto portName = getPortName(tcvrID);
@@ -1135,13 +1202,34 @@ QsfpToBmcSyncData WedgeManager::getQsfpToBmcSyncData() const {
                         .value()
                         .value()
                         .value();
-      tcvrData[portName].temperature() = floor(temp);
-
       MediaInterfaceCode moduleType =
           tcvrInfo.tcvrState().value().moduleMediaInterface().value();
-      tcvrData[portName].moduleMediaInterface() =
+      TransceiverThermalData tcvrThermalData;
+      tcvrThermalData.temperature() = temp;
+      tcvrThermalData.moduleMediaInterface() =
           apache::thrift::util::enumNameSafe(moduleType);
+
+      temperatures.emplace_back(portName, tcvrThermalData);
     }
+  }
+  auto compareTemp =
+      [](const std::pair<std::string, TransceiverThermalData>& a,
+         const std::pair<std::string, TransceiverThermalData>& b) {
+        return a.second.temperature().value() > b.second.temperature().value();
+      };
+
+  std::sort(temperatures.begin(), temperatures.end(), compareTemp);
+
+  size_t elementsToReport = temperatures.size();
+  if (elementsToReport > kMaxTcvrTemperaturesToReport) {
+    XLOG(WARNING) << "Truncating transceiver thermal data to "
+                  << kMaxTcvrTemperaturesToReport << " from "
+                  << elementsToReport << " entries";
+    elementsToReport = kMaxTcvrTemperaturesToReport;
+  }
+  std::map<std::string, TransceiverThermalData> tcvrData;
+  for (int i = 0; i < elementsToReport; i++) {
+    tcvrData[temperatures[i].first] = temperatures[i].second;
   }
 
   qsfpToBmcData.transceiverThermalData() = tcvrData;

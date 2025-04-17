@@ -3,6 +3,7 @@
 #include "fboss/agent/hw/sai/api/SwitchApi.h"
 
 extern "C" {
+#include <brcm_sai_extensions.h>
 #include <sai.h>
 
 #ifndef IS_OSS_BRCM_SAI
@@ -103,6 +104,15 @@ std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeVoqDramBoundThWrapper::operator()() {
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   return SAI_SWITCH_ATTR_VOQ_DRAM_BOUND_TH;
+#else
+  return std::nullopt;
+#endif
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeSflowAggrNofSamplesWrapper::operator()() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  return SAI_SWITCH_ATTR_SFLOW_AGGR_NOF_SAMPLES;
 #else
   return std::nullopt;
 #endif
@@ -243,14 +253,19 @@ void SwitchApi::registerSwitchEventCallback(
   sai_attribute_t eventAttr;
   eventAttr.id = SAI_SWITCH_ATTR_SWITCH_EVENT_TYPE;
   if (switch_event_cb) {
-    // Register switch callback function
-    auto rv = _setAttribute(id, &attr);
-    saiLogError(
-        rv, ApiType, "Unable to register parity error switch event callback");
+    // Consider the following sequence:
+    //   (A) Register switch event callback
+    //   (B) Register switch events.
+    //
+    //   Any switch events received in time between (A) and (B) will be lost,
+    //   as a SAI implementation will discard those events thinking those are
+    //   not of interest.
+    //   Thus, register switch events first, and then register the switch event
+    //   callback.
 
     // Register switch events
-#if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
-    std::array<uint32_t, 9> events = {
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_7)
+    std::array<uint32_t, 10> events = {
         SAI_SWITCH_EVENT_TYPE_PARITY_ERROR,
         SAI_SWITCH_EVENT_TYPE_STABLE_FULL,
         SAI_SWITCH_EVENT_TYPE_STABLE_ERROR,
@@ -259,19 +274,9 @@ void SwitchApi::registerSwitchEventCallback(
         SAI_SWITCH_EVENT_TYPE_INTERRUPT,
         SAI_SWITCH_EVENT_TYPE_FABRIC_AUTO_ISOLATE,
         SAI_SWITCH_EVENT_TYPE_FIRMWARE_CRASHED,
-        SAI_SWITCH_EVENT_TYPE_REMOTE_LINK_CHANGE};
-#elif defined(SAI_VERSION_12_0_EA_DNX_ODP)
-    std::array<uint32_t, 9> events = {
-        SAI_SWITCH_EVENT_TYPE_PARITY_ERROR,
-        SAI_SWITCH_EVENT_TYPE_STABLE_FULL,
-        SAI_SWITCH_EVENT_TYPE_STABLE_ERROR,
-        SAI_SWITCH_EVENT_TYPE_UNCONTROLLED_SHUTDOWN,
-        SAI_SWITCH_EVENT_TYPE_WARM_BOOT_DOWNGRADE,
-        SAI_SWITCH_EVENT_TYPE_INTERRUPT,
-        SAI_SWITCH_EVENT_TYPE_FABRIC_AUTO_ISOLATE,
-        SAI_SWITCH_EVENT_TYPE_FIRMWARE_CRASHED,
-        SAI_SWITCH_EVENT_TYPE_REMOTE_LINK_CHANGE};
-#elif defined BRCM_SAI_SDK_GTE_11_0
+        SAI_SWITCH_EVENT_TYPE_REMOTE_LINK_CHANGE,
+        SAI_SWITCH_EVENT_TYPE_RX_FIFO_STUCK_DETECTED};
+#elif defined(BRCM_SAI_SDK_GTE_11_0)
     std::array<uint32_t, 7> events = {
         SAI_SWITCH_EVENT_TYPE_PARITY_ERROR,
         SAI_SWITCH_EVENT_TYPE_STABLE_FULL,
@@ -290,17 +295,25 @@ void SwitchApi::registerSwitchEventCallback(
 #endif
     eventAttr.value.u32list.count = events.size();
     eventAttr.value.u32list.list = events.data();
-    rv = _setAttribute(id, &eventAttr);
-    saiLogError(rv, ApiType, "Unable to register parity error switch events");
-  } else {
-    // First unregister switch events
-    eventAttr.value.u32list.count = 0;
     auto rv = _setAttribute(id, &eventAttr);
-    saiLogError(rv, ApiType, "Unable to unregister switch events");
+    saiLogError(rv, ApiType, "Unable to register parity error switch events");
 
-    // Then unregister callback function
+    // Register switch event callback function
     rv = _setAttribute(id, &attr);
+    saiLogError(
+        rv, ApiType, "Unable to register parity error switch event callback");
+  } else {
+    // This is reverse of the registration sequence.
+    // First, unregister callback, then unregister events.
+
+    // First unregister callback function
+    auto rv = _setAttribute(id, &attr);
     saiLogError(rv, ApiType, "Unable to unregister TAM event callback");
+
+    // Then unregister switch events
+    eventAttr.value.u32list.count = 0;
+    rv = _setAttribute(id, &eventAttr);
+    saiLogError(rv, ApiType, "Unable to unregister switch events");
   }
 #endif
 }
@@ -516,7 +529,7 @@ SaiSwitchTraits::Attributes::AttributeFirmwareCoreTouse::operator()() {
 std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeFirmwareLogFile::operator()() {
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_7)
-  return SAI_SWITCH_ATTR_FIRMWARE_LOG_FILE;
+  return SAI_SWITCH_ATTR_FIRMWARE_LOG_PATH_NAME;
 #endif
   return std::nullopt;
 }
@@ -533,6 +546,40 @@ std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeArsAvailableFlows::operator()() {
 #if defined(BRCM_SAI_SDK_XGS) && defined(BRCM_SAI_SDK_GTE_11_0)
   return SAI_SWITCH_ATTR_ARS_AVAILABLE_FLOWS;
+#endif
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeSdkRegDumpLogPath::operator()() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_7)
+  return SAI_SWITCH_ATTR_SDK_DUMP_LOG_PATH_NAME;
+#endif
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeFirmwareObjectList::operator()() {
+#if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
+  return SAI_SWITCH_ATTR_FIRMWARE_OBJECT_LIST;
+#elif defined(SAI_VERSION_12_0_EA_DNX_ODP)
+  return SAI_SWITCH_ATTR_FIRMWARE_OBJECTS;
+#endif
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeTcRateLimitList::operator()() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  return SAI_SWITCH_ATTR_TC_RATE_LIMIT_LIST;
+#endif
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
+    AttributePfcTcDldTimerGranularityInterval::operator()() {
+#if defined(BRCM_SAI_SDK_XGS) && defined(BRCM_SAI_SDK_GTE_11_0)
+  return SAI_SWITCH_ATTR_PFC_TC_DLD_TIMER_INTERVAL;
 #endif
   return std::nullopt;
 }

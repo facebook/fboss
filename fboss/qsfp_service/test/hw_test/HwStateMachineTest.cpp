@@ -467,7 +467,7 @@ TEST_F(HwStateMachineTest, CheckAgentConfigChanged) {
         auto tcvrInfo = wedgeMgr->getTransceiverInfo(id);
         auto& tcvrState = tcvrInfo.tcvrState().value();
         auto& tcvrStats = tcvrInfo.tcvrStats().value();
-        for (auto& [portName, _] : tcvrStats.get_portNameToHostLanes()) {
+        for (auto& [portName, _] : tcvrStats.portNameToHostLanes().value()) {
           XLOG(INFO) << "Verify datapath reset timestamp for port " << portName;
           utility::HwTransceiverUtils::verifyDatapathResetTimestamp(
               portName, tcvrState, tcvrStats, testStartTime, isAgentColdboot);

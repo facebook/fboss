@@ -49,6 +49,7 @@ class FakeAsic : public HwAsic {
       case HwAsic::Feature::LINK_ACTIVE_INACTIVE_NOTIFY:
       case HwAsic::Feature::PORT_MTU_ERROR_TRAP:
       case HwAsic::Feature::NO_RX_REASON_TRAP:
+      case HwAsic::Feature::SDK_REGISTER_DUMP:
         return false;
 
       default:
@@ -106,13 +107,13 @@ class FakeAsic : public HwAsic {
   uint32_t getMaxMirrors() const override {
     return 4;
   }
-  uint64_t getDefaultReservedBytes(
+  std::optional<uint64_t> getDefaultReservedBytes(
       cfg::StreamType /*streamType*/,
       cfg::PortType portType) const override {
     // Mimicking TH
     return portType == cfg::PortType::CPU_PORT ? 1664 : 0;
   }
-  cfg::MMUScalingFactor getDefaultScalingFactor(
+  std::optional<cfg::MMUScalingFactor> getDefaultScalingFactor(
       cfg::StreamType /*streamType*/,
       bool /*cpu*/) const override {
     // Mimicking TH
@@ -151,6 +152,9 @@ class FakeAsic : public HwAsic {
   }
   std::optional<uint32_t> getMaxEcmpMembers() const override {
     return 128;
+  }
+  std::optional<uint32_t> getMaxDlbEcmpGroups() const override {
+    return 4;
   }
   std::optional<uint32_t> getMaxNdpTableSize() const override {
     return 8192;

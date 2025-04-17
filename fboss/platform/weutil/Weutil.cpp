@@ -1,6 +1,7 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 #include "fboss/platform/weutil/Weutil.h"
 
+#include <folly/String.h>
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
@@ -16,8 +17,7 @@ namespace {
 
 weutil_config::WeutilConfig getWeUtilConfig() {
   weutil_config::WeutilConfig thriftConfig;
-  auto platformName = helpers::PlatformNameLib().getPlatformName();
-  std::string weutilConfigJson = ConfigLib().getWeutilConfig(platformName);
+  std::string weutilConfigJson = ConfigLib().getWeutilConfig();
   apache::thrift::SimpleJSONSerializer::deserialize<
       weutil_config::WeutilConfig>(weutilConfigJson, thriftConfig);
   XLOG(DBG1) << apache::thrift::SimpleJSONSerializer::serialize<std::string>(

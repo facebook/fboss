@@ -323,19 +323,19 @@ BaseEcmpSetupHelper<AddrT, NextHopT>::resolveNextHop(
     bool useLinkLocal,
     std::optional<int64_t> encapIdx) const {
   auto intfID = portDesc2Interface_.find(nhop.portDesc)->second;
-  auto intf = inputState->getInterfaces()->getNodeIf(intfID)
-      ? inputState->getInterfaces()->getNode(intfID)
-      : inputState->getRemoteInterfaces()->getNodeIf(intfID);
+  auto intf = inputState->getInterfaces()->getNodeIf(intfID);
+  if (intf == nullptr) {
+    intf = inputState->getRemoteInterfaces()->getNodeIf(intfID);
+  }
   switch (intf->getType()) {
     case cfg::InterfaceType::VLAN:
       CHECK(!encapIdx.has_value())
           << " Encap index not supported for VLAN rifs";
       return resolveVlanRifNextHop(inputState, nhop, intf, useLinkLocal);
     case cfg::InterfaceType::SYSTEM_PORT:
+    case cfg::InterfaceType::PORT:
       return resolvePortRifNextHop(
           inputState, nhop, intf, useLinkLocal, encapIdx);
-    case cfg::InterfaceType::PORT:
-      // TODO(Chenab): Support port router interface
       break;
   }
   CHECK(false) << " Unhandled interface type: ";
@@ -354,9 +354,8 @@ BaseEcmpSetupHelper<AddrT, NextHopT>::unresolveNextHop(
     case cfg::InterfaceType::VLAN:
       return unresolveVlanRifNextHop(inputState, nhop, intf, useLinkLocal);
     case cfg::InterfaceType::SYSTEM_PORT:
-      return unresolvePortRifNextHop(inputState, nhop, intf, useLinkLocal);
     case cfg::InterfaceType::PORT:
-      // TODO(Chenab): Support port router interface
+      return unresolvePortRifNextHop(inputState, nhop, intf, useLinkLocal);
       break;
   }
   CHECK(false) << " Unhandled interface type: ";
@@ -390,17 +389,26 @@ std::optional<InterfaceID> BaseEcmpSetupHelper<AddrT, NextHopT>::getInterface(
   } else if (port.isPhysicalPort()) {
     auto sysPortRanges =
         state->getAssociatedSystemPortRangesIf(port.phyPortID());
-    if (sysPortRanges.systemPortRanges()->empty()) {
-      return std::nullopt;
+    if (!sysPortRanges.systemPortRanges()->empty()) {
+      // Look for port RIF
+      auto sysPortId = getSystemPortID(
+          port.phyPortID(),
+          state,
+          state->getAssociatedSwitchID(port.phyPortID()));
+      if (auto intf = state->getInterfaces()->getNodeIf(
+              InterfaceID(static_cast<int>(sysPortId)))) {
+        return intf->getID();
+      }
     }
-    // Look for port RIF
-    auto sysPortId = getSystemPortID(
-        port.phyPortID(),
-        state,
-        state->getAssociatedSwitchID(port.phyPortID()));
-    if (auto intf = state->getInterfaces()->getNodeIf(
-            InterfaceID(static_cast<int>(sysPortId)))) {
-      return intf->getID();
+    for (auto intfs : std::as_const(*state->getInterfaces())) {
+      for (auto intf : std::as_const(*intfs.second)) {
+        if (intf.second->getType() != cfg::InterfaceType::PORT) {
+          continue;
+        }
+        if (intf.second->getPortID() == port.phyPortID()) {
+          return intf.second->getID();
+        }
+      }
     }
   } else if (port.isSystemPort()) {
     // Find systemPort on both local and remote interfaces
@@ -438,6 +446,9 @@ std::optional<VlanID> BaseEcmpSetupHelper<AddrT, NextHopT>::getVlan(
   if (auto phyPortId = getPhysicalPortId()) {
     auto phyPort = state->getPorts()->getNodeIf(*phyPortId);
     for (const auto& vlanMember : phyPort->getVlans()) {
+      if (vlanMember.first == VlanID(0)) {
+        continue;
+      }
       return vlanMember.first;
     }
   }

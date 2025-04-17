@@ -1,0 +1,23 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    name = "restart_time_tracker",
+    srcs = [
+        "RestartTimeTracker.cpp",
+    ],
+    headers = [
+        "RestartTimeTracker.h",
+    ],
+    exported_deps = [
+        "//fb303:service_data",
+        "//folly:conv",
+        "//folly:file_util",
+        "//folly:range",
+        "//folly:synchronized",
+        "//folly/logging:logging",
+    ],
+    exported_external_deps = [
+    ],
+)

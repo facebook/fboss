@@ -1,8 +1,10 @@
 // Copyright (c) Meta Platforms, Inc. and affiliates.
 
 namespace cpp2 facebook.fboss.platform.platform_manager
+namespace py3 fboss.platform.platform_manager
 
 include "thrift/annotation/thrift.thrift"
+include "thrift/annotation/cpp.thrift"
 
 include "fboss/platform/platform_manager/platform_manager_snapshot.thrift"
 include "fboss/platform/platform_manager/platform_manager_config.thrift"
@@ -27,6 +29,11 @@ exception PlatformManagerError {
   2: string message;
 }
 
+struct ExplorationError {
+  1: string errorType;
+  2: string message;
+}
+
 // `PlatformManagerStatus` contains the last PM exploration status.
 //
 // `explorationStatus`: Indicates the PM's latest exploration status.
@@ -35,6 +42,8 @@ exception PlatformManagerError {
 struct PlatformManagerStatus {
   1: ExplorationStatus explorationStatus;
   2: i64 lastExplorationTime;
+  @cpp.Type{template = "std::unordered_map"}
+  3: optional map<string, list<ExplorationError>> failedDevices;
 }
 
 struct PmUnitInfoResponse {

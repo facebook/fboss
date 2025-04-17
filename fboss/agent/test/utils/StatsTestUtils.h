@@ -2,39 +2,53 @@
 
 #pragma once
 
+#include <map>
 #include <sstream>
+#include "fboss/agent/StatPrinters.h"
+#include "fboss/agent/if/gen-cpp2/multiswitch_ctrl_types.h"
+
+namespace facebook::fboss {
+template <typename ValueT>
+std::string _defaultDeltaValuePrinter(
+    const ValueT& before,
+    const ValueT& after) {
+  std::stringstream ss;
+  ss << " Before: " << before << std::endl << "After: " << after << std::endl;
+  return ss.str();
+}
 
 template <typename MapTypeT>
-std::string statsMapDelta(const MapTypeT& before, const MapTypeT& after) {
+std::string statsMapDelta(
+    const MapTypeT& before,
+    const MapTypeT& after,
+    const std::function<std::string(
+        const typename MapTypeT::mapped_type& before,
+        const typename MapTypeT::mapped_type& after)>& deltaValuePrinter =
+        _defaultDeltaValuePrinter<typename MapTypeT::mapped_type>) {
   std::stringstream ss;
-  auto bitr = before.begin();
-  auto aitr = after.begin();
-  while (bitr != before.end() && aitr != after.end()) {
-    if (*bitr == *aitr) {
-      bitr++;
-      aitr++;
-    } else if (bitr->first < aitr->first) {
-      ss << "Missing key in after: " << bitr->first << std::endl;
-      bitr++;
-    } else if (aitr->first < bitr->first) {
-      ss << "Missing key in before: " << aitr->first << std::endl;
-      aitr++;
-    } else {
-      CHECK_NE(aitr->second, bitr->second);
-      ss << " Stats did not match for : " << aitr->first
-         << " Before : " << bitr->second << std::endl
-         << " After: " << aitr->second << std::endl;
-      aitr++;
-      bitr++;
+  for (const auto& [key, beforeVal] : before) {
+    auto aitr = after.find(key);
+    if (aitr == after.end()) {
+      ss << "Missing key in after: " << key << std::endl;
+    } else if (beforeVal != aitr->second) {
+      ss << " Stats did not match for : " << key
+         << deltaValuePrinter(beforeVal, aitr->second);
     }
   }
-  while (bitr != before.end()) {
-    ss << "Missing key in after: " << bitr->first << std::endl;
-    bitr++;
-  }
-  while (aitr != after.end()) {
-    ss << "Missing key in before: " << bitr->first << std::endl;
-    aitr++;
+  for (const auto& [key, afterVal] : after) {
+    auto bitr = before.find(key);
+    if (bitr == before.end()) {
+      ss << "Missing key in before: " << key << std::endl;
+    }
   }
   return ss.str();
 }
+
+std::string statsDelta(
+    const multiswitch::HwSwitchStats& before,
+    const multiswitch::HwSwitchStats& after);
+
+std::string statsDelta(
+    const std::map<uint16_t, multiswitch::HwSwitchStats>& before,
+    const std::map<uint16_t, multiswitch::HwSwitchStats>& after);
+} // namespace facebook::fboss

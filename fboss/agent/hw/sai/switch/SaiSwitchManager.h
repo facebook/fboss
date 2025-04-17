@@ -64,6 +64,9 @@ class SaiSwitchManager {
   void setIngressAcl(sai_object_id_t id);
   void resetIngressAcl();
 
+  void setEgressAcl();
+  void resetEgressAcl();
+
   void setTamObject(std::vector<sai_object_id_t> tamObject);
   void resetTamObject();
 
@@ -115,6 +118,8 @@ class SaiSwitchManager {
   void setRemoteL1VoqMaxExpectedLatency(int remoteL1VoqMaxExpectedLatencyNsec);
   void setRemoteL2VoqMaxExpectedLatency(int remoteL2VoqMaxExpectedLatencyNsec);
   void setVoqOutOfBoundsLatency(int voqOutOfBoundsLatencyNsec);
+  void setTcRateLimitList(
+      const std::optional<std::map<int32_t, int32_t>>& tcToRateLimitKbps);
 
  private:
   void programEcmpLoadBalancerParams(
@@ -139,6 +144,9 @@ class SaiSwitchManager {
       SaiHashTraits::CreateAttributes& hashCreateAttrs);
   template <typename HashAttrT>
   void resetLoadBalancer();
+
+  void setEgressAcl(sai_object_id_t id);
+
   const std::vector<sai_stat_id_t>& supportedDropStats() const;
   const std::vector<sai_stat_id_t>& supportedDramStats() const;
   const std::vector<sai_stat_id_t>& supportedWatermarkStats() const;
@@ -160,6 +168,7 @@ class SaiSwitchManager {
   std::shared_ptr<SaiQosMap> globalTcToExpQosMap_;
 
   bool isMplsQosSupported_{false};
+  bool isIngressPostLookupAclSupported_{false};
   // since this is an optional attribute in SAI
   std::optional<bool> isPtpTcEnabled_{std::nullopt};
   HwSwitchDropStats switchDropStats_;

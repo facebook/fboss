@@ -39,16 +39,16 @@ class CmdShowProduct : public CmdHandler<CmdShowProduct, CmdShowProductTraits> {
 
   RetType createModel(const ProductInfo& productInfo) {
     RetType model;
-    model.product() = productInfo.get_product();
-    model.oem() = productInfo.get_oem();
-    model.serial() = productInfo.get_serial();
+    model.product() = productInfo.product().value();
+    model.oem() = productInfo.oem().value();
+    model.serial() = productInfo.serial().value();
     return model;
   }
 
   void printOutput(const RetType& model, std::ostream& out = std::cout) {
-    out << "Product: " << model.get_product() << std::endl;
-    out << "OEM: " << model.get_oem() << std::endl;
-    out << "Serial: " << model.get_serial() << std::endl;
+    out << "Product: " << model.product().value() << std::endl;
+    out << "OEM: " << model.oem().value() << std::endl;
+    out << "Serial: " << model.serial().value() << std::endl;
   }
 };
 

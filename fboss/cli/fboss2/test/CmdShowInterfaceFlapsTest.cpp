@@ -78,7 +78,7 @@ TEST_F(CmdShowInterfaceFlapsTestFixture, queryClient) {
 TEST_F(CmdShowInterfaceFlapsTestFixture, createModel) {
   auto cmd = CmdShowInterfaceFlaps();
   auto model = cmd.createModel(ifNames, queriedData, queriedPorts);
-  auto flapsEntries = model.get_flap_counters();
+  auto flapsEntries = model.flap_counters().value();
 
   EXPECT_EQ(flapsEntries.size(), 3);
 

@@ -35,6 +35,10 @@ class CowStorageMgr {
     (*storage_.wlock())->publish();
   }
 
+  uint64_t getPendingUpdatesQueueLength() const {
+    return pendingUpdates_.rlock()->size();
+  }
+
   /**
    * Schedule an update to the CowState.
    *

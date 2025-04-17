@@ -93,7 +93,7 @@ class BgpIntegrationTest : public AgentIntegrationTest {
       }
       EXPECT_EQ(sessions.size(), kNumBgpSessions);
       for (const auto& session : sessions) {
-        if (sessionsToCheck.count(session.my_addr().value())) {
+        if (sessionsToCheck.contains(session.my_addr().value())) {
           EXPECT_EVENTUALLY_EQ(session.peer()->peer_state(), state)
               << "Peer never reached state "
               << apache::thrift::util::enumNameSafe(TBgpPeerState(state))

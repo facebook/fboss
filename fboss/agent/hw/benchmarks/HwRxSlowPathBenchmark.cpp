@@ -55,9 +55,8 @@ BENCHMARK(RxSlowPathBenchmark) {
           ensemble.masterLogicalPortIds({cfg::PortType::RECYCLE_PORT})[0]);
     }
     auto config = utility::onePortPerInterfaceConfig(ensemble.getSw(), ports);
-    utility::addAclTableGroup(
-        &config, cfg::AclStage::INGRESS, utility::kDefaultAclTableGroupName());
-    utility::addDefaultAclTable(config);
+    utility::setupDefaultAclTableGroups(config);
+
     // We don't want to set queue rate that limits the number of rx pkts
     utility::addCpuQueueConfig(
         config,
@@ -83,7 +82,8 @@ BENCHMARK(RxSlowPathBenchmark) {
       createAgentEnsemble(initialConfigFn, false /*disableLinkStateToggler*/);
 
   // capture packet exiting port 0 (entering due to loopback)
-  auto dstMac = utility::getFirstInterfaceMac(ensemble->getProgrammedState());
+  auto dstMac =
+      utility::getMacForFirstInterfaceWithPorts(ensemble->getProgrammedState());
   auto ecmpHelper =
       utility::EcmpSetupAnyNPorts6(ensemble->getProgrammedState(), dstMac);
   flat_set<PortDescriptor> firstIntfPort;
@@ -103,7 +103,7 @@ BENCHMARK(RxSlowPathBenchmark) {
 
   const auto kSrcMac = folly::MacAddress{"fa:ce:b0:00:00:0c"};
   // Send packet
-  auto vlanId = utility::firstVlanID(ensemble->getProgrammedState());
+  auto vlanId = ensemble->getVlanIDForTx();
   auto constexpr kPacketToSend = 10;
   for (int i = 0; i < kPacketToSend; i++) {
     auto txPacket = utility::makeUDPTxPacket(

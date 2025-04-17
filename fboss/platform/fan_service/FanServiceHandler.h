@@ -2,7 +2,6 @@
 
 // Handler class handles Fan Service thrift calls.
 #pragma once
-#include <folly/futures/Future.h>
 
 #include "fboss/platform/fan_service/ControlLogic.h"
 #include "fboss/platform/fan_service/if/gen-cpp2/FanService.h"

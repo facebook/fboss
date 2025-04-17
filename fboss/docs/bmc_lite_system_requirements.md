@@ -80,9 +80,7 @@ front-panel management ethernet port. Refer to section I-6 for details.
     2. Alternate (2nd) Boot Recovery function should be enabled at manufacturing
     by strap OTP trap_en_bspiabr. The OTP bit can be programmed for 6 times, but
     it should be used only once during manufacturing, meaning still 5 times left.
-4. **TPM 2.0**
-    1. Please refer to Meta Platform Security Requirements [[2]](#2-meta-network-platform-security-requirements)
-5. **eMMC**
+4. **eMMC**
     1. 8GB eMMC is recommended. **(SD)**
     2. The eMMC should support a secure way of  erasing contents.  Secure erase
     is usually done by the “trim/erase + sanitize” command, but it may vary
@@ -527,7 +525,7 @@ SMB doesn’t have to be field-replaceable. If it is a FRU:
 2. When SMB is plugged back, the same power sequencing that Hardware (Power
 sequencing CPLD or FPGA) does at system power up should happen again.
 
-**2. FRU Monitoring**
+**1. FRU Monitoring**
 
 * Each FRU must have its own FRU ID EEPROM.
 * There must be a GPIO line to indicate the presence of each FRU.
@@ -535,17 +533,22 @@ sequencing CPLD or FPGA) does at system power up should happen again.
     * The X86 CPU needs access to all the FRU IDPROMs.
     * The X86 CPU needs access to all the GPIO lines that indicate the presence
     of FRUs.
-* Additional requirements on the Chassis EEPROM:
-    * The Chassis EEPROM must contain BMC MAC address and additional # MAC
-    addresses.
-    * The Chassis EEPROM must be connected to the BMC/ASPEED I2C controller
-    directly. Two copies of Chassis EEPROM are strongly recommended, because
-    both BMC and x86 need access to the Chassis EEPROM.
-* Additional requirements on the SCM EEPROM:
-    * The SCM EEPROM must contain the X86 MAC address.
-    * The SCM EEPROM must be connected to the BMC/ASPEED I2C controller
-    directly. Two copies of SCM EEPROM are strongly recommended, because both
-    BMC and x86 need access to the SCM EEPROM.
+
+**2. FRU EEPROMs.**
+
+* The Chassis EEPROM must contain BMC MAC address and switch MAC addresses.
+* The number of switch MAC addresses should be equal or more than 
+`NumTransceivers * NumBreakoutsPerTransceiver + 16`.  For example, if there
+are 32 Transceivers and 4 breakouts suported by individual transceiver, then we
+need 144 MAC Addresses (32 * 4 + 16). The extra 16 MAC addresses are for 
+aggregated interfaces (LAG). 
+* The Chassis EEPROM must be connected to the BMC/ASPEED I2C controller 
+directly. Two copies of Chassis EEPROM are a must, since both BMC and x86 need 
+access to the Chassis EEPROM.
+* The SCM EEPROM must contain the X86 MAC address.
+* The SCM EEPROM must be connected to the BMC/ASPEED I2C controller directly. 
+Two copies of SCM EEPROM are a must, since both BMC and x86 need access to the 
+SCM EEPROM.
 
 **3. FRU EEPROM format/layout**
 
@@ -689,13 +692,6 @@ the PR should follow the Meta PR request guidelines[[7]](#7-metaopenbmc-pull-req
 
 # CHAPTER IV : System Security Requirements
 
-
-## IV-1. System Security
-
-**The vendor will meet all the system security requirements defined in Meta’s
-“Network Platform Security Requirements” documentation.**[[2]](#2-meta-network-platform-security-requirements)
-Still, please note that :
-
 * As of Aug 2023, Meta does not require the switch system to have PRoT (root of
 trust device solution) on X86 side.
 * As of Aug 2023, Meta does not require the BMC of the switch system to run
@@ -778,14 +774,12 @@ touch/config/remote access of the switch.
 # References
 1: [FBOSS: BSP Kernel Module Requirements](./bsp_requirements.md)
 
-2: [Meta Network Platform Security Requirements](./platform_security_requirements.md)
+2: [Provisioning Requirements - NPI](./provisioning/provisioning_requirements_npi.md)
 
-3: [Provisioning Requirements - NPI](./provisioning/provisioning_requirements_npi.md)
+3: [Meta FBOSS Switch Platform Service Support Requirement](./services_support_requirements.md)
 
-4: [Meta FBOSS Switch Platform Service Support Requirement](./services_support_requirements.md)
+4: OCP Panel Indicator Specification - TBD
 
-5: OCP Panel Indicator Specification - TBD
+5: Partner SW Deliverables Schedule - Reach out to get access.
 
-6: Partner SW Deliverables Schedule - Reach out to get access.
-
-7: [Meta/OpenBMC Pull Request Guidelines](./openbmc_pr_guidelines.md)
+6: [Meta/OpenBMC Pull Request Guidelines](./openbmc_pr_guidelines.md)

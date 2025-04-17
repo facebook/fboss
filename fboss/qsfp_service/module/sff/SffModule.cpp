@@ -188,8 +188,10 @@ void getQsfpFieldAddress(
 SffModule::SffModule(
     std::set<std::string> portNames,
     TransceiverImpl* qsfpImpl,
-    std::shared_ptr<const TransceiverConfig> cfg)
-    : QsfpModule(std::move(portNames), qsfpImpl), tcvrConfig_(std::move(cfg)) {}
+    std::shared_ptr<const TransceiverConfig> cfg,
+    std::string tcvrName)
+    : QsfpModule(std::move(portNames), qsfpImpl, std::move(tcvrName)),
+      tcvrConfig_(std::move(cfg)) {}
 
 SffModule::~SffModule() {}
 
@@ -330,6 +332,7 @@ Vendor SffModule::getVendorInfo() {
 Cable SffModule::getCableInfo() {
   Cable cable = Cable();
   cable.transmitterTech() = getQsfpTransmitterTechnology();
+  cable.mediaTypeEncoding() = MediaTypeEncodings::OPTICAL_SMF;
 
   cable.singleMode() = getQsfpCableLength(SffField::LENGTH_SM_KM);
   if (cable.singleMode().value_or({}) == 0) {
@@ -356,6 +359,9 @@ Cable SffModule::getCableInfo() {
     // TODO: migrate all cable types
     return cable;
   }
+
+  // For now, we only have passive copper SFF cables.
+  cable.mediaTypeEncoding() = MediaTypeEncodings::PASSIVE_CU;
 
   auto overrideDacCableInfo = getDACCableOverride();
   if (overrideDacCableInfo) {
@@ -1251,9 +1257,9 @@ void SffModule::setPowerOverrideIfSupportedLocked(
 
   QSFP_LOG(DBG1, this) << "Power control "
                        << apache::thrift::util::enumNameSafe(currentState)
-                       << " Ext ID " << std::hex << (int)*extId
-                       << " Ethernet compliance " << std::hex << (int)*ether
-                       << " Desired power control "
+                       << " Ext ID " << std::hex << static_cast<int>(*extId)
+                       << " Ethernet compliance " << std::hex
+                       << static_cast<int>(*ether) << " Desired power control "
                        << apache::thrift::util::enumNameSafe(desiredSetting);
 
   if (currentState == desiredSetting) {
@@ -1410,28 +1416,42 @@ void SffModule::overwriteChannelControlSettings() {
   };
 
   bool settingsOverwritten = false;
+  auto updateIfChanged = [this, &settingsOverwritten, getSettingForAllLanes](
+                             auto field, auto settingOverride, auto& name) {
+    if (!settingOverride) {
+      return;
+    }
+
+    std::array<uint8_t, 2> currSettings;
+    readSffField(field, currSettings.data());
+    auto settingValue = getSettingForAllLanes(*settingOverride);
+    if (currSettings == settingValue) {
+      return;
+    }
+    QSFP_LOG(INFO, this) << "Programming new " << name << " settings. Old: [0x"
+                         << std::hex << static_cast<int>(currSettings[0])
+                         << ", 0x" << static_cast<int>(currSettings[1])
+                         << "], New: [0x" << static_cast<int>(settingValue[0])
+                         << ", 0x" << static_cast<int>(settingValue[1]) << "]";
+    writeSffField(field, settingValue.data());
+    settingsOverwritten = true;
+  };
   // Set the Equalizer setting based on QSFP config.
-  // TODO: Skip configuring settings if the current values are same as what we
-  // want to configure
   for (const auto& override : tcvrConfig_->overridesConfig_) {
-    // Check if this override factor requires overriding TxEqualization
-    if (auto txEqualization = sffTxEqualizationOverride(*override.config())) {
-      auto settingValue = getSettingForAllLanes(*txEqualization);
-      writeSffField(SffField::TX_EQUALIZATION, settingValue.data());
-      settingsOverwritten = true;
-    }
-    // Check if this override factor requires overriding RxPreEmphasis
-    if (auto rxPreemphasis = sffRxPreemphasisOverride(*override.config())) {
-      auto settingValue = getSettingForAllLanes(*rxPreemphasis);
-      writeSffField(SffField::RX_EMPHASIS, settingValue.data());
-      settingsOverwritten = true;
-    }
-    // Check if this override factor requires overriding RxAmplitude
-    if (auto rxAmplitude = sffRxAmplitudeOverride(*override.config())) {
-      auto settingValue = getSettingForAllLanes(*rxAmplitude);
-      writeSffField(SffField::RX_AMPLITUDE, settingValue.data());
-      settingsOverwritten = true;
-    }
+    updateIfChanged(
+        SffField::TX_EQUALIZATION,
+        sffTxEqualizationOverride(*override.config()),
+        "TX EQ");
+
+    updateIfChanged(
+        SffField::RX_EMPHASIS,
+        sffRxPreemphasisOverride(*override.config()),
+        "RX Pre-emphasis");
+
+    updateIfChanged(
+        SffField::RX_AMPLITUDE,
+        sffRxAmplitudeOverride(*override.config()),
+        "RX Amplitude");
   }
 
   if (settingsOverwritten) {
@@ -1523,8 +1543,8 @@ bool SffModule::ensureTransceiverReadyLocked() {
 
   auto desiredSetting = PowerControlState::POWER_OVERRIDE;
 
-  // For 40G SR4 the desired power setting is LP mode. For other modules if the
-  // Power Class is defined then use that value for high power override
+  // For 40G SR4 the desired power setting is LP mode. For other modules if
+  // the Power Class is defined then use that value for high power override
   // otherwise just do power override
   if (*ether == EthernetCompliance::SR4_40GBASE) {
     desiredSetting = PowerControlState::POWER_LPMODE;
@@ -1576,8 +1596,8 @@ bool SffModule::ensureTransceiverReadyLocked() {
     power = uint8_t(PowerControl::POWER_LPMODE);
   }
 
-  // enable target power class and return false as the optics need some time to
-  // come back to ready state
+  // enable target power class and return false as the optics need some time
+  // to come back to ready state
   writeSffField(SffField::POWER_CONTROL, &power);
   QSFP_LOG(INFO, this) << "QSFP set to power setting "
                        << apache::thrift::util::enumNameSafe(desiredSetting)

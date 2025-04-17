@@ -39,6 +39,8 @@ class MockAsic : public HwAsic {
       case HwAsic::Feature::WEIGHTED_NEXTHOPGROUP_MEMBER:
       case HwAsic::Feature::EVENTOR_PORT_FOR_SFLOW:
         return false;
+      case HwAsic::Feature::CPU_TX_PACKET_REQUIRES_VLAN_TAG:
+        return getSwitchType() == cfg::SwitchType::NPU;
       case Feature::CPU_PORT:
         return getSwitchType() != cfg::SwitchType::FABRIC;
 
@@ -95,13 +97,13 @@ class MockAsic : public HwAsic {
   uint32_t getMaxMirrors() const override {
     return 4;
   }
-  uint64_t getDefaultReservedBytes(
+  std::optional<uint64_t> getDefaultReservedBytes(
       cfg::StreamType /*streamType*/,
       cfg::PortType portType) const override {
     // Mimicking TH
     return portType == cfg::PortType::CPU_PORT ? 1664 : 0;
   }
-  cfg::MMUScalingFactor getDefaultScalingFactor(
+  std::optional<cfg::MMUScalingFactor> getDefaultScalingFactor(
       cfg::StreamType /*streamType*/,
       bool /*cpu*/) const override {
     // Mimicking TH

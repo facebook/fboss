@@ -20,6 +20,7 @@ add_executable(platform_manager_i2c_explorer_test
 
 target_link_libraries(platform_manager_i2c_explorer_test
   platform_manager_i2c_explorer
+  platform_fs_utils
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}
 )

@@ -44,7 +44,7 @@ class AgentDeepPacketInspectionTest : public AgentHwTest {
           std::optional<std::vector<uint8_t>>()) {
     return tcp ? utility::makeTCPTxPacket(
                      getSw(),
-                     utility::firstVlanID(getProgrammedState()),
+                     getVlanIDForTx(),
                      utility::kLocalCpuMac(),
                      utility::kLocalCpuMac(),
                      kSrcIp(),
@@ -56,7 +56,7 @@ class AgentDeepPacketInspectionTest : public AgentHwTest {
                      payload)
                : utility::makeUDPTxPacket(
                      getSw(),
-                     utility::firstVlanID(getProgrammedState()),
+                     getVlanIDForTx(),
                      utility::kLocalCpuMac(),
                      utility::kLocalCpuMac(),
                      kSrcIp(),
@@ -77,13 +77,16 @@ class AgentDeepPacketInspectionTest : public AgentHwTest {
     auto nhopMac = ecmpHelper().nhop(kPort()).mac;
     auto switchType = getSw()->getSwitchInfoTable().l3SwitchType();
 
-    auto ethFrame = switchType == cfg::SwitchType::VOQ
+    auto ethFrame =
+        (switchType == cfg::SwitchType::VOQ || FLAGS_rx_vlan_untagged_packets)
         ? utility::makeEthFrame(*txPacket, nhopMac)
         : utility::makeEthFrame(
               *txPacket,
               nhopMac,
-              utility::getIngressVlan(
-                  getProgrammedState(), kPort().phyPortID()));
+              getProgrammedState()
+                  ->getPorts()
+                  ->getNode(kPort().phyPortID())
+                  ->getIngressVlan());
 
     utility::SwSwitchPacketSnooper snooper(
         getSw(), "snoop", std::nullopt, ethFrame);

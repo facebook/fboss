@@ -31,8 +31,7 @@ DECLARE_bool(intf_nbr_tables);
 
 namespace facebook::fboss {
 namespace {
-// TODO remove hardcoded value with getMax from ASIC api
-constexpr uint32_t kMaxNeighborEntries = 8194;
+constexpr auto kHundredPercentage = 100;
 const AggregatePortID kAggID{1};
 const AggregatePortID kAggID2{2};
 constexpr int kMinAgeInSecs{1};
@@ -498,6 +497,10 @@ class AgentNeighborResolutionOverFlowTest : public AgentNeighborResolutionTest {
     FLAGS_disable_neighbor_updates = false;
     // enable neighbor update failure protection
     FLAGS_enable_hw_update_protection = true;
+    // set max neighbor resource percentage to 200% to bypass resourceAccountant
+    // check
+    FLAGS_neighbhor_resource_percentage = 200;
+    FLAGS_max_ndp_entries = 9000;
   }
 
   // generate IPv6 addresses, here goal is to generate 8K addresses
@@ -579,13 +582,30 @@ class AgentNeighborResolutionOverFlowTest : public AgentNeighborResolutionTest {
   uint16_t getkBulkProgrammedCount() {
     auto switchId = getSw()
                         ->getScopeResolver()
-                        ->scope(masterLogicalPortIds()[1])
+                        ->scope(masterLogicalPortIds()[0])
                         .switchId();
     if (getSw()->getHwAsicTable()->getHwAsic(switchId)->getAsicType() ==
         cfg::AsicType::ASIC_TYPE_TOMAHAWK3) {
       return 5100;
     }
     return 8100;
+  }
+
+  // get max neighbor table size
+  uint32_t getMaxNeighborTableSize() {
+    uint32_t ndpTableSize = 0;
+    // check that all ASICs have same max neighbor table size
+    for (auto& [switchId, hwAsic] : getSw()->getHwAsicTable()->getHwAsics()) {
+      CHECK(hwAsic->getMaxNdpTableSize().has_value());
+      if (ndpTableSize > 0) {
+        CHECK_EQ(ndpTableSize, hwAsic->getMaxNdpTableSize().value());
+      }
+      ndpTableSize = hwAsic->getMaxNdpTableSize().value();
+    }
+
+    CHECK(ndpTableSize > 0);
+    return (ndpTableSize * FLAGS_neighbhor_resource_percentage) /
+        kHundredPercentage;
   }
 
  private:
@@ -654,7 +674,8 @@ class AgentNeighborResolutionOverFlowTest : public AgentNeighborResolutionTest {
 // protection
 TEST_F(AgentNeighborResolutionOverFlowTest, neighborResolutionOverFlow) {
   auto ipAddressesV6 = this->generateIPv6Addresses(
-      this->template neighborAddr<folly::IPAddressV6>(), kMaxNeighborEntries);
+      this->template neighborAddr<folly::IPAddressV6>(),
+      getMaxNeighborTableSize());
   auto setup = [=, this]() {
     this->programNeighborsBulk(this->portDescriptor(), ipAddressesV6);
   };

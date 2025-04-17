@@ -42,9 +42,6 @@ using folly::IPAddress;
 using folly::IPAddressV4;
 using folly::IPAddressV6;
 
-// mac l2 entry limit is used to bypass resourceAccountant check
-DECLARE_int32(max_l2_entries);
-
 namespace {
 // this is for mac overflow test for TH3/TH4
 // setting max L2 entries to 8194 for TH3/TH4

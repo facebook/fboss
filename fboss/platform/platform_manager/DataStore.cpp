@@ -166,4 +166,24 @@ PmUnitConfig DataStore::resolvePmUnitConfig(const std::string& slotPath) const {
       productSubVersion);
   return platformConfig_.pmUnitConfigs()->at(pmUnitName);
 }
+
+void DataStore::updateEepromContents(
+    const std::string& devicePath,
+    const EepromContents& contents) {
+  XLOG(INFO) << fmt::format(
+      "Updating EepromContents for DevicePath ({})", devicePath);
+  eepromContents_[devicePath] = contents;
+}
+
+EepromContents DataStore::getEepromContents(const std::string& devicePath) {
+  if (!eepromContents_.contains(devicePath)) {
+    throw std::runtime_error(fmt::format(
+        "Couldn't find EepromContents at DevicePath ({})", devicePath));
+  }
+  return eepromContents_.at(devicePath);
+}
+
+bool DataStore::hasEepromContents(const std::string& devicePath) {
+  return eepromContents_.contains(devicePath);
+}
 } // namespace facebook::fboss::platform::platform_manager

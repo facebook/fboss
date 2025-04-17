@@ -19,7 +19,8 @@ inline std::map<std::string, int32_t> getQueriedPortIds(
 
   for (const auto& entry : entries) {
     auto portInfo = entry.second;
-    entryNames.emplace(portInfo.get_name(), portInfo.get_portId());
+    entryNames.emplace(
+        portInfo.name().value(), folly::copy(portInfo.portId().value()));
   }
 
   for (const auto& port : queriedPorts) {

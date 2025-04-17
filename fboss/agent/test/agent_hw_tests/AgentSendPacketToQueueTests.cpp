@@ -45,7 +45,7 @@ void AgentSendPacketToQueueTest::checkSendPacket(
       // need to set up ecmp for switching
       auto kEcmpWidthForTest = 1;
       utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState()};
-      resolveNeigborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
+      resolveNeighborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
     }
   };
 
@@ -55,9 +55,11 @@ void AgentSendPacketToQueueTest::checkSendPacket(
     const uint8_t queueID = ucQueue ? *ucQueue : kDefaultQueue;
 
     auto beforeOutPkts =
-        getLatestPortStats(port).get_queueOutPackets_().at(queueID);
-    auto vlanId = utility::firstVlanID(getProgrammedState());
-    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
+        folly::copy(getLatestPortStats(port).queueOutPackets_().value())
+            .at(queueID);
+    auto vlanId = getVlanIDForTx();
+    auto intfMac =
+        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     // packet format shouldn't be matter in this test
     auto pkt = utility::makeUDPTxPacket(
         getSw(),
@@ -111,7 +113,17 @@ TEST_F(AgentSendPacketToQueueTest, SendPacketSwitchedToDefaultUCQueue) {
   checkSendPacket(std::nullopt, false);
 }
 
-TEST_F(AgentSendPacketToQueueTest, SendPacketOutOfPortToMCQueue) {
+class AgentSendPacketToMulticastQueueTest : public AgentHwTest {
+ public:
+  std::vector<production_features::ProductionFeature>
+  getProductionFeaturesVerified() const override {
+    return {
+        production_features::ProductionFeature::L3_FORWARDING,
+        production_features::ProductionFeature::MULTICAST_QUEUE};
+  }
+};
+
+TEST_F(AgentSendPacketToMulticastQueueTest, SendPacketOutOfPortToMCQueue) {
   auto ensemble = getAgentEnsemble();
   auto l3Asics = ensemble->getSw()->getHwAsicTable()->getL3Asics();
   auto asic = utility::checkSameAndGetAsic(l3Asics);
@@ -143,8 +155,9 @@ TEST_F(AgentSendPacketToQueueTest, SendPacketOutOfPortToMCQueue) {
     if (getSw()->getBootType() == BootType::WARM_BOOT) {
       return;
     }
-    auto vlanId = utility::firstVlanID(getProgrammedState());
-    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
+    auto vlanId = getVlanIDForTx();
+    auto intfMac =
+        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     auto randomMac = folly::MacAddress("01:02:03:04:05:06");
     // send packets with random dst mac to flood the vlan
     for (int i = 0; i < 100; i++) {

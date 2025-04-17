@@ -18,12 +18,12 @@
 #include "fboss/agent/platforms/sai/SaiBcmDarwinPlatform.h"
 #include "fboss/agent/platforms/sai/SaiBcmElbertPlatform.h"
 #include "fboss/agent/platforms/sai/SaiBcmFujiPlatform.h"
+#include "fboss/agent/platforms/sai/SaiBcmIcecube800bcPlatform.h"
 #include "fboss/agent/platforms/sai/SaiBcmMinipackPlatform.h"
 #include "fboss/agent/platforms/sai/SaiBcmMontblancPlatform.h"
 #include "fboss/agent/platforms/sai/SaiBcmWedge100Platform.h"
 #include "fboss/agent/platforms/sai/SaiBcmWedge400Platform.h"
 #include "fboss/agent/platforms/sai/SaiBcmYampPlatform.h"
-#include "fboss/agent/platforms/sai/SaiCloudRipperPlatform.h"
 #include "fboss/agent/platforms/sai/SaiFakePlatform.h"
 #include "fboss/agent/platforms/sai/SaiJanga800bicPlatform.h"
 #include "fboss/agent/platforms/sai/SaiMeru400bfuPlatform.h"
@@ -31,6 +31,7 @@
 #include "fboss/agent/platforms/sai/SaiMeru400biuPlatform.h"
 #include "fboss/agent/platforms/sai/SaiMeru800bfaPlatform.h"
 #include "fboss/agent/platforms/sai/SaiMeru800biaPlatform.h"
+#include "fboss/agent/platforms/sai/SaiMinipack3NPlatform.h"
 #include "fboss/agent/platforms/sai/SaiMorgan800ccPlatform.h"
 #include "fboss/agent/platforms/sai/SaiTahan800bcPlatform.h"
 #include "fboss/agent/platforms/sai/SaiWedge400CPlatform.h"
@@ -64,9 +65,6 @@ std::unique_ptr<SaiPlatform> chooseSaiPlatform(
         std::move(productInfo), localMac, platformMappingStr);
   } else if (productInfo->getType() == PlatformType::PLATFORM_WEDGE400C) {
     return std::make_unique<SaiWedge400CPlatform>(
-        std::move(productInfo), localMac, platformMappingStr);
-  } else if (productInfo->getType() == PlatformType::PLATFORM_CLOUDRIPPER) {
-    return std::make_unique<SaiCloudRipperPlatform>(
         std::move(productInfo), localMac, platformMappingStr);
   } else if (productInfo->getType() == PlatformType::PLATFORM_FUJI) {
     return std::make_unique<SaiBcmFujiPlatform>(
@@ -103,11 +101,17 @@ std::unique_ptr<SaiPlatform> chooseSaiPlatform(
   } else if (productInfo->getType() == PlatformType::PLATFORM_YANGRA) {
     return std::make_unique<SaiYangraPlatform>(
         std::move(productInfo), localMac, platformMappingStr);
+  } else if (productInfo->getType() == PlatformType::PLATFORM_MINIPACK3N) {
+    return std::make_unique<SaiMinipack3NPlatform>(
+        std::move(productInfo), localMac, platformMappingStr);
   } else if (productInfo->getType() == PlatformType::PLATFORM_JANGA800BIC) {
     return std::make_unique<SaiJanga800bicPlatform>(
         std::move(productInfo), localMac, platformMappingStr);
   } else if (productInfo->getType() == PlatformType::PLATFORM_TAHAN800BC) {
     return std::make_unique<SaiTahan800bcPlatform>(
+        std::move(productInfo), localMac, platformMappingStr);
+  } else if (productInfo->getType() == PlatformType::PLATFORM_ICECUBE800BC) {
+    return std::make_unique<SaiBcmIcecube800bcPlatform>(
         std::move(productInfo), localMac, platformMappingStr);
   } else if (productInfo->getType() == PlatformType::PLATFORM_FAKE_SAI) {
     return std::make_unique<SaiFakePlatform>(std::move(productInfo));

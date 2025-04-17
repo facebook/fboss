@@ -10,11 +10,12 @@ thrift_library(
     },
     languages = [
         "cpp2",
-        "py",
+        "py-deprecated",
         "go",
-        "py3",
-        "py-asyncio",
+        "py3-deprecated",
+        "py-deprecated-asyncio",
         "rust",
+        "python",
     ],
     no_plugin_deps = ["//thrift/annotation:all"],
     py3_namespace = "neteng.fboss",
@@ -35,8 +36,9 @@ thrift_library(
     name = "hw_test_ctrl",
     languages = [
         "cpp2",
-        "py",
-        "py3",
+        "py-deprecated",
+        "py3-deprecated",
+        "python",
     ],
     py3_namespace = "neteng.fboss",
     py_base_module = "neteng.fboss",
@@ -184,6 +186,7 @@ cpp_library(
         "//common/stats:macros",
         "//fb303:service_data",
         "//fboss/agent:fboss-types",
+        "//fboss/agent:switch_config-cpp2-types",
         "//folly/container:f14_hash",
         "//folly/logging:logging",
         "//thrift/lib/cpp2/protocol:protocol",
@@ -202,17 +205,6 @@ cpp_library(
         ":stats_constants",
         "//folly/container:f14_hash",
         "//folly/logging:logging",
-    ],
-)
-
-cpp_library(
-    name = "hw_stat_printers",
-    srcs = [
-        "HwStatPrinters.cpp",
-    ],
-    exported_deps = [
-        ":hardware_stats-cpp2-types",
-        "//thrift/lib/cpp2/protocol:protocol",
     ],
 )
 

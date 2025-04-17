@@ -208,6 +208,49 @@ struct LambdaPathVisitorOperator {
   Func f_;
 };
 
+// Similar to LambdaPathVisitorOperator, only that if the node is thrift object,
+// this operator wraps it in a writable wrapper that provides write interface to
+// caller such as remove(tok), modify(tok)
+template <typename Func>
+struct WritablePathVisitorOperator {
+  explicit WritablePathVisitorOperator(Func&& f) : f_(std::forward<Func>(f)) {}
+
+  template <typename TC, typename Node>
+  inline auto
+  visitTyped(Node& node, pv_detail::PathIter begin, pv_detail::PathIter end)
+    requires(
+        is_cow_type_v<Node> &&
+        !std::is_same_v<typename Node::CowType, HybridNodeType>)
+  {
+    return f_(node, begin, end);
+  }
+
+  template <typename TC, typename Node>
+  inline auto
+  visitTyped(Node& node, pv_detail::PathIter begin, pv_detail::PathIter end)
+    requires(
+        is_cow_type_v<Node> &&
+        std::is_same_v<typename Node::CowType, HybridNodeType>)
+  {
+    // Node is not a Serializable, dispatch with a writable wrapper
+    WritableWrapper<TC, typename Node::ThriftType> wrapper(node.ref());
+    return f_(wrapper, begin, end);
+  }
+
+  template <typename TC, typename Node>
+  inline auto
+  visitTyped(Node& node, pv_detail::PathIter begin, pv_detail::PathIter end)
+    requires(!is_cow_type_v<Node>)
+  {
+    // Node is not a Serializable, dispatch with a writable wrapper
+    WritableWrapper<TC, Node> wrapper(node);
+    return f_(wrapper, begin, end);
+  }
+
+ private:
+  Func f_;
+};
+
 template <typename TC, typename Node, typename Op>
 ThriftTraverseResult
 visitNode(Node& node, const VisitImplParams<Op>& params, PathIter cursor)
@@ -496,8 +539,10 @@ struct PathVisitorImpl<
     // Get key
     auto token = *cursor++;
     auto key = folly::tryTo<KeyT>(token);
-    if (!key.hasValue() || tObj.find(key.value()) == tObj.end()) {
+    if (!key.hasValue()) {
       return ThriftTraverseResult::INVALID_MAP_KEY;
+    } else if (tObj.find(key.value()) == tObj.end()) {
+      return ThriftTraverseResult::NON_EXISTENT_NODE;
     }
     return PathVisitorImpl<MappedTypeClass>::visit(
         tObj.at(*key), params, cursor);
@@ -529,8 +574,10 @@ struct PathVisitorImpl<
     // Get key
     auto token = *cursor++;
     auto key = folly::tryTo<KeyT>(token);
-    if (!key.hasValue() || tObj.find(key.value()) == tObj.end()) {
+    if (!key.hasValue()) {
       return ThriftTraverseResult::INVALID_MAP_KEY;
+    } else if (tObj.find(key.value()) == tObj.end()) {
+      return ThriftTraverseResult::NON_EXISTENT_NODE;
     }
     return PathVisitorImpl<MappedTypeClass>::visit(
         tObj.at(*key), params, cursor);
@@ -684,10 +731,18 @@ struct PathVisitorImpl<apache::thrift::type_class::structure> {
     visitMember<Members>(key, [&](auto indexed) {
       using member = decltype(fatal::tag_type(indexed));
       using tc = typename member::type_class;
-      typename member::getter getter;
-
+      using getter = typename member::getter;
+      const std::string fieldNameStr =
+          fatal::to_instance<std::string, typename member::name>();
+      if constexpr (
+          member::optional::value == apache::thrift::optionality::optional) {
+        if (!member::is_set(tObj)) {
+          result = ThriftTraverseResult::NON_EXISTENT_NODE;
+          return;
+        }
+      }
       // Recurse further
-      auto& child = getter(tObj);
+      auto& child = getter{}(tObj);
       result = PathVisitorImpl<tc>::visit(child, params, cursor);
     });
 
@@ -721,10 +776,18 @@ struct PathVisitorImpl<apache::thrift::type_class::structure> {
     visitMember<Members>(key, [&](auto indexed) {
       using member = decltype(fatal::tag_type(indexed));
       using tc = typename member::type_class;
-      typename member::getter getter;
-
+      using getter = typename member::getter;
+      const std::string fieldNameStr =
+          fatal::to_instance<std::string, typename member::name>();
+      if constexpr (
+          member::optional::value == apache::thrift::optionality::optional) {
+        if (!member::is_set(tObj)) {
+          result = ThriftTraverseResult::NON_EXISTENT_NODE;
+          return;
+        }
+      }
       // Recurse further
-      auto& child = getter(tObj);
+      auto& child = getter{}(tObj);
       result = PathVisitorImpl<tc>::visit(child, params, cursor);
     });
 
@@ -827,20 +890,24 @@ inline pv_detail::LambdaPathVisitorOperator<Func> pvlambda(Func&& f) {
   return pv_detail::LambdaPathVisitorOperator<Func>(std::forward<Func>(f));
 }
 
+template <typename Func>
+inline pv_detail::WritablePathVisitorOperator<Func> writablelambda(Func&& f) {
+  return pv_detail::WritablePathVisitorOperator<Func>(std::forward<Func>(f));
+}
+
 template <typename TC>
 struct PathVisitor {
-  template <typename Node, typename Func>
+  template <typename Node, typename Op>
   static inline ThriftTraverseResult visit(
       Node& node,
       pv_detail::PathIter begin,
       pv_detail::PathIter end,
       const PathVisitMode& mode,
-      pv_detail::LambdaPathVisitorOperator<Func>& op)
+      Op& op)
       // only enable for Node types
     requires(std::is_same_v<typename Node::CowType, NodeType>)
   {
-    pv_detail::VisitImplParams<pv_detail::LambdaPathVisitorOperator<Func>>
-        params(begin, end, mode, op);
+    pv_detail::VisitImplParams<Op> params(begin, end, mode, op);
     return pv_detail::PathVisitorImpl<TC>::visit(node, params, begin);
   }
 
@@ -859,20 +926,19 @@ struct PathVisitor {
     return pv_detail::PathVisitorImpl<TC>::visit(node, params, begin);
   }
 
-  template <typename Fields, typename Func>
+  template <typename Fields, typename Op>
   inline static ThriftTraverseResult visit(
       Fields& fields,
       pv_detail::PathIter begin,
       pv_detail::PathIter end,
       const PathVisitMode& mode,
-      pv_detail::LambdaPathVisitorOperator<Func>& op)
+      Op& op)
       // only enable for Fields types
     requires(
         is_field_type_v<Fields> &&
         std::is_same_v<typename Fields::CowType, FieldsType>)
   {
-    pv_detail::VisitImplParams<pv_detail::LambdaPathVisitorOperator<Func>>
-        params(begin, end, mode, op);
+    pv_detail::VisitImplParams<Op> params(begin, end, mode, op);
     return pv_detail::PathVisitorImpl<TC>::visit(fields, params, begin);
   }
 

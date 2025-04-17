@@ -116,4 +116,15 @@ service AgentHwTestCtrl {
 
   //tam utils
   void triggerParityError();
+
+  // print diag
+  void printDiagCmd(1: string cmd);
+
+  // Flowlet utils
+  void updateFlowletStats();
+
+  // PtcTc utils
+  bool getPtpTcEnabled();
+
+  void clearInterfacePhyCounters(1: list<i32> portIds);
 }

@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/Main.h"
 #include "fboss/agent/Platform.h"
@@ -16,14 +17,14 @@ class SwitchState;
 class AgentEnsembleTest : public ::testing::Test {
  public:
   void SetUp() override {
-    setupAgentEnsemble();
+    setupAgentEnsemble(true /* disableLinkStateToggler */);
   }
   void TearDown() override;
   void tearDownAgentEnsemble(bool doWarmboot = false);
   using StateUpdateFn = SwSwitch::StateUpdateFn;
 
  protected:
-  void setupAgentEnsemble();
+  void setupAgentEnsemble(bool disableLinkStateToggler);
   void runForever() const;
   std::map<PortID, HwPortStats> getPortStats(
       const std::vector<PortID>& ports) const;

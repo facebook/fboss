@@ -10,14 +10,13 @@
 #pragma once
 
 #include "fboss/agent/StateObserver.h"
-#include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/types.h"
 
 #include <memory>
 
 namespace facebook::fboss {
 class SwitchState;
-class SwSWitch;
+class SwSwitch;
 class StateDelta;
 
 class StaticL2ForNeighborObserver : public StateObserver {

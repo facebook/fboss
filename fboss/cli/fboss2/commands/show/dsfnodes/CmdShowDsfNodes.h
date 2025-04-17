@@ -55,7 +55,7 @@ class CmdShowDsfNodes
         "System port ranges",
     });
 
-    for (auto const& entry : model.get_dsfNodes()) {
+    for (auto const& entry : model.dsfNodes().value()) {
       table.addRow({
           *entry.name(),
           folly::to<std::string>(*entry.switchId()),

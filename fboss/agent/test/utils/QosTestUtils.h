@@ -7,9 +7,11 @@
 
 #include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/Utils.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
 #include "fboss/agent/test/TestEnsembleIf.h"
+#include "fboss/agent/test/utils/PacketTestUtils.h"
 #include "fboss/agent/types.h"
 #include "fboss/lib/CommonUtils.h"
 
@@ -136,13 +138,15 @@ void verifyQueueHit(
     const HwPortStats& portStatsBefore,
     int queueId,
     SwSwitch* sw,
-    facebook::fboss::PortID egressPort);
+    facebook::fboss::PortID egressPort,
+    int delta = 1);
 
 void verifyVoQHit(
     const HwSysPortStats& portStatsBefore,
     int queueId,
     SwSwitch* sw,
-    facebook::fboss::SystemPortID egressPort);
+    facebook::fboss::SystemPortID egressPort,
+    int delta = 1);
 
 template <typename SendPktFunT>
 void sendPktAndVerifyQueueHit(
@@ -152,25 +156,28 @@ void sendPktAndVerifyQueueHit(
     PortID portId,
     std::optional<SystemPortID> sysPortId) {
   for (const auto& q2dscps : q2dscpMap) {
-    for (auto dscp : q2dscps.second) {
-      WITH_RETRIES({
-        auto portsStats = sw->getHwPortStats({portId});
-        EXPECT_EVENTUALLY_NE(portsStats.find(portId), portsStats.end());
-        auto portStatsBefore = portsStats[portId];
-        HwSysPortStats sysPortStatsBefore;
-        if (sysPortId) {
-          auto sysportsStats = sw->getHwSysPortStats({*sysPortId});
-          EXPECT_EVENTUALLY_NE(
-              sysportsStats.find(*sysPortId), sysportsStats.end());
-          sysPortStatsBefore = sysportsStats[*sysPortId];
-        }
+    WITH_RETRIES({
+      auto portsStats = sw->getHwPortStats({portId});
+      EXPECT_EVENTUALLY_NE(portsStats.find(portId), portsStats.end());
+      auto portStatsBefore = portsStats[portId];
+      HwSysPortStats sysPortStatsBefore;
+      if (sysPortId) {
+        auto sysportsStats = sw->getHwSysPortStats({*sysPortId});
+        EXPECT_EVENTUALLY_NE(
+            sysportsStats.find(*sysPortId), sysportsStats.end());
+        sysPortStatsBefore = sysportsStats[*sysPortId];
+      }
+      for (auto dscp : q2dscps.second) {
+        XLOG(DBG2) << "send packet with dscp " << int(dscp) << " to queue "
+                   << q2dscps.first;
         sendPacket(dscp);
-        verifyQueueHit(portStatsBefore, q2dscps.first, sw, portId);
-        if (sysPortId) {
-          verifyVoQHit(sysPortStatsBefore, q2dscps.first, sw, *sysPortId);
-        }
-      });
-    }
+      }
+      int delta = q2dscps.second.size();
+      verifyQueueHit(portStatsBefore, q2dscps.first, sw, portId, delta);
+      if (sysPortId) {
+        verifyVoQHit(sysPortStatsBefore, q2dscps.first, sw, *sysPortId, delta);
+      }
+    });
   }
 }
 
@@ -190,8 +197,9 @@ bool verifyQueueMappingsInvariantHelper(
     const std::vector<PortID>& ecmpPorts,
     uint32_t sleep = 20) {
   auto portStatsBefore = getAllHwPortStats();
-  auto vlanId = utility::firstVlanID(swState);
-  auto intfMac = utility::getFirstInterfaceMac(swState);
+  auto intf = utility::firstInterfaceWithPorts(swState);
+  std::optional<VlanID> vlanId = utility::getSwitchVlanIDForTx(sw, intf);
+  auto intfMac = intf->getMac();
   auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
 
   for (const auto& q2dscps : q2dscpMap) {
@@ -251,5 +259,7 @@ bool verifyQueueMappings(
   return verifyQueueMappings(
       portStatsBefore, q2dscps, getPortStats, egressPort);
 }
+
+int getMaxWeightWRRQueue(const std::map<int, uint8_t>& queueToWeight);
 
 } // namespace facebook::fboss::utility

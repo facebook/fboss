@@ -743,7 +743,8 @@ shared_ptr<SwitchState> publishAndApplyConfig(
           ? *config->switchSettings()->switchIdToSwitchInfo()
           : std::map<int64_t, cfg::SwitchInfo>(
                 {{0, createSwitchInfo(cfg::SwitchType::NPU)}}),
-      std::nullopt);
+      std::nullopt,
+      *config->dsfNodes());
   return applyThriftConfig(
       state,
       config,
@@ -1283,6 +1284,20 @@ RouteNextHopSet makeResolvedNextHops(
   return nhops;
 }
 
+ResolvedNextHop makeResolvedNextHop(
+    const InterfaceID& intfId,
+    const std::string& nhip,
+    uint32_t weight,
+    std::optional<NetworkTopologyInformation> topologyInfo) {
+  return ResolvedNextHop(
+      IPAddress(nhip),
+      intfId,
+      weight,
+      std::nullopt, // label action
+      false, // disableTTLDecrement
+      topologyInfo);
+}
+
 RoutePrefixV4 makePrefixV4(std::string str) {
   std::vector<std::string> vec;
   folly::split('/', str, vec);
@@ -1342,27 +1357,6 @@ void programRoutes(
     }
   }
   updater.program();
-}
-
-void updateBlockedNeighbor(
-    SwSwitch* sw,
-    const std::vector<std::pair<VlanID, folly::IPAddress>>& blockNeighbors) {
-  sw->updateStateBlocking(
-      "Update blocked neighbors ",
-      [=](const std::shared_ptr<SwitchState>& state) {
-        std::shared_ptr<SwitchState> newState{state};
-
-        auto switchSettings =
-            utility::getFirstNodeIf(state->getSwitchSettings());
-        auto newSwitchSettings = switchSettings->modify(&newState);
-        newSwitchSettings->setBlockNeighbors(blockNeighbors);
-        return newState;
-      });
-
-  waitForStateUpdates(sw);
-  sw->getNeighborUpdater()->waitForPendingUpdates();
-  waitForBackgroundThread(sw);
-  waitForStateUpdates(sw);
 }
 
 void updateMacAddrsToBlock(

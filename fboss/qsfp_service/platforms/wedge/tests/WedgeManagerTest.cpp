@@ -43,6 +43,8 @@ TEST_F(WedgeManagerTest, getTransceiverInfoBasic) {
       transInfo, std::make_unique<std::vector<int32_t>>());
 
   for (const auto& info : transInfo) {
+    // Always expect the eepromCsumValid to be valid
+    EXPECT_TRUE(*info.second.tcvrState()->eepromCsumValid());
     EXPECT_GT(
         *info.second.tcvrState()->timeCollected(),
         *cachedTransInfo[info.first].tcvrState()->timeCollected());
@@ -60,7 +62,8 @@ TEST_F(WedgeManagerTest, getTransceiverInfoBasic) {
     auto synchronizedTransceivers =
         transceiverManager_->getSynchronizedTransceivers().rlock();
     for (const auto& trans : *synchronizedTransceivers) {
-      if (std::find(data.begin(), data.end(), (int)trans.first) == data.end()) {
+      if (std::find(data.begin(), data.end(), static_cast<int>(trans.first)) ==
+          data.end()) {
         EXPECT_EQ(transInfo.find(trans.first), transInfo.end());
       } else {
         EXPECT_NE(transInfo.find(trans.first), transInfo.end());
@@ -79,6 +82,13 @@ TEST_F(WedgeManagerTest, getTransceiverInfoBasic) {
     EXPECT_EQ(
         *transInfo[i].tcvrState()->present(),
         i != 4); // ID 5 was marked as absent
+
+    // Always expect the eepromCsumValid to be valid, transceivers present or
+    // not
+    EXPECT_TRUE(*transInfo[i].tcvrState()->eepromCsumValid());
+    std::string expectedTcvrName = fmt::format("eth1/{}", (i + 1));
+    EXPECT_EQ(*transInfo[i].tcvrState()->tcvrName(), expectedTcvrName);
+    EXPECT_EQ(*transInfo[i].tcvrStats()->tcvrName(), expectedTcvrName);
   }
 }
 
@@ -151,6 +161,22 @@ TEST_F(WedgeManagerTest, writeTransceiver) {
   param.offset() = 0x10;
   request->parameter() = param;
   request->data() = 0xab;
+
+  transceiverManager_->writeTransceiverRegister(response, std::move(request));
+  for (const auto& i : data) {
+    EXPECT_NE(response.find(i), response.end());
+  }
+}
+
+TEST_F(WedgeManagerTest, writeTransceiverMultiByte) {
+  std::map<int32_t, WriteResponse> response;
+  std::unique_ptr<WriteRequest> request(new WriteRequest);
+  TransceiverIOParameters param;
+  std::vector<int32_t> data = {1, 3, 7};
+  request->ids() = data;
+  param.offset() = 0x10;
+  request->parameter() = param;
+  request->bytes() = {0, 16, 41};
 
   transceiverManager_->writeTransceiverRegister(response, std::move(request));
   for (const auto& i : data) {
@@ -746,7 +772,8 @@ TEST_F(WedgeManagerTest, validateTransceiverConfigByIdTest) {
             std::make_unique<MockSffModule>(
                 transceiverManager_->getPortNames(tcvrID),
                 qsfpImpls_.back().get(),
-                tcvrConfig_)));
+                tcvrConfig_,
+                transceiverManager_->getTransceiverName(tcvrID))));
     tcvr->detectPresence();
     tcvr->overrideVendorInfo("fbossTwo", "TR-FC13H-HFZ", defaultSerialNumber);
     tcvr->setFwVersion("1", "2");

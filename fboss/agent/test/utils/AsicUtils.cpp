@@ -34,4 +34,14 @@ const HwAsic* checkSameAndGetAsic(const std::vector<const HwAsic*>& asics) {
   checkSameAsicType(asics);
   return *asics.begin();
 }
+
+cfg::AsicType checkSameAndGetAsicType(const cfg::SwitchConfig& config) {
+  std::set<cfg::AsicType> types;
+
+  for (const auto& entry : *config.switchSettings()->switchIdToSwitchInfo()) {
+    types.insert(*entry.second.asicType());
+  }
+  CHECK_EQ(types.size(), 1) << "Expect 1 asic type, got: " << types.size();
+  return *types.begin();
+}
 } // namespace facebook::fboss::utility

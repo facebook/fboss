@@ -169,20 +169,20 @@ std::vector<Subscription*> SubscriptionPathStore::find(
   std::vector<Subscription*> gathered;
 
   if (begin == end) {
-    if (lookupTypes.count(LookupType::TARGET)) {
+    if (lookupTypes.contains(LookupType::TARGET)) {
       std::copy(
           subscriptions_.begin(),
           subscriptions_.end(),
           std::back_inserter(gathered));
     }
 
-    if (lookupTypes.count(LookupType::CHILDREN)) {
+    if (lookupTypes.contains(LookupType::CHILDREN)) {
       for (auto& [_name, child] : children_) {
         child->gatherChildren(gathered);
       }
     }
   } else {
-    if (lookupTypes.count(LookupType::PARENTS)) {
+    if (lookupTypes.contains(LookupType::PARENTS)) {
       std::copy(
           subscriptions_.begin(),
           subscriptions_.end(),

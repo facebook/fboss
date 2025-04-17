@@ -102,8 +102,9 @@ phy::Cl45Data BspDeviceMdio::readCl45(
     phy::Cl45DeviceAddress devAddr,
     phy::Cl45RegisterAddress regAddr) {
   XLOG(DBG5) << "BspDeviceMdio::readCl45 PIM " << pim_ << " Controller "
-             << controller_ << " PhysAddr " << (int)physAddr << " Dev "
-             << (int)devAddr << " Reg 0x" << std::hex << regAddr;
+             << controller_ << " PhysAddr " << static_cast<int>(physAddr)
+             << " Dev " << static_cast<int>(devAddr) << " Reg 0x" << std::hex
+             << regAddr;
   phy::Cl45Data val =
       cl45Operation(MDIO_ACCESS_REGRD, physAddr, devAddr, regAddr, 0);
   XLOG(DBG5) << "Read val: 0x" << std::hex << val;
@@ -116,8 +117,9 @@ void BspDeviceMdio::writeCl45(
     phy::Cl45RegisterAddress regAddr,
     phy::Cl45Data data) {
   XLOG(DBG5) << "BspDeviceMdio::writeCl45 PIM " << pim_ << " Controller "
-             << controller_ << " PhysAddr " << (int)physAddr << " Dev "
-             << (int)devAddr << " Reg 0x" << std::hex << regAddr;
+             << controller_ << " PhysAddr " << static_cast<int>(physAddr)
+             << " Dev " << static_cast<int>(devAddr) << " Reg 0x" << std::hex
+             << regAddr;
   cl45Operation(MDIO_ACCESS_REGWR, physAddr, devAddr, regAddr, data);
 }
 

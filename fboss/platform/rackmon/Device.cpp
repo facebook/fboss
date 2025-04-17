@@ -43,7 +43,7 @@ bool Device::exists() {
 
 void Device::write(const uint8_t* buf, size_t len) {
   int ret = ::write(deviceFd_, buf, len);
-  if (ret != (int)len) {
+  if (ret != static_cast<int>(len)) {
     throw std::system_error(
         sys_error(),
         "Writing " + std::to_string(len) + " to " + device_ + "failed!");
@@ -107,7 +107,7 @@ size_t Device::read(uint8_t* buf, size_t exactLen, int timeoutMs) {
       }
       throw std::system_error(sys_error(), "read response failure");
     }
-    if (iterReadBytes > (int)remBytes) {
+    if (iterReadBytes > static_cast<int>(remBytes)) {
       throw std::system_error(
           sys_error(E2BIG), "Read more than requested bytes");
     }

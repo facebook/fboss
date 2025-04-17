@@ -102,7 +102,7 @@ class HwRouteStatTest : public HwLinkStateDependentTest {
       PortID from,
       std::optional<DSCP> dscp = std::nullopt) {
     // TODO: Remove the dependency on VLAN below
-    auto vlan = utility::firstVlanID(initialConfig());
+    auto vlan = getHwSwitchEnsemble()->getVlanIDForTx();
     if (!vlan) {
       throw FbossError("VLAN id unavailable for test");
     }

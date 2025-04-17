@@ -14,6 +14,7 @@ include "fboss/agent/if/mpls.thrift"
 include "fboss/lib/if/fboss_common.thrift"
 include "thrift/annotation/cpp.thrift"
 include "thrift/annotation/python.thrift"
+include "thrift/annotation/thrift.thrift"
 
 @cpp.Type{name = "uint64_t"}
 typedef i64 u64
@@ -172,6 +173,7 @@ enum PortProfileID {
   PROFILE_100G_1_PAM4_RS544_OPTICAL = 47,
   PROFILE_50G_2_NRZ_RS528_OPTICAL = 48,
   PROFILE_100G_1_PAM4_NOFEC_COPPER = 49,
+  PROFILE_800G_8_PAM4_RS544X2N_COPPER = 50,
 }
 
 enum Scope {
@@ -385,6 +387,29 @@ enum MirrorOnDropReasonAggregation {
   INGRESS_GLOBAL_CONGESTION_DISCARDS = 6,
 }
 
+/**
+ * Aging group of an event, which controls the granularity at which MOD packets
+ * are sent:
+ * - At most one packet per interval will be generated for GLOBAL events
+ * - At most one packet per port pre interval will be generated for PORT events
+ * - ...and so on
+ */
+enum MirrorOnDropAgingGroup {
+  GLOBAL = 0,
+  PORT = 1,
+  PRIORITY_GROUP = 2,
+  VOQ = 3,
+}
+
+/**
+ * Configuration for each event ID under a MirrorOnDropReport. An event can have its own
+ * aging granularity setting and associated drop reasons.
+ */
+struct MirrorOnDropEventConfig {
+  1: list<MirrorOnDropReasonAggregation> dropReasonAggregations;
+  2: optional MirrorOnDropAgingGroup agingGroup; // defaults to 0 i.e. GLOBAL
+}
+
 struct MirrorOnDropReport {
   1: string name;
   /*
@@ -402,10 +427,17 @@ struct MirrorOnDropReport {
   // Contents of the dropped packet will be truncated when mirroring.
   7: i16 truncateSize = 128;
   8: byte dscp = 0;
-  // At most one mirrored packet will be sent per port/PG/VOQ within an interval. Granularity is not configurable as of now.
-  9: optional i32 agingIntervalUsecs;
-  // Mapping from drop ID / event ID to groups of reasons.
-  10: map<byte, list<MirrorOnDropReasonAggregation>> eventIdToDropReasons;
+  @thrift.DeprecatedUnvalidatedAnnotations{items = {"deprecated": "1"}}
+  9: optional i32 agingIntervalUsecs_DEPRECATED;
+  @thrift.DeprecatedUnvalidatedAnnotations{items = {"deprecated": "1"}}
+  10: map<
+    byte,
+    list<MirrorOnDropReasonAggregation>
+  > eventIdToDropReasons_DEPRECATED;
+  // Configuration for each event ID.
+  11: map<byte, MirrorOnDropEventConfig> modEventToConfigMap;
+  // Aging interval (how often to send packets) for each aging group in usecs.
+  12: map<MirrorOnDropAgingGroup, i32> agingGroupAgingIntervalUsecs;
 }
 
 /**
@@ -600,6 +632,7 @@ enum AclTableActionType {
   MIRROR_EGRESS = 5,
   SET_USER_DEFINED_TRAP = 6,
   DISABLE_ARS_FORWARDING = 7,
+  SET_ARS_OBJECT = 8,
 }
 
 enum AclTableQualifier {
@@ -645,7 +678,7 @@ enum AclStage {
   INGRESS = 0,
   INGRESS_MACSEC = 1,
   EGRESS_MACSEC = 2,
-  EGRESS = 3,
+  INGRESS_POST_LOOKUP = 3,
 }
 
 // startdocs_AclTableGroup_struct
@@ -731,6 +764,10 @@ enum FlowletAction {
   * Forward the packet to DLB engine.
   */
   FORWARD = 1,
+  /**
+  * Disable the packet to DLB engine.
+  */
+  DISABLE = 2,
 }
 
 struct MatchAction {
@@ -976,6 +1013,7 @@ enum PacketRxReason {
   TTL_0 = 19, // Packets with TTL as 0
   EAPOL = 20, // EAPOL for Macsec
   PORT_MTU_ERROR = 21, // Packet size exceeds port MTU, should not use together with L3_MTU_ERROR
+  HOST_MISS = 22, // Packet is destined for an unresolved neighbor in the subnet of a connected RIF
 }
 
 enum PortLoopbackMode {
@@ -1018,6 +1056,10 @@ const i32 DEFAULT_PORT_MTU = 9412;
 const string DEFAULT_INGRESS_ACL_TABLE_GROUP = "ingress-ACL-Table-Group";
 
 const string DEFAULT_INGRESS_ACL_TABLE = "AclTable1";
+
+const string DEFAULT_POST_LOOKUP_INGRESS_ACL_TABLE_GROUP = "post-lookup-ingress-ACL-Table-Group";
+
+const string DEFAULT_POST_LOOKUP_INGRESS_ACL_TABLE = "PostLookupAclTable1";
 
 enum PortType {
   INTERFACE_PORT = 0,
@@ -1213,6 +1255,12 @@ struct Port {
    * DSF Interface node to enable SHEL messages - port UP/DOWN notification to other interface nodes.
    */
   34: optional bool selfHealingECMPLagEnable;
+
+  /*
+   * DSF option to enable FEC error detection on port to prevent any
+   * errored cells from making it to the forwarding pipeline.
+   */
+  35: optional bool fecErrorDetectEnable;
 }
 
 enum LacpPortRate {
@@ -1406,6 +1454,7 @@ enum AsicType {
   ASIC_TYPE_YUBA = 15,
   ASIC_TYPE_RAMON3 = 16,
   ASIC_TYPE_CHENAB = 17,
+  ASIC_TYPE_TOMAHAWK6 = 18,
 }
 /**
  * The configuration for an interface
@@ -1725,6 +1774,30 @@ struct SwitchInfo {
   // communication to this node
   11: optional i32 inbandPortId;
   12: map<FirmwareName, FirmwareInfo> firmwareNameToFirmwareInfo;
+
+  /*
+   * VOQ switch may use these thresholds as below:
+   *  - During init, create switch device Isolated.
+   *  - When numActiveLinks > minLinksToJoinVOQDomain => Unisolate device.
+   *  - When numActiveLinks < minLinksToRemainInVOQDomain => Isolate device.
+   *
+   * In practice, these thresholds will be configured to provide hysteresis:
+   *  - 0 < minLinksToRemainInVOQDomain < minLinksToJoinVOQDomain < maxActiveLinks
+   *  - numActiveLinks in [0, minLinksToRemainInVOQDomain) => device isolated.
+   *  - numActiveLinks in (minLinksToJoinVOQDomain, maxActiveLinks] => device unisolated
+   *  - numActiveLinks in [minLinksToRemainInVOQDomain, minLinksToJoinVOQDomain]
+   *    => Whether or not the device is isolated depends on how we got to this state.
+   *    => For example, during init, as links gradually turn active, the device
+   *       will be isolated for these numActiveLinks as minLinksToJoinVOQDomain is not
+   *       yet hit.
+   *    => On the other hand, if the links are active but start turning inactive,
+   *       the device will be unisolated for these numActiveLinks since
+   *       minLinksToRemainInVOQDomain is not yet thit.
+   *
+   * TODO: This will be enhanced to work for Fabric switches as well.
+   */
+  13: optional i32 minLinksPerDeviceToRemainInVOQDomain;
+  14: optional i32 minLinksPerDeviceToJoinVOQDomain;
 }
 
 /*
@@ -1811,6 +1884,9 @@ struct SwitchSettings {
   27: optional i32 remoteL1VoqMaxExpectedLatencyNsec;
   28: optional i32 remoteL2VoqMaxExpectedLatencyNsec;
   29: optional i32 voqOutOfBoundsLatencyNsec;
+  // Number of sflow samples to pack in a single packet being sent out
+  30: optional byte numberOfSflowSamplesPerPacket;
+  31: optional map<i32, i32> tcToRateLimitKbps;
 }
 
 // Global buffer pool
@@ -1840,6 +1916,7 @@ struct PortPgConfig {
   // packets
   5: optional i32 headroomLimitBytes;
   // Offset from XOFF before allowing XON
+  // resumeOffsetBytes and resumeBytes should not be set at the same time.
   6: optional i32 resumeOffsetBytes;
   // global buffer pool as used by this PG
   7: string bufferPoolName;
@@ -1851,6 +1928,10 @@ struct PortPgConfig {
   11: optional i64 minSramXoffThresholdBytes;
   // Offset from XOFF in SRAM before allowing XON
   12: optional i64 sramResumeOffsetBytes;
+  // Not all implementations support specifying an offset at which to send XON.
+  // Allowing configuring an absolute value at which to send XON in such cases.
+  // resumeOffsetBytes and resumeBytes should not be set at the same time.
+  13: optional i32 resumeBytes;
 }
 
 // asicSdk: Native SDK version. may or may not support SAI
@@ -2028,6 +2109,8 @@ enum SwitchingMode {
   PER_PACKET_QUALITY = 1,
   // flowlet is disabled
   FIXED_ASSIGNMENT = 2,
+  // per packet random, no quality
+  PER_PACKET_RANDOM = 3,
 }
 
 struct FlowletSwitchingConfig {
@@ -2058,6 +2141,8 @@ struct FlowletSwitchingConfig {
   11: i16 maxLinks;
   // switching mode
   12: SwitchingMode switchingMode = FLOWLET_QUALITY;
+  // fall back switching mode if DLB groups are exhausted
+  13: SwitchingMode backupSwitchingMode = FIXED_ASSIGNMENT;
 }
 
 /**

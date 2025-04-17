@@ -13,11 +13,11 @@ using namespace ::testing;
 namespace facebook::fboss {
 
 std::string createMirrorMapsWithoutTunnel() {
-  return "{\"id=0\":{\"mirror_without_tunnel\":{\"name\":\"mirror_without_tunnel\",\"dscp\":42,\"truncate\":true,\"configHasEgressPort\":true,\"egressPort\":1,\"destinationIp\":{\"addr\":\"Cr//Rg\"},\"srcIp\":{\"addr\":\"CqOAvg\"},\"udpSrcPort\":12355,\"udpDstPort\":6346,\"isResolved\":true}}}";
+  return "{\"id=0\":{\"mirror_without_tunnel\":{\"name\":\"mirror_without_tunnel\",\"dscp\":42,\"truncate\":true,\"configHasEgressPort\":true,\"egressPortDesc\":{\"portId\":1,\"portType\":0},\"destinationIp\":{\"addr\":\"Cr//Rg\"},\"srcIp\":{\"addr\":\"CqOAvg\"},\"udpSrcPort\":12355,\"udpDstPort\":6346,\"isResolved\":true}}}";
 }
 
 std::string createMirrorMapsWithTunnel() {
-  return "{\"id=0\":{\"mirror_with_tunnel\":{\"name\":\"mirror_with_tunnel\",\"dscp\":10,\"truncate\":false,\"configHasEgressPort\":false,\"egressPort\":5,\"destinationIp\":{\"addr\":\"AQIDBA\"},\"tunnel\":{\"srcIp\":{\"addr\":\"Co2RIQ\"},\"dstIp\":{\"addr\":\"AQIDBA\"},\"srcMac\":\"b6:a9:fc:34:2d:a2\",\"dstMac\":\"b6:a9:fc:34:31:20\",\"ttl\":255},\"isResolved\":true}}}";
+  return "{\"id=0\":{\"mirror_with_tunnel\":{\"name\":\"mirror_with_tunnel\",\"dscp\":10,\"truncate\":false,\"configHasEgressPort\":false,\"egressPortDesc\":{\"portId\":5,\"portType\":0},\"destinationIp\":{\"addr\":\"AQIDBA\"},\"tunnel\":{\"srcIp\":{\"addr\":\"Co2RIQ\"},\"dstIp\":{\"addr\":\"AQIDBA\"},\"srcMac\":\"b6:a9:fc:34:2d:a2\",\"dstMac\":\"b6:a9:fc:34:31:20\",\"ttl\":255},\"isResolved\":true}}}";
 }
 
 std::map<int32_t, PortInfoThrift> createPortInfoEntries() {
@@ -35,9 +35,9 @@ std::map<int32_t, PortInfoThrift> createPortInfoEntries() {
   portInfoEntry3.portId() = 10;
   portInfoEntry3.name() = "eth1/6/1";
 
-  portInfoMap[portInfoEntry1.get_portId()] = portInfoEntry1;
-  portInfoMap[portInfoEntry2.get_portId()] = portInfoEntry2;
-  portInfoMap[portInfoEntry3.get_portId()] = portInfoEntry3;
+  portInfoMap[folly::copy(portInfoEntry1.portId().value())] = portInfoEntry1;
+  portInfoMap[folly::copy(portInfoEntry2.portId().value())] = portInfoEntry2;
+  portInfoMap[folly::copy(portInfoEntry3.portId().value())] = portInfoEntry3;
   return portInfoMap;
 }
 

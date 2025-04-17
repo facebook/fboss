@@ -148,7 +148,7 @@ std::shared_ptr<apache::thrift::ThriftServer> createThriftServer(
   server->addServerEventHandler(handler);
   if (FLAGS_enable_thrift_acceptor) {
     auto trustedSubnets =
-        getTrustedSubnets(fsdbConfig->getThrift().get_trustedSubnets());
+        getTrustedSubnets(fsdbConfig->getThrift().trustedSubnets().value());
     server->setAcceptorFactory(
         std::make_shared<FsdbThriftAcceptorFactory<void>>(
             server.get(), std::nullopt, trustedSubnets));

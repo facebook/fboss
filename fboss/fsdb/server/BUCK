@@ -40,6 +40,7 @@ cpp_library(
         "//fboss/fsdb/if:fsdb_model",
         "//fboss/fsdb/if:fsdb_oper-cpp2-types",
         "//fboss/fsdb/oper:path_helpers",
+        "//fboss/fsdb/oper:subscription_common",
         "//fboss/fsdb/oper/instantiations:fsdb_naive_periodic_subscribable_storage",
         "//fboss/lib:log_thrift_call",
         "//fboss/lib:thread_heartbeat",
@@ -74,10 +75,12 @@ cpp_library(
         "//common/services/cpp:acl_checker_module",
         "//common/services/cpp:light",
         "//common/services/cpp:thrift_acl_checker_module_config",
+        "//common/services/cpp:thrift_stats_module",
         "//fboss/facebook/bitsflow:bitsflow_helper",
         "//fboss/fsdb/common:flags",
         "//fboss/fsdb/common:utils",
         "//fboss/fsdb/if:fsdb_common-cpp2-types",
+        "//fboss/lib/restart_tracker:restart_time_tracker",
         "//folly/init:init",
         "//folly/io/async:async_signal_handler",
         "//folly/logging:logging",
@@ -101,6 +104,7 @@ cpp_binary(
         ":fsdb_server",
         "//fboss/agent:fboss_init",  # @manual
         "//fboss/agent:fboss_init_h",
+        "//fboss/lib/restart_tracker:restart_time_tracker",
     ],
     external_deps = [
         "gflags",

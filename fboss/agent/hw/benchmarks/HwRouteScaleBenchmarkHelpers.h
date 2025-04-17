@@ -30,11 +30,6 @@
 
 #include "fboss/agent/test/AgentEnsemble.h"
 
-namespace {
-const auto kEcmpWidth = 512;
-const auto kEcmpGroup = 8;
-}; // namespace
-
 namespace facebook::fboss {
 
 /*
@@ -180,8 +175,13 @@ void routeAddDelBenchmarker(bool measureAdd) {
   lookupThread.join();
 }
 
-inline void voqRouteBenchmark(bool add) {
+inline void
+voqRouteBenchmark(bool add, uint32_t ecmpGroup, uint32_t ecmpWidth) {
   folly::BenchmarkSuspender suspender;
+
+  // Allow 100% ECMP resource usage
+  FLAGS_ecmp_resource_percentage = 100;
+  FLAGS_ecmp_width = ecmpWidth;
 
   AgentEnsembleSwitchConfigFn voqInitialConfig =
       [](const AgentEnsemble& ensemble) {
@@ -225,23 +225,19 @@ inline void voqRouteBenchmark(bool add) {
             folly::sformat("Update state for node: {}", 0), updateDsfStateFn);
       });
 
-  // Trigger config apply to add remote interface routes as directly connected
-  // in RIB. This is to resolve ECMP members pointing to remote nexthops.
-  ensemble->applyNewConfig(voqInitialConfig(*ensemble));
-
   utility::EcmpSetupTargetedPorts6 ecmpHelper(ensemble->getProgrammedState());
   auto portDescriptor = utility::resolveRemoteNhops(ensemble.get(), ecmpHelper);
 
-  // Measure the time of programming 8x512 wide ECMP
   std::vector<RoutePrefixV6> prefixes;
   std::vector<flat_set<PortDescriptor>> nhopSets;
-  for (int i = 0; i < kEcmpGroup; i++) {
+  CHECK_GE(portDescriptor.size(), ecmpWidth + ecmpGroup - 1);
+  for (int i = 0; i < ecmpGroup; i++) {
     prefixes.push_back(RoutePrefixV6{
         folly::IPAddressV6(folly::to<std::string>(i, "::", i)),
         static_cast<uint8_t>(i == 0 ? 0 : 128)});
     nhopSets.push_back(flat_set<PortDescriptor>(
         std::make_move_iterator(portDescriptor.begin() + i),
-        std::make_move_iterator(portDescriptor.begin() + i + kEcmpWidth)));
+        std::make_move_iterator(portDescriptor.begin() + i + ecmpWidth)));
   }
 
   auto programRoutes = [&]() {
@@ -252,19 +248,16 @@ inline void voqRouteBenchmark(bool add) {
     auto updater = ensemble->getSw()->getRouteUpdater();
     ecmpHelper.unprogramRoutes(&updater, prefixes);
   };
-  const auto kVoqRouteIteration = 10;
-  for (int i = 0; i < kVoqRouteIteration; ++i) {
-    if (add) {
-      suspender.dismiss();
-      programRoutes();
-      suspender.rehire();
-      unprogramRoutes();
-    } else {
-      programRoutes();
-      suspender.dismiss();
-      unprogramRoutes();
-      suspender.rehire();
-    }
+  if (add) {
+    suspender.dismiss();
+    programRoutes();
+    suspender.rehire();
+    unprogramRoutes();
+  } else {
+    programRoutes();
+    suspender.dismiss();
+    unprogramRoutes();
+    suspender.rehire();
   }
 }
 

@@ -124,6 +124,14 @@ template <typename EcmpDataPlateUtils, bool kWideEcmp = false>
 class AgentIp2MplsLoadBalancerTest
     : public AgentLoadBalancerTest<EcmpDataPlateUtils, kWideEcmp> {
  public:
+  std::vector<production_features::ProductionFeature>
+  getProductionFeaturesVerified() const override {
+    auto features = AgentLoadBalancerTest<EcmpDataPlateUtils, kWideEcmp>::
+        getProductionFeaturesVerified();
+    features.push_back(production_features::ProductionFeature::MPLS);
+    return features;
+  }
+
   std::unique_ptr<EcmpDataPlateUtils> getECMPHelper() override {
     if (!this->getEnsemble()) {
       // run during listing produciton features
@@ -141,6 +149,13 @@ template <
 class AgentMpls2MplsLoadBalancerTest
     : public AgentLoadBalancerTest<EcmpDataPlateUtils, kWideEcmp> {
  public:
+  std::vector<production_features::ProductionFeature>
+  getProductionFeaturesVerified() const override {
+    auto features = AgentLoadBalancerTest<EcmpDataPlateUtils, kWideEcmp>::
+        getProductionFeaturesVerified();
+    features.push_back(production_features::ProductionFeature::MPLS);
+    return features;
+  }
   std::unique_ptr<EcmpDataPlateUtils> getECMPHelper() override {
     if (!this->getEnsemble()) {
       // run during listing produciton features

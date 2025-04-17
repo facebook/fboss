@@ -434,7 +434,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 39,
+        "profileID": 50,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -470,7 +470,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 39,
+        "profileID": 50,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -506,7 +506,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 39,
+        "profileID": 50,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -542,7 +542,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 39,
+        "profileID": 50,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -578,7 +578,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 39,
+        "profileID": 50,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -614,7 +614,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 39,
+        "profileID": 50,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -650,7 +650,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 39,
+        "profileID": 50,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -686,7 +686,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 39,
+        "profileID": 50,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -722,7 +722,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 39,
+        "profileID": 50,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -758,7 +758,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 39,
+        "profileID": 50,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -794,7 +794,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 39,
+        "profileID": 50,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -830,7 +830,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 39,
+        "profileID": 50,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -866,7 +866,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 39,
+        "profileID": 50,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -902,7 +902,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 39,
+        "profileID": 50,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -938,7 +938,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 39,
+        "profileID": 50,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -974,7 +974,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 39,
+        "profileID": 50,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -7166,7 +7166,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 39,
+        "profileID": 50,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -7202,7 +7202,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 39,
+        "profileID": 50,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -7238,7 +7238,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 39,
+        "profileID": 50,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -7274,7 +7274,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 39,
+        "profileID": 50,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -7310,7 +7310,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 39,
+        "profileID": 50,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -7346,7 +7346,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 39,
+        "profileID": 50,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -7382,7 +7382,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 39,
+        "profileID": 50,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -7418,7 +7418,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 39,
+        "profileID": 50,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -7454,7 +7454,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 39,
+        "profileID": 50,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -7490,7 +7490,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 39,
+        "profileID": 50,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -7526,7 +7526,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 39,
+        "profileID": 50,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -7562,7 +7562,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 39,
+        "profileID": 50,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -7598,7 +7598,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 39,
+        "profileID": 50,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -7634,7 +7634,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 39,
+        "profileID": 50,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -7670,7 +7670,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 39,
+        "profileID": 50,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -7706,7 +7706,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 39,
+        "profileID": 50,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -9445,7 +9445,7 @@
       },
       {
         "logicalID": 3202,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -9465,7 +9465,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "fab1/30/1"
         },
         "lookupClasses": [
           
@@ -9481,7 +9481,7 @@
       },
       {
         "logicalID": 3203,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -9501,7 +9501,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "fab1/30/2"
         },
         "lookupClasses": [
           
@@ -9517,7 +9517,7 @@
       },
       {
         "logicalID": 3200,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -9537,7 +9537,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "fab1/30/3"
         },
         "lookupClasses": [
           
@@ -9553,7 +9553,7 @@
       },
       {
         "logicalID": 3201,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -9573,7 +9573,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "fab1/30/4"
         },
         "lookupClasses": [
           
@@ -9589,7 +9589,7 @@
       },
       {
         "logicalID": 3205,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -9609,7 +9609,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "fab1/30/5"
         },
         "lookupClasses": [
           
@@ -9625,7 +9625,7 @@
       },
       {
         "logicalID": 3207,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -9645,7 +9645,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "fab1/30/6"
         },
         "lookupClasses": [
           
@@ -9661,7 +9661,7 @@
       },
       {
         "logicalID": 3204,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -9681,7 +9681,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "fab1/30/7"
         },
         "lookupClasses": [
           
@@ -9697,7 +9697,7 @@
       },
       {
         "logicalID": 3206,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -9717,7 +9717,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "fab1/30/8"
         },
         "lookupClasses": [
           
@@ -13567,7 +13567,7 @@
         "scope": 1
       },
       {
-        "intfID": 2066,
+        "intfID": 62,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -13581,7 +13581,7 @@
         "scope": 1
       },
       {
-        "intfID": 2067,
+        "intfID": 63,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -13595,7 +13595,7 @@
         "scope": 1
       },
       {
-        "intfID": 2068,
+        "intfID": 64,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -13609,7 +13609,7 @@
         "scope": 1
       },
       {
-        "intfID": 2069,
+        "intfID": 65,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -14218,7 +14218,15 @@
             },
             "localSystemPortOffset": 10,
             "globalSystemPortOffset": 10,
-            "inbandPortId": 1
+            "inbandPortId": 1,
+            "firmwareNameToFirmwareInfo": {
+              "isolationFW": {
+                  "coreToUse": 5,
+                  "path": "/tmp/db/jericho3ai_a0/fi-2.4.0.1-GA.elf",
+                  "logPath": "/tmp/edk.log",
+                  "firmwareLoadType": 0
+              }
+            }
         },
         "4": {
             "switchType": 2,
@@ -14240,7 +14248,15 @@
             },
             "localSystemPortOffset": 54,
             "globalSystemPortOffset": 54,
-            "inbandPortId": 2049
+            "inbandPortId": 1,
+            "firmwareNameToFirmwareInfo": {
+              "isolationFW": {
+                  "coreToUse": 5,
+                  "path": "/tmp/db/jericho3ai_a0/fi-2.4.0.1-GA.elf",
+                  "logPath": "/tmp/edk.log",
+                  "firmwareLoadType": 0
+              }
+            }
         }
       },
       "vendorMacOuis": [
@@ -14297,7 +14313,7 @@
               }
             ]
           },
-          "inbandPortId": 2049
+          "inbandPortId": 1
       }
     },
     "defaultVoqConfig": [
@@ -14324,6 +14340,9 @@
         "name": "cpuVoq-low",
         "maxDynamicSharedBytes": 20971520
       }
+    ],
+    "mirrorOnDropReports": [
+      
     ]
   },
   "platform": {
@@ -14331,6 +14350,7 @@
       "asicConfig": {
         "common": {
           "config": {
+            "AI23_mode": "1",
             "appl_enable_oam.BCM8889X": "0",
             "appl_param_rcy_mirror_ports_range.BCM8889X": "100-143",
             "bcm_stat_interval": "1000000",
@@ -14412,6 +14432,7 @@
             "polled_irq_delay.BCM8889X_ADAPTER": "200000",
             "polled_irq_mode.BCM8889X_ADAPTER": "1",
             "port_fec_cc": "9",
+            "port_init_cl72.BCM8889X": "0",
             "port_init_speed_cc.BCM8889X": "200000",
             "port_init_speed_cd.BCM8889X": "400000",
             "port_init_speed_ce.BCM8889X": "100000",
@@ -14486,8 +14507,8 @@
             "sai_voq_wm_latency_enable": "1",
             "sat_enable.BCM8889X_ADAPTER": "1",
             "soc_family.BCM8889X": "BCM8889X",
-            "stable_location.BCM8889X": "3",
-            "stable_location.BCM8889X_ADAPTER": "3",
+            "stable_location.BCM8889X": "4",
+            "stable_location.BCM8889X_ADAPTER": "4",
             "stable_size.BCM8889X": "1450000000",
             "stable_size.BCM8889X_ADAPTER": "1450000000",
             "sw_state_max_size.BCM8889X": "1400000000",

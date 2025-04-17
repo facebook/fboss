@@ -3,6 +3,7 @@
 #pragma once
 
 #include "fboss/platform/helpers/PlatformFsUtils.h"
+#include "fboss/platform/helpers/PlatformUtils.h"
 #include "fboss/platform/platform_manager/gen-cpp2/platform_manager_config_types.h"
 
 DECLARE_bool(enable_pkg_mgmnt);
@@ -13,7 +14,9 @@ namespace facebook::fboss::platform::platform_manager {
 namespace package_manager {
 class SystemInterface {
  public:
-  explicit SystemInterface();
+  explicit SystemInterface(
+      const std::shared_ptr<PlatformUtils>& platformUtils =
+          std::make_shared<PlatformUtils>());
   virtual ~SystemInterface() = default;
   virtual bool loadKmod(const std::string& moduleName) const;
   virtual bool unloadKmod(const std::string& moduleName) const;
@@ -22,10 +25,13 @@ class SystemInterface {
   virtual std::vector<std::string> getInstalledRpms(
       const std::string& rpmBaseName) const;
   virtual int removeRpms(const std::vector<std::string>& installedRpms) const;
-  virtual std::string lsmod() const;
+  virtual std::set<std::string> lsmod() const;
   virtual bool isRpmInstalled(const std::string& rpmFullName) const;
   virtual std::string getHostKernelVersion() const;
   int installLocalRpm() const;
+
+ private:
+  std::shared_ptr<PlatformUtils> platformUtils_;
 };
 } // namespace package_manager
 
@@ -53,10 +59,12 @@ class PkgManager {
   void processLocalRpms() const;
   virtual void unloadBspKmods() const;
   virtual void loadRequiredKmods() const;
+  void removeInstalledRpms() const;
 
  private:
   std::string getKmodsRpmName() const;
   std::string getKmodsRpmBaseWithKernelName() const;
+  void closeWatchdogs() const;
 
   const PlatformConfig& platformConfig_;
   const std::shared_ptr<package_manager::SystemInterface> systemInterface_;

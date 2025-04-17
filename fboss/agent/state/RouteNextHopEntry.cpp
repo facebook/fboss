@@ -266,7 +266,7 @@ void RouteNextHopEntry::normalize(
     auto index = 0;
     for (auto entry : scaledWeights) {
       // percentage weight of total weight allocation for this member
-      auto allocation = (double)entry / scaledTotalWeight;
+      auto allocation = static_cast<double>(entry) / scaledTotalWeight;
       // measure of percentage weight deviation from ideal
       auto error = (allocation - idealWeights[index]) / idealWeights[index];
       // record the max error entry and it's key
@@ -329,6 +329,10 @@ RouteNextHopEntry::NextHopSet RouteNextHopEntry::normalizedNextHops() const {
   NextHopSet normalizedNextHops;
   // 1)
   for (const auto& nhop : getNextHopSet()) {
+    if (nhop.adjustedWeight() && nhop.adjustedWeight() == 0) {
+      // skip nexthops with adjusted weight set to 0
+      continue;
+    }
     normalizedNextHops.insert(ResolvedNextHop(
         nhop.addr(),
         nhop.intf(),

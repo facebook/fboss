@@ -242,7 +242,6 @@ cpp_library(
 
 fbpkg.builder(
     name = "fboss.emulation.fake_wedge_agent",
-    fail_on_redundant_configerator_fbpkg = False,
     path_actions = {
         "fake_wedge_agent": ":fake_wedge_agent",
     },

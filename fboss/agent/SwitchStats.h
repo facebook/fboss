@@ -9,10 +9,10 @@
  */
 #pragma once
 
-#include <boost/container/flat_map.hpp>
 #include <boost/noncopyable.hpp>
 #include <fb303/ThreadCachedServiceData.h>
 #include <fb303/detail/QuantileStatWrappers.h>
+#include <folly/concurrency/ConcurrentHashMap.h>
 #include <chrono>
 #include "fboss/agent/AggregatePortStats.h"
 #include "fboss/agent/InterfaceStats.h"
@@ -25,12 +25,12 @@ namespace facebook::fboss {
 
 class PortStats;
 
-typedef boost::container::flat_map<PortID, std::unique_ptr<PortStats>>
-    PortStatsMap;
-using AggregatePortStatsMap = boost::container::
-    flat_map<AggregatePortID, std::unique_ptr<AggregatePortStats>>;
+using PortStatsMap =
+    folly::ConcurrentHashMap<PortID, std::unique_ptr<PortStats>>;
+using AggregatePortStatsMap = folly::
+    ConcurrentHashMap<AggregatePortID, std::unique_ptr<AggregatePortStats>>;
 using InterfaceStatsMap =
-    boost::container::flat_map<InterfaceID, std::unique_ptr<InterfaceStats>>;
+    folly::ConcurrentHashMap<InterfaceID, std::unique_ptr<InterfaceStats>>;
 
 class SwitchStats : public boost::noncopyable {
  public:
@@ -86,6 +86,11 @@ class SwitchStats : public boost::noncopyable {
   void deleteInterfaceStats(InterfaceID intfID) {
     intfIDToStats_.erase(intfID);
   }
+
+  /*
+   * Change the name of a port. This will also reset its counters.
+   */
+  PortStats* updatePortName(PortID portID, const std::string& portName);
 
   void trappedPkt() {
     trapPkts_.addValue(1);
@@ -260,15 +265,6 @@ class SwitchStats : public boost::noncopyable {
     updateState_.addValue(us.count());
   }
 
-  void routeUpdate(std::chrono::microseconds us, uint64_t routes) {
-    // As syncFib() could include no routes.
-    if (routes == 0) {
-      routes = 1;
-    }
-    // TODO: add support for addRepeatedValue() in FSDB client-side library
-    routeUpdate_.addRepeatedValue(us.count() / routes, routes);
-  }
-
   void bgHeartbeatDelay(int delay) {
     bgHeartbeatDelay_.addValue(delay);
   }
@@ -440,6 +436,10 @@ class SwitchStats : public boost::noncopyable {
   }
   void failedDsfSubscription(const std::string& peerName, int value);
 
+  void fsdbPublishQueueLength(uint64_t value) {
+    fsdbPublishQueueLength_.addValue(value);
+  }
+
   void fillAgentStats(AgentStats& agentStats) const;
   void fillFabricReachabilityStats(
       FabricReachabilityStats& fabricReachabilityStats) const;
@@ -496,12 +496,32 @@ class SwitchStats : public boost::noncopyable {
     loPriPktsDropped_.addValue(1);
   }
 
+  void resourceAccountantRejectedUpdates() {
+    resourceAccountantRejectedUpdates_.addValue(1);
+  }
+
   void switchConfiguredMs(uint64_t ms) {
     switchConfiguredMs_.addValue(ms);
   }
   void setFabricOverdrainPct(int16_t switchIndex, int16_t overdrainPct);
 
   void setDrainState(int16_t switchIndex, cfg::SwitchDrainState drainState);
+
+  void setActivePortsWithoutSwitchReachability(
+      int16_t switchIndex,
+      int numPorts);
+
+  void setInactivePortsWithSwitchReachability(
+      int16_t switchIndex,
+      int numPorts);
+
+  void setNumActiveFabricLinksEligibleForMinLink(
+      int32_t virtualDeviceId,
+      int32_t numLinks);
+
+  void setNumActivePortsPerVirtualDevice(
+      int32_t virtualDeviceId,
+      int32_t numActivePorts);
 
   void hwAgentConnectionStatus(int switchIndex, bool connected) {
     CHECK_LT(switchIndex, hwAgentConnectionStatus_.size());
@@ -606,6 +626,11 @@ class SwitchStats : public boost::noncopyable {
   }
   int64_t getDsfUpdateFailred() const {
     return getCumulativeValue(dsfUpdateFailed_);
+  }
+
+  void switchReachabilityInconsistencyDetected(int16_t switchIndex) {
+    CHECK_LT(switchIndex, switchReachabilityInconsistencyDetected_.size());
+    switchReachabilityInconsistencyDetected_[switchIndex].addValue(1);
   }
 
   void getHwAgentStatus(
@@ -874,14 +899,9 @@ class SwitchStats : public boost::noncopyable {
   TLTimeseries dstLookupFailure_;
 
   /**
-   * Histogram for time used for SwSwitch::updateState() (in ms)
+   * Histogram for time used for SwSwitch::updateState() (in microsecond)
    */
-  TLHistogram updateState_;
-
-  /**
-   * Histogram for time used for route update (in microsecond)
-   */
-  TLHistogram routeUpdate_;
+  fb303::detail::QuantileStatWrapper updateState_;
 
   /**
    * Background thread heartbeat delay (ms)
@@ -1051,6 +1071,11 @@ class SwitchStats : public boost::noncopyable {
   TLTimeseries midPriPktsDropped_;
   TLTimeseries loPriPktsDropped_;
 
+  /**
+   * Number of updates queued in FSDB publish queue
+   */
+  TLHistogram fsdbPublishQueueLength_;
+
   // TODO: delete this once multi_switch becomes default
   TLTimeseries multiSwitchStatus_;
   TLTimeseries neighborTableUpdateFailure_;
@@ -1059,9 +1084,17 @@ class SwitchStats : public boost::noncopyable {
 
   TLTimeseries fwDrainedWithHighNumActiveFabricLinks_;
 
+  /**
+   * Number of state updates rejected by resource accountant
+   */
+  TLTimeseries resourceAccountantRejectedUpdates_;
+
   std::vector<TLCounter> hwAgentConnectionStatus_;
   std::vector<TLTimeseries> hwAgentUpdateTimeouts_;
   std::vector<HwAgentStreamConnectionStatus> thriftStreamConnectionStatus_;
+  std::vector<TLTimeseries> switchReachabilityInconsistencyDetected_;
+  std::vector<TLCounter> activePortsWithoutSwitchReachability_;
+  std::vector<TLCounter> inactivePortsWithSwitchReachability_;
 };
 
 } // namespace facebook::fboss

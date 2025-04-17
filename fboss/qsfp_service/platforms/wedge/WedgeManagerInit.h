@@ -59,6 +59,9 @@ std::unique_ptr<WedgeManager> createMeru800bfaWedgeManager(
 std::unique_ptr<WedgeManager> createMontblancWedgeManager(
     const std::string& platformMappingStr);
 
+std::unique_ptr<WedgeManager> createMinipack3NWedgeManager(
+    const std::string& platformMappingStr);
+
 std::unique_ptr<WedgeManager> createMorgan800ccWedgeManager(
     const std::string& platformMappingStr);
 

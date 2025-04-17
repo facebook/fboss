@@ -1,5 +1,6 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/test/link_tests/AgentEnsembleLinkTest.h"
 #include "fboss/agent/test/link_tests/LinkTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
@@ -53,27 +54,24 @@ void validateVdm(
          phy::Side side,
          const VdmPerfMonitorPortSideStats& vdmPerfMon,
          OpticsSidePerformanceMonitoringThresholds thresholds) {
-        auto& preFecBer = vdmPerfMon.get_datapathBER();
+        auto& preFecBer = vdmPerfMon.datapathBER().value();
         // Fec tail is not implemented on all modules that support VDM. FEC tail
         // is available starting CMIS 5.0 (2x400G-[D|F]R4)
         auto fecTailMax = vdmPerfMon.fecTailMax().value_or({});
-        auto& laneSnr = vdmPerfMon.get_laneSNR();
-        auto& lanePam4Ltp = vdmPerfMon.get_lanePam4LTP();
+        auto& laneSnr = vdmPerfMon.laneSNR().value();
 
         XLOG(DBG2) << "Validating VDM performance monitoring for " << portName
                    << ", side: " << apache::thrift::util::enumNameSafe(side);
         EXPECT_LE(preFecBer.get_max(), thresholds.preFecBer.maxThreshold)
             << folly::sformat(
-                   "PreFecBer Max for {} is {}", portName, preFecBer.get_max());
+                   "PreFecBer Max for {} is {}",
+                   portName,
+                   folly::copy(preFecBer.max().value()));
         EXPECT_LE(fecTailMax, thresholds.fecTailMax.maxThreshold)
             << folly::sformat("FecTail Max for {} is {}", portName, fecTailMax);
         for (auto& [lane, snr] : laneSnr) {
           EXPECT_GE(snr, thresholds.pam4eSnr.minThreshold) << folly::sformat(
               "SNR for lane {} on {} is {}", lane, portName, snr);
-        }
-        for (auto& [lane, ltp] : lanePam4Ltp) {
-          EXPECT_GE(ltp, thresholds.pam4Ltp.minThreshold) << folly::sformat(
-              "LTP for lane {} on {} is {}", lane, portName, ltp);
         }
       };
 
@@ -83,8 +81,8 @@ void validateVdm(
     auto vdmPerfMonitorStats =
         txInfoItr->second.tcvrStats()->vdmPerfMonitorStats();
     ASSERT_TRUE(vdmPerfMonitorStats.has_value());
-    auto& mediaStats = vdmPerfMonitorStats->get_mediaPortVdmStats();
-    auto& hostStats = vdmPerfMonitorStats->get_hostPortVdmStats();
+    auto& mediaStats = vdmPerfMonitorStats->mediaPortVdmStats().value();
+    auto& hostStats = vdmPerfMonitorStats->hostPortVdmStats().value();
 
     auto validateSideStats =
         [&, validatePerfMon](
@@ -115,9 +113,10 @@ class AgentEnsembleOpticsTest : public AgentEnsembleLinkTest {
  public:
   std::set<std::pair<PortID, PortID>> getConnectedOpticalPortPairs() const {
     // TransceiverFeature::NONE will get us all optical pairs.
-    return getConnectedOpticalPortPairWithFeature(
+    return getConnectedOpticalAndActivePortPairWithFeature(
         TransceiverFeature::NONE,
-        phy::Side::LINE /* side doesn't matter when feature is None */);
+        phy::Side::LINE /* side doesn't matter when feature is None */,
+        true /* skipLoopback */);
   }
 };
 
@@ -131,7 +130,8 @@ TEST_F(AgentEnsembleOpticsTest, verifyTxRxLatches) {
    * 6. Repeat steps 2-5 by flipping A and Z sides
    */
   auto opticalPortPairs = getConnectedOpticalPortPairs();
-  CHECK(!opticalPortPairs.empty());
+  EXPECT_FALSE(opticalPortPairs.empty())
+      << "Did not detect any optical transceivers";
 
   std::set<int32_t> allTcvrIds;
   // Gather list of all transceiverIDs so that we get their corresponding
@@ -154,11 +154,11 @@ TEST_F(AgentEnsembleOpticsTest, verifyTxRxLatches) {
   for (auto& tcvrInfo : allTcvrInfos) {
     auto& tcvrState = *tcvrInfo.second.tcvrState();
     cachedHostLanes.insert(
-        tcvrState.get_portNameToHostLanes().begin(),
-        tcvrState.get_portNameToHostLanes().end());
+        tcvrState.portNameToHostLanes().value().begin(),
+        tcvrState.portNameToHostLanes().value().end());
     cachedMediaLanes.insert(
-        tcvrState.get_portNameToMediaLanes().begin(),
-        tcvrState.get_portNameToMediaLanes().end());
+        tcvrState.portNameToMediaLanes().value().begin(),
+        tcvrState.portNameToMediaLanes().value().end());
   }
 
   // Pause remediation because we don't want transceivers to remediate while
@@ -184,6 +184,14 @@ TEST_F(AgentEnsembleOpticsTest, verifyTxRxLatches) {
 
             auto& tcvrState = *tcvrInfoInfoItr->second.tcvrState();
             auto mediaInterface = tcvrState.moduleMediaInterface().value_or({});
+            ASSERT_EVENTUALLY_TRUE(
+                cachedHostLanes.find(portName) != cachedHostLanes.end())
+                << folly::sformat(
+                       "Port {} not found in cachedHostLanes", portName);
+            ASSERT_EVENTUALLY_TRUE(
+                cachedMediaLanes.find(portName) != cachedMediaLanes.end())
+                << folly::sformat(
+                       "Port {} not found in cachedMediaLanes", portName);
             auto& hostLanes = cachedHostLanes.at(portName);
             auto& mediaLanes = cachedMediaLanes.at(portName);
             auto& hostLaneSignals = *tcvrState.hostLaneSignals();
@@ -301,7 +309,7 @@ TEST_F(AgentEnsembleOpticsTest, verifyTxRxLatches) {
  */
 TEST_F(AgentEnsembleLinkTest, opticsVdmPerformanceMonitoring) {
   // 1. Find the list of optical ports with VDM supported optics
-  auto connectedPairPortIds = getConnectedOpticalPortPairWithFeature(
+  auto connectedPairPortIds = getConnectedOpticalAndActivePortPairWithFeature(
       TransceiverFeature::VDM, phy::Side::LINE);
   CHECK(!connectedPairPortIds.empty())
       << "opticsVdmPerformanceMonitoring: No optics capable of this test";

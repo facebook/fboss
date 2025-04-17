@@ -36,7 +36,7 @@ std::string eventName(sai_switch_event_type_t type) {
     case SAI_SWITCH_EVENT_TYPE_LACK_OF_RESOURCES:
       return "SAI_SWITCH_EVENT_TYPE_LACK_OF_RESOURCES";
 #endif
-#if defined(TAJO_SDK_GTE_24_4_90)
+#if defined(TAJO_SDK_GTE_24_8_3001)
     case SAI_SWITCH_EVENT_TYPE_MAX:
       return "SAI_SWITCH_EVENT_TYPE_MAX";
 #endif
@@ -44,7 +44,7 @@ std::string eventName(sai_switch_event_type_t type) {
   return folly::to<std::string>("unknown event type: ", type);
 }
 
-#if defined(TAJO_SDK_GTE_24_4_90)
+#if defined(TAJO_SDK_GTE_24_8_3001)
 std::string correctionType(sai_tam_switch_event_ecc_err_type_t type) {
   switch (type) {
     case SAI_TAM_SWITCH_EVENT_ECC_ERR_TYPE_ECC_COR:
@@ -80,7 +80,7 @@ std::string lackOfResourceType(
 }
 #endif
 
-#if defined(TAJO_SDK_GTE_24_4_90)
+#if defined(TAJO_SDK_GTE_24_8_3001)
 std::string lackOfResourceType(
     const sai_tam_switch_event_lack_of_resources_err_type_t& type) {
   switch (type) {
@@ -112,7 +112,7 @@ void SaiSwitch::tamEventCallback(
     case SAI_SWITCH_EVENT_TYPE_PARITY_ERROR: {
       auto errorType = eventDesc->event.switch_event.data.parity_error.err_type;
       switch (errorType) {
-#if defined(TAJO_SDK_GTE_24_4_90)
+#if defined(TAJO_SDK_GTE_24_8_3001)
         case SAI_TAM_SWITCH_EVENT_ECC_ERR_TYPE_ECC_COR:
           getSwitchStats()->corrParityError();
           break;
@@ -132,7 +132,7 @@ void SaiSwitch::tamEventCallback(
       }
       sstream << ", correction type=" << correctionType(errorType);
     } break;
-#if defined(TAJO_SDK_EBRO) || defined(TAJO_SDK_GTE_24_4_90)
+#if defined(TAJO_SDK_EBRO) || defined(TAJO_SDK_GTE_24_8_3001)
     case SAI_SWITCH_EVENT_TYPE_LACK_OF_RESOURCES:
       // Log error for now!
       XLOG(ERR) << lackOfResourceType(eventDesc->event.switch_event.data
@@ -148,7 +148,7 @@ void SaiSwitch::tamEventCallback(
       getSwitchStats()->asicError();
       break;
     case SAI_SWITCH_EVENT_TYPE_NONE:
-#if defined(TAJO_SDK_GTE_24_4_90)
+#if defined(TAJO_SDK_GTE_24_8_3001)
     case SAI_SWITCH_EVENT_TYPE_MAX:
 #endif
       // no-op

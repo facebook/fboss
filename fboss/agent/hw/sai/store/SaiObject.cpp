@@ -236,5 +236,21 @@ SaiObject<SaiUdfGroupTraits>::follyDynamicToAdapterHostKey(
     const folly::dynamic& json) {
   return json.asString();
 }
+
+#if defined(CHENAB_SAI_SDK)
+template <>
+folly::dynamic SaiObject<SaiAclCounterTraits>::adapterHostKeyToFollyDynamic() {
+  // TODO: implement this
+  return folly::dynamic::object;
+}
+
+template <>
+typename SaiAclCounterTraits::AdapterHostKey
+SaiObject<SaiAclCounterTraits>::follyDynamicToAdapterHostKey(
+    const folly::dynamic& json) {
+  // TODO: implement this
+  return SaiAclCounterTraits::AdapterHostKey{};
+}
+#endif
 } // namespace fboss
 } // namespace facebook

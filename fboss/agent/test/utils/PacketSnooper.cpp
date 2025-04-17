@@ -6,7 +6,21 @@
 #include "fboss/agent/RxPacket.h"
 #include "fboss/agent/SwSwitch.h"
 
+DECLARE_bool(rx_vlan_untagged_packets);
+
 namespace facebook::fboss::utility {
+PacketSnooper::PacketSnooper(
+    std::optional<PortID> port,
+    std::optional<utility::EthFrame> expectedFrame,
+    PacketComparatorFn packetComparator)
+    : port_(port),
+      expectedFrame_(std::move(expectedFrame)),
+      packetComparator_(std::move(packetComparator)) {
+  if (FLAGS_rx_vlan_untagged_packets) {
+    /* strip vlans as rx will always be untagged */
+    expectedFrame_->stripVlans();
+  }
+}
 
 void PacketSnooper::packetReceived(const RxPacket* pkt) noexcept {
   XLOG(DBG2) << "pkt received on port " << pkt->getSrcPort();
@@ -25,9 +39,7 @@ void PacketSnooper::packetReceived(const RxPacket* pkt) noexcept {
                  << " got: " << *frame;
       return;
     }
-  }
-
-  if (expectedFrame_.has_value() && *expectedFrame_ != *frame) {
+  } else if (expectedFrame_.has_value() && *expectedFrame_ != *frame) {
     XLOG(DBG2) << " Unexpected packet received "
                << " expected: " << *expectedFrame_ << std::endl
                << " got: " << *frame;
@@ -64,7 +76,10 @@ SwSwitchPacketSnooper::SwSwitchPacketSnooper(
     std::optional<PortID> port,
     std::optional<utility::EthFrame> expectedFrame,
     PacketComparatorFn packetComparator)
-    : PacketSnooper(port, std::move(expectedFrame), packetComparator),
+    : PacketSnooper(
+          port,
+          std::move(expectedFrame),
+          std::move(packetComparator)),
       sw_(sw),
       name_(name) {
   sw_->getPacketObservers()->registerPacketObserver(this, name_);

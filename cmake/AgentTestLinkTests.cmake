@@ -27,6 +27,7 @@ target_link_libraries(link_tests
   load_balancer_test_utils
   load_balancer_utils
   olympic_qos_utils
+  network_ai_qos_utils
   port_test_utils
   copp_test_utils
   packet_snooper
@@ -66,6 +67,7 @@ target_link_libraries(agent_ensemble_link_tests
   load_balancer_test_utils
   load_balancer_utils
   olympic_qos_utils
+  network_ai_qos_utils
   port_test_utils
   copp_test_utils
   packet_snooper

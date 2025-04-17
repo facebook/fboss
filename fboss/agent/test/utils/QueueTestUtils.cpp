@@ -8,9 +8,9 @@
  *
  */
 #include "fboss/agent/test/utils/QueueTestUtils.h"
-
+#include "fboss/agent/AgentFeatures.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
-#include "fboss/agent/test/utils/ConfigUtils.h"
 
 namespace facebook::fboss::utility {
 
@@ -67,10 +67,6 @@ std::string get2QueueCounterNameForDscp(uint8_t dscp) {
   return folly::to<std::string>("dscp", dscp, "_counter");
 }
 
-void add2QueueQosMaps(cfg::SwitchConfig& cfg, const HwAsic* hwAsic) {
-  addQosMapsHelper(cfg, k2QueueToDscp(), "2queue", {hwAsic});
-}
-
 const std::map<int, std::vector<uint8_t>>& k2QueueToDscp() {
   static const std::map<int, std::vector<uint8_t>> queueToDscp = {
       {k2QueueLowPriQueueId,
@@ -119,6 +115,63 @@ const std::vector<int>& k2QueueWRRAndNCQueueIds() {
 bool is2QueueWRRQueueId(int queueId) {
   return k2QueueWRRQueueToWeight().find(queueId) !=
       k2QueueWRRQueueToWeight().end();
+}
+
+int getTrafficClassToCpuEgressQueueId(const HwAsic* hwAsic, int trafficClass) {
+  if (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
+    // Jericho3 only has two egress queues for cpu port and recycle port
+    // match default/low/med to queue 0, high to 1
+    return trafficClass == 7 ? 1 : 0;
+  }
+  // same one-to-one tc to queue mapping for other platforms
+  return trafficClass;
+}
+
+int getTrafficClassToEgressQueueId(const HwAsic* hwAsic, int trafficClass) {
+  if (isDualStage3Q2QQos()) {
+    if (trafficClass == 7) {
+      // tc 7 -> nc egq 7
+      return 7;
+    } else if (trafficClass == 2) {
+      // tc 2 -> rdma egq 2
+      return 2;
+    }
+    // all other tc -> default egq 6
+    return 6;
+  }
+  // same one-to-one tc to queue mapping for other platforms
+  return trafficClass;
+}
+
+int getAqmGranularThreshold(const HwAsic& asic, int value) {
+  return ceil(value / asic.getThresholdGranularity()) *
+      asic.getThresholdGranularity();
+}
+
+cfg::ActiveQueueManagement
+GetEcnConfig(const HwAsic& asic, int minLength, int maxLength) {
+  cfg::ActiveQueueManagement ecnAQM;
+  cfg::LinearQueueCongestionDetection ecnLQCD;
+  ecnLQCD.minimumLength() = getAqmGranularThreshold(asic, minLength);
+  ecnLQCD.maximumLength() = getAqmGranularThreshold(asic, maxLength);
+  ecnAQM.detection()->linear_ref() = ecnLQCD;
+  ecnAQM.behavior() = cfg::QueueCongestionBehavior::ECN;
+  return ecnAQM;
+}
+
+cfg::ActiveQueueManagement GetWredConfig(
+    const HwAsic& asic,
+    int minLength,
+    int maxLength,
+    int probability) {
+  cfg::ActiveQueueManagement wredAQM;
+  cfg::LinearQueueCongestionDetection wredLQCD;
+  wredLQCD.minimumLength() = getAqmGranularThreshold(asic, minLength);
+  wredLQCD.maximumLength() = getAqmGranularThreshold(asic, maxLength);
+  wredLQCD.probability() = probability;
+  wredAQM.detection()->linear_ref() = wredLQCD;
+  wredAQM.behavior() = cfg::QueueCongestionBehavior::EARLY_DROP;
+  return wredAQM;
 }
 
 } // namespace facebook::fboss::utility

@@ -173,12 +173,20 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
           getCounterPrefix() + "rqp_parity_error_drops",
           SUM,
           RATE),
-      fabricReachabilityMissingCount_(
+      tc0RateLimitDrops_(
           map,
-          getCounterPrefix() + "fabric_reachability_missing"),
-      fabricReachabilityMismatchCount_(
+          getCounterPrefix() + "tc0_rate_limit_drops",
+          SUM,
+          RATE),
+      fabricConnectivityMissingCount_(
           map,
-          getCounterPrefix() + "fabric_reachability_mismatch"),
+          getCounterPrefix() + "fabric_connectivity_missing"),
+      fabricConnectivityMismatchCount_(
+          map,
+          getCounterPrefix() + "fabric_connectivity_mismatch"),
+      fabricConnectivityBogusCount_(
+          map,
+          getCounterPrefix() + "fabric_connectivity_bogus"),
       virtualDevicesWithAsymmetricConnectivity_(
           map,
           getCounterPrefix() + "virtual_devices_with_asymmetric_connectivity"),
@@ -221,6 +229,136 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
           getCounterPrefix() + vendor + ".allReassemblyContextsTaken.errors",
           SUM,
           RATE),
+      isolationFirmwareCrashes_(
+          map,
+          getCounterPrefix() + vendor + ".isolationFirmwareCrash",
+          SUM,
+          RATE),
+      rxFifoStuckDetected_(
+          map,
+          getCounterPrefix() + vendor + ".rxFifoStuckDetected.errors",
+          SUM,
+          RATE),
+      congestionManagementErrors_(
+          map,
+          getCounterPrefix() + vendor + ".congestion_management.errors",
+          SUM,
+          RATE),
+      dramDataPathErrors_(
+          map,
+          getCounterPrefix() + vendor + ".dram_data_path.errors",
+          SUM,
+          RATE),
+      dramQueueManagementErrors_(
+          map,
+          getCounterPrefix() + vendor + ".dram_queue_management.errors",
+          SUM,
+          RATE),
+      egressCongestionManagementErrors_(
+          map,
+          getCounterPrefix() + vendor + ".egress_congestion_management.errors",
+          SUM,
+          RATE),
+      egressDataBufferErrors_(
+          map,
+          getCounterPrefix() + vendor + ".egress_data_buffer.errors",
+          SUM,
+          RATE),
+      fabricControlReceiveErrors_(
+          map,
+          getCounterPrefix() + vendor + ".fabric_control_receive.errors",
+          SUM,
+          RATE),
+      fabricControlTransmitErrors_(
+          map,
+          getCounterPrefix() + vendor + ".fabric_control_transmit.errors",
+          SUM,
+          RATE),
+      fabricDataAggregateErrors_(
+          map,
+          getCounterPrefix() + vendor + ".fabric_data_aggregate.errors",
+          SUM,
+          RATE),
+      fabricDataReceiveErrors_(
+          map,
+          getCounterPrefix() + vendor + ".fabric_data_receive.errors",
+          SUM,
+          RATE),
+      fabricDataTransmitErrors_(
+          map,
+          getCounterPrefix() + vendor + ".fabric_data_transmit.errors",
+          SUM,
+          RATE),
+      fabricMacErrors_(
+          map,
+          getCounterPrefix() + vendor + ".fabric_mac.errors",
+          SUM,
+          RATE),
+      ingressPacketSchedulerErrors_(
+          map,
+          getCounterPrefix() + vendor + ".ingress_packet_scheduler.errors",
+          SUM,
+          RATE),
+      ingressPacketTransmitErrors_(
+          map,
+          getCounterPrefix() + vendor + ".ingress_packet_transmit.errors",
+          SUM,
+          RATE),
+      managementUnitErrors_(
+          map,
+          getCounterPrefix() + vendor + ".management_unit.errors",
+          SUM,
+          RATE),
+      nifBufferUnitErrors_(
+          map,
+          getCounterPrefix() + vendor + ".nif_buffer.errors",
+          SUM,
+          RATE),
+      nifManagementErrors_(
+          map,
+          getCounterPrefix() + vendor + ".nif_management.errors",
+          SUM,
+          RATE),
+      onChipBufferMemoryErrors_(
+          map,
+          getCounterPrefix() + vendor + ".on_chip_buffer_memory.errors",
+          SUM,
+          RATE),
+      packetDescriptorMemoryErrors_(
+          map,
+          getCounterPrefix() + vendor + ".packet_descriptor_memory.errors",
+          SUM,
+          RATE),
+      packetQueueProcessorErrors_(
+          map,
+          getCounterPrefix() + vendor + ".packet_queue_processor.errors",
+          SUM,
+          RATE),
+      receiveQueueProcessorErrors_(
+          map,
+          getCounterPrefix() + vendor + ".receive_queue_processor.errors",
+          SUM,
+          RATE),
+      schedulerErrors_(
+          map,
+          getCounterPrefix() + vendor + ".scheduler.errors",
+          SUM,
+          RATE),
+      sramPacketBufferErrors_(
+          map,
+          getCounterPrefix() + vendor + ".sram_packet_buffer.errors",
+          SUM,
+          RATE),
+      sramQueueManagementErrors_(
+          map,
+          getCounterPrefix() + vendor + ".sram_queue_management.errors",
+          SUM,
+          RATE),
+      tmActionResolutionErrors_(
+          map,
+          getCounterPrefix() + vendor + ".tm_action_resolution.errors",
+          SUM,
+          RATE),
       hwInitializedTimeMs_(
           map,
           getCounterPrefix() + vendor + ".hw_initialized_time_ms",
@@ -254,7 +392,17 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
           map,
           getCounterPrefix() + "invalid_queue_rx_packets",
           SUM,
-          RATE) {}
+          RATE),
+      arsResourceExhausted_(map, getCounterPrefix() + "ars_resource_exhausted"),
+      isolationFirmwareVersion_(
+          map,
+          getCounterPrefix() + "isolation_firmware_version"),
+      isolationFirmwareOpStatus_(
+          map,
+          getCounterPrefix() + "isolation_firmware_op_status"),
+      isolationFirmwareFuncStatus_(
+          map,
+          getCounterPrefix() + "isolation_firmware_functional_status") {}
 
 void HwSwitchFb303Stats::update(const HwSwitchDropStats& dropStats) {
   if (dropStats.globalDrops().has_value()) {
@@ -341,6 +489,11 @@ void HwSwitchFb303Stats::update(const HwSwitchDropStats& dropStats) {
         *dropStats.rqpParityErrorDrops() -
         currentDropStats_.rqpParityErrorDrops().value_or(0));
   }
+  if (dropStats.tc0RateLimitDrops().has_value()) {
+    tc0RateLimitDrops_.addValue(
+        *dropStats.tc0RateLimitDrops() -
+        currentDropStats_.tc0RateLimitDrops().value_or(0));
+  }
 
   currentDropStats_ = dropStats;
 }
@@ -414,6 +567,111 @@ int64_t HwSwitchFb303Stats::getForwardingQueueProcessorErrors() const {
 int64_t HwSwitchFb303Stats::getAllReassemblyContextsTakenError() const {
   return getCumulativeValue(allReassemblyContextsTaken_);
 }
+
+int64_t HwSwitchFb303Stats::getCongestionManagementErrors() const {
+  return getCumulativeValue(congestionManagementErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getDramDataPathErrors() const {
+  return getCumulativeValue(dramDataPathErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getDramQueueManagementErrors() const {
+  return getCumulativeValue(dramQueueManagementErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getEgressCongestionManagementErrors() const {
+  return getCumulativeValue(egressCongestionManagementErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getEgressDataBufferErrors() const {
+  return getCumulativeValue(egressDataBufferErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getFabricControlReceiveErrors() const {
+  return getCumulativeValue(fabricControlReceiveErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getFabricControlTransmitErrors() const {
+  return getCumulativeValue(fabricControlTransmitErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getFabricDataAggregateErrors() const {
+  return getCumulativeValue(fabricDataAggregateErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getFabricDataReceiveErrors() const {
+  return getCumulativeValue(fabricDataReceiveErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getFabricDataTransmitErrors() const {
+  return getCumulativeValue(fabricDataTransmitErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getFabricMacErrors() const {
+  return getCumulativeValue(fabricMacErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getIngressPacketSchedulerErrors() const {
+  return getCumulativeValue(ingressPacketSchedulerErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getIngressPacketTransmitErrors() const {
+  return getCumulativeValue(ingressPacketTransmitErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getManagementUnitErrors() const {
+  return getCumulativeValue(managementUnitErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getNifBufferUnitErrors() const {
+  return getCumulativeValue(nifBufferUnitErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getNifManagementErrors() const {
+  return getCumulativeValue(nifManagementErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getOnChipBufferMemoryErrors() const {
+  return getCumulativeValue(onChipBufferMemoryErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getPacketDescriptorMemoryErrors() const {
+  return getCumulativeValue(packetDescriptorMemoryErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getPacketQueueProcessorErrors() const {
+  return getCumulativeValue(packetQueueProcessorErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getReceiveQueueProcessorErrors() const {
+  return getCumulativeValue(receiveQueueProcessorErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getSchedulerErrors() const {
+  return getCumulativeValue(schedulerErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getSramPacketBufferErrors() const {
+  return getCumulativeValue(sramPacketBufferErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getSramQueueManagementErrors() const {
+  return getCumulativeValue(sramQueueManagementErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getTmActionResolutionErrors() const {
+  return getCumulativeValue(tmActionResolutionErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getIsolationFirmwareCrashes() const {
+  return getCumulativeValue(isolationFirmwareCrashes_);
+}
+
+int64_t HwSwitchFb303Stats::getRxFifoStuckDetected() const {
+  return getCumulativeValue(rxFifoStuckDetected_);
+}
+
 int64_t HwSwitchFb303Stats::getPacketIntegrityDrops() const {
   return currentDropStats_.packetIntegrityDrops().value_or(0);
 }
@@ -474,25 +732,57 @@ HwAsicErrors HwSwitchFb303Stats::getHwAsicErrors() const {
   asicErrors.fdaFifoOverflowErrors() = getFdaFifoOverflowErrors();
   asicErrors.allReassemblyContextsTaken() =
       getAllReassemblyContextsTakenError();
+  asicErrors.isolationFirmwareCrashes() = getIsolationFirmwareCrashes();
+  asicErrors.rxFifoStuckDetected() = getRxFifoStuckDetected();
+  asicErrors.congestionManagementErrors() = getCongestionManagementErrors();
+  asicErrors.dramDataPathErrors() = getDramDataPathErrors();
+  asicErrors.dramQueueManagementErrors() = getDramQueueManagementErrors();
+  asicErrors.egressCongestionManagementErrors() =
+      getEgressCongestionManagementErrors();
+  asicErrors.egressDataBufferErrors() = getEgressDataBufferErrors();
+  asicErrors.fabricControlReceiveErrors() = getFabricControlReceiveErrors();
+  asicErrors.fabricControlTransmitErrors() = getFabricControlTransmitErrors();
+  asicErrors.fabricDataAggregateErrors() = getFabricDataAggregateErrors();
+  asicErrors.fabricDataReceiveErrors() = getFabricDataReceiveErrors();
+  asicErrors.fabricDataTransmitErrors() = getFabricDataTransmitErrors();
+  asicErrors.fabricMacErrors() = getFabricMacErrors();
+  asicErrors.ingressPacketSchedulerErrors() = getIngressPacketSchedulerErrors();
+  asicErrors.ingressPacketTransmitErrors() = getIngressPacketTransmitErrors();
+  asicErrors.managementUnitErrors() = getManagementUnitErrors();
+  asicErrors.nifBufferUnitErrors() = getNifBufferUnitErrors();
+  asicErrors.nifManagementErrors() = getNifManagementErrors();
+  asicErrors.onChipBufferMemoryErrors() = getOnChipBufferMemoryErrors();
+  asicErrors.packetDescriptorMemoryErrors() = getPacketDescriptorMemoryErrors();
+  asicErrors.packetQueueProcessorErrors() = getPacketQueueProcessorErrors();
+  asicErrors.receiveQueueProcessorErrors() = getReceiveQueueProcessorErrors();
+  asicErrors.schedulerErrors() = getSchedulerErrors();
+  asicErrors.sramPacketBufferErrors() = getSramPacketBufferErrors();
+  asicErrors.sramQueueManagementErrors() = getSramQueueManagementErrors();
+  asicErrors.tmActionResolutionErrors() = getTmActionResolutionErrors();
   return asicErrors;
 }
 
 FabricReachabilityStats HwSwitchFb303Stats::getFabricReachabilityStats() {
   FabricReachabilityStats stats;
-  stats.mismatchCount() = getFabricReachabilityMismatchCount();
-  stats.missingCount() = getFabricReachabilityMissingCount();
+  stats.mismatchCount() = getFabricConnectivityMismatchCount();
+  stats.missingCount() = getFabricConnectivityMissingCount();
   stats.virtualDevicesWithAsymmetricConnectivity() =
       getVirtualDevicesWithAsymmetricConnectivityCount();
   stats.switchReachabilityChangeCount() = getSwitchReachabilityChangeCount();
+  stats.bogusCount() = getFabricConnectivityBogusCount();
   return stats;
 }
 
-void HwSwitchFb303Stats::fabricReachabilityMissingCount(int64_t value) {
-  fb303::fbData->setCounter(fabricReachabilityMissingCount_.name(), value);
+void HwSwitchFb303Stats::fabricConnectivityMissingCount(int64_t value) {
+  fb303::fbData->setCounter(fabricConnectivityMissingCount_.name(), value);
 }
 
-void HwSwitchFb303Stats::fabricReachabilityMismatchCount(int64_t value) {
-  fb303::fbData->setCounter(fabricReachabilityMismatchCount_.name(), value);
+void HwSwitchFb303Stats::fabricConnectivityMismatchCount(int64_t value) {
+  fb303::fbData->setCounter(fabricConnectivityMismatchCount_.name(), value);
+}
+
+void HwSwitchFb303Stats::fabricConnectivityBogusCount(int64_t value) {
+  fb303::fbData->setCounter(fabricConnectivityBogusCount_.name(), value);
 }
 
 void HwSwitchFb303Stats::virtualDevicesWithAsymmetricConnectivity(
@@ -516,15 +806,37 @@ void HwSwitchFb303Stats::leabaSdkVer(int64_t ver) {
   fb303::fbData->setCounter(leabaSdkVer_.name(), ver);
 }
 
-int64_t HwSwitchFb303Stats::getFabricReachabilityMismatchCount() const {
+void HwSwitchFb303Stats::arsResourceExhausted(bool exhausted) {
+  fb303::fbData->setCounter(arsResourceExhausted_.name(), exhausted ? 1 : 0);
+}
+
+void HwSwitchFb303Stats::isolationFirmwareVersion(int64_t ver) {
+  fb303::fbData->setCounter(isolationFirmwareVersion_.name(), ver);
+}
+
+void HwSwitchFb303Stats::isolationFirmwareOpStatus(int64_t opStatus) {
+  fb303::fbData->setCounter(isolationFirmwareOpStatus_.name(), opStatus);
+}
+
+void HwSwitchFb303Stats::isolationFirmwareFuncStatus(int64_t funcStatus) {
+  fb303::fbData->setCounter(isolationFirmwareFuncStatus_.name(), funcStatus);
+}
+
+int64_t HwSwitchFb303Stats::getFabricConnectivityMismatchCount() const {
   auto counterVal = fb303::fbData->getCounterIfExists(
-      fabricReachabilityMismatchCount_.name());
+      fabricConnectivityMismatchCount_.name());
   return counterVal ? *counterVal : 0;
 }
 
-int64_t HwSwitchFb303Stats::getFabricReachabilityMissingCount() const {
+int64_t HwSwitchFb303Stats::getFabricConnectivityMissingCount() const {
   auto counterVal =
-      fb303::fbData->getCounterIfExists(fabricReachabilityMissingCount_.name());
+      fb303::fbData->getCounterIfExists(fabricConnectivityMissingCount_.name());
+  return counterVal ? *counterVal : 0;
+}
+
+int64_t HwSwitchFb303Stats::getFabricConnectivityBogusCount() const {
+  auto counterVal =
+      fb303::fbData->getCounterIfExists(fabricConnectivityBogusCount_.name());
   return counterVal ? *counterVal : 0;
 }
 
@@ -558,9 +870,10 @@ HwSwitchFb303GlobalStats HwSwitchFb303Stats::getAllFb303Stats() const {
   hwFb303Stats.dram_blocked_time_ns() =
       getCumulativeValue(dramBlockedTimeNsec_);
   hwFb303Stats.fabric_reachability_missing() =
-      getFabricReachabilityMismatchCount();
+      getFabricConnectivityMismatchCount();
   hwFb303Stats.fabric_reachability_mismatch() =
-      getFabricReachabilityMissingCount();
+      getFabricConnectivityMissingCount();
+  hwFb303Stats.fabric_connectivity_bogus() = getFabricConnectivityBogusCount();
   hwFb303Stats.virtual_devices_with_asymmetric_connectivity() =
       getVirtualDevicesWithAsymmetricConnectivityCount();
   hwFb303Stats.switch_reachability_change() =
@@ -612,11 +925,14 @@ void HwSwitchFb303Stats::updateStats(HwSwitchFb303GlobalStats& globalStats) {
       switchReachabilityChangeCount_,
       *globalStats.switch_reachability_change());
   fb303::fbData->setCounter(
-      fabricReachabilityMissingCount_.name(),
+      fabricConnectivityMissingCount_.name(),
       *globalStats.fabric_reachability_missing());
   fb303::fbData->setCounter(
-      fabricReachabilityMismatchCount_.name(),
+      fabricConnectivityMismatchCount_.name(),
       *globalStats.fabric_reachability_mismatch());
+  fb303::fbData->setCounter(
+      fabricConnectivityBogusCount_.name(),
+      *globalStats.fabric_connectivity_bogus());
 }
 
 } // namespace facebook::fboss

@@ -86,6 +86,9 @@ class SaiSwitch : public HwSwitch {
    * port RIF is enough to get the egress port.
    */
   bool needL2EntryForNeighbor() const override {
+    if (asicType_ == cfg::AsicType::ASIC_TYPE_CHENAB) {
+      return false;
+    }
     return getSwitchType() == cfg::SwitchType::NPU;
   }
 
@@ -136,6 +139,10 @@ class SaiSwitch : public HwSwitch {
   void clearPortAsicPrbsStats(PortID portId) override;
   prbs::InterfacePrbsState getPortPrbsState(PortID portId) override;
 
+  void clearSignalDetectAndLockChangedStats(const PortID& portId);
+  void clearInterfacePhyCounters(
+      const std::unique_ptr<std::vector<int32_t>>& ports) override;
+
   cfg::PortSpeed getPortMaxSpeed(PortID port) const override;
 
   void linkStateChangedCallbackTopHalf(
@@ -150,10 +157,12 @@ class SaiSwitch : public HwSwitch {
       const void* buffer,
       uint32_t event_type);
   void pfcDeadlockNotificationCallback(
-      PortSaiId portSaiId,
-      uint8_t queueId,
-      sai_queue_pfc_deadlock_event_type_t deadlockEvent,
-      uint32_t count);
+      uint32_t count,
+      const sai_queue_deadlock_notification_data_t* data);
+  void vendorSwitchEventNotificationCallback(
+      sai_size_t bufferSize,
+      const void* buffer,
+      uint32_t eventType);
 
   void txReadyStatusChangeCallbackTopHalf(SwitchSaiId switchId);
   void linkConnectivityChanged(
@@ -240,6 +249,10 @@ class SaiSwitch : public HwSwitch {
 
   void injectSwitchReachabilityChangeNotification() override;
 
+  bool getArsExhaustionStatus() override;
+
+  std::vector<FirmwareInfo> getAllFirmwareInfo() const override;
+
  private:
   void gracefulExitImpl() override;
 
@@ -309,9 +322,12 @@ class SaiSwitch : public HwSwitch {
       const std::lock_guard<std::mutex>& lock,
       std::vector<L2EntryThrift>* l2Table) const;
 
-  const std::map<PortID, FabricEndpoint>& getFabricConnectivityLocked() const;
+  const std::map<PortID, FabricEndpoint>& getFabricConnectivityLocked(
+      const std::lock_guard<std::mutex>& lock) const;
 
-  std::vector<PortID> getSwitchReachabilityLocked(SwitchID switchId) const;
+  std::vector<PortID> getSwitchReachabilityLocked(
+      const std::lock_guard<std::mutex>& lock,
+      SwitchID switchId) const;
   std::map<int64_t, FabricConnectivityManager::RemoteConnectionGroups>
   getVirtualDeviceToRemoteConnectionGroupsLocked(
       const std::lock_guard<std::mutex>& lock) const;
@@ -390,7 +406,11 @@ class SaiSwitch : public HwSwitch {
       bool fwIsolated = false,
       const std::optional<uint32_t>& numActiveFabricPortsAtFwIsolate =
           std::nullopt);
-  void switchReachabilityChangeBottomHalf();
+
+  void setSwitchReachabilityChangePending();
+  std::map<SwitchID, std::set<PortID>> getSwitchReachabilityChange();
+  void processSwitchReachabilityChange(
+      const std::map<SwitchID, std::set<PortID>>& reachabilityInfo);
   std::set<PortID> getFabricReachabilityPortIds(
       const std::vector<sai_object_id_t>& switchIdAndFabricPortSaiIds) const;
 
@@ -553,12 +573,13 @@ class SaiSwitch : public HwSwitch {
   void initialStateApplied() override;
 
   template <typename LockPolicyT>
-  void processFlowletSwitchingConfigDelta(
+  void processFlowletSwitchingConfigAdded(
       const StateDelta& delta,
       const LockPolicyT& lockPolicy);
-  void processFlowletSwitchingConfigDeltaLocked(
+  template <typename LockPolicyT>
+  void processFlowletSwitchingConfigChanged(
       const StateDelta& delta,
-      const std::lock_guard<std::mutex>& lock);
+      const LockPolicyT& lockPolicy);
 
   template <typename LockPolicyT>
   void processPfcWatchdogGlobalDelta(
@@ -573,6 +594,8 @@ class SaiSwitch : public HwSwitch {
   void processPfcDeadlockRecoveryAction(
       std::optional<cfg::PfcWatchdogRecoveryAction> recoveryAction);
   void setFabricPortOwnershipToAdapter();
+
+  bool processVlanUntaggedPackets() const;
 
   /* reconstruction state apis */
   std::shared_ptr<MultiSwitchAclTableGroupMap>
@@ -625,8 +648,8 @@ class SaiSwitch : public HwSwitch {
   std::unique_ptr<std::thread> linkConnectivityChangeBottomHalfThread_;
   FbossEventBase linkConnectivityChangeBottomHalfEventBase_{
       "LinkConnectivityChangeBottomHalfEventBase"};
-  std::unique_ptr<std::thread> switchReachabilityChangeBottomHalfThread_;
-  FbossEventBase switchReachabilityChangeBottomHalfEventBase_{
+  std::unique_ptr<std::thread> switchReachabilityChangeProcessThread_;
+  FbossEventBase switchReachabilityChangeProcessEventBase_{
       "SwitchReachabilityChangeBottomHalfEventBase"};
 
   HwResourceStats hwResourceStats_;

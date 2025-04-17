@@ -1,0 +1,40 @@
+name: Build & Test FBOSS Other Services
+run-name: Build & Test FBOSS Other Services
+on:
+  # Allow manually triggering the workflow
+  workflow_dispatch:
+jobs:
+  Other-Services-Build:
+    runs-on: 32-core-ubuntu
+    steps:
+      - run: echo "Confirming hardware specications:"; sudo lscpu
+      - name: Clean workspace
+        run: sudo rm -rf ${{ github.workspace }}/*
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      - name: Run Docker-based build for FBOSS
+        run: >
+          sudo
+          ./fboss/oss/scripts/docker-build.py
+          --scratch-path
+          ${{ github.workspace }}/build-output
+          --target
+          github_actions_fboss_other_services
+          --no-docker-output
+          --no-system-deps
+          --env-var
+          GITHUB_ACTIONS_BUILD
+      - name: Package FBOSS binaries and library dependencies
+        run: >
+          sudo
+          ./fboss/oss/scripts/package-fboss.py
+          --scratch-path
+          ${{ github.workspace }}/build-output
+          --compress
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: fboss
+          path: ${{ github.workspace }}/build-output/fboss_bins.tar.zst
+          # Explicitly set the retention at the object level
+          retention-days: 14

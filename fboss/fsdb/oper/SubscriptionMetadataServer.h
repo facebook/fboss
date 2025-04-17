@@ -23,6 +23,10 @@ class SubscriptionMetadataServer {
   std::optional<FsdbOperTreeMetadata> getMetadata(
       const std::string& publisherRoot) const;
 
+  const std::optional<PublisherRoot2Metadata> getAllPublishersMetadata() const {
+    return metadata_;
+  }
+
  private:
   const std::optional<PublisherRoot2Metadata> metadata_;
 };

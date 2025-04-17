@@ -274,4 +274,35 @@ SaiRouterInterfaceManager::getPortId(
       portHandle->port->adapterKey()};
 }
 
+std::optional<InterfaceID>
+SaiRouterInterfaceManager::getRouterPortInterfaceIDIf(PortID port) const {
+  auto portHandle = managerTable_->portManager().getPortHandle(port);
+  if (!portHandle) {
+    return std::nullopt;
+  }
+  return getRouterPortInterfaceIDIf(portHandle->port->adapterKey());
+}
+
+std::optional<InterfaceID>
+SaiRouterInterfaceManager::getRouterPortInterfaceIDIf(PortSaiId port) const {
+  auto itr =
+      std::find_if(handles_.begin(), handles_.end(), [port](const auto& entry) {
+        const auto& intfHandle = entry.second;
+        if (intfHandle->type() != cfg::InterfaceType::PORT) {
+          return false;
+        }
+        auto intf = intfHandle->getPortRouterInterface();
+        auto attributes = intf->attributes();
+        return std::get<SaiPortRouterInterfaceTraits::Attributes::PortId>(
+                   attributes)
+                   .value() == port;
+      });
+
+  if (itr == handles_.end()) {
+    return std::nullopt;
+  }
+
+  return itr->first;
+}
+
 } // namespace facebook::fboss

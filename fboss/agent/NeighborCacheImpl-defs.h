@@ -156,9 +156,7 @@ NeighborCacheImpl<NTable>::getUpdateFnToProgramEntryForVlan(Entry* entry) {
 
     auto isAggregatePort = fields.port.isAggregatePort();
     auto switchId = isAggregatePort
-        ? sw_->getScopeResolver()
-              ->scope(sw_->getState(), fields.port)
-              .switchId()
+        ? sw_->getScopeResolver()->scope(state, fields.port).switchId()
         : sw_->getScopeResolver()->scope(fields.port.phyPortID()).switchId();
     auto asic = sw_->getHwAsicTable()->getHwAsicIf(switchId);
     if (asic->isSupported(HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE)) {
@@ -212,9 +210,7 @@ SwSwitch::StateUpdateFn NeighborCacheImpl<NTable>::getUpdateFnToProgramEntry(
 
     auto isAggregatePort = fields.port.isAggregatePort();
     auto switchId = isAggregatePort
-        ? sw_->getScopeResolver()
-              ->scope(sw_->getState(), fields.port)
-              .switchId()
+        ? sw_->getScopeResolver()->scope(state, fields.port).switchId()
         : sw_->getScopeResolver()->scope(fields.port.phyPortID()).switchId();
     auto asic = sw_->getHwAsicTable()->getHwAsicIf(switchId);
     if (asic->isSupported(HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE)) {
@@ -224,7 +220,7 @@ SwSwitch::StateUpdateFn NeighborCacheImpl<NTable>::getUpdateFnToProgramEntry(
 
     if (switchType == cfg::SwitchType::VOQ) {
       CHECK(!fields.port.isSystemPort());
-      interfaceID = sw_->getState()->getInterfaceIDForPort(fields.port);
+      interfaceID = state->getInterfaceIDForPort(fields.port);
       // SystemPortID is always same as the InterfaceID
       systemPortID = SystemPortID(interfaceID);
     } else {
@@ -413,9 +409,7 @@ NeighborCacheImpl<NTable>::getUpdateFnToProgramPendingEntry(
 
     auto isAggregatePort = fields.port.isAggregatePort();
     auto switchId = isAggregatePort
-        ? sw_->getScopeResolver()
-              ->scope(sw_->getState(), fields.port)
-              .switchId()
+        ? sw_->getScopeResolver()->scope(state, fields.port).switchId()
         : sw_->getScopeResolver()->scope(fields.port.phyPortID()).switchId();
     auto asic = sw_->getHwAsicTable()->getHwAsicIf(switchId);
     if (asic->isSupported(HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE)) {
@@ -424,7 +418,7 @@ NeighborCacheImpl<NTable>::getUpdateFnToProgramPendingEntry(
 
     if (switchType == cfg::SwitchType::VOQ) {
       CHECK(!fields.port.isSystemPort());
-      interfaceID = sw_->getState()->getInterfaceIDForPort(port);
+      interfaceID = state->getInterfaceIDForPort(port);
       // SystemPortID is always same as the InterfaceID
       systemPortID = SystemPortID(interfaceID);
     } else {

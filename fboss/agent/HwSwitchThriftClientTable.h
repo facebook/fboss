@@ -40,6 +40,8 @@ class HwSwitchThriftClientTable {
       const std::string& cmd,
       const ClientInformation& clientInfo);
 
+  std::vector<FirmwareInfo> getAllFirmwareInfo(SwitchID switchId);
+
  private:
   std::map<
       SwitchID,

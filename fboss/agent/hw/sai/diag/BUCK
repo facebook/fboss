@@ -18,5 +18,5 @@ cpp_library(
         "Repl.h",
         "SaiRepl.h",
     ],
-    tags = ["noautodeps"],
+    labels = ["noautodeps"],
 )

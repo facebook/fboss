@@ -15,10 +15,12 @@ oncall("fboss_agent_push")
         deps = [
             "fbsource//third-party/googletest:gtest",
             "//fboss/agent:main-bcm",
+            "//fboss/agent/hw/bcm/tests:agent_hw_test_thrift_handler",
             "//fboss/agent/hw/bcm/tests:bcm_acl_utils",
             "//fboss/agent/hw/bcm/tests:bcm_copp_utils",
             "//fboss/agent/hw/bcm/tests:bcm_ecmp_utils",
             "//fboss/agent/platforms/wedge:platform",
+            "//fboss/agent/test:mono_agent_ensemble",
             "//fboss/agent/test/prod_agent_tests:invariant_agent_tests",
         ],
         external_deps = [
@@ -49,7 +51,73 @@ _sai_invariant_agent_test_prefix = "sai_invariant_agent_test"
             sai_impl.sdk_name: sai_impl.version,
         },
         deps = [
+            "//fboss/agent/test:mono_agent_ensemble",
             "//fboss/agent/test/prod_agent_tests:invariant_agent_tests",
+            "//fboss/agent/hw/sai/hw_test:{}".format(sai_switch_dependent_name("agent_hw_test_thrift_handler", sai_impl, True)),
+            "//fboss/agent:main-sai-{}".format(to_impl_lib_name(sai_impl)),
+            "//fboss/agent/hw/sai/hw_test:sai_acl_utils{}".format(to_impl_suffix(sai_impl)),
+            "//fboss/agent/hw/sai/hw_test:sai_copp_utils{}".format(to_impl_suffix(sai_impl)),
+            "//fboss/agent/platforms/sai:{}".format(sai_switch_dependent_name("sai_platform", sai_impl, True)),
+        ] + (["//fboss/agent/platforms/sai:bcm-required-symbols"] if sai_impl.name == "fake" or sai_impl.name == "leaba" else []),
+    )
+    for sai_impl in SAI_BRCM_IMPLS + SAI_LEABA_IMPLS
+]
+
+_sai_invariant_mono_agent_test_prefix = "sai_invariant_agent_test_mono"
+
+[
+    cpp_binary(
+        name = to_impl_bin_name(sai_impl, _sai_invariant_mono_agent_test_prefix),
+        srcs = [
+            "SaiProdInvariantTests.cpp",
+        ],
+        link_group_map = get_link_group_map(
+            to_impl_bin_name(sai_impl, _sai_invariant_mono_agent_test_prefix),
+            sai_impl,
+        ),
+        linker_flags = [
+            "--export-dynamic",
+            "--unresolved-symbols=ignore-all",
+        ] if sai_impl.name == "leaba" else [],
+        versions = {
+            sai_impl.sdk_name: sai_impl.version,
+        },
+        deps = [
+            "//fboss/agent/test:mono_agent_ensemble",
+            "//fboss/agent/test/prod_agent_tests:invariant_agent_tests",
+            "//fboss/agent/hw/sai/hw_test:{}".format(sai_switch_dependent_name("agent_hw_test_thrift_handler", sai_impl, True)),
+            "//fboss/agent:main-sai-{}".format(to_impl_lib_name(sai_impl)),
+            "//fboss/agent/hw/sai/hw_test:sai_acl_utils{}".format(to_impl_suffix(sai_impl)),
+            "//fboss/agent/hw/sai/hw_test:sai_copp_utils{}".format(to_impl_suffix(sai_impl)),
+            "//fboss/agent/platforms/sai:{}".format(sai_switch_dependent_name("sai_platform", sai_impl, True)),
+        ] + (["//fboss/agent/platforms/sai:bcm-required-symbols"] if sai_impl.name == "fake" or sai_impl.name == "leaba" else []),
+    )
+    for sai_impl in SAI_BRCM_IMPLS + SAI_LEABA_IMPLS
+]
+
+_sai_invariant_multi_agent_test_prefix = "sai_invariant_agent_test_multi_switch"
+
+[
+    cpp_binary(
+        name = to_impl_bin_name(sai_impl, _sai_invariant_multi_agent_test_prefix),
+        srcs = [
+            "SaiProdInvariantTests.cpp",
+        ],
+        link_group_map = get_link_group_map(
+            to_impl_bin_name(sai_impl, _sai_invariant_multi_agent_test_prefix),
+            sai_impl,
+        ),
+        linker_flags = [
+            "--export-dynamic",
+            "--unresolved-symbols=ignore-all",
+        ] if sai_impl.name == "leaba" else [],
+        versions = {
+            sai_impl.sdk_name: sai_impl.version,
+        },
+        deps = [
+            "//fboss/agent/test:multi_switch_agent_ensemble",
+            "//fboss/agent/test/prod_agent_tests:invariant_agent_tests",
+            "//fboss/agent/hw/sai/hw_test:{}".format(sai_switch_dependent_name("agent_hw_test_thrift_handler", sai_impl, True)),
             "//fboss/agent:main-sai-{}".format(to_impl_lib_name(sai_impl)),
             "//fboss/agent/hw/sai/hw_test:sai_acl_utils{}".format(to_impl_suffix(sai_impl)),
             "//fboss/agent/hw/sai/hw_test:sai_copp_utils{}".format(to_impl_suffix(sai_impl)),

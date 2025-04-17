@@ -23,25 +23,42 @@ namespace facebook::fboss {
 // To refresh the golden data:
 // 1. ./sai_test-<sdk> --config=<config.json> \
 //     --gtest_filter=*verifyDefaultProgramming \
-//     --dump_golden_data=<platform.csv>
-// 2. scp <platform.csv> fboss/agent/hw/test/golden/asic
+//     --dump_golden_data=<platform>-<version>.csv
+// 2. scp <csv> fboss/agent/hw/test/golden/asic
 //
 class HwAsicDefaultProgrammingTest : public HwTest {
  protected:
-  std::map<std::string, std::string> loadGoldenData(cfg::AsicType asic) {
+  std::string querySdkMajorVersion() {
+    std::string version;
+
+    // Extend to other SDKs if needed.
+    static const re2::RE2 bcmSaiPattern("BRCM SAI ver: \\[(\\d+)\\.");
+    std::string out;
+    getHwSwitchEnsemble()->runDiagCommand("bcmsai ver\n", out);
+    if (RE2::PartialMatch(out, bcmSaiPattern, &version)) {
+      return version;
+    }
+
+    return "default";
+  }
+
+  std::optional<std::map<std::string, std::string>> loadGoldenData(
+      cfg::AsicType asic,
+      const std::string& version) {
     std::string asicType = apache::thrift::util::enumNameSafe(asic);
     asicType = asicType.substr(std::string("ASIC_TYPE_").size());
     folly::toLowerAscii(asicType);
-    std::string filename = "golden/asic/" + asicType + ".csv";
+    std::string filename =
+        fmt::format("golden/asic/{}-{}.csv", asicType, version);
 
     XLOG(INFO) << "Loading golden data file: " << filename;
     auto data = golden_dataMap.find(filename);
     if (data == golden_dataMap.end()) {
       XLOG(WARN) << "Golden data not found. Embedded data:";
       for (const auto& [key, value] : golden_dataMap) {
-        XLOG(INFO) << "data[" << key << "]: " << value.size() << " bytes";
+        XLOG(INFO) << key << ": " << value.size() << " bytes";
       }
-      throw std::invalid_argument("Golden data not found: '" + asicType + "'");
+      return std::nullopt;
     }
 
     // Use an ordered map so that errors are sorted and are more readable.
@@ -94,10 +111,7 @@ class HwAsicDefaultProgrammingTest : public HwTest {
             };
     auto queries = kQueries.find(asic);
 
-    // "Prime" the diag shell because sometimes the first command fails.
     std::string diagOut;
-    getHwSwitchEnsemble()->runDiagCommand("h", diagOut);
-
     std::map<std::string, std::string> ret;
     for (const auto& [type, var] : queries->second) {
       std::string cmd;
@@ -145,11 +159,20 @@ TEST_F(HwAsicDefaultProgrammingTest, verifyDefaultProgramming) {
   auto setup = [&]() {};
 
   auto verify = [&]() {
-    auto golden = loadGoldenData(getAsicType());
+    // Run a blank command since sometimes the first diag command gets ignored.
+    std::string out;
+    getHwSwitchEnsemble()->runDiagCommand("\n", out);
+
+    auto golden = loadGoldenData(getAsicType(), querySdkMajorVersion());
+    if (!golden.has_value()) {
+      golden = loadGoldenData(getAsicType(), "default");
+    }
+    ASSERT_TRUE(golden.has_value()) << "No golden data found";
+
     auto fetched = fetchData(getAsicType());
 
     // Do a manual comparison in order to emit better error messages.
-    for (const auto& [key, goldenValue] : golden) {
+    for (const auto& [key, goldenValue] : *golden) {
       auto fetchedValue = fetched.find(key);
       if (fetchedValue != fetched.end()) {
         EXPECT_EQ(fetchedValue->second, goldenValue) << "Diff in key: " << key;
@@ -159,7 +182,7 @@ TEST_F(HwAsicDefaultProgrammingTest, verifyDefaultProgramming) {
       }
     }
     for (const auto& [key, fetchedValue] : fetched) {
-      EXPECT_TRUE(golden.contains(key))
+      EXPECT_TRUE(golden->contains(key))
           << "Extra key in fetched data: " << key << " = " << fetchedValue;
     }
 

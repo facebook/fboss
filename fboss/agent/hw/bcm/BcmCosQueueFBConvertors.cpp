@@ -127,7 +127,7 @@ bcm_cosq_gport_discard_t cfgAqmToBcmAqm(
         discard.min_thresh = *detection.value().get_linear().minimumLength();
         discard.max_thresh = *detection.value().get_linear().maximumLength();
         discard.drop_probability =
-            detection.value().get_linear().get_probability();
+            folly::copy(detection.value().get_linear().probability().value());
         break;
       case cfg::QueueCongestionDetection::Type::__EMPTY__:
         LOG(WARNING) << "Invalid queue congestion detection config";

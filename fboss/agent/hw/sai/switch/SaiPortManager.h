@@ -143,6 +143,10 @@ class SaiPortManager {
       const std::shared_ptr<Port>& newPort);
 
   bool createOnlyAttributeChanged(
+      const std::shared_ptr<Port>& oldPort,
+      const std::shared_ptr<Port>& newPort);
+
+  bool createOnlyAttributeChanged(
       const SaiPortTraits::CreateAttributes& oldAttributes,
       const SaiPortTraits::CreateAttributes& newAttributes);
 
@@ -201,6 +205,9 @@ class SaiPortManager {
   void clearQosPolicy(const std::shared_ptr<QosPolicy>& qosPolicy);
   void clearQosPolicy();
 
+  void clearArsConfig(PortID portID);
+  void clearArsConfig();
+
   void setTamObject(PortID portId, std::vector<sai_object_id_t> tamObject);
   void resetTamObject(PortID portId);
 
@@ -225,6 +232,7 @@ class SaiPortManager {
   void updateConnectivityStats(PortID portID);
 
   void clearStats(PortID portID);
+  void clearInterfacePhyCounters(const PortID& portId);
 
   void programMirrorOnAllPorts(
       const std::string& mirrorName,
@@ -235,7 +243,7 @@ class SaiPortManager {
       const std::shared_ptr<Port>& oldPort,
       const std::shared_ptr<Port>& newPort);
 
-  bool isUp(PortID portID) const;
+  bool isPortUp(PortID portID) const;
 
   void setPtpTcEnable(bool enable);
   bool isPtpTcEnabled() const;
@@ -292,16 +300,18 @@ class SaiPortManager {
   bool rxFrequencyRPMSupported() const;
   bool rxSNRSupported() const;
   bool fecCodewordsStatsSupported(PortID portID) const;
-  // TODO(zecheng): Remove this once firmware support is ready
-  void updateConditionalEntropySeed(PortID portID, uint32_t seed) const;
+  void addPortShelEnable(const std::shared_ptr<Port>& swPort) const;
+  void changePortShelEnable(
+      const std::shared_ptr<Port>& oldPort,
+      const std::shared_ptr<Port>& newPort) const;
 
  private:
   PortSaiId addPortImpl(const std::shared_ptr<Port>& swPort);
   void changePortImpl(
       const std::shared_ptr<Port>& oldPort,
       const std::shared_ptr<Port>& newPort);
-  void addRemovedHandle(PortID portID);
-  void removeRemovedHandleIf(PortID portID);
+  void addRemovedHandle(const PortID& portID);
+  void removeRemovedHandleIf(const PortID& portID);
   void releasePorts();
   void releasePortPfcBuffers();
 
@@ -371,8 +381,7 @@ class SaiPortManager {
       const bool portPfcWdEnabled);
   void programPfcWatchdogTimers(
       const std::shared_ptr<Port>& swPort,
-      std::vector<PfcPriority>& enabledPfcPriorities,
-      const bool portPfcWdEnabled);
+      std::vector<PfcPriority>& enabledPfcPriorities);
   void programPfcWatchdogPerQueueEnable(
       const std::shared_ptr<Port>& swPort,
       std::vector<PfcPriority>& enabledPfcPriorities,
@@ -438,6 +447,7 @@ class SaiPortManager {
   void changePortFlowletConfig(
       const std::shared_ptr<Port>& oldPort,
       const std::shared_ptr<Port>& newPort);
+  void clearPortFlowletConfig(const PortID& portId);
 
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;

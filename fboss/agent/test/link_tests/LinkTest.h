@@ -17,7 +17,6 @@ DECLARE_bool(setup_for_warmboot);
 DECLARE_string(config);
 DECLARE_string(volatile_state_dir);
 DECLARE_bool(disable_neighbor_updates);
-DECLARE_bool(link_stress_test);
 DECLARE_bool(enable_macsec);
 DECLARE_bool(list_production_feature);
 
@@ -53,10 +52,11 @@ class LinkTest : public AgentTest {
   std::set<std::pair<PortID, PortID>> getConnectedPairs() const;
 
   /*
-   * Return plugged in optical transceivers and their names.
+   * Return plugged in Optical and Active Electrical Cable transceivers and
+   * their names.
    */
-  std::tuple<std::vector<PortID>, std::string> getOpticalCabledPortsAndNames(
-      bool pluggableOnly = false) const;
+  std::tuple<std::vector<PortID>, std::string>
+  getOpticalAndActiveCabledPortsAndNames(bool pluggableOnly = false) const;
 
   /*
    * Ports where we expect optics to be plugged in.
@@ -72,6 +72,9 @@ class LinkTest : public AgentTest {
   const std::vector<PortID>& getCabledFabricPorts() const {
     return cabledFabricPorts_;
   }
+
+  void checkAgentMemoryInBounds() const;
+
   /*
    * Program default (v6) route over ports
    */
@@ -92,9 +95,12 @@ class LinkTest : public AgentTest {
   std::vector<std::string> getPortName(
       const std::vector<PortID>& portIDs) const;
 
-  std::optional<PortID> getPeerPortID(PortID portId) const;
+  std::optional<PortID> getPeerPortID(
+      PortID portId,
+      const std::set<std::pair<PortID, PortID>>& connectedPairs) const;
 
-  std::set<std::pair<PortID, PortID>> getConnectedOpticalPortPairWithFeature(
+  std::set<std::pair<PortID, PortID>>
+  getConnectedOpticalAndActivePortPairWithFeature(
       TransceiverFeature feature,
       phy::Side side,
       bool skipLoopback = false) const;

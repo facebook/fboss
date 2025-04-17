@@ -10,6 +10,20 @@
 
 namespace facebook::fboss::utility {
 
+namespace {
+std::optional<VlanID> getVlanIDForTx(
+    TestEnsembleIf* ensemble,
+    std::optional<PortID> port) {
+  if (port) {
+    return ensemble->getProgrammedState()
+        ->getPorts()
+        ->getNode(*port)
+        ->getIngressVlan();
+  }
+  return ensemble->getVlanIDForTx();
+}
+} // namespace
+
 template <typename EcmpSetupHelperT>
 void HwEcmpDataPlaneTestUtil<EcmpSetupHelperT>::pumpTraffic(
     int ecmpWidth,
@@ -245,8 +259,8 @@ void HwIpEcmpDataPlaneTestUtil<AddrT>::pumpTrafficThroughPort(
     std::optional<PortID> port) {
   auto* ensemble = BaseT::getEnsemble();
   auto programmedState = ensemble->getProgrammedState();
-  auto vlanId = utility::firstVlanID(programmedState);
-  auto intfMac = utility::getFirstInterfaceMac(programmedState);
+  auto vlanId = getVlanIDForTx(ensemble, port);
+  auto intfMac = utility::getMacForFirstInterfaceWithPorts(programmedState);
 
   utility::pumpTraffic(
       std::is_same_v<AddrT, folly::IPAddressV6>,
@@ -268,8 +282,8 @@ void HwIpRoCEEcmpDataPlaneTestUtil<AddrT>::pumpTrafficThroughPort(
     std::optional<PortID> port) {
   auto* ensemble = BaseT::getEnsemble();
   auto programmedState = ensemble->getProgrammedState();
-  auto vlanId = utility::firstVlanID(programmedState);
-  auto intfMac = utility::getFirstInterfaceMac(programmedState);
+  auto vlanId = getVlanIDForTx(ensemble, port);
+  auto intfMac = utility::getMacForFirstInterfaceWithPorts(programmedState);
 
   utility::pumpRoCETraffic(
       std::is_same_v<AddrT, folly::IPAddressV6>,
@@ -292,8 +306,8 @@ void HwIpRoCEEcmpDestPortDataPlaneTestUtil<AddrT>::pumpTrafficThroughPort(
     std::optional<PortID> port) {
   auto* ensemble = BaseT::getEnsemble();
   auto programmedState = ensemble->getProgrammedState();
-  auto vlanId = utility::firstVlanID(programmedState);
-  auto intfMac = utility::getFirstInterfaceMac(programmedState);
+  auto vlanId = getVlanIDForTx(ensemble, port);
+  auto intfMac = utility::getMacForFirstInterfaceWithPorts(programmedState);
 
   utility::pumpRoCETraffic(
       std::is_same_v<AddrT, folly::IPAddressV6>,

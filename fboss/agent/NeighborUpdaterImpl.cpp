@@ -100,16 +100,28 @@ shared_ptr<NdpCache> NeighborUpdaterImpl::getNdpCacheFor(VlanID vlan) {
 
 std::list<ArpEntryThrift> NeighborUpdaterImpl::getArpCacheData() {
   std::list<ArpEntryThrift> entries;
-  for (auto it = caches_.begin(); it != caches_.end(); ++it) {
-    entries.splice(entries.end(), it->second->arpCache->getArpCacheData());
+  if (FLAGS_intf_nbr_tables) {
+    for (auto [_, caches] : intfCaches_) {
+      entries.splice(entries.end(), caches->arpCache->getArpCacheData());
+    }
+  } else {
+    for (auto it = caches_.begin(); it != caches_.end(); ++it) {
+      entries.splice(entries.end(), it->second->arpCache->getArpCacheData());
+    }
   }
   return entries;
 }
 
 std::list<NdpEntryThrift> NeighborUpdaterImpl::getNdpCacheData() {
   std::list<NdpEntryThrift> entries;
-  for (auto it = caches_.begin(); it != caches_.end(); ++it) {
-    entries.splice(entries.end(), it->second->ndpCache->getNdpCacheData());
+  if (FLAGS_intf_nbr_tables) {
+    for (auto [_, caches] : intfCaches_) {
+      entries.splice(entries.end(), caches->ndpCache->getNdpCacheData());
+    }
+  } else {
+    for (auto it = caches_.begin(); it != caches_.end(); ++it) {
+      entries.splice(entries.end(), it->second->ndpCache->getNdpCacheData());
+    }
   }
   return entries;
 }

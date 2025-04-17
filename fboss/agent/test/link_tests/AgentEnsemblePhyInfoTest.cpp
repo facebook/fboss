@@ -7,9 +7,11 @@
 #include <thrift/lib/cpp2/protocol/DebugProtocol.h>
 
 #include <thrift/lib/cpp/util/EnumUtils.h>
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/PlatformPort.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/test/link_tests/AgentEnsembleLinkTest.h"
+#include "fboss/agent/test/link_tests/LinkTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types_custom_protocol.h"
@@ -307,7 +309,7 @@ TEST_F(AgentEnsembleLinkTest, xPhyInfoTest) {
       kSecondsBetweenXphyInfoCollectionCheck /* retry period */,
       {
         for (const auto& port : cabledPorts) {
-          if (phyInfoBefore.count(port)) {
+          if (phyInfoBefore.contains(port)) {
             continue;
           }
           auto phyInfo = getXphyInfo(port);
@@ -336,7 +338,7 @@ TEST_F(AgentEnsembleLinkTest, xPhyInfoTest) {
       kSecondsBetweenXphyInfoCollectionCheck /* retry period */,
       {
         for (const auto& port : cabledPorts) {
-          if (phyInfoAfter.count(port)) {
+          if (phyInfoAfter.contains(port)) {
             continue;
           }
           auto phyInfo = getXphyInfo(port);
@@ -461,54 +463,60 @@ TEST_F(AgentEnsembleLinkTest, verifyIphyFecCounters) {
 
 TEST_F(AgentEnsembleLinkTest, verifyIphyFecBerCounters) {
   /*
-   * Collects 5 phyInfos and verifies
+   * Collects 5 (500 for stress test) phyInfos and verifies
    * 1. No uncorrected codewords
    * 2. If there are corrected codewords, expect pre-FEC BER to be non-zero
-   * 3. Pre-FEC BER should always be >= e-5 (e-4 is the FEC correction limit)
+   * 3. Pre-FEC BER should always be <= e-5 (e-4 is the FEC correction limit)
    * 4. If the hardware supports FEC histogram, we should always have something
    * populated in bin 0. Bin 0 indicates the number of codewords that didn't
-   * require correction
+   * require correction. Stress tests have a stricter threshold of 5.0e-7
    * 5. If the hardware supports FEC histogram and there are some corrected
    * codewords, we should expect to see some non-zero values in bins >= 1.
    */
-  auto verify = [this]() {
-    auto cabledPorts = getCabledPorts();
-    auto previousPhyInfoTime = std::chrono::duration_cast<std::chrono::seconds>(
-        std::chrono::system_clock::now().time_since_epoch());
-
-    // Collect 5 PhyInfo updates and ensure that the counters are within the
-    // thresholds
-    std::vector<std::map<PortID, const phy::PhyInfo>> phyInfos;
+  auto iterations = FLAGS_link_stress_test ? 500 : 5;
+  auto preFecBerThreshold = FLAGS_link_stress_test ? 5.0e-7 : 1e-5;
+  std::map<PortID, const phy::PhyInfo> previousPhyInfo;
+  std::map<PortID, const phy::PhyInfo> currentPhyInfo;
+  auto cabledPorts = getCabledPorts();
+  auto getPhyInfo = [this, &cabledPorts](
+                        time_t timeReference,
+                        std::map<PortID, const phy::PhyInfo>& phyInfo) {
     WITH_RETRIES_N_TIMED(
         120 /* retries */,
         std::chrono::milliseconds(1000) /* msBetweenRetry */,
         {
-          auto newPhyInfo = getSw()->getIPhyInfo(cabledPorts);
+          phyInfo = getSw()->getIPhyInfo(cabledPorts);
           for (const auto& port : cabledPorts) {
-            auto phyIt = newPhyInfo.find(port);
-            ASSERT_EVENTUALLY_NE(phyIt, newPhyInfo.end());
+            auto phyIt = phyInfo.find(port);
+            ASSERT_EVENTUALLY_NE(phyIt, phyInfo.end());
             // If the time stamp hasn't advanced, no need to check the counters.
             // Thus this is an ASSERT_EVENTUALLY_GT and not EXPECT_EVENTUALLY_GT
             ASSERT_EVENTUALLY_GT(
-                *(newPhyInfo[port].stats()->timeCollected()),
-                previousPhyInfoTime.count());
+                *(phyInfo[port].stats()->timeCollected()), timeReference);
           }
-          phyInfos.push_back(newPhyInfo);
-          ASSERT_EVENTUALLY_EQ(phyInfos.size(), 5);
         });
+  };
 
-    ASSERT_EQ(phyInfos.size(), 5);
+  std::time_t timeReference = std::time(nullptr);
+  getPhyInfo(timeReference, previousPhyInfo);
 
-    for (int idx = 1; idx < phyInfos.size(); idx++) {
-      auto phyInfoNow = phyInfos[idx];
-      auto phyInfoBefore = phyInfos.at(idx - 1);
+  auto verify = [this,
+                 iterations,
+                 preFecBerThreshold,
+                 &previousPhyInfo,
+                 &currentPhyInfo,
+                 getPhyInfo,
+                 &cabledPorts]() {
+    for (int i = 1; i <= iterations && !::testing::Test::HasFailure(); i++) {
+      XLOG(INFO) << "Starting iteration " << i;
+      getPhyInfo(std::time(nullptr), currentPhyInfo);
       for (const auto& port : cabledPorts) {
-        auto phyIt = phyInfoNow.find(port);
+        auto phyIt = currentPhyInfo.find(port);
         // We always expect the port to be present in the map. So this is a
         // hard assert
-        ASSERT_NE(phyIt, phyInfoNow.end());
-        auto pcsStatsBefore = phyInfoBefore[port].stats()->line()->pcs();
-        auto pcsStatsNow = phyInfoNow[port].stats()->line()->pcs();
+        ASSERT_NE(phyIt, currentPhyInfo.end());
+        auto pcsStatsBefore = previousPhyInfo[port].stats()->line()->pcs();
+        auto pcsStatsNow = currentPhyInfo[port].stats()->line()->pcs();
         if (pcsStatsBefore.has_value() || pcsStatsNow.has_value()) {
           // We always expect pcsStats to be present in both the phyInfos
           // or in none
@@ -531,11 +539,11 @@ TEST_F(AgentEnsembleLinkTest, verifyIphyFecBerCounters) {
         }
 
         XLOG(INFO)
-            << "Before: RS FEC stats for port " << port
+            << "Before: RS FEC stats for port " << getPortName(port)
             << apache::thrift::SimpleJSONSerializer::serialize<std::string>(
                    rsFecBefore.value());
         XLOG(INFO)
-            << "Now: RS FEC stats for port " << port
+            << "Now: RS FEC stats for port " << getPortName(port)
             << apache::thrift::SimpleJSONSerializer::serialize<std::string>(
                    rsFecNow.value());
 
@@ -543,18 +551,18 @@ TEST_F(AgentEnsembleLinkTest, verifyIphyFecBerCounters) {
         EXPECT_EQ(
             rsFecNow->get_uncorrectedCodewords(),
             rsFecBefore->get_uncorrectedCodewords());
-        // Expect pre-FEC BER to be lower than e-5
+        // Expect pre-FEC BER to be lower than e-5 (or 5.0e-7 for stress test)
         // TODO: Make the threshold stricter once
         // 1) we start using a SAI version that supports FEC corrected bits.
         // Before 10.2 SAI, ASIC doesn't support FEC corrected bits and we
         // approximate pre-FEC BER using FEC corrected codewords.
         // 2) we cleanup existing bad links in the lab
-        auto preFecBerThreshold = 1e-5;
         EXPECT_LT(rsFecNow->get_preFECBer(), preFecBerThreshold);
         // If there were corrected codewords in the interval, expect pre-FEC
         // BER non-zero
-        bool hasCorrectedCodewords = rsFecNow->get_correctedCodewords() !=
-            rsFecBefore->get_correctedCodewords();
+        bool hasCorrectedCodewords =
+            folly::copy(rsFecNow->correctedCodewords().value()) !=
+            folly::copy(rsFecBefore->correctedCodewords().value());
         if (hasCorrectedCodewords) {
           EXPECT_NE(rsFecNow->get_preFECBer(), 0);
         }
@@ -562,7 +570,7 @@ TEST_F(AgentEnsembleLinkTest, verifyIphyFecBerCounters) {
         // 16. For Rs528, there are 8 codeword bins. For Rs544, there are 15.
         // We need to add 1 to the expected codewordStats keys since the first
         // key will be for codewords with 0 corrections
-        if (!rsFecNow->get_codewordStats().empty()) {
+        if (!rsFecNow->codewordStats().value().empty()) {
           EXPECT_TRUE(
               rsFecNow->codewordStats()->size() ==
                   (kRsFec528CodewordBins + 1) ||
@@ -584,9 +592,89 @@ TEST_F(AgentEnsembleLinkTest, verifyIphyFecBerCounters) {
           if (hasCorrectedCodewords) {
             EXPECT_GT(countNonZeroBins, 0);
           }
+          // Expect the fec tail to be populated when codeword stats is since it
+          // is derived from that
+          EXPECT_TRUE(rsFecNow->fecTail().has_value());
+          EXPECT_TRUE(rsFecNow->maxSupportedFecTail().has_value());
+          // Codeword stats always has an extra stat for bin 0 (codewords which
+          // didn't need correction). Thus compare maxSupportedFecTail with
+          // codewordStats.size - 1
+          EXPECT_EQ(
+              rsFecNow->maxSupportedFecTail().value(),
+              rsFecNow->codewordStats()->size() - 1);
+          EXPECT_LE(
+              rsFecNow->fecTail().value(),
+              rsFecNow->maxSupportedFecTail().value());
         }
       }
+      previousPhyInfo = currentPhyInfo;
     }
   };
   verifyAcrossWarmBoots([]() {}, verify);
+}
+
+TEST_F(AgentEnsembleLinkTest, clearIphyInterfaceCounters) {
+  auto cabledPorts = getCabledPorts();
+  std::map<PortID, const phy::PhyInfo> phyInfoBefore;
+  auto startTime = std::chrono::duration_cast<std::chrono::seconds>(
+      std::chrono::system_clock::now().time_since_epoch());
+
+  // Wait for update stats
+  WITH_RETRIES_N_TIMED(
+      20 /* retries */, std::chrono::milliseconds(1000) /* msBetweenRetry */, {
+        phyInfoBefore = getSw()->getIPhyInfo(cabledPorts);
+        for (const auto& port : cabledPorts) {
+          auto phyIt = phyInfoBefore.find(port);
+          ASSERT_EVENTUALLY_NE(phyIt, phyInfoBefore.end());
+          EXPECT_EVENTUALLY_GT(
+              phyIt->second.state()->timeCollected(), startTime.count());
+          EXPECT_EVENTUALLY_GT(
+              phyIt->second.stats()->timeCollected(), startTime.count());
+          EXPECT_EVENTUALLY_TRUE(
+              phyIt->second.state()->linkState().value_or({}));
+        }
+      });
+
+  // Clear the counters
+  std::vector<int32_t> cabledPortsVec;
+  cabledPortsVec.reserve(cabledPorts.size());
+  for (auto port : cabledPorts) {
+    cabledPortsVec.push_back(static_cast<int32_t>(port));
+  }
+
+  auto clearInterfacePhyCounters = [&](const std::vector<int32_t>& ports) {
+    for (const auto& switchId : getSw()->getSwitchInfoTable().getSwitchIDs()) {
+      auto client = getAgentEnsemble()->getHwAgentTestClient(switchId);
+      client->sync_clearInterfacePhyCounters(ports);
+    }
+  };
+  clearInterfacePhyCounters(cabledPortsVec);
+
+  std::map<PortID, const phy::PhyInfo> phyInfoAfterClear;
+  WITH_RETRIES_N_TIMED(
+      35 /* retries */, std::chrono::milliseconds(1000) /* msBetweenRetry */, {
+        phyInfoAfterClear = getSw()->getIPhyInfo(cabledPorts);
+        for (const auto& port : cabledPorts) {
+          auto phyIt = phyInfoAfterClear.find(port);
+          ASSERT_EVENTUALLY_NE(phyIt, phyInfoAfterClear.end());
+          EXPECT_EVENTUALLY_GE(
+              *(phyInfoAfterClear[port].stats()->timeCollected()) -
+                  *(phyInfoBefore[port].stats()->timeCollected()),
+              20);
+        }
+        for (auto port : cabledPortsVec) {
+          XLOG(INFO) << "Verifying port " << port;
+          PortID portId = PortID(port);
+          auto laneInfoAfter =
+              phyInfoAfterClear[portId].stats()->line()->pmd()->lanes();
+          for (const auto& [laneId, laneInfo] : *laneInfoAfter) {
+            if (laneInfo.cdrLockChangedCount().has_value()) {
+              EXPECT_EVENTUALLY_EQ(*laneInfo.cdrLockChangedCount(), 0);
+            }
+            if (laneInfo.signalDetectChangedCount().has_value()) {
+              EXPECT_EVENTUALLY_EQ(*laneInfo.signalDetectChangedCount(), 0);
+            }
+          }
+        }
+      });
 }

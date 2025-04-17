@@ -101,6 +101,7 @@ class MultiHwSwitchHandler {
     connectionStatusTable_.disconnected(switchId);
   }
 
+  bool isHwSwitchConnected(const SwitchID& switchId);
   void fillHwAgentConnectionStatus(AgentStats& agentStats);
 
   state::SwitchState reconstructSwitchState(SwitchID id);

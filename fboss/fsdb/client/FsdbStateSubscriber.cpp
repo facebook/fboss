@@ -39,6 +39,18 @@ template <typename SubUnit, typename PathElement>
 folly::coro::Task<void>
 FsdbStateSubscriberImpl<SubUnit, PathElement>::serveStream(StreamT&& stream) {
   CHECK(std::holds_alternative<SubStreamT>(stream));
+  // add histogram for publish-subscribe time latency
+  // histogram range [0, 20s], 200ms width (100 bins)
+  fb303::ThreadCachedServiceData::get()->addHistogram(
+      this->clientPubsubLatencyMetric_, 200, 0, 2000);
+  fb303::ThreadCachedServiceData::get()->exportHistogram(
+      this->clientPubsubLatencyMetric_, 50, 95, 99);
+  if (this->subscriptionOptions().exportPerSubscriptionMetrics_) {
+    fb303::ThreadCachedServiceData::get()->addHistogram(
+        this->subscribeLatencyMetric_, 200, 0, 2000);
+    fb303::ThreadCachedServiceData::get()->exportHistogram(
+        this->subscribeLatencyMetric_, 50, 95, 99);
+  }
   auto gen = std::move(std::get<SubStreamT>(stream)).toAsyncGenerator();
   while (auto state = co_await gen.next()) {
     if (this->isCancelled()) {
@@ -49,15 +61,46 @@ FsdbStateSubscriberImpl<SubUnit, PathElement>::serveStream(StreamT&& stream) {
         this->getSubscriptionState() != SubscriptionState::CONNECTED) {
       BaseT::updateSubscriptionState(SubscriptionState::CONNECTED);
     }
+
+    uint64_t lastPublishedAt = 0;
     if constexpr (std::is_same_v<SubUnitT, OperState>) {
       if (*state->isHeartbeat()) {
         continue;
+      }
+      if (state->metadata().has_value()) {
+        lastPublishedAt = state->metadata()->lastPublishedAt().value_or(0);
       }
     } else {
       if (!state->changes()->size()) {
         continue;
       }
+      if (state->changes()[0].state()->metadata().has_value()) {
+        lastPublishedAt = state->changes()[0]
+                              .state()
+                              ->metadata()
+                              .value()
+                              .lastPublishedAt()
+                              .value_or(0);
+      }
     }
+
+    if (BaseT::getSubscriptionState() == SubscriptionState::CONNECTED) {
+      // compute publish-subscribe time latency
+      if (lastPublishedAt > 0) {
+        auto currentTimestamp =
+            std::chrono::duration_cast<std::chrono::milliseconds>(
+                std::chrono::system_clock::now().time_since_epoch())
+                .count();
+        auto latency = currentTimestamp - lastPublishedAt;
+        fb303::ThreadCachedServiceData::get()->addHistogramValue(
+            this->clientPubsubLatencyMetric_, latency);
+        if (this->subscriptionOptions().exportPerSubscriptionMetrics_) {
+          fb303::ThreadCachedServiceData::get()->addHistogramValue(
+              this->subscribeLatencyMetric_, latency);
+        }
+      }
+    }
+
     if (this->subscriptionOptions().requireInitialSyncToMarkConnect_ &&
         this->getSubscriptionState() != SubscriptionState::CONNECTED) {
       BaseT::updateSubscriptionState(SubscriptionState::CONNECTED);

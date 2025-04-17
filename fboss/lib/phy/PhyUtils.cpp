@@ -80,13 +80,20 @@ void updateCorrectedBitsAndPreFECBer(
   }
   auto correctedBitsDelta =
       *fecInfo.correctedBits() - *oldRsFecInfo.correctedBits();
+  if (correctedBitsDelta < 0 && !correctedBitsFromHw.has_value()) {
+    // If codewords counters are cleared and the corrected bits counter is
+    // approximated, this value will temporarily be negative. Set it to 0 to
+    // avoid negative BER.
+    correctedBitsDelta = 0;
+  }
   fecInfo.preFECBer() =
       utility::ber(correctedBitsDelta, speed, timeDeltaInSeconds);
 }
 
 void updateFecTail(
     phy::RsFecInfo& fecInfo,
-    const phy::RsFecInfo& oldRsFecInfo) {
+    const phy::RsFecInfo& oldRsFecInfo,
+    phy::FecMode fecMode) {
   if (fecInfo.codewordStats()->empty()) {
     return;
   }
@@ -105,6 +112,21 @@ void updateFecTail(
     }
   }
   fecInfo.fecTail() = fecTail;
+
+  switch (fecMode) {
+    case phy::FecMode::CL91:
+    case phy::FecMode::RS528:
+      fecInfo.maxSupportedFecTail() = 7;
+      break;
+    case phy::FecMode::RS544:
+    case phy::FecMode::RS544_2N:
+    case phy::FecMode::RS545:
+      fecInfo.maxSupportedFecTail() = 15;
+      break;
+    case phy::FecMode::NONE:
+    case phy::FecMode::CL74:
+      break;
+  }
 }
 
 void updateSignalDetectChangedCount(
