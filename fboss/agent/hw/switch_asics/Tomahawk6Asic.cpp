@@ -62,7 +62,6 @@ bool Tomahawk6Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::ECMP_HASH_V4:
     case HwAsic::Feature::ECMP_HASH_V6:
     case HwAsic::Feature::FEC_CORRECTED_BITS:
-    case HwAsic::Feature::MEDIA_TYPE:
     case HwAsic::Feature::FEC:
     case HwAsic::Feature::ECMP_MEMBER_WIDTH_INTROSPECTION:
     case HwAsic::Feature::SAI_MPLS_QOS:
@@ -109,6 +108,7 @@ bool Tomahawk6Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::PFC_XON_TO_XOFF_COUNTER:
     case HwAsic::Feature::L3_QOS:
     case HwAsic::Feature::SCHEDULER_PPS:
+    case HwAsic::Feature::MEDIA_TYPE:
       return getAsicMode() != AsicMode::ASIC_MODE_SIM;
     case HwAsic::Feature::QCM:
     case HwAsic::Feature::SMAC_EQUALS_DMAC_CHECK_ENABLED:
