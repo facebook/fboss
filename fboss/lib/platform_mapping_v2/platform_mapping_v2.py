@@ -1,4 +1,5 @@
 # pyre-strict
+import sys
 from typing import Dict, List, Optional
 
 from fboss.lib.platform_mapping_v2.asic_vendor_config import AsicVendorConfig
@@ -54,6 +55,7 @@ class PlatformMappingParser:
         self._port_profile_mapping: PortProfileMapping
         self._profile_settings: ProfileSettings
         self._si_settings: SiSettings
+        self._asic_vendor_config: Optional[AsicVendorConfig] = None
         self._read_csvs()
 
     def get_directory(self, port_profile: bool = False) -> Dict[str, str]:
@@ -124,9 +126,12 @@ class PlatformMappingParser:
             prefix=self.get_mapping_prefix(),
             version=self.version,
         )
-        self._asic_vendor_config = read_asic_vendor_config(
-            directory=self.get_directory(), prefix=self.get_mapping_prefix()
-        )
+        try:
+            self._asic_vendor_config = read_asic_vendor_config(
+                directory=self.get_directory(), prefix=self.get_mapping_prefix()
+            )
+        except FileNotFoundError:
+            print("No asic vendor config found...", file=sys.stderr)
 
     def get_static_mapping(self) -> StaticMapping:
         return self._static_mapping
@@ -140,7 +145,7 @@ class PlatformMappingParser:
     def get_si_settings(self) -> SiSettings:
         return self._si_settings
 
-    def get_asic_vendor_config(self) -> AsicVendorConfig:
+    def get_asic_vendor_config(self) -> Optional[AsicVendorConfig]:
         return self._asic_vendor_config
 
 
