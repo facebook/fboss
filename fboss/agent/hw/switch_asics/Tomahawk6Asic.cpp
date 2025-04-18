@@ -25,7 +25,6 @@ bool Tomahawk6Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::ACL_COPY_TO_CPU:
     case HwAsic::Feature::INGRESS_FIELD_PROCESSOR_FLEX_COUNTER:
     case HwAsic::Feature::OBM_COUNTERS:
-    case HwAsic::Feature::BUFFER_POOL:
     case HwAsic::Feature::EGRESS_QUEUE_FLEX_COUNTER:
     case HwAsic::Feature::INGRESS_L3_INTERFACE:
     case HwAsic::Feature::DETAILED_L2_UPDATE:
@@ -109,6 +108,7 @@ bool Tomahawk6Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::MEDIA_TYPE:
     case HwAsic::Feature::ARS_PORT_ATTRIBUTES:
     case HwAsic::Feature::ARS:
+    case HwAsic::Feature::BUFFER_POOL:
       return getAsicMode() != AsicMode::ASIC_MODE_SIM;
     case HwAsic::Feature::QCM:
     case HwAsic::Feature::SMAC_EQUALS_DMAC_CHECK_ENABLED:
