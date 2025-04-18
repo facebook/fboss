@@ -202,17 +202,17 @@ DEFINE_bool(
 
 DEFINE_int32(
     max_l2_entries,
-    4000,
+    5300,
     "Maximum L2 entries supported by Resource Accountant");
 
 DEFINE_int32(
     max_ndp_entries,
-    3500,
+    4000,
     "Maximum NDP entries supported by Resource Accountant");
 
 DEFINE_int32(
     max_arp_entries,
-    100,
+    1280,
     "Maximum ARP entries supported by Resource Accountant");
 
 DEFINE_bool(
@@ -272,3 +272,13 @@ DEFINE_bool(
     type_dctype1_janga,
     false,
     "Enable support for single NPU config on Janga for MTIA");
+
+DEFINE_bool(
+    prod_invariant_config_test,
+    false,
+    "This flag is used to enable prod config in invariant config test");
+
+DEFINE_int32(
+    max_unprocessed_switch_reachability_changes,
+    1,
+    "Max number of switch reachability changes that can be enqueued to bottom-half.");

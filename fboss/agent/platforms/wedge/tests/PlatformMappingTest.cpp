@@ -1083,13 +1083,12 @@ TEST_F(PlatformMappingTest, VerifyWedge100DownlinkPortIphyPinConfigs) {
   });
   auto mapping = std::make_unique<Wedge100PlatformMapping>();
   for (auto& port : mapping->getPlatformPorts()) {
-    const auto& chipName = port.second.mapping()
-                               .value()
-                               .pins()
-                               .value()[0]
-                               .get_z()
-                               ->get_end()
-                               .get_chip();
+    const auto& chipName =
+        apache::thrift::get_pointer(
+            port.second.mapping().value().pins().value()[0].z())
+            ->get_end()
+            .chip()
+            .value();
     const auto& chip = mapping->getChips().at(chipName);
     auto transID = folly::copy(chip.physicalID().value());
     // Skip uplinks
@@ -1140,13 +1139,12 @@ TEST_F(PlatformMappingTest, VerifyWedge100YV3T1DownlinkPortIphyPinConfigs) {
 
   auto mapping = std::make_unique<Wedge100PlatformMapping>();
   for (auto& port : mapping->getPlatformPorts()) {
-    const auto& chipName = port.second.mapping()
-                               .value()
-                               .pins()
-                               .value()[0]
-                               .get_z()
-                               ->get_end()
-                               .get_chip();
+    const auto& chipName =
+        apache::thrift::get_pointer(
+            port.second.mapping().value().pins().value()[0].z())
+            ->get_end()
+            .chip()
+            .value();
     const auto& chip = mapping->getChips().at(chipName);
     auto transID = folly::copy(chip.physicalID().value());
     // Skip uplinks
@@ -1202,13 +1200,12 @@ const auto kWedge100UplinkDriveCurrent = 0x8;
 TEST_F(PlatformMappingTest, VerifyWedge100UplinkPortIphyPinConfigs) {
   auto mapping = std::make_unique<Wedge100PlatformMapping>();
   for (auto& port : mapping->getPlatformPorts()) {
-    const auto& chipName = port.second.mapping()
-                               .value()
-                               .pins()
-                               .value()[0]
-                               .get_z()
-                               ->get_end()
-                               .get_chip();
+    const auto& chipName =
+        apache::thrift::get_pointer(
+            port.second.mapping().value().pins().value()[0].z())
+            ->get_end()
+            .chip()
+            .value();
     const auto& chip = mapping->getChips().at(chipName);
     auto transID = folly::copy(chip.physicalID().value());
     // skip downlinks

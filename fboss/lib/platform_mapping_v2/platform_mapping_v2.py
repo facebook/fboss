@@ -1,4 +1,5 @@
 # pyre-strict
+import sys
 from typing import Dict, List, Optional
 
 from fboss.lib.platform_mapping_v2.asic_vendor_config import AsicVendorConfig
@@ -37,8 +38,6 @@ from neteng.fboss.platform_config.ttypes import (
     PlatformPortProfileConfigEntry,
 )
 
-from neteng.fboss.switch_config.ttypes import PortType
-
 
 class PlatformMappingParser:
     def __init__(
@@ -56,6 +55,7 @@ class PlatformMappingParser:
         self._port_profile_mapping: PortProfileMapping
         self._profile_settings: ProfileSettings
         self._si_settings: SiSettings
+        self._asic_vendor_config: Optional[AsicVendorConfig] = None
         self._read_csvs()
 
     def get_directory(self, port_profile: bool = False) -> Dict[str, str]:
@@ -126,9 +126,12 @@ class PlatformMappingParser:
             prefix=self.get_mapping_prefix(),
             version=self.version,
         )
-        self._asic_vendor_config = read_asic_vendor_config(
-            directory=self.get_directory(), prefix=self.get_mapping_prefix()
-        )
+        try:
+            self._asic_vendor_config = read_asic_vendor_config(
+                directory=self.get_directory(), prefix=self.get_mapping_prefix()
+            )
+        except FileNotFoundError:
+            print("No asic vendor config found...", file=sys.stderr)
 
     def get_static_mapping(self) -> StaticMapping:
         return self._static_mapping
@@ -142,7 +145,7 @@ class PlatformMappingParser:
     def get_si_settings(self) -> SiSettings:
         return self._si_settings
 
-    def get_asic_vendor_config(self) -> AsicVendorConfig:
+    def get_asic_vendor_config(self) -> Optional[AsicVendorConfig]:
         return self._asic_vendor_config
 
 
@@ -236,37 +239,20 @@ class PlatformMappingV2:
             port_entry = PlatformPortEntry()
             port_entry.supportedProfiles = {}
             all_connection_pairs = []
-            port_type = port_detail.port_type
             # Get pins for all supported profiles
             for profile in port_detail.supported_profiles:
                 platform_port_config = PlatformPortConfig()
 
-                if (
-                    port_type == PortType.RECYCLE_PORT
-                    or port_type == PortType.EVENTOR_PORT
-                ):
-                    # Recycle/Eventor ports don't have a z side.
-                    # So pick the setting corresponding to IPHY only
-                    phy_chip_to_get_speed_setting = DataPlanePhyChipType.IPHY
-                else:
-                    # For front panel ports, pick the setting for transceiver
-                    phy_chip_to_get_speed_setting = DataPlanePhyChipType.TRANSCEIVER
-
-                profile_connections = get_connection_pairs_for_profile(
-                    static_mapping=self.pm_parser.get_static_mapping(),
-                    port=port_detail,
-                    num_lanes=self.pm_parser.get_profile_settings()
-                    .get_speed_setting(
-                        profile=profile,
-                        phy_chip_type=phy_chip_to_get_speed_setting,
-                    )
-                    .num_lanes,
-                    profile=profile,
-                )
-                all_connection_pairs += profile_connections
                 speed_setting = self.pm_parser.get_profile_settings().get_speed_setting(
                     profile=profile, phy_chip_type=DataPlanePhyChipType.IPHY
                 )
+                profile_connections = get_connection_pairs_for_profile(
+                    static_mapping=self.pm_parser.get_static_mapping(),
+                    port=port_detail,
+                    num_lanes=speed_setting.num_lanes,
+                    profile=profile,
+                )
+                all_connection_pairs = all_connection_pairs + profile_connections
                 platform_port_config.pins = get_pins_from_connections(
                     connections=profile_connections,
                     si_settings=self.pm_parser.get_si_settings(),

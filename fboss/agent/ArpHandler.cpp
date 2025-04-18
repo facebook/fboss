@@ -170,7 +170,7 @@ void ArpHandler::handlePacket(
   // Send a reply if this is an ARP request.
   if (op == ARP_OP_REQUEST) {
     sendArpReply(
-        vlanID,
+        sw_->getVlanIDForTx(vlanOrIntf),
         pkt->getSrcPort(),
         entry->getMac(),
         targetIP,

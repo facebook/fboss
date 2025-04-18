@@ -173,6 +173,11 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
           getCounterPrefix() + "rqp_parity_error_drops",
           SUM,
           RATE),
+      tc0RateLimitDrops_(
+          map,
+          getCounterPrefix() + "tc0_rate_limit_drops",
+          SUM,
+          RATE),
       fabricConnectivityMissingCount_(
           map,
           getCounterPrefix() + "fabric_connectivity_missing"),
@@ -388,9 +393,16 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
           getCounterPrefix() + "invalid_queue_rx_packets",
           SUM,
           RATE),
-      arsResourceExhausted_(
+      arsResourceExhausted_(map, getCounterPrefix() + "ars_resource_exhausted"),
+      isolationFirmwareVersion_(
           map,
-          getCounterPrefix() + "ars_resource_exhausted") {}
+          getCounterPrefix() + "isolation_firmware_version"),
+      isolationFirmwareOpStatus_(
+          map,
+          getCounterPrefix() + "isolation_firmware_op_status"),
+      isolationFirmwareFuncStatus_(
+          map,
+          getCounterPrefix() + "isolation_firmware_functional_status") {}
 
 void HwSwitchFb303Stats::update(const HwSwitchDropStats& dropStats) {
   if (dropStats.globalDrops().has_value()) {
@@ -476,6 +488,11 @@ void HwSwitchFb303Stats::update(const HwSwitchDropStats& dropStats) {
     rqpParityErrorDrops_.addValue(
         *dropStats.rqpParityErrorDrops() -
         currentDropStats_.rqpParityErrorDrops().value_or(0));
+  }
+  if (dropStats.tc0RateLimitDrops().has_value()) {
+    tc0RateLimitDrops_.addValue(
+        *dropStats.tc0RateLimitDrops() -
+        currentDropStats_.tc0RateLimitDrops().value_or(0));
   }
 
   currentDropStats_ = dropStats;
@@ -791,6 +808,18 @@ void HwSwitchFb303Stats::leabaSdkVer(int64_t ver) {
 
 void HwSwitchFb303Stats::arsResourceExhausted(bool exhausted) {
   fb303::fbData->setCounter(arsResourceExhausted_.name(), exhausted ? 1 : 0);
+}
+
+void HwSwitchFb303Stats::isolationFirmwareVersion(int64_t ver) {
+  fb303::fbData->setCounter(isolationFirmwareVersion_.name(), ver);
+}
+
+void HwSwitchFb303Stats::isolationFirmwareOpStatus(int64_t opStatus) {
+  fb303::fbData->setCounter(isolationFirmwareOpStatus_.name(), opStatus);
+}
+
+void HwSwitchFb303Stats::isolationFirmwareFuncStatus(int64_t funcStatus) {
+  fb303::fbData->setCounter(isolationFirmwareFuncStatus_.name(), funcStatus);
 }
 
 int64_t HwSwitchFb303Stats::getFabricConnectivityMismatchCount() const {

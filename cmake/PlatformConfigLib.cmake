@@ -35,7 +35,7 @@ add_custom_command(
 
 add_executable(platform_config_lib_config_generator
   fboss/platform/config_lib/ConfigGenerator.cpp
-  fboss/platform/config_lib/ConfigValidator.cpp
+  fboss/platform/config_lib/CrossConfigValidator.cpp
 )
 
 target_link_libraries(platform_config_lib_config_generator
@@ -47,6 +47,7 @@ target_link_libraries(platform_config_lib_config_generator
   platform_manager_config_cpp2
   platform_manager_presence_cpp2
   sensor_service_config_validator
+  data_corral_service_config_validator
   sensor_config_cpp2
   weutil_config_cpp2
   Folly::folly

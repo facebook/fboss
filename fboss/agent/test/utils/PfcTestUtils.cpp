@@ -189,8 +189,13 @@ void setupPortPgConfig(
 
 } // namespace
 
-PfcBufferParams PfcBufferParams::getPfcBufferParams(cfg::AsicType asicType) {
+PfcBufferParams PfcBufferParams::getPfcBufferParams(
+    cfg::AsicType asicType,
+    int globalShared,
+    int globalHeadroom) {
   PfcBufferParams buffer;
+  buffer.globalShared = globalShared;
+  buffer.globalHeadroom = globalHeadroom;
 
   buffer.pgHeadroom = 2200; // keep this lower than globalShared (why?)
   if (asicType == cfg::AsicType::ASIC_TYPE_CHENAB) {

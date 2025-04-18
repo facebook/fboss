@@ -43,7 +43,7 @@ class Agent2QueueToOlympicQoSTest : public AgentHwTest {
 
   std::unique_ptr<facebook::fboss::TxPacket> createUdpPkt(
       uint8_t dscpVal) const {
-    auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
+    auto vlanId = getVlanIDForTx();
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
@@ -104,7 +104,7 @@ class Agent2QueueToOlympicQoSTest : public AgentHwTest {
       auto portId = ecmpHelper.ecmpPortDescriptorAt(0).phyPortID();
       auto switchId = getSw()->getScopeResolver()->scope(portId).switchId();
       auto asic = getSw()->getHwAsicTable()->getHwAsic(switchId);
-      resolveNeigborAndProgramRoutes(ecmpHelper, kEcmpWidth);
+      resolveNeighborAndProgramRoutes(ecmpHelper, kEcmpWidth);
       auto newCfg{initialConfig(*getAgentEnsemble())};
       auto streamType =
           *(asic->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin());

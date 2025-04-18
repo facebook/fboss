@@ -27,7 +27,7 @@ class AgentL3ForwardingTest : public AgentHwTest {
     return addCoppConfig(ensemble, config);
   }
   std::optional<VlanID> kVlanID() const {
-    return utility::firstVlanIDWithPorts(getProgrammedState());
+    return getVlanIDForTx();
   }
   InterfaceID kIntfID() const {
     return utility::firstInterfaceIDWithPorts(getProgrammedState());
@@ -158,7 +158,7 @@ TEST_F(AgentL3ForwardingTest, ttl255) {
     verifyHwAgentConnectionState(handler);
     auto pumpTraffic = [=, this]() {
       for (auto isV6 : {true, false}) {
-        auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
+        auto vlanId = getVlanIDForTx();
         auto intfMac =
             utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
         auto srcIp = folly::IPAddress(isV6 ? "1001::1" : "10.0.0.1");

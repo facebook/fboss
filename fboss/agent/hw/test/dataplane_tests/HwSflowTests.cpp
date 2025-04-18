@@ -37,7 +37,7 @@ class HwSflowTest : public HwLinkStateDependentTest {
   }
 
   void sendUdpPkts(int numPktsToSend) {
-    auto vlanId = utility::firstVlanIDWithPorts(initialConfig());
+    auto vlanId = getHwSwitchEnsemble()->getVlanIDForTx();
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     for (int i = 0; i < numPktsToSend; i++) {

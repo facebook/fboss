@@ -47,7 +47,7 @@ class AgentMmuTuningTest : public AgentHwTest {
   void setup() {
     utility::EcmpSetupAnyNPorts6 helper(getProgrammedState(), dstMac());
     auto constexpr kEcmpWidth = 1;
-    resolveNeigborAndProgramRoutes(helper, kEcmpWidth);
+    resolveNeighborAndProgramRoutes(helper, kEcmpWidth);
     utility::setCreditWatchdogAndPortTx(
         getAgentEnsemble(), masterLogicalPortIds()[0], false);
   }
@@ -133,7 +133,7 @@ class AgentMmuTuningTest : public AgentHwTest {
 
     return utility::makeUDPTxPacket(
         getSw(),
-        utility::firstVlanIDWithPorts(getProgrammedState()),
+        getVlanIDForTx(),
         srcMac,
         dstMac(),
         folly::IPAddressV6("2620:0:1cfe:face:b00c::3"),

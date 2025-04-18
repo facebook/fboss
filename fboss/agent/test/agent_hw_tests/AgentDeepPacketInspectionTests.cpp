@@ -44,7 +44,7 @@ class AgentDeepPacketInspectionTest : public AgentHwTest {
           std::optional<std::vector<uint8_t>>()) {
     return tcp ? utility::makeTCPTxPacket(
                      getSw(),
-                     utility::firstVlanIDWithPorts(getProgrammedState()),
+                     getVlanIDForTx(),
                      utility::kLocalCpuMac(),
                      utility::kLocalCpuMac(),
                      kSrcIp(),
@@ -56,7 +56,7 @@ class AgentDeepPacketInspectionTest : public AgentHwTest {
                      payload)
                : utility::makeUDPTxPacket(
                      getSw(),
-                     utility::firstVlanIDWithPorts(getProgrammedState()),
+                     getVlanIDForTx(),
                      utility::kLocalCpuMac(),
                      utility::kLocalCpuMac(),
                      kSrcIp(),
@@ -83,8 +83,10 @@ class AgentDeepPacketInspectionTest : public AgentHwTest {
         : utility::makeEthFrame(
               *txPacket,
               nhopMac,
-              utility::getIngressVlan(
-                  getProgrammedState(), kPort().phyPortID()));
+              getProgrammedState()
+                  ->getPorts()
+                  ->getNode(kPort().phyPortID())
+                  ->getIngressVlan());
 
     utility::SwSwitchPacketSnooper snooper(
         getSw(), "snoop", std::nullopt, ethFrame);

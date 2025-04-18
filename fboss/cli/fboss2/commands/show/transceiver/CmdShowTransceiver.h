@@ -283,14 +283,18 @@ class CmdShowTransceiver
         details.vendor() = vendor->name().value();
         details.serial() = vendor->serialNumber().value();
         details.partNumber() = vendor->partNumber().value();
-        details.temperature() = apache::thrift::get_pointer(tcvrStats.sensor())
-                                    ->temp()
-                                    .value()
-                                    .get_value();
-        details.voltage() = apache::thrift::get_pointer(tcvrStats.sensor())
-                                ->vcc()
-                                .value()
-                                .get_value();
+        details.temperature() =
+            folly::copy(apache::thrift::get_pointer(tcvrStats.sensor())
+                            ->temp()
+                            .value()
+                            .value()
+                            .value());
+        details.voltage() =
+            folly::copy(apache::thrift::get_pointer(tcvrStats.sensor())
+                            ->vcc()
+                            .value()
+                            .value()
+                            .value());
         details.tempFlags() = apache::thrift::get_pointer(tcvrStats.sensor())
                                   ->temp()
                                   .value()
@@ -333,14 +337,16 @@ class CmdShowTransceiver
             // If the port doesn't exist in the map, it's likely not configured
             // yet. Display all channels in this case
           }
-          current.push_back(
-              channel.sensors().value().txBias().value().get_value());
-          txPower.push_back(
+          current.push_back(folly::copy(
+              channel.sensors().value().txBias().value().value().value()));
+          txPower.push_back(folly::copy(
               apache::thrift::get_pointer(channel.sensors().value().txPwrdBm())
-                  ->get_value());
-          rxPower.push_back(
+                  ->value()
+                  .value()));
+          rxPower.push_back(folly::copy(
               apache::thrift::get_pointer(channel.sensors().value().rxPwrdBm())
-                  ->get_value());
+                  ->value()
+                  .value()));
           if (const auto& snr = channel.sensors().value().rxSnr()) {
             rxSnr.push_back(folly::copy(snr->value().value()));
           }

@@ -3,6 +3,7 @@
 #include "fboss/agent/test/AgentEnsemble.h"
 
 #include "fboss/agent/AgentConfig.h"
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/Utils.h"
 
 #include "fboss/agent/CommonInit.h"
@@ -53,7 +54,7 @@ void AgentEnsemble::setupEnsemble(
     bool failHwCallsOnWarmboot) {
   FLAGS_verify_apply_oper_delta = true;
 
-  if (bootType_ == BootType::COLD_BOOT) {
+  if (bootType_ == BootType::COLD_BOOT || FLAGS_prod_invariant_config_test) {
     auto inputAgentConfig =
         AgentConfig::fromFile(AgentEnsemble::getInputConfigFile())->thrift;
     if (platformConfigFn) {
@@ -64,6 +65,7 @@ void AgentEnsemble::setupEnsemble(
     // creating a switch
     writeConfig(inputAgentConfig, configFile_);
   }
+
   auto agentConf = AgentConfig::fromFile(configFile_);
   dumpConfigForHwAgent(agentConf.get());
   overrideConfigFlag(configFile_);
@@ -101,7 +103,9 @@ void AgentEnsemble::setupEnsemble(
         switchId2PortIds_[switchId]);
   }
 
-  if (bootType_ == BootType::COLD_BOOT) {
+  // during config invariant test, we want to use the input config file during
+  // warm boot
+  if (bootType_ == BootType::COLD_BOOT || FLAGS_prod_invariant_config_test) {
     initialConfig_ = initialConfigFn(*this);
     applyInitialConfig(initialConfig_);
     // reload the new config
@@ -154,6 +158,10 @@ void AgentEnsemble::startAgent(bool failHwCallsOnWarmboot) {
     // loopback mode = None. Write the init config again to have the proper
     // config.
     applyNewConfig(initialConfig_);
+  } else {
+    if (FLAGS_prod_invariant_config_test)
+      // During warmboot, the ports are already up.
+      applyNewConfig(initialConfig_);
   }
 }
 
@@ -345,19 +353,14 @@ void AgentEnsemble::unregisterStateObserver(StateObserver* observer) {
 
 std::map<PortID, FabricEndpoint> AgentEnsemble::getFabricConnectivity(
     SwitchID switchId) const {
-  if (FLAGS_multi_switch) {
-    std::map<PortID, FabricEndpoint> connectivity;
-    auto gotConnectivity =
-        getSw()->getHwSwitchThriftClientTable()->getFabricConnectivity(
-            switchId);
-    CHECK(gotConnectivity.has_value());
-    for (auto [portId, fabricEndpoint] : gotConnectivity.value()) {
-      connectivity.insert({PortID(portId), fabricEndpoint});
-    }
-    return connectivity;
-  } else {
-    return getSw()->getHwSwitchHandler()->getFabricConnectivity();
+  std::map<PortID, FabricEndpoint> connectivity;
+  auto gotConnectivity =
+      getSw()->getHwSwitchThriftClientTable()->getFabricConnectivity(switchId);
+  CHECK(gotConnectivity.has_value());
+  for (const auto& [portId, fabricEndpoint] : gotConnectivity.value()) {
+    connectivity.insert({PortID(portId), fabricEndpoint});
   }
+  return connectivity;
 }
 
 void AgentEnsemble::runDiagCommand(
@@ -637,6 +640,16 @@ void AgentEnsemble::dumpConfigForHwAgent(AgentConfig* agentConf) {
           *switchInfo.switchIndex()));
     }
   }
+}
+
+std::optional<VlanID> AgentEnsemble::getVlanIDForTx() const {
+  auto intf = utility::firstInterfaceWithPorts(getProgrammedState());
+  return getSw()->getVlanIDForTx(intf);
+}
+
+std::vector<FirmwareInfo> AgentEnsemble::getAllFirmwareInfo(
+    SwitchID switchId) const {
+  return getSw()->getHwSwitchThriftClientTable()->getAllFirmwareInfo(switchId);
 }
 
 } // namespace facebook::fboss

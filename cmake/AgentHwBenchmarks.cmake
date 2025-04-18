@@ -193,6 +193,7 @@ target_link_libraries(hw_flowlet_stats_collection_speed
   mono_agent_benchmarks
   Folly::folly
   Folly::follybenchmark
+  udf_test_utils
 )
 
 add_library(hw_ecmp_shrink_speed
@@ -343,6 +344,15 @@ target_link_libraries(hw_init_and_exit_100Gx100G
   hw_init_and_exit_benchmark_helper
 )
 
+add_library(hw_init_and_exit_400Gx400G
+  fboss/agent/hw/benchmarks/HwInitAndExit400Gx400GBenchmark.cpp
+)
+
+target_link_libraries(hw_init_and_exit_400Gx400G
+  config_factory
+  hw_init_and_exit_benchmark_helper
+)
+
 add_library(hw_init_and_exit_voq
   fboss/agent/hw/benchmarks/HwInitAndExitVoqBenchmark.cpp
 )
@@ -450,7 +460,7 @@ add_library(hw_system_scale_memory_benchmark
 )
 
 target_link_libraries(hw_system_scale_memory_benchmark
-  fsdb_model
+  agent_fsdb_integ_bench_helper
   system_scale_test_utils
   mono_agent_ensemble
   Folly::follybenchmark

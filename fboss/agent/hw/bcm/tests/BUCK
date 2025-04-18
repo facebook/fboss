@@ -176,6 +176,7 @@ cpp_library(
         "//fboss/agent/hw/test:hw_test_udf_utils",
         "//fboss/agent/packet:ipproto",
         "//fboss/agent/state:state",
+        "//fboss/agent/test/utils:udf_test_utils",
     ],
     exported_external_deps = [
         ("broadcom-xgs-robo", None, "xgs_robo"),
@@ -407,6 +408,7 @@ bcm_test_fake_hw_facebook_test_srcs = bcm_test_all_hw_facebook_srcs + [
             "//fboss/agent/test:trunk_utils",
             "//fboss/agent/test:utils",
             "//fboss/agent/test/utils:traffic_policy_utils",
+            "//fboss/agent/test/utils:udf_test_utils",
             "//folly:memory",
             "//folly/testing:test_util",
         ],
@@ -457,6 +459,7 @@ bcm_test_fake_hw_facebook_test_srcs = bcm_test_all_hw_facebook_srcs + [
             "//fboss/agent/test:trunk_utils",
             "//fboss/agent/test:utils",
             "//fboss/agent/test/utils:traffic_policy_utils",
+            "//fboss/agent/test/utils:udf_test_utils",
             "//fboss/lib/platforms:product-info",
             "//folly:memory",
             "//folly/testing:test_util",

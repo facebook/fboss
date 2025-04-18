@@ -358,6 +358,7 @@ unsigned int QsfpModule::numHostLanes() const {
     case MediaInterfaceCode::DR4_2x400G:
     case MediaInterfaceCode::FR8_800G:
     case MediaInterfaceCode::CR8_800G:
+    case MediaInterfaceCode::LR4_2x400G_10KM:
       return 8;
     case MediaInterfaceCode::UNKNOWN:
       return 0;
@@ -389,6 +390,7 @@ unsigned int QsfpModule::numMediaLanes() const {
     case MediaInterfaceCode::DR4_2x400G:
     case MediaInterfaceCode::FR8_800G:
     case MediaInterfaceCode::CR8_800G:
+    case MediaInterfaceCode::LR4_2x400G_10KM:
       return 8;
     case MediaInterfaceCode::UNKNOWN:
       return 0;
@@ -1020,24 +1022,28 @@ void QsfpModule::updatePrbsStats() {
         }
       };
 
-  auto sysPrbsState = getPortPrbsStateLocked(std::nullopt, phy::Side::SYSTEM);
-  auto linePrbsState = getPortPrbsStateLocked(std::nullopt, phy::Side::LINE);
   phy::PrbsStats stats;
-  stats = getPortPrbsStatsSideLocked(
-      phy::Side::SYSTEM,
-      sysPrbsState.checkerEnabled().has_value() &&
-          sysPrbsState.checkerEnabled().value(),
-      *systemPrbs);
-  updatePrbsStatEntry(*systemPrbs, stats);
-  *systemPrbs = stats;
+  if (isPrbsSupported(phy::Side::SYSTEM)) {
+    auto sysPrbsState = getPortPrbsStateLocked(std::nullopt, phy::Side::SYSTEM);
+    stats = getPortPrbsStatsSideLocked(
+        phy::Side::SYSTEM,
+        sysPrbsState.checkerEnabled().has_value() &&
+            sysPrbsState.checkerEnabled().value(),
+        *systemPrbs);
+    updatePrbsStatEntry(*systemPrbs, stats);
+    *systemPrbs = stats;
+  }
 
-  stats = getPortPrbsStatsSideLocked(
-      phy::Side::LINE,
-      linePrbsState.checkerEnabled().has_value() &&
-          linePrbsState.checkerEnabled().value(),
-      *linePrbs);
-  updatePrbsStatEntry(*linePrbs, stats);
-  *linePrbs = stats;
+  if (isPrbsSupported(phy::Side::LINE)) {
+    auto linePrbsState = getPortPrbsStateLocked(std::nullopt, phy::Side::LINE);
+    stats = getPortPrbsStatsSideLocked(
+        phy::Side::LINE,
+        linePrbsState.checkerEnabled().has_value() &&
+            linePrbsState.checkerEnabled().value(),
+        *linePrbs);
+    updatePrbsStatEntry(*linePrbs, stats);
+    *linePrbs = stats;
+  }
 }
 
 phy::PrbsStats QsfpModule::getPortPrbsStats(

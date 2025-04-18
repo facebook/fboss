@@ -6,6 +6,7 @@
 #include <string>
 
 #include <folly/logging/xlog.h>
+#include <folly/system/ThreadName.h>
 
 #include "common/time/Time.h"
 #include "fboss/agent/FbossError.h"
@@ -40,7 +41,10 @@ Bsp::Bsp(const FanServiceConfig& config) : config_(config) {
       fsdbSensorSubscriber_->subscribeToQsfpServiceState();
     }
   }
-  thread_.reset(new std::thread([=, this] { evbSensor_.loopForever(); }));
+  thread_.reset(new std::thread([=, this] {
+    folly::setThreadName("bsp-evb-thread");
+    evbSensor_.loopForever();
+  }));
 }
 
 void Bsp::getSensorData(std::shared_ptr<SensorData> pSensorData) {
@@ -208,6 +212,7 @@ std::vector<std::pair<std::string, float>> Bsp::processOpticEntries(
       case MediaInterfaceCode::FR4_LITE_2x400G:
       case MediaInterfaceCode::DR4_2x400G:
       case MediaInterfaceCode::FR8_800G:
+      case MediaInterfaceCode::LR4_2x400G_10KM:
         opticType = constants::OPTIC_TYPE_800_GENERIC();
         break;
       default:

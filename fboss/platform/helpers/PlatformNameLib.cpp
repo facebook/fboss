@@ -34,6 +34,11 @@ std::string sanitizePlatformName(const std::string& platformNameFromBios) {
     return "TAHAN800BC";
   }
 
+  // MERU800BIAB and MERU800BIA have equivalent configs
+  if (platformNameUpper == "MERU800BIAB") {
+    return "MERU800BIA";
+  }
+
   return platformNameUpper;
 }
 

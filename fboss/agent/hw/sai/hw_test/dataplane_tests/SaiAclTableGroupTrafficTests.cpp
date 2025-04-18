@@ -644,8 +644,9 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
       IP_PROTO proto,
       std::optional<uint16_t> l4SrcPort,
       std::optional<uint16_t> l4DstPort) {
-    auto vlanId = VlanID(*initialConfig().vlanPorts()[0].vlanID());
-    auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+    auto intf = utility::firstInterfaceWithPorts(getProgrammedState());
+    auto vlanId = getHwSwitchEnsemble()->getVlanIDForTx();
+    auto intfMac = intf->getMac();
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
     std::unique_ptr<facebook::fboss::TxPacket> txPacket;
     CHECK(proto == IP_PROTO::IP_PROTO_UDP || proto == IP_PROTO::IP_PROTO_TCP);

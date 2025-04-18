@@ -644,15 +644,18 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   std::optional<SaiPortTraits::Attributes::ArsPortLoadFutureWeight>
       arsPortLoadFutureWeight = std::nullopt;
   if (FLAGS_flowletSwitchingEnable &&
-      platform_->getAsic()->isSupported(HwAsic::Feature::FLOWLET)) {
+      platform_->getAsic()->isSupported(HwAsic::Feature::ARS)) {
     auto flowletCfg = swPort->getPortFlowletConfig();
     if (swPort->getFlowletConfigName().has_value() &&
         swPort->getPortFlowletConfig().has_value()) {
       auto flowletCfgPtr = swPort->getPortFlowletConfig().value();
       arsEnable = true;
-      arsPortLoadScalingFactor = flowletCfgPtr->getScalingFactor();
-      arsPortLoadPastWeight = flowletCfgPtr->getLoadWeight();
-      arsPortLoadFutureWeight = flowletCfgPtr->getQueueWeight();
+      if (platform_->getAsic()->getAsicType() !=
+          cfg::AsicType::ASIC_TYPE_CHENAB) {
+        arsPortLoadScalingFactor = flowletCfgPtr->getScalingFactor();
+        arsPortLoadPastWeight = flowletCfgPtr->getLoadWeight();
+        arsPortLoadFutureWeight = flowletCfgPtr->getQueueWeight();
+      }
     }
   }
 #endif
@@ -1052,10 +1055,9 @@ void SaiPortManager::programSerdes(
   // create if serdes doesn't exist or update existing serdes
   portHandle->serdes = store.setObject(serdesKey, serdesAttributes);
 
-  if (((platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_YUBA ||
-        platform_->getAsic()->getAsicType() ==
-            cfg::AsicType::ASIC_TYPE_TOMAHAWK5) &&
-       platform_->getHwSwitch()->getBootType() == BootType::COLD_BOOT) &&
+  if (platform_->getAsic()->getAsicType() ==
+          cfg::AsicType::ASIC_TYPE_TOMAHAWK5 &&
+      platform_->getHwSwitch()->getBootType() == BootType::COLD_BOOT &&
       swPort->getAdminState() == cfg::PortState::ENABLED) {
     /*
      * SI settings are not programmed to the hardware when the port is

@@ -188,6 +188,7 @@ struct MatchAction {
   9: optional SetTc setTc;
   10: optional switch_config.UserDefinedTrapAction userDefinedTrap;
   11: optional switch_config.FlowletAction flowletAction;
+  12: optional switch_config.SetEcmpHashAction ecmpHashAction;
 }
 
 struct AclEntryFields {
@@ -445,6 +446,7 @@ struct SwitchSettingsFields {
   55: optional i32 voqOutOfBoundsLatencyNsec;
   // Number of sflow samples to pack in a single packet being sent out
   56: optional byte numberOfSflowSamplesPerPacket;
+  57: optional map<i32, i32> tcToRateLimitKbps;
 }
 
 struct RoutePrefix {

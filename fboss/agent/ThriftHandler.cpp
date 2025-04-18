@@ -3128,10 +3128,4 @@ void ThriftHandler::getSwitchIdToSwitchInfo(
   }
 }
 
-void ThriftHandler::getFirmwareInfo(FirmwareInfo& firmwareInfo) {
-  ensureConfigured(__func__);
-
-  // TODO fill firmwareInfo
-}
-
 } // namespace facebook::fboss

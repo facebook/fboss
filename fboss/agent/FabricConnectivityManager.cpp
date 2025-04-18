@@ -214,7 +214,6 @@ void FabricConnectivityManager::addOrUpdatePort(
     expectedEndpoint.expectedPortName().reset();
   }
   updateExpectedSwitchIdAndPortIdForPort(swPort->getID());
-  portsWithUpdatedConfig_.insert(swPort->getID());
 }
 
 void FabricConnectivityManager::removePort(
@@ -437,14 +436,6 @@ FabricConnectivityManager::processConnectivityInfoForPort(
   }
 
   return delta;
-}
-
-bool FabricConnectivityManager::isUpdatedConfigForPort(const PortID& portId) {
-  return portsWithUpdatedConfig_.contains(portId);
-}
-
-void FabricConnectivityManager::clearUpdatedConfigFlag(const PortID& portId) {
-  portsWithUpdatedConfig_.erase(portId); // No-op if not present
 }
 
 // Detect mismatch in expected vs. actual connectivity.

@@ -26,6 +26,9 @@ class AgentNetworkAIQosSchedulerTest : public AgentQosSchedulerTestBase {
     utility::addNetworkAIQueueConfig(
         &cfg, streamType, cfg::QueueScheduling::STRICT_PRIORITY, hwAsic);
     utility::addNetworkAIQosMaps(cfg, ensemble.getL3Asics());
+    utility::setDefaultCpuTrafficPolicyConfig(
+        cfg, ensemble.getL3Asics(), ensemble.isSai());
+    utility::addCpuQueueConfig(cfg, ensemble.getL3Asics(), ensemble.isSai());
     utility::setTTLZeroCpuConfig(ensemble.getL3Asics(), cfg);
     return cfg;
   }

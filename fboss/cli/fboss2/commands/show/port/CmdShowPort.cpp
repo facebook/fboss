@@ -444,7 +444,7 @@ RetType CmdShowPort::createModel(
             getTransceiverStr(transceiverEntries, transceiverId);
       }
       if (auto pfc = apache::thrift::get_pointer(portInfo.pfc())) {
-        std::string pfcString = "";
+        std::string pfcString;
         if (*pfc->tx()) {
           pfcString = "TX ";
         }
@@ -456,7 +456,7 @@ RetType CmdShowPort::createModel(
         }
         portDetails.pfc() = pfcString;
       } else {
-        std::string pauseString = "";
+        std::string pauseString;
         if (folly::copy(portInfo.txPause().value())) {
           pauseString = "TX ";
         }
@@ -587,7 +587,7 @@ void CmdShowPort::printOutput(const RetType& model, std::ostream& out) {
       for (const auto& queueBytes : portHwStats.queueOutBytes().value()) {
         const auto iter =
             portInfo.queueIdToName().value().find(queueBytes.first);
-        std::string queueName = "";
+        std::string queueName;
         if (iter != portInfo.queueIdToName().value().end()) {
           queueName = folly::to<std::string>("(", iter->second, ")");
         }
@@ -619,7 +619,7 @@ void CmdShowPort::printOutput(const RetType& model, std::ostream& out) {
            portHwStats.queueOutDiscardBytes().value()) {
         const auto iter =
             portInfo.queueIdToName().value().find(queueDiscardBytes.first);
-        std::string queueName = "";
+        std::string queueName;
         if (iter != portInfo.queueIdToName().value().end()) {
           queueName = folly::to<std::string>("(", iter->second, ")");
         }

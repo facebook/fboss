@@ -51,8 +51,6 @@ class FabricConnectivityManager {
   processConnectivityInfoForPort(
       const PortID& portId,
       const FabricEndpoint& hwConnectivity);
-  bool isUpdatedConfigForPort(const PortID& portId);
-  void clearUpdatedConfigFlag(const PortID& portId);
   bool isConnectivityInfoMissing(const PortID& portId);
   static bool isConnectivityInfoMissing(const FabricEndpoint& endpoint);
   bool isConnectivityInfoMismatch(const PortID& portId);
@@ -92,6 +90,5 @@ class FabricConnectivityManager {
       switchIdToBaseSwitchIdAndSwitchName_;
   std::map<PortID, FabricEndpoint> currentNeighborConnectivity_;
   std::map<PortID, std::string> fabricPortId2Name_;
-  std::unordered_set<PortID> portsWithUpdatedConfig_;
 };
 } // namespace facebook::fboss

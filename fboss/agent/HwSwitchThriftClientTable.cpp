@@ -143,4 +143,20 @@ std::string HwSwitchThriftClientTable::diagCmd(
   }
   return out.toStdString();
 }
+
+std::vector<FirmwareInfo> HwSwitchThriftClientTable::getAllFirmwareInfo(
+    SwitchID switchId) {
+  std::vector<FirmwareInfo> firmwareInfoList;
+
+  auto client = getClient(switchId);
+  try {
+    client->sync_getAllHwFirmwareInfo(firmwareInfoList);
+  } catch (const std::exception& ex) {
+    XLOG(ERR) << "Failed to get firmware info for switch : " << switchId
+              << " error: " << ex.what();
+    return std::vector<FirmwareInfo>();
+  }
+  return firmwareInfoList;
+}
+
 } // namespace facebook::fboss

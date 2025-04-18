@@ -343,7 +343,7 @@ void DHCPv4Handler::processRequest(
   MacAddress cpuMac = sw->getHwAsicTable()->getHwAsicIf(switchID)->getAsicMac();
 
   // Prepare the packet to be sent out
-  EthHdr ethHdr = makeEthHdr(cpuMac, cpuMac, vlanID);
+  EthHdr ethHdr = makeEthHdr(cpuMac, cpuMac, sw->getVlanIDForTx(vlanOrIntf));
   auto ipHdr = makeIpv4Header(
       switchIp,
       dhcpServerIP,

@@ -259,11 +259,12 @@ void SaiBufferManager::setupIngressBufferPool(
     xoffSize = *bufferPoolCfg.headroomBytes() *
         platform_->getAsic()->getNumMemoryBuffers();
   }
+  SaiBufferPoolTraits::Attributes::ThresholdMode thresholdMode =
+      platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB
+      ? SAI_BUFFER_POOL_THRESHOLD_MODE_DYNAMIC
+      : SAI_BUFFER_POOL_THRESHOLD_MODE_STATIC;
   SaiBufferPoolTraits::CreateAttributes attributes{
-      SAI_BUFFER_POOL_TYPE_INGRESS,
-      poolSize,
-      SAI_BUFFER_POOL_THRESHOLD_MODE_STATIC,
-      xoffSize};
+      SAI_BUFFER_POOL_TYPE_INGRESS, poolSize, thresholdMode, xoffSize};
   SaiBufferPoolTraits::AdapterHostKey k = tupleProjection<
       SaiBufferPoolTraits::CreateAttributes,
       SaiBufferPoolTraits::AdapterHostKey>(attributes);

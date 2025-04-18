@@ -10,6 +10,8 @@
 
 namespace facebook::fboss {
 
+enum class NeighborOp { ADD, DEL };
+
 class AgentVoqSwitchTest : public AgentHwTest {
  public:
   cfg::SwitchConfig initialConfig(const AgentEnsemble& ensemble) const override;
@@ -55,7 +57,7 @@ class AgentVoqSwitchTest : public AgentHwTest {
   }
 
   void addDscpAclWithCounter();
-  void addRemoveNeighbor(PortDescriptor port, bool add);
+  void addRemoveNeighbor(PortDescriptor port, NeighborOp operation);
   void setForceTrafficOverFabric(bool force);
   std::vector<PortDescriptor> getInterfacePortSysPortDesc();
   // Resolve and return list of local nhops (only NIF ports)

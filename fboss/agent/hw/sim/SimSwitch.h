@@ -168,6 +168,10 @@ class SimSwitch : public HwSwitch {
   void clearInterfacePhyCounters(
       const std::unique_ptr<std::vector<int32_t>>& /*ports*/) override {}
 
+  std::vector<FirmwareInfo> getAllFirmwareInfo() const override {
+    return {};
+  }
+
  private:
   void switchRunStateChangedImpl(SwitchRunState newState) override {}
   // TODO

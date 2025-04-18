@@ -246,6 +246,8 @@ add_fbthrift_cpp_library(
   fboss/cli/fboss2/commands/show/route/model.thrift
   OPTIONS
     json
+  DEPENDS
+    ctrl_cpp2
 )
 
 add_fbthrift_cpp_library(
@@ -367,6 +369,8 @@ add_executable(fboss2
   fboss/cli/fboss2/commands/set/interface/prbs/state/CmdSetInterfacePrbsState.h
   fboss/cli/fboss2/commands/show/acl/CmdShowAcl.h
   fboss/cli/fboss2/commands/show/agent/CmdShowAgentSsl.h
+  fboss/cli/fboss2/commands/show/agent/CmdShowAgentFirmware.h
+  fboss/cli/fboss2/commands/show/agent/CmdShowAgentFirmware.cpp
   fboss/cli/fboss2/commands/show/aggregateport/CmdShowAggregatePort.h
   fboss/cli/fboss2/commands/show/arp/CmdShowArp.h
   fboss/cli/fboss2/commands/show/dsf/CmdShowDsf.h

@@ -329,6 +329,10 @@ RouteNextHopEntry::NextHopSet RouteNextHopEntry::normalizedNextHops() const {
   NextHopSet normalizedNextHops;
   // 1)
   for (const auto& nhop : getNextHopSet()) {
+    if (nhop.adjustedWeight() && nhop.adjustedWeight() == 0) {
+      // skip nexthops with adjusted weight set to 0
+      continue;
+    }
     normalizedNextHops.insert(ResolvedNextHop(
         nhop.addr(),
         nhop.intf(),

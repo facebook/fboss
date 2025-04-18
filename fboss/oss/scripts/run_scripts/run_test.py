@@ -249,6 +249,32 @@ def run_script(script_file: str):
     subprocess.run(script_file, shell=True)
 
 
+def setup_fboss_env() -> None:
+    print("Setting fboss environment variables")
+
+    fboss = os.getcwd()
+    os.environ["FBOSS"] = fboss
+    os.environ["FBOSS_BIN"] = f"{fboss}/bin"
+    os.environ["FBOSS_LIB"] = f"{fboss}/lib"
+    os.environ["FBOSS_LIB64"] = f"{fboss}/lib64"
+    os.environ["FBOSS_KMODS"] = f"{fboss}/lib/modules"
+    os.environ["FBOSS_DATA"] = f"{fboss}/share"
+
+    if os.environ.get("PATH") is not None:
+        os.environ["PATH"] = f"{os.environ['FBOSS_BIN']}:{os.environ['PATH']}"
+    else:
+        os.environ["PATH"] = os.environ["FBOSS_BIN"]
+
+    if os.environ.get("LD_LIBRARY_PATH") is not None:
+        os.environ["LD_LIBRARY_PATH"] = (
+            f"{os.environ['FBOSS_LIB64']}:{os.environ['FBOSS_LIB']}:{os.environ['LD_LIBRARY_PATH']}"
+        )
+    else:
+        os.environ["LD_LIBRARY_PATH"] = (
+            f"{os.environ['FBOSS_LIB64']}:{os.environ['FBOSS_LIB']}"
+        )
+
+
 class TestRunner(abc.ABC):
     ENV_VAR = dict(os.environ)
     WARMBOOT_SETUP_OPTION = "--setup-for-warmboot"
@@ -1132,6 +1158,9 @@ class SaiAgentTestRunner(TestRunner):
 
 
 if __name__ == "__main__":
+    # Set env variables for FBOSS
+    setup_fboss_env()
+
     ap = ArgumentParser(description="Run tests.")
 
     # Define common args

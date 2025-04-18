@@ -31,11 +31,11 @@ class AgentDscpQueueMappingTestBase : public AgentHwTest {
 
   void setupHelper() {
     utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
-    resolveNeigborAndProgramRoutes(ecmpHelper, kEcmpWidth);
+    resolveNeighborAndProgramRoutes(ecmpHelper, kEcmpWidth);
   }
 
   void sendPacket(bool frontPanel, uint8_t ttl = 64) {
-    auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
+    auto vlanId = getVlanIDForTx();
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);

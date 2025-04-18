@@ -7,6 +7,7 @@ thrift_library(
     languages = [
         "cpp2",
         "py3-deprecated",
+        "python",
     ],
     py3_namespace = "neteng.fboss.platform.fan_service",
     thrift_cpp2_options = ["json"],

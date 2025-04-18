@@ -35,7 +35,7 @@ class AgentLoopBackTest : public AgentHwTest {
 
  private:
   void sendPkt(bool frontPanel, uint8_t ttl, bool srcEqualDstMac) {
-    auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
+    auto vlanId = getVlanIDForTx();
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
@@ -68,7 +68,7 @@ class AgentLoopBackTest : public AgentHwTest {
       utility::EcmpSetupAnyNPorts6 ecmpHelper6{
           getProgrammedState(),
           utility::getMacForFirstInterfaceWithPorts(getProgrammedState())};
-      resolveNeigborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
+      resolveNeighborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
     };
     auto verify = [=, this]() {
       const auto switchType =

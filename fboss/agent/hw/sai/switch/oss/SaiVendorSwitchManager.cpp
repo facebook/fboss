@@ -9,7 +9,7 @@ SaiVendorSwitchManager::SaiVendorSwitchManager(
     SaiManagerTable* /*managerTable*/,
     SaiPlatform* /*platform*/) {}
 
-void SaiVendorSwitchManager::initVendorSwitchEvents() {}
+void SaiVendorSwitchManager::setVendorSwitchEventEnableState(bool /*enable*/) {}
 
 void SaiVendorSwitchManager::vendorSwitchEventNotificationCallback(
     sai_size_t /*bufferSize*/,

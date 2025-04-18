@@ -42,7 +42,7 @@ class AgentJumboFramesTest : public AgentHwTest {
     auto mac = utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     auto txPacket = utility::makeUDPTxPacket(
         getSw(),
-        utility::firstVlanIDWithPorts(getProgrammedState()),
+        getVlanIDForTx(),
         mac,
         mac,
         folly::IPAddressV6("2620:0:1cfe:face:b00c::3"),
@@ -60,7 +60,7 @@ class AgentJumboFramesTest : public AgentHwTest {
     auto setup = [=, this]() {
       utility::EcmpSetupAnyNPorts6 ecmpHelper(
           getProgrammedState(), RouterID(0));
-      resolveNeigborAndProgramRoutes(ecmpHelper, 1);
+      resolveNeighborAndProgramRoutes(ecmpHelper, 1);
     };
 
     auto verify = [=, this]() {

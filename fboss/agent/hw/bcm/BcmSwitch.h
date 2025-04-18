@@ -657,6 +657,10 @@ class BcmSwitch : public BcmSwitchIf {
 
   bool getArsExhaustionStatus() override;
 
+  std::vector<FirmwareInfo> getAllFirmwareInfo() const override {
+    return {};
+  }
+
  private:
   enum Flags : uint32_t {
     RX_REGISTERED = 0x01,

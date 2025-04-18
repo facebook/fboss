@@ -10,6 +10,20 @@
 
 namespace facebook::fboss::utility {
 
+namespace {
+std::optional<VlanID> getVlanIDForTx(
+    TestEnsembleIf* ensemble,
+    std::optional<PortID> port) {
+  if (port) {
+    return ensemble->getProgrammedState()
+        ->getPorts()
+        ->getNode(*port)
+        ->getIngressVlan();
+  }
+  return ensemble->getVlanIDForTx();
+}
+} // namespace
+
 template <typename EcmpSetupHelperT>
 void HwEcmpDataPlaneTestUtil<EcmpSetupHelperT>::pumpTraffic(
     int ecmpWidth,
@@ -245,7 +259,7 @@ void HwIpEcmpDataPlaneTestUtil<AddrT>::pumpTrafficThroughPort(
     std::optional<PortID> port) {
   auto* ensemble = BaseT::getEnsemble();
   auto programmedState = ensemble->getProgrammedState();
-  auto vlanId = utility::firstVlanIDWithPorts(programmedState);
+  auto vlanId = getVlanIDForTx(ensemble, port);
   auto intfMac = utility::getMacForFirstInterfaceWithPorts(programmedState);
 
   utility::pumpTraffic(
@@ -268,7 +282,7 @@ void HwIpRoCEEcmpDataPlaneTestUtil<AddrT>::pumpTrafficThroughPort(
     std::optional<PortID> port) {
   auto* ensemble = BaseT::getEnsemble();
   auto programmedState = ensemble->getProgrammedState();
-  auto vlanId = utility::firstVlanIDWithPorts(programmedState);
+  auto vlanId = getVlanIDForTx(ensemble, port);
   auto intfMac = utility::getMacForFirstInterfaceWithPorts(programmedState);
 
   utility::pumpRoCETraffic(
@@ -292,7 +306,7 @@ void HwIpRoCEEcmpDestPortDataPlaneTestUtil<AddrT>::pumpTrafficThroughPort(
     std::optional<PortID> port) {
   auto* ensemble = BaseT::getEnsemble();
   auto programmedState = ensemble->getProgrammedState();
-  auto vlanId = utility::firstVlanIDWithPorts(programmedState);
+  auto vlanId = getVlanIDForTx(ensemble, port);
   auto intfMac = utility::getMacForFirstInterfaceWithPorts(programmedState);
 
   utility::pumpRoCETraffic(

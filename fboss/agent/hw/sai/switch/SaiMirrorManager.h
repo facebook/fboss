@@ -61,6 +61,9 @@ class SaiMirrorManager {
   SaiMirrorHandle* FOLLY_NULLABLE getMirrorHandle(const std::string& mirrorId);
   std::vector<MirrorSaiId> getAllMirrorSessionOids() const;
 
+  template <typename MirrorTraits>
+  uint32_t getMirrorsCount() const;
+
  private:
   SaiMirrorHandle* FOLLY_NULLABLE
   getMirrorHandleImpl(const std::string& mirrorId) const;

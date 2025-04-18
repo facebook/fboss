@@ -25,6 +25,7 @@ cpp_library(
     exported_deps = [
         ":storage",
         "//fboss/thrift_cow/nodes:nodes",
+        "//fboss/thrift_cow/nodes:serializer",
         "//fboss/thrift_cow/visitors:visitors",
         "//folly/logging:logging",
     ],

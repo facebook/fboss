@@ -245,12 +245,12 @@ class NaivePeriodicSubscribableStorageBase {
   std::shared_ptr<ThreadHeartbeat> threadHeartbeat_;
 
   // metric names
-  const std::string rss_{""};
-  const std::string registeredSubs_{""};
-  const std::string nPathStores_{""};
-  const std::string nPathStoreAllocs_{""};
-  const std::string serveSubMs_{""};
-  const std::string serveSubNum_{""};
+  const std::string rss_;
+  const std::string registeredSubs_;
+  const std::string nPathStores_;
+  const std::string nPathStoreAllocs_;
+  const std::string serveSubMs_;
+  const std::string serveSubNum_;
   // per-PublisherRoot metrics
   const std::string publishTimePrefix_;
   const std::string subscribeTimePrefix_;

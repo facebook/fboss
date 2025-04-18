@@ -5,6 +5,7 @@ namespace cpp2 facebook.fboss.fsdb
 cpp_include "folly/container/F14Map.h"
 
 include "thrift/annotation/cpp.thrift"
+include "thrift/annotation/thrift.thrift"
 
 enum TestEnum {
   FIRST = 1,
@@ -19,10 +20,11 @@ enum TestEnum2 {
 
 typedef list<TestEnum2> ListTypedef
 
+@thrift.DeprecatedUnvalidatedAnnotations{items = {"thriftpath.root": "1"}}
 struct TestStructSimple {
   1: i32 min;
   2: i32 max;
-} (thriftpath.root)
+}
 // For illustration that multiple roots can be annotated. This
 // will result in path code gen for all these roots, which can
 // then be leveraged in code.
@@ -41,6 +43,7 @@ struct OtherStruct {
   5: optional i32 o;
 }
 
+@thrift.DeprecatedUnvalidatedAnnotations{items = {"thriftpath.root": "1"}}
 struct TestStruct {
   1: bool tx = false;
   2: bool rx = false;
@@ -62,4 +65,4 @@ struct TestStruct {
   17: ListTypedef listTypedef = [];
   18: map<string, OtherStruct> mapOfStructs;
   19: list<OtherStruct> listofStructs;
-} (thriftpath.root)
+}

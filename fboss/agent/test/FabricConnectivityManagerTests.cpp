@@ -254,44 +254,6 @@ TEST_F(FabricConnectivityManagerTest, validateProcessConnectivityInfo) {
       fabricConnectivityManager_->isConnectivityInfoMismatch(PortID(1)));
 }
 
-TEST_F(FabricConnectivityManagerTest, configUpdateForPort) {
-  // Given
-
-  const auto portId = PortID(1);
-  const auto remotePortName = "fab1/2/4";
-  const int remoteSwitchId = 10;
-  const auto remoteSwitchName = "fdswA";
-
-  auto oldState = std::make_shared<SwitchState>();
-  auto newState = std::make_shared<SwitchState>();
-
-  // Create port with neighbor connectivity
-  auto swPort = makePort(portId);
-  swPort->setExpectedNeighborReachability(
-      createPortNeighbor(remotePortName, remoteSwitchName));
-  newState->getPorts()->addNode(swPort, getScope(swPort));
-
-  auto dsfNode = makeDsfNode(
-      remoteSwitchId, remoteSwitchName, cfg::AsicType::ASIC_TYPE_RAMON3);
-  auto dsfNodeMap = std::make_shared<MultiSwitchDsfNodeMap>();
-  dsfNodeMap->addNode(dsfNode, getScope(dsfNode));
-  newState->resetDsfNodes(dsfNodeMap);
-
-  // When
-  StateDelta delta{oldState, newState};
-  fabricConnectivityManager_->stateUpdated(delta);
-
-  // Then
-  bool isUpdatedConfig =
-      fabricConnectivityManager_->isUpdatedConfigForPort(portId);
-  EXPECT_TRUE(isUpdatedConfig);
-
-  // Clear and verify
-  fabricConnectivityManager_->clearUpdatedConfigFlag(portId);
-  isUpdatedConfig = fabricConnectivityManager_->isUpdatedConfigForPort(portId);
-  EXPECT_FALSE(isUpdatedConfig);
-}
-
 TEST_F(FabricConnectivityManagerTest, validateNoExpectedConnectivity) {
   auto oldState = std::make_shared<SwitchState>();
   auto newState = std::make_shared<SwitchState>();

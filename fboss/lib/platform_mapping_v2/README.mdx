@@ -36,7 +36,7 @@ Below are the command line arguments that are relevant to this script.
 | --input-dir (required) | Full directory path that has all vendor source files. |
 | --platform-name (required)  | Platform name that each CSV file has as prefix (e.g. wedge400 in wedge400_static_mapping.csv).   |
 | --output-dir  | Directory to write platform mapping config (default: /tmp/generated_platform_mappings).   |
-| --is-multi-npu  | Generates multi-NPU platform mapping config (default: False).   |
+| --multi-npu  | Generates multi-NPU platform mapping config (default: False).   |
 
 
 To use this command, you need to provide a folder path via `--input-dir` that includes the following files, with `PLATFORM` being a common string that identifies your platform:
@@ -44,7 +44,7 @@ To use this command, you need to provide a folder path via `--input-dir` that in
 - `PLATFORM_profile_settings.csv`
 - `PLATFORM_si_settings.csv`
 - `PLATFORM_static_mapping.csv`
-- `PLATFORM_vendor_config.json`
+- `PLATFORM_vendor_config.json` (optional)
 
 Please take a look at one of our open-sourced platform mapping source files to get an example of what each file should look like (e.g. `platform_mapping_v2/montblanc`).
 

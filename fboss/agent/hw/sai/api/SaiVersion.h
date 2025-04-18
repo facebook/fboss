@@ -62,7 +62,8 @@
     defined(SAI_VERSION_11_0_EA_DNX_SIM_ODP) || \
     defined(SAI_VERSION_11_3_0_0_DNX_ODP) ||    \
     defined(SAI_VERSION_11_7_0_0_DNX_ODP) ||    \
-    defined(SAI_VERSION_12_0_EA_DNX_ODP)
+    defined(SAI_VERSION_12_0_EA_DNX_ODP) ||     \
+    defined(SAI_VERSION_12_2_0_0_DNX_ODP)
 #define BRCM_SAI_SDK_DNX
 #endif
 
@@ -70,11 +71,13 @@
 #define BRCM_SAI_SDK_XGS_AND_DNX
 #endif
 
-#if defined(SAI_VERSION_12_0_EA_DNX_ODP)
+#if defined(SAI_VERSION_12_0_EA_DNX_ODP) || \
+    defined(SAI_VERSION_12_2_0_0_DNX_ODP)
 #define BRCM_SAI_SDK_GTE_12_0
 #endif
 
-#if defined(SAI_VERSION_12_0_EA_DNX_ODP)
+#if defined(SAI_VERSION_12_0_EA_DNX_ODP) || \
+    defined(SAI_VERSION_12_2_0_0_DNX_ODP)
 #define BRCM_SAI_SDK_DNX_GTE_12_0
 #endif
 
@@ -120,9 +123,12 @@
  *   - TAJO_SDK_GTE_24_8_3001: Flags for SDK >= 24.8.3001
  *   - TAJO_SDK: Flags for all TAJO SDK
  */
-#if defined(TAJO_SDK_VERSION_24_8_3001)
-#define TAJO_P4_WB_SDK
-#endif
+
+/*
+ * TAJO_SDK_GTE_24_8_3001 can do P4 Warmboot,
+ * but it does not support switching between P4 Warmboot and normal Warmboot.
+ * Do not enable the P4 WB SDK until a future SDK release with the fix.
+ */
 
 #if defined(TAJO_SDK_VERSION_1_42_8) || defined(TAJO_SDK_VERSION_24_8_3001)
 #define TAJO_SDK_EBRO

@@ -39,6 +39,8 @@ class MockAsic : public HwAsic {
       case HwAsic::Feature::WEIGHTED_NEXTHOPGROUP_MEMBER:
       case HwAsic::Feature::EVENTOR_PORT_FOR_SFLOW:
         return false;
+      case HwAsic::Feature::CPU_TX_PACKET_REQUIRES_VLAN_TAG:
+        return getSwitchType() == cfg::SwitchType::NPU;
       case Feature::CPU_PORT:
         return getSwitchType() != cfg::SwitchType::FABRIC;
 

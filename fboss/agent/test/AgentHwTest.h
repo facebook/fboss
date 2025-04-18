@@ -176,9 +176,9 @@ class AgentHwTest : public ::testing::Test {
       const cfg::SwitchConfig& in) const;
 
   template <typename EcmpHelperT>
-  void resolveNeigborAndProgramRoutes(const EcmpHelperT& ecmp, int width) {
-    applyNewState([this, &ecmp, &width](std::shared_ptr<SwitchState> /*in*/) {
-      return ecmp.resolveNextHops(getProgrammedState(), width);
+  void resolveNeighborAndProgramRoutes(const EcmpHelperT& ecmp, int width) {
+    applyNewState([this, &ecmp, &width](std::shared_ptr<SwitchState> in) {
+      return ecmp.resolveNextHops(in, width);
     });
     auto wrapper = getSw()->getRouteUpdater();
     ecmp.programRoutes(&wrapper, width);
@@ -242,6 +242,10 @@ class AgentHwTest : public ::testing::Test {
 
   void populateArpNeighborsToCache(const std::shared_ptr<Interface>& interface);
   void populateNdpNeighborsToCache(const std::shared_ptr<Interface>& interface);
+
+  std::optional<VlanID> getVlanIDForTx() const {
+    return agentEnsemble_->getVlanIDForTx();
+  }
 
  private:
   void applyNewStateImpl(

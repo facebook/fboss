@@ -32,6 +32,4 @@ void fillHwSwitchErrorStats(
 
 void publishSwitchWatermarks(HwSwitchWatermarkStats& /*watermarkStats*/) {}
 
-void switchPreInitSequence(HwAsic* /*asic*/) {}
-
 } // namespace facebook::fboss

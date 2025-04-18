@@ -16,7 +16,7 @@ void AgentQosTestBase::verifyDscpQueueMapping(
     const std::map<int, std::vector<uint8_t>>& queueToDscp) {
   auto setup = [=, this]() {
     utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
-    resolveNeigborAndProgramRoutes(ecmpHelper, kEcmpWidth);
+    resolveNeighborAndProgramRoutes(ecmpHelper, kEcmpWidth);
   };
 
   auto verify = [=, this]() {
@@ -42,7 +42,7 @@ void AgentQosTestBase::verifyDscpQueueMapping(
 }
 
 void AgentQosTestBase::sendPacket(uint8_t dscp, bool frontPanel) {
-  auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
+  auto vlanId = getVlanIDForTx();
   auto intfMac =
       utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
   auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);

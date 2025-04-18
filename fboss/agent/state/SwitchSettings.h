@@ -738,6 +738,22 @@ class SwitchSettings
     }
   }
 
+  std::optional<std::map<int32_t, int32_t>> getTcToRateLimitKbps() const {
+    if (auto tcToRateLimitKbps = cref<switch_state_tags::tcToRateLimitKbps>()) {
+      return tcToRateLimitKbps->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  void setTcToRateLimitKbps(
+      const std::optional<std::map<int32_t, int32_t>>& tcToRateLimitKbps) {
+    if (!tcToRateLimitKbps) {
+      ref<switch_state_tags::tcToRateLimitKbps>().reset();
+    } else {
+      set<switch_state_tags::tcToRateLimitKbps>(*tcToRateLimitKbps);
+    }
+  }
+
   SwitchSettings* modify(std::shared_ptr<SwitchState>* state);
 
  private:

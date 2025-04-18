@@ -28,6 +28,14 @@
 #include "fboss/agent/state/RouteTypes.h"
 #include "folly/IPAddressV4.h"
 
+DEFINE_int32(nsf_rack_id, 1, "Rack id inNSF pod");
+DEFINE_int32(nsf_num_racks_per_pod, 6, "Number of racks in NSF pod");
+DEFINE_int32(nsf_num_parallel_rack_links, 6, "Parallel links in NSF pod");
+DEFINE_bool(
+    enable_capacity_pruning,
+    false,
+    "Enable path pruning based on capacity");
+
 using boost::container::flat_map;
 using boost::container::flat_set;
 using folly::CIDRNetwork;
@@ -47,13 +55,24 @@ static const auto kRemoteInterfaceRouteClientId =
 RibRouteUpdater::RibRouteUpdater(
     IPv4NetworkToRouteMap* v4Routes,
     IPv6NetworkToRouteMap* v6Routes)
-    : v4Routes_(v4Routes), v6Routes_(v6Routes) {}
+    : v4Routes_(v4Routes),
+      v6Routes_(v6Routes),
+      weightNormalizer_(
+          FLAGS_nsf_num_racks_per_pod,
+          FLAGS_nsf_num_parallel_rack_links,
+          FLAGS_nsf_rack_id) {}
 
 RibRouteUpdater::RibRouteUpdater(
     IPv4NetworkToRouteMap* v4Routes,
     IPv6NetworkToRouteMap* v6Routes,
     LabelToRouteMap* mplsRoutes)
-    : v4Routes_(v4Routes), v6Routes_(v6Routes), mplsRoutes_(mplsRoutes) {}
+    : v4Routes_(v4Routes),
+      v6Routes_(v6Routes),
+      mplsRoutes_(mplsRoutes),
+      weightNormalizer_(
+          FLAGS_nsf_num_racks_per_pod,
+          FLAGS_nsf_num_parallel_rack_links,
+          FLAGS_nsf_rack_id) {}
 
 void RibRouteUpdater::update(
     const std::map<ClientID, std::vector<RouteEntry>>& toAdd,
@@ -297,18 +316,27 @@ struct NextHopCombinedWeightsKey {
   explicit NextHopCombinedWeightsKey(NextHop nhop)
       : ip(nhop.addr()),
         intfId(nhop.intf()), // must be resolved next hop
-        action(nhop.labelForwardingAction()) {
+        action(nhop.labelForwardingAction()),
+        disableTTLDecrement(nhop.disableTTLDecrement()),
+        topologyInfo(nhop.topologyInfo()) {
     /* "weightless" next hop, consider all attrs of L3 next hop except its
      * weight, this is used in computing number of required paths to next hop,
      * for correct programming of unequal cost multipath */
   }
   bool operator<(const NextHopCombinedWeightsKey& other) const {
-    return std::tie(ip, intfId, action) <
-        std::tie(other.ip, other.intfId, other.action);
+    return std::tie(ip, intfId, action, disableTTLDecrement, topologyInfo) <
+        std::tie(
+               other.ip,
+               other.intfId,
+               other.action,
+               other.disableTTLDecrement,
+               other.topologyInfo);
   }
   folly::IPAddress ip;
   InterfaceID intfId;
   std::optional<LabelForwardingAction> action;
+  std::optional<bool> disableTTLDecrement;
+  std::optional<NetworkTopologyInformation> topologyInfo;
 };
 using NextHopCombinedWeights =
     boost::container::flat_map<NextHopCombinedWeightsKey, NextHopWeight>;
@@ -358,7 +386,12 @@ RouteNextHopSet mergeForwardInfosEcmp(
             << nh;
       }
       fwd.emplace(ResolvedNextHop(
-          fnh.addr(), fnh.intf(), ECMP_WEIGHT, fnh.labelForwardingAction()));
+          fnh.addr(),
+          fnh.intf(),
+          ECMP_WEIGHT,
+          fnh.labelForwardingAction(),
+          fnh.disableTTLDecrement(),
+          fnh.topologyInfo()));
     }
   }
   return fwd;
@@ -428,8 +461,11 @@ RouteNextHopSet optimizeWeights(const NextHopCombinedWeights& cws) {
     const folly::IPAddress& addr = cw.first.ip;
     const InterfaceID& intf = cw.first.intfId;
     const auto& action = cw.first.action;
+    const auto& disableTTLDecrement = cw.first.disableTTLDecrement;
+    const auto& topologyInfo = cw.first.topologyInfo;
     NextHopWeight w = fwdWeightGcd ? cw.second / fwdWeightGcd : 0;
-    fwd.emplace(ResolvedNextHop(addr, intf, w, action));
+    fwd.emplace(ResolvedNextHop(
+        addr, intf, w, action, disableTTLDecrement, topologyInfo));
   }
   return fwd;
 }
@@ -505,6 +541,7 @@ void RibRouteUpdater::getFwdInfoFromNhop(
     const std::optional<LabelForwardingAction>& labelAction,
     bool* hasToCpu,
     bool* hasDrop,
+    const std::optional<NetworkTopologyInformation>& topologyInfo,
     RouteNextHopSet& fwd) {
   auto it = routes->longestMatch(nh, nh.bitCount());
   if (it == routes->end()) {
@@ -540,16 +577,22 @@ void RibRouteUpdater::getFwdInfoFromNhop(
             rtNh.intf(),
             UCMP_DEFAULT_WEIGHT,
             LabelForwardingAction::combinePushLabelStack(
-                labelAction, rtNh.labelForwardingAction())));
+                labelAction, rtNh.labelForwardingAction()),
+            rtNh.disableTTLDecrement(),
+            topologyInfo));
       } else {
         std::for_each(
-            nhops.begin(), nhops.end(), [&fwd, labelAction](const auto& nhop) {
+            nhops.begin(),
+            nhops.end(),
+            [&fwd, labelAction, topologyInfo](const auto& nhop) {
               fwd.insert(ResolvedNextHop(
                   nhop.addr(),
                   nhop.intf(),
                   nhop.weight(),
                   LabelForwardingAction::combinePushLabelStack(
-                      labelAction, nhop.labelForwardingAction())));
+                      labelAction, nhop.labelForwardingAction()),
+                  nhop.disableTTLDecrement(),
+                  topologyInfo));
             });
       }
     }
@@ -622,6 +665,7 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
               nh.labelForwardingAction(),
               &hasToCpu,
               &hasDrop,
+              nh.topologyInfo(),
               nhToFwds[nh]);
         } else {
           CHECK(addr.isV6());
@@ -631,6 +675,7 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
               nh.labelForwardingAction(),
               &hasToCpu,
               &hasDrop,
+              nh.topologyInfo(),
               nhToFwds[nh]);
         }
       }
@@ -643,6 +688,11 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
       RouteNextHopSet nhSet = labelPopandLookup
           ? bestEntry->getNextHopSet()
           : mergeForwardInfos(nhToFwds, route);
+
+      // normalize weight information for capacity matching if needed
+      if (FLAGS_enable_capacity_pruning) {
+        nhSet = weightNormalizer_.getNormalizedNexthops(nhSet);
+      }
 
       fwItr = unresolvedToResolvedNhops_
                   .insert({bestEntry->getNextHopSet(), std::move(nhSet)})

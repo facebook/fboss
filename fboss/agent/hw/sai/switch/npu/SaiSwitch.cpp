@@ -16,6 +16,7 @@
 #include "fboss/agent/hw/sai/switch/SaiAclTableManager.h"
 #include "fboss/agent/hw/sai/switch/SaiBufferManager.h"
 #include "fboss/agent/hw/sai/switch/SaiCounterManager.h"
+#include "fboss/agent/hw/sai/switch/SaiFirmwareManager.h"
 #include "fboss/agent/hw/sai/switch/SaiHostifManager.h"
 #include "fboss/agent/hw/sai/switch/SaiLagManager.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
@@ -82,31 +83,14 @@ void SaiSwitch::updateStatsImpl() {
       if (endpointOpt.has_value()) {
         auto delta = fabricConnectivityManager_->processConnectivityInfoForPort(
             portsIter->second.portID, *endpointOpt);
-        bool updatedConfig = fabricConnectivityManager_->isUpdatedConfigForPort(
-            portsIter->second.portID);
-        if (updatedConfig) {
-          fabricConnectivityManager_->clearUpdatedConfigFlag(
-              portsIter->second.portID);
-        }
-
         if (delta) {
-          XLOG(DBG5) << "C" << (updatedConfig ? "onfig and c" : "")
-                     << "onnectivity delta found for port ID "
+          XLOG(DBG5) << "Connectivity delta found for port ID "
                      << portsIter->second.portID;
-          connectivityDelta.insert({portsIter->second.portID, *delta});
-        } else if (updatedConfig) {
-          XLOG(DBG5) << "Config delta found for port ID "
-                     << portsIter->second.portID;
-
-          delta = multiswitch::FabricConnectivityDelta{};
-          delta->oldConnectivity() = endpointOpt.value();
-          delta->newConnectivity() = endpointOpt.value();
           connectivityDelta.insert({portsIter->second.portID, *delta});
         } else {
           XLOG(DBG5) << "No connectivity delta for port ID "
                      << portsIter->second.portID;
         }
-
         if (fabricConnectivityManager_->isConnectivityInfoMissing(
                 portsIter->second.portID)) {
           missingCount++;
@@ -133,6 +117,22 @@ void SaiSwitch::updateStatsImpl() {
   getSwitchStats()->fabricConnectivityMissingCount(missingCount);
   getSwitchStats()->fabricConnectivityMismatchCount(mismatchCount);
   getSwitchStats()->fabricConnectivityBogusCount(bogusCount);
+
+  {
+    std::lock_guard<std::mutex> locked(saiSwitchMutex_);
+    auto firmwareOpStatus =
+        managerTable_->firmwareManager().getFirmwareOpStatus();
+    if (firmwareOpStatus.has_value()) {
+      getSwitchStats()->isolationFirmwareOpStatus(
+          static_cast<int64_t>(firmwareOpStatus.value()));
+    }
+    auto firmwareFuncStatus =
+        managerTable_->firmwareManager().getFirmwareFuncStatus();
+    if (firmwareFuncStatus.has_value()) {
+      getSwitchStats()->isolationFirmwareFuncStatus(
+          static_cast<int64_t>(firmwareFuncStatus.value()));
+    }
+  }
 
   auto sysPortsIter = concurrentIndices_->sysPortIds.begin();
   while (sysPortsIter != concurrentIndices_->sysPortIds.end()) {

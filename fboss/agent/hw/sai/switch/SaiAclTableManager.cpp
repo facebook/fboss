@@ -16,6 +16,7 @@
 #include "fboss/agent/hw/sai/api/AclApi.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiAclTableGroupManager.h"
+#include "fboss/agent/hw/sai/switch/SaiArsManager.h"
 #include "fboss/agent/hw/sai/switch/SaiHostifManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiMirrorManager.h"
@@ -407,6 +408,9 @@ SaiAclTableManager::cfgActionTypeListToSaiActionTypeList(
         saiActionType = SAI_ACL_ACTION_TYPE_SET_USER_TRAP_ID;
         break;
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+      case cfg::AclTableActionType::SET_ARS_OBJECT:
+        saiActionType = SAI_ACL_ACTION_TYPE_SET_ARS_OBJECT;
+        break;
       case cfg::AclTableActionType::DISABLE_ARS_FORWARDING:
         saiActionType = SAI_ACL_ACTION_TYPE_DISABLE_ARS_FORWARDING;
         break;
@@ -1029,6 +1033,8 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
 #endif
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+  std::optional<SaiAclEntryTraits::Attributes::ActionSetArsObject>
+      aclActionSetArsObject{std::nullopt};
   std::optional<SaiAclEntryTraits::Attributes::ActionDisableArsForwarding>
       aclActionDisableArsForwarding{std::nullopt};
 #endif
@@ -1209,16 +1215,37 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
             apache::thrift::util::enumNameSafe(*macsecFlowAction.action()));
       }
     }
+    /*
+     * Chenab supports
+     *  - Set ARS object
+     *  - Disable ARS forwarding - only true
+     * BCM supports
+     *  - Disable ARS forwarding - only false
+     */
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
     if (FLAGS_flowletSwitchingEnable &&
-        platform_->getAsic()->isSupported(HwAsic::Feature::FLOWLET)) {
+        platform_->getAsic()->isSupported(HwAsic::Feature::ARS)) {
       if (matchAction.getFlowletAction().has_value()) {
         auto flowletAction = matchAction.getFlowletAction().value();
         switch (flowletAction) {
-          case cfg::FlowletAction::FORWARD:
+          case cfg::FlowletAction::FORWARD: {
+#if defined(CHENAB_SAI_SDK)
+            auto arsHandlePtr = managerTable_->arsManager().getArsHandle();
+            if (arsHandlePtr->ars) {
+              aclActionSetArsObject =
+                  SaiAclEntryTraits::Attributes::ActionSetArsObject{
+                      AclEntryActionSaiObjectIdT(
+                          arsHandlePtr->ars->adapterKey())};
+            }
+#else
             aclActionDisableArsForwarding =
                 SaiAclEntryTraits::Attributes::ActionDisableArsForwarding{
                     false};
+#endif
+          } break;
+          case cfg::FlowletAction::DISABLE:
+            aclActionDisableArsForwarding =
+                SaiAclEntryTraits::Attributes::ActionDisableArsForwarding{true};
             break;
         }
       }
@@ -1274,7 +1301,8 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
        || aclActionSetUserTrap.has_value()
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
-       || aclActionDisableArsForwarding.has_value()
+       || aclActionSetArsObject.has_value() ||
+       aclActionDisableArsForwarding.has_value()
 #endif
       );
 
@@ -1344,6 +1372,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       aclActionSetUserTrap,
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+      aclActionSetArsObject,
       aclActionDisableArsForwarding,
 #endif
   };

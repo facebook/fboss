@@ -9,6 +9,9 @@
  */
 
 #include "fboss/agent/test/utils/AqmTestUtils.h"
+
+#include <tuple>
+
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
@@ -178,15 +181,16 @@ HwPortStats sendPacketsWithQueueBuildup(
     TestEnsembleIf* ensemble,
     PortID port,
     int numPackets) {
-  auto getOutPacketDelta = [](auto& after, auto& before) {
-    return (
-        (*after.outMulticastPkts_() + *after.outBroadcastPkts_() +
-         *after.outUnicastPkts_()) -
-        (*before.outMulticastPkts_() + *before.outBroadcastPkts_() +
-         *before.outUnicastPkts_()));
+  auto getOutPackets = [&](const HwPortStats& stats) -> int64_t {
+    return *stats.outUnicastPkts_() + *stats.outMulticastPkts_() +
+        *stats.outBroadcastPkts_();
   };
-  auto statsAtStart = ensemble->getLatestPortStats(port);
-  auto prevStats = statsAtStart;
+  auto getOutPacketDelta = [&](const HwPortStats& after,
+                               const HwPortStats& before) -> int64_t {
+    return getOutPackets(after) - getOutPackets(before);
+  };
+  const HwPortStats statsAtStart = ensemble->getLatestPortStats(port);
+  HwPortStats prevStats = statsAtStart;
   // Disable TX to allow queue to build up
   utility::setCreditWatchdogAndPortTx(ensemble, port, false);
   // Start by sending half the number of packets. Note that though TX is
@@ -196,34 +200,44 @@ HwPortStats sendPacketsWithQueueBuildup(
   int totalPacketsSent = numPackets / 2;
 
   auto getStatsIncrement = [&]() {
-    auto newStats = ensemble->getLatestPortStats(port);
-    uint64_t netOut = getOutPacketDelta(newStats, statsAtStart);
-    uint64_t newOut = getOutPacketDelta(newStats, prevStats);
+    const HwPortStats newStats = ensemble->getLatestPortStats(port);
+    int64_t netOut = getOutPacketDelta(newStats, statsAtStart);
+    int64_t newOut = getOutPacketDelta(newStats, prevStats);
     prevStats = newStats;
     return std::pair(netOut, newOut);
   };
 
-  std::pair<uint64_t, uint64_t> statsInfo;
-  WITH_RETRIES_N_TIMED(10, std::chrono::milliseconds(1000), {
-    statsInfo = getStatsIncrement();
-    if (statsInfo.first == totalPacketsSent) {
+  int64_t netOutPackets{0};
+  int64_t newOutPackets{0};
+  const int kNumRetries{10};
+  int retries{0};
+  WITH_RETRIES_N_TIMED(kNumRetries, std::chrono::milliseconds(1000), {
+    retries++;
+    std::tie(netOutPackets, newOutPackets) = getStatsIncrement();
+    if (netOutPackets == totalPacketsSent) {
       // TX is not disabled yet, needs more packet TX to get to the point
       // of running out of initial credits before TX is stopped!
       sendPktsFn(port, numPackets / 2);
       totalPacketsSent += numPackets / 2;
     }
-    EXPECT_EVENTUALLY_TRUE(statsInfo.first < totalPacketsSent);
+    // Wait for the port to start sending out packets for any leaks from
+    // residual credits. Tomahawk3 does not always have residual credits so
+    // allow the test to continue after all the retries are exhausted.
+    EXPECT_EVENTUALLY_TRUE(netOutPackets > 0 || retries == kNumRetries);
+    // Check if the number of packets sent out of the switch is less than the
+    // number of packets that were sent to it to verify that the queue is built.
+    EXPECT_EVENTUALLY_LT(netOutPackets, totalPacketsSent);
     // TX disable is in effect once we see that no more packets are
     // getting transmitted.
-    EXPECT_EVENTUALLY_EQ(statsInfo.second, 0);
+    EXPECT_EVENTUALLY_EQ(newOutPackets, 0);
   });
-  const auto statsWithTxDisabled = prevStats;
+  const HwPortStats kStatsWithTxDisabled = prevStats;
 
   XLOG(DBG3) << "Number of packets TXed with TX disable set is "
-             << statsInfo.first;
+             << netOutPackets;
   // TXed packets dont contribute to queue build up. Resend the number of
   // packets that got transmitted to ensure numPackets are in the queue.
-  auto queuedPackets = totalPacketsSent - statsInfo.first;
+  int queuedPackets = totalPacketsSent - netOutPackets;
   if (queuedPackets < numPackets) {
     sendPktsFn(port, numPackets - queuedPackets);
   }
@@ -232,7 +246,7 @@ HwPortStats sendPacketsWithQueueBuildup(
   utility::setCreditWatchdogAndPortTx(ensemble, port, true);
 
   // Return the stats at the point when port stopped actual TX!
-  return statsWithTxDisabled;
+  return kStatsWithTxDisabled;
 }
 
 }; // namespace facebook::fboss::utility

@@ -29,6 +29,13 @@ class PlatformExplorer {
   auto static constexpr kFirmwareVersion = "{}.firmware_version";
   auto static constexpr kGroupedFirmwareVersion = "{}.firmware_version.{}";
 
+  auto static constexpr kProductionState =
+      "platform_explorer.production_state.{}";
+  auto static constexpr kProductionSubState =
+      "platform_explorer.production_sub_state.{}";
+  auto static constexpr kVariantVersion =
+      "platform_explorer.variant_version.{}";
+
   auto static constexpr kFwVerErrorFileNotFound = "ERROR_FILE_NOT_FOUND";
   auto static constexpr kFwVerErrorEmptyFile = "ERROR_EMPTY_FILE";
   auto static constexpr kFwVerErrorInvalidString = "ERROR_INVALID_STRING";
@@ -80,6 +87,9 @@ class PlatformExplorer {
 
   // Publish firmware versions read from /run/devmap files to ODS.
   void publishFirmwareVersions();
+
+  // Publish hardware versions read to ODS.
+  void publishHardwareVersions();
 
   // Get the last PlatformManagerStatus.
   PlatformManagerStatus getPMStatus() const;

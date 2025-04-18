@@ -97,7 +97,7 @@ std::string getRequestDetails(const OperRequest& request) {
       std::is_same_v<OperRequest, OperGetRequest> ||
       std::is_same_v<OperRequest, SubRequest> ||
       std::is_same_v<OperRequest, PubRequest>);
-  std::string clientID = "";
+  std::string clientID;
   if constexpr (
       std::is_same_v<OperRequest, PubRequest> ||
       std::is_same_v<OperRequest, SubRequest>) {
@@ -112,7 +112,7 @@ std::string getRequestDetails(const OperRequest& request) {
     // TODO: enforce clientId on polling apis
     clientID = "adhoc";
   }
-  std::string pathStr = "";
+  std::string pathStr;
   if constexpr (
       std::is_same_v<OperRequest, OperPubRequest> ||
       std::is_same_v<OperRequest, OperSubRequest>) {

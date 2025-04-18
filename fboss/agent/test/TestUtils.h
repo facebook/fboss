@@ -353,6 +353,12 @@ RouteNextHopSet makeResolvedNextHops(
     std::vector<std::pair<InterfaceID, std::string>> intfAndIP,
     uint32_t weight = ECMP_WEIGHT);
 
+ResolvedNextHop makeResolvedNextHop(
+    const InterfaceID& intfId,
+    const std::string& nhip,
+    uint32_t weight = 1,
+    std::optional<NetworkTopologyInformation> topologyInfo = std::nullopt);
+
 RoutePrefixV4 makePrefixV4(std::string str);
 
 RoutePrefixV6 makePrefixV6(std::string str);

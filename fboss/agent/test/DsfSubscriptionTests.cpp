@@ -209,7 +209,9 @@ class DsfSubscriptionTest : public ::testing::Test {
       publisher_.reset();
     }
   }
-  std::unique_ptr<DsfSubscription> createSubscription() {
+  std::unique_ptr<DsfSubscription> createSubscription(
+      const std::string& remoteEndpoint = "remote",
+      const folly::IPAddress& remoteIp = folly::IPAddress("::1")) {
     fsdb::SubscriptionOptions opts{
         "test-sub", false /* subscribeStats */, FLAGS_dsf_gr_hold_time};
     return std::make_unique<DsfSubscription>(
@@ -218,10 +220,10 @@ class DsfSubscriptionTest : public ::testing::Test {
         streamServePool_->getEventBase(),
         hwUpdatePool_->getEventBase(),
         "local",
-        "remote",
+        remoteEndpoint,
         remoteSwitchIds(),
         folly::IPAddress("::1"),
-        folly::IPAddress("::1"),
+        remoteIp,
         sw_);
   }
 
@@ -753,6 +755,23 @@ TYPED_TEST(DsfSubscriptionTest, BogusIntfAdd) {
     ASSERT_EVENTUALLY_TRUE(counters.checkExist(dsfUpdateFailedCounter));
     ASSERT_EVENTUALLY_GE(counters.value(dsfUpdateFailedCounter), 1);
   });
+}
+
+TYPED_TEST(DsfSubscriptionTest, RemoteEndpointString) {
+  this->createPublisher();
+  auto state = this->makeSwitchState();
+  this->publishSwitchState(state);
+  std::optional<std::map<SwitchID, std::shared_ptr<SystemPortMap>>>
+      recvSysPorts;
+  std::optional<std::map<SwitchID, std::shared_ptr<InterfaceMap>>> recvIntfs;
+  this->subscription_ = this->createSubscription();
+  std::unique_ptr<DsfSubscription> subscription2 =
+      this->createSubscription("remote2", folly::IPAddress("::2"));
+
+  std::string expectedEndpointStr = "remote_::1";
+  EXPECT_EQ(this->subscription_->remoteEndpointStr(), expectedEndpointStr);
+  std::string expectedEndpoint2Str = "remote2_::2";
+  EXPECT_EQ(subscription2->remoteEndpointStr(), expectedEndpoint2Str);
 }
 
 } // namespace facebook::fboss
