@@ -10,6 +10,7 @@
 #pragma once
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
+#include "fboss/lib/RefMap.h"
 
 #include <memory>
 
@@ -18,6 +19,15 @@ DECLARE_bool(consolidate_ecmp_groups);
 namespace facebook::fboss {
 class StateDelta;
 class SwitchState;
+
+class NextHopGroupInfo {
+ public:
+  using NextHopGroupId = uint32_t;
+  explicit NextHopGroupInfo(NextHopGroupId id) : id_(id) {}
+
+ private:
+  NextHopGroupId id_;
+};
 
 class EcmpGroupConsolidator {
  public:
@@ -37,5 +47,8 @@ class EcmpGroupConsolidator {
   static uint32_t constexpr kMinNextHopGroupId = 1;
   NextHopGroupId findNextAvailableId() const;
   std::map<RouteNextHopSet, NextHopGroupId> nextHopGroup2Id_;
+  StdRefMap<RouteNextHopSet, NextHopGroupInfo> nextHopGroupToInfo_;
+  std::unordered_map<folly::CIDRNetwork, std::shared_ptr<NextHopGroupInfo>>
+      prefixToGroupInfo_;
 };
 } // namespace facebook::fboss
