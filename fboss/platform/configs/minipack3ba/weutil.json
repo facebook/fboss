@@ -1,0 +1,47 @@
+{
+  "chassisEepromName": "CHASSIS",
+  "fruEepromList": {
+    "MCB": {
+      "path": "/run/devmap/eeproms/MCB_EEPROM"
+    },
+    "COME": {
+      "path": "/run/devmap/eeproms/COME_EEPROM"
+    },
+    "SCM": {
+      "path": "/run/devmap/eeproms/SCM_EEPROM"
+    },
+    "RUNBMC": {
+      "path": "/run/devmap/eeproms/RUNBMC_EEPROM"
+    },
+    "PSU1": {
+      "path": "/run/devmap/eeproms/PSU1_EEPROM"
+    },
+    "PSU2": {
+      "path": "/run/devmap/eeproms/PSU2_EEPROM"
+    },
+    "PDB_L": {
+      "path": "/run/devmap/eeproms/PDB_L_EEPROM"
+    },
+    "PDB_R": {
+      "path": "/run/devmap/eeproms/PDB_R_EEPROM"
+    },
+    "SMB": {
+      "path": "/run/devmap/eeproms/SMB_EEPROM"
+    },
+    "FCB_B": {
+      "path": "/run/devmap/eeproms/FCB_B_EEPROM"
+    },
+    "FCB_T": {
+      "path": "/run/devmap/eeproms/FCB_T_EEPROM"
+    },
+    "CHASSIS": {
+      "path": "/run/devmap/eeproms/CHASSIS_EEPROM"
+    },
+    "3V3_L": {
+      "path": "/run/devmap/eeproms/3V3_L_EEPROM"
+    },
+    "3V3_R": {
+      "path": "/run/devmap/eeproms/3V3_R_EEPROM"
+    }
+  }
+}
