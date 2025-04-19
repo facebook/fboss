@@ -3,6 +3,14 @@
 # In general, libraries and binaries in fboss/foo/bar are built by
 # cmake/FooBar.cmake
 
+file(READ fboss/agent/hw/test/golden/asic/jericho3-11.csv JERICHO3-11)
+file(READ fboss/agent/hw/test/golden/asic/jericho3-default.csv JERICHO3-DEFAULT)
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/fboss/agent/hw/test/oss/golden_data.h.in
+  ${CMAKE_CURRENT_BINARY_DIR}/fboss/agent/hw/test/golden_data.h
+  @ONLY
+)
+
 add_library(config_factory
   fboss/agent/hw/test/ConfigFactory.cpp
   fboss/agent/hw/test/HwPortUtils.cpp

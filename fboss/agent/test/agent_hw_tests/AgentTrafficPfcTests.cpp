@@ -14,6 +14,8 @@
 #include "fboss/agent/test/utils/QosTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
+#include <fmt/ranges.h>
+
 DEFINE_bool(
     skip_stop_pfc_test_traffic,
     false,
