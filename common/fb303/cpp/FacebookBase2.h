@@ -10,6 +10,7 @@
 #pragma once
 
 #include <time.h>
+#include <unistd.h> // For getpid()
 
 #include <common/fb303/if/gen-cpp2/FacebookService.h>
 #include <folly/small_vector.h>
@@ -32,18 +33,17 @@ enum ThriftFuncAction {
 };
 
 class FacebookBase2 : virtual public cpp2::FacebookServiceSvIf {
-  time_t startTime;
+  time_t startTime = time(nullptr);
+  std::string name_;
 
  public:
-  explicit FacebookBase2(std::string name) {
-    startTime = time(nullptr);
-  }
+  explicit FacebookBase2(std::string name) : name_(std::move(name)) {}
 
   void setEventBaseManager(folly::EventBaseManager*) {}
 
   int64_t aliveSince() override {
     // crude implementation because QsfpCache depends on it
-    return (uint64_t)startTime;
+    return static_cast<int64_t>(startTime);
   }
 
   int64_t getPid() override {
