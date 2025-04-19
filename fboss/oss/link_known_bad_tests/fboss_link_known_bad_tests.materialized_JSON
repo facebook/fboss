@@ -9378,7 +9378,7 @@
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
-    "janga800bic/sai/asicsdk-11.7.0.0_dnx_odp/12.2.0.0_dnx_odp": [
+    "janga800bic/sai/asicsdk-11.7.0.0_dnx_odp/12.0_ea_dnx_odp": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
@@ -9473,7 +9473,7 @@
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
-    "janga800bic/sai/asicsdk-11.7.0.0_dnx_odp/12.2.0.0_dnx_odp/physdk-credo-0.7.2/credo-0.7.2": [
+    "janga800bic/sai/asicsdk-11.7.0.0_dnx_odp/12.0_ea_dnx_odp/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
@@ -9568,7 +9568,7 @@
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
-    "janga800bic/sai/asicsdk-12.2.0.0_dnx_odp/12.2.0.0_dnx_odp": [
+    "janga800bic/sai/asicsdk-12.0_ea_dnx_odp/12.0_ea_dnx_odp": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
@@ -9663,7 +9663,7 @@
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
-    "janga800bic/sai/asicsdk-12.2.0.0_dnx_odp/12.2.0.0_dnx_odp/physdk-credo-0.7.2/credo-0.7.2": [
+    "janga800bic/sai/asicsdk-12.0_ea_dnx_odp/12.0_ea_dnx_odp/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
@@ -10002,7 +10002,7 @@
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
-    "meru400bfu/sai/asicsdk-11.7.0.0_dnx_odp/12.2.0.0_dnx_odp": [
+    "meru400bfu/sai/asicsdk-11.7.0.0_dnx_odp/12.0_ea_dnx_odp": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
@@ -10124,7 +10124,7 @@
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
-    "meru400bfu/sai/asicsdk-11.7.0.0_dnx_odp/12.2.0.0_dnx_odp/physdk-credo-0.7.2/credo-0.7.2": [
+    "meru400bfu/sai/asicsdk-11.7.0.0_dnx_odp/12.0_ea_dnx_odp/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
@@ -10246,7 +10246,7 @@
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
-    "meru400bfu/sai/asicsdk-12.2.0.0_dnx_odp/12.2.0.0_dnx_odp": [
+    "meru400bfu/sai/asicsdk-12.0_ea_dnx_odp/12.0_ea_dnx_odp": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
@@ -10368,7 +10368,7 @@
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
-    "meru400bfu/sai/asicsdk-12.2.0.0_dnx_odp/12.2.0.0_dnx_odp/physdk-credo-0.7.2/credo-0.7.2": [
+    "meru400bfu/sai/asicsdk-12.0_ea_dnx_odp/12.0_ea_dnx_odp/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
@@ -10728,7 +10728,7 @@
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
-    "meru400biu/sai/asicsdk-11.7.0.0_dnx_odp/12.2.0.0_dnx_odp": [
+    "meru400biu/sai/asicsdk-11.7.0.0_dnx_odp/12.0_ea_dnx_odp": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
@@ -10847,7 +10847,7 @@
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
-    "meru400biu/sai/asicsdk-11.7.0.0_dnx_odp/12.2.0.0_dnx_odp/physdk-credo-0.7.2/credo-0.7.2": [
+    "meru400biu/sai/asicsdk-11.7.0.0_dnx_odp/12.0_ea_dnx_odp/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
@@ -10966,7 +10966,7 @@
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
-    "meru400biu/sai/asicsdk-12.2.0.0_dnx_odp/12.2.0.0_dnx_odp": [
+    "meru400biu/sai/asicsdk-12.0_ea_dnx_odp/12.0_ea_dnx_odp": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
@@ -11085,7 +11085,7 @@
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
-    "meru400biu/sai/asicsdk-12.2.0.0_dnx_odp/12.2.0.0_dnx_odp/physdk-credo-0.7.2/credo-0.7.2": [
+    "meru400biu/sai/asicsdk-12.0_ea_dnx_odp/12.0_ea_dnx_odp/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
@@ -11430,7 +11430,7 @@
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
-    "meru800bfa/sai/asicsdk-11.7.0.0_dnx_odp/12.2.0.0_dnx_odp": [
+    "meru800bfa/sai/asicsdk-11.7.0.0_dnx_odp/12.0_ea_dnx_odp": [
         {
           "test_name_regex": "LinkTest.ecmpShrink$"
         },
@@ -11543,7 +11543,7 @@
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
-    "meru800bfa/sai/asicsdk-11.7.0.0_dnx_odp/12.2.0.0_dnx_odp/physdk-credo-0.7.2/credo-0.7.2": [
+    "meru800bfa/sai/asicsdk-11.7.0.0_dnx_odp/12.0_ea_dnx_odp/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "LinkTest.ecmpShrink$"
         },
@@ -11656,7 +11656,7 @@
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
-    "meru800bfa/sai/asicsdk-12.2.0.0_dnx_odp/12.2.0.0_dnx_odp": [
+    "meru800bfa/sai/asicsdk-12.0_ea_dnx_odp/12.0_ea_dnx_odp": [
         {
           "test_name_regex": "LinkTest.ecmpShrink$"
         },
@@ -11769,7 +11769,7 @@
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
-    "meru800bfa/sai/asicsdk-12.2.0.0_dnx_odp/12.2.0.0_dnx_odp/physdk-credo-0.7.2/credo-0.7.2": [
+    "meru800bfa/sai/asicsdk-12.0_ea_dnx_odp/12.0_ea_dnx_odp/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "LinkTest.ecmpShrink$"
         },
@@ -12036,7 +12036,7 @@
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
-    "meru800bia/sai/asicsdk-11.7.0.0_dnx_odp/12.2.0.0_dnx_odp": [
+    "meru800bia/sai/asicsdk-11.7.0.0_dnx_odp/12.0_ea_dnx_odp": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
@@ -12113,7 +12113,7 @@
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
-    "meru800bia/sai/asicsdk-11.7.0.0_dnx_odp/12.2.0.0_dnx_odp/physdk-credo-0.7.2/credo-0.7.2": [
+    "meru800bia/sai/asicsdk-11.7.0.0_dnx_odp/12.0_ea_dnx_odp/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
@@ -12190,7 +12190,7 @@
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
-    "meru800bia/sai/asicsdk-12.2.0.0_dnx_odp/12.2.0.0_dnx_odp": [
+    "meru800bia/sai/asicsdk-12.0_ea_dnx_odp/12.0_ea_dnx_odp": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
@@ -12267,7 +12267,7 @@
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
-    "meru800bia/sai/asicsdk-12.2.0.0_dnx_odp/12.2.0.0_dnx_odp/physdk-credo-0.7.2/credo-0.7.2": [
+    "meru800bia/sai/asicsdk-12.0_ea_dnx_odp/12.0_ea_dnx_odp/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
