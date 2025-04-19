@@ -3091,7 +3091,7 @@
         {
           "busName": "SCM_MUX_A@0",
           "address": "0x10",
-          "kernelDeviceName": "adm1278",
+          "kernelDeviceName": "bp4f_adm1278",
           "pmUnitScopedName": "SCM_SENSOR"
         },
         {
