@@ -71,7 +71,6 @@ SaiYangraPlatform::getSaiProfileVendorExtensionValues() const {
 const std::set<sai_api_t>& SaiYangraPlatform::getSupportedApiList() const {
   static auto apis = getDefaultSwitchAsicSupportedApis();
   apis.erase(facebook::fboss::MplsApi::ApiType);
-  apis.erase(facebook::fboss::VirtualRouterApi::ApiType);
   apis.erase(facebook::fboss::TamApi::ApiType);
   apis.erase(facebook::fboss::SystemPortApi::ApiType);
   return apis;
