@@ -418,7 +418,7 @@
           "test_name_regex": "HwLoadBalancerNegativeTestV6RoCE.*$"
         }
     ],
-    "brcm/11.7.0.0_dnx_odp/12.2.0.0_dnx_odp/jericho3": [
+    "brcm/11.7.0.0_dnx_odp/12.0_ea_dnx_odp/jericho3": [
         {
           "test_name_regex": "HwTeFlowTest.*$"
         },
@@ -680,7 +680,7 @@
           "test_name_regex": "HwAsicDefaultProgrammingTest.*$"
         }
     ],
-    "brcm/12.2.0.0_dnx_odp/12.2.0.0_dnx_odp/jericho3": [
+    "brcm/12.0_ea_dnx_odp/12.0_ea_dnx_odp/jericho3": [
         {
           "test_name_regex": "HwTeFlowTest.*$"
         },
@@ -901,7 +901,7 @@
           "test_name_regex": "HwLoadBalancerNegativeTestV6RoCE.*$"
         }
     ],
-    "brcm/12.2.0.0_dnx_odp/12.2.0.0_dnx_odp/ramon3": [
+    "brcm/12.0_ea_dnx_odp/12.0_ea_dnx_odp/ramon3": [
         {
           "test_name_regex": "HwTeFlowTest.*$"
         },
