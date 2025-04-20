@@ -210,6 +210,8 @@ int hwAgentMain(
       handlers{};
   if (auto handler = hwAgent->getPlatform()->createHandler()) {
     handlers.push_back(handler);
+  } else {
+    XLOG(FATAL) << "handler does not exist for platform";
   }
   if (FLAGS_thrift_test_utils_thrift_handler || FLAGS_hw_agent_for_testing) {
     // Add HwTestThriftHandler to the thrift server
