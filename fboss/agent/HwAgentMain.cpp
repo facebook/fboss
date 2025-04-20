@@ -208,7 +208,9 @@ int hwAgentMain(
 
   std::vector<std::shared_ptr<apache::thrift::AsyncProcessorFactory>>
       handlers{};
-  handlers.push_back(hwAgent->getPlatform()->createHandler());
+  if (auto handler = hwAgent->getPlatform()->createHandler()) {
+    handlers.push_back(handler);
+  }
   if (FLAGS_thrift_test_utils_thrift_handler || FLAGS_hw_agent_for_testing) {
     // Add HwTestThriftHandler to the thrift server
     auto testUtilsHandler = utility::createHwTestThriftHandler(
