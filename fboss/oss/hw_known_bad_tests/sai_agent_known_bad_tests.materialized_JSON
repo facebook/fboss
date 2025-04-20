@@ -4767,7 +4767,7 @@
           "test_name_regex": "AgentFabricSwitchTest.configUpdateForExpectedFabricPortConnectivity"
         }
     ],
-    "brcm/11.7.0.0_dnx_odp/12.0_ea_dnx_odp/jericho3/mono": [
+    "brcm/11.7.0.0_dnx_odp/12.2.0.0_dnx_odp/jericho3/mono": [
         {
           "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ$"
         },
@@ -5078,7 +5078,7 @@
           "test_name_regex": "AgentTrafficPfcTest.verifyBufferPoolWatermarks"
         }
     ],
-    "brcm/11.7.0.0_dnx_odp/12.0_ea_dnx_odp/jericho3/multi_switch": [
+    "brcm/11.7.0.0_dnx_odp/12.2.0.0_dnx_odp/jericho3/multi_switch": [
         {
           "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ$"
         },
@@ -5395,10 +5395,10 @@
           "test_name_regex": "AgentTrafficPfcTest.verifyBufferPoolWatermarks"
         }
     ],
-    "brcm/11.7.0.0_dnx_odp/12.0_ea_dnx_odp/ramon3/mono": [
+    "brcm/11.7.0.0_dnx_odp/12.2.0.0_dnx_odp/ramon3/mono": [
         
     ],
-    "brcm/11.7.0.0_dnx_odp/12.0_ea_dnx_odp/ramon3/multi_switch": [
+    "brcm/11.7.0.0_dnx_odp/12.2.0.0_dnx_odp/ramon3/multi_switch": [
         {
           "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ$"
         },
@@ -6685,7 +6685,7 @@
           "test_name_regex": "AgentFlowlet.*$"
         }
     ],
-    "brcm/12.0_ea_dnx_odp/12.0_ea_dnx_odp/jericho3/mono": [
+    "brcm/12.2.0.0_dnx_odp/12.2.0.0_dnx_odp/jericho3/mono": [
         {
           "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ$"
         },
@@ -6996,7 +6996,7 @@
           "test_name_regex": "AgentTrafficPfcTest.verifyBufferPoolWatermarks"
         }
     ],
-    "brcm/12.0_ea_dnx_odp/12.0_ea_dnx_odp/jericho3/mono/fap": [
+    "brcm/12.2.0.0_dnx_odp/12.2.0.0_dnx_odp/jericho3/mono/fap": [
         {
           "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ$"
         },
@@ -7307,7 +7307,7 @@
           "test_name_regex": "AgentTrafficPfcTest.verifyBufferPoolWatermarks"
         }
     ],
-    "brcm/12.0_ea_dnx_odp/12.0_ea_dnx_odp/jericho3/multi_switch": [
+    "brcm/12.2.0.0_dnx_odp/12.2.0.0_dnx_odp/jericho3/multi_switch": [
         {
           "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ$"
         },
@@ -7624,7 +7624,7 @@
           "test_name_regex": "AgentTrafficPfcTest.verifyBufferPoolWatermarks"
         }
     ],
-    "brcm/12.0_ea_dnx_odp/12.0_ea_dnx_odp/jericho3/multi_switch/fap": [
+    "brcm/12.2.0.0_dnx_odp/12.2.0.0_dnx_odp/jericho3/multi_switch/fap": [
         {
           "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ$"
         },
@@ -7941,16 +7941,16 @@
           "test_name_regex": "AgentTrafficPfcTest.verifyBufferPoolWatermarks"
         }
     ],
-    "brcm/12.0_ea_dnx_odp/12.0_ea_dnx_odp/ramon3/mono": [
+    "brcm/12.2.0.0_dnx_odp/12.2.0.0_dnx_odp/ramon3/mono": [
         
     ],
-    "brcm/12.0_ea_dnx_odp/12.0_ea_dnx_odp/ramon3/mono/fe13": [
+    "brcm/12.2.0.0_dnx_odp/12.2.0.0_dnx_odp/ramon3/mono/fe13": [
         
     ],
-    "brcm/12.0_ea_dnx_odp/12.0_ea_dnx_odp/ramon3/mono/fe2": [
+    "brcm/12.2.0.0_dnx_odp/12.2.0.0_dnx_odp/ramon3/mono/fe2": [
         
     ],
-    "brcm/12.0_ea_dnx_odp/12.0_ea_dnx_odp/ramon3/multi_switch": [
+    "brcm/12.2.0.0_dnx_odp/12.2.0.0_dnx_odp/ramon3/multi_switch": [
         {
           "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ$"
         },
@@ -8288,7 +8288,7 @@
           "test_name_regex": "AgentHwParityErrorTest.verifyParityError$"
         }
     ],
-    "brcm/12.0_ea_dnx_odp/12.0_ea_dnx_odp/ramon3/multi_switch/fe13": [
+    "brcm/12.2.0.0_dnx_odp/12.2.0.0_dnx_odp/ramon3/multi_switch/fe13": [
         {
           "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ$"
         },
@@ -8626,7 +8626,7 @@
           "test_name_regex": "AgentHwParityErrorTest.verifyParityError$"
         }
     ],
-    "brcm/12.0_ea_dnx_odp/12.0_ea_dnx_odp/ramon3/multi_switch/fe2": [
+    "brcm/12.2.0.0_dnx_odp/12.2.0.0_dnx_odp/ramon3/multi_switch/fe2": [
         {
           "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ$"
         },
