@@ -7,7 +7,7 @@
 
 #include "fboss/lib/TupleUtils.h"
 
-DEFINE_bool(fsdb_sync_full_state, false, "sync whole switch state to fsdb");
+DEFINE_bool(fsdb_sync_full_state, true, "sync whole switch state to fsdb");
 DEFINE_bool(
     agent_fsdb_sync,
     true,
