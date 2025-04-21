@@ -24,7 +24,7 @@ class SaiStoreTest : public ::testing::Test {
     fs = FakeSai::getInstance();
     saiApiTable = SaiApiTable::getInstance();
     saiApiTable->queryApis(nullptr, saiApiTable->getFullApiList());
-    saiStore = std::make_unique<SaiStore>();
+    saiStore = std::make_unique<SaiStore>(0);
   }
   template <typename Traits, typename... Args>
   SaiObject<Traits> createObj(Args&&... args) {

@@ -22,6 +22,5 @@ TEST_F(SaiStoreTest, loadEmpty) {
 }
 
 TEST_F(SaiStoreTest, singletonLoadEmpty) {
-  saiStore->setSwitchId(0);
   saiStore->reload();
 }
