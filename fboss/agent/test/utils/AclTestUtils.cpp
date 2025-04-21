@@ -493,6 +493,51 @@ void delMatcher(cfg::SwitchConfig* config, const std::string& matcherName) {
   }
 }
 
+void addAclMirrorAction(
+    cfg::SwitchConfig* cfg,
+    const std::string& matcher,
+    const std::string& counterName,
+    const std::string& mirrorName,
+    bool ingress) {
+  cfg::MatchAction matchAction = cfg::MatchAction();
+  if (ingress) {
+    matchAction.ingressMirror() = mirrorName;
+  } else {
+    matchAction.egressMirror() = mirrorName;
+  }
+
+  matchAction.counter() = counterName;
+  std::vector<cfg::CounterType> setCounterTypes{
+      cfg::CounterType::PACKETS, cfg::CounterType::BYTES};
+  utility::addTrafficCounter(cfg, counterName, std::move(setCounterTypes));
+  utility::addMatcher(cfg, matcher, matchAction);
+}
+
+void addAclDscpQueueAction(
+    cfg::SwitchConfig* cfg,
+    const std::string& matcher,
+    const std::string& counterName,
+    int32_t dscpValue,
+    int queueId) {
+  cfg::MatchAction matchAction = cfg::MatchAction();
+  if (dscpValue) {
+    cfg::SetDscpMatchAction setDscpMatchAction;
+    *setDscpMatchAction.dscpValue() = dscpValue;
+    matchAction.setDscp() = std::move(setDscpMatchAction);
+  }
+  if (queueId >= 0) {
+    cfg::QueueMatchAction queueAction;
+    queueAction.queueId() = queueId;
+    matchAction.sendToQueue() = queueAction;
+  }
+
+  matchAction.counter() = counterName;
+  std::vector<cfg::CounterType> setCounterTypes{
+      cfg::CounterType::PACKETS, cfg::CounterType::BYTES};
+  utility::addTrafficCounter(cfg, counterName, std::move(setCounterTypes));
+  utility::addMatcher(cfg, matcher, matchAction);
+}
+
 // Just mirror and counter for now. More can go here if needed
 void addAclMatchActions(
     cfg::SwitchConfig* cfg,

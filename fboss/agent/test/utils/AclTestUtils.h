@@ -154,6 +154,20 @@ void addMatcher(
     const cfg::MatchAction& matchAction);
 void delMatcher(cfg::SwitchConfig* config, const std::string& matcherName);
 
+void addAclMirrorAction(
+    cfg::SwitchConfig* cfg,
+    const std::string& matcher,
+    const std::string& counterName,
+    const std::string& mirrorName,
+    bool ingress = true);
+
+void addAclDscpQueueAction(
+    cfg::SwitchConfig* cfg,
+    const std::string& matcher,
+    const std::string& counterName,
+    int32_t dscpValue = 0,
+    int queueId = -1);
+
 void addAclMatchActions(
     cfg::SwitchConfig* cfg,
     const std::string& matcher,
