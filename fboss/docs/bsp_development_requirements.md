@@ -226,17 +226,15 @@ removal of individual I/O controllers.
 
 ## 5.2 Subdevice (I/O Controller) Creation & Deletion
 
-Although there are various ways to pass the subdevice settings to the FPGA
-driver (ACPI, dedicated device descriptor area in FPGA memory, hardcoded in FPG
-driver, module parameters, etc), the FBOSS team manages device topology/settings
-from user space (the FBOSS “PlatformManager” service).
-
-When the PCIe FPGA is enumerated, its probe function only initializes the
-“global” resources (such as enabling device, mapping memory, etc): the PCIe FPGA
-driver shall not create any subdevices in the probe function, instead, it
-registers the character device interface to allow the PlatformManager to trigger
-device creation/deletion from user space. Below are the details about the ABIs
-provided by the PCIe FPGA driver.
+* In FBOSS systems device creation and deletion is managed from userspace,
+  specifically the PlatformManager service.
+* Device topology and settings are managed from userspace as well
+* When PCIe FPGA is enumerated, the probe function shall only intialize global
+  resources
+  * e.g. Enabling device, mapping memory, etc.
+* The PCIe driver shall not create any subdevices
+* The PCIe driver registers a character device interface which allows
+  PlatformManager to trigger device creation/deletion from userspace.
 
 
 ### 5.2.1 Character Device Interface
