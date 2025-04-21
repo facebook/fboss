@@ -24,7 +24,9 @@ namespace utility {
 
 std::vector<std::vector<PortDescriptor>> generateEcmpGroupScale(
     const std::vector<PortDescriptor>& inputs,
-    const int maxEcmpGroups);
+    const int maxEcmpGroups,
+    const int maxEcmpGroupSize,
+    const int minEcmpGroupSize = 2);
 
 std::vector<std::vector<PortDescriptor>> generateEcmpMemberScale(
     const std::vector<PortDescriptor>& inputs,

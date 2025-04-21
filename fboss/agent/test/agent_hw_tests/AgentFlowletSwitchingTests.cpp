@@ -1182,7 +1182,8 @@ class AgentFlowletResourceTest : public AgentHwTest {
       portDescriptorIds.push_back(PortDescriptor(portId));
     }
     std::vector<std::vector<PortDescriptor>> allCombinations =
-        utility::generateEcmpGroupScale(portDescriptorIds, 512);
+        utility::generateEcmpGroupScale(
+            portDescriptorIds, 512, portDescriptorIds.size());
     for (const auto& combination : allCombinations) {
       nhopSets.emplace_back(combination.begin(), combination.end());
     }
