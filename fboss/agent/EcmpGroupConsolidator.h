@@ -24,6 +24,9 @@ class NextHopGroupInfo {
  public:
   using NextHopGroupId = uint32_t;
   explicit NextHopGroupInfo(NextHopGroupId id) : id_(id) {}
+  NextHopGroupId getID() const {
+    return id_;
+  }
 
  private:
   NextHopGroupId id_;
@@ -47,7 +50,7 @@ class EcmpGroupConsolidator {
   static uint32_t constexpr kMinNextHopGroupId = 1;
   NextHopGroupId findNextAvailableId() const;
   std::map<RouteNextHopSet, NextHopGroupId> nextHopGroup2Id_;
-  StdRefMap<RouteNextHopSet, NextHopGroupInfo> nextHopGroupToInfo_;
+  StdRefMap<NextHopGroupId, NextHopGroupInfo> nextHopGroupIdToInfo_;
   std::unordered_map<folly::CIDRNetwork, std::shared_ptr<NextHopGroupInfo>>
       prefixToGroupInfo_;
 };

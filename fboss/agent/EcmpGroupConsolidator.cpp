@@ -46,10 +46,10 @@ void EcmpGroupConsolidator::routeAdded(
       nextHopGroup2Id_.insert({nhopSet, findNextAvailableId()});
   if (inserted) {
     std::tie(grpInfo, inserted) =
-        nextHopGroupToInfo_.refOrEmplace(nhopSet, idItr->second);
+        nextHopGroupIdToInfo_.refOrEmplace(idItr->second, idItr->second);
     CHECK(inserted);
   } else {
-    grpInfo = nextHopGroupToInfo_.ref(nhopSet);
+    grpInfo = nextHopGroupIdToInfo_.ref(idItr->second);
   }
   CHECK(grpInfo);
   prefixToGroupInfo_.insert(
@@ -62,9 +62,11 @@ void EcmpGroupConsolidator::routeDeleted(
     const std::shared_ptr<Route<AddrT>>& removed) {
   CHECK_EQ(rid, RouterID(0));
   CHECK(removed->isResolved());
-  auto nhopSet = removed->getForwardInfo().getNextHopSet();
-  prefixToGroupInfo_.erase(removed->prefix().toCidrNetwork());
-  if (!nextHopGroupToInfo_.ref(nhopSet)) {
+  auto pitr = prefixToGroupInfo_.find(removed->prefix().toCidrNetwork());
+  CHECK(pitr != prefixToGroupInfo_.end());
+  auto groupId = pitr->second->getID();
+  prefixToGroupInfo_.erase(pitr);
+  if (!nextHopGroupIdToInfo_.ref(groupId)) {
     nextHopGroup2Id_.erase(removed->getForwardInfo().getNextHopSet());
   }
 }
