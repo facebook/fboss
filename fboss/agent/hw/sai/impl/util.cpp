@@ -44,7 +44,7 @@ uint64_t getAsicSdkVersion(const std::string& sdkVersion) {
 
   // Patch number is optional and may be part of the sdk version string.
   // Ignore the patch number if it exists.
-  end = sdkVersion.find("-", start);
+  end = sdkVersion.find('-', start);
   end = (end == std::string::npos) ? sdkVersion.length() : end;
   tokens[2] = std::stoi((sdkVersion.substr(start, end - start)));
 
