@@ -280,37 +280,34 @@ to the FBOSS team for approval.
 
 ### 5.3.1 FPGA Information (fpga_info)
 
-The FBOSS PlatformManager creates `fpga_info` device for each FPGA (including
-satellite FPGA). For example, assuming 2 (satellite) DOM FPGAs are connected to
-the IOB FPGA through SLPC, the FBOSS PlatformManager would create 3 `fpga_info`
-instances: `fpga_info_iob.0`, `fpga_info_dom.0` and `fpga_info_dom.1`.
+* An `fpga_info` driver instance shall be created for each FPGA (including
+  satellite FPGAs)
+  * For example given one IOB FPGA and two satellite DOM FPGAs, the following
+    instances will be created:
+    * `fpga_info_iob.0`
+    * `fpga_info_dom.0`
+    * `fpga_info_dom.1`
 
-The `fpga_info` driver must match devices with `fpga_info_${FPGA_NAME}` naming
+* The `fpga_info` driver must match devices with `fpga_info_${FPGA_NAME}` naming
 style. Below is an example:
 
 ```
 static const struct auxiliary_device_id fpga_info_id_table[] = {
-
         { .name = “fbiob_pci.fpga_info_iob", },
-
         { .name = “fbiob_pci.fpga_info_dom", },
-
         {},
 };
 
 MODULE_DEVICE_TABLE(auxiliary, fpga_info_id_table);
 ```
 
-The `fpga_info` driver needs to export at least 2 read-only sysfs files to user
-space:
-
-* `fpga_ver`
-
-    This file reports the FPGA’s major firmware version. It’s an unsigned integer.
-
+* The `fpga_info` driver shall export the following sysfs files to userspace:
+  * `fpga_ver`
+    * FPGA's major firmware version
+    * Type: unsigned integer
 * `fpga_sub_ver`
-
-    This file reports the FPGA’s minor firmware version. It’s an unsigned integer.
+    * FPGA's minor fimrware version
+    * Type: unsigned integer
 
 
 ### 5.3.2 I2C Controller (i2c_master)
