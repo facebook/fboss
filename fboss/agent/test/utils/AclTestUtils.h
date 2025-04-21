@@ -148,6 +148,12 @@ void delAclStat(
     const std::string& matcher,
     const std::string& counterName);
 
+void addMatcher(
+    cfg::SwitchConfig* config,
+    const std::string& matcherName,
+    const cfg::MatchAction& matchAction);
+void delMatcher(cfg::SwitchConfig* config, const std::string& matcherName);
+
 void addAclMatchActions(
     cfg::SwitchConfig* cfg,
     const std::string& matcher,
