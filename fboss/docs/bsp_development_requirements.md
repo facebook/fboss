@@ -398,16 +398,14 @@ driver implementation details.
 
 ### 5.3.7 Transceiver Controller (xcvr_ctrl)
 
-The FBOSS PlatformManager create `xcvr_ctrl` auxiliary device instances, one for
-each transceiver port. Port number (together with the register offset) would be
-provided when creating the auxiliary device.
-
-The `xcvr_ctrl` driver exports following sysfs entries for each transceiver port
-(port_num is 1-based integer):
-
-* `“xcvr_reset_%d” % port_num`
-* `“xcvr_low_power_%d” % port_num`
-* `“xcvr_present_%d” % port_num`
+* An instance of `xcvr_ctrl` driver will be created for each transceiver port.
+* Port number and register offset are provided when creating the auxiliary
+  device.
+* The `xcvr_ctrl` driver exports following sysfs entries for each transceiver
+  port (port_num is 1-based integer):
+  * `“xcvr_reset_%d” % port_num`
+  * `“xcvr_low_power_%d” % port_num`
+  * `“xcvr_present_%d” % port_num`
 
 
 ### 5.3.8 LED (led)
