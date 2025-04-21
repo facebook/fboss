@@ -239,16 +239,17 @@ removal of individual I/O controllers.
 
 ### 5.2.1 Character Device Interface
 
-The PCIe FPGA driver must register a character device for each FPGA instance in
-the system, and the character device name must follow
-`fbiob_%04x.%04x.%04x.%04x% (vendor, device, subsystem_vendor, subsystem_device)`
-format. For example:
+* The PCIe FPGA driver must register a character device for each FPGA instance
+  in the system, and the character device name must match the format:
+  `fbiob_%04x.%04x.%04x.%04x% (vendor, device, subsystem_vendor, subsystem_device)`
+  For example:
 
 `/dev/fbiob_1d9b.0011.10ee.0007`
 
-The character device must support 2 ioctl requests, `FBIOB_IOC_NEW_DEVICE` for
-creating FPGA IO Controllers, and `FBIOB_IOC_DEL_DEVICE` for deleting IO
-controllers. Please refer to below header file for details:
+* The character device must support 2 ioctl requests:
+  * `FBIOB_IOC_NEW_DEVICE` for creating FPGA IO Controllers
+  * `FBIOB_IOC_DEL_DEVICE` for deleting IO controllers.
+* Please refer to below header file for details:
 
 [fbiob-ioctl.h](https://github.com/facebook/fboss/blob/main/fboss/platform/platform_manager/uapi/fbiob-ioctl.h)
 
