@@ -2299,9 +2299,6 @@
           "test_name_regex": "HwTest_PROFILE_20G_2_NRZ_NOFEC_OPTICAL.TestProfile$"
         },
         {
-          "test_name_regex": "HwTest_PROFILE_25G_1_NRZ_NOFEC_OPTICAL.TestProfile$"
-        },
-        {
           "test_name_regex": "HwTest_PROFILE_50G_2_NRZ_NOFEC_OPTICAL.TestProfile$"
         },
         {
@@ -2461,9 +2458,6 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_20G_2_NRZ_NOFEC_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_25G_1_NRZ_NOFEC_OPTICAL.TestProfile$"
         },
         {
           "test_name_regex": "HwTest_PROFILE_50G_2_NRZ_NOFEC_OPTICAL.TestProfile$"

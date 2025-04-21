@@ -197,14 +197,29 @@ PfcBufferParams PfcBufferParams::getPfcBufferParams(
   buffer.globalShared = globalShared;
   buffer.globalHeadroom = globalHeadroom;
 
-  buffer.pgHeadroom = 2200; // keep this lower than globalShared (why?)
   if (asicType == cfg::AsicType::ASIC_TYPE_CHENAB) {
-    // CHENAB requires at least 2x MTU of reserved buffers.
-    // Also, in shared headroom pool mode (SAI_BUFFER_POOL_XOFF_SIZE is set,
-    // i.e. our setup), XON and reserved size must be the same.
-    buffer.resumeThreshold = buffer.minLimit = 20480;
+    // For CHENAB:
+    // - XON represents the "min guarantee", must be at least 2xMTU (20480).
+    // - RESERVED represents the total amount of buffer exclusively reserved
+    //   for the PG.
+    //   - In shared headroom pool mode (SAI_BUFFER_POOL_XOFF_SIZE > 0), this
+    //     must be the same as XON.
+    //   - In non-shared headroom pool mode (SAI_BUFFER_POOL_XOFF_SIZE == 0),
+    //     this is the sum of XON and headroom size. Note that XOFF can be
+    //     less than the headroom size, in which case there will be hystersis.
+    if (globalHeadroom > 0) {
+      buffer.resumeThreshold = 20480;
+      buffer.pgHeadroom = 2200;
+      buffer.minLimit = *buffer.resumeThreshold;
+    } else {
+      buffer.resumeThreshold = 20480;
+      // TODO(maxgg): Understand why PFC won't trigger if this is < ~8000.
+      buffer.pgHeadroom = 8000;
+      buffer.minLimit = *buffer.resumeThreshold + buffer.pgHeadroom;
+    }
   } else {
     buffer.minLimit = 2200;
+    buffer.pgHeadroom = 2200; // keep this lower than globalShared (why?)
     buffer.resumeOffset = 1800; // less than pgHeadroom
   }
 
