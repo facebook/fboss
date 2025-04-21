@@ -538,34 +538,6 @@ void addAclDscpQueueAction(
   utility::addMatcher(cfg, matcher, matchAction);
 }
 
-// Just mirror and counter for now. More can go here if needed
-void addAclMatchActions(
-    cfg::SwitchConfig* cfg,
-    const std::string& matcher,
-    const std::optional<std::string>& counterName,
-    const std::optional<std::string>& mirrorName,
-    bool ingress) {
-  cfg::MatchAction matchAction = cfg::MatchAction();
-  if (mirrorName.has_value()) {
-    if (ingress) {
-      matchAction.ingressMirror() = mirrorName.value();
-    } else {
-      matchAction.egressMirror() = mirrorName.value();
-    }
-  }
-  if (counterName.has_value()) {
-    matchAction.counter() = counterName.value();
-  }
-  auto matchToAction = cfg::MatchToAction();
-  *matchToAction.matcher() = matcher;
-  *matchToAction.action() = matchAction;
-
-  if (!cfg->dataPlaneTrafficPolicy()) {
-    cfg->dataPlaneTrafficPolicy() = cfg::TrafficPolicyConfig();
-  }
-  cfg->dataPlaneTrafficPolicy()->matchToAction()->push_back(matchToAction);
-}
-
 std::vector<cfg::CounterType> getAclCounterTypes(
     const std::vector<const HwAsic*>& asics) {
   auto asic = checkSameAndGetAsic(asics);

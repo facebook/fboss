@@ -128,12 +128,12 @@ class AgentAclCounterTestBase : public AgentHwTest {
         const_cast<TestEnsembleIf*>(ensemble), kSetEcmpMemberStatus);
   }
 
-  void setup() {
-    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
-      return helper_->resolveNextHops(in, 4);
+  void setup(int ecmpWidth = 1) {
+    applyNewState([&, ecmpWidth](const std::shared_ptr<SwitchState>& in) {
+      return helper_->resolveNextHops(in, ecmpWidth);
     });
     auto wrapper = getSw()->getRouteUpdater();
-    helper_->programRoutes(&wrapper, kEcmpWidth);
+    helper_->programRoutes(&wrapper, ecmpWidth);
 
     XLOG(DBG3) << "setting ECMP Member Status: ";
     applyNewState([&](const std::shared_ptr<SwitchState>& in) {
@@ -469,8 +469,14 @@ class AgentAclCounterTestBase : public AgentHwTest {
           utility::checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics());
       utility::addEtherTypeToAcl(asic, acl, cfg::EtherType::IPv6);
     }
-    utility::addAclStat(
-        config, aclName, counterName, std::move(setCounterTypes));
+    if (aclName == getAclName(AclType::UDF_ACK)) {
+      // set dscp value to 30 and send to queue 6
+      utility::addAclDscpQueueAction(
+          config, aclName, counterName, kDscp, kOutQueue);
+    } else {
+      utility::addAclStat(
+          config, aclName, counterName, std::move(setCounterTypes));
+    }
   }
 
   std::vector<std::string> getUdfGroupsForAcl(AclType aclType) const {
@@ -696,6 +702,8 @@ class AgentAclCounterTestBase : public AgentHwTest {
   }
 
   static inline constexpr auto kEcmpWidth = 4;
+  static inline constexpr auto kOutQueue = 6;
+  static inline constexpr auto kDscp = 30;
   std::unique_ptr<utility::EcmpSetupAnyNPorts6> helper_;
 };
 
@@ -786,8 +794,8 @@ class AgentFlowletMirrorTest : public AgentFlowletSwitchingTest {
     // It is added in addAclAndStat above
     cfg.dataPlaneTrafficPolicy() = cfg::TrafficPolicyConfig();
     std::string counterName = getCounterName(AclType::UDF_NAK);
-    utility::addAclMatchActions(
-        &cfg, getAclName(AclType::UDF_NAK), std::move(counterName), aclMirror);
+    utility::addAclMirrorAction(
+        &cfg, getAclName(AclType::UDF_NAK), counterName, aclMirror);
 
     // mirror session for acl
     utility::configureSflowMirror(
@@ -881,7 +889,7 @@ TEST_F(AgentFlowletSwitchingTest, VerifyUdfFlowletWithUdfAckToFlowlet) {
 
 TEST_F(AgentFlowletSwitchingTest, VerifyEcmp) {
   auto setup = [this]() {
-    this->setup();
+    this->setup(kEcmpWidth);
     generateApplyConfig(AclType::FLOWLET);
   };
 
@@ -990,6 +998,35 @@ TEST_F(AgentFlowletSwitchingTest, VerifyUdfNakToUdfAckWithNak) {
 
 TEST_F(AgentFlowletSwitchingTest, VerifyUdfAckWithNakToUdfNak) {
   flowletSwitchingAclHitHelper(AclType::UDF_ACK_WITH_NAK, AclType::UDF_NAK);
+}
+
+TEST_F(AgentFlowletSwitchingTest, VerifyUdfAndSendQueueAction) {
+  auto setup = [this]() {
+    this->setup();
+    generateApplyConfig(AclType::UDF_ACK);
+  };
+
+  auto verify = [this]() {
+    auto outPort = helper_->ecmpPortDescriptorAt(0).phyPortID();
+    auto portStatsBefore = getNextUpdatedPortStats(outPort);
+    auto pktsBefore = *portStatsBefore.outUnicastPkts__ref();
+    auto pktsQueueBefore = portStatsBefore.queueOutPackets_()[kOutQueue];
+
+    verifyAcl(AclType::UDF_ACK);
+
+    WITH_RETRIES({
+      auto portStatsAfter = getNextUpdatedPortStats(outPort);
+      auto pktsAfter = *portStatsAfter.outUnicastPkts__ref();
+      auto pktsQueueAfter = portStatsAfter.queueOutPackets_()[kOutQueue];
+      XLOG(DBG2) << "Port Counter: " << pktsBefore << " -> " << pktsAfter
+                 << "\nPort Queue " << kOutQueue
+                 << " Counter: " << pktsQueueBefore << " -> " << pktsQueueAfter;
+      EXPECT_EVENTUALLY_GT(pktsAfter, pktsBefore);
+      EXPECT_EVENTUALLY_GT(pktsQueueAfter, pktsQueueBefore);
+    });
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 TEST_F(AgentFlowletMirrorTest, VerifyUdfNakMirrorAction) {
