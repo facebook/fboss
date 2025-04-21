@@ -277,7 +277,6 @@ PortSaiId SaiSwitch::getCPUPortSaiId() const {
 SaiSwitch::SaiSwitch(SaiPlatform* platform, uint32_t featuresDesired)
     : HwSwitch(featuresDesired),
       platform_(platform),
-      saiStore_(std::make_unique<SaiStore>()),
       fabricConnectivityManager_(
           std::make_unique<FabricConnectivityManager>()) {
   utilCreateDir(platform_->getDirectoryUtil()->getVolatileStateDir());
@@ -2832,7 +2831,7 @@ void SaiSwitch::initStoreAndManagersLocked(
     HwWriteBehavior behavior,
     const folly::dynamic* adapterKeys,
     const folly::dynamic* adapterKeys2AdapterHostKeys) {
-  saiStore_->setSwitchId(saiSwitchId_);
+  saiStore_ = std::make_unique<SaiStore>(saiSwitchId_);
   saiStore_->reload(adapterKeys, adapterKeys2AdapterHostKeys);
   managerTable_->createSaiTableManagers(
       saiStore_.get(), platform_, concurrentIndices_.get());
@@ -4076,9 +4075,8 @@ std::string SaiSwitch::listObjectsLocked(
     bool cached,
     const std::lock_guard<std::mutex>& lock) const {
   const SaiStore* store = saiStore_.get();
-  SaiStore directToHwStore;
   if (!cached) {
-    directToHwStore.setSwitchId(getSaiSwitchId());
+    SaiStore directToHwStore(getSaiSwitchId());
     auto json = toFollyDynamicLocked(lock);
     std::unique_ptr<folly::dynamic> adapterKeysJson;
     std::unique_ptr<folly::dynamic> adapterKeys2AdapterHostKeysJson;
