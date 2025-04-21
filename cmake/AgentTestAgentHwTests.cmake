@@ -122,6 +122,7 @@ target_link_libraries(agent_hw_test_src
   port_stats_test_utils
   utils
   sflow_shim_utils
+  udf_test_utils
   pktutil
   mirror_test_utils
   dsf_config_utils

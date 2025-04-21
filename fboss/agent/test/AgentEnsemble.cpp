@@ -22,7 +22,9 @@
 #include <thrift/lib/cpp2/async/ReconnectingRequestChannel.h>
 #include <thrift/lib/cpp2/async/RetryingRequestChannel.h>
 #include <thrift/lib/cpp2/async/RocketClientChannel.h>
-
+#ifndef IS_OSS
+#include "common/thrift/thrift/gen-cpp2/MonitorAsyncClient.h"
+#endif
 #include <gtest/gtest.h>
 
 DEFINE_bool(
@@ -650,6 +652,33 @@ std::optional<VlanID> AgentEnsemble::getVlanIDForTx() const {
 std::vector<FirmwareInfo> AgentEnsemble::getAllFirmwareInfo(
     SwitchID switchId) const {
   return getSw()->getHwSwitchThriftClientTable()->getAllFirmwareInfo(switchId);
+}
+
+/**
+ * Retrieves monitoring counters that match a given regex pattern for a specific
+ * port.
+ *
+ * @details
+ * Works in both mono-switch and multi-switch environments:
+ *
+ * @param portId The ID of the port for which to retrieve counters.
+ * @param regex The regex pattern to match against the counter names.
+ *
+ * @return A map of counter names to their respective values that match the
+ * regex pattern.
+ */
+std::map<std::string, int64_t> AgentEnsemble::getFb303CountersByRegex(
+    const PortID& portId,
+    const std::string& regex) {
+  std::map<std::string, int64_t> counters;
+#ifndef IS_OSS
+  auto switchID = scopeResolver().scope(portId).switchId();
+  auto client = getSw()->getHwSwitchThriftClientTable()->getClient(switchID);
+  apache::thrift::Client<facebook::thrift::Monitor> monitoringClient{
+      client->getChannelShared()};
+  monitoringClient.sync_getRegexCounters(counters, regex);
+#endif
+  return counters;
 }
 
 } // namespace facebook::fboss

@@ -53,11 +53,6 @@ class SaiYangraPlatform : public SaiPlatform {
       std::optional<int64_t> switchId,
       BootType bootType) override;
 
-  std::shared_ptr<apache::thrift::AsyncProcessorFactory> createHandler()
-      override {
-    return nullptr;
-  }
-
  private:
   void setupAsic(
       std::optional<int64_t> switchId,
