@@ -27,9 +27,21 @@ class NextHopGroupInfo {
   NextHopGroupId getID() const {
     return id_;
   }
+  size_t getRouteUsageCount() const {
+    CHECK_GT(routeUsageCount_, 0);
+    return routeUsageCount_;
+  }
+  void incRouteUsageCount() {
+    ++routeUsageCount_;
+  }
+  void decRouteUsageCount() {
+    --routeUsageCount_;
+  }
 
  private:
+  static constexpr int kInvalidRouteUsageCount = 0;
   NextHopGroupId id_;
+  int routeUsageCount_{kInvalidRouteUsageCount};
 };
 
 class EcmpGroupConsolidator {
@@ -39,6 +51,7 @@ class EcmpGroupConsolidator {
   const auto& getNhopsToId() const {
     return nextHopGroup2Id_;
   }
+  size_t getRouteUsageCount(NextHopGroupId nhopGrpId) const;
 
  private:
   template <typename AddrT>

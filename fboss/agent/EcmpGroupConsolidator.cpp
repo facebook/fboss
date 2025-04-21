@@ -52,8 +52,11 @@ void EcmpGroupConsolidator::routeAdded(
     grpInfo = nextHopGroupIdToInfo_.ref(idItr->second);
   }
   CHECK(grpInfo);
-  prefixToGroupInfo_.insert(
+  auto [pitr, pfxInserted] = prefixToGroupInfo_.insert(
       {added->prefix().toCidrNetwork(), std::move(grpInfo)});
+  CHECK(pfxInserted);
+  pitr->second->incRouteUsageCount();
+  CHECK_GT(pitr->second->getRouteUsageCount(), 0);
 }
 
 template <typename AddrT>
@@ -64,10 +67,13 @@ void EcmpGroupConsolidator::routeDeleted(
   CHECK(removed->isResolved());
   auto pitr = prefixToGroupInfo_.find(removed->prefix().toCidrNetwork());
   CHECK(pitr != prefixToGroupInfo_.end());
-  auto groupId = pitr->second->getID();
+  auto groupInfo = pitr->second;
   prefixToGroupInfo_.erase(pitr);
-  if (!nextHopGroupIdToInfo_.ref(groupId)) {
+  if (!nextHopGroupIdToInfo_.ref(groupInfo->getID())) {
     nextHopGroup2Id_.erase(removed->getForwardInfo().getNextHopSet());
+  } else {
+    groupInfo->decRouteUsageCount();
+    CHECK_GT(groupInfo->getRouteUsageCount(), 0);
   }
 }
 
@@ -121,5 +127,14 @@ EcmpGroupConsolidator::findNextAvailableId() const {
     }
   }
   throw FbossError("Unable to find id to allocate for new next hop group");
+}
+
+size_t EcmpGroupConsolidator::getRouteUsageCount(
+    NextHopGroupId nhopGrpId) const {
+  auto grpInfo = nextHopGroupIdToInfo_.ref(nhopGrpId);
+  if (grpInfo) {
+    return grpInfo->getRouteUsageCount();
+  }
+  throw FbossError("Unable to find nhop group ID: ", nhopGrpId);
 }
 } // namespace facebook::fboss
