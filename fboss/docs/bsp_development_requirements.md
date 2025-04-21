@@ -443,19 +443,16 @@ FBOSS), thus I2C and SMBus can be interchanged in this document.
 
 ## 6.1 I2C Adapter Driver Development
 
-An I2C Adapter must be registered by calling `devm_i2c_add_adapter()` or
-`i2c_add_numbered_adapter()` APIs declared in `<inux/i2c.h>`, and below are a
-few notes regarding I2C adapter registration:
-
-1. If I2C bus numbers are dynamically assigned, I2C adapters’ names must be
-“global-unique” so user space programs can identify I2C adapters easily. For
-example, an i2c adapter may be named “FPGA 0000:07:01.0 I2C Adapter #1 Channel #2”.
-2. If there is internal multiplexing in the I2C adapter (for example, a physical
-adapter with 4 channels), then each channel/port shall be registered as a
-(virtual) adapter and channel access shall be synchronized in the driver. For
-example, `drivers/i2c/busses/i2c-eg20t.c.`
-3. `devm_i2c_add_adapter()` is introduced in linux-5.13: please use
-`i2c_add_adapter()` API if the kernel modules need to be executed in linux 5.12.
+* An I2C Adapter must be registered by calling `devm_i2c_add_adapter()` or
+  `i2c_add_numbered_adapter()` APIs declared in `<inux/i2c.h>`
+* Notes regarding I2C adapter registration:
+  * If I2C bus numbers are dynamically assigned, I2C adapters’ names must be
+    “global-unique” so user space programs can identify I2C adapters easily.
+    * For example: “FPGA 0000:07:01.0 I2C Adapter #1 Channel #2”
+  * If there is internal multiplexing in the I2C adapter (for example, a
+    physical adapter with 4 channels), then each channel/port shall be
+    registered as a (virtual) adapter and channel access shall be synchronized
+    in the driver. For example, `drivers/i2c/busses/i2c-eg20t.c.`
 
 
 ## 6.2 ABIs for User Space
