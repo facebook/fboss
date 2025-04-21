@@ -41,19 +41,32 @@ void EcmpGroupConsolidator::routeAdded(
   CHECK_EQ(rid, RouterID(0));
   CHECK(added->isResolved());
   auto nhopSet = added->getForwardInfo().getNextHopSet();
-  if (nextHopGroup2Id_.find(nhopSet) == nextHopGroup2Id_.end()) {
-    nextHopGroup2Id_.insert({std::move(nhopSet), findNextAvailableId()});
+  std::shared_ptr<NextHopGroupInfo> grpInfo;
+  auto [idItr, inserted] =
+      nextHopGroup2Id_.insert({nhopSet, findNextAvailableId()});
+  if (inserted) {
+    std::tie(grpInfo, inserted) =
+        nextHopGroupToInfo_.refOrEmplace(nhopSet, idItr->second);
+    CHECK(inserted);
+  } else {
+    grpInfo = nextHopGroupToInfo_.ref(nhopSet);
   }
+  CHECK(grpInfo);
+  prefixToGroupInfo_.insert(
+      {added->prefix().toCidrNetwork(), std::move(grpInfo)});
 }
+
 template <typename AddrT>
 void EcmpGroupConsolidator::routeDeleted(
     RouterID rid,
     const std::shared_ptr<Route<AddrT>>& removed) {
   CHECK_EQ(rid, RouterID(0));
   CHECK(removed->isResolved());
-  // TODO we should remove only when the last reference to the
-  // nhop set
-  nextHopGroup2Id_.erase(removed->getForwardInfo().getNextHopSet());
+  auto nhopSet = removed->getForwardInfo().getNextHopSet();
+  prefixToGroupInfo_.erase(removed->prefix().toCidrNetwork());
+  if (!nextHopGroupToInfo_.ref(nhopSet)) {
+    nextHopGroup2Id_.erase(removed->getForwardInfo().getNextHopSet());
+  }
 }
 
 template <typename AddrT>
