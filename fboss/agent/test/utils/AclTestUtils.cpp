@@ -374,15 +374,16 @@ void delAclTable(cfg::SwitchConfig* cfg, const std::string& aclTableName) {
       aclTables.end());
 }
 
-void addAclStat(
+void addTrafficCounter(
     cfg::SwitchConfig* cfg,
-    const std::string& matcher,
     const std::string& counterName,
-    std::vector<cfg::CounterType> counterTypes) {
+    const std::optional<std::vector<cfg::CounterType>>& counterTypes) {
   auto counter = cfg::TrafficCounter();
   *counter.name() = counterName;
-  if (!counterTypes.empty()) {
-    *counter.types() = counterTypes;
+  if (counterTypes.has_value() && counterTypes.value().size() > 0) {
+    *counter.types() = counterTypes.value();
+  } else {
+    *counter.types() = {cfg::CounterType::PACKETS};
   }
   bool counterExists = false;
   for (auto& c : *cfg->trafficCounters()) {
@@ -394,6 +395,14 @@ void addAclStat(
   if (!counterExists) {
     cfg->trafficCounters()->push_back(counter);
   }
+}
+
+void addAclStat(
+    cfg::SwitchConfig* cfg,
+    const std::string& matcher,
+    const std::string& counterName,
+    std::vector<cfg::CounterType> counterTypes) {
+  addTrafficCounter(cfg, counterName, std::move(counterTypes));
 
   auto matchAction = cfg::MatchAction();
   matchAction.counter() = counterName;

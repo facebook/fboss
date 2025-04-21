@@ -1182,20 +1182,6 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
                : defaultCpuAclsForBcm(hwAsic, config);
 }
 
-void addTrafficCounter(
-    cfg::SwitchConfig* config,
-    const std::string& counterName,
-    std::optional<std::vector<cfg::CounterType>> counterTypes) {
-  auto counter = cfg::TrafficCounter();
-  *counter.name() = counterName;
-  if (counterTypes.has_value()) {
-    *counter.types() = counterTypes.value();
-  } else {
-    *counter.types() = {cfg::CounterType::PACKETS};
-  }
-  config->trafficCounters()->push_back(counter);
-}
-
 std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueuesForSai(
     const HwAsic* hwAsic) {
   auto coppHighPriQueueId = utility::getCoppHighPriQueueId(hwAsic);

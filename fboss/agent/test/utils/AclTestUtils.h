@@ -131,6 +131,12 @@ cfg::AclTable* getAclTable(
 
 void delAclTable(cfg::SwitchConfig* cfg, const std::string& aclTableName);
 
+void addTrafficCounter(
+    cfg::SwitchConfig* config,
+    const std::string& counterName,
+    const std::optional<std::vector<cfg::CounterType>>& counterTypes =
+        std::nullopt);
+
 void addAclStat(
     cfg::SwitchConfig* cfg,
     const std::string& matcher,
