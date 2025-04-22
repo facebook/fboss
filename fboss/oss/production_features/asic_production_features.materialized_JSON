@@ -122,7 +122,9 @@
         49,
         58,
         70,
-        75
+        75,
+        76,
+        77
     ],
     "ramon": [
         1
@@ -497,7 +499,9 @@
         "MIRROR_ON_DROP",
         "SFLOW_SAMPLES_PACKING",
         "SELF_HEALING_ECMP_LAG",
-        "GLOBAL_TC_RATE_LIMIT"
+        "GLOBAL_TC_RATE_LIMIT",
+        "COPP_SHAPER",
+        "COPP_SCHEDULER"
     ],
     "ramon": [
         "FABRIC"
