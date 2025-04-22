@@ -16473,9 +16473,6 @@
           "test_name_regex": "LinkTest.opticsTxDisableEnable"
         },
         {
-          "test_name_regex": "LinkTest.getTransceivers"
-        },
-        {
           "test_name_regex": "LinkTest.testOpticsRemediation"
         },
         {
@@ -16560,9 +16557,6 @@
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableEnable"
-        },
-        {
-          "test_name_regex": "LinkTest.getTransceivers"
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation"
@@ -16651,9 +16645,6 @@
           "test_name_regex": "LinkTest.opticsTxDisableEnable"
         },
         {
-          "test_name_regex": "LinkTest.getTransceivers"
-        },
-        {
           "test_name_regex": "LinkTest.testOpticsRemediation"
         },
         {
@@ -16738,9 +16729,6 @@
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableEnable"
-        },
-        {
-          "test_name_regex": "LinkTest.getTransceivers"
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation"
@@ -16829,9 +16817,6 @@
           "test_name_regex": "LinkTest.opticsTxDisableEnable"
         },
         {
-          "test_name_regex": "LinkTest.getTransceivers"
-        },
-        {
           "test_name_regex": "LinkTest.testOpticsRemediation"
         },
         {
@@ -16916,9 +16901,6 @@
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableEnable"
-        },
-        {
-          "test_name_regex": "LinkTest.getTransceivers"
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation"
@@ -17007,9 +16989,6 @@
           "test_name_regex": "LinkTest.opticsTxDisableEnable"
         },
         {
-          "test_name_regex": "LinkTest.getTransceivers"
-        },
-        {
           "test_name_regex": "LinkTest.testOpticsRemediation"
         },
         {
@@ -17091,9 +17070,6 @@
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableEnable"
-        },
-        {
-          "test_name_regex": "LinkTest.getTransceivers"
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation"
@@ -17179,9 +17155,6 @@
           "test_name_regex": "LinkTest.opticsTxDisableEnable"
         },
         {
-          "test_name_regex": "LinkTest.getTransceivers"
-        },
-        {
           "test_name_regex": "LinkTest.testOpticsRemediation"
         },
         {
@@ -17263,9 +17236,6 @@
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableEnable"
-        },
-        {
-          "test_name_regex": "LinkTest.getTransceivers"
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation"
@@ -17351,9 +17321,6 @@
           "test_name_regex": "LinkTest.opticsTxDisableEnable"
         },
         {
-          "test_name_regex": "LinkTest.getTransceivers"
-        },
-        {
           "test_name_regex": "LinkTest.testOpticsRemediation"
         },
         {
@@ -17435,9 +17402,6 @@
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableEnable"
-        },
-        {
-          "test_name_regex": "LinkTest.getTransceivers"
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation"
@@ -17523,9 +17487,6 @@
           "test_name_regex": "LinkTest.opticsTxDisableEnable"
         },
         {
-          "test_name_regex": "LinkTest.getTransceivers"
-        },
-        {
           "test_name_regex": "LinkTest.testOpticsRemediation"
         },
         {
@@ -17607,9 +17568,6 @@
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableEnable"
-        },
-        {
-          "test_name_regex": "LinkTest.getTransceivers"
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation"
