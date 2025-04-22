@@ -378,3 +378,7 @@ class TestPlatformMappingGeneration(unittest.TestCase):
                 for entry in self._get_expected_single_npu_supported_profiles()
             )
         )
+
+
+def main() -> None:
+    unittest.main()
