@@ -1833,6 +1833,8 @@ TEST_F(AgentCoppGlobalRateLimitTest, verifyLowPriorityTrafficRateLimit) {
   auto verify = [&]() {
     // Create dataplane loop with lowerPriority traffic on port0
     auto baseVlan = getVlanIDForTx();
+    auto switchDropStatsBefore = getAggregatedSwitchDropStats();
+    auto rateLimitDropBefore = *switchDropStatsBefore.tc0RateLimitDrops();
     createLineRateTrafficOnPort(
         masterLogicalInterfacePortIds()[0],
         baseVlan,
@@ -1845,6 +1847,11 @@ TEST_F(AgentCoppGlobalRateLimitTest, verifyLowPriorityTrafficRateLimit) {
     uint64_t expectedRate = kGlobalRateLimit * 1000; // bps
     auto expectedRateLow = expectedRate * (1 - kVariance);
     auto expectedRateHigh = expectedRate * (1 + kVariance);
+    // most packets should be dropped due to rate limit, since even one packet
+    // in L3 dataplane loop could cause ~1Gbps traffic on J3
+    auto expectedRateLimitDropLow = getAgentEnsemble()->getMinPktsForLineRate(
+                                        masterLogicalInterfacePortIds()[0]) *
+        0.99;
     WITH_RETRIES({
       // Read low priority copp queue counters
       uint64_t lowPriorityPacketCountBefore =
@@ -1860,6 +1867,7 @@ TEST_F(AgentCoppGlobalRateLimitTest, verifyLowPriorityTrafficRateLimit) {
       auto portQueuePacketsBefore = portStatsBefore.queueOutPackets_()
                                         ->find(utility::kCoppLowPriQueueId)
                                         ->second;
+
       /* sleep override */
       sleep(kDurationInSecs);
       uint64_t lowPriorityPacketCountAfter =
@@ -1875,6 +1883,8 @@ TEST_F(AgentCoppGlobalRateLimitTest, verifyLowPriorityTrafficRateLimit) {
       auto portQueuePacketsAfter = portStatsAfter.queueOutPackets_()
                                        ->find(utility::kCoppLowPriQueueId)
                                        ->second;
+      auto switchDropStatsAfter = getAggregatedSwitchDropStats();
+      auto rateLimitDropAfter = *switchDropStatsAfter.tc0RateLimitDrops();
 
       uint64_t actualCpuPortRate =
           (lowPriorityPacketCountAfter - lowPriorityPacketCountBefore) *
@@ -1890,12 +1900,18 @@ TEST_F(AgentCoppGlobalRateLimitTest, verifyLowPriorityTrafficRateLimit) {
       XLOG(DBG0) << "Before nif port packet count: " << portQueuePacketsBefore
                  << ", After nif port packet count: " << portQueuePacketsAfter
                  << ", Actual nif port rate in bps: " << actualNifPortRate;
+      XLOG(DBG0) << "Before tc0 rate limit drop: " << rateLimitDropBefore
+                 << ", After tc0 rate limit drop: " << rateLimitDropAfter
+                 << ", Expected rate limit low drop: "
+                 << expectedRateLimitDropLow;
       // CPU port traffic could be even lower, so only verify lower than
       // expectedRateHigh
       EXPECT_EVENTUALLY_TRUE(actualCpuPortRate <= expectedRateHigh);
       EXPECT_EVENTUALLY_TRUE(
           expectedRateLow <= actualNifPortRate &&
           actualNifPortRate <= expectedRateHigh);
+      EXPECT_EVENTUALLY_TRUE(
+          expectedRateLimitDropLow <= rateLimitDropAfter - rateLimitDropBefore);
     });
   };
 
