@@ -58,8 +58,7 @@ Guidelines](./) document when submitting Pull Requests for Meta OpenBMC projects
 
 ## 2.2 Linux
 
-* Always adopt the latest Linux kernel when starting a new platform. The latest
-  kernel version is 6.6 as of Aug. 2024.
+* Always adopt the latest Linux kernel when starting a new platform.
 * Enable the primary watchdog in device tree, but do not install additional
   services to kick the primary watchdog: use the default kthread spawned by watchdog driver.
 * Make sure the 2nd watchdog is disabled at the end of Linux boot up
@@ -79,9 +78,7 @@ Guidelines](./) document when submitting Pull Requests for Meta OpenBMC projects
 
 ## 2.3 Yocto
 
-* Always adopt the latest yocto when starting a new platform. The latest yocto
-  version is `lf-master` as of Aug. 2024.
-
+* Always adopt the latest yocto version when starting a new platform.
 
 ## 2.4 systemd
 
