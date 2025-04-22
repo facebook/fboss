@@ -65,11 +65,15 @@ void EcmpGroupConsolidator::routeDeleted(
     const std::shared_ptr<Route<AddrT>>& removed) {
   CHECK_EQ(rid, RouterID(0));
   CHECK(removed->isResolved());
-  auto pitr = prefixToGroupInfo_.find(removed->prefix().toCidrNetwork());
-  CHECK(pitr != prefixToGroupInfo_.end());
-  auto groupInfo = pitr->second;
-  prefixToGroupInfo_.erase(pitr);
-  if (!nextHopGroupIdToInfo_.ref(groupInfo->getID())) {
+  NextHopGroupId groupId{kMinNextHopGroupId - 1};
+  {
+    auto pitr = prefixToGroupInfo_.find(removed->prefix().toCidrNetwork());
+    CHECK(pitr != prefixToGroupInfo_.end());
+    groupId = pitr->second->getID();
+    prefixToGroupInfo_.erase(pitr);
+  }
+  auto groupInfo = nextHopGroupIdToInfo_.ref(groupId);
+  if (!groupInfo) {
     nextHopGroup2Id_.erase(removed->getForwardInfo().getNextHopSet());
   } else {
     groupInfo->decRouteUsageCount();
