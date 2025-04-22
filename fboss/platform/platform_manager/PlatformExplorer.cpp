@@ -428,6 +428,53 @@ void PlatformExplorer::exploreI2cDevices(
       }
       createI2cDevice(
           devicePath, *i2cDeviceConfig.kernelDeviceName(), busNum, devAddr);
+
+      // Due to the various IDPROM devices are populated during SLOTs exporing
+      // phase. If pmUnitScopedName defined in i2cDeviceConfigs contains
+      // "IDPROM", it indicates CHASSIS EEPROM will be populated. CHASSIS EEPROM
+      // defined in I2cDeviceConfig doesn't have offset defined.
+      if ((*i2cDeviceConfig.pmUnitScopedName()).find("IDPROM") !=
+          std::string::npos) {
+        std::optional<std::string> productNameInEeprom{std::nullopt};
+        std::optional<int> productionStateInEeprom{std::nullopt};
+        std::optional<int> productVersionInEeprom{std::nullopt};
+        std::optional<int> productSubVersionInEeprom{std::nullopt};
+        std::string eepromPath =
+            i2cExplorer_.getDeviceI2cPath(busNum, devAddr) + "/eeprom";
+        try {
+          dataStore_.updateEepromContents(
+              devicePath, eepromParser_.getContents(eepromPath, /*offset*/ 0));
+
+          productNameInEeprom = eepromParser_.getProductName(eepromPath, 0);
+          productionStateInEeprom =
+              eepromParser_.getProductionState(eepromPath, 0);
+          productVersionInEeprom =
+              eepromParser_.getProductionSubState(eepromPath, 0);
+          productSubVersionInEeprom =
+              eepromParser_.getVariantVersion(eepromPath, 0);
+          XLOG(INFO) << fmt::format(
+              "Found ProductName `{}` ProductionState `{}` ProductVersion `{}` ProductSubVersion `{}` in CHASSIS IDPROM {}",
+              productNameInEeprom ? *productNameInEeprom : "<ABSENT>",
+              productionStateInEeprom ? std::to_string(*productionStateInEeprom)
+                                      : "<ABSENT>",
+              productVersionInEeprom ? std::to_string(*productVersionInEeprom)
+                                     : "<ABSENT>",
+              productSubVersionInEeprom
+                  ? std::to_string(*productSubVersionInEeprom)
+                  : "<ABSENT>",
+              eepromPath);
+        } catch (const std::exception& e) {
+          auto errMsg = fmt::format(
+              "Could not fetch contents of IDPROM {} in {}. {}",
+              eepromPath,
+              slotPath,
+              e.what());
+          XLOG(ERR) << errMsg;
+          explorationSummary_.addError(
+              ExplorationErrorType::IDPROM_READ, slotPath, "IDPROM", errMsg);
+        }
+      }
+
       if (i2cDeviceConfig.numOutgoingChannels()) {
         auto channelToBusNums =
             i2cExplorer_.getMuxChannelI2CBuses(busNum, devAddr);
@@ -891,7 +938,8 @@ void PlatformExplorer::genHumanReadableEeproms() {
       continue;
     }
     const auto [slotPath, deviceName] = Utils().parseDevicePath(devicePath);
-    if (deviceName != "IDPROM") {
+    if (deviceName.find("IDPROM") == std::string::npos) {
+      // The EEPROM device is NOT IDPROM and CHASSIS_IDPROM.
       XLOG(WARNING) << fmt::format(
           "{} is not IDPROM. Skip generating eeprom content.", linkPath);
       continue;
