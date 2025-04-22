@@ -1,6 +1,7 @@
 load("@fbcode_macros//build_defs:python_binary.bzl", "python_binary")
 load("@fbcode_macros//build_defs:python_library.bzl", "python_library")
 load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
+load("@fbsource//tools/target_determinator/macros:ci_sandcastle.bzl", "ci_sandcastle")
 
 oncall("fboss_optics_phy")
 
@@ -143,4 +144,27 @@ python_binary(
         "//thrift/lib/py:server_base",
         "//thrift/lib/py/util:py_util",
     ],
+)
+
+ci_sandcastle(
+    name = "platform_mapping_v2_configo_sync",
+    alias = "platform-mapping-v2-configo-sync-citadel",
+    args = {
+        "steps": [
+            {
+                "name": "Run Configo Sync Command",
+                "shell": "buck2 run --flagfile fbcode//mode/opt fbcode//fboss/lib/platform_mapping_v2/facebook:gen -- --make-configerator-changes",
+            },
+        ],
+    },
+    capabilities = {
+        "tenant": "default-tenant",
+        "type": "fbcode",
+        "vcs": "full-fbsource",
+    },
+    ci_srcs = [
+        "fbcode/fboss/lib/platform_mapping_v2",
+    ],
+    command = "SandcastleUniversalCommand",
+    oncall = "fboss_optics_phy",
 )
