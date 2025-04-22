@@ -6176,13 +6176,7 @@
           "test_name_regex": "AgentTrafficPfcTest.verifyBufferPoolWatermarks$"
         },
         {
-          "test_name_regex": "AgentMacOverFlowTest.*$"
-        },
-        {
           "test_name_regex": "AgentSendPacketToMulticastQueueTest.SendPacketOutOfPortToMCQueue$"
-        },
-        {
-          "test_name_regex": "AgentFlowlet.*$"
         }
     ],
     "brcm/11.7.0.0_odp/11.7.0.0_odp/tomahawk5/multi_switch": [
@@ -6676,13 +6670,7 @@
           "test_name_regex": "AgentTrafficPfcTest.verifyBufferPoolWatermarks$"
         },
         {
-          "test_name_regex": "AgentMacOverFlowTest.*$"
-        },
-        {
           "test_name_regex": "AgentSendPacketToMulticastQueueTest.SendPacketOutOfPortToMCQueue$"
-        },
-        {
-          "test_name_regex": "AgentFlowlet.*$"
         }
     ],
     "brcm/12.2.0.0_dnx_odp/12.2.0.0_dnx_odp/jericho3/mono": [
@@ -7305,6 +7293,12 @@
         },
         {
           "test_name_regex": "AgentTrafficPfcTest.verifyBufferPoolWatermarks"
+        },
+        {
+          "test_name_regex": "AgentVoqSwitchFullScaleDsfNodesTest.remoteAndLocalLoadBalance"
+        },
+        {
+          "test_name_regex": "AgentVoqSwitchFullScaleDsfNodesTest.remoteNeighborWithEcmpGroup"
         }
     ],
     "brcm/12.2.0.0_dnx_odp/12.2.0.0_dnx_odp/jericho3/multi_switch": [
@@ -7939,6 +7933,12 @@
         },
         {
           "test_name_regex": "AgentTrafficPfcTest.verifyBufferPoolWatermarks"
+        },
+        {
+          "test_name_regex": "AgentVoqSwitchFullScaleDsfNodesTest.remoteAndLocalLoadBalance"
+        },
+        {
+          "test_name_regex": "AgentVoqSwitchFullScaleDsfNodesTest.remoteNeighborWithEcmpGroup"
         }
     ],
     "brcm/12.2.0.0_dnx_odp/12.2.0.0_dnx_odp/ramon3/mono": [
