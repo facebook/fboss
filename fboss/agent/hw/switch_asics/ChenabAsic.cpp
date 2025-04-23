@@ -209,7 +209,7 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::BUFFER_POOL_HEADROOM_WATERMARK:
     case HwAsic::Feature::WARMBOOT: // TODO: add support for warmboot once SDK
                                     // supports it
-    case HwAsic::Feature::SAI_SET_TC_FOR_USER_DEFINED_TRAP:
+    case HwAsic::Feature::SAI_SET_TC_WITH_USER_DEFINED_TRAP_CPU_ACTION:
       return false;
   }
   return false;
