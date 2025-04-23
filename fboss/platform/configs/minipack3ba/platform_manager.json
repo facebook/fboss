@@ -1,5 +1,5 @@
 {
-  "platformName": "montblanc",
+  "platformName": "MINIPACK3BA",
   "rootPmUnitName": "MINIPACK3_MCB",
   "rootSlotType": "MCB_SLOT",
   "slotTypeConfigs": {
@@ -3090,8 +3090,8 @@
         },
         {
           "busName": "SCM_MUX_A@0",
-          "address": "0x10",
-          "kernelDeviceName": "adm1278",
+          "address": "0x44",
+          "kernelDeviceName": "lm25066",
           "pmUnitScopedName": "SCM_SENSOR"
         },
         {
