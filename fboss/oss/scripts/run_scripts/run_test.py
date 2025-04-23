@@ -241,6 +241,13 @@ GTEST_NAME_PREFIX = "[ RUN      ] "
 FEATURE_LIST_PREFIX = "Feature List: "
 
 
+def _check_working_dir():
+    current_dir = os.getcwd()
+    if not current_dir.endswith("/opt/fboss"):
+        print("Error: Script must be run from /opt/fboss directory.")
+        exit(1)
+
+
 def run_script(script_file: str):
     if not os.path.exists(script_file):
         raise Exception(f"Script file {script_file} does not exist")
@@ -1165,6 +1172,7 @@ class SaiAgentTestRunner(TestRunner):
 
 
 if __name__ == "__main__":
+    _check_working_dir()
     # Set env variables for FBOSS
     setup_fboss_env()
 
