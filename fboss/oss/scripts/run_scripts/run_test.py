@@ -419,10 +419,17 @@ class TestRunner(abc.ABC):
 
     def _get_unsupported_test_regexes(self):
         if not args.skip_known_bad_tests:
+            print(
+                "The --skip-known-bad-tests option is not set, therefore unsupported tests will be run."
+            )
             return []
 
         unsupported_tests_file = self._get_unsupported_tests_file()
         if not os.path.exists(unsupported_tests_file):
+            unsupported_tests_file_abs_path = os.path.abspath(unsupported_tests_file)
+            print(
+                f"The unsupported tests file {unsupported_tests_file_abs_path} does not exist, therefore all tests will be considered supported"
+            )
             return []
 
         with open(unsupported_tests_file) as f:
