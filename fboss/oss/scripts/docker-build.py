@@ -9,7 +9,7 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
-from typing import Optional, Tuple
+from typing import List, Optional, Tuple
 
 
 OPT_ARG_SCRATCH_PATH = "--scratch-path"
@@ -25,7 +25,7 @@ FBOSS_CONTAINER_NAME = "FBOSS_BUILD_CONTAINER"
 CONTAINER_SCRATCH_PATH = "/var/FBOSS/tmp_bld_dir"
 
 
-def get_linux_type() -> tuple[Optional[str], Optional[str], Optional[str]]:
+def get_linux_type() -> Tuple[str, Optional[str], Optional[str]]:
     try:
         with open("/etc/os-release") as f:
             data = f.read()
@@ -206,7 +206,7 @@ def run_fboss_build(
     target: Optional[str],
     docker_output: bool,
     use_system_deps: bool,
-    env_vars: list[str],
+    env_vars: List[str],
     use_local: bool,
     num_jobs: Optional[int],
 ):
