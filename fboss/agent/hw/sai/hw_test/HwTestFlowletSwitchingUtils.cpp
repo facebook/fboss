@@ -21,6 +21,7 @@
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVirtualRouterManager.h"
 #include "fboss/agent/test/TestEnsembleIf.h"
+#include "fboss/agent/test/utils/AsicUtils.h"
 
 #include "folly/testing/TestUtil.h"
 
@@ -239,6 +240,10 @@ void runCint(TestEnsembleIf* ensemble, const std::string& cintStr) {
 }
 
 void setEcmpMemberStatus(const TestEnsembleIf* ensemble) {
+  auto asic = utility::checkSameAndGetAsic(ensemble->getL3Asics());
+  if (asic->getAsicVendor() != HwAsic::AsicVendor::ASIC_VENDOR_BCM) {
+    return;
+  }
   constexpr auto kSetEcmpMemberStatus = R"(
   cint_reset();
   bcm_l3_egress_ecmp_member_status_set(0, 100003, BCM_L3_ECMP_DYNAMIC_MEMBER_FORCE_UP);

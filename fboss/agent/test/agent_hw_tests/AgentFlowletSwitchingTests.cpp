@@ -112,6 +112,10 @@ class AgentAclCounterTestBase : public AgentHwTest {
     if (!ensemble->isSai()) {
       return;
     }
+    auto asic = utility::checkSameAndGetAsic(ensemble->getL3Asics());
+    if (asic->getAsicVendor() != HwAsic::AsicVendor::ASIC_VENDOR_BCM) {
+      return;
+    }
     // Remove the ecmp ethertype config after BRCM fix
     constexpr auto kSetEcmpMemberStatus = R"(
   cint_reset();
