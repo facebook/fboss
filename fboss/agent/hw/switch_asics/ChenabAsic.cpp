@@ -403,6 +403,15 @@ uint32_t ChenabAsic::getMaxVariableWidthEcmpSize() const {
 uint32_t ChenabAsic::getMaxEcmpSize() const {
   return 512;
 }
+std::optional<uint32_t> ChenabAsic::getMaxEcmpGroups() const {
+  return 4096;
+}
+std::optional<uint32_t> ChenabAsic::getMaxEcmpMembers() const {
+  return 32000;
+}
+std::optional<uint32_t> ChenabAsic::getMaxDlbEcmpGroups() const {
+  return 256;
+}
 uint32_t ChenabAsic::getNumCores() const {
   return 12;
 }
