@@ -718,4 +718,26 @@ TEST_F(ProdInvariantFtswTest, verifyInvariants) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+class ProdInvariantStswTest : public ProdInvariantRtswTest {
+ public:
+  ProdInvariantStswTest() {
+    set_mmu_lossless(true);
+  }
+};
+
+TEST_F(ProdInvariantStswTest, verifyInvariants) {
+  auto setup = [&]() {};
+  auto verify = [&]() {
+    verifyAcl();
+    verifyCopp();
+    verifyLoadBalancing();
+    verifyDscpToQueueMapping();
+    verifySafeDiagCommands();
+    verifyThriftHandler();
+    verifyFlowletAcls();
+    verifyDlbGroups();
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss
