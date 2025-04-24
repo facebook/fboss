@@ -55,5 +55,6 @@ BENCHMARK(FsdbSystemScaleStats) {
     fsdbTestServer_.reset();
     removeFile(filePath, true);
   }
+  helper.TearDown(false);
 }
 } // namespace facebook::fboss::fsdb::test

@@ -43,5 +43,6 @@ BENCHMARK(FsdbSystemScaleChurn) {
   // Once churn is complete, remove the marker file and exit
   fsdbTestServer_.reset();
   removeFile(churn_pubsub_complete_marker, true);
+  helper.TearDown(false);
 }
 } // namespace facebook::fboss::fsdb::test

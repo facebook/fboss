@@ -1,6 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/fsdb/benchmarks/FsdbBenchmarkTestHelper.h"
+#include <folly/Subprocess.h>
 #include "fboss/thrift_cow/nodes/Types.h"
 
 namespace {
@@ -19,18 +20,33 @@ namespace facebook::fboss::fsdb::test {
 using FsdbOperStateRootMembers =
     apache::thrift::reflect_struct<FsdbOperStateRoot>::member;
 
-void FsdbBenchmarkTestHelper::setup(int32_t numSubscriptions) {
-  fsdbTestServer_ = std::make_unique<fsdb::test::FsdbTestServer>(
-      0, kStateServeIntervalMs, kStatsServeIntervalMs);
-  FLAGS_fsdbPort = fsdbTestServer_->getFsdbPort();
-  for (int i = 0; i < numSubscriptions; i++) {
-    const std::string clientId = folly::to<std::string>("agent_", i);
-    pubsubMgrs_.push_back(std::make_unique<fsdb::FsdbPubSubManager>(clientId));
-    std::vector<std::atomic_bool> subs(numSubscriptions);
-    for (auto& sub : subs) {
-      sub = false;
+void FsdbBenchmarkTestHelper::setup(
+    int32_t numSubscriptions,
+    bool startFsdbTestServer,
+    std::optional<std::string> serviceFileName) {
+  if (startFsdbTestServer) {
+    fsdbTestServer_ = std::make_unique<fsdb::test::FsdbTestServer>(
+        0, kStateServeIntervalMs, kStatsServeIntervalMs);
+    FLAGS_fsdbPort = fsdbTestServer_->getFsdbPort();
+    for (int i = 0; i < numSubscriptions; i++) {
+      const std::string clientId = folly::to<std::string>("agent_", i);
+      pubsubMgrs_.push_back(
+          std::make_unique<fsdb::FsdbPubSubManager>(clientId));
+      std::vector<std::atomic_bool> subs(numSubscriptions);
+      for (auto& sub : subs) {
+        sub = false;
+      }
+      subscriptionConnected_ = std::move(subs);
     }
-    subscriptionConnected_ = std::move(subs);
+  }
+  if (serviceFileName) {
+    serviceFileName_ = serviceFileName;
+    std::vector<std::string> kStartSaiBench = {
+        "/bin/systemctl", "start", *serviceFileName + ".service"};
+
+    folly::Subprocess(kStartSaiBench).waitChecked();
+    // sleep for 10 seconds to allow SaiBench to start
+    std::this_thread::sleep_for(std::chrono::seconds(10));
   }
 }
 
@@ -98,14 +114,21 @@ void FsdbBenchmarkTestHelper::stopPublisher(bool gr) {
   pubsubMgrs_.at(0)->removeStatPathPublisher(gr);
 }
 
-void FsdbBenchmarkTestHelper::TearDown() {
-  fsdbTestServer_.reset();
+void FsdbBenchmarkTestHelper::TearDown(bool stopFsdbTestServer) {
+  if (stopFsdbTestServer) {
+    fsdbTestServer_.reset();
+  }
   if (!pubsubMgrs_.empty()) {
     stopPublisher();
     CHECK(!readyForPublishing_.load());
     for (auto& pubsubMgr : pubsubMgrs_) {
       pubsubMgr.reset();
     }
+  }
+  if (serviceFileName_) {
+    std::vector<std::string> stopWedgeAgent = {
+        "/bin/systemctl", "stop", *serviceFileName_ + ".service"};
+    folly::Subprocess(stopWedgeAgent).waitChecked();
   }
 }
 
@@ -190,6 +213,6 @@ void FsdbBenchmarkTestHelper::removeSubscription(
     pubsubMgrs_.at(subscriberID)
         ->removeStatePatchSubscription(kPublishRoot, "::1");
   }
-}
+};
 
 } // namespace facebook::fboss::fsdb::test
