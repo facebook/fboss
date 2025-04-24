@@ -25,6 +25,30 @@
           }
         }
       ],
+      "read": {
+        "commandType": "flashrom",
+        "flashromArgs": {
+          "programmer_type": "internal",
+          "flashromExtraArgs": [
+            "--ifd",
+            "-i",
+            "bios",
+            "--noverify-all"
+          ]
+        }
+      },
+      "verify": {
+        "commandType": "flashrom",
+        "flashromArgs": {
+          "programmer_type": "internal",
+          "flashromExtraArgs": [
+            "--ifd",
+            "-i",
+            "bios",
+            "--noverify-all"
+          ]
+        }
+      },
       "postUpgrade": [
         {
           "commandType": "writeToPort",
