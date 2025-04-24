@@ -131,6 +131,12 @@ cfg::AclTable* getAclTable(
 
 void delAclTable(cfg::SwitchConfig* cfg, const std::string& aclTableName);
 
+void addTrafficCounter(
+    cfg::SwitchConfig* config,
+    const std::string& counterName,
+    const std::optional<std::vector<cfg::CounterType>>& counterTypes =
+        std::nullopt);
+
 void addAclStat(
     cfg::SwitchConfig* cfg,
     const std::string& matcher,
@@ -142,12 +148,25 @@ void delAclStat(
     const std::string& matcher,
     const std::string& counterName);
 
-void addAclMatchActions(
+void addMatcher(
+    cfg::SwitchConfig* config,
+    const std::string& matcherName,
+    const cfg::MatchAction& matchAction);
+void delMatcher(cfg::SwitchConfig* config, const std::string& matcherName);
+
+void addAclMirrorAction(
     cfg::SwitchConfig* cfg,
     const std::string& matcher,
-    const std::optional<std::string>& counterName,
-    const std::optional<std::string>& mirrorName,
+    const std::string& counterName,
+    const std::string& mirrorName,
     bool ingress = true);
+
+void addAclDscpQueueAction(
+    cfg::SwitchConfig* cfg,
+    const std::string& matcher,
+    const std::string& counterName,
+    int32_t dscpValue = 0,
+    int queueId = -1);
 
 void renameAclStat(
     cfg::SwitchConfig* cfg,

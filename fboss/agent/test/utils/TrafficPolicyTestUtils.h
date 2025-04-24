@@ -89,11 +89,6 @@ void addQueueMatcher(
     bool isSai,
     const std::optional<std::string>& counterName = std::nullopt);
 
-void addTrafficCounter(
-    cfg::SwitchConfig* config,
-    const std::string& counterName,
-    std::optional<std::vector<cfg::CounterType>> counterTypes);
-
 cfg::QosPolicy* addDscpQosPolicy(
     cfg::SwitchConfig* cfg,
     const std::string& name,

@@ -266,10 +266,8 @@ void BcmMultiPathNextHopTable::updateDlbExhaustionStat() {
       if (!ecmpEgress) {
         continue;
       }
-      // 200000 - 200127 is 128 groups
-      // 200128 or above is when we are exhausted
       auto egressId = ecmpEgress->getID() - kEcmpEgressstartId;
-      if (egressId >= maxDlbGroups.value()) {
+      if (egressId > maxDlbGroups.value()) {
         dlbExhausted = true;
       }
     }

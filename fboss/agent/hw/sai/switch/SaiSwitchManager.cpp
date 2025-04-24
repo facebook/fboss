@@ -168,6 +168,9 @@ void fillHwSwitchDropStats(
       case SAI_SWITCH_STAT_OUT_CONFIGURED_DROP_REASONS_0_DROPPED_PKTS:
       case SAI_SWITCH_STAT_OUT_CONFIGURED_DROP_REASONS_1_DROPPED_PKTS:
       case SAI_SWITCH_STAT_OUT_CONFIGURED_DROP_REASONS_2_DROPPED_PKTS:
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+      case SAI_SWITCH_STAT_TC0_RATE_LIMIT_DROPPED_PACKETS:
+#endif
         fillAsicSpecificCounter(counterId, value, asicType, hwSwitchDropStats);
         break;
       default:
@@ -852,6 +855,13 @@ const std::vector<sai_stat_id_t>& SaiSwitchManager::supportedErrorStats()
         SaiSwitchTraits::egressParityCellError().begin(),
         SaiSwitchTraits::egressParityCellError().end());
   }
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::DRAM_DATAPATH_PACKET_ERROR_STATS)) {
+    stats.insert(
+        stats.end(),
+        SaiSwitchTraits::ddpPacketError().begin(),
+        SaiSwitchTraits::ddpPacketError().end());
+  }
   return stats;
 }
 
@@ -1028,6 +1038,9 @@ void SaiSwitchManager::updateStats(bool updateWatermarks) {
     switchDropStats_.rqpParityErrorDrops() =
         switchDropStats_.rqpParityErrorDrops().value_or(0) +
         errorStats.rqpParityErrorDrops().value_or(0);
+    switchDropStats_.dramDataPathPacketError() =
+        switchDropStats_.dramDataPathPacketError().value_or(0) +
+        errorStats.dramDataPathPacketError().value_or(0);
   }
 
   if (switchDropStats.size() || errorDropStats.size()) {

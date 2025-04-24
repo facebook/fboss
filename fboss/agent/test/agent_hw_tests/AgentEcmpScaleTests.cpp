@@ -49,7 +49,8 @@ TEST_F(AgentEcmpTest, CreateMaxEcmpGroups) {
       portDescriptorIds.push_back(PortDescriptor(portId));
     }
     std::vector<std::vector<PortDescriptor>> allCombinations =
-        utility::generateEcmpGroupScale(portDescriptorIds, kMaxEcmpGroup);
+        utility::generateEcmpGroupScale(
+            portDescriptorIds, kMaxEcmpGroup, portDescriptorIds.size());
     std::vector<flat_set<PortDescriptor>> nhopSets;
     for (const auto& combination : allCombinations) {
       nhopSets.emplace_back(combination.begin(), combination.end());

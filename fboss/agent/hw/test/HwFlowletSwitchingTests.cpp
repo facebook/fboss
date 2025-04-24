@@ -1184,7 +1184,7 @@ TEST_F(HwFlowletSwitchingEcmpTest, VerifyEcmpSprayModeScale) {
 #endif
     return;
   }
-  int numEcmp = kNumEcmp();
+  int numEcmp = 63;
   // CS00012344837
   if (getPlatform()->getAsic()->getAsicType() ==
       cfg::AsicType::ASIC_TYPE_TOMAHAWK3) {

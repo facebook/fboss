@@ -3,7 +3,6 @@
 #include <folly/MapUtil.h>
 
 #include "fboss/agent/AgentFeatures.h"
-#include "fboss/agent/TxPacket.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
@@ -14,6 +13,8 @@
 #include "fboss/agent/test/utils/PortTestUtils.h"
 #include "fboss/agent/test/utils/QosTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
+
+#include <fmt/ranges.h>
 
 DEFINE_bool(
     skip_stop_pfc_test_traffic,
@@ -85,6 +86,8 @@ void waitPfcCounterIncrease(
     XLOG(DBG0) << " Port: " << portId << " PFC TX/RX PFC/RX_PFC_XON "
                << txPfcCtr << "/" << rxPfcCtr << "/" << rxPfcXonCtr
                << ", priority: " << pfcPriority;
+    // Also log in/out packet/byte counts to make sure packets are flowing.
+    XLOG(DBG0) << facebook::fboss::utility::pfcStatsString(portStats);
 
     EXPECT_EVENTUALLY_GT(txPfcCtr, 0);
 
@@ -173,7 +176,7 @@ void validateIngressPriorityGroupWatermarkCounters(
       std::string pg = ensemble->isSai() ? folly::sformat(".pg{}", pri) : "";
       auto regex = folly::sformat(
           "buffer_watermark_pg_({}).{}{}.p100.60", watermarkKeys, portName, pg);
-      auto counters = facebook::fb303::fbData->getRegexCounters(regex);
+      auto counters = ensemble->getFb303CountersByRegex(portId, regex);
       EXPECT_EVENTUALLY_EQ(counters.size(), numKeys);
       for (const auto& ctr : counters) {
         XLOG(DBG0) << ctr.first << " : " << ctr.second;
@@ -181,6 +184,41 @@ void validateIngressPriorityGroupWatermarkCounters(
       }
     }
   });
+}
+
+std::optional<std::string> extractPortIdsFromYaml(const std::string& yaml) {
+  using namespace std::literals;
+  size_t start = yaml.find("PORT_ID: [[");
+  if (start == std::string::npos) {
+    return std::nullopt;
+  }
+  start = yaml.find("[[", start); // skip to the [[
+  size_t end = yaml.find("]]", start);
+  if (end == std::string::npos) {
+    return std::nullopt;
+  }
+  return yaml.substr(start, end - start + 2); // +2 to include the ]]
+}
+
+void addLosslessYamlConfig(std::string& yamlCfg) {
+  auto portIds = extractPortIdsFromYaml(yamlCfg);
+  if (portIds.has_value()) {
+    yamlCfg += fmt::format(
+        R"(
+---
+device:
+  0:
+    TM_ING_PORT_PRI_GRP:
+      ?
+        PORT_ID: {}
+        TM_PRI_GRP_ID: [{}]
+      :
+        LOSSLESS: 1
+...
+)",
+        *portIds,
+        fmt::join(kLosslessPgIds, ","));
+  }
 }
 
 } // namespace
@@ -230,8 +268,12 @@ class AgentTrafficPfcTest : public AgentHwTest {
               yamlCfg.replace(pos, toReplace.length(), "LOSSY_AND_LOSSLESS");
             }
           }
+
+          // TODO(maxgg): temp workaround for CS00012395772
+          addLosslessYamlConfig(yamlCfg);
         },
         [](std::map<std::string, std::string>& cfg) {
+          // These are only applicable to TH3
           cfg["mmu_lossless"] = "0x2";
           cfg["buf.mqueue.guarantee.0"] = "0C";
           cfg["mmu_config_override"] = "0";
@@ -637,11 +679,13 @@ class AgentTrafficPfcZeroGlobalHeadroomTest : public AgentTrafficPfcTest {
 };
 
 TEST_F(AgentTrafficPfcTest, verifyPfcWithZeroGlobalHeadRoomCfg) {
+  auto asicType =
+      utility::checkSameAndGetAsicType(getAgentEnsemble()->getCurrentConfig());
   TrafficTestParams param{
-      .buffer = defaultPfcBufferParams(),
+      .buffer = PfcBufferParams::getPfcBufferParams(
+          asicType, PfcBufferParams::kGlobalSharedBytes, 0 /*globalHeadroom*/),
       .expectDrop = true,
   };
-  param.buffer.globalHeadroom = 0;
   runTestWithCfg(kLosslessTrafficClass, kLosslessPriority, {}, param);
 }
 

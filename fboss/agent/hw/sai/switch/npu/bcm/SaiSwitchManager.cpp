@@ -109,6 +109,11 @@ void fillHwSwitchErrorStats(
         dropStats.rqpParityErrorDrops() = value;
         break;
 #endif
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+      case SAI_SWITCH_STAT_DDP_PACKET_ERROR:
+        dropStats.dramDataPathPacketError() = value;
+        break;
+#endif
       default:
         throw FbossError("Got unexpected switch counter id: ", counterId);
     }

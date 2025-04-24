@@ -36,15 +36,49 @@ std::shared_ptr<SwitchState> EcmpGroupConsolidator::consolidate(
 
 template <typename AddrT>
 void EcmpGroupConsolidator::routeAdded(
-    RouterID /*rid*/,
-    const std::shared_ptr<Route<AddrT>>& /*added*/) {
-  // TODO
+    RouterID rid,
+    const std::shared_ptr<Route<AddrT>>& added) {
+  CHECK_EQ(rid, RouterID(0));
+  CHECK(added->isResolved());
+  auto nhopSet = added->getForwardInfo().getNextHopSet();
+  std::shared_ptr<NextHopGroupInfo> grpInfo;
+  auto [idItr, inserted] =
+      nextHopGroup2Id_.insert({nhopSet, findNextAvailableId()});
+  if (inserted) {
+    std::tie(grpInfo, inserted) =
+        nextHopGroupIdToInfo_.refOrEmplace(idItr->second, idItr->second);
+    CHECK(inserted);
+  } else {
+    grpInfo = nextHopGroupIdToInfo_.ref(idItr->second);
+  }
+  CHECK(grpInfo);
+  auto [pitr, pfxInserted] = prefixToGroupInfo_.insert(
+      {added->prefix().toCidrNetwork(), std::move(grpInfo)});
+  CHECK(pfxInserted);
+  pitr->second->incRouteUsageCount();
+  CHECK_GT(pitr->second->getRouteUsageCount(), 0);
 }
+
 template <typename AddrT>
 void EcmpGroupConsolidator::routeDeleted(
-    RouterID /*rid*/,
-    const std::shared_ptr<Route<AddrT>>& /*removed*/) {
-  // TODO
+    RouterID rid,
+    const std::shared_ptr<Route<AddrT>>& removed) {
+  CHECK_EQ(rid, RouterID(0));
+  CHECK(removed->isResolved());
+  NextHopGroupId groupId{kMinNextHopGroupId - 1};
+  {
+    auto pitr = prefixToGroupInfo_.find(removed->prefix().toCidrNetwork());
+    CHECK(pitr != prefixToGroupInfo_.end());
+    groupId = pitr->second->getID();
+    prefixToGroupInfo_.erase(pitr);
+  }
+  auto groupInfo = nextHopGroupIdToInfo_.ref(groupId);
+  if (!groupInfo) {
+    nextHopGroup2Id_.erase(removed->getForwardInfo().getNextHopSet());
+  } else {
+    groupInfo->decRouteUsageCount();
+    CHECK_GT(groupInfo->getRouteUsageCount(), 0);
+  }
 }
 
 template <typename AddrT>
@@ -71,9 +105,15 @@ void EcmpGroupConsolidator::processRouteUpdates(const StateDelta& delta) {
           routeAdded(rid, newRoute);
         }
       },
-      [this](RouterID rid, const auto& newRoute) { routeAdded(rid, newRoute); },
+      [this](RouterID rid, const auto& newRoute) {
+        if (newRoute->isResolved()) {
+          routeAdded(rid, newRoute);
+        }
+      },
       [this](RouterID rid, const auto& oldRoute) {
-        routeDeleted(rid, oldRoute);
+        if (oldRoute->isResolved()) {
+          routeDeleted(rid, oldRoute);
+        }
       });
 }
 
@@ -91,5 +131,14 @@ EcmpGroupConsolidator::findNextAvailableId() const {
     }
   }
   throw FbossError("Unable to find id to allocate for new next hop group");
+}
+
+size_t EcmpGroupConsolidator::getRouteUsageCount(
+    NextHopGroupId nhopGrpId) const {
+  auto grpInfo = nextHopGroupIdToInfo_.ref(nhopGrpId);
+  if (grpInfo) {
+    return grpInfo->getRouteUsageCount();
+  }
+  throw FbossError("Unable to find nhop group ID: ", nhopGrpId);
 }
 } // namespace facebook::fboss
