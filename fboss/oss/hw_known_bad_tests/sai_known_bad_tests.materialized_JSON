@@ -2176,7 +2176,7 @@
           "test_name_regex": "warm_boot.HwVerifyPfcConfigInHwTest.PfcWatchdogProgrammingSequence"
         }
     ],
-    "brcm/11.7.0.0_dnx_odp/12.0_ea_dnx_odp/jericho3": [
+    "brcm/11.7.0.0_dnx_odp/12.2.0.0_dnx_odp/jericho3": [
         {
           "test_name_regex": "SaiRouteRollbackTest.rollbackAllWithTrunk"
         },
@@ -2666,7 +2666,7 @@
           "test_name_regex": "HwTest_PROFILE_100G_4_NRZ_RS528_OPTICAL.TestProfile"
         }
     ],
-    "brcm/12.0_ea_dnx_odp/12.0_ea_dnx_odp/jericho3": [
+    "brcm/12.2.0.0_dnx_odp/12.2.0.0_dnx_odp/jericho3": [
         {
           "test_name_regex": "SaiRouteRollbackTest.rollbackAllWithTrunk"
         },
@@ -2797,7 +2797,7 @@
           "test_name_regex": "warm_boot.HwVerifyPfcConfigInHwTest.PfcWatchdogProgrammingSequence"
         }
     ],
-    "brcm/12.0_ea_dnx_odp/12.0_ea_dnx_odp/ramon3": [
+    "brcm/12.2.0.0_dnx_odp/12.2.0.0_dnx_odp/ramon3": [
         {
           "test_name_regex": "HwParityErrorTest.verifyParityError"
         }

@@ -41,7 +41,7 @@ class CmdBounceInterface
        getRegexCounters so we can filter out just the interface counters and
        ignore the multitude of other counters we don't need.
     */
-    std::string bounceResult = "";
+    std::string bounceResult;
     auto client =
         utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(hostInfo);
 

@@ -72,12 +72,13 @@ std::vector<std::vector<PortDescriptor>> genCombinations(
 // minGroupSize to inputs.size()
 std::vector<std::vector<PortDescriptor>> generateEcmpGroupScale(
     const std::vector<PortDescriptor>& inputs,
-    const int maxEcmpGroups) {
-  const int minGroupSize = 2;
+    const int maxEcmpGroups,
+    const int maxEcmpGroupSize,
+    const int minEcmpGroupSize) {
   int groupsGenerated = 0;
   std::vector<std::vector<PortDescriptor>> currCombination;
   std::vector<std::vector<PortDescriptor>> allCombinations;
-  for (int i = minGroupSize; i <= inputs.size(); i++) {
+  for (int i = minEcmpGroupSize; i <= maxEcmpGroupSize; i++) {
     currCombination = genCombinations(inputs, i);
     if ((groupsGenerated + currCombination.size()) >= maxEcmpGroups) {
       int remainingGrp = maxEcmpGroups - groupsGenerated;

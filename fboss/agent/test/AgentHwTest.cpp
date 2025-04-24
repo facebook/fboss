@@ -486,6 +486,7 @@ HwSwitchDropStats AgentHwTest::getAggregatedSwitchDropStats() {
       FILL_DROP_COUNTERS(queueResolution);
       FILL_DROP_COUNTERS(ingressPacketPipelineReject);
       FILL_DROP_COUNTERS(corruptedCellPacketIntegrity);
+      FILL_DROP_COUNTERS(tc0RateLimit);
     }
     hwSwitchDropStats = aggHwSwitchDropStats;
     return true;

@@ -118,10 +118,10 @@ explicitly stated by the chip vendor.
 # 3. Compatible Kernel Versions
 
 The BSP kernel modules must be compatible with following kernel versions
-(updated in Jan. 2024):
+(updated in April 2025):
 
-* Linux v5.19.0
 * Linux v6.4.3
+* Linux v6.11.1
 
 Being compatible means:
 
@@ -226,31 +226,30 @@ removal of individual I/O controllers.
 
 ## 5.2 Subdevice (I/O Controller) Creation & Deletion
 
-Although there are various ways to pass the subdevice settings to the FPGA
-driver (ACPI, dedicated device descriptor area in FPGA memory, hardcoded in FPG
-driver, module parameters, etc), the FBOSS team manages device topology/settings
-from user space (the FBOSS “PlatformManager” service).
-
-When the PCIe FPGA is enumerated, its probe function only initializes the
-“global” resources (such as enabling device, mapping memory, etc): the PCIe FPGA
-driver shall not create any subdevices in the probe function, instead, it
-registers the character device interface to allow the PlatformManager to trigger
-device creation/deletion from user space. Below are the details about the ABIs
-provided by the PCIe FPGA driver.
+* In FBOSS systems device creation and deletion is managed from userspace,
+  specifically the PlatformManager service.
+* Device topology and settings are managed from userspace as well
+* When PCIe FPGA is enumerated, the probe function shall only intialize global
+  resources
+  * e.g. Enabling device, mapping memory, etc.
+* The PCIe driver shall not create any subdevices
+* The PCIe driver registers a character device interface which allows
+  PlatformManager to trigger device creation/deletion from userspace.
 
 
 ### 5.2.1 Character Device Interface
 
-The PCIe FPGA driver must register a character device for each FPGA instance in
-the system, and the character device name must follow
-`fbiob_%04x.%04x.%04x.%04x% (vendor, device, subsystem_vendor, subsystem_device)`
-format. For example:
+* The PCIe FPGA driver must register a character device for each FPGA instance
+  in the system, and the character device name must match the format:
+  `fbiob_%04x.%04x.%04x.%04x% (vendor, device, subsystem_vendor, subsystem_device)`
+  For example:
 
 `/dev/fbiob_1d9b.0011.10ee.0007`
 
-The character device must support 2 ioctl requests, `FBIOB_IOC_NEW_DEVICE` for
-creating FPGA IO Controllers, and `FBIOB_IOC_DEL_DEVICE` for deleting IO
-controllers. Please refer to below header file for details:
+* The character device must support 2 ioctl requests:
+  * `FBIOB_IOC_NEW_DEVICE` for creating FPGA IO Controllers
+  * `FBIOB_IOC_DEL_DEVICE` for deleting IO controllers.
+* Please refer to below header file for details:
 
 [fbiob-ioctl.h](https://github.com/facebook/fboss/blob/main/fboss/platform/platform_manager/uapi/fbiob-ioctl.h)
 
@@ -280,37 +279,34 @@ to the FBOSS team for approval.
 
 ### 5.3.1 FPGA Information (fpga_info)
 
-The FBOSS PlatformManager creates `fpga_info` device for each FPGA (including
-satellite FPGA). For example, assuming 2 (satellite) DOM FPGAs are connected to
-the IOB FPGA through SLPC, the FBOSS PlatformManager would create 3 `fpga_info`
-instances: `fpga_info_iob.0`, `fpga_info_dom.0` and `fpga_info_dom.1`.
+* An `fpga_info` driver instance shall be created for each FPGA (including
+  satellite FPGAs)
+  * For example given one IOB FPGA and two satellite DOM FPGAs, the following
+    instances will be created:
+    * `fpga_info_iob.0`
+    * `fpga_info_dom.0`
+    * `fpga_info_dom.1`
 
-The `fpga_info` driver must match devices with `fpga_info_${FPGA_NAME}` naming
+* The `fpga_info` driver must match devices with `fpga_info_${FPGA_NAME}` naming
 style. Below is an example:
 
 ```
 static const struct auxiliary_device_id fpga_info_id_table[] = {
-
         { .name = “fbiob_pci.fpga_info_iob", },
-
         { .name = “fbiob_pci.fpga_info_dom", },
-
         {},
 };
 
 MODULE_DEVICE_TABLE(auxiliary, fpga_info_id_table);
 ```
 
-The `fpga_info` driver needs to export at least 2 read-only sysfs files to user
-space:
-
-* `fpga_ver`
-
-    This file reports the FPGA’s major firmware version. It’s an unsigned integer.
-
+* The `fpga_info` driver shall export the following sysfs files to userspace:
+  * `fpga_ver`
+    * FPGA's major firmware version
+    * Type: unsigned integer
 * `fpga_sub_ver`
-
-    This file reports the FPGA’s minor firmware version. It’s an unsigned integer.
+    * FPGA's minor fimrware version
+    * Type: unsigned integer
 
 
 ### 5.3.2 I2C Controller (i2c_master)
@@ -398,16 +394,14 @@ driver implementation details.
 
 ### 5.3.7 Transceiver Controller (xcvr_ctrl)
 
-The FBOSS PlatformManager create `xcvr_ctrl` auxiliary device instances, one for
-each transceiver port. Port number (together with the register offset) would be
-provided when creating the auxiliary device.
-
-The `xcvr_ctrl` driver exports following sysfs entries for each transceiver port
-(port_num is 1-based integer):
-
-* `“xcvr_reset_%d” % port_num`
-* `“xcvr_low_power_%d” % port_num`
-* `“xcvr_present_%d” % port_num`
+* An instance of `xcvr_ctrl` driver will be created for each transceiver port.
+* Port number and register offset are provided when creating the auxiliary
+  device.
+* The `xcvr_ctrl` driver exports following sysfs entries for each transceiver
+  port (port_num is 1-based integer):
+  * `“xcvr_reset_%d” % port_num`
+  * `“xcvr_low_power_%d” % port_num`
+  * `“xcvr_present_%d” % port_num`
 
 
 ### 5.3.8 LED (led)
@@ -445,19 +439,16 @@ FBOSS), thus I2C and SMBus can be interchanged in this document.
 
 ## 6.1 I2C Adapter Driver Development
 
-An I2C Adapter must be registered by calling `devm_i2c_add_adapter()` or
-`i2c_add_numbered_adapter()` APIs declared in `<inux/i2c.h>`, and below are a
-few notes regarding I2C adapter registration:
-
-1. If I2C bus numbers are dynamically assigned, I2C adapters’ names must be
-“global-unique” so user space programs can identify I2C adapters easily. For
-example, an i2c adapter may be named “FPGA 0000:07:01.0 I2C Adapter #1 Channel #2”.
-2. If there is internal multiplexing in the I2C adapter (for example, a physical
-adapter with 4 channels), then each channel/port shall be registered as a
-(virtual) adapter and channel access shall be synchronized in the driver. For
-example, `drivers/i2c/busses/i2c-eg20t.c.`
-3. `devm_i2c_add_adapter()` is introduced in linux-5.13: please use
-`i2c_add_adapter()` API if the kernel modules need to be executed in linux 5.12.
+* An I2C Adapter must be registered by calling `devm_i2c_add_adapter()` or
+  `i2c_add_numbered_adapter()` APIs declared in `<inux/i2c.h>`
+* Notes regarding I2C adapter registration:
+  * If I2C bus numbers are dynamically assigned, I2C adapters’ names must be
+    “global-unique” so user space programs can identify I2C adapters easily.
+    * For example: “FPGA 0000:07:01.0 I2C Adapter #1 Channel #2”
+  * If there is internal multiplexing in the I2C adapter (for example, a
+    physical adapter with 4 channels), then each channel/port shall be
+    registered as a (virtual) adapter and channel access shall be synchronized
+    in the driver. For example, `drivers/i2c/busses/i2c-eg20t.c.`
 
 
 ## 6.2 ABIs for User Space

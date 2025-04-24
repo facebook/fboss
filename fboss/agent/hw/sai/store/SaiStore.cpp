@@ -12,8 +12,6 @@
 
 namespace facebook::fboss {
 
-SaiStore::SaiStore() {}
-
 SaiStore::SaiStore(sai_object_id_t switchId) {
   setSwitchId(switchId);
 }

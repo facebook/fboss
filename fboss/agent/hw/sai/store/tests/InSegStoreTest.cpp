@@ -21,7 +21,6 @@ TEST_F(SaiStoreTest, createInSegEntry) {
       SAI_PACKET_ACTION_FORWARD, 1, nextHopIdAttribute};
   mplsApi.create<facebook::fboss::SaiInSegTraits>(entry, attributes);
 
-  saiStore->setSwitchId(0);
   saiStore->reload();
   auto& store = saiStore->get<facebook::fboss::SaiInSegTraits>();
 
@@ -44,7 +43,6 @@ TEST_F(SaiStoreTest, modifyInSegEntry) {
   mplsApi.create<SaiInSegTraits>(entry, attributes);
   mplsApi.setAttribute(entry, SaiInSegTraits::Attributes::NextHopId{1011});
 
-  saiStore->setSwitchId(0);
   saiStore->reload();
   auto& store = saiStore->get<SaiInSegTraits>();
 

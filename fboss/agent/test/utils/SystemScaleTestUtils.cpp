@@ -365,7 +365,8 @@ void configureMaxRouteEntries(AgentEnsemble* ensemble) {
   }
 
   std::vector<std::vector<PortDescriptor>> allCombinations =
-      utility::generateEcmpGroupScale(portDescriptorIds, kMaxEcmpGropus);
+      utility::generateEcmpGroupScale(
+          portDescriptorIds, kMaxEcmpGropus, portDescriptorIds.size());
   std::vector<flat_set<PortDescriptor>> nhopSets;
   for (const auto& combination : allCombinations) {
     nhopSets.emplace_back(combination.begin(), combination.end());
