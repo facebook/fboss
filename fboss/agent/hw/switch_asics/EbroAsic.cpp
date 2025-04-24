@@ -204,6 +204,7 @@ bool EbroAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::FEC_ERROR_DETECT_ENABLE:
     case HwAsic::Feature::SAI_HOST_MISS_TRAP:
     case HwAsic::Feature::CPU_TX_PACKET_REQUIRES_VLAN_TAG:
+    case HwAsic::Feature::DRAM_DATAPATH_PACKET_ERROR_STATS:
       return false;
     case HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER:
       /*

@@ -210,6 +210,7 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::WARMBOOT: // TODO: add support for warmboot once SDK
                                     // supports it
     case HwAsic::Feature::SAI_SET_TC_WITH_USER_DEFINED_TRAP_CPU_ACTION:
+    case HwAsic::Feature::DRAM_DATAPATH_PACKET_ERROR_STATS:
       return false;
   }
   return false;

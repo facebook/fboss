@@ -107,6 +107,7 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::FEC_ERROR_DETECT_ENABLE:
     case HwAsic::Feature::BUFFER_POOL_HEADROOM_WATERMARK:
     case HwAsic::Feature::SAI_SET_TC_WITH_USER_DEFINED_TRAP_CPU_ACTION:
+    case HwAsic::Feature::DRAM_DATAPATH_PACKET_ERROR_STATS:
       return true;
     // Features not expected to work on SIM
     case HwAsic::Feature::SHARED_INGRESS_EGRESS_BUFFER_POOL:
