@@ -29,10 +29,12 @@ class AgentNetworkAIQosTests : public AgentQosTestBase {
     utility::addNetworkAIQueueConfig(
         &cfg, streamType, cfg::QueueScheduling::STRICT_PRIORITY, hwAsic);
     utility::addNetworkAIQosMaps(cfg, ensemble.getL3Asics());
-    utility::setDefaultCpuTrafficPolicyConfig(
-        cfg, ensemble.getL3Asics(), ensemble.isSai());
-    utility::addCpuQueueConfig(cfg, ensemble.getL3Asics(), ensemble.isSai());
-    utility::setTTLZeroCpuConfig(ensemble.getL3Asics(), cfg);
+    if (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+      utility::setDefaultCpuTrafficPolicyConfig(
+          cfg, ensemble.getL3Asics(), ensemble.isSai());
+      utility::addCpuQueueConfig(cfg, ensemble.getL3Asics(), ensemble.isSai());
+      utility::setTTLZeroCpuConfig(ensemble.getL3Asics(), cfg);
+    }
     return cfg;
   }
 
