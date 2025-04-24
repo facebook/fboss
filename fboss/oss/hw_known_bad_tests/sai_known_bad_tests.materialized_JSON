@@ -8028,6 +8028,9 @@
         },
         {
           "test_name_regex": "HwProdInvariantsRswMhnicTest.verifyInvariants"
+        },
+        {
+          "test_name_regex": "HwArsTest.*"
         }
     ],
     "leaba/1.42.8/1.42.8/gibraltar": [
