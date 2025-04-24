@@ -1307,15 +1307,11 @@ cfg::MatchAction getToQueueActionForSai(
       userDefinedTrap.queueId() = queueId;
       action.userDefinedTrap() = userDefinedTrap;
     }
-    if (hwAsic->isSupported(
-            HwAsic::Feature::SAI_SET_TC_FOR_USER_DEFINED_TRAP)) {
-      // TODO-Chenab: remove this once required sdk support to be able to set
-      // "setTC" action is available with user defined trap.
-      // assume tc i maps to queue i for all i on sai switches
-      cfg::SetTcAction setTc;
-      setTc.tcValue() = queueId;
-      action.setTc() = setTc;
-    }
+    // "setTC" action is available with user defined trap.
+    // assume tc i maps to queue i for all i on sai switches
+    cfg::SetTcAction setTc;
+    setTc.tcValue() = queueId;
+    action.setTc() = setTc;
   } else {
     cfg::QueueMatchAction queueAction;
     queueAction.queueId() = queueId;
@@ -1323,6 +1319,11 @@ cfg::MatchAction getToQueueActionForSai(
   }
   if (toCpuAction) {
     action.toCpuAction() = toCpuAction.value();
+    if (!hwAsic->isSupported(
+            HwAsic::Feature::SAI_SET_TC_WITH_USER_DEFINED_TRAP_CPU_ACTION)) {
+      // with user defined trap and cpu action specified, reset the set TC
+      action.setTc().reset();
+    }
   }
   return action;
 }

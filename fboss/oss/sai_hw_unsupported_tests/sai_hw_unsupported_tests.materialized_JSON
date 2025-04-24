@@ -1610,6 +1610,15 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentPacketSendTest.PortTxEnableTest"
         },
         {
+          "test_name_regex": "HwTeFlowTest.*$"
+        },
+        {
+          "test_name_regex": "HwTeFlowTrafficTest.*$"
+        },
+        {
+          "test_name_regex": "HwUdfAclTeFlowTrafficTest.*$"
+        },
+        {
           "test_name_regex": "HwL3Test.TestRouteHitBit"
         },
         {
@@ -1623,12 +1632,6 @@
         },
         {
           "test_name_regex": "HwMPLSTest.*"
-        },
-        {
-          "test_name_regex": "HwTeFlowTrafficTest.*"
-        },
-        {
-          "test_name_regex": "HwTeFlowTest.*"
         },
         {
           "test_name_regex": "HwMirrorTest/[01].SampleOnePort"
@@ -1668,6 +1671,18 @@
         },
         {
           "test_name_regex": "HwSflowTest.SflowSamplingDisabled"
+        },
+        {
+          "test_name_regex": "HwLoadBalancerTestV6Flowlet.VerifyWBFromFixedToFlowlet"
+        },
+        {
+          "test_name_regex": "HwLoadBalancerTestV6Flowlet.VerifyWBFromFlowletToFixed"
+        },
+        {
+          "test_name_regex": "HwLoadBalancerTestV6Flowlet.VerifyWBFromFlowletToPerPacket"
+        },
+        {
+          "test_name_regex": "HwLoadBalancerTestV6Flowlet.VerifyWBFromPerPacketToFlowlet"
         }
     ],
     "leaba/1.42.8/1.42.8/gibraltar": [

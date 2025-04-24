@@ -1429,7 +1429,8 @@ class AgentCoppQosTest : public AgentHwTest {
   getProductionFeaturesVerified() const override {
     return {
         production_features::ProductionFeature::COPP,
-        production_features::ProductionFeature::L3_QOS};
+        production_features::ProductionFeature::L3_QOS,
+        production_features::ProductionFeature::COPP_SCHEDULER};
   }
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
@@ -1742,6 +1743,13 @@ class AgentCoppQosTest : public AgentHwTest {
 
 class AgentCoppQueueStuckTest : public AgentCoppQosTest {
  protected:
+  std::vector<production_features::ProductionFeature>
+  getProductionFeaturesVerified() const override {
+    return {
+        production_features::ProductionFeature::COPP,
+        production_features::ProductionFeature::COPP_SHAPER};
+  }
+
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
     auto cfg = AgentCoppQosTest::initialConfig(ensemble);

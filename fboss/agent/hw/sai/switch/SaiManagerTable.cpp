@@ -183,10 +183,6 @@ void SaiManagerTable::reset(bool skipSwitchManager) {
   switchManager_->resetQosMaps();
   samplePacketManager_.reset();
 
-  switchManager_->resetArsProfile();
-  arsProfileManager_.reset();
-  arsManager_.reset();
-
   // ACL Table Group is going away, reset ingressACL pointing to it
   if (!skipSwitchManager) {
     switchManager_->resetIngressAcl();
@@ -198,6 +194,10 @@ void SaiManagerTable::reset(bool skipSwitchManager) {
   // before attempting to reset (remove) ACL Table.
   aclTableGroupManager_.reset();
   aclTableManager_.reset();
+
+  switchManager_->resetArsProfile();
+  arsProfileManager_.reset();
+  arsManager_.reset();
 
   // aclTable might depends on user defined hostif trap. For example,
   // to trap packet to a specific CPU queue, some platforms require creating an
