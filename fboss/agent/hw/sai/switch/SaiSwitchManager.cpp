@@ -855,6 +855,13 @@ const std::vector<sai_stat_id_t>& SaiSwitchManager::supportedErrorStats()
         SaiSwitchTraits::egressParityCellError().begin(),
         SaiSwitchTraits::egressParityCellError().end());
   }
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::DRAM_DATAPATH_PACKET_ERROR_STATS)) {
+    stats.insert(
+        stats.end(),
+        SaiSwitchTraits::ddpPacketError().begin(),
+        SaiSwitchTraits::ddpPacketError().end());
+  }
   return stats;
 }
 
@@ -1031,6 +1038,9 @@ void SaiSwitchManager::updateStats(bool updateWatermarks) {
     switchDropStats_.rqpParityErrorDrops() =
         switchDropStats_.rqpParityErrorDrops().value_or(0) +
         errorStats.rqpParityErrorDrops().value_or(0);
+    switchDropStats_.dramDataPathPacketError() =
+        switchDropStats_.dramDataPathPacketError().value_or(0) +
+        errorStats.dramDataPathPacketError().value_or(0);
   }
 
   if (switchDropStats.size() || errorDropStats.size()) {
