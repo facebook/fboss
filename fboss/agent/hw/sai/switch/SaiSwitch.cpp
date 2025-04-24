@@ -13,6 +13,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/LockPolicy.h"
 #include "fboss/agent/Utils.h"
+#include "fboss/agent/VoqUtils.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/HwPortFb303Stats.h"
 #include "fboss/agent/hw/HwResourceStatsPublisher.h"
@@ -403,6 +404,19 @@ void SaiSwitch::processLocalCapsuleSwitchIdsDelta(
       !delta.newState()->getClusterId(mySwitchId)) {
     return;
   }
+
+  auto myDsfNode = delta.newState()->getDsfNodes()->getNodeIf(mySwitchId);
+  CHECK(myDsfNode);
+  /*
+   * To avoid LLFC interrupts on EDSW side, we skip setting local capsule
+   * for FDSWs in the BEEP layer.
+   */
+  auto fabricLevel = myDsfNode->getFabricLevel();
+  if (fabricLevel && fabricLevel.value() == 1 &&
+      myDsfNode->getClusterId() >= k2StageEdgePodClusterId) {
+    return;
+  }
+
   std::vector<SwitchID> newVal;
   CHECK(platform_->getAsic()->getSwitchId());
   if (dsfNodesDelta.getNew() &&
