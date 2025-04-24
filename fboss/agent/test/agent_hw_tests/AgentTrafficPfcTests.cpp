@@ -3,7 +3,6 @@
 #include <folly/MapUtil.h>
 
 #include "fboss/agent/AgentFeatures.h"
-#include "fboss/agent/TxPacket.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
@@ -14,6 +13,8 @@
 #include "fboss/agent/test/utils/PortTestUtils.h"
 #include "fboss/agent/test/utils/QosTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
+
+#include <fmt/ranges.h>
 
 DEFINE_bool(
     skip_stop_pfc_test_traffic,
@@ -175,7 +176,7 @@ void validateIngressPriorityGroupWatermarkCounters(
       std::string pg = ensemble->isSai() ? folly::sformat(".pg{}", pri) : "";
       auto regex = folly::sformat(
           "buffer_watermark_pg_({}).{}{}.p100.60", watermarkKeys, portName, pg);
-      auto counters = facebook::fb303::fbData->getRegexCounters(regex);
+      auto counters = ensemble->getFb303CountersByRegex(portId, regex);
       EXPECT_EVENTUALLY_EQ(counters.size(), numKeys);
       for (const auto& ctr : counters) {
         XLOG(DBG0) << ctr.first << " : " << ctr.second;

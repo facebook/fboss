@@ -16,16 +16,17 @@ DEFINE_string(dump_golden_data, "", "File to dump expected golden data to");
 
 namespace facebook::fboss {
 
-// This test aims to detect unintended ASIC programming changes. It dumps
-// default ASIC programming and compares them against a golden data file. If any
-// diff is detected, we should manually check and ensure the change is benign.
-//
-// To refresh the golden data:
-// 1. ./sai_test-<sdk> --config=<config.json> \
-//     --gtest_filter=*verifyDefaultProgramming \
-//     --dump_golden_data=<platform>-<version>.csv
-// 2. scp <csv> fboss/agent/hw/test/golden/asic
-//
+/**
+ * This test aims to detect unintended ASIC programming changes. It dumps
+ * default ASIC programming and compares them against a golden data file. If any
+ * diff is detected, we should manually check and ensure the change is benign.
+ *
+ * To refresh the golden data:
+ * 1. ./sai_test-<sdk> --config=<config.json> \
+ *     --gtest_filter=*verifyDefaultProgramming \
+ *     --dump_golden_data=<platform>-<version>.csv
+ * 2. scp <csv> fboss/agent/hw/test/golden/asic
+ */
 class HwAsicDefaultProgrammingTest : public HwTest {
  protected:
   std::string querySdkMajorVersion() {

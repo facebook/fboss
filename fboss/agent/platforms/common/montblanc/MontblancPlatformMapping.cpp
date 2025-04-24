@@ -70039,7 +70039,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "numLanes": 4,
           "modulation": 1,
           "fec": 528,
-          "medium": 2,
+          "medium": 3,
           "interfaceType": 21
         }
       }

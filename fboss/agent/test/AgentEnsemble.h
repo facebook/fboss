@@ -301,6 +301,22 @@ class AgentEnsemble : public TestEnsembleIf {
   std::vector<FirmwareInfo> getAllFirmwareInfo(
       SwitchID switchId) const override;
 
+  /**
+   * Retrieves monitoring counters that match a given regex pattern for a
+   * specific port.
+   *
+   * * @details
+   * Works in both mono-switch and multi-switch environments:
+   *
+   * @param portId - The identifier of the port for which to retrieve counters.
+   * @param regex - The regex pattern to match against the monitoring counters.
+   * @return A map of counter names to their respective values that match the
+   * regex.
+   */
+  std::map<std::string, int64_t> getFb303CountersByRegex(
+      const PortID& portId,
+      const std::string& regex);
+
  protected:
   void joinAsyncInitThread() {
     if (asyncInitThread_) {

@@ -72,8 +72,16 @@ cfg::UdfConfig addUdfAclConfig(int udfType) {
   return udfCfg;
 }
 
-cfg::UdfConfig addUdfHashConfig(void) {
+cfg::UdfConfig addUdfHashConfig(cfg::AsicType asicType) {
   std::map<std::string, cfg::UdfGroup> udfMap;
+  if (asicType == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    return addUdfConfig(
+        udfMap,
+        kUdfHashDstQueuePairGroupName,
+        kChenabUdfHashDstQueuePairStartOffsetInBytes,
+        kChenabUdfHashDstQueuePairFieldSizeInBytes,
+        cfg::UdfGroupType::HASH);
+  }
   return addUdfConfig(
       udfMap,
       kUdfHashDstQueuePairGroupName,
@@ -82,14 +90,24 @@ cfg::UdfConfig addUdfHashConfig(void) {
       cfg::UdfGroupType::HASH);
 }
 
-cfg::UdfConfig addUdfHashAclConfig(void) {
+cfg::UdfConfig addUdfHashAclConfig(cfg::AsicType asicType) {
   std::map<std::string, cfg::UdfGroup> udfMap;
-  addUdfConfig(
-      udfMap,
-      kUdfHashDstQueuePairGroupName,
-      kUdfHashDstQueuePairStartOffsetInBytes,
-      kUdfHashDstQueuePairFieldSizeInBytes,
-      cfg::UdfGroupType::HASH);
+  if (asicType == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    addUdfConfig(
+        udfMap,
+        kUdfHashDstQueuePairGroupName,
+        kChenabUdfHashDstQueuePairStartOffsetInBytes,
+        kChenabUdfHashDstQueuePairFieldSizeInBytes,
+        cfg::UdfGroupType::HASH);
+
+  } else {
+    addUdfConfig(
+        udfMap,
+        kUdfHashDstQueuePairGroupName,
+        kUdfHashDstQueuePairStartOffsetInBytes,
+        kUdfHashDstQueuePairFieldSizeInBytes,
+        cfg::UdfGroupType::HASH);
+  }
   return addUdfConfig(
       udfMap,
       kUdfAclRoceOpcodeGroupName,

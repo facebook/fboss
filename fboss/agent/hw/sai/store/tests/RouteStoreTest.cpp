@@ -35,7 +35,6 @@ TEST_F(SaiStoreTest, loadRoute) {
 #endif
   );
 
-  saiStore->setSwitchId(0);
   saiStore->reload();
   auto& store = saiStore->get<SaiRouteTraits>();
 

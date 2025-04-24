@@ -374,15 +374,16 @@ void delAclTable(cfg::SwitchConfig* cfg, const std::string& aclTableName) {
       aclTables.end());
 }
 
-void addAclStat(
+void addTrafficCounter(
     cfg::SwitchConfig* cfg,
-    const std::string& matcher,
     const std::string& counterName,
-    std::vector<cfg::CounterType> counterTypes) {
+    const std::optional<std::vector<cfg::CounterType>>& counterTypes) {
   auto counter = cfg::TrafficCounter();
   *counter.name() = counterName;
-  if (!counterTypes.empty()) {
-    *counter.types() = counterTypes;
+  if (counterTypes.has_value() && counterTypes.value().size() > 0) {
+    *counter.types() = counterTypes.value();
+  } else {
+    *counter.types() = {cfg::CounterType::PACKETS};
   }
   bool counterExists = false;
   for (auto& c : *cfg->trafficCounters()) {
@@ -394,6 +395,14 @@ void addAclStat(
   if (!counterExists) {
     cfg->trafficCounters()->push_back(counter);
   }
+}
+
+void addAclStat(
+    cfg::SwitchConfig* cfg,
+    const std::string& matcher,
+    const std::string& counterName,
+    std::vector<cfg::CounterType> counterTypes) {
+  addTrafficCounter(cfg, counterName, std::move(counterTypes));
 
   auto matchAction = cfg::MatchAction();
   matchAction.counter() = counterName;
@@ -450,32 +459,83 @@ void renameAclStat(
   addAclStat(cfg, matcher, newCounterName);
 }
 
-// Just mirror and counter for now. More can go here if needed
-void addAclMatchActions(
+void addMatcher(
+    cfg::SwitchConfig* config,
+    const std::string& matcherName,
+    const cfg::MatchAction& matchAction) {
+  cfg::MatchToAction action = cfg::MatchToAction();
+  *action.matcher() = matcherName;
+  *action.action() = matchAction;
+  cfg::TrafficPolicyConfig egressTrafficPolicy;
+  if (auto dataPlaneTrafficPolicy = config->dataPlaneTrafficPolicy()) {
+    egressTrafficPolicy = *dataPlaneTrafficPolicy;
+  }
+  auto curNumMatchActions = egressTrafficPolicy.matchToAction()->size();
+  egressTrafficPolicy.matchToAction()->resize(curNumMatchActions + 1);
+  egressTrafficPolicy.matchToAction()[curNumMatchActions] = action;
+  config->dataPlaneTrafficPolicy() = egressTrafficPolicy;
+}
+
+void delMatcher(cfg::SwitchConfig* config, const std::string& matcherName) {
+  if (auto dataPlaneTrafficPolicy = config->dataPlaneTrafficPolicy()) {
+    auto& matchActions = *dataPlaneTrafficPolicy->matchToAction();
+    matchActions.erase(
+        std::remove_if(
+            matchActions.begin(),
+            matchActions.end(),
+            [&](cfg::MatchToAction const& matchAction) {
+              if (*matchAction.matcher() == matcherName) {
+                return true;
+              }
+              return false;
+            }),
+        matchActions.end());
+  }
+}
+
+void addAclMirrorAction(
     cfg::SwitchConfig* cfg,
     const std::string& matcher,
-    const std::optional<std::string>& counterName,
-    const std::optional<std::string>& mirrorName,
+    const std::string& counterName,
+    const std::string& mirrorName,
     bool ingress) {
   cfg::MatchAction matchAction = cfg::MatchAction();
-  if (mirrorName.has_value()) {
-    if (ingress) {
-      matchAction.ingressMirror() = mirrorName.value();
-    } else {
-      matchAction.egressMirror() = mirrorName.value();
-    }
+  if (ingress) {
+    matchAction.ingressMirror() = mirrorName;
+  } else {
+    matchAction.egressMirror() = mirrorName;
   }
-  if (counterName.has_value()) {
-    matchAction.counter() = counterName.value();
-  }
-  auto matchToAction = cfg::MatchToAction();
-  *matchToAction.matcher() = matcher;
-  *matchToAction.action() = matchAction;
 
-  if (!cfg->dataPlaneTrafficPolicy()) {
-    cfg->dataPlaneTrafficPolicy() = cfg::TrafficPolicyConfig();
+  matchAction.counter() = counterName;
+  std::vector<cfg::CounterType> setCounterTypes{
+      cfg::CounterType::PACKETS, cfg::CounterType::BYTES};
+  utility::addTrafficCounter(cfg, counterName, std::move(setCounterTypes));
+  utility::addMatcher(cfg, matcher, matchAction);
+}
+
+void addAclDscpQueueAction(
+    cfg::SwitchConfig* cfg,
+    const std::string& matcher,
+    const std::string& counterName,
+    int32_t dscpValue,
+    int queueId) {
+  cfg::MatchAction matchAction = cfg::MatchAction();
+  if (dscpValue) {
+    cfg::SetDscpMatchAction setDscpMatchAction;
+    *setDscpMatchAction.dscpValue() = dscpValue;
+    matchAction.setDscp() = std::move(setDscpMatchAction);
   }
-  cfg->dataPlaneTrafficPolicy()->matchToAction()->push_back(matchToAction);
+  if (queueId >= 0) {
+    cfg::QueueMatchAction queueAction;
+    queueAction.queueId() = queueId;
+    matchAction.sendToQueue() = queueAction;
+  }
+
+  matchAction.counter() = counterName;
+  std::vector<cfg::CounterType> setCounterTypes{
+      cfg::CounterType::PACKETS, cfg::CounterType::BYTES};
+  utility::addTrafficCounter(cfg, counterName, std::move(setCounterTypes));
+  utility::addMatcher(cfg, matcher, matchAction);
 }
 
 std::vector<cfg::CounterType> getAclCounterTypes(

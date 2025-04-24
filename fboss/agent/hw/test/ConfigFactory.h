@@ -13,6 +13,7 @@
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/state/PortDescriptor.h"
+#include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/types.h"
 

@@ -33,7 +33,7 @@ class BcmUdfTest : public BcmTest {
     cfg::UdfConfig udfConfig;
     if (addConfig) {
       if (udfHash) {
-        udfConfig = utility::addUdfHashConfig();
+        udfConfig = utility::addUdfHashConfig(getAsicType());
       } else {
         udfConfig = utility::addUdfAclConfig();
       }
