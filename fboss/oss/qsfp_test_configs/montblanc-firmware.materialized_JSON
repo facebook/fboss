@@ -107,7 +107,7 @@
             "versions": [
               {
                 "fwType": 1,
-                "version": "3.8"
+                "version": "3.9"
               }
             ]
         },
@@ -115,7 +115,7 @@
             "versions": [
               {
                 "fwType": 1,
-                "version": "3.8"
+                "version": "3.9"
               }
             ]
         },
@@ -335,7 +335,7 @@
             "versions": [
               {
                 "fwType": 1,
-                "version": "103.244"
+                "version": "103.133"
               }
             ]
         },
@@ -343,7 +343,7 @@
             "versions": [
               {
                 "fwType": 1,
-                "version": "103.244"
+                "version": "103.133"
               }
             ]
         }
@@ -364,7 +364,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "3.9"
+              "version": "3.12"
             }
           ]
       },
@@ -372,7 +372,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "3.9"
+              "version": "3.12"
             }
           ]
       },
@@ -592,7 +592,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "103.133"
+              "version": "103.134"
             }
           ]
       },
@@ -600,7 +600,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "103.133"
+              "version": "103.134"
             }
           ]
       }
