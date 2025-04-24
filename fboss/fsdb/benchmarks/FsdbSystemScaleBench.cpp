@@ -2,7 +2,7 @@
 
 #include <folly/Benchmark.h>
 
-#include "fboss/fsdb/common/Flags.h"
+#include "fboss/fsdb/benchmarks/FsdbBenchmarkTestHelper.h"
 #include "fboss/fsdb/tests/utils/FsdbTestServer.h"
 #include "fboss/lib/CommonFileUtils.h"
 
@@ -11,6 +11,10 @@ DEFINE_string(
     "",
     "Write marker file for FSDB");
 
+DEFINE_string(
+    service_file_name_for_scale,
+    "",
+    "Service file name for SAI Agent Scale Benchmarks");
 using facebook::fboss::fsdb::test::FsdbTestServer;
 
 namespace {
@@ -27,7 +31,15 @@ BENCHMARK(FsdbSystemScaleStats) {
   folly::BenchmarkSuspender suspender;
   auto filePath =
       folly::to<std::string>(FLAGS_write_agent_config_marker_for_fsdb);
+  if (FLAGS_service_file_name_for_scale.empty()) {
+    return;
+  }
+  auto serviceFileName =
+      folly::to<std::string>(FLAGS_service_file_name_for_scale);
   auto port = FLAGS_fsdbPort;
+  FsdbBenchmarkTestHelper helper;
+  helper.setup(0, false, serviceFileName);
+
   std::unique_ptr<fsdb::test::FsdbTestServer> fsdbTestServer_;
   while (true) {
     if (checkFileExists(filePath)) {
@@ -55,6 +67,6 @@ BENCHMARK(FsdbSystemScaleStats) {
     fsdbTestServer_.reset();
     removeFile(filePath, true);
   }
-  helper.TearDown(false);
+  helper.TearDown(false /*stopFsdbTestServer*/);
 }
 } // namespace facebook::fboss::fsdb::test

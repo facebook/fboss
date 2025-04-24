@@ -40,6 +40,8 @@ cpp_benchmark(
     name = "fsdb_bench_test",
     srcs = [
         "FsdbBenchmarksMain.cpp",
+        "FsdbSystemScaleBench.cpp",
+        "FsdbSystemScaleChurn.cpp",
         "SysPortAndRIFBench.cpp",
         "VoqCounterScaleBench.cpp",
     ],
@@ -47,6 +49,8 @@ cpp_benchmark(
         "fbsource//third-party/googletest:gtest",
         ":fsdb_benchmark_helper",
         ":state_generator",
+        "//fboss/fsdb/tests/utils:fsdb_test_server",
+        "//fboss/lib:common_file_utils",
         "//folly:benchmark",
         "//folly/init:init",
         "//folly/json:dynamic",
