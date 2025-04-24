@@ -369,6 +369,8 @@ class HwSwitchFb303Stats {
   TLTimeseries rqpNonFabricCellMissingDrops_;
   TLTimeseries rqpParityErrorDrops_;
   TLTimeseries tc0RateLimitDrops_;
+  // DDP errors
+  TLTimeseries dramDataPathPacketError_;
   // fabric connectivity errors
   TLCounter fabricConnectivityMissingCount_;
   TLCounter fabricConnectivityMismatchCount_;
