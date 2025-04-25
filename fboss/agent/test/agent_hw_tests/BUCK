@@ -216,6 +216,26 @@ cpp_library(
     ],
 )
 
+cpp_library(
+    name = "agent_hw_provision_test_src",
+    srcs = [
+        "AgentHwPtpTcProvisionTests.cpp",
+    ],
+    link_whole = True,
+    exported_deps = [
+        "//fboss/agent/packet:packet",
+        "//fboss/agent/packet:packet_factory",
+        "//fboss/agent/test:agent_hw_test",
+        "//fboss/agent/test:ecmp_helper",
+        "//fboss/agent/test/utils:asic_test_utils",
+        "//fboss/agent/test/utils:config_utils",
+        "//fboss/agent/test/utils:packet_snooper",
+        "//fboss/agent/test/utils:pkt_test_utils",
+        "//fboss/agent/test/utils:trap_packet_utils",
+        "//folly:network_address",
+    ],
+)
+
 cpp_binary(
     name = "multi_switch_agent_hw_test",
     srcs = [
@@ -354,4 +374,36 @@ _sai_agent_multi_node_test_prefix = "sai_agent_multi_node"
         ] + (["//fboss/agent/platforms/sai:bcm-required-symbols"] if sai_impl.name == "fake" or sai_impl.name == "leaba" else []),
     )
     for sai_impl in SAI_BRCM_DNX_IMPLS
+]
+
+_sai_agent_provision_test_prefix = "sai_agent_provision_test"
+
+[
+    cpp_binary(
+        name = to_impl_bin_name(sai_impl, _sai_agent_provision_test_prefix),
+        srcs = [
+            "SaiAgentHwTest.cpp",
+        ],
+        link_group_map = get_link_group_map(
+            to_impl_bin_name(sai_impl, _sai_agent_provision_test_prefix),
+            sai_impl,
+        ),
+        linker_flags = [
+            "--export-dynamic",
+            "--unresolved-symbols=ignore-all",
+        ] if sai_impl.name == "nvda" else [],
+        versions = {
+            sai_impl.sdk_name: sai_impl.version,
+        },
+        deps = [
+            "fbsource//third-party/googletest:gtest",
+            ":agent_hw_provision_test_src",
+            "//fboss/agent/test:agent_hw_test",
+            "//fboss/agent:main-sai-{}".format(to_impl_lib_name(sai_impl)),
+            "//fboss/agent/platforms/sai:{}".format(sai_switch_dependent_name("sai_platform", sai_impl, True)),
+            "//fboss/agent/test:mono_agent_ensemble",
+            "//fboss/agent/hw/sai/hw_test:{}".format(sai_switch_dependent_name("agent_hw_test_thrift_handler", sai_impl, True)),
+        ] + (["//fboss/agent/platforms/sai:bcm-required-symbols"] if sai_impl.name == "fake" or sai_impl.name == "leaba" else []),
+    )
+    for sai_impl in SAI_LEABA_IMPLS
 ]
