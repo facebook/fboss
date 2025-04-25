@@ -777,10 +777,12 @@ class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcTest {
           std::make_tuple(static_cast<int>(port), kLosslessPriority));
       ASSERT_FALSE(iter == kRegValToForcePfcTxForPriorityOnPortDnx.end());
       std::string out;
+      auto switchID = scopeResolver().scope(port).switchId();
       getAgentEnsemble()->runDiagCommand(
           fmt::format(
               "modreg CFC_FRC_NIF_ETH_PFC FRC_NIF_ETH_PFC={}\n", iter->second),
-          out);
+          out,
+          switchID);
     } else {
       // Disable Tx on the outbound port so that queues will build up.
       utility::setCreditWatchdogAndPortTx(
@@ -876,13 +878,14 @@ class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcTest {
     auto asic = utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
     if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
       std::string out;
+      auto switchID = scopeResolver().scope(portId).switchId();
       // TODO: When PFC WD is continuously being triggered with this register
       // config, getAttr for queue PFC WD enabled returns wrong value and is
       // tracked in CS00012388717. Until that is fixed, work around the issue.
       // For that, stop PFC WD being triggered continuously and wait to ensure
       // that the PFC DL generation settles.
       getAgentEnsemble()->runDiagCommand(
-          "modreg CFC_FRC_NIF_ETH_PFC FRC_NIF_ETH_PFC=0\n", out);
+          "modreg CFC_FRC_NIF_ETH_PFC FRC_NIF_ETH_PFC=0\n", out, switchID);
     }
     waitForPfcDeadlocksToSettle(portId);
   }
