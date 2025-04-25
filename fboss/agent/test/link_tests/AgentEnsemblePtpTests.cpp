@@ -65,6 +65,7 @@ class AgentEnsemblePtpTests : public AgentEnsembleLinkTest {
       PTPMessageType ptpType,
       const PortDescriptor& portDescriptor) {
     utility::SwSwitchPacketSnooper snooper(getSw(), "snooper-1");
+    snooper.ignoreUnclaimedRxPkts();
     XLOG(DBG2) << "Validating PTP packet fields on Port "
                << portDescriptor.phyPortID();
     auto matcher =

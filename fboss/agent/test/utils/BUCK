@@ -396,14 +396,15 @@ cpp_library(
     srcs = ["PacketSnooper.cpp"],
     headers = ["PacketSnooper.h"],
     exported_deps = [
-        "fbcode//fboss/agent:core",
-        "fbcode//fboss/agent:fboss-types",
-        "fbcode//fboss/agent:packet",
-        "fbcode//fboss/agent:packet_observer",
-        "fbcode//fboss/agent/packet:packet_factory",
-        "fbcode//folly:optional",
-        "fbcode//folly/io:iobuf",
         "fbsource//third-party/googletest:gtest",
+        ":pkt_test_utils",
+        "//fboss/agent:core",
+        "//fboss/agent:fboss-types",
+        "//fboss/agent:packet",
+        "//fboss/agent:packet_observer",
+        "//fboss/agent/packet:packet_factory",
+        "//folly:optional",
+        "//folly/io:iobuf",
     ],
 )
 
