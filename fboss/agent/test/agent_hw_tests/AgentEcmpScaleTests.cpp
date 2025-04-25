@@ -35,59 +35,21 @@ class AgentEcmpTest : public AgentHwTest {
     FLAGS_ecmp_resource_percentage = 100;
     FLAGS_ecmp_width = 512;
   }
-};
 
-TEST_F(AgentEcmpTest, CreateMaxEcmpGroups) {
-  const auto kMaxEcmpGroup =
-      utility::getMaxEcmpGroups(getAgentEnsemble()->getL3Asics());
-  auto setup = [&]() {
-    utility::EcmpSetupTargetedPorts6 ecmpHelper(getProgrammedState());
-    std::vector<PortID> portIds = masterLogicalInterfacePortIds();
+  template <typename GenerateScaleFunc>
+  void setupEcmpTest(
+      GenerateScaleFunc generateScale,
+      size_t maxElements,
+      const std::vector<PortID>& portIds) {
     std::vector<PortDescriptor> portDescriptorIds;
-    std::vector<RoutePrefixV6> prefixes;
-    for (auto& portId : portIds) {
-      portDescriptorIds.push_back(PortDescriptor(portId));
-    }
-    std::vector<std::vector<PortDescriptor>> allCombinations =
-        utility::generateEcmpGroupScale(
-            portDescriptorIds, kMaxEcmpGroup, portDescriptorIds.size());
-    std::vector<flat_set<PortDescriptor>> nhopSets;
-    for (const auto& combination : allCombinations) {
-      nhopSets.emplace_back(combination.begin(), combination.end());
-    }
-    applyNewState([&portDescriptorIds,
-                   &ecmpHelper](const std::shared_ptr<SwitchState>& in) {
-      return ecmpHelper.resolveNextHops(
-          in,
-          flat_set<PortDescriptor>(
-              std::make_move_iterator(portDescriptorIds.begin()),
-              std::make_move_iterator(portDescriptorIds.end())));
-    });
-
-    std::generate_n(
-        std::back_inserter(prefixes), kMaxEcmpGroup, [i = 0]() mutable {
-          return RoutePrefixV6{
-              folly::IPAddressV6(folly::to<std::string>(2401, "::", i++)), 128};
-        });
-    auto wrapper = getSw()->getRouteUpdater();
-    ecmpHelper.programRoutes(&wrapper, nhopSets, prefixes);
-  };
-  verifyAcrossWarmBoots(setup, [] {});
-}
-
-TEST_F(AgentEcmpTest, CreateMaxEcmpMembers) {
-  const auto kMaxEcmpMembers =
-      utility::getMaxEcmpMembers(getAgentEnsemble()->getL3Asics());
-  auto setup = [&]() {
-    utility::EcmpSetupTargetedPorts6 ecmpHelper(getProgrammedState());
-    std::vector<PortID> portIds = masterLogicalInterfacePortIds();
-    std::vector<PortDescriptor> portDescriptorIds;
-    std::vector<RoutePrefixV6> prefixes;
+    portDescriptorIds.reserve(portIds.size());
     for (const auto& portId : portIds) {
       portDescriptorIds.push_back(PortDescriptor(portId));
     }
+    utility::EcmpSetupTargetedPorts6 ecmpHelper(getProgrammedState());
+    std::vector<RoutePrefixV6> prefixes;
     std::vector<std::vector<PortDescriptor>> allCombinations =
-        utility::generateEcmpMemberScale(portDescriptorIds, kMaxEcmpMembers);
+        generateScale(portDescriptorIds, maxElements);
     std::vector<flat_set<PortDescriptor>> nhopSets;
     for (const auto& combination : allCombinations) {
       nhopSets.emplace_back(combination.begin(), combination.end());
@@ -109,8 +71,29 @@ TEST_F(AgentEcmpTest, CreateMaxEcmpMembers) {
         });
     auto wrapper = getSw()->getRouteUpdater();
     ecmpHelper.programRoutes(&wrapper, nhopSets, prefixes);
-  };
-  verifyAcrossWarmBoots(setup, [] {});
+  }
+};
+
+TEST_F(AgentEcmpTest, CreateMaxEcmpGroups) {
+  const auto kMaxEcmpGroup =
+      utility::getMaxEcmpGroups(getAgentEnsemble()->getL3Asics());
+  setupEcmpTest(
+      [&](const std::vector<PortDescriptor>& ports, size_t maxGroups) {
+        return utility::generateEcmpGroupScale(ports, maxGroups, ports.size());
+      },
+      kMaxEcmpGroup,
+      masterLogicalInterfacePortIds());
+  verifyAcrossWarmBoots([] {}, [] {});
+}
+
+TEST_F(AgentEcmpTest, CreateMaxEcmpMembers) {
+  const auto kMaxEcmpMembers =
+      utility::getMaxEcmpMembers(getAgentEnsemble()->getL3Asics());
+  setupEcmpTest(
+      utility::generateEcmpMemberScale,
+      kMaxEcmpMembers,
+      masterLogicalInterfacePortIds());
+  verifyAcrossWarmBoots([] {}, [] {});
 }
 
 TEST_F(AgentEcmpTest, CreateMaxUcmpMembers) {
