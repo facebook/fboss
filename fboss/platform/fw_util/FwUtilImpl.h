@@ -38,11 +38,8 @@ class FwUtilImpl {
   void printVersion(const std::string&);
 
  private:
-  std::string runVersionCmd(const std::string&);
   void doPreUpgrade(const std::string&);
 
-  void printAllVersions();
-  std::string getSingleVersion(const std::string&);
   void doPreUpgradeOperation(
       const PreFirmwareOperationConfig&,
       const std::string&);
@@ -84,8 +81,6 @@ class FwUtilImpl {
   void doWriteToPortOperation(const WriteToPortConfig&, const std::string&);
   // TODO: Remove those prototypes once we move darwin to PM and
   //  have the latest drivers running
-  std::string runVersionCmdDarwin(const std::string&);
-  void printDarwinVersion(const std::string&);
   void performUpgradeOperation(const UpgradeConfig&, const std::string&);
   void doUpgradeOperation(const UpgradeConfig&, const std::string&);
 
