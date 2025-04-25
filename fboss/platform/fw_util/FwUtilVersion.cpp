@@ -37,25 +37,6 @@ void FwUtilImpl::printDarwinVersion(const std::string& fpd) {
   }
 }
 
-void FwUtilImpl::printVersion(const std::string& fpd) {
-  // TODO: Remove this logic once we move darwin to PM and we complete the
-  // config Darwin only uses fw_util to read version. Upgrade logic is part of
-  // KPP packages
-  auto lowerCasePlatformName = toLower(platformName_);
-
-  if (lowerCasePlatformName == "darwin" ||
-      lowerCasePlatformName == "darwin48v") {
-    printDarwinVersion(fpd);
-  } else {
-    if (fpd == "all") {
-      printAllVersions();
-    } else {
-      std::string version = getSingleVersion(fpd);
-      std::cout << fpd << " : " << version;
-    }
-  }
-}
-
 std::string FwUtilImpl::getSingleVersion(const std::string& fpd) {
   std::string version;
   // printing single version
@@ -110,40 +91,4 @@ void FwUtilImpl::printAllVersions() {
   }
 }
 
-void FwUtilImpl::doVersionAudit() {
-  bool mismatch = false;
-  for (const auto& [fpdName, fwConfig] : *fwUtilConfig_.newFwConfigs()) {
-    std::string desiredVersion = *fwConfig.desiredVersion();
-    if (desiredVersion.empty()) {
-      XLOGF(
-          INFO,
-          "{} does not have a desired version specified in the config.",
-          fpdName);
-      continue;
-    }
-    std::string actualVersion;
-    try {
-      actualVersion = getSingleVersion(fpdName);
-    } catch (const std::exception& e) {
-      XLOG(ERR) << "Failed to get version for " << fpdName << ": " << e.what();
-      continue;
-    }
-
-    if (actualVersion != desiredVersion) {
-      XLOGF(
-          INFO,
-          "{} is at version {} which does not match config's desired version {}.",
-          fpdName,
-          actualVersion,
-          desiredVersion);
-      mismatch = true;
-    }
-  }
-  if (mismatch) {
-    XLOG(INFO, "Firmware version mismatch found.");
-    exit(1);
-  } else {
-    XLOG(INFO, "All firmware versions match the config.");
-  }
-}
 } // namespace facebook::fboss::platform::fw_util
