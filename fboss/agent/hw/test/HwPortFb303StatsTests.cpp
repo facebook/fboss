@@ -161,6 +161,8 @@ HwPortStats getInitedStats() {
        {5, 6},
        {6, 7},
        {7, 8}}, // pgInCongestionDiscards_
+      30, // pfcDeadlockDetection_
+      31, // pfcDeadlockRecovery_
   };
 }
 
@@ -255,6 +257,8 @@ HwPortStats getEmptyStats() {
   for (int i = 0; i <= cfg::switch_config_constants::PORT_PG_VALUE_MAX(); ++i) {
     empty.pgInCongestionDiscards_()[i] = 0;
   }
+  empty.pfcDeadlockDetection_() = 0;
+  empty.pfcDeadlockRecovery_() = 0;
   return empty;
 }
 
