@@ -66,9 +66,9 @@ def read_vendor_data(input_file_path: str) -> Dict[str, str]:
     return vendor_data
 
 
-def generate_platform_mappings() -> None:
-    input_dir, output_dir, platform_name, is_multi_npu = get_command_line_args()
-
+def generate_platform_mappings(
+    input_dir: str, output_dir: str, platform_name: str, is_multi_npu: bool
+) -> None:
     print(f"Finding vendor data in {input_dir}...", file=sys.stderr)
     vendor_data_map = {platform_name: read_vendor_data(os.path.expanduser(input_dir))}
 
@@ -93,5 +93,9 @@ def generate_platform_mappings() -> None:
         f.write(platform_mapping_serialized)
 
 
+def generate_mappings_without_args() -> None:
+    generate_platform_mappings(*get_command_line_args())
+
+
 if __name__ == "__main__":
-    generate_platform_mappings()
+    generate_mappings_without_args()
