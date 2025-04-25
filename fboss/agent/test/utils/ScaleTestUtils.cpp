@@ -134,6 +134,16 @@ std::vector<std::vector<PortDescriptor>> generateEcmpMemberScale(
   return allCombinations;
 }
 
+std::vector<std::vector<PortDescriptor>> generateEcmpGroupAndMemberScale(
+    const std::vector<PortDescriptor>& inputs,
+    const int maxEcmpGroups,
+    const int maxEcmpMembers) {
+  int membersPerGroup =
+      std::min((int)(maxEcmpMembers / maxEcmpGroups), (int)inputs.size());
+  return generateEcmpGroupScale(
+      inputs, maxEcmpGroups, membersPerGroup, membersPerGroup);
+}
+
 // Create weightsOutputs where sum of weights {2,3,2,3,2,3} = maxEcmpMembers
 // and return the corresponding ecmp members which are subset of inputs
 std::vector<std::vector<PortDescriptor>> getUcmpMembersAndWeight(

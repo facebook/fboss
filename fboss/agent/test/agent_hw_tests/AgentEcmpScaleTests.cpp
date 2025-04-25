@@ -96,6 +96,27 @@ TEST_F(AgentEcmpTest, CreateMaxEcmpMembers) {
   verifyAcrossWarmBoots([] {}, [] {});
 }
 
+TEST_F(AgentEcmpTest, CreateMaxEcmpGroupsAndMembers) {
+  // Define local variables
+  const auto kMaxEcmpGroups =
+      utility::getMaxEcmpGroups(getAgentEnsemble()->getL3Asics());
+  const auto kMaxEcmpMembers =
+      utility::getMaxEcmpMembers(getAgentEnsemble()->getL3Asics());
+  // Create a lambda function that captures these local variables
+  auto ecmpGroupGenerator = [&](const std::vector<PortDescriptor>& ports,
+                                size_t maxGroups) {
+    // Use captured variables
+    return utility::generateEcmpGroupAndMemberScale(
+        ports, maxGroups, kMaxEcmpMembers);
+  };
+  // Pass the lambda function to setupEcmpTest
+  setupEcmpTest(
+      ecmpGroupGenerator, kMaxEcmpGroups, masterLogicalInterfacePortIds());
+  // The lambda function will be executed in the context of setupEcmpTest,
+  // but still has access to the captured variables from this scope.
+  verifyAcrossWarmBoots([] {}, [] {});
+}
+
 TEST_F(AgentEcmpTest, CreateMaxUcmpMembers) {
   const auto kMaxUcmpMembers =
       utility::getMaxUcmpMembers(getAgentEnsemble()->getL3Asics());
