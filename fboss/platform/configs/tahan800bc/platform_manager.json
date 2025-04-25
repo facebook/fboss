@@ -1624,7 +1624,7 @@
         {
           "busName": "SMB_IOB_I2C_MASTER_22",
           "address": "0x10",
-          "kernelDeviceName": "adm1272",
+          "kernelDeviceName": "bp4f_adm1272",
           "pmUnitScopedName": "SMB_U279_ADM1272_1"
         },
         {
