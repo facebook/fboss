@@ -729,9 +729,17 @@ void ServiceHandler::registerSubscription(
       [&key, &info, &numSubsForClient, forceRegisterNewSubscription](
           auto& activeSubscriptions) {
         if (forceRegisterNewSubscription) {
-          activeSubscriptions[std::move(key)] = info;
+          // also track new subscription for same ClientKey
+          auto it = activeSubscriptions.find(key);
+          if (it == activeSubscriptions.end()) {
+            activeSubscriptions.insert(
+                {std::move(key), std::vector<OperSubscriberInfo>({info})});
+          } else {
+            it->second.emplace_back(info);
+          }
         } else {
-          auto resp = activeSubscriptions.insert({std::move(key), info});
+          auto resp = activeSubscriptions.insert(
+              {std::move(key), std::vector<OperSubscriberInfo>({info})});
           if (!resp.second) {
             throw Utils::createFsdbException(
                 FsdbErrorCode::ID_ALREADY_EXISTS,
@@ -741,8 +749,10 @@ void ServiceHandler::registerSubscription(
         }
         // check for existing subs by same SubscriberId
         for (const auto& it : activeSubscriptions) {
-          if (std::get<0>(key) == *it.second.subscriberId()) {
-            numSubsForClient++;
+          for (const auto& subscription : it.second) {
+            if (std::get<0>(key) == subscription.subscriberId()) {
+              numSubsForClient++;
+            }
           }
         }
       });
@@ -764,14 +774,31 @@ void ServiceHandler::unregisterSubscription(const OperSubscriberInfo& info) {
       *info.isStats());
   int numSubsForClient{0};
   activeSubscriptions_.withWLock(
-      [&key, &numSubsForClient](auto& activeSubscriptions) {
+      [&key, &info, &numSubsForClient](auto& activeSubscriptions) {
         // check for existing subs by same SubscriberId
         for (const auto& it : activeSubscriptions) {
-          if (std::get<0>(key) == *it.second.subscriberId()) {
-            numSubsForClient++;
+          for (const auto& subscription : it.second) {
+            if (std::get<0>(key) == subscription.subscriberId()) {
+              numSubsForClient++;
+            }
           }
         }
-        activeSubscriptions.erase(std::move(key));
+        auto it = activeSubscriptions.find(key);
+        if (it != activeSubscriptions.end()) {
+          // remove active subscription with matching uid
+          auto& subs = it->second;
+          subs.erase(
+              std::remove_if(
+                  subs.begin(),
+                  subs.end(),
+                  [&info](const auto& sub) {
+                    return (*info.subscriptionUid() == *sub.subscriptionUid());
+                  }),
+              subs.end());
+          if (subs.size() == 0) {
+            activeSubscriptions.erase(std::move(key));
+          }
+        }
       });
   updateSubscriptionCounters(info, false, (numSubsForClient == 1));
 }
@@ -1400,8 +1427,9 @@ ServiceHandler::co_getAllOperSubscriberInfos() {
   auto subscriptions = std::make_unique<SubscriberIdToOperSubscriberInfos>();
   activeSubscriptions_.withRLock([&](const auto& activeSubscriptions) {
     for (const auto& it : activeSubscriptions) {
-      auto& subscription = it.second;
-      (*subscriptions)[*subscription.subscriberId()].push_back(subscription);
+      for (const auto& subscription : it.second) {
+        (*subscriptions)[*subscription.subscriberId()].push_back(subscription);
+      }
     }
   });
   mergeOperSubscriberInfo(*subscriptions, operStorage_.getSubscriptions());
@@ -1416,12 +1444,13 @@ ServiceHandler::co_getOperSubscriberInfos(
   auto subscriptions = std::make_unique<SubscriberIdToOperSubscriberInfos>();
   activeSubscriptions_.withRLock([&](const auto& activeSubscriptions) {
     for (const auto& it : activeSubscriptions) {
-      auto& subscription = it.second;
-      if (subscriberIds->find(*subscription.subscriberId()) ==
-          subscriberIds->end()) {
-        continue;
+      for (const auto& subscription : it.second) {
+        if (subscriberIds->find(*subscription.subscriberId()) !=
+            subscriberIds->end()) {
+          (*subscriptions)[*subscription.subscriberId()].push_back(
+              subscription);
+        }
       }
-      (*subscriptions)[*subscription.subscriberId()].push_back(subscription);
     }
   });
   mergeOperSubscriberInfo(*subscriptions, operStorage_.getSubscriptions());

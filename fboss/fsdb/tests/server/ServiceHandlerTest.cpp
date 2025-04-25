@@ -64,12 +64,14 @@ TEST_F(ServiceHandlerTest, testSubscriberRemovedOnFailure) {
       folly::EventBase evb;
       auto isSubscribed = [this, &subId]() {
         auto subscribers = fsdb_->serviceHandler().getActiveSubscriptions();
-        return std::find_if(
-                   subscribers.begin(),
-                   subscribers.end(),
-                   [&](const auto& subscriber) {
-                     return subscriber.second.subscriberId() == subId;
-                   }) != subscribers.end();
+        for (const auto& it : subscribers) {
+          for (const auto& subscription : it.second) {
+            if (subscription.subscriberId() == subId) {
+              return true;
+            }
+          }
+        }
+        return false;
       };
       try {
         auto client = createClient(&evb);
@@ -141,15 +143,20 @@ TEST_F(ServiceHandlerTest, verifyActiveSubscriptions) {
   auto sub1 =
       client->sync_subscribeState(createPatchRequest("test-sub-1", true));
 
-  auto countActiveSubs = [](auto& subInfos) { return subInfos.size(); };
+  auto countActiveSubs = [](auto& subInfos) {
+    int count{0};
+    for (const auto& [_, info] : subInfos) {
+      count += info.size();
+    }
+    return count;
+  };
 
   // forceSubscribe, and verify activeSubscriptions
   {
     auto client2 = createClient(&evb);
     auto sub2 =
         client2->sync_subscribeState(createPatchRequest("test-sub-1", true));
-    // TODO: after fixing bug in activeSubscription cleanup, expect 2 activeSubs
-    int expectedActiveSubscriptions = 1;
+    int expectedActiveSubscriptions = 2;
     WITH_RETRIES({
       client2->sync_getOperSubscriberInfos(subInfos, idsToQuery);
       EXPECT_EVENTUALLY_EQ(
@@ -158,8 +165,7 @@ TEST_F(ServiceHandlerTest, verifyActiveSubscriptions) {
   }
 
   // after sub2 is gone, should still see sub1
-  // TODO: due to bug in activeSubscription cleanup, we stop seeing sub1
-  int expectedActiveSubscriptions = 0;
+  int expectedActiveSubscriptions = 1;
   WITH_RETRIES({
     client->sync_getOperSubscriberInfos(subInfos, idsToQuery);
     EXPECT_EVENTUALLY_EQ(
