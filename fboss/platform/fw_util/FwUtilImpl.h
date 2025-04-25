@@ -18,6 +18,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include "fboss/platform/fw_util/FwUtilVersionHandler.h"
 #include "fboss/platform/fw_util/if/gen-cpp2/fw_util_config_types.h"
 #include "fboss/platform/helpers/PlatformUtils.h"
 
@@ -101,6 +102,7 @@ class FwUtilImpl {
   // have to take the priority into consideration
 
   std::vector<std::pair<std::string, int>> fwDeviceNamesByPrio_;
+  std::unique_ptr<FwUtilVersionHandler> fwUtilVersionHandler_;
 };
 
 } // namespace facebook::fboss::platform::fw_util

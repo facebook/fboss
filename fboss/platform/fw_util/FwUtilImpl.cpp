@@ -43,6 +43,9 @@ void FwUtilImpl::init() {
       [](const auto& rhsFwDevice, const auto& lhsFwDevice) {
         return rhsFwDevice.second < lhsFwDevice.second;
       });
+
+  fwUtilVersionHandler_ = std::make_unique<FwUtilVersionHandler>(
+      fwDeviceNamesByPrio_, fwUtilConfig_);
 }
 
 std::string FwUtilImpl::printFpdList() {
