@@ -85,4 +85,12 @@ std::string FwUtilVersionHandler::getSingleVersion(const std::string& fpd) {
   }
   return version;
 }
+
+void FwUtilVersionHandler::printAllVersions() {
+  for (const auto& orderedfpd : fwDeviceNamesByPrio_) {
+    std::string version = getSingleVersion(orderedfpd.first);
+    std::cout << orderedfpd.first << " : " << version << std::endl;
+  }
+}
+
 } // namespace facebook::fboss::platform::fw_util
