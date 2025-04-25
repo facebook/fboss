@@ -64,7 +64,14 @@ class AgentEnsemblePtpTests : public AgentEnsembleLinkTest {
   bool sendAndVerifyPtpPkts(
       PTPMessageType ptpType,
       const PortDescriptor& portDescriptor) {
-    utility::SwSwitchPacketSnooper snooper(getSw(), "snooper-1");
+    utility::SwSwitchPacketSnooper snooper(
+        getSw(),
+        "snooper-1",
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        facebook::fboss::utility::packetSnooperReceivePacketType::
+            PACKET_TYPE_PTP);
     snooper.ignoreUnclaimedRxPkts();
     XLOG(DBG2) << "Validating PTP packet fields on Port "
                << portDescriptor.phyPortID();
