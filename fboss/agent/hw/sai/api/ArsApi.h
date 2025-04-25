@@ -46,7 +46,7 @@ struct SaiArsTraits {
   using CreateAttributes = std::tuple<
       Attributes::Mode,
       std::optional<Attributes::IdleTime>,
-      Attributes::MaxFlows>;
+      std::optional<Attributes::MaxFlows>>;
 };
 
 SAI_ATTRIBUTE_NAME(Ars, Mode)
