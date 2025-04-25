@@ -106,7 +106,16 @@ struct SetEncodedPathVisitorOperator : public BasePathVisitorOperator {
 
  protected:
   void visit(facebook::fboss::thrift_cow::Serializable& node) override {
-    node.fromEncoded(protocol_, val_);
+    try {
+      node.fromEncoded(protocol_, val_);
+    } catch (const thrift_cow::NodeException& e) {
+      if (e.reason() !=
+          thrift_cow::NodeException::Reason::SET_IMMUTABLE_PRIMITIVE_NODE) {
+        throw;
+      }
+    } catch (const std::exception&) {
+      throw;
+    }
   }
 
  private:
