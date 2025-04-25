@@ -126,9 +126,12 @@ void FsdbBenchmarkTestHelper::TearDown(bool stopFsdbTestServer) {
     }
   }
   if (serviceFileName_) {
-    std::vector<std::string> stopWedgeAgent = {
-        "/bin/systemctl", "stop", *serviceFileName_ + ".service"};
-    folly::Subprocess(stopWedgeAgent).waitChecked();
+    std::vector<std::string> disableWedgeAgent = {
+        "/bin/systemctl", "disable", "/tmp/" + *serviceFileName_ + ".service"};
+    std::vector<std::string> kDaemonReload = {
+        "/bin/systemctl", "daemon-reload"};
+    folly::Subprocess(disableWedgeAgent).waitChecked();
+    folly::Subprocess(kDaemonReload).waitChecked();
   }
 }
 
