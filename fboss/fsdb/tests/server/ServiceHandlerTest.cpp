@@ -132,4 +132,39 @@ TEST_F(ServiceHandlerTest, subscribeDup) {
       client->sync_subscribeState(createPatchRequest("test-sub-2", true)));
 }
 
+TEST_F(ServiceHandlerTest, verifyActiveSubscriptions) {
+  SubscriberIdToOperSubscriberInfos subInfos;
+  SubscriberIds idsToQuery = {"test-sub-1"};
+  folly::EventBase evb;
+
+  auto client = createClient(&evb);
+  auto sub1 =
+      client->sync_subscribeState(createPatchRequest("test-sub-1", true));
+
+  auto countActiveSubs = [](auto& subInfos) { return subInfos.size(); };
+
+  // forceSubscribe, and verify activeSubscriptions
+  {
+    auto client2 = createClient(&evb);
+    auto sub2 =
+        client2->sync_subscribeState(createPatchRequest("test-sub-1", true));
+    // TODO: after fixing bug in activeSubscription cleanup, expect 2 activeSubs
+    int expectedActiveSubscriptions = 1;
+    WITH_RETRIES({
+      client2->sync_getOperSubscriberInfos(subInfos, idsToQuery);
+      EXPECT_EVENTUALLY_EQ(
+          countActiveSubs(subInfos), expectedActiveSubscriptions);
+    });
+  }
+
+  // after sub2 is gone, should still see sub1
+  // TODO: due to bug in activeSubscription cleanup, we stop seeing sub1
+  int expectedActiveSubscriptions = 0;
+  WITH_RETRIES({
+    client->sync_getOperSubscriberInfos(subInfos, idsToQuery);
+    EXPECT_EVENTUALLY_EQ(
+        countActiveSubs(subInfos), expectedActiveSubscriptions);
+  });
+}
+
 } // namespace facebook::fboss::fsdb::test
