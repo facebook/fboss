@@ -829,6 +829,16 @@
             "lowerCriticalVal": 0
           },
           "compute": "(1000/3650)*@/1000"
+        },
+        {
+          "name": "TAHAN_SMB_TH5_TEMP",
+          "sysfsPath": "/run/devmap/sensors/TAHAN_SMB_CPLD/temp1_input",
+          "type": 3,
+          "thresholds": {
+            "upperCriticalVal": 105,
+            "maxAlarmVal": 102
+          },
+          "compute": "@/1000"
         }
       ]
     },
