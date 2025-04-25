@@ -24,6 +24,7 @@ add_executable(fw_util
   fboss/platform/fw_util/FwUtilOperations.cpp
   fboss/platform/fw_util/FwUtilFlashrom.cpp
   fboss/platform/fw_util/fw_util_helpers.cpp
+  fboss/platform/fw_util/FwUtilVersionHandler.cpp
 
 )
 
