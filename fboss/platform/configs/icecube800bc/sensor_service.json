@@ -300,7 +300,7 @@
     },
     {
       "slotPath": "/RUNBMC_SLOT@0",
-      "pmUnitName": "MINIPACK3_BMC",
+      "pmUnitName": "ICECUBE800BC_BMC",
       "sensors": [
         {
           "name": "RUNBMC_THERMAL_SENSOR",
