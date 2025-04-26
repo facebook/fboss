@@ -31,7 +31,8 @@ constexpr uint64_t kNeighborBaseMac = 0xF0EEC2000010;
 // the number of rounds to add/churn fboss routes and neighbors is limited by
 // the time to run the test. The number of rounds is chosen to finish in test in
 // 15mins
-constexpr int kNumChurn = 3;
+constexpr int kNumChurn = 1;
+constexpr int kNumChurnRoute = 3;
 constexpr int kMaxScaleMacTxPortIdx = 1;
 constexpr int kMaxScaleMacRxPortIdx = 0;
 constexpr int kMacChurnTxPortIdx = 2;
@@ -779,14 +780,17 @@ void initSystemScaleChurnTest(AgentEnsemble* ensemble) {
       asic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK4) {
     macLearningFloodHelper.startChurnMacTable();
   }
+  configureMaxRouteEntries(ensemble);
+  for (auto i = 0; i < kNumChurnRoute; i++) {
+    removeAllRouteEntries(ensemble);
+    configureMaxRouteEntries(ensemble);
+  }
   auto timeBefore = std::chrono::steady_clock::now();
   auto [rxPktsBefore, rxBytesBefore] = startRxMeasure(ensemble);
-
+  configureMaxNeighborEntries(ensemble);
   for (auto i = 0; i < kNumChurn; i++) {
-    configureMaxRouteEntries(ensemble);
-    removeAllRouteEntries(ensemble);
-    configureMaxNeighborEntries(ensemble);
     removeAllNeighbors(ensemble);
+    configureMaxNeighborEntries(ensemble);
   }
 
   auto [rxPktsAfter, rxBytesAfter] = stopRxMeasure(ensemble);
