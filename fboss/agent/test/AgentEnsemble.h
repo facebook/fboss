@@ -317,6 +317,23 @@ class AgentEnsemble : public TestEnsembleIf {
       const PortID& portId,
       const std::string& regex);
 
+  /**
+   * Retrieves the value of the first counter that matches a given regex pattern
+   * for a specific port.
+   *
+   * @details
+   * Works in both mono-switch and multi-switch environments.
+   *
+   * @param portId The ID of the port for which to retrieve the counter.
+   * @param regex The regex pattern to match against counter names.
+   *
+   * @return The value of the first matching counter if one exists, otherwise
+   * nullopt.
+   */
+  std::optional<int64_t> getFb303CounterIfExists(
+      const PortID& portId,
+      const std::string& regex);
+
  protected:
   void joinAsyncInitThread() {
     if (asyncInitThread_) {

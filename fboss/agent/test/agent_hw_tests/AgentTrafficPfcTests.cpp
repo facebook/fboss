@@ -811,11 +811,13 @@ class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcTest {
                                ->getNodeIf(portId)
                                ->getName();
     return {
-        facebook::fb303::fbData
-            ->getCounterIfExists(portName + ".pfc_deadlock_detection.sum")
+        getAgentEnsemble()
+            ->getFb303CounterIfExists(
+                portId, portName + ".pfc_deadlock_detection.sum")
             .value_or(0),
-        facebook::fb303::fbData
-            ->getCounterIfExists(portName + ".pfc_deadlock_recovery.sum")
+        getAgentEnsemble()
+            ->getFb303CounterIfExists(
+                portId, portName + ".pfc_deadlock_recovery.sum")
             .value_or(0),
     };
   }
