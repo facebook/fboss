@@ -625,6 +625,111 @@ std::pair<uint64_t, uint64_t> stopRxMeasure(AgentEnsemble* ensemble) {
   return std::make_pair(pktsAfter, bytesAfter);
 }
 
+std::pair<uint64_t, uint64_t> getOutPktsAndBytes(
+    AgentEnsemble* ensemble,
+    PortID port) {
+  auto stats = ensemble->getLatestPortStats(port);
+  return {*stats.outUnicastPkts_(), *stats.outBytes_()};
+}
+
+void startTxMeasure(AgentEnsemble* ensemble, int& pps, int& bytesPerSec) {
+  // configure port for tx measurement
+  auto swSwitch = ensemble->getSw();
+  auto dstMac = getInterfaceMac(
+      ensemble->getProgrammedState(),
+      ensemble->getProgrammedState()
+          ->getPorts()
+          ->getNodeIf(
+              ensemble->masterLogicalInterfacePortIds()[kTxMeasurePortIdx])
+          ->getInterfaceID());
+  auto ecmpHelper =
+      utility::EcmpSetupAnyNPorts6(ensemble->getProgrammedState(), dstMac);
+  flat_set<PortDescriptor> IntfPorts;
+  IntfPorts.insert(PortDescriptor(
+      ensemble->masterLogicalInterfacePortIds()[kTxMeasurePortIdx]));
+
+  const int kEcmpWidth = 1;
+  ensemble->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+    return ecmpHelper.resolveNextHops(in, kEcmpWidth);
+  });
+  ecmpHelper.programRoutes(
+      std::make_unique<SwSwitchRouteUpdateWrapper>(
+          ensemble->getSw(), ensemble->getSw()->getRib()),
+      IntfPorts,
+      {RoutePrefixV6{folly::IPAddressV6("2620:0:1cfd:face:b00c::5"), 64}});
+
+  // setup Tx port
+  auto portUsed = ensemble->masterLogicalInterfacePortIds()[kTxMeasurePortIdx];
+  auto cpuMac = ensemble->getSw()->getLocalMac(SwitchID(0));
+  auto vlanId =
+      ensemble->getProgrammedState()
+          ->getPorts()
+          ->getNodeIf(
+              ensemble->masterLogicalInterfacePortIds()[kTxMeasurePortIdx])
+          ->getIngressVlan();
+
+  std::atomic<bool> packetTxDone{false};
+
+  std::thread t([cpuMac, vlanId, swSwitch, &packetTxDone]() {
+    const auto kSrcIp = folly::IPAddressV6("2620:0:1cfd:face:b00c::5");
+    const auto kDstIp = folly::IPAddressV6("2620:0:1cfd:face:b00c::6");
+    const auto kSrcMac = folly::MacAddress{"fa:ce:b0:00:00:0c"};
+    while (!packetTxDone) {
+      for (auto i = 0; i < 1'000; ++i) {
+        // Send packet
+        auto txPacket = utility::makeIpTxPacket(
+            [swSwitch](uint32_t size) {
+              return swSwitch->allocatePacket(size);
+            },
+            vlanId,
+            kSrcMac,
+            cpuMac,
+            kSrcIp,
+            kDstIp);
+        swSwitch->sendPacketSwitchedAsync(std::move(txPacket));
+      }
+    }
+  });
+
+  auto [pktsBefore, bytesBefore] =
+      getOutPktsAndBytes(ensemble, PortID(portUsed));
+  auto timeBefore = std::chrono::steady_clock::now();
+  // Let the packet flood warm up
+  std::this_thread::sleep_for(std::chrono::seconds(30));
+  packetTxDone = true;
+  t.join();
+  auto timeAfter = std::chrono::steady_clock::now();
+  std::chrono::duration<double, std::milli> durationMillseconds =
+      timeAfter - timeBefore;
+  auto pktsAfter = pktsBefore;
+  auto bytesAfter = bytesBefore;
+  auto kMaxIterations = 30;
+  // Wait for stats increment to stop. On some platforms it
+  // takes longer for port stats to reflect the sent bytes.
+  for (auto i = 0; i < kMaxIterations; ++i) {
+    auto pktsPrior = pktsAfter;
+    auto bytesPrior = bytesAfter;
+    std::tie(pktsAfter, bytesAfter) =
+        getOutPktsAndBytes(ensemble, PortID(portUsed));
+    if (pktsPrior == pktsAfter && bytesPrior == bytesAfter) {
+      break;
+    }
+    XLOG(INFO) << " Stats still incrementing after iteration: " << i + 1;
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    if (i == kMaxIterations - 1) {
+      XLOG(INFO) << " Stats still incrementing after iteration: " << i + 1
+                 << " Reported TX pps maybe lower than actual pps";
+    }
+  }
+  pps = (static_cast<double>(pktsAfter - pktsBefore) /
+         durationMillseconds.count()) *
+      1000;
+  bytesPerSec = (static_cast<double>(bytesAfter - bytesBefore) /
+                 durationMillseconds.count()) *
+      1000;
+  return;
+}
+
 void initSystemScaleTest(AgentEnsemble* ensemble) {
   auto [rxPktsBefore, rxBytesBefore] = startRxMeasure(ensemble);
   auto timeBefore = std::chrono::steady_clock::now();
@@ -686,12 +791,14 @@ void initSystemScaleChurnTest(AgentEnsemble* ensemble) {
   portFlapHelper.stopPortFlap();
   macLearningFloodHelper.stopChurnMacTable();
 
+  int txPPS, txBPS;
+  startTxMeasure(ensemble, txPPS, txBPS);
+
   XLOG(DBG2) << " rxPktsAfter: " << rxPktsAfter
              << " rxPktsBefore: " << rxPktsBefore
              << "rxBytesAfter :" << rxBytesAfter
              << " rxBytesBefore: " << rxBytesBefore
              << "duration Milliseconds: " << durationMillseconds.count();
-
   auto rxPPS = static_cast<double>(rxPktsAfter - rxPktsBefore) * 1000 /
       durationMillseconds.count();
   auto rxBPS = static_cast<double>(rxBytesAfter - rxBytesBefore) * 1000 /
@@ -702,8 +809,8 @@ void initSystemScaleChurnTest(AgentEnsemble* ensemble) {
 
     memJson["rx_pps"] = rxPPS;
     memJson["rx_bps"] = rxBPS;
-    memJson["tx_pps"] = 0;
-    memJson["tx_bps"] = 0;
+    memJson["tx_pps"] = txPPS;
+    memJson["tx_bps"] = txBPS;
     std::cout << toPrettyJson(memJson) << std::endl;
   } else {
     XLOG(DBG2) << " rx_pps: " << rxPPS << " rx_bps: " << rxBPS;
