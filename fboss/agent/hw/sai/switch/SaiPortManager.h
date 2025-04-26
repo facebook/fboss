@@ -282,8 +282,6 @@ class SaiPortManager {
 #endif
   void updateLeakyBucketFb303Counter(PortID portId, int value);
 
-  void enableAfeAdaptiveMode(PortID portId);
-
   phy::FecMode getFECMode(PortID portId) const;
 
   phy::InterfaceType getInterfaceType(PortID portID) const;
