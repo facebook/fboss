@@ -772,7 +772,13 @@ void initSystemScaleChurnTest(AgentEnsemble* ensemble) {
       VlanID(kBaseVlanId));
   configureMaxMacEntries(ensemble);
   portFlapHelper.startPortFlap();
-  macLearningFloodHelper.startChurnMacTable();
+  auto asic =
+      utility::checkSameAndGetAsic(ensemble->getHwAsicTable()->getL3Asics());
+
+  if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK3 ||
+      asic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK4) {
+    macLearningFloodHelper.startChurnMacTable();
+  }
   auto timeBefore = std::chrono::steady_clock::now();
   auto [rxPktsBefore, rxBytesBefore] = startRxMeasure(ensemble);
 
@@ -788,7 +794,10 @@ void initSystemScaleChurnTest(AgentEnsemble* ensemble) {
   std::chrono::duration<double, std::milli> durationMillseconds =
       timeAfter - timeBefore;
   portFlapHelper.stopPortFlap();
-  macLearningFloodHelper.stopChurnMacTable();
+  if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK3 ||
+      asic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK4) {
+    macLearningFloodHelper.stopChurnMacTable();
+  }
 
   int txPPS, txBPS;
   startTxMeasure(ensemble, txPPS, txBPS);
