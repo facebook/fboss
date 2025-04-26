@@ -332,23 +332,28 @@ class TestPlatformMappingGeneration(unittest.TestCase):
         self.assertEqual(
             platform_mapping.get_platform_port_map(),
             self._get_expected_single_npu_test_ports(),
+            "Ports do not match.",
         )
 
         # Verify chips
         chips = platform_mapping.get_chips()
-        self.assertEqual(len(chips), 3)
+        self.assertEqual(len(chips), 3, "Number of chips does not match.")
         self.assertTrue(
-            all(chip in chips for chip in self._get_expected_single_npu_test_chips())
+            all(chip in chips for chip in self._get_expected_single_npu_test_chips()),
+            "Chips do not match.",
         )
 
         # Verify supportedProfiles
         supportedProfiles = platform_mapping.get_platform_profiles()
-        self.assertEqual(len(supportedProfiles), 2)
+        self.assertEqual(
+            len(supportedProfiles), 2, "Number of supported profiles does not match."
+        )
         self.assertTrue(
             all(
                 entry in supportedProfiles
                 for entry in self._get_expected_single_npu_supported_profiles()
-            )
+            ),
+            "Supported profiles do not match.",
         )
 
     def test_get_platform_mapping_multi_npu(self) -> None:
@@ -360,21 +365,35 @@ class TestPlatformMappingGeneration(unittest.TestCase):
         self.assertEqual(
             platform_mapping.get_platform_port_map(),
             self._get_expected_multi_npu_test_ports(),
+            "Ports do not match.",
         )
 
         # Verify chips
         chips = platform_mapping.get_chips()
-        self.assertEqual(len(chips), 4)
+        self.assertEqual(len(chips), 4, "Number of chips does not match.")
         self.assertTrue(
-            all(chip in chips for chip in self._get_expected_multi_npu_test_chips())
+            all(chip in chips for chip in self._get_expected_multi_npu_test_chips()),
+            "Chips do not match.",
         )
 
         # Verify supportedProfiles (supportedProfiles should be the same for both single and multi NPU)
         supportedProfiles = platform_mapping.get_platform_profiles()
-        self.assertEqual(len(supportedProfiles), 2)
+        self.assertEqual(
+            len(supportedProfiles), 2, "Number of supported profiles does not match."
+        )
         self.assertTrue(
             all(
                 entry in supportedProfiles
                 for entry in self._get_expected_single_npu_supported_profiles()
-            )
+            ),
+            "Supported profiles do not match.",
         )
+
+
+def run_tests() -> None:
+    # Provided for add_fb_python_executable callable
+    suite = unittest.TestLoader().loadTestsFromTestCase(TestPlatformMappingGeneration)
+    result = unittest.TextTestRunner().run(suite)
+
+    if not result.wasSuccessful():
+        raise Exception("Test failures.")
