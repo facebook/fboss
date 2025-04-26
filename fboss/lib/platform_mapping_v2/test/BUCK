@@ -15,3 +15,12 @@ python_unittest(
         "//fboss/qsfp_service/if:transceiver-py-deprecated",
     ],
 )
+
+python_unittest(
+    name = "verify_generated_files",
+    srcs = ["verify_generated_files.py"],
+    labels = ["autodeps2_generated"],
+    deps = [
+        "//fboss/lib/platform_mapping_v2:gen-library",
+    ],
+)

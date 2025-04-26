@@ -1,4 +1,4 @@
-# CMake to build libraries and binaries in fboss/lib/platform_mapping_v2
+# Make to build libraries and binaries in fboss/lib/platform_mapping_v2/test
 
 # In general, libraries and binaries in fboss/foo/bar are built by
 # cmake/FooBar.cmake
@@ -7,6 +7,7 @@ include(FBPythonBinary)
 
 set(
     PLATFORM_MAPPING_PY_SRCS
+    "fboss/lib/platform_mapping_v2/test/verify_generated_files.py"
     "fboss/lib/platform_mapping_v2/asic_vendor_config.py"
     "fboss/lib/platform_mapping_v2/gen.py"
     "fboss/lib/platform_mapping_v2/helpers.py"
@@ -19,8 +20,8 @@ set(
 )
 
 add_fb_python_executable(
-    fboss-platform-mapping-gen
-    MAIN_MODULE fboss.lib.platform_mapping_v2.gen:generate_mappings_without_args
+    platform_mapping_gen_no_regression_test
+    MAIN_MODULE fboss.lib.platform_mapping_v2.test.verify_generated_files:run_tests
     SOURCES ${PLATFORM_MAPPING_PY_SRCS}
     DEPENDS
         asic_config_v2_py
@@ -32,4 +33,4 @@ add_fb_python_executable(
         FBThrift::thrift_py
 )
 
-install_fb_python_executable(fboss-platform-mapping-gen)
+install_fb_python_executable(platform_mapping_gen_no_regression_test)
