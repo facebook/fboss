@@ -247,6 +247,7 @@ target_link_libraries(system_scale_test_utils
   copp_test_utils
   scale_test_utils
   route_scale_gen
+  qos_test_utils
 )
 
 add_library(acl_scale_test_utils

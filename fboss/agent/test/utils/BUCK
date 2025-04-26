@@ -666,6 +666,7 @@ cpp_library(
         ":copp_test_utils",
         ":mac_learning_flood_helper",
         ":port_flap_helper",
+        ":qos_test_utils",
         ":scale_test_utils",
         ":trap_packet_utils",
         "//fboss/agent:agent_features",

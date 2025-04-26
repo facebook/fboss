@@ -13,6 +13,7 @@
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/MacLearningFloodHelper.h"
 #include "fboss/agent/test/utils/PortFlapHelper.h"
+#include "fboss/agent/test/utils/QosTestUtils.h"
 #include "fboss/agent/test/utils/ScaleTestUtils.h"
 #include "fboss/agent/test/utils/TrapPacketUtils.h"
 #include "folly/Benchmark.h"
@@ -35,6 +36,7 @@ constexpr int kMaxScaleMacRxPortIdx = 0;
 constexpr int kMacChurnTxPortIdx = 2;
 constexpr int kMacChurnRxPortIdx = 3;
 constexpr int kRxMeasurePortIdx = 4;
+const std::string kRxMeasureDstIp = "2620:0:1cfe:face:b00c::4";
 } // namespace
 
 namespace facebook::fboss::utility {
@@ -534,17 +536,112 @@ cfg::SwitchConfig getSystemScaleTestSwitchConfiguration(
   utility::setDefaultCpuTrafficPolicyConfig(
       config, ensemble.getL3Asics(), ensemble.isSai());
 
+  auto trapDstIp = folly::CIDRNetwork{kRxMeasureDstIp, 128};
+  utility::addTrapPacketAcl(asic, &config, trapDstIp);
+
   config.switchSettings()->l2LearningMode() = cfg::L2LearningMode::SOFTWARE;
   addPort2NewVlan(
       config, ensemble.masterLogicalInterfacePortIds()[kRxMeasurePortIdx]);
   return config;
 };
 
+std::pair<uint64_t, uint64_t> startRxMeasure(AgentEnsemble* ensemble) {
+  // capture packet exiting port kRxMeasurePortIdx (entering due to loopback)
+  auto dstMac = getInterfaceMac(
+      ensemble->getProgrammedState(), InterfaceID(kBaseVlanId + 1));
+
+  auto ecmpHelper =
+      utility::EcmpSetupAnyNPorts6(ensemble->getProgrammedState(), dstMac);
+  flat_set<PortDescriptor> IntfPorts;
+  IntfPorts.insert(PortDescriptor(
+      ensemble->masterLogicalInterfacePortIds()[kRxMeasurePortIdx]));
+
+  ensemble->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+    return ecmpHelper.resolveNextHops(in, IntfPorts);
+  });
+  ecmpHelper.programRoutes(
+      std::make_unique<SwSwitchRouteUpdateWrapper>(
+          ensemble->getSw(), ensemble->getSw()->getRib()),
+      IntfPorts,
+      {RoutePrefixV6{folly::IPAddressV6("2620:0:1cfe:face:b00c::4"), 128}});
+  // Disable TTL decrements
+  for (const auto& nextHop : ecmpHelper.getNextHops()) {
+    utility::ttlDecrementHandlingForLoopbackTraffic(
+        ensemble, ecmpHelper.getRouterId(), nextHop);
+  }
+  constexpr uint8_t kCpuQueue = 0;
+  std::map<int, CpuPortStats> cpuStatsBefore;
+  ensemble->getSw()->getAllCpuPortStats(cpuStatsBefore);
+  auto statsBefore = cpuStatsBefore[0];
+  auto [pktsBefore, bytesBefore] = utility::getCpuQueueOutPacketsAndBytes(
+      *statsBefore.portStats_(), kCpuQueue);
+
+  const auto kSrcMac = folly::MacAddress{"fa:ce:b0:00:00:0a"};
+  // Send packet
+  auto vlanId =
+      ensemble->getProgrammedState()
+          ->getPorts()
+          ->getNodeIf(
+              ensemble->masterLogicalInterfacePortIds()[kRxMeasurePortIdx])
+          ->getIngressVlan();
+
+  auto constexpr kPacketToSend = 100;
+  for (int i = 0; i < kPacketToSend; i++) {
+    auto txPacket = utility::makeTCPTxPacket(
+        ensemble->getSw(),
+        vlanId,
+        kSrcMac,
+        dstMac,
+        folly::IPAddressV6("2620:0:1cfe:face:b00c::3"),
+        folly::IPAddressV6(kRxMeasureDstIp),
+        47231,
+        kBgpPort);
+    ensemble->getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+  }
+  return std::make_pair(pktsBefore, bytesBefore);
+}
+
+std::pair<uint64_t, uint64_t> stopRxMeasure(AgentEnsemble* ensemble) {
+  ensemble->bringDownPorts(
+      {ensemble->masterLogicalInterfacePortIds()[kRxMeasurePortIdx]});
+  ensemble->bringUpPorts(
+      {ensemble->masterLogicalInterfacePortIds()[kRxMeasurePortIdx]});
+  constexpr uint8_t kCpuQueue = 0;
+  std::map<int, CpuPortStats> cpuStatsAfter;
+  ensemble->getSw()->getAllCpuPortStats(cpuStatsAfter);
+  auto statsAfter = cpuStatsAfter[0];
+  auto [pktsAfter, bytesAfter] = utility::getCpuQueueOutPacketsAndBytes(
+      *statsAfter.portStats_(), kCpuQueue);
+  return std::make_pair(pktsAfter, bytesAfter);
+}
+
 void initSystemScaleTest(AgentEnsemble* ensemble) {
+  auto [rxPktsBefore, rxBytesBefore] = startRxMeasure(ensemble);
+  auto timeBefore = std::chrono::steady_clock::now();
   configureMaxAclEntries(ensemble);
   configureMaxRouteEntries(ensemble);
   configureMaxMacEntries(ensemble);
   configureMaxNeighborEntries(ensemble);
+  auto [rxPktsAfter, rxBytesAfter] = stopRxMeasure(ensemble);
+  auto timeAfter = std::chrono::steady_clock::now();
+  std::chrono::duration<double, std::milli> durationMillseconds =
+      timeAfter - timeBefore;
+  auto rxPPS = static_cast<double>(rxPktsAfter - rxPktsBefore) * 1000 /
+      durationMillseconds.count();
+  auto rxBPS = static_cast<double>(rxBytesAfter - rxBytesBefore) * 1000 /
+      durationMillseconds.count();
+
+  if (FLAGS_json) {
+    folly::dynamic memJson = folly::dynamic::object;
+
+    memJson["rx_pps"] = rxPPS;
+    memJson["rx_bps"] = rxBPS;
+    memJson["tx_pps"] = 0;
+    memJson["tx_bps"] = 0;
+    std::cout << toPrettyJson(memJson) << std::endl;
+  } else {
+    XLOG(DBG2) << " rx_pps: " << rxPPS << " rx_bps: " << rxBPS;
+  }
 }
 
 void initSystemScaleChurnTest(AgentEnsemble* ensemble) {
@@ -562,6 +659,8 @@ void initSystemScaleChurnTest(AgentEnsemble* ensemble) {
   configureMaxMacEntries(ensemble);
   portFlapHelper.startPortFlap();
   macLearningFloodHelper.startChurnMacTable();
+  auto timeBefore = std::chrono::steady_clock::now();
+  auto [rxPktsBefore, rxBytesBefore] = startRxMeasure(ensemble);
 
   for (auto i = 0; i < kNumChurn; i++) {
     configureMaxRouteEntries(ensemble);
@@ -569,8 +668,36 @@ void initSystemScaleChurnTest(AgentEnsemble* ensemble) {
     configureMaxNeighborEntries(ensemble);
     removeAllNeighbors(ensemble);
   }
+
+  auto [rxPktsAfter, rxBytesAfter] = stopRxMeasure(ensemble);
+  auto timeAfter = std::chrono::steady_clock::now();
+  std::chrono::duration<double, std::milli> durationMillseconds =
+      timeAfter - timeBefore;
   portFlapHelper.stopPortFlap();
   macLearningFloodHelper.stopChurnMacTable();
+
+  XLOG(DBG2) << " rxPktsAfter: " << rxPktsAfter
+             << " rxPktsBefore: " << rxPktsBefore
+             << "rxBytesAfter :" << rxBytesAfter
+             << " rxBytesBefore: " << rxBytesBefore
+             << "duration Milliseconds: " << durationMillseconds.count();
+
+  auto rxPPS = static_cast<double>(rxPktsAfter - rxPktsBefore) * 1000 /
+      durationMillseconds.count();
+  auto rxBPS = static_cast<double>(rxBytesAfter - rxBytesBefore) * 1000 /
+      durationMillseconds.count();
+
+  if (FLAGS_json) {
+    folly::dynamic memJson = folly::dynamic::object;
+
+    memJson["rx_pps"] = rxPPS;
+    memJson["rx_bps"] = rxBPS;
+    memJson["tx_pps"] = 0;
+    memJson["tx_bps"] = 0;
+    std::cout << toPrettyJson(memJson) << std::endl;
+  } else {
+    XLOG(DBG2) << " rx_pps: " << rxPPS << " rx_bps: " << rxBPS;
+  }
 }
 
 } // namespace facebook::fboss::utility
