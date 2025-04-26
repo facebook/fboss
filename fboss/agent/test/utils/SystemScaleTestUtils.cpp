@@ -36,6 +36,7 @@ constexpr int kMaxScaleMacRxPortIdx = 0;
 constexpr int kMacChurnTxPortIdx = 2;
 constexpr int kMacChurnRxPortIdx = 3;
 constexpr int kRxMeasurePortIdx = 4;
+constexpr int kTxMeasurePortIdx = 5;
 const std::string kRxMeasureDstIp = "2620:0:1cfe:face:b00c::4";
 } // namespace
 
@@ -455,11 +456,10 @@ void configureMaxAclEntries(AgentEnsemble* ensemble) {
 
   ensemble->applyNewConfig(cfg);
 }
-
-void addPort2NewVlan(cfg::SwitchConfig& config, PortID portID) {
+void addPort2NewVlan(cfg::SwitchConfig& config, PortID portID, int vlanID) {
   auto vlanIfExist = std::find_if(
-      config.vlans()->begin(), config.vlans()->end(), [](auto vlan) {
-        return vlan.id() == kBaseVlanId + 1;
+      config.vlans()->begin(), config.vlans()->end(), [vlanID](auto vlan) {
+        return vlan.id() == vlanID;
       });
   if (vlanIfExist != config.vlans()->end()) {
     throw FbossError("The vlan to add already exists");
@@ -468,14 +468,14 @@ void addPort2NewVlan(cfg::SwitchConfig& config, PortID portID) {
   // add vlan
   auto newVlan = cfg::Vlan();
   newVlan.name() = "rx tx test";
-  newVlan.id() = VlanID(kBaseVlanId + 1);
+  newVlan.id() = VlanID(vlanID);
   newVlan.routable() = true;
   config.vlans()->push_back(newVlan);
 
   // change the vlan id of ingressVlan of port
   for (auto& port : *config.ports()) {
     if (port.logicalID() == static_cast<int>(portID)) {
-      port.ingressVlan() = kBaseVlanId + 1;
+      port.ingressVlan() = vlanID;
     }
   }
 
@@ -489,26 +489,29 @@ void addPort2NewVlan(cfg::SwitchConfig& config, PortID portID) {
   if (vlanPort == config.vlanPorts()->end()) {
     throw FbossError("The port not not found in vlan port mapping");
   }
-  vlanPort->vlanID() = kBaseVlanId + 1;
+  vlanPort->vlanID() = vlanID;
 
   auto interfaceIfExist = std::find_if(
       config.interfaces()->begin(),
       config.interfaces()->end(),
-      [](auto interface) { return interface.intfID() == kBaseVlanId + 1; });
+      [vlanID](auto interface) { return interface.intfID() == vlanID; });
   if (interfaceIfExist != config.interfaces()->end()) {
     throw FbossError("The vlan interface to add already exists");
   }
 
   // add l3 interface to vlan
   auto newInterface = cfg::Interface();
-  newInterface.intfID() = kBaseVlanId + 1;
-  newInterface.vlanID() = kBaseVlanId + 1;
+  newInterface.intfID() = vlanID;
+  newInterface.vlanID() = vlanID;
   newInterface.routerID() = 0;
   newInterface.mac() = utility::kLocalCpuMac().toString();
   newInterface.mtu() = 9000;
   newInterface.ipAddresses()->resize(2);
-  newInterface.ipAddresses()[0] = "192.1.1.1/24";
-  newInterface.ipAddresses()[1] = "2001::1/64";
+  newInterface.ipAddresses()[0] =
+      "192.1." + std::to_string(vlanID - kBaseVlanId) + ".1/24";
+  std::stringstream hexStream;
+  hexStream << std::hex << vlanID;
+  newInterface.ipAddresses()[1] = hexStream.str() + "::1/64";
   config.interfaces()->push_back(newInterface);
 }
 
@@ -541,7 +544,14 @@ cfg::SwitchConfig getSystemScaleTestSwitchConfiguration(
 
   config.switchSettings()->l2LearningMode() = cfg::L2LearningMode::SOFTWARE;
   addPort2NewVlan(
-      config, ensemble.masterLogicalInterfacePortIds()[kRxMeasurePortIdx]);
+      config,
+      ensemble.masterLogicalInterfacePortIds()[kRxMeasurePortIdx],
+      kBaseVlanId + 1);
+
+  addPort2NewVlan(
+      config,
+      ensemble.masterLogicalInterfacePortIds()[kTxMeasurePortIdx],
+      kBaseVlanId + 2);
   return config;
 };
 
