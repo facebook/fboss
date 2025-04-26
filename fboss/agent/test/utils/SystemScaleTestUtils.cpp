@@ -1,6 +1,7 @@
 #include "fboss/agent/test/utils/SystemScaleTestUtils.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
+#include "fboss/lib/FunctionCallTimeReporter.h"
 
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/ThriftHandler.h"
@@ -527,9 +528,7 @@ cfg::SwitchConfig getSystemScaleTestSwitchConfiguration(
       ensemble.getSw()->getPlatformSupportsAddRemovePort(),
       asic->desiredLoopbackModes());
 
-  utility::addAclTableGroup(
-      &config, cfg::AclStage::INGRESS, utility::kDefaultAclTableGroupName());
-  utility::addDefaultAclTable(config);
+  utility::setupDefaultAclTableGroups(config);
   // We don't want to set queue rate that limits the number of rx pkts
   utility::addCpuQueueConfig(
       config,
@@ -814,6 +813,19 @@ void initSystemScaleChurnTest(AgentEnsemble* ensemble) {
     std::cout << toPrettyJson(memJson) << std::endl;
   } else {
     XLOG(DBG2) << " rx_pps: " << rxPPS << " rx_bps: " << rxBPS;
+  }
+  if (FLAGS_setup_for_warmboot) {
+    ScopedCallTimer timeIt;
+    // Static such that the object destructor runs as late as possible. In
+    // particular in this case, destructor (and thus the duration calculation)
+    // will run at the time of program exit when static variable destructors
+    // run
+    static StopWatch timer("warm_boot_msecs", FLAGS_json);
+    ensemble->gracefulExit();
+    // Leak HwSwitchEnsemble for warmboot, so that
+    // we don't run destructors and unprogram h/w. We are
+    // going to exit the process anyways.
+    //__attribute__((unused)) auto leakedHwEnsemble = ensemble;
   }
 }
 

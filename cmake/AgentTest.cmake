@@ -244,6 +244,7 @@ target_link_libraries(system_scale_test_utils
   acl_test_utils
   acl_scale_test_utils
   asic_test_utils
+  function_call_time_reporter
   copp_test_utils
   scale_test_utils
   route_scale_gen

@@ -679,6 +679,7 @@ cpp_library(
         "//fboss/agent/test:ecmp_helper",
         "//fboss/agent/test:route_scale_gen",
         "//fboss/lib:common_file_utils",
+        "//fboss/lib:function_call_time_reporter",
         "//folly:benchmark",
     ],
 )
