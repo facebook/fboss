@@ -759,6 +759,9 @@ void initSystemScaleTest(AgentEnsemble* ensemble) {
 }
 
 void initSystemScaleChurnTest(AgentEnsemble* ensemble) {
+  if (ensemble->getSw()->getBootType() == BootType::WARM_BOOT) {
+    return;
+  }
   configureMaxAclEntries(ensemble);
 
   std::vector<PortID> portToFlap = {
