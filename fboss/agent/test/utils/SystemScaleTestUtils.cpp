@@ -519,7 +519,6 @@ void addPort2NewVlan(cfg::SwitchConfig& config, PortID portID, int vlanID) {
 
 cfg::SwitchConfig getSystemScaleTestSwitchConfiguration(
     const AgentEnsemble& ensemble) {
-  FLAGS_sai_user_defined_trap = true;
   auto l3Asics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
   auto asic = utility::checkSameAndGetAsic(l3Asics);
   auto config = utility::oneL3IntfNPortConfig(
