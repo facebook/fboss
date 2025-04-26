@@ -85,14 +85,21 @@ void AgentEnsemble::setupEnsemble(
       getSw()->getPlatformMapping()->getPlatformPorts());
   const auto& platformPorts = getSw()->getPlatformMapping()->getPlatformPorts();
   for (const auto& port : portsByControllingPort) {
-    if (!FLAGS_hide_fabric_ports ||
-        *platformPorts.find(static_cast<int32_t>(port.first))
+    if (*platformPorts.find(static_cast<int32_t>(port.first))
                 ->second.mapping()
-                ->portType() != cfg::PortType::FABRIC_PORT) {
-      masterLogicalPortIds_.push_back(port.first);
-      auto switchId = getSw()->getScopeResolver()->scope(port.first).switchId();
-      switchId2PortIds_[switchId].push_back(port.first);
+                ->portType() == cfg::PortType::FABRIC_PORT &&
+        FLAGS_hide_fabric_ports) {
+      continue;
     }
+    if (*platformPorts.find(static_cast<int32_t>(port.first))
+                ->second.mapping()
+                ->portType() == cfg::PortType::MANAGEMENT_PORT &&
+        FLAGS_hide_management_ports) {
+      continue;
+    }
+    masterLogicalPortIds_.push_back(port.first);
+    auto switchId = getSw()->getScopeResolver()->scope(port.first).switchId();
+    switchId2PortIds_[switchId].push_back(port.first);
   }
 
   for (auto switchId : getSw()->getHwAsicTable()->getSwitchIDs()) {
