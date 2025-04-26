@@ -65,4 +65,5 @@ struct TestStruct {
   17: ListTypedef listTypedef = [];
   18: map<string, OtherStruct> mapOfStructs;
   19: list<OtherStruct> listofStructs;
+  20: set<string> setOfStrings = [];
 }

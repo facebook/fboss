@@ -1,8 +1,6 @@
 name: Build & Save debian docker image for FBOSS
 run-name: Build & Save debian docker image for FBOSS
 on:
-  # Allow on pull request
-  pull_request:
   # Allow manually triggering the workflow
   workflow_dispatch:
   # Also schedule the workflow to run every 3 hours during day only

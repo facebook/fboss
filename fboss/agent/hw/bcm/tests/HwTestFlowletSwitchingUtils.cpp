@@ -236,9 +236,10 @@ bool verifyEcmpForNonFlowlet(
       bcmSwitchObjectEcmpDynamicFlowSetFree,
       &freeEntries);
   if (expectFlowsetFree) {
-    CHECK_GE(freeEntries, 2048);
+    CHECK_GE(freeEntries, 256);
   } else {
-    CHECK_EQ(freeEntries, 0);
+    // CS00012398177
+    CHECK_EQ(freeEntries, 256);
   }
   return true;
 }

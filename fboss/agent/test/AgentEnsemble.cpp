@@ -85,14 +85,21 @@ void AgentEnsemble::setupEnsemble(
       getSw()->getPlatformMapping()->getPlatformPorts());
   const auto& platformPorts = getSw()->getPlatformMapping()->getPlatformPorts();
   for (const auto& port : portsByControllingPort) {
-    if (!FLAGS_hide_fabric_ports ||
-        *platformPorts.find(static_cast<int32_t>(port.first))
+    if (*platformPorts.find(static_cast<int32_t>(port.first))
                 ->second.mapping()
-                ->portType() != cfg::PortType::FABRIC_PORT) {
-      masterLogicalPortIds_.push_back(port.first);
-      auto switchId = getSw()->getScopeResolver()->scope(port.first).switchId();
-      switchId2PortIds_[switchId].push_back(port.first);
+                ->portType() == cfg::PortType::FABRIC_PORT &&
+        FLAGS_hide_fabric_ports) {
+      continue;
     }
+    if (*platformPorts.find(static_cast<int32_t>(port.first))
+                ->second.mapping()
+                ->portType() == cfg::PortType::MANAGEMENT_PORT &&
+        FLAGS_hide_management_ports) {
+      continue;
+    }
+    masterLogicalPortIds_.push_back(port.first);
+    auto switchId = getSw()->getScopeResolver()->scope(port.first).switchId();
+    switchId2PortIds_[switchId].push_back(port.first);
   }
 
   for (auto switchId : getSw()->getHwAsicTable()->getSwitchIDs()) {
@@ -659,7 +666,7 @@ std::vector<FirmwareInfo> AgentEnsemble::getAllFirmwareInfo(
  * port.
  *
  * @details
- * Works in both mono-switch and multi-switch environments:
+ * Works in both mono-switch and multi-switch environments.
  *
  * @param portId The ID of the port for which to retrieve counters.
  * @param regex The regex pattern to match against the counter names.
@@ -679,6 +686,29 @@ std::map<std::string, int64_t> AgentEnsemble::getFb303CountersByRegex(
   monitoringClient.sync_getRegexCounters(counters, regex);
 #endif
   return counters;
+}
+
+/**
+ * Retrieves the value of the first counter that matches a given regex pattern
+ * for a specific port.
+ *
+ * @details
+ * Works in both mono-switch and multi-switch environments.
+ *
+ * @param portId The ID of the port for which to retrieve the counter.
+ * @param regex The regex pattern to match against counter names.
+ *
+ * @return The value of the first matching counter if one exists, otherwise
+ * nullopt.
+ */
+std::optional<int64_t> AgentEnsemble::getFb303CounterIfExists(
+    const PortID& portId,
+    const std::string& regex) {
+  auto counters = getFb303CountersByRegex(portId, regex);
+  if (!counters.empty()) {
+    return counters.begin()->second;
+  }
+  return std::nullopt;
 }
 
 } // namespace facebook::fboss

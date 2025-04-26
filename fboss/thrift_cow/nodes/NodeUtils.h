@@ -18,4 +18,22 @@ using is_cow_type = std::is_base_of<Serializable, std::remove_cvref_t<T>>;
 template <typename T>
 constexpr bool is_cow_type_v = is_cow_type<T>::value;
 
+// wrapper for exceptions thrown by Thrift COW node operations
+class NodeException : public std::runtime_error {
+ public:
+  enum class Reason {
+    SET_IMMUTABLE_PRIMITIVE_NODE,
+  };
+
+  explicit NodeException(Reason reason, const std::string& msg)
+      : std::runtime_error(msg), reason_(reason) {}
+
+  Reason reason() const {
+    return reason_;
+  }
+
+ private:
+  Reason reason_;
+};
+
 } // namespace facebook::fboss::thrift_cow

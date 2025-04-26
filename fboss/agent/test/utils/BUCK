@@ -396,14 +396,15 @@ cpp_library(
     srcs = ["PacketSnooper.cpp"],
     headers = ["PacketSnooper.h"],
     exported_deps = [
-        "fbcode//fboss/agent:core",
-        "fbcode//fboss/agent:fboss-types",
-        "fbcode//fboss/agent:packet",
-        "fbcode//fboss/agent:packet_observer",
-        "fbcode//fboss/agent/packet:packet_factory",
-        "fbcode//folly:optional",
-        "fbcode//folly/io:iobuf",
         "fbsource//third-party/googletest:gtest",
+        ":pkt_test_utils",
+        "//fboss/agent:core",
+        "//fboss/agent:fboss-types",
+        "//fboss/agent:packet",
+        "//fboss/agent:packet_observer",
+        "//fboss/agent/packet:packet_factory",
+        "//folly:optional",
+        "//folly/io:iobuf",
     ],
 )
 
@@ -471,11 +472,14 @@ cpp_library(
     headers = ["AgentFsdbIntegrationBenchmarkHelper.h"],
     exported_deps = [
         "//fboss/agent:agent_fsdb_sync_manager",
+        "//fboss/agent/benchmarks:agent_benchmarks_h",  # @manual
         "//fboss/agent/test:agent_ensemble",
         "//fboss/fsdb/client:fsdb_pub_sub",
         "//fboss/fsdb/common:flags",
-        "//fboss/fsdb/if:fsdb_model",
+        "//fboss/lib:common_file_utils",
+        "//folly:benchmark",
         "//folly/synchronization:baton",
+        "//servicerouter/client/cpp2:cpp2",
     ],
     exported_external_deps = [
         "gflags",

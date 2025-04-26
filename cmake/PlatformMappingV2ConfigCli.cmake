@@ -20,7 +20,7 @@ set(
 
 add_fb_python_executable(
     fboss-platform-mapping-gen
-    MAIN_MODULE fboss.lib.platform_mapping_v2.gen:generate_platform_mappings
+    MAIN_MODULE fboss.lib.platform_mapping_v2.gen:generate_mappings_without_args
     SOURCES ${PLATFORM_MAPPING_PY_SRCS}
     DEPENDS
         asic_config_v2_py

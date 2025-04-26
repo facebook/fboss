@@ -25,7 +25,7 @@ void SaiArsManager::addArs(
   SaiArsTraits::CreateAttributes attributes{
       cfgSwitchingModeToSai(flowletSwitchConfig->getSwitchingMode()),
       std::nullopt,
-      flowletSwitchConfig->getFlowletTableSize()};
+      std::nullopt};
   auto& store = saiStore_->get<SaiArsTraits>();
   arsHandle_->ars = store.setObject(std::monostate{}, attributes);
 }

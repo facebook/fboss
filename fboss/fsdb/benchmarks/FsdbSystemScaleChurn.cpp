@@ -3,17 +3,16 @@
 
 #include <folly/Benchmark.h>
 
-#include "fboss/fsdb/common/Flags.h"
+#include "fboss/fsdb/benchmarks/FsdbBenchmarkTestHelper.h"
 #include "fboss/fsdb/tests/utils/FsdbTestServer.h"
 #include "fboss/lib/CommonFileUtils.h"
 
-DEFINE_string(
-    write_agent_config_marker_for_fsdb,
-    "",
-    "Write marker file for FSDB");
-
 using facebook::fboss::fsdb::test::FsdbTestServer;
-
+DECLARE_string(write_agent_config_marker_for_fsdb);
+DEFINE_string(
+    service_file_name_for_churn,
+    "",
+    "Service file name for SAI Agent Scale Benchmarks");
 namespace {
 
 const thriftpath::RootThriftPath<facebook::fboss::fsdb::FsdbOperStateRoot>
@@ -25,13 +24,20 @@ const std::vector<std::string> kPublishRoot{"agent"};
 namespace facebook::fboss::fsdb::test {
 
 BENCHMARK(FsdbSystemScaleChurn) {
+  if (FLAGS_service_file_name_for_churn.empty()) {
+    return;
+  }
+  auto serviceFileName =
+      folly::to<std::string>(FLAGS_service_file_name_for_churn);
+
+  FsdbBenchmarkTestHelper helper;
+  helper.setup(0, false, serviceFileName);
+
   auto churn_pubsub_complete_marker =
       folly::to<std::string>(FLAGS_write_agent_config_marker_for_fsdb);
   auto port = FLAGS_fsdbPort;
   std::unique_ptr<fsdb::test::FsdbTestServer> fsdbTestServer_ =
       std::make_unique<FsdbTestServer>(port);
-
-  // Once publisher root is available, wait until churn is complete
   while (true) {
     if (checkFileExists(churn_pubsub_complete_marker)) {
       break;
@@ -43,5 +49,6 @@ BENCHMARK(FsdbSystemScaleChurn) {
   // Once churn is complete, remove the marker file and exit
   fsdbTestServer_.reset();
   removeFile(churn_pubsub_complete_marker, true);
+  helper.TearDown(false /*stopFsdbTestServer*/);
 }
 } // namespace facebook::fboss::fsdb::test

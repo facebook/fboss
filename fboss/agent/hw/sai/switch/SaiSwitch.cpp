@@ -2376,13 +2376,6 @@ void SaiSwitch::linkStateChangedCallbackBottomHalf(
         managerTable_->neighborManager().handleLinkDown(
             SaiPortDescriptor(swPortId));
       }
-      /*
-       * Enable AFE adaptive mode (S249471) on TAJO platforms when a port
-       * flaps
-       */
-      if (asicType_ == cfg::AsicType::ASIC_TYPE_EBRO) {
-        managerTable_->portManager().enableAfeAdaptiveMode(swPortId);
-      }
     }
     swPortId2Status[swPortId] = up;
   }

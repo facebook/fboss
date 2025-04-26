@@ -54,6 +54,8 @@ HwPortFb303Stats::kPortMonotonicCounterStatKeys() const {
       kPqpErrorEgressDroppedPackets(),
       kFabricLinkDownDroppedCells(),
       kLinkLayerFlowControlWatermark(),
+      kPfcDeadlockDetection(),
+      kPfcDeadlockRecovery(),
   };
   return kPortKeys;
 }

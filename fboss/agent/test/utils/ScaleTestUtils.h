@@ -32,6 +32,11 @@ std::vector<std::vector<PortDescriptor>> generateEcmpMemberScale(
     const std::vector<PortDescriptor>& inputs,
     const int maxEcmpMembers);
 
+std::vector<std::vector<PortDescriptor>> generateEcmpGroupAndMemberScale(
+    const std::vector<PortDescriptor>& inputs,
+    const int maxEcmpGroups,
+    const int maxEcmpMembers);
+
 std::vector<std::vector<PortDescriptor>> getUcmpMembersAndWeight(
     const std::vector<std::vector<PortDescriptor>>& inputs,
     std::vector<std::vector<NextHopWeight>>& weightsOutput,
