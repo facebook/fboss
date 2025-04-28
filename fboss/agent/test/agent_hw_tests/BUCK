@@ -32,6 +32,7 @@ cpp_library(
         "AgentHwParityErrorTests.cpp",
         "AgentHwPtpTcTests.cpp",
         "AgentHwResourceStatsTests.cpp",
+        "AgentHwUdfTests.cpp",
         "AgentInNullRouteDiscardsTest.cpp",
         "AgentInTrapDiscardsTest.cpp",
         "AgentIngressBufferTests.cpp",
