@@ -432,4 +432,13 @@ std::map<std::string, int64_t> getAgentFb303RegexCounters(
   return counters;
 }
 
+bool isDualStage(const std::map<int64_t, cfg::DsfNode>& dsfNodeMap) {
+  for (const auto& [_, dsfNode] : dsfNodeMap) {
+    if (dsfNode.fabricLevel().has_value() && dsfNode.fabricLevel() == 2) {
+      return true;
+    }
+  }
+  return false;
+}
+
 } // namespace facebook::fboss::utils
