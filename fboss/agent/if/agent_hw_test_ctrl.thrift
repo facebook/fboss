@@ -127,4 +127,16 @@ service AgentHwTestCtrl {
   bool getPtpTcEnabled();
 
   void clearInterfacePhyCounters(1: list<i32> portIds);
+
+  bool validateUdfConfig(1: string udfGroupName, 2: string udfPackeMatchName);
+  bool validateRemoveUdfGroup(1: string udfGroupName, 2: i32 udfGroupId);
+  bool validateRemoveUdfPacketMatcher(
+    1: string udfPackeMatchName,
+    2: i32 udfPacketMatcherId,
+  );
+  i32 getHwUdfGroupId(1: string udfGroupName);
+
+  i32 getHwUdfPacketMatcherId(1: string udfPacketMatchName);
+  bool validateUdfAclRoceOpcodeConfig(1: switch_state.SwitchState curState);
+  bool validateUdfIdsInQset(1: i32 aclGroupId, 2: bool isSet);
 }
