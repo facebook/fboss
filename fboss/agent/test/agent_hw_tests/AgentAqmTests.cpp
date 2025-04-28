@@ -56,6 +56,23 @@ void verifyWredDroppedPacketCount(
   EXPECT_NEAR(deltaWredDroppedPackets, expectedDroppedPkts, allowedDeviation);
 }
 
+/*
+ * Due to the way packet marking happens, we might not have an accurate count,
+ * but the number of packets marked will be >= to the expected marked packet
+ * count.
+ */
+void verifyEcnMarkedPacketCount(
+    const AqmTestStats& after,
+    const AqmTestStats& before,
+    int expectedMarkedPkts) {
+  uint64_t deltaEcnMarkedPackets = after.outEcnCounter - before.outEcnCounter;
+  uint64_t deltaOutPackets = after.outPackets - before.outPackets;
+  XLOG(DBG0) << "Delta ECN marked pkts: " << deltaEcnMarkedPackets
+             << ", delta out packets: " << deltaOutPackets;
+  EXPECT_GE(after.outEcnCounter, before.outEcnCounter + expectedMarkedPkts);
+  EXPECT_GT(after.outPackets, before.outPackets + deltaEcnMarkedPackets);
+}
+
 } // namespace
 
 namespace facebook::fboss {
@@ -163,6 +180,20 @@ class AgentAqmTest : public AgentHwTest {
       std::optional<PortID> outPort = std::nullopt) {
     for (int i = 0; i < cnt; i++) {
       sendPkt(dscpVal, ecnVal, payloadLen, ttl, outPort);
+    }
+  }
+
+  void queueShaperAndBurstSetup(
+      const std::vector<int>& queueIds,
+      cfg::SwitchConfig& config,
+      uint32_t minKbps,
+      uint32_t maxKbps,
+      uint32_t minBurstKb,
+      uint32_t maxBurstKb) {
+    for (auto queueId : queueIds) {
+      utility::addQueueShaperConfig(&config, queueId, minKbps, maxKbps);
+      utility::addQueueBurstSizeConfig(
+          &config, queueId, minBurstKb, maxBurstKb);
     }
   }
 
@@ -586,6 +617,41 @@ class AgentAqmTest : public AgentHwTest {
         std::move(verifyWredDroppedPacketCount));
   }
 
+  void runEcnThresholdTest() {
+    constexpr auto kMarkedPackets{50};
+    constexpr auto kThresholdBytes{utility::kQueueConfigAqmsEcnThresholdMinMax};
+    /*
+     * Broadcom platforms does ECN marking at the egress and not in
+     * MMU. ECN mark/no-mark decision is refreshed periodically, like
+     * for TH3/TH4 once in 0.5usec, TH in 1usec etc. This means, once
+     * ECN threshold is exceeded, packets will continue to be marked
+     * until the next refresh, which will result in more ECN marking
+     * during this test. Hence, apply a shaper on the queue to ensure
+     * packets are sent out one per 2 usec (500K pps), which is enough
+     * spacing of packets egressing to have ECN accounting done
+     * with minimal error. However, in prod devices, we should expect
+     * to see this +/- error with ECN marking.
+     */
+    auto shaperSetup = [&](cfg::SwitchConfig& config,
+                           const std::vector<int>& queueIds,
+                           const int txPacketLen) {
+      auto maxQueueShaperKbps = ceil(500000 * txPacketLen / 1000);
+      queueShaperAndBurstSetup(
+          queueIds,
+          config,
+          0,
+          maxQueueShaperKbps,
+          utility::kQueueConfigBurstSizeMinKb,
+          utility::kQueueConfigBurstSizeMaxKb);
+    };
+    validateAqmThresholds(
+        kECT0,
+        kThresholdBytes,
+        kMarkedPackets,
+        verifyEcnMarkedPacketCount,
+        std::move(shaperSetup));
+  }
+
   void runPerQueueWredDropStatsTest() {
     const std::array<int, 3> wredQueueIds = {
         utility::getOlympicQueueId(utility::OlympicQueueType::SILVER),
@@ -747,6 +813,10 @@ TEST_F(AgentAqmTest, verifyWredThreshold) {
 
 TEST_F(AgentAqmTest, verifyPerQueueWredDropStats) {
   runPerQueueWredDropStatsTest();
+}
+
+TEST_F(AgentAqmTest, verifyEcnThreshold) {
+  runEcnThresholdTest();
 }
 
 } // namespace facebook::fboss
