@@ -32,6 +32,7 @@ SaiVendorSwitchManager::SaiVendorSwitchManager(
       SaiVendorSwitchTraits::CreateAttributes{eventIdToOptions};
   vendorSwitch_ =
       vendorSwitchStore.setObject(std::monostate{}, vendorSwitchTraits);
+  initWarningInterruptEvents();
 #endif
 }
 
