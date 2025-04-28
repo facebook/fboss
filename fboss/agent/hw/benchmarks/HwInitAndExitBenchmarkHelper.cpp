@@ -99,7 +99,10 @@ std::optional<uint16_t> getUplinksCount(
         cfg::PortSpeed::HUNDREDG,
         cfg::PortSpeed::HUNDREDG},
        4},
-  };
+      {{PlatformType::PLATFORM_MINIPACK3N,
+        cfg::PortSpeed::FOURHUNDREDG,
+        cfg::PortSpeed::FOURHUNDREDG},
+       64}};
 
   auto iter = numUplinksMap.find(
       std::make_tuple(platformType, uplinkSpeed, downlinkSpeed));
@@ -134,6 +137,7 @@ utility::RouteDistributionGenerator::ThriftRouteChunks getRoutes(
     return utility::RSWRouteScaleGenerator(swSwitch->getState())
         .getThriftRoutes();
   } else if (
+      asicType == cfg::AsicType::ASIC_TYPE_CHENAB ||
       asicType == cfg::AsicType::ASIC_TYPE_TOMAHAWK3 ||
       asicType == cfg::AsicType::ASIC_TYPE_TOMAHAWK4 ||
       asicType == cfg::AsicType::ASIC_TYPE_EBRO ||
