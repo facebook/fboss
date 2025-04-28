@@ -23808,7 +23808,18 @@ std::pair<strings::receiveQueueProcessorErrors, Child<::std::int64_t, ::apache::
 std::pair<strings::schedulerErrors, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
 std::pair<strings::sramPacketBufferErrors, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
 std::pair<strings::sramQueueManagementErrors, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
-std::pair<strings::tmActionResolutionErrors, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
+std::pair<strings::tmActionResolutionErrors, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+std::pair<strings::ingressTmErrors, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+std::pair<strings::egressTmErrors, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+std::pair<strings::ingressPpErrors, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+std::pair<strings::egressPpErrors, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+std::pair<strings::dramErrors, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+std::pair<strings::counterAndMeterErrors, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+std::pair<strings::fabricRxErrors, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+std::pair<strings::fabricTxErrors, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+std::pair<strings::fabricLinkErrors, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+std::pair<strings::fabricTopologyErrors, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+std::pair<strings::networkInterfaceErrors, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
@@ -23847,7 +23858,18 @@ std::pair<strings::tmActionResolutionErrors, Child<::std::int64_t, ::apache::thr
    std::pair<std::integral_constant<apache::thrift::field_id_t, 36>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 37>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 38>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 39>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 39>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 40>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 41>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 42>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 43>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 44>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 45>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 46>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 47>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 48>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 49>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 50>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
   template <typename Name>
   using NameToId = fatal::tuple<std::pair<strings::parityErrors, std::integral_constant<apache::thrift::field_id_t, 1>>,
 std::pair<strings::correctedParityErrors, std::integral_constant<apache::thrift::field_id_t, 2>>,
@@ -23887,7 +23909,18 @@ std::pair<strings::receiveQueueProcessorErrors, std::integral_constant<apache::t
 std::pair<strings::schedulerErrors, std::integral_constant<apache::thrift::field_id_t, 36>>,
 std::pair<strings::sramPacketBufferErrors, std::integral_constant<apache::thrift::field_id_t, 37>>,
 std::pair<strings::sramQueueManagementErrors, std::integral_constant<apache::thrift::field_id_t, 38>>,
-std::pair<strings::tmActionResolutionErrors, std::integral_constant<apache::thrift::field_id_t, 39>>>::template type_of<Name>;
+std::pair<strings::tmActionResolutionErrors, std::integral_constant<apache::thrift::field_id_t, 39>>,
+std::pair<strings::ingressTmErrors, std::integral_constant<apache::thrift::field_id_t, 40>>,
+std::pair<strings::egressTmErrors, std::integral_constant<apache::thrift::field_id_t, 41>>,
+std::pair<strings::ingressPpErrors, std::integral_constant<apache::thrift::field_id_t, 42>>,
+std::pair<strings::egressPpErrors, std::integral_constant<apache::thrift::field_id_t, 43>>,
+std::pair<strings::dramErrors, std::integral_constant<apache::thrift::field_id_t, 44>>,
+std::pair<strings::counterAndMeterErrors, std::integral_constant<apache::thrift::field_id_t, 45>>,
+std::pair<strings::fabricRxErrors, std::integral_constant<apache::thrift::field_id_t, 46>>,
+std::pair<strings::fabricTxErrors, std::integral_constant<apache::thrift::field_id_t, 47>>,
+std::pair<strings::fabricLinkErrors, std::integral_constant<apache::thrift::field_id_t, 48>>,
+std::pair<strings::fabricTopologyErrors, std::integral_constant<apache::thrift::field_id_t, 49>>,
+std::pair<strings::networkInterfaceErrors, std::integral_constant<apache::thrift::field_id_t, 50>>>::template type_of<Name>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -23932,6 +23965,17 @@ std::pair<strings::tmActionResolutionErrors, std::integral_constant<apache::thri
     STRUCT_CHILD_GETTERS(sramPacketBufferErrors, 37);
     STRUCT_CHILD_GETTERS(sramQueueManagementErrors, 38);
     STRUCT_CHILD_GETTERS(tmActionResolutionErrors, 39);
+    STRUCT_CHILD_GETTERS(ingressTmErrors, 40);
+    STRUCT_CHILD_GETTERS(egressTmErrors, 41);
+    STRUCT_CHILD_GETTERS(ingressPpErrors, 42);
+    STRUCT_CHILD_GETTERS(egressPpErrors, 43);
+    STRUCT_CHILD_GETTERS(dramErrors, 44);
+    STRUCT_CHILD_GETTERS(counterAndMeterErrors, 45);
+    STRUCT_CHILD_GETTERS(fabricRxErrors, 46);
+    STRUCT_CHILD_GETTERS(fabricTxErrors, 47);
+    STRUCT_CHILD_GETTERS(fabricLinkErrors, 48);
+    STRUCT_CHILD_GETTERS(fabricTopologyErrors, 49);
+    STRUCT_CHILD_GETTERS(networkInterfaceErrors, 50);
 
   template <apache::thrift::field_id_t __id>
   auto operator()(const std::integral_constant<apache::thrift::field_id_t, __id>&) {
@@ -23974,6 +24018,17 @@ std::pair<strings::tmActionResolutionErrors, std::integral_constant<apache::thri
     else if constexpr (__id == 37) { return sramPacketBufferErrors(); }
     else if constexpr (__id == 38) { return sramQueueManagementErrors(); }
     else if constexpr (__id == 39) { return tmActionResolutionErrors(); }
+    else if constexpr (__id == 40) { return ingressTmErrors(); }
+    else if constexpr (__id == 41) { return egressTmErrors(); }
+    else if constexpr (__id == 42) { return ingressPpErrors(); }
+    else if constexpr (__id == 43) { return egressPpErrors(); }
+    else if constexpr (__id == 44) { return dramErrors(); }
+    else if constexpr (__id == 45) { return counterAndMeterErrors(); }
+    else if constexpr (__id == 46) { return fabricRxErrors(); }
+    else if constexpr (__id == 47) { return fabricTxErrors(); }
+    else if constexpr (__id == 48) { return fabricLinkErrors(); }
+    else if constexpr (__id == 49) { return fabricTopologyErrors(); }
+    else if constexpr (__id == 50) { return networkInterfaceErrors(); }
   }
 
   template <typename T, T... Values>

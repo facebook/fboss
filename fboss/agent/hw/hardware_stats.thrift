@@ -262,6 +262,18 @@ struct HwAsicErrors {
   37: optional i64 sramPacketBufferErrors;
   38: optional i64 sramQueueManagementErrors;
   39: optional i64 tmActionResolutionErrors;
+  // DNX aggregated block level errors
+  40: optional i64 ingressTmErrors;
+  41: optional i64 egressTmErrors;
+  42: optional i64 ingressPpErrors;
+  43: optional i64 egressPpErrors;
+  44: optional i64 dramErrors;
+  45: optional i64 counterAndMeterErrors;
+  46: optional i64 fabricRxErrors;
+  47: optional i64 fabricTxErrors;
+  48: optional i64 fabricLinkErrors;
+  49: optional i64 fabricTopologyErrors;
+  50: optional i64 networkInterfaceErrors;
 }
 
 struct HwTeFlowStats {
