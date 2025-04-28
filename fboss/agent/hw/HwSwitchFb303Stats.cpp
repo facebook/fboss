@@ -385,6 +385,36 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
           SUM,
           RATE),
       dramErrors_(map, getCounterPrefix() + vendor + ".dram.errors", SUM, RATE),
+      counterAndMeterErrors_(
+          map,
+          getCounterPrefix() + vendor + ".counter_and_meter.errors",
+          SUM,
+          RATE),
+      fabricRxErrors_(
+          map,
+          getCounterPrefix() + vendor + ".fabric_rx.errors",
+          SUM,
+          RATE),
+      fabricTxErrors_(
+          map,
+          getCounterPrefix() + vendor + ".fabric_tx.errors",
+          SUM,
+          RATE),
+      fabricLinkErrors_(
+          map,
+          getCounterPrefix() + vendor + ".fabric_link.errors",
+          SUM,
+          RATE),
+      fabricTopologyErrors_(
+          map,
+          getCounterPrefix() + vendor + ".fabric_topology.errors",
+          SUM,
+          RATE),
+      networkInterfaceErrors_(
+          map,
+          getCounterPrefix() + vendor + ".network_interface.errors",
+          SUM,
+          RATE),
       hwInitializedTimeMs_(
           map,
           getCounterPrefix() + vendor + ".hw_initialized_time_ms",
@@ -715,6 +745,30 @@ int64_t HwSwitchFb303Stats::getDramErrors() const {
   return getCumulativeValue(dramErrors_);
 }
 
+int64_t HwSwitchFb303Stats::getCounterAndMeterErrors() const {
+  return getCumulativeValue(counterAndMeterErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getFabricRxErrors() const {
+  return getCumulativeValue(fabricRxErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getFabricTxErrors() const {
+  return getCumulativeValue(fabricTxErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getFabricLinkErrors() const {
+  return getCumulativeValue(fabricLinkErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getFabricTopologyErrors() const {
+  return getCumulativeValue(fabricTopologyErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getNetworkInterfaceErrors() const {
+  return getCumulativeValue(networkInterfaceErrors_);
+}
+
 int64_t HwSwitchFb303Stats::getIsolationFirmwareCrashes() const {
   return getCumulativeValue(isolationFirmwareCrashes_);
 }
@@ -815,6 +869,12 @@ HwAsicErrors HwSwitchFb303Stats::getHwAsicErrors() const {
   asicErrors.ingressPpErrors() = getIngressPpErrors();
   asicErrors.egressPpErrors() = getEgressPpErrors();
   asicErrors.dramErrors() = getDramErrors();
+  asicErrors.counterAndMeterErrors() = getCounterAndMeterErrors();
+  asicErrors.fabricRxErrors() = getFabricRxErrors();
+  asicErrors.fabricTxErrors() = getFabricTxErrors();
+  asicErrors.fabricLinkErrors() = getFabricLinkErrors();
+  asicErrors.fabricTopologyErrors() = getFabricTopologyErrors();
+  asicErrors.networkInterfaceErrors() = getNetworkInterfaceErrors();
   return asicErrors;
 }
 
