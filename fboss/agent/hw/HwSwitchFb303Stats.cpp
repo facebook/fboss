@@ -364,6 +364,27 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
           getCounterPrefix() + vendor + ".tm_action_resolution.errors",
           SUM,
           RATE),
+      ingressTmErrors_(
+          map,
+          getCounterPrefix() + vendor + ".ingress_tm.errors",
+          SUM,
+          RATE),
+      egressTmErrors_(
+          map,
+          getCounterPrefix() + vendor + ".egress_tm.errors",
+          SUM,
+          RATE),
+      ingressPpErrors_(
+          map,
+          getCounterPrefix() + vendor + ".ingress_pp.errors",
+          SUM,
+          RATE),
+      egressPpErrors_(
+          map,
+          getCounterPrefix() + vendor + ".egress_pp.errors",
+          SUM,
+          RATE),
+      dramErrors_(map, getCounterPrefix() + vendor + ".dram.errors", SUM, RATE),
       hwInitializedTimeMs_(
           map,
           getCounterPrefix() + vendor + ".hw_initialized_time_ms",
@@ -674,6 +695,26 @@ int64_t HwSwitchFb303Stats::getTmActionResolutionErrors() const {
   return getCumulativeValue(tmActionResolutionErrors_);
 }
 
+int64_t HwSwitchFb303Stats::getIngressTmErrors() const {
+  return getCumulativeValue(ingressTmErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getEgressTmErrors() const {
+  return getCumulativeValue(egressTmErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getIngressPpErrors() const {
+  return getCumulativeValue(ingressPpErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getEgressPpErrors() const {
+  return getCumulativeValue(egressPpErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getDramErrors() const {
+  return getCumulativeValue(dramErrors_);
+}
+
 int64_t HwSwitchFb303Stats::getIsolationFirmwareCrashes() const {
   return getCumulativeValue(isolationFirmwareCrashes_);
 }
@@ -769,6 +810,11 @@ HwAsicErrors HwSwitchFb303Stats::getHwAsicErrors() const {
   asicErrors.sramPacketBufferErrors() = getSramPacketBufferErrors();
   asicErrors.sramQueueManagementErrors() = getSramQueueManagementErrors();
   asicErrors.tmActionResolutionErrors() = getTmActionResolutionErrors();
+  asicErrors.ingressTmErrors() = getIngressTmErrors();
+  asicErrors.egressTmErrors() = getEgressTmErrors();
+  asicErrors.ingressPpErrors() = getIngressPpErrors();
+  asicErrors.egressPpErrors() = getEgressPpErrors();
+  asicErrors.dramErrors() = getDramErrors();
   return asicErrors;
 }
 

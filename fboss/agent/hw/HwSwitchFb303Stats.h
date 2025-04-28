@@ -161,6 +161,21 @@ class HwSwitchFb303Stats {
   void tmActionResolutionError() {
     tmActionResolutionErrors_.addValue(1);
   }
+  void ingressTmError() {
+    ingressTmErrors_.addValue(1);
+  }
+  void egressTmError() {
+    egressTmErrors_.addValue(1);
+  }
+  void ingressPpError() {
+    ingressPpErrors_.addValue(1);
+  }
+  void egressPpError() {
+    egressPpErrors_.addValue(1);
+  }
+  void dramError() {
+    dramErrors_.addValue(1);
+  }
   void hwInitializedTime(uint64_t ms) {
     hwInitializedTimeMs_.addValue(ms);
   }
@@ -287,6 +302,11 @@ class HwSwitchFb303Stats {
   int64_t getSramPacketBufferErrors() const;
   int64_t getSramQueueManagementErrors() const;
   int64_t getTmActionResolutionErrors() const;
+  int64_t getIngressTmErrors() const;
+  int64_t getEgressTmErrors() const;
+  int64_t getIngressPpErrors() const;
+  int64_t getEgressPpErrors() const;
+  int64_t getDramErrors() const;
 
   // FW Errors
   int64_t getIsolationFirmwareCrashes() const;
@@ -413,6 +433,11 @@ class HwSwitchFb303Stats {
   TLTimeseries sramPacketBufferErrors_;
   TLTimeseries sramQueueManagementErrors_;
   TLTimeseries tmActionResolutionErrors_;
+  TLTimeseries ingressTmErrors_;
+  TLTimeseries egressTmErrors_;
+  TLTimeseries ingressPpErrors_;
+  TLTimeseries egressPpErrors_;
+  TLTimeseries dramErrors_;
   TLTimeseries hwInitializedTimeMs_;
   TLTimeseries bootTimeMs_;
   TLTimeseries coldBoot_;
