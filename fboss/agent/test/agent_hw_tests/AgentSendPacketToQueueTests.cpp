@@ -22,6 +22,7 @@ namespace {
 constexpr uint8_t kDefaultQueue = 0;
 constexpr uint8_t kTestingQueue = 7;
 constexpr uint32_t kDscp = 0x24;
+constexpr uint8_t kChenabTxQueue = 7;
 } // namespace
 
 namespace facebook::fboss {
@@ -52,7 +53,17 @@ void AgentSendPacketToQueueTest::checkSendPacket(
   auto verify = [=, this]() {
     utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState()};
     auto port = ecmpHelper6.nhop(0).portDesc.phyPortID();
-    const uint8_t queueID = ucQueue ? *ucQueue : kDefaultQueue;
+    uint8_t queueID = ucQueue ? *ucQueue : kDefaultQueue;
+
+    // for chenab, when a packet is injected by CPU into port  with pipeline
+    // bypass  the queue used for tx is not 'deffault queue' but special
+    // internal queue  is used (queue 16) this queue is accounted against queue
+    // id 7
+    auto sw = getAgentEnsemble()->getSw();
+    auto asic = utility::getAsic(*sw, port);
+    if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+      queueID = kChenabTxQueue;
+    }
 
     auto beforeOutPkts =
         folly::copy(getLatestPortStats(port).queueOutPackets_().value())

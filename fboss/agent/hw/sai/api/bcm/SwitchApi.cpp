@@ -243,6 +243,16 @@ const std::vector<sai_stat_id_t>& SaiSwitchTraits::egressParityCellError() {
   return stats;
 }
 
+const std::vector<sai_stat_id_t>& SaiSwitchTraits::ddpPacketError() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  static const std::vector<sai_stat_id_t> stats{
+      SAI_SWITCH_STAT_DDP_PACKET_ERROR};
+#else
+  static const std::vector<sai_stat_id_t> stats;
+#endif
+  return stats;
+}
+
 void SwitchApi::registerSwitchEventCallback(
     SwitchSaiId id,
     void* switch_event_cb) const {
@@ -560,10 +570,10 @@ SaiSwitchTraits::Attributes::AttributeSdkRegDumpLogPath::operator()() {
 
 std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeFirmwareObjectList::operator()() {
-#if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
-  return SAI_SWITCH_ATTR_FIRMWARE_OBJECT_LIST;
-#elif defined(SAI_VERSION_12_0_EA_DNX_ODP)
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
   return SAI_SWITCH_ATTR_FIRMWARE_OBJECTS;
+#elif defined(BRCM_SAI_SDK_DNX_GTE_11_7)
+  return SAI_SWITCH_ATTR_FIRMWARE_OBJECT_LIST;
 #endif
   return std::nullopt;
 }

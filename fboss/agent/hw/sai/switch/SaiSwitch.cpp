@@ -13,6 +13,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/LockPolicy.h"
 #include "fboss/agent/Utils.h"
+#include "fboss/agent/VoqUtils.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/HwPortFb303Stats.h"
 #include "fboss/agent/hw/HwResourceStatsPublisher.h"
@@ -277,7 +278,6 @@ PortSaiId SaiSwitch::getCPUPortSaiId() const {
 SaiSwitch::SaiSwitch(SaiPlatform* platform, uint32_t featuresDesired)
     : HwSwitch(featuresDesired),
       platform_(platform),
-      saiStore_(std::make_unique<SaiStore>()),
       fabricConnectivityManager_(
           std::make_unique<FabricConnectivityManager>()) {
   utilCreateDir(platform_->getDirectoryUtil()->getVolatileStateDir());
@@ -404,6 +404,19 @@ void SaiSwitch::processLocalCapsuleSwitchIdsDelta(
       !delta.newState()->getClusterId(mySwitchId)) {
     return;
   }
+
+  auto myDsfNode = delta.newState()->getDsfNodes()->getNodeIf(mySwitchId);
+  CHECK(myDsfNode);
+  /*
+   * To avoid LLFC interrupts on EDSW side, we skip setting local capsule
+   * for FDSWs in the BEEP layer.
+   */
+  auto fabricLevel = myDsfNode->getFabricLevel();
+  if (fabricLevel && fabricLevel.value() == 1 &&
+      myDsfNode->getClusterId() >= k2StageEdgePodClusterId) {
+    return;
+  }
+
   std::vector<SwitchID> newVal;
   CHECK(platform_->getAsic()->getSwitchId());
   if (dsfNodesDelta.getNew() &&
@@ -2363,13 +2376,6 @@ void SaiSwitch::linkStateChangedCallbackBottomHalf(
         managerTable_->neighborManager().handleLinkDown(
             SaiPortDescriptor(swPortId));
       }
-      /*
-       * Enable AFE adaptive mode (S249471) on TAJO platforms when a port
-       * flaps
-       */
-      if (asicType_ == cfg::AsicType::ASIC_TYPE_EBRO) {
-        managerTable_->portManager().enableAfeAdaptiveMode(swPortId);
-      }
     }
     swPortId2Status[swPortId] = up;
   }
@@ -2832,7 +2838,7 @@ void SaiSwitch::initStoreAndManagersLocked(
     HwWriteBehavior behavior,
     const folly::dynamic* adapterKeys,
     const folly::dynamic* adapterKeys2AdapterHostKeys) {
-  saiStore_->setSwitchId(saiSwitchId_);
+  saiStore_ = std::make_unique<SaiStore>(saiSwitchId_);
   saiStore_->reload(adapterKeys, adapterKeys2AdapterHostKeys);
   managerTable_->createSaiTableManagers(
       saiStore_.get(), platform_, concurrentIndices_.get());
@@ -4076,9 +4082,8 @@ std::string SaiSwitch::listObjectsLocked(
     bool cached,
     const std::lock_guard<std::mutex>& lock) const {
   const SaiStore* store = saiStore_.get();
-  SaiStore directToHwStore;
   if (!cached) {
-    directToHwStore.setSwitchId(getSaiSwitchId());
+    SaiStore directToHwStore(getSaiSwitchId());
     auto json = toFollyDynamicLocked(lock);
     std::unique_ptr<folly::dynamic> adapterKeysJson;
     std::unique_ptr<folly::dynamic> adapterKeys2AdapterHostKeysJson;
@@ -4514,12 +4519,13 @@ void SaiSwitch::pfcDeadlockNotificationCallback(
     XLOG_EVERY_MS(WARNING, 5000)
         << "PFC deadlock notification callback invoked for qid: " << qId
         << ", on port: " << portId << ", with event: " << deadlockEvent;
+    std::lock_guard<std::mutex> locked(saiSwitchMutex_);
     switch (deadlockEvent) {
       case SAI_QUEUE_PFC_DEADLOCK_EVENT_TYPE_DETECTED:
-        callback_->pfcWatchdogStateChanged(portId, true);
+        managerTable_->portManager().incrementPfcDeadlockCounter(portId);
         break;
       case SAI_QUEUE_PFC_DEADLOCK_EVENT_TYPE_RECOVERED:
-        callback_->pfcWatchdogStateChanged(portId, false);
+        managerTable_->portManager().incrementPfcRecoveryCounter(portId);
         break;
       default:
         XLOG(ERR) << "Unknown event " << deadlockEvent

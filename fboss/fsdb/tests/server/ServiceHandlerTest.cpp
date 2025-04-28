@@ -64,12 +64,14 @@ TEST_F(ServiceHandlerTest, testSubscriberRemovedOnFailure) {
       folly::EventBase evb;
       auto isSubscribed = [this, &subId]() {
         auto subscribers = fsdb_->serviceHandler().getActiveSubscriptions();
-        return std::find_if(
-                   subscribers.begin(),
-                   subscribers.end(),
-                   [&](const auto& subscriber) {
-                     return subscriber.second.subscriberId() == subId;
-                   }) != subscribers.end();
+        for (const auto& it : subscribers) {
+          for (const auto& subscription : it.second) {
+            if (subscription.subscriberId() == subId) {
+              return true;
+            }
+          }
+        }
+        return false;
       };
       try {
         auto client = createClient(&evb);
@@ -130,6 +132,45 @@ TEST_F(ServiceHandlerTest, subscribeDup) {
       client->sync_subscribeState(createPatchRequest("test-sub-2", true));
   EXPECT_NO_THROW(
       client->sync_subscribeState(createPatchRequest("test-sub-2", true)));
+}
+
+TEST_F(ServiceHandlerTest, verifyActiveSubscriptions) {
+  SubscriberIdToOperSubscriberInfos subInfos;
+  SubscriberIds idsToQuery = {"test-sub-1"};
+  folly::EventBase evb;
+
+  auto client = createClient(&evb);
+  auto sub1 =
+      client->sync_subscribeState(createPatchRequest("test-sub-1", true));
+
+  auto countActiveSubs = [](auto& subInfos) {
+    int count{0};
+    for (const auto& [_, info] : subInfos) {
+      count += info.size();
+    }
+    return count;
+  };
+
+  // forceSubscribe, and verify activeSubscriptions
+  {
+    auto client2 = createClient(&evb);
+    auto sub2 =
+        client2->sync_subscribeState(createPatchRequest("test-sub-1", true));
+    int expectedActiveSubscriptions = 2;
+    WITH_RETRIES({
+      client2->sync_getOperSubscriberInfos(subInfos, idsToQuery);
+      EXPECT_EVENTUALLY_EQ(
+          countActiveSubs(subInfos), expectedActiveSubscriptions);
+    });
+  }
+
+  // after sub2 is gone, should still see sub1
+  int expectedActiveSubscriptions = 1;
+  WITH_RETRIES({
+    client->sync_getOperSubscriberInfos(subInfos, idsToQuery);
+    EXPECT_EVENTUALLY_EQ(
+        countActiveSubs(subInfos), expectedActiveSubscriptions);
+  });
 }
 
 } // namespace facebook::fboss::fsdb::test

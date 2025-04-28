@@ -3,7 +3,6 @@
 #include <folly/MapUtil.h>
 
 #include "fboss/agent/AgentFeatures.h"
-#include "fboss/agent/TxPacket.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
@@ -14,6 +13,8 @@
 #include "fboss/agent/test/utils/PortTestUtils.h"
 #include "fboss/agent/test/utils/QosTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
+
+#include <fmt/ranges.h>
 
 DEFINE_bool(
     skip_stop_pfc_test_traffic,
@@ -85,6 +86,8 @@ void waitPfcCounterIncrease(
     XLOG(DBG0) << " Port: " << portId << " PFC TX/RX PFC/RX_PFC_XON "
                << txPfcCtr << "/" << rxPfcCtr << "/" << rxPfcXonCtr
                << ", priority: " << pfcPriority;
+    // Also log in/out packet/byte counts to make sure packets are flowing.
+    XLOG(DBG0) << facebook::fboss::utility::pfcStatsString(portStats);
 
     EXPECT_EVENTUALLY_GT(txPfcCtr, 0);
 
@@ -172,8 +175,8 @@ void validateIngressPriorityGroupWatermarkCounters(
                                  ->getName();
       std::string pg = ensemble->isSai() ? folly::sformat(".pg{}", pri) : "";
       auto regex = folly::sformat(
-          "buffer_watermark_pg_{}.{}{}.p100.60", watermarkKeys, portName, pg);
-      auto counters = facebook::fb303::fbData->getRegexCounters(regex);
+          "buffer_watermark_pg_({}).{}{}.p100.60", watermarkKeys, portName, pg);
+      auto counters = ensemble->getFb303CountersByRegex(portId, regex);
       EXPECT_EVENTUALLY_EQ(counters.size(), numKeys);
       for (const auto& ctr : counters) {
         XLOG(DBG0) << ctr.first << " : " << ctr.second;
@@ -676,11 +679,13 @@ class AgentTrafficPfcZeroGlobalHeadroomTest : public AgentTrafficPfcTest {
 };
 
 TEST_F(AgentTrafficPfcTest, verifyPfcWithZeroGlobalHeadRoomCfg) {
+  auto asicType =
+      utility::checkSameAndGetAsicType(getAgentEnsemble()->getCurrentConfig());
   TrafficTestParams param{
-      .buffer = defaultPfcBufferParams(),
+      .buffer = PfcBufferParams::getPfcBufferParams(
+          asicType, PfcBufferParams::kGlobalSharedBytes, 0 /*globalHeadroom*/),
       .expectDrop = true,
   };
-  param.buffer.globalHeadroom = 0;
   runTestWithCfg(kLosslessTrafficClass, kLosslessPriority, {}, param);
 }
 
@@ -772,10 +777,12 @@ class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcTest {
           std::make_tuple(static_cast<int>(port), kLosslessPriority));
       ASSERT_FALSE(iter == kRegValToForcePfcTxForPriorityOnPortDnx.end());
       std::string out;
+      auto switchID = scopeResolver().scope(port).switchId();
       getAgentEnsemble()->runDiagCommand(
           fmt::format(
               "modreg CFC_FRC_NIF_ETH_PFC FRC_NIF_ETH_PFC={}\n", iter->second),
-          out);
+          out,
+          switchID);
     } else {
       // Disable Tx on the outbound port so that queues will build up.
       utility::setCreditWatchdogAndPortTx(
@@ -804,11 +811,13 @@ class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcTest {
                                ->getNodeIf(portId)
                                ->getName();
     return {
-        facebook::fb303::fbData
-            ->getCounterIfExists(portName + ".pfc_deadlock_detection.sum")
+        getAgentEnsemble()
+            ->getFb303CounterIfExists(
+                portId, portName + ".pfc_deadlock_detection.sum")
             .value_or(0),
-        facebook::fb303::fbData
-            ->getCounterIfExists(portName + ".pfc_deadlock_recovery.sum")
+        getAgentEnsemble()
+            ->getFb303CounterIfExists(
+                portId, portName + ".pfc_deadlock_recovery.sum")
             .value_or(0),
     };
   }
@@ -871,13 +880,14 @@ class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcTest {
     auto asic = utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
     if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
       std::string out;
+      auto switchID = scopeResolver().scope(portId).switchId();
       // TODO: When PFC WD is continuously being triggered with this register
       // config, getAttr for queue PFC WD enabled returns wrong value and is
       // tracked in CS00012388717. Until that is fixed, work around the issue.
       // For that, stop PFC WD being triggered continuously and wait to ensure
       // that the PFC DL generation settles.
       getAgentEnsemble()->runDiagCommand(
-          "modreg CFC_FRC_NIF_ETH_PFC FRC_NIF_ETH_PFC=0\n", out);
+          "modreg CFC_FRC_NIF_ETH_PFC FRC_NIF_ETH_PFC=0\n", out, switchID);
     }
     waitForPfcDeadlocksToSettle(portId);
   }

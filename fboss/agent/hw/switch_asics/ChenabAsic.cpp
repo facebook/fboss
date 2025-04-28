@@ -209,7 +209,8 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::BUFFER_POOL_HEADROOM_WATERMARK:
     case HwAsic::Feature::WARMBOOT: // TODO: add support for warmboot once SDK
                                     // supports it
-    case HwAsic::Feature::SAI_SET_TC_FOR_USER_DEFINED_TRAP:
+    case HwAsic::Feature::SAI_SET_TC_WITH_USER_DEFINED_TRAP_CPU_ACTION:
+    case HwAsic::Feature::DRAM_DATAPATH_PACKET_ERROR_STATS:
       return false;
   }
   return false;
@@ -402,6 +403,15 @@ uint32_t ChenabAsic::getMaxVariableWidthEcmpSize() const {
 }
 uint32_t ChenabAsic::getMaxEcmpSize() const {
   return 512;
+}
+std::optional<uint32_t> ChenabAsic::getMaxEcmpGroups() const {
+  return 4096;
+}
+std::optional<uint32_t> ChenabAsic::getMaxEcmpMembers() const {
+  return 32000;
+}
+std::optional<uint32_t> ChenabAsic::getMaxDlbEcmpGroups() const {
+  return 256;
 }
 uint32_t ChenabAsic::getNumCores() const {
   return 12;

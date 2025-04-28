@@ -10,6 +10,7 @@
 #pragma once
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
+#include "fboss/lib/RefMap.h"
 
 #include <memory>
 
@@ -19,6 +20,30 @@ namespace facebook::fboss {
 class StateDelta;
 class SwitchState;
 
+class NextHopGroupInfo {
+ public:
+  using NextHopGroupId = uint32_t;
+  explicit NextHopGroupInfo(NextHopGroupId id) : id_(id) {}
+  NextHopGroupId getID() const {
+    return id_;
+  }
+  size_t getRouteUsageCount() const {
+    CHECK_GT(routeUsageCount_, 0);
+    return routeUsageCount_;
+  }
+  void incRouteUsageCount() {
+    ++routeUsageCount_;
+  }
+  void decRouteUsageCount() {
+    --routeUsageCount_;
+  }
+
+ private:
+  static constexpr int kInvalidRouteUsageCount = 0;
+  NextHopGroupId id_;
+  int routeUsageCount_{kInvalidRouteUsageCount};
+};
+
 class EcmpGroupConsolidator {
  public:
   using NextHopGroupId = uint32_t;
@@ -26,6 +51,7 @@ class EcmpGroupConsolidator {
   const auto& getNhopsToId() const {
     return nextHopGroup2Id_;
   }
+  size_t getRouteUsageCount(NextHopGroupId nhopGrpId) const;
 
  private:
   template <typename AddrT>
@@ -37,5 +63,8 @@ class EcmpGroupConsolidator {
   static uint32_t constexpr kMinNextHopGroupId = 1;
   NextHopGroupId findNextAvailableId() const;
   std::map<RouteNextHopSet, NextHopGroupId> nextHopGroup2Id_;
+  StdRefMap<NextHopGroupId, NextHopGroupInfo> nextHopGroupIdToInfo_;
+  std::unordered_map<folly::CIDRNetwork, std::shared_ptr<NextHopGroupInfo>>
+      prefixToGroupInfo_;
 };
 } // namespace facebook::fboss

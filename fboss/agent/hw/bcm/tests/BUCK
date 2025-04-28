@@ -607,21 +607,27 @@ cpp_library(
         "HwTestRouteUtilsThriftHandler.cpp",
         "HwTestTamUtilsThriftHandler.cpp",
         "HwTestThriftHandler.cpp",
+        "HwTestUdfUtilsThriftHandler.cpp",
         "HwTestVoqSwitchUtilsThriftHandler.cpp",
     ],
     headers = [
     ],
     undefined_symbols = "True",  # The sai/bcm implementations will define some functions
     exported_deps = [
+        "fbsource//third-party/googletest:gtest",
         ":bcm_trunk_utils",
         "//fboss/agent:fboss-types",
         "//fboss/agent:hw_switch",
         "//fboss/agent/hw/bcm:bcm",
         "//fboss/agent/hw/bcm:bcmaddress_fb_convertors",  # @manual
         "//fboss/agent/hw/switch_asics:switch_asics",
+        "//fboss/agent/hw/test:hw_test_acl_utils",
         "//fboss/agent/hw/test:hw_test_ecmp_utils",
         "//fboss/agent/hw/test:hw_test_thrift_handler_h",
+        "//fboss/agent/packet:ipproto",
+        "//fboss/agent/state:state",
         "//fboss/agent/test/utils:acl_test_utils",
+        "//fboss/agent/test/utils:udf_test_utils",
     ],
     exported_external_deps = [
         ("broadcom-xgs-robo", None, "xgs_robo"),

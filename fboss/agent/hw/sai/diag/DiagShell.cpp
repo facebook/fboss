@@ -151,9 +151,8 @@ std::unique_ptr<Repl> DiagShell::makeRepl() const {
     case HwAsic::AsicVendor::ASIC_VENDOR_BCM:
       return std::make_unique<SaiRepl>(hw_->getSaiSwitchId());
     case HwAsic::AsicVendor::ASIC_VENDOR_TAJO:
-      return std::make_unique<PythonRepl>(ptys_->file.fd());
     case HwAsic::AsicVendor::ASIC_VENDOR_CHENAB:
-      throw FbossError("Shell still not supported for Yangra/MP3N platforms");
+      return std::make_unique<PythonRepl>(ptys_->file.fd());
     default:
       throw FbossError("Shell not supported for fake platforms");
   }
@@ -353,9 +352,8 @@ std::string DiagCmdServer::getDelimiterDiagCmd(const std::string& UUID) const {
     case HwAsic::AsicVendor::ASIC_VENDOR_BCM:
       return UUID + "\n";
     case HwAsic::AsicVendor::ASIC_VENDOR_TAJO:
-      return folly::to<std::string>("print('", UUID, "')\n");
     case HwAsic::AsicVendor::ASIC_VENDOR_CHENAB:
-      throw FbossError("Shell still not supported for Yangra/MP3N platforms");
+      return folly::to<std::string>("print('", UUID, "')\n");
     default:
       throw FbossError("Shell not supported for fake platforms");
   }
@@ -385,9 +383,8 @@ std::string& DiagCmdServer::cleanUpOutput(
       }
       return output;
     case HwAsic::AsicVendor::ASIC_VENDOR_TAJO:
-      return output;
     case HwAsic::AsicVendor::ASIC_VENDOR_CHENAB:
-      throw FbossError("Shell still not supported for Yangra/MP3N platforms");
+      return output;
     default:
       throw FbossError("Shell not supported for fake platforms");
   }

@@ -355,8 +355,8 @@ bool Bsp::setFanPwmSysfs(const std::string& path, int pwm) {
   return writeSysfs(path, pwm);
 }
 
-bool Bsp::setFanLedSysfs(const std::string& path, int pwm) {
-  return writeSysfs(path, pwm);
+bool Bsp::setFanLedSysfs(const std::string& path, int val) {
+  return writeSysfs(path, val);
 }
 
 Bsp::~Bsp() {

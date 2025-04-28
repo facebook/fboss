@@ -729,7 +729,9 @@ TEST_F(AgentUdfAclCounterTest, VerifyUdfPlusUdfHash) {
 
   auto setupPostWarmboot = [this]() {
     auto newCfg{initialConfig(*getAgentEnsemble())};
-    newCfg.udfConfig() = utility::addUdfHashAclConfig();
+    auto asicType = utility::checkSameAndGetAsicType(newCfg);
+
+    newCfg.udfConfig() = utility::addUdfHashAclConfig(asicType);
     addAclAndStat(&newCfg, AclType::UDF_OPCODE_ACK);
     addAclAndStat(&newCfg, AclType::UDF_OPCODE_WRITE_IMMEDIATE);
     applyNewConfig(newCfg);
@@ -747,7 +749,8 @@ TEST_F(AgentUdfAclCounterTest, VerifyUdfMinusUdfHash) {
     auto wrapper = getSw()->getRouteUpdater();
     helper_->programRoutes(&wrapper, kEcmpWidth);
     auto newCfg{initialConfig(*getAgentEnsemble())};
-    newCfg.udfConfig() = utility::addUdfHashAclConfig();
+    auto asicType = utility::checkSameAndGetAsicType(newCfg);
+    newCfg.udfConfig() = utility::addUdfHashAclConfig(asicType);
     addAclAndStat(&newCfg, AclType::UDF_OPCODE_ACK);
     addAclAndStat(&newCfg, AclType::UDF_OPCODE_WRITE_IMMEDIATE);
     applyNewConfig(newCfg);

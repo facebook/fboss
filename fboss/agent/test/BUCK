@@ -647,6 +647,7 @@ cpp_library(
         ":linkstate_toggler",
         ":route_distribution_gen",
         ":test_ensemble_if",
+        "//common/thrift/thrift:monitor-cpp2-clients",
         "//fboss/agent:agent_config-cpp2-types",
         "//fboss/agent:agent_features",
         "//fboss/agent:core",

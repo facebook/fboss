@@ -60,6 +60,7 @@ const auto kDhcpV6McastMacAddress = folly::MacAddress("33:33:00:01:00:02");
 const auto kDhcpV6ServerGlobalUnicastAddress =
     folly::IPAddressV6("2401:db00:eef0:a67::1");
 const auto kRandomIP = folly::IPAddressV6("2620:0:1cfe:face:b00c::4");
+const auto kGlobalRateLimit = 1.5 * 1024 * 1024;
 
 static time_t getCurrentTime() {
   return std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
@@ -1428,7 +1429,8 @@ class AgentCoppQosTest : public AgentHwTest {
   getProductionFeaturesVerified() const override {
     return {
         production_features::ProductionFeature::COPP,
-        production_features::ProductionFeature::L3_QOS};
+        production_features::ProductionFeature::L3_QOS,
+        production_features::ProductionFeature::COPP_SCHEDULER};
   }
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
@@ -1516,7 +1518,8 @@ class AgentCoppQosTest : public AgentHwTest {
   void createLineRateTrafficOnPort(
       PortID port,
       std::optional<VlanID> vlanId,
-      const folly::IPAddress& dstIpAddress) {
+      const folly::IPAddress& dstIpAddress,
+      bool waitForLineRate = true) {
     // Some ASICs require extra pkts to be sent for line rate
     // when its done in conjunction with copying the pkt to cpu
     auto minPktsForLineRate =
@@ -1543,10 +1546,12 @@ class AgentCoppQosTest : public AgentHwTest {
     XLOG(DBG0) << "Sent " << minPktsForLineRate << " TCP packets on port "
                << static_cast<int>(port) << " / VLAN " << vlanStr;
 
-    // Wait for packet loop buildup
-    getAgentEnsemble()->waitForLineRateOnPort(port);
-    XLOG(DBG0) << "Created dataplane loop with packets for "
-               << dstIpAddress.str();
+    if (waitForLineRate) {
+      // Wait for packet loop buildup
+      getAgentEnsemble()->waitForLineRateOnPort(port);
+      XLOG(DBG0) << "Created dataplane loop with packets for "
+                 << dstIpAddress.str();
+    }
   }
 
   /*
@@ -1654,7 +1659,8 @@ class AgentCoppQosTest : public AgentHwTest {
       cfg::SwitchConfig& config,
       std::vector<const HwAsic*> hwAsics,
       bool addEcnConfig = false,
-      bool addQueueRate = false) const {
+      bool addQueueRate = false,
+      bool addGlobalRateLimit = false) const {
     std::vector<cfg::PortQueue> cpuQueues;
     auto hwAsic = utility::checkSameAndGetAsic(hwAsics);
     cfg::PortQueue queue0;
@@ -1727,11 +1733,23 @@ class AgentCoppQosTest : public AgentHwTest {
 
       config.cpuVoqs() = cpuVoqs;
     }
+
+    if (addGlobalRateLimit) {
+      std::map<int, int> tc2RateLimit{{0, kGlobalRateLimit}};
+      config.switchSettings()->tcToRateLimitKbps() = std::move(tc2RateLimit);
+    }
   }
 };
 
 class AgentCoppQueueStuckTest : public AgentCoppQosTest {
  protected:
+  std::vector<production_features::ProductionFeature>
+  getProductionFeaturesVerified() const override {
+    return {
+        production_features::ProductionFeature::COPP,
+        production_features::ProductionFeature::COPP_SHAPER};
+  }
+
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
     auto cfg = AgentCoppQosTest::initialConfig(ensemble);
@@ -1789,6 +1807,119 @@ TEST_F(AgentCoppQueueStuckTest, CpuQueueHighRateTraffic) {
                  << ", Expected rate high in bps: " << expectedRateHigh;
       EXPECT_EVENTUALLY_TRUE(
           expectedRateLow <= actualRate && actualRate <= expectedRateHigh);
+    });
+  };
+
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+class AgentCoppGlobalRateLimitTest : public AgentCoppQosTest {
+  std::vector<production_features::ProductionFeature>
+  getProductionFeaturesVerified() const override {
+    return {
+        production_features::ProductionFeature::COPP,
+        production_features::ProductionFeature::GLOBAL_TC_RATE_LIMIT};
+  }
+
+ protected:
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto cfg = AgentCoppQosTest::initialConfig(ensemble);
+    addCustomCpuQueueConfig(
+        cfg,
+        ensemble.getSw()->getHwAsicTable()->getL3Asics(),
+        false /*addEcnConfig*/,
+        false /*addQueueRate*/,
+        true /*addGlobalRateLimit*/);
+    return cfg;
+  }
+};
+
+TEST_F(AgentCoppGlobalRateLimitTest, verifyLowPriorityTrafficRateLimit) {
+  auto setup = [=, this]() { setupEcmpDataplaneLoop(); };
+
+  auto verify = [&]() {
+    // Create dataplane loop with lowerPriority traffic on port0
+    auto baseVlan = getVlanIDForTx();
+    auto switchDropStatsBefore = getAggregatedSwitchDropStats();
+    auto rateLimitDropBefore = *switchDropStatsBefore.tc0RateLimitDrops();
+    createLineRateTrafficOnPort(
+        masterLogicalInterfacePortIds()[0],
+        baseVlan,
+        kIpForLowPriorityQueue,
+        false);
+
+    const double kVariance = 0.50; // i.e. + or -50%
+    uint64_t kDurationInSecs = 12;
+    uint64_t pktSize = EthHdr::SIZE + IPv6Hdr::size() + 256;
+    uint64_t expectedRate = kGlobalRateLimit * 1000; // bps
+    auto expectedRateLow = expectedRate * (1 - kVariance);
+    auto expectedRateHigh = expectedRate * (1 + kVariance);
+    // most packets should be dropped due to rate limit, since even one packet
+    // in L3 dataplane loop could cause ~1Gbps traffic on J3
+    auto expectedRateLimitDropLow = getAgentEnsemble()->getMinPktsForLineRate(
+                                        masterLogicalInterfacePortIds()[0]) *
+        0.99;
+    WITH_RETRIES({
+      // Read low priority copp queue counters
+      uint64_t lowPriorityPacketCountBefore =
+          utility::getQueueOutPacketsWithRetry(
+              this->getSw(),
+              this->switchIdForPort(this->masterLogicalPortIds(
+                  {cfg::PortType::INTERFACE_PORT})[0]),
+              utility::kCoppLowPriQueueId,
+              0 /* retryTimes */,
+              0 /* expectedNumPkts */);
+      auto portStatsBefore =
+          getLatestPortStats(masterLogicalInterfacePortIds()[0]);
+      auto portQueuePacketsBefore = portStatsBefore.queueOutPackets_()
+                                        ->find(utility::kCoppLowPriQueueId)
+                                        ->second;
+
+      /* sleep override */
+      sleep(kDurationInSecs);
+      uint64_t lowPriorityPacketCountAfter =
+          utility::getQueueOutPacketsWithRetry(
+              this->getSw(),
+              this->switchIdForPort(this->masterLogicalPortIds(
+                  {cfg::PortType::INTERFACE_PORT})[0]),
+              utility::kCoppLowPriQueueId,
+              0 /* retryTimes */,
+              0 /* expectedNumPkts */);
+      auto portStatsAfter =
+          getLatestPortStats(masterLogicalInterfacePortIds()[0]);
+      auto portQueuePacketsAfter = portStatsAfter.queueOutPackets_()
+                                       ->find(utility::kCoppLowPriQueueId)
+                                       ->second;
+      auto switchDropStatsAfter = getAggregatedSwitchDropStats();
+      auto rateLimitDropAfter = *switchDropStatsAfter.tc0RateLimitDrops();
+
+      uint64_t actualCpuPortRate =
+          (lowPriorityPacketCountAfter - lowPriorityPacketCountBefore) *
+          pktSize * 8 / kDurationInSecs;
+      uint64_t actualNifPortRate =
+          (portQueuePacketsAfter - portQueuePacketsBefore) * pktSize * 8 /
+          kDurationInSecs;
+      XLOG(DBG0) << "Before packet count: " << lowPriorityPacketCountBefore
+                 << ", After packet count: " << lowPriorityPacketCountAfter
+                 << ", Actual rate in bps: " << actualCpuPortRate
+                 << ", Expected rate low in bps: " << expectedRateLow
+                 << ", Expected rate high in bps: " << expectedRateHigh;
+      XLOG(DBG0) << "Before nif port packet count: " << portQueuePacketsBefore
+                 << ", After nif port packet count: " << portQueuePacketsAfter
+                 << ", Actual nif port rate in bps: " << actualNifPortRate;
+      XLOG(DBG0) << "Before tc0 rate limit drop: " << rateLimitDropBefore
+                 << ", After tc0 rate limit drop: " << rateLimitDropAfter
+                 << ", Expected rate limit low drop: "
+                 << expectedRateLimitDropLow;
+      // CPU port traffic could be even lower, so only verify lower than
+      // expectedRateHigh
+      EXPECT_EVENTUALLY_TRUE(actualCpuPortRate <= expectedRateHigh);
+      EXPECT_EVENTUALLY_TRUE(
+          expectedRateLow <= actualNifPortRate &&
+          actualNifPortRate <= expectedRateHigh);
+      EXPECT_EVENTUALLY_TRUE(
+          expectedRateLimitDropLow <= rateLimitDropAfter - rateLimitDropBefore);
     });
   };
 

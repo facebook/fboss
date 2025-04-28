@@ -1,6 +1,7 @@
 #include "fboss/agent/test/utils/SystemScaleTestUtils.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
+#include "fboss/lib/FunctionCallTimeReporter.h"
 
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/ThriftHandler.h"
@@ -13,9 +14,9 @@
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/MacLearningFloodHelper.h"
 #include "fboss/agent/test/utils/PortFlapHelper.h"
+#include "fboss/agent/test/utils/QosTestUtils.h"
 #include "fboss/agent/test/utils/ScaleTestUtils.h"
 #include "fboss/agent/test/utils/TrapPacketUtils.h"
-#include "fboss/lib/CommonFileUtils.h"
 #include "folly/Benchmark.h"
 
 DECLARE_bool(intf_nbr_tables);
@@ -24,23 +25,21 @@ DECLARE_int32(max_l2_entries);
 DECLARE_int32(max_ndp_entries);
 DECLARE_int32(max_arp_entries);
 
-DEFINE_string(
-    write_agent_config_marker_for_fsdb,
-    "",
-    "Write marker file for FSDB");
-
 namespace {
 constexpr uint64_t kBaseMac = 0xFEEEC2000010;
 constexpr uint64_t kNeighborBaseMac = 0xF0EEC2000010;
 // the number of rounds to add/churn fboss routes and neighbors is limited by
 // the time to run the test. The number of rounds is chosen to finish in test in
 // 15mins
-constexpr int kNumChurn = 3;
+constexpr int kNumChurn = 1;
+constexpr int kNumChurnRoute = 3;
 constexpr int kMaxScaleMacTxPortIdx = 1;
 constexpr int kMaxScaleMacRxPortIdx = 0;
 constexpr int kMacChurnTxPortIdx = 2;
 constexpr int kMacChurnRxPortIdx = 3;
 constexpr int kRxMeasurePortIdx = 4;
+constexpr int kTxMeasurePortIdx = 5;
+const std::string kRxMeasureDstIp = "2620:0:1cfe:face:b00c::4";
 } // namespace
 
 namespace facebook::fboss::utility {
@@ -365,7 +364,8 @@ void configureMaxRouteEntries(AgentEnsemble* ensemble) {
   }
 
   std::vector<std::vector<PortDescriptor>> allCombinations =
-      utility::generateEcmpGroupScale(portDescriptorIds, kMaxEcmpGropus);
+      utility::generateEcmpGroupScale(
+          portDescriptorIds, kMaxEcmpGropus, portDescriptorIds.size());
   std::vector<flat_set<PortDescriptor>> nhopSets;
   for (const auto& combination : allCombinations) {
     nhopSets.emplace_back(combination.begin(), combination.end());
@@ -458,11 +458,10 @@ void configureMaxAclEntries(AgentEnsemble* ensemble) {
 
   ensemble->applyNewConfig(cfg);
 }
-
-void addPort2NewVlan(cfg::SwitchConfig& config, PortID portID) {
+void addPort2NewVlan(cfg::SwitchConfig& config, PortID portID, int vlanID) {
   auto vlanIfExist = std::find_if(
-      config.vlans()->begin(), config.vlans()->end(), [](auto vlan) {
-        return vlan.id() == kBaseVlanId + 1;
+      config.vlans()->begin(), config.vlans()->end(), [vlanID](auto vlan) {
+        return vlan.id() == vlanID;
       });
   if (vlanIfExist != config.vlans()->end()) {
     throw FbossError("The vlan to add already exists");
@@ -471,14 +470,14 @@ void addPort2NewVlan(cfg::SwitchConfig& config, PortID portID) {
   // add vlan
   auto newVlan = cfg::Vlan();
   newVlan.name() = "rx tx test";
-  newVlan.id() = VlanID(kBaseVlanId + 1);
+  newVlan.id() = VlanID(vlanID);
   newVlan.routable() = true;
   config.vlans()->push_back(newVlan);
 
   // change the vlan id of ingressVlan of port
   for (auto& port : *config.ports()) {
     if (port.logicalID() == static_cast<int>(portID)) {
-      port.ingressVlan() = kBaseVlanId + 1;
+      port.ingressVlan() = vlanID;
     }
   }
 
@@ -492,32 +491,34 @@ void addPort2NewVlan(cfg::SwitchConfig& config, PortID portID) {
   if (vlanPort == config.vlanPorts()->end()) {
     throw FbossError("The port not not found in vlan port mapping");
   }
-  vlanPort->vlanID() = kBaseVlanId + 1;
+  vlanPort->vlanID() = vlanID;
 
   auto interfaceIfExist = std::find_if(
       config.interfaces()->begin(),
       config.interfaces()->end(),
-      [](auto interface) { return interface.intfID() == kBaseVlanId + 1; });
+      [vlanID](auto interface) { return interface.intfID() == vlanID; });
   if (interfaceIfExist != config.interfaces()->end()) {
     throw FbossError("The vlan interface to add already exists");
   }
 
   // add l3 interface to vlan
   auto newInterface = cfg::Interface();
-  newInterface.intfID() = kBaseVlanId + 1;
-  newInterface.vlanID() = kBaseVlanId + 1;
+  newInterface.intfID() = vlanID;
+  newInterface.vlanID() = vlanID;
   newInterface.routerID() = 0;
   newInterface.mac() = utility::kLocalCpuMac().toString();
   newInterface.mtu() = 9000;
   newInterface.ipAddresses()->resize(2);
-  newInterface.ipAddresses()[0] = "192.1.1.1/24";
-  newInterface.ipAddresses()[1] = "2001::1/64";
+  newInterface.ipAddresses()[0] =
+      "192.1." + std::to_string(vlanID - kBaseVlanId) + ".1/24";
+  std::stringstream hexStream;
+  hexStream << std::hex << vlanID;
+  newInterface.ipAddresses()[1] = hexStream.str() + "::1/64";
   config.interfaces()->push_back(newInterface);
 }
 
 cfg::SwitchConfig getSystemScaleTestSwitchConfiguration(
     const AgentEnsemble& ensemble) {
-  FLAGS_sai_user_defined_trap = true;
   auto l3Asics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
   auto asic = utility::checkSameAndGetAsic(l3Asics);
   auto config = utility::oneL3IntfNPortConfig(
@@ -527,9 +528,7 @@ cfg::SwitchConfig getSystemScaleTestSwitchConfiguration(
       ensemble.getSw()->getPlatformSupportsAddRemovePort(),
       asic->desiredLoopbackModes());
 
-  utility::addAclTableGroup(
-      &config, cfg::AclStage::INGRESS, utility::kDefaultAclTableGroupName());
-  utility::addDefaultAclTable(config);
+  utility::setupDefaultAclTableGroups(config);
   // We don't want to set queue rate that limits the number of rx pkts
   utility::addCpuQueueConfig(
       config,
@@ -539,42 +538,230 @@ cfg::SwitchConfig getSystemScaleTestSwitchConfiguration(
   utility::setDefaultCpuTrafficPolicyConfig(
       config, ensemble.getL3Asics(), ensemble.isSai());
 
+  auto trapDstIp = folly::CIDRNetwork{kRxMeasureDstIp, 128};
+  utility::addTrapPacketAcl(asic, &config, trapDstIp);
+
   config.switchSettings()->l2LearningMode() = cfg::L2LearningMode::SOFTWARE;
   addPort2NewVlan(
-      config, ensemble.masterLogicalInterfacePortIds()[kRxMeasurePortIdx]);
+      config,
+      ensemble.masterLogicalInterfacePortIds()[kRxMeasurePortIdx],
+      kBaseVlanId + 1);
+
+  addPort2NewVlan(
+      config,
+      ensemble.masterLogicalInterfacePortIds()[kTxMeasurePortIdx],
+      kBaseVlanId + 2);
   return config;
 };
 
-void writeAgentConfigMarkerForFsdb() {
-  auto filePath =
-      folly::to<std::string>(FLAGS_write_agent_config_marker_for_fsdb);
+std::pair<uint64_t, uint64_t> startRxMeasure(AgentEnsemble* ensemble) {
+  // capture packet exiting port kRxMeasurePortIdx (entering due to loopback)
+  auto dstMac = getInterfaceMac(
+      ensemble->getProgrammedState(), InterfaceID(kBaseVlanId + 1));
 
-  if (createFile(filePath) < 0) {
-    XLOG(DBG2) << "Failed to create file: " << filePath;
-    return;
+  auto ecmpHelper =
+      utility::EcmpSetupAnyNPorts6(ensemble->getProgrammedState(), dstMac);
+  flat_set<PortDescriptor> IntfPorts;
+  IntfPorts.insert(PortDescriptor(
+      ensemble->masterLogicalInterfacePortIds()[kRxMeasurePortIdx]));
+
+  ensemble->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+    return ecmpHelper.resolveNextHops(in, IntfPorts);
+  });
+  ecmpHelper.programRoutes(
+      std::make_unique<SwSwitchRouteUpdateWrapper>(
+          ensemble->getSw(), ensemble->getSw()->getRib()),
+      IntfPorts,
+      {RoutePrefixV6{folly::IPAddressV6("2620:0:1cfe:face:b00c::4"), 128}});
+  // Disable TTL decrements
+  for (const auto& nextHop : ecmpHelper.getNextHops()) {
+    utility::ttlDecrementHandlingForLoopbackTraffic(
+        ensemble, ecmpHelper.getRouterId(), nextHop);
   }
+  constexpr uint8_t kCpuQueue = 0;
+  std::map<int, CpuPortStats> cpuStatsBefore;
+  ensemble->getSw()->getAllCpuPortStats(cpuStatsBefore);
+  auto statsBefore = cpuStatsBefore[0];
+  auto [pktsBefore, bytesBefore] = utility::getCpuQueueOutPacketsAndBytes(
+      *statsBefore.portStats_(), kCpuQueue);
 
-  while (true) {
-    if (!checkFileExists(filePath)) {
-      XLOG(DBG2) << "FSDB done with benchmarking and has deleted marker file";
+  const auto kSrcMac = folly::MacAddress{"fa:ce:b0:00:00:0a"};
+  // Send packet
+  auto vlanId =
+      ensemble->getProgrammedState()
+          ->getPorts()
+          ->getNodeIf(
+              ensemble->masterLogicalInterfacePortIds()[kRxMeasurePortIdx])
+          ->getIngressVlan();
+
+  auto constexpr kPacketToSend = 100;
+  for (int i = 0; i < kPacketToSend; i++) {
+    auto txPacket = utility::makeTCPTxPacket(
+        ensemble->getSw(),
+        vlanId,
+        kSrcMac,
+        dstMac,
+        folly::IPAddressV6("2620:0:1cfe:face:b00c::3"),
+        folly::IPAddressV6(kRxMeasureDstIp),
+        47231,
+        kBgpPort);
+    ensemble->getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+  }
+  return std::make_pair(pktsBefore, bytesBefore);
+}
+
+std::pair<uint64_t, uint64_t> stopRxMeasure(AgentEnsemble* ensemble) {
+  ensemble->bringDownPorts(
+      {ensemble->masterLogicalInterfacePortIds()[kRxMeasurePortIdx]});
+  ensemble->bringUpPorts(
+      {ensemble->masterLogicalInterfacePortIds()[kRxMeasurePortIdx]});
+  constexpr uint8_t kCpuQueue = 0;
+  std::map<int, CpuPortStats> cpuStatsAfter;
+  ensemble->getSw()->getAllCpuPortStats(cpuStatsAfter);
+  auto statsAfter = cpuStatsAfter[0];
+  auto [pktsAfter, bytesAfter] = utility::getCpuQueueOutPacketsAndBytes(
+      *statsAfter.portStats_(), kCpuQueue);
+  return std::make_pair(pktsAfter, bytesAfter);
+}
+
+std::pair<uint64_t, uint64_t> getOutPktsAndBytes(
+    AgentEnsemble* ensemble,
+    const PortID& port) {
+  auto stats = ensemble->getLatestPortStats(port);
+  return {*stats.outUnicastPkts_(), *stats.outBytes_()};
+}
+
+void startTxMeasure(AgentEnsemble* ensemble, int& pps, int& bytesPerSec) {
+  // configure port for tx measurement
+  auto swSwitch = ensemble->getSw();
+  auto dstMac = getInterfaceMac(
+      ensemble->getProgrammedState(),
+      ensemble->getProgrammedState()
+          ->getPorts()
+          ->getNodeIf(
+              ensemble->masterLogicalInterfacePortIds()[kTxMeasurePortIdx])
+          ->getInterfaceID());
+  auto ecmpHelper =
+      utility::EcmpSetupAnyNPorts6(ensemble->getProgrammedState(), dstMac);
+  flat_set<PortDescriptor> IntfPorts;
+  IntfPorts.insert(PortDescriptor(
+      ensemble->masterLogicalInterfacePortIds()[kTxMeasurePortIdx]));
+
+  const int kEcmpWidth = 1;
+  ensemble->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+    return ecmpHelper.resolveNextHops(in, kEcmpWidth);
+  });
+  ecmpHelper.programRoutes(
+      std::make_unique<SwSwitchRouteUpdateWrapper>(
+          ensemble->getSw(), ensemble->getSw()->getRib()),
+      IntfPorts,
+      {RoutePrefixV6{folly::IPAddressV6("2620:0:1cfd:face:b00c::5"), 64}});
+
+  // setup Tx port
+  auto portUsed = ensemble->masterLogicalInterfacePortIds()[kTxMeasurePortIdx];
+  auto cpuMac = ensemble->getSw()->getLocalMac(SwitchID(0));
+  auto vlanId =
+      ensemble->getProgrammedState()
+          ->getPorts()
+          ->getNodeIf(
+              ensemble->masterLogicalInterfacePortIds()[kTxMeasurePortIdx])
+          ->getIngressVlan();
+
+  std::atomic<bool> packetTxDone{false};
+
+  std::thread t([cpuMac, vlanId, swSwitch, &packetTxDone]() {
+    const auto kSrcIp = folly::IPAddressV6("2620:0:1cfd:face:b00c::5");
+    const auto kDstIp = folly::IPAddressV6("2620:0:1cfd:face:b00c::6");
+    const auto kSrcMac = folly::MacAddress{"fa:ce:b0:00:00:0c"};
+    while (!packetTxDone) {
+      for (auto i = 0; i < 1'000; ++i) {
+        // Send packet
+        auto txPacket = utility::makeIpTxPacket(
+            [swSwitch](uint32_t size) {
+              return swSwitch->allocatePacket(size);
+            },
+            vlanId,
+            kSrcMac,
+            cpuMac,
+            kSrcIp,
+            kDstIp);
+        swSwitch->sendPacketSwitchedAsync(std::move(txPacket));
+      }
+    }
+  });
+
+  auto [pktsBefore, bytesBefore] =
+      getOutPktsAndBytes(ensemble, PortID(portUsed));
+  auto timeBefore = std::chrono::steady_clock::now();
+  // Let the packet flood warm up
+  std::this_thread::sleep_for(std::chrono::seconds(30));
+  packetTxDone = true;
+  t.join();
+  auto timeAfter = std::chrono::steady_clock::now();
+  std::chrono::duration<double, std::milli> durationMillseconds =
+      timeAfter - timeBefore;
+  auto pktsAfter = pktsBefore;
+  auto bytesAfter = bytesBefore;
+  auto kMaxIterations = 30;
+  // Wait for stats increment to stop. On some platforms it
+  // takes longer for port stats to reflect the sent bytes.
+  for (auto i = 0; i < kMaxIterations; ++i) {
+    auto pktsPrior = pktsAfter;
+    auto bytesPrior = bytesAfter;
+    std::tie(pktsAfter, bytesAfter) =
+        getOutPktsAndBytes(ensemble, PortID(portUsed));
+    if (pktsPrior == pktsAfter && bytesPrior == bytesAfter) {
       break;
-    } else {
-      std::this_thread::sleep_for(std::chrono::seconds(1));
+    }
+    XLOG(INFO) << " Stats still incrementing after iteration: " << i + 1;
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    if (i == kMaxIterations - 1) {
+      XLOG(INFO) << " Stats still incrementing after iteration: " << i + 1
+                 << " Reported TX pps maybe lower than actual pps";
     }
   }
+  pps = (static_cast<double>(pktsAfter - pktsBefore) /
+         durationMillseconds.count()) *
+      1000;
+  bytesPerSec = (static_cast<double>(bytesAfter - bytesBefore) /
+                 durationMillseconds.count()) *
+      1000;
+  return;
 }
 
 void initSystemScaleTest(AgentEnsemble* ensemble) {
+  auto [rxPktsBefore, rxBytesBefore] = startRxMeasure(ensemble);
+  auto timeBefore = std::chrono::steady_clock::now();
   configureMaxAclEntries(ensemble);
   configureMaxRouteEntries(ensemble);
   configureMaxMacEntries(ensemble);
   configureMaxNeighborEntries(ensemble);
-  if (FLAGS_write_agent_config_marker_for_fsdb != "") {
-    writeAgentConfigMarkerForFsdb();
+  auto [rxPktsAfter, rxBytesAfter] = stopRxMeasure(ensemble);
+  auto timeAfter = std::chrono::steady_clock::now();
+  std::chrono::duration<double, std::milli> durationMillseconds =
+      timeAfter - timeBefore;
+  auto rxPPS = static_cast<double>(rxPktsAfter - rxPktsBefore) * 1000 /
+      durationMillseconds.count();
+  auto rxBPS = static_cast<double>(rxBytesAfter - rxBytesBefore) * 1000 /
+      durationMillseconds.count();
+
+  if (FLAGS_json) {
+    folly::dynamic memJson = folly::dynamic::object;
+
+    memJson["rx_pps"] = rxPPS;
+    memJson["rx_bps"] = rxBPS;
+    memJson["tx_pps"] = 0;
+    memJson["tx_bps"] = 0;
+    std::cout << toPrettyJson(memJson) << std::endl;
+  } else {
+    XLOG(DBG2) << " rx_pps: " << rxPPS << " rx_bps: " << rxBPS;
   }
 }
 
 void initSystemScaleChurnTest(AgentEnsemble* ensemble) {
+  if (ensemble->getSw()->getBootType() == BootType::WARM_BOOT) {
+    return;
+  }
   configureMaxAclEntries(ensemble);
 
   std::vector<PortID> portToFlap = {
@@ -588,16 +775,73 @@ void initSystemScaleChurnTest(AgentEnsemble* ensemble) {
       VlanID(kBaseVlanId));
   configureMaxMacEntries(ensemble);
   portFlapHelper.startPortFlap();
-  macLearningFloodHelper.startChurnMacTable();
+  auto asic =
+      utility::checkSameAndGetAsic(ensemble->getHwAsicTable()->getL3Asics());
 
-  for (auto i = 0; i < kNumChurn; i++) {
-    configureMaxRouteEntries(ensemble);
-    removeAllRouteEntries(ensemble);
-    configureMaxNeighborEntries(ensemble);
-    removeAllNeighbors(ensemble);
+  if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK3 ||
+      asic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK4) {
+    macLearningFloodHelper.startChurnMacTable();
   }
+  configureMaxRouteEntries(ensemble);
+  for (auto i = 0; i < kNumChurnRoute; i++) {
+    removeAllRouteEntries(ensemble);
+    configureMaxRouteEntries(ensemble);
+  }
+  auto timeBefore = std::chrono::steady_clock::now();
+  auto [rxPktsBefore, rxBytesBefore] = startRxMeasure(ensemble);
+  configureMaxNeighborEntries(ensemble);
+  for (auto i = 0; i < kNumChurn; i++) {
+    removeAllNeighbors(ensemble);
+    configureMaxNeighborEntries(ensemble);
+  }
+
+  auto [rxPktsAfter, rxBytesAfter] = stopRxMeasure(ensemble);
+  auto timeAfter = std::chrono::steady_clock::now();
+  std::chrono::duration<double, std::milli> durationMillseconds =
+      timeAfter - timeBefore;
   portFlapHelper.stopPortFlap();
-  macLearningFloodHelper.stopChurnMacTable();
+  if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK3 ||
+      asic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK4) {
+    macLearningFloodHelper.stopChurnMacTable();
+  }
+
+  int txPPS, txBPS;
+  startTxMeasure(ensemble, txPPS, txBPS);
+
+  XLOG(DBG2) << " rxPktsAfter: " << rxPktsAfter
+             << " rxPktsBefore: " << rxPktsBefore
+             << "rxBytesAfter :" << rxBytesAfter
+             << " rxBytesBefore: " << rxBytesBefore
+             << "duration Milliseconds: " << durationMillseconds.count();
+  auto rxPPS = static_cast<double>(rxPktsAfter - rxPktsBefore) * 1000 /
+      durationMillseconds.count();
+  auto rxBPS = static_cast<double>(rxBytesAfter - rxBytesBefore) * 1000 /
+      durationMillseconds.count();
+
+  if (FLAGS_json) {
+    folly::dynamic memJson = folly::dynamic::object;
+
+    memJson["rx_pps"] = rxPPS;
+    memJson["rx_bps"] = rxBPS;
+    memJson["tx_pps"] = txPPS;
+    memJson["tx_bps"] = txBPS;
+    std::cout << toPrettyJson(memJson) << std::endl;
+  } else {
+    XLOG(DBG2) << " rx_pps: " << rxPPS << " rx_bps: " << rxBPS;
+  }
+  if (FLAGS_setup_for_warmboot) {
+    ScopedCallTimer timeIt;
+    // Static such that the object destructor runs as late as possible. In
+    // particular in this case, destructor (and thus the duration calculation)
+    // will run at the time of program exit when static variable destructors
+    // run
+    static StopWatch timer("warm_boot_msecs", FLAGS_json);
+    ensemble->gracefulExit();
+    // Leak HwSwitchEnsemble for warmboot, so that
+    // we don't run destructors and unprogram h/w. We are
+    // going to exit the process anyways.
+    //__attribute__((unused)) auto leakedHwEnsemble = ensemble;
+  }
 }
 
 } // namespace facebook::fboss::utility

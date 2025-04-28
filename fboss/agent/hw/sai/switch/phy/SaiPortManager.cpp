@@ -295,8 +295,6 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   };
 }
 
-void SaiPortManager::enableAfeAdaptiveMode(PortID /*portID*/) {}
-
 /*
  * programSerdes
  *

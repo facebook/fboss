@@ -10,7 +10,8 @@
     "rx_vlan_untagged_packets": "true",
     "sai_configure_six_tap": "true",
     "sai_user_defined_trap": "true",
-    "set_classid_for_my_subnet_and_ip_routes": "true"
+    "set_classid_for_my_subnet_and_ip_routes": "true",
+    "thrift_ssl_policy": "permitted"
   },
   "sw": {
     "version": 0,
@@ -4624,7 +4625,7 @@
         "conditionalEntropyRehash": false
       },
       {
-        "logicalID": 256,
+        "logicalID": 257,
         "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
@@ -4660,7 +4661,7 @@
         "conditionalEntropyRehash": false
       },
       {
-        "logicalID": 257,
+        "logicalID": 258,
         "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
@@ -6645,6 +6646,36 @@
         "type": 3,
         "scope": 0,
         "portID": 255
+      },
+      {
+        "intfID": 2128,
+        "routerID": 0,
+        "vlanID": 0,
+        "ipAddresses": [
+          "2529::/64",
+          "139.0.0.0/24"
+        ],
+        "mtu": 9000,
+        "isVirtual": false,
+        "isStateSyncDisabled": true,
+        "type": 3,
+        "scope": 0,
+        "portID": 257
+      },
+      {
+        "intfID": 2129,
+        "routerID": 0,
+        "vlanID": 0,
+        "ipAddresses": [
+          "2530::/64",
+          "140.0.0.0/24"
+        ],
+        "mtu": 9000,
+        "isVirtual": false,
+        "isStateSyncDisabled": true,
+        "type": 3,
+        "scope": 0,
+        "portID": 258
       }
     ],
     "arpTimeoutSeconds": 60,

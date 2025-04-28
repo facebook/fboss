@@ -58,6 +58,11 @@ ForwardingInformationBaseV6* fib(std::shared_ptr<SwitchState>& newState) {
       ->getFibV6()
       ->modify(RouterID(0), &newState);
 }
+const std::shared_ptr<ForwardingInformationBaseV6> cfib(
+    const std::shared_ptr<SwitchState>& newState) {
+  return newState->getFibs()->getNode(RouterID(0))->getFibV6();
+}
+
 class NextHopIdAllocatorTest : public ::testing::Test {
  public:
   RouteNextHopSet defaultNhops() const {
@@ -102,6 +107,15 @@ class NextHopIdAllocatorTest : public ::testing::Test {
     }
     consolidate(newState);
   }
+  std::optional<EcmpGroupConsolidator::NextHopGroupId> getNhopId(
+      const RouteNextHopSet& nhops) const {
+    std::optional<EcmpGroupConsolidator::NextHopGroupId> nhopId;
+    auto nitr = consolidator_.getNhopsToId().find(nhops);
+    if (nitr != consolidator_.getNhopsToId().end()) {
+      nhopId = nitr->second;
+    }
+    return nhopId;
+  }
   std::shared_ptr<SwitchState> state_;
   EcmpGroupConsolidator consolidator_;
 };
@@ -109,8 +123,10 @@ class NextHopIdAllocatorTest : public ::testing::Test {
 TEST_F(NextHopIdAllocatorTest, init) {
   const auto& nhops2Id = consolidator_.getNhopsToId();
   EXPECT_EQ(nhops2Id.size(), 1);
-  auto id = nhops2Id.find(defaultNhops())->second;
+  auto id = *getNhopId(defaultNhops());
   EXPECT_EQ(id, 1);
+  // All routes point to same nhop group
+  EXPECT_EQ(consolidator_.getRouteUsageCount(id), cfib(state_)->size());
 }
 
 TEST_F(NextHopIdAllocatorTest, addRouteSameNhops) {
@@ -122,8 +138,10 @@ TEST_F(NextHopIdAllocatorTest, addRouteSameNhops) {
   consolidate(newState);
   const auto& nhops2Id = consolidator_.getNhopsToId();
   EXPECT_EQ(nhops2Id.size(), 1);
-  auto id = nhops2Id.find(defaultNhops())->second;
+  auto id = *getNhopId(defaultNhops());
   EXPECT_EQ(id, 1);
+  // All routes point to same nhop group
+  EXPECT_EQ(consolidator_.getRouteUsageCount(id), cfib(state_)->size());
 }
 
 TEST_F(NextHopIdAllocatorTest, addRouteNewNhops) {
@@ -137,12 +155,25 @@ TEST_F(NextHopIdAllocatorTest, addRouteNewNhops) {
   consolidate(newState);
   const auto& nhops2Id = consolidator_.getNhopsToId();
   EXPECT_EQ(nhops2Id.size(), 2);
-  EXPECT_EQ(nhops2Id.find(defaultNhops())->second, 1);
-  EXPECT_EQ(nhops2Id.find(newNhops)->second, 2);
+  auto idDefaultNhops = *getNhopId(defaultNhops());
+  EXPECT_EQ(idDefaultNhops, 1);
+  // All but one routes point to same nhop group
+  EXPECT_EQ(
+      cfib(state_)->size() - 1,
+      consolidator_.getRouteUsageCount(idDefaultNhops));
+  auto idNewNhops = *getNhopId(newNhops);
+  EXPECT_EQ(idNewNhops, 2);
+  // One route points to new nhop group
+  EXPECT_EQ(consolidator_.getRouteUsageCount(2), 1);
 }
 
 TEST_F(NextHopIdAllocatorTest, addRemoveRouteNewNhopsUnresolved) {
   auto newState = state_->clone();
+  const auto& nhops2Id = consolidator_.getNhopsToId();
+  auto groupId = *getNhopId(defaultNhops());
+  EXPECT_EQ(groupId, 1);
+  EXPECT_EQ(nhops2Id.size(), 1);
+  EXPECT_EQ(nhops2Id.find(defaultNhops())->second, groupId);
   auto newNhops = defaultNhops();
   newNhops.erase(newNhops.begin());
   auto newRoute = makeRoute(nextPrefix(), newNhops);
@@ -150,25 +181,31 @@ TEST_F(NextHopIdAllocatorTest, addRemoveRouteNewNhopsUnresolved) {
   {
     auto fib6 = fib(newState);
     auto routesBefore = fib6->size();
+    // All routes point to same nhop group
+    EXPECT_EQ(routesBefore, consolidator_.getRouteUsageCount(groupId));
     fib6->addNode(newRoute);
     EXPECT_EQ(fib6->size(), routesBefore + 1);
     consolidate(newState);
-    const auto& nhops2Id = consolidator_.getNhopsToId();
-    EXPECT_EQ(nhops2Id.size(), 1);
-    EXPECT_EQ(nhops2Id.find(defaultNhops())->second, 1);
-    EXPECT_EQ(nhops2Id.find(newNhops), nhops2Id.end());
+    // New nhops don't get a id, since no resolved routes point to it
+    EXPECT_FALSE(getNhopId(newNhops).has_value());
+    // All routes point to same nhop group, new route is unresolved
+    EXPECT_EQ(consolidator_.getRouteUsageCount(groupId), routesBefore);
   }
   {
     auto newerState = newState->clone();
     auto fib6 = fib(newerState);
     auto routesBefore = fib6->size();
+    // All resolved routes point to same nhop group
+    EXPECT_EQ(routesBefore - 1, consolidator_.getRouteUsageCount(groupId));
     fib6->removeNode(newRoute);
     EXPECT_EQ(fib6->size(), routesBefore - 1);
     consolidate(newerState);
     const auto& nhops2Id = consolidator_.getNhopsToId();
     EXPECT_EQ(nhops2Id.size(), 1);
-    EXPECT_EQ(nhops2Id.find(defaultNhops())->second, 1);
-    EXPECT_EQ(nhops2Id.find(newNhops), nhops2Id.end());
+    EXPECT_EQ(*getNhopId(defaultNhops()), groupId);
+    EXPECT_FALSE(getNhopId(newNhops).has_value());
+    // All resolved routes point to same nhop group
+    EXPECT_EQ(consolidator_.getRouteUsageCount(groupId), cfib(state_)->size());
   }
 }
 
@@ -182,9 +219,32 @@ TEST_F(NextHopIdAllocatorTest, updateRouteNhops) {
   EXPECT_EQ(fib6->size(), routesBefore);
   consolidate(newState);
   const auto& nhops2Id = consolidator_.getNhopsToId();
-  // FIXME - once we star handling ref counts for route nhops
-  // we should get a new ID allocated for new nhops and not
-  // delete the old nhops id
+  EXPECT_EQ(nhops2Id.size(), 2);
+  auto defaultNhopsId = *getNhopId(defaultNhops());
+  auto newNhopsId = *getNhopId(newNhops);
+  EXPECT_EQ(defaultNhopsId, 1);
+  EXPECT_EQ(newNhopsId, 2);
+  // All but one route point to defaultNhops
+  EXPECT_EQ(consolidator_.getRouteUsageCount(defaultNhopsId), routesBefore - 1);
+  EXPECT_EQ(consolidator_.getRouteUsageCount(newNhopsId), 1);
+}
+
+TEST_F(NextHopIdAllocatorTest, updateRouteToUnresolved) {
+  auto defaultNhopsId = *getNhopId(defaultNhops());
+  EXPECT_EQ(defaultNhopsId, 1);
+  auto newState = state_->clone();
+  auto fib6 = fib(newState);
+  auto updatedRoute = fib6->exactMatch(makePrefix(0))->clone();
+  updatedRoute->clearForward();
+  auto routesBefore = fib6->size();
+  // All routes point to defaultNhops
+  EXPECT_EQ(consolidator_.getRouteUsageCount(defaultNhopsId), routesBefore);
+  fib6->updateNode(updatedRoute);
+  EXPECT_EQ(fib6->size(), routesBefore);
+  consolidate(newState);
+  const auto& nhops2Id = consolidator_.getNhopsToId();
   EXPECT_EQ(nhops2Id.size(), 1);
-  EXPECT_EQ(nhops2Id.find(newNhops)->second, 1);
+  EXPECT_EQ(*getNhopId(defaultNhops()), defaultNhopsId);
+  // All but newly unresolved route point to defaultNhops
+  EXPECT_EQ(consolidator_.getRouteUsageCount(defaultNhopsId), routesBefore - 1);
 }

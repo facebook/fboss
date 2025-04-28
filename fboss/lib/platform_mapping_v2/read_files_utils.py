@@ -38,7 +38,7 @@ from neteng.fboss.transceiver.ttypes import TransmitterTechnology
 
 def get_content(directory: Dict[str, str], filename: str) -> str:
     if filename not in directory:
-        raise Exception(
+        raise FileNotFoundError(
             f"File {filename} not found in directory with keys {directory.keys()}"
         )
     return directory[filename]

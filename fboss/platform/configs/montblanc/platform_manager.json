@@ -347,7 +347,7 @@
             },
             {
               "busName": "INCOMING@3",
-              "address": "0x3e",
+              "address": "0x33",
               "kernelDeviceName": "mp3_smbcpld",
               "pmUnitScopedName": "SMB_CPLD"
             },
@@ -3262,7 +3262,7 @@
         },
         {
           "busName": "INCOMING@3",
-          "address": "0x3e",
+          "address": "0x33",
           "kernelDeviceName": "mp3_smbcpld",
           "pmUnitScopedName": "SMB_CPLD"
         },

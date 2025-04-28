@@ -64,6 +64,9 @@ class SaiMeru800biaPlatform : public SaiBcmPlatform {
       const cfg::SwitchInfo& switchInfo,
       std::optional<HwAsic::FabricNodeRole> fabricNodeRole) override;
 
+  std::map<uint32_t, std::pair<uint32_t, uint32_t>> getCpuPortsCoreAndPortIdx()
+      const;
+
   std::unique_ptr<Jericho3Asic> asic_;
 };
 

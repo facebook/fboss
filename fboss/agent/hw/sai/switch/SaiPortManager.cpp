@@ -3168,4 +3168,60 @@ void SaiPortManager::changePortShelEnable(
   }
 #endif
 }
+/**
+ * Increment the PFC counter for a given port and counter type.
+ *
+ * @param portId - The ID of the port for which the counter is to be
+ * incremented.
+ * @param counterType - The type of PFC counter to increment (DEADLOCK or
+ * RECOVERY).
+ */
+void SaiPortManager::incrementPfcCounter(
+    const PortID& portId,
+    PfcCounterType counterType) {
+  auto portStatItr = portStats_.find(portId);
+  if (portStatItr == portStats_.end()) {
+    // No stats exist, nothing to do.
+    return;
+  }
+  auto curPortStats = portStatItr->second->portStats();
+
+  // Increment the appropriate counter based on the counter type.
+  if (counterType == PfcCounterType::DEADLOCK) {
+    if (!curPortStats.pfcDeadlockDetection_().has_value()) {
+      curPortStats.pfcDeadlockDetection_() = 0;
+    }
+    curPortStats.pfcDeadlockDetection_() =
+        *curPortStats.pfcDeadlockDetection_() + 1;
+  } else { // PfcCounterType::RECOVERY
+    if (!curPortStats.pfcDeadlockRecovery_().has_value()) {
+      curPortStats.pfcDeadlockRecovery_() = 0;
+    }
+    curPortStats.pfcDeadlockRecovery_() =
+        *curPortStats.pfcDeadlockRecovery_() + 1;
+  }
+
+  auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
+  portStatItr->second->updateStats(curPortStats, now);
+}
+
+/**
+ * Increment the PFC deadlock counter for a given port.
+ *
+ * @param portId - The ID of the port for which the deadlock counter is to be
+ * incremented.
+ */
+void SaiPortManager::incrementPfcDeadlockCounter(const PortID& portId) {
+  incrementPfcCounter(portId, PfcCounterType::DEADLOCK);
+}
+
+/**
+ * Increment the PFC recovery counter for a given port.
+ *
+ * @param portId - The ID of the port for which the recovery counter is to be
+ * incremented.
+ */
+void SaiPortManager::incrementPfcRecoveryCounter(const PortID& portId) {
+  incrementPfcCounter(portId, PfcCounterType::RECOVERY);
+}
 } // namespace facebook::fboss
