@@ -91,7 +91,7 @@ class CowStorage : public Storage<Root, CowStorage<Root, Node>> {
     });
     const auto& rootNode = *root_;
     auto traverseResult = thrift_cow::RootPathVisitor::visit(
-        rootNode, begin, end, thrift_cow::PathVisitMode::LEAF, op);
+        rootNode, begin, end, thrift_cow::PathVisitOptions::visitLeaf(), op);
     if (traverseResult == thrift_cow::ThriftTraverseResult::OK) {
       return out;
     } else if (
@@ -110,7 +110,7 @@ class CowStorage : public Storage<Root, CowStorage<Root, Node>> {
     const auto& rootNode = *root_;
     thrift_cow::GetEncodedPathVisitorOperator op(protocol);
     auto traverseResult = thrift_cow::RootPathVisitor::visit(
-        rootNode, begin, end, thrift_cow::PathVisitMode::LEAF, op);
+        rootNode, begin, end, thrift_cow::PathVisitOptions::visitLeaf(), op);
     if (traverseResult == thrift_cow::ThriftTraverseResult::OK) {
       result.contents() = std::move(*op.val);
       result.protocol() = protocol;
@@ -174,7 +174,7 @@ class CowStorage : public Storage<Root, CowStorage<Root, Node>> {
           }
         });
     auto traverseResult = thrift_cow::RootPathVisitor::visit(
-        *root_, begin, end, thrift_cow::PathVisitMode::LEAF, op);
+        *root_, begin, end, thrift_cow::PathVisitOptions::visitLeaf(), op);
     return detail::parseTraverseResult(traverseResult);
   }
 
@@ -187,7 +187,7 @@ class CowStorage : public Storage<Root, CowStorage<Root, Node>> {
     thrift_cow::SetEncodedPathVisitorOperator op(
         *state.protocol(), *state.contents());
     auto traverseResult = thrift_cow::RootPathVisitor::visit(
-        *root_, begin, end, thrift_cow::PathVisitMode::LEAF, op);
+        *root_, begin, end, thrift_cow::PathVisitOptions::visitLeaf(), op);
     return detail::parseTraverseResult(traverseResult);
   }
 
@@ -218,7 +218,7 @@ class CowStorage : public Storage<Root, CowStorage<Root, Node>> {
           }
         });
     auto visitResult = thrift_cow::RootPathVisitor::visit(
-        *root_, begin, end, thrift_cow::PathVisitMode::LEAF, op);
+        *root_, begin, end, thrift_cow::PathVisitOptions::visitLeaf(), op);
     auto visitError = detail::parseTraverseResult(visitResult);
     if (visitError) {
       return visitError;
