@@ -415,6 +415,41 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
           getCounterPrefix() + vendor + ".network_interface.errors",
           SUM,
           RATE),
+      ingressTmWarnings_(
+          map,
+          getCounterPrefix() + vendor + ".ingress_tm.warnings",
+          SUM,
+          RATE),
+      egressTmWarnings_(
+          map,
+          getCounterPrefix() + vendor + ".egress_tm.warnings",
+          SUM,
+          RATE),
+      dramWarnings_(
+          map,
+          getCounterPrefix() + vendor + ".dram.warnings",
+          SUM,
+          RATE),
+      fabricRxWarnings_(
+          map,
+          getCounterPrefix() + vendor + ".fabric_rx.warnings",
+          SUM,
+          RATE),
+      fabricTxWarnings_(
+          map,
+          getCounterPrefix() + vendor + ".fabric_tx.warnings",
+          SUM,
+          RATE),
+      fabricLinkWarnings_(
+          map,
+          getCounterPrefix() + vendor + ".fabric_link.warnings",
+          SUM,
+          RATE),
+      networkInterfaceWarnings_(
+          map,
+          getCounterPrefix() + vendor + ".network_interface.warnings",
+          SUM,
+          RATE),
       hwInitializedTimeMs_(
           map,
           getCounterPrefix() + vendor + ".hw_initialized_time_ms",
@@ -769,6 +804,34 @@ int64_t HwSwitchFb303Stats::getNetworkInterfaceErrors() const {
   return getCumulativeValue(networkInterfaceErrors_);
 }
 
+int64_t HwSwitchFb303Stats::getIngressTmWarnings() const {
+  return getCumulativeValue(ingressTmWarnings_);
+}
+
+int64_t HwSwitchFb303Stats::getEgressTmWarnings() const {
+  return getCumulativeValue(egressTmWarnings_);
+}
+
+int64_t HwSwitchFb303Stats::getDramWarnings() const {
+  return getCumulativeValue(dramWarnings_);
+}
+
+int64_t HwSwitchFb303Stats::getFabricRxWarnings() const {
+  return getCumulativeValue(fabricRxWarnings_);
+}
+
+int64_t HwSwitchFb303Stats::getFabricTxWarnings() const {
+  return getCumulativeValue(fabricTxWarnings_);
+}
+
+int64_t HwSwitchFb303Stats::getFabricLinkWarnings() const {
+  return getCumulativeValue(fabricLinkWarnings_);
+}
+
+int64_t HwSwitchFb303Stats::getNetworkInterfaceWarnings() const {
+  return getCumulativeValue(networkInterfaceWarnings_);
+}
+
 int64_t HwSwitchFb303Stats::getIsolationFirmwareCrashes() const {
   return getCumulativeValue(isolationFirmwareCrashes_);
 }
@@ -875,6 +938,13 @@ HwAsicErrors HwSwitchFb303Stats::getHwAsicErrors() const {
   asicErrors.fabricLinkErrors() = getFabricLinkErrors();
   asicErrors.fabricTopologyErrors() = getFabricTopologyErrors();
   asicErrors.networkInterfaceErrors() = getNetworkInterfaceErrors();
+  asicErrors.ingressTmWarnings() = getIngressTmWarnings();
+  asicErrors.egressTmWarnings() = getEgressTmWarnings();
+  asicErrors.dramWarnings() = getDramWarnings();
+  asicErrors.fabricRxWarnings() = getFabricRxWarnings();
+  asicErrors.fabricTxWarnings() = getFabricTxWarnings();
+  asicErrors.fabricLinkWarnings() = getFabricLinkWarnings();
+  asicErrors.networkInterfaceWarnings() = getNetworkInterfaceWarnings();
   return asicErrors;
 }
 

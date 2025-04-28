@@ -194,6 +194,27 @@ class HwSwitchFb303Stats {
   void networkInterfaceError() {
     networkInterfaceErrors_.addValue(1);
   }
+  void ingressTmWarning() {
+    ingressTmWarnings_.addValue(1);
+  }
+  void egressTmWarning() {
+    egressTmWarnings_.addValue(1);
+  }
+  void dramWarning() {
+    dramWarnings_.addValue(1);
+  }
+  void fabricRxWarning() {
+    fabricRxWarnings_.addValue(1);
+  }
+  void fabricTxWarning() {
+    fabricTxWarnings_.addValue(1);
+  }
+  void fabricLinkWarning() {
+    fabricLinkWarnings_.addValue(1);
+  }
+  void networkInterfaceWarning() {
+    networkInterfaceWarnings_.addValue(1);
+  }
   void hwInitializedTime(uint64_t ms) {
     hwInitializedTimeMs_.addValue(ms);
   }
@@ -331,6 +352,13 @@ class HwSwitchFb303Stats {
   int64_t getFabricLinkErrors() const;
   int64_t getFabricTopologyErrors() const;
   int64_t getNetworkInterfaceErrors() const;
+  int64_t getIngressTmWarnings() const;
+  int64_t getEgressTmWarnings() const;
+  int64_t getDramWarnings() const;
+  int64_t getFabricRxWarnings() const;
+  int64_t getFabricTxWarnings() const;
+  int64_t getFabricLinkWarnings() const;
+  int64_t getNetworkInterfaceWarnings() const;
 
   // FW Errors
   int64_t getIsolationFirmwareCrashes() const;
@@ -468,6 +496,13 @@ class HwSwitchFb303Stats {
   TLTimeseries fabricLinkErrors_;
   TLTimeseries fabricTopologyErrors_;
   TLTimeseries networkInterfaceErrors_;
+  TLTimeseries ingressTmWarnings_;
+  TLTimeseries egressTmWarnings_;
+  TLTimeseries dramWarnings_;
+  TLTimeseries fabricRxWarnings_;
+  TLTimeseries fabricTxWarnings_;
+  TLTimeseries fabricLinkWarnings_;
+  TLTimeseries networkInterfaceWarnings_;
   TLTimeseries hwInitializedTimeMs_;
   TLTimeseries bootTimeMs_;
   TLTimeseries coldBoot_;
