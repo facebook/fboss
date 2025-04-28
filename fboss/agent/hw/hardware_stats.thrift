@@ -274,6 +274,14 @@ struct HwAsicErrors {
   48: optional i64 fabricLinkErrors;
   49: optional i64 fabricTopologyErrors;
   50: optional i64 networkInterfaceErrors;
+  // DNX aggregated block level warnings
+  51: optional i64 ingressTmWarnings;
+  52: optional i64 egressTmWarnings;
+  53: optional i64 dramWarnings;
+  54: optional i64 fabricRxWarnings;
+  55: optional i64 fabricTxWarnings;
+  56: optional i64 fabricLinkWarnings;
+  57: optional i64 networkInterfaceWarnings;
 }
 
 struct HwTeFlowStats {
