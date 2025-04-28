@@ -1293,6 +1293,9 @@ UplinkDownlinkPair getAllUplinkDownlinkPorts(
   }
 
   auto begin = masterPorts.begin();
+  CHECK_GE(masterPorts.size(), ecmpWidth)
+      << "Not enough ports with subnet in config. Need  " << ecmpWidth
+      << " ports, but found only " << masterPorts.size();
   auto mid = masterPorts.begin() + ecmpWidth;
   auto end = masterPorts.end();
   return std::pair(PortList(begin, mid), PortList(mid, end));
