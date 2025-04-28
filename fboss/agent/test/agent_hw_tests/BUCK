@@ -257,6 +257,10 @@ cpp_binary(
         srcs = [
             "BcmAgentHwTest.cpp",
         ],
+        linker_flags = [
+            "--export-dynamic",
+            "--unresolved-symbols=ignore-all",
+        ],
         versions = to_versions(sdk),
         deps = [
             "fbsource//third-party/googletest:gtest",
