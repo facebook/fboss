@@ -302,6 +302,21 @@ class SaiPortManager {
   void changePortShelEnable(
       const std::shared_ptr<Port>& oldPort,
       const std::shared_ptr<Port>& newPort) const;
+  /**
+   * Increment the PFC deadlock detection counter for a given port.
+   *
+   * @param portId - The ID of the port for which the counter is to be
+   * incremented.
+   */
+  void incrementPfcDeadlockCounter(const PortID& portId);
+
+  /**
+   * Increment the PFC deadlock recovery counter for a given port.
+   *
+   * @param portId - The ID of the port for which the counter is to be
+   * incremented.
+   */
+  void incrementPfcRecoveryCounter(const PortID& portId);
 
  private:
   PortSaiId addPortImpl(const std::shared_ptr<Port>& swPort);
@@ -446,6 +461,21 @@ class SaiPortManager {
       const std::shared_ptr<Port>& oldPort,
       const std::shared_ptr<Port>& newPort);
   void clearPortFlowletConfig(const PortID& portId);
+
+  /**
+   * Enum to specify which PFC counter to increment.
+   */
+  enum class PfcCounterType { DEADLOCK, RECOVERY };
+
+  /**
+   * Increment the PFC counter for a given port and counter type.
+   *
+   * @param portId - The ID of the port for which the counter is to be
+   * incremented.
+   * @param counterType - The type of PFC counter to increment (DEADLOCK or
+   * RECOVERY).
+   */
+  void incrementPfcCounter(const PortID& portId, PfcCounterType counterType);
 
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;

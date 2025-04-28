@@ -96,8 +96,8 @@ struct HwPortStats {
   63: optional bool dataCellsFilterOn;
   64: map<i16, i64> egressGvoqWatermarkBytes_ = {};
   65: map<i16, i64> pgInCongestionDiscards_ = {};
-  66: i64 pfcDeadlockDetection_ = STAT_UNINITIALIZED;
-  67: i64 pfcDeadlockRecovery_ = STAT_UNINITIALIZED;
+  66: optional i64 pfcDeadlockDetection_;
+  67: optional i64 pfcDeadlockRecovery_;
 }
 
 struct HwSysPortStats {

@@ -4519,12 +4519,13 @@ void SaiSwitch::pfcDeadlockNotificationCallback(
     XLOG_EVERY_MS(WARNING, 5000)
         << "PFC deadlock notification callback invoked for qid: " << qId
         << ", on port: " << portId << ", with event: " << deadlockEvent;
+    std::lock_guard<std::mutex> locked(saiSwitchMutex_);
     switch (deadlockEvent) {
       case SAI_QUEUE_PFC_DEADLOCK_EVENT_TYPE_DETECTED:
-        callback_->pfcWatchdogStateChanged(portId, true);
+        managerTable_->portManager().incrementPfcDeadlockCounter(portId);
         break;
       case SAI_QUEUE_PFC_DEADLOCK_EVENT_TYPE_RECOVERED:
-        callback_->pfcWatchdogStateChanged(portId, false);
+        managerTable_->portManager().incrementPfcRecoveryCounter(portId);
         break;
       default:
         XLOG(ERR) << "Unknown event " << deadlockEvent
