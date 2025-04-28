@@ -73,6 +73,14 @@ add_fbthrift_cpp_library(
     json
 )
 
+
+add_fbthrift_cpp_library(
+  show_fabric_inputbalance_model
+  fboss/cli/fboss2/commands/show/fabric/inputbalance/model.thrift
+  OPTIONS
+    json
+)
+
 add_fbthrift_cpp_library(
   show_host_model
   fboss/cli/fboss2/commands/show/host/model.thrift
@@ -379,6 +387,7 @@ add_executable(fboss2
   fboss/cli/fboss2/commands/show/example/CmdShowExample.h
   fboss/cli/fboss2/commands/show/fabric/CmdShowFabric.h
   fboss/cli/fboss2/commands/show/fabric/reachability/CmdShowFabricReachability.h
+  fboss/cli/fboss2/commands/show/fabric/inputbalance/CmdShowFabricInputBalance.h
   fboss/cli/fboss2/commands/show/flowlet/CmdShowFlowlet.h
   fboss/cli/fboss2/commands/show/host/CmdShowHost.h
   fboss/cli/fboss2/commands/show/hwagent/CmdShowHwAgentStatus.h
@@ -472,6 +481,7 @@ target_link_libraries(fboss2
   show_dsfnodes_model
   show_fabric_model
   show_fabric_reachability_model
+  show_fabric_inputbalance_model
   show_host_model
   show_lldp_model
   show_mirror_model

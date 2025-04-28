@@ -39,6 +39,7 @@
 #include "fboss/cli/fboss2/commands/show/example/CmdShowExample.h"
 #include "fboss/cli/fboss2/commands/show/example/gen-cpp2/model_visitation.h"
 #include "fboss/cli/fboss2/commands/show/fabric/CmdShowFabric.h"
+#include "fboss/cli/fboss2/commands/show/fabric/inputbalance/CmdShowFabricInputBalance.h"
 #include "fboss/cli/fboss2/commands/show/fabric/reachability/CmdShowFabricReachability.h"
 #include "fboss/cli/fboss2/commands/show/fabric/topology/CmdShowFabricTopology.h"
 #include "fboss/cli/fboss2/commands/show/flowlet/CmdShowFlowlet.h"
@@ -139,7 +140,11 @@ const CommandTree& kCommandTree() {
            {"topology",
             "Show Fabric topology per virtual device",
             commandHandler<CmdShowFabricTopology>,
-            argTypeHandler<CmdShowFabricTopologyTraits>}}},
+            argTypeHandler<CmdShowFabricTopologyTraits>},
+           {"inputBalance",
+            "Show Fabric input balanced given destination switch name(s)",
+            commandHandler<CmdShowFabricInputBalance>,
+            argTypeHandler<CmdShowFabricInputBalanceTraits>}}},
 
       {"show",
        "flowlet",
