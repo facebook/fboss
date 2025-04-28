@@ -13,6 +13,7 @@
 #include <string>
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/show/fabric/inputbalance/gen-cpp2/model_types.h"
+#include "fboss/cli/fboss2/utils/CmdUtils.h"
 
 namespace facebook::fboss {
 
@@ -31,9 +32,18 @@ class CmdShowFabricInputBalance : public CmdHandler<
   using RetType = CmdShowFabricInputBalanceTraits::RetType;
 
   RetType queryClient(
-      const HostInfo& /* hostInfo */,
+      const HostInfo& hostInfo,
       const ObjectArgType& /* queriedSwitchNames */) {
-    // TODO(zecheng): Query hw agent for reachability and port information
+    auto fbossCtrlClient =
+        utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
+
+    std::map<int64_t, cfg::DsfNode> dsfNodeMap;
+    fbossCtrlClient->sync_getDsfNodes(dsfNodeMap);
+    bool isDualStage = utils::isDualStage(dsfNodeMap);
+
+    // TODO(zecheng): Support for dual stage. Starting with single stage for
+    // now.
+    CHECK(!isDualStage);
 
     return createModel();
   }
