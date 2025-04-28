@@ -15,6 +15,7 @@
 #include "fboss/agent/test/utils/DsfConfigUtils.h"
 #include "fboss/agent/test/utils/MirrorTestUtils.h"
 #include "fboss/agent/test/utils/PacketSnooper.h"
+#include "fboss/agent/test/utils/PfcTestUtils.h"
 #include "fboss/agent/test/utils/PortTestUtils.h"
 #include "fboss/agent/test/utils/TrapPacketUtils.h"
 #include "fboss/agent/test/utils/VoqTestUtils.h"
@@ -62,6 +63,12 @@ class AgentMirrorOnDropTest
     return {production_features::ProductionFeature::MIRROR_ON_DROP};
   }
 
+  void setCmdLineFlagOverrides() const override {
+    AgentHwTest::setCmdLineFlagOverrides();
+    // For VsqWordsSharedMaxSize which relies on triggering PFC.
+    FLAGS_allow_zero_headroom_for_lossless_pg = true;
+  }
+
   void TearDown() override {
     // Log drop counters to facilitate test debugging.
     if (auto ensemble = getAgentEnsemble(); ensemble != nullptr) {
@@ -97,7 +104,7 @@ class AgentMirrorOnDropTest
   const int kL3DropEventId = 0;
   const int kNullRouteDropEventId = 1;
   const int kAclDropEventId = 2;
-  // TODO: add vsq drop test case once CS00012390029 is fixed
+  const int kVsqDropEventId = 3;
   const int kVoqDropEventId = 4;
 
   std::string portDesc(PortID portId) {
@@ -123,7 +130,7 @@ class AgentMirrorOnDropTest
       return ecmpHelper.resolveNextHops(state, {port});
     });
     auto routeUpdater = getSw()->getRouteUpdater();
-    ecmpHelper.programRoutes(&routeUpdater, {port}, {route});
+    ecmpHelper.programRoutes(&routeUpdater, {port}, {std::move(route)});
   }
 
   cfg::MirrorOnDropEventConfig makeEventConfig(
@@ -807,6 +814,84 @@ TEST_P(AgentMirrorOnDropTest, VoqReject) {
     // PacketSnooper will complain on shutdown.
     while (snooper.waitForPacket(1).has_value()) {
     }
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+// 1. Configures MOD with VSQ drops mapped to event ID `kVsqDropEventId`.
+// 2. Configure PFC on an ingress port and set a small buffer size.
+// 3. Add a route to a neighbor IP on an egress port. Disable Tx on that port.
+// 4. Sends a bunch of packets towards the neighbor. Packets will be rejected
+//    once ingress buffers fill up.
+// 5. MOD packet will be sent to collector.
+// 6. Packets are trapped to CPU. We validate the MOD headers well as a
+//    truncated version of the original packet.
+TEST_P(AgentMirrorOnDropTest, VsqReject) {
+  auto mirrorPortId = masterLogicalPortIds({GetParam()})[0];
+  auto collectorPortId = masterLogicalInterfacePortIds()[0];
+  auto injectionPortId = masterLogicalInterfacePortIds()[1];
+  auto txOffPortId = masterLogicalInterfacePortIds()[2];
+  XLOG(DBG3) << "MoD port: " << portDesc(mirrorPortId);
+  XLOG(DBG3) << "Collector port: " << portDesc(collectorPortId);
+  XLOG(DBG3) << "Injection port: " << portDesc(injectionPortId);
+  XLOG(DBG3) << "Tx off port: " << portDesc(txOffPortId);
+  int kPriority = 2;
+
+  auto setup = [&]() {
+    auto config = getAgentEnsemble()->getCurrentConfig();
+    setupMirrorOnDrop(
+        &config,
+        mirrorPortId,
+        kCollectorIp_,
+        {
+            {kVsqDropEventId,
+             makeEventConfig(
+                 cfg::MirrorOnDropAgingGroup::GLOBAL,
+                 {cfg::MirrorOnDropReasonAggregation::
+                      INGRESS_SOURCE_CONGESTION_DISCARDS})},
+        });
+    utility::setupPfcBuffers(
+        getAgentEnsemble(),
+        config,
+        {injectionPortId},
+        {kPriority},
+        {} /*lossyPgIds*/,
+        {} /*tcToPgOverride*/,
+        utility::PfcBufferParams{
+            .globalShared = 5000,
+            .globalHeadroom = 0,
+            .pgHeadroom = 0,
+            .scalingFactor = cfg::MMUScalingFactor::ONE_128TH,
+        });
+    utility::addTrapPacketAcl(&config, kCollectorNextHopMac_);
+    applyNewConfig(config);
+
+    setupEcmpTraffic(collectorPortId, kCollectorIp_, kCollectorNextHopMac_);
+    setupEcmpTraffic(
+        txOffPortId,
+        kDropDestIp,
+        utility::getMacForFirstInterfaceWithPorts(getProgrammedState()));
+  };
+
+  auto verify = [&]() {
+    utility::setCreditWatchdogAndPortTx(getAgentEnsemble(), txOffPortId, false);
+    utility::SwSwitchPacketSnooper snooper(getSw(), "snooper");
+    auto pkt = sendPackets(1000, injectionPortId, kDropDestIp, kPriority);
+
+    validateModPacketReceived(
+        snooper,
+        pkt->buf(),
+        GetParam(),
+        kVsqDropEventId,
+        makeSSPA(injectionPortId),
+        makePortDSPA(txOffPortId));
+
+    // This test generates a ton of drops, so consume the rest of MOD packets.
+    while (snooper.waitForPacket(1).has_value()) {
+    }
+
+    utility::setCreditWatchdogAndPortTx(getAgentEnsemble(), txOffPortId, true);
   };
 
   verifyAcrossWarmBoots(setup, verify);
