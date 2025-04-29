@@ -609,6 +609,85 @@ class AgentAqmTest : public AgentHwTest {
     verifyAcrossWarmBoots(setup, verify);
   }
 
+  void runPerQueueEcnMarkedStatsTest() {
+    const PortID portId = masterLogicalInterfacePortIds()[0];
+    const int silverQueueId =
+        utility::getOlympicQueueId(utility::OlympicQueueType::SILVER);
+
+    auto setup = [=, this]() {
+      auto config{getSw()->getConfig()};
+      queueEcnThresholdSetup(config, std::array{silverQueueId});
+      queueWredThresholdSetup(config, std::array{silverQueueId});
+      applyNewConfig(config);
+
+      // Setup traffic loop
+      setupEcmpTraffic();
+
+      // Send traffic
+      const int kNumPacketsToSend =
+          getAgentEnsemble()->getMinPktsForLineRate(portId);
+      sendPkts(
+          utility::kOlympicQueueToDscp().at(silverQueueId).front(),
+          kECT1,
+          kNumPacketsToSend);
+    };
+
+    auto verify = [=, this]() {
+      getAgentEnsemble()->waitForLineRateOnPort(portId);
+
+      // Get stats to verify if additional packets are getting ECN marked
+      HwPortStats beforePortStats =
+          getAgentEnsemble()->getLatestPortStats(portId);
+      AqmTestStats beforeAqmQueueStats{};
+      extractAqmTestStats(
+          beforePortStats,
+          silverQueueId,
+          true /*useQueueStatsForAqm*/,
+          beforeAqmQueueStats);
+
+      WITH_RETRIES_N_TIMED(20, std::chrono::milliseconds(200), {
+        HwPortStats afterPortStats =
+            getAgentEnsemble()->getLatestPortStats(portId);
+        AqmTestStats afterAqmQueueStats{};
+        extractAqmTestStats(
+            afterPortStats,
+            silverQueueId,
+            true /*useQueueStatsForAqm*/,
+            afterAqmQueueStats);
+
+        uint64_t deltaQueueEcnMarkedPackets = afterAqmQueueStats.outEcnCounter -
+            beforeAqmQueueStats.outEcnCounter;
+
+        // Details for debugging
+        uint64_t deltaOutPackets =
+            afterAqmQueueStats.outPackets - beforeAqmQueueStats.outPackets;
+        uint64_t deltaPortEcnMarkedPackets = *afterPortStats.outEcnCounter_() -
+            *beforePortStats.outEcnCounter_();
+        XLOG(DBG3) << "queue(" << silverQueueId << "): delta/total"
+                   << " EcnMarked: " << deltaQueueEcnMarkedPackets << "/"
+                   << afterAqmQueueStats.outEcnCounter
+                   << " outPackets: " << deltaOutPackets << "/"
+                   << afterAqmQueueStats.outPackets
+                   << " Port.EcnMarked: " << deltaPortEcnMarkedPackets << "/"
+                   << *afterPortStats.outEcnCounter_();
+
+        EXPECT_EVENTUALLY_GT(
+            afterAqmQueueStats.outEcnCounter, beforeAqmQueueStats.outEcnCounter)
+            << "Queue(" << silverQueueId << ") ECN marked packets not seen!";
+
+        // ECN marked packets seen for the queue
+        XLOG(DBG0) << "queue(" << silverQueueId
+                   << "): " << deltaQueueEcnMarkedPackets
+                   << " ECN marked packets seen!";
+        // Make sure that port ECN counters are working
+        EXPECT_EVENTUALLY_GT(
+            afterPortStats.outEcnCounter_().value(),
+            beforePortStats.outEcnCounter_().value());
+      });
+    };
+    verifyAcrossWarmBoots(setup, verify);
+  }
+
   void runWredThresholdTest() {
     validateAqmThresholds(
         kNotECT,
@@ -817,6 +896,10 @@ TEST_F(AgentAqmTest, verifyPerQueueWredDropStats) {
 
 TEST_F(AgentAqmTest, verifyEcnThreshold) {
   runEcnThresholdTest();
+}
+
+TEST_F(AgentAqmTest, verifyPerQueueEcnMarkedStats) {
+  runPerQueueEcnMarkedStatsTest();
 }
 
 } // namespace facebook::fboss
