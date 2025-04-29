@@ -981,7 +981,7 @@ class SwSwitch : public HwSwitchCallback {
       getAddrToLocalIntfMap() const {
     return addrToLocalIntf_;
   }
-  const std::map<SwitchID, switch_reachability::SwitchReachability>&
+  const std::map<SwitchID, switch_reachability::SwitchReachability>
   getSwitchReachability() const {
     return *hwSwitchReachability_.rlock();
   }

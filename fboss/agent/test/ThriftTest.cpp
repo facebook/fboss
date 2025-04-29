@@ -599,14 +599,13 @@ TYPED_TEST(ThriftTestAllSwitchTypes, getSwitchReachability) {
       std::make_unique<std::vector<std::string>>();
   switchNames->push_back("dsfNodeCfg0");
   std::map<std::string, std::vector<std::string>> reachabilityMatrix;
+  EXPECT_HW_CALL(this->sw_, getSwitchReachability(testing::_)).Times(0);
   if (this->isNpu()) {
-    EXPECT_HW_CALL(this->sw_, getSwitchReachability(testing::_)).Times(0);
     EXPECT_THROW(
         handler.getSwitchReachability(
             reachabilityMatrix, std::move(switchNames)),
         FbossError);
   } else {
-    EXPECT_HW_CALL(this->sw_, getSwitchReachability(testing::_)).Times(1);
     handler.getSwitchReachability(reachabilityMatrix, std::move(switchNames));
     EXPECT_EQ(reachabilityMatrix.size(), 1);
   }
