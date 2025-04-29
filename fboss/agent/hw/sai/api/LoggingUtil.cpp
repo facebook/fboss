@@ -27,8 +27,10 @@ extern "C" {
 #endif
 #if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
 #ifndef IS_OSS_BRCM_SAI
+#include <experimental/saiexperimentalswitchpipeline.h>
 #include <experimental/saiexperimentalvendorswitch.h>
 #else
+#include <saiexperimentalswitchpipeline.h>
 #include <saiexperimentalvendorswitch.h>
 #endif
 #endif
@@ -45,6 +47,8 @@ folly::StringPiece saiApiTypeToString(sai_api_t apiType) {
 #if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
       case SAI_API_VENDOR_SWITCH:
         return "vendor-switch";
+      case SAI_API_SWITCH_PIPELINE:
+        return "switch-pipeline";
 #endif
       case SAI_API_FIRMWARE:
         return "firmware";
@@ -170,6 +174,8 @@ folly::StringPiece saiObjectTypeToString(sai_object_type_t objectType) {
 #if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
       case SAI_OBJECT_TYPE_VENDOR_SWITCH:
         return "vendor-switch";
+      case SAI_OBJECT_TYPE_SWITCH_PIPELINE:
+        return "switch-pipeline";
 #endif
       case SAI_OBJECT_TYPE_FIRMWARE:
         return "firmware";

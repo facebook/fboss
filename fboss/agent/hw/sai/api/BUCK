@@ -93,6 +93,7 @@ cpp_library(
         "SamplePacketApi.h",
         "SchedulerApi.h",
         "SwitchApi.h",
+        "SwitchPipelineApi.h",
         "SystemPortApi.h",
         "TamApi.h",
         "TamEventAgingGroupApi.h",
