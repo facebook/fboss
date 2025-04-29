@@ -815,6 +815,11 @@ void IPv6Handler::sendMulticastNeighborSolicitation(
     return;
   }
 
+  if (!sw->isFullyInitialized()) {
+    XLOG(DBG2) << " Dropping L3 packet since device not ready";
+    return;
+  }
+
   IPAddressV6 solicitedNodeAddr = targetIP.getSolicitedNodeAddress();
   MacAddress dstMac = MacAddress::createMulticast(solicitedNodeAddr);
   // For now, we always use our link local IP as the source.
@@ -865,6 +870,11 @@ void IPv6Handler::sendUnicastNeighborSolicitation(
   if (FLAGS_disable_neighbor_solicitation) {
     XLOG(DBG4)
         << "skipping sending neighbor solicitation since flag disable_neighbor_solicitation set to true";
+    return;
+  }
+
+  if (!sw->isFullyInitialized()) {
+    XLOG(DBG2) << " Dropping L3 packet since device not ready";
     return;
   }
 
@@ -993,6 +1003,11 @@ void IPv6Handler::sendMulticastNeighborSolicitations(
     const folly::IPAddressV6& targetIP) {
   // Don't send solicitations for multicast or broadcast addresses.
   if (targetIP.isMulticast() || targetIP.isLinkLocalBroadcast()) {
+    return;
+  }
+
+  if (!sw_->isFullyInitialized()) {
+    XLOG(DBG2) << " Dropping L3 packet since device not ready";
     return;
   }
 
