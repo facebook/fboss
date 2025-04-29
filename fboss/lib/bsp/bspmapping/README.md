@@ -37,6 +37,7 @@ This will write the configs for each platform to a directory called `generated_c
 
 | JSON File Name                     | C++ File Location                                           |
 |------------------------------------|-------------------------------------------------------------|
+| generated_configs/darwin.json      | fboss/lib/bsp/darwin/DarwinBspPlatformMapping.cpp           |
 | generated_configs/janga800bic.json | fboss/lib/bsp/janga800bic/Janga800bicBspPlatformMapping.cpp |
 | generated_configs/meru400bfu.json  | fboss/lib/bsp/meru400bfu/Meru400bfuBspPlatformMapping.cpp   |
 | generated_configs/meru400biu.json  | fboss/lib/bsp/meru400biu/Meru400biuBspPlatformMapping.cpp   |
@@ -45,7 +46,6 @@ This will write the configs for each platform to a directory called `generated_c
 | generated_configs/montblanc.json   | fboss/lib/bsp/montblanc/MontblancBspPlatformMapping.cpp     |
 | generated_configs/morgan800cc.json | fboss/lib/bsp/morgan800cc/Morgan800ccBspPlatformMapping.cpp |
 | generated_configs/tahan800bc.json  | fboss/lib/bsp/tahan800bc/Tahan800bcBspPlatformMapping.cpp   |
-
 
 ## Instructions (Meta-Internal)
 

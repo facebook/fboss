@@ -71,6 +71,7 @@ cpp_library(
         "//fboss/agent:enum_utils",
         "//fboss/agent:fboss-types",
         "//fboss/lib/bsp:bsp_core",
+        "//fboss/lib/bsp/darwin:darwin_bsp",
         "//fboss/lib/bsp/janga800bic:janga800bic_bsp",
         "//fboss/lib/bsp/meru400bfu:meru400bfu_bsp",
         "//fboss/lib/bsp/meru400biu:meru400biu_bsp",
