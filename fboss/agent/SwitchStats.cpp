@@ -389,9 +389,7 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map, int numSwitches)
           map,
           kCounterPrefix + "resource_accountant_rejected_updates",
           SUM,
-          RATE)
-
-{
+          RATE) {
   for (auto switchIndex = 0; switchIndex < numSwitches; switchIndex++) {
     hwAgentConnectionStatus_.emplace_back(TLCounter(
         map,
@@ -404,6 +402,32 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map, int numSwitches)
         SUM,
         RATE));
     thriftStreamConnectionStatus_.emplace_back(map, switchIndex);
+    switchReachabilityInconsistencyDetected_.emplace_back(
+        map,
+        folly::to<std::string>(
+            kCounterPrefix,
+            "switch.",
+            switchIndex,
+            ".",
+            "switch_reachability_inconsistency_detected"),
+        SUM,
+        RATE);
+    activePortsWithoutSwitchReachability_.emplace_back(
+        map,
+        folly::to<std::string>(
+            kCounterPrefix,
+            "switch.",
+            switchIndex,
+            ".",
+            "active_ports_without_switch_reachability"));
+    inactivePortsWithSwitchReachability_.emplace_back(
+        map,
+        folly::to<std::string>(
+            kCounterPrefix,
+            "switch.",
+            switchIndex,
+            ".",
+            "inactive_ports_with_switch_reachability"));
   }
 }
 
@@ -759,4 +783,19 @@ void SwitchStats::setNumActiveFabricLinksEligibleForMinLink(
   fb303::fbData->setCounter(counterName, static_cast<int>(numLinks));
 }
 
+void SwitchStats::setActivePortsWithoutSwitchReachability(
+    int16_t switchIndex,
+    int numPorts) {
+  CHECK_LT(switchIndex, activePortsWithoutSwitchReachability_.size());
+  fb303::fbData->setCounter(
+      activePortsWithoutSwitchReachability_[switchIndex].name(), numPorts);
+}
+
+void SwitchStats::setInactivePortsWithSwitchReachability(
+    int16_t switchIndex,
+    int numPorts) {
+  CHECK_LT(switchIndex, inactivePortsWithSwitchReachability_.size());
+  fb303::fbData->setCounter(
+      inactivePortsWithSwitchReachability_[switchIndex].name(), numPorts);
+}
 } // namespace facebook::fboss

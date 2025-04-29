@@ -762,8 +762,26 @@ struct ExtendedPathVisitor {
       epv_detail::ExtPathIter begin,
       epv_detail::ExtPathIter end,
       const ExtPathVisitorOptions& /* options */,
-      Func&& f) {
+      Func&& f)
+    requires(is_cow_type_v<Node>)
+  {
     f(path, node);
+  }
+
+  template <typename Node, typename Func>
+  static void visit(
+      std::vector<std::string>& path,
+      Node& node,
+      epv_detail::ExtPathIter begin,
+      epv_detail::ExtPathIter end,
+      const ExtPathVisitorOptions& /* options */,
+      Func&& f)
+    requires(!is_cow_type_v<Node>)
+  {
+    // Node is not a Serializable, dispatch with wrapper
+    SerializableWrapper<TC, std::remove_const_t<Node>> wrapper(
+        *const_cast<std::remove_const_t<Node>*>(&node));
+    f(path, wrapper);
   }
 };
 

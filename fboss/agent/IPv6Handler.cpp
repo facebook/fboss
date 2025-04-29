@@ -147,7 +147,7 @@ void IPv6Handler::handlePacket(
     MacAddress src,
     Cursor cursor,
     const std::shared_ptr<VlanOrIntfT>& vlanOrIntf) {
-  auto vlanID = getVlanIDFromVlanOrIntf(vlanOrIntf);
+  auto vlanID = sw_->getVlanIDForTx(vlanOrIntf);
   auto vlanIDStr = vlanID.has_value()
       ? folly::to<std::string>(static_cast<int>(vlanID.value()))
       : "None";
@@ -453,7 +453,7 @@ void IPv6Handler::handleNeighborSolicitation(
     const ICMPHeaders& hdr,
     Cursor cursor,
     const std::shared_ptr<VlanOrIntfT>& vlanOrIntf) {
-  auto vlanID = getVlanIDFromVlanOrIntf(vlanOrIntf);
+  auto vlanID = sw_->getVlanIDForTx(vlanOrIntf);
   auto vlanIDStr = vlanID.has_value()
       ? folly::to<std::string>(static_cast<int>(vlanID.value()))
       : "None";
@@ -616,7 +616,7 @@ void IPv6Handler::handleNeighborAdvertisement(
     // drop NDP advertisement packets when LAG port is not up,
     // otherwise, NDP entry would be created for this down port,
     // and confuse later neighbor/next hop resolution logics
-    auto vlanID = getVlanIDFromVlanOrIntf(vlanOrIntf);
+    auto vlanID = sw_->getVlanIDForTx(vlanOrIntf);
     auto vlanIDStr = vlanID.has_value()
         ? folly::to<std::string>(static_cast<int>(vlanID.value()))
         : "None";

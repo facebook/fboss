@@ -9,15 +9,16 @@
  */
 
 #include "fboss/agent/hw/benchmarks/HwInitAndExitBenchmarkHelper.h"
-#include <fboss/agent/SwSwitch.h>
-#include <fboss/agent/test/AgentEnsemble.h>
 #include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/DsfStateUpdaterUtil.h"
+#include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/Utils.h"
+#include "fboss/agent/benchmarks/AgentBenchmarks.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/HwTestProdConfigUtils.h"
+#include "fboss/agent/test/AgentEnsemble.h"
 #include "fboss/agent/test/RouteDistributionGenerator.h"
 #include "fboss/agent/test/RouteScaleGenerators.h"
 #include "fboss/agent/test/utils/DsfConfigUtils.h"
@@ -27,10 +28,6 @@
 #include "fboss/lib/FunctionCallTimeReporter.h"
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
-
-#include <iostream>
-
-#include "fboss/agent/benchmarks/AgentBenchmarks.h"
 
 using namespace facebook::fboss;
 
@@ -102,7 +99,10 @@ std::optional<uint16_t> getUplinksCount(
         cfg::PortSpeed::HUNDREDG,
         cfg::PortSpeed::HUNDREDG},
        4},
-  };
+      {{PlatformType::PLATFORM_MINIPACK3N,
+        cfg::PortSpeed::FOURHUNDREDG,
+        cfg::PortSpeed::FOURHUNDREDG},
+       64}};
 
   auto iter = numUplinksMap.find(
       std::make_tuple(platformType, uplinkSpeed, downlinkSpeed));
@@ -137,6 +137,7 @@ utility::RouteDistributionGenerator::ThriftRouteChunks getRoutes(
     return utility::RSWRouteScaleGenerator(swSwitch->getState())
         .getThriftRoutes();
   } else if (
+      asicType == cfg::AsicType::ASIC_TYPE_CHENAB ||
       asicType == cfg::AsicType::ASIC_TYPE_TOMAHAWK3 ||
       asicType == cfg::AsicType::ASIC_TYPE_TOMAHAWK4 ||
       asicType == cfg::AsicType::ASIC_TYPE_EBRO ||

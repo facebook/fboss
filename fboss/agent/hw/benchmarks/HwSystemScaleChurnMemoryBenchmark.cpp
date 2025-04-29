@@ -15,7 +15,7 @@ BENCHMARK(SystemScaleChurnMemoryBenchmark) {
 
   // benchmark test
   utility::initSystemScaleChurnTest(ensemble.get());
-
+  helper.publishCompletionMarker(ensemble.get());
   helper.awaitCompletion(ensemble.get());
 }
 } // namespace facebook::fboss

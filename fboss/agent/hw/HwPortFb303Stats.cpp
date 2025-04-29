@@ -54,6 +54,8 @@ HwPortFb303Stats::kPortMonotonicCounterStatKeys() const {
       kPqpErrorEgressDroppedPackets(),
       kFabricLinkDownDroppedCells(),
       kLinkLayerFlowControlWatermark(),
+      kPfcDeadlockDetection(),
+      kPfcDeadlockRecovery(),
   };
   return kPortKeys;
 }
@@ -243,6 +245,18 @@ void HwPortFb303Stats::updateStats(
         timeRetrieved_,
         kLinkLayerFlowControlWatermark(),
         *curPortStats.linkLayerFlowControlWatermark_());
+  }
+  if (curPortStats.pfcDeadlockDetection_().has_value()) {
+    updateStat(
+        timeRetrieved_,
+        kPfcDeadlockDetection(),
+        *curPortStats.pfcDeadlockDetection_());
+  }
+  if (curPortStats.pfcDeadlockRecovery_().has_value()) {
+    updateStat(
+        timeRetrieved_,
+        kPfcDeadlockRecovery(),
+        *curPortStats.pfcDeadlockRecovery_());
   }
 
   // Update queue stats

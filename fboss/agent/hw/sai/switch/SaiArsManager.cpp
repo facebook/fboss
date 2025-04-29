@@ -47,16 +47,6 @@ sai_int32_t SaiArsManager::cfgSwitchingModeToSai(
   throw FbossError("Unsupported flowlet switching mode");
 }
 
-void SaiArsManager::addArs(
-    const std::shared_ptr<FlowletSwitchingConfig>& flowletSwitchConfig) {
-  SaiArsTraits::CreateAttributes attributes{
-      cfgSwitchingModeToSai(flowletSwitchConfig->getSwitchingMode()),
-      flowletSwitchConfig->getInactivityIntervalUsecs(),
-      flowletSwitchConfig->getFlowletTableSize()};
-  auto& store = saiStore_->get<SaiArsTraits>();
-  arsHandle_->ars = store.setObject(std::monostate{}, attributes);
-}
-
 void SaiArsManager::removeArs(
     const std::shared_ptr<FlowletSwitchingConfig>& flowletSwitchConfig) {
   if (arsHandle_->ars) {
@@ -72,32 +62,6 @@ void SaiArsManager::changeArs(
 
 SaiArsHandle* SaiArsManager::getArsHandle() {
   return arsHandle_.get();
-}
-
-// Use custom attribute SAI_SWITCH_ATTR_ARS_AVAILABLE_FLOWS to query remaining
-// entries in flowset table
-bool SaiArsManager::isFlowsetTableFull(ArsSaiId arsSaiId) {
-  if (!FLAGS_flowletSwitchingEnable ||
-      !platform_->getAsic()->isSupported(HwAsic::Feature::FLOWLET)) {
-    return false;
-  }
-
-  auto switchId = managerTable_->switchManager().getSwitchSaiId();
-  auto arsAvailableFlows = SaiApiTable::getInstance()->switchApi().getAttribute(
-      switchId, SaiSwitchTraits::Attributes::ArsAvailableFlows{});
-
-  // get required flowlet table entries per nexthop
-  auto flowletTableSize = SaiApiTable::getInstance()->arsApi().getAttribute(
-      arsSaiId, SaiArsTraits::Attributes::MaxFlows());
-  if (arsAvailableFlows >= flowletTableSize) {
-    return false;
-  } else {
-    XLOG(DBG2) << "Flowset table full, available entries: "
-               << arsAvailableFlows;
-    return true;
-  }
-
-  return false;
 }
 #endif
 

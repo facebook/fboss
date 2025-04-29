@@ -981,11 +981,15 @@ class SwSwitch : public HwSwitchCallback {
       getAddrToLocalIntfMap() const {
     return addrToLocalIntf_;
   }
-  const std::map<SwitchID, switch_reachability::SwitchReachability>&
+  const std::map<SwitchID, switch_reachability::SwitchReachability>
   getSwitchReachability() const {
     return *hwSwitchReachability_.rlock();
   }
   void rxPacketReceived(std::unique_ptr<SwRxPacket> pkt);
+
+  template <typename VlanOrIntfT>
+  std::optional<VlanID> getVlanIDForTx(
+      const std::shared_ptr<VlanOrIntfT>& vlanOrIntf) const;
 
  private:
   std::optional<folly::MacAddress> getSourceMac(
@@ -1103,6 +1107,14 @@ class SwSwitch : public HwSwitchCallback {
 
   void postInit();
 
+  void initLldpManager();
+
+  void publishBootTypeStats();
+
+  void initThreadHeartbeats();
+
+  void startHeartbeatWatchdog();
+
   void updateMultiSwitchGlobalFb303Stats();
 
   void stopHwSwitchHandler();
@@ -1114,6 +1126,9 @@ class SwSwitch : public HwSwitchCallback {
 
   void updateAddrToLocalIntf(const StateDelta& delta);
 
+  void validateSwitchReachabilityInformation(
+      const SwitchID& switchId,
+      const std::map<SwitchID, std::set<PortID>>& switchReachabilityInfo);
 #if FOLLY_HAS_COROUTINES
   using BoundedRxPktQueue = folly::coro::BoundedQueue<
       std::unique_ptr<SwRxPacket>,

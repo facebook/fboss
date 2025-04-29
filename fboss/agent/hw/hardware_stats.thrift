@@ -96,6 +96,8 @@ struct HwPortStats {
   63: optional bool dataCellsFilterOn;
   64: map<i16, i64> egressGvoqWatermarkBytes_ = {};
   65: map<i16, i64> pgInCongestionDiscards_ = {};
+  66: optional i64 pfcDeadlockDetection_;
+  67: optional i64 pfcDeadlockRecovery_;
 }
 
 struct HwSysPortStats {
@@ -260,6 +262,26 @@ struct HwAsicErrors {
   37: optional i64 sramPacketBufferErrors;
   38: optional i64 sramQueueManagementErrors;
   39: optional i64 tmActionResolutionErrors;
+  // DNX aggregated block level errors
+  40: optional i64 ingressTmErrors;
+  41: optional i64 egressTmErrors;
+  42: optional i64 ingressPpErrors;
+  43: optional i64 egressPpErrors;
+  44: optional i64 dramErrors;
+  45: optional i64 counterAndMeterErrors;
+  46: optional i64 fabricRxErrors;
+  47: optional i64 fabricTxErrors;
+  48: optional i64 fabricLinkErrors;
+  49: optional i64 fabricTopologyErrors;
+  50: optional i64 networkInterfaceErrors;
+  // DNX aggregated block level warnings
+  51: optional i64 ingressTmWarnings;
+  52: optional i64 egressTmWarnings;
+  53: optional i64 dramWarnings;
+  54: optional i64 fabricRxWarnings;
+  55: optional i64 fabricTxWarnings;
+  56: optional i64 fabricLinkWarnings;
+  57: optional i64 networkInterfaceWarnings;
 }
 
 struct HwTeFlowStats {
@@ -331,6 +353,8 @@ struct HwSwitchDropStats {
   15: optional i64 rqpNonFabricCellCorruptionDrops;
   16: optional i64 rqpNonFabricCellMissingDrops;
   17: optional i64 rqpParityErrorDrops;
+  18: optional i64 tc0RateLimitDrops;
+  19: optional i64 dramDataPathPacketError;
 }
 
 struct HwSwitchDramStats {

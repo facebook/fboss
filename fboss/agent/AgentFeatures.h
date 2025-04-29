@@ -34,6 +34,7 @@ DECLARE_bool(dsf_100g_nif_breakout);
 DECLARE_bool(enable_acl_table_chain_group);
 DECLARE_int32(oper_sync_req_timeout);
 DECLARE_bool(hide_fabric_ports);
+DECLARE_bool(hide_management_ports);
 
 DECLARE_bool(dsf_subscribe);
 DECLARE_bool(dsf_subscriber_skip_hw_writes);
@@ -95,3 +96,5 @@ DECLARE_bool(run_forever_on_failure);
 
 DECLARE_string(sdk_reg_dump_path_prefix);
 DECLARE_bool(type_dctype1_janga);
+DECLARE_bool(prod_invariant_config_test);
+DECLARE_int32(max_unprocessed_switch_reachability_changes);

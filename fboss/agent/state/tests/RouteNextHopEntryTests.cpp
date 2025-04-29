@@ -58,10 +58,44 @@ const folly::IPAddress nextHopAddr7 =
 const folly::IPAddress nextHopAddr8 =
     folly::IPAddress("2401:db00:e117:9103:1028::1b");
 
+NetworkTopologyInformation getTopologyInfo() {
+  NetworkTopologyInformation topologyInfo;
+  topologyInfo.rack_id() = 2;
+  topologyInfo.plane_id() = 1;
+  topologyInfo.remote_rack_capacity() = 3;
+  topologyInfo.spine_capacity() = 4;
+  topologyInfo.local_rack_capacity() = 5;
+  return topologyInfo;
+}
+
 // These next-hops are in our internal representation.
 // Unlike other variables, it's not const so that it can be sorted
 // in unit tests.
 std::vector<NextHop> nextHops = {
+    ResolvedNextHop(
+        nextHopAddr1,
+        InterfaceID(1),
+        ECMP_WEIGHT,
+        std::nullopt /*label*/,
+        false, /*disableTTLdecrement*/
+        getTopologyInfo(),
+        0 /*adjustedWeight*/),
+    UnresolvedNextHop(
+        nextHopAddr2,
+        ECMP_WEIGHT,
+        std::nullopt, /*label*/
+        false, /*disableTTLdecrement*/
+        getTopologyInfo(),
+        0 /*adjustedWeight*/),
+    UnresolvedNextHop(
+        nextHopAddr3,
+        ECMP_WEIGHT,
+        std::nullopt, /*label*/
+        false, /*disableTTLdecrement*/
+        getTopologyInfo(),
+        0 /*adjustedWeight*/)};
+
+std::vector<NextHop> nextHopsFromBinary = {
     ResolvedNextHop(nextHopAddr1, InterfaceID(1), ECMP_WEIGHT),
     UnresolvedNextHop(nextHopAddr2, ECMP_WEIGHT),
     UnresolvedNextHop(nextHopAddr3, ECMP_WEIGHT)};
@@ -90,6 +124,15 @@ std::vector<NextHopThrift> nextHopsThrift() {
     NextHopThrift nexthop;
     *nexthop.address() = createV6LinkLocalNextHop(addr);
     *nexthop.weight() = static_cast<int32_t>(ECMP_WEIGHT);
+    nexthop.disableTTLDecrement() = false;
+    nexthop.adjustedWeight() = 0;
+    NetworkTopologyInformation toplogyInfo;
+    toplogyInfo.rack_id() = 2;
+    toplogyInfo.plane_id() = 1;
+    toplogyInfo.remote_rack_capacity() = 3;
+    toplogyInfo.spine_capacity() = 4;
+    toplogyInfo.local_rack_capacity() = 5;
+    nexthop.topologyInfo() = toplogyInfo;
     nexthops.emplace_back(std::move(nexthop));
   }
   return nexthops;
@@ -152,12 +195,12 @@ TEST(RouteNextHopEntry, FromBinaryAddresses) {
   ASSERT_EQ(nextHopEntry.getCounterID(), counterID);
   ASSERT_EQ(nextHopEntry.getClassID(), classID);
 
-  std::sort(nextHops.begin(), nextHops.end());
+  std::sort(nextHopsFromBinary.begin(), nextHopsFromBinary.end());
   auto nextHopEntryNextHops = nextHopEntry.getNextHopSet();
   ASSERT_TRUE(std::equal(
       nextHopEntryNextHops.begin(),
       nextHopEntryNextHops.end(),
-      nextHops.begin()));
+      nextHopsFromBinary.begin()));
 }
 
 TEST(RouteNextHopEntry, OverrideDefaultAdminDistance) {
@@ -415,4 +458,20 @@ TEST(RouteNextHopEntry, Thrift) {
   validateThriftStructNodeSerialization<RouteNextHopEntry>(cpu0);
   validateThriftStructNodeSerialization<RouteNextHopEntry>(nhops0);
   validateThriftStructNodeSerialization<RouteNextHopEntry>(nhops1);
+}
+
+TEST(RouteNextHopEntry, skipPrunedNextHops) {
+  RouteNextHopSet nhops;
+
+  nhops.emplace(ResolvedNextHop(nextHopAddr1, InterfaceID(1), 1));
+  nhops.emplace(ResolvedNextHop(nextHopAddr2, InterfaceID(2), 1));
+  auto nh = ResolvedNextHop(nextHopAddr3, InterfaceID(3), 1);
+  nh.setAdjustedWeight(0);
+  nhops.emplace(std::move(nh));
+
+  auto normalizedNextHops =
+      RouteNextHopEntry(nhops, kDefaultAdminDistance).normalizedNextHops();
+
+  // path 3 should be skipped
+  EXPECT_EQ(normalizedNextHops.size(), nhops.size() - 1);
 }

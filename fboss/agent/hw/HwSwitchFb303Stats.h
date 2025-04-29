@@ -161,6 +161,60 @@ class HwSwitchFb303Stats {
   void tmActionResolutionError() {
     tmActionResolutionErrors_.addValue(1);
   }
+  void ingressTmError() {
+    ingressTmErrors_.addValue(1);
+  }
+  void egressTmError() {
+    egressTmErrors_.addValue(1);
+  }
+  void ingressPpError() {
+    ingressPpErrors_.addValue(1);
+  }
+  void egressPpError() {
+    egressPpErrors_.addValue(1);
+  }
+  void dramError() {
+    dramErrors_.addValue(1);
+  }
+  void counterAndMeterError() {
+    counterAndMeterErrors_.addValue(1);
+  }
+  void fabricRxError() {
+    fabricRxErrors_.addValue(1);
+  }
+  void fabricTxError() {
+    fabricTxErrors_.addValue(1);
+  }
+  void fabricLinkError() {
+    fabricLinkErrors_.addValue(1);
+  }
+  void fabricTopologyError() {
+    fabricTopologyErrors_.addValue(1);
+  }
+  void networkInterfaceError() {
+    networkInterfaceErrors_.addValue(1);
+  }
+  void ingressTmWarning() {
+    ingressTmWarnings_.addValue(1);
+  }
+  void egressTmWarning() {
+    egressTmWarnings_.addValue(1);
+  }
+  void dramWarning() {
+    dramWarnings_.addValue(1);
+  }
+  void fabricRxWarning() {
+    fabricRxWarnings_.addValue(1);
+  }
+  void fabricTxWarning() {
+    fabricTxWarnings_.addValue(1);
+  }
+  void fabricLinkWarning() {
+    fabricLinkWarnings_.addValue(1);
+  }
+  void networkInterfaceWarning() {
+    networkInterfaceWarnings_.addValue(1);
+  }
   void hwInitializedTime(uint64_t ms) {
     hwInitializedTimeMs_.addValue(ms);
   }
@@ -203,6 +257,7 @@ class HwSwitchFb303Stats {
 
   void isolationFirmwareVersion(int64_t ver);
   void isolationFirmwareOpStatus(int64_t opStatus);
+  void isolationFirmwareFuncStatus(int64_t funcStatus);
 
   void update(const HwSwitchDramStats& dramStats);
   void update(const HwSwitchDropStats& dropStats);
@@ -286,6 +341,24 @@ class HwSwitchFb303Stats {
   int64_t getSramPacketBufferErrors() const;
   int64_t getSramQueueManagementErrors() const;
   int64_t getTmActionResolutionErrors() const;
+  int64_t getIngressTmErrors() const;
+  int64_t getEgressTmErrors() const;
+  int64_t getIngressPpErrors() const;
+  int64_t getEgressPpErrors() const;
+  int64_t getDramErrors() const;
+  int64_t getCounterAndMeterErrors() const;
+  int64_t getFabricRxErrors() const;
+  int64_t getFabricTxErrors() const;
+  int64_t getFabricLinkErrors() const;
+  int64_t getFabricTopologyErrors() const;
+  int64_t getNetworkInterfaceErrors() const;
+  int64_t getIngressTmWarnings() const;
+  int64_t getEgressTmWarnings() const;
+  int64_t getDramWarnings() const;
+  int64_t getFabricRxWarnings() const;
+  int64_t getFabricTxWarnings() const;
+  int64_t getFabricLinkWarnings() const;
+  int64_t getNetworkInterfaceWarnings() const;
 
   // FW Errors
   int64_t getIsolationFirmwareCrashes() const;
@@ -367,6 +440,9 @@ class HwSwitchFb303Stats {
   TLTimeseries rqpNonFabricCellCorruptionDrops_;
   TLTimeseries rqpNonFabricCellMissingDrops_;
   TLTimeseries rqpParityErrorDrops_;
+  TLTimeseries tc0RateLimitDrops_;
+  // DDP errors
+  TLTimeseries dramDataPathPacketError_;
   // fabric connectivity errors
   TLCounter fabricConnectivityMissingCount_;
   TLCounter fabricConnectivityMismatchCount_;
@@ -409,6 +485,24 @@ class HwSwitchFb303Stats {
   TLTimeseries sramPacketBufferErrors_;
   TLTimeseries sramQueueManagementErrors_;
   TLTimeseries tmActionResolutionErrors_;
+  TLTimeseries ingressTmErrors_;
+  TLTimeseries egressTmErrors_;
+  TLTimeseries ingressPpErrors_;
+  TLTimeseries egressPpErrors_;
+  TLTimeseries dramErrors_;
+  TLTimeseries counterAndMeterErrors_;
+  TLTimeseries fabricRxErrors_;
+  TLTimeseries fabricTxErrors_;
+  TLTimeseries fabricLinkErrors_;
+  TLTimeseries fabricTopologyErrors_;
+  TLTimeseries networkInterfaceErrors_;
+  TLTimeseries ingressTmWarnings_;
+  TLTimeseries egressTmWarnings_;
+  TLTimeseries dramWarnings_;
+  TLTimeseries fabricRxWarnings_;
+  TLTimeseries fabricTxWarnings_;
+  TLTimeseries fabricLinkWarnings_;
+  TLTimeseries networkInterfaceWarnings_;
   TLTimeseries hwInitializedTimeMs_;
   TLTimeseries bootTimeMs_;
   TLTimeseries coldBoot_;
@@ -424,6 +518,7 @@ class HwSwitchFb303Stats {
   TLCounter arsResourceExhausted_;
   TLCounter isolationFirmwareVersion_;
   TLCounter isolationFirmwareOpStatus_;
+  TLCounter isolationFirmwareFuncStatus_;
 };
 
 } // namespace facebook::fboss

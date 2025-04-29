@@ -110,8 +110,10 @@ std::vector<sai_int32_t> SaiAclTableManager::getActionTypeList(
       actionTypeList.push_back(SAI_ACL_ACTION_TYPE_SET_USER_TRAP_ID);
     }
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
-    if (platform_->getAsic()->isSupported(HwAsic::Feature::FLOWLET) &&
-        FLAGS_flowletSwitchingEnable) {
+    if (platform_->getAsic()->isSupported(HwAsic::Feature::ARS)) {
+      if (isChenab) {
+        actionTypeList.push_back(SAI_ACL_ACTION_TYPE_SET_ARS_OBJECT);
+      }
       actionTypeList.push_back(SAI_ACL_ACTION_TYPE_DISABLE_ARS_FORWARDING);
     }
 #endif

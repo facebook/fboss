@@ -297,6 +297,7 @@ target_link_libraries(packet_snooper
   fboss_types
   packet
   packet_factory
+  pkt_test_utils
   Folly::folly
 )
 
@@ -328,6 +329,7 @@ target_link_libraries(load_balancer_test_runner_h
   load_balancer_test_utils
   fboss_types
   route_update_wrapper
+  udf_test_utils
 )
 
 add_library(aqm_test_utils
@@ -410,6 +412,16 @@ target_link_libraries(queue_test_utils
 
 add_library(mirror_test_utils
   fboss/agent/test/utils/MirrorTestUtils.cpp
+)
+
+add_library(udf_test_utils
+  fboss/agent/test/utils/UdfTestUtils.cpp
+)
+
+target_link_libraries(udf_test_utils
+  config_utils
+  switch_asics
+  switch_config_cpp2
 )
 
 target_link_libraries(mirror_test_utils

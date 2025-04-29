@@ -1,9 +1,8 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
-// clang-format off
-#include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiVendorSwitchManager.h"
-// clang-format on
+#include "fboss/agent/hw/sai/store/SaiStore.h"
+#include "fboss/agent/platforms/sai/SaiPlatform.h"
 
 namespace facebook::fboss {
 
@@ -13,6 +12,11 @@ SaiVendorSwitchManager::SaiVendorSwitchManager(
     SaiPlatform* platform)
     : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {
 #if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  if (!platform_->getAsic()->isSupported(
+          HwAsic::Feature::VENDOR_SWITCH_NOTIFICATION)) {
+    // Unsupported
+    return;
+  }
   std::vector<sai_map_t> eventIdToOptions;
   // Create VendorSwitch with all interrupts disabled
   eventIdToOptions.reserve(getInterruptEventsToBeEnabled().size());
@@ -28,6 +32,7 @@ SaiVendorSwitchManager::SaiVendorSwitchManager(
       SaiVendorSwitchTraits::CreateAttributes{eventIdToOptions};
   vendorSwitch_ =
       vendorSwitchStore.setObject(std::monostate{}, vendorSwitchTraits);
+  initWarningInterruptEvents();
 #endif
 }
 

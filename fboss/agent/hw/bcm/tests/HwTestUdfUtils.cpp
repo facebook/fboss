@@ -17,6 +17,7 @@
 #include "fboss/agent/hw/test/HwTest.h"
 #include "fboss/agent/hw/test/HwTestAclUtils.h"
 #include "fboss/agent/packet/IPProto.h"
+#include "fboss/agent/test/utils/UdfTestUtils.h"
 
 #include <gtest/gtest.h>
 

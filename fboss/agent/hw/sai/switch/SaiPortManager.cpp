@@ -421,6 +421,46 @@ TransmitterTechnology fromSaiMediaType(sai_port_media_type_t saiMediaType) {
       return TransmitterTechnology::UNKNOWN;
   }
 }
+/*
+ * Get the worst case optics delay we have assumed
+ * in our buffer calculations.
+ * Any delay reported by the ASIC can not factor in the
+ * optics delay. So we factor in a max optics delay
+ * in our calculations.
+ * The actual optics delay maybe less, which means
+ * we will report shorter cable lens. But short of getting
+ * real-time optics delay, this is the best agent can do.
+ */
+int getWorstCaseAssumedOpticsDelayNS(const HwAsic& asic) {
+  switch (asic.getAsicType()) {
+    case cfg::AsicType::ASIC_TYPE_FAKE:
+    case cfg::AsicType::ASIC_TYPE_MOCK:
+    case cfg::AsicType::ASIC_TYPE_TRIDENT2:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK3:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK6:
+    case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
+    case cfg::AsicType::ASIC_TYPE_EBRO:
+    case cfg::AsicType::ASIC_TYPE_YUBA:
+    case cfg::AsicType::ASIC_TYPE_CHENAB:
+    case cfg::AsicType::ASIC_TYPE_JERICHO2:
+    case cfg::AsicType::ASIC_TYPE_RAMON:
+    case cfg::AsicType::ASIC_TYPE_GARONNE:
+    case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
+      break;
+    case cfg::AsicType::ASIC_TYPE_JERICHO3:
+    case cfg::AsicType::ASIC_TYPE_RAMON3:
+      // For J3-R3, we measured max optics delay to
+      // be 110ns.
+      // TODO: get optics type info from qsfp svc and export a
+      // accurate number for optics delay based on type
+      return 110;
+  }
+  throw FbossError(
+      "Optics delay not supported on asic type: ", asic.getAsicType());
+}
 } // namespace
 
 void SaiPortHandle::resetQueues() {
@@ -2006,10 +2046,14 @@ void SaiPortManager::updateStats(
     if (cableLenAvailableOnPort &&
         !curPortStats.cableLengthMeters().has_value()) {
       try {
-        uint32_t cablePropogationDelayNS =
+        int32_t cablePropogationDelayNS =
             SaiApiTable::getInstance()->portApi().getAttribute(
                 handle->port->adapterKey(),
                 SaiPortTraits::Attributes::CablePropogationDelayNS{});
+        cablePropogationDelayNS = std::max(
+            cablePropogationDelayNS -
+                getWorstCaseAssumedOpticsDelayNS(*platform_->getAsic()),
+            0);
         // In fiber it takes about 5ns for light to travel 1 meter
         curPortStats.cableLengthMeters() =
             std::ceil(cablePropogationDelayNS / 5.0);
@@ -2309,6 +2353,19 @@ void SaiPortManager::changeQosPolicy(
   }
   clearQosPolicy(oldPort->getID());
   setQosPolicy(newPort->getID(), newPort->getQosPolicy());
+}
+
+void SaiPortManager::clearArsConfig(PortID portID) {
+  if (getPortType(portID) == cfg::PortType::FABRIC_PORT) {
+    return;
+  }
+  clearPortFlowletConfig(portID);
+}
+
+void SaiPortManager::clearArsConfig() {
+  for (const auto& portIdAndHandle : handles_) {
+    clearArsConfig(portIdAndHandle.first);
+  }
 }
 
 void SaiPortManager::setTamObject(
@@ -3066,63 +3123,6 @@ void SaiPortManager::changeTxEnable(
   }
 }
 
-void SaiPortManager::changePortFlowletConfig(
-    const std::shared_ptr<Port>& oldPort,
-    const std::shared_ptr<Port>& newPort) {
-  if (!FLAGS_flowletSwitchingEnable ||
-      !platform_->getAsic()->isSupported(HwAsic::Feature::FLOWLET)) {
-    return;
-  }
-
-  auto portHandle = getPortHandle(newPort->getID());
-  if (!portHandle) {
-    throw FbossError(
-        "Cannot change flowlet cfg on non existent port: ", newPort->getID());
-  }
-
-  if (oldPort->getPortFlowletConfig() != newPort->getPortFlowletConfig()) {
-#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
-    // SaiPortTraits::Attributes::ArsEnable arsEnable{false};
-    bool arsEnable = false;
-    uint16_t scalingFactor = 0;
-    uint16_t loadPastWeight = 0;
-    uint16_t loadFutureWeight = 0;
-    auto newPortFlowletCfg = newPort->getPortFlowletConfig();
-    if (newPortFlowletCfg.has_value()) {
-      /*
-       * Sum of old and new weights cannot go beyond 100
-       * This is not a problem with native impl since both weights are applied
-       * with a single API call. An example transtion is
-       * Load  : 60 -> 70
-       * Queue : 40 -> 30
-       * (70 + 40) > 100
-       * Reset both the weights in the SDK once and re-apply new values below
-       */
-      portHandle->port->setOptionalAttribute(
-          SaiPortTraits::Attributes::ArsPortLoadPastWeight{0});
-      portHandle->port->setOptionalAttribute(
-          SaiPortTraits::Attributes::ArsPortLoadFutureWeight{0});
-
-      auto newPortFlowletCfgPtr = newPortFlowletCfg.value();
-      arsEnable = true;
-      scalingFactor = newPortFlowletCfgPtr->getScalingFactor();
-      loadPastWeight = newPortFlowletCfgPtr->getLoadWeight();
-      loadFutureWeight = newPortFlowletCfgPtr->getQueueWeight();
-    }
-    portHandle->port->setOptionalAttribute(
-        SaiPortTraits::Attributes::ArsEnable{arsEnable});
-    portHandle->port->setOptionalAttribute(
-        SaiPortTraits::Attributes::ArsPortLoadScalingFactor{scalingFactor});
-    portHandle->port->setOptionalAttribute(
-        SaiPortTraits::Attributes::ArsPortLoadPastWeight{loadPastWeight});
-    portHandle->port->setOptionalAttribute(
-        SaiPortTraits::Attributes::ArsPortLoadFutureWeight{loadFutureWeight});
-#endif
-  } else {
-    XLOG(DBG4) << "Port flowlet setting unchanged for " << newPort->getName();
-  }
-}
-
 void SaiPortManager::addPortShelEnable(
     const std::shared_ptr<Port>& swPort) const {
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
@@ -3167,5 +3167,61 @@ void SaiPortManager::changePortShelEnable(
     portHandle->port->setAttribute(shelEnableAttr);
   }
 #endif
+}
+/**
+ * Increment the PFC counter for a given port and counter type.
+ *
+ * @param portId - The ID of the port for which the counter is to be
+ * incremented.
+ * @param counterType - The type of PFC counter to increment (DEADLOCK or
+ * RECOVERY).
+ */
+void SaiPortManager::incrementPfcCounter(
+    const PortID& portId,
+    PfcCounterType counterType) {
+  auto portStatItr = portStats_.find(portId);
+  if (portStatItr == portStats_.end()) {
+    // No stats exist, nothing to do.
+    return;
+  }
+  auto curPortStats = portStatItr->second->portStats();
+
+  // Increment the appropriate counter based on the counter type.
+  if (counterType == PfcCounterType::DEADLOCK) {
+    if (!curPortStats.pfcDeadlockDetection_().has_value()) {
+      curPortStats.pfcDeadlockDetection_() = 0;
+    }
+    curPortStats.pfcDeadlockDetection_() =
+        *curPortStats.pfcDeadlockDetection_() + 1;
+  } else { // PfcCounterType::RECOVERY
+    if (!curPortStats.pfcDeadlockRecovery_().has_value()) {
+      curPortStats.pfcDeadlockRecovery_() = 0;
+    }
+    curPortStats.pfcDeadlockRecovery_() =
+        *curPortStats.pfcDeadlockRecovery_() + 1;
+  }
+
+  auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
+  portStatItr->second->updateStats(curPortStats, now);
+}
+
+/**
+ * Increment the PFC deadlock counter for a given port.
+ *
+ * @param portId - The ID of the port for which the deadlock counter is to be
+ * incremented.
+ */
+void SaiPortManager::incrementPfcDeadlockCounter(const PortID& portId) {
+  incrementPfcCounter(portId, PfcCounterType::DEADLOCK);
+}
+
+/**
+ * Increment the PFC recovery counter for a given port.
+ *
+ * @param portId - The ID of the port for which the recovery counter is to be
+ * incremented.
+ */
+void SaiPortManager::incrementPfcRecoveryCounter(const PortID& portId) {
+  incrementPfcCounter(portId, PfcCounterType::RECOVERY);
 }
 } // namespace facebook::fboss

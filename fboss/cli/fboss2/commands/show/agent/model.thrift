@@ -4,8 +4,12 @@ struct ShowAgentSslModel {
   1: string AgentSslStatus;
 }
 
-struct ShowAgentFirmwareModel {
+struct AgentFirmwareEntry {
   1: string version;
   2: string opStatus;
   3: string funcStatus;
+}
+
+struct ShowAgentFirmwareModel {
+  1: list<AgentFirmwareEntry> firmwareEntries;
 }

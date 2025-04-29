@@ -1,6 +1,7 @@
 load("@fbcode_macros//build_defs:python_binary.bzl", "python_binary")
 load("@fbcode_macros//build_defs:python_library.bzl", "python_library")
 load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
+load("@fbsource//tools/target_determinator/macros:ci_sandcastle.bzl", "ci_sandcastle")
 
 oncall("fboss_optics_phy")
 
@@ -9,7 +10,7 @@ python_library(
     srcs = ["helpers.py"],
     labels = ["autodeps2_generated"],
     deps = [
-        ":platform_mapping_config-py",
+        ":platform_mapping_config-py-deprecated",
         ":si_settings",
         ":static_mapping",
         "//fboss/agent:platform_config-py-deprecated",
@@ -32,7 +33,6 @@ python_library(
         ":si_settings",
         ":static_mapping",
         "//fboss/agent:platform_config-py-deprecated",
-        "//fboss/agent:switch_config-py-deprecated",
         "//fboss/lib/phy:phy-py-deprecated",
     ],
 )
@@ -43,10 +43,10 @@ thrift_library(
         "platform_mapping_config.thrift": "neteng.fboss.platform_mapping_config",
     },
     languages = [
-        "py",
+        "py-deprecated",
         "py3-deprecated",
         "python",
-        "py-asyncio",
+        "py-deprecated-asyncio",
         "cpp2",
     ],
     py3_namespace = "neteng.fboss",
@@ -69,7 +69,7 @@ python_library(
     srcs = ["static_mapping.py"],
     labels = ["autodeps2_generated"],
     deps = [
-        ":platform_mapping_config-py",
+        ":platform_mapping_config-py-deprecated",
     ],
 )
 
@@ -79,7 +79,7 @@ python_library(
     labels = ["autodeps2_generated"],
     deps = [
         ":asic_vendor_config",
-        ":platform_mapping_config-py",
+        ":platform_mapping_config-py-deprecated",
         ":port_profile_mapping",
         ":profile_settings",
         ":si_settings",
@@ -96,7 +96,7 @@ python_library(
     srcs = ["si_settings.py"],
     labels = ["autodeps2_generated"],
     deps = [
-        ":platform_mapping_config-py",
+        ":platform_mapping_config-py-deprecated",
         "//fboss/agent:switch_config-py-deprecated",
         "//fboss/qsfp_service/if:transceiver-py-deprecated",
     ],
@@ -108,7 +108,7 @@ python_library(
     labels = ["autodeps2_generated"],
     deps = [
         ":helpers",
-        ":platform_mapping_config-py",
+        ":platform_mapping_config-py-deprecated",
         "//fboss/agent:switch_config-py-deprecated",
         "//fboss/lib/phy:phy-py-deprecated",
     ],
@@ -119,7 +119,7 @@ python_library(
     srcs = ["port_profile_mapping.py"],
     labels = ["autodeps2_generated"],
     deps = [
-        ":platform_mapping_config-py",
+        ":platform_mapping_config-py-deprecated",
         "//fboss/agent:switch_config-py-deprecated",
     ],
 )
@@ -144,4 +144,31 @@ python_binary(
         "//thrift/lib/py:server_base",
         "//thrift/lib/py/util:py_util",
     ],
+)
+
+ci_sandcastle(
+    name = "platform_mapping_v2_configo_sync",
+    alias = "platform-mapping-v2-configo-sync-citadel",
+    args = {
+        "steps": [
+            {
+                "name": "Run Configo Sync Command",
+                "shell": "buck2 run --flagfile fbcode//mode/opt fbcode//fboss/lib/platform_mapping_v2/facebook:gen -- --make-configerator-changes",
+            },
+        ],
+    },
+    capabilities = {
+        "tenant": "default-tenant",
+        "type": "fbcode",
+        "vcs": "full-fbsource",
+    },
+    # Adding triggers for raw inputs (for changes in asic_vendor_config) and generated outputs
+    ci_srcs = [
+        "fbcode/fboss/lib/platform_mapping_v2/facebook/generated_platform_mappings/**",
+        "fbcode/fboss/lib/platform_mapping_v2/facebook/platforms/**",
+        "fbcode/fboss/lib/platform_mapping_v2/generated_platform_mappings/**",
+        "fbcode/fboss/lib/platform_mapping_v2/platforms/**",
+    ],
+    command = "SandcastleUniversalCommand",
+    oncall = "fboss_optics_phy",
 )

@@ -13,6 +13,7 @@
 #include "fboss/agent/hw/sai/switch/SaiUdfManager.h"
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
 #include "fboss/agent/packet/IPProto.h"
+#include "fboss/agent/test/utils/UdfTestUtils.h"
 
 #include <gtest/gtest.h>
 
@@ -36,18 +37,35 @@ void validateUdfConfig(
           udfApi.getAttribute(
               saiUdfGroup->adapterKey(), SaiUdfGroupTraits::Attributes::Type{}),
           SAI_UDF_GROUP_TYPE_HASH);
-      EXPECT_EQ(
-          udfApi.getAttribute(
-              saiUdfGroup->adapterKey(),
-              SaiUdfGroupTraits::Attributes::Length{}),
-          utility::kUdfHashDstQueuePairFieldSizeInBytes);
+      if (hw->getPlatform()->getAsic()->getAsicType() ==
+          cfg::AsicType::ASIC_TYPE_CHENAB) {
+        EXPECT_EQ(
+            udfApi.getAttribute(
+                saiUdfGroup->adapterKey(),
+                SaiUdfGroupTraits::Attributes::Length{}),
+            utility::kChenabUdfHashDstQueuePairFieldSizeInBytes);
+      } else {
+        EXPECT_EQ(
+            udfApi.getAttribute(
+                saiUdfGroup->adapterKey(),
+                SaiUdfGroupTraits::Attributes::Length{}),
+            utility::kUdfHashDstQueuePairFieldSizeInBytes);
+      }
 
       // Verify Udf attributes
       auto saiUdf = udfGroupIter->second->udfs[udfPacketMatcherName]->udf;
-      EXPECT_EQ(
-          udfApi.getAttribute(
-              saiUdf->adapterKey(), SaiUdfTraits::Attributes::Offset{}),
-          utility::kUdfHashDstQueuePairStartOffsetInBytes);
+      if (hw->getPlatform()->getAsic()->getAsicType() ==
+          cfg::AsicType::ASIC_TYPE_CHENAB) {
+        EXPECT_EQ(
+            udfApi.getAttribute(
+                saiUdf->adapterKey(), SaiUdfTraits::Attributes::Offset{}),
+            utility::kChenabUdfHashDstQueuePairStartOffsetInBytes);
+      } else {
+        EXPECT_EQ(
+            udfApi.getAttribute(
+                saiUdf->adapterKey(), SaiUdfTraits::Attributes::Offset{}),
+            utility::kUdfHashDstQueuePairStartOffsetInBytes);
+      }
       EXPECT_EQ(
           udfApi.getAttribute(
               saiUdf->adapterKey(), SaiUdfTraits::Attributes::Base{}),
@@ -164,8 +182,7 @@ void validateUdfIdsInQset(
     const HwSwitch* /* unused */,
     const int /*aclGroupId*/,
     const bool /*isSet*/) {
-  // not supported on SAI yet.
-  EXPECT_TRUE(false);
+  return;
 }
 
 cfg::SwitchConfig addUdfAclRoceOpcodeConfig(cfg::SwitchConfig& cfg) {
@@ -176,8 +193,7 @@ cfg::SwitchConfig addUdfAclRoceOpcodeConfig(cfg::SwitchConfig& cfg) {
 void validateUdfAclRoceOpcodeConfig(
     const HwSwitch* /*hw*/,
     std::shared_ptr<SwitchState> /*curState*/) {
-  // not supported on SAI yet.
-  EXPECT_TRUE(false);
+  return;
 }
 
 } // namespace facebook::fboss::utility

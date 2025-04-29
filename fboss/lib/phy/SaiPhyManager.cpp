@@ -879,7 +879,7 @@ std::optional<HwPortStats> SaiPhyManager::getHwPortStats(
 std::string SaiPhyManager::listHwObjects(
     std::vector<HwObjectType>& hwObjects,
     bool cached) {
-  std::string resultStr = "";
+  std::string resultStr;
 
   // Loop through all pim platforms
   for (auto& pimPlatformItr : saiPlatforms_) {

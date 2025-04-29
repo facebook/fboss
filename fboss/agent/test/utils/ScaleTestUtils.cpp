@@ -13,6 +13,7 @@
 #include "fboss/agent/test/utils/AsicUtils.h"
 
 namespace facebook::fboss::utility {
+const int kMaxEcmpGroups = 5000;
 
 uint32_t getMaxDlbEcmpGroups(const std::vector<const HwAsic*>& asics) {
   auto asic = checkSameAndGetAsic(asics);
@@ -50,7 +51,8 @@ constexpr auto evenUcmpWeight = 2;
 // taken from fbcode/axon/common/coro_util.h
 std::vector<std::vector<PortDescriptor>> genCombinations(
     const std::vector<PortDescriptor>& inputs,
-    size_t k) {
+    size_t k,
+    size_t max_combinations = kMaxEcmpGroups) {
   size_t n = inputs.size();
   std::vector<std::vector<PortDescriptor>> output;
   std::vector<bool> picked(n);
@@ -63,7 +65,8 @@ std::vector<std::vector<PortDescriptor>> genCombinations(
       }
     }
     output.push_back(currentCombination);
-  } while (std::prev_permutation(picked.begin(), picked.end()));
+  } while (std::prev_permutation(picked.begin(), picked.end()) &&
+           output.size() < max_combinations);
 
   return output;
 }
@@ -72,13 +75,15 @@ std::vector<std::vector<PortDescriptor>> genCombinations(
 // minGroupSize to inputs.size()
 std::vector<std::vector<PortDescriptor>> generateEcmpGroupScale(
     const std::vector<PortDescriptor>& inputs,
-    const int maxEcmpGroups) {
-  const int minGroupSize = 2;
+    const int maxEcmpGroups,
+    const int maxEcmpGroupSize,
+    const int minEcmpGroupSize) {
   int groupsGenerated = 0;
   std::vector<std::vector<PortDescriptor>> currCombination;
   std::vector<std::vector<PortDescriptor>> allCombinations;
-  for (int i = minGroupSize; i <= inputs.size(); i++) {
-    currCombination = genCombinations(inputs, i);
+  for (int i = minEcmpGroupSize; i <= maxEcmpGroupSize; i++) {
+    currCombination =
+        genCombinations(inputs, i, maxEcmpGroups - groupsGenerated);
     if ((groupsGenerated + currCombination.size()) >= maxEcmpGroups) {
       int remainingGrp = maxEcmpGroups - groupsGenerated;
       allCombinations.insert(
@@ -127,6 +132,16 @@ std::vector<std::vector<PortDescriptor>> generateEcmpMemberScale(
   }
   EXPECT_EQ(membersGenerated, maxEcmpMembers);
   return allCombinations;
+}
+
+std::vector<std::vector<PortDescriptor>> generateEcmpGroupAndMemberScale(
+    const std::vector<PortDescriptor>& inputs,
+    const int maxEcmpGroups,
+    const int maxEcmpMembers) {
+  int membersPerGroup =
+      std::min((int)(maxEcmpMembers / maxEcmpGroups), (int)inputs.size());
+  return generateEcmpGroupScale(
+      inputs, maxEcmpGroups, membersPerGroup, membersPerGroup);
 }
 
 // Create weightsOutputs where sum of weights {2,3,2,3,2,3} = maxEcmpMembers

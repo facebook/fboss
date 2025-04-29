@@ -23,6 +23,37 @@ StaticL2ForNeighborSwSwitchUpdater::StaticL2ForNeighborSwSwitchUpdater(
     : StaticL2ForNeighborUpdater(), sw_(sw) {}
 
 template <typename NeighborEntryT>
+std::shared_ptr<SwitchState> StaticL2ForNeighborSwSwitchUpdater::ensureMacEntry(
+    std::shared_ptr<SwitchState> state,
+    VlanID vlan,
+    const std::shared_ptr<NeighborEntryT>& neighbor) {
+  CHECK(neighbor->isReachable());
+  return MacTableUtils::updateOrAddStaticEntry(
+      state, neighbor->getPort(), vlan, neighbor->getMac());
+}
+
+template <typename NeighborEntryT>
+std::shared_ptr<SwitchState> StaticL2ForNeighborSwSwitchUpdater::pruneMacEntry(
+    std::shared_ptr<SwitchState> state,
+    VlanID vlanId,
+    const std::shared_ptr<NeighborEntryT>& removedEntry) {
+  XLOG(DBG2) << " Neighbor entry removed: " << removedEntry->str();
+  auto mac = removedEntry->getMac();
+  // Note that its possible that other neighbors still refer to this MAC.
+  // Handle this in 2 steps
+  // - Remove MAC
+  // - Run ensureMacEntryIfNeighborExists
+  // State passed down to HW is the composition of these 2 steps
+  auto newState = MacTableUtils::removeEntry(state, vlanId, mac);
+  if (newState != state) {
+    // Check if another neighbor still points to this MAC
+    newState = MacTableUtils::updateOrAddStaticEntryIfNbrExists(
+        newState, vlanId, mac, removedEntry->getClassID());
+  }
+  return newState;
+}
+
+template <typename NeighborEntryT>
 void StaticL2ForNeighborSwSwitchUpdater::ensureMacEntry(
     VlanID vlan,
     const std::shared_ptr<NeighborEntryT>& neighbor) {
@@ -59,24 +90,25 @@ void StaticL2ForNeighborSwSwitchUpdater::pruneMacEntry(
     const std::shared_ptr<NeighborEntryT>& removedEntry) {
   XLOG(DBG2) << " Neighbor entry removed: " << removedEntry->str();
   auto mac = removedEntry->getMac();
-  auto removeMacEntryFn = [vlanId,
-                           mac](const std::shared_ptr<SwitchState>& state) {
-    // Note that its possible that other neighbors still refer to this MAC.
-    // Handle this in 2 steps
-    // - Remove MAC
-    // - Run ensureMacEntryIfNeighborExists
-    // State passed down to HW is the composition of these 2 steps
-    bool macPruned = false;
-    auto newState = MacTableUtils::removeEntry(state, vlanId, mac);
-    if (newState != state) {
-      // Check if another neighbor still points to this MAC
-      newState = MacTableUtils::updateOrAddStaticEntryIfNbrExists(
-          newState, vlanId, mac);
-      auto vlan = newState->getVlans()->getNodeIf(vlanId);
-      macPruned = vlan->getMacTable()->getMacIf(mac) == nullptr;
-    }
-    return macPruned ? newState : nullptr;
-  };
+  auto classID = removedEntry->getClassID();
+  auto removeMacEntryFn =
+      [vlanId, mac, classID](const std::shared_ptr<SwitchState>& state) {
+        // Note that its possible that other neighbors still refer to this MAC.
+        // Handle this in 2 steps
+        // - Remove MAC
+        // - Run ensureMacEntryIfNeighborExists
+        // State passed down to HW is the composition of these 2 steps
+        bool macPruned = false;
+        auto newState = MacTableUtils::removeEntry(state, vlanId, mac);
+        if (newState != state) {
+          // Check if another neighbor still points to this MAC
+          newState = MacTableUtils::updateOrAddStaticEntryIfNbrExists(
+              newState, vlanId, mac, classID);
+          auto vlan = newState->getVlans()->getNodeIf(vlanId);
+          macPruned = vlan->getMacTable()->getMacIf(mac) == nullptr;
+        }
+        return macPruned ? newState : nullptr;
+      };
 
   sw_->updateState(
       "Prune MAC if unreferenced: " + removedEntry->str(),
@@ -109,5 +141,29 @@ void StaticL2ForNeighborSwSwitchUpdater::ensureMacEntryIfNeighborExists(
 bool StaticL2ForNeighborSwSwitchUpdater::needL2EntryForNeighbor() const {
   return sw_->needL2EntryForNeighbor();
 }
+
+template std::shared_ptr<SwitchState>
+StaticL2ForNeighborSwSwitchUpdater::ensureMacEntry(
+    std::shared_ptr<SwitchState> state,
+    VlanID vlan,
+    const std::shared_ptr<NdpEntry>& neighbor);
+
+template std::shared_ptr<SwitchState>
+StaticL2ForNeighborSwSwitchUpdater::ensureMacEntry(
+    std::shared_ptr<SwitchState> state,
+    VlanID vlan,
+    const std::shared_ptr<ArpEntry>& neighbor);
+
+template std::shared_ptr<SwitchState>
+StaticL2ForNeighborSwSwitchUpdater::pruneMacEntry(
+    std::shared_ptr<SwitchState> state,
+    VlanID vlanId,
+    const std::shared_ptr<NdpEntry>& removedEntry);
+
+template std::shared_ptr<SwitchState>
+StaticL2ForNeighborSwSwitchUpdater::pruneMacEntry(
+    std::shared_ptr<SwitchState> state,
+    VlanID vlanId,
+    const std::shared_ptr<ArpEntry>& removedEntry);
 
 } // namespace facebook::fboss

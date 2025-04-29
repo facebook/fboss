@@ -123,6 +123,8 @@ class EthFrame {
   void setVlan(VlanID vlan) {
     hdr_.setVlan(vlan);
   }
+
+  void stripVlans();
   std::string toString() const;
   std::unique_ptr<folly::IOBuf> toIOBuf() const;
 

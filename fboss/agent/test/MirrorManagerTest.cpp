@@ -310,6 +310,57 @@ class MirrorManagerTest : public ::testing::Test {
     return addNewMirror(state, mirror);
   }
 
+  void resolveNeighbor(
+      IPAddress ipAddress,
+      MacAddress macAddress,
+      InterfaceID interfaceID,
+      PortID portID,
+      bool wait = true) {
+    if constexpr (std::is_same<AddrT, folly::IPAddressV4>::value) {
+      if (isIntfNbrTable()) {
+        sw_->getNeighborUpdater()->receivedArpMineForIntf(
+            interfaceID,
+            ipAddress.asV4(),
+            macAddress,
+            PortDescriptor(portID),
+            ArpOpCode::ARP_OP_REPLY);
+
+      } else {
+        sw_->getNeighborUpdater()->receivedArpMine(
+            sw_->getState()->getInterfaces()->getNode(interfaceID)->getVlanID(),
+            ipAddress.asV4(),
+            macAddress,
+            PortDescriptor(portID),
+            ArpOpCode::ARP_OP_REPLY);
+      }
+    } else {
+      if (isIntfNbrTable()) {
+        sw_->getNeighborUpdater()->receivedNdpMineForIntf(
+            interfaceID,
+            ipAddress.asV6(),
+            macAddress,
+            PortDescriptor(portID),
+            ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION,
+            0);
+      } else {
+        sw_->getNeighborUpdater()->receivedNdpMine(
+            sw_->getState()->getInterfaces()->getNode(interfaceID)->getVlanID(),
+            ipAddress.asV6(),
+            macAddress,
+            PortDescriptor(portID),
+            ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION,
+            0);
+      }
+    }
+    if (wait) {
+      sw_->getNeighborUpdater()->waitForPendingUpdates();
+      waitForBackgroundThread(sw_);
+      waitForStateUpdates(sw_);
+      sw_->getNeighborUpdater()->waitForPendingUpdates();
+      waitForStateUpdates(sw_);
+    }
+  }
+
  protected:
   void runInUpdateEventBaseAndWait(Func func) {
     auto* evb = sw_->getUpdateEvb();
@@ -950,21 +1001,16 @@ TYPED_TEST(MirrorManagerTest, EmptyDelta) {
 
   const auto oldState = this->sw_->getState();
 
-  this->updateState(
-      "EmptyDelta", [=](const std::shared_ptr<SwitchState>& state) {
-        auto updatedState = this->addNeighbor(
-            state,
-            params.interfaces[0],
-            params.neighborIPs[0],
-            params.neighborMACs[0],
-            params.neighborPorts[0]);
-        return this->addNeighbor(
-            updatedState,
-            params.interfaces[1],
-            params.neighborIPs[1],
-            params.neighborMACs[1],
-            params.neighborPorts[1]);
-      });
+  this->resolveNeighbor(
+      params.neighborIPs[0],
+      params.neighborMACs[0],
+      params.interfaces[0],
+      params.neighborPorts[0]);
+  this->resolveNeighbor(
+      params.neighborIPs[1],
+      params.neighborMACs[1],
+      params.interfaces[1],
+      params.neighborPorts[1]);
 
   this->verifyStateUpdate([=]() {
     const auto newState = this->sw_->getState();

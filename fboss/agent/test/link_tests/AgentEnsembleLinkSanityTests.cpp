@@ -121,7 +121,7 @@ TEST_F(AgentEnsembleLinkTest, asicLinkFlap) {
 TEST_F(AgentEnsembleLinkTest, getTransceivers) {
   auto verify = [this]() {
     WITH_RETRIES({
-      auto ports = getCabledPorts();
+      auto ports = getCabledTransceiverPorts();
       // Set the port status on all cabled ports to false. The link should go
       // down
       for (const auto& port : ports) {
@@ -133,7 +133,7 @@ TEST_F(AgentEnsembleLinkTest, getTransceivers) {
     })
 
     WITH_RETRIES({
-      auto ports = getCabledPorts();
+      auto ports = getCabledTransceiverPorts();
       for (const auto& port : ports) {
         auto transceiverIndx0 = getSw()->getTransceiverIdxThrift(port);
         auto transceiverIndx1 = getSw()->getTransceiverIdxThrift(port);
@@ -270,7 +270,7 @@ TEST_F(AgentEnsembleLinkTest, opticsTxDisableRandomPorts) {
       TransceiverFeature::TX_DISABLE, phy::Side::LINE);
 
   std::vector<PortID> disabledPorts; // List of PortID of disabled ports
-  std::string disabledPortNames = ""; // List of port Names of disabled ports
+  std::string disabledPortNames; // List of port Names of disabled ports
   std::vector<PortID> expectedDownPorts; // List of PortID of disabled ports
                                          // and their peers
   std::vector<PortID> expectedUpPorts; // opticalPorts - expectedDownPorts
@@ -397,7 +397,7 @@ TEST_F(AgentEnsembleLinkTest, testOpticsRemediation) {
     EXPECT_GT(connectedPairPortIds.size(), 0);
 
     std::vector<PortID> disabledPorts; // List of PortID of disabled ports
-    std::string disabledPortNames = ""; // List of port Names of disabled ports
+    std::string disabledPortNames; // List of port Names of disabled ports
 
     for (auto portPair : connectedPairPortIds) {
       auto port = portPair.first;

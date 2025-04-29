@@ -18,6 +18,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include "fboss/platform/fw_util/FwUtilVersionHandler.h"
 #include "fboss/platform/fw_util/if/gen-cpp2/fw_util_config_types.h"
 #include "fboss/platform/helpers/PlatformUtils.h"
 
@@ -37,11 +38,8 @@ class FwUtilImpl {
   void printVersion(const std::string&);
 
  private:
-  std::string runVersionCmd(const std::string&);
   void doPreUpgrade(const std::string&);
 
-  void printAllVersions();
-  std::string getSingleVersion(const std::string&);
   void doPreUpgradeOperation(
       const PreFirmwareOperationConfig&,
       const std::string&);
@@ -83,8 +81,6 @@ class FwUtilImpl {
   void doWriteToPortOperation(const WriteToPortConfig&, const std::string&);
   // TODO: Remove those prototypes once we move darwin to PM and
   //  have the latest drivers running
-  std::string runVersionCmdDarwin(const std::string&);
-  void printDarwinVersion(const std::string&);
   void performUpgradeOperation(const UpgradeConfig&, const std::string&);
   void doUpgradeOperation(const UpgradeConfig&, const std::string&);
 
@@ -101,6 +97,7 @@ class FwUtilImpl {
   // have to take the priority into consideration
 
   std::vector<std::pair<std::string, int>> fwDeviceNamesByPrio_;
+  std::unique_ptr<FwUtilVersionHandler> fwUtilVersionHandler_;
 };
 
 } // namespace facebook::fboss::platform::fw_util

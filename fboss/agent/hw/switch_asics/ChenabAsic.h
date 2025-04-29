@@ -65,6 +65,11 @@ class ChenabAsic : public HwAsic {
   cfg::Range64 getReservedEncapIndexRange() const override;
   int getMidPriCpuQueueId() const override;
   int getHiPriCpuQueueId() const override;
+  const std::map<cfg::PortType, cfg::PortLoopbackMode>& desiredLoopbackModes()
+      const override;
+  std::optional<uint32_t> getMaxEcmpGroups() const override;
+  std::optional<uint32_t> getMaxEcmpMembers() const override;
+  std::optional<uint32_t> getMaxDlbEcmpGroups() const override;
 
  private:
   bool isSupportedFabric(Feature feature) const;

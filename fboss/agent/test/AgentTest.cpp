@@ -297,6 +297,11 @@ PortID AgentTest::getPortID(const std::string& portName) const {
   throw FbossError("No port named: ", portName);
 }
 
+std::optional<VlanID> AgentTest::getVlanIDForTx() const {
+  auto intf = utility::firstInterfaceWithPorts(sw()->getState());
+  return sw()->getVlanIDForTx(intf);
+}
+
 void initAgentTest(
     int argc,
     char** argv,

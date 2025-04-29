@@ -57,11 +57,12 @@ class AgentEnsembleLinkTest : public AgentEnsembleTest {
    * null LLDP neighbors. We pick that up here to extract cabled ports
    */
   const std::vector<PortID>& getCabledPorts() const;
+  const std::vector<PortID>& getCabledTransceiverPorts() const;
   const std::set<TransceiverID>& getCabledTranceivers() const {
     return cabledTransceivers_;
   }
-  boost::container::flat_set<PortDescriptor> getSingleVlanOrRoutedCabledPorts()
-      const;
+  boost::container::flat_set<PortDescriptor> getSingleVlanOrRoutedCabledPorts(
+      std::optional<SwitchID> switchId = std::nullopt) const;
   const std::vector<PortID>& getCabledFabricPorts() const {
     return cabledFabricPorts_;
   }
@@ -127,6 +128,7 @@ class AgentEnsembleLinkTest : public AgentEnsembleTest {
   std::vector<PortID> cabledPorts_;
   std::vector<PortID> cabledFabricPorts_;
   std::set<TransceiverID> cabledTransceivers_;
+  std::vector<PortID> cabledTransceiverPorts_;
 };
 int agentEnsembleLinkTestMain(
     int argc,

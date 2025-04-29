@@ -35,6 +35,7 @@ SaiMinipack3NPlatform::getSaiProfileVendorExtensionValues() const {
     kv_map.erase(itr);
   }
   kv_map.insert(std::make_pair("SAI_INDEPENDENT_MODULE_MODE", "2"));
+  kv_map.insert(std::make_pair("SAI_KEY_PORT_CREATE_INITIAL_PRECODING", "2"));
   return kv_map;
 }
 

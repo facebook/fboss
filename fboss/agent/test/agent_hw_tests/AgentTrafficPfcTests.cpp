@@ -3,7 +3,6 @@
 #include <folly/MapUtil.h>
 
 #include "fboss/agent/AgentFeatures.h"
-#include "fboss/agent/TxPacket.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
@@ -15,10 +14,16 @@
 #include "fboss/agent/test/utils/QosTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
+#include <fmt/ranges.h>
+
 DEFINE_bool(
     skip_stop_pfc_test_traffic,
     false,
     "Skip stopping traffic after traffic test!");
+DEFINE_int32(
+    num_packets_to_trigger_pfc,
+    0,
+    "Overrides the number of packets to send");
 
 namespace {
 
@@ -81,6 +86,8 @@ void waitPfcCounterIncrease(
     XLOG(DBG0) << " Port: " << portId << " PFC TX/RX PFC/RX_PFC_XON "
                << txPfcCtr << "/" << rxPfcCtr << "/" << rxPfcXonCtr
                << ", priority: " << pfcPriority;
+    // Also log in/out packet/byte counts to make sure packets are flowing.
+    XLOG(DBG0) << facebook::fboss::utility::pfcStatsString(portStats);
 
     EXPECT_EVENTUALLY_GT(txPfcCtr, 0);
 
@@ -113,9 +120,9 @@ void validateBufferPoolWatermarkCounters(
     facebook::fboss::AgentEnsemble* ensemble,
     const int /* pri */,
     const std::vector<facebook::fboss::PortID>& portIds) {
-  uint64_t globalHeadroomWatermark{};
-  uint64_t globalSharedWatermark{};
   WITH_RETRIES({
+    uint64_t globalHeadroomWatermark{};
+    uint64_t globalSharedWatermark{};
     ensemble->getSw()->updateStats();
     for (const auto& [switchIdx, stats] :
          ensemble->getSw()->getHwSwitchStatsExpensive()) {
@@ -137,8 +144,7 @@ void validateBufferPoolWatermarkCounters(
     XLOG(DBG0) << "Global headroom watermark: " << globalHeadroomWatermark
                << ", Global shared watermark: " << globalSharedWatermark;
     if (ensemble->getSw()->getHwAsicTable()->isFeatureSupportedOnAllAsic(
-            facebook::fboss::HwAsic::Feature::
-                INGRESS_PRIORITY_GROUP_HEADROOM_WATERMARK)) {
+            facebook::fboss::HwAsic::Feature::BUFFER_POOL_HEADROOM_WATERMARK)) {
       EXPECT_EVENTUALLY_GT(globalHeadroomWatermark, 0);
     }
     EXPECT_EVENTUALLY_GT(globalSharedWatermark, 0);
@@ -170,14 +176,49 @@ void validateIngressPriorityGroupWatermarkCounters(
       std::string pg = ensemble->isSai() ? folly::sformat(".pg{}", pri) : "";
       auto regex = folly::sformat(
           "buffer_watermark_pg_({}).{}{}.p100.60", watermarkKeys, portName, pg);
-      auto counters = facebook::fb303::fbData->getRegexCounters(regex);
-      CHECK_EQ(counters.size(), numKeys);
+      auto counters = ensemble->getFb303CountersByRegex(portId, regex);
+      EXPECT_EVENTUALLY_EQ(counters.size(), numKeys);
       for (const auto& ctr : counters) {
         XLOG(DBG0) << ctr.first << " : " << ctr.second;
         EXPECT_EVENTUALLY_GT(ctr.second, 0);
       }
     }
   });
+}
+
+std::optional<std::string> extractPortIdsFromYaml(const std::string& yaml) {
+  using namespace std::literals;
+  size_t start = yaml.find("PORT_ID: [[");
+  if (start == std::string::npos) {
+    return std::nullopt;
+  }
+  start = yaml.find("[[", start); // skip to the [[
+  size_t end = yaml.find("]]", start);
+  if (end == std::string::npos) {
+    return std::nullopt;
+  }
+  return yaml.substr(start, end - start + 2); // +2 to include the ]]
+}
+
+void addLosslessYamlConfig(std::string& yamlCfg) {
+  auto portIds = extractPortIdsFromYaml(yamlCfg);
+  if (portIds.has_value()) {
+    yamlCfg += fmt::format(
+        R"(
+---
+device:
+  0:
+    TM_ING_PORT_PRI_GRP:
+      ?
+        PORT_ID: {}
+        TM_PRI_GRP_ID: [{}]
+      :
+        LOSSLESS: 1
+...
+)",
+        *portIds,
+        fmt::join(kLosslessPgIds, ","));
+  }
 }
 
 } // namespace
@@ -227,8 +268,12 @@ class AgentTrafficPfcTest : public AgentHwTest {
               yamlCfg.replace(pos, toReplace.length(), "LOSSY_AND_LOSSLESS");
             }
           }
+
+          // TODO(maxgg): temp workaround for CS00012395772
+          addLosslessYamlConfig(yamlCfg);
         },
         [](std::map<std::string, std::string>& cfg) {
+          // These are only applicable to TH3
           cfg["mmu_lossless"] = "0x2";
           cfg["buf.mqueue.guarantee.0"] = "0C";
           cfg["mmu_config_override"] = "0";
@@ -394,13 +439,18 @@ class AgentTrafficPfcTest : public AgentHwTest {
       const std::optional<uint8_t> queue,
       const std::vector<PortID>& portIds,
       const std::vector<folly::IPAddressV6>& ips) {
-    auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
+    auto vlanId = getVlanIDForTx();
     auto intfMac = getIntfMac();
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
     // pri = 7 => dscp 56
     int dscp = priority * 8;
     int numPacketsPerFlow = getAgentEnsemble()->getMinPktsForLineRate(
         masterLogicalInterfacePortIds()[0]);
+    if (FLAGS_num_packets_to_trigger_pfc > 0) {
+      numPacketsPerFlow = FLAGS_num_packets_to_trigger_pfc;
+    }
+
+    XLOG(INFO) << "Sending " << numPacketsPerFlow << " packets per flow";
     // Some asics (e.g. Yuba) won't let traffic build up evenly if all packets
     // were sent to one port before another. It's better to alternate the ports.
     for (int i = 0; i < numPacketsPerFlow; i++) {
@@ -629,11 +679,13 @@ class AgentTrafficPfcZeroGlobalHeadroomTest : public AgentTrafficPfcTest {
 };
 
 TEST_F(AgentTrafficPfcTest, verifyPfcWithZeroGlobalHeadRoomCfg) {
+  auto asicType =
+      utility::checkSameAndGetAsicType(getAgentEnsemble()->getCurrentConfig());
   TrafficTestParams param{
-      .buffer = defaultPfcBufferParams(),
+      .buffer = PfcBufferParams::getPfcBufferParams(
+          asicType, PfcBufferParams::kGlobalSharedBytes, 0 /*globalHeadroom*/),
       .expectDrop = true,
   };
-  param.buffer.globalHeadroom = 0;
   runTestWithCfg(kLosslessTrafficClass, kLosslessPriority, {}, param);
 }
 
@@ -725,10 +777,12 @@ class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcTest {
           std::make_tuple(static_cast<int>(port), kLosslessPriority));
       ASSERT_FALSE(iter == kRegValToForcePfcTxForPriorityOnPortDnx.end());
       std::string out;
+      auto switchID = scopeResolver().scope(port).switchId();
       getAgentEnsemble()->runDiagCommand(
           fmt::format(
               "modreg CFC_FRC_NIF_ETH_PFC FRC_NIF_ETH_PFC={}\n", iter->second),
-          out);
+          out,
+          switchID);
     } else {
       // Disable Tx on the outbound port so that queues will build up.
       utility::setCreditWatchdogAndPortTx(
@@ -757,11 +811,13 @@ class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcTest {
                                ->getNodeIf(portId)
                                ->getName();
     return {
-        facebook::fb303::fbData
-            ->getCounterIfExists(portName + ".pfc_deadlock_detection.sum")
+        getAgentEnsemble()
+            ->getFb303CounterIfExists(
+                portId, portName + ".pfc_deadlock_detection.sum")
             .value_or(0),
-        facebook::fb303::fbData
-            ->getCounterIfExists(portName + ".pfc_deadlock_recovery.sum")
+        getAgentEnsemble()
+            ->getFb303CounterIfExists(
+                portId, portName + ".pfc_deadlock_recovery.sum")
             .value_or(0),
     };
   }
@@ -824,13 +880,14 @@ class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcTest {
     auto asic = utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
     if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
       std::string out;
+      auto switchID = scopeResolver().scope(portId).switchId();
       // TODO: When PFC WD is continuously being triggered with this register
       // config, getAttr for queue PFC WD enabled returns wrong value and is
       // tracked in CS00012388717. Until that is fixed, work around the issue.
       // For that, stop PFC WD being triggered continuously and wait to ensure
       // that the PFC DL generation settles.
       getAgentEnsemble()->runDiagCommand(
-          "modreg CFC_FRC_NIF_ETH_PFC FRC_NIF_ETH_PFC=0\n", out);
+          "modreg CFC_FRC_NIF_ETH_PFC FRC_NIF_ETH_PFC=0\n", out, switchID);
     }
     waitForPfcDeadlocksToSettle(portId);
   }

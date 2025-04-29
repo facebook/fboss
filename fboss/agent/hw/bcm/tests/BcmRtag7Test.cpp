@@ -16,6 +16,7 @@
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
 #include "fboss/agent/state/LoadBalancer.h"
 #include "fboss/agent/state/LoadBalancerMap.h"
+#include "fboss/agent/test/utils/UdfTestUtils.h"
 
 #include <memory>
 
@@ -100,7 +101,7 @@ class BcmRtag7Test : public BcmTest {
     }
 
     auto udfConfigState = std::make_shared<UdfConfig>();
-    auto udfConfig = utility::addUdfHashConfig();
+    auto udfConfig = utility::addUdfHashConfig(getAsicType());
     udfConfigState->fromThrift(udfConfig);
 
     auto switchSettings = utility::getFirstNodeIf(state->getSwitchSettings());

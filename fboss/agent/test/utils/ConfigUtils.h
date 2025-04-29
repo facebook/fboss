@@ -77,7 +77,8 @@ cfg::DsfNode dsfNodeConfig(
     const HwAsic& firstAsic,
     int64_t otherSwitchId = 4,
     const std::optional<PlatformType> platformType = std::nullopt,
-    const std::optional<int> clusterId = std::nullopt);
+    const std::optional<int> clusterId = std::nullopt,
+    const std::string& switchNamePrefix = "hwTestSwitch");
 
 std::vector<cfg::Port>::iterator findCfgPort(
     cfg::SwitchConfig& cfg,
@@ -244,11 +245,6 @@ cfg::SwitchConfig twoL3IntfConfig(
     const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap =
         kDefaultLoopbackMap(),
     cfg::InterfaceType intfType = cfg::InterfaceType::VLAN);
-void addMatcher(
-    cfg::SwitchConfig* config,
-    const std::string& matcherName,
-    const cfg::MatchAction& matchAction);
-void delMatcher(cfg::SwitchConfig* config, const std::string& matcherName);
 
 /*
  * Currently we rely on port max speed to set the PortProfileID in the default

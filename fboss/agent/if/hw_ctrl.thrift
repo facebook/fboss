@@ -140,4 +140,13 @@ service FbossHwCtrl {
   switch_state.SwitchState reconstructSwitchState() throws (
     1: fboss.FbossBaseError error,
   );
+
+  /*
+   * Get Firmware Information for all configured firmwares.
+   *
+   * List returns empty if no firmware is configured.
+   */
+  list<ctrl.FirmwareInfo> getAllHwFirmwareInfo() throws (
+    1: fboss.FbossBaseError error,
+  );
 }

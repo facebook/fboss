@@ -182,6 +182,8 @@ void PlatformProductInfo::initMode() {
         modelName.find("TAHAN") == 0 || modelName.find("TAHAN800BC") == 0 ||
         modelName.find("R4063-F9001-01") == 0) {
       type_ = PlatformType::PLATFORM_TAHAN800BC;
+    } else if (modelName.find("ICEPACK-TH6") == 0) {
+      type_ = PlatformType::PLATFORM_ICECUBE800BC;
     } else {
       throw FbossError("invalid model name " + modelName);
     }

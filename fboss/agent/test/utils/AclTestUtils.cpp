@@ -154,6 +154,21 @@ void addEtherTypeToAcl(
   }
 }
 
+void addUdfTableToAcl(
+    cfg::AclEntry* acl,
+    const std::string& udfGroup,
+    const std::vector<int8_t>& roceBytes,
+    const std::vector<int8_t>& roceMask) {
+  cfg::AclUdfEntry aclUdfEntry;
+  aclUdfEntry.udfGroup() = udfGroup;
+  aclUdfEntry.roceBytes() = roceBytes;
+  aclUdfEntry.roceMask() = roceMask;
+  if (!acl->udfTable()) {
+    acl->udfTable() = {};
+  }
+  acl->udfTable()->push_back(aclUdfEntry);
+}
+
 std::shared_ptr<AclEntry> getAclEntryByName(
     const std::shared_ptr<SwitchState> state,
     const std::string& aclName) {
@@ -240,7 +255,9 @@ void addAclTableGroup(
   cfg->aclTableGroups()->push_back(std::move(cfgTableGroup));
 }
 
-void addDefaultAclTable(cfg::SwitchConfig& cfg) {
+void addDefaultAclTable(
+    cfg::SwitchConfig& cfg,
+    const std::vector<std::string>& udfGroups) {
   std::optional<cfg::SdkVersion> version{};
   if (cfg.sdkVersion()) {
     version = *cfg.sdkVersion();
@@ -264,7 +281,8 @@ void addDefaultAclTable(cfg::SwitchConfig& cfg) {
         cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE(),
         0 /* priority */,
         actions,
-        qualifiers);
+        qualifiers,
+        udfGroups);
 
   } else {
     /* full set of supported and required qualifiers do not fit in single table.
@@ -287,7 +305,8 @@ void addDefaultAclTable(cfg::SwitchConfig& cfg) {
             cfg::AclTableQualifier::IP_TYPE,
             cfg::AclTableQualifier::ETHER_TYPE,
             cfg::AclTableQualifier::OUTER_VLAN,
-        });
+        },
+        udfGroups);
     addTtldAclTable(&cfg, cfg::AclStage::INGRESS, 1 /* priority */);
   }
 }
@@ -355,15 +374,16 @@ void delAclTable(cfg::SwitchConfig* cfg, const std::string& aclTableName) {
       aclTables.end());
 }
 
-void addAclStat(
+void addTrafficCounter(
     cfg::SwitchConfig* cfg,
-    const std::string& matcher,
     const std::string& counterName,
-    std::vector<cfg::CounterType> counterTypes) {
+    const std::optional<std::vector<cfg::CounterType>>& counterTypes) {
   auto counter = cfg::TrafficCounter();
   *counter.name() = counterName;
-  if (!counterTypes.empty()) {
-    *counter.types() = counterTypes;
+  if (counterTypes.has_value() && counterTypes.value().size() > 0) {
+    *counter.types() = counterTypes.value();
+  } else {
+    *counter.types() = {cfg::CounterType::PACKETS};
   }
   bool counterExists = false;
   for (auto& c : *cfg->trafficCounters()) {
@@ -375,6 +395,14 @@ void addAclStat(
   if (!counterExists) {
     cfg->trafficCounters()->push_back(counter);
   }
+}
+
+void addAclStat(
+    cfg::SwitchConfig* cfg,
+    const std::string& matcher,
+    const std::string& counterName,
+    std::vector<cfg::CounterType> counterTypes) {
+  addTrafficCounter(cfg, counterName, std::move(counterTypes));
 
   auto matchAction = cfg::MatchAction();
   matchAction.counter() = counterName;
@@ -431,32 +459,83 @@ void renameAclStat(
   addAclStat(cfg, matcher, newCounterName);
 }
 
-// Just mirror and counter for now. More can go here if needed
-void addAclMatchActions(
+void addMatcher(
+    cfg::SwitchConfig* config,
+    const std::string& matcherName,
+    const cfg::MatchAction& matchAction) {
+  cfg::MatchToAction action = cfg::MatchToAction();
+  *action.matcher() = matcherName;
+  *action.action() = matchAction;
+  cfg::TrafficPolicyConfig egressTrafficPolicy;
+  if (auto dataPlaneTrafficPolicy = config->dataPlaneTrafficPolicy()) {
+    egressTrafficPolicy = *dataPlaneTrafficPolicy;
+  }
+  auto curNumMatchActions = egressTrafficPolicy.matchToAction()->size();
+  egressTrafficPolicy.matchToAction()->resize(curNumMatchActions + 1);
+  egressTrafficPolicy.matchToAction()[curNumMatchActions] = action;
+  config->dataPlaneTrafficPolicy() = egressTrafficPolicy;
+}
+
+void delMatcher(cfg::SwitchConfig* config, const std::string& matcherName) {
+  if (auto dataPlaneTrafficPolicy = config->dataPlaneTrafficPolicy()) {
+    auto& matchActions = *dataPlaneTrafficPolicy->matchToAction();
+    matchActions.erase(
+        std::remove_if(
+            matchActions.begin(),
+            matchActions.end(),
+            [&](cfg::MatchToAction const& matchAction) {
+              if (*matchAction.matcher() == matcherName) {
+                return true;
+              }
+              return false;
+            }),
+        matchActions.end());
+  }
+}
+
+void addAclMirrorAction(
     cfg::SwitchConfig* cfg,
     const std::string& matcher,
-    const std::optional<std::string>& counterName,
-    const std::optional<std::string>& mirrorName,
+    const std::string& counterName,
+    const std::string& mirrorName,
     bool ingress) {
   cfg::MatchAction matchAction = cfg::MatchAction();
-  if (mirrorName.has_value()) {
-    if (ingress) {
-      matchAction.ingressMirror() = mirrorName.value();
-    } else {
-      matchAction.egressMirror() = mirrorName.value();
-    }
+  if (ingress) {
+    matchAction.ingressMirror() = mirrorName;
+  } else {
+    matchAction.egressMirror() = mirrorName;
   }
-  if (counterName.has_value()) {
-    matchAction.counter() = counterName.value();
-  }
-  auto matchToAction = cfg::MatchToAction();
-  *matchToAction.matcher() = matcher;
-  *matchToAction.action() = matchAction;
 
-  if (!cfg->dataPlaneTrafficPolicy()) {
-    cfg->dataPlaneTrafficPolicy() = cfg::TrafficPolicyConfig();
+  matchAction.counter() = counterName;
+  std::vector<cfg::CounterType> setCounterTypes{
+      cfg::CounterType::PACKETS, cfg::CounterType::BYTES};
+  utility::addTrafficCounter(cfg, counterName, std::move(setCounterTypes));
+  utility::addMatcher(cfg, matcher, matchAction);
+}
+
+void addAclDscpQueueAction(
+    cfg::SwitchConfig* cfg,
+    const std::string& matcher,
+    const std::string& counterName,
+    int32_t dscpValue,
+    int queueId) {
+  cfg::MatchAction matchAction = cfg::MatchAction();
+  if (dscpValue) {
+    cfg::SetDscpMatchAction setDscpMatchAction;
+    *setDscpMatchAction.dscpValue() = dscpValue;
+    matchAction.setDscp() = std::move(setDscpMatchAction);
   }
-  cfg->dataPlaneTrafficPolicy()->matchToAction()->push_back(matchToAction);
+  if (queueId >= 0) {
+    cfg::QueueMatchAction queueAction;
+    queueAction.queueId() = queueId;
+    matchAction.sendToQueue() = queueAction;
+  }
+
+  matchAction.counter() = counterName;
+  std::vector<cfg::CounterType> setCounterTypes{
+      cfg::CounterType::PACKETS, cfg::CounterType::BYTES};
+  utility::addTrafficCounter(cfg, counterName, std::move(setCounterTypes));
+  utility::addMatcher(cfg, matcher, matchAction);
 }
 
 std::vector<cfg::CounterType> getAclCounterTypes(
@@ -814,19 +893,33 @@ std::set<cfg::AclTableQualifier> getRequiredQualifers(
         }
         break;
 
-      case cfg::AclTableQualifier::UDF:
       case cfg::AclTableQualifier::BTH_OPCODE:
-        // TODO: identify when these qualifiers are required
+        addQualier(aclEntry.roceOpcode().has_value(), qualifier);
+        break;
+
+      case cfg::AclTableQualifier::UDF:
+        // handled with getRequiredUdfGroups
         break;
     }
   }
   return requiredQualifiers;
 }
 
+std::set<std::string> getRequiredUdfGroups(const cfg::AclEntry& aclEntry) {
+  std::set<std::string> requiredUdfGroups{};
+  if (aclEntry.udfTable().has_value()) {
+    for (auto& udfTableEntry : *aclEntry.udfTable()) {
+      requiredUdfGroups.insert(udfTableEntry.udfGroup().value());
+    }
+  }
+  return requiredUdfGroups;
+}
+
 bool aclEntrySupported(
     const cfg::AclTable* aclTable,
     const cfg::AclEntry& aclEntry) {
   auto aclTableQualifiers = aclTable->qualifiers();
+  auto aclUdfGroups = aclTable->udfGroups();
 
   if (aclTableQualifiers->empty()) {
     // acl table supports all supported qualifiers
@@ -851,8 +944,32 @@ bool aclEntrySupported(
     XLOG(ERR) << "Acl table " << *aclTable->name()
               << " does not support qualifiers: " << ss.str() << " for acl "
               << *aclEntry.name();
+    return false;
   }
-  return difference.empty();
+
+  auto requiredUdfGroups = getRequiredUdfGroups(aclEntry);
+  std::set<std::string> aclTableUdfGroups(
+      aclUdfGroups->begin(), aclUdfGroups->end());
+  std::set<std::string> differenceUdfGroups{};
+  std::set_difference(
+      requiredUdfGroups.begin(),
+      requiredUdfGroups.end(),
+      aclTableUdfGroups.begin(),
+      aclTableUdfGroups.end(),
+      std::inserter(differenceUdfGroups, differenceUdfGroups.begin()));
+
+  if (!differenceUdfGroups.empty()) {
+    std::stringstream ss;
+    for (const auto& udfGroup : differenceUdfGroups) {
+      ss << udfGroup << ", ";
+    }
+    XLOG(ERR) << "Acl table " << *aclTable->name()
+              << " does not support udf groups: " << ss.str() << " for acl "
+              << *aclEntry.name();
+    return false;
+  }
+
+  return difference.empty() && differenceUdfGroups.empty();
 }
 
 std::string getAclTableForAclEntry(

@@ -203,11 +203,11 @@ void DsfSubscription::tearDownSubscription() {
                << "removed subscription for : " << remoteEndpointStr();
   }
 }
+
 std::string DsfSubscription::remoteEndpointStr() const {
-  static const std::string kRemoteEndpoint =
-      remoteNodeName_ + "_" + remoteIp_.str();
-  return kRemoteEndpoint;
+  return folly::sformat("{}_{}", remoteNodeName_, remoteIp_.str());
 }
+
 fsdb::FsdbStreamClient::State DsfSubscription::getStreamState() const {
   return fsdbPubSubMgr_->getStatePathSubsriptionState(
       getAllSubscribePaths(localNodeName_, localIp_), remoteIp_.str());
@@ -437,7 +437,7 @@ void DsfSubscription::processGRHoldTimerExpired() {
         // DYNAMIC) as STALE for every switchID on that Interface Node
         // if FLAGS_dsf_flush_remote_sysports_and_rifs_on_gr is not set.
         // Otherwise, remove those remote system ports.
-        if (remoteNodeSwitchIds_.count(remoteSystemPort->getSwitchId()) > 0 &&
+        if (remoteNodeSwitchIds_.contains(remoteSystemPort->getSwitchId()) &&
             remoteSystemPort->getRemoteSystemPortType().has_value() &&
             remoteSystemPort->getRemoteSystemPortType().value() ==
                 RemoteSystemPortType::DYNAMIC_ENTRY) {
@@ -483,7 +483,7 @@ void DsfSubscription::processGRHoldTimerExpired() {
           // Otherwise, remove those remote rifs.
           // Always remove all the neighbor entries on that interface or else
           // we will end up blackholing the traffic.
-          if (remoteNodeSwitchIds_.count(switchID) > 0 &&
+          if (remoteNodeSwitchIds_.contains(switchID) &&
               remoteInterface->getRemoteInterfaceType().has_value() &&
               remoteInterface->getRemoteInterfaceType().value() ==
                   RemoteInterfaceType::DYNAMIC_ENTRY) {

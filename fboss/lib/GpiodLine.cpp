@@ -16,7 +16,12 @@ GpiodLine::GpiodLine(
     struct gpiod_chip* chip,
     uint32_t offset,
     const std::string& name)
-    : name_(name), line_(gpiod_chip_get_line(chip, offset)) {
+    : name_(name) {
+  if (nullptr == chip) {
+    throw GpiodLineError(fmt::format(
+        "GpiodLineTrace: Invalid gpiod_chip* passed in for {}", name_));
+  }
+  line_ = gpiod_chip_get_line(chip, offset);
   if (nullptr == line_) {
     throw GpiodLineError(fmt::format(
         "GpiodLineTrace: gpiod_chip_get_line() failed to open {}", name_));

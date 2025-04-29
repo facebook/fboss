@@ -213,7 +213,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
       int payloadLen = kDefaultTxPayloadBytes,
       int ttl = 255,
       std::optional<PortID> outPort = std::nullopt) {
-    auto vlanId = utility::firstVlanIDWithPorts(initialConfig());
+    auto vlanId = getHwSwitchEnsemble()->getVlanIDForTx();
     for (int i = 0; i < cnt; i++) {
       sendPkt(
           dscpVal,
@@ -572,13 +572,21 @@ class HwAqmTest : public HwLinkStateDependentTest {
 
       auto sendPackets = [=, this](PortID /* port */, int numPacketsToSend) {
         // Single port config, traffic gets forwarded out of the same!
+        PortID kLoopbackPort{masterLogicalInterfacePortIds()[1]};
+        HwPortStats initialStats{getLatestPortStats(kLoopbackPort)};
         sendPkts(
             utility::kOlympicQueueToDscp().at(kQueueId).front(),
             ecnVal,
             numPacketsToSend,
             kPayloadLength,
-            255,
-            masterLogicalInterfacePortIds()[1]);
+            255 /*ttl*/,
+            kLoopbackPort);
+        WITH_RETRIES({
+          HwPortStats currentStats{getLatestPortStats(kLoopbackPort)};
+          EXPECT_EVENTUALLY_GE(
+              currentStats.inUnicastPkts_().value(),
+              initialStats.inUnicastPkts_().value() + numPacketsToSend);
+        })
       };
 
       // Send traffic with queue buildup and get the stats at the start!

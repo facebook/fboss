@@ -2500,7 +2500,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -2788,7 +2788,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -3076,7 +3076,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -3364,7 +3364,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -3652,7 +3652,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -3940,7 +3940,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -4228,7 +4228,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -4516,7 +4516,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -4804,7 +4804,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -5092,7 +5092,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -5380,7 +5380,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -5668,7 +5668,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -5956,7 +5956,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -6244,7 +6244,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -6532,7 +6532,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -6820,7 +6820,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -15851,12 +15851,12 @@ constexpr auto kJsonPlatformMappingStr = R"(
       "physicalID": 4
     },
     {
-      "name": "NPU-J3_NIF-slot1/chip1/core5",
+      "name": "NPU-J3_FE-slot1/chip1/core5",
       "type": 1,
       "physicalID": 5
     },
     {
-      "name": "NPU-J3_FE-slot1/chip1/core5",
+      "name": "NPU-J3_NIF-slot1/chip1/core5",
       "type": 1,
       "physicalID": 5
     },
@@ -16504,6 +16504,21 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "fec": 1,
           "medium": 1,
           "interfaceType": 10
+        }
+      }
+    },
+    {
+      "factor": {
+        "profileID": 50
+      },
+      "profile": {
+        "speed": 800000,
+        "iphy": {
+          "numLanes": 8,
+          "modulation": 2,
+          "fec": 11,
+          "medium": 1,
+          "interfaceType": 13
         }
       }
     },
@@ -19045,7 +19060,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -19333,7 +19348,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -19621,7 +19636,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -19909,7 +19924,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -20197,7 +20212,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -20485,7 +20500,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -20773,7 +20788,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -21061,7 +21076,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -21349,7 +21364,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -21637,7 +21652,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -21925,7 +21940,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -22213,7 +22228,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -22501,7 +22516,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -22789,7 +22804,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -23077,7 +23092,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -23365,7 +23380,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -34829,7 +34844,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -35117,7 +35132,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -35405,7 +35420,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -35693,7 +35708,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -35981,7 +35996,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -36269,7 +36284,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -36557,7 +36572,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -36845,7 +36860,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -37133,7 +37148,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -37421,7 +37436,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -37709,7 +37724,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -37997,7 +38012,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -38285,7 +38300,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -38573,7 +38588,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -38861,7 +38876,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -39149,7 +39164,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -48135,12 +48150,12 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
       "physicalID": 0
     },
     {
-      "name": "NPU-J3_NIF-slot1/chip1/core0",
+      "name": "NPU-J3_FE-slot1/chip2/core0",
       "type": 1,
       "physicalID": 0
     },
     {
-      "name": "NPU-J3_FE-slot1/chip2/core0",
+      "name": "NPU-J3_NIF-slot1/chip1/core0",
       "type": 1,
       "physicalID": 0
     },
@@ -48155,12 +48170,12 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
       "physicalID": 1
     },
     {
-      "name": "NPU-J3_NIF-slot1/chip1/core1",
+      "name": "NPU-J3_FE-slot1/chip2/core1",
       "type": 1,
       "physicalID": 1
     },
     {
-      "name": "NPU-J3_FE-slot1/chip2/core1",
+      "name": "NPU-J3_NIF-slot1/chip1/core1",
       "type": 1,
       "physicalID": 1
     },
@@ -48175,12 +48190,12 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
       "physicalID": 2
     },
     {
-      "name": "NPU-J3_NIF-slot1/chip1/core2",
+      "name": "NPU-J3_FE-slot1/chip2/core2",
       "type": 1,
       "physicalID": 2
     },
     {
-      "name": "NPU-J3_FE-slot1/chip2/core2",
+      "name": "NPU-J3_NIF-slot1/chip1/core2",
       "type": 1,
       "physicalID": 2
     },
@@ -48190,17 +48205,12 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
       "physicalID": 2
     },
     {
-      "name": "NPU-J3_FE-slot1/chip2/core3",
-      "type": 1,
-      "physicalID": 3
-    },
-    {
-      "name": "NPU-J3_NIF-slot1/chip2/core3",
-      "type": 1,
-      "physicalID": 3
-    },
-    {
       "name": "NPU-J3_FE-slot1/chip1/core3",
+      "type": 1,
+      "physicalID": 3
+    },
+    {
+      "name": "NPU-J3_FE-slot1/chip2/core3",
       "type": 1,
       "physicalID": 3
     },
@@ -48210,12 +48220,12 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
       "physicalID": 3
     },
     {
-      "name": "NPU-J3_FE-slot1/chip1/core4",
+      "name": "NPU-J3_NIF-slot1/chip2/core3",
       "type": 1,
-      "physicalID": 4
+      "physicalID": 3
     },
     {
-      "name": "NPU-J3_NIF-slot1/chip1/core4",
+      "name": "NPU-J3_FE-slot1/chip1/core4",
       "type": 1,
       "physicalID": 4
     },
@@ -48225,12 +48235,17 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
       "physicalID": 4
     },
     {
+      "name": "NPU-J3_NIF-slot1/chip1/core4",
+      "type": 1,
+      "physicalID": 4
+    },
+    {
       "name": "NPU-J3_NIF-slot1/chip2/core4",
       "type": 1,
       "physicalID": 4
     },
     {
-      "name": "NPU-J3_NIF-slot1/chip1/core5",
+      "name": "NPU-J3_FE-slot1/chip1/core5",
       "type": 1,
       "physicalID": 5
     },
@@ -48240,12 +48255,12 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
       "physicalID": 5
     },
     {
-      "name": "NPU-J3_NIF-slot1/chip2/core5",
+      "name": "NPU-J3_NIF-slot1/chip1/core5",
       "type": 1,
       "physicalID": 5
     },
     {
-      "name": "NPU-J3_FE-slot1/chip1/core5",
+      "name": "NPU-J3_NIF-slot1/chip2/core5",
       "type": 1,
       "physicalID": 5
     },
@@ -48255,12 +48270,12 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
       "physicalID": 6
     },
     {
-      "name": "NPU-J3_NIF-slot1/chip1/core6",
+      "name": "NPU-J3_FE-slot1/chip2/core6",
       "type": 1,
       "physicalID": 6
     },
     {
-      "name": "NPU-J3_FE-slot1/chip2/core6",
+      "name": "NPU-J3_NIF-slot1/chip1/core6",
       "type": 1,
       "physicalID": 6
     },
@@ -48270,17 +48285,12 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
       "physicalID": 6
     },
     {
-      "name": "NPU-J3_FE-slot1/chip2/core7",
-      "type": 1,
-      "physicalID": 7
-    },
-    {
-      "name": "NPU-J3_NIF-slot1/chip2/core7",
-      "type": 1,
-      "physicalID": 7
-    },
-    {
       "name": "NPU-J3_FE-slot1/chip1/core7",
+      "type": 1,
+      "physicalID": 7
+    },
+    {
+      "name": "NPU-J3_FE-slot1/chip2/core7",
       "type": 1,
       "physicalID": 7
     },
@@ -48290,12 +48300,12 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
       "physicalID": 7
     },
     {
-      "name": "NPU-J3_FE-slot1/chip1/core8",
+      "name": "NPU-J3_NIF-slot1/chip2/core7",
       "type": 1,
-      "physicalID": 8
+      "physicalID": 7
     },
     {
-      "name": "NPU-J3_NIF-slot1/chip1/core8",
+      "name": "NPU-J3_FE-slot1/chip1/core8",
       "type": 1,
       "physicalID": 8
     },
@@ -48305,22 +48315,22 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
       "physicalID": 8
     },
     {
+      "name": "NPU-J3_NIF-slot1/chip1/core8",
+      "type": 1,
+      "physicalID": 8
+    },
+    {
       "name": "NPU-J3_NIF-slot1/chip2/core8",
       "type": 1,
       "physicalID": 8
     },
     {
-      "name": "NPU-J3_FE-slot1/chip2/core9",
-      "type": 1,
-      "physicalID": 9
-    },
-    {
-      "name": "NPU-J3_NIF-slot1/chip2/core9",
-      "type": 1,
-      "physicalID": 9
-    },
-    {
       "name": "NPU-J3_FE-slot1/chip1/core9",
+      "type": 1,
+      "physicalID": 9
+    },
+    {
+      "name": "NPU-J3_FE-slot1/chip2/core9",
       "type": 1,
       "physicalID": 9
     },
@@ -48330,12 +48340,12 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
       "physicalID": 9
     },
     {
-      "name": "NPU-J3_FE-slot1/chip1/core10",
+      "name": "NPU-J3_NIF-slot1/chip2/core9",
       "type": 1,
-      "physicalID": 10
+      "physicalID": 9
     },
     {
-      "name": "NPU-J3_NIF-slot1/chip1/core10",
+      "name": "NPU-J3_FE-slot1/chip1/core10",
       "type": 1,
       "physicalID": 10
     },
@@ -48345,22 +48355,22 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
       "physicalID": 10
     },
     {
+      "name": "NPU-J3_NIF-slot1/chip1/core10",
+      "type": 1,
+      "physicalID": 10
+    },
+    {
       "name": "NPU-J3_NIF-slot1/chip2/core10",
       "type": 1,
       "physicalID": 10
     },
     {
-      "name": "NPU-J3_FE-slot1/chip2/core11",
-      "type": 1,
-      "physicalID": 11
-    },
-    {
-      "name": "NPU-J3_NIF-slot1/chip2/core11",
-      "type": 1,
-      "physicalID": 11
-    },
-    {
       "name": "NPU-J3_FE-slot1/chip1/core11",
+      "type": 1,
+      "physicalID": 11
+    },
+    {
+      "name": "NPU-J3_FE-slot1/chip2/core11",
       "type": 1,
       "physicalID": 11
     },
@@ -48370,17 +48380,22 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
       "physicalID": 11
     },
     {
+      "name": "NPU-J3_NIF-slot1/chip2/core11",
+      "type": 1,
+      "physicalID": 11
+    },
+    {
       "name": "NPU-J3_FE-slot1/chip1/core12",
       "type": 1,
       "physicalID": 12
     },
     {
-      "name": "NPU-J3_NIF-slot1/chip1/core12",
+      "name": "NPU-J3_FE-slot1/chip2/core12",
       "type": 1,
       "physicalID": 12
     },
     {
-      "name": "NPU-J3_FE-slot1/chip2/core12",
+      "name": "NPU-J3_NIF-slot1/chip1/core12",
       "type": 1,
       "physicalID": 12
     },
@@ -48395,12 +48410,12 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
       "physicalID": 13
     },
     {
-      "name": "NPU-J3_NIF-slot1/chip1/core13",
+      "name": "NPU-J3_FE-slot1/chip2/core13",
       "type": 1,
       "physicalID": 13
     },
     {
-      "name": "NPU-J3_FE-slot1/chip2/core13",
+      "name": "NPU-J3_NIF-slot1/chip1/core13",
       "type": 1,
       "physicalID": 13
     },
@@ -48415,12 +48430,12 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
       "physicalID": 14
     },
     {
-      "name": "NPU-J3_NIF-slot1/chip1/core14",
+      "name": "NPU-J3_FE-slot1/chip2/core14",
       "type": 1,
       "physicalID": 14
     },
     {
-      "name": "NPU-J3_FE-slot1/chip2/core14",
+      "name": "NPU-J3_NIF-slot1/chip1/core14",
       "type": 1,
       "physicalID": 14
     },
@@ -48430,17 +48445,12 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
       "physicalID": 14
     },
     {
-      "name": "NPU-J3_FE-slot1/chip2/core15",
-      "type": 1,
-      "physicalID": 15
-    },
-    {
-      "name": "NPU-J3_NIF-slot1/chip2/core15",
-      "type": 1,
-      "physicalID": 15
-    },
-    {
       "name": "NPU-J3_FE-slot1/chip1/core15",
+      "type": 1,
+      "physicalID": 15
+    },
+    {
+      "name": "NPU-J3_FE-slot1/chip2/core15",
       "type": 1,
       "physicalID": 15
     },
@@ -48450,17 +48460,17 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
       "physicalID": 15
     },
     {
-      "name": "NPU-J3_FE-slot1/chip2/core16",
+      "name": "NPU-J3_NIF-slot1/chip2/core15",
       "type": 1,
-      "physicalID": 16
-    },
-    {
-      "name": "NPU-J3_NIF-slot1/chip2/core16",
-      "type": 1,
-      "physicalID": 16
+      "physicalID": 15
     },
     {
       "name": "NPU-J3_FE-slot1/chip1/core16",
+      "type": 1,
+      "physicalID": 16
+    },
+    {
+      "name": "NPU-J3_FE-slot1/chip2/core16",
       "type": 1,
       "physicalID": 16
     },
@@ -48470,17 +48480,22 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
       "physicalID": 16
     },
     {
+      "name": "NPU-J3_NIF-slot1/chip2/core16",
+      "type": 1,
+      "physicalID": 16
+    },
+    {
       "name": "NPU-J3_FE-slot1/chip1/core17",
       "type": 1,
       "physicalID": 17
     },
     {
-      "name": "NPU-J3_NIF-slot1/chip1/core17",
+      "name": "NPU-J3_FE-slot1/chip2/core17",
       "type": 1,
       "physicalID": 17
     },
     {
-      "name": "NPU-J3_FE-slot1/chip2/core17",
+      "name": "NPU-J3_NIF-slot1/chip1/core17",
       "type": 1,
       "physicalID": 17
     },
@@ -48495,12 +48510,12 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
       "physicalID": 18
     },
     {
-      "name": "NPU-J3_NIF-slot1/chip1/core18",
+      "name": "NPU-J3_FE-slot1/chip2/core18",
       "type": 1,
       "physicalID": 18
     },
     {
-      "name": "NPU-J3_FE-slot1/chip2/core18",
+      "name": "NPU-J3_NIF-slot1/chip1/core18",
       "type": 1,
       "physicalID": 18
     },
@@ -48520,12 +48535,12 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
       "physicalID": 19
     },
     {
-      "name": "NPU-J3_RCY-slot1/chip2/core441",
+      "name": "NPU-J3_RCY-slot1/chip1/core441",
       "type": 1,
       "physicalID": 441
     },
     {
-      "name": "NPU-J3_RCY-slot1/chip1/core441",
+      "name": "NPU-J3_RCY-slot1/chip2/core441",
       "type": 1,
       "physicalID": 441
     },
@@ -48540,12 +48555,12 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
       "physicalID": 442
     },
     {
-      "name": "NPU-J3_RCY-slot1/chip2/core443",
+      "name": "NPU-J3_RCY-slot1/chip1/core443",
       "type": 1,
       "physicalID": 443
     },
     {
-      "name": "NPU-J3_RCY-slot1/chip1/core443",
+      "name": "NPU-J3_RCY-slot1/chip2/core443",
       "type": 1,
       "physicalID": 443
     },
@@ -49058,6 +49073,21 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "fec": 1,
           "medium": 1,
           "interfaceType": 10
+        }
+      }
+    },
+    {
+      "factor": {
+        "profileID": 50
+      },
+      "profile": {
+        "speed": 800000,
+        "iphy": {
+          "numLanes": 8,
+          "modulation": 2,
+          "fec": 11,
+          "medium": 1,
+          "interfaceType": 13
         }
       }
     },

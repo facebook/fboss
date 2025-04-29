@@ -309,7 +309,7 @@ class AgentSflowMirrorTest : public AgentHwTest {
   std::unique_ptr<facebook::fboss::TxPacket> genPacket(
       int portIndex,
       size_t payloadSize) {
-    auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
+    auto vlanId = getVlanIDForTx();
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     folly::IPAddressV6 sip{"2401:db00:dead:beef::2401"};

@@ -167,6 +167,7 @@ void PlatformExplorer::explore() {
   }
   publishFirmwareVersions();
   genHumanReadableEeproms();
+  publishHardwareVersions();
   auto explorationStatus = explorationSummary_.summarize();
   updatePmStatus(createPmStatus(
       explorationStatus,
@@ -293,7 +294,7 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
     auto idpromConfig = *slotTypeConfig.idpromConfig_ref();
     auto eepromI2cBusNum =
         dataStore_.getI2cBusNum(slotPath, *idpromConfig.busName());
-    std::string eepromPath = "";
+    std::string eepromPath;
 
     /*
     Because of upstream kernel issues, we have to manually read the
@@ -744,6 +745,55 @@ void PlatformExplorer::publishFirmwareVersions() {
   }
 }
 
+void PlatformExplorer::publishHardwareVersions() {
+  auto chassisDevicePath = *platformConfig_.chassisEepromDevicePath();
+  if (!dataStore_.hasEepromContents(chassisDevicePath)) {
+    XLOGF(
+        ERR,
+        "Failed to report hardware version. EEPROM contents not found for {}",
+        chassisDevicePath);
+    return;
+  }
+
+  auto chassisEepromContent = dataStore_.getEepromContents(chassisDevicePath);
+  auto prodState =
+      FbossEepromParserUtils::getProductionState(chassisEepromContent);
+  auto prodSubState =
+      FbossEepromParserUtils::getProductionSubState(chassisEepromContent);
+  auto variantVersion =
+      FbossEepromParserUtils::getVariantVersion(chassisEepromContent);
+
+  // Report production state
+  if (prodState.has_value()) {
+    XLOG(INFO) << fmt::format(
+        "Reporting Production State: {}", prodState.value());
+    fb303::fbData->setCounter(
+        fmt::format(kProductionState, prodState.value()), 1);
+  } else {
+    XLOG(ERR) << "Production State not set";
+  }
+
+  // Report production sub-state
+  if (prodSubState.has_value()) {
+    XLOG(INFO) << fmt::format(
+        "Reporting Production Sub-State: {}", prodSubState.value());
+    fb303::fbData->setCounter(
+        fmt::format(kProductionSubState, prodSubState.value()), 1);
+  } else {
+    XLOG(ERR) << "Production Sub-State not set";
+  }
+
+  // Report variant version
+  if (variantVersion.has_value()) {
+    XLOG(INFO) << fmt::format(
+        "Reporting Variant Indicator: {}", variantVersion.value());
+    fb303::fbData->setCounter(
+        fmt::format(kVariantVersion, variantVersion.value()), 1);
+  } else {
+    XLOG(ERR) << "Variant Indicator not set";
+  }
+}
+
 PlatformManagerStatus PlatformExplorer::getPMStatus() const {
   return platformManagerStatus_.copy();
 }
@@ -818,13 +868,13 @@ void PlatformExplorer::createPciSubDevices(
 void PlatformExplorer::genHumanReadableEeproms() {
   const auto writeEepromContent = [&](const auto& devicePath,
                                       const auto& eepromRuntimePath) {
-    // Parse the eeproms which are defined as just I2cDeviceConfig (and not
-    // IdpromConfig). All eeproms in IdpromConfigs are parsed during ...
+    // Ignore if eeprom content wasn't populated, something went wrong in
+    // exploration.
     if (!dataStore_.hasEepromContents(devicePath)) {
-      // Eeproms defined in I2cDeviceConfig doesn't have offset defined.
-      dataStore_.updateEepromContents(
-          devicePath,
-          eepromParser_.getContents(eepromRuntimePath, /*offset*/ 0));
+      XLOG(ERR) << fmt::format(
+          "{} has empty eeprom contents. Skip generating eeprom content",
+          devicePath);
+      return;
     }
     auto contents = dataStore_.getEepromContents(devicePath);
     std::ostringstream os;
@@ -840,8 +890,10 @@ void PlatformExplorer::genHumanReadableEeproms() {
     if (!linkPath.starts_with("/run/devmap/eeproms")) {
       continue;
     }
-    // DSF P1 is sunsetting until then ignore.
-    if (devicePath == "/[SCM_IDPROM_P1]") {
+    const auto [slotPath, deviceName] = Utils().parseDevicePath(devicePath);
+    if (deviceName != "IDPROM") {
+      XLOG(WARNING) << fmt::format(
+          "{} is not IDPROM. Skip generating eeprom content.", linkPath);
       continue;
     }
     writeEepromContent(devicePath, linkPath);

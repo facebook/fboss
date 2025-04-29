@@ -311,4 +311,12 @@ inline folly::StringPiece constexpr kDataCellsFilterOn() {
 inline folly::StringPiece constexpr kLinkLayerFlowControlWatermark() {
   return "link_layer_flow_control_watermark";
 }
+
+inline folly::StringPiece constexpr kPfcDeadlockDetection() {
+  return "pfc_deadlock_detection";
+}
+
+inline folly::StringPiece constexpr kPfcDeadlockRecovery() {
+  return "pfc_deadlock_recovery";
+}
 } // namespace facebook::fboss

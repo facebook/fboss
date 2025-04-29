@@ -238,6 +238,9 @@ void addDscpAclTable(
     qualifiers.push_back(cfg::AclTableQualifier::TTL);
     qualifiers.push_back(cfg::AclTableQualifier::DSCP);
   }
+  if (hwAsic->isSupported(HwAsic::Feature::ACL_ENTRY_ETHER_TYPE)) {
+    qualifiers.push_back(cfg::AclTableQualifier::ETHER_TYPE);
+  }
   utility::addAclTable(
       config,
       getDscpAclTableName(),
@@ -247,10 +250,6 @@ void addDscpAclTable(
        cfg::AclTableActionType::SET_TC,
        cfg::AclTableActionType::SET_DSCP},
       qualifiers);
-  if (hwAsic->isSupported(HwAsic::Feature::ACL_ENTRY_ETHER_TYPE)) {
-    qualifiers.push_back(cfg::AclTableQualifier::ETHER_TYPE);
-  }
-
   addDscpAclEntryWithCounter(config, getDscpAclTableName(), isSai);
 }
 } // namespace facebook::fboss::utility

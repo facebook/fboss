@@ -47,5 +47,6 @@ target_link_libraries(platform_mapping_utils
   minipack3n_platform_mapping
   janga800bic_platform_mapping
   tahan800bc_platform_mapping
+  icecube800bc_platform_mapping
   ${RE2}
 )

@@ -309,7 +309,7 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, stressAddRemoveObjects) {
     PortDescriptor kRemotePort(kRemoteSysPortId);
     auto addObjects = [&]() {
       // add local neighbor
-      addRemoveNeighbor(kPort, true /* add neighbor*/);
+      addRemoveNeighbor(kPort, NeighborOp::ADD);
       // Remote objs
       applyNewState([&](const std::shared_ptr<SwitchState>& in) {
         return utility::addRemoteSysPort(
@@ -349,7 +349,7 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, stressAddRemoveObjects) {
       });
     };
     auto removeObjects = [&]() {
-      addRemoveNeighbor(kPort, false /* remove neighbor*/);
+      addRemoveNeighbor(kPort, NeighborOp::DEL);
       // Remove neighbor
       applyNewState([&](const std::shared_ptr<SwitchState>& in) {
         return utility::addRemoveRemoteNeighbor(
@@ -567,24 +567,25 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, verifyDscpToVoqMapping) {
 
   auto verify = [=, this]() {
     for (const auto& q2dscps : utility::kNetworkAIQueueToDscp()) {
-      auto queueId = q2dscps.first;
+      auto tc = q2dscps.first;
+      auto voqId = utility::getTrafficClassToVoqId(
+          utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics()), tc);
       for (auto dscp : q2dscps.second) {
         XLOG(DBG2) << "verify packet with dscp " << static_cast<int>(dscp)
-                   << " goes to queue " << queueId;
+                   << " goes to voq " << voqId;
         auto statsBefore = getLatestSysPortStats(kRemoteSysPortId);
-        auto queueBytesBefore = statsBefore.queueOutBytes_()->at(queueId) +
-            statsBefore.queueOutDiscardBytes_()->at(queueId);
+        auto queueBytesBefore = statsBefore.queueOutBytes_()->at(voqId) +
+            statsBefore.queueOutDiscardBytes_()->at(voqId);
         sendPacket(
             kNeighborIp,
             std::nullopt,
             std::optional<std::vector<uint8_t>>(),
             dscp);
-        WITH_RETRIES({
+        WITH_RETRIES_N(10, {
           auto statsAfter = getLatestSysPortStats(kRemoteSysPortId);
-          auto queueBytesAfter = statsAfter.queueOutBytes_()->at(queueId) +
-              statsAfter.queueOutDiscardBytes_()->at(queueId);
-          XLOG(DBG2) << "queue " << queueId
-                     << " stats before: " << queueBytesBefore
+          auto queueBytesAfter = statsAfter.queueOutBytes_()->at(voqId) +
+              statsAfter.queueOutDiscardBytes_()->at(voqId);
+          XLOG(DBG2) << "voq " << voqId << " stats before: " << queueBytesBefore
                      << " stats after: " << queueBytesAfter;
           EXPECT_EVENTUALLY_GT(queueBytesAfter, queueBytesBefore);
         });

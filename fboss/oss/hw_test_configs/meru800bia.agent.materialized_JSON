@@ -328,6 +328,7 @@
             "fabric_connect_mode.BCM8889X": "FE",
             "fabric_connectivity_based_on_integrity": "0",
             "fabric_distributed_system_enable": "1",
+            "fabric_single_pipe_over_dual_pipe": "0",
             "fail_on_unsupported_attribute": "1",
             "l3_ecmp_max_group_size": "512",
             "lane_to_serdes_map_fabric_lane0.BCM8889X": "rx0:tx5",

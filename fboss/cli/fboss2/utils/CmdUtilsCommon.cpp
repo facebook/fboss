@@ -113,7 +113,7 @@ void setLogLevel(const std::string& logLevelStr) {
 // bandwidthBytesPerSecond: must be positive number in bytes per second
 const std::string formatBandwidth(const float bandwidthBytesPerSecond) {
   if (bandwidthBytesPerSecond < 1.0f) {
-    return "Not set";
+    return "N/A";
   }
   const std::string suffixes[] = {"", "K", "M"};
   // Represent the bandwidth in bits per second

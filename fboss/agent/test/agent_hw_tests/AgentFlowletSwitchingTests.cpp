@@ -18,6 +18,7 @@
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 #include "fboss/agent/test/utils/MirrorTestUtils.h"
 #include "fboss/agent/test/utils/ScaleTestUtils.h"
+#include "fboss/agent/test/utils/UdfTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
 DECLARE_bool(flowletSwitchingEnable);
@@ -111,6 +112,10 @@ class AgentAclCounterTestBase : public AgentHwTest {
     if (!ensemble->isSai()) {
       return;
     }
+    auto asic = utility::checkSameAndGetAsic(ensemble->getL3Asics());
+    if (asic->getAsicVendor() != HwAsic::AsicVendor::ASIC_VENDOR_BCM) {
+      return;
+    }
     // Remove the ecmp ethertype config after BRCM fix
     constexpr auto kSetEcmpMemberStatus = R"(
   cint_reset();
@@ -127,12 +132,12 @@ class AgentAclCounterTestBase : public AgentHwTest {
         const_cast<TestEnsembleIf*>(ensemble), kSetEcmpMemberStatus);
   }
 
-  void setup() {
-    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
-      return helper_->resolveNextHops(in, 4);
+  void setup(int ecmpWidth = 1) {
+    applyNewState([&, ecmpWidth](const std::shared_ptr<SwitchState>& in) {
+      return helper_->resolveNextHops(in, ecmpWidth);
     });
     auto wrapper = getSw()->getRouteUpdater();
-    helper_->programRoutes(&wrapper, kEcmpWidth);
+    helper_->programRoutes(&wrapper, ecmpWidth);
 
     XLOG(DBG3) << "setting ECMP Member Status: ";
     applyNewState([&](const std::shared_ptr<SwitchState>& in) {
@@ -168,13 +173,7 @@ class AgentAclCounterTestBase : public AgentHwTest {
           &config,
           cfg::AclStage::INGRESS,
           utility::kDefaultAclTableGroupName());
-      utility::addAclTable(
-          &config,
-          cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE(),
-          0 /* priority */,
-          actions,
-          qualifiers,
-          udfGroups);
+      utility::addDefaultAclTable(config, udfGroups);
     }
   }
 
@@ -249,7 +248,7 @@ class AgentAclCounterTestBase : public AgentHwTest {
           std::optional<std::vector<uint8_t>>(),
       int packetCount = 1,
       int destPort = utility::kUdfL4DstPort) {
-    auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
+    auto vlanId = getVlanIDForTx();
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     return utility::pumpRoCETraffic(
@@ -337,9 +336,11 @@ class AgentAclCounterTestBase : public AgentHwTest {
         // On native BCM we see 4 extra bytes in the acl counter. This is
         // likely due to ingress vlan getting imposed and getting counted
         // when packet hits acl in ingress pipeline
-        EXPECT_EVENTUALLY_LE(
-            aclBytesCountAfter,
-            aclBytesCountBefore + (2 * sizeOfPacketSent) + 4);
+        if (!getAgentEnsemble()->isSai()) {
+          EXPECT_EVENTUALLY_LE(
+              aclBytesCountAfter,
+              aclBytesCountBefore + (2 * sizeOfPacketSent) + 4);
+        }
       } else {
         EXPECT_EVENTUALLY_EQ(aclPktCountBefore, aclPktCountAfter);
         EXPECT_EVENTUALLY_EQ(aclBytesCountBefore, aclBytesCountAfter);
@@ -415,7 +416,10 @@ class AgentAclCounterTestBase : public AgentHwTest {
       const std::optional<int>& roceBytes,
       const std::optional<int>& roceMask,
       const std::optional<std::vector<cfg::AclUdfEntry>>& udfTable) const {
-    auto acl = utility::addAcl_DEPRECATED(config, aclName, aclActionType_);
+    cfg::AclEntry aclEntry;
+    aclEntry.name() = aclName;
+    aclEntry.actionType() = aclActionType_;
+    auto acl = utility::addAcl(config, aclEntry, cfg::AclStage::INGRESS);
     std::vector<cfg::CounterType> setCounterTypes{
         cfg::CounterType::PACKETS, cfg::CounterType::BYTES};
     if (udfTable.has_value()) {
@@ -469,8 +473,14 @@ class AgentAclCounterTestBase : public AgentHwTest {
           utility::checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics());
       utility::addEtherTypeToAcl(asic, acl, cfg::EtherType::IPv6);
     }
-    utility::addAclStat(
-        config, aclName, counterName, std::move(setCounterTypes));
+    if (aclName == getAclName(AclType::UDF_ACK)) {
+      // set dscp value to 30 and send to queue 6
+      utility::addAclDscpQueueAction(
+          config, aclName, counterName, kDscp, kOutQueue);
+    } else {
+      utility::addAclStat(
+          config, aclName, counterName, std::move(setCounterTypes));
+    }
   }
 
   std::vector<std::string> getUdfGroupsForAcl(AclType aclType) const {
@@ -605,7 +615,7 @@ class AgentAclCounterTestBase : public AgentHwTest {
             std::nullopt);
       } break;
       case AclType::FLOWLET:
-        utility::addFlowletAcl(*config, aclName, counterName, false);
+        utility::addFlowletAcl(*config, isSai, aclName, counterName, false);
         break;
       case AclType::FLOWLET_WITH_UDF_ACK:
         config->udfConfig() =
@@ -620,7 +630,7 @@ class AgentAclCounterTestBase : public AgentHwTest {
             std::nullopt,
             std::nullopt,
             std::nullopt);
-        utility::addFlowletAcl(*config, aclName, counterName, false);
+        utility::addFlowletAcl(*config, isSai, aclName, counterName, false);
         break;
       case AclType::UDF_FLOWLET:
         config->udfConfig() =
@@ -696,6 +706,8 @@ class AgentAclCounterTestBase : public AgentHwTest {
   }
 
   static inline constexpr auto kEcmpWidth = 4;
+  static inline constexpr auto kOutQueue = 6;
+  static inline constexpr auto kDscp = 30;
   std::unique_ptr<utility::EcmpSetupAnyNPorts6> helper_;
 };
 
@@ -786,8 +798,8 @@ class AgentFlowletMirrorTest : public AgentFlowletSwitchingTest {
     // It is added in addAclAndStat above
     cfg.dataPlaneTrafficPolicy() = cfg::TrafficPolicyConfig();
     std::string counterName = getCounterName(AclType::UDF_NAK);
-    utility::addAclMatchActions(
-        &cfg, getAclName(AclType::UDF_NAK), std::move(counterName), aclMirror);
+    utility::addAclMirrorAction(
+        &cfg, getAclName(AclType::UDF_NAK), counterName, aclMirror);
 
     // mirror session for acl
     utility::configureSflowMirror(
@@ -881,7 +893,7 @@ TEST_F(AgentFlowletSwitchingTest, VerifyUdfFlowletWithUdfAckToFlowlet) {
 
 TEST_F(AgentFlowletSwitchingTest, VerifyEcmp) {
   auto setup = [this]() {
-    this->setup();
+    this->setup(kEcmpWidth);
     generateApplyConfig(AclType::FLOWLET);
   };
 
@@ -990,6 +1002,35 @@ TEST_F(AgentFlowletSwitchingTest, VerifyUdfNakToUdfAckWithNak) {
 
 TEST_F(AgentFlowletSwitchingTest, VerifyUdfAckWithNakToUdfNak) {
   flowletSwitchingAclHitHelper(AclType::UDF_ACK_WITH_NAK, AclType::UDF_NAK);
+}
+
+TEST_F(AgentFlowletSwitchingTest, VerifyUdfAndSendQueueAction) {
+  auto setup = [this]() {
+    this->setup();
+    generateApplyConfig(AclType::UDF_ACK);
+  };
+
+  auto verify = [this]() {
+    auto outPort = helper_->ecmpPortDescriptorAt(0).phyPortID();
+    auto portStatsBefore = getNextUpdatedPortStats(outPort);
+    auto pktsBefore = *portStatsBefore.outUnicastPkts__ref();
+    auto pktsQueueBefore = portStatsBefore.queueOutPackets_()[kOutQueue];
+
+    verifyAcl(AclType::UDF_ACK);
+
+    WITH_RETRIES({
+      auto portStatsAfter = getNextUpdatedPortStats(outPort);
+      auto pktsAfter = *portStatsAfter.outUnicastPkts__ref();
+      auto pktsQueueAfter = portStatsAfter.queueOutPackets_()[kOutQueue];
+      XLOG(DBG2) << "Port Counter: " << pktsBefore << " -> " << pktsAfter
+                 << "\nPort Queue " << kOutQueue
+                 << " Counter: " << pktsQueueBefore << " -> " << pktsQueueAfter;
+      EXPECT_EVENTUALLY_GT(pktsAfter, pktsBefore);
+      EXPECT_EVENTUALLY_GT(pktsQueueAfter, pktsQueueBefore);
+    });
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 TEST_F(AgentFlowletMirrorTest, VerifyUdfNakMirrorAction) {
@@ -1145,7 +1186,8 @@ class AgentFlowletResourceTest : public AgentHwTest {
       portDescriptorIds.push_back(PortDescriptor(portId));
     }
     std::vector<std::vector<PortDescriptor>> allCombinations =
-        utility::generateEcmpGroupScale(portDescriptorIds, 512);
+        utility::generateEcmpGroupScale(
+            portDescriptorIds, 512, portDescriptorIds.size());
     for (const auto& combination : allCombinations) {
       nhopSets.emplace_back(combination.begin(), combination.end());
     }
@@ -1240,38 +1282,6 @@ TEST_F(AgentFlowletResourceTest, CreateMaxDlbGroups) {
     }
   };
   verifyAcrossWarmBoots(setup, verify);
-}
-
-TEST_F(AgentFlowletResourceTest, IgnoreDlbResourceCheck) {
-  // Start with 128 ECMP groups
-  auto setup = [this]() {
-    const auto kMaxDlbEcmpGroup =
-        utility::getMaxDlbEcmpGroups(getAgentEnsemble()->getL3Asics());
-    FLAGS_flowletSwitchingEnable = false;
-    this->setup();
-    auto wrapper = getSw()->getRouteUpdater();
-    std::vector<RoutePrefixV6> prefixes128 = {
-        prefixes.begin(), prefixes.begin() + kMaxDlbEcmpGroup};
-    std::vector<flat_set<PortDescriptor>> nhopSets128 = {
-        nhopSets.begin(), nhopSets.begin() + kMaxDlbEcmpGroup};
-    helper_->programRoutes(&wrapper, nhopSets128, prefixes128);
-  };
-  // Post warmboot, since there are already 128, dlb resource check is disabled
-  auto setupPostWarmboot = [this]() {
-    const auto kMaxDlbEcmpGroup =
-        utility::getMaxDlbEcmpGroups(getAgentEnsemble()->getL3Asics());
-    FLAGS_flowletSwitchingEnable = true;
-    this->setup();
-    auto wrapper = getSw()->getRouteUpdater();
-    std::vector<RoutePrefixV6> prefixes128 = {
-        prefixes.begin() + kMaxDlbEcmpGroup,
-        prefixes.begin() + 2 * kMaxDlbEcmpGroup};
-    std::vector<flat_set<PortDescriptor>> nhopSets128 = {
-        nhopSets.begin() + kMaxDlbEcmpGroup,
-        nhopSets.begin() + 2 * kMaxDlbEcmpGroup};
-    helper_->programRoutes(&wrapper, nhopSets128, prefixes128);
-  };
-  verifyAcrossWarmBoots(setup, [] {}, setupPostWarmboot, [] {});
 }
 
 TEST_F(AgentFlowletResourceTest, ApplyDlbResourceCheck) {

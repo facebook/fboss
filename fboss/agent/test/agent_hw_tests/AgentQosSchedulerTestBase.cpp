@@ -21,7 +21,7 @@ AgentQosSchedulerTestBase::createUdpPkt(uint8_t dscpVal) const {
 
   return utility::makeUDPTxPacket(
       getSw(),
-      utility::firstVlanIDWithPorts(getProgrammedState()),
+      getVlanIDForTx(),
       srcMac,
       dstMac(),
       folly::IPAddressV6("2620:0:1cfe:face:b00c::3"),

@@ -11,6 +11,7 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/HwSwitchRouteUpdateWrapper.h"
+#include "fboss/agent/TxPacketUtils.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/hw/HwSwitchFb303Stats.h"
 #include "fboss/agent/hw/HwSwitchWarmBootHelper.h"
@@ -493,4 +494,5 @@ HwInitResult HwSwitch::initLightImpl(
   });
   return ret;
 }
+
 } // namespace facebook::fboss

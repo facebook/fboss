@@ -309,7 +309,7 @@ TEST_F(AgentEnsembleLinkTest, xPhyInfoTest) {
       kSecondsBetweenXphyInfoCollectionCheck /* retry period */,
       {
         for (const auto& port : cabledPorts) {
-          if (phyInfoBefore.count(port)) {
+          if (phyInfoBefore.contains(port)) {
             continue;
           }
           auto phyInfo = getXphyInfo(port);
@@ -338,7 +338,7 @@ TEST_F(AgentEnsembleLinkTest, xPhyInfoTest) {
       kSecondsBetweenXphyInfoCollectionCheck /* retry period */,
       {
         for (const auto& port : cabledPorts) {
-          if (phyInfoAfter.count(port)) {
+          if (phyInfoAfter.contains(port)) {
             continue;
           }
           auto phyInfo = getXphyInfo(port);

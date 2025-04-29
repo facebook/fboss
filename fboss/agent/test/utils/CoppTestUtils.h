@@ -170,11 +170,6 @@ void setTTLZeroCpuConfig(
     const std::vector<const HwAsic*>& asics,
     cfg::SwitchConfig& config);
 
-void addTrafficCounter(
-    cfg::SwitchConfig* config,
-    const std::string& counterName,
-    std::optional<std::vector<cfg::CounterType>> counterTypes);
-
 cfg::MatchAction getToQueueAction(
     const HwAsic* hwAsic,
     const int queueId,

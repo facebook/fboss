@@ -10,6 +10,7 @@
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
 #include "fboss/platform/config_lib/CrossConfigValidator.h"
+#include "fboss/platform/data_corral_service/ConfigValidator.h"
 #include "fboss/platform/data_corral_service/if/gen-cpp2/led_manager_config_types.h"
 #include "fboss/platform/fan_service/ConfigValidator.h"
 #include "fboss/platform/fan_service/if/gen-cpp2/fan_service_config_types.h"
@@ -138,8 +139,10 @@ std::map<std::string, std::map<std::string, std::string>> getConfigs() {
       if (!sensor_service::ConfigValidator().isValid(sensorConfig)) {
         throw std::runtime_error("Invalid sensor_service configuration");
       }
-      if (crossConfigValidator) {
-        crossConfigValidator->isValidSensorConfig(sensorConfig);
+      if (crossConfigValidator &&
+          !crossConfigValidator->isValidSensorConfig(sensorConfig)) {
+        throw std::runtime_error(
+            "Invalid sensor_service configuration. Failed cross config validation.");
       }
     }
     if (deserializedConfigs.contains("fan_service")) {
@@ -148,13 +151,12 @@ std::map<std::string, std::map<std::string, std::string>> getConfigs() {
       if (!fan_service::ConfigValidator().isValid(config)) {
         throw std::runtime_error("Invalid fan_service configuration");
       }
-      std::optional<SensorConfig> sensorConfig = std::nullopt;
-      if (deserializedConfigs.contains("sensor_service")) {
-        sensorConfig = std::any_cast<SensorConfig>(
-            deserializedConfigs.at("sensor_service"));
-      }
-      if (crossConfigValidator) {
-        crossConfigValidator->isValidFanServiceConfig(config, sensorConfig);
+    }
+    if (deserializedConfigs.contains("led_manager")) {
+      auto config = std::any_cast<LedManagerConfig>(
+          deserializedConfigs.at("led_manager"));
+      if (!data_corral_service::ConfigValidator().isValid(config)) {
+        throw std::runtime_error("Invalid led_manager configuration");
       }
     }
   } // end per platform iteration

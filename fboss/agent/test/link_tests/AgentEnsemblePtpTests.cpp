@@ -36,7 +36,7 @@ class AgentEnsemblePtpTests : public AgentEnsembleLinkTest {
       PTPMessageType ptpType) {
     // note: we are not creating flood here, but want routing
     // of packets so that TTL goes down from 255 -> 0
-    auto vlan = utility::firstVlanIDWithPorts(getSw()->getState());
+    auto vlan = getAgentEnsemble()->getVlanIDForTx();
     // TODO: Remove the dependency on VLAN below
     if (!vlan) {
       throw FbossError("VLAN id unavailable for test");
@@ -64,7 +64,15 @@ class AgentEnsemblePtpTests : public AgentEnsembleLinkTest {
   bool sendAndVerifyPtpPkts(
       PTPMessageType ptpType,
       const PortDescriptor& portDescriptor) {
-    utility::SwSwitchPacketSnooper snooper(getSw(), "snooper-1");
+    utility::SwSwitchPacketSnooper snooper(
+        getSw(),
+        "snooper-1",
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        facebook::fboss::utility::packetSnooperReceivePacketType::
+            PACKET_TYPE_PTP);
+    snooper.ignoreUnclaimedRxPkts();
     XLOG(DBG2) << "Validating PTP packet fields on Port "
                << portDescriptor.phyPortID();
     auto matcher =

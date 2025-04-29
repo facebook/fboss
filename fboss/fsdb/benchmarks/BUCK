@@ -28,7 +28,11 @@ cpp_library(
         "//fboss/fsdb/client:fsdb_pub_sub",
         "//fboss/fsdb/tests/utils:fsdb_test_server",
         "//fboss/thrift_cow/nodes:nodes",
+        "//folly:subprocess",
         "//folly/synchronization:baton",
+    ],
+    exported_external_deps = [
+        "gflags",
     ],
 )
 
@@ -36,6 +40,8 @@ cpp_benchmark(
     name = "fsdb_bench_test",
     srcs = [
         "FsdbBenchmarksMain.cpp",
+        "FsdbSystemScaleBench.cpp",
+        "FsdbSystemScaleChurn.cpp",
         "SysPortAndRIFBench.cpp",
         "VoqCounterScaleBench.cpp",
     ],
@@ -43,28 +49,6 @@ cpp_benchmark(
         "fbsource//third-party/googletest:gtest",
         ":fsdb_benchmark_helper",
         ":state_generator",
-        "//folly:benchmark",
-        "//folly/init:init",
-        "//folly/json:dynamic",
-        "//folly/logging:init",
-        "//folly/logging:logging",
-        "//folly/synchronization:baton",
-        "//folly/synchronization:latch",
-    ],
-    external_deps = [
-        "gflags",
-    ],
-)
-
-cpp_benchmark(
-    name = "fsdb_bench_scale_test",
-    srcs = [
-        "FsdbBenchmarksMain.cpp",
-        "FsdbSystemScaleBench.cpp",
-    ],
-    deps = [
-        "fbsource//third-party/googletest:gtest",
-        "//fboss/fsdb/common:flags",
         "//fboss/fsdb/tests/utils:fsdb_test_server",
         "//fboss/lib:common_file_utils",
         "//folly:benchmark",
@@ -72,6 +56,8 @@ cpp_benchmark(
         "//folly/json:dynamic",
         "//folly/logging:init",
         "//folly/logging:logging",
+        "//folly/synchronization:baton",
+        "//folly/synchronization:latch",
     ],
     external_deps = [
         "gflags",

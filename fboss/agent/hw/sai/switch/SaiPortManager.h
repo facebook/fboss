@@ -205,6 +205,9 @@ class SaiPortManager {
   void clearQosPolicy(const std::shared_ptr<QosPolicy>& qosPolicy);
   void clearQosPolicy();
 
+  void clearArsConfig(PortID portID);
+  void clearArsConfig();
+
   void setTamObject(PortID portId, std::vector<sai_object_id_t> tamObject);
   void resetTamObject(PortID portId);
 
@@ -279,8 +282,6 @@ class SaiPortManager {
 #endif
   void updateLeakyBucketFb303Counter(PortID portId, int value);
 
-  void enableAfeAdaptiveMode(PortID portId);
-
   phy::FecMode getFECMode(PortID portId) const;
 
   phy::InterfaceType getInterfaceType(PortID portID) const;
@@ -301,14 +302,29 @@ class SaiPortManager {
   void changePortShelEnable(
       const std::shared_ptr<Port>& oldPort,
       const std::shared_ptr<Port>& newPort) const;
+  /**
+   * Increment the PFC deadlock detection counter for a given port.
+   *
+   * @param portId - The ID of the port for which the counter is to be
+   * incremented.
+   */
+  void incrementPfcDeadlockCounter(const PortID& portId);
+
+  /**
+   * Increment the PFC deadlock recovery counter for a given port.
+   *
+   * @param portId - The ID of the port for which the counter is to be
+   * incremented.
+   */
+  void incrementPfcRecoveryCounter(const PortID& portId);
 
  private:
   PortSaiId addPortImpl(const std::shared_ptr<Port>& swPort);
   void changePortImpl(
       const std::shared_ptr<Port>& oldPort,
       const std::shared_ptr<Port>& newPort);
-  void addRemovedHandle(PortID portID);
-  void removeRemovedHandleIf(PortID portID);
+  void addRemovedHandle(const PortID& portID);
+  void removeRemovedHandleIf(const PortID& portID);
   void releasePorts();
   void releasePortPfcBuffers();
 
@@ -444,6 +460,22 @@ class SaiPortManager {
   void changePortFlowletConfig(
       const std::shared_ptr<Port>& oldPort,
       const std::shared_ptr<Port>& newPort);
+  void clearPortFlowletConfig(const PortID& portId);
+
+  /**
+   * Enum to specify which PFC counter to increment.
+   */
+  enum class PfcCounterType { DEADLOCK, RECOVERY };
+
+  /**
+   * Increment the PFC counter for a given port and counter type.
+   *
+   * @param portId - The ID of the port for which the counter is to be
+   * incremented.
+   * @param counterType - The type of PFC counter to increment (DEADLOCK or
+   * RECOVERY).
+   */
+  void incrementPfcCounter(const PortID& portId, PfcCounterType counterType);
 
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;

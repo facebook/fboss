@@ -147,6 +147,8 @@ class MockHwSwitch : public HwSwitch {
       getSwitchReachability,
       std::vector<PortID>(SwitchID switchId));
 
+  MOCK_CONST_METHOD0(getAllFirmwareInfo, std::vector<FirmwareInfo>());
+
   void setInitialState(const std::shared_ptr<SwitchState>& state) {
     setProgrammedState(state);
   }

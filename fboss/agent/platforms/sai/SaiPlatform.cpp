@@ -19,6 +19,7 @@
 #include "fboss/agent/platforms/sai/SaiBcmDarwinPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmElbertPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmFujiPlatformPort.h"
+#include "fboss/agent/platforms/sai/SaiBcmIcecube800bcPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmMinipackPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmMontblancPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmPlatformPort.h"
@@ -58,6 +59,11 @@ DEFINE_bool(
     enable_delay_drop_congestion_threshold,
     false,
     "Enable new delay drop congestion threshold in CGM");
+
+DEFINE_int32(
+    pfc_watchdog_timer_granularity_msec,
+    10,
+    "PFC watchdog timer granularity which can be 1ms, 10ms or 100ms");
 
 namespace {
 
@@ -255,7 +261,7 @@ std::string SaiPlatform::getHwAsicConfig(
    * be thrown to fallback to bcm or asic config.
    */
   auto chipConfigType = config()->thrift.platform()->chip()->getType();
-  if (chipConfigType != facebook::fboss::cfg::ChipConfig::asicConfig) {
+  if (chipConfigType != facebook::fboss::cfg::ChipConfig::Type::asicConfig) {
     throw FbossError("No asic config v2 found in agent config");
   }
   auto asicConfig = config()->thrift.platform()->chip()->get_asicConfig();
@@ -384,6 +390,8 @@ void SaiPlatform::initPorts() {
       saiPort = std::make_unique<SaiYangraPlatformPort>(portId, this);
     } else if (platformMode == PlatformType::PLATFORM_MINIPACK3N) {
       saiPort = std::make_unique<SaiMinipack3NPlatformPort>(portId, this);
+    } else if (platformMode == PlatformType::PLATFORM_ICECUBE800BC) {
+      saiPort = std::make_unique<SaiBcmIcecube800bcPlatformPort>(portId, this);
     } else {
       saiPort = std::make_unique<SaiFakePlatformPort>(portId, this);
     }
@@ -715,7 +723,21 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
         // max switch-id in single node tests as well
         isDualStage3Q2QMode() || isL2FabricNode;
     if (isDualStage) {
-      maxSwitchId = getAsic()->getMaxSwitchId();
+      /*
+       * Due to a HW bug in J3/R3, we are restricted to using switch-ids in the
+       * range of 0-4064.
+       * For 2-Stage, Num RDSWs = 512. SwitchIds consumed = 2048.
+       * Num EDSW = 128, Switch Ids consumed = 512. These ids will come after
+       * 2048. So 2560 (2.5K total). The last EDSW will take switch-ids from
+       * 2556-2559. We now start FDSWs at 2560. There are 200 FDSWs, taking 4
+       * switch Ids each = 2560 + 800 = 3360. So we start SDSW switch-ids from
+       * 3360. Given there are 128 SDSW, we get 3360 + (128 * 4) = 3872 Max
+       * switch id can only be set in multiples of 32. So we set it to next
+       * multiple of 32, which is 3904.
+       * TODO: look at 2-stage configs, find max switch-id and use that
+       * to compute the value here.
+       */
+      maxSwitchId = 3904;
     } else {
       // Single stage FAP-ID on J3/R3 are limited to 1K.
       // With 4 cores we are limited to 1K switch-ids.
@@ -746,10 +768,10 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
     fabricLLFC = std::vector<uint32_t>({kRamon3LlfcThreshold});
   }
   if (isDualStage3Q2QMode()) {
-    maxSystemPortId = 32515;
-    maxLocalSystemPortId = 5;
-    maxSystemPorts = 21766;
-    maxVoqs = 64536;
+    maxSystemPortId = 32694;
+    maxLocalSystemPortId = 184;
+    maxSystemPorts = 22136;
+    maxVoqs = 65284;
   } else {
     maxSystemPortId = 6143;
     maxLocalSystemPortId = -1;
@@ -771,6 +793,27 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
 #endif
   }
 
+  std::optional<SaiSwitchTraits::Attributes::PfcTcDldTimerGranularityInterval>
+      pfcWatchdogTimerGranularyMap;
+#if defined(BRCM_SAI_SDK_XGS) && defined(BRCM_SAI_SDK_GTE_11_0)
+  // We need to set the watchdog granularity to an appropriate value, otherwise
+  // the default granularity in SAI/SDK may be incompatible with the requested
+  // watchdog intervals. Auto-derivation is being requested in CS00012393810.
+  std::vector<sai_map_t> mapToValueList(
+      cfg::switch_config_constants::PFC_PRIORITY_VALUE_MAX() + 1);
+  for (int pri = 0;
+       pri <= cfg::switch_config_constants::PFC_PRIORITY_VALUE_MAX();
+       pri++) {
+    sai_map_t mapping{};
+    mapping.key = pri;
+    mapping.value = FLAGS_pfc_watchdog_timer_granularity_msec;
+    mapToValueList.at(pri) = mapping;
+  }
+  pfcWatchdogTimerGranularyMap =
+      SaiSwitchTraits::Attributes::PfcTcDldTimerGranularityInterval{
+          mapToValueList};
+#endif
+
   return {
       initSwitch,
       hwInfo, // hardware info
@@ -791,6 +834,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       std::nullopt, // qos tc to exp map
       macAgingTime,
       std::nullopt, // ingress acl
+      std::nullopt, // egress acl
       aclFieldList,
       std::nullopt, // tam object list
       useEcnThresholds,
@@ -856,6 +900,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       std::nullopt, // SDK Register dump log path
       std::nullopt, // Firmware Object list
       std::nullopt, // tc rate limit list
+      pfcWatchdogTimerGranularyMap, // PFC watchdog timer granularity
   };
 }
 

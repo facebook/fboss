@@ -2,13 +2,12 @@
 
 # pyre-strict
 
+import unittest
 from typing import Dict, List
 
 from fboss.lib.platform_mapping_v2.gen import read_vendor_data
 from fboss.lib.platform_mapping_v2.platform_mapping_v2 import PlatformMappingV2
 
-from libfb.py.fbcode_root import get_fbcode_dir
-from libfb.py.testutil import BaseFacebookTestCase
 from neteng.fboss.phy.ttypes import (
     DataPlanePhyChip,
     DataPlanePhyChipType,
@@ -33,12 +32,10 @@ from neteng.fboss.platform_config.ttypes import (
 from neteng.fboss.switch_config.ttypes import PortProfileID, PortSpeed, PortType, Scope
 from neteng.fboss.transceiver.ttypes import TransmitterTechnology
 
-_FBCODE_DIR: str = get_fbcode_dir()
 
-
-class TestPlatformMappingGeneration(BaseFacebookTestCase):
+class TestPlatformMappingGeneration(unittest.TestCase):
     def _get_test_vendor_data(self) -> Dict[str, Dict[str, str]]:
-        input_dir = _FBCODE_DIR + "/fboss/lib/platform_mapping_v2/test/test_data"
+        input_dir = "fboss/lib/platform_mapping_v2/test/test_data"
         return {"test": read_vendor_data(input_dir)}
 
     def _get_expected_single_npu_test_ports(self) -> Dict[int, PlatformPortEntry]:
@@ -335,23 +332,28 @@ class TestPlatformMappingGeneration(BaseFacebookTestCase):
         self.assertEqual(
             platform_mapping.get_platform_port_map(),
             self._get_expected_single_npu_test_ports(),
+            "Ports do not match.",
         )
 
         # Verify chips
         chips = platform_mapping.get_chips()
-        self.assertEqual(len(chips), 3)
+        self.assertEqual(len(chips), 3, "Number of chips does not match.")
         self.assertTrue(
-            all(chip in chips for chip in self._get_expected_single_npu_test_chips())
+            all(chip in chips for chip in self._get_expected_single_npu_test_chips()),
+            "Chips do not match.",
         )
 
         # Verify supportedProfiles
         supportedProfiles = platform_mapping.get_platform_profiles()
-        self.assertEqual(len(supportedProfiles), 2)
+        self.assertEqual(
+            len(supportedProfiles), 2, "Number of supported profiles does not match."
+        )
         self.assertTrue(
             all(
                 entry in supportedProfiles
                 for entry in self._get_expected_single_npu_supported_profiles()
-            )
+            ),
+            "Supported profiles do not match.",
         )
 
     def test_get_platform_mapping_multi_npu(self) -> None:
@@ -363,21 +365,35 @@ class TestPlatformMappingGeneration(BaseFacebookTestCase):
         self.assertEqual(
             platform_mapping.get_platform_port_map(),
             self._get_expected_multi_npu_test_ports(),
+            "Ports do not match.",
         )
 
         # Verify chips
         chips = platform_mapping.get_chips()
-        self.assertEqual(len(chips), 4)
+        self.assertEqual(len(chips), 4, "Number of chips does not match.")
         self.assertTrue(
-            all(chip in chips for chip in self._get_expected_multi_npu_test_chips())
+            all(chip in chips for chip in self._get_expected_multi_npu_test_chips()),
+            "Chips do not match.",
         )
 
         # Verify supportedProfiles (supportedProfiles should be the same for both single and multi NPU)
         supportedProfiles = platform_mapping.get_platform_profiles()
-        self.assertEqual(len(supportedProfiles), 2)
+        self.assertEqual(
+            len(supportedProfiles), 2, "Number of supported profiles does not match."
+        )
         self.assertTrue(
             all(
                 entry in supportedProfiles
                 for entry in self._get_expected_single_npu_supported_profiles()
-            )
+            ),
+            "Supported profiles do not match.",
         )
+
+
+def run_tests() -> None:
+    # Provided for add_fb_python_executable callable
+    suite = unittest.TestLoader().loadTestsFromTestCase(TestPlatformMappingGeneration)
+    result = unittest.TextTestRunner().run(suite)
+
+    if not result.wasSuccessful():
+        raise Exception("Test failures.")

@@ -168,7 +168,7 @@ class AgentTrunkLoadBalancerTest : public AgentHwTest {
       frontPanelPortToLoopTraffic =
           PortID(masterLogicalPortIds()[aggInfo.numPhysicalPorts()]);
     }
-    auto firstVlanID = utility::firstVlanIDWithPorts(getProgrammedState());
+    auto firstVlanID = getVlanIDForTx();
     auto mac = utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
 
     utility::pumpTraffic(
@@ -193,7 +193,7 @@ class AgentTrunkLoadBalancerTest : public AgentHwTest {
       frontPanelPortToLoopTraffic =
           PortID(masterLogicalPortIds()[aggInfo.numPhysicalPorts()]);
     }
-    auto firstVlanID = utility::firstVlanIDWithPorts(getProgrammedState());
+    auto firstVlanID = getVlanIDForTx();
     auto mac = utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     utility::pumpMplsTraffic(
         isV6,

@@ -147,6 +147,7 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _AclEntryMap{
     SAI_ATTR_MAP(AclEntry, ActionSetUserTrap),
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+    SAI_ATTR_MAP(AclEntry, ActionSetArsObject),
     SAI_ATTR_MAP(AclEntry, ActionDisableArsForwarding),
 #endif
 };

@@ -174,6 +174,11 @@ const std::vector<sai_stat_id_t>& SaiSwitchTraits::egressParityCellError() {
   return stats;
 }
 
+const std::vector<sai_stat_id_t>& SaiSwitchTraits::ddpPacketError() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
 void SwitchApi::registerSwitchEventCallback(
     SwitchSaiId /*id*/,
     void* /*switch_event_cb*/) const {}
@@ -319,6 +324,11 @@ SaiSwitchTraits::Attributes::AttributeFirmwareObjectList::operator()() {
 
 std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeTcRateLimitList::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
+    AttributePfcTcDldTimerGranularityInterval::operator()() {
   return std::nullopt;
 }
 

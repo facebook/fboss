@@ -208,7 +208,7 @@ std::unordered_map<PortID, cfg::PortProfileID> getSafeProfileIDs(
       }
     }
     if (safeProfiles.empty()) {
-      std::string portSetStr = "";
+      std::string portSetStr;
       for (auto portID : ports) {
         portSetStr = folly::to<std::string>(portSetStr, portID, ", ");
       }
@@ -405,7 +405,8 @@ cfg::DsfNode dsfNodeConfig(
     const HwAsic& firstAsic,
     int64_t otherSwitchId,
     const std::optional<PlatformType> platformType,
-    const std::optional<int> clusterId) {
+    const std::optional<int> clusterId,
+    const std::string& switchNamePrefix) {
   auto getPlatformType = [](const auto& asic, auto& platformType) {
     if (platformType.has_value()) {
       return *platformType;
@@ -451,7 +452,8 @@ cfg::DsfNode dsfNodeConfig(
   };
   cfg::DsfNode dsfNode;
   dsfNode.switchId() = otherSwitchId;
-  dsfNode.name() = folly::sformat("hwTestSwitch{}", *dsfNode.switchId());
+  dsfNode.name() =
+      folly::sformat("{}{}", switchNamePrefix, *dsfNode.switchId());
   switch (firstAsic.getSwitchType()) {
     case cfg::SwitchType::VOQ: {
       dsfNode.type() = cfg::DsfNodeType::INTERFACE_NODE;
@@ -1169,40 +1171,6 @@ cfg::SwitchConfig twoL3IntfConfig(
   return config;
 }
 
-void addMatcher(
-    cfg::SwitchConfig* config,
-    const std::string& matcherName,
-    const cfg::MatchAction& matchAction) {
-  cfg::MatchToAction action = cfg::MatchToAction();
-  *action.matcher() = matcherName;
-  *action.action() = matchAction;
-  cfg::TrafficPolicyConfig egressTrafficPolicy;
-  if (auto dataPlaneTrafficPolicy = config->dataPlaneTrafficPolicy()) {
-    egressTrafficPolicy = *dataPlaneTrafficPolicy;
-  }
-  auto curNumMatchActions = egressTrafficPolicy.matchToAction()->size();
-  egressTrafficPolicy.matchToAction()->resize(curNumMatchActions + 1);
-  egressTrafficPolicy.matchToAction()[curNumMatchActions] = action;
-  config->dataPlaneTrafficPolicy() = egressTrafficPolicy;
-}
-
-void delMatcher(cfg::SwitchConfig* config, const std::string& matcherName) {
-  if (auto dataPlaneTrafficPolicy = config->dataPlaneTrafficPolicy()) {
-    auto& matchActions = *dataPlaneTrafficPolicy->matchToAction();
-    matchActions.erase(
-        std::remove_if(
-            matchActions.begin(),
-            matchActions.end(),
-            [&](cfg::MatchToAction const& matchAction) {
-              if (*matchAction.matcher() == matcherName) {
-                return true;
-              }
-              return false;
-            }),
-        matchActions.end());
-  }
-}
-
 bool isRswPlatform(PlatformType type) {
   switch (type) {
     case PlatformType::PLATFORM_WEDGE:
@@ -1325,6 +1293,9 @@ UplinkDownlinkPair getAllUplinkDownlinkPorts(
   }
 
   auto begin = masterPorts.begin();
+  CHECK_GE(masterPorts.size(), ecmpWidth)
+      << "Not enough ports with subnet in config. Need  " << ecmpWidth
+      << " ports, but found only " << masterPorts.size();
   auto mid = masterPorts.begin() + ecmpWidth;
   auto end = masterPorts.end();
   return std::pair(PortList(begin, mid), PortList(mid, end));

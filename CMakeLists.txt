@@ -1000,6 +1000,12 @@ add_dependencies(fboss_other_services
   fsdb
 )
 
+add_custom_target(fboss_platform_mapping_gen)
+add_dependencies(fboss_platform_mapping_gen
+  platform_mapping_gen_unit_test.GEN_PY_EXE
+  platform_mapping_gen_no_regression_test.GEN_PY_EXE
+)
+
 if (BUILD_SAI_FAKE)
 add_custom_target(fboss_agent_thrift_libs)
 add_dependencies(fboss_agent_thrift_libs
@@ -1037,6 +1043,7 @@ add_dependencies(fboss_fake_agent_targets
   sai_agent_hw_test-fake
   multi_switch_agent_hw_test
   fboss_agent_thrift_libs
+  fboss_sw_agent
 )
 if (BUILD_SAI_FAKE_LINK_TEST)
 add_dependencies(fboss_fake_agent_targets

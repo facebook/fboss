@@ -64,6 +64,7 @@ add_library(led_manager_lib
   fboss/led_service/Meru800biaLedManager.cpp
   fboss/led_service/Meru800bfaLedManager.cpp
   fboss/led_service/Morgan800ccLedManager.cpp
+  fboss/led_service/Minipack3NLedManager.cpp
 )
 
 target_link_libraries(led_manager_lib
@@ -82,6 +83,7 @@ target_link_libraries(led_manager_lib
   elbert_platform_mapping
   fuji_platform_mapping
   minipack_platform_mapping
+  minipack3n_platform_mapping
   montblanc_platform_mapping
   meru800bia_platform_mapping
   meru800bfa_platform_mapping

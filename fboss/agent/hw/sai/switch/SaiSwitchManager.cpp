@@ -135,6 +135,11 @@ void fillHwSwitchDropStats(
       case SAI_SWITCH_STAT_IN_CONFIGURED_DROP_REASONS_6_DROPPED_PKTS:
         dropStats.ingressPacketPipelineRejectDrops() = val;
         break;
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+      case SAI_SWITCH_STAT_TC0_RATE_LIMIT_DROPPED_PACKETS:
+        dropStats.tc0RateLimitDrops() = val;
+        break;
+#endif
       default:
         throw FbossError("Unexpected configured counter id: ", counterId);
     }
@@ -163,6 +168,9 @@ void fillHwSwitchDropStats(
       case SAI_SWITCH_STAT_OUT_CONFIGURED_DROP_REASONS_0_DROPPED_PKTS:
       case SAI_SWITCH_STAT_OUT_CONFIGURED_DROP_REASONS_1_DROPPED_PKTS:
       case SAI_SWITCH_STAT_OUT_CONFIGURED_DROP_REASONS_2_DROPPED_PKTS:
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+      case SAI_SWITCH_STAT_TC0_RATE_LIMIT_DROPPED_PACKETS:
+#endif
         fillAsicSpecificCounter(counterId, value, asicType, hwSwitchDropStats);
         break;
       default:
@@ -170,57 +178,6 @@ void fillHwSwitchDropStats(
     }
   }
 }
-
-#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
-int64_t getIsolationFirmwareIntForString(const std::string& firmwareVersion) {
-  // Firmware Version is of the form 2.4.0-EA9
-  static const re2::RE2 pattern("^([0-9]+)\\.([0-9]+)\\.([0-9]+)-EA([0-9]+)$");
-
-  int major, minor, patch, release;
-  if (RE2::FullMatch(
-          firmwareVersion, pattern, &major, &minor, &patch, &release)) {
-    int64_t versionInt =
-        (major * 10000000) + (minor * 100000) + (patch * 1000) + release;
-    return versionInt;
-  } else {
-    XLOG(WARNING) << "Failed to match Firmware version to Int: "
-                  << firmwareVersion;
-    return 0;
-  }
-}
-#endif
-
-#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
-FirmwareOpStatus saiFirmwareOpStatusToFirmwareOpStatus(
-    sai_firmware_op_status_t opStatus) {
-  switch (opStatus) {
-    case SAI_FIRMWARE_OP_STATUS_UNKNOWN:
-      return FirmwareOpStatus::UNKNOWN;
-    case SAI_FIRMWARE_OP_STATUS_LOADED:
-      return FirmwareOpStatus::LOADED;
-    case SAI_FIRMWARE_OP_STATUS_NOT_LOADED:
-      return FirmwareOpStatus::NOT_LOADED;
-    case SAI_FIRMWARE_OP_STATUS_RUNNING:
-      return FirmwareOpStatus::RUNNING;
-    case SAI_FIRMWARE_OP_STATUS_STOPPED:
-      return FirmwareOpStatus::STOPPED;
-    case SAI_FIRMWARE_OP_STATUS_ERROR:
-      return FirmwareOpStatus::ERROR;
-  }
-}
-
-FirmwareFuncStatus saiFirmwareFuncStatusToFirmwareFuncStatus(
-    sai_firmware_func_status_t funcStatus) {
-  switch (funcStatus) {
-    case SAI_FIRMWARE_FUNC_STATUS_UNKNOWN:
-      return FirmwareFuncStatus::UNKNOWN;
-    case SAI_FIRMWARE_FUNC_STATUS_ISOLATED:
-      return FirmwareFuncStatus::ISOLATED;
-    case SAI_FIRMWARE_FUNC_STATUS_MONITORING:
-      return FirmwareFuncStatus::MONITORING;
-  }
-}
-#endif
 
 } // namespace
 
@@ -234,7 +191,6 @@ SaiSwitchManager::SaiSwitchManager(
     std::optional<int64_t> switchId)
     : managerTable_(managerTable), platform_(platform) {
   int64_t swId = switchId.value_or(0);
-  switchPreInitSequence(platform->getAsic());
   if (bootType == BootType::WARM_BOOT) {
     // Extract switch adapter key and create switch only with the mandatory
     // init attribute (warm boot path)
@@ -292,40 +248,6 @@ SaiSwitchManager::SaiSwitchManager(
     }
 #endif
   }
-
-#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
-  auto firmwareObjectList =
-      SaiApiTable::getInstance()->switchApi().getAttribute(
-          switch_->adapterKey(),
-          SaiSwitchTraits::Attributes::FirmwareObjectList{});
-
-  // If Firmware is not configured,
-  //   - firmwareObjectList.size() will be 0.
-  // If Firmware is configured,
-  //   - firmwareObjectList.size() will be 1.
-  //   - This is because the current API supports only a single Firmware.
-  //   - In future, when multiple Firmwares are supported, SAI impls
-  //     will expose additional create APIs, and get attrs (e.g. PATH)
-  //     to determine which Firmware OID belongs to which Firmware.
-  // In the current programming model, the Firmware is configured during switch
-  // create and cannot change later. Thus, we can cache Firmware OID post
-  // switch create.
-  CHECK(firmwareObjectList.size() == 0 || firmwareObjectList.size() == 1);
-  if (firmwareObjectList.size() == 1) {
-    firmwareSaiId = *firmwareObjectList.begin();
-
-    auto firmwareVersion = getFirmwareVersion();
-    CHECK(firmwareVersion.has_value());
-    auto firmwareVersionInt =
-        getIsolationFirmwareIntForString(firmwareVersion.value());
-    platform_->getHwSwitch()->getSwitchStats()->isolationFirmwareVersion(
-        firmwareVersionInt);
-
-    XLOG(DBG2) << "Firmware OID: " << firmwareSaiId.value()
-               << " Firmware Version: " << firmwareVersion.value()
-               << " Firmware Version Int: " << firmwareVersionInt;
-  }
-#endif
 
   if (platform_->getAsic()->isSupported(HwAsic::Feature::CPU_PORT)) {
     initCpuPort();
@@ -528,12 +450,14 @@ void SaiSwitchManager::addOrUpdateEcmpLoadBalancer(
           v4EcmpHashFields.transportFields()->insert(entry->cref());
         });
 
-    ecmpV4Hash_ =
+    auto hash =
         managerTable_->hashManager().getOrCreate(v4EcmpHashFields, udfGroupIds);
 
     // Set the new ecmp v4 hash attribute on switch obj
     setLoadBalancer<SaiSwitchTraits::Attributes::EcmpHashV4>(
-        ecmpV4Hash_, programmedLoadBalancer);
+        hash, programmedLoadBalancer);
+
+    ecmpV4Hash_ = std::move(hash);
   }
   if (newLb->getIPv6Fields().begin() != newLb->getIPv6Fields().end()) {
     // v6 ECMP
@@ -554,12 +478,14 @@ void SaiSwitchManager::addOrUpdateEcmpLoadBalancer(
         [&v6EcmpHashFields](const auto& entry) {
           v6EcmpHashFields.transportFields()->insert(entry->cref());
         });
-    ecmpV6Hash_ =
+    auto hash =
         managerTable_->hashManager().getOrCreate(v6EcmpHashFields, udfGroupIds);
 
     // Set the new ecmp v6 hash attribute on switch obj
     setLoadBalancer<SaiSwitchTraits::Attributes::EcmpHashV6>(
-        ecmpV6Hash_, programmedLoadBalancer);
+        hash, programmedLoadBalancer);
+
+    ecmpV6Hash_ = std::move(hash);
   }
 }
 
@@ -733,6 +659,42 @@ void SaiSwitchManager::resetIngressAcl() {
   }
 }
 
+void SaiSwitchManager::setEgressAcl() {
+  CHECK(platform_->getAsic()->isSupported(
+      HwAsic::Feature::INGRESS_POST_LOOKUP_ACL_TABLE))
+      << "INGRESS_POST_LOOKUP_ACL_TABLE ACL not supported";
+  auto aclTableGroupHandle = managerTable_->aclTableGroupManager()
+                                 .getAclTableGroupHandle(SAI_ACL_STAGE_EGRESS)
+                                 ->aclTableGroup;
+  setEgressAcl(aclTableGroupHandle->adapterKey());
+  isIngressPostLookupAclSupported_ = true;
+}
+
+void SaiSwitchManager::setEgressAcl(sai_object_id_t id) {
+  XLOG(DBG2) << "Set egress ACL; " << id;
+  switch_->setOptionalAttribute(SaiSwitchTraits::Attributes::EgressAcl{id});
+}
+
+void SaiSwitchManager::resetEgressAcl() {
+  if (!isIngressPostLookupAclSupported_) {
+    return;
+  }
+  // Since resetIngressAcl() will be called in SaiManagerTable destructor.,
+  // we can't call pure virtual function HwAsic::isSupported() to check
+  // whether an asic supports INGRESS_POST_LOOKUP_ACL_TABLE
+  // Therefore, we will try to read from SaiObject to see whether there's a
+  // egress acl set. If there's a not null id set, we set it to null
+  auto egressAcl =
+      std::get<std::optional<SaiSwitchTraits::Attributes::EgressAcl>>(
+          switch_->attributes());
+  if (egressAcl && egressAcl->value() != SAI_NULL_OBJECT_ID) {
+    XLOG(DBG2) << "Reset current egress acl:" << egressAcl->value()
+               << " back to null";
+    switch_->setOptionalAttribute(
+        SaiSwitchTraits::Attributes::EgressAcl{SAI_NULL_OBJECT_ID});
+  }
+}
+
 void SaiSwitchManager::gracefulExit() {
   // On graceful exit we trigger the warm boot path on
   // ASIC by destroying the switch (and thus calling the
@@ -765,7 +727,7 @@ void SaiSwitchManager::setArsProfile(
     [[maybe_unused]] ArsProfileSaiId arsProfileSaiId) {
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
   if (FLAGS_flowletSwitchingEnable &&
-      platform_->getAsic()->isSupported(HwAsic::Feature::FLOWLET)) {
+      platform_->getAsic()->isSupported(HwAsic::Feature::ARS)) {
     switch_->setOptionalAttribute(
         SaiSwitchTraits::Attributes::ArsProfile{arsProfileSaiId});
   }
@@ -854,6 +816,9 @@ const std::vector<sai_stat_id_t>& SaiSwitchManager::supportedDropStats() const {
           SAI_SWITCH_STAT_IN_CONFIGURED_DROP_REASONS_4_DROPPED_PKTS,
           SAI_SWITCH_STAT_IN_CONFIGURED_DROP_REASONS_5_DROPPED_PKTS,
           SAI_SWITCH_STAT_IN_CONFIGURED_DROP_REASONS_6_DROPPED_PKTS,
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+          SAI_SWITCH_STAT_TC0_RATE_LIMIT_DROPPED_PACKETS,
+#endif
       };
       stats.insert(
           stats.end(),
@@ -889,6 +854,13 @@ const std::vector<sai_stat_id_t>& SaiSwitchManager::supportedErrorStats()
         stats.end(),
         SaiSwitchTraits::egressParityCellError().begin(),
         SaiSwitchTraits::egressParityCellError().end());
+  }
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::DRAM_DATAPATH_PACKET_ERROR_STATS)) {
+    stats.insert(
+        stats.end(),
+        SaiSwitchTraits::ddpPacketError().begin(),
+        SaiSwitchTraits::ddpPacketError().end());
   }
   return stats;
 }
@@ -1044,6 +1016,9 @@ void SaiSwitchManager::updateStats(bool updateWatermarks) {
     switchDropStats_.ingressPacketPipelineRejectDrops() =
         switchDropStats_.ingressPacketPipelineRejectDrops().value_or(0) +
         dropStats.ingressPacketPipelineRejectDrops().value_or(0);
+    switchDropStats_.tc0RateLimitDrops() =
+        switchDropStats_.tc0RateLimitDrops().value_or(0) +
+        dropStats.tc0RateLimitDrops().value_or(0);
   }
   auto errorDropStats = supportedErrorStats();
   if (errorDropStats.size()) {
@@ -1063,6 +1038,9 @@ void SaiSwitchManager::updateStats(bool updateWatermarks) {
     switchDropStats_.rqpParityErrorDrops() =
         switchDropStats_.rqpParityErrorDrops().value_or(0) +
         errorStats.rqpParityErrorDrops().value_or(0);
+    switchDropStats_.dramDataPathPacketError() =
+        switchDropStats_.dramDataPathPacketError().value_or(0) +
+        errorStats.dramDataPathPacketError().value_or(0);
   }
 
   if (switchDropStats.size() || errorDropStats.size()) {
@@ -1270,29 +1248,21 @@ void SaiSwitchManager::setVoqOutOfBoundsLatency(int voqOutOfBoundsLatency) {
 #endif
 }
 
-std::optional<std::string> SaiSwitchManager::getFirmwareVersion() const {
+void SaiSwitchManager::setTcRateLimitList(
+    const std::optional<std::map<int32_t, int32_t>>& tcToRateLimitKbps) {
 #if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
-  if (firmwareSaiId.has_value()) {
-    auto version = SaiApiTable::getInstance()->firmwareApi().getAttribute(
-        firmwareSaiId.value(), SaiFirmwareTraits::Attributes::Version{});
-    return std::string(version.begin(), version.end());
+  std::vector<sai_map_t> mapToValueList;
+  if (tcToRateLimitKbps) {
+    for (const auto& [tc, rateLimit] : *tcToRateLimitKbps) {
+      sai_map_t mapping{};
+      mapping.key = tc;
+      mapping.value = rateLimit;
+      mapToValueList.push_back(mapping);
+    }
   }
+  // empty list will remove rate limit
+  switch_->setOptionalAttribute(
+      SaiSwitchTraits::Attributes::TcRateLimitList{mapToValueList});
 #endif
-
-  return std::nullopt;
 }
-
-std::optional<FirmwareOpStatus> SaiSwitchManager::getFirmwareOpStatus() const {
-#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
-  if (firmwareSaiId.has_value()) {
-    auto opStatus = SaiApiTable::getInstance()->firmwareApi().getAttribute(
-        firmwareSaiId.value(), SaiFirmwareTraits::Attributes::OpStatus{});
-    return saiFirmwareOpStatusToFirmwareOpStatus(
-        static_cast<sai_firmware_op_status_t>(opStatus));
-  }
-#endif
-
-  return std::nullopt;
-}
-
 } // namespace facebook::fboss
