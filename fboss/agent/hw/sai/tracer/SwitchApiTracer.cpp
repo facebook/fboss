@@ -150,6 +150,8 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(Switch, FirmwareObjectList);
   SAI_EXT_ATTR_MAP(Switch, TcRateLimitList);
   SAI_EXT_ATTR_MAP(Switch, PfcTcDldTimerGranularityInterval);
+  SAI_EXT_ATTR_MAP(Switch, NumberOfPipes);
+  SAI_EXT_ATTR_MAP(Switch, PipelineObjectList);
 }
 
 } // namespace

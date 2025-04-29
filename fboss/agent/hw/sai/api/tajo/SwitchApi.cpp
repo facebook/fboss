@@ -332,4 +332,14 @@ std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
   return std::nullopt;
 }
 
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeNumberOfPipes::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributePipelineObjectList::operator()() {
+  return std::nullopt;
+}
+
 } // namespace facebook::fboss
