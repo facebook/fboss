@@ -777,6 +777,7 @@ TYPED_TEST(SubscribableStorageTests, SetPatchWithPathSpec) {
 
   // verify set API works as expected
   EXPECT_EQ(storage.set(this->root.structMap()[99], newStruct), std::nullopt);
+  storage.publishCurrentState();
 
   auto struct99 = storage.get(this->root.structMap()[99]);
   EXPECT_EQ(*struct99->min(), 999);
@@ -807,6 +808,7 @@ TYPED_TEST(SubscribableStorageTests, SetPatchWithPathSpec) {
     // Therefore the end result is basically patching an empty but valid
     // root struct, and wipes out any existing field with default value.
     EXPECT_EQ(storage.patch(delta), std::nullopt);
+    storage.publishCurrentState();
 
     // confirm the new value didn't get in
     // instead it wiped entire content previously set
@@ -842,6 +844,7 @@ TYPED_TEST(SubscribableStorageTests, SetPatchWithPathSpec) {
     // oper delta has the type of root->structMap->struct{min, max}
     // the patch is applied on root->structMap[99], which has the same type
     EXPECT_EQ(storage.patch(delta), std::nullopt);
+    storage.publishCurrentState();
 
     // confirm the new value has been stamped to root->structMap[99]
     auto updatedMapEntry = storage.get(this->root.structMap()[99]);
@@ -861,6 +864,7 @@ TYPED_TEST(SubscribableStorageTests, SetPatchWithPathSpecOnTaggedState) {
 
   // verify set API works as expected
   EXPECT_EQ(storage.set(this->root.structMap()[99], newStruct), std::nullopt);
+  storage.publishCurrentState();
 
   auto struct99 = storage.get(this->root.structMap()[99]);
   EXPECT_EQ(*struct99->min(), 999);
@@ -885,6 +889,7 @@ TYPED_TEST(SubscribableStorageTests, SetPatchWithPathSpecOnTaggedState) {
     // Therefore the end result is basically patching an empty but valid
     // root struct, and wipes out any existing field with default value.
     EXPECT_EQ(storage.patch(operState), std::nullopt);
+    storage.publishCurrentState();
 
     // confirm the new value didn't get in
     // instead it wiped entire content previously set
@@ -915,6 +920,7 @@ TYPED_TEST(SubscribableStorageTests, SetPatchWithPathSpecOnTaggedState) {
     // tagged oper delta has the type of root->structMap->struct{min, max}
     // the patch is applied on root->structMap[99], which has the same type
     EXPECT_EQ(storage.patch(operState), std::nullopt);
+    storage.publishCurrentState();
 
     // confirm the new value has been stamped to root->structMap[99]
     auto updatedMapEntry = storage.get(this->root.structMap()[99]);
@@ -1009,6 +1015,7 @@ TYPED_TEST(SubscribableStorageTests, ApplyPatch) {
   EXPECT_EQ(*memberStruct->max(), 20);
 
   storage.patch(std::move(patch));
+  storage.publishCurrentState();
 
   memberStruct = storage.get(this->root.member());
   EXPECT_EQ(*memberStruct->min(), 999);

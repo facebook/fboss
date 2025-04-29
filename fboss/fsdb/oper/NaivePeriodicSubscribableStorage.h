@@ -77,14 +77,20 @@ class NaivePeriodicSubscribableStorage
 
   template <typename T>
   Result<T> get_impl(PathIter begin, PathIter end) const {
-    auto state = currentState_.rlock();
-    return state->template get<T>(begin, end);
+    auto state =
+        (params_.serveGetRequestsWithLastPublishedState_
+             ? Storage(*lastPublishedState_.rlock())
+             : Storage(*currentState_.rlock()));
+    return state.template get<T>(begin, end);
   }
 
   Result<OperState>
   get_encoded_impl(PathIter begin, PathIter end, OperProtocol protocol) const {
-    auto state = currentState_.rlock();
-    auto result = state->get_encoded(begin, end, protocol);
+    auto state =
+        (params_.serveGetRequestsWithLastPublishedState_
+             ? Storage(*lastPublishedState_.rlock())
+             : Storage(*currentState_.rlock()));
+    auto result = state.get_encoded(begin, end, protocol);
     if (result.hasValue() && params_.trackMetadata_) {
       metadataTracker_.withRLock([&](auto& tracker) {
         CHECK(tracker);
@@ -105,8 +111,11 @@ class NaivePeriodicSubscribableStorage
       ExtPathIter begin,
       ExtPathIter end,
       OperProtocol protocol) const {
-    auto state = currentState_.rlock();
-    auto result = state->get_encoded_extended(begin, end, protocol);
+    auto state =
+        (params_.serveGetRequestsWithLastPublishedState_
+             ? Storage(*lastPublishedState_.rlock())
+             : Storage(*currentState_.rlock()));
+    auto result = state.get_encoded_extended(begin, end, protocol);
     if (result.hasValue() && params_.trackMetadata_) {
       metadataTracker_.withRLock([&](auto& tracker) {
         CHECK(tracker);
@@ -260,9 +269,9 @@ class NaivePeriodicSubscribableStorage
   }
 
   OperState publishedStateEncoded(OperProtocol protocol) {
-    auto lastState = lastPublishedState_.rlock();
+    auto lastState = Storage(*lastPublishedState_.rlock());
     std::vector<std::string> rootPath;
-    return *lastState->get_encoded(rootPath.begin(), rootPath.end(), protocol);
+    return *lastState.get_encoded(rootPath.begin(), rootPath.end(), protocol);
   }
 
  protected:
