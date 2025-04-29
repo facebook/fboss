@@ -49,6 +49,10 @@ const std::map<PlatformType, folly::StringPiece> kHardwareNameMap = {
      kPortMappingTahansb800bcCsv},
     {facebook::fboss::PlatformType::PLATFORM_LADAKH800BCLS,
      kPortMappingLadakh800bclsCsv},
+    {facebook::fboss::PlatformType::PLATFORM_DARWIN,
+     kPortMappingDarwinCsv},
+    {facebook::fboss::PlatformType::PLATFORM_DARWIN48V,
+     kPortMappingDarwinCsv},
 };
 
 // Helper function to generate PHY CSV filename from regular CSV filename

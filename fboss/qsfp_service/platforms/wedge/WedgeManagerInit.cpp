@@ -11,6 +11,7 @@
 
 #include "fboss/agent/platforms/common/PlatformMappingUtils.h"
 #include "fboss/lib/bsp/BspGenericSystemContainer.h"
+#include "fboss/lib/bsp/darwin/DarwinBspPlatformMapping.h"
 #include "fboss/lib/bsp/icecube800bc/Icecube800bcBspPlatformMapping.h"
 #include "fboss/lib/bsp/icetea800bc/Icetea800bcBspPlatformMapping.h"
 #include "fboss/lib/bsp/janga800bic/Janga800bicBspPlatformMapping.h"
@@ -96,7 +97,9 @@ std::unique_ptr<WedgeManager> createWedgeManager(
       return createYampWedgeManager(platformMapping, threads);
     case PlatformType::PLATFORM_DARWIN:
     case PlatformType::PLATFORM_DARWIN48V:
-      return createDarwinWedgeManager(platformMapping, threads);
+      return createBspWedgeManager<
+          DarwinBspPlatformMapping,
+          PlatformType::PLATFORM_DARWIN>(platformMapping, threads);
     case PlatformType::PLATFORM_ELBERT:
       return createElbertWedgeManager(platformMapping, threads);
     case PlatformType::PLATFORM_MERU400BFU:

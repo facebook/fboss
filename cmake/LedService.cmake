@@ -92,6 +92,7 @@ target_link_libraries(led_manager_lib
   morgan800cc_bsp
   tahansb800bc_bsp
   ladakh800bcls_bsp
+  darwin_bsp
   darwin_platform_mapping
   elbert_platform_mapping
   fuji_platform_mapping
