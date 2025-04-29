@@ -95,13 +95,13 @@ struct RegisterValue {
   ValueType value{};
 
   // The timestamp of when the value was read
-  uint32_t timestamp = 0;
+  time_t timestamp = 0;
 
   RegisterValue() = default;
   explicit RegisterValue(
       const std::vector<uint16_t>& reg,
       const RegisterDescriptor& desc,
-      uint32_t tstamp);
+      time_t tstamp);
   explicit RegisterValue(const std::vector<uint16_t>& reg);
   operator std::string();
 
@@ -131,7 +131,7 @@ struct Register {
   std::vector<uint16_t> value;
 
   // Timestamp of reading. 0 is considered invalid.
-  uint32_t timestamp = 0;
+  time_t timestamp = 0;
 
   explicit Register(const RegisterDescriptor& d);
   Register(const Register& other);
