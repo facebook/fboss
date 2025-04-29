@@ -41,6 +41,7 @@
 #include "fboss/cli/fboss2/commands/show/fabric/CmdShowFabric.h"
 #include "fboss/cli/fboss2/commands/show/fabric/inputbalance/CmdShowFabricInputBalance.h"
 #include "fboss/cli/fboss2/commands/show/fabric/reachability/CmdShowFabricReachability.h"
+#include "fboss/cli/fboss2/commands/show/fabric/reachability/uncached/CmdShowFabricReachabilityUncached.h"
 #include "fboss/cli/fboss2/commands/show/fabric/topology/CmdShowFabricTopology.h"
 #include "fboss/cli/fboss2/commands/show/flowlet/CmdShowFlowlet.h"
 #include "fboss/cli/fboss2/commands/show/host/CmdShowHost.h"
@@ -136,7 +137,11 @@ const CommandTree& kCommandTree() {
            {"reachability",
             "Show Fabric ports that can reach the given switch name. Returns reachability data from SW cache by default.",
             commandHandler<CmdShowFabricReachability>,
-            argTypeHandler<CmdShowFabricReachabilityTraits>},
+            argTypeHandler<CmdShowFabricReachabilityTraits>,
+            {{"uncached",
+              "Get reachability information directly from hardware",
+              commandHandler<CmdShowFabricReachabilityUncached>,
+              argTypeHandler<CmdShowFabricReachabilityUncachedTraits>}}},
            {"topology",
             "Show Fabric topology per virtual device",
             commandHandler<CmdShowFabricTopology>,

@@ -47,7 +47,7 @@
 #include "fboss/cli/fboss2/commands/show/fabric/inputbalance/CmdShowFabricInputBalance.h"
 #include "fboss/cli/fboss2/commands/show/fabric/inputbalance/gen-cpp2/model_visitation.h"
 #include "fboss/cli/fboss2/commands/show/fabric/reachability/CmdShowFabricReachability.h"
-#include "fboss/cli/fboss2/commands/show/fabric/reachability/gen-cpp2/model_visitation.h"
+#include "fboss/cli/fboss2/commands/show/fabric/reachability/uncached/CmdShowFabricReachabilityUncached.h"
 #include "fboss/cli/fboss2/commands/show/fabric/topology/CmdShowFabricTopology.h"
 #include "fboss/cli/fboss2/commands/show/fabric/topology/gen-cpp2/model_visitation.h"
 #include "fboss/cli/fboss2/commands/show/flowlet/CmdShowFlowlet.h"
@@ -147,6 +147,9 @@ template void CmdHandler<CmdShowFlowlet, CmdShowFlowletTraits>::run();
 template void CmdHandler<CmdShowDsf, CmdShowDsfTraits>::run();
 template void
 CmdHandler<CmdShowFabricReachability, CmdShowFabricReachabilityTraits>::run();
+template void CmdHandler<
+    CmdShowFabricReachabilityUncached,
+    CmdShowFabricReachabilityUncachedTraits>::run();
 template void
 CmdHandler<CmdShowFabricTopology, CmdShowFabricTopologyTraits>::run();
 template void
@@ -254,6 +257,9 @@ CmdHandler<CmdShowFabric, CmdShowFabricTraits>::getValidFilters();
 template const ValidFilterMapType CmdHandler<
     CmdShowFabricReachability,
     CmdShowFabricReachabilityTraits>::getValidFilters();
+template const ValidFilterMapType CmdHandler<
+    CmdShowFabricReachabilityUncached,
+    CmdShowFabricReachabilityUncachedTraits>::getValidFilters();
 template const ValidFilterMapType CmdHandler<
     CmdShowFabricTopology,
     CmdShowFabricTopologyTraits>::getValidFilters();
