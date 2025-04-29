@@ -83,7 +83,7 @@
       },
       "priority": 2
     },
-    "dom_bottom_fpga": {
+    "dom_fpga1": {
       "preUpgrade": [
         {
           "commandType": "gpioset",
@@ -159,7 +159,7 @@
       },
       "priority": 3
     },
-    "dom_top_fpga": {
+    "dom_fpga2": {
       "preUpgrade": [
         {
           "commandType": "gpioset",
@@ -351,7 +351,7 @@
       },
       "priority": 6
     },
-    "pict_cpld": {
+    "pic_cpld1": {
       "preUpgrade": [
         {
           "commandType": "gpioset",
@@ -416,7 +416,7 @@
       },
       "priority": 7
     },
-    "picb_cpld": {
+    "pic_cpld2": {
       "preUpgrade": [
         {
           "commandType": "gpioset",
