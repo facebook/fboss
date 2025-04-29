@@ -1,11 +1,11 @@
 ---
-id: building_fboss_on_docker_containers 
-title: Building FBOSS on Docker containers 
-description: How to build FBOSS OSS services in a reproducible environment 
+id: building_fboss_on_docker_containers
+title: Building FBOSS on Docker containers
+description: How to build FBOSS OSS services in a reproducible environment
 keywords:
-    - FBOSS  
-    - OSS 
-    - build 
+    - FBOSS
+    - OSS
+    - build
     - docker
 oncall: fboss_oss
 ---
