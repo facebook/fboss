@@ -55,7 +55,7 @@ class AgentRouteScaleTest : public AgentHwTest {
     verifyAcrossWarmBoots(setup, verify);
   }
 
- private:
+ protected:
   void setCmdLineFlagOverrides() const override {
     AgentHwTest::setCmdLineFlagOverrides();
     FLAGS_enable_route_resource_protection = false;
