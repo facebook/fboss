@@ -134,7 +134,7 @@ const CommandTree& kCommandTree() {
        {
 
            {"reachability",
-            "Show Fabric ports that can reach the given switch name",
+            "Show Fabric ports that can reach the given switch name. Returns reachability data from SW cache by default.",
             commandHandler<CmdShowFabricReachability>,
             argTypeHandler<CmdShowFabricReachabilityTraits>},
            {"topology",
