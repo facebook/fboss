@@ -2702,3 +2702,28 @@ TEST_F(RouteTest, routePrune) {
   }
   EXPECT_EQ(numPrunedPaths, 1);
 }
+
+TEST_F(RouteTest, invalidRouteWeights) {
+  auto u1 = this->sw_->getRouteUpdater();
+  FLAGS_enable_capacity_pruning = true;
+
+  RouteV4::Prefix prefix10{IPAddressV4("10.10.10.0"), 24};
+  NetworkTopologyInformation topologyInfo;
+  topologyInfo.plane_id() = 0;
+  topologyInfo.rack_id() = 0;
+  topologyInfo.remote_rack_capacity() = 0;
+  topologyInfo.spine_capacity() = 0;
+  topologyInfo.local_rack_capacity() = 3;
+
+  RouteNextHopSet nexthops;
+  nexthops.emplace(
+      makeResolvedNextHop(InterfaceID(1), "1.1.1.1", 1, topologyInfo));
+
+  u1.addRoute(
+      kRid0,
+      IPAddress("10.10.10.0"),
+      24,
+      ClientID(0),
+      RouteNextHopEntry(nexthops, DISTANCE));
+  EXPECT_THROW(u1.program(), FbossError);
+}
