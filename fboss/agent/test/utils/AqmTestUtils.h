@@ -9,7 +9,12 @@
  */
 #pragma once
 
+#include <cstdint>
+#include <memory>
+#include <optional>
+
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/if/gen-cpp2/AgentHwTestCtrl.h"
 
 namespace facebook::fboss {
 
@@ -36,6 +41,11 @@ size_t getEffectiveBytesPerPacket(const HwAsic* asic, int packetSizeInBytes);
 double getAlphaFromScalingFactor(
     const HwAsic* asic,
     cfg::MMUScalingFactor scalingFactor);
+
+uint32_t getQueueLimitBytes(
+    const HwAsic* asic,
+    std::shared_ptr<apache::thrift::Client<utility::AgentHwTestCtrl>> client,
+    std::optional<cfg::MMUScalingFactor> queueScalingFactor);
 
 /*
  * TX ENABLE function from vendors sometimes will end up sending some packets
