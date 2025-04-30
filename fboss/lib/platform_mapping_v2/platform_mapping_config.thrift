@@ -27,7 +27,7 @@ enum CoreType {
   J3_RCY = 5, // J3 Recycle Port
   G200 = 6, // Yuba/Kodiak3
   J3_EVT = 7, // J3 Eventor Port
-  SP4_NIF = 8, // Spectrum4
+  CHENAB_NIF = 8,
 
   // Transceivers
   OSFP = 100,
