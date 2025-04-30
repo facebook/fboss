@@ -23,7 +23,9 @@ class SwitchState;
 class NextHopGroupInfo {
  public:
   using NextHopGroupId = uint32_t;
-  explicit NextHopGroupInfo(NextHopGroupId id) : id_(id) {}
+  using NextHopGroupItr = std::map<RouteNextHopSet, NextHopGroupId>::iterator;
+  NextHopGroupInfo(NextHopGroupId id, NextHopGroupItr ngItr)
+      : id_(id), ngItr_(ngItr) {}
   NextHopGroupId getID() const {
     return id_;
   }
@@ -41,6 +43,7 @@ class NextHopGroupInfo {
  private:
   static constexpr int kInvalidRouteUsageCount = 0;
   NextHopGroupId id_;
+  NextHopGroupItr ngItr_;
   int routeUsageCount_{kInvalidRouteUsageCount};
 };
 

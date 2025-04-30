@@ -46,7 +46,7 @@ void EcmpGroupConsolidator::routeAdded(
       nextHopGroup2Id_.insert({nhopSet, findNextAvailableId()});
   if (inserted) {
     std::tie(grpInfo, inserted) =
-        nextHopGroupIdToInfo_.refOrEmplace(idItr->second, idItr->second);
+        nextHopGroupIdToInfo_.refOrEmplace(idItr->second, idItr->second, idItr);
     CHECK(inserted);
   } else {
     grpInfo = nextHopGroupIdToInfo_.ref(idItr->second);
