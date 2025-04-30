@@ -450,6 +450,11 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
           getCounterPrefix() + vendor + ".network_interface.warnings",
           SUM,
           RATE),
+      interruptMaskedEvents_(
+          map,
+          getCounterPrefix() + vendor + ".interrupt_masked_events",
+          SUM,
+          RATE),
       hwInitializedTimeMs_(
           map,
           getCounterPrefix() + vendor + ".hw_initialized_time_ms",
@@ -840,6 +845,10 @@ int64_t HwSwitchFb303Stats::getRxFifoStuckDetected() const {
   return getCumulativeValue(rxFifoStuckDetected_);
 }
 
+int64_t HwSwitchFb303Stats::getInterruptMaskedEvents() const {
+  return getCumulativeValue(interruptMaskedEvents_);
+}
+
 int64_t HwSwitchFb303Stats::getPacketIntegrityDrops() const {
   return currentDropStats_.packetIntegrityDrops().value_or(0);
 }
@@ -1080,6 +1089,7 @@ HwSwitchFb303GlobalStats HwSwitchFb303Stats::getAllFb303Stats() const {
   hwFb303Stats.deleted_credit_bytes() = getDeletedCreditBytes();
   hwFb303Stats.vsq_resource_exhaustion_drops() =
       getVsqResourcesExhautionDrops();
+  hwFb303Stats.interrupt_masked_events() = getInterruptMaskedEvents();
   return hwFb303Stats;
 }
 

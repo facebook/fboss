@@ -245,6 +245,9 @@ class HwSwitchFb303Stats {
   void rxFifoStuckDetected() {
     rxFifoStuckDetected_.addValue(1);
   }
+  void interruptMaskedEvent() {
+    interruptMaskedEvents_.addValue(1);
+  }
   void fabricConnectivityMissingCount(int64_t value);
   void fabricConnectivityMismatchCount(int64_t value);
   void fabricConnectivityBogusCount(int64_t value);
@@ -359,6 +362,7 @@ class HwSwitchFb303Stats {
   int64_t getFabricTxWarnings() const;
   int64_t getFabricLinkWarnings() const;
   int64_t getNetworkInterfaceWarnings() const;
+  int64_t getInterruptMaskedEvents() const;
 
   // FW Errors
   int64_t getIsolationFirmwareCrashes() const;
@@ -503,6 +507,7 @@ class HwSwitchFb303Stats {
   TLTimeseries fabricTxWarnings_;
   TLTimeseries fabricLinkWarnings_;
   TLTimeseries networkInterfaceWarnings_;
+  TLTimeseries interruptMaskedEvents_;
   TLTimeseries hwInitializedTimeMs_;
   TLTimeseries bootTimeMs_;
   TLTimeseries coldBoot_;
