@@ -36,6 +36,10 @@ std::string eventName(uint32_t eventID) {
     case SAI_SWITCH_EVENT_TYPE_INTERRUPT:
       return "SAI_SWITCH_EVENT_TYPE_INTERRUPT";
 #endif
+#if defined BRCM_SAI_SDK_GTE_12_0
+    case SAI_SWITCH_EVENT_TYPE_INTERRUPT_MASKED:
+      return "SAI_SWITCH_EVENT_TYPE_INTERRUPT_MASKED";
+#endif
   }
   return folly::to<std::string>("unknown event type: ", eventID);
 }
@@ -943,6 +947,14 @@ void SaiSwitch::switchEventCallback(
 
       break;
     }
+#endif
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+    case SAI_SWITCH_EVENT_TYPE_INTERRUPT_MASKED:
+      getSwitchStats()->interruptMaskedEvent();
+      XLOG(WARN, 10000)
+          << "Interrupt masked notification received for interrupt ID "
+          << static_cast<int>(eventInfo->index);
+      break;
 #endif
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_7)
     case SAI_SWITCH_EVENT_TYPE_FIRMWARE_CRASHED: {
