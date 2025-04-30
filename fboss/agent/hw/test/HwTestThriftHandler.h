@@ -17,7 +17,6 @@
 
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
 
-#include <cstdint>
 #include <memory>
 
 namespace facebook::fboss {
@@ -114,8 +113,6 @@ class HwTestThriftHandler : public AgentHwTestCtrlSvIf {
   bool verifyPktFromAggPort(int aggPortId) override;
 
   void triggerParityError() override;
-
-  int32_t getEgressSharedPoolLimitBytes() override;
 
   void printDiagCmd(std::unique_ptr<::std::string>) override;
 

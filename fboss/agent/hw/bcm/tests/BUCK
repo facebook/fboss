@@ -237,21 +237,6 @@ cpp_library(
     ],
 )
 
-cpp_library(
-    name = "bcm_aqm_utils",
-    srcs = [
-        "HwTestAqmUtils.cpp",
-    ],
-    exported_deps = [
-        "//fboss/agent/hw/bcm:bcm",
-        "//fboss/agent/hw/test:hw_test_aqm_utils",
-        "//folly/logging:logging",
-    ],
-    exported_external_deps = [
-        ("broadcom-xgs-robo", None, "xgs_robo"),
-    ],
-)
-
 cpp_unittest(
     name = "bcmaddress_fb_convertors_test",
     srcs = [
@@ -612,7 +597,6 @@ cpp_library(
     name = "agent_hw_test_thrift_handler",
     srcs = [
         "HwTestAclUtilsThriftHandler.cpp",
-        "HwTestAqmUtilsThriftHandler.cpp",
         "HwTestCommonUtilsThriftHandler.cpp",
         "HwTestEcmpUtilsThriftHandler.cpp",
         "HwTestFlowletUtilsThriftHandler.cpp",
@@ -638,7 +622,6 @@ cpp_library(
         "//fboss/agent/hw/bcm:bcmaddress_fb_convertors",  # @manual
         "//fboss/agent/hw/switch_asics:switch_asics",
         "//fboss/agent/hw/test:hw_test_acl_utils",
-        "//fboss/agent/hw/test:hw_test_aqm_utils",
         "//fboss/agent/hw/test:hw_test_ecmp_utils",
         "//fboss/agent/hw/test:hw_test_thrift_handler_h",
         "//fboss/agent/packet:ipproto",

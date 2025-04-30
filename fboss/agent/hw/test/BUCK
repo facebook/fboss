@@ -778,7 +778,6 @@ cpp_library(
 cpp_library(
     name = "hw_test_aqm_utils",
     srcs = ["dataplane_tests/HwTestAqmUtils.cpp"],
-    headers = ["dataplane_tests/HwTestAqmUtils.h"],
     undefined_symbols = "True",  # The sai/bcm implementations will define some functions.
     exported_deps = [
         "fbsource//third-party/googletest:gtest",
