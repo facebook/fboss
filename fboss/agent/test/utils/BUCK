@@ -413,17 +413,12 @@ cpp_library(
     srcs = [
         "AqmTestUtils.cpp",
     ],
-    headers = ["AqmTestUtils.h"],
     exported_deps = [
         "fbsource//third-party/googletest:gtest",
         ":port_test_utils",
         "//fboss/agent:fboss-error",
-        "//fboss/agent:fboss-types",
         "//fboss/agent:switch_config-cpp2-types",
-        "//fboss/agent/hw:hardware_stats-cpp2-types",
         "//fboss/agent/hw/switch_asics:switch_asics",
-        "//fboss/agent/if:agent_hw_test_ctrl-cpp2-clients",
-        "//fboss/agent/if:agent_hw_test_ctrl-cpp2-services",
         "//fboss/agent/test:test_ensemble_if",
         "//fboss/lib:common_utils",
     ],
