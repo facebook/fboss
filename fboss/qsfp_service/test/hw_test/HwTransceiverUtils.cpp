@@ -108,6 +108,7 @@ void HwTransceiverUtils::verifyPortNameToLaneMap(
         }
         break;
       case MediaInterfaceCode::FR4_200G:
+      case MediaInterfaceCode::LR4_200G:
       case MediaInterfaceCode::FR4_400G:
       case MediaInterfaceCode::DR4_400G:
       case MediaInterfaceCode::LR4_400G_10KM:
@@ -449,8 +450,12 @@ void HwTransceiverUtils::verify200gProfile(
   EXPECT_EQ(mgmtInterface, TransceiverManagementInterface::CMIS);
 
   for (const auto& mediaId : mediaInterfaces) {
-    EXPECT_EQ(*mediaId.media()->smfCode_ref(), SMFMediaInterfaceCode::FR4_200G);
-    EXPECT_EQ(*mediaId.code(), MediaInterfaceCode::FR4_200G);
+    EXPECT_TRUE(
+        *mediaId.media()->smfCode_ref() == SMFMediaInterfaceCode::FR4_200G ||
+        *mediaId.media()->smfCode_ref() == SMFMediaInterfaceCode::LR4_200G);
+    EXPECT_TRUE(
+        *mediaId.code() == MediaInterfaceCode::FR4_200G ||
+        *mediaId.code() == MediaInterfaceCode::LR4_200G);
   }
 }
 
