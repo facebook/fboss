@@ -211,6 +211,7 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
                                     // supports it
     case HwAsic::Feature::SAI_SET_TC_WITH_USER_DEFINED_TRAP_CPU_ACTION:
     case HwAsic::Feature::DRAM_DATAPATH_PACKET_ERROR_STATS:
+    case HwAsic::Feature::EGRESS_POOL_AVAILABLE_SIZE_ATTRIBUTE_SUPPORTED:
       return false;
   }
   return false;

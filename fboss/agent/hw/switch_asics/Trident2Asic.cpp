@@ -59,6 +59,7 @@ bool Trident2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::CPU_QUEUE_WATERMARK_STATS:
     case HwAsic::Feature::BUFFER_POOL_HEADROOM_WATERMARK:
     case HwAsic::Feature::SAI_SET_TC_WITH_USER_DEFINED_TRAP_CPU_ACTION:
+    case HwAsic::Feature::EGRESS_POOL_AVAILABLE_SIZE_ATTRIBUTE_SUPPORTED:
       return true;
     case HwAsic::Feature::ERSPANv6:
     case HwAsic::Feature::SFLOWv4:
