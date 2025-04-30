@@ -15,13 +15,17 @@ struct FsdbOperTreeMetadata {
   OperMetadata operMetadata;
   uint64_t numOpenConnections{0};
   uint64_t lastPublishedUpdateProcessedAt{0};
+  bool skipThriftStreamLivenessCheck_{true};
 };
+
 class FsdbOperTreeMetadataTracker {
  public:
   FsdbOperTreeMetadataTracker() = default;
   ~FsdbOperTreeMetadataTracker() = default;
 
-  void registerPublisherRoot(const std::string& publisherRoot);
+  void registerPublisherRoot(
+      const std::string& publisherRoot,
+      bool skipThriftStreamLivenessCheck = false);
   void unregisterPublisherRoot(const std::string& publisherRoot);
 
   void updateMetadata(
