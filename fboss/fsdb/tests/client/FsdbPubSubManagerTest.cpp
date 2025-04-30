@@ -26,14 +26,14 @@ template <typename TestParam>
 class FsdbPubSubManagerTest : public ::testing::Test {
  public:
   void SetUp() override {
-    fsdbTestServer_ = std::make_unique<FsdbTestServer>();
+    auto config = getFsdbConfig();
+    fsdbTestServer_ = std::make_unique<FsdbTestServer>(std::move(config));
     std::vector<std::string> publishRoot;
     pubSubManager_ = std::make_unique<FsdbPubSubManager>(kPublisherId);
   }
   void TearDown() override {
     pubSubManager_.reset();
-    // Publisher connections should be removed
-    // from server
+    // Publisher connections should be removed from server
     checkPublishing(false /*isStats*/, 0);
     checkPublishing(true /*isStats*/, 0);
     WITH_RETRIES({
@@ -44,6 +44,14 @@ class FsdbPubSubManagerTest : public ::testing::Test {
   }
 
  protected:
+  virtual std::shared_ptr<FsdbConfig> getFsdbConfig() {
+    return std::make_shared<FsdbConfig>();
+  }
+
+  virtual bool isPublisherLivenessCheckSkipped() {
+    return false;
+  }
+
   folly::Synchronized<std::map<std::string, FsdbErrorCode>>
       subscriptionLastDisconnectReason;
   void updateSubscriptionLastDisconnectReason(
@@ -210,7 +218,7 @@ class FsdbPubSubManagerTest : public ::testing::Test {
       if (expectCount) {
         ASSERT_EVENTUALLY_TRUE(metadata);
         EXPECT_EVENTUALLY_EQ(metadata->numOpenConnections, expectCount);
-      } else {
+      } else if (!isPublisherLivenessCheckSkipped()) {
         EXPECT_EVENTUALLY_FALSE(metadata.has_value());
       }
     });
@@ -570,6 +578,126 @@ TYPED_TEST(FsdbPubSubManagerTest, subscriberAppError) {
           1);
     }
   });
+
+  // Reset pubsub manager while local vector objects are in scope, since
+  // we reference them in state change callbacks
+  this->pubSubManager_.reset();
+}
+
+template <typename TestParam>
+class FsdbPubSubManagerSkipLivenessTest
+    : public FsdbPubSubManagerTest<TestParam> {
+ public:
+  const std::string kRawConfig = R"(
+    {"publishers":{"fsdb_test_publisher":{"paths":[{"path":{"raw":["agent"]},"isExpected":false},{"path":{"raw":["agent"],"isStats":true},"isExpected":false}],"skipThriftStreamLivenessCheck":true}}}
+  )";
+  std::shared_ptr<FsdbConfig> getFsdbConfig() override {
+    return FsdbConfig::fromRaw(kRawConfig);
+  }
+  bool isPublisherLivenessCheckSkipped() override {
+    return true;
+  }
+};
+
+using SkipLivenessTestTypes = ::testing::Types<
+    DeltaPubSubForState,
+    StatePubSubForState,
+    DeltaPubSubForStats,
+    StatePubSubForStats>;
+
+TYPED_TEST_SUITE(FsdbPubSubManagerSkipLivenessTest, SkipLivenessTestTypes);
+
+TYPED_TEST(
+    FsdbPubSubManagerSkipLivenessTest,
+    publisherDropDoesntResetSubscriber) {
+  this->createPublishers();
+
+  folly::Synchronized<std::vector<OperDelta>> statDeltas, stateDeltas;
+  folly::Synchronized<std::vector<OperState>> statPaths, statePaths;
+  bool statPath_disconnected, statePath_disconnected;
+  bool statDelta_disconnected, stateDelta_disconnected;
+  this->addStatDeltaSubscription(
+      this->makeOperDeltaCb(statDeltas),
+      this->subscrStateChangeCb(statDeltas, [&statDelta_disconnected]() {
+        statDelta_disconnected = true;
+      }));
+  this->addStateDeltaSubscription(
+      this->makeOperDeltaCb(stateDeltas),
+      this->subscrStateChangeCb(stateDeltas, [&stateDelta_disconnected]() {
+        stateDelta_disconnected = true;
+      }));
+  this->addStatPathSubscription(
+      this->makeOperStateCb(statPaths),
+      this->subscrStateChangeCb(statPaths, [&statPath_disconnected]() {
+        statPath_disconnected = true;
+      }));
+  this->addStatePathSubscription(
+      this->makeOperStateCb(statePaths),
+      this->subscrStateChangeCb(statePaths, [&statePath_disconnected]() {
+        statePath_disconnected = true;
+      }));
+
+  // Publish
+  this->publish(makePortStats(1));
+  this->assertQueue(statDeltas, 1);
+  this->assertQueue(statPaths, 1);
+  this->publish(makeAgentConfig({{"foo", "bar"}}));
+  this->assertQueue(stateDeltas, 1);
+  this->assertQueue(statePaths, 1);
+
+  // Publisher resets should be not cause subscriber reset
+  this->pubSubManager_->removeStatDeltaPublisher();
+  this->pubSubManager_->removeStatPathPublisher();
+  this->assertQueue(statDeltas, 1);
+  this->assertQueue(statPaths, 1);
+  this->pubSubManager_->removeStateDeltaPublisher();
+  this->pubSubManager_->removeStatePathPublisher();
+  this->assertQueue(stateDeltas, 1);
+  this->assertQueue(statePaths, 1);
+  EXPECT_FALSE(statPath_disconnected);
+  EXPECT_FALSE(statePath_disconnected);
+  EXPECT_FALSE(statDelta_disconnected);
+  EXPECT_FALSE(stateDelta_disconnected);
+
+  // Reset pubsub manager while local vector objects are in scope, since
+  // we reference them in state change callbacks
+  this->pubSubManager_.reset();
+}
+
+TYPED_TEST(
+    FsdbPubSubManagerSkipLivenessTest,
+    serveNewSubscriptionAfterPublisherDrop) {
+  // Publish
+  this->createPublishers();
+  this->publish(makePortStats(1));
+  this->publish(makeAgentConfig({{"foo", "bar"}}));
+
+  // drop publishers
+  this->pubSubManager_->removeStatDeltaPublisher();
+  this->pubSubManager_->removeStatPathPublisher();
+  this->pubSubManager_->removeStateDeltaPublisher();
+  this->pubSubManager_->removeStatePathPublisher();
+  this->checkPublishing(false /*isStats*/, 0);
+  this->checkPublishing(true /*isStats*/, 0);
+
+  // add new subscriptions
+  folly::Synchronized<std::vector<OperDelta>> statDeltas, stateDeltas;
+  folly::Synchronized<std::vector<OperState>> statPaths, statePaths;
+  this->addStatDeltaSubscription(
+      this->makeOperDeltaCb(statDeltas), this->subscrStateChangeCb(statDeltas));
+  this->addStateDeltaSubscription(
+      this->makeOperDeltaCb(stateDeltas),
+      this->subscrStateChangeCb(stateDeltas));
+  this->addStatPathSubscription(
+      this->makeOperStateCb(statPaths), this->subscrStateChangeCb(statPaths));
+  this->addStatePathSubscription(
+      this->makeOperStateCb(statePaths), this->subscrStateChangeCb(statePaths));
+
+  // check that subscriptions are served
+  this->assertQueue(statDeltas, 1);
+  this->assertQueue(statPaths, 1);
+  this->assertQueue(stateDeltas, 1);
+  this->assertQueue(statePaths, 1);
 
   // Reset pubsub manager while local vector objects are in scope, since
   // we reference them in state change callbacks

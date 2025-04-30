@@ -86,7 +86,10 @@ class NaivePeriodicSubscribableStorageBase {
   void start_impl();
   void stop_impl();
 
-  void registerPublisher(PathIter begin, PathIter end);
+  void registerPublisher(
+      PathIter begin,
+      PathIter end,
+      bool skipThriftStreamLivenessCheck);
 
   void unregisterPublisher(
       PathIter begin,

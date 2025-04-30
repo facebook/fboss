@@ -342,12 +342,21 @@ void ServiceHandler::registerPublisher(const OperPublisherInfo& info) {
     throw Utils::createFsdbException(
         FsdbErrorCode::ID_ALREADY_EXISTS, "Dup publisher id");
   }
+
+  auto config = fsdbConfig_->getPublisherConfig(*info.publisherId());
+  bool skipThriftStreamLivenessCheck = config.has_value() &&
+      *config.value().get().skipThriftStreamLivenessCheck();
+
   if (*info.isStats()) {
     operStatsStorage_.registerPublisher(
-        info.path()->raw()->begin(), info.path()->raw()->end());
+        info.path()->raw()->begin(),
+        info.path()->raw()->end(),
+        skipThriftStreamLivenessCheck);
   } else {
     operStorage_.registerPublisher(
-        info.path()->raw()->begin(), info.path()->raw()->end());
+        info.path()->raw()->begin(),
+        info.path()->raw()->end(),
+        skipThriftStreamLivenessCheck);
   }
   num_publishers_.incrementValue(1);
   try {
