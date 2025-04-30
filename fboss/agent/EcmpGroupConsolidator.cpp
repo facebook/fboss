@@ -24,14 +24,17 @@ DEFINE_bool(
 
 namespace facebook::fboss {
 
-std::shared_ptr<SwitchState> EcmpGroupConsolidator::consolidate(
+std::vector<StateDelta> EcmpGroupConsolidator::consolidate(
     const StateDelta& delta) {
+  std::vector<StateDelta> deltas;
   if (!FLAGS_consolidate_ecmp_groups) {
-    return delta.newState();
+    deltas.emplace_back(StateDelta(delta.oldState(), delta.newState()));
+  } else {
+    processRouteUpdates<folly::IPAddressV4>(delta);
+    processRouteUpdates<folly::IPAddressV6>(delta);
+    deltas.emplace_back(StateDelta(delta.oldState(), delta.newState()));
   }
-  processRouteUpdates<folly::IPAddressV4>(delta);
-  processRouteUpdates<folly::IPAddressV6>(delta);
-  return delta.newState();
+  return deltas;
 }
 
 template <typename AddrT>

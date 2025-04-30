@@ -50,7 +50,7 @@ class NextHopGroupInfo {
 class EcmpGroupConsolidator {
  public:
   using NextHopGroupId = uint32_t;
-  std::shared_ptr<SwitchState> consolidate(const StateDelta& delta);
+  std::vector<StateDelta> consolidate(const StateDelta& delta);
   const auto& getNhopsToId() const {
     return nextHopGroup2Id_;
   }
