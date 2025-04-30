@@ -3714,7 +3714,7 @@
   },
   "chassisEepromDevicePath": "/FCB_SLOT@0/[IDPROM]",
   "bspKmodsRpmName": "cisco_bsp_kmods",
-  "bspKmodsRpmVersion": "1.0.5-1",
+  "bspKmodsRpmVersion": "1.0.10-1",
   "requiredKmodsToLoad": [
     "spidev",
     "i2c_i801",
