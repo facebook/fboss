@@ -584,6 +584,72 @@ bool isDdpError(sai_switch_error_type_t type) {
 }
 #endif
 
+bool isErrorInterrupt(sai_switch_error_type_t type) {
+  // TODO: Add error interrupts
+  return false;
+}
+
+void incrementJ3InterruptCounter(
+    facebook::fboss::HwSwitchFb303Stats* switchStats,
+    sai_switch_error_type_t interrupt) {
+  if (isErrorInterrupt(interrupt)) {
+    XLOG(ERR) << "ERROR INTERRUPT: " << errorType(interrupt);
+    switch (interrupt) {
+#if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
+      case SAI_SWITCH_ERROR_TYPE_DDP_ERROR_UNPACK_PACKET_SIZE_ERROR:
+      case SAI_SWITCH_ERROR_TYPE_DDP_EXT_MEM_ERR_BTC_TDU_ECC_2B_ERR_INT:
+      case SAI_SWITCH_ERROR_TYPE_DDP_EXT_MEM_ERR_PKUP_CPYDAT_CRC_ERR_INT:
+      case SAI_SWITCH_ERROR_TYPE_DDP_EXT_MEM_ERR_PKUP_CPYDAT_ECC_2B_ERR_INT:
+      case SAI_SWITCH_ERROR_TYPE_DDP_EXT_MEM_ERR_PKUP_LAST_BUFF_CRC_ERR_INT:
+      case SAI_SWITCH_ERROR_TYPE_DDP_EXT_MEM_ERR_PKUP_PACKET_CRC_ERR_INT:
+        switchStats->dramError();
+        break;
+#endif
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_7)
+      case SAI_SWITCH_ERROR_TYPE_ALIGNER_ECC_ECC_2B_ERR_INT:
+      case SAI_SWITCH_ERROR_TYPE_ALIGNER_FIFO_OVERFLOW_INT:
+      case SAI_SWITCH_ERROR_TYPE_ALIGNER_FIFO_UNDERFLOW_INT:
+      case SAI_SWITCH_ERROR_TYPE_EPNI_ECC_ECC_2B_ERR_INT:
+      case SAI_SWITCH_ERROR_TYPE_EPNI_FIFO_OVERFLOW_INT:
+      case SAI_SWITCH_ERROR_TYPE_EPNI_FIFO_UNDERFLOW_INT:
+      case SAI_SWITCH_ERROR_TYPE_EPNI_IRE_WFQ_SAT_INT:
+      case SAI_SWITCH_ERROR_TYPE_EPNI_IRE_WFQ_UDP_INT:
+      case SAI_SWITCH_ERROR_TYPE_EPNI_POST_MIRR_DROP_INT:
+      case SAI_SWITCH_ERROR_TYPE_EPNI_POST_MIRR_OVF_INT:
+      case SAI_SWITCH_ERROR_TYPE_EPNI_RCYM_OVF_INT:
+      case SAI_SWITCH_ERROR_TYPE_EPNI_RXI_OVERFLOW_INT:
+      case SAI_SWITCH_ERROR_TYPE_EPNI_SMALL_PACKET_HEADER_STRIP:
+      case SAI_SWITCH_ERROR_TYPE_FQP_ECC_ECC_2B_ERR_INT:
+      case SAI_SWITCH_ERROR_TYPE_FQP_TXQ_OVF_INT:
+      case SAI_SWITCH_ERROR_TYPE_FQP_TXQ_READ_CONJESTED_INT:
+      case SAI_SWITCH_ERROR_TYPE_FQP_TXQ_WRITE_CONJESTED_INT:
+      case SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_RCM_ALL_CONTEXTS_TAKEN_DISCARD_ERR:
+        switchStats->egressTmError();
+        break;
+      case SAI_SWITCH_ERROR_TYPE_FCR_ECC_ECC_2B_ERR_INT:
+      case SAI_SWITCH_ERROR_TYPE_FDA_ECC_ECC_2B_ERR_INT:
+      case SAI_SWITCH_ERROR_TYPE_FDA_P_0_OFM_FIFO_OVFLW_DROP_INT:
+      case SAI_SWITCH_ERROR_TYPE_FDA_P_1_OFM_FIFO_OVFLW_DROP_INT:
+      case SAI_SWITCH_ERROR_TYPE_FDR_ECC_ECC_2B_ERR_INT:
+        switchStats->fabricRxError();
+        break;
+      case SAI_SWITCH_ERROR_TYPE_FCT_ECC_ECC_2B_ERR_INT:
+      case SAI_SWITCH_ERROR_TYPE_FDT_ECC_ECC_2B_ERR_INT:
+        switchStats->fabricTxError();
+        break;
+      case SAI_SWITCH_ERROR_TYPE_FMAC_ECC_ECC_2B_ERR_INT:
+        switchStats->fabricLinkError();
+        break;
+#endif
+      default:
+        // TODO: Add a counter for unhandled error interrupt
+        XLOG_EVERY_MS(WARN, 5000)
+            << "Unmapped error interrupt seen, interrupt id: "
+            << static_cast<int>(interrupt);
+    }
+  }
+}
+
 } // namespace
 
 namespace facebook::fboss {
@@ -644,7 +710,6 @@ void SaiSwitch::switchEventCallback(
       auto fdaFifoOverflowError = isFdaFifoOverflowError(eventInfo->error_type);
       auto ddpError = isDdpError(eventInfo->error_type);
       auto rtpTableChanged = rtpTableChangedEvent(eventInfo->error_type);
-      XLOG(ERR) << "ERROR INTERRUPT: " << errorType(eventInfo->error_type);
       if (ireError) {
         getSwitchStats()->ireError();
       }
@@ -685,8 +750,15 @@ void SaiSwitch::switchEventCallback(
         // means a change in switch reachability over fabric!
         // Initiate processing for RTP table change, ie. invoke
         // the common switchReachabilityChange handling.
+        XLOG(DBG0) << "Received switch event notification: "
+                   << errorType(eventInfo->error_type);
         switchReachabilityChangeTopHalf();
         getSwitchStats()->switchReachabilityChangeCount();
+      }
+      if (platform_->getAsic()->getAsicType() ==
+          cfg::AsicType::ASIC_TYPE_JERICHO3) {
+        // Increment J3 specific error/warning asic counters
+        incrementJ3InterruptCounter(getSwitchStats(), eventInfo->error_type);
       }
     } break;
     case SAI_SWITCH_EVENT_TYPE_FABRIC_AUTO_ISOLATE: {
