@@ -74,6 +74,10 @@ class EcmpGroupConsolidator {
     int avgPenalty() const;
     std::map<NextHopGroupId, int> groupId2Penalty;
   };
+  struct PreUpdateState {
+    std::map<NextHopGroupIds, ConsolidationPenalty> mergedGroups;
+    std::map<RouteNextHopSet, NextHopGroupId> nextHopGroup2Id;
+  };
   template <typename AddrT>
   void processRouteUpdates(const StateDelta& delta);
   template <typename AddrT>
@@ -82,12 +86,15 @@ class EcmpGroupConsolidator {
   void routeDeleted(RouterID rid, const std::shared_ptr<Route<AddrT>>& removed);
   static uint32_t constexpr kMinNextHopGroupId = 1;
   NextHopGroupId findNextAvailableId() const;
+  uint32_t maxEcmpGroups_{0};
   std::map<RouteNextHopSet, NextHopGroupId> nextHopGroup2Id_;
   StdRefMap<NextHopGroupId, NextHopGroupInfo> nextHopGroupIdToInfo_;
   std::unordered_map<folly::CIDRNetwork, std::shared_ptr<NextHopGroupInfo>>
       prefixToGroupInfo_;
-  uint32_t maxEcmpGroups_{0};
   std::map<NextHopGroupIds, ConsolidationPenalty> mergedGroups_;
   std::map<NextHopGroupIds, ConsolidationPenalty> candidateMergeGroups_;
+  // Cached pre update state, will be used in case of roll back
+  // if update fails
+  std::optional<PreUpdateState> preUpdateState_;
 };
 } // namespace facebook::fboss
