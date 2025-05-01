@@ -214,7 +214,7 @@ void I2cExplorer::deleteI2cDevice(uint16_t busNum, const I2cAddr& addr) {
         errno));
   }
   XLOG(INFO) << fmt::format(
-      "Deleted i2c device  at {}", getDeviceI2cPath(busNum, addr));
+      "Deleted i2c device at {}", getDeviceI2cPath(busNum, addr));
 }
 
 std::map<uint16_t, uint16_t> I2cExplorer::getMuxChannelI2CBuses(
