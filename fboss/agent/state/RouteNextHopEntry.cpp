@@ -91,15 +91,53 @@ UnicastRoute toUnicastRoute(
 } // namespace util
 
 RouteNextHopEntry::RouteNextHopEntry(
+    Action action,
+    AdminDistance distance,
+    std::optional<RouteCounterID> counterID,
+    std::optional<AclLookupClass> classID,
+    std::optional<cfg::SwitchingMode> overrideEcmpSwitchingMode) {
+  auto data = getRouteNextHopEntryThrift(
+      action,
+      distance,
+      NextHopSet(),
+      counterID,
+      classID,
+      overrideEcmpSwitchingMode);
+  this->fromThrift(std::move(data));
+}
+
+RouteNextHopEntry::RouteNextHopEntry(
+    NextHop nhop,
+    AdminDistance distance,
+    std::optional<RouteCounterID> counterID,
+    std::optional<AclLookupClass> classID,
+    std::optional<cfg::SwitchingMode> overrideEcmpSwitchingMode) {
+  auto data = getRouteNextHopEntryThrift(
+      Action::NEXTHOPS,
+      distance,
+      NextHopSet({nhop}),
+      counterID,
+      classID,
+      overrideEcmpSwitchingMode);
+  this->fromThrift(std::move(data));
+}
+
+RouteNextHopEntry::RouteNextHopEntry(
     NextHopSet nhopSet,
     AdminDistance distance,
     std::optional<RouteCounterID> counterID,
-    std::optional<AclLookupClass> classID) {
+    std::optional<AclLookupClass> classID,
+    std::optional<cfg::SwitchingMode> overrideEcmpSwitchingMode) {
   if (nhopSet.empty()) {
     throw FbossError("Empty nexthop set is passed to the RouteNextHopEntry");
   }
   auto data = getRouteNextHopEntryThrift(
-      Action::NEXTHOPS, distance, nhopSet, counterID, classID);
+      Action::NEXTHOPS,
+      distance,
+      nhopSet,
+      counterID,
+      classID,
+      overrideEcmpSwitchingMode);
   this->fromThrift(std::move(data));
 }
 
@@ -668,7 +706,8 @@ state::RouteNextHopEntry RouteNextHopEntry::getRouteNextHopEntryThrift(
     AdminDistance distance,
     NextHopSet nhopSet,
     std::optional<RouteCounterID> counterID,
-    std::optional<AclLookupClass> classID) {
+    std::optional<AclLookupClass> classID,
+    std::optional<cfg::SwitchingMode> overrideEcmpSwitchingMode) {
   state::RouteNextHopEntry entry{};
   entry.adminDistance() = distance;
   entry.action() = action;
@@ -677,6 +716,9 @@ state::RouteNextHopEntry RouteNextHopEntry::getRouteNextHopEntryThrift(
   }
   if (classID) {
     entry.classID() = *classID;
+  }
+  if (overrideEcmpSwitchingMode) {
+    entry.overrideEcmpSwitchingMode() = *overrideEcmpSwitchingMode;
   }
   if (!nhopSet.empty()) {
     entry.nexthops() = util::fromRouteNextHopSet(std::move(nhopSet));
