@@ -72,9 +72,11 @@ class NextHopIdAllocatorTest : public ::testing::Test {
     return HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(0)}));
   }
   void consolidate(const std::shared_ptr<SwitchState>& state) {
-    consolidator_.consolidate(StateDelta(state_, state));
+    StateDelta delta(state_, state);
+    consolidator_.consolidate(delta);
     state_ = state;
     state_->publish();
+    consolidator_.updateDone(delta);
   }
   RouteV6::Prefix nextPrefix() const {
     auto newState = state_->clone();
