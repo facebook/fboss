@@ -165,6 +165,7 @@ std::string RouteNextHopEntry::str_DEPRACATED() const {
       ";admin=", static_cast<int32_t>(getAdminDistance()));
   auto counterID = getCounterID();
   auto classID = getClassID();
+  auto overrideEcmpMode = getOverrideEcmpSwitchingMode();
   result += folly::to<std::string>(
       ";counterID=", counterID.has_value() ? *counterID : "none");
   result += folly::to<std::string>(
@@ -172,6 +173,12 @@ std::string RouteNextHopEntry::str_DEPRACATED() const {
       classID.has_value()
           ? apache::thrift::util::enumNameSafe(AclLookupClass(*classID))
           : "none");
+  result += folly::to<std::string>(
+      ";overrideEcmpMode=",
+      overrideEcmpMode.has_value() ? apache::thrift::util::enumNameSafe(
+                                         cfg::SwitchingMode(*overrideEcmpMode))
+                                   : "none");
+
   return result;
 }
 
@@ -187,7 +194,8 @@ bool operator==(const RouteNextHopEntry& a, const RouteNextHopEntry& b) {
       a.getNextHopSet() == b.getNextHopSet() and
       a.getAdminDistance() == b.getAdminDistance() and
       a.getCounterID() == b.getCounterID() and
-      a.getClassID() == b.getClassID());
+      a.getClassID() == b.getClassID() and
+      a.getOverrideEcmpSwitchingMode() == b.getOverrideEcmpSwitchingMode());
 }
 
 bool operator<(const RouteNextHopEntry& a, const RouteNextHopEntry& b) {
