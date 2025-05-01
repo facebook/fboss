@@ -12,6 +12,7 @@
 #include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/lib/RefMap.h"
 
+#include <boost/container/flat_set.hpp>
 #include <memory>
 
 DECLARE_bool(consolidate_ecmp_groups);
@@ -60,6 +61,7 @@ class EcmpGroupConsolidator {
     CHECK_GT(maxHwEcmpGroups, kEcmpMakeBeforeBreakBuffer);
   }
   using NextHopGroupId = uint32_t;
+  using NextHopGroupIds = boost::container::flat_set<NextHopGroupId>;
   std::vector<StateDelta> consolidate(const StateDelta& delta);
   const auto& getNhopsToId() const {
     return nextHopGroup2Id_;
@@ -67,6 +69,11 @@ class EcmpGroupConsolidator {
   size_t getRouteUsageCount(NextHopGroupId nhopGrpId) const;
 
  private:
+  struct ConsolidationPenalty {
+    int maxPenalty() const;
+    int avgPenalty() const;
+    std::map<NextHopGroupId, int> groupId2Penalty;
+  };
   template <typename AddrT>
   void processRouteUpdates(const StateDelta& delta);
   template <typename AddrT>
@@ -80,5 +87,7 @@ class EcmpGroupConsolidator {
   std::unordered_map<folly::CIDRNetwork, std::shared_ptr<NextHopGroupInfo>>
       prefixToGroupInfo_;
   uint32_t maxEcmpGroups_{0};
+  std::map<NextHopGroupIds, ConsolidationPenalty> mergedGroups_;
+  std::map<NextHopGroupIds, ConsolidationPenalty> candidateMergeGroups_;
 };
 } // namespace facebook::fboss

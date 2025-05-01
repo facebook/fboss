@@ -714,6 +714,7 @@ cpp_library(
     ],
     exported_external_deps = [
         "gflags",
+        ("boost", None, "boost_container"),
     ],
 )
 
