@@ -27,7 +27,8 @@ namespace facebook::fboss {
 std::vector<StateDelta> EcmpGroupConsolidator::consolidate(
     const StateDelta& delta) {
   std::vector<StateDelta> deltas;
-  if (!FLAGS_consolidate_ecmp_groups) {
+  if (!FLAGS_consolidate_ecmp_groups ||
+      DeltaFunctions::isEmpty(delta.getFibsDelta())) {
     deltas.emplace_back(StateDelta(delta.oldState(), delta.newState()));
   } else {
     processRouteUpdates<folly::IPAddressV4>(delta);
