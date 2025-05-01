@@ -58,6 +58,13 @@ class CmdShowFabricInputBalance : public CmdHandler<
     // now.
     CHECK(!isDualStage);
 
+    std::vector<int64_t> fabricSwitchIDs;
+    for (const auto& [switchId, switchInfo] : switchIdToSwitchInfo) {
+      if (switchInfo.switchType() == cfg::SwitchType::FABRIC) {
+        fabricSwitchIDs.push_back(switchId);
+      }
+    }
+
     return createModel();
   }
 
