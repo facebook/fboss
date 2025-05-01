@@ -10,6 +10,7 @@
 
 #include <folly/IPAddressV6.h>
 
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
@@ -150,8 +151,7 @@ class HwMPLSTest : public HwLinkStateDependentTest {
         getHwSwitchEnsemble()->getL3Asics(),
         getHwSwitchEnsemble()->isSai());
 
-    auto asic =
-        utility::checkSameAndGetAsic(getHwSwitchEnsemble()->getL3Asics());
+    auto asic = checkSameAndGetAsic(getHwSwitchEnsemble()->getL3Asics());
     utility::addTrapPacketAcl(asic, &config, masterLogicalPortIds()[0]);
     return config;
   }

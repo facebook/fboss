@@ -7,6 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/LldpManager.h"
 #include "fboss/agent/SwRxPacket.h"
 #include "fboss/agent/TxPacket.h"
@@ -20,7 +21,6 @@
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/TrunkUtils.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/NetworkAITestUtils.h"
@@ -722,7 +722,7 @@ TYPED_TEST(AgentCoppTest, VerifyCoppPpsLowPri) {
       auto duration = afterSecs - beforeSecs;
       auto currPktsPerSec = totalRecvdPkts / duration;
       uint32_t lowPriorityPps = utility::getCoppQueuePps(
-          utility::checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics()),
+          checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics()),
           utility::kCoppLowPriQueueId);
       auto lowPktsPerSec = lowPriorityPps * (1 - kVariance);
 
@@ -756,8 +756,8 @@ TYPED_TEST(AgentCoppTest, LocalDstIpBgpPortToHighPriQ) {
         XLOG(DBG2) << "Send Pkt to: " << ipAddress
                    << " dir: " << (dir == DST ? " DST" : " SRC");
         this->sendTcpPktAndVerifyCpuQueue(
-            utility::getCoppHighPriQueueId(utility::checkSameAndGetAsic(
-                this->getAgentEnsemble()->getL3Asics())),
+            utility::getCoppHighPriQueueId(
+                checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics())),
             folly::IPAddress::createNetwork(ipAddress, -1, false).first,
             dir == SRC ? utility::kBgpPort : utility::kNonSpecialPort1,
             dir == DST ? utility::kBgpPort : utility::kNonSpecialPort1);
@@ -786,8 +786,8 @@ TYPED_TEST(AgentCoppTest, LocalDstIpNonBgpPortToMidPriQ) {
               this->getSw(),
               this->switchIdForPort(this->masterLogicalPortIds(
                   {cfg::PortType::INTERFACE_PORT})[0]),
-              utility::getCoppHighPriQueueId(utility::checkSameAndGetAsic(
-                  this->getAgentEnsemble()->getL3Asics())),
+              utility::getCoppHighPriQueueId(
+                  checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics())),
               kGetQueueOutPktsRetryTimes,
               0));
     }
@@ -817,8 +817,8 @@ TYPED_TEST(AgentCoppTest, Ipv6LinkLocalMcastToMidPriQ) {
               this->getSw(),
               this->switchIdForPort(this->masterLogicalPortIds(
                   {cfg::PortType::INTERFACE_PORT})[0]),
-              utility::getCoppHighPriQueueId(utility::checkSameAndGetAsic(
-                  this->getAgentEnsemble()->getL3Asics())),
+              utility::getCoppHighPriQueueId(
+                  checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics())),
               kGetQueueOutPktsRetryTimes,
               0));
     }
@@ -863,8 +863,8 @@ TYPED_TEST(AgentCoppTest, Ipv6LinkLocalUcastToMidPriQ) {
               this->getSw(),
               this->switchIdForPort(this->masterLogicalPortIds(
                   {cfg::PortType::INTERFACE_PORT})[0]),
-              utility::getCoppHighPriQueueId(utility::checkSameAndGetAsic(
-                  this->getAgentEnsemble()->getL3Asics())),
+              utility::getCoppHighPriQueueId(
+                  checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics())),
               kGetQueueOutPktsRetryTimes,
               0));
     }
@@ -883,8 +883,8 @@ TYPED_TEST(AgentCoppTest, Ipv6LinkLocalUcastToMidPriQ) {
               this->getSw(),
               this->switchIdForPort(this->masterLogicalPortIds(
                   {cfg::PortType::INTERFACE_PORT})[0]),
-              utility::getCoppHighPriQueueId(utility::checkSameAndGetAsic(
-                  this->getAgentEnsemble()->getL3Asics())),
+              utility::getCoppHighPriQueueId(
+                  checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics())),
               kGetQueueOutPktsRetryTimes,
               0));
     }
@@ -897,8 +897,8 @@ TYPED_TEST(AgentCoppTest, SlowProtocolsMacToHighPriQ) {
 
   auto verify = [=, this]() {
     this->sendPktAndVerifyEthPacketsCpuQueue(
-        utility::getCoppHighPriQueueId(utility::checkSameAndGetAsic(
-            this->getAgentEnsemble()->getL3Asics())),
+        utility::getCoppHighPriQueueId(
+            checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics())),
         facebook::fboss::ETHERTYPE::ETHERTYPE_SLOW_PROTOCOLS,
         LACPDU::kSlowProtocolsDstMac());
   };
@@ -912,8 +912,8 @@ TYPED_TEST(AgentCoppTest, DstIpNetworkControlDscpToHighPriQ) {
   auto verify = [=, this]() {
     for (const auto& ipAddress : this->getIpAddrsToSendPktsTo()) {
       this->sendTcpPktAndVerifyCpuQueue(
-          utility::getCoppHighPriQueueId(utility::checkSameAndGetAsic(
-              this->getAgentEnsemble()->getL3Asics())),
+          utility::getCoppHighPriQueueId(
+              checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics())),
           folly::IPAddress::createNetwork(ipAddress, -1, false).first,
           utility::kNonSpecialPort1,
           utility::kNonSpecialPort2,
@@ -927,7 +927,7 @@ TYPED_TEST(AgentCoppTest, DstIpNetworkControlDscpToHighPriQ) {
     // Non local dst ip with kNetworkControlDscp should not hit high pri queue
     // (since it won't even trap to cpu)
     // this->sendTcpPktAndVerifyCpuQueue(
-    //     utility::getCoppHighPriQueueId(utility::checkSameAndGetAsic(
+    //     utility::getCoppHighPriQueueId(checkSameAndGetAsic(
     //         this->getAgentEnsemble()->getL3Asics())),
     //     folly::IPAddress("2::2"),
     //     utility::kNonSpecialPort1,
@@ -953,8 +953,8 @@ TYPED_TEST(AgentCoppTest, Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ) {
           folly::IPAddressV6::LINK_LOCAL, utility::kLocalCpuMac());
 
       this->sendTcpPktAndVerifyCpuQueue(
-          utility::getCoppHighPriQueueId(utility::checkSameAndGetAsic(
-              this->getAgentEnsemble()->getL3Asics())),
+          utility::getCoppHighPriQueueId(
+              checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics())),
           linkLocalAddr,
           utility::kNonSpecialPort1,
           utility::kNonSpecialPort2,
@@ -966,8 +966,8 @@ TYPED_TEST(AgentCoppTest, Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ) {
     {
       XLOG(DBG2) << "send non-device link local packet";
       this->sendTcpPktAndVerifyCpuQueue(
-          utility::getCoppHighPriQueueId(utility::checkSameAndGetAsic(
-              this->getAgentEnsemble()->getL3Asics())),
+          utility::getCoppHighPriQueueId(
+              checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics())),
           kIPv6LinkLocalUcastAddress,
           utility::kNonSpecialPort1,
           utility::kNonSpecialPort2,
@@ -1015,8 +1015,8 @@ TYPED_TEST(AgentCoppTest, CpuPortIpv6LinkLocalUcastIp) {
     }
     auto nbrLinkLocalAddr = folly::IPAddressV6("fe80:face:b11c::1");
     this->sendTcpPktAndVerifyCpuQueue(
-        utility::getCoppHighPriQueueId(utility::checkSameAndGetAsic(
-            this->getAgentEnsemble()->getL3Asics())),
+        utility::getCoppHighPriQueueId(
+            checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics())),
         nbrLinkLocalAddr,
         utility::kNonSpecialPort1,
         utility::kNonSpecialPort2,
@@ -1039,8 +1039,8 @@ TYPED_TEST(AgentCoppTest, Ipv6LinkLocalMcastNetworkControlDscpToHighPriQ) {
         kIPv6LinkLocalMcastAbsoluteAddress, kIPv6LinkLocalMcastAddress);
     for (const auto& address : addresses) {
       this->sendTcpPktAndVerifyCpuQueue(
-          utility::getCoppHighPriQueueId(utility::checkSameAndGetAsic(
-              this->getAgentEnsemble()->getL3Asics())),
+          utility::getCoppHighPriQueueId(
+              checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics())),
           address,
           utility::kNonSpecialPort1,
           utility::kNonSpecialPort2,
@@ -1133,13 +1133,13 @@ TYPED_TEST(AgentCoppTest, ArpRequestAndReplyToHighPriQ) {
   auto setup = [=, this]() { this->setup(); };
   auto verify = [=, this]() {
     this->sendPktAndVerifyArpPacketsCpuQueue(
-        utility::getCoppHighPriQueueId(utility::checkSameAndGetAsic(
-            this->getAgentEnsemble()->getL3Asics())),
+        utility::getCoppHighPriQueueId(
+            checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics())),
         folly::IPAddressV4("1.1.1.5"),
         ARP_OPER::ARP_OPER_REQUEST);
     this->sendPktAndVerifyArpPacketsCpuQueue(
-        utility::getCoppHighPriQueueId(utility::checkSameAndGetAsic(
-            this->getAgentEnsemble()->getL3Asics())),
+        utility::getCoppHighPriQueueId(
+            checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics())),
         folly::IPAddressV4("1.1.1.5"),
         ARP_OPER::ARP_OPER_REPLY);
   };
@@ -1151,8 +1151,8 @@ TYPED_TEST(AgentCoppTest, NdpSolicitationToHighPriQ) {
   auto verify = [=, this]() {
     XLOG(DBG2) << "verifying solicitation";
     this->sendPktAndVerifyNdpPacketsCpuQueue(
-        utility::getCoppHighPriQueueId(utility::checkSameAndGetAsic(
-            this->getAgentEnsemble()->getL3Asics())),
+        utility::getCoppHighPriQueueId(
+            checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics())),
         folly::IPAddressV6("1::2"), // sender of solicitation
         ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION);
   };
@@ -1194,8 +1194,8 @@ TYPED_TEST(AgentCoppTest, NdpSolicitNeighbor) {
     bool expectRxPacket =
         this->isSupportedOnAllAsics(HwAsic::Feature::BRIDGE_PORT_8021Q);
     this->sendPktAndVerifyNdpPacketsCpuQueue(
-        utility::getCoppHighPriQueueId(utility::checkSameAndGetAsic(
-            this->getAgentEnsemble()->getL3Asics())),
+        utility::getCoppHighPriQueueId(
+            checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics())),
         folly::IPAddressV6("1::1"), // sender of solicitation
         ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION,
         false,
@@ -1212,8 +1212,8 @@ TYPED_TEST(AgentCoppTest, NdpAdvertisementToHighPriQ) {
   auto verify = [=, this]() {
     XLOG(DBG2) << "verifying advertisement";
     this->sendPktAndVerifyNdpPacketsCpuQueue(
-        utility::getCoppHighPriQueueId(utility::checkSameAndGetAsic(
-            this->getAgentEnsemble()->getL3Asics())),
+        utility::getCoppHighPriQueueId(
+            checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics())),
         folly::IPAddressV6("1::2"), // sender of advertisement
         ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT);
   };
@@ -1255,8 +1255,7 @@ TYPED_TEST(AgentCoppTest, UnresolvedRouteNextHopToLowPriQueue) {
       RoutePrefix<folly::IPAddressV6>{
           folly::IPAddressV6{"2803:6080:d038:3065::1"}, 128}};
   auto setup = [=, this]() {
-    auto asic =
-        utility::checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics());
+    auto asic = checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics());
     FLAGS_classid_for_unresolved_routes =
         (asic->getAsicType() != cfg::AsicType::ASIC_TYPE_CHENAB);
     this->setup();
@@ -1294,8 +1293,8 @@ TYPED_TEST(AgentCoppTest, JumboFramesToQueues) {
     for (const auto& ipAddress : this->getIpAddrsToSendPktsTo()) {
       // High pri queue
       this->sendTcpPktAndVerifyCpuQueue(
-          utility::getCoppHighPriQueueId(utility::checkSameAndGetAsic(
-              this->getAgentEnsemble()->getL3Asics())),
+          utility::getCoppHighPriQueueId(
+              checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics())),
           folly::IPAddress::createNetwork(ipAddress, -1, false).first,
           utility::kBgpPort,
           utility::kNonSpecialPort2,
@@ -1435,7 +1434,7 @@ class AgentCoppQosTest : public AgentHwTest {
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
     auto hwAsics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
-    auto asic = utility::checkSameAndGetAsic(hwAsics);
+    auto asic = checkSameAndGetAsic(hwAsics);
     auto cfg = utility::onePortPerInterfaceConfig(
         ensemble.getSw(),
         ensemble.masterLogicalPortIds(),
@@ -1446,7 +1445,7 @@ class AgentCoppQosTest : public AgentHwTest {
     utility::setTTLZeroCpuConfig(ensemble.getL3Asics(), cfg);
     utility::addOlympicQosMaps(cfg, ensemble.getL3Asics());
     if (isDualStage3Q2QQos()) {
-      auto hwAsic = utility::checkSameAndGetAsic(ensemble.getL3Asics());
+      auto hwAsic = checkSameAndGetAsic(ensemble.getL3Asics());
       auto streamType =
           *hwAsic->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin();
       utility::addNetworkAIQueueConfig(
@@ -1662,7 +1661,7 @@ class AgentCoppQosTest : public AgentHwTest {
       bool addQueueRate = false,
       bool addGlobalRateLimit = false) const {
     std::vector<cfg::PortQueue> cpuQueues;
-    auto hwAsic = utility::checkSameAndGetAsic(hwAsics);
+    auto hwAsic = checkSameAndGetAsic(hwAsics);
     cfg::PortQueue queue0;
     queue0.id() = utility::kCoppLowPriQueueId;
     queue0.name() = "cpuQueue-low";
@@ -2075,8 +2074,8 @@ TYPED_TEST(AgentCoppEapolTest, EapolToHighPriQ) {
 
   auto verify = [=, this]() {
     this->sendPktAndVerifyEthPacketsCpuQueue(
-        utility::getCoppHighPriQueueId(utility::checkSameAndGetAsic(
-            this->getAgentEnsemble()->getL3Asics())),
+        utility::getCoppHighPriQueueId(
+            checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics())),
         facebook::fboss::ETHERTYPE::ETHERTYPE_EAPOL,
         folly::MacAddress("ff:ff:ff:ff:ff:ff"));
   };

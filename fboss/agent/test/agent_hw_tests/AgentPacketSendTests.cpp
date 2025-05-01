@@ -2,6 +2,7 @@
 
 #include "fboss/agent/test/AgentHwTest.h"
 
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/packet/PktFactory.h"
@@ -276,7 +277,7 @@ class AgentPacketSendReceiveTest : public AgentHwTest, public PacketObserverIf {
 
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
-    auto asic = utility::checkSameAndGetAsic(ensemble.getL3Asics());
+    auto asic = checkSameAndGetAsic(ensemble.getL3Asics());
     auto cfg = AgentHwTest::initialConfig(ensemble);
     utility::setDefaultCpuTrafficPolicyConfig(cfg, {asic}, ensemble.isSai());
     utility::addCpuQueueConfig(cfg, {asic}, ensemble.isSai());
@@ -347,7 +348,7 @@ class AgentPacketSendReceiveLagTest : public AgentPacketSendReceiveTest {
       const AgentEnsemble& ensemble) const override {
     auto masterLogicalPortIds = ensemble.masterLogicalPortIds();
     auto l3Asics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
-    auto asic = utility::checkSameAndGetAsic(l3Asics);
+    auto asic = checkSameAndGetAsic(l3Asics);
     auto cfg = utility::oneL3IntfTwoPortConfig(
         ensemble.getSw()->getPlatformMapping(),
         asic,
@@ -460,7 +461,7 @@ class AgentPacketFloodTest : public AgentHwTest {
   bool checkPacketFlooding(
       std::map<PortID, HwPortStats>& portStatsBefore,
       bool v6) {
-    auto asic = utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+    auto asic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
     auto portStatsAfter = getLatestPortStats(masterLogicalPortIds());
     for (auto portId : getLogicalPortIDs()) {
       auto packetsBefore = v6 ? *portStatsBefore[portId].outMulticastPkts_()

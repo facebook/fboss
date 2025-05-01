@@ -2,11 +2,11 @@
 //
 #include "fboss/agent/test/agent_hw_tests/AgentVoqSwitchTests.h"
 
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/FabricConnectivityManager.h"
 #include "fboss/agent/FbossHwUpdateError.h"
 #include "fboss/agent/hw/HwResourceStatsPublisher.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/DsfConfigUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 #include "fboss/agent/test/utils/NetworkAITestUtils.h"
@@ -58,7 +58,7 @@ class AgentVoqSwitchWithMultipleDsfNodesTest : public AgentVoqSwitchTest {
       EXPECT_EVENTUALLY_GT(voqDiscardBytes, 0);
     });
     WITH_RETRIES({
-      if (utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
+      if (checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
               ->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
         auto switchIndices = getSw()->getSwitchInfoTable().getSwitchIndices();
         int totalVoqResourceExhaustionDrops = 0;
@@ -87,8 +87,7 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, remoteSystemPort) {
     // in addRemoteIntfNodeCfg, we use numCores to calculate the remoteSwitchId
     // keeping remote switch id passed below in sync with it
     int numCores =
-        utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
-            ->getNumCores();
+        checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())->getNumCores();
     auto getStats = [] {
       return std::make_tuple(
           fbData->getCounter(kSystemPortsFree), fbData->getCounter(kVoqsFree));
@@ -121,8 +120,7 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, remoteRouterInterface) {
     // in addRemoteIntfNodeCfg, we use numCores to calculate the remoteSwitchId
     // keeping remote switch id passed below in sync with it
     int numCores =
-        utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
-            ->getNumCores();
+        checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())->getNumCores();
     auto constexpr remotePortId = 401;
     applyNewState([&](const std::shared_ptr<SwitchState>& in) {
       return utility::addRemoteSysPort(
@@ -156,8 +154,7 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, addRemoveRemoteNeighbor) {
     // in addRemoteIntfNodeCfg, we use numCores to calculate the remoteSwitchId
     // keeping remote switch id passed below in sync with it
     int numCores =
-        utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
-            ->getNumCores();
+        checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())->getNumCores();
     auto constexpr remotePortId = 401;
     const SystemPortID kRemoteSysPortId(remotePortId);
     applyNewState([&](const std::shared_ptr<SwitchState>& in) {
@@ -221,8 +218,7 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, voqDelete) {
     // in addRemoteIntfNodeCfg, we use numCores to calculate the remoteSwitchId
     // keeping remote switch id passed below in sync with it
     int numCores =
-        utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
-            ->getNumCores();
+        checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())->getNumCores();
     applyNewState([&](const std::shared_ptr<SwitchState>& in) {
       return utility::addRemoteSysPort(
           in,
@@ -302,8 +298,7 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, stressAddRemoveObjects) {
     // in addRemoteIntfNodeCfg, we use numCores to calculate the remoteSwitchId
     // keeping remote switch id passed below in sync with it
     int numCores =
-        utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
-            ->getNumCores();
+        checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())->getNumCores();
     const auto kPort = ecmpHelper.ecmpPortDescriptorAt(0);
     const InterfaceID kIntfId(remotePortId);
     PortDescriptor kRemotePort(kRemoteSysPortId);
@@ -405,8 +400,7 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, voqTailDropCounter) {
     // in addRemoteIntfNodeCfg, we use numCores to calculate the remoteSwitchId
     // keeping remote switch id passed below in sync with it
     int numCores =
-        utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
-            ->getNumCores();
+        checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())->getNumCores();
     // Disable credit watchdog
     utility::enableCreditWatchdog(getAgentEnsemble(), false);
     applyNewState([&](const std::shared_ptr<SwitchState>& in) {
@@ -457,8 +451,7 @@ TEST_F(
     // in addRemoteIntfNodeCfg, we use numCores to calculate the remoteSwitchId
     // keeping remote switch id passed below in sync with it
     int numCores =
-        utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
-            ->getNumCores();
+        checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())->getNumCores();
     applyNewState([&](const std::shared_ptr<SwitchState>& in) {
       return utility::addRemoteSysPort(
           in,
@@ -525,8 +518,7 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, verifyDscpToVoqMapping) {
     // in addRemoteIntfNodeCfg, we use numCores to calculate the remoteSwitchId
     // keeping remote switch id passed below in sync with it
     int numCores =
-        utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
-            ->getNumCores();
+        checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())->getNumCores();
     applyNewState([&](const std::shared_ptr<SwitchState>& in) {
       return utility::addRemoteSysPort(
           in,
@@ -569,7 +561,7 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, verifyDscpToVoqMapping) {
     for (const auto& q2dscps : utility::kNetworkAIQueueToDscp()) {
       auto tc = q2dscps.first;
       auto voqId = utility::getTrafficClassToVoqId(
-          utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics()), tc);
+          checkSameAndGetAsic(getAgentEnsemble()->getL3Asics()), tc);
       for (auto dscp : q2dscps.second) {
         XLOG(DBG2) << "verify packet with dscp " << static_cast<int>(dscp)
                    << " goes to voq " << voqId;

@@ -5,7 +5,6 @@
 #include "fboss/agent/FabricConnectivityManager.h"
 #include "fboss/agent/FbossHwUpdateError.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/DsfConfigUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 #include "fboss/agent/test/utils/OlympicTestUtils.h"

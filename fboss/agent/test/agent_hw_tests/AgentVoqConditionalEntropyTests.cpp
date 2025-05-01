@@ -4,7 +4,6 @@
 
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/packet/PktFactory.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 #include "fboss/agent/test/utils/VoqTestUtils.h"
 

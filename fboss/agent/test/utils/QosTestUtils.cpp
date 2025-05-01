@@ -1,11 +1,12 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/agent/test/utils/QosTestUtils.h"
+
 #include <folly/IPAddressV4.h>
+#include "fboss/agent/AsicUtils.h"
+#include "fboss/agent/state/Port.h"
 #include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/VoqTestUtils.h"
-
-#include "fboss/agent/state/Port.h"
 #include "fboss/lib/CommonUtils.h"
 
 #include <gtest/gtest.h>
@@ -194,7 +195,7 @@ void verifyVoQHit(
     facebook::fboss::SystemPortID egressPort,
     int delta) {
   auto l3Asics = sw->getHwAsicTable()->getL3Asics();
-  auto asic = utility::checkSameAndGetAsic(l3Asics);
+  auto asic = checkSameAndGetAsic(l3Asics);
   int voqId = getTrafficClassToVoqId(asic, queueId);
   auto queueBytesBefore = portStatsBefore.queueOutBytes_()->find(voqId) !=
           portStatsBefore.queueOutBytes_()->end()

@@ -12,6 +12,7 @@
 
 #include <netinet/icmp6.h>
 #include "fboss/agent/AgentFeatures.h"
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/FbossHwUpdateError.h"
 #include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/TxPacket.h"
@@ -20,7 +21,6 @@
 #include "fboss/agent/test/ResourceLibUtil.h"
 #include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/TrunkUtils.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/L2LearningUpdateObserverUtil.h"
 #include "fboss/agent/test/utils/MacTestUtils.h"
@@ -226,7 +226,7 @@ class AgentMacLearningAndNeighborResolutionTest
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
     auto hwAsics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
-    auto asic = utility::checkSameAndGetAsic(hwAsics);
+    auto asic = checkSameAndGetAsic(hwAsics);
     auto inConfig = utility::oneL3IntfNPortConfig(
         ensemble.getSw()->getPlatformMapping(),
         asic,

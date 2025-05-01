@@ -12,7 +12,6 @@
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/SwitchState.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/QosTestUtils.h"
 #include "fboss/qsfp_service/lib/QsfpClient.h"
 

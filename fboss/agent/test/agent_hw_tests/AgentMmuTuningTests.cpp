@@ -8,12 +8,12 @@
  *
  */
 
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
 #include "fboss/agent/test/utils/PortTestUtils.h"
@@ -96,9 +96,8 @@ class AgentMmuTuningTest : public AgentHwTest {
 
  private:
   void sendUdpPkts(uint8_t lowPriDscp, uint8_t highPriDscp) {
-    auto mmuSizeBytes =
-        utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
-            ->getMMUSizeBytes();
+    auto mmuSizeBytes = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
+                            ->getMMUSizeBytes();
     auto bytesSent = 0;
     // Send high pri DSCP packet followed by low pri DSCP packet
     // since in cases where MMU is split evenly (viz. tuning reserved
@@ -184,7 +183,7 @@ class AgentMmuTuningTest : public AgentHwTest {
   void addQueueConfig(
       cfg::SwitchConfig* config,
       const std::vector<const HwAsic*>& asics) const {
-    auto asic = utility::checkSameAndGetAsic(asics);
+    auto asic = checkSameAndGetAsic(asics);
     auto streamType =
         *(utility::getStreamType(cfg::PortType::INTERFACE_PORT, asics).begin());
     bool scalingFactorSupported =

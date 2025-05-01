@@ -8,12 +8,12 @@
  *
  */
 
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
 #include "fboss/agent/test/utils/PacketTestUtils.h"
@@ -113,7 +113,7 @@ class AgentDscpQueueMappingTest : public AgentDscpQueueMappingTestBase {
     auto l3Asics = ensemble.getL3Asics();
     utility::addOlympicQosMaps(cfg, l3Asics);
     auto kAclName = "acl1";
-    auto asic = utility::checkSameAndGetAsic(l3Asics);
+    auto asic = checkSameAndGetAsic(l3Asics);
     utility::addDscpAclToCfg(asic, &cfg, kAclName, kDscp());
     utility::addTrafficCounter(
         &cfg, kCounterName(), utility::getAclCounterTypes(l3Asics));
@@ -180,7 +180,7 @@ class AgentAclAndDscpQueueMappingTest : public AgentDscpQueueMappingTestBase {
     std::tie(*ttl.value(), *ttl.mask()) = std::make_tuple(0x80, 0x80);
     acl->ttl() = ttl;
     auto l3Asics = ensemble.getL3Asics();
-    auto asic = utility::checkSameAndGetAsic(l3Asics);
+    auto asic = checkSameAndGetAsic(l3Asics);
     utility::addEtherTypeToAcl(asic, acl, cfg::EtherType::IPv6);
     utility::addAclStat(
         &cfg,
@@ -246,7 +246,7 @@ class AgentAclConflictAndDscpQueueMappingTest
         true /*interfaceHasSubnet*/);
 
     auto l3Asics = ensemble.getL3Asics();
-    auto asic = utility::checkSameAndGetAsic(l3Asics);
+    auto asic = checkSameAndGetAsic(l3Asics);
     // The QoS map sends packets to queue kQueueIdQosMap() i.e. 7,
     // The ACL sends them to queue kQueueIdAcl() i.e. 2.
     // QosMap

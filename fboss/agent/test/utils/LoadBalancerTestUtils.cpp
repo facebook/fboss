@@ -2,6 +2,7 @@
 
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/LoadBalancerConfigApplier.h"
 #include "fboss/agent/LoadBalancerUtils.h"
 #include "fboss/agent/SwSwitch.h"
@@ -10,7 +11,6 @@
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/VoqTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
@@ -97,29 +97,27 @@ cfg::LoadBalancer getFullHashUdfConfig(
 cfg::LoadBalancer getTrunkHalfHashConfig(
     const std::vector<const HwAsic*>& asics) {
   return getHalfHashConfig(
-      *utility::checkSameAndGetAsic(asics),
-      cfg::LoadBalancerID::AGGREGATE_PORT);
+      *checkSameAndGetAsic(asics), cfg::LoadBalancerID::AGGREGATE_PORT);
 }
 cfg::LoadBalancer getTrunkFullHashConfig(
     const std::vector<const HwAsic*>& asics) {
   return getFullHashConfig(
-      *utility::checkSameAndGetAsic(asics),
-      cfg::LoadBalancerID::AGGREGATE_PORT);
+      *checkSameAndGetAsic(asics), cfg::LoadBalancerID::AGGREGATE_PORT);
 }
 cfg::LoadBalancer getEcmpHalfHashConfig(
     const std::vector<const HwAsic*>& asics) {
   return getHalfHashConfig(
-      *utility::checkSameAndGetAsic(asics), cfg::LoadBalancerID::ECMP);
+      *checkSameAndGetAsic(asics), cfg::LoadBalancerID::ECMP);
 }
 cfg::LoadBalancer getEcmpFullHashConfig(
     const std::vector<const HwAsic*>& asics) {
   return getFullHashConfig(
-      *utility::checkSameAndGetAsic(asics), cfg::LoadBalancerID::ECMP);
+      *checkSameAndGetAsic(asics), cfg::LoadBalancerID::ECMP);
 }
 cfg::LoadBalancer getEcmpFullUdfHashConfig(
     const std::vector<const HwAsic*>& asics) {
   return getFullHashUdfConfig(
-      *utility::checkSameAndGetAsic(asics), cfg::LoadBalancerID::ECMP);
+      *checkSameAndGetAsic(asics), cfg::LoadBalancerID::ECMP);
 }
 std::vector<cfg::LoadBalancer> getEcmpFullTrunkHalfHashConfig(
     const std::vector<const HwAsic*>& asics) {
@@ -175,8 +173,7 @@ void addFlowletAcl(
   acl.proto() = 17;
   acl.l4DstPort() = 4791;
   acl.dstIp() = "2001::/16";
-  if (utility::checkSameAndGetAsicType(cfg) ==
-      cfg::AsicType::ASIC_TYPE_CHENAB) {
+  if (checkSameAndGetAsicType(cfg) == cfg::AsicType::ASIC_TYPE_CHENAB) {
     acl.etherType() = cfg::EtherType::IPv6;
   }
   if (udfFlowlet) {

@@ -8,12 +8,12 @@
  *
  */
 
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 #include "fboss/agent/test/utils/MirrorTestUtils.h"
@@ -112,7 +112,7 @@ class AgentAclCounterTestBase : public AgentHwTest {
     if (!ensemble->isSai()) {
       return;
     }
-    auto asic = utility::checkSameAndGetAsic(ensemble->getL3Asics());
+    auto asic = checkSameAndGetAsic(ensemble->getL3Asics());
     if (asic->getAsicVendor() != HwAsic::AsicVendor::ASIC_VENDOR_BCM) {
       return;
     }
@@ -469,8 +469,7 @@ class AgentAclCounterTestBase : public AgentHwTest {
       acl->proto() = 17;
       acl->l4DstPort() = 4791;
       acl->dstIp() = "2001::/16";
-      auto asic =
-          utility::checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics());
+      auto asic = checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics());
       utility::addEtherTypeToAcl(asic, acl, cfg::EtherType::IPv6);
     }
     if (aclName == getAclName(AclType::UDF_ACK)) {

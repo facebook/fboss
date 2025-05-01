@@ -8,6 +8,7 @@
  *
  */
 
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
@@ -32,7 +33,7 @@ class AgentIpInIpTunnelTest : public AgentHwTest {
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
     auto l3Asics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
-    auto asic = utility::checkSameAndGetAsic(l3Asics);
+    auto asic = checkSameAndGetAsic(l3Asics);
     auto cfg = utility::oneL3IntfTwoPortConfig(
         ensemble.getSw()->getPlatformMapping(),
         asic,
@@ -170,7 +171,7 @@ TEST_F(AgentIpInIpTunnelTest, IpinIpNoTunnelConfigured) {
   auto setup = [=, this]() {
     auto ensemble = getAgentEnsemble();
     auto l3Asics = ensemble->getSw()->getHwAsicTable()->getL3Asics();
-    auto asic = utility::checkSameAndGetAsic(l3Asics);
+    auto asic = checkSameAndGetAsic(l3Asics);
     auto cfg = utility::oneL3IntfTwoPortConfig(
         ensemble->getSw()->getPlatformMapping(),
         asic,
@@ -206,7 +207,7 @@ TEST_F(AgentIpInIpTunnelTest, DecapPacketParsing) {
   auto verify = [=, this]() {
     auto ensemble = getAgentEnsemble();
     auto l3Asics = ensemble->getSw()->getHwAsicTable()->getL3Asics();
-    auto asic = utility::checkSameAndGetAsic(l3Asics);
+    auto asic = checkSameAndGetAsic(l3Asics);
 
     utility::SwSwitchPacketSnooper snooper(getSw(), "snooper");
     sendIpInIpPacketPort(kTunnelTermDstIp, "dead::1", 0xFA, 0xCE);

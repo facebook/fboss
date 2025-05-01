@@ -8,11 +8,11 @@
  *
  */
 
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/packet/PTPHeader.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/PacketSnooper.h"
 #include "fboss/agent/test/utils/PacketTestUtils.h"
@@ -55,7 +55,7 @@ class AgentHwPtpTcProvisionTests : public AgentHwTest {
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
     auto l3Asics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
-    auto asic = utility::checkSameAndGetAsic(l3Asics);
+    auto asic = checkSameAndGetAsic(l3Asics);
     auto config = utility::onePortPerInterfaceConfig(
         ensemble.getSw(),
         ensemble.masterLogicalPortIds(),

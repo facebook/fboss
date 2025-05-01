@@ -3,11 +3,11 @@
 #include <gtest/gtest.h>
 #include <algorithm>
 
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/TrunkUtils.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/PacketSnooper.h"
 
@@ -154,11 +154,11 @@ class AgentNeighborTest : public AgentHwTest {
           ensemble.masterLogicalPortIds()[0],
           ensemble.masterLogicalPortIds()[1]};
       int idx = 0;
-      while (portSet.size() <
-             std::min(
-                 utility::checkSameAndGetAsic(ensemble.getL3Asics())
-                     ->getMaxLagMemberSize(),
-                 static_cast<uint32_t>((*cfg.ports()).size()))) {
+      while (
+          portSet.size() <
+          std::min(
+              checkSameAndGetAsic(ensemble.getL3Asics())->getMaxLagMemberSize(),
+              static_cast<uint32_t>((*cfg.ports()).size()))) {
         portSet.insert(*cfg.ports()[idx].logicalID());
         idx++;
       }
@@ -168,7 +168,7 @@ class AgentNeighborTest : public AgentHwTest {
     return cfg;
   }
   VlanID kVlanID() const {
-    if (utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
+    if (checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
             ->getSwitchType() == cfg::SwitchType::NPU) {
       auto vlanId = getVlanIDForTx();
       CHECK(vlanId.has_value());
@@ -178,8 +178,7 @@ class AgentNeighborTest : public AgentHwTest {
   }
   InterfaceID kIntfID() const {
     auto switchType =
-        utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
-            ->getSwitchType();
+        checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())->getSwitchType();
     if (switchType == cfg::SwitchType::NPU) {
       if (!isIntfNbrTable) {
         return InterfaceID(static_cast<int>(kVlanID()));
@@ -207,8 +206,7 @@ class AgentNeighborTest : public AgentHwTest {
 
   auto getNeighborTable(std::shared_ptr<SwitchState> state) {
     auto switchType =
-        utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
-            ->getSwitchType();
+        checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())->getSwitchType();
 
     if (isIntfNbrTable || switchType == cfg::SwitchType::VOQ) {
       return state->getInterfaces()
@@ -538,8 +536,7 @@ class AgentNeighborOnMultiplePortsTest : public AgentHwTest {
 
   InterfaceID getInterfaceId(const PortID& portId) const {
     auto switchType =
-        utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
-            ->getSwitchType();
+        checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())->getSwitchType();
 
     if (isIntfNbrTable || switchType == cfg::SwitchType::VOQ) {
       return InterfaceID(*getProgrammedState()

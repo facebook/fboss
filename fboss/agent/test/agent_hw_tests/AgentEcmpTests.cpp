@@ -11,8 +11,8 @@
 #include <folly/IPAddress.h>
 #include "fboss/agent/test/EcmpSetupHelper.h"
 
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/test/AgentHwTest.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/EcmpTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
@@ -431,8 +431,7 @@ class AgentEcmpNeighborTest : public AgentEcmpTest {
 
   auto getNdpTable(PortDescriptor port, std::shared_ptr<SwitchState>& state) {
     const auto switchType =
-        utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
-            ->getSwitchType();
+        checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())->getSwitchType();
 
     if (isIntfNbrTable() || switchType == cfg::SwitchType::VOQ) {
       auto portId = port.phyPortID();

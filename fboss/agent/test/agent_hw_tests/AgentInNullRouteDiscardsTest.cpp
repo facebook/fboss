@@ -1,12 +1,12 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestAclUtils.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/PfcTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
@@ -71,9 +71,8 @@ TEST_F(AgentInNullRouteDiscardsCounterTest, nullRouteHit) {
   };
   PortID portId = masterLogicalInterfacePortIds()[0];
   auto verify = [=, this]() {
-    auto isVoqSwitch =
-        utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
-            ->getSwitchType() == cfg::SwitchType::VOQ;
+    auto isVoqSwitch = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
+                           ->getSwitchType() == cfg::SwitchType::VOQ;
     auto portStatsBefore = getLatestPortStats(portId);
     auto switchDropStatsBefore = getAggregatedSwitchDropStats();
     pumpTraffic(true);

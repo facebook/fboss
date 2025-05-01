@@ -12,11 +12,11 @@
 #include <memory>
 
 #include "fboss/agent/AgentFeatures.h"
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/test/TestEnsembleIf.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/PortTestUtils.h"
 #include "fboss/agent/test/utils/VoqTestUtils.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"

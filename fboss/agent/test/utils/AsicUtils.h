@@ -18,8 +18,5 @@ class SwSwitch;
 
 namespace utility {
 const HwAsic* getAsic(const SwSwitch& sw, PortID port);
-void checkSameAsicType(const std::vector<const HwAsic*>& asics);
-const HwAsic* checkSameAndGetAsic(const std::vector<const HwAsic*>& asics);
-cfg::AsicType checkSameAndGetAsicType(const cfg::SwitchConfig& config);
 } // namespace utility
 } // namespace facebook::fboss

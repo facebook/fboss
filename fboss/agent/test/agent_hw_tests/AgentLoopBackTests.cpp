@@ -8,11 +8,11 @@
  *
  */
 
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/PortStatsTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
@@ -72,7 +72,7 @@ class AgentLoopBackTest : public AgentHwTest {
     };
     auto verify = [=, this]() {
       const auto switchType =
-          utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
+          checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
               ->getSwitchType();
       auto beforePortStats =
           getLatestPortStats(masterLogicalInterfacePortIds()[0]);

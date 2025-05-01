@@ -8,6 +8,7 @@
  *
  */
 #include <folly/IPAddress.h>
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
@@ -137,7 +138,7 @@ class AgentSendPacketToMulticastQueueTest : public AgentHwTest {
 TEST_F(AgentSendPacketToMulticastQueueTest, SendPacketOutOfPortToMCQueue) {
   auto ensemble = getAgentEnsemble();
   auto l3Asics = ensemble->getSw()->getHwAsicTable()->getL3Asics();
-  auto asic = utility::checkSameAndGetAsic(l3Asics);
+  auto asic = checkSameAndGetAsic(l3Asics);
   auto masterLogicalPortIds = ensemble->masterLogicalPortIds();
   auto port = masterLogicalPortIds[0];
 

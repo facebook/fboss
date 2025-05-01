@@ -8,6 +8,7 @@
  *
  */
 
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/IPv6Handler.h"
 #include "fboss/agent/TxPacket.h"
@@ -15,7 +16,6 @@
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
-
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/QosTestUtils.h"
 #include "fboss/agent/test/utils/TrapPacketUtils.h"
@@ -64,7 +64,7 @@ BENCHMARK(RxSlowPathBenchmark) {
         ensemble.isSai(),
         /* setQueueRate */ false);
     auto trapDstIp = folly::CIDRNetwork{kDstIp, 128};
-    auto asic = utility::checkSameAndGetAsic(ensemble.getL3Asics());
+    auto asic = checkSameAndGetAsic(ensemble.getL3Asics());
     utility::addTrapPacketAcl(asic, &config, trapDstIp);
 
     // Since J2 and J3 does not support disabling TLL on port, create TRAP to

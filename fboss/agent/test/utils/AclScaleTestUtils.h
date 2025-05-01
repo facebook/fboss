@@ -1,6 +1,6 @@
 #pragma once
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
 
 namespace facebook::fboss::utility {
 

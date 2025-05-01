@@ -9,10 +9,10 @@
  */
 
 #include "fboss/agent/test/utils/AclTestUtils.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
 
 #include <memory>
 
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/SwSwitch.h"
 
@@ -269,7 +269,7 @@ void addDefaultAclTable(
       *cfg.dsfNodes());
   // TODO (pshaikh): create a method to return AclTables for a given asic type
   // and acl stage and retire this check
-  auto asic = utility::checkSameAndGetAsic(asicTable.getL3Asics());
+  auto asic = checkSameAndGetAsic(asicTable.getL3Asics());
   auto split = asic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB;
 
   /* Create default ACL table similar to whats being done in Agent today */

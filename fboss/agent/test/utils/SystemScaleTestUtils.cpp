@@ -4,13 +4,13 @@
 #include "fboss/lib/FunctionCallTimeReporter.h"
 
 #include "fboss/agent/AgentFeatures.h"
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/RouteScaleGenerators.h"
 #include "fboss/agent/test/utils/AclScaleTestUtils.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/MacLearningFloodHelper.h"
 #include "fboss/agent/test/utils/PortFlapHelper.h"
@@ -310,8 +310,7 @@ void configureMaxMacEntriesViaPacketIn(AgentEnsemble* ensemble) {
   }
 }
 void configureMaxMacEntries(AgentEnsemble* ensemble) {
-  auto asic =
-      utility::checkSameAndGetAsic(ensemble->getHwAsicTable()->getL3Asics());
+  auto asic = checkSameAndGetAsic(ensemble->getHwAsicTable()->getL3Asics());
   // TH3 had existing slowness of l2 callbacks. To exercise the callback path,
   // we utilize l2 callback on sw switch to simulate large scale of l2 callback
   if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK3) {
@@ -337,8 +336,7 @@ void syncFib(
 void configureMaxRouteEntries(AgentEnsemble* ensemble) {
   auto switchIds = ensemble->getHwAsicTable()->getSwitchIDs();
   CHECK_EQ(switchIds.size(), 1);
-  auto asic =
-      utility::checkSameAndGetAsic(ensemble->getHwAsicTable()->getL3Asics());
+  auto asic = checkSameAndGetAsic(ensemble->getHwAsicTable()->getL3Asics());
   auto* sw = ensemble->getSw();
   // reserve 10 ecmp for scaling routes
   auto const kMaxEcmpGropus =
@@ -520,7 +518,7 @@ void addPort2NewVlan(cfg::SwitchConfig& config, PortID portID, int vlanID) {
 cfg::SwitchConfig getSystemScaleTestSwitchConfiguration(
     const AgentEnsemble& ensemble) {
   auto l3Asics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
-  auto asic = utility::checkSameAndGetAsic(l3Asics);
+  auto asic = checkSameAndGetAsic(l3Asics);
   auto config = utility::oneL3IntfNPortConfig(
       ensemble.getSw()->getPlatformMapping(),
       asic,
@@ -775,8 +773,7 @@ void initSystemScaleChurnTest(AgentEnsemble* ensemble) {
       VlanID(kBaseVlanId));
   configureMaxMacEntries(ensemble);
   portFlapHelper.startPortFlap();
-  auto asic =
-      utility::checkSameAndGetAsic(ensemble->getHwAsicTable()->getL3Asics());
+  auto asic = checkSameAndGetAsic(ensemble->getHwAsicTable()->getL3Asics());
 
   if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK3 ||
       asic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK4) {

@@ -2,6 +2,7 @@
 
 #include <folly/MacAddress.h>
 #include <gtest/gtest.h>
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
@@ -758,8 +759,7 @@ TEST_P(AgentMirrorOnDropTest, VoqReject) {
     // Add neighbor on remote system port. The remoteSwitchId formula must be
     // in sync with the logic in addRemoteIntfNodeCfg().
     SwitchID remoteSwitchId = static_cast<SwitchID>(
-        utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
-            ->getNumCores() *
+        checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())->getNumCores() *
         getAgentEnsemble()->getNumL3Asics());
     applyNewState([&](const std::shared_ptr<SwitchState>& in) {
       return utility::addRemoteSysPort(

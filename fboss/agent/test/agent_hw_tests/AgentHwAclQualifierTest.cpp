@@ -2,8 +2,8 @@
 
 #include "fboss/agent/test/AgentHwTest.h"
 
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
 
 namespace {
 
@@ -145,8 +145,7 @@ class AgentHwAclQualifierTest : public AgentHwTest {
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
     auto newCfg = AgentHwTest::initialConfig(ensemble);
-    if (utility::checkSameAndGetAsicType(newCfg) ==
-        cfg::AsicType::ASIC_TYPE_CHENAB) {
+    if (checkSameAndGetAsicType(newCfg) == cfg::AsicType::ASIC_TYPE_CHENAB) {
       utility::addAclTable(
           &newCfg,
           "icmp_acl_table",
@@ -527,7 +526,7 @@ TEST_F(AgentHwAclQualifierTest, AclRemove) {
     auto& ensemble = *getAgentEnsemble();
     auto newCfg = initialConfig(ensemble);
     auto l3Asics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
-    auto asic = utility::checkSameAndGetAsic(l3Asics);
+    auto asic = checkSameAndGetAsic(l3Asics);
 
     cfg::AclEntry acl0{};
     acl0.name() = "acl0";
@@ -626,7 +625,7 @@ TEST_F(AgentHwAclQualifierTest, AclEmptyCodeIcmp) {
     // Destination Unreachable(type=3):Source host isolated(code=8)
     acl.name() = "acl0";
     auto l3Asics = ensemble.getL3Asics();
-    auto asic = utility::checkSameAndGetAsic(l3Asics);
+    auto asic = checkSameAndGetAsic(l3Asics);
     if (asic->isSupported(HwAsic::Feature::ACL_ENTRY_ETHER_TYPE)) {
       acl.etherType() = cfg::EtherType::IPv4;
     }
@@ -721,7 +720,7 @@ TEST_F(AgentHwAclQualifierTest, AclIp6Qualifiers) {
     auto& ensemble = *getAgentEnsemble();
     auto newCfg = initialConfig(ensemble);
     auto l3Asics = ensemble.getL3Asics();
-    auto asic = utility::checkSameAndGetAsic(l3Asics);
+    auto asic = checkSameAndGetAsic(l3Asics);
 
     cfg::AclEntry acl{};
     acl.name() = "ip6";

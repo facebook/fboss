@@ -24,8 +24,8 @@
 #include "fboss/agent/test/TestEnsembleIf.h"
 #include "fboss/lib/CommonUtils.h"
 
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 #include "fboss/agent/test/utils/PacketTestUtils.h"

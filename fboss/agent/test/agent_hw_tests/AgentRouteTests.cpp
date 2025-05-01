@@ -7,6 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/packet/PktUtil.h"
 #include "fboss/agent/state/LabelForwardingAction.h"
@@ -15,7 +16,6 @@
 #include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
@@ -756,8 +756,7 @@ TYPED_TEST(AgentClassIDRouteTest, VerifyClassIDForConnectedRoute) {
     auto routeInfo = getRouteInfo(
         ipAddr.network(), ipAddr.mask(), *this->getAgentEnsemble());
     EXPECT_TRUE(*routeInfo.exists());
-    auto asic =
-        utility::checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics());
+    auto asic = checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics());
     if (asic->getAsicVendor() != HwAsic::AsicVendor::ASIC_VENDOR_TAJO) {
       if (FLAGS_set_classid_for_my_subnet_and_ip_routes) {
         this->verifyClassIDHelper(

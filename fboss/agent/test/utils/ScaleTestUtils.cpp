@@ -9,8 +9,8 @@
  */
 
 #include "fboss/agent/test/utils/ScaleTestUtils.h"
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
 
 namespace facebook::fboss::utility {
 const int kMaxEcmpGroups = 5000;

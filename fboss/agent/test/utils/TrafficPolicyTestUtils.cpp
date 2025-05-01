@@ -8,6 +8,8 @@
  *
  */
 #include "fboss/agent/test/utils/TrafficPolicyTestUtils.h"
+
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
@@ -169,7 +171,7 @@ void addQueueMatcher(
       std::nullopt,
       *config->dsfNodes());
   cfg::MatchAction matchAction = utility::getToQueueAction(
-      utility::checkSameAndGetAsic(asicTable.getL3Asics()), queueId, isSai);
+      checkSameAndGetAsic(asicTable.getL3Asics()), queueId, isSai);
 
   if (counterName.has_value()) {
     matchAction.counter() = counterName.value();

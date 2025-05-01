@@ -5,6 +5,7 @@
 #include <chrono>
 #include <thread>
 #include "fboss/agent/AgentConfig.h"
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/RouteUpdateWrapper.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
@@ -139,7 +140,7 @@ void ProdInvariantTest::setupConfigFlag() {
   AgentEnsemble* ensemble = getAgentEnsemble();
   cfg::AgentConfig testConfig;
   auto hwAsics = ensemble->getSw()->getHwAsicTable()->getL3Asics();
-  auto asic = utility::checkSameAndGetAsic(hwAsics);
+  auto asic = checkSameAndGetAsic(hwAsics);
   utility::setPortToDefaultProfileIDMap(
       std::make_shared<MultiSwitchPortMap>(),
       ensemble->getPlatformMapping(),
@@ -247,7 +248,7 @@ void ProdInvariantTest::verifyLoadBalancing() {
 void ProdInvariantTest::verifyDscpToQueueMapping() {
   AgentEnsemble* ensemble = getAgentEnsemble();
   auto hwAsics = ensemble->getSw()->getHwAsicTable()->getL3Asics();
-  auto asic = utility::checkSameAndGetAsic(hwAsics);
+  auto asic = checkSameAndGetAsic(hwAsics);
 
   if (!asic->isSupported(HwAsic::Feature::L3_QOS)) {
     return;
@@ -334,7 +335,7 @@ void ProdInvariantTest::verifySafeDiagCommands() {
   AgentEnsemble* ensemble = getAgentEnsemble();
   std::set<std::string> diagCmds;
   auto hwAsics = ensemble->getSw()->getHwAsicTable()->getL3Asics();
-  auto asic = utility::checkSameAndGetAsic(hwAsics);
+  auto asic = checkSameAndGetAsic(hwAsics);
 
   switch (asic->getAsicType()) {
     case cfg::AsicType::ASIC_TYPE_FAKE:

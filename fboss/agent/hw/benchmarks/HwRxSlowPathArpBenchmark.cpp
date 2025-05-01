@@ -8,6 +8,7 @@
  *
  */
 
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/IPv4Handler.h"
 #include "fboss/agent/IPv6Handler.h"
@@ -16,7 +17,6 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 
 #include <folly/Benchmark.h>
@@ -51,7 +51,7 @@ BENCHMARK(RxSlowPathArpBenchmark) {
     std::vector<PortID> ports = {ensemble.masterLogicalInterfacePortIds()[0]};
 
     auto l3Asics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
-    auto asic = utility::checkSameAndGetAsic(l3Asics);
+    auto asic = checkSameAndGetAsic(l3Asics);
     auto config = utility::oneL3IntfNPortConfig(
         ensemble.getSw()->getPlatformMapping(),
         asic,
@@ -97,7 +97,7 @@ BENCHMARK(RxSlowPathArpBenchmark) {
   std::map<int, CpuPortStats> cpuStatsBefore;
   ensemble->getSw()->getAllCpuPortStats(cpuStatsBefore);
   auto statsBefore = cpuStatsBefore[0];
-  auto hwAsic = utility::checkSameAndGetAsic(ensemble->getL3Asics());
+  auto hwAsic = checkSameAndGetAsic(ensemble->getL3Asics());
   auto [pktsBefore, bytesBefore] = utility::getCpuQueueOutPacketsAndBytes(
       *statsBefore.portStats_(), utility::getCoppHighPriQueueId(hwAsic));
   auto timeBefore = std::chrono::steady_clock::now();

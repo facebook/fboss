@@ -2,6 +2,7 @@
 
 #include "fboss/agent/test/agent_hw_tests/AgentVoqSwitchTests.h"
 
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/DsfStateUpdaterUtil.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/hw/HwResourceStatsPublisher.h"
@@ -234,7 +235,7 @@ SystemPortID AgentVoqSwitchTest::getSystemPortID(
 void AgentVoqSwitchTest::addDscpAclWithCounter() {
   auto newCfg = initialConfig(*getAgentEnsemble());
   auto* acl = utility::addAcl_DEPRECATED(&newCfg, kDscpAclName());
-  auto asic = utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+  auto asic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
   acl->dscp() = 0x24;
   utility::addEtherTypeToAcl(asic, acl, cfg::EtherType::IPv6);
   utility::addAclStat(
@@ -411,10 +412,9 @@ TEST_F(AgentVoqSwitchTest, sendPacketCpuAndFrontPanel) {
       int64_t egressCoreWatermarkBytes = 0;
       // Get SRAM size per core as thats the highest possible free SRAM
       const uint64_t kSramSize =
-          utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
+          checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
               ->getSramSizeBytes() /
-          utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
-              ->getNumCores();
+          checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())->getNumCores();
       int64_t sramMinBufferWatermarkBytes = kSramSize + 1;
 
       if (isSupportedOnAllAsics(HwAsic::Feature::L3_QOS)) {
@@ -517,8 +517,7 @@ TEST_F(AgentVoqSwitchTest, sendPacketCpuAndFrontPanel) {
 
             EXPECT_EVENTUALLY_EQ(afterOutPkts - 1, beforeOutPkts);
             int extraByteOffset = 0;
-            auto asic =
-                utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+            auto asic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
             const auto asicMode = asic->getAsicMode();
             const auto asicType = asic->getAsicType();
             if (asic->getAsicMode() != HwAsic::AsicMode::ASIC_MODE_SIM) {
@@ -583,7 +582,7 @@ TEST_F(AgentVoqSwitchTest, trapPktsOnPort) {
   auto setup = [this, kPortDesc, &ecmpHelper]() {
     auto cfg = initialConfig(*getAgentEnsemble());
     auto l3Asics = getAgentEnsemble()->getL3Asics();
-    auto asic = utility::checkSameAndGetAsic(l3Asics);
+    auto asic = checkSameAndGetAsic(l3Asics);
     utility::addTrapPacketAcl(asic, &cfg, kPortDesc.phyPortID());
     applyNewConfig(cfg);
     applyNewState([=](const std::shared_ptr<SwitchState>& in) {
