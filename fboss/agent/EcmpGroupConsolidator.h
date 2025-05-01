@@ -48,7 +48,17 @@ class NextHopGroupInfo {
 };
 
 class EcmpGroupConsolidator {
+  // Keep some buffer from HW limit for make before break
+  // nature of ECMP.
+  static auto constexpr kEcmpMakeBeforeBreakBuffer = 2;
+
  public:
+  EcmpGroupConsolidator(uint32_t maxHwEcmpGroups)
+      // We keep a buffer of 2 for transient increment in ECMP groups when
+      // pushing updates down to HW
+      : maxEcmpGroups_(maxHwEcmpGroups - kEcmpMakeBeforeBreakBuffer) {
+    CHECK_GT(maxHwEcmpGroups, kEcmpMakeBeforeBreakBuffer);
+  }
   using NextHopGroupId = uint32_t;
   std::vector<StateDelta> consolidate(const StateDelta& delta);
   const auto& getNhopsToId() const {
@@ -69,5 +79,6 @@ class EcmpGroupConsolidator {
   StdRefMap<NextHopGroupId, NextHopGroupInfo> nextHopGroupIdToInfo_;
   std::unordered_map<folly::CIDRNetwork, std::shared_ptr<NextHopGroupInfo>>
       prefixToGroupInfo_;
+  uint32_t maxEcmpGroups_{0};
 };
 } // namespace facebook::fboss

@@ -117,7 +117,8 @@ class NextHopIdAllocatorTest : public ::testing::Test {
     return nhopId;
   }
   std::shared_ptr<SwitchState> state_;
-  EcmpGroupConsolidator consolidator_;
+  static constexpr auto kEcmpGroupHwLimit = 7;
+  EcmpGroupConsolidator consolidator_{kEcmpGroupHwLimit};
 };
 
 TEST_F(NextHopIdAllocatorTest, init) {
