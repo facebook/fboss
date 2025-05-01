@@ -138,10 +138,18 @@ inline void NdpCache::checkReachability(
       intfID = getSw()->getState()->getInterfaceIDForPort(port);
       srcIntf = state->getInterfaces()->getNodeIf(intfID);
       break;
-    case PortDescriptor::PortType::AGGREGATE:
-      intfID = getSw()->getState()->getInterfaceIDForPort(port);
+    case PortDescriptor::PortType::AGGREGATE: {
+      auto aggregatePort =
+          getSw()->getState()->getAggregatePorts()->getNodeIf(port.aggPortID());
+      if (!aggregatePort) {
+        XLOG(ERR) << "Aggregate port " << port.aggPortID()
+                  << " not found. Skip sending probe";
+        return;
+      }
+      intfID = InterfaceID(aggregatePort->getInterfaceIDs()->at(0)->cref());
       srcIntf = state->getInterfaces()->getNodeIf(intfID);
       break;
+    }
     case PortDescriptor::PortType::SYSTEM_PORT:
       auto physPortID = getPortID(port.sysPortID(), getSw()->getState());
       intfID = getSw()->getState()->getInterfaceIDForPort(

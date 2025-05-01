@@ -158,6 +158,21 @@ NeighborCacheImpl<NTable>::getUpdateFnToProgramEntryForVlan(Entry* entry) {
     auto node = table->getNodeIf(fields.ip.str());
 
     auto isAggregatePort = fields.port.isAggregatePort();
+
+    if (isAggregatePort) {
+      auto aggregatePort =
+          state->getAggregatePorts()->getNodeIf(fields.port.aggPortID());
+
+      if (!aggregatePort) {
+        // if node is not found, it means the AggregatePort is down or deleted,
+        // we should not throw exception here for AggregatePort case
+        // log the error and return
+        XLOG(ERR) << "AggregatePort: " << fields.port.aggPortID()
+                  << " does not exist in current state";
+        return nullptr;
+      }
+    }
+
     auto switchId = isAggregatePort
         ? sw_->getScopeResolver()->scope(state, fields.port).switchId()
         : sw_->getScopeResolver()->scope(fields.port.phyPortID()).switchId();
@@ -166,7 +181,6 @@ NeighborCacheImpl<NTable>::getUpdateFnToProgramEntryForVlan(Entry* entry) {
       fields.encapIndex =
           EncapIndexAllocator::getNextAvailableEncapIdx(state, *asic);
     }
-
     if (!node) {
       table = table->modify(&vlan, &newState);
       table->addEntry(fields);
