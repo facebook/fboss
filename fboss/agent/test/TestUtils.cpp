@@ -179,7 +179,10 @@ void addRecyclePortRif(const cfg::DsfNode& myNode, cfg::SwitchConfig& cfg) {
   cfg.interfaces()->push_back(recyclePortRif);
 }
 
-cfg::SwitchConfig testConfigAImpl(bool isMhnic, cfg::SwitchType switchType) {
+cfg::SwitchConfig testConfigAImpl(
+    bool isMhnic,
+    cfg::SwitchType switchType,
+    cfg::AsicType asicType) {
   if (switchType == cfg::SwitchType::FABRIC) {
     return testConfigFabricSwitch();
   }
@@ -274,7 +277,7 @@ cfg::SwitchConfig testConfigAImpl(bool isMhnic, cfg::SwitchType switchType) {
           kVoqSwitchIdBegin,
           createSwitchInfo(
               cfg::SwitchType::VOQ,
-              cfg::AsicType::ASIC_TYPE_MOCK,
+              asicType,
               cfg::switch_config_constants::
                   DEFAULT_PORT_ID_RANGE_MIN(), /* port id range min */
               cfg::switch_config_constants::
@@ -517,8 +520,10 @@ cfg::DsfNode makeDsfNodeCfg(
   return dsfNodeCfg;
 }
 
-cfg::SwitchConfig testConfigA(cfg::SwitchType switchType) {
-  return testConfigAImpl(false, switchType);
+cfg::SwitchConfig testConfigA(
+    cfg::SwitchType switchType,
+    cfg::AsicType asicType) {
+  return testConfigAImpl(false, switchType, asicType);
 }
 
 cfg::SwitchConfig testConfigFabricSwitch(
@@ -654,7 +659,8 @@ cfg::SwitchConfig testConfigB() {
 }
 
 cfg::SwitchConfig testConfigAWithLookupClasses() {
-  return testConfigAImpl(true, cfg::SwitchType::NPU);
+  return testConfigAImpl(
+      true, cfg::SwitchType::NPU, cfg::AsicType::ASIC_TYPE_MOCK);
 }
 
 cfg::SwitchConfig testConfigAWithPortInterfaces() {

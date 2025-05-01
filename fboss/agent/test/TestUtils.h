@@ -296,7 +296,8 @@ cfg::SwitchConfig testConfigFabricSwitch(
  * 1-20, will yield the same SwitchState as that returned by testStateA().
  */
 cfg::SwitchConfig testConfigA(
-    cfg::SwitchType switchType = cfg::SwitchType::NPU);
+    cfg::SwitchType switchType = cfg::SwitchType::NPU,
+    cfg::AsicType asicType = cfg::AsicType::ASIC_TYPE_MOCK);
 
 cfg::SwitchConfig testConfigB();
 /*
