@@ -119,9 +119,9 @@ class ConnectionOptions {
   // DSCP for Network Control is 48
   // 8-bit TOS = 6-bit DSCP followed by 2-bit ECN
   static constexpr uint8_t kTosForClassOfServiceNC = 48 << 2;
-  static constexpr uint32_t kConnTimeout = 1000;
-  static constexpr uint32_t kSendTimeout = 5000;
-  static constexpr uint32_t kRecvTimeout = 45000;
+  static constexpr uint32_t kConnTimeout = 3000;
+  static constexpr uint32_t kSendTimeout = 15000;
+  static constexpr uint32_t kRecvTimeout = 135000;
 
   folly::SocketAddress dstAddr_;
   std::chrono::milliseconds connTimeoutMs_{kConnTimeout};
