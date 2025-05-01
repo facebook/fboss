@@ -503,7 +503,7 @@ void NeighborCacheImpl<NTable>::repopulate(std::shared_ptr<NTable> table) {
 
     switch (entry->getType()) {
       case state::NeighborEntryType::DYNAMIC_ENTRY:
-        setEntryInternal(
+        addOrUpdateEntryInternal(
             EntryFields::fromThrift(entry->toThrift()),
             state,
             state::NeighborEntryType::DYNAMIC_ENTRY);
@@ -529,7 +529,7 @@ void NeighborCacheImpl<NTable>::setEntry(
   // is set. Thus we want to update cache only if switchState update succeeds,
   // to avoid switchState and neighbor cache inconsistency
 
-  auto entry = setEntryInternal(
+  auto entry = addOrUpdateEntryInternal(
       EntryFields(ip, mac, port, intfID_),
       state,
       state::NeighborEntryType::DYNAMIC_ENTRY);
@@ -646,11 +646,10 @@ void NeighborCacheImpl<NTable>::updateEntryClassID(
 }
 
 template <typename NTable>
-NeighborCacheEntry<NTable>* NeighborCacheImpl<NTable>::setEntryInternal(
+NeighborCacheEntry<NTable>* NeighborCacheImpl<NTable>::addOrUpdateEntryInternal(
     const EntryFields& fields,
     NeighborEntryState state,
-    state::NeighborEntryType type,
-    bool add) {
+    state::NeighborEntryType type) {
   auto entry = getCacheEntry(fields.ip);
   if (entry) {
     auto changed = !entry->fieldsMatch(fields);
@@ -659,7 +658,7 @@ NeighborCacheEntry<NTable>* NeighborCacheImpl<NTable>::setEntryInternal(
     }
     entry->updateState(state);
     return changed ? entry : nullptr;
-  } else if (add) {
+  } else {
     auto to_store = std::make_shared<Entry>(fields, evb_, cache_, state, type);
     entry = to_store.get();
     setCacheEntry(std::move(to_store));
@@ -677,11 +676,10 @@ void NeighborCacheImpl<NTable>::setPendingEntry(
     // ok with the 'force' parameter
     return;
   }
-  auto entry = setEntryInternal(
+  auto entry = addOrUpdateEntryInternal(
       EntryFields(ip, intfID_, NeighborState::PENDING),
       NeighborEntryState::INCOMPLETE,
-      state::NeighborEntryType::DYNAMIC_ENTRY,
-      true);
+      state::NeighborEntryType::DYNAMIC_ENTRY);
 
   if (entry) {
     try {
