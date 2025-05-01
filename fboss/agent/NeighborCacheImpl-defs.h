@@ -124,8 +124,11 @@ void NeighborCacheImpl<NTable>::programEntry(Entry* entry) {
               entry->getFields().ip),
           std::move(updateFn));
     } catch (const FbossHwUpdateError& e) {
-      XLOG(ERR) << "Failed to program neighbor entry: " << e.what();
+      XLOG(ERR)
+          << "Failed to program neighbor entry with hw failure protection "
+          << entry->getFields().ip << " with error: " << e.what();
       sw_->stats()->neighborTableUpdateFailure();
+      throw FbossError("Failed to program neighbor entry");
     }
   } else {
     sw_->updateState(
@@ -328,8 +331,11 @@ void NeighborCacheImpl<NTable>::programPendingEntry(
               entry->getFields().ip),
           std::move(updateFn));
     } catch (const FbossHwUpdateError& e) {
-      XLOG(ERR) << "Failed to program pending entry: " << e.what();
+      XLOG(ERR)
+          << "Failed to program pending neighbor entry with hw failure protection "
+          << entry->getFields().ip << " with error: " << e.what();
       sw_->stats()->neighborTableUpdateFailure();
+      throw FbossError("Failed to program pending neighbor entry");
     }
   } else {
     sw_->updateStateNoCoalescing(
@@ -518,12 +524,23 @@ void NeighborCacheImpl<NTable>::setEntry(
     folly::MacAddress mac,
     PortDescriptor port,
     NeighborEntryState state) {
+  // First update switchState and asic, if it succeeds, then update cache.
+  // SwitchState update is transaction protected, if HW_FAILURE_PROTECTION flag
+  // is set. Thus we want to update cache only if switchState update succeeds,
+  // to avoid switchState and neighbor cache inconsistency
+
   auto entry = setEntryInternal(
       EntryFields(ip, mac, port, intfID_),
       state,
       state::NeighborEntryType::DYNAMIC_ENTRY);
+
   if (entry) {
-    programEntry(entry);
+    try {
+      programEntry(entry);
+    } catch (const FbossError& e) {
+      removeEntry(ip);
+      XLOG(ERR) << e.what();
+    }
   }
 }
 
@@ -533,14 +550,28 @@ void NeighborCacheImpl<NTable>::setExistingEntry(
     folly::MacAddress mac,
     PortDescriptor port,
     NeighborEntryState state) {
-  auto entry = setEntryInternal(
-      EntryFields(ip, mac, port, intfID_),
-      state,
-      state::NeighborEntryType::DYNAMIC_ENTRY,
-      false);
+  auto entry = getCacheEntry(ip);
   if (entry) {
-    // only program an entry if one exists
-    programEntry(entry);
+    auto changed = !entry->fieldsMatch(EntryFields(ip, mac, port, intfID_));
+    if (changed) {
+      // only program an entry if one exists and the fields have changed
+      try {
+        // make a copy of the entry to update the fields locally
+        auto entryCopy = std::make_unique<Entry>(
+            EntryFields(ip, mac, port, intfID_),
+            evb_,
+            cache_,
+            state,
+            entry->getType());
+        programEntry(entryCopy.get());
+        // update the cache entry with the new fields if hw update succeeds
+        entry->updateFields(EntryFields(ip, mac, port, intfID_));
+        entry->updateState(state);
+
+      } catch (const FbossError& e) {
+        XLOG(ERR) << e.what();
+      }
+    }
   }
 }
 
@@ -646,14 +677,21 @@ void NeighborCacheImpl<NTable>::setPendingEntry(
     // ok with the 'force' parameter
     return;
   }
-
   auto entry = setEntryInternal(
       EntryFields(ip, intfID_, NeighborState::PENDING),
       NeighborEntryState::INCOMPLETE,
       state::NeighborEntryType::DYNAMIC_ENTRY,
       true);
+
   if (entry) {
-    programPendingEntry(entry, port, force);
+    try {
+      programPendingEntry(entry, port, force);
+
+    } catch (const FbossHwUpdateError& e) {
+      XLOG(ERR) << "Failed to program pending entry: " << e.what();
+      // remove the entry from cache if we failed to program it
+      removeEntry(ip);
+    }
   }
 }
 
