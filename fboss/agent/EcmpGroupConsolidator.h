@@ -67,6 +67,8 @@ class EcmpGroupConsolidator {
     return nextHopGroup2Id_;
   }
   size_t getRouteUsageCount(NextHopGroupId nhopGrpId) const;
+  void updateDone(const StateDelta& delta);
+  void updateFailed(const StateDelta& delta);
 
  private:
   struct ConsolidationPenalty {

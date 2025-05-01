@@ -146,4 +146,20 @@ size_t EcmpGroupConsolidator::getRouteUsageCount(
   }
   throw FbossError("Unable to find nhop group ID: ", nhopGrpId);
 }
+void EcmpGroupConsolidator::updateDone(const StateDelta& /*delta*/) {
+  preUpdateState_.reset();
+}
+
+void EcmpGroupConsolidator::updateFailed(const StateDelta& delta) {
+  CHECK(preUpdateState_.has_value());
+  nextHopGroup2Id_ = preUpdateState_->nextHopGroup2Id;
+  mergedGroups_ = preUpdateState_->mergedGroups;
+  /* clear state which needs to be resored from previous state*/
+  prefixToGroupInfo_.clear();
+  nextHopGroupIdToInfo_.clear();
+  candidateMergeGroups_.clear();
+  preUpdateState_.reset();
+  /* restore state from previous state*/
+  consolidate(StateDelta(std::make_shared<SwitchState>(), delta.oldState()));
+}
 } // namespace facebook::fboss
