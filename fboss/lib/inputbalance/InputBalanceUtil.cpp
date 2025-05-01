@@ -22,10 +22,40 @@ bool isDualStage(const std::map<int64_t, cfg::DsfNode>& dsfNodeMap) {
 }
 
 std::vector<std::pair<int64_t, std::string>> deviceToQueryInputCapacity(
-    const std::vector<int64_t>& /* fabricSwitchIDs */,
-    const std::map<int64_t, cfg::DsfNode>& /* dsfNodeMap */) {
-  // TODO(zecheng): Implement this
-  return {};
+    const std::vector<int64_t>& fabricSwitchIDs,
+    const std::map<int64_t, cfg::DsfNode>& dsfNodeMap) {
+  std::vector<std::pair<int64_t, std::string>> switchIDAndName2Query;
+  if (fabricSwitchIDs.empty()) {
+    throw std::runtime_error("No fabric switch ID provided.");
+  }
+  bool dualStage = isDualStage(dsfNodeMap);
+
+  // Query all local RDSW for single stage
+  if (!dualStage) {
+    auto clusterID = dsfNodeMap.at(*fabricSwitchIDs.cbegin()).clusterId();
+    CHECK(clusterID.has_value());
+    if (!std::all_of(
+            fabricSwitchIDs.cbegin(),
+            fabricSwitchIDs.cend(),
+            [&](int64_t switchID) {
+              return dsfNodeMap.at(switchID).clusterId() == *clusterID;
+            })) {
+      throw std::runtime_error(
+          "Expected all fabric switches to have same cluster ID");
+    }
+
+    for (const auto& [switchId, dsfNode] : dsfNodeMap) {
+      if (dsfNode.type() == cfg::DsfNodeType::INTERFACE_NODE) {
+        if (!dsfNode.clusterId() || dsfNode.clusterId().value() != *clusterID) {
+          throw std::runtime_error(
+              "Non-matching cluster ID for FDSW and RDSW in single stage.");
+        }
+        switchIDAndName2Query.emplace_back(switchId, *dsfNode.name());
+      }
+    }
+  }
+  // TODO(zecheng): Implement functionality for dual stage
+  return switchIDAndName2Query;
 }
 
 } // namespace facebook::fboss::utility
