@@ -37,6 +37,19 @@ class CmdShowFabricInputBalance : public CmdHandler<
     auto fbossCtrlClient =
         utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
 
+    std::map<int64_t, cfg::SwitchInfo> switchIdToSwitchInfo;
+    fbossCtrlClient->sync_getSwitchIdToSwitchInfo(switchIdToSwitchInfo);
+    if (std::none_of(
+            switchIdToSwitchInfo.cbegin(),
+            switchIdToSwitchInfo.cend(),
+            [](const auto& entry) {
+              return entry.second.switchType() == cfg::SwitchType::FABRIC;
+            })) {
+      throw std::runtime_error(
+          "No Fabric device found in SwitchIdToSwitchInfo. "
+          "Input Balance only applicable to FABRIC devices.");
+    }
+
     std::map<int64_t, cfg::DsfNode> dsfNodeMap;
     fbossCtrlClient->sync_getDsfNodes(dsfNodeMap);
     bool isDualStage = utils::isDualStage(dsfNodeMap);
