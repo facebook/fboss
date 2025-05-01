@@ -13,7 +13,7 @@
 #include <string>
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/show/fabric/inputbalance/gen-cpp2/model_types.h"
-#include "fboss/cli/fboss2/utils/CmdUtils.h"
+#include "fboss/lib/inputbalance/InputBalanceUtil.h"
 
 namespace facebook::fboss {
 
@@ -52,7 +52,7 @@ class CmdShowFabricInputBalance : public CmdHandler<
 
     std::map<int64_t, cfg::DsfNode> dsfNodeMap;
     fbossCtrlClient->sync_getDsfNodes(dsfNodeMap);
-    bool isDualStage = utils::isDualStage(dsfNodeMap);
+    bool isDualStage = utility::isDualStage(dsfNodeMap);
 
     // TODO(zecheng): Support for dual stage. Starting with single stage for
     // now.
@@ -63,6 +63,14 @@ class CmdShowFabricInputBalance : public CmdHandler<
       if (switchInfo.switchType() == cfg::SwitchType::FABRIC) {
         fabricSwitchIDs.push_back(switchId);
       }
+    }
+
+    auto deviceToQueryInputCapacity =
+        utility::deviceToQueryInputCapacity(fabricSwitchIDs, dsfNodeMap);
+
+    if (deviceToQueryInputCapacity.empty()) {
+      throw std::runtime_error(
+          "Failed to find devices to query input capacity");
     }
 
     return createModel();

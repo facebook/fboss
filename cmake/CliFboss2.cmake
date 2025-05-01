@@ -471,6 +471,7 @@ target_link_libraries(fboss2
   fsdb_oper_cpp2
   fsdb_model_cpp2
   Folly::folly
+  input_balance_util
   cli_model
   show_acl_model
   show_agent_model

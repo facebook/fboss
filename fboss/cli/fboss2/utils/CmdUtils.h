@@ -481,6 +481,4 @@ std::map<std::string, int64_t> getAgentFb303RegexCounters(
     const HostInfo& hostInfo,
     const std::string& regex);
 
-bool isDualStage(const std::map<int64_t, cfg::DsfNode>& dsfNodeMap);
-
 } // namespace facebook::fboss::utils
