@@ -245,6 +245,7 @@ add_library(trap_packet_utils
 target_link_libraries(trap_packet_utils
   fboss_types
   Folly::folly
+  acl_test_utils
   platform_config_cpp2
   switch_config_cpp2
   switch_state_cpp2
