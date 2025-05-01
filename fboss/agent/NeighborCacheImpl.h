@@ -129,8 +129,8 @@ class NeighborCacheImpl {
  private:
   bool isHwUpdateProtected();
   // These are used to program entries into the SwitchState
-  void programEntry(Entry* entry);
-  void
+  bool programEntry(Entry* entry);
+  bool
   programPendingEntry(Entry* entry, PortDescriptor port, bool force = false);
 
   SwSwitch::StateUpdateFn getUpdateFnToProgramEntryForVlan(Entry* entry);

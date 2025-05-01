@@ -95,7 +95,7 @@ bool NeighborCacheImpl<NTable>::isHwUpdateProtected() {
 }
 
 template <typename NTable>
-void NeighborCacheImpl<NTable>::programEntry(Entry* entry) {
+bool NeighborCacheImpl<NTable>::programEntry(Entry* entry) {
   SwSwitch::StateUpdateFn updateFn;
 
   auto switchType = sw_->getSwitchInfoTable().l3SwitchType();
@@ -128,13 +128,14 @@ void NeighborCacheImpl<NTable>::programEntry(Entry* entry) {
           << "Failed to program neighbor entry with hw failure protection "
           << entry->getFields().ip << " with error: " << e.what();
       sw_->stats()->neighborTableUpdateFailure();
-      throw FbossError("Failed to program neighbor entry");
+      return false;
     }
   } else {
     sw_->updateState(
         folly::to<std::string>("add neighbor ", entry->getFields().ip),
         std::move(updateFn));
   }
+  return true;
 }
 
 template <typename NTable>
@@ -311,7 +312,7 @@ SwSwitch::StateUpdateFn NeighborCacheImpl<NTable>::getUpdateFnToProgramEntry(
 }
 
 template <typename NTable>
-void NeighborCacheImpl<NTable>::programPendingEntry(
+bool NeighborCacheImpl<NTable>::programPendingEntry(
     Entry* entry,
     PortDescriptor port,
     bool force) {
@@ -349,13 +350,14 @@ void NeighborCacheImpl<NTable>::programPendingEntry(
           << "Failed to program pending neighbor entry with hw failure protection "
           << entry->getFields().ip << " with error: " << e.what();
       sw_->stats()->neighborTableUpdateFailure();
-      throw FbossError("Failed to program pending neighbor entry");
+      return false;
     }
   } else {
     sw_->updateStateNoCoalescing(
         folly::to<std::string>("add pending entry ", entry->getFields().ip),
         std::move(updateFn));
   }
+  return true;
 }
 
 template <typename NTable>
@@ -548,13 +550,9 @@ void NeighborCacheImpl<NTable>::setEntry(
       state,
       state::NeighborEntryType::DYNAMIC_ENTRY);
 
-  if (entry) {
-    try {
-      programEntry(entry);
-    } catch (const FbossError& e) {
-      removeEntry(ip);
-      XLOG(ERR) << e.what();
-    }
+  if (entry && !programEntry(entry)) {
+    XLOG(ERR) << "Failed to program entry: " << ip.str();
+    removeEntry(ip);
   }
 }
 
@@ -565,26 +563,22 @@ void NeighborCacheImpl<NTable>::setExistingEntry(
     PortDescriptor port,
     NeighborEntryState state) {
   auto entry = getCacheEntry(ip);
-  if (entry) {
-    auto changed = !entry->fieldsMatch(EntryFields(ip, mac, port, intfID_));
-    if (changed) {
-      // only program an entry if one exists and the fields have changed
-      try {
-        // make a copy of the entry to update the fields locally
-        auto entryCopy = std::make_unique<Entry>(
-            EntryFields(ip, mac, port, intfID_),
-            evb_,
-            cache_,
-            state,
-            entry->getType());
-        programEntry(entryCopy.get());
-        // update the cache entry with the new fields if hw update succeeds
-        entry->updateFields(EntryFields(ip, mac, port, intfID_));
-        entry->updateState(state);
+  if (entry && !entry->fieldsMatch(EntryFields(ip, mac, port, intfID_))) {
+    // only program an entry if one exists and the fields have changed
+    // make a copy of the entry to update the fields locally
+    auto entryCopy = std::make_unique<Entry>(
+        EntryFields(ip, mac, port, intfID_),
+        evb_,
+        cache_,
+        state,
+        entry->getType());
 
-      } catch (const FbossError& e) {
-        XLOG(ERR) << e.what();
-      }
+    if (programEntry(entryCopy.get())) {
+      // update the cache entry with the new fields if hw update succeeds
+      entry->updateFields(EntryFields(ip, mac, port, intfID_));
+      entry->updateState(state);
+    } else {
+      XLOG(ERR) << "Failed to set Existing entry: " << ip.str();
     }
   }
 }
@@ -695,15 +689,9 @@ void NeighborCacheImpl<NTable>::setPendingEntry(
       NeighborEntryState::INCOMPLETE,
       state::NeighborEntryType::DYNAMIC_ENTRY);
 
-  if (entry) {
-    try {
-      programPendingEntry(entry, port, force);
-
-    } catch (const FbossHwUpdateError& e) {
-      XLOG(ERR) << "Failed to program pending entry: " << e.what();
-      // remove the entry from cache if we failed to program it
-      removeEntry(ip);
-    }
+  if (entry && !programPendingEntry(entry, port, force)) {
+    XLOG(ERR) << "Failed to program pending entry: " << ip.str();
+    removeEntry(ip);
   }
 }
 
