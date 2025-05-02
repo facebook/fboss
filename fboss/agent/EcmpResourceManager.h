@@ -54,11 +54,18 @@ class EcmpGroupConsolidator {
   static auto constexpr kEcmpMakeBeforeBreakBuffer = 2;
 
  public:
-  explicit EcmpGroupConsolidator(uint32_t maxHwEcmpGroups)
+  explicit EcmpGroupConsolidator(
+      uint32_t maxHwEcmpGroups,
+      int compressionPenaltyThresholdPct = 0,
+      std::optional<cfg::SwitchingMode> backupEcmpGroupType = std::nullopt)
       // We keep a buffer of 2 for transient increment in ECMP groups when
       // pushing updates down to HW
-      : maxEcmpGroups_(maxHwEcmpGroups - kEcmpMakeBeforeBreakBuffer) {
+      : maxEcmpGroups_(maxHwEcmpGroups - kEcmpMakeBeforeBreakBuffer),
+        compressionPenaltyThresholdPct_(compressionPenaltyThresholdPct),
+        backupEcmpGroupType_(backupEcmpGroupType) {
     CHECK_GT(maxHwEcmpGroups, kEcmpMakeBeforeBreakBuffer);
+    CHECK_EQ(compressionPenaltyThresholdPct_, 0)
+        << " Group compression algo is WIP";
   }
   using NextHopGroupId = uint32_t;
   using NextHopGroupIds = boost::container::flat_set<NextHopGroupId>;
@@ -88,7 +95,6 @@ class EcmpGroupConsolidator {
   void routeDeleted(RouterID rid, const std::shared_ptr<Route<AddrT>>& removed);
   static uint32_t constexpr kMinNextHopGroupId = 1;
   NextHopGroupId findNextAvailableId() const;
-  uint32_t maxEcmpGroups_{0};
   std::map<RouteNextHopSet, NextHopGroupId> nextHopGroup2Id_;
   StdRefMap<NextHopGroupId, NextHopGroupInfo> nextHopGroupIdToInfo_;
   std::unordered_map<folly::CIDRNetwork, std::shared_ptr<NextHopGroupInfo>>
@@ -98,5 +104,9 @@ class EcmpGroupConsolidator {
   // Cached pre update state, will be used in case of roll back
   // if update fails
   std::optional<PreUpdateState> preUpdateState_;
+  // Knobs to control resource mgt policy
+  uint32_t maxEcmpGroups_{0};
+  int compressionPenaltyThresholdPct_{0};
+  std::optional<cfg::SwitchingMode> backupEcmpGroupType_;
 };
 } // namespace facebook::fboss
