@@ -188,6 +188,7 @@ void AgentEnsemble::startAgent(bool failHwCallsOnWarmboot) {
  * @return AgentConfig - The overridden agent configuration.
  */
 AgentConfig AgentEnsemble::createOverriddenAgentConfig() {
+  CHECK(initialConfig_ != cfg::SwitchConfig());
   auto testConfig = AgentConfig::fromFile(configFile_);
   cfg::AgentConfig newAgentConf;
 
