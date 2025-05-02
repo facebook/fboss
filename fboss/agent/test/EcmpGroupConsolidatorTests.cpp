@@ -71,6 +71,7 @@ class NextHopIdAllocatorTest : public ::testing::Test {
   HwSwitchMatcher hwMatcher() const {
     return HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(0)}));
   }
+  using NextHopGroupId = EcmpGroupConsolidator::NextHopGroupId;
   void consolidate(const std::shared_ptr<SwitchState>& state) {
     StateDelta delta(state_, state);
     consolidator_.consolidate(delta);
@@ -109,6 +110,15 @@ class NextHopIdAllocatorTest : public ::testing::Test {
     }
     consolidate(newState);
   }
+  std::set<NextHopGroupId> getNhopGroupIds() const {
+    auto nhop2Id = consolidator_.getNhopsToId();
+    std::set<NextHopGroupId> nhopIds;
+    std::for_each(
+        nhop2Id.begin(), nhop2Id.end(), [&nhopIds](const auto& nhopsAndId) {
+          nhopIds.insert(nhopsAndId.second);
+        });
+    return nhopIds;
+  }
   std::optional<EcmpGroupConsolidator::NextHopGroupId> getNhopId(
       const RouteNextHopSet& nhops) const {
     std::optional<EcmpGroupConsolidator::NextHopGroupId> nhopId;
@@ -119,7 +129,7 @@ class NextHopIdAllocatorTest : public ::testing::Test {
     return nhopId;
   }
   std::shared_ptr<SwitchState> state_;
-  static constexpr auto kEcmpGroupHwLimit = 7;
+  static constexpr auto kEcmpGroupHwLimit = 100;
   EcmpGroupConsolidator consolidator_{kEcmpGroupHwLimit};
 };
 
@@ -315,6 +325,44 @@ TEST_F(NextHopIdAllocatorTest, updateRouteNhopsMultipleTimes) {
     EXPECT_EQ(defaultNhopsId, 1);
     // All routes point to defaultNhops
     EXPECT_EQ(consolidator_.getRouteUsageCount(defaultNhopsId), routesBefore);
+  }
+}
+
+TEST_F(NextHopIdAllocatorTest, updateAllRouteNhops) {
+  RouteNextHopSet curNhops = defaultNhops();
+  {
+    auto newState = state_->clone();
+    auto fib6 = fib(newState);
+    auto routesBefore = fib6->size();
+    // Previously nhop group Id set was {1} and we updated all 10 routes. Since
+    // we account for both before and current nhop  group Ids when allocating
+    // next IDs, the IDs generated will be 2 - 11
+    std::set<NextHopGroupId> expectedNhopIds{2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
+    for (auto i = 0; i < routesBefore; ++i) {
+      curNhops.erase(curNhops.begin());
+      CHECK(curNhops.size());
+      fib6->updateNode(makeRoute(makePrefix(i), curNhops));
+    }
+    consolidate(newState);
+    EXPECT_EQ(getNhopGroupIds(), expectedNhopIds);
+  }
+  {
+    auto newState = state_->clone();
+    auto fib6 = fib(newState);
+    auto routesBefore = fib6->size();
+    // Previously nhop group Id set was {2, 3, 4, 5, 6, 7, 8, 9, 10, 11}
+    // and we updated all 10 routes. Since
+    // we account for both before and current nhop  group Ids when allocating
+    // next IDs, the IDs generated will be {1, 12 - 20}
+    std::set<NextHopGroupId> expectedNhopIds{
+        1, 12, 13, 14, 15, 16, 17, 18, 19, 20};
+    for (auto i = 0; i < routesBefore; ++i) {
+      curNhops.erase(curNhops.begin());
+      CHECK(curNhops.size());
+      fib6->updateNode(makeRoute(makePrefix(i), curNhops));
+    }
+    consolidate(newState);
+    EXPECT_EQ(getNhopGroupIds(), expectedNhopIds);
   }
 }
 
