@@ -178,7 +178,7 @@ const std::string getPrettyElapsedTime(const int64_t& start_time) {
   minutes = leftover / 60;
   leftover %= 60;
 
-  std::string pretty_output = "";
+  std::string pretty_output;
   if (days != 0) {
     pretty_output += std::to_string(days) + "d ";
   }
