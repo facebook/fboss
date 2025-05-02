@@ -117,6 +117,9 @@ service AgentHwTestCtrl {
   //tam utils
   void triggerParityError();
 
+  // AQM utils
+  i32 getEgressSharedPoolLimitBytes();
+
   // print diag
   void printDiagCmd(1: string cmd);
 
