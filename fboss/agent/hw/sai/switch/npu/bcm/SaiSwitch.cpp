@@ -951,9 +951,10 @@ void SaiSwitch::switchEventCallback(
 #if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
     case SAI_SWITCH_EVENT_TYPE_INTERRUPT_MASKED:
       getSwitchStats()->interruptMaskedEvent();
-      XLOG(WARN, 10000)
-          << "Interrupt masked notification received for interrupt ID "
-          << static_cast<int>(eventInfo->index);
+      // For debug purposes only, to avoid flood of msgs in case of a
+      // real issue in fleet.
+      XLOG(DBG4) << "Interrupt masked notification received for interrupt ID "
+                 << static_cast<int>(eventInfo->index);
       break;
 #endif
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_7)
