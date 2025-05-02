@@ -48,13 +48,13 @@ class NextHopGroupInfo {
   int routeUsageCount_{kInvalidRouteUsageCount};
 };
 
-class EcmpGroupConsolidator {
+class EcmpResourceManager {
   // Keep some buffer from HW limit for make before break
   // nature of ECMP.
   static auto constexpr kEcmpMakeBeforeBreakBuffer = 2;
 
  public:
-  explicit EcmpGroupConsolidator(
+  explicit EcmpResourceManager(
       uint32_t maxHwEcmpGroups,
       int compressionPenaltyThresholdPct = 0,
       std::optional<cfg::SwitchingMode> backupEcmpGroupType = std::nullopt)

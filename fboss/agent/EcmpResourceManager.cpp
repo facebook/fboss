@@ -24,7 +24,7 @@ DEFINE_bool(
 
 namespace facebook::fboss {
 
-std::vector<StateDelta> EcmpGroupConsolidator::consolidate(
+std::vector<StateDelta> EcmpResourceManager::consolidate(
     const StateDelta& delta) {
   std::vector<StateDelta> deltas;
   if (!FLAGS_consolidate_ecmp_groups ||
@@ -41,7 +41,7 @@ std::vector<StateDelta> EcmpGroupConsolidator::consolidate(
 }
 
 template <typename AddrT>
-void EcmpGroupConsolidator::routeAdded(
+void EcmpResourceManager::routeAdded(
     RouterID rid,
     const std::shared_ptr<Route<AddrT>>& added) {
   CHECK_EQ(rid, RouterID(0));
@@ -66,7 +66,7 @@ void EcmpGroupConsolidator::routeAdded(
 }
 
 template <typename AddrT>
-void EcmpGroupConsolidator::routeDeleted(
+void EcmpResourceManager::routeDeleted(
     RouterID rid,
     const std::shared_ptr<Route<AddrT>>& removed) {
   CHECK_EQ(rid, RouterID(0));
@@ -88,7 +88,7 @@ void EcmpGroupConsolidator::routeDeleted(
 }
 
 template <typename AddrT>
-void EcmpGroupConsolidator::processRouteUpdates(const StateDelta& delta) {
+void EcmpResourceManager::processRouteUpdates(const StateDelta& delta) {
   forEachChangedRoute<AddrT>(
       delta,
       [this](RouterID rid, const auto& oldRoute, const auto& newRoute) {
@@ -123,8 +123,8 @@ void EcmpGroupConsolidator::processRouteUpdates(const StateDelta& delta) {
       });
 }
 
-EcmpGroupConsolidator::NextHopGroupId
-EcmpGroupConsolidator::findNextAvailableId() const {
+EcmpResourceManager::NextHopGroupId EcmpResourceManager::findNextAvailableId()
+    const {
   std::unordered_set<NextHopGroupId> allocatedIds;
   auto fillAllocatedIds = [&allocatedIds](const auto& nhopGroup2Id) {
     for (const auto& [_, id] : nhopGroup2Id) {
@@ -144,19 +144,18 @@ EcmpGroupConsolidator::findNextAvailableId() const {
   throw FbossError("Unable to find id to allocate for new next hop group");
 }
 
-size_t EcmpGroupConsolidator::getRouteUsageCount(
-    NextHopGroupId nhopGrpId) const {
+size_t EcmpResourceManager::getRouteUsageCount(NextHopGroupId nhopGrpId) const {
   auto grpInfo = nextHopGroupIdToInfo_.ref(nhopGrpId);
   if (grpInfo) {
     return grpInfo->getRouteUsageCount();
   }
   throw FbossError("Unable to find nhop group ID: ", nhopGrpId);
 }
-void EcmpGroupConsolidator::updateDone(const StateDelta& /*delta*/) {
+void EcmpResourceManager::updateDone(const StateDelta& /*delta*/) {
   preUpdateState_.reset();
 }
 
-void EcmpGroupConsolidator::updateFailed(const StateDelta& delta) {
+void EcmpResourceManager::updateFailed(const StateDelta& delta) {
   CHECK(preUpdateState_.has_value());
   nextHopGroup2Id_ = preUpdateState_->nextHopGroup2Id;
   mergedGroups_ = preUpdateState_->mergedGroups;

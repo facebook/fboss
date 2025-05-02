@@ -71,7 +71,7 @@ class NextHopIdAllocatorTest : public ::testing::Test {
   HwSwitchMatcher hwMatcher() const {
     return HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(0)}));
   }
-  using NextHopGroupId = EcmpGroupConsolidator::NextHopGroupId;
+  using NextHopGroupId = EcmpResourceManager::NextHopGroupId;
   void consolidate(const std::shared_ptr<SwitchState>& state) {
     StateDelta delta(state_, state);
     consolidator_.consolidate(delta);
@@ -119,9 +119,9 @@ class NextHopIdAllocatorTest : public ::testing::Test {
         });
     return nhopIds;
   }
-  std::optional<EcmpGroupConsolidator::NextHopGroupId> getNhopId(
+  std::optional<EcmpResourceManager::NextHopGroupId> getNhopId(
       const RouteNextHopSet& nhops) const {
-    std::optional<EcmpGroupConsolidator::NextHopGroupId> nhopId;
+    std::optional<EcmpResourceManager::NextHopGroupId> nhopId;
     auto nitr = consolidator_.getNhopsToId().find(nhops);
     if (nitr != consolidator_.getNhopsToId().end()) {
       nhopId = nitr->second;
@@ -130,7 +130,7 @@ class NextHopIdAllocatorTest : public ::testing::Test {
   }
   std::shared_ptr<SwitchState> state_;
   static constexpr auto kEcmpGroupHwLimit = 100;
-  EcmpGroupConsolidator consolidator_{kEcmpGroupHwLimit};
+  EcmpResourceManager consolidator_{kEcmpGroupHwLimit};
 };
 
 TEST_F(NextHopIdAllocatorTest, init) {
