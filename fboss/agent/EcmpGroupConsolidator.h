@@ -54,7 +54,7 @@ class EcmpGroupConsolidator {
   static auto constexpr kEcmpMakeBeforeBreakBuffer = 2;
 
  public:
-  EcmpGroupConsolidator(uint32_t maxHwEcmpGroups)
+  explicit EcmpGroupConsolidator(uint32_t maxHwEcmpGroups)
       // We keep a buffer of 2 for transient increment in ECMP groups when
       // pushing updates down to HW
       : maxEcmpGroups_(maxHwEcmpGroups - kEcmpMakeBeforeBreakBuffer) {
