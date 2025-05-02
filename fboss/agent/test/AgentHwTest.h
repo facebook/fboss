@@ -253,8 +253,6 @@ class AgentHwTest : public ::testing::Test {
       const std::string& name,
       bool transaction);
 
-  void dumpConfigWithOverriddenGflags(AgentConfig* agentConfig) const;
-
   /*
    * Derived classes have the option to not run verify on
    * certain DUTs. E.g. non controlling nodes in Multinode setups

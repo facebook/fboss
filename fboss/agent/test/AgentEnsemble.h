@@ -364,6 +364,8 @@ class AgentEnsemble : public TestEnsembleIf {
    */
   AgentConfig createOverriddenAgentConfig();
 
+  void dumpConfigWithOverriddenGflags(AgentConfig* agentConfig) const;
+
   cfg::SwitchConfig initialConfig_;
   std::unique_ptr<std::thread> asyncInitThread_{nullptr};
   std::vector<PortID> masterLogicalPortIds_; /* all ports */

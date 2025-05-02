@@ -40,6 +40,7 @@ std::optional<facebook::fboss::cfg::StreamType> kStreamTypeOpt{std::nullopt};
 static const int kMsWaitForStatsRetry = 2000;
 constexpr auto kConfig = "config";
 constexpr auto kMultiSwitch = "multi_switch";
+constexpr auto kOverriddenAgentConfigFile = "overridden_agent.conf";
 } // namespace
 
 namespace facebook::fboss {
@@ -124,7 +125,9 @@ void AgentEnsemble::setupEnsemble(
   }
 
   auto newAgentConfig = createOverriddenAgentConfig();
+
   dumpConfigForHwAgent(&newAgentConfig);
+  dumpConfigWithOverriddenGflags(&newAgentConfig);
 
   // Setup LinkStateToggler and start agent
   if (hwFeaturesDesired & HwSwitch::FeaturesDesired::LINKSCAN_DESIRED &&
@@ -194,6 +197,29 @@ AgentConfig AgentEnsemble::createOverriddenAgentConfig() {
   newAgentConf.platform() = *testConfig->thrift.platform();
 
   return AgentConfig(newAgentConf);
+}
+
+void AgentEnsemble::dumpConfigWithOverriddenGflags(
+    AgentConfig* inputAgentConfig) const {
+  cfg::AgentConfig newAgentConfig;
+  std::map<std::string, std::string> defaultCommandLineArgs;
+  std::vector<gflags::CommandLineFlagInfo> flags;
+  gflags::GetAllFlags(&flags);
+  for (const auto& flag : flags) {
+    // Skip writing flags if 1) default value, and 2) config itself.
+    if (!flag.is_default && flag.name != kConfig) {
+      defaultCommandLineArgs.emplace(flag.name, flag.current_value);
+    }
+  }
+
+  *newAgentConfig.defaultCommandLineArgs() = defaultCommandLineArgs;
+  *newAgentConfig.sw() = *inputAgentConfig->thrift.sw();
+  *newAgentConfig.platform() = *inputAgentConfig->thrift.platform();
+  auto agentConfig = AgentConfig(newAgentConfig);
+  utilCreateDir(AgentDirectoryUtil().agentEnsembleConfigDir());
+  agentConfig.dumpConfig(
+      AgentDirectoryUtil().agentEnsembleConfigDir() +
+      kOverriddenAgentConfigFile);
 }
 
 void AgentEnsemble::writeConfig(const cfg::SwitchConfig& config) {
