@@ -586,7 +586,6 @@ bool isDdpError(sai_switch_error_type_t type) {
   }
   return false;
 }
-#endif
 
 bool isErrorInterrupt(sai_switch_error_type_t type) {
   switch (type) {
@@ -598,7 +597,6 @@ bool isErrorInterrupt(sai_switch_error_type_t type) {
     case SAI_SWITCH_ERROR_TYPE_DDP_EXT_MEM_ERR_PKUP_LAST_BUFF_CRC_ERR_INT:
     case SAI_SWITCH_ERROR_TYPE_DDP_EXT_MEM_ERR_PKUP_PACKET_CRC_ERR_INT:
 #endif
-#if defined(BRCM_SAI_SDK_GTE_11_0)
     case SAI_SWITCH_ERROR_TYPE_ALIGNER_ECC_ECC_2B_ERR_INT:
     case SAI_SWITCH_ERROR_TYPE_ALIGNER_FIFO_OVERFLOW_INT:
     case SAI_SWITCH_ERROR_TYPE_ALIGNER_FIFO_UNDERFLOW_INT:
@@ -626,7 +624,6 @@ bool isErrorInterrupt(sai_switch_error_type_t type) {
     case SAI_SWITCH_ERROR_TYPE_FQP_TXQ_WRITE_CONJESTED_INT:
     case SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_RCM_ALL_CONTEXTS_TAKEN_DISCARD_ERR:
       return true;
-#endif
     default:
       break;
   }
@@ -649,7 +646,6 @@ void incrementJ3InterruptCounter(
         switchStats->dramError();
         break;
 #endif
-#if defined(BRCM_SAI_SDK_DNX_GTE_11_7)
       case SAI_SWITCH_ERROR_TYPE_ALIGNER_ECC_ECC_2B_ERR_INT:
       case SAI_SWITCH_ERROR_TYPE_ALIGNER_FIFO_OVERFLOW_INT:
       case SAI_SWITCH_ERROR_TYPE_ALIGNER_FIFO_UNDERFLOW_INT:
@@ -684,7 +680,6 @@ void incrementJ3InterruptCounter(
       case SAI_SWITCH_ERROR_TYPE_FMAC_ECC_ECC_2B_ERR_INT:
         switchStats->fabricLinkError();
         break;
-#endif
       default:
         // TODO: Add a counter for unhandled error interrupt
         XLOG_EVERY_MS(WARN, 5000)
@@ -700,7 +695,6 @@ void incrementJ3InterruptCounter(
         switchStats->dramWarning();
         break;
 #endif
-#if defined(BRCM_SAI_SDK_GTE_11_0)
       case SAI_SWITCH_ERROR_TYPE_ALIGNER_ECC_ECC_1B_ERR_INT:
       case SAI_SWITCH_ERROR_TYPE_ALIGNER_ERROR_ECC:
       case SAI_SWITCH_ERROR_TYPE_ALIGNER_ETPP_EOP_DEC_ABOVE_TH_INT:
@@ -796,7 +790,6 @@ void incrementJ3InterruptCounter(
       case SAI_SWITCH_ERROR_TYPE_ITPP_PSIZE_TYPE_4_MISMATCH:
         switchStats->ingressTmWarning();
         break;
-#endif
       default:
         // TODO: Add a counter for unhandled warning interrupt
         XLOG_EVERY_MS(WARN, 5000)
@@ -805,6 +798,7 @@ void incrementJ3InterruptCounter(
     }
   }
 }
+#endif
 
 } // namespace
 
