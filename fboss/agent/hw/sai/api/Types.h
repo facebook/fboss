@@ -106,6 +106,10 @@ using SaiPortDescriptor = BasePortDescriptor;
 using PortDescriptorSaiId =
     PortDescriptorTemplate<PortSaiId, LagSaiId, SystemPortSaiId>;
 
+using SaiTimeSpec = std::timespec;
+SaiTimeSpec fromSaiTimeSpec(sai_timespec_t sai_timespec);
+void toSaiTimeSpec(const SaiTimeSpec& spec, sai_timespec_t& sai_timespec);
+
 } // namespace facebook::fboss
 
 namespace std {
