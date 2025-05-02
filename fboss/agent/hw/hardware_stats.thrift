@@ -367,6 +367,17 @@ struct HwSwitchCreditStats {
   1: optional i64 deletedCreditBytes;
 }
 
+struct HwSwitchPipelineStats {
+  1: map<i16, i64> rxCells = {};
+  2: map<i16, i64> txCells = {};
+  3: map<i16, i64> rxBytes = {};
+  4: map<i16, i64> txBytes = {};
+  5: map<i16, i64> rxWatermarkLevels = {};
+  6: map<i16, i64> txWatermarkLevels = {};
+  7: map<i16, i64> curOccupancyBytes = {};
+  8: map<i16, i64> globalDrops = {};
+}
+
 struct HwSwitchFb303GlobalStats {
   1: i64 tx_pkt_allocated;
   2: i64 tx_pkt_freed;
