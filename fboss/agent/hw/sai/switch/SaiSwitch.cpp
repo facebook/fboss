@@ -269,6 +269,14 @@ void __gTxReadyStatusChangeNotification(
   __gSaiIdToSwitch.begin()->second->txReadyStatusChangeCallbackTopHalf(
       SwitchSaiId{switch_id});
 }
+
+void __gSwitchAsicSdkHealthNotificationCallBack(
+    sai_object_id_t /*switch_id*/,
+    sai_switch_asic_sdk_health_severity_t /*severity*/,
+    sai_timespec_t /*timestamp*/,
+    sai_switch_asic_sdk_health_category_t /*category*/,
+    sai_switch_health_data_t /*data*/,
+    const sai_u8_list_t /*description*/) {}
 #endif
 
 PortSaiId SaiSwitch::getCPUPortSaiId() const {
@@ -3382,6 +3390,13 @@ void SaiSwitch::unregisterCallbacksLocked(
 #endif
   }
 
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::SWITCH_ASIC_SDK_HEALTH_NOTIFY)) {
+#if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
+    switchApi.unregisterSwitchAsicSdkHealthEventCallback(saiSwitchId_);
+#endif
+  }
+
   if (platform_->getAsic()->isSupported(HwAsic::Feature::BRIDGE_PORT_8021Q)) {
     switchApi.unregisterFdbEventCallback(saiSwitchId_);
   }
@@ -3746,6 +3761,14 @@ void SaiSwitch::switchRunStateChangedImplLocked(
             saiSwitchId_, (void*)__gSwitchEventCallback);
 #else
         switchApi.registerTamEventCallback(saiSwitchId_, __gTamEventCallback);
+#endif
+      }
+      if (platform_->getAsic()->isSupported(
+              HwAsic::Feature::SWITCH_ASIC_SDK_HEALTH_NOTIFY)) {
+#if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
+        auto& switchApi = SaiApiTable::getInstance()->switchApi();
+        switchApi.registerSwitchAsicSdkHealthEventCallback(
+            saiSwitchId_, __gSwitchAsicSdkHealthNotificationCallBack);
 #endif
       }
 

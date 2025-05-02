@@ -113,9 +113,22 @@ void SwitchApi::registerTxReadyStatusChangeCallback(
       tx_ready_status_cb ? "register" : "unregister",
       " tx ready status change callback");
 }
+
 void SwitchApi::registerSwitchAsicSdkHealthEventCallback(
-    const SwitchSaiId& /*id*/,
-    sai_switch_asic_sdk_health_event_notification_fn /*function*/) const {}
+    const SwitchSaiId& id,
+    sai_switch_asic_sdk_health_event_notification_fn function) const {
+  sai_attribute_t attr;
+  attr.id = SAI_SWITCH_ATTR_SWITCH_ASIC_SDK_HEALTH_EVENT_NOTIFY;
+  attr.value.ptr = (void*)function;
+
+  auto rv = _setAttribute(id, &attr);
+  saiApiCheckError(
+      rv,
+      ApiType,
+      "Unable to ",
+      function ? "register" : "unregister",
+      " switch asic sdk health event  notify callback");
+}
 #endif
 
 #if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
