@@ -55,6 +55,7 @@ DECLARE_int32(stat_publish_interval_ms);
 DECLARE_int32(hwagent_port_base);
 DECLARE_bool(force_init_fp);
 DECLARE_bool(flowletSwitchingEnable);
+DECLARE_bool(enable_ecmp_random_spray);
 DECLARE_bool(dlbResourceCheckEnable);
 DECLARE_bool(disable_neighbor_solicitation);
 DECLARE_bool(disable_looped_fabric_ports);

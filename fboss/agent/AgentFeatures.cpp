@@ -111,6 +111,11 @@ DEFINE_bool(
     false,
     "Flag to turn on flowlet switching for DLB");
 
+DEFINE_bool(
+    enable_ecmp_random_spray,
+    false,
+    "Flag to turn on backup flowlet switching for DLB");
+
 // TODO (ravi)
 // This is more a safety tool for fast rollback if RTSWs run into an issue
 DEFINE_bool(

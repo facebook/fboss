@@ -478,7 +478,12 @@ bool BcmEcmpEgress::getDynamicEcmpParams(
 
   // if ECMP Id >200128, use backup switching mode
   if (id_ >= kDlbEcmpMaxId) {
-    XLOG(WARN) << "Flowlet switching not updated due to limit: " << id_;
+    if (FLAGS_enable_ecmp_random_spray) {
+      obj.dynamic_mode =
+          utility::getFlowletDynamicMode(bcmFlowletConfig.backupSwitchingMode);
+      XLOG(WARN) << "ECMP Id >=128: " << id_
+                 << ", setting backup switching mode" << obj.dynamic_mode;
+    }
     return flowletConfigUpdated;
   }
 

@@ -158,6 +158,7 @@ cfg::FlowletSwitchingConfig getDefaultFlowletSwitchingConfig(
   flowletCfg.dynamicEgressMinThresholdBytes() = 1000;
   flowletCfg.dynamicEgressMaxThresholdBytes() = 10000;
   flowletCfg.switchingMode() = switchingMode;
+  flowletCfg.backupSwitchingMode() = cfg::SwitchingMode::PER_PACKET_RANDOM;
   return flowletCfg;
 }
 
