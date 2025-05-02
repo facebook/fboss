@@ -25,8 +25,11 @@ class NextHopGroupInfo {
  public:
   using NextHopGroupId = uint32_t;
   using NextHopGroupItr = std::map<RouteNextHopSet, NextHopGroupId>::iterator;
-  NextHopGroupInfo(NextHopGroupId id, NextHopGroupItr ngItr)
-      : id_(id), ngItr_(ngItr) {}
+  NextHopGroupInfo(
+      NextHopGroupId id,
+      NextHopGroupItr ngItr,
+      bool isBackupEcmpGroupType = false)
+      : id_(id), ngItr_(ngItr), isBackupEcmpGroupType_(isBackupEcmpGroupType) {}
   NextHopGroupId getID() const {
     return id_;
   }
@@ -40,11 +43,15 @@ class NextHopGroupInfo {
   void decRouteUsageCount() {
     --routeUsageCount_;
   }
+  bool isBackupEcmpGroupType() const {
+    return isBackupEcmpGroupType_;
+  }
 
  private:
   static constexpr int kInvalidRouteUsageCount = 0;
   NextHopGroupId id_;
   NextHopGroupItr ngItr_;
+  bool isBackupEcmpGroupType_{false};
   int routeUsageCount_{kInvalidRouteUsageCount};
 };
 
