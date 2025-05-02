@@ -659,14 +659,20 @@ void BcmEcmpEgress::program() {
               hw_->getUnit(), &obj, index, pathsArray);
         }
         bcmCheckError(ret, "failed to re-program L3 ECMP egress object ", id_);
-        setEgressEcmpMemberStatus(hw_, egressId2Weight_);
+        if (obj.dynamic_mode == BCM_L3_ECMP_DYNAMIC_MODE_NORMAL ||
+            obj.dynamic_mode == BCM_L3_ECMP_DYNAMIC_MODE_OPTIMAL) {
+          setEgressEcmpMemberStatus(hw_, egressId2Weight_);
+        }
       }
     }
   }
   CHECK_NE(id_, INVALID);
   // Enable each ECMP member to be DLB enabled on TH3 and TH4
   if (FLAGS_flowletSwitchingEnable && enableFlowletMemberStatus) {
-    setEgressEcmpMemberStatus(hw_, egressId2Weight_);
+    if (obj.dynamic_mode == BCM_L3_ECMP_DYNAMIC_MODE_NORMAL ||
+        obj.dynamic_mode == BCM_L3_ECMP_DYNAMIC_MODE_OPTIMAL) {
+      setEgressEcmpMemberStatus(hw_, egressId2Weight_);
+    }
   }
 }
 
@@ -1355,7 +1361,10 @@ bool BcmEcmpEgress::updateEcmpDynamicMode() {
     }
     bcmCheckError(ret, "failed to re-program L3 ECMP egress object ", id_);
 
-    setEgressEcmpMemberStatus(hw_, egressId2Weight_);
+    if (obj.dynamic_mode == BCM_L3_ECMP_DYNAMIC_MODE_NORMAL ||
+        obj.dynamic_mode == BCM_L3_ECMP_DYNAMIC_MODE_OPTIMAL) {
+      setEgressEcmpMemberStatus(hw_, egressId2Weight_);
+    }
   } else {
     // if we didn't adjust for dynamic mode, lets skip
     updateComplete = false;
