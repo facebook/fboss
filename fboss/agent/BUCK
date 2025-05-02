@@ -703,9 +703,9 @@ cpp_library(
 )
 
 cpp_library(
-    name = "ecmp_consolidator",
+    name = "ecmp_resource_manager",
     srcs = [
-        "EcmpGroupConsolidator.cpp",
+        "EcmpResourceManager.cpp",
     ],
     exported_deps = [
         ":fib_helpers",

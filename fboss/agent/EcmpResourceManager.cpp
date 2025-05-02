@@ -8,7 +8,7 @@
  *
  */
 
-#include "fboss/agent/EcmpGroupConsolidator.h"
+#include "fboss/agent/EcmpResourceManager.h"
 
 #include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/state/Route.h"

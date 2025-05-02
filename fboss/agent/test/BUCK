@@ -946,12 +946,12 @@ cpp_unittest(
 )
 
 cpp_unittest(
-    name = "ecmp_consolidator_test",
+    name = "ecmp_resource_manager_test",
     srcs = [
-        "EcmpGroupConsolidatorTests.cpp",
+        "EcmpResourceManagerTests.cpp",
     ],
     deps = [
-        "//fboss/agent:ecmp_consolidator",
+        "//fboss/agent:ecmp_resource_manager",
         "//fboss/agent:fboss-types",
         "//fboss/agent/state:state",
         "//folly:network_address",
