@@ -728,22 +728,31 @@ shared_ptr<SwitchState> publishAndApplyConfig(
     const shared_ptr<SwitchState>& state,
     cfg::SwitchConfig* config,
     const Platform* platform,
-    RoutingInformationBase* rib) {
+    RoutingInformationBase* rib,
+    PlatformMapping* platformMapping) {
   if (config->switchSettings()->switchIdToSwitchInfo()->empty()) {
     config->switchSettings()->switchIdToSwitchInfo() = {
         {0, createSwitchInfo(cfg::SwitchType::NPU)}};
   }
   return publishAndApplyConfig(
-      state, (const cfg::SwitchConfig*)config, platform, rib);
+      state, (const cfg::SwitchConfig*)config, platform, rib, platformMapping);
 }
 
 shared_ptr<SwitchState> publishAndApplyConfig(
     const shared_ptr<SwitchState>& state,
     const cfg::SwitchConfig* config,
     const Platform* platform,
-    RoutingInformationBase* rib) {
+    RoutingInformationBase* rib,
+    PlatformMapping* platformMapping) {
   state->publish();
-  auto platformMapping = std::make_unique<MockPlatformMapping>();
+
+  // Create a temp mock platform mapping if none is passed in.
+  std::unique_ptr<MockPlatformMapping> mockPlatformMapping;
+  if (platformMapping == nullptr) {
+    mockPlatformMapping = std::make_unique<MockPlatformMapping>();
+    platformMapping = mockPlatformMapping.get();
+  }
+
   auto hwAsicTable = HwAsicTable(
       config->switchSettings()->switchIdToSwitchInfo()->size()
           ? *config->switchSettings()->switchIdToSwitchInfo()
@@ -755,7 +764,7 @@ shared_ptr<SwitchState> publishAndApplyConfig(
       state,
       config,
       platform->supportsAddRemovePort(),
-      platformMapping.get(),
+      platformMapping,
       &hwAsicTable,
       rib);
 }

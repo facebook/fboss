@@ -115,13 +115,15 @@ std::shared_ptr<SwitchState> publishAndApplyConfig(
     const std::shared_ptr<SwitchState>& state,
     const cfg::SwitchConfig* config,
     const Platform* platform,
-    RoutingInformationBase* rib = nullptr);
+    RoutingInformationBase* rib = nullptr,
+    PlatformMapping* platformMapping = nullptr);
 
 std::shared_ptr<SwitchState> publishAndApplyConfig(
     const std::shared_ptr<SwitchState>& state,
     cfg::SwitchConfig* config,
     const Platform* platform,
-    RoutingInformationBase* rib = nullptr);
+    RoutingInformationBase* rib = nullptr,
+    PlatformMapping* platformMapping = nullptr);
 
 /*
  * Create a SwSwitch for testing purposes, with the specified initial state.
