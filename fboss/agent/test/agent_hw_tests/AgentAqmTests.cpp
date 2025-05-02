@@ -862,6 +862,14 @@ class AgentAqmWredDropTest : public AgentAqmTest {
   }
 };
 
+class AgentAqmEcnOnlyTest : public AgentAqmTest {
+ public:
+  std::vector<production_features::ProductionFeature>
+  getProductionFeaturesVerified() const override {
+    return {production_features::ProductionFeature::ECN};
+  }
+};
+
 TEST_F(AgentAqmTest, verifyEct0) {
   runTest(kECT0, true /* enableWred */, true /* enableEcn */);
 }
