@@ -92,7 +92,6 @@ class NextHopIdAllocatorTest : public ::testing::Test {
     CHECK(false) << " Should never get here";
   }
   void SetUp() override {
-    FLAGS_consolidate_ecmp_groups = true;
     state_ = std::make_shared<SwitchState>();
     auto fibContainer =
         std::make_shared<ForwardingInformationBaseContainer>(RouterID(0));

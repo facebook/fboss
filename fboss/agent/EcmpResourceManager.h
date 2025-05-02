@@ -15,8 +15,6 @@
 #include <boost/container/flat_set.hpp>
 #include <memory>
 
-DECLARE_bool(consolidate_ecmp_groups);
-
 namespace facebook::fboss {
 class StateDelta;
 class SwitchState;
