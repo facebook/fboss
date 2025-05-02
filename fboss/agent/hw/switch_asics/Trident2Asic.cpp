@@ -199,6 +199,7 @@ bool Trident2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_HOST_MISS_TRAP:
     case HwAsic::Feature::CPU_TX_PACKET_REQUIRES_VLAN_TAG:
     case HwAsic::Feature::DRAM_DATAPATH_PACKET_ERROR_STATS:
+    case HwAsic::Feature::SWITCH_ASIC_SDK_HEALTH_NOTIFY:
       return false;
   }
   return false;
