@@ -113,6 +113,9 @@ void SwitchApi::registerTxReadyStatusChangeCallback(
       tx_ready_status_cb ? "register" : "unregister",
       " tx ready status change callback");
 }
+void SwitchApi::registerSwitchAsicSdkHealthEventCallback(
+    const SwitchSaiId& /*id*/,
+    sai_switch_asic_sdk_health_event_notification_fn /*function*/) const {}
 #endif
 
 #if defined(BRCM_SAI_SDK_DNX_GTE_12_0)

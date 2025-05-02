@@ -1082,6 +1082,16 @@ class SwitchApi : public SaiApi<SwitchApi> {
   }
 #endif
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
+  void registerSwitchAsicSdkHealthEventCallback(
+      const SwitchSaiId& id,
+      sai_switch_asic_sdk_health_event_notification_fn function) const;
+
+  void unregisterSwitchAsicSdkHealthEventCallback(SwitchSaiId id) const {
+    registerSwitchAsicSdkHealthEventCallback(id, nullptr);
+  }
+#endif
+
  private:
   sai_status_t _create(
       SwitchSaiId* id,
