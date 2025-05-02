@@ -34,6 +34,7 @@ bool verifyEcmpForFlowletSwitching(
 bool verifyEcmpForNonFlowlet(
     const facebook::fboss::HwSwitch* hw,
     const folly::CIDRNetwork& routePrefix,
+    const cfg::FlowletSwitchingConfig& flowletCfg,
     const bool expectFlowsetFree);
 
 bool validatePortFlowletQuality(

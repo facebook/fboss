@@ -190,6 +190,7 @@ bool verifyEcmpForFlowletSwitching(
 bool verifyEcmpForNonFlowlet(
     const HwSwitch* hw,
     const folly::CIDRNetwork& ip,
+    const cfg::FlowletSwitchingConfig& /* unused */,
     const bool flowletEnable) {
   bool isVerified = true;
 

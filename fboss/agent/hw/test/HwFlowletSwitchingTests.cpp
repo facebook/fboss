@@ -768,7 +768,9 @@ TEST_F(HwArsSprayTest, ValidateMaxEcmpIdFlowletUpdate) {
     }
     // verify the ECMP Id more than Max dlb Ecmp Id
     // not enabled with flowlet config and flowset available is zero.
-    utility::verifyEcmpForNonFlowlet(getHwSwitch(), kAddr1Prefix, false);
+    auto cfg = initialConfig();
+    utility::verifyEcmpForNonFlowlet(
+        getHwSwitch(), kAddr1Prefix, *cfg.flowletSwitchingConfig(), false);
   };
 
   auto verify = [&]() {
@@ -786,7 +788,9 @@ TEST_F(HwArsSprayTest, ValidateMaxEcmpIdFlowletUpdate) {
           {RoutePrefixV6{
               folly::IPAddressV6(folly::sformat("{}:{:x}::", kAddr4, i)), 64}});
     }
-    utility::verifyEcmpForNonFlowlet(getHwSwitch(), kAddr1Prefix, true);
+    auto cfg = initialConfig();
+    utility::verifyEcmpForNonFlowlet(
+        getHwSwitch(), kAddr1Prefix, *cfg.flowletSwitchingConfig(), true);
   };
   verifyAcrossWarmBoots(setup, verify);
 }

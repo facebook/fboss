@@ -158,11 +158,14 @@ void BcmEgressManager::processFlowletSwitchingConfigChanged(
         newFlowletSwitching->getFlowletTableSize();
     tmpFlowletConfig.maxLinks = newFlowletSwitching->getMaxLinks();
     tmpFlowletConfig.switchingMode = newFlowletSwitching->getSwitchingMode();
+    tmpFlowletConfig.backupSwitchingMode =
+        newFlowletSwitching->getBackupSwitchingMode();
   } else {
     tmpFlowletConfig.inactivityIntervalUsecs = 0;
     tmpFlowletConfig.flowletTableSize = 0;
     tmpFlowletConfig.maxLinks = 0;
     tmpFlowletConfig.switchingMode = cfg::SwitchingMode::FIXED_ASSIGNMENT;
+    tmpFlowletConfig.backupSwitchingMode = cfg::SwitchingMode::FIXED_ASSIGNMENT;
   }
   // take the write lock
   *bcmFlowletConfig_.wlock() = tmpFlowletConfig;
