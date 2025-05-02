@@ -10,17 +10,21 @@
 
 #include "fboss/agent/test/utils/AqmTestUtils.h"
 
+#include <cstdint>
 #include <tuple>
+
+#include <gtest/gtest.h>
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_constants.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include "fboss/agent/if/gen-cpp2/AgentHwTestCtrl.h"
+#include "fboss/agent/if/gen-cpp2/AgentHwTestCtrlAsyncClient.h"
 #include "fboss/agent/test/TestEnsembleIf.h"
 #include "fboss/agent/test/utils/PortTestUtils.h"
+#include "fboss/agent/types.h"
 #include "fboss/lib/CommonUtils.h"
-
-#include <gtest/gtest.h>
 
 namespace {
 static constexpr auto kJerichoWordSize{16};
@@ -175,6 +179,29 @@ double getAlphaFromScalingFactor(
     cfg::MMUScalingFactor scalingFactor) {
   int powof = asic->getBufferDynThreshFromScalingFactor(scalingFactor);
   return pow(2, powof);
+}
+
+uint32_t getQueueLimitBytes(
+    const HwAsic* asic,
+    std::shared_ptr<apache::thrift::Client<utility::AgentHwTestCtrl>> client,
+    std::optional<cfg::MMUScalingFactor> queueScalingFactor) {
+  uint32_t queueLimitBytes{0};
+  if (queueScalingFactor.has_value()) {
+    // Dynamic queue limit for this platform!
+    double alpha = getAlphaFromScalingFactor(asic, queueScalingFactor.value());
+    uint32_t sharedPoolLimitBytes{0};
+    if (asic->isSupported(
+            HwAsic::Feature::EGRESS_POOL_AVAILABLE_SIZE_ATTRIBUTE_SUPPORTED)) {
+      sharedPoolLimitBytes = client->sync_getEgressSharedPoolLimitBytes();
+    } else {
+      sharedPoolLimitBytes = asic->getMMUSizeBytes();
+    }
+    queueLimitBytes =
+        static_cast<uint32_t>(sharedPoolLimitBytes * alpha / (1 + alpha));
+  } else {
+    queueLimitBytes = asic->getStaticQueueLimitBytes();
+  }
+  return queueLimitBytes;
 }
 
 HwPortStats sendPacketsWithQueueBuildup(
