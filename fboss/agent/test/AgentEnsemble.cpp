@@ -69,7 +69,7 @@ void AgentEnsemble::setupEnsemble(
   }
 
   auto agentConf = AgentConfig::fromFile(configFile_);
-  dumpConfigForHwAgent(agentConf.get());
+
   overrideConfigFlag(configFile_);
   createSwitch(std::move(agentConf), hwFeaturesDesired, kPlatformInitFn);
 
@@ -123,6 +123,9 @@ void AgentEnsemble::setupEnsemble(
     initialConfig_ = *(AgentConfig::fromFile(configFile_)->thrift.sw());
   }
 
+  auto newAgentConfig = createOverriddenAgentConfig();
+  dumpConfigForHwAgent(&newAgentConfig);
+
   // Setup LinkStateToggler and start agent
   if (hwFeaturesDesired & HwSwitch::FeaturesDesired::LINKSCAN_DESIRED &&
       disableLinkStateToggler == false) {
@@ -172,6 +175,25 @@ void AgentEnsemble::startAgent(bool failHwCallsOnWarmboot) {
       // During warmboot, the ports are already up.
       applyNewConfig(initialConfig_);
   }
+}
+
+/**
+ * Creates an overridden AgentConfig object by incorporating the overridden
+ * initial configuration with the platform and command line arguments from the
+ * test configuration in configerator.
+ *
+ * @return AgentConfig - The overridden agent configuration.
+ */
+AgentConfig AgentEnsemble::createOverriddenAgentConfig() {
+  auto testConfig = AgentConfig::fromFile(configFile_);
+  cfg::AgentConfig newAgentConf;
+
+  newAgentConf.defaultCommandLineArgs() =
+      *testConfig->thrift.defaultCommandLineArgs();
+  newAgentConf.sw() = initialConfig_;
+  newAgentConf.platform() = *testConfig->thrift.platform();
+
+  return AgentConfig(newAgentConf);
 }
 
 void AgentEnsemble::writeConfig(const cfg::SwitchConfig& config) {

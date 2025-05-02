@@ -355,6 +355,15 @@ class AgentEnsemble : public TestEnsembleIf {
       uint64_t desiredBps,
       int secondsToWaitPerIteration = 2);
 
+  /**
+   * Creates an overridden AgentConfig object by incorporating the overridden
+   * initial configuration with the platform and command line arguments from the
+   * test configuration in configerator.
+   *
+   * @return AgentConfig - The overridden agent configuration.
+   */
+  AgentConfig createOverriddenAgentConfig();
+
   cfg::SwitchConfig initialConfig_;
   std::unique_ptr<std::thread> asyncInitThread_{nullptr};
   std::vector<PortID> masterLogicalPortIds_; /* all ports */
