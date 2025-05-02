@@ -31,6 +31,7 @@ std::vector<StateDelta> EcmpGroupConsolidator::consolidate(
       DeltaFunctions::isEmpty(delta.getFibsDelta())) {
     deltas.emplace_back(StateDelta(delta.oldState(), delta.newState()));
   } else {
+    CHECK(!preUpdateState_.has_value());
     preUpdateState_ = PreUpdateState(mergedGroups_, nextHopGroup2Id_);
     processRouteUpdates<folly::IPAddressV4>(delta);
     processRouteUpdates<folly::IPAddressV6>(delta);
