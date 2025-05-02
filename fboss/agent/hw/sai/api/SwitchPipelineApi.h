@@ -44,6 +44,9 @@ struct SaiSwitchPipelineTraits {
 
 SAI_ATTRIBUTE_NAME(SwitchPipeline, Index)
 
+template <>
+struct SaiObjectHasStats<SaiSwitchPipelineTraits> : public std::true_type {};
+
 class SwitchPipelineApi : public SaiApi<SwitchPipelineApi> {
  public:
   static constexpr sai_api_t ApiType =

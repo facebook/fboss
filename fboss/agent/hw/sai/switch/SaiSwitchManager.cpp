@@ -252,6 +252,38 @@ SaiSwitchManager::SaiSwitchManager(
   if (platform_->getAsic()->isSupported(HwAsic::Feature::CPU_PORT)) {
     initCpuPort();
   }
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  // load switch pipeline sai ids
+  int numPipelines = SaiApiTable::getInstance()->switchApi().getAttribute(
+      switch_->adapterKey(), SaiSwitchTraits::Attributes::NumberOfPipes{});
+  std::vector<sai_object_id_t> pipelineList;
+  pipelineList.resize(numPipelines);
+  SaiSwitchTraits::Attributes::PipelineObjectList pipelineListAttribute{
+      pipelineList};
+  auto pipelineSaiIdList = SaiApiTable::getInstance()->switchApi().getAttribute(
+      switch_->adapterKey(), pipelineListAttribute);
+  if (pipelineSaiIdList.size() == 0) {
+    throw FbossError("no pipeline exists");
+  }
+  std::vector<SwitchPipelineSaiId> pipelineSaiIds;
+  pipelineSaiIds.reserve(pipelineSaiIdList.size());
+  std::transform(
+      pipelineSaiIdList.begin(),
+      pipelineSaiIdList.end(),
+      std::back_inserter(pipelineSaiIds),
+      [](sai_object_id_t pipelineId) -> SwitchPipelineSaiId {
+        return SwitchPipelineSaiId(pipelineId);
+      });
+  // create switch  pipeline sai objects
+  for (auto pipelineSaiId : pipelineSaiIds) {
+    std::shared_ptr switchPipeline =
+        std::make_shared<SaiSwitchPipeline>(pipelineSaiId);
+    switchPipeline->setOwnedByAdapter(true);
+    XLOG(DBG2) << "loaded switch pipeline sai object " << pipelineSaiId
+               << " with idx " << switchPipeline->adapterHostKey().value();
+    switchPipelines_.push_back(switchPipeline);
+  }
+#endif
   isMplsQosSupported_ = isMplsQoSMapSupported();
 }
 
