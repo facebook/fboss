@@ -126,9 +126,14 @@ void EcmpGroupConsolidator::processRouteUpdates(const StateDelta& delta) {
 EcmpGroupConsolidator::NextHopGroupId
 EcmpGroupConsolidator::findNextAvailableId() const {
   std::unordered_set<NextHopGroupId> allocatedIds;
-  for (const auto& [_, id] : nextHopGroup2Id_) {
-    allocatedIds.insert(id);
-  }
+  auto fillAllocatedIds = [&allocatedIds](const auto& nhopGroup2Id) {
+    for (const auto& [_, id] : nhopGroup2Id) {
+      allocatedIds.insert(id);
+    }
+  };
+  CHECK(preUpdateState_.has_value());
+  fillAllocatedIds(nextHopGroup2Id_);
+  fillAllocatedIds(preUpdateState_->nextHopGroup2Id);
   for (auto start = kMinNextHopGroupId;
        start < std::numeric_limits<NextHopGroupId>::max();
        ++start) {

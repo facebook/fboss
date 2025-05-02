@@ -293,7 +293,7 @@ TEST_F(NextHopIdAllocatorTest, updateRouteNhopsMultipleTimes) {
     EXPECT_FALSE(getNhopId(newNhops).has_value());
     auto newerNhopsId = *getNhopId(newerNhops);
     EXPECT_EQ(defaultNhopsId, 1);
-    EXPECT_EQ(newerNhopsId, 2);
+    EXPECT_EQ(newerNhopsId, 3);
     // All but one route point to defaultNhops
     EXPECT_EQ(
         consolidator_.getRouteUsageCount(defaultNhopsId), routesBefore - 1);
