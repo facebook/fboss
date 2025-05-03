@@ -34,7 +34,6 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::DEFAULT_VLAN:
     case HwAsic::Feature::ACL_COPY_TO_CPU:
     case HwAsic::Feature::MULTIPLE_ACL_TABLES:
-    case HwAsic::Feature::SAI_ACL_TABLE_UPDATE:
     case HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER:
     case HwAsic::Feature::VRF:
     case HwAsic::Feature::SAI_PORT_SERDES_FIELDS_RESET:
@@ -87,6 +86,7 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::CPU_TX_PACKET_REQUIRES_VLAN_TAG:
     case HwAsic::Feature::SWITCH_ASIC_SDK_HEALTH_NOTIFY:
       return true;
+    case HwAsic::Feature::SAI_ACL_TABLE_UPDATE:
     case HwAsic::Feature::PORT_MTU_ERROR_TRAP:
     case HwAsic::Feature::EVENTOR_PORT_FOR_SFLOW:
     case HwAsic::Feature::SWITCH_REACHABILITY_CHANGE_NOTIFY:
