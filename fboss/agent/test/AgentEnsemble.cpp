@@ -2,16 +2,23 @@
 
 #include "fboss/agent/test/AgentEnsemble.h"
 
+#include <chrono>
+#include <map>
+#include <vector>
+
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/AgentFeatures.h"
-#include "fboss/agent/Utils.h"
-
 #include "fboss/agent/CommonInit.h"
 #include "fboss/agent/EncapIndexAllocator.h"
+#include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/TxPacket.h"
+#include "fboss/agent/Utils.h"
+#include "fboss/agent/hw/gen-cpp2/hardware_stats_constants.h"
+#include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/test/utils/PacketSendUtils.h"
+#include "fboss/agent/types.h"
 #include "fboss/lib/CommonFileUtils.h"
 #include "fboss/lib/CommonUtils.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
@@ -390,8 +397,25 @@ void initEnsemble(
 
 std::map<PortID, HwPortStats> AgentEnsemble::getLatestPortStats(
     const std::vector<PortID>& ports) {
+  // Stats collection from SwSwitch is async, wait for stats
+  // being available before returning here.
   std::map<PortID, HwPortStats> portIdStatsMap;
-  return getSw()->getHwPortStats(ports);
+  checkWithRetry(
+      [&portIdStatsMap, &ports, this]() {
+        portIdStatsMap = getSw()->getHwPortStats(ports);
+        // Check collect timestamp is valid
+        for (const auto& [_, portStats] : portIdStatsMap) {
+          if (*portStats.timestamp__ref() ==
+              hardware_stats_constants::STAT_UNINITIALIZED()) {
+            return false;
+          }
+        }
+        return !portIdStatsMap.empty();
+      },
+      120,
+      std::chrono::milliseconds(1000),
+      " fetch port stats");
+  return portIdStatsMap;
 }
 
 std::map<SystemPortID, HwSysPortStats> AgentEnsemble::getLatestSysPortStats(

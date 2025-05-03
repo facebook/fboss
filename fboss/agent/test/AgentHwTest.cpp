@@ -6,6 +6,7 @@
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_constants.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
+#include "fboss/agent/test/AgentEnsemble.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/StatsTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
@@ -224,25 +225,7 @@ void AgentHwTest::printProductionFeatures() const {
 
 std::map<PortID, HwPortStats> AgentHwTest::getLatestPortStats(
     const std::vector<PortID>& ports) {
-  // Stats collection from SwSwitch is async, wait for stats
-  // being available before returning here.
-  std::map<PortID, HwPortStats> portStats;
-  checkWithRetry(
-      [&portStats, &ports, this]() {
-        portStats = getSw()->getHwPortStats(ports);
-        // Check collect timestamp is valid
-        for (const auto& [portId, portStats] : portStats) {
-          if (*portStats.timestamp__ref() ==
-              hardware_stats_constants::STAT_UNINITIALIZED()) {
-            return false;
-          }
-        }
-        return !portStats.empty();
-      },
-      120,
-      std::chrono::milliseconds(1000),
-      " fetch port stats");
-  return portStats;
+  return getAgentEnsemble()->getLatestPortStats(ports);
 }
 
 HwPortStats AgentHwTest::getLatestPortStats(const PortID& port) {
