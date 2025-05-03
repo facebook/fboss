@@ -194,5 +194,9 @@ void fillHwSwitchCreditStats(
 void fillHwSwitchErrorStats(
     const folly::F14FastMap<sai_stat_id_t, uint64_t>& counterId2Value,
     HwSwitchDropStats& switchDropStats);
+void fillHwSwitchPipelineStats(
+    const folly::F14FastMap<sai_stat_id_t, uint64_t>& counterId2Value,
+    int idx,
+    HwSwitchPipelineStats& switchPipelineStats);
 void publishSwitchWatermarks(HwSwitchWatermarkStats& watermarkStats);
 } // namespace facebook::fboss
