@@ -358,11 +358,10 @@ class AgentEnsemble : public TestEnsembleIf {
   /**
    * Creates an overridden AgentConfig object by incorporating the overridden
    * initial configuration  and command line args, with the platform config from
-   * the test configuration in configerator.
-   *
-   * @return AgentConfig - The overridden agent configuration.
+   * the test configuration in configerator. This config is dumped for hw-agents
+   * and for some warmboot tests.
    */
-  AgentConfig createOverriddenAgentConfig();
+  void createAndDumpOverriddenAgentConfig();
 
   cfg::SwitchConfig initialConfig_;
   std::unique_ptr<std::thread> asyncInitThread_{nullptr};
