@@ -92,12 +92,27 @@ class EcmpResourceManager {
     std::map<NextHopGroupIds, ConsolidationPenalty> mergedGroups;
     std::map<RouteNextHopSet, NextHopGroupId> nextHopGroup2Id;
   };
+  struct InputOutputState {
+    InputOutputState(uint32_t _nonBackupEcmpGroupsCnt, const StateDelta& _in)
+        : nonBackupEcmpGroupsCnt(_nonBackupEcmpGroupsCnt), in(_in) {}
+    uint32_t nonBackupEcmpGroupsCnt;
+    const StateDelta& in;
+    std::vector<StateDelta> out;
+  };
   template <typename AddrT>
-  void processRouteUpdates(const StateDelta& delta);
+  void processRouteUpdates(
+      const StateDelta& delta,
+      InputOutputState* inOutState);
   template <typename AddrT>
-  void routeAdded(RouterID rid, const std::shared_ptr<Route<AddrT>>& added);
+  void routeAdded(
+      RouterID rid,
+      const std::shared_ptr<Route<AddrT>>& added,
+      InputOutputState* inOutState);
   template <typename AddrT>
-  void routeDeleted(RouterID rid, const std::shared_ptr<Route<AddrT>>& removed);
+  void routeDeleted(
+      RouterID rid,
+      const std::shared_ptr<Route<AddrT>>& removed,
+      InputOutputState* inOutState);
   static uint32_t constexpr kMinNextHopGroupId = 1;
   NextHopGroupId findNextAvailableId() const;
   std::map<RouteNextHopSet, NextHopGroupId> nextHopGroup2Id_;

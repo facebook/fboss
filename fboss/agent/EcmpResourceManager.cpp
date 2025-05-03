@@ -24,8 +24,18 @@ std::vector<StateDelta> EcmpResourceManager::consolidate(
   std::vector<StateDelta> deltas;
   CHECK(!preUpdateState_.has_value());
   preUpdateState_ = PreUpdateState(mergedGroups_, nextHopGroup2Id_);
-  processRouteUpdates<folly::IPAddressV4>(delta);
-  processRouteUpdates<folly::IPAddressV6>(delta);
+
+  uint32_t nonBackupEcmpGroupsCnt{0};
+  std::for_each(
+      nextHopGroupIdToInfo_.cbegin(),
+      nextHopGroupIdToInfo_.cend(),
+      [&nonBackupEcmpGroupsCnt](const auto& idAndInfo) {
+        nonBackupEcmpGroupsCnt +=
+            idAndInfo.second.lock()->isBackupEcmpGroupType() ? 0 : 1;
+      });
+  InputOutputState inOutState(nonBackupEcmpGroupsCnt, delta);
+  processRouteUpdates<folly::IPAddressV4>(delta, &inOutState);
+  processRouteUpdates<folly::IPAddressV6>(delta, &inOutState);
   deltas.emplace_back(StateDelta(delta.oldState(), delta.newState()));
   return deltas;
 }
@@ -33,7 +43,8 @@ std::vector<StateDelta> EcmpResourceManager::consolidate(
 template <typename AddrT>
 void EcmpResourceManager::routeAdded(
     RouterID rid,
-    const std::shared_ptr<Route<AddrT>>& added) {
+    const std::shared_ptr<Route<AddrT>>& added,
+    InputOutputState* /*inOutState*/) {
   CHECK_EQ(rid, RouterID(0));
   CHECK(added->isResolved());
   auto nhopSet = added->getForwardInfo().getNextHopSet();
@@ -58,7 +69,8 @@ void EcmpResourceManager::routeAdded(
 template <typename AddrT>
 void EcmpResourceManager::routeDeleted(
     RouterID rid,
-    const std::shared_ptr<Route<AddrT>>& removed) {
+    const std::shared_ptr<Route<AddrT>>& removed,
+    InputOutputState* /*inOutState*/) {
   CHECK_EQ(rid, RouterID(0));
   CHECK(removed->isResolved());
   NextHopGroupId groupId{kMinNextHopGroupId - 1};
@@ -78,37 +90,40 @@ void EcmpResourceManager::routeDeleted(
 }
 
 template <typename AddrT>
-void EcmpResourceManager::processRouteUpdates(const StateDelta& delta) {
+void EcmpResourceManager::processRouteUpdates(
+    const StateDelta& delta,
+    InputOutputState* inOutState) {
   forEachChangedRoute<AddrT>(
       delta,
-      [this](RouterID rid, const auto& oldRoute, const auto& newRoute) {
+      [this, inOutState](
+          RouterID rid, const auto& oldRoute, const auto& newRoute) {
         if (!oldRoute->isResolved() && !newRoute->isResolved()) {
           return;
         }
         if (oldRoute->isResolved() && !newRoute->isResolved()) {
-          routeDeleted(rid, oldRoute);
+          routeDeleted(rid, oldRoute, inOutState);
           return;
         }
         if (!oldRoute->isResolved() && newRoute->isResolved()) {
-          routeAdded(rid, newRoute);
+          routeAdded(rid, newRoute, inOutState);
           return;
         }
         // Both old and new are resolve
         CHECK(oldRoute->isResolved() && newRoute->isResolved());
         if (oldRoute->getForwardInfo().getNextHopSet() !=
             newRoute->getForwardInfo().getNextHopSet()) {
-          routeDeleted(rid, oldRoute);
-          routeAdded(rid, newRoute);
+          routeDeleted(rid, oldRoute, inOutState);
+          routeAdded(rid, newRoute, inOutState);
         }
       },
-      [this](RouterID rid, const auto& newRoute) {
+      [this, inOutState](RouterID rid, const auto& newRoute) {
         if (newRoute->isResolved()) {
-          routeAdded(rid, newRoute);
+          routeAdded(rid, newRoute, inOutState);
         }
       },
-      [this](RouterID rid, const auto& oldRoute) {
+      [this, inOutState](RouterID rid, const auto& oldRoute) {
         if (oldRoute->isResolved()) {
-          routeDeleted(rid, oldRoute);
+          routeDeleted(rid, oldRoute, inOutState);
         }
       });
 }
