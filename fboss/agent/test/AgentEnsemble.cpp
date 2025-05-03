@@ -134,7 +134,6 @@ void AgentEnsemble::setupEnsemble(
   auto newAgentConfig = createOverriddenAgentConfig();
 
   dumpConfigForHwAgent(&newAgentConfig);
-  dumpConfigWithOverriddenGflags(&newAgentConfig);
 
   // Setup LinkStateToggler and start agent
   if (hwFeaturesDesired & HwSwitch::FeaturesDesired::LINKSCAN_DESIRED &&
@@ -189,8 +188,8 @@ void AgentEnsemble::startAgent(bool failHwCallsOnWarmboot) {
 
 /**
  * Creates an overridden AgentConfig object by incorporating the overridden
- * initial configuration with the platform and command line arguments from the
- * test configuration in configerator.
+ * initial configuration  and command line args, with the platform config from
+ * the test configuration in configerator.
  *
  * @return AgentConfig - The overridden agent configuration.
  */
@@ -198,20 +197,9 @@ AgentConfig AgentEnsemble::createOverriddenAgentConfig() {
   CHECK(initialConfig_ != cfg::SwitchConfig());
   auto testConfig = AgentConfig::fromFile(configFile_);
   cfg::AgentConfig newAgentConf;
-
-  newAgentConf.defaultCommandLineArgs() =
-      *testConfig->thrift.defaultCommandLineArgs();
-  newAgentConf.sw() = initialConfig_;
-  newAgentConf.platform() = *testConfig->thrift.platform();
-
-  return AgentConfig(newAgentConf);
-}
-
-void AgentEnsemble::dumpConfigWithOverriddenGflags(
-    AgentConfig* inputAgentConfig) const {
-  cfg::AgentConfig newAgentConfig;
   std::map<std::string, std::string> defaultCommandLineArgs;
   std::vector<gflags::CommandLineFlagInfo> flags;
+
   gflags::GetAllFlags(&flags);
   for (const auto& flag : flags) {
     // Skip writing flags if 1) default value, and 2) config itself.
@@ -220,14 +208,17 @@ void AgentEnsemble::dumpConfigWithOverriddenGflags(
     }
   }
 
-  *newAgentConfig.defaultCommandLineArgs() = defaultCommandLineArgs;
-  *newAgentConfig.sw() = *inputAgentConfig->thrift.sw();
-  *newAgentConfig.platform() = *inputAgentConfig->thrift.platform();
-  auto agentConfig = AgentConfig(newAgentConfig);
+  newAgentConf.defaultCommandLineArgs() = std::move(defaultCommandLineArgs);
+  newAgentConf.sw() = initialConfig_;
+  newAgentConf.platform() = *testConfig->thrift.platform();
+
+  auto agentConfig = AgentConfig(newAgentConf);
   utilCreateDir(AgentDirectoryUtil().agentEnsembleConfigDir());
   agentConfig.dumpConfig(
       AgentDirectoryUtil().agentEnsembleConfigDir() +
       kOverriddenAgentConfigFile);
+
+  return agentConfig;
 }
 
 void AgentEnsemble::writeConfig(const cfg::SwitchConfig& config) {
