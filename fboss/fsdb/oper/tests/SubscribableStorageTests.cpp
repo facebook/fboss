@@ -129,7 +129,9 @@ TYPED_TEST(SubscribableStorageTests, SubscribeUnsubscribe) {
   auto txPath = this->root.tx();
   storage.start();
   {
-    auto generator = storage.subscribe(kSubscriber, std::move(txPath));
+    auto generator = storage.subscribe(
+        std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))),
+        std::move(txPath));
     WITH_RETRIES(EXPECT_EVENTUALLY_EQ(storage.numSubscriptions(), 1));
   }
   WITH_RETRIES(EXPECT_EVENTUALLY_EQ(storage.numSubscriptions(), 0));
@@ -141,7 +143,9 @@ TYPED_TEST(SubscribableStorageTests, SubscribeOne) {
 
   auto txPath = this->root.tx();
   storage.start();
-  auto generator = storage.subscribe(kSubscriber, std::move(txPath));
+  auto generator = storage.subscribe(
+      std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))),
+      std::move(txPath));
   auto deltaVal = folly::coro::blockingWait(
       folly::coro::timeout(consumeOne(generator), std::chrono::seconds(1)));
   EXPECT_EQ(deltaVal.newVal, true);
@@ -158,7 +162,9 @@ TYPED_TEST(SubscribableStorageTests, SubscribePathAddRemoveParent) {
   // add subscription for a path that doesn't exist yet, then add parent
   auto storage = this->initStorage(this->testStruct);
   auto path = this->root.structMap()[99].min();
-  auto generator = storage.subscribe(kSubscriber, std::move(path));
+  auto generator = storage.subscribe(
+      std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))),
+      std::move(path));
   storage.start();
 
   TestStructSimple newStruct;
@@ -185,7 +191,9 @@ TYPED_TEST(SubscribableStorageTests, SubscribeDelta) {
   auto storage = this->initStorage(this->testStruct);
 
   auto generator = storage.subscribe_delta(
-      kSubscriber, this->root, OperProtocol::SIMPLE_JSON);
+      std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))),
+      this->root,
+      OperProtocol::SIMPLE_JSON);
   storage.start();
   // First sync post subscription setup
   auto deltaVal = folly::coro::blockingWait(
@@ -222,7 +230,8 @@ TYPED_TEST(SubscribableStorageTests, SubscribePatch) {
   auto storage = this->initStorage(this->testStruct);
   storage.setConvertToIDPaths(true);
 
-  auto generator = storage.subscribe_patch(kSubscriber, this->root);
+  auto generator = storage.subscribe_patch(
+      std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))), this->root);
   storage.start();
 
   // Initial sync post subscription setup
@@ -271,7 +280,8 @@ TYPED_TEST(SubscribableStorageTests, SubscribePatchUpdate) {
   storage.start();
 
   const auto& path = this->root.stringToStruct()["test"].max();
-  auto generator = storage.subscribe_patch(kSubscriber, path);
+  auto generator = storage.subscribe_patch(
+      std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))), path);
 
   // set and check
   EXPECT_EQ(storage.set(path, 1), std::nullopt);
@@ -319,7 +329,7 @@ TYPED_TEST(SubscribableStorageTests, SubscribePatchMulti) {
   p1.path() = path1.tokens();
   p2.path() = path2.idTokens();
   auto generator = storage.subscribe_patch(
-      kSubscriber,
+      std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))),
       {
           {1, std::move(p1)},
           {2, std::move(p2)},
@@ -374,7 +384,8 @@ TYPED_TEST(SubscribableStorageTests, SubscribePatchHeartbeat) {
   storage.setConvertToIDPaths(true);
   storage.start();
 
-  auto generator = storage.subscribe_patch(kSubscriber, this->root);
+  auto generator = storage.subscribe_patch(
+      std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))), this->root);
 
   auto msg = folly::coro::blockingWait(
       folly::coro::timeout(consumeOne(generator), std::chrono::seconds(20)));
@@ -395,8 +406,14 @@ TYPED_TEST(SubscribableStorageTests, SubscribeHeartbeatConfigured) {
   SubscriptionStorageParams params1(std::chrono::seconds(2));
   SubscriptionStorageParams params2(std::chrono::seconds(10));
 
-  auto generator1 = storage.subscribe_patch(kSubscriber, this->root, params1);
-  auto generator2 = storage.subscribe_patch(kSubscriber, this->root, params2);
+  auto generator1 = storage.subscribe_patch(
+      std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))),
+      this->root,
+      params1);
+  auto generator2 = storage.subscribe_patch(
+      std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))),
+      this->root,
+      params2);
 
   auto msg1 = folly::coro::blockingWait(
       folly::coro::timeout(consumeOne(generator1), std::chrono::seconds(20)));
@@ -429,9 +446,13 @@ TYPED_TEST(SubscribableStorageTests, SubscribeHeartbeatNotReceived) {
 
   SubscriptionStorageParams params(std::chrono::seconds(30));
 
-  auto generator1 = storage.subscribe_patch(kSubscriber, this->root, params);
+  auto generator1 = storage.subscribe_patch(
+      std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))),
+      this->root,
+      params);
   // Keep default subscription hearbeat interval of 5 seconds
-  auto generator2 = storage.subscribe_patch(kSubscriber, this->root);
+  auto generator2 = storage.subscribe_patch(
+      std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))), this->root);
 
   auto msg1 = folly::coro::blockingWait(
       folly::coro::timeout(consumeOne(generator1), std::chrono::seconds(20)));
@@ -460,8 +481,10 @@ TYPED_TEST(SubscribableStorageTests, SubscribeDeltaUpdate) {
   storage.start();
 
   const auto& path = this->root.stringToStruct()["test"].max();
-  auto generator =
-      storage.subscribe_delta(kSubscriber, path, OperProtocol::SIMPLE_JSON);
+  auto generator = storage.subscribe_delta(
+      std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))),
+      path,
+      OperProtocol::SIMPLE_JSON);
 
   // set value and subscribe
   EXPECT_EQ(storage.set(path, 1), std::nullopt);
@@ -493,7 +516,9 @@ TYPED_TEST(SubscribableStorageTests, SubscribeDeltaAddRemoveParent) {
   auto storage = this->initStorage(this->testStruct);
   auto path = this->root.structMap()[99].min();
   auto generator = storage.subscribe_delta(
-      kSubscriber, std::move(path), OperProtocol::SIMPLE_JSON);
+      std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))),
+      std::move(path),
+      OperProtocol::SIMPLE_JSON);
   storage.start();
 
   TestStructSimple newStruct;
@@ -535,8 +560,10 @@ TYPED_TEST(SubscribableStorageTests, SubscribeEncodedPathSimple) {
   auto storage = this->initStorage(this->testStruct);
 
   const auto& path = this->root.stringToStruct()["test"].max();
-  auto generator =
-      storage.subscribe_encoded(kSubscriber, path, OperProtocol::SIMPLE_JSON);
+  auto generator = storage.subscribe_encoded(
+      std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))),
+      path,
+      OperProtocol::SIMPLE_JSON);
   storage.start();
 
   EXPECT_EQ(
@@ -574,7 +601,9 @@ TYPED_TEST(SubscribableStorageTests, SubscribeExtendedPathSimple) {
           .regex("test1.*")
           .get();
   auto generator = storage.subscribe_encoded_extended(
-      kSubscriber, {path}, OperProtocol::SIMPLE_JSON);
+      std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))),
+      {path},
+      OperProtocol::SIMPLE_JSON);
   storage.start();
 
   EXPECT_EQ(
@@ -616,7 +645,9 @@ TYPED_TEST(SubscribableStorageTests, SubscribeExtendedPathMultipleChanges) {
   auto storage = this->initStorage(this->testStruct);
   auto path = ext_path_builder::raw("mapOfStringToI32").regex("test1.*").get();
   auto generator = storage.subscribe_encoded_extended(
-      kSubscriber, {path}, OperProtocol::SIMPLE_JSON);
+      std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))),
+      {path},
+      OperProtocol::SIMPLE_JSON);
   storage.start();
 
   EXPECT_EQ(
@@ -665,7 +696,9 @@ TYPED_TEST(SubscribableStorageTests, SubscribeExtendedDeltaSimple) {
   auto storage = this->initStorage(this->testStruct);
   auto path = ext_path_builder::raw("mapOfStringToI32").regex("test1.*").get();
   auto generator = storage.subscribe_delta_extended(
-      kSubscriber, {path}, OperProtocol::SIMPLE_JSON);
+      std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))),
+      {path},
+      OperProtocol::SIMPLE_JSON);
   storage.start();
 
   EXPECT_EQ(
@@ -702,7 +735,9 @@ CO_TYPED_TEST(SubscribableStorageTests, SubscribeExtendedDeltaUpdate) {
   const auto& path =
       ext_path_builder::raw("stringToStruct").regex("test1.*").raw("max").get();
   auto generator = storage.subscribe_delta_extended(
-      kSubscriber, {path}, OperProtocol::SIMPLE_JSON);
+      std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))),
+      {path},
+      OperProtocol::SIMPLE_JSON);
 
   const auto& setPath = this->root.stringToStruct()["test1"].max();
   EXPECT_EQ(storage.set(setPath, 1), std::nullopt);
@@ -722,7 +757,9 @@ TYPED_TEST(SubscribableStorageTests, SubscribeExtendedDeltaMultipleChanges) {
   auto storage = this->initStorage(this->testStruct);
   auto path = ext_path_builder::raw("mapOfStringToI32").regex("test1.*").get();
   auto generator = storage.subscribe_delta_extended(
-      kSubscriber, {path}, OperProtocol::SIMPLE_JSON);
+      std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))),
+      {path},
+      OperProtocol::SIMPLE_JSON);
   storage.start();
 
   EXPECT_EQ(
@@ -940,8 +977,10 @@ TYPED_TEST(SubscribableStorageTests, PruneSubscriptionPathStores) {
 
   // create subscriber
   const auto& path = this->root.stringToStruct()["test"].max();
-  auto generator =
-      storage.subscribe_delta(kSubscriber, path, OperProtocol::SIMPLE_JSON);
+  auto generator = storage.subscribe_delta(
+      std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))),
+      path,
+      OperProtocol::SIMPLE_JSON);
 
   // add path and wait for it to be served (publishAndAddPaths)
   EXPECT_EQ(storage.set(path, 1), std::nullopt);
@@ -1047,7 +1086,9 @@ CO_TYPED_TEST(SubscribableStorageTests, SubscribeExtendedPatchSimple) {
   storage.setConvertToIDPaths(true);
   auto path = ext_path_builder::raw("mapOfStringToI32").regex("test1.*").get();
   int key = 0;
-  auto generator = storage.subscribe_patch_extended(kSubscriber, {{key, path}});
+  auto generator = storage.subscribe_patch_extended(
+      std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))),
+      {{key, path}});
   storage.start();
 
   EXPECT_EQ(
@@ -1077,7 +1118,9 @@ CO_TYPED_TEST(SubscribableStorageTests, SubscribeExtendedPatchUpdate) {
 
   const auto& path =
       ext_path_builder::raw("stringToStruct").regex("test1.*").raw("max").get();
-  auto generator = storage.subscribe_patch_extended(kSubscriber, {{0, path}});
+  auto generator = storage.subscribe_patch_extended(
+      std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))),
+      {{0, path}});
 
   const auto& setPath = this->root.stringToStruct()["test1"].max();
   EXPECT_EQ(storage.set(setPath, 1), std::nullopt);
@@ -1112,7 +1155,9 @@ CO_TYPED_TEST(SubscribableStorageTests, SubscribeExtendedPatchMultipleChanges) {
   storage.setConvertToIDPaths(true);
   auto path = ext_path_builder::raw("mapOfStringToI32").regex("test1.*").get();
   int key = 0;
-  auto generator = storage.subscribe_patch_extended(kSubscriber, {{key, path}});
+  auto generator = storage.subscribe_patch_extended(
+      std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))),
+      {{key, path}});
   storage.start();
 
   EXPECT_EQ(
@@ -1187,16 +1232,17 @@ CO_TEST_P(SubscribableStorageTestsPathDelta, UnregisterSubscriber) {
       ext_path_builder::raw("mapOfStringToI32").regex("test1.*").get();
   EXPECT_EQ(storage.set(root.mapOfStringToI32()["test1"], 1), std::nullopt);
 
+  auto subId = SubscriptionIdentifier(SubscriberId(kSubscriber));
   auto subscribeOneAndUnregister = [&](bool isPath) -> folly::coro::Task<void> {
     if (isPath) {
       auto generator = storage.subscribe_encoded_extended(
-          kSubscriber, {path}, OperProtocol::SIMPLE_JSON);
+          std::move(subId), {path}, OperProtocol::SIMPLE_JSON);
       auto ret = co_await co_awaitTry(
           folly::coro::timeout(consumeOne(generator), std::chrono::seconds(5)));
       EXPECT_FALSE(ret.hasException());
     } else {
       auto generator = storage.subscribe_delta_extended(
-          kSubscriber, {path}, OperProtocol::SIMPLE_JSON);
+          std::move(subId), {path}, OperProtocol::SIMPLE_JSON);
       auto ret = co_await co_awaitTry(
           folly::coro::timeout(consumeOne(generator), std::chrono::seconds(5)));
       EXPECT_FALSE(ret.hasException());
@@ -1223,15 +1269,16 @@ CO_TEST_P(SubscribableStorageTestsPathDelta, UnregisterSubscriberMulti) {
       ext_path_builder::raw("mapOfStringToI32").regex("test.*").get();
   EXPECT_EQ(storage.set(root.mapOfStringToI32()["test1"], 1), std::nullopt);
 
+  auto subId = SubscriptionIdentifier(SubscriberId(kSubscriber));
   auto subscribeOneAndUnregister = [&](bool isPath) -> folly::coro::Task<void> {
     if (isPath) {
       auto generator = storage.subscribe_encoded_extended(
-          kSubscriber, {path}, OperProtocol::SIMPLE_JSON);
+          std::move(subId), {path}, OperProtocol::SIMPLE_JSON);
       co_await folly::coro::sleep(
           std::chrono::milliseconds(folly::Random::rand32(0, 5000)));
     } else {
       auto generator = storage.subscribe_delta_extended(
-          kSubscriber, {path}, OperProtocol::SIMPLE_JSON);
+          std::move(subId), {path}, OperProtocol::SIMPLE_JSON);
       co_await folly::coro::sleep(
           std::chrono::milliseconds(folly::Random::rand32(0, 5000)));
     }
