@@ -72,6 +72,10 @@ DEFINE_bool(
     allow_zero_headroom_for_lossless_pg,
     false,
     "Allow lossless PG to have headroom as zero");
+DEFINE_string(
+    mod_dest_mac_override,
+    "",
+    "Destination MAC override for Mirror-on-Drop packets");
 
 namespace facebook::fboss {
 

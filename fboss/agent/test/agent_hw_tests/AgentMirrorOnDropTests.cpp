@@ -393,6 +393,83 @@ class AgentMirrorOnDropTest
   }
 };
 
+class AgentMirrorOnDropDestMacTest : public AgentMirrorOnDropTest {
+  const std::string kModDestMacOverride = "02:33:33:33:33:33";
+
+  void setCmdLineFlagOverrides() const override {
+    AgentMirrorOnDropTest::setCmdLineFlagOverrides();
+
+    // In the failed case, a packet egressing a NIF port formerly used for MOD
+    // will have its dest MAC overwritten by the MOD MAC. The deafult MOD MAC
+    // is the switch MAC (firstInterfaceMac), so when the overwritten packet
+    // loops back, it will be routed in some weird way. To make the test easier
+    // to understand, we'll override the MOD dest MAC with a special MAC.
+    FLAGS_mod_dest_mac_override = kModDestMacOverride;
+  }
+};
+
+// 1. Override MOD dest MAC to 02:33:33:33:33:33.
+// 2. Configure MOD on NIF port 1 (not expected to happen in prod, we use a
+//    flag to allow this in testing), then unconfigure it.
+// 3. Point NIF port 1 to a neighbor with dest MAC 02:44:44:44:44:44.
+// 4. Send a packet towards that neighbor from the pipeline.
+// 5. We expect the packet to be sent out of NIF port 1 with the correct
+//    neighbor dest MAC (instead of, say, using the old MOD dest MAC).
+TEST_F(AgentMirrorOnDropDestMacTest, ModOnInterfacePortCleanup) {
+  auto mirrorPortId = masterLogicalInterfacePortIds()[0];
+  XLOG(DBG3) << "MoD port: " << portDesc(mirrorPortId);
+
+  const folly::IPAddressV6 kDestIp{"2401:4444:4444:4444:4444:4444:4444:4444"};
+  const folly::MacAddress kNeighborMac{"02:44:44:44:44:44"};
+
+  // Setup MOD on a NIF port.
+  auto config = getAgentEnsemble()->getCurrentConfig();
+  setupMirrorOnDrop(
+      &config,
+      mirrorPortId,
+      kCollectorIp_,
+      {{kL3DropEventId,
+        makeEventConfig(
+            std::nullopt, // use default aging group
+            {cfg::MirrorOnDropReasonAggregation::
+                 INGRESS_PACKET_PROCESSING_DISCARDS})}});
+  applyNewConfig(config);
+
+  // Remove MOD, now point that NIF port to a neighbor.
+  // Add a trap to allow packet snooping.
+  config.mirrorOnDropReports()->clear();
+  const HwAsic* asic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+  utility::addTrapPacketAcl(asic, &config, mirrorPortId);
+  applyNewConfig(config);
+  setupEcmpTraffic(mirrorPortId, kDestIp, kNeighborMac);
+
+  // Send packet towards neighbor IP from the pipeline.
+  utility::SwSwitchPacketSnooper snooper(getSw(), "snooper");
+  auto pkt = sendPackets(1, std::nullopt, kDestIp);
+
+  // Dump counters and tables first, since assertions may abort the test.
+  std::string out;
+  getAgentEnsemble()->runDiagCommand("\n", out);
+  getAgentEnsemble()->runDiagCommand("show counters full\n", out);
+  XLOG(INFO) << ">>> After sendPacket 2\n" << out;
+  getAgentEnsemble()->runDiagCommand("dbal table dump table=ESEM_ARP\n", out);
+  XLOG(INFO) << out;
+  getAgentEnsemble()->runDiagCommand(
+      "dbal table dump table=MAC_SOURCE_ADDRESS_FULL\n", out);
+  XLOG(INFO) << out;
+
+  WITH_RETRIES_N(3, {
+    XLOG(DBG3) << "Waiting for NIF packet...";
+    auto frameRx = snooper.waitForPacket(1);
+    ASSERT_EVENTUALLY_TRUE(frameRx.has_value());
+    XLOG(DBG3) << PktUtil::hexDump(frameRx->get());
+
+    folly::io::Cursor recvCursor{frameRx->get()};
+    utility::EthFrame frame{recvCursor};
+    EXPECT_EQ(frame.header().getDstMac(), kNeighborMac);
+  });
+}
+
 INSTANTIATE_TEST_SUITE_P(
     AgentMirrorOnDropTest,
     AgentMirrorOnDropTest,

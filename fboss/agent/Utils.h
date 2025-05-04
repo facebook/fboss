@@ -40,6 +40,8 @@ DECLARE_string(mac);
 DECLARE_uint64(egress_buffer_pool_size);
 DECLARE_uint64(ingress_egress_buffer_pool_size);
 DECLARE_bool(allow_zero_headroom_for_lossless_pg);
+DECLARE_string(mod_dest_mac_override);
+
 namespace folly {
 struct dynamic;
 }
