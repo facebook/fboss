@@ -30,6 +30,7 @@ std::vector<StateDelta> EcmpResourceManager::consolidate(
       nextHopGroupIdToInfo_.cbegin(),
       nextHopGroupIdToInfo_.cend(),
       [&nonBackupEcmpGroupsCnt](const auto& idAndInfo) {
+        // TODO - account for merged groups
         nonBackupEcmpGroupsCnt +=
             idAndInfo.second.lock()->isBackupEcmpGroupType() ? 0 : 1;
       });
@@ -40,21 +41,55 @@ std::vector<StateDelta> EcmpResourceManager::consolidate(
   return deltas;
 }
 
+std::set<EcmpResourceManager::NextHopGroupId>
+EcmpResourceManager::createOptimalMergeGroupSet() {
+  if (!compressionPenaltyThresholdPct_) {
+    return {};
+  }
+  XLOG(FATAL) << " Merge group algorithm is a TODO";
+}
+
+template <typename AddrT>
+std::shared_ptr<NextHopGroupInfo> EcmpResourceManager::ecmpGroupDemandExceeded(
+    const std::shared_ptr<Route<AddrT>>& route,
+    NextHops2GroupId::iterator nhops2IdItr,
+    InputOutputState* inOutState) {
+  auto mergeSet = createOptimalMergeGroupSet();
+  CHECK(mergeSet.empty()) << "Merge algo is a TODO";
+  std::shared_ptr<NextHopGroupInfo> grpInfo;
+  bool inserted{false};
+  std::tie(grpInfo, inserted) = nextHopGroupIdToInfo_.refOrEmplace(
+      nhops2IdItr->second,
+      nhops2IdItr->second,
+      nhops2IdItr,
+      true /*isBackupEcmpGroupType*/);
+  // TODO update route and create new state delta vector
+  CHECK(inserted);
+  return grpInfo;
+}
+
 template <typename AddrT>
 void EcmpResourceManager::routeAdded(
     RouterID rid,
     const std::shared_ptr<Route<AddrT>>& added,
-    InputOutputState* /*inOutState*/) {
+    InputOutputState* inOutState) {
   CHECK_EQ(rid, RouterID(0));
   CHECK(added->isResolved());
+  CHECK_LE(inOutState->nonBackupEcmpGroupsCnt, maxEcmpGroups_);
   auto nhopSet = added->getForwardInfo().getNextHopSet();
-  std::shared_ptr<NextHopGroupInfo> grpInfo;
   auto [idItr, inserted] =
       nextHopGroup2Id_.insert({nhopSet, findNextAvailableId()});
+  std::shared_ptr<NextHopGroupInfo> grpInfo;
   if (inserted) {
-    std::tie(grpInfo, inserted) =
-        nextHopGroupIdToInfo_.refOrEmplace(idItr->second, idItr->second, idItr);
-    CHECK(inserted);
+    if (inOutState->nonBackupEcmpGroupsCnt == maxEcmpGroups_) {
+      grpInfo = ecmpGroupDemandExceeded(added, idItr, inOutState);
+    } else {
+      std::tie(grpInfo, inserted) = nextHopGroupIdToInfo_.refOrEmplace(
+          idItr->second, idItr->second, idItr, false /*isBackupEcmpGroupType*/
+      );
+      ++inOutState->nonBackupEcmpGroupsCnt;
+      CHECK(inserted);
+    }
   } else {
     grpInfo = nextHopGroupIdToInfo_.ref(idItr->second);
   }
@@ -64,6 +99,7 @@ void EcmpResourceManager::routeAdded(
   CHECK(pfxInserted);
   pitr->second->incRouteUsageCount();
   CHECK_GT(pitr->second->getRouteUsageCount(), 0);
+  CHECK_LE(inOutState->nonBackupEcmpGroupsCnt, maxEcmpGroups_);
 }
 
 template <typename AddrT>

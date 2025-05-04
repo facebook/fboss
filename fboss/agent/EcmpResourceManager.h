@@ -74,6 +74,8 @@ class EcmpResourceManager {
   }
   using NextHopGroupId = uint32_t;
   using NextHopGroupIds = boost::container::flat_set<NextHopGroupId>;
+  using NextHops2GroupId = std::map<RouteNextHopSet, NextHopGroupId>;
+
   std::vector<StateDelta> consolidate(const StateDelta& delta);
   const auto& getNhopsToId() const {
     return nextHopGroup2Id_;
@@ -99,6 +101,12 @@ class EcmpResourceManager {
     const StateDelta& in;
     std::vector<StateDelta> out;
   };
+  std::set<NextHopGroupId> createOptimalMergeGroupSet();
+  template <typename AddrT>
+  std::shared_ptr<NextHopGroupInfo> ecmpGroupDemandExceeded(
+      const std::shared_ptr<Route<AddrT>>& route,
+      NextHops2GroupId::iterator nhops2IdItr,
+      InputOutputState* inOutState);
   template <typename AddrT>
   void processRouteUpdates(
       const StateDelta& delta,
@@ -115,7 +123,7 @@ class EcmpResourceManager {
       InputOutputState* inOutState);
   static uint32_t constexpr kMinNextHopGroupId = 1;
   NextHopGroupId findNextAvailableId() const;
-  std::map<RouteNextHopSet, NextHopGroupId> nextHopGroup2Id_;
+  NextHops2GroupId nextHopGroup2Id_;
   StdRefMap<NextHopGroupId, NextHopGroupInfo> nextHopGroupIdToInfo_;
   std::unordered_map<folly::CIDRNetwork, std::shared_ptr<NextHopGroupInfo>>
       prefixToGroupInfo_;
