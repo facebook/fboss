@@ -187,7 +187,7 @@ class CowStorage : public Storage<Root, CowStorage<Root, Node>> {
     thrift_cow::SetEncodedPathVisitorOperator op(
         *state.protocol(), *state.contents());
     auto traverseResult = thrift_cow::RootPathVisitor::visit(
-        *root_, begin, end, thrift_cow::PathVisitOptions::visitLeaf(), op);
+        *root_, begin, end, thrift_cow::PathVisitOptions::visitLeaf(true), op);
     return detail::parseTraverseResult(traverseResult);
   }
 

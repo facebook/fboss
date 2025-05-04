@@ -210,7 +210,11 @@ TYPED_TEST(PathVisitorTests, AccessAtHybridNodeTest) {
   SetEncodedPathVisitorOperator setOp(fsdb::OperProtocol::SIMPLE_JSON, newVal);
 
   result = RootPathVisitor::visit(
-      *nodeA, path.begin(), path.end(), PathVisitOptions::visitLeaf(), setOp);
+      *nodeA,
+      path.begin(),
+      path.end(),
+      thrift_cow::PathVisitOptions::visitLeaf(true),
+      setOp);
   EXPECT_EQ(result, ThriftTraverseResult::OK);
 
   // Thrift path terminating at HybridNode - Get
@@ -274,7 +278,11 @@ TYPED_TEST(PathVisitorTests, AccessAtHybridThriftContainerTest) {
   SetEncodedPathVisitorOperator setOp(fsdb::OperProtocol::SIMPLE_JSON, newVal);
 
   result = RootPathVisitor::visit(
-      *nodeA, path.begin(), path.end(), PathVisitOptions::visitLeaf(), setOp);
+      *nodeA,
+      path.begin(),
+      path.end(),
+      thrift_cow::PathVisitOptions::visitLeaf(true),
+      setOp);
   EXPECT_EQ(result, ThriftTraverseResult::OK);
 
   // Thrift path at thrift container under HybridNode  - Get
@@ -334,7 +342,11 @@ TYPED_TEST(PathVisitorTests, AccessAtHybridThriftContainerKeyTest) {
   SetEncodedPathVisitorOperator setOp(fsdb::OperProtocol::SIMPLE_JSON, newVal);
 
   result = RootPathVisitor::visit(
-      *nodeA, path.begin(), path.end(), PathVisitOptions::visitLeaf(), setOp);
+      *nodeA,
+      path.begin(),
+      path.end(),
+      thrift_cow::PathVisitOptions::visitLeaf(true),
+      setOp);
   EXPECT_EQ(result, ThriftTraverseResult::OK);
 
   // Thrift path at thrift container key under HybridNode  - Get
@@ -461,7 +473,11 @@ TYPED_TEST(PathVisitorTests, VisitWithOperators) {
     std::vector<std::string> path{"inlineInt"};
 
     auto result = RootPathVisitor::visit(
-        *nodeA, path.begin(), path.end(), PathVisitOptions::visitLeaf(), setOp);
+        *nodeA,
+        path.begin(),
+        path.end(),
+        thrift_cow::PathVisitOptions::visitLeaf(true),
+        setOp);
     EXPECT_EQ(result, ThriftTraverseResult::OK);
 
     GetEncodedPathVisitorOperator getOp(fsdb::OperProtocol::SIMPLE_JSON);
@@ -477,7 +493,11 @@ TYPED_TEST(PathVisitorTests, VisitWithOperators) {
         fsdb::OperProtocol::SIMPLE_JSON, newVal);
     std::vector<std::string> path{"setOfI32", "1"};
     auto result = RootPathVisitor::visit(
-        *nodeA, path.begin(), path.end(), PathVisitOptions::visitLeaf(), setOp);
+        *nodeA,
+        path.begin(),
+        path.end(),
+        thrift_cow::PathVisitOptions::visitLeaf(true),
+        setOp);
     // SetEncodedPathVisitorOperator also handles paths into sets of primitives
     EXPECT_EQ(result, ThriftTraverseResult::OK);
   }
@@ -489,7 +509,11 @@ TYPED_TEST(PathVisitorTests, VisitWithOperators) {
     std::vector<std::string> path{"mapOfStringToI32", "test1"};
 
     auto result = RootPathVisitor::visit(
-        *nodeA, path.begin(), path.end(), PathVisitOptions::visitLeaf(), setOp);
+        *nodeA,
+        path.begin(),
+        path.end(),
+        thrift_cow::PathVisitOptions::visitLeaf(true),
+        setOp);
     EXPECT_EQ(result, ThriftTraverseResult::OK);
 
     GetEncodedPathVisitorOperator getOp(fsdb::OperProtocol::SIMPLE_JSON);
@@ -512,7 +536,11 @@ TYPED_TEST(PathVisitorTests, VisitWithOperators) {
         fsdb::OperProtocol::SIMPLE_JSON, newVal);
 
     auto result = RootPathVisitor::visit(
-        *nodeA, path.begin(), path.end(), PathVisitOptions::visitLeaf(), setOp);
+        *nodeA,
+        path.begin(),
+        path.end(),
+        thrift_cow::PathVisitOptions::visitLeaf(true),
+        setOp);
     EXPECT_EQ(result, ThriftTraverseResult::OK);
 
     GetEncodedPathVisitorOperator getOp(fsdb::OperProtocol::SIMPLE_JSON);
@@ -542,7 +570,11 @@ TYPED_TEST(PathVisitorTests, VisitWithOperators) {
         fsdb::OperProtocol::SIMPLE_JSON, newVal);
 
     auto result = RootPathVisitor::visit(
-        *nodeA, path.begin(), path.end(), PathVisitOptions::visitLeaf(), setOp);
+        *nodeA,
+        path.begin(),
+        path.end(),
+        thrift_cow::PathVisitOptions::visitLeaf(true),
+        setOp);
     EXPECT_EQ(result, ThriftTraverseResult::OK);
 
     GetEncodedPathVisitorOperator getOp(fsdb::OperProtocol::SIMPLE_JSON);
