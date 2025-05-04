@@ -97,6 +97,11 @@ class EcmpResourceManager {
   struct InputOutputState {
     InputOutputState(uint32_t _nonBackupEcmpGroupsCnt, const StateDelta& _in)
         : nonBackupEcmpGroupsCnt(_nonBackupEcmpGroupsCnt), in(_in) {}
+    /*
+     * SwitchState to use as base state when building the
+     * next delta
+     */
+    std::shared_ptr<SwitchState> nextDeltaOldSwitchState() const;
     uint32_t nonBackupEcmpGroupsCnt;
     const StateDelta& in;
     std::vector<StateDelta> out;

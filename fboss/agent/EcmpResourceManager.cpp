@@ -49,6 +49,14 @@ EcmpResourceManager::createOptimalMergeGroupSet() {
   XLOG(FATAL) << " Merge group algorithm is a TODO";
 }
 
+std::shared_ptr<SwitchState>
+EcmpResourceManager::InputOutputState::nextDeltaOldSwitchState() const {
+  if (out.empty()) {
+    return in.oldState();
+  }
+  return out.back().newState();
+}
+
 template <typename AddrT>
 std::shared_ptr<NextHopGroupInfo> EcmpResourceManager::ecmpGroupDemandExceeded(
     const std::shared_ptr<Route<AddrT>>& route,
