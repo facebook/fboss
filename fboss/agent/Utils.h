@@ -41,6 +41,7 @@ DECLARE_uint64(egress_buffer_pool_size);
 DECLARE_uint64(ingress_egress_buffer_pool_size);
 DECLARE_bool(allow_zero_headroom_for_lossless_pg);
 DECLARE_string(mod_dest_mac_override);
+DECLARE_bool(allow_nif_port_for_mod);
 
 namespace folly {
 struct dynamic;

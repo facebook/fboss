@@ -5589,7 +5589,8 @@ ThriftConfigApplier::createMirrorOnDropReport(
   auto mirrorPortId = PortID(*config->mirrorPortId());
 
   if (checkSameAndGetAsic(hwAsicTable_->getL3Asics())->getAsicType() ==
-      cfg::AsicType::ASIC_TYPE_JERICHO3) {
+          cfg::AsicType::ASIC_TYPE_JERICHO3 &&
+      !FLAGS_allow_nif_port_for_mod) {
     auto mirrorPortType = new_->getPort(mirrorPortId)->getPortType();
     if (mirrorPortType != cfg::PortType::RECYCLE_PORT &&
         mirrorPortType != cfg::PortType::EVENTOR_PORT) {

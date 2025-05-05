@@ -68,6 +68,8 @@ class AgentMirrorOnDropTest
     AgentHwTest::setCmdLineFlagOverrides();
     // For VsqWordsSharedMaxSize which relies on triggering PFC.
     FLAGS_allow_zero_headroom_for_lossless_pg = true;
+    // Allow using NIF port for MOD, to test failure recovery cases.
+    FLAGS_allow_nif_port_for_mod = true;
   }
 
   void TearDown() override {
