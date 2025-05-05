@@ -131,6 +131,7 @@ target_link_libraries(agent_hw_test_src
   fib_updater
   ecmp_test_utils
   scale_test_utils
+  neighbor_test_utils
 )
 
 add_executable(multi_switch_agent_hw_test

@@ -24,6 +24,7 @@
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/L2LearningUpdateObserverUtil.h"
 #include "fboss/agent/test/utils/MacTestUtils.h"
+#include "fboss/agent/test/utils/NeighborTestUtils.h"
 #include "fboss/agent/test/utils/PacketTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
@@ -158,14 +159,23 @@ class AgentNeighborResolutionTest : public AgentHwTest {
                           ->modify(kVlanID, &state);
     }
 
-    if (neighborTable->getEntryIf(addr)) {
+    auto reachableNeighborState = NeighborState::REACHABLE;
+    if (auto existingEntry = neighborTable->getEntryIf(addr)) {
       neighborTable->updateEntry(
-          addr, mac, port, kIntfID, NeighborState::REACHABLE, lookupClass);
+          addr, mac, port, kIntfID, reachableNeighborState, lookupClass);
+      if (getSw()->needL2EntryForNeighbor()) {
+        state = utility::NeighborTestUtils::updateMacEntryForUpdatedNbrEntry(
+            state, kVlanID, existingEntry, neighborTable->getEntryIf(addr));
+      }
     } else {
       neighborTable->addEntry(addr, mac, port, kIntfID);
       // Update entry to add classid if any
       neighborTable->updateEntry(
-          addr, mac, port, kIntfID, NeighborState::REACHABLE, lookupClass);
+          addr, mac, port, kIntfID, reachableNeighborState, lookupClass);
+      if (getSw()->needL2EntryForNeighbor()) {
+        state = utility::NeighborTestUtils::addMacEntryForNewNbrEntry(
+            state, kVlanID, neighborTable->getEntryIf(addr));
+      }
     }
     return state;
   }
@@ -479,6 +489,14 @@ class AgentMacLearningAndNeighborResolutionTest
                                 ->getNode(kVlanID)
                                 ->template getNeighborEntryTable<AddrT>()
                                 ->modify(kVlanID, &newState);
+          }
+
+          // Prune MAC entry accordingly
+          auto oldEntry = neighborTable->getEntryIf(ip);
+          if (getSw()->needL2EntryForNeighbor() && oldEntry &&
+              oldEntry->isReachable()) {
+            newState = utility::NeighborTestUtils::pruneMacEntryForDelNbrEntry(
+                newState, kVlanID, oldEntry);
           }
 
           neighborTable->removeEntry(ip);

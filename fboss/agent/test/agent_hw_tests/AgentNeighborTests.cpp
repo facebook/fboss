@@ -9,6 +9,7 @@
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/TrunkUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
+#include "fboss/agent/test/utils/NeighborTestUtils.h"
 #include "fboss/agent/test/utils/PacketSnooper.h"
 
 #include "fboss/lib/CommonUtils.h"
@@ -239,6 +240,13 @@ class AgentNeighborTest : public AgentHwTest {
     auto outState{inState->clone()};
 
     auto neighborTable = getNeighborTable(outState);
+    auto intf = outState->getInterfaces()->getNode(kIntfID());
+    if (getSw()->needL2EntryForNeighbor() &&
+        intf->getType() == cfg::InterfaceType::VLAN) {
+      CHECK(intf->getVlanIDIf().has_value());
+      outState = utility::NeighborTestUtils::pruneMacEntryForDelNbrEntry(
+          outState, intf->getVlanID(), neighborTable->getEntryIf(ip));
+    }
     neighborTable->removeEntry(ip);
     return outState;
   }
@@ -257,6 +265,14 @@ class AgentNeighborTest : public AgentHwTest {
         kIntfID(),
         NeighborState::REACHABLE,
         lookupClass);
+
+    auto intf = outState->getInterfaces()->getNode(kIntfID());
+    if (getSw()->needL2EntryForNeighbor() &&
+        intf->getType() == cfg::InterfaceType::VLAN) {
+      CHECK(intf->getVlanIDIf().has_value());
+      outState = utility::NeighborTestUtils::addMacEntryForNewNbrEntry(
+          outState, intf->getVlanID(), neighborTable->getEntryIf(ip));
+    }
     return outState;
   }
 

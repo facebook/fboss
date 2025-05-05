@@ -17,6 +17,7 @@
 
 #include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
+#include "fboss/agent/test/utils/NeighborTestUtils.h"
 #include "fboss/agent/test/utils/PacketTestUtils.h"
 #include "fboss/agent/test/utils/QosTestUtils.h"
 #include "fboss/agent/test/utils/QueuePerHostTestUtils.h"
@@ -183,6 +184,8 @@ class AgentQueuePerHostTest : public AgentHwTest {
                             ->modify(kVlanID, &outState);
       }
 
+      auto existingEntry = neighborTable->getEntryIf(ip);
+
       if (setClassIDs) {
         neighborTable->updateEntry(
             ip,
@@ -199,6 +202,11 @@ class AgentQueuePerHostTest : public AgentHwTest {
             PortDescriptor(masterLogicalPortIds()[0]),
             kIntfID,
             NeighborState::REACHABLE);
+      }
+
+      if (getSw()->needL2EntryForNeighbor()) {
+        outState = utility::NeighborTestUtils::updateMacEntryForUpdatedNbrEntry(
+            outState, kVlanID, existingEntry, neighborTable->getEntryIf(ip));
       }
     }
 
