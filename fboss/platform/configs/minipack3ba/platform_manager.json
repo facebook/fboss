@@ -1,6 +1,6 @@
 {
-  "platformName": "montblanc",
-  "rootPmUnitName": "MINIPACK3_MCB",
+  "platformName": "MINIPACK3BA",
+  "rootPmUnitName": "MINIPACK3BA_MCB",
   "rootSlotType": "MCB_SLOT",
   "slotTypeConfigs": {
     "MCB_SLOT": {
@@ -10,7 +10,7 @@
         "address": "0x53",
         "kernelDeviceName": "24c02"
       },
-      "pmUnitName": "MINIPACK3_MCB"
+      "pmUnitName": "MINIPACK3BA_MCB"
     },
     "SCM_SLOT": {
       "numOutgoingI2cBuses": 4,
@@ -19,7 +19,7 @@
         "address": "0x54",
         "kernelDeviceName": "24c64"
       },
-      "pmUnitName": "MINIPACK3_SCM"
+      "pmUnitName": "SCM"
     },
     "RUNBMC_SLOT": {
       "numOutgoingI2cBuses": 1,
@@ -28,7 +28,7 @@
         "address": "0x51",
         "kernelDeviceName": "24c64"
       },
-      "pmUnitName": "MINIPACK3_BMC"
+      "pmUnitName": "BMC"
     },
     "PDBLEFT_SLOT": {
       "numOutgoingI2cBuses": 1,
@@ -37,7 +37,7 @@
         "address": "0x55",
         "kernelDeviceName": "24c02"
       },
-      "pmUnitName": "MINIPACK3_PDB_L"
+      "pmUnitName": "PDB_L"
     },
     "PDBRIGHT_SLOT": {
       "numOutgoingI2cBuses": 1,
@@ -46,7 +46,7 @@
         "address": "0x55",
         "kernelDeviceName": "24c02"
       },
-      "pmUnitName": "MINIPACK3_PDB_R"
+      "pmUnitName": "PDB_R"
     },
     "PSU_SLOT": {
       "numOutgoingI2cBuses": 1,
@@ -64,7 +64,7 @@
         "address": "0x50",
         "kernelDeviceName": "24c64"
       },
-      "pmUnitName": "MINIPACK3_SMB"
+      "pmUnitName": "SMB"
     },
     "FCBBOTTOM_SLOT": {
       "numOutgoingI2cBuses": 1,
@@ -73,7 +73,7 @@
         "address": "0x51",
         "kernelDeviceName": "24c64"
       },
-      "pmUnitName": "MINIPACK3_FCB_B"
+      "pmUnitName": "FCB_B"
     },
     "FCBTOP_SLOT": {
       "numOutgoingI2cBuses": 2,
@@ -82,7 +82,7 @@
         "address": "0x51",
         "kernelDeviceName": "24c64"
       },
-      "pmUnitName": "MINIPACK3_FCB_T"
+      "pmUnitName": "FCB_T"
     },
     "FAN_SLOT": {
       "numOutgoingI2cBuses": 0,
@@ -104,7 +104,7 @@
         "address": "0x51",
         "kernelDeviceName": "24c02"
       },
-      "pmUnitName": "MINIPACK3_3V3_L"
+      "pmUnitName": "3V3_L"
     },
     "OPTICR_SLOT": {
       "numOutgoingI2cBuses": 1,
@@ -113,278 +113,15 @@
         "address": "0x51",
         "kernelDeviceName": "24c02"
       },
-      "pmUnitName": "MINIPACK3_3V3_R"
+      "pmUnitName": "3V3_R"
     }
   },
   "i2cAdaptersFromCpu": [
     "SMBus I801 adapter at 5000",
     "SMBus iSMT adapter at 20fffa7b000"
   ],
-  "versionedPmUnitConfigs": {
-    "NETLAKE": [
-      {
-        "pmUnitConfig": {
-          "pluggedInSlotType": "COMESE_SLOT",
-          "i2cDeviceConfigs": [
-            {
-              "busName": "INCOMING@0",
-              "address": "0x11",
-              "kernelDeviceName": "mp9941",
-              "pmUnitScopedName": "COME_VOLTAGE_MONITOR1"
-            },
-            {
-              "busName": "INCOMING@0",
-              "address": "0x22",
-              "kernelDeviceName": "mp9941",
-              "pmUnitScopedName": "COME_VOLTAGE_MONITOR2"
-            },
-            {
-              "busName": "INCOMING@0",
-              "address": "0x45",
-              "kernelDeviceName": "mp9941",
-              "pmUnitScopedName": "COME_VOLTAGE_MONITOR3"
-            },
-            {
-              "busName": "INCOMING@0",
-              "address": "0x66",
-              "kernelDeviceName": "mp9941",
-              "pmUnitScopedName": "COME_VOLTAGE_MONITOR4"
-            },
-            {
-              "busName": "INCOMING@0",
-              "address": "0x76",
-              "kernelDeviceName": "mp2993",
-              "pmUnitScopedName": "COME_VOLTAGE_MONITOR5"
-            }
-          ]
-        },
-        "productSubVersion": 2
-      }
-    ],
-    "MINIPACK3_3V3_L": [
-      {
-        "pmUnitConfig": {
-          "pluggedInSlotType": "OPTICL_SLOT",
-          "i2cDeviceConfigs": [
-            {
-              "busName": "INCOMING@0",
-              "address": "0x23",
-              "kernelDeviceName": "mp2891",
-              "pmUnitScopedName": "3V3_L_MONITOR"
-            },
-            {
-              "busName": "INCOMING@0",
-              "address": "0x48",
-              "kernelDeviceName": "tmp1075",
-              "pmUnitScopedName": "SMB_TSENSOR1"
-            }
-          ]
-        },
-        "productSubVersion": 10
-      }
-    ],
-    "MINIPACK3_3V3_R": [
-      {
-        "pmUnitConfig": {
-          "pluggedInSlotType": "OPTICR_SLOT",
-          "i2cDeviceConfigs": [
-            {
-              "busName": "INCOMING@0",
-              "address": "0x23",
-              "kernelDeviceName": "mp2891",
-              "pmUnitScopedName": "3V3_R_MONITOR"
-            },
-            {
-              "busName": "INCOMING@0",
-              "address": "0x48",
-              "kernelDeviceName": "tmp1075",
-              "pmUnitScopedName": "SMB_TSENSOR4"
-            }
-          ]
-        },
-        "productSubVersion": 10
-      }
-    ],
-    "MINIPACK3_SCM": [
-      {
-        "pmUnitConfig": {
-          "pluggedInSlotType": "SCM_SLOT",
-          "embeddedSensorConfigs": [
-            {
-              "pmUnitScopedName": "SCM_M2_SSD_TEMP",
-              "sysfsPath": "/sys/class/nvme/nvme0"
-            }
-          ],
-          "i2cDeviceConfigs": [
-            {
-              "busName": "INCOMING@0",
-              "address": "0x70",
-              "kernelDeviceName": "pca9548",
-              "pmUnitScopedName": "SCM_MUX_A",
-              "numOutgoingChannels": 8
-            },
-            {
-              "busName": "INCOMING@1",
-              "address": "0x70",
-              "kernelDeviceName": "pca9546",
-              "pmUnitScopedName": "SCM_MUX_B",
-              "numOutgoingChannels": 4
-            },
-            {
-              "busName": "INCOMING@2",
-              "address": "0x35",
-              "kernelDeviceName": "mp3_scmcpld",
-              "pmUnitScopedName": "SCM_CPLD",
-              "initRegSettings": [
-                {
-                  "regOffset": 177,
-                  "ioBuf": [2]
-                }
-              ]
-            },
-            {
-              "busName": "SCM_MUX_A@0",
-              "address": "0x44",
-              "kernelDeviceName": "lm25066",
-              "pmUnitScopedName": "SCM_SENSOR"
-            },
-            {
-              "busName": "SCM_MUX_A@1",
-              "address": "0x4c",
-              "kernelDeviceName": "lm75b",
-              "pmUnitScopedName": "SCM_TSENSOR1"
-            },
-            {
-              "busName": "SCM_MUX_A@1",
-              "address": "0x4d",
-              "kernelDeviceName": "lm75b",
-              "pmUnitScopedName": "SCM_TSENSOR2"
-            },
-            {
-              "busName": "SCM_MUX_A@2",
-              "address": "0x37",
-              "kernelDeviceName": "adc128d818",
-              "pmUnitScopedName": "SCM_VOLTAGE_MONITOR1",
-              "initRegSettings": [
-                {
-                  "regOffset": 11,
-                  "ioBuf": [2]
-                }
-              ]
-            },
-            {
-              "busName": "SCM_MUX_A@3",
-              "address": "0x4c",
-              "kernelDeviceName": "tps25990",
-              "pmUnitScopedName": "SCM_VOLTAGE_MONITOR2"
-            },
-            {
-              "busName": "INCOMING@3",
-              "address": "0x48",
-              "kernelDeviceName": "tmp75",
-              "pmUnitScopedName": "COME_TSENSOR1"
-            },
-            {
-              "busName": "INCOMING@3",
-              "address": "0x4a",
-              "kernelDeviceName": "tmp75",
-              "pmUnitScopedName": "COME_TSENSOR2"
-            }
-          ],
-          "outgoingSlotConfigs": {
-            "RUNBMC_SLOT@0": {
-              "slotType": "RUNBMC_SLOT",
-              "outgoingI2cBusNames": [
-                "SCM_MUX_A@7"
-              ]
-            },
-            "COMESE_SLOT@0": {
-              "slotType": "COMESE_SLOT",
-              "outgoingI2cBusNames": [
-                "SCM_MUX_B@1",
-                "INCOMING@3"
-              ]
-            }
-          }
-        },
-        "productSubVersion": 10
-      }
-    ],
-    "MINIPACK3_SMB": [
-      {
-        "pmUnitConfig": {
-          "pluggedInSlotType": "SMB_SLOT",
-          "i2cDeviceConfigs": [
-            {
-              "busName": "INCOMING@0",
-              "address": "0x21",
-              "kernelDeviceName": "mp2891",
-              "pmUnitScopedName": "SMB_VRM1"
-            },
-            {
-              "busName": "INCOMING@1",
-              "address": "0x1f",
-              "kernelDeviceName": "adc128d818",
-              "pmUnitScopedName": "SMB_VOLTAGE_MONITOR1",
-              "initRegSettings": [
-                {
-                  "regOffset": 11,
-                  "ioBuf": [2]
-                }
-              ]
-            },
-            {
-              "busName": "INCOMING@2",
-              "address": "0x35",
-              "kernelDeviceName": "adc128d818",
-              "pmUnitScopedName": "SMB_VOLTAGE_MONITOR2",
-              "initRegSettings": [
-                {
-                  "regOffset": 11,
-                  "ioBuf": [2]
-                }
-              ]
-            },
-            {
-              "busName": "INCOMING@3",
-              "address": "0x3e",
-              "kernelDeviceName": "mp3_smbcpld",
-              "pmUnitScopedName": "SMB_CPLD"
-            },
-            {
-              "busName": "INCOMING@4",
-              "address": "0x7d",
-              "kernelDeviceName": "mp2975",
-              "pmUnitScopedName": "SMB_VRM2"
-            },
-            {
-              "busName": "INCOMING@5",
-              "address": "0x7b",
-              "kernelDeviceName": "mp2975",
-              "pmUnitScopedName": "SMB_VRM3"
-            }
-          ],
-          "outgoingSlotConfigs": {
-            "OPTICL_SLOT@0": {
-              "slotType": "OPTICL_SLOT",
-              "outgoingI2cBusNames": [
-                "INCOMING@6"
-              ]
-            },
-            "OPTICR_SLOT@0": {
-              "slotType": "OPTICR_SLOT",
-              "outgoingI2cBusNames": [
-                "INCOMING@7"
-              ]
-            }
-          }
-        },
-        "productSubVersion": 10
-      }
-    ]
-  },
   "pmUnitConfigs": {
-    "MINIPACK3_MCB": {
+    "MINIPACK3BA_MCB": {
       "pluggedInSlotType": "MCB_SLOT",
       "embeddedSensorConfigs": [
         {
@@ -3053,7 +2790,7 @@
         }
       }
     },
-    "MINIPACK3_SCM": {
+    "SCM": {
       "pluggedInSlotType": "SCM_SLOT",
       "embeddedSensorConfigs": [
         {
@@ -3090,8 +2827,8 @@
         },
         {
           "busName": "SCM_MUX_A@0",
-          "address": "0x10",
-          "kernelDeviceName": "adm1278",
+          "address": "0x44",
+          "kernelDeviceName": "lm25066",
           "pmUnitScopedName": "SCM_SENSOR"
         },
         {
@@ -3153,7 +2890,7 @@
         }
       }
     },
-    "MINIPACK3_BMC": {
+    "BMC": {
       "pluggedInSlotType": "RUNBMC_SLOT",
       "i2cDeviceConfigs": [
         {
@@ -3164,7 +2901,7 @@
         }
       ]
     },
-    "MINIPACK3_PDB_L": {
+    "PDB_L": {
       "pluggedInSlotType": "PDBLEFT_SLOT",
       "i2cDeviceConfigs": [
         {
@@ -3190,7 +2927,7 @@
         }
       }
     },
-    "MINIPACK3_PDB_R": {
+    "PDB_R": {
       "pluggedInSlotType": "PDBRIGHT_SLOT",
       "i2cDeviceConfigs": [
         {
@@ -3227,7 +2964,7 @@
         }
       ]
     },
-    "MINIPACK3_SMB": {
+    "SMB": {
       "pluggedInSlotType": "SMB_SLOT",
       "i2cDeviceConfigs": [
         {
@@ -3294,7 +3031,7 @@
         }
       }
     },
-    "MINIPACK3_FCB_T": {
+    "FCB_T": {
       "pluggedInSlotType": "FCBTOP_SLOT",
       "i2cDeviceConfigs": [
         {
@@ -3359,7 +3096,7 @@
         }
       }
     },
-    "MINIPACK3_FCB_B": {
+    "FCB_B": {
       "pluggedInSlotType": "FCBBOTTOM_SLOT",
       "i2cDeviceConfigs": [
         {
@@ -3427,36 +3164,36 @@
         {
           "busName": "INCOMING@0",
           "address": "0x11",
-          "kernelDeviceName": "tda38640",
+          "kernelDeviceName": "mp9941",
           "pmUnitScopedName": "COME_VOLTAGE_MONITOR1"
         },
         {
           "busName": "INCOMING@0",
           "address": "0x22",
-          "kernelDeviceName": "tda38640",
+          "kernelDeviceName": "mp9941",
           "pmUnitScopedName": "COME_VOLTAGE_MONITOR2"
         },
         {
           "busName": "INCOMING@0",
           "address": "0x45",
-          "kernelDeviceName": "tda38640",
+          "kernelDeviceName": "mp9941",
           "pmUnitScopedName": "COME_VOLTAGE_MONITOR3"
         },
         {
           "busName": "INCOMING@0",
           "address": "0x66",
-          "kernelDeviceName": "tda38640",
+          "kernelDeviceName": "mp9941",
           "pmUnitScopedName": "COME_VOLTAGE_MONITOR4"
         },
         {
           "busName": "INCOMING@0",
           "address": "0x76",
-          "kernelDeviceName": "xdpe15284",
+          "kernelDeviceName": "mp2993",
           "pmUnitScopedName": "COME_VOLTAGE_MONITOR5"
         }
       ]
     },
-    "MINIPACK3_3V3_L": {
+    "3V3_L": {
       "pluggedInSlotType": "OPTICL_SLOT",
       "i2cDeviceConfigs": [
         {
@@ -3473,7 +3210,7 @@
         }
       ]
     },
-    "MINIPACK3_3V3_R": {
+    "3V3_R": {
       "pluggedInSlotType": "OPTICR_SLOT",
       "i2cDeviceConfigs": [
         {
