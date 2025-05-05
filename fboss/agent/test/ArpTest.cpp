@@ -396,9 +396,7 @@ TYPED_TEST(ArpTest, TableUpdates) {
 
   // Sending the ARP request to the switch should not trigger an update to the
   // ArpTable for VLAN 1, but will send a reply packet
-  // TODO(zecheng): Update this to state update times to 1 after refactoring
-  // single neighbor update with mac address
-  // EXPECT_STATE_UPDATE_TIMES(sw, 0);
+  EXPECT_STATE_UPDATE_TIMES(sw, 0);
   EXPECT_OUT_OF_PORT_PKT(
       sw,
       "ARP reply",
@@ -443,9 +441,7 @@ TYPED_TEST(ArpTest, TableUpdates) {
 
   // Sending the ARP request to the switch should trigger an update to the
   // ArpTable for VLAN 1, and will then send a reply packet
-  // TODO(zecheng): Update this to state update times to 1 after refactoring
-  // single neighbor update with mac address
-  // EXPECT_STATE_UPDATE_TIMES(sw, 2);
+  EXPECT_STATE_UPDATE_TIMES(sw, 1);
   EXPECT_OUT_OF_PORT_PKT(
       sw,
       "ARP reply",
@@ -486,9 +482,7 @@ TYPED_TEST(ArpTest, TableUpdates) {
 
   // Sending the same packet again should generate another response,
   // but not another table update.
-  // TODO(zecheng): Update this to state update times to 1 after refactoring
-  // single neighbor update with mac address
-  // EXPECT_STATE_UPDATE_TIMES(sw, 0);
+  EXPECT_STATE_UPDATE_TIMES(sw, 0);
   EXPECT_OUT_OF_PORT_PKT(
       sw,
       "ARP reply",
@@ -534,9 +528,7 @@ TYPED_TEST(ArpTest, TableUpdates) {
       // Target IP: 10.0.0.50
       "0a 00 00 32"));
 
-  // TODO(zecheng): Update this to state update times to 1 after refactoring
-  // single neighbor update with mac address
-  // EXPECT_STATE_UPDATE_TIMES(sw, 0);
+  EXPECT_STATE_UPDATE_TIMES(sw, 0);
   EXPECT_HW_CALL(sw, sendPacketSwitchedAsync_(_)).Times(0);
   handle->rxPacket(std::move(buf), PortDescriptor(PortID(1)), vlanID);
   sw->getNeighborUpdater()->waitForPendingUpdates();
@@ -573,11 +565,9 @@ TYPED_TEST(ArpTest, TableUpdates) {
       // Target IP: 10.0.0.50
       "0a 00 00 32"));
 
-  // Expect 2+ updates, one for the arp entry update (MAC changed)
-  // And then 1 (or 2 depends on coalescing) for Static mac updates
-  // TODO(zecheng): Update this to state update times to 1 after refactoring
-  // single neighbor update with mac address
-  // EXPECT_STATE_UPDATE_TIMES_ATLEAST(sw, 2);
+  // Expect 1 transaction for the arp entry update (MAC changed) and static mac
+  // updates
+  EXPECT_STATE_UPDATE_TIMES_ATLEAST(sw, 1);
   EXPECT_HW_CALL(sw, sendPacketSwitchedAsync_(_)).Times(0);
   handle->rxPacket(std::move(buf), PortDescriptor(PortID(2)), vlanID);
   sw->getNeighborUpdater()->waitForPendingUpdates();
@@ -621,12 +611,8 @@ TYPED_TEST(ArpTest, TableUpdates) {
       // Target IP: 10.0.0.1
       "0a 00 00 01"));
 
-  // Arp resolution also triggers a static
-  // MAC entry creation update
-
-  // TODO(zecheng): Update this to state update times to 1 after refactoring
-  // single neighbor update with mac address
-  // EXPECT_STATE_UPDATE_TIMES(sw, 2);
+  // Arp resolution also triggers a static MAC entry creation in the same update
+  EXPECT_STATE_UPDATE_TIMES(sw, 1);
   EXPECT_OUT_OF_PORT_PKT(
       sw,
       "ARP reply",
@@ -683,12 +669,8 @@ TYPED_TEST(ArpTest, TableUpdates) {
       // Target IP: 192.168.0.1
       "c0 a8 00 01"));
 
-  // Arp resolution also triggers a static
-  // MAC entry creation update
-
-  // TODO(zecheng): Update this to state update times to 1 after refactoring
-  // single neighbor update with mac address
-  // EXPECT_STATE_UPDATE_TIMES(sw, 2);
+  // Arp resolution also triggers a static MAC entry creation in the same update
+  EXPECT_STATE_UPDATE_TIMES(sw, 1);
   EXPECT_OUT_OF_PORT_PKT(
       sw,
       "ARP reply",
@@ -887,10 +869,8 @@ TYPED_TEST(ArpTest, FlushEntry) {
   checkEntry(3, "10.0.0.22", "02:10:20:30:40:22", 4);
 
   // Via the thrift API, flush the ARP entry for 10.0.0.11
-  // This in turn will trigger static MAC entry pruning update
-  // TODO(zecheng): Update this to state update times to 1 after refactoring
-  // single neighbor update with mac address
-  // EXPECT_STATE_UPDATE_TIMES_ATLEAST(sw, 2);
+  // Static MAC entry pruning update would be in the same transaction
+  EXPECT_STATE_UPDATE_TIMES_ATLEAST(sw, 1);
   auto binAddr = toBinaryAddress(IPAddressV4("10.0.0.11"));
   auto numFlushed =
       thriftHandler.flushNeighborEntry(make_unique<BinaryAddress>(binAddr), 1);
