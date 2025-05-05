@@ -39,7 +39,7 @@ uint64_t getSwitchEgressPoolAvailableSize(const SaiPlatform* platform) {
   const auto switchId = saiSwitch->getSaiSwitchId();
   auto& switchApi = SaiApiTable::getInstance()->switchApi();
   return switchApi.getAttribute(
-      switchId, SaiSwitchTraits::Attributes::EgressPoolAvaialableSize{});
+      switchId, SaiSwitchTraits::Attributes::EgressPoolAvailableSize{});
 }
 
 void assertMaxBufferPoolSize(const SaiPlatform* platform) {
@@ -173,7 +173,7 @@ uint64_t SaiBufferManager::getMaxEgressPoolBytes(const SaiPlatform* platform) {
       saiSwitch = static_cast<SaiSwitch*>(platform->getHwSwitch());
       switchId = saiSwitch->getSaiSwitchId();
       return SaiApiTable::getInstance()->switchApi().getAttribute(
-          switchId, SaiSwitchTraits::Attributes::EgressPoolAvaialableSize{});
+          switchId, SaiSwitchTraits::Attributes::EgressPoolAvailableSize{});
     case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
     case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
     case cfg::AsicType::ASIC_TYPE_RAMON:

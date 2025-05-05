@@ -101,7 +101,7 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(Switch, Led)
   SAI_EXT_ATTR_MAP(Switch, LedReset)
   SAI_EXT_ATTR_MAP(Switch, AclFieldList)
-  SAI_EXT_ATTR_MAP(Switch, EgressPoolAvaialableSize)
+  SAI_EXT_ATTR_MAP(Switch, EgressPoolAvailableSize)
   SAI_EXT_ATTR_MAP(Switch, HwEccErrorInitiate)
   SAI_EXT_ATTR_MAP(Switch, WarmBootTargetVersion)
   SAI_EXT_ATTR_MAP(Switch, SwitchIsolate)

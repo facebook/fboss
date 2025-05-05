@@ -456,7 +456,7 @@ TEST_F(SwitchApiTest, setIngressAcl) {
 }
 
 TEST_F(SwitchApiTest, egressPoolSize) {
-  SaiSwitchTraits::Attributes::EgressPoolAvaialableSize sz{};
+  SaiSwitchTraits::Attributes::EgressPoolAvailableSize sz{};
   EXPECT_EQ(switchApi->getAttribute(switchId, sz), 1'000'000);
 }
 

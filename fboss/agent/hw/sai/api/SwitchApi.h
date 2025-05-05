@@ -424,12 +424,12 @@ struct SaiSwitchTraits {
     using AclFieldList = SaiExtensionAttribute<
         std::vector<sai_int32_t>,
         AttributeAclFieldListWrapper>;
-    struct AttributeEgressPoolAvaialableSizeIdWrapper {
+    struct AttributeEgressPoolAvailableSizeIdWrapper {
       std::optional<sai_attr_id_t> operator()();
     };
-    using EgressPoolAvaialableSize = SaiExtensionAttribute<
+    using EgressPoolAvailableSize = SaiExtensionAttribute<
         sai_uint32_t,
-        AttributeEgressPoolAvaialableSizeIdWrapper>;
+        AttributeEgressPoolAvailableSizeIdWrapper>;
 
     struct HwEccErrorInitiateWrapper {
       std::optional<sai_attr_id_t> operator()();
@@ -927,7 +927,7 @@ SAI_ATTRIBUTE_NAME(Switch, TamObject)
 SAI_ATTRIBUTE_NAME(Switch, NumberOfFabricPorts)
 SAI_ATTRIBUTE_NAME(Switch, FabricPortList)
 SAI_ATTRIBUTE_NAME(Switch, UseEcnThresholds)
-SAI_ATTRIBUTE_NAME(Switch, EgressPoolAvaialableSize)
+SAI_ATTRIBUTE_NAME(Switch, EgressPoolAvailableSize)
 SAI_ATTRIBUTE_NAME(Switch, CounterRefreshInterval)
 
 SAI_ATTRIBUTE_NAME(Switch, FirmwareCoreToUse)

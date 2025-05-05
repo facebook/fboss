@@ -25,7 +25,7 @@ SaiSwitchTraits::Attributes::AttributeAclFieldListWrapper::operator()() {
 }
 
 std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
-    AttributeEgressPoolAvaialableSizeIdWrapper::operator()() {
+    AttributeEgressPoolAvailableSizeIdWrapper::operator()() {
   return std::nullopt;
 }
 
