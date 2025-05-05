@@ -65,25 +65,26 @@ class CmdShowLldp : public CmdHandler<CmdShowLldp, CmdShowLldpTraits> {
         "Peer Description",
     });
 
-    for (auto const& entry : model.get_lldpEntries()) {
-      std::string expectedPeerDisplay = entry.get_expectedPeer();
+    for (auto const& entry : model.lldpEntries().value()) {
+      std::string expectedPeerDisplay = entry.expectedPeer().value();
       if (expectedPeerDisplay.empty()) {
         expectedPeerDisplay = "EMPTY";
       }
 
       table.addRow({
-          entry.get_localPort(),
+          entry.localPort().value(),
           Table::StyledCell(
-              entry.get_status(), get_StatusStyle(entry.get_status())),
+              entry.status().value(), get_StatusStyle(entry.status().value())),
           Table::StyledCell(
               expectedPeerDisplay,
-              get_ExpectedPeerStyle(entry.get_expectedPeer())),
+              get_ExpectedPeerStyle(entry.expectedPeer().value())),
           Table::StyledCell(
-              utils::removeFbDomains(entry.get_systemName()),
-              get_PeerStyle(entry.get_expectedPeer(), entry.get_systemName())),
-          entry.get_remotePort(),
-          entry.get_remotePlatform(),
-          entry.get_remotePortDescription(),
+              utils::removeFbDomains(entry.systemName().value()),
+              get_PeerStyle(
+                  entry.expectedPeer().value(), entry.systemName().value())),
+          entry.remotePort().value(),
+          entry.remotePlatform().value(),
+          entry.remotePortDescription().value(),
       });
     }
 
@@ -109,7 +110,7 @@ class CmdShowLldp : public CmdHandler<CmdShowLldp, CmdShowLldpTraits> {
     facebook::fboss::PortInfoThrift returnPort;
     for (const auto& entry : portEntries) {
       const auto port = entry.second;
-      if (portId == port.get_portId()) {
+      if (portId == folly::copy(port.portId().value())) {
         returnPort = port;
       }
     }
@@ -234,23 +235,27 @@ class CmdShowLldp : public CmdHandler<CmdShowLldp, CmdShowLldpTraits> {
     for (const auto& entry : lldpEntries) {
       cli::LldpEntry lldpDetails;
 
-      const auto portInfo = getPortInfo(entry.get_localPort(), portEntries);
-      if (queriedIfs.size() == 0 || queriedSet.count(portInfo.get_name())) {
-        const auto operState = portInfo.get_operState();
+      const auto portInfo =
+          getPortInfo(folly::copy(entry.localPort().value()), portEntries);
+      if (queriedIfs.size() == 0 || queriedSet.count(portInfo.name().value())) {
+        const auto operState = folly::copy(portInfo.operState().value());
         const auto expected_peer = portInfo.expectedLLDPeerName().has_value()
             ? portInfo.expectedLLDPeerName().value()
-            : extractExpectedPort(portInfo.get_description());
-        if (auto localPortName = entry.get_localPortName()) {
+            : extractExpectedPort(portInfo.description().value());
+        if (auto localPortName =
+                apache::thrift::get_pointer(entry.localPortName())) {
           lldpDetails.localPort() = *localPortName;
         }
-        lldpDetails.systemName() = entry.get_systemName()
-            ? *entry.get_systemName()
-            : entry.get_printableChassisId();
-        lldpDetails.remotePort() = entry.get_printablePortId();
-        if (entry.get_systemDescription()) {
-          lldpDetails.remotePlatform() = *entry.get_systemDescription();
+        lldpDetails.systemName() =
+            apache::thrift::get_pointer(entry.systemName())
+            ? *apache::thrift::get_pointer(entry.systemName())
+            : entry.printableChassisId().value();
+        lldpDetails.remotePort() = entry.printablePortId().value();
+        if (apache::thrift::get_pointer(entry.systemDescription())) {
+          lldpDetails.remotePlatform() =
+              *apache::thrift::get_pointer(entry.systemDescription());
         }
-        lldpDetails.remotePortDescription() = portInfo.get_description();
+        lldpDetails.remotePortDescription() = portInfo.description().value();
         lldpDetails.status() =
             (operState == facebook::fboss::PortOperState::UP) ? "up" : "down";
         lldpDetails.expectedPeer() = expected_peer;
@@ -263,7 +268,8 @@ class CmdShowLldp : public CmdHandler<CmdShowLldp, CmdShowLldpTraits> {
         model.lldpEntries()->begin(),
         model.lldpEntries()->end(),
         [](cli::LldpEntry& a, cli::LldpEntry b) {
-          return utils::comparePortName(a.get_localPort(), b.get_localPort());
+          return utils::comparePortName(
+              a.localPort().value(), b.localPort().value());
         });
 
     return model;

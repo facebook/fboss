@@ -168,6 +168,16 @@ bool isFlowletActionStateSame(
   return true;
 }
 
+bool isEcmpHashActionStateSame(
+    const std::optional<MatchAction>& swAction,
+    const std::string& aclMsg) {
+  if (!swAction || !swAction.value().getEcmpHashAction()) {
+    XLOG(ERR) << aclMsg << " has ecmp hash action in h/w but not in s/w";
+    return false;
+  }
+  return true;
+}
+
 bool isActionStateSame(
     const BcmSwitch* hw,
     int unit,
@@ -176,7 +186,7 @@ bool isActionStateSame(
     const std::string& aclMsg,
     const BcmAclActionParameters& data) {
   // first we need to get all actions of current acl entry
-  std::array<bcm_field_action_t, 8> supportedActions = {
+  std::array<bcm_field_action_t, 9> supportedActions = {
       bcmFieldActionDrop,
       bcmFieldActionCosQNew,
       bcmFieldActionCosQCpuNew,
@@ -184,7 +194,8 @@ bool isActionStateSame(
       bcmFieldActionMirrorIngress,
       bcmFieldActionMirrorEgress,
       bcmFieldActionL3Switch,
-      bcmFieldActionDynamicEcmpEnable};
+      bcmFieldActionDynamicEcmpEnable,
+      bcmFieldActionEcmpRandomRoundRobinHashCancel};
   boost::container::flat_map<bcm_field_action_t, std::pair<uint32_t, uint32_t>>
       bcmActions;
   for (auto action : supportedActions) {
@@ -217,6 +228,9 @@ bool isActionStateSame(
       expectedAC += 1;
     }
     if (acl->getAclAction()->cref<switch_state_tags::flowletAction>()) {
+      expectedAC += 1;
+    }
+    if (acl->getAclAction()->cref<switch_state_tags::ecmpHashAction>()) {
       expectedAC += 1;
     }
   }
@@ -283,6 +297,9 @@ bool isActionStateSame(
       case bcmFieldActionDynamicEcmpEnable:
         isSame = isFlowletActionStateSame(aclAction, aclMsg);
         break;
+      case bcmFieldActionEcmpRandomRoundRobinHashCancel:
+        isSame = isEcmpHashActionStateSame(aclAction, aclMsg);
+        break;
       default:
         throw FbossError("Unknown action=", action->first);
     }
@@ -330,7 +347,7 @@ bcm_field_hintid_t compressFpQualifier(
   hint.start_bit = start;
   hint.end_bit = end;
   rv = bcm_field_hints_add(unit, hint_id, &hint);
-  bcmCheckError(rv, "Failed to add hints id: ", (int)hint_id);
+  bcmCheckError(rv, "Failed to add hints id: ", static_cast<int>(hint_id));
   return hint_id;
 }
 
@@ -397,7 +414,7 @@ void createFPGroup(
     config.hintid = compressFpQualifier(unit, bcmFieldQualifySrcIp6, 0, 64);
     rv = bcm_field_group_config_create(unit, &config);
     XLOG(DBG2) << "Generate hint id for compressing srcIp6 qualifier :"
-               << (int)config.hintid;
+               << static_cast<int>(config.hintid);
   } else if (onHSDK) {
     bcm_field_group_config_t config;
     bcm_field_group_config_t_init(&config);
@@ -514,6 +531,7 @@ bool needsExtraFPQsetQualifiers(cfg::AsicType asicType) {
       return true;
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK6:
       return false;
     case cfg::AsicType::ASIC_TYPE_EBRO:
     case cfg::AsicType::ASIC_TYPE_GARONNE:

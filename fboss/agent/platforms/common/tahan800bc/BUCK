@@ -6,11 +6,16 @@ cpp_library(
     name = "tahan800bc_platform_mapping",
     srcs = [
         "Tahan800bcPlatformMapping.cpp",
+        "facebook/Tahan800bcPlatformMapping.cpp",
     ],
     headers = [
+        "Tahan800bcChassisPlatformMapping.h",
         "Tahan800bcPlatformMapping.h",
+        "Tahan800bcTestFixturePlatformMapping.h",
     ],
     exported_deps = [
+        "//configerator/structs/neteng/netwhoami:netwhoami-cpp2-types",
         "//fboss/agent/platforms/common:platform_mapping",
+        "//neteng/netwhoami/lib/cpp:recover",
     ],
 )

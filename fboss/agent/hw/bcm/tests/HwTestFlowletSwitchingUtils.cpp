@@ -195,7 +195,7 @@ bool verifyEcmpForFlowletSwitching(
     bcm_l3_egress_get(0, ecmp_member, &egress);
     if (flowletEnable &&
         !(hw->getPlatform()->getAsic()->isSupported(
-            HwAsic::Feature::FLOWLET_PORT_ATTRIBUTES))) {
+            HwAsic::Feature::ARS_PORT_ATTRIBUTES))) {
       // verify the port flowlet config values only in TH3
       // since this port flowlet configs are set in egress object in TH3
       CHECK_EQ(egress.dynamic_scaling_factor, *cfg.scalingFactor());
@@ -236,9 +236,10 @@ bool verifyEcmpForNonFlowlet(
       bcmSwitchObjectEcmpDynamicFlowSetFree,
       &freeEntries);
   if (expectFlowsetFree) {
-    CHECK_GE(freeEntries, 2048);
+    CHECK_GE(freeEntries, 256);
   } else {
-    CHECK_EQ(freeEntries, 0);
+    // CS00012398177
+    CHECK_EQ(freeEntries, 256);
   }
   return true;
 }

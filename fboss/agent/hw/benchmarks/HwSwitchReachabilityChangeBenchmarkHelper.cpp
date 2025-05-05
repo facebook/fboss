@@ -6,16 +6,12 @@
 #include "fboss/agent/DsfStateUpdaterUtil.h"
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/SwitchStats.h"
-#include "fboss/agent/benchmarks/AgentBenchmarks.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
-#include "fboss/agent/hw/test/HwTestThriftHandler.h"
 #include "fboss/agent/test/utils/DsfConfigUtils.h"
 #include "fboss/agent/test/utils/FabricTestUtils.h"
 #include "fboss/agent/test/utils/VoqTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
-
-DECLARE_int32(max_unprocessed_switch_reachability_changes);
 
 using namespace facebook::fboss;
 

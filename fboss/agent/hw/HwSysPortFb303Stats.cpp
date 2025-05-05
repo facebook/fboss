@@ -37,8 +37,13 @@ HwSysPortFb303Stats::kQueueMonotonicCounterStatKeys() const {
       kOutDiscards(),
       kOutBytes(),
       kWredDroppedPackets(),
-      kCreditWatchdogDeletedPackets(),
-      kLatencyWatermarkNsec()};
+      kCreditWatchdogDeletedPackets()};
+  return kQueueKeys;
+}
+
+const std::vector<folly::StringPiece>&
+HwSysPortFb303Stats::kQueueFb303CounterStatKeys() const {
+  static std::vector<folly::StringPiece> kQueueKeys{kLatencyWatermarkNsec()};
   return kQueueKeys;
 }
 
@@ -63,9 +68,20 @@ HwSysPortFb303Stats::kPfcMonotonicCounterStatKeys() const {
   return kPfcKeys;
 }
 
+const std::vector<folly::StringPiece>&
+HwSysPortFb303Stats::kPriorityGroupCounterStatKeys() const {
+  // No priority group stats on sys ports
+  static std::vector<folly::StringPiece> kPgKeys{};
+  return kPgKeys;
+}
+
 void HwSysPortFb303Stats::updateStats(
     const HwSysPortStats& curPortStats,
     const std::chrono::seconds& retrievedAt) {
+  if (!initialized_) {
+    reinitStats(std::nullopt);
+    initialized_ = true;
+  }
   timeRetrieved_ = retrievedAt;
   auto updateQueueStat = [this](
                              folly::StringPiece statKey,
@@ -96,10 +112,17 @@ void HwSysPortFb303Stats::updateStats(
           *curPortStats.queueCreditWatchdogDeletedPackets_());
     }
     if (curPortStats.queueLatencyWatermarkNsec_()->size()) {
-      updateQueueStat(
-          kLatencyWatermarkNsec(),
-          queueIdAndName.first,
-          *curPortStats.queueLatencyWatermarkNsec_());
+      auto& queueStats = *curPortStats.queueLatencyWatermarkNsec_();
+      auto qitr = queueStats.find(queueIdAndName.first);
+      if (qitr != queueStats.end()) {
+        fb303::fbData->setCounter(
+            statName(
+                kLatencyWatermarkNsec(),
+                portName(),
+                queueIdAndName.first,
+                queueIdAndName.second),
+            qitr->second);
+      }
     }
   }
   if (curPortStats.queueWatermarkBytes_()->size()) {

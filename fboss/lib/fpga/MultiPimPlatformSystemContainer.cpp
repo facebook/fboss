@@ -35,4 +35,12 @@ void MultiPimPlatformSystemContainer::setPimContainer(
   // prod.
   pims_[pim] = std::move(pimContainer);
 }
+
+std::map<int, PimState> MultiPimPlatformSystemContainer::getPimStates() const {
+  std::map<int, PimState> pimStates;
+  for (auto& [pimId, pimContainer] : pims_) {
+    pimStates.emplace(pimId, pimContainer->getPimState());
+  }
+  return pimStates;
+}
 } // namespace facebook::fboss

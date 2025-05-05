@@ -69,21 +69,22 @@ class CmdShowNdp : public CmdHandler<CmdShowNdp, CmdShowNdpTraits> {
          "Voq Switch",
          "Resolved Since"});
 
-    for (const auto& entry : model.get_ndpEntries()) {
-      auto vlan = entry.get_vlanName();
-      if (entry.get_vlanID() != ctrl_constants::NO_VLAN()) {
-        vlan += folly::to<std::string>(" (", entry.get_vlanID(), ")");
+    for (const auto& entry : model.ndpEntries().value()) {
+      auto vlan = entry.vlanName().value();
+      if (folly::copy(entry.vlanID().value()) != ctrl_constants::NO_VLAN()) {
+        vlan += folly::to<std::string>(
+            " (", folly::copy(entry.vlanID().value()), ")");
       }
       table.addRow(
-          {entry.get_ip(),
-           entry.get_mac(),
-           entry.get_port(),
+          {entry.ip().value(),
+           entry.mac().value(),
+           entry.port().value(),
            vlan,
-           entry.get_state(),
-           std::to_string(entry.get_ttl()),
-           std::to_string(entry.get_classID()),
-           entry.get_switchName(),
-           entry.get_resolvedSince()});
+           entry.state().value(),
+           std::to_string(folly::copy(entry.ttl().value())),
+           std::to_string(folly::copy(entry.classID().value())),
+           entry.switchName().value(),
+           entry.resolvedSince().value()});
     }
     out << table << std::endl;
   }
@@ -98,29 +99,31 @@ class CmdShowNdp : public CmdHandler<CmdShowNdp, CmdShowNdpTraits> {
         queriedNdpEntries.begin(), queriedNdpEntries.end());
 
     for (const auto& entry : ndpEntries) {
-      auto ip = folly::IPAddress::fromBinary(
-          folly::ByteRange(folly::StringPiece(entry.get_ip().get_addr())));
+      auto ip = folly::IPAddress::fromBinary(folly::ByteRange(
+          folly::StringPiece(entry.ip().value().addr().value())));
 
       if (queriedNdpEntries.size() == 0 || queriedSet.count(ip.str())) {
         cli::NdpEntry ndpDetails;
         ndpDetails.ip() = ip.str();
-        ndpDetails.mac() = entry.get_mac();
+        ndpDetails.mac() = entry.mac().value();
         if (*entry.isLocal()) {
-          ndpDetails.port() = portEntries[entry.get_port()].get_name();
+          ndpDetails.port() =
+              portEntries[folly::copy(entry.port().value())].name().value();
         } else {
-          ndpDetails.port() = folly::to<std::string>(entry.get_port());
+          ndpDetails.port() =
+              folly::to<std::string>(folly::copy(entry.port().value()));
         }
-        ndpDetails.vlanName() = entry.get_vlanName();
+        ndpDetails.vlanName() = entry.vlanName().value();
         // TODO(skhare)
         // Once FLAGS_intf_nbr_tables is enabled globally, interfaceID will be
         // always populated to a valid value, and at that time, we could assign
         // entry.get_interfaceID() without check for non-0.
-        ndpDetails.vlanID() = entry.get_interfaceID() != 0
-            ? entry.get_interfaceID()
-            : entry.get_vlanID();
-        ndpDetails.state() = entry.get_state();
-        ndpDetails.ttl() = entry.get_ttl();
-        ndpDetails.classID() = entry.get_classID();
+        ndpDetails.vlanID() = folly::copy(entry.interfaceID().value()) != 0
+            ? folly::copy(entry.interfaceID().value())
+            : folly::copy(entry.vlanID().value());
+        ndpDetails.state() = entry.state().value();
+        ndpDetails.ttl() = folly::copy(entry.ttl().value());
+        ndpDetails.classID() = folly::copy(entry.classID().value());
         ndpDetails.switchName() = "--";
         if (entry.switchId().has_value()) {
           auto ditr = dsfNodes.find(*entry.switchId());

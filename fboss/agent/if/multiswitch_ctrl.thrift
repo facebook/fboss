@@ -39,10 +39,18 @@ struct LinkConnectivityEvent {
   1: map<i32, FabricConnectivityDelta> port2ConnectivityDelta;
 }
 
+enum LinkChangeEventType {
+  INVALID = 0,
+  LINK_STATE = 1,
+  LINK_ACTIVE = 2,
+  LINK_CONNECTIVITY = 3,
+}
+
 struct LinkChangeEvent {
   1: optional LinkEvent linkStateEvent;
   2: LinkActiveEvent linkActiveEvents;
   3: LinkConnectivityEvent linkConnectivityEvents;
+  4: LinkChangeEventType eventType;
 }
 
 struct SwitchReachabilityChangeEvent {
@@ -97,6 +105,7 @@ struct HwSwitchStats {
   14: map<i32, phy.PhyInfo> phyInfo;
   15: hardware_stats.AclStats aclStats;
   16: hardware_stats.HwSwitchWatermarkStats switchWatermarkStats;
+  17: bool arsExhausted;
 }
 
 service MultiSwitchCtrl {

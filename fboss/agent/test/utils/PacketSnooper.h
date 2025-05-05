@@ -22,31 +22,44 @@ namespace facebook::fboss::utility {
 using PacketComparatorFn =
     std::optional<std::function<bool(utility::EthFrame, utility::EthFrame)>>;
 
+// define received packet type for packetSnooper
+enum class packetSnooperReceivePacketType {
+  PACKET_TYPE_ALL,
+  PACKET_TYPE_PTP,
+};
+
 class PacketSnooper : public PacketObserverIf {
  public:
   PacketSnooper(
       std::optional<PortID> port = std::nullopt,
       std::optional<utility::EthFrame> expectedFrame = std::nullopt,
-      PacketComparatorFn packetComparator = std::nullopt)
-      : port_(port),
-        expectedFrame_(std::move(expectedFrame)),
-        packetComparator_(std::move(packetComparator)) {}
+      PacketComparatorFn packetComparator = std::nullopt,
+      packetSnooperReceivePacketType receivePktType =
+          packetSnooperReceivePacketType::PACKET_TYPE_ALL);
 
   void packetReceived(const RxPacket* pkt) noexcept override;
+  bool expectedReceivedPacketType(folly::io::Cursor& cursor) noexcept;
 
   virtual ~PacketSnooper() override {
-    EXPECT_TRUE(receivedFrames_.empty());
+    if (!ignoreUnclaimedRxPkts_) {
+      EXPECT_TRUE(receivedFrames_.empty());
+    }
   }
   // Wait until timeout (seconds), If timeout = 0, wait forever.
   std::optional<utility::EthFrame> waitForPacket(uint32_t timeout_s = 0);
+  void ignoreUnclaimedRxPkts() {
+    ignoreUnclaimedRxPkts_ = true;
+  }
 
  private:
+  packetSnooperReceivePacketType receivePktType_;
   std::optional<PortID> port_;
   std::optional<utility::EthFrame> expectedFrame_;
   PacketComparatorFn packetComparator_;
   std::mutex mtx_;
   std::condition_variable cv_;
   std::queue<std::unique_ptr<utility::EthFrame>> receivedFrames_;
+  bool ignoreUnclaimedRxPkts_{false};
 };
 
 class SwSwitchPacketSnooper : public PacketSnooper {
@@ -56,7 +69,9 @@ class SwSwitchPacketSnooper : public PacketSnooper {
       const std::string& name,
       std::optional<PortID> port = std::nullopt,
       std::optional<utility::EthFrame> expectedFrame = std::nullopt,
-      PacketComparatorFn packetComparator = std::nullopt);
+      PacketComparatorFn packetComparator = std::nullopt,
+      packetSnooperReceivePacketType receivePktType =
+          packetSnooperReceivePacketType::PACKET_TYPE_ALL);
 
   std::optional<std::unique_ptr<folly::IOBuf>> waitForPacket(
       uint32_t timeout_s);

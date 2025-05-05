@@ -49,7 +49,8 @@ BENCHMARK(FsdbPublishVoqStats) {
   // wait for server to process all the updates
   while (true) {
     auto md = helper.getPublisherRootMetadata(true);
-    if (*md->operMetadata.get_lastConfirmedAt() == n_iterations) {
+    if (*apache::thrift::get_pointer(md->operMetadata.lastConfirmedAt()) ==
+        n_iterations) {
       break;
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(1));

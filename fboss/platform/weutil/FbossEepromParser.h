@@ -35,7 +35,7 @@ class FbossEepromParser {
   // methon can parse the data into human readable screen output or
   // JSON
   std::vector<std::pair<std::string, std::string>> prepareEepromFieldMap(
-      std::unordered_map<int, std::string> parsedValue,
+      const std::unordered_map<int, std::string>& parsedValue,
       int eepromVer);
   std::string parseLeUint(int len, unsigned char* ptr);
   std::string parseBeUint(int len, unsigned char* ptr);

@@ -20,11 +20,10 @@ MirrorOnDropReport::MirrorOnDropReport(
     int16_t mtu,
     int16_t truncateSize,
     uint8_t dscp,
-    std::optional<int32_t> agingIntervalUsecs,
     std::string switchMac,
     std::string firstInterfaceMac,
-    std::map<int8_t, std::vector<cfg::MirrorOnDropReasonAggregation>>
-        eventIdToDropReasons)
+    std::map<int8_t, cfg::MirrorOnDropEventConfig> modEventToConfigMap,
+    std::map<cfg::MirrorOnDropAgingGroup, int32_t> agingGroupAgingIntervalUsecs)
     : ThriftStructNode<MirrorOnDropReport, state::MirrorOnDropReportFields>() {
   set<switch_state_tags::name>(name);
   set<switch_state_tags::mirrorPortId>(mirrorPortId);
@@ -35,12 +34,11 @@ MirrorOnDropReport::MirrorOnDropReport(
   set<switch_state_tags::mtu>(mtu);
   set<switch_state_tags::truncateSize>(truncateSize);
   set<switch_state_tags::dscp>(dscp);
-  if (agingIntervalUsecs.has_value()) {
-    set<switch_state_tags::agingIntervalUsecs>(agingIntervalUsecs.value());
-  }
   set<switch_state_tags::switchMac>(switchMac);
   set<switch_state_tags::firstInterfaceMac>(firstInterfaceMac);
-  set<switch_state_tags::eventIdToDropReasons>(eventIdToDropReasons);
+  set<switch_state_tags::modEventToConfigMap>(modEventToConfigMap);
+  set<switch_state_tags::agingGroupAgingIntervalUsecs>(
+      agingGroupAgingIntervalUsecs);
 }
 
 std::string MirrorOnDropReport::getID() const {
@@ -84,13 +82,6 @@ uint8_t MirrorOnDropReport::getDscp() const {
   return get<switch_state_tags::dscp>()->cref();
 }
 
-std::optional<uint32_t> MirrorOnDropReport::getAgingIntervalUsecs() const {
-  if (auto agingIntervalUsecs = get<switch_state_tags::agingIntervalUsecs>()) {
-    return agingIntervalUsecs->cref();
-  }
-  return std::nullopt;
-}
-
 std::string MirrorOnDropReport::getSwitchMac() const {
   return get<switch_state_tags::switchMac>()->cref();
 }
@@ -99,9 +90,14 @@ std::string MirrorOnDropReport::getFirstInterfaceMac() const {
   return get<switch_state_tags::firstInterfaceMac>()->cref();
 }
 
-std::map<int8_t, std::vector<cfg::MirrorOnDropReasonAggregation>>
-MirrorOnDropReport::getEventIdToDropReasonAggregations() const {
-  return get<switch_state_tags::eventIdToDropReasons>()->toThrift();
+std::map<int8_t, cfg::MirrorOnDropEventConfig>
+MirrorOnDropReport::getModEventToConfigMap() const {
+  return get<switch_state_tags::modEventToConfigMap>()->toThrift();
+}
+
+std::map<cfg::MirrorOnDropAgingGroup, int32_t>
+MirrorOnDropReport::getAgingGroupAgingIntervalUsecs() const {
+  return get<switch_state_tags::agingGroupAgingIntervalUsecs>()->toThrift();
 }
 
 template struct ThriftStructNode<

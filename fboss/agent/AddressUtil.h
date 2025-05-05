@@ -75,7 +75,8 @@ inline thrift::IPPrefix toIPPrefix(const folly::CIDRNetwork& network) {
 
 inline folly::CIDRNetwork toCIDRNetwork(const thrift::IPPrefix& addr) {
   return folly::CIDRNetwork(
-      toIPAddress(addr.get_prefixAddress()), addr.get_prefixLength());
+      toIPAddress(addr.prefixAddress().value()),
+      folly::copy(addr.prefixLength().value()));
 }
 
 } // namespace facebook::network

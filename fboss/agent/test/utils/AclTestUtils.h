@@ -29,29 +29,48 @@ using AclStatGetFunc = std::function<int64_t(
 
 std::string kDefaultAclTable();
 
+std::string kTtldAclTable();
+
 cfg::AclEntry* addAclEntry(
     cfg::SwitchConfig* cfg,
-    cfg::AclEntry& acl,
-    const std::string& tableName);
+    const cfg::AclEntry& acl,
+    const std::string& tableName,
+    cfg::AclStage aclStage = cfg::AclStage::INGRESS);
 
-cfg::AclEntry* addAcl(
+cfg::AclEntry* addAcl_DEPRECATED(
     cfg::SwitchConfig* cfg,
     const std::string& aclName,
     const cfg::AclActionType& aclActionType = cfg::AclActionType::PERMIT,
     const std::optional<std::string>& tableName = std::nullopt);
+
+cfg::AclEntry* addAcl(
+    cfg::SwitchConfig* cfg,
+    const cfg::AclEntry& acl,
+    cfg::AclStage aclStage);
 
 void addEtherTypeToAcl(
     const HwAsic* asic,
     cfg::AclEntry* acl,
     const cfg::EtherType& etherType = cfg::EtherType::IPv6);
 
+void addUdfTableToAcl(
+    cfg::AclEntry* acl,
+    const std::string& udfGroups,
+    const std::vector<int8_t>& roceBytes,
+    const std::vector<int8_t>& roceMask);
+
 std::vector<cfg::AclTableQualifier> genAclQualifiersConfig(
     cfg::AsicType asicType);
 
 int getAclTableIndex(
-    cfg::SwitchConfig* cfg,
+    cfg::AclTableGroup* aclTableGroup,
+    const std::string& tableName);
+
+std::shared_ptr<AclEntry> getAclEntryByName(
+    const std::shared_ptr<SwitchState> state,
+    cfg::AclStage aclStage,
     const std::string& tableName,
-    const std::string& tableGroupName);
+    const std::string& aclName);
 
 std::shared_ptr<AclEntry> getAclEntryByName(
     const std::shared_ptr<SwitchState> state,
@@ -79,7 +98,9 @@ void addAclTableGroup(
     cfg::AclStage aclStage,
     const std::string& aclTableGroupName = "AclTableGroup1");
 
-void addDefaultAclTable(cfg::SwitchConfig& cfg);
+void addDefaultAclTable(
+    cfg::SwitchConfig& cfg,
+    const std::vector<std::string>& udfGroups = {});
 
 cfg::AclTable* addAclTable(
     cfg::SwitchConfig* cfg,
@@ -89,7 +110,32 @@ cfg::AclTable* addAclTable(
     const std::vector<cfg::AclTableQualifier>& qualifiers,
     const std::vector<std::string>& udfGroups = {});
 
+cfg::AclTable* addAclTable(
+    cfg::SwitchConfig* cfg,
+    cfg::AclStage aclStage,
+    const std::string& aclTableName,
+    const int aclTablePriority,
+    const std::vector<cfg::AclTableActionType>& actionTypes,
+    const std::vector<cfg::AclTableQualifier>& qualifiers,
+    const std::vector<std::string>& udfGroups = {});
+
+cfg::AclTable* addTtldAclTable(
+    cfg::SwitchConfig* cfg,
+    cfg::AclStage aclStage,
+    const int aclTablePriority);
+
+cfg::AclTable* getAclTable(
+    cfg::SwitchConfig& cfg,
+    cfg::AclStage aclStage,
+    const std::string& aclTableName);
+
 void delAclTable(cfg::SwitchConfig* cfg, const std::string& aclTableName);
+
+void addTrafficCounter(
+    cfg::SwitchConfig* config,
+    const std::string& counterName,
+    const std::optional<std::vector<cfg::CounterType>>& counterTypes =
+        std::nullopt);
 
 void addAclStat(
     cfg::SwitchConfig* cfg,
@@ -102,12 +148,25 @@ void delAclStat(
     const std::string& matcher,
     const std::string& counterName);
 
-void addAclMatchActions(
+void addMatcher(
+    cfg::SwitchConfig* config,
+    const std::string& matcherName,
+    const cfg::MatchAction& matchAction);
+void delMatcher(cfg::SwitchConfig* config, const std::string& matcherName);
+
+void addAclMirrorAction(
     cfg::SwitchConfig* cfg,
     const std::string& matcher,
-    const std::optional<std::string>& counterName,
-    const std::optional<std::string>& mirrorName,
+    const std::string& counterName,
+    const std::string& mirrorName,
     bool ingress = true);
+
+void addAclDscpQueueAction(
+    cfg::SwitchConfig* cfg,
+    const std::string& matcher,
+    const std::string& counterName,
+    int32_t dscpValue = 0,
+    int queueId = -1);
 
 void renameAclStat(
     cfg::SwitchConfig* cfg,
@@ -145,9 +204,26 @@ std::shared_ptr<AclEntry> getAclEntry(
     const std::string& name,
     bool enableAclTableGroup);
 
-cfg::AclTableGroup* FOLLY_NULLABLE
-getAclTableGroup(cfg::SwitchConfig& config, const std::string& name);
-
 cfg::AclTableGroup* FOLLY_NULLABLE getAclTableGroup(cfg::SwitchConfig& config);
 
+cfg::AclTableGroup* FOLLY_NULLABLE
+getAclTableGroup(cfg::SwitchConfig& config, cfg::AclStage aclStage);
+
+void setupDefaultAclTableGroups(cfg::SwitchConfig& config);
+
+void setupDefaultPostLookupIngressAclTableGroup(cfg::SwitchConfig& config);
+
+void setupDefaultIngressAclTableGroup(cfg::SwitchConfig& config);
+
+std::set<cfg::AclTableQualifier> getRequiredQualifers(
+    const cfg::AclEntry& aclEntry);
+
+bool aclEntrySupported(
+    const cfg::AclTable* aclTable,
+    const cfg::AclEntry& aclEntry);
+
+std::string getAclTableForAclEntry(
+    cfg::SwitchConfig& config,
+    const cfg::AclEntry& aclEntry,
+    cfg::AclStage stage = cfg::AclStage::INGRESS);
 } // namespace facebook::fboss::utility

@@ -72,31 +72,31 @@
             {
               "busName": "INCOMING@1",
               "address": "0x11",
-              "kernelDeviceName": "bp4f_mp9941",
+              "kernelDeviceName": "mp9941",
               "pmUnitScopedName": "COME_PU31_TDA38640"
             },
             {
               "busName": "INCOMING@1",
               "address": "0x22",
-              "kernelDeviceName": "bp4f_mp9941",
+              "kernelDeviceName": "mp9941",
               "pmUnitScopedName": "COME_PU32_TDA38640"
             },
             {
               "busName": "INCOMING@1",
               "address": "0x45",
-              "kernelDeviceName": "bp4f_mp9941",
+              "kernelDeviceName": "mp9941",
               "pmUnitScopedName": "COME_PU41_TDA38640"
             },
             {
               "busName": "INCOMING@1",
               "address": "0x66",
-              "kernelDeviceName": "bp4f_mp9941",
+              "kernelDeviceName": "mp9941",
               "pmUnitScopedName": "COME_PU42_TDA38640"
             },
             {
               "busName": "INCOMING@1",
               "address": "0x76",
-              "kernelDeviceName": "bp4f_mp2993",
+              "kernelDeviceName": "mp2993",
               "pmUnitScopedName": "COME_PU4_XDPE15284"
             }
           ]
@@ -148,13 +148,13 @@
             {
               "busName": "INCOMING@3",
               "address": "0x2f",
-              "kernelDeviceName": "bp4f_mp2891",
+              "kernelDeviceName": "mp2891",
               "pmUnitScopedName": "SMB_U337_PMBUS_1"
             },
             {
               "busName": "INCOMING@3",
               "address": "0x21",
-              "kernelDeviceName": "bp4f_mp2891",
+              "kernelDeviceName": "mp2891",
               "pmUnitScopedName": "SMB_U177_PMBUS_2"
             },
             {
@@ -2097,7 +2097,7 @@
         {
           "busName": "SMB_IOB_I2C_MASTER_22",
           "address": "0x10",
-          "kernelDeviceName": "adm1272",
+          "kernelDeviceName": "bp4f_adm1272",
           "pmUnitScopedName": "SMB_U279_ADM1272_1"
         },
         {
@@ -2119,12 +2119,6 @@
               ]
             }
           ]
-        },
-        {
-          "busName": "SMB_IOB_I2C_MASTER_23",
-          "address": "0x4c",
-          "kernelDeviceName": "tmp422",
-          "pmUnitScopedName": "SMB_U68_TMP422"
         },
         {
           "busName": "SMB_IOB_I2C_MASTER_25",
@@ -2155,12 +2149,6 @@
           ]
         },
         {
-          "busName": "SMB_IOB_I2C_MASTER_25",
-          "address": "0x4c",
-          "kernelDeviceName": "tmp422",
-          "pmUnitScopedName": "SMB_U351_TMP422"
-        },
-        {
           "busName": "SMB_IOB_I2C_MASTER_26",
           "address": "0x37",
           "kernelDeviceName": "adc128d818",
@@ -2187,12 +2175,6 @@
               ]
             }
           ]
-        },
-        {
-          "busName": "SMB_IOB_I2C_MASTER_26",
-          "address": "0x4c",
-          "kernelDeviceName": "tmp422",
-          "pmUnitScopedName": "SMB_U352_TMP422"
         },
         {
           "busName": "SMB_IOB_I2C_MASTER_27",
@@ -2237,22 +2219,18 @@
           ]
         },
         {
-          "busName": "SMB_IOB_I2C_MASTER_28",
-          "address": "0x4c",
-          "kernelDeviceName": "tmp422",
-          "pmUnitScopedName": "SMB_U150_TMP422"
-        },
-        {
-          "busName": "SMB_IOB_I2C_MASTER_29",
-          "address": "0x4c",
-          "kernelDeviceName": "tmp422",
-          "pmUnitScopedName": "SMB_U152_TMP422"
-        },
-        {
           "busName": "SMB_IOB_I2C_MASTER_10",
-          "address": "0x3e",
+          "address": "0x33",
           "kernelDeviceName": "janga_smbcpld",
-          "pmUnitScopedName": "JANGA_SMB_CPLD"
+          "pmUnitScopedName": "JANGA_SMB_CPLD",
+          "initRegSettings": [
+            {
+              "regOffset": 7,
+              "ioBuf": [
+                -65
+              ]
+            }
+          ]
         },
         {
           "busName": "SMB_IOB_I2C_MASTER_3",
@@ -2300,7 +2278,12 @@
             "SMB_IOB_I2C_MASTER_4",
             "SMB_IOB_I2C_MASTER_9",
             "SMB_IOB_I2C_MASTER_11",
-            "SMB_IOB_I2C_MASTER_12"
+            "SMB_IOB_I2C_MASTER_12",
+            "SMB_IOB_I2C_MASTER_23",
+            "SMB_IOB_I2C_MASTER_25",
+            "SMB_IOB_I2C_MASTER_26",
+            "SMB_IOB_I2C_MASTER_28",
+            "SMB_IOB_I2C_MASTER_29"
           ]
         }
       }
@@ -2311,49 +2294,49 @@
         {
           "busName": "INCOMING@0",
           "address": "0x72",
-          "kernelDeviceName": "bp4f_xdpe12284",
+          "kernelDeviceName": "xdpe12284",
           "pmUnitScopedName": "SMB_U229_XDPE12284_1"
         },
         {
           "busName": "INCOMING@0",
           "address": "0x6a",
-          "kernelDeviceName": "bp4f_xdpe12284",
+          "kernelDeviceName": "xdpe12284",
           "pmUnitScopedName": "SMB_U237_XDPE12284_2"
         },
         {
           "busName": "INCOMING@2",
           "address": "0x76",
-          "kernelDeviceName": "bp4f_xdpe12284",
+          "kernelDeviceName": "xdpe12284",
           "pmUnitScopedName": "SMB_U210_XDPE12284_1"
         },
         {
           "busName": "INCOMING@2",
           "address": "0x72",
-          "kernelDeviceName": "bp4f_xdpe12284",
+          "kernelDeviceName": "xdpe12284",
           "pmUnitScopedName": "SMB_U347_XDPE12284_2"
         },
         {
           "busName": "INCOMING@2",
           "address": "0x70",
-          "kernelDeviceName": "bp4f_xdpe12284",
+          "kernelDeviceName": "xdpe12284",
           "pmUnitScopedName": "SMB_U92_XDPE12284_3"
         },
         {
           "busName": "INCOMING@2",
           "address": "0x68",
-          "kernelDeviceName": "bp4f_xdpe12284",
+          "kernelDeviceName": "xdpe12284",
           "pmUnitScopedName": "SMB_U216_XDPE12284_4"
         },
         {
           "busName": "INCOMING@3",
           "address": "0x6a",
-          "kernelDeviceName": "bp4f_xdpe12284",
+          "kernelDeviceName": "xdpe12284",
           "pmUnitScopedName": "SMB_U86_XDPE12284_2"
         },
         {
           "busName": "INCOMING@3",
           "address": "0x70",
-          "kernelDeviceName": "bp4f_xdpe12284",
+          "kernelDeviceName": "xdpe12284",
           "pmUnitScopedName": "SMB_U343_XDPE12284_1"
         },
         {
@@ -2367,6 +2350,36 @@
           "address": "0x76",
           "kernelDeviceName": "pmbus",
           "pmUnitScopedName": "SMB_U177_PMBUS_2"
+        },
+        {
+          "busName": "INCOMING@4",
+          "address": "0x4c",
+          "kernelDeviceName": "tmp422",
+          "pmUnitScopedName": "SMB_U68_TMP422"
+        },
+        {
+          "busName": "INCOMING@5",
+          "address": "0x4c",
+          "kernelDeviceName": "tmp422",
+          "pmUnitScopedName": "SMB_U351_TMP422"
+        },
+        {
+          "busName": "INCOMING@6",
+          "address": "0x4c",
+          "kernelDeviceName": "tmp422",
+          "pmUnitScopedName": "SMB_U352_TMP422"
+        },
+        {
+          "busName": "INCOMING@7",
+          "address": "0x4c",
+          "kernelDeviceName": "tmp422",
+          "pmUnitScopedName": "SMB_U150_TMP422"
+        },
+        {
+          "busName": "INCOMING@8",
+          "address": "0x4c",
+          "kernelDeviceName": "tmp422",
+          "pmUnitScopedName": "SMB_U152_TMP422"
         }
       ]
     },
@@ -2422,31 +2435,31 @@
         {
           "busName": "INCOMING@1",
           "address": "0x11",
-          "kernelDeviceName": "bp4f_tda38640",
+          "kernelDeviceName": "tda38640",
           "pmUnitScopedName": "COME_PU31_TDA38640"
         },
         {
           "busName": "INCOMING@1",
           "address": "0x22",
-          "kernelDeviceName": "bp4f_tda38640",
+          "kernelDeviceName": "tda38640",
           "pmUnitScopedName": "COME_PU32_TDA38640"
         },
         {
           "busName": "INCOMING@1",
           "address": "0x45",
-          "kernelDeviceName": "bp4f_tda38640",
+          "kernelDeviceName": "tda38640",
           "pmUnitScopedName": "COME_PU41_TDA38640"
         },
         {
           "busName": "INCOMING@1",
           "address": "0x66",
-          "kernelDeviceName": "bp4f_tda38640",
+          "kernelDeviceName": "tda38640",
           "pmUnitScopedName": "COME_PU42_TDA38640"
         },
         {
           "busName": "INCOMING@1",
           "address": "0x76",
-          "kernelDeviceName": "bp4f_xdpe15284",
+          "kernelDeviceName": "xdpe15284",
           "pmUnitScopedName": "COME_PU4_XDPE15284"
         }
       ]
@@ -2457,13 +2470,13 @@
         {
           "busName": "INCOMING@0",
           "address": "0x5e",
-          "kernelDeviceName": "bp4f_max31790",
+          "kernelDeviceName": "max31790",
           "pmUnitScopedName": "BCB_FAN_CPLD"
         },
         {
           "busName": "INCOMING@1",
           "address": "0x5e",
-          "kernelDeviceName": "bp4f_max31790",
+          "kernelDeviceName": "max31790",
           "pmUnitScopedName": "BCB_FAN_CPLD_2"
         }
       ]
@@ -2498,18 +2511,18 @@
     "/run/devmap/sensors/SMB_U279_ADM1272_1": "/[SMB_U279_ADM1272_1]",
     "/run/devmap/sensors/SMB_U104_LM75B_2": "/[SMB_U104_LM75B_2]",
     "/run/devmap/sensors/SMB_U355_ADC128D818_1": "/[SMB_U355_ADC128D818_1]",
-    "/run/devmap/sensors/SMB_U68_TMP422": "/[SMB_U68_TMP422]",
+    "/run/devmap/sensors/SMB_U68_TMP422": "/SMB_FRU_SLOT@0/[SMB_U68_TMP422]",
     "/run/devmap/sensors/SMB_U356_ADC128D818_1": "/[SMB_U356_ADC128D818_1]",
     "/run/devmap/sensors/SMB_U360_ADC128D818_2": "/[SMB_U360_ADC128D818_2]",
-    "/run/devmap/sensors/SMB_U351_TMP422": "/[SMB_U351_TMP422]",
+    "/run/devmap/sensors/SMB_U351_TMP422": "/SMB_FRU_SLOT@0/[SMB_U351_TMP422]",
     "/run/devmap/sensors/SMB_U361_ADC128D818_1": "/[SMB_U361_ADC128D818_1]",
     "/run/devmap/sensors/SMB_U357_ADC128D818_2": "/[SMB_U357_ADC128D818_2]",
-    "/run/devmap/sensors/SMB_U352_TMP422": "/[SMB_U352_TMP422]",
+    "/run/devmap/sensors/SMB_U352_TMP422": "/SMB_FRU_SLOT@0/[SMB_U352_TMP422]",
     "/run/devmap/sensors/SMB_U354_ADC128D818_1": "/[SMB_U354_ADC128D818_1]",
     "/run/devmap/sensors/SMB_U288_ADC128D818_2": "/[SMB_U288_ADC128D818_2]",
     "/run/devmap/sensors/SMB_U353_ADC128D818_3": "/[SMB_U353_ADC128D818_3]",
-    "/run/devmap/sensors/SMB_U150_TMP422": "/[SMB_U150_TMP422]",
-    "/run/devmap/sensors/SMB_U152_TMP422": "/[SMB_U152_TMP422]",
+    "/run/devmap/sensors/SMB_U150_TMP422": "/SMB_FRU_SLOT@0/[SMB_U150_TMP422]",
+    "/run/devmap/sensors/SMB_U152_TMP422": "/SMB_FRU_SLOT@0/[SMB_U152_TMP422]",
     "/run/devmap/sensors/PDB_PMBUS_BRICK_1": "/PDB_SLOT@0/[PDB_PMBUS_BRICK_1]",
     "/run/devmap/sensors/PDB_PMBUS_BRICK_2": "/PDB_SLOT@0/[PDB_PMBUS_BRICK_2]",
     "/run/devmap/sensors/PDB_U1_LM75B": "/PDB_SLOT@0/[PDB_U1_LM75B]",
@@ -2525,6 +2538,8 @@
     "/run/devmap/cplds/PWR_CPLD": "/[PWR_CPLD]",
     "/run/devmap/fpgas/SMB_IOB_INFO_ROM": "/[SMB_IOB_INFO_ROM]",
     "/run/devmap/fpgas/SMB_DOM_INFO_ROM": "/[SMB_DOM_INFO_ROM]",
+    "/run/devmap/inforoms/SMB_IOB_INFO_ROM": "/[SMB_IOB_INFO_ROM]",
+    "/run/devmap/inforoms/SMB_DOM_INFO_ROM": "/[SMB_DOM_INFO_ROM]",
     "/run/devmap/i2c-busses/SMB_IOB_I2C_MASTER_1": "/[SMB_IOB_I2C_MASTER_1]",
     "/run/devmap/i2c-busses/SMB_IOB_I2C_MASTER_2": "/[SMB_IOB_I2C_MASTER_2]",
     "/run/devmap/i2c-busses/SMB_IOB_I2C_MASTER_3": "/[SMB_IOB_I2C_MASTER_3]",
@@ -2653,10 +2668,103 @@
     "/run/devmap/flashes/SMB_SPI_MASTER_4_DEVICE_1": "/[SMB_SPI_MASTER_4_DEVICE_1]",
     "/run/devmap/flashes/SMB_SPI_MASTER_5_DEVICE_1": "/[SMB_SPI_MASTER_5_DEVICE_1]",
     "/run/devmap/flashes/SMB_SPI_MASTER_6_DEVICE_1": "/[SMB_SPI_MASTER_6_DEVICE_1]",
-    "/run/devmap/flashes/SMB_SPI_MASTER_7_DEVICE_1": "/[SMB_SPI_MASTER_7_DEVICE_1]"
+    "/run/devmap/flashes/SMB_SPI_MASTER_7_DEVICE_1": "/[SMB_SPI_MASTER_7_DEVICE_1]",
+    "/run/devmap/xcvrs/xcvr_io_1": "/[SMB_DOM_I2C_MASTER_1]",
+    "/run/devmap/xcvrs/xcvr_ctrl_1": "/[SMB_DOM_XCVR_CTRL_PORT_1]",
+    "/run/devmap/xcvrs/xcvr_io_2": "/[SMB_DOM_I2C_MASTER_2]",
+    "/run/devmap/xcvrs/xcvr_ctrl_2": "/[SMB_DOM_XCVR_CTRL_PORT_2]",
+    "/run/devmap/xcvrs/xcvr_io_3": "/[SMB_DOM_I2C_MASTER_3]",
+    "/run/devmap/xcvrs/xcvr_ctrl_3": "/[SMB_DOM_XCVR_CTRL_PORT_3]",
+    "/run/devmap/xcvrs/xcvr_io_4": "/[SMB_DOM_I2C_MASTER_4]",
+    "/run/devmap/xcvrs/xcvr_ctrl_4": "/[SMB_DOM_XCVR_CTRL_PORT_4]",
+    "/run/devmap/xcvrs/xcvr_io_5": "/[SMB_DOM_I2C_MASTER_5]",
+    "/run/devmap/xcvrs/xcvr_ctrl_5": "/[SMB_DOM_XCVR_CTRL_PORT_5]",
+    "/run/devmap/xcvrs/xcvr_io_6": "/[SMB_DOM_I2C_MASTER_6]",
+    "/run/devmap/xcvrs/xcvr_ctrl_6": "/[SMB_DOM_XCVR_CTRL_PORT_6]",
+    "/run/devmap/xcvrs/xcvr_io_7": "/[SMB_DOM_I2C_MASTER_7]",
+    "/run/devmap/xcvrs/xcvr_ctrl_7": "/[SMB_DOM_XCVR_CTRL_PORT_7]",
+    "/run/devmap/xcvrs/xcvr_io_8": "/[SMB_DOM_I2C_MASTER_8]",
+    "/run/devmap/xcvrs/xcvr_ctrl_8": "/[SMB_DOM_XCVR_CTRL_PORT_8]",
+    "/run/devmap/xcvrs/xcvr_io_9": "/[SMB_DOM_I2C_MASTER_9]",
+    "/run/devmap/xcvrs/xcvr_ctrl_9": "/[SMB_DOM_XCVR_CTRL_PORT_9]",
+    "/run/devmap/xcvrs/xcvr_io_10": "/[SMB_DOM_I2C_MASTER_10]",
+    "/run/devmap/xcvrs/xcvr_ctrl_10": "/[SMB_DOM_XCVR_CTRL_PORT_10]",
+    "/run/devmap/xcvrs/xcvr_io_11": "/[SMB_DOM_I2C_MASTER_11]",
+    "/run/devmap/xcvrs/xcvr_ctrl_11": "/[SMB_DOM_XCVR_CTRL_PORT_11]",
+    "/run/devmap/xcvrs/xcvr_io_12": "/[SMB_DOM_I2C_MASTER_12]",
+    "/run/devmap/xcvrs/xcvr_ctrl_12": "/[SMB_DOM_XCVR_CTRL_PORT_12]",
+    "/run/devmap/xcvrs/xcvr_io_13": "/[SMB_DOM_I2C_MASTER_13]",
+    "/run/devmap/xcvrs/xcvr_ctrl_13": "/[SMB_DOM_XCVR_CTRL_PORT_13]",
+    "/run/devmap/xcvrs/xcvr_io_14": "/[SMB_DOM_I2C_MASTER_14]",
+    "/run/devmap/xcvrs/xcvr_ctrl_14": "/[SMB_DOM_XCVR_CTRL_PORT_14]",
+    "/run/devmap/xcvrs/xcvr_io_15": "/[SMB_DOM_I2C_MASTER_15]",
+    "/run/devmap/xcvrs/xcvr_ctrl_15": "/[SMB_DOM_XCVR_CTRL_PORT_15]",
+    "/run/devmap/xcvrs/xcvr_io_16": "/[SMB_DOM_I2C_MASTER_16]",
+    "/run/devmap/xcvrs/xcvr_ctrl_16": "/[SMB_DOM_XCVR_CTRL_PORT_16]",
+    "/run/devmap/xcvrs/xcvr_io_17": "/[SMB_DOM_I2C_MASTER_17]",
+    "/run/devmap/xcvrs/xcvr_ctrl_17": "/[SMB_DOM_XCVR_CTRL_PORT_17]",
+    "/run/devmap/xcvrs/xcvr_io_18": "/[SMB_DOM_I2C_MASTER_18]",
+    "/run/devmap/xcvrs/xcvr_ctrl_18": "/[SMB_DOM_XCVR_CTRL_PORT_18]",
+    "/run/devmap/xcvrs/xcvr_io_19": "/[SMB_DOM_I2C_MASTER_19]",
+    "/run/devmap/xcvrs/xcvr_ctrl_19": "/[SMB_DOM_XCVR_CTRL_PORT_19]",
+    "/run/devmap/xcvrs/xcvr_io_20": "/[SMB_DOM_I2C_MASTER_20]",
+    "/run/devmap/xcvrs/xcvr_ctrl_20": "/[SMB_DOM_XCVR_CTRL_PORT_20]",
+    "/run/devmap/xcvrs/xcvr_io_21": "/[SMB_DOM_I2C_MASTER_21]",
+    "/run/devmap/xcvrs/xcvr_ctrl_21": "/[SMB_DOM_XCVR_CTRL_PORT_21]",
+    "/run/devmap/xcvrs/xcvr_io_22": "/[SMB_DOM_I2C_MASTER_22]",
+    "/run/devmap/xcvrs/xcvr_ctrl_22": "/[SMB_DOM_XCVR_CTRL_PORT_22]",
+    "/run/devmap/xcvrs/xcvr_io_23": "/[SMB_DOM_I2C_MASTER_23]",
+    "/run/devmap/xcvrs/xcvr_ctrl_23": "/[SMB_DOM_XCVR_CTRL_PORT_23]",
+    "/run/devmap/xcvrs/xcvr_io_24": "/[SMB_DOM_I2C_MASTER_24]",
+    "/run/devmap/xcvrs/xcvr_ctrl_24": "/[SMB_DOM_XCVR_CTRL_PORT_24]",
+    "/run/devmap/xcvrs/xcvr_io_25": "/[SMB_DOM_I2C_MASTER_25]",
+    "/run/devmap/xcvrs/xcvr_ctrl_25": "/[SMB_DOM_XCVR_CTRL_PORT_25]",
+    "/run/devmap/xcvrs/xcvr_io_26": "/[SMB_DOM_I2C_MASTER_26]",
+    "/run/devmap/xcvrs/xcvr_ctrl_26": "/[SMB_DOM_XCVR_CTRL_PORT_26]",
+    "/run/devmap/xcvrs/xcvr_io_27": "/[SMB_DOM_I2C_MASTER_27]",
+    "/run/devmap/xcvrs/xcvr_ctrl_27": "/[SMB_DOM_XCVR_CTRL_PORT_27]",
+    "/run/devmap/xcvrs/xcvr_io_28": "/[SMB_DOM_I2C_MASTER_28]",
+    "/run/devmap/xcvrs/xcvr_ctrl_28": "/[SMB_DOM_XCVR_CTRL_PORT_28]",
+    "/run/devmap/xcvrs/xcvr_io_29": "/[SMB_DOM_I2C_MASTER_29]",
+    "/run/devmap/xcvrs/xcvr_ctrl_29": "/[SMB_DOM_XCVR_CTRL_PORT_29]",
+    "/run/devmap/xcvrs/xcvr_io_30": "/[SMB_DOM_I2C_MASTER_30]",
+    "/run/devmap/xcvrs/xcvr_ctrl_30": "/[SMB_DOM_XCVR_CTRL_PORT_30]",
+    "/run/devmap/xcvrs/xcvr_io_31": "/[SMB_DOM_I2C_MASTER_31]",
+    "/run/devmap/xcvrs/xcvr_ctrl_31": "/[SMB_DOM_XCVR_CTRL_PORT_31]",
+    "/run/devmap/xcvrs/xcvr_io_32": "/[SMB_DOM_I2C_MASTER_32]",
+    "/run/devmap/xcvrs/xcvr_ctrl_32": "/[SMB_DOM_XCVR_CTRL_PORT_32]",
+    "/run/devmap/xcvrs/xcvr_io_33": "/[SMB_DOM_I2C_MASTER_33]",
+    "/run/devmap/xcvrs/xcvr_ctrl_33": "/[SMB_DOM_XCVR_CTRL_PORT_33]",
+    "/run/devmap/xcvrs/xcvr_io_34": "/[SMB_DOM_I2C_MASTER_34]",
+    "/run/devmap/xcvrs/xcvr_ctrl_34": "/[SMB_DOM_XCVR_CTRL_PORT_34]",
+    "/run/devmap/xcvrs/xcvr_io_35": "/[SMB_DOM_I2C_MASTER_35]",
+    "/run/devmap/xcvrs/xcvr_ctrl_35": "/[SMB_DOM_XCVR_CTRL_PORT_35]",
+    "/run/devmap/xcvrs/xcvr_io_36": "/[SMB_DOM_I2C_MASTER_36]",
+    "/run/devmap/xcvrs/xcvr_ctrl_36": "/[SMB_DOM_XCVR_CTRL_PORT_36]",
+    "/run/devmap/xcvrs/xcvr_io_37": "/[SMB_DOM_I2C_MASTER_37]",
+    "/run/devmap/xcvrs/xcvr_ctrl_37": "/[SMB_DOM_XCVR_CTRL_PORT_37]",
+    "/run/devmap/xcvrs/xcvr_io_38": "/[SMB_DOM_I2C_MASTER_38]",
+    "/run/devmap/xcvrs/xcvr_ctrl_38": "/[SMB_DOM_XCVR_CTRL_PORT_38]",
+    "/run/devmap/xcvrs/xcvr_io_39": "/[SMB_DOM_I2C_MASTER_39]",
+    "/run/devmap/xcvrs/xcvr_ctrl_39": "/[SMB_DOM_XCVR_CTRL_PORT_39]",
+    "/run/devmap/xcvrs/xcvr_io_40": "/[SMB_DOM_I2C_MASTER_40]",
+    "/run/devmap/xcvrs/xcvr_ctrl_40": "/[SMB_DOM_XCVR_CTRL_PORT_40]",
+    "/run/devmap/xcvrs/xcvr_io_41": "/[SMB_DOM_I2C_MASTER_41]",
+    "/run/devmap/xcvrs/xcvr_ctrl_41": "/[SMB_DOM_XCVR_CTRL_PORT_41]",
+    "/run/devmap/xcvrs/xcvr_io_42": "/[SMB_DOM_I2C_MASTER_42]",
+    "/run/devmap/xcvrs/xcvr_ctrl_42": "/[SMB_DOM_XCVR_CTRL_PORT_42]",
+    "/run/devmap/xcvrs/xcvr_io_43": "/[SMB_DOM_I2C_MASTER_43]",
+    "/run/devmap/xcvrs/xcvr_ctrl_43": "/[SMB_DOM_XCVR_CTRL_PORT_43]",
+    "/run/devmap/xcvrs/xcvr_io_44": "/[SMB_DOM_I2C_MASTER_44]",
+    "/run/devmap/xcvrs/xcvr_ctrl_44": "/[SMB_DOM_XCVR_CTRL_PORT_44]",
+    "/run/devmap/xcvrs/xcvr_io_45": "/[SMB_DOM_I2C_MASTER_45]",
+    "/run/devmap/xcvrs/xcvr_ctrl_45": "/[SMB_DOM_XCVR_CTRL_PORT_45]",
+    "/run/devmap/xcvrs/xcvr_io_46": "/[SMB_DOM_I2C_MASTER_46]",
+    "/run/devmap/xcvrs/xcvr_ctrl_46": "/[SMB_DOM_XCVR_CTRL_PORT_46]"
   },
+  "chassisEepromDevicePath": "/SMB_FRU_SLOT@0/[IDPROM]",
   "bspKmodsRpmName": "fboss_bsp_kmods",
-  "bspKmodsRpmVersion": "2.4.0-1",
+  "bspKmodsRpmVersion": "3.0.0-1",
   "requiredKmodsToLoad": [
     "i2c_i801",
     "spidev",

@@ -9,14 +9,15 @@
  */
 
 #include "fboss/agent/AgentFeatures.h"
-#include "fboss/agent/HwSwitch.h"
 
-#include "fboss/agent/DsfStateUpdaterUtil.h"
 #include "fboss/agent/SwAgentInitializer.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
-#include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 #include "fboss/agent/test/AgentEnsemble.h"
+#include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/DsfConfigUtils.h"
+#include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
+#include "fboss/agent/test/utils/NetworkAITestUtils.h"
+#include "fboss/agent/test/utils/OlympicTestUtils.h"
 #include "fboss/agent/test/utils/VoqTestUtils.h"
 
 #include <folly/Benchmark.h>
@@ -79,7 +80,8 @@ BENCHMARK(HwStatsCollection) {
 
         if (!hasVoq && !hasFabric) {
           // Limit ports for non-VOQ and non-fabric switches
-          portsNew.resize(std::min((int)ports.size(), numPortsToCollectStats));
+          portsNew.resize(
+              std::min(static_cast<int>(ports.size()), numPortsToCollectStats));
         }
 
         auto config = utility::onePortPerInterfaceConfig(
@@ -94,8 +96,15 @@ BENCHMARK(HwStatsCollection) {
           config.switchSettings()->maxRouteCounterIDs() = numRouteCounters;
         }
         if (ensemble.getSw()->getSwitchInfoTable().haveVoqSwitches()) {
+          utility::addNetworkAIQosMaps(config, ensemble.getL3Asics());
+          utility::setDefaultCpuTrafficPolicyConfig(
+              config, ensemble.getL3Asics(), ensemble.isSai());
+          utility::addCpuQueueConfig(
+              config, ensemble.getL3Asics(), ensemble.isSai());
           config.dsfNodes() =
               *utility::addRemoteIntfNodeCfg(*config.dsfNodes());
+          config.loadBalancers()->push_back(
+              utility::getEcmpFullHashConfig(ensemble.getL3Asics()));
         }
         return config;
       };
@@ -106,28 +115,10 @@ BENCHMARK(HwStatsCollection) {
 
   // Setup Remote Intf and System Ports
   if (ensemble->getSw()->getSwitchInfoTable().haveVoqSwitches()) {
-    auto updateDsfStateFn = [&ensemble](
-                                const std::shared_ptr<SwitchState>& in) {
-      std::map<SwitchID, std::shared_ptr<SystemPortMap>> switchId2SystemPorts;
-      std::map<SwitchID, std::shared_ptr<InterfaceMap>> switchId2Rifs;
-      utility::populateRemoteIntfAndSysPorts(
-          switchId2SystemPorts,
-          switchId2Rifs,
-          ensemble->getSw()->getConfig(),
-          ensemble->getSw()->getHwAsicTable()->isFeatureSupportedOnAllAsic(
-              HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE));
-      return DsfStateUpdaterUtil::getUpdatedState(
-          in,
-          ensemble->getSw()->getScopeResolver(),
-          ensemble->getSw()->getRib(),
-          switchId2SystemPorts,
-          switchId2Rifs);
-    };
-    ensemble->getSw()->getRib()->updateStateInRibThread(
-        [&ensemble, updateDsfStateFn]() {
-          ensemble->getSw()->updateStateWithHwFailureProtection(
-              folly::sformat("Update state for node: {}", 0), updateDsfStateFn);
-        });
+    utility::setupRemoteIntfAndSysPorts(
+        ensemble->getSw(),
+        ensemble->getSw()->getHwAsicTable()->isFeatureSupportedOnAllAsic(
+            HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE));
     // For VOQ switches we have 2K - 4K remote system ports (each with 4-8
     // VOQs). This is >10x of local ports on NPU platforms. Therefore, only run
     // 100 iterations.
@@ -135,7 +126,8 @@ BENCHMARK(HwStatsCollection) {
   }
 
   std::vector<PortID> ports = ensemble->masterLogicalPortIds();
-  ports.resize(std::min((int)ports.size(), numPortsToCollectStats));
+  ports.resize(
+      std::min(static_cast<int>(ports.size()), numPortsToCollectStats));
 
   if (ensemble->getSw()->getHwAsicTable()->isFeatureSupportedOnAnyAsic(
           HwAsic::Feature::ROUTE_COUNTERS)) {

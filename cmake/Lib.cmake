@@ -192,3 +192,13 @@ target_link_libraries(gpiod_line
   Folly::folly
   ${LIBGPIOD}
 )
+
+add_library(restart_time_tracker
+  fboss/lib/restart_tracker/RestartTimeTracker.cpp
+)
+
+target_link_libraries(restart_time_tracker
+  utils
+  fb303::fb303
+  Folly::folly
+)

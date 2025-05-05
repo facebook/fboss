@@ -98,15 +98,23 @@ SaiSystemPortManager::attributesFromSwSystemPort(
     qosTcToQueueMap =
         SaiSystemPortTraits::Attributes::QosTcToQueueMap{qosMapId};
   }
-  std::optional<SaiSystemPortTraits::Attributes::ShelPktDstEnable>
-      shelPktDstEnable = std::nullopt;
-#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
-  if (swSystemPort->getShelDestinationEnabled()) {
-    shelPktDstEnable = true;
+  std::optional<SaiSystemPortTraits::Attributes::TcRateLimitExclude>
+      tcRateLimitExclude = std::nullopt;
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  if (isDualStage3Q2QMode() &&
+      (swSystemPort->getPortType() == cfg::PortType::RECYCLE_PORT ||
+       swSystemPort->getPortType() == cfg::PortType::MANAGEMENT_PORT ||
+       swSystemPort->getPortType() == cfg::PortType::EVENTOR_PORT)) {
+    tcRateLimitExclude =
+        SaiSystemPortTraits::Attributes::TcRateLimitExclude{true};
   }
 #endif
   return SaiSystemPortTraits::CreateAttributes{
-      config, true /*enabled*/, qosTcToQueueMap, shelPktDstEnable};
+      config,
+      true /*enabled*/,
+      qosTcToQueueMap,
+      std::nullopt /* shelPktDstEnable */,
+      tcRateLimitExclude};
 }
 
 SystemPortSaiId SaiSystemPortManager::addSystemPort(
@@ -127,7 +135,9 @@ SystemPortSaiId SaiSystemPortManager::addSystemPort(
       std::make_unique<HwSysPortFb303Stats>(
           swSystemPort->getName(),
           HwBasePortFb303Stats::QueueId2Name(),
-          platform_->getMultiSwitchStatsPrefix()));
+          platform_->getMultiSwitchStatsPrefix(),
+          swSystemPort->getRemoteSystemPortType() !=
+              RemoteSystemPortType::DYNAMIC_ENTRY));
   auto handle = std::make_unique<SaiSystemPortHandle>();
 
   auto& systemPortStore = saiStore_->get<SaiSystemPortTraits>();
@@ -246,11 +256,6 @@ void SaiSystemPortManager::changeSystemPort(
         oldSystemPort->getPortQueues()->impl(),
         newSystemPort->getPortQueues()->impl());
     changeQosPolicy(oldSystemPort, newSystemPort);
-
-    if (oldSystemPort->getShelDestinationEnabled() !=
-        newSystemPort->getShelDestinationEnabled()) {
-      handle->systemPort->setAttributes(newAttributes);
-    }
   }
 }
 
@@ -384,6 +389,7 @@ std::shared_ptr<SystemPortMap> SaiSystemPortManager::constructSystemPorts(
       sysPort->setNumVoqs(getLocalPortNumVoqs(
           port.second->getPortType(), port.second->getScope()));
       sysPort->setScope(platformPort->getScope());
+      sysPort->setPortType(platformPort->getPortType());
       sysPort->setQosPolicy(port.second->getQosPolicy());
       sysPortMap->addSystemPort(std::move(sysPort));
     }
@@ -479,6 +485,57 @@ void SaiSystemPortManager::resetQosMaps() {
   for (const auto& systemPortIdAndHandle : handles_) {
     clearQosPolicy(systemPortIdAndHandle.first);
   }
+}
+
+void SaiSystemPortManager::addSystemPortShelPktDstEnable(
+    const std::shared_ptr<SystemPort>& swSystemPort) const {
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+  if (!swSystemPort->getShelDestinationEnabled().has_value()) {
+    return;
+  }
+  auto systemPortHandle = getSystemPortHandle(swSystemPort->getID());
+  CHECK(systemPortHandle);
+
+  // Load current SDK value into SaiStore - this will avoid unnecessary hw
+  // writes.
+  auto gotShelPktDstEnable =
+      SaiApiTable::getInstance()->systemPortApi().getAttribute(
+          systemPortHandle->systemPort->adapterKey(),
+          SaiSystemPortTraits::Attributes::ShelPktDstEnable{});
+  std::optional<SaiSystemPortTraits::Attributes::ShelPktDstEnable>
+      shelPktDstEnable = gotShelPktDstEnable;
+  systemPortHandle->systemPort->setAttribute(
+      shelPktDstEnable, true /* skipHwWrite */);
+
+  shelPktDstEnable = swSystemPort->getShelDestinationEnabled();
+  systemPortHandle->systemPort->setAttribute(shelPktDstEnable);
+#endif
+}
+
+void SaiSystemPortManager::changeSystemPortShelPktDstEnable(
+    const std::shared_ptr<SystemPort>& oldSystemPort,
+    const std::shared_ptr<SystemPort>& newSystemPort) const {
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+  if (oldSystemPort->getShelDestinationEnabled() !=
+      newSystemPort->getShelDestinationEnabled()) {
+    auto systemPortHandle = getSystemPortHandle(newSystemPort->getID());
+    CHECK(systemPortHandle);
+
+    // Load current SDK value into SaiStore - this will avoid unnecessary hw
+    // writes.
+    auto gotShelPktDstEnable =
+        SaiApiTable::getInstance()->systemPortApi().getAttribute(
+            systemPortHandle->systemPort->adapterKey(),
+            SaiSystemPortTraits::Attributes::ShelPktDstEnable{});
+    std::optional<SaiSystemPortTraits::Attributes::ShelPktDstEnable>
+        shelPktDstEnable = gotShelPktDstEnable;
+    systemPortHandle->systemPort->setAttribute(
+        shelPktDstEnable, true /* skipHwWrite */);
+
+    shelPktDstEnable = newSystemPort->getShelDestinationEnabled();
+    systemPortHandle->systemPort->setAttribute(shelPktDstEnable);
+  }
+#endif
 }
 
 } // namespace facebook::fboss

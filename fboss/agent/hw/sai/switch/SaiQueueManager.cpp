@@ -630,11 +630,35 @@ QueueConfig SaiQueueManager::getQueueSettings(
   for (auto& queueHandle : queueHandles) {
     auto portQueue = std::make_shared<PortQueue>(queueHandle.first.first);
     portQueue->setStreamType(queueHandle.first.second);
-    managerTable_->schedulerManager().fillSchedulerSettings(
-        queueHandle.second->scheduler.get(), portQueue.get());
+    if (auto scheduler = queueHandle.second->scheduler.get()) {
+      managerTable_->schedulerManager().fillSchedulerSettings(
+          scheduler, portQueue.get());
+    } else if (
+        platform_->getAsic()->getAsicType() ==
+        cfg::AsicType::ASIC_TYPE_CHENAB) {
+      //  TODO(Chenab): For now, set scheduler as internal for chenab,
+      //  however identify settings which may be used to construct cold boot
+      //  state and use them in config
+      portQueue->setScheduling(cfg::QueueScheduling::INTERNAL);
+    }
     queueConfig.push_back(std::move(portQueue));
   }
   return queueConfig;
+}
+
+std::optional<std::tuple<uint8_t, PortSaiId>>
+SaiQueueManager::getQueueIndexAndPortSaiId(const QueueSaiId& queueSaiId) {
+  auto& store = saiStore_->get<SaiQueueTraits>();
+  auto queue = store.find(queueSaiId);
+  if (!queue) {
+    XLOG(ERR) << "Unable to find queueSaiId 0x" << std::hex << queueSaiId
+              << " in sai store!";
+    return std::nullopt;
+  }
+  uint8_t queueId = GET_ATTR(Queue, Index, queue->attributes());
+  PortSaiId portSaiId =
+      static_cast<PortSaiId>(GET_ATTR(Queue, Port, queue->attributes()));
+  return std::make_tuple(queueId, portSaiId);
 }
 
 } // namespace facebook::fboss

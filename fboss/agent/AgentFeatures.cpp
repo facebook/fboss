@@ -25,6 +25,8 @@ DEFINE_bool(
 
 DEFINE_bool(hide_fabric_ports, false, "Elide ports of type fabric");
 
+DEFINE_bool(hide_management_ports, false, "Elide ports of type management");
+
 // DSF Subscriber flags
 DEFINE_bool(
     dsf_subscribe,
@@ -200,6 +202,21 @@ DEFINE_bool(
     false,
     "Enable Neighbor/MAC table hw update failure protection");
 
+DEFINE_int32(
+    max_l2_entries,
+    5300,
+    "Maximum L2 entries supported by Resource Accountant");
+
+DEFINE_int32(
+    max_ndp_entries,
+    4000,
+    "Maximum NDP entries supported by Resource Accountant");
+
+DEFINE_int32(
+    max_arp_entries,
+    1280,
+    "Maximum ARP entries supported by Resource Accountant");
+
 DEFINE_bool(
     fw_drained_unrecoverable_error,
     false,
@@ -214,3 +231,56 @@ DEFINE_bool(
     enable_route_resource_protection,
     true,
     "Enable route resource protection for Resource Accountant");
+
+DEFINE_int32(
+    max_mac_address_to_block,
+    10000,
+    "Max number of mac addresses to block");
+
+DEFINE_int32(
+    max_neighbors_to_block,
+    10000,
+    "Max number of neighbor entries to block");
+
+DEFINE_bool(
+    link_stress_test,
+    false,
+    "enable to run stress tests (longer duration + more iterations)");
+
+DEFINE_int32(
+    ecmp_resource_percentage,
+    75,
+    "Percentage of ECMP resources (out of 100) allowed to use before ResourceAccountant rejects the update.");
+
+DEFINE_int32(
+    switch_index_for_testing,
+    0,
+    "switch index under test. Used for testing NPU specific features.");
+
+DEFINE_uint32(
+    counter_refresh_interval,
+    1,
+    "Counter refresh interval in seconds. Set it to 0 to fetch stats from HW");
+
+DEFINE_bool(run_forever, false, "run the test forever");
+DEFINE_bool(run_forever_on_failure, false, "run the test forever on failure");
+
+DEFINE_string(
+    sdk_reg_dump_path_prefix,
+    "/var/facebook/logs/fboss/sdk/reg_dump",
+    "File path prefix for SDK register dump");
+
+DEFINE_bool(
+    type_dctype1_janga,
+    false,
+    "Enable support for single NPU config on Janga for MTIA");
+
+DEFINE_bool(
+    prod_invariant_config_test,
+    false,
+    "This flag is used to enable prod config in invariant config test");
+
+DEFINE_int32(
+    max_unprocessed_switch_reachability_changes,
+    1,
+    "Max number of switch reachability changes that can be enqueued to bottom-half.");

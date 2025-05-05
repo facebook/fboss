@@ -30,36 +30,6 @@ TEST_F(HwXphyFirmwareTest, CheckDefaultXphyFirmwareVersion) {
 
   phy::PhyFwVersion desiredFw;
   switch (platformType) {
-    case PlatformType::PLATFORM_WEDGE:
-    case PlatformType::PLATFORM_WEDGE100:
-    case PlatformType::PLATFORM_GALAXY_LC:
-    case PlatformType::PLATFORM_GALAXY_FC:
-    case PlatformType::PLATFORM_FAKE_WEDGE:
-    case PlatformType::PLATFORM_FAKE_WEDGE40:
-    case PlatformType::PLATFORM_FAKE_SAI:
-    case PlatformType::PLATFORM_WEDGE400C:
-    case PlatformType::PLATFORM_WEDGE400C_SIM:
-    case PlatformType::PLATFORM_WEDGE400C_VOQ:
-    case PlatformType::PLATFORM_WEDGE400C_FABRIC:
-    case PlatformType::PLATFORM_WEDGE400C_GRANDTETON:
-    case PlatformType::PLATFORM_WEDGE400:
-    case PlatformType::PLATFORM_WEDGE400_GRANDTETON:
-    case PlatformType::PLATFORM_DARWIN:
-    case PlatformType::PLATFORM_DARWIN48V:
-    case PlatformType::PLATFORM_LASSEN_DEPRECATED:
-    case PlatformType::PLATFORM_MERU400BIU:
-    case PlatformType::PLATFORM_MERU800BIA:
-    case PlatformType::PLATFORM_MERU800BIAB:
-    case PlatformType::PLATFORM_MERU800BFA:
-    case PlatformType::PLATFORM_MERU800BFA_P1:
-    case PlatformType::PLATFORM_MERU400BIA:
-    case PlatformType::PLATFORM_MERU400BFU:
-    case PlatformType::PLATFORM_MONTBLANC:
-    case PlatformType::PLATFORM_MORGAN800CC:
-    case PlatformType::PLATFORM_JANGA800BIC:
-    case PlatformType::PLATFORM_TAHAN800BC:
-    case PlatformType::PLATFORM_YANGRA:
-      throw FbossError("No xphys to check FW version on");
     case PlatformType::PLATFORM_ELBERT:
       desiredFw.version() = 1;
       desiredFw.versionStr() = "1.93";
@@ -68,13 +38,6 @@ TEST_F(HwXphyFirmwareTest, CheckDefaultXphyFirmwareVersion) {
     case PlatformType::PLATFORM_FUJI:
       desiredFw.version() = 0xD008;
       desiredFw.crc() = 0x4dcf6a59;
-      break;
-    case PlatformType::PLATFORM_CLOUDRIPPER:
-    case PlatformType::PLATFORM_CLOUDRIPPER_VOQ:
-    case PlatformType::PLATFORM_CLOUDRIPPER_FABRIC:
-      desiredFw.version() = 1;
-      desiredFw.versionStr() = "1.92";
-      desiredFw.minorVersion() = 92;
       break;
     case PlatformType::PLATFORM_MINIPACK:
       desiredFw.version() = 0xD037;
@@ -91,6 +54,8 @@ TEST_F(HwXphyFirmwareTest, CheckDefaultXphyFirmwareVersion) {
       desiredFw.versionStr() = "0.0";
       desiredFw.minorVersion() = 0;
       break;
+    default:
+      throw FbossError("No xphys to check FW version on");
   }
 
   auto chips = getHwQsfpEnsemble()->getPlatformMapping()->getChips();
@@ -98,7 +63,8 @@ TEST_F(HwXphyFirmwareTest, CheckDefaultXphyFirmwareVersion) {
     return;
   }
   for (auto chip : chips) {
-    if (chip.second.get_type() != phy::DataPlanePhyChipType::XPHY) {
+    if (folly::copy(chip.second.type().value()) !=
+        phy::DataPlanePhyChipType::XPHY) {
       continue;
     }
 
@@ -108,10 +74,10 @@ TEST_F(HwXphyFirmwareTest, CheckDefaultXphyFirmwareVersion) {
     phy::ExternalPhy* xphy;
     try {
       xphy = getHwQsfpEnsemble()->getPhyManager()->getExternalPhy(
-          GlobalXphyID(chip.second.get_physicalID()));
+          GlobalXphyID(folly::copy(chip.second.physicalID().value())));
     } catch (FbossError&) {
       XLOG(ERR) << "XPHY not present in system "
-                << GlobalXphyID(chip.second.get_physicalID());
+                << GlobalXphyID(folly::copy(chip.second.physicalID().value()));
       continue;
     }
 

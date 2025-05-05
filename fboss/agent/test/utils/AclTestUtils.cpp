@@ -24,6 +24,10 @@ std::string kDefaultAclTable() {
   return cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE();
 }
 
+std::string kTtldAclTable() {
+  return "ttld-acl-table";
+}
+
 std::vector<cfg::AclTableQualifier> genAclQualifiersConfig(
     cfg::AsicType asicType) {
   std::vector<cfg::AclTableQualifier> qualifiers = {
@@ -44,18 +48,31 @@ std::vector<cfg::AclTableQualifier> genAclQualifiersConfig(
   if (asicType != cfg::AsicType::ASIC_TYPE_JERICHO3) {
     qualifiers.push_back(cfg::AclTableQualifier::IP_TYPE);
   }
+  if (asicType == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    std::set<cfg::AclTableQualifier> remove{
+        cfg::AclTableQualifier::SRC_IPV6,
+        cfg::AclTableQualifier::DST_IPV6,
+        cfg::AclTableQualifier::OUTER_VLAN,
+    };
+    auto iter = qualifiers.begin();
+    while (iter != qualifiers.end()) {
+      if (remove.find(*iter) != remove.end()) {
+        iter = qualifiers.erase(iter);
+      } else {
+        ++iter;
+      }
+    }
+  }
+  if (asicType == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    qualifiers.push_back(cfg::AclTableQualifier::ETHER_TYPE);
+  }
+
   return qualifiers;
 }
 
 int getAclTableIndex(
-    cfg::SwitchConfig* cfg,
-    const std::string& tableName,
-    const std::string& tableGroupName) {
-  auto aclTableGroup = getAclTableGroup(*cfg, tableGroupName);
-  if (!aclTableGroup) {
-    throw FbossError(
-        "Multiple acl tables flag enabled but config leaves aclTableGroup empty");
-  }
+    cfg::AclTableGroup* aclTableGroup,
+    const std::string& tableName) {
   int tableIndex;
   std::vector<cfg::AclTable> aclTables = *aclTableGroup->aclTables();
   std::vector<cfg::AclTable>::iterator it = std::find_if(
@@ -73,22 +90,31 @@ int getAclTableIndex(
 
 cfg::AclEntry* addAclEntry(
     cfg::SwitchConfig* cfg,
-    cfg::AclEntry& acl,
-    const std::string& aclTableName) {
+    const cfg::AclEntry& acl,
+    const std::string& aclTableName,
+    cfg::AclStage aclStage) {
   if (FLAGS_enable_acl_table_group) {
-    auto aclTableGroup = getAclTableGroup(*cfg);
-    int tableNumber =
-        getAclTableIndex(cfg, aclTableName, *aclTableGroup->name());
+    auto aclTableGroup = getAclTableGroup(*cfg, aclStage);
+
+    int tableNumber = getAclTableIndex(aclTableGroup, aclTableName);
     CHECK(aclTableGroup);
-    aclTableGroup->aclTables()[tableNumber].aclEntries()->push_back(acl);
-    return &aclTableGroup->aclTables()[tableNumber].aclEntries()->back();
+    auto& aclTable = aclTableGroup->aclTables()[tableNumber];
+    if (!aclEntrySupported(&aclTable, acl)) {
+      throw FbossError(
+          "acl entry ",
+          *acl.name(),
+          " is can not be added in acl table ",
+          aclTableName);
+    }
+    aclTable.aclEntries()->push_back(acl);
+    return &aclTable.aclEntries()->back();
   } else {
     cfg->acls()->push_back(acl);
     return &cfg->acls()->back();
   }
 }
 
-cfg::AclEntry* addAcl(
+cfg::AclEntry* addAcl_DEPRECATED(
     cfg::SwitchConfig* cfg,
     const std::string& aclName,
     const cfg::AclActionType& aclActionType,
@@ -103,6 +129,22 @@ cfg::AclEntry* addAcl(
   return addAclEntry(cfg, acl, *tableName);
 }
 
+cfg::AclEntry* addAcl(
+    cfg::SwitchConfig* cfg,
+    const cfg::AclEntry& acl,
+    cfg::AclStage aclStage) {
+  if (!FLAGS_enable_acl_table_group) {
+    if (aclStage != cfg::AclStage::INGRESS) {
+      throw FbossError(
+          "Only Ingress ACL Stage is supported with single ACL table");
+    }
+    cfg->acls()->push_back(acl);
+    return &cfg->acls()->back();
+  }
+  auto selectedTableName = getAclTableForAclEntry(*cfg, acl, aclStage);
+  return addAclEntry(cfg, acl, selectedTableName, aclStage);
+}
+
 void addEtherTypeToAcl(
     const HwAsic* asic,
     cfg::AclEntry* acl,
@@ -110,6 +152,21 @@ void addEtherTypeToAcl(
   if (asic->isSupported(HwAsic::Feature::ACL_ENTRY_ETHER_TYPE)) {
     acl->etherType() = etherType;
   }
+}
+
+void addUdfTableToAcl(
+    cfg::AclEntry* acl,
+    const std::string& udfGroup,
+    const std::vector<int8_t>& roceBytes,
+    const std::vector<int8_t>& roceMask) {
+  cfg::AclUdfEntry aclUdfEntry;
+  aclUdfEntry.udfGroup() = udfGroup;
+  aclUdfEntry.roceBytes() = roceBytes;
+  aclUdfEntry.roceMask() = roceMask;
+  if (!acl->udfTable()) {
+    acl->udfTable() = {};
+  }
+  acl->udfTable()->push_back(aclUdfEntry);
 }
 
 std::shared_ptr<AclEntry> getAclEntryByName(
@@ -156,8 +213,7 @@ std::vector<cfg::AclEntry>& getAcls(
     auto* aclTableGroup = getAclTableGroup(*cfg);
     CHECK(aclTableGroup);
     return *aclTableGroup
-                ->aclTables()[getAclTableIndex(
-                    cfg, aclTableName, *aclTableGroup->name())]
+                ->aclTables()[getAclTableIndex(aclTableGroup, aclTableName)]
                 .aclEntries();
   }
   return *cfg->acls();
@@ -189,19 +245,70 @@ void addAclTableGroup(
   cfg::AclTableGroup cfgTableGroup;
   cfgTableGroup.name() = aclTableGroupName;
   cfgTableGroup.stage() = aclStage;
-  cfg->aclTableGroups() = {std::move(cfgTableGroup)};
+  if (auto aclTableGroup = getAclTableGroup(*cfg, aclStage)) {
+    *aclTableGroup = cfgTableGroup;
+    return;
+  }
+  if (!cfg->aclTableGroups()) {
+    cfg->aclTableGroups() = {};
+  }
+  cfg->aclTableGroups()->push_back(std::move(cfgTableGroup));
 }
 
-void addDefaultAclTable(cfg::SwitchConfig& cfg) {
+void addDefaultAclTable(
+    cfg::SwitchConfig& cfg,
+    const std::vector<std::string>& udfGroups) {
+  std::optional<cfg::SdkVersion> version{};
+  if (cfg.sdkVersion()) {
+    version = *cfg.sdkVersion();
+  }
+
+  HwAsicTable asicTable(
+      *cfg.switchSettings()->switchIdToSwitchInfo(),
+      std::move(version),
+      *cfg.dsfNodes());
+  // TODO (pshaikh): create a method to return AclTables for a given asic type
+  // and acl stage and retire this check
+  auto asic = utility::checkSameAndGetAsic(asicTable.getL3Asics());
+  auto split = asic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB;
+
   /* Create default ACL table similar to whats being done in Agent today */
   std::vector<cfg::AclTableQualifier> qualifiers = {};
   std::vector<cfg::AclTableActionType> actions = {};
-  addAclTable(
-      &cfg,
-      cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE(),
-      0 /* priority */,
-      actions,
-      qualifiers);
+  if (!split) {
+    addAclTable(
+        &cfg,
+        cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE(),
+        0 /* priority */,
+        actions,
+        qualifiers,
+        udfGroups);
+
+  } else {
+    /* full set of supported and required qualifiers do not fit in single table.
+     * default acl table support all use cases except TTLD and ARS */
+    addAclTable(
+        &cfg,
+        cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE(),
+        0 /* priority */,
+        actions,
+        {
+            cfg::AclTableQualifier::DST_IPV6,
+            cfg::AclTableQualifier::DST_IPV4,
+            cfg::AclTableQualifier::L4_SRC_PORT,
+            cfg::AclTableQualifier::L4_DST_PORT,
+            cfg::AclTableQualifier::IP_PROTOCOL_NUMBER,
+            cfg::AclTableQualifier::IPV6_NEXT_HEADER,
+            cfg::AclTableQualifier::SRC_PORT,
+            cfg::AclTableQualifier::DSCP,
+            cfg::AclTableQualifier::TTL,
+            cfg::AclTableQualifier::IP_TYPE,
+            cfg::AclTableQualifier::ETHER_TYPE,
+            cfg::AclTableQualifier::OUTER_VLAN,
+        },
+        udfGroups);
+    addTtldAclTable(&cfg, cfg::AclStage::INGRESS, 1 /* priority */);
+  }
 }
 
 cfg::AclTable* addAclTable(
@@ -211,10 +318,30 @@ cfg::AclTable* addAclTable(
     const std::vector<cfg::AclTableActionType>& actionTypes,
     const std::vector<cfg::AclTableQualifier>& qualifiers,
     const std::vector<std::string>& udfGroups) {
-  auto aclTableGroup = getAclTableGroup(*cfg);
+  return addAclTable(
+      cfg,
+      cfg::AclStage::INGRESS,
+      aclTableName,
+      aclTablePriority,
+      actionTypes,
+      qualifiers,
+      udfGroups);
+}
+
+cfg::AclTable* addAclTable(
+    cfg::SwitchConfig* cfg,
+    cfg::AclStage aclStage,
+    const std::string& aclTableName,
+    const int aclTablePriority,
+    const std::vector<cfg::AclTableActionType>& actionTypes,
+    const std::vector<cfg::AclTableQualifier>& qualifiers,
+    const std::vector<std::string>& udfGroups) {
+  auto aclTableGroup = getAclTableGroup(*cfg, aclStage);
   if (!aclTableGroup) {
     throw FbossError(
-        "Attempted to add acl table without first creating acl table group");
+        "Attempted to add acl table ",
+        aclTableName,
+        " without first creating acl table group");
   }
 
   cfg::AclTable aclTable;
@@ -247,15 +374,16 @@ void delAclTable(cfg::SwitchConfig* cfg, const std::string& aclTableName) {
       aclTables.end());
 }
 
-void addAclStat(
+void addTrafficCounter(
     cfg::SwitchConfig* cfg,
-    const std::string& matcher,
     const std::string& counterName,
-    std::vector<cfg::CounterType> counterTypes) {
+    const std::optional<std::vector<cfg::CounterType>>& counterTypes) {
   auto counter = cfg::TrafficCounter();
   *counter.name() = counterName;
-  if (!counterTypes.empty()) {
-    *counter.types() = counterTypes;
+  if (counterTypes.has_value() && counterTypes.value().size() > 0) {
+    *counter.types() = counterTypes.value();
+  } else {
+    *counter.types() = {cfg::CounterType::PACKETS};
   }
   bool counterExists = false;
   for (auto& c : *cfg->trafficCounters()) {
@@ -267,6 +395,14 @@ void addAclStat(
   if (!counterExists) {
     cfg->trafficCounters()->push_back(counter);
   }
+}
+
+void addAclStat(
+    cfg::SwitchConfig* cfg,
+    const std::string& matcher,
+    const std::string& counterName,
+    std::vector<cfg::CounterType> counterTypes) {
+  addTrafficCounter(cfg, counterName, std::move(counterTypes));
 
   auto matchAction = cfg::MatchAction();
   matchAction.counter() = counterName;
@@ -323,32 +459,83 @@ void renameAclStat(
   addAclStat(cfg, matcher, newCounterName);
 }
 
-// Just mirror and counter for now. More can go here if needed
-void addAclMatchActions(
+void addMatcher(
+    cfg::SwitchConfig* config,
+    const std::string& matcherName,
+    const cfg::MatchAction& matchAction) {
+  cfg::MatchToAction action = cfg::MatchToAction();
+  *action.matcher() = matcherName;
+  *action.action() = matchAction;
+  cfg::TrafficPolicyConfig egressTrafficPolicy;
+  if (auto dataPlaneTrafficPolicy = config->dataPlaneTrafficPolicy()) {
+    egressTrafficPolicy = *dataPlaneTrafficPolicy;
+  }
+  auto curNumMatchActions = egressTrafficPolicy.matchToAction()->size();
+  egressTrafficPolicy.matchToAction()->resize(curNumMatchActions + 1);
+  egressTrafficPolicy.matchToAction()[curNumMatchActions] = action;
+  config->dataPlaneTrafficPolicy() = egressTrafficPolicy;
+}
+
+void delMatcher(cfg::SwitchConfig* config, const std::string& matcherName) {
+  if (auto dataPlaneTrafficPolicy = config->dataPlaneTrafficPolicy()) {
+    auto& matchActions = *dataPlaneTrafficPolicy->matchToAction();
+    matchActions.erase(
+        std::remove_if(
+            matchActions.begin(),
+            matchActions.end(),
+            [&](cfg::MatchToAction const& matchAction) {
+              if (*matchAction.matcher() == matcherName) {
+                return true;
+              }
+              return false;
+            }),
+        matchActions.end());
+  }
+}
+
+void addAclMirrorAction(
     cfg::SwitchConfig* cfg,
     const std::string& matcher,
-    const std::optional<std::string>& counterName,
-    const std::optional<std::string>& mirrorName,
+    const std::string& counterName,
+    const std::string& mirrorName,
     bool ingress) {
   cfg::MatchAction matchAction = cfg::MatchAction();
-  if (mirrorName.has_value()) {
-    if (ingress) {
-      matchAction.ingressMirror() = mirrorName.value();
-    } else {
-      matchAction.egressMirror() = mirrorName.value();
-    }
+  if (ingress) {
+    matchAction.ingressMirror() = mirrorName;
+  } else {
+    matchAction.egressMirror() = mirrorName;
   }
-  if (counterName.has_value()) {
-    matchAction.counter() = counterName.value();
-  }
-  auto matchToAction = cfg::MatchToAction();
-  *matchToAction.matcher() = matcher;
-  *matchToAction.action() = matchAction;
 
-  if (!cfg->dataPlaneTrafficPolicy()) {
-    cfg->dataPlaneTrafficPolicy() = cfg::TrafficPolicyConfig();
+  matchAction.counter() = counterName;
+  std::vector<cfg::CounterType> setCounterTypes{
+      cfg::CounterType::PACKETS, cfg::CounterType::BYTES};
+  utility::addTrafficCounter(cfg, counterName, std::move(setCounterTypes));
+  utility::addMatcher(cfg, matcher, matchAction);
+}
+
+void addAclDscpQueueAction(
+    cfg::SwitchConfig* cfg,
+    const std::string& matcher,
+    const std::string& counterName,
+    int32_t dscpValue,
+    int queueId) {
+  cfg::MatchAction matchAction = cfg::MatchAction();
+  if (dscpValue) {
+    cfg::SetDscpMatchAction setDscpMatchAction;
+    *setDscpMatchAction.dscpValue() = dscpValue;
+    matchAction.setDscp() = std::move(setDscpMatchAction);
   }
-  cfg->dataPlaneTrafficPolicy()->matchToAction()->push_back(matchToAction);
+  if (queueId >= 0) {
+    cfg::QueueMatchAction queueAction;
+    queueAction.queueId() = queueId;
+    matchAction.sendToQueue() = queueAction;
+  }
+
+  matchAction.counter() = counterName;
+  std::vector<cfg::CounterType> setCounterTypes{
+      cfg::CounterType::PACKETS, cfg::CounterType::BYTES};
+  utility::addTrafficCounter(cfg, counterName, std::move(setCounterTypes));
+  utility::addMatcher(cfg, matcher, matchAction);
 }
 
 std::vector<cfg::CounterType> getAclCounterTypes(
@@ -400,40 +587,405 @@ uint64_t getAclInOutPackets(
   return statValue;
 }
 
+std::shared_ptr<AclEntry> getAclEntryByName(
+    const std::shared_ptr<SwitchState> state,
+    cfg::AclStage aclStage,
+    const std::string& tableName,
+    const std::string& aclName) {
+  return state->getAclsForTable(aclStage, tableName)->getNodeIf(aclName);
+}
+
 std::shared_ptr<AclEntry> getAclEntry(
     const std::shared_ptr<SwitchState>& state,
     const std::string& name,
     bool enableAclTableGroup) {
   if (enableAclTableGroup) {
-    return state
-        ->getAclsForTable(
-            cfg::AclStage::INGRESS,
-            cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE())
-        ->getNodeIf(name);
+    auto entry =
+        state
+            ->getAclsForTable(
+                cfg::AclStage::INGRESS,
+                cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE())
+            ->getNodeIf(name);
+    // acl entries are expected to have unique name across all groups
+    if (!entry) {
+      for (const auto& groupMap : std::as_const(*state->getAclTableGroups())) {
+        for (const auto& [stage, group] : std::as_const(*groupMap.second)) {
+          for (const auto& [tableName, table] :
+               std::as_const(*group->getAclTableMap())) {
+            std::ignore = tableName;
+            entry = getAclEntryByName(state, stage, tableName, name);
+            if (entry) {
+              return entry;
+            }
+          }
+        }
+      }
+    }
+    return entry;
   }
   return state->getAcl(name);
 }
 
+cfg::AclTableGroup* FOLLY_NULLABLE getAclTableGroup(cfg::SwitchConfig& config) {
+  return getAclTableGroup(config, cfg::AclStage::INGRESS);
+}
+
 cfg::AclTableGroup* FOLLY_NULLABLE
-getAclTableGroup(cfg::SwitchConfig& config, const std::string& name) {
+getAclTableGroup(cfg::SwitchConfig& config, cfg::AclStage aclStage) {
   if (!config.aclTableGroups()) {
     return nullptr;
   }
   for (auto iter = config.aclTableGroups()->begin();
        iter != config.aclTableGroups()->end();
        iter++) {
-    if (iter->name_ref() == name) {
+    if (iter->stage().value() == aclStage) {
       return std::addressof(*iter);
     }
   }
   return nullptr;
 }
 
-cfg::AclTableGroup* FOLLY_NULLABLE getAclTableGroup(cfg::SwitchConfig& config) {
-  if (!config.aclTableGroups() ||
-      config.aclTableGroups()->begin() == config.aclTableGroups()->end()) {
+void setupDefaultPostLookupIngressAclTableGroup(cfg::SwitchConfig& config) {
+  if (config.switchSettings()->switchIdToSwitchInfo()->empty()) {
+    return;
+  }
+  auto switchId2SwitchInfo = *config.switchSettings()->switchIdToSwitchInfo();
+  std::optional<cfg::SdkVersion> version{};
+  if (config.sdkVersion()) {
+    version = *config.sdkVersion();
+  }
+
+  HwAsicTable asicTable(switchId2SwitchInfo, version, *config.dsfNodes());
+
+  if (!asicTable.isFeatureSupportedOnAnyAsic(
+          HwAsic::Feature::INGRESS_POST_LOOKUP_ACL_TABLE)) {
+    return;
+  }
+
+  if (getAclTableGroup(config, cfg::AclStage::INGRESS_POST_LOOKUP)) {
+    return;
+  }
+  utility::addAclTableGroup(
+      &config,
+      cfg::AclStage::INGRESS_POST_LOOKUP,
+      cfg::switch_config_constants::
+          DEFAULT_POST_LOOKUP_INGRESS_ACL_TABLE_GROUP());
+  utility::addAclTable(
+      &config,
+      cfg::AclStage::INGRESS_POST_LOOKUP,
+      cfg::switch_config_constants::DEFAULT_POST_LOOKUP_INGRESS_ACL_TABLE(),
+      0,
+      {
+          cfg::AclTableActionType::COUNTER,
+          cfg::AclTableActionType::PACKET_ACTION,
+          cfg::AclTableActionType::SET_USER_DEFINED_TRAP,
+          cfg::AclTableActionType::SET_DSCP,
+      },
+      {
+          cfg::AclTableQualifier::ETHER_TYPE,
+          cfg::AclTableQualifier::DSCP,
+          cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE,
+      },
+      {});
+}
+
+void setupDefaultIngressAclTableGroup(cfg::SwitchConfig& config) {
+  if (getAclTableGroup(config, cfg::AclStage::INGRESS)) {
+    // default table group already exists
+    return;
+  }
+  utility::addAclTableGroup(
+      &config, cfg::AclStage::INGRESS, utility::kDefaultAclTableGroupName());
+  utility::addDefaultAclTable(config);
+}
+
+void setupDefaultAclTableGroups(cfg::SwitchConfig& config) {
+  setupDefaultIngressAclTableGroup(config);
+  setupDefaultPostLookupIngressAclTableGroup(config);
+}
+
+cfg::AclTable* getAclTable(
+    cfg::SwitchConfig& cfg,
+    cfg::AclStage aclStage,
+    const std::string& aclTableName) {
+  auto aclTableGroup = getAclTableGroup(cfg, aclStage);
+  if (!aclTableGroup) {
     return nullptr;
   }
-  return (*config.aclTableGroups()).data();
+  for (auto& aclTable : *aclTableGroup->aclTables()) {
+    if (*aclTable.name() == aclTableName) {
+      return &aclTable;
+    }
+  }
+  return nullptr;
 }
+
+cfg::AclTable* addTtldAclTable(
+    cfg::SwitchConfig* cfg,
+    cfg::AclStage aclStage,
+    const int aclTablePriority) {
+  return addAclTable(
+      cfg,
+      aclStage,
+      kTtldAclTable(),
+      aclTablePriority,
+      {
+          // action types
+      },
+      {
+          cfg::AclTableQualifier::ETHER_TYPE,
+          cfg::AclTableQualifier::SRC_IPV4,
+          cfg::AclTableQualifier::SRC_IPV6,
+          cfg::AclTableQualifier::IP_PROTOCOL_NUMBER,
+          cfg::AclTableQualifier::IP_TYPE,
+          cfg::AclTableQualifier::TTL,
+      },
+      {
+          // udf groups
+      });
+}
+
+std::set<cfg::AclTableQualifier> getRequiredQualifers(
+    const cfg::AclEntry& aclEntry) {
+  int minValue = static_cast<int>(
+      apache::thrift::TEnumTraits<cfg::AclTableQualifier>::min());
+  int maxValue = static_cast<int>(
+      apache::thrift::TEnumTraits<cfg::AclTableQualifier>::max());
+  std::set<cfg::AclTableQualifier> requiredQualifiers{};
+
+  auto addQualier = [&requiredQualifiers](
+                        bool isSet, cfg::AclTableQualifier qualifer) {
+    if (isSet) {
+      requiredQualifiers.insert(qualifer);
+    }
+  };
+
+  for (int iter = minValue; iter != maxValue; ++iter) {
+    auto qualifier = static_cast<cfg::AclTableQualifier>(iter);
+    switch (static_cast<cfg::AclTableQualifier>(qualifier)) {
+      case cfg::AclTableQualifier::DST_IPV4:
+        addQualier(
+            aclEntry.dstIp().has_value() &&
+                folly::IPAddress::createNetwork(*aclEntry.dstIp()).first.isV4(),
+            qualifier);
+        break;
+
+      case cfg::AclTableQualifier::DST_IPV6:
+        addQualier(
+            aclEntry.dstIp().has_value() &&
+                folly::IPAddress::createNetwork(*aclEntry.dstIp()).first.isV6(),
+            qualifier);
+        break;
+
+      case cfg::AclTableQualifier::SRC_IPV4:
+        addQualier(
+            aclEntry.srcIp().has_value() &&
+                folly::IPAddress::createNetwork(*aclEntry.srcIp()).first.isV4(),
+            qualifier);
+        break;
+
+      case cfg::AclTableQualifier::SRC_IPV6:
+        addQualier(
+            aclEntry.srcIp().has_value() &&
+                folly::IPAddress::createNetwork(*aclEntry.srcIp()).first.isV6(),
+            qualifier);
+        break;
+
+      case cfg::AclTableQualifier::L4_SRC_PORT:
+        addQualier(aclEntry.l4SrcPort().has_value(), qualifier);
+        break;
+
+      case cfg::AclTableQualifier::L4_DST_PORT:
+        addQualier(aclEntry.l4DstPort().has_value(), qualifier);
+        break;
+
+      case cfg::AclTableQualifier::IP_PROTOCOL_NUMBER:
+        if (aclEntry.etherType().has_value() &&
+            *aclEntry.etherType() == cfg::EtherType::IPv4) {
+          addQualier(aclEntry.proto().has_value(), qualifier);
+        } else {
+          addQualier(aclEntry.proto().has_value(), qualifier);
+        }
+        break;
+
+      case cfg::AclTableQualifier::TCP_FLAGS:
+        addQualier(aclEntry.tcpFlagsBitMap().has_value(), qualifier);
+        break;
+
+      case cfg::AclTableQualifier::SRC_PORT:
+        addQualier(aclEntry.srcPort().has_value(), qualifier);
+        break;
+
+      case cfg::AclTableQualifier::OUT_PORT:
+        addQualier(aclEntry.dstPort().has_value(), qualifier);
+        break;
+
+      case cfg::AclTableQualifier::IP_FRAG:
+        addQualier(aclEntry.ipFrag().has_value(), qualifier);
+        break;
+
+      case cfg::AclTableQualifier::ICMPV4_TYPE:
+        if (aclEntry.proto().has_value() && *aclEntry.proto() == 1) {
+          addQualier(aclEntry.icmpType().has_value(), qualifier);
+        }
+        break;
+
+      case cfg::AclTableQualifier::ICMPV4_CODE:
+        if (aclEntry.proto().has_value() && *aclEntry.proto() == 1) {
+          addQualier(aclEntry.icmpCode().has_value(), qualifier);
+        }
+        break;
+
+      case cfg::AclTableQualifier::ICMPV6_TYPE:
+        if (aclEntry.proto().has_value() && *aclEntry.proto() == 58) {
+          addQualier(aclEntry.icmpType().has_value(), qualifier);
+        }
+        break;
+
+      case cfg::AclTableQualifier::ICMPV6_CODE:
+        if (aclEntry.proto().has_value() && *aclEntry.proto() == 58) {
+          addQualier(aclEntry.icmpCode().has_value(), qualifier);
+        }
+        break;
+
+      case cfg::AclTableQualifier::DSCP:
+        addQualier(aclEntry.dscp().has_value(), qualifier);
+        break;
+
+      case cfg::AclTableQualifier::DST_MAC:
+        addQualier(aclEntry.dstMac().has_value(), qualifier);
+        break;
+
+      case cfg::AclTableQualifier::IP_TYPE:
+        addQualier(aclEntry.ipType().has_value(), qualifier);
+        break;
+
+      case cfg::AclTableQualifier::TTL:
+        addQualier(aclEntry.ttl().has_value(), qualifier);
+        break;
+
+      case cfg::AclTableQualifier::LOOKUP_CLASS_L2:
+        addQualier(aclEntry.lookupClassL2().has_value(), qualifier);
+        break;
+
+      case cfg::AclTableQualifier::LOOKUP_CLASS_NEIGHBOR:
+        addQualier(aclEntry.lookupClassNeighbor().has_value(), qualifier);
+        break;
+
+      case cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE:
+        addQualier(aclEntry.lookupClassRoute().has_value(), qualifier);
+        break;
+
+      case cfg::AclTableQualifier::ETHER_TYPE:
+        addQualier(aclEntry.etherType().has_value(), qualifier);
+        break;
+
+      case cfg::AclTableQualifier::OUTER_VLAN:
+        addQualier(aclEntry.vlanID().has_value(), qualifier);
+        break;
+
+      case cfg::AclTableQualifier::IPV6_NEXT_HEADER:
+        if (aclEntry.etherType().has_value() &&
+            *aclEntry.etherType() == cfg::EtherType::IPv6) {
+          addQualier(aclEntry.proto().has_value(), qualifier);
+        } else {
+          addQualier(aclEntry.proto().has_value(), qualifier);
+        }
+        break;
+
+      case cfg::AclTableQualifier::BTH_OPCODE:
+        addQualier(aclEntry.roceOpcode().has_value(), qualifier);
+        break;
+
+      case cfg::AclTableQualifier::UDF:
+        // handled with getRequiredUdfGroups
+        break;
+    }
+  }
+  return requiredQualifiers;
+}
+
+std::set<std::string> getRequiredUdfGroups(const cfg::AclEntry& aclEntry) {
+  std::set<std::string> requiredUdfGroups{};
+  if (aclEntry.udfTable().has_value()) {
+    for (auto& udfTableEntry : *aclEntry.udfTable()) {
+      requiredUdfGroups.insert(udfTableEntry.udfGroup().value());
+    }
+  }
+  return requiredUdfGroups;
+}
+
+bool aclEntrySupported(
+    const cfg::AclTable* aclTable,
+    const cfg::AclEntry& aclEntry) {
+  auto aclTableQualifiers = aclTable->qualifiers();
+  auto aclUdfGroups = aclTable->udfGroups();
+
+  if (aclTableQualifiers->empty()) {
+    // acl table supports all supported qualifiers
+    return true;
+  }
+  auto requiredQualifiers = getRequiredQualifers(aclEntry);
+  std::set<cfg::AclTableQualifier> aclTableQualifiersSet(
+      aclTableQualifiers->begin(), aclTableQualifiers->end());
+  std::set<cfg::AclTableQualifier> difference{};
+  std::set_difference(
+      requiredQualifiers.begin(),
+      requiredQualifiers.end(),
+      aclTableQualifiersSet.begin(),
+      aclTableQualifiersSet.end(),
+      std::inserter(difference, difference.begin()));
+
+  if (!difference.empty()) {
+    std::stringstream ss;
+    for (const auto& qualifier : difference) {
+      ss << apache::thrift::util::enumNameSafe(qualifier) << ", ";
+    }
+    XLOG(ERR) << "Acl table " << *aclTable->name()
+              << " does not support qualifiers: " << ss.str() << " for acl "
+              << *aclEntry.name();
+    return false;
+  }
+
+  auto requiredUdfGroups = getRequiredUdfGroups(aclEntry);
+  std::set<std::string> aclTableUdfGroups(
+      aclUdfGroups->begin(), aclUdfGroups->end());
+  std::set<std::string> differenceUdfGroups{};
+  std::set_difference(
+      requiredUdfGroups.begin(),
+      requiredUdfGroups.end(),
+      aclTableUdfGroups.begin(),
+      aclTableUdfGroups.end(),
+      std::inserter(differenceUdfGroups, differenceUdfGroups.begin()));
+
+  if (!differenceUdfGroups.empty()) {
+    std::stringstream ss;
+    for (const auto& udfGroup : differenceUdfGroups) {
+      ss << udfGroup << ", ";
+    }
+    XLOG(ERR) << "Acl table " << *aclTable->name()
+              << " does not support udf groups: " << ss.str() << " for acl "
+              << *aclEntry.name();
+    return false;
+  }
+
+  return difference.empty() && differenceUdfGroups.empty();
+}
+
+std::string getAclTableForAclEntry(
+    cfg::SwitchConfig& config,
+    const cfg::AclEntry& aclEntry,
+    cfg::AclStage stage) {
+  auto aclTableGroup = getAclTableGroup(config, stage);
+  if (!aclTableGroup) {
+    throw FbossError("Acl table group not found");
+  }
+  for (auto& aclTable : *aclTableGroup->aclTables()) {
+    if (aclEntrySupported(&aclTable, aclEntry)) {
+      return *aclTable.name();
+    }
+  }
+  throw FbossError("No acl table found for acl entry ", *aclEntry.name());
+}
+
 } // namespace facebook::fboss::utility

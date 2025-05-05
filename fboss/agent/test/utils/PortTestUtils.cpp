@@ -83,10 +83,13 @@ cfg::PortSpeed getSpeed(cfg::PortProfileID profile) {
     case cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N_OPTICAL:
     case cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N_COPPER:
     case cfg::PortProfileID::PROFILE_400G_4_PAM4_RS544X2N_OPTICAL:
+    case cfg::PortProfileID::PROFILE_400G_2_PAM4_RS544X2N_OPTICAL:
     case cfg::PortProfileID::PROFILE_400G_4_PAM4_RS544X2N_COPPER:
       return cfg::PortSpeed::FOURHUNDREDG;
 
     case cfg::PortProfileID::PROFILE_800G_8_PAM4_RS544X2N_OPTICAL:
+    case cfg::PortProfileID::PROFILE_800G_8_PAM4_RS544X2N_COPPER:
+    case cfg::PortProfileID::PROFILE_800G_4_PAM4_RS544X2N_OPTICAL:
       return cfg::PortSpeed::EIGHTHUNDREDG;
 
     case cfg::PortProfileID::PROFILE_DEFAULT:
@@ -119,6 +122,7 @@ TransmitterTechnology getMediaType(cfg::PortProfileID profile) {
     case cfg::PortProfileID::PROFILE_400G_4_PAM4_RS544X2N_COPPER:
     case cfg::PortProfileID::PROFILE_100G_2_PAM4_RS544X2N_COPPER:
     case cfg::PortProfileID::PROFILE_100G_1_PAM4_NOFEC_COPPER:
+    case cfg::PortProfileID::PROFILE_800G_8_PAM4_RS544X2N_COPPER:
       return TransmitterTechnology::COPPER;
 
     case cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_OPTICAL:
@@ -138,6 +142,8 @@ TransmitterTechnology getMediaType(cfg::PortProfileID profile) {
     case cfg::PortProfileID::PROFILE_100G_1_PAM4_RS544_OPTICAL:
     case cfg::PortProfileID::PROFILE_50G_1_PAM4_RS544_OPTICAL:
     case cfg::PortProfileID::PROFILE_50G_2_NRZ_RS528_OPTICAL:
+    case cfg::PortProfileID::PROFILE_400G_2_PAM4_RS544X2N_OPTICAL:
+    case cfg::PortProfileID::PROFILE_800G_4_PAM4_RS544X2N_OPTICAL:
       return TransmitterTechnology::OPTICAL;
 
     case cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC:
@@ -164,7 +170,8 @@ cfg::PortSpeed getDefaultInterfaceSpeed(const cfg::AsicType& asicType) {
       return cfg::PortSpeed::FOURHUNDREDG;
     default:
       throw FbossError(
-          "Unsupported interface speed for asic type: ", (int)asicType);
+          "Unsupported interface speed for asic type: ",
+          static_cast<int>(asicType));
   }
 }
 
@@ -176,7 +183,8 @@ cfg::PortSpeed getDefaultFabricSpeed(const cfg::AsicType& asicType) {
       return cfg::PortSpeed::HUNDREDANDSIXPOINTTWOFIVEG;
     default:
       throw FbossError(
-          "Unsupported fabric speed for asic type: ", (int)asicType);
+          "Unsupported fabric speed for asic type: ",
+          static_cast<int>(asicType));
   }
 }
 

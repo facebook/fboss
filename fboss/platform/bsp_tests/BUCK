@@ -38,7 +38,7 @@ python_library(
     ],
     deps = [
         "fbsource//third-party/pypi/dataclasses-json:dataclasses-json",
-        "//fboss/platform/platform_manager:platform_manager_config-py3-types",
+        "//fboss/platform/platform_manager:platform_manager_config-python-types",
         "//thrift/lib/py3:types",
     ],
 )
@@ -49,7 +49,7 @@ python_library(
     deps = [
         "fbsource//third-party/pypi/ioctl-opt:ioctl-opt",
         ":bsp_test_config",
-        "//fboss/platform/platform_manager:platform_manager_config-py3-types",
+        "//fboss/platform/platform_manager:platform_manager_config-python-types",
         "//thrift/lib/py3:types",
     ],
 )
@@ -64,7 +64,7 @@ python_library(
     deps = [
         "fbsource//third-party/pypi/dataclasses-json:dataclasses-json",
         ":bsp_test_config",
-        "//fboss/platform/platform_manager:platform_manager_config-py3-types",
+        "//fboss/platform/platform_manager:platform_manager_config-python-types",
         "//thrift/lib/py3:types",
     ],
 )
@@ -76,7 +76,7 @@ python_unittest(
     deps = [
         ":bsp_test_config",
         ":config",
-        "//fboss/platform/platform_manager:platform_manager_config-py3-types",
+        "//fboss/platform/platform_manager:platform_manager_config-python-types",
         "//thrift/lib/py3:types",
     ],
 )

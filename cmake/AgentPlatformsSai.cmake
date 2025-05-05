@@ -24,8 +24,6 @@ add_library(sai_platform
   fboss/agent/platforms/sai/SaiPlatformPort.cpp
   fboss/agent/platforms/sai/SaiPlatformInit.cpp
   fboss/agent/platforms/sai/SaiWedge400CPlatform.cpp
-  fboss/agent/platforms/sai/SaiCloudRipperPlatform.cpp
-  fboss/agent/platforms/sai/SaiCloudRipperPlatformPort.cpp
   fboss/agent/platforms/sai/SaiWedge400CPlatformPort.cpp
   fboss/agent/platforms/sai/SaiTajoPlatform.cpp
   fboss/agent/platforms/sai/SaiTajoPlatformPort.cpp
@@ -40,6 +38,9 @@ add_library(sai_platform
   fboss/agent/platforms/sai/SaiTahan800bcPlatform.cpp
   fboss/agent/platforms/sai/SaiTahan800bcPlatformPort.cpp
   fboss/agent/platforms/sai/SaiYangraPlatform.cpp
+  fboss/agent/platforms/sai/SaiMinipack3NPlatform.cpp
+  fboss/agent/platforms/sai/SaiBcmIcecube800bcPlatform.cpp
+
 
   fboss/agent/platforms/sai/oss/SaiBcmMinipackPlatform.cpp
   fboss/agent/platforms/sai/oss/SaiTajoPlatform.cpp
@@ -65,10 +66,13 @@ add_library(sai_platform
   fboss/agent/platforms/sai/oss/SaiMeru800bfaPlatformPort.cpp
   fboss/agent/platforms/sai/oss/SaiMorgan800ccPlatformPort.cpp
   fboss/agent/platforms/sai/SaiYangraPlatformPort.cpp
+  fboss/agent/platforms/sai/SaiMinipack3NPlatformPort.cpp
+  fboss/agent/platforms/sai/SaiBcmIcecube800bcPlatformPort.cpp
 )
 
 target_link_libraries(sai_platform
   handler
+  dsfnode_utils
   product_info
   sai_switch
   thrift_handler
@@ -90,16 +94,17 @@ target_link_libraries(sai_platform
   morgan_platform_mapping
   wedge_led_utils
   bcm_yaml_config
-  cloud_ripper_platform_mapping
   meru400biu_platform_mapping
   meru400bia_platform_mapping
   meru400bfu_platform_mapping
   meru800bia_platform_mapping
   meru800bfa_platform_mapping
   yangra_platform_mapping
+  minipack3n_platform_mapping
   montblanc_platform_mapping
   janga800bic_platform_mapping
   tahan800bc_platform_mapping
+  icecube800bc_platform_mapping
   led_structs_types_cpp2
   led_mapping_cpp2
 )

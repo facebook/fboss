@@ -41,8 +41,10 @@ ExternalPhyPortStats ExternalPhyPortStats::fromPhyInfo(const PhyInfo& phyInfo) {
                                   const PhySideState& phySideState) {
     if (auto pcsStats = phySideStats.pcs()) {
       if (auto fecStats = pcsStats->rsFec()) {
-        sideStats.fecCorrectableErrors = fecStats->get_correctedCodewords();
-        sideStats.fecUncorrectableErrors = fecStats->get_uncorrectedCodewords();
+        sideStats.fecCorrectableErrors =
+            folly::copy(fecStats->correctedCodewords().value());
+        sideStats.fecUncorrectableErrors =
+            folly::copy(fecStats->uncorrectedCodewords().value());
       }
     }
 
@@ -53,8 +55,10 @@ ExternalPhyPortStats ExternalPhyPortStats::fromPhyInfo(const PhyInfo& phyInfo) {
       if (auto snrInfo = phyLaneStats.snr()) {
         laneStats.signalToNoiseRatio = *snrInfo;
       }
-      laneStats.signalDetect = phyLaneState.get_signalDetectLive();
-      laneStats.cdrLock = phyLaneState.get_cdrLockLive();
+      laneStats.signalDetect =
+          apache::thrift::get_pointer(phyLaneState.signalDetectLive());
+      laneStats.cdrLock =
+          apache::thrift::get_pointer(phyLaneState.cdrLockLive());
 
       sideStats.lanes[lane] = laneStats;
     }

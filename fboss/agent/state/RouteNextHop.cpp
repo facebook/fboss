@@ -27,6 +27,14 @@ NextHop fromThrift(const NextHopThrift& nht, bool allowV6NonLinkLocal) {
   if (nht.disableTTLDecrement()) {
     disableTTLDecrement = *nht.disableTTLDecrement();
   }
+  std::optional<NextHopWeight> adjustedWeight = std::nullopt;
+  if (nht.adjustedWeight()) {
+    adjustedWeight = *nht.adjustedWeight();
+  }
+  std::optional<NetworkTopologyInformation> topologyInfo = std::nullopt;
+  if (nht.topologyInfo()) {
+    topologyInfo = *nht.topologyInfo();
+  }
 
   auto address = network::toIPAddress(*nht.address());
   NextHopWeight weight = static_cast<NextHopWeight>(*nht.weight());
@@ -34,13 +42,26 @@ NextHop fromThrift(const NextHopThrift& nht, bool allowV6NonLinkLocal) {
   // Only honor interface specified over thrift if the address
   // is a v6 link-local. Otherwise, consume it as an unresolved
   // next hop and let route resolution populate the interface.
-  if (nht.address()->get_ifName() and (v6LinkLocal or allowV6NonLinkLocal)) {
-    InterfaceID intfID =
-        utility::getIDFromTunIntfName(*(nht.address()->get_ifName()));
+  if (apache::thrift::get_pointer(nht.address()->ifName()) and
+      (v6LinkLocal or allowV6NonLinkLocal)) {
+    InterfaceID intfID = utility::getIDFromTunIntfName(
+        *(apache::thrift::get_pointer(nht.address()->ifName())));
     return ResolvedNextHop(
-        std::move(address), intfID, weight, action, disableTTLDecrement);
+        std::move(address),
+        intfID,
+        weight,
+        action,
+        disableTTLDecrement,
+        topologyInfo,
+        adjustedWeight);
   } else {
-    return UnresolvedNextHop(std::move(address), weight, action);
+    return UnresolvedNextHop(
+        std::move(address),
+        weight,
+        action,
+        disableTTLDecrement,
+        topologyInfo,
+        adjustedWeight);
   }
 }
 
@@ -101,8 +122,12 @@ bool operator<(const NextHop& a, const NextHop& b) {
     return a.labelForwardingAction() < b.labelForwardingAction();
   } else if (a.weight() != b.weight()) {
     return a.weight() < b.weight();
-  } else {
+  } else if (a.disableTTLDecrement() != b.disableTTLDecrement()) {
     return a.disableTTLDecrement() < b.disableTTLDecrement();
+  } else if (a.topologyInfo() != b.topologyInfo()) {
+    return a.topologyInfo() < b.topologyInfo();
+  } else {
+    return a.adjustedWeight() < b.adjustedWeight();
   }
 }
 
@@ -123,7 +148,9 @@ bool operator==(const NextHop& a, const NextHop& b) {
       a.intfID() == b.intfID() && a.addr() == b.addr() &&
       a.weight() == b.weight() &&
       a.labelForwardingAction() == b.labelForwardingAction() &&
-      a.disableTTLDecrement() == b.disableTTLDecrement());
+      a.disableTTLDecrement() == b.disableTTLDecrement() &&
+      a.adjustedWeight() == b.adjustedWeight() &&
+      a.topologyInfo() == b.topologyInfo());
 }
 
 bool operator!=(const NextHop& a, const NextHop& b) {
@@ -133,8 +160,16 @@ bool operator!=(const NextHop& a, const NextHop& b) {
 UnresolvedNextHop::UnresolvedNextHop(
     const folly::IPAddress& addr,
     const NextHopWeight& weight,
-    const std::optional<LabelForwardingAction>& action)
-    : addr_(addr), weight_(weight), labelForwardingAction_(action) {
+    const std::optional<LabelForwardingAction>& action,
+    const std::optional<bool>& disableTTLDecrement,
+    const std::optional<NetworkTopologyInformation>& topologyInfo,
+    const std::optional<NextHopWeight>& adjustedWeight)
+    : addr_(addr),
+      weight_(weight),
+      labelForwardingAction_(action),
+      disableTTLDecrement_(disableTTLDecrement),
+      topologyInfo_(topologyInfo),
+      adjustedWeight_(adjustedWeight) {
   if (addr_.isV6() and addr_.isLinkLocal()) {
     throw FbossError(
         "Missing interface scoping for link-local nexthop ", addr.str());
@@ -144,10 +179,16 @@ UnresolvedNextHop::UnresolvedNextHop(
 UnresolvedNextHop::UnresolvedNextHop(
     folly::IPAddress&& addr,
     const NextHopWeight& weight,
-    std::optional<LabelForwardingAction>&& action)
+    std::optional<LabelForwardingAction>&& action,
+    std::optional<bool>&& disableTTLDecrement,
+    const std::optional<NetworkTopologyInformation>&& topologyInfo,
+    const std::optional<NextHopWeight>& adjustedWeight)
     : addr_(std::move(addr)),
       weight_(weight),
-      labelForwardingAction_(std::move(action)) {
+      labelForwardingAction_(std::move(action)),
+      disableTTLDecrement_(disableTTLDecrement),
+      topologyInfo_(topologyInfo),
+      adjustedWeight_(adjustedWeight) {
   if (addr_.isV6() and addr_.isLinkLocal()) {
     throw FbossError(
         "Missing interface scoping for link-local nexthop ", addr_.str());

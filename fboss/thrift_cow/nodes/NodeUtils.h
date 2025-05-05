@@ -11,32 +11,29 @@
 
 namespace facebook::fboss::thrift_cow {
 
-// Parse keys for maps and sets. Keeping this outside nodes to reduce
-// instatiations because it only depends on the type and tc of the key, not the
-// type of the node itself.
-template <typename KeyT, typename KeyTC>
-std::optional<KeyT> tryParseKey(const std::string& token) {
-  if constexpr (std::
-                    is_same_v<KeyTC, apache::thrift::type_class::enumeration>) {
-    // special handling for enum keyed maps
-    KeyT enumKey;
-    if (apache::thrift::util::tryParseEnum(token, &enumKey)) {
-      return enumKey;
-    }
-  }
-  auto key = folly::tryTo<KeyT>(token);
-  if (key.hasValue()) {
-    return *key;
-  }
-
-  return std::nullopt;
-}
-
 // All thrift_cow types subclass Serializable, use that to figure out if this is
 // our type or a thrift type
 template <typename T>
 using is_cow_type = std::is_base_of<Serializable, std::remove_cvref_t<T>>;
 template <typename T>
 constexpr bool is_cow_type_v = is_cow_type<T>::value;
+
+// wrapper for exceptions thrown by Thrift COW node operations
+class NodeException : public std::runtime_error {
+ public:
+  enum class Reason {
+    SET_IMMUTABLE_PRIMITIVE_NODE,
+  };
+
+  explicit NodeException(Reason reason, const std::string& msg)
+      : std::runtime_error(msg), reason_(reason) {}
+
+  Reason reason() const {
+    return reason_;
+  }
+
+ private:
+  Reason reason_;
+};
 
 } // namespace facebook::fboss::thrift_cow

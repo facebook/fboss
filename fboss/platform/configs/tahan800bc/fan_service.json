@@ -6,6 +6,7 @@
   "pwmTransitionValue": 50,
   "pwmLowerThreshold": 30,
   "pwmUpperThreshold": 100,
+  "shutdownCmd": "echo 0 > /run/devmap/cplds/TAHAN_SMB_CPLD/th5_pwr_en",
   "controlInterval": {
     "sensorReadInterval": 5,
     "pwmUpdateInterval": 5
@@ -61,7 +62,6 @@
         "accessType": "ACCESS_TYPE_THRIFT"
       },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
-      "scale": 1.0,
       "normalUpTable": {
         "38": 45,
         "39": 50,
@@ -97,7 +97,6 @@
         "accessType": "ACCESS_TYPE_THRIFT"
       },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_PID",
-      "scale": 1.0,
       "pidSetting": {
         "kp": -4,
         "ki": -0.06,
@@ -108,6 +107,16 @@
       }
     }
   ],
+  "shutdownCondition": {
+    "numOvertempSensorForShutdown": 1,
+    "conditions": [
+      {
+        "sensorName": "TAHAN_SMB_TH5_TEMP",
+        "overtempThreshold": 110.0,
+        "slidingWindowSize": 1
+      }
+    ]
+  },
   "fans": [
     {
       "fanName": "FANTRAY1_FAN1",

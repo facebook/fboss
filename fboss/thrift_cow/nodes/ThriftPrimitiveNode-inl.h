@@ -17,6 +17,7 @@
 #include <functional>
 #include "fboss/agent/state/NodeBase-defs.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
+#include "fboss/thrift_cow/nodes/NodeUtils.h"
 #include "fboss/thrift_cow/nodes/Serializer.h"
 #include "fboss/thrift_cow/visitors/PathVisitor.h"
 
@@ -182,7 +183,9 @@ class ThriftPrimitiveNode : public thrift_cow::Serializable {
 
  private:
   [[noreturn]] void throwImmutableException() const {
-    throw std::runtime_error("Cannot mutate an immutable primitive node");
+    throw NodeException(
+        NodeException::Reason::SET_IMMUTABLE_PRIMITIVE_NODE,
+        "Cannot mutate an immutable primitive node");
   }
 
   ThriftType obj_{};

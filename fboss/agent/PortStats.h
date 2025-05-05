@@ -22,59 +22,62 @@ class PortStats {
   PortStats(PortID portID, std::string portName, SwitchStats* switchStats);
   ~PortStats();
 
-  void trappedPkt();
-  void pktDropped();
-  void pktBogus();
-  void pktError();
-  void pktUnhandled();
-  void pktToHost(uint32_t bytes); // number of packets forward to host
+  void clearCounters() const;
 
-  void arpPkt();
-  void arpUnsupported();
-  void arpNotMine();
-  void arpRequestRx();
-  void arpRequestTx();
-  void arpReplyRx();
-  void arpReplyTx();
-  void arpBadOp();
+  void trappedPkt() const;
+  void pktDropped() const;
+  void pktBogus() const;
+  void pktError() const;
+  void pktUnhandled() const;
+  void pktToHost(uint32_t bytes) const; // number of packets forward to host
 
-  void ipv6NdpPkt();
-  void ipv6NdpBad();
+  void arpPkt() const;
+  void arpUnsupported() const;
+  void arpNotMine() const;
+  void arpRequestRx() const;
+  void arpRequestTx() const;
+  void arpReplyRx() const;
+  void arpReplyTx() const;
+  void arpBadOp() const;
 
-  void ipv4Rx();
-  void ipv4TooSmall();
-  void ipv4WrongVer();
-  void ipv4Nexthop();
-  void ipv4Mine();
-  void ipv4NoArp();
-  void ipv4TtlExceeded();
-  void udpTooSmall();
+  void ipv6NdpPkt() const;
+  void ipv6NdpBad() const;
 
-  void ipv6HopExceeded();
+  void ipv4Rx() const;
+  void ipv4TooSmall() const;
+  void ipv4WrongVer() const;
+  void ipv4Nexthop() const;
+  void ipv4Mine() const;
+  void ipv4NoArp() const;
+  void ipv4TtlExceeded() const;
+  void udpTooSmall() const;
 
-  void dhcpV4Pkt();
-  void dhcpV4BadPkt();
-  void dhcpV4DropPkt();
-  void dhcpV6Pkt();
-  void dhcpV6BadPkt();
-  void dhcpV6DropPkt();
+  void ipv6HopExceeded() const;
 
-  void
-  linkStateChange(bool isUp, bool isDrained, std::optional<bool> activeState);
-  void linkActiveStateChange(bool isActive);
+  void dhcpV4Pkt() const;
+  void dhcpV4BadPkt() const;
+  void dhcpV4DropPkt() const;
+  void dhcpV6Pkt() const;
+  void dhcpV6BadPkt() const;
+  void dhcpV6DropPkt() const;
 
-  void ipv4DstLookupFailure();
-  void ipv6DstLookupFailure();
+  void linkStateChange(
+      bool isUp,
+      bool isDrained,
+      std::optional<bool> activeState) const;
+  void linkActiveStateChange(bool isActive) const;
 
-  void setPortStatus(bool isUp);
-  void clearPortStatusCounter();
+  void ipv4DstLookupFailure() const;
+  void ipv6DstLookupFailure() const;
 
-  void setPortActiveStatus(bool isActive);
-  void clearPortActiveStatusCounter();
+  void setPortStatus(bool isUp) const;
+  void clearPortStatusCounter() const;
 
-  void pktTooBig();
+  void setPortActiveStatus(bool isActive) const;
+  void clearPortActiveStatusCounter() const;
 
-  void setPortName(const std::string& portName);
+  void pktTooBig() const;
+
   std::string getPortName() const {
     return portName_;
   }
@@ -82,20 +85,27 @@ class PortStats {
     return portID_;
   }
 
-  void MkPduRecvdPkt();
-  void MkPduSendPkt();
-  void MkPduSendFailure();
-  void MkPduPortNotRegistered();
+  void MkPduRecvdPkt() const;
+  void MkPduSendPkt() const;
+  void MkPduSendFailure() const;
+  void MkPduPortNotRegistered() const;
+  // Non-const as it accesses lastMkPduTime_, should only be called from the
+  // stats update thread.
   void MkPduInterval();
-  void MKAServiceSendFailue();
-  void MKAServiceSendSuccess();
-  void MKAServiceRecvSuccess();
+  void MKAServiceSendFailue() const;
+  void MKAServiceSendSuccess() const;
+  void MKAServiceRecvSuccess() const;
 
-  void pfcDeadlockRecoveryCount();
-  void pfcDeadlockDetectionCount();
+  void pfcDeadlockRecoveryCount() const;
+  void pfcDeadlockDetectionCount() const;
+
+  // Non-const as it accesses curInErrors_, should only be called from the
+  // stats update thread.
   void
   inErrors(int64_t inErrors, bool isDrained, std::optional<bool> activeState);
 
+  // Non-const as it accesses curFecUncorrectableErrors_, should only be called
+  // from the stats update thread.
   void fecUncorrectableErrors(
       int64_t fecUncorrectableErrors,
       bool isDrained,
@@ -116,16 +126,16 @@ class PortStats {
   /*
    * It's useful to store this
    */
-  PortID portID_;
+  const PortID portID_;
 
   /*
    * Port name format should be ethX/Y/Z
    */
-  std::string portName_;
+  const std::string portName_;
 
   // Pointer to main SwitchStats object so that we can forward method calls
   // that we do not want to track ourselves.
-  SwitchStats* switchStats_;
+  SwitchStats* const switchStats_;
 
   std::chrono::steady_clock::time_point lastMkPduTime_;
   int64_t curInErrors_{0};

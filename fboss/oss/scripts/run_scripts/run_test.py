@@ -11,6 +11,7 @@ import sys
 import time
 from argparse import ArgumentParser
 from datetime import datetime
+from typing import List
 
 # Helper to run HwTests
 #
@@ -154,6 +155,8 @@ OPT_ARG_FILTER_FILE = "--filter_file"
 OPT_ARG_LIST_TESTS = "--list_tests"
 OPT_ARG_CONFIG_FILE = "--config"
 OPT_ARG_QSFP_CONFIG_FILE = "--qsfp-config"
+OPT_ARG_PLATFORM_MAPPING_OVERRIDE_PATH = "--platform_mapping_override_path"
+OPT_ARG_BSP_PLATFORM_MAPPING_OVERRIDE_PATH = "--bsp_platform_mapping_override_path"
 OPT_ARG_SAI_REPLAYER_LOGGING = "--sai_replayer_logging"
 OPT_ARG_SKIP_KNOWN_BAD_TESTS = "--skip-known-bad-tests"
 OPT_ARG_OSS = "--oss"
@@ -165,10 +168,19 @@ OPT_ARG_SIMULATOR = "--simulator"
 OPT_ARG_SAI_LOGGING = "--sai_logging"
 OPT_ARG_FBOSS_LOGGING = "--fboss_logging"
 OPT_ARG_PRODUCTION_FEATURES = "--production-features"
+OPT_ARG_ENABLE_PRODUCTION_FEATURES = "--enable-production-features"
+OPT_ARG_ASIC = "--asic"
+OPT_KNOWN_BAD_TESTS_FILE = "--known-bad-tests-file"
+OPT_UNSUPPORTED_TESTS_FILE = "--unsupported-tests-file"
+OPT_ARG_SETUP_CB = "--setup-for-coldboot"
+OPT_ARG_SETUP_WB = "--setup-for-warmboot"
+OPT_AGENT_TEST_MODE = "--mode"
 SUB_CMD_BCM = "bcm"
 SUB_CMD_SAI = "sai"
 SUB_CMD_QSFP = "qsfp"
 SUB_CMD_LINK = "link"
+SUB_CMD_SAI_AGENT = "sai_agent"
+
 SAI_HW_KNOWN_BAD_TESTS = (
     "./share/hw_known_bad_tests/sai_known_bad_tests.materialized_JSON"
 )
@@ -180,6 +192,15 @@ QSFP_UNSUPPORTED_TESTS = (
 )
 LINK_KNOWN_BAD_TESTS = (
     "./share/link_known_bad_tests/fboss_link_known_bad_tests.materialized_JSON"
+)
+SAI_AGENT_TEST_KNOWN_BAD_TESTS = (
+    "./share/hw_known_bad_tests/sai_agent_known_bad_tests.materialized_JSON"
+)
+ASIC_PRODUCTION_FEATURES = (
+    "./share/production_features/asic_production_features.materialized_JSON"
+)
+SAI_UNSUPPORTED_TESTS = (
+    "./share/sai_hw_unsupported_tests/sai_hw_unsupported_tests.materialized_JSON"
 )
 QSFP_SERVICE_FOR_TESTING = "qsfp_service_for_testing"
 QSFP_SERVICE_DIR = "/dev/shm/fboss/qsfp_service"
@@ -199,7 +220,7 @@ LimitCORE=32G
 
 Environment=TSAN_OPTIONS="die_after_fork=0 halt_on_error=1
 Environment=LD_LIBRARY_PATH=/opt/fboss/lib
-ExecStart=/opt/fboss/bin/qsfp_service --qsfp-config {{qsfp_config}} --can-qsfp-service-warm-boot {{is_warm_boot}}
+ExecStart=/opt/fboss/bin/qsfp_service --qsfp-config {{qsfp_config}} --can-qsfp-service-warm-boot {{is_warm_boot}} {{optional_flags}}
 SyslogIdentifier={QSFP_SERVICE_FOR_TESTING}
 Restart=no
 
@@ -215,6 +236,50 @@ XGS_SIMULATOR_ASICS = ["th3", "th4", "th4_b0", "th5"]
 DNX_SIMULATOR_ASICS = ["j3"]
 
 ALL_SIMUALTOR_ASICS_STR = "|".join(XGS_SIMULATOR_ASICS + DNX_SIMULATOR_ASICS)
+
+GTEST_NAME_PREFIX = "[ RUN      ] "
+FEATURE_LIST_PREFIX = "Feature List: "
+
+
+def _check_working_dir():
+    current_dir = os.getcwd()
+    if not current_dir.endswith("/opt/fboss"):
+        print("Error: Script must be run from /opt/fboss directory.")
+        exit(1)
+
+
+def run_script(script_file: str):
+    if not os.path.exists(script_file):
+        raise Exception(f"Script file {script_file} does not exist")
+    if not os.access(script_file, os.X_OK):
+        raise Exception(f"Script file {script_file} is not executable")
+    subprocess.run(script_file, shell=True)
+
+
+def setup_fboss_env() -> None:
+    print("Setting fboss environment variables")
+
+    fboss = os.getcwd()
+    os.environ["FBOSS"] = fboss
+    os.environ["FBOSS_BIN"] = f"{fboss}/bin"
+    os.environ["FBOSS_LIB"] = f"{fboss}/lib"
+    os.environ["FBOSS_LIB64"] = f"{fboss}/lib64"
+    os.environ["FBOSS_KMODS"] = f"{fboss}/lib/modules"
+    os.environ["FBOSS_DATA"] = f"{fboss}/share"
+
+    if os.environ.get("PATH") is not None:
+        os.environ["PATH"] = f"{os.environ['FBOSS_BIN']}:{os.environ['PATH']}"
+    else:
+        os.environ["PATH"] = os.environ["FBOSS_BIN"]
+
+    if os.environ.get("LD_LIBRARY_PATH") is not None:
+        os.environ["LD_LIBRARY_PATH"] = (
+            f"{os.environ['FBOSS_LIB64']}:{os.environ['FBOSS_LIB']}:{os.environ['LD_LIBRARY_PATH']}"
+        )
+    else:
+        os.environ["LD_LIBRARY_PATH"] = (
+            f"{os.environ['FBOSS_LIB64']}:{os.environ['FBOSS_LIB']}"
+        )
 
 
 class TestRunner(abc.ABC):
@@ -278,14 +343,24 @@ class TestRunner(abc.ABC):
     def add_subcommand_arguments(self, sub_parser: ArgumentParser):
         pass
 
+    @abc.abstractmethod
+    def _filter_tests(self, tests: List[str]) -> List[str]:
+        pass
+
     def setup_qsfp_service(self, is_warm_boot):
         subprocess.run(CLEANUP_QSFP_SERVICE_CMD, shell=True)
         qsfp_service_file = f"/tmp/{QSFP_SERVICE_FOR_TESTING}.service"
+        optional_flags = ""
+        if args.platform_mapping_override_path is not None:
+            optional_flags += f"{OPT_ARG_PLATFORM_MAPPING_OVERRIDE_PATH} {args.platform_mapping_override_path} "
+        if args.bsp_platform_mapping_override_path is not None:
+            optional_flags += f"{OPT_ARG_BSP_PLATFORM_MAPPING_OVERRIDE_PATH} {args.bsp_platform_mapping_override_path} "
         with open(qsfp_service_file, "w") as f:
             f.write(
                 QSFP_SERVICE_FILE_TEMPLATE.format(
                     qsfp_config=args.qsfp_config,
                     is_warm_boot=is_warm_boot,
+                    optional_flags=optional_flags,
                 )
             )
             f.flush()
@@ -338,9 +413,11 @@ class TestRunner(abc.ABC):
 
         with open(known_bad_tests_file) as f:
             known_bad_test_json = json.load(f)
-            known_bad_test_structs = known_bad_test_json["known_bad_tests"][
-                args.skip_known_bad_tests
-            ]
+            known_bad_tests = known_bad_test_json["known_bad_tests"]
+            key = args.skip_known_bad_tests
+            if key not in known_bad_tests:
+                key = key + "/" + args.mode
+            known_bad_test_structs = known_bad_tests[key]
             known_bad_tests = []
             for test_struct in known_bad_test_structs:
                 known_bad_test = test_struct["test_name_regex"]
@@ -349,10 +426,17 @@ class TestRunner(abc.ABC):
 
     def _get_unsupported_test_regexes(self):
         if not args.skip_known_bad_tests:
+            print(
+                "The --skip-known-bad-tests option is not set, therefore unsupported tests will be run."
+            )
             return []
 
         unsupported_tests_file = self._get_unsupported_tests_file()
         if not os.path.exists(unsupported_tests_file):
+            unsupported_tests_file_abs_path = os.path.abspath(unsupported_tests_file)
+            print(
+                f"The unsupported tests file {unsupported_tests_file_abs_path} does not exist, therefore all tests will be considered supported"
+            )
             return []
 
         with open(unsupported_tests_file) as f:
@@ -706,6 +790,7 @@ class TestRunner(abc.ABC):
 
     def run_test(self, args):
         tests_to_run = self._get_tests_to_run()
+        tests_to_run = self._filter_tests(tests_to_run)
 
         # Check if tests need to be run or only listed
         if args.list_tests is False:
@@ -761,6 +846,9 @@ class BcmTestRunner(TestRunner):
     def _end_run(self):
         return
 
+    def _filter_tests(self, tests: List[str]) -> List[str]:
+        return tests
+
 
 class SaiTestRunner(TestRunner):
     def add_subcommand_arguments(self, sub_parser: ArgumentParser):
@@ -771,10 +859,14 @@ class SaiTestRunner(TestRunner):
         return ""
 
     def _get_known_bad_tests_file(self):
-        return SAI_HW_KNOWN_BAD_TESTS
+        if not args.known_bad_tests_file:
+            return SAI_HW_KNOWN_BAD_TESTS
+        return args.known_bad_tests_file
 
     def _get_unsupported_tests_file(self):
-        return ""
+        if not args.unsupported_tests_file:
+            return SAI_UNSUPPORTED_TESTS
+        return args.unsupported_tests_file
 
     def _get_test_binary_name(self):
         return args.sai_bin if args.sai_bin else "sai_test-sai_impl-1.13.0"
@@ -803,19 +895,40 @@ class SaiTestRunner(TestRunner):
         return ["--config", conf_file, "--mgmt-if", args.mgmt_if]
 
     def _setup_coldboot_test(self):
-        return
+        if args.setup_for_coldboot:
+            run_script(args.setup_for_coldboot)
 
     def _setup_warmboot_test(self):
-        return
+        if args.setup_for_warmboot:
+            run_script(args.setup_for_warmboot)
 
     def _end_run(self):
         return
+
+    def _filter_tests(self, tests: List[str]) -> List[str]:
+        return tests
 
 
 class QsfpTestRunner(TestRunner):
     def add_subcommand_arguments(self, sub_parser: ArgumentParser):
         sub_parser.add_argument(
             OPT_ARG_PRODUCTION_FEATURES, type=str, help="", default=None
+        )
+
+        sub_parser.add_argument(
+            OPT_ARG_PLATFORM_MAPPING_OVERRIDE_PATH,
+            nargs="?",
+            type=str,
+            help="A file path to a platform mapping JSON file to be used.",
+            default=None,
+        )
+
+        sub_parser.add_argument(
+            OPT_ARG_BSP_PLATFORM_MAPPING_OVERRIDE_PATH,
+            nargs="?",
+            type=str,
+            help="A file path to a BSP platform mapping JSON file to be used.",
+            default=None,
         )
 
     def _get_config_path(self):
@@ -843,7 +956,22 @@ class QsfpTestRunner(TestRunner):
         return QSFP_WARMBOOT_CHECK_FILE
 
     def _get_test_run_args(self, conf_file):
-        return ["--qsfp-config", args.qsfp_config]
+        arg_list = ["--qsfp-config", args.qsfp_config]
+        if args.platform_mapping_override_path is not None:
+            arg_list.extend(
+                [
+                    "--platform_mapping_override_path",
+                    args.platform_mapping_override_path,
+                ]
+            )
+        if args.bsp_platform_mapping_override_path is not None:
+            arg_list.extend(
+                [
+                    "--bsp_platform_mapping_override_path",
+                    args.bsp_platform_mapping_override_path,
+                ]
+            )
+        return arg_list
 
     def _setup_coldboot_test(self):
         subprocess.Popen(
@@ -857,10 +985,27 @@ class QsfpTestRunner(TestRunner):
     def _end_run(self):
         return
 
+    def _filter_tests(self, tests: List[str]) -> List[str]:
+        return tests
+
 
 class LinkTestRunner(TestRunner):
     def add_subcommand_arguments(self, sub_parser: ArgumentParser):
-        pass
+        sub_parser.add_argument(
+            OPT_ARG_PLATFORM_MAPPING_OVERRIDE_PATH,
+            nargs="?",
+            type=str,
+            help="A file path to a platform mapping JSON file to be used.",
+            default=None,
+        )
+
+        sub_parser.add_argument(
+            OPT_ARG_BSP_PLATFORM_MAPPING_OVERRIDE_PATH,
+            nargs="?",
+            type=str,
+            help="A file path to a BSP platform mapping JSON file to be used.",
+            default=None,
+        )
 
     def _get_config_path(self):
         return ""
@@ -887,7 +1032,16 @@ class LinkTestRunner(TestRunner):
         return AGENT_WARMBOOT_CHECK_FILE
 
     def _get_test_run_args(self, conf_file):
-        return ["--config", conf_file, "--mgmt-if", args.mgmt_if]
+        arg_list = ["--config", conf_file, "--mgmt-if", args.mgmt_if]
+        if args.platform_mapping_override_path is not None:
+            arg_list.extend(
+                [
+                    "--platform_mapping_override_path",
+                    args.platform_mapping_override_path,
+                ]
+            )
+
+        return arg_list
 
     def _setup_coldboot_test(self):
         self.start_qsfp_service(False)
@@ -898,8 +1052,130 @@ class LinkTestRunner(TestRunner):
     def _end_run(self):
         subprocess.run(CLEANUP_QSFP_SERVICE_CMD, shell=True)
 
+    def _filter_tests(self, tests: List[str]) -> List[str]:
+        return tests
+
+
+class SaiAgentTestRunner(TestRunner):
+    def add_subcommand_arguments(self, sub_parser: ArgumentParser):
+        sub_parser.add_argument(
+            OPT_ARG_PRODUCTION_FEATURES,
+            type=str,
+            help="production features json file",
+            default=ASIC_PRODUCTION_FEATURES,
+        )
+        sub_parser.add_argument(
+            OPT_ARG_ENABLE_PRODUCTION_FEATURES,
+            action="store_true",
+            help="enable/disable filtering by production feature",
+            default=False,
+        )
+        sub_parser.add_argument(
+            OPT_ARG_ASIC,
+            type=str,
+            help="Specify asic to filter production feature",
+            default=None,
+        )
+        sub_parser.add_argument(
+            OPT_AGENT_TEST_MODE,
+            type=str,
+            help="Specify asic to filter production feature",
+            default="mono",
+        )
+
+    def _get_config_path(self):
+        # TOOO Not available in OSS
+        return ""
+
+    def _get_known_bad_tests_file(self):
+        if not args.known_bad_tests_file:
+            return SAI_AGENT_TEST_KNOWN_BAD_TESTS
+        return args.known_bad_tests_file
+
+    def _get_unsupported_tests_file(self):
+        if not args.unsupported_tests_file:
+            return SAI_UNSUPPORTED_TESTS
+        return args.unsupported_tests_file
+
+    def _get_test_binary_name(self):
+        return args.sai_bin if args.sai_bin else "sai_agent_hw_test-sai_impl-1.13.0"
+
+    def _get_sai_replayer_logging_flags(
+        self, sai_replayer_logging_dir, test_prefix, test_to_run
+    ):
+        return [
+            "--enable-replayer",
+            "--enable_get_attr_log",
+            "--enable_packet_log",
+            "--sai-log",
+            os.path.join(
+                sai_replayer_logging_dir,
+                "replayer-log-" + test_prefix + test_to_run.replace("/", "-"),
+            ),
+        ]
+
+    def _get_sai_logging_flags(self, sai_logging):
+        return ["--enable_sai_log", sai_logging]
+
+    def _get_warmboot_check_file(self):
+        return AGENT_WARMBOOT_CHECK_FILE
+
+    def _get_test_run_args(self, conf_file):
+        return ["--config", conf_file, "--mgmt-if", args.mgmt_if]
+
+    def _setup_coldboot_test(self):
+        if args.setup_for_coldboot:
+            run_script(args.setup_for_coldboot)
+
+    def _setup_warmboot_test(self):
+        if args.setup_for_coldboot:
+            run_script(args.setup_for_warmboot)
+
+    def _end_run(self):
+        return
+
+    def _filter_tests(self, tests: List[str]) -> List[str]:
+        if not args.enable_production_features:
+            return tests
+        asic = str(args.asic)
+        asic_production_features = json.load(open(args.production_features))
+        producition_features = {
+            feature for feature in asic_production_features["asicToFeatureNames"][asic]
+        }
+        tests_to_run = []
+        for test in tests:
+            cmd = [
+                self._get_test_binary_name(),
+                f"--gtest_filter={test}",
+                "--list_production_feature",
+            ]
+            ret = subprocess.run(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                universal_newlines=True,
+            )
+            for line in ret.stdout.split("\n"):
+                if not line.startswith(FEATURE_LIST_PREFIX):
+                    continue
+                test_feature_str = line[len(FEATURE_LIST_PREFIX) :]
+                test_features = (
+                    set(test_feature_str.split(",")) if test_feature_str else set()
+                )
+                if "HW_SWITCH" in test_features:
+                    tests_to_run += (test,)
+                    break
+                if test_features.issubset(producition_features):
+                    tests_to_run += (test,)
+                    break
+        return tests_to_run
+
 
 if __name__ == "__main__":
+    _check_working_dir()
+    # Set env variables for FBOSS
+    setup_fboss_env()
+
     ap = ArgumentParser(description="Run tests.")
 
     # Define common args
@@ -969,6 +1245,18 @@ if __name__ == "__main__":
         ),
     )
     ap.add_argument(
+        OPT_KNOWN_BAD_TESTS_FILE,
+        type=str,
+        default=None,
+        help=("Specify file for storing the known bad tests. "),
+    )
+    ap.add_argument(
+        OPT_UNSUPPORTED_TESTS_FILE,
+        type=str,
+        default=None,
+        help=("Specify file for storing the unsupported tests. "),
+    )
+    ap.add_argument(
         OPT_ARG_MGT_IF,
         type=str,
         default="eth0",
@@ -1021,6 +1309,19 @@ if __name__ == "__main__":
         help=("Enable FBOSS logging (Options: INFO|ERR|DBG0-9)"),
     )
 
+    ap.add_argument(
+        OPT_ARG_SETUP_CB,
+        type=str,
+        default=None,
+        help=("run script before cold boot run"),
+    )
+    ap.add_argument(
+        OPT_ARG_SETUP_WB,
+        type=str,
+        default=None,
+        help=("run script before warm boot run"),
+    )
+
     # Add subparsers for different test types
     subparsers = ap.add_subparsers()
 
@@ -1040,7 +1341,17 @@ if __name__ == "__main__":
 
     # Add subparser for Link tests
     link_test_parser = subparsers.add_parser(SUB_CMD_LINK, help="run link tests")
+    link_test_runner = LinkTestRunner()
     link_test_parser.set_defaults(func=LinkTestRunner().run_test)
+    link_test_runner.add_subcommand_arguments(link_test_parser)
+
+    # Add subparser for SAI Agent tests
+    sai_agent_test_parser = subparsers.add_parser(
+        SUB_CMD_SAI_AGENT, help="run sai agent tests"
+    )
+    sai_agent_test_runner = SaiAgentTestRunner()
+    sai_agent_test_parser.set_defaults(func=sai_agent_test_runner.run_test)
+    sai_agent_test_runner.add_subcommand_arguments(sai_agent_test_parser)
 
     # Parse the args
     args = ap.parse_known_args()

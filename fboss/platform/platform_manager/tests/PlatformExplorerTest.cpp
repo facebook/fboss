@@ -30,7 +30,7 @@ TEST(PlatformExplorerTest, PublishFirmwareVersions) {
   auto platformFsUtils =
       std::make_shared<PlatformFsUtils>(tmpDir.path().string());
 
-  std::string fpgaFwVerPath = "/run/devmap/fpgas/TEST_FPGA_FWVER";
+  std::string fpgaFwVerPath = "/run/devmap/inforoms/TEST_FPGA_FWVER";
   EXPECT_TRUE(platformFsUtils->writeStringToFile(
       "1.2", fmt::format("{}/fw_ver", fpgaFwVerPath)));
   std::string cpldFwVerPath = "/run/devmap/cplds/TEST_CPLD_FWVER";
@@ -42,10 +42,10 @@ TEST(PlatformExplorerTest, PublishFirmwareVersions) {
   std::string cpldBadFwVer2Path = "/run/devmap/cplds/TEST_CPLD_BADFWVER2";
   EXPECT_TRUE(platformFsUtils->writeStringToFile(
       "123.456.$", fmt::format("{}/fw_ver", cpldBadFwVer2Path)));
-  std::string fpgaBadFwVerPath = "/run/devmap/fpgas/TEST_FPGA_BADFWVER";
+  std::string fpgaBadFwVerPath = "/run/devmap/inforoms/TEST_FPGA_BADFWVER";
   EXPECT_TRUE(platformFsUtils->writeStringToFile(
       "1.2.3 a", fmt::format("{}/fw_ver", fpgaBadFwVerPath)));
-  std::string fpgaLongFwVerPath = "/run/devmap/fpgas/TEST_FPGA_LONGFWVER";
+  std::string fpgaLongFwVerPath = "/run/devmap/inforoms/TEST_FPGA_LONGFWVER";
   std::string bigStr = "0123456789.0123456789.0123456789"; // 32 chars
   EXPECT_TRUE(platformFsUtils->writeStringToFile(
       bigStr + "." + bigStr, fmt::format("{}/fw_ver", fpgaLongFwVerPath)));
@@ -61,7 +61,7 @@ TEST(PlatformExplorerTest, PublishFirmwareVersions) {
       "7.8.9", fmt::format("{}/fw_ver", cpldHwmonTrapPath)));
 
   // Non-existent versions
-  std::string fpgaNonePath = "/run/devmap/fpgas/NONE";
+  std::string fpgaNonePath = "/run/devmap/inforoms/NONE";
   EXPECT_TRUE(platformFsUtils->createDirectories(fpgaNonePath));
 
   PlatformConfig platformConfig;

@@ -254,6 +254,15 @@ static const std::vector<PfcPriority> allPfcPriorities() {
   return priorities;
 }
 
+std::string getPriorityGroupStatsKey(folly::StringPiece statKey, int pg) {
+  return folly::to<std::string>(statKey, ".pg", pg);
+}
+
+MonotonicCounter getDefaultCounter(folly::StringPiece statKey) {
+  return MonotonicCounter(
+      statKey.str(), facebook::fb303::SUM, facebook::fb303::RATE);
+}
+
 } // namespace
 
 namespace facebook::fboss {
@@ -325,11 +334,9 @@ void BcmPort::reinitPortStat(
 
   if (!stat) {
     portCounters_.emplace(
-        statKey.str(),
-        MonotonicCounter(statName(statKey, portName), fb303::SUM, fb303::RATE));
+        statKey.str(), getDefaultCounter(statName(statKey, portName)));
   } else if (stat->getName() != statName(statKey, portName)) {
-    MonotonicCounter newStat{
-        statName(statKey, portName), fb303::SUM, fb303::RATE};
+    MonotonicCounter newStat = getDefaultCounter(statName(statKey, portName));
     stat->swap(newStat);
     utility::deleteCounter(newStat.getName());
   }
@@ -411,6 +418,11 @@ void BcmPort::reinitPortStatsLocked(
   if (swPort->getPfc().has_value()) {
     // Init port PFC stats only if PFC is enabled on the port!
     reinitPortPfcStats(swPort);
+  }
+
+  for (int i = 0; i <= cfg::switch_config_constants::PORT_PG_VALUE_MAX(); ++i) {
+    reinitPortStat(
+        getPriorityGroupStatsKey(kInCongestionDiscards(), i), portName);
   }
 
   if (swPort) {
@@ -757,10 +769,50 @@ void BcmPort::program(const shared_ptr<Port>& port) {
 void BcmPort::updatePortFlowletConfig(const std::shared_ptr<Port>& port) {
   setPortFlowletConfig(port);
   if (hw_->getPlatform()->getAsic()->isSupported(
-          HwAsic::Feature::FLOWLET_PORT_ATTRIBUTES)) {
+          HwAsic::Feature::ARS_PORT_ATTRIBUTES)) {
     XLOG(DBG3) << "Updating Port flowlet config for " << port->getName();
     programFlowletPortQuality(port->getPortFlowletConfig());
   }
+}
+
+void BcmPort::clearSignalDetectAndLockStatusChangedStats() {
+  auto lastPmdStats = lastPhyInfo_.stats()->line()->pmd();
+  for (auto& [laneId, laneStat] : *lastPmdStats->lanes()) {
+    if (laneStat.signalDetectChangedCount().has_value()) {
+      laneStat.signalDetectChangedCount() = 0;
+    }
+    if (laneStat.cdrLockChangedCount().has_value()) {
+      laneStat.cdrLockChangedCount() = 0;
+    }
+  }
+}
+
+void BcmPort::clearInterfacePhyCounters() {
+  auto lockedPortStatsPtr = portStats_.wlock();
+  if (!lockedPortStatsPtr->has_value()) {
+    return;
+  }
+
+  auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
+  HwPortStats curPortStats, lastPortStats;
+  curPortStats = (*lockedPortStatsPtr)->portStats();
+
+  *curPortStats.fecCorrectableErrors() = 0;
+  *curPortStats.fecUncorrectableErrors() = 0;
+
+  auto portName = getPortName();
+  auto resetPortStat = [&](folly::StringPiece statKey,
+                           folly::StringPiece portName) {
+    auto stat = getPortCounterIf(statKey);
+    MonotonicCounter newStat = getDefaultCounter(statName(statKey, portName));
+    stat->swap(newStat);
+  };
+  resetPortStat(kFecCorrectable(), portName);
+  resetPortStat(kFecUncorrectable(), portName);
+
+  *lockedPortStatsPtr = BcmPortStats(std::move(curPortStats), now);
+
+  clearSignalDetectAndLockStatusChangedStats();
 }
 
 void BcmPort::cacheFaultStatus(phy::LinkFaultStatus faultStatus) {
@@ -1235,7 +1287,7 @@ phy::PhyInfo BcmPort::updateIPhyInfo() {
       if (hw_->getPlatform()->getAsic()->isSupported(
               HwAsic::Feature::FEC_DIAG_COUNTERS)) {
         rsFec.codewordStats() = codewordStats_;
-        utility::updateFecTail(rsFec, lastRsFec);
+        utility::updateFecTail(rsFec, lastRsFec, fecMode);
       }
       std::optional<uint64_t> correctedBitsFromHw;
 #if defined(BCM_SDK_VERSION_GTE_6_5_26)
@@ -1469,11 +1521,14 @@ void BcmPort::updateStats() {
 
   auto settings = getProgrammedSettings();
   uint64_t inCongestionDiscards = 0;
+  std::map<int16_t, int64_t> pgInCongestionDiscards;
   if (isMmuLossless()) {
     // although this stat can be derived in the lossy world as well, but use
     // case is only for mmu lossless
-    updateInCongestionDiscardStats(now, &inCongestionDiscards);
+    updateInCongestionDiscardStats(
+        now, &inCongestionDiscards, &pgInCongestionDiscards);
     *curPortStats.inCongestionDiscards_() = inCongestionDiscards;
+    *curPortStats.pgInCongestionDiscards_() = pgInCongestionDiscards;
   }
 
   // InDiscards will be read along with PFC if PFC is enabled
@@ -1786,9 +1841,10 @@ void BcmPort::updateStat(
 
 void BcmPort::updateInCongestionDiscardStats(
     std::chrono::seconds now,
-    uint64_t* portStatVal) {
+    uint64_t* portStatVal,
+    std::map<int16_t, int64_t>* /*portPgStatVal*/) {
   *portStatVal = 0;
-  auto rv = bcm_cosq_stat_sync_get(
+  auto rv = bcm_cosq_stat_get(
       hw_->getUnit(),
       getBcmGport(),
       -1,
@@ -1800,6 +1856,12 @@ void BcmPort::updateInCongestionDiscardStats(
   }
   auto stat = getPortCounterIf(kInCongestionDiscards());
   stat->updateValue(now, *portStatVal);
+
+  for (int16_t priority = 0;
+       priority <= cfg::switch_config_constants::PORT_PG_VALUE_MAX();
+       ++priority) {
+    // TODO(maxgg); Query flexctr
+  }
 }
 
 void BcmPort::updateWredStats(std::chrono::seconds now, int64_t* portStatVal) {

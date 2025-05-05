@@ -30,6 +30,10 @@ namespace facebook::fboss {
 
 constexpr int kMaxI2clogDataSize = 128;
 constexpr size_t kI2cFieldNameLength = 16;
+// Maximum number of buffer slots. Note that depending on the size of the log
+// element, to maintain a reasonable memory usage, we have to limit max size
+// the buffer.
+constexpr int kMaxNumberBufferSlots = 40960;
 
 // Number of address fields in TransceiverAccessParameter
 constexpr int kNumParamFields = 5;
@@ -71,6 +75,7 @@ class I2cLogBuffer {
   };
 
   // NOTE: The maximum number of entries is defined in config (qsfp_config.cinc)
+  // and also limited by kMaxNumberBufferSlots.
   static_assert(
       sizeof(I2cLogEntry) < 200,
       "I2cLogEntry must be < 200B to not exceed system memory limits.");
@@ -125,7 +130,7 @@ class I2cLogBuffer {
 
   // Get the capacity
   size_t getI2cLogBufferCapacity() const {
-    return config_.get_bufferSlots();
+    return getSize();
   }
 
   // Dumps the buffer contents into logFile_.
@@ -149,22 +154,31 @@ class I2cLogBuffer {
       const std::optional<FirmwareStatus>& status,
       const std::optional<Vendor>& vendor);
 
+  static int getMaxNumberSlots() {
+    return kMaxNumberBufferSlots;
+  }
+
  private:
-  std::vector<I2cLogEntry> buffer_;
+  // Buffer Config.
   const size_t size_;
-  cfg::TransceiverI2cLogging config_;
+  bool writeLog_{false};
+  bool readLog_{false};
+  bool disableOnFail_{false};
+
+  std::vector<I2cLogEntry> buffer_;
+
   size_t head_{0};
   size_t tail_{0};
   size_t totalEntries_{0};
   std::string logFile_;
-  std::mutex mutex_;
+  mutable std::mutex mutex_;
   TransceiverManagementInterface mgmtIf_ =
       TransceiverManagementInterface::UNKNOWN;
   std::set<std::string> portNames_;
   std::optional<FirmwareStatus> fwStatus_;
   std::optional<Vendor> vendor_;
 
-  size_t getSize() {
+  size_t getSize() const {
     // Avoid the tsan errors. size_ is also a const member variable.
     std::lock_guard<std::mutex> g(mutex_);
     return size_;

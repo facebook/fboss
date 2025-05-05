@@ -13,8 +13,11 @@
 #include "fboss/agent/types.h"
 
 #include "fboss/agent/rib/NetworkToRouteMap.h"
+#include "fboss/agent/rib/RibRouteWeightNormalizer.h"
 
 #include <folly/IPAddress.h>
+
+DECLARE_bool(enable_capacity_pruning);
 
 namespace facebook::fboss {
 
@@ -165,6 +168,7 @@ class RibRouteUpdater {
       const std::optional<LabelForwardingAction>& labelAction,
       bool* hasToCpu,
       bool* hasDrop,
+      const std::optional<NetworkTopologyInformation>& topologyInfo,
       RouteNextHopSet& fwd);
 
   template <typename AddressT>
@@ -178,11 +182,12 @@ class RibRouteUpdater {
   LabelToRouteMap* mplsRoutes_{nullptr};
   std::unordered_set<void*> needsResolution_;
   /*
-   * Cache for next hop to FWD informatio. For our use case
+   * Cache for next hop to FWD information. For our use case
    * its pretty common for the same next hops to repeat, so
    * cache resolution
    */
   std::map<RouteNextHopSet, RouteNextHopSet> unresolvedToResolvedNhops_;
+  RibRouteWeightNormalizer weightNormalizer_;
 };
 
 } // namespace facebook::fboss

@@ -24,16 +24,23 @@ class AgentTrafficPauseTest : public AgentHwTest {
     return config;
   }
 
+  void setCmdLineFlagOverrides() const override {
+    AgentHwTest::setCmdLineFlagOverrides();
+    // Turn on Leaba SDK shadow cache to avoid test case timeout
+    FLAGS_counter_refresh_interval = 1;
+  }
+
   void sendPauseFrames(const PortID& portId, const int count) {
     // PAUSE frame to have the highest quanta of 0xffff
     std::vector<uint8_t> payload{0x00, 0x01, 0xff, 0xff};
     std::vector<uint8_t> padding(42, 0);
     payload.insert(payload.end(), padding.begin(), padding.end());
-    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
+    auto intfMac =
+        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     for (int idx = 0; idx < count; idx++) {
       auto pkt = utility::makeEthTxPacket(
           getSw(),
-          utility::firstVlanID(getProgrammedState()),
+          getVlanIDForTx(),
           utility::MacAddressGenerator().get(intfMac.u64NBO() + 1),
           folly::MacAddress("01:80:C2:00:00:01"),
           ETHERTYPE::ETHERTYPE_EPON,
@@ -54,9 +61,9 @@ class AgentTrafficPauseTest : public AgentHwTest {
   static void sendPacket(
       AgentEnsemble* ensemble,
       const folly::IPAddressV6& destIpv6Addr) {
-    auto vlanId = utility::firstVlanID(ensemble->getProgrammedState());
-    auto intfMac =
-        utility::getFirstInterfaceMac(ensemble->getProgrammedState());
+    auto vlanId = ensemble->getVlanIDForTx();
+    auto intfMac = utility::getMacForFirstInterfaceWithPorts(
+        ensemble->getProgrammedState());
     auto dscp = utility::kOlympicQueueToDscp().at(0).front();
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
     auto txPacket = utility::makeUDPTxPacket(
@@ -143,7 +150,7 @@ class AgentTrafficPauseTest : public AgentHwTest {
               });
       std::optional<HwPortStats> prevPortStats;
       HwPortStats curPortStats{};
-      WITH_RETRIES({
+      WITH_RETRIES_N_TIMED(15, std::chrono::milliseconds(2000), {
         curPortStats = getLatestPortStats(kPausedPortId);
         if (!prevPortStats.has_value()) {
           // Rate calculation wont be accurate
@@ -151,7 +158,7 @@ class AgentTrafficPauseTest : public AgentHwTest {
           continue;
         }
         auto rate =
-            getAgentEnsemble()->getTrafficRate(*prevPortStats, curPortStats, 1);
+            getAgentEnsemble()->getTrafficRate(*prevPortStats, curPortStats, 2);
         XLOG(DBG0) << "Port " << kPausedPortId << ", current rate is : " << rate
                    << " bps, pause frames received: "
                    << curPortStats.inPause_().value();

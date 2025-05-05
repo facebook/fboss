@@ -20,7 +20,8 @@ class Sff8472Module : public QsfpModule {
  public:
   explicit Sff8472Module(
       std::set<std::string> portNames,
-      TransceiverImpl* qsfpImpl);
+      TransceiverImpl* qsfpImpl,
+      std::string tcvrName);
   virtual ~Sff8472Module() override;
 
   /*

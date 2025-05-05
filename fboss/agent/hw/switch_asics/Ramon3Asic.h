@@ -18,7 +18,18 @@ class Ramon3Asic : public BroadcomAsic {
             switchInfo,
             sdkVersion,
             {cfg::SwitchType::FABRIC}),
-        fabricNodeRole_(fabricNodeRole) {}
+        fabricNodeRole_(fabricNodeRole) {
+    if (fabricNodeRole_ == FabricNodeRole::DUAL_STAGE_L1) {
+      std::transform(
+          Ramon3Asic::getL1BaseFabricPortsToConnectToL2().begin(),
+          Ramon3Asic::getL1BaseFabricPortsToConnectToL2().end(),
+          std::inserter(
+              l1FabricPortsToConnectToL2_, l1FabricPortsToConnectToL2_.end()),
+          [offset = *switchInfo.portIdRange()->minimum()](uint16_t port) {
+            return port + offset;
+          });
+    }
+  }
   bool isSupported(Feature feature) const override;
   const std::map<cfg::PortType, cfg::PortLoopbackMode>& desiredLoopbackModes()
       const override;
@@ -40,10 +51,10 @@ class Ramon3Asic : public BroadcomAsic {
   }
 
   uint32_t getMaxSwitchId() const override {
-    // Even though J3 HW can support switchIds upto 8K.
+    // Even though R3 HW can support switchIds upto 8K.
     // Due to a bug in reachability table update logic,
-    // we can use only 4K out of that 8K range
-    return 4 * 1024;
+    // we can use only 4064 (not 4K) out of that 8K range
+    return 4064;
   }
   std::set<cfg::StreamType> getQueueStreamTypes(
       cfg::PortType portType) const override;
@@ -54,10 +65,10 @@ class Ramon3Asic : public BroadcomAsic {
   uint64_t getMMUSizeBytes() const override;
   uint64_t getSramSizeBytes() const override;
   uint32_t getMaxMirrors() const override;
-  uint64_t getDefaultReservedBytes(
+  std::optional<uint64_t> getDefaultReservedBytes(
       cfg::StreamType streamType,
       cfg::PortType portType) const override;
-  cfg::MMUScalingFactor getDefaultScalingFactor(
+  std::optional<cfg::MMUScalingFactor> getDefaultScalingFactor(
       cfg::StreamType streamType,
       bool cpu) const override;
   int getMaxNumLogicalPorts() const override;
@@ -90,6 +101,7 @@ class Ramon3Asic : public BroadcomAsic {
   FabricNodeRole getFabricNodeRole() const override {
     return fabricNodeRole_;
   }
+  const std::set<uint16_t>& getL1FabricPortsToConnectToL2() const override;
   int getMidPriCpuQueueId() const override {
     throw FbossError("Ramon3 ASIC does not support cpu queue");
   }
@@ -98,6 +110,9 @@ class Ramon3Asic : public BroadcomAsic {
   }
 
  private:
+  static const std::set<uint16_t>& getL1BaseFabricPortsToConnectToL2();
+
   FabricNodeRole fabricNodeRole_;
+  std::set<uint16_t> l1FabricPortsToConnectToL2_;
 };
 } // namespace facebook::fboss

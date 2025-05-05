@@ -22,7 +22,7 @@ class SaiRxPacket : public RxPacket {
       size_t buffer_size,
       const void* buffer,
       PortID portID,
-      VlanID vlanID,
+      std::optional<VlanID> vlanID,
       cfg::PacketRxReason rxReason,
       uint8_t queueId);
 
@@ -30,7 +30,7 @@ class SaiRxPacket : public RxPacket {
       size_t buffer_size,
       const void* buffer,
       AggregatePortID aggregatePortID,
-      VlanID vlanID,
+      std::optional<VlanID> vlanID,
       cfg::PacketRxReason rxReason,
       uint8_t queueId);
   /*

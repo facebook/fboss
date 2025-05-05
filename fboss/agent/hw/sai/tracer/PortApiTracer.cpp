@@ -108,6 +108,9 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _PortMap{
     SAI_ATTR_MAP(Port, ArsPortLoadPastWeight),
     SAI_ATTR_MAP(Port, ArsPortLoadFutureWeight),
 #endif
+#if defined(CHENAB_SAI_SDK)
+    SAI_ATTR_MAP(Port, AutoNegotiationMode),
+#endif
 };
 
 std::map<int32_t, std::pair<std::string, std::size_t>> _PortSerdesMap{
@@ -146,6 +149,7 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(Port, CablePropogationDelayNS)
   SAI_EXT_ATTR_MAP(Port, FabricDataCellsFilterStatus)
   SAI_EXT_ATTR_MAP(Port, ReachabilityGroup)
+  SAI_EXT_ATTR_MAP(Port, FecErrorDetectEnable)
   SAI_EXT_ATTR_MAP(PortSerdes, TxDiffEncoderEn)
   SAI_EXT_ATTR_MAP(PortSerdes, TxDigGain)
   SAI_EXT_ATTR_MAP(PortSerdes, TxFfeCoeff0)

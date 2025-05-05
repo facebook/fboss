@@ -71,8 +71,8 @@ std::map<int32_t, PortInfoThrift> createMockPortInfoEntries() {
   portInfoEntry2.output()->errors()->errors() = 12;
   portInfoEntry2.output()->errors()->discards() = 9;
 
-  portInfoMap[portInfoEntry1.get_portId()] = portInfoEntry1;
-  portInfoMap[portInfoEntry2.get_portId()] = portInfoEntry2;
+  portInfoMap[folly::copy(portInfoEntry1.portId().value())] = portInfoEntry1;
+  portInfoMap[folly::copy(portInfoEntry2.portId().value())] = portInfoEntry2;
   return portInfoMap;
 }
 

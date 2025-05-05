@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/Main.h"
 #include "fboss/agent/Platform.h"
@@ -120,6 +121,8 @@ class AgentTest : public ::testing::Test, public MonolithicAgentInitializer {
       const boost::container::flat_set<PortDescriptor>& ports);
 
   PortID getPortID(const std::string& portName) const;
+
+  std::optional<VlanID> getVlanIDForTx() const;
 
  private:
   template <typename AddrT>

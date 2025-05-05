@@ -61,16 +61,16 @@ class CmdShowHost : public CmdHandler<CmdShowHost, CmdShowHostTraits> {
     RetType model;
     for (const auto& ndpEntry : ndpEntries) {
       cli::ShowHostModelEntry hostDetails;
-      std::string ndpEntryAddr = utils::getAddrStr(ndpEntry.get_ip());
+      std::string ndpEntryAddr = utils::getAddrStr(ndpEntry.ip().value());
       // Skip link-local addresses
       if (boost::algorithm::starts_with(ndpEntryAddr, "fe80:")) {
         continue;
       }
       std::unordered_set<std::string> queriedSet(
           queriedPorts.begin(), queriedPorts.end());
-      int32_t ndpEntryPort = ndpEntry.get_port();
+      int32_t ndpEntryPort = folly::copy(ndpEntry.port().value());
       hostDetails.portID() = ndpEntryPort;
-      int32_t ndpEntryClassID = ndpEntry.get_classID();
+      int32_t ndpEntryClassID = folly::copy(ndpEntry.classID().value());
       if (ndpEntryClassID != 0) {
         hostDetails.queueID() = folly::to<std::string>(ndpEntryClassID - 10);
       } else {
@@ -86,22 +86,34 @@ class CmdShowHost : public CmdHandler<CmdShowHost, CmdShowHostTraits> {
       auto ndpEntryPortInfoEntry = portInfoEntries.find(ndpEntryPort);
       if (ndpEntryPortInfoEntry != portInfoEntries.end()) {
         const auto& ndpEntryPortInfo = ndpEntryPortInfoEntry->second;
-        auto ndpEntryPortName = ndpEntryPortInfo.get_name();
+        auto ndpEntryPortName = ndpEntryPortInfo.name().value();
         if (queriedSet.size() > 0 && queriedSet.count(ndpEntryPortName) == 0) {
           continue;
         }
         hostDetails.portName() = ndpEntryPortName;
-        hostDetails.speed() =
-            utils::getSpeedGbps(ndpEntryPortInfo.get_speedMbps());
-        hostDetails.fecMode() = ndpEntryPortInfo.get_fecMode();
-        hostDetails.inErrors() =
-            ndpEntryPortInfo.get_input().get_errors().get_errors();
-        hostDetails.inDiscards() =
-            ndpEntryPortInfo.get_input().get_errors().get_discards();
-        hostDetails.outErrors() =
-            ndpEntryPortInfo.get_output().get_errors().get_errors();
-        hostDetails.outDiscards() =
-            ndpEntryPortInfo.get_output().get_errors().get_discards();
+        hostDetails.speed() = utils::getSpeedGbps(
+            folly::copy(ndpEntryPortInfo.speedMbps().value()));
+        hostDetails.fecMode() = ndpEntryPortInfo.fecMode().value();
+        hostDetails.inErrors() = folly::copy(
+            ndpEntryPortInfo.input().value().errors().value().errors().value());
+        hostDetails.inDiscards() = folly::copy(ndpEntryPortInfo.input()
+                                                   .value()
+                                                   .errors()
+                                                   .value()
+                                                   .discards()
+                                                   .value());
+        hostDetails.outErrors() = folly::copy(ndpEntryPortInfo.output()
+                                                  .value()
+                                                  .errors()
+                                                  .value()
+                                                  .errors()
+                                                  .value());
+        hostDetails.outDiscards() = folly::copy(ndpEntryPortInfo.output()
+                                                    .value()
+                                                    .errors()
+                                                    .value()
+                                                    .discards()
+                                                    .value());
       } else {
         continue;
       }
@@ -109,8 +121,10 @@ class CmdShowHost : public CmdHandler<CmdShowHost, CmdShowHostTraits> {
       if (ndpEntryPortStatusEntry != portStatusEntries.end()) {
         const auto& ndpEntryPortStatus = ndpEntryPortStatusEntry->second;
         hostDetails.adminState() =
-            (ndpEntryPortStatus.get_enabled()) ? "Enabled" : "Disabled";
-        hostDetails.linkState() = (ndpEntryPortStatus.get_up()) ? "Up" : "Down";
+            (folly::copy(ndpEntryPortStatus.enabled().value())) ? "Enabled"
+                                                                : "Disabled";
+        hostDetails.linkState() =
+            (folly::copy(ndpEntryPortStatus.up().value())) ? "Up" : "Down";
       } else {
         continue;
       }
@@ -121,7 +135,8 @@ class CmdShowHost : public CmdHandler<CmdShowHost, CmdShowHostTraits> {
         model.hostEntries()->end(),
         [&](const cli::ShowHostModelEntry& a,
             const cli::ShowHostModelEntry& b) {
-          return a.get_portID() < b.get_portID();
+          return folly::copy(a.portID().value()) <
+              folly::copy(b.portID().value());
         });
     return model;
   }
@@ -141,20 +156,21 @@ class CmdShowHost : public CmdHandler<CmdShowHost, CmdShowHostTraits> {
          "InDiscard",
          "OutErr",
          "OutDiscard"});
-    for (const auto& hostEntry : model.get_hostEntries()) {
+    for (const auto& hostEntry : model.hostEntries().value()) {
       table.addRow(
-          {hostEntry.get_portName(),
-           folly::to<std::string>(hostEntry.get_portID()),
-           hostEntry.get_queueID(),
-           hostEntry.get_hostName(),
-           hostEntry.get_adminState(),
-           hostEntry.get_linkState(),
-           hostEntry.get_speed(),
-           hostEntry.get_fecMode(),
-           folly::to<std::string>(hostEntry.get_inErrors()),
-           folly::to<std::string>(hostEntry.get_inDiscards()),
-           folly::to<std::string>(hostEntry.get_outErrors()),
-           folly::to<std::string>(hostEntry.get_outDiscards())});
+          {hostEntry.portName().value(),
+           folly::to<std::string>(folly::copy(hostEntry.portID().value())),
+           hostEntry.queueID().value(),
+           hostEntry.hostName().value(),
+           hostEntry.adminState().value(),
+           hostEntry.linkState().value(),
+           hostEntry.speed().value(),
+           hostEntry.fecMode().value(),
+           folly::to<std::string>(folly::copy(hostEntry.inErrors().value())),
+           folly::to<std::string>(folly::copy(hostEntry.inDiscards().value())),
+           folly::to<std::string>(folly::copy(hostEntry.outErrors().value())),
+           folly::to<std::string>(
+               folly::copy(hostEntry.outDiscards().value()))});
     }
     out << table << std::endl;
   }

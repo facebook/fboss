@@ -72,7 +72,8 @@ class CmisModule : public QsfpModule {
       std::set<std::string> portNames,
       TransceiverImpl* qsfpImpl,
       std::shared_ptr<const TransceiverConfig> cfg,
-      bool supportRemediate);
+      bool supportRemediate,
+      std::string tcvrName);
   virtual ~CmisModule() override;
 
   struct ApplicationAdvertisingField {
@@ -82,6 +83,23 @@ class CmisModule : public QsfpModule {
     int mediaLaneCount;
     std::vector<int> hostStartLanes;
     std::vector<int> mediaStartLanes;
+  };
+
+  static constexpr int kMaxOsfpNumLanes = 8;
+  static constexpr int kHostInterfaceCodeOffset = 0;
+  static constexpr int kMediaInterfaceCodeOffset = 1;
+
+  using ApplicationAdvertisingFields = std::vector<ApplicationAdvertisingField>;
+
+  using AllLaneConfig = std::array<uint8_t, kMaxOsfpNumLanes>;
+
+  using LengthAndGauge = std::pair<double, uint8_t>;
+
+  using VdmDiagsLocationStatus = struct VdmDiagsLocationStatus_t {
+    bool vdmConfImplementedByModule = false;
+    CmisPages vdmValPage;
+    int vdmValOffset;
+    int vdmValLength;
   };
 
   /*
@@ -117,17 +135,6 @@ class CmisModule : public QsfpModule {
     MAX_QSFP_PAGE_SIZE = 128,
   };
 
-  static constexpr int kMaxOsfpNumLanes = 8;
-
-  using LengthAndGauge = std::pair<double, uint8_t>;
-
-  using VdmDiagsLocationStatus = struct VdmDiagsLocationStatus_t {
-    bool vdmConfImplementedByModule = false;
-    CmisPages vdmValPage;
-    int vdmValOffset;
-    int vdmValLength;
-  };
-
   void configureModule(uint8_t startHostLane) override;
 
   /*
@@ -152,11 +159,14 @@ class CmisModule : public QsfpModule {
       uint8_t startHostLane,
       uint8_t numLanes);
 
-  std::optional<std::array<SMFMediaInterfaceCode, kMaxOsfpNumLanes>>
-  getValidMultiportSpeedConfig(
-      cfg::PortSpeed speed,
-      uint8_t startHostLane,
-      uint8_t numLanes);
+  // Public since its used for unit testing
+  ApplicationAdvertisingFields getModuleCapabilities() {
+    return moduleCapabilities_;
+  }
+  // Public since its used for unit testing
+  static uint8_t laneMask(uint8_t startLane, uint8_t numLanes) {
+    return ((1 << numLanes) - 1) << startLane;
+  }
 
  protected:
   // QSFP+ requires a bottom 128 byte page describing important monitoring
@@ -194,6 +204,18 @@ class CmisModule : public QsfpModule {
    * This must be called with a lock held on qsfpModuleMutex_
    */
   void customizeTransceiverLocked(TransceiverPortState& portState) override;
+
+  /*
+   * Returns whether customization is supported at all.
+   * Checks if something is plugged in and checks if it is optical (SMF)
+   * or an active electrical cable.
+   * We do not support customization (for now) on passive copper cables.
+   */
+  virtual bool customizationSupported() const override {
+    return present_ &&
+        (getQsfpTransmitterTechnology() == TransmitterTechnology::OPTICAL ||
+         getMediaTypeEncoding() == MediaTypeEncodings::ACTIVE_CABLES);
+  }
 
   /*
    * If the current power state is not same as desired one then change it and
@@ -333,15 +355,36 @@ class CmisModule : public QsfpModule {
   MediaTypeEncodings getMediaTypeEncoding() const;
 
   /*
-   * Gets the Single Mode Fiber Interface codes from SFF-8024
+   * Get the curent application set for the lane (i.e. programmed in the
+   * transceiver). Based on Interface codes from SFF-8024.
+   * For Optical SMF transceivers, the application is the media interface code,
+   * so the offset is 1.
+   * For Active Cables, the application is the host interface code, so the
+   * offset is 0.
    */
-  SMFMediaInterfaceCode getSmfMediaInterface(uint8_t lane = 0) const;
+  uint8_t getCurrentApplication(uint8_t lane, int offset) const;
 
   /*
-   * Returns the list of media interfaces supported by the module
+   * Get the SMF Media Interface Code for the lane. uses
+   * getCurrentApplication.
+   * TODO: Should add a check for translation is to an enum that is
+   * supported or defined in thrift.
    */
-  std::vector<MediaInterfaceCode> getSupportedMediaInterfacesLocked()
-      const override;
+  SMFMediaInterfaceCode getSmfMediaInterface(uint8_t lane) const {
+    return (SMFMediaInterfaceCode)getCurrentApplication(
+        lane, kMediaInterfaceCodeOffset);
+  }
+
+  /*
+   * Get the Active Cable Interface Code for the lane. uses
+   * getCurrentApplication.
+   * TODO: Should add a check for translation is to an enum that is
+   * supported or defined in thrift.
+   */
+  ActiveCuHostInterfaceCode getActiveCuMediaInterface(uint8_t lane) const {
+    return (ActiveCuHostInterfaceCode)getCurrentApplication(
+        lane, kHostInterfaceCodeOffset);
+  }
 
   /*
    * Returns the firmware version
@@ -412,8 +455,6 @@ class CmisModule : public QsfpModule {
   std::optional<ApplicationAdvertisingField> getApplicationField(
       uint8_t application,
       uint8_t startHostLane) const;
-
-  SMFMediaInterfaceCode getApplicationFromApSelCode(uint8_t apSelCode) const;
 
   // Returns the list of host lanes configured in the same datapath as the
   // provided startHostLane
@@ -515,7 +556,7 @@ class CmisModule : public QsfpModule {
   /*
    * Application advertising fields.
    */
-  std::vector<ApplicationAdvertisingField> moduleCapabilities_;
+  ApplicationAdvertisingFields moduleCapabilities_;
 
   /*
    * Gets the module media interface. This is the intended media interface
@@ -574,10 +615,6 @@ class CmisModule : public QsfpModule {
   std::pair<std::optional<const uint8_t*>, int> getVdmDataValPtr(
       VdmConfigType vdmConf);
 
-  SMFMediaInterfaceCode getMediaIntfCodeFromSpeed(
-      cfg::PortSpeed speed,
-      uint8_t numLanes);
-
   bool isMultiPortOptics() {
     return getIdentifier() == TransceiverModuleIdentifier::OSFP;
   }
@@ -601,6 +638,10 @@ class CmisModule : public QsfpModule {
       uint8_t startHostLane,
       uint8_t numHostLanes,
       uint8_t hostLaneMask);
+
+  // Sets the sampling percentage for
+  // FEC errors if supported by transceiver.
+  void setMaxFecSamplingLocked();
 
   const std::shared_ptr<const TransceiverConfig> tcvrConfig_;
 

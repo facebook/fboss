@@ -217,7 +217,7 @@ class HwMPLSTest : public HwLinkStateDependentTest {
       std::optional<DSCP> dscp = std::nullopt) {
     CHECK(ecmpHelper_);
     // TODO: Remove the dependency on VLAN below
-    auto vlan = utility::firstVlanID(initialConfig());
+    auto vlan = getHwSwitchEnsemble()->getVlanIDForTx();
     if (!vlan) {
       throw FbossError("VLAN id unavailable for test");
     }
@@ -260,7 +260,7 @@ class HwMPLSTest : public HwLinkStateDependentTest {
     const auto dstMac = utility::kLocalCpuMac(); /* for l3 switching */
 
     // TODO: Remove the dependency on VLAN below
-    auto vlan = utility::firstVlanID(initialConfig());
+    auto vlan = getHwSwitchEnsemble()->getVlanIDForTx();
     if (!vlan) {
       throw FbossError("VLAN id unavailable for test");
     }

@@ -6,7 +6,6 @@
   "pwmTransitionValue" : 50,
   "pwmLowerThreshold" : 7,
   "pwmUpperThreshold" : 100,
-  "shutdownCmd" : "echo 0xdead > /run/devmap/fpgas/MERU_SCM_CPLD/chassis_power_cycle",
   "optics" : [
     {
       "opticName" : "osfp_group_1",
@@ -34,7 +33,6 @@
         "accessType": "ACCESS_TYPE_THRIFT"
       },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
-      "scale": 1,
       "normalUpTable": {
         "15": 28,
         "110": 80
@@ -58,7 +56,6 @@
         "accessType": "ACCESS_TYPE_THRIFT"
       },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
-      "scale": 1,
       "normalUpTable": {
         "15": 7,
         "70": 10,
@@ -86,7 +83,6 @@
         "accessType": "ACCESS_TYPE_THRIFT"
       },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
-      "scale": 1,
       "normalUpTable": {
         "15": 7,
         "70": 10,

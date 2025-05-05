@@ -20,13 +20,13 @@
 #include "fboss/agent/CommonInit.h"
 #include "fboss/agent/FbossInit.h"
 #include "fboss/agent/HwSwitch.h"
-#include "fboss/agent/RestartTimeTracker.h"
 #include "fboss/agent/SetupThrift.h"
 #include "fboss/agent/TestUtils.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/mnpu/SplitAgentThriftSyncer.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/lib/CommonFileUtils.h"
+#include "fboss/lib/restart_tracker/RestartTimeTracker.h"
 
 #include "fboss/agent/hw/test/HwTestThriftHandler.h"
 
@@ -182,7 +182,8 @@ int hwAgentMain(
       SwitchRunState::INITIALIZED);
 
   restart_time::init(
-      hwAgent->getPlatform()->getDirectoryUtil()->getWarmBootDir(),
+      hwAgent->getPlatform()->getDirectoryUtil()->getWarmBootDir() +
+          "/hw_switch@" + folly::to<std::string>(FLAGS_switchIndex),
       ret.bootType == BootType::WARM_BOOT);
 
   thriftSyncer->start();
@@ -207,7 +208,11 @@ int hwAgentMain(
 
   std::vector<std::shared_ptr<apache::thrift::AsyncProcessorFactory>>
       handlers{};
-  handlers.push_back(hwAgent->getPlatform()->createHandler());
+  if (auto handler = hwAgent->getPlatform()->createHandler()) {
+    handlers.push_back(handler);
+  } else {
+    XLOG(FATAL) << "handler does not exist for platform";
+  }
   if (FLAGS_thrift_test_utils_thrift_handler || FLAGS_hw_agent_for_testing) {
     // Add HwTestThriftHandler to the thrift server
     auto testUtilsHandler = utility::createHwTestThriftHandler(

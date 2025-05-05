@@ -59,9 +59,7 @@ BENCHMARK(RxSlowPathArpBenchmark) {
         ensemble.getSw()->getPlatformSupportsAddRemovePort(),
         asic->desiredLoopbackModes());
 
-    utility::addAclTableGroup(
-        &config, cfg::AclStage::INGRESS, utility::kDefaultAclTableGroupName());
-    utility::addDefaultAclTable(config);
+    utility::setupDefaultAclTableGroups(config);
     // We don't want to set queue rate that limits the number of rx pkts
     utility::addCpuQueueConfig(
         config,
@@ -79,7 +77,7 @@ BENCHMARK(RxSlowPathArpBenchmark) {
   const auto kSrcMac = folly::MacAddress{"fa:ce:b0:00:00:0c"};
   auto broadcastMac = folly::MacAddress("FF:FF:FF:FF:FF:FF");
   //  Send packet
-  auto vlanId = utility::firstVlanID(ensemble->getProgrammedState());
+  auto vlanId = ensemble->getVlanIDForTx();
   auto constexpr kPacketToSend = 10;
   for (int i = 0; i < kPacketToSend; i++) {
     auto txPacket = utility::makeARPTxPacket(

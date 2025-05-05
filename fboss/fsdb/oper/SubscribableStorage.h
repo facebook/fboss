@@ -5,6 +5,7 @@
 #include <atomic>
 
 #include <fboss/fsdb/oper/DeltaValue.h>
+#include <fboss/fsdb/oper/SubscriptionCommon.h>
 #include <fboss/thrift_cow/storage/Storage.h>
 #include <folly/Expected.h>
 #include <folly/coro/AsyncGenerator.h>
@@ -77,7 +78,7 @@ class SubscribableStorage {
   folly::coro::AsyncGenerator<DeltaValue<T>&&>
   subscribe(SubscriberId subscriber, PathIter begin, PathIter end) {
     return static_cast<Impl*>(this)->template subscribe_impl<T, TC>(
-        subscriber, begin, end);
+        SubscriptionIdentifier(std::move(subscriber)), begin, end);
   }
 
   template <typename Path>
@@ -117,7 +118,33 @@ class SubscribableStorage {
       std::optional<SubscriptionStorageParams> subscriptionParams =
           std::nullopt) {
     return static_cast<Impl*>(this)->subscribe_encoded_impl(
-        subscriber, begin, end, protocol, std::move(subscriptionParams));
+        SubscriptionIdentifier(std::move(subscriber)),
+        begin,
+        end,
+        protocol,
+        subscriptionParams);
+  }
+
+  folly::coro::AsyncGenerator<DeltaValue<OperState>&&> subscribe_encoded(
+      SubscriptionIdentifier&& subscriber,
+      PathIter begin,
+      PathIter end,
+      OperProtocol protocol,
+      std::optional<SubscriptionStorageParams> subscriptionParams =
+          std::nullopt) {
+    return static_cast<Impl*>(this)->subscribe_encoded_impl(
+        std::move(subscriber), begin, end, protocol, subscriptionParams);
+  }
+
+  folly::coro::AsyncGenerator<std::vector<DeltaValue<TaggedOperState>>&&>
+  subscribe_encoded_extended(
+      SubscriptionIdentifier&& subscriber,
+      std::vector<ExtendedOperPath> paths,
+      OperProtocol protocol,
+      std::optional<SubscriptionStorageParams> subscriptionParams =
+          std::nullopt) {
+    return static_cast<Impl*>(this)->subscribe_encoded_extended_impl(
+        std::move(subscriber), std::move(paths), protocol, subscriptionParams);
   }
 
   folly::coro::AsyncGenerator<std::vector<DeltaValue<TaggedOperState>>&&>
@@ -128,7 +155,10 @@ class SubscribableStorage {
       std::optional<SubscriptionStorageParams> subscriptionParams =
           std::nullopt) {
     return static_cast<Impl*>(this)->subscribe_encoded_extended_impl(
-        subscriber, std::move(paths), protocol, std::move(subscriptionParams));
+        SubscriptionIdentifier(std::move(subscriber)),
+        std::move(paths),
+        protocol,
+        subscriptionParams);
   }
 
   template <typename Path>
@@ -147,6 +177,7 @@ class SubscribableStorage {
         protocol,
         std::move(subscriptionParams));
   }
+
   folly::coro::AsyncGenerator<OperDelta&&> subscribe_delta(
       SubscriberId subscriber,
       const ConcretePath& path,
@@ -160,6 +191,7 @@ class SubscribableStorage {
         protocol,
         std::move(subscriptionParams));
   }
+
   folly::coro::AsyncGenerator<OperDelta&&> subscribe_delta(
       SubscriberId subscriber,
       PathIter begin,
@@ -168,7 +200,22 @@ class SubscribableStorage {
       std::optional<SubscriptionStorageParams> subscriptionParams =
           std::nullopt) {
     return static_cast<Impl*>(this)->subscribe_delta_impl(
-        subscriber, begin, end, protocol, std::move(subscriptionParams));
+        SubscriptionIdentifier(std::move(subscriber)),
+        begin,
+        end,
+        protocol,
+        subscriptionParams);
+  }
+
+  folly::coro::AsyncGenerator<OperDelta&&> subscribe_delta(
+      SubscriptionIdentifier&& subscriber,
+      PathIter begin,
+      PathIter end,
+      OperProtocol protocol,
+      std::optional<SubscriptionStorageParams> subscriptionParams =
+          std::nullopt) {
+    return static_cast<Impl*>(this)->subscribe_delta_impl(
+        std::move(subscriber), begin, end, protocol, subscriptionParams);
   }
 
   folly::coro::AsyncGenerator<std::vector<TaggedOperDelta>&&>
@@ -179,7 +226,21 @@ class SubscribableStorage {
       std::optional<SubscriptionStorageParams> subscriptionParams =
           std::nullopt) {
     return static_cast<Impl*>(this)->subscribe_delta_extended_impl(
-        subscriber, std::move(paths), protocol, std::move(subscriptionParams));
+        SubscriptionIdentifier(std::move(subscriber)),
+        std::move(paths),
+        protocol,
+        subscriptionParams);
+  }
+
+  folly::coro::AsyncGenerator<std::vector<TaggedOperDelta>&&>
+  subscribe_delta_extended(
+      SubscriptionIdentifier&& subscriber,
+      std::vector<ExtendedOperPath> paths,
+      OperProtocol protocol,
+      std::optional<SubscriptionStorageParams> subscriptionParams =
+          std::nullopt) {
+    return static_cast<Impl*>(this)->subscribe_delta_extended_impl(
+        std::move(subscriber), std::move(paths), protocol, subscriptionParams);
   }
 
   template <typename Path>
@@ -228,6 +289,16 @@ class SubscribableStorage {
       std::optional<SubscriptionStorageParams> subscriptionParams =
           std::nullopt) {
     return static_cast<Impl*>(this)->subscribe_patch_impl(
+        SubscriptionIdentifier(std::move(subscriber)),
+        std::move(rawPaths),
+        subscriptionParams);
+  }
+  folly::coro::AsyncGenerator<SubscriberMessage&&> subscribe_patch(
+      SubscriptionIdentifier&& subscriber,
+      std::map<SubscriptionKey, RawOperPath> rawPaths,
+      std::optional<SubscriptionStorageParams> subscriptionParams =
+          std::nullopt) {
+    return static_cast<Impl*>(this)->subscribe_patch_impl(
         std::move(subscriber),
         std::move(rawPaths),
         std::move(subscriptionParams));
@@ -238,7 +309,7 @@ class SubscribableStorage {
       std::optional<SubscriptionStorageParams> subscriptionParams =
           std::nullopt) {
     return static_cast<Impl*>(this)->subscribe_patch_extended_impl(
-        std::move(subscriber),
+        SubscriptionIdentifier(std::move(subscriber)),
         std::move(rawPaths),
         std::move(subscriptionParams));
   }

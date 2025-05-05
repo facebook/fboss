@@ -15,6 +15,16 @@ add_executable(fw_util
   fboss/platform/fw_util/fw_util.cpp
   fboss/platform/fw_util/Flags.cpp
   fboss/platform/fw_util/FwUtilImpl.cpp
+  fboss/platform/fw_util/FwUtilVerify.cpp
+  fboss/platform/fw_util/FwUtilRead.cpp
+  fboss/platform/fw_util/FwUtilPreUpgrade.cpp
+  fboss/platform/fw_util/FwUtilPostUpgrade.cpp
+  fboss/platform/fw_util/FwUtilUpgrade.cpp
+  fboss/platform/fw_util/FwUtilOperations.cpp
+  fboss/platform/fw_util/FwUtilFlashrom.cpp
+  fboss/platform/fw_util/fw_util_helpers.cpp
+  fboss/platform/fw_util/FwUtilVersionHandler.cpp
+
 )
 
 target_link_libraries(fw_util

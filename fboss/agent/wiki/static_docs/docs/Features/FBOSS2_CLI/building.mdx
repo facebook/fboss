@@ -1,0 +1,20 @@
+---
+id: Features_CLI_building
+title: Building FBOSS2 CLI
+---
+
+# Building FBOSS2 CLI
+
+## FB-internal
+
+from fbsource/fbcode
+
+`buck build @mode/opt //fboss/cli/fboss2:fboss2 && ./buck-out/gen/fboss/cli/fboss2/fboss2 --help`
+
+## OSS build from devserver
+
+https://www.internalfb.com/intern/diffusion/FBS/browse/master/fbcode/fboss/agent/facebook/wiki/oss.rst
+
+## OSS from outside FB environment (e.g. a virtual machine)
+
+https://github.com/facebook/fboss/blob/master/installer/centos-7-x86_64/README.md

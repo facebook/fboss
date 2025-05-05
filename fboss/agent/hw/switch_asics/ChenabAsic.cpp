@@ -56,13 +56,13 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::L3_MTU_ERROR_TRAP:
     case HwAsic::Feature::SAI_PORT_SERDES_PROGRAMMING:
     case HwAsic::Feature::PORT_WRED_COUNTER:
-    case HwAsic::Feature::BRIDGE_PORT_8021Q:
-    case HwAsic::Feature::WARMBOOT:
     case HwAsic::Feature::PORT_SERDES_ZERO_PREEMPHASIS:
     case HwAsic::Feature::SAI_UDF_HASH:
     case HwAsic::Feature::IN_PAUSE_INCREMENTS_DISCARDS:
     case HwAsic::Feature::SAI_FEC_COUNTERS:
     case HwAsic::Feature::SAI_FEC_CODEWORDS_STATS:
+    case HwAsic::Feature::ARS:
+    case HwAsic::Feature::ARS_PORT_ATTRIBUTES:
     case HwAsic::Feature::PFC:
     case HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION:
     case HwAsic::Feature::ECMP_HASH_V4:
@@ -72,35 +72,40 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::RESOURCE_USAGE_STATS:
     case HwAsic::Feature::SAI_TTL0_PACKET_FORWARD_ENABLE:
     case HwAsic::Feature::L3_INTF_MTU:
-    case HwAsic::Feature::EGRESS_ACL_TABLE:
+    case HwAsic::Feature::SWITCH_ATTR_INGRESS_ACL:
+    case HwAsic::Feature::INGRESS_POST_LOOKUP_ACL_TABLE:
     case HwAsic::Feature::SAI_USER_DEFINED_TRAP:
+    case HwAsic::Feature::ACL_ENTRY_ETHER_TYPE:
+    case HwAsic::Feature::DEDICATED_CPU_BUFFER_POOL:
+    case HwAsic::Feature::ROUTE_METADATA:
+    case HwAsic::Feature::SAI_ECMP_HASH_ALGORITHM:
+    case HwAsic::Feature::ACL_COUNTER_LABEL:
+    case HwAsic::Feature::INGRESS_PRIORITY_GROUP_DROPPED_PACKETS:
+    case HwAsic::Feature::INGRESS_PRIORITY_GROUP_HEADROOM_WATERMARK:
+    case HwAsic::Feature::INGRESS_PRIORITY_GROUP_SHARED_WATERMARK:
+    case HwAsic::Feature::SAI_HOST_MISS_TRAP:
+    case HwAsic::Feature::CPU_TX_PACKET_REQUIRES_VLAN_TAG:
       return true;
     case HwAsic::Feature::PORT_MTU_ERROR_TRAP:
     case HwAsic::Feature::EVENTOR_PORT_FOR_SFLOW:
-    case HwAsic::Feature::SAI_ECMP_HASH_ALGORITHM:
     case HwAsic::Feature::SWITCH_REACHABILITY_CHANGE_NOTIFY:
     case HwAsic::Feature::CABLE_PROPOGATION_DELAY:
     case HwAsic::Feature::DRAM_BLOCK_TIME:
     case HwAsic::Feature::VOQ_LATENCY_WATERMARK_BIN:
-    case HwAsic::Feature::ACL_ENTRY_ETHER_TYPE:
     case HwAsic::Feature::ACL_BYTE_COUNTER:
     case HwAsic::Feature::DATA_CELL_FILTER:
     case HwAsic::Feature::EGRESS_CORE_BUFFER_WATERMARK:
     case HwAsic::Feature::DELETED_CREDITS_STAT:
-    case HwAsic::Feature::INGRESS_PRIORITY_GROUP_DROPPED_PACKETS:
     case HwAsic::Feature::ACL_METADATA_QUALIFER:
     case HwAsic::Feature::PENDING_L2_ENTRY:
     case HwAsic::Feature::PMD_RX_LOCK_STATUS:
     case HwAsic::Feature::PMD_RX_SIGNAL_DETECT:
     case HwAsic::Feature::FEC_AM_LOCK_STATUS:
     case HwAsic::Feature::PCS_RX_LINK_STATUS:
-    case HwAsic::Feature::ACL_COUNTER_LABEL:
-    case HwAsic::Feature::ROUTE_METADATA:
     case HwAsic::Feature::MEDIA_TYPE:
     case HwAsic::Feature::PORT_TTL_DECREMENT_DISABLE:
     case HwAsic::Feature::COUNTER_REFRESH_INTERVAL:
     case HwAsic::Feature::BLACKHOLE_ROUTE_DROP_COUNTER:
-    case HwAsic::Feature::SWITCH_ATTR_INGRESS_ACL:
     case HwAsic::Feature::ECMP_MEMBER_WIDTH_INTROSPECTION:
     case HwAsic::Feature::SAI_MPLS_LABEL_LOOKUP_FAIL_COUNTER:
     case HwAsic::Feature::SAI_MPLS_TTL_1_TRAP:
@@ -150,7 +155,6 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::FABRIC_TX_QUEUES:
     case HwAsic::Feature::SAI_PORT_VCO_CHANGE:
     case HwAsic::Feature::SHARED_INGRESS_EGRESS_BUFFER_POOL:
-    case HwAsic::Feature::FLOWLET:
     case HwAsic::Feature::TC_TO_QUEUE_QOS_MAP_ON_SYSTEM_PORT:
     case HwAsic::Feature::PORT_FABRIC_ISOLATE:
     case HwAsic::Feature::CPU_TX_VIA_RECYCLE_PORT:
@@ -160,13 +164,11 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::SAI_MPLS_QOS:
     case HwAsic::Feature::MPLS:
     case HwAsic::Feature::MPLS_ECMP:
-    case HwAsic::Feature::INGRESS_PRIORITY_GROUP_HEADROOM_WATERMARK:
     case HwAsic::Feature::SAI_PORT_ETHER_STATS:
     case HwAsic::Feature::RX_LANE_SQUELCH_ENABLE:
     case HwAsic::Feature::SLOW_STAT_UPDATE:
     case HwAsic::Feature::VOQ_DELETE_COUNTER:
     case HwAsic::Feature::DRAM_ENQUEUE_DEQUEUE_STATS:
-    case HwAsic::Feature::FLOWLET_PORT_ATTRIBUTES:
     case HwAsic::Feature::P4_WARMBOOT:
     case HwAsic::Feature::SAI_EAPOL_TRAP:
     case HwAsic::Feature::CREDIT_WATCHDOG:
@@ -185,10 +187,8 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::PQP_ERROR_EGRESS_DROP_COUNTER:
     case HwAsic::Feature::FABRIC_LINK_DOWN_CELL_DROP_COUNTER:
     case HwAsic::Feature::CRC_ERROR_DETECT:
-    case HwAsic::Feature::DEDICATED_CPU_BUFFER_POOL:
     case HwAsic::Feature::NO_RX_REASON_TRAP:
     case HwAsic::Feature::EGRESS_GVOQ_WATERMARK_BYTES:
-    case HwAsic::Feature::INGRESS_PRIORITY_GROUP_SHARED_WATERMARK:
     case HwAsic::Feature::MULTIPLE_EGRESS_BUFFER_POOL:
     case HwAsic::Feature::ENABLE_DELAY_DROP_CONGESTION_THRESHOLD:
     case HwAsic::Feature::FAST_LLFC_COUNTER:
@@ -199,6 +199,18 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::SFLOWv4:
     case HwAsic::Feature::SFLOWv6:
     case HwAsic::Feature::SFLOW_SAMPLING:
+    case HwAsic::Feature::BRIDGE_PORT_8021Q: // no fdb entries required, using
+                                             // only pure l3 rifs
+    case HwAsic::Feature::SAMPLE_RATE_CONFIG_PER_MIRROR:
+    case HwAsic::Feature::SFLOW_SAMPLES_PACKING:
+    case HwAsic::Feature::VENDOR_SWITCH_NOTIFICATION:
+    case HwAsic::Feature::SDK_REGISTER_DUMP:
+    case HwAsic::Feature::FEC_ERROR_DETECT_ENABLE:
+    case HwAsic::Feature::BUFFER_POOL_HEADROOM_WATERMARK:
+    case HwAsic::Feature::WARMBOOT: // TODO: add support for warmboot once SDK
+                                    // supports it
+    case HwAsic::Feature::SAI_SET_TC_WITH_USER_DEFINED_TRAP_CPU_ACTION:
+    case HwAsic::Feature::DRAM_DATAPATH_PACKET_ERROR_STATS:
       return false;
   }
   return false;
@@ -218,6 +230,10 @@ bool ChenabAsic::isSupportedFabric(Feature feature) const {
 int ChenabAsic::getDefaultNumPortQueues(
     cfg::StreamType streamType,
     cfg::PortType portType) const {
+  if (portType == cfg::PortType::CPU_PORT) {
+    // Chenab supports 4 CPU port queues
+    return 4;
+  }
   switch (streamType) {
     case cfg::StreamType::MULTICAST:
       throw FbossError(
@@ -281,11 +297,40 @@ cfg::AsicType ChenabAsic::getAsicType() const {
   return cfg::AsicType::ASIC_TYPE_CHENAB;
 }
 int ChenabAsic::getBufferDynThreshFromScalingFactor(
-    cfg::MMUScalingFactor /* scalingFactor */) const {
-  throw FbossError("Dynamic buffer threshold unsupported!");
+    cfg::MMUScalingFactor scalingFactor) const {
+  switch (scalingFactor) {
+    case cfg::MMUScalingFactor::ONE:
+      return 0;
+    case cfg::MMUScalingFactor::EIGHT:
+      return 3;
+    case cfg::MMUScalingFactor::ONE_128TH:
+      return -7;
+    case cfg::MMUScalingFactor::ONE_64TH:
+      return -6;
+    case cfg::MMUScalingFactor::ONE_32TH:
+      return -5;
+    case cfg::MMUScalingFactor::ONE_16TH:
+      return -4;
+    case cfg::MMUScalingFactor::ONE_8TH:
+      return -3;
+    case cfg::MMUScalingFactor::ONE_QUARTER:
+      return -2;
+    case cfg::MMUScalingFactor::ONE_HALF:
+      return -1;
+    case cfg::MMUScalingFactor::TWO:
+      return 1;
+    case cfg::MMUScalingFactor::FOUR:
+      return 2;
+    case cfg::MMUScalingFactor::ONE_32768TH:
+      // Unsupported
+      throw FbossError(
+          "Unsupported scaling factor : ",
+          apache::thrift::util::enumNameSafe(scalingFactor));
+  }
+  throw FbossError("Unknown scaling factor : ", scalingFactor);
 }
 bool ChenabAsic::scalingFactorBasedDynamicThresholdSupported() const {
-  return false;
+  return true;
 }
 phy::DataPlanePhyChipType ChenabAsic::getDataPlanePhyChipType() const {
   return phy::DataPlanePhyChipType::IPHY;
@@ -309,16 +354,20 @@ uint32_t ChenabAsic::getMaxMirrors() const {
   // TODO - verify this
   return 4;
 }
-uint64_t ChenabAsic::getDefaultReservedBytes(
+std::optional<uint64_t> ChenabAsic::getDefaultReservedBytes(
     cfg::StreamType /*streamType*/,
-    cfg::PortType /*portType*/) const {
-  // Concept of reserved bytes does not apply to GB
+    cfg::PortType portType) const {
+  if (portType == cfg::PortType::CPU_PORT) {
+    return std::nullopt;
+  }
   return 0;
 }
-cfg::MMUScalingFactor ChenabAsic::getDefaultScalingFactor(
+std::optional<cfg::MMUScalingFactor> ChenabAsic::getDefaultScalingFactor(
     cfg::StreamType /*streamType*/,
-    bool /*cpu*/) const {
-  // Concept of scaling factor does not apply returning the same value TH3
+    bool cpu) const {
+  if (cpu) {
+    return std::nullopt;
+  }
   return cfg::MMUScalingFactor::TWO;
 }
 int ChenabAsic::getMaxNumLogicalPorts() const {
@@ -344,7 +393,7 @@ std::optional<uint32_t> ChenabAsic::getPortSerdesPreemphasis() const {
   return 50;
 }
 uint32_t ChenabAsic::getPacketBufferUnitSize() const {
-  return 512;
+  return 192;
 }
 uint32_t ChenabAsic::getPacketBufferDescriptorSize() const {
   return 40;
@@ -354,6 +403,15 @@ uint32_t ChenabAsic::getMaxVariableWidthEcmpSize() const {
 }
 uint32_t ChenabAsic::getMaxEcmpSize() const {
   return 512;
+}
+std::optional<uint32_t> ChenabAsic::getMaxEcmpGroups() const {
+  return 4096;
+}
+std::optional<uint32_t> ChenabAsic::getMaxEcmpMembers() const {
+  return 32000;
+}
+std::optional<uint32_t> ChenabAsic::getMaxDlbEcmpGroups() const {
+  return 256;
 }
 uint32_t ChenabAsic::getNumCores() const {
   return 12;
@@ -372,5 +430,13 @@ int ChenabAsic::getMidPriCpuQueueId() const {
 }
 int ChenabAsic::getHiPriCpuQueueId() const {
   return kDefaultHiPriCpuQueueId;
+}
+
+const std::map<cfg::PortType, cfg::PortLoopbackMode>&
+ChenabAsic::desiredLoopbackModes() const {
+  static const std::map<cfg::PortType, cfg::PortLoopbackMode> kLoopbackMode = {
+      {cfg::PortType::INTERFACE_PORT, cfg::PortLoopbackMode::MAC},
+      {cfg::PortType::MANAGEMENT_PORT, cfg::PortLoopbackMode::MAC}};
+  return kLoopbackMode;
 }
 } // namespace facebook::fboss

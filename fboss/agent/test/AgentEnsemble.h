@@ -225,8 +225,6 @@ class AgentEnsemble : public TestEnsembleIf {
       override;
   void unregisterStateObserver(StateObserver* observer) override;
 
-  virtual HwSwitch* getHwSwitch() = 0;
-  virtual const HwSwitch* getHwSwitch() const = 0;
   void runDiagCommand(
       const std::string& input,
       std::string& output,
@@ -290,6 +288,51 @@ class AgentEnsemble : public TestEnsembleIf {
   std::unique_ptr<apache::thrift::Client<utility::AgentHwTestCtrl>>
   getHwAgentTestClient(SwitchID switchId);
   BootType getBootType() const;
+  static void writeConfig(
+      const cfg::AgentConfig& config,
+      const std::string& file);
+
+  const std::string& configFileName() const {
+    return configFile_;
+  }
+
+  std::optional<VlanID> getVlanIDForTx() const override;
+
+  std::vector<FirmwareInfo> getAllFirmwareInfo(
+      SwitchID switchId) const override;
+
+  /**
+   * Retrieves monitoring counters that match a given regex pattern for a
+   * specific port.
+   *
+   * * @details
+   * Works in both mono-switch and multi-switch environments:
+   *
+   * @param portId - The identifier of the port for which to retrieve counters.
+   * @param regex - The regex pattern to match against the monitoring counters.
+   * @return A map of counter names to their respective values that match the
+   * regex.
+   */
+  std::map<std::string, int64_t> getFb303CountersByRegex(
+      const PortID& portId,
+      const std::string& regex);
+
+  /**
+   * Retrieves the value of the first counter that matches a given regex pattern
+   * for a specific port.
+   *
+   * @details
+   * Works in both mono-switch and multi-switch environments.
+   *
+   * @param portId The ID of the port for which to retrieve the counter.
+   * @param regex The regex pattern to match against counter names.
+   *
+   * @return The value of the first matching counter if one exists, otherwise
+   * nullopt.
+   */
+  std::optional<int64_t> getFb303CounterIfExists(
+      const PortID& portId,
+      const std::string& regex);
 
  protected:
   void joinAsyncInitThread() {
@@ -307,7 +350,6 @@ class AgentEnsemble : public TestEnsembleIf {
 
   void writeConfig(const cfg::SwitchConfig& config);
   void writeConfig(const cfg::AgentConfig& config);
-  void writeConfig(const cfg::AgentConfig& config, const std::string& file);
   bool waitForRateOnPort(
       PortID port,
       uint64_t desiredBps,

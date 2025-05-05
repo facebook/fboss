@@ -12,6 +12,7 @@
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
+#include "fboss/agent/test/utils/VoqTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
 #include <folly/gen/Base.h>
@@ -24,7 +25,6 @@ DEFINE_string(
     "CSV file with source IP, port and destination IP, port for load balancing test. See P827101297 for example.");
 
 namespace {
-constexpr uint8_t kDefaultQueue = 0;
 std::vector<std::string> kTrafficFields = {"sip", "dip", "sport", "dport"};
 } // namespace
 
@@ -134,111 +134,6 @@ std::vector<cfg::LoadBalancer> getEcmpFullTrunkFullHashConfig(
   return {getEcmpFullHashConfig(asics), getTrunkFullHashConfig(asics)};
 }
 
-static cfg::UdfConfig addUdfConfig(
-    std::map<std::string, cfg::UdfGroup>& udfMap,
-    const std::string& udfGroup,
-    const int offsetBytes,
-    const int fieldSizeBytes,
-    cfg::UdfGroupType udfType) {
-  cfg::UdfConfig udfCfg;
-  cfg::UdfGroup udfGroupEntry;
-  cfg::UdfPacketMatcher matchCfg;
-  std::map<std::string, cfg::UdfPacketMatcher> udfPacketMatcherMap;
-
-  matchCfg.name() = kUdfL4UdpRocePktMatcherName;
-  matchCfg.l4PktType() = cfg::UdfMatchL4Type::UDF_L4_PKT_TYPE_UDP;
-  matchCfg.UdfL4DstPort() = kUdfL4DstPort;
-
-  udfGroupEntry.name() = udfGroup;
-  udfGroupEntry.header() = cfg::UdfBaseHeaderType::UDF_L4_HEADER;
-  udfGroupEntry.startOffsetInBytes() = offsetBytes;
-  udfGroupEntry.fieldSizeInBytes() = fieldSizeBytes;
-  // has to be the same as in matchCfg
-  udfGroupEntry.udfPacketMatcherIds() = {kUdfL4UdpRocePktMatcherName};
-  udfGroupEntry.type() = udfType;
-
-  udfMap.insert(std::make_pair(*udfGroupEntry.name(), udfGroupEntry));
-  udfPacketMatcherMap.insert(std::make_pair(*matchCfg.name(), matchCfg));
-  udfCfg.udfGroups() = udfMap;
-  udfCfg.udfPacketMatcher() = udfPacketMatcherMap;
-  return udfCfg;
-}
-
-cfg::UdfConfig addUdfAclConfig(int udfType) {
-  std::map<std::string, cfg::UdfGroup> udfMap;
-  cfg::UdfConfig udfCfg;
-  if ((udfType & kUdfOffsetBthOpcode) == kUdfOffsetBthOpcode) {
-    udfCfg = addUdfConfig(
-        udfMap,
-        kUdfAclRoceOpcodeGroupName,
-        kUdfAclRoceOpcodeStartOffsetInBytes,
-        kUdfAclRoceOpcodeFieldSizeInBytes,
-        cfg::UdfGroupType::ACL);
-  }
-  if ((udfType & kUdfOffsetBthReserved) == kUdfOffsetBthReserved) {
-    udfCfg = addUdfConfig(
-        udfMap,
-        kRoceUdfFlowletGroupName,
-        kRoceUdfFlowletStartOffsetInBytes,
-        kRoceUdfFlowletFieldSizeInBytes,
-        cfg::UdfGroupType::ACL);
-  }
-  if ((udfType & kUdfOffsetAethSyndrome) == kUdfOffsetAethSyndrome) {
-    udfCfg = addUdfConfig(
-        udfMap,
-        kUdfAclAethNakGroupName,
-        kUdfAclAethNakStartOffsetInBytes,
-        kUdfAclAethNakFieldSizeInBytes,
-        cfg::UdfGroupType::ACL);
-  }
-  if ((udfType & kUdfOffsetRethDmaLength) == kUdfOffsetRethDmaLength) {
-    udfCfg = addUdfConfig(
-        udfMap,
-        kUdfAclRethWrImmZeroGroupName,
-        kUdfAclRethDmaLenOffsetInBytes,
-        kUdfAclRethDmaLenFieldSizeInBytes,
-        cfg::UdfGroupType::ACL);
-  }
-  return udfCfg;
-}
-
-cfg::UdfConfig addUdfFlowletAclConfig(void) {
-  std::map<std::string, cfg::UdfGroup> udfMap;
-  return addUdfConfig(
-      udfMap,
-      kRoceUdfFlowletGroupName,
-      kRoceUdfFlowletStartOffsetInBytes,
-      kRoceUdfFlowletFieldSizeInBytes,
-      cfg::UdfGroupType::ACL);
-}
-
-cfg::UdfConfig addUdfHashConfig(void) {
-  std::map<std::string, cfg::UdfGroup> udfMap;
-  return addUdfConfig(
-      udfMap,
-      kUdfHashDstQueuePairGroupName,
-      kUdfHashDstQueuePairStartOffsetInBytes,
-      kUdfHashDstQueuePairFieldSizeInBytes,
-      cfg::UdfGroupType::HASH);
-}
-
-// kitchen sink for all udf groups
-cfg::UdfConfig addUdfHashAclConfig(void) {
-  std::map<std::string, cfg::UdfGroup> udfMap;
-  addUdfConfig(
-      udfMap,
-      kUdfHashDstQueuePairGroupName,
-      kUdfHashDstQueuePairStartOffsetInBytes,
-      kUdfHashDstQueuePairFieldSizeInBytes,
-      cfg::UdfGroupType::HASH);
-  return addUdfConfig(
-      udfMap,
-      kUdfAclRoceOpcodeGroupName,
-      kUdfAclRoceOpcodeStartOffsetInBytes,
-      kUdfAclRoceOpcodeFieldSizeInBytes,
-      cfg::UdfGroupType::ACL);
-}
-
 cfg::FlowletSwitchingConfig getDefaultFlowletSwitchingConfig(
     bool isSai,
     cfg::SwitchingMode switchingMode) {
@@ -270,18 +165,35 @@ cfg::FlowletSwitchingConfig getDefaultFlowletSwitchingConfig(
 
 void addFlowletAcl(
     cfg::SwitchConfig& cfg,
+    bool isSai,
     const std::string& aclName,
     const std::string& aclCounterName,
     bool udfFlowlet) {
-  auto* acl = utility::addAcl(&cfg, aclName);
-  acl->proto() = 17;
-  acl->l4DstPort() = 4791;
-  acl->dstIp() = "2001::/16";
-  if (udfFlowlet) {
-    acl->udfGroups() = {utility::kRoceUdfFlowletGroupName};
-    acl->roceBytes() = {utility::kRoceReserved};
-    acl->roceMask() = {utility::kRoceReserved};
+  cfg::AclEntry acl;
+  acl.name() = aclName;
+  acl.actionType() = cfg::AclActionType::PERMIT;
+  acl.proto() = 17;
+  acl.l4DstPort() = 4791;
+  acl.dstIp() = "2001::/16";
+  if (utility::checkSameAndGetAsicType(cfg) ==
+      cfg::AsicType::ASIC_TYPE_CHENAB) {
+    acl.etherType() = cfg::EtherType::IPv6;
   }
+  if (udfFlowlet) {
+    if (isSai) {
+      utility::addUdfTableToAcl(
+          &acl,
+          utility::kRoceUdfFlowletGroupName,
+          {utility::kRoceReserved},
+          {utility::kRoceReserved});
+    } else {
+      acl.udfGroups() = {utility::kRoceUdfFlowletGroupName};
+      acl.roceBytes() = {utility::kRoceReserved};
+      acl.roceMask() = {utility::kRoceReserved};
+    }
+  }
+  utility::addAcl(&cfg, acl, cfg::AclStage::INGRESS);
+
   cfg::MatchAction matchAction = cfg::MatchAction();
   matchAction.flowletAction() = cfg::FlowletAction::FORWARD;
   matchAction.counter() = aclCounterName;
@@ -360,6 +272,77 @@ std::shared_ptr<SwitchState> addLoadBalancers(
 }
 
 template <typename PortIdT, typename PortStatsT>
+std::set<uint64_t> getSortedPortBytes(
+    const std::map<PortIdT, PortStatsT>& portIdToStats) {
+  auto portBytes =
+      folly::gen::from(portIdToStats) |
+      folly::gen::map([&](const auto& portIdAndStats) {
+        if constexpr (std::is_same_v<PortStatsT, HwPortStats>) {
+          return *portIdAndStats.second.outBytes_();
+        } else if constexpr (std::is_same_v<PortStatsT, HwSysPortStats>) {
+          const auto& stats = portIdAndStats.second;
+          return stats.queueOutBytes_()->at(getDefaultQueue()) +
+              stats.queueOutDiscardBytes_()->at(getDefaultQueue());
+        }
+        throw FbossError("Unsupported port stats type in isLoadBalancedImpl");
+      }) |
+      folly::gen::as<std::set<uint64_t>>();
+  return portBytes;
+}
+
+template <typename PortIdT, typename PortStatsT>
+std::set<uint64_t> getSortedPortBytesIncrement(
+    const std::map<PortIdT, PortStatsT>& beforePortIdToStats,
+    const std::map<PortIdT, PortStatsT>& afterPortIdToStats) {
+  auto portBytesIncrement =
+      folly::gen::from(beforePortIdToStats) |
+      folly::gen::map([&](const auto& beforePortIdToStats) {
+        CHECK(
+            afterPortIdToStats.find(beforePortIdToStats.first) !=
+            afterPortIdToStats.end());
+        if constexpr (std::is_same_v<PortStatsT, HwPortStats>) {
+          return *afterPortIdToStats.at(beforePortIdToStats.first).outBytes_() -
+              *beforePortIdToStats.second.outBytes_();
+        } else if constexpr (std::is_same_v<PortStatsT, HwSysPortStats>) {
+          const auto& beforeStats = beforePortIdToStats.second;
+          const auto& afterStats =
+              afterPortIdToStats.at(beforePortIdToStats.first);
+          const auto kDefaultQueue = getDefaultQueue();
+          return (afterStats.queueOutBytes_()->at(kDefaultQueue) +
+                  afterStats.queueOutDiscardBytes_()->at(kDefaultQueue)) -
+              (beforeStats.queueOutBytes_()->at(kDefaultQueue) +
+               beforeStats.queueOutDiscardBytes_()->at(kDefaultQueue));
+        }
+        throw FbossError("Unsupported port stats type in isLoadBalancedImpl");
+      }) |
+      folly::gen::as<std::set<uint64_t>>();
+  return portBytesIncrement;
+}
+
+template <typename PortIdT, typename PortStatsT>
+std::pair<uint64_t, uint64_t> getHighestAndLowestBytes(
+    const std::map<PortIdT, PortStatsT>& portIdToStats) {
+  auto portBytes = getSortedPortBytes(portIdToStats);
+  auto lowest = portBytes.empty() ? 0 : *portBytes.begin();
+  auto highest = portBytes.empty() ? 0 : *portBytes.rbegin();
+  XLOG(DBG0) << " Highest bytes: " << highest << " lowest bytes: " << lowest;
+  return std::make_pair(highest, lowest);
+}
+
+template <typename PortIdT, typename PortStatsT>
+std::pair<uint64_t, uint64_t> getHighestAndLowestBytesIncrement(
+    const std::map<PortIdT, PortStatsT>& beforePortIdToStats,
+    const std::map<PortIdT, PortStatsT>& afterPortIdToStats) {
+  auto portBytes =
+      getSortedPortBytesIncrement(beforePortIdToStats, afterPortIdToStats);
+  auto lowest = portBytes.empty() ? 0 : *portBytes.begin();
+  auto highest = portBytes.empty() ? 0 : *portBytes.rbegin();
+  XLOG(DBG0) << " Highest bytes increment: " << highest
+             << " lowest bytes increment: " << lowest;
+  return std::make_pair(highest, lowest);
+}
+
+template <typename PortIdT, typename PortStatsT>
 bool isLoadBalancedImpl(
     const std::map<PortIdT, PortStatsT>& portIdToStats,
     const std::vector<NextHopWeight>& weights,
@@ -371,23 +354,7 @@ bool isLoadBalancedImpl(
                    }) |
       folly::gen::as<std::vector<PortIdT>>();
 
-  auto portBytes =
-      folly::gen::from(portIdToStats) |
-      folly::gen::map([&](const auto& portIdAndStats) {
-        if constexpr (std::is_same_v<PortStatsT, HwPortStats>) {
-          return *portIdAndStats.second.outBytes_();
-        } else if constexpr (std::is_same_v<PortStatsT, HwSysPortStats>) {
-          const auto& stats = portIdAndStats.second;
-          return stats.queueOutBytes_()->at(kDefaultQueue) +
-              stats.queueOutDiscardBytes_()->at(kDefaultQueue);
-        }
-        throw FbossError("Unsupported port stats type in isLoadBalancedImpl");
-      }) |
-      folly::gen::as<std::set<uint64_t>>();
-
-  auto lowest = portBytes.empty() ? 0 : *portBytes.begin();
-  auto highest = portBytes.empty() ? 0 : *portBytes.rbegin();
-  XLOG(DBG0) << " Highest bytes: " << highest << " lowest bytes: " << lowest;
+  auto [highest, lowest] = getHighestAndLowestBytes(portIdToStats);
   if (!lowest) {
     return !highest && noTrafficOk;
   }
@@ -399,8 +366,8 @@ bool isLoadBalancedImpl(
         portOutBytes = *portIdToStats.find(ecmpPorts[i])->second.outBytes_();
       } else if constexpr (std::is_same_v<PortStatsT, HwSysPortStats>) {
         const auto& stats = portIdToStats.find(ecmpPorts[i])->second;
-        portOutBytes = stats.queueOutBytes_()->at(kDefaultQueue) +
-            stats.queueOutDiscardBytes_()->at(kDefaultQueue);
+        portOutBytes = stats.queueOutBytes_()->at(getDefaultQueue()) +
+            stats.queueOutDiscardBytes_()->at(getDefaultQueue());
       } else {
         throw FbossError("Unsupported port stats type in isLoadBalancedImpl");
       }
@@ -888,6 +855,9 @@ void addLoadBalancerToConfig(
     case LBHash::HALF_HASH:
       config.loadBalancers()->push_back(getEcmpHalfHashConfig({hwAsic}));
       break;
+    case LBHash::FULL_HASH_UDF:
+      config.loadBalancers()->push_back(getEcmpFullUdfHashConfig({hwAsic}));
+      break;
     default:
       throw FbossError("invalid hashing option ", hashType);
       break;
@@ -917,5 +887,33 @@ template bool isLoadBalancedImpl<std::string, HwSysPortStats>(
     const std::vector<NextHopWeight>& weights,
     int maxDeviationPct,
     bool noTrafficOk);
+
+template std::set<uint64_t> getSortedPortBytes(
+    const std::map<SystemPortID, HwSysPortStats>& portIdToStats);
+
+template std::set<uint64_t> getSortedPortBytes(
+    const std::map<PortID, HwPortStats>& portIdToStats);
+
+template std::set<uint64_t> getSortedPortBytesIncrement(
+    const std::map<SystemPortID, HwSysPortStats>& beforePortIdToStats,
+    const std::map<SystemPortID, HwSysPortStats>& afterPortIdToStats);
+
+template std::set<uint64_t> getSortedPortBytesIncrement(
+    const std::map<PortID, HwPortStats>& beforePortIdToStats,
+    const std::map<PortID, HwPortStats>& afterPortIdToStats);
+
+template std::pair<uint64_t, uint64_t> getHighestAndLowestBytes(
+    const std::map<SystemPortID, HwSysPortStats>& portIdToStats);
+
+template std::pair<uint64_t, uint64_t> getHighestAndLowestBytes(
+    const std::map<PortID, HwPortStats>& portIdToStats);
+
+template std::pair<uint64_t, uint64_t> getHighestAndLowestBytesIncrement(
+    const std::map<SystemPortID, HwSysPortStats>& beforePortIdToStats,
+    const std::map<SystemPortID, HwSysPortStats>& afterPortIdToStats);
+
+template std::pair<uint64_t, uint64_t> getHighestAndLowestBytesIncrement(
+    const std::map<PortID, HwPortStats>& beforePortIdToStats,
+    const std::map<PortID, HwPortStats>& afterPortIdToStats);
 
 } // namespace facebook::fboss::utility

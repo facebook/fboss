@@ -114,6 +114,34 @@ class HwTestThriftHandler : public AgentHwTestCtrlSvIf {
 
   void triggerParityError() override;
 
+  void printDiagCmd(std::unique_ptr<::std::string>) override;
+
+  void updateFlowletStats() override;
+
+  bool getPtpTcEnabled() override;
+
+  void clearInterfacePhyCounters(
+      std::unique_ptr<::std::vector<::std::int32_t>> portIds) override;
+
+  // udf related APIs
+  bool validateUdfConfig(
+      std::unique_ptr<::std::string> udfGroupName,
+      std::unique_ptr<::std::string> udfPackeMatchName) override;
+  bool validateRemoveUdfGroup(
+      std::unique_ptr<::std::string> udfGroupName,
+      int udfGroupId) override;
+  bool validateRemoveUdfPacketMatcher(
+      std::unique_ptr<::std::string> udfPackeMatchName,
+      int32_t udfPacketMatcherId) override;
+  int32_t getHwUdfGroupId(std::unique_ptr<::std::string> udfGroupName) override;
+
+  int32_t getHwUdfPacketMatcherId(
+      std::unique_ptr<::std::string> udfPackeMatchName) override;
+  bool validateUdfAclRoceOpcodeConfig(
+      std::unique_ptr<::facebook::fboss::state::SwitchState> curState) override;
+
+  bool validateUdfIdsInQset(int aclGroupId, bool isSet) override;
+
  private:
   HwSwitch* hwSwitch_;
 };

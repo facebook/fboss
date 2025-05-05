@@ -49,23 +49,24 @@ class CmdShowTeFlow : public CmdHandler<CmdShowTeFlow, CmdShowTeFlowTraits> {
   }
 
   void printOutput(const RetType& model, std::ostream& out = std::cout) {
-    for (const auto& entry : model.get_flowEntries()) {
+    for (const auto& entry : model.flowEntries().value()) {
       out << fmt::format(
           "\nFlow key: dst prefix {}/{}, src port {}\n",
-          entry.get_dstIp(),
-          entry.get_dstIpPrefixLength(),
-          entry.get_srcPortName());
+          entry.dstIp().value(),
+          folly::copy(entry.dstIpPrefixLength().value()),
+          entry.srcPortName().value());
       out << fmt::format("Match Action:\n");
-      out << fmt::format("  Counter ID: {}\n", entry.get_counterID());
+      out << fmt::format("  Counter ID: {}\n", entry.counterID().value());
       out << fmt::format("  Redirect to Nexthops:\n");
-      for (const auto& nh : entry.get_nextHops()) {
+      for (const auto& nh : entry.nextHops().value()) {
         out << fmt::format(
             "    {}\n", show::route::utils::getNextHopInfoStr(nh));
       }
       out << fmt::format("State:\n");
-      out << fmt::format("  Enabled: {}\n", entry.get_enabled());
+      out << fmt::format(
+          "  Enabled: {}\n", folly::copy(entry.enabled().value()));
       out << fmt::format("  Resolved Nexthops:\n");
-      for (const auto& nh : entry.get_resolvedNextHops()) {
+      for (const auto& nh : entry.resolvedNextHops().value()) {
         out << fmt::format(
             "    {}\n", show::route::utils::getNextHopInfoStr(nh));
       }

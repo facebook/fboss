@@ -58,7 +58,8 @@ The FPGA Info driver exports the following sysfs files:
 
 * `fw_ver`
   * **Type**: unsigned integer
-  * **Description**: This file reports the FPGA's firmware version in the format `"%u.%u\n", major_ver, minor_ver`
+  * **Description**: This file reports the FPGA's firmware version in the format
+    `"%u.%u\n", major_ver, minor_ver`
   * **Read/Write**: RO
 
 
@@ -145,12 +146,15 @@ defines all the details:
 
 **Interface:**
 
-Fan control devices shall be implemented as hwmon devices and as such will follow the hwmon sysfs interface generally.
+Fan control devices shall be implemented as hwmon devices and as such will
+follow the hwmon sysfs interface generally.
 
 **Behavior:**
 
-In cases where a fan is not present, all writes and reads to/from that fan must fail. For example, reading the RPM from a fan
-which is not present should not return 0 or some other "bad" value, but rather the operation must return an error code.
+In cases where a fan is not present, all writes and reads to/from that fan must
+fail. For example, reading the RPM from a fan which is not present should not
+return 0 or some other "bad" value, but rather the operation must return an
+error code.
 
 
 ### 2.2.7 Fan Watchdog (watchdog_fan)

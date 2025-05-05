@@ -23,6 +23,10 @@
 #include "fboss/lib/phy/gen-cpp2/phy_types_custom_protocol.h"
 #include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
 
+#ifndef IS_OSS
+#include "common/base/Proc.h"
+#endif
+
 DEFINE_bool(
     list_production_feature,
     false,
@@ -44,9 +48,14 @@ const std::vector<std::string> l1LinkTestNames = {
     "iPhyInfoTest",
     "xPhyInfoTest",
     "verifyIphyFecCounters",
-    "verifyIphyFecBerCounters"};
+    "verifyIphyFecBerCounters",
+    "clearIphyInterfaceCounters"};
 
 const std::vector<std::string> l2LinkTestNames = {"trafficRxTx", "ecmpShrink"};
+
+#ifndef IS_OSS
+static auto kSwAgentMemLimit = 3 * 1000 * 1000 * 1000L; // 3GB
+#endif
 } // namespace
 
 namespace facebook::fboss {
@@ -78,8 +87,26 @@ void AgentEnsembleLinkTest::TearDown() {
         QsfpServiceRunState::ACTIVE,
         qsfpServiceClient.get()->sync_getQsfpServiceRunState())
         << "QSFP Service run state no longer active after the test";
+
+#ifndef IS_OSS
+    // FSDB is not fully supported in OSS
+    auto fsdbClient = utils::createFsdbClient();
+    EXPECT_EQ(
+        facebook::fb303::cpp2::fb_status::ALIVE,
+        fsdbClient.get()->sync_getStatus())
+        << "FSDB no longer alive after the test";
+#endif
     AgentEnsembleTest::TearDown();
   }
+}
+
+void AgentEnsembleLinkTest::checkAgentMemoryInBounds() const {
+#ifndef IS_OSS
+  int64_t memUsage = facebook::Proc::getMemoryUsage();
+  if (memUsage > kSwAgentMemLimit) {
+    throw FbossError("SW Agent RSS memory ", memUsage, " above 3GB");
+  }
+#endif
 }
 
 void AgentEnsembleLinkTest::setCmdLineFlagOverrides() const {
@@ -150,17 +177,19 @@ void AgentEnsembleLinkTest::initializeCabledPorts() {
           utility::getTransceiverId(platformPortEntry->second, chips);
       if (transceiverID.has_value()) {
         cabledTransceivers_.insert(*transceiverID);
+        cabledTransceiverPorts_.push_back(PortID(portID));
       }
     }
   }
 }
 
 std::tuple<std::vector<PortID>, std::string>
-AgentEnsembleLinkTest::getOpticalCabledPortsAndNames(bool pluggableOnly) const {
-  std::string opticalPortNames;
-  std::vector<PortID> opticalPorts;
+AgentEnsembleLinkTest::getOpticalAndActiveCabledPortsAndNames(
+    bool pluggableOnly) const {
+  std::string portNames;
+  std::vector<PortID> ports;
   std::vector<int32_t> transceiverIds;
-  for (const auto& port : getCabledPorts()) {
+  for (const auto& port : getCabledTransceiverPorts()) {
     auto portName = getPortName(port);
     // TODO to find equivalent to getPlatformPort
     auto tcvrId =
@@ -169,7 +198,7 @@ AgentEnsembleLinkTest::getOpticalCabledPortsAndNames(bool pluggableOnly) const {
   }
 
   auto transceiverInfos = utility::waitForTransceiverInfo(transceiverIds);
-  for (const auto& port : getCabledPorts()) {
+  for (const auto& port : getCabledTransceiverPorts()) {
     auto portName = getPortName(port);
     auto tcvrId =
         getSw()->getPlatformMapping()->getTransceiverIdFromSwPort(port);
@@ -183,12 +212,17 @@ AgentEnsembleLinkTest::getOpticalCabledPortsAndNames(bool pluggableOnly) const {
             (pluggableOnly &&
              (tcvrState.identifier().value_or({}) !=
               TransceiverModuleIdentifier::MINIPHOTON_OBO))) {
-          opticalPorts.push_back(port);
-          opticalPortNames += portName + " ";
+          ports.push_back(port);
+          portNames += portName + " ";
         } else {
           XLOG(DBG2) << "Transceiver: " << tcvrId + 1 << ", " << portName
                      << ", is on-board optics, skip it";
         }
+      } else if (
+          tcvrState.cable().value_or({}).mediaTypeEncoding() ==
+          MediaTypeEncodings::ACTIVE_CABLES) {
+        ports.push_back(port);
+        portNames += portName + " ";
       } else {
         XLOG(DBG2) << "Transceiver: " << tcvrId + 1 << ", " << portName
                    << ", is not optics, skip it";
@@ -199,21 +233,31 @@ AgentEnsembleLinkTest::getOpticalCabledPortsAndNames(bool pluggableOnly) const {
     }
   }
 
-  return {opticalPorts, opticalPortNames};
+  return {ports, portNames};
 }
 
 const std::vector<PortID>& AgentEnsembleLinkTest::getCabledPorts() const {
   return cabledPorts_;
 }
 
+const std::vector<PortID>& AgentEnsembleLinkTest::getCabledTransceiverPorts()
+    const {
+  return cabledTransceiverPorts_;
+}
+
 boost::container::flat_set<PortDescriptor>
-AgentEnsembleLinkTest::getSingleVlanOrRoutedCabledPorts() const {
+AgentEnsembleLinkTest::getSingleVlanOrRoutedCabledPorts(
+    std::optional<SwitchID> switchId) const {
   boost::container::flat_set<PortDescriptor> ecmpPorts;
   auto singleVlanOrRoutedPorts =
       utility::getSingleVlanOrRoutedCabledPorts(getSw());
   for (auto port : getCabledPorts()) {
+    auto matcher = getSw()->getScopeResolver()->scope(
+        getSw()->getState(), PortDescriptor(port));
+    SwitchID portSwitchId = matcher.switchId();
     if (singleVlanOrRoutedPorts.find(PortDescriptor(port)) !=
-        singleVlanOrRoutedPorts.end()) {
+            singleVlanOrRoutedPorts.end() &&
+        (switchId == std::nullopt || portSwitchId == switchId.value())) {
       ecmpPorts.insert(PortDescriptor(port));
     }
   }
@@ -286,8 +330,9 @@ bool AgentEnsembleLinkTest::checkReachabilityOnAllCabledPorts() const {
 }
 
 std::optional<PortID> AgentEnsembleLinkTest::getPeerPortID(
-    PortID portId) const {
-  for (auto portPair : getConnectedPairs()) {
+    PortID portId,
+    const std::set<std::pair<PortID, PortID>>& connectedPairs) const {
+  for (auto portPair : connectedPairs) {
     if (portPair.first == portId) {
       return portPair.second;
     } else if (portPair.second == portId) {
@@ -314,8 +359,16 @@ std::set<std::pair<PortID, PortID>> AgentEnsembleLinkTest::getConnectedPairs()
         XLOG(DBG2) << " No fabric end points on : " << getPortName(cabledPort);
         continue;
       }
-      neighborPort = PortID(fabricPortEndpoint->second.get_portId()) +
-          getRemotePortOffset(getSw()->getPlatformType());
+      auto portName = fabricPortEndpoint->second.portName();
+      if (!portName) {
+        XLOG(DBG2) << " No neighbor port name found on : "
+                   << getPortName(cabledPort);
+        continue;
+      }
+      neighborPort = getPortID(portName.value());
+      XLOG(DBG2) << "Get neighbor port " << portName.value()
+                 << " and neighbor port id " << neighborPort
+                 << " on : " << getPortName(cabledPort);
     } else {
       auto lldpNeighbors =
           getSw()->getLldpMgr()->getDB()->getNeighbors(cabledPort);
@@ -338,24 +391,29 @@ std::set<std::pair<PortID, PortID>> AgentEnsembleLinkTest::getConnectedPairs()
 }
 
 /*
- * getConnectedOpticalPortPairWithFeature
+ * getConnectedOpticalAndActivePortPairWithFeature
  *
  * Returns the set of connected port pairs with optical link and the optics
  * supporting the given feature. For feature==None, this will return set of
  * connected port pairs using optical links
  */
 std::set<std::pair<PortID, PortID>>
-AgentEnsembleLinkTest::getConnectedOpticalPortPairWithFeature(
+AgentEnsembleLinkTest::getConnectedOpticalAndActivePortPairWithFeature(
     TransceiverFeature feature,
-    phy::Side side) const {
+    phy::Side side,
+    bool skipLoopback) const {
   auto connectedPairs = getConnectedPairs();
-  auto opticalPorts = std::get<0>(getOpticalCabledPortsAndNames(false));
+  auto opticalPorts =
+      std::get<0>(getOpticalAndActiveCabledPortsAndNames(false));
 
   std::set<std::pair<PortID, PortID>> connectedOpticalPortPairs;
   for (auto connectedPair : connectedPairs) {
     if (std::find(
             opticalPorts.begin(), opticalPorts.end(), connectedPair.first) !=
         opticalPorts.end()) {
+      if (connectedPair.first == connectedPair.second && skipLoopback) {
+        continue;
+      }
       connectedOpticalPortPairs.insert(connectedPair);
     }
   }

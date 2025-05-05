@@ -17,6 +17,7 @@
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestPfcUtils.h"
 #include "fboss/agent/test/utils/DscpMarkingUtils.h"
+#include "fboss/agent/test/utils/NetworkAITestUtils.h"
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
 #include "fboss/agent/test/utils/QueuePerHostTestUtils.h"
 
@@ -56,7 +57,8 @@ void addNetworkAIQosToConfig(cfg::SwitchConfig& config, const HwAsic* hwAsic) {
   auto streamType =
       *hwAsic->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin();
   // queue configuration is different
-  addNetworkAIQueueConfig(&config, streamType, hwAsic);
+  addNetworkAIQueueConfig(
+      &config, streamType, cfg::QueueScheduling::STRICT_PRIORITY, hwAsic);
 }
 
 void addNetworkAIQosToConfig(
@@ -103,13 +105,15 @@ uint16_t uplinksCountFromSwitch(PlatformType mode) {
     case PM::PLATFORM_MINIPACK:
     case PM::PLATFORM_ELBERT:
     case PM::PLATFORM_FUJI:
-    case PM::PLATFORM_CLOUDRIPPER:
     case PM::PLATFORM_GALAXY_LC:
     case PM::PLATFORM_GALAXY_FC:
     case PM::PLATFORM_DARWIN:
     case PM::PLATFORM_DARWIN48V:
+    case PM::PLATFORM_TAHAN800BC:
     case PM::PLATFORM_MONTBLANC:
       return 4;
+    case PM::PLATFORM_MINIPACK3N:
+      return 64;
     default:
       throw FbossError(
           "provided PlatformType: ",
@@ -145,6 +149,9 @@ cfg::PortSpeed getPortSpeed(
       portSpeed = cfg::PortSpeed::TWOHUNDREDG;
       break;
     case PlatformType::PLATFORM_MONTBLANC:
+      portSpeed = cfg::PortSpeed::FOURHUNDREDG;
+      break;
+    case PlatformType::PLATFORM_TAHAN800BC:
       portSpeed = cfg::PortSpeed::FOURHUNDREDG;
       break;
     default:

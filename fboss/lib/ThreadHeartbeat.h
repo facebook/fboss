@@ -101,6 +101,7 @@ class ThreadHeartbeatWatchdog {
 
   // add the heartbeat of monitored threads
   void startMonitoringHeartbeat(std::shared_ptr<ThreadHeartbeat> heartbeat) {
+    CHECK(heartbeat) << "Heartbeat is not set";
     if (heartbeats_.find(heartbeat) != heartbeats_.end()) {
       throw std::runtime_error(
           "Heartbeat already monitored for thread " +

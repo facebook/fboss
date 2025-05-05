@@ -4,7 +4,6 @@
 #include <folly/gen/Base.h>
 #include <optional>
 #include "fboss/agent/AgentConfig.h"
-#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/CommonInit.h"
 #include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/Main.h"
@@ -13,6 +12,7 @@
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/QosTestUtils.h"
 #include "fboss/qsfp_service/lib/QsfpClient.h"
 
@@ -21,15 +21,12 @@ int argCount{0};
 char** argVec{nullptr};
 } // unnamed namespace
 
-DEFINE_bool(run_forever, false, "run the test forever");
-DEFINE_bool(run_forever_on_failure, false, "run the test forever on failure");
-
 DECLARE_string(config);
 DECLARE_bool(disable_looped_fabric_ports);
 
 namespace facebook::fboss {
 
-void AgentEnsembleTest::setupAgentEnsemble() {
+void AgentEnsembleTest::setupAgentEnsemble(bool disableLinkStateToggler) {
   setVersionInfo();
   gflags::ParseCommandLineFlags(&argCount, &argVec, false);
   // TODO(Elangovan) add support for production features
@@ -47,7 +44,7 @@ void AgentEnsembleTest::setupAgentEnsemble() {
 
   agentEnsemble_ = createAgentEnsemble(
       initialConfigFn,
-      true /* disablelinkstatetoggler*/,
+      disableLinkStateToggler,
       platformConfigFn_,
       (HwSwitch::FeaturesDesired::PACKET_RX_DESIRED |
        HwSwitch::FeaturesDesired::LINKSCAN_DESIRED),
@@ -58,8 +55,8 @@ void AgentEnsembleTest::setupAgentEnsemble() {
 void AgentEnsembleTest::setCmdLineFlagOverrides() const {
   // Looped ports are the common case in tests
   FLAGS_disable_looped_fabric_ports = false;
-  // Set HW agent connection timeout to 120 seconds
-  FLAGS_hw_agent_connection_timeout_ms = 120000;
+  // Set HW agent connection timeout to 130 seconds
+  FLAGS_hw_agent_connection_timeout_ms = 130000;
 }
 
 void AgentEnsembleTest::TearDown() {

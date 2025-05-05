@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include <map>
 #include <memory>
 #include <unordered_map>
 
@@ -34,6 +35,9 @@ using RefMapUMap = std::unordered_map<K, V>;
 
 template <typename K, typename V>
 using RefMapFlatMap = boost::container::flat_map<K, V>;
+
+template <typename K, typename V>
+using RefMapStdMap = std::map<K, V>;
 
 template <template <class, class> class M, typename K, typename V>
 class RefMap {
@@ -162,5 +166,8 @@ using UnorderedRefMap = RefMap<RefMapUMap, K, V>;
 
 template <typename K, typename V>
 using FlatRefMap = RefMap<RefMapFlatMap, K, V>;
+
+template <typename K, typename V>
+using StdRefMap = RefMap<RefMapStdMap, K, V>;
 
 } // namespace facebook::fboss

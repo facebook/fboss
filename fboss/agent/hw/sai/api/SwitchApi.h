@@ -25,6 +25,13 @@
 
 extern "C" {
 #include <sai.h>
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+#ifndef IS_OSS_BRCM_SAI
+#include <experimental/saiexperimentalvendorswitch.h>
+#else
+#include <saiexperimentalvendorswitch.h>
+#endif
+#endif
 }
 
 namespace facebook::fboss {
@@ -254,6 +261,11 @@ struct SaiSwitchTraits {
     using IngressAcl = SaiAttribute<
         EnumType,
         SAI_SWITCH_ATTR_INGRESS_ACL,
+        SaiObjectIdT,
+        SaiObjectIdDefault>;
+    using EgressAcl = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_EGRESS_ACL,
         SaiObjectIdT,
         SaiObjectIdDefault>;
     using TamObject = SaiAttribute<
@@ -687,6 +699,41 @@ struct SaiSwitchTraits {
         AttributeArsAvailableFlows,
         SaiIntDefault<sai_uint32_t>>;
 #endif
+    struct AttributeSflowAggrNofSamplesWrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using SflowAggrNofSamples = SaiExtensionAttribute<
+        sai_uint8_t,
+        AttributeSflowAggrNofSamplesWrapper,
+        SaiIntDefault<sai_uint8_t>>;
+    struct AttributeSdkRegDumpLogPath {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using SdkRegDumpLogPath = SaiExtensionAttribute<
+        std::vector<sai_int8_t>,
+        AttributeSdkRegDumpLogPath,
+        SaiS8ListDefault>;
+    struct AttributeFirmwareObjectList {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using FirmwareObjectList = SaiExtensionAttribute<
+        std::vector<sai_object_id_t>,
+        AttributeFirmwareObjectList,
+        SaiObjectIdListDefault>;
+    struct AttributeTcRateLimitList {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using TcRateLimitList = SaiExtensionAttribute<
+        std::vector<sai_map_t>,
+        AttributeTcRateLimitList,
+        SaiListDefault<sai_map_list_t>>;
+    struct AttributePfcTcDldTimerGranularityInterval {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using PfcTcDldTimerGranularityInterval = SaiExtensionAttribute<
+        std::vector<sai_map_t>,
+        AttributePfcTcDldTimerGranularityInterval,
+        SaiListDefault<sai_map_list_t>>;
   };
   using AdapterKey = SwitchSaiId;
   using AdapterHostKey = std::monostate;
@@ -710,6 +757,7 @@ struct SaiSwitchTraits {
       std::optional<Attributes::QosTcToExpMap>,
       std::optional<Attributes::MacAgingTime>,
       std::optional<Attributes::IngressAcl>,
+      std::optional<Attributes::EgressAcl>,
       std::optional<Attributes::AclFieldList>,
       std::optional<Attributes::TamObject>,
       std::optional<Attributes::UseEcnThresholds>,
@@ -772,7 +820,12 @@ struct SaiSwitchTraits {
       std::optional<Attributes::ShelDstIp>,
       std::optional<Attributes::ShelSrcMac>,
       std::optional<Attributes::ShelPeriodicInterval>,
-      std::optional<Attributes::MaxSwitchId>>;
+      std::optional<Attributes::MaxSwitchId>,
+      std::optional<Attributes::SflowAggrNofSamples>,
+      std::optional<Attributes::SdkRegDumpLogPath>,
+      std::optional<Attributes::FirmwareObjectList>,
+      std::optional<Attributes::TcRateLimitList>,
+      std::optional<Attributes::PfcTcDldTimerGranularityInterval>>;
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
   static constexpr std::array<sai_stat_id_t, 3> CounterIdsToRead = {
@@ -799,6 +852,7 @@ struct SaiSwitchTraits {
   static const std::vector<sai_stat_id_t>& egressNonFabricCellError();
   static const std::vector<sai_stat_id_t>& egressNonFabricCellUnpackError();
   static const std::vector<sai_stat_id_t>& egressParityCellError();
+  static const std::vector<sai_stat_id_t>& ddpPacketError();
 };
 
 SAI_ATTRIBUTE_NAME(Switch, InitSwitch)
@@ -852,6 +906,7 @@ SAI_ATTRIBUTE_NAME(Switch, Led)
 SAI_ATTRIBUTE_NAME(Switch, LedReset)
 
 SAI_ATTRIBUTE_NAME(Switch, IngressAcl)
+SAI_ATTRIBUTE_NAME(Switch, EgressAcl)
 
 SAI_ATTRIBUTE_NAME(Switch, AclFieldList)
 SAI_ATTRIBUTE_NAME(Switch, TamObject)
@@ -912,17 +967,17 @@ SAI_ATTRIBUTE_NAME(Switch, VoqLatencyMaxLevel2Ns)
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
 SAI_ATTRIBUTE_NAME(Switch, ArsProfile)
 #endif
-SAI_ATTRIBUTE_NAME(Switch, ReachabilityGroupList);
-SAI_ATTRIBUTE_NAME(Switch, FabricLinkLayerFlowControlThreshold);
-SAI_ATTRIBUTE_NAME(Switch, SramFreePercentXoffTh);
-SAI_ATTRIBUTE_NAME(Switch, SramFreePercentXonTh);
-SAI_ATTRIBUTE_NAME(Switch, NoAclsForTraps);
-SAI_ATTRIBUTE_NAME(Switch, MaxSystemPortId);
-SAI_ATTRIBUTE_NAME(Switch, MaxLocalSystemPortId);
-SAI_ATTRIBUTE_NAME(Switch, MaxSystemPorts);
-SAI_ATTRIBUTE_NAME(Switch, MaxVoqs);
-SAI_ATTRIBUTE_NAME(Switch, FabricCllfcTxCreditTh);
-SAI_ATTRIBUTE_NAME(Switch, VoqDramBoundTh);
+SAI_ATTRIBUTE_NAME(Switch, ReachabilityGroupList)
+SAI_ATTRIBUTE_NAME(Switch, FabricLinkLayerFlowControlThreshold)
+SAI_ATTRIBUTE_NAME(Switch, SramFreePercentXoffTh)
+SAI_ATTRIBUTE_NAME(Switch, SramFreePercentXonTh)
+SAI_ATTRIBUTE_NAME(Switch, NoAclsForTraps)
+SAI_ATTRIBUTE_NAME(Switch, MaxSystemPortId)
+SAI_ATTRIBUTE_NAME(Switch, MaxLocalSystemPortId)
+SAI_ATTRIBUTE_NAME(Switch, MaxSystemPorts)
+SAI_ATTRIBUTE_NAME(Switch, MaxVoqs)
+SAI_ATTRIBUTE_NAME(Switch, FabricCllfcTxCreditTh)
+SAI_ATTRIBUTE_NAME(Switch, VoqDramBoundTh)
 SAI_ATTRIBUTE_NAME(Switch, CondEntropyRehashPeriodUS)
 SAI_ATTRIBUTE_NAME(Switch, ShelSrcIp)
 SAI_ATTRIBUTE_NAME(Switch, ShelDstIp)
@@ -931,6 +986,11 @@ SAI_ATTRIBUTE_NAME(Switch, ShelPeriodicInterval)
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
 SAI_ATTRIBUTE_NAME(Switch, ArsAvailableFlows)
 #endif
+SAI_ATTRIBUTE_NAME(Switch, SflowAggrNofSamples)
+SAI_ATTRIBUTE_NAME(Switch, SdkRegDumpLogPath)
+SAI_ATTRIBUTE_NAME(Switch, FirmwareObjectList)
+SAI_ATTRIBUTE_NAME(Switch, TcRateLimitList)
+SAI_ATTRIBUTE_NAME(Switch, PfcTcDldTimerGranularityInterval)
 
 template <>
 struct SaiObjectHasStats<SaiSwitchTraits> : public std::true_type {};
@@ -970,6 +1030,12 @@ class SwitchApi : public SaiApi<SwitchApi> {
       sai_port_host_tx_ready_notification_fn port_state_change_cb) const;
 #endif
 
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  void registerVendorSwitchEventNotifyCallback(
+      const SwitchSaiId& id,
+      sai_vendor_switch_event_notification_fn event_notify_cb) const;
+#endif
+
   void unregisterRxCallback(SwitchSaiId switch_id) const {
     registerRxCallback(switch_id, nullptr);
   }
@@ -991,6 +1057,12 @@ class SwitchApi : public SaiApi<SwitchApi> {
 #if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
   void unregisterTxReadyStatusChangeCallback(SwitchSaiId id) const {
     registerTxReadyStatusChangeCallback(id, nullptr);
+  }
+#endif
+
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  void unregisterVendorSwitchEventNotifyCallback(const SwitchSaiId& id) const {
+    registerVendorSwitchEventNotifyCallback(id, nullptr);
   }
 #endif
 

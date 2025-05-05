@@ -28,7 +28,7 @@ class ChenabAsic : public HwAsic {
   bool isSupported(Feature feature) const override;
   cfg::AsicType getAsicType() const override;
   int getBufferDynThreshFromScalingFactor(
-      cfg::MMUScalingFactor /* scalingFactor */) const override;
+      cfg::MMUScalingFactor scalingFactor) const override;
   bool scalingFactorBasedDynamicThresholdSupported() const override;
   phy::DataPlanePhyChipType getDataPlanePhyChipType() const override;
   cfg::PortSpeed getMaxPortSpeed() const override;
@@ -41,10 +41,10 @@ class ChenabAsic : public HwAsic {
   uint64_t getMMUSizeBytes() const override;
   uint64_t getSramSizeBytes() const override;
   uint32_t getMaxMirrors() const override;
-  uint64_t getDefaultReservedBytes(
+  std::optional<uint64_t> getDefaultReservedBytes(
       cfg::StreamType /*streamType*/,
       cfg::PortType /*portType*/) const override;
-  cfg::MMUScalingFactor getDefaultScalingFactor(
+  std::optional<cfg::MMUScalingFactor> getDefaultScalingFactor(
       cfg::StreamType /*streamType*/,
       bool /*cpu*/) const override;
   int getMaxNumLogicalPorts() const override;
@@ -65,6 +65,11 @@ class ChenabAsic : public HwAsic {
   cfg::Range64 getReservedEncapIndexRange() const override;
   int getMidPriCpuQueueId() const override;
   int getHiPriCpuQueueId() const override;
+  const std::map<cfg::PortType, cfg::PortLoopbackMode>& desiredLoopbackModes()
+      const override;
+  std::optional<uint32_t> getMaxEcmpGroups() const override;
+  std::optional<uint32_t> getMaxEcmpMembers() const override;
+  std::optional<uint32_t> getMaxDlbEcmpGroups() const override;
 
  private:
   bool isSupportedFabric(Feature feature) const;

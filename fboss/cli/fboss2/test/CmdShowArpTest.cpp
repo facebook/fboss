@@ -64,8 +64,8 @@ createFakePortThriftEntries() {
   portEntry2.portId() = 106;
   portEntry2.name() = "eth2/1/1";
 
-  portEntries[portEntry1.get_portId()] = portEntry1;
-  portEntries[portEntry2.get_portId()] = portEntry2;
+  portEntries[folly::copy(portEntry1.portId().value())] = portEntry1;
+  portEntries[folly::copy(portEntry2.portId().value())] = portEntry2;
 
   return portEntries;
 }
@@ -89,7 +89,7 @@ TEST_F(CmdShowArpTestFixture, queryClient) {
 
   auto cmd = CmdShowArp();
   auto result = cmd.queryClient(localhost());
-  auto entries = result.get_arpEntries();
+  auto entries = result.arpEntries().value();
   EXPECT_EQ(entries.size(), 2);
 
   EXPECT_EQ(entries[0].get_ip(), "10.120.64.2");

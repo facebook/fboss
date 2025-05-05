@@ -34,6 +34,7 @@ DECLARE_bool(dsf_100g_nif_breakout);
 DECLARE_bool(enable_acl_table_chain_group);
 DECLARE_int32(oper_sync_req_timeout);
 DECLARE_bool(hide_fabric_ports);
+DECLARE_bool(hide_management_ports);
 
 DECLARE_bool(dsf_subscribe);
 DECLARE_bool(dsf_subscriber_skip_hw_writes);
@@ -75,7 +76,25 @@ DECLARE_bool(dual_stage_3q_2q_qos);
 bool isDualStage3Q2QMode();
 bool isDualStage3Q2QQos();
 DECLARE_bool(enable_hw_update_protection);
+DECLARE_int32(max_l2_entries);
+DECLARE_int32(max_ndp_entries);
+DECLARE_int32(max_arp_entries);
 
 DECLARE_bool(fw_drained_unrecoverable_error);
 DECLARE_int32(neighbhor_resource_percentage);
 DECLARE_bool(enable_route_resource_protection);
+DECLARE_int32(max_mac_address_to_block);
+DECLARE_int32(max_neighbors_to_block);
+
+DECLARE_bool(link_stress_test);
+DECLARE_int32(ecmp_resource_percentage);
+DECLARE_int32(switch_index_for_testing);
+DECLARE_uint32(counter_refresh_interval);
+
+DECLARE_bool(run_forever);
+DECLARE_bool(run_forever_on_failure);
+
+DECLARE_string(sdk_reg_dump_path_prefix);
+DECLARE_bool(type_dctype1_janga);
+DECLARE_bool(prod_invariant_config_test);
+DECLARE_int32(max_unprocessed_switch_reachability_changes);

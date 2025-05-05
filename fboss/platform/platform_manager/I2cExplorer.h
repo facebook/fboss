@@ -13,7 +13,7 @@
 #include <folly/logging/xlog.h>
 #include <re2/re2.h>
 
-#include "fboss/platform/helpers/PlatformUtils.h"
+#include "fboss/platform/helpers/PlatformFsUtils.h"
 #include "fboss/platform/platform_manager/I2cAddr.h"
 #include "fboss/platform/platform_manager/gen-cpp2/platform_manager_config_types.h"
 
@@ -23,9 +23,9 @@ class I2cExplorer {
  public:
   virtual ~I2cExplorer() = default;
   I2cExplorer(
-      const std::shared_ptr<PlatformUtils>& platformUtils =
-          std::make_shared<PlatformUtils>())
-      : platformUtils_(platformUtils) {}
+      std::shared_ptr<PlatformFsUtils> platformFsUtils =
+          std::make_shared<PlatformFsUtils>())
+      : platformFsUtils_(std::move(platformFsUtils)) {}
 
   const re2::RE2 kI2cBusNameRegex{"i2c-\\d+"};
 
@@ -78,7 +78,7 @@ class I2cExplorer {
   static std::string getI2cBusCharDevPath(uint16_t busNum);
 
  private:
-  std::shared_ptr<PlatformUtils> platformUtils_{};
+  const std::shared_ptr<PlatformFsUtils> platformFsUtils_{};
 };
 
 } // namespace facebook::fboss::platform::platform_manager

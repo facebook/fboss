@@ -83,6 +83,9 @@ HwPortStats getInitedStats() {
       100, // cableLengthMeters
       true, // dataCellsFilterIsOn
       {{1, 0}, {2, 0}}, // egressGvoqWatermarkBytes_
+      {{1, 0}}, // pgInCongestionDiscards_
+      30, // pfcDeadlockDetection_
+      30, // pfcDeadlockRecovery_
   };
 }
 

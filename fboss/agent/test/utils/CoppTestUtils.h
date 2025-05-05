@@ -84,13 +84,17 @@ folly::CIDRNetwork kIPv6LinkLocalUcastNetwork();
 
 folly::CIDRNetwork kIPv6NdpSolicitNetwork();
 
-cfg::MatchAction
-createQueueMatchAction(int queueId, bool isSai, cfg::ToCpuAction toCpuAction);
+cfg::MatchAction createQueueMatchAction(
+    const HwAsic* hwAsic,
+    int queueId,
+    bool isSai,
+    cfg::ToCpuAction toCpuAction);
 
-std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>>
-defaultCpuAcls(const HwAsic* hwAsic, cfg::SwitchConfig& config, bool isSai);
-
-uint16_t getNumDefaultCpuAcls(const HwAsic* hwAsic, bool isSai);
+std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
+    const HwAsic* hwAsic,
+    cfg::SwitchConfig& config,
+    bool isSai,
+    cfg::AclStage aclStage);
 
 std::string getMplsDestNoMatchCounterName(void);
 
@@ -123,6 +127,7 @@ void setDefaultCpuTrafficPolicyConfig(
     bool isSai);
 
 cfg::StreamType getCpuDefaultStreamType(const HwAsic* hwAsic);
+cfg::QueueScheduling getCpuDefaultQueueScheduling(const HwAsic* hwAsic);
 
 cfg::Range getRange(uint32_t minimum, uint32_t maximum);
 
@@ -165,12 +170,8 @@ void setTTLZeroCpuConfig(
     const std::vector<const HwAsic*>& asics,
     cfg::SwitchConfig& config);
 
-void addTrafficCounter(
-    cfg::SwitchConfig* config,
-    const std::string& counterName,
-    std::optional<std::vector<cfg::CounterType>> counterTypes);
-
 cfg::MatchAction getToQueueAction(
+    const HwAsic* hwAsic,
     const int queueId,
     bool isSai,
     const std::optional<cfg::ToCpuAction> toCpuAction = std::nullopt);

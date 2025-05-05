@@ -19,12 +19,12 @@
 #include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/Platform.h"
-#include "fboss/agent/RestartTimeTracker.h"
 #include "fboss/agent/SetupThrift.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/single/MonolithicHwSwitchHandler.h"
+#include "fboss/lib/restart_tracker/RestartTimeTracker.h"
 
 #include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/TunManager.h"

@@ -55,6 +55,14 @@ struct SaiRouterInterfaceHandle {
   bool isLocal() const {
     return isLocalRif;
   }
+  std::shared_ptr<SaiPortRouterInterface> getPortRouterInterface() {
+    return std::get<std::shared_ptr<SaiPortRouterInterface>>(routerInterface);
+  }
+
+  std::shared_ptr<SaiVlanRouterInterface> getVlanRouterInterface() {
+    return std::get<std::shared_ptr<SaiVlanRouterInterface>>(routerInterface);
+  }
+
   std::vector<std::shared_ptr<SaiRoute>> toMeRoutes;
   bool isLocalRif{true};
   cfg::InterfaceType intfType{cfg::InterfaceType::VLAN};
@@ -97,6 +105,10 @@ class SaiRouterInterfaceManager {
   SaiRouterInterfaceHandle* getRouterInterfaceHandle(const InterfaceID& swId);
   const SaiRouterInterfaceHandle* getRouterInterfaceHandle(
       const InterfaceID& swId) const;
+
+  std::optional<InterfaceID> getRouterPortInterfaceIDIf(PortID port) const;
+
+  std::optional<InterfaceID> getRouterPortInterfaceIDIf(PortSaiId port) const;
 
  private:
   RouterInterfaceSaiId addRouterInterface(

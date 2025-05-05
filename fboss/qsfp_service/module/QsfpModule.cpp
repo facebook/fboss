@@ -11,6 +11,8 @@
 
 #include <string>
 
+#include <re2/re2.h>
+
 #include <boost/assign.hpp>
 
 #include <folly/io/IOBuf.h>
@@ -53,6 +55,9 @@ using std::mutex;
 
 static constexpr int kAllowedFwUpgradeAttempts = 3;
 
+// Refresh all transceiver pages every 100 refresh cycles.
+static constexpr int kRefreshAllPagesCycles = 100;
+
 namespace facebook {
 namespace fboss {
 
@@ -94,10 +99,13 @@ FlagLevels QsfpModule::getQsfpFlags(const uint8_t* data, int offset) {
 
 QsfpModule::QsfpModule(
     std::set<std::string> portNames,
-    TransceiverImpl* qsfpImpl)
+    TransceiverImpl* qsfpImpl,
+    std::string tcvrName)
     : Transceiver(),
       qsfpImpl_(qsfpImpl),
-      snapshots_(SnapshotManager(portNames, kSnapshotIntervalSeconds)) {
+      snapshots_(SnapshotManager(portNames, kSnapshotIntervalSeconds)),
+      portNames_(portNames),
+      tcvrName_(std::move(tcvrName)) {
   CHECK(!portNames.empty())
       << "No portNames attached to this transceiver in platform mapping";
   StatsPublisher::initPerPortFb303Stats(portNames);
@@ -169,7 +177,7 @@ std::string QsfpModule::getFwStorageHandle() const {
     return std::string();
   }
 
-  return getFwStorageHandle(vendor->get_partNumber());
+  return getFwStorageHandle(vendor->partNumber().value());
 }
 
 bool QsfpModule::upgradeFirmwareLocked(
@@ -278,7 +286,7 @@ std::string QsfpModule::getPartNumber() const {
     const auto& cachedTcvrState = transceiverInfo.tcvrState();
     const auto& vendor = cachedTcvrState.value().vendor();
     if (vendor.has_value()) {
-      partNumber = vendor.value().get_partNumber();
+      partNumber = vendor.value().partNumber().value();
     }
   } catch (const std::exception& ex) {
     QSFP_LOG(ERR, this) << "Error calling getTransceiverInfo(): " << ex.what();
@@ -339,14 +347,18 @@ unsigned int QsfpModule::numHostLanes() const {
     case MediaInterfaceCode::FR1_100G:
     case MediaInterfaceCode::FR4_200G:
     case MediaInterfaceCode::CR4_200G:
+    case MediaInterfaceCode::CR4_400G:
       return 4;
     case MediaInterfaceCode::FR4_400G:
     case MediaInterfaceCode::LR4_400G_10KM:
     case MediaInterfaceCode::CR8_400G:
     case MediaInterfaceCode::FR4_2x400G:
+    case MediaInterfaceCode::FR4_LITE_2x400G:
     case MediaInterfaceCode::DR4_400G:
     case MediaInterfaceCode::DR4_2x400G:
     case MediaInterfaceCode::FR8_800G:
+    case MediaInterfaceCode::CR8_800G:
+    case MediaInterfaceCode::LR4_2x400G_10KM:
       return 8;
     case MediaInterfaceCode::UNKNOWN:
       return 0;
@@ -370,11 +382,15 @@ unsigned int QsfpModule::numMediaLanes() const {
     case MediaInterfaceCode::FR4_400G:
     case MediaInterfaceCode::LR4_400G_10KM:
     case MediaInterfaceCode::DR4_400G:
+    case MediaInterfaceCode::CR4_400G:
       return 4;
     case MediaInterfaceCode::CR8_400G:
     case MediaInterfaceCode::FR4_2x400G:
+    case MediaInterfaceCode::FR4_LITE_2x400G:
     case MediaInterfaceCode::DR4_2x400G:
     case MediaInterfaceCode::FR8_800G:
+    case MediaInterfaceCode::CR8_800G:
+    case MediaInterfaceCode::LR4_2x400G_10KM:
       return 8;
     case MediaInterfaceCode::UNKNOWN:
       return 0;
@@ -548,6 +564,11 @@ void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
   } else {
     tcvrState.fwUpgradeInProgress() = true;
   }
+  auto tcvrName = getTcvrName();
+  tcvrState.tcvrName() = tcvrName;
+  tcvrStats.tcvrName() = tcvrName;
+  tcvrState.interfaces() = getInterfaces();
+  tcvrStats.interfaces() = getInterfaces();
 
   phy::LinkSnapshot snapshot;
   snapshot.transceiverInfo_ref() = info;
@@ -557,7 +578,7 @@ void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
 
 bool QsfpModule::customizationSupported() const {
   // Customization is allowed on present Optical modules only. We should skip
-  // other types
+  // other types. Overridden in derived classes if needed.
   auto tech = getQsfpTransmitterTechnology();
   return present_ && tech == TransmitterTechnology::OPTICAL;
 }
@@ -762,6 +783,21 @@ bool QsfpModule::isVdmSupported(uint8_t maxGroupRequested) const {
   if (!isTransceiverFeatureSupported(TransceiverFeature::VDM)) {
     return false;
   }
+
+  // Intel SPTSHP3CLCKS / SPTSHP3CLCK2 has a bug and needs FW Update.
+  // Tracked by T209278325
+  auto cachedTcvrInfo = getTransceiverInfo();
+  auto vendor = cachedTcvrInfo.tcvrState()->vendor();
+  if (vendor.has_value()) {
+    re2::RE2 portNameRe("Intel");
+    if (re2::RE2::PartialMatch(vendor->name().value(), portNameRe) &&
+        ((vendor->partNumber().value() == "SPTSHP3CLCKS") ||
+         (vendor->partNumber().value() == "SPTSHP3CLCK2"))) {
+      QSFP_LOG(WARN, this)
+          << "Found Intel SPTSHP3CLCKS / SPTSHP3CLCK2. VDM is not supported";
+      return false;
+    }
+  }
   if (!maxGroupRequested) {
     return true;
   }
@@ -788,6 +824,18 @@ prbs::InterfacePrbsState QsfpModule::getPortPrbsState(
         .get();
   }
   return state;
+}
+
+void QsfpModule::periodicUpdateQsfpData() {
+  bool updatedAllPages = false;
+  refreshCycleCount_++;
+  if (refreshCycleCount_ >= kRefreshAllPagesCycles) {
+    updatedAllPages = true;
+    // reset cycle count
+    refreshCycleCount_ = 0;
+    QSFP_LOG(DBG2, this) << "Refreshing all pages";
+  }
+  updateQsfpData(updatedAllPages);
 }
 
 void QsfpModule::refresh() {
@@ -865,7 +913,7 @@ void QsfpModule::refreshLocked() {
 
   // If it's just regular refresh
   if (willRefresh) {
-    updateQsfpData(false);
+    periodicUpdateQsfpData();
     updateCmisStateChanged(moduleStatus);
   }
 
@@ -974,24 +1022,28 @@ void QsfpModule::updatePrbsStats() {
         }
       };
 
-  auto sysPrbsState = getPortPrbsStateLocked(std::nullopt, phy::Side::SYSTEM);
-  auto linePrbsState = getPortPrbsStateLocked(std::nullopt, phy::Side::LINE);
   phy::PrbsStats stats;
-  stats = getPortPrbsStatsSideLocked(
-      phy::Side::SYSTEM,
-      sysPrbsState.checkerEnabled().has_value() &&
-          sysPrbsState.checkerEnabled().value(),
-      *systemPrbs);
-  updatePrbsStatEntry(*systemPrbs, stats);
-  *systemPrbs = stats;
+  if (isPrbsSupported(phy::Side::SYSTEM)) {
+    auto sysPrbsState = getPortPrbsStateLocked(std::nullopt, phy::Side::SYSTEM);
+    stats = getPortPrbsStatsSideLocked(
+        phy::Side::SYSTEM,
+        sysPrbsState.checkerEnabled().has_value() &&
+            sysPrbsState.checkerEnabled().value(),
+        *systemPrbs);
+    updatePrbsStatEntry(*systemPrbs, stats);
+    *systemPrbs = stats;
+  }
 
-  stats = getPortPrbsStatsSideLocked(
-      phy::Side::LINE,
-      linePrbsState.checkerEnabled().has_value() &&
-          linePrbsState.checkerEnabled().value(),
-      *linePrbs);
-  updatePrbsStatEntry(*linePrbs, stats);
-  *linePrbs = stats;
+  if (isPrbsSupported(phy::Side::LINE)) {
+    auto linePrbsState = getPortPrbsStateLocked(std::nullopt, phy::Side::LINE);
+    stats = getPortPrbsStatsSideLocked(
+        phy::Side::LINE,
+        linePrbsState.checkerEnabled().has_value() &&
+            linePrbsState.checkerEnabled().value(),
+        *linePrbs);
+    updatePrbsStatEntry(*linePrbs, stats);
+    *linePrbs = stats;
+  }
 }
 
 phy::PrbsStats QsfpModule::getPortPrbsStats(
@@ -1186,29 +1238,31 @@ std::unique_ptr<IOBuf> QsfpModule::readTransceiverLocked(
 
 folly::Future<std::pair<int32_t, bool>> QsfpModule::futureWriteTransceiver(
     TransceiverIOParameters param,
-    uint8_t data) {
+    const std::vector<uint8_t>& data) {
   // Always use i2cEvb to program transceivers if there's an i2cEvb
   auto i2cEvb = qsfpImpl_->getI2cEventBase();
   auto id = getID();
   if (!i2cEvb) {
     // Certain platforms cannot execute multiple I2C transactions in parallel
     // and therefore don't have an I2C evb thread
-    return std::make_pair(id, writeTransceiver(param, data));
+    return std::make_pair(id, writeTransceiver(param, data.data()));
   }
   // As with all the other i2c transactions, run in the i2c event base thread
   return via(i2cEvb).thenValue([&, param, id, data](auto&&) mutable {
-    return std::make_pair(id, writeTransceiver(param, data));
+    return std::make_pair(id, writeTransceiver(param, data.data()));
   });
 }
 
-bool QsfpModule::writeTransceiver(TransceiverIOParameters param, uint8_t data) {
+bool QsfpModule::writeTransceiver(
+    TransceiverIOParameters param,
+    const uint8_t* data) {
   lock_guard<std::mutex> g(qsfpModuleMutex_);
   return writeTransceiverLocked(param, data);
 }
 
 bool QsfpModule::writeTransceiverLocked(
     TransceiverIOParameters param,
-    uint8_t data) {
+    const uint8_t* data) {
   /*
    * This must be called with a lock held on qsfpModuleMutex_
    */
@@ -1227,9 +1281,10 @@ bool QsfpModule::writeTransceiverLocked(
           POST_I2C_WRITE_DELAY_US,
           CAST_TO_INT(CmisField::PAGE_CHANGE)); // common enum to all tcvr types
     }
+    int numBytes = param.length().has_value() ? *(param.length()) : 1;
     qsfpImpl_->writeTransceiver(
-        {TransceiverAccessParameter::ADDR_QSFP, offset, sizeof(data)},
-        &data,
+        {TransceiverAccessParameter::ADDR_QSFP, offset, numBytes},
+        data,
         POST_I2C_WRITE_DELAY_US,
         CAST_TO_INT(CmisField::RAW)); // common enum to all tcvr types
   } catch (const std::exception& ex) {
@@ -1311,12 +1366,6 @@ TransceiverManagementInterface QsfpModule::getTransceiverManagementInterface(
   XLOG(ERR) << fmt::format(
       "QSFP {:d}: Bad module Id = {:d}", oneBasedPort, moduleId);
   return TransceiverManagementInterface::NONE;
-}
-
-std::vector<MediaInterfaceCode> QsfpModule::getSupportedMediaInterfaces()
-    const {
-  lock_guard<std::mutex> g(qsfpModuleMutex_);
-  return getSupportedMediaInterfacesLocked();
 }
 
 void QsfpModule::programTransceiver(

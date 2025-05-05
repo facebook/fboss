@@ -3,6 +3,7 @@
 #include "fboss/fsdb/client/FsdbPatchPublisher.h"
 #include "fboss/fsdb/client/instantiations/FsdbCowStateSubManager.h"
 #include "fboss/fsdb/client/instantiations/FsdbCowStatsSubManager.h"
+#include "fboss/fsdb/common/Utils.h"
 #include "fboss/fsdb/tests/utils/FsdbTestServer.h"
 #include "fboss/lib/CommonUtils.h"
 #include "fboss/lib/thrift_service_client/ConnectionOptions.h"
@@ -182,8 +183,10 @@ class FsdbSubManagerTest : public ::testing::Test,
     if (fsdbTestServer_) {
       auto subs = fsdbTestServer_->getActiveSubscriptions();
       for (const auto& [_, info] : subs) {
-        if (info.subscriberId() == clientId) {
-          return true;
+        for (const auto& subscription : info) {
+          if (subscription.subscriberId() == clientId) {
+            return true;
+          }
         }
       }
     }
@@ -243,6 +246,26 @@ class FsdbSubManagerTest : public ::testing::Test,
   std::unique_ptr<TestAgentPublisher> testPublisher_;
   std::optional<utils::ConnectionOptions> connectionOptions_;
 };
+
+TEST(FsdbSubManagerTest, subscriberIdParsing) {
+  SubscriberId agentId = "agent";
+  EXPECT_EQ(subscriberId2ClientId(agentId).client(), FsdbClient::AGENT);
+  EXPECT_EQ(subscriberId2ClientId(agentId).instanceId(), "");
+  EXPECT_EQ(string2FsdbClient(agentId), FsdbClient::AGENT);
+  EXPECT_EQ(fsdbClient2string(string2FsdbClient(agentId)), agentId);
+
+  SubscriberId foo = "foo";
+  EXPECT_EQ(subscriberId2ClientId(foo).client(), FsdbClient::UNSPECIFIED);
+  EXPECT_EQ(subscriberId2ClientId(foo).instanceId(), "");
+  EXPECT_EQ(string2FsdbClient(foo), FsdbClient::UNSPECIFIED);
+
+  SubscriberId agentWithInstance = "agent:some_instance";
+  EXPECT_EQ(
+      subscriberId2ClientId(agentWithInstance).client(), FsdbClient::AGENT);
+  EXPECT_EQ(
+      subscriberId2ClientId(agentWithInstance).instanceId(), "some_instance");
+  EXPECT_EQ(string2FsdbClient(agentWithInstance), FsdbClient::UNSPECIFIED);
+}
 
 using SubscriberTypes =
     ::testing::Types<FsdbCowStateSubManager, FsdbCowStatsSubManager>;

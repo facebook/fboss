@@ -1,6 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/fsdb/oper/NaivePeriodicSubscribableStorageBase.h"
+#include "fboss/fsdb/common/Utils.h"
 
 #include <fb303/ThreadCachedServiceData.h>
 #include <folly/coro/BlockingWait.h>
@@ -42,7 +43,13 @@ NaivePeriodicSubscribableStorageBase::NaivePeriodicSubscribableStorageBase(
       nPathStoreAllocs_(
           fmt::format("{}.{}", params_.metricPrefix_, kPathStoreAllocs)),
       serveSubMs_(fmt::format("{}.{}", params_.metricPrefix_, kServeSubMs)),
-      serveSubNum_(fmt::format("{}.{}", params_.metricPrefix_, kServeSubNum)) {
+      serveSubNum_(fmt::format("{}.{}", params_.metricPrefix_, kServeSubNum)),
+      publishTimePrefix_(
+          fmt::format("{}.{}", params_.metricPrefix_, kPublishTimePrefix)),
+      subscribeTimePrefix_(
+          fmt::format("{}.{}", params_.metricPrefix_, kSubscribeTimePrefix)),
+      subscriberPrefix_(
+          fmt::format("{}.{}", params_.metricPrefix_, kSubscriberPrefix)) {
   if (params_.trackMetadata_) {
     metadataTracker_ = std::make_unique<FsdbOperTreeMetadataTracker>();
   }
@@ -142,9 +149,30 @@ void NaivePeriodicSubscribableStorageBase::registerPublisher(
   if (!params_.trackMetadata_) {
     return;
   }
+  auto publisherRoot = getPublisherRoot(begin, end);
+  CHECK(publisherRoot.has_value());
+  registeredPublisherRoots_.withWLock([&](auto& roots) {
+    if (roots.find(publisherRoot.value()) == roots.end()) {
+      roots[publisherRoot.value()] = *begin;
+      // add histograms for per-publisherRoot stats
+      // publish time: histogram range [0, 1s], 10ms width (100 bins)
+      auto publishTimeMetric = fmt::format("{}.{}", publishTimePrefix_, *begin);
+      fb303::ThreadCachedServiceData::get()->addHistogram(
+          publishTimeMetric, 10, 0, 1000);
+      fb303::ThreadCachedServiceData::get()->exportHistogram(
+          publishTimeMetric, 50, 95, 99);
+      // subscribe time: histogram range [0, 10s], 100ms width (100 bins)
+      auto subscribeTimeMetric =
+          fmt::format("{}.{}", subscribeTimePrefix_, *begin);
+      fb303::ThreadCachedServiceData::get()->addHistogram(
+          subscribeTimeMetric, 100, 0, 1000);
+      fb303::ThreadCachedServiceData::get()->exportHistogram(
+          subscribeTimeMetric, 50, 95, 99);
+    }
+  });
   metadataTracker_.withWLock([&](auto& tracker) {
     CHECK(tracker);
-    tracker->registerPublisherRoot(*getPublisherRoot(begin, end));
+    tracker->registerPublisherRoot(publisherRoot.value());
   });
 }
 
@@ -180,7 +208,14 @@ NaivePeriodicSubscribableStorageBase::getCurrentMetadataServer() {
 }
 
 void NaivePeriodicSubscribableStorageBase::exportServeMetrics(
-    std::chrono::steady_clock::time_point serveStartTime) const {
+    std::chrono::steady_clock::time_point serveStartTime,
+    SubscriptionMetadataServer& metadata,
+    std::map<std::string, uint64_t>& lastServedPublisherRootUpdates) const {
+  auto currentTimestamp =
+      std::chrono::duration_cast<std::chrono::milliseconds>(
+          std::chrono::system_clock::now().time_since_epoch())
+          .count();
+
   int64_t memUsage = getMemoryUsage(); // RSS
   fb303::ThreadCachedServiceData::get()->addStatValue(
       rss_, memUsage, fb303::AVG);
@@ -202,6 +237,55 @@ void NaivePeriodicSubscribableStorageBase::exportServeMetrics(
   }
   fb303::ThreadCachedServiceData::get()->addStatValue(
       serveSubNum_, 1, fb303::SUM);
+
+  // for each publisher root that had updates served in this iteration,
+  // export publish/serve times for last processed update
+  auto served = metadata.getAllPublishersMetadata();
+  if (served.has_value()) {
+    for (auto& [root, md] : served.value()) {
+      auto it = registeredPublisherRoots_.rlock()->find(root);
+      if (it == registeredPublisherRoots_.rlock()->end()) {
+        continue;
+      }
+
+      // skip root if there was no update since last served
+      if (md.operMetadata.lastPublishedAt().value_or(0) == 0) {
+        continue;
+      }
+      auto mitr = lastServedPublisherRootUpdates.find(root);
+      if (mitr != lastServedPublisherRootUpdates.end()) {
+        if (mitr->second == md.operMetadata.lastPublishedAt().value()) {
+          continue;
+        }
+      }
+      lastServedPublisherRootUpdates[root] =
+          md.operMetadata.lastPublishedAt().value();
+
+      // export metrics for the served root
+      auto publishTime = md.lastPublishedUpdateProcessedAt -
+          md.operMetadata.lastPublishedAt().value();
+      auto serveTime =
+          currentTimestamp - md.operMetadata.lastPublishedAt().value();
+      fb303::ThreadCachedServiceData::get()->addHistogramValue(
+          fmt::format("{}.{}", publishTimePrefix_, it->second), publishTime);
+      fb303::ThreadCachedServiceData::get()->addHistogramValue(
+          fmt::format("{}.{}", subscribeTimePrefix_, it->second), serveTime);
+    }
+  }
+
+  if (params_.exportPerSubscriberMetrics_) {
+    // export per-subscriber metrics
+    std::map<FsdbClient, SubscriberStats> stats = subMgr().getSubscriberStats();
+    for (const auto& [key, stat] : stats) {
+      auto counterName = fmt::format(
+          "{}.{}.{}",
+          subscriberPrefix_,
+          fsdbClient2string(key),
+          kSubscriptionQueueWatermark);
+      fb303::ThreadCachedServiceData::get()->addStatValue(
+          counterName, stat.subscriptionServeQueueWatermark, fb303::AVG);
+    }
+  }
 }
 
 std::optional<std::string>
@@ -286,7 +370,7 @@ NaivePeriodicSubscribableStorageBase::convertExtPaths(
 
 folly::coro::AsyncGenerator<DeltaValue<OperState>&&>
 NaivePeriodicSubscribableStorageBase::subscribe_encoded_impl(
-    SubscriberId subscriber,
+    SubscriptionIdentifier&& subscriber,
     PathIter begin,
     PathIter end,
     OperProtocol protocol,
@@ -311,7 +395,7 @@ NaivePeriodicSubscribableStorageBase::subscribe_encoded_impl(
 
 folly::coro::AsyncGenerator<OperDelta&&>
 NaivePeriodicSubscribableStorageBase::subscribe_delta_impl(
-    SubscriberId subscriber,
+    SubscriptionIdentifier&& subscriber,
     PathIter begin,
     PathIter end,
     OperProtocol protocol,
@@ -336,7 +420,7 @@ NaivePeriodicSubscribableStorageBase::subscribe_delta_impl(
 
 folly::coro::AsyncGenerator<std::vector<DeltaValue<TaggedOperState>>&&>
 NaivePeriodicSubscribableStorageBase::subscribe_encoded_extended_impl(
-    SubscriberId subscriber,
+    SubscriptionIdentifier&& subscriber,
     std::vector<ExtendedOperPath> paths,
     OperProtocol protocol,
     std::optional<SubscriptionStorageParams> subscriptionParams) {
@@ -360,7 +444,7 @@ NaivePeriodicSubscribableStorageBase::subscribe_encoded_extended_impl(
 
 folly::coro::AsyncGenerator<std::vector<TaggedOperDelta>&&>
 NaivePeriodicSubscribableStorageBase::subscribe_delta_extended_impl(
-    SubscriberId subscriber,
+    SubscriptionIdentifier&& subscriber,
     std::vector<ExtendedOperPath> paths,
     OperProtocol protocol,
     std::optional<SubscriptionStorageParams> subscriptionParams) {
@@ -384,7 +468,7 @@ NaivePeriodicSubscribableStorageBase::subscribe_delta_extended_impl(
 
 folly::coro::AsyncGenerator<SubscriberMessage&&>
 NaivePeriodicSubscribableStorageBase::subscribe_patch_impl(
-    SubscriberId subscriber,
+    SubscriptionIdentifier&& subscriber,
     std::map<SubscriptionKey, RawOperPath> rawPaths,
     std::optional<SubscriptionStorageParams> subscriptionParams) {
   for (auto& [key, path] : rawPaths) {
@@ -410,7 +494,7 @@ NaivePeriodicSubscribableStorageBase::subscribe_patch_impl(
 
 folly::coro::AsyncGenerator<SubscriberMessage&&>
 NaivePeriodicSubscribableStorageBase::subscribe_patch_extended_impl(
-    SubscriberId subscriber,
+    SubscriptionIdentifier&& subscriber,
     std::map<SubscriptionKey, ExtendedOperPath> paths,
     std::optional<SubscriptionStorageParams> subscriptionParams) {
   for (auto& [key, path] : paths) {

@@ -146,6 +146,9 @@ void triggerBcmRamonParityError(const HwSwitch* hw) {
       std::make_unique<fbstring>("debug bcm intr +\n"),
       std::make_unique<ClientInformation>(clientInfo));
   diagCmdServer->diagCmd(
+      std::make_unique<fbstring>("ser eccindication off\n"),
+      std::make_unique<ClientInformation>(clientInfo));
+  diagCmdServer->diagCmd(
       std::make_unique<fbstring>("s RTP_INTERRUPT_MASK_REGISTER -1\n"),
       std::make_unique<ClientInformation>(clientInfo));
   diagCmdServer->diagCmd(
@@ -211,6 +214,7 @@ void HwTestThriftHandler::triggerParityError() {
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK3:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK6:
       triggerBcmXgsParityError(hwSwitch_);
       break;
     case cfg::AsicType::ASIC_TYPE_JERICHO2:

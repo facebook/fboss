@@ -11,10 +11,29 @@ class AgentEmptyTest : public AgentHwTest {
   getProductionFeaturesVerified() const override {
     return {};
   }
+  void setCmdLineFlagOverrides() const override {
+    AgentHwTest::setCmdLineFlagOverrides();
+    // check basic init with fabric ports enabled
+    FLAGS_hide_fabric_ports = false;
+  }
 };
 
 TEST_F(AgentEmptyTest, CheckInit) {
-  verifyAcrossWarmBoots([]() {}, []() {});
+  auto verify = [this]() {
+    auto state = getProgrammedState();
+    for (auto& portMap : std::as_const(*state->getPorts())) {
+      for (auto& port : std::as_const(*portMap.second)) {
+        if (port.second->isEnabled()) {
+          EXPECT_EQ(
+              port.second->getLoopbackMode(),
+              // TODO: Handle multiple Asics
+              getAsics().cbegin()->second->getDesiredLoopbackMode(
+                  port.second->getPortType()));
+        }
+      }
+    }
+  };
+  verifyAcrossWarmBoots([]() {}, verify);
 }
 
 } // namespace facebook::fboss

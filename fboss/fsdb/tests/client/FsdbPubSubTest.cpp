@@ -16,6 +16,8 @@
 
 namespace {
 
+const uint32_t kStateServeIntervalMs = 50;
+const uint32_t kStatsServeIntervalMs = 50;
 auto constexpr kSubscriberId = "fsdb_test_subscriber";
 auto constexpr kPublisherId = "fsdb_test_publisher";
 auto constexpr kUnknownPublisherId = "publisher_unknown";
@@ -42,7 +44,8 @@ class FsdbPubSubTest : public ::testing::Test {
     folly::LoggerDB::get().setLevel("fboss.thrift_cow", folly::LogLevel::DBG4);
     folly::LoggerDB::get().setLevel("fboss.fsdb", folly::LogLevel::DBG4);
     auto config = getFsdbConfig();
-    fsdbTestServer_ = std::make_unique<FsdbTestServer>(std::move(config));
+    fsdbTestServer_ = std::make_unique<FsdbTestServer>(
+        std::move(config), 0, kStateServeIntervalMs, kStatsServeIntervalMs);
     publisherStreamEvbThread_ =
         std::make_unique<folly::ScopedEventBaseThread>();
     subscriberStreamEvbThread_ =
@@ -67,13 +70,18 @@ class FsdbPubSubTest : public ::testing::Test {
     return FsdbConfig::fromRaw(rawConfig);
   }
   template <typename SubsT>
-  std::unique_ptr<SubsT> createSubscriberImpl(const std::string& id) const {
+  std::unique_ptr<SubsT> createSubscriberImpl(
+      const std::string& id,
+      std::optional<std::function<void()>> onInitialSync = std::nullopt,
+      std::optional<std::function<void()>> onDisconnect = std::nullopt) const {
     return std::make_unique<SubsT>(
         id,
         getSubscribePath<SubsT>(),
         subscriberStreamEvbThread_->getEventBase(),
         connRetryEvbThread_->getEventBase(),
-        TestParam::PubSubStats);
+        TestParam::PubSubStats,
+        onInitialSync,
+        onDisconnect);
   }
   template <typename SubsT>
   auto getSubscribePath() const {
@@ -85,8 +93,11 @@ class FsdbPubSubTest : public ::testing::Test {
       return kPublishRoot;
     }
   }
-  std::unique_ptr<SubscriberT> createSubscriber(const std::string& id) const {
-    return createSubscriberImpl<SubscriberT>(id);
+  std::unique_ptr<SubscriberT> createSubscriber(
+      const std::string& id,
+      std::optional<std::function<void()>> onInitialSync = std::nullopt,
+      std::optional<std::function<void()>> onDisconnect = std::nullopt) const {
+    return createSubscriberImpl<SubscriberT>(id, onInitialSync, onDisconnect);
   }
   std::unique_ptr<PublisherT> createPublisherImpl(
       const std::string& id,
@@ -196,6 +207,9 @@ class FsdbPubSubTest : public ::testing::Test {
   }
   bool pubSubStats() const {
     return TestParam::PubSubStats;
+  }
+  bool isPath() const {
+    return std::is_same_v<PubUnitT, OperState>;
   }
   bool isDelta() const {
     return std::is_same_v<PubUnitT, OperDelta>;
@@ -392,6 +406,127 @@ TYPED_TEST(FsdbPubSubTest, dupSubscriber) {
 
   req.forceSubscribe() = true;
   EXPECT_NO_THROW({ auto res2 = this->subscribe(req); });
+}
+
+TYPED_TEST(FsdbPubSubTest, slowSubscriber) {
+  FLAGS_subscriptionServeQueueSize = 2;
+  FLAGS_forceCloseSlowSubscriber = true;
+
+  // publishInterval: wait for subscriptionServeIntervalMs+delta to prevent
+  // published updates from being coalesced
+  uint32_t updatesPublished = 120;
+  uint32_t subscriptionServeIntervalMs =
+      this->pubSubStats() ? kStatsServeIntervalMs : kStateServeIntervalMs;
+  uint32_t publishIntervalMs = subscriptionServeIntervalMs + 20;
+  this->setupConnection(*this->publisher_, false);
+  this->checkPublishing({this->publisher_->clientId()});
+
+  // pause subscriber on initial sync long enough for all updates to be
+  // published and served so that queue builds up.
+  folly::Baton<> waitForDisconnect;
+  folly::Baton<> resumeDataCb, resumeReconnect;
+  bool initialSyncOnce{false}, disconnectOnce{false};
+  auto slowSub = this->createSubscriber(
+      "fsdb_slow_subscriber",
+      [&resumeDataCb, &initialSyncOnce]() {
+        if (!initialSyncOnce) {
+          initialSyncOnce = true;
+          resumeDataCb.wait();
+        }
+      },
+      [&waitForDisconnect, &resumeReconnect, &disconnectOnce]() {
+        if (!disconnectOnce) {
+          disconnectOnce = true;
+          waitForDisconnect.post();
+          resumeReconnect.wait();
+        }
+      });
+  this->setupConnection(*slowSub);
+  this->checkSubscribed({slowSub->clientId()});
+  for (int updateNum = 1; updateNum <= updatesPublished; updateNum++) {
+    if (this->pubSubStats()) {
+      this->publishPortStats(makePortStats(updateNum));
+    } else {
+      std::string testStr = folly::to<std::string>("bar", updateNum);
+      this->publishAgentConfig(makeAgentConfig({{"foo", testStr}}));
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(publishIntervalMs));
+  }
+
+  // TODO: validate subscription serve queue watermark counter
+  // resume subscriber data callback after all updates are published
+  resumeDataCb.post();
+
+  // validate server disconnects slow subscriber
+  waitForDisconnect.wait();
+  SubscriptionInfo info = slowSub->getInfo();
+  ASSERT_EQ(
+      info.state,
+      FsdbStreamClient::ReconnectingThriftClient::State::DISCONNECTED);
+  ASSERT_EQ(
+      info.disconnectReason, FsdbErrorCode::SUBSCRIPTION_SERVE_QUEUE_FULL);
+  resumeReconnect.post();
+}
+
+TYPED_TEST(FsdbPubSubTest, slowSubscriberQueueWatermark) {
+  FLAGS_subscriptionServeQueueSize = 100;
+  FLAGS_forceCloseSlowSubscriber = false;
+
+  // publishInterval: wait for subscriptionServeIntervalMs+delta to prevent
+  // published updates from being coalesced
+  uint32_t updatesPublished = 200;
+  uint32_t subscriptionServeIntervalMs =
+      this->pubSubStats() ? kStatsServeIntervalMs : kStateServeIntervalMs;
+  uint32_t publishIntervalMs = subscriptionServeIntervalMs + 20;
+  this->setupConnection(*this->publisher_, false);
+  this->checkPublishing({this->publisher_->clientId()});
+
+  // pause subscriber on initial sync long enough for all updates to be
+  // published and served so that queue builds up.
+  folly::Baton<> resumeDataCb;
+  auto slowSub = this->createSubscriber(
+      "fsdb_slow_subscriber", [&resumeDataCb]() { resumeDataCb.wait(); });
+  this->setupConnection(*slowSub);
+  this->checkSubscribed({slowSub->clientId()});
+  for (int updateNum = 1; updateNum <= updatesPublished; updateNum++) {
+    if (this->pubSubStats()) {
+      this->publishPortStats(makePortStats(updateNum));
+    } else {
+      std::string testStr = folly::to<std::string>("bar", updateNum);
+      this->publishAgentConfig(makeAgentConfig({{"foo", testStr}}));
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(publishIntervalMs));
+  }
+
+  // validate subscription serve queue watermark counter
+  WITH_RETRIES({
+    auto subscriberId = slowSub->clientId();
+    auto subscriberToInfo = folly::coro::blockingWait(
+        this->fsdbTestServer_->getClient()->co_getOperSubscriberInfos(
+            {subscriberId}));
+    auto sitr = subscriberToInfo.find(subscriberId);
+    ASSERT_EVENTUALLY_NE(sitr, subscriberToInfo.end());
+    ASSERT_EVENTUALLY_EQ(sitr->second.size(), 1);
+    if (sitr != subscriberToInfo.end()) {
+      auto info = sitr->second;
+      OperSubscriberInfo expectedInfo = sitr->second[0];
+      ASSERT_EVENTUALLY_EQ(
+          expectedInfo.subscriptionQueueWatermark().has_value(), true);
+      if (expectedInfo.subscriptionQueueWatermark().has_value()) {
+        ASSERT_EVENTUALLY_GT(*expectedInfo.subscriptionQueueWatermark(), 0);
+      }
+    }
+    // Also validate fb303 counter for subscription serve queue watermark
+    // In tests, we don't start the publisher threads
+    fb303::ThreadCachedServiceData::get()->publishStats();
+    auto counterName = folly::sformat(
+        "{}.subscriber.{}.queue_watermark.avg.60",
+        this->pubSubStats() ? "stats" : "fsdb",
+        "unspecified");
+    EXPECT_EVENTUALLY_GT(fb303::ServiceData::get()->getCounter(counterName), 0);
+  });
+  // resume subscriber data callback after all updates are published
+  resumeDataCb.post();
 }
 
 TYPED_TEST(FsdbPubSubTest, multiplePublishers) {

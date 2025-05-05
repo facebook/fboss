@@ -9,34 +9,38 @@ thrift_library(
     languages = [
         "cpp2",
         "python",
-        "py3",
     ],
     thrift_cpp2_options = ["json"],
-    thrift_srcs = [
-        "platform_manager_config.thrift",
-        "platform_manager_presence.thrift",
-    ],
+    thrift_srcs = {
+        "platform_manager_config.thrift": [],
+        "platform_manager_presence.thrift": [],
+    },
 )
 
 thrift_library(
     name = "platform_manager_snapshot",
     languages = [
         "cpp2",
+        "python",
     ],
     thrift_cpp2_options = ["json"],
-    thrift_srcs = ["platform_manager_snapshot.thrift"],
+    thrift_srcs = {
+        "platform_manager_snapshot.thrift": [],
+    },
 )
 
 thrift_library(
     name = "platform_manager_service",
     languages = [
         "cpp2",
+        "python",
     ],
     thrift_cpp2_options = ["json"],
     thrift_srcs = {"platform_manager_service.thrift": ["PlatformManagerService"]},
     deps = [
         ":platform_manager_config",
         ":platform_manager_snapshot",
+        "//thrift/annotation:cpp",
         "//thrift/annotation:thrift",
     ],
 )
@@ -63,15 +67,15 @@ cpp_library(
         "I2cExplorer.cpp",
     ],
     exported_deps = [
-        "fbcode//fboss/lib/i2c:i2c_ctrl",
-        "fbcode//fboss/platform/helpers:platform_utils",
-        "fbcode//folly:file_util",
-        "fbcode//folly:string",
-        "fbcode//folly/logging:logging",
         "fbsource//third-party/fmt:fmt",
         ":i2c_misc",
         ":platform_manager_config-cpp2-types",
         ":utils",
+        "//fboss/lib/i2c:i2c_ctrl",
+        "//fboss/platform/helpers:platform_fs_utils",
+        "//folly:file_util",
+        "//folly:string",
+        "//folly/logging:logging",
     ],
     exported_external_deps = [
         "re2",
@@ -88,6 +92,7 @@ cpp_library(
         ":i2c_explorer",
         ":platform_manager_config-cpp2-types",
         ":utils",
+        "//fboss/platform/helpers:platform_fs_utils",
         "//folly:file_util",
         "//folly:string",
         "//folly/logging:logging",
@@ -125,6 +130,7 @@ cpp_library(
         "PkgManager.cpp",
     ],
     exported_deps = [
+        "fbsource//third-party/range-v3:range-v3",
         ":platform_manager_config-cpp2-types",
         "//fb303:service_data",
         "//fboss/platform/helpers:platform_fs_utils",

@@ -17,16 +17,14 @@
 namespace facebook::fboss {
 class AgentHwParityErrorTest : public AgentHwTest {
  protected:
-  cfg::SwitchConfig initialConfig(
-      const AgentEnsemble& ensemble) const override {
-    return utility::onePortPerInterfaceConfig(
-        ensemble.getSw(),
-        ensemble.masterLogicalPortIds(),
-        true /*interfaceHasSubnet*/);
-  }
   std::vector<production_features::ProductionFeature>
   getProductionFeaturesVerified() const override {
     return {production_features::ProductionFeature::HW_SWITCH};
+  }
+  void setCmdLineFlagOverrides() const override {
+    AgentHwTest::setCmdLineFlagOverrides();
+    // enable running on fab switches as well
+    FLAGS_hide_fabric_ports = false;
   }
 };
 
@@ -35,19 +33,19 @@ TEST_F(AgentHwParityErrorTest, verifyParityError) {
     applyNewConfig(initialConfig(*getAgentEnsemble()));
   };
   auto verify = [=, this]() {
-    const auto kPort = masterLogicalInterfacePortIds()[0];
+    const auto kPort = masterLogicalPortIds()[0];
     auto switchId = scopeResolver().scope(kPort).switchId();
     auto switchIndex =
         getSw()->getSwitchInfoTable().getSwitchIndexFromSwitchId(switchId);
     auto client = getAgentEnsemble()->getHwAgentTestClient(switchId);
     WITH_RETRIES({
-      auto switchStats = getSw()->getHwSwitchStatsExpensive()[switchIndex];
+      auto switchStats = getHwSwitchStats(switchIndex);
       auto asicErrors = switchStats.hwAsicErrors().value();
       EXPECT_EVENTUALLY_EQ(*asicErrors.correctedParityErrors(), 0);
     });
     client->sync_triggerParityError();
     WITH_RETRIES({
-      auto switchStats = getSw()->getHwSwitchStatsExpensive()[switchIndex];
+      auto switchStats = getHwSwitchStats(switchIndex);
       auto asicErrors = switchStats.hwAsicErrors().value();
       EXPECT_EVENTUALLY_GT(*asicErrors.correctedParityErrors(), 0);
     });

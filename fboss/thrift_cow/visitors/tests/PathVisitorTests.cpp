@@ -418,8 +418,8 @@ TYPED_TEST(PathVisitorTests, VisitWithOperators) {
     std::vector<std::string> path{"setOfI32", "1"};
     auto result = RootPathVisitor::visit(
         *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, setOp);
-    // should throw trying to set an immutable node
-    EXPECT_EQ(result, ThriftTraverseResult::VISITOR_EXCEPTION);
+    // SetEncodedPathVisitorOperator also handles paths into sets of primitives
+    EXPECT_EQ(result, ThriftTraverseResult::OK);
   }
 
   {

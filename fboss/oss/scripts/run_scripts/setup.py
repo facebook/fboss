@@ -8,6 +8,8 @@ import shutil
 import subprocess
 import sys
 
+from run_test import setup_fboss_env
+
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -170,10 +172,9 @@ class SetupFboss:
 
 
 if __name__ == "__main__":
-    if "FBOSS" not in os.environ:
-        sys.exit(f"FBOSS is unset. Run 'source ./bin/setup_fboss_env' to set it up.")
-    else:
-        print(f"Running setup.py with FBOSS={os.environ['FBOSS']}")
+    # Set env variables for FBOSS
+    setup_fboss_env()
+    print(f"Running setup.py with FBOSS={os.environ['FBOSS']}")
 
     args = parse_args()
     SetupFboss().run(args)

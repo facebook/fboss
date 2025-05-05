@@ -29,7 +29,10 @@ TEST_F(HwTransceiverConfigValidationTest, validateAllActiveTransceivers) {
     std::string notValidatedReason;
     TransceiverID tcvrID = TransceiverID(id);
     if (!wedgeManager->isValidTransceiver(tcvrID) ||
-        !wedgeManager->getTransceiverInfo(tcvrID).tcvrState()->get_present()) {
+        !folly::copy(wedgeManager->getTransceiverInfo(tcvrID)
+                         .tcvrState()
+                         ->present()
+                         .value())) {
       continue;
     }
     if (wedgeManager->validateTransceiverById(

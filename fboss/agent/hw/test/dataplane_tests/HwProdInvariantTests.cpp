@@ -55,8 +55,8 @@ class HwProdInvariantsTest : public HwLinkStateDependentTest {
     // If we're passed a config, there's a high probability that it's a prod
     // config and the ports are not in loopback mode.
     for (auto& port : *config.ports()) {
-      port.loopbackMode() =
-          getAsic()->getDesiredLoopbackMode(port.get_portType());
+      port.loopbackMode() = getAsic()->getDesiredLoopbackMode(
+          folly::copy(port.portType().value()));
     }
 
     return config;
@@ -295,7 +295,7 @@ class HwProdInvariantsMmuLosslessTest : public HwProdInvariantsTest {
   }
 
   MacAddress dstMac() const {
-    return utility::getFirstInterfaceMac(getProgrammedState());
+    return utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
   }
 
   void sendTrafficInLoop() {

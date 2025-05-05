@@ -47,6 +47,9 @@ class HwTransceiverUtils {
       time_t timeReference,
       bool expectedReset);
 
+  static bool opticalOrActiveCmisCable(const TcvrState& tcvrState);
+  static bool opticalOrActiveCable(const TcvrState& tcvrState);
+
  private:
   static void verifyOpticsSettings(
       const TcvrState& tcvrState,
@@ -58,6 +61,9 @@ class HwTransceiverUtils {
       const std::string& portName);
   static void verify10gProfile(
       const TcvrState& tcvrState,
+      const TransceiverManagementInterface mgmtInterface,
+      const std::vector<MediaInterfaceId>& mediaInterfaces);
+  static void verify25gProfile(
       const TransceiverManagementInterface mgmtInterface,
       const std::vector<MediaInterfaceId>& mediaInterfaces);
   static void verify50gProfile(
@@ -85,6 +91,9 @@ class HwTransceiverUtils {
       const TcvrState& tcvrState,
       const std::vector<MediaInterfaceId>& mediaInterfaces);
   static void verifyOptical800gProfile(
+      const TransceiverManagementInterface mgmtInterface,
+      const std::vector<MediaInterfaceId>& mediaInterfaces);
+  static void verifyActiveCopper800gProfile(
       const TransceiverManagementInterface mgmtInterface,
       const std::vector<MediaInterfaceId>& mediaInterfaces);
   static void verifyDataPathEnabled(

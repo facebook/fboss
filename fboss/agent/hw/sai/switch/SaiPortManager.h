@@ -143,6 +143,10 @@ class SaiPortManager {
       const std::shared_ptr<Port>& newPort);
 
   bool createOnlyAttributeChanged(
+      const std::shared_ptr<Port>& oldPort,
+      const std::shared_ptr<Port>& newPort);
+
+  bool createOnlyAttributeChanged(
       const SaiPortTraits::CreateAttributes& oldAttributes,
       const SaiPortTraits::CreateAttributes& newAttributes);
 
@@ -201,6 +205,9 @@ class SaiPortManager {
   void clearQosPolicy(const std::shared_ptr<QosPolicy>& qosPolicy);
   void clearQosPolicy();
 
+  void clearArsConfig(PortID portID);
+  void clearArsConfig();
+
   void setTamObject(PortID portId, std::vector<sai_object_id_t> tamObject);
   void resetTamObject(PortID portId);
 
@@ -225,6 +232,7 @@ class SaiPortManager {
   void updateConnectivityStats(PortID portID);
 
   void clearStats(PortID portID);
+  void clearInterfacePhyCounters(const PortID& portId);
 
   void programMirrorOnAllPorts(
       const std::string& mirrorName,
@@ -235,7 +243,7 @@ class SaiPortManager {
       const std::shared_ptr<Port>& oldPort,
       const std::shared_ptr<Port>& newPort);
 
-  bool isUp(PortID portID) const;
+  bool isPortUp(PortID portID) const;
 
   void setPtpTcEnable(bool enable);
   bool isPtpTcEnabled() const;
@@ -274,8 +282,6 @@ class SaiPortManager {
 #endif
   void updateLeakyBucketFb303Counter(PortID portId, int value);
 
-  void enableAfeAdaptiveMode(PortID portId);
-
   phy::FecMode getFECMode(PortID portId) const;
 
   phy::InterfaceType getInterfaceType(PortID portID) const;
@@ -292,16 +298,33 @@ class SaiPortManager {
   bool rxFrequencyRPMSupported() const;
   bool rxSNRSupported() const;
   bool fecCodewordsStatsSupported(PortID portID) const;
-  // TODO(zecheng): Remove this once firmware support is ready
-  void updateConditionalEntropySeed(PortID portID, uint32_t seed) const;
+  void addPortShelEnable(const std::shared_ptr<Port>& swPort) const;
+  void changePortShelEnable(
+      const std::shared_ptr<Port>& oldPort,
+      const std::shared_ptr<Port>& newPort) const;
+  /**
+   * Increment the PFC deadlock detection counter for a given port.
+   *
+   * @param portId - The ID of the port for which the counter is to be
+   * incremented.
+   */
+  void incrementPfcDeadlockCounter(const PortID& portId);
+
+  /**
+   * Increment the PFC deadlock recovery counter for a given port.
+   *
+   * @param portId - The ID of the port for which the counter is to be
+   * incremented.
+   */
+  void incrementPfcRecoveryCounter(const PortID& portId);
 
  private:
   PortSaiId addPortImpl(const std::shared_ptr<Port>& swPort);
   void changePortImpl(
       const std::shared_ptr<Port>& oldPort,
       const std::shared_ptr<Port>& newPort);
-  void addRemovedHandle(PortID portID);
-  void removeRemovedHandleIf(PortID portID);
+  void addRemovedHandle(const PortID& portID);
+  void removeRemovedHandleIf(const PortID& portID);
   void releasePorts();
   void releasePortPfcBuffers();
 
@@ -371,8 +394,7 @@ class SaiPortManager {
       const bool portPfcWdEnabled);
   void programPfcWatchdogTimers(
       const std::shared_ptr<Port>& swPort,
-      std::vector<PfcPriority>& enabledPfcPriorities,
-      const bool portPfcWdEnabled);
+      std::vector<PfcPriority>& enabledPfcPriorities);
   void programPfcWatchdogPerQueueEnable(
       const std::shared_ptr<Port>& swPort,
       std::vector<PfcPriority>& enabledPfcPriorities,
@@ -438,6 +460,22 @@ class SaiPortManager {
   void changePortFlowletConfig(
       const std::shared_ptr<Port>& oldPort,
       const std::shared_ptr<Port>& newPort);
+  void clearPortFlowletConfig(const PortID& portId);
+
+  /**
+   * Enum to specify which PFC counter to increment.
+   */
+  enum class PfcCounterType { DEADLOCK, RECOVERY };
+
+  /**
+   * Increment the PFC counter for a given port and counter type.
+   *
+   * @param portId - The ID of the port for which the counter is to be
+   * incremented.
+   * @param counterType - The type of PFC counter to increment (DEADLOCK or
+   * RECOVERY).
+   */
+  void incrementPfcCounter(const PortID& portId, PfcCounterType counterType);
 
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;

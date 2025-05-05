@@ -42,6 +42,7 @@ void addL4DstPortAclToCfg(
     uint32_t l4DstPort);
 
 void addSetDscpAndEgressQueueActionToCfg(
+    const HwAsic* hwAsic,
     cfg::SwitchConfig* config,
     const std::string& aclName,
     uint8_t dscp,
@@ -87,11 +88,6 @@ void addQueueMatcher(
     int queueId,
     bool isSai,
     const std::optional<std::string>& counterName = std::nullopt);
-
-void addTrafficCounter(
-    cfg::SwitchConfig* config,
-    const std::string& counterName,
-    std::optional<std::vector<cfg::CounterType>> counterTypes);
 
 cfg::QosPolicy* addDscpQosPolicy(
     cfg::SwitchConfig* cfg,

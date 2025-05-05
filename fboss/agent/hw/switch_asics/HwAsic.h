@@ -123,7 +123,7 @@ class HwAsic {
     WARMBOOT,
     SHARED_INGRESS_EGRESS_BUFFER_POOL,
     ROUTE_METADATA,
-    FLOWLET,
+    ARS,
     P4_WARMBOOT,
     IN_PAUSE_INCREMENTS_DISCARDS,
     FEC_AM_LOCK_STATUS,
@@ -146,7 +146,7 @@ class HwAsic {
     VOQ_DELETE_COUNTER,
     DRAM_ENQUEUE_DEQUEUE_STATS,
     SEPARATE_BYTE_AND_PACKET_ACL_COUNTER,
-    FLOWLET_PORT_ATTRIBUTES,
+    ARS_PORT_ATTRIBUTES,
     SAI_EAPOL_TRAP,
     // pending CS00012311423
     L3_MTU_ERROR_TRAP,
@@ -195,12 +195,22 @@ class HwAsic {
     PORT_MTU_ERROR_TRAP,
     L3_INTF_MTU,
     DEDICATED_CPU_BUFFER_POOL,
-    EGRESS_ACL_TABLE,
+    INGRESS_POST_LOOKUP_ACL_TABLE,
     FAST_LLFC_COUNTER,
     INGRESS_SRAM_MIN_BUFFER_WATERMARK,
     FDR_FIFO_WATERMARK,
     EGRESS_CELL_ERROR_STATS,
     CPU_QUEUE_WATERMARK_STATS,
+    SAMPLE_RATE_CONFIG_PER_MIRROR,
+    SFLOW_SAMPLES_PACKING,
+    VENDOR_SWITCH_NOTIFICATION,
+    SDK_REGISTER_DUMP,
+    FEC_ERROR_DETECT_ENABLE,
+    BUFFER_POOL_HEADROOM_WATERMARK,
+    SAI_SET_TC_WITH_USER_DEFINED_TRAP_CPU_ACTION,
+    SAI_HOST_MISS_TRAP,
+    CPU_TX_PACKET_REQUIRES_VLAN_TAG,
+    DRAM_DATAPATH_PACKET_ERROR_STATS,
   };
 
   enum class AsicMode {
@@ -230,7 +240,9 @@ class HwAsic {
   static std::unique_ptr<HwAsic> makeAsic(
       std::optional<int64_t> switchID,
       const cfg::SwitchInfo& switchInfo,
-      std::optional<cfg::SdkVersion> sdkVersion);
+      std::optional<cfg::SdkVersion> sdkVersion,
+      std::optional<HwAsic::FabricNodeRole> fabricNodeRole);
+
   virtual bool isSupported(Feature) const = 0;
   virtual cfg::AsicType getAsicType() const = 0;
   std::string getAsicTypeStr() const;
@@ -250,10 +262,10 @@ class HwAsic {
   virtual uint64_t getMMUSizeBytes() const = 0;
   virtual uint32_t getMaxMirrors() const = 0;
   virtual uint16_t getMirrorTruncateSize() const = 0;
-  virtual uint64_t getDefaultReservedBytes(
+  virtual std::optional<uint64_t> getDefaultReservedBytes(
       cfg::StreamType streamType,
       cfg::PortType portType) const = 0;
-  virtual cfg::MMUScalingFactor getDefaultScalingFactor(
+  virtual std::optional<cfg::MMUScalingFactor> getDefaultScalingFactor(
       cfg::StreamType streamType,
       bool cpu) const = 0;
   virtual const std::map<cfg::PortType, cfg::PortLoopbackMode>&
@@ -262,6 +274,8 @@ class HwAsic {
     return false;
   }
   virtual FabricNodeRole getFabricNodeRole() const;
+  virtual const std::set<uint16_t>& getL1FabricPortsToConnectToL2() const;
+
   // Get the smallest packet buffer unit for ASIC, cell size for BCM
   virtual uint32_t getPacketBufferUnitSize() const = 0;
 
@@ -448,6 +462,11 @@ class HwAsic {
 
   virtual uint16_t getGreProtocol() const {
     return 0x88be;
+  }
+
+  // Applicable only when IP_IN_IP_DECAP feature is enabled.
+  virtual cfg::IpTunnelMode getTunnelDscpMode() const {
+    return cfg::IpTunnelMode::PIPE;
   }
 
  protected:

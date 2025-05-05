@@ -21,13 +21,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "controllerId": "1",
             "type": 1,
             "reset": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_1/xcvr_reset_1",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_1/xcvr_reset_1",
               "mask": 1,
               "gpioOffset": 0,
               "resetHoldHi": 1
             },
             "presence": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_1/xcvr_present_1",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_1/xcvr_present_1",
               "mask": 1,
               "gpioOffset": 0,
               "presentHoldHi": 0
@@ -37,7 +37,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
           "io": {
             "controllerId": "1",
             "type": 1,
-            "devicePath": "/run/devmap/i2c-busses/XCVR_1"
+            "devicePath": "/run/devmap/xcvrs/xcvr_io_1"
           },
           "tcvrLaneToLedId": {
             "1": 1,
@@ -56,13 +56,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "controllerId": "2",
             "type": 1,
             "reset": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_2/xcvr_reset_2",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_2/xcvr_reset_2",
               "mask": 1,
               "gpioOffset": 0,
               "resetHoldHi": 1
             },
             "presence": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_2/xcvr_present_2",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_2/xcvr_present_2",
               "mask": 1,
               "gpioOffset": 0,
               "presentHoldHi": 0
@@ -72,7 +72,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
           "io": {
             "controllerId": "2",
             "type": 1,
-            "devicePath": "/run/devmap/i2c-busses/XCVR_2"
+            "devicePath": "/run/devmap/xcvrs/xcvr_io_2"
           },
           "tcvrLaneToLedId": {
             "1": 3,
@@ -91,13 +91,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "controllerId": "3",
             "type": 1,
             "reset": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_3/xcvr_reset_3",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_3/xcvr_reset_3",
               "mask": 1,
               "gpioOffset": 0,
               "resetHoldHi": 1
             },
             "presence": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_3/xcvr_present_3",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_3/xcvr_present_3",
               "mask": 1,
               "gpioOffset": 0,
               "presentHoldHi": 0
@@ -107,7 +107,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
           "io": {
             "controllerId": "3",
             "type": 1,
-            "devicePath": "/run/devmap/i2c-busses/XCVR_3"
+            "devicePath": "/run/devmap/xcvrs/xcvr_io_3"
           },
           "tcvrLaneToLedId": {
             "1": 5,
@@ -126,13 +126,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "controllerId": "4",
             "type": 1,
             "reset": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_4/xcvr_reset_4",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_4/xcvr_reset_4",
               "mask": 1,
               "gpioOffset": 0,
               "resetHoldHi": 1
             },
             "presence": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_4/xcvr_present_4",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_4/xcvr_present_4",
               "mask": 1,
               "gpioOffset": 0,
               "presentHoldHi": 0
@@ -142,7 +142,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
           "io": {
             "controllerId": "4",
             "type": 1,
-            "devicePath": "/run/devmap/i2c-busses/XCVR_4"
+            "devicePath": "/run/devmap/xcvrs/xcvr_io_4"
           },
           "tcvrLaneToLedId": {
             "1": 7,
@@ -161,13 +161,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "controllerId": "5",
             "type": 1,
             "reset": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_5/xcvr_reset_5",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_5/xcvr_reset_5",
               "mask": 1,
               "gpioOffset": 0,
               "resetHoldHi": 1
             },
             "presence": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_5/xcvr_present_5",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_5/xcvr_present_5",
               "mask": 1,
               "gpioOffset": 0,
               "presentHoldHi": 0
@@ -177,7 +177,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
           "io": {
             "controllerId": "5",
             "type": 1,
-            "devicePath": "/run/devmap/i2c-busses/XCVR_5"
+            "devicePath": "/run/devmap/xcvrs/xcvr_io_5"
           },
           "tcvrLaneToLedId": {
             "1": 9,
@@ -196,13 +196,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "controllerId": "6",
             "type": 1,
             "reset": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_6/xcvr_reset_6",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_6/xcvr_reset_6",
               "mask": 1,
               "gpioOffset": 0,
               "resetHoldHi": 1
             },
             "presence": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_6/xcvr_present_6",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_6/xcvr_present_6",
               "mask": 1,
               "gpioOffset": 0,
               "presentHoldHi": 0
@@ -212,7 +212,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
           "io": {
             "controllerId": "6",
             "type": 1,
-            "devicePath": "/run/devmap/i2c-busses/XCVR_6"
+            "devicePath": "/run/devmap/xcvrs/xcvr_io_6"
           },
           "tcvrLaneToLedId": {
             "1": 11,
@@ -231,13 +231,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "controllerId": "7",
             "type": 1,
             "reset": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_7/xcvr_reset_7",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_7/xcvr_reset_7",
               "mask": 1,
               "gpioOffset": 0,
               "resetHoldHi": 1
             },
             "presence": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_7/xcvr_present_7",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_7/xcvr_present_7",
               "mask": 1,
               "gpioOffset": 0,
               "presentHoldHi": 0
@@ -247,7 +247,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
           "io": {
             "controllerId": "7",
             "type": 1,
-            "devicePath": "/run/devmap/i2c-busses/XCVR_7"
+            "devicePath": "/run/devmap/xcvrs/xcvr_io_7"
           },
           "tcvrLaneToLedId": {
             "1": 13,
@@ -266,13 +266,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "controllerId": "8",
             "type": 1,
             "reset": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_8/xcvr_reset_8",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_8/xcvr_reset_8",
               "mask": 1,
               "gpioOffset": 0,
               "resetHoldHi": 1
             },
             "presence": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_8/xcvr_present_8",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_8/xcvr_present_8",
               "mask": 1,
               "gpioOffset": 0,
               "presentHoldHi": 0
@@ -282,7 +282,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
           "io": {
             "controllerId": "8",
             "type": 1,
-            "devicePath": "/run/devmap/i2c-busses/XCVR_8"
+            "devicePath": "/run/devmap/xcvrs/xcvr_io_8"
           },
           "tcvrLaneToLedId": {
             "1": 15,
@@ -301,13 +301,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "controllerId": "9",
             "type": 1,
             "reset": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_9/xcvr_reset_9",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_9/xcvr_reset_9",
               "mask": 1,
               "gpioOffset": 0,
               "resetHoldHi": 1
             },
             "presence": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_9/xcvr_present_9",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_9/xcvr_present_9",
               "mask": 1,
               "gpioOffset": 0,
               "presentHoldHi": 0
@@ -317,7 +317,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
           "io": {
             "controllerId": "9",
             "type": 1,
-            "devicePath": "/run/devmap/i2c-busses/XCVR_9"
+            "devicePath": "/run/devmap/xcvrs/xcvr_io_9"
           },
           "tcvrLaneToLedId": {
             "1": 17,
@@ -336,13 +336,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "controllerId": "10",
             "type": 1,
             "reset": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_10/xcvr_reset_10",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_10/xcvr_reset_10",
               "mask": 1,
               "gpioOffset": 0,
               "resetHoldHi": 1
             },
             "presence": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_10/xcvr_present_10",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_10/xcvr_present_10",
               "mask": 1,
               "gpioOffset": 0,
               "presentHoldHi": 0
@@ -352,7 +352,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
           "io": {
             "controllerId": "10",
             "type": 1,
-            "devicePath": "/run/devmap/i2c-busses/XCVR_10"
+            "devicePath": "/run/devmap/xcvrs/xcvr_io_10"
           },
           "tcvrLaneToLedId": {
             "1": 19,
@@ -371,13 +371,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "controllerId": "11",
             "type": 1,
             "reset": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_11/xcvr_reset_11",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_11/xcvr_reset_11",
               "mask": 1,
               "gpioOffset": 0,
               "resetHoldHi": 1
             },
             "presence": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_11/xcvr_present_11",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_11/xcvr_present_11",
               "mask": 1,
               "gpioOffset": 0,
               "presentHoldHi": 0
@@ -387,7 +387,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
           "io": {
             "controllerId": "11",
             "type": 1,
-            "devicePath": "/run/devmap/i2c-busses/XCVR_11"
+            "devicePath": "/run/devmap/xcvrs/xcvr_io_11"
           },
           "tcvrLaneToLedId": {
             "1": 21,
@@ -406,13 +406,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "controllerId": "12",
             "type": 1,
             "reset": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_12/xcvr_reset_12",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_12/xcvr_reset_12",
               "mask": 1,
               "gpioOffset": 0,
               "resetHoldHi": 1
             },
             "presence": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_12/xcvr_present_12",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_12/xcvr_present_12",
               "mask": 1,
               "gpioOffset": 0,
               "presentHoldHi": 0
@@ -422,7 +422,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
           "io": {
             "controllerId": "12",
             "type": 1,
-            "devicePath": "/run/devmap/i2c-busses/XCVR_12"
+            "devicePath": "/run/devmap/xcvrs/xcvr_io_12"
           },
           "tcvrLaneToLedId": {
             "1": 23,
@@ -441,13 +441,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "controllerId": "13",
             "type": 1,
             "reset": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_13/xcvr_reset_13",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_13/xcvr_reset_13",
               "mask": 1,
               "gpioOffset": 0,
               "resetHoldHi": 1
             },
             "presence": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_13/xcvr_present_13",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_13/xcvr_present_13",
               "mask": 1,
               "gpioOffset": 0,
               "presentHoldHi": 0
@@ -457,7 +457,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
           "io": {
             "controllerId": "13",
             "type": 1,
-            "devicePath": "/run/devmap/i2c-busses/XCVR_13"
+            "devicePath": "/run/devmap/xcvrs/xcvr_io_13"
           },
           "tcvrLaneToLedId": {
             "1": 25,
@@ -476,13 +476,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "controllerId": "14",
             "type": 1,
             "reset": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_14/xcvr_reset_14",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_14/xcvr_reset_14",
               "mask": 1,
               "gpioOffset": 0,
               "resetHoldHi": 1
             },
             "presence": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_14/xcvr_present_14",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_14/xcvr_present_14",
               "mask": 1,
               "gpioOffset": 0,
               "presentHoldHi": 0
@@ -492,7 +492,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
           "io": {
             "controllerId": "14",
             "type": 1,
-            "devicePath": "/run/devmap/i2c-busses/XCVR_14"
+            "devicePath": "/run/devmap/xcvrs/xcvr_io_14"
           },
           "tcvrLaneToLedId": {
             "1": 27,
@@ -511,13 +511,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "controllerId": "15",
             "type": 1,
             "reset": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_15/xcvr_reset_15",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_15/xcvr_reset_15",
               "mask": 1,
               "gpioOffset": 0,
               "resetHoldHi": 1
             },
             "presence": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_15/xcvr_present_15",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_15/xcvr_present_15",
               "mask": 1,
               "gpioOffset": 0,
               "presentHoldHi": 0
@@ -527,7 +527,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
           "io": {
             "controllerId": "15",
             "type": 1,
-            "devicePath": "/run/devmap/i2c-busses/XCVR_15"
+            "devicePath": "/run/devmap/xcvrs/xcvr_io_15"
           },
           "tcvrLaneToLedId": {
             "1": 29,
@@ -546,13 +546,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "controllerId": "16",
             "type": 1,
             "reset": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_16/xcvr_reset_16",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_16/xcvr_reset_16",
               "mask": 1,
               "gpioOffset": 0,
               "resetHoldHi": 1
             },
             "presence": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_16/xcvr_present_16",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_16/xcvr_present_16",
               "mask": 1,
               "gpioOffset": 0,
               "presentHoldHi": 0
@@ -562,7 +562,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
           "io": {
             "controllerId": "16",
             "type": 1,
-            "devicePath": "/run/devmap/i2c-busses/XCVR_16"
+            "devicePath": "/run/devmap/xcvrs/xcvr_io_16"
           },
           "tcvrLaneToLedId": {
             "1": 31,
@@ -581,13 +581,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "controllerId": "17",
             "type": 1,
             "reset": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_17/xcvr_reset_17",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_17/xcvr_reset_17",
               "mask": 1,
               "gpioOffset": 0,
               "resetHoldHi": 1
             },
             "presence": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_17/xcvr_present_17",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_17/xcvr_present_17",
               "mask": 1,
               "gpioOffset": 0,
               "presentHoldHi": 0
@@ -597,7 +597,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
           "io": {
             "controllerId": "17",
             "type": 1,
-            "devicePath": "/run/devmap/i2c-busses/XCVR_17"
+            "devicePath": "/run/devmap/xcvrs/xcvr_io_17"
           },
           "tcvrLaneToLedId": {
             "1": 33,
@@ -616,13 +616,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "controllerId": "18",
             "type": 1,
             "reset": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_18/xcvr_reset_18",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_18/xcvr_reset_18",
               "mask": 1,
               "gpioOffset": 0,
               "resetHoldHi": 1
             },
             "presence": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_18/xcvr_present_18",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_18/xcvr_present_18",
               "mask": 1,
               "gpioOffset": 0,
               "presentHoldHi": 0
@@ -632,7 +632,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
           "io": {
             "controllerId": "18",
             "type": 1,
-            "devicePath": "/run/devmap/i2c-busses/XCVR_18"
+            "devicePath": "/run/devmap/xcvrs/xcvr_io_18"
           },
           "tcvrLaneToLedId": {
             "1": 35,
@@ -651,13 +651,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "controllerId": "19",
             "type": 1,
             "reset": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_19/xcvr_reset_19",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_19/xcvr_reset_19",
               "mask": 1,
               "gpioOffset": 0,
               "resetHoldHi": 1
             },
             "presence": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_19/xcvr_present_19",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_19/xcvr_present_19",
               "mask": 1,
               "gpioOffset": 0,
               "presentHoldHi": 0
@@ -667,7 +667,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
           "io": {
             "controllerId": "19",
             "type": 1,
-            "devicePath": "/run/devmap/i2c-busses/XCVR_19"
+            "devicePath": "/run/devmap/xcvrs/xcvr_io_19"
           },
           "tcvrLaneToLedId": {
             "1": 37,
@@ -686,13 +686,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "controllerId": "20",
             "type": 1,
             "reset": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_20/xcvr_reset_20",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_20/xcvr_reset_20",
               "mask": 1,
               "gpioOffset": 0,
               "resetHoldHi": 1
             },
             "presence": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_20/xcvr_present_20",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_20/xcvr_present_20",
               "mask": 1,
               "gpioOffset": 0,
               "presentHoldHi": 0
@@ -702,7 +702,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
           "io": {
             "controllerId": "20",
             "type": 1,
-            "devicePath": "/run/devmap/i2c-busses/XCVR_20"
+            "devicePath": "/run/devmap/xcvrs/xcvr_io_20"
           },
           "tcvrLaneToLedId": {
             "1": 39,
@@ -721,13 +721,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "controllerId": "21",
             "type": 1,
             "reset": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_21/xcvr_reset_21",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_21/xcvr_reset_21",
               "mask": 1,
               "gpioOffset": 0,
               "resetHoldHi": 1
             },
             "presence": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_21/xcvr_present_21",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_21/xcvr_present_21",
               "mask": 1,
               "gpioOffset": 0,
               "presentHoldHi": 0
@@ -737,7 +737,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
           "io": {
             "controllerId": "21",
             "type": 1,
-            "devicePath": "/run/devmap/i2c-busses/XCVR_21"
+            "devicePath": "/run/devmap/xcvrs/xcvr_io_21"
           },
           "tcvrLaneToLedId": {
             "1": 41,
@@ -756,13 +756,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "controllerId": "22",
             "type": 1,
             "reset": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_22/xcvr_reset_22",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_22/xcvr_reset_22",
               "mask": 1,
               "gpioOffset": 0,
               "resetHoldHi": 1
             },
             "presence": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_22/xcvr_present_22",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_22/xcvr_present_22",
               "mask": 1,
               "gpioOffset": 0,
               "presentHoldHi": 0
@@ -772,7 +772,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
           "io": {
             "controllerId": "22",
             "type": 1,
-            "devicePath": "/run/devmap/i2c-busses/XCVR_22"
+            "devicePath": "/run/devmap/xcvrs/xcvr_io_22"
           },
           "tcvrLaneToLedId": {
             "1": 43,
@@ -791,13 +791,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "controllerId": "23",
             "type": 1,
             "reset": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_23/xcvr_reset_23",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_23/xcvr_reset_23",
               "mask": 1,
               "gpioOffset": 0,
               "resetHoldHi": 1
             },
             "presence": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_23/xcvr_present_23",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_23/xcvr_present_23",
               "mask": 1,
               "gpioOffset": 0,
               "presentHoldHi": 0
@@ -807,7 +807,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
           "io": {
             "controllerId": "23",
             "type": 1,
-            "devicePath": "/run/devmap/i2c-busses/XCVR_23"
+            "devicePath": "/run/devmap/xcvrs/xcvr_io_23"
           },
           "tcvrLaneToLedId": {
             "1": 45,
@@ -826,13 +826,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "controllerId": "24",
             "type": 1,
             "reset": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_24/xcvr_reset_24",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_24/xcvr_reset_24",
               "mask": 1,
               "gpioOffset": 0,
               "resetHoldHi": 1
             },
             "presence": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_24/xcvr_present_24",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_24/xcvr_present_24",
               "mask": 1,
               "gpioOffset": 0,
               "presentHoldHi": 0
@@ -842,7 +842,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
           "io": {
             "controllerId": "24",
             "type": 1,
-            "devicePath": "/run/devmap/i2c-busses/XCVR_24"
+            "devicePath": "/run/devmap/xcvrs/xcvr_io_24"
           },
           "tcvrLaneToLedId": {
             "1": 47,
@@ -861,13 +861,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "controllerId": "25",
             "type": 1,
             "reset": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_25/xcvr_reset_25",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_25/xcvr_reset_25",
               "mask": 1,
               "gpioOffset": 0,
               "resetHoldHi": 1
             },
             "presence": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_25/xcvr_present_25",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_25/xcvr_present_25",
               "mask": 1,
               "gpioOffset": 0,
               "presentHoldHi": 0
@@ -877,7 +877,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
           "io": {
             "controllerId": "25",
             "type": 1,
-            "devicePath": "/run/devmap/i2c-busses/XCVR_25"
+            "devicePath": "/run/devmap/xcvrs/xcvr_io_25"
           },
           "tcvrLaneToLedId": {
             "1": 49,
@@ -896,13 +896,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "controllerId": "26",
             "type": 1,
             "reset": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_26/xcvr_reset_26",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_26/xcvr_reset_26",
               "mask": 1,
               "gpioOffset": 0,
               "resetHoldHi": 1
             },
             "presence": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_26/xcvr_present_26",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_26/xcvr_present_26",
               "mask": 1,
               "gpioOffset": 0,
               "presentHoldHi": 0
@@ -912,7 +912,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
           "io": {
             "controllerId": "26",
             "type": 1,
-            "devicePath": "/run/devmap/i2c-busses/XCVR_26"
+            "devicePath": "/run/devmap/xcvrs/xcvr_io_26"
           },
           "tcvrLaneToLedId": {
             "1": 51,
@@ -931,13 +931,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "controllerId": "27",
             "type": 1,
             "reset": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_27/xcvr_reset_27",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_27/xcvr_reset_27",
               "mask": 1,
               "gpioOffset": 0,
               "resetHoldHi": 1
             },
             "presence": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_27/xcvr_present_27",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_27/xcvr_present_27",
               "mask": 1,
               "gpioOffset": 0,
               "presentHoldHi": 0
@@ -947,7 +947,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
           "io": {
             "controllerId": "27",
             "type": 1,
-            "devicePath": "/run/devmap/i2c-busses/XCVR_27"
+            "devicePath": "/run/devmap/xcvrs/xcvr_io_27"
           },
           "tcvrLaneToLedId": {
             "1": 53,
@@ -966,13 +966,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "controllerId": "28",
             "type": 1,
             "reset": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_28/xcvr_reset_28",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_28/xcvr_reset_28",
               "mask": 1,
               "gpioOffset": 0,
               "resetHoldHi": 1
             },
             "presence": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_28/xcvr_present_28",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_28/xcvr_present_28",
               "mask": 1,
               "gpioOffset": 0,
               "presentHoldHi": 0
@@ -982,7 +982,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
           "io": {
             "controllerId": "28",
             "type": 1,
-            "devicePath": "/run/devmap/i2c-busses/XCVR_28"
+            "devicePath": "/run/devmap/xcvrs/xcvr_io_28"
           },
           "tcvrLaneToLedId": {
             "1": 55,
@@ -1001,13 +1001,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "controllerId": "29",
             "type": 1,
             "reset": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_29/xcvr_reset_29",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_29/xcvr_reset_29",
               "mask": 1,
               "gpioOffset": 0,
               "resetHoldHi": 1
             },
             "presence": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_29/xcvr_present_29",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_29/xcvr_present_29",
               "mask": 1,
               "gpioOffset": 0,
               "presentHoldHi": 0
@@ -1017,7 +1017,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
           "io": {
             "controllerId": "29",
             "type": 1,
-            "devicePath": "/run/devmap/i2c-busses/XCVR_29"
+            "devicePath": "/run/devmap/xcvrs/xcvr_io_29"
           },
           "tcvrLaneToLedId": {
             "1": 57,
@@ -1036,13 +1036,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "controllerId": "30",
             "type": 1,
             "reset": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_30/xcvr_reset_30",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_30/xcvr_reset_30",
               "mask": 1,
               "gpioOffset": 0,
               "resetHoldHi": 1
             },
             "presence": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_30/xcvr_present_30",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_30/xcvr_present_30",
               "mask": 1,
               "gpioOffset": 0,
               "presentHoldHi": 0
@@ -1052,7 +1052,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
           "io": {
             "controllerId": "30",
             "type": 1,
-            "devicePath": "/run/devmap/i2c-busses/XCVR_30"
+            "devicePath": "/run/devmap/xcvrs/xcvr_io_30"
           },
           "tcvrLaneToLedId": {
             "1": 59,
@@ -1071,13 +1071,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "controllerId": "31",
             "type": 1,
             "reset": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_31/xcvr_reset_31",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_31/xcvr_reset_31",
               "mask": 1,
               "gpioOffset": 0,
               "resetHoldHi": 1
             },
             "presence": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_31/xcvr_present_31",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_31/xcvr_present_31",
               "mask": 1,
               "gpioOffset": 0,
               "presentHoldHi": 0
@@ -1087,7 +1087,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
           "io": {
             "controllerId": "31",
             "type": 1,
-            "devicePath": "/run/devmap/i2c-busses/XCVR_31"
+            "devicePath": "/run/devmap/xcvrs/xcvr_io_31"
           },
           "tcvrLaneToLedId": {
             "1": 61,
@@ -1106,13 +1106,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "controllerId": "32",
             "type": 1,
             "reset": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_32/xcvr_reset_32",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_32/xcvr_reset_32",
               "mask": 1,
               "gpioOffset": 0,
               "resetHoldHi": 1
             },
             "presence": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_32/xcvr_present_32",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_32/xcvr_present_32",
               "mask": 1,
               "gpioOffset": 0,
               "presentHoldHi": 0
@@ -1122,7 +1122,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
           "io": {
             "controllerId": "32",
             "type": 1,
-            "devicePath": "/run/devmap/i2c-busses/XCVR_32"
+            "devicePath": "/run/devmap/xcvrs/xcvr_io_32"
           },
           "tcvrLaneToLedId": {
             "1": 63,
@@ -1141,13 +1141,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "controllerId": "33",
             "type": 1,
             "reset": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_33/xcvr_reset_33",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_33/xcvr_reset_33",
               "mask": 1,
               "gpioOffset": 0,
               "resetHoldHi": 1
             },
             "presence": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_33/xcvr_present_33",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_33/xcvr_present_33",
               "mask": 1,
               "gpioOffset": 0,
               "presentHoldHi": 0
@@ -1157,7 +1157,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
           "io": {
             "controllerId": "33",
             "type": 1,
-            "devicePath": "/run/devmap/i2c-busses/XCVR_33"
+            "devicePath": "/run/devmap/xcvrs/xcvr_io_33"
           },
           "tcvrLaneToLedId": {
             "1": 65,

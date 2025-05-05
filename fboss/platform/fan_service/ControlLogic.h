@@ -3,6 +3,7 @@
 #pragma once
 
 #include "fboss/platform/fan_service/Bsp.h"
+#include "fboss/platform/fan_service/OvertempCondition.h"
 #include "fboss/platform/fan_service/PidLogic.h"
 #include "fboss/platform/fan_service/SensorData.h"
 #include "fboss/platform/fan_service/if/gen-cpp2/fan_service_types.h"
@@ -54,6 +55,8 @@ class ControlLogic {
 
  private:
   const FanServiceConfig config_;
+  OvertempCondition overtempCondition_;
+  std::vector<std::string> overtempWatchList_;
   std::shared_ptr<Bsp> pBsp_;
   std::shared_ptr<SensorData> pSensor_;
   // Internal variable storing the number of failed sensors and fans

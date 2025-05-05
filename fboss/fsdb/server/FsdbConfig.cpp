@@ -79,7 +79,7 @@ FsdbConfig::getSubscriberConfig(const SubscriberId& id) const {
 
   // fallback: id contains :<ConfiguredSubscriberIdSubstring>
   for (const auto& [key, value] : *subscribers) {
-    if ((key.rfind(":") != std::string::npos) &&
+    if ((key.rfind(':') != std::string::npos) &&
         (id.find(key) != std::string::npos)) {
       return std::
           pair<SubscriberId, std::reference_wrapper<const SubscriberConfig>>(

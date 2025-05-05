@@ -44,21 +44,21 @@ class CmdShowAggregatePort
   }
 
   void printOutput(const RetType& model, std::ostream& out = std::cout) {
-    for (const auto& entry : model.get_aggregatePortEntries()) {
-      out << fmt::format("\nPort name: {}\n", entry.get_name());
-      out << fmt::format("Description: {}\n", entry.get_description());
+    for (const auto& entry : model.aggregatePortEntries().value()) {
+      out << fmt::format("\nPort name: {}\n", entry.name().value());
+      out << fmt::format("Description: {}\n", entry.description().value());
       out << fmt::format(
           "Active members/Configured members/Min members: {}/{}/{}\n",
-          entry.get_activeMembers(),
-          entry.get_configuredMembers(),
-          entry.get_minMembers());
-      for (const auto& member : entry.get_members()) {
+          folly::copy(entry.activeMembers().value()),
+          folly::copy(entry.configuredMembers().value()),
+          folly::copy(entry.minMembers().value()));
+      for (const auto& member : entry.members().value()) {
         out << fmt::format(
             "\t Member: {:>10}, id: {:>3}, Up: {:>5}, Rate: {}\n",
-            member.get_name(),
-            member.get_id(),
-            member.get_isUp() ? "True" : "False",
-            member.get_lacpRate());
+            member.name().value(),
+            folly::copy(member.id().value()),
+            folly::copy(member.isUp().value()) ? "True" : "False",
+            member.lacpRate().value());
       }
     }
   }

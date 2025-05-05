@@ -15,6 +15,7 @@ cpp_library(
         "//thrift/lib/cpp2/folly_dynamic:folly_dynamic",
         "//thrift/lib/cpp2/protocol:protocol",
         "//thrift/lib/cpp2/protocol/detail:protocol_methods",
+        "//thrift/lib/cpp2/reflection:reflection",
     ],
 )
 

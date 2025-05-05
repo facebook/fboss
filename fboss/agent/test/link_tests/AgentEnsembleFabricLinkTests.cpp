@@ -38,11 +38,12 @@ class AgentFabricLinkTest : public AgentEnsembleLinkTest {
 };
 
 TEST_F(AgentFabricLinkTest, linkActiveAndLoopStatus) {
-  auto checkActiveStatus = [this]() {
+  auto connectedPairs = getConnectedPairs();
+  auto checkActiveStatus = [this, &connectedPairs]() {
     WITH_RETRIES({
       for (const auto& portId : getCabledFabricPorts()) {
         auto port = getSw()->getState()->getPort(portId);
-        auto peerPortId = getPeerPortID(port->getID());
+        auto peerPortId = getPeerPortID(port->getID(), connectedPairs);
         CHECK(peerPortId.has_value());
         auto peerPort = getSw()->getState()->getPort(peerPortId.value());
         auto isDrained = port->isDrained() || peerPort->isDrained();
@@ -87,11 +88,10 @@ TEST_F(AgentFabricLinkTest, linkActiveAndLoopStatus) {
       }
     });
   };
-  auto setup = [this, checkActiveStatus, checkLoopStatus]() {
+  auto setup = [this, checkActiveStatus, checkLoopStatus, &connectedPairs]() {
     checkLoopStatus();
     checkActiveStatus();
-    auto connectedPairs = getConnectedPairs();
-    for (const auto& portPair : getConnectedPairs()) {
+    for (const auto& portPair : connectedPairs) {
       auto port = getSw()->getState()->getPort(portPair.first);
       if (port->getPortType() == cfg::PortType::FABRIC_PORT) {
         auto cfg = getSw()->getConfig();

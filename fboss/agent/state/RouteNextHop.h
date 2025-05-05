@@ -68,6 +68,14 @@ struct INextHop {
       return folly::poly_call<4>(*this);
     }
 
+    std::optional<NextHopWeight> adjustedWeight() const {
+      return folly::poly_call<5>(*this);
+    }
+
+    std::optional<NetworkTopologyInformation> topologyInfo() const {
+      return folly::poly_call<6>(*this);
+    }
+
     bool isResolved() const {
       return intfID().has_value();
     }
@@ -109,6 +117,12 @@ struct INextHop {
       if (auto value = disableTTLDecrement()) {
         nht.disableTTLDecrement() = value.value();
       }
+      if (auto value = adjustedWeight()) {
+        nht.adjustedWeight() = value.value();
+      }
+      if (auto value = topologyInfo()) {
+        nht.topologyInfo() = value.value();
+      }
       return nht;
     }
 
@@ -130,7 +144,9 @@ struct INextHop {
       &T::addr,
       &T::weight,
       &T::labelForwardingAction,
-      &T::disableTTLDecrement);
+      &T::disableTTLDecrement,
+      &T::adjustedWeight,
+      &T::topologyInfo);
 };
 
 using NextHop = folly::Poly<INextHop>;
@@ -152,23 +168,33 @@ class ResolvedNextHop {
       InterfaceID intfID,
       const NextHopWeight& weight,
       const std::optional<LabelForwardingAction>& action = std::nullopt,
-      const std::optional<bool>& disableTTLDecrement = std::nullopt)
+      const std::optional<bool>& disableTTLDecrement = std::nullopt,
+      const std::optional<NetworkTopologyInformation>& topologyInfo =
+          std::nullopt,
+      const std::optional<NextHopWeight>& adjustedWeight = std::nullopt)
       : addr_(addr),
         intfID_(intfID),
         weight_(weight),
         labelForwardingAction_(action),
-        disableTTLDecrement_(disableTTLDecrement) {}
+        disableTTLDecrement_(disableTTLDecrement),
+        topologyInfo_(topologyInfo),
+        adjustedWeight_(adjustedWeight) {}
   ResolvedNextHop(
       folly::IPAddress&& addr,
       InterfaceID intfID,
       const NextHopWeight& weight,
       std::optional<LabelForwardingAction>&& action = std::nullopt,
-      std::optional<bool>&& disableTTLDecrement = std::nullopt)
+      std::optional<bool>&& disableTTLDecrement = std::nullopt,
+      const std::optional<NetworkTopologyInformation>&& topologyInfo =
+          std::nullopt,
+      const std::optional<NextHopWeight>& adjustedWeight = std::nullopt)
       : addr_(std::move(addr)),
         intfID_(intfID),
         weight_(weight),
         labelForwardingAction_(std::move(action)),
-        disableTTLDecrement_(std::move(disableTTLDecrement)) {}
+        disableTTLDecrement_(disableTTLDecrement),
+        topologyInfo_(topologyInfo),
+        adjustedWeight_(adjustedWeight) {}
   std::optional<InterfaceID> intfID() const {
     return intfID_;
   }
@@ -189,12 +215,30 @@ class ResolvedNextHop {
     disableTTLDecrement_ = disableTTLDecrement;
   }
 
+  std::optional<NextHopWeight> adjustedWeight() const {
+    return adjustedWeight_;
+  }
+
+  void setAdjustedWeight(std::optional<NextHopWeight> weight) {
+    adjustedWeight_ = weight;
+  }
+
+  std::optional<NetworkTopologyInformation> topologyInfo() const {
+    return topologyInfo_;
+  }
+
+  void setTopologyInfo(std::optional<NetworkTopologyInformation> topologyInfo) {
+    topologyInfo_ = topologyInfo;
+  }
+
  private:
   folly::IPAddress addr_;
   InterfaceID intfID_;
   NextHopWeight weight_;
   std::optional<LabelForwardingAction> labelForwardingAction_;
   std::optional<bool> disableTTLDecrement_{};
+  std::optional<NetworkTopologyInformation> topologyInfo_;
+  std::optional<NextHopWeight> adjustedWeight_{};
 };
 
 bool operator==(const ResolvedNextHop& a, const ResolvedNextHop& b);
@@ -204,11 +248,19 @@ class UnresolvedNextHop {
   UnresolvedNextHop(
       const folly::IPAddress& addr,
       const NextHopWeight& weight,
-      const std::optional<LabelForwardingAction>& action = std::nullopt);
+      const std::optional<LabelForwardingAction>& action = std::nullopt,
+      const std::optional<bool>& disableTTLDecrement = std::nullopt,
+      const std::optional<NetworkTopologyInformation>& topologyInfo =
+          std::nullopt,
+      const std::optional<NextHopWeight>& adjustedWeight = std::nullopt);
   UnresolvedNextHop(
       folly::IPAddress&& addr,
       const NextHopWeight& weight,
-      std::optional<LabelForwardingAction>&& action = std::nullopt);
+      std::optional<LabelForwardingAction>&& action = std::nullopt,
+      std::optional<bool>&& disableTTLDecrement = std::nullopt,
+      const std::optional<NetworkTopologyInformation>&& topologyInfo =
+          std::nullopt,
+      const std::optional<NextHopWeight>& adjustedWeight = std::nullopt);
   std::optional<InterfaceID> intfID() const {
     return std::nullopt;
   }
@@ -222,13 +274,22 @@ class UnresolvedNextHop {
     return labelForwardingAction_;
   }
   std::optional<bool> disableTTLDecrement() const {
-    return std::nullopt;
+    return disableTTLDecrement_;
+  }
+  std::optional<NetworkTopologyInformation> topologyInfo() const {
+    return topologyInfo_;
+  }
+  std::optional<NextHopWeight> adjustedWeight() const {
+    return adjustedWeight_;
   }
 
  private:
   folly::IPAddress addr_;
   NextHopWeight weight_;
   std::optional<LabelForwardingAction> labelForwardingAction_;
+  std::optional<bool> disableTTLDecrement_{};
+  std::optional<NetworkTopologyInformation> topologyInfo_{};
+  std::optional<NextHopWeight> adjustedWeight_{};
 };
 
 bool operator==(const UnresolvedNextHop& a, const UnresolvedNextHop& b);

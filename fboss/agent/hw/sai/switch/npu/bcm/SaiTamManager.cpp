@@ -20,6 +20,7 @@ extern "C" {
 
 namespace {
 using facebook::fboss::FbossError;
+using facebook::fboss::cfg::MirrorOnDropAgingGroup;
 using facebook::fboss::cfg::MirrorOnDropReasonAggregation;
 
 // Must be less than BRCM_SAI_DNX_MOD_MAX_SUPP_AGE_TIME (776 on J3).
@@ -130,10 +131,78 @@ std::vector<sai_int32_t> getMirrorOnDropReasonsFromAggregation(
   return allReasons;
 }
 
+sai_tam_event_aging_group_type_t getMirrorOnDropAgingGroupType(
+    MirrorOnDropAgingGroup group) {
+  switch (group) {
+    case MirrorOnDropAgingGroup::PORT:
+      return SAI_TAM_EVENT_AGING_GROUP_TYPE_PORT;
+    case MirrorOnDropAgingGroup::PRIORITY_GROUP:
+      return SAI_TAM_EVENT_AGING_GROUP_TYPE_PRIORITY_GROUP;
+    case MirrorOnDropAgingGroup::VOQ:
+      return SAI_TAM_EVENT_AGING_GROUP_TYPE_VOQ;
+    case MirrorOnDropAgingGroup::GLOBAL:
+    default:
+      return SAI_TAM_EVENT_AGING_GROUP_TYPE_GLOBAL;
+  }
+}
+
 } // namespace
 #endif
 
 namespace facebook::fboss {
+
+namespace {
+
+std::vector<sai_object_id_t> getSwitchTamIds(
+    folly::F14FastMap<std::string, std::unique_ptr<SaiTamHandle>>& tamHandles) {
+  std::vector<sai_object_id_t> switchTamIds;
+  for (const auto& [_, tamHandle] : tamHandles) {
+    switchTamIds.push_back(tamHandle->tam->adapterKey());
+  }
+  return switchTamIds;
+}
+
+std::vector<sai_object_id_t> getPortTamIds(
+    folly::F14FastMap<std::string, std::unique_ptr<SaiTamHandle>>& tamHandles,
+    PortID portId) {
+  std::vector<sai_object_id_t> portTamIds;
+  for (const auto& [_, tamHandle] : tamHandles) {
+    if (tamHandle->portId == portId) {
+      portTamIds.push_back(tamHandle->tam->adapterKey());
+    }
+  }
+  return portTamIds;
+}
+
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+void bindTamObjectToSwitchAndPort(
+    SaiManagerTable* managerTable,
+    folly::F14FastMap<std::string, std::unique_ptr<SaiTamHandle>>& tamHandles,
+    sai_object_id_t tamId,
+    PortID portId) {
+  // Bind MOD port before binding to the switch, according to Broadcom example.
+  XLOG(INFO) << "Binding TAM object " << tamId << " to port " << portId;
+  managerTable->portManager().setTamObject(
+      portId, getPortTamIds(tamHandles, portId));
+  XLOG(INFO) << "Binding TAM object " << tamId << " to switch";
+  managerTable->switchManager().setTamObject(getSwitchTamIds(tamHandles));
+}
+#endif
+
+void unbindTamObjectFromSwitchAndPort(
+    SaiManagerTable* managerTable,
+    folly::F14FastMap<std::string, std::unique_ptr<SaiTamHandle>>& tamHandles,
+    sai_object_id_t tamId,
+    PortID portId) {
+  // This must be the reverse of binding.
+  XLOG(INFO) << "Unbinding TAM object " << tamId << " from switch";
+  managerTable->switchManager().setTamObject(getSwitchTamIds(tamHandles));
+  XLOG(INFO) << "Unbinding TAM object " << tamId << " from port " << portId;
+  managerTable->portManager().setTamObject(
+      portId, getPortTamIds(tamHandles, portId));
+}
+
+} // namespace
 
 SaiTamManager::SaiTamManager(
     SaiStore* saiStore,
@@ -190,9 +259,9 @@ void SaiTamManager::addMirrorOnDropReport(
   std::vector<std::shared_ptr<SaiTamEventAgingGroup>> agingGroups;
   std::vector<std::shared_ptr<SaiTamEvent>> events;
   std::vector<sai_object_id_t> eventIds;
-  for (const auto& [eventId, reasonAggs] :
-       report->getEventIdToDropReasonAggregations()) {
-    auto reasons = getMirrorOnDropReasonsFromAggregation(reasonAggs);
+  for (const auto& [eventId, eventCfg] : report->getModEventToConfigMap()) {
+    auto reasons = getMirrorOnDropReasonsFromAggregation(
+        *eventCfg.dropReasonAggregations());
     if (reasons.empty()) {
       XLOG(WARN) << "No mirror on drop reasons specified for event " << eventId;
       continue;
@@ -200,10 +269,15 @@ void SaiTamManager::addMirrorOnDropReport(
 
     // Create aging group
     auto& agingGroupStore = saiStore_->get<SaiTamEventAgingGroupTraits>();
-    sai_uint16_t agingInterval =
-        report->getAgingIntervalUsecs().value_or(kDefaultAgingIntervalUsecs);
+    auto groupType =
+        eventCfg.agingGroup().value_or(cfg::MirrorOnDropAgingGroup::GLOBAL);
+    auto agingIntervals = report->getAgingGroupAgingIntervalUsecs();
+    auto agingTimeIt = agingIntervals.find(groupType);
+    sai_uint32_t agingTime = agingTimeIt == agingIntervals.end()
+        ? kDefaultAgingIntervalUsecs
+        : agingTimeIt->second;
     auto agingGroupTraits = SaiTamEventAgingGroupTraits::CreateAttributes{
-        SAI_TAM_EVENT_AGING_GROUP_TYPE_VOQ, agingInterval};
+        getMirrorOnDropAgingGroupType(groupType), agingTime};
     auto agingGroup =
         agingGroupStore.setObject(agingGroupTraits, agingGroupTraits);
     agingGroups.push_back(agingGroup);
@@ -255,10 +329,8 @@ void SaiTamManager::addMirrorOnDropReport(
   tamHandle->portId = report->getMirrorPortId();
   tamHandles_.emplace(report->getID(), std::move(tamHandle));
 
-  // Associate TAM with port
-  XLOG(INFO) << "Associating TAM object " << tam->adapterKey()
-             << " with switch and port " << report->getMirrorPortId();
-  updateTamObjectOnSwitchAndPort(report->getMirrorPortId());
+  bindTamObjectToSwitchAndPort(
+      managerTable_, tamHandles_, tam->adapterKey(), report->getMirrorPortId());
 #endif
 }
 
@@ -269,9 +341,11 @@ void SaiTamManager::removeMirrorOnDropReport(
   tamHandles_.erase(report->getID());
 
   // Unbind the TAM object from port and switch before letting it destruct.
-  XLOG(INFO) << "Unassociating TAM object " << handle->tam->adapterKey()
-             << " from switch and port " << report->getMirrorPortId();
-  updateTamObjectOnSwitchAndPort(handle->portId);
+  unbindTamObjectFromSwitchAndPort(
+      managerTable_,
+      tamHandles_,
+      handle->tam->adapterKey(),
+      report->getMirrorPortId());
 }
 
 void SaiTamManager::changeMirrorOnDropReport(
@@ -287,19 +361,6 @@ std::vector<PortID> SaiTamManager::getAllMirrorOnDropPortIds() {
     portIds.push_back(tamHandle->portId);
   }
   return portIds;
-}
-
-void SaiTamManager::updateTamObjectOnSwitchAndPort(PortID portId) {
-  std::vector<sai_object_id_t> portTamIds;
-  std::vector<sai_object_id_t> switchTamIds;
-  for (const auto& [_, tamHandle] : tamHandles_) {
-    if (tamHandle->portId == portId) {
-      portTamIds.push_back(tamHandle->tam->adapterKey());
-    }
-    switchTamIds.push_back(tamHandle->tam->adapterKey());
-  }
-  managerTable_->portManager().setTamObject(portId, portTamIds);
-  managerTable_->switchManager().setTamObject(switchTamIds);
 }
 
 } // namespace facebook::fboss

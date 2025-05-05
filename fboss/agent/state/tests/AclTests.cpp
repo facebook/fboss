@@ -535,7 +535,7 @@ TEST(Acl, AclGeneration) {
   preparedMockPortConfig(config.ports()[0], 1);
   preparedMockPortConfig(config.ports()[1], 2);
 
-  config.acls()->resize(6);
+  config.acls()->resize(7);
   *config.acls()[0].name() = "acl1";
   *config.acls()[0].actionType() = cfg::AclActionType::DENY;
   config.acls()[0].srcIp() = "192.168.0.1";
@@ -554,10 +554,13 @@ TEST(Acl, AclGeneration) {
   *config.acls()[5].name() = "acl6";
   config.acls()[5].proto() = kUdpProto;
   config.acls()[5].l4DstPort() = kUdpDstPort;
+  *config.acls()[6].name() = "acl7";
+  config.acls()[6].proto() = kUdpProto;
+  config.acls()[6].l4DstPort() = 1024;
 
   config.dataPlaneTrafficPolicy() = cfg::TrafficPolicyConfig();
   config.dataPlaneTrafficPolicy()->matchToAction()->resize(
-      4, cfg::MatchToAction());
+      5, cfg::MatchToAction());
   *config.dataPlaneTrafficPolicy()->matchToAction()[0].matcher() = "acl2";
   *config.dataPlaneTrafficPolicy()->matchToAction()[0].action() =
       cfg::MatchAction();
@@ -596,6 +599,19 @@ TEST(Acl, AclGeneration) {
       ->matchToAction()[3]
       .action()
       ->flowletAction() = cfg::FlowletAction::FORWARD;
+
+  *config.dataPlaneTrafficPolicy()->matchToAction()[4].matcher() = "acl7";
+  *config.dataPlaneTrafficPolicy()->matchToAction()[4].action() =
+      cfg::MatchAction();
+  config.dataPlaneTrafficPolicy()
+      ->matchToAction()[4]
+      .action()
+      ->ecmpHashAction() = cfg::SetEcmpHashAction();
+  config.dataPlaneTrafficPolicy()
+      ->matchToAction()[4]
+      .action()
+      ->ecmpHashAction()
+      ->switchingMode() = cfg::SwitchingMode::FIXED_ASSIGNMENT;
 
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(stateV1, nullptr);
@@ -644,6 +660,14 @@ TEST(Acl, AclGeneration) {
       acls->getNodeIf("acl6")
           ->getAclAction()
           ->cref<switch_state_tags::flowletAction>()
+          ->cref());
+  EXPECT_TRUE(acls->getNodeIf("acl7")->getAclAction() != nullptr);
+  EXPECT_EQ(
+      cfg::SwitchingMode::FIXED_ASSIGNMENT,
+      acls->getNodeIf("acl7")
+          ->getAclAction()
+          ->cref<switch_state_tags::ecmpHashAction>()
+          ->cref<switch_config_tags::switchingMode>()
           ->cref());
 }
 

@@ -101,8 +101,10 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map, int numSwitches)
           kCounterPrefix + "ip.dst_lookup_failure",
           SUM,
           RATE),
-      updateState_(map, kCounterPrefix + "state_update.us", 50000, 0, 1000000),
-      routeUpdate_(map, kCounterPrefix + "route_update.us", 50, 0, 500),
+      updateState_(
+          kCounterPrefix + "state_update.us",
+          facebook::fb303::ExportTypeConsts::kCountAvg,
+          facebook::fb303::QuantileConsts::kP50_P95_P99_P100),
       bgHeartbeatDelay_(
           map,
           kCounterPrefix + "bg_heartbeat_delay.ms",
@@ -360,6 +362,13 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map, int numSwitches)
           SUM,
           RATE),
       loPriPktsDropped_(map, kCounterPrefix + "lo_pri_pkts_dropped", SUM, RATE),
+      fsdbPublishQueueLength_(
+          map,
+          kCounterPrefix + "fsdb_publish_queue_length",
+          1,
+          0,
+          1000,
+          AVG),
       multiSwitchStatus_(map, kCounterPrefix + "multi_switch", SUM, RATE),
       neighborTableUpdateFailure_(
           map,
@@ -375,9 +384,12 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map, int numSwitches)
           map,
           kCounterPrefix + "fw_drained_with_high_num_active_fabric_links",
           SUM,
-          RATE)
-
-{
+          RATE),
+      resourceAccountantRejectedUpdates_(
+          map,
+          kCounterPrefix + "resource_accountant_rejected_updates",
+          SUM,
+          RATE) {
   for (auto switchIndex = 0; switchIndex < numSwitches; switchIndex++) {
     hwAgentConnectionStatus_.emplace_back(TLCounter(
         map,
@@ -390,6 +402,32 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map, int numSwitches)
         SUM,
         RATE));
     thriftStreamConnectionStatus_.emplace_back(map, switchIndex);
+    switchReachabilityInconsistencyDetected_.emplace_back(
+        map,
+        folly::to<std::string>(
+            kCounterPrefix,
+            "switch.",
+            switchIndex,
+            ".",
+            "switch_reachability_inconsistency_detected"),
+        SUM,
+        RATE);
+    activePortsWithoutSwitchReachability_.emplace_back(
+        map,
+        folly::to<std::string>(
+            kCounterPrefix,
+            "switch.",
+            switchIndex,
+            ".",
+            "active_ports_without_switch_reachability"));
+    inactivePortsWithSwitchReachability_.emplace_back(
+        map,
+        folly::to<std::string>(
+            kCounterPrefix,
+            "switch.",
+            switchIndex,
+            ".",
+            "inactive_ports_with_switch_reachability"));
   }
 }
 
@@ -433,6 +471,21 @@ InterfaceStats* SwitchStats::createInterfaceStats(
     std::string intfName) {
   auto rv = intfIDToStats_.emplace(
       intfID, std::make_unique<InterfaceStats>(intfID, intfName, this));
+  DCHECK(rv.second);
+  const auto& it = rv.first;
+  return it->second.get();
+}
+
+PortStats* SwitchStats::updatePortName(
+    PortID portID,
+    const std::string& portName) {
+  auto existing = ports_.find(portID);
+  if (existing != ports_.end()) {
+    existing->second->clearCounters();
+  }
+
+  auto rv = ports_.insert_or_assign(
+      portID, std::make_unique<PortStats>(portID, portName, this));
   DCHECK(rv.second);
   const auto& it = rv.first;
   return it->second.get();
@@ -721,4 +774,28 @@ void SwitchStats::setDrainState(
   fb303::fbData->setCounter(drainStateCounter, static_cast<int>(drainState));
 }
 
+void SwitchStats::setNumActiveFabricLinksEligibleForMinLink(
+    int32_t virtualDeviceId,
+    int32_t numLinks) {
+  auto counterName = folly::to<std::string>(
+      "vid.", virtualDeviceId, ".active_eligible_min_links");
+
+  fb303::fbData->setCounter(counterName, static_cast<int>(numLinks));
+}
+
+void SwitchStats::setActivePortsWithoutSwitchReachability(
+    int16_t switchIndex,
+    int numPorts) {
+  CHECK_LT(switchIndex, activePortsWithoutSwitchReachability_.size());
+  fb303::fbData->setCounter(
+      activePortsWithoutSwitchReachability_[switchIndex].name(), numPorts);
+}
+
+void SwitchStats::setInactivePortsWithSwitchReachability(
+    int16_t switchIndex,
+    int numPorts) {
+  CHECK_LT(switchIndex, inactivePortsWithSwitchReachability_.size());
+  fb303::fbData->setCounter(
+      inactivePortsWithSwitchReachability_[switchIndex].name(), numPorts);
+}
 } // namespace facebook::fboss

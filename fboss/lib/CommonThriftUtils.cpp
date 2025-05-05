@@ -24,7 +24,8 @@ ReconnectingThriftClient::ReconnectingThriftClient(
     const std::string& counterPrefix,
     const std::string& aggCounterPrefix,
     StreamStateChangeCb stateChangeCb,
-    uint32_t reconnectTimeout)
+    int initialBackoffReconnectMs,
+    int maxBackoffReconnectMs)
     : clientId_(clientId),
       streamEvb_(streamEvb),
       connRetryEvb_(connRetryEvb),
@@ -38,10 +39,10 @@ ReconnectingThriftClient::ReconnectingThriftClient(
           fb303::SUM,
           fb303::RATE),
       stateChangeCb_(stateChangeCb),
-      timer_(folly::AsyncTimeout::make(
-          *connRetryEvb,
-          [this]() noexcept { timeoutExpired(); })),
-      reconnectTimeout_(reconnectTimeout) {
+      backoff_(initialBackoffReconnectMs, maxBackoffReconnectMs),
+      timer_(folly::AsyncTimeout::make(*connRetryEvb, [this]() noexcept {
+        timeoutExpired();
+      })) {
   if (!streamEvb_ || !connRetryEvb_) {
     throw std::runtime_error(
         "Must pass valid stream, connRetry evbs to ctor, but passed null");
@@ -51,7 +52,7 @@ ReconnectingThriftClient::ReconnectingThriftClient(
 
 void ReconnectingThriftClient::scheduleTimeout() {
   connRetryEvb_->runInEventBaseThread(
-      [this] { timer_->scheduleTimeout(reconnectTimeout_); });
+      [this] { timer_->scheduleTimeout(backoff_.getCurTimeout()); });
 }
 
 void ReconnectingThriftClient::setState(State state) {
@@ -121,10 +122,15 @@ void ReconnectingThriftClient::cancel() {
 
 void ReconnectingThriftClient::timeoutExpired() noexcept {
   auto serverOptions = *connectionOptions_.rlock();
-  if (getState() == State::DISCONNECTED && serverOptions) {
-    connectToServer(*serverOptions);
+  if (getState() == State::DISCONNECTED) {
+    backoff_.reportError();
+    if (serverOptions) {
+      connectToServer(*serverOptions);
+    }
+  } else {
+    backoff_.reportSuccess();
   }
-  timer_->scheduleTimeout(reconnectTimeout_);
+  timer_->scheduleTimeout(backoff_.getCurTimeout());
 }
 
 bool ReconnectingThriftClient::isCancelled() const {

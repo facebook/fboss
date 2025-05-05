@@ -10,6 +10,7 @@
 
 #include "fboss/agent/test/utils/PacketTestUtils.h"
 
+#include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/LldpManager.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/TxPacket.h"
@@ -79,4 +80,43 @@ uint8_t getIpHopLimit(folly::io::Cursor& cursor) {
   }
   throw FbossError("Not a valid IP packet : ", ethHdr.etherType);
 }
+
+template <typename SwitchT, typename VlanOrIntfT>
+std::optional<VlanID> getSwitchVlanIDForTx(
+    const SwitchT* switchPtr,
+    std::shared_ptr<VlanOrIntfT> vlanOrIntf) {
+  if constexpr (std::is_same_v<SwitchT, SwSwitch>) {
+    return getVlanIDForTx(
+        vlanOrIntf,
+        switchPtr->getState(),
+        switchPtr->getScopeResolver(),
+        switchPtr->getHwAsicTable());
+  } else if constexpr (std::is_same_v<SwitchT, HwSwitch>) {
+    return getVlanIDForTx(
+        vlanOrIntf,
+        // HwSwitch should have its own switch settings
+        utility::getFirstNodeIf(
+            switchPtr->getProgrammedState()->getSwitchSettings()),
+        switchPtr->getPlatform()->getAsic());
+  } else {
+    static_assert(
+        std::is_same_v<SwitchT, SwSwitch> || std::is_same_v<SwitchT, HwSwitch>,
+        "Unsupported switch type");
+  }
+}
+
+template std::optional<VlanID> getSwitchVlanIDForTx<SwSwitch, Vlan>(
+    const SwSwitch* switchPtr,
+    std::shared_ptr<Vlan> vlanOrIntf);
+template std::optional<VlanID> getSwitchVlanIDForTx<SwSwitch, Interface>(
+    const SwSwitch* switchPtr,
+    std::shared_ptr<Interface> vlanOrIntf);
+
+template std::optional<VlanID> getSwitchVlanIDForTx<HwSwitch, Vlan>(
+    const HwSwitch* switchPtr,
+    std::shared_ptr<Vlan> vlanOrIntf);
+template std::optional<VlanID> getSwitchVlanIDForTx<HwSwitch, Interface>(
+    const HwSwitch* switchPtr,
+    std::shared_ptr<Interface> vlanOrIntf);
+
 } // namespace facebook::fboss::utility

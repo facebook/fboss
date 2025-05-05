@@ -9,15 +9,16 @@
  */
 
 #include "fboss/agent/hw/benchmarks/HwInitAndExitBenchmarkHelper.h"
-#include <fboss/agent/SwSwitch.h>
-#include <fboss/agent/test/AgentEnsemble.h>
 #include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/DsfStateUpdaterUtil.h"
+#include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/Utils.h"
+#include "fboss/agent/benchmarks/AgentBenchmarks.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/HwTestProdConfigUtils.h"
+#include "fboss/agent/test/AgentEnsemble.h"
 #include "fboss/agent/test/RouteDistributionGenerator.h"
 #include "fboss/agent/test/RouteScaleGenerators.h"
 #include "fboss/agent/test/utils/DsfConfigUtils.h"
@@ -27,10 +28,6 @@
 #include "fboss/lib/FunctionCallTimeReporter.h"
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
-
-#include <iostream>
-
-#include "fboss/agent/benchmarks/AgentBenchmarks.h"
 
 using namespace facebook::fboss;
 
@@ -155,7 +152,7 @@ utility::RouteDistributionGenerator::ThriftRouteChunks getRoutes(
   }
 }
 
-void initandExitBenchmarkHelper(
+void initAndExitBenchmarkHelper(
     cfg::PortSpeed uplinkSpeed,
     cfg::PortSpeed downlinkSpeed,
     cfg::SwitchType switchType) {
@@ -247,7 +244,18 @@ void initandExitBenchmarkHelper(
      */
     ScopedCallTimer timeIt;
     switch (switchType) {
-      case cfg::SwitchType::VOQ:
+      case cfg::SwitchType::VOQ: {
+        // Program ECMP routes - 8x512 for single stage and 16x2K for dual
+        // stage
+        auto ecmpWidth = 512;
+        auto ecmpGroup = 64;
+        if (isDualStage3Q2QMode()) {
+          ecmpWidth = 2048;
+          ecmpGroup = 16;
+        }
+        FLAGS_ecmp_resource_percentage = 100;
+        FLAGS_ecmp_width = ecmpWidth;
+
         ensemble = createAgentEnsemble(
             voqInitialConfig, false /*disableLinkStateToggler*/);
         if (ensemble->getSw()->getBootType() == BootType::COLD_BOOT) {
@@ -277,8 +285,30 @@ void initandExitBenchmarkHelper(
                     folly::sformat("Update state for node: {}", 0),
                     updateDsfStateFn);
               });
+
+          utility::EcmpSetupTargetedPorts6 ecmpHelper(
+              ensemble->getProgrammedState());
+          auto portDescriptor =
+              utility::resolveRemoteNhops(ensemble.get(), ecmpHelper);
+
+          std::vector<RoutePrefixV6> prefixes;
+          std::vector<flat_set<PortDescriptor>> nhopSets;
+          CHECK_GE(portDescriptor.size(), ecmpWidth + ecmpGroup - 1);
+          for (int i = 0; i < ecmpGroup; i++) {
+            // For default route 0::0, need to use 0 as prefix length
+            prefixes.emplace_back(
+                folly::IPAddressV6(folly::to<std::string>(i, "::", i)),
+                static_cast<uint8_t>(i == 0 ? 0 : 128));
+            nhopSets.emplace_back(
+                std::make_move_iterator(portDescriptor.begin() + i),
+                std::make_move_iterator(
+                    portDescriptor.begin() + i + ecmpWidth));
+          }
+          auto updater = ensemble->getSw()->getRouteUpdater();
+          ecmpHelper.programRoutes(&updater, nhopSets, prefixes);
         }
         break;
+      }
       case cfg::SwitchType::NPU:
         ensemble = createAgentEnsemble(
             npuInitialConfig, false /*disableLinkStateToggler*/);
@@ -293,7 +323,9 @@ void initandExitBenchmarkHelper(
   }
   suspender.rehire();
   // Fabric switch does not support route programming
-  if (switchType != cfg::SwitchType::FABRIC) {
+  // VOQ switch already programs ECMP routes above
+  if (ensemble->getBootType() == BootType::COLD_BOOT &&
+      switchType == cfg::SwitchType::NPU) {
     auto routeChunks = getRoutes(ensemble.get());
     auto updater = ensemble->getSw()->getRouteUpdater();
     ensemble->programRoutes(RouterID(0), ClientID::BGPD, routeChunks);

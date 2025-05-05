@@ -17,6 +17,8 @@
 
 namespace facebook::fboss::fsdb {
 
+constexpr std::string_view kSubscribeLatencyMetric = "subscribe_latency_ms";
+
 enum class SubscriptionState : uint16_t {
   DISCONNECTED,
   DISCONNECTED_GR_HOLD,
@@ -91,12 +93,14 @@ struct SubscriptionOptions {
       // only mark subscription as CONNECTED on initial sync
       bool requireInitialSyncToMarkConnect = false,
       bool forceSubscribe = false,
-      std::optional<int64_t> heartbeatInterval = std::nullopt)
+      std::optional<int64_t> heartbeatInterval = std::nullopt,
+      bool exportPerSubscriptionMetrics = false)
       : clientId_(clientId),
         subscribeStats_(subscribeStats),
         grHoldTimeSec_(grHoldTimeSec),
         requireInitialSyncToMarkConnect_(requireInitialSyncToMarkConnect),
-        forceSubscribe_(forceSubscribe) {
+        forceSubscribe_(forceSubscribe),
+        exportPerSubscriptionMetrics_(exportPerSubscriptionMetrics) {
     if (heartbeatInterval.has_value()) {
       heartbeatInterval_ = heartbeatInterval.value();
     }
@@ -107,6 +111,7 @@ struct SubscriptionOptions {
   uint32_t grHoldTimeSec_{0};
   bool requireInitialSyncToMarkConnect_{false};
   bool forceSubscribe_{false};
+  bool exportPerSubscriptionMetrics_{false};
   std::optional<int32_t> heartbeatInterval_{std::nullopt};
 };
 
@@ -178,6 +183,14 @@ class FsdbSubscriber : public FsdbSubscriberBase {
               handleConnectionState(oldState, newState);
             }),
         operSubUnitUpdate_(operSubUnitUpdate),
+        subscribeLatencyMetric_(folly::sformat(
+            "{}.{}",
+            getCounterPrefix(),
+            kSubscribeLatencyMetric)),
+        clientPubsubLatencyMetric_(folly::sformat(
+            "FsdbClient.{}.{}",
+            (options.subscribeStats_ ? "stats" : "state"),
+            kSubscribeLatencyMetric)),
         subscribePaths_(subscribePaths),
         subscriptionOptions_(std::move(options)),
         subscriptionState_(
@@ -318,6 +331,10 @@ class FsdbSubscriber : public FsdbSubscriberBase {
   }
 
   FsdbSubUnitUpdateCb operSubUnitUpdate_;
+
+ protected:
+  const std::string subscribeLatencyMetric_;
+  const std::string clientPubsubLatencyMetric_;
 
  private:
   const Paths subscribePaths_;

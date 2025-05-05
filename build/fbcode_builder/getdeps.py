@@ -436,11 +436,17 @@ class InstallSysDepsCmd(ProjectCmdBase):
         if manager == "rpm":
             packages = sorted(set(all_packages["rpm"]))
             if packages:
-                cmd_args = ["sudo", "dnf", "install", "-y"] + packages
+                cmd_args = ["sudo", "dnf", "install", "-y", "--skip-broken"] + packages
         elif manager == "deb":
             packages = sorted(set(all_packages["deb"]))
             if packages:
-                cmd_args = ["sudo", "apt", "install", "-y"] + packages
+                cmd_args = [
+                    "sudo",
+                    "--preserve-env=http_proxy",
+                    "apt-get",
+                    "install",
+                    "-y",
+                ] + packages
         elif manager == "homebrew":
             packages = sorted(set(all_packages["homebrew"]))
             if packages:
@@ -1155,7 +1161,7 @@ jobs:
                 build_opts.allow_system_packages
                 and build_opts.host_type.get_package_manager()
             ):
-                sudo_arg = "sudo "
+                sudo_arg = "sudo --preserve-env=http_proxy "
                 allow_sys_arg = " --allow-system-packages"
                 if build_opts.host_type.get_package_manager() == "deb":
                     out.write("    - name: Update system package info\n")

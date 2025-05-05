@@ -35,6 +35,15 @@ SaiYangraPlatform::SaiYangraPlatform(
               : std::make_unique<YangraPlatformMapping>(platformMappingStr),
           localMac) {}
 
+SaiYangraPlatform::SaiYangraPlatform(
+    std::unique_ptr<PlatformProductInfo> productInfo,
+    folly::MacAddress localMac,
+    std::unique_ptr<PlatformMapping> platformMapping)
+    : SaiPlatform(
+          std::move(productInfo),
+          std::move(platformMapping),
+          localMac) {}
+
 void SaiYangraPlatform::setupAsic(
     std::optional<int64_t> switchId,
     const cfg::SwitchInfo& switchInfo,
@@ -50,22 +59,22 @@ HwAsic* SaiYangraPlatform::getAsic() const {
 const std::unordered_map<std::string, std::string>
 SaiYangraPlatform::getSaiProfileVendorExtensionValues() const {
   std::unordered_map<std::string, std::string> kv_map;
+  kv_map.insert(std::make_pair("SAI_KEY_PORT_AUTONEG_DEFAULT_OFF", "1"));
   kv_map.insert(std::make_pair("SAI_KEY_NOT_DROP_SMAC_DMAC_EQUAL", "1"));
   kv_map.insert(std::make_pair("SAI_KEY_RECLAIM_BUFFER_ENABLED", "0"));
   kv_map.insert(std::make_pair("SAI_KEY_TRAP_PACKETS_USING_CALLBACK", "1"));
+  kv_map.insert(std::make_pair("SAI_KEY_ROUTE_METADATA_FIELD_SIZE", "5"));
+  kv_map.insert(std::make_pair("SAI_KEY_ROUTE_METADATA_FIELD_SIZE", "5"));
+  kv_map.insert(
+      std::make_pair("SAI_KEY_CPU_PORT_PIPELINE_LOOKUP_L3_TRUST_MODE", "1"));
   return kv_map;
 }
 
 const std::set<sai_api_t>& SaiYangraPlatform::getSupportedApiList() const {
   static auto apis = getDefaultSwitchAsicSupportedApis();
   apis.erase(facebook::fboss::MplsApi::ApiType);
-  apis.erase(facebook::fboss::VirtualRouterApi::ApiType);
   apis.erase(facebook::fboss::TamApi::ApiType);
   apis.erase(facebook::fboss::SystemPortApi::ApiType);
-#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
-  apis.erase(facebook::fboss::ArsApi::ApiType);
-  apis.erase(facebook::fboss::ArsProfileApi::ApiType);
-#endif
   return apis;
 }
 
@@ -75,7 +84,7 @@ SaiYangraPlatform::getAclFieldList() const {
 }
 std::string SaiYangraPlatform::getHwConfig() {
   std::string xml_filename =
-      *config()->thrift.platform()->get_chip().get_asic().config();
+      *config()->thrift.platform()->chip().value().get_asic().config();
   std::string base_filename =
       xml_filename.substr(0, xml_filename.find(".xml") + 4);
   std::ifstream xml_file(base_filename);

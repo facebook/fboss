@@ -113,7 +113,7 @@ void setLogLevel(const std::string& logLevelStr) {
 // bandwidthBytesPerSecond: must be positive number in bytes per second
 const std::string formatBandwidth(const float bandwidthBytesPerSecond) {
   if (bandwidthBytesPerSecond < 1.0f) {
-    return "Not set";
+    return "N/A";
   }
   const std::string suffixes[] = {"", "K", "M"};
   // Represent the bandwidth in bits per second
@@ -151,7 +151,8 @@ const std::string getDurationStr(folly::stop_watch<>& watch) {
   auto duration = watch.elapsed();
   auto durationInMills =
       std::chrono::duration_cast<std::chrono::milliseconds>(duration);
-  float seconds = (float)durationInMills.count() / (float)1000;
+  float seconds =
+      static_cast<float>(durationInMills.count()) / static_cast<float>(1000);
   return fmt::format("{:.3f} sec", seconds);
 }
 

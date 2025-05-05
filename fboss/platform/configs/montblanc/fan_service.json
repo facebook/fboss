@@ -6,11 +6,9 @@
   "pwmTransitionValue": 45,
   "pwmLowerThreshold": 25,
   "pwmUpperThreshold": 70,
+  "shutdownCmd": "echo 0 > /run/devmap/cplds/SMB_CPLD/th5_pwr_en",
   "watchdog": {
-    "access": {
-      "accessType": "ACCESS_TYPE_SYSFS",
-      "path": "/run/devmap/watchdogs/FAN_WATCHDOG"
-    },
+    "sysfsPath": "/run/devmap/watchdogs/FAN_WATCHDOG",
     "value": 0
   },
   "controlInterval": {
@@ -64,7 +62,6 @@
   "sensors": [
     {
       "sensorName": "CPU_UNCORE_TEMP",
-      "scale": 1,
       "access": {
         "accessType": "ACCESS_TYPE_THRIFT"
       },
@@ -84,7 +81,6 @@
         "accessType": "ACCESS_TYPE_THRIFT"
       },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
-      "scale": 1,
       "normalUpTable": {
         "31": 25,
         "32": 30,
@@ -112,7 +108,6 @@
     },
     {
       "sensorName": "SMB_TH5_TEMP",
-      "scale": 1,
       "access": {
         "accessType": "ACCESS_TYPE_THRIFT"
       },
@@ -127,6 +122,16 @@
       }
     }
   ],
+  "shutdownCondition": {
+    "numOvertempSensorForShutdown": 1,
+    "conditions": [
+      {
+        "sensorName": "SMB_TH5_TEMP",
+        "overtempThreshold": 110.0,
+        "slidingWindowSize": 1
+      }
+    ]
+  },
   "fans": [
     {
       "fanName": "FAN_1_F",

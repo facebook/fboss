@@ -100,8 +100,9 @@ TEST_F(HwSplitAgentCallbackTest, txPacket) {
   resolveNeigborAndProgramRoutes(
       utility::EcmpSetupAnyNPorts4(getProgrammedState(), RouterID(0)), 1);
 
-  auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
-  auto vlanId = utility::firstVlanID(initialConfig());
+  auto intfMac =
+      utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+  auto vlanId = getHwSwitchEnsemble()->getVlanIDForTx();
   auto pkt = utility::makeIpTxPacket(
       [hwSwitch = getHwSwitch()](uint32_t size) {
         return hwSwitch->allocatePacket(size);
@@ -109,8 +110,8 @@ TEST_F(HwSplitAgentCallbackTest, txPacket) {
       vlanId,
       intfMac,
       intfMac,
-      folly::IPAddressV4("1.0.0.1"),
-      folly::IPAddressV4("1.0.0.2"));
+      folly::IPAddressV4("100.0.0.1"),
+      folly::IPAddressV4("100.0.0.2"));
   multiswitch::TxPacket txPacket;
   txPacket.length() = pkt->buf()->computeChainDataLength();
   txPacket.data() = Packet::extractIOBuf(std::move(pkt));

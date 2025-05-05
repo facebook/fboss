@@ -22,6 +22,7 @@
 #include "fboss/agent/hw/switch_asics/Tomahawk3Asic.h"
 #include "fboss/agent/hw/switch_asics/Tomahawk4Asic.h"
 #include "fboss/agent/hw/switch_asics/Tomahawk5Asic.h"
+#include "fboss/agent/hw/switch_asics/Tomahawk6Asic.h"
 #include "fboss/agent/hw/switch_asics/TomahawkAsic.h"
 #include "fboss/agent/hw/switch_asics/Trident2Asic.h"
 #include "fboss/agent/hw/switch_asics/YubaAsic.h"
@@ -77,7 +78,8 @@ int HwAsic::getDefaultACLGroupID() const {
 std::unique_ptr<HwAsic> HwAsic::makeAsic(
     std::optional<int64_t> switchId,
     const cfg::SwitchInfo& switchInfo,
-    std::optional<cfg::SdkVersion> sdkVersion) {
+    std::optional<cfg::SdkVersion> sdkVersion,
+    std::optional<HwAsic::FabricNodeRole> fabricNodeRole) {
   switch (*switchInfo.asicType()) {
     case cfg::AsicType::ASIC_TYPE_FAKE:
       return std::make_unique<FakeAsic>(switchId, switchInfo, sdkVersion);
@@ -93,6 +95,8 @@ std::unique_ptr<HwAsic> HwAsic::makeAsic(
       return std::make_unique<Tomahawk4Asic>(switchId, switchInfo, sdkVersion);
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
       return std::make_unique<Tomahawk5Asic>(switchId, switchInfo, sdkVersion);
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK6:
+      return std::make_unique<Tomahawk6Asic>(switchId, switchInfo, sdkVersion);
     case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
       return std::make_unique<CredoPhyAsic>(switchId, switchInfo, sdkVersion);
     case cfg::AsicType::ASIC_TYPE_EBRO:
@@ -108,7 +112,9 @@ std::unique_ptr<HwAsic> HwAsic::makeAsic(
     case cfg::AsicType::ASIC_TYPE_RAMON:
       return std::make_unique<RamonAsic>(switchId, switchInfo, sdkVersion);
     case cfg::AsicType::ASIC_TYPE_RAMON3:
-      return std::make_unique<Ramon3Asic>(switchId, switchInfo, sdkVersion);
+      CHECK(fabricNodeRole.has_value());
+      return std::make_unique<Ramon3Asic>(
+          switchId, switchInfo, sdkVersion, fabricNodeRole.value());
     case cfg::AsicType::ASIC_TYPE_GARONNE:
     case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
       throw FbossError("Unexcepted asic type: ", *switchInfo.asicType());
@@ -204,4 +210,10 @@ HwAsic::FabricNodeRole HwAsic::getFabricNodeRole() const {
   throw FbossError(
       "Derived class must override getFabricNodeRole, where applicable");
 }
+
+const std::set<uint16_t>& HwAsic::getL1FabricPortsToConnectToL2() const {
+  throw FbossError(
+      "Derived class must override getL1FabricPortsToConnectToL2, where applicable");
+}
+
 } // namespace facebook::fboss

@@ -5,11 +5,7 @@ oncall("fboss_platform")
 
 cpp_binary(
     name = "fw_util",
-    srcs = [
-        "Flags.cpp",
-        "FwUtilImpl.cpp",
-        "fw_util.cpp",
-    ],
+    srcs = glob(["*.cpp"]),
     default_strip_mode = "full",
     strip_mode = "full",
     deps = [
@@ -17,10 +13,13 @@ cpp_binary(
         "//fboss/platform/config_lib:config_lib",
         "//fboss/platform/fw_util/if:fw_util_config-cpp2-types",
         "//fboss/platform/helpers:init_cli",
+        "//fboss/platform/helpers:platform_fs_utils",
         "//fboss/platform/helpers:platform_name_lib",
         "//fboss/platform/helpers:platform_utils",
+        "//folly:format",
         "//folly:string",
         "//folly:subprocess",
+        "//folly/logging:init",
         "//folly/logging:logging",
         "//folly/system:shell",
         "//thrift/lib/cpp2/protocol:protocol",

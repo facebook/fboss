@@ -1,7 +1,6 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
 #include "fboss/agent/LldpManager.h"
-#include "fboss/agent/Main.h"
 #include "fboss/agent/state/PortDescriptor.h"
 #include "fboss/agent/test/AgentEnsembleTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
@@ -12,7 +11,6 @@
 #include "fboss/agent/test/link_tests/gen-cpp2/link_test_production_features_types.h"
 
 DECLARE_string(config);
-DECLARE_bool(link_stress_test);
 DECLARE_bool(disable_neighbor_updates);
 DECLARE_bool(list_production_feature);
 
@@ -50,8 +48,8 @@ class AgentEnsembleLinkTest : public AgentEnsembleTest {
   /*
    * Return plugged in optical transceivers and their names.
    */
-  std::tuple<std::vector<PortID>, std::string> getOpticalCabledPortsAndNames(
-      bool pluggableOnly = false) const;
+  std::tuple<std::vector<PortID>, std::string>
+  getOpticalAndActiveCabledPortsAndNames(bool pluggableOnly = false) const;
 
   /*
    * Ports where we expect optics to be plugged in.
@@ -59,14 +57,18 @@ class AgentEnsembleLinkTest : public AgentEnsembleTest {
    * null LLDP neighbors. We pick that up here to extract cabled ports
    */
   const std::vector<PortID>& getCabledPorts() const;
+  const std::vector<PortID>& getCabledTransceiverPorts() const;
   const std::set<TransceiverID>& getCabledTranceivers() const {
     return cabledTransceivers_;
   }
-  boost::container::flat_set<PortDescriptor> getSingleVlanOrRoutedCabledPorts()
-      const;
+  boost::container::flat_set<PortDescriptor> getSingleVlanOrRoutedCabledPorts(
+      std::optional<SwitchID> switchId = std::nullopt) const;
   const std::vector<PortID>& getCabledFabricPorts() const {
     return cabledFabricPorts_;
   }
+
+  void checkAgentMemoryInBounds() const;
+
   /*
    * Program default (v6) route over ports
    */
@@ -84,11 +86,15 @@ class AgentEnsembleLinkTest : public AgentEnsembleTest {
     createL3DataplaneFlood(getSingleVlanOrRoutedCabledPorts());
   }
 
-  std::optional<PortID> getPeerPortID(PortID portId) const;
+  std::optional<PortID> getPeerPortID(
+      PortID portId,
+      const std::set<std::pair<PortID, PortID>>& connectedPairs) const;
 
-  std::set<std::pair<PortID, PortID>> getConnectedOpticalPortPairWithFeature(
+  std::set<std::pair<PortID, PortID>>
+  getConnectedOpticalAndActivePortPairWithFeature(
       TransceiverFeature feature,
-      phy::Side side) const;
+      phy::Side side,
+      bool skipLoopback = false) const;
 
   void waitForLldpOnCabledPorts(
       uint32_t retries = 60,
@@ -122,6 +128,7 @@ class AgentEnsembleLinkTest : public AgentEnsembleTest {
   std::vector<PortID> cabledPorts_;
   std::vector<PortID> cabledFabricPorts_;
   std::set<TransceiverID> cabledTransceivers_;
+  std::vector<PortID> cabledTransceiverPorts_;
 };
 int agentEnsembleLinkTestMain(
     int argc,

@@ -38,12 +38,12 @@ TEST(LinkNeighborDB, test) {
   EXPECT_EQ(VlanID(1), neighbors[0]->getLocalVlan());
   EXPECT_EQ(n1mac, neighbors[0]->getMac());
   EXPECT_EQ(
-      (int)lldp::LldpChassisIdType::LOCALLY_ASSIGNED,
-      (int)neighbors[0]->getChassisIdType());
+      static_cast<int>(lldp::LldpChassisIdType::LOCALLY_ASSIGNED),
+      static_cast<int>(neighbors[0]->getChassisIdType()));
   EXPECT_EQ("neighbor1", neighbors[0]->getChassisId());
   EXPECT_EQ(
-      (int)lldp::LldpPortIdType::LOCALLY_ASSIGNED,
-      (int)neighbors[0]->getPortIdType());
+      static_cast<int>(lldp::LldpPortIdType::LOCALLY_ASSIGNED),
+      static_cast<int>(neighbors[0]->getPortIdType()));
   EXPECT_EQ("1/1", neighbors[0]->getPortId());
   EXPECT_EQ("neighbor1 name", neighbors[0]->getSystemName());
   EXPECT_EQ(seconds(5), neighbors[0]->getTTL());

@@ -41,7 +41,7 @@ class CmdBounceInterface
        getRegexCounters so we can filter out just the interface counters and
        ignore the multitude of other counters we don't need.
     */
-    std::string bounceResult = "";
+    std::string bounceResult;
     auto client =
         utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(hostInfo);
 
@@ -53,7 +53,7 @@ class CmdBounceInterface
 
     for (const auto& port : portsToBounce) {
       fmt::print(fg(fmt::color::cyan), "Interface: ");
-      std::cout << portEntries[port].get_name() << std::endl;
+      std::cout << portEntries[port].name().value() << std::endl;
 
       std::string status = getPortStatus(port, portsToBounce, *client);
 
@@ -118,7 +118,7 @@ class CmdBounceInterface
       throw std::runtime_error(
           "Unable to get port status for queried interfaces");
     }
-    statusStr = (portStates[port].get_up()) ? "Up" : "Down";
+    statusStr = (folly::copy(portStates[port].up().value())) ? "Up" : "Down";
     fmt::print(fg(fmt::color::cyan), "Port State: ");
     std::cout << statusStr << std::endl;
     return statusStr;

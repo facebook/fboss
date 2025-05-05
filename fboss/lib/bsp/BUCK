@@ -7,7 +7,7 @@ thrift_library(
     name = "bsp_platform_mapping",
     languages = [
         "cpp2",
-        "py",
+        "py-deprecated",
     ],
     py_base_module = "neteng.fboss",
     thrift_cpp2_options = [
@@ -93,6 +93,7 @@ cpp_library(
         "//fboss/lib/bsp/meru400biu:meru400biu_bsp",
         "//fboss/lib/bsp/meru800bfa:meru800bfa_bsp",
         "//fboss/lib/bsp/meru800bia:meru800bia_bsp",
+        "//fboss/lib/bsp/minipack3n:minipack3n_bsp",
         "//fboss/lib/bsp/montblanc:montblanc_bsp",
         "//fboss/lib/bsp/morgan800cc:morgan800cc_bsp",
         "//fboss/lib/bsp/tahan800bc:tahan800bc_bsp",

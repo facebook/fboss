@@ -26,10 +26,13 @@ class ResourceAccountantTest : public ::testing::Test {
   void SetUp() override {
     std::map<int64_t, cfg::SwitchInfo> switchIdToSwitchInfo{
         {0, createSwitchInfo(cfg::SwitchType::NPU)}};
-    asicTable_ =
-        std::make_unique<HwAsicTable>(switchIdToSwitchInfo, std::nullopt);
-    resourceAccountant_ =
-        std::make_unique<ResourceAccountant>(asicTable_.get());
+    const std::map<int64_t, cfg::DsfNode> switchIdToDsfNodes;
+    asicTable_ = std::make_unique<HwAsicTable>(
+        switchIdToSwitchInfo, std::nullopt, switchIdToDsfNodes);
+    scopeResolver_ =
+        std::make_unique<SwitchIdScopeResolver>(switchIdToSwitchInfo);
+    resourceAccountant_ = std::make_unique<ResourceAccountant>(
+        asicTable_.get(), scopeResolver_.get());
     FLAGS_ecmp_width = getMaxEcmpMembers();
   }
 
@@ -63,6 +66,7 @@ class ResourceAccountantTest : public ::testing::Test {
 
   std::unique_ptr<ResourceAccountant> resourceAccountant_;
   std::unique_ptr<HwAsicTable> asicTable_;
+  std::unique_ptr<SwitchIdScopeResolver> scopeResolver_;
 };
 
 TEST_F(ResourceAccountantTest, getMemberCountForEcmpGroup) {

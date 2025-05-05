@@ -40,13 +40,14 @@ class AgentMmuTuningTest : public AgentHwTest {
   getProductionFeaturesVerified() const override {
     return {
         production_features::ProductionFeature::L3_QOS,
-        production_features::ProductionFeature::PORT_TX_DISABLE};
+        production_features::ProductionFeature::PORT_TX_DISABLE,
+        production_features::ProductionFeature::MMU_TUNING};
   }
 
   void setup() {
     utility::EcmpSetupAnyNPorts6 helper(getProgrammedState(), dstMac());
     auto constexpr kEcmpWidth = 1;
-    resolveNeigborAndProgramRoutes(helper, kEcmpWidth);
+    resolveNeighborAndProgramRoutes(helper, kEcmpWidth);
     utility::setCreditWatchdogAndPortTx(
         getAgentEnsemble(), masterLogicalPortIds()[0], false);
   }
@@ -124,7 +125,7 @@ class AgentMmuTuningTest : public AgentHwTest {
     });
   }
   MacAddress dstMac() const {
-    return utility::getFirstInterfaceMac(getProgrammedState());
+    return utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
   }
   std::unique_ptr<facebook::fboss::TxPacket> createUdpPkt(
       uint8_t dscpVal) const {
@@ -132,7 +133,7 @@ class AgentMmuTuningTest : public AgentHwTest {
 
     return utility::makeUDPTxPacket(
         getSw(),
-        utility::firstVlanID(getProgrammedState()),
+        getVlanIDForTx(),
         srcMac,
         dstMac(),
         folly::IPAddressV6("2620:0:1cfe:face:b00c::3"),
