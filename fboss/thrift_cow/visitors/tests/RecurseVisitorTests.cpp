@@ -87,13 +87,7 @@ TYPED_TEST(RecurseVisitorTests, TestFullRecurse) {
   auto nodeA = this->initNode(structA);
   std::map<std::vector<std::string>, folly::dynamic> visited;
   auto processPath = [&visited](SimpleTraverseHelper& traverser, auto&& node) {
-    folly::dynamic dyn;
-    if constexpr (is_cow_type_v<decltype(*node)>) {
-      dyn = node->toFollyDynamic();
-    } else {
-      facebook::thrift::to_dynamic(
-          dyn, *node, facebook::thrift::dynamic_format::JSON_1);
-    }
+    folly::dynamic dyn = node->toFollyDynamic();
     visited.emplace(traverser.path(), dyn);
   };
 
@@ -192,13 +186,7 @@ TYPED_TEST(RecurseVisitorTests, TestLeafRecurse) {
   auto nodeA = this->initNode(structA);
   std::map<std::vector<std::string>, folly::dynamic> visited;
   auto processPath = [&visited](SimpleTraverseHelper& traverser, auto&& node) {
-    folly::dynamic dyn;
-    if constexpr (is_cow_type_v<decltype(*node)>) {
-      dyn = node->toFollyDynamic();
-    } else {
-      facebook::thrift::to_dynamic(
-          dyn, *node, facebook::thrift::dynamic_format::JSON_1);
-    }
+    folly::dynamic dyn = node->toFollyDynamic();
     visited.emplace(traverser.path(), dyn);
   };
 
