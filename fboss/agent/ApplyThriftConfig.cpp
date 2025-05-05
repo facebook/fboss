@@ -22,6 +22,7 @@
 
 #include "fboss/agent/AgentFeatures.h"
 
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/DsfStateUpdaterUtil.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/HwAsicTable.h"
@@ -5585,9 +5586,25 @@ ThriftConfigApplier::createMirrorOnDropReport(
       ? folly::IPAddress(getSwitchIntfIP(new_, InterfaceID(systemPortId)))
       : folly::IPAddress(getSwitchIntfIPv6(new_, InterfaceID(systemPortId)));
 
+  auto mirrorPortId = PortID(*config->mirrorPortId());
+
+  if (checkSameAndGetAsic(hwAsicTable_->getL3Asics())->getAsicType() ==
+      cfg::AsicType::ASIC_TYPE_JERICHO3) {
+    auto mirrorPortType = new_->getPort(mirrorPortId)->getPortType();
+    if (mirrorPortType != cfg::PortType::RECYCLE_PORT &&
+        mirrorPortType != cfg::PortType::EVENTOR_PORT) {
+      throw FbossError(
+          "Only RECYCLE_PORT or EVENTOR_PORT can be used for Mirror-on-Drop on Jericho3, got ",
+          apache::thrift::util::enumNameSafe(mirrorPortType));
+    }
+    if (new_->getPort(mirrorPortId)->getScope() != cfg::Scope::LOCAL) {
+      throw FbossError("Mirror-on-Drop must use LOCAL scoped recycle ports");
+    }
+  }
+
   return std::make_shared<MirrorOnDropReport>(
       *config->name(),
-      PortID(*config->mirrorPortId()),
+      mirrorPortId,
       localSrcIp,
       *config->localSrcPort(),
       collectorIp,

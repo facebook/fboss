@@ -108,6 +108,24 @@ class AgentMirrorOnDropTest
   const int kVsqDropEventId = 3;
   const int kVoqDropEventId = 4;
 
+  PortID findRecirculationPort(cfg::PortType portType, int offset = 0) {
+    std::vector<PortID> eligiblePortIds;
+    const auto& cfg = getAgentEnsemble()->getCurrentConfig();
+    for (const auto& port : *cfg.ports()) {
+      if (port.portType() == portType && port.scope() == cfg::Scope::LOCAL) {
+        eligiblePortIds.emplace_back(*port.logicalID());
+      }
+    }
+    if (offset > eligiblePortIds.size()) {
+      throw FbossError(
+          "Offset ",
+          offset,
+          " exceeds the number of eligible ports in config: ",
+          eligiblePortIds.size());
+    }
+    return eligiblePortIds[offset];
+  }
+
   std::string portDesc(PortID portId) {
     const auto& cfg = getAgentEnsemble()->getCurrentConfig();
     for (const auto& port : *cfg.ports()) {
@@ -486,8 +504,8 @@ INSTANTIATE_TEST_SUITE_P(
 
 // Verifies that changing MOD configs after warmboot succeeds.
 TEST_P(AgentMirrorOnDropTest, ConfigChangePostWarmboot) {
-  auto mirrorPortId1 = masterLogicalPortIds({cfg::PortType::RECYCLE_PORT})[1];
-  auto mirrorPortId2 = masterLogicalPortIds({GetParam()})[0];
+  auto mirrorPortId1 = findRecirculationPort(cfg::PortType::RECYCLE_PORT, 1);
+  auto mirrorPortId2 = findRecirculationPort(GetParam(), 0);
   XLOG(DBG3) << "MoD port 1: " << portDesc(mirrorPortId1);
   XLOG(DBG3) << "MoD port 2: " << portDesc(mirrorPortId2);
 
@@ -526,7 +544,7 @@ TEST_P(AgentMirrorOnDropTest, ConfigChangePostWarmboot) {
 // Verifies that changing MOD config when sFlow is enabled succeeds
 // (CS00012385636).
 TEST_P(AgentMirrorOnDropTest, ModWithSflowMirrorPresent) {
-  auto mirrorPortId = masterLogicalPortIds({GetParam()})[0];
+  auto mirrorPortId = findRecirculationPort(GetParam());
   auto sampledPortId = masterLogicalInterfacePortIds()[1];
   auto sflowPortId = masterLogicalInterfacePortIds()[2];
   XLOG(DBG3) << "MoD port: " << portDesc(mirrorPortId);
@@ -564,7 +582,7 @@ TEST_P(AgentMirrorOnDropTest, ModWithSflowMirrorPresent) {
 // 4. Packets are trapped to CPU. We validate the MOD headers well as a
 //    truncated version of the original packet.
 TEST_P(AgentMirrorOnDropTest, PacketProcessingDefaultRouteDrop) {
-  auto mirrorPortId = masterLogicalPortIds({GetParam()})[0];
+  auto mirrorPortId = findRecirculationPort(GetParam());
   auto injectionPortId = masterLogicalInterfacePortIds()[0];
   auto collectorPortId = masterLogicalInterfacePortIds()[1];
   XLOG(DBG3) << "MoD port: " << portDesc(mirrorPortId);
@@ -626,7 +644,7 @@ TEST_P(AgentMirrorOnDropTest, PacketProcessingDefaultRouteDrop) {
 // 4. Packets are trapped to CPU. We validate the MOD headers well as a
 //    truncated version of the original packet.
 TEST_P(AgentMirrorOnDropTest, PacketProcessingNullRouteDrop) {
-  PortID mirrorPortId = masterLogicalPortIds({GetParam()})[0];
+  PortID mirrorPortId = findRecirculationPort(GetParam());
   PortID injectionPortId = masterLogicalInterfacePortIds()[0];
   PortID collectorPortId = masterLogicalInterfacePortIds()[1];
   XLOG(DBG3) << "MoD port: " << portDesc(mirrorPortId);
@@ -697,7 +715,7 @@ TEST_P(AgentMirrorOnDropTest, PacketProcessingNullRouteDrop) {
 // 4. Packets are trapped to CPU. We validate the MOD headers well as a
 //    truncated version of the original packet.
 TEST_P(AgentMirrorOnDropTest, PacketProcessingAclDrop) {
-  auto mirrorPortId = masterLogicalPortIds({GetParam()})[0];
+  auto mirrorPortId = findRecirculationPort(GetParam());
   auto injectionPortId = masterLogicalInterfacePortIds()[0];
   auto collectorPortId = masterLogicalInterfacePortIds()[1];
   XLOG(DBG3) << "MoD port: " << portDesc(mirrorPortId);
@@ -741,7 +759,7 @@ TEST_P(AgentMirrorOnDropTest, PacketProcessingAclDrop) {
 // event ID sandwiched between other event IDs. Then perform the same test as
 // PacketProcessingDefaultRouteDrop. We expect everything to still work.
 TEST_P(AgentMirrorOnDropTest, MultipleEventIDs) {
-  auto mirrorPortId = masterLogicalPortIds({GetParam()})[0];
+  auto mirrorPortId = findRecirculationPort(GetParam());
   auto injectionPortId = masterLogicalInterfacePortIds()[0];
   auto collectorPortId = masterLogicalInterfacePortIds()[1];
   XLOG(DBG3) << "MoD port: " << portDesc(mirrorPortId);
@@ -813,7 +831,7 @@ TEST_P(AgentMirrorOnDropTest, MultipleEventIDs) {
 // 6. Packets are trapped to CPU. We validate the MOD headers well as a
 //    truncated version of the original packet.
 TEST_P(AgentMirrorOnDropTest, VoqReject) {
-  auto mirrorPortId = masterLogicalPortIds({GetParam()})[0];
+  auto mirrorPortId = findRecirculationPort(GetParam());
   auto collectorPortId = masterLogicalInterfacePortIds()[0];
   auto ingressPortId = masterLogicalInterfacePortIds()[1];
   XLOG(DBG3) << "MoD port: " << portDesc(mirrorPortId);
@@ -911,7 +929,7 @@ TEST_P(AgentMirrorOnDropTest, VoqReject) {
 // 6. Packets are trapped to CPU. We validate the MOD headers well as a
 //    truncated version of the original packet.
 TEST_P(AgentMirrorOnDropTest, VsqReject) {
-  auto mirrorPortId = masterLogicalPortIds({GetParam()})[0];
+  auto mirrorPortId = findRecirculationPort(GetParam());
   auto collectorPortId = masterLogicalInterfacePortIds()[0];
   auto injectionPortId = masterLogicalInterfacePortIds()[1];
   auto txOffPortId = masterLogicalInterfacePortIds()[2];
