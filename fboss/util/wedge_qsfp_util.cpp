@@ -2174,6 +2174,11 @@ void printCmisDetailService(
         MediaInterfaceUnion::Type::passiveCuCode) {
       mediaInterface = apache::thrift::util::enumNameSafe(
           (*mediaInterfaceId)[0].media()->get_passiveCuCode());
+    } else if (
+        (*mediaInterfaceId)[0].media()->getType() ==
+        MediaInterfaceUnion::Type::activeCuCode) {
+      mediaInterface = apache::thrift::util::enumNameSafe(
+          (*mediaInterfaceId)[0].media()->get_activeCuCode());
     }
     printf("  Current Media Interface: %s\n", mediaInterface.c_str());
   }
