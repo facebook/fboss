@@ -621,7 +621,6 @@ class AgentAqmTest : public AgentHwTest {
     auto setup = [=, this]() {
       auto config{getSw()->getConfig()};
       queueEcnThresholdSetup(config, std::array{silverQueueId});
-      queueWredThresholdSetup(config, std::array{silverQueueId});
       applyNewConfig(config);
 
       // Setup traffic loop
@@ -959,7 +958,7 @@ TEST_F(AgentAqmTest, verifyEcnThreshold) {
   runEcnThresholdTest();
 }
 
-TEST_F(AgentAqmTest, verifyPerQueueEcnMarkedStats) {
+TEST_F(AgentAqmEcnOnlyTest, verifyPerQueueEcnMarkedStats) {
   runPerQueueEcnMarkedStatsTest();
 }
 
