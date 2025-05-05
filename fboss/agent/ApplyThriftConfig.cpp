@@ -5574,6 +5574,9 @@ ThriftConfigApplier::updateMirrorOnDropReports() {
 std::shared_ptr<MirrorOnDropReport>
 ThriftConfigApplier::createMirrorOnDropReport(
     const cfg::MirrorOnDropReport* config) {
+  auto asicType =
+      checkSameAndGetAsic(hwAsicTable_->getL3Asics())->getAsicType();
+
   auto switchId = getAnyVoqSwitchId();
   if (!switchId.has_value()) {
     throw FbossError("No VOQ switchId found");
@@ -5615,12 +5618,27 @@ ThriftConfigApplier::createMirrorOnDropReport(
   } else if (config->mirrorPortId().has_value()) {
     mirrorPortId = PortID(*config->mirrorPortId());
   } else {
-    // TODO(maxgg): Find a local-scoped recycle port.
-    throw FbossError("TODO: MOD port auto-detection to be implemented");
+    if (asicType == cfg::AsicType::ASIC_TYPE_JERICHO3) {
+      // Find the lowest numbered local-scope recycle port.
+      for (auto& portMap : std::as_const(*(new_->getPorts()))) {
+        for (auto& [portId, port] : std::as_const(*portMap.second)) {
+          if (port->getPortType() == cfg::PortType::RECYCLE_PORT &&
+              port->getScope() == cfg::Scope::LOCAL) {
+            if (!mirrorPortId.has_value() ||
+                portId < static_cast<int>(mirrorPortId.value())) {
+              mirrorPortId = portId;
+            }
+          }
+        }
+      }
+    }
   }
-
-  if (checkSameAndGetAsic(hwAsicTable_->getL3Asics())->getAsicType() ==
-          cfg::AsicType::ASIC_TYPE_JERICHO3 &&
+  if (!mirrorPortId.has_value()) {
+    throw FbossError(
+        "Mirror-on-Drop destination is not specified, "
+        "and auto-detection is not supported on this ASIC");
+  }
+  if (asicType == cfg::AsicType::ASIC_TYPE_JERICHO3 &&
       !FLAGS_allow_nif_port_for_mod) {
     auto mirrorPortType = new_->getPort(*mirrorPortId)->getPortType();
     if (mirrorPortType != cfg::PortType::RECYCLE_PORT &&

@@ -65,15 +65,15 @@ cfg::MirrorOnDropEventConfig makeEventConfig(
 }
 
 cfg::MirrorOnDropReport makeReportCfg(
-    std::variant<int, cfg::MirrorDestination> port,
+    std::variant<int, cfg::MirrorDestination, std::monostate> port,
     const std::string& ip) {
   cfg::MirrorOnDropReport report;
   report.name() = "mod-1";
   if (std::holds_alternative<int>(port)) {
     report.mirrorPortId() = std::get<int>(port);
-  } else {
+  } else if (std::holds_alternative<cfg::MirrorDestination>(port)) {
     report.mirrorPort() = std::get<cfg::MirrorDestination>(port);
-  }
+  } // else leave it unset and let agent auto-detect
   report.localSrcPort() = 10000;
   report.collectorIp() = ip;
   report.collectorPort() = 20000;
@@ -188,6 +188,18 @@ TEST_F(MirrorOnDropReportTest, CreateReportByInvalidMirrorDestination) {
       publishAndApplyConfig(
           state_, &config_, platform_.get(), nullptr, &mockPlatformMapping_),
       FbossError);
+}
+
+TEST_F(MirrorOnDropReportTest, CreateReportByAutoDetect) {
+  config_.mirrorOnDropReports()->push_back(
+      makeReportCfg(std::monostate{}, "2401::1"));
+
+  state_ = publishAndApplyConfig(
+      state_, &config_, platform_.get(), nullptr, &mockPlatformMapping_);
+
+  auto report = state_->getMirrorOnDropReports()->getNodeIf("mod-1");
+  EXPECT_NE(report, nullptr);
+  EXPECT_EQ(report->getMirrorPortId(), PortID(kRecyclePortId));
 }
 
 TEST_F(MirrorOnDropReportTest, CreateReportOnNifPort) {
