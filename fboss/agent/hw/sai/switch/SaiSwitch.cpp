@@ -277,10 +277,13 @@ void __gSwitchAsicSdkHealthNotificationCallBack(
     sai_switch_asic_sdk_health_category_t category,
     sai_switch_health_data_t data,
     const sai_u8_list_t description) {
-  CHECK(__gSaiIdToSwitch.find(switch_id) != __gSaiIdToSwitch.end());
+  auto switchIter = __gSaiIdToSwitch.find(switch_id);
+  CHECK(switchIter != __gSaiIdToSwitch.end());
   SaiHealthNotification notification(
       fromSaiTimeSpec(timestamp), severity, category, data, description);
-  std::ignore = notification;
+  switchIter->second->switchAsicSdkHealthNotificationTopHalf(
+      std::move(notification));
+  ;
 }
 #endif
 
@@ -383,6 +386,18 @@ void SaiSwitch::unregisterCallbacks() noexcept {
     switchReachabilityChangeProcessThread_->join();
     // switch reachability change processing is completely shut-off
   }
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
+  if (runState_ >= SwitchRunState::CONFIGURED &&
+      platform_->getAsic()->isSupported(
+          HwAsic::Feature::SWITCH_ASIC_SDK_HEALTH_NOTIFY)) {
+    switchAsicSdkHealthNotificationBHEventBase_
+        .runInFbossEventBaseThreadAndWait([this]() {
+          switchAsicSdkHealthNotificationBHEventBase_.terminateLoopSoon();
+        });
+    switchAsicSdkHealthNotificationBHThread_->join();
+  }
+#endif
 
   if (runState_ >= SwitchRunState::INITIALIZED) {
     fdbEventBottomHalfEventBase_.runInFbossEventBaseThreadAndWait(
@@ -3055,6 +3070,22 @@ void SaiSwitch::initSwitchReachabilityChangeLocked(
   setSwitchReachabilityChangePending();
 }
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
+void SaiSwitch::initSwitchAsicSdkHealthNotificationLocked(
+    const std::lock_guard<std::mutex>& /* lock */) {
+  CHECK(platform_->getAsic()->isSupported(
+      HwAsic::Feature::SWITCH_ASIC_SDK_HEALTH_NOTIFY));
+  switchAsicSdkHealthNotificationBHThread_ =
+      std::make_unique<std::thread>([this]() {
+        initThread("fbossSaiSwitchAsicSdkHealthNotification");
+        switchAsicSdkHealthNotificationBHEventBase_.loopForever();
+      });
+  auto& switchApi = SaiApiTable::getInstance()->switchApi();
+  switchApi.registerSwitchAsicSdkHealthEventCallback(
+      saiSwitchId_, __gSwitchAsicSdkHealthNotificationCallBack);
+}
+#endif
+
 bool SaiSwitch::isMissingSrcPortAllowed(HostifTrapSaiId hostifTrapSaiId) {
   static std::set<facebook::fboss::cfg::PacketRxReason> kAllowedRxReasons = {
       facebook::fboss::cfg::PacketRxReason::TTL_1};
@@ -3771,9 +3802,7 @@ void SaiSwitch::switchRunStateChangedImplLocked(
       if (platform_->getAsic()->isSupported(
               HwAsic::Feature::SWITCH_ASIC_SDK_HEALTH_NOTIFY)) {
 #if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
-        auto& switchApi = SaiApiTable::getInstance()->switchApi();
-        switchApi.registerSwitchAsicSdkHealthEventCallback(
-            saiSwitchId_, __gSwitchAsicSdkHealthNotificationCallBack);
+        initSwitchAsicSdkHealthNotificationLocked(lock);
 #endif
       }
 
@@ -4759,5 +4788,33 @@ std::vector<FirmwareInfo> SaiSwitch::getAllFirmwareInfo() const {
 
   return {};
 }
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
+void SaiSwitch::switchAsicSdkHealthNotificationTopHalf(
+    SaiHealthNotification saiHealthNotification) {
+  switchAsicSdkHealthNotificationBHEventBase_.runInFbossEventBaseThread(
+      [this, notification = std::move(saiHealthNotification)]() {
+        switchAsicSdkHealthNotificationBottomHalf(std::move(notification));
+      });
+}
+
+void SaiSwitch::switchAsicSdkHealthNotificationBottomHalf(
+    SaiHealthNotification saiHealthNotification) {
+  switch (saiHealthNotification.getSeverity()) {
+    case SAI_SWITCH_ASIC_SDK_HEALTH_SEVERITY_FATAL:
+      XLOGF(FATAL, "{}", saiHealthNotification);
+      break;
+
+    case SAI_SWITCH_ASIC_SDK_HEALTH_SEVERITY_WARNING:
+      XLOGF(WARNING, "{}", saiHealthNotification);
+      break;
+
+    case SAI_SWITCH_ASIC_SDK_HEALTH_SEVERITY_NOTICE:
+      XLOGF(INFO, "{}", saiHealthNotification);
+      break;
+  }
+  /* TODO(pshaikh) : process saiHealthNotification to set parity error */
+}
+#endif
 
 } // namespace facebook::fboss
