@@ -969,7 +969,7 @@ std::optional<NeighborEntryThrift> NeighborCacheImpl<NTable>::getCacheData(
   if (entry) {
     NeighborEntryThrift thriftEntry;
     entry->populateThriftEntry(thriftEntry);
-    cachedNeighborEntry.assign(thriftEntry);
+    cachedNeighborEntry = std::move(thriftEntry);
   }
   return cachedNeighborEntry;
 }

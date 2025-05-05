@@ -189,4 +189,9 @@ std::list<NdpEntryThrift> NdpCache::getNdpCacheData() {
   return getCacheData<NdpEntryThrift>();
 }
 
+std::optional<NdpEntryThrift> NdpCache::getNdpCacheData(
+    folly::IPAddressV6 ip) const {
+  return getCacheData<NdpEntryThrift>(ip);
+}
+
 } // namespace facebook::fboss

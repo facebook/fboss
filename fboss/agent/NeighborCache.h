@@ -85,6 +85,17 @@ class NeighborCache {
     return impl_->template getCacheData<NeighborEntryThrift>(ip);
   }
 
+  template <typename NeighborEntryThrift>
+  std::list<NeighborEntryThrift> getCacheData() const {
+    std::lock_guard<std::mutex> g(cacheLock_);
+    return impl_->template getCacheData<NeighborEntryThrift>();
+  }
+
+  template <typename NeighborEntryThrift>
+  std::optional<NeighborEntryThrift> getCacheData(AddressType ip) const {
+    std::lock_guard<std::mutex> g(cacheLock_);
+    return impl_->template getCacheData<NeighborEntryThrift>(ip);
+  }
   void setTimeout(std::chrono::seconds timeout) {
     timeout_ = timeout;
   }
@@ -224,7 +235,8 @@ class NeighborCache {
   uint32_t maxNeighborProbes_{0};
   std::chrono::seconds staleEntryInterval_;
   std::unique_ptr<NeighborCacheImpl<NTable>> impl_;
-  std::mutex cacheLock_;
+  // mutuable to allow lock guard to be used
+  mutable std::mutex cacheLock_;
 };
 
 } // namespace facebook::fboss
