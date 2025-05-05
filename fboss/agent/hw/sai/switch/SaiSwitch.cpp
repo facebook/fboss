@@ -271,12 +271,17 @@ void __gTxReadyStatusChangeNotification(
 }
 
 void __gSwitchAsicSdkHealthNotificationCallBack(
-    sai_object_id_t /*switch_id*/,
-    sai_switch_asic_sdk_health_severity_t /*severity*/,
-    sai_timespec_t /*timestamp*/,
-    sai_switch_asic_sdk_health_category_t /*category*/,
-    sai_switch_health_data_t /*data*/,
-    const sai_u8_list_t /*description*/) {}
+    sai_object_id_t switch_id,
+    sai_switch_asic_sdk_health_severity_t severity,
+    sai_timespec_t timestamp,
+    sai_switch_asic_sdk_health_category_t category,
+    sai_switch_health_data_t data,
+    const sai_u8_list_t description) {
+  CHECK(__gSaiIdToSwitch.find(switch_id) != __gSaiIdToSwitch.end());
+  SaiHealthNotification notification(
+      fromSaiTimeSpec(timestamp), severity, category, data, description);
+  std::ignore = notification;
+}
 #endif
 
 PortSaiId SaiSwitch::getCPUPortSaiId() const {

@@ -1011,6 +1011,61 @@ SAI_ATTRIBUTE_NAME(Switch, PipelineObjectList)
 template <>
 struct SaiObjectHasStats<SaiSwitchTraits> : public std::true_type {};
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
+
+using SaiGeneralHealthData = std::monostate;
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 15, 0)
+struct SaiSerHealthData {
+  explicit SaiSerHealthData(sai_ser_health_data_t data)
+      : sai_ser_health_data(std::move(data)) {}
+  sai_ser_health_data_t sai_ser_health_data;
+};
+
+using SaiHealthData = std::variant<SaiGeneralHealthData, SaiSerHealthData>;
+#else
+using SaiHealthData = SaiGeneralHealthData;
+#endif
+
+struct SaiHealthNotification {
+  SaiHealthNotification(
+      SaiTimeSpec saiTimeSpec,
+      const sai_switch_asic_sdk_health_severity_t& severity,
+      const sai_switch_asic_sdk_health_category_t& category,
+      const sai_switch_health_data_t& data,
+      const sai_u8_list_t& description);
+
+  std::string toString() const;
+
+  sai_switch_asic_sdk_health_severity_t getSeverity() const {
+    return severity;
+  }
+  sai_switch_asic_sdk_health_category_t getCategory() const {
+    return category;
+  }
+
+  const SaiHealthData& getData() const {
+    return saiHealthData;
+  }
+
+  const std::string& getDescription() const {
+    return description;
+  }
+
+  const SaiTimeSpec& getTimeSpec() const {
+    return timeSpec;
+  }
+
+ private:
+  SaiTimeSpec timeSpec;
+  sai_switch_asic_sdk_health_severity_t severity;
+  sai_switch_asic_sdk_health_category_t category;
+  SaiHealthData saiHealthData{};
+  std::string description;
+};
+
+#endif
+
 class SwitchApi : public SaiApi<SwitchApi> {
  public:
   static constexpr sai_api_t ApiType = SAI_API_SWITCH;

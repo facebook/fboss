@@ -148,4 +148,36 @@ void SwitchApi::registerVendorSwitchEventNotifyCallback(
 }
 #endif
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
+
+SaiHealthNotification::SaiHealthNotification(
+    SaiTimeSpec saiTimeSpec,
+    const sai_switch_asic_sdk_health_severity_t&
+        sai_switch_asic_sdk_health_severity,
+    const sai_switch_asic_sdk_health_category_t&
+        sai_switch_asic_sdk_health_category,
+    const sai_switch_health_data_t& data,
+    const sai_u8_list_t& sai_u8_list)
+    : timeSpec(std::move(saiTimeSpec)),
+      severity(sai_switch_asic_sdk_health_severity),
+      category(sai_switch_asic_sdk_health_category),
+      saiHealthData{},
+      description(sai_u8_list.list, sai_u8_list.list + sai_u8_list.count) {
+  switch (data.data_type) {
+    case SAI_HEALTH_DATA_TYPE_GENERAL:
+      break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 15, 0)
+    case SAI_HEALTH_DATA_TYPE_SER:
+      saiHealthData = SaiSerHealthData(data.data.ser);
+      break;
+#endif
+  }
+}
+
+std::string SaiHealthNotification::toString() const {
+  /* TODO: include other fields */
+  return description;
+}
+#endif
+
 } // namespace facebook::fboss
