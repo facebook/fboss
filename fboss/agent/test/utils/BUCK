@@ -683,7 +683,6 @@ cpp_library(
         "//fboss/agent/test:agent_ensemble",
         "//fboss/agent/test:ecmp_helper",
         "//fboss/agent/test:route_scale_gen",
-        "//fboss/lib:common_file_utils",
         "//fboss/lib:function_call_time_reporter",
         "//folly:benchmark",
     ],
@@ -750,5 +749,14 @@ cpp_library(
         "//fboss/agent/packet:packet_factory",
         "//fboss/agent/test:agent_ensemble",
         "//fboss/agent/test:ecmp_helper",
+    ],
+)
+
+cpp_library(
+    name = "neighbor_test_utils",
+    headers = ["NeighborTestUtils.h"],
+    exported_deps = [
+        "//fboss/agent:core",
+        "//fboss/agent/state:state",
     ],
 )

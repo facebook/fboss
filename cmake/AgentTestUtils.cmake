@@ -526,3 +526,12 @@ target_link_libraries(agent_fsdb_integ_bench_helper
   fsdb_flags
   Folly::folly
 )
+
+add_library(neighbor_test_utils
+  fboss/agent/test/utils/NeighborTestUtils.cpp
+)
+
+target_link_libraries(neighbor_test_utils
+  core
+  state
+)
