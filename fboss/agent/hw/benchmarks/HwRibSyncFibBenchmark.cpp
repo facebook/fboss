@@ -33,7 +33,8 @@ BENCHMARK(RibSyncFibBenchmark) {
   auto ensemble =
       createAgentEnsemble(initialConfigFn, false /*disableLinkStateToggler*/);
   auto state = ensemble->getSw()->getState();
-  utility::THAlpmRouteScaleGenerator gen(state, 50000);
+  utility::THAlpmRouteScaleGenerator gen(
+      state, ensemble->getSw()->needL2EntryForNeighbor(), 50000);
   const auto& routeChunks = gen.getThriftRoutes();
   CHECK_EQ(1, routeChunks.size());
   // Create a dummy rib since we don't want to go through
