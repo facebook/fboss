@@ -1,5 +1,5 @@
 {
-  "wqpwmBoostOnNumDeadFan": 2,
+  "pwmBoostOnNumDeadFan": 2,
   "pwmBoostOnNumDeadSensor": 0,
   "pwmBoostOnNoQsfpAfterInSec": 55,
   "pwmBoostValue": 50,
