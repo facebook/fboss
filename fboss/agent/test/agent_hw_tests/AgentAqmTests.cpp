@@ -927,7 +927,7 @@ TEST_F(AgentAqmTest, verifyEct1) {
   runTest(kECT1, true /* enableWred */, true /* enableEcn */);
 }
 
-TEST_F(AgentAqmTest, verifyEcnWithoutWredConfig) {
+TEST_F(AgentAqmEcnOnlyTest, verifyEcnWithoutWredConfig) {
   runTest(kECT1, false /* enableWred */, true /* enableEcn */);
 }
 
