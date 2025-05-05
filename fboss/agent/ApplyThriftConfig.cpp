@@ -5586,26 +5586,58 @@ ThriftConfigApplier::createMirrorOnDropReport(
       ? folly::IPAddress(getSwitchIntfIP(new_, InterfaceID(systemPortId)))
       : folly::IPAddress(getSwitchIntfIPv6(new_, InterfaceID(systemPortId)));
 
-  auto mirrorPortId = PortID(*config->mirrorPortId());
+  // Determine the mirror recirculation port.
+  std::optional<PortID> mirrorPortId;
+  if (config->mirrorPort().has_value()) {
+    auto egressPort = config->mirrorPort()->egressPort();
+    if (!egressPort.has_value()) {
+      throw FbossError(
+          "Only egressPort can be used as a Mirror-on-Drop destination");
+    }
+    switch (egressPort->getType()) {
+      case cfg::MirrorEgressPort::Type::name:
+        for (auto& portMap : std::as_const(*(new_->getPorts()))) {
+          for (auto& [portId, port] : std::as_const(*portMap.second)) {
+            if (port->getName() == egressPort->get_name()) {
+              mirrorPortId = portId;
+              break;
+            }
+          }
+        }
+        break;
+      case cfg::MirrorEgressPort::Type::logicalID:
+        mirrorPortId = egressPort->get_logicalID();
+        break;
+      case cfg::MirrorEgressPort::Type::__EMPTY__:
+        throw FbossError(
+            "Must set either name or logicalID for MirrorEgressPort");
+    }
+  } else if (config->mirrorPortId().has_value()) {
+    mirrorPortId = PortID(*config->mirrorPortId());
+  } else {
+    // TODO(maxgg): Find a local-scoped recycle port.
+    throw FbossError("TODO: MOD port auto-detection to be implemented");
+  }
 
   if (checkSameAndGetAsic(hwAsicTable_->getL3Asics())->getAsicType() ==
           cfg::AsicType::ASIC_TYPE_JERICHO3 &&
       !FLAGS_allow_nif_port_for_mod) {
-    auto mirrorPortType = new_->getPort(mirrorPortId)->getPortType();
+    auto mirrorPortType = new_->getPort(*mirrorPortId)->getPortType();
     if (mirrorPortType != cfg::PortType::RECYCLE_PORT &&
         mirrorPortType != cfg::PortType::EVENTOR_PORT) {
       throw FbossError(
           "Only RECYCLE_PORT or EVENTOR_PORT can be used for Mirror-on-Drop on Jericho3, got ",
           apache::thrift::util::enumNameSafe(mirrorPortType));
     }
-    if (new_->getPort(mirrorPortId)->getScope() != cfg::Scope::LOCAL) {
-      throw FbossError("Mirror-on-Drop must use LOCAL scoped recycle ports");
+    if (new_->getPort(*mirrorPortId)->getScope() != cfg::Scope::LOCAL) {
+      throw FbossError(
+          "Mirror-on-Drop must use LOCAL scoped recycle/eventor ports");
     }
   }
 
   return std::make_shared<MirrorOnDropReport>(
       *config->name(),
-      mirrorPortId,
+      *mirrorPortId,
       localSrcIp,
       *config->localSrcPort(),
       collectorIp,

@@ -11,6 +11,7 @@ using namespace ::testing;
 namespace facebook::fboss {
 
 // see TestUtils > testConfigAImpl()
+const std::string kRecyclePortName = "rcy1/1/1";
 constexpr int kRecyclePortId = 1;
 constexpr int kGlobalScopedRecyclePortId = 2;
 constexpr int kNifPortId = 5;
@@ -63,10 +64,16 @@ cfg::MirrorOnDropEventConfig makeEventConfig(
   return eventCfg;
 }
 
-cfg::MirrorOnDropReport makeReportCfg(int portId, const std::string& ip) {
+cfg::MirrorOnDropReport makeReportCfg(
+    std::variant<int, cfg::MirrorDestination> port,
+    const std::string& ip) {
   cfg::MirrorOnDropReport report;
   report.name() = "mod-1";
-  report.mirrorPortId() = portId;
+  if (std::holds_alternative<int>(port)) {
+    report.mirrorPortId() = std::get<int>(port);
+  } else {
+    report.mirrorPort() = std::get<cfg::MirrorDestination>(port);
+  }
   report.localSrcPort() = 10000;
   report.collectorIp() = ip;
   report.collectorPort() = 20000;
@@ -143,6 +150,44 @@ TEST_F(MirrorOnDropReportTest, CreateReportV6) {
       report->getAgingGroupAgingIntervalUsecs()
           [cfg::MirrorOnDropAgingGroup::PORT],
       100);
+}
+
+TEST_F(MirrorOnDropReportTest, CreateReportByMirrorDestinationLogicalId) {
+  cfg::MirrorDestination destination;
+  destination.egressPort().ensure().set_logicalID(kRecyclePortId);
+  config_.mirrorOnDropReports()->push_back(
+      makeReportCfg(destination, "2401::1"));
+
+  state_ = publishAndApplyConfig(
+      state_, &config_, platform_.get(), nullptr, &mockPlatformMapping_);
+
+  auto report = state_->getMirrorOnDropReports()->getNodeIf("mod-1");
+  EXPECT_NE(report, nullptr);
+}
+
+TEST_F(MirrorOnDropReportTest, CreateReportByMirrorDestinationName) {
+  cfg::MirrorDestination destination;
+  destination.egressPort().ensure().set_name(kRecyclePortName);
+  config_.mirrorOnDropReports()->push_back(
+      makeReportCfg(destination, "2401::1"));
+
+  state_ = publishAndApplyConfig(
+      state_, &config_, platform_.get(), nullptr, &mockPlatformMapping_);
+
+  auto report = state_->getMirrorOnDropReports()->getNodeIf("mod-1");
+  EXPECT_NE(report, nullptr);
+}
+
+TEST_F(MirrorOnDropReportTest, CreateReportByInvalidMirrorDestination) {
+  cfg::MirrorDestination destination;
+  // Not specifying anything in destination
+  config_.mirrorOnDropReports()->push_back(
+      makeReportCfg(destination, "2401::1"));
+
+  EXPECT_THROW(
+      publishAndApplyConfig(
+          state_, &config_, platform_.get(), nullptr, &mockPlatformMapping_),
+      FbossError);
 }
 
 TEST_F(MirrorOnDropReportTest, CreateReportOnNifPort) {
