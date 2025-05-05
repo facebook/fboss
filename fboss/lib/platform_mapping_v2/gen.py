@@ -70,7 +70,15 @@ def generate_platform_mappings(
     input_dir: str, output_dir: str, platform_name: str, is_multi_npu: bool
 ) -> None:
     print(f"Finding vendor data in {input_dir}...", file=sys.stderr)
-    vendor_data_map = {platform_name: read_vendor_data(os.path.expanduser(input_dir))}
+    input_dir = os.path.expanduser(input_dir)
+    vendor_data_map = {platform_name: read_vendor_data(input_dir)}
+
+    # Temporary Workaround for meru800bia variants
+    if "platforms/meru800bia" in input_dir and not input_dir.endswith(
+        "platforms/meru800bia"
+    ):
+        meru800bia_input_dir = input_dir.rsplit("/", 1)[0] + "/meru800bia"
+        vendor_data_map["meru800bia"] = read_vendor_data(meru800bia_input_dir)
 
     if not vendor_data_map:
         print("No vendor data found in the input directory.", file=sys.stderr)
@@ -83,7 +91,10 @@ def generate_platform_mappings(
 
     output_dir = os.path.expanduser(output_dir)
     os.makedirs(output_dir, exist_ok=True)
-    output_file = f"{output_dir}/{platform_name}_platform_mapping.json"
+    platform_file_name = f"{platform_name}_platform_mapping" + (
+        "_is_multi_npu" if is_multi_npu else ""
+    )
+    output_file = f"{output_dir}/{platform_file_name}.json"
     platform_mapping_serialized = Serializer.serialize(
         TSimpleJSONProtocol.TSimpleJSONProtocolFactory(), platform_mapping
     )

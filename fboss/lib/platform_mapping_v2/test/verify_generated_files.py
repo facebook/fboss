@@ -26,7 +26,17 @@ class TestVerifyPlatformMappingGeneratedFiles(unittest.TestCase):
     _OSS_MULTI_NPU_SUPPORTED_PLATFORMS: Dict[bool, List[str]] = {
         False: [
             "montblanc",
+            "minipack3n",
+            "meru800bia",
+            "meru800bia_dual_stage_rdsw",
+            "meru800bia_dual_stage_edsw",
+            "meru800bia_100g_nif_port_breakout",
+            "meru800bia_800g",
+            "janga800bic",
+            "tahan800bc_test_fixture",
+            "tahan800bc_chassis",
         ],
+        True: ["meru800bfa", "meru400bfu", "janga800bic"],
     }
     _FBCODE_GENERATED_DIR: str = (
         "fboss/lib/platform_mapping_v2/generated_platform_mappings"
