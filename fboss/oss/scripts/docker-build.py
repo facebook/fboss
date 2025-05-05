@@ -19,6 +19,9 @@ OPT_ARG_NO_SYSTEM_DEPS = "--no-system-deps"
 OPT_ARG_ADD_BUILD_ENV_VAR = "--env-var"
 OPT_ARG_LOCAL = "--local"
 OPT_ARG_NUM_JOBS = "--num-jobs"
+OPT_ARG_SCHEDULE_TYPE = "--schedule-type"
+OPT_ARG_EXTRAS_DIR = "--extras-dir"
+OPT_ARG_CACHE_CONFIG = "--cache-config"
 
 FBOSS_IMAGE_NAME = "fboss_image"
 FBOSS_CONTAINER_NAME = "FBOSS_BUILD_CONTAINER"
@@ -156,6 +159,33 @@ def parse_args():
             "If unspecified, the default is the number of cpus. (CPU(s) in lspcu output)"
         ),
     )
+    parser.add_argument(
+        OPT_ARG_SCHEDULE_TYPE,
+        type=str,
+        required=False,
+        help=(
+            "Specify the schedule type for the build, which is passed onto "
+            "getdeps.py, where only the output of `continuous` will populate the "
+            "cache."
+        ),
+    )
+    parser.add_argument(
+        OPT_ARG_EXTRAS_DIR,
+        type=str,
+        required=False,
+        help=(
+            "The contents of this directory will be mounted into the docker "
+            "image at /var/extras."
+        ),
+    )
+    parser.add_argument(
+        OPT_ARG_CACHE_CONFIG,
+        type=str,
+        required=False,
+        help=(
+            "Cache config passed to getdeps.py."
+        ),
+    )
 
     return parser.parse_args()
 
@@ -209,6 +239,9 @@ def run_fboss_build(
     env_vars: List[str],
     use_local: bool,
     num_jobs: Optional[int],
+    schedule_type: Optional[str],
+    cache_config: Optional[str],
+    extras_dir: Optional[str],
 ):
     cmd_args = ["sudo", "docker", "run"]
     # Add build environment variables, if any.
@@ -229,6 +262,8 @@ def run_fboss_build(
     # Add TTY flags
     if docker_output:
         cmd_args.append("-it")
+    if extras_dir:
+        cmd_args.extend(["-v", f"{extras_dir}:/var/extras:ro"])
     # Add args for docker container name
     cmd_args.append(f"--name={FBOSS_CONTAINER_NAME}")
     # Add args for image name
@@ -251,6 +286,10 @@ def run_fboss_build(
         build_cmd.append(target)
     if use_local:
         build_cmd.extend(["--src-dir", "."])
+    if schedule_type:
+        build_cmd.extend(["--schedule-type", schedule_type])
+    if cache_config:
+        build_cmd.extend(["--cache-config", cache_config])
     build_cmd.append("fboss")
     cmd_args.extend(build_cmd)
     build_cp = subprocess.run(cmd_args)
@@ -304,6 +343,9 @@ def main():
         args.env_vars,
         args.local,
         args.num_jobs,
+        args.schedule_type,
+        args.cache_config,
+        args.extras_dir,
     )
 
     cleanup_fboss_build_container()

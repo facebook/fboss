@@ -5,6 +5,9 @@ RUN dnf install git sudo lsof -y
 # Use /var/FBOSS as the set location to clone the git repository and store the outputs of the build.
 WORKDIR /var/FBOSS/
 
+# Mount point for extra files.
+RUN mkdir -p /var/extras
+
 RUN mkdir -p /var/FBOSS/fboss
 COPY . fboss
 WORKDIR fboss
@@ -23,6 +26,7 @@ RUN sudo dnf install -y autoconf automake binutils binutils-devel bzip2 \
     libzstd libzstd-devel lz4-devel ncurses-devel ninja-build openssl \
     openssl-devel openssl-libs python3 python3-devel re2 re2-devel \
     snappy-devel xxhash-devel xz-devel zlib-devel zlib-static -y --allowerasing
+RUN python3 -m pip install boto3 botocore
 RUN ./build/fbcode_builder/getdeps.py install-system-deps --recursive fboss
 RUN dnf install bison flex -y
 RUN dnf group install "Development Tools" -y
