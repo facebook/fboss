@@ -445,6 +445,31 @@ void BcmAclEntry::createAclActions() {
         applyFlowletAction(matchAction);
       }
     }
+
+    if (matchAction->getEcmpHashAction()) {
+      XLOG(DBG2) << "Adding ecmp hash action for handle :" << handle_;
+      applyEcmpHashAction(matchAction);
+    }
+  }
+}
+
+void BcmAclEntry::applyEcmpHashAction(
+    const std::optional<facebook::fboss::MatchAction>& action) {
+  int rv;
+  auto ecmpHashAction = action->getEcmpHashAction().value();
+  switch (*ecmpHashAction.switchingMode()) {
+    case cfg::SwitchingMode::FIXED_ASSIGNMENT:
+      rv = bcm_field_action_add(
+          hw_->getUnit(),
+          handle_,
+          bcmFieldActionEcmpRandomRoundRobinHashCancel,
+          0,
+          0);
+      bcmCheckError(rv, "failed to add ecmp hash action");
+      break;
+    default:
+      throw FbossError(
+          "Unsupported ecmp hash action", *ecmpHashAction.switchingMode());
   }
 }
 
