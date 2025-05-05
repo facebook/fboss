@@ -31,35 +31,8 @@ void StaticL2ForNeighborUpdater::stateUpdated(const StateDelta& stateDelta) {
   if (!this->needL2EntryForNeighbor()) {
     return;
   }
-  NeighborTableDeltaCallbackGenerator::genCallbacks(stateDelta, *this);
-}
 
-template <typename NeighborEntryT>
-void StaticL2ForNeighborUpdater::processAdded(
-    const std::shared_ptr<SwitchState>& /*switchState*/,
-    VlanID vlan,
-    const std::shared_ptr<NeighborEntryT>& addedEntry) {
-  // No need to process neighbor entry - static l2 programming are already part
-  // of the same update in neighrbor update from neighbor cache.
-}
-
-template <typename NeighborEntryT>
-void StaticL2ForNeighborUpdater::processRemoved(
-    const std::shared_ptr<SwitchState>& /*switchState*/,
-    VlanID vlan,
-    const std::shared_ptr<NeighborEntryT>& removedEntry) {
-  // No need to process neighbor entry - static l2 programming are already part
-  // of the same update in neighrbor update from neighbor cache.
-}
-
-template <typename NeighborEntryT>
-void StaticL2ForNeighborUpdater::processChanged(
-    const StateDelta& stateDelta,
-    VlanID vlan,
-    const std::shared_ptr<NeighborEntryT>& oldEntry,
-    const std::shared_ptr<NeighborEntryT>& newEntry) {
-  // No need to process neighbor entry - static l2 programming are already part
-  // of the same update in neighrbor update from neighbor cache.
+  NeighborTableDeltaCallbackGenerator::genMacEntryCallbacks(stateDelta, *this);
 }
 
 void StaticL2ForNeighborUpdater::processAdded(
