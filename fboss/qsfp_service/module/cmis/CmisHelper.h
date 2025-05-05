@@ -264,18 +264,18 @@ class CmisHelper final {
                             ActiveCuHostInterfaceCode::AUI_PAM4_2S_200G,
                             ActiveCuHostInterfaceCode::AUI_PAM4_2S_200G,
                         },
-                        {
-                            // 2xCR4_400G
-                            ActiveCuHostInterfaceCode::AUI_PAM4_4S_400G,
-                            ActiveCuHostInterfaceCode::AUI_PAM4_4S_400G,
-                            ActiveCuHostInterfaceCode::AUI_PAM4_4S_400G,
-                            ActiveCuHostInterfaceCode::AUI_PAM4_4S_400G,
-                            ActiveCuHostInterfaceCode::AUI_PAM4_4S_400G,
-                            ActiveCuHostInterfaceCode::AUI_PAM4_4S_400G,
-                            ActiveCuHostInterfaceCode::AUI_PAM4_4S_400G,
-                            ActiveCuHostInterfaceCode::AUI_PAM4_4S_400G,
-                        },
             */
+            {
+                // 2xCR4_400G
+                ActiveCuHostInterfaceCode::AUI_PAM4_4S_400G,
+                ActiveCuHostInterfaceCode::AUI_PAM4_4S_400G,
+                ActiveCuHostInterfaceCode::AUI_PAM4_4S_400G,
+                ActiveCuHostInterfaceCode::AUI_PAM4_4S_400G,
+                ActiveCuHostInterfaceCode::AUI_PAM4_4S_400G,
+                ActiveCuHostInterfaceCode::AUI_PAM4_4S_400G,
+                ActiveCuHostInterfaceCode::AUI_PAM4_4S_400G,
+                ActiveCuHostInterfaceCode::AUI_PAM4_4S_400G,
+            },
             {
                 // 8x100G CR8_800G
                 ActiveCuHostInterfaceCode::AUI_PAM4_8S_800G,
