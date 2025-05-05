@@ -622,22 +622,31 @@ struct DeltaVisitor<
         continue;
       }
       traverser.push(folly::to<std::string>(key), TCType<MappedTypeClass>);
+      using ValueType = std::remove_cvref_t<decltype(val)>;
+      std::optional<SerializableWrapper<MappedTypeClass, ValueType>>
+          wrappedEmptyVal;
+      std::optional<SerializableWrapper<MappedTypeClass, ValueType>>
+          wrappedOldVal = SerializableWrapper<MappedTypeClass, ValueType>(
+              *const_cast<ValueType*>(&val));
       if (it == newRef.end()) {
         // deleted entry
         hasDifferences = true;
         dv_detail::invokeVisitorFnHelper(
             traverser,
-            val,
-            decltype(val){},
+            wrappedOldVal,
+            wrappedEmptyVal,
             DeltaElemTag::MINIMAL,
             std::forward<Func>(f));
       } else if (val != it->second) {
         // changed entry
         hasDifferences = true;
+        std::optional<SerializableWrapper<MappedTypeClass, ValueType>>
+            wrappedNewVal = SerializableWrapper<MappedTypeClass, ValueType>(
+                *const_cast<ValueType*>(&it->second));
         dv_detail::invokeVisitorFnHelper(
             traverser,
-            val,
-            it->second,
+            wrappedOldVal,
+            wrappedNewVal,
             DeltaElemTag::MINIMAL,
             std::forward<Func>(f));
       }
@@ -650,10 +659,16 @@ struct DeltaVisitor<
         hasDifferences = true;
         traverser.push(folly::to<std::string>(key), TCType<MappedTypeClass>);
 
+        using ValueType = std::remove_cvref_t<decltype(val)>;
+        std::optional<SerializableWrapper<MappedTypeClass, ValueType>>
+            wrappedEmptyVal;
+        std::optional<SerializableWrapper<MappedTypeClass, ValueType>>
+            wrappedNewVal = SerializableWrapper<MappedTypeClass, ValueType>(
+                *const_cast<ValueType*>(&val));
         dv_detail::invokeVisitorFnHelper(
             traverser,
-            decltype(val){},
-            val,
+            wrappedEmptyVal,
+            wrappedNewVal,
             DeltaElemTag::MINIMAL,
             std::forward<Func>(f));
 
