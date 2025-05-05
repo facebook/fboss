@@ -79,8 +79,5 @@ class StaticL2ForNeighborUpdater {
       const std::shared_ptr<MacEntry>& macEntry) = 0;
 
   virtual bool needL2EntryForNeighbor() const = 0;
-
-  template <typename NeighborEntryT>
-  void assertNeighborEntry(const NeighborEntryT& neighbor);
 };
 } // namespace facebook::fboss

@@ -64,7 +64,8 @@ class NeighborCacheImpl {
         vlanID_(vlanID),
         vlanName_(vlanName),
         intfID_(intfID),
-        evb_(sw->getNeighborCacheEvb()) {}
+        evb_(sw->getNeighborCacheEvb()),
+        needL2EntryForNeighbor_(sw->needL2EntryForNeighbor()) {}
 
   // Methods useful for subclasses
   void setPendingEntry(AddressType ip, PortDescriptor port, bool force = false);
@@ -179,6 +180,7 @@ class NeighborCacheImpl {
   std::string vlanName_;
   InterfaceID intfID_;
   FbossEventBase* evb_;
+  bool needL2EntryForNeighbor_;
 
   // Map of all entries
   std::unordered_map<AddressType, std::shared_ptr<Entry>> entries_;

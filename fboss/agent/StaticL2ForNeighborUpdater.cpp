@@ -35,22 +35,12 @@ void StaticL2ForNeighborUpdater::stateUpdated(const StateDelta& stateDelta) {
 }
 
 template <typename NeighborEntryT>
-void StaticL2ForNeighborUpdater::assertNeighborEntry(
-    const NeighborEntryT& /*neighbor*/) {
-  static_assert(
-      std::is_same_v<ArpEntry, NeighborEntryT> ||
-      std::is_same_v<NdpEntry, NeighborEntryT>);
-}
-template <typename NeighborEntryT>
 void StaticL2ForNeighborUpdater::processAdded(
     const std::shared_ptr<SwitchState>& /*switchState*/,
     VlanID vlan,
     const std::shared_ptr<NeighborEntryT>& addedEntry) {
-  assertNeighborEntry(*addedEntry);
-  if (isReachable(addedEntry)) {
-    XLOG(DBG2) << " Neighbor entry added: " << addedEntry->str();
-    ensureMacEntryForNeighbor(vlan, addedEntry);
-  }
+  // No need to process neighbor entry - static l2 programming are already part
+  // of the same update in neighrbor update from neighbor cache.
 }
 
 template <typename NeighborEntryT>
@@ -58,11 +48,8 @@ void StaticL2ForNeighborUpdater::processRemoved(
     const std::shared_ptr<SwitchState>& /*switchState*/,
     VlanID vlan,
     const std::shared_ptr<NeighborEntryT>& removedEntry) {
-  assertNeighborEntry(*removedEntry);
-  if (isReachable(removedEntry)) {
-    XLOG(DBG2) << " Neighbor entry removed: " << removedEntry->str();
-    pruneMacEntryForNeighbor(vlan, removedEntry);
-  }
+  // No need to process neighbor entry - static l2 programming are already part
+  // of the same update in neighrbor update from neighbor cache.
 }
 
 template <typename NeighborEntryT>
@@ -71,16 +58,8 @@ void StaticL2ForNeighborUpdater::processChanged(
     VlanID vlan,
     const std::shared_ptr<NeighborEntryT>& oldEntry,
     const std::shared_ptr<NeighborEntryT>& newEntry) {
-  assertNeighborEntry(*oldEntry);
-  assertNeighborEntry(*newEntry);
-  if ((isReachable(oldEntry) != isReachable(newEntry)) ||
-      (oldEntry->getMac() != newEntry->getMac()) ||
-      (oldEntry->getPort() != newEntry->getPort())) {
-    XLOG(DBG2) << " Neighbor entry changed, old: " << oldEntry->str()
-               << " new: " << newEntry->str();
-    processRemoved<NeighborEntryT>(stateDelta.oldState(), vlan, oldEntry);
-    processAdded<NeighborEntryT>(stateDelta.newState(), vlan, newEntry);
-  }
+  // No need to process neighbor entry - static l2 programming are already part
+  // of the same update in neighrbor update from neighbor cache.
 }
 
 void StaticL2ForNeighborUpdater::processAdded(

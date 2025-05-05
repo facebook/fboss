@@ -21,6 +21,7 @@
 #include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/IPv6Handler.h"
 #include "fboss/agent/NeighborCacheImpl.h"
+#include "fboss/agent/StaticL2ForNeighborSwSwitchUpdater.h"
 #include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/state/ArpTable.h"
@@ -79,6 +80,32 @@ inline cfg::PortDescriptor getNeighborPortDescriptor(
   }
 
   throw FbossError("Unnknown port descriptor");
+}
+
+template <typename NeighborEntryT>
+bool isReachable(const std::shared_ptr<NeighborEntryT>& entry) {
+  return entry->isReachable() && !entry->getMac().isBroadcast();
+}
+
+template <typename NeighborEntryT>
+std::shared_ptr<SwitchState> processChangedNeighborEntry(
+    std::shared_ptr<SwitchState> state,
+    const std::shared_ptr<NeighborEntryT>& oldEntry,
+    const std::shared_ptr<NeighborEntryT>& newEntry,
+    VlanID vlanID) {
+  if ((isReachable(oldEntry) != isReachable(newEntry)) ||
+      (oldEntry->getMac() != newEntry->getMac()) ||
+      (oldEntry->getPort() != newEntry->getPort())) {
+    if (isReachable(oldEntry)) {
+      state = StaticL2ForNeighborSwSwitchUpdater::pruneMacEntry(
+          state, vlanID, oldEntry);
+    }
+    if (isReachable(newEntry)) {
+      state = StaticL2ForNeighborSwSwitchUpdater::ensureMacEntry(
+          state, vlanID, newEntry);
+    }
+  }
+  return state;
 }
 
 } // namespace ncachehelpers
@@ -188,6 +215,13 @@ NeighborCacheImpl<NTable>::getUpdateFnToProgramEntryForVlan(Entry* entry) {
       XLOG(DBG2) << "Adding entry for " << fields.ip << " --> " << fields.mac
                  << " on interface " << fields.interfaceID << " for vlan "
                  << vlanID;
+      node = table->getNodeIf(fields.ip.str());
+
+      if (needL2EntryForNeighbor_ && ncachehelpers::isReachable(node)) {
+        // Also program static l2 entry in the same update
+        newState = StaticL2ForNeighborSwSwitchUpdater::ensureMacEntry(
+            newState, vlanID, node);
+      }
     } else {
       if (node->getMac() == fields.mac && node->getPort() == fields.port &&
           node->getIntfID() == fields.interfaceID &&
@@ -200,6 +234,12 @@ NeighborCacheImpl<NTable>::getUpdateFnToProgramEntryForVlan(Entry* entry) {
       XLOG(DBG2) << "Converting pending entry for " << fields.ip << " --> "
                  << fields.mac << " on interface " << fields.interfaceID
                  << " port " << fields.port << " for vlan " << vlanID;
+
+      if (needL2EntryForNeighbor_) {
+        auto newNode = table->getNodeIf(fields.ip.str());
+        newState = ncachehelpers::processChangedNeighborEntry(
+            newState, node, newNode, vlanID);
+      }
     }
     return newState;
   };
@@ -305,6 +345,23 @@ SwSwitch::StateUpdateFn NeighborCacheImpl<NTable>::getUpdateFnToProgramEntry(
     intfMap->updateNode(
         intfNew, sw_->getScopeResolver()->scope(intfNew, newState));
 
+    auto newNode = intfNew->getTable<NTable>()->getEntryIf(fields.ip);
+    if (needL2EntryForNeighbor_ &&
+        intfNew->getType() == cfg::InterfaceType::VLAN) {
+      CHECK(intfNew->getVlanIDIf().has_value());
+      auto vlanID = intfNew->getVlanID();
+      if (!node) {
+        if (ncachehelpers::isReachable(newNode)) {
+          // Also program static l2 entry in the same update
+          newState = StaticL2ForNeighborSwSwitchUpdater::ensureMacEntry(
+              newState, vlanID, newNode);
+        }
+      } else {
+        newState = ncachehelpers::processChangedNeighborEntry(
+            newState, node, newNode, vlanID);
+      }
+    }
+
     return newState;
   };
 
@@ -370,8 +427,9 @@ NeighborCacheImpl<NTable>::getUpdateFnToProgramPendingEntryForVlan(
 
   auto fields = entry->getFields();
   auto vlanID = vlanID_;
-  auto updateFn =
-      [fields, vlanID, force](const std::shared_ptr<SwitchState>& state)
+  auto needL2EntryForNeighbor = needL2EntryForNeighbor_;
+  auto updateFn = [fields, vlanID, needL2EntryForNeighbor, force](
+                      const std::shared_ptr<SwitchState>& state)
       -> std::shared_ptr<SwitchState> {
     if (!ncachehelpers::checkVlanAndIntf<NTable>(state, fields, vlanID)) {
       // Either the vlan or intf is no longer valid.
@@ -396,6 +454,12 @@ NeighborCacheImpl<NTable>::getUpdateFnToProgramPendingEntryForVlan(
 
     XLOG(DBG4) << "Adding pending entry for " << fields.ip << " on interface "
                << fields.interfaceID << " for vlan " << vlanID;
+
+    if (needL2EntryForNeighbor && node && ncachehelpers::isReachable(node)) {
+      // Remove MAC for existing entry
+      newState = StaticL2ForNeighborSwSwitchUpdater::pruneMacEntry(
+          newState, vlanID, node);
+    }
     return newState;
   };
 
@@ -500,6 +564,15 @@ NeighborCacheImpl<NTable>::getUpdateFnToProgramPendingEntry(
     intfNew->setNeighborTable<NTable>(updatedNbrTable);
     intfMap->updateNode(
         intfNew, sw_->getScopeResolver()->scope(intfNew, newState));
+
+    // Remove MAC for existing entry
+    if (needL2EntryForNeighbor_ &&
+        intfNew->getType() == cfg::InterfaceType::VLAN && node &&
+        ncachehelpers::isReachable(node)) {
+      CHECK(intfNew->getVlanIDIf().has_value());
+      newState = StaticL2ForNeighborSwSwitchUpdater::pruneMacEntry(
+          newState, intfNew->getVlanID(), node);
+    }
 
     return newState;
   };
@@ -768,8 +841,11 @@ void NeighborCacheImpl<NTable>::flushEntry(AddressType ip, bool* flushed) {
     return;
   }
 
+  auto needL2EntryForNeighbor = needL2EntryForNeighbor_;
+
   // flush from SwitchState
-  auto updateFn = [this, ip, flushed](const std::shared_ptr<SwitchState>& state)
+  auto updateFn = [this, ip, flushed, needL2EntryForNeighbor](
+                      const std::shared_ptr<SwitchState>& state)
       -> std::shared_ptr<SwitchState> {
     std::shared_ptr<SwitchState> newState{state};
 
@@ -777,9 +853,25 @@ void NeighborCacheImpl<NTable>::flushEntry(AddressType ip, bool* flushed) {
     if (FLAGS_intf_nbr_tables) {
       auto* intf = newState->getInterfaces()->getNode(intfID_).get();
       flushedEntry = flushEntryFromSwitchState(&newState, ip, intf);
+
+      auto oldEntry = intf->getNeighborTable<NTable>()->getNodeIf(ip.str());
+      if (needL2EntryForNeighbor && oldEntry &&
+          intf->getType() == cfg::InterfaceType::VLAN &&
+          ncachehelpers::isReachable(oldEntry)) {
+        CHECK(intf->getVlanIDIf().has_value());
+        newState = StaticL2ForNeighborSwSwitchUpdater::pruneMacEntry(
+            newState, intf->getVlanID(), oldEntry);
+      }
     } else {
       auto* vlan = newState->getVlans()->getNode(vlanID_).get();
       flushedEntry = flushEntryFromSwitchState(&newState, ip, vlan);
+
+      auto oldEntry = vlan->getNeighborTable<NTable>()->getNodeIf(ip.str());
+      if (needL2EntryForNeighbor && oldEntry &&
+          ncachehelpers::isReachable(oldEntry)) {
+        newState = StaticL2ForNeighborSwSwitchUpdater::pruneMacEntry(
+            newState, vlanID_, oldEntry);
+      }
     }
 
     if (flushedEntry) {
