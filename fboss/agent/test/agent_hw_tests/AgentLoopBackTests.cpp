@@ -62,7 +62,7 @@ class AgentLoopBackTest : public AgentHwTest {
   static inline constexpr auto pktTtl = 255;
 
  protected:
-  void runTest(bool frontPanel, bool srcEqualDstMac) {
+  void runTest(bool srcEqualDstMac) {
     auto setup = [=, this]() {
       auto kEcmpWidthForTest = 1;
       utility::EcmpSetupAnyNPorts6 ecmpHelper6{
@@ -75,35 +75,37 @@ class AgentLoopBackTest : public AgentHwTest {
       const auto switchType =
           checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
               ->getSwitchType();
-      auto beforePortStats =
-          getLatestPortStats(masterLogicalInterfacePortIds()[0]);
-      sendPkt(frontPanel, pktTtl, srcEqualDstMac);
-      WITH_RETRIES({
-        auto afterPortStats =
+      for (auto frontPanel : {true, false}) {
+        auto beforePortStats =
             getLatestPortStats(masterLogicalInterfacePortIds()[0]);
-        // For packets going out to front panel, they would not go through the
-        // routing logic the very first time (but directly looped back).
-        // Therefore, the counter would plus one compared to the cpu port.
-        // For VoQ switches, TTL 0 packets don't get dropped at Egress and hence
-        // it will be forwarded at Egress and looped back in and then get
-        // dropped at Ingress. So, there would be one extra packet for VoQ
-        // switches.
-        int expectedPkts;
-        if (frontPanel && switchType == cfg::SwitchType::VOQ) {
-          // VoQ switch front panel
-          expectedPkts = pktTtl + 1;
-        } else if (frontPanel || switchType == cfg::SwitchType::VOQ) {
-          // VoQ switch CPU port and Non-VoQ switch front panel
-          expectedPkts = pktTtl;
-        } else {
-          // Non-VoQ switch CPU port
-          expectedPkts = pktTtl - 1;
-        }
-        EXPECT_EVENTUALLY_EQ(
-            utility::getPortOutPkts(afterPortStats) -
-                utility::getPortOutPkts(beforePortStats),
-            expectedPkts);
-      });
+        sendPkt(frontPanel, pktTtl, srcEqualDstMac);
+        WITH_RETRIES({
+          auto afterPortStats =
+              getLatestPortStats(masterLogicalInterfacePortIds()[0]);
+          // For packets going out to front panel, they would not go through the
+          // routing logic the very first time (but directly looped back).
+          // Therefore, the counter would plus one compared to the cpu port.
+          // For VoQ switches, TTL 0 packets don't get dropped at Egress and
+          // hence it will be forwarded at Egress and looped back in and then
+          // get dropped at Ingress. So, there would be one extra packet for VoQ
+          // switches.
+          int expectedPkts;
+          if (frontPanel && switchType == cfg::SwitchType::VOQ) {
+            // VoQ switch front panel
+            expectedPkts = pktTtl + 1;
+          } else if (frontPanel || switchType == cfg::SwitchType::VOQ) {
+            // VoQ switch CPU port and Non-VoQ switch front panel
+            expectedPkts = pktTtl;
+          } else {
+            // Non-VoQ switch CPU port
+            expectedPkts = pktTtl - 1;
+          }
+          EXPECT_EVENTUALLY_EQ(
+              utility::getPortOutPkts(afterPortStats) -
+                  utility::getPortOutPkts(beforePortStats),
+              expectedPkts);
+        });
+      }
     };
 
     verifyAcrossWarmBoots(setup, verify);
@@ -111,13 +113,11 @@ class AgentLoopBackTest : public AgentHwTest {
 };
 
 TEST_F(AgentLoopBackTest, VerifyLoopBack) {
-  runTest(true /* frontPanel */, false /* srcEqualDstMac */);
-  runTest(false /* frontPanel */, false /* srcEqualDstMac */);
+  runTest(false /* srcEqualDstMac */);
 }
 
 TEST_F(AgentLoopBackTest, VerifyLoopBackSrcEqualDstMac) {
-  runTest(true /* frontPanel */, true /* srcEqualDstMac */);
-  runTest(false /* frontPanel */, true /* srcEqualDstMac */);
+  runTest(true /* srcEqualDstMac */);
 }
 
 } // namespace facebook::fboss
