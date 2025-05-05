@@ -175,8 +175,13 @@ SaiHealthNotification::SaiHealthNotification(
 }
 
 std::string SaiHealthNotification::toString() const {
-  /* TODO: include other fields */
-  return description;
+  return fmt::format("{}", *this);
+}
+#endif
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 15, 0)
+std::string SaiSerHealthData::toString() const {
+  return fmt::format("{}", *this);
 }
 #endif
 

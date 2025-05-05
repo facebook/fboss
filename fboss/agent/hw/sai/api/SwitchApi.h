@@ -23,6 +23,8 @@
 #include <tuple>
 #include <vector>
 
+#include <fmt/format.h>
+
 extern "C" {
 #include <sai.h>
 #if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
@@ -1019,12 +1021,13 @@ using SaiGeneralHealthData = std::monostate;
 struct SaiSerHealthData {
   explicit SaiSerHealthData(sai_ser_health_data_t data)
       : sai_ser_health_data(std::move(data)) {}
+  std::string toString() const;
   sai_ser_health_data_t sai_ser_health_data;
 };
 
 using SaiHealthData = std::variant<SaiGeneralHealthData, SaiSerHealthData>;
 #else
-using SaiHealthData = SaiGeneralHealthData;
+using SaiHealthData = std::variant<SaiGeneralHealthData>;
 #endif
 
 struct SaiHealthNotification {
@@ -1057,6 +1060,16 @@ struct SaiHealthNotification {
   }
 
  private:
+#if SAI_API_VERSION >= SAI_VERSION(1, 15, 0)
+  std::string toStringSaiHealthData(const SaiSerHealthData& healthData) const {
+    return healthData.toString();
+  }
+#endif
+  std::string toStringSaiHealthData(
+      const SaiGeneralHealthData& /*healthData*/) const {
+    return "general health data";
+  }
+
   SaiTimeSpec timeSpec;
   sai_switch_asic_sdk_health_severity_t severity;
   sai_switch_asic_sdk_health_category_t category;
@@ -1195,3 +1208,82 @@ class SwitchApi : public SaiApi<SwitchApi> {
 };
 
 } // namespace facebook::fboss
+
+namespace fmt {
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 15, 0)
+template <>
+struct formatter<facebook::fboss::SaiSerHealthData> {
+  template <typename ParseContext>
+  constexpr auto parse(ParseContext& ctx) const {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const facebook::fboss::SaiSerHealthData& arg, FormatContext& ctx)
+      const {
+    static_assert(
+        std::is_same_v<
+            uint32_t,
+            std::decay_t<decltype(arg.sai_ser_health_data.ser_log_type)>>,
+        "ser_log_type is not uin32_t");
+    uint32_t allones = static_cast<uint32_t>(-1);
+
+    std::vector<sai_ser_log_type_t> sai_ser_log_types{};
+    for (auto i = 0; allones; i++, allones >>= 1) {
+      if (arg.sai_ser_health_data.ser_log_type & (1 << i)) {
+        sai_ser_log_types.emplace_back(static_cast<sai_ser_log_type_t>(1 << i));
+      }
+    }
+
+    return format_to(
+        ctx.out(),
+        "ser health type {}, correction {}, log types {}",
+        arg.sai_ser_health_data.type,
+        arg.sai_ser_health_data.correction_type,
+        sai_ser_log_types);
+  }
+};
+#endif
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
+
+template <>
+struct formatter<facebook::fboss::SaiHealthData> {
+  template <typename ParseContext>
+  constexpr auto parse(ParseContext& ctx) const {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const facebook::fboss::SaiHealthData& arg, FormatContext& ctx)
+      const {
+    return std::visit(
+        [&](const auto& data) { return format_to(ctx.out(), "{}", data); },
+        arg);
+  }
+};
+
+template <>
+struct formatter<facebook::fboss::SaiHealthNotification> {
+  template <typename ParseContext>
+  constexpr auto parse(ParseContext& ctx) const {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(
+      const facebook::fboss::SaiHealthNotification& arg,
+      FormatContext& ctx) const {
+    return format_to(
+        ctx.out(),
+        "health notification {} : {} : {} : {}",
+        arg.getSeverity(),
+        arg.getCategory(),
+        arg.getData(),
+        arg.getDescription());
+  }
+};
+#endif
+
+}; // namespace fmt
