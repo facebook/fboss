@@ -61,6 +61,7 @@ target_link_libraries(ecmp_helper
   switch_config_cpp2
   state
   core
+  neighbor_test_utils
 )
 
 add_library(trunk_utils

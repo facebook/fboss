@@ -59,13 +59,13 @@ class AgentJumboFramesTest : public AgentHwTest {
   void runJumboFrameTest(int payloadSize, bool expectPacketDrop) {
     auto setup = [=, this]() {
       utility::EcmpSetupAnyNPorts6 ecmpHelper(
-          getProgrammedState(), RouterID(0));
+          getProgrammedState(), getSw()->needL2EntryForNeighbor(), RouterID(0));
       resolveNeighborAndProgramRoutes(ecmpHelper, 1);
     };
 
     auto verify = [=, this]() {
       utility::EcmpSetupAnyNPorts6 ecmpHelper(
-          getProgrammedState(), RouterID(0));
+          getProgrammedState(), getSw()->needL2EntryForNeighbor(), RouterID(0));
       auto port = ecmpHelper.ecmpPortDescriptorAt(0).phyPortID();
       auto portStatsBefore = getLatestPortStats(port);
       auto pktsBefore = *portStatsBefore.outUnicastPkts_();

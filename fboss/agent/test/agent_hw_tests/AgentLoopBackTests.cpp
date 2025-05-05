@@ -67,6 +67,7 @@ class AgentLoopBackTest : public AgentHwTest {
       auto kEcmpWidthForTest = 1;
       utility::EcmpSetupAnyNPorts6 ecmpHelper6{
           getProgrammedState(),
+          getSw()->needL2EntryForNeighbor(),
           utility::getMacForFirstInterfaceWithPorts(getProgrammedState())};
       resolveNeighborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
     };

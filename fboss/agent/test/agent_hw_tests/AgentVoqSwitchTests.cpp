@@ -53,7 +53,8 @@ void AgentVoqSwitchTest::rxPacketToCpuHelper(
     uint16_t l4SrcPort,
     uint16_t l4DstPort,
     uint8_t queueId) {
-  utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+  utility::EcmpSetupAnyNPorts6 ecmpHelper(
+      getProgrammedState(), getSw()->needL2EntryForNeighbor());
   auto kPortDesc = ecmpHelper.ecmpPortDescriptorAt(0);
 
   auto verify = [this, ecmpHelper, kPortDesc, l4SrcPort, l4DstPort, queueId]() {
@@ -249,7 +250,8 @@ void AgentVoqSwitchTest::addDscpAclWithCounter() {
 void AgentVoqSwitchTest::addRemoveNeighbor(
     PortDescriptor port,
     NeighborOp operation) {
-  utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+  utility::EcmpSetupAnyNPorts6 ecmpHelper(
+      getProgrammedState(), getSw()->needL2EntryForNeighbor());
   switch (operation) {
     case NeighborOp::ADD:
       applyNewState([&](const std::shared_ptr<SwitchState>& in) {
@@ -356,7 +358,8 @@ TEST_F(AgentVoqSwitchTest, addRemoveNeighbor) {
 }
 
 TEST_F(AgentVoqSwitchTest, sendPacketCpuAndFrontPanel) {
-  utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+  utility::EcmpSetupAnyNPorts6 ecmpHelper(
+      getProgrammedState(), getSw()->needL2EntryForNeighbor());
   const auto kPortDesc = ecmpHelper.ecmpPortDescriptorAt(0);
 
   auto setup = [this, kPortDesc, ecmpHelper]() {
@@ -577,7 +580,8 @@ TEST_F(AgentVoqSwitchTest, sendPacketCpuAndFrontPanel) {
 }
 
 TEST_F(AgentVoqSwitchTest, trapPktsOnPort) {
-  utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+  utility::EcmpSetupAnyNPorts6 ecmpHelper(
+      getProgrammedState(), getSw()->needL2EntryForNeighbor());
   const auto kPortDesc = ecmpHelper.ecmpPortDescriptorAt(0);
   auto setup = [this, kPortDesc, &ecmpHelper]() {
     auto cfg = initialConfig(*getAgentEnsemble());
@@ -623,7 +627,8 @@ TEST_F(AgentVoqSwitchTest, rxPacketToCpuBgpSrcPort) {
 }
 
 TEST_F(AgentVoqSwitchTest, localForwardingPostIsolate) {
-  utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+  utility::EcmpSetupAnyNPorts6 ecmpHelper(
+      getProgrammedState(), getSw()->needL2EntryForNeighbor());
   const auto kPortDesc = ecmpHelper.ecmpPortDescriptorAt(0);
   auto setup = [this, kPortDesc]() {
     auto newCfg = initialConfig(*getAgentEnsemble());
@@ -655,7 +660,8 @@ TEST_F(AgentVoqSwitchTest, localForwardingPostIsolate) {
 }
 
 TEST_F(AgentVoqSwitchTest, stressLocalForwardingPostIsolate) {
-  utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+  utility::EcmpSetupAnyNPorts6 ecmpHelper(
+      getProgrammedState(), getSw()->needL2EntryForNeighbor());
   const auto kPortDesc = ecmpHelper.ecmpPortDescriptorAt(0);
   auto setup = [this, kPortDesc]() {
     auto newCfg = initialConfig(*getAgentEnsemble());
@@ -689,7 +695,8 @@ TEST_F(AgentVoqSwitchTest, stressLocalForwardingPostIsolate) {
 
 TEST_F(AgentVoqSwitchTest, localSystemPortEcmp) {
   auto setup = [this]() {
-    utility::EcmpSetupTargetedPorts6 ecmpHelper(getProgrammedState());
+    utility::EcmpSetupTargetedPorts6 ecmpHelper(
+        getProgrammedState(), getSw()->needL2EntryForNeighbor());
     auto prefix = RoutePrefixV6{folly::IPAddressV6("1::1"), 128};
     flat_set<PortDescriptor> localSysPorts;
     for (auto& systemPortMap :
@@ -708,7 +715,8 @@ TEST_F(AgentVoqSwitchTest, localSystemPortEcmp) {
 }
 
 TEST_F(AgentVoqSwitchTest, packetIntegrityError) {
-  utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+  utility::EcmpSetupAnyNPorts6 ecmpHelper(
+      getProgrammedState(), getSw()->needL2EntryForNeighbor());
   auto port = ecmpHelper.ecmpPortDescriptorAt(0);
   auto setup = [=, this]() { addRemoveNeighbor(port, NeighborOp::ADD); };
   auto verify = [=, this]() {
@@ -764,7 +772,8 @@ TEST_F(AgentVoqSwitchTest, packetIntegrityError) {
 }
 
 TEST_F(AgentVoqSwitchTest, dramEnqueueDequeueBytes) {
-  utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+  utility::EcmpSetupAnyNPorts6 ecmpHelper(
+      getProgrammedState(), getSw()->needL2EntryForNeighbor());
   const auto kPortDesc = ecmpHelper.ecmpPortDescriptorAt(0);
   auto setup = [this, kPortDesc]() {
     addRemoveNeighbor(kPortDesc, NeighborOp::ADD);
@@ -809,7 +818,8 @@ TEST_F(AgentVoqSwitchTest, dramEnqueueDequeueBytes) {
 }
 
 TEST_F(AgentVoqSwitchTest, verifyQueueLatencyWatermark) {
-  utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+  utility::EcmpSetupAnyNPorts6 ecmpHelper(
+      getProgrammedState(), getSw()->needL2EntryForNeighbor());
   const auto kPortDesc = ecmpHelper.ecmpPortDescriptorAt(0);
   const uint64_t kLocalVoqMaxExpectedLatencyNsec{10000};
   const uint64_t kRemoteL1VoqMaxExpectedLatencyNsec{100000};
@@ -882,7 +892,8 @@ TEST_F(AgentVoqSwitchTest, verifyQueueLatencyWatermark) {
 }
 
 TEST_F(AgentVoqSwitchTest, verifyDramErrorDetection) {
-  utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+  utility::EcmpSetupAnyNPorts6 ecmpHelper(
+      getProgrammedState(), getSw()->needL2EntryForNeighbor());
   const auto kPortDesc = ecmpHelper.ecmpPortDescriptorAt(0);
   auto setup = [&]() { addRemoveNeighbor(kPortDesc, NeighborOp::ADD); };
   auto verify = [&]() {

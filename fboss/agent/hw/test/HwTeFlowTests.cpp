@@ -46,7 +46,9 @@ class HwTeFlowTest : public HwLinkStateDependentTest {
     FLAGS_enable_exact_match = true;
     HwLinkStateDependentTest::SetUp();
     ecmpHelper_ = std::make_unique<utility::EcmpSetupTargetedPorts6>(
-        getProgrammedState(), RouterID(0));
+        getProgrammedState(),
+        getHwSwitch()->needL2EntryForNeighbor(),
+        RouterID(0));
   }
 
   cfg::SwitchConfig initialConfig() const override {

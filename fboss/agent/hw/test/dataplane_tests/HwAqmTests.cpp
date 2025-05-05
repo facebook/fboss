@@ -281,7 +281,9 @@ class HwAqmTest : public HwLinkStateDependentTest {
 
   void setupEcmpTraffic() {
     utility::EcmpSetupTargetedPorts6 ecmpHelper{
-        getProgrammedState(), getIntfMac()};
+        getProgrammedState(),
+        getHwSwitch()->needL2EntryForNeighbor(),
+        getIntfMac()};
     const auto& portDesc = PortDescriptor(masterLogicalInterfacePortIds()[0]);
     applyNewState(ecmpHelper.resolveNextHops(getProgrammedState(), {portDesc}));
     RoutePrefixV6 route{kDestIp(), 128};
@@ -554,6 +556,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
       auto kEcmpWidthForTest = 1;
       utility::EcmpSetupAnyNPorts6 ecmpHelper6{
           getProgrammedState(),
+          getHwSwitch()->needL2EntryForNeighbor(),
           utility::MacAddressGenerator().get(getIntfMac().u64NBO() + 10)};
       resolveNeigborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
     };

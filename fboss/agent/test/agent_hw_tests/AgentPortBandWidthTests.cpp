@@ -84,7 +84,7 @@ class AgentPortBandwidthTest : public AgentHwTest {
 
   void setupHelper() {
     utility::EcmpSetupTargetedPorts6 ecmpHelper6{
-        getProgrammedState(), dstMac()};
+        getProgrammedState(), getSw()->needL2EntryForNeighbor(), dstMac()};
     const auto& portDesc = PortDescriptor(getPort0());
     auto placeholder = getProgrammedState();
     this->applyNewState(

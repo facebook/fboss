@@ -237,7 +237,7 @@ class AgentAqmTest : public AgentHwTest {
 
   void setupEcmpTraffic() {
     utility::EcmpSetupTargetedPorts6 ecmpHelper{
-        getProgrammedState(), getIntfMac()};
+        getProgrammedState(), getSw()->needL2EntryForNeighbor(), getIntfMac()};
     const auto& portDesc = PortDescriptor(masterLogicalInterfacePortIds()[0]);
     applyNewState([&ecmpHelper, &portDesc](std::shared_ptr<SwitchState> in) {
       return ecmpHelper.resolveNextHops(in, {portDesc});
@@ -508,6 +508,7 @@ class AgentAqmTest : public AgentHwTest {
       int kEcmpWidthForTest{1};
       utility::EcmpSetupAnyNPorts6 ecmpHelper6{
           getProgrammedState(),
+          getSw()->needL2EntryForNeighbor(),
           utility::MacAddressGenerator().get(getIntfMac().u64NBO() + 10)};
       resolveNeighborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
     };

@@ -49,7 +49,9 @@ class AgentIpInIpTunnelTest : public AgentHwTest {
 
   void setupHelper() {
     utility::EcmpSetupAnyNPorts6 ecmpHelper(
-        getProgrammedState(), getLocalMacAddress());
+        getProgrammedState(),
+        getSw()->needL2EntryForNeighbor(),
+        getLocalMacAddress());
     resolveNeighborAndProgramRoutes(
         ecmpHelper, 1); // forwarding takes the first port: 0
   }

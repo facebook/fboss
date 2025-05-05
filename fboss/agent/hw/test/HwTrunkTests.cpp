@@ -116,7 +116,8 @@ TEST_F(HwTrunkTest, TrunkPortStatsWithMplsPush) {
     auto cfg = initialConfig();
     utility::addAggPort(1, {masterLogicalPortIds()[1]}, &cfg);
     applyConfigAndEnableTrunks(cfg);
-    auto ecmpHelper = utility::EcmpSetupTargetedPorts6(getProgrammedState());
+    auto ecmpHelper = utility::EcmpSetupTargetedPorts6(
+        getProgrammedState(), getHwSwitch()->needL2EntryForNeighbor());
     applyNewState(ecmpHelper.resolveNextHops(
         getProgrammedState(), {PortDescriptor(AggregatePortID(1))}));
     ecmpHelper.programIp2MplsRoutes(
@@ -176,7 +177,8 @@ TEST_F(HwTrunkTest, TrunkPortStats) {
     auto cfg = initialConfig();
     utility::addAggPort(1, {masterLogicalPortIds()[1]}, &cfg);
     applyConfigAndEnableTrunks(cfg);
-    auto ecmpHelper = utility::EcmpSetupTargetedPorts6(getProgrammedState());
+    auto ecmpHelper = utility::EcmpSetupTargetedPorts6(
+        getProgrammedState(), getHwSwitch()->needL2EntryForNeighbor());
     applyNewState(ecmpHelper.resolveNextHops(
         getProgrammedState(), {PortDescriptor(AggregatePortID(1))}));
     ecmpHelper.programRoutes(

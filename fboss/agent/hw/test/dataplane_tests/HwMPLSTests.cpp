@@ -82,11 +82,14 @@ class HwMPLSTest : public HwLinkStateDependentTest {
   void SetUp() override {
     HwLinkStateDependentTest::SetUp();
     ecmpHelper_ = std::make_unique<utility::EcmpSetupTargetedPorts6>(
-        getProgrammedState(), RouterID(0));
+        getProgrammedState(),
+        getHwSwitch()->needL2EntryForNeighbor(),
+        RouterID(0));
 
     ecmpSwapHelper_ = std::make_unique<
         utility::MplsEcmpSetupTargetedPorts<folly::IPAddressV6>>(
         getProgrammedState(),
+        getHwSwitch()->needL2EntryForNeighbor(),
         kTopLabel,
         LabelForwardingAction::LabelForwardingType::SWAP);
   }

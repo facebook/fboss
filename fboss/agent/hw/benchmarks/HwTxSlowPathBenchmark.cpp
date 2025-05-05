@@ -51,7 +51,9 @@ BENCHMARK(runTxSlowPathBenchmark) {
       createAgentEnsemble(initialConfigFn, false /*disableLinkStateToggler*/);
 
   auto swSwitch = ensemble->getSw();
-  auto ecmpHelper = utility::EcmpSetupAnyNPorts6(ensemble->getSw()->getState());
+  auto ecmpHelper = utility::EcmpSetupAnyNPorts6(
+      ensemble->getSw()->getState(),
+      ensemble->getSw()->needL2EntryForNeighbor());
   auto portUsed = ecmpHelper.ecmpPortDescriptorAt(0).phyPortID();
 
   ensemble->applyNewState([&](const std::shared_ptr<SwitchState>& in) {

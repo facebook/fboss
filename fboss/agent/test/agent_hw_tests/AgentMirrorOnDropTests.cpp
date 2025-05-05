@@ -124,7 +124,7 @@ class AgentMirrorOnDropTest
       const folly::IPAddressV6& addr,
       const folly::MacAddress& nextHopMac) {
     utility::EcmpSetupTargetedPorts6 ecmpHelper{
-        getProgrammedState(), nextHopMac};
+        getProgrammedState(), getSw()->needL2EntryForNeighbor(), nextHopMac};
     const PortDescriptor port{portId};
     RoutePrefixV6 route{addr, 128};
     applyNewState([&](const std::shared_ptr<SwitchState>& state) {
@@ -205,7 +205,10 @@ class AgentMirrorOnDropTest
     applyNewState(
         [&](const std::shared_ptr<SwitchState>& state) {
           utility::EcmpSetupTargetedPorts<T> ecmpHelper(
-              state, RouterID(0), {portType});
+              state,
+              getSw()->needL2EntryForNeighbor(),
+              RouterID(0),
+              {portType});
           auto newState = ecmpHelper.resolveNextHops(state, nhopPorts);
           return newState;
         },
@@ -216,7 +219,10 @@ class AgentMirrorOnDropTest
 
     RoutePrefix<T> prefix(T(dip->str()), dip->bitCount());
     utility::EcmpSetupTargetedPorts<T> ecmpHelper(
-        getProgrammedState(), RouterID(0), {portType});
+        getProgrammedState(),
+        getSw()->needL2EntryForNeighbor(),
+        RouterID(0),
+        {portType});
 
     ecmpHelper.programRoutes(
         getAgentEnsemble()->getRouteUpdaterWrapper(), nhopPorts, {prefix});

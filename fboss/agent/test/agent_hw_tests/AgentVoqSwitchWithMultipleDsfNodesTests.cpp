@@ -268,7 +268,8 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, voqDelete) {
     };
 
     auto voqDeletedPktsBefore = getVoQDeletedPkts();
-    utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+    utility::EcmpSetupAnyNPorts6 ecmpHelper(
+        getProgrammedState(), getSw()->needL2EntryForNeighbor());
     auto frontPanelPort = ecmpHelper.ecmpPortDescriptorAt(1).phyPortID();
     for (auto i = 0; i < 100; ++i) {
       // Send pkts via front panel
@@ -294,7 +295,8 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, stressAddRemoveObjects) {
     auto constexpr remotePortId = 401;
     const SystemPortID kRemoteSysPortId(remotePortId);
     folly::IPAddressV6 kNeighborIp("100::2");
-    utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+    utility::EcmpSetupAnyNPorts6 ecmpHelper(
+        getProgrammedState(), getSw()->needL2EntryForNeighbor());
     // in addRemoteIntfNodeCfg, we use numCores to calculate the remoteSwitchId
     // keeping remote switch id passed below in sync with it
     int numCores =

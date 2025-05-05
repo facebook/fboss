@@ -51,7 +51,10 @@ void ProdInvariantTest::setupAgentTestEcmp(
   auto forProdConfig =
       useProdConfig_.has_value() ? useProdConfig_.value() : false;
   utility::EcmpSetupTargetedPorts6 ecmp6(
-      getSw()->getState(), forProdConfig, {cfg::PortType::INTERFACE_PORT});
+      getSw()->getState(),
+      getSw()->needL2EntryForNeighbor(),
+      forProdConfig,
+      {cfg::PortType::INTERFACE_PORT});
 
   getSw()->updateStateBlocking("Resolve nhops", [&](auto state) {
     return ecmp6.resolveNextHops(state, ports);
@@ -489,11 +492,13 @@ class ProdInvariantRswMhnicTest : public ProdInvariantTest {
     });
 
     getSw()->updateStateBlocking("Resolve nhops", [&](auto state) {
-      utility::EcmpSetupTargetedPorts4 ecmp4(state);
+      utility::EcmpSetupTargetedPorts4 ecmp4(
+          state, getSw()->needL2EntryForNeighbor());
       return ecmp4.resolveNextHops(state, ports);
     });
 
-    utility::EcmpSetupTargetedPorts4 ecmp4(getSw()->getState());
+    utility::EcmpSetupTargetedPorts4 ecmp4(
+        getSw()->getState(), getSw()->needL2EntryForNeighbor());
     ecmp4.programRoutes(
         std::make_unique<SwSwitchRouteUpdateWrapper>(
             getSw()->getRouteUpdater()),

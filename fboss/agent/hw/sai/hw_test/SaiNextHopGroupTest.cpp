@@ -15,7 +15,9 @@ class SaiNextHopGroupTest : public SaiLinkStateDependentTests {
   void SetUp() override {
     SaiLinkStateDependentTests::SetUp();
     helper_ = std::make_unique<utility::EcmpSetupAnyNPorts6>(
-        getProgrammedState(), RouterID(0));
+        getProgrammedState(),
+        getHwSwitch()->needL2EntryForNeighbor(),
+        RouterID(0));
   }
 
   cfg::SwitchConfig initialConfig() const override {

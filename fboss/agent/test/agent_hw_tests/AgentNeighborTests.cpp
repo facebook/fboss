@@ -495,7 +495,8 @@ class AgentNeighborOnMultiplePortsTest : public AgentHwTest {
         ensemble.getSw(), ensemble.masterLogicalPortIds());
   }
   folly::IPAddressV6 neighborIP(PortID port) const {
-    utility::EcmpSetupAnyNPorts6 ecmpHelper6(getProgrammedState());
+    utility::EcmpSetupAnyNPorts6 ecmpHelper6(
+        getProgrammedState(), getSw()->needL2EntryForNeighbor());
     return ecmpHelper6.ip(PortDescriptor(port));
   }
 
@@ -518,7 +519,9 @@ class AgentNeighborOnMultiplePortsTest : public AgentHwTest {
     for (int idx = 0; idx < portIds.size(); idx++) {
       this->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
         utility::EcmpSetupAnyNPorts6 ecmpHelper6(
-            in, utility::MacAddressGenerator().get(dstMac.u64NBO() + idx + 1));
+            in,
+            getSw()->needL2EntryForNeighbor(),
+            utility::MacAddressGenerator().get(dstMac.u64NBO() + idx + 1));
         return ecmpHelper6.resolveNextHops(in, {PortDescriptor(portIds[idx])});
       });
     }

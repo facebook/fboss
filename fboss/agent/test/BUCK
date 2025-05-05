@@ -374,6 +374,7 @@ cpp_library(
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent/hw/switch_asics:switch_asics",
         "//fboss/agent/state:state",
+        "//fboss/agent/test/utils:neighbor_test_utils",
         "//folly:network_address",
     ],
     exported_external_deps = [

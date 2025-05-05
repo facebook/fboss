@@ -335,7 +335,7 @@ class AgentTrafficPfcTest : public AgentHwTest {
 
   void setupEcmpTraffic(const PortID& portId, const folly::IPAddressV6& ip) {
     utility::EcmpSetupTargetedPorts6 ecmpHelper{
-        getProgrammedState(), getIntfMac()};
+        getProgrammedState(), getSw()->needL2EntryForNeighbor(), getIntfMac()};
 
     const PortDescriptor port(portId);
     RoutePrefixV6 route{ip, 128};

@@ -32,7 +32,8 @@ class AgentDeepPacketInspectionTest : public AgentHwTest {
 
  protected:
   utility::EcmpSetupTargetedPorts6 ecmpHelper() const {
-    return utility::EcmpSetupTargetedPorts6(getProgrammedState());
+    return utility::EcmpSetupTargetedPorts6(
+        getProgrammedState(), getSw()->needL2EntryForNeighbor());
   }
   PortDescriptor kPort() const {
     return PortDescriptor(masterLogicalInterfacePortIds()[0]);

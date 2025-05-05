@@ -49,7 +49,8 @@ class AgentNetworkAIQosSchedulerTest : public AgentQosSchedulerTestBase {
 };
 
 void AgentNetworkAIQosSchedulerTest::verifySP(bool frontPanelTraffic) {
-  utility::EcmpSetupAnyNPorts6 ecmpHelper6(getProgrammedState(), dstMac());
+  utility::EcmpSetupAnyNPorts6 ecmpHelper6(
+      getProgrammedState(), getSw()->needL2EntryForNeighbor(), dstMac());
 
   auto setup = [=, this]() { _setup(ecmpHelper6); };
 

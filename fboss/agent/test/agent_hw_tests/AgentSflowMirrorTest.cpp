@@ -254,7 +254,10 @@ class AgentSflowMirrorTest : public AgentHwTest {
     this->getAgentEnsemble()->applyNewState(
         [&](const std::shared_ptr<SwitchState>& state) {
           utility::EcmpSetupTargetedPorts<T> ecmpHelper(
-              state, RouterID(0), {getNonSflowSampledInterfacePortType()});
+              state,
+              getSw()->needL2EntryForNeighbor(),
+              RouterID(0),
+              {getNonSflowSampledInterfacePortType()});
           auto newState = ecmpHelper.resolveNextHops(state, nhopPorts);
           return newState;
         },
@@ -266,6 +269,7 @@ class AgentSflowMirrorTest : public AgentHwTest {
     RoutePrefix<T> prefix(T(dip->str()), dip->bitCount());
     utility::EcmpSetupTargetedPorts<T> ecmpHelper(
         getProgrammedState(),
+        getSw()->needL2EntryForNeighbor(),
         RouterID(0),
         {getNonSflowSampledInterfacePortType()});
 
@@ -289,6 +293,7 @@ class AgentSflowMirrorTest : public AgentHwTest {
   void setupEcmpTraffic() {
     utility::EcmpSetupTargetedPorts6 ecmpHelper{
         getProgrammedState(),
+        getSw()->needL2EntryForNeighbor(),
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState())};
 
     const PortDescriptor port(getDataTrafficPort());

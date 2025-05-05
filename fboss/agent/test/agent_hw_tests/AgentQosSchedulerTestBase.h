@@ -32,7 +32,8 @@ class AgentQosSchedulerTestBase : public AgentHwTest {
     return utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
   }
   PortID outPort() const {
-    utility::EcmpSetupAnyNPorts6 ecmpHelper6(getProgrammedState());
+    utility::EcmpSetupAnyNPorts6 ecmpHelper6(
+        getProgrammedState(), getSw()->needL2EntryForNeighbor());
     return ecmpHelper6.nhop(0).portDesc.phyPortID();
   }
 

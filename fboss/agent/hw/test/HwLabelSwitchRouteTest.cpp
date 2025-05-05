@@ -66,7 +66,8 @@ class HwLabelSwitchRouteTest : public HwLinkStateDependentTest {
   }
 
   void resolveNeighbors() {
-    utility::EcmpSetupTargetedPorts<AddrT> helper(getProgrammedState());
+    utility::EcmpSetupTargetedPorts<AddrT> helper(
+        getProgrammedState(), getHwSwitch()->needL2EntryForNeighbor());
     boost::container::flat_set<PortDescriptor> ports;
     for (auto i = 0; i < kWidth; i++) {
       ports.emplace(masterLogicalPortIds()[i]);
@@ -78,7 +79,10 @@ class HwLabelSwitchRouteTest : public HwLinkStateDependentTest {
       Label topLabel,
       LabelForwardingAction::LabelForwardingType labelAction) {
     return std::make_unique<EcmpSetupHelper>(
-        getProgrammedState(), topLabel, labelAction);
+        getProgrammedState(),
+        getHwSwitch()->needL2EntryForNeighbor(),
+        topLabel,
+        labelAction);
   }
 
   void setupECMPForwarding(EcmpSetupHelper* helper) {

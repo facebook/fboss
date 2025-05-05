@@ -120,7 +120,8 @@ class AgentMirroringTest : public AgentHwTest {
 
   template <typename T = AddrT>
   void resolveMirror(const std::string& mirrorName) {
-    utility::EcmpSetupAnyNPorts<AddrT> ecmpHelper(getProgrammedState());
+    utility::EcmpSetupAnyNPorts<AddrT> ecmpHelper(
+        getProgrammedState(), getSw()->needL2EntryForNeighbor());
     auto trafficPort = getTrafficPort(*getAgentEnsemble());
     auto mirrorToPort = getMirrorToPort(*getAgentEnsemble());
     EXPECT_EQ(trafficPort, ecmpHelper.nhop(0).portDesc.phyPortID());
@@ -129,8 +130,9 @@ class AgentMirroringTest : public AgentHwTest {
     applyNewState([&](const std::shared_ptr<SwitchState>& in) {
       boost::container::flat_set<PortDescriptor> nhopPorts{
           PortDescriptor(mirrorToPort)};
-      return utility::EcmpSetupAnyNPorts<AddrT>(in).resolveNextHops(
-          in, nhopPorts);
+      return utility::EcmpSetupAnyNPorts<AddrT>(
+                 in, getSw()->needL2EntryForNeighbor())
+          .resolveNextHops(in, nhopPorts);
     });
     getSw()->getUpdateEvb()->runInFbossEventBaseThreadAndWait([] {});
     auto mirror = getSw()->getState()->getMirrors()->getNodeIf(mirrorName);

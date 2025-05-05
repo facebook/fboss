@@ -25,7 +25,7 @@ class HwHashConsistencyTest : public HwLinkStateDependentTest {
   void SetUp() override {
     HwLinkStateDependentTest::SetUp();
     ecmpHelper_ = std::make_unique<utility::EcmpSetupTargetedPorts6>(
-        getProgrammedState(), kRid);
+        getProgrammedState(), getHwSwitch()->needL2EntryForNeighbor(), kRid);
     for (auto i = 0; i < kEcmpWidth4; i++) {
       ports_[i] = masterLogicalInterfacePortIds()[i];
     }

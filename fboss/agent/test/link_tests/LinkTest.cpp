@@ -275,6 +275,7 @@ void LinkTest::programDefaultRoute(
     std::optional<folly::MacAddress> dstMac) {
   utility::EcmpSetupTargetedPorts6 ecmp6(
       sw()->getState(),
+      sw()->needL2EntryForNeighbor(),
       dstMac,
       RouterID(0),
       false,
@@ -286,7 +287,9 @@ void LinkTest::createL3DataplaneFlood(
     const boost::container::flat_set<PortDescriptor>& ecmpPorts) {
   auto switchId = scope(ecmpPorts);
   utility::EcmpSetupTargetedPorts6 ecmp6(
-      sw()->getState(), sw()->getLocalMac(switchId));
+      sw()->getState(),
+      sw()->needL2EntryForNeighbor(),
+      sw()->getLocalMac(switchId));
   programDefaultRoute(ecmpPorts, ecmp6);
   utility::disableTTLDecrements(sw(), ecmpPorts);
   auto vlanID = getVlanIDForTx();

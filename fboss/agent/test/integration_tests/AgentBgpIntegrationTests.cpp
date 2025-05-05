@@ -227,7 +227,8 @@ class BgpIntegrationTest : public AgentIntegrationTest {
   void runRouteScaleTest() {
     auto swstate = sw()->getState();
     utility::RouteDistributionGenerator::ThriftRouteChunks routeChunks;
-    auto routeDistributionGen = RouteScaleGeneratorT(swstate);
+    auto routeDistributionGen =
+        RouteScaleGeneratorT(swstate, sw()->needL2EntryForNeighbor());
     routeChunks = routeDistributionGen.getThriftRoutes();
 
     auto setup = [&]() {

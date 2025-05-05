@@ -46,13 +46,15 @@ void AgentSendPacketToQueueTest::checkSendPacket(
     if (!isOutOfPort) {
       // need to set up ecmp for switching
       auto kEcmpWidthForTest = 1;
-      utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState()};
+      utility::EcmpSetupAnyNPorts6 ecmpHelper6{
+          getProgrammedState(), getSw()->needL2EntryForNeighbor()};
       resolveNeighborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
     }
   };
 
   auto verify = [=, this]() {
-    utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState()};
+    utility::EcmpSetupAnyNPorts6 ecmpHelper6{
+        getProgrammedState(), getSw()->needL2EntryForNeighbor()};
     auto port = ecmpHelper6.nhop(0).portDesc.phyPortID();
     uint8_t queueID = ucQueue ? *ucQueue : kDefaultQueue;
 

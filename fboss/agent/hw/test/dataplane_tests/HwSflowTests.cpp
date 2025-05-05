@@ -74,7 +74,8 @@ class HwSflowTest : public HwLinkStateDependentTest {
         portCfg->sFlowEgressRate() = enableSflow ? 1 : 0;
       }
       applyNewConfig(cfg);
-      utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+      utility::EcmpSetupAnyNPorts6 ecmpHelper(
+          getProgrammedState(), getHwSwitch()->needL2EntryForNeighbor());
       resolveNeigborAndProgramRoutes(ecmpHelper, 1);
     };
 

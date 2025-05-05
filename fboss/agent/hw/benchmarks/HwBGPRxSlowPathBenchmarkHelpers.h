@@ -25,8 +25,10 @@ void rxSlowPathBGPRouteChangeBenchmark(BgpRxMode mode) {
   // capture packet exiting port 0 (entering due to loopback)
   auto dstMac =
       utility::getMacForFirstInterfaceWithPorts(ensemble->getProgrammedState());
-  auto ecmpHelper =
-      utility::EcmpSetupAnyNPorts6(ensemble->getProgrammedState(), dstMac);
+  auto ecmpHelper = utility::EcmpSetupAnyNPorts6(
+      ensemble->getProgrammedState(),
+      ensemble->getSw()->needL2EntryForNeighbor(),
+      dstMac);
   flat_set<PortDescriptor> IntfPorts;
   IntfPorts.insert(
       PortDescriptor(ensemble->masterLogicalInterfacePortIds()[0]));

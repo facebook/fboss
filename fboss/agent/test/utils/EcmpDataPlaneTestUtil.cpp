@@ -171,6 +171,7 @@ HwIpEcmpDataPlaneTestUtil<AddrT>::HwIpEcmpDataPlaneTestUtil(
           ensemble,
           std::make_unique<EcmpSetupAnyNPortsT>(
               ensemble->getProgrammedState(),
+              ensemble->needL2EntryForNeighbor(),
               vrf)),
       stacks_(std::move(stacks)) {}
 
@@ -183,6 +184,7 @@ HwIpEcmpDataPlaneTestUtil<AddrT>::HwIpEcmpDataPlaneTestUtil(
           ensemble,
           std::make_unique<EcmpSetupAnyNPortsT>(
               ensemble->getProgrammedState(),
+              ensemble->needL2EntryForNeighbor(),
               nextHopMac,
               vrf)) {}
 
@@ -328,6 +330,7 @@ HwMplsEcmpDataPlaneTestUtil<AddrT>::HwMplsEcmpDataPlaneTestUtil(
           ensemble,
           std::make_unique<EcmpSetupAnyNPortsT>(
               ensemble->getProgrammedState(),
+              ensemble->needL2EntryForNeighbor(),
               topLabel.getLabelValue(),
               actionType)),
       label_(topLabel) {}

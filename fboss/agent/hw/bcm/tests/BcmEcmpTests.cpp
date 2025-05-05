@@ -59,7 +59,7 @@ class BcmEcmpTest : public BcmLinkStateDependentTests {
   void SetUp() override {
     BcmLinkStateDependentTests::SetUp();
     ecmpHelper_ = std::make_unique<utility::EcmpSetupAnyNPorts6>(
-        getProgrammedState(), kRid);
+        getProgrammedState(), getHwSwitch()->needL2EntryForNeighbor(), kRid);
   }
   cfg::SwitchConfig initialConfig() const override {
     return utility::onePortPerInterfaceConfig(

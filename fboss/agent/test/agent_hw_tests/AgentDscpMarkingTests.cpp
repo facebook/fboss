@@ -76,6 +76,7 @@ class AgentDscpMarkingTest : public AgentHwTest {
     auto setup = [=, this]() {
       utility::EcmpSetupAnyNPorts6 ecmpHelper(
           getProgrammedState(),
+          getSw()->needL2EntryForNeighbor(),
           utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
           RouterID(0),
           false,
@@ -86,6 +87,7 @@ class AgentDscpMarkingTest : public AgentHwTest {
     auto verify = [=, this]() {
       utility::EcmpSetupAnyNPorts6 ecmpHelper(
           getProgrammedState(),
+          getSw()->needL2EntryForNeighbor(),
           utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
           RouterID(0),
           false,
@@ -225,6 +227,7 @@ class AgentDscpMarkingTest : public AgentHwTest {
     if (frontPanel) {
       utility::EcmpSetupAnyNPorts6 ecmpHelper(
           getProgrammedState(),
+          getSw()->needL2EntryForNeighbor(),
           utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
           RouterID(0),
           false,

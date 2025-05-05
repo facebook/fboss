@@ -148,7 +148,8 @@ void disableTTLDecrements(
       disableTTLDecrementOnPorts(sw, {port});
     } else if (sw->getHwAsicTable()->isFeatureSupported(
                    switchId, HwAsic::Feature::NEXTHOP_TTL_DECREMENT_DISABLE)) {
-      utility::EcmpSetupTargetedPorts6 ecmp6(sw->getState());
+      utility::EcmpSetupTargetedPorts6 ecmp6(
+          sw->getState(), sw->needL2EntryForNeighbor());
       disableTTLDecrements(sw, ecmp6.getRouterId(), ecmp6.nhop(port));
     } else {
       throw FbossError("Failed to configure TTL decrement");

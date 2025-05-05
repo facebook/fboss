@@ -134,7 +134,8 @@ utility::RouteDistributionGenerator::ThriftRouteChunks getRoutes(
       swSwitch->getHwAsicTable()->getHwAsic(*switchIds.cbegin())->getAsicType();
 
   if (asicType == cfg::AsicType::ASIC_TYPE_TRIDENT2) {
-    return utility::RSWRouteScaleGenerator(swSwitch->getState())
+    return utility::RSWRouteScaleGenerator(
+               swSwitch->getState(), swSwitch->needL2EntryForNeighbor())
         .getThriftRoutes();
   } else if (
       asicType == cfg::AsicType::ASIC_TYPE_CHENAB ||
@@ -146,10 +147,12 @@ utility::RouteDistributionGenerator::ThriftRouteChunks getRoutes(
       asicType == cfg::AsicType::ASIC_TYPE_JERICHO3 ||
       asicType == cfg::AsicType::ASIC_TYPE_RAMON ||
       asicType == cfg::AsicType::ASIC_TYPE_TOMAHAWK5) {
-    return utility::HgridUuRouteScaleGenerator(swSwitch->getState())
+    return utility::HgridUuRouteScaleGenerator(
+               swSwitch->getState(), swSwitch->needL2EntryForNeighbor())
         .getThriftRoutes();
   } else if (asicType == cfg::AsicType::ASIC_TYPE_TOMAHAWK) {
-    return utility::FSWRouteScaleGenerator(swSwitch->getState())
+    return utility::FSWRouteScaleGenerator(
+               swSwitch->getState(), swSwitch->needL2EntryForNeighbor())
         .getThriftRoutes();
   } else {
     CHECK(false) << "Invalid asic type for route scale";
@@ -291,7 +294,8 @@ void initAndExitBenchmarkHelper(
               });
 
           utility::EcmpSetupTargetedPorts6 ecmpHelper(
-              ensemble->getProgrammedState());
+              ensemble->getProgrammedState(),
+              ensemble->getSw()->needL2EntryForNeighbor());
           auto portDescriptor =
               utility::resolveRemoteNhops(ensemble.get(), ecmpHelper);
 

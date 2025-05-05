@@ -48,12 +48,14 @@ RouteDistributionGenerator::RouteDistributionGenerator(
     const Masklen2NumPrefixes& v4DistributionSpec,
     unsigned int chunkSize,
     unsigned int ecmpWidth,
+    bool needL2EntryForNeighbor,
     RouterID routerId)
     : startingState_(startingState),
       v6DistributionSpec_(v6DistributionSpec),
       v4DistributionSpec_(v4DistributionSpec),
       chunkSize_(chunkSize),
       ecmpWidth_(ecmpWidth),
+      needL2EntryForNeighbor_(needL2EntryForNeighbor),
       routerId_(routerId) {
   CHECK_NE(0, chunkSize_);
   CHECK_NE(0, ecmpWidth_);
@@ -61,8 +63,9 @@ RouteDistributionGenerator::RouteDistributionGenerator(
 
 std::shared_ptr<SwitchState> RouteDistributionGenerator::resolveNextHops(
     std::shared_ptr<SwitchState> in) const {
-  auto nhop6Resolved = EcmpSetupAnyNPorts6(in).resolveNextHops(in, ecmpWidth());
-  return EcmpSetupAnyNPorts4(nhop6Resolved)
+  auto nhop6Resolved = EcmpSetupAnyNPorts6(in, needL2EntryForNeighbor_)
+                           .resolveNextHops(in, ecmpWidth());
+  return EcmpSetupAnyNPorts4(nhop6Resolved, needL2EntryForNeighbor_)
       .resolveNextHops(nhop6Resolved, ecmpWidth());
 }
 

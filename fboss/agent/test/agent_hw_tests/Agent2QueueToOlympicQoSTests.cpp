@@ -66,7 +66,8 @@ class Agent2QueueToOlympicQoSTest : public AgentHwTest {
     // Since it is not re-written, it should hit the pipeline as if it
     // ingressed on the port, and be properly queued.
     if (frontPanel) {
-      utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+      utility::EcmpSetupAnyNPorts6 ecmpHelper(
+          getProgrammedState(), getSw()->needL2EntryForNeighbor());
       auto outPort = ecmpHelper.ecmpPortDescriptorAt(kEcmpWidth).phyPortID();
       getAgentEnsemble()->getSw()->sendPacketOutOfPortAsync(
           std::move(txPacket), outPort);
@@ -78,7 +79,8 @@ class Agent2QueueToOlympicQoSTest : public AgentHwTest {
   void _verifyDscpQueueMappingHelper(
       const std::map<int, std::vector<uint8_t>>& queueToDscp,
       bool frontPanel) {
-    utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+    utility::EcmpSetupAnyNPorts6 ecmpHelper(
+        getProgrammedState(), getSw()->needL2EntryForNeighbor());
     auto portId = ecmpHelper.ecmpPortDescriptorAt(0).phyPortID();
     std::optional<SystemPortID> sysPortId;
     auto switchId = getSw()->getScopeResolver()->scope(portId).switchId();
@@ -100,7 +102,8 @@ class Agent2QueueToOlympicQoSTest : public AgentHwTest {
  protected:
   void runTest() {
     auto setup = [=, this]() {
-      utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+      utility::EcmpSetupAnyNPorts6 ecmpHelper(
+          getProgrammedState(), getSw()->needL2EntryForNeighbor());
       auto portId = ecmpHelper.ecmpPortDescriptorAt(0).phyPortID();
       auto switchId = getSw()->getScopeResolver()->scope(portId).switchId();
       auto asic = getSw()->getHwAsicTable()->getHwAsic(switchId);

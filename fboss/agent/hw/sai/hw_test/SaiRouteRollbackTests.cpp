@@ -97,9 +97,13 @@ class SaiRouteRollbackTest : public SaiRollbackTest {
   void SetUp() override {
     SaiRollbackTest::SetUp();
     v4EcmpHelper_ = std::make_unique<utility::EcmpSetupAnyNPorts4>(
-        getProgrammedState(), RouterID(0));
+        getProgrammedState(),
+        getHwSwitch()->needL2EntryForNeighbor(),
+        RouterID(0));
     v6EcmpHelper_ = std::make_unique<utility::EcmpSetupAnyNPorts6>(
-        getProgrammedState(), RouterID(0));
+        getProgrammedState(),
+        getHwSwitch()->needL2EntryForNeighbor(),
+        RouterID(0));
   }
   void rollbackStandaloneRib(const std::vector<folly::CIDRNetwork>& prefixes) {
     auto updater = getHwSwitchEnsemble()->getRouteUpdater();

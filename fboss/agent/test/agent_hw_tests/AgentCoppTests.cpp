@@ -401,6 +401,7 @@ class AgentCoppTest : public AgentHwTest {
     if constexpr (!isTrunk) {
       utility::EcmpSetupAnyNPorts6 ecmpHelper(
           getProgrammedState(),
+          getSw()->needL2EntryForNeighbor(),
           useInterfaceMac
               ? utility::getMacForFirstInterfaceWithPorts(getProgrammedState())
               : getLocalMacAddress());
@@ -408,6 +409,7 @@ class AgentCoppTest : public AgentHwTest {
     } else {
       utility::EcmpSetupTargetedPorts6 ecmpHelper(
           getProgrammedState(),
+          getSw()->needL2EntryForNeighbor(),
           useInterfaceMac
               ? utility::getMacForFirstInterfaceWithPorts(getProgrammedState())
               : getLocalMacAddress());
@@ -1223,7 +1225,8 @@ TYPED_TEST(AgentCoppTest, NdpAdvertisementToHighPriQ) {
 TYPED_TEST(AgentCoppTest, UnresolvedRoutesToLowPriQueue) {
   auto setup = [=, this]() {
     this->setup();
-    utility::EcmpSetupAnyNPorts6 ecmp6(this->getProgrammedState());
+    utility::EcmpSetupAnyNPorts6 ecmp6(
+        this->getProgrammedState(), this->getSw()->needL2EntryForNeighbor());
     auto wrapper = this->getSw()->getRouteUpdater();
     ecmp6.programRoutes(&wrapper, 1);
   };
@@ -1259,7 +1262,8 @@ TYPED_TEST(AgentCoppTest, UnresolvedRouteNextHopToLowPriQueue) {
     FLAGS_classid_for_unresolved_routes =
         (asic->getAsicType() != cfg::AsicType::ASIC_TYPE_CHENAB);
     this->setup();
-    utility::EcmpSetupAnyNPorts6 ecmp6(this->getProgrammedState());
+    utility::EcmpSetupAnyNPorts6 ecmp6(
+        this->getProgrammedState(), this->getSw()->needL2EntryForNeighbor());
     auto wrapper = this->getSw()->getRouteUpdater();
     ecmp6.programRoutes(&wrapper, 1, routePrefixes);
   };
@@ -1462,7 +1466,8 @@ class AgentCoppQosTest : public AgentHwTest {
     auto dstMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
 
-    utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState(), dstMac);
+    utility::EcmpSetupAnyNPorts6 ecmpHelper(
+        getProgrammedState(), getSw()->needL2EntryForNeighbor(), dstMac);
     resolveNeighborAndProgramRoutes(ecmpHelper, 1);
     auto& nextHop = ecmpHelper.getNextHops()[0];
     utility::ttlDecrementHandlingForLoopbackTraffic(

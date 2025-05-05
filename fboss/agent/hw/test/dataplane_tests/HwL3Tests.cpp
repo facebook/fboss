@@ -140,9 +140,17 @@ class HwL3Test : public HwLinkStateDependentTest {
     auto setup = [this]() {
       const RouterID kRid{0};
       resolveNeigborAndProgramRoutes(
-          utility::EcmpSetupAnyNPorts6(getProgrammedState(), kRid), 1);
+          utility::EcmpSetupAnyNPorts6(
+              getProgrammedState(),
+              getHwSwitch()->needL2EntryForNeighbor(),
+              kRid),
+          1);
       resolveNeigborAndProgramRoutes(
-          utility::EcmpSetupAnyNPorts4(getProgrammedState(), kRid), 1);
+          utility::EcmpSetupAnyNPorts4(
+              getProgrammedState(),
+              getHwSwitch()->needL2EntryForNeighbor(),
+              kRid),
+          1);
     };
 
     auto verify = [this]() {

@@ -32,7 +32,8 @@ TEST(RouteDistributionGeneratorsTest, v4AndV6DistributionSingleChunk) {
           {32, 5},
       },
       4000,
-      2);
+      2,
+      handle->getSw()->needL2EntryForNeighbor());
   verifyRouteCount(routeDistributionSwitchStatesGen, kExtraRoutes, 20);
   verifyChunking(routeDistributionSwitchStatesGen, 20, 4000);
 }
@@ -51,7 +52,8 @@ TEST(RouteDistributionGeneratorsTest, v4AndV6DistributionMultipleChunks) {
           {32, 5},
       },
       10,
-      2);
+      2,
+      handle->getSw()->needL2EntryForNeighbor());
   verifyRouteCount(routeDistributionSwitchStatesGen, kExtraRoutes, 20);
   verifyChunking(routeDistributionSwitchStatesGen, 20, 10);
 }
@@ -72,7 +74,8 @@ TEST(
           {32, 7},
       },
       4,
-      2);
+      2,
+      handle->getSw()->needL2EntryForNeighbor());
 
   verifyRouteCount(routeDistributionSwitchStatesGen, kExtraRoutes, 18);
   verifyChunking(routeDistributionSwitchStatesGen, 18, 4);
@@ -94,7 +97,8 @@ TEST(
           {32, 5},
       },
       5,
-      2);
+      2,
+      handle->getSw()->needL2EntryForNeighbor());
 
   verifyRouteCount(routeDistributionSwitchStatesGen, kExtraRoutes, 20);
   verifyChunking(routeDistributionSwitchStatesGen, 20, 5);
@@ -110,7 +114,8 @@ TEST(RouteDistributionGeneratorsTest, emptyV4Distribution) {
       },
       {},
       5,
-      2);
+      2,
+      handle->getSw()->needL2EntryForNeighbor());
 
   verifyRouteCount(routeDistributionSwitchStatesGen, kExtraRoutes, 5);
   verifyChunking(routeDistributionSwitchStatesGen, 5, 5);
@@ -120,7 +125,12 @@ TEST(RouteDistributionGeneratorsTest, emptyV6Distribution) {
   auto cfg = getTestConfig();
   auto handle = createTestHandle(&cfg);
   auto routeDistributionSwitchStatesGen = utility::RouteDistributionGenerator(
-      handle->getSw()->getState(), {}, {{24, 5}}, 5, 2);
+      handle->getSw()->getState(),
+      {},
+      {{24, 5}},
+      5,
+      2,
+      handle->getSw()->needL2EntryForNeighbor());
 
   verifyRouteCount(routeDistributionSwitchStatesGen, kExtraRoutes, 5);
   verifyChunking(routeDistributionSwitchStatesGen, 5, 5);
@@ -130,7 +140,12 @@ TEST(RouteDistributionGeneratorsTest, emptyV4AndV6Distribution) {
   auto cfg = getTestConfig();
   auto handle = createTestHandle(&cfg);
   auto routeDistributionSwitchStatesGen = utility::RouteDistributionGenerator(
-      handle->getSw()->getState(), {}, {}, 5, 2);
+      handle->getSw()->getState(),
+      {},
+      {},
+      5,
+      2,
+      handle->getSw()->needL2EntryForNeighbor());
 
   verifyRouteCount(routeDistributionSwitchStatesGen, kExtraRoutes, 0);
   verifyChunking(routeDistributionSwitchStatesGen, 0, 5);

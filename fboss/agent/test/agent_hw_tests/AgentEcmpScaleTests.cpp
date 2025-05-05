@@ -46,7 +46,8 @@ class AgentEcmpTest : public AgentHwTest {
     for (const auto& portId : portIds) {
       portDescriptorIds.push_back(PortDescriptor(portId));
     }
-    utility::EcmpSetupTargetedPorts6 ecmpHelper(getProgrammedState());
+    utility::EcmpSetupTargetedPorts6 ecmpHelper(
+        getProgrammedState(), getSw()->needL2EntryForNeighbor());
     std::vector<RoutePrefixV6> prefixes;
     std::vector<std::vector<PortDescriptor>> allCombinations =
         generateScale(portDescriptorIds, maxElements);
@@ -122,7 +123,8 @@ TEST_F(AgentEcmpTest, CreateMaxUcmpMembers) {
       utility::getMaxUcmpMembers(getAgentEnsemble()->getL3Asics());
 
   auto setup = [&]() {
-    utility::EcmpSetupTargetedPorts6 ecmpHelper(getProgrammedState());
+    utility::EcmpSetupTargetedPorts6 ecmpHelper(
+        getProgrammedState(), getSw()->needL2EntryForNeighbor());
     std::vector<PortID> portIds = masterLogicalInterfacePortIds();
     std::vector<PortDescriptor> portDescriptorIds;
     std::vector<RoutePrefixV6> prefixes;

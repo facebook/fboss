@@ -348,12 +348,15 @@ void configureMaxRouteEntries(AgentEnsemble* ensemble) {
       asic->getMaxRoutes().has_value() ? asic->getMaxRoutes().value() : 0;
   CHECK_GT(maxNumRoute, 0);
 
-  auto routeGenerator = ScaleTestRouteScaleGenerator(sw->getState());
+  auto routeGenerator = ScaleTestRouteScaleGenerator(
+      sw->getState(), ensemble->getSw()->needL2EntryForNeighbor());
   auto allThriftRoutes = routeGenerator.allThriftRoutes();
   int numThriftRoutes = allThriftRoutes.size();
 
   std::vector<RoutePrefixV6> ecmpPrefixes;
-  utility::EcmpSetupTargetedPorts6 ecmpHelper(ensemble->getProgrammedState());
+  utility::EcmpSetupTargetedPorts6 ecmpHelper(
+      ensemble->getProgrammedState(),
+      ensemble->getSw()->needL2EntryForNeighbor());
   std::vector<PortID> portIds = ensemble->masterLogicalInterfacePortIds();
   std::vector<PortDescriptor> portDescriptorIds;
 
@@ -557,8 +560,10 @@ std::pair<uint64_t, uint64_t> startRxMeasure(AgentEnsemble* ensemble) {
   auto dstMac = getInterfaceMac(
       ensemble->getProgrammedState(), InterfaceID(kBaseVlanId + 1));
 
-  auto ecmpHelper =
-      utility::EcmpSetupAnyNPorts6(ensemble->getProgrammedState(), dstMac);
+  auto ecmpHelper = utility::EcmpSetupAnyNPorts6(
+      ensemble->getProgrammedState(),
+      ensemble->needL2EntryForNeighbor(),
+      dstMac);
   flat_set<PortDescriptor> IntfPorts;
   IntfPorts.insert(PortDescriptor(
       ensemble->masterLogicalInterfacePortIds()[kRxMeasurePortIdx]));
@@ -639,8 +644,10 @@ void startTxMeasure(AgentEnsemble* ensemble, int& pps, int& bytesPerSec) {
           ->getNodeIf(
               ensemble->masterLogicalInterfacePortIds()[kTxMeasurePortIdx])
           ->getInterfaceID());
-  auto ecmpHelper =
-      utility::EcmpSetupAnyNPorts6(ensemble->getProgrammedState(), dstMac);
+  auto ecmpHelper = utility::EcmpSetupAnyNPorts6(
+      ensemble->getProgrammedState(),
+      ensemble->needL2EntryForNeighbor(),
+      dstMac);
   flat_set<PortDescriptor> IntfPorts;
   IntfPorts.insert(PortDescriptor(
       ensemble->masterLogicalInterfacePortIds()[kTxMeasurePortIdx]));

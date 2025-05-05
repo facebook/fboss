@@ -21,7 +21,9 @@ void setupEcmpDataplaneLoopOnAllPorts(
   auto intfMac =
       utility::getMacForFirstInterfaceWithPorts(ensemble->getProgrammedState());
   utility::EcmpSetupTargetedPorts6 ecmpHelper(
-      ensemble->getProgrammedState(), intfMac);
+      ensemble->getProgrammedState(),
+      ensemble->getSw()->needL2EntryForNeighbor(),
+      intfMac);
   std::vector<PortDescriptor> portDescriptors;
   std::vector<flat_set<PortDescriptor>> portDescSets;
   for (auto& portId : ensemble->masterLogicalInterfacePortIds()) {

@@ -63,7 +63,7 @@ class AgentAclCounterTestBase : public AgentHwTest {
       return;
     }
     helper_ = std::make_unique<utility::EcmpSetupAnyNPorts6>(
-        getProgrammedState(), RouterID(0));
+        getProgrammedState(), getSw()->needL2EntryForNeighbor(), RouterID(0));
   }
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
@@ -1164,7 +1164,7 @@ class AgentFlowletResourceTest : public AgentHwTest {
       return;
     }
     helper_ = std::make_unique<utility::EcmpSetupTargetedPorts6>(
-        getProgrammedState());
+        getProgrammedState(), getSw()->needL2EntryForNeighbor());
   }
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {

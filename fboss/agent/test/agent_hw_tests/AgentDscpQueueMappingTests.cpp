@@ -30,7 +30,8 @@ class AgentDscpQueueMappingTestBase : public AgentHwTest {
   }
 
   void setupHelper() {
-    utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+    utility::EcmpSetupAnyNPorts6 ecmpHelper(
+        getProgrammedState(), getSw()->needL2EntryForNeighbor());
     resolveNeighborAndProgramRoutes(ecmpHelper, kEcmpWidth);
   }
 
@@ -55,7 +56,8 @@ class AgentDscpQueueMappingTestBase : public AgentHwTest {
     // Since it is not re-written, it should hit the pipeline as if it
     // ingressed on the port, and be properly queued.
     if (frontPanel) {
-      utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+      utility::EcmpSetupAnyNPorts6 ecmpHelper(
+          getProgrammedState(), getSw()->needL2EntryForNeighbor());
       auto outPort = ecmpHelper.ecmpPortDescriptorAt(kEcmpWidth).phyPortID();
       getSw()->sendPacketOutOfPortAsync(std::move(txPacket), outPort);
     } else {
@@ -68,7 +70,8 @@ class AgentDscpQueueMappingTestBase : public AgentHwTest {
   }
 
   folly::IPAddressV6 kDstIP() {
-    utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+    utility::EcmpSetupAnyNPorts6 ecmpHelper(
+        getProgrammedState(), getSw()->needL2EntryForNeighbor());
     return ecmpHelper.ip(0);
   }
 

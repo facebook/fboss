@@ -111,7 +111,7 @@ class AgentHwPtpTcProvisionTests : public AgentHwTest {
       const folly::MacAddress& nexthopMac,
       const folly::IPAddressV6& dstIp) {
     utility::EcmpSetupTargetedPorts6 ecmpHelper6{
-        getProgrammedState(), nexthopMac};
+        getProgrammedState(), getSw()->needL2EntryForNeighbor(), nexthopMac};
     auto dstPort = PortDescriptor(portID);
     applyNewState([&](const std::shared_ptr<SwitchState>& in) {
       auto newState = ecmpHelper6.resolveNextHops(in, {dstPort});

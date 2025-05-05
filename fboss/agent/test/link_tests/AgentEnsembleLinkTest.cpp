@@ -280,7 +280,8 @@ void AgentEnsembleLinkTest::programDefaultRoute(
 void AgentEnsembleLinkTest::programDefaultRoute(
     const boost::container::flat_set<PortDescriptor>& ecmpPorts,
     std::optional<folly::MacAddress> dstMac) {
-  utility::EcmpSetupTargetedPorts6 ecmp6(getSw()->getState(), dstMac);
+  utility::EcmpSetupTargetedPorts6 ecmp6(
+      getSw()->getState(), getSw()->needL2EntryForNeighbor(), dstMac);
   programDefaultRoute(ecmpPorts, ecmp6);
 }
 
@@ -288,7 +289,9 @@ void AgentEnsembleLinkTest::createL3DataplaneFlood(
     const boost::container::flat_set<PortDescriptor>& ecmpPorts) {
   auto switchId = scope(ecmpPorts);
   utility::EcmpSetupTargetedPorts6 ecmp6(
-      getSw()->getState(), getSw()->getLocalMac(switchId));
+      getSw()->getState(),
+      getSw()->needL2EntryForNeighbor(),
+      getSw()->getLocalMac(switchId));
   programDefaultRoute(ecmpPorts, ecmp6);
   utility::disableTTLDecrements(getSw(), ecmpPorts);
   auto vlanID = utility::getFirstMap(getSw()->getState()->getVlans())

@@ -77,7 +77,7 @@ class AgentQueuePerHostRouteTest : public AgentHwTest {
   void addRoutes(const std::vector<RoutePrefix<AddrT>>& routePrefixes) {
     auto kEcmpWidth = 1;
     utility::EcmpSetupAnyNPorts<AddrT> ecmpHelper(
-        getProgrammedState(), kRouterID());
+        getProgrammedState(), getSw()->needL2EntryForNeighbor(), kRouterID());
     auto wrapper = getSw()->getRouteUpdater();
     ecmpHelper.programRoutes(&wrapper, kEcmpWidth, routePrefixes);
   }

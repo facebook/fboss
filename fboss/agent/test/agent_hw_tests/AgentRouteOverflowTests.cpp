@@ -11,19 +11,20 @@ class AgentRouteOverflowTest : public AgentOverflowTestBase {};
 
 TEST_F(AgentRouteOverflowTest, overflowRoutes) {
   applyNewState([&](const std::shared_ptr<SwitchState>& in) {
-    return utility::EcmpSetupAnyNPorts6(in).resolveNextHops(
-        in, utility::kDefaulEcmpWidth);
+    return utility::EcmpSetupAnyNPorts6(in, getSw()->needL2EntryForNeighbor())
+        .resolveNextHops(in, utility::kDefaulEcmpWidth);
   });
   applyNewState([&](const std::shared_ptr<SwitchState>& in) {
-    return utility::EcmpSetupAnyNPorts4(in).resolveNextHops(
-        in, utility::kDefaulEcmpWidth);
+    return utility::EcmpSetupAnyNPorts4(in, getSw()->needL2EntryForNeighbor())
+        .resolveNextHops(in, utility::kDefaulEcmpWidth);
   });
   utility::RouteDistributionGenerator::ThriftRouteChunks routeChunks;
   auto updater = getSw()->getRouteUpdater();
   const RouterID kRid(0);
   switch (getSw()->getPlatformType()) {
     case PlatformType::PLATFORM_WEDGE100:
-      routeChunks = utility::HgridUuRouteScaleGenerator(getProgrammedState())
+      routeChunks = utility::HgridUuRouteScaleGenerator(
+                        getProgrammedState(), getSw()->needL2EntryForNeighbor())
                         .getThriftRoutes();
       break;
     default:
@@ -86,12 +87,12 @@ class AgentRouteCounterOverflowTest : public AgentOverflowTestBase {
 
 TEST_F(AgentRouteCounterOverflowTest, overflowRouteCounters) {
   applyNewState([&](const std::shared_ptr<SwitchState>& in) {
-    return utility::EcmpSetupAnyNPorts6(in).resolveNextHops(
-        in, utility::kDefaulEcmpWidth);
+    return utility::EcmpSetupAnyNPorts6(in, getSw()->needL2EntryForNeighbor())
+        .resolveNextHops(in, utility::kDefaulEcmpWidth);
   });
   applyNewState([&](const std::shared_ptr<SwitchState>& in) {
-    return utility::EcmpSetupAnyNPorts4(in).resolveNextHops(
-        in, utility::kDefaulEcmpWidth);
+    return utility::EcmpSetupAnyNPorts4(in, getSw()->needL2EntryForNeighbor())
+        .resolveNextHops(in, utility::kDefaulEcmpWidth);
   });
   auto updater = getSw()->getRouteUpdater();
   const RouterID kRid(0);
@@ -103,12 +104,22 @@ TEST_F(AgentRouteCounterOverflowTest, overflowRouteCounters) {
       kRid,
       ClientID::BGPD,
       utility::RouteDistributionGenerator(
-          getProgrammedState(), {{64, 5}}, {}, 4000, 4)
+          getProgrammedState(),
+          {{64, 5}},
+          {},
+          4000,
+          4,
+          getSw()->needL2EntryForNeighbor())
           .getThriftRoutes(counterID1));
   // Add another set of V6 prefixes with a second counterID
   utility::RouteDistributionGenerator::ThriftRouteChunks routeChunks =
       utility::RouteDistributionGenerator(
-          getProgrammedState(), {{120, 5}}, {}, 4000, 4)
+          getProgrammedState(),
+          {{120, 5}},
+          {},
+          4000,
+          4,
+          getSw()->needL2EntryForNeighbor())
           .getThriftRoutes(counterID2);
 
   {

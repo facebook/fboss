@@ -23,7 +23,8 @@ namespace facebook::fboss::utility {
 template <typename RouteScaleGeneratorT>
 void resolveNhopForRouteGenerator(AgentEnsemble* ensemble) {
   auto* sw = ensemble->getSw();
-  auto routeGenerator = RouteScaleGeneratorT(sw->getState());
+  auto routeGenerator =
+      RouteScaleGeneratorT(sw->getState(), sw->needL2EntryForNeighbor());
   auto swSwitch = ensemble->agentInitializer()->sw();
   auto platformType = swSwitch->getPlatformType();
   if (!routeGenerator.isSupported(platformType)) {
@@ -41,7 +42,8 @@ std::tuple<double, double> routeChangeLookupStresser(AgentEnsemble* ensemble) {
   folly::BenchmarkSuspender suspender;
 
   auto* sw = ensemble->getSw();
-  auto routeGenerator = RouteScaleGeneratorT(sw->getState());
+  auto routeGenerator =
+      RouteScaleGeneratorT(sw->getState(), sw->needL2EntryForNeighbor());
   auto swSwitch = ensemble->agentInitializer()->sw();
   auto platformType = swSwitch->getPlatformType();
   if (!routeGenerator.isSupported(platformType)) {
@@ -56,6 +58,7 @@ std::tuple<double, double> routeChangeLookupStresser(AgentEnsemble* ensemble) {
   // flap and following route updates
   auto allThriftRoutesNarrowerEcmp = RouteScaleGeneratorT(
                                          sw->getState(),
+                                         sw->needL2EntryForNeighbor(),
                                          allThriftRoutes.size(),
                                          routeGenerator.ecmpWidth() - 1)
                                          .allThriftRoutes();

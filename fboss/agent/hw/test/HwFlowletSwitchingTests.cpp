@@ -55,7 +55,9 @@ class HwArsTest : public HwLinkStateDependentTest {
     FLAGS_flowletStatsEnable = true;
     HwLinkStateDependentTest::SetUp();
     ecmpHelper_ = std::make_unique<utility::EcmpSetupAnyNPorts6>(
-        getProgrammedState(), RouterID(0));
+        getProgrammedState(),
+        getHwSwitch()->needL2EntryForNeighbor(),
+        RouterID(0));
   }
 
   // native BCM has access to BRCM IDs >=200128 cannot be configured as DLB

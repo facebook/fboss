@@ -45,7 +45,8 @@ class AgentMmuTuningTest : public AgentHwTest {
   }
 
   void setup() {
-    utility::EcmpSetupAnyNPorts6 helper(getProgrammedState(), dstMac());
+    utility::EcmpSetupAnyNPorts6 helper(
+        getProgrammedState(), getSw()->needL2EntryForNeighbor(), dstMac());
     auto constexpr kEcmpWidth = 1;
     resolveNeighborAndProgramRoutes(helper, kEcmpWidth);
     utility::setCreditWatchdogAndPortTx(

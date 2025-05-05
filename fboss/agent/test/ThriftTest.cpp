@@ -1771,10 +1771,13 @@ TEST_F(ThriftTest, hwUpdateErrorAfterPartialUpdate) {
 
 TEST_F(ThriftTest, routeUpdatesWithConcurrentReads) {
   auto thriftHgridRoutes =
-      utility::HgridDuRouteScaleGenerator(sw_->getState(), 100000)
+      utility::HgridDuRouteScaleGenerator(
+          sw_->getState(), sw_->needL2EntryForNeighbor(), 100000)
           .getThriftRoutes()[0];
-  auto thriftRswRoutes = utility::RSWRouteScaleGenerator(sw_->getState(), 10000)
-                             .getThriftRoutes()[0];
+  auto thriftRswRoutes =
+      utility::RSWRouteScaleGenerator(
+          sw_->getState(), sw_->needL2EntryForNeighbor(), 10000)
+          .getThriftRoutes()[0];
   std::atomic<bool> done{false};
 
   ThriftHandler handler(sw_);

@@ -57,7 +57,7 @@ class AgentVoqSwitchLineRateTest : public AgentVoqSwitchTest {
 
   void setupEcmpDataplaneLoopOnAllPorts() {
     utility::EcmpSetupTargetedPorts6 ecmpHelper(
-        getProgrammedState(), getIntfMac());
+        getProgrammedState(), getSw()->needL2EntryForNeighbor(), getIntfMac());
     std::vector<PortDescriptor> portDescriptors;
     std::vector<flat_set<PortDescriptor>> portDescSets;
     for (auto& portId : masterLogicalInterfacePortIds()) {
