@@ -118,6 +118,7 @@ class TestEnsembleIf : public HwSwitchCallback {
   std::vector<SystemPortID> masterLogicalSysPortIds() const;
   virtual std::vector<FirmwareInfo> getAllFirmwareInfo(
       SwitchID switchId) const = 0;
+  virtual bool needL2EntryForNeighbor() const = 0;
 
  private:
   std::vector<PortID> masterLogicalPortIdsImpl(

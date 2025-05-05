@@ -296,6 +296,10 @@ class AgentEnsemble : public TestEnsembleIf {
     return configFile_;
   }
 
+  bool needL2EntryForNeighbor() const override {
+    return getSw()->needL2EntryForNeighbor();
+  }
+
   std::optional<VlanID> getVlanIDForTx() const override;
 
   std::vector<FirmwareInfo> getAllFirmwareInfo(

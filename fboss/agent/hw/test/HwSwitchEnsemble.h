@@ -353,6 +353,10 @@ class HwSwitchEnsemble : public TestEnsembleIf {
 
   std::optional<VlanID> getVlanIDForTx() const override;
 
+  bool needL2EntryForNeighbor() const override {
+    return getHwSwitch()->needL2EntryForNeighbor();
+  }
+
  protected:
   /*
    * Setup ensemble
