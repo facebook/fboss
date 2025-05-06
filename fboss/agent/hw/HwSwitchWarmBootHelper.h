@@ -27,7 +27,8 @@ class HwSwitchWarmBootHelper {
   HwSwitchWarmBootHelper(
       int switchId,
       const std::string& warmBootDir,
-      const std::string& sdkWarmbootFilePrefix);
+      const std::string& sdkWarmbootFilePrefix,
+      bool createWarmBootFile = true);
   ~HwSwitchWarmBootHelper();
 
   bool canWarmBoot() const {

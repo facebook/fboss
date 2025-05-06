@@ -12,6 +12,7 @@
 #include "fboss/agent/hw/switch_asics/ChenabAsic.h"
 #include "fboss/agent/platforms/common/yangra/YangraPlatformMapping.h"
 
+#include "fboss/agent/hw/HwSwitchWarmBootHelper.h"
 #include "fboss/agent/hw/sai/api/ArsApi.h"
 #include "fboss/agent/hw/sai/api/ArsProfileApi.h"
 #include "fboss/agent/hw/sai/api/MplsApi.h"
@@ -148,5 +149,16 @@ SaiSwitchTraits::CreateAttributes SaiYangraPlatform::getSwitchAttributes(
   std::get<std::optional<SaiSwitchTraits::Attributes::HwInfo>>(attributes) =
       std::nullopt;
   return attributes;
+}
+
+HwSwitchWarmBootHelper* SaiYangraPlatform::getWarmBootHelper() {
+  if (!wbHelper_) {
+    wbHelper_ = std::make_unique<HwSwitchWarmBootHelper>(
+        getAsic()->getSwitchIndex(),
+        getDirectoryUtil()->getWarmBootDir(),
+        "sai_adaptor_state_",
+        false /* do not create warm boot data file */);
+  }
+  return wbHelper_.get();
 }
 } // namespace facebook::fboss

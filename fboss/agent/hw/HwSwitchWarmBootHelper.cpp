@@ -39,7 +39,8 @@ namespace facebook::fboss {
 HwSwitchWarmBootHelper::HwSwitchWarmBootHelper(
     int switchId,
     const std::string& warmBootDir,
-    const std::string& sdkWarmbootFilePrefix)
+    const std::string& sdkWarmbootFilePrefix,
+    bool createWarmBootFile)
     : switchId_(switchId),
       warmBootDir_(warmBootDir),
       sdkWarmbootFilePrefix_(sdkWarmbootFilePrefix) {
@@ -58,7 +59,9 @@ HwSwitchWarmBootHelper::HwSwitchWarmBootHelper(
     // Notify Async logger about the boot type
     AsyncLogger::setBootType(canWarmBoot_);
 
-    setupWarmBootFile();
+    if (createWarmBootFile) {
+      setupWarmBootFile();
+    }
   }
 }
 
