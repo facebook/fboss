@@ -89,7 +89,7 @@ class SaiPhyManager : public PhyManager {
       bool needResetDataPath) override;
 
   template <typename platformT, typename xphychipT>
-  void initializeSlotPhysImpl(PimID pimID);
+  void initializeSlotPhysImpl(PimID pimID, bool warmBoot);
 
   PortOperState macsecGetPhyLinkInfo(PortID swPort);
   phy::PhyInfo getPhyInfo(PortID swPort) override;
@@ -239,7 +239,7 @@ class SaiPhyManager : public PhyManager {
 
 using namespace std::chrono;
 template <typename platformT, typename xphychipT>
-void SaiPhyManager::initializeSlotPhysImpl(PimID pimID) {
+void SaiPhyManager::initializeSlotPhysImpl(PimID pimID, bool /* warmboot */) {
   if (const auto pimPhyMap = xphyMap_.find(pimID);
       pimPhyMap != xphyMap_.end()) {
     for (const auto& phy : pimPhyMap->second) {
