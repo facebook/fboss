@@ -44,6 +44,11 @@ struct AqmTestStats {
   uint64_t outPackets;
 };
 
+struct AqmThresholdsConfig {
+  bool enableEcn{false};
+  bool enableWred{false};
+};
+
 /*
  * Ensure that the number of dropped packets is as expected. Allow for
  * an error to account for more / less drops while its worked out.
@@ -452,6 +457,7 @@ class AgentAqmTest : public AgentHwTest {
       const uint8_t ecnCodePoint,
       int thresholdBytes,
       int expectedMarkedOrDroppedPacketCount,
+      AqmThresholdsConfig thresholdsConfig = AqmThresholdsConfig(),
       const std::optional<
           std::function<void(AqmTestStats&, AqmTestStats&, int)>>&
           verifyPacketCountFn = std::nullopt,
@@ -496,8 +502,12 @@ class AgentAqmTest : public AgentHwTest {
     auto setup = [&]() {
       cfg::SwitchConfig config{getSw()->getConfig()};
       // Configure both WRED and ECN thresholds
-      queueEcnThresholdSetup(config, std::array{kQueueId});
-      queueWredThresholdSetup(config, std::array{kQueueId});
+      if (thresholdsConfig.enableEcn) {
+        queueEcnThresholdSetup(config, std::array{kQueueId});
+      }
+      if (thresholdsConfig.enableWred) {
+        queueWredThresholdSetup(config, std::array{kQueueId});
+      }
       // Include any config setup needed per test case
       if (setupFn.has_value()) {
         (*setupFn)(config, {kQueueId}, kTxPacketLen);
@@ -697,6 +707,7 @@ class AgentAqmTest : public AgentHwTest {
         kNotECT,
         utility::kQueueConfigAqmsWredThresholdMinMax /*thresholdBytes*/,
         50 /*expectedMarkedOrDroppedPacketCount*/,
+        AqmThresholdsConfig{.enableWred = true},
         std::move(verifyWredDroppedPacketCount));
   }
 
@@ -731,6 +742,7 @@ class AgentAqmTest : public AgentHwTest {
         kECT0,
         kThresholdBytes,
         kMarkedPackets,
+        AqmThresholdsConfig{.enableEcn = true},
         verifyEcnMarkedPacketCount,
         std::move(shaperSetup));
   }
@@ -839,6 +851,7 @@ class AgentAqmTest : public AgentHwTest {
         kECT0,
         kThresholdBytes,
         0,
+        AqmThresholdsConfig{.enableEcn = true},
         std::nullopt /* verifyPacketCountFn */,
         setupScalingFactor,
         queueFillMaxBytes);
@@ -951,7 +964,7 @@ TEST_F(AgentAqmTest, verifyPerQueueWredDropStats) {
   runPerQueueWredDropStatsTest();
 }
 
-TEST_F(AgentAqmTest, verifyEcnTrafficNoDrop) {
+TEST_F(AgentAqmEcnOnlyTest, verifyEcnTrafficNoDrop) {
   runEcnTrafficNoDropTest();
 }
 
