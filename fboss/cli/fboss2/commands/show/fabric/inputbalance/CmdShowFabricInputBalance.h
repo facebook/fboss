@@ -13,6 +13,7 @@
 #include <string>
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/show/fabric/inputbalance/gen-cpp2/model_types.h"
+#include "fboss/cli/fboss2/utils/CmdUtils.h"
 #include "fboss/lib/inputbalance/InputBalanceUtil.h"
 
 namespace facebook::fboss {
@@ -33,7 +34,17 @@ class CmdShowFabricInputBalance : public CmdHandler<
 
   RetType queryClient(
       const HostInfo& hostInfo,
-      const ObjectArgType& /* queriedSwitchNames */) {
+      const ObjectArgType& queriedSwitchNames) {
+    if (queriedSwitchNames.empty()) {
+      throw std::runtime_error(
+          "Please provide the list of switch name(s) to query reachability.");
+    }
+    std::vector<std::string> dstSwitchName;
+    dstSwitchName.reserve(queriedSwitchNames.size());
+    for (const auto& queriedSwitchName : queriedSwitchNames) {
+      dstSwitchName.push_back(utils::removeFbDomains(queriedSwitchName));
+    }
+
     auto fbossCtrlClient =
         utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
 
