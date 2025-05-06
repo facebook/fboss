@@ -928,9 +928,8 @@ TEST_F(AgentVoqSwitchTest, verifyDramErrorDetection) {
       getSw()->updateStats();
       auto switchStats = getSw()->getHwSwitchStatsExpensive()[switchIndex];
       ASSERT_EVENTUALLY_TRUE(
-          switchStats.hwAsicErrors()->dramDataPathErrors().has_value());
-      EXPECT_EVENTUALLY_GT(
-          switchStats.hwAsicErrors()->dramDataPathErrors().value(), 0);
+          switchStats.hwAsicErrors()->dramErrors().has_value());
+      EXPECT_EVENTUALLY_GT(switchStats.hwAsicErrors()->dramErrors().value(), 0);
     });
   };
   verifyAcrossWarmBoots(setup, verify);
