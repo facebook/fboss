@@ -3722,7 +3722,12 @@ std::map<PortID, HwPortStats> SwSwitch::getHwPortStats(
     auto hwswitchStatsMap = hwSwitchStats_.rlock();
     auto hwswitchStats = hwswitchStatsMap->find(switchIndex);
     if (hwswitchStats != hwswitchStatsMap->end()) {
-      auto portName = getState()->getPorts()->getNodeIf(portId)->getName();
+      auto port = getState()->getPorts()->getNodeIf(portId);
+      if (!port) {
+        XLOG(ERR) << "Port node doesn't exist for portId: " << portId;
+        continue;
+      }
+      auto portName = port->getName();
       auto statsMap = hwswitchStats->second.hwPortStats();
       auto entry = statsMap->find(portName);
       if (entry != statsMap->end()) {
