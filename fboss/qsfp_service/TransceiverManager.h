@@ -819,6 +819,8 @@ class TransceiverManager {
 
   std::string warmBootStateFileName() const;
 
+  std::string xphyWarmBootStateDirectory() const;
+
   /*
    * ONLY REMOVE can_warm_boot flag file if there's a cold_boot
    */

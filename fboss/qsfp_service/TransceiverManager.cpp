@@ -260,6 +260,17 @@ void TransceiverManager::readWarmBootStateFile() {
 void TransceiverManager::init() {
   // Check whether we can warm boot
   canWarmBoot_ = checkWarmBootFlags();
+
+  if (!canWarmBoot_) {
+    // For cold boot, remove the xphy warm boot state directory if it exists
+    std::string xphyDir = xphyWarmBootStateDirectory();
+    if (checkFileExists(xphyDir)) {
+      XLOG(INFO) << "Cold boot: removing xphy warm boot state directory: "
+                 << xphyDir;
+      removeDir(xphyDir);
+    }
+  }
+
   XLOG(INFO) << "Will attempt " << (canWarmBoot_ ? "WARM" : "COLD") << " boot";
 
   restart_time::init(FLAGS_qsfp_service_volatile_dir, canWarmBoot_);
@@ -2525,6 +2536,11 @@ std::string TransceiverManager::warmBootFlagFileName() {
 std::string TransceiverManager::warmBootStateFileName() const {
   return folly::to<std::string>(
       FLAGS_qsfp_service_volatile_dir, "/", kWarmbootStateFileName);
+}
+
+std::string TransceiverManager::xphyWarmBootStateDirectory() const {
+  return folly::to<std::string>(
+      FLAGS_qsfp_service_volatile_dir, "/", kPhyStateKey);
 }
 
 void TransceiverManager::setWarmBootState() {
