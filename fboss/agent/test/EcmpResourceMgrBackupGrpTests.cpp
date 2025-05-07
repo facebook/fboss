@@ -36,6 +36,17 @@ class EcmpBackupGroupTypeTest : public BaseEcmpResourceManagerTest {
     return defaultNhopGroups;
   }
 
+  std::vector<RouteNextHopSet> nextNhopSets(int numSets = kNumStartRoutes) {
+    auto nhopsStart = defaultNhopSets().back();
+    std::vector<RouteNextHopSet> nhopsTo;
+    for (auto i = 0; i < numSets; ++i) {
+      nhopsStart.erase(nhopsStart.begin());
+      CHECK_GT(nhopsStart.size(), 1);
+      nhopsTo.push_back(nhopsStart);
+    }
+    return nhopsTo;
+  }
+
   void SetUp() override {
     BaseEcmpResourceManagerTest::SetUp();
     auto newState = state_->clone();
@@ -66,6 +77,23 @@ TEST_F(EcmpBackupGroupTypeTest, addRoutesBelowEcmpLimit) {
   }
   auto deltas = consolidate(newState);
   EXPECT_EQ(deltas.size(), 1);
+  EXPECT_EQ(*deltas.begin(), StateDelta(oldState, newState));
 }
 
+TEST_F(EcmpBackupGroupTypeTest, addRoutesAboveEcmpLimit) {
+  // add new routes pointing to existing nhops. No limit is thus breached.
+  auto nhopSets = nextNhopSets();
+  auto oldState = state_;
+  auto newState = oldState->clone();
+  auto fib6 = fib(newState);
+  auto routesBefore = fib6->size();
+  std::set<RouteNextHopSet> nhops;
+  for (auto i = 0; i < numStartRoutes(); ++i) {
+    auto route = makeRoute(makePrefix(routesBefore + i), nhopSets[i]);
+    nhops.insert(nhopSets[i]);
+    fib6->addNode(route);
+  }
+  auto deltas = consolidate(newState);
+  EXPECT_EQ(deltas.size(), numStartRoutes());
+}
 } // namespace facebook::fboss
