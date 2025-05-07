@@ -189,6 +189,12 @@ class BcmEcmpEgress : public BcmEgressBase {
       int* pathsInHwCount,
       bcm_l3_ecmp_member_t* membersInHw,
       bcm_if_t* pathsInHw);
+  void createEcmpObject(
+      bcm_l3_egress_ecmp_t& obj,
+      int* index,
+      bcm_l3_ecmp_member_t* ecmpMemberArray,
+      bcm_if_t* pathsArray,
+      int numPaths);
   /*
    * Update ecmp egress entries in HW
    */
