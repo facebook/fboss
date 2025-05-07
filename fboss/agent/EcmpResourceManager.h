@@ -102,15 +102,7 @@ class EcmpResourceManager {
     std::map<RouteNextHopSet, NextHopGroupId> nextHopGroup2Id;
   };
   struct InputOutputState {
-    InputOutputState(uint32_t _nonBackupEcmpGroupsCnt, const StateDelta& _in)
-        : nonBackupEcmpGroupsCnt(_nonBackupEcmpGroupsCnt) {
-      /*
-       * Note that for first StateDelta we push in.oldState() for both
-       * old and new state in the first StateDelta, since we will process
-       * and add/update/delete routes on top of the old state.
-       */
-      out.emplace_back(_in.oldState(), _in.oldState());
-    }
+    InputOutputState(uint32_t _nonBackupEcmpGroupsCnt, const StateDelta& _in);
     template <typename AddrT>
     void addOrUpdateRoute(
         RouterID rid,

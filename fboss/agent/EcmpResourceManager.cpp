@@ -56,6 +56,20 @@ EcmpResourceManager::createOptimalMergeGroupSet() {
   XLOG(FATAL) << " Merge group algorithm is a TODO";
 }
 
+EcmpResourceManager::InputOutputState::InputOutputState(
+    uint32_t _nonBackupEcmpGroupsCnt,
+    const StateDelta& _in)
+    : nonBackupEcmpGroupsCnt(_nonBackupEcmpGroupsCnt) {
+  /*
+   * Note that for first StateDelta we push in.oldState() for both
+   * old and new state in the first StateDelta, since we will process
+   * and add/update/delete routes on top of the old state.
+   */
+  _in.oldState()->publish();
+  _in.newState()->publish();
+  out.emplace_back(_in.oldState(), _in.oldState());
+}
+
 template <typename AddrT>
 void EcmpResourceManager::InputOutputState::addOrUpdateRoute(
     RouterID rid,
@@ -67,6 +81,7 @@ void EcmpResourceManager::InputOutputState::addOrUpdateRoute(
   }
   auto curStateDelta = getCurrentStateDelta();
   auto oldState = curStateDelta.newState();
+  CHECK(oldState->isPublished());
   auto newState = oldState->clone();
   auto fib = newState->getFibs()->getNode(rid)->getFib<AddrT>()->modify(
       rid, &newState);
@@ -77,9 +92,16 @@ void EcmpResourceManager::InputOutputState::addOrUpdateRoute(
     fib->addNode(newRoute);
   }
   if (!ecmpDemandExceeded) {
-    // Still within ECMP limits, replace current delta
+    // Still within ECMP limits, replaced the current delta.
+    // To do this, we need to do 2 things
+    // - use the current delta's old state as a base for
+    // new delta
+    // - Replace the current (last in the list) delta with
+    // StateDelta(out.back().oldState(), newState);
+    oldState = out.back().oldState();
     out.pop_back();
   }
+  newState->publish();
   out.emplace_back(oldState, newState);
 }
 
@@ -89,12 +111,20 @@ void EcmpResourceManager::InputOutputState::deleteRoute(
     const std::shared_ptr<Route<AddrT>>& delRoute) {
   auto curStateDelta = getCurrentStateDelta();
   auto oldState = curStateDelta.newState();
+  CHECK(oldState->isPublished());
   auto newState = oldState->clone();
   auto fib = newState->getFibs()->getNode(rid)->getFib<AddrT>()->modify(
       rid, &newState);
   fib->removeNode(delRoute);
   // replace current delta
+  // To do this, we need to do 2 things
+  // - use the current delta's old state as a base for
+  // new delta
+  // - Replace the current (last in the list) delta with
+  // StateDelta(out.back().oldState(), newState);
+  oldState = out.back().oldState();
   out.pop_back();
+  newState->publish();
   out.emplace_back(oldState, newState);
 }
 
@@ -126,6 +156,7 @@ std::shared_ptr<NextHopGroupInfo> EcmpResourceManager::ecmpGroupDemandExceeded(
       backupEcmpGroupType_);
   auto newRoute = route->clone();
   newRoute->setResolved(std::move(newForwardInfo));
+  newRoute->publish();
   inOutState->addOrUpdateRoute(rid, newRoute, true /*ecmpDemandExceeded*/);
   return grpInfo;
 }
@@ -137,6 +168,7 @@ void EcmpResourceManager::routeAdded(
     InputOutputState* inOutState) {
   CHECK_EQ(rid, RouterID(0));
   CHECK(added->isResolved());
+  CHECK(added->isPublished());
   CHECK_LE(inOutState->nonBackupEcmpGroupsCnt, maxEcmpGroups_);
   auto nhopSet = added->getForwardInfo().getNextHopSet();
   auto [idItr, inserted] =
@@ -153,11 +185,14 @@ void EcmpResourceManager::routeAdded(
       inOutState->addOrUpdateRoute(rid, added, false /* ecmpDemandExceeded*/);
       // New ECMP group added but limit is not exceeded yet
       ++inOutState->nonBackupEcmpGroupsCnt;
-      XLOG(DBG2) << "Prefix: " << added->str()
+      XLOG(DBG2) << "Add Route: " << added->str()
                  << " primray ecmp group count incremented to: "
                  << inOutState->nonBackupEcmpGroupsCnt;
     }
   } else {
+    XLOG(DBG4) << "Add route: " << added->str()
+               << " primray ecmp group count unchanged: "
+               << inOutState->nonBackupEcmpGroupsCnt;
     inOutState->addOrUpdateRoute(rid, added, false /* ecmpDemandExceeded*/);
     grpInfo = nextHopGroupIdToInfo_.ref(idItr->second);
   }
@@ -177,6 +212,7 @@ void EcmpResourceManager::routeDeleted(
     InputOutputState* inOutState) {
   CHECK_EQ(rid, RouterID(0));
   CHECK(removed->isResolved());
+  CHECK(removed->isPublished());
   inOutState->deleteRoute(rid, removed);
   NextHopGroupId groupId{kMinNextHopGroupId - 1};
   {
@@ -191,9 +227,15 @@ void EcmpResourceManager::routeDeleted(
       // Last reference to this ECMP group gone, check if this group was
       // of primary ECMP group type
       --inOutState->nonBackupEcmpGroupsCnt;
+      XLOG(DBG2) << "Delete route: " << removed->str()
+                 << " primray ecmp group count decremented to: "
+                 << inOutState->nonBackupEcmpGroupsCnt;
     }
     nextHopGroup2Id_.erase(removed->getForwardInfo().getNextHopSet());
   } else {
+    XLOG(DBG2) << "Delete route: " << removed->str()
+               << " primray ecmp group count unchanged: "
+               << inOutState->nonBackupEcmpGroupsCnt;
     groupInfo->decRouteUsageCount();
     CHECK_GT(groupInfo->getRouteUsageCount(), 0);
   }
@@ -267,10 +309,12 @@ size_t EcmpResourceManager::getRouteUsageCount(NextHopGroupId nhopGrpId) const {
   throw FbossError("Unable to find nhop group ID: ", nhopGrpId);
 }
 void EcmpResourceManager::updateDone(const StateDelta& /*delta*/) {
+  XLOG(DBG2) << " Update done";
   preUpdateState_.reset();
 }
 
 void EcmpResourceManager::updateFailed(const StateDelta& delta) {
+  XLOG(DBG2) << " Update failed";
   CHECK(preUpdateState_.has_value());
   nextHopGroup2Id_ = preUpdateState_->nextHopGroup2Id;
   mergedGroups_ = preUpdateState_->mergedGroups;
