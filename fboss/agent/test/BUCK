@@ -952,6 +952,7 @@ cpp_unittest(
     name = "ecmp_resource_manager_test",
     srcs = [
         "BaseEcmpResourceManagerTest.cpp",
+        "EcmpResourceMgrBackupGrpTests.cpp",
         "EcmpResourceMgrGroupIdAllocationTests.cpp",
     ],
     headers = ["BaseEcmpResourceManagerTest.h"],

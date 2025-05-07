@@ -70,6 +70,8 @@ std::shared_ptr<NextHopGroupInfo> EcmpResourceManager::ecmpGroupDemandExceeded(
   auto mergeSet = createOptimalMergeGroupSet();
   CHECK(mergeSet.empty()) << "Merge algo is a TODO";
   CHECK(backupEcmpGroupType_.has_value());
+  XLOG(DBG2) << " Ecmp group demand exceeded available resources"
+             << " route: " << route->str();
   std::shared_ptr<NextHopGroupInfo> grpInfo;
   bool inserted{false};
   std::tie(grpInfo, inserted) = nextHopGroupIdToInfo_.refOrEmplace(
@@ -121,6 +123,9 @@ void EcmpResourceManager::routeAdded(
           idItr->second, idItr->second, idItr, false /*isBackupEcmpGroupType*/
       );
       ++inOutState->nonBackupEcmpGroupsCnt;
+      XLOG(DBG2) << "Prefix: " << added->str()
+                 << " primray ecmp group count incremented to: "
+                 << inOutState->nonBackupEcmpGroupsCnt;
       CHECK(inserted);
     }
   } else {

@@ -102,6 +102,11 @@ class EcmpResourceManager {
      * next delta
      */
     std::shared_ptr<SwitchState> nextDeltaOldSwitchState() const;
+    /*
+     * Number of ECMP groups of primary ECMP type. Once these
+     * reach the maxEcmpGroups limit, we either compress groups
+     * by combining 2 or more groups.
+     */
     uint32_t nonBackupEcmpGroupsCnt;
     const StateDelta& in;
     std::vector<StateDelta> out;

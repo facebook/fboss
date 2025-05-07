@@ -41,13 +41,14 @@ std::shared_ptr<RouteV6> makeRoute(
   return rt;
 }
 
-void BaseEcmpResourceManagerTest::consolidate(
+std::vector<StateDelta> BaseEcmpResourceManagerTest::consolidate(
     const std::shared_ptr<SwitchState>& state) {
   StateDelta delta(state_, state);
-  consolidator_->consolidate(delta);
+  auto deltas = consolidator_->consolidate(delta);
   state_ = state;
   state_->publish();
   consolidator_->updateDone(delta);
+  return deltas;
 }
 
 RouteV6::Prefix BaseEcmpResourceManagerTest::nextPrefix() const {
