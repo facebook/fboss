@@ -39,4 +39,6 @@ void fillHwSwitchPipelineStats(
 
 void publishSwitchWatermarks(HwSwitchWatermarkStats& /*watermarkStats*/) {}
 
+void publishSwitchPipelineStats(HwSwitchPipelineStats& /*pipelineStats*/) {}
+
 } // namespace facebook::fboss

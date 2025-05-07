@@ -199,4 +199,5 @@ void fillHwSwitchPipelineStats(
     int idx,
     HwSwitchPipelineStats& switchPipelineStats);
 void publishSwitchWatermarks(HwSwitchWatermarkStats& watermarkStats);
+void publishSwitchWPipelineStats(HwSwitchPipelineStats& pipelineStats);
 } // namespace facebook::fboss
