@@ -62,6 +62,7 @@ class BaseEcmpResourceManagerTest : public ::testing::Test {
   virtual int numStartRoutes() const {
     return 10;
   }
+  void assertDeltasForOverflow(const std::vector<StateDelta>& deltas) const;
   std::shared_ptr<SwitchState> state_;
   std::shared_ptr<EcmpResourceManager> consolidator_;
 };

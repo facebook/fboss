@@ -65,6 +65,7 @@ class EcmpBackupGroupTypeTest : public BaseEcmpResourceManagerTest {
   void assertEndState(
       const std::shared_ptr<SwitchState>& endStatePrefixes,
       const std::set<RouteV6::Prefix>& overflowPrefixes) {
+    EXPECT_EQ(state_->getFibs()->getNode(RouterID(0))->getFibV4()->size(), 0);
     for (auto [_, inRoute] : std::as_const(*cfib(endStatePrefixes))) {
       auto route = cfib(state_)->exactMatch(inRoute->prefix());
       ASSERT_TRUE(route->isResolved());

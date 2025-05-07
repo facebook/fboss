@@ -82,11 +82,14 @@ class EcmpResourceManager {
     return nextHopGroup2Id_;
   }
   size_t getRouteUsageCount(NextHopGroupId nhopGrpId) const;
+  void updateDone(const StateDelta& delta);
+  void updateFailed(const StateDelta& delta);
   std::optional<cfg::SwitchingMode> getBackupEcmpSwitchingMode() const {
     return backupEcmpGroupType_;
   }
-  void updateDone(const StateDelta& delta);
-  void updateFailed(const StateDelta& delta);
+  uint32_t getMaxPrimaryEcmpGroups() const {
+    return maxEcmpGroups_;
+  }
 
  private:
   struct ConsolidationPenalty {

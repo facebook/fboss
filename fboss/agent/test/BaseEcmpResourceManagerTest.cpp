@@ -45,12 +45,42 @@ std::vector<StateDelta> BaseEcmpResourceManagerTest::consolidate(
     const std::shared_ptr<SwitchState>& state) {
   StateDelta delta(state_, state);
   auto deltas = consolidator_->consolidate(delta);
-  state_ = deltas.size() ? deltas.back().newState() : state;
+  if (deltas.size()) {
+    assertDeltasForOverflow(deltas);
+    state_ = deltas.back().newState();
+  } else {
+    state_ = state;
+  }
   state_->publish();
+  EXPECT_EQ(state_->getFibs()->getNode(RouterID(0))->getFibV4()->size(), 0);
   consolidator_->updateDone(delta);
   return deltas;
 }
 
+void BaseEcmpResourceManagerTest::assertDeltasForOverflow(
+    const std::vector<StateDelta>& deltas) const {
+  std::map<RouteNextHopSet, uint32_t> primaryEcmpTypeGroups2RefCnt;
+  for (const auto& [_, route] :
+       std::as_const(*cfib(deltas.begin()->oldState()))) {
+    if (route->isResolved() &&
+        !route->getForwardInfo().getOverrideEcmpSwitchingMode().has_value()) {
+      auto pitr = primaryEcmpTypeGroups2RefCnt.find(
+          route->getForwardInfo().getNextHopSet());
+      if (pitr != primaryEcmpTypeGroups2RefCnt.end()) {
+        ++pitr->second;
+      } else {
+        primaryEcmpTypeGroups2RefCnt.insert(
+            {route->getForwardInfo().getNextHopSet(), 1});
+      }
+    }
+  }
+  // ECMP groups should not exceed the limit.
+  EXPECT_LE(
+      primaryEcmpTypeGroups2RefCnt.size(),
+      consolidator_->getMaxPrimaryEcmpGroups());
+  // TODO process each delta and assert that ECMP group limit is never
+  // exceeded.
+}
 RouteV6::Prefix BaseEcmpResourceManagerTest::nextPrefix() const {
   auto newState = state_->clone();
   auto fib6 = fib(newState);
