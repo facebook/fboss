@@ -681,6 +681,7 @@ target_link_libraries(sw_switch_warmboot_helper
   common_file_utils
   Folly::folly
   switch_state_cpp2
+  warm_boot_file_utils
 )
 
 add_library(sw_agent_initializer
