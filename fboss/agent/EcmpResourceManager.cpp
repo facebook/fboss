@@ -37,7 +37,11 @@ std::vector<StateDelta> EcmpResourceManager::consolidate(
   InputOutputState inOutState(nonBackupEcmpGroupsCnt, delta);
   processRouteUpdates<folly::IPAddressV4>(delta, &inOutState);
   processRouteUpdates<folly::IPAddressV6>(delta, &inOutState);
-  deltas.emplace_back(delta.oldState(), delta.newState());
+  if (inOutState.out.empty()) {
+    deltas.emplace_back(delta.oldState(), delta.newState());
+  } else {
+    deltas = std::move(inOutState.out);
+  }
   return deltas;
 }
 
