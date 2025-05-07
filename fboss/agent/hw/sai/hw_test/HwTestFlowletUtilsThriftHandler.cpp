@@ -9,4 +9,9 @@ void HwTestThriftHandler::updateFlowletStats() {
   throw FbossError("Flowlet stats are not supported in SaiSwitch.");
 }
 
+cfg::SwitchingMode HwTestThriftHandler::getFwdSwitchingMode(
+    std::unique_ptr<state::RouteNextHopEntry> /* routeNextHopEntry */) {
+  throw FbossError("getFwdSwitchingMode Not supported in SaiSwitch.");
+}
+
 } // namespace facebook::fboss::utility

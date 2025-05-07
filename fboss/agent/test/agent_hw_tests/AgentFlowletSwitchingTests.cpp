@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/AsicUtils.h"
+#include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
@@ -1325,4 +1326,31 @@ TEST_F(AgentFlowletResourceTest, ApplyDlbResourceCheck) {
   };
   verifyAcrossWarmBoots(setup, [] {}, setupPostWarmboot, [] {});
 }
+
+TEST_F(AgentFlowletSwitchingTest, VerifyEcmpSwitchingMode) {
+  auto setup = [this]() { this->setup(4); };
+
+  auto verify = [this]() {
+    auto switchId = getSw()
+                        ->getScopeResolver()
+                        ->scope(masterLogicalPortIds()[0])
+                        .switchId();
+    auto client = getAgentEnsemble()->getHwAgentTestClient(switchId);
+    auto prefix = folly::CIDRNetwork{folly::IPAddress("::"), 0};
+    auto resolvedRoute = findRoute<folly::IPAddressV6>(
+        RouterID(0), prefix, getProgrammedState());
+    state::RouteNextHopEntry entry{};
+    entry.adminDistance() = AdminDistance::EBGP;
+    entry.nexthops() = util::fromRouteNextHopSet(
+        resolvedRoute->getForwardInfo().getNextHopSet());
+    WITH_RETRIES({
+      EXPECT_EVENTUALLY_EQ(
+          client->sync_getFwdSwitchingMode(entry),
+          cfg::SwitchingMode::PER_PACKET_QUALITY);
+    });
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss
