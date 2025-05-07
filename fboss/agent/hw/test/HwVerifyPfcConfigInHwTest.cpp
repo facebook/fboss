@@ -361,8 +361,17 @@ TEST_F(HwVerifyPfcConfigInHwTest, PfcRxEnabledTxEnabled) {
 TEST_F(HwVerifyPfcConfigInHwTest, PfcWatchdogProgrammingSequence) {
   auto portId = masterLogicalInterfacePortIds()[0];
   cfg::PfcWatchdog prodPfcWdConfig;
+  // The granularity of PFC deadlock timer config in J3 is such that a
+  // config of 200 msec results in 198 msec being programmed in HW. To
+  // avoid a mismatch between SW and HW, ensure that we program 198 msec
+  // so that there is no reprogramming attempt during WB.
+  auto pfcDeadlockDetectionInterval =
+      getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3 ? 198 : 200;
   initalizePfcConfigWatchdogValues(
-      prodPfcWdConfig, 200, 1000, cfg::PfcWatchdogRecoveryAction::NO_DROP);
+      prodPfcWdConfig,
+      pfcDeadlockDetectionInterval,
+      1000,
+      cfg::PfcWatchdogRecoveryAction::NO_DROP);
 
   auto setup = [&]() {
     setupBaseConfig();
