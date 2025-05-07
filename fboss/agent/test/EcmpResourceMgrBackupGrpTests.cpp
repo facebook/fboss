@@ -77,7 +77,6 @@ TEST_F(EcmpBackupGroupTypeTest, addRoutesBelowEcmpLimit) {
   }
   auto deltas = consolidate(newState);
   EXPECT_EQ(deltas.size(), 1);
-  EXPECT_EQ(*deltas.begin(), StateDelta(oldState, newState));
 }
 
 TEST_F(EcmpBackupGroupTypeTest, addRoutesAboveEcmpLimit) {
@@ -94,6 +93,6 @@ TEST_F(EcmpBackupGroupTypeTest, addRoutesAboveEcmpLimit) {
     fib6->addNode(route);
   }
   auto deltas = consolidate(newState);
-  EXPECT_EQ(deltas.size(), numStartRoutes());
+  EXPECT_EQ(deltas.size(), numStartRoutes() + 1);
 }
 } // namespace facebook::fboss

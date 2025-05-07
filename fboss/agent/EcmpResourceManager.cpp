@@ -21,7 +21,6 @@ namespace facebook::fboss {
 
 std::vector<StateDelta> EcmpResourceManager::consolidate(
     const StateDelta& delta) {
-  std::vector<StateDelta> deltas;
   CHECK(!preUpdateState_.has_value());
   preUpdateState_ = PreUpdateState(mergedGroups_, nextHopGroup2Id_);
 
@@ -37,12 +36,7 @@ std::vector<StateDelta> EcmpResourceManager::consolidate(
   InputOutputState inOutState(nonBackupEcmpGroupsCnt, delta);
   processRouteUpdates<folly::IPAddressV4>(delta, &inOutState);
   processRouteUpdates<folly::IPAddressV6>(delta, &inOutState);
-  if (inOutState.out.empty()) {
-    deltas.emplace_back(delta.oldState(), delta.newState());
-  } else {
-    deltas = std::move(inOutState.out);
-  }
-  return deltas;
+  return std::move(inOutState.out);
 }
 
 std::set<EcmpResourceManager::NextHopGroupId>
@@ -51,14 +45,6 @@ EcmpResourceManager::createOptimalMergeGroupSet() {
     return {};
   }
   XLOG(FATAL) << " Merge group algorithm is a TODO";
-}
-
-std::shared_ptr<SwitchState>
-EcmpResourceManager::InputOutputState::nextDeltaOldSwitchState() const {
-  if (out.empty()) {
-    return in.oldState();
-  }
-  return out.back().newState();
 }
 
 template <typename AddrT>
@@ -80,7 +66,8 @@ std::shared_ptr<NextHopGroupInfo> EcmpResourceManager::ecmpGroupDemandExceeded(
       nhops2IdItr,
       true /*isBackupEcmpGroupType*/);
   CHECK(inserted);
-  auto oldState = inOutState->nextDeltaOldSwitchState();
+  auto curStateDelta = inOutState->getCurrentStateDelta();
+  auto oldState = curStateDelta.newState();
   auto newState = oldState->clone();
   auto fib = newState->getFibs()->getNode(rid)->getFib<AddrT>()->modify(
       rid, &newState);
@@ -99,7 +86,7 @@ std::shared_ptr<NextHopGroupInfo> EcmpResourceManager::ecmpGroupDemandExceeded(
     newRoute->setResolved(std::move(newForwardInfo));
     fib->addNode(std::move(newRoute));
   }
-  inOutState->out.emplace_back(StateDelta(oldState, newState));
+  inOutState->out.emplace_back(oldState, newState);
   return grpInfo;
 }
 

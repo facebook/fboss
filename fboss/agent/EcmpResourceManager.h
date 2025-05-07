@@ -10,6 +10,7 @@
 #pragma once
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
+#include "fboss/agent/state/StateDelta.h"
 #include "fboss/lib/RefMap.h"
 
 #include <boost/container/flat_set.hpp>
@@ -96,12 +97,22 @@ class EcmpResourceManager {
   };
   struct InputOutputState {
     InputOutputState(uint32_t _nonBackupEcmpGroupsCnt, const StateDelta& _in)
-        : nonBackupEcmpGroupsCnt(_nonBackupEcmpGroupsCnt), in(_in) {}
+        : nonBackupEcmpGroupsCnt(_nonBackupEcmpGroupsCnt), in(_in) {
+      /*
+       * Note that for first StateDelta we push in.oldState() for both
+       * old and new state in the first StateDelta, since we will process
+       * and add/update/delete routes on top of the old state.
+       */
+      out.emplace_back(in.oldState(), in.oldState());
+    }
     /*
-     * SwitchState to use as base state when building the
-     * next delta
+     * StateDelta to use as base state when building the
+     * next delta or updating current delta.
      */
-    std::shared_ptr<SwitchState> nextDeltaOldSwitchState() const;
+    StateDelta getCurrentStateDelta() const {
+      CHECK(!out.empty());
+      return StateDelta(out.back().oldState(), out.back().newState());
+    }
     /*
      * Number of ECMP groups of primary ECMP type. Once these
      * reach the maxEcmpGroups limit, we either compress groups
