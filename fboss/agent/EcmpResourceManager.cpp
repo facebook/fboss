@@ -37,7 +37,7 @@ std::vector<StateDelta> EcmpResourceManager::consolidate(
   InputOutputState inOutState(nonBackupEcmpGroupsCnt, delta);
   processRouteUpdates<folly::IPAddressV4>(delta, &inOutState);
   processRouteUpdates<folly::IPAddressV6>(delta, &inOutState);
-  deltas.emplace_back(StateDelta(delta.oldState(), delta.newState()));
+  deltas.emplace_back(delta.oldState(), delta.newState());
   return deltas;
 }
 
@@ -59,11 +59,13 @@ EcmpResourceManager::InputOutputState::nextDeltaOldSwitchState() const {
 
 template <typename AddrT>
 std::shared_ptr<NextHopGroupInfo> EcmpResourceManager::ecmpGroupDemandExceeded(
+    RouterID rid,
     const std::shared_ptr<Route<AddrT>>& route,
     NextHops2GroupId::iterator nhops2IdItr,
     InputOutputState* inOutState) {
   auto mergeSet = createOptimalMergeGroupSet();
   CHECK(mergeSet.empty()) << "Merge algo is a TODO";
+  CHECK(backupEcmpGroupType_.has_value());
   std::shared_ptr<NextHopGroupInfo> grpInfo;
   bool inserted{false};
   std::tie(grpInfo, inserted) = nextHopGroupIdToInfo_.refOrEmplace(
@@ -71,8 +73,27 @@ std::shared_ptr<NextHopGroupInfo> EcmpResourceManager::ecmpGroupDemandExceeded(
       nhops2IdItr->second,
       nhops2IdItr,
       true /*isBackupEcmpGroupType*/);
-  // TODO update route and create new state delta vector
   CHECK(inserted);
+  auto oldState = inOutState->nextDeltaOldSwitchState();
+  auto newState = oldState->clone();
+  auto fib = newState->getFibs()->getNode(rid)->getFib<AddrT>()->modify(
+      rid, &newState);
+  const auto& curForwardInfo = route->getForwardInfo();
+  auto newForwardInfo = RouteNextHopEntry(
+      curForwardInfo.getNextHopSet(),
+      curForwardInfo.getAdminDistance(),
+      curForwardInfo.getCounterID(),
+      curForwardInfo.getClassID(),
+      backupEcmpGroupType_);
+  auto existingRoute = fib->getRouteIf(route->prefix());
+  if (existingRoute) {
+    existingRoute->setResolved(std::move(newForwardInfo));
+  } else {
+    auto newRoute = route->clone();
+    newRoute->setResolved(std::move(newForwardInfo));
+    fib->addNode(std::move(newRoute));
+  }
+  inOutState->out.emplace_back(StateDelta(oldState, newState));
   return grpInfo;
 }
 
@@ -90,7 +111,7 @@ void EcmpResourceManager::routeAdded(
   std::shared_ptr<NextHopGroupInfo> grpInfo;
   if (inserted) {
     if (inOutState->nonBackupEcmpGroupsCnt == maxEcmpGroups_) {
-      grpInfo = ecmpGroupDemandExceeded(added, idItr, inOutState);
+      grpInfo = ecmpGroupDemandExceeded(rid, added, idItr, inOutState);
     } else {
       std::tie(grpInfo, inserted) = nextHopGroupIdToInfo_.refOrEmplace(
           idItr->second, idItr->second, idItr, false /*isBackupEcmpGroupType*/
