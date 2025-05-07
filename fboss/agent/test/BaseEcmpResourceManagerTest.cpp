@@ -71,7 +71,7 @@ void BaseEcmpResourceManagerTest::assertDeltasForOverflow(
     if (route->isResolved() &&
         !route->getForwardInfo().getOverrideEcmpSwitchingMode().has_value()) {
       auto pitr = primaryEcmpTypeGroups2RefCnt.find(
-          route->getForwardInfo().getNextHopSet());
+          route->getForwardInfo().normalizedNextHops());
       if (pitr != primaryEcmpTypeGroups2RefCnt.end()) {
         ++pitr->second;
         XLOG(DBG4) << "Processed route: " << route->str()
@@ -79,7 +79,7 @@ void BaseEcmpResourceManagerTest::assertDeltasForOverflow(
                    << primaryEcmpTypeGroups2RefCnt.size();
       } else {
         primaryEcmpTypeGroups2RefCnt.insert(
-            {route->getForwardInfo().getNextHopSet(), 1});
+            {route->getForwardInfo().normalizedNextHops(), 1});
         XLOG(DBG4) << "Processed route: " << route->str()
                    << " primary ECMP groups count incremented: "
                    << primaryEcmpTypeGroups2RefCnt.size();
@@ -98,7 +98,7 @@ void BaseEcmpResourceManagerTest::assertDeltasForOverflow(
       return;
     }
     auto pitr = primaryEcmpTypeGroups2RefCnt.find(
-        oldRoute->getForwardInfo().getNextHopSet());
+        oldRoute->getForwardInfo().normalizedNextHops());
     ASSERT_NE(pitr, primaryEcmpTypeGroups2RefCnt.end());
     EXPECT_GE(pitr->second, 1);
     --pitr->second;
@@ -116,13 +116,13 @@ void BaseEcmpResourceManagerTest::assertDeltasForOverflow(
       return;
     }
     auto pitr = primaryEcmpTypeGroups2RefCnt.find(
-        newRoute->getForwardInfo().getNextHopSet());
+        newRoute->getForwardInfo().normalizedNextHops());
     if (pitr != primaryEcmpTypeGroups2RefCnt.end()) {
       ++pitr->second;
     } else {
       bool inserted{false};
       std::tie(pitr, inserted) = primaryEcmpTypeGroups2RefCnt.insert(
-          {newRoute->getForwardInfo().getNextHopSet(), 1});
+          {newRoute->getForwardInfo().normalizedNextHops(), 1});
       EXPECT_TRUE(inserted);
       XLOG(DBG2) << " Primary ECMP group count incremented to: "
                  << primaryEcmpTypeGroups2RefCnt.size()

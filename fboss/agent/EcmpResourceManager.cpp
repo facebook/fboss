@@ -149,7 +149,7 @@ std::shared_ptr<NextHopGroupInfo> EcmpResourceManager::ecmpGroupDemandExceeded(
   CHECK(inserted);
   const auto& curForwardInfo = route->getForwardInfo();
   auto newForwardInfo = RouteNextHopEntry(
-      curForwardInfo.getNextHopSet(),
+      curForwardInfo.normalizedNextHops(),
       curForwardInfo.getAdminDistance(),
       curForwardInfo.getCounterID(),
       curForwardInfo.getClassID(),
@@ -170,7 +170,7 @@ void EcmpResourceManager::routeAdded(
   CHECK(added->isResolved());
   CHECK(added->isPublished());
   CHECK_LE(inOutState->nonBackupEcmpGroupsCnt, maxEcmpGroups_);
-  auto nhopSet = added->getForwardInfo().getNextHopSet();
+  auto nhopSet = added->getForwardInfo().normalizedNextHops();
   auto [idItr, inserted] =
       nextHopGroup2Id_.insert({nhopSet, findNextAvailableId()});
   std::shared_ptr<NextHopGroupInfo> grpInfo;
@@ -231,7 +231,7 @@ void EcmpResourceManager::routeDeleted(
                  << " primray ecmp group count decremented to: "
                  << inOutState->nonBackupEcmpGroupsCnt;
     }
-    nextHopGroup2Id_.erase(removed->getForwardInfo().getNextHopSet());
+    nextHopGroup2Id_.erase(removed->getForwardInfo().normalizedNextHops());
   } else {
     XLOG(DBG2) << "Delete route: " << removed->str()
                << " primray ecmp group count unchanged: "
@@ -262,8 +262,8 @@ void EcmpResourceManager::processRouteUpdates(
         }
         // Both old and new are resolve
         CHECK(oldRoute->isResolved() && newRoute->isResolved());
-        if (oldRoute->getForwardInfo().getNextHopSet() !=
-            newRoute->getForwardInfo().getNextHopSet()) {
+        if (oldRoute->getForwardInfo().normalizedNextHops() !=
+            newRoute->getForwardInfo().normalizedNextHops()) {
           routeDeleted(rid, oldRoute, inOutState);
           routeAdded(rid, newRoute, inOutState);
         }
