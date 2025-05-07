@@ -97,14 +97,24 @@ class EcmpResourceManager {
   };
   struct InputOutputState {
     InputOutputState(uint32_t _nonBackupEcmpGroupsCnt, const StateDelta& _in)
-        : nonBackupEcmpGroupsCnt(_nonBackupEcmpGroupsCnt), in(_in) {
+        : nonBackupEcmpGroupsCnt(_nonBackupEcmpGroupsCnt) {
       /*
        * Note that for first StateDelta we push in.oldState() for both
        * old and new state in the first StateDelta, since we will process
        * and add/update/delete routes on top of the old state.
        */
-      out.emplace_back(in.oldState(), in.oldState());
+      out.emplace_back(_in.oldState(), _in.oldState());
     }
+    template <typename AddrT>
+    void addOrUpdateRoute(
+        RouterID rid,
+        const std::shared_ptr<Route<AddrT>>& newRoute,
+        bool ecmpDemandExceeded);
+
+    template <typename AddrT>
+    void deleteRoute(
+        RouterID rid,
+        const std::shared_ptr<Route<AddrT>>& delRoute);
     /*
      * StateDelta to use as base state when building the
      * next delta or updating current delta.
@@ -119,7 +129,6 @@ class EcmpResourceManager {
      * by combining 2 or more groups.
      */
     uint32_t nonBackupEcmpGroupsCnt;
-    const StateDelta& in;
     std::vector<StateDelta> out;
   };
   std::set<NextHopGroupId> createOptimalMergeGroupSet();
