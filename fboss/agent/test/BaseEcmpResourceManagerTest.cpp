@@ -16,11 +16,13 @@ namespace facebook::fboss {
 RouteNextHopSet makeNextHops(int n) {
   CHECK_LT(n, 255);
   RouteNextHopSet h;
+  const InterfaceID kRandomInterfaceId{1};
   for (int i = 0; i < n; i++) {
     std::stringstream ss;
     ss << std::hex << i + 1;
     auto ipStr = "100::" + ss.str();
-    h.emplace(UnresolvedNextHop(folly::IPAddress(ipStr), UCMP_DEFAULT_WEIGHT));
+    h.emplace(ResolvedNextHop(
+        folly::IPAddress(ipStr), kRandomInterfaceId, UCMP_DEFAULT_WEIGHT));
   }
   return h;
 }
