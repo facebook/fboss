@@ -45,7 +45,7 @@ std::vector<StateDelta> BaseEcmpResourceManagerTest::consolidate(
     const std::shared_ptr<SwitchState>& state) {
   StateDelta delta(state_, state);
   auto deltas = consolidator_->consolidate(delta);
-  state_ = state;
+  state_ = deltas.size() ? deltas.back().newState() : state;
   state_->publish();
   consolidator_->updateDone(delta);
   return deltas;

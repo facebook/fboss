@@ -62,6 +62,22 @@ class EcmpBackupGroupTypeTest : public BaseEcmpResourceManagerTest {
     }
     consolidate(newState);
   }
+  void assertEndState(
+      const std::shared_ptr<SwitchState>& endStatePrefixes,
+      const std::set<RouteV6::Prefix>& overflowPrefixes) {
+    for (auto [_, inRoute] : std::as_const(*cfib(endStatePrefixes))) {
+      auto route = cfib(state_)->exactMatch(inRoute->prefix());
+      ASSERT_TRUE(route->isResolved());
+      ASSERT_NE(route, nullptr);
+      if (overflowPrefixes.find(route->prefix()) != overflowPrefixes.end()) {
+        EXPECT_TRUE(
+            route->getForwardInfo().getOverrideEcmpSwitchingMode().has_value());
+        EXPECT_EQ(
+            route->getForwardInfo().getOverrideEcmpSwitchingMode(),
+            consolidator_->getBackupEcmpSwitchingMode());
+      }
+    }
+  }
 };
 
 TEST_F(EcmpBackupGroupTypeTest, addRoutesBelowEcmpLimit) {
@@ -77,6 +93,7 @@ TEST_F(EcmpBackupGroupTypeTest, addRoutesBelowEcmpLimit) {
   }
   auto deltas = consolidate(newState);
   EXPECT_EQ(deltas.size(), 1);
+  assertEndState(newState, {});
 }
 
 TEST_F(EcmpBackupGroupTypeTest, addRoutesAboveEcmpLimit) {
@@ -87,12 +104,15 @@ TEST_F(EcmpBackupGroupTypeTest, addRoutesAboveEcmpLimit) {
   auto fib6 = fib(newState);
   auto routesBefore = fib6->size();
   std::set<RouteNextHopSet> nhops;
+  std::set<RouteV6::Prefix> overflowPrefixes;
   for (auto i = 0; i < numStartRoutes(); ++i) {
     auto route = makeRoute(makePrefix(routesBefore + i), nhopSets[i]);
+    overflowPrefixes.insert(route->prefix());
     nhops.insert(nhopSets[i]);
     fib6->addNode(route);
   }
   auto deltas = consolidate(newState);
   EXPECT_EQ(deltas.size(), numStartRoutes());
+  assertEndState(newState, overflowPrefixes);
 }
 } // namespace facebook::fboss
