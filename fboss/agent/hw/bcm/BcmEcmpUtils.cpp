@@ -210,4 +210,18 @@ uint32 getFlowletDynamicMode(const cfg::SwitchingMode& switchingMode) {
   throw FbossError("Invalid switching mode: ", switchingMode);
 }
 
+cfg::SwitchingMode getEcmpSwitchingMode(uint32_t dynamicMode) {
+  switch (dynamicMode) {
+    case BCM_L3_ECMP_DYNAMIC_MODE_NORMAL:
+      return cfg::SwitchingMode::FLOWLET_QUALITY;
+    case BCM_L3_ECMP_DYNAMIC_MODE_OPTIMAL:
+      return cfg::SwitchingMode::PER_PACKET_QUALITY;
+    case BCM_L3_ECMP_DYNAMIC_MODE_DISABLED:
+      return cfg::SwitchingMode::FIXED_ASSIGNMENT;
+    case BCM_L3_ECMP_DYNAMIC_MODE_RANDOM:
+      return cfg::SwitchingMode::PER_PACKET_RANDOM;
+  }
+  throw FbossError("Invalid dynamic mode: ", dynamicMode);
+}
+
 } // namespace facebook::fboss::utility

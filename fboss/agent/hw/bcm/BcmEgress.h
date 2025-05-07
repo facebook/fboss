@@ -195,6 +195,7 @@ class BcmEcmpEgress : public BcmEgressBase {
       bcm_l3_ecmp_member_t* ecmpMemberArray,
       bcm_if_t* pathsArray,
       int numPaths);
+  cfg::SwitchingMode getEcmpSwitchingMode();
   /*
    * Update ecmp egress entries in HW
    */

@@ -416,6 +416,17 @@ int BcmEcmpEgress::getEcmpObject(
   return ret;
 }
 
+cfg::SwitchingMode BcmEcmpEgress::getEcmpSwitchingMode() {
+  bcm_l3_egress_ecmp_t obj;
+  int pathsInHwCount = -1;
+  bcm_l3_ecmp_member_t membersInHw[kMaxWeightedEcmpPaths];
+  bcm_if_t pathsInHw[kMaxWeightedEcmpPaths];
+
+  int ret = getEcmpObject(&obj, &pathsInHwCount, membersInHw, pathsInHw);
+  bcmCheckError(ret, "Unable to get ECMP:  ", id_);
+  return utility::getEcmpSwitchingMode(obj.dynamic_mode);
+}
+
 void BcmEcmpEgress::createEcmpObject(
     bcm_l3_egress_ecmp_t& obj,
     int* index,
