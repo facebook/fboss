@@ -8,134 +8,9 @@
  *
  */
 
-#include "fboss/agent/EcmpResourceManager.h"
-#include "fboss/agent/state/Route.h"
-#include "fboss/agent/state/RouteNextHopEntry.h"
-#include "fboss/agent/state/StateDelta.h"
-#include "fboss/agent/state/SwitchState.h"
-#include "fboss/agent/types.h"
+#include "fboss/agent/test/BaseEcmpResourceManagerTest.h"
 
-#include <folly/IPAddress.h>
-#include <gtest/gtest.h>
-
-using namespace facebook::fboss;
-using folly::IPAddress;
-
-const AdminDistance kDefaultAdminDistance = AdminDistance::EBGP;
-
-RouteNextHopSet makeNextHops(int n) {
-  CHECK_LT(n, 255);
-  RouteNextHopSet h;
-  for (int i = 0; i < n; i++) {
-    std::stringstream ss;
-    ss << std::hex << i + 1;
-    auto ipStr = "100::" + ss.str();
-    h.emplace(UnresolvedNextHop(IPAddress(ipStr), UCMP_DEFAULT_WEIGHT));
-  }
-  return h;
-}
-
-RouteV6::Prefix makePrefix(int offset) {
-  std::stringstream ss;
-  ss << std::hex << offset;
-  return RouteV6::Prefix(
-      folly::IPAddressV6(folly::sformat("2601:db00:2110:{}::", ss.str())), 64);
-}
-
-std::shared_ptr<RouteV6> makeRoute(
-    const RouteV6::Prefix& pfx,
-    const RouteNextHopSet& nextHops) {
-  RouteNextHopEntry nhopEntry(nextHops, kDefaultAdminDistance);
-  auto rt = std::make_shared<RouteV6>(
-      RouteV6::makeThrift(pfx, ClientID(0), nhopEntry));
-  rt->setResolved(nhopEntry);
-  return rt;
-}
-
-ForwardingInformationBaseV6* fib(std::shared_ptr<SwitchState>& newState) {
-  return newState->getFibs()
-      ->getNode(RouterID(0))
-      ->getFibV6()
-      ->modify(RouterID(0), &newState);
-}
-const std::shared_ptr<ForwardingInformationBaseV6> cfib(
-    const std::shared_ptr<SwitchState>& newState) {
-  return newState->getFibs()->getNode(RouterID(0))->getFibV6();
-}
-
-HwSwitchMatcher hwMatcher() {
-  return HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(0)}));
-}
-
-class BaseEcmpResourceManagerTest : public ::testing::Test {
- public:
-  RouteNextHopSet defaultNhops() const {
-    return makeNextHops(54);
-  }
-  using NextHopGroupId = EcmpResourceManager::NextHopGroupId;
-  void consolidate(const std::shared_ptr<SwitchState>& state) {
-    StateDelta delta(state_, state);
-    consolidator_->consolidate(delta);
-    state_ = state;
-    state_->publish();
-    consolidator_->updateDone(delta);
-  }
-  RouteV6::Prefix nextPrefix() const {
-    auto newState = state_->clone();
-    auto fib6 = fib(newState);
-    for (auto offset = 0; offset < std::numeric_limits<uint16_t>::max();
-         ++offset) {
-      auto pfx = makePrefix(offset);
-      if (!fib6->exactMatch(pfx)) {
-        return pfx;
-      }
-    }
-    CHECK(false) << " Should never get here";
-  }
-  void SetUp() override {
-    consolidator_ = makeResourceMgr();
-    state_ = std::make_shared<SwitchState>();
-    auto fibContainer =
-        std::make_shared<ForwardingInformationBaseContainer>(RouterID(0));
-    auto mfib = std::make_shared<MultiSwitchForwardingInformationBaseMap>();
-    mfib->updateForwardingInformationBaseContainer(
-        std::move(fibContainer), hwMatcher());
-    state_->resetForwardingInformationBases(mfib);
-    state_->publish();
-    auto newState = state_->clone();
-    auto fib6 = fib(newState);
-    for (auto i = 0; i < numStartRoutes(); ++i) {
-      auto pfx = makePrefix(i);
-      auto route = makeRoute(pfx, defaultNhops());
-      fib6->addNode(pfx.str(), std::move(route));
-    }
-    consolidate(newState);
-  }
-  std::set<NextHopGroupId> getNhopGroupIds() const {
-    auto nhop2Id = consolidator_->getNhopsToId();
-    std::set<NextHopGroupId> nhopIds;
-    std::for_each(
-        nhop2Id.begin(), nhop2Id.end(), [&nhopIds](const auto& nhopsAndId) {
-          nhopIds.insert(nhopsAndId.second);
-        });
-    return nhopIds;
-  }
-  std::optional<EcmpResourceManager::NextHopGroupId> getNhopId(
-      const RouteNextHopSet& nhops) const {
-    std::optional<EcmpResourceManager::NextHopGroupId> nhopId;
-    auto nitr = consolidator_->getNhopsToId().find(nhops);
-    if (nitr != consolidator_->getNhopsToId().end()) {
-      nhopId = nitr->second;
-    }
-    return nhopId;
-  }
-  virtual std::shared_ptr<EcmpResourceManager> makeResourceMgr() const = 0;
-  virtual int numStartRoutes() const {
-    return 10;
-  }
-  std::shared_ptr<SwitchState> state_;
-  std::shared_ptr<EcmpResourceManager> consolidator_;
-};
+namespace facebook::fboss {
 
 class NextHopIdAllocatorTest : public BaseEcmpResourceManagerTest {
  public:
@@ -194,9 +69,9 @@ TEST_F(NextHopIdAllocatorTest, addRouteNewNhops) {
 
 TEST_F(NextHopIdAllocatorTest, addRemoveRouteNewNhopsUnresolved) {
   auto newState = state_->clone();
+  const auto& nhops2Id = consolidator_->getNhopsToId();
   auto groupId = *getNhopId(defaultNhops());
   EXPECT_EQ(groupId, 1);
-  auto nhops2Id = consolidator_->getNhopsToId();
   EXPECT_EQ(nhops2Id.size(), 1);
   EXPECT_EQ(nhops2Id.find(defaultNhops())->second, groupId);
   auto newNhops = defaultNhops();
@@ -225,7 +100,7 @@ TEST_F(NextHopIdAllocatorTest, addRemoveRouteNewNhopsUnresolved) {
     fib6->removeNode(newRoute);
     EXPECT_EQ(fib6->size(), routesBefore - 1);
     consolidate(newerState);
-    nhops2Id = consolidator_->getNhopsToId();
+    const auto& nhops2Id = consolidator_->getNhopsToId();
     EXPECT_EQ(nhops2Id.size(), 1);
     EXPECT_EQ(*getNhopId(defaultNhops()), groupId);
     EXPECT_FALSE(getNhopId(newNhops).has_value());
@@ -473,3 +348,4 @@ TEST_F(NextHopIdAllocatorTest, deleteAllRoute) {
   EXPECT_EQ(nhops2Id.size(), 0);
   EXPECT_FALSE(getNhopId(defaultNhops()).has_value());
 }
+} // namespace facebook::fboss
