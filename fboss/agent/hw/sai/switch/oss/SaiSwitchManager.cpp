@@ -30,6 +30,15 @@ void fillHwSwitchErrorStats(
   CHECK_EQ(counterId2Value.size(), 0);
 }
 
+void fillHwSwitchPipelineStats(
+    const folly::F14FastMap<sai_stat_id_t, uint64_t>& counterId2Value,
+    int /*idx*/,
+    HwSwitchPipelineStats& /*hwSwitchPipelineStats*/) {
+  CHECK_EQ(counterId2Value.size(), 0);
+}
+
 void publishSwitchWatermarks(HwSwitchWatermarkStats& /*watermarkStats*/) {}
+
+void publishSwitchPipelineStats(HwSwitchPipelineStats& /*pipelineStats*/) {}
 
 } // namespace facebook::fboss

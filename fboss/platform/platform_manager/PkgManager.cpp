@@ -206,6 +206,10 @@ void PkgManager::processAll() const {
       unloadBspKmods();
       // Install desired rpm
       processRpms();
+      // In cases where kmods.json from previous BSP installation is absent
+      // (like provisioning, where this is the first run of PM), the kmods might
+      // be present in the initramfs OR ramdisk image
+      unloadBspKmods();
       // Load required kmods from PM config.
       loadRequiredKmods();
       return;
@@ -218,7 +222,15 @@ void PkgManager::processAll() const {
   if (FLAGS_reload_kmods) {
     unloadBspKmods();
   }
-  loadRequiredKmods();
+  try {
+    loadRequiredKmods();
+  } catch (const std::exception& ex) {
+    // This can happen when kmods are loaded from initramfs - causing conflicts
+    // We need to unload them before loading again.
+    XLOG(ERR) << fmt::format("Failed to load kmods. Unloading and retrying.");
+    unloadBspKmods();
+    loadRequiredKmods();
+  }
 }
 
 void PkgManager::processRpms() const {

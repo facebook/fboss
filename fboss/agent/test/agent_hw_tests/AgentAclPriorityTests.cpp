@@ -8,6 +8,7 @@
  *
  */
 #include "fboss/agent/ApplyThriftConfig.h"
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -63,8 +64,7 @@ class AgentAclPriorityTest : public AgentHwTest {
 
   void addDenyPortAcl(cfg::SwitchConfig& cfg, const std::string& aclName) {
     auto acl = cfg::AclEntry();
-    auto asic =
-        utility::checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics());
+    auto asic = checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics());
     *acl.name() = aclName;
     *acl.actionType() = cfg::AclActionType::DENY;
     acl.dscp() = 0x24;
@@ -77,8 +77,7 @@ class AgentAclPriorityTest : public AgentHwTest {
       const std::string& aclName,
       folly::IPAddress ip) {
     auto acl = cfg::AclEntry();
-    auto asic =
-        utility::checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics());
+    auto asic = checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics());
     acl.name() = aclName;
     acl.actionType() = cfg::AclActionType::PERMIT;
     acl.dstIp() = ip.str();
@@ -221,8 +220,9 @@ TEST_F(AgentAclPriorityTest, Reprioritize) {
     cfg::CPUTrafficPolicyConfig cpuConfig;
     cfg::TrafficPolicyConfig trafficConfig;
     trafficConfig.matchToAction()->resize(2);
+    const auto& asic = getAsic(SwitchID(0));
     cfg::MatchAction matchAction = utility::getToQueueAction(
-        1, this->getAgentEnsemble()->isSai(), cfg::ToCpuAction::TRAP);
+        &asic, 1, this->getAgentEnsemble()->isSai(), cfg::ToCpuAction::TRAP);
     for (int i = 0; i < 2; i++) {
       auto& acls = utility::getAcls(&config, std::nullopt);
       trafficConfig.matchToAction()[i].matcher() = *acls[i].name();
@@ -241,8 +241,9 @@ TEST_F(AgentAclPriorityTest, Reprioritize) {
     cfg::CPUTrafficPolicyConfig cpuConfig;
     cfg::TrafficPolicyConfig trafficConfig;
     trafficConfig.matchToAction()->resize(2);
+    const auto& asic = getAsic(SwitchID(0));
     cfg::MatchAction matchAction = utility::getToQueueAction(
-        1, this->getAgentEnsemble()->isSai(), cfg::ToCpuAction::TRAP);
+        &asic, 1, this->getAgentEnsemble()->isSai(), cfg::ToCpuAction::TRAP);
     for (int i = 0; i < 2; i++) {
       auto& acls = utility::getAcls(&config, std::nullopt);
       trafficConfig.matchToAction()[i].matcher() = *acls[i].name();

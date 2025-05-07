@@ -16,6 +16,7 @@
 
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/lib/phy/gen-cpp2/prbs_types.h"
+#include "fboss/lib/restart_tracker/RestartTimeTracker.h"
 #include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
 #include "fboss/qsfp_service/TransceiverStateMachineUpdate.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
@@ -198,6 +199,7 @@ TransceiverManager::~TransceiverManager() {
     setGracefulExitingFlag();
     stopThreads();
   }
+  restart_time::stop();
 }
 
 void TransceiverManager::initPortToModuleMap() {
@@ -258,7 +260,21 @@ void TransceiverManager::readWarmBootStateFile() {
 void TransceiverManager::init() {
   // Check whether we can warm boot
   canWarmBoot_ = checkWarmBootFlags();
+
+  if (!canWarmBoot_) {
+    // For cold boot, remove the xphy warm boot state directory if it exists
+    std::string xphyDir = xphyWarmBootStateDirectory();
+    if (checkFileExists(xphyDir)) {
+      XLOG(INFO) << "Cold boot: removing xphy warm boot state directory: "
+                 << xphyDir;
+      removeDir(xphyDir);
+    }
+  }
+
   XLOG(INFO) << "Will attempt " << (canWarmBoot_ ? "WARM" : "COLD") << " boot";
+
+  restart_time::init(FLAGS_qsfp_service_volatile_dir, canWarmBoot_);
+
   if (canWarmBoot_) {
     // Read the warm boot state file for a warm boot
     readWarmBootStateFile();
@@ -278,6 +294,7 @@ void TransceiverManager::init() {
 
   if (!isSystemInitialized_) {
     isSystemInitialized_ = true;
+    restart_time::mark(RestartEvent::INITIALIZED);
   }
 }
 
@@ -1272,6 +1289,10 @@ TransceiverInfo TransceiverManager::getTransceiverInfo(TransceiverID id) const {
 
     absentTcvr.tcvrState()->timeCollected() = std::time(nullptr);
     absentTcvr.tcvrStats()->timeCollected() = std::time(nullptr);
+
+    // To avoid reporting false checksum-invalid on absent transceivers,
+    // we set the checksum to a valid.
+    absentTcvr.tcvrState()->eepromCsumValid() = true;
     return absentTcvr;
   }
 }
@@ -2031,6 +2052,8 @@ void TransceiverManager::refreshStateMachines() {
     // On successful initialization, set warm boot flag in case of a
     // qsfp_service crash (no gracefulExit).
     setCanWarmBoot();
+
+    restart_time::mark(RestartEvent::CONFIGURED);
   }
 
   publishPimStatesToFsdb();
@@ -2462,10 +2485,11 @@ std::optional<TransceiverID> TransceiverManager::getTransceiverID(
   return swPortInfo->second.tcvrID;
 }
 
-bool TransceiverManager::verifyEepromChecksums(TransceiverID id) {
-  auto lockedTransceivers = transceivers_.rlock();
-  auto tcvrIt = lockedTransceivers->find(id);
-  if (tcvrIt == lockedTransceivers->end()) {
+bool TransceiverManager::verifyEepromChecksumsLocked(TransceiverID id) {
+  ensureTransceiversMapLocked(
+      "verifyEepromChecksumsLocked: transceivers_ is not locked.");
+  auto tcvrIt = transceivers_.unsafeGetUnlocked().find(id);
+  if (tcvrIt == transceivers_.unsafeGetUnlocked().end()) {
     XLOG(DBG2) << "Skip verifying eeprom checksum for Transceiver=" << id
                << ". Transceiver is not present";
     return true;
@@ -2512,6 +2536,11 @@ std::string TransceiverManager::warmBootFlagFileName() {
 std::string TransceiverManager::warmBootStateFileName() const {
   return folly::to<std::string>(
       FLAGS_qsfp_service_volatile_dir, "/", kWarmbootStateFileName);
+}
+
+std::string TransceiverManager::xphyWarmBootStateDirectory() const {
+  return folly::to<std::string>(
+      FLAGS_qsfp_service_volatile_dir, "/", kPhyStateKey);
 }
 
 void TransceiverManager::setWarmBootState() {
@@ -2864,10 +2893,12 @@ std::optional<DiagsCapability> TransceiverManager::getDiagsCapability(
   return std::nullopt;
 }
 
-void TransceiverManager::setDiagsCapability(TransceiverID id) {
-  auto lockedTransceivers = transceivers_.rlock();
-  if (auto it = lockedTransceivers->find(id); it != lockedTransceivers->end()) {
-    return it->second->setDiagsCapability();
+void TransceiverManager::setDiagsCapabilityLocked(TransceiverID id) {
+  ensureTransceiversMapLocked(
+      "setDiagsCapabilityLocked: transceivers_ is not locked.");
+  auto tcvrIt = transceivers_.unsafeGetUnlocked().find(id);
+  if (tcvrIt != transceivers_.unsafeGetUnlocked().end()) {
+    return tcvrIt->second->setDiagsCapability();
   }
   XLOG(DBG2) << "Skip setting DiagsCapability for Transceiver=" << id
              << ". Transceiver is not present";
@@ -3240,6 +3271,17 @@ bool TransceiverManager::validateTransceiverConfiguration(
     return false;
   }
   return tcvrValidator_->validateTcvr(tcvrInfo, notValidatedReason);
+}
+
+bool TransceiverManager::isTransceiversMapLocked() const {
+  return !static_cast<bool>(transceivers_.tryWLock());
+}
+
+void TransceiverManager::ensureTransceiversMapLocked(
+    std::string message) const {
+  if (!isTransceiversMapLocked()) {
+    throw FbossError(message);
+  }
 }
 
 } // namespace facebook::fboss

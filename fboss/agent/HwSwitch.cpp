@@ -11,6 +11,7 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/HwSwitchRouteUpdateWrapper.h"
+#include "fboss/agent/TxPacketUtils.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/hw/HwSwitchFb303Stats.h"
 #include "fboss/agent/hw/HwSwitchWarmBootHelper.h"
@@ -217,6 +218,18 @@ uint32_t HwSwitch::generateDeterministicSeed(LoadBalancerID loadBalancerID) {
 }
 
 void HwSwitch::gracefulExit() {
+  /* For ASIC_TYPE_ELBERT_8DD warmboot support, we need to store the switch
+   * state in graceful exit. This ensures the state is preserved and
+   * can be restored when the system comes back up in warmboot.
+   */
+  if (getPlatform()->getAsic()->getAsicType() ==
+      cfg::AsicType::ASIC_TYPE_ELBERT_8DD) {
+    auto thriftSwitchState = getProgrammedState()->toThrift();
+    if (auto warmBootHelper = getPlatform()->getWarmBootHelper()) {
+      warmBootHelper->storeWarmBootThriftState(thriftSwitchState);
+    }
+  }
+
   auto* dirUtil = getPlatform()->getDirectoryUtil();
   auto switchIndex = getPlatform()->getAsic()->getSwitchIndex();
   auto sleepOnSigTermFile = dirUtil->sleepHwSwitchOnSigTermFile(switchIndex);
@@ -493,4 +506,5 @@ HwInitResult HwSwitch::initLightImpl(
   });
   return ret;
 }
+
 } // namespace facebook::fboss

@@ -12,6 +12,7 @@
 
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
+#include "fboss/agent/test/utils/UdfTestUtils.h"
 
 namespace facebook::fboss {
 
@@ -28,7 +29,7 @@ class HwLoadBalancerTestV6RoCE
     auto cfg = utility::onePortPerInterfaceConfig(
         getHwSwitchEnsemble(), masterLogicalPortIds());
     if (isSupported(HwAsic::Feature::SAI_UDF_HASH)) {
-      cfg::UdfConfig udfCfg = utility::addUdfHashConfig();
+      cfg::UdfConfig udfCfg = utility::addUdfHashConfig(getAsicType());
       cfg.udfConfig() = udfCfg;
     }
     return cfg;
@@ -67,7 +68,7 @@ class HwLoadBalancerNegativeProtocolMatchTestV6RoCE
     auto cfg = utility::onePortPerInterfaceConfig(
         getHwSwitchEnsemble(), masterLogicalPortIds());
     if (isSupported(HwAsic::Feature::SAI_UDF_HASH)) {
-      cfg::UdfConfig udfCfg = utility::addUdfHashConfig();
+      cfg::UdfConfig udfCfg = utility::addUdfHashConfig(getAsicType());
       cfg.udfConfig() = udfCfg;
     }
     return cfg;

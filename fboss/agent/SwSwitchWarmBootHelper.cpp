@@ -9,11 +9,11 @@
 #include "fboss/agent/AgentDirectoryUtil.h"
 #include "fboss/agent/AsyncLogger.h"
 #include "fboss/agent/HwAsicTable.h"
-#include "fboss/agent/SysError.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/lib/CommonFileUtils.h"
+#include "fboss/lib/WarmBootFileUtils.h"
 
 namespace {
 constexpr auto forceColdBootFlag = "sw_cold_boot_once";
@@ -58,23 +58,14 @@ void SwSwitchWarmBootHelper::storeWarmBootState(
         << "skip saving warm boot state, as warm boot not supported for network hardware";
     return;
   }
-  auto rc = dumpBinaryThriftToFile(
+  WarmBootFileUtils::storeWarmBootState(
       warmBootThriftSwitchStateFile(), switchStateThrift);
-  if (!rc) {
-    XLOG(FATAL) << "Error while storing switch state to thrift state file: "
-                << warmBootThriftSwitchStateFile();
-  }
   // mark that warm boot can happen
   setCanWarmBoot();
 }
 
 state::WarmbootState SwSwitchWarmBootHelper::getWarmBootState() const {
-  state::WarmbootState thriftState;
-  if (!readThriftFromBinaryFile(warmBootThriftSwitchStateFile(), thriftState)) {
-    throw FbossError(
-        "Failed to read thrift state from ", warmBootThriftSwitchStateFile());
-  }
-  return thriftState;
+  return WarmBootFileUtils::getWarmBootState(warmBootThriftSwitchStateFile());
 }
 
 bool SwSwitchWarmBootHelper::checkAndClearWarmBootFlags() {
@@ -114,13 +105,7 @@ std::string SwSwitchWarmBootHelper::warmBootFlag() const {
 }
 
 void SwSwitchWarmBootHelper::setCanWarmBoot() {
-  auto wbFlag = warmBootFlag();
-  auto updateFd = creat(wbFlag.c_str(), S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
-  if (updateFd < 0) {
-    throw SysError(errno, "Unable to create ", wbFlag);
-  }
-  close(updateFd);
-  XLOG(DBG1) << "Wrote can warm boot flag: " << wbFlag;
+  WarmBootFileUtils::setCanWarmBoot(warmBootFlag());
 }
 
 std::string SwSwitchWarmBootHelper::warmBootFlagLegacy() const {

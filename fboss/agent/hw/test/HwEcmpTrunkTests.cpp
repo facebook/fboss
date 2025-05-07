@@ -43,8 +43,8 @@ class HwEcmpTrunkTest : public HwLinkStateDependentTest {
 
   void SetUp() override {
     HwLinkStateDependentTest::SetUp();
-    ecmpHelper_ =
-        std::make_unique<EcmpSetupTargetedPorts6>(getProgrammedState());
+    ecmpHelper_ = std::make_unique<EcmpSetupTargetedPorts6>(
+        getProgrammedState(), getHwSwitch()->needL2EntryForNeighbor());
   }
 
   cfg::SwitchConfig initialConfig() const override {

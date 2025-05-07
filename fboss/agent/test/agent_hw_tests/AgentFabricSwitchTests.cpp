@@ -2,11 +2,11 @@
 
 #include <algorithm>
 #include "fboss/agent/AgentFeatures.h"
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/hw/HwSwitchFb303Stats.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/DsfConfigUtils.h"
 #include "fboss/agent/test/utils/FabricTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
@@ -457,7 +457,8 @@ TEST_F(AgentFabricSwitchTest, switchReachability) {
     for (auto switchId : getFabricSwitchIdsWithPorts()) {
       bool switchReachabilityWorking = false;
       WITH_RETRIES({
-        auto switchIter = getSw()->getSwitchReachability().find(switchId);
+        auto switchReachability = getSw()->getSwitchReachability();
+        auto switchIter = switchReachability.find(switchId);
         EXPECT_EVENTUALLY_TRUE(
             switchIter != getSw()->getSwitchReachability().end());
         for (auto& [destinationSwitchId, portGroupId] :
@@ -484,6 +485,20 @@ TEST_F(AgentFabricSwitchTest, switchReachability) {
   verifyAcrossWarmBoots([]() {}, verify);
 }
 
+TEST_F(AgentFabricSwitchTest, ValidateFecErrorDetect) {
+  auto verify = [this]() {
+    utility::setupFecErrorDetectEnable(
+        getAgentEnsemble(), true /*fecErrorDetectEnable*/);
+    utility::validateFecErrorDetectInState(
+        getProgrammedState().get(), true /*fecErrorDetectEnable*/);
+    utility::setupFecErrorDetectEnable(
+        getAgentEnsemble(), false /*fecErrorDetectEnable*/);
+    utility::validateFecErrorDetectInState(
+        getProgrammedState().get(), false /*fecErrorDetectEnable*/);
+  };
+  verifyAcrossWarmBoots([]() {}, verify);
+}
+
 class AgentBalancedInputModeTest : public AgentFabricSwitchTest {
  public:
   cfg::SwitchConfig initialConfig(
@@ -502,8 +517,7 @@ class AgentBalancedInputModeTest : public AgentFabricSwitchTest {
           *config.dsfNodes(),
           remoteFabricLevel,
           i /* clusterId */,
-          utility::checkSameAndGetAsic(
-              ensemble.getHwAsicTable()->getFabricAsics())
+          checkSameAndGetAsic(ensemble.getHwAsicTable()->getFabricAsics())
               ->getAsicType(),
           ensemble.getSw()->getPlatformType());
       config.dsfNodes()->insert({fabricSwitchId, fabricNode});

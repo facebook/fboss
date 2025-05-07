@@ -24,6 +24,7 @@ cpp_library(
         "//fboss/platform/weutil/if:weutil_config-cpp2-types",
         "//folly:conv",
         "//folly:format",
+        "//folly:string",
         "//folly/json:dynamic",
         "//folly/logging:logging",
         "//thrift/lib/cpp2/protocol:protocol",
@@ -37,10 +38,12 @@ cpp_library(
     name = "fboss_eeprom_lib",
     srcs = [
         "FbossEepromParser.cpp",
+        "FbossEepromParserUtils.cpp",
     ],
     headers = [
         "CachedFbossEepromParser.h",
         "FbossEepromParser.h",
+        "FbossEepromParserUtils.h",
     ],
     exported_deps = [
         ":crc16_ccitt_aug",

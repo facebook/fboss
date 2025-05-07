@@ -32,6 +32,20 @@ const std::map<int64_t, cfg::SwitchInfo> getSwitchInfoFromConfig(
 
 const std::map<int64_t, cfg::SwitchInfo> getSwitchInfoFromConfig();
 
+/*
+ * Get DsfNodes from config
+ */
+const std::map<int64_t, cfg::DsfNode> getDsfNodesFromConfig(
+    const AgentConfig* config);
+
+const std::map<int64_t, cfg::DsfNode> getDsfNodesFromConfig(
+    const cfg::SwitchConfig* config);
+
+const std::map<int64_t, cfg::DsfNode> getDsfNodesFromConfig();
+
+/*
+ * Get SDK Version from config
+ */
 const std::optional<cfg::SdkVersion> getSdkVersionFromConfigImpl(
     const cfg::SwitchConfig* config);
 

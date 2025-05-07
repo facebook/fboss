@@ -83,3 +83,16 @@ TEST(ThreadHeartbeatTest, WatchDogTest) {
   testEvb.runInEventBaseThread([&testEvb] { testEvb.terminateLoopSoon(); });
   testThread.join();
 }
+
+// Test that startMonitoringHeartbeat correctly checks for null heartbeats
+TEST(ThreadHeartbeatTest, StartMonitoringNullHeartbeatTest) {
+  std::atomic_int misses = 0;
+  auto watchdogFunc = [&misses]() { misses++; };
+  ThreadHeartbeatWatchdog testWd(
+      std::chrono::milliseconds(heartbeatInterval * 10), watchdogFunc);
+
+  // Test with a null heartbeat (should trigger CHECK and crash)
+  std::shared_ptr<ThreadHeartbeat> nullHeartbeat = nullptr;
+  EXPECT_DEATH(
+      testWd.startMonitoringHeartbeat(nullHeartbeat), "Heartbeat is not set");
+}

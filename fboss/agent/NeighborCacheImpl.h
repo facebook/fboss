@@ -64,7 +64,8 @@ class NeighborCacheImpl {
         vlanID_(vlanID),
         vlanName_(vlanName),
         intfID_(intfID),
-        evb_(sw->getNeighborCacheEvb()) {}
+        evb_(sw->getNeighborCacheEvb()),
+        needL2EntryForNeighbor_(sw->needL2EntryForNeighbor()) {}
 
   // Methods useful for subclasses
   void setPendingEntry(AddressType ip, PortDescriptor port, bool force = false);
@@ -129,8 +130,8 @@ class NeighborCacheImpl {
  private:
   bool isHwUpdateProtected();
   // These are used to program entries into the SwitchState
-  void programEntry(Entry* entry);
-  void
+  bool programEntry(Entry* entry);
+  bool
   programPendingEntry(Entry* entry, PortDescriptor port, bool force = false);
 
   SwSwitch::StateUpdateFn getUpdateFnToProgramEntryForVlan(Entry* entry);
@@ -164,11 +165,10 @@ class NeighborCacheImpl {
   void setCacheEntry(std::shared_ptr<Entry> entry);
   bool removeEntry(AddressType ip);
 
-  Entry* setEntryInternal(
+  Entry* addOrUpdateEntryInternal(
       const EntryFields& fields,
       NeighborEntryState state,
-      state::NeighborEntryType type,
-      bool add = true);
+      state::NeighborEntryType type);
 
   // Forbidden copy constructor and assignment operator
   NeighborCacheImpl(NeighborCacheImpl const&) = delete;
@@ -180,6 +180,7 @@ class NeighborCacheImpl {
   std::string vlanName_;
   InterfaceID intfID_;
   FbossEventBase* evb_;
+  bool needL2EntryForNeighbor_;
 
   // Map of all entries
   std::unordered_map<AddressType, std::shared_ptr<Entry>> entries_;

@@ -27,8 +27,10 @@ extern "C" {
 #endif
 #if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
 #ifndef IS_OSS_BRCM_SAI
+#include <experimental/saiexperimentalswitchpipeline.h>
 #include <experimental/saiexperimentalvendorswitch.h>
 #else
+#include <saiexperimentalswitchpipeline.h>
 #include <saiexperimentalvendorswitch.h>
 #endif
 #endif
@@ -45,6 +47,8 @@ folly::StringPiece saiApiTypeToString(sai_api_t apiType) {
 #if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
       case SAI_API_VENDOR_SWITCH:
         return "vendor-switch";
+      case SAI_API_SWITCH_PIPELINE:
+        return "switch-pipeline";
 #endif
       case SAI_API_FIRMWARE:
         return "firmware";
@@ -170,6 +174,8 @@ folly::StringPiece saiObjectTypeToString(sai_object_type_t objectType) {
 #if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
       case SAI_OBJECT_TYPE_VENDOR_SWITCH:
         return "vendor-switch";
+      case SAI_OBJECT_TYPE_SWITCH_PIPELINE:
+        return "switch-pipeline";
 #endif
       case SAI_OBJECT_TYPE_FIRMWARE:
         return "firmware";
@@ -448,9 +454,95 @@ folly::StringPiece packetRxReasonToString(cfg::PacketRxReason rxReason) {
       return "eapol";
     case cfg::PacketRxReason::PORT_MTU_ERROR:
       return "port-mtu-error";
+    case cfg::PacketRxReason::HOST_MISS:
+      return "host-miss";
     default:
       return "unknown-trap";
   }
 }
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
+
+folly::StringPiece saiSwitchSdkHealthSeverityToString(
+    const sai_switch_asic_sdk_health_severity_t& severity) {
+  switch (severity) {
+    case SAI_SWITCH_ASIC_SDK_HEALTH_SEVERITY_FATAL:
+      return "SAI_SWITCH_ASIC_SDK_HEALTH_SEVERITY_FATAL";
+    case SAI_SWITCH_ASIC_SDK_HEALTH_SEVERITY_WARNING:
+      return "SAI_SWITCH_ASIC_SDK_HEALTH_SEVERITY_WARNING";
+    case SAI_SWITCH_ASIC_SDK_HEALTH_SEVERITY_NOTICE:
+      return "SAI_SWITCH_ASIC_SDK_HEALTH_SEVERITY_NOTICE";
+  }
+  return folly::to<std::string>(static_cast<int>(severity));
+}
+folly::StringPiece saiSwitchSdkHealthCategoryToString(
+    const sai_switch_asic_sdk_health_category_t& category) {
+  switch (category) {
+    case SAI_SWITCH_ASIC_SDK_HEALTH_CATEGORY_SW:
+      return "SAI_SWITCH_ASIC_SDK_HEALTH_CATEGORY_SW";
+    case SAI_SWITCH_ASIC_SDK_HEALTH_CATEGORY_FW:
+      return "SAI_SWITCH_ASIC_SDK_HEALTH_CATEGORY_FW";
+    case SAI_SWITCH_ASIC_SDK_HEALTH_CATEGORY_CPU_HW:
+      return "SAI_SWITCH_ASIC_SDK_HEALTH_CATEGORY_CPU_HW";
+    case SAI_SWITCH_ASIC_SDK_HEALTH_CATEGORY_ASIC_HW:
+      return "SAI_SWITCH_ASIC_SDK_HEALTH_CATEGORY_ASIC_HW";
+  }
+  return folly::to<std::string>(static_cast<int>(category));
+}
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 15, 0)
+
+folly::StringPiece saiSerTypeToString(const sai_ser_type_t& sai_ser_type) {
+  switch (sai_ser_type) {
+    case SAI_SER_TYPE_UNKNOWN:
+      return "SAI_SER_TYPE_UNKNOWN";
+    case SAI_SER_TYPE_PARITY:
+      return "SAI_SER_TYPE_PARITY";
+    case SAI_SER_TYPE_ECC_SINGLE_BIT:
+      return "SAI_SER_TYPE_ECC_SINGLE_BIT";
+    case SAI_SER_TYPE_ECC_DOUBLE_BIT:
+      return "SAI_SER_TYPE_ECC_DOUBLE_BIT";
+  }
+  return folly::to<std::string>(static_cast<int>(sai_ser_type));
+}
+
+folly::StringPiece saiSerCorrectionTypeToString(
+    const sai_ser_correction_type_t& sai_ser_correction_type) {
+  switch (sai_ser_correction_type) {
+    case SAI_SER_CORRECTION_TYPE_NO_ACTION:
+      return "SAI_SER_CORRECTION_TYPE_NO_ACTION";
+    case SAI_SER_CORRECTION_TYPE_FAIL_TO_CORRECT:
+      return "SAI_SER_CORRECTION_TYPE_FAIL_TO_CORRECT";
+    case SAI_SER_CORRECTION_TYPE_ENTRY_CLEAR:
+      return "SAI_SER_CORRECTION_TYPE_ENTRY_CLEAR";
+    case SAI_SER_CORRECTION_TYPE_SW_CACHE_RESTORE:
+      return "SAI_SER_CORRECTION_TYPE_SW_CACHE_RESTORE";
+    case SAI_SER_CORRECTION_TYPE_HW_CACHE_RESTORE:
+      return "SAI_SER_CORRECTION_TYPE_HW_CACHE_RESTORE";
+    case SAI_SER_CORRECTION_TYPE_SPECIAL:
+      return "SAI_SER_CORRECTION_TYPE_SPECIAL";
+  }
+  return folly::to<std::string>(static_cast<int>(sai_ser_correction_type));
+}
+
+folly::StringPiece saiSerLogTypeToString(sai_ser_log_type_t sai_ser_log_type) {
+  switch (sai_ser_log_type) {
+    case SAI_SER_LOG_TYPE_MEM:
+      return "SAI_SER_LOG_TYPE_MEM";
+    case SAI_SER_LOG_TYPE_REG:
+      return "SAI_SER_LOG_TYPE_REG";
+    case SAI_SER_LOG_TYPE_MULTI:
+      return "SAI_SER_LOG_TYPE_MULTI";
+    case SAI_SER_LOG_TYPE_CORRECTED:
+      return "SAI_SER_LOG_TYPE_CORRECTED";
+    case SAI_SER_LOG_TYPE_ENTRY_INFO:
+      return "SAI_SER_LOG_TYPE_ENTRY_INFO";
+    case SAI_SER_LOG_TYPE_CACHE:
+      return "SAI_SER_LOG_TYPE_CACHE";
+  }
+  return folly::to<std::string>(static_cast<int>(sai_ser_log_type));
+}
+#endif
+
+#endif
 } // namespace facebook::fboss

@@ -109,9 +109,54 @@ void fillHwSwitchErrorStats(
         dropStats.rqpParityErrorDrops() = value;
         break;
 #endif
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+      case SAI_SWITCH_STAT_DDP_PACKET_ERROR:
+        dropStats.dramDataPathPacketError() = value;
+        break;
+#endif
       default:
         throw FbossError("Got unexpected switch counter id: ", counterId);
     }
   }
 }
+
+void fillHwSwitchPipelineStats(
+    const folly::F14FastMap<sai_stat_id_t, uint64_t>& counterId2Value,
+    int idx,
+    HwSwitchPipelineStats& hwSwitchPipelineStats) {
+  for (auto counterIdAndValue : counterId2Value) {
+    auto [counterId, value] = counterIdAndValue;
+    switch (counterId) {
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+      case SAI_SWITCH_PIPELINE_STAT_RX_CELLS:
+        hwSwitchPipelineStats.rxCells()[idx] = value;
+        break;
+      case SAI_SWITCH_PIPELINE_STAT_TX_CELLS:
+        hwSwitchPipelineStats.txCells()[idx] = value;
+        break;
+      case SAI_SWITCH_PIPELINE_STAT_RX_BYTES:
+        hwSwitchPipelineStats.rxBytes()[idx] = value;
+        break;
+      case SAI_SWITCH_PIPELINE_STAT_TX_BYTES:
+        hwSwitchPipelineStats.txBytes()[idx] = value;
+        break;
+      case SAI_SWITCH_PIPELINE_STAT_RX_WATERMARK_LEVELS:
+        hwSwitchPipelineStats.rxWatermarkLevels()[idx] = value;
+        break;
+      case SAI_SWITCH_PIPELINE_STAT_TX_WATERMARK_LEVELS:
+        hwSwitchPipelineStats.txWatermarkLevels()[idx] = value;
+        break;
+      case SAI_SWITCH_PIPELINE_STAT_CURR_OCCUPANCY_BYTES:
+        hwSwitchPipelineStats.curOccupancyBytes()[idx] = value;
+        break;
+      case SAI_SWITCH_PIPELINE_STAT_GLOBAL_DROP:
+        hwSwitchPipelineStats.globalDrops()[idx] = value;
+        break;
+#endif
+      default:
+        throw FbossError("Got unexpected switch counter id: ", counterId);
+    }
+  }
+}
+
 } // namespace facebook::fboss

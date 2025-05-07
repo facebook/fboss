@@ -10,8 +10,9 @@
 
 #include "fboss/agent/test/utils/DscpMarkingUtils.h"
 
+#include "fboss/agent/AsicUtils.h"
+#include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
 #include "fboss/agent/test/utils/TrafficPolicyTestUtils.h"
@@ -74,6 +75,7 @@ void addDscpMarkingAclsHelper(
     utility::addL4SrcPortAclToCfg(
         hwAsic, config, l4SrcPortAclName, proto, port);
     utility::addSetDscpAndEgressQueueActionToCfg(
+        hwAsic,
         config,
         l4SrcPortAclName,
         kIcpDscp(),
@@ -84,6 +86,7 @@ void addDscpMarkingAclsHelper(
     utility::addL4DstPortAclToCfg(
         hwAsic, config, l4DstPortAclName, proto, port);
     utility::addSetDscpAndEgressQueueActionToCfg(
+        hwAsic,
         config,
         l4DstPortAclName,
         kIcpDscp(),
@@ -143,7 +146,11 @@ void addDscpMarkingAclsTableHelper(
     const std::vector<uint32_t>& ports,
     const std::string& aclTableName,
     bool isSai) {
-  auto asicType = utility::checkSameAndGetAsicType(*config);
+  HwAsicTable asicTable(
+      config->switchSettings()->switchIdToSwitchInfo().value(),
+      std::nullopt,
+      *config->dsfNodes());
+  auto asicType = checkSameAndGetAsicType(*config);
   for (auto port : ports) {
     cfg::AclEntry dscpSrcMarkingAcl;
     dscpSrcMarkingAcl.name() = getDscpAclName(proto, "src", port);
@@ -156,6 +163,7 @@ void addDscpMarkingAclsTableHelper(
     addAclEntry(config, dscpSrcMarkingAcl, aclTableName);
 
     utility::addSetDscpAndEgressQueueActionToCfg(
+        checkSameAndGetAsic(asicTable.getL3Asics()),
         config,
         *dscpSrcMarkingAcl.name(),
         kIcpDscp(),
@@ -172,6 +180,7 @@ void addDscpMarkingAclsTableHelper(
     }
     utility::addAclEntry(config, dscpDstMarkingAcl, aclTableName);
     utility::addSetDscpAndEgressQueueActionToCfg(
+        checkSameAndGetAsic(asicTable.getL3Asics()),
         config,
         *dscpDstMarkingAcl.name(),
         kIcpDscp(),
@@ -229,6 +238,9 @@ void addDscpAclTable(
     qualifiers.push_back(cfg::AclTableQualifier::TTL);
     qualifiers.push_back(cfg::AclTableQualifier::DSCP);
   }
+  if (hwAsic->isSupported(HwAsic::Feature::ACL_ENTRY_ETHER_TYPE)) {
+    qualifiers.push_back(cfg::AclTableQualifier::ETHER_TYPE);
+  }
   utility::addAclTable(
       config,
       getDscpAclTableName(),
@@ -238,10 +250,6 @@ void addDscpAclTable(
        cfg::AclTableActionType::SET_TC,
        cfg::AclTableActionType::SET_DSCP},
       qualifiers);
-  if (hwAsic->isSupported(HwAsic::Feature::ACL_ENTRY_ETHER_TYPE)) {
-    qualifiers.push_back(cfg::AclTableQualifier::ETHER_TYPE);
-  }
-
   addDscpAclEntryWithCounter(config, getDscpAclTableName(), isSai);
 }
 } // namespace facebook::fboss::utility

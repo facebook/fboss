@@ -2,15 +2,15 @@
 
 #include "fboss/agent/test/AgentHwTest.h"
 
+#include "fboss/agent/AsicUtils.h"
+#include "fboss/agent/HwAsicTable.h"
+#include "fboss/agent/TxPacket.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
 #include "fboss/agent/test/utils/QosTestUtils.h"
-
-#include "fboss/agent/HwAsicTable.h"
-#include "fboss/agent/TxPacket.h"
 
 #include "fboss/agent/test/gen-cpp2/production_features_types.h"
 
@@ -37,7 +37,7 @@ class AgentPortBandwidthTest : public AgentHwTest {
     CHECK(ensemble.getSw()->getHwAsicTable());
     auto asics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
     CHECK(!asics.empty());
-    utility::checkSameAsicType(asics);
+    checkSameAsicType(asics);
     utility::addOlympicQueueConfig(&config, asics);
     utility::addOlympicQosMaps(config, asics);
     utility::setTTLZeroCpuConfig(asics, config);
@@ -55,7 +55,7 @@ class AgentPortBandwidthTest : public AgentHwTest {
   const HwAsic* getHwAsic() {
     auto asics = getAgentEnsemble()->getSw()->getHwAsicTable()->getL3Asics();
     CHECK(!asics.empty());
-    return utility::checkSameAndGetAsic(asics);
+    return checkSameAndGetAsic(asics);
   }
 
   void _configureBandwidth(
@@ -84,7 +84,7 @@ class AgentPortBandwidthTest : public AgentHwTest {
 
   void setupHelper() {
     utility::EcmpSetupTargetedPorts6 ecmpHelper6{
-        getProgrammedState(), dstMac()};
+        getProgrammedState(), getSw()->needL2EntryForNeighbor(), dstMac()};
     const auto& portDesc = PortDescriptor(getPort0());
     auto placeholder = getProgrammedState();
     this->applyNewState(
@@ -99,7 +99,7 @@ class AgentPortBandwidthTest : public AgentHwTest {
   }
 
   void sendUdpPkt(uint8_t dscpVal, int payloadLen) {
-    auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
+    auto vlanId = getVlanIDForTx();
     auto srcMac = utility::MacAddressGenerator().get(dstMac().u64NBO() + 1);
     std::optional<std::vector<uint8_t>> payload = payloadLen
         ? std::vector<uint8_t>(payloadLen, 0xff)

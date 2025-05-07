@@ -9,12 +9,9 @@
  */
 
 #include "fboss/agent/AgentFeatures.h"
-#include "fboss/agent/HwSwitch.h"
 
-#include "fboss/agent/DsfStateUpdaterUtil.h"
 #include "fboss/agent/SwAgentInitializer.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
-#include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 #include "fboss/agent/test/AgentEnsemble.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/DsfConfigUtils.h"
@@ -83,7 +80,8 @@ BENCHMARK(HwStatsCollection) {
 
         if (!hasVoq && !hasFabric) {
           // Limit ports for non-VOQ and non-fabric switches
-          portsNew.resize(std::min((int)ports.size(), numPortsToCollectStats));
+          portsNew.resize(
+              std::min(static_cast<int>(ports.size()), numPortsToCollectStats));
         }
 
         auto config = utility::onePortPerInterfaceConfig(
@@ -128,7 +126,8 @@ BENCHMARK(HwStatsCollection) {
   }
 
   std::vector<PortID> ports = ensemble->masterLogicalPortIds();
-  ports.resize(std::min((int)ports.size(), numPortsToCollectStats));
+  ports.resize(
+      std::min(static_cast<int>(ports.size()), numPortsToCollectStats));
 
   if (ensemble->getSw()->getHwAsicTable()->isFeatureSupportedOnAnyAsic(
           HwAsic::Feature::ROUTE_COUNTERS)) {

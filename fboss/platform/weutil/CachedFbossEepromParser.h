@@ -3,6 +3,7 @@
 #pragma once
 
 #include "fboss/platform/weutil/FbossEepromParser.h"
+#include "fboss/platform/weutil/FbossEepromParserUtils.h"
 
 namespace facebook::fboss::platform {
 
@@ -26,51 +27,29 @@ class CachedFbossEepromParser {
   std::optional<std::string> getProductName(
       const std::string& eepromFilePath,
       uint16_t offset) {
-    for (const auto& [key, value] : getContents(eepromFilePath, offset)) {
-      if (key == "Product Name") {
-        return value;
-      }
-    }
-    return std::nullopt;
+    auto contents = getContents(eepromFilePath, offset);
+    return FbossEepromParserUtils::getProductName(contents);
   }
 
   std::optional<int> getProductionState(
       const std::string& eepromFilePath,
       uint16_t offset) {
-    for (const auto& [key, value] : getContents(eepromFilePath, offset)) {
-      // < V6 - "Product Production State"
-      // = V6 - "Production State"
-      if (key == "Product Production State" || key == "Production State") {
-        return std::stoi(value);
-      }
-    }
-    return std::nullopt;
+    auto contents = getContents(eepromFilePath, offset);
+    return FbossEepromParserUtils::getProductionState(contents);
   }
 
   std::optional<int> getProductionSubState(
       const std::string& eepromFilePath,
       uint16_t offset) {
-    for (const auto& [key, value] : getContents(eepromFilePath, offset)) {
-      // < V6 - "Product Version"
-      // = V6 - "Production Sub-State"
-      if (key == "Product Version" || key == "Production Sub-State") {
-        return std::stoi(value);
-      }
-    }
-    return std::nullopt;
+    auto contents = getContents(eepromFilePath, offset);
+    return FbossEepromParserUtils::getProductionSubState(contents);
   }
 
   std::optional<int> getVariantVersion(
       const std::string& eepromFilePath,
       uint16_t offset = 0) {
-    for (const auto& [key, value] : getContents(eepromFilePath, offset)) {
-      // < V6 - "Product Sub-Version"
-      // = V6 - "Re-Spin/Variant Indicator"
-      if (key == "Product Sub-Version" || key == "Re-Spin/Variant Indicator") {
-        return std::stoi(value);
-      }
-    }
-    return std::nullopt;
+    auto contents = getContents(eepromFilePath, offset);
+    return FbossEepromParserUtils::getVariantVersion(contents);
   }
 
  private:

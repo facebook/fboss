@@ -219,6 +219,7 @@ cli::ShowPortModel createPortModel() {
   entry1.isDrained() = "Yes";
   entry1.activeErrors() = "--";
   entry1.peerSwitchDrained() = "--";
+  entry1.peerPortDrainedOrDown() = "--";
   entry1.coreId() = "1";
   entry1.virtualDeviceId() = "1";
 
@@ -237,6 +238,7 @@ cli::ShowPortModel createPortModel() {
   entry2.isDrained() = "No";
   entry2.activeErrors() = "--";
   entry2.peerSwitchDrained() = "--";
+  entry2.peerPortDrainedOrDown() = "--";
   entry2.coreId() = "2";
   entry2.virtualDeviceId() = "2";
 
@@ -255,6 +257,7 @@ cli::ShowPortModel createPortModel() {
   entry3.isDrained() = "No";
   entry3.activeErrors() = "--";
   entry3.peerSwitchDrained() = "--";
+  entry3.peerPortDrainedOrDown() = "--";
   entry3.coreId() = "3";
   entry3.virtualDeviceId() = "3";
 
@@ -273,6 +276,7 @@ cli::ShowPortModel createPortModel() {
   entry4.isDrained() = "Yes";
   entry4.activeErrors() = "--";
   entry4.peerSwitchDrained() = "--";
+  entry4.peerPortDrainedOrDown() = "--";
   entry4.coreId() = "--";
   entry4.virtualDeviceId() = "--";
 
@@ -291,6 +295,7 @@ cli::ShowPortModel createPortModel() {
   entry5.isDrained() = "No";
   entry5.activeErrors() = "--";
   entry5.peerSwitchDrained() = "--";
+  entry5.peerPortDrainedOrDown() = "--";
   entry5.coreId() = "5";
   entry5.virtualDeviceId() = "5";
 
@@ -309,6 +314,7 @@ cli::ShowPortModel createPortModel() {
   entry6.isDrained() = "Yes";
   entry6.activeErrors() = "--";
   entry6.peerSwitchDrained() = "--";
+  entry6.peerPortDrainedOrDown() = "--";
   entry6.coreId() = "6";
   entry6.virtualDeviceId() = "6";
 
@@ -318,6 +324,10 @@ cli::ShowPortModel createPortModel() {
 }
 
 std::unordered_map<std::string, cfg::SwitchDrainState> createPeerDrainStates() {
+  return {};
+}
+
+std::unordered_map<std::string, bool> createPeerPortStates() {
   return {};
 }
 
@@ -341,11 +351,14 @@ class CmdShowPortTestFixture : public CmdHandlerTestBase {
   std::map<int32_t, facebook::fboss::PortInfoThrift> mockPortEntries;
   std::map<std::string, FabricEndpoint> mockFabricConnectivity;
   std::map<int32_t, facebook::fboss::TransceiverInfo> mockTransceiverEntries;
+  std::unordered_map<std::string, Endpoint> mockPortToPeer;
   std::map<std::string, facebook::fboss::HwPortStats> mockPortStats;
   std::unordered_map<std::string, cfg::SwitchDrainState> mockPeerDrainStates;
+  std::unordered_map<std::string, bool> mockPeerPortStates;
   cli::ShowPortModel normalizedModel;
   std::vector<std::string> mockDrainedInterfaces;
   std::string mockBgpRunningConfig;
+  MultiSwitchRunState mockMultiSwitchRunState;
 
   void SetUp() override {
     CmdHandlerTestBase::SetUp();
@@ -355,8 +368,11 @@ class CmdShowPortTestFixture : public CmdHandlerTestBase {
     mockTransceiverEntries = createTransceiverEntries();
     normalizedModel = createPortModel();
     mockPeerDrainStates = createPeerDrainStates();
+    mockPeerPortStates = createPeerPortStates();
     mockDrainedInterfaces = createDrainedInterfaces();
     mockBgpRunningConfig = createMockedBgpConfig();
+    mockMultiSwitchRunState.hwIndexToRunState()->insert(
+        {100, SwitchRunState::CONFIGURED});
   }
 };
 
@@ -366,7 +382,9 @@ TEST_F(CmdShowPortTestFixture, sortByName) {
       mockTransceiverEntries,
       queriedEntries,
       mockPortStats,
+      mockPortToPeer,
       mockPeerDrainStates,
+      mockPeerPortStates,
       mockDrainedInterfaces);
 
   EXPECT_THRIFT_EQ(model, normalizedModel);
@@ -381,7 +399,9 @@ TEST_F(CmdShowPortTestFixture, invalidPortName) {
         mockTransceiverEntries,
         queriedEntries,
         mockPortStats,
+        mockPortToPeer,
         mockPeerDrainStates,
+        mockPeerPortStates,
         mockDrainedInterfaces);
     FAIL();
   } catch (const std::invalid_argument& expected) {
@@ -400,10 +420,6 @@ TEST_F(CmdShowPortTestFixture, queryClient) {
   EXPECT_CALL(getMockAgent(), getSwitchIdToSwitchInfo(_))
       .WillOnce(
           Invoke([&](auto& entries) { entries = mockSwitchIdToSwitchInfo; }));
-  EXPECT_CALL(getMockAgent(), getFabricConnectivity(_))
-      .WillOnce(
-          Invoke([&](auto& entries) { entries = mockFabricConnectivity; }));
-
   EXPECT_CALL(getQsfpService(), getTransceiverInfo(_, _))
       .WillOnce(Invoke(
           [&](auto& entries, auto) { entries = mockTransceiverEntries; }));
@@ -411,6 +427,9 @@ TEST_F(CmdShowPortTestFixture, queryClient) {
   EXPECT_CALL(getBgpService(), getRunningConfig(_))
       .WillOnce(Invoke(
           [&](auto& bgpConfigStr) { bgpConfigStr = mockBgpRunningConfig; }));
+  EXPECT_CALL(getMockAgent(), getMultiSwitchRunState(_))
+      .WillOnce(
+          Invoke([&](auto& entries) { entries = mockMultiSwitchRunState; }));
 
   auto cmd = CmdShowPort();
   CmdShowPortTraits::ObjectArgType queriedEntries;

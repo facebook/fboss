@@ -9,10 +9,10 @@
  */
 
 #include <folly/IPAddress.h>
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
 
 #include "fboss/agent/test/gen-cpp2/production_features_types.h"
 
@@ -102,14 +102,14 @@ class AgentAclScaleTest : public AgentHwTest {
   }
 
   uint32_t getMaxSingleWideAclTables(const std::vector<const HwAsic*>& asics) {
-    auto asic = utility::checkSameAndGetAsic(asics);
+    auto asic = checkSameAndGetAsic(asics);
     auto maxAclTables = asic->getMaxAclTables();
     CHECK(maxAclTables.has_value());
     return maxAclTables.value();
   }
 
   uint32_t getMaxAclEntries(const std::vector<const HwAsic*>& asics) {
-    auto asic = utility::checkSameAndGetAsic(asics);
+    auto asic = checkSameAndGetAsic(asics);
     auto maxAclEntries = asic->getMaxAclEntries();
     CHECK(maxAclEntries.has_value());
     return maxAclEntries.value();
@@ -174,7 +174,7 @@ class AgentAclScaleTest : public AgentHwTest {
       const int maxAclSingleWideTables =
           getMaxSingleWideAclTables(getAgentEnsemble()->getL3Asics());
       const int maxAclTables =
-          maxAclSingleWideTables / (int)AclWidth::TRIPLE_WIDE;
+          maxAclSingleWideTables / static_cast<int>(AclWidth::TRIPLE_WIDE);
       std::vector<cfg::AclTableQualifier> qualifiers =
           setAclQualifiers(AclWidth::TRIPLE_WIDE);
 
@@ -213,7 +213,8 @@ class AgentAclScaleTest : public AgentHwTest {
       updateAclEntryFields(aclEntry1, AclWidth::DOUBLE_WIDE);
 
       int remainingAclTable = maxAclSingleWideTables -
-          (int)AclWidth::TRIPLE_WIDE - (int)AclWidth::DOUBLE_WIDE;
+          static_cast<int>(AclWidth::TRIPLE_WIDE) -
+          static_cast<int>(AclWidth::DOUBLE_WIDE);
       qualifiers = setAclQualifiers(AclWidth::SINGLE_WIDE);
       for (auto i = 2; i < remainingAclTable; i++) {
         std::string aclTableName = "aclTable" + std::to_string(i);
@@ -259,7 +260,7 @@ class AgentAclScaleTest : public AgentHwTest {
       // Each triple wide will consume 3 single wide entries hence reducing
       // total numbers of entries by 3
       const int maxTripleWideAclTables =
-          maxAclSingleWideTables / (int)AclWidth::TRIPLE_WIDE;
+          maxAclSingleWideTables / static_cast<int>(AclWidth::TRIPLE_WIDE);
       const auto maxEntries = maxAclSingleWideEntries * maxTripleWideAclTables;
 
       std::vector<cfg::AclTableQualifier> qualifiers =
@@ -290,7 +291,8 @@ class AgentAclScaleTest : public AgentHwTest {
       addAclEntries(maxAclEntries, AclWidth::DOUBLE_WIDE, &cfg, "aclTable1");
 
       int remainingAclTable = maxAclSingleWideTables -
-          (int)AclWidth::TRIPLE_WIDE - (int)AclWidth::DOUBLE_WIDE;
+          static_cast<int>(AclWidth::TRIPLE_WIDE) -
+          static_cast<int>(AclWidth::DOUBLE_WIDE);
       qualifiers = setAclQualifiers(AclWidth::SINGLE_WIDE);
       utility::addAclTable(&cfg, "aclTable2", 2 /* priority */, {}, qualifiers);
       auto maxEntries = maxAclEntries * remainingAclTable;

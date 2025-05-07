@@ -55,6 +55,20 @@ set_target_properties(sai_phy_capabilities PROPERTIES COMPILE_FLAGS
   -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
 )
 
+add_library(sai_aqm_utils
+  fboss/agent/hw/sai/hw_test/HwTestAqmUtils.cpp
+)
+
+target_link_libraries(sai_aqm_utils
+  sai_switch # //fboss/agent/hw/sai/switch:sai_switch
+)
+
+set_target_properties(sai_aqm_utils PROPERTIES COMPILE_FLAGS
+  "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
+  -DSAI_VER_MINOR=${SAI_VER_MINOR}  \
+  -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
+)
+
 add_library(sai_ecmp_utils
   fboss/agent/hw/sai/hw_test/HwTestEcmpUtils.cpp
 )
@@ -160,6 +174,7 @@ add_library(agent_hw_test_thrift_handler
   fboss/agent/hw/test/HwTestThriftHandler.h
   fboss/agent/hw/sai/hw_test/HwTestThriftHandler.cpp
   fboss/agent/hw/sai/hw_test/HwTestAclUtilsThriftHandler.cpp
+  fboss/agent/hw/sai/hw_test/HwTestAqmUtilsThriftHandler.cpp
   fboss/agent/hw/sai/hw_test/HwTestMirrorUtilsThriftHandler.cpp
   fboss/agent/hw/sai/hw_test/HwTestNeighborUtilsThriftHandler.cpp
   fboss/agent/hw/sai/hw_test/HwTestEcmpUtilsThriftHandler.cpp
@@ -170,12 +185,14 @@ add_library(agent_hw_test_thrift_handler
   fboss/agent/hw/sai/hw_test/HwTestCommonUtilsThriftHandler.cpp
   fboss/agent/hw/sai/hw_test/HwTestFlowletUtilsThriftHandler.cpp
   fboss/agent/hw/sai/hw_test/HwTestPtpTcUtilsThriftHandler.cpp
+  fboss/agent/hw/sai/hw_test/HwTestUdfUtilsThriftHandler.cpp
 )
 
 target_link_libraries(agent_hw_test_thrift_handler
   sai_switch # //fboss/agent/hw/sai/switch:sai_switch
   acl_test_utils
   agent_hw_test_ctrl_cpp2
+  sai_aqm_utils
   sai_ecmp_utils
   diag_shell
   wedge_led_utils
@@ -184,6 +201,10 @@ target_link_libraries(agent_hw_test_thrift_handler
 
 
 function(BUILD_SAI_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
+
+  target_link_libraries(agent_hw_test_thrift_handler
+    ${SAI_IMPL_ARG}
+  )
 
   message(STATUS "Building SAI_IMPL_NAME: ${SAI_IMPL_NAME} SAI_IMPL_ARG: ${SAI_IMPL_ARG}")
 

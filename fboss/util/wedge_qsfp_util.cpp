@@ -2174,6 +2174,11 @@ void printCmisDetailService(
         MediaInterfaceUnion::Type::passiveCuCode) {
       mediaInterface = apache::thrift::util::enumNameSafe(
           (*mediaInterfaceId)[0].media()->get_passiveCuCode());
+    } else if (
+        (*mediaInterfaceId)[0].media()->getType() ==
+        MediaInterfaceUnion::Type::activeCuCode) {
+      mediaInterface = apache::thrift::util::enumNameSafe(
+          (*mediaInterfaceId)[0].media()->get_activeCuCode());
     }
     printf("  Current Media Interface: %s\n", mediaInterface.c_str());
   }
@@ -2911,7 +2916,7 @@ bool cliModulefirmwareUpgrade(
   if (ret) {
     printf(
         "Firmware download successful, the module is running desired firmware\n");
-    printf("Pl reload the chassis to finish the last step\n");
+    printf("Reset the transceiver to finish the last step\n");
   } else {
     printf("Firmware upgrade failed, you may retry the same command\n");
   }

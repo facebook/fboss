@@ -21,6 +21,19 @@ extern "C" {
 
 namespace facebook::fboss {
 
+template <typename T>
+struct IsDefaultStdNullOpt : std::false_type {};
+
+template <typename T>
+struct StdNullOptDefault {
+  std::optional<T> operator()() const {
+    return std::nullopt;
+  }
+};
+
+template <typename T>
+struct IsDefaultStdNullOpt<StdNullOptDefault<T>> : std::true_type {};
+
 struct SaiObjectIdDefault {
   sai_object_id_t operator()() const {
     return SAI_NULL_OBJECT_ID;

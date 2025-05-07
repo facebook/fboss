@@ -33,6 +33,9 @@ class FsdbConfig {
       std::pair<SubscriberId, std::reference_wrapper<const SubscriberConfig>>>
   getSubscriberConfig(const SubscriberId& id) const;
 
+  std::optional<std::reference_wrapper<const PublisherConfig>>
+  getPublisherConfig(const PublisherId& id) const;
+
  private:
   const Config thrift_;
 };

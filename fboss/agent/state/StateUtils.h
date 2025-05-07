@@ -18,6 +18,7 @@
 
 namespace facebook::fboss {
 class SwitchState;
+class Interface;
 
 namespace utility {
 
@@ -46,10 +47,9 @@ folly::MacAddress getInterfaceMac(
     InterfaceID intf);
 folly::MacAddress getMacForFirstInterfaceWithPorts(
     const std::shared_ptr<SwitchState>& state);
-std::optional<VlanID> firstVlanIDWithPorts(
-    const std::shared_ptr<SwitchState>& state);
-VlanID getIngressVlan(const std::shared_ptr<SwitchState>& state, PortID port);
 InterfaceID firstInterfaceIDWithPorts(
+    const std::shared_ptr<SwitchState>& state);
+std::shared_ptr<Interface> firstInterfaceWithPorts(
     const std::shared_ptr<SwitchState>& state);
 std::vector<folly::IPAddress> getIntfAddrs(
     const std::shared_ptr<SwitchState>& state,

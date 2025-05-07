@@ -12,6 +12,7 @@
 #include "fboss/agent/hw/test/HwTestAclUtils.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/HwTestUdfUtils.h"
+#include "fboss/agent/test/utils/UdfTestUtils.h"
 
 namespace facebook::fboss {
 
@@ -34,9 +35,9 @@ class HwUdfTest : public HwTest {
     cfg::UdfConfig udfConfig;
     if (addConfig) {
       if (udfHashEnabled && udfAclEnabled) {
-        udfConfig = utility::addUdfHashAclConfig();
+        udfConfig = utility::addUdfHashAclConfig(getAsicType());
       } else if (udfHashEnabled) {
-        udfConfig = utility::addUdfHashConfig();
+        udfConfig = utility::addUdfHashConfig(getAsicType());
       } else {
         udfConfig = utility::addUdfAclConfig();
       }
@@ -52,8 +53,53 @@ class HwUdfTest : public HwTest {
   }
 };
 
+TEST_F(HwUdfTest, UdfCanaryOn) {
+  auto setup = [=, this]() {
+    auto newCfg{initialConfig()};
+    utility::addLoadBalancerToConfig(
+        newCfg,
+        getHwSwitch()->getPlatform()->getAsic(),
+        utility::LBHash::FULL_HASH);
+    applyNewConfig(newCfg);
+  };
+  auto setupPostWB = [=, this]() {
+    auto newCfg{initialConfig()};
+    newCfg.udfConfig() = utility::addUdfHashConfig(getAsicType());
+    utility::addLoadBalancerToConfig(
+        newCfg,
+        getHwSwitch()->getPlatform()->getAsic(),
+        utility::LBHash::FULL_HASH_UDF);
+    applyNewConfig(newCfg);
+  };
+
+  verifyAcrossWarmBoots(setup, [] {}, setupPostWB, [] {});
+}
+
+TEST_F(HwUdfTest, UdfCanaryOff) {
+  auto setup = [=, this]() {
+    auto newCfg{initialConfig()};
+    newCfg.udfConfig() = utility::addUdfHashConfig(getAsicType());
+    utility::addLoadBalancerToConfig(
+        newCfg,
+        getHwSwitch()->getPlatform()->getAsic(),
+        utility::LBHash::FULL_HASH_UDF);
+    applyNewConfig(newCfg);
+  };
+  auto setupPostWB = [=, this]() {
+    auto newCfg{initialConfig()};
+    utility::addLoadBalancerToConfig(
+        newCfg,
+        getHwSwitch()->getPlatform()->getAsic(),
+        utility::LBHash::FULL_HASH);
+    applyNewConfig(newCfg);
+  };
+
+  verifyAcrossWarmBoots(setup, [] {}, setupPostWB, [] {});
+}
+
 TEST_F(HwUdfTest, checkUdfHashConfiguration) {
   auto setup = [=, this]() {
+    applyNewConfig(initialConfig());
     applyNewState(setupUdfConfiguration(true, true));
   };
   auto verify = [=, this]() {
@@ -68,6 +114,7 @@ TEST_F(HwUdfTest, checkUdfHashConfiguration) {
 
 TEST_F(HwUdfTest, checkUdfAclConfiguration) {
   auto setup = [=, this]() {
+    applyNewConfig(initialConfig());
     applyNewState(setupUdfConfiguration(true, false));
   };
   auto verify = [=, this]() {
@@ -82,6 +129,7 @@ TEST_F(HwUdfTest, checkUdfAclConfiguration) {
 
 TEST_F(HwUdfTest, deleteUdfHashConfig) {
   // Add UdfGroup and PacketMatcher configuration for UDF Hash
+  applyNewConfig(initialConfig());
   applyNewState(setupUdfConfiguration(true));
 
   // Get UdfGroup and PacketMatcher Ids for verify
@@ -115,7 +163,8 @@ TEST_F(HwUdfTest, deleteUdfAclConfig) {
   // Add ACL configuration
   auto acl = utility::addAcl_DEPRECATED(&newCfg, "test-udf-acl");
   acl->udfGroups() = {utility::kUdfAclRoceOpcodeGroupName};
-  acl->roceOpcode() = utility::kUdfRoceOpcodeAck;
+  acl->roceMask() = {utility::kUdfRoceOpcodeMask};
+  acl->roceBytes() = {utility::kUdfRoceOpcodeAck};
   applyNewConfig(newCfg);
 
   // Get UdfGroup and PacketMatcher Ids for verify
@@ -169,6 +218,7 @@ TEST_F(HwUdfTest, checkUdfHashAclConfiguration) {
   auto setup = [=, this]() {
     // Add Udf configuration for both hash and acl, first parameter is
     // addConfig and second udfHashEnabaled and third is udfAclEnabled
+    applyNewConfig(initialConfig());
     applyNewState(setupUdfConfiguration(true, true, true));
   };
   auto verify = [=, this]() {

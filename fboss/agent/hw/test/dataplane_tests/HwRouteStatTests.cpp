@@ -46,9 +46,13 @@ class HwRouteStatTest : public HwLinkStateDependentTest {
   void SetUp() override {
     HwLinkStateDependentTest::SetUp();
     ecmpHelper6_ = std::make_unique<utility::EcmpSetupTargetedPorts6>(
-        getProgrammedState(), RouterID(0));
+        getProgrammedState(),
+        getHwSwitch()->needL2EntryForNeighbor(),
+        RouterID(0));
     ecmpHelper4_ = std::make_unique<utility::EcmpSetupTargetedPorts4>(
-        getProgrammedState(), RouterID(0));
+        getProgrammedState(),
+        getHwSwitch()->needL2EntryForNeighbor(),
+        RouterID(0));
   }
 
   cfg::SwitchConfig initialConfig() const override {
@@ -102,7 +106,7 @@ class HwRouteStatTest : public HwLinkStateDependentTest {
       PortID from,
       std::optional<DSCP> dscp = std::nullopt) {
     // TODO: Remove the dependency on VLAN below
-    auto vlan = utility::firstVlanIDWithPorts(initialConfig());
+    auto vlan = getHwSwitchEnsemble()->getVlanIDForTx();
     if (!vlan) {
       throw FbossError("VLAN id unavailable for test");
     }

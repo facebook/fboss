@@ -5,7 +5,6 @@
 #include "fboss/agent/FabricConnectivityManager.h"
 #include "fboss/agent/FbossHwUpdateError.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/DsfConfigUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
@@ -98,7 +97,8 @@ TEST_F(AgentVoqSwitchFullScaleDsfNodesTest, remoteNeighborWithEcmpGroup) {
     utility::setupRemoteIntfAndSysPorts(
         getSw(),
         isSupportedOnAllAsics(HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE));
-    utility::EcmpSetupTargetedPorts6 ecmpHelper(getProgrammedState());
+    utility::EcmpSetupTargetedPorts6 ecmpHelper(
+        getProgrammedState(), getSw()->needL2EntryForNeighbor());
 
     // Resolve remote nhops and get a list of remote sysPort descriptors
     flat_set<PortDescriptor> sysPortDescs =
@@ -176,7 +176,8 @@ TEST_F(AgentVoqSwitchFullScaleDsfNodesTest, remoteAndLocalLoadBalance) {
     utility::setupRemoteIntfAndSysPorts(
         getSw(),
         isSupportedOnAllAsics(HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE));
-    utility::EcmpSetupTargetedPorts6 ecmpHelper(getProgrammedState());
+    utility::EcmpSetupTargetedPorts6 ecmpHelper(
+        getProgrammedState(), getSw()->needL2EntryForNeighbor());
 
     // Resolve remote and local nhops and get a list of sysPort descriptors
     auto remoteSysPortDescs =
@@ -258,7 +259,8 @@ TEST_F(AgentVoqSwitchFullScaleDsfNodesTest, stressProgramEcmpRoutes) {
     utility::setupRemoteIntfAndSysPorts(
         getSw(),
         isSupportedOnAllAsics(HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE));
-    utility::EcmpSetupTargetedPorts6 ecmpHelper(getProgrammedState());
+    utility::EcmpSetupTargetedPorts6 ecmpHelper(
+        getProgrammedState(), getSw()->needL2EntryForNeighbor());
 
     // Resolve remote nhops and get a list of remote sysPort descriptors
     auto sysPortDescs =

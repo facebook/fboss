@@ -142,6 +142,9 @@ struct PortFields {
   55: bool conditionalEntropyRehash = false;
   56: bool selfHealingECMPLagEnable_DEPRECATED = false;
   57: optional bool selfHealingECMPLagEnable;
+  // DSF option to enable FEC error detection on port to prevent any
+  // errored cells from making it to the forwarding pipeline.
+  58: optional bool fecErrorDetectEnable;
 }
 
 typedef ctrl.SystemPortThrift SystemPortFields
@@ -185,6 +188,7 @@ struct MatchAction {
   9: optional SetTc setTc;
   10: optional switch_config.UserDefinedTrapAction userDefinedTrap;
   11: optional switch_config.FlowletAction flowletAction;
+  12: optional switch_config.SetEcmpHashAction ecmpHashAction;
 }
 
 struct AclEntryFields {
@@ -442,6 +446,7 @@ struct SwitchSettingsFields {
   55: optional i32 voqOutOfBoundsLatencyNsec;
   // Number of sflow samples to pack in a single packet being sent out
   56: optional byte numberOfSflowSamplesPerPacket;
+  57: optional map<i32, i32> tcToRateLimitKbps;
 }
 
 struct RoutePrefix {
@@ -456,6 +461,10 @@ struct RouteNextHopEntry {
   3: optional string counterID;
   4: optional switch_config.AclLookupClass classID;
   5: list<common.NextHopThrift> nexthops;
+  // If override switching mode, HW must use this instead
+  // of default ecmp switching mode, when programming this
+  // nhop group
+  6: optional switch_config.SwitchingMode overrideEcmpSwitchingMode;
 }
 
 struct RouteNextHopsMulti {

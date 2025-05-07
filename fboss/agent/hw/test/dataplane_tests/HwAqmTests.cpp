@@ -52,9 +52,10 @@ void verifyWredDroppedPacketCount(
   auto deltaWredDroppedPackets =
       after.wredDroppedPackets - before.wredDroppedPackets;
   XLOG(DBG0) << "Delta WRED dropped pkts: " << deltaWredDroppedPackets;
+
   int allowedDeviation = kAcceptableErrorPct * expectedDroppedPkts / 100;
-  EXPECT_GT(deltaWredDroppedPackets, expectedDroppedPkts - allowedDeviation);
-  EXPECT_LT(deltaWredDroppedPackets, expectedDroppedPkts + allowedDeviation);
+  EXPECT_GE(deltaWredDroppedPackets, expectedDroppedPkts - allowedDeviation);
+  EXPECT_LE(deltaWredDroppedPackets, expectedDroppedPkts + allowedDeviation);
 }
 
 /*
@@ -212,7 +213,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
       int payloadLen = kDefaultTxPayloadBytes,
       int ttl = 255,
       std::optional<PortID> outPort = std::nullopt) {
-    auto vlanId = utility::firstVlanIDWithPorts(initialConfig());
+    auto vlanId = getHwSwitchEnsemble()->getVlanIDForTx();
     for (int i = 0; i < cnt; i++) {
       sendPkt(
           dscpVal,
@@ -280,7 +281,9 @@ class HwAqmTest : public HwLinkStateDependentTest {
 
   void setupEcmpTraffic() {
     utility::EcmpSetupTargetedPorts6 ecmpHelper{
-        getProgrammedState(), getIntfMac()};
+        getProgrammedState(),
+        getHwSwitch()->needL2EntryForNeighbor(),
+        getIntfMac()};
     const auto& portDesc = PortDescriptor(masterLogicalInterfacePortIds()[0]);
     applyNewState(ecmpHelper.resolveNextHops(getProgrammedState(), {portDesc}));
     RoutePrefixV6 route{kDestIp(), 128};
@@ -534,8 +537,8 @@ class HwAqmTest : public HwLinkStateDependentTest {
      */
     int numPacketsToSend =
         ceil(
-            (double)utility::getRoundedBufferThreshold(
-                getHwSwitch(), thresholdBytes, roundUp) /
+            static_cast<double>(utility::getRoundedBufferThreshold(
+                getHwSwitch(), thresholdBytes, roundUp)) /
             utility::getEffectiveBytesPerPacket(getHwSwitch(), kTxPacketLen)) +
         expectedMarkedOrDroppedPacketCount;
     auto setup = [=, this]() {
@@ -553,6 +556,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
       auto kEcmpWidthForTest = 1;
       utility::EcmpSetupAnyNPorts6 ecmpHelper6{
           getProgrammedState(),
+          getHwSwitch()->needL2EntryForNeighbor(),
           utility::MacAddressGenerator().get(getIntfMac().u64NBO() + 10)};
       resolveNeigborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
     };
@@ -571,11 +575,21 @@ class HwAqmTest : public HwLinkStateDependentTest {
 
       auto sendPackets = [=, this](PortID /* port */, int numPacketsToSend) {
         // Single port config, traffic gets forwarded out of the same!
+        PortID kLoopbackPort{masterLogicalInterfacePortIds()[1]};
+        HwPortStats initialStats{getLatestPortStats(kLoopbackPort)};
         sendPkts(
             utility::kOlympicQueueToDscp().at(kQueueId).front(),
             ecnVal,
             numPacketsToSend,
-            kPayloadLength);
+            kPayloadLength,
+            255 /*ttl*/,
+            kLoopbackPort);
+        WITH_RETRIES({
+          HwPortStats currentStats{getLatestPortStats(kLoopbackPort)};
+          EXPECT_EVENTUALLY_GE(
+              currentStats.inUnicastPkts_().value(),
+              initialStats.inUnicastPkts_().value() + numPacketsToSend);
+        })
       };
 
       // Send traffic with queue buildup and get the stats at the start!

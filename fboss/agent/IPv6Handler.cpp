@@ -147,7 +147,7 @@ void IPv6Handler::handlePacket(
     MacAddress src,
     Cursor cursor,
     const std::shared_ptr<VlanOrIntfT>& vlanOrIntf) {
-  auto vlanID = getVlanIDFromVlanOrIntf(vlanOrIntf);
+  auto vlanID = sw_->getVlanIDForTx(vlanOrIntf);
   auto vlanIDStr = vlanID.has_value()
       ? folly::to<std::string>(static_cast<int>(vlanID.value()))
       : "None";
@@ -453,7 +453,7 @@ void IPv6Handler::handleNeighborSolicitation(
     const ICMPHeaders& hdr,
     Cursor cursor,
     const std::shared_ptr<VlanOrIntfT>& vlanOrIntf) {
-  auto vlanID = getVlanIDFromVlanOrIntf(vlanOrIntf);
+  auto vlanID = sw_->getVlanIDForTx(vlanOrIntf);
   auto vlanIDStr = vlanID.has_value()
       ? folly::to<std::string>(static_cast<int>(vlanID.value()))
       : "None";
@@ -616,7 +616,7 @@ void IPv6Handler::handleNeighborAdvertisement(
     // drop NDP advertisement packets when LAG port is not up,
     // otherwise, NDP entry would be created for this down port,
     // and confuse later neighbor/next hop resolution logics
-    auto vlanID = getVlanIDFromVlanOrIntf(vlanOrIntf);
+    auto vlanID = sw_->getVlanIDForTx(vlanOrIntf);
     auto vlanIDStr = vlanID.has_value()
         ? folly::to<std::string>(static_cast<int>(vlanID.value()))
         : "None";
@@ -815,6 +815,11 @@ void IPv6Handler::sendMulticastNeighborSolicitation(
     return;
   }
 
+  if (!sw->isFullyInitialized()) {
+    XLOG(DBG2) << " Dropping L3 packet since device not ready";
+    return;
+  }
+
   IPAddressV6 solicitedNodeAddr = targetIP.getSolicitedNodeAddress();
   MacAddress dstMac = MacAddress::createMulticast(solicitedNodeAddr);
   // For now, we always use our link local IP as the source.
@@ -865,6 +870,11 @@ void IPv6Handler::sendUnicastNeighborSolicitation(
   if (FLAGS_disable_neighbor_solicitation) {
     XLOG(DBG4)
         << "skipping sending neighbor solicitation since flag disable_neighbor_solicitation set to true";
+    return;
+  }
+
+  if (!sw->isFullyInitialized()) {
+    XLOG(DBG2) << " Dropping L3 packet since device not ready";
     return;
   }
 
@@ -996,6 +1006,11 @@ void IPv6Handler::sendMulticastNeighborSolicitations(
     return;
   }
 
+  if (!sw_->isFullyInitialized()) {
+    XLOG(DBG2) << " Dropping L3 packet since device not ready";
+    return;
+  }
+
   auto state = sw_->getState();
 
   auto route = sw_->longestMatch(state, targetIP, RouterID(0));
@@ -1063,13 +1078,14 @@ void IPv6Handler::floodNeighborAdvertisements() {
         }
 
         std::optional<PortDescriptor> portDescriptor{std::nullopt};
-        auto switchType = sw_->getSwitchInfoTable().l3SwitchType();
-        if (switchType == cfg::SwitchType::VOQ) {
-          // VOQ switches don't use VLANs (no broadcast domain).
-          // Find the port to send out the pkt with pipeline bypass on.
-          CHECK(intf->getSystemPortID().has_value());
+        auto intfType = intf->getType();
+        if (intfType == cfg::InterfaceType::SYSTEM_PORT) {
           portDescriptor = PortDescriptor(
               getPortID(*intf->getSystemPortID(), sw_->getState()));
+        } else if (intfType == cfg::InterfaceType::PORT) {
+          portDescriptor = PortDescriptor(intf->getPortID());
+        }
+        if (portDescriptor) {
           XLOG(DBG4) << "Sending neighbor advertisements for "
                      << addrEntry.str()
                      << " Using port: " << portDescriptor.value().str();
@@ -1217,16 +1233,10 @@ std::optional<PortDescriptor> IPv6Handler::getInterfacePortDescriptorToReach(
     SwSwitch* sw,
     const folly::IPAddressV6& ipAddr) {
   std::optional<PortDescriptor> portDescriptor{std::nullopt};
-
-  if (sw->getSwitchInfoTable().l3SwitchType() == cfg::SwitchType::VOQ) {
-    // VOQ switches don't use VLANs (no broadcast domain).
-    // Find the port to send out the pkt with pipeline bypass on.
-    auto portID = getInterfacePortToReach(sw->getState(), ipAddr);
-    if (portID.has_value()) {
-      portDescriptor = PortDescriptor(portID.value());
-    }
+  auto portID = getInterfacePortToReach(sw->getState(), ipAddr);
+  if (portID.has_value()) {
+    portDescriptor = PortDescriptor(portID.value());
   }
-
   return portDescriptor;
 }
 

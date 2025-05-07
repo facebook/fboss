@@ -26,4 +26,5 @@ struct TransceiverDetail {
   16: string notValidatedReason;
   17: transceiver.FlagLevels tempFlags;
   18: transceiver.FlagLevels vccFlags;
+  19: transceiver.MediaInterfaceCode mediaInterface;
 }

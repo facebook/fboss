@@ -33,6 +33,8 @@ bool Ramon3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::DATA_CELL_FILTER:
     case HwAsic::Feature::SWITCH_REACHABILITY_CHANGE_NOTIFY:
     case HwAsic::Feature::CPU_QUEUE_WATERMARK_STATS:
+    case HwAsic::Feature::FEC_ERROR_DETECT_ENABLE:
+    case HwAsic::Feature::EGRESS_POOL_AVAILABLE_SIZE_ATTRIBUTE_SUPPORTED:
       return true;
     case HwAsic::Feature::SAI_PORT_SERDES_FIELDS_RESET:
     case HwAsic::Feature::FABRIC_TX_QUEUES:
@@ -152,4 +154,32 @@ Ramon3Asic::desiredLoopbackModes() const {
 uint32_t Ramon3Asic::getVirtualDevices() const {
   return 2;
 }
+
+const std::set<uint16_t>& Ramon3Asic::getL1BaseFabricPortsToConnectToL2() {
+  static const std::set<uint16_t> l1BaseFabricPortsToConnectToL2 = {
+      64,  65,  66,  67,  68,  69,  70,  71,  72,  73,  74,  75,  76,  77,  78,
+      79,  80,  81,  82,  83,  84,  85,  86,  87,  88,  89,  90,  91,  92,  93,
+      94,  95,  96,  97,  98,  99,  100, 101, 102, 103, 104, 105, 106, 107, 108,
+      109, 110, 111, 112, 113, 114, 116, 117, 118, 120, 121, 122, 123, 124, 125,
+      126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140,
+      141, 142, 143, 144, 145, 146, 147, 148, 149, 150, 151, 152, 153, 154, 155,
+      156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170,
+      171, 172, 173, 174, 175, 176, 177, 178, 179, 180, 181, 182, 183, 184, 185,
+      186, 187, 188, 189, 190, 191, 320, 321, 322, 323, 324, 325, 326, 327, 328,
+      329, 330, 331, 332, 333, 334, 335, 336, 337, 338, 339, 340, 341, 342, 343,
+      344, 345, 346, 347, 348, 349, 350, 351, 352, 353, 354, 355, 356, 357, 358,
+      359, 360, 361, 362, 363, 364, 365, 366, 367, 368, 370, 371, 372, 374, 375,
+      376, 377, 378, 379, 380, 381, 382, 383, 384, 385, 386, 387, 388, 389, 390,
+      391, 392, 393, 394, 395, 396, 397, 398, 399, 400, 401, 402, 403, 404, 405,
+      406, 407, 408, 409, 410, 411, 412, 413, 414, 415, 416, 417, 418, 419, 420,
+      421, 422, 423, 424, 425, 426, 427, 428, 429, 430, 431, 432, 433, 434, 435,
+      436, 437, 438, 439, 440, 441, 442, 443, 444, 445, 446, 447};
+
+  return l1BaseFabricPortsToConnectToL2;
+}
+
+const std::set<uint16_t>& Ramon3Asic::getL1FabricPortsToConnectToL2() const {
+  return l1FabricPortsToConnectToL2_;
+}
+
 }; // namespace facebook::fboss

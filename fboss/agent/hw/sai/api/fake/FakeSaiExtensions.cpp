@@ -96,7 +96,7 @@ SaiSwitchTraits::Attributes::AttributeAclFieldListWrapper::operator()() {
 }
 
 std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
-    AttributeEgressPoolAvaialableSizeIdWrapper::operator()() {
+    AttributeEgressPoolAvailableSizeIdWrapper::operator()() {
   return SAI_SWITCH_ATTR_DEFAULT_EGRESS_BUFFER_POOL_SHARED_SIZE;
 }
 
@@ -108,6 +108,7 @@ std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributeSystemPortId::operator()() {
   return SAI_PORT_ATTR_EXT_FAKE_SYSTEM_PORT_ID;
 }
+
 std::optional<sai_attr_id_t> SaiPortSerdesTraits::Attributes::
     AttributeRxAfeAdaptiveEnableWrapper::operator()() {
   return SAI_PORT_SERDES_ATTR_EXT_FAKE_RX_AFE_ADAPTIVE_ENABLE;
@@ -327,6 +328,11 @@ SaiSwitchTraits::egressNonFabricCellUnpackError() {
 }
 
 const std::vector<sai_stat_id_t>& SaiSwitchTraits::egressParityCellError() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>& SaiSwitchTraits::ddpPacketError() {
   static const std::vector<sai_stat_id_t> stats;
   return stats;
 }
@@ -592,13 +598,18 @@ SaiSystemPortTraits::Attributes::AttributeShelPktDstEnable::operator()() {
 }
 
 std::optional<sai_attr_id_t>
+SaiSystemPortTraits::Attributes::AttributeTcRateLimitExclude::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeFirmwareCoreTouse::operator()() {
   return SAI_SWITCH_ATTR_FIRMWARE_CORE_TO_USE;
 }
 
 std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeFirmwareLogFile::operator()() {
-  return SAI_SWITCH_ATTR_FIRMWARE_LOG_FILE;
+  return SAI_SWITCH_ATTR_FIRMWARE_LOG_PATH_NAME;
 }
 
 std::optional<sai_attr_id_t>
@@ -613,12 +624,32 @@ SaiSwitchTraits::Attributes::AttributeArsAvailableFlows::operator()() {
 
 std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeSdkRegDumpLogPath::operator()() {
-  return SAI_SWITCH_ATTR_SDK_REG_DUMP_LOG_PATH;
+  return SAI_SWITCH_ATTR_SDK_DUMP_LOG_PATH_NAME;
 }
 
 std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeFirmwareObjectList::operator()() {
-  return SAI_SWITCH_ATTR_FIRMWARE_OBJECT_LIST;
+  return SAI_SWITCH_ATTR_FIRMWARE_OBJECTS;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeTcRateLimitList::operator()() {
+  return SAI_SWITCH_ATTR_TC_RATE_LIMIT_LIST;
+}
+
+std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
+    AttributePfcTcDldTimerGranularityInterval::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeNumberOfPipes::operator()() {
+  return SAI_SWITCH_ATTR_NUMBER_OF_PIPES;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributePipelineObjectList::operator()() {
+  return SAI_SWITCH_ATTR_PIPELINE_OBJECTS;
 }
 
 } // namespace facebook::fboss

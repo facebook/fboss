@@ -200,15 +200,19 @@ class HwTrunkLoadBalancerTest : public HwLinkStateDependentTest {
   }
 
   void setupIPECMP(AggPortInfo aggInfo) {
-    utility::EcmpSetupTargetedPorts6 ecmpHelper6{getProgrammedState()};
-    utility::EcmpSetupTargetedPorts4 ecmpHelper4{getProgrammedState()};
+    utility::EcmpSetupTargetedPorts6 ecmpHelper6{
+        getProgrammedState(), getHwSwitch()->needL2EntryForNeighbor()};
+    utility::EcmpSetupTargetedPorts4 ecmpHelper4{
+        getProgrammedState(), getHwSwitch()->needL2EntryForNeighbor()};
     programRoutes(ecmpHelper6, aggInfo);
     programRoutes(ecmpHelper4, aggInfo);
   }
 
   void setupIP2MPLSECMP(AggPortInfo aggInfo) {
-    utility::EcmpSetupTargetedPorts6 ecmpHelper6{getProgrammedState()};
-    utility::EcmpSetupTargetedPorts4 ecmpHelper4{getProgrammedState()};
+    utility::EcmpSetupTargetedPorts6 ecmpHelper6{
+        getProgrammedState(), getHwSwitch()->needL2EntryForNeighbor()};
+    utility::EcmpSetupTargetedPorts4 ecmpHelper4{
+        getProgrammedState(), getHwSwitch()->needL2EntryForNeighbor()};
     programIp2MplsRoutes(ecmpHelper6, aggInfo);
     programIp2MplsRoutes(ecmpHelper4, aggInfo);
   }
@@ -216,18 +220,22 @@ class HwTrunkLoadBalancerTest : public HwLinkStateDependentTest {
   void setupMPLSECMP(AggPortInfo aggInfo) {
     utility::MplsEcmpSetupTargetedPorts<folly::IPAddressV4> v4SwapHelper{
         getProgrammedState(),
+        getHwSwitch()->needL2EntryForNeighbor(),
         kV4TopSwap,
         LabelForwardingAction::LabelForwardingType::SWAP};
     utility::MplsEcmpSetupTargetedPorts<folly::IPAddressV6> v6SwapHelper{
         getProgrammedState(),
+        getHwSwitch()->needL2EntryForNeighbor(),
         kV6TopSwap,
         LabelForwardingAction::LabelForwardingType::SWAP};
     utility::MplsEcmpSetupTargetedPorts<folly::IPAddressV4> v4PhpHelper{
         getProgrammedState(),
+        getHwSwitch()->needL2EntryForNeighbor(),
         kV4TopPhp,
         LabelForwardingAction::LabelForwardingType::PHP};
     utility::MplsEcmpSetupTargetedPorts<folly::IPAddressV4> v6PhpHelper{
         getProgrammedState(),
+        getHwSwitch()->needL2EntryForNeighbor(),
         kV6TopPhp,
         LabelForwardingAction::LabelForwardingType::PHP};
     programMplsRoutes(v4SwapHelper, aggInfo);

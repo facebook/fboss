@@ -35,11 +35,15 @@ std::shared_ptr<SystemPort> makeRemoteSysPort(
     int corePortIndex,
     int64_t speed,
     HwAsic::InterfaceNodeRole intfRole,
-    cfg::PortType portType) {
+    cfg::PortType portType,
+    std::string remoteSwitchName = "") {
+  if (remoteSwitchName.empty()) {
+    remoteSwitchName = folly::to<std::string>("hwTestSwitch", remoteSwitchId);
+  }
   auto remoteSysPort = std::make_shared<SystemPort>(portId);
   auto voqConfig = getDefaultVoqConfig(portType);
-  remoteSysPort->setName(folly::to<std::string>(
-      "hwTestSwitch", remoteSwitchId, ":eth/", portId, "/1"));
+  remoteSysPort->setName(
+      folly::to<std::string>(remoteSwitchName, ":eth1/", portId, "/1"));
   remoteSysPort->setSwitchId(remoteSwitchId);
   remoteSysPort->setNumVoqs(getRemotePortNumVoqs(intfRole, portType));
   remoteSysPort->setCoreIndex(coreIndex);
@@ -339,7 +343,8 @@ void populateRemoteIntfAndSysPorts(
               (i - minPortID) % kNumPortPerCore,
               static_cast<int64_t>(portSpeed),
               HwAsic::InterfaceNodeRole::IN_CLUSTER_NODE,
-              cfg::PortType::INTERFACE_PORT);
+              cfg::PortType::INTERFACE_PORT,
+              *dsfNode.name());
           remoteSysPorts->addSystemPort(remoteSysPort);
 
           auto remoteRif = makeRemoteInterface(
@@ -415,7 +420,8 @@ void populateRemoteIntfAndSysPorts(
               *dsfNode.clusterId() >= k2StageEdgePodClusterId
                   ? HwAsic::InterfaceNodeRole::DUAL_STAGE_EDGE_NODE
                   : HwAsic::InterfaceNodeRole::IN_CLUSTER_NODE,
-              *mapping.portType());
+              *mapping.portType(),
+              *dsfNode.name());
           remoteSysPorts->addSystemPort(remoteSysPort);
 
           auto remoteRif = makeRemoteInterface(

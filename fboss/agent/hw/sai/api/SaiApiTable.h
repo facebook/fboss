@@ -35,6 +35,7 @@
 #include "fboss/agent/hw/sai/api/SamplePacketApi.h"
 #include "fboss/agent/hw/sai/api/SchedulerApi.h"
 #include "fboss/agent/hw/sai/api/SwitchApi.h"
+#include "fboss/agent/hw/sai/api/SwitchPipelineApi.h"
 #include "fboss/agent/hw/sai/api/SystemPortApi.h"
 #include "fboss/agent/hw/sai/api/TamApi.h"
 #include "fboss/agent/hw/sai/api/TamEventAgingGroupApi.h"
@@ -146,6 +147,8 @@ class SaiApiTable {
 
 #if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
   const VendorSwitchApi& vendorSwitchApi() const;
+
+  const SwitchPipelineApi& switchPipelineApi() const;
 #endif
 
   template <typename SaiApiT>
@@ -210,6 +213,7 @@ class SaiApiTable {
       std::unique_ptr<LagApi>,
 #if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
       std::unique_ptr<VendorSwitchApi>,
+      std::unique_ptr<SwitchPipelineApi>,
 #endif
       std::unique_ptr<MacsecApi>>
       apis_;

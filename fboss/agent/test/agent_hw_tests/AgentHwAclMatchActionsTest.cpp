@@ -2,8 +2,8 @@
 
 #include "fboss/agent/test/AgentHwTest.h"
 
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/TrafficPolicyTestUtils.h"
 
@@ -44,7 +44,7 @@ TEST_F(AgentHwAclMatchActionsTest, AddTrafficPolicy) {
     const auto& ensemble = *getAgentEnsemble();
     auto newCfg = initialConfig(ensemble);
     auto l3Asics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
-    auto asic = utility::checkSameAndGetAsic(l3Asics);
+    auto asic = checkSameAndGetAsic(l3Asics);
 
     utility::addDscpAclToCfg(asic, &newCfg, "acl1", kDscp);
     utility::addQueueMatcher(&newCfg, "acl1", kQueueId, ensemble.isSai());
@@ -68,7 +68,7 @@ TEST_F(AgentHwAclMatchActionsTest, SetDscpMatchAction) {
     const auto& ensemble = *getAgentEnsemble();
     auto newCfg = initialConfig(ensemble);
     auto l3Asics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
-    auto asic = utility::checkSameAndGetAsic(l3Asics);
+    auto asic = checkSameAndGetAsic(l3Asics);
 
     utility::addDscpAclToCfg(asic, &newCfg, "acl1", kDscp);
     addSetDscpAction(&newCfg, "acl1", kDscp2);
@@ -93,7 +93,7 @@ TEST_F(AgentHwAclMatchActionsTest, AddSameMatcherTwice) {
     const auto& ensemble = *getAgentEnsemble();
     auto newCfg = initialConfig(ensemble);
     auto l3Asics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
-    auto asic = utility::checkSameAndGetAsic(l3Asics);
+    auto asic = checkSameAndGetAsic(l3Asics);
 
     utility::addDscpAclToCfg(asic, &newCfg, "acl1", kDscp);
 
@@ -124,7 +124,7 @@ TEST_F(AgentHwAclMatchActionsTest, AddMultipleActions) {
     const auto& ensemble = *getAgentEnsemble();
     auto newCfg = initialConfig(ensemble);
     auto l3Asics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
-    auto asic = utility::checkSameAndGetAsic(l3Asics);
+    auto asic = checkSameAndGetAsic(l3Asics);
 
     utility::addDscpAclToCfg(asic, &newCfg, "acl1", 0);
     utility::addDscpAclToCfg(asic, &newCfg, "acl2", 0);
@@ -154,7 +154,7 @@ TEST_F(AgentHwAclMatchActionsTest, AddRemoveActions) {
     const auto& ensemble = *getAgentEnsemble();
     auto newCfg = initialConfig(ensemble);
     auto l3Asics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
-    auto asic = utility::checkSameAndGetAsic(l3Asics);
+    auto asic = checkSameAndGetAsic(l3Asics);
 
     utility::addDscpAclToCfg(asic, &newCfg, "acl1", 0);
     utility::addQueueMatcher(&newCfg, "acl1", 0, ensemble.isSai());
@@ -186,7 +186,7 @@ TEST_F(AgentHwAclMatchActionsTest, AddTrafficPolicyMultipleRemoveOne) {
     const auto& ensemble = *getAgentEnsemble();
     auto newCfg = initialConfig(ensemble);
     auto l3Asics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
-    auto asic = utility::checkSameAndGetAsic(l3Asics);
+    auto asic = checkSameAndGetAsic(l3Asics);
 
     utility::addDscpAclToCfg(asic, &newCfg, "acl1", 0);
     utility::addQueueMatcher(&newCfg, "acl1", 0, ensemble.isSai());

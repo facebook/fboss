@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include "fboss/agent/Utils.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/test/TestEnsembleIf.h"
@@ -16,14 +15,18 @@ struct PfcBufferParams {
   static constexpr auto kGlobalHeadroomBytes{
       5000}; // keep this lower than globalShared
 
-  int globalShared = kGlobalSharedBytes;
-  int globalHeadroom = kGlobalHeadroomBytes;
-  int minLimit = 2200;
-  int pgHeadroom = 2200; // keep this lower than globalShared
+  int globalShared{0};
+  int globalHeadroom{0};
+  int minLimit{0};
+  int pgHeadroom{0};
   facebook::fboss::cfg::MMUScalingFactor scalingFactor;
-  int resumeOffset = 1800;
+  std::optional<int> resumeOffset;
+  std::optional<int> resumeThreshold;
 
-  static PfcBufferParams getPfcBufferParams(cfg::AsicType asicType);
+  static PfcBufferParams getPfcBufferParams(
+      cfg::AsicType asicType,
+      int globalShared = kGlobalSharedBytes,
+      int globalHeadroom = kGlobalHeadroomBytes);
 };
 
 void setupPfcBuffers(
@@ -31,6 +34,7 @@ void setupPfcBuffers(
     cfg::SwitchConfig& cfg,
     const std::vector<PortID>& ports,
     const std::vector<int>& losslessPgIds,
+    const std::vector<int>& lossyPgIds,
     const std::map<int, int>& tcToPgOverride = {});
 
 void setupPfcBuffers(
@@ -38,6 +42,7 @@ void setupPfcBuffers(
     cfg::SwitchConfig& cfg,
     const std::vector<PortID>& ports,
     const std::vector<int>& losslessPgIds,
+    const std::vector<int>& lossyPgIds,
     const std::map<int, int>& tcToPgOverride,
     PfcBufferParams buffer);
 

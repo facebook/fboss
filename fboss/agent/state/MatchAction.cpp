@@ -43,6 +43,7 @@ state::MatchAction MatchAction::toThrift() const {
   }
   matchAction.userDefinedTrap().from_optional(userDefinedTrap_);
   matchAction.flowletAction().from_optional(flowletAction_);
+  matchAction.ecmpHashAction().from_optional(setEcmpHashAction_);
   return matchAction;
 }
 
@@ -77,6 +78,7 @@ MatchAction MatchAction::fromThrift(state::MatchAction const& ma) {
   }
   matchAction.userDefinedTrap_ = ma.userDefinedTrap().to_optional();
   matchAction.flowletAction_ = ma.flowletAction().to_optional();
+  matchAction.setEcmpHashAction_ = ma.ecmpHashAction().to_optional();
   return matchAction;
 }
 

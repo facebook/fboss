@@ -1,10 +1,10 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
 #include "fboss/agent/test/utils/PacketSnooper.h"
@@ -25,14 +25,15 @@ class AgentDeepPacketInspectionTest : public AgentHwTest {
     auto config = AgentHwTest::initialConfig(ensemble);
     auto port = ensemble.masterLogicalInterfacePortIds()[0];
     utility::addOlympicQosMaps(config, ensemble.getL3Asics());
-    auto asic = utility::checkSameAndGetAsic(ensemble.getL3Asics());
+    auto asic = checkSameAndGetAsic(ensemble.getL3Asics());
     utility::addTrapPacketAcl(asic, &config, port);
     return config;
   }
 
  protected:
   utility::EcmpSetupTargetedPorts6 ecmpHelper() const {
-    return utility::EcmpSetupTargetedPorts6(getProgrammedState());
+    return utility::EcmpSetupTargetedPorts6(
+        getProgrammedState(), getSw()->needL2EntryForNeighbor());
   }
   PortDescriptor kPort() const {
     return PortDescriptor(masterLogicalInterfacePortIds()[0]);
@@ -44,7 +45,7 @@ class AgentDeepPacketInspectionTest : public AgentHwTest {
           std::optional<std::vector<uint8_t>>()) {
     return tcp ? utility::makeTCPTxPacket(
                      getSw(),
-                     utility::firstVlanIDWithPorts(getProgrammedState()),
+                     getVlanIDForTx(),
                      utility::kLocalCpuMac(),
                      utility::kLocalCpuMac(),
                      kSrcIp(),
@@ -56,7 +57,7 @@ class AgentDeepPacketInspectionTest : public AgentHwTest {
                      payload)
                : utility::makeUDPTxPacket(
                      getSw(),
-                     utility::firstVlanIDWithPorts(getProgrammedState()),
+                     getVlanIDForTx(),
                      utility::kLocalCpuMac(),
                      utility::kLocalCpuMac(),
                      kSrcIp(),
@@ -77,13 +78,16 @@ class AgentDeepPacketInspectionTest : public AgentHwTest {
     auto nhopMac = ecmpHelper().nhop(kPort()).mac;
     auto switchType = getSw()->getSwitchInfoTable().l3SwitchType();
 
-    auto ethFrame = switchType == cfg::SwitchType::VOQ
+    auto ethFrame =
+        (switchType == cfg::SwitchType::VOQ || FLAGS_rx_vlan_untagged_packets)
         ? utility::makeEthFrame(*txPacket, nhopMac)
         : utility::makeEthFrame(
               *txPacket,
               nhopMac,
-              utility::getIngressVlan(
-                  getProgrammedState(), kPort().phyPortID()));
+              getProgrammedState()
+                  ->getPorts()
+                  ->getNode(kPort().phyPortID())
+                  ->getIngressVlan());
 
     utility::SwSwitchPacketSnooper snooper(
         getSw(), "snoop", std::nullopt, ethFrame);

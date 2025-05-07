@@ -512,7 +512,8 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
     // [5] ==> [3]
     // ......
     std::vector<uint32_t> pportList;
-    for (int i = 0; i < std::max(1, (int)hwLaneList.size() / 2); i++) {
+    for (int i = 0; i < std::max(1, static_cast<int>(hwLaneList.size()) / 2);
+         i++) {
       pportList.push_back((hwLaneList[i * 2] + 1) / 2);
     }
     hwLaneList = pportList;
@@ -643,15 +644,18 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   std::optional<SaiPortTraits::Attributes::ArsPortLoadFutureWeight>
       arsPortLoadFutureWeight = std::nullopt;
   if (FLAGS_flowletSwitchingEnable &&
-      platform_->getAsic()->isSupported(HwAsic::Feature::FLOWLET)) {
+      platform_->getAsic()->isSupported(HwAsic::Feature::ARS)) {
     auto flowletCfg = swPort->getPortFlowletConfig();
     if (swPort->getFlowletConfigName().has_value() &&
         swPort->getPortFlowletConfig().has_value()) {
       auto flowletCfgPtr = swPort->getPortFlowletConfig().value();
       arsEnable = true;
-      arsPortLoadScalingFactor = flowletCfgPtr->getScalingFactor();
-      arsPortLoadPastWeight = flowletCfgPtr->getLoadWeight();
-      arsPortLoadFutureWeight = flowletCfgPtr->getQueueWeight();
+      if (platform_->getAsic()->getAsicType() !=
+          cfg::AsicType::ASIC_TYPE_CHENAB) {
+        arsPortLoadScalingFactor = flowletCfgPtr->getScalingFactor();
+        arsPortLoadPastWeight = flowletCfgPtr->getLoadWeight();
+        arsPortLoadFutureWeight = flowletCfgPtr->getQueueWeight();
+      }
     }
   }
 #endif
@@ -673,20 +677,10 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
 
   std::optional<SaiPortTraits::Attributes::FecErrorDetectEnable>
       fecErrorDetectEnable{};
-#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
-  if ((swPort->getPortType() == cfg::PortType::FABRIC_PORT) &&
-      platform_->getAsic()->isSupported(
-          HwAsic::Feature::FEC_ERROR_DETECT_ENABLE) &&
-      (platform_->getHwSwitch()->getBootType() == BootType::COLD_BOOT) &&
-      ((platform_->getAsic()->getAsicType() ==
-        cfg::AsicType::ASIC_TYPE_RAMON3) ||
-       isDualStage3Q2QMode())) {
-    // FEC error detection enabling is needed for dual stage only and
-    // should be enabled on cold boot on fabric ports. Feature is
-    // enabled for 2-stage R3 devices only, however, for J3, check
-    // explicitly to restrict enabling this for 2-stage alone.
-    fecErrorDetectEnable =
-        SaiPortTraits::Attributes::FecErrorDetectEnable{true};
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_7)
+  if (auto portFecErrorDetectEnable = swPort->getFecErrorDetectEnable()) {
+    fecErrorDetectEnable = SaiPortTraits::Attributes::FecErrorDetectEnable{
+        *portFecErrorDetectEnable};
   }
 #endif
 
@@ -848,77 +842,6 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   };
 }
 
-/*
- * This is a temporary routine to fix AFE trim issue in TAJO.
- * TAJO provided a new extension attribute to set AFE mode to adaptive
- * per port.
- * 1) Apply only on 25G copper port
- * 2) Attribute to use: SAI_PORT_SERDES_ATTR_EXT_RX_AFE_ADAPTIVE_ENABLE
- * 3) Enable adaptive mode only if its not enabled in the SDK.
- */
-void SaiPortManager::enableAfeAdaptiveMode(PortID portId) {
-  SaiPortHandle* portHandle = getPortHandle(portId);
-  if (!portHandle) {
-    XLOG(DBG2) << "afe adaptive mode not enabled: failed to find port"
-               << portId;
-    return;
-  }
-  std::optional<SaiPortTraits::Attributes::MediaType> mediaTypeAttr{};
-  auto mediaType = SaiApiTable::getInstance()->portApi().getAttribute(
-      portHandle->port->adapterKey(), mediaTypeAttr);
-  // Return if media type is not copper
-  if (!(mediaType == SAI_PORT_MEDIA_TYPE_COPPER ||
-        mediaType == SAI_PORT_MEDIA_TYPE_UNKNOWN)) {
-    XLOG(DBG2)
-        << "afe adaptive mode not enabled: media type do not match for port: "
-        << portId;
-    return;
-  }
-
-  if (!portHandle->serdes) {
-    XLOG(DBG2) << "afe adaptive mode not enabled: failed to find serdes on port"
-               << portId;
-    return;
-  }
-
-  auto serdesId = portHandle->serdes->adapterKey();
-  std::optional<SaiPortSerdesTraits::Attributes::RxAfeAdaptiveEnable>
-      rxAfeAdaptiveEnableAttr{};
-  auto rxAfeAdaptiveEnabledList =
-      SaiApiTable::getInstance()->portApi().getAttribute(
-          PortSerdesSaiId(serdesId), rxAfeAdaptiveEnableAttr);
-  bool afeReset = false;
-  if (rxAfeAdaptiveEnabledList.has_value()) {
-    for (auto afeEnabledPerLane : rxAfeAdaptiveEnabledList.value()) {
-      if (afeEnabledPerLane == 0) {
-        afeReset = true;
-        break;
-      }
-    }
-  }
-  if (!afeReset) {
-    XLOG(DBG2) << "afe adaptive mode is already enabled on port: " << portId;
-    return;
-  }
-
-  SaiPortSerdesTraits::Attributes::RxAfeAdaptiveEnable::ValueType
-      rxAfeAdaptiveEnable;
-  auto hwLaneListSize =
-      GET_ATTR(Port, HwLaneList, portHandle->port->adapterHostKey()).size();
-  for (auto i = 0; i < hwLaneListSize; i++) {
-    rxAfeAdaptiveEnable.push_back(1);
-  }
-  auto& store = saiStore_->get<SaiPortSerdesTraits>();
-  SaiPortSerdesTraits::AdapterHostKey serdesKey{portHandle->port->adapterKey()};
-  auto serdesAttributes = portHandle->serdes->attributes();
-  std::get<std::optional<std::decay_t<
-      decltype(SaiPortSerdesTraits::Attributes::RxAfeAdaptiveEnable{})>>>(
-      serdesAttributes) = rxAfeAdaptiveEnable;
-  portHandle->serdes.reset();
-  portHandle->serdes = store.setObject(serdesKey, serdesAttributes);
-  XLOG(DBG2) << "Configuring afe mode to adaptive on port: " << portId;
-}
-
 void SaiPortManager::programSerdes(
     std::shared_ptr<SaiPort> saiPort,
     std::shared_ptr<Port> swPort,
@@ -1061,10 +984,9 @@ void SaiPortManager::programSerdes(
   // create if serdes doesn't exist or update existing serdes
   portHandle->serdes = store.setObject(serdesKey, serdesAttributes);
 
-  if (((platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_YUBA ||
-        platform_->getAsic()->getAsicType() ==
-            cfg::AsicType::ASIC_TYPE_TOMAHAWK5) &&
-       platform_->getHwSwitch()->getBootType() == BootType::COLD_BOOT) &&
+  if (platform_->getAsic()->getAsicType() ==
+          cfg::AsicType::ASIC_TYPE_TOMAHAWK5 &&
+      platform_->getHwSwitch()->getBootType() == BootType::COLD_BOOT &&
       swPort->getAdminState() == cfg::PortState::ENABLED) {
     /*
      * SI settings are not programmed to the hardware when the port is

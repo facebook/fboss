@@ -197,6 +197,7 @@ struct RxSettings {
   38: optional i32 dcwStepCoarseOvVal;
   39: optional i32 dcwStepFineOvVal;
   40: optional i32 dcwOvEn;
+  41: optional i32 ffeLmsDynamicGatingEn;
 }
 
 struct LaneMap {

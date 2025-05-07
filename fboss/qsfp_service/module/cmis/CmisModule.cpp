@@ -2892,6 +2892,10 @@ MediaInterfaceCode CmisModule::getModuleMediaInterface() const {
         smfCode == SMFMediaInterfaceCode::DR4_400G &&
         firstModuleCapability->hostStartLanes.size() == 2) {
       moduleMediaInterface = MediaInterfaceCode::DR4_2x400G;
+    } else if (
+        smfCode == SMFMediaInterfaceCode::LR4_10_400G &&
+        firstModuleCapability->hostStartLanes.size() == 2) {
+      moduleMediaInterface = MediaInterfaceCode::LR4_2x400G_10KM;
     } else {
       moduleMediaInterface =
           CmisHelper::getMediaInterfaceCode<SMFMediaInterfaceCode>(
@@ -3235,14 +3239,14 @@ bool CmisModule::verifyEepromChecksum(CmisPages pageId) {
 
   if (checkSum != expectedChecksum) {
     QSFP_LOG(ERR, this) << folly::sformat(
-        "Page {:d}: expected checksum {:#x}, actual {:#x}",
+        "Page {:d}: expected eeprom checksum {:#x}, actual {:#x}",
         static_cast<int>(pageId),
         expectedChecksum,
         checkSum);
     return false;
   } else {
     QSFP_LOG(DBG5, this) << folly::sformat(
-        "Page {:d}: checksum verified successfully {:#x}",
+        "Page {:d}: eeprom checksum verified successfully {:#x}",
         static_cast<int>(pageId),
         checkSum);
   }

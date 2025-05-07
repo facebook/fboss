@@ -115,13 +115,15 @@ std::shared_ptr<SwitchState> publishAndApplyConfig(
     const std::shared_ptr<SwitchState>& state,
     const cfg::SwitchConfig* config,
     const Platform* platform,
-    RoutingInformationBase* rib = nullptr);
+    RoutingInformationBase* rib = nullptr,
+    PlatformMapping* platformMapping = nullptr);
 
 std::shared_ptr<SwitchState> publishAndApplyConfig(
     const std::shared_ptr<SwitchState>& state,
     cfg::SwitchConfig* config,
     const Platform* platform,
-    RoutingInformationBase* rib = nullptr);
+    RoutingInformationBase* rib = nullptr,
+    PlatformMapping* platformMapping = nullptr);
 
 /*
  * Create a SwSwitch for testing purposes, with the specified initial state.
@@ -207,13 +209,6 @@ void waitForNeighborCacheThread(SwSwitch* sw);
  * done
  */
 void waitForRibUpdates(SwSwitch* sw);
-
-/*
- * Update Blocked Neighbors list and wait for updates
- */
-void updateBlockedNeighbor(
-    SwSwitch* sw,
-    const std::vector<std::pair<VlanID, folly::IPAddress>>& ipAddresses);
 
 /*
  * Update Blocked MAC addr list and wait for updates
@@ -303,7 +298,8 @@ cfg::SwitchConfig testConfigFabricSwitch(
  * 1-20, will yield the same SwitchState as that returned by testStateA().
  */
 cfg::SwitchConfig testConfigA(
-    cfg::SwitchType switchType = cfg::SwitchType::NPU);
+    cfg::SwitchType switchType = cfg::SwitchType::NPU,
+    cfg::AsicType asicType = cfg::AsicType::ASIC_TYPE_MOCK);
 
 cfg::SwitchConfig testConfigB();
 /*
@@ -359,6 +355,12 @@ inline RouteNextHopSet makeNextHops(const std::vector<AddrT>& ips) {
 RouteNextHopSet makeResolvedNextHops(
     std::vector<std::pair<InterfaceID, std::string>> intfAndIP,
     uint32_t weight = ECMP_WEIGHT);
+
+ResolvedNextHop makeResolvedNextHop(
+    const InterfaceID& intfId,
+    const std::string& nhip,
+    uint32_t weight = 1,
+    std::optional<NetworkTopologyInformation> topologyInfo = std::nullopt);
 
 RoutePrefixV4 makePrefixV4(std::string str);
 

@@ -297,7 +297,7 @@ bool isFbossFeatureEnabled(
 std::string getSubscriptionPathStr(const fsdb::OperSubscriberInfo& subscriber) {
   if (apache::thrift::get_pointer(subscriber.path())) {
     return folly::join(
-        "/", apache::thrift::get_pointer(subscriber.path())->get_raw());
+        "/", apache::thrift::get_pointer(subscriber.path())->raw().value());
   }
   std::vector<std::string> extPaths;
   if (auto subExtPaths =
@@ -393,19 +393,19 @@ bool isVoqOrFabric(cfg::SwitchType switchType) {
 std::map<std::string, FabricEndpoint> getFabricEndpoints(
     const HostInfo& hostInfo) {
   std::map<std::string, FabricEndpoint> entries;
-  if (utils::isFbossFeatureEnabled(hostInfo.getName(), "multi_switch")) {
-    auto hwAgentQueryFn =
-        [&entries](
-            apache::thrift::Client<facebook::fboss::FbossHwCtrl>& client) {
-          std::map<std::string, FabricEndpoint> hwagentEntries;
-          client.sync_getHwFabricConnectivity(hwagentEntries);
-          entries.merge(hwagentEntries);
-        };
-    utils::runOnAllHwAgents(hostInfo, hwAgentQueryFn);
-  } else {
-    utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo)
-        ->sync_getFabricConnectivity(entries);
-  }
+
+  // FbossHwCtrl thrift endpoint is available whether or not multi_switch
+  // feature is enabled. Leverage it.
+  // Collecting such information from HwAgent is more efficient, and thus
+  // preferred as SwSwitch call would just be a passthrough.
+  auto hwAgentQueryFn =
+      [&entries](apache::thrift::Client<facebook::fboss::FbossHwCtrl>& client) {
+        std::map<std::string, FabricEndpoint> hwagentEntries;
+        client.sync_getHwFabricConnectivity(hwagentEntries);
+        entries.merge(hwagentEntries);
+      };
+  utils::runOnAllHwAgents(hostInfo, hwAgentQueryFn);
+
   return entries;
 }
 

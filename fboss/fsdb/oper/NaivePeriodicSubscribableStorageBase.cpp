@@ -145,7 +145,8 @@ void NaivePeriodicSubscribableStorageBase::stop_impl() {
 
 void NaivePeriodicSubscribableStorageBase::registerPublisher(
     PathIter begin,
-    PathIter end) {
+    PathIter end,
+    bool skipThriftStreamLivenessCheck) {
   if (!params_.trackMetadata_) {
     return;
   }
@@ -172,7 +173,8 @@ void NaivePeriodicSubscribableStorageBase::registerPublisher(
   });
   metadataTracker_.withWLock([&](auto& tracker) {
     CHECK(tracker);
-    tracker->registerPublisherRoot(publisherRoot.value());
+    tracker->registerPublisherRoot(
+        publisherRoot.value(), skipThriftStreamLivenessCheck);
   });
 }
 

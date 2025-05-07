@@ -17,6 +17,7 @@
 #include "fboss/cli/fboss2/commands/clear/CmdClearInterfaceCounters.h"
 #include "fboss/cli/fboss2/commands/clear/CmdClearNdp.h"
 #include "fboss/cli/fboss2/commands/clear/interface/CmdClearInterface.h"
+#include "fboss/cli/fboss2/commands/clear/interface/counters/phy/CmdClearInterfaceCountersPhy.h"
 #include "fboss/cli/fboss2/commands/clear/interface/prbs/CmdClearInterfacePrbs.h"
 #include "fboss/cli/fboss2/commands/clear/interface/prbs/stats/CmdClearInterfacePrbsStats.h"
 #include "fboss/cli/fboss2/commands/get/pcap/CmdGetPcap.h"
@@ -27,6 +28,7 @@
 #include "fboss/cli/fboss2/commands/set/port/CmdSetPort.h"
 #include "fboss/cli/fboss2/commands/set/port/state/CmdSetPortState.h"
 #include "fboss/cli/fboss2/commands/show/acl/CmdShowAcl.h"
+#include "fboss/cli/fboss2/commands/show/agent/CmdShowAgentFirmware.h"
 #include "fboss/cli/fboss2/commands/show/agent/CmdShowAgentSsl.h"
 #include "fboss/cli/fboss2/commands/show/aggregateport/CmdShowAggregatePort.h"
 #include "fboss/cli/fboss2/commands/show/arp/CmdShowArp.h"
@@ -37,7 +39,9 @@
 #include "fboss/cli/fboss2/commands/show/example/CmdShowExample.h"
 #include "fboss/cli/fboss2/commands/show/example/gen-cpp2/model_visitation.h"
 #include "fboss/cli/fboss2/commands/show/fabric/CmdShowFabric.h"
+#include "fboss/cli/fboss2/commands/show/fabric/inputbalance/CmdShowFabricInputBalance.h"
 #include "fboss/cli/fboss2/commands/show/fabric/reachability/CmdShowFabricReachability.h"
+#include "fboss/cli/fboss2/commands/show/fabric/reachability/uncached/CmdShowFabricReachabilityUncached.h"
 #include "fboss/cli/fboss2/commands/show/fabric/topology/CmdShowFabricTopology.h"
 #include "fboss/cli/fboss2/commands/show/flowlet/CmdShowFlowlet.h"
 #include "fboss/cli/fboss2/commands/show/host/CmdShowHost.h"
@@ -98,10 +102,16 @@ const CommandTree& kCommandTree() {
       {"show",
        "agent",
        "Show Agent state",
-       {{"ssl",
-         "Show Agent SSL information",
-         commandHandler<CmdShowAgentSsl>,
-         argTypeHandler<CmdShowAgentSslTraits>}}},
+       {
+           {"ssl",
+            "Show Agent SSL information",
+            commandHandler<CmdShowAgentSsl>,
+            argTypeHandler<CmdShowAgentSslTraits>},
+           {"firmware",
+            "Show Agent Firmware information",
+            commandHandler<CmdShowAgentFirmware>,
+            argTypeHandler<CmdShowAgentFirmwareTraits>},
+       }},
 
       {"show",
        "aggregate-port",
@@ -125,13 +135,21 @@ const CommandTree& kCommandTree() {
        {
 
            {"reachability",
-            "Show Fabric ports that can reach the given switch name",
+            "Show Fabric ports that can reach the given switch name. Returns reachability data from SW cache by default.",
             commandHandler<CmdShowFabricReachability>,
-            argTypeHandler<CmdShowFabricReachabilityTraits>},
+            argTypeHandler<CmdShowFabricReachabilityTraits>,
+            {{"uncached",
+              "Get reachability information directly from hardware",
+              commandHandler<CmdShowFabricReachabilityUncached>,
+              argTypeHandler<CmdShowFabricReachabilityUncachedTraits>}}},
            {"topology",
             "Show Fabric topology per virtual device",
             commandHandler<CmdShowFabricTopology>,
-            argTypeHandler<CmdShowFabricTopologyTraits>}}},
+            argTypeHandler<CmdShowFabricTopologyTraits>},
+           {"inputBalance",
+            "Show Fabric input balanced given destination switch name(s)",
+            commandHandler<CmdShowFabricInputBalance>,
+            argTypeHandler<CmdShowFabricInputBalanceTraits>}}},
 
       {"show",
        "flowlet",
@@ -411,7 +429,11 @@ const CommandTree& kCommandTree() {
               {"counters",
                "Clear Interface Counters",
                commandHandler<CmdClearInterfaceCounters>,
-               argTypeHandler<CmdClearInterfaceCountersTraits>},
+               argTypeHandler<CmdClearInterfaceCountersTraits>,
+               {{"phy",
+                 "Clear Interface Phy Counters",
+                 commandHandler<CmdClearInterfaceCountersPhy>,
+                 argTypeHandler<CmdClearInterfaceCountersPhyTraits>}}},
               {
                   "prbs",
                   "Clear PRBS Information",

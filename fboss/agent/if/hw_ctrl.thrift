@@ -22,6 +22,17 @@ struct RemoteEndpoint {
 
 service FbossHwCtrl {
   /*
+   *  counter part of the similar API in ctrl.thrift
+   *  i.e Serialize switch state at thrift path
+   */
+  string getCurrentHwStateJSON(1: string path);
+
+  /*
+   * Get live serialized switch state for provided paths
+   */
+  map<string, string> getCurrentHwStateJSONForPaths(1: list<string> paths);
+
+  /*
    * Enables submitting diag cmds to the switch
    */
   common.fbstring diagCmd(
@@ -119,9 +130,23 @@ service FbossHwCtrl {
   ) throws (1: fboss.FbossBaseError error);
 
   /*
+   * Clear FEC and signal locked / changed lock counters per port.
+   */
+  void clearInterfacePhyCounters(1: list<i32> ports);
+
+  /*
    * Reconstruct switch state.
    */
   switch_state.SwitchState reconstructSwitchState() throws (
+    1: fboss.FbossBaseError error,
+  );
+
+  /*
+   * Get Firmware Information for all configured firmwares.
+   *
+   * List returns empty if no firmware is configured.
+   */
+  list<ctrl.FirmwareInfo> getAllHwFirmwareInfo() throws (
     1: fboss.FbossBaseError error,
   );
 }

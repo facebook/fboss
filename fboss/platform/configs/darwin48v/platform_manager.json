@@ -1160,10 +1160,12 @@
     "/run/devmap/eeproms/FANSPINNER_EEPROM": "/RACKMON_SLOT@0/[FANSPINNER_EEPROM]",
     "/run/devmap/sensors/PSU_PMBUS": "/PSU_SLOT@0/[PSU_PMBUS]"
   },
+  "chassisEepromDevicePath": "/[CHASSIS_EEPROM]",
   "bspKmodsRpmName": "arista_bsp_kmods",
-  "bspKmodsRpmVersion": "0.7.7-1",
+  "bspKmodsRpmVersion": "0.7.9-1",
   "requiredKmodsToLoad": [
     "i2c-i801",
-    "scd"
+    "scd",
+    "ledtrig_timer"
   ]
 }

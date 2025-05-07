@@ -603,8 +603,8 @@ class ThriftStructNode : public NodeBaseT<
         node.modify(tok);
       });
 
-      result =
-          PathVisitor<TC>::visit(*newRoot, begin, end, PathVisitMode::FULL, op);
+      result = PathVisitor<TC>::visit(
+          *newRoot, begin, end, PathVisitOptions::visitFull(), op);
     }
 
     // if successful and changed, reset root
@@ -637,7 +637,7 @@ class ThriftStructNode : public NodeBaseT<
     // Traverse to second to last hop and call remove. Modify parents
     // along the way
     auto result = PathVisitor<TC>::visit(
-        *newRoot, begin, end - 1, PathVisitMode::FULL, op);
+        *newRoot, begin, end - 1, PathVisitOptions::visitFull(), op);
 
     // if successful, reset root
     if (result == ThriftTraverseResult::OK) {

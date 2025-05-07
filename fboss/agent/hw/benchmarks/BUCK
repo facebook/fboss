@@ -75,6 +75,18 @@ agent_benchmark_lib(
     name = "hw_system_scale_memory_benchmark",
     srcs = ["HwSystemScaleMemoryBenchmark.cpp"],
     extra_deps = [
+        "//fboss/agent/test/utils:agent_fsdb_integ_bench_helper",
+        "//fboss/agent/test/utils:system_scale_test_utils",
+        "//fboss/agent/benchmarks:agent_benchmarks_h",  # @manual
+        "//folly/init:init",
+    ],
+)
+
+agent_benchmark_lib(
+    name = "hw_system_scale_churn_memory_benchmark",
+    srcs = ["HwSystemScaleChurnMemoryBenchmark.cpp"],
+    extra_deps = [
+        "//fboss/agent/test/utils:agent_fsdb_integ_bench_helper",
         "//fboss/agent/test/utils:system_scale_test_utils",
         "//fboss/agent/benchmarks:agent_benchmarks_h",  # @manual
         "//folly/init:init",
@@ -215,7 +227,7 @@ cpp_library(
         "//fboss/agent:core",
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent:utils",
-        "//fboss/agent/benchmarks:mono_agent_benchmarks",
+        "//fboss/agent/benchmarks:agent_benchmarks_h",  # @manual
         "//fboss/agent/hw/switch_asics:switch_asics",
         "//fboss/agent/hw/test:config_factory",
         "//fboss/agent/hw/test:hw_copp_utils",
@@ -271,6 +283,15 @@ agent_benchmark_lib(
 agent_benchmark_lib(
     name = "hw_init_and_exit_100Gx100G",
     srcs = ["HwInitAndExit100Gx100GBenchmark.cpp"],
+    extra_deps = [
+        "//fboss/agent/hw/test:config_factory",
+        "//fboss/agent/hw/benchmarks:hw_init_and_exit_benchmark_helper",
+    ],
+)
+
+agent_benchmark_lib(
+    name = "hw_init_and_exit_400Gx400G",
+    srcs = ["HwInitAndExit400Gx400GBenchmark.cpp"],
     extra_deps = [
         "//fboss/agent/hw/test:config_factory",
         "//fboss/agent/hw/benchmarks:hw_init_and_exit_benchmark_helper",
@@ -350,6 +371,7 @@ agent_benchmark_lib(
     extra_deps = [
         "//fboss/agent/hw/test:hw_test_ecmp_utils",
         "//fboss/agent/hw/test:load_balancer_utils",
+        "//fboss/agent/test/utils:udf_test_utils",
     ],
 )
 
@@ -385,5 +407,11 @@ agent_benchmark_lib(
 agent_benchmark_lib(
     name = "hw_voq_sys_port_programming",
     srcs = ["HwVoqSysPortProgrammingBenchmark.cpp"],
+    extra_deps = [],
+)
+
+agent_benchmark_lib(
+    name = "hw_clear_interface_phy_counters",
+    srcs = ["HwClearInterfacePhyCountersBenchmark.cpp"],
     extra_deps = [],
 )

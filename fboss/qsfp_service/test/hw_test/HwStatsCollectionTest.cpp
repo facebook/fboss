@@ -168,27 +168,27 @@ class HwXphyPortInfoTest : public HwExternalPhyPortTest {
         if (auto sysState = portInfo.state()->system()) {
           EXPECT_EQ(sysState->get_side(), phy::Side::SYSTEM);
           for (auto const& [lane, laneInfo] :
-               sysState->pmd().value().get_lanes()) {
+               sysState->pmd().value().lanes().value()) {
             EXPECT_EQ(lane, laneInfo.get_lane());
           }
         }
         if (auto sysStats = portInfo.stats()->system()) {
           EXPECT_EQ(sysStats->get_side(), phy::Side::SYSTEM);
           for (auto const& [lane, laneInfo] :
-               sysStats->pmd().value().get_lanes()) {
+               sysStats->pmd().value().lanes().value()) {
             EXPECT_EQ(lane, laneInfo.get_lane());
           }
         }
         auto lineState = portInfo.state()->line();
         EXPECT_EQ(lineState->get_side(), phy::Side::LINE);
         for (auto const& [lane, laneInfo] :
-             lineState->pmd().value().get_lanes()) {
+             lineState->pmd().value().lanes().value()) {
           EXPECT_EQ(lane, laneInfo.get_lane());
         }
         auto lineStats = portInfo.stats()->line();
         EXPECT_EQ(lineStats->get_side(), phy::Side::LINE);
         for (auto const& [lane, laneInfo] :
-             lineStats->pmd().value().get_lanes()) {
+             lineStats->pmd().value().lanes().value()) {
           EXPECT_EQ(lane, laneInfo.get_lane());
         }
         EXPECT_GT(portInfo.state()->get_timeCollected(), 0);

@@ -1,0 +1,58 @@
+name: Build & Run Platform Mapping Generation Verification
+run-name: Build & Run Platform Mapping Generation Verification
+on:
+  pull_request:
+    paths:
+      - fboss/lib/platform_mapping_v2/**
+jobs:
+  Platform-Mapping-Generation-Build:
+    runs-on: 32-core-ubuntu
+    steps:
+      - run: echo "Confirming hardware specications:"; sudo lscpu
+      - name: Clean workspace
+        run: sudo rm -rf ${{ github.workspace }}/*
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      - name: Run Docker-based build for FBOSS
+        run: >
+          sudo
+          ./fboss/oss/scripts/docker-build.py
+          --scratch-path
+          ${{ github.workspace }}/build-output
+          --target
+          fboss_platform_mapping_gen
+          --no-docker-output
+          --no-system-deps
+          --env-var
+          GITHUB_ACTIONS_BUILD
+          --local
+      - name: Package FBOSS binaries and library dependencies
+        run: >
+          sudo
+          ./fboss/oss/scripts/package-fboss.py
+          --scratch-path
+          ${{ github.workspace }}/build-output
+          --compress
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: fboss
+          path: ${{ github.workspace }}/build-output/fboss_bins.tar.zst
+          # Explicitly set the retention at the object level
+          retention-days: 14
+  Platform-Mapping-Generation-Verification:
+    runs-on: ubuntu-latest
+    needs: Platform-Mapping-Generation-Build
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      - name: Download artifact with test binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: fboss
+      - run: ls ${{ github.workspace }}
+      - name: Run unit tests
+        run: >
+          sudo
+          ./fboss/oss/scripts/github_actions/docker-unittest.py
+          ${{ github.workspace }}/fboss_bins.tar.zst

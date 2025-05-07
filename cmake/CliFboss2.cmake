@@ -73,6 +73,14 @@ add_fbthrift_cpp_library(
     json
 )
 
+
+add_fbthrift_cpp_library(
+  show_fabric_inputbalance_model
+  fboss/cli/fboss2/commands/show/fabric/inputbalance/model.thrift
+  OPTIONS
+    json
+)
+
 add_fbthrift_cpp_library(
   show_host_model
   fboss/cli/fboss2/commands/show/host/model.thrift
@@ -246,6 +254,8 @@ add_fbthrift_cpp_library(
   fboss/cli/fboss2/commands/show/route/model.thrift
   OPTIONS
     json
+  DEPENDS
+    ctrl_cpp2
 )
 
 add_fbthrift_cpp_library(
@@ -354,6 +364,7 @@ add_executable(fboss2
   fboss/cli/fboss2/commands/clear/interface/CmdClearInterface.h
   fboss/cli/fboss2/commands/clear/interface/prbs/CmdClearInterfacePrbs.h
   fboss/cli/fboss2/commands/clear/interface/prbs/stats/CmdClearInterfacePrbsStats.h
+  fboss/cli/fboss2/commands/clear/interface/counters/phy/CmdClearInterfaceCountersPhy.h
   fboss/cli/fboss2/CmdGlobalOptions.cpp
   fboss/cli/fboss2/CmdHandler.cpp
   fboss/cli/fboss2/CmdHandlerImpl.cpp
@@ -366,6 +377,8 @@ add_executable(fboss2
   fboss/cli/fboss2/commands/set/interface/prbs/state/CmdSetInterfacePrbsState.h
   fboss/cli/fboss2/commands/show/acl/CmdShowAcl.h
   fboss/cli/fboss2/commands/show/agent/CmdShowAgentSsl.h
+  fboss/cli/fboss2/commands/show/agent/CmdShowAgentFirmware.h
+  fboss/cli/fboss2/commands/show/agent/CmdShowAgentFirmware.cpp
   fboss/cli/fboss2/commands/show/aggregateport/CmdShowAggregatePort.h
   fboss/cli/fboss2/commands/show/arp/CmdShowArp.h
   fboss/cli/fboss2/commands/show/dsf/CmdShowDsf.h
@@ -374,6 +387,8 @@ add_executable(fboss2
   fboss/cli/fboss2/commands/show/example/CmdShowExample.h
   fboss/cli/fboss2/commands/show/fabric/CmdShowFabric.h
   fboss/cli/fboss2/commands/show/fabric/reachability/CmdShowFabricReachability.h
+  fboss/cli/fboss2/commands/show/fabric/reachability/uncached/CmdShowFabricReachabilityUncached.h
+  fboss/cli/fboss2/commands/show/fabric/inputbalance/CmdShowFabricInputBalance.h
   fboss/cli/fboss2/commands/show/flowlet/CmdShowFlowlet.h
   fboss/cli/fboss2/commands/show/host/CmdShowHost.h
   fboss/cli/fboss2/commands/show/hwagent/CmdShowHwAgentStatus.h
@@ -456,6 +471,7 @@ target_link_libraries(fboss2
   fsdb_oper_cpp2
   fsdb_model_cpp2
   Folly::folly
+  input_balance_util
   cli_model
   show_acl_model
   show_agent_model
@@ -467,6 +483,7 @@ target_link_libraries(fboss2
   show_dsfnodes_model
   show_fabric_model
   show_fabric_reachability_model
+  show_fabric_inputbalance_model
   show_host_model
   show_lldp_model
   show_mirror_model

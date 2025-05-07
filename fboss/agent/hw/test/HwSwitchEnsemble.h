@@ -166,6 +166,12 @@ class HwSwitchEnsemble : public TestEnsembleIf {
       SwitchID /* switchId */) const override {
     return getHwSwitch()->getFabricConnectivity();
   }
+
+  std::vector<FirmwareInfo> getAllFirmwareInfo(
+      SwitchID /* switchId */) const override {
+    return getHwSwitch()->getAllFirmwareInfo();
+  }
+
   FabricReachabilityStats getFabricReachabilityStats() const override {
     return getHwSwitch()->getFabricReachabilityStats();
   }
@@ -344,6 +350,12 @@ class HwSwitchEnsemble : public TestEnsembleIf {
       const HwPortStats& prevPortStats,
       const HwPortStats& curPortStats,
       const int secondsBetweenStatsCollection);
+
+  std::optional<VlanID> getVlanIDForTx() const override;
+
+  bool needL2EntryForNeighbor() const override {
+    return getHwSwitch()->needL2EntryForNeighbor();
+  }
 
  protected:
   /*

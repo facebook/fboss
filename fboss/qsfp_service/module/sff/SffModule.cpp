@@ -42,7 +42,8 @@ constexpr int kUsecBetweenPowerModeFlap = 100000;
 
 bool cdrSupportedSpeed(facebook::fboss::cfg::PortSpeed speed) {
   return speed == facebook::fboss::cfg::PortSpeed::HUNDREDG ||
-      speed == facebook::fboss::cfg::PortSpeed::FIFTYG;
+      speed == facebook::fboss::cfg::PortSpeed::FIFTYG ||
+      speed == facebook::fboss::cfg::PortSpeed::TWENTYFIVEG;
 }
 } // namespace
 
@@ -476,6 +477,13 @@ TransceiverSettings SffModule::getTransceiverSettingsInfo() {
 
 std::vector<uint8_t> SffModule::configuredHostLanes(
     uint8_t hostStartLane) const {
+  // MP3N uses lanes 0 and 1 for 2x25G mode
+  if (currentConfiguredSpeed_ == cfg::PortSpeed::TWENTYFIVEG) {
+    return {hostStartLane};
+  }
+
+  // Remaining profiles all start on lane 0
+
   if (hostStartLane != 0) {
     return {};
   }
@@ -488,11 +496,23 @@ std::vector<uint8_t> SffModule::configuredHostLanes(
 
 std::vector<uint8_t> SffModule::configuredMediaLanes(
     uint8_t hostStartLane) const {
-  if (hostStartLane != 0 || flatMem_) {
+  if (flatMem_) {
     return {};
   }
 
   auto ext_comp_code = getExtendedSpecificationComplianceCode();
+
+  // MP3N uses 2x25G mode, on host/media lanes 0+1
+  if (ext_comp_code &&
+      *ext_comp_code == ExtendedSpecComplianceCode::CWDM4_100G &&
+      currentConfiguredSpeed_ == cfg::PortSpeed::TWENTYFIVEG) {
+    return {hostStartLane};
+  }
+
+  // Remaining profiles should always start on lane 0
+  if (hostStartLane != 0) {
+    return {};
+  }
 
   if (ext_comp_code && *ext_comp_code == ExtendedSpecComplianceCode::FR1_100G) {
     return {0};
@@ -1257,9 +1277,9 @@ void SffModule::setPowerOverrideIfSupportedLocked(
 
   QSFP_LOG(DBG1, this) << "Power control "
                        << apache::thrift::util::enumNameSafe(currentState)
-                       << " Ext ID " << std::hex << (int)*extId
-                       << " Ethernet compliance " << std::hex << (int)*ether
-                       << " Desired power control "
+                       << " Ext ID " << std::hex << static_cast<int>(*extId)
+                       << " Ethernet compliance " << std::hex
+                       << static_cast<int>(*ether) << " Desired power control "
                        << apache::thrift::util::enumNameSafe(desiredSetting);
 
   if (currentState == desiredSetting) {
@@ -1472,8 +1492,11 @@ bool SffModule::tcvrPortStateSupported(TransceiverPortState& portState) const {
     return true;
   }
 
-  return (portState.speed == cfg::PortSpeed::FIFTYG &&
-          portState.startHostLane == 0 && portState.numHostLanes == 2) ||
+  return (portState.speed == cfg::PortSpeed::TWENTYFIVEG &&
+          (portState.startHostLane == 0 || portState.startHostLane == 1) &&
+          portState.numHostLanes == 1) ||
+      (portState.speed == cfg::PortSpeed::FIFTYG &&
+       portState.startHostLane == 0 && portState.numHostLanes == 2) ||
       ((portState.speed == cfg::PortSpeed::HUNDREDG ||
         portState.speed == cfg::PortSpeed::FORTYG) &&
        (portState.startHostLane == 0) && portState.numHostLanes == 4);

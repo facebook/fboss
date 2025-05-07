@@ -1,4 +1,5 @@
 #include "fboss/agent/test/utils/StressTestUtils.h"
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/benchmarks/AgentBenchmarks.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/test/RouteScaleGenerators.h"
@@ -22,7 +23,8 @@ namespace facebook::fboss::utility {
 template <typename RouteScaleGeneratorT>
 void resolveNhopForRouteGenerator(AgentEnsemble* ensemble) {
   auto* sw = ensemble->getSw();
-  auto routeGenerator = RouteScaleGeneratorT(sw->getState());
+  auto routeGenerator =
+      RouteScaleGeneratorT(sw->getState(), sw->needL2EntryForNeighbor());
   auto swSwitch = ensemble->agentInitializer()->sw();
   auto platformType = swSwitch->getPlatformType();
   if (!routeGenerator.isSupported(platformType)) {
@@ -40,7 +42,8 @@ std::tuple<double, double> routeChangeLookupStresser(AgentEnsemble* ensemble) {
   folly::BenchmarkSuspender suspender;
 
   auto* sw = ensemble->getSw();
-  auto routeGenerator = RouteScaleGeneratorT(sw->getState());
+  auto routeGenerator =
+      RouteScaleGeneratorT(sw->getState(), sw->needL2EntryForNeighbor());
   auto swSwitch = ensemble->agentInitializer()->sw();
   auto platformType = swSwitch->getPlatformType();
   if (!routeGenerator.isSupported(platformType)) {
@@ -55,6 +58,7 @@ std::tuple<double, double> routeChangeLookupStresser(AgentEnsemble* ensemble) {
   // flap and following route updates
   auto allThriftRoutesNarrowerEcmp = RouteScaleGeneratorT(
                                          sw->getState(),
+                                         sw->needL2EntryForNeighbor(),
                                          allThriftRoutes.size(),
                                          routeGenerator.ecmpWidth() - 1)
                                          .allThriftRoutes();
@@ -178,7 +182,7 @@ cfg::SwitchConfig bgpRxBenchmarkConfig(const AgentEnsemble& ensemble) {
       ensemble.getL3Asics(),
       ensemble.isSai(),
       /* setQueueRate */ false);
-  auto asic = utility::checkSameAndGetAsic(ensemble.getL3Asics());
+  auto asic = checkSameAndGetAsic(ensemble.getL3Asics());
   auto trapDstIp = folly::CIDRNetwork{kDstIp, 128};
   utility::addTrapPacketAcl(asic, &config, trapDstIp);
 

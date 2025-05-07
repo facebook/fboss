@@ -31,6 +31,12 @@ TEST_F(PublisherTreeMetadataTrackerTest, registerUnregisterPublishers) {
   EXPECT_THROW(getMetadata(), std::runtime_error);
 }
 
+TEST_F(PublisherTreeMetadataTrackerTest, verifySkipLivenessCheck) {
+  metadataTracker_.registerPublisherRoot(kPublishRoot, true);
+  metadataTracker_.unregisterPublisherRoot(kPublishRoot);
+  EXPECT_EQ(getMetadata().numOpenConnections, 0);
+}
+
 TEST_F(PublisherTreeMetadataTrackerTest, updateMetadataUnregisteredPublisher) {
   EXPECT_THROW(
       metadataTracker_.updateMetadata(kPublishRoot, {}), std::runtime_error);

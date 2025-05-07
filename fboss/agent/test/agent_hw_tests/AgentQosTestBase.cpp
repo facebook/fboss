@@ -15,12 +15,14 @@ namespace facebook::fboss {
 void AgentQosTestBase::verifyDscpQueueMapping(
     const std::map<int, std::vector<uint8_t>>& queueToDscp) {
   auto setup = [=, this]() {
-    utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
-    resolveNeigborAndProgramRoutes(ecmpHelper, kEcmpWidth);
+    utility::EcmpSetupAnyNPorts6 ecmpHelper(
+        getProgrammedState(), getSw()->needL2EntryForNeighbor());
+    resolveNeighborAndProgramRoutes(ecmpHelper, kEcmpWidth);
   };
 
   auto verify = [=, this]() {
-    utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+    utility::EcmpSetupAnyNPorts6 ecmpHelper(
+        getProgrammedState(), getSw()->needL2EntryForNeighbor());
     auto portId = ecmpHelper.ecmpPortDescriptorAt(0).phyPortID();
     std::optional<SystemPortID> sysPortId;
     if (getSw()->getSwitchInfoTable().haveVoqSwitches()) {
@@ -42,7 +44,7 @@ void AgentQosTestBase::verifyDscpQueueMapping(
 }
 
 void AgentQosTestBase::sendPacket(uint8_t dscp, bool frontPanel) {
-  auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
+  auto vlanId = getVlanIDForTx();
   auto intfMac =
       utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
   auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
@@ -62,7 +64,8 @@ void AgentQosTestBase::sendPacket(uint8_t dscp, bool frontPanel) {
   // Since it is not re-written, it should hit the pipeline as if it
   // ingressed on the port, and be properly queued.
   if (frontPanel) {
-    utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+    utility::EcmpSetupAnyNPorts6 ecmpHelper(
+        getProgrammedState(), getSw()->needL2EntryForNeighbor());
     auto outPort = ecmpHelper.ecmpPortDescriptorAt(kEcmpWidth).phyPortID();
     getSw()->sendPacketOutOfPortAsync(std::move(txPacket), outPort);
   } else {

@@ -879,7 +879,7 @@ std::optional<HwPortStats> SaiPhyManager::getHwPortStats(
 std::string SaiPhyManager::listHwObjects(
     std::vector<HwObjectType>& hwObjects,
     bool cached) {
-  std::string resultStr = "";
+  std::string resultStr;
 
   // Loop through all pim platforms
   for (auto& pimPlatformItr : saiPlatforms_) {
@@ -1110,6 +1110,12 @@ void SaiPhyManager::gracefulExit() {
     // Loop through all xphy in the pim
     for (auto& platformItr : pimPlatform) {
       GlobalXphyID xphyID = platformItr.first;
+#ifndef CREDO_SDK_0_9_0
+      if (getSaiPlatform(xphyID)->getAsic()->getAsicType() ==
+          cfg::AsicType::ASIC_TYPE_ELBERT_8DD) {
+        return;
+      }
+#endif
       if (!getSaiPlatform(xphyID)->getAsic()->isSupported(
               HwAsic::Feature::WARMBOOT)) {
         XLOG(DBG3) << "gracefulExit: Warmboot not supported for this platform";

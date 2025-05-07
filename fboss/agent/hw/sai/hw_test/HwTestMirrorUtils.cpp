@@ -287,8 +287,8 @@ bool isMirrorSflowTunnelEnabled(
   return type == SAI_MIRROR_SESSION_TYPE_SFLOW;
 }
 
-HwResourceStats getHwTableStats(facebook::fboss::HwSwitch* /* hwSwitch */) {
-  return HwResourceStats();
+HwResourceStats getHwTableStats(facebook::fboss::HwSwitch* hwSwitch) {
+  return hwSwitch->getResourceStats();
 }
 
 } // namespace facebook::fboss::utility

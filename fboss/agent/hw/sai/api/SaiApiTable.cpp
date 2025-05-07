@@ -225,6 +225,10 @@ const MacsecApi& SaiApiTable::macsecApi() const {
 const VendorSwitchApi& SaiApiTable::vendorSwitchApi() const {
   return getApi<VendorSwitchApi>();
 }
+
+const SwitchPipelineApi& SaiApiTable::switchPipelineApi() const {
+  return getApi<SwitchPipelineApi>();
+}
 #endif
 
 void SaiApiTable::enableLogging(const std::string& logLevelStr) const {

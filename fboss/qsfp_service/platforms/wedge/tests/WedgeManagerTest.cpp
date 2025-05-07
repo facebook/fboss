@@ -43,6 +43,8 @@ TEST_F(WedgeManagerTest, getTransceiverInfoBasic) {
       transInfo, std::make_unique<std::vector<int32_t>>());
 
   for (const auto& info : transInfo) {
+    // Always expect the eepromCsumValid to be valid
+    EXPECT_TRUE(*info.second.tcvrState()->eepromCsumValid());
     EXPECT_GT(
         *info.second.tcvrState()->timeCollected(),
         *cachedTransInfo[info.first].tcvrState()->timeCollected());
@@ -60,7 +62,8 @@ TEST_F(WedgeManagerTest, getTransceiverInfoBasic) {
     auto synchronizedTransceivers =
         transceiverManager_->getSynchronizedTransceivers().rlock();
     for (const auto& trans : *synchronizedTransceivers) {
-      if (std::find(data.begin(), data.end(), (int)trans.first) == data.end()) {
+      if (std::find(data.begin(), data.end(), static_cast<int>(trans.first)) ==
+          data.end()) {
         EXPECT_EQ(transInfo.find(trans.first), transInfo.end());
       } else {
         EXPECT_NE(transInfo.find(trans.first), transInfo.end());
@@ -79,6 +82,10 @@ TEST_F(WedgeManagerTest, getTransceiverInfoBasic) {
     EXPECT_EQ(
         *transInfo[i].tcvrState()->present(),
         i != 4); // ID 5 was marked as absent
+
+    // Always expect the eepromCsumValid to be valid, transceivers present or
+    // not
+    EXPECT_TRUE(*transInfo[i].tcvrState()->eepromCsumValid());
     std::string expectedTcvrName = fmt::format("eth1/{}", (i + 1));
     EXPECT_EQ(*transInfo[i].tcvrState()->tcvrName(), expectedTcvrName);
     EXPECT_EQ(*transInfo[i].tcvrStats()->tcvrName(), expectedTcvrName);

@@ -41,7 +41,7 @@ class AgentPfcTest : public AgentHwTest {
       payload.insert(payload.end(), padding.begin(), padding.end());
 
       // Send it out
-      auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
+      auto vlanId = getVlanIDForTx();
       auto intfMac =
           utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
       auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
@@ -61,10 +61,12 @@ TEST_F(AgentPfcTest, verifyPfcCounters) {
   std::vector<PortID> portIds = {
       masterLogicalInterfacePortIds()[0], masterLogicalInterfacePortIds()[1]};
   std::vector<int> losslessPgIds = {2};
+  std::vector<int> lossyPgIds = {0};
 
   auto setup = [&]() {
     auto cfg = getAgentEnsemble()->getCurrentConfig();
-    utility::setupPfcBuffers(getAgentEnsemble(), cfg, portIds, losslessPgIds);
+    utility::setupPfcBuffers(
+        getAgentEnsemble(), cfg, portIds, losslessPgIds, lossyPgIds);
     applyNewConfig(cfg);
 
     for (auto portId : portIds) {
@@ -115,10 +117,12 @@ class AgentPfcCaptureTest : public AgentPfcTest {
 TEST_F(AgentPfcCaptureTest, verifyPfcLoopback) {
   std::vector<PortID> portIds = {masterLogicalInterfacePortIds()[0]};
   std::vector<int> losslessPgIds = {2};
+  std::vector<int> lossyPgIds = {0};
 
   auto setup = [&]() {
     auto cfg = getAgentEnsemble()->getCurrentConfig();
-    utility::setupPfcBuffers(getAgentEnsemble(), cfg, portIds, losslessPgIds);
+    utility::setupPfcBuffers(
+        getAgentEnsemble(), cfg, portIds, losslessPgIds, lossyPgIds);
     utility::addPuntPfcPacketAcl(
         cfg, utility::getCoppMidPriQueueId(getAgentEnsemble()->getL3Asics()));
     applyNewConfig(cfg);

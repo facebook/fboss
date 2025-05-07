@@ -36,6 +36,10 @@ class SaiManagerTable;
 class SaiPlatform;
 class StateDelta;
 
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+using SaiSwitchPipeline = SaiObjectWithCounters<SaiSwitchPipelineTraits>;
+#endif
+
 class SaiSwitchManager {
   static constexpr auto kBitsPerByte = 8;
 
@@ -63,6 +67,9 @@ class SaiSwitchManager {
   void setIngressAcl();
   void setIngressAcl(sai_object_id_t id);
   void resetIngressAcl();
+
+  void setEgressAcl();
+  void resetEgressAcl();
 
   void setTamObject(std::vector<sai_object_id_t> tamObject);
   void resetTamObject();
@@ -115,6 +122,8 @@ class SaiSwitchManager {
   void setRemoteL1VoqMaxExpectedLatency(int remoteL1VoqMaxExpectedLatencyNsec);
   void setRemoteL2VoqMaxExpectedLatency(int remoteL2VoqMaxExpectedLatencyNsec);
   void setVoqOutOfBoundsLatency(int voqOutOfBoundsLatencyNsec);
+  void setTcRateLimitList(
+      const std::optional<std::map<int32_t, int32_t>>& tcToRateLimitKbps);
 
  private:
   void programEcmpLoadBalancerParams(
@@ -139,6 +148,9 @@ class SaiSwitchManager {
       SaiHashTraits::CreateAttributes& hashCreateAttrs);
   template <typename HashAttrT>
   void resetLoadBalancer();
+
+  void setEgressAcl(sai_object_id_t id);
+
   const std::vector<sai_stat_id_t>& supportedDropStats() const;
   const std::vector<sai_stat_id_t>& supportedDramStats() const;
   const std::vector<sai_stat_id_t>& supportedWatermarkStats() const;
@@ -148,6 +160,9 @@ class SaiSwitchManager {
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
   std::unique_ptr<SaiSwitchObj> switch_;
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  std::vector<std::shared_ptr<SaiSwitchPipeline>> switchPipelines_;
+#endif
   std::optional<PortSaiId> cpuPort_;
   std::optional<PortSaiId> cpuRecyclePort_;
   std::shared_ptr<SaiHash> ecmpV4Hash_;
@@ -160,6 +175,7 @@ class SaiSwitchManager {
   std::shared_ptr<SaiQosMap> globalTcToExpQosMap_;
 
   bool isMplsQosSupported_{false};
+  bool isIngressPostLookupAclSupported_{false};
   // since this is an optional attribute in SAI
   std::optional<bool> isPtpTcEnabled_{std::nullopt};
   HwSwitchDropStats switchDropStats_;
@@ -178,5 +194,10 @@ void fillHwSwitchCreditStats(
 void fillHwSwitchErrorStats(
     const folly::F14FastMap<sai_stat_id_t, uint64_t>& counterId2Value,
     HwSwitchDropStats& switchDropStats);
+void fillHwSwitchPipelineStats(
+    const folly::F14FastMap<sai_stat_id_t, uint64_t>& counterId2Value,
+    int idx,
+    HwSwitchPipelineStats& switchPipelineStats);
 void publishSwitchWatermarks(HwSwitchWatermarkStats& watermarkStats);
+void publishSwitchWPipelineStats(HwSwitchPipelineStats& pipelineStats);
 } // namespace facebook::fboss

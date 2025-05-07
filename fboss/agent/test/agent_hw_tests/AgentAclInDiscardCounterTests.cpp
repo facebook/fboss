@@ -24,16 +24,20 @@ class AgentAclInDiscardsCounterTest : public AgentHwTest {
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
     auto cfg = AgentHwTest::initialConfig(ensemble);
-    auto* acl =
-        utility::addAcl_DEPRECATED(&cfg, "block all", cfg::AclActionType::DENY);
-    acl->dstIp() = "::/0";
+    cfg::AclEntry acl;
+    acl.name() = "block all";
+    acl.actionType() = cfg::AclActionType::DENY;
+    acl.dstIp() = "::/0";
+
+    utility::addAcl(&cfg, acl, cfg::AclStage::INGRESS);
     return cfg;
   }
 };
 
 TEST_F(AgentAclInDiscardsCounterTest, aclInDiscards) {
   auto setup = [=, this]() {
-    utility::EcmpSetupAnyNPorts6 ecmpHelper6(getSw()->getState());
+    utility::EcmpSetupAnyNPorts6 ecmpHelper6(
+        getSw()->getState(), getSw()->needL2EntryForNeighbor());
     auto wrapper = getSw()->getRouteUpdater();
     ecmpHelper6.programRoutes(&wrapper, 1);
     applyNewState([&](const std::shared_ptr<SwitchState>& in) {
@@ -43,7 +47,7 @@ TEST_F(AgentAclInDiscardsCounterTest, aclInDiscards) {
   auto verify = [=, this]() {
     auto port = masterLogicalInterfacePortIds()[1];
     auto portStatsBefore = getLatestPortStats(port);
-    auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
+    auto vlanId = getVlanIDForTx();
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);

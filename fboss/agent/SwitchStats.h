@@ -496,12 +496,32 @@ class SwitchStats : public boost::noncopyable {
     loPriPktsDropped_.addValue(1);
   }
 
+  void resourceAccountantRejectedUpdates() {
+    resourceAccountantRejectedUpdates_.addValue(1);
+  }
+
   void switchConfiguredMs(uint64_t ms) {
     switchConfiguredMs_.addValue(ms);
   }
   void setFabricOverdrainPct(int16_t switchIndex, int16_t overdrainPct);
 
   void setDrainState(int16_t switchIndex, cfg::SwitchDrainState drainState);
+
+  void setActivePortsWithoutSwitchReachability(
+      int16_t switchIndex,
+      int numPorts);
+
+  void setInactivePortsWithSwitchReachability(
+      int16_t switchIndex,
+      int numPorts);
+
+  void setNumActiveFabricLinksEligibleForMinLink(
+      int32_t virtualDeviceId,
+      int32_t numLinks);
+
+  void setNumActivePortsPerVirtualDevice(
+      int32_t virtualDeviceId,
+      int32_t numActivePorts);
 
   void hwAgentConnectionStatus(int switchIndex, bool connected) {
     CHECK_LT(switchIndex, hwAgentConnectionStatus_.size());
@@ -606,6 +626,11 @@ class SwitchStats : public boost::noncopyable {
   }
   int64_t getDsfUpdateFailred() const {
     return getCumulativeValue(dsfUpdateFailed_);
+  }
+
+  void switchReachabilityInconsistencyDetected(int16_t switchIndex) {
+    CHECK_LT(switchIndex, switchReachabilityInconsistencyDetected_.size());
+    switchReachabilityInconsistencyDetected_[switchIndex].addValue(1);
   }
 
   void getHwAgentStatus(
@@ -1059,9 +1084,17 @@ class SwitchStats : public boost::noncopyable {
 
   TLTimeseries fwDrainedWithHighNumActiveFabricLinks_;
 
+  /**
+   * Number of state updates rejected by resource accountant
+   */
+  TLTimeseries resourceAccountantRejectedUpdates_;
+
   std::vector<TLCounter> hwAgentConnectionStatus_;
   std::vector<TLTimeseries> hwAgentUpdateTimeouts_;
   std::vector<HwAgentStreamConnectionStatus> thriftStreamConnectionStatus_;
+  std::vector<TLTimeseries> switchReachabilityInconsistencyDetected_;
+  std::vector<TLCounter> activePortsWithoutSwitchReachability_;
+  std::vector<TLCounter> inactivePortsWithSwitchReachability_;
 };
 
 } // namespace facebook::fboss

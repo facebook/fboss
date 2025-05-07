@@ -183,8 +183,10 @@ class FsdbSubManagerTest : public ::testing::Test,
     if (fsdbTestServer_) {
       auto subs = fsdbTestServer_->getActiveSubscriptions();
       for (const auto& [_, info] : subs) {
-        if (info.subscriberId() == clientId) {
-          return true;
+        for (const auto& subscription : info) {
+          if (subscription.subscriberId() == clientId) {
+            return true;
+          }
         }
       }
     }

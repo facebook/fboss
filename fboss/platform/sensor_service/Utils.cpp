@@ -125,7 +125,7 @@ SensorConfig Utils::getConfig() {
   SensorConfig sensorConfig =
       apache::thrift::SimpleJSONSerializer::deserialize<SensorConfig>(
           ConfigLib().getSensorServiceConfig(platformName));
-  if (!ConfigValidator().isValid(sensorConfig, std::nullopt)) {
+  if (!ConfigValidator().isValid(sensorConfig)) {
     throw std::runtime_error("Invalid sensor config");
   }
   return sensorConfig;

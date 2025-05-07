@@ -89,6 +89,7 @@ cpp_unittest(
         "//fboss/agent:core",
         "//fboss/agent:fboss-error",
         "//fboss/agent:fboss-types",
+        "//fboss/agent:fib_helpers",
         "//fboss/agent:gtest_defs",
         "//fboss/agent:handler",
         "//fboss/agent:hw_asic_table",
@@ -289,8 +290,8 @@ cpp_library(
     exported_deps = [
         ":ecmp_helper",
         ":resourcelibutil",
-        "//fboss/agent:core",
         "//fboss/agent:fboss-types",
+        "//fboss/agent:fib_helpers",
         "//fboss/agent:utils",
         "//fboss/agent/if:ctrl-cpp2-types",
         "//fboss/agent/state:state",
@@ -373,6 +374,7 @@ cpp_library(
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent/hw/switch_asics:switch_asics",
         "//fboss/agent/state:state",
+        "//fboss/agent/test/utils:neighbor_test_utils",
         "//folly:network_address",
     ],
     exported_external_deps = [
@@ -465,7 +467,6 @@ cpp_library(
         "//fboss/agent/hw:hardware_stats-cpp2-types",
         "//fboss/agent/hw/switch_asics:switch_asics",
         "//fboss/agent/state:state",
-        "//fboss/agent/test/utils:asic_test_utils",
         "//fboss/agent/test/utils:qos_test_utils",
         "//fboss/qsfp_service/lib:qsfp-service-client",
         "//folly/gen:base",
@@ -507,7 +508,6 @@ cpp_library(
         ":agent_ensemble_test",
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent/hw/test:config_factory",
-        "//fboss/agent/test/utils:asic_test_utils",
         "//folly:synchronized",
         "//folly/gen:base",
         "//folly/logging:logging",
@@ -551,7 +551,6 @@ cpp_library(
     srcs = [
         "MultiNodeTest.cpp",
     ],
-    link_whole = True,
     exported_deps = [
         ":agent_test",
         "//common/network:util",
@@ -579,7 +578,6 @@ cpp_library(
         "MultiNodeLoadBalancerTests.cpp",
         "MultiNodeOpenrTests.cpp",
     ],
-    link_whole = True,
     # Need symbols from bcm, sai layers.
     undefined_symbols = True,
     exported_deps = [
@@ -616,7 +614,6 @@ cpp_library(
     srcs = [
         "MultiNodeMacsecTests.cpp",
     ],
-    link_whole = True,
     # Need symbols from bcm, sai layers.
     undefined_symbols = True,
     exported_deps = [
@@ -646,8 +643,11 @@ cpp_library(
         ":linkstate_toggler",
         ":route_distribution_gen",
         ":test_ensemble_if",
+        "//common/thrift/thrift:monitor-cpp2-clients",
         "//fboss/agent:agent_config-cpp2-types",
+        "//fboss/agent:agent_features",
         "//fboss/agent:core",
+        "//fboss/agent:fboss-types",
         "//fboss/agent:fboss_common_init",
         "//fboss/agent:fboss_init_h",
         "//fboss/agent:handler",
@@ -660,6 +660,7 @@ cpp_library(
         "//fboss/agent:sw_switch_warmboot_helper",
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent:utils",
+        "//fboss/agent/hw:hardware_stats-cpp2-types",
         "//fboss/agent/hw/bcm:bcm_config-cpp2-types",
         "//fboss/agent/hw/test:config_factory",
         "//fboss/agent/if:agent_hw_test_ctrl-cpp2-services",
@@ -898,10 +899,11 @@ thrift_library(
     languages = [
         "cpp2",
         "go",
-        "py3",
-        "py-asyncio",
+        "py3-deprecated",
+        "py-deprecated-asyncio",
         "rust",
         "py-deprecated",
+        "python",
     ],
     py3_namespace = "neteng.fboss",
     py_asyncio_base_module = "neteng.fboss.asyncio",
@@ -943,5 +945,21 @@ cpp_unittest(
     ],
     deps = [
         "//fboss/agent:fboss_event_base",
+    ],
+)
+
+cpp_unittest(
+    name = "ecmp_resource_manager_test",
+    srcs = [
+        "BaseEcmpResourceManagerTest.cpp",
+        "EcmpResourceMgrBackupGrpTests.cpp",
+        "EcmpResourceMgrGroupIdAllocationTests.cpp",
+    ],
+    headers = ["BaseEcmpResourceManagerTest.h"],
+    deps = [
+        "//fboss/agent:ecmp_resource_manager",
+        "//fboss/agent:fboss-types",
+        "//fboss/agent/state:state",
+        "//folly:network_address",
     ],
 )

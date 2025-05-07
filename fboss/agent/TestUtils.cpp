@@ -37,7 +37,7 @@ std::unique_ptr<AgentConfig> getConfigFileForTesting(int switchIndex) {
   }
   XLOG(INFO) << "Using config file " << configFileName << " to init hw agent";
   auto config = AgentConfig::fromFile(configFileName);
-  removeFile(configFileName);
+  removeFile(configFileName, true /*log*/);
   return config;
 }
 } // namespace facebook::fboss

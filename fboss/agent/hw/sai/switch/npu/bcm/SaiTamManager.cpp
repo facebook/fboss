@@ -2,6 +2,7 @@
 
 #include "fboss/agent/hw/sai/switch/SaiTamManager.h"
 
+#include "fboss/agent/Utils.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
@@ -213,13 +214,17 @@ SaiTamManager::SaiTamManager(
 void SaiTamManager::addMirrorOnDropReport(
     const std::shared_ptr<MirrorOnDropReport>& report) {
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+  std::string destMac = report->getFirstInterfaceMac();
+  if (!FLAGS_mod_dest_mac_override.empty()) {
+    destMac = FLAGS_mod_dest_mac_override;
+    XLOG(INFO) << "MirrorOnDrop dest MAC overridden to " << destMac;
+  }
   XLOG(INFO) << "Creating MirrorOnDropReport " << report->getID()
              << " srcIp=" << report->getLocalSrcIp().str()
              << " srcPort=" << report->getLocalSrcPort()
              << " collectorIp=" << report->getCollectorIp().str()
              << " collectorPort=" << report->getCollectorPort()
-             << " srcMac=" << report->getSwitchMac()
-             << " dstMac=" << report->getFirstInterfaceMac();
+             << " srcMac=" << report->getSwitchMac() << " dstMac=" << destMac;
 
   // Create report
   auto& reportStore = saiStore_->get<SaiTamReportTraits>();
@@ -241,7 +246,7 @@ void SaiTamManager::addMirrorOnDropReport(
       report->getCollectorPort(),
       report->getMtu(),
       folly::MacAddress(report->getSwitchMac()),
-      folly::MacAddress(report->getFirstInterfaceMac()),
+      folly::MacAddress(destMac),
   };
   auto transport = transportStore.setObject(transportTraits, transportTraits);
 

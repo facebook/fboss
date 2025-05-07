@@ -39,7 +39,7 @@ uint64_t getSwitchEgressPoolAvailableSize(const SaiPlatform* platform) {
   const auto switchId = saiSwitch->getSaiSwitchId();
   auto& switchApi = SaiApiTable::getInstance()->switchApi();
   return switchApi.getAttribute(
-      switchId, SaiSwitchTraits::Attributes::EgressPoolAvaialableSize{});
+      switchId, SaiSwitchTraits::Attributes::EgressPoolAvailableSize{});
 }
 
 void assertMaxBufferPoolSize(const SaiPlatform* platform) {
@@ -173,7 +173,7 @@ uint64_t SaiBufferManager::getMaxEgressPoolBytes(const SaiPlatform* platform) {
       saiSwitch = static_cast<SaiSwitch*>(platform->getHwSwitch());
       switchId = saiSwitch->getSaiSwitchId();
       return SaiApiTable::getInstance()->switchApi().getAttribute(
-          switchId, SaiSwitchTraits::Attributes::EgressPoolAvaialableSize{});
+          switchId, SaiSwitchTraits::Attributes::EgressPoolAvailableSize{});
     case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
     case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
     case cfg::AsicType::ASIC_TYPE_RAMON:
@@ -255,17 +255,16 @@ void SaiBufferManager::setupIngressBufferPool(
       platform_->getAsic()->getNumMemoryBuffers();
   // XoffSize configuration is needed only when PFC is supported
   std::optional<SaiBufferPoolTraits::Attributes::XoffSize> xoffSize;
-#if defined(TAJO_SDK) || defined(BRCM_SAI_SDK_XGS_AND_DNX)
   if (platform_->getAsic()->isSupported(HwAsic::Feature::PFC)) {
     xoffSize = *bufferPoolCfg.headroomBytes() *
         platform_->getAsic()->getNumMemoryBuffers();
   }
-#endif
+  SaiBufferPoolTraits::Attributes::ThresholdMode thresholdMode =
+      platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB
+      ? SAI_BUFFER_POOL_THRESHOLD_MODE_DYNAMIC
+      : SAI_BUFFER_POOL_THRESHOLD_MODE_STATIC;
   SaiBufferPoolTraits::CreateAttributes attributes{
-      SAI_BUFFER_POOL_TYPE_INGRESS,
-      poolSize,
-      SAI_BUFFER_POOL_THRESHOLD_MODE_STATIC,
-      xoffSize};
+      SAI_BUFFER_POOL_TYPE_INGRESS, poolSize, thresholdMode, xoffSize};
   SaiBufferPoolTraits::AdapterHostKey k = tupleProjection<
       SaiBufferPoolTraits::CreateAttributes,
       SaiBufferPoolTraits::AdapterHostKey>(attributes);
@@ -395,8 +394,11 @@ void SaiBufferManager::updateIngressBufferPoolStats() {
     // TODO: Request for per ITM buffer pool stats in SAI
     counterIdsToReadAndClear.push_back(SAI_BUFFER_POOL_STAT_WATERMARK_BYTES);
 #if !defined(BRCM_SAI_SDK_XGS) || defined(BRCM_SAI_SDK_GTE_10_0)
-    counterIdsToReadAndClear.push_back(
-        SAI_BUFFER_POOL_STAT_XOFF_ROOM_WATERMARK_BYTES);
+    if (platform_->getAsic()->isSupported(
+            HwAsic::Feature::BUFFER_POOL_HEADROOM_WATERMARK)) {
+      counterIdsToReadAndClear.push_back(
+          SAI_BUFFER_POOL_STAT_XOFF_ROOM_WATERMARK_BYTES);
+    }
 #endif
   }
   ingressBufferPoolHandle->bufferPool->updateStats(

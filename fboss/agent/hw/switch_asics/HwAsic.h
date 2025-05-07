@@ -123,7 +123,7 @@ class HwAsic {
     WARMBOOT,
     SHARED_INGRESS_EGRESS_BUFFER_POOL,
     ROUTE_METADATA,
-    FLOWLET,
+    ARS,
     P4_WARMBOOT,
     IN_PAUSE_INCREMENTS_DISCARDS,
     FEC_AM_LOCK_STATUS,
@@ -146,7 +146,7 @@ class HwAsic {
     VOQ_DELETE_COUNTER,
     DRAM_ENQUEUE_DEQUEUE_STATS,
     SEPARATE_BYTE_AND_PACKET_ACL_COUNTER,
-    FLOWLET_PORT_ATTRIBUTES,
+    ARS_PORT_ATTRIBUTES,
     SAI_EAPOL_TRAP,
     // pending CS00012311423
     L3_MTU_ERROR_TRAP,
@@ -206,6 +206,13 @@ class HwAsic {
     VENDOR_SWITCH_NOTIFICATION,
     SDK_REGISTER_DUMP,
     FEC_ERROR_DETECT_ENABLE,
+    BUFFER_POOL_HEADROOM_WATERMARK,
+    SAI_SET_TC_WITH_USER_DEFINED_TRAP_CPU_ACTION,
+    SAI_HOST_MISS_TRAP,
+    CPU_TX_PACKET_REQUIRES_VLAN_TAG,
+    DRAM_DATAPATH_PACKET_ERROR_STATS,
+    EGRESS_POOL_AVAILABLE_SIZE_ATTRIBUTE_SUPPORTED,
+    SWITCH_ASIC_SDK_HEALTH_NOTIFY,
   };
 
   enum class AsicMode {
@@ -235,7 +242,9 @@ class HwAsic {
   static std::unique_ptr<HwAsic> makeAsic(
       std::optional<int64_t> switchID,
       const cfg::SwitchInfo& switchInfo,
-      std::optional<cfg::SdkVersion> sdkVersion);
+      std::optional<cfg::SdkVersion> sdkVersion,
+      std::optional<HwAsic::FabricNodeRole> fabricNodeRole);
+
   virtual bool isSupported(Feature) const = 0;
   virtual cfg::AsicType getAsicType() const = 0;
   std::string getAsicTypeStr() const;
@@ -267,6 +276,8 @@ class HwAsic {
     return false;
   }
   virtual FabricNodeRole getFabricNodeRole() const;
+  virtual const std::set<uint16_t>& getL1FabricPortsToConnectToL2() const;
+
   // Get the smallest packet buffer unit for ASIC, cell size for BCM
   virtual uint32_t getPacketBufferUnitSize() const = 0;
 

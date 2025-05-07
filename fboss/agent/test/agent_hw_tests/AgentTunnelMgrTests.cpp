@@ -789,17 +789,13 @@ TEST_F(AgentTunnelMgrTest, checkDuplicateEntries) {
       std::string intfIPv6New;
       // change ipv4 and ipv6 address of the interface
       for (int j = 0; j < config.interfaces()[i].ipAddresses()->size(); j++) {
-        auto ipDecimal =
-            folly::sformat("{}", i + config.interfaces()->size() + 10);
         if (config.interfaces()[i].ipAddresses()[j].find("::") ==
             std::string::npos) {
-          config.interfaces()[i].ipAddresses()[j] =
-              folly::sformat("{}.2.2.2/24", ipDecimal);
-          intfIPv4New = folly::sformat("{}.2.2.2", ipDecimal);
+          intfIPv4New = utility::genInterfaceAddress(i + 1, true, 31, 31);
+          config.interfaces()[i].ipAddresses()[j] = intfIPv4New;
         } else {
-          config.interfaces()[i].ipAddresses()[j] =
-              folly::sformat("{}::2/64", ipDecimal);
-          intfIPv6New = folly::sformat("{}::2", ipDecimal);
+          intfIPv6New = utility::genInterfaceAddress(i + 1, false, 127, 127);
+          config.interfaces()[i].ipAddresses()[j] = intfIPv6New;
         }
       }
 
@@ -836,4 +832,131 @@ TEST_F(AgentTunnelMgrTest, checkDuplicateEntries) {
 
   verifyAcrossWarmBoots(setup, verify);
 }
+
+TEST_F(AgentTunnelMgrTest, checkKernelIPv4EntriesPortsDown) {
+  auto setup = [=]() {};
+  auto verify = [=, this]() {
+    auto config = initialConfig(*getAgentEnsemble());
+    std::string intfIPv4;
+    std::string intfIPv6;
+    for (int i = 0; i < config.ports()->size(); i++) {
+      config.ports()[i].state() = cfg::PortState::DISABLED;
+    }
+
+    // Apply the config
+    applyNewConfig(config);
+    waitForStateUpdates(getAgentEnsemble()->getSw());
+
+    for (int i = 0; i < config.interfaces()->size(); i++) {
+      for (int j = 0; j < config.interfaces()[i].ipAddresses()->size(); j++) {
+        std::string intfIP = folly::to<std::string>(
+            folly::IPAddress::createNetwork(
+                config.interfaces()[i].ipAddresses()[j], -1, false)
+                .first);
+
+        if (intfIP.find("::") != std::string::npos) {
+          intfIPv6 = std::move(intfIP);
+        } else {
+          intfIPv4 = std::move(intfIP);
+        }
+      }
+
+      // Get TunManager pointer
+      auto tunMgr_ = getAgentEnsemble()->getSw()->getTunManager();
+      auto status = tunMgr_->getIntfStatus(
+          getProgrammedState(),
+          (InterfaceID)config.interfaces()[i].intfID().value());
+      // There could be a race condition where the interface is up, but the
+      // socket is not created. So, checking for the socket existence.
+      auto socketExists = tunMgr_->isValidNlSocket();
+
+      // There is a known limitation in the kernel that the source route rule
+      // entries are not created if the interface is not up. So, checking for
+      // the kernel entries if the interface is  up
+      if (status && socketExists) {
+        checkKernelEntriesExist(folly::to<std::string>(intfIPv4));
+      }
+
+      // Clear kernel entries
+      clearKernelEntries(
+          folly::to<std::string>(intfIPv4), folly::to<std::string>(intfIPv6));
+
+      // Check that the kernel entries are removed
+      checkKernelEntriesRemoved(
+          folly::to<std::string>(intfIPv4), folly::to<std::string>(intfIPv6));
+    }
+
+    clearAllKernelEntries();
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(AgentTunnelMgrTest, checkKernelIPv4EntriesPortsDownUp) {
+  auto setup = [=]() {};
+  auto verify = [=, this]() {
+    auto config = initialConfig(*getAgentEnsemble());
+    std::string intfIPv4;
+    std::string intfIPv6;
+    for (int i = 0; i < config.ports()->size(); i++) {
+      config.ports()[i].state() = cfg::PortState::DISABLED;
+    }
+
+    // Apply the config
+    applyNewConfig(config);
+    waitForStateUpdates(getAgentEnsemble()->getSw());
+
+    for (int i = 0; i < config.ports()->size(); i++) {
+      config.ports()[i].state() = cfg::PortState::ENABLED;
+    }
+
+    // Apply the config
+    applyNewConfig(config);
+    waitForStateUpdates(getAgentEnsemble()->getSw());
+
+    for (int i = 0; i < config.interfaces()->size(); i++) {
+      for (int j = 0; j < config.interfaces()[i].ipAddresses()->size(); j++) {
+        std::string intfIP = folly::to<std::string>(
+            folly::IPAddress::createNetwork(
+                config.interfaces()[i].ipAddresses()[j], -1, false)
+                .first);
+
+        if (intfIP.find("::") != std::string::npos) {
+          intfIPv6 = std::move(intfIP);
+        } else {
+          intfIPv4 = std::move(intfIP);
+        }
+      }
+
+      // Get TunManager pointer
+      auto tunMgr_ = getAgentEnsemble()->getSw()->getTunManager();
+      auto status = tunMgr_->getIntfStatus(
+          getProgrammedState(),
+          (InterfaceID)config.interfaces()[i].intfID().value());
+      // There could be a race condition where the interface is up, but the
+      // socket is not created. So, checking for the socket existence.
+      auto socketExists = tunMgr_->isValidNlSocket();
+
+      // There is a known limitation in the kernel that the source route rule
+      // entries are not created if the interface is not up. So, checking for
+      // the kernel entries if the interface is  up
+      if (status && socketExists) {
+        checkKernelEntriesExist(folly::to<std::string>(intfIPv4));
+      }
+
+      // Clear kernel entries
+      clearKernelEntries(
+          folly::to<std::string>(intfIPv4), folly::to<std::string>(intfIPv6));
+
+      // Check that the kernel entries are removed
+      checkKernelEntriesRemoved(
+          folly::to<std::string>(intfIPv4), folly::to<std::string>(intfIPv6));
+    }
+
+    clearAllKernelEntries();
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss

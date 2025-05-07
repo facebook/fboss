@@ -2,6 +2,8 @@
 
 #include <unordered_map>
 
+#include <folly/Format.h>
+
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 #include "fboss/qsfp_service/module/cmis/CmisModule.h"
@@ -53,7 +55,7 @@ class CmisHelper final {
         {facebook::fboss::cfg::PortSpeed::HUNDREDANDSIXPOINTTWOFIVEG,
          {SMFMediaInterfaceCode::FR1_100G}},
         {facebook::fboss::cfg::PortSpeed::TWOHUNDREDG,
-         {SMFMediaInterfaceCode::FR4_200G}},
+         {SMFMediaInterfaceCode::FR4_200G, SMFMediaInterfaceCode::LR4_200G}},
         {facebook::fboss::cfg::PortSpeed::FOURHUNDREDG,
          {SMFMediaInterfaceCode::FR4_400G,
           SMFMediaInterfaceCode::LR4_10_400G,
@@ -70,6 +72,7 @@ class CmisHelper final {
         {SMFMediaInterfaceCode::CWDM4_100G, MediaInterfaceCode::CWDM4_100G},
         {SMFMediaInterfaceCode::FR1_100G, MediaInterfaceCode::FR1_100G},
         {SMFMediaInterfaceCode::FR4_200G, MediaInterfaceCode::FR4_200G},
+        {SMFMediaInterfaceCode::LR4_200G, MediaInterfaceCode::LR4_200G},
         {SMFMediaInterfaceCode::FR4_400G, MediaInterfaceCode::FR4_400G},
         {SMFMediaInterfaceCode::LR4_10_400G, MediaInterfaceCode::LR4_400G_10KM},
         {SMFMediaInterfaceCode::DR4_400G, MediaInterfaceCode::DR4_400G},
@@ -157,6 +160,50 @@ class CmisHelper final {
             SMFMediaInterfaceCode::FR8_800G,
             SMFMediaInterfaceCode::FR8_800G,
         },
+        {
+            // 2x400G-LR4
+            SMFMediaInterfaceCode::LR4_10_400G,
+            SMFMediaInterfaceCode::LR4_10_400G,
+            SMFMediaInterfaceCode::LR4_10_400G,
+            SMFMediaInterfaceCode::LR4_10_400G,
+            SMFMediaInterfaceCode::LR4_10_400G,
+            SMFMediaInterfaceCode::LR4_10_400G,
+            SMFMediaInterfaceCode::LR4_10_400G,
+            SMFMediaInterfaceCode::LR4_10_400G,
+        },
+        {
+            // 2x200G-LR4
+            SMFMediaInterfaceCode::LR4_200G,
+            SMFMediaInterfaceCode::LR4_200G,
+            SMFMediaInterfaceCode::LR4_200G,
+            SMFMediaInterfaceCode::LR4_200G,
+            SMFMediaInterfaceCode::LR4_200G,
+            SMFMediaInterfaceCode::LR4_200G,
+            SMFMediaInterfaceCode::LR4_200G,
+            SMFMediaInterfaceCode::LR4_200G,
+        },
+        {
+            // 400G-LR4 + 200G-LR4
+            SMFMediaInterfaceCode::LR4_10_400G,
+            SMFMediaInterfaceCode::LR4_10_400G,
+            SMFMediaInterfaceCode::LR4_10_400G,
+            SMFMediaInterfaceCode::LR4_10_400G,
+            SMFMediaInterfaceCode::LR4_200G,
+            SMFMediaInterfaceCode::LR4_200G,
+            SMFMediaInterfaceCode::LR4_200G,
+            SMFMediaInterfaceCode::LR4_200G,
+        },
+        {
+            // 200G-LR4 + 400G-LR4
+            SMFMediaInterfaceCode::LR4_200G,
+            SMFMediaInterfaceCode::LR4_200G,
+            SMFMediaInterfaceCode::LR4_200G,
+            SMFMediaInterfaceCode::LR4_200G,
+            SMFMediaInterfaceCode::LR4_10_400G,
+            SMFMediaInterfaceCode::LR4_10_400G,
+            SMFMediaInterfaceCode::LR4_10_400G,
+            SMFMediaInterfaceCode::LR4_10_400G,
+        },
     };
     return smfOsfpValidSpeedCombinations_;
   }
@@ -217,18 +264,18 @@ class CmisHelper final {
                             ActiveCuHostInterfaceCode::AUI_PAM4_2S_200G,
                             ActiveCuHostInterfaceCode::AUI_PAM4_2S_200G,
                         },
-                        {
-                            // 2xCR4_400G
-                            ActiveCuHostInterfaceCode::AUI_PAM4_4S_400G,
-                            ActiveCuHostInterfaceCode::AUI_PAM4_4S_400G,
-                            ActiveCuHostInterfaceCode::AUI_PAM4_4S_400G,
-                            ActiveCuHostInterfaceCode::AUI_PAM4_4S_400G,
-                            ActiveCuHostInterfaceCode::AUI_PAM4_4S_400G,
-                            ActiveCuHostInterfaceCode::AUI_PAM4_4S_400G,
-                            ActiveCuHostInterfaceCode::AUI_PAM4_4S_400G,
-                            ActiveCuHostInterfaceCode::AUI_PAM4_4S_400G,
-                        },
             */
+            {
+                // 2xCR4_400G
+                ActiveCuHostInterfaceCode::AUI_PAM4_4S_400G,
+                ActiveCuHostInterfaceCode::AUI_PAM4_4S_400G,
+                ActiveCuHostInterfaceCode::AUI_PAM4_4S_400G,
+                ActiveCuHostInterfaceCode::AUI_PAM4_4S_400G,
+                ActiveCuHostInterfaceCode::AUI_PAM4_4S_400G,
+                ActiveCuHostInterfaceCode::AUI_PAM4_4S_400G,
+                ActiveCuHostInterfaceCode::AUI_PAM4_4S_400G,
+                ActiveCuHostInterfaceCode::AUI_PAM4_4S_400G,
+            },
             {
                 // 8x100G CR8_800G
                 ActiveCuHostInterfaceCode::AUI_PAM4_8S_800G,

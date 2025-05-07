@@ -42,9 +42,15 @@ FsdbStateSubscriberImpl<SubUnit, PathElement>::serveStream(StreamT&& stream) {
   // add histogram for publish-subscribe time latency
   // histogram range [0, 20s], 200ms width (100 bins)
   fb303::ThreadCachedServiceData::get()->addHistogram(
-      this->subscribeLatencyMetric_, 200, 0, 2000);
+      this->clientPubsubLatencyMetric_, 200, 0, 2000);
   fb303::ThreadCachedServiceData::get()->exportHistogram(
-      this->subscribeLatencyMetric_, 50, 95, 99);
+      this->clientPubsubLatencyMetric_, 50, 95, 99);
+  if (this->subscriptionOptions().exportPerSubscriptionMetrics_) {
+    fb303::ThreadCachedServiceData::get()->addHistogram(
+        this->subscribeLatencyMetric_, 200, 0, 2000);
+    fb303::ThreadCachedServiceData::get()->exportHistogram(
+        this->subscribeLatencyMetric_, 50, 95, 99);
+  }
   auto gen = std::move(std::get<SubStreamT>(stream)).toAsyncGenerator();
   while (auto state = co_await gen.next()) {
     if (this->isCancelled()) {
@@ -87,7 +93,11 @@ FsdbStateSubscriberImpl<SubUnit, PathElement>::serveStream(StreamT&& stream) {
                 .count();
         auto latency = currentTimestamp - lastPublishedAt;
         fb303::ThreadCachedServiceData::get()->addHistogramValue(
-            this->subscribeLatencyMetric_, latency);
+            this->clientPubsubLatencyMetric_, latency);
+        if (this->subscriptionOptions().exportPerSubscriptionMetrics_) {
+          fb303::ThreadCachedServiceData::get()->addHistogramValue(
+              this->subscribeLatencyMetric_, latency);
+        }
       }
     }
 

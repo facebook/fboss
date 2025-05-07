@@ -38088,7 +38088,7 @@
             "custom_feature_use_new_access.BCM8892X_ADAPTER": "1",
             "fabric_connectivity_based_on_integrity.BCM8892X": "0",
             "fabric_distributed_system_enable": "1",
-            "fabric_load_balancing_mode": "BALANCED_INPUT",
+            "fabric_load_balancing_mode": "NORMAL_LOAD_BALANCE",
             "fabric_num_pipes.BCM8892X": "1",
             "fabric_pipe_map.BCM8892X": "0",
             "fabric_wrong_connectivity_protection_en": "1",

@@ -30,7 +30,9 @@ class BcmLabelSwitchActionTest : public BcmTest {
   void SetUp() override {
     BcmTest::SetUp();
     ecmpHelper_ = std::make_unique<utility::EcmpSetupTargetedPorts6>(
-        getProgrammedState(), RouterID(0));
+        getProgrammedState(),
+        getHwSwitch()->needL2EntryForNeighbor(),
+        RouterID(0));
   }
 
   std::shared_ptr<SwitchState> initState() {

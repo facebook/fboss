@@ -20,6 +20,18 @@ class StaticL2ForNeighborSwSwitchUpdater : public StaticL2ForNeighborUpdater {
  public:
   explicit StaticL2ForNeighborSwSwitchUpdater(SwSwitch* sw);
 
+  template <typename NeighborEntryT>
+  static std::shared_ptr<SwitchState> ensureMacEntry(
+      std::shared_ptr<SwitchState> state,
+      VlanID vlan,
+      const std::shared_ptr<NeighborEntryT>& neighbor);
+
+  template <typename NeighborEntryT>
+  static std::shared_ptr<SwitchState> pruneMacEntry(
+      std::shared_ptr<SwitchState> state,
+      VlanID vlanId,
+      const std::shared_ptr<NeighborEntryT>& removedEntry);
+
  private:
   template <typename NeighborEntryT>
   void ensureMacEntry(

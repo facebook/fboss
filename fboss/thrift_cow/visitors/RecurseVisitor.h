@@ -6,6 +6,7 @@
 #include <string>
 #include "folly/Conv.h"
 
+#include <fboss/thrift_cow/nodes/Serializer.h>
 #include <fboss/thrift_cow/visitors/TraverseHelper.h>
 #include <fboss/thrift_cow/visitors/VisitorUtils.h>
 #include <folly/Traits.h>
@@ -77,6 +78,28 @@ void invokeVisitorFnHelper(
     Node&& node,
     Func&& f) {
   return f(traverser, std::forward<Node>(node));
+}
+
+template <typename TC, typename TType, typename TraverseHelper, typename Func>
+void invokeVisitorFnWithWrapper(
+    RecurseVisitOptions /* options */,
+    TraverseHelper& traverser,
+    TType& node,
+    Func&& f) {
+  std::optional<SerializableWrapper<TC, TType>> wrapper =
+      SerializableWrapper<TC, TType>(node);
+  return f(traverser, wrapper);
+}
+
+template <typename TC, typename TType, typename TraverseHelper, typename Func>
+void invokeVisitorFnWithWrapper(
+    RecurseVisitOptions /* options */,
+    TraverseHelper& traverser,
+    const TType& node,
+    Func&& f) {
+  std::optional<SerializableWrapper<TC, TType>> wrapper =
+      SerializableWrapper<TC, TType>(*const_cast<TType*>(&node));
+  return f(traverser, wrapper);
 }
 
 template <typename TC, typename NodePtr, typename TraverseHelper, typename Func>
@@ -228,8 +251,8 @@ struct RecurseVisitor<apache::thrift::type_class::list<ValueTypeClass>> {
     // visit list elements
     for (int i = 0; i < tObj.size(); ++i) {
       traverser.push(folly::to<std::string>(i), TCType<ValueTypeClass>);
-      rv_detail::invokeVisitorFnHelper(
-          options, traverser, &tObj.at(i), std::forward<Func>(f));
+      rv_detail::invokeVisitorFnWithWrapper<ValueTypeClass>(
+          options, traverser, tObj.at(i), std::forward<Func>(f));
       traverser.pop(TCType<ValueTypeClass>);
     }
     if (visitIntermediate &&
@@ -310,15 +333,15 @@ struct RecurseVisitor<
     if constexpr (std::is_const_v<NodePtr>) {
       for (const auto& [key, val] : tObj) {
         traverser.push(folly::to<std::string>(key), TCType<MappedTypeClass>);
-        rv_detail::invokeVisitorFnHelper(
-            options, traverser, &val, std::forward<Func>(f));
+        rv_detail::invokeVisitorFnWithWrapper<MappedTypeClass>(
+            options, traverser, val, std::forward<Func>(f));
         traverser.pop(TCType<MappedTypeClass>);
       }
     } else {
       for (auto& [key, val] : tObj) {
         traverser.push(folly::to<std::string>(key), TCType<MappedTypeClass>);
-        rv_detail::invokeVisitorFnHelper(
-            options, traverser, &val, std::forward<Func>(f));
+        rv_detail::invokeVisitorFnWithWrapper<MappedTypeClass>(
+            options, traverser, val, std::forward<Func>(f));
         traverser.pop(TCType<MappedTypeClass>);
       }
     }

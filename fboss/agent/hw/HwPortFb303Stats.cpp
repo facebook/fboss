@@ -54,6 +54,8 @@ HwPortFb303Stats::kPortMonotonicCounterStatKeys() const {
       kPqpErrorEgressDroppedPackets(),
       kFabricLinkDownDroppedCells(),
       kLinkLayerFlowControlWatermark(),
+      kPfcDeadlockDetection(),
+      kPfcDeadlockRecovery(),
   };
   return kPortKeys;
 }
@@ -228,9 +230,7 @@ void HwPortFb303Stats::updateStats(
         *curPortStats.fabricLinkDownDroppedCells_());
   }
   // Set fb303 counter stats
-  if (curPortStats.cableLengthMeters().has_value() &&
-      curPortStats.cableLengthMeters() !=
-          std::numeric_limits<uint32_t>::max()) {
+  if (curPortStats.cableLengthMeters().has_value()) {
     fb303::fbData->setCounter(
         statName(kCableLengthMeters(), portName()),
         *curPortStats.cableLengthMeters());
@@ -245,6 +245,18 @@ void HwPortFb303Stats::updateStats(
         timeRetrieved_,
         kLinkLayerFlowControlWatermark(),
         *curPortStats.linkLayerFlowControlWatermark_());
+  }
+  if (curPortStats.pfcDeadlockDetection_().has_value()) {
+    updateStat(
+        timeRetrieved_,
+        kPfcDeadlockDetection(),
+        *curPortStats.pfcDeadlockDetection_());
+  }
+  if (curPortStats.pfcDeadlockRecovery_().has_value()) {
+    updateStat(
+        timeRetrieved_,
+        kPfcDeadlockRecovery(),
+        *curPortStats.pfcDeadlockRecovery_());
   }
 
   // Update queue stats

@@ -31,6 +31,8 @@
 
 #include <folly/logging/xlog.h>
 
+#include <re2/re2.h>
+
 extern "C" {
 #include <sai.h>
 }
@@ -133,6 +135,11 @@ void fillHwSwitchDropStats(
       case SAI_SWITCH_STAT_IN_CONFIGURED_DROP_REASONS_6_DROPPED_PKTS:
         dropStats.ingressPacketPipelineRejectDrops() = val;
         break;
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+      case SAI_SWITCH_STAT_TC0_RATE_LIMIT_DROPPED_PACKETS:
+        dropStats.tc0RateLimitDrops() = val;
+        break;
+#endif
       default:
         throw FbossError("Unexpected configured counter id: ", counterId);
     }
@@ -161,6 +168,9 @@ void fillHwSwitchDropStats(
       case SAI_SWITCH_STAT_OUT_CONFIGURED_DROP_REASONS_0_DROPPED_PKTS:
       case SAI_SWITCH_STAT_OUT_CONFIGURED_DROP_REASONS_1_DROPPED_PKTS:
       case SAI_SWITCH_STAT_OUT_CONFIGURED_DROP_REASONS_2_DROPPED_PKTS:
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+      case SAI_SWITCH_STAT_TC0_RATE_LIMIT_DROPPED_PACKETS:
+#endif
         fillAsicSpecificCounter(counterId, value, asicType, hwSwitchDropStats);
         break;
       default:
@@ -168,6 +178,7 @@ void fillHwSwitchDropStats(
     }
   }
 }
+
 } // namespace
 
 namespace facebook::fboss {
@@ -189,7 +200,8 @@ SaiSwitchManager::SaiSwitchManager(
         swId);
     // Load all switch attributes
     switch_ = std::make_unique<SaiSwitchObj>(newSwitchId);
-    if (switchType != cfg::SwitchType::FABRIC) {
+    if (switchType != cfg::SwitchType::FABRIC &&
+        switchType != cfg::SwitchType::PHY) {
       if (!FLAGS_skip_setting_src_mac) {
         switch_->setOptionalAttribute(
             SaiSwitchTraits::Attributes::SrcMac{platform->getLocalMac()});
@@ -237,9 +249,42 @@ SaiSwitchManager::SaiSwitchManager(
     }
 #endif
   }
+
   if (platform_->getAsic()->isSupported(HwAsic::Feature::CPU_PORT)) {
     initCpuPort();
   }
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  // load switch pipeline sai ids
+  int numPipelines = SaiApiTable::getInstance()->switchApi().getAttribute(
+      switch_->adapterKey(), SaiSwitchTraits::Attributes::NumberOfPipes{});
+  std::vector<sai_object_id_t> pipelineList;
+  pipelineList.resize(numPipelines);
+  SaiSwitchTraits::Attributes::PipelineObjectList pipelineListAttribute{
+      pipelineList};
+  auto pipelineSaiIdList = SaiApiTable::getInstance()->switchApi().getAttribute(
+      switch_->adapterKey(), pipelineListAttribute);
+  if (pipelineSaiIdList.size() == 0) {
+    throw FbossError("no pipeline exists");
+  }
+  std::vector<SwitchPipelineSaiId> pipelineSaiIds;
+  pipelineSaiIds.reserve(pipelineSaiIdList.size());
+  std::transform(
+      pipelineSaiIdList.begin(),
+      pipelineSaiIdList.end(),
+      std::back_inserter(pipelineSaiIds),
+      [](sai_object_id_t pipelineId) -> SwitchPipelineSaiId {
+        return SwitchPipelineSaiId(pipelineId);
+      });
+  // create switch  pipeline sai objects
+  for (auto pipelineSaiId : pipelineSaiIds) {
+    std::shared_ptr switchPipeline =
+        std::make_shared<SaiSwitchPipeline>(pipelineSaiId);
+    switchPipeline->setOwnedByAdapter(true);
+    XLOG(DBG2) << "loaded switch pipeline sai object " << pipelineSaiId
+               << " with idx " << switchPipeline->adapterHostKey().value();
+    switchPipelines_.push_back(switchPipeline);
+  }
+#endif
   isMplsQosSupported_ = isMplsQoSMapSupported();
 }
 
@@ -438,12 +483,14 @@ void SaiSwitchManager::addOrUpdateEcmpLoadBalancer(
           v4EcmpHashFields.transportFields()->insert(entry->cref());
         });
 
-    ecmpV4Hash_ =
+    auto hash =
         managerTable_->hashManager().getOrCreate(v4EcmpHashFields, udfGroupIds);
 
     // Set the new ecmp v4 hash attribute on switch obj
     setLoadBalancer<SaiSwitchTraits::Attributes::EcmpHashV4>(
-        ecmpV4Hash_, programmedLoadBalancer);
+        hash, programmedLoadBalancer);
+
+    ecmpV4Hash_ = std::move(hash);
   }
   if (newLb->getIPv6Fields().begin() != newLb->getIPv6Fields().end()) {
     // v6 ECMP
@@ -464,12 +511,14 @@ void SaiSwitchManager::addOrUpdateEcmpLoadBalancer(
         [&v6EcmpHashFields](const auto& entry) {
           v6EcmpHashFields.transportFields()->insert(entry->cref());
         });
-    ecmpV6Hash_ =
+    auto hash =
         managerTable_->hashManager().getOrCreate(v6EcmpHashFields, udfGroupIds);
 
     // Set the new ecmp v6 hash attribute on switch obj
     setLoadBalancer<SaiSwitchTraits::Attributes::EcmpHashV6>(
-        ecmpV6Hash_, programmedLoadBalancer);
+        hash, programmedLoadBalancer);
+
+    ecmpV6Hash_ = std::move(hash);
   }
 }
 
@@ -643,6 +692,42 @@ void SaiSwitchManager::resetIngressAcl() {
   }
 }
 
+void SaiSwitchManager::setEgressAcl() {
+  CHECK(platform_->getAsic()->isSupported(
+      HwAsic::Feature::INGRESS_POST_LOOKUP_ACL_TABLE))
+      << "INGRESS_POST_LOOKUP_ACL_TABLE ACL not supported";
+  auto aclTableGroupHandle = managerTable_->aclTableGroupManager()
+                                 .getAclTableGroupHandle(SAI_ACL_STAGE_EGRESS)
+                                 ->aclTableGroup;
+  setEgressAcl(aclTableGroupHandle->adapterKey());
+  isIngressPostLookupAclSupported_ = true;
+}
+
+void SaiSwitchManager::setEgressAcl(sai_object_id_t id) {
+  XLOG(DBG2) << "Set egress ACL; " << id;
+  switch_->setOptionalAttribute(SaiSwitchTraits::Attributes::EgressAcl{id});
+}
+
+void SaiSwitchManager::resetEgressAcl() {
+  if (!isIngressPostLookupAclSupported_) {
+    return;
+  }
+  // Since resetIngressAcl() will be called in SaiManagerTable destructor.,
+  // we can't call pure virtual function HwAsic::isSupported() to check
+  // whether an asic supports INGRESS_POST_LOOKUP_ACL_TABLE
+  // Therefore, we will try to read from SaiObject to see whether there's a
+  // egress acl set. If there's a not null id set, we set it to null
+  auto egressAcl =
+      std::get<std::optional<SaiSwitchTraits::Attributes::EgressAcl>>(
+          switch_->attributes());
+  if (egressAcl && egressAcl->value() != SAI_NULL_OBJECT_ID) {
+    XLOG(DBG2) << "Reset current egress acl:" << egressAcl->value()
+               << " back to null";
+    switch_->setOptionalAttribute(
+        SaiSwitchTraits::Attributes::EgressAcl{SAI_NULL_OBJECT_ID});
+  }
+}
+
 void SaiSwitchManager::gracefulExit() {
   // On graceful exit we trigger the warm boot path on
   // ASIC by destroying the switch (and thus calling the
@@ -675,7 +760,7 @@ void SaiSwitchManager::setArsProfile(
     [[maybe_unused]] ArsProfileSaiId arsProfileSaiId) {
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
   if (FLAGS_flowletSwitchingEnable &&
-      platform_->getAsic()->isSupported(HwAsic::Feature::FLOWLET)) {
+      platform_->getAsic()->isSupported(HwAsic::Feature::ARS)) {
     switch_->setOptionalAttribute(
         SaiSwitchTraits::Attributes::ArsProfile{arsProfileSaiId});
   }
@@ -764,6 +849,9 @@ const std::vector<sai_stat_id_t>& SaiSwitchManager::supportedDropStats() const {
           SAI_SWITCH_STAT_IN_CONFIGURED_DROP_REASONS_4_DROPPED_PKTS,
           SAI_SWITCH_STAT_IN_CONFIGURED_DROP_REASONS_5_DROPPED_PKTS,
           SAI_SWITCH_STAT_IN_CONFIGURED_DROP_REASONS_6_DROPPED_PKTS,
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+          SAI_SWITCH_STAT_TC0_RATE_LIMIT_DROPPED_PACKETS,
+#endif
       };
       stats.insert(
           stats.end(),
@@ -799,6 +887,13 @@ const std::vector<sai_stat_id_t>& SaiSwitchManager::supportedErrorStats()
         stats.end(),
         SaiSwitchTraits::egressParityCellError().begin(),
         SaiSwitchTraits::egressParityCellError().end());
+  }
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::DRAM_DATAPATH_PACKET_ERROR_STATS)) {
+    stats.insert(
+        stats.end(),
+        SaiSwitchTraits::ddpPacketError().begin(),
+        SaiSwitchTraits::ddpPacketError().end());
   }
   return stats;
 }
@@ -954,6 +1049,9 @@ void SaiSwitchManager::updateStats(bool updateWatermarks) {
     switchDropStats_.ingressPacketPipelineRejectDrops() =
         switchDropStats_.ingressPacketPipelineRejectDrops().value_or(0) +
         dropStats.ingressPacketPipelineRejectDrops().value_or(0);
+    switchDropStats_.tc0RateLimitDrops() =
+        switchDropStats_.tc0RateLimitDrops().value_or(0) +
+        dropStats.tc0RateLimitDrops().value_or(0);
   }
   auto errorDropStats = supportedErrorStats();
   if (errorDropStats.size()) {
@@ -973,6 +1071,9 @@ void SaiSwitchManager::updateStats(bool updateWatermarks) {
     switchDropStats_.rqpParityErrorDrops() =
         switchDropStats_.rqpParityErrorDrops().value_or(0) +
         errorStats.rqpParityErrorDrops().value_or(0);
+    switchDropStats_.dramDataPathPacketError() =
+        switchDropStats_.dramDataPathPacketError().value_or(0) +
+        errorStats.dramDataPathPacketError().value_or(0);
   }
 
   if (switchDropStats.size() || errorDropStats.size()) {
@@ -1177,6 +1278,24 @@ void SaiSwitchManager::setVoqOutOfBoundsLatency(int voqOutOfBoundsLatency) {
   switch_->setOptionalAttribute(
       SaiSwitchTraits::Attributes::VoqLatencyMaxLevel2Ns{
           voqOutOfBoundsLatency});
+#endif
+}
+
+void SaiSwitchManager::setTcRateLimitList(
+    const std::optional<std::map<int32_t, int32_t>>& tcToRateLimitKbps) {
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  std::vector<sai_map_t> mapToValueList;
+  if (tcToRateLimitKbps) {
+    for (const auto& [tc, rateLimit] : *tcToRateLimitKbps) {
+      sai_map_t mapping{};
+      mapping.key = tc;
+      mapping.value = rateLimit;
+      mapToValueList.push_back(mapping);
+    }
+  }
+  // empty list will remove rate limit
+  switch_->setOptionalAttribute(
+      SaiSwitchTraits::Attributes::TcRateLimitList{mapToValueList});
 #endif
 }
 } // namespace facebook::fboss

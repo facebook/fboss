@@ -105,6 +105,67 @@ class CowStorageTests : public ::testing::Test {
 
 TYPED_TEST_SUITE(CowStorageTests, StorageTestTypes);
 
+TYPED_TEST(CowStorageTests, VerifyOperDeltaForSetOfPrimitives) {
+  using namespace facebook::fboss::fsdb;
+  using namespace apache::thrift::type_class;
+
+  thriftpath::RootThriftPath<TestStruct> root;
+
+  auto testStruct = facebook::thrift::from_dynamic<TestStruct>(
+      createTestDynamic(), facebook::thrift::dynamic_format::JSON_1);
+  auto storage = this->initStorage(testStruct);
+
+  // publish to ensure we can patch published storage
+  storage.publish();
+  EXPECT_TRUE(storage.isPublished());
+
+  auto initial = storage.get(root.setOfStrings()["v1"]).error();
+  EXPECT_EQ(initial, StorageError::INVALID_PATH);
+
+  auto makeState = [](auto tc, auto val) -> folly::fbstring {
+    OperState state;
+    using TC = decltype(tc);
+    return facebook::fboss::thrift_cow::serialize<TC>(
+        OperProtocol::SIMPLE_JSON, val);
+  };
+
+  auto buildOperDelta = [&makeState](std::string val, bool add) -> OperDelta {
+    OperDeltaUnit unit;
+    std::vector<std::string> path = {"setOfStrings", val};
+    unit.path()->raw() = std::move(path);
+    if (add) {
+      unit.newState() = makeState(string{}, val);
+    } else {
+      unit.oldState() = makeState(string{}, val);
+    }
+    std::vector<OperDeltaUnit> changes = {unit};
+
+    OperDelta delta;
+    delta.changes() = std::move(changes);
+    delta.protocol() = OperProtocol::SIMPLE_JSON;
+    return delta;
+  };
+
+  auto verifyOperDelta = [&buildOperDelta, &storage, &root](
+                             std::string val, bool add) {
+    OperDelta delta = buildOperDelta(val, add);
+
+    auto result = storage.patch(delta);
+    EXPECT_FALSE(result.has_value());
+
+    auto val1 = storage.get(root.setOfStrings()).value();
+    bool contains1 = val1.contains(val);
+    EXPECT_EQ(contains1, add);
+  };
+
+  // verify patching OperDelta into storage corresponding to
+  // adding and removing values from setOfStrings
+  verifyOperDelta("v1", true);
+  verifyOperDelta("v2", true);
+  verifyOperDelta("v1", false);
+  verifyOperDelta("v2", false);
+}
+
 TYPED_TEST(CowStorageTests, GetThrift) {
   using namespace facebook::fboss::fsdb;
 

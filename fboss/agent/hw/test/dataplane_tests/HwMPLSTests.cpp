@@ -10,6 +10,7 @@
 
 #include <folly/IPAddressV6.h>
 
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
@@ -81,11 +82,14 @@ class HwMPLSTest : public HwLinkStateDependentTest {
   void SetUp() override {
     HwLinkStateDependentTest::SetUp();
     ecmpHelper_ = std::make_unique<utility::EcmpSetupTargetedPorts6>(
-        getProgrammedState(), RouterID(0));
+        getProgrammedState(),
+        getHwSwitch()->needL2EntryForNeighbor(),
+        RouterID(0));
 
     ecmpSwapHelper_ = std::make_unique<
         utility::MplsEcmpSetupTargetedPorts<folly::IPAddressV6>>(
         getProgrammedState(),
+        getHwSwitch()->needL2EntryForNeighbor(),
         kTopLabel,
         LabelForwardingAction::LabelForwardingType::SWAP);
   }
@@ -150,8 +154,7 @@ class HwMPLSTest : public HwLinkStateDependentTest {
         getHwSwitchEnsemble()->getL3Asics(),
         getHwSwitchEnsemble()->isSai());
 
-    auto asic =
-        utility::checkSameAndGetAsic(getHwSwitchEnsemble()->getL3Asics());
+    auto asic = checkSameAndGetAsic(getHwSwitchEnsemble()->getL3Asics());
     utility::addTrapPacketAcl(asic, &config, masterLogicalPortIds()[0]);
     return config;
   }
@@ -217,7 +220,7 @@ class HwMPLSTest : public HwLinkStateDependentTest {
       std::optional<DSCP> dscp = std::nullopt) {
     CHECK(ecmpHelper_);
     // TODO: Remove the dependency on VLAN below
-    auto vlan = utility::firstVlanIDWithPorts(initialConfig());
+    auto vlan = getHwSwitchEnsemble()->getVlanIDForTx();
     if (!vlan) {
       throw FbossError("VLAN id unavailable for test");
     }
@@ -260,7 +263,7 @@ class HwMPLSTest : public HwLinkStateDependentTest {
     const auto dstMac = utility::kLocalCpuMac(); /* for l3 switching */
 
     // TODO: Remove the dependency on VLAN below
-    auto vlan = utility::firstVlanIDWithPorts(initialConfig());
+    auto vlan = getHwSwitchEnsemble()->getVlanIDForTx();
     if (!vlan) {
       throw FbossError("VLAN id unavailable for test");
     }

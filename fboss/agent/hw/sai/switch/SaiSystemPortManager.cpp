@@ -98,11 +98,23 @@ SaiSystemPortManager::attributesFromSwSystemPort(
     qosTcToQueueMap =
         SaiSystemPortTraits::Attributes::QosTcToQueueMap{qosMapId};
   }
+  std::optional<SaiSystemPortTraits::Attributes::TcRateLimitExclude>
+      tcRateLimitExclude = std::nullopt;
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  if (isDualStage3Q2QMode() &&
+      (swSystemPort->getPortType() == cfg::PortType::RECYCLE_PORT ||
+       swSystemPort->getPortType() == cfg::PortType::MANAGEMENT_PORT ||
+       swSystemPort->getPortType() == cfg::PortType::EVENTOR_PORT)) {
+    tcRateLimitExclude =
+        SaiSystemPortTraits::Attributes::TcRateLimitExclude{true};
+  }
+#endif
   return SaiSystemPortTraits::CreateAttributes{
       config,
       true /*enabled*/,
       qosTcToQueueMap,
-      std::nullopt /* shelPktDstEnable */};
+      std::nullopt /* shelPktDstEnable */,
+      tcRateLimitExclude};
 }
 
 SystemPortSaiId SaiSystemPortManager::addSystemPort(
@@ -123,7 +135,9 @@ SystemPortSaiId SaiSystemPortManager::addSystemPort(
       std::make_unique<HwSysPortFb303Stats>(
           swSystemPort->getName(),
           HwBasePortFb303Stats::QueueId2Name(),
-          platform_->getMultiSwitchStatsPrefix()));
+          platform_->getMultiSwitchStatsPrefix(),
+          swSystemPort->getRemoteSystemPortType() !=
+              RemoteSystemPortType::DYNAMIC_ENTRY));
   auto handle = std::make_unique<SaiSystemPortHandle>();
 
   auto& systemPortStore = saiStore_->get<SaiSystemPortTraits>();
@@ -375,6 +389,7 @@ std::shared_ptr<SystemPortMap> SaiSystemPortManager::constructSystemPorts(
       sysPort->setNumVoqs(getLocalPortNumVoqs(
           port.second->getPortType(), port.second->getScope()));
       sysPort->setScope(platformPort->getScope());
+      sysPort->setPortType(platformPort->getPortType());
       sysPort->setQosPolicy(port.second->getQosPolicy());
       sysPortMap->addSystemPort(std::move(sysPort));
     }

@@ -94,7 +94,7 @@ TEST_F(AsyncLoggerTest, emptyBufferTest) {
   std::unique_lock<std::mutex> lock(latch);
   cv.wait_for(lock, std::chrono::milliseconds(20));
 
-  std::string str = "";
+  std::string str;
   asyncLogger->appendLog(str.c_str(), str.size());
   EXPECT_EQ(asyncLogger->getFlushCount(), 1);
 

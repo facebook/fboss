@@ -15,6 +15,7 @@
 #include "fboss/cli/fboss2/commands/clear/CmdClearInterfaceCounters.h"
 #include "fboss/cli/fboss2/commands/clear/CmdClearNdp.h"
 #include "fboss/cli/fboss2/commands/clear/interface/CmdClearInterface.h"
+#include "fboss/cli/fboss2/commands/clear/interface/counters/phy/CmdClearInterfaceCountersPhy.h"
 #include "fboss/cli/fboss2/commands/clear/interface/prbs/CmdClearInterfacePrbs.h"
 #include "fboss/cli/fboss2/commands/clear/interface/prbs/stats/CmdClearInterfacePrbsStats.h"
 #include "fboss/cli/fboss2/commands/get/pcap/CmdGetPcap.h"
@@ -26,6 +27,7 @@
 #include "fboss/cli/fboss2/commands/set/port/state/CmdSetPortState.h"
 #include "fboss/cli/fboss2/commands/show/acl/CmdShowAcl.h"
 #include "fboss/cli/fboss2/commands/show/acl/gen-cpp2/model_visitation.h"
+#include "fboss/cli/fboss2/commands/show/agent/CmdShowAgentFirmware.h"
 #include "fboss/cli/fboss2/commands/show/agent/CmdShowAgentSsl.h"
 #include "fboss/cli/fboss2/commands/show/agent/gen-cpp2/model_visitation.h"
 #include "fboss/cli/fboss2/commands/show/aggregateport/CmdShowAggregatePort.h"
@@ -42,8 +44,10 @@
 #include "fboss/cli/fboss2/commands/show/example/gen-cpp2/model_visitation.h"
 #include "fboss/cli/fboss2/commands/show/fabric/CmdShowFabric.h"
 #include "fboss/cli/fboss2/commands/show/fabric/gen-cpp2/model_visitation.h"
+#include "fboss/cli/fboss2/commands/show/fabric/inputbalance/CmdShowFabricInputBalance.h"
+#include "fboss/cli/fboss2/commands/show/fabric/inputbalance/gen-cpp2/model_visitation.h"
 #include "fboss/cli/fboss2/commands/show/fabric/reachability/CmdShowFabricReachability.h"
-#include "fboss/cli/fboss2/commands/show/fabric/reachability/gen-cpp2/model_visitation.h"
+#include "fboss/cli/fboss2/commands/show/fabric/reachability/uncached/CmdShowFabricReachabilityUncached.h"
 #include "fboss/cli/fboss2/commands/show/fabric/topology/CmdShowFabricTopology.h"
 #include "fboss/cli/fboss2/commands/show/fabric/topology/gen-cpp2/model_visitation.h"
 #include "fboss/cli/fboss2/commands/show/flowlet/CmdShowFlowlet.h"
@@ -131,6 +135,8 @@ namespace facebook::fboss {
 // https://isocpp.org/wiki/faq/templates#separate-template-fn-defn-from-decl
 template void CmdHandler<CmdGetPcap, CmdGetPcapTraits>::run();
 template void CmdHandler<CmdShowAcl, CmdShowAclTraits>::run();
+template void
+CmdHandler<CmdShowAgentFirmware, CmdShowAgentFirmwareTraits>::run();
 template void CmdHandler<CmdShowAgentSsl, CmdShowAgentSslTraits>::run();
 template void
 CmdHandler<CmdShowAggregatePort, CmdShowAggregatePortTraits>::run();
@@ -141,8 +147,13 @@ template void CmdHandler<CmdShowFlowlet, CmdShowFlowletTraits>::run();
 template void CmdHandler<CmdShowDsf, CmdShowDsfTraits>::run();
 template void
 CmdHandler<CmdShowFabricReachability, CmdShowFabricReachabilityTraits>::run();
+template void CmdHandler<
+    CmdShowFabricReachabilityUncached,
+    CmdShowFabricReachabilityUncachedTraits>::run();
 template void
 CmdHandler<CmdShowFabricTopology, CmdShowFabricTopologyTraits>::run();
+template void
+CmdHandler<CmdShowFabricInputBalance, CmdShowFabricInputBalanceTraits>::run();
 template void CmdHandler<CmdShowDsfNodes, CmdShowDsfNodesTraits>::run();
 template void
 CmdHandler<CmdShowDsfSubscription, CmdShowDsfSubscriptionTraits>::run();
@@ -210,6 +221,9 @@ template void CmdHandler<CmdShowCpuPort, CmdShowCpuPortTraits>::run();
 template void CmdHandler<CmdShowTransceiver, CmdShowTransceiverTraits>::run();
 
 template void CmdHandler<CmdClearInterface, CmdClearInterfaceTraits>::run();
+template void CmdHandler<
+    CmdClearInterfaceCountersPhy,
+    CmdClearInterfaceCountersPhyTraits>::run();
 template void
 CmdHandler<CmdClearInterfacePrbs, CmdClearInterfacePrbsTraits>::run();
 template void
@@ -244,8 +258,14 @@ template const ValidFilterMapType CmdHandler<
     CmdShowFabricReachability,
     CmdShowFabricReachabilityTraits>::getValidFilters();
 template const ValidFilterMapType CmdHandler<
+    CmdShowFabricReachabilityUncached,
+    CmdShowFabricReachabilityUncachedTraits>::getValidFilters();
+template const ValidFilterMapType CmdHandler<
     CmdShowFabricTopology,
     CmdShowFabricTopologyTraits>::getValidFilters();
+template const ValidFilterMapType CmdHandler<
+    CmdShowFabricInputBalance,
+    CmdShowFabricInputBalanceTraits>::getValidFilters();
 template const ValidFilterMapType
 CmdHandler<CmdShowDsfNodes, CmdShowDsfNodesTraits>::getValidFilters();
 template const ValidFilterMapType

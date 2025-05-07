@@ -26,7 +26,7 @@ inline ThriftTraverseResult visitPath(
     Func&& f) {
   auto op = pvlambda(std::forward<Func>(f));
   return PathVisitor<typename Node::TC>::visit(
-      node, begin, end, PathVisitMode::LEAF, op);
+      node, begin, end, PathVisitOptions::visitLeaf(), op);
 }
 
 } // namespace facebook::fboss::thrift_cow

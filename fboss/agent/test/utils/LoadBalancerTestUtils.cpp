@@ -2,6 +2,7 @@
 
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/LoadBalancerConfigApplier.h"
 #include "fboss/agent/LoadBalancerUtils.h"
 #include "fboss/agent/SwSwitch.h"
@@ -10,7 +11,6 @@
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/VoqTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
@@ -97,29 +97,27 @@ cfg::LoadBalancer getFullHashUdfConfig(
 cfg::LoadBalancer getTrunkHalfHashConfig(
     const std::vector<const HwAsic*>& asics) {
   return getHalfHashConfig(
-      *utility::checkSameAndGetAsic(asics),
-      cfg::LoadBalancerID::AGGREGATE_PORT);
+      *checkSameAndGetAsic(asics), cfg::LoadBalancerID::AGGREGATE_PORT);
 }
 cfg::LoadBalancer getTrunkFullHashConfig(
     const std::vector<const HwAsic*>& asics) {
   return getFullHashConfig(
-      *utility::checkSameAndGetAsic(asics),
-      cfg::LoadBalancerID::AGGREGATE_PORT);
+      *checkSameAndGetAsic(asics), cfg::LoadBalancerID::AGGREGATE_PORT);
 }
 cfg::LoadBalancer getEcmpHalfHashConfig(
     const std::vector<const HwAsic*>& asics) {
   return getHalfHashConfig(
-      *utility::checkSameAndGetAsic(asics), cfg::LoadBalancerID::ECMP);
+      *checkSameAndGetAsic(asics), cfg::LoadBalancerID::ECMP);
 }
 cfg::LoadBalancer getEcmpFullHashConfig(
     const std::vector<const HwAsic*>& asics) {
   return getFullHashConfig(
-      *utility::checkSameAndGetAsic(asics), cfg::LoadBalancerID::ECMP);
+      *checkSameAndGetAsic(asics), cfg::LoadBalancerID::ECMP);
 }
 cfg::LoadBalancer getEcmpFullUdfHashConfig(
     const std::vector<const HwAsic*>& asics) {
   return getFullHashUdfConfig(
-      *utility::checkSameAndGetAsic(asics), cfg::LoadBalancerID::ECMP);
+      *checkSameAndGetAsic(asics), cfg::LoadBalancerID::ECMP);
 }
 std::vector<cfg::LoadBalancer> getEcmpFullTrunkHalfHashConfig(
     const std::vector<const HwAsic*>& asics) {
@@ -132,111 +130,6 @@ std::vector<cfg::LoadBalancer> getEcmpHalfTrunkFullHashConfig(
 std::vector<cfg::LoadBalancer> getEcmpFullTrunkFullHashConfig(
     const std::vector<const HwAsic*>& asics) {
   return {getEcmpFullHashConfig(asics), getTrunkFullHashConfig(asics)};
-}
-
-static cfg::UdfConfig addUdfConfig(
-    std::map<std::string, cfg::UdfGroup>& udfMap,
-    const std::string& udfGroup,
-    const int offsetBytes,
-    const int fieldSizeBytes,
-    cfg::UdfGroupType udfType) {
-  cfg::UdfConfig udfCfg;
-  cfg::UdfGroup udfGroupEntry;
-  cfg::UdfPacketMatcher matchCfg;
-  std::map<std::string, cfg::UdfPacketMatcher> udfPacketMatcherMap;
-
-  matchCfg.name() = kUdfL4UdpRocePktMatcherName;
-  matchCfg.l4PktType() = cfg::UdfMatchL4Type::UDF_L4_PKT_TYPE_UDP;
-  matchCfg.UdfL4DstPort() = kUdfL4DstPort;
-
-  udfGroupEntry.name() = udfGroup;
-  udfGroupEntry.header() = cfg::UdfBaseHeaderType::UDF_L4_HEADER;
-  udfGroupEntry.startOffsetInBytes() = offsetBytes;
-  udfGroupEntry.fieldSizeInBytes() = fieldSizeBytes;
-  // has to be the same as in matchCfg
-  udfGroupEntry.udfPacketMatcherIds() = {kUdfL4UdpRocePktMatcherName};
-  udfGroupEntry.type() = udfType;
-
-  udfMap.insert(std::make_pair(*udfGroupEntry.name(), udfGroupEntry));
-  udfPacketMatcherMap.insert(std::make_pair(*matchCfg.name(), matchCfg));
-  udfCfg.udfGroups() = udfMap;
-  udfCfg.udfPacketMatcher() = udfPacketMatcherMap;
-  return udfCfg;
-}
-
-cfg::UdfConfig addUdfAclConfig(int udfType) {
-  std::map<std::string, cfg::UdfGroup> udfMap;
-  cfg::UdfConfig udfCfg;
-  if ((udfType & kUdfOffsetBthOpcode) == kUdfOffsetBthOpcode) {
-    udfCfg = addUdfConfig(
-        udfMap,
-        kUdfAclRoceOpcodeGroupName,
-        kUdfAclRoceOpcodeStartOffsetInBytes,
-        kUdfAclRoceOpcodeFieldSizeInBytes,
-        cfg::UdfGroupType::ACL);
-  }
-  if ((udfType & kUdfOffsetBthReserved) == kUdfOffsetBthReserved) {
-    udfCfg = addUdfConfig(
-        udfMap,
-        kRoceUdfFlowletGroupName,
-        kRoceUdfFlowletStartOffsetInBytes,
-        kRoceUdfFlowletFieldSizeInBytes,
-        cfg::UdfGroupType::ACL);
-  }
-  if ((udfType & kUdfOffsetAethSyndrome) == kUdfOffsetAethSyndrome) {
-    udfCfg = addUdfConfig(
-        udfMap,
-        kUdfAclAethNakGroupName,
-        kUdfAclAethNakStartOffsetInBytes,
-        kUdfAclAethNakFieldSizeInBytes,
-        cfg::UdfGroupType::ACL);
-  }
-  if ((udfType & kUdfOffsetRethDmaLength) == kUdfOffsetRethDmaLength) {
-    udfCfg = addUdfConfig(
-        udfMap,
-        kUdfAclRethWrImmZeroGroupName,
-        kUdfAclRethDmaLenOffsetInBytes,
-        kUdfAclRethDmaLenFieldSizeInBytes,
-        cfg::UdfGroupType::ACL);
-  }
-  return udfCfg;
-}
-
-cfg::UdfConfig addUdfFlowletAclConfig(void) {
-  std::map<std::string, cfg::UdfGroup> udfMap;
-  return addUdfConfig(
-      udfMap,
-      kRoceUdfFlowletGroupName,
-      kRoceUdfFlowletStartOffsetInBytes,
-      kRoceUdfFlowletFieldSizeInBytes,
-      cfg::UdfGroupType::ACL);
-}
-
-cfg::UdfConfig addUdfHashConfig(void) {
-  std::map<std::string, cfg::UdfGroup> udfMap;
-  return addUdfConfig(
-      udfMap,
-      kUdfHashDstQueuePairGroupName,
-      kUdfHashDstQueuePairStartOffsetInBytes,
-      kUdfHashDstQueuePairFieldSizeInBytes,
-      cfg::UdfGroupType::HASH);
-}
-
-// kitchen sink for all udf groups
-cfg::UdfConfig addUdfHashAclConfig(void) {
-  std::map<std::string, cfg::UdfGroup> udfMap;
-  addUdfConfig(
-      udfMap,
-      kUdfHashDstQueuePairGroupName,
-      kUdfHashDstQueuePairStartOffsetInBytes,
-      kUdfHashDstQueuePairFieldSizeInBytes,
-      cfg::UdfGroupType::HASH);
-  return addUdfConfig(
-      udfMap,
-      kUdfAclRoceOpcodeGroupName,
-      kUdfAclRoceOpcodeStartOffsetInBytes,
-      kUdfAclRoceOpcodeFieldSizeInBytes,
-      cfg::UdfGroupType::ACL);
 }
 
 cfg::FlowletSwitchingConfig getDefaultFlowletSwitchingConfig(
@@ -265,11 +158,13 @@ cfg::FlowletSwitchingConfig getDefaultFlowletSwitchingConfig(
   flowletCfg.dynamicEgressMinThresholdBytes() = 1000;
   flowletCfg.dynamicEgressMaxThresholdBytes() = 10000;
   flowletCfg.switchingMode() = switchingMode;
+  flowletCfg.backupSwitchingMode() = cfg::SwitchingMode::PER_PACKET_RANDOM;
   return flowletCfg;
 }
 
 void addFlowletAcl(
     cfg::SwitchConfig& cfg,
+    bool isSai,
     const std::string& aclName,
     const std::string& aclCounterName,
     bool udfFlowlet) {
@@ -279,10 +174,21 @@ void addFlowletAcl(
   acl.proto() = 17;
   acl.l4DstPort() = 4791;
   acl.dstIp() = "2001::/16";
+  if (checkSameAndGetAsicType(cfg) == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    acl.etherType() = cfg::EtherType::IPv6;
+  }
   if (udfFlowlet) {
-    acl.udfGroups() = {utility::kRoceUdfFlowletGroupName};
-    acl.roceBytes() = {utility::kRoceReserved};
-    acl.roceMask() = {utility::kRoceReserved};
+    if (isSai) {
+      utility::addUdfTableToAcl(
+          &acl,
+          utility::kRoceUdfFlowletGroupName,
+          {utility::kRoceReserved},
+          {utility::kRoceReserved});
+    } else {
+      acl.udfGroups() = {utility::kRoceUdfFlowletGroupName};
+      acl.roceBytes() = {utility::kRoceReserved};
+      acl.roceMask() = {utility::kRoceReserved};
+    }
   }
   utility::addAcl(&cfg, acl, cfg::AclStage::INGRESS);
 
@@ -946,6 +852,9 @@ void addLoadBalancerToConfig(
       break;
     case LBHash::HALF_HASH:
       config.loadBalancers()->push_back(getEcmpHalfHashConfig({hwAsic}));
+      break;
+    case LBHash::FULL_HASH_UDF:
+      config.loadBalancers()->push_back(getEcmpFullUdfHashConfig({hwAsic}));
       break;
     default:
       throw FbossError("invalid hashing option ", hashType);

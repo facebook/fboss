@@ -16,7 +16,6 @@
         13,
         16,
         17,
-        18,
         19,
         20,
         21,
@@ -33,7 +32,6 @@
         42,
         43,
         45,
-        46,
         47,
         50,
         51,
@@ -41,7 +39,10 @@
         59,
         60,
         63,
-        69
+        69,
+        72,
+        73,
+        74
     ],
     "ebro": [
         2,
@@ -80,7 +81,8 @@
         54,
         59,
         63,
-        69
+        69,
+        72
     ],
     "jericho3": [
         2,
@@ -119,7 +121,10 @@
         48,
         49,
         58,
-        70
+        70,
+        75,
+        76,
+        77
     ],
     "ramon": [
         1
@@ -163,7 +168,8 @@
         63,
         65,
         67,
-        69
+        69,
+        72
     ],
     "tomahawk3": [
         2,
@@ -217,7 +223,8 @@
         65,
         67,
         69,
-        71
+        71,
+        72
     ],
     "tomahawk4": [
         2,
@@ -269,7 +276,8 @@
         64,
         67,
         69,
-        71
+        71,
+        72
     ],
     "tomahawk5": [
         2,
@@ -305,6 +313,7 @@
         37,
         38,
         39,
+        43,
         40,
         42,
         44,
@@ -318,7 +327,8 @@
         62,
         63,
         69,
-        71
+        71,
+        72
     ],
     "yuba": [
         2,
@@ -326,11 +336,13 @@
         5,
         8,
         10,
+        13,
         11,
         61,
         66,
         52,
         16,
+        17,
         20,
         21,
         23,
@@ -360,7 +372,8 @@
         59,
         60,
         63,
-        69
+        69,
+        72
     ]
   },
   "asicToFeatureNames": {
@@ -380,7 +393,6 @@
         "ECMP_LOAD_BALANCER",
         "SINGLE_ACL_TABLE",
         "MULTI_ACL_TABLE",
-        "BTH_OPCODE_ACL",
         "DLB",
         "ECN",
         "WRED",
@@ -397,7 +409,6 @@
         "PFC",
         "UDF_WR_IMMEDIATE_ACL",
         "PORT_MTU_ERROR_TRAP",
-        "LED_PROGRAMMING",
         "PFC_CAPTURE",
         "PAUSE",
         "SEPARATE_INGRESS_EGRESS_BUFFER_POOL",
@@ -405,7 +416,10 @@
         "CLASS_ID_FOR_CONNECTED_ROUTE",
         "SEPARATE_BYTE_AND_PACKET_ACL_COUNTERS",
         "UCMP",
-        "PTP_TC"
+        "PTP_TC",
+        "MODIFY_ACL_QUALIFIERS",
+        "ERSPANv4_SAMPLING",
+        "ERSPANv6_SAMPLING"
     ],
     "ebro": [
         "CPU_RX_TX",
@@ -444,7 +458,8 @@
         "IP_IN_IP_DECAP",
         "CLASS_ID_FOR_CONNECTED_ROUTE",
         "UCMP",
-        "PTP_TC"
+        "PTP_TC",
+        "MODIFY_ACL_QUALIFIERS"
     ],
     "jericho3": [
         "CPU_RX_TX",
@@ -483,7 +498,10 @@
         "LINERATE_SFLOW",
         "MIRROR_ON_DROP",
         "SFLOW_SAMPLES_PACKING",
-        "SELF_HEALING_ECMP_LAG"
+        "SELF_HEALING_ECMP_LAG",
+        "GLOBAL_TC_RATE_LIMIT",
+        "COPP_SHAPER",
+        "COPP_SCHEDULER"
     ],
     "ramon": [
         "FABRIC"
@@ -527,7 +545,8 @@
         "UCMP",
         "MMU_TUNING",
         "UNTRUNCATED_SFLOW",
-        "PTP_TC"
+        "PTP_TC",
+        "MODIFY_ACL_QUALIFIERS"
     ],
     "tomahawk3": [
         "CPU_RX_TX",
@@ -581,7 +600,8 @@
         "MMU_TUNING",
         "UNTRUNCATED_SFLOW",
         "PTP_TC",
-        "L4_DST_PORT_ACL"
+        "L4_DST_PORT_ACL",
+        "MODIFY_ACL_QUALIFIERS"
     ],
     "tomahawk4": [
         "CPU_RX_TX",
@@ -633,7 +653,8 @@
         "MULTICAST_QUEUE",
         "UNTRUNCATED_SFLOW",
         "PTP_TC",
-        "L4_DST_PORT_ACL"
+        "L4_DST_PORT_ACL",
+        "MODIFY_ACL_QUALIFIERS"
     ],
     "tomahawk5": [
         "CPU_RX_TX",
@@ -669,6 +690,7 @@
         "FSW_ROUTE_SCALE",
         "HGRID_DU_ROUTE_SCALE",
         "HGRID_UU_ROUTE_SCALE",
+        "UDF_WR_IMMEDIATE_ACL",
         "HUNDRED_THOUSAND_ROUTE_SCALE",
         "PFC",
         "VLAN",
@@ -682,7 +704,8 @@
         "EAPOL_TRAP",
         "UCMP",
         "PTP_TC",
-        "L4_DST_PORT_ACL"
+        "L4_DST_PORT_ACL",
+        "MODIFY_ACL_QUALIFIERS"
     ],
     "yuba": [
         "CPU_RX_TX",
@@ -690,11 +713,13 @@
         "NULL_ROUTE_IN_DISCARDS_COUNTER",
         "COPP",
         "DSCP_REMARKING",
+        "ECMP_LOAD_BALANCER",
         "L3_QOS",
         "NETWORKAI_QOS",
         "OLYMPIC_QOS",
         "NIF_POLICER",
         "SINGLE_ACL_TABLE",
+        "MULTI_ACL_TABLE",
         "ECN",
         "WRED",
         "JUMBO_FRAMES",
@@ -724,7 +749,8 @@
         "CLASS_ID_FOR_CONNECTED_ROUTE",
         "SEPARATE_BYTE_AND_PACKET_ACL_COUNTERS",
         "UCMP",
-        "PTP_TC"
+        "PTP_TC",
+        "MODIFY_ACL_QUALIFIERS"
     ]
   }
 }

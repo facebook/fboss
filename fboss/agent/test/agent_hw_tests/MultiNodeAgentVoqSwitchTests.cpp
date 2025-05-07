@@ -1,7 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/test/AgentHwTest.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
 
 DECLARE_bool(disable_neighbor_updates);
 DECLARE_bool(disable_looped_fabric_ports);
@@ -16,7 +16,7 @@ class MultiNodeAgentVoqSwitchTest : public AgentHwTest {
     XLOG(DBG0) << "initialConfig() loaded config from file " << FLAGS_config;
 
     auto hwAsics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
-    auto asic = utility::checkSameAndGetAsic(hwAsics);
+    auto asic = checkSameAndGetAsic(hwAsics);
 
     auto it = asic->desiredLoopbackModes().find(cfg::PortType::INTERFACE_PORT);
     CHECK(it != asic->desiredLoopbackModes().end());

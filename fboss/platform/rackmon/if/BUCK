@@ -9,10 +9,11 @@ thrift_library(
     },
     languages = [
         "cpp2",
-        "py3",
+        "py3-deprecated",
         "go",
         "rust",
         "py-deprecated",
+        "python",
     ],
     py3_namespace = "",
     py_base_module = "rackmonsvc",

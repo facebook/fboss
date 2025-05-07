@@ -1,12 +1,12 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestAclUtils.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/PfcTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
@@ -37,7 +37,7 @@ class AgentInNullRouteDiscardsCounterTest : public AgentHwTest {
 
  protected:
   void pumpTraffic(bool isV6) {
-    auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
+    auto vlanId = getVlanIDForTx();
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     auto srcIp = folly::IPAddress(isV6 ? "1001::1" : "10.0.0.1");
@@ -56,18 +56,23 @@ TEST_F(AgentInNullRouteDiscardsCounterTest, nullRouteHit) {
       cfg::SwitchConfig cfg = initialConfig(*getAgentEnsemble());
       std::vector<PortID> portIds = {masterLogicalInterfacePortIds()[0]};
       std::vector<int> losslessPgIds = {2};
+      std::vector<int> lossyPgIds = {0};
       // Make sure default traffic goes to PG2, which is lossless
       const std::map<int, int> tcToPgOverride{{0, 2}};
       utility::setupPfcBuffers(
-          getAgentEnsemble(), cfg, portIds, losslessPgIds, tcToPgOverride);
+          getAgentEnsemble(),
+          cfg,
+          portIds,
+          losslessPgIds,
+          lossyPgIds,
+          tcToPgOverride);
       applyNewConfig(cfg);
     }
   };
   PortID portId = masterLogicalInterfacePortIds()[0];
   auto verify = [=, this]() {
-    auto isVoqSwitch =
-        utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
-            ->getSwitchType() == cfg::SwitchType::VOQ;
+    auto isVoqSwitch = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
+                           ->getSwitchType() == cfg::SwitchType::VOQ;
     auto portStatsBefore = getLatestPortStats(portId);
     auto switchDropStatsBefore = getAggregatedSwitchDropStats();
     pumpTraffic(true);

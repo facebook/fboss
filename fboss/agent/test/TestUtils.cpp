@@ -179,7 +179,10 @@ void addRecyclePortRif(const cfg::DsfNode& myNode, cfg::SwitchConfig& cfg) {
   cfg.interfaces()->push_back(recyclePortRif);
 }
 
-cfg::SwitchConfig testConfigAImpl(bool isMhnic, cfg::SwitchType switchType) {
+cfg::SwitchConfig testConfigAImpl(
+    bool isMhnic,
+    cfg::SwitchType switchType,
+    cfg::AsicType asicType) {
   if (switchType == cfg::SwitchType::FABRIC) {
     return testConfigFabricSwitch();
   }
@@ -274,7 +277,7 @@ cfg::SwitchConfig testConfigAImpl(bool isMhnic, cfg::SwitchType switchType) {
           kVoqSwitchIdBegin,
           createSwitchInfo(
               cfg::SwitchType::VOQ,
-              cfg::AsicType::ASIC_TYPE_MOCK,
+              asicType,
               cfg::switch_config_constants::
                   DEFAULT_PORT_ID_RANGE_MIN(), /* port id range min */
               cfg::switch_config_constants::
@@ -517,8 +520,10 @@ cfg::DsfNode makeDsfNodeCfg(
   return dsfNodeCfg;
 }
 
-cfg::SwitchConfig testConfigA(cfg::SwitchType switchType) {
-  return testConfigAImpl(false, switchType);
+cfg::SwitchConfig testConfigA(
+    cfg::SwitchType switchType,
+    cfg::AsicType asicType) {
+  return testConfigAImpl(false, switchType, asicType);
 }
 
 cfg::SwitchConfig testConfigFabricSwitch(
@@ -654,7 +659,8 @@ cfg::SwitchConfig testConfigB() {
 }
 
 cfg::SwitchConfig testConfigAWithLookupClasses() {
-  return testConfigAImpl(true, cfg::SwitchType::NPU);
+  return testConfigAImpl(
+      true, cfg::SwitchType::NPU, cfg::AsicType::ASIC_TYPE_MOCK);
 }
 
 cfg::SwitchConfig testConfigAWithPortInterfaces() {
@@ -722,33 +728,43 @@ shared_ptr<SwitchState> publishAndApplyConfig(
     const shared_ptr<SwitchState>& state,
     cfg::SwitchConfig* config,
     const Platform* platform,
-    RoutingInformationBase* rib) {
+    RoutingInformationBase* rib,
+    PlatformMapping* platformMapping) {
   if (config->switchSettings()->switchIdToSwitchInfo()->empty()) {
     config->switchSettings()->switchIdToSwitchInfo() = {
         {0, createSwitchInfo(cfg::SwitchType::NPU)}};
   }
   return publishAndApplyConfig(
-      state, (const cfg::SwitchConfig*)config, platform, rib);
+      state, (const cfg::SwitchConfig*)config, platform, rib, platformMapping);
 }
 
 shared_ptr<SwitchState> publishAndApplyConfig(
     const shared_ptr<SwitchState>& state,
     const cfg::SwitchConfig* config,
     const Platform* platform,
-    RoutingInformationBase* rib) {
+    RoutingInformationBase* rib,
+    PlatformMapping* platformMapping) {
   state->publish();
-  auto platformMapping = std::make_unique<MockPlatformMapping>();
+
+  // Create a temp mock platform mapping if none is passed in.
+  std::unique_ptr<MockPlatformMapping> mockPlatformMapping;
+  if (platformMapping == nullptr) {
+    mockPlatformMapping = std::make_unique<MockPlatformMapping>();
+    platformMapping = mockPlatformMapping.get();
+  }
+
   auto hwAsicTable = HwAsicTable(
       config->switchSettings()->switchIdToSwitchInfo()->size()
           ? *config->switchSettings()->switchIdToSwitchInfo()
           : std::map<int64_t, cfg::SwitchInfo>(
                 {{0, createSwitchInfo(cfg::SwitchType::NPU)}}),
-      std::nullopt);
+      std::nullopt,
+      *config->dsfNodes());
   return applyThriftConfig(
       state,
       config,
       platform->supportsAddRemovePort(),
-      platformMapping.get(),
+      platformMapping,
       &hwAsicTable,
       rib);
 }
@@ -1283,6 +1299,20 @@ RouteNextHopSet makeResolvedNextHops(
   return nhops;
 }
 
+ResolvedNextHop makeResolvedNextHop(
+    const InterfaceID& intfId,
+    const std::string& nhip,
+    uint32_t weight,
+    std::optional<NetworkTopologyInformation> topologyInfo) {
+  return ResolvedNextHop(
+      IPAddress(nhip),
+      intfId,
+      weight,
+      std::nullopt, // label action
+      false, // disableTTLDecrement
+      topologyInfo);
+}
+
 RoutePrefixV4 makePrefixV4(std::string str) {
   std::vector<std::string> vec;
   folly::split('/', str, vec);
@@ -1342,27 +1372,6 @@ void programRoutes(
     }
   }
   updater.program();
-}
-
-void updateBlockedNeighbor(
-    SwSwitch* sw,
-    const std::vector<std::pair<VlanID, folly::IPAddress>>& blockNeighbors) {
-  sw->updateStateBlocking(
-      "Update blocked neighbors ",
-      [=](const std::shared_ptr<SwitchState>& state) {
-        std::shared_ptr<SwitchState> newState{state};
-
-        auto switchSettings =
-            utility::getFirstNodeIf(state->getSwitchSettings());
-        auto newSwitchSettings = switchSettings->modify(&newState);
-        newSwitchSettings->setBlockNeighbors(blockNeighbors);
-        return newState;
-      });
-
-  waitForStateUpdates(sw);
-  sw->getNeighborUpdater()->waitForPendingUpdates();
-  waitForBackgroundThread(sw);
-  waitForStateUpdates(sw);
 }
 
 void updateMacAddrsToBlock(

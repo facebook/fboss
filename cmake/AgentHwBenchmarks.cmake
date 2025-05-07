@@ -28,6 +28,9 @@ target_link_libraries(hw_stats_collection_speed
   voq_test_utils
   ecmp_helper
   mono_agent_ensemble
+  load_balancer_test_utils
+  copp_test_utils
+  network_ai_qos_utils
   mono_agent_benchmarks
   Folly::folly
   Folly::follybenchmark
@@ -190,6 +193,7 @@ target_link_libraries(hw_flowlet_stats_collection_speed
   mono_agent_benchmarks
   Folly::folly
   Folly::follybenchmark
+  udf_test_utils
 )
 
 add_library(hw_ecmp_shrink_speed
@@ -340,6 +344,15 @@ target_link_libraries(hw_init_and_exit_100Gx100G
   hw_init_and_exit_benchmark_helper
 )
 
+add_library(hw_init_and_exit_400Gx400G
+  fboss/agent/hw/benchmarks/HwInitAndExit400Gx400GBenchmark.cpp
+)
+
+target_link_libraries(hw_init_and_exit_400Gx400G
+  config_factory
+  hw_init_and_exit_benchmark_helper
+)
+
 add_library(hw_init_and_exit_voq
   fboss/agent/hw/benchmarks/HwInitAndExitVoqBenchmark.cpp
 )
@@ -447,8 +460,21 @@ add_library(hw_system_scale_memory_benchmark
 )
 
 target_link_libraries(hw_system_scale_memory_benchmark
-  fsdb_model
+  agent_fsdb_integ_bench_helper
   system_scale_test_utils
   mono_agent_ensemble
   Folly::follybenchmark
+)
+
+add_library(hw_clear_interface_counters_phy_benchmark
+  fboss/agent/hw/benchmarks/HwClearInterfacePhyCountersBenchmark.cpp
+)
+
+target_link_libraries(hw_clear_interface_counters_phy_benchmark
+  config_factory
+  mono_agent_ensemble
+  mono_agent_benchmarks
+  Folly::follybenchmark
+  port_flap_helper
+  mac_learning_flood_helper
 )

@@ -115,6 +115,9 @@ class MockHwSwitch : public HwSwitch {
 
   void injectSwitchReachabilityChangeNotification() override {}
 
+  void clearInterfacePhyCounters(
+      const std::unique_ptr<std::vector<int32_t>>& /*ports*/) override {}
+
   uint32_t generateDeterministicSeed(
       LoadBalancerID loadBalancerID,
       folly::MacAddress mac) const override {
@@ -143,6 +146,8 @@ class MockHwSwitch : public HwSwitch {
   MOCK_CONST_METHOD1(
       getSwitchReachability,
       std::vector<PortID>(SwitchID switchId));
+
+  MOCK_CONST_METHOD0(getAllFirmwareInfo, std::vector<FirmwareInfo>());
 
   void setInitialState(const std::shared_ptr<SwitchState>& state) {
     setProgrammedState(state);

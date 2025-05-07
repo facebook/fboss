@@ -12,7 +12,6 @@
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/SwitchState.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/QosTestUtils.h"
 #include "fboss/qsfp_service/lib/QsfpClient.h"
 
@@ -55,8 +54,8 @@ void AgentEnsembleTest::setupAgentEnsemble(bool disableLinkStateToggler) {
 void AgentEnsembleTest::setCmdLineFlagOverrides() const {
   // Looped ports are the common case in tests
   FLAGS_disable_looped_fabric_ports = false;
-  // Set HW agent connection timeout to 120 seconds
-  FLAGS_hw_agent_connection_timeout_ms = 120000;
+  // Set HW agent connection timeout to 130 seconds
+  FLAGS_hw_agent_connection_timeout_ms = 130000;
 }
 
 void AgentEnsembleTest::TearDown() {

@@ -10,12 +10,12 @@
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/packet/PktUtil.h"
 
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/packet/UDPDatagram.h"
 #include "fboss/agent/test/AgentEnsemble.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
 #include "fboss/agent/test/TrunkUtils.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/MirrorTestUtils.h"
@@ -167,7 +167,8 @@ class AgentSflowMirrorTest : public AgentHwTest {
   }
 
   const HwAsic* checkSameAndGetAsic() const {
-    return utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+    return facebook::fboss::checkSameAndGetAsic(
+        getAgentEnsemble()->getL3Asics());
   }
 
   std::optional<uint32_t> getHwLogicalPortId(PortID port) const {
@@ -253,7 +254,10 @@ class AgentSflowMirrorTest : public AgentHwTest {
     this->getAgentEnsemble()->applyNewState(
         [&](const std::shared_ptr<SwitchState>& state) {
           utility::EcmpSetupTargetedPorts<T> ecmpHelper(
-              state, RouterID(0), {getNonSflowSampledInterfacePortType()});
+              state,
+              getSw()->needL2EntryForNeighbor(),
+              RouterID(0),
+              {getNonSflowSampledInterfacePortType()});
           auto newState = ecmpHelper.resolveNextHops(state, nhopPorts);
           return newState;
         },
@@ -265,6 +269,7 @@ class AgentSflowMirrorTest : public AgentHwTest {
     RoutePrefix<T> prefix(T(dip->str()), dip->bitCount());
     utility::EcmpSetupTargetedPorts<T> ecmpHelper(
         getProgrammedState(),
+        getSw()->needL2EntryForNeighbor(),
         RouterID(0),
         {getNonSflowSampledInterfacePortType()});
 
@@ -288,6 +293,7 @@ class AgentSflowMirrorTest : public AgentHwTest {
   void setupEcmpTraffic() {
     utility::EcmpSetupTargetedPorts6 ecmpHelper{
         getProgrammedState(),
+        getSw()->needL2EntryForNeighbor(),
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState())};
 
     const PortDescriptor port(getDataTrafficPort());
@@ -309,7 +315,7 @@ class AgentSflowMirrorTest : public AgentHwTest {
   std::unique_ptr<facebook::fboss::TxPacket> genPacket(
       int portIndex,
       size_t payloadSize) {
-    auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
+    auto vlanId = getVlanIDForTx();
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     folly::IPAddressV6 sip{"2401:db00:dead:beef::2401"};
@@ -772,14 +778,15 @@ class AgentSflowMirrorWithLineRateTrafficTest
       std::vector<PortID> portIds(
           allPorts.begin(), allPorts.begin() + kNumDataTrafficPorts);
       std::vector<int> losslessPgIds = {kLosslessPriority};
+      std::vector<int> lossyPgIds = {0};
       auto config = initialConfig(*getAgentEnsemble());
       // Configure 1:1 sampling to ensure high rate on mirror egress port
       configureMirrorWithSampling(config, 1 /*sampleRate*/);
       // PFC buffer configurations to ensure we have lossless traffic
       const std::map<int, int> tcToPgOverride{};
       // We dont want PFC here, so set global shared threshold to be high
-      auto asicType = utility::checkSameAndGetAsicType(
-          this->initialConfig(*getAgentEnsemble()));
+      auto asicType =
+          checkSameAndGetAsicType(this->initialConfig(*getAgentEnsemble()));
       auto bufferParams =
           utility::PfcBufferParams::getPfcBufferParams(asicType);
       bufferParams.globalShared = 20 * 1024 * 1024;
@@ -789,6 +796,7 @@ class AgentSflowMirrorWithLineRateTrafficTest
           config,
           portIds,
           losslessPgIds,
+          lossyPgIds,
           tcToPgOverride,
           bufferParams);
       // Make sure that traffic is going to loop for ever!

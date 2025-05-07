@@ -544,16 +544,7 @@ class SaiSwitchObj : public SaiObjectWithCounters<SaiSwitchTraits> {
  */
 class SaiStore {
  public:
-  SaiStore();
   explicit SaiStore(sai_object_id_t switchId);
-
-  /*
-   * Set the switch id on all the SaiObjectStores
-   * Useful for the singleton mode of operation, which is constructed
-   * with the default constructor, then after the switch_id is ready, that
-   * is set on the SaiStore
-   */
-  void setSwitchId(sai_object_id_t switchId);
 
   /*
    * Reload the SaiStore from the current SAI state via SAI api calls.
@@ -590,6 +581,14 @@ class SaiStore {
   void printWarmbootHandles() const;
 
  private:
+  /*
+   * Set the switch id on all the SaiObjectStores
+   * Useful for the singleton mode of operation, which is constructed
+   * with the default constructor, then after the switch_id is ready, that
+   * is set on the SaiStore
+   */
+  void setSwitchId(sai_object_id_t switchId);
+
   sai_object_id_t saiSwitchId_{};
   std::tuple<
       SaiObjectStore<SaiAclTableGroupTraits>,
@@ -665,7 +664,12 @@ class SaiStore {
       SaiObjectStore<SaiMacsecFlowTraits>,
       SaiObjectStore<SaiMacsecPortTraits>,
       SaiObjectStore<SaiMacsecSCTraits>,
-      SaiObjectStore<SaiMacsecSATraits>>
+      SaiObjectStore<SaiMacsecSATraits>
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+      ,
+      SaiObjectStore<SaiFirmwareTraits>
+#endif
+      >
       stores_;
 };
 

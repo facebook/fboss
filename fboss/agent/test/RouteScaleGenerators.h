@@ -42,6 +42,7 @@ class RSWRouteScaleGenerator : public RouteDistributionGenerator {
  public:
   explicit RSWRouteScaleGenerator(
       const std::shared_ptr<SwitchState>& startingState,
+      bool needL2EntryForNeighbor,
       unsigned int chunkSize = kDefaultChunkSize,
       unsigned int ecmpWidth = kDefaulEcmpWidth,
       RouterID routerId = RouterID(0));
@@ -51,6 +52,7 @@ class FSWRouteScaleGenerator : public RouteDistributionGenerator {
  public:
   explicit FSWRouteScaleGenerator(
       const std::shared_ptr<SwitchState>& startingState,
+      bool needL2EntryForNeighbor,
       unsigned int chunkSize = kDefaultChunkSize,
       unsigned int ecmpWidth = kDefaulEcmpWidth,
       RouterID routerId = RouterID(0));
@@ -60,6 +62,7 @@ class THAlpmRouteScaleGenerator : public RouteDistributionGenerator {
  public:
   explicit THAlpmRouteScaleGenerator(
       const std::shared_ptr<SwitchState>& startingState,
+      bool needL2EntryForNeighbor,
       unsigned int chunkSize = kDefaultChunkSize,
       unsigned int ecmpWidth = kDefaulEcmpWidth,
       RouterID routerId = RouterID(0));
@@ -69,6 +72,7 @@ class HgridDuRouteScaleGenerator : public RouteDistributionGenerator {
  public:
   explicit HgridDuRouteScaleGenerator(
       const std::shared_ptr<SwitchState>& startingState,
+      bool needL2EntryForNeighbor,
       unsigned int chunkSize = kDefaultChunkSize,
       unsigned int ecmpWidth = kDefaulEcmpWidth,
       RouterID routerId = RouterID(0));
@@ -78,6 +82,7 @@ class HgridUuRouteScaleGenerator : public RouteDistributionGenerator {
  public:
   explicit HgridUuRouteScaleGenerator(
       const std::shared_ptr<SwitchState>& startingState,
+      bool needL2EntryForNeighbor,
       unsigned int chunkSize = kDefaultChunkSize,
       unsigned int ecmpWidth = kDefaulEcmpWidth,
       RouterID routerId = RouterID(0));
@@ -87,6 +92,7 @@ class AnticipatedRouteScaleGenerator : public RouteDistributionGenerator {
  public:
   explicit AnticipatedRouteScaleGenerator(
       const std::shared_ptr<SwitchState>& startingState,
+      bool needL2EntryForNeighbor,
       unsigned int chunkSize = kDefaultChunkSize,
       unsigned int ecmpWidth = kDefaulEcmpWidth,
       RouterID routerId = RouterID(0));
@@ -96,6 +102,7 @@ class ScaleTestRouteScaleGenerator : public RouteDistributionGenerator {
  public:
   explicit ScaleTestRouteScaleGenerator(
       const std::shared_ptr<SwitchState>& startingState,
+      bool needL2EntryForNeighbor,
       unsigned int chunkSize = kDefaultChunkSize,
       unsigned int ecmpWidth = kDefaulEcmpWidth,
       RouterID routerId = RouterID(0));
@@ -107,6 +114,7 @@ class TurboFSWRouteScaleGenerator : public RouteDistributionGenerator {
       std::shared_ptr<SwitchState> in) const override;
   explicit TurboFSWRouteScaleGenerator(
       const std::shared_ptr<SwitchState>& startingState,
+      bool needL2EntryForNeighbor,
       unsigned int chunkSize = kDefaultChunkSize,
       // in reality, 33 are mesh links and 36 are ssw links, giving total of 69,
       // but approaximating to 64 for now, as total number of ports in test

@@ -129,7 +129,7 @@ class CmdShowHardware
         hwmod.serialNumber() = data["PIMSERIAL"][pim].asString();
         std::string lower_pim =
             boost::algorithm::to_lower_copy(hwmod.moduleName().value());
-        std::string pim_status = "";
+        std::string pim_status;
         // Unfortunately, BMC does not adhere to a single standard so detecting
         // PIM presence is on a per platform basis.  So far we have observerd
         // that if a chassis has PIMs it will have some indication of if they
@@ -180,7 +180,7 @@ class CmdShowHardware
       }
       // Again we have deviation of endpoints amongst platforms so we have to
       // read from different locations to populate our object
-      std::string fab_endpoint = "";
+      std::string fab_endpoint;
       if (data.find("SEUTIL") != data.items().end()) {
         fab_endpoint = "SEUTIL";
       } else if (data.find("SEUTIL_MP2") != data.items().end()) {

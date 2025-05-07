@@ -7,8 +7,8 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/test/AgentHwTest.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/MirrorTestUtils.h"
 
@@ -116,7 +116,7 @@ class AgentMirroringScaleTest : public AgentHwTest {
   }
 
   uint32_t getMaxMirrorsEntries(const std::vector<const HwAsic*>& asics) const {
-    auto asic = utility::checkSameAndGetAsic(asics);
+    auto asic = checkSameAndGetAsic(asics);
     uint32_t maxMirrorsEntries = asic->getMaxMirrors();
     if constexpr (
         MirrorT::mirrorType == MirrorType::INGRESS_SPAN ||

@@ -66,7 +66,7 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(
   std::optional<SaiNextHopGroupTraits::Attributes::ArsObjectId> arsObjectId{
       std::nullopt};
   if (FLAGS_flowletSwitchingEnable &&
-      platform_->getAsic()->isSupported(HwAsic::Feature::FLOWLET)) {
+      platform_->getAsic()->isSupported(HwAsic::Feature::ARS)) {
     auto arsHandlePtr = managerTable_->arsManager().getArsHandle();
     if (arsHandlePtr->ars) {
       auto arsSaiId = arsHandlePtr->ars->adapterKey();
@@ -159,7 +159,7 @@ SaiNextHopGroupManager::getSaiObjectFromWBCache(
 void SaiNextHopGroupManager::updateArsModeAll(
     const std::shared_ptr<FlowletSwitchingConfig>& newFlowletConfig) {
   if (!FLAGS_flowletSwitchingEnable ||
-      !platform_->getAsic()->isSupported(HwAsic::Feature::FLOWLET)) {
+      !platform_->getAsic()->isSupported(HwAsic::Feature::ARS)) {
     return;
   }
 

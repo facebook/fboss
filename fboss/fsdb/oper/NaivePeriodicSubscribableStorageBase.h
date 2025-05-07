@@ -51,14 +51,17 @@ class NaivePeriodicSubscribableStorageBase {
         const std::string& metricPrefix = "fsdb",
         bool convertToIDPaths = false,
         bool requireResponseOnInitialSync = false,
-        bool exportPerSubscriberMetrics = false)
+        bool exportPerSubscriberMetrics = false,
+        bool serveGetRequestsWithLastPublishedState = true)
         : subscriptionServeInterval_(subscriptionServeInterval),
           subscriptionHeartbeatInterval_(subscriptionHeartbeatInterval),
           trackMetadata_(trackMetadata),
           metricPrefix_(metricPrefix),
           convertSubsToIDPaths_(convertToIDPaths),
           requireResponseOnInitialSync_(requireResponseOnInitialSync),
-          exportPerSubscriberMetrics_(exportPerSubscriberMetrics) {}
+          exportPerSubscriberMetrics_(exportPerSubscriberMetrics),
+          serveGetRequestsWithLastPublishedState_(
+              serveGetRequestsWithLastPublishedState) {}
 
     const std::chrono::milliseconds subscriptionServeInterval_;
     const std::chrono::milliseconds subscriptionHeartbeatInterval_;
@@ -67,6 +70,7 @@ class NaivePeriodicSubscribableStorageBase {
     bool convertSubsToIDPaths_;
     const bool requireResponseOnInitialSync_;
     const bool exportPerSubscriberMetrics_;
+    const bool serveGetRequestsWithLastPublishedState_;
   };
 
   explicit NaivePeriodicSubscribableStorageBase(StorageParams params);
@@ -82,7 +86,10 @@ class NaivePeriodicSubscribableStorageBase {
   void start_impl();
   void stop_impl();
 
-  void registerPublisher(PathIter begin, PathIter end);
+  void registerPublisher(
+      PathIter begin,
+      PathIter end,
+      bool skipThriftStreamLivenessCheck);
 
   void unregisterPublisher(
       PathIter begin,
@@ -245,12 +252,12 @@ class NaivePeriodicSubscribableStorageBase {
   std::shared_ptr<ThreadHeartbeat> threadHeartbeat_;
 
   // metric names
-  const std::string rss_{""};
-  const std::string registeredSubs_{""};
-  const std::string nPathStores_{""};
-  const std::string nPathStoreAllocs_{""};
-  const std::string serveSubMs_{""};
-  const std::string serveSubNum_{""};
+  const std::string rss_;
+  const std::string registeredSubs_;
+  const std::string nPathStores_;
+  const std::string nPathStoreAllocs_;
+  const std::string serveSubMs_;
+  const std::string serveSubNum_;
   // per-PublisherRoot metrics
   const std::string publishTimePrefix_;
   const std::string subscribeTimePrefix_;

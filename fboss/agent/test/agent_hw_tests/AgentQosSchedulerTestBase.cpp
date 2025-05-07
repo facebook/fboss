@@ -21,7 +21,7 @@ AgentQosSchedulerTestBase::createUdpPkt(uint8_t dscpVal) const {
 
   return utility::makeUDPTxPacket(
       getSw(),
-      utility::firstVlanIDWithPorts(getProgrammedState()),
+      getVlanIDForTx(),
       srcMac,
       dstMac(),
       folly::IPAddressV6("2620:0:1cfe:face:b00c::3"),
@@ -37,7 +37,8 @@ AgentQosSchedulerTestBase::createUdpPkt(uint8_t dscpVal) const {
 }
 
 void AgentQosSchedulerTestBase::sendUdpPkt(uint8_t dscpVal, bool frontPanel) {
-  utility::EcmpSetupAnyNPorts6 ecmpHelper6(getProgrammedState());
+  utility::EcmpSetupAnyNPorts6 ecmpHelper6(
+      getProgrammedState(), getSw()->needL2EntryForNeighbor());
   if (frontPanel) {
     getSw()->sendPacketOutOfPortAsync(
         createUdpPkt(dscpVal),
@@ -58,7 +59,7 @@ void AgentQosSchedulerTestBase::sendUdpPkts(
 
 void AgentQosSchedulerTestBase::_setup(
     const utility::EcmpSetupAnyNPorts6& ecmpHelper6) {
-  resolveNeigborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
+  resolveNeighborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
   utility::ttlDecrementHandlingForLoopbackTraffic(
       getAgentEnsemble(), ecmpHelper6.getRouterId(), ecmpHelper6.nhop(0));
 }
@@ -130,13 +131,15 @@ bool AgentQosSchedulerTestBase::verifyWRRHelper(
     const double kVariance = 0.10; // i.e. + or -10%
     auto portId = outPort();
     auto startTrafficFun = [this, portId, queueIds, queueToDscp]() {
-      utility::EcmpSetupAnyNPorts6 ecmpHelper6(getProgrammedState(), dstMac());
+      utility::EcmpSetupAnyNPorts6 ecmpHelper6(
+          getProgrammedState(), getSw()->needL2EntryForNeighbor(), dstMac());
       _setup(ecmpHelper6);
       sendUdpPktsForAllQueues(queueIds, queueToDscp);
       getAgentEnsemble()->waitForLineRateOnPort(portId);
     };
     auto stopTrafficFun = [this]() {
-      utility::EcmpSetupAnyNPorts6 ecmpHelper6(getProgrammedState(), dstMac());
+      utility::EcmpSetupAnyNPorts6 ecmpHelper6(
+          getProgrammedState(), getSw()->needL2EntryForNeighbor(), dstMac());
       unprogramRoutes(ecmpHelper6);
     };
     WITH_RETRIES_N(
@@ -208,7 +211,7 @@ bool AgentQosSchedulerTestBase::verifySPHelper(
   auto startTrafficFun =
       [this, portId, queueIds, queueToDscp, fromFrontPanel]() {
         utility::EcmpSetupAnyNPorts6 ecmpHelper6(
-            getProgrammedState(), dstMac());
+            getProgrammedState(), getSw()->needL2EntryForNeighbor(), dstMac());
         _setup(ecmpHelper6);
         sendUdpPktsForAllQueues(queueIds, queueToDscp, fromFrontPanel);
         getAgentEnsemble()->waitForLineRateOnPort(portId);

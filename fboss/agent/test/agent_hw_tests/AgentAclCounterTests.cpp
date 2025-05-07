@@ -8,15 +8,16 @@
  *
  */
 
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
+#include "fboss/agent/test/utils/UdfTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
 DECLARE_bool(flowletSwitchingEnable);
@@ -64,7 +65,7 @@ class AgentAclCounterTest : public AgentHwTest {
       return;
     }
     helper_ = std::make_unique<utility::EcmpSetupAnyNPorts6>(
-        getProgrammedState(), RouterID(0));
+        getProgrammedState(), getSw()->needL2EntryForNeighbor(), RouterID(0));
   }
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
@@ -93,13 +94,13 @@ class AgentAclCounterTest : public AgentHwTest {
         aclName = "test-l4-port-acl";
         break;
       case AclType::UDF_OPCODE_ACK:
-        aclName = "test-udf-opcode-ack-acl";
+        aclName = "test-udf-opc-ack-acl";
         break;
       case AclType::UDF_OPCODE_WRITE_IMMEDIATE:
-        aclName = "test-udf-opcode-write-immediate-acl";
+        aclName = "test-udf-opc-wrt-immdt-acl";
         break;
       case AclType::BTH_OPCODE:
-        aclName = "test-bth-opcode-acl";
+        aclName = "test-bth-opc-acl";
         break;
       case AclType::FLOWLET:
         aclName = "test-flowlet-acl";
@@ -130,13 +131,13 @@ class AgentAclCounterTest : public AgentHwTest {
         counterName = "test-l4-port-acl-stats";
         break;
       case AclType::UDF_OPCODE_ACK:
-        counterName = "test-udf-opcode-ack-acl-stats";
+        counterName = "test-udf-opc-ack-acl-stats";
         break;
       case AclType::UDF_OPCODE_WRITE_IMMEDIATE:
-        counterName = "test-udf-opcode-write-immediate-acl-stats";
+        counterName = "test-udf-opc-wrt-immdt-acl-cnt";
         break;
       case AclType::BTH_OPCODE:
-        counterName = "test-bth-opcode-acl-stats";
+        counterName = "test-bth-opc-acl-stats";
         break;
       case AclType::FLOWLET:
         counterName = "test-flowlet-acl-stats";
@@ -191,6 +192,7 @@ class AgentAclCounterTest : public AgentHwTest {
           case AclType::UDF_FLOWLET:
             utility::addFlowletAcl(
                 newCfg,
+                getAgentEnsemble()->isSai(),
                 getAclName(aclType),
                 getCounterName(aclType),
                 aclType != AclType::FLOWLET);
@@ -224,7 +226,7 @@ class AgentAclCounterTest : public AgentHwTest {
   }
 
   size_t sendRoceTraffic(const PortID frontPanelEgrPort, AclType aclType) {
-    auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
+    auto vlanId = getVlanIDForTx();
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     uint8_t opcode = (aclType == AclType::UDF_OPCODE_WRITE_IMMEDIATE)
@@ -251,7 +253,7 @@ class AgentAclCounterTest : public AgentHwTest {
             (aclType == AclType::UDP_TTLD || aclType == AclType::TCP_TTLD)
         ? 200
         : 10;
-    auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
+    auto vlanId = getVlanIDForTx();
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
@@ -451,7 +453,8 @@ class AgentAclCounterTest : public AgentHwTest {
     aclEntry.actionType() = aclActionType_;
     auto* acl = &aclEntry;
     auto l3Asics = getAgentEnsemble()->getL3Asics();
-    auto asic = utility::checkSameAndGetAsic(l3Asics);
+    auto asic = checkSameAndGetAsic(l3Asics);
+    bool isSai = getAgentEnsemble()->isSai();
     switch (aclType) {
       case AclType::TCP_TTLD:
       case AclType::UDP_TTLD:
@@ -478,14 +481,32 @@ class AgentAclCounterTest : public AgentHwTest {
         acl->srcPort() = helper_->ecmpPortDescriptorAt(0).phyPortID();
         acl->l4DstPort() = kL4DstPort2();
         break;
-      case AclType::UDF_OPCODE_ACK:
-        acl->udfGroups() = {utility::kUdfAclRoceOpcodeGroupName};
-        acl->roceOpcode() = utility::kUdfRoceOpcodeAck;
-        break;
-      case AclType::UDF_OPCODE_WRITE_IMMEDIATE:
-        acl->udfGroups() = {utility::kUdfAclRoceOpcodeGroupName};
-        acl->roceOpcode() = utility::kUdfRoceOpcodeWriteImmediate;
-        break;
+      case AclType::UDF_OPCODE_ACK: {
+        if (isSai) {
+          utility::addUdfTableToAcl(
+              acl,
+              utility::kUdfAclRoceOpcodeGroupName,
+              {utility::kUdfRoceOpcodeAck},
+              {utility::kUdfRoceOpcodeMask});
+        } else {
+          acl->udfGroups() = {utility::kUdfAclRoceOpcodeGroupName};
+          acl->roceBytes() = {utility::kUdfRoceOpcodeAck};
+          acl->roceMask() = {utility::kUdfRoceOpcodeMask};
+        }
+      } break;
+      case AclType::UDF_OPCODE_WRITE_IMMEDIATE: {
+        if (isSai) {
+          utility::addUdfTableToAcl(
+              acl,
+              utility::kUdfAclRoceOpcodeGroupName,
+              {utility::kUdfRoceOpcodeWriteImmediate},
+              {utility::kUdfRoceOpcodeMask});
+        } else {
+          acl->udfGroups() = {utility::kUdfAclRoceOpcodeGroupName};
+          acl->roceBytes() = {utility::kUdfRoceOpcodeWriteImmediate};
+          acl->roceMask() = {utility::kUdfRoceOpcodeMask};
+        }
+      } break;
       case AclType::BTH_OPCODE:
         acl->etherType() = cfg::EtherType::IPv6;
         acl->roceOpcode() = utility::kUdfRoceOpcodeAck;
@@ -599,6 +620,13 @@ class AgentUdfAclCounterTest : public AgentAclCounterTest {
         ensemble.masterLogicalPortIds(),
         true /*interfaceHasSubnet*/);
     cfg.udfConfig() = utility::addUdfAclConfig();
+    if (FLAGS_enable_acl_table_group) {
+      std::vector<std::string> udfGroups = {
+          utility::kUdfAclRoceOpcodeGroupName};
+      utility::addAclTableGroup(
+          &cfg, cfg::AclStage::INGRESS, utility::kDefaultAclTableGroupName());
+      utility::addDefaultAclTable(cfg, udfGroups);
+    }
     return cfg;
   }
 
@@ -701,7 +729,9 @@ TEST_F(AgentUdfAclCounterTest, VerifyUdfPlusUdfHash) {
 
   auto setupPostWarmboot = [this]() {
     auto newCfg{initialConfig(*getAgentEnsemble())};
-    newCfg.udfConfig() = utility::addUdfHashAclConfig();
+    auto asicType = checkSameAndGetAsicType(newCfg);
+
+    newCfg.udfConfig() = utility::addUdfHashAclConfig(asicType);
     addAclAndStat(&newCfg, AclType::UDF_OPCODE_ACK);
     addAclAndStat(&newCfg, AclType::UDF_OPCODE_WRITE_IMMEDIATE);
     applyNewConfig(newCfg);
@@ -719,7 +749,8 @@ TEST_F(AgentUdfAclCounterTest, VerifyUdfMinusUdfHash) {
     auto wrapper = getSw()->getRouteUpdater();
     helper_->programRoutes(&wrapper, kEcmpWidth);
     auto newCfg{initialConfig(*getAgentEnsemble())};
-    newCfg.udfConfig() = utility::addUdfHashAclConfig();
+    auto asicType = checkSameAndGetAsicType(newCfg);
+    newCfg.udfConfig() = utility::addUdfHashAclConfig(asicType);
     addAclAndStat(&newCfg, AclType::UDF_OPCODE_ACK);
     addAclAndStat(&newCfg, AclType::UDF_OPCODE_WRITE_IMMEDIATE);
     applyNewConfig(newCfg);
@@ -769,7 +800,8 @@ class AgentFlowletAclCounterTest : public AgentAclCounterTest {
   getProductionFeaturesVerified() const override {
     return {
         production_features::ProductionFeature::DLB,
-        production_features::ProductionFeature::SINGLE_ACL_TABLE};
+        production_features::ProductionFeature::SINGLE_ACL_TABLE,
+        production_features::ProductionFeature::UDF_WR_IMMEDIATE_ACL};
   }
 
  protected:
@@ -781,8 +813,14 @@ class AgentFlowletAclCounterTest : public AgentAclCounterTest {
         true /*interfaceHasSubnet*/);
     cfg.udfConfig() = utility::addUdfAclConfig(
         utility::kUdfOffsetBthOpcode | utility::kUdfOffsetBthReserved);
-    utility::addFlowletConfigs(
-        cfg, ensemble.masterLogicalPortIds(), ensemble.isSai());
+    if (FLAGS_enable_acl_table_group) {
+      std::vector<std::string> udfGroups = {
+          utility::kUdfAclRoceOpcodeGroupName,
+          utility::kRoceUdfFlowletGroupName};
+      utility::addAclTableGroup(
+          &cfg, cfg::AclStage::INGRESS, utility::kDefaultAclTableGroupName());
+      utility::addDefaultAclTable(cfg, udfGroups);
+    }
     return cfg;
   }
 

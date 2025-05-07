@@ -37,7 +37,7 @@ class HwSflowTest : public HwLinkStateDependentTest {
   }
 
   void sendUdpPkts(int numPktsToSend) {
-    auto vlanId = utility::firstVlanIDWithPorts(initialConfig());
+    auto vlanId = getHwSwitchEnsemble()->getVlanIDForTx();
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     for (int i = 0; i < numPktsToSend; i++) {
@@ -74,7 +74,8 @@ class HwSflowTest : public HwLinkStateDependentTest {
         portCfg->sFlowEgressRate() = enableSflow ? 1 : 0;
       }
       applyNewConfig(cfg);
-      utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+      utility::EcmpSetupAnyNPorts6 ecmpHelper(
+          getProgrammedState(), getHwSwitch()->needL2EntryForNeighbor());
       resolveNeigborAndProgramRoutes(ecmpHelper, 1);
     };
 

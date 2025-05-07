@@ -22,6 +22,7 @@
 
 #include "fboss/agent/AgentFeatures.h"
 
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/DsfStateUpdaterUtil.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/HwAsicTable.h"
@@ -1121,7 +1122,10 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
     switchInfo.globalSystemPortOffset() = *node->getGlobalSystemPortOffset();
     switchInfo.inbandPortId() = *node->getInbandPortId();
     return HwAsic::makeAsic(
-        static_cast<int64_t>(node->getSwitchId()), switchInfo, std::nullopt);
+        static_cast<int64_t>(node->getSwitchId()),
+        switchInfo,
+        std::nullopt,
+        std::nullopt /* fabricNodeRole is N/A for VOQ switches */);
   };
   auto processLoopbacks = [&](const std::shared_ptr<DsfNode>& node,
                               const HwAsic* dsfNodeAsic) {
@@ -1207,6 +1211,7 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
     sysPort->setShelDestinationEnabled(
         cfg_->switchSettings()->selfHealingEcmpLagConfig().has_value());
     sysPort->resetPortQueues(getVoqConfig(localInbandPortId));
+    sysPort->setPortType(cfg::PortType::RECYCLE_PORT);
     if (auto dataPlaneTrafficPolicy = cfg_->dataPlaneTrafficPolicy()) {
       if (auto portIdToQosPolicy =
               dataPlaneTrafficPolicy->portIdToQosPolicy()) {
@@ -1755,13 +1760,14 @@ shared_ptr<SystemPortMap> ThriftConfigApplier::updateSystemPorts(
       // TODO(daiweix): remove this CHECK_EQ after verifying scope config is
       // always correct
       CHECK_EQ(
-          (int)platformPort.mapping()->scope().value(),
-          (int)port.second->getScope());
+          static_cast<int>(platformPort.mapping()->scope().value()),
+          static_cast<int>(port.second->getScope()));
       sysPort->setScope(port.second->getScope());
       sysPort->setShelDestinationEnabled(
           cfg_->switchSettings()->selfHealingEcmpLagConfig().has_value() &&
           port.second->getPortType() == cfg::PortType::RECYCLE_PORT &&
           port.second->getScope() == cfg::Scope::GLOBAL);
+      sysPort->setPortType(port.second->getPortType());
       sysPorts->addSystemPort(std::move(sysPort));
     }
   }
@@ -2586,7 +2592,9 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
       *portConf->conditionalEntropyRehash() ==
           orig->getConditionalEntropyRehash() &&
       portConf->selfHealingECMPLagEnable().value_or(false) ==
-          orig->getSelfHealingECMPLagEnable().value_or(false)) {
+          orig->getSelfHealingECMPLagEnable().value_or(false) &&
+      portConf->fecErrorDetectEnable().value_or(false) ==
+          orig->getFecErrorDetectEnable().value_or(false)) {
     return nullptr;
   }
 
@@ -2641,6 +2649,11 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
     newPort->setSelfHealingECMPLagEnable(selfHealingECMPLagEnable.value());
   } else {
     newPort->setSelfHealingECMPLagEnable(std::nullopt);
+  }
+  if (portConf->fecErrorDetectEnable().has_value()) {
+    newPort->setFecErrorDetectEnable(portConf->fecErrorDetectEnable().value());
+  } else {
+    newPort->setFecErrorDetectEnable(std::nullopt);
   }
   return newPort;
 }
@@ -3525,6 +3538,9 @@ std::shared_ptr<AclMap> ThriftConfigApplier::updateAclsImpl(
         if (auto flowletAction = mta.action()->flowletAction()) {
           matchAction.setFlowletAction(*flowletAction);
         }
+        if (auto ecmpHashAction = mta.action()->ecmpHashAction()) {
+          matchAction.setEcmpHashAction(*ecmpHashAction);
+        }
         if (auto redirectToNextHop = mta.action()->redirectToNextHop()) {
           matchAction.setRedirectToNextHop(
               std::make_pair(*redirectToNextHop, MatchAction::NextHopSet()));
@@ -3951,7 +3967,9 @@ std::shared_ptr<InterfaceMap> ThriftConfigApplier::updateInterfaces() {
             "is out of range for corresponding VOQ switch.",
             "sys port range");
       }
-      CHECK_EQ((int)sysPort->getScope(), (int)(*interfaceCfg.scope()));
+      CHECK_EQ(
+          static_cast<int>(sysPort->getScope()),
+          static_cast<int>(*interfaceCfg.scope()));
     }
     if (interfaceCfg.type() == cfg::InterfaceType::PORT) {
       if (auto port = interfaceCfg.portID()) {
@@ -4326,6 +4344,8 @@ ThriftConfigApplier::createFlowletSwitchingConfig(
       *config.dynamicPhysicalQueueExponent());
   newFlowletSwitchingConfig->setMaxLinks(*config.maxLinks());
   newFlowletSwitchingConfig->setSwitchingMode(*config.switchingMode());
+  newFlowletSwitchingConfig->setBackupSwitchingMode(
+      *config.backupSwitchingMode());
   return newFlowletSwitchingConfig;
 }
 
@@ -4612,12 +4632,6 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings(
         network::toBinaryAddress(folly::IPAddress(*blockNeighbor.ipAddress()));
     cfgBlockNeighbors.emplace_back(neighbor);
   }
-  // THRIFT_COPY
-  if (origSwitchSettings->getBlockNeighbors()->toThrift() !=
-      cfgBlockNeighbors) {
-    newSwitchSettings->setBlockNeighbors(cfgBlockNeighbors);
-    switchSettingsChange = true;
-  }
 
   std::vector<std::pair<VlanID, folly::MacAddress>> cfgMacAddrsToBlock;
   for (const auto& macAddrToBlock :
@@ -4828,6 +4842,14 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings(
       origSwitchSettings->getVoqOutOfBoundsLatencyNsec()) {
     newSwitchSettings->setVoqOutOfBoundsLatencyNsec(
         newVoqOutOfBoundsLatencyNsec);
+    switchSettingsChange = true;
+  }
+  std::optional<std::map<int32_t, int32_t>> newTcToRateLimitKbps;
+  if (cfg_->switchSettings()->tcToRateLimitKbps()) {
+    newTcToRateLimitKbps = *cfg_->switchSettings()->tcToRateLimitKbps();
+  }
+  if (newTcToRateLimitKbps != origSwitchSettings->getTcToRateLimitKbps()) {
+    newSwitchSettings->setTcToRateLimitKbps(newTcToRateLimitKbps);
     switchSettingsChange = true;
   }
 
@@ -5291,7 +5313,7 @@ std::shared_ptr<MirrorMap> ThriftConfigApplier::updateMirrors() {
     changed = true;
   }
 
-  std::set<std::string> ingressMirrors;
+  std::set<std::string> sampleIngressMirrors;
   for (auto& portMap : std::as_const(*(new_->getPorts()))) {
     for (auto& port : std::as_const(*portMap.second)) {
       auto portInMirror = port.second->getIngressMirror();
@@ -5302,19 +5324,10 @@ std::shared_ptr<MirrorMap> ThriftConfigApplier::updateMirrors() {
           throw FbossError(
               "Mirror ", portInMirror.value(), " for port is not found");
         }
-        if (port.second->getSampleDestination() &&
-            port.second->getSampleDestination().value() ==
-                cfg::SampleDestination::MIRROR &&
-            inMirrorMapEntry->second->type() != Mirror::Type::SFLOW) {
-          throw FbossError(
-              "Ingress mirror ",
-              portInMirror.value(),
-              " for sampled port ",
-              port.second->getID(),
-              " not sflow");
-        }
-        if (inMirrorMapEntry->second->type() == Mirror::Type::SFLOW) {
-          ingressMirrors.insert(portInMirror.value());
+        if (auto sampleDestination = port.second->getSampleDestination()) {
+          if (*sampleDestination == cfg::SampleDestination::MIRROR) {
+            sampleIngressMirrors.insert(portInMirror.value());
+          }
         }
       }
       if (portEgMirror.has_value() &&
@@ -5324,9 +5337,9 @@ std::shared_ptr<MirrorMap> ThriftConfigApplier::updateMirrors() {
       }
     }
   }
-  if (ingressMirrors.size() > 1) {
+  if (sampleIngressMirrors.size() > 1) {
     throw FbossError(
-        "Only one sflow mirror can be configured across all ports");
+        "Only one mirror can be configured across all ports, to sample traffic");
   }
 
   if (!changed) {
@@ -5561,6 +5574,9 @@ ThriftConfigApplier::updateMirrorOnDropReports() {
 std::shared_ptr<MirrorOnDropReport>
 ThriftConfigApplier::createMirrorOnDropReport(
     const cfg::MirrorOnDropReport* config) {
+  auto asicType =
+      checkSameAndGetAsic(hwAsicTable_->getL3Asics())->getAsicType();
+
   auto switchId = getAnyVoqSwitchId();
   if (!switchId.has_value()) {
     throw FbossError("No VOQ switchId found");
@@ -5573,9 +5589,73 @@ ThriftConfigApplier::createMirrorOnDropReport(
       ? folly::IPAddress(getSwitchIntfIP(new_, InterfaceID(systemPortId)))
       : folly::IPAddress(getSwitchIntfIPv6(new_, InterfaceID(systemPortId)));
 
+  // Determine the mirror recirculation port.
+  std::optional<PortID> mirrorPortId;
+  if (config->mirrorPort().has_value()) {
+    auto egressPort = config->mirrorPort()->egressPort();
+    if (!egressPort.has_value()) {
+      throw FbossError(
+          "Only egressPort can be used as a Mirror-on-Drop destination");
+    }
+    switch (egressPort->getType()) {
+      case cfg::MirrorEgressPort::Type::name:
+        for (auto& portMap : std::as_const(*(new_->getPorts()))) {
+          for (auto& [portId, port] : std::as_const(*portMap.second)) {
+            if (port->getName() == egressPort->get_name()) {
+              mirrorPortId = portId;
+              break;
+            }
+          }
+        }
+        break;
+      case cfg::MirrorEgressPort::Type::logicalID:
+        mirrorPortId = egressPort->get_logicalID();
+        break;
+      case cfg::MirrorEgressPort::Type::__EMPTY__:
+        throw FbossError(
+            "Must set either name or logicalID for MirrorEgressPort");
+    }
+  } else if (config->mirrorPortId().has_value()) {
+    mirrorPortId = PortID(*config->mirrorPortId());
+  } else {
+    if (asicType == cfg::AsicType::ASIC_TYPE_JERICHO3) {
+      // Find the lowest numbered local-scope recycle port.
+      for (auto& portMap : std::as_const(*(new_->getPorts()))) {
+        for (auto& [portId, port] : std::as_const(*portMap.second)) {
+          if (port->getPortType() == cfg::PortType::RECYCLE_PORT &&
+              port->getScope() == cfg::Scope::LOCAL) {
+            if (!mirrorPortId.has_value() ||
+                portId < static_cast<int>(mirrorPortId.value())) {
+              mirrorPortId = portId;
+            }
+          }
+        }
+      }
+    }
+  }
+  if (!mirrorPortId.has_value()) {
+    throw FbossError(
+        "Mirror-on-Drop destination is not specified, "
+        "and auto-detection is not supported on this ASIC");
+  }
+  if (asicType == cfg::AsicType::ASIC_TYPE_JERICHO3 &&
+      !FLAGS_allow_nif_port_for_mod) {
+    auto mirrorPortType = new_->getPort(*mirrorPortId)->getPortType();
+    if (mirrorPortType != cfg::PortType::RECYCLE_PORT &&
+        mirrorPortType != cfg::PortType::EVENTOR_PORT) {
+      throw FbossError(
+          "Only RECYCLE_PORT or EVENTOR_PORT can be used for Mirror-on-Drop on Jericho3, got ",
+          apache::thrift::util::enumNameSafe(mirrorPortType));
+    }
+    if (new_->getPort(*mirrorPortId)->getScope() != cfg::Scope::LOCAL) {
+      throw FbossError(
+          "Mirror-on-Drop must use LOCAL scoped recycle/eventor ports");
+    }
+  }
+
   return std::make_shared<MirrorOnDropReport>(
       *config->name(),
-      PortID(*config->mirrorPortId()),
+      *mirrorPortId,
       localSrcIp,
       *config->localSrcPort(),
       collectorIp,

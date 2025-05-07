@@ -158,11 +158,14 @@ void BcmEgressManager::processFlowletSwitchingConfigChanged(
         newFlowletSwitching->getFlowletTableSize();
     tmpFlowletConfig.maxLinks = newFlowletSwitching->getMaxLinks();
     tmpFlowletConfig.switchingMode = newFlowletSwitching->getSwitchingMode();
+    tmpFlowletConfig.backupSwitchingMode =
+        newFlowletSwitching->getBackupSwitchingMode();
   } else {
     tmpFlowletConfig.inactivityIntervalUsecs = 0;
     tmpFlowletConfig.flowletTableSize = 0;
     tmpFlowletConfig.maxLinks = 0;
     tmpFlowletConfig.switchingMode = cfg::SwitchingMode::FIXED_ASSIGNMENT;
+    tmpFlowletConfig.backupSwitchingMode = cfg::SwitchingMode::FIXED_ASSIGNMENT;
   }
   // take the write lock
   *bcmFlowletConfig_.wlock() = tmpFlowletConfig;
@@ -176,7 +179,7 @@ void BcmEgressManager::updateAllEgressForFlowletSwitching() {
   //  Hence skipping the update of egress objects for TH4.
   //  TH3 needs update of all egress objects for port flowlet config changes.
   if (hw_->getPlatform()->getAsic()->isSupported(
-          HwAsic::Feature::FLOWLET_PORT_ATTRIBUTES)) {
+          HwAsic::Feature::ARS_PORT_ATTRIBUTES)) {
     return;
   }
 

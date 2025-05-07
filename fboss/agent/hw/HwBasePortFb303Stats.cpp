@@ -308,4 +308,8 @@ void HwBasePortFb303Stats::updateEgressGvoqWatermarkStats(
         queueName);
   }
 }
+
+void HwBasePortFb303Stats::clearStat(folly::StringPiece statKey) {
+  portCounters_.clearStat(statName(statKey, portName_));
+}
 } // namespace facebook::fboss

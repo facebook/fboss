@@ -72,6 +72,11 @@ DEFINE_bool(
     allow_zero_headroom_for_lossless_pg,
     false,
     "Allow lossless PG to have headroom as zero");
+DEFINE_string(
+    mod_dest_mac_override,
+    "",
+    "Destination MAC override for Mirror-on-Drop packets");
+DEFINE_bool(allow_nif_port_for_mod, false, "Allow NIF port to be used for MOD");
 
 namespace facebook::fboss {
 
@@ -544,12 +549,22 @@ std::optional<PortID> getInterfacePortToReach(
     const std::shared_ptr<SwitchState>& state,
     const folly::IPAddress& ipAddr) {
   auto intf = state->getInterfaces()->getIntfToReach(RouterID(0), ipAddr);
-  if (intf) {
-    CHECK(intf->getSystemPortID().has_value());
-    return getPortID(*intf->getSystemPortID(), state);
+  if (!intf) {
+    return std::nullopt;
   }
-
-  return std::nullopt;
+  auto intfType = intf->getType();
+  std::optional<PortID> port{};
+  switch (intfType) {
+    case cfg::InterfaceType::VLAN:
+      break;
+    case cfg::InterfaceType::SYSTEM_PORT:
+      port = getPortID(intf->getSystemPortID().value(), state);
+      break;
+    case cfg::InterfaceType::PORT:
+      port = intf->getPortID();
+      break;
+  }
+  return port;
 }
 
 bool isAnyInterfacePortInLoopbackMode(
@@ -1185,6 +1200,23 @@ bool isStringInFile(
   }
 
   return false;
+}
+
+std::optional<VlanID> getDefaultTxVlanIdIf(
+    const std::shared_ptr<SwitchSettings>& settings) {
+  if (auto defaultVlan = settings->getDefaultVlan()) {
+    return VlanID(*defaultVlan);
+  }
+  return std::nullopt;
+}
+
+std::optional<VlanID> getDefaultTxVlanId(
+    const std::shared_ptr<SwitchSettings>& settings) {
+  auto vlanId = getDefaultTxVlanIdIf(settings);
+  if (!vlanId) {
+    throw FbossError("default tx vlan not found");
+  }
+  return vlanId;
 }
 
 } // namespace facebook::fboss

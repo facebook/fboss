@@ -4,7 +4,6 @@
 
 #include "fboss/agent/FabricConnectivityManager.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/DsfConfigUtils.h"
 #include "fboss/agent/test/utils/FabricTestUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
@@ -49,9 +48,10 @@ class AgentVoqSwitchWithFabricPortsTest : public AgentVoqSwitchTest {
   }
   void verifyLocalForwarding() {
     // Setup neighbor entry
-    utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+    utility::EcmpSetupAnyNPorts6 ecmpHelper(
+        getProgrammedState(), getSw()->needL2EntryForNeighbor());
     const auto kPort = ecmpHelper.ecmpPortDescriptorAt(0);
-    addRemoveNeighbor(kPort, true /* add neighbor*/);
+    addRemoveNeighbor(kPort, NeighborOp::ADD);
     auto sendPktAndVerify = [&](bool isFrontPanel) {
       auto beforeOutPkts = folly::copy(
           getLatestPortStats(kPort.phyPortID()).outUnicastPkts_().value());
@@ -413,11 +413,12 @@ TEST_F(
 }
 
 TEST_F(AgentVoqSwitchWithFabricPortsTest, checkFabricPortSprayWithIsolate) {
-  utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+  utility::EcmpSetupAnyNPorts6 ecmpHelper(
+      getProgrammedState(), getSw()->needL2EntryForNeighbor());
   const auto kPort = ecmpHelper.ecmpPortDescriptorAt(0);
   auto setup = [this, kPort, ecmpHelper]() {
     setForceTrafficOverFabric(true);
-    addRemoveNeighbor(kPort, true /* add neighbor*/);
+    addRemoveNeighbor(kPort, NeighborOp::ADD);
   };
 
   auto verify = [this, kPort, ecmpHelper]() {
@@ -475,11 +476,12 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, checkFabricPortSprayWithIsolate) {
 }
 
 TEST_F(AgentVoqSwitchWithFabricPortsTest, checkFabricPortSpray) {
-  utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+  utility::EcmpSetupAnyNPorts6 ecmpHelper(
+      getProgrammedState(), getSw()->needL2EntryForNeighbor());
   const auto kPort = ecmpHelper.ecmpPortDescriptorAt(0);
   auto setup = [this, kPort, ecmpHelper]() {
     setForceTrafficOverFabric(true);
-    addRemoveNeighbor(kPort, true /* add neighbor*/);
+    addRemoveNeighbor(kPort, NeighborOp::ADD);
   };
 
   auto verify = [this, kPort, ecmpHelper]() {
@@ -514,10 +516,11 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, checkFabricPortSpray) {
 }
 
 TEST_F(AgentVoqSwitchWithFabricPortsTest, fdrCellDrops) {
-  utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+  utility::EcmpSetupAnyNPorts6 ecmpHelper(
+      getProgrammedState(), getSw()->needL2EntryForNeighbor());
   const auto kPort = ecmpHelper.ecmpPortDescriptorAt(0);
   auto setup = [this, kPort]() {
-    addRemoveNeighbor(kPort, true /* add neighbor*/);
+    addRemoveNeighbor(kPort, NeighborOp::ADD);
     setForceTrafficOverFabric(true);
     std::string out;
     for (const auto& switchId : getSw()->getHwAsicTable()->getSwitchIDs()) {
@@ -629,5 +632,19 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, fabricLinkDownCellDropCounter) {
     });
   };
   verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(AgentVoqSwitchWithFabricPortsTest, ValidateFecErrorDetect) {
+  auto verify = [this]() {
+    utility::setupFecErrorDetectEnable(
+        getAgentEnsemble(), true /*fecErrorDetectEnable*/);
+    utility::validateFecErrorDetectInState(
+        getProgrammedState().get(), true /*fecErrorDetectEnable*/);
+    utility::setupFecErrorDetectEnable(
+        getAgentEnsemble(), false /*fecErrorDetectEnable*/);
+    utility::validateFecErrorDetectInState(
+        getProgrammedState().get(), false /*fecErrorDetectEnable*/);
+  };
+  verifyAcrossWarmBoots([]() {}, verify);
 }
 } // namespace facebook::fboss

@@ -137,7 +137,7 @@ class TeAgentIntegrationTest : public AgentIntegrationTest {
 
   void resolveNextHops() {
     auto ecmpHelper = std::make_unique<utility::EcmpSetupTargetedPorts6>(
-        sw()->getState(), RouterID(0));
+        sw()->getState(), sw()->needL2EntryForNeighbor(), RouterID(0));
 
     sw()->updateStateBlocking("Resolve nhops", [&](auto state) {
       return ecmpHelper->resolveNextHops(

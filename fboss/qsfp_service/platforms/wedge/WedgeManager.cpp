@@ -149,10 +149,22 @@ void WedgeManager::initTransceiverMap() {
   refreshTransceivers();
 }
 
+bool WedgeManager::platformSupportsI2cLogging() const {
+  auto platform = getPlatformType();
+  switch (platform) {
+    case PlatformType::PLATFORM_WEDGE100:
+      return false;
+      break;
+    default:
+      return true;
+  }
+  return true;
+}
+
 void WedgeManager::initQsfpImplMap() {
   auto i2cLogConfig = qsfpConfig_->thrift.transceiverI2cLogging();
   bool i2c_logging_Enabled =
-      i2cLogConfig.has_value() && FLAGS_enable_tcvr_i2c_logging;
+      i2cLogConfig.has_value() && platformSupportsI2cLogging();
   if (i2c_logging_Enabled) {
     auto logConfig = apache::thrift::can_throw(i2cLogConfig.value());
     XLOG(INFO) << fmt::format(

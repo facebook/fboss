@@ -66,7 +66,7 @@ class CmdShowDsfNodes
     out << table << std::endl;
   }
 
-  RetType createModel(std::map<int64_t, cfg::DsfNode> dsfNodes) {
+  RetType createModel(const std::map<int64_t, cfg::DsfNode>& dsfNodes) {
     RetType model;
     const std::string kUnavail;
     for (const auto& idAndNode : dsfNodes) {

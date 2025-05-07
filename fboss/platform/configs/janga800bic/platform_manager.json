@@ -72,31 +72,31 @@
             {
               "busName": "INCOMING@1",
               "address": "0x11",
-              "kernelDeviceName": "bp4f_mp9941",
+              "kernelDeviceName": "mp9941",
               "pmUnitScopedName": "COME_PU31_TDA38640"
             },
             {
               "busName": "INCOMING@1",
               "address": "0x22",
-              "kernelDeviceName": "bp4f_mp9941",
+              "kernelDeviceName": "mp9941",
               "pmUnitScopedName": "COME_PU32_TDA38640"
             },
             {
               "busName": "INCOMING@1",
               "address": "0x45",
-              "kernelDeviceName": "bp4f_mp9941",
+              "kernelDeviceName": "mp9941",
               "pmUnitScopedName": "COME_PU41_TDA38640"
             },
             {
               "busName": "INCOMING@1",
               "address": "0x66",
-              "kernelDeviceName": "bp4f_mp9941",
+              "kernelDeviceName": "mp9941",
               "pmUnitScopedName": "COME_PU42_TDA38640"
             },
             {
               "busName": "INCOMING@1",
               "address": "0x76",
-              "kernelDeviceName": "bp4f_mp2993",
+              "kernelDeviceName": "mp2993",
               "pmUnitScopedName": "COME_PU4_XDPE15284"
             }
           ]
@@ -148,13 +148,13 @@
             {
               "busName": "INCOMING@3",
               "address": "0x2f",
-              "kernelDeviceName": "bp4f_mp2891",
+              "kernelDeviceName": "mp2891",
               "pmUnitScopedName": "SMB_U337_PMBUS_1"
             },
             {
               "busName": "INCOMING@3",
               "address": "0x21",
-              "kernelDeviceName": "bp4f_mp2891",
+              "kernelDeviceName": "mp2891",
               "pmUnitScopedName": "SMB_U177_PMBUS_2"
             },
             {
@@ -2097,7 +2097,7 @@
         {
           "busName": "SMB_IOB_I2C_MASTER_22",
           "address": "0x10",
-          "kernelDeviceName": "adm1272",
+          "kernelDeviceName": "bp4f_adm1272",
           "pmUnitScopedName": "SMB_U279_ADM1272_1"
         },
         {
@@ -2220,9 +2220,17 @@
         },
         {
           "busName": "SMB_IOB_I2C_MASTER_10",
-          "address": "0x3e",
+          "address": "0x33",
           "kernelDeviceName": "janga_smbcpld",
-          "pmUnitScopedName": "JANGA_SMB_CPLD"
+          "pmUnitScopedName": "JANGA_SMB_CPLD",
+          "initRegSettings": [
+            {
+              "regOffset": 7,
+              "ioBuf": [
+                -65
+              ]
+            }
+          ]
         },
         {
           "busName": "SMB_IOB_I2C_MASTER_3",
@@ -2286,49 +2294,49 @@
         {
           "busName": "INCOMING@0",
           "address": "0x72",
-          "kernelDeviceName": "bp4f_xdpe12284",
+          "kernelDeviceName": "xdpe12284",
           "pmUnitScopedName": "SMB_U229_XDPE12284_1"
         },
         {
           "busName": "INCOMING@0",
           "address": "0x6a",
-          "kernelDeviceName": "bp4f_xdpe12284",
+          "kernelDeviceName": "xdpe12284",
           "pmUnitScopedName": "SMB_U237_XDPE12284_2"
         },
         {
           "busName": "INCOMING@2",
           "address": "0x76",
-          "kernelDeviceName": "bp4f_xdpe12284",
+          "kernelDeviceName": "xdpe12284",
           "pmUnitScopedName": "SMB_U210_XDPE12284_1"
         },
         {
           "busName": "INCOMING@2",
           "address": "0x72",
-          "kernelDeviceName": "bp4f_xdpe12284",
+          "kernelDeviceName": "xdpe12284",
           "pmUnitScopedName": "SMB_U347_XDPE12284_2"
         },
         {
           "busName": "INCOMING@2",
           "address": "0x70",
-          "kernelDeviceName": "bp4f_xdpe12284",
+          "kernelDeviceName": "xdpe12284",
           "pmUnitScopedName": "SMB_U92_XDPE12284_3"
         },
         {
           "busName": "INCOMING@2",
           "address": "0x68",
-          "kernelDeviceName": "bp4f_xdpe12284",
+          "kernelDeviceName": "xdpe12284",
           "pmUnitScopedName": "SMB_U216_XDPE12284_4"
         },
         {
           "busName": "INCOMING@3",
           "address": "0x6a",
-          "kernelDeviceName": "bp4f_xdpe12284",
+          "kernelDeviceName": "xdpe12284",
           "pmUnitScopedName": "SMB_U86_XDPE12284_2"
         },
         {
           "busName": "INCOMING@3",
           "address": "0x70",
-          "kernelDeviceName": "bp4f_xdpe12284",
+          "kernelDeviceName": "xdpe12284",
           "pmUnitScopedName": "SMB_U343_XDPE12284_1"
         },
         {
@@ -2427,31 +2435,31 @@
         {
           "busName": "INCOMING@1",
           "address": "0x11",
-          "kernelDeviceName": "bp4f_tda38640",
+          "kernelDeviceName": "tda38640",
           "pmUnitScopedName": "COME_PU31_TDA38640"
         },
         {
           "busName": "INCOMING@1",
           "address": "0x22",
-          "kernelDeviceName": "bp4f_tda38640",
+          "kernelDeviceName": "tda38640",
           "pmUnitScopedName": "COME_PU32_TDA38640"
         },
         {
           "busName": "INCOMING@1",
           "address": "0x45",
-          "kernelDeviceName": "bp4f_tda38640",
+          "kernelDeviceName": "tda38640",
           "pmUnitScopedName": "COME_PU41_TDA38640"
         },
         {
           "busName": "INCOMING@1",
           "address": "0x66",
-          "kernelDeviceName": "bp4f_tda38640",
+          "kernelDeviceName": "tda38640",
           "pmUnitScopedName": "COME_PU42_TDA38640"
         },
         {
           "busName": "INCOMING@1",
           "address": "0x76",
-          "kernelDeviceName": "bp4f_xdpe15284",
+          "kernelDeviceName": "xdpe15284",
           "pmUnitScopedName": "COME_PU4_XDPE15284"
         }
       ]
@@ -2462,13 +2470,13 @@
         {
           "busName": "INCOMING@0",
           "address": "0x5e",
-          "kernelDeviceName": "bp4f_max31790",
+          "kernelDeviceName": "max31790",
           "pmUnitScopedName": "BCB_FAN_CPLD"
         },
         {
           "busName": "INCOMING@1",
           "address": "0x5e",
-          "kernelDeviceName": "bp4f_max31790",
+          "kernelDeviceName": "max31790",
           "pmUnitScopedName": "BCB_FAN_CPLD_2"
         }
       ]
@@ -2754,8 +2762,9 @@
     "/run/devmap/xcvrs/xcvr_io_46": "/[SMB_DOM_I2C_MASTER_46]",
     "/run/devmap/xcvrs/xcvr_ctrl_46": "/[SMB_DOM_XCVR_CTRL_PORT_46]"
   },
+  "chassisEepromDevicePath": "/SMB_FRU_SLOT@0/[IDPROM]",
   "bspKmodsRpmName": "fboss_bsp_kmods",
-  "bspKmodsRpmVersion": "2.4.0-1",
+  "bspKmodsRpmVersion": "3.0.0-1",
   "requiredKmodsToLoad": [
     "i2c_i801",
     "spidev",

@@ -1,0 +1,26 @@
+load("@fbcode_macros//build_defs:python_unittest.bzl", "python_unittest")
+
+oncall("fboss_optics_phy")
+
+python_unittest(
+    name = "test",
+    srcs = ["test.py"],
+    labels = ["autodeps2_generated"],
+    deps = [
+        "//fboss/agent:platform_config-py-deprecated",
+        "//fboss/agent:switch_config-py-deprecated",
+        "//fboss/lib/phy:phy-py-deprecated",
+        "//fboss/lib/platform_mapping_v2:gen-library",
+        "//fboss/lib/platform_mapping_v2:platform_mapping_v2",
+        "//fboss/qsfp_service/if:transceiver-py-deprecated",
+    ],
+)
+
+python_unittest(
+    name = "verify_generated_files",
+    srcs = ["verify_generated_files.py"],
+    labels = ["autodeps2_generated"],
+    deps = [
+        "//fboss/lib/platform_mapping_v2:gen-library",
+    ],
+)

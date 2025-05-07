@@ -55,6 +55,14 @@ class NeighborTableDeltaCallbackGenerator {
     }
   }
 
+  template <typename Callback>
+  static void genMacEntryCallbacks(const StateDelta& stateDelta, Callback& cb) {
+    genTableCallbacks<
+        folly::MacAddress,
+        MultiSwitchMapDelta<MultiSwitchVlanMap>>(
+        stateDelta, stateDelta.getVlansDelta(), cb);
+  }
+
   template <typename AddrT>
   static auto getTable(
       const std::shared_ptr<SwitchState>& switchState,

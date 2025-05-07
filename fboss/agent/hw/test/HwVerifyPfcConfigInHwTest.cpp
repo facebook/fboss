@@ -12,6 +12,7 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTest.h"
 #include "fboss/agent/hw/test/HwTestPfcUtils.h"
+#include "fboss/agent/test/utils/PfcTestUtils.h"
 #include "fboss/agent/types.h"
 
 namespace facebook::fboss {
@@ -63,40 +64,15 @@ class HwVerifyPfcConfigInHwTest : public HwTest {
       const std::vector<PortID>& ports,
       bool rxEnable = true,
       bool txEnable = true) {
-    cfg::PortPfc pfc;
-    pfc.tx() = txEnable;
-    pfc.rx() = rxEnable;
-    pfc.portPgConfigName() = "foo";
+    auto buffer = utility::PfcBufferParams::getPfcBufferParams(getAsicType());
+    utility::setupPfcBuffers(
+        getHwSwitchEnsemble(), cfg, ports, kLosslessPgs(), {}, {}, buffer);
 
     for (const auto& portID : ports) {
       auto portCfg = utility::findCfgPort(cfg, portID);
-      portCfg->pfc() = pfc;
+      portCfg->pfc()->tx() = txEnable;
+      portCfg->pfc()->rx() = rxEnable;
     }
-
-    // Copied from enablePgConfigConfig
-    std::vector<cfg::PortPgConfig> portPgConfigs;
-    std::map<std::string, std::vector<cfg::PortPgConfig>> portPgConfigMap;
-    for (const auto& pgId : kLosslessPgs()) {
-      cfg::PortPgConfig pgConfig;
-      pgConfig.id() = pgId;
-      pgConfig.bufferPoolName() = "bufferNew";
-      // provide atleast 1 cell worth of minLimit
-      pgConfig.minLimitBytes() = 300;
-      // Non zero headroom to specify this is a no-drop class
-      pgConfig.headroomLimitBytes() = 1000;
-      portPgConfigs.emplace_back(pgConfig);
-    }
-
-    // create buffer pool
-    std::map<std::string, cfg::BufferPoolConfig> bufferPoolCfgMap;
-    cfg::BufferPoolConfig poolConfig;
-    poolConfig.sharedBytes() = 10000;
-    poolConfig.headroomBytes() = 2000;
-    bufferPoolCfgMap.insert(std::make_pair("bufferNew", poolConfig));
-    cfg.bufferPoolConfigs() = bufferPoolCfgMap;
-
-    portPgConfigMap.insert({"foo", portPgConfigs});
-    cfg.portPgConfigs() = portPgConfigMap;
   }
 
   std::shared_ptr<SwitchState> setupPfcAndPfcWatchdog(
@@ -385,8 +361,17 @@ TEST_F(HwVerifyPfcConfigInHwTest, PfcRxEnabledTxEnabled) {
 TEST_F(HwVerifyPfcConfigInHwTest, PfcWatchdogProgrammingSequence) {
   auto portId = masterLogicalInterfacePortIds()[0];
   cfg::PfcWatchdog prodPfcWdConfig;
+  // The granularity of PFC deadlock timer config in J3 is such that a
+  // config of 200 msec results in 198 msec being programmed in HW. To
+  // avoid a mismatch between SW and HW, ensure that we program 198 msec
+  // so that there is no reprogramming attempt during WB.
+  auto pfcDeadlockDetectionInterval =
+      getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3 ? 198 : 200;
   initalizePfcConfigWatchdogValues(
-      prodPfcWdConfig, 200, 1000, cfg::PfcWatchdogRecoveryAction::NO_DROP);
+      prodPfcWdConfig,
+      pfcDeadlockDetectionInterval,
+      1000,
+      cfg::PfcWatchdogRecoveryAction::NO_DROP);
 
   auto setup = [&]() {
     setupBaseConfig();

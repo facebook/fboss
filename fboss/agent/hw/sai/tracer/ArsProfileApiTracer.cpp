@@ -20,6 +20,11 @@ using folly::to;
 namespace {
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
 std::map<int32_t, std::pair<std::string, std::size_t>> _ArsProfileMap{
+#if defined(CHENAB_SAI_SDK)
+    SAI_ATTR_MAP(ArsProfile, QuantBand0MinThreshold),
+    SAI_ATTR_MAP(ArsProfile, QuantBand1MinThreshold),
+    SAI_ATTR_MAP(ArsProfile, QuantBand2MinThreshold),
+#else
     SAI_ATTR_MAP(ArsProfile, Algo),
     SAI_ATTR_MAP(ArsProfile, SamplingInterval),
     SAI_ATTR_MAP(ArsProfile, RandomSeed),
@@ -38,6 +43,7 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _ArsProfileMap{
     SAI_ATTR_MAP(ArsProfile, LoadCurrentMinVal),
     SAI_ATTR_MAP(ArsProfile, LoadCurrentMaxVal),
     SAI_ATTR_MAP(ArsProfile, MaxFlows),
+#endif
 };
 #endif
 

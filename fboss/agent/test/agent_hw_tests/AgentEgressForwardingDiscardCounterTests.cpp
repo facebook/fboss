@@ -35,7 +35,8 @@ class AgentEgressForwardingDiscardsCounterTest : public AgentHwTest {
 TEST_F(AgentEgressForwardingDiscardsCounterTest, outForwardingDiscards) {
   auto egressPortDesc = PortDescriptor(masterLogicalInterfacePortIds()[0]);
   auto setup = [=, this]() {
-    utility::EcmpSetupTargetedPorts6 ecmpHelper6(getSw()->getState());
+    utility::EcmpSetupTargetedPorts6 ecmpHelper6(
+        getSw()->getState(), getSw()->needL2EntryForNeighbor());
     auto wrapper = getSw()->getRouteUpdater();
     ecmpHelper6.programRoutes(&wrapper, {egressPortDesc});
     applyNewState([&](const std::shared_ptr<SwitchState>& in) {
@@ -43,10 +44,11 @@ TEST_F(AgentEgressForwardingDiscardsCounterTest, outForwardingDiscards) {
     });
   };
   auto verify = [=, this]() {
-    utility::EcmpSetupTargetedPorts6 ecmpHelper6(getSw()->getState());
+    utility::EcmpSetupTargetedPorts6 ecmpHelper6(
+        getSw()->getState(), getSw()->needL2EntryForNeighbor());
     auto port = egressPortDesc.phyPortID();
     auto portStatsBefore = getLatestPortStats(port);
-    auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
+    auto vlanId = getVlanIDForTx();
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);

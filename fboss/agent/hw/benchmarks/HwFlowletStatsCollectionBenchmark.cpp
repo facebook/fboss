@@ -14,6 +14,7 @@
 #include "fboss/agent/test/AgentEnsemble.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
+#include "fboss/agent/test/utils/UdfTestUtils.h"
 
 #include <folly/Benchmark.h>
 #include <folly/IPAddress.h>
@@ -39,17 +40,24 @@ BENCHMARK(HwFlowletStatsCollection) {
         auto ports = ensemble.masterLogicalPortIds();
         auto config =
             utility::onePortPerInterfaceConfig(ensemble.getSw(), ports);
-        config.udfConfig() = utility::addUdfFlowletAclConfig();
+        config.udfConfig() =
+            utility::addUdfAclConfig(utility::kUdfOffsetBthReserved);
         utility::addFlowletConfigs(
             config, ensemble.masterLogicalPortIds(), ensemble.isSai());
-        utility::addFlowletAcl(config);
+        utility::addFlowletAcl(
+            config,
+            ensemble.isSai(),
+            utility::kFlowletAclName,
+            utility::kFlowletAclCounterName);
         return config;
       };
 
   ensemble =
       createAgentEnsemble(initialConfigFn, false /*disableLinkStateToggler*/);
   // Resolve nextHops
-  auto ecmpHelper = utility::EcmpSetupAnyNPorts6(ensemble->getSw()->getState());
+  auto ecmpHelper = utility::EcmpSetupAnyNPorts6(
+      ensemble->getSw()->getState(),
+      ensemble->getSw()->needL2EntryForNeighbor());
   ensemble->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
     return ecmpHelper.resolveNextHops(in, kEcmpWidth);
   });

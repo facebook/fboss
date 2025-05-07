@@ -12,6 +12,7 @@
 #include "fboss/agent/hw/switch_asics/ChenabAsic.h"
 #include "fboss/agent/platforms/common/yangra/YangraPlatformMapping.h"
 
+#include "fboss/agent/hw/HwSwitchWarmBootHelper.h"
 #include "fboss/agent/hw/sai/api/ArsApi.h"
 #include "fboss/agent/hw/sai/api/ArsProfileApi.h"
 #include "fboss/agent/hw/sai/api/MplsApi.h"
@@ -59,24 +60,22 @@ HwAsic* SaiYangraPlatform::getAsic() const {
 const std::unordered_map<std::string, std::string>
 SaiYangraPlatform::getSaiProfileVendorExtensionValues() const {
   std::unordered_map<std::string, std::string> kv_map;
-  kv_map.insert(std::make_pair("SAI_KEY_AUTO_POPULATE_PORT_DB", "1"));
+  kv_map.insert(std::make_pair("SAI_KEY_PORT_AUTONEG_DEFAULT_OFF", "1"));
   kv_map.insert(std::make_pair("SAI_KEY_NOT_DROP_SMAC_DMAC_EQUAL", "1"));
   kv_map.insert(std::make_pair("SAI_KEY_RECLAIM_BUFFER_ENABLED", "0"));
   kv_map.insert(std::make_pair("SAI_KEY_TRAP_PACKETS_USING_CALLBACK", "1"));
   kv_map.insert(std::make_pair("SAI_KEY_ROUTE_METADATA_FIELD_SIZE", "5"));
+  kv_map.insert(std::make_pair("SAI_KEY_ROUTE_METADATA_FIELD_SIZE", "5"));
+  kv_map.insert(
+      std::make_pair("SAI_KEY_CPU_PORT_PIPELINE_LOOKUP_L3_TRUST_MODE", "1"));
   return kv_map;
 }
 
 const std::set<sai_api_t>& SaiYangraPlatform::getSupportedApiList() const {
   static auto apis = getDefaultSwitchAsicSupportedApis();
   apis.erase(facebook::fboss::MplsApi::ApiType);
-  apis.erase(facebook::fboss::VirtualRouterApi::ApiType);
   apis.erase(facebook::fboss::TamApi::ApiType);
   apis.erase(facebook::fboss::SystemPortApi::ApiType);
-#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
-  apis.erase(facebook::fboss::ArsApi::ApiType);
-  apis.erase(facebook::fboss::ArsProfileApi::ApiType);
-#endif
   return apis;
 }
 
@@ -150,5 +149,16 @@ SaiSwitchTraits::CreateAttributes SaiYangraPlatform::getSwitchAttributes(
   std::get<std::optional<SaiSwitchTraits::Attributes::HwInfo>>(attributes) =
       std::nullopt;
   return attributes;
+}
+
+HwSwitchWarmBootHelper* SaiYangraPlatform::getWarmBootHelper() {
+  if (!wbHelper_) {
+    wbHelper_ = std::make_unique<HwSwitchWarmBootHelper>(
+        getAsic()->getSwitchIndex(),
+        getDirectoryUtil()->getWarmBootDir(),
+        "sai_adaptor_state_",
+        false /* do not create warm boot data file */);
+  }
+  return wbHelper_.get();
 }
 } // namespace facebook::fboss

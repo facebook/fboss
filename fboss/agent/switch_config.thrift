@@ -174,6 +174,8 @@ enum PortProfileID {
   PROFILE_50G_2_NRZ_RS528_OPTICAL = 48,
   PROFILE_100G_1_PAM4_NOFEC_COPPER = 49,
   PROFILE_800G_8_PAM4_RS544X2N_COPPER = 50,
+  PROFILE_400G_2_PAM4_RS544X2N_OPTICAL = 51,
+  PROFILE_800G_4_PAM4_RS544X2N_OPTICAL = 52,
 }
 
 enum Scope {
@@ -412,13 +414,8 @@ struct MirrorOnDropEventConfig {
 
 struct MirrorOnDropReport {
   1: string name;
-  /*
-   * Possible options as below:
-   * 1. Recycle port: MOD packets will be injected back into the pipeline via recycle port.
-   * 2. Eventor port: MOD packets will be injected back into the pipeline via eventor port. Provides the option to pack multiple MOD packets.
-   * 3. Front panel Ethernet port: MOD packets will be forwarded out of the specified port.
-   */
-  2: i32 mirrorPortId;
+  // Deprecated, use mirrorPort.
+  2: optional i32 mirrorPortId;
   // Source IP will be populated based on switch IP at runtime, so not configurable.
   3: i16 localSrcPort;
   4: string collectorIp;
@@ -438,6 +435,16 @@ struct MirrorOnDropReport {
   11: map<byte, MirrorOnDropEventConfig> modEventToConfigMap;
   // Aging interval (how often to send packets) for each aging group in usecs.
   12: map<MirrorOnDropAgingGroup, i32> agingGroupAgingIntervalUsecs;
+  /*
+   * Currently only supports using a MirrorEgressPort in MirrorDestination. Possible options are:
+   *
+   * 1. Recycle port: MOD packets will be injected back into the pipeline via recycle port.
+   * 2. Eventor port: MOD packets will be injected back into the pipeline via eventor port. Provides the option to pack multiple MOD packets.
+   * 3. Front panel Ethernet port: Not supported.
+   *
+   * If neither mirrorPortId or mirrorPort is specified, agent will attempt to pick the first local scoped recycle port.
+   */
+  13: optional MirrorDestination mirrorPort;
 }
 
 /**
@@ -632,6 +639,7 @@ enum AclTableActionType {
   MIRROR_EGRESS = 5,
   SET_USER_DEFINED_TRAP = 6,
   DISABLE_ARS_FORWARDING = 7,
+  SET_ARS_OBJECT = 8,
 }
 
 enum AclTableQualifier {
@@ -763,6 +771,15 @@ enum FlowletAction {
   * Forward the packet to DLB engine.
   */
   FORWARD = 1,
+  /**
+  * Disable the packet to DLB engine.
+  */
+  DISABLE = 2,
+}
+
+// Support for Set Hash Algorithm action
+struct SetEcmpHashAction {
+  1: SwitchingMode switchingMode;
 }
 
 struct MatchAction {
@@ -778,6 +795,7 @@ struct MatchAction {
   10: optional SetTcAction setTc;
   11: optional UserDefinedTrapAction userDefinedTrap;
   12: optional FlowletAction flowletAction;
+  13: optional SetEcmpHashAction ecmpHashAction;
 }
 
 struct MatchToAction {
@@ -1008,6 +1026,7 @@ enum PacketRxReason {
   TTL_0 = 19, // Packets with TTL as 0
   EAPOL = 20, // EAPOL for Macsec
   PORT_MTU_ERROR = 21, // Packet size exceeds port MTU, should not use together with L3_MTU_ERROR
+  HOST_MISS = 22, // Packet is destined for an unresolved neighbor in the subnet of a connected RIF
 }
 
 enum PortLoopbackMode {
@@ -1249,6 +1268,12 @@ struct Port {
    * DSF Interface node to enable SHEL messages - port UP/DOWN notification to other interface nodes.
    */
   34: optional bool selfHealingECMPLagEnable;
+
+  /*
+   * DSF option to enable FEC error detection on port to prevent any
+   * errored cells from making it to the forwarding pipeline.
+   */
+  35: optional bool fecErrorDetectEnable;
 }
 
 enum LacpPortRate {
@@ -1874,6 +1899,7 @@ struct SwitchSettings {
   29: optional i32 voqOutOfBoundsLatencyNsec;
   // Number of sflow samples to pack in a single packet being sent out
   30: optional byte numberOfSflowSamplesPerPacket;
+  31: optional map<i32, i32> tcToRateLimitKbps;
 }
 
 // Global buffer pool
@@ -2096,6 +2122,8 @@ enum SwitchingMode {
   PER_PACKET_QUALITY = 1,
   // flowlet is disabled
   FIXED_ASSIGNMENT = 2,
+  // per packet random, no quality
+  PER_PACKET_RANDOM = 3,
 }
 
 struct FlowletSwitchingConfig {
@@ -2126,6 +2154,8 @@ struct FlowletSwitchingConfig {
   11: i16 maxLinks;
   // switching mode
   12: SwitchingMode switchingMode = FLOWLET_QUALITY;
+  // fall back switching mode if DLB groups are exhausted
+  13: SwitchingMode backupSwitchingMode = FIXED_ASSIGNMENT;
 }
 
 /**

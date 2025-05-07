@@ -245,6 +245,7 @@ add_library(trap_packet_utils
 target_link_libraries(trap_packet_utils
   fboss_types
   Folly::folly
+  acl_test_utils
   platform_config_cpp2
   switch_config_cpp2
   switch_state_cpp2
@@ -297,6 +298,7 @@ target_link_libraries(packet_snooper
   fboss_types
   packet
   packet_factory
+  pkt_test_utils
   Folly::folly
 )
 
@@ -328,6 +330,7 @@ target_link_libraries(load_balancer_test_runner_h
   load_balancer_test_utils
   fboss_types
   route_update_wrapper
+  udf_test_utils
 )
 
 add_library(aqm_test_utils
@@ -395,7 +398,6 @@ target_link_libraries(pfc_test_utils
   acl_test_utils
   hardware_stats_cpp2
   switch_config_cpp2
-  utils
 )
 
 add_library(queue_test_utils
@@ -411,6 +413,16 @@ target_link_libraries(queue_test_utils
 
 add_library(mirror_test_utils
   fboss/agent/test/utils/MirrorTestUtils.cpp
+)
+
+add_library(udf_test_utils
+  fboss/agent/test/utils/UdfTestUtils.cpp
+)
+
+target_link_libraries(udf_test_utils
+  config_utils
+  switch_asics
+  switch_config_cpp2
 )
 
 target_link_libraries(mirror_test_utils
@@ -500,4 +512,26 @@ target_link_libraries(mac_learning_flood_helper
   ecmp_helper
   packet_factory
   qos_test_utils
+)
+
+add_library(agent_fsdb_integ_bench_helper
+  fboss/agent/test/utils/AgentFsdbIntegrationBenchmarkHelper.cpp
+)
+
+target_link_libraries(agent_fsdb_integ_bench_helper
+  agent_ensemble
+  agent_fsdb_sync_manager
+  fsdb_pub_sub
+  fsdb_model
+  fsdb_flags
+  Folly::folly
+)
+
+add_library(neighbor_test_utils
+  fboss/agent/test/utils/NeighborTestUtils.cpp
+)
+
+target_link_libraries(neighbor_test_utils
+  core
+  state
 )

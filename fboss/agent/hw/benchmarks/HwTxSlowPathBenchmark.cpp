@@ -51,7 +51,9 @@ BENCHMARK(runTxSlowPathBenchmark) {
       createAgentEnsemble(initialConfigFn, false /*disableLinkStateToggler*/);
 
   auto swSwitch = ensemble->getSw();
-  auto ecmpHelper = utility::EcmpSetupAnyNPorts6(ensemble->getSw()->getState());
+  auto ecmpHelper = utility::EcmpSetupAnyNPorts6(
+      ensemble->getSw()->getState(),
+      ensemble->getSw()->needL2EntryForNeighbor());
   auto portUsed = ecmpHelper.ecmpPortDescriptorAt(0).phyPortID();
 
   ensemble->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
@@ -62,7 +64,7 @@ BENCHMARK(runTxSlowPathBenchmark) {
           ensemble->getSw(), ensemble->getSw()->getRib()),
       kEcmpWidth);
   auto cpuMac = ensemble->getSw()->getLocalMac(SwitchID(0));
-  auto vlanId = utility::firstVlanIDWithPorts(ensemble->getProgrammedState());
+  auto vlanId = ensemble->getVlanIDForTx();
   std::atomic<bool> packetTxDone{false};
   std::thread t([cpuMac, vlanId, swSwitch, &packetTxDone]() {
     const auto kSrcIp = folly::IPAddressV6("2620:0:1cfe:face:b00c::3");

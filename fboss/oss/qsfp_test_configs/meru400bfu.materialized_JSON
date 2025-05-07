@@ -38,7 +38,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "3.4"
+              "version": "3.5"
             }
           ]
       },
@@ -90,6 +90,14 @@
             }
           ]
       },
+      "FTCD4313E2PCL-FB": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "2.19"
+            }
+          ]
+      },
       "FTCD4313E2PCLFBC": {
           "versions": [
             {
@@ -126,11 +134,11 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "2.1"
+              "version": "14.3"
             },
             {
               "fwType": 2,
-              "version": "0.0"
+              "version": "209.7"
             }
           ]
       },
@@ -234,7 +242,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "36.196"
+              "version": "36.197"
             }
           ]
       },
@@ -242,7 +250,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "36.196"
+              "version": "36.197"
             }
           ]
       },

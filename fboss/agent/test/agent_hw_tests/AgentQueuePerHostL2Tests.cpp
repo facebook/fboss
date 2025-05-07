@@ -8,13 +8,13 @@
  *
  */
 
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/MacTableUtils.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/state/PortDescriptor.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/PacketTestUtils.h"
 #include "fboss/agent/test/utils/QueuePerHostTestUtils.h"
@@ -110,7 +110,7 @@ class AgentQueuePerHostL2Test : public AgentHwTest {
            * Thus, the counter get increment one additional time for the looped
            * back packet.
            */
-          if (utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
+          if (checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
                   ->getAsicType() == cfg::AsicType::ASIC_TYPE_EBRO) {
             /* 1 pkt each for ttl < 128 and ttl >= 128 */
             EXPECT_EVENTUALLY_EQ(pktsOnQueue, 4);

@@ -14,8 +14,8 @@
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/DscpMarkingUtils.h"
@@ -44,7 +44,7 @@ class AgentDscpMarkingTest : public AgentHwTest {
         ensemble.masterLogicalPortIds(),
         true /*interfaceHasSubnet*/);
     auto l3Asics = ensemble.getL3Asics();
-    auto asic = utility::checkSameAndGetAsic(l3Asics);
+    auto asic = checkSameAndGetAsic(l3Asics);
     utility::addOlympicQosMaps(cfg, l3Asics);
     // drop packets are match to avoid packets matching multiple times in L3
     // loop case
@@ -76,16 +76,18 @@ class AgentDscpMarkingTest : public AgentHwTest {
     auto setup = [=, this]() {
       utility::EcmpSetupAnyNPorts6 ecmpHelper(
           getProgrammedState(),
+          getSw()->needL2EntryForNeighbor(),
           utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
           RouterID(0),
           false,
           {cfg::PortType::INTERFACE_PORT});
-      resolveNeigborAndProgramRoutes(ecmpHelper, kEcmpWidth);
+      resolveNeighborAndProgramRoutes(ecmpHelper, kEcmpWidth);
     };
 
     auto verify = [=, this]() {
       utility::EcmpSetupAnyNPorts6 ecmpHelper(
           getProgrammedState(),
+          getSw()->needL2EntryForNeighbor(),
           utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
           RouterID(0),
           false,
@@ -183,7 +185,7 @@ class AgentDscpMarkingTest : public AgentHwTest {
       IP_PROTO proto,
       std::optional<uint16_t> l4SrcPort,
       std::optional<uint16_t> l4DstPort) {
-    auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
+    auto vlanId = getVlanIDForTx();
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
@@ -225,6 +227,7 @@ class AgentDscpMarkingTest : public AgentHwTest {
     if (frontPanel) {
       utility::EcmpSetupAnyNPorts6 ecmpHelper(
           getProgrammedState(),
+          getSw()->needL2EntryForNeighbor(),
           utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
           RouterID(0),
           false,

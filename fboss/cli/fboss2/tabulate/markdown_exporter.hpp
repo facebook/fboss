@@ -39,7 +39,7 @@ namespace tabulate {
 class MarkdownExporter : public Exporter {
  public:
   std::string dump(Table& table) override {
-    std::string result{""};
+    std::string result;
     apply_markdown_format(table);
     result = table.str();
     restore_table_format(table);

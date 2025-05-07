@@ -60,30 +60,32 @@ class SubscribableStorage {
 
   template <typename Path>
   folly::coro::AsyncGenerator<DeltaValue<typename Path::DataT>&&> subscribe(
-      SubscriberId subscriber,
+      SubscriptionIdentifier&& subscriber,
       Path&& path)
     requires(std::is_same_v<typename Path::RootT, RootT>)
   {
     return this->template subscribe<typename Path::DataT, typename Path::TC>(
-        subscriber, path.begin(), path.end());
+        std::move(subscriber), path.begin(), path.end());
   }
+
   template <typename T, typename TC>
   folly::coro::AsyncGenerator<DeltaValue<T>&&> subscribe(
-      SubscriberId subscriber,
+      SubscriptionIdentifier&& subscriber,
       const ConcretePath& path) {
     return this->template subscribe<T, TC>(
-        subscriber, path.begin(), path.end());
+        std::move(subscriber), path.begin(), path.end());
   }
+
   template <typename T, typename TC>
   folly::coro::AsyncGenerator<DeltaValue<T>&&>
-  subscribe(SubscriberId subscriber, PathIter begin, PathIter end) {
+  subscribe(SubscriptionIdentifier&& subscriber, PathIter begin, PathIter end) {
     return static_cast<Impl*>(this)->template subscribe_impl<T, TC>(
-        SubscriptionIdentifier(std::move(subscriber)), begin, end);
+        std::move(subscriber), begin, end);
   }
 
   template <typename Path>
   folly::coro::AsyncGenerator<DeltaValue<OperState>&&> subscribe_encoded(
-      SubscriberId subscriber,
+      SubscriptionIdentifier&& subscriber,
       Path&& path,
       OperProtocol protocol,
       std::optional<SubscriptionStorageParams> subscriptionParams =
@@ -91,38 +93,24 @@ class SubscribableStorage {
     requires(std::is_same_v<typename folly::remove_cvref_t<Path>::RootT, RootT>)
   {
     return this->subscribe_encoded(
-        subscriber,
+        std::move(subscriber),
         path.begin(),
         path.end(),
         protocol,
         std::move(subscriptionParams));
   }
   folly::coro::AsyncGenerator<DeltaValue<OperState>&&> subscribe_encoded(
-      SubscriberId subscriber,
+      SubscriptionIdentifier&& subscriber,
       const ConcretePath& path,
       OperProtocol protocol,
       std::optional<SubscriptionStorageParams> subscriptionParams =
           std::nullopt) {
     return this->subscribe_encoded(
-        subscriber,
+        std::move(subscriber),
         path.begin(),
         path.end(),
         protocol,
         std::move(subscriptionParams));
-  }
-  folly::coro::AsyncGenerator<DeltaValue<OperState>&&> subscribe_encoded(
-      SubscriberId subscriber,
-      PathIter begin,
-      PathIter end,
-      OperProtocol protocol,
-      std::optional<SubscriptionStorageParams> subscriptionParams =
-          std::nullopt) {
-    return static_cast<Impl*>(this)->subscribe_encoded_impl(
-        SubscriptionIdentifier(std::move(subscriber)),
-        begin,
-        end,
-        protocol,
-        subscriptionParams);
   }
 
   folly::coro::AsyncGenerator<DeltaValue<OperState>&&> subscribe_encoded(
@@ -147,23 +135,9 @@ class SubscribableStorage {
         std::move(subscriber), std::move(paths), protocol, subscriptionParams);
   }
 
-  folly::coro::AsyncGenerator<std::vector<DeltaValue<TaggedOperState>>&&>
-  subscribe_encoded_extended(
-      SubscriberId subscriber,
-      std::vector<ExtendedOperPath> paths,
-      OperProtocol protocol,
-      std::optional<SubscriptionStorageParams> subscriptionParams =
-          std::nullopt) {
-    return static_cast<Impl*>(this)->subscribe_encoded_extended_impl(
-        SubscriptionIdentifier(std::move(subscriber)),
-        std::move(paths),
-        protocol,
-        subscriptionParams);
-  }
-
   template <typename Path>
   folly::coro::AsyncGenerator<OperDelta&&> subscribe_delta(
-      SubscriberId subscriber,
+      SubscriptionIdentifier&& subscriber,
       Path&& path,
       OperProtocol protocol,
       std::optional<SubscriptionStorageParams> subscriptionParams =
@@ -171,7 +145,7 @@ class SubscribableStorage {
     requires(std::is_same_v<typename folly::remove_cvref_t<Path>::RootT, RootT>)
   {
     return this->subscribe_delta(
-        subscriber,
+        std::move(subscriber),
         path.begin(),
         path.end(),
         protocol,
@@ -179,32 +153,17 @@ class SubscribableStorage {
   }
 
   folly::coro::AsyncGenerator<OperDelta&&> subscribe_delta(
-      SubscriberId subscriber,
+      SubscriptionIdentifier&& subscriber,
       const ConcretePath& path,
       OperProtocol protocol,
       std::optional<SubscriptionStorageParams> subscriptionParams =
           std::nullopt) {
     return this->subscribe_delta(
-        subscriber,
+        std::move(subscriber),
         path.begin(),
         path.end(),
         protocol,
         std::move(subscriptionParams));
-  }
-
-  folly::coro::AsyncGenerator<OperDelta&&> subscribe_delta(
-      SubscriberId subscriber,
-      PathIter begin,
-      PathIter end,
-      OperProtocol protocol,
-      std::optional<SubscriptionStorageParams> subscriptionParams =
-          std::nullopt) {
-    return static_cast<Impl*>(this)->subscribe_delta_impl(
-        SubscriptionIdentifier(std::move(subscriber)),
-        begin,
-        end,
-        protocol,
-        subscriptionParams);
   }
 
   folly::coro::AsyncGenerator<OperDelta&&> subscribe_delta(
@@ -220,20 +179,6 @@ class SubscribableStorage {
 
   folly::coro::AsyncGenerator<std::vector<TaggedOperDelta>&&>
   subscribe_delta_extended(
-      SubscriberId subscriber,
-      std::vector<ExtendedOperPath> paths,
-      OperProtocol protocol,
-      std::optional<SubscriptionStorageParams> subscriptionParams =
-          std::nullopt) {
-    return static_cast<Impl*>(this)->subscribe_delta_extended_impl(
-        SubscriptionIdentifier(std::move(subscriber)),
-        std::move(paths),
-        protocol,
-        subscriptionParams);
-  }
-
-  folly::coro::AsyncGenerator<std::vector<TaggedOperDelta>&&>
-  subscribe_delta_extended(
       SubscriptionIdentifier&& subscriber,
       std::vector<ExtendedOperPath> paths,
       OperProtocol protocol,
@@ -245,25 +190,31 @@ class SubscribableStorage {
 
   template <typename Path>
   folly::coro::AsyncGenerator<SubscriberMessage&&> subscribe_patch(
-      SubscriberId subscriber,
+      SubscriptionIdentifier&& subscriber,
       Path&& path,
       std::optional<SubscriptionStorageParams> subscriptionParams =
           std::nullopt)
     requires(std::is_same_v<typename folly::remove_cvref_t<Path>::RootT, RootT>)
   {
     return this->subscribe_patch(
-        subscriber, path.begin(), path.end(), std::move(subscriptionParams));
+        std::move(subscriber),
+        path.begin(),
+        path.end(),
+        std::move(subscriptionParams));
   }
   folly::coro::AsyncGenerator<SubscriberMessage&&> subscribe_patch(
-      SubscriberId subscriber,
+      SubscriptionIdentifier&& subscriber,
       const ConcretePath& path,
       std::optional<SubscriptionStorageParams> subscriptionParams =
           std::nullopt) {
     return this->subscribe_patch(
-        subscriber, path.begin(), path.end(), std::move(subscriptionParams));
+        std::move(subscriber),
+        path.begin(),
+        path.end(),
+        std::move(subscriptionParams));
   }
   folly::coro::AsyncGenerator<SubscriberMessage&&> subscribe_patch(
-      SubscriberId subscriber,
+      SubscriptionIdentifier&& subscriber,
       PathIter begin,
       PathIter end,
       std::optional<SubscriptionStorageParams> subscriptionParams =
@@ -271,10 +222,12 @@ class SubscribableStorage {
     RawOperPath rawPath;
     rawPath.path() = std::vector<std::string>(begin, end);
     return this->subscribe_patch(
-        subscriber, std::move(rawPath), std::move(subscriptionParams));
+        std::move(subscriber),
+        std::move(rawPath),
+        std::move(subscriptionParams));
   }
   folly::coro::AsyncGenerator<SubscriberMessage&&> subscribe_patch(
-      SubscriberId subscriber,
+      SubscriptionIdentifier&& subscriber,
       RawOperPath rawPath,
       std::optional<SubscriptionStorageParams> subscriptionParams =
           std::nullopt) {
@@ -282,16 +235,6 @@ class SubscribableStorage {
         std::move(subscriber),
         std::map<SubscriptionKey, RawOperPath>{{0, std::move(rawPath)}},
         std::move(subscriptionParams));
-  }
-  folly::coro::AsyncGenerator<SubscriberMessage&&> subscribe_patch(
-      SubscriberId subscriber,
-      std::map<SubscriptionKey, RawOperPath> rawPaths,
-      std::optional<SubscriptionStorageParams> subscriptionParams =
-          std::nullopt) {
-    return static_cast<Impl*>(this)->subscribe_patch_impl(
-        SubscriptionIdentifier(std::move(subscriber)),
-        std::move(rawPaths),
-        subscriptionParams);
   }
   folly::coro::AsyncGenerator<SubscriberMessage&&> subscribe_patch(
       SubscriptionIdentifier&& subscriber,
@@ -304,12 +247,12 @@ class SubscribableStorage {
         std::move(subscriptionParams));
   }
   folly::coro::AsyncGenerator<SubscriberMessage&&> subscribe_patch_extended(
-      SubscriberId subscriber,
+      SubscriptionIdentifier&& subscriber,
       std::map<SubscriptionKey, ExtendedOperPath> rawPaths,
       std::optional<SubscriptionStorageParams> subscriptionParams =
           std::nullopt) {
     return static_cast<Impl*>(this)->subscribe_patch_extended_impl(
-        SubscriptionIdentifier(std::move(subscriber)),
+        std::move(subscriber),
         std::move(rawPaths),
         std::move(subscriptionParams));
   }

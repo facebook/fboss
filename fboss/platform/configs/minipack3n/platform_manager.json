@@ -48,6 +48,15 @@
       },
       "pmUnitName": "PDB_R"
     },
+    "PSU_SLOT": {
+      "numOutgoingI2cBuses": 1,
+      "idpromConfig": {
+        "busName": "INCOMING@0",
+        "address": "0x51",
+        "kernelDeviceName": "24c02"
+      },
+      "pmUnitName": "PSU"
+    },
     "SMB_SLOT": {
       "numOutgoingI2cBuses": 6,
       "idpromConfig": {
@@ -74,6 +83,10 @@
         "kernelDeviceName": "24c64"
       },
       "pmUnitName": "FCB_T"
+    },
+    "FAN_SLOT": {
+      "numOutgoingI2cBuses": 0,
+      "pmUnitName": "FAN"
     },
     "COMESE_SLOT": {
       "numOutgoingI2cBuses": 2,
@@ -2824,7 +2837,7 @@
         {
           "busName": "SCM_MUX_A@0",
           "address": "0x44",
-          "kernelDeviceName": "bp4f_lm25066",
+          "kernelDeviceName": "lm25066",
           "pmUnitScopedName": "SCM_SENSOR"
         },
         {
@@ -2902,44 +2915,61 @@
       "i2cDeviceConfigs": [
         {
           "busName": "INCOMING@0",
-          "address": "0x59",
-          "kernelDeviceName": "pmbus",
-          "pmUnitScopedName": "PDB_L_PMBUS"
-        },
-        {
-          "busName": "INCOMING@0",
-          "address": "0x51",
-          "kernelDeviceName": "24c02",
-          "pmUnitScopedName": "PSU1_EEPROM"
-        },
-        {
-          "busName": "INCOMING@0",
           "address": "0x48",
           "kernelDeviceName": "tmp1075",
           "pmUnitScopedName": "PDB_L_TSENSOR"
         }
-      ]
+      ],
+      "outgoingSlotConfigs": {
+        "PSU_SLOT@0": {
+          "slotType": "PSU_SLOT",
+          "outgoingI2cBusNames": [
+            "INCOMING@0"
+          ],
+          "presenceDetection": {
+            "sysfsFileHandle": {
+              "devicePath": "/[MCB_CPLD]",
+              "presenceFileName": "psu_l_present",
+              "desiredValue": 1
+            }
+          }
+        }
+      }
     },
     "PDB_R": {
       "pluggedInSlotType": "PDBRIGHT_SLOT",
       "i2cDeviceConfigs": [
         {
           "busName": "INCOMING@0",
-          "address": "0x59",
-          "kernelDeviceName": "pmbus",
-          "pmUnitScopedName": "PDB_R_PMBUS"
-        },
-        {
-          "busName": "INCOMING@0",
-          "address": "0x51",
-          "kernelDeviceName": "24c02",
-          "pmUnitScopedName": "PSU2_EEPROM"
-        },
-        {
-          "busName": "INCOMING@0",
           "address": "0x48",
           "kernelDeviceName": "tmp1075",
           "pmUnitScopedName": "PDB_R_TSENSOR"
+        }
+      ],
+      "outgoingSlotConfigs": {
+        "PSU_SLOT@0": {
+          "slotType": "PSU_SLOT",
+          "outgoingI2cBusNames": [
+            "INCOMING@0"
+          ],
+          "presenceDetection": {
+            "sysfsFileHandle": {
+              "devicePath": "/[MCB_CPLD]",
+              "presenceFileName": "psu_r_present",
+              "desiredValue": 1
+            }
+          }
+        }
+      }
+    },
+    "PSU": {
+      "pluggedInSlotType": "PSU_SLOT",
+      "i2cDeviceConfigs": [
+        {
+          "busName": "INCOMING@0",
+          "address": "0x59",
+          "kernelDeviceName": "pmbus",
+          "pmUnitScopedName": "PMBUS"
         }
       ]
     },
@@ -2949,7 +2979,7 @@
         {
           "busName": "INCOMING@0",
           "address": "0x62",
-          "kernelDeviceName": "bp4f_mp2891",
+          "kernelDeviceName": "mp2891",
           "pmUnitScopedName": "SMB_VRM1"
         },
         {
@@ -2985,25 +3015,25 @@
         {
           "busName": "INCOMING@4",
           "address": "0x63",
-          "kernelDeviceName": "bp4f_mp2891",
+          "kernelDeviceName": "mp2891",
           "pmUnitScopedName": "SMB_VRM4"
         },
         {
           "busName": "INCOMING@4",
           "address": "0x64",
-          "kernelDeviceName": "bp4f_mp2891",
+          "kernelDeviceName": "mp2891",
           "pmUnitScopedName": "SMB_VRM5"
         },
         {
           "busName": "INCOMING@5",
           "address": "0x65",
-          "kernelDeviceName": "bp4f_mp2891",
+          "kernelDeviceName": "mp2891",
           "pmUnitScopedName": "SMB_VRM6"
         },
         {
           "busName": "INCOMING@5",
           "address": "0x66",
-          "kernelDeviceName": "bp4f_mp2891",
+          "kernelDeviceName": "mp2891",
           "pmUnitScopedName": "SMB_VRM7"
         },
         {
@@ -3067,7 +3097,49 @@
           "kernelDeviceName": "tmp1075",
           "pmUnitScopedName": "FCB_T_TSENSOR2"
         }
-      ]
+      ],
+      "outgoingSlotConfigs": {
+        "FAN_SLOT@0": {
+          "slotType": "FAN_SLOT",
+          "presenceDetection": {
+            "sysfsFileHandle": {
+              "devicePath": "/[MCB_FAN_CPLD]",
+              "presenceFileName": "fan1_present",
+              "desiredValue": 1
+            }
+          }
+        },
+        "FAN_SLOT@1": {
+          "slotType": "FAN_SLOT",
+          "presenceDetection": {
+            "sysfsFileHandle": {
+              "devicePath": "/[MCB_FAN_CPLD]",
+              "presenceFileName": "fan3_present",
+              "desiredValue": 1
+            }
+          }
+        },
+        "FAN_SLOT@2": {
+          "slotType": "FAN_SLOT",
+          "presenceDetection": {
+            "sysfsFileHandle": {
+              "devicePath": "/[MCB_FAN_CPLD]",
+              "presenceFileName": "fan5_present",
+              "desiredValue": 1
+            }
+          }
+        },
+        "FAN_SLOT@3": {
+          "slotType": "FAN_SLOT",
+          "presenceDetection": {
+            "sysfsFileHandle": {
+              "devicePath": "/[MCB_FAN_CPLD]",
+              "presenceFileName": "fan7_present",
+              "desiredValue": 1
+            }
+          }
+        }
+      }
     },
     "FCB_B": {
       "pluggedInSlotType": "FCBBOTTOM_SLOT",
@@ -3084,7 +3156,52 @@
           "kernelDeviceName": "tmp1075",
           "pmUnitScopedName": "FCB_B_TSENSOR2"
         }
-      ]
+      ],
+      "outgoingSlotConfigs": {
+        "FAN_SLOT@0": {
+          "slotType": "FAN_SLOT",
+          "presenceDetection": {
+            "sysfsFileHandle": {
+              "devicePath": "/[MCB_FAN_CPLD]",
+              "presenceFileName": "fan2_present",
+              "desiredValue": 1
+            }
+          }
+        },
+        "FAN_SLOT@1": {
+          "slotType": "FAN_SLOT",
+          "presenceDetection": {
+            "sysfsFileHandle": {
+              "devicePath": "/[MCB_FAN_CPLD]",
+              "presenceFileName": "fan4_present",
+              "desiredValue": 1
+            }
+          }
+        },
+        "FAN_SLOT@2": {
+          "slotType": "FAN_SLOT",
+          "presenceDetection": {
+            "sysfsFileHandle": {
+              "devicePath": "/[MCB_FAN_CPLD]",
+              "presenceFileName": "fan6_present",
+              "desiredValue": 1
+            }
+          }
+        },
+        "FAN_SLOT@3": {
+          "slotType": "FAN_SLOT",
+          "presenceDetection": {
+            "sysfsFileHandle": {
+              "devicePath": "/[MCB_FAN_CPLD]",
+              "presenceFileName": "fan8_present",
+              "desiredValue": 1
+            }
+          }
+        }
+      }
+    },
+    "FAN": {
+      "pluggedInSlotType": "FAN_SLOT"
     },
     "NETLAKE": {
       "pluggedInSlotType": "COMESE_SLOT",
@@ -3092,31 +3209,31 @@
         {
           "busName": "INCOMING@0",
           "address": "0x11",
-          "kernelDeviceName": "bp4f_mp9941",
+          "kernelDeviceName": "mp9941",
           "pmUnitScopedName": "COME_VOLTAGE_MONITOR1"
         },
         {
           "busName": "INCOMING@0",
           "address": "0x22",
-          "kernelDeviceName": "bp4f_mp9941",
+          "kernelDeviceName": "mp9941",
           "pmUnitScopedName": "COME_VOLTAGE_MONITOR2"
         },
         {
           "busName": "INCOMING@0",
           "address": "0x45",
-          "kernelDeviceName": "bp4f_mp9941",
+          "kernelDeviceName": "mp9941",
           "pmUnitScopedName": "COME_VOLTAGE_MONITOR3"
         },
         {
           "busName": "INCOMING@0",
           "address": "0x66",
-          "kernelDeviceName": "bp4f_mp9941",
+          "kernelDeviceName": "mp9941",
           "pmUnitScopedName": "COME_VOLTAGE_MONITOR4"
         },
         {
           "busName": "INCOMING@0",
           "address": "0x76",
-          "kernelDeviceName": "bp4f_mp2993",
+          "kernelDeviceName": "mp2993",
           "pmUnitScopedName": "COME_VOLTAGE_MONITOR5"
         }
       ]
@@ -3161,8 +3278,8 @@
     "/run/devmap/eeproms/COME_EEPROM": "/SCM_SLOT@0/COMESE_SLOT@0/[IDPROM]",
     "/run/devmap/eeproms/SCM_EEPROM": "/SCM_SLOT@0/[IDPROM]",
     "/run/devmap/eeproms/RUNBMC_EEPROM": "/SCM_SLOT@0/RUNBMC_SLOT@0/[IDPROM]",
-    "/run/devmap/eeproms/PSU1_EEPROM": "/PDBLEFT_SLOT@0/[PSU1_EEPROM]",
-    "/run/devmap/eeproms/PSU2_EEPROM": "/PDBRIGHT_SLOT@0/[PSU2_EEPROM]",
+    "/run/devmap/eeproms/PSU1_EEPROM": "/PDBLEFT_SLOT@0/PSU_SLOT@0/[IDPROM]",
+    "/run/devmap/eeproms/PSU2_EEPROM": "/PDBRIGHT_SLOT@0/PSU_SLOT@0/[IDPROM]",
     "/run/devmap/eeproms/PDB_L_EEPROM": "/PDBLEFT_SLOT@0/[IDPROM]",
     "/run/devmap/eeproms/PDB_R_EEPROM": "/PDBRIGHT_SLOT@0/[IDPROM]",
     "/run/devmap/eeproms/SMB_EEPROM": "/SMB_SLOT@0/[IDPROM]",
@@ -3190,9 +3307,9 @@
     "/run/devmap/sensors/SCM_VOLTAGE_MONITOR1": "/SCM_SLOT@0/[SCM_VOLTAGE_MONITOR1]",
     "/run/devmap/sensors/SCM_VOLTAGE_MONITOR2": "/SCM_SLOT@0/[SCM_VOLTAGE_MONITOR2]",
     "/run/devmap/sensors/RUNBMC_THERMAL_SENSOR": "/SCM_SLOT@0/RUNBMC_SLOT@0/[RUNBMC_THERMAL_SENSOR]",
-    "/run/devmap/sensors/PDB_L_PMBUS": "/PDBLEFT_SLOT@0/[PDB_L_PMBUS]",
+    "/run/devmap/sensors/PDB_L_PMBUS": "/PDBLEFT_SLOT@0/PSU_SLOT@0/[PMBUS]",
     "/run/devmap/sensors/PDB_L_TSENSOR": "/PDBLEFT_SLOT@0/[PDB_L_TSENSOR]",
-    "/run/devmap/sensors/PDB_R_PMBUS": "/PDBRIGHT_SLOT@0/[PDB_R_PMBUS]",
+    "/run/devmap/sensors/PDB_R_PMBUS": "/PDBRIGHT_SLOT@0/PSU_SLOT@0/[PMBUS]",
     "/run/devmap/sensors/PDB_R_TSENSOR": "/PDBRIGHT_SLOT@0/[PDB_R_TSENSOR]",
     "/run/devmap/sensors/SMB_VRM1": "/SMB_SLOT@0/[SMB_VRM1]",
     "/run/devmap/sensors/SMB_VOLTAGE_MONITOR1": "/SMB_SLOT@0/[SMB_VOLTAGE_MONITOR1]",
@@ -3405,8 +3522,9 @@
     "/run/devmap/flashes/MCB_SPI_MASTER_6_DEVICE_1": "/[MCB_SPI_MASTER_6_DEVICE_1]",
     "/run/devmap/flashes/MCB_SPI_MASTER_7_DEVICE_1": "/[MCB_SPI_MASTER_7_DEVICE_1]"
   },
+  "chassisEepromDevicePath": "/FCBTOP_SLOT@0/[CHASSIS_IDPROM]",
   "bspKmodsRpmName": "fboss_bsp_kmods",
-  "bspKmodsRpmVersion": "2.8.1-1",
+  "bspKmodsRpmVersion": "3.1.0-1",
   "requiredKmodsToLoad": [
     "i2c_i801",
     "spidev",

@@ -34,7 +34,7 @@ class PtpTests : public LinkTest {
       PTPMessageType ptpType) {
     // note: we are not creating flood here, but want routing
     // of packets so that TTL goes down from 255 -> 0
-    auto vlan = utility::firstVlanIDWithPorts(sw()->getState());
+    auto vlan = getVlanIDForTx();
     // TODO: Remove the dependency on VLAN below
     if (!vlan) {
       throw FbossError("VLAN id unavailable for test");

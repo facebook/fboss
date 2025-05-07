@@ -53,12 +53,24 @@ void addEtherTypeToAcl(
     cfg::AclEntry* acl,
     const cfg::EtherType& etherType = cfg::EtherType::IPv6);
 
+void addUdfTableToAcl(
+    cfg::AclEntry* acl,
+    const std::string& udfGroups,
+    const std::vector<int8_t>& roceBytes,
+    const std::vector<int8_t>& roceMask);
+
 std::vector<cfg::AclTableQualifier> genAclQualifiersConfig(
     cfg::AsicType asicType);
 
 int getAclTableIndex(
     cfg::AclTableGroup* aclTableGroup,
     const std::string& tableName);
+
+std::shared_ptr<AclEntry> getAclEntryByName(
+    const std::shared_ptr<SwitchState> state,
+    cfg::AclStage aclStage,
+    const std::string& tableName,
+    const std::string& aclName);
 
 std::shared_ptr<AclEntry> getAclEntryByName(
     const std::shared_ptr<SwitchState> state,
@@ -86,7 +98,9 @@ void addAclTableGroup(
     cfg::AclStage aclStage,
     const std::string& aclTableGroupName = "AclTableGroup1");
 
-void addDefaultAclTable(cfg::SwitchConfig& cfg);
+void addDefaultAclTable(
+    cfg::SwitchConfig& cfg,
+    const std::vector<std::string>& udfGroups = {});
 
 cfg::AclTable* addAclTable(
     cfg::SwitchConfig* cfg,
@@ -117,6 +131,12 @@ cfg::AclTable* getAclTable(
 
 void delAclTable(cfg::SwitchConfig* cfg, const std::string& aclTableName);
 
+void addTrafficCounter(
+    cfg::SwitchConfig* config,
+    const std::string& counterName,
+    const std::optional<std::vector<cfg::CounterType>>& counterTypes =
+        std::nullopt);
+
 void addAclStat(
     cfg::SwitchConfig* cfg,
     const std::string& matcher,
@@ -128,12 +148,25 @@ void delAclStat(
     const std::string& matcher,
     const std::string& counterName);
 
-void addAclMatchActions(
+void addMatcher(
+    cfg::SwitchConfig* config,
+    const std::string& matcherName,
+    const cfg::MatchAction& matchAction);
+void delMatcher(cfg::SwitchConfig* config, const std::string& matcherName);
+
+void addAclMirrorAction(
     cfg::SwitchConfig* cfg,
     const std::string& matcher,
-    const std::optional<std::string>& counterName,
-    const std::optional<std::string>& mirrorName,
+    const std::string& counterName,
+    const std::string& mirrorName,
     bool ingress = true);
+
+void addAclDscpQueueAction(
+    cfg::SwitchConfig* cfg,
+    const std::string& matcher,
+    const std::string& counterName,
+    int32_t dscpValue = 0,
+    int queueId = -1);
 
 void renameAclStat(
     cfg::SwitchConfig* cfg,

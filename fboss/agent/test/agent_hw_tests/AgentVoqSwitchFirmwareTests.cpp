@@ -170,6 +170,37 @@ class AgentVoqSwitchIsolationFirmwareTest : public AgentVoqSwitchTest {
     return switchIdToSdkRegDumpFile;
   }
 
+  void assertFirmwareInfo(
+      const FirmwareOpStatus& expectedOpStatus,
+      const FirmwareFuncStatus& expectedFuncStatus) {
+    for (const auto& switchId : getSw()->getHwAsicTable()->getSwitchIDs()) {
+      auto firmwareInfoList = getAgentEnsemble()->getAllFirmwareInfo(switchId);
+
+      if (firmwareInfoList.empty()) {
+        // 11.7 Does not support querying firmwareInfo yet.
+        // After that support is added, remove this if check.
+        // This is better than marking this test known bad for 11.7 as we want
+        // to continue to validate forceIsolate which is supported on 11.7
+        return;
+      }
+
+      CHECK_EQ(firmwareInfoList.size(), 1);
+      auto firmwareInfo = firmwareInfoList[0];
+
+      XLOG(DBG2) << "FirmwareInfo:: version: " << *firmwareInfo.version()
+                 << " opStatus: "
+                 << apache::thrift::util::enumNameSafe(
+                        firmwareInfo.opStatus().value())
+                 << " funcStatus: "
+                 << apache::thrift::util::enumNameSafe(
+                        firmwareInfo.funcStatus().value());
+
+      EXPECT_FALSE(firmwareInfo.version()->empty());
+      EXPECT_TRUE(firmwareInfo.opStatus().value() == expectedOpStatus);
+      EXPECT_TRUE(firmwareInfo.funcStatus().value() == expectedFuncStatus);
+    }
+  }
+
  private:
   void setCmdLineFlagOverrides() const override {
     AgentHwTest::setCmdLineFlagOverrides();
@@ -269,6 +300,8 @@ TEST_F(AgentVoqSwitchIsolationFirmwareTest, forceIsolate) {
   auto setup = [this]() {
     assertPortAndDrainState(false /* not drained*/);
     setMinLinksConfig();
+    assertFirmwareInfo(
+        FirmwareOpStatus::RUNNING, FirmwareFuncStatus::MONITORING);
     forceIsolate();
   };
 
@@ -278,6 +311,7 @@ TEST_F(AgentVoqSwitchIsolationFirmwareTest, forceIsolate) {
         getAgentEnsemble(),
         masterLogicalFabricPortIds(),
         true /* expect active*/);
+    assertFirmwareInfo(FirmwareOpStatus::STOPPED, FirmwareFuncStatus::ISOLATED);
   };
   verifyAcrossWarmBoots(setup, verify);
 }
