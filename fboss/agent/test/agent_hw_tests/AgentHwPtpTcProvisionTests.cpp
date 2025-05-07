@@ -62,6 +62,8 @@ class AgentHwPtpTcProvisionTests : public AgentHwTest {
         true /*interfaceHasSubnet*/);
     config.switchSettings()->ptpTcEnable() = true;
     auto ports = ensemble.masterLogicalInterfacePortIds();
+    // Todo: We should use dst mac to avoid same packet trapped twice
+    // on inject and dst ports. But Leaba 1.42.8 SDK does not support it yet.
     std::set<folly::CIDRNetwork> prefixs;
     for (int idx = 0; idx < ports.size(); idx++) {
       prefixs.emplace(getDstIp(idx), 128);
@@ -82,7 +84,7 @@ class AgentHwPtpTcProvisionTests : public AgentHwTest {
     return folly::IPAddressV6(kdstIpPrefix + ss.str());
   }
 
-  int getPortIndexFromNexthopMax(folly::MacAddress mac) {
+  int getPortIndexFromNexthopMac(folly::MacAddress mac) {
     auto lastByte = mac.bytes()[5];
     return lastByte - 10;
   }
@@ -150,18 +152,16 @@ class AgentHwPtpTcProvisionTests : public AgentHwTest {
   void verifyPtpPkts(
       PTPMessageType ptpType,
       utility::SwSwitchPacketSnooper& snooper,
-      int& verifiedCount,
-      std::vector<bool> ptpTcVerified,
+      const PortID& injectPortID,
+      const PortID& dstPortID,
       const std::vector<PortID>& ports) {
-    auto pktBufOpt = snooper.waitForPacket(1);
-    while (pktBufOpt.has_value()) {
+    // expect two PTP packet, one trapped from inject port and one from dst port
+    for (int i = 0; i < 2; i++) {
+      auto pktBufOpt = snooper.waitForPacket(5);
+      EXPECT_TRUE(pktBufOpt.has_value());
       auto pktBuf = *pktBufOpt.value().get();
       folly::io::Cursor pktCursor(&pktBuf);
-      if (!utility::isPtpEventPacket(pktCursor)) {
-        // should not get non-PTP packet, if so, ignore and continue
-        pktBufOpt = snooper.waitForPacket(1);
-        continue;
-      }
+      EXPECT_TRUE(utility::isPtpEventPacket(pktCursor));
       PTPHeader ptpHdr(&pktCursor);
 
       pktCursor.reset(&pktBuf);
@@ -169,21 +169,18 @@ class AgentHwPtpTcProvisionTests : public AgentHwTest {
       auto srcMac = ethHdr.getSrcMac();
       auto dstMac = ethHdr.getDstMac();
       if (srcMac == kSrcMac) {
-        // packet trapped from inject port (No Rx timestamp yet), ignore and
-        // continue
-        pktBufOpt = snooper.waitForPacket(1);
+        // Continue if the packet trapped from inject port
         continue;
       }
-
-      // use dstMac and dstIP to find the dst port and inject port
-      auto dstPortIdx = getPortIndexFromNexthopMax(dstMac);
       IPv6Hdr ipHdr(pktCursor);
       auto dstIp = ipHdr.dstAddr;
+      // use dstMac and dstIP to find the dst port and inject port
+      auto dstPortIdx = getPortIndexFromNexthopMac(dstMac);
       auto injectPortIdx = getPortIndexFromDstIp(dstIp);
-
       // Verify packet is received on the correct port
       EXPECT_EQ(dstPortIdx, (injectPortIdx + 1) % ports.size());
-
+      EXPECT_EQ(ports[injectPortIdx], injectPortID);
+      EXPECT_EQ(ports[dstPortIdx], dstPortID);
       // Verify PTP fields
       auto correctionField = ptpHdr.getCorrectionField();
       uint64_t cfInNsecs = (correctionField >> 16) & 0x0000ffffffffffff;
@@ -200,14 +197,6 @@ class AgentHwPtpTcProvisionTests : public AgentHwTest {
       // For now, a generic value will be used as minor latency differences are
       // not a concern.
       EXPECT_LT(cfInNsecs, 8000);
-
-      if (!ptpTcVerified[injectPortIdx]) {
-        ptpTcVerified[injectPortIdx] = true;
-        verifiedCount++;
-      }
-
-      // read next packet until buf empty
-      pktBufOpt = snooper.waitForPacket(1);
     }
   }
 
@@ -246,10 +235,10 @@ TEST_F(AgentHwPtpTcProvisionTests, VerifyPtpTcDelayRequestOnPorts) {
   }
 
   auto setup = [=, this]() {
-    //  Add dst port as nhp
     for (int idx = 0; idx < size; idx++) {
       auto dstIdx = (idx + 1) % size;
-      setupEcmpTraffic(ports[idx], nexthopMacs[dstIdx], dstIps[idx]);
+      // For inject port (idx) IP, routed to dest port (dstIdx)
+      setupEcmpTraffic(ports[dstIdx], nexthopMacs[dstIdx], dstIps[idx]);
     }
   };
 
@@ -259,38 +248,21 @@ TEST_F(AgentHwPtpTcProvisionTests, VerifyPtpTcDelayRequestOnPorts) {
   auto verify = [=, this]() {
     utility::SwSwitchPacketSnooper snooper(getSw(), "snooper-ptp");
 
-    std::unique_ptr<std::thread> packetTxThread =
-        std::make_unique<std::thread>([&]() {
-          initThread("PtpPacketsTxThread");
-          for (int idx = 0; idx < size; idx++) {
-            auto dstIdx = (idx + 1) % size;
-            sendPtpPkts(
-                PTPMessageType::PTP_DELAY_REQUEST,
-                ports[idx],
-                dstIps[idx],
-                ports[dstIdx]);
-            usleep(100 * 1000); // sleep 100ms to avoid packet burst
-          }
-        });
+    for (int idx = 0; idx < size; idx++) {
+      auto dstIdx = (idx + 1) % size;
+      sendPtpPkts(
+          PTPMessageType::PTP_DELAY_REQUEST,
+          ports[idx],
+          dstIps[idx],
+          ports[dstIdx]);
 
-    std::vector<bool> ptpTcVerified(size);
-    auto verifiedCount = 0;
-
-    checkWithRetry(
-        [&]() {
-          verifyPtpPkts(
-              PTPMessageType::PTP_DELAY_REQUEST,
-              snooper,
-              verifiedCount,
-              ptpTcVerified,
-              ports);
-          return verifiedCount == ports.size();
-        },
-        120,
-        std::chrono::milliseconds(1000),
-        " Verify PTP packets received on all ports");
-    packetTxThread->join();
-    packetTxThread.reset();
+      verifyPtpPkts(
+          PTPMessageType::PTP_DELAY_REQUEST,
+          snooper,
+          ports[idx],
+          ports[dstIdx],
+          ports);
+    }
   };
   verifyAcrossWarmBoots(setup, verify);
 }
