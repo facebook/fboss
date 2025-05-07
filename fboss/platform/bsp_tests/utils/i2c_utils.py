@@ -66,7 +66,9 @@ def create_i2c_adapter(
     create_new_device(fpga, adapter.auxDevice, id)
     newBusses = find_i2c_busses() - existingAdapters
     minBusNum = min(a.busNum for a in newBusses)
-    assert len(newBusses) == numBusses
+    assert (
+        len(newBusses) == numBusses
+    ), f"Expected {numBusses} busses, got {len(newBusses)}"
     return (newBusses, minBusNum)
 
 
