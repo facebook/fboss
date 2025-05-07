@@ -66,6 +66,7 @@ class StateDelta {
       std::shared_ptr<SwitchState> newState);
   StateDelta(std::shared_ptr<SwitchState> oldState, fsdb::OperDelta operDelta);
   StateDelta(StateDelta&&) = default;
+  StateDelta& operator=(StateDelta&&) = default;
   virtual ~StateDelta();
 
   const std::shared_ptr<SwitchState>& oldState() const {
