@@ -4,12 +4,10 @@ import os
 
 import pytest
 
-PLATFORMS = ["meru800bia", "meru800bfa"]
-
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--platform", type=str, default="", choices=PLATFORMS)
+    parser.add_argument("--platform", type=str, default="")
     parser.add_argument("--config-file", type=str)
     parser.add_argument("--install-dir", type=str, default="")
     parser.add_argument("--config-subdir", type=str, default="configs")
@@ -44,6 +42,8 @@ def main() -> None:
         pytest_args += [f"--config_subdir={args.config_subdir}"]
     if args.pm_config_dir:
         pytest_args += [f"--pm_config_dir={args.pm_config_dir}"]
+
+    print(f"Running pytest with args: {pytest_args}")
 
     pytest.main(pytest_args)
 
