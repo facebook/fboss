@@ -275,4 +275,17 @@ void BcmMultiPathNextHopTable::updateDlbExhaustionStat() {
   dlbExhausted_.store(dlbExhausted);
 }
 
+cfg::SwitchingMode BcmMultiPathNextHopTable::getFwdSwitchingMode(
+    bcm_vrf_t vrf,
+    const RouteNextHopSet& nextHopSet) {
+  auto multipathNextHop = getNextHop(BcmMultiPathNextHopKey(vrf, nextHopSet));
+  if (multipathNextHop) {
+    auto ecmpEgress = multipathNextHop->getEgress();
+    if (ecmpEgress) {
+      return ecmpEgress->getEcmpSwitchingMode();
+    }
+  }
+  return cfg::SwitchingMode::FIXED_ASSIGNMENT;
+}
+
 } // namespace facebook::fboss

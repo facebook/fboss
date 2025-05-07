@@ -259,6 +259,11 @@ class HwSwitch {
   virtual HwSwitchWatermarkStats getSwitchWatermarkStats() const = 0;
   virtual HwResourceStats getResourceStats() const = 0;
 
+  // TODO delete this after ECMP resource manager rolled out to backend
+  virtual cfg::SwitchingMode getFwdSwitchingMode(const RouteNextHopEntry&) {
+    throw FbossError("getFwdSwitchingMode not supported on SAI");
+  }
+
   /*
    * Get latest device watermark bytes
    */
