@@ -128,5 +128,9 @@ class StateDelta {
 };
 
 bool isStateDeltaEmpty(const StateDelta& stateDelta);
+inline bool operator==(const StateDelta& lhs, const StateDelta& rhs) {
+  return std::tie(lhs.oldState(), lhs.newState()) ==
+      std::tie(rhs.oldState(), rhs.newState());
+}
 
 } // namespace facebook::fboss
