@@ -76,7 +76,7 @@ TEST_F(NextHopIdAllocatorTest, addRemoveRouteNewNhopsUnresolved) {
   EXPECT_EQ(nhops2Id.find(defaultNhops())->second, groupId);
   auto newNhops = defaultNhops();
   newNhops.erase(newNhops.begin());
-  auto newRoute = makeRoute(nextPrefix(), newNhops);
+  auto newRoute = makeRoute(nextPrefix(), newNhops)->clone();
   newRoute->clearForward();
   {
     auto fib6 = fib(newState);

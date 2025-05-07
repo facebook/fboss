@@ -49,6 +49,8 @@ class EcmpBackupGroupTypeTest : public BaseEcmpResourceManagerTest {
 
   void SetUp() override {
     BaseEcmpResourceManagerTest::SetUp();
+    XLOG(DBG2) << "EcmpResourceMgrBackupGrpTest SetUp";
+    CHECK(state_->isPublished());
     auto newState = state_->clone();
     auto fib6 = fib(newState);
     auto newNhops = defaultNhopSets();
@@ -58,9 +60,12 @@ class EcmpBackupGroupTypeTest : public BaseEcmpResourceManagerTest {
       auto newRoute = route->clone();
       newRoute->setResolved(
           RouteNextHopEntry(newNhops[idx++], kDefaultAdminDistance));
+      newRoute->publish();
       fib6->updateNode(newRoute);
     }
+    newState->publish();
     consolidate(newState);
+    XLOG(DBG2) << "EcmpResourceMgrBackupGrpTest SetUp done";
   }
   void assertEndState(
       const std::shared_ptr<SwitchState>& endStatePrefixes,
@@ -116,4 +121,5 @@ TEST_F(EcmpBackupGroupTypeTest, addRoutesAboveEcmpLimit) {
   EXPECT_EQ(deltas.size(), numStartRoutes());
   assertEndState(newState, overflowPrefixes);
 }
+
 } // namespace facebook::fboss

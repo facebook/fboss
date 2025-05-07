@@ -959,6 +959,7 @@ cpp_unittest(
     deps = [
         "//fboss/agent:ecmp_resource_manager",
         "//fboss/agent:fboss-types",
+        "//fboss/agent:fib_helpers",
         "//fboss/agent/state:state",
         "//folly:network_address",
     ],
