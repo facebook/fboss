@@ -655,7 +655,7 @@ struct TransceiverInfo {
   @thrift.DeprecatedUnvalidatedAnnotations{
     items = {"deprecated": "Moved to state/stats"},
   }
-  25: bool eepromCsumValid;
+  25: optional bool eepromCsumValid;
   @thrift.DeprecatedUnvalidatedAnnotations{
     items = {"deprecated": "Moved to state/stats"},
   }
