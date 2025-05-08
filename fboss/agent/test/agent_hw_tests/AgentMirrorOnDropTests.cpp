@@ -76,7 +76,9 @@ class AgentMirrorOnDropTest
     // Log drop counters to facilitate test debugging.
     if (auto ensemble = getAgentEnsemble(); ensemble != nullptr) {
       std::string output;
-      ensemble->runDiagCommand("diag count g\n", output);
+      for (const auto& switchIdx : getSw()->getHwAsicTable()->getSwitchIDs()) {
+        ensemble->runDiagCommand("quit\n", output, switchIdx);
+      }
       XLOG(DBG3) << output;
     }
     AgentHwTest::TearDown();
