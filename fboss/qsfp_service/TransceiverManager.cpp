@@ -437,12 +437,13 @@ void TransceiverManager::gracefulExit() {
 
   // Set all warm boot related files before gracefully shut down
   setWarmBootState();
-  setCanWarmBoot();
 
   // Do a graceful shutdown of the phy.
   if (phyManager_) {
     phyManager_->gracefulExit();
   }
+
+  setCanWarmBoot();
 
   steady_clock::time_point setWBFilesDone = steady_clock::now();
   XLOG(INFO) << "[Exit] Done creating Warm Boot related files. Stop time: "
