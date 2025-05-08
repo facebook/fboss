@@ -248,7 +248,7 @@ Controller has 2+ root ports):
 1. Access
    1. Access for both Port LEDs and System Status LEDs: The access path for SW
       should follow the requirements specified in [FBOSS BSP Kernel Module API
-      Specification](https://github.com/facebook/fboss/blob/main/fboss/docs/bsp_api_specification.md)
+      Specification](/docs/platform/bsp_api_specification)
 2. System Status LED
    1. System Status LED Behavior: The front-panel system LEDs and Port LED must
       be able to meet the requirements in the
@@ -463,7 +463,7 @@ A few notes:
 
 * All fpga should have a major/minor version which will be exposed by the
   `info_rom` driver.
-  * See [BSP API Specification](https://github.com/facebook/fboss/blob/main/fboss/docs/bsp_api_specification.md)
+  * See [BSP API Specification](/docs/platform/bsp_api_specification)
     for more details
 * All fpga/cpld/system controllers need to have a kernel module driver in them
   BSP codebase.
