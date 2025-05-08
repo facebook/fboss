@@ -364,6 +364,7 @@ set(core_libs
   fboss_event_base
   phy_snapshot_manager
   build_info_wrapper
+  ecmp_resource_manager
 )
 
 target_link_libraries(core ${core_libs})

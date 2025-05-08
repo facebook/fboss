@@ -23,6 +23,7 @@
 #include "fboss/agent/LinkConnectivityProcessor.h"
 #include "fboss/agent/Utils.h"
 
+#include "fboss/agent/EcmpResourceManager.h"
 #include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/IPv4Handler.h"
 #include "fboss/agent/IPv6Handler.h"
@@ -1755,6 +1756,13 @@ std::shared_ptr<SwitchState> SwSwitch::applyUpdate(
     return oldState;
   }
 
+  if (ecmpResourceManager_) {
+    auto deltas = ecmpResourceManager_->consolidate(delta);
+    // TODO allow for > 1 deltas once switch handlers, HwSwitch are
+    // able to handle these.
+    CHECK_EQ(deltas.size(), 1);
+    delta = std::move(*deltas.begin());
+  }
   if (!resourceAccountant_->isValidUpdate(delta)) {
     stats()->resourceAccountantRejectedUpdates();
     // Notify resource account to revert back to previous state
