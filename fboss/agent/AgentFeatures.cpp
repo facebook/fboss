@@ -289,3 +289,8 @@ DEFINE_int32(
     max_unprocessed_switch_reachability_changes,
     1,
     "Max number of switch reachability changes that can be enqueued to bottom-half.");
+
+DEFINE_bool(
+    enable_ecmp_resource_manager,
+    false,
+    "This flag is used to enable ecmp resource manager feature");
