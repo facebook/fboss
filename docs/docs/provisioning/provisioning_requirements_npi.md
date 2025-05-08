@@ -1,17 +1,16 @@
 # Provisioning Requirements - NPI
-### PE Network Provisioning
 
+## PE Network Provisioning
 
-**Version 0.3.1**
+### Version 0.3.1
 
-**October 2024**
+### October 2024
 
 4-5 Grand Canal Quay
 
 Dublin, D02 X525
 
 Republic of Ireland
-
 
 ## Overview
 
@@ -26,18 +25,18 @@ both the company and external vendors, since addressing these issues is
 expensive and slow for all parties involved. All of the requirements in this
 document are Must-Have (MH) and essential to the provisioning process.
 
-
 ## Goals
 
-1.  **Define required features**: These features are supported by the device but
+1. **Define required features**: These features are supported by the device but
     can often come disabled or misconfigured.
 
-3.  **Define acceptance tests**: Specify a set of tests and features that should
+2. **Define acceptance tests**: Specify a set of tests and features that should
     work out-of-the-box for all devices.
 
 ### Table of Contents
+
 - [Provisioning Requirements - NPI](#provisioning-requirements---npi)
-    - [PE Network Provisioning](#pe-network-provisioning)
+  - [PE Network Provisioning](#pe-network-provisioning)
   - [Overview](#overview)
   - [Goals](#goals)
     - [Table of Contents](#table-of-contents)
@@ -56,7 +55,6 @@ document are Must-Have (MH) and essential to the provisioning process.
     - [11. Firmware upgrade support](#11-firmware-upgrade-support)
     - [12.  Serial console speed](#12--serial-console-speed)
 
-
 ## Required features
 
 ### 1. DHCP Options
@@ -68,7 +66,9 @@ addresses and serial numbers. For this reason, devices are required to submit
 their serial number within the DHCPv6 packet. For existing compatibility with
 Facebook systems, the following information string format is used:
 
-    OpenBMC:key1=value1:key2=value2[...:keyN=valueN]
+```bash
+OpenBMC:key1=value1:key2=value2[...:keyN=valueN]
+```
 
 The keys we are currently using are:
 
@@ -106,7 +106,7 @@ instead.
 
 Example DHCP config:
 
-```
+```bash
 send vendor-class-identifier "OpenBMC:model=MINIPACK-SMB";
 
 option dhcp6.linuxboot-id code 17 = {
@@ -124,23 +124,21 @@ option dhcp6.linuxboot-id code 17 = {
 send dhcp6.linuxboot-id 40981 1 44 "OpenBMC:model=MINIPACK-SMB=serial=1234";
 ```
 
-![](../resources/provisioning/provisioning_requirements/dhcp_v6.png)
+![DHCPv6 Option 17 Encoding Example](dhcp_v6.png)
 *DHCPv6 Option 17 Encoding Example*
-
 
 ### 2.  IPv6 Stateless Address Autoconfiguration Support
 
-**Applies to: BMC**
+#### Applies to: BMC
 
 In order to be able to contact the device, the provisioning system needs to
 correctly assume which address it needs to connect to. Therefore, it is
 necessary to support stateless address autoconfiguration according to RFC 4862.
 
-* System sends ICMPv6 Router Solicitation (RS) message
-* Gets a Router Advertisement (RA) message
-* Configures the SLAAC address on the network management interface out of the
+- System sends ICMPv6 Router Solicitation (RS) message
+- Gets a Router Advertisement (RA) message
+- Configures the SLAAC address on the network management interface out of the
   box, respecting the flags received within the RA message
-
 
 ### 3. SSH access capability
 
@@ -150,7 +148,6 @@ Provisioning system needs to be able to log in out of the box and issue commands
 to commence the provisioning process. Therefore, the SSH daemon on port 22 will
 accept connections regardless of the originating address and allow access with
 OpenBMC default credentials.
-
 
 ### 4. Console Auto Discovery
 
@@ -170,13 +167,15 @@ The string begins with an exclamation mark, followed by the magic string
 “serfmon” and 3 fields separated by colons - serial length, serial number, and
 checksum, as follows:
 
-    !serfmon:{serial number length}:{serial number}:{serial number checksum}
-
+```bash
+!serfmon:{serial number length}:{serial number}:{serial number checksum}
+```
 
 **Example**:
 
-    !serfmon:10:AI21204498:8
-
+```bash
+!serfmon:10:AI21204498:8
+```
 
 **Remarks**
 
@@ -193,7 +192,8 @@ String is followed by a newline.
 **Reference implementation:**
 
 C
-```
+
+```c
 char serial[]="AI21204498";
 char checksum = '\0';
 
@@ -204,14 +204,14 @@ printf("!serfmon:%d:%s:%d\n", strlen(serial), serial, checksum);
 ```
 
 Python 3
-```
+
+```py3
 from functools import reduce
 serial = "AI21204498"
 
 checksum = reduce(lambda a, b: a ^ ord(b), serial, 0)
 print("!serfmon:{0}:{1}:{2}".format(len(serial), serial, checksum))
 ```
-
 
 ### 5. Bootloader
 
@@ -232,21 +232,20 @@ DHCPv6 implementation used to netboot should rely on DUID-LLT instead of
 DUID-EN, since we rely on the client's link-layer address present within the
 packet.
 
-
 ### 6. Boot sequence behavior
 
 **Applies to: Microserver**
 
-* PXE IPv6 boot will always be the first choice
-* Local SSD/flash is the next choice
-* USB flash drive is the next choice (optional, disabled by default).
-* Start from beginning
+- PXE IPv6 boot will always be the first choice
+- Local SSD/flash is the next choice
+- USB flash drive is the next choice (optional, disabled by default).
+- Start from beginning
 
 There should be no unconventional requirements to boot the kernel, like
 providing the ACPI tables as a binary blob, etc. Those should be defined by the
 BIOS and loaded into the main memory for the OS to consume.
 
-BIOS should, after loss of power, default to ON state when power is reapplied 
+BIOS should, after loss of power, default to ON state when power is reapplied
 and NOT try to return to "last known state".
 
 ### 7. Weutil support
@@ -266,12 +265,11 @@ Similar commands are provided for major components in the system (e.g., peutil
 tool to dump the information about PIMs) - these are expected to get implemented
 on the x86 side and details agreed with Meta.
 
-
 ### Output format
 
 Example command output:
 
-```
+```bash
             Wedge EEPROM :
             Version: 1
             Product Name: WEDGE100S12V
@@ -299,14 +297,14 @@ Example command output:
 
 Weutil **mandatory** fields:
 
-* Product Serial Number
-* Local MAC
-* Product Name
-* Product Asset Tag
-* Product Part Number
-* Product Version
-* Product Sub-Version
-* CRC8
+- Product Serial Number
+- Local MAC
+- Product Name
+- Product Asset Tag
+- Product Part Number
+- Product Version
+- Product Sub-Version
+- CRC8
 
 As an optional argument, the tool should be able to take a path (eeprom readout
 binary file) and parse/display the data as if it were reading the eeprom itself.
@@ -314,7 +312,7 @@ binary file) and parse/display the data as if it were reading the eeprom itself.
 JSON output support - provide `weutil --json` to produce both machine and
 human parsable output, like:
 
-```
+```json
 {
     "Product Name": "ELBERT",
     "Product Part Number": "7388",
@@ -330,7 +328,6 @@ component storing the serial number is a FRU and can be replaced itself. The
 reasoning behind this is that the serial number in internal databases references
 the chassis itself, regardless of which parts are swapped throughout the
 product’s life cycle.
-
 
 ### 8. Layer 2 Packet Forwarding
 
@@ -348,13 +345,12 @@ things frequently missing in devices delivered.
 BMC should support lldp-util command out of the box and this command is expected
 to display the received lldp broadcasts in the following format:
 
-```
+```bash
 OpenBMC# lldp-util
 Listening for LLDP Packets…
 
 LLDP: local_port=eth0 remote_system=rsw1aa.99.tst1 remote_port=Ethernet36
 ```
-
 
 ### 9. wedge_us_mac.sh
 
@@ -368,7 +364,7 @@ microserver.
 
 Example:
 
-```
+```bash
 bash$ wedge_us_mac.sh
 de:ad:be:ef:ca:fe
 bash$
@@ -378,18 +374,16 @@ If the x86/microserver has more than one management ethernet, the command with
 no arguments will retain the existing behavior and when invoked with
 `--interface2` or `--interfaceN` will return the N-th interface’s MAC address.
 
-
 ### 10. wedge_power.sh script
 
 **Applies to: BMC**
 
 One of the most important features the BMC is required to have on delivery is
-the correct power control script behavior which is defined in FBOSS [BMC-Lite System Requirements](../bmc_lite_system_requirements.md)
+the correct power control script behavior which is defined in FBOSS [Meta Switch Architecture](/docs/architecture/meta_switch_architecture)
 document, section I-3 System Control, subsection Power.
 
 It is expected that the wedge_power.sh off command takes no more than 30
 seconds, and wedge_power.sh on and reset take no more than 10.
-
 
 ### 11. Firmware upgrade support
 
@@ -431,7 +425,6 @@ failing a staged future write.
 We **require** the **ability to downgrade** the firmware versions, so a rollback
 is possible in case of a bad/buggy firmware release.
 
-
 ### 12.  Serial console speed
 
 BMC serial console is always 9600 bps, 8-N-1 as this is a fleetwide standard.
@@ -440,5 +433,5 @@ For compatibility reasons, serial output for both BIOS and OS on the x86 must
 match the same speed - 57600 bps 8-N-1 (therefore, terminal implementation on
 the BMC must support this).
 
-For further information, please refer to [BMC-Lite System Requirements](../bmc_lite_system_requirements.md)
+For further information, please refer to [Meta Switch Architecture](/docs/architecture/meta_switch_architecture)
 document section I-5 Console Connection.
