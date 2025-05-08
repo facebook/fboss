@@ -22,6 +22,12 @@ namespace facebook::fboss {
 std::vector<StateDelta> EcmpResourceManager::consolidate(
     const StateDelta& delta) {
   CHECK(!preUpdateState_.has_value());
+  if (DeltaFunctions::isEmpty(delta.getFibsDelta())) {
+    // Return orignal delta if no FIB changes
+    std::vector<StateDelta> deltas;
+    deltas.emplace_back(delta.oldState(), delta.newState());
+    return deltas;
+  }
   preUpdateState_ = PreUpdateState(mergedGroups_, nextHopGroup2Id_);
 
   uint32_t nonBackupEcmpGroupsCnt{0};
