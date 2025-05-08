@@ -986,15 +986,15 @@ bool WedgeManager::initExternalPhyMap(bool forceWarmboot) {
     return true;
   }
 
-  // First call PhyManager::initExternalPhyMap() to create xphy map
-  auto rb = phyManager_->initExternalPhyMap();
-  // TODO(ccpowers): We could probably clean this up a bit to separate out the
-  // warmboot file logic and the phy init logic, to make it easier to
-  // init phys from external CLIs
-
   // forceWarmboot is only used to skip checking the warmboot file
   // when we're running outside of qsfp_service (e.g. in the fboss-xphy CLI)
   bool warmboot = forceWarmboot || canWarmBoot();
+
+  // First call PhyManager::initExternalPhyMap() to create xphy map
+  auto rb = phyManager_->initExternalPhyMap(warmboot);
+  // TODO(ccpowers): We could probably clean this up a bit to separate out the
+  // warmboot file logic and the phy init logic, to make it easier to
+  // init phys from external CLIs
 
   // And then initialize the xphy for each pim which has xphy
   std::vector<folly::Future<folly::Unit>> initPimTasks;
