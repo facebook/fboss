@@ -62,12 +62,12 @@ The picture below shows the high level system architecture.
 
 ### 2.1 FRU/PmUnits
 
-* Refer to [Platform Manager documentation](https://github.com/facebook/fboss/blob/main/fboss/docs/platform_manager.md)
+* Refer to [Platform Manager documentation](/docs/platform/platform_manager)
 
 ### 2.2 IDPROMs
 
 * Common:
-  * Refer to [Platform Manager documentation](https://github.com/facebook/fboss/blob/main/fboss/docs/platform_manager.md)
+  * Refer to [Platform Manager documentation](/docs/platform/platform_manager)
     to understand how IDPROMs play a key role in platform modeling.
   * Any EEPROM which is used to identify the FRU/PMUnit type is called IDPROM.
   * The IDPROM in the FRU MUST be connected in one of the following ways:
