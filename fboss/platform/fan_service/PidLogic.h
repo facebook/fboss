@@ -6,6 +6,8 @@
 
 namespace facebook::fboss::platform::fan_service {
 
+// Explaination for PidLogic and IncrementalPidLogic
+// https://www.yahboom.net/public/upload/upload-html/1653307952/1.%20PID%20algorithm%20theory.html
 class PidLogicBase {
  public:
   explicit PidLogicBase(const PidSetting& pidSetting)
@@ -46,6 +48,17 @@ class PidLogic : public PidLogicBase {
   float integral_{0};
   float lastError_{0};
   const unsigned int dT_;
+};
+
+class IncrementalPidLogic : public PidLogicBase {
+ public:
+  explicit IncrementalPidLogic(const PidSetting& pidSetting)
+      : PidLogicBase(pidSetting) {}
+  int16_t calculatePwm(float measurement) override;
+
+ private:
+  float previousRead1_{0};
+  float previousRead2_{0};
 };
 
 } // namespace facebook::fboss::platform::fan_service
