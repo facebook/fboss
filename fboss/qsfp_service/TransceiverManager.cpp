@@ -2051,7 +2051,13 @@ void TransceiverManager::refreshStateMachines() {
     isFullyInitialized_ = true;
     // On successful initialization, set warm boot flag in case of a
     // qsfp_service crash (no gracefulExit).
-    setCanWarmBoot();
+
+    /* We don't want to set warm boot flag here for platforms with external PHYs
+     * The reason is SAI based external PHYs platforms needs to gracefully
+     * shutdown to store the warmboot state */
+    if (!phyManager_) {
+      setCanWarmBoot();
+    }
 
     restart_time::mark(RestartEvent::CONFIGURED);
   }
