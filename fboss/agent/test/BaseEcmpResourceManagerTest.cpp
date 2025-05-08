@@ -10,6 +10,7 @@
 
 #include "fboss/agent/test/BaseEcmpResourceManagerTest.h"
 #include "fboss/agent/FibHelpers.h"
+#include "fboss/agent/test/TestUtils.h"
 
 namespace facebook::fboss {
 
@@ -223,5 +224,18 @@ BaseEcmpResourceManagerTest::getNhopId(const RouteNextHopSet& nhops) const {
     nhopId = nitr->second;
   }
   return nhopId;
+}
+
+TEST_F(BaseEcmpResourceManagerTest, noFibsDelta) {
+  auto oldState = state_;
+  auto newState = oldState->clone();
+  newState->getPorts()->modify(&newState);
+  registerPort(newState, PortID(1), "portOne", hwMatcher());
+  auto deltas = consolidate(newState);
+  EXPECT_EQ(deltas.size(), 1);
+  EXPECT_EQ(deltas.begin()->oldState(), oldState);
+  EXPECT_EQ(deltas.begin()->newState(), newState);
+  EXPECT_NE(
+      deltas.begin()->newState()->getPorts()->getPortIf("portOne"), nullptr);
 }
 } // namespace facebook::fboss

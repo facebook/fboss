@@ -12,13 +12,7 @@
 
 namespace facebook::fboss {
 
-class NextHopIdAllocatorTest : public BaseEcmpResourceManagerTest {
- public:
-  std::shared_ptr<EcmpResourceManager> makeResourceMgr() const override {
-    static constexpr auto kEcmpGroupHwLimit = 100;
-    return std::make_shared<EcmpResourceManager>(kEcmpGroupHwLimit);
-  }
-};
+class NextHopIdAllocatorTest : public BaseEcmpResourceManagerTest {};
 
 TEST_F(NextHopIdAllocatorTest, init) {
   const auto& nhops2Id = consolidator_->getNhopsToId();

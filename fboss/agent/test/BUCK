@@ -957,6 +957,7 @@ cpp_unittest(
     ],
     headers = ["BaseEcmpResourceManagerTest.h"],
     deps = [
+        ":utils",
         "//fboss/agent:ecmp_resource_manager",
         "//fboss/agent:fboss-types",
         "//fboss/agent:fib_helpers",
