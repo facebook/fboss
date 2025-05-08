@@ -4149,7 +4149,23 @@ std::string SaiSwitch::listObjectsLocked(
     auto json = toFollyDynamicLocked(lock);
     std::unique_ptr<folly::dynamic> adapterKeysJson;
     std::unique_ptr<folly::dynamic> adapterKeys2AdapterHostKeysJson;
-    if (platform_->getAsic()->isSupported(HwAsic::Feature::OBJECT_KEY_CACHE)) {
+
+    /* We're making a change to ensure that the listObjectsLocked functionality
+     * remains unchanged for Credo 0.7.2, We added
+     * HwAsic::Feature::OBJECT_KEY_CACHE support for Credo Asic But for 0.7.2,
+     * we want to avoid loading the adapterKeysJson file, and keep the
+     * functionality as it was before.
+     */
+    bool useAdapterKeysJson =
+        platform_->getAsic()->isSupported(HwAsic::Feature::OBJECT_KEY_CACHE);
+#ifndef CREDO_SDK_0_9_0
+    if (getPlatform()->getAsic()->getAsicType() ==
+        cfg::AsicType::ASIC_TYPE_ELBERT_8DD) {
+      useAdapterKeysJson = false;
+    }
+#endif
+
+    if (useAdapterKeysJson) {
       adapterKeysJson = std::make_unique<folly::dynamic>(json[kAdapterKeys]);
     }
     adapterKeys2AdapterHostKeysJson =
