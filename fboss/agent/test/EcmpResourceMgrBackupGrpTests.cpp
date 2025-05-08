@@ -122,6 +122,33 @@ TEST_F(EcmpBackupGroupTypeTest, addRoutesAboveEcmpLimit) {
   assertEndState(newState, overflowPrefixes);
 }
 
+TEST_F(EcmpBackupGroupTypeTest, updateRouteBelowEcmpLimit) {
+  // Update a route pointing to new nhops. But stay below ECMP limit
+  {
+    // Remove one route so we go below ECMP limit
+    auto oldState = state_;
+    auto newState = oldState->clone();
+    auto fib6 = fib(newState);
+    auto rmRoute = fib6->cbegin()->second->clone();
+    fib6->removeNode(rmRoute);
+    auto deltas = consolidate(newState);
+    EXPECT_EQ(deltas.size(), 1);
+    assertEndState(newState, {});
+  }
+  {
+    auto oldState = state_;
+    auto newState = oldState->clone();
+    auto fib6 = fib(newState);
+    auto newRoute = fib6->cbegin()->second->clone();
+    newRoute->setResolved(
+        RouteNextHopEntry(*nextNhopSets().begin(), kDefaultAdminDistance));
+    fib6->updateNode(newRoute);
+    auto deltas = consolidate(newState);
+    EXPECT_EQ(deltas.size(), 1);
+    assertEndState(newState, {});
+  }
+}
+
 TEST_F(EcmpBackupGroupTypeTest, updateRouteAboveEcmpLimit) {
   // Update a route pointing to new nhops. ECMP limit is breached.
   auto nhopSets = nextNhopSets();
@@ -138,4 +165,5 @@ TEST_F(EcmpBackupGroupTypeTest, updateRouteAboveEcmpLimit) {
   EXPECT_EQ(deltas.size(), 1);
   assertEndState(newState, overflowPrefixes);
 }
+
 } // namespace facebook::fboss
