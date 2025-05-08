@@ -80,7 +80,7 @@ The picture below shows the high level system architecture.
     SCM for a PMUnit containing CPU and not EAGLE, use SMB for a PMUnit
     containing the switch ASIC and not APOLLO.
   * Chassis EEPROM is not considered an IDPROM.
-  * All IDPROMs in the system should follow [Meta EEPROM V6 format](https://github.com/facebook/fboss/blob/main/fboss/docs/meta_eeprom_format_v6.md).
+  * All IDPROMs in the system should follow [Meta EEPROM V6 format](/docs/platform/meta_eeprom_format_v6).
   * There should be NO caching mechanism to access the information source (HW)
     once and store it somewhere. All read/write should be directly from/on the
     actual devices that contain such information.
@@ -231,7 +231,7 @@ Controller has 2+ root ports):
 
 * PSU EEPROM shall follow Meta's EEPROM format.
   * If not, the vendor will ask the PSU vendor to add extra EEPROM that has the
-    [Meta EEPROM v6 contents](https://github.com/facebook/fboss/blob/main/fboss/docs/meta_eeprom_format_v6.md).
+    [Meta EEPROM v6 contents](/docs/platform/meta_eeprom_format_v6).
 * A single type of PSU shall be used.
   * If different types of PSUs are used, the following condition must be met:
     1. Every PSU shall have EEPROM in Meta V6 format to show which type of PSU
