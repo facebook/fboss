@@ -137,8 +137,6 @@ std::shared_ptr<NextHopGroupInfo> EcmpResourceManager::ecmpGroupDemandExceeded(
   auto mergeSet = createOptimalMergeGroupSet();
   CHECK(mergeSet.empty()) << "Merge algo is a TODO";
   CHECK(backupEcmpGroupType_.has_value());
-  XLOG(DBG2) << " Ecmp group demand exceeded available resources"
-             << " route: " << route->str();
   std::shared_ptr<NextHopGroupInfo> grpInfo;
   bool inserted{false};
   std::tie(grpInfo, inserted) = nextHopGroupIdToInfo_.refOrEmplace(
@@ -162,43 +160,57 @@ std::shared_ptr<NextHopGroupInfo> EcmpResourceManager::ecmpGroupDemandExceeded(
 }
 
 template <typename AddrT>
-void EcmpResourceManager::routeAdded(
+void EcmpResourceManager::routeAddedOrUpdated(
     RouterID rid,
-    const std::shared_ptr<Route<AddrT>>& added,
+    const std::shared_ptr<Route<AddrT>>& oldRoute,
+    const std::shared_ptr<Route<AddrT>>& newRoute,
     InputOutputState* inOutState) {
   CHECK_EQ(rid, RouterID(0));
-  CHECK(added->isResolved());
-  CHECK(added->isPublished());
+  CHECK(newRoute->isResolved());
+  CHECK(newRoute->isPublished());
   CHECK_LE(inOutState->nonBackupEcmpGroupsCnt, maxEcmpGroups_);
-  auto nhopSet = added->getForwardInfo().normalizedNextHops();
+  bool ecmpLimitReached = inOutState->nonBackupEcmpGroupsCnt == maxEcmpGroups_;
+  if (ecmpLimitReached) {
+    XLOG(DBG2) << " Ecmp group demand exceeded available resources on: "
+               << (oldRoute ? "add" : "update")
+               << " route: " << newRoute->str();
+  }
+  if (oldRoute) {
+    DCHECK_NE(
+        oldRoute->getForwardInfo().normalizedNextHops(),
+        newRoute->getForwardInfo().normalizedNextHops());
+    routeDeleted(rid, oldRoute, true /*isUpdate*/, inOutState);
+  }
+  auto nhopSet = newRoute->getForwardInfo().normalizedNextHops();
   auto [idItr, inserted] =
       nextHopGroup2Id_.insert({nhopSet, findNextAvailableId()});
   std::shared_ptr<NextHopGroupInfo> grpInfo;
   if (inserted) {
-    if (inOutState->nonBackupEcmpGroupsCnt == maxEcmpGroups_) {
-      grpInfo = ecmpGroupDemandExceeded(rid, added, idItr, inOutState);
+    if (ecmpLimitReached) {
+      grpInfo = ecmpGroupDemandExceeded(rid, newRoute, idItr, inOutState);
     } else {
       std::tie(grpInfo, inserted) = nextHopGroupIdToInfo_.refOrEmplace(
           idItr->second, idItr->second, idItr, false /*isBackupEcmpGroupType*/
       );
       CHECK(inserted);
-      inOutState->addOrUpdateRoute(rid, added, false /* ecmpDemandExceeded*/);
-      // New ECMP group added but limit is not exceeded yet
+      inOutState->addOrUpdateRoute(
+          rid, newRoute, false /* ecmpDemandExceeded*/);
+      // New ECMP group newRoute but limit is not exceeded yet
       ++inOutState->nonBackupEcmpGroupsCnt;
-      XLOG(DBG2) << "Add Route: " << added->str()
+      XLOG(DBG2) << "Add Route: " << newRoute->str()
                  << " primray ecmp group count incremented to: "
                  << inOutState->nonBackupEcmpGroupsCnt;
     }
   } else {
-    XLOG(DBG4) << "Add route: " << added->str()
+    XLOG(DBG4) << "Add route: " << newRoute->str()
                << " primray ecmp group count unchanged: "
                << inOutState->nonBackupEcmpGroupsCnt;
-    inOutState->addOrUpdateRoute(rid, added, false /* ecmpDemandExceeded*/);
+    inOutState->addOrUpdateRoute(rid, newRoute, false /* ecmpDemandExceeded*/);
     grpInfo = nextHopGroupIdToInfo_.ref(idItr->second);
   }
   CHECK(grpInfo);
   auto [pitr, pfxInserted] = prefixToGroupInfo_.insert(
-      {added->prefix().toCidrNetwork(), std::move(grpInfo)});
+      {newRoute->prefix().toCidrNetwork(), std::move(grpInfo)});
   CHECK(pfxInserted);
   pitr->second->incRouteUsageCount();
   CHECK_GT(pitr->second->getRouteUsageCount(), 0);
@@ -209,11 +221,21 @@ template <typename AddrT>
 void EcmpResourceManager::routeDeleted(
     RouterID rid,
     const std::shared_ptr<Route<AddrT>>& removed,
+    bool isUpdate,
     InputOutputState* inOutState) {
   CHECK_EQ(rid, RouterID(0));
   CHECK(removed->isResolved());
   CHECK(removed->isPublished());
-  inOutState->deleteRoute(rid, removed);
+  if (!isUpdate) {
+    /*
+     * When route is deleted as part of a update we don't need
+     * to queue this up as a separate delta in list of deltas
+     * to be sent down to HW. The update will just be
+     * accounted for in the delete queued by the updateRoute
+     * flow
+     */
+    inOutState->deleteRoute(rid, removed);
+  }
   NextHopGroupId groupId{kMinNextHopGroupId - 1};
   {
     auto pitr = prefixToGroupInfo_.find(removed->prefix().toCidrNetwork());
@@ -253,7 +275,7 @@ void EcmpResourceManager::processRouteUpdates(
           return;
         }
         if (oldRoute->isResolved() && !newRoute->isResolved()) {
-          routeDeleted(rid, oldRoute, inOutState);
+          routeDeleted(rid, oldRoute, false /*isUpdate*/, inOutState);
           return;
         }
         if (!oldRoute->isResolved() && newRoute->isResolved()) {
@@ -264,8 +286,7 @@ void EcmpResourceManager::processRouteUpdates(
         CHECK(oldRoute->isResolved() && newRoute->isResolved());
         if (oldRoute->getForwardInfo().normalizedNextHops() !=
             newRoute->getForwardInfo().normalizedNextHops()) {
-          routeDeleted(rid, oldRoute, inOutState);
-          routeAdded(rid, newRoute, inOutState);
+          routeUpdated(rid, oldRoute, newRoute, inOutState);
         }
       },
       [this, inOutState](RouterID rid, const auto& newRoute) {
@@ -275,7 +296,7 @@ void EcmpResourceManager::processRouteUpdates(
       },
       [this, inOutState](RouterID rid, const auto& oldRoute) {
         if (oldRoute->isResolved()) {
-          routeDeleted(rid, oldRoute, inOutState);
+          routeDeleted(rid, oldRoute, false /*isUpdate*/, inOutState);
         }
       });
 }

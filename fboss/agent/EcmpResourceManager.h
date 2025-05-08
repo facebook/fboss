@@ -141,14 +141,32 @@ class EcmpResourceManager {
       const StateDelta& delta,
       InputOutputState* inOutState);
   template <typename AddrT>
+  void routeUpdated(
+      RouterID rid,
+      const std::shared_ptr<Route<AddrT>>& oldRoute,
+      const std::shared_ptr<Route<AddrT>>& newRoute,
+      InputOutputState* inOutState) {
+    routeAddedOrUpdated(rid, oldRoute, newRoute, inOutState);
+  }
+  template <typename AddrT>
   void routeAdded(
       RouterID rid,
+      const std::shared_ptr<Route<AddrT>>& newRoute,
+      InputOutputState* inOutState) {
+    routeAddedOrUpdated(
+        rid, std::shared_ptr<Route<AddrT>>(), newRoute, inOutState);
+  }
+  template <typename AddrT>
+  void routeAddedOrUpdated(
+      RouterID rid,
+      const std::shared_ptr<Route<AddrT>>& oldRoute,
       const std::shared_ptr<Route<AddrT>>& added,
       InputOutputState* inOutState);
   template <typename AddrT>
   void routeDeleted(
       RouterID rid,
       const std::shared_ptr<Route<AddrT>>& removed,
+      bool isUpdate,
       InputOutputState* inOutState);
   static uint32_t constexpr kMinNextHopGroupId = 1;
   NextHopGroupId findNextAvailableId() const;
