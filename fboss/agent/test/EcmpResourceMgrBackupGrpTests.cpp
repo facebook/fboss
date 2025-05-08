@@ -166,4 +166,72 @@ TEST_F(EcmpBackupGroupTypeTest, updateRouteAboveEcmpLimit) {
   assertEndState(newState, overflowPrefixes);
 }
 
+TEST_F(EcmpBackupGroupTypeTest, updateAllRoutesOneRouteAboveEcmpLimit) {
+  // Update a route pointing to new nhops. ECMP limit is breached.
+  auto oldState = state_;
+  auto newState = oldState->clone();
+  auto fib6 = fib(newState);
+  std::set<RouteV6::Prefix> overflowPrefixes;
+  auto nhopSets = nextNhopSets();
+  ASSERT_EQ(nhopSets.size(), fib6->size());
+  auto idx = 0;
+  for (const auto& [_, route] : std::as_const(*cfib(oldState))) {
+    auto newRoute = fib6->getRouteIf(route->prefix())->clone();
+    newRoute->setResolved(
+        RouteNextHopEntry(nhopSets[idx++], kDefaultAdminDistance));
+    if (idx == 1) {
+      /*
+       * Only the first route causes a spillover to backup ECMP groups type.
+       * Since this is a update it creates space for one more primary ECMP group
+       * type. Subsequent updates all vacate one ecmp group and take up one
+       * ECMP groups. So there is only one spillover event
+       */
+      overflowPrefixes.insert(newRoute->prefix());
+    }
+    fib6->updateNode(newRoute);
+  }
+  auto deltas = consolidate(newState);
+  EXPECT_EQ(deltas.size(), overflowPrefixes.size());
+  assertEndState(newState, overflowPrefixes);
+}
+
+TEST_F(EcmpBackupGroupTypeTest, updateAllRoutesAllRoutesAboveEcmpLimit) {
+  // Update a route pointing to new nhops. ECMP limit is breached.
+  {
+    auto oldState = state_;
+    auto newState = oldState->clone();
+    auto fib6 = fib(newState);
+    auto existingNhopSets = defaultNhopSets();
+    auto routesBefore = fib6->size();
+    for (auto i = 0; i < routesBefore; ++i) {
+      auto newRoute =
+          makeRoute(makePrefix(routesBefore + i), existingNhopSets[i]);
+      fib6->addNode(newRoute);
+    }
+    auto deltas = consolidate(newState);
+    EXPECT_EQ(deltas.size(), 1);
+    assertEndState(newState, {});
+  }
+  {
+    auto oldState = state_;
+    auto newState = oldState->clone();
+    auto fib6 = fib(newState);
+    std::set<RouteV6::Prefix> overflowPrefixes;
+    auto nhopSets = nextNhopSets();
+    auto idx = 0;
+    for (const auto& [_, route] : std::as_const(*cfib(oldState))) {
+      auto newRoute = fib6->getRouteIf(route->prefix())->clone();
+      newRoute->setResolved(
+          RouteNextHopEntry(nhopSets[idx++], kDefaultAdminDistance));
+      overflowPrefixes.insert(newRoute->prefix());
+      fib6->updateNode(newRoute);
+      if (idx == nhopSets.size()) {
+        break;
+      }
+    }
+    auto deltas = consolidate(newState);
+    EXPECT_EQ(deltas.size(), overflowPrefixes.size());
+    assertEndState(newState, overflowPrefixes);
+  }
+}
 } // namespace facebook::fboss
