@@ -366,7 +366,6 @@ struct PortInfoThrift {
   18: string fecMode;
   19: string profileID;
   20: optional PfcConfig pfc;
-
   21: optional PortHardwareDetails hw;
   22: optional TransceiverIdxThrift transceiverIdx;
   23: optional i32 hwLogicalPortId;
@@ -379,6 +378,7 @@ struct PortInfoThrift {
   30: optional i32 virtualDeviceId;
   31: switch_config.PortType portType;
   32: switch_config.Scope scope;
+  33: list<switch_config.PortNeighbor> expectedNeighborReachability;
 }
 
 // Port queueing configuration
