@@ -353,7 +353,7 @@ std::map<SystemPortID, HwSysPortStats> AgentHwTest::getLatestSysPortStats(
           // Sysport stats names are suffixed with _switchIndex. Remove that
           // to get at sys port name
           auto portName =
-              portStatName.substr(0, portStatName.find_last_of("_"));
+              portStatName.substr(0, portStatName.find_last_of('_'));
           try {
             if (portName.find("cpu") != std::string::npos) {
               portId = 0;
