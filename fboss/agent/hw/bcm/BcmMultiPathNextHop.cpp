@@ -39,7 +39,10 @@ BcmMultiPathNextHop::BcmMultiPathNextHop(
   if (egressId2Weight.size() > 1) {
     // BcmEcmpEgress object only for more than 1 paths.
     ecmpEgress_ = std::make_unique<BcmEcmpEgress>(
-        hw, std::move(egressId2Weight), RouteNextHopEntry::isUcmp(fwd));
+        hw,
+        std::move(egressId2Weight),
+        RouteNextHopEntry::isUcmp(fwd),
+        std::nullopt);
   }
   fwd_ = std::move(fwd);
   nexthops_ = std::move(nexthops);

@@ -161,7 +161,8 @@ class BcmEcmpEgress : public BcmEgressBase {
   BcmEcmpEgress(
       const BcmSwitchIf* hw,
       const EgressId2Weight& egressId2Weight,
-      const bool isUcmp);
+      const bool isUcmp,
+      const std::optional<cfg::SwitchingMode> switchingMode);
   ~BcmEcmpEgress() override;
   bool pathUnreachableHwLocked(EgressId path);
   bool pathReachableHwLocked(EgressId path);

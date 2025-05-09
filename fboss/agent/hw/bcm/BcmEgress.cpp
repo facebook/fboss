@@ -349,7 +349,8 @@ BcmEgress::~BcmEgress() {
 BcmEcmpEgress::BcmEcmpEgress(
     const BcmSwitchIf* hw,
     const EgressId2Weight& egressId2Weight,
-    const bool isUcmp)
+    const bool isUcmp,
+    const std::optional<cfg::SwitchingMode> switchingMode)
     : BcmEgressBase(hw), egressId2Weight_(egressId2Weight) {
   if (hw_->getPlatform()->getAsic()->isSupported(
           HwAsic::Feature::WEIGHTED_NEXTHOPGROUP_MEMBER)) {
