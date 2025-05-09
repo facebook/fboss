@@ -35,7 +35,6 @@ namespace constants =
 
 template <typename T>
 std::optional<T> getConfigOpticData(
-    const Optic& optic,
     const std::string& opticType,
     const std::map<std::string, T>& dataMap) {
   for (const auto& [tableType, data] : dataMap) {
@@ -142,6 +141,14 @@ void ControlLogic::setupPidLogics() {
         pidLogics_.emplace(
             cacheKey,
             std::make_unique<PidLogic>(pidSetting, getControlFrequency()));
+      }
+    } else if (
+        *optic.aggregationType() ==
+        constants::OPTIC_AGGREGATION_TYPE_INCREMENTAL_PID()) {
+      for (const auto& [opticType, pidSetting] : *optic.pidSettings()) {
+        auto cacheKey = *optic.opticName() + opticType;
+        pidLogics_.emplace(
+            cacheKey, std::make_unique<IncrementalPidLogic>(pidSetting));
       }
     }
   }
@@ -282,8 +289,8 @@ void ControlLogic::getOpticsUpdate() {
       // the aggregation using the max value
       for (const auto& [opticType, value] : opticEntry->data) {
         int pwmForThis = 0;
-        auto tablePointer = getConfigOpticData<TempToPwmMap>(
-            optic, opticType, *optic.tempToPwmMaps());
+        auto tablePointer =
+            getConfigOpticData<TempToPwmMap>(opticType, *optic.tempToPwmMaps());
         // We have <type, value> pair. If we have table entry for this
         // optics type, get the matching pwm value using the optics value
         if (tablePointer) {
@@ -304,7 +311,10 @@ void ControlLogic::getOpticsUpdate() {
           aggOpticPwm = pwmForThis;
         }
       }
-    } else if (aggregationType == constants::OPTIC_AGGREGATION_TYPE_PID()) {
+    } else if (
+        aggregationType == constants::OPTIC_AGGREGATION_TYPE_PID() ||
+        aggregationType ==
+            constants::OPTIC_AGGREGATION_TYPE_INCREMENTAL_PID()) {
       // PID based conversion. First calculate the max temperature
       // per optic type, and use the max temperature for calculating
       // pwm using PID method
@@ -323,8 +333,8 @@ void ControlLogic::getOpticsUpdate() {
       // Step 2. Get the pwm per optic type using PID
       for (const auto& [opticType, value] : maxValue) {
         // Get PID setting
-        auto pidSetting = getConfigOpticData<PidSetting>(
-            optic, opticType, *optic.pidSettings());
+        auto pidSetting =
+            getConfigOpticData<PidSetting>(opticType, *optic.pidSettings());
         if (!pidSetting) {
           XLOG(ERR) << fmt::format(
               "Optic {} does not have PID setting", opticType);
