@@ -407,26 +407,13 @@ std::pair<bool, int16_t> ControlLogic::programFan(
     const Fan& fan,
     int16_t currentFanPwm,
     int16_t zonePwm) {
-  int16_t newFanPwm = 0;
+  int16_t newFanPwm = zonePwm;
   bool writeSuccess{false};
   if ((*zone.slope() == 0) || (currentFanPwm == 0)) {
     newFanPwm = zonePwm;
-  } else {
-    if (zonePwm > currentFanPwm) {
-      if ((zonePwm - currentFanPwm) > *zone.slope()) {
-        newFanPwm = currentFanPwm + *zone.slope();
-      } else {
-        newFanPwm = zonePwm;
-      }
-    } else if (zonePwm < currentFanPwm) {
-      if ((currentFanPwm - zonePwm) > *zone.slope()) {
-        newFanPwm = currentFanPwm - *zone.slope();
-      } else {
-        newFanPwm = zonePwm;
-      }
-    } else {
-      newFanPwm = zonePwm;
-    }
+  } else if (std::abs(currentFanPwm - zonePwm) > *zone.slope()) {
+    newFanPwm = currentFanPwm +
+        ((zonePwm > currentFanPwm) ? *zone.slope() : -*zone.slope());
   }
 
   newFanPwm = std::min(newFanPwm, *config_.pwmUpperThreshold());
