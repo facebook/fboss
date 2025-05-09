@@ -40,7 +40,7 @@ void BcmTeFlowEntry::setRedirectNexthop(
   if (nexthops.size() > 0) {
     redirectNexthop =
         hw->writableMultiPathNextHopTable()->referenceOrEmplaceNextHop(
-            BcmMultiPathNextHopKey(0, nexthops));
+            BcmMultiPathNextHopKey(0, nexthops, std::nullopt));
   } else {
     redirectNexthop = nullptr;
   }

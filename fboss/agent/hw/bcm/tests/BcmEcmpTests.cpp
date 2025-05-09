@@ -89,7 +89,8 @@ const BcmMultiPathNextHop* BcmEcmpTest::getBcmMultiPathNextHop() const {
   for (const auto& nhop : resolvedRoute->getForwardInfo().getNextHopSet()) {
     nhops.insert(ResolvedNextHop(nhop.addr(), nhop.intf(), ws[nhop.addr()]));
   }
-  return multiPathTable->getNextHop(BcmMultiPathNextHopKey(kRid, nhops));
+  return multiPathTable->getNextHop(
+      BcmMultiPathNextHopKey(kRid, nhops, std::nullopt));
 }
 
 const BcmEcmpEgress* BcmEcmpTest::getEcmpEgress() const {

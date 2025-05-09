@@ -305,9 +305,10 @@ void BcmRoute::program(
     const auto& nhops = fwd.getNextHopSet();
     CHECK_GT(nhops.size(), 0);
     // need to get an entry from the host table for the forward info
+    // TODO update switchingMode
     nexthopReference =
         hw_->writableMultiPathNextHopTable()->referenceOrEmplaceNextHop(
-            BcmMultiPathNextHopKey(vrf_, fwd.getNextHopSet()));
+            BcmMultiPathNextHopKey(vrf_, fwd.getNextHopSet(), std::nullopt));
     egressId = nexthopReference->getEgressId();
   }
 

@@ -13,8 +13,8 @@ namespace facebook::fboss {
 BcmMultiPathNextHop::BcmMultiPathNextHop(
     const BcmSwitchIf* hw,
     BcmMultiPathNextHopKey key)
-    : hw_(hw), vrf_(key.first), key_(key) {
-  auto& fwd = key.second;
+    : hw_(hw), vrf_(std::get<0>(key)), key_(key) {
+  auto& fwd = std::get<1>(key);
   CHECK_GT(fwd.size(), 0);
   BcmEcmpEgress::EgressId2Weight egressId2Weight;
   std::vector<std::shared_ptr<BcmNextHop>> nexthops;
@@ -42,7 +42,7 @@ BcmMultiPathNextHop::BcmMultiPathNextHop(
         hw,
         std::move(egressId2Weight),
         RouteNextHopEntry::isUcmp(fwd),
-        std::nullopt);
+        std::get<2>(key));
   }
   fwd_ = std::move(fwd);
   nexthops_ = std::move(nexthops);
@@ -281,7 +281,8 @@ void BcmMultiPathNextHopTable::updateDlbExhaustionStat() {
 cfg::SwitchingMode BcmMultiPathNextHopTable::getFwdSwitchingMode(
     bcm_vrf_t vrf,
     const RouteNextHopSet& nextHopSet) {
-  auto multipathNextHop = getNextHop(BcmMultiPathNextHopKey(vrf, nextHopSet));
+  auto multipathNextHop =
+      getNextHop(BcmMultiPathNextHopKey(vrf, nextHopSet, std::nullopt));
   if (multipathNextHop) {
     auto ecmpEgress = multipathNextHop->getEgress();
     if (ecmpEgress) {
