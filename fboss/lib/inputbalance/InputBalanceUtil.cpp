@@ -58,4 +58,30 @@ std::vector<std::pair<int64_t, std::string>> deviceToQueryInputCapacity(
   return switchIDAndName2Query;
 }
 
+std::map<std::string, std::vector<std::string>> getNeighborFabricPortsToSelf(
+    const std::map<int32_t, PortInfoThrift>& myPortInfo) {
+  std::map<std::string, std::vector<std::string>> switchNameToPorts;
+  for (const auto& [_, portInfo] : myPortInfo) {
+    if (portInfo.portType() == cfg::PortType::FABRIC_PORT) {
+      if (portInfo.expectedNeighborReachability()->size() != 1) {
+        throw std::runtime_error(
+            "No expected neighbor or more than one expected neighbor for port " +
+            *portInfo.name());
+      }
+
+      auto neighborName =
+          *portInfo.expectedNeighborReachability()->at(0).remoteSystem();
+      auto portName =
+          *portInfo.expectedNeighborReachability()->at(0).remotePort();
+      auto iter = switchNameToPorts.find(neighborName);
+      if (iter != switchNameToPorts.end()) {
+        iter->second.emplace_back(portName);
+      } else {
+        switchNameToPorts[neighborName] = {portName};
+      }
+    }
+  }
+  return switchNameToPorts;
+}
+
 } // namespace facebook::fboss::utility

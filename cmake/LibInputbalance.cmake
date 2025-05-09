@@ -9,4 +9,5 @@ add_library(input_balance_util
 
 target_link_libraries(input_balance_util
   switch_config_cpp2
+  ctrl_cpp2
 )
