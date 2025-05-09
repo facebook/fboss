@@ -36,7 +36,7 @@ void FsdbSwitchStateSubscriber::removeSwitchStateSubscription() {
  * a given path.
  */
 void FsdbSwitchStateSubscriber::subscribeToState(
-    std::vector<std::string> path,
+    const std::vector<std::string>& path,
     LedManager* ledManager) {
   // Subscribe to FSDB only if the LED config is enabled
   if (!ledManager || !ledManager->isLedControlledThroughService()) {
@@ -124,7 +124,7 @@ void FsdbSwitchStateSubscriber::subscribeToState(
  * path
  */
 void FsdbSwitchStateSubscriber::removeStateSubscribe(
-    std::vector<std::string> path) {
+    const std::vector<std::string>& path) {
   pubSubMgr()->removeStatePathSubscription(path);
   XLOG(INFO) << "LED Service Removed from FSDB subscription";
 }
