@@ -4144,8 +4144,9 @@ std::string SaiSwitch::listObjectsLocked(
     bool cached,
     const std::lock_guard<std::mutex>& lock) const {
   const SaiStore* store = saiStore_.get();
+  std::unique_ptr<SaiStore> directToHwStore;
   if (!cached) {
-    SaiStore directToHwStore(getSaiSwitchId());
+    directToHwStore = std::make_unique<SaiStore>(getSaiSwitchId());
     auto json = toFollyDynamicLocked(lock);
     std::unique_ptr<folly::dynamic> adapterKeysJson;
     std::unique_ptr<folly::dynamic> adapterKeys2AdapterHostKeysJson;
@@ -4170,9 +4171,9 @@ std::string SaiSwitch::listObjectsLocked(
     }
     adapterKeys2AdapterHostKeysJson =
         std::make_unique<folly::dynamic>(json[kAdapterKey2AdapterHostKey]);
-    directToHwStore.reload(
+    directToHwStore->reload(
         adapterKeysJson.get(), adapterKeys2AdapterHostKeysJson.get());
-    store = &directToHwStore;
+    store = directToHwStore.get();
   }
   std::string output;
   std::for_each(objects.begin(), objects.end(), [&output, store](auto objType) {
