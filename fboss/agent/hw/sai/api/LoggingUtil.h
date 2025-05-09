@@ -26,17 +26,17 @@ sai_log_level_t saiLogLevelFromString(const std::string& logLevel);
 folly::StringPiece packetRxReasonToString(cfg::PacketRxReason rxReason);
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
-folly::StringPiece saiSwitchSdkHealthSeverityToString(
+std::string saiSwitchSdkHealthSeverityToString(
     const sai_switch_asic_sdk_health_severity_t& severity);
-folly::StringPiece saiSwitchSdkHealthCategoryToString(
+std::string saiSwitchSdkHealthCategoryToString(
     const sai_switch_asic_sdk_health_category_t& category);
 #endif
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 15, 0)
-folly::StringPiece saiSerTypeToString(const sai_ser_type_t& sai_ser_type);
-folly::StringPiece saiSerCorrectionTypeToString(
+std::string saiSerTypeToString(const sai_ser_type_t& sai_ser_type);
+std::string saiSerCorrectionTypeToString(
     const sai_ser_correction_type_t& sai_ser_correction_type);
-folly::StringPiece saiSerLogTypeToString(sai_ser_log_type_t sai_ser_log_type);
+std::string saiSerLogTypeToString(sai_ser_log_type_t sai_ser_log_type);
 #endif
 } // namespace facebook::fboss
 
