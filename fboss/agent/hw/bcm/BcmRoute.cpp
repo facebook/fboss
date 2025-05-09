@@ -263,7 +263,8 @@ bool BcmRoute::canUseHostTable() const {
 
 void BcmRoute::program(
     const RouteNextHopEntry& fwd,
-    std::optional<cfg::AclLookupClass> classID) {
+    std::optional<cfg::AclLookupClass> classID,
+    std::optional<cfg::SwitchingMode> switchingMode) {
   // Route counters cannot be shared between v4 and v6 on Tomahawk4
   // and needs to be pre allocated. We support only v6 route counters
   // to reduce scale.
@@ -286,8 +287,8 @@ void BcmRoute::program(
   // if the route has been programmed to the HW, check if the forward info,
   // classID or counterID has changed or not. If not, nothing to do.
   if (added_ &&
-      std::tie(fwd, classID, counterID) ==
-          std::tie(fwd_, classID_, oldCounterID)) {
+      std::tie(fwd, classID, counterID, switchingMode) ==
+          std::tie(fwd_, classID_, oldCounterID, switchingMode_)) {
     return;
   }
 
@@ -305,10 +306,9 @@ void BcmRoute::program(
     const auto& nhops = fwd.getNextHopSet();
     CHECK_GT(nhops.size(), 0);
     // need to get an entry from the host table for the forward info
-    // TODO update switchingMode
     nexthopReference =
         hw_->writableMultiPathNextHopTable()->referenceOrEmplaceNextHop(
-            BcmMultiPathNextHopKey(vrf_, fwd.getNextHopSet(), std::nullopt));
+            BcmMultiPathNextHopKey(vrf_, fwd.getNextHopSet(), switchingMode));
     egressId = nexthopReference->getEgressId();
   }
 
@@ -376,6 +376,7 @@ void BcmRoute::program(
   fwd_.fromThrift(fwd.toThrift());
   classID_ = classID;
   counterIDReference_ = std::move(counterIDReference);
+  switchingMode_ = switchingMode;
 
   // new nexthop has been stored in fwd_. From now on, it is up to
   // ~BcmRoute() to clean up such nexthop.
@@ -537,9 +538,10 @@ void BcmRouteTable::addRoute(bcm_vrf_t vrf, const RouteT* route) {
             fwd.normalizedNextHops(),
             fwd.getAdminDistance(),
             fwd.getCounterID()),
-        route->getClassID());
+        route->getClassID(),
+        fwd.getOverrideEcmpSwitchingMode());
   } else {
-    ret.first->second->program(fwd, route->getClassID());
+    ret.first->second->program(fwd, route->getClassID(), std::nullopt);
   }
 }
 
