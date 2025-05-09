@@ -124,7 +124,15 @@ void ControlLogic::setupPidLogics() {
     if (*sensor.pwmCalcType() == constants::SENSOR_PWM_CALC_TYPE_PID()) {
       auto pidSetting = *sensor.pidSetting();
       pidLogics_.emplace(
-          *sensor.sensorName(), PidLogic(pidSetting, getControlFrequency()));
+          *sensor.sensorName(),
+          std::make_unique<PidLogic>(pidSetting, getControlFrequency()));
+    } else if (
+        *sensor.pwmCalcType() ==
+        constants::SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID()) {
+      auto pidSetting = *sensor.pidSetting();
+      pidLogics_.emplace(
+          *sensor.sensorName(),
+          std::make_unique<IncrementalPidLogic>(pidSetting));
     }
   }
   for (const auto& optic : *config_.optics()) {
@@ -132,7 +140,8 @@ void ControlLogic::setupPidLogics() {
       for (const auto& [opticType, pidSetting] : *optic.pidSettings()) {
         auto cacheKey = *optic.opticName() + opticType;
         pidLogics_.emplace(
-            cacheKey, PidLogic(pidSetting, getControlFrequency()));
+            cacheKey,
+            std::make_unique<PidLogic>(pidSetting, getControlFrequency()));
       }
     }
   }
@@ -204,9 +213,10 @@ void ControlLogic::updateTargetPwm(const Sensor& sensor) {
     readCache.processedReadValue = sensorValue;
   }
 
-  if (pwmCalcType == constants::SENSOR_PWM_CALC_TYPE_PID()) {
+  if (pwmCalcType == constants::SENSOR_PWM_CALC_TYPE_PID() ||
+      pwmCalcType == constants::SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID()) {
     targetPwm = pidLogics_.at(*sensor.sensorName())
-                    .calculatePwm(readCache.lastReadValue);
+                    ->calculatePwm(readCache.lastReadValue);
   }
 
   XLOG(INFO) << fmt::format(
@@ -322,7 +332,7 @@ void ControlLogic::getOpticsUpdate() {
         }
         // Cache key is unique as long as opticName is unique
         cacheKey = opticName + opticType;
-        float pwm = pidLogics_.at(cacheKey).calculatePwm(value);
+        float pwm = pidLogics_.at(cacheKey)->calculatePwm(value);
         if (pwm > aggOpticPwm) {
           aggOpticPwm = pwm;
         }
@@ -504,7 +514,7 @@ int16_t ControlLogic::calculateZonePwm(const Zone& zone, bool boostMode) {
       zonePwm);
   for (const auto& sensorName : *zone.sensorNames()) {
     if (pidLogics_.find(sensorName) != pidLogics_.end()) {
-      pidLogics_.at(sensorName).updateLastPwm(zonePwm);
+      pidLogics_.at(sensorName)->updateLastPwm(zonePwm);
     }
     for (const auto& optic : *config_.optics()) {
       if (optic.opticName() != sensorName) {
@@ -513,7 +523,7 @@ int16_t ControlLogic::calculateZonePwm(const Zone& zone, bool boostMode) {
       for (const auto& [opticType, _] : *optic.pidSettings()) {
         auto cacheKey = *optic.opticName() + opticType;
         if (pidLogics_.find(cacheKey) != pidLogics_.end()) {
-          pidLogics_.at(cacheKey).updateLastPwm(zonePwm);
+          pidLogics_.at(cacheKey)->updateLastPwm(zonePwm);
         }
       }
     }
@@ -534,7 +544,7 @@ void ControlLogic::setTransitionValue() {
           continue;
         }
         for (auto& [key, pidLogic] : pidLogics_) {
-          pidLogic.updateLastPwm(*config_.pwmTransitionValue());
+          pidLogic->updateLastPwm(*config_.pwmTransitionValue());
         }
         const auto [fanFailed, newFanPwm] = programFan(
             zone,

@@ -87,7 +87,8 @@ class ControlLogic {
   std::atomic<std::optional<int>> fanHoldPwm_;
   std::map<std::string /* sensorName */, SensorReadCache> sensorReadCaches_;
   std::map<std::string /* sensorName */, int16_t /* pwm */> opticReadCaches_;
-  std::map<std::string /* sensorName */, PidLogic> pidLogics_;
+  std::map<std::string /* sensorName */, std::unique_ptr<PidLogicBase>>
+      pidLogics_;
   std::shared_ptr<SensorData> pSensorData_{nullptr};
 };
 } // namespace facebook::fboss::platform::fan_service
