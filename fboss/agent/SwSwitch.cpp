@@ -16,6 +16,7 @@
 #include "fboss/agent/AlpmUtils.h"
 #include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/ArpHandler.h"
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/Constants.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/FbossHwUpdateError.h"
@@ -1658,12 +1659,29 @@ void SwSwitch::handlePendingUpdates() {
   auto newAppliedState = newDesiredState;
   // Now apply the update and notify subscribers
   if (newDesiredState != oldAppliedState) {
+    if (ecmpResourceManager_) {
+      auto deltas = ecmpResourceManager_->consolidate(
+          StateDelta(oldAppliedState, newDesiredState));
+      // TODO allow for > 1 deltas once switch handlers, HwSwitch are
+      // able to handle these.
+      CHECK_EQ(deltas.size(), 1);
+      newDesiredState = deltas.back().newState();
+    }
     auto isTransaction = updates.begin()->hwFailureProtected() &&
         multiHwSwitchHandler_->transactionsSupported();
     // There was some change during these state updates
     newAppliedState =
         applyUpdate(oldAppliedState, newDesiredState, isTransaction);
     if (newDesiredState != newAppliedState) {
+      if (ecmpResourceManager_) {
+        /*
+         * Send newAppliedState to EcmpResourceManager to reconstruct its
+         * data structures from. In case of platforms where we have transactions
+         * newAppliedState will be the same as oldState. In others HW will get
+         * to the point of failure and return that state.
+         */
+        ecmpResourceManager_->updateFailed(newAppliedState);
+      }
       if (isExiting()) {
         /*
          * If we started exit, applyUpdate will reject updates leading
@@ -1703,6 +1721,9 @@ void SwSwitch::handlePendingUpdates() {
                "HW failure protection";
       }
     } else {
+      if (ecmpResourceManager_) {
+        ecmpResourceManager_->updateDone();
+      }
       // Update successful, update hw update counter to zero.
       fb303::fbData->setCounter(kHwUpdateFailures, 0);
     }
@@ -1756,13 +1777,6 @@ std::shared_ptr<SwitchState> SwSwitch::applyUpdate(
     return oldState;
   }
 
-  if (ecmpResourceManager_) {
-    auto deltas = ecmpResourceManager_->consolidate(delta);
-    // TODO allow for > 1 deltas once switch handlers, HwSwitch are
-    // able to handle these.
-    CHECK_EQ(deltas.size(), 1);
-    delta = std::move(*deltas.begin());
-  }
   if (!resourceAccountant_->isValidUpdate(delta)) {
     stats()->resourceAccountantRejectedUpdates();
     // Notify resource account to revert back to previous state
@@ -3234,6 +3248,25 @@ void SwSwitch::applyConfigImpl(
    */
 
   routeUpdater.program();
+  if (FLAGS_enable_ecmp_resource_manager) {
+    updateEventBase_.runInFbossEventBaseThreadAndWait([this] {
+      auto l3Asics = hwAsicTable_->getL3Asics();
+      if (!l3Asics.size()) {
+        return;
+      }
+      auto asic = checkSameAndGetAsic(l3Asics);
+      auto maxEcmpGroups = asic->getMaxEcmpGroups();
+      if (!maxEcmpGroups.has_value()) {
+        return;
+      }
+      if (!ecmpResourceManager_) {
+        ecmpResourceManager_ =
+            std::make_unique<EcmpResourceManager>(*maxEcmpGroups);
+      } else {
+        // Compare flowlet settings change
+      }
+    });
+  }
   runFsdbSyncFunction([&oldConfig, &newConfig](auto& syncer) {
     syncer->cfgUpdated(oldConfig, newConfig);
   });

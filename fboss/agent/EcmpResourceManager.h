@@ -82,8 +82,8 @@ class EcmpResourceManager {
     return nextHopGroup2Id_;
   }
   size_t getRouteUsageCount(NextHopGroupId nhopGrpId) const;
-  void updateDone(const StateDelta& delta);
-  void updateFailed(const StateDelta& delta);
+  void updateDone();
+  void updateFailed(const std::shared_ptr<SwitchState>& curState);
   std::optional<cfg::SwitchingMode> getBackupEcmpSwitchingMode() const {
     return backupEcmpGroupType_;
   }

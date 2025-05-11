@@ -51,7 +51,7 @@ std::vector<StateDelta> BaseEcmpResourceManagerTest::consolidate(
   state->publish();
   StateDelta delta(state_, state);
   auto deltas = consolidator_->consolidate(delta);
-  consolidator_->updateDone(delta);
+  consolidator_->updateDone();
   if (deltas.size()) {
     XLOG(DBG2) << " Checking deltas, num deltas: " << deltas.size();
     assertDeltasForOverflow(deltas);

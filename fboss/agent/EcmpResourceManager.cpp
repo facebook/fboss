@@ -335,12 +335,13 @@ size_t EcmpResourceManager::getRouteUsageCount(NextHopGroupId nhopGrpId) const {
   }
   throw FbossError("Unable to find nhop group ID: ", nhopGrpId);
 }
-void EcmpResourceManager::updateDone(const StateDelta& /*delta*/) {
+void EcmpResourceManager::updateDone() {
   XLOG(DBG2) << " Update done";
   preUpdateState_.reset();
 }
 
-void EcmpResourceManager::updateFailed(const StateDelta& delta) {
+void EcmpResourceManager::updateFailed(
+    const std::shared_ptr<SwitchState>& curState) {
   XLOG(DBG2) << " Update failed";
   CHECK(preUpdateState_.has_value());
   nextHopGroup2Id_ = preUpdateState_->nextHopGroup2Id;
@@ -351,6 +352,6 @@ void EcmpResourceManager::updateFailed(const StateDelta& delta) {
   candidateMergeGroups_.clear();
   preUpdateState_.reset();
   /* restore state from previous state*/
-  consolidate(StateDelta(std::make_shared<SwitchState>(), delta.oldState()));
+  consolidate(StateDelta(std::make_shared<SwitchState>(), curState));
 }
 } // namespace facebook::fboss
