@@ -81,6 +81,9 @@ class EcmpBackupGroupTypeTest : public BaseEcmpResourceManagerTest {
         EXPECT_EQ(
             route->getForwardInfo().getOverrideEcmpSwitchingMode(),
             consolidator_->getBackupEcmpSwitchingMode());
+      } else {
+        EXPECT_FALSE(
+            route->getForwardInfo().getOverrideEcmpSwitchingMode().has_value());
       }
     }
   }
