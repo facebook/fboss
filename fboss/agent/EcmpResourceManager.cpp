@@ -224,6 +224,58 @@ void EcmpResourceManager::routeAddedOrUpdated(
 }
 
 template <typename AddrT>
+void EcmpResourceManager::routeUpdated(
+    RouterID rid,
+    const std::shared_ptr<Route<AddrT>>& oldRoute,
+    const std::shared_ptr<Route<AddrT>>& newRoute,
+    InputOutputState* inOutState) {
+  CHECK_EQ(rid, RouterID(0));
+  CHECK(oldRoute->isResolved());
+  CHECK(oldRoute->isPublished());
+  CHECK(newRoute->isResolved());
+  CHECK(newRoute->isPublished());
+  const auto& oldNHops = oldRoute->getForwardInfo().normalizedNextHops();
+  const auto& newNHops = newRoute->getForwardInfo().normalizedNextHops();
+  if (oldNHops.size() > 1 && newNHops.size() > 1) {
+    routeAddedOrUpdated(rid, oldRoute, newRoute, inOutState);
+  } else if (newNHops.size() > 1) {
+    // Old route was not pointing to a ECMP group
+    // but newRoute is
+    routeAdded(rid, newRoute, inOutState);
+  } else if (oldNHops.size() > 1) {
+    // Old route was pointing to a ECMP group
+    // but newRoute is not
+    routeDeleted(rid, oldRoute, false /*isUpdate*/, inOutState);
+    // Just update deltas, no need to account for update route as a ECMP group
+    // This and previous delete still create a single delta since ecmp demand
+    // is never exceeded in these 2 steps
+    inOutState->addOrUpdateRoute(rid, newRoute, false /*ecmpDemandExceeded*/);
+  } else {
+    // Neither of the routes point to > 1 nhops. Nothing to do
+    CHECK_LE(oldNHops.size(), 1);
+    CHECK_LE(newNHops.size(), 1);
+    // Just update deltas, no need to account for this as a ECMP group
+    inOutState->addOrUpdateRoute(rid, newRoute, false /*ecmpDemandExceeded*/);
+  }
+}
+
+template <typename AddrT>
+void EcmpResourceManager::routeAdded(
+    RouterID rid,
+    const std::shared_ptr<Route<AddrT>>& newRoute,
+    InputOutputState* inOutState) {
+  CHECK_EQ(rid, RouterID(0));
+  CHECK(newRoute->isResolved());
+  CHECK(newRoute->isPublished());
+  if (newRoute->getForwardInfo().normalizedNextHops().size() > 1) {
+    routeAddedOrUpdated(
+        rid, std::shared_ptr<Route<AddrT>>(), newRoute, inOutState);
+  } else {
+    // Just update deltas, no need to account for this as a ECMP group
+    inOutState->addOrUpdateRoute(rid, newRoute, false /*ecmpDemandExceeded*/);
+  }
+}
+template <typename AddrT>
 void EcmpResourceManager::routeDeleted(
     RouterID rid,
     const std::shared_ptr<Route<AddrT>>& removed,
@@ -232,6 +284,12 @@ void EcmpResourceManager::routeDeleted(
   CHECK_EQ(rid, RouterID(0));
   CHECK(removed->isResolved());
   CHECK(removed->isPublished());
+  const auto& routeNhops = removed->getForwardInfo().normalizedNextHops();
+  if (routeNhops.size() <= 1) {
+    // Just update deltas, no need to account for this as a ECMP group
+    inOutState->deleteRoute(rid, removed);
+    return;
+  }
   if (!isUpdate) {
     /*
      * When route is deleted as part of a update we don't need
@@ -259,7 +317,7 @@ void EcmpResourceManager::routeDeleted(
                  << " primray ecmp group count decremented to: "
                  << inOutState->nonBackupEcmpGroupsCnt;
     }
-    nextHopGroup2Id_.erase(removed->getForwardInfo().normalizedNextHops());
+    nextHopGroup2Id_.erase(routeNhops);
   } else {
     XLOG(DBG2) << "Delete route: " << removed->str()
                << " primray ecmp group count unchanged: "
@@ -288,7 +346,7 @@ void EcmpResourceManager::processRouteUpdates(
           routeAdded(rid, newRoute, inOutState);
           return;
         }
-        // Both old and new are resolve
+        // Both old and new are resolved
         CHECK(oldRoute->isResolved() && newRoute->isResolved());
         if (oldRoute->getForwardInfo().normalizedNextHops() !=
             newRoute->getForwardInfo().normalizedNextHops()) {

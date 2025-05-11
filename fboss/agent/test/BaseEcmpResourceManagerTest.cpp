@@ -69,8 +69,11 @@ void BaseEcmpResourceManagerTest::assertDeltasForOverflow(
   std::map<RouteNextHopSet, uint32_t> primaryEcmpTypeGroups2RefCnt;
   for (const auto& [_, route] :
        std::as_const(*cfib(deltas.begin()->oldState()))) {
-    if (route->isResolved() &&
-        !route->getForwardInfo().getOverrideEcmpSwitchingMode().has_value()) {
+    if (!route->isResolved() ||
+        route->getForwardInfo().normalizedNextHops().size() <= 1) {
+      continue;
+    }
+    if (!route->getForwardInfo().getOverrideEcmpSwitchingMode().has_value()) {
       auto pitr = primaryEcmpTypeGroups2RefCnt.find(
           route->getForwardInfo().normalizedNextHops());
       if (pitr != primaryEcmpTypeGroups2RefCnt.end()) {
@@ -95,6 +98,10 @@ void BaseEcmpResourceManagerTest::assertDeltasForOverflow(
       consolidator_->getMaxPrimaryEcmpGroups());
   auto routeDeleted = [&primaryEcmpTypeGroups2RefCnt](const auto& oldRoute) {
     XLOG(DBG2) << " Route deleted: " << oldRoute->str();
+    if (!oldRoute->isResolved() ||
+        oldRoute->getForwardInfo().normalizedNextHops().size() <= 1) {
+      return;
+    }
     if (oldRoute->getForwardInfo().getOverrideEcmpSwitchingMode().has_value()) {
       return;
     }
@@ -113,6 +120,10 @@ void BaseEcmpResourceManagerTest::assertDeltasForOverflow(
   auto routeAdded = [&primaryEcmpTypeGroups2RefCnt,
                      this](const auto& newRoute) {
     XLOG(DBG2) << " Route added: " << newRoute->str();
+    if (!newRoute->isResolved() ||
+        newRoute->getForwardInfo().normalizedNextHops().size() <= 1) {
+      return;
+    }
     if (newRoute->getForwardInfo().getOverrideEcmpSwitchingMode().has_value()) {
       return;
     }

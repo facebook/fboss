@@ -145,17 +145,12 @@ class EcmpResourceManager {
       RouterID rid,
       const std::shared_ptr<Route<AddrT>>& oldRoute,
       const std::shared_ptr<Route<AddrT>>& newRoute,
-      InputOutputState* inOutState) {
-    routeAddedOrUpdated(rid, oldRoute, newRoute, inOutState);
-  }
+      InputOutputState* inOutState);
   template <typename AddrT>
   void routeAdded(
       RouterID rid,
       const std::shared_ptr<Route<AddrT>>& newRoute,
-      InputOutputState* inOutState) {
-    routeAddedOrUpdated(
-        rid, std::shared_ptr<Route<AddrT>>(), newRoute, inOutState);
-  }
+      InputOutputState* inOutState);
   template <typename AddrT>
   void routeAddedOrUpdated(
       RouterID rid,
