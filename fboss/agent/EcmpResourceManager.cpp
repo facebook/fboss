@@ -342,6 +342,9 @@ void EcmpResourceManager::updateDone() {
 
 void EcmpResourceManager::updateFailed(
     const std::shared_ptr<SwitchState>& curState) {
+  if (!preUpdateState_.has_value()) {
+    return;
+  }
   XLOG(DBG2) << " Update failed";
   CHECK(preUpdateState_.has_value());
   nextHopGroup2Id_ = preUpdateState_->nextHopGroup2Id;
