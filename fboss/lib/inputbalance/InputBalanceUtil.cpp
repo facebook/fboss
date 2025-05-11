@@ -9,6 +9,7 @@
  */
 
 #include "fboss/lib/inputbalance/InputBalanceUtil.h"
+#include "fboss/agent/state/PortMap.h"
 
 namespace facebook::fboss::utility {
 
@@ -82,6 +83,31 @@ std::map<std::string, std::vector<std::string>> getNeighborFabricPortsToSelf(
     }
   }
   return switchNameToPorts;
+}
+
+std::map<std::string, std::string> getPortToNeighbor(
+    const std::shared_ptr<MultiSwitchPortMap>& portMap) {
+  std::map<std::string, std::string> portToNeighbor;
+  for (const auto& [switchID, ports] : std::as_const(*portMap)) {
+    for (const auto& [portID, port] : std::as_const(*ports)) {
+      if (port->getPortType() == cfg::PortType::FABRIC_PORT) {
+        const auto& neighborReachability = port->getExpectedNeighborValues();
+        if (neighborReachability->size() != 1) {
+          throw std::runtime_error(
+              "No expected neighbor or more than one expected neighbor for port " +
+              port->getName());
+        }
+
+        std::string expectedNeighborName = *port->getExpectedNeighborValues()
+                                                ->cbegin()
+                                                ->get()
+                                                ->toThrift()
+                                                .remoteSystem();
+        portToNeighbor[port->getName()] = expectedNeighborName;
+      }
+    }
+  }
+  return portToNeighbor;
 }
 
 } // namespace facebook::fboss::utility
