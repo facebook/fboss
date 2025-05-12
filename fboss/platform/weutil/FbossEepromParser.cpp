@@ -353,7 +353,7 @@ FbossEepromParser::prepareEepromFieldMap(
         value = parsedValue.find(dictItem.typeCode)->second;
         // Now unpack this into value1 and value2, delimited by ","
         std::string value1, value2;
-        size_t pos = value.find(",");
+        size_t pos = value.find(',');
         if (pos != std::string::npos) {
           value1 = value.substr(0, pos);
           value2 = value.substr(pos + 1);
