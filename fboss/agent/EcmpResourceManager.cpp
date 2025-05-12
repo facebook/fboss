@@ -241,10 +241,14 @@ void EcmpResourceManager::routeUpdated(
   } else if (newNHops.size() > 1) {
     // Old route was not pointing to a ECMP group
     // but newRoute is
+    XLOG(DBG2) << " Route:" << newRoute->str()
+               << " transitioned from single nhop to ECMP";
     routeAdded(rid, newRoute, inOutState);
   } else if (oldNHops.size() > 1) {
     // Old route was pointing to a ECMP group
     // but newRoute is not
+    XLOG(DBG2) << " Route:" << newRoute->str()
+               << " transitioned from ECMP to single nhop";
     routeDeleted(rid, oldRoute, false /*isUpdate*/, inOutState);
     // Just update deltas, no need to account for update route as a ECMP group
     // This and previous delete still create a single delta since ecmp demand
@@ -254,6 +258,8 @@ void EcmpResourceManager::routeUpdated(
     // Neither of the routes point to > 1 nhops. Nothing to do
     CHECK_LE(oldNHops.size(), 1);
     CHECK_LE(newNHops.size(), 1);
+    XLOG(DBG2) << " Route:" << newRoute->str()
+               << " transitioned from single nhop to a different single nhop";
     // Just update deltas, no need to account for this as a ECMP group
     inOutState->addOrUpdateRoute(rid, newRoute, false /*ecmpDemandExceeded*/);
   }

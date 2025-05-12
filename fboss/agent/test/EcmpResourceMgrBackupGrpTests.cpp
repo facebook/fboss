@@ -65,6 +65,7 @@ class EcmpBackupGroupTypeTest : public BaseEcmpResourceManagerTest {
     }
     newState->publish();
     consolidate(newState);
+    assertEndState(newState, {});
     XLOG(DBG2) << "EcmpResourceMgrBackupGrpTest SetUp done";
   }
   void assertEndState(
@@ -105,6 +106,157 @@ TEST_F(EcmpBackupGroupTypeTest, addSingleNhopRoutesBelowEcmpLimit) {
   auto deltas = consolidate(newState);
   EXPECT_EQ(deltas.size(), 1);
   assertEndState(newState, {});
+}
+
+TEST_F(EcmpBackupGroupTypeTest, addRemoveSingleNhopRoutesBelowEcmpLimit) {
+  std::set<RouteV6::Prefix> singleNhopPrefixes;
+  // add new routes pointing to single nhops, no limit is thus breached
+  {
+    auto oldState = state_;
+    auto newState = oldState->clone();
+    auto fib6 = fib(newState);
+    auto routesBefore = fib6->size();
+    auto nhopSet = defaultNhops();
+    auto nhopItr = nhopSet.begin();
+    for (auto i = 0; i < numStartRoutes(); ++i) {
+      auto route =
+          makeRoute(makePrefix(routesBefore + i), RouteNextHopSet{*nhopItr});
+      singleNhopPrefixes.insert(route->prefix());
+      fib6->addNode(route);
+    }
+    auto deltas = consolidate(newState);
+    EXPECT_EQ(deltas.size(), 1);
+    assertEndState(newState, {});
+  }
+  {
+    // Remove single nhop routes.
+    auto oldState = state_;
+    auto newState = oldState->clone();
+    auto fib6 = fib(newState);
+    for (const auto& pfx : singleNhopPrefixes) {
+      auto route = fib6->getRouteIf(pfx);
+      fib6->removeNode(route);
+    }
+    auto deltas = consolidate(newState);
+    EXPECT_EQ(deltas.size(), 1);
+    assertEndState(newState, {});
+  }
+}
+// Convert routes to single nhop and back to mnhops. No spillover before
+// and after
+TEST_F(EcmpBackupGroupTypeTest, updateRouteBelowEcmpLimitToSingleNhop) {
+  std::set<RouteV6::Prefix> overflowPrefixes;
+  {
+    // Update all routes to a single NHOP. No limit is breached before
+    // or after.
+    auto oldState = state_;
+    auto newState = oldState->clone();
+    auto fib6 = fib(newState);
+    auto nhopSet = defaultNhops();
+    auto nhopItr = nhopSet.begin();
+    for (const auto& [_, route] : std::as_const(*cfib(oldState))) {
+      auto newRoute = fib6->getRouteIf(route->prefix())->clone();
+      newRoute->setResolved(RouteNextHopEntry(
+          RouteNextHopSet{*nhopItr++}, kDefaultAdminDistance));
+      fib6->updateNode(newRoute);
+    }
+    auto deltas = consolidate(newState);
+    EXPECT_EQ(deltas.size(), 1);
+    assertEndState(newState, overflowPrefixes);
+  }
+  {
+    // Update all routes back to mnhops. No limit breached before or after.
+    auto oldState = state_;
+    auto newState = oldState->clone();
+    auto fib6 = fib(newState);
+    auto nhopSets = defaultNhopSets();
+    auto nhopSetItr = nhopSets.begin();
+    for (const auto& [_, route] : std::as_const(*cfib(oldState))) {
+      auto newRoute = fib6->getRouteIf(route->prefix())->clone();
+      newRoute->setResolved(
+          RouteNextHopEntry(*nhopSetItr, kDefaultAdminDistance));
+      fib6->updateNode(newRoute);
+    }
+    auto deltas = consolidate(newState);
+    EXPECT_EQ(deltas.size(), 1);
+    assertEndState(newState, {});
+  }
+}
+
+TEST_F(EcmpBackupGroupTypeTest, updateRoutesSingleNhopToSingleNhop) {
+  std::set<RouteV6::Prefix> overflowPrefixes;
+  {
+    // Update all routes to a single NHOP. No limit is breached before
+    // or after.
+    auto oldState = state_;
+    auto newState = oldState->clone();
+    auto fib6 = fib(newState);
+    auto nhopSet = defaultNhops();
+    auto nhopItr = nhopSet.begin();
+    for (const auto& [_, route] : std::as_const(*cfib(oldState))) {
+      auto newRoute = fib6->getRouteIf(route->prefix())->clone();
+      newRoute->setResolved(RouteNextHopEntry(
+          RouteNextHopSet{*nhopItr++}, kDefaultAdminDistance));
+      fib6->updateNode(newRoute);
+    }
+    auto deltas = consolidate(newState);
+    EXPECT_EQ(deltas.size(), 1);
+    assertEndState(newState, overflowPrefixes);
+  }
+  {
+    // Update all routes to different single nhops, no limit is breached
+    // before or after
+    auto oldState = state_;
+    auto newState = oldState->clone();
+    auto fib6 = fib(newState);
+    auto nhopSet = defaultNhops();
+    auto nhopItr = nhopSet.rbegin();
+    for (const auto& [_, route] : std::as_const(*cfib(oldState))) {
+      auto newRoute = fib6->getRouteIf(route->prefix())->clone();
+      newRoute->setResolved(RouteNextHopEntry(
+          RouteNextHopSet{*nhopItr++}, kDefaultAdminDistance));
+      fib6->updateNode(newRoute);
+    }
+    auto deltas = consolidate(newState);
+    EXPECT_EQ(deltas.size(), 1);
+    assertEndState(newState, overflowPrefixes);
+  }
+}
+// Convert spillover routes to single nhop. Now no spillover.
+TEST_F(EcmpBackupGroupTypeTest, updateRouteAboveEcmpLimitToSingleNhop) {
+  std::set<RouteV6::Prefix> overflowPrefixes;
+  {
+    // Update a route pointing to new nhops. ECMP limit is breached.
+    auto nhopSets = nextNhopSets();
+    auto oldState = state_;
+    auto newState = oldState->clone();
+    auto fib6 = fib(newState);
+    auto newRoute = fib6->cbegin()->second->clone();
+    newRoute->setResolved(
+        RouteNextHopEntry(*nhopSets.begin(), kDefaultAdminDistance));
+    overflowPrefixes.insert(newRoute->prefix());
+    fib6->updateNode(newRoute);
+    auto deltas = consolidate(newState);
+    EXPECT_EQ(deltas.size(), 1);
+    assertEndState(newState, overflowPrefixes);
+  }
+  {
+    // Update the overflow route to single nhop. Should no longer
+    // be of backupGroupType, since single nhop groups don't contribute
+    // to ecmp groups
+    auto oldState = state_;
+    auto newState = oldState->clone();
+    auto fib6 = fib(newState);
+    auto nhopSet = defaultNhops();
+    auto newRoute = fib6->getRouteIf(*overflowPrefixes.begin())->clone();
+    newRoute->setResolved(RouteNextHopEntry(
+        RouteNextHopSet{*nhopSet.begin()}, kDefaultAdminDistance));
+    fib6->updateNode(newRoute);
+    auto deltas = consolidate(newState);
+    // Single delta, no spillover expected
+    EXPECT_EQ(deltas.size(), 1);
+    assertEndState(newState, {});
+  }
 }
 
 TEST_F(EcmpBackupGroupTypeTest, addRoutesBelowEcmpLimit) {
