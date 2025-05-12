@@ -200,7 +200,7 @@ int hwAgentMain(
         updateStats,
         hwAgent->getPlatform()->getHwSwitch(),
         thriftSyncer.get()));
-    auto timeInterval = std::chrono::seconds(1);
+    auto timeInterval = std::chrono::seconds(FLAGS_update_stats_interval_s);
     fs->addFunction(callback, timeInterval, "updateStats");
     fs->start();
     XLOG(DBG2) << "Started background thread: UpdateStatsThread";

@@ -106,6 +106,7 @@ void AgentHwTest::setCmdLineFlagOverrides() const {
   FLAGS_dsf_subscribe = false;
   // Set HW agent connection timeout to 130 seconds
   FLAGS_hw_agent_connection_timeout_ms = 130000;
+  FLAGS_update_stats_interval_s = 1;
 }
 
 void AgentHwTest::TearDown() {

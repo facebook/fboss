@@ -140,7 +140,7 @@ void SwSwitchInitializer::init(
     // aggregated counters more accurate with less spikes and dips
     fs_->setSteady(true);
     std::function<void()> callback(std::bind(updateStats, sw_));
-    auto timeInterval = std::chrono::seconds(1);
+    auto timeInterval = std::chrono::seconds(FLAGS_update_stats_interval_s);
     fs_->addFunction(callback, timeInterval, "updateStats");
     fs_->start();
     XLOG(DBG2) << "Started background thread: UpdateStatsThread";
