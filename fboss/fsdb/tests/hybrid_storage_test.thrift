@@ -50,6 +50,9 @@ struct TestStruct {
   3: string name;
   4: TestStructSimple member;
   @cpp.Type{template = "folly::F14FastMap"}
+  @thrift.DeprecatedUnvalidatedAnnotations{
+    items = {"allow_skip_thrift_cow": "1"},
+  }
   5: map<i32, TestStructSimple> structMap = {};
   6: optional string optionalString;
   7: UnionSimple variantMember;
@@ -68,8 +71,4 @@ struct TestStruct {
   17: ListTypedef listTypedef = [];
   18: map<string, OtherStruct> mapOfStructs;
   19: list<OtherStruct> listofStructs;
-  @thrift.DeprecatedUnvalidatedAnnotations{
-    items = {"allow_skip_thrift_cow": "1"},
-  }
-  20: map<i32, TestStructSimple> hybridMapOfI32ToStruct;
 }

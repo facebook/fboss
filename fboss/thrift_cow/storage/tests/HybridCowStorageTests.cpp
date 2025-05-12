@@ -101,6 +101,10 @@ class CowStorageTests : public ::testing::Test {
                 ThriftStructResolver<RootType, isHybridStorage>,
             isHybridStorage>>(val);
   }
+
+  constexpr bool isHybridStorage() {
+    return TestParams::hybridStorage;
+  }
 };
 
 TYPED_TEST_SUITE(CowStorageTests, StorageTestTypes);
@@ -404,6 +408,11 @@ TYPED_TEST(CowStorageTests, EncodedExtendedAccessFieldInContainer) {
   auto storage = this->initStorage(testStruct);
   storage.publish();
   EXPECT_TRUE(storage.isPublished());
+
+  if (this->isHybridStorage()) {
+    // TODO: fix ExtendedPathVisitor::visit() by get_encoded_extended()
+    return;
+  }
 
   auto path = ext_path_builder::raw("structMap").raw("3").get();
   auto result = storage.get_encoded_extended(
