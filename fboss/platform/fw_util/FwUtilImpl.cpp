@@ -73,19 +73,6 @@ void FwUtilImpl::doFirmwareAction(
   auto fwConfig = iter->second;
 
   if (action == "program") {
-    // Darwin doesn't use fw_util for upgrade. We need to put
-    // PM on darwin and then make a few changes in the config
-    // so we will treat it as not supported for upgrade right now
-
-    // TODO: remove this logic after we move darwin to PM
-    auto lowerCasePlatformName = toLower(platformName_);
-    if (lowerCasePlatformName == "darwin" ||
-        lowerCasePlatformName == "darwin48v") {
-      XLOG(INFO)
-          << "darwin fw_util not supported yet. This will be done after we move to PM. Please use KPP packages and run the  run-script to upgrade the box";
-      return;
-    }
-
     // Fw_util is build as part of ramdisk once every 24 hours
     // assuming no test failure. if we force sha1sum check in the fw_util,
     // we will end up blocking provisioning until a new ramdisk is built
@@ -150,13 +137,11 @@ void FwUtilImpl::doFirmwareAction(
 }
 
 void FwUtilImpl::printVersion(const std::string& fpd) {
-  // TODO: Remove this logic once we move darwin to PM and we complete the
-  // config Darwin only uses fw_util to read version. Upgrade logic is part of
-  // KPP packages
+  // TODO: Remove this check once we have moved all Darwin systems to the latest
+  // BSP which provide a single sysfs endpoint for each firmware version
   auto lowerCasePlatformName = toLower(platformName_);
 
-  if (lowerCasePlatformName == "darwin" ||
-      lowerCasePlatformName == "darwin48v") {
+  if (lowerCasePlatformName == "darwin") {
     fwUtilVersionHandler_->printDarwinVersion(fpd);
   } else {
     if (fpd == "all") {
