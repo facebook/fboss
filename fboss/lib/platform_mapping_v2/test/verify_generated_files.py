@@ -93,7 +93,6 @@ class TestVerifyPlatformMappingGeneratedFiles(unittest.TestCase):
 
 
 def run_tests() -> None:
-    # Provided for add_fb_python_executable callable
     suite = unittest.TestLoader().loadTestsFromTestCase(
         TestVerifyPlatformMappingGeneratedFiles
     )
