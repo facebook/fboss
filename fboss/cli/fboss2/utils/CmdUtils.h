@@ -481,4 +481,9 @@ std::map<std::string, int64_t> getAgentFb303RegexCounters(
     const HostInfo& hostInfo,
     const std::string& regex);
 
+std::map<std::string, std::vector<std::string>>
+getCachedSwSwitchReachabilityInfo(
+    const HostInfo& hostInfo,
+    const std::vector<std::string>& switchNames);
+
 } // namespace facebook::fboss::utils
