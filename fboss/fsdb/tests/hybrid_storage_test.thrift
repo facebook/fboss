@@ -68,4 +68,8 @@ struct TestStruct {
   17: ListTypedef listTypedef = [];
   18: map<string, OtherStruct> mapOfStructs;
   19: list<OtherStruct> listofStructs;
+  @thrift.DeprecatedUnvalidatedAnnotations{
+    items = {"allow_skip_thrift_cow": "1"},
+  }
+  20: map<i32, TestStructSimple> hybridMapOfI32ToStruct;
 }

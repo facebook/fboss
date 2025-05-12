@@ -608,7 +608,8 @@ struct ExtendedPathVisitor<apache::thrift::type_class::structure> {
       Func&& f)
     requires(!is_cow_type_v<Node> && !is_field_type_v<Node>)
   {
-    using Members = typename apache::thrift::reflect_struct<Node>::members;
+    using Members = typename apache::thrift::reflect_struct<
+        std::remove_cv_t<Node>>::members;
 
     const auto& elem = *begin++;
     auto raw = elem.raw_ref();

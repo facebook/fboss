@@ -789,7 +789,8 @@ struct PathVisitorImpl<apache::thrift::type_class::structure> {
     auto key = *cursor++;
     // Perform linear search over all members for key
     ThriftTraverseResult result = ThriftTraverseResult::INVALID_STRUCT_MEMBER;
-    using Members = typename apache::thrift::reflect_struct<Obj>::members;
+    using Members =
+        typename apache::thrift::reflect_struct<std::remove_cv_t<Obj>>::members;
     visitMember<Members>(key, [&](auto indexed) {
       using member = decltype(fatal::tag_type(indexed));
       using tc = typename member::type_class;
