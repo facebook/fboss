@@ -42,6 +42,18 @@ dynamic createTestDynamic() {
       "listOfPrimitives", dynamic::array())("setOfI32", dynamic::array());
 }
 
+TestStruct createTestStructForExtendedTests() {
+  auto testDyn = createTestDynamic();
+  for (int i = 0; i <= 20; ++i) {
+    testDyn["mapOfStringToI32"][fmt::format("test{}", i)] = i;
+    testDyn["listOfPrimitives"].push_back(i);
+    testDyn["setOfI32"].push_back(i);
+  }
+
+  return facebook::thrift::from_dynamic<TestStruct>(
+      testDyn, facebook::thrift::dynamic_format::JSON_1);
+}
+
 constexpr auto kSubscriber = "testSubscriber";
 
 template <typename Gen>
@@ -90,6 +102,10 @@ class SubscribableStorageTests : public Test {
             facebook::fboss::thrift_cow::
                 ThriftStructResolver<RootType, isHybridStorage>,
             isHybridStorage>>(val);
+  }
+
+  constexpr bool isHybridStorage() {
+    return TestParams::hybridStorage;
   }
 
  protected:
@@ -577,6 +593,160 @@ TYPED_TEST(SubscribableStorageTests, SubscribeEncodedPathSimple) {
   EXPECT_EQ(deltaState.newVal->isHeartbeat(), true);
 }
 
+TYPED_TEST(SubscribableStorageTests, SubscribeExtendedPathSimple) {
+  // add subscription for a path that doesn't exist yet, then add parent
+  FLAGS_serveHeartbeats = true;
+
+  auto storage = this->initStorage(this->testStruct);
+  storage.setConvertToIDPaths(true);
+
+  auto path =
+      ext_path_builder::raw(TestStructMembers::mapOfStringToI32::id::value)
+          .regex("test1.*")
+          .get();
+  auto generator = storage.subscribe_encoded_extended(
+      std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))),
+      {path},
+      OperProtocol::SIMPLE_JSON);
+  if (this->isHybridStorage()) {
+    // TODO: extended subscription under hybrid node should be rejected
+    return;
+  }
+
+  storage.start();
+
+  EXPECT_EQ(
+      storage.set(this->root.mapOfStringToI32()["test1"], 998), std::nullopt);
+  auto taggedVal = folly::coro::blockingWait(
+      folly::coro::timeout(consumeOne(generator), std::chrono::seconds(5)));
+
+  EXPECT_EQ(taggedVal.size(), 1);
+  auto oldVal = taggedVal.at(0).oldVal;
+  auto newVal = taggedVal.at(0).newVal;
+  ASSERT_TRUE(oldVal);
+  ASSERT_TRUE(newVal);
+
+  // Old state should not be null, but should have empty contents in
+  // the TaggedOperState object
+  ASSERT_FALSE(oldVal->state()->contents());
+
+  EXPECT_THAT(
+      *newVal->path()->path(),
+      ::testing::ElementsAre(
+          folly::to<std::string>(
+              TestStructMembers::mapOfStringToI32::id::value),
+          "test1"));
+
+  auto deserialized = facebook::fboss::thrift_cow::
+      deserialize<apache::thrift::type_class::integral, int>(
+          OperProtocol::SIMPLE_JSON, *newVal->state()->contents());
+
+  EXPECT_EQ(deserialized, 998);
+
+  // Should eventually recv heartbeat
+  taggedVal = folly::coro::blockingWait(
+      folly::coro::timeout(consumeOne(generator), std::chrono::seconds(20)));
+  EXPECT_EQ(taggedVal.size(), 0);
+}
+
+TYPED_TEST(SubscribableStorageTests, SubscribeExtendedPathMultipleChanges) {
+  // add subscription for a path that doesn't exist yet, then add parent
+  auto storage = this->initStorage(this->testStruct);
+  auto path = ext_path_builder::raw("mapOfStringToI32").regex("test1.*").get();
+  auto generator = storage.subscribe_encoded_extended(
+      std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))),
+      {path},
+      OperProtocol::SIMPLE_JSON);
+  if (this->isHybridStorage()) {
+    // TODO: extended subscription under hybrid node should be rejected
+    return;
+  }
+
+  storage.start();
+
+  EXPECT_EQ(
+      storage.set(this->root, createTestStructForExtendedTests()),
+      std::nullopt);
+  auto streamedVal = folly::coro::blockingWait(
+      folly::coro::timeout(consumeOne(generator), std::chrono::seconds(5)));
+
+  std::map<std::vector<std::string>, int> expected = {
+      {{"mapOfStringToI32", "test1"}, 1},
+      {{"mapOfStringToI32", "test10"}, 10},
+      {{"mapOfStringToI32", "test11"}, 11},
+      {{"mapOfStringToI32", "test12"}, 12},
+      {{"mapOfStringToI32", "test13"}, 13},
+      {{"mapOfStringToI32", "test14"}, 14},
+      {{"mapOfStringToI32", "test15"}, 15},
+      {{"mapOfStringToI32", "test16"}, 16},
+      {{"mapOfStringToI32", "test17"}, 17},
+      {{"mapOfStringToI32", "test18"}, 18},
+      {{"mapOfStringToI32", "test19"}, 19},
+  };
+
+  EXPECT_EQ(streamedVal.size(), expected.size());
+  for (const auto& deltaVal : streamedVal) {
+    auto oldVal = deltaVal.oldVal;
+    auto newVal = deltaVal.newVal;
+    ASSERT_TRUE(oldVal);
+    ASSERT_TRUE(newVal);
+
+    // Old state should not be null, but should have empty contents in
+    // the TaggedOperState object
+    ASSERT_FALSE(oldVal->state()->contents());
+
+    const auto& elemPath = *newVal->path()->path();
+    const auto& contents = *newVal->state()->contents();
+    auto deserialized = facebook::fboss::thrift_cow::
+        deserialize<apache::thrift::type_class::integral, int>(
+            OperProtocol::SIMPLE_JSON, contents);
+    EXPECT_EQ(expected[elemPath], deserialized)
+        << "Mismatch at /" + folly::join('/', elemPath);
+  }
+}
+
+TYPED_TEST(SubscribableStorageTests, SubscribeExtendedDeltaSimple) {
+  // add subscription for a path that doesn't exist yet, then add parent
+  auto storage = this->initStorage(this->testStruct);
+  auto path = ext_path_builder::raw("mapOfStringToI32").regex("test1.*").get();
+  auto generator = storage.subscribe_delta_extended(
+      std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))),
+      {path},
+      OperProtocol::SIMPLE_JSON);
+  if (this->isHybridStorage()) {
+    // TODO: extended subscription under hybrid node should be rejected
+    return;
+  }
+
+  storage.start();
+
+  EXPECT_EQ(
+      storage.set(this->root.mapOfStringToI32()["test1"], 998), std::nullopt);
+  auto streamedVal = folly::coro::blockingWait(
+      folly::coro::timeout(consumeOne(generator), std::chrono::seconds(5)));
+
+  EXPECT_EQ(streamedVal.size(), 1);
+  EXPECT_EQ(streamedVal.at(0).delta()->changes()->size(), 1);
+
+  EXPECT_THAT(
+      *streamedVal.at(0).path()->path(),
+      ::testing::ElementsAre("mapOfStringToI32", "test1"));
+
+  auto deltaUnit = streamedVal.at(0).delta()->changes()->at(0);
+  ASSERT_FALSE(deltaUnit.oldState());
+  ASSERT_TRUE(deltaUnit.newState());
+
+  // deltas are relative to the subscribed root, so we expect this to be
+  // empty;
+  EXPECT_TRUE(deltaUnit.path()->raw()->empty());
+
+  auto deserialized = facebook::fboss::thrift_cow::
+      deserialize<apache::thrift::type_class::integral, int>(
+          OperProtocol::SIMPLE_JSON, *deltaUnit.newState());
+
+  EXPECT_EQ(deserialized, 998);
+}
+
 CO_TYPED_TEST(SubscribableStorageTests, SubscribeExtendedDeltaUpdate) {
   auto storage = this->initStorage(this->testStruct);
   storage.start();
@@ -599,6 +769,64 @@ CO_TYPED_TEST(SubscribableStorageTests, SubscribeExtendedDeltaUpdate) {
   ret = co_await co_awaitTry(
       folly::coro::timeout(consumeOne(generator), std::chrono::seconds(1)));
   EXPECT_FALSE(ret.hasException());
+}
+
+TYPED_TEST(SubscribableStorageTests, SubscribeExtendedDeltaMultipleChanges) {
+  // add subscription for a path that doesn't exist yet, then add parent
+  auto storage = this->initStorage(this->testStruct);
+  auto path = ext_path_builder::raw("mapOfStringToI32").regex("test1.*").get();
+  auto generator = storage.subscribe_delta_extended(
+      std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))),
+      {path},
+      OperProtocol::SIMPLE_JSON);
+  if (this->isHybridStorage()) {
+    // TODO: extended subscription under hybrid node should be rejected
+    return;
+  }
+
+  storage.start();
+
+  EXPECT_EQ(
+      storage.set(this->root, createTestStructForExtendedTests()),
+      std::nullopt);
+  auto streamedVal = folly::coro::blockingWait(
+      folly::coro::timeout(consumeOne(generator), std::chrono::seconds(5)));
+
+  std::map<std::vector<std::string>, int> expected = {
+      {{"mapOfStringToI32", "test1"}, 1},
+      {{"mapOfStringToI32", "test10"}, 10},
+      {{"mapOfStringToI32", "test11"}, 11},
+      {{"mapOfStringToI32", "test12"}, 12},
+      {{"mapOfStringToI32", "test13"}, 13},
+      {{"mapOfStringToI32", "test14"}, 14},
+      {{"mapOfStringToI32", "test15"}, 15},
+      {{"mapOfStringToI32", "test16"}, 16},
+      {{"mapOfStringToI32", "test17"}, 17},
+      {{"mapOfStringToI32", "test18"}, 18},
+      {{"mapOfStringToI32", "test19"}, 19},
+  };
+
+  EXPECT_EQ(streamedVal.size(), expected.size());
+  for (const auto& taggedDelta : streamedVal) {
+    auto rawPath = *taggedDelta.path()->path();
+    ASSERT_TRUE(expected.find(rawPath) != expected.end());
+
+    auto expectedValue = expected[rawPath];
+    ASSERT_EQ(taggedDelta.delta()->changes()->size(), 1);
+    auto deltaUnit = taggedDelta.delta()->changes()->at(0);
+    ASSERT_FALSE(deltaUnit.oldState());
+    ASSERT_TRUE(deltaUnit.newState());
+
+    // deltas are relative to the subscribed root, so we expect this to be
+    // empty;
+    EXPECT_TRUE(deltaUnit.path()->raw()->empty());
+
+    auto deserialized = facebook::fboss::thrift_cow::
+        deserialize<apache::thrift::type_class::integral, int>(
+            OperProtocol::SIMPLE_JSON, *deltaUnit.newState());
+
+    EXPECT_EQ(deserialized, expectedValue);
+  }
 }
 
 TYPED_TEST(SubscribableStorageTests, SetPatchWithPathSpec) {
@@ -877,6 +1105,42 @@ TYPED_TEST(SubscribableStorageTests, PatchInvalidDeltaPath) {
   delta.changes() = {unit};
 }
 
+CO_TYPED_TEST(SubscribableStorageTests, SubscribeExtendedPatchSimple) {
+  // add subscription for a path that doesn't exist yet, then add parent
+  auto storage = this->initStorage(this->testStruct);
+  storage.setConvertToIDPaths(true);
+  auto path = ext_path_builder::raw("mapOfStringToI32").regex("test1.*").get();
+  int key = 0;
+  auto generator = storage.subscribe_patch_extended(
+      std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))),
+      {{key, path}});
+  if (this->isHybridStorage()) {
+    // TODO: extended subscription under hybrid node should be rejected
+  } else {
+    storage.start();
+
+    EXPECT_EQ(
+        storage.set(this->root.mapOfStringToI32()["test1"], 998), std::nullopt);
+    auto msg = co_await folly::coro::timeout(
+        consumeOne(generator), std::chrono::seconds(5));
+    auto chunk = msg.get_chunk();
+
+    EXPECT_EQ(
+        chunk.patchGroups()->size(), 1); // single path -> single patchGroup
+    EXPECT_EQ(chunk.patchGroups()->at(key).size(), 1);
+    EXPECT_THAT(
+        *chunk.patchGroups()->at(key).front().basePath(),
+        ::testing::ElementsAre(
+            "13", "test1")); // 13 is the id of mapOfStringToI32
+
+    auto testStorage = this->createCowStorage(this->testStruct);
+    EXPECT_EQ(
+        testStorage.patch(std::move(chunk.patchGroups()->at(key).front())),
+        std::nullopt);
+    EXPECT_EQ(testStorage.root()->toThrift().mapOfStringToI32()["test1"], 998);
+  }
+}
+
 CO_TYPED_TEST(SubscribableStorageTests, SubscribeExtendedPatchUpdate) {
   auto storage = this->initStorage(this->testStruct);
   storage.setConvertToIDPaths(true);
@@ -913,6 +1177,60 @@ CO_TYPED_TEST(SubscribableStorageTests, SubscribeExtendedPatchUpdate) {
   EXPECT_EQ(
       patch.patch()->getType(),
       facebook::fboss::thrift_cow::PatchNode::Type::del);
+}
+
+CO_TYPED_TEST(SubscribableStorageTests, SubscribeExtendedPatchMultipleChanges) {
+  // add subscription for a path that doesn't exist yet, then add parent
+  auto storage = this->initStorage(this->testStruct);
+  storage.setConvertToIDPaths(true);
+  auto path = ext_path_builder::raw("mapOfStringToI32").regex("test1.*").get();
+  int key = 0;
+  auto generator = storage.subscribe_patch_extended(
+      std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))),
+      {{key, path}});
+  if (this->isHybridStorage()) {
+    // TODO: extended subscription under hybrid node should be rejected
+  } else {
+    storage.start();
+
+    EXPECT_EQ(
+        storage.set(this->root, createTestStructForExtendedTests()),
+        std::nullopt);
+    auto msg = co_await folly::coro::timeout(
+        consumeOne(generator), std::chrono::seconds(5));
+    auto chunk = msg.get_chunk();
+
+    EXPECT_EQ(
+        chunk.patchGroups()->size(), 1); // single path -> single patchGroup
+    EXPECT_EQ(
+        chunk.patchGroups()->at(key).size(),
+        11); // 11 changes from createTestStructForExtendedTests
+
+    std::map<std::string, int> expected = {
+        {"test1", 1},
+        {"test10", 10},
+        {"test11", 11},
+        {"test12", 12},
+        {"test13", 13},
+        {"test14", 14},
+        {"test15", 15},
+        {"test16", 16},
+        {"test17", 17},
+        {"test18", 18},
+        {"test19", 19},
+    };
+
+    auto testStorage = this->createCowStorage(this->testStruct);
+
+    for (auto& patch : chunk.patchGroups()->at(key)) {
+      // this will be testXY
+      auto lastPathElem = patch.basePath()->at(patch.basePath()->size() - 1);
+      EXPECT_EQ(testStorage.patch(std::move(patch)), std::nullopt);
+      EXPECT_EQ(
+          testStorage.root()->toThrift().mapOfStringToI32()->at(lastPathElem),
+          expected.at(lastPathElem));
+    }
+  }
 }
 
 class SubscribableStorageTestsPathDelta
