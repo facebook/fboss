@@ -170,8 +170,8 @@
           "sysfsPath": "/run/devmap/sensors/SMB_MAX6581/temp2_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 135.0,
-            "maxAlarmVal": 120.0
+            "upperCriticalVal": 104.0,
+            "maxAlarmVal": 99.0
           },
           "compute": "@/1000.0"
         },
@@ -180,8 +180,8 @@
           "sysfsPath": "/run/devmap/sensors/SMB_MAX6581/temp3_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 135.0,
-            "maxAlarmVal": 120.0
+            "upperCriticalVal": 104.0,
+            "maxAlarmVal": 99.0
           },
           "compute": "@/1000.0"
         },
@@ -190,8 +190,8 @@
           "sysfsPath": "/run/devmap/sensors/SMB_MAX6581/temp4_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 135.0,
-            "maxAlarmVal": 120.0
+            "upperCriticalVal": 104.0,
+            "maxAlarmVal": 99.0
           },
           "compute": "@/1000.0"
         },
@@ -200,8 +200,8 @@
           "sysfsPath": "/run/devmap/sensors/SMB_MAX6581/temp5_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 135.0,
-            "maxAlarmVal": 120.0
+            "upperCriticalVal": 104.0,
+            "maxAlarmVal": 99.0
           },
           "compute": "@/1000.0"
         },
@@ -210,8 +210,8 @@
           "sysfsPath": "/run/devmap/sensors/SMB_MAX6581/temp6_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 135.0,
-            "maxAlarmVal": 120.0
+            "upperCriticalVal": 104.0,
+            "maxAlarmVal": 99.0
           },
           "compute": "@/1000.0"
         },
@@ -220,8 +220,8 @@
           "sysfsPath": "/run/devmap/sensors/SMB_MAX6581/temp7_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 135.0,
-            "maxAlarmVal": 120.0
+            "upperCriticalVal": 94.0,
+            "maxAlarmVal": 89.0
           },
           "compute": "@/1000.0"
         },
@@ -230,8 +230,8 @@
           "sysfsPath": "/run/devmap/sensors/SMB_MAX6581/temp8_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 135.0,
-            "maxAlarmVal": 120.0
+            "upperCriticalVal": 94.0,
+            "maxAlarmVal": 89.0
           },
           "compute": "@/1000.0"
         },
@@ -363,7 +363,7 @@
             "upperCriticalVal": 3.96,
             "lowerCriticalVal": 2.64
           },
-          "compute": "@/1000.0"
+          "compute": "1.2*@/1000.0"
         },
         {
           "name": "SMB_VRM3_TEMP",

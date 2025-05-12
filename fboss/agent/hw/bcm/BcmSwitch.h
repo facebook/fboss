@@ -427,6 +427,7 @@ class BcmSwitch : public BcmSwitchIf {
 
   std::vector<EcmpDetails> getAllEcmpDetails() const override;
 
+  cfg::SwitchingMode getFwdSwitchingMode(const RouteNextHopEntry&) override;
   /*
    * Wrapper functions to register and unregister a BCM event callbacks.  These
    * just forward the call.

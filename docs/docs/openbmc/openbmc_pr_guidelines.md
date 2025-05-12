@@ -1,21 +1,18 @@
 # Meta/OpenBMC Pull Request Guidelines
 
-
 ## Revision 0.2
 
 The document describes the guidelines and best practices to submit pull requests
 to Meta OpenBMC repository.
 
-
-# License/Copyright
+## License/Copyright
 
 Meta Copyright is required for all the files submitted to OpenBMC repository.
 Below is the latest copyright:
 
 “Copyright (c) Meta Platforms, Inc. and affiliates.”
 
-
-# Adopt the Latest Versions
+## Adopt the Latest Versions
 
 * Always adopt the latest u-boot for OpenBMC development. The latest u-boot
   version is v2019.04 as of May 2022.
@@ -24,17 +21,17 @@ Below is the latest copyright:
 * Always adopt the latest yocto for OpenBMC development. The latest yocto
   version is “lf-dunfell” as of May 2022.
 
+## Prepare Your Patches
 
-# Prepare Your Patches
-
-
-## Patch Title
+### Patch Title
 
 Use a one-line title/subject to describe the scope and purpose of the patch. The
 title must follow the below format, which is easier for people to identify the
 scope and purpose of patches from “git log --oneline” output.
 
-    `<platform/layer>: <component>: <patch title>`
+```plaintext
+<platform/layer>: <component>: <patch title>
+```
 
 The title line should not exceed 80 columns. If you find it hard to describe the
 patch within 80 columns, most likely you need to split the patch. Please
@@ -47,8 +44,7 @@ remember: solve only one problem per patch.
 * “fuji: lmsensors: fix ucd9000 compute formula in config file”
 * “common: ipmid: fix file descriptor leak in foo() function”
 
-
-## Patch Description
+### Patch Description
 
 A good patch starts with a good description. The patch description should
 explain why the patch is needed, or what problem to be resolved. This is helpful
@@ -59,15 +55,18 @@ The description lines must be wrapped at 80 columns.
 
 **Bad example:**
 
-> add my-cli command
+```plaintext
+add my-cli command
+```
 
 **Good example:**
 
-> add my-cli command in fuji openbmc image, and the command is used to
-> initialize devices when FRU PIM[1-8] are plugged.
+```plaintext
+add my-cli command in fuji openbmc image, and the command is used to
+initialize devices when FRU PIM[1-8] are plugged.
+```
 
-
-## Testing Done
+### Testing Done
 
 “Testing Done” section is mandatory for all the Pull Requests. The section
 should list what tests have been executed to verify the touched code path, and
@@ -75,33 +74,33 @@ to prove the patch is safe and meet the predefined goals.
 
 **Bad example:**
 
-> test passed.
+```plaintext
+test passed.
+```
 
 **Good example:**
 
->     1) “bitbake fuji-image” succeeded.
->     2) run fw-util scm –version: BIC version is displayed properly
->     3) run fw-util scm upgrade bic &lt;bic.bin>: command succeeded
->     4) power cycle the chassis and confirm BIC is healthy by running commands…
+```plaintext
+1) “bitbake fuji-image” succeeded.
+2) run fw-util scm –version: BIC version is displayed properly
+3) run fw-util scm upgrade bic <bic.bin>: command succeeded
+4) power cycle the chassis and confirm BIC is healthy by running commands…
+```
 
-
-## Fix Linter Errors and Warnings
+### Fix Linter Errors and Warnings
 
 Fix all the errors and warnings reported by github reviewdog before publishing
 pull requests to Meta for review.
 
-
-# Logging
+## Logging
 
 Please refer to below link for logging best practices:
 
 [openbmc_logging.rst](https://github.com/facebook/openbmc/blob/helium/Documentation/openbmc_logging.rst)
 
+## Dealing with Kernel Patches
 
-# Dealing with Kernel Patches
-
-
-## No Kernel Hacks
+### No Kernel Hacks
 
 Meta’s goal is to upstream all the OpenBMC kernel patches to the Linux
 community, so we don’t like kernel hacks.
@@ -112,10 +111,11 @@ explain the reason clearly in the patch description and code.
 
 **For example:**
 
->  XXX this is a hack/workaround, and it’s needed because…
->
->   The hack can be safely dropped when following conditions are met...
+```
+XXX this is a hack/workaround, and it’s needed because…
 
+The hack can be safely dropped when following conditions are met...
+```
 
 ## Use checkpatch.pl
 
@@ -125,11 +125,10 @@ kernel community.
 
 Below are the steps:
 
+```bash
+git format-patch -1
+linux-aspeed-5.15/scripts/checkpatch.pl 0001-your-kernel-patch.patch
 ```
-$ git format-patch -1
-$ linux-aspeed-5.15/scripts/checkpatch.pl 0001-your-kernel-patch.patch
-```
-
 
 ## No “devmem” in Production Code
 
@@ -144,8 +143,7 @@ following questions:
 
 Please don’t hesitate to contact the Meta team if you need inputs.
 
-
-# Contributing to Common Layer
+## Contributing to Common Layer
 
 If the package/feature is used by more than 1 platform, it should go to the “
 common” layer. If you want to introduce a new layer for a specific set of
@@ -164,7 +162,6 @@ Below are 3 typical types of changes: please do not mix these types of changes
 in a single pull request, because Meta team needs to involve proper people/team
 to review the pull requests, depending on the scope/type of the changes.
 
-
 ## Adding New Features
 
 Adding new features (packages, types, functions, etc.) to common layer is
@@ -182,7 +179,6 @@ below into consideration:
 * CIT is mandatory for the new features, and this is to protect your platform
   from being broken by others’ patches.
 
-
 ## Enhancing Features
 
 If it’s improving the internal implementation of the existing features, and the
@@ -191,7 +187,6 @@ external interfaces are not changed, it won’t affect the existing users.
 But still, please verify if the new code paths or enhancements can be covered by
 the existing test cases; if not, please add more tests.
 
-
 ## Modifying interfaces
 
 If you need to modify the common library/service/application interfaces, please
@@ -199,8 +194,7 @@ grep all the references in the openbmc tree and make updates if needed.
 
 Don't panic if something is broken, and we will guide you to fix the problems.
 
-
-# Consistency
+## Consistency
 
 Make sure the new code is consistent across the platform and/or component. For
 example:

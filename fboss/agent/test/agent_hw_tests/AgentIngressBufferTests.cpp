@@ -22,7 +22,7 @@ constexpr int kPgResumeOffsetCells = 5;
 constexpr int kPgMinLimitCells = 6;
 constexpr int kPgHeadroomLimitCells = 2;
 constexpr int kPoolHeadroomLimitCells = 10;
-constexpr int kPoolSharedCells = 78;
+constexpr int kPoolSharedCells = 10000;
 /*
  * SDK has the expectation that pool_total_size - delta <= shared size,
  * where delta is the difference between old and new pool limits, if

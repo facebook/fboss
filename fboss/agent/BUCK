@@ -819,6 +819,7 @@ cpp_library(
         ":build_info_wrapper",
         ":constants",
         ":dhcpv4_options_of_interest",
+        ":ecmp_resource_manager",
         ":fboss-error",
         ":fboss-types",
         ":fboss_event_base",

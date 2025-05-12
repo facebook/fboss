@@ -50,7 +50,7 @@ class PhyManager {
    * objects are kept per slot, per MDIO controller, per phy address. This
    * needs to be defined by inheriting classes.
    */
-  virtual bool initExternalPhyMap() = 0;
+  virtual bool initExternalPhyMap(bool warmboot) = 0;
 
   /*
    * A virtual function for the ExternalPhy obejcts. The sub-class needs to

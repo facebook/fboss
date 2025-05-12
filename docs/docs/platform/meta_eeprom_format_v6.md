@@ -1,15 +1,15 @@
-# **Meta FBOSS EEPROM Format v6**
+# Meta FBOSS EEPROM Format v6
 
 All Field Replaceable Unit (FRU) ID EEPROMs must follow the format below. This
 replaces the Meta FBOSS EEPROM Format V5.
 
-## **Conventions:**
+## Conventions
 
 - All fields are **big endian**.
 - String terminator `\0` is **not** included in the string field. The parser
   will determine the string size by reading the length field of TLV entries.
 
-## **Header:**
+## Header
 
 All Meta EEPROMs must start with the 4-byte header below. This header is
 compatible with the past versions.
@@ -20,7 +20,7 @@ compatible with the past versions.
 |       2       |       1        | 0x6    | Meta EEPROM Format Version |
 |       3       |       1        | 0XFF   | Reserved for future use    |
 
-## **Body:**
+## Body
 
 - The body must come after the 4-byte header.
 - The body consists of the following well-defined Type-Length-Value (TLV)
@@ -65,7 +65,7 @@ compatible with the past versions.
 | 103  | Variable       | Vendor Defined                                                                              | N               | Vendors can use this field for their own purposes. Meta EEPROM parsing tools (weutil) will just dump the contents of this field. The value will not be interpreted and used in any way.                                                                                                                                                                                                                                                                                                                                                                   |
 | 250  | 2              | Unsigned Integer                                                                            | Y               | CRC16. Refer to the “Checksum” section for details                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 
-## **Checksum:**
+## Checksum
 
 We use the 16 bits CRC-CCITT-AUG specification with the following key
 attributes:
@@ -84,7 +84,7 @@ CRC16 Type field is located at offset 63, CRC16 calculation will include bytes
 from offset 0 to offset 62, inclusively.
 
 Check
-https://github.com/facebook/fboss/blob/main/fboss/platform/weutil/Crc16CcittAug.cpp
+[https://github.com/facebook/fboss/blob/main/fboss/platform/weutil/Crc16CcittAug.cpp](https://github.com/facebook/fboss/blob/main/fboss/platform/weutil/Crc16CcittAug.cpp)
 for CRC16 CCITT AUG implementation.
 
 The below list shows the CRC16 output values for corner cases of byte streams
@@ -97,11 +97,11 @@ and can be used as the reference to check the correctness of the algorithm.
 | 123456789                                                     | 9      | 0xE5CC                |
 | A string of 256 upper case “A” characters with no line breaks | 256    | 0XE938                |
 
-## **Example:**
+## Example
 
-**Raw EEPROM BLOB:**
+### Raw EEPROM BLOB
 
-```
+```bash
 > cat eeprom_file | hexdump -C
 00000000  fb fb 06 ff 01 0d 46 49  52 53 54 5f 53 51 55 45  |......FIRST_SQUE|
 00000010  45 5a 45 02 08 32 30 31  32 33 34 35 36 03 08 53  |EZE..20123456..S|
@@ -121,9 +121,9 @@ and can be used as the reference to check the correctness of the algorithm.
 000000f0  ff                                                |.|
 ```
 
-**Output after parsing :**
+### Output after parsing
 
-```
+```bash
 > ./weutil --path eeprom_file
 Version: 6
 Product Name: FIRST_SQUEEZE
@@ -161,6 +161,6 @@ CRC16: 0x4a05 (CRC Matched)
 by weutil, the last line printing will display the programmed CRC and expected
 CRC.
 
-```
+```bash
 CRC16: 0xa6b7 (CRC Mismatch. Expected 0x4a05)
 ```

@@ -206,6 +206,16 @@ target_link_libraries(fib_helpers
   Folly::folly
 )
 
+add_library(ecmp_resource_manager
+  fboss/agent/EcmpResourceManager.cpp
+)
+
+target_link_libraries(ecmp_resource_manager
+  fib_helpers
+  state
+  Folly::folly
+)
+
 add_library(core
   fboss/agent/AclNexthopHandler.cpp
   fboss/agent/ApplyThriftConfig.cpp
@@ -354,6 +364,7 @@ set(core_libs
   fboss_event_base
   phy_snapshot_manager
   build_info_wrapper
+  ecmp_resource_manager
 )
 
 target_link_libraries(core ${core_libs})

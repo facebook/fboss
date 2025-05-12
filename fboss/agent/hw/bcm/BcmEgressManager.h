@@ -28,8 +28,8 @@ struct BcmFlowletConfig {
   uint16_t flowletTableSize;
   uint16_t inactivityIntervalUsecs;
   uint16_t maxLinks;
-  cfg::SwitchingMode switchingMode;
-  cfg::SwitchingMode backupSwitchingMode;
+  cfg::SwitchingMode switchingMode = cfg::SwitchingMode::FIXED_ASSIGNMENT;
+  cfg::SwitchingMode backupSwitchingMode = cfg::SwitchingMode::FIXED_ASSIGNMENT;
 };
 
 class BcmEgressManager {

@@ -49,6 +49,6 @@ if [ ${#POSITIONAL_ARGS[@]} -lt 1 ]; then
 fi
 hostname=${POSITIONAL_ARGS[0]}
 
-rsync -vzr "$HOME"/fbsource/fbcode/fboss/platform/bsp_tests "root@$hostname:/tmp/"
+rsync -vzr  --exclude=config_test.py "$HOME"/fbsource/fbcode/fboss/platform/bsp_tests "root@$hostname:/tmp/"
 
 rsync -vzr "$HOME"/fbsource/fbcode/fboss/platform/configs "root@$hostname:/tmp/"

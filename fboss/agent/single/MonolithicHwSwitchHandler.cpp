@@ -149,6 +149,11 @@ std::vector<EcmpDetails> MonolithicHwSwitchHandler::getAllEcmpDetails() const {
   return hw_->getAllEcmpDetails();
 }
 
+cfg::SwitchingMode MonolithicHwSwitchHandler::getFwdSwitchingMode(
+    const RouteNextHopEntry& fwd) {
+  return hw_->getFwdSwitchingMode(fwd);
+}
+
 CpuPortStats MonolithicHwSwitchHandler::getCpuPortStats() const {
   return hw_->getCpuPortStats();
 }

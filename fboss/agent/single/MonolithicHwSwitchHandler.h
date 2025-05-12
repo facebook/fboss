@@ -73,6 +73,8 @@ class MonolithicHwSwitchHandler : public HwSwitchHandler {
 
   std::vector<EcmpDetails> getAllEcmpDetails() const;
 
+  cfg::SwitchingMode getFwdSwitchingMode(const RouteNextHopEntry&);
+
   // platform access apis
   void onHwInitialized(HwSwitchCallback* callback);
 

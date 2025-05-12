@@ -463,7 +463,7 @@ folly::StringPiece packetRxReasonToString(cfg::PacketRxReason rxReason) {
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
 
-folly::StringPiece saiSwitchSdkHealthSeverityToString(
+std::string saiSwitchSdkHealthSeverityToString(
     const sai_switch_asic_sdk_health_severity_t& severity) {
   switch (severity) {
     case SAI_SWITCH_ASIC_SDK_HEALTH_SEVERITY_FATAL:
@@ -475,7 +475,7 @@ folly::StringPiece saiSwitchSdkHealthSeverityToString(
   }
   return folly::to<std::string>(static_cast<int>(severity));
 }
-folly::StringPiece saiSwitchSdkHealthCategoryToString(
+std::string saiSwitchSdkHealthCategoryToString(
     const sai_switch_asic_sdk_health_category_t& category) {
   switch (category) {
     case SAI_SWITCH_ASIC_SDK_HEALTH_CATEGORY_SW:
@@ -492,7 +492,7 @@ folly::StringPiece saiSwitchSdkHealthCategoryToString(
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 15, 0)
 
-folly::StringPiece saiSerTypeToString(const sai_ser_type_t& sai_ser_type) {
+std::string saiSerTypeToString(const sai_ser_type_t& sai_ser_type) {
   switch (sai_ser_type) {
     case SAI_SER_TYPE_UNKNOWN:
       return "SAI_SER_TYPE_UNKNOWN";
@@ -506,7 +506,7 @@ folly::StringPiece saiSerTypeToString(const sai_ser_type_t& sai_ser_type) {
   return folly::to<std::string>(static_cast<int>(sai_ser_type));
 }
 
-folly::StringPiece saiSerCorrectionTypeToString(
+std::string saiSerCorrectionTypeToString(
     const sai_ser_correction_type_t& sai_ser_correction_type) {
   switch (sai_ser_correction_type) {
     case SAI_SER_CORRECTION_TYPE_NO_ACTION:
@@ -525,7 +525,7 @@ folly::StringPiece saiSerCorrectionTypeToString(
   return folly::to<std::string>(static_cast<int>(sai_ser_correction_type));
 }
 
-folly::StringPiece saiSerLogTypeToString(sai_ser_log_type_t sai_ser_log_type) {
+std::string saiSerLogTypeToString(sai_ser_log_type_t sai_ser_log_type) {
   switch (sai_ser_log_type) {
     case SAI_SER_LOG_TYPE_MEM:
       return "SAI_SER_LOG_TYPE_MEM";

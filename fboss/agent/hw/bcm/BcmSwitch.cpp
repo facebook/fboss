@@ -3169,6 +3169,13 @@ std::vector<EcmpDetails> BcmSwitch::getAllEcmpDetails() const {
   return multiPathNextHopStatsManager_->getAllEcmpDetails();
 }
 
+cfg::SwitchingMode BcmSwitch::getFwdSwitchingMode(
+    const RouteNextHopEntry& fwd) {
+  std::lock_guard<std::mutex> lock(lock_);
+  return multiPathNextHopTable_->getFwdSwitchingMode(
+      getBcmVrfId(RouterID(0)), fwd.normalizedNextHops());
+}
+
 shared_ptr<BcmSwitchEventCallback> BcmSwitch::registerSwitchEventCallback(
     bcm_switch_event_t eventID,
     shared_ptr<BcmSwitchEventCallback> callback) {

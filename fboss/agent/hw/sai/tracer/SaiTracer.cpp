@@ -1924,6 +1924,7 @@ void SaiTracer::initVarCounts() {
   varCounts_.emplace(SAI_OBJECT_TYPE_POLICER, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_PORT, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_PORT_SERDES, 0);
+  varCounts_.emplace(SAI_OBJECT_TYPE_PORT_CONNECTOR, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_QOS_MAP, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_QUEUE, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_ROUTER_INTERFACE, 0);

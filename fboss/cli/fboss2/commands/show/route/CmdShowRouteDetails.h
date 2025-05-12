@@ -149,6 +149,7 @@ class CmdShowRouteDetails
 
       out << fmt::format("  Action: {}\n", entry.get_action());
 
+      std::map<int, int> planeIdToPathCount;
       auto& nextHops = entry.get_nextHops();
       if (nextHops.size() > 0) {
         out << fmt::format("  Forwarding via:\n");
@@ -157,6 +158,18 @@ class CmdShowRouteDetails
               "    {}\n",
               show::route::utils::getNextHopInfoStr(
                   nextHop, vlanAggregatePortMap, vlanPortMap));
+          auto topologyInfo =
+              apache::thrift::get_pointer(nextHop.topologyInfo());
+          if (topologyInfo) {
+            CHECK(topologyInfo->plane_id().has_value());
+            planeIdToPathCount[topologyInfo->plane_id().value()]++;
+          }
+        }
+        if (planeIdToPathCount.size() > 0) {
+          out << fmt::format("  Paths per plane:\n");
+          for (const auto& [planeId, pathCount] : planeIdToPathCount) {
+            out << fmt::format("    Plane {}: {}\n", planeId, pathCount);
+          }
         }
       } else {
         out << "  No Forwarding Info\n";

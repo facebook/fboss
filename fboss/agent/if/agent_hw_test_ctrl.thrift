@@ -126,6 +126,10 @@ service AgentHwTestCtrl {
   // Flowlet utils
   void updateFlowletStats();
 
+  switch_config.SwitchingMode getFwdSwitchingMode(
+    1: switch_state.RouteNextHopEntry routeNextHopEntry,
+  );
+
   // PtcTc utils
   bool getPtpTcEnabled();
 

@@ -13,8 +13,8 @@ namespace facebook::fboss {
 BcmMultiPathNextHop::BcmMultiPathNextHop(
     const BcmSwitchIf* hw,
     BcmMultiPathNextHopKey key)
-    : hw_(hw), vrf_(key.first), key_(key) {
-  auto& fwd = key.second;
+    : hw_(hw), vrf_(std::get<0>(key)), key_(key) {
+  auto& fwd = std::get<1>(key);
   CHECK_GT(fwd.size(), 0);
   BcmEcmpEgress::EgressId2Weight egressId2Weight;
   std::vector<std::shared_ptr<BcmNextHop>> nexthops;
@@ -39,7 +39,10 @@ BcmMultiPathNextHop::BcmMultiPathNextHop(
   if (egressId2Weight.size() > 1) {
     // BcmEcmpEgress object only for more than 1 paths.
     ecmpEgress_ = std::make_unique<BcmEcmpEgress>(
-        hw, std::move(egressId2Weight), RouteNextHopEntry::isUcmp(fwd));
+        hw,
+        std::move(egressId2Weight),
+        RouteNextHopEntry::isUcmp(fwd),
+        std::get<2>(key));
   }
   fwd_ = std::move(fwd);
   nexthops_ = std::move(nexthops);
@@ -273,6 +276,20 @@ void BcmMultiPathNextHopTable::updateDlbExhaustionStat() {
     }
   }
   dlbExhausted_.store(dlbExhausted);
+}
+
+cfg::SwitchingMode BcmMultiPathNextHopTable::getFwdSwitchingMode(
+    bcm_vrf_t vrf,
+    const RouteNextHopSet& nextHopSet) {
+  auto multipathNextHop =
+      getNextHop(BcmMultiPathNextHopKey(vrf, nextHopSet, std::nullopt));
+  if (multipathNextHop) {
+    auto ecmpEgress = multipathNextHop->getEgress();
+    if (ecmpEgress) {
+      return ecmpEgress->getEcmpSwitchingMode();
+    }
+  }
+  return cfg::SwitchingMode::FIXED_ASSIGNMENT;
 }
 
 } // namespace facebook::fboss

@@ -55,4 +55,8 @@ void setEcmpDynamicMemberUp(const BcmSwitch* hw);
 
 uint32 getFlowletDynamicMode(const cfg::SwitchingMode& switchingMode);
 
+cfg::SwitchingMode getEcmpSwitchingMode(uint32_t dynamicMode);
+
+bool isEcmpModeDynamic(uint32_t dynamicMode);
+
 } // namespace facebook::fboss::utility

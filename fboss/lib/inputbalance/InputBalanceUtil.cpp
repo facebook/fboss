@@ -9,6 +9,7 @@
  */
 
 #include "fboss/lib/inputbalance/InputBalanceUtil.h"
+#include "fboss/agent/state/PortMap.h"
 
 namespace facebook::fboss::utility {
 
@@ -56,6 +57,57 @@ std::vector<std::pair<int64_t, std::string>> deviceToQueryInputCapacity(
   }
   // TODO(zecheng): Implement functionality for dual stage
   return switchIDAndName2Query;
+}
+
+std::map<std::string, std::vector<std::string>> getNeighborFabricPortsToSelf(
+    const std::map<int32_t, PortInfoThrift>& myPortInfo) {
+  std::map<std::string, std::vector<std::string>> switchNameToPorts;
+  for (const auto& [_, portInfo] : myPortInfo) {
+    if (portInfo.portType() == cfg::PortType::FABRIC_PORT) {
+      if (portInfo.expectedNeighborReachability()->size() != 1) {
+        throw std::runtime_error(
+            "No expected neighbor or more than one expected neighbor for port " +
+            *portInfo.name());
+      }
+
+      auto neighborName =
+          *portInfo.expectedNeighborReachability()->at(0).remoteSystem();
+      auto portName =
+          *portInfo.expectedNeighborReachability()->at(0).remotePort();
+      auto iter = switchNameToPorts.find(neighborName);
+      if (iter != switchNameToPorts.end()) {
+        iter->second.emplace_back(portName);
+      } else {
+        switchNameToPorts[neighborName] = {portName};
+      }
+    }
+  }
+  return switchNameToPorts;
+}
+
+std::map<std::string, std::string> getPortToNeighbor(
+    const std::shared_ptr<MultiSwitchPortMap>& portMap) {
+  std::map<std::string, std::string> portToNeighbor;
+  for (const auto& [switchID, ports] : std::as_const(*portMap)) {
+    for (const auto& [portID, port] : std::as_const(*ports)) {
+      if (port->getPortType() == cfg::PortType::FABRIC_PORT) {
+        const auto& neighborReachability = port->getExpectedNeighborValues();
+        if (neighborReachability->size() != 1) {
+          throw std::runtime_error(
+              "No expected neighbor or more than one expected neighbor for port " +
+              port->getName());
+        }
+
+        std::string expectedNeighborName = *port->getExpectedNeighborValues()
+                                                ->cbegin()
+                                                ->get()
+                                                ->toThrift()
+                                                .remoteSystem();
+        portToNeighbor[port->getName()] = expectedNeighborName;
+      }
+    }
+  }
+  return portToNeighbor;
 }
 
 } // namespace facebook::fboss::utility

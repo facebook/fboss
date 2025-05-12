@@ -62,12 +62,12 @@ The picture below shows the high level system architecture.
 
 ### 2.1 FRU/PmUnits
 
-* Refer to [Platform Manager documentation](https://github.com/facebook/fboss/blob/main/fboss/docs/platform_manager.md)
+* Refer to [Platform Manager documentation](/docs/platform/platform_manager)
 
 ### 2.2 IDPROMs
 
 * Common:
-  * Refer to [Platform Manager documentation](https://github.com/facebook/fboss/blob/main/fboss/docs/platform_manager.md)
+  * Refer to [Platform Manager documentation](/docs/platform/platform_manager)
     to understand how IDPROMs play a key role in platform modeling.
   * Any EEPROM which is used to identify the FRU/PMUnit type is called IDPROM.
   * The IDPROM in the FRU MUST be connected in one of the following ways:
@@ -80,7 +80,7 @@ The picture below shows the high level system architecture.
     SCM for a PMUnit containing CPU and not EAGLE, use SMB for a PMUnit
     containing the switch ASIC and not APOLLO.
   * Chassis EEPROM is not considered an IDPROM.
-  * All IDPROMs in the system should follow [Meta EEPROM V6 format](https://github.com/facebook/fboss/blob/main/fboss/docs/meta_eeprom_format_v6.md).
+  * All IDPROMs in the system should follow [Meta EEPROM V6 format](/docs/platform/meta_eeprom_format_v6).
   * There should be NO caching mechanism to access the information source (HW)
     once and store it somewhere. All read/write should be directly from/on the
     actual devices that contain such information.
@@ -231,7 +231,7 @@ Controller has 2+ root ports):
 
 * PSU EEPROM shall follow Meta's EEPROM format.
   * If not, the vendor will ask the PSU vendor to add extra EEPROM that has the
-    [Meta EEPROM v6 contents](https://github.com/facebook/fboss/blob/main/fboss/docs/meta_eeprom_format_v6.md).
+    [Meta EEPROM v6 contents](/docs/platform/meta_eeprom_format_v6).
 * A single type of PSU shall be used.
   * If different types of PSUs are used, the following condition must be met:
     1. Every PSU shall have EEPROM in Meta V6 format to show which type of PSU
@@ -248,7 +248,7 @@ Controller has 2+ root ports):
 1. Access
    1. Access for both Port LEDs and System Status LEDs: The access path for SW
       should follow the requirements specified in [FBOSS BSP Kernel Module API
-      Specification](https://github.com/facebook/fboss/blob/main/fboss/docs/bsp_api_specification.md)
+      Specification](/docs/platform/bsp_api_specification)
 2. System Status LED
    1. System Status LED Behavior: The front-panel system LEDs and Port LED must
       be able to meet the requirements in the
@@ -463,7 +463,7 @@ A few notes:
 
 * All fpga should have a major/minor version which will be exposed by the
   `info_rom` driver.
-  * See [BSP API Specification](https://github.com/facebook/fboss/blob/main/fboss/docs/bsp_api_specification.md)
+  * See [BSP API Specification](/docs/platform/bsp_api_specification)
     for more details
 * All fpga/cpld/system controllers need to have a kernel module driver in them
   BSP codebase.

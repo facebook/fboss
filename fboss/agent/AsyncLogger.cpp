@@ -249,7 +249,7 @@ void AsyncLogger::openLogFile(std::string& filePath) {
       logFile_ = folly::File(filePath, O_RDWR | O_CREAT | O_TRUNC);
     }
   } catch (const std::system_error&) {
-    auto last_slash = filePath.find_last_of("/");
+    auto last_slash = filePath.find_last_of('/');
 
     std::string directory = filePath.substr(0, last_slash);
     std::string file_name = filePath.substr(last_slash + 1);
