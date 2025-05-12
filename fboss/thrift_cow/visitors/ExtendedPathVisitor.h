@@ -608,6 +608,13 @@ struct ExtendedPathVisitor<apache::thrift::type_class::structure> {
       Func&& f)
     requires(!is_cow_type_v<Node> && !is_field_type_v<Node>)
   {
+    if (begin == end) {
+      // Node is not a Serializable, dispatch with wrapper
+      SerializableWrapper<TC, Node> wrapper(node);
+      f(path, wrapper);
+      return;
+    }
+
     using Members = typename apache::thrift::reflect_struct<
         std::remove_cv_t<Node>>::members;
 

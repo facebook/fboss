@@ -409,11 +409,6 @@ TYPED_TEST(CowStorageTests, EncodedExtendedAccessFieldInContainer) {
   storage.publish();
   EXPECT_TRUE(storage.isPublished());
 
-  if (this->isHybridStorage()) {
-    // TODO: fix ExtendedPathVisitor::visit() by get_encoded_extended()
-    return;
-  }
-
   auto path = ext_path_builder::raw("structMap").raw("3").get();
   auto result = storage.get_encoded_extended(
       path.path()->begin(), path.path()->end(), OperProtocol::SIMPLE_JSON);
