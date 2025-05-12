@@ -61,6 +61,10 @@ std::vector<StateDelta> BaseEcmpResourceManagerTest::consolidate(
   }
   state_->publish();
   EXPECT_EQ(state_->getFibs()->getNode(RouterID(0))->getFibV4()->size(), 0);
+  /*
+   * Assert that EcmpResourceMgr leaves the ports state untouched
+   */
+  EXPECT_NE(state_->getPorts()->getPortIf("port1"), nullptr);
   return deltas;
 }
 
@@ -198,6 +202,8 @@ void BaseEcmpResourceManagerTest::SetUp() {
   XLOG(DBG2) << "BaseEcmpResourceMgrTest SetUp";
   consolidator_ = makeResourceMgr();
   state_ = std::make_shared<SwitchState>();
+  state_->getPorts()->modify(&state_);
+  registerPort(state_, PortID(1), "port1", hwMatcher());
   auto fibContainer =
       std::make_shared<ForwardingInformationBaseContainer>(RouterID(0));
   auto mfib = std::make_shared<MultiSwitchForwardingInformationBaseMap>();
@@ -241,12 +247,12 @@ TEST_F(BaseEcmpResourceManagerTest, noFibsDelta) {
   auto oldState = state_;
   auto newState = oldState->clone();
   newState->getPorts()->modify(&newState);
-  registerPort(newState, PortID(1), "portOne", hwMatcher());
+  registerPort(newState, PortID(2), "port2", hwMatcher());
   auto deltas = consolidate(newState);
   EXPECT_EQ(deltas.size(), 1);
   EXPECT_EQ(deltas.begin()->oldState(), oldState);
   EXPECT_EQ(deltas.begin()->newState(), newState);
   EXPECT_NE(
-      deltas.begin()->newState()->getPorts()->getPortIf("portOne"), nullptr);
+      deltas.begin()->newState()->getPorts()->getPortIf("port2"), nullptr);
 }
 } // namespace facebook::fboss
