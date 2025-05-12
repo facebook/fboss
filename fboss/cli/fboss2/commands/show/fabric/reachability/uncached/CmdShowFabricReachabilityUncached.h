@@ -13,7 +13,7 @@
 
 namespace facebook::fboss {
 
-struct CmdShowFabricReachabilityUncachedTraits : public BaseCommandTraits {
+struct CmdShowFabricReachabilityUncachedTraits : public ReadCommandTraits {
   using ParentCmd = CmdShowFabricReachability;
   using RetType = cli::ShowFabricReachabilityModel;
 };

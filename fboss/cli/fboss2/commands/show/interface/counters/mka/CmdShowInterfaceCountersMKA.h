@@ -22,7 +22,7 @@ namespace facebook::fboss {
 
 using utils::Table;
 
-struct CmdShowInterfaceCountersMKATraits : public BaseCommandTraits {
+struct CmdShowInterfaceCountersMKATraits : public ReadCommandTraits {
   using ParentCmd = CmdShowInterfaceCounters;
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;

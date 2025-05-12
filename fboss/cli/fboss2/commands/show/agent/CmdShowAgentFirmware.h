@@ -10,7 +10,7 @@
 
 namespace facebook::fboss {
 
-struct CmdShowAgentFirmwareTraits : public BaseCommandTraits {
+struct CmdShowAgentFirmwareTraits : public ReadCommandTraits {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
   using ObjectArgType = utils::NoneArgType;

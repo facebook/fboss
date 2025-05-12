@@ -22,7 +22,7 @@ namespace facebook::fboss {
 
 using utils::Table;
 
-struct CmdShowInterfaceFlapsTraits : public BaseCommandTraits {
+struct CmdShowInterfaceFlapsTraits : public ReadCommandTraits {
   using ParentCmd = CmdShowInterface;
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;

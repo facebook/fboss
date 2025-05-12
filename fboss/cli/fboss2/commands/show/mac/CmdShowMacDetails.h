@@ -17,7 +17,7 @@
 
 namespace facebook::fboss {
 
-struct CmdShowMacDetailsTraits : public BaseCommandTraits {
+struct CmdShowMacDetailsTraits : public ReadCommandTraits {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
   using ObjectArgType = utils::NoneArgType;

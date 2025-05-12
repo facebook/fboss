@@ -18,7 +18,7 @@
 
 namespace facebook::fboss {
 
-struct CmdShowFabricInputBalanceTraits : public BaseCommandTraits {
+struct CmdShowFabricInputBalanceTraits : public ReadCommandTraits {
   using ParentCmd = CmdShowFabric;
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_SWITCH_NAME_LIST;

@@ -26,7 +26,7 @@ namespace facebook::fboss {
 
 using utils::Table;
 
-struct CmdShowSystemPortTraits : public BaseCommandTraits {
+struct CmdShowSystemPortTraits : public ReadCommandTraits {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_SYSTEM_PORT_LIST;
   using ObjectArgType = utils::SystemPortList;
