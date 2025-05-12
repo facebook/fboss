@@ -73,7 +73,32 @@ EcmpResourceManager::InputOutputState::InputOutputState(
    */
   _in.oldState()->publish();
   _in.newState()->publish();
-  out.emplace_back(_in.oldState(), _in.oldState());
+  /*
+   * EcmpResourceManager builds new deltas by traversing the FIB delta and
+   * checking for ECMP limit. We still need to honor any non-FIB changes
+   * that came with the original delta. So in the base delta, start things
+   * off from oldState, newState with Old state FIBs.
+   * Then we traverse FIBs delta and build up new deltas.
+   *
+   * Typically we send FIB deltas on their own. With 2
+   * exceptions
+   *  - Config application
+   *  - Warm boot.
+   *
+   * We could special case these but EcmpResourceManager
+   * should not make assumptions about the kind of delta we get.
+   *
+   * Downside of this is that for the case where we have - only
+   * FIBs delta + overflow on the first route. It does create a
+   * extra empty delta in the vector of deltas.
+   */
+  auto newStateWithOldFibs = _in.newState()->clone();
+  newStateWithOldFibs->resetForwardingInformationBases(
+      _in.oldState()->getFibs());
+  newStateWithOldFibs->publish();
+  DCHECK(DeltaFunctions::isEmpty(
+      StateDelta(_in.oldState(), newStateWithOldFibs).getFibsDelta()));
+  out.emplace_back(_in.oldState(), newStateWithOldFibs);
 }
 
 template <typename AddrT>

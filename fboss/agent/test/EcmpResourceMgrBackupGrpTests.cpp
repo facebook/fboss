@@ -237,7 +237,7 @@ TEST_F(EcmpBackupGroupTypeTest, updateRouteAboveEcmpLimitToSingleNhop) {
     overflowPrefixes.insert(newRoute->prefix());
     fib6->updateNode(newRoute);
     auto deltas = consolidate(newState);
-    EXPECT_EQ(deltas.size(), 1);
+    EXPECT_EQ(deltas.size(), 2);
     assertEndState(newState, overflowPrefixes);
   }
   {
@@ -291,7 +291,7 @@ TEST_F(EcmpBackupGroupTypeTest, addRoutesAboveEcmpLimit) {
     fib6->addNode(route);
   }
   auto deltas = consolidate(newState);
-  EXPECT_EQ(deltas.size(), numStartRoutes());
+  EXPECT_EQ(deltas.size(), numStartRoutes() + 1);
   assertEndState(newState, overflowPrefixes);
 }
 
@@ -353,7 +353,7 @@ TEST_F(EcmpBackupGroupTypeTest, updateRouteAboveEcmpLimit) {
   overflowPrefixes.insert(newRoute->prefix());
   fib6->updateNode(newRoute);
   auto deltas = consolidate(newState);
-  EXPECT_EQ(deltas.size(), 1);
+  EXPECT_EQ(deltas.size(), 2);
   assertEndState(newState, overflowPrefixes);
 }
 
@@ -382,13 +382,13 @@ TEST_F(EcmpBackupGroupTypeTest, updateAllRoutesOneRouteAboveEcmpLimit) {
     fib6->updateNode(newRoute);
   }
   auto deltas = consolidate(newState);
-  EXPECT_EQ(deltas.size(), overflowPrefixes.size());
+  EXPECT_EQ(deltas.size(), overflowPrefixes.size() + 1);
   assertEndState(newState, overflowPrefixes);
 }
 
 TEST_F(EcmpBackupGroupTypeTest, updateAllRoutesAllRoutesAboveEcmpLimit) {
-  // Update a route pointing to new nhops. ECMP limit is breached.
   {
+    // Add routes pointing to existing nhops. ECMP limit is not breached.
     auto oldState = state_;
     auto newState = oldState->clone();
     auto fib6 = fib(newState);
@@ -404,6 +404,7 @@ TEST_F(EcmpBackupGroupTypeTest, updateAllRoutesAllRoutesAboveEcmpLimit) {
     assertEndState(newState, {});
   }
   {
+    // Update all routes pointing to new nhops. ECMP limit is breached.
     auto oldState = state_;
     auto newState = oldState->clone();
     auto fib6 = fib(newState);
@@ -421,14 +422,14 @@ TEST_F(EcmpBackupGroupTypeTest, updateAllRoutesAllRoutesAboveEcmpLimit) {
       }
     }
     auto deltas = consolidate(newState);
-    EXPECT_EQ(deltas.size(), overflowPrefixes.size());
+    EXPECT_EQ(deltas.size(), overflowPrefixes.size() + 1);
     assertEndState(newState, overflowPrefixes);
   }
 }
 
 TEST_F(EcmpBackupGroupTypeTest, updateAllRoutesToNewNhopsAboveEcmpLimit) {
-  // Update a route pointing to new nhops. ECMP limit is breached.
   {
+    // Add routes pointing to existing nhops. ECMP limit is not breached.
     auto oldState = state_;
     auto newState = oldState->clone();
     auto fib6 = fib(newState);
@@ -486,7 +487,7 @@ TEST_F(EcmpBackupGroupTypeTest, updateAllRoutesToNewNhopsAboveEcmpLimit) {
     // All prefixes will move to backup ecmp group
     // TODO: once we have defrag logic, these should
     // move back to primary ECMP group
-    EXPECT_EQ(deltas.size(), overflowPrefixes.size());
+    EXPECT_EQ(deltas.size(), overflowPrefixes.size() + 1);
     assertEndState(newState, overflowPrefixes);
   }
 }
