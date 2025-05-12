@@ -132,7 +132,13 @@ class AgentQueuePerHostRouteTest : public AgentHwTest {
             0);
       }
       WITH_RETRIES({
-        auto entries = getSw()->getNeighborUpdater()->getNdpCacheData().get();
+        std::list<facebook::fboss::NdpEntryThrift> entries;
+        if (isIntfNbrTable()) {
+          entries =
+              getSw()->getNeighborUpdater()->getNdpCacheDataForIntf().get();
+        } else {
+          entries = getSw()->getNeighborUpdater()->getNdpCacheData().get();
+        }
         bool found = false;
         for (const auto& entry : entries) {
           if (entry.ip() == network::toBinaryAddress(ipAddress)) {
