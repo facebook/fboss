@@ -103,7 +103,14 @@ class AgentQueuePerHostRouteTest : public AgentHwTest {
             ArpOpCode::ARP_OP_REPLY);
       }
       WITH_RETRIES({
-        auto entries = getSw()->getNeighborUpdater()->getArpCacheData().get();
+        std::list<facebook::fboss::ArpEntryThrift> entries;
+
+        if (isIntfNbrTable()) {
+          entries =
+              getSw()->getNeighborUpdater()->getArpCacheDataForIntf().get();
+        } else {
+          entries = getSw()->getNeighborUpdater()->getArpCacheData().get();
+        }
         bool found = false;
         for (const auto& entry : entries) {
           if (entry.ip() == network::toBinaryAddress(ipAddress)) {
