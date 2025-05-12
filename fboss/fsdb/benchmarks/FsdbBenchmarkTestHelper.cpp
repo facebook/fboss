@@ -125,13 +125,26 @@ void FsdbBenchmarkTestHelper::TearDown(bool stopFsdbTestServer) {
       pubsubMgr.reset();
     }
   }
+
   if (serviceFileName_) {
-    std::vector<std::string> disableWedgeAgent = {
-        "/bin/systemctl", "disable", "/tmp/" + *serviceFileName_ + ".service"};
-    std::vector<std::string> kDaemonReload = {
-        "/bin/systemctl", "daemon-reload"};
-    folly::Subprocess(disableWedgeAgent).waitChecked();
-    folly::Subprocess(kDaemonReload).waitChecked();
+    std::vector<std::string> kStatusSaiBench = {
+        "/bin/systemctl", "is-active", *serviceFileName_ + ".service"};
+    while (true) {
+      folly::Subprocess p(
+          kStatusSaiBench, folly::Subprocess::Options().pipeStdout());
+      auto [standardOut, standardErr] = p.communicate();
+      try {
+        p.wait();
+        std::string output = folly::trimWhitespace(standardOut).str();
+        if (output.find("inactive") != std::string::npos) {
+          break;
+        } else {
+          std::this_thread::sleep_for(std::chrono::seconds(1));
+        }
+      } catch (const std::exception& e) {
+        XLOG(ERR) << "Exception while getting systemctl status: " << e.what();
+      }
+    }
   }
 }
 
