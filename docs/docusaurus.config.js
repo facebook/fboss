@@ -63,10 +63,10 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
         items: [
           {label: 'Build', position: 'left', docId: 'build/building_fboss_on_docker_containers', type: 'doc'},
           {label: 'Develop', position: 'left', docId: 'developing/platform_mapping', type: 'doc'},
+          {label: 'Test', position: 'left', docId: 'testing/sensor_service_hw_test', type: 'doc'},
           // TODO: change docId when populated
-          // {label: 'Test', position: 'left', docId: 'build/building_fboss_on_docker_containers', type: 'doc'},
           // {label: 'Contribute', position: 'left', docId: 'build/building_fboss_on_docker_containers', type: 'doc'},
-          // {label: 'Architecture', position: 'left', docId: 'build/building_fboss_on_docker_containers', type: 'doc'},
+          {label: 'Architecture', position: 'left', docId: 'architecture/meta_switch_architecture', type: 'doc'},
           {
             href: 'https://github.com/facebook/fboss',
             label: 'GitHub',
