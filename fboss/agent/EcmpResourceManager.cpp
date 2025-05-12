@@ -43,14 +43,6 @@ std::vector<StateDelta> EcmpResourceManager::consolidate(
   processRouteUpdates<folly::IPAddressV4>(delta, &inOutState);
   processRouteUpdates<folly::IPAddressV6>(delta, &inOutState);
   CHECK(!inOutState.out.empty());
-  /*
-   * We start out deltas with StateDelta(oldState, oldState) and then
-   * process the routes. In case the first route itself causes a overflow
-   * we will have a no-op first delta in the vector. If so prune it
-   */
-  if (inOutState.out.front().oldState() == inOutState.out.front().newState()) {
-    inOutState.out.erase(inOutState.out.begin());
-  }
   return std::move(inOutState.out);
 }
 
