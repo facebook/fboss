@@ -27,7 +27,7 @@ std::vector<std::pair<int64_t, std::string>> deviceToQueryInputCapacity(
     const std::vector<int64_t>& fabricSwitchIDs,
     const std::map<int64_t, cfg::DsfNode>& dsfNodeMap);
 
-std::map<std::string, std::vector<std::string>> getNeighborFabricPortsToSelf(
+std::map<std::string, std::set<std::string>> getNeighborFabricPortsToSelf(
     const std::map<int32_t, PortInfoThrift>& myPortInfo);
 
 std::map<std::string, std::string> getPortToNeighbor(
