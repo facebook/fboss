@@ -142,13 +142,13 @@
         {
           "busName": "INCOMING@1",
           "address": "0x50",
-          "kernelDeviceName": "isl68226",
+          "kernelDeviceName": "bp4a_isl68226",
           "pmUnitScopedName": "SMB_ISL68226_R3R0_ANLG0"
         },
         {
           "busName": "INCOMING@1",
           "address": "0x51",
-          "kernelDeviceName": "isl68226",
+          "kernelDeviceName": "bp4a_isl68226",
           "pmUnitScopedName": "SMB_ISL68226_R3R0_ANLG1"
         },
         {
@@ -160,13 +160,13 @@
         {
           "busName": "INCOMING@1",
           "address": "0x52",
-          "kernelDeviceName": "isl68226",
+          "kernelDeviceName": "bp4a_isl68226",
           "pmUnitScopedName": "SMB_ISL68226_R3R1_ANLG0"
         },
         {
           "busName": "INCOMING@1",
           "address": "0x53",
-          "kernelDeviceName": "isl68226",
+          "kernelDeviceName": "bp4a_isl68226",
           "pmUnitScopedName": "SMB_ISL68226_R3R1_ANLG1"
         },
         {
