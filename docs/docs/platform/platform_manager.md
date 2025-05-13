@@ -122,7 +122,7 @@ It should store content in Meta EEPROM V5 format.
   version/sub-version number change). It should it also include IDPROM changes
   of the hosting PMUnit.
 
-![drawing](./platform_manager_flowchart.jpg)
+![drawing](/img/platform/platform_manager/platform_manager_flowchart.jpg)
 
 ### Field-Replaceability
 

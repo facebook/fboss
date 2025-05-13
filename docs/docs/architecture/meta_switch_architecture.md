@@ -56,7 +56,7 @@ The picture below shows the high level system architecture.
   such issues shall be discussed with Meta
 * All the exceptions need to be approved before the fab-out.
 
-![System Diagram](./system_architecture.png)
+![System Diagram](/img/architecture/meta_switch_architecture/system_architecture.png)
 
 ## 2. Topology
 
@@ -121,7 +121,7 @@ The picture below shows the high level system architecture.
 
 Here is the reference design of the UART/Console in FBOSS switches:
 
-![Console Reference Design](./uart_console.png)
+![Console Reference Design](/img/architecture/meta_switch_architecture/uart_console.png)
 
 As shown in the reference design:
 
@@ -135,7 +135,7 @@ As shown in the reference design:
 
 Here is the reference design of the management ethernet connection:
 
-![Management Ethernet Reference Design](./management_ethernet.png)
+![Management Ethernet Reference Design](/img/architecture/meta_switch_architecture/management_ethernet.png)
 
 As shown in the reference design:
 
@@ -172,7 +172,7 @@ Here are more requirements about the oob_switch:
 
 Below figure shows the VLAN settings:
 
-![VLAN Settings](./vlan.png)
+![VLAN Settings](/img/architecture/meta_switch_architecture/vlan.png)
 
 Let's call the blue management port RJ45_1, and red management port RJ45_2. The
 3 VLANs are configured as follows:
@@ -199,7 +199,7 @@ Let's call the blue management port RJ45_1, and red management port RJ45_2. The
 Here is the reference diagram (the USB HUB can be removed if X86 USB Host
 Controller has 2+ root ports):
 
-![USB Connection Reference Diagram](./usb_connection.png)
+![USB Connection Reference Diagram](/img/architecture/meta_switch_architecture/usb_connection.png)
 
 ### 2.6 Sensors / Power controllers
 
@@ -322,7 +322,7 @@ interactions:
 Here is an example design to meet the above requirements for Broadcom Tomahawk-5
 ASIC:
 
-![Power Management](./platform_reset.png)
+![Power Management](/img/architecture/meta_switch_architecture/platform_reset.png)
 
 1. Tomahawk-5 ASIC is brought out-of-reset during initial power sequencing.
 2. OpenBMC “wedge_power.sh on|off|reset” only powers on/off or reset X86 CPU.
@@ -421,7 +421,7 @@ A few notes:
     * BIOS will be stored in a separate chip. If there are two BIOS binaries
       (Primary / Golden) they will be stored in two different SPI Flash chip.
 
-![Typical COMe Architecture](./COMe_architecture.png)
+![Typical COMe Architecture](/img/architecture/meta_switch_architecture/COMe_architecture.png)
 
 * SW/FW:
   * BIOS shall pass the platform name (to be confirmed by Meta) through DMI.
