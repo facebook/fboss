@@ -32,7 +32,7 @@ std::unique_ptr<apache::thrift::Client<FbossCtrl>> fbossAgentClient() {
   folly::EventBase* eb = folly::EventBaseManager::get()->getEventBase();
   folly::SocketAddress agent(FLAGS_qsfp_service_host, 5909);
   auto socket = folly::AsyncSocket::newSocket(eb, agent);
-  auto chan = HeaderClientChannel::newChannel(std::move(socket));
+  auto chan = RocketClientChannel::newChannel(std::move(socket));
   return std::make_unique<apache::thrift::Client<FbossCtrl>>(std::move(chan));
 }
 

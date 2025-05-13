@@ -52,7 +52,7 @@ std::unique_ptr<facebook::fboss::FbossCtrlAsyncClient> createAgentClient(
   auto sock = folly::AsyncSocket::newSocket(eb, addr, kConnTimeout);
   sock->setSendTimeout(kSendTimeout);
   auto channel =
-      apache::thrift::HeaderClientChannel::newChannel(std::move(sock));
+      apache::thrift::RocketClientChannel::newChannel(std::move(sock));
   channel->setTimeout(kRecvTimeout);
 
   return std::make_unique<facebook::fboss::FbossCtrlAsyncClient>(
