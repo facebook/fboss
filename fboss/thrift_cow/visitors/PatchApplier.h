@@ -454,12 +454,13 @@ struct PatchApplier<apache::thrift::type_class::variant> {
     fatal::foreach<descriptors>([&](auto tag) {
       using descriptor = decltype(fatal::tag_type(tag));
 
-      if (descriptor::id::value != key) {
+      if (folly::to_underlying(descriptor::id::value) != key) {
         return;
       }
 
       // switch union value to point at new path.
-      if (node.getType() != descriptor::metadata::id::value) {
+      if (folly::to_underlying(node.getType()) !=
+          descriptor::metadata::id::value) {
         descriptor::set(node);
       }
 

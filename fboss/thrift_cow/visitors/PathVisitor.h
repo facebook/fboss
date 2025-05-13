@@ -681,7 +681,8 @@ struct PathVisitorImpl<apache::thrift::type_class::variant> {
       using name = typename descriptor::metadata::name;
       using tc = typename descriptor::metadata::type_class;
 
-      if (fields.type() != descriptor::metadata::id::value) {
+      if (folly::to_underlying(fields.type()) !=
+          descriptor::metadata::id::value) {
         result = ThriftTraverseResult::INCORRECT_VARIANT_MEMBER;
         return;
       }

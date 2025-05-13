@@ -1472,7 +1472,7 @@ void modifyPlatformConfig(
     const std::function<void(std::map<std::string, std::string>&)>&
         modifyMapFunc) {
   auto& chip = *config.chip();
-  if (chip.getType() == chip.bcm) {
+  if (chip.getType() == cfg::ChipConfig::Type::bcm) {
     auto& bcm = chip.mutable_bcm();
     if (!bcm.yamlConfig().value_or("").empty()) {
       // yamlConfig used for TH4
@@ -1480,12 +1480,12 @@ void modifyPlatformConfig(
     } else {
       modifyMapFunc(*bcm.config());
     }
-  } else if (chip.getType() == chip.asicConfig) {
+  } else if (chip.getType() == cfg::ChipConfig::Type::asicConfig) {
     auto& common = *(chip.mutable_asicConfig().common());
-    if (common.getType() == common.yamlConfig) {
+    if (common.getType() == cfg::AsicConfigEntry::Type::yamlConfig) {
       // yamlConfig used for TH4
       modifyYamlFunc(common.mutable_yamlConfig());
-    } else if (common.getType() == common.config) {
+    } else if (common.getType() == cfg::AsicConfigEntry::Type::config) {
       modifyMapFunc(common.mutable_config());
     }
   }
