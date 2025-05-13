@@ -95,7 +95,7 @@ void EcmpResourceManager::reclaimEcmpGroups(InputOutputState* inOutState) {
   }
   auto oldState = inOutState->out.back().newState();
   auto newState = oldState->clone();
-  for (const auto& [pfx, grpInfo] : prefixToGroupInfo_) {
+  for (const auto& [ridAndPfx, grpInfo] : prefixToGroupInfo_) {
     if (!groupIdsToReclaim.contains(grpInfo->getID())) {
       continue;
     }
@@ -114,20 +114,15 @@ void EcmpResourceManager::reclaimEcmpGroups(InputOutputState* inOutState) {
       route->publish();
       fib->updateNode(route);
     };
-    // TODO store RouterID alongisde prefixes so we don't assume
-    // RID of 0
+    const auto& [rid, pfx] = ridAndPfx;
     if (pfx.first.isV6()) {
-      auto fib6 = newState->getFibs()
-                      ->getNode(RouterID(0))
-                      ->getFibV6()
-                      ->modify(RouterID(0), &newState);
+      auto fib6 =
+          newState->getFibs()->getNode(rid)->getFibV6()->modify(rid, &newState);
       RoutePrefixV6 routePfx(pfx.first.asV6(), pfx.second);
       updateFib(routePfx, fib6);
     } else {
-      auto fib4 = newState->getFibs()
-                      ->getNode(RouterID(0))
-                      ->getFibV4()
-                      ->modify(RouterID(0), &newState);
+      auto fib4 =
+          newState->getFibs()->getNode(rid)->getFibV4()->modify(rid, &newState);
       RoutePrefixV4 routePfx(pfx.first.asV4(), pfx.second);
       updateFib(routePfx, fib4);
     }
@@ -351,7 +346,7 @@ void EcmpResourceManager::routeAddedOrUpdated(
   }
   CHECK(grpInfo);
   auto [pitr, pfxInserted] = prefixToGroupInfo_.insert(
-      {newRoute->prefix().toCidrNetwork(), std::move(grpInfo)});
+      {{rid, newRoute->prefix().toCidrNetwork()}, std::move(grpInfo)});
   CHECK(pfxInserted);
   pitr->second->incRouteUsageCount();
   CHECK_GT(pitr->second->getRouteUsageCount(), 0);
@@ -443,7 +438,8 @@ void EcmpResourceManager::routeDeleted(
   }
   NextHopGroupId groupId{kMinNextHopGroupId - 1};
   {
-    auto pitr = prefixToGroupInfo_.find(removed->prefix().toCidrNetwork());
+    auto pitr =
+        prefixToGroupInfo_.find({rid, removed->prefix().toCidrNetwork()});
     CHECK(pitr != prefixToGroupInfo_.end());
     groupId = pitr->second->getID();
     prefixToGroupInfo_.erase(pitr);
