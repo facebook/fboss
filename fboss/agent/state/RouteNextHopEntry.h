@@ -102,6 +102,10 @@ class RouteNextHopEntry
     }
     return std::nullopt;
   }
+  void setOverrideEcmpSwitchingMode(
+      std::optional<cfg::SwitchingMode> switchingMode) {
+    ref<switch_state_tags::overrideEcmpSwitchingMode>() = switchingMode;
+  }
   NextHopSet normalizedNextHops() const;
 
   // Get the sum of the weights of all the nexthops in the entry

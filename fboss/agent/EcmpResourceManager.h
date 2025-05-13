@@ -131,6 +131,13 @@ class EcmpResourceManager {
   };
   std::set<NextHopGroupId> createOptimalMergeGroupSet();
   template <typename AddrT>
+  std::shared_ptr<NextHopGroupInfo> updateForwardingInfoAndInsertDelta(
+      RouterID rid,
+      const std::shared_ptr<Route<AddrT>>& route,
+      NextHops2GroupId::iterator nhops2IdItr,
+      bool ecmpDemandExceeded,
+      InputOutputState* inOutState);
+  template <typename AddrT>
   std::shared_ptr<NextHopGroupInfo> ecmpGroupDemandExceeded(
       RouterID rid,
       const std::shared_ptr<Route<AddrT>>& route,
