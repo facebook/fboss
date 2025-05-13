@@ -124,7 +124,7 @@ option dhcp6.linuxboot-id code 17 = {
 send dhcp6.linuxboot-id 40981 1 44 "OpenBMC:model=MINIPACK-SMB=serial=1234";
 ```
 
-![DHCPv6 Option 17 Encoding Example](dhcp_v6.png)
+![DHCPv6 Option 17 Encoding Example](/img/provisioning/provisioning_requirements_npi/dhcp_v6.png)
 *DHCPv6 Option 17 Encoding Example*
 
 ### 2.  IPv6 Stateless Address Autoconfiguration Support
