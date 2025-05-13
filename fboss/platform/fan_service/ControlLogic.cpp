@@ -402,31 +402,14 @@ bool ControlLogic::isFanPresentInDevice(const Fan& fan) {
   return fanPresent;
 }
 
-std::pair<bool, int16_t> ControlLogic::programFan(
+bool ControlLogic::programFan(
     const Zone& zone,
     const Fan& fan,
-    int16_t currentFanPwm,
-    int16_t zonePwm) {
-  int16_t newFanPwm = zonePwm;
+    int16_t fanPwm) {
   bool writeSuccess{false};
-  if ((*zone.slope() == 0) || (currentFanPwm == 0)) {
-    newFanPwm = zonePwm;
-  } else if (std::abs(currentFanPwm - zonePwm) > *zone.slope()) {
-    newFanPwm = currentFanPwm +
-        ((zonePwm > currentFanPwm) ? *zone.slope() : -*zone.slope());
-  }
-
-  newFanPwm = std::min(newFanPwm, *config_.pwmUpperThreshold());
-  newFanPwm = std::max(newFanPwm, *config_.pwmLowerThreshold());
-
-  std::optional<int> fanHoldPwm = fanHoldPwm_.load();
-  if (fanHoldPwm.has_value()) {
-    newFanPwm = fanHoldPwm.value();
-    XLOG(INFO) << "Using hold PWM " << newFanPwm;
-  }
 
   int pwmRawValue = static_cast<int>(
-      ((*fan.pwmMax()) - (*fan.pwmMin())) * newFanPwm / 100.0 + *fan.pwmMin());
+      ((*fan.pwmMax()) - (*fan.pwmMin())) * fanPwm / 100.0 + *fan.pwmMin());
   if (pwmRawValue < *fan.pwmMin()) {
     pwmRawValue = *fan.pwmMin();
   } else if (pwmRawValue > *fan.pwmMax()) {
@@ -438,22 +421,21 @@ std::pair<bool, int16_t> ControlLogic::programFan(
       !writeSuccess);
   if (writeSuccess) {
     fb303::fbData->setCounter(
-        fmt::format(kFanWriteValue, *zone.zoneName(), *fan.fanName()),
-        newFanPwm);
+        fmt::format(kFanWriteValue, *zone.zoneName(), *fan.fanName()), fanPwm);
     XLOG(INFO) << fmt::format(
         "{}: Programmed with PWM {} (raw value {})",
         *fan.fanName(),
-        newFanPwm,
+        fanPwm,
         pwmRawValue);
   } else {
     XLOG(INFO) << fmt::format(
         "{}: Failed to program with PWM {} (raw value {})",
         *fan.fanName(),
-        newFanPwm,
+        fanPwm,
         pwmRawValue);
   }
 
-  return std::make_pair(!writeSuccess, newFanPwm);
+  return !writeSuccess;
 }
 
 void ControlLogic::programLed(const Fan& fan, bool fanFailed) {
@@ -503,28 +485,13 @@ int16_t ControlLogic::calculateZonePwm(const Zone& zone, bool boostMode) {
   if (boostMode) {
     zonePwm = std::max(zonePwm, *config_.pwmBoostValue());
   }
+
   XLOG(INFO) << fmt::format(
       "{}: Components: {}. Aggregation Type: {}. Aggregate PWM is {}.",
       *zone.zoneName(),
       folly::join(",", *zone.sensorNames()),
       zoneType,
       zonePwm);
-  for (const auto& sensorName : *zone.sensorNames()) {
-    if (pidLogics_.find(sensorName) != pidLogics_.end()) {
-      pidLogics_.at(sensorName)->updateLastPwm(zonePwm);
-    }
-    for (const auto& optic : *config_.optics()) {
-      if (optic.opticName() != sensorName) {
-        continue;
-      }
-      for (const auto& [opticType, _] : *optic.pidSettings()) {
-        auto cacheKey = *optic.opticName() + opticType;
-        if (pidLogics_.find(cacheKey) != pidLogics_.end()) {
-          pidLogics_.at(cacheKey)->updateLastPwm(zonePwm);
-        }
-      }
-    }
-  }
 
   return zonePwm;
 }
@@ -540,15 +507,13 @@ void ControlLogic::setTransitionValue() {
                 *fan.fanName()) == zone.fanNames()->end()) {
           continue;
         }
+        int16_t fanPwm = *config_.pwmTransitionValue();
+        bool fanFailed = programFan(zone, fan, fanPwm);
+
         for (auto& [key, pidLogic] : pidLogics_) {
-          pidLogic->updateLastPwm(*config_.pwmTransitionValue());
+          pidLogic->updateLastPwm(fanPwm);
         }
-        const auto [fanFailed, newFanPwm] = programFan(
-            zone,
-            fan,
-            *fanStatuses[*fan.fanName()].pwmToProgram(),
-            *config_.pwmTransitionValue());
-        fanStatuses[*fan.fanName()].pwmToProgram() = newFanPwm;
+        fanStatuses[*fan.fanName()].pwmToProgram() = fanPwm;
         if (fanFailed) {
           programLed(fan, fanFailed);
         }
@@ -675,9 +640,15 @@ void ControlLogic::updateControl(std::shared_ptr<SensorData> pS) {
                 *fan.fanName()) == zone.fanNames()->end()) {
           continue;
         }
-        const auto [fanFailed, newFanPwm] = programFan(
-            zone, fan, *fanStatuses[*fan.fanName()].pwmToProgram(), zonePwm);
-        fanStatuses[*fan.fanName()].pwmToProgram() = newFanPwm;
+
+        int16_t fanPwm = calculateFanPwm(
+            *zone.slope(),
+            *fanStatuses[*fan.fanName()].pwmToProgram(),
+            zonePwm);
+        bool fanFailed = programFan(zone, fan, fanPwm);
+        updatePwmState(zone, fanPwm);
+
+        fanStatuses[*fan.fanName()].pwmToProgram() = fanPwm;
         if (fanFailed) {
           // Only override the fanFailed if fan programming failed.
           fanStatuses[*fan.fanName()].fanFailed() = fanFailed;
@@ -690,6 +661,47 @@ void ControlLogic::updateControl(std::shared_ptr<SensorData> pS) {
       programLed(fan, *fanStatuses[*fan.fanName()].fanFailed());
     }
   });
+}
+
+int16_t ControlLogic::calculateFanPwm(
+    float slope,
+    int16_t currentFanPwm,
+    int16_t zonePwm) {
+  int16_t newFanPwm = zonePwm;
+  if ((slope == 0) || (currentFanPwm == 0)) {
+    newFanPwm = zonePwm;
+  } else if (std::abs(currentFanPwm - zonePwm) > slope) {
+    newFanPwm = currentFanPwm + ((zonePwm > currentFanPwm) ? slope : -slope);
+  }
+
+  newFanPwm = std::min(newFanPwm, *config_.pwmUpperThreshold());
+  newFanPwm = std::max(newFanPwm, *config_.pwmLowerThreshold());
+
+  std::optional<int> fanHoldPwm = fanHoldPwm_.load();
+  if (fanHoldPwm.has_value()) {
+    newFanPwm = fanHoldPwm.value();
+    XLOG(INFO) << "Using hold PWM " << newFanPwm;
+  }
+  return newFanPwm;
+}
+
+void ControlLogic::updatePwmState(const Zone& zone, int16_t fanPwm) {
+  for (const auto& sensorName : *zone.sensorNames()) {
+    if (pidLogics_.find(sensorName) != pidLogics_.end()) {
+      pidLogics_.at(sensorName)->updateLastPwm(fanPwm);
+    }
+    for (const auto& optic : *config_.optics()) {
+      if (optic.opticName() != sensorName) {
+        continue;
+      }
+      for (const auto& [opticType, _] : *optic.pidSettings()) {
+        auto cacheKey = *optic.opticName() + opticType;
+        if (pidLogics_.find(cacheKey) != pidLogics_.end()) {
+          pidLogics_.at(cacheKey)->updateLastPwm(fanPwm);
+        }
+      }
+    }
+  }
 }
 
 void ControlLogic::setFanHold(std::optional<int> pwm) {
