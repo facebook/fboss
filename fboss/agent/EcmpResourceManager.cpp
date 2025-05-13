@@ -46,6 +46,95 @@ std::vector<StateDelta> EcmpResourceManager::consolidate(
   return std::move(inOutState.out);
 }
 
+void EcmpResourceManager::reclaimEcmpGroups(InputOutputState* inOutState) {
+  CHECK_LE(inOutState->nonBackupEcmpGroupsCnt, maxEcmpGroups_);
+  auto canReclaim = maxEcmpGroups_ - inOutState->nonBackupEcmpGroupsCnt;
+  if (!canReclaim) {
+    XLOG(DBG2) << " Unable to reclaim any non primary groups";
+    return;
+  }
+  XLOG(DBG2) << " Can reclaim : " << canReclaim << " non primary groups";
+  std::unordered_set<NextHopGroupId> allBackupGroupIds;
+  std::vector<std::shared_ptr<NextHopGroupInfo>> backupGroupsSorted;
+  std::for_each(
+      nextHopGroupIdToInfo_.begin(),
+      nextHopGroupIdToInfo_.end(),
+      [&backupGroupsSorted, &allBackupGroupIds](const auto& idAndGrpRef) {
+        auto groupInfo = idAndGrpRef.second.lock();
+        if (groupInfo->isBackupEcmpGroupType()) {
+          backupGroupsSorted.push_back(groupInfo);
+          allBackupGroupIds.insert(groupInfo->getID());
+        }
+      });
+  if (backupGroupsSorted.empty()) {
+    return;
+  }
+  XLOG(DBG2) << " Will reclaim : "
+             << std::min(
+                    canReclaim,
+                    static_cast<uint32_t>(backupGroupsSorted.size()))
+             << " non primary groups";
+  std::unordered_set<NextHopGroupId> groupIdsToReclaim;
+  if (allBackupGroupIds.size() > canReclaim) {
+    // Sort groups by number of routes pointing to this group.
+    std::sort(
+        backupGroupsSorted.begin(),
+        backupGroupsSorted.end(),
+        [](const auto& lgroup, const auto& rgroup) {
+          return lgroup->getRouteUsageCount() < rgroup->getRouteUsageCount();
+        });
+    int claimed = 0;
+    for (auto gitr = backupGroupsSorted.rbegin();
+         gitr != backupGroupsSorted.rend() && claimed < canReclaim;
+         ++gitr, ++claimed) {
+      groupIdsToReclaim.insert((*gitr)->getID());
+    }
+  } else {
+    groupIdsToReclaim = std::move(allBackupGroupIds);
+  }
+  auto oldState = inOutState->out.back().newState();
+  auto newState = oldState->clone();
+  for (const auto& [pfx, grpInfo] : prefixToGroupInfo_) {
+    if (!groupIdsToReclaim.contains(grpInfo->getID())) {
+      continue;
+    }
+
+    auto updateFib = [](const auto& routePfx, auto fib) {
+      auto route = fib->exactMatch(routePfx)->clone();
+      const auto& curForwardInfo = route->getForwardInfo();
+      auto newForwardInfo = RouteNextHopEntry(
+          curForwardInfo.getNextHopSet(),
+          curForwardInfo.getAdminDistance(),
+          curForwardInfo.getCounterID(),
+          curForwardInfo.getClassID());
+      XLOG(DBG2) << " Reclaimed and moved : " << route->str()
+                 << " to primary ECMP group type";
+      route->setResolved(newForwardInfo);
+      route->publish();
+      fib->updateNode(route);
+    };
+    // TODO store RouterID alongisde prefixes so we don't assume
+    // RID of 0
+    if (pfx.first.isV6()) {
+      auto fib6 = newState->getFibs()
+                      ->getNode(RouterID(0))
+                      ->getFibV6()
+                      ->modify(RouterID(0), &newState);
+      RoutePrefixV6 routePfx(pfx.first.asV6(), pfx.second);
+      updateFib(routePfx, fib6);
+    } else {
+      auto fib4 = newState->getFibs()
+                      ->getNode(RouterID(0))
+                      ->getFibV4()
+                      ->modify(RouterID(0), &newState);
+      RoutePrefixV4 routePfx(pfx.first.asV4(), pfx.second);
+      updateFib(routePfx, fib4);
+    }
+  }
+  newState->publish();
+  inOutState->out.emplace_back(oldState, newState);
+}
+
 std::set<EcmpResourceManager::NextHopGroupId>
 EcmpResourceManager::createOptimalMergeGroupSet() {
   if (!compressionPenaltyThresholdPct_) {
@@ -110,8 +199,22 @@ void EcmpResourceManager::InputOutputState::addOrUpdateRoute(
       rid, &newState);
   auto existingRoute = fib->getRouteIf(newRoute->prefix());
   if (existingRoute) {
+    XLOG(DBG4) << " Updated existing route: " << newRoute->str()
+               << " route points to backup ecmp type: "
+               << (newRoute->getForwardInfo()
+                           .getOverrideEcmpSwitchingMode()
+                           .has_value()
+                       ? "Y"
+                       : "N");
     fib->updateNode(newRoute);
   } else {
+    XLOG(DBG4) << " Added new route: " << newRoute->str()
+               << " route points to backup ecmp type: "
+               << (newRoute->getForwardInfo()
+                           .getOverrideEcmpSwitchingMode()
+                           .has_value()
+                       ? "Y"
+                       : "N");
     fib->addNode(newRoute);
   }
   if (!ecmpDemandExceeded) {
@@ -332,7 +435,7 @@ void EcmpResourceManager::routeDeleted(
      * When route is deleted as part of a update we don't need
      * to queue this up as a separate delta in list of deltas
      * to be sent down to HW. The update will just be
-     * accounted for in the delete queued by the updateRoute
+     * accounted for in the delta queued by the updateRoute
      * flow
      */
     inOutState->deleteRoute(rid, removed);
