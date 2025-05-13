@@ -90,6 +90,11 @@ struct ReadCommandTraits : public BaseCommandTraits {
       CliReadWriteMode::CLI_MODE_READ;
 };
 
+struct WriteCommandTraits : public BaseCommandTraits {
+  static constexpr CliReadWriteMode CLI_READ_WRITE_MODE =
+      CliReadWriteMode::CLI_MODE_WRITE;
+};
+
 template <typename CmdTypeT, typename CmdTypeTraits>
 class CmdHandler {
   static_assert(
