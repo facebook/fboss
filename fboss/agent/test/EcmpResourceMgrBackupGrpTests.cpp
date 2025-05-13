@@ -447,11 +447,11 @@ TEST_F(EcmpBackupGroupTypeTest, updateAllRoutesToNewNhopsAboveEcmpLimit) {
   {
     /*
      * Initial state
-     * R1, R6 -> G1
-     * R2, R7 -> G2
-     * R3, R8 -> G3
-     * R4, R9 -> G4
-     * R5, R10 -> G5
+     * R1, R5 -> G1
+     * R2, R6 -> G2
+     * R3, R7 -> G3
+     * R4, R8 -> G4
+     * R0, R9 -> G5
      * New state
      * R1 -> G6
      * R2 -> G7
@@ -462,7 +462,7 @@ TEST_F(EcmpBackupGroupTypeTest, updateAllRoutesToNewNhopsAboveEcmpLimit) {
      * R7 -> G9
      * R8 -> G8
      * R9 -> G7
-     * R10 -> G6
+     * R0 -> G6
      */
     auto oldState = state_;
     auto newState = oldState->clone();
@@ -475,19 +475,18 @@ TEST_F(EcmpBackupGroupTypeTest, updateAllRoutesToNewNhopsAboveEcmpLimit) {
       auto newRoute = fib6->getRouteIf(route->prefix())->clone();
       newRoute->setResolved(RouteNextHopEntry(
           nhopSets[idxDirectionFwd ? idx++ : idx--], kDefaultAdminDistance));
-      overflowPrefixes.insert(newRoute->prefix());
       fib6->updateNode(newRoute);
+      overflowPrefixes.insert(newRoute->prefix());
       if (idx == nhopSets.size()) {
         idxDirectionFwd = false;
         --idx;
-        break;
       }
     }
     auto deltas = consolidate(newState);
     // All prefixes will move to backup ecmp group
     // TODO: once we have defrag logic, these should
     // move back to primary ECMP group
-    EXPECT_EQ(deltas.size(), overflowPrefixes.size() + 1);
+    EXPECT_EQ(deltas.size(), 6);
     assertEndState(newState, overflowPrefixes);
   }
 }

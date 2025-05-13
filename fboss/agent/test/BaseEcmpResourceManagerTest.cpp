@@ -149,8 +149,9 @@ void BaseEcmpResourceManagerTest::assertDeltasForOverflow(
         consolidator_->getMaxPrimaryEcmpGroups());
   };
 
+  auto idx = 1;
   for (const auto& delta : deltas) {
-    XLOG(DBG2) << " Processing delta";
+    XLOG(DBG2) << " Processing delta #" << idx++;
     forEachChangedRoute<folly::IPAddressV6>(
         delta,
         [=](RouterID /*rid*/, const auto& oldRoute, const auto& newRoute) {
