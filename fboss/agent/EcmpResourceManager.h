@@ -129,6 +129,9 @@ class EcmpResourceManager {
     uint32_t nonBackupEcmpGroupsCnt;
     std::vector<StateDelta> out;
   };
+  std::vector<StateDelta> consolidateImpl(
+      const StateDelta& delta,
+      InputOutputState* inOutState);
   void reclaimEcmpGroups(InputOutputState* inOutState);
   std::set<NextHopGroupId> createOptimalMergeGroupSet();
   template <typename AddrT>

@@ -40,11 +40,17 @@ std::vector<StateDelta> EcmpResourceManager::consolidate(
             idAndInfo.second.lock()->isBackupEcmpGroupType() ? 0 : 1;
       });
   InputOutputState inOutState(nonBackupEcmpGroupsCnt, delta);
-  processRouteUpdates<folly::IPAddressV4>(delta, &inOutState);
-  processRouteUpdates<folly::IPAddressV6>(delta, &inOutState);
-  reclaimEcmpGroups(&inOutState);
-  CHECK(!inOutState.out.empty());
-  return std::move(inOutState.out);
+  return consolidateImpl(delta, &inOutState);
+}
+
+std::vector<StateDelta> EcmpResourceManager::consolidateImpl(
+    const StateDelta& delta,
+    InputOutputState* inOutState) {
+  processRouteUpdates<folly::IPAddressV4>(delta, inOutState);
+  processRouteUpdates<folly::IPAddressV6>(delta, inOutState);
+  reclaimEcmpGroups(inOutState);
+  CHECK(!inOutState->out.empty());
+  return std::move(inOutState->out);
 }
 
 void EcmpResourceManager::reclaimEcmpGroups(InputOutputState* inOutState) {
