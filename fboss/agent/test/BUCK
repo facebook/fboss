@@ -578,6 +578,7 @@ cpp_library(
         "MultiNodeLoadBalancerTests.cpp",
         "MultiNodeOpenrTests.cpp",
     ],
+    link_whole = True,
     # Need symbols from bcm, sai layers.
     undefined_symbols = True,
     exported_deps = [
@@ -614,6 +615,7 @@ cpp_library(
     srcs = [
         "MultiNodeMacsecTests.cpp",
     ],
+    link_whole = True,
     # Need symbols from bcm, sai layers.
     undefined_symbols = True,
     exported_deps = [
