@@ -732,6 +732,30 @@ std::map<std::string, int64_t> AgentEnsemble::getFb303CountersByRegex(
 }
 
 /**
+ * Retrieves the value of a specific fb303 counter for a given switch.
+ *
+ * @details
+ * Works in both mono-switch and multi-switch environments.
+ *
+ * @param key The name of the counter to retrieve.
+ * @param switchID The ID of the switch for which to retrieve the counter.
+ *
+ * @return The value of the specified counter.
+ */
+int64_t AgentEnsemble::getFb303Counter(
+    const std::string& key,
+    const SwitchID& switchID) {
+  int64_t counter{0};
+#ifndef IS_OSS
+  auto client = getSw()->getHwSwitchThriftClientTable()->getClient(switchID);
+  apache::thrift::Client<facebook::thrift::Monitor> monitoringClient{
+      client->getChannelShared()};
+  counter = monitoringClient.sync_getCounter(key);
+#endif
+  return counter;
+}
+
+/**
  * Retrieves the value of the first counter that matches a given regex pattern
  * for a specific port.
  *

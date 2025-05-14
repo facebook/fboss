@@ -322,8 +322,21 @@ class AgentEnsemble : public TestEnsembleIf {
       const std::string& regex);
 
   /**
-   * Retrieves the value of the first counter that matches a given regex pattern
-   * for a specific port.
+   * Retrieves the value of a specific fb303 counter for a given switch.
+   *
+   * @details
+   * Works in both mono-switch and multi-switch environments.
+   *
+   * @param key The name of the counter to retrieve.
+   * @param switchID The ID of the switch for which to retrieve the counter.
+   *
+   * @return The value of the specified counter.
+   */
+  int64_t getFb303Counter(const std::string& key, const SwitchID& switchID);
+
+  /**
+   * Retrieves the value of the first counter that matches a given regex
+   * pattern for a specific port.
    *
    * @details
    * Works in both mono-switch and multi-switch environments.
@@ -331,8 +344,8 @@ class AgentEnsemble : public TestEnsembleIf {
    * @param portId The ID of the port for which to retrieve the counter.
    * @param regex The regex pattern to match against counter names.
    *
-   * @return The value of the first matching counter if one exists, otherwise
-   * nullopt.
+   * @return The value of the first matching counter if one exists,
+   * otherwise nullopt.
    */
   std::optional<int64_t> getFb303CounterIfExists(
       const PortID& portId,
