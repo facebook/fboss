@@ -214,6 +214,12 @@ class TransceiverManager {
     return phyManager_.get();
   }
 
+  void releasePhyManager() {
+    if (phyManager_) {
+      phyManager_.release();
+    }
+  }
+
   /*
    * Virtual function to program a PHY port on external PHY. This function
    * needs to be implemented by the platforms which support external PHY

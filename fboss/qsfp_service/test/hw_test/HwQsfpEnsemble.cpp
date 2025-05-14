@@ -63,6 +63,9 @@ void HwQsfpEnsemble::setupForWarmboot() {
   // Leave TransceiverManager::gracefulExit() to handle setting up the correct
   // warm boot files.
   getWedgeManager()->gracefulExit();
+  if (isSaiPlatform()) {
+    getWedgeManager()->releasePhyManager();
+  }
 }
 
 PhyManager* HwQsfpEnsemble::getPhyManager() {
