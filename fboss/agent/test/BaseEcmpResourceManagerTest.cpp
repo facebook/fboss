@@ -271,6 +271,29 @@ TEST_F(BaseEcmpResourceManagerTest, addClassId) {
       cfib(deltas.begin()->newState())->getRouteIf(newRoute->prefix());
   EXPECT_NE(postUpdateRoute, nullptr);
   EXPECT_EQ(
-      cfg::AclLookupClass::DST_CLASS_L3_LOCAL_2, postUpdateRoute->getClassID());
+      postUpdateRoute->getClassID(), cfg::AclLookupClass::DST_CLASS_L3_LOCAL_2);
+}
+
+TEST_F(BaseEcmpResourceManagerTest, addCounterId) {
+  auto oldState = state_;
+  auto newState = oldState->clone();
+  auto fib6 = fib(newState);
+  auto newRoute = fib6->cbegin()->second->clone();
+  const auto& nhopEntry = newRoute->getForwardInfo();
+  std::optional<RouteCounterID> counterId("42");
+  RouteNextHopEntry newNhopEntry(
+      nhopEntry.getNextHopSet(),
+      nhopEntry.getAdminDistance(),
+      counterId,
+      nhopEntry.getClassID());
+  newRoute->setResolved(newNhopEntry);
+  fib6->updateNode(newRoute);
+  auto deltas = consolidate(newState);
+  EXPECT_EQ(deltas.size(), 1);
+  EXPECT_EQ(deltas.begin()->oldState(), oldState);
+  auto postUpdateRoute =
+      cfib(deltas.begin()->newState())->getRouteIf(newRoute->prefix());
+  EXPECT_NE(postUpdateRoute, nullptr);
+  EXPECT_EQ(postUpdateRoute->getForwardInfo().getCounterID(), counterId);
 }
 } // namespace facebook::fboss
