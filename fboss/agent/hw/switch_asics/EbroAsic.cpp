@@ -207,6 +207,7 @@ bool EbroAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::DRAM_DATAPATH_PACKET_ERROR_STATS:
     case HwAsic::Feature::EGRESS_POOL_AVAILABLE_SIZE_ATTRIBUTE_SUPPORTED:
     case HwAsic::Feature::SWITCH_ASIC_SDK_HEALTH_NOTIFY:
+    case HwAsic::Feature::VENDOR_SWITCH_CONGESTION_MANAGEMENT_ERRORS:
       return false;
     case HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER:
       /*

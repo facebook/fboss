@@ -133,7 +133,9 @@ TEST(PatchBuilderTests, ModifyVariant) {
                            ->at(TestStructMembers::inlineVariant::id())
                            .get_variant_node();
 
-  EXPECT_EQ(*inlineVariant.id(), TestUnionMembers::inlineInt());
+  EXPECT_EQ(
+      *inlineVariant.id(),
+      folly::to_underlying(TestUnionMembers::inlineInt::value));
   auto val = deserializeInt(std::move(*inlineVariant.child()));
   EXPECT_EQ(val, 321);
 }
@@ -155,7 +157,9 @@ TEST(PatchBuilderTests, ModifyVariantType) {
   auto inlineVariant = patch.children()
                            ->at(TestStructMembers::inlineVariant::id())
                            .get_variant_node();
-  EXPECT_EQ(*inlineVariant.id(), TestUnionMembers::inlineStruct());
+  EXPECT_EQ(
+      *inlineVariant.id(),
+      folly::to_underlying(TestUnionMembers::inlineStruct::value));
   auto pr =
       deserializeStruct<cfg::L4PortRange>(std::move(*inlineVariant.child()));
   EXPECT_EQ(pr, structB.inlineVariant()->get_inlineStruct());
@@ -167,7 +171,9 @@ TEST(PatchBuilderTests, ModifyVariantType) {
   inlineVariant = patch.children()
                       ->at(TestStructMembers::inlineVariant::id())
                       .get_variant_node();
-  EXPECT_EQ(*inlineVariant.id(), TestUnionMembers::inlineInt());
+  EXPECT_EQ(
+      *inlineVariant.id(),
+      folly::to_underlying(TestUnionMembers::inlineInt::value));
   auto val = deserializeInt(std::move(*inlineVariant.child()));
   EXPECT_EQ(val, 123);
 }
@@ -189,7 +195,9 @@ TEST(PatchBuilderTests, ModifyVariantStructVal) {
                            ->at(TestStructMembers::inlineVariant::id())
                            .get_variant_node();
 
-  EXPECT_EQ(*inlineVariant.id(), TestUnionMembers::inlineStruct());
+  EXPECT_EQ(
+      *inlineVariant.id(),
+      folly::to_underlying(TestUnionMembers::inlineStruct::value));
   auto inlineStruct = inlineVariant.child()->get_struct_node();
   EXPECT_EQ(inlineStruct.children()->size(), 1);
   auto valuePatch = inlineStruct.children()->at(L4PortRangeMembers::min::id());

@@ -129,7 +129,15 @@ class EcmpResourceManager {
     uint32_t nonBackupEcmpGroupsCnt;
     std::vector<StateDelta> out;
   };
+  void reclaimEcmpGroups(InputOutputState* inOutState);
   std::set<NextHopGroupId> createOptimalMergeGroupSet();
+  template <typename AddrT>
+  std::shared_ptr<NextHopGroupInfo> updateForwardingInfoAndInsertDelta(
+      RouterID rid,
+      const std::shared_ptr<Route<AddrT>>& route,
+      NextHops2GroupId::iterator nhops2IdItr,
+      bool ecmpDemandExceeded,
+      InputOutputState* inOutState);
   template <typename AddrT>
   std::shared_ptr<NextHopGroupInfo> ecmpGroupDemandExceeded(
       RouterID rid,
@@ -167,7 +175,9 @@ class EcmpResourceManager {
   NextHopGroupId findNextAvailableId() const;
   NextHops2GroupId nextHopGroup2Id_;
   StdRefMap<NextHopGroupId, NextHopGroupInfo> nextHopGroupIdToInfo_;
-  std::unordered_map<folly::CIDRNetwork, std::shared_ptr<NextHopGroupInfo>>
+  std::unordered_map<
+      std::pair<RouterID, folly::CIDRNetwork>,
+      std::shared_ptr<NextHopGroupInfo>>
       prefixToGroupInfo_;
   std::map<NextHopGroupIds, ConsolidationPenalty> mergedGroups_;
   std::map<NextHopGroupIds, ConsolidationPenalty> candidateMergeGroups_;

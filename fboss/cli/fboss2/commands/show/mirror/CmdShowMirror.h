@@ -23,7 +23,7 @@ namespace facebook::fboss {
 
 using utils::Table;
 
-struct CmdShowMirrorTraits : public BaseCommandTraits {
+struct CmdShowMirrorTraits : public ReadCommandTraits {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_MIRROR_LIST;
   using ObjectArgType = utils::MirrorList;

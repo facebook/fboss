@@ -536,7 +536,8 @@ struct ExtendedPathVisitor<apache::thrift::type_class::variant> {
       using name = typename descriptor::metadata::name;
       using tc = typename descriptor::metadata::type_class;
 
-      if (fields.type() != descriptor::metadata::id::value) {
+      if (folly::to_underlying(fields.type()) !=
+          descriptor::metadata::id::value) {
         // TODO: error handling
         return;
       }
@@ -608,7 +609,15 @@ struct ExtendedPathVisitor<apache::thrift::type_class::structure> {
       Func&& f)
     requires(!is_cow_type_v<Node> && !is_field_type_v<Node>)
   {
-    using Members = typename apache::thrift::reflect_struct<Node>::members;
+    if (begin == end) {
+      // Node is not a Serializable, dispatch with wrapper
+      SerializableWrapper<TC, Node> wrapper(node);
+      f(path, wrapper);
+      return;
+    }
+
+    using Members = typename apache::thrift::reflect_struct<
+        std::remove_cv_t<Node>>::members;
 
     const auto& elem = *begin++;
     auto raw = elem.raw_ref();

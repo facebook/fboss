@@ -30,7 +30,7 @@ using PeerDrainState = std::map<int64_t, cfg::SwitchDrainState>;
 using PortIdToInfo = std::map<int32_t, facebook::fboss::PortInfoThrift>;
 using PortNameToInfo = std::map<std::string, facebook::fboss::PortInfoThrift>;
 
-struct CmdShowPortTraits : public BaseCommandTraits {
+struct CmdShowPortTraits : public ReadCommandTraits {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST;
   using ObjectArgType = utils::PortList;

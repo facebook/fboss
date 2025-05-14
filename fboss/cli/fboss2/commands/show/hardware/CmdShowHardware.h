@@ -31,7 +31,7 @@ using utils::Table;
  Define the traits of this command. This will include the inputs and output
  types
 */
-struct CmdShowHardwareTraits : public BaseCommandTraits {
+struct CmdShowHardwareTraits : public ReadCommandTraits {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
   using ObjectArgType = std::monostate;

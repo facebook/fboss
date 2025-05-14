@@ -22,7 +22,7 @@ namespace facebook::fboss {
 
 using utils::Table;
 
-struct CmdShowNdpTraits : public BaseCommandTraits {
+struct CmdShowNdpTraits : public ReadCommandTraits {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_IPV6_LIST;
   using ObjectArgType = std::vector<std::string>;

@@ -467,6 +467,11 @@ SaiPortSerdesTraits::Attributes::AttributeTxDriverSwingWrapper::operator()() {
   return SAI_PORT_SERDES_ATTR_EXT_TX_DRIVER_SWING;
 }
 
+std::optional<sai_attr_id_t>
+SaiPortSerdesTraits::Attributes::AttributeTxLdoBypassWrapper::operator()() {
+  return SAI_PORT_SERDES_ATTR_EXT_TX_LDO_BYPASS;
+}
+
 std::optional<sai_attr_id_t> SaiPortSerdesTraits::Attributes::
     AttributeRxInstgBoost1StartWrapper::operator()() {
   return SAI_PORT_SERDES_ATTR_EXT_RX_INSTG_BOOST1_STRT;
@@ -550,6 +555,31 @@ std::optional<sai_attr_id_t> SaiPortSerdesTraits::Attributes::
 std::optional<sai_attr_id_t> SaiPortSerdesTraits::Attributes::
     AttributeRxCdrTdetFineStepOvValWrapper ::operator()() {
   return SAI_PORT_SERDES_ATTR_EXT_RX_CDR_TDET_FINE_STEP_OV_VAL;
+}
+
+std::optional<sai_attr_id_t>
+SaiPortSerdesTraits::Attributes::AttributeRxLdoBypassWrapper::operator()() {
+  return SAI_PORT_SERDES_ATTR_EXT_RX_LDO_BYPASS;
+}
+
+std::optional<sai_attr_id_t>
+SaiPortSerdesTraits::Attributes::AttributeRxDiffEncoderEnWrapper::operator()() {
+  return SAI_PORT_SERDES_ATTR_EXT_RX_DIFF_ENCODER_EN;
+}
+
+std::optional<sai_attr_id_t> SaiPortSerdesTraits::Attributes::
+    AttributeRxInstgEnableScanWrapper::operator()() {
+  return SAI_PORT_SERDES_ATTR_EXT_RX_INSTG_ENABLE_SCAN;
+}
+
+std::optional<sai_attr_id_t> SaiPortSerdesTraits::Attributes::
+    AttributeRxFfeLengthBitmapWrapper::operator()() {
+  return SAI_PORT_SERDES_ATTR_EXT_RX_FFE_LENGTH_BITMAP;
+}
+
+std::optional<sai_attr_id_t> SaiPortSerdesTraits::Attributes::
+    AttributeRxFfeLmsDynamicGatingEnWrapper::operator()() {
+  return SAI_PORT_SERDES_ATTR_EXT_RX_FFE_LMS_DYNAMIC_GATING_EN;
 }
 
 std::optional<sai_attr_id_t>

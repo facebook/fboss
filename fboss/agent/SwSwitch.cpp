@@ -480,6 +480,19 @@ SwSwitch::SwSwitch(
       hwSwitchThriftClientTable_(new HwSwitchThriftClientTable(
           FLAGS_hwagent_base_thrift_port,
           getSwitchInfoFromConfig(config))) {
+  if (FLAGS_enable_ecmp_resource_manager) {
+    auto l3Asics = hwAsicTable_->getL3Asics();
+    if (l3Asics.size()) {
+      auto asic = checkSameAndGetAsic(l3Asics);
+      // TODO look at flowlet settings and figure out the max
+      // ECMP groups value to use.
+      auto maxEcmpGroups = asic->getMaxEcmpGroups();
+      if (maxEcmpGroups.has_value()) {
+        ecmpResourceManager_ =
+            std::make_unique<EcmpResourceManager>(*maxEcmpGroups);
+      }
+    }
+  }
   // Create the platform-specific state directories if they
   // don't exist already.
   utilCreateDir(agentDirUtil_->getVolatileStateDir());
@@ -3248,25 +3261,6 @@ void SwSwitch::applyConfigImpl(
    */
 
   routeUpdater.program();
-  if (FLAGS_enable_ecmp_resource_manager) {
-    updateEventBase_.runInFbossEventBaseThreadAndWait([this] {
-      auto l3Asics = hwAsicTable_->getL3Asics();
-      if (!l3Asics.size()) {
-        return;
-      }
-      auto asic = checkSameAndGetAsic(l3Asics);
-      auto maxEcmpGroups = asic->getMaxEcmpGroups();
-      if (!maxEcmpGroups.has_value()) {
-        return;
-      }
-      if (!ecmpResourceManager_) {
-        ecmpResourceManager_ =
-            std::make_unique<EcmpResourceManager>(*maxEcmpGroups);
-      } else {
-        // Compare flowlet settings change
-      }
-    });
-  }
   runFsdbSyncFunction([&oldConfig, &newConfig](auto& syncer) {
     syncer->cfgUpdated(oldConfig, newConfig);
   });

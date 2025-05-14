@@ -18,7 +18,7 @@ constexpr int kNumFecBins = 16;
 
 using utils::Table;
 
-struct CmdShowInterfaceCountersFecHistogramTraits : public BaseCommandTraits {
+struct CmdShowInterfaceCountersFecHistogramTraits : public ReadCommandTraits {
   using ParentCmd = CmdShowInterfaceCountersFec;
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;

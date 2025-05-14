@@ -1,4 +1,5 @@
 namespace cpp2 facebook.fboss.platform.fan_service
+namespace php Neteng_Fboss_Platform_FanService
 namespace py3 neteng.fboss.platform.fan_service
 
 // Holds latest status of Fans

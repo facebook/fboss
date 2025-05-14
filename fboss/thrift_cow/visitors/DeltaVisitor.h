@@ -90,15 +90,18 @@ struct DeltaVisitOptions {
       DeltaVisitMode mode,
       DeltaVisitOrder order = DeltaVisitOrder::PARENTS_FIRST,
       bool outputIdPaths = false,
+      bool hybridNodeShallowTraversal = true,
       bool hybridNodeDeepTraversal = false)
       : mode(mode),
         order(order),
         outputIdPaths(outputIdPaths),
+        hybridNodeShallowTraversal(hybridNodeShallowTraversal),
         hybridNodeDeepTraversal(hybridNodeDeepTraversal) {}
 
   DeltaVisitMode mode;
   DeltaVisitOrder order;
   bool outputIdPaths;
+  bool hybridNodeShallowTraversal;
   bool hybridNodeDeepTraversal;
 };
 
@@ -225,6 +228,7 @@ void visitAddedOrRemovedNode(
             RecurseVisitMode::FULL,
             subtreeVisitOrder,
             options.outputIdPaths,
+            options.hybridNodeShallowTraversal,
             options.hybridNodeDeepTraversal),
         std::move(processChange));
   }

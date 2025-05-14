@@ -25,7 +25,7 @@ namespace facebook::fboss {
 
 using utils::Table;
 
-struct CmdShowCpuPortTraits : public BaseCommandTraits {
+struct CmdShowCpuPortTraits : public ReadCommandTraits {
   using RetType = cli::ShowCpuPortModel;
 };
 

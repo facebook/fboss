@@ -19,7 +19,7 @@
 
 namespace facebook::fboss {
 
-struct CmdClearInterfaceCountersTraits : public BaseCommandTraits {
+struct CmdClearInterfaceCountersTraits : public WriteCommandTraits {
   using ParentCmd = CmdClearInterface;
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;

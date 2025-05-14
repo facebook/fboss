@@ -25,7 +25,7 @@ namespace facebook::fboss {
 using facebook::network::NetworkUtil;
 using utils::Table;
 
-struct CmdShowHostTraits : public BaseCommandTraits {
+struct CmdShowHostTraits : public ReadCommandTraits {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST;
   using ObjectArgType = utils::PortList;

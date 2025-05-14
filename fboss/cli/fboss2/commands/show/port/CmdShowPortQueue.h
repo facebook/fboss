@@ -15,7 +15,7 @@
 
 namespace facebook::fboss {
 
-struct CmdShowPortQueueTraits : public BaseCommandTraits {
+struct CmdShowPortQueueTraits : public ReadCommandTraits {
   using ParentCmd = CmdShowPort;
   // This command will inherit port list from its parent (ShowPort)
   // NoneArgType indicates that there is no args input

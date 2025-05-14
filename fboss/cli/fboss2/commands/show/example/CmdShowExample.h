@@ -26,7 +26,7 @@ using utils::Table;
  Define the traits of this command. This will include the inputs and output
  types
 */
-struct CmdShowExampleTraits : public BaseCommandTraits {
+struct CmdShowExampleTraits : public ReadCommandTraits {
   // The object type that the command accepts
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST;

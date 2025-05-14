@@ -24,7 +24,7 @@ namespace facebook::fboss {
 
 using utils::Table;
 
-struct CmdShowDsfNodesTraits : public BaseCommandTraits {
+struct CmdShowDsfNodesTraits : public ReadCommandTraits {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
   using ObjectArgType = std::monostate;

@@ -65,6 +65,7 @@ class EcmpBackupGroupTypeTest : public BaseEcmpResourceManagerTest {
     }
     newState->publish();
     consolidate(newState);
+    assertEndState(newState, {});
     XLOG(DBG2) << "EcmpResourceMgrBackupGrpTest SetUp done";
   }
   void assertEndState(
@@ -77,7 +78,9 @@ class EcmpBackupGroupTypeTest : public BaseEcmpResourceManagerTest {
       ASSERT_NE(route, nullptr);
       if (overflowPrefixes.find(route->prefix()) != overflowPrefixes.end()) {
         EXPECT_TRUE(
-            route->getForwardInfo().getOverrideEcmpSwitchingMode().has_value());
+            route->getForwardInfo().getOverrideEcmpSwitchingMode().has_value())
+            << " expected rute " << route->str()
+            << " to have override ECMP group type";
         EXPECT_EQ(
             route->getForwardInfo().getOverrideEcmpSwitchingMode(),
             consolidator_->getBackupEcmpSwitchingMode());
@@ -105,6 +108,161 @@ TEST_F(EcmpBackupGroupTypeTest, addSingleNhopRoutesBelowEcmpLimit) {
   auto deltas = consolidate(newState);
   EXPECT_EQ(deltas.size(), 1);
   assertEndState(newState, {});
+}
+
+TEST_F(EcmpBackupGroupTypeTest, addRemoveSingleNhopRoutesBelowEcmpLimit) {
+  std::set<RouteV6::Prefix> singleNhopPrefixes;
+  // add new routes pointing to single nhops, no limit is thus breached
+  {
+    auto oldState = state_;
+    auto newState = oldState->clone();
+    auto fib6 = fib(newState);
+    auto routesBefore = fib6->size();
+    auto nhopSet = defaultNhops();
+    auto nhopItr = nhopSet.begin();
+    for (auto i = 0; i < numStartRoutes(); ++i) {
+      auto route =
+          makeRoute(makePrefix(routesBefore + i), RouteNextHopSet{*nhopItr});
+      singleNhopPrefixes.insert(route->prefix());
+      fib6->addNode(route);
+    }
+    auto deltas = consolidate(newState);
+    EXPECT_EQ(deltas.size(), 1);
+    assertEndState(newState, {});
+  }
+  {
+    // Remove single nhop routes.
+    auto oldState = state_;
+    auto newState = oldState->clone();
+    auto fib6 = fib(newState);
+    for (const auto& pfx : singleNhopPrefixes) {
+      auto route = fib6->getRouteIf(pfx);
+      fib6->removeNode(route);
+    }
+    auto deltas = consolidate(newState);
+    EXPECT_EQ(deltas.size(), 1);
+    assertEndState(newState, {});
+  }
+}
+// Convert routes to single nhop and back to mnhops. No spillover before
+// and after
+TEST_F(EcmpBackupGroupTypeTest, updateRouteBelowEcmpLimitToSingleNhop) {
+  std::set<RouteV6::Prefix> overflowPrefixes;
+  {
+    // Update all routes to a single NHOP. No limit is breached before
+    // or after.
+    auto oldState = state_;
+    auto newState = oldState->clone();
+    auto fib6 = fib(newState);
+    auto nhopSet = defaultNhops();
+    auto nhopItr = nhopSet.begin();
+    for (const auto& [_, route] : std::as_const(*cfib(oldState))) {
+      auto newRoute = fib6->getRouteIf(route->prefix())->clone();
+      newRoute->setResolved(RouteNextHopEntry(
+          RouteNextHopSet{*nhopItr++}, kDefaultAdminDistance));
+      fib6->updateNode(newRoute);
+    }
+    auto deltas = consolidate(newState);
+    EXPECT_EQ(deltas.size(), 1);
+    assertEndState(newState, overflowPrefixes);
+  }
+  {
+    // Update all routes back to mnhops. No limit breached before or after.
+    auto oldState = state_;
+    auto newState = oldState->clone();
+    auto fib6 = fib(newState);
+    auto nhopSets = defaultNhopSets();
+    auto nhopSetItr = nhopSets.begin();
+    for (const auto& [_, route] : std::as_const(*cfib(oldState))) {
+      auto newRoute = fib6->getRouteIf(route->prefix())->clone();
+      newRoute->setResolved(
+          RouteNextHopEntry(*nhopSetItr, kDefaultAdminDistance));
+      fib6->updateNode(newRoute);
+    }
+    auto deltas = consolidate(newState);
+    EXPECT_EQ(deltas.size(), 1);
+    assertEndState(newState, {});
+  }
+}
+
+TEST_F(EcmpBackupGroupTypeTest, updateRoutesSingleNhopToSingleNhop) {
+  std::set<RouteV6::Prefix> overflowPrefixes;
+  {
+    // Update all routes to a single NHOP. No limit is breached before
+    // or after.
+    auto oldState = state_;
+    auto newState = oldState->clone();
+    auto fib6 = fib(newState);
+    auto nhopSet = defaultNhops();
+    auto nhopItr = nhopSet.begin();
+    for (const auto& [_, route] : std::as_const(*cfib(oldState))) {
+      auto newRoute = fib6->getRouteIf(route->prefix())->clone();
+      newRoute->setResolved(RouteNextHopEntry(
+          RouteNextHopSet{*nhopItr++}, kDefaultAdminDistance));
+      fib6->updateNode(newRoute);
+    }
+    auto deltas = consolidate(newState);
+    EXPECT_EQ(deltas.size(), 1);
+    assertEndState(newState, overflowPrefixes);
+  }
+  {
+    // Update all routes to different single nhops, no limit is breached
+    // before or after
+    auto oldState = state_;
+    auto newState = oldState->clone();
+    auto fib6 = fib(newState);
+    auto nhopSet = defaultNhops();
+    auto nhopItr = nhopSet.rbegin();
+    for (const auto& [_, route] : std::as_const(*cfib(oldState))) {
+      auto newRoute = fib6->getRouteIf(route->prefix())->clone();
+      newRoute->setResolved(RouteNextHopEntry(
+          RouteNextHopSet{*nhopItr++}, kDefaultAdminDistance));
+      fib6->updateNode(newRoute);
+    }
+    auto deltas = consolidate(newState);
+    EXPECT_EQ(deltas.size(), 1);
+    assertEndState(newState, overflowPrefixes);
+  }
+}
+// Convert spillover routes to single nhop. Now no spillover.
+TEST_F(EcmpBackupGroupTypeTest, updateRouteAboveEcmpLimitToSingleNhop) {
+  std::set<RouteV6::Prefix> addedPrefixes;
+  {
+    // Update a route pointing to new nhops. ECMP limit is breached during
+    // update due to make before break. Then the reclaim step notices
+    // a freed up primary ECMP group and reclaims it back. So in the
+    // end no prefixes have back up ecmp group override set.
+    auto nhopSets = nextNhopSets();
+    auto oldState = state_;
+    auto newState = oldState->clone();
+    auto fib6 = fib(newState);
+    auto newRoute = fib6->cbegin()->second->clone();
+    newRoute->setResolved(
+        RouteNextHopEntry(*nhopSets.begin(), kDefaultAdminDistance));
+    addedPrefixes.insert(newRoute->prefix());
+    fib6->updateNode(newRoute);
+    auto deltas = consolidate(newState);
+    // Base FIB delta + overflow delta + reclaim delta
+    EXPECT_EQ(deltas.size(), 3);
+    assertEndState(newState, {});
+  }
+  {
+    // Update the overflow route to single nhop. Should no longer
+    // be of backupGroupType, since single nhop groups don't contribute
+    // to ecmp groups
+    auto oldState = state_;
+    auto newState = oldState->clone();
+    auto fib6 = fib(newState);
+    auto nhopSet = defaultNhops();
+    auto newRoute = fib6->getRouteIf(*addedPrefixes.begin())->clone();
+    newRoute->setResolved(RouteNextHopEntry(
+        RouteNextHopSet{*nhopSet.begin()}, kDefaultAdminDistance));
+    fib6->updateNode(newRoute);
+    auto deltas = consolidate(newState);
+    // Single delta, no spillover expected
+    EXPECT_EQ(deltas.size(), 1);
+    assertEndState(newState, {});
+  }
 }
 
 TEST_F(EcmpBackupGroupTypeTest, addRoutesBelowEcmpLimit) {
@@ -139,7 +297,7 @@ TEST_F(EcmpBackupGroupTypeTest, addRoutesAboveEcmpLimit) {
     fib6->addNode(route);
   }
   auto deltas = consolidate(newState);
-  EXPECT_EQ(deltas.size(), numStartRoutes());
+  EXPECT_EQ(deltas.size(), numStartRoutes() + 1);
   assertEndState(newState, overflowPrefixes);
 }
 
@@ -189,7 +347,10 @@ TEST_F(EcmpBackupGroupTypeTest, updateRouteBelowEcmpLimit) {
 }
 
 TEST_F(EcmpBackupGroupTypeTest, updateRouteAboveEcmpLimit) {
-  // Update a route pointing to new nhops. ECMP limit is breached.
+  // Update a route pointing to new nhops. ECMP limit is breached during
+  // update due to make before break. Then the reclaim step notices
+  // a freed up primary ECMP group and reclaims it back. So in the
+  // end no prefixes have back up ecmp group override set.
   auto nhopSets = nextNhopSets();
   auto oldState = state_;
   auto newState = oldState->clone();
@@ -198,11 +359,11 @@ TEST_F(EcmpBackupGroupTypeTest, updateRouteAboveEcmpLimit) {
   std::set<RouteV6::Prefix> overflowPrefixes;
   newRoute->setResolved(
       RouteNextHopEntry(*nhopSets.begin(), kDefaultAdminDistance));
-  overflowPrefixes.insert(newRoute->prefix());
   fib6->updateNode(newRoute);
   auto deltas = consolidate(newState);
-  EXPECT_EQ(deltas.size(), 1);
-  assertEndState(newState, overflowPrefixes);
+  // Initial update + overflow + reclaim
+  EXPECT_EQ(deltas.size(), 3);
+  assertEndState(newState, {});
 }
 
 TEST_F(EcmpBackupGroupTypeTest, updateAllRoutesOneRouteAboveEcmpLimit) {
@@ -218,25 +379,20 @@ TEST_F(EcmpBackupGroupTypeTest, updateAllRoutesOneRouteAboveEcmpLimit) {
     auto newRoute = fib6->getRouteIf(route->prefix())->clone();
     newRoute->setResolved(
         RouteNextHopEntry(nhopSets[idx++], kDefaultAdminDistance));
-    if (idx == 1) {
-      /*
-       * Only the first route causes a spillover to backup ECMP groups type.
-       * Since this is a update it creates space for one more primary ECMP group
-       * type. Subsequent updates all vacate one ecmp group and take up one
-       * ECMP groups. So there is only one spillover event
-       */
-      overflowPrefixes.insert(newRoute->prefix());
-    }
     fib6->updateNode(newRoute);
   }
   auto deltas = consolidate(newState);
-  EXPECT_EQ(deltas.size(), overflowPrefixes.size());
-  assertEndState(newState, overflowPrefixes);
+  EXPECT_EQ(deltas.size(), 3);
+  assertEndState(newState, {});
 }
 
 TEST_F(EcmpBackupGroupTypeTest, updateAllRoutesAllRoutesAboveEcmpLimit) {
-  // Update a route pointing to new nhops. ECMP limit is breached.
+  std::set<RouteV6::Prefix> startPrefixes;
+  for (const auto& [_, route] : std::as_const(*cfib(state_))) {
+    startPrefixes.insert(route->prefix());
+  }
   {
+    // Add routes pointing to existing nhops. ECMP limit is not breached.
     auto oldState = state_;
     auto newState = oldState->clone();
     auto fib6 = fib(newState);
@@ -251,32 +407,54 @@ TEST_F(EcmpBackupGroupTypeTest, updateAllRoutesAllRoutesAboveEcmpLimit) {
     EXPECT_EQ(deltas.size(), 1);
     assertEndState(newState, {});
   }
+  /*
+   * Routes before
+   * R1, R5 - G1
+   * R2, R6 - G2
+   * R3, R7 - G3
+   * R4, R8 - G4
+   * R0, R9 - G5
+   * Routes after
+   * R1 - G6
+   * R2 - G7
+   * R3 - G8
+   * R4 - G9
+   * R5 - G1
+   * R6 - G2
+   * R7 - G3
+   * R8 - G4
+   * R9 - G5
+   * R0 - G10
+   *
+   */
   {
+    // Update 5 routes pointing to new nhops. ECMP limit is breached as
+    // 2 routes pointing to new nhops get updated one by one. Later when
+    // both routes get updated, one ecmp group gets removed. Later reclaim
+    // step comes a moves all groups back to primary ecmp group type
     auto oldState = state_;
     auto newState = oldState->clone();
     auto fib6 = fib(newState);
     std::set<RouteV6::Prefix> overflowPrefixes;
     auto nhopSets = nextNhopSets();
     auto idx = 0;
-    for (const auto& [_, route] : std::as_const(*cfib(oldState))) {
-      auto newRoute = fib6->getRouteIf(route->prefix())->clone();
+    for (const auto& prefix : startPrefixes) {
+      auto newRoute = fib6->getRouteIf(prefix)->clone();
       newRoute->setResolved(
           RouteNextHopEntry(nhopSets[idx++], kDefaultAdminDistance));
       overflowPrefixes.insert(newRoute->prefix());
       fib6->updateNode(newRoute);
-      if (idx == nhopSets.size()) {
-        break;
-      }
     }
     auto deltas = consolidate(newState);
-    EXPECT_EQ(deltas.size(), overflowPrefixes.size());
+    // Initial delta + 5 overflow deltas, no reclaima
+    EXPECT_EQ(deltas.size(), 6);
     assertEndState(newState, overflowPrefixes);
   }
 }
 
 TEST_F(EcmpBackupGroupTypeTest, updateAllRoutesToNewNhopsAboveEcmpLimit) {
-  // Update a route pointing to new nhops. ECMP limit is breached.
   {
+    // Add routes pointing to existing nhops. ECMP limit is not breached.
     auto oldState = state_;
     auto newState = oldState->clone();
     auto fib6 = fib(newState);
@@ -294,11 +472,11 @@ TEST_F(EcmpBackupGroupTypeTest, updateAllRoutesToNewNhopsAboveEcmpLimit) {
   {
     /*
      * Initial state
-     * R1, R6 -> G1
-     * R2, R7 -> G2
-     * R3, R8 -> G3
-     * R4, R9 -> G4
-     * R5, R10 -> G5
+     * R1, R5 -> G1
+     * R2, R6 -> G2
+     * R3, R7 -> G3
+     * R4, R8 -> G4
+     * R0, R9 -> G5
      * New state
      * R1 -> G6
      * R2 -> G7
@@ -309,12 +487,11 @@ TEST_F(EcmpBackupGroupTypeTest, updateAllRoutesToNewNhopsAboveEcmpLimit) {
      * R7 -> G9
      * R8 -> G8
      * R9 -> G7
-     * R10 -> G6
+     * R0 -> G6
      */
     auto oldState = state_;
     auto newState = oldState->clone();
     auto fib6 = fib(newState);
-    std::set<RouteV6::Prefix> overflowPrefixes;
     auto nhopSets = nextNhopSets();
     auto idx = 0;
     bool idxDirectionFwd = true;
@@ -322,20 +499,15 @@ TEST_F(EcmpBackupGroupTypeTest, updateAllRoutesToNewNhopsAboveEcmpLimit) {
       auto newRoute = fib6->getRouteIf(route->prefix())->clone();
       newRoute->setResolved(RouteNextHopEntry(
           nhopSets[idxDirectionFwd ? idx++ : idx--], kDefaultAdminDistance));
-      overflowPrefixes.insert(newRoute->prefix());
       fib6->updateNode(newRoute);
       if (idx == nhopSets.size()) {
         idxDirectionFwd = false;
         --idx;
-        break;
       }
     }
     auto deltas = consolidate(newState);
-    // All prefixes will move to backup ecmp group
-    // TODO: once we have defrag logic, these should
-    // move back to primary ECMP group
-    EXPECT_EQ(deltas.size(), overflowPrefixes.size());
-    assertEndState(newState, overflowPrefixes);
+    EXPECT_EQ(deltas.size(), 7);
+    assertEndState(newState, {});
   }
 }
 } // namespace facebook::fboss
