@@ -44,6 +44,15 @@
           "test_name_regex": "HwFlowletSwitching.*$"
         },
         {
+          "test_name_regex": "HwArsTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsFlowletTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsSprayTest.*$"
+        },
+        {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*$"
         },
         {
@@ -106,6 +115,15 @@
           "test_name_regex": "HwFlowletSwitching.*$"
         },
         {
+          "test_name_regex": "HwArsTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsFlowletTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsSprayTest.*$"
+        },
+        {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*$"
         }
     ],
@@ -151,6 +169,15 @@
         },
         {
           "test_name_regex": "HwFlowletSwitching.*$"
+        },
+        {
+          "test_name_regex": "HwArsTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsFlowletTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsSprayTest.*$"
         },
         {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*$"
@@ -209,6 +236,15 @@
         },
         {
           "test_name_regex": "HwFlowletSwitching.*$"
+        },
+        {
+          "test_name_regex": "HwArsTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsFlowletTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsSprayTest.*$"
         },
         {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*$"
@@ -430,6 +466,15 @@
         },
         {
           "test_name_regex": "HwFlowletSwitching.*$"
+        },
+        {
+          "test_name_regex": "HwArsTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsFlowletTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsSprayTest.*$"
         },
         {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*$"
@@ -694,6 +739,15 @@
           "test_name_regex": "HwFlowletSwitching.*$"
         },
         {
+          "test_name_regex": "HwArsTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsFlowletTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsSprayTest.*$"
+        },
+        {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*$"
         },
         {
@@ -913,6 +967,15 @@
         },
         {
           "test_name_regex": "HwFlowletSwitching.*$"
+        },
+        {
+          "test_name_regex": "HwArsTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsFlowletTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsSprayTest.*$"
         },
         {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*$"
@@ -1163,6 +1226,15 @@
           "test_name_regex": "HwFlowletSwitching.*$"
         },
         {
+          "test_name_regex": "HwArsTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsFlowletTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsSprayTest.*$"
+        },
+        {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*$"
         },
         {
@@ -1225,6 +1297,15 @@
           "test_name_regex": "HwFlowletSwitching.*$"
         },
         {
+          "test_name_regex": "HwArsTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsFlowletTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsSprayTest.*$"
+        },
+        {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*$"
         }
     ],
@@ -1272,6 +1353,15 @@
           "test_name_regex": "HwFlowletSwitching.*$"
         },
         {
+          "test_name_regex": "HwArsTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsFlowletTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsSprayTest.*$"
+        },
+        {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*$"
         }
     ],
@@ -1317,6 +1407,15 @@
         },
         {
           "test_name_regex": "HwFlowletSwitching.*$"
+        },
+        {
+          "test_name_regex": "HwArsTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsFlowletTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsSprayTest.*$"
         },
         {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*$"
@@ -1381,6 +1480,15 @@
           "test_name_regex": "HwFlowletSwitching.*$"
         },
         {
+          "test_name_regex": "HwArsTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsFlowletTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsSprayTest.*$"
+        },
+        {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*$"
         }
     ],
@@ -1428,6 +1536,15 @@
           "test_name_regex": "HwFlowletSwitching.*$"
         },
         {
+          "test_name_regex": "HwArsTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsFlowletTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsSprayTest.*$"
+        },
+        {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*$"
         }
     ],
@@ -1473,6 +1590,15 @@
         },
         {
           "test_name_regex": "HwFlowletSwitching.*$"
+        },
+        {
+          "test_name_regex": "HwArsTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsFlowletTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsSprayTest.*$"
         },
         {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*$"
@@ -1537,6 +1663,15 @@
           "test_name_regex": "HwFlowletSwitching.*$"
         },
         {
+          "test_name_regex": "HwArsTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsFlowletTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsSprayTest.*$"
+        },
+        {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*$"
         }
     ],
@@ -1582,6 +1717,15 @@
         },
         {
           "test_name_regex": "HwFlowletSwitching.*$"
+        },
+        {
+          "test_name_regex": "HwArsTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsFlowletTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsSprayTest.*$"
         },
         {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*$"
@@ -1673,7 +1817,7 @@
           "test_name_regex": "HwSflowTest.SflowSamplingDisabled"
         },
         {
-          "test_name_regex": "HwLoadBalancerTestV6Flowlet.VerifyWBFromFixedToFlowlet"
+          "test_name_regex": "HwArsFlowletTest.*HwLoadBalancerTestV6Flowlet.VerifyWBFromFixedToFlowlet"
         },
         {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.VerifyWBFromFlowletToFixed"
@@ -1697,6 +1841,15 @@
         },
         {
           "test_name_regex": "HwFlowletSwitching.*$"
+        },
+        {
+          "test_name_regex": "HwArsTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsFlowletTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsSprayTest.*$"
         },
         {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*$"
@@ -1773,6 +1926,15 @@
           "test_name_regex": "HwFlowletSwitching.*$"
         },
         {
+          "test_name_regex": "HwArsTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsFlowletTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsSprayTest.*$"
+        },
+        {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*$"
         },
         {
@@ -1818,6 +1980,15 @@
         },
         {
           "test_name_regex": "HwFlowletSwitching.*$"
+        },
+        {
+          "test_name_regex": "HwArsTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsFlowletTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsSprayTest.*$"
         },
         {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*$"
@@ -1867,6 +2038,15 @@
           "test_name_regex": "HwFlowletSwitching.*$"
         },
         {
+          "test_name_regex": "HwArsTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsFlowletTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsSprayTest.*$"
+        },
+        {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*$"
         },
         {
@@ -1912,6 +2092,15 @@
         },
         {
           "test_name_regex": "HwFlowletSwitching.*$"
+        },
+        {
+          "test_name_regex": "HwArsTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsFlowletTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsSprayTest.*$"
         },
         {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*$"
