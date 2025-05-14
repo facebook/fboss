@@ -295,4 +295,9 @@ DEFINE_bool(
     false,
     "This flag is used to enable ecmp resource manager feature");
 
+DEFINE_int32(
+    ecmp_resource_manager_make_before_break_buffer,
+    2,
+    "Buffer to keep in ECMP resource manager from actual ECMP limt");
+
 DEFINE_int32(update_stats_interval_s, 1, "Update stats interval in seconds");

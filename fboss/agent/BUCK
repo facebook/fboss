@@ -710,6 +710,7 @@ cpp_library(
         "EcmpResourceManager.cpp",
     ],
     exported_deps = [
+        ":agent_features",
         ":fib_helpers",
         "//fboss/agent/state:state",
         "//fboss/lib:ref_map",

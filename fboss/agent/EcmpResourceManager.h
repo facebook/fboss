@@ -8,6 +8,7 @@
  *
  */
 #pragma once
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/state/StateDelta.h"
@@ -55,10 +56,6 @@ class NextHopGroupInfo {
 };
 
 class EcmpResourceManager {
-  // Keep some buffer from HW limit for make before break
-  // nature of ECMP.
-  static auto constexpr kEcmpMakeBeforeBreakBuffer = 2;
-
  public:
   explicit EcmpResourceManager(
       uint32_t maxHwEcmpGroups,
@@ -66,10 +63,13 @@ class EcmpResourceManager {
       std::optional<cfg::SwitchingMode> backupEcmpGroupType = std::nullopt)
       // We keep a buffer of 2 for transient increment in ECMP groups when
       // pushing updates down to HW
-      : maxEcmpGroups_(maxHwEcmpGroups - kEcmpMakeBeforeBreakBuffer),
+      : maxEcmpGroups_(
+            maxHwEcmpGroups -
+            FLAGS_ecmp_resource_manager_make_before_break_buffer),
         compressionPenaltyThresholdPct_(compressionPenaltyThresholdPct),
         backupEcmpGroupType_(backupEcmpGroupType) {
-    CHECK_GT(maxHwEcmpGroups, kEcmpMakeBeforeBreakBuffer);
+    CHECK_GT(
+        maxHwEcmpGroups, FLAGS_ecmp_resource_manager_make_before_break_buffer);
     CHECK_EQ(compressionPenaltyThresholdPct_, 0)
         << " Group compression algo is WIP";
   }
