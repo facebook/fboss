@@ -13,7 +13,6 @@
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/show/mirror/gen-cpp2/model_types.h"
-#include "fboss/cli/fboss2/utils/CmdClientUtils.h"
 #include "fboss/cli/fboss2/utils/CmdUtils.h"
 #include "fboss/cli/fboss2/utils/Table.h"
 
@@ -201,7 +200,16 @@ class CmdShowMirror : public CmdHandler<CmdShowMirror, CmdShowMirrorTraits> {
           (mirrorMapEntry["isResolved"].asBool()) ? "Active" : "Configured";
       auto egressPortDesc = mirrorMapEntry.find("egressPortDesc");
       if (egressPortDesc != mirrorMapEntry.items().end()) {
-        std::string egressPortID = egressPortDesc->second["portId"].asString();
+        std::string egressPortID;
+        auto& portIdValue = egressPortDesc->second["portId"];
+        if (portIdValue.isInt()) {
+          // PortID is stored as a signed i16 in thrift, need to convert it
+          // to unsigned int so that large port numbers don't show up as -ve.
+          egressPortID = folly::to<std::string>(
+              static_cast<uint16_t>(portIdValue.asInt()));
+        } else {
+          egressPortID = portIdValue.asString();
+        }
         mirrorDetails.egressPort() = egressPortID;
         mirrorDetails.egressPortName() =
             getEgressPortName(egressPortID, portInfoEntries);
