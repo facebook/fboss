@@ -10,8 +10,6 @@
 #include "fboss/agent/hw/sai/fake/FakeSaiSwitch.h"
 #include "fboss/agent/hw/sai/fake/FakeSai.h"
 
-#include <folly/logging/xlog.h>
-
 using facebook::fboss::FakeSai;
 
 namespace {

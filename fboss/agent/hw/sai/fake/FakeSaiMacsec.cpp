@@ -7,11 +7,8 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/hw/sai/api/SaiVersion.h"
 #include "fboss/agent/hw/sai/fake/FakeSai.h"
-#include "fboss/agent/hw/sai/fake/FakeSaiPort.h"
 
-#include <folly/logging/xlog.h>
 #include <optional>
 
 using facebook::fboss::FakeSai;
