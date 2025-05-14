@@ -2,6 +2,7 @@ load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 load("@fbcode_macros//build_defs:export_files.bzl", "export_file")
 load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
+load("@fbsource//tools/target_determinator/macros:ci_sandcastle.bzl", "ci_sandcastle")
 load("//fboss/agent:sai.bzl", "sai_main_all")
 load("//fboss/thriftpath_plugin/facebook:thriftpath_plugin.bzl", "thrift_plugin_thriftpath")
 
@@ -1850,6 +1851,30 @@ cpp_library(
         ":utils",
         "//fboss/agent/state:state",
     ],
+)
+
+ci_sandcastle(
+    name = "build_fboss_fbpkg",
+    alias = "build_fboss_fbpkg_ci",
+    args = {
+        "steps": [
+            {
+                "name": "Build fboss fbkg targets",
+                "shell": "buck2 build //fbcode/fboss/agent/fbpkg/...",
+            },
+        ],
+    },
+    capabilities = {
+        "tenant": "default-tenant",
+        "type": "fbcode",
+        "vcs": "full-fbsource",
+    },
+    # Adding triggers for raw inputs (for changes in asic_vendor_config) and generated outputs
+    ci_srcs = [
+        "fbcode/fboss/agent/**",
+    ],
+    command = "SandcastleUniversalCommand",
+    oncall = "fboss_agent",
 )
 
 export_file(name = "Main.cpp")
