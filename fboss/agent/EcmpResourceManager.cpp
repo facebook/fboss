@@ -170,8 +170,24 @@ EcmpResourceManager::InputOutputState::InputOutputState(
    * extra empty delta in the vector of deltas.
    */
   auto newStateWithOldFibs = _in.newState()->clone();
-  newStateWithOldFibs->resetForwardingInformationBases(
-      _in.oldState()->getFibs());
+  if (_in.oldState()->getFibs() && !_in.oldState()->getFibs()->empty()) {
+    newStateWithOldFibs->resetForwardingInformationBases(
+        _in.oldState()->getFibs());
+  } else {
+    // Cater for when old state is empty - e.g. warmboot,
+    // rollback
+    auto mfib = std::make_shared<MultiSwitchForwardingInformationBaseMap>();
+    for (const auto& [matcherStr, curMfib] :
+         std::as_const(*_in.newState()->getFibs())) {
+      HwSwitchMatcher matcher(matcherStr);
+      for (const auto& [rid, _] : std::as_const(*curMfib)) {
+        mfib->updateForwardingInformationBaseContainer(
+            std::make_shared<ForwardingInformationBaseContainer>(RouterID(rid)),
+            matcher);
+      }
+    }
+    newStateWithOldFibs->resetForwardingInformationBases(std::move(mfib));
+  }
   newStateWithOldFibs->publish();
   DCHECK(DeltaFunctions::isEmpty(
       StateDelta(_in.oldState(), newStateWithOldFibs).getFibsDelta()));
@@ -323,7 +339,7 @@ void EcmpResourceManager::routeAddedOrUpdated(
           rid, newRoute, false /* ecmpDemandExceeded*/);
       // New ECMP group newRoute but limit is not exceeded yet
       ++inOutState->nonBackupEcmpGroupsCnt;
-      XLOG(DBG2) << " Route: " << (oldRoute ? "update " : "add")
+      XLOG(DBG2) << " Route: " << (oldRoute ? "update " : "add ")
                  << newRoute->str()
                  << " points to new group: " << grpInfo->getID()
                  << " primray ecmp group count incremented to: "
