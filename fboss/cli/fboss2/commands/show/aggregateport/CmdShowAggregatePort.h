@@ -64,7 +64,8 @@ class CmdShowAggregatePort
   }
 
   RetType createModel(
-      std::vector<facebook::fboss::AggregatePortThrift> aggregatePortEntries,
+      const std::vector<facebook::fboss::AggregatePortThrift>&
+          aggregatePortEntries,
       std::map<int32_t, facebook::fboss::PortInfoThrift> portInfo,
       const ObjectArgType& queriedPorts) {
     RetType model;
