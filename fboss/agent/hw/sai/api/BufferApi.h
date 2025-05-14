@@ -106,7 +106,8 @@ struct SaiBufferProfileTraits {
     using XonOffsetTh = SaiAttribute<
         EnumType,
         SAI_BUFFER_PROFILE_ATTR_XON_OFFSET_TH,
-        sai_uint64_t>;
+        sai_uint64_t,
+        StdNullOptDefault<sai_uint64_t>>;
     struct AttributeSharedFadtMaxTh {
       std::optional<sai_attr_id_t> operator()();
     };
