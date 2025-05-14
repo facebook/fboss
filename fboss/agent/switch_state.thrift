@@ -494,8 +494,8 @@ struct LabelForwardingEntryFields {
 
 struct FibContainerFields {
   1: i16 vrf;
-  2: map<string, RouteFields> fibV4;
-  3: map<string, RouteFields> fibV6;
+  2: map<string, RouteFields> fibV4 (allow_skip_thrift_cow = true);
+  3: map<string, RouteFields> fibV6 (allow_skip_thrift_cow = true);
 }
 
 struct TrafficClassToQosAttributeEntry {
