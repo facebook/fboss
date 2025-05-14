@@ -79,7 +79,7 @@ class EcmpBackupGroupTypeTest : public BaseEcmpResourceManagerTest {
       if (overflowPrefixes.find(route->prefix()) != overflowPrefixes.end()) {
         EXPECT_TRUE(
             route->getForwardInfo().getOverrideEcmpSwitchingMode().has_value())
-            << " expected rute " << route->str()
+            << " expected route " << route->str()
             << " to have override ECMP group type";
         EXPECT_EQ(
             route->getForwardInfo().getOverrideEcmpSwitchingMode(),
