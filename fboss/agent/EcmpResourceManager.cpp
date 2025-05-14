@@ -491,6 +491,12 @@ void EcmpResourceManager::processRouteUpdates(
         if (oldRoute->getForwardInfo().normalizedNextHops() !=
             newRoute->getForwardInfo().normalizedNextHops()) {
           routeUpdated(rid, oldRoute, newRoute, inOutState);
+        } else {
+          // Nexthops did not change, but the route changed.
+          // Just queue it in the delta, no need to reevaluate
+          // ECMP resources
+          inOutState->addOrUpdateRoute(
+              rid, newRoute, false /*ecmpDemandExceeded*/);
         }
       },
       [this, inOutState](RouterID rid, const auto& newRoute) {
