@@ -510,4 +510,87 @@ TEST_F(EcmpBackupGroupTypeTest, updateAllRoutesToNewNhopsAboveEcmpLimit) {
     assertEndState(newState, {});
   }
 }
+
+TEST_F(EcmpBackupGroupTypeTest, reclaimPrioritizesECMPWithMoreRoutes) {
+  std::set<RouteV6::Prefix> overflowPrefixes;
+  size_t routesStart = cfib(state_)->size();
+  {
+    /*
+     * Initial state
+     * R1 -> G1
+     * R2 -> G2
+     * R3 -> G3
+     * R4 -> G4
+     * R0 -> G5
+     * New state
+     * R1 -> G1
+     * R2 -> G2
+     * R3 -> G3
+     * R4 -> G4
+     * R0 -> G5
+     * R5 -> G6 (backup group type)
+     * R6 -> G7 (backup group type)
+     */
+    // Add 2 routes pointing to new nhops. ECMP limit is breached.
+    auto oldState = state_;
+    auto newState = oldState->clone();
+    auto fib6 = fib(newState);
+    auto nhopSets = nextNhopSets();
+    ASSERT_EQ(nhopSets.size(), fib6->size());
+    for (auto i = 0; i < 2; ++i) {
+      auto route = makeRoute(makePrefix(routesStart + i), nhopSets[i]);
+      overflowPrefixes.insert(route->prefix());
+      fib6->addNode(route);
+      auto newRoute = fib6->getRouteIf(route->prefix())->clone();
+      newRoute->setResolved(
+          RouteNextHopEntry(nhopSets[i], kDefaultAdminDistance));
+      fib6->updateNode(newRoute);
+    }
+    auto deltas = consolidate(newState);
+    EXPECT_EQ(deltas.size(), 3);
+    assertEndState(newState, overflowPrefixes);
+  }
+  {
+    /*
+     * Old state
+     * R1 -> G1
+     * R2 -> G2
+     * R3 -> G3
+     * R4 -> G4
+     * R0 -> G5
+     * R5 -> G6 (backup group type)
+     * R6 -> G7 (backup group type)
+     * New State
+     * R1 -> G1
+     * R2 -> G2
+     * R3 -> G3
+     * R4 -> G4
+     * R0 -> G7
+     * R5 -> G6 (backup group type)
+     * R6 -> G7
+     * Notice that the group with 2 routes pointing to it is prioritized for
+     * reclaim (over the group with one route pointing to it)
+     */
+    // Add 2 routes pointing to new nhops. ECMP limit is breached.
+    auto oldState = state_;
+    auto newState = oldState->clone();
+    auto fib6 = fib(newState);
+    auto nhopSets = nextNhopSets();
+    auto prefixFrom = makePrefix(fib6->size() - 1);
+    auto nhopsFrom =
+        fib6->getRouteIf(prefixFrom)->getForwardInfo().getNextHopSet();
+    auto updateRoute = fib6->getRouteIf(makePrefix(0))->clone();
+    updateRoute->setResolved(
+        RouteNextHopEntry(nhopsFrom, kDefaultAdminDistance));
+    fib6->updateNode(updateRoute);
+    auto deltas = consolidate(newState);
+    EXPECT_EQ(deltas.size(), 2);
+    // prefixFrom should now longer point to backupGroupType since it
+    // will be reclaimed as one ECMP group gets freed due to update
+    // of R0
+    overflowPrefixes.erase(prefixFrom);
+    assertEndState(newState, overflowPrefixes);
+  }
+}
+
 } // namespace facebook::fboss
