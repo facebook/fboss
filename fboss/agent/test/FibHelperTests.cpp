@@ -38,7 +38,7 @@ class FibHelperTest : public ::testing::Test {
     auto config = testConfigA();
     handle_ = createTestHandle(&config);
     sw_ = handle_->getSw();
-    resolveNeighbor(kIpAddressA(), kMacAddressA());
+
     // Install kPrefix1 in FIB
     programRoute(kPrefix1());
   }
@@ -120,35 +120,6 @@ class FibHelperTest : public ::testing::Test {
     } else {
       return {folly::IPAddressV6{"2803:6080:d038:3067::"}, 64};
     }
-  }
-
-  void resolveNeighbor(AddrT ipAddress, MacAddress macAddress) {
-    /*
-     * Cause a neighbor entry to resolve by receiving appropriate ARP/NDP, and
-     * assert if valid CLASSID is associated with the newly resolved neighbor.
-     */
-    if constexpr (std::is_same<AddrT, folly::IPAddressV4>::value) {
-      sw_->getNeighborUpdater()->receivedArpMine(
-          kVlan(),
-          ipAddress,
-          macAddress,
-          PortDescriptor(kPortID()),
-          ArpOpCode::ARP_OP_REPLY);
-    } else {
-      sw_->getNeighborUpdater()->receivedNdpMine(
-          kVlan(),
-          ipAddress,
-          macAddress,
-          PortDescriptor(kPortID()),
-          ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
-          0);
-    }
-
-    sw_->getNeighborUpdater()->waitForPendingUpdates();
-    waitForBackgroundThread(sw_);
-    waitForStateUpdates(sw_);
-    sw_->getNeighborUpdater()->waitForPendingUpdates();
-    waitForStateUpdates(sw_);
   }
 
  protected:

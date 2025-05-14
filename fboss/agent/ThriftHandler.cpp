@@ -423,6 +423,8 @@ void getPortInfoHelper(
   *portInfo.isDrained() =
       (port->getPortDrainState() ==
        facebook::fboss::cfg::PortDrainState::DRAINED);
+  portInfo.expectedNeighborReachability() =
+      port->getExpectedNeighborValues()->toThrift();
 }
 
 LacpPortRateThrift fromLacpPortRate(facebook::fboss::cfg::LacpPortRate rate) {

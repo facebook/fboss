@@ -565,4 +565,29 @@ TEST_F(AgentBalancedInputModeTest, init) {
   };
   verifyAcrossWarmBoots([]() {}, verify);
 }
+
+TEST_F(AgentFabricSwitchTest, verifyRtpGpdAlwaysDisabled) {
+  auto verify = [&]() {
+    setSwitchDrainState(getSw()->getConfig(), cfg::SwitchDrainState::DRAINED);
+    setSwitchDrainState(getSw()->getConfig(), cfg::SwitchDrainState::UNDRAINED);
+    // Once drain/undrain is done, make sure that RTP GPD is set to 0
+    auto expectedValues = {
+        "RTP_GRACEFUL_POWER_DOWN_CONFIGURATION.RTP0[0x135]=0:",
+        "RTP_GRACEFUL_POWER_DOWN_CONFIGURATION.RTP1[0x135]=0:"};
+    for (const auto& switchId : getFabricSwitchIdsWithPorts()) {
+      std::string out;
+      WITH_RETRIES({
+        getAgentEnsemble()->runDiagCommand(
+            "g RTP_GRACEFUL_POWER_DOWN_CONFIGURATION\nquit\n", out, switchId);
+        XLOG(DBG0) << "SwitchId: " << static_cast<int>(switchId)
+                   << ", output: " << out;
+        for (auto& entry : expectedValues) {
+          EXPECT_EVENTUALLY_TRUE(out.find(entry) != std::string::npos);
+        }
+      });
+    }
+  };
+  verifyAcrossWarmBoots([]() {}, verify);
+}
+
 } // namespace facebook::fboss

@@ -67,28 +67,15 @@ class CowStorage : public Storage<Root, CowStorage<Root, Node>> {
   typename Base::template Result<T> get_impl(PathIter begin, PathIter end)
       const {
     T out;
-    auto op = thrift_cow::pvlambda([&](auto& node,
-                                       auto /* begin */,
-                                       auto /* end */) {
-      using NodeT = typename folly::remove_cvref_t<decltype(node)>;
-      if constexpr (std::is_same_v<
-                        typename NodeT::CowType,
-                        thrift_cow::ThriftObject>) {
-        // Thrift object under HybridNode
-        if constexpr (std::is_assignable_v<decltype(out)&, decltype(node)>) {
-          out = std::move(node);
-        } else {
-          throw std::runtime_error("Type mismatch");
-        }
-      } else {
-        auto val = node.toThrift();
-        if constexpr (std::is_assignable_v<decltype(out)&, decltype(val)>) {
-          out = std::move(val);
-        } else {
-          throw std::runtime_error("Type mismatch");
-        }
-      }
-    });
+    auto op =
+        thrift_cow::pvlambda([&](auto& node, auto /* begin */, auto /* end */) {
+          auto val = node.toThrift();
+          if constexpr (std::is_assignable_v<decltype(out)&, decltype(val)>) {
+            out = std::move(val);
+          } else {
+            throw std::runtime_error("Type mismatch");
+          }
+        });
     const auto& rootNode = *root_;
     auto traverseResult = thrift_cow::RootPathVisitor::visit(
         rootNode, begin, end, thrift_cow::PathVisitOptions::visitLeaf(), op);
@@ -155,22 +142,11 @@ class CowStorage : public Storage<Root, CowStorage<Root, Node>> {
     auto op =
         thrift_cow::pvlambda([&](auto& node, auto /*begin*/, auto /*end*/) {
           using NodeT = typename folly::remove_cvref_t<decltype(node)>;
-          if constexpr (std::is_same_v<
-                            typename NodeT::CowType,
-                            thrift_cow::ThriftObject>) {
-            // Thrift object under HybridNode
-            if constexpr (std::is_same_v<ValueT, NodeT>) {
-              node = std::forward<T>(value);
-            } else {
-              throw std::runtime_error("set: type mismatch for passed in path");
-            }
+          using TType = typename NodeT::ThriftType;
+          if constexpr (std::is_same_v<ValueT, TType>) {
+            node.fromThrift(std::forward<T>(value));
           } else {
-            using TType = typename NodeT::ThriftType;
-            if constexpr (std::is_same_v<ValueT, TType>) {
-              node.fromThrift(std::forward<T>(value));
-            } else {
-              throw std::runtime_error("set: type mismatch for passed in path");
-            }
+            throw std::runtime_error("set: type mismatch for passed in path");
           }
         });
     auto traverseResult = thrift_cow::RootPathVisitor::visit(

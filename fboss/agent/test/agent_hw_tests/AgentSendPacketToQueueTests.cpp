@@ -64,7 +64,7 @@ void AgentSendPacketToQueueTest::checkSendPacket(
     // id 7
     auto sw = getAgentEnsemble()->getSw();
     auto asic = utility::getAsic(*sw, port);
-    if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB && isOutOfPort) {
       queueID = kChenabTxQueue;
     }
 

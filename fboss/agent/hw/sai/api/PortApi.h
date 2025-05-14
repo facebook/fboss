@@ -858,6 +858,9 @@ struct SaiPortSerdesTraits {
     struct AttributeTxDriverSwingWrapper {
       std::optional<sai_attr_id_t> operator()();
     };
+    struct AttributeTxLdoBypassWrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
 
     // Rx Attributes
     struct AttributeRxInstgBoost1StartWrapper {
@@ -914,6 +917,21 @@ struct SaiPortSerdesTraits {
     struct AttributeRxCdrTdetFineStepOvValWrapper {
       std::optional<sai_attr_id_t> operator()();
     };
+    struct AttributeRxLdoBypassWrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    struct AttributeRxDiffEncoderEnWrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    struct AttributeRxInstgEnableScanWrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    struct AttributeRxFfeLengthBitmapWrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    struct AttributeRxFfeLmsDynamicGatingEnWrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
 
     using TxDiffEncoderEn = SaiExtensionAttribute<
         std::vector<sai_int32_t>,
@@ -939,6 +957,9 @@ struct SaiPortSerdesTraits {
     using TxDriverSwing = SaiExtensionAttribute<
         std::vector<sai_int32_t>,
         AttributeTxDriverSwingWrapper>;
+    using TxLdoBypass = SaiExtensionAttribute<
+        std::vector<sai_int32_t>,
+        AttributeTxLdoBypassWrapper>;
 
     using RxInstgBoost1Start = SaiExtensionAttribute<
         std::vector<sai_int32_t>,
@@ -994,6 +1015,21 @@ struct SaiPortSerdesTraits {
     using RxCdrTdetFineStepOvVal = SaiExtensionAttribute<
         std::vector<sai_int32_t>,
         AttributeRxCdrTdetFineStepOvValWrapper>;
+    using RxLdoBypass = SaiExtensionAttribute<
+        std::vector<sai_int32_t>,
+        AttributeRxLdoBypassWrapper>;
+    using RxDiffEncoderEn = SaiExtensionAttribute<
+        std::vector<sai_int32_t>,
+        AttributeRxDiffEncoderEnWrapper>;
+    using RxInstgEnableScan = SaiExtensionAttribute<
+        std::vector<sai_int32_t>,
+        AttributeRxInstgEnableScanWrapper>;
+    using RxFfeLengthBitmap = SaiExtensionAttribute<
+        std::vector<sai_int32_t>,
+        AttributeRxFfeLengthBitmapWrapper>;
+    using RxFfeLmsDynamicGatingEn = SaiExtensionAttribute<
+        std::vector<sai_int32_t>,
+        AttributeRxFfeLmsDynamicGatingEnWrapper>;
   };
   using AdapterKey = PortSerdesSaiId;
   using AdapterHostKey = Attributes::PortId;
@@ -1040,7 +1076,13 @@ struct SaiPortSerdesTraits {
       std::optional<Attributes::RxCdrCfgOvEn>,
       std::optional<Attributes::RxCdrTdet1stOrdStepOvVal>,
       std::optional<Attributes::RxCdrTdet2ndOrdStepOvVal>,
-      std::optional<Attributes::RxCdrTdetFineStepOvVal>>;
+      std::optional<Attributes::RxCdrTdetFineStepOvVal>,
+      std::optional<Attributes::TxLdoBypass>,
+      std::optional<Attributes::RxLdoBypass>,
+      std::optional<Attributes::RxDiffEncoderEn>,
+      std::optional<Attributes::RxInstgEnableScan>,
+      std::optional<Attributes::RxFfeLengthBitmap>,
+      std::optional<Attributes::RxFfeLmsDynamicGatingEn>>;
 };
 
 SAI_ATTRIBUTE_NAME(PortSerdes, PortId);
@@ -1085,6 +1127,12 @@ SAI_ATTRIBUTE_NAME(PortSerdes, RxCdrCfgOvEn);
 SAI_ATTRIBUTE_NAME(PortSerdes, RxCdrTdet1stOrdStepOvVal);
 SAI_ATTRIBUTE_NAME(PortSerdes, RxCdrTdet2ndOrdStepOvVal);
 SAI_ATTRIBUTE_NAME(PortSerdes, RxCdrTdetFineStepOvVal);
+SAI_ATTRIBUTE_NAME(PortSerdes, TxLdoBypass);
+SAI_ATTRIBUTE_NAME(PortSerdes, RxLdoBypass);
+SAI_ATTRIBUTE_NAME(PortSerdes, RxDiffEncoderEn);
+SAI_ATTRIBUTE_NAME(PortSerdes, RxInstgEnableScan);
+SAI_ATTRIBUTE_NAME(PortSerdes, RxFfeLengthBitmap);
+SAI_ATTRIBUTE_NAME(PortSerdes, RxFfeLmsDynamicGatingEn);
 
 struct SaiPortConnectorTraits {
   static constexpr sai_object_type_t ObjectType =

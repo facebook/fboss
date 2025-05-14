@@ -7,7 +7,7 @@
 
 namespace facebook::fboss {
 
-struct CmdSetInterfaceTraits : public BaseCommandTraits {
+struct CmdSetInterfaceTraits : public WriteCommandTraits {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST;
   using ObjectArgType = std::vector<std::string>;

@@ -236,7 +236,7 @@ TEST(PatchApplierTests, ModifyVariantValue) {
       fsdb::OperProtocol::COMPACT, 42));
 
   VariantPatch variantPatch;
-  variantPatch.id() = TestUnionMembers::inlineInt();
+  variantPatch.id() = folly::to_underlying(TestUnionMembers::inlineInt::value);
   variantPatch.child() = intPatch;
   PatchNode n;
   n.set_variant_node(variantPatch);
@@ -258,7 +258,7 @@ TEST(PatchApplierTests, ModifyVariantType) {
       fsdb::OperProtocol::COMPACT, 42));
 
   VariantPatch variantPatch;
-  variantPatch.id() = TestUnionMembers::inlineInt();
+  variantPatch.id() = folly::to_underlying(TestUnionMembers::inlineInt::value);
   variantPatch.child() = intPatch;
   PatchNode n;
   n.set_variant_node(variantPatch);
@@ -276,7 +276,8 @@ TEST(PatchApplierTests, ModifyVariantType) {
   StructPatch structPatch;
   structPatch.children() = {{L4PortRangeMembers::min::id(), intPatch}};
 
-  variantPatch.id() = TestUnionMembers::inlineStruct();
+  variantPatch.id() =
+      folly::to_underlying(TestUnionMembers::inlineStruct::value);
   variantPatch.child()->set_struct_node(structPatch);
   n.set_variant_node(variantPatch);
 

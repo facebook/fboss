@@ -17,7 +17,7 @@
 
 namespace facebook::fboss {
 
-struct CmdShowProductTraits : public BaseCommandTraits {
+struct CmdShowProductTraits : public ReadCommandTraits {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
   using ObjectArgType = std::monostate;

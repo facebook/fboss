@@ -75,7 +75,7 @@ bool isRedirectToNextHopStateSame(
   if (resolvedNexthops.size() > 0) {
     std::shared_ptr<BcmMultiPathNextHop> multipathNh =
         hw->writableMultiPathNextHopTable()->referenceOrEmplaceNextHop(
-            BcmMultiPathNextHopKey(routerId, resolvedNexthops));
+            BcmMultiPathNextHopKey(routerId, resolvedNexthops, std::nullopt));
     expectedEgressId = multipathNh->getEgressId();
   } else {
     expectedEgressId = hw->getDropEgressId();

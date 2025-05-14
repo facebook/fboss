@@ -670,8 +670,7 @@ void BcmEcmpEgress::program() {
       ret = bcm_l3_egress_ecmp_create(hw_->getUnit(), &obj, index, pathsArray);
     }
     bcmCheckError(ret, "failed to re-program L3 ECMP egress object ", id_);
-    if (obj.dynamic_mode == BCM_L3_ECMP_DYNAMIC_MODE_NORMAL ||
-        obj.dynamic_mode == BCM_L3_ECMP_DYNAMIC_MODE_OPTIMAL) {
+    if (utility::isEcmpModeDynamic(obj.dynamic_mode)) {
       setEgressEcmpMemberStatus(hw_, egressId2Weight_);
     }
   }
@@ -1363,8 +1362,7 @@ bool BcmEcmpEgress::updateEcmpDynamicMode() {
     }
     bcmCheckError(ret, "failed to re-program L3 ECMP egress object ", id_);
 
-    if (obj.dynamic_mode == BCM_L3_ECMP_DYNAMIC_MODE_NORMAL ||
-        obj.dynamic_mode == BCM_L3_ECMP_DYNAMIC_MODE_OPTIMAL) {
+    if (utility::isEcmpModeDynamic(obj.dynamic_mode)) {
       setEgressEcmpMemberStatus(hw_, egressId2Weight_);
     }
   } else {

@@ -583,10 +583,8 @@ SaiSwitchTraits::Attributes::AttributeSdkRegDumpLogPath::operator()() {
 
 std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeFirmwareObjectList::operator()() {
-#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_7)
   return SAI_SWITCH_ATTR_FIRMWARE_OBJECTS;
-#elif defined(BRCM_SAI_SDK_DNX_GTE_11_7)
-  return SAI_SWITCH_ATTR_FIRMWARE_OBJECT_LIST;
 #endif
   return std::nullopt;
 }

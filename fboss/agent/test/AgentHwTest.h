@@ -25,6 +25,7 @@ DECLARE_bool(disable_icmp_error_response);
 DECLARE_bool(enable_snapshot_debugs);
 DECLARE_bool(disable_looped_fabric_ports);
 DECLARE_bool(dsf_subscribe);
+DECLARE_int32(update_stats_interval_s);
 
 namespace facebook::fboss {
 

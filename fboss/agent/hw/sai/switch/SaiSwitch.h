@@ -451,6 +451,10 @@ class SaiSwitch : public HwSwitch {
       const std::shared_ptr<SwitchSettings>& oldSwitchSettings,
       const std::shared_ptr<SwitchSettings>& newSwitchSettings);
 
+  void processPortStateChangedForSwitchReachabilityLocked(
+      const std::lock_guard<std::mutex>& lock,
+      const StateDelta& delta);
+
   void syncLinkStatesLocked(const std::lock_guard<std::mutex>& lock);
   void syncLinkConnectivityLocked(const std::lock_guard<std::mutex>& lock);
 
@@ -544,6 +548,11 @@ class SaiSwitch : public HwSwitch {
   void processSwitchSettingsDrainStateChange(
       const StateDelta& delta,
       cfg::SwitchDrainState drainStateToProcess,
+      const LockPolicyT& lockPolicy);
+
+  template <typename LockPolicyT>
+  void processPortStateChangedForSwitchReachability(
+      const StateDelta& delta,
       const LockPolicyT& lockPolicy);
 
   PortSaiId getCPUPortSaiId() const;

@@ -224,4 +224,10 @@ cfg::SwitchingMode getEcmpSwitchingMode(uint32_t dynamicMode) {
   throw FbossError("Invalid dynamic mode: ", dynamicMode);
 }
 
+bool isEcmpModeDynamic(uint32_t dynamicMode) {
+  return (
+      dynamicMode == BCM_L3_ECMP_DYNAMIC_MODE_NORMAL ||
+      dynamicMode == BCM_L3_ECMP_DYNAMIC_MODE_OPTIMAL);
+}
+
 } // namespace facebook::fboss::utility

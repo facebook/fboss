@@ -18,7 +18,7 @@
 
 namespace facebook::fboss {
 
-struct CmdShowFabricReachabilityTraits : public BaseCommandTraits {
+struct CmdShowFabricReachabilityTraits : public ReadCommandTraits {
   using ParentCmd = CmdShowFabric;
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_SWITCH_NAME_LIST;
@@ -35,8 +35,6 @@ class CmdShowFabricReachability : public CmdHandler<
   RetType queryClient(
       const HostInfo& hostInfo,
       const ObjectArgType& queriedSwitchNames) {
-    std::map<std::string, std::vector<std::string>> reachabilityMatrix;
-
     std::vector<std::string> switchNames;
     if (queriedSwitchNames.size()) {
       switchNames.reserve(queriedSwitchNames.size());
@@ -45,24 +43,8 @@ class CmdShowFabricReachability : public CmdHandler<
       }
     }
 
-    // Query swAgent for cached reachability information
-    auto swAgentQueryFn =
-        [&reachabilityMatrix, &switchNames](
-            apache::thrift::Client<facebook::fboss::FbossCtrl>& client) {
-          std::map<std::string, std::vector<std::string>> reachability;
-          client.sync_getSwitchReachability(reachability, switchNames);
-          for (auto& [switchName, reachablePorts] : reachability) {
-            reachabilityMatrix[switchName].insert(
-                reachabilityMatrix[switchName].end(),
-                reachablePorts.begin(),
-                reachablePorts.end());
-          }
-        };
-
-    auto client =
-        utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
-    swAgentQueryFn(*client);
-
+    auto reachabilityMatrix =
+        utils::getCachedSwSwitchReachabilityInfo(hostInfo, switchNames);
     return createModel(reachabilityMatrix);
   }
 

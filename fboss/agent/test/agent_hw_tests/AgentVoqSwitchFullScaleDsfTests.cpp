@@ -59,8 +59,8 @@ class AgentVoqSwitchFullScaleDsfNodesTest : public AgentVoqSwitchTest {
  protected:
   void setCmdLineFlagOverrides() const override {
     AgentVoqSwitchTest::setCmdLineFlagOverrides();
-    // Disable stats update to improve performance
-    FLAGS_enable_stats_update_thread = false;
+    // Collect sats less frequently.
+    FLAGS_update_stats_interval_s = 120;
     // Allow 100% ECMP resource usage
     FLAGS_ecmp_resource_percentage = 100;
     FLAGS_ecmp_width = 512;

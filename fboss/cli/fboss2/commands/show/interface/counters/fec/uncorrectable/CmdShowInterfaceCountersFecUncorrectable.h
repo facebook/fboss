@@ -13,7 +13,7 @@ namespace facebook::fboss {
 using utils::Table;
 
 struct CmdShowInterfaceCountersFecUncorrectableTraits
-    : public BaseCommandTraits {
+    : public ReadCommandTraits {
   using ParentCmd = CmdShowInterfaceCountersFec;
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;

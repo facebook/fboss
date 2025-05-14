@@ -854,6 +854,9 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
         &SaiVlanManager::changeVlan,
         &SaiVlanManager::addVlan,
         &SaiVlanManager::removeVlan);
+  } else {
+    // Only DNX asics support switch reachability function
+    processPortStateChangedForSwitchReachability(delta, lockPolicy);
   }
 
   {
@@ -1646,6 +1649,40 @@ void SaiSwitch::processSwitchSettingsDrainStateChange(
   if (oldSwitchSettings != newSwitchSettings) {
     processSwitchSettingsDrainStateChangeLocked(
         lockPolicy.lock(), drainStateToProcess, delta);
+  }
+}
+
+void SaiSwitch::processPortStateChangedForSwitchReachabilityLocked(
+    const std::lock_guard<std::mutex>& /*lock*/,
+    const StateDelta& delta) {
+  DeltaFunctions::forEachChanged(
+      delta.getPortsDelta(), [&](const auto& oldPort, const auto& newPort) {
+        if ((newPort->getPortType() == cfg::PortType::FABRIC_PORT) &&
+            (newPort->getActiveState() != oldPort->getActiveState())) {
+          // Forcing a switch reachability get from SAI/SDK once the
+          // port active state change handling is complete to ensure
+          // the switch reachability data is updated. This is needed
+          // as there are some cases like the one captured in
+          // CS00012399424, where a rechability change notification
+          // is not sent to NOS when port active state changes.
+          XLOG(DBG2) << "Port active state change on " << newPort->getName()
+                     << " triggering switch reachability get!";
+          setSwitchReachabilityChangePending();
+          return;
+        }
+      });
+}
+
+template <typename LockPolicyT>
+void SaiSwitch::processPortStateChangedForSwitchReachability(
+    const StateDelta& delta,
+    const LockPolicyT& lockPolicy) {
+  const auto portsDelta = delta.getPortsDelta();
+  const auto& oldPorts = portsDelta.getOld();
+  const auto& newPorts = portsDelta.getNew();
+  if (oldPorts != newPorts) {
+    processPortStateChangedForSwitchReachabilityLocked(
+        lockPolicy.lock(), delta);
   }
 }
 
@@ -2521,13 +2558,6 @@ void SaiSwitch::txReadyStatusChangeOrFwIsolateCallbackBottomHalf(
 
   callback_->linkActiveStateChangedOrFwIsolated(
       port2IsActive, fwIsolated, numActiveFabricPortsAtFwIsolate);
-
-  // Forcing a switch reachability get from SAI/SDK once port
-  // active state change handling is complete to ensure the
-  // switch reachability data is consistent with port active
-  // state which is still an issue in S486672.
-  // TODO: Remove this once root cause of mismatch is identified.
-  setSwitchReachabilityChangePending();
 #endif
 }
 
@@ -2550,10 +2580,10 @@ std::set<PortID> SaiSwitch::getFabricReachabilityPortIds(
     const std::vector<sai_object_id_t>& switchIdAndFabricPortSaiIds) const {
   int64_t switchId = switchIdAndFabricPortSaiIds.at(0);
   if (switchIdAndFabricPortSaiIds.size() > 1) {
-    XLOG(DBG2) << "SwitchID " << switchId << " reachable over "
+    XLOG(DBG4) << "SwitchID " << switchId << " reachable over "
                << switchIdAndFabricPortSaiIds.size() - 1 << " ports!";
   } else if (switchIdAndFabricPortSaiIds.size() == 1) {
-    XLOG(DBG2) << "SwitchID " << switchId << " unreachable over fabric!";
+    XLOG(DBG4) << "SwitchID " << switchId << " unreachable over fabric!";
   }
   // Index 0 has switchId and indices 1 onwards has fabric port SAI id,
   // need to find the PortID associated with these fabric port SAI ids.

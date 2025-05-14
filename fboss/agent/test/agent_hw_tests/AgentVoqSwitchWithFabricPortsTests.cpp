@@ -111,7 +111,9 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, collectStats) {
       for (auto portId : masterLogicalFabricPortIds()) {
         auto pitr = port2Stats.find(portId);
         EXPECT_EVENTUALLY_TRUE(pitr != port2Stats.end());
-        EXPECT_EVENTUALLY_TRUE(pitr->second.cableLengthMeters().has_value());
+        if (pitr != port2Stats.end()) {
+          EXPECT_EVENTUALLY_TRUE(pitr->second.cableLengthMeters().has_value());
+        }
       }
       auto state = getProgrammedState();
       for (auto& portMap : std::as_const(*state->getPorts())) {
@@ -176,7 +178,7 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, switchReachability) {
       WITH_RETRIES({
         const auto& reachability = getSw()->getSwitchReachability();
         const auto switchIter = reachability.find(switchId);
-        EXPECT_EVENTUALLY_TRUE(switchIter != reachability.end());
+        ASSERT_EVENTUALLY_TRUE(switchIter != reachability.end());
         auto switchReachability = switchIter->second;
         const auto switchToPortGroupIter =
             switchReachability.switchIdToFabricPortGroupMap()->find(switchId);

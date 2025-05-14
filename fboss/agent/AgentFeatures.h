@@ -100,3 +100,5 @@ DECLARE_bool(type_dctype1_janga);
 DECLARE_bool(prod_invariant_config_test);
 DECLARE_int32(max_unprocessed_switch_reachability_changes);
 DECLARE_bool(enable_ecmp_resource_manager);
+
+DECLARE_int32(update_stats_interval_s);

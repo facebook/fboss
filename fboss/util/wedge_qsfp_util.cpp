@@ -2417,7 +2417,7 @@ void printPortDetail(
     const DOMDataUnion& domDataUnion,
     unsigned int port,
     const std::string& portNames) {
-  if (domDataUnion.__EMPTY__) {
+  if (domDataUnion.getType() == DOMDataUnion::Type::__EMPTY__) {
     fprintf(stderr, "DOMDataUnion object is empty\n");
     return;
   }

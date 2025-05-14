@@ -194,6 +194,15 @@ class HwSwitchFb303Stats {
   void networkInterfaceError() {
     networkInterfaceErrors_.addValue(1);
   }
+  void fabricControlPathError() {
+    fabricControlPathErrors_.addValue(1);
+  }
+  void fabricDataPathError() {
+    fabricDataPathErrors_.addValue(1);
+  }
+  void cpuError() {
+    cpuErrors_.addValue(1);
+  }
   void ingressTmWarning() {
     ingressTmWarnings_.addValue(1);
   }
@@ -355,6 +364,9 @@ class HwSwitchFb303Stats {
   int64_t getFabricLinkErrors() const;
   int64_t getFabricTopologyErrors() const;
   int64_t getNetworkInterfaceErrors() const;
+  int64_t getFabricControlPathErrors() const;
+  int64_t getFabricDataPathErrors() const;
+  int64_t getCpuErrors() const;
   int64_t getIngressTmWarnings() const;
   int64_t getEgressTmWarnings() const;
   int64_t getDramWarnings() const;
@@ -500,6 +512,9 @@ class HwSwitchFb303Stats {
   TLTimeseries fabricLinkErrors_;
   TLTimeseries fabricTopologyErrors_;
   TLTimeseries networkInterfaceErrors_;
+  TLTimeseries fabricControlPathErrors_;
+  TLTimeseries fabricDataPathErrors_;
+  TLTimeseries cpuErrors_;
   TLTimeseries ingressTmWarnings_;
   TLTimeseries egressTmWarnings_;
   TLTimeseries dramWarnings_;

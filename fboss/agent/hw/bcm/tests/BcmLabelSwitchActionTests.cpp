@@ -140,7 +140,7 @@ class BcmLabelSwitchActionTest : public BcmTest {
       // for push & swap, use labeled egresses
       auto reference = getHwSwitch()->getMultiPathNextHopTable()->getNextHop(
           BcmMultiPathNextHopKey(
-              0, entry->getForwardInfo().normalizedNextHops()));
+              0, entry->getForwardInfo().normalizedNextHops(), std::nullopt));
       EXPECT_EQ(info.egress_if, reference->getEgressId());
     } else {
       int egressId;
@@ -154,7 +154,8 @@ class BcmLabelSwitchActionTest : public BcmTest {
             BcmMultiPathNextHopKey(
                 0,
                 utility::stripLabelForwarding(
-                    entry->getForwardInfo().normalizedNextHops())));
+                    entry->getForwardInfo().normalizedNextHops()),
+                std::nullopt));
         egressId = reference->getEgressId();
       }
       EXPECT_EQ(info.egress_if, egressId);

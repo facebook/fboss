@@ -354,7 +354,8 @@ class CowSubscriptionManager
         thrift_cow::DeltaVisitOptions(
             thrift_cow::DeltaVisitMode::FULL,
             thrift_cow::DeltaVisitOrder::CHILDREN_FIRST,
-            this->useIdPaths_),
+            this->useIdPaths_,
+            false /* hybridNodeShallowTraversal */),
         std::move(processDelta));
   }
 

@@ -114,6 +114,11 @@ void LldpManager::handlePacket(
   auto pid = pkt->getSrcPort();
   auto port = sw_->getState()->getPorts()->getNodeIf(pid);
 
+  if (!port) {
+    XLOG(ERR) << "Port " << pid << " does not exist";
+    return;
+  }
+
   XLOG(DBG4) << "Port " << pid << ", local name: " << port->getName()
              << ", local desc: " << port->getDescription()
              << ", LLDP systemname: " << neighbor->getSystemName()

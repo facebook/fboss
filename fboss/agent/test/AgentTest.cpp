@@ -25,6 +25,7 @@ DEFINE_bool(setup_for_warmboot, false, "Set up test for warmboot");
 
 DECLARE_string(config);
 DECLARE_bool(disable_looped_fabric_ports);
+DECLARE_bool(intf_nbr_tables);
 
 namespace facebook::fboss {
 
@@ -97,12 +98,28 @@ void AgentTest::resolveNeighbor(
     const AddrT& ip,
     VlanID vlanId,
     folly::MacAddress mac) {
+  using NeighborTableT = typename std::conditional_t<
+      std::is_same<AddrT, folly::IPAddressV4>::value,
+      ArpTable,
+      NdpTable>;
+
   auto resolveNeighborFn = [=,
                             this](const std::shared_ptr<SwitchState>& state) {
     auto outputState{state->clone()};
     auto vlan = outputState->getVlans()->getNode(vlanId);
-    auto nbrTable = vlan->template getNeighborEntryTable<AddrT>()->modify(
-        vlanId, &outputState);
+    auto intfId = vlan->getInterfaceID();
+
+    NeighborTableT* nbrTable;
+    if (FLAGS_intf_nbr_tables) {
+      nbrTable = outputState->getInterfaces()
+                     ->getNode(intfId)
+                     ->template getNeighborEntryTable<AddrT>()
+                     ->modify(intfId, &outputState);
+    } else {
+      nbrTable = vlan->template getNeighborEntryTable<AddrT>()->modify(
+          vlanId, &outputState);
+    }
+
     if (nbrTable->getEntryIf(ip)) {
       nbrTable->updateEntry(
           ip, mac, port, vlan->getInterfaceID(), NeighborState::REACHABLE);

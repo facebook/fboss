@@ -106,6 +106,7 @@ void AgentHwTest::setCmdLineFlagOverrides() const {
   FLAGS_dsf_subscribe = false;
   // Set HW agent connection timeout to 130 seconds
   FLAGS_hw_agent_connection_timeout_ms = 130000;
+  FLAGS_update_stats_interval_s = 1;
 }
 
 void AgentHwTest::TearDown() {
@@ -353,7 +354,7 @@ std::map<SystemPortID, HwSysPortStats> AgentHwTest::getLatestSysPortStats(
           // Sysport stats names are suffixed with _switchIndex. Remove that
           // to get at sys port name
           auto portName =
-              portStatName.substr(0, portStatName.find_last_of("_"));
+              portStatName.substr(0, portStatName.find_last_of('_'));
           try {
             if (portName.find("cpu") != std::string::npos) {
               portId = 0;

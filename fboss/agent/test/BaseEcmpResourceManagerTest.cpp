@@ -51,7 +51,7 @@ std::vector<StateDelta> BaseEcmpResourceManagerTest::consolidate(
   state->publish();
   StateDelta delta(state_, state);
   auto deltas = consolidator_->consolidate(delta);
-  consolidator_->updateDone(delta);
+  consolidator_->updateDone();
   if (deltas.size()) {
     XLOG(DBG2) << " Checking deltas, num deltas: " << deltas.size();
     assertDeltasForOverflow(deltas);
@@ -61,6 +61,10 @@ std::vector<StateDelta> BaseEcmpResourceManagerTest::consolidate(
   }
   state_->publish();
   EXPECT_EQ(state_->getFibs()->getNode(RouterID(0))->getFibV4()->size(), 0);
+  /*
+   * Assert that EcmpResourceMgr leaves the ports state untouched
+   */
+  EXPECT_NE(state_->getPorts()->getPortIf("port1"), nullptr);
   return deltas;
 }
 
@@ -69,8 +73,11 @@ void BaseEcmpResourceManagerTest::assertDeltasForOverflow(
   std::map<RouteNextHopSet, uint32_t> primaryEcmpTypeGroups2RefCnt;
   for (const auto& [_, route] :
        std::as_const(*cfib(deltas.begin()->oldState()))) {
-    if (route->isResolved() &&
-        !route->getForwardInfo().getOverrideEcmpSwitchingMode().has_value()) {
+    if (!route->isResolved() ||
+        route->getForwardInfo().normalizedNextHops().size() <= 1) {
+      continue;
+    }
+    if (!route->getForwardInfo().getOverrideEcmpSwitchingMode().has_value()) {
       auto pitr = primaryEcmpTypeGroups2RefCnt.find(
           route->getForwardInfo().normalizedNextHops());
       if (pitr != primaryEcmpTypeGroups2RefCnt.end()) {
@@ -95,6 +102,10 @@ void BaseEcmpResourceManagerTest::assertDeltasForOverflow(
       consolidator_->getMaxPrimaryEcmpGroups());
   auto routeDeleted = [&primaryEcmpTypeGroups2RefCnt](const auto& oldRoute) {
     XLOG(DBG2) << " Route deleted: " << oldRoute->str();
+    if (!oldRoute->isResolved() ||
+        oldRoute->getForwardInfo().normalizedNextHops().size() <= 1) {
+      return;
+    }
     if (oldRoute->getForwardInfo().getOverrideEcmpSwitchingMode().has_value()) {
       return;
     }
@@ -113,6 +124,10 @@ void BaseEcmpResourceManagerTest::assertDeltasForOverflow(
   auto routeAdded = [&primaryEcmpTypeGroups2RefCnt,
                      this](const auto& newRoute) {
     XLOG(DBG2) << " Route added: " << newRoute->str();
+    if (!newRoute->isResolved() ||
+        newRoute->getForwardInfo().normalizedNextHops().size() <= 1) {
+      return;
+    }
     if (newRoute->getForwardInfo().getOverrideEcmpSwitchingMode().has_value()) {
       return;
     }
@@ -134,8 +149,9 @@ void BaseEcmpResourceManagerTest::assertDeltasForOverflow(
         consolidator_->getMaxPrimaryEcmpGroups());
   };
 
+  auto idx = 1;
   for (const auto& delta : deltas) {
-    XLOG(DBG2) << " Processing delta";
+    XLOG(DBG2) << " Processing delta #" << idx++;
     forEachChangedRoute<folly::IPAddressV6>(
         delta,
         [=](RouterID /*rid*/, const auto& oldRoute, const auto& newRoute) {
@@ -187,6 +203,8 @@ void BaseEcmpResourceManagerTest::SetUp() {
   XLOG(DBG2) << "BaseEcmpResourceMgrTest SetUp";
   consolidator_ = makeResourceMgr();
   state_ = std::make_shared<SwitchState>();
+  state_->getPorts()->modify(&state_);
+  registerPort(state_, PortID(1), "port1", hwMatcher());
   auto fibContainer =
       std::make_shared<ForwardingInformationBaseContainer>(RouterID(0));
   auto mfib = std::make_shared<MultiSwitchForwardingInformationBaseMap>();
@@ -230,12 +248,12 @@ TEST_F(BaseEcmpResourceManagerTest, noFibsDelta) {
   auto oldState = state_;
   auto newState = oldState->clone();
   newState->getPorts()->modify(&newState);
-  registerPort(newState, PortID(1), "portOne", hwMatcher());
+  registerPort(newState, PortID(2), "port2", hwMatcher());
   auto deltas = consolidate(newState);
   EXPECT_EQ(deltas.size(), 1);
   EXPECT_EQ(deltas.begin()->oldState(), oldState);
   EXPECT_EQ(deltas.begin()->newState(), newState);
   EXPECT_NE(
-      deltas.begin()->newState()->getPorts()->getPortIf("portOne"), nullptr);
+      deltas.begin()->newState()->getPorts()->getPortIf("port2"), nullptr);
 }
 } // namespace facebook::fboss

@@ -294,3 +294,5 @@ DEFINE_bool(
     enable_ecmp_resource_manager,
     false,
     "This flag is used to enable ecmp resource manager feature");
+
+DEFINE_int32(update_stats_interval_s, 1, "Update stats interval in seconds");
