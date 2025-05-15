@@ -1,5 +1,6 @@
 namespace cpp2 facebook.fboss.platform.sensor_config
 namespace go neteng.fboss.platform.sensor_config
+namespace php Neteng_Fboss_Platform_SensorConfig
 namespace py neteng.fboss.platform.sensor_config
 namespace py3 neteng.fboss.platform.sensor_config
 namespace py.asyncio neteng.fboss.platform.asyncio.sensor_config
