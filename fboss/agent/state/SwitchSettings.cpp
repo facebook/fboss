@@ -10,12 +10,9 @@
 #include "fboss/agent/state/SwitchSettings.h"
 #include <fboss/agent/gen-cpp2/switch_config_types.h>
 #include "common/network/if/gen-cpp2/Address_types.h"
-#include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/state/SwitchState.h"
 
-#include "fboss/agent/state/NodeBase-defs.h"
 #include "folly/json/dynamic.h"
-#include "folly/json/json.h"
 
 namespace facebook::fboss {
 

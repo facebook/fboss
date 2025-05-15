@@ -12,11 +12,9 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
-#include "fboss/agent/state/DeltaFunctions.h"
 
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
-#include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/state/SwitchState-defs.h"
 #include "fboss/agent/state/SwitchState.h"

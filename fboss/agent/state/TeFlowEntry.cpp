@@ -1,7 +1,6 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/agent/state/TeFlowEntry.h"
-#include "fboss/agent/state/NodeBase-defs.h"
 #include "fboss/agent/state/SwitchState.h"
 
 DECLARE_bool(intf_nbr_tables);

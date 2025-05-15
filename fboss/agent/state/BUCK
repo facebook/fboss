@@ -157,7 +157,6 @@ cpp_library(
         "//folly:network_address",
         "//folly:poly",
         "//folly:range",
-        "//folly:string",
         "//folly/hash:hash",
         "//folly/json:dynamic",
         "//folly/logging:logging",
