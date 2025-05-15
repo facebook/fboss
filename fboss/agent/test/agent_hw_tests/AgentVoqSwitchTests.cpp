@@ -412,13 +412,6 @@ TEST_F(AgentVoqSwitchTest, sendPacketCpuAndFrontPanel) {
       int64_t beforeQueueOutPkts = 0, beforeQueueOutBytes = 0;
       int64_t afterQueueOutPkts = 0, afterQueueOutBytes = 0;
       int64_t beforeVoQOutBytes = 0, afterVoQOutBytes = 0;
-      int64_t egressCoreWatermarkBytes = 0;
-      // Get SRAM size per core as thats the highest possible free SRAM
-      const uint64_t kSramSize =
-          checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
-              ->getSramSizeBytes() /
-          checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())->getNumCores();
-      int64_t sramMinBufferWatermarkBytes = kSramSize + 1;
 
       if (isSupportedOnAllAsics(HwAsic::Feature::L3_QOS)) {
         auto beforeAllQueueOut = getAllQueueOutPktsBytes();
@@ -477,21 +470,6 @@ TEST_F(AgentVoqSwitchTest, sendPacketCpuAndFrontPanel) {
                   getPortOutPktsBytes(*frontPanelPort);
             }
             auto afterRecyclePkts = getRecyclePortPkts();
-            for (const auto& switchWatermarksIter :
-                 getAllSwitchWatermarkStats()) {
-              if (switchWatermarksIter.second.egressCoreBufferWatermarkBytes()
-                      .has_value()) {
-                egressCoreWatermarkBytes +=
-                    switchWatermarksIter.second.egressCoreBufferWatermarkBytes()
-                        .value();
-              }
-              if (switchWatermarksIter.second.sramMinBufferWatermarkBytes()
-                      .has_value()) {
-                sramMinBufferWatermarkBytes = std::min(
-                    sramMinBufferWatermarkBytes,
-                    *switchWatermarksIter.second.sramMinBufferWatermarkBytes());
-              }
-            }
             XLOG(DBG2) << "Verifying: "
                        << (isFrontPanel ? "Send Packet from Front Panel Port"
                                         : "Send Packet from CPU Port")
@@ -512,11 +490,7 @@ TEST_F(AgentVoqSwitchTest, sendPacketCpuAndFrontPanel) {
                        << " afterAclPkts: " << afterAclPkts
                        << " afterFrontPanelPkts: " << afterFrontPanelOutPkts
                        << " afterFrontPanelBytes: " << afterFrontPanelOutBytes
-                       << " afterRecyclePkts: " << afterRecyclePkts
-                       << " egressCoreWatermarkBytes: "
-                       << egressCoreWatermarkBytes
-                       << " sramMinBufferWatermarkBytes: "
-                       << sramMinBufferWatermarkBytes;
+                       << " afterRecyclePkts: " << afterRecyclePkts;
 
             EXPECT_EVENTUALLY_EQ(afterOutPkts - 1, beforeOutPkts);
             int extraByteOffset = 0;
@@ -560,14 +534,6 @@ TEST_F(AgentVoqSwitchTest, sendPacketCpuAndFrontPanel) {
               EXPECT_EVENTUALLY_EQ(
                   *afterSwitchDropStats.queueResolutionDrops(),
                   *beforeSwitchDropStats.queueResolutionDrops() + 1);
-            }
-            if (isSupportedOnAllAsics(
-                    HwAsic::Feature::EGRESS_CORE_BUFFER_WATERMARK)) {
-              EXPECT_EVENTUALLY_GT(egressCoreWatermarkBytes, 0);
-            }
-            if (isSupportedOnAllAsics(
-                    HwAsic::Feature::INGRESS_SRAM_MIN_BUFFER_WATERMARK)) {
-              EXPECT_EVENTUALLY_LE(sramMinBufferWatermarkBytes, kSramSize);
             }
           });
     };
@@ -930,6 +896,44 @@ TEST_F(AgentVoqSwitchTest, verifyDramErrorDetection) {
       ASSERT_EVENTUALLY_TRUE(
           switchStats.hwAsicErrors()->dramErrors().has_value());
       EXPECT_EVENTUALLY_GT(switchStats.hwAsicErrors()->dramErrors().value(), 0);
+    });
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(AgentVoqSwitchTest, verifyEgressCoreAndSramWatermark) {
+  utility::EcmpSetupAnyNPorts6 ecmpHelper(
+      getProgrammedState(), getSw()->needL2EntryForNeighbor());
+  const auto kPortDesc = ecmpHelper.ecmpPortDescriptorAt(0);
+
+  auto setup = [this, kPortDesc, ecmpHelper]() {
+    addRemoveNeighbor(kPortDesc, NeighborOp::ADD);
+  };
+
+  auto verify = [this, kPortDesc, ecmpHelper]() {
+    std::string kEgressCoreWm{"buffer_watermark_egress_core.p100.60"};
+    std::string kSramMinWm{"buffer_watermark_min_sram.p0.60"};
+    // Get SRAM size per core as thats the highest possible free SRAM
+    const uint64_t kSramSize =
+        checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
+            ->getSramSizeBytes() /
+        checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())->getNumCores();
+    auto regex = kEgressCoreWm + "|" + kSramMinWm;
+    sendPacket(
+        ecmpHelper.ip(kPortDesc),
+        ecmpHelper.ecmpPortDescriptorAt(1).phyPortID());
+    WITH_RETRIES({
+      auto counters = getAgentEnsemble()->getFb303CountersByRegex(
+          ecmpHelper.ecmpPortDescriptorAt(1).phyPortID(), regex);
+      ASSERT_EVENTUALLY_EQ(counters.size(), 2);
+      for (const auto& ctr : counters) {
+        XLOG(DBG0) << ctr.first << " : " << ctr.second;
+        if (ctr.first.find(kEgressCoreWm) != std::string::npos) {
+          EXPECT_EVENTUALLY_GT(ctr.second, 0);
+        } else {
+          EXPECT_EVENTUALLY_LE(ctr.second, kSramSize);
+        }
+      }
     });
   };
   verifyAcrossWarmBoots(setup, verify);
