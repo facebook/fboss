@@ -17,7 +17,7 @@
 namespace facebook::fboss {
 
 BcmTestWedge100Port::BcmTestWedge100Port(
-    PortID id,
+    const PortID& id,
     BcmTestWedge100Platform* platform)
     : BcmTestPort(id, platform) {}
 

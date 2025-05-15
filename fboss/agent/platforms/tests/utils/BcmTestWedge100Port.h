@@ -17,7 +17,7 @@ class BcmTestWedge100Platform;
 
 class BcmTestWedge100Port : public BcmTestPort {
  public:
-  BcmTestWedge100Port(PortID id, BcmTestWedge100Platform* platform);
+  BcmTestWedge100Port(const PortID& id, BcmTestWedge100Platform* platform);
 
   LaneSpeeds supportedLaneSpeeds() const override {
     return {

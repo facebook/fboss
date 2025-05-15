@@ -17,7 +17,7 @@ class BcmTestElbertPlatform;
 
 class BcmTestElbertPort : public BcmTestPort {
  public:
-  BcmTestElbertPort(PortID id, BcmTestElbertPlatform* platform);
+  BcmTestElbertPort(const PortID& id, BcmTestElbertPlatform* platform);
 
   LaneSpeeds supportedLaneSpeeds() const override {
     return LaneSpeeds();

@@ -17,7 +17,7 @@ class BcmTestWedge400Platform;
 
 class BcmTestWedge400Port : public BcmTestPort {
  public:
-  BcmTestWedge400Port(PortID id, BcmTestWedge400Platform* platform);
+  BcmTestWedge400Port(const PortID& id, BcmTestWedge400Platform* platform);
 
   LaneSpeeds supportedLaneSpeeds() const override {
     // TODO(jennylli) support flexport

@@ -17,7 +17,7 @@ class BcmTestYampPlatform;
 
 class BcmTestYampPort : public BcmTestPort {
  public:
-  BcmTestYampPort(PortID id, BcmTestYampPlatform* platform);
+  BcmTestYampPort(const PortID& id, BcmTestYampPlatform* platform);
 
   LaneSpeeds supportedLaneSpeeds() const override {
     // TODO(joseph5wu) We haven't support flexport and portgroup for TH3

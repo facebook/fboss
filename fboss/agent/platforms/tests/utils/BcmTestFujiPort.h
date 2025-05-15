@@ -17,7 +17,7 @@ class BcmTestFujiPlatform;
 
 class BcmTestFujiPort : public BcmTestPort {
  public:
-  BcmTestFujiPort(PortID id, BcmTestFujiPlatform* platform);
+  BcmTestFujiPort(const PortID& id, BcmTestFujiPlatform* platform);
 
   LaneSpeeds supportedLaneSpeeds() const override {
     return LaneSpeeds();
