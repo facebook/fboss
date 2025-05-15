@@ -284,7 +284,9 @@ EcmpResourceManager::updateForwardingInfoAndInsertDelta(
     InputOutputState* inOutState) {
   auto mergeSet = createOptimalMergeGroupSet();
   CHECK(mergeSet.empty()) << "Merge algo is a TODO";
-  CHECK(backupEcmpGroupType_.has_value());
+  if (!backupEcmpGroupType_.has_value()) {
+    throw FbossError("Ecmp limit reached but no backup ecmp group type set");
+  }
   std::shared_ptr<NextHopGroupInfo> grpInfo;
   std::tie(grpInfo, std::ignore) = nextHopGroupIdToInfo_.refOrEmplace(
       nhops2IdItr->second,
