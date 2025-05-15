@@ -19,6 +19,9 @@ set(
     "fboss/lib/platform_mapping_v2/static_mapping.py"
 )
 
+file(COPY "fboss/lib/platform_mapping_v2/test/test_data" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/fboss/lib/platform_mapping_v2/test")
+message(STATUS "Copying test source files to: ${CMAKE_CURRENT_BINARY_DIR}/fboss/lib/platform_mapping_v2/test")
+
 add_fb_python_executable(
     platform_mapping_gen_unit_test
     MAIN_MODULE fboss.lib.platform_mapping_v2.test.test:run_tests

@@ -44,6 +44,21 @@ class TestVerifyPlatformMappingGeneratedFiles(unittest.TestCase):
     )
     _TMP_GENERATED_DIR: str = "/tmp/generated_platform_mappings/"
 
+    def _clear_tmp_generated_mappings(self) -> None:
+        """
+        Clears out any files in the /tmp/generated_platform_mappings directory.
+        """
+        if os.path.exists(self._TMP_GENERATED_DIR):
+            for filename in os.listdir(self._TMP_GENERATED_DIR):
+                file_path = os.path.join(self._TMP_GENERATED_DIR, filename)
+                try:
+                    if os.path.isfile(file_path) or os.path.islink(file_path):
+                        os.unlink(file_path)
+                    elif os.path.isdir(file_path):
+                        os.rmdir(file_path)
+                except Exception as e:
+                    print(f"Failed to delete {file_path}. Reason: {e}", file=sys.stderr)
+
     def _generate_all_oss_platform_mappings_in_tmp(self) -> None:
         for is_multi_npu, platforms in self._OSS_MULTI_NPU_SUPPORTED_PLATFORMS.items():
             for platform in platforms:
@@ -61,8 +76,16 @@ class TestVerifyPlatformMappingGeneratedFiles(unittest.TestCase):
         2. Compares /tmp generated files and /fbcode generated files (including changes from current PR).
         3. Verifies all generated files match, raises AssertionError if not.
         """
+        self._clear_tmp_generated_mappings()
+        print(
+            f"Cleared any existing files in {self._TMP_GENERATED_DIR}", file=sys.stderr
+        )
+
         self._generate_all_oss_platform_mappings_in_tmp()
-        print("Generated all platform mappings in /tmp", file=sys.stderr)
+        print(
+            f"Generated all platform mappings in {self._TMP_GENERATED_DIR}",
+            file=sys.stderr,
+        )
 
         self.assertTrue(
             os.path.exists(self._FBCODE_GENERATED_DIR),
@@ -72,7 +95,10 @@ class TestVerifyPlatformMappingGeneratedFiles(unittest.TestCase):
             os.path.exists(self._TMP_GENERATED_DIR),
             f"Tmp generated directory {self._TMP_GENERATED_DIR} not found",
         )
-        print("Folder paths exist", file=sys.stderr)
+        print(
+            f"Folder paths exist (fbcode: {self._FBCODE_GENERATED_DIR}, tmp: {self._TMP_GENERATED_DIR})",
+            file=sys.stderr,
+        )
 
         ref_files = os.listdir(self._FBCODE_GENERATED_DIR)
         gen_files = os.listdir(self._TMP_GENERATED_DIR)
