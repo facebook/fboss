@@ -486,7 +486,9 @@ SwSwitch::SwSwitch(
       auto asic = checkSameAndGetAsic(l3Asics);
       // TODO look at flowlet settings and figure out the max
       // ECMP groups value to use.
-      auto maxEcmpGroups = asic->getMaxEcmpGroups();
+      auto maxEcmpGroups = FLAGS_flowletSwitchingEnable
+          ? asic->getMaxDlbEcmpGroups()
+          : asic->getMaxEcmpGroups();
       if (maxEcmpGroups.has_value()) {
         auto maxEcmps = std::floor(
             *maxEcmpGroups *
