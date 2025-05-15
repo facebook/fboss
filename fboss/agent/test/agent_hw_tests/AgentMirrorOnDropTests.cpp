@@ -506,6 +506,69 @@ INSTANTIATE_TEST_SUITE_P(
       return apache::thrift::util::enumNameSafe(info.param);
     });
 
+// 1. Configures MOD on a recycle or eventor port, but don't add a route to the
+//    collector IP.
+// 2. Sends a packet towards an unknown destination.
+// 3. Check that recycle/eventor port stats increase by at most 2 packets.
+TEST_P(AgentMirrorOnDropTest, NoInfiniteLoopRecirculated) {
+  auto mirrorPortId = masterLogicalPortIds({GetParam()})[0];
+  auto injectionPortId = masterLogicalInterfacePortIds()[0];
+  XLOG(DBG3) << "MoD port: " << portDesc(mirrorPortId);
+  XLOG(DBG3) << "Injection port: " << portDesc(injectionPortId);
+
+  auto setup = [&]() {
+    auto config = getAgentEnsemble()->getCurrentConfig();
+    setupMirrorOnDrop(
+        &config,
+        mirrorPortId,
+        kCollectorIp_,
+        {{kL3DropEventId,
+          makeEventConfig(
+              std::nullopt, // use default aging group
+              {cfg::MirrorOnDropReasonAggregation::
+                   INGRESS_PACKET_PROCESSING_DISCARDS})}});
+    applyNewConfig(config);
+  };
+
+  auto verify = [&]() {
+    auto injectionPortStatsBefore = getLatestPortStats(injectionPortId);
+    auto mirrorPortStatsBefore = getLatestPortStats(mirrorPortId);
+    int queueOutBytesBefore = 0;
+    for (const auto& [id, bytes] : *mirrorPortStatsBefore.queueOutBytes_()) {
+      queueOutBytesBefore += bytes;
+    }
+
+    sendPackets(1, injectionPortId, kDropDestIp);
+
+    // Ensure packet drop happened.
+    WITH_RETRIES_N(5, {
+      auto injectionPortStatsAfter = getLatestPortStats(injectionPortId);
+      EXPECT_EVENTUALLY_GT(
+          *injectionPortStatsAfter.inDstNullDiscards_(),
+          *injectionPortStatsBefore.inDstNullDiscards_());
+    });
+
+    auto mirrorPortStatsAfter = getLatestPortStats(mirrorPortId);
+
+    // At most 2 packets (one MOD packet for the original, one MOD packet for
+    // the dropped MOD packet).
+    EXPECT_LE(
+        *mirrorPortStatsAfter.outUnicastPkts_() -
+            *mirrorPortStatsBefore.outUnicastPkts_(),
+        2);
+
+    // MOD payload is truncated to 128 bytes, with MOD/UDP/IP/Eth header each
+    // packet should be just a little over 200 bytes.
+    int queueOutBytesAfter = 0;
+    for (const auto& [id, bytes] : *mirrorPortStatsAfter.queueOutBytes_()) {
+      queueOutBytesAfter += bytes;
+    }
+    EXPECT_LE(queueOutBytesAfter - queueOutBytesBefore, 500);
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 // Verifies that changing MOD configs after warmboot succeeds.
 TEST_P(AgentMirrorOnDropTest, ConfigChangePostWarmboot) {
   auto mirrorPortId1 = findRecirculationPort(cfg::PortType::RECYCLE_PORT, 1);
