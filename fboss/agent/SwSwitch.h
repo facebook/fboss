@@ -1039,7 +1039,8 @@ class SwSwitch : public HwSwitchCallback {
   void updatePtpTcCounter();
   static void handlePendingUpdatesHelper(SwSwitch* sw);
   void handlePendingUpdates();
-  std::shared_ptr<SwitchState> applyUpdate(
+  std::pair<std::shared_ptr<SwitchState>, std::shared_ptr<SwitchState>>
+  applyUpdate(
       const std::shared_ptr<SwitchState>& oldState,
       const std::shared_ptr<SwitchState>& newState,
       bool isTransaction);

@@ -1689,7 +1689,7 @@ void SwSwitch::handlePendingUpdates() {
     auto isTransaction = updates.begin()->hwFailureProtected() &&
         multiHwSwitchHandler_->transactionsSupported();
     // There was some change during these state updates
-    newAppliedState =
+    std::tie(newAppliedState, newDesiredState) =
         applyUpdate(oldAppliedState, newDesiredState, isTransaction);
     if (newDesiredState != newAppliedState) {
       if (ecmpResourceManager_) {
@@ -1776,31 +1776,32 @@ void SwSwitch::setStateInternal(std::shared_ptr<SwitchState> newAppliedState) {
   appliedStateDontUseDirectly_.swap(newAppliedState);
 }
 
-std::shared_ptr<SwitchState> SwSwitch::applyUpdate(
+std::pair<std::shared_ptr<SwitchState>, std::shared_ptr<SwitchState>>
+SwSwitch::applyUpdate(
     const shared_ptr<SwitchState>& oldState,
-    const shared_ptr<SwitchState>& newState,
+    const shared_ptr<SwitchState>& newDesiredState,
     bool isTransaction) {
   // Check that we are starting from what has been already applied
   DCHECK_EQ(oldState, getAppliedState());
 
   auto start = std::chrono::steady_clock::now();
   XLOG(DBG2) << "Updating state: old_gen=" << oldState->getGeneration()
-             << " new_gen=" << newState->getGeneration();
-  DCHECK_GT(newState->getGeneration(), oldState->getGeneration());
+             << " new_gen=" << newDesiredState->getGeneration();
+  DCHECK_GT(newDesiredState->getGeneration(), oldState->getGeneration());
 
-  StateDelta delta(oldState, newState);
+  StateDelta delta(oldState, newDesiredState);
 
   // If we are already exiting, abort the update
   if (isExiting()) {
     XLOG(DBG2) << " Agent exiting before all updates could be applied";
-    return oldState;
+    return std::make_pair(oldState, newDesiredState);
   }
 
   if (!resourceAccountant_->isValidUpdate(delta)) {
     stats()->resourceAccountantRejectedUpdates();
     // Notify resource account to revert back to previous state
-    resourceAccountant_->stateChanged(StateDelta(newState, oldState));
-    return oldState;
+    resourceAccountant_->stateChanged(StateDelta(newDesiredState, oldState));
+    return std::make_pair(oldState, newDesiredState);
   }
 
   std::shared_ptr<SwitchState> newAppliedState;
@@ -1832,7 +1833,7 @@ std::shared_ptr<SwitchState> SwSwitch::applyUpdate(
       getMonolithicHwSwitchHandler()->exitFatal();
     }
 
-    dumpBadStateUpdate(oldState, newState);
+    dumpBadStateUpdate(oldState, newDesiredState);
     XLOG(FATAL) << "encountered a fatal error: " << folly::exceptionStr(ex);
   }
 
@@ -1842,7 +1843,8 @@ std::shared_ptr<SwitchState> SwSwitch::applyUpdate(
   notifyStateObservers(StateDelta(oldState, newAppliedState));
 
   // Notifies resource accountant of new applied state.
-  resourceAccountant_->stateChanged(StateDelta(newState, newAppliedState));
+  resourceAccountant_->stateChanged(
+      StateDelta(newDesiredState, newAppliedState));
 
   auto end = std::chrono::steady_clock::now();
   auto duration =
@@ -1850,7 +1852,7 @@ std::shared_ptr<SwitchState> SwSwitch::applyUpdate(
   stats()->stateUpdate(duration);
 
   XLOG(DBG0) << "Update state took " << duration.count() << "us";
-  return newAppliedState;
+  return std::make_pair(newAppliedState, newDesiredState);
 }
 
 void SwSwitch::dumpBadStateUpdate(
