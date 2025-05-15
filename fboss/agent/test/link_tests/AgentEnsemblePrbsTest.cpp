@@ -48,11 +48,10 @@ class AllPrbsStats {
 class AgentEnsemblePrbsTest : public AgentEnsembleLinkTest {
  public:
   bool checkValidMedia(PortID port, MediaInterfaceCode media) {
-    auto tcvrSpec = utility::getTransceiverSpec(getSw(), port);
-    if (tcvrSpec) {
-      if (auto mediaInterface = tcvrSpec->getMediaInterface()) {
-        return *mediaInterface == media;
-      }
+    auto portName = getPortName(port);
+    auto itr = portToMediaInterface_.find(portName);
+    if (itr != portToMediaInterface_.end()) {
+      return itr->second == media;
     }
     return false;
   }
@@ -84,6 +83,9 @@ class AgentEnsemblePrbsTest : public AgentEnsembleLinkTest {
     AgentEnsembleLinkTest::SetUp();
     if (!IsSkipped()) {
       waitForLldpOnCabledPorts();
+
+      // Cache media interfaces for use later
+      portToMediaInterface_ = utility::getPortToMediaInterface();
 
       // Get the list of ports and their components to enable the test on
       portsToTest_ = getPortsToTest();
@@ -206,6 +208,7 @@ class AgentEnsemblePrbsTest : public AgentEnsembleLinkTest {
 
  private:
   std::vector<TestPort> portsToTest_;
+  std::map<std::string, MediaInterfaceCode> portToMediaInterface_;
 
   template <class Client>
   bool setPrbsOnInterface(

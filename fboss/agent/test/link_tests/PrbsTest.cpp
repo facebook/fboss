@@ -49,12 +49,10 @@ class AllPrbsStats {
 class PrbsTest : public LinkTest {
  public:
   bool checkValidMedia(PortID port, MediaInterfaceCode media) {
-    auto tcvrSpec = utility::getTransceiverSpec(sw(), port);
-    this->platform()->getPlatformPort(port)->getTransceiverSpec();
-    if (tcvrSpec) {
-      if (auto mediaInterface = tcvrSpec->getMediaInterface()) {
-        return *mediaInterface == media;
-      }
+    auto portName = getPortName(port);
+    auto itr = portToMediaInterface_.find(portName);
+    if (itr != portToMediaInterface_.end()) {
+      return itr->second == media;
     }
     return false;
   }
@@ -87,6 +85,9 @@ class PrbsTest : public LinkTest {
 
     if (!IsSkipped()) {
       waitForLldpOnCabledPorts();
+
+      // Cache media interfaces for use later
+      portToMediaInterface_ = utility::getPortToMediaInterface();
 
       // Get the list of ports and their components to enable the test on
       portsToTest_ = getPortsToTest();
@@ -209,6 +210,7 @@ class PrbsTest : public LinkTest {
 
  private:
   std::vector<TestPort> portsToTest_;
+  std::map<std::string, MediaInterfaceCode> portToMediaInterface_;
 
   template <class Client>
   bool setPrbsOnInterface(
