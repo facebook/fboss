@@ -1006,6 +1006,86 @@ const HwSwitchWatermarkStats SaiSwitchManager::getHwSwitchWatermarkStats()
   return switchWatermarkStats;
 }
 
+const std::vector<sai_stat_id_t>&
+SaiSwitchManager::supportedPipelineWatermarkStats() const {
+  static std::vector<sai_stat_id_t> stats;
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  if (stats.size()) {
+    // initialized
+    return stats;
+  }
+  // TODO(daiweix): enable watermark stats after CS00012366726 is resolved
+  /*if (platform_->getAsic()->getSwitchType() == cfg::SwitchType::FABRIC) {
+    stats.insert(
+        stats.end(),
+        SaiSwitchPipelineTraits::watermarkLevels().begin(),
+        SaiSwitchPipelineTraits::watermarkLevels().end());
+  }*/
+#endif
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>& SaiSwitchManager::supportedPipelineStats()
+    const {
+  static std::vector<sai_stat_id_t> stats;
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  if (stats.size()) {
+    // initialized
+    return stats;
+  }
+  if (platform_->getAsic()->getSwitchType() == cfg::SwitchType::FABRIC) {
+    stats.insert(
+        stats.end(),
+        SaiSwitchPipelineTraits::currOccupancyBytes().begin(),
+        SaiSwitchPipelineTraits::currOccupancyBytes().end());
+    stats.insert(
+        stats.end(),
+        SaiSwitchPipelineTraits::txCells().begin(),
+        SaiSwitchPipelineTraits::txCells().end());
+    stats.insert(
+        stats.end(),
+        SaiSwitchPipelineTraits::rxCells().begin(),
+        SaiSwitchPipelineTraits::rxCells().end());
+    stats.insert(
+        stats.end(),
+        SaiSwitchPipelineTraits::globalDrop().begin(),
+        SaiSwitchPipelineTraits::globalDrop().end());
+  } else if (platform_->getAsic()->getSwitchType() == cfg::SwitchType::VOQ) {
+    stats.insert(
+        stats.end(),
+        SaiSwitchPipelineTraits::rxCells().begin(),
+        SaiSwitchPipelineTraits::rxCells().end());
+  }
+#endif
+  return stats;
+}
+
+const HwSwitchPipelineStats SaiSwitchManager::getHwSwitchPipelineStats(
+    bool updateWatermarks) const {
+  HwSwitchPipelineStats switchPipelineStats;
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  auto watermarkStats = supportedPipelineWatermarkStats();
+  if (updateWatermarks && watermarkStats.size() > 0) {
+    for (const auto& pipeline : switchPipelines_) {
+      pipeline->updateStats(watermarkStats, SAI_STATS_MODE_READ_AND_CLEAR);
+      auto idx = pipeline->adapterHostKey().value();
+      fillHwSwitchPipelineStats(
+          pipeline->getStats(watermarkStats), idx, switchPipelineStats);
+    }
+  }
+  auto stats = supportedPipelineStats();
+  if (stats.size()) {
+    for (const auto& pipeline : switchPipelines_) {
+      pipeline->updateStats(stats, SAI_STATS_MODE_READ);
+      auto idx = pipeline->adapterHostKey().value();
+      fillHwSwitchPipelineStats(
+          pipeline->getStats(stats), idx, switchPipelineStats);
+    }
+  }
+#endif
+  return switchPipelineStats;
+}
+
 void SaiSwitchManager::updateStats(bool updateWatermarks) {
   auto switchDropStats = supportedDropStats();
   if (switchDropStats.size()) {
@@ -1097,6 +1177,8 @@ void SaiSwitchManager::updateStats(bool updateWatermarks) {
     switchWatermarkStats_ = getHwSwitchWatermarkStats();
     publishSwitchWatermarks(switchWatermarkStats_);
   }
+  switchPipelineStats_ = getHwSwitchPipelineStats(updateWatermarks);
+  publishSwitchPipelineStats(switchPipelineStats_);
 }
 
 void SaiSwitchManager::setSwitchIsolate(bool isolate) {

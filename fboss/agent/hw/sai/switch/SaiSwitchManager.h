@@ -107,6 +107,9 @@ class SaiSwitchManager {
   HwSwitchWatermarkStats getSwitchWatermarkStats() const {
     return switchWatermarkStats_;
   }
+  HwSwitchPipelineStats getSwitchPipelineStats() const {
+    return switchPipelineStats_;
+  }
   void setLocalCapsuleSwitchIds(
       const std::map<SwitchID, int>& switchIdToNumCores);
   void setReachabilityGroupList(const std::vector<int>& reachabilityGroups);
@@ -156,7 +159,11 @@ class SaiSwitchManager {
   const std::vector<sai_stat_id_t>& supportedWatermarkStats() const;
   const std::vector<sai_stat_id_t>& supportedCreditStats() const;
   const std::vector<sai_stat_id_t>& supportedErrorStats() const;
+  const std::vector<sai_stat_id_t>& supportedPipelineWatermarkStats() const;
+  const std::vector<sai_stat_id_t>& supportedPipelineStats() const;
   const HwSwitchWatermarkStats getHwSwitchWatermarkStats() const;
+  const HwSwitchPipelineStats getHwSwitchPipelineStats(
+      bool updateWatermarks) const;
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
   std::unique_ptr<SaiSwitchObj> switch_;
@@ -180,6 +187,7 @@ class SaiSwitchManager {
   std::optional<bool> isPtpTcEnabled_{std::nullopt};
   HwSwitchDropStats switchDropStats_;
   HwSwitchWatermarkStats switchWatermarkStats_;
+  HwSwitchPipelineStats switchPipelineStats_;
 };
 
 void fillHwSwitchDramStats(
@@ -199,5 +207,5 @@ void fillHwSwitchPipelineStats(
     int idx,
     HwSwitchPipelineStats& switchPipelineStats);
 void publishSwitchWatermarks(HwSwitchWatermarkStats& watermarkStats);
-void publishSwitchWPipelineStats(HwSwitchPipelineStats& pipelineStats);
+void publishSwitchPipelineStats(HwSwitchPipelineStats& pipelineStats);
 } // namespace facebook::fboss

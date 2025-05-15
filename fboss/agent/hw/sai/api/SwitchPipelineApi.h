@@ -40,6 +40,42 @@ struct SaiSwitchPipelineTraits {
   using AdapterKey = SwitchPipelineSaiId;
   using AdapterHostKey = Attributes::Index;
   using CreateAttributes = std::tuple<Attributes::Index>;
+
+  static const std::vector<sai_stat_id_t>& watermarkLevels() {
+    static const std::vector<sai_stat_id_t> stats{
+        SAI_SWITCH_PIPELINE_STAT_RX_WATERMARK_LEVELS,
+        SAI_SWITCH_PIPELINE_STAT_TX_WATERMARK_LEVELS,
+    };
+    return stats;
+  }
+
+  static const std::vector<sai_stat_id_t>& currOccupancyBytes() {
+    static const std::vector<sai_stat_id_t> stats{
+        SAI_SWITCH_PIPELINE_STAT_CURR_OCCUPANCY_BYTES,
+    };
+    return stats;
+  }
+
+  static const std::vector<sai_stat_id_t>& rxCells() {
+    static const std::vector<sai_stat_id_t> stats{
+        SAI_SWITCH_PIPELINE_STAT_RX_CELLS,
+    };
+    return stats;
+  }
+
+  static const std::vector<sai_stat_id_t>& txCells() {
+    static const std::vector<sai_stat_id_t> stats{
+        SAI_SWITCH_PIPELINE_STAT_TX_CELLS,
+    };
+    return stats;
+  }
+
+  static const std::vector<sai_stat_id_t>& globalDrop() {
+    static const std::vector<sai_stat_id_t> stats{
+        SAI_SWITCH_PIPELINE_STAT_GLOBAL_DROP,
+    };
+    return stats;
+  }
 };
 
 SAI_ATTRIBUTE_NAME(SwitchPipeline, Index)
