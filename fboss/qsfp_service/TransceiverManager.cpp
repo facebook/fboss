@@ -796,6 +796,35 @@ void TransceiverManager::doTransceiverFirmwareUpgrade(TransceiverID tcvrID) {
   // optic ready after fw upgrade
 }
 
+void TransceiverManager::getPortMediaInterface(
+    std::map<std::string, MediaInterfaceCode>& portMediaInterface) {
+  std::map<int32_t, TransceiverInfo> infoMap;
+  getTransceiversInfo(
+      infoMap, std::make_unique<std::vector<int32_t>>(std::vector<int32_t>()));
+
+  for (const auto& tcvrInfo : infoMap) {
+    auto& tcvrState = *tcvrInfo.second.tcvrState();
+    auto tcvrSettings = tcvrState.settings();
+    if (!tcvrSettings) {
+      continue;
+    }
+    auto mediaInterface = tcvrSettings->mediaInterface();
+    if (!mediaInterface) {
+      continue;
+    }
+    for (const auto& [portName, mediaLanes] :
+         *tcvrState.portNameToMediaLanes()) {
+      if (!mediaLanes.empty()) {
+        auto firstLane = *mediaLanes.begin();
+        if (firstLane < mediaInterface->size()) {
+          portMediaInterface[portName] =
+              mediaInterface->at(firstLane).code().value();
+        }
+      }
+    }
+  }
+}
+
 TransceiverManager::TransceiverToStateMachineHelper
 TransceiverManager::setupTransceiverToStateMachineHelper() {
   TransceiverToStateMachineHelper stateMachineMap;

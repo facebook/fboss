@@ -81,6 +81,12 @@ void QsfpServiceHandler::getTransceiverInfo(
   manager_->getTransceiversInfo(info, std::move(ids));
 }
 
+void QsfpServiceHandler::getPortMediaInterface(
+    std::map<std::string, MediaInterfaceCode>& portMediaInterface) {
+  auto log = LOG_THRIFT_CALL(INFO);
+  manager_->getPortMediaInterface(portMediaInterface);
+}
+
 void QsfpServiceHandler::getPortsRequiringOpticsFwUpgrade(
     std::map<std::string, FirmwareUpgradeData>& ports) {
   auto log = LOG_THRIFT_CALL(INFO);

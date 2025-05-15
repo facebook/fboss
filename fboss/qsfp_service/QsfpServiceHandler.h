@@ -41,6 +41,12 @@ class QsfpServiceHandler
       std::unique_ptr<std::vector<int32_t>> ids) override;
 
   /*
+   * Returns portName to configured media interface
+   */
+  void getPortMediaInterface(
+      std::map<std::string, MediaInterfaceCode>& portMediaInterface) override;
+
+  /*
    * Returns qsfp config validation information for a transceiver.
    *
    * When getConfigString is true, the map is populated with stringified JSONs

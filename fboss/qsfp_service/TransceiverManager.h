@@ -615,6 +615,10 @@ class TransceiverManager {
 
   std::map<std::string, FirmwareUpgradeData> triggerAllOpticsFwUpgrade();
 
+  // portName to MediaInterfaceCode map
+  void getPortMediaInterface(
+      std::map<std::string, MediaInterfaceCode>& portMediaInterface);
+
  protected:
   /*
    * Check to see if we can attempt a warm boot.
