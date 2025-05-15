@@ -488,8 +488,12 @@ SwSwitch::SwSwitch(
       // ECMP groups value to use.
       auto maxEcmpGroups = asic->getMaxEcmpGroups();
       if (maxEcmpGroups.has_value()) {
-        ecmpResourceManager_ =
-            std::make_unique<EcmpResourceManager>(*maxEcmpGroups);
+        auto maxEcmps = std::floor(
+            *maxEcmpGroups *
+            static_cast<double>(FLAGS_ecmp_resource_percentage) / 100.0);
+        XLOG(DBG2) << " Creating ecmp resource manager with max ECMP groups: "
+                   << maxEcmps;
+        ecmpResourceManager_ = std::make_unique<EcmpResourceManager>(maxEcmps);
       }
     }
   }
