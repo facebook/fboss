@@ -63,6 +63,31 @@ Once you've executed the above commands, you should be dropped into a root
 shell within the docker container and can proceed with the next steps to start
 the build.
 
+## Loading Published Docker Image from GitHub
+
+Instead of building the docker image yourself, you can also obtain an image
+tarball from GitHub (e.g. https://github.com/facebook/fboss/actions/runs/14961317578).
+The advantage of using this image instead of building it yourself is that the
+published image includes all relevant sources, including sources for dependencies,
+which means that building FBOSS binaries from this image eliminates the need for
+a network connection at the time of building (which would normally be required in
+order to download sources or clone Git repositories for those same dependencies).
+
+In order to use this image, you can download it from GitHub and decompress it using `zstd`:
+
+```
+zstd -d fboss_debian_docker_image.tar.zst
+```
+
+You can then load the image via:
+
+```
+sudo docker load < fboss_debian_docker_image.tar
+```
+
+You can then start the container using the same `docker run` and `docker exec`
+command as mentioned above.
+
 ## Building FBOSS Binaries
 
 Instructions for building FBOSS binaries may have slight differences based on
