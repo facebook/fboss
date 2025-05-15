@@ -1273,6 +1273,15 @@ void SwSwitch::init(
   initialState->publish();
   auto emptyState = std::make_shared<SwitchState>();
   emptyState->publish();
+  if (ecmpResourceManager_) {
+    std::vector<StateDelta> deltas;
+    deltas =
+        ecmpResourceManager_->consolidate(StateDelta(emptyState, initialState));
+    // TODO allow for > 1 deltas once switch handlers, HwSwitch are
+    // able to handle these.
+    CHECK_EQ(deltas.size(), 1);
+    initialState = deltas.back().newState();
+  }
   const auto initialStateDelta = StateDelta(emptyState, initialState);
 
   // Notify resource accountant of the initial state.
@@ -1285,6 +1294,9 @@ void SwSwitch::init(
   }
   multiHwSwitchHandler_->stateChanged(
       initialStateDelta, false, hwWriteBehavior);
+  if (ecmpResourceManager_) {
+    ecmpResourceManager_->updateDone();
+  }
   // For cold boot there will be discripancy between applied state and state
   // that exists in hardware. this discrepancy is until config is applied, after
   // that the two states are in sync. tolerating this discrepancy for now
