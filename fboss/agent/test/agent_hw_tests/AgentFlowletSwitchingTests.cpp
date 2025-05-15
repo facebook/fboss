@@ -1173,6 +1173,11 @@ class AgentFlowletResourceTest : public AgentHwTest {
         ensemble.getSw(),
         ensemble.masterLogicalPortIds(),
         true /*interfaceHasSubnet*/);
+    utility::addFlowletConfigs(
+        cfg,
+        ensemble.masterLogicalPortIds(),
+        ensemble.isSai(),
+        cfg::SwitchingMode::PER_PACKET_QUALITY);
     return cfg;
   }
   void setCmdLineFlagOverrides() const override {
