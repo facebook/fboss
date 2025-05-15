@@ -323,8 +323,8 @@ void EcmpResourceManager::routeAddedOrUpdated(
     routeDeleted(rid, oldRoute, true /*isUpdate*/, inOutState);
   }
   auto nhopSet = newRoute->getForwardInfo().normalizedNextHops();
-  auto [idItr, inserted] =
-      nextHopGroup2Id_.insert({nhopSet, findNextAvailableId()});
+  auto [idItr, inserted] = nextHopGroup2Id_.insert(
+      {nhopSet, findCachedOrNewIdForNhops(nhopSet, *inOutState)});
   std::shared_ptr<NextHopGroupInfo> grpInfo;
   if (inserted) {
     if (ecmpLimitReached) {
@@ -339,14 +339,14 @@ void EcmpResourceManager::routeAddedOrUpdated(
                  << " primray ecmp group count unchanged: "
                  << inOutState->nonBackupEcmpGroupsCnt;
     } else {
+      bool isBackupEcmpGroupType =
+          newRoute->getForwardInfo().getOverrideEcmpSwitchingMode().has_value();
       std::tie(grpInfo, inserted) = nextHopGroupIdToInfo_.refOrEmplace(
-          idItr->second, idItr->second, idItr, false /*isBackupEcmpGroupType*/
-      );
+          idItr->second, idItr->second, idItr, isBackupEcmpGroupType);
       CHECK(inserted);
       inOutState->addOrUpdateRoute(
           rid, newRoute, false /* ecmpDemandExceeded*/);
-      // New ECMP group newRoute but limit is not exceeded yet
-      ++inOutState->nonBackupEcmpGroupsCnt;
+      inOutState->nonBackupEcmpGroupsCnt += isBackupEcmpGroupType ? 0 : 1;
       XLOG(DBG2) << " Route: " << (oldRoute ? "update " : "add ")
                  << newRoute->str()
                  << " points to new group: " << grpInfo->getID()
@@ -533,6 +533,16 @@ void EcmpResourceManager::processRouteUpdates(
           routeDeleted(rid, oldRoute, false /*isUpdate*/, inOutState);
         }
       });
+}
+
+EcmpResourceManager::NextHopGroupId
+EcmpResourceManager::findCachedOrNewIdForNhops(
+    const RouteNextHopSet& nhops,
+    const InputOutputState& inOutState) const {
+  auto nitr = inOutState.groupIdCache.nextHopGroup2Id.find(nhops);
+  return nitr != inOutState.groupIdCache.nextHopGroup2Id.end()
+      ? nitr->second
+      : findNextAvailableId();
 }
 
 EcmpResourceManager::NextHopGroupId EcmpResourceManager::findNextAvailableId()

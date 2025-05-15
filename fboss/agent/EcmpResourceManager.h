@@ -179,6 +179,9 @@ class EcmpResourceManager {
       bool isUpdate,
       InputOutputState* inOutState);
   static uint32_t constexpr kMinNextHopGroupId = 1;
+  NextHopGroupId findCachedOrNewIdForNhops(
+      const RouteNextHopSet& nhops,
+      const InputOutputState& inOutState) const;
   NextHopGroupId findNextAvailableId() const;
   NextHops2GroupId nextHopGroup2Id_;
   StdRefMap<NextHopGroupId, NextHopGroupInfo> nextHopGroupIdToInfo_;
