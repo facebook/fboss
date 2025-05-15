@@ -421,6 +421,92 @@ class AgentMirrorOnDropTest
   }
 };
 
+class AgentMirrorOnDropMtuTest : public AgentMirrorOnDropTest {
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto config = AgentMirrorOnDropTest::initialConfig(ensemble);
+    config = addCoppConfig(ensemble, config);
+    for (auto& port : *config.ports()) {
+      if (port.portType() == cfg::PortType::INTERFACE_PORT) {
+        // Prod MTU is 9412, but there seems to be some limit in the maximum
+        // allowed payload length, so use 9000 instead.
+        port.maxFrameSize() = 9000;
+      }
+    }
+    return config;
+  }
+
+  std::vector<production_features::ProductionFeature>
+  getProductionFeaturesVerified() const override {
+    return {
+        production_features::ProductionFeature::MIRROR_ON_DROP,
+        production_features::ProductionFeature::PORT_MTU_ERROR_TRAP,
+    };
+  }
+};
+
+// Verifies that enabling MOD on a recycle port doesn't interfere with
+// normal operations of the MTU trap.
+TEST_F(AgentMirrorOnDropMtuTest, MtuTrapStillWorks) {
+  auto mirrorPortId = findRecirculationPort(cfg::PortType::RECYCLE_PORT);
+  auto egressPortId = masterLogicalInterfacePortIds()[0];
+  XLOG(DBG3) << "MoD port: " << portDesc(mirrorPortId);
+  XLOG(DBG3) << "Egress port: " << portDesc(egressPortId);
+
+  const folly::IPAddressV6 kDestIp{"2401:4444:4444:4444:4444:4444:4444:4444"};
+  const folly::MacAddress kNeighborMac{"02:44:44:44:44:44"};
+
+  auto setup = [&]() {
+    auto config = getAgentEnsemble()->getCurrentConfig();
+    // Enable MOD on a local RCY port, which belongs to one of the cores.
+    setupMirrorOnDrop(
+        &config,
+        mirrorPortId,
+        kCollectorIp_,
+        {{0,
+          makeEventConfig(
+              std::nullopt, // use default aging group
+              {cfg::MirrorOnDropReasonAggregation::
+                   INGRESS_PACKET_PROCESSING_DISCARDS})}});
+    applyNewConfig(config);
+    setupEcmpTraffic(egressPortId, kDestIp, kNeighborMac);
+  };
+
+  auto verify = [&]() {
+    // Send > MTU packets from all NIF ports to a destination. This will
+    // trigger MTU traps on all the cores.
+    for (const auto& portId : masterLogicalInterfacePortIds()) {
+      auto pkt = utility::makeUDPTxPacket(
+          getSw(),
+          getVlanIDForTx(),
+          utility::kLocalCpuMac(),
+          utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
+          folly::IPAddressV6{"2401:2222:2222:2222:2222:2222:2222:2222"},
+          kDestIp,
+          0x4444,
+          0x5555,
+          0,
+          10,
+          std::vector<uint8_t>(9100, 0xff)); // >= MTU
+      getAgentEnsemble()->sendPacketAsync(
+          std::move(pkt), PortDescriptor(portId), std::nullopt);
+    }
+
+    // We expect all MTU traps to still work.
+    WITH_RETRIES_N(5, {
+      int pkts = 0;
+      for (const auto switchId : getSw()->getHwAsicTable()->getSwitchIDs()) {
+        // MTU trap goes to kCoppLowPriQueueId
+        pkts += utility::getCpuQueueInPackets(
+            getSw(), switchId, utility::kCoppLowPriQueueId);
+      }
+      EXPECT_EVENTUALLY_GE(pkts, masterLogicalInterfacePortIds().size());
+    });
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 class AgentMirrorOnDropDestMacTest : public AgentMirrorOnDropTest {
   const std::string kModDestMacOverride = "02:33:33:33:33:33";
 
