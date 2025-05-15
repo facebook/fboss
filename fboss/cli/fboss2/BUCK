@@ -643,7 +643,6 @@ cpp_library(
         "//fboss/qsfp_service/if:qsfp-cpp2-services",
         "//fboss/qsfp_service/if:transceiver-cpp2-types",
         "//folly:conv",
-        "//folly:exception",
         "//folly:format",
         "//folly:network_address",
         "//folly:range",
