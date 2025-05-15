@@ -1678,14 +1678,6 @@ void SwSwitch::handlePendingUpdates() {
   auto newAppliedState = newDesiredState;
   // Now apply the update and notify subscribers
   if (newDesiredState != oldAppliedState) {
-    if (ecmpResourceManager_) {
-      auto deltas = ecmpResourceManager_->consolidate(
-          StateDelta(oldAppliedState, newDesiredState));
-      // TODO allow for > 1 deltas once switch handlers, HwSwitch are
-      // able to handle these.
-      CHECK_EQ(deltas.size(), 1);
-      newDesiredState = deltas.back().newState();
-    }
     auto isTransaction = updates.begin()->hwFailureProtected() &&
         multiHwSwitchHandler_->transactionsSupported();
     // There was some change during these state updates
@@ -1779,24 +1771,37 @@ void SwSwitch::setStateInternal(std::shared_ptr<SwitchState> newAppliedState) {
 std::pair<std::shared_ptr<SwitchState>, std::shared_ptr<SwitchState>>
 SwSwitch::applyUpdate(
     const shared_ptr<SwitchState>& oldState,
-    const shared_ptr<SwitchState>& newDesiredState,
+    const shared_ptr<SwitchState>& newState,
     bool isTransaction) {
   // Check that we are starting from what has been already applied
   DCHECK_EQ(oldState, getAppliedState());
-
+  auto newDesiredState = newState;
   auto start = std::chrono::steady_clock::now();
   XLOG(DBG2) << "Updating state: old_gen=" << oldState->getGeneration()
              << " new_gen=" << newDesiredState->getGeneration();
   DCHECK_GT(newDesiredState->getGeneration(), oldState->getGeneration());
-
-  StateDelta delta(oldState, newDesiredState);
 
   // If we are already exiting, abort the update
   if (isExiting()) {
     XLOG(DBG2) << " Agent exiting before all updates could be applied";
     return std::make_pair(oldState, newDesiredState);
   }
+  if (ecmpResourceManager_) {
+    std::vector<StateDelta> deltas;
+    try {
+      deltas = ecmpResourceManager_->consolidate(
+          StateDelta(oldState, newDesiredState));
+    } catch (const FbossError& e) {
+      XLOG(DBG2) << " Ecmp resource manager rejected update: " << e.what();
+      return std::make_pair(oldState, newDesiredState);
+    }
+    // TODO allow for > 1 deltas once switch handlers, HwSwitch are
+    // able to handle these.
+    CHECK_EQ(deltas.size(), 1);
+    newDesiredState = deltas.back().newState();
+  }
 
+  StateDelta delta(oldState, newDesiredState);
   if (!resourceAccountant_->isValidUpdate(delta)) {
     stats()->resourceAccountantRejectedUpdates();
     // Notify resource account to revert back to previous state
