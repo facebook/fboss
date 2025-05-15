@@ -1051,6 +1051,10 @@ TEST_F(HwArsTest, ValidateEcmpDetailsThread) {
 
   auto verify = [&]() {
     auto cfg = initialConfig();
+    updateFlowletConfigs(
+        cfg, cfg::SwitchingMode::FLOWLET_QUALITY, kFlowletTableSize2);
+    updatePortFlowletConfigName(cfg);
+    applyNewConfig(cfg);
     auto portFlowletConfig =
         getPortFlowletConfig(kScalingFactor1(), kLoadWeight1, kQueueWeight1);
 
@@ -1107,6 +1111,10 @@ TEST_F(HwArsTest, ValidateFlowletStatsThread) {
 
   auto verify = [&]() {
     auto cfg = initialConfig();
+    updateFlowletConfigs(
+        cfg, cfg::SwitchingMode::FLOWLET_QUALITY, kFlowletTableSize2);
+    updatePortFlowletConfigName(cfg);
+    applyNewConfig(cfg);
     auto portFlowletConfig =
         getPortFlowletConfig(kScalingFactor1(), kLoadWeight1, kQueueWeight1);
 
