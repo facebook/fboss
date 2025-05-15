@@ -63,7 +63,7 @@ class AgentAclCounterTestBase : public AgentHwTest {
     if (IsSkipped()) {
       return;
     }
-    helper_ = std::make_unique<utility::EcmpSetupAnyNPorts6>(
+    helper_ = std::make_unique<utility::EcmpSetupTargetedPorts6>(
         getProgrammedState(), getSw()->needL2EntryForNeighbor(), RouterID(0));
   }
   cfg::SwitchConfig initialConfig(
@@ -134,11 +134,21 @@ class AgentAclCounterTestBase : public AgentHwTest {
   }
 
   void setup(int ecmpWidth = 1) {
-    applyNewState([&, ecmpWidth](const std::shared_ptr<SwitchState>& in) {
-      return helper_->resolveNextHops(in, ecmpWidth);
+    std::vector<PortID> portIds = masterLogicalInterfacePortIds();
+    flat_set<PortDescriptor> portDescs;
+    std::vector<PortDescriptor> tempPortDescs;
+    for (size_t w = 0; w < ecmpWidth; ++w) {
+      tempPortDescs.emplace_back(portIds[w]);
+    }
+    portDescs.insert(
+        std::make_move_iterator(tempPortDescs.begin()),
+        std::make_move_iterator(tempPortDescs.end()));
+
+    applyNewState([&portDescs, this](const std::shared_ptr<SwitchState>& in) {
+      return helper_->resolveNextHops(in, portDescs);
     });
     auto wrapper = getSw()->getRouteUpdater();
-    helper_->programRoutes(&wrapper, ecmpWidth);
+    helper_->programRoutes(&wrapper, portDescs);
 
     XLOG(DBG3) << "setting ECMP Member Status: ";
     applyNewState([&](const std::shared_ptr<SwitchState>& in) {
@@ -181,7 +191,6 @@ class AgentAclCounterTestBase : public AgentHwTest {
   void resolveMirror(const std::string& mirrorName, uint8_t dstPort) {
     auto destinationPort = getAgentEnsemble()->masterLogicalPortIds(
         {cfg::PortType::INTERFACE_PORT})[dstPort];
-    resolveNeighborAndProgramRoutes(*helper_, 1);
     applyNewState([&](const std::shared_ptr<SwitchState>& in) {
       boost::container::flat_set<PortDescriptor> nhopPorts{
           PortDescriptor(destinationPort)};
@@ -243,7 +252,7 @@ class AgentAclCounterTestBase : public AgentHwTest {
   // roce ack packet - udpport=4791 + opcode=17 + reserved=*
   // roce write-immediate - udpport=4791 + opcode=11 + reserved=1
   size_t sendRoceTraffic(
-      const PortID frontPanelEgrPort,
+      const PortID& frontPanelEgrPort,
       int roceOpcode = utility::kUdfRoceOpcodeAck,
       const std::optional<std::vector<uint8_t>>& nxtHdr =
           std::optional<std::vector<uint8_t>>(),
@@ -705,10 +714,42 @@ class AgentAclCounterTestBase : public AgentHwTest {
     }
   }
 
+  void generatePrefixes() {
+    std::vector<PortID> portIds = masterLogicalInterfacePortIds();
+    std::vector<PortDescriptor> portDescriptorIds;
+    std::transform(
+        portIds.begin(),
+        portIds.end(),
+        std::back_inserter(portDescriptorIds),
+        [](const PortID& portId) { return PortDescriptor(portId); });
+
+    std::vector<std::vector<PortDescriptor>> allCombinations =
+        utility::generateEcmpGroupScale(
+            portDescriptorIds, 512, portDescriptorIds.size());
+    for (const auto& combination : allCombinations) {
+      nhopSets.emplace_back(combination.begin(), combination.end());
+    }
+    applyNewState(
+        [&portDescriptorIds, this](const std::shared_ptr<SwitchState>& in) {
+          return helper_->resolveNextHops(
+              in,
+              flat_set<PortDescriptor>(
+                  std::make_move_iterator(portDescriptorIds.begin()),
+                  std::make_move_iterator(portDescriptorIds.end())));
+        });
+
+    std::generate_n(std::back_inserter(prefixes), 512, [i = 0]() mutable {
+      return RoutePrefixV6{
+          folly::IPAddressV6(folly::to<std::string>(2401, "::", i++)), 128};
+    });
+  }
+
   static inline constexpr auto kEcmpWidth = 4;
   static inline constexpr auto kOutQueue = 6;
   static inline constexpr auto kDscp = 30;
-  std::unique_ptr<utility::EcmpSetupAnyNPorts6> helper_;
+  std::unique_ptr<utility::EcmpSetupTargetedPorts6> helper_;
+  std::vector<flat_set<PortDescriptor>> nhopSets;
+  std::vector<RoutePrefixV6> prefixes;
 };
 
 class AgentFlowletSwitchingTest : public AgentAclCounterTestBase {
@@ -1151,77 +1192,11 @@ TEST_F(AgentFlowletAclPriorityTest, VerifyUdfAclPriorityWB) {
   verifyAcrossWarmBoots(setup, []() {}, setupPostWarmboot, verifyPostWarmboot);
 }
 
-class AgentFlowletResourceTest : public AgentHwTest {
- public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::DLB};
-  }
-
- protected:
-  void SetUp() override {
-    AgentHwTest::SetUp();
-    if (IsSkipped()) {
-      return;
-    }
-    helper_ = std::make_unique<utility::EcmpSetupTargetedPorts6>(
-        getProgrammedState(), getSw()->needL2EntryForNeighbor());
-  }
-  cfg::SwitchConfig initialConfig(
-      const AgentEnsemble& ensemble) const override {
-    auto cfg = utility::onePortPerInterfaceConfig(
-        ensemble.getSw(),
-        ensemble.masterLogicalPortIds(),
-        true /*interfaceHasSubnet*/);
-    utility::addFlowletConfigs(
-        cfg,
-        ensemble.masterLogicalPortIds(),
-        ensemble.isSai(),
-        cfg::SwitchingMode::PER_PACKET_QUALITY);
-    return cfg;
-  }
-  void setCmdLineFlagOverrides() const override {
-    AgentHwTest::setCmdLineFlagOverrides();
-    FLAGS_flowletSwitchingEnable = true;
-  }
-  void setup() {
-    std::vector<PortID> portIds = masterLogicalInterfacePortIds();
-    std::vector<PortDescriptor> portDescriptorIds;
-    for (auto& portId : portIds) {
-      portDescriptorIds.push_back(PortDescriptor(portId));
-    }
-    std::vector<std::vector<PortDescriptor>> allCombinations =
-        utility::generateEcmpGroupScale(
-            portDescriptorIds, 512, portDescriptorIds.size());
-    for (const auto& combination : allCombinations) {
-      nhopSets.emplace_back(combination.begin(), combination.end());
-    }
-    applyNewState(
-        [&portDescriptorIds, this](const std::shared_ptr<SwitchState>& in) {
-          return helper_->resolveNextHops(
-              in,
-              flat_set<PortDescriptor>(
-                  std::make_move_iterator(portDescriptorIds.begin()),
-                  std::make_move_iterator(portDescriptorIds.end())));
-        });
-
-    std::generate_n(std::back_inserter(prefixes), 512, [i = 0]() mutable {
-      return RoutePrefixV6{
-          folly::IPAddressV6(folly::to<std::string>(2401, "::", i++)), 128};
-    });
-  }
-
-  std::unique_ptr<utility::EcmpSetupTargetedPorts6> helper_;
-  std::vector<flat_set<PortDescriptor>> nhopSets;
-  std::vector<RoutePrefixV6> prefixes;
-};
-
-TEST_F(AgentFlowletResourceTest, CreateMaxDlbGroups) {
-  auto setup = [&]() { this->setup(); };
+TEST_F(AgentFlowletSwitchingTest, CreateMaxDlbGroups) {
   auto verify = [this] {
+    generatePrefixes();
     const auto kMaxDlbEcmpGroup =
         utility::getMaxDlbEcmpGroups(getAgentEnsemble()->getL3Asics());
-    this->setup();
     // install 60% of max DLB ecmp groups
     {
       int count = static_cast<int>(0.6 * kMaxDlbEcmpGroup);
@@ -1286,15 +1261,15 @@ TEST_F(AgentFlowletResourceTest, CreateMaxDlbGroups) {
       helper_->unprogramRoutes(&wrapper, prefixes10);
     }
   };
-  verifyAcrossWarmBoots(setup, verify);
+  verifyAcrossWarmBoots([]() {}, verify);
 }
 
-TEST_F(AgentFlowletResourceTest, ApplyDlbResourceCheck) {
+TEST_F(AgentFlowletSwitchingTest, ApplyDlbResourceCheck) {
   // Start with 60% ECMP groups
   auto setup = [this]() {
+    generatePrefixes();
     const auto kMaxDlbEcmpGroup =
         utility::getMaxDlbEcmpGroups(getAgentEnsemble()->getL3Asics());
-    this->setup();
     int count = static_cast<int>(0.6 * kMaxDlbEcmpGroup);
     auto wrapper = getSw()->getRouteUpdater();
     std::vector<RoutePrefixV6> prefixes60 = {
@@ -1305,9 +1280,9 @@ TEST_F(AgentFlowletResourceTest, ApplyDlbResourceCheck) {
   };
   // Post warmboot, dlb resource check is enforced since >75%
   auto setupPostWarmboot = [this]() {
+    generatePrefixes();
     const auto kMaxDlbEcmpGroup =
         utility::getMaxDlbEcmpGroups(getAgentEnsemble()->getL3Asics());
-    this->setup();
     {
       auto wrapper = getSw()->getRouteUpdater();
       std::vector<RoutePrefixV6> prefixes128 = {
