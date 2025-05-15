@@ -110,10 +110,8 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, collectStats) {
       auto port2Stats = getSw()->getHwPortStats(masterLogicalFabricPortIds());
       for (auto portId : masterLogicalFabricPortIds()) {
         auto pitr = port2Stats.find(portId);
-        EXPECT_EVENTUALLY_TRUE(pitr != port2Stats.end());
-        if (pitr != port2Stats.end()) {
-          EXPECT_EVENTUALLY_TRUE(pitr->second.cableLengthMeters().has_value());
-        }
+        ASSERT_EVENTUALLY_TRUE(pitr != port2Stats.end());
+        EXPECT_EVENTUALLY_TRUE(pitr->second.cableLengthMeters().has_value());
       }
       auto state = getProgrammedState();
       for (auto& portMap : std::as_const(*state->getPorts())) {
