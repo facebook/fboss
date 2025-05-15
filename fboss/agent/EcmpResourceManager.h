@@ -102,7 +102,10 @@ class EcmpResourceManager {
     std::map<RouteNextHopSet, NextHopGroupId> nextHopGroup2Id;
   };
   struct InputOutputState {
-    InputOutputState(uint32_t _nonBackupEcmpGroupsCnt, const StateDelta& _in);
+    InputOutputState(
+        uint32_t _nonBackupEcmpGroupsCnt,
+        const StateDelta& _in,
+        const PreUpdateState& _groupIdCache = PreUpdateState());
     template <typename AddrT>
     void addOrUpdateRoute(
         RouterID rid,
@@ -128,6 +131,7 @@ class EcmpResourceManager {
      */
     uint32_t nonBackupEcmpGroupsCnt;
     std::vector<StateDelta> out;
+    PreUpdateState groupIdCache;
   };
   std::vector<StateDelta> consolidateImpl(
       const StateDelta& delta,

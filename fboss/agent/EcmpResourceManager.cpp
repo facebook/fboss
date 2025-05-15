@@ -147,8 +147,10 @@ EcmpResourceManager::createOptimalMergeGroupSet() {
 
 EcmpResourceManager::InputOutputState::InputOutputState(
     uint32_t _nonBackupEcmpGroupsCnt,
-    const StateDelta& _in)
-    : nonBackupEcmpGroupsCnt(_nonBackupEcmpGroupsCnt) {
+    const StateDelta& _in,
+    const PreUpdateState& _groupIdCache)
+    : nonBackupEcmpGroupsCnt(_nonBackupEcmpGroupsCnt),
+      groupIdCache(_groupIdCache) {
   /*
    * Note that for first StateDelta we push in.oldState() for both
    * old and new state in the first StateDelta, since we will process
@@ -573,14 +575,16 @@ void EcmpResourceManager::updateFailed(
   }
   XLOG(DBG2) << " Update failed";
   CHECK(preUpdateState_.has_value());
-  nextHopGroup2Id_ = preUpdateState_->nextHopGroup2Id;
-  mergedGroups_ = preUpdateState_->mergedGroups;
   /* clear state which needs to be resored from previous state*/
+  nextHopGroup2Id_.clear();
+  mergedGroups_.clear();
   prefixToGroupInfo_.clear();
   nextHopGroupIdToInfo_.clear();
   candidateMergeGroups_.clear();
-  preUpdateState_.reset();
   /* restore state from previous state*/
-  consolidate(StateDelta(std::make_shared<SwitchState>(), curState));
+  StateDelta delta(std::make_shared<SwitchState>(), curState);
+  InputOutputState inOutState(0, delta, std::move(*preUpdateState_));
+  consolidateImpl(delta, &inOutState);
+  preUpdateState_.reset();
 }
 } // namespace facebook::fboss
