@@ -588,7 +588,8 @@ bool BcmEcmpEgress::getDynamicEcmpParams(
   }
   XLOG(DBG2) << "Programmed FlowletTableSize=" << obj.dynamic_size
              << " InactivityIntervalUsecs=" << obj.dynamic_age
-             << " DynamicMode =" << obj.dynamic_mode << " for ECMP object "
+             << " DynamicMode=" << utility::dynamicModeStr(obj.dynamic_mode)
+             << " for ECMP object "
              << ((id_ != INVALID) ? folly::to<std::string>(id_)
                                   : "(invalid id)");
   return flowletConfigUpdated;
@@ -660,8 +661,8 @@ void BcmEcmpEgress::program() {
       auto mode = utility::getFlowletDynamicMode(
           bcmEcmpFlowletConfig.backupSwitchingMode);
       XLOG(WARN) << "ECMP Id >=200128: " << id_
-                 << ", Desired mode: " << dynamicMode_
-                 << ", Configured mode: " << mode;
+                 << ", Desired mode: " << utility::dynamicModeStr(dynamicMode_)
+                 << ", Configured mode: " << utility::dynamicModeStr(mode);
       obj.dynamic_age = 0;
       obj.dynamic_size = 0;
       obj.dynamic_mode = mode;
@@ -678,7 +679,7 @@ void BcmEcmpEgress::program() {
                << ((obj.flags & BCM_L3_WITH_ID) ? " with id," : " without id,")
                << " dynamic age: " << obj.dynamic_age
                << " size: " << obj.dynamic_size
-               << " mode: " << obj.dynamic_mode;
+               << " mode: " << utility::dynamicModeStr(obj.dynamic_mode);
     if (useHsdk_) {
       ret = bcm_l3_ecmp_create(
           hw_->getUnit(), option, &obj, index, ecmpMemberArray);
@@ -1334,7 +1335,8 @@ bool BcmEcmpEgress::updateEcmpDynamicMode() {
   // if it is same nothing to do
   if (obj.dynamic_mode == configDynamicMode) {
     XLOG(DBG3) << "ECMP: " << id_ << " is already in dynamic mode "
-               << obj.dynamic_mode << " Skip dynamic mode update.";
+               << utility::dynamicModeStr(obj.dynamic_mode)
+               << " Skip dynamic mode update.";
     return updateComplete;
   }
 
@@ -1367,7 +1369,8 @@ bool BcmEcmpEgress::updateEcmpDynamicMode() {
     obj.ecmp_intf = id_;
     XLOG(DBG2) << "Performing ecmp object adjustment for ECMP: " << id_
                << " , with dynamic size: " << adjustedFlowletTableSize
-               << " , with dynamic mode: " << adjustedDynamicMode;
+               << " , with dynamic mode: "
+               << utility::dynamicModeStr(adjustedDynamicMode);
 
     if (useHsdk_) {
       ret = bcm_l3_ecmp_create(

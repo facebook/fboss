@@ -230,4 +230,18 @@ bool isEcmpModeDynamic(uint32_t dynamicMode) {
       dynamicMode == BCM_L3_ECMP_DYNAMIC_MODE_OPTIMAL);
 }
 
+std::string dynamicModeStr(uint32_t dynamicMode) {
+  switch (dynamicMode) {
+    case BCM_L3_ECMP_DYNAMIC_MODE_NORMAL:
+      return "flowlet_quality";
+    case BCM_L3_ECMP_DYNAMIC_MODE_OPTIMAL:
+      return "per_packet_quality";
+    case BCM_L3_ECMP_DYNAMIC_MODE_DISABLED:
+      return "fixed_assignment";
+    case BCM_L3_ECMP_DYNAMIC_MODE_RANDOM:
+      return "per_packet_random";
+  }
+  return "Invalid mode";
+}
+
 } // namespace facebook::fboss::utility
