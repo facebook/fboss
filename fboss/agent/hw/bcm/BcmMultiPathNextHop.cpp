@@ -86,6 +86,9 @@ void BcmMultiPathNextHopTable::updateEcmpsForFlowletSwitching() {
   for (const auto& nextHopsAndEcmpHostInfo : getNextHops()) {
     auto& weakPtr = nextHopsAndEcmpHostInfo.second;
     auto ecmpHost = weakPtr.lock();
+    if (!ecmpHost) {
+      continue;
+    }
     auto ecmpEgress = ecmpHost->getEgress();
     if (!ecmpEgress) {
       continue;
@@ -100,6 +103,9 @@ bool BcmMultiPathNextHopTable::updateEcmpsForFlowletTableLocked() {
   for (const auto& nextHopsAndEcmpHostInfo : getNextHops()) {
     auto& weakPtr = nextHopsAndEcmpHostInfo.second;
     auto ecmpHost = weakPtr.lock();
+    if (!ecmpHost) {
+      continue;
+    }
     auto ecmpEgress = ecmpHost->getEgress();
     if (!ecmpEgress) {
       continue;
@@ -124,6 +130,9 @@ void BcmMultiPathNextHopTable::egressResolutionChangedHwLocked(
   for (const auto& nextHopsAndEcmpHostInfo : getNextHops()) {
     auto weakPtr = nextHopsAndEcmpHostInfo.second;
     auto ecmpHost = weakPtr.lock();
+    if (!ecmpHost) {
+      continue;
+    }
     auto ecmpEgress = ecmpHost->getEgress();
     if (!ecmpEgress) {
       continue;
