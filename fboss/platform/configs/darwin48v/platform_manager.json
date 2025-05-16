@@ -900,7 +900,8 @@
               "deviceName": "fpga_info_iob",
               "csrOffset": "0x100"
             }
-          ]
+          ],
+          "desiredDriver": "scd"
         }
       ],
       "embeddedSensorConfigs": [
