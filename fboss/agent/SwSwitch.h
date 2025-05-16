@@ -774,6 +774,9 @@ class SwSwitch : public HwSwitchCallback {
   LookupClassRouteUpdater* getLookupClassRouteUpdater() {
     return lookupClassRouteUpdater_.get();
   }
+  const EcmpResourceManager* getEcmpResourceManager() const {
+    return ecmpResourceManager_.get();
+  }
 
   /*
    * RIB and switch state need to be kept in sync,
