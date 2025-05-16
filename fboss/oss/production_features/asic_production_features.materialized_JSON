@@ -276,7 +276,8 @@
         67,
         69,
         71,
-        72
+        72,
+        78
     ],
     "tomahawk5": [
         2,
@@ -652,7 +653,8 @@
         "UNTRUNCATED_SFLOW",
         "PTP_TC",
         "L4_DST_PORT_ACL",
-        "MODIFY_ACL_QUALIFIERS"
+        "MODIFY_ACL_QUALIFIERS",
+        "ECMP_RANDOM_SPRAY"
     ],
     "tomahawk5": [
         "CPU_RX_TX",
