@@ -103,3 +103,4 @@ DECLARE_bool(enable_ecmp_resource_manager);
 DECLARE_int32(ecmp_resource_manager_make_before_break_buffer);
 
 DECLARE_int32(update_stats_interval_s);
+DECLARE_bool(update_route_with_dlb_type);

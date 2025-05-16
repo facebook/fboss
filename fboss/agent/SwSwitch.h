@@ -285,6 +285,9 @@ class SwSwitch : public HwSwitchCallback {
 
   state::WarmbootState gracefulExitState() const;
 
+  state::SwitchState updateOverrideEcmpSwitchingMode(
+      state::WarmbootState* warmbootState) const;
+
   /*
    * Get a pointer to the current switch state.
    *

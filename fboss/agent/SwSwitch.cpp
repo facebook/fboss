@@ -756,12 +756,64 @@ void SwSwitch::setFibSyncTimeForClient(ClientID clientId) {
   }
 }
 
+state::SwitchState SwSwitch::updateOverrideEcmpSwitchingMode(
+    state::WarmbootState* warmbootState) const {
+  auto updateThriftRoute = [this](
+                               auto& route, auto& fib, std::string routeName) {
+    if (isRunModeMonolithic() && route.isResolved()) {
+      const auto& fwd = route.fwd();
+      // Do not update switchingMode if already present
+      if (fwd.getAction() != RouteForwardAction::NEXTHOPS ||
+          fwd.getNextHopSet().size() < 2 ||
+          fwd.getOverrideEcmpSwitchingMode().has_value()) {
+        return;
+      }
+      auto switchingMode =
+          getMonolithicHwSwitchHandler()->getFwdSwitchingMode(fwd);
+      // No need to update the mode for dynamic modes, only update splillovers
+      if (switchingMode == cfg::SwitchingMode::FLOWLET_QUALITY ||
+          switchingMode == cfg::SwitchingMode::PER_PACKET_QUALITY) {
+        return;
+      }
+      auto newFwd = RouteNextHopEntry(
+          fwd.getNextHopSet(),
+          fwd.getAdminDistance(),
+          fwd.getCounterID(),
+          fwd.getClassID(),
+          std::optional<cfg::SwitchingMode>(switchingMode));
+      fib.value().at(routeName).fwd() = newFwd.toThrift();
+    }
+  };
+  auto& data = *(warmbootState->swSwitchState());
+  const auto& matcher = HwSwitchMatcher::defaultHwSwitchMatcherKey();
+  auto fibsMap = data.fibsMap();
+  if (fibsMap->find(matcher) != fibsMap->end()) {
+    auto& fibs = fibsMap->find(matcher)->second;
+    for (auto& [_, fib] : fibs) {
+      auto fibV4 = fib.fibV4();
+      for (auto& [name, thriftRoute] : *fibV4) {
+        auto route = RouteFields<folly::IPAddressV4>::fromThrift(thriftRoute);
+        updateThriftRoute(route, fibV4, name);
+      }
+      auto fibV6 = fib.fibV6();
+      for (auto& [name, thriftRoute] : *fibV6) {
+        auto route = RouteFields<folly::IPAddressV6>::fromThrift(thriftRoute);
+        updateThriftRoute(route, fibV6, name);
+      }
+    }
+  }
+  return data;
+}
+
 state::WarmbootState SwSwitch::gracefulExitState() const {
   state::WarmbootState thriftSwitchState;
   // For RIB we employ a optmization to serialize only unresolved routes
   // and recover others from FIB
   thriftSwitchState.routeTables() = rib_->warmBootState();
   *thriftSwitchState.swSwitchState() = getAppliedState()->toThrift();
+  if (FLAGS_update_route_with_dlb_type) {
+    updateOverrideEcmpSwitchingMode(&thriftSwitchState);
+  }
   return thriftSwitchState;
 }
 

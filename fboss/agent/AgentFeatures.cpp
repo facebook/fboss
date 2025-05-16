@@ -301,3 +301,8 @@ DEFINE_int32(
     "Buffer to keep in ECMP resource manager from actual ECMP limt");
 
 DEFINE_int32(update_stats_interval_s, 1, "Update stats interval in seconds");
+
+DEFINE_bool(
+    update_route_with_dlb_type,
+    false,
+    "Flag to perform a DLB type update in FIB state");
