@@ -287,17 +287,47 @@ void BcmMultiPathNextHopTable::updateDlbExhaustionStat() {
   dlbExhausted_.store(dlbExhausted);
 }
 
+// This API is used to find the switchingMode of the ECMP group configured
+// Once queried, this mode is updated in SwitchState.
+// It is possible, the SwSwitch could program the ECMP using switchingMode,
+// in which case the key would have this mode updated.
+// So, first check with an empty mode. If not, then try with all modes
+//
+// Note, this mode will remain nullopt until ecmp resource manager stays
+// inactive. When it becomes active, the per mode lookups will come in play
 cfg::SwitchingMode BcmMultiPathNextHopTable::getFwdSwitchingMode(
     bcm_vrf_t vrf,
     const RouteNextHopSet& nextHopSet) {
   auto multipathNextHop =
-      getNextHop(BcmMultiPathNextHopKey(vrf, nextHopSet, std::nullopt));
+      getNextHopIf(BcmMultiPathNextHopKey(vrf, nextHopSet, std::nullopt));
+  if (!multipathNextHop) {
+    std::string str = "";
+    for (const auto& nhop : nextHopSet) {
+      str += folly::to<std::string>(nhop.str(), ",");
+    }
+    XLOG(WARN) << "Failed to find multipath key with empty switching mode"
+               << str;
+    std::vector<cfg::SwitchingMode> modes = {
+        cfg::SwitchingMode::FLOWLET_QUALITY,
+        cfg::SwitchingMode::PER_PACKET_QUALITY,
+        cfg::SwitchingMode::FIXED_ASSIGNMENT,
+        cfg::SwitchingMode::PER_PACKET_RANDOM};
+    for (const auto& mode : modes) {
+      multipathNextHop =
+          getNextHopIf(BcmMultiPathNextHopKey(vrf, nextHopSet, mode));
+      if (multipathNextHop) {
+        break;
+      }
+    }
+  }
+
   if (multipathNextHop) {
     auto ecmpEgress = multipathNextHop->getEgress();
     if (ecmpEgress) {
       return ecmpEgress->getEcmpSwitchingMode();
     }
   }
+
   return cfg::SwitchingMode::FIXED_ASSIGNMENT;
 }
 
