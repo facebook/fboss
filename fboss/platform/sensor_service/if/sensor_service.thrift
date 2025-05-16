@@ -1,6 +1,6 @@
 namespace cpp2 facebook.fboss.platform.sensor_service
 namespace go neteng.fboss.platform.sensor_service
-namespace php Neteng_Fboss_Platform_SensorService
+namespace php NetengFbossPlatformSensorService
 namespace py neteng.fboss.platform.sensor_service
 namespace py3 neteng.fboss.platform.sensor_service
 namespace py.asyncio neteng.fboss.platform.asyncio.sensor_service
