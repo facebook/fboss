@@ -3995,8 +3995,21 @@ std::optional<L2Entry> SaiSwitch::getL2Entry(
     XLOG(ERR) << "Missing bridge port attribute in FDB event";
     return std::nullopt;
   }
-  auto portOrLagSaiId = SaiApiTable::getInstance()->bridgeApi().getAttribute(
-      fdbEvent.bridgePortSaiId, SaiBridgePortTraits::Attributes::PortId{});
+
+  // We could recive learn event when bridge port is not present.
+  // Ignore SDK error. Refer D74672820 for details.
+  sai_object_id_t portOrLagSaiId = SAI_NULL_OBJECT_ID;
+  try {
+    portOrLagSaiId = SaiApiTable::getInstance()->bridgeApi().getAttribute(
+        fdbEvent.bridgePortSaiId, SaiBridgePortTraits::Attributes::PortId{});
+  } catch (const SaiApiError& e) {
+    if (e.getSaiStatus() == SAI_STATUS_ITEM_NOT_FOUND) {
+      XLOG(ERR)
+          << "Bridge port is not found in SDK, may be we deleted it during port re-create";
+      return std::nullopt;
+    }
+    throw;
+  }
 
   L2Entry::L2EntryType entryType{L2Entry::L2EntryType::L2_ENTRY_TYPE_PENDING};
   auto mac = fromSaiMacAddress(fdbEvent.fdbEntry.mac_address);
