@@ -3930,8 +3930,19 @@ void SwSwitch::rxPacketReceived(std::unique_ptr<SwRxPacket> pkt) {
 template <typename VlanOrIntfT>
 std::optional<VlanID> SwSwitch::getVlanIDForTx(
     const std::shared_ptr<VlanOrIntfT>& vlanOrIntf) const {
-  return utility::getVlanIDForTx(
+  if (!vlanOrIntf) {
+    // Handle the case where vlanOrIntf is null
+    XLOG(DBG3) << "vlanOrIntf is null";
+    return std::nullopt;
+  }
+  auto vlanID = utility::getVlanIDForTx(
       vlanOrIntf, getState(), getScopeResolver(), getHwAsicTable());
+  if (!vlanID.has_value()) {
+    // Handle the case where the VLAN ID is not found
+    XLOG(DBG3) << "VLAN ID not found for transmission";
+    return std::nullopt;
+  }
+  return vlanID;
 }
 
 template std::optional<VlanID> SwSwitch::getVlanIDForTx(
