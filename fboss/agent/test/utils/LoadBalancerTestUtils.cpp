@@ -138,6 +138,9 @@ cfg::FlowletSwitchingConfig getDefaultFlowletSwitchingConfig(
   cfg::FlowletSwitchingConfig flowletCfg;
   flowletCfg.inactivityIntervalUsecs() = 16;
   flowletCfg.flowletTableSize() = 2048;
+  if (switchingMode == cfg::SwitchingMode::PER_PACKET_QUALITY) {
+    flowletCfg.flowletTableSize() = 256;
+  }
   // set the egress load and queue exponent to zero for DLB engine
   // to do load balancing across all the links better with single stream
   // SAI has exponents 1 based while native BCM is 0 based

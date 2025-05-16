@@ -1332,4 +1332,79 @@ TEST_F(AgentFlowletSwitchingTest, VerifyEcmpSwitchingMode) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+class AgentFlowletBcmTest : public AgentFlowletSwitchingTest {
+ protected:
+  void setCmdLineFlagOverrides() const override {
+    AgentFlowletSwitchingTest::setCmdLineFlagOverrides();
+    FLAGS_dlbResourceCheckEnable = false;
+    FLAGS_update_route_with_dlb_type = true;
+  }
+};
+
+TEST_F(AgentFlowletBcmTest, VerifySwitchingModeUpdateSwState) {
+  generatePrefixes();
+  const auto kMaxDlbEcmpGroup =
+      utility::getMaxDlbEcmpGroups(getAgentEnsemble()->getL3Asics());
+  // Create two test prefix vectors
+  std::vector<RoutePrefixV6> testPrefixes1 = {
+      prefixes.begin(), prefixes.begin() + kMaxDlbEcmpGroup};
+  std::vector<RoutePrefixV6> testPrefixes2 = {
+      prefixes.begin() + kMaxDlbEcmpGroup,
+      prefixes.begin() + kMaxDlbEcmpGroup + 128};
+  std::vector<flat_set<PortDescriptor>> testNhopSets1 = {
+      nhopSets.begin(), nhopSets.begin() + kMaxDlbEcmpGroup};
+  std::vector<flat_set<PortDescriptor>> testNhopSets2 = {
+      nhopSets.begin() + kMaxDlbEcmpGroup,
+      nhopSets.begin() + kMaxDlbEcmpGroup + 128};
+
+  auto verifySwitchingMode =
+      [](const std::shared_ptr<SwitchState> state,
+         const std::vector<RoutePrefixV6>& testPrefixes,
+         const std::optional<cfg::SwitchingMode>& expectedMode) {
+        for (const auto& prefix : testPrefixes) {
+          auto route = findRoute<folly::IPAddressV6>(
+              RouterID(0), {prefix.network(), prefix.mask()}, state);
+          const auto& fwd = route->getForwardInfo();
+          auto switchingMode = fwd.getOverrideEcmpSwitchingMode();
+          EXPECT_EQ(switchingMode, expectedMode);
+        }
+      };
+
+  auto setup = [=, this]() {
+    {
+      auto wrapper = getSw()->getRouteUpdater();
+      helper_->programRoutes(&wrapper, testNhopSets1, testPrefixes1);
+    }
+    // verify ecmp switching mode not filled in
+    verifySwitchingMode(getProgrammedState(), testPrefixes1, std::nullopt);
+    {
+      auto wrapper = getSw()->getRouteUpdater();
+      helper_->programRoutes(&wrapper, testNhopSets2, testPrefixes2);
+    }
+    // verify ecmp switching mode not filled in
+    verifySwitchingMode(getProgrammedState(), testPrefixes2, std::nullopt);
+  };
+
+  auto verifyPostWarmboot = [=, this]() {
+    // First verify if thrift state is correctly written prior to warmboot
+    auto wbState = getSw()->getWarmBootHelper()->getWarmBootState();
+    auto state = SwitchState::fromThrift(*wbState.swSwitchState());
+    verifySwitchingMode(state, testPrefixes1, std::nullopt);
+    verifySwitchingMode(
+        state,
+        testPrefixes2,
+        std::optional<cfg::SwitchingMode>(
+            cfg::SwitchingMode::PER_PACKET_RANDOM));
+
+    // Now verify if warmboot state is updated in sw state
+    verifySwitchingMode(getProgrammedState(), testPrefixes1, std::nullopt);
+    verifySwitchingMode(
+        getProgrammedState(),
+        testPrefixes2,
+        std::optional<cfg::SwitchingMode>(
+            cfg::SwitchingMode::PER_PACKET_RANDOM));
+  };
+  verifyAcrossWarmBoots(setup, [] {}, [] {}, verifyPostWarmboot);
+}
+
 } // namespace facebook::fboss
