@@ -61,4 +61,5 @@ struct AgentStats {
     i16,
     hardware_stats.FabricReachabilityStats
   > fabricReachabilityStatsMap;
+  28: map<i16, hardware_stats.HwSwitchPipelineStats> switchPipelineStatsMap;
 }

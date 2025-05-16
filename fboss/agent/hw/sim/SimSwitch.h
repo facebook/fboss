@@ -79,6 +79,10 @@ class SimSwitch : public HwSwitch {
     return HwSwitchWatermarkStats{};
   }
 
+  HwSwitchPipelineStats getSwitchPipelineStats() const override {
+    return HwSwitchPipelineStats{};
+  }
+
   HwResourceStats getResourceStats() const override {
     return HwResourceStats{};
   }

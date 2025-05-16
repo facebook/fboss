@@ -4719,6 +4719,11 @@ HwSwitchWatermarkStats SaiSwitch::getSwitchWatermarkStats() const {
   return managerTable_->switchManager().getSwitchWatermarkStats();
 }
 
+HwSwitchPipelineStats SaiSwitch::getSwitchPipelineStats() const {
+  std::lock_guard<std::mutex> lk(saiSwitchMutex_);
+  return managerTable_->switchManager().getSwitchPipelineStats();
+}
+
 /*
  * On a FABRIC switch, from each virtual device, we want equal
  * number of connections to the peer devices. In absence of this

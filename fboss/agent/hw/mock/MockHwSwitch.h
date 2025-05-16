@@ -97,6 +97,7 @@ class MockHwSwitch : public HwSwitch {
   MOCK_CONST_METHOD0(getAllEcmpDetails, std::vector<EcmpDetails>());
   MOCK_CONST_METHOD0(getAclStats, AclStats());
   MOCK_CONST_METHOD0(getSwitchWatermarkStats, HwSwitchWatermarkStats());
+  MOCK_CONST_METHOD0(getSwitchPipelineStats, HwSwitchPipelineStats());
 
   MockPlatform* getPlatform() const override {
     return platform_;

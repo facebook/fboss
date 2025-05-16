@@ -421,6 +421,7 @@ class BcmSwitch : public BcmSwitchIf {
   }
 
   HwSwitchWatermarkStats getSwitchWatermarkStats() const override;
+  HwSwitchPipelineStats getSwitchPipelineStats() const override;
   HwFlowletStats getHwFlowletStats() const override;
 
   HwResourceStats getResourceStats() const override;

@@ -132,6 +132,8 @@ class MonolithicHwSwitchHandler : public HwSwitchHandler {
 
   HwSwitchWatermarkStats getSwitchWatermarkStats() const;
 
+  HwSwitchPipelineStats getSwitchPipelineStats() const;
+
   void getHwStats(multiswitch::HwSwitchStats& hwStats) const;
 
   state::SwitchState reconstructSwitchState() override {

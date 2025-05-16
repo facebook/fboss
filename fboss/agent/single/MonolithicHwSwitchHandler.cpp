@@ -96,6 +96,11 @@ HwSwitchWatermarkStats MonolithicHwSwitchHandler::getSwitchWatermarkStats()
   return hw_->getSwitchWatermarkStats();
 }
 
+HwSwitchPipelineStats MonolithicHwSwitchHandler::getSwitchPipelineStats()
+    const {
+  return hw_->getSwitchPipelineStats();
+}
+
 void MonolithicHwSwitchHandler::updateAllPhyInfo() {
   hw_->updateAllPhyInfo();
 }
@@ -240,6 +245,7 @@ void MonolithicHwSwitchHandler::getHwStats(
   hwStats.switchDropStats() = getSwitchDropStats();
   hwStats.fabricReachabilityStats() = getFabricReachabilityStats();
   hwStats.switchWatermarkStats() = getSwitchWatermarkStats();
+  hwStats.switchPipelineStats() = getSwitchPipelineStats();
   if (auto hwSwitchStats = getSwitchStats()) {
     hwStats.hwAsicErrors() = hwSwitchStats->getHwAsicErrors();
   }

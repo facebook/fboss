@@ -3237,6 +3237,10 @@ HwSwitchWatermarkStats BcmSwitch::getSwitchWatermarkStats() const {
   return stats;
 }
 
+HwSwitchPipelineStats BcmSwitch::getSwitchPipelineStats() const {
+  return HwSwitchPipelineStats{};
+}
+
 bcm_if_t BcmSwitch::getDropEgressId() const {
   return platform_->getAsic()->getDefaultDropEgressID();
 }

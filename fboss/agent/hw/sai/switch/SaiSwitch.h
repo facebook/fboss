@@ -121,6 +121,7 @@ class SaiSwitch : public HwSwitch {
   CpuPortStats getCpuPortStats() const override;
   HwSwitchDropStats getSwitchDropStats() const override;
   HwSwitchWatermarkStats getSwitchWatermarkStats() const override;
+  HwSwitchPipelineStats getSwitchPipelineStats() const override;
 
   HwResourceStats getResourceStats() const override;
 

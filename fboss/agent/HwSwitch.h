@@ -257,6 +257,7 @@ class HwSwitch {
   virtual HwFlowletStats getHwFlowletStats() const = 0;
   virtual std::vector<EcmpDetails> getAllEcmpDetails() const = 0;
   virtual HwSwitchWatermarkStats getSwitchWatermarkStats() const = 0;
+  virtual HwSwitchPipelineStats getSwitchPipelineStats() const = 0;
   virtual HwResourceStats getResourceStats() const = 0;
 
   // TODO delete this after ECMP resource manager rolled out to backend
