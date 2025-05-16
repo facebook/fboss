@@ -933,6 +933,10 @@ TEST_F(HwArsTest, VerifyGetEcmpDetails) {
 
   auto verify = [&]() {
     auto cfg = initialConfig();
+    updateFlowletConfigs(
+        cfg, cfg::SwitchingMode::FLOWLET_QUALITY, kFlowletTableSize2);
+    updatePortFlowletConfigName(cfg);
+    applyNewConfig(cfg);
     verifyConfig(cfg);
 
     // start a new thread to verify the ecmp details
