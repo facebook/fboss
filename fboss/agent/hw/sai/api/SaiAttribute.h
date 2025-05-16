@@ -756,7 +756,7 @@ class SaiAttribute<
 
   static DefaultValueType defaultValue() {
     static_assert(HasDefaultGetter, "No default getter provided for attribute");
-    static DefaultValueType v;
+    static thread_local DefaultValueType v;
     _fill(DefaultGetterT{}(), v);
     return v;
   }
@@ -907,7 +907,7 @@ class SaiExtensionAttribute {
   static ValueType defaultValue() {
     static_assert(HasDefaultGetter, "No default getter provided for attribute");
     if constexpr (IsSaiTypeWrapper<T>::value) {
-      static ValueType v;
+      static thread_local ValueType v;
       _fill(DefaultGetterT{}(), v);
       return v;
     } else {
