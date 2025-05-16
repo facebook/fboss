@@ -11280,6 +11280,16 @@
           "test_name_regex": "AgentAqmTest.verifyEcnWithoutWredConfig$"
         }
     ],
+    "chenab/1.15.7.2/1.15.7.2/chenab/mono": [
+        {
+          "test_name_regex": "AgentIngressBufferPoolTest.validateIngressPoolParamChange$"
+        }
+    ],
+    "chenab/1.15.7.2/1.15.7.2/chenab/multi_switch": [
+        {
+          "test_name_regex": "AgentIngressBufferPoolTest.validateIngressPoolParamChange$"
+        }
+    ],
     "chenab/1.15.7/1.15.7/chenab/mono": [
         {
           "test_name_regex": "AgentIngressBufferPoolTest.validateIngressPoolParamChange$"
