@@ -489,13 +489,20 @@ SwSwitch::SwSwitch(
       auto maxEcmpGroups = FLAGS_flowletSwitchingEnable
           ? asic->getMaxDlbEcmpGroups()
           : asic->getMaxEcmpGroups();
+      std::optional<cfg::SwitchingMode> switchingMode;
+      CHECK(config);
+      const auto& flowletConfig = config->thrift.sw()->flowletSwitchingConfig();
+      if (flowletConfig.has_value()) {
+        switchingMode = *flowletConfig->backupSwitchingMode();
+      }
       if (maxEcmpGroups.has_value()) {
         auto maxEcmps = std::floor(
             *maxEcmpGroups *
             static_cast<double>(FLAGS_ecmp_resource_percentage) / 100.0);
         XLOG(DBG2) << " Creating ecmp resource manager with max ECMP groups: "
                    << maxEcmps;
-        ecmpResourceManager_ = std::make_unique<EcmpResourceManager>(maxEcmps);
+        ecmpResourceManager_ =
+            std::make_unique<EcmpResourceManager>(maxEcmps, 0, switchingMode);
       }
     }
   }
