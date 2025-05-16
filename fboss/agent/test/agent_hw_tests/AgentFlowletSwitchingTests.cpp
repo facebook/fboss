@@ -1234,8 +1234,7 @@ TEST_F(AgentFlowletSwitchingTest, CreateMaxDlbGroups) {
                             ->scope(masterLogicalPortIds()[0])
                             .switchId();
         WITH_RETRIES({
-          auto stats =
-              getAgentEnsemble()->getSw()->getHwSwitchStatsExpensive(switchId);
+          auto stats = getHwSwitchStats(switchId);
           EXPECT_EVENTUALLY_TRUE(*stats.arsExhausted());
         });
         helper_->unprogramRoutes(&wrapper, prefixes129);
