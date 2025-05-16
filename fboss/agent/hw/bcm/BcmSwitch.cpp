@@ -4260,6 +4260,8 @@ void BcmSwitch::syncLinkStates() {
   });
 }
 
+void BcmSwitch::syncPortLinkState(PortID /*port*/) {}
+
 CpuPortStats BcmSwitch::getCpuPortStats() const {
   CpuPortStats cpuPortStats;
   auto queueManager = getControlPlane()->getQueueManager();

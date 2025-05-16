@@ -642,6 +642,7 @@ class BcmSwitch : public BcmSwitchIf {
   }
 
   void syncLinkStates() override;
+  void syncPortLinkState(PortID port) override;
 
   // no concept of link active states in BcmSwitch
   void syncLinkActiveStates() override {}

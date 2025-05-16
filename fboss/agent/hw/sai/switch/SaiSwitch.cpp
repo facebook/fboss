@@ -2364,6 +2364,28 @@ void SaiSwitch::linkStateChangedCallbackTopHalf(
       });
 }
 
+void SaiSwitch::syncPortLinkState(PortID portId) {
+  linkStateBottomHalfEventBase_.runInFbossEventBaseThread(
+      [this, portId = portId]() mutable {
+        linkStateChangedBottomHalf(portId);
+      });
+}
+void SaiSwitch::linkStateChangedBottomHalf(const PortID& portId) {
+  // Query SDK for port oper state using portId
+  auto handle = managerTable_->portManager().getPortHandle(portId);
+  auto saiPortId = handle->port->adapterKey();
+  auto portOperStatus = SaiApiTable::getInstance()->portApi().getAttribute(
+      saiPortId, SaiPortTraits::Attributes::OperStatus{});
+
+  std::vector<sai_port_oper_status_notification_t> portStatus{};
+  sai_port_oper_status_notification_t notification{};
+  notification.port_id = saiPortId;
+  notification.port_state = static_cast<sai_port_oper_status_t>(portOperStatus);
+  portStatus.push_back(notification);
+
+  linkStateChangedCallbackBottomHalf(portStatus);
+}
+
 void SaiSwitch::linkStateChangedCallbackBottomHalf(
     std::vector<sai_port_oper_status_notification_t> operStatus) {
   std::map<PortID, bool> swPortId2Status;

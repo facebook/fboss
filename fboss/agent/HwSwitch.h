@@ -388,6 +388,7 @@ class HwSwitch {
   virtual void syncLinkActiveStates() = 0;
   virtual void syncLinkConnectivity() = 0;
   virtual void syncSwitchReachability() = 0;
+  virtual void syncPortLinkState(PortID portId) = 0;
 
   virtual AclStats getAclStats() const = 0;
 
