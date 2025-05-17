@@ -92,6 +92,11 @@ class EcmpResourceManager {
   }
 
  private:
+  template <typename AddrT>
+  bool routesEqual(
+      const std::shared_ptr<Route<AddrT>>& oldRoute,
+      const std::shared_ptr<Route<AddrT>>& newRoute) const;
+
   struct ConsolidationPenalty {
     int maxPenalty() const;
     int avgPenalty() const;
