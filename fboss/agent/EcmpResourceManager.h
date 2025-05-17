@@ -133,6 +133,8 @@ class EcmpResourceManager {
     std::vector<StateDelta> out;
     PreUpdateState groupIdCache;
   };
+  std::optional<InputOutputState> handleFlowletSwitchConfigDelta(
+      const StateDelta& delta);
   std::vector<StateDelta> consolidateImpl(
       const StateDelta& delta,
       InputOutputState* inOutState);

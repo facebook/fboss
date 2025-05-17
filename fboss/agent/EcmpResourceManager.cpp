@@ -22,8 +22,11 @@ namespace facebook::fboss {
 std::vector<StateDelta> EcmpResourceManager::consolidate(
     const StateDelta& delta) {
   CHECK(!preUpdateState_.has_value());
+  auto switchingModeChangeResult = handleFlowletSwitchConfigDelta(delta);
   if (DeltaFunctions::isEmpty(delta.getFibsDelta())) {
-    // Return orignal delta if no FIB changes
+    if (switchingModeChangeResult.has_value()) {
+      return std::move(switchingModeChangeResult->out);
+    }
     std::vector<StateDelta> deltas;
     deltas.emplace_back(delta.oldState(), delta.newState());
     return deltas;
@@ -31,6 +34,11 @@ std::vector<StateDelta> EcmpResourceManager::consolidate(
   preUpdateState_ = PreUpdateState(mergedGroups_, nextHopGroup2Id_);
 
   uint32_t nonBackupEcmpGroupsCnt{0};
+  std::optional<InputOutputState> inOutState(
+      std::move(switchingModeChangeResult));
+  if (!inOutState.has_value()) {
+    inOutState = InputOutputState(nonBackupEcmpGroupsCnt, delta);
+  }
   std::for_each(
       nextHopGroupIdToInfo_.cbegin(),
       nextHopGroupIdToInfo_.cend(),
@@ -39,8 +47,8 @@ std::vector<StateDelta> EcmpResourceManager::consolidate(
         nonBackupEcmpGroupsCnt +=
             idAndInfo.second.lock()->isBackupEcmpGroupType() ? 0 : 1;
       });
-  InputOutputState inOutState(nonBackupEcmpGroupsCnt, delta);
-  return consolidateImpl(delta, &inOutState);
+  inOutState->nonBackupEcmpGroupsCnt = nonBackupEcmpGroupsCnt;
+  return consolidateImpl(delta, &(*inOutState));
 }
 
 std::vector<StateDelta> EcmpResourceManager::consolidateImpl(
@@ -598,5 +606,29 @@ void EcmpResourceManager::updateFailed(
   InputOutputState inOutState(0, delta, std::move(*preUpdateState_));
   consolidateImpl(delta, &inOutState);
   preUpdateState_.reset();
+}
+
+std::optional<EcmpResourceManager::InputOutputState>
+EcmpResourceManager::handleFlowletSwitchConfigDelta(const StateDelta& delta) {
+  if (delta.getFlowletSwitchingConfigDelta().getOld() ==
+      delta.getFlowletSwitchingConfigDelta().getNew()) {
+    return std::nullopt;
+  }
+  std::optional<cfg::SwitchingMode> newMode;
+  if (delta.newState()->getFlowletSwitchingConfig()) {
+    newMode =
+        delta.newState()->getFlowletSwitchingConfig()->getBackupSwitchingMode();
+  }
+  if (backupEcmpGroupType_.has_value() && !newMode.has_value()) {
+    throw FbossError(
+        "Cannot change backup ecmp switching mode from non-null to null");
+  }
+  if (backupEcmpGroupType_ == newMode) {
+    return std::nullopt;
+  }
+  backupEcmpGroupType_ = newMode;
+  // TODO - update all current prefixes with old backup switching mode
+  //  and add it to inOutState deltas list
+  return std::nullopt;
 }
 } // namespace facebook::fboss
