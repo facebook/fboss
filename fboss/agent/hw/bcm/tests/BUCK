@@ -622,6 +622,7 @@ cpp_library(
         "HwTestPtpTcUtilsThriftHandler.cpp",
         "HwTestRouteUtilsThriftHandler.cpp",
         "HwTestTamUtilsThriftHandler.cpp",
+        "HwTestTeFlowUtilsThriftHandler.cpp",
         "HwTestThriftHandler.cpp",
         "HwTestUdfUtilsThriftHandler.cpp",
         "HwTestVoqSwitchUtilsThriftHandler.cpp",

@@ -146,4 +146,8 @@ service AgentHwTestCtrl {
   i32 getHwUdfPacketMatcherId(1: string udfPacketMatchName);
   bool validateUdfAclRoceOpcodeConfig(1: switch_state.SwitchState curState);
   bool validateUdfIdsInQset(1: i32 aclGroupId, 2: bool isSet);
+
+  // Te flow utils
+  i32 getNumTeFlowEntries();
+  bool checkSwHwTeFlowMatch(1: switch_state.TeFlowEntryFields flowEntryFields);
 }

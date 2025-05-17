@@ -148,6 +148,11 @@ class HwTestThriftHandler : public AgentHwTestCtrlSvIf {
 
   bool validateUdfIdsInQset(int aclGroupId, bool isSet) override;
 
+  int32_t getNumTeFlowEntries() override;
+  bool checkSwHwTeFlowMatch(
+      std::unique_ptr<::facebook::fboss::state::TeFlowEntryFields>
+          flowEntryFields) override;
+
  private:
   HwSwitch* hwSwitch_;
 };
