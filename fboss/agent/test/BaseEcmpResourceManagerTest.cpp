@@ -186,6 +186,7 @@ void BaseEcmpResourceManagerTest::assertDeltasForOverflow(
         });
   }
 }
+
 RouteV6::Prefix BaseEcmpResourceManagerTest::nextPrefix() const {
   auto newState = state_->clone();
   auto fib6 = fib(newState);
