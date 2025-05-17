@@ -626,6 +626,13 @@ EcmpResourceManager::handleFlowletSwitchConfigDelta(const StateDelta& delta) {
   if (backupEcmpGroupType_ == newMode) {
     return std::nullopt;
   }
+
+  XLOG(DBG2) << "Updating backup switching mode from: "
+             << (backupEcmpGroupType_.has_value()
+                     ? apache::thrift::util::enumNameSafe(*backupEcmpGroupType_)
+                     : "None")
+             << " to: " << apache::thrift::util::enumNameSafe(*newMode);
+
   backupEcmpGroupType_ = newMode;
   // TODO - update all current prefixes with old backup switching mode
   //  and add it to inOutState deltas list

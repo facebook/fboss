@@ -480,32 +480,6 @@ SwSwitch::SwSwitch(
       hwSwitchThriftClientTable_(new HwSwitchThriftClientTable(
           FLAGS_hwagent_base_thrift_port,
           getSwitchInfoFromConfig(config))) {
-  if (FLAGS_enable_ecmp_resource_manager) {
-    auto l3Asics = hwAsicTable_->getL3Asics();
-    if (l3Asics.size()) {
-      auto asic = checkSameAndGetAsic(l3Asics);
-      // TODO look at flowlet settings and figure out the max
-      // ECMP groups value to use.
-      auto maxEcmpGroups = FLAGS_flowletSwitchingEnable
-          ? asic->getMaxDlbEcmpGroups()
-          : asic->getMaxEcmpGroups();
-      std::optional<cfg::SwitchingMode> switchingMode;
-      CHECK(config);
-      const auto& flowletConfig = config->thrift.sw()->flowletSwitchingConfig();
-      if (flowletConfig.has_value()) {
-        switchingMode = *flowletConfig->backupSwitchingMode();
-      }
-      if (maxEcmpGroups.has_value()) {
-        auto maxEcmps = std::floor(
-            *maxEcmpGroups *
-            static_cast<double>(FLAGS_ecmp_resource_percentage) / 100.0);
-        XLOG(DBG2) << " Creating ecmp resource manager with max ECMP groups: "
-                   << maxEcmps;
-        ecmpResourceManager_ =
-            std::make_unique<EcmpResourceManager>(maxEcmps, 0, switchingMode);
-      }
-    }
-  }
   // Create the platform-specific state directories if they
   // don't exist already.
   utilCreateDir(agentDirUtil_->getVolatileStateDir());
@@ -1299,6 +1273,32 @@ std::shared_ptr<SwitchState> SwSwitch::preInit(SwitchFlags flags) {
     lagManager_ = std::make_unique<LinkAggregationManager>(this);
   }
 
+  if (FLAGS_enable_ecmp_resource_manager) {
+    auto l3Asics = hwAsicTable_->getL3Asics();
+    if (l3Asics.size()) {
+      auto asic = checkSameAndGetAsic(l3Asics);
+      auto maxEcmpGroups = FLAGS_flowletSwitchingEnable
+          ? asic->getMaxDlbEcmpGroups()
+          : asic->getMaxEcmpGroups();
+      std::optional<cfg::SwitchingMode> switchingMode;
+      if (auto flowletSwitchingConfig = state->getFlowletSwitchingConfig()) {
+        switchingMode = flowletSwitchingConfig->getBackupSwitchingMode();
+      }
+      if (maxEcmpGroups.has_value()) {
+        auto maxEcmps = std::floor(
+            *maxEcmpGroups *
+            static_cast<double>(FLAGS_ecmp_resource_percentage) / 100.0);
+        XLOG(DBG2) << " Creating ecmp resource manager with max ECMP groups: "
+                   << maxEcmps << " and backup group type: "
+                   << (switchingMode.has_value()
+                           ? apache::thrift::util::enumNameSafe(*switchingMode)
+                           : "None");
+
+        ecmpResourceManager_ =
+            std::make_unique<EcmpResourceManager>(maxEcmps, 0, switchingMode);
+      }
+    }
+  }
   XLOG(DBG2)
       << "Time to init switch and start all threads "
       << duration_cast<duration<float>>(steady_clock::now() - begin).count();
@@ -1338,8 +1338,6 @@ void SwSwitch::init(
     std::vector<StateDelta> deltas;
     deltas =
         ecmpResourceManager_->consolidate(StateDelta(emptyState, initialState));
-    // TODO allow for > 1 deltas once switch handlers, HwSwitch are
-    // able to handle these.
     CHECK_EQ(deltas.size(), 1);
     initialState = deltas.back().newState();
   }
