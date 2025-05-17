@@ -12,11 +12,9 @@
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
-#include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/DsfConfigUtils.h"
 #include "fboss/agent/test/utils/FabricTestUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
-#include "fboss/agent/test/utils/NetworkAITestUtils.h"
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
 #include "fboss/agent/test/utils/PacketSnooper.h"
 #include "fboss/agent/test/utils/PortTestUtils.h"
@@ -33,21 +31,6 @@ constexpr auto kDefaultEgressQueue = 0;
 
 using namespace facebook::fb303;
 namespace facebook::fboss {
-
-cfg::SwitchConfig AgentVoqSwitchTest::initialConfig(
-    const AgentEnsemble& ensemble) const {
-  // Increase the query timeout to be 5sec
-  FLAGS_hwswitch_query_timeout = 5000;
-  auto config = utility::onePortPerInterfaceConfig(
-      ensemble.getSw(),
-      ensemble.masterLogicalPortIds(),
-      true /*interfaceHasSubnet*/);
-  utility::addNetworkAIQosMaps(config, ensemble.getL3Asics());
-  utility::setDefaultCpuTrafficPolicyConfig(
-      config, ensemble.getL3Asics(), ensemble.isSai());
-  utility::addCpuQueueConfig(config, ensemble.getL3Asics(), ensemble.isSai());
-  return config;
-}
 
 void AgentVoqSwitchTest::rxPacketToCpuHelper(
     uint16_t l4SrcPort,
@@ -220,19 +203,6 @@ int AgentVoqSwitchTest::sendPacket(
   return txPacketSize;
 }
 
-SystemPortID AgentVoqSwitchTest::getSystemPortID(
-    const PortDescriptor& port,
-    cfg::Scope portScope) {
-  auto switchId = scopeResolver().scope(getProgrammedState(), port).switchId();
-  const auto& dsfNode =
-      getProgrammedState()->getDsfNodes()->getNodeIf(switchId);
-  auto sysPortOffset = portScope == cfg::Scope::GLOBAL
-      ? dsfNode->getGlobalSystemPortOffset()
-      : dsfNode->getLocalSystemPortOffset();
-  CHECK(sysPortOffset.has_value());
-  return SystemPortID(port.intID() + *sysPortOffset);
-}
-
 void AgentVoqSwitchTest::addDscpAclWithCounter() {
   auto newCfg = initialConfig(*getAgentEnsemble());
   auto* acl = utility::addAcl_DEPRECATED(&newCfg, kDscpAclName());
@@ -276,35 +246,6 @@ void AgentVoqSwitchTest::setForceTrafficOverFabric(bool force) {
     }
     return out;
   });
-}
-
-std::vector<PortDescriptor> AgentVoqSwitchTest::getInterfacePortSysPortDesc() {
-  auto ports = getProgrammedState()->getPorts()->getAllNodes();
-  std::vector<PortDescriptor> portDescs;
-  std::for_each(
-      ports->begin(), ports->end(), [this, &portDescs](const auto& idAndPort) {
-        const auto port = idAndPort.second;
-        if (port->getPortType() == cfg::PortType::INTERFACE_PORT) {
-          portDescs.push_back(PortDescriptor(getSystemPortID(
-              PortDescriptor(port->getID()), cfg::Scope::GLOBAL)));
-        }
-      });
-  return portDescs;
-}
-
-// Resolve and return list of local nhops (only NIF ports)
-std::vector<PortDescriptor> AgentVoqSwitchTest::resolveLocalNhops(
-    utility::EcmpSetupTargetedPorts6& ecmpHelper) {
-  std::vector<PortDescriptor> portDescs = getInterfacePortSysPortDesc();
-
-  applyNewState([&](const std::shared_ptr<SwitchState>& in) {
-    auto out = in->clone();
-    for (const auto& portDesc : portDescs) {
-      out = ecmpHelper.resolveNextHops(out, {portDesc});
-    }
-    return out;
-  });
-  return portDescs;
 }
 
 TEST_F(AgentVoqSwitchTest, fdrRciAndCoreRciWatermarks) {

@@ -4,8 +4,6 @@
 
 #include "fboss/agent/FabricConnectivityManager.h"
 #include "fboss/agent/FbossHwUpdateError.h"
-#include "fboss/agent/hw/test/ConfigFactory.h"
-#include "fboss/agent/test/utils/DsfConfigUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
 #include "fboss/agent/test/utils/VoqTestUtils.h"
@@ -13,45 +11,6 @@
 DECLARE_int32(ecmp_resource_percentage);
 
 namespace facebook::fboss {
-
-cfg::SwitchConfig AgentVoqSwitchFullScaleDsfNodesTest::initialConfig(
-    const AgentEnsemble& ensemble) const {
-  auto cfg = AgentVoqSwitchTest::initialConfig(ensemble);
-  cfg.dsfNodes() = *overrideDsfNodes(*cfg.dsfNodes());
-  cfg.loadBalancers()->push_back(
-      utility::getEcmpFullHashConfig(ensemble.getL3Asics()));
-  return cfg;
-}
-
-std::optional<std::map<int64_t, cfg::DsfNode>>
-AgentVoqSwitchFullScaleDsfNodesTest::overrideDsfNodes(
-    const std::map<int64_t, cfg::DsfNode>& curDsfNodes) const {
-  return utility::addRemoteIntfNodeCfg(curDsfNodes);
-}
-
-flat_set<PortDescriptor>
-AgentVoqSwitchFullScaleDsfNodesTest::getRemoteSysPortDesc() {
-  auto remoteSysPorts =
-      getProgrammedState()->getRemoteSystemPorts()->getAllNodes();
-  flat_set<PortDescriptor> sysPortDescs;
-  std::for_each(
-      remoteSysPorts->begin(),
-      remoteSysPorts->end(),
-      [&sysPortDescs](const auto& idAndPort) {
-        sysPortDescs.insert(
-            PortDescriptor(static_cast<SystemPortID>(idAndPort.first)));
-      });
-  return sysPortDescs;
-}
-
-void AgentVoqSwitchFullScaleDsfNodesTest::setCmdLineFlagOverrides() const {
-  AgentVoqSwitchTest::setCmdLineFlagOverrides();
-  // Collect sats less frequently.
-  FLAGS_update_stats_interval_s = 120;
-  // Allow 100% ECMP resource usage
-  FLAGS_ecmp_resource_percentage = 100;
-  FLAGS_ecmp_width = 512;
-}
 
 class AgentVoqSwitchFullScaleDsfNodesWithFabricPortsTest
     : public AgentVoqSwitchFullScaleDsfNodesTest {
