@@ -104,14 +104,19 @@ class CmdShowFabricInputBalance : public CmdHandler<
   }
 
  private:
-  // Returns map<neighborSwitch, map<destinationSwitch,
+  // Returns unordered_map<neighborSwitch, unordered_map<destinationSwitch,
   // std::vector<neighboringPorts>>>
-  std::map<std::string, std::map<std::string, std::vector<std::string>>>
+  std::unordered_map<
+      std::string,
+      std::unordered_map<std::string, std::vector<std::string>>>
   getNeighborReachability(
       std::vector<std::pair<int64_t, std::string>> deviceToQueryInputCapacity,
-      const std::map<std::string, std::set<std::string>>& neighborName2Ports,
+      const std::unordered_map<std::string, std::set<std::string>>&
+          neighborName2Ports,
       const std::vector<std::string>& dstSwitchNames) {
-    std::map<std::string, std::map<std::string, std::vector<std::string>>>
+    std::unordered_map<
+        std::string,
+        std::unordered_map<std::string, std::vector<std::string>>>
         neighborReachability;
     std::map<
         std::string,
@@ -128,7 +133,8 @@ class CmdShowFabricInputBalance : public CmdHandler<
     for (const auto& [switchName, neighborReachabilityFuture] :
          neighborReachabilityFutureMap) {
       auto neighborReachabilityMap = neighborReachabilityFuture.get();
-      std::map<std::string, std::vector<std::string>> filteredReachabilityMap;
+      std::unordered_map<std::string, std::vector<std::string>>
+          filteredReachabilityMap;
       for (const auto& [dstSwitch, ports] : neighborReachabilityMap) {
         std::vector<std::string> filteredPorts;
         for (const auto& port : ports) {

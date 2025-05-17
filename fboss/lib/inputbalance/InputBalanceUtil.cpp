@@ -59,9 +59,10 @@ std::vector<std::pair<int64_t, std::string>> deviceToQueryInputCapacity(
   return switchIDAndName2Query;
 }
 
-std::map<std::string, std::set<std::string>> getNeighborFabricPortsToSelf(
+std::unordered_map<std::string, std::set<std::string>>
+getNeighborFabricPortsToSelf(
     const std::map<int32_t, PortInfoThrift>& myPortInfo) {
-  std::map<std::string, std::set<std::string>> switchNameToPorts;
+  std::unordered_map<std::string, std::set<std::string>> switchNameToPorts;
   for (const auto& [_, portInfo] : myPortInfo) {
     if (portInfo.portType() == cfg::PortType::FABRIC_PORT) {
       if (portInfo.expectedNeighborReachability()->size() != 1) {
