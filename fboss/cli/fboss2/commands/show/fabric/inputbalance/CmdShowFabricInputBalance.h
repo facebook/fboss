@@ -84,6 +84,13 @@ class CmdShowFabricInputBalance : public CmdHandler<
           "Failed to find devices to query input capacity");
     }
 
+    std::map<int32_t, facebook::fboss::PortInfoThrift> myPortInfo;
+    fbossCtrlClient->sync_getAllPortInfo(myPortInfo);
+    auto neighborName2Ports = utility::getNeighborFabricPortsToSelf(myPortInfo);
+
+    auto neighborReachability = getNeighborReachability(
+        deviceToQueryInputCapacity, neighborName2Ports, dstSwitchName);
+
     return createModel();
   }
 
@@ -94,6 +101,47 @@ class CmdShowFabricInputBalance : public CmdHandler<
 
   void printOutput(const RetType& model, std::ostream& out = std::cout) {
     // TODO(zecheng): Print output of input balance
+  }
+
+ private:
+  // Returns map<neighborSwitch, map<destinationSwitch,
+  // std::vector<neighboringPorts>>>
+  std::map<std::string, std::map<std::string, std::vector<std::string>>>
+  getNeighborReachability(
+      std::vector<std::pair<int64_t, std::string>> deviceToQueryInputCapacity,
+      const std::map<std::string, std::set<std::string>>& neighborName2Ports,
+      const std::vector<std::string>& dstSwitchNames) {
+    std::map<std::string, std::map<std::string, std::vector<std::string>>>
+        neighborReachability;
+    std::map<
+        std::string,
+        std::shared_future<std::map<std::string, std::vector<std::string>>>>
+        neighborReachabilityFutureMap;
+    for (const auto& [switchId, switchName] : deviceToQueryInputCapacity) {
+      neighborReachabilityFutureMap[switchName] = std::async(
+          std::launch::async,
+          &utils::getCachedSwSwitchReachabilityInfo,
+          HostInfo(switchName),
+          dstSwitchNames);
+    }
+
+    for (const auto& [switchName, neighborReachabilityFuture] :
+         neighborReachabilityFutureMap) {
+      auto neighborReachabilityMap = neighborReachabilityFuture.get();
+      std::map<std::string, std::vector<std::string>> filteredReachabilityMap;
+      for (const auto& [dstSwitch, ports] : neighborReachabilityMap) {
+        std::vector<std::string> filteredPorts;
+        for (const auto& port : ports) {
+          // Filter ports that are not connected to the source switch
+          if (neighborName2Ports.at(switchName).contains(port)) {
+            filteredPorts.push_back(port);
+          }
+        }
+        filteredReachabilityMap[dstSwitch] = std::move(filteredPorts);
+      }
+      neighborReachability[switchName] = std::move(filteredReachabilityMap);
+    }
+    return neighborReachability;
   }
 };
 } // namespace facebook::fboss
