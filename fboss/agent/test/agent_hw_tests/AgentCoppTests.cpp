@@ -246,7 +246,8 @@ class AgentCoppTest : public AgentHwTest {
       std::optional<std::vector<uint8_t>> payload = std::nullopt,
       bool expectQueueHit = true,
       bool outOfPort = true,
-      bool skipTtlDecrement = true) {
+      bool skipTtlDecrement = true,
+      bool verifyPktCntInOtherQueues = true) {
     const auto kNumPktsToSend = 1;
     auto vlanId = getVlanIDForTx();
     auto destinationMac = dstMac.value_or(
@@ -273,7 +274,8 @@ class AgentCoppTest : public AgentHwTest {
             masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0]),
         queueId,
         sendAndInspect,
-        expectQueueHit ? kNumPktsToSend : 0);
+        expectQueueHit ? kNumPktsToSend : 0,
+        verifyPktCntInOtherQueues);
   }
 
   void sendUdpPkt(
@@ -961,7 +963,12 @@ TYPED_TEST(AgentCoppTest, Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ) {
           utility::kNonSpecialPort1,
           utility::kNonSpecialPort2,
           std::nullopt,
-          kNetworkControlDscp);
+          kNetworkControlDscp,
+          std::nullopt /* payload */,
+          true /* expectQueueHit */,
+          true /* outOfPort */,
+          true /* skipTtlDecrement */,
+          false /* verifyPktCntInOtherQueues */);
     }
     // Non device link local unicast address + kNetworkControlDscp dscp should
     // also use high-pri queue
@@ -974,7 +981,12 @@ TYPED_TEST(AgentCoppTest, Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ) {
           utility::kNonSpecialPort1,
           utility::kNonSpecialPort2,
           std::nullopt,
-          kNetworkControlDscp);
+          kNetworkControlDscp,
+          std::nullopt /* payload */,
+          true /* expectQueueHit */,
+          true /* outOfPort */,
+          true /* skipTtlDecrement */,
+          false /* verifyPktCntInOtherQueues */);
     }
   };
 
