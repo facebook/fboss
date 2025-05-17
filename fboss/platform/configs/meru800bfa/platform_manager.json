@@ -88,6 +88,13 @@
               "deviceName": "fpga_info_iob",
               "csrOffset": "0x100"
             }
+          ],
+          "miscCtrlConfigs": [
+            {
+              "pmUnitScopedName": "SCM_ADC",
+              "deviceName": "adc",
+              "csrOffset": "0x7300"
+            }
           ]
         }
       ],
@@ -4734,7 +4741,7 @@
   },
   "chassisEepromDevicePath": "/SMB_SLOT@0/[IDPROM]",
   "bspKmodsRpmName": "arista_bsp_kmods",
-  "bspKmodsRpmVersion": "0.7.9-1",
+  "bspKmodsRpmVersion": "0.7.10-1",
   "requiredKmodsToLoad": [
     "spidev",
     "i2c_i801",
