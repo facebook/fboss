@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/AsicUtils.h"
+#include "fboss/agent/EcmpResourceManager.h"
 #include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/packet/PktFactory.h"
@@ -1327,6 +1328,17 @@ TEST_F(AgentFlowletSwitchingTest, VerifyEcmpSwitchingMode) {
           client->sync_getFwdSwitchingMode(entry),
           cfg::SwitchingMode::PER_PACKET_QUALITY);
     });
+    auto ecmpResourceMgr = getSw()->getEcmpResourceManager();
+    if (ecmpResourceMgr) {
+      auto flowletSwitchConfig =
+          getSw()->getState()->getFlowletSwitchingConfig();
+      EXPECT_NE(flowletSwitchConfig, nullptr);
+      auto backupEcmpGroupType =
+          getSw()->getEcmpResourceManager()->getBackupEcmpSwitchingMode();
+      ASSERT_TRUE(backupEcmpGroupType.has_value());
+      EXPECT_EQ(
+          *backupEcmpGroupType, flowletSwitchConfig->getBackupSwitchingMode());
+    }
   };
 
   verifyAcrossWarmBoots(setup, verify);
