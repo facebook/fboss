@@ -319,12 +319,54 @@ TEST_F(EcmpBackupGroupTypeTest, addRoutesAboveEcmpLimitAndReplay) {
   auto deltas = consolidate(newState);
   EXPECT_EQ(deltas.size(), numStartRoutes() + 1);
   assertEndState(newState, overflowPrefixes);
-  // Replay state, should just return a single delta
-  // with the same prefixes marked for overflow
-  XLOG(INFO) << " Replaying same state, should get identical result";
-  auto deltas2 = consolidate(newState);
-  EXPECT_EQ(deltas2.size(), overflowPrefixes.size() + 1);
-  assertEndState(newState, overflowPrefixes);
+  {
+    // Replay state with new pointers for the overflow routes,
+    // should just return with the same prefixes marked for overflow
+    XLOG(INFO) << " Replaying state with cloned overflow routes, "
+               << "should get identical result";
+    auto newerState = state_->clone();
+    fib6 = fib(newerState);
+    for (const auto& pfx : overflowPrefixes) {
+      auto route = fib6->getRouteIf(pfx)->clone();
+      route->publish();
+      fib6->updateNode(route);
+    }
+    auto deltas2 = consolidate(newState);
+    EXPECT_EQ(deltas2.size(), overflowPrefixes.size() + 1);
+    assertEndState(newState, overflowPrefixes);
+  }
+  {
+    // Replay state with new pointers for non overflow routes,
+    // should just return with the same prefixes marked for overflow
+    XLOG(INFO) << " Replaying state with cloned non-overflow routes, "
+               << "should get identical result";
+    auto newerState = state_->clone();
+    fib6 = fib(newerState);
+    for (auto i = 0; i < numStartRoutes(); ++i) {
+      auto route = fib6->getRouteIf(makePrefix(i))->clone();
+      route->publish();
+      fib6->updateNode(route);
+    }
+    auto deltas2 = consolidate(newerState);
+    EXPECT_EQ(deltas2.size(), 1);
+    assertEndState(newState, overflowPrefixes);
+  }
+  {
+    // Replay state with new pointers for all routes
+    // should just return with the same prefixes marked for overflow
+    XLOG(INFO) << " Replaying state with cloned non-overflow routes, "
+               << "should get identical result";
+    auto newerState = state_->clone();
+    fib6 = fib(newerState);
+    for (const auto& [_, origRoute] : std::as_const(*cfib(state_))) {
+      auto route = fib6->getRouteIf(origRoute->prefix())->clone();
+      route->publish();
+      fib6->updateNode(route);
+    }
+    auto deltas2 = consolidate(newerState);
+    EXPECT_EQ(deltas2.size(), 1);
+    assertEndState(newState, overflowPrefixes);
+  }
 }
 
 TEST_F(EcmpBackupGroupTypeTest, updateRoutesToSingleNhopGroups) {
