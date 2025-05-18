@@ -301,6 +301,19 @@ EcmpResourceManager::updateForwardingInfoAndInsertDelta(
       nhops2IdItr->second,
       nhops2IdItr,
       true /*isBackupEcmpGroupType*/);
+  return updateForwardingInfoAndInsertDelta(
+      rid, route, grpInfo, ecmpDemandExceeded, inOutState);
+}
+
+template <typename AddrT>
+std::shared_ptr<NextHopGroupInfo>
+EcmpResourceManager::updateForwardingInfoAndInsertDelta(
+    RouterID rid,
+    const std::shared_ptr<Route<AddrT>>& route,
+    std::shared_ptr<NextHopGroupInfo>& grpInfo,
+    bool ecmpDemandExceeded,
+    InputOutputState* inOutState) {
+  CHECK(grpInfo->isBackupEcmpGroupType());
   const auto& curForwardInfo = route->getForwardInfo();
   auto newForwardInfo = RouteNextHopEntry(
       curForwardInfo.normalizedNextHops(),
@@ -641,8 +654,6 @@ EcmpResourceManager::handleFlowletSwitchConfigDelta(const StateDelta& delta) {
              << " to: " << apache::thrift::util::enumNameSafe(*newMode);
 
   backupEcmpGroupType_ = newMode;
-  // TODO - update all current prefixes with old backup switching mode
-  //  and add it to inOutState deltas list
   return std::nullopt;
 }
 } // namespace facebook::fboss

@@ -153,6 +153,13 @@ class EcmpResourceManager {
       bool ecmpDemandExceeded,
       InputOutputState* inOutState);
   template <typename AddrT>
+  std::shared_ptr<NextHopGroupInfo> updateForwardingInfoAndInsertDelta(
+      RouterID rid,
+      const std::shared_ptr<Route<AddrT>>& route,
+      std::shared_ptr<NextHopGroupInfo>& grpInfo,
+      bool ecmpDemandExceeded,
+      InputOutputState* inOutState);
+  template <typename AddrT>
   std::shared_ptr<NextHopGroupInfo> ecmpGroupDemandExceeded(
       RouterID rid,
       const std::shared_ptr<Route<AddrT>>& route,
