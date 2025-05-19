@@ -597,16 +597,26 @@ class AgentNeighborResolutionOverFlowTest : public AgentNeighborResolutionTest {
   // for TH3, we can only program 5100 neighbors in single state update
   // without HW failure. For TH4, we can program 8100 neighbors in single
   // state update
-  uint16_t getkBulkProgrammedCount() {
+  uint32_t getkBulkProgrammedCount() {
+    uint32_t kMinBulkProgrammedCount = 1000;
     auto switchId = getSw()
                         ->getScopeResolver()
                         ->scope(masterLogicalPortIds()[0])
                         .switchId();
-    if (getSw()->getHwAsicTable()->getHwAsic(switchId)->getAsicType() ==
-        cfg::AsicType::ASIC_TYPE_TOMAHAWK3) {
+
+    auto hwAsic = getSw()->getHwAsicTable()->getHwAsic(switchId);
+    if (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK3) {
       return 5100;
+    } else if (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK4) {
+      return 8100;
     }
-    return 8100;
+
+    if (hwAsic->getMaxNdpTableSize().has_value()) {
+      return static_cast<uint16_t>(std::min(
+          hwAsic->getMaxNdpTableSize().value(), kMinBulkProgrammedCount));
+    }
+
+    return kMinBulkProgrammedCount;
   }
 
   // get max neighbor table size
