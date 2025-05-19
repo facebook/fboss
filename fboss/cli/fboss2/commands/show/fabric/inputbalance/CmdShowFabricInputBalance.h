@@ -90,6 +90,8 @@ class CmdShowFabricInputBalance : public CmdHandler<
 
     auto neighborReachability = getNeighborReachability(
         deviceToQueryInputCapacity, neighborName2Ports, dstSwitchName);
+    auto selfReachability =
+        utils::getCachedSwSwitchReachabilityInfo(hostInfo, dstSwitchName);
 
     return createModel();
   }
@@ -120,7 +122,8 @@ class CmdShowFabricInputBalance : public CmdHandler<
         neighborReachability;
     std::map<
         std::string,
-        std::shared_future<std::map<std::string, std::vector<std::string>>>>
+        std::shared_future<
+            std::unordered_map<std::string, std::vector<std::string>>>>
         neighborReachabilityFutureMap;
     for (const auto& [switchId, switchName] : deviceToQueryInputCapacity) {
       neighborReachabilityFutureMap[switchName] = std::async(
