@@ -53,6 +53,10 @@ class BaseEcmpResourceManagerTest : public ::testing::Test {
   using NextHopGroupId = EcmpResourceManager::NextHopGroupId;
   std::vector<StateDelta> consolidate(
       const std::shared_ptr<SwitchState>& state);
+  void failUpdate(const std::shared_ptr<SwitchState>& state);
+  void failUpdate(
+      const std::shared_ptr<SwitchState>& state,
+      const std::shared_ptr<SwitchState>& failTo);
   RouteV6::Prefix nextPrefix() const;
   void SetUp() override;
   std::set<NextHopGroupId> getNhopGroupIds() const;

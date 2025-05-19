@@ -747,4 +747,16 @@ TEST_F(EcmpBackupGroupTypeTest, resetBackupSwitchingModeProhibited) {
   switchSettings->setFlowletSwitchingConfig(nullptr);
   EXPECT_THROW(consolidate(newState), FbossError);
 }
+
+TEST_F(EcmpBackupGroupTypeTest, changeSwitchingModeAndFailUpdate) {
+  // add new routes pointing to existing nhops. No limit is thus breached.
+  auto oldState = state_;
+  auto newState = oldState->clone();
+  auto newFlowletSwitchingConfig =
+      newState->getFlowletSwitchingConfig()->modify(&newState);
+  newFlowletSwitchingConfig->setBackupSwitchingMode(
+      cfg::SwitchingMode::FIXED_ASSIGNMENT);
+  EXPECT_THROW(failUpdate(newState), FbossError);
+}
+
 } // namespace facebook::fboss
