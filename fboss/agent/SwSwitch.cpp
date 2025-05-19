@@ -3608,6 +3608,12 @@ std::shared_ptr<SwitchState> SwSwitch::stateChanged(
   return multiHwSwitchHandler_->stateChanged(delta, transaction);
 }
 
+std::shared_ptr<SwitchState> SwSwitch::stateChanged(
+    const std::vector<StateDelta>& deltas,
+    bool transaction) const {
+  return multiHwSwitchHandler_->stateChanged(deltas, transaction);
+}
+
 std::shared_ptr<SwitchState> SwSwitch::modifyTransceivers(
     const std::shared_ptr<SwitchState>& state,
     const std::unordered_map<TransceiverID, TransceiverInfo>& currentTcvrs,
