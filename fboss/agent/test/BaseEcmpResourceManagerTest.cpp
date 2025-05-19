@@ -206,6 +206,16 @@ void BaseEcmpResourceManagerTest::SetUp() {
   state_ = std::make_shared<SwitchState>();
   state_->getPorts()->modify(&state_);
   registerPort(state_, PortID(1), "port1", hwMatcher());
+  auto switchSettings = std::make_shared<SwitchSettings>();
+  state_->getSwitchSettings()->addNode(
+      hwMatcher().matcherString(), switchSettings);
+  auto flowletSwitchingConfig = std::make_shared<FlowletSwitchingConfig>();
+  if (consolidator_->getBackupEcmpSwitchingMode()) {
+    flowletSwitchingConfig->setBackupSwitchingMode(
+        *consolidator_->getBackupEcmpSwitchingMode());
+  }
+  switchSettings->setFlowletSwitchingConfig(flowletSwitchingConfig);
+  EXPECT_EQ(state_->getFlowletSwitchingConfig(), flowletSwitchingConfig);
   auto fibContainer =
       std::make_shared<ForwardingInformationBaseContainer>(RouterID(0));
   auto mfib = std::make_shared<MultiSwitchForwardingInformationBaseMap>();
