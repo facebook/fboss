@@ -107,9 +107,7 @@ HwSwitchStateOperUpdateResult HwSwitchHandler::stateChangedImpl(
     bool transaction,
     const std::shared_ptr<SwitchState>& newState,
     const HwWriteBehavior& hwWriteBehavior) {
-  // TODO (ravi) until Mono and MultiSwitch stateChanged accepts vector
-  CHECK_LE(deltas.size(), 1);
-  return stateChanged(deltas.back(), transaction, newState, hwWriteBehavior);
+  return stateChanged(deltas, transaction, newState, hwWriteBehavior);
 }
 
 fsdb::OperDelta HwSwitchHandler::getFullSyncOperDelta(

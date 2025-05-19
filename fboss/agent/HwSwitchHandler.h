@@ -80,7 +80,7 @@ class HwSwitchHandler {
       std::optional<cfg::SdkVersion> sdkVersion) const = 0;
 
   virtual HwSwitchStateOperUpdateResult stateChanged(
-      const fsdb::OperDelta& delta,
+      const std::vector<fsdb::OperDelta>& deltas,
       bool transaction,
       const std::shared_ptr<SwitchState>& initialState,
       const HwWriteBehavior& hwWriteBehavior = HwWriteBehavior::WRITE) = 0;

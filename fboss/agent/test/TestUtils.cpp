@@ -1601,7 +1601,7 @@ std::unique_ptr<SwSwitch> createSwSwitchWithMultiSwitch(
             .WillByDefault(
                 [=](const auto& delta, bool) { return delta.newState(); });
         ON_CALL(*handler, stateChanged(_, _, _, _))
-            .WillByDefault([=](const fsdb::OperDelta&,
+            .WillByDefault([=](const std::vector<fsdb::OperDelta>&,
                                bool,
                                const std::shared_ptr<SwitchState>&,
                                const HwWriteBehavior&) {
