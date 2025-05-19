@@ -50,7 +50,19 @@ class BaseSubscription {
 
   virtual bool isActive() const = 0;
 
+  void requestPruneWithReason(FsdbErrorCode reason) {
+    pruneReason_ = reason;
+  }
+
+  std::optional<FsdbErrorCode> pruneReason() const {
+    return pruneReason_;
+  }
+
   virtual bool shouldPrune() const {
+    if (pruneReason_.has_value()) {
+      // prune if subscription is marked with a reason to prune
+      return true;
+    }
     return !isActive();
   }
 
@@ -145,6 +157,7 @@ class BaseSubscription {
   folly::coro::CancellableAsyncScope backgroundScope_;
   std::chrono::milliseconds heartbeatInterval_;
   folly::Synchronized<uint32_t> queueWatermark_{0};
+  std::optional<FsdbErrorCode> pruneReason_{std::nullopt};
 };
 
 class Subscription : public BaseSubscription {

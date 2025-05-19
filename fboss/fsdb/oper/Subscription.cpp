@@ -77,7 +77,11 @@ folly::coro::Task<void> BaseSubscription::heartbeatLoop() {
   // make sure to stop loop when we're cancelled
   while (!backgroundScope_.isScopeCancellationRequested()) {
     co_await folly::coro::sleep(heartbeatInterval_);
-    serveHeartbeat();
+    auto ret = serveHeartbeat();
+    if (ret.has_value()) {
+      requestPruneWithReason(ret.value());
+      break;
+    }
   }
   co_return;
 }

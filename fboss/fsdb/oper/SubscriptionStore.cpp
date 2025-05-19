@@ -182,10 +182,16 @@ void SubscriptionStore::flush(
   // TODO: hint which subscriptions need to be flushed to avoid full
   // loop
   for (auto& [_, subscription] : subscriptions_) {
-    subscription->flush(metadataServer);
+    auto ret = subscription->flush(metadataServer);
+    if (ret.has_value()) {
+      subscription->requestPruneWithReason(ret.value());
+    }
   }
   for (auto& [_, subscription] : extendedSubscriptions_) {
-    subscription->flush(metadataServer);
+    auto ret = subscription->flush(metadataServer);
+    if (ret.has_value()) {
+      subscription->requestPruneWithReason(ret.value());
+    }
   }
 }
 
