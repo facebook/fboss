@@ -8,12 +8,29 @@
  *
  */
 #include "fboss/agent/state/FlowletSwitchingConfig.h"
-#include "fboss/agent/gen-cpp2/switch_config_fatal.h"
-#include "fboss/agent/gen-cpp2/switch_config_fatal_types.h"
+#include "fboss/agent/state/SwitchState.h"
 
 namespace facebook::fboss {
 
 template struct ThriftStructNode<
     FlowletSwitchingConfig,
     cfg::FlowletSwitchingConfig>;
+
+FlowletSwitchingConfig* FlowletSwitchingConfig::modify(
+    std::shared_ptr<SwitchState>* state) {
+  if (!isPublished()) {
+    CHECK(!(*state)->isPublished());
+    return this;
+  }
+  auto cloned = clone();
+  auto mSwitchSettings = (*state)->getSwitchSettings()->clone();
+  for (const auto& [_, switchSettings] : *std::as_const(mSwitchSettings)) {
+    if (this == switchSettings->getFlowletSwitchingConfig().get()) {
+      auto switchSettingsWritable = switchSettings->modify(state);
+      switchSettingsWritable->setFlowletSwitchingConfig(cloned);
+      return cloned.get();
+    }
+  }
+  throw FbossError("Flowlet swtich settings not part of input state");
+}
 } // namespace facebook::fboss
