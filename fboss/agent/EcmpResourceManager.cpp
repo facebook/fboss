@@ -653,7 +653,54 @@ EcmpResourceManager::handleFlowletSwitchConfigDelta(const StateDelta& delta) {
                      : "None")
              << " to: " << apache::thrift::util::enumNameSafe(*newMode);
 
+  auto oldBackupEcmpMode = backupEcmpGroupType_;
   backupEcmpGroupType_ = newMode;
-  return std::nullopt;
+  if (!oldBackupEcmpMode.has_value()) {
+    // No backup ecmp type value for old group.
+    // Nothing to do.
+    return std::nullopt;
+  }
+  InputOutputState inOutState(0 /*nonBackupEcmpGroupsCnt*/, delta);
+  CHECK_EQ(inOutState.out.size(), 1);
+  // Make changes on to current new state (which is essentially,
+  // newState with old state's fibs). The first delta we will queue
+  // will be the oldState's FIBs route's updated to new backup group.
+  auto newState = inOutState.out.back().newState();
+  for (const auto& [ridAndPfx, grpInfo] : prefixToGroupInfo_) {
+    if (!grpInfo->isBackupEcmpGroupType()) {
+      continue;
+    }
+    const auto& [rid, pfx] = ridAndPfx;
+    auto updateRouteOverridEcmpMode = [this, &inOutState](
+                                          RouterID routerId,
+                                          const auto& routePrefix,
+                                          const auto& fib,
+                                          auto groupInfo) mutable {
+      auto route = fib->getRouteIf(routePrefix);
+      CHECK(route);
+      updateForwardingInfoAndInsertDelta(
+          routerId,
+          route,
+          groupInfo,
+          false /*ecmpDemandExceeded*/,
+          &inOutState);
+    };
+    if (pfx.first.isV6()) {
+      RoutePrefixV6 routePfx(pfx.first.asV6(), pfx.second);
+      updateRouteOverridEcmpMode(
+          rid,
+          routePfx,
+          newState->getFibs()->getNode(rid)->getFibV6(),
+          grpInfo);
+    } else {
+      RoutePrefixV4 routePfx(pfx.first.asV4(), pfx.second);
+      updateRouteOverridEcmpMode(
+          rid,
+          routePfx,
+          newState->getFibs()->getNode(rid)->getFibV4(),
+          grpInfo);
+    }
+  }
+  return std::move(inOutState);
 }
 } // namespace facebook::fboss
