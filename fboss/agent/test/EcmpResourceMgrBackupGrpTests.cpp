@@ -661,4 +661,26 @@ TEST_F(EcmpBackupGroupTypeTest, reclaimPrioritizesECMPWithMoreRoutes) {
   }
 }
 
+// Backup switching mode change tests
+TEST_F(EcmpBackupGroupTypeTest, changeSwitchingModeNoBackupEcmpRoutes) {
+  // add new routes pointing to existing nhops. No limit is thus breached.
+  auto oldState = state_;
+  auto newState = oldState->clone();
+  auto newFlowletSwitchingConfig =
+      newState->getFlowletSwitchingConfig()->modify(&newState);
+  newFlowletSwitchingConfig->setBackupSwitchingMode(
+      cfg::SwitchingMode::FIXED_ASSIGNMENT);
+  auto deltas = consolidate(newState);
+  EXPECT_EQ(deltas.size(), 1);
+  EXPECT_EQ(deltas.back(), StateDelta(oldState, newState));
+  // No overflow
+  assertEndState(newState, {});
+  EXPECT_EQ(
+      state_->getFlowletSwitchingConfig()->getBackupSwitchingMode(),
+      cfg::SwitchingMode::FIXED_ASSIGNMENT);
+  EXPECT_EQ(
+      *consolidator_->getBackupEcmpSwitchingMode(),
+      cfg::SwitchingMode::FIXED_ASSIGNMENT);
+}
+
 } // namespace facebook::fboss
