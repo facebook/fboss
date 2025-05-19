@@ -736,4 +736,15 @@ TEST_F(EcmpBackupGroupTypeTest, overflowRoutesAndThenSwitchingModeChange) {
   EXPECT_EQ(deltas2.size(), overflowPrefixes.size() + 1);
   assertEndState(newerState, overflowPrefixes);
 }
+
+TEST_F(EcmpBackupGroupTypeTest, resetBackupSwitchingModeProhibited) {
+  // Reset switching config mode from one value to null. Expect throw
+  auto oldState = state_;
+  auto newState = oldState->clone();
+  auto switchSettings = newState->getSwitchSettings()
+                            ->getNode(hwMatcher().matcherString())
+                            ->modify(&newState);
+  switchSettings->setFlowletSwitchingConfig(nullptr);
+  EXPECT_THROW(consolidate(newState), FbossError);
+}
 } // namespace facebook::fboss
