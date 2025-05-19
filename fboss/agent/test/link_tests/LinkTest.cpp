@@ -412,14 +412,12 @@ LinkTest::getConnectedOpticalAndActivePortPairWithFeature(
     phy::Side side,
     bool skipLoopback) const {
   auto connectedPairs = getConnectedPairs();
-  auto opticalPorts =
-      std::get<0>(getOpticalAndActiveCabledPortsAndNames(false));
+  auto ports = std::get<0>(getOpticalAndActiveCabledPortsAndNames(false));
 
   std::set<std::pair<PortID, PortID>> connectedOpticalPortPairs;
   for (auto connectedPair : connectedPairs) {
-    if (std::find(
-            opticalPorts.begin(), opticalPorts.end(), connectedPair.first) !=
-        opticalPorts.end()) {
+    if (std::find(ports.begin(), ports.end(), connectedPair.first) !=
+        ports.end()) {
       if (connectedPair.first == connectedPair.second && skipLoopback) {
         continue;
       }

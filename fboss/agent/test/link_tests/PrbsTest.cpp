@@ -601,12 +601,19 @@ class TransceiverLineToTransceiverLinePrbsTest : public PrbsTest {
       auto portName1 = this->getPortName(port1);
       auto portName2 = this->getPortName(port2);
 
-      if (!this->checkValidMedia(port1, Media) ||
-          !this->checkValidMedia(port2, Media) ||
-          !this->checkPrbsSupported(
-              portName1, phy::PortComponent::TRANSCEIVER_LINE, Polynomial) ||
-          !this->checkPrbsSupported(
-              portName2, phy::PortComponent::TRANSCEIVER_LINE, Polynomial)) {
+      auto port1ValidMedia = checkValidMedia(port1, Media);
+      auto port2ValidMedia = checkValidMedia(port2, Media);
+      auto port1SupportPrbs = checkPrbsSupported(
+          portName1, phy::PortComponent::TRANSCEIVER_LINE, Polynomial);
+      auto port2SupportPrbs = checkPrbsSupported(
+          portName2, phy::PortComponent::TRANSCEIVER_LINE, Polynomial);
+      XLOG(INFO) << "Tcvr to Tcvr PRBS test: portA " << portName1 << " portZ "
+                 << portName2 << " validMA " << port1ValidMedia << " validMZ "
+                 << port2ValidMedia << " supPrbsA " << port1SupportPrbs
+                 << " supPrbsZ " << port2SupportPrbs << " poly "
+                 << apache::thrift::util::enumNameSafe(Polynomial);
+      if (!port1ValidMedia || !port2ValidMedia || !port1SupportPrbs ||
+          !port2SupportPrbs) {
         continue;
       }
       portsToTest.push_back(
@@ -642,12 +649,20 @@ class PhyToTransceiverSystemPrbsTest : public PrbsTest {
     for (const auto& [port1, port2] : connectedPairs) {
       for (const auto& port : {port1, port2}) {
         auto portName = this->getPortName(port);
-        if (!this->checkValidMedia(port, Media) ||
-            !this->checkPrbsSupported(portName, ComponentA, PolynomialA) ||
-            !this->checkPrbsSupported(
-                portName,
-                phy::PortComponent::TRANSCEIVER_SYSTEM,
-                PolynomialZ)) {
+        auto portValidMedia = checkValidMedia(port, Media);
+        auto portSupportPrbsA =
+            checkPrbsSupported(portName, ComponentA, PolynomialA);
+        auto portSupportPrbsZ = checkPrbsSupported(
+            portName, phy::PortComponent::TRANSCEIVER_SYSTEM, PolynomialZ);
+        XLOG(INFO) << "Tcvr to ASIC PRBS test: port " << portName << " validM "
+                   << portValidMedia << " supportPrbsA " << portSupportPrbsA
+                   << " PolyA "
+                   << apache::thrift::util::enumNameSafe(PolynomialA)
+                   << " CompA "
+                   << apache::thrift::util::enumNameSafe(ComponentA)
+                   << " supportPrbsZ " << portSupportPrbsZ << " PolyZ "
+                   << apache::thrift::util::enumNameSafe(PolynomialZ);
+        if (!portValidMedia || !portSupportPrbsA || !portSupportPrbsZ) {
           continue;
         }
         portsToTest.push_back(
@@ -676,10 +691,15 @@ class AsicToAsicPrbsTest : public PrbsTest {
       auto portName1 = this->getPortName(port1);
       auto portName2 = this->getPortName(port2);
 
-      if (!this->checkPrbsSupported(
-              portName1, phy::PortComponent::ASIC, Polynomial) ||
-          !this->checkPrbsSupported(
-              portName2, phy::PortComponent::ASIC, Polynomial)) {
+      auto port1SupportPrbs =
+          checkPrbsSupported(portName1, phy::PortComponent::ASIC, Polynomial);
+      auto port2SupportPrbs =
+          checkPrbsSupported(portName2, phy::PortComponent::ASIC, Polynomial);
+      XLOG(INFO) << "ASIC to ASIC PRBS test: portA " << portName1
+                 << " supPrbsA " << port1SupportPrbs << " portZ " << portName2
+                 << " supPrbsZ " << port2SupportPrbs << " Polynomial "
+                 << apache::thrift::util::enumNameSafe(Polynomial);
+      if (!port1SupportPrbs || !port2SupportPrbs) {
         continue;
       }
       portsToTest.push_back({portName1, phy::PortComponent::ASIC, Polynomial});
