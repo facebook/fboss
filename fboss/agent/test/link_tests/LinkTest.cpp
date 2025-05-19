@@ -186,6 +186,7 @@ void LinkTest::initializeCabledPorts() {
           utility::getTransceiverId(platformPortEntry->second, chips);
       if (transceiverID.has_value()) {
         cabledTransceivers_.insert(*transceiverID);
+        cabledTransceiverPorts_.emplace_back(portID);
       }
     }
   }
@@ -196,14 +197,14 @@ LinkTest::getOpticalAndActiveCabledPortsAndNames(bool pluggableOnly) const {
   std::string portNames;
   std::vector<PortID> ports;
   std::vector<int32_t> transceiverIds;
-  for (const auto& port : getCabledPorts()) {
+  for (const auto& port : getCabledTransceiverPorts()) {
     auto portName = getPortName(port);
     auto tcvrId = platform()->getPlatformPort(port)->getTransceiverID().value();
     transceiverIds.push_back(tcvrId);
   }
 
   auto transceiverInfos = utility::waitForTransceiverInfo(transceiverIds);
-  for (const auto& port : getCabledPorts()) {
+  for (const auto& port : getCabledTransceiverPorts()) {
     auto portName = getPortName(port);
     auto tcvrId = platform()->getPlatformPort(port)->getTransceiverID().value();
     auto tcvrInfo = transceiverInfos.find(tcvrId);
