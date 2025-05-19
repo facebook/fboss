@@ -136,7 +136,7 @@ class BaseSubscription {
                      << " pipe full. Force closing subscription.";
           std::move(pipe).close(Utils::createFsdbException(
               ret.value(),
-              "Slow subscription: {} pipe full. Force closing subscription.",
+              "Force closing slow subscription on pipe-full: ",
               subscriberId()));
         } else {
           XLOG(ERR) << "Slow subscription: " << subscriberId()
