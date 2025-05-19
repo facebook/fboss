@@ -105,6 +105,7 @@ class EcmpResourceManager {
   struct PreUpdateState {
     std::map<NextHopGroupIds, ConsolidationPenalty> mergedGroups;
     std::map<RouteNextHopSet, NextHopGroupId> nextHopGroup2Id;
+    std::optional<cfg::SwitchingMode> backupEcmpGroupType;
   };
   struct InputOutputState {
     InputOutputState(

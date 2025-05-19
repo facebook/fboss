@@ -22,16 +22,28 @@ namespace facebook::fboss {
 std::vector<StateDelta> EcmpResourceManager::consolidate(
     const StateDelta& delta) {
   CHECK(!preUpdateState_.has_value());
+  auto makeRet = [](const StateDelta& in) {
+    std::vector<StateDelta> deltas;
+    deltas.emplace_back(in.oldState(), in.newState());
+    return deltas;
+  };
+  // No relevant change return early
+  if (delta.getFlowletSwitchingConfigDelta().getOld() ==
+          delta.getFlowletSwitchingConfigDelta().getNew() &&
+      DeltaFunctions::isEmpty(delta.getFibsDelta())) {
+    return makeRet(delta);
+  }
+
+  preUpdateState_ =
+      PreUpdateState(mergedGroups_, nextHopGroup2Id_, backupEcmpGroupType_);
+
   auto switchingModeChangeResult = handleFlowletSwitchConfigDelta(delta);
   if (DeltaFunctions::isEmpty(delta.getFibsDelta())) {
     if (switchingModeChangeResult.has_value()) {
       return std::move(switchingModeChangeResult->out);
     }
-    std::vector<StateDelta> deltas;
-    deltas.emplace_back(delta.oldState(), delta.newState());
-    return deltas;
+    return makeRet(delta);
   }
-  preUpdateState_ = PreUpdateState(mergedGroups_, nextHopGroup2Id_);
 
   uint32_t nonBackupEcmpGroupsCnt{0};
   std::optional<InputOutputState> inOutState(
