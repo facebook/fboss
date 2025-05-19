@@ -666,10 +666,13 @@ EcmpResourceManager::handleFlowletSwitchConfigDelta(const StateDelta& delta) {
   // newState with old state's fibs). The first delta we will queue
   // will be the oldState's FIBs route's updated to new backup group.
   auto newState = inOutState.out.back().newState();
+  bool changed = false;
   for (const auto& [ridAndPfx, grpInfo] : prefixToGroupInfo_) {
     if (!grpInfo->isBackupEcmpGroupType()) {
       continue;
     }
+    // Got a route with backupEcmpType set. Change it.
+    changed = true;
     const auto& [rid, pfx] = ridAndPfx;
     auto updateRouteOverridEcmpMode = [this, &inOutState](
                                           RouterID routerId,
@@ -701,6 +704,6 @@ EcmpResourceManager::handleFlowletSwitchConfigDelta(const StateDelta& delta) {
           grpInfo);
     }
   }
-  return std::move(inOutState);
+  return changed ? std::move(inOutState) : std::optional<InputOutputState>();
 }
 } // namespace facebook::fboss
