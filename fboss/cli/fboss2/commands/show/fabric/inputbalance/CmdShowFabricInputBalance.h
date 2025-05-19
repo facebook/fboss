@@ -93,6 +93,9 @@ class CmdShowFabricInputBalance : public CmdHandler<
     auto selfReachability =
         utils::getCachedSwSwitchReachabilityInfo(hostInfo, dstSwitchName);
 
+    auto inputBalanceResult = utility::checkInputBalanceSingleStage(
+        dstSwitchName, neighborReachability, selfReachability);
+
     return createModel();
   }
 
