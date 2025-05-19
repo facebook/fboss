@@ -143,7 +143,10 @@ MultiHwSwitchHandler::stateChanged(
   std::vector<folly::Future<HwSwitchStateUpdateResult>> futures;
   for (const auto& entry : deltas) {
     switchIds.push_back(entry.first);
-    auto update = HwSwitchStateUpdate(entry.second, transaction);
+    // TODO (ravi) temporary until this method allows accepting a vector
+    std::vector<StateDelta> entryDeltas;
+    entryDeltas.emplace_back(entry.second.oldState(), entry.second.newState());
+    auto update = HwSwitchStateUpdate(entryDeltas, transaction);
     futures.emplace_back(stateChanged(entry.first, update, hwWriteBehavior));
   }
   return getStateUpdateResult(switchIds, futures);
