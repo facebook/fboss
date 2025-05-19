@@ -342,4 +342,22 @@ TEST_F(NextHopIdAllocatorTest, deleteAllRoute) {
   EXPECT_EQ(nhops2Id.size(), 0);
   EXPECT_FALSE(getNhopId(defaultNhops()).has_value());
 }
+
+TEST_F(NextHopIdAllocatorTest, addRouteAndSetBackupSwitchingMode) {
+  auto newState = state_->clone();
+  auto fib6 = fib(newState);
+  auto routesBefore = fib6->size();
+  fib6->addNode(makeRoute(nextPrefix(), defaultNhops()));
+  EXPECT_EQ(fib6->size(), routesBefore + 1);
+  EXPECT_FALSE(consolidator_->getBackupEcmpSwitchingMode().has_value());
+  // Set backup switching mode
+  auto newFlowletSwitchingConfig =
+      newState->getFlowletSwitchingConfig()->modify(&newState);
+  newFlowletSwitchingConfig->setBackupSwitchingMode(
+      cfg::SwitchingMode::FIXED_ASSIGNMENT);
+  auto deltas = consolidate(newState);
+  EXPECT_EQ(deltas.size(), 1);
+  EXPECT_TRUE(consolidator_->getBackupEcmpSwitchingMode().has_value());
+}
+
 } // namespace facebook::fboss
