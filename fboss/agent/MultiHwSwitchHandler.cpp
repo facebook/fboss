@@ -66,7 +66,16 @@ std::shared_ptr<SwitchState> MultiHwSwitchHandler::stateChanged(
     const StateDelta& delta,
     bool transaction,
     const HwWriteBehavior& hwWriteBehavior) {
-  std::map<SwitchID, const StateDelta&> deltas;
+  std::vector<StateDelta> deltas;
+  deltas.emplace_back(delta.oldState(), delta.newState());
+  return stateChanged(deltas, transaction, hwWriteBehavior);
+}
+
+std::shared_ptr<SwitchState> MultiHwSwitchHandler::stateChanged(
+    const std::vector<StateDelta>& deltas,
+    bool transaction,
+    const HwWriteBehavior& hwWriteBehavior) {
+  std::map<SwitchID, const std::vector<StateDelta>&> deltasMap;
   std::shared_ptr<SwitchState> newState{nullptr};
   bool updateFailed{false};
   if (stopped_.load()) {
@@ -74,9 +83,9 @@ std::shared_ptr<SwitchState> MultiHwSwitchHandler::stateChanged(
   }
   for (const auto& entry : hwSwitchSyncers_) {
     auto switchId = entry.first;
-    deltas.emplace(switchId, delta);
+    deltasMap.emplace(switchId, deltas);
   }
-  auto results = stateChanged(deltas, transaction, hwWriteBehavior);
+  auto results = stateChanged(deltasMap, transaction, hwWriteBehavior);
   for (const auto& result : results) {
     auto status = result.second.second;
     if (status == HwSwitchStateUpdateStatus::HWSWITCH_STATE_UPDATE_SUCCEEDED) {
@@ -88,7 +97,7 @@ std::shared_ptr<SwitchState> MultiHwSwitchHandler::stateChanged(
   }
   if (updateFailed) {
     if (transactionsSupported()) {
-      return rollbackStateChange(results, delta.oldState(), transaction);
+      return rollbackStateChange(results, deltas, transaction);
     } else {
       /*
        * For deployments where we don't support transactions - e.g. legacy
@@ -101,27 +110,36 @@ std::shared_ptr<SwitchState> MultiHwSwitchHandler::stateChanged(
   }
   /* none of the switches were updated */
   if (!newState) {
-    return delta.oldState();
+    return deltas.front().oldState();
   }
   return newState;
 }
 
 std::shared_ptr<SwitchState> MultiHwSwitchHandler::rollbackStateChange(
     const std::map<SwitchID, HwSwitchStateUpdateResult>& updateResults,
-    std::shared_ptr<SwitchState> desiredState,
+    const std::vector<StateDelta>& deltas,
     bool transaction) {
-  std::map<SwitchID, const StateDelta&> switchIdAndDeltas;
-  std::shared_ptr<SwitchState> newState{nullptr};
-  std::set<std::unique_ptr<StateDelta>> deltas;
+  std::map<SwitchID, const std::vector<StateDelta>> deltasMap;
   for (const auto& entry : updateResults) {
     auto switchId = entry.first;
     auto status = entry.second.second;
     auto currentState = entry.second.first;
-    if (status != HwSwitchStateUpdateStatus::HWSWITCH_STATE_UPDATE_CANCELLED) {
-      auto delta = std::make_unique<StateDelta>(currentState, desiredState);
-      switchIdAndDeltas.emplace(switchId, *delta);
-      deltas.insert(std::move(delta));
+    auto currentThriftState = currentState->toThrift();
+    // For successful operation on a HwSwitch, reverting full vector
+    // For the failed switch, already rolled back by HwSwitch, nop
+    std::vector<StateDelta> reverseDeltas;
+    for (const auto& delta : deltas) {
+      reverseDeltas.emplace(
+          reverseDeltas.begin(), delta.newState(), delta.oldState());
     }
+    if (status != HwSwitchStateUpdateStatus::HWSWITCH_STATE_UPDATE_CANCELLED) {
+      deltasMap.emplace(switchId, std::move(reverseDeltas));
+    }
+  }
+  // only uses the reference to above deltasMap. No new copies
+  std::map<SwitchID, const std::vector<StateDelta>&> switchIdAndDeltas;
+  for (const auto& entry : deltasMap) {
+    switchIdAndDeltas.emplace(entry.first, entry.second);
   }
   auto results = stateChanged(switchIdAndDeltas, transaction);
   for (const auto& result : results) {
@@ -131,22 +149,19 @@ std::shared_ptr<SwitchState> MultiHwSwitchHandler::rollbackStateChange(
           "Failed to rollback switch state on switch id ", result.first);
     }
   }
-  return desiredState;
+  return deltas.front().oldState();
 }
 
 std::map<SwitchID, HwSwitchStateUpdateResult>
 MultiHwSwitchHandler::stateChanged(
-    const std::map<SwitchID, const StateDelta&>& deltas,
+    const std::map<SwitchID, const std::vector<StateDelta>&>& deltas,
     bool transaction,
     const HwWriteBehavior& hwWriteBehavior) {
   std::vector<SwitchID> switchIds;
   std::vector<folly::Future<HwSwitchStateUpdateResult>> futures;
   for (const auto& entry : deltas) {
     switchIds.push_back(entry.first);
-    // TODO (ravi) temporary until this method allows accepting a vector
-    std::vector<StateDelta> entryDeltas;
-    entryDeltas.emplace_back(entry.second.oldState(), entry.second.newState());
-    auto update = HwSwitchStateUpdate(entryDeltas, transaction);
+    auto update = HwSwitchStateUpdate(entry.second, transaction);
     futures.emplace_back(stateChanged(entry.first, update, hwWriteBehavior));
   }
   return getStateUpdateResult(switchIds, futures);
