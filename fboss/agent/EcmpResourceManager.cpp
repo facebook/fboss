@@ -627,6 +627,17 @@ void EcmpResourceManager::updateFailed(
   }
   XLOG(DBG2) << " Update failed";
   CHECK(preUpdateState_.has_value());
+  if (getBackupEcmpSwitchingMode() != preUpdateState_->backupEcmpGroupType) {
+    // Throw if we get a failed update involving backup switching mode
+    // change. We can make this smarter by
+    // - Reverting backupEcmpGroupType_ setting
+    // - Asserting that all prefixes in curState with overrideEcmpMode set
+    // match the old backupEcmpGroupType
+    // However this adds more code for a use case we don't need to support.
+    // BackupEcmpType can only change via a config update state delta. And
+    // if that fails, we anyways fail the application
+    throw FbossError("Update failed with backup switching mode transition");
+  }
   /* clear state which needs to be resored from previous state*/
   nextHopGroup2Id_.clear();
   mergedGroups_.clear();
