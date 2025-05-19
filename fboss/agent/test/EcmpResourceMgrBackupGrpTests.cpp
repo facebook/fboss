@@ -707,4 +707,33 @@ TEST_F(EcmpBackupGroupTypeTest, overflowAndSwitchingModeChange) {
   EXPECT_EQ(deltas.size(), overflowPrefixes.size() + 1);
   assertEndState(newState, overflowPrefixes);
 }
+
+TEST_F(EcmpBackupGroupTypeTest, overflowRoutesAndThenSwitchingModeChange) {
+  // Add new routes pointing to new nhops. ECMP limit is breached.
+  auto nhopSets = nextNhopSets();
+  auto oldState = state_;
+  auto newState = oldState->clone();
+  auto fib6 = fib(newState);
+  auto routesBefore = fib6->size();
+  std::set<RouteNextHopSet> nhops;
+  std::set<RouteV6::Prefix> overflowPrefixes;
+  for (auto i = 0; i < numStartRoutes(); ++i) {
+    auto route = makeRoute(makePrefix(routesBefore + i), nhopSets[i]);
+    overflowPrefixes.insert(route->prefix());
+    nhops.insert(nhopSets[i]);
+    fib6->addNode(route);
+  }
+  auto deltas = consolidate(newState);
+  EXPECT_EQ(deltas.size(), overflowPrefixes.size() + 1);
+  assertEndState(newState, overflowPrefixes);
+  auto newerState = newState->clone();
+  // Change backup ecmp switching mode
+  auto newFlowletSwitchingConfig =
+      newerState->getFlowletSwitchingConfig()->modify(&newerState);
+  newFlowletSwitchingConfig->setBackupSwitchingMode(
+      cfg::SwitchingMode::FIXED_ASSIGNMENT);
+  auto deltas2 = consolidate(newerState);
+  EXPECT_EQ(deltas2.size(), overflowPrefixes.size() + 1);
+  assertEndState(newerState, overflowPrefixes);
+}
 } // namespace facebook::fboss
