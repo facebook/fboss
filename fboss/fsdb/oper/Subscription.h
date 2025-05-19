@@ -73,9 +73,10 @@ class BaseSubscription {
     return metadata;
   }
 
-  virtual void flush(const SubscriptionMetadataServer& metadataServer) = 0;
+  virtual std::optional<FsdbErrorCode> flush(
+      const SubscriptionMetadataServer& metadataServer) = 0;
 
-  virtual void serveHeartbeat() = 0;
+  virtual std::optional<FsdbErrorCode> serveHeartbeat() = 0;
 
   folly::EventBase* heartbeatEvb() const {
     return heartbeatEvb_;
@@ -100,10 +101,11 @@ class BaseSubscription {
       std::chrono::milliseconds heartbeatInterval);
 
   template <typename T, typename V>
-  void tryWrite(
+  std::optional<FsdbErrorCode> tryWrite(
       folly::coro::BoundedAsyncPipe<T>& pipe,
       V&& val,
       const std::string& dbgStr) {
+    std::optional<FsdbErrorCode> ret{std::nullopt};
     queueWatermark_.withWLock([&](auto& queueWatermark) {
       auto queuedChunks = pipe.getOccupiedSpace();
       if (queuedChunks > queueWatermark) {
@@ -114,14 +116,14 @@ class BaseSubscription {
       if (pipe.isClosed()) {
         XLOG(DBG0) << "Subscription " << subscriberId()
                    << " pipe already closed, skip write";
-        return;
       } else {
         // queue full, avoid unbounded queue build up.
         if (FLAGS_forceCloseSlowSubscriber) {
+          ret = FsdbErrorCode::SUBSCRIPTION_SERVE_QUEUE_FULL;
           XLOG(INFO) << "Slow subscription: " << subscriberId()
                      << " pipe full. Force closing subscription.";
           std::move(pipe).close(Utils::createFsdbException(
-              FsdbErrorCode::SUBSCRIPTION_SERVE_QUEUE_FULL,
+              ret.value(),
               "Slow subscription: {} pipe full. Force closing subscription.",
               subscriberId()));
         } else {
@@ -130,6 +132,7 @@ class BaseSubscription {
         }
       }
     }
+    return ret;
   }
 
  private:
@@ -154,8 +157,8 @@ class Subscription : public BaseSubscription {
     return needsFirstChunk_;
   }
 
-  virtual void sendEmptyInitialChunk() {
-    serveHeartbeat();
+  virtual std::optional<FsdbErrorCode> sendEmptyInitialChunk() {
+    return serveHeartbeat();
   }
 
   void firstChunkSent() {
@@ -239,7 +242,7 @@ class BasePathSubscription : public Subscription {
  public:
   using Subscription::Subscription;
 
-  virtual void offer(DeltaValue<OperState> newVal) = 0;
+  virtual std::optional<FsdbErrorCode> offer(DeltaValue<OperState> newVal) = 0;
 
   PubSubType type() const override {
     return PubSubType::PATH;
@@ -256,8 +259,8 @@ class PathSubscription : public BasePathSubscription,
   }
   using PathIter = std::vector<std::string>::const_iterator;
 
-  void offer(DeltaValue<OperState> newVal) override {
-    tryWrite(pipe_, std::move(newVal), "path.offer");
+  std::optional<FsdbErrorCode> offer(DeltaValue<OperState> newVal) override {
+    return tryWrite(pipe_, std::move(newVal), "path.offer");
   }
 
   bool isActive() const override {
@@ -301,16 +304,18 @@ class PathSubscription : public BasePathSubscription,
         "path.pubsGone");
   }
 
-  void flush(const SubscriptionMetadataServer& /*metadataServer*/) override {
+  std::optional<FsdbErrorCode> flush(
+      const SubscriptionMetadataServer& /*metadataServer*/) override {
     // no-op, we write directly to the pipe in offer
+    return std::nullopt;
   }
 
-  void serveHeartbeat() override {
+  std::optional<FsdbErrorCode> serveHeartbeat() override {
     value_type t;
     t.newVal = OperState();
     // need to explicitly set a flag for OperState else it looks like a deletion
     t.newVal->isHeartbeat() = true;
-    tryWrite(pipe_, std::move(t), "path.hb");
+    return tryWrite(pipe_, std::move(t), "path.hb");
   }
 
   PathSubscription(
@@ -377,7 +382,8 @@ class DeltaSubscription : public BaseDeltaSubscription,
 
   using PathIter = std::vector<std::string>::const_iterator;
 
-  void flush(const SubscriptionMetadataServer& metadataServer) override;
+  std::optional<FsdbErrorCode> flush(
+      const SubscriptionMetadataServer& metadataServer) override;
 
   bool isActive() const override;
 
@@ -413,7 +419,7 @@ class DeltaSubscription : public BaseDeltaSubscription,
             std::move(heartbeatInterval)),
         pipe_(std::move(pipe)) {}
 
-  void serveHeartbeat() override;
+  std::optional<FsdbErrorCode> serveHeartbeat() override;
 
  private:
   folly::coro::BoundedAsyncPipe<OperDelta> pipe_;
@@ -437,14 +443,15 @@ class FullyResolvedExtendedPathSubscription : public BasePathSubscription,
   bool isActive() const override;
   bool shouldPrune() const override;
 
-  void offer(DeltaValue<OperState> newVal) override;
+  std::optional<FsdbErrorCode> offer(DeltaValue<OperState> newVal) override;
 
   void allPublishersGone(FsdbErrorCode disconnectReason, const std::string& msg)
       override;
 
-  void flush(const SubscriptionMetadataServer& metadataServer) override;
+  std::optional<FsdbErrorCode> flush(
+      const SubscriptionMetadataServer& metadataServer) override;
 
-  void serveHeartbeat() override;
+  std::optional<FsdbErrorCode> serveHeartbeat() override;
 
  private:
   ExtendedPathSubscription& subscription_;
@@ -462,10 +469,11 @@ class ExtendedPathSubscription : public ExtendedSubscription,
 
   void buffer(DeltaValue<value_type>&& newVal);
 
-  void flush(const SubscriptionMetadataServer& metadataServer) override;
+  std::optional<FsdbErrorCode> flush(
+      const SubscriptionMetadataServer& metadataServer) override;
 
-  void serveHeartbeat() override {
-    tryWrite(pipe_, gen_type(), "ExtPath.hb");
+  std::optional<FsdbErrorCode> serveHeartbeat() override {
+    return tryWrite(pipe_, gen_type(), "ExtPath.hb");
   }
 
   PubSubType type() const override {
@@ -531,9 +539,10 @@ class FullyResolvedExtendedDeltaSubscription : public BaseDeltaSubscription,
       const std::vector<std::string>& path,
       ExtendedDeltaSubscription& subscription);
 
-  void flush(const SubscriptionMetadataServer& metadataServer) override;
+  std::optional<FsdbErrorCode> flush(
+      const SubscriptionMetadataServer& metadataServer) override;
 
-  void serveHeartbeat() override;
+  std::optional<FsdbErrorCode> serveHeartbeat() override;
 
   PubSubType type() const override;
 
@@ -580,9 +589,10 @@ class ExtendedDeltaSubscription : public ExtendedSubscription,
 
   void buffer(TaggedOperDelta&& newVal);
 
-  void flush(const SubscriptionMetadataServer& metadataServer) override;
+  std::optional<FsdbErrorCode> flush(
+      const SubscriptionMetadataServer& metadataServer) override;
 
-  void serveHeartbeat() override;
+  std::optional<FsdbErrorCode> serveHeartbeat() override;
 
   bool shouldConvertToDynamic() const override {
     return false;
@@ -633,13 +643,14 @@ class PatchSubscription : public Subscription, private boost::noncopyable {
     return PubSubType::PATCH;
   }
 
-  void offer(thrift_cow::PatchNode node);
+  std::optional<FsdbErrorCode> offer(thrift_cow::PatchNode node);
 
-  void serveHeartbeat() override;
+  std::optional<FsdbErrorCode> serveHeartbeat() override;
 
-  void sendEmptyInitialChunk() override;
+  std::optional<FsdbErrorCode> sendEmptyInitialChunk() override;
 
-  void flush(const SubscriptionMetadataServer& metadataServer) override;
+  std::optional<FsdbErrorCode> flush(
+      const SubscriptionMetadataServer& metadataServer) override;
 
   bool isActive() const override;
 
@@ -725,9 +736,10 @@ class ExtendedPatchSubscription : public ExtendedSubscription,
 
   void buffer(const SubscriptionKey& key, Patch&& newVal);
 
-  void flush(const SubscriptionMetadataServer& metadataServer) override;
+  std::optional<FsdbErrorCode> flush(
+      const SubscriptionMetadataServer& metadataServer) override;
 
-  void serveHeartbeat() override;
+  std::optional<FsdbErrorCode> serveHeartbeat() override;
 
   bool isActive() const override;
 
