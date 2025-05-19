@@ -44,5 +44,15 @@ getNeighborFabricPortsToSelf(
 
 std::map<std::string, std::string> getPortToNeighbor(
     const std::shared_ptr<MultiSwitchPortMap>& portMap);
+
+// TODO(zecheng): Add check to link failure
+std::vector<InputBalanceResult> checkInputBalanceSingleStage(
+    const std::vector<std::string>& dstSwitchNames,
+    const std::unordered_map<
+        std::string,
+        std::unordered_map<std::string, std::vector<std::string>>>&
+        inputCpacity,
+    const std::unordered_map<std::string, std::vector<std::string>>&
+        outputCpacity);
 } // namespace utility
 } // namespace facebook::fboss
