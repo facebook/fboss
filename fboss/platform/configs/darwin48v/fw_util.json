@@ -186,7 +186,8 @@
             "programmer": "/run/devmap/flashes/SCD_SPI_MASTER_DEVICE1",
             "chip": [
               "MX25L1605A/MX25L1606E/MX25L1608E",
-              "GD25Q16(B)"
+              "GD25Q16(B)",
+              "IS25LP016"
             ]
           }
         }
