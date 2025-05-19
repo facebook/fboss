@@ -591,7 +591,10 @@ class TransceiverLineToTransceiverLinePrbsTest : public AgentEnsemblePrbsTest {
  protected:
   std::vector<TestPort> getPortsToTest() override {
     std::vector<TestPort> portsToTest;
-    auto connectedPairs = this->getConnectedPairs();
+    // The side argument below does not matter if feature is none.
+    // Get all connected ports (excluding backplane ports).
+    auto connectedPairs = this->getConnectedOpticalAndActivePortPairWithFeature(
+        TransceiverFeature::NONE, phy::Side::LINE);
     for (const auto& [port1, port2] : connectedPairs) {
       auto portName1 = this->getPortName(port1);
       auto portName2 = this->getPortName(port2);
@@ -632,7 +635,8 @@ class PhyToTransceiverSystemPrbsTest : public AgentEnsemblePrbsTest {
         ComponentA == phy::PortComponent::ASIC ||
         ComponentA == phy::PortComponent::GB_LINE);
     std::vector<TestPort> portsToTest;
-    auto connectedPairs = this->getConnectedPairs();
+    auto connectedPairs = this->getConnectedOpticalAndActivePortPairWithFeature(
+        TransceiverFeature::NONE, phy::Side::LINE);
     for (const auto& [port1, port2] : connectedPairs) {
       for (const auto& port : {port1, port2}) {
         auto portName = this->getPortName(port);
