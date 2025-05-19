@@ -7,6 +7,17 @@
 
 namespace facebook::fboss::fsdb {
 
+// SubscriberStats -- per-client summary counters covering
+// active as well as disconnected subscriptions, owned by
+// SubscriptionStore. Keeping only summary counters here so
+// that callers copy these stats while holding lock on store.
+struct SubscriberStats {
+  uint32_t numSubscriptions{0};
+  uint32_t numExtendedSubscriptions{0};
+  uint32_t subscriptionServeQueueWatermark{0};
+  uint32_t numSlowSubscriptionDisconnects{0};
+};
+
 class SubscriptionStore {
  public:
   SubscriptionStore()
@@ -90,7 +101,11 @@ class SubscriptionStore {
     return pathStoreStats_.numPathStoreFrees;
   }
 
+  std::map<FsdbClient, SubscriberStats> getSubscriberStats() const;
+
  private:
+  std::map<FsdbClient, SubscriberStats> subscriberStats_;
+
   std::vector<std::string> markExtendedSubscriptionsThatNeedPruning();
 
   void pruneSimpleSubscriptions();
