@@ -4,13 +4,13 @@
 #include "fboss/lib/usb/GalaxyI2CBus.h"
 #include "fboss/lib/usb/WedgeI2CBus.h"
 
+#include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
 #include "fboss/qsfp_service/module/QsfpModule.h"
 #include "fboss/qsfp_service/module/QsfpUtil.h"
 #include "fboss/qsfp_service/module/cmis/CmisModule.h"
 #include "fboss/qsfp_service/module/sff/SffModule.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeQsfp.h"
 
-#include "fboss/qsfp_service/lib/QsfpClient.h"
 #include "fboss/qsfp_service/module/cmis/CmisFieldInfo.h"
 
 #include "fboss/util/qsfp/QsfpServiceDetector.h"
@@ -448,7 +448,7 @@ std::ostream& operator<<(std::ostream& os, const FlagCommand& cmd) {
 
 std::unique_ptr<facebook::fboss::QsfpServiceAsyncClient> getQsfpClient(
     folly::EventBase& evb) {
-  return std::move(QsfpClient::createClient(&evb)).getVia(&evb);
+  return utils::createQsfpServiceClient(std::nullopt, &evb);
 }
 
 /*
