@@ -474,7 +474,7 @@
       "/run/devmap/sensors/PEM_TEMP_MAX6658": "/PEM_SLOT@0/[PEM_TEMP_MAX6658]"
     },
     "bspKmodsRpmName": "arista_bsp_kmods",
-    "bspKmodsRpmVersion": "0.7.7-1",
+    "bspKmodsRpmVersion": "0.7.9-1",
     "requiredKmodsToLoad": [
       "i2c_i801",
       "scd"
