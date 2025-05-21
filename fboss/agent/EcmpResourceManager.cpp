@@ -66,8 +66,7 @@ std::vector<StateDelta> EcmpResourceManager::consolidate(
 std::vector<StateDelta> EcmpResourceManager::consolidateImpl(
     const StateDelta& delta,
     InputOutputState* inOutState) {
-  processRouteUpdates<folly::IPAddressV4>(delta, inOutState);
-  processRouteUpdates<folly::IPAddressV6>(delta, inOutState);
+  processRouteUpdates(delta, inOutState);
   reclaimEcmpGroups(inOutState);
   CHECK(!inOutState->out.empty());
   return std::move(inOutState->out);
@@ -534,11 +533,10 @@ void EcmpResourceManager::routeDeleted(
   }
 }
 
-template <typename AddrT>
 void EcmpResourceManager::processRouteUpdates(
     const StateDelta& delta,
     InputOutputState* inOutState) {
-  forEachChangedRoute<AddrT>(
+  processFibsDeltaInHwSwitchOrder(
       delta,
       [this, inOutState](
           RouterID rid, const auto& oldRoute, const auto& newRoute) {

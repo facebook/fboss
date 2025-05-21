@@ -166,7 +166,6 @@ class EcmpResourceManager {
       const std::shared_ptr<Route<AddrT>>& route,
       NextHops2GroupId::iterator nhops2IdItr,
       InputOutputState* inOutState);
-  template <typename AddrT>
   void processRouteUpdates(
       const StateDelta& delta,
       InputOutputState* inOutState);
