@@ -369,7 +369,13 @@ void EcmpResourceManager::routeAddedOrUpdated(
       {nhopSet, findCachedOrNewIdForNhops(nhopSet, *inOutState)});
   std::shared_ptr<NextHopGroupInfo> grpInfo;
   if (inserted) {
-    if (ecmpLimitReached) {
+    bool isBackupEcmpGroupType =
+        newRoute->getForwardInfo().getOverrideEcmpSwitchingMode().has_value();
+    if (ecmpLimitReached && !isBackupEcmpGroupType) {
+      /*
+       * If ECMP limit is reached and route does not point to a backup
+       * ecmp type nhop group, then update route forwarding info
+       */
       XLOG(DBG2) << " Ecmp group demand exceeded available resources on: "
                  << (oldRoute ? "add" : "update")
                  << " route: " << newRoute->str();
@@ -381,8 +387,6 @@ void EcmpResourceManager::routeAddedOrUpdated(
                  << " primray ecmp group count unchanged: "
                  << inOutState->nonBackupEcmpGroupsCnt;
     } else {
-      bool isBackupEcmpGroupType =
-          newRoute->getForwardInfo().getOverrideEcmpSwitchingMode().has_value();
       std::tie(grpInfo, inserted) = nextHopGroupIdToInfo_.refOrEmplace(
           idItr->second, idItr->second, idItr, isBackupEcmpGroupType);
       CHECK(inserted);

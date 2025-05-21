@@ -483,16 +483,16 @@ TEST_F(EcmpBackupGroupTypeTest, updateAllRoutesAllRoutesAboveEcmpLimit) {
    * R4, R8 - G4
    * R0, R9 - G5
    * Routes after
-   * R1 - G6
-   * R2 - G7
-   * R3 - G8
-   * R4 - G9
+   * R1 - G6 (bkup)
+   * R2 - G7 (bkup)
+   * R3 - G8 (bkup)
+   * R4 - G9 (bkup)
    * R5 - G1
    * R6 - G2
    * R7 - G3
    * R8 - G4
    * R9 - G5
-   * R0 - G10
+   * R0 - G10 (bkup)
    *
    */
   {
