@@ -619,21 +619,28 @@ class AgentNeighborResolutionOverFlowTest : public AgentNeighborResolutionTest {
     return kMinBulkProgramCount;
   }
 
-  // get max neighbor table size
-  uint32_t getMaxNeighborTableSize() {
+  uint32_t getAsicNeighborTableSize() {
     uint32_t ndpTableSize = 0;
-    // check that all ASICs have same max neighbor table size
-    for (auto& [switchId, hwAsic] : getSw()->getHwAsicTable()->getHwAsics()) {
-      CHECK(hwAsic->getMaxNdpTableSize().has_value());
-      if (ndpTableSize > 0) {
-        CHECK_EQ(ndpTableSize, hwAsic->getMaxNdpTableSize().value());
-      }
-      ndpTableSize = hwAsic->getMaxNdpTableSize().value();
+    auto hwAsic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+    CHECK(hwAsic->getMaxNdpTableSize().has_value());
+    if (ndpTableSize > 0) {
+      CHECK_EQ(ndpTableSize, hwAsic->getMaxNdpTableSize().value());
     }
+    ndpTableSize = hwAsic->getMaxNdpTableSize().value();
 
     CHECK(ndpTableSize > 0);
-    return (ndpTableSize * FLAGS_neighbhor_resource_percentage) /
+    return ndpTableSize;
+  }
+
+  uint32_t getMaxNeighborTableSize() {
+    return (getAsicNeighborTableSize() * FLAGS_neighbhor_resource_percentage) /
         kHundredPercentage;
+  }
+
+  uint32_t getMaxBulkProgramCount() {
+    auto asicNdpScale = getAsicNeighborTableSize();
+    auto bulkProgramCount = getBulkProgramCount();
+    return (asicNdpScale / bulkProgramCount) * bulkProgramCount;
   }
 
  private:
