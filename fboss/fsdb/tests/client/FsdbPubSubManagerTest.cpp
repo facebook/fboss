@@ -402,6 +402,10 @@ class FsdbPubSubManagerTest : public ::testing::Test {
       auto q = *queue.rlock();
       for (const auto& unit : q) {
         ASSERT_GT(*unit.metadata()->lastConfirmedAt(), 0);
+        auto lastPublishedAt = *unit.metadata()->lastPublishedAt();
+        ASSERT_GT(lastPublishedAt, 0);
+        auto lastServedAt = *unit.metadata()->lastServedAt();
+        ASSERT_GE(lastServedAt, lastPublishedAt);
       }
     });
   }
