@@ -759,4 +759,85 @@ TEST_F(EcmpBackupGroupTypeTest, changeSwitchingModeAndFailUpdate) {
   EXPECT_THROW(failUpdate(newState), FbossError);
 }
 
+// Replay state tests
+
+TEST_F(EcmpBackupGroupTypeTest, overflowRoutesInReverseOrderOfReplay) {
+  std::set<RouteV6::Prefix> startPrefixes;
+  for (const auto& [_, route] : std::as_const(*cfib(state_))) {
+    startPrefixes.insert(route->prefix());
+  }
+  // clear all routes
+  {
+    auto newState = state_->clone();
+    auto fib6 = fib(newState);
+    fib6->clear();
+    auto deltas = consolidate(newState);
+    EXPECT_EQ(deltas.size(), 1);
+    assertEndState(newState, {});
+  }
+  /*
+  State before
+  - No routes
+  State after
+    R5 -> G1
+    R6 -> G2
+    R7 -> G3
+    R8 -> G4
+    R9 -> G5
+  */
+  {
+    // Add routes pointing to default nhop sets ECMP limit is not breached.
+    auto oldState = state_;
+    auto newState = oldState->clone();
+    auto fib6 = fib(newState);
+    auto defaultNhops = defaultNhopSets();
+    for (auto i = 0; i < startPrefixes.size(); ++i) {
+      auto newRoute =
+          makeRoute(makePrefix(startPrefixes.size() + i), defaultNhops[i]);
+      fib6->addNode(newRoute);
+    }
+    auto deltas = consolidate(newState);
+    EXPECT_EQ(deltas.size(), 1);
+    assertEndState(newState, {});
+  }
+  /*
+  State before
+    R5 -> G1
+    R6 -> G2
+    R7 -> G3
+    R8 -> G4
+    R9 -> G5
+  State after
+    R0 -> G6 (bkup)
+    R1 -> G7 (bkup)
+    R2 -> G8 (bkup)
+    R3 -> G9 (bkup)
+    R4 -> G10 (bkup)
+    R5 -> G1
+    R6 -> G2
+    R7 -> G3
+    R8 -> G4
+    R9 -> G5
+  */
+  {
+    // Add new routes. These will go to backup nhop groups.
+    auto oldState = state_;
+    auto newState = oldState->clone();
+    auto fib6 = fib(newState);
+    auto newNhops = nextNhopSets();
+    auto idx = 0;
+    for (const auto& pfx : startPrefixes) {
+      auto newRoute = makeRoute(pfx, newNhops[idx++]);
+      fib6->addNode(newRoute);
+    }
+    // BaseEcmpResourceManagerTest::consolidate does a replay
+    // of newState and asserts that same set of prefixes gets
+    // marked for backup ecmp group. Even though had we played
+    // the current start from start routes from R5-R9 would have
+    // ended up with backup ecmp group type nhops
+    auto deltas = consolidate(newState);
+    EXPECT_EQ(deltas.size(), startPrefixes.size() + 1);
+    assertEndState(newState, startPrefixes);
+  }
+}
 } // namespace facebook::fboss
