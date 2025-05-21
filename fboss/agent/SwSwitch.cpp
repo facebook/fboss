@@ -1336,8 +1336,7 @@ void SwSwitch::init(
   emptyState->publish();
   if (ecmpResourceManager_) {
     std::vector<StateDelta> deltas;
-    deltas =
-        ecmpResourceManager_->consolidate(StateDelta(emptyState, initialState));
+    deltas = ecmpResourceManager_->reconstructFromSwitchState(initialState);
     CHECK_EQ(deltas.size(), 1);
     initialState = deltas.back().newState();
   }
