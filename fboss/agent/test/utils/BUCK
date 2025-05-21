@@ -7,7 +7,7 @@ cpp_library(
     srcs = ["AclTestUtils.cpp"],
     headers = ["AclTestUtils.h"],
     exported_deps = [
-        ":asic_test_utils",
+        "//fboss/agent:asic_utils",
         "//fboss/agent:core",
         "//fboss/agent:fboss-error",
         "//fboss/agent:hw_switch",
@@ -24,9 +24,9 @@ cpp_library(
     exported_deps = [
         "fbsource//third-party/googletest:gtest",
         ":acl_test_utils",
-        ":asic_test_utils",
         ":load_balancer_test_utils",
         ":pkt_test_utils",
+        "//fboss/agent:asic_utils",
         "//fboss/agent:core",
         "//fboss/agent:fboss-error",
         "//fboss/agent:fboss-types",
@@ -109,6 +109,7 @@ cpp_library(
     exported_deps = [
         ":acl_test_utils",
         ":copp_test_utils",
+        "//fboss/agent:asic_utils",
         "//fboss/agent:hw_asic_table",
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent/hw/switch_asics:switch_asics",
@@ -124,11 +125,11 @@ cpp_library(
     ],
     headers = ["OlympicTestUtils.h"],
     exported_deps = [
-        ":asic_test_utils",
         ":queue_test_utils",
         ":traffic_policy_utils",
         ":voq_test_utils",
         "//fboss/agent:agent_features",
+        "//fboss/agent:asic_utils",
         "//fboss/agent:fboss-error",
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent:utils",
@@ -143,11 +144,11 @@ cpp_library(
     ],
     headers = ["NetworkAITestUtils.h"],
     exported_deps = [
-        ":asic_test_utils",
         ":queue_test_utils",
         ":traffic_policy_utils",
         ":voq_test_utils",
         "//fboss/agent:agent_features",
+        "//fboss/agent:asic_utils",
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent/hw/switch_asics:switch_asics",
     ],
@@ -203,10 +204,10 @@ cpp_library(
     headers = ["ConfigUtils.h"],
     exported_deps = [
         ":acl_test_utils",
-        ":asic_test_utils",
         ":port_test_utils",
         ":voq_test_utils",
         "//fboss/agent:agent_features",
+        "//fboss/agent:asic_utils",
         "//fboss/agent:core",
         "//fboss/agent:fboss-error",
         "//fboss/agent:fboss-types",
@@ -248,6 +249,7 @@ cpp_library(
         ":asic_test_utils",
         ":pkt_test_utils",
         ":voq_test_utils",
+        "//fboss/agent:asic_utils",
         "//fboss/agent:core",
         "//fboss/agent:fboss-types",
         "//fboss/agent:hw_asic_table",
@@ -270,9 +272,9 @@ cpp_library(
     exported_deps = [
         "fbsource//third-party/googletest:gtest",
         ":acl_test_utils",
-        ":asic_test_utils",
         ":config_utils",
         ":voq_test_utils",
+        "//fboss/agent:asic_utils",
         "//fboss/agent:core",
         "//fboss/agent:loadbalancer_utils",
         "//fboss/agent:packet",
@@ -297,10 +299,10 @@ cpp_library(
     undefined_symbols = True,
     exported_deps = [
         ":acl_test_utils",
-        ":asic_test_utils",
         ":config_utils",
         ":olympic_qos_utils",
         ":traffic_policy_utils",
+        "//fboss/agent:asic_utils",
         "//fboss/agent:fboss-types",
         "//fboss/agent:hw_asic_table",
         "//fboss/agent:switch_config-cpp2-types",
@@ -464,7 +466,7 @@ cpp_library(
     headers = ["ScaleTestUtils.h"],
     exported_deps = [
         "fbsource//third-party/googletest:gtest",
-        ":asic_test_utils",
+        "//fboss/agent:asic_utils",
         "//fboss/agent:core",
         "//fboss/agent:fboss-types",
         "//fboss/agent/hw/switch_asics:switch_asics",
@@ -545,7 +547,7 @@ cpp_library(
     ],
     exported_deps = [
         ":acl_test_utils",
-        ":asic_test_utils",
+        "//fboss/agent:asic_utils",
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent/hw:hardware_stats-cpp2-types",
         "//fboss/agent/test:test_ensemble_if",
@@ -667,7 +669,6 @@ cpp_library(
     exported_deps = [
         ":acl_scale_test_utils",
         ":acl_test_utils",
-        ":asic_test_utils",
         ":copp_test_utils",
         ":mac_learning_flood_helper",
         ":port_flap_helper",
@@ -675,6 +676,7 @@ cpp_library(
         ":scale_test_utils",
         ":trap_packet_utils",
         "//fboss/agent:agent_features",
+        "//fboss/agent:asic_utils",
         "//fboss/agent:handler",
         "//fboss/agent:packet",
         "//fboss/agent/benchmarks:agent_benchmarks_h",  # @manual
@@ -698,7 +700,8 @@ cpp_library(
     ],
     exported_deps = [
         ":acl_test_utils",
-        ":asic_test_utils",
+        "//fboss/agent:asic_utils",
+        "//fboss/agent/hw/switch_asics:switch_asics",
     ],
 )
 
@@ -714,6 +717,7 @@ cpp_library(
         ":acl_test_utils",
         ":copp_test_utils",
         ":trap_packet_utils",
+        "//fboss/agent:asic_utils",
         "//fboss/agent:core",
         "//fboss/agent/benchmarks:agent_benchmarks_h",  # @manual
         "//fboss/agent/hw/test:config_factory",

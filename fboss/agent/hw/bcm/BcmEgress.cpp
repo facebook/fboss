@@ -433,6 +433,7 @@ cfg::SwitchingMode BcmEcmpEgress::getEcmpSwitchingMode() {
 
 void BcmEcmpEgress::createEcmpObject(
     bcm_l3_egress_ecmp_t& obj,
+    int option,
     int* index,
     bcm_l3_ecmp_member_t* ecmpMemberArray,
     bcm_if_t* pathsArray,
@@ -467,7 +468,6 @@ void BcmEcmpEgress::createEcmpObject(
         }
       }
     }
-    int option = 0;
     ret =
         bcm_l3_ecmp_create(hw_->getUnit(), option, &obj, idx, ecmpMemberArray);
     if (ret == BCM_E_RESOURCE) {
@@ -645,9 +645,29 @@ void BcmEcmpEgress::program() {
       ret = getEcmpObject(&obj, &index, ecmpMemberArray, pathsArray);
       bcmCheckError(ret, "Unable to get ECMP:  ", id_);
     } else {
-      createEcmpObject(obj, &index, ecmpMemberArray, pathsArray, numPaths);
+      int option = 0;
+      // TODO add an new flag in addition
+      if (FLAGS_flowletSwitchingEnable) {
+        option = BCM_L3_ECMP_O_CREATE_WITH_ID;
+        obj.flags = BCM_L3_WITH_ID;
+        obj.ecmp_intf =
+            hw_->getEgressManager()->findNextAvailableId(dynamicMode_);
+        if (FLAGS_enable_ecmp_resource_manager &&
+            utility::isEcmpModeDynamic(dynamicMode_) &&
+            obj.ecmp_intf >= kDlbEcmpMaxId) {
+          bcmCheckError(
+              BCM_E_FULL,
+              "Failed to allocate ECMP ID for dynamic mode, allocated ID: ",
+              obj.ecmp_intf);
+        }
+        XLOG(DBG2) << "Attempting L3 ECMP egress object create with ID "
+                   << obj.ecmp_intf;
+      }
+      createEcmpObject(
+          obj, option, &index, ecmpMemberArray, pathsArray, numPaths);
       XLOG(DBG2) << "Programmed L3 ECMP egress object " << id_ << " for "
                  << numPaths << " paths";
+      hw_->writableEgressManager()->insertEcmpID(id_);
     }
 
     // update not applicable for wide ecmp
@@ -716,6 +736,7 @@ BcmEcmpEgress::~BcmEcmpEgress() {
       hw_->getUnit());
   XLOG(DBG2) << "Destroyed L3 ECMP egress object " << id_ << " on unit "
              << hw_->getUnit();
+  hw_->writableEgressManager()->eraseEcmpID(id_);
 }
 
 bool BcmEcmpEgress::pathUnreachableHwLocked(EgressId path) {
