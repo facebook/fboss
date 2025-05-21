@@ -432,12 +432,12 @@ std::map<std::string, int64_t> getAgentFb303RegexCounters(
   return counters;
 }
 
-std::map<std::string, std::vector<std::string>>
+std::unordered_map<std::string, std::vector<std::string>>
 getCachedSwSwitchReachabilityInfo(
     const HostInfo& hostInfo,
     const std::vector<std::string>& switchNames) {
   // Query swAgent for cached reachability information
-  std::map<std::string, std::vector<std::string>> reachabilityMatrix;
+  std::unordered_map<std::string, std::vector<std::string>> reachabilityMatrix;
   auto client =
       utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
 

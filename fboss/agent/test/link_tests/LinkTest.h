@@ -64,6 +64,9 @@ class LinkTest : public AgentTest {
    * null LLDP neighbors. We pick that up here to extract cabled ports
    */
   const std::vector<PortID>& getCabledPorts() const;
+  const std::vector<PortID>& getCabledTransceiverPorts() const {
+    return cabledTransceiverPorts_;
+  }
   const std::set<TransceiverID>& getCabledTranceivers() const {
     return cabledTransceivers_;
   }
@@ -132,6 +135,7 @@ class LinkTest : public AgentTest {
 
   std::vector<PortID> cabledPorts_;
   std::vector<PortID> cabledFabricPorts_;
+  std::vector<PortID> cabledTransceiverPorts_;
   std::set<TransceiverID> cabledTransceivers_;
 };
 int linkTestMain(

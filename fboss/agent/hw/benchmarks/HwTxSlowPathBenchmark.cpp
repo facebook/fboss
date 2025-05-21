@@ -31,7 +31,7 @@ namespace facebook::fboss {
 
 std::pair<uint64_t, uint64_t> getOutPktsAndBytes(
     AgentEnsemble* ensemble,
-    PortID port) {
+    const PortID& port) {
   auto stats = ensemble->getLatestPortStats(port);
   return {*stats.outUnicastPkts_(), *stats.outBytes_()};
 }

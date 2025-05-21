@@ -292,12 +292,20 @@ void PkgManager::closeWatchdogs() const {
   try {
     for (const auto& entry : fs::directory_iterator(watchdogsDir)) {
       const std::string filePath = entry.path().string();
+      if (!fs::is_character_file(filePath)) {
+        XLOG(WARN) << fmt::format(
+            "{} does not exist or is not a character file. "
+            "Not performing watchdog magic close",
+            filePath);
+        continue;
+      }
       std::ofstream outFile(filePath);
       if (!outFile) {
         XLOG(ERR) << "Failed to open file: " << filePath;
         continue;
       }
       outFile << "V" << std::endl;
+      XLOG(INFO) << fmt::format("Closed watchdog file {}", filePath);
     }
   } catch (const std::exception& e) {
     XLOG(ERR) << "Failed to close watchdog: " << e.what();

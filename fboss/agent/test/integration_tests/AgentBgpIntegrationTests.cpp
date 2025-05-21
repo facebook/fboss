@@ -76,7 +76,7 @@ class BgpIntegrationTest : public AgentIntegrationTest {
   }
   void checkBgpState(
       TBgpPeerState state,
-      std::set<std::string> sessionsToCheck,
+      const std::set<std::string>& sessionsToCheck,
       int retries = kMaxRetries) {
     auto clientParams = servicerouter::ClientParams();
     clientParams.setSingleHost("::1", kBgpThriftPort);
@@ -194,7 +194,8 @@ class BgpIntegrationTest : public AgentIntegrationTest {
     return tprefix;
   }
 
-  void addBgpUnicastRoutes(std::vector<facebook::fboss::UnicastRoute> toAdd) {
+  void addBgpUnicastRoutes(
+      const std::vector<facebook::fboss::UnicastRoute>& toAdd) {
     auto clientParams = servicerouter::ClientParams();
     clientParams.setSingleHost("::1", kBgpThriftPort);
 
@@ -263,7 +264,8 @@ class BgpIntegrationTest : public AgentIntegrationTest {
     verifyAcrossWarmBoots(setup, verify);
   }
 
-  void addBgpRoutes(std::vector<std::pair<folly::IPAddress, uint8_t>> toAdd) {
+  void addBgpRoutes(
+      const std::vector<std::pair<folly::IPAddress, uint8_t>>& toAdd) {
     auto clientParams = servicerouter::ClientParams();
     clientParams.setSingleHost("::1", kBgpThriftPort);
     auto client =

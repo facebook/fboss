@@ -65,7 +65,36 @@ std::vector<StateDelta> BaseEcmpResourceManagerTest::consolidate(
    * Assert that EcmpResourceMgr leaves the ports state untouched
    */
   EXPECT_NE(state_->getPorts()->getPortIf("port1"), nullptr);
+  {
+    // Assert restoration from current state results in no
+    // overflow and the route backup group state matches
+    auto newConsolidator = makeResourceMgr();
+    auto restoreDeltas = newConsolidator->reconstructFromSwitchState(state_);
+    EXPECT_EQ(restoreDeltas.size(), 1);
+    auto restoredState = restoreDeltas.back().newState();
+    auto newFib6 = cfib(restoredState);
+    for (const auto& [_, origRoute] : std::as_const(*cfib(state_))) {
+      auto newRoute = newFib6->getRouteIf(origRoute->prefix());
+      EXPECT_EQ(newRoute->isResolved(), origRoute->isResolved());
+      CHECK(origRoute->isResolved());
+      EXPECT_EQ(
+          newRoute->getForwardInfo().getOverrideEcmpSwitchingMode(),
+          origRoute->getForwardInfo().getOverrideEcmpSwitchingMode());
+    }
+  }
   return deltas;
+}
+void BaseEcmpResourceManagerTest::failUpdate(
+    const std::shared_ptr<SwitchState>& state) {
+  failUpdate(state, state_);
+}
+
+void BaseEcmpResourceManagerTest::failUpdate(
+    const std::shared_ptr<SwitchState>& state,
+    const std::shared_ptr<SwitchState>& failTo) {
+  StateDelta delta(state_, state);
+  auto deltas = consolidator_->consolidate(delta);
+  consolidator_->updateFailed(failTo);
 }
 
 void BaseEcmpResourceManagerTest::assertDeltasForOverflow(

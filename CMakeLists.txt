@@ -984,6 +984,7 @@ add_dependencies(fboss_platform_services
   sensor_service_hw_test
   weutil_hw_test
   platform_manager_hw_test
+  cross_config_validator_test
 )
 
 add_custom_target(qsfp_targets)

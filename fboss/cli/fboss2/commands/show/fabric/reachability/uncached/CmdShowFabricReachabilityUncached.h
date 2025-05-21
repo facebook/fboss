@@ -33,7 +33,8 @@ class CmdShowFabricReachabilityUncached
           "Switch name(s) required to get reachability information from hardware.");
     }
 
-    std::map<std::string, std::vector<std::string>> reachabilityMatrix;
+    std::unordered_map<std::string, std::vector<std::string>>
+        reachabilityMatrix;
 
     std::vector<std::string> switchNames;
     switchNames.reserve(queriedSwitchNames.size());
@@ -63,8 +64,8 @@ class CmdShowFabricReachabilityUncached
     return createModel(reachabilityMatrix);
   }
 
-  RetType createModel(
-      std::map<std::string, std::vector<std::string>>& reachabilityMatrix) {
+  RetType createModel(std::unordered_map<std::string, std::vector<std::string>>&
+                          reachabilityMatrix) {
     return CmdShowFabricReachability::createModel(reachabilityMatrix);
   }
 

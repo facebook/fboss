@@ -32,8 +32,14 @@ class TestSubscription : public Subscription {
     return true;
   }
 
-  void flush(const SubscriptionMetadataServer&) override {}
-  void serveHeartbeat() override {}
+  std::optional<FsdbErrorCode> flush(
+      const SubscriptionMetadataServer&) override {
+    return std::nullopt;
+  }
+
+  std::optional<FsdbErrorCode> serveHeartbeat() override {
+    return std::nullopt;
+  }
 
   explicit TestSubscription(std::vector<std::string> path)
       : Subscription(
@@ -63,8 +69,14 @@ class TestDeltaSubscription : public Subscription {
     return true;
   }
 
-  void flush(const SubscriptionMetadataServer&) override {}
-  void serveHeartbeat() override {}
+  std::optional<FsdbErrorCode> flush(
+      const SubscriptionMetadataServer&) override {
+    return std::nullopt;
+  }
+
+  std::optional<FsdbErrorCode> serveHeartbeat() override {
+    return std::nullopt;
+  }
 
   explicit TestDeltaSubscription(std::vector<std::string> path)
       : Subscription(
@@ -103,8 +115,14 @@ class TestExtendedSubscription : public ExtendedSubscription {
     return true;
   }
 
-  void flush(const SubscriptionMetadataServer&) override {}
-  void serveHeartbeat() override {}
+  std::optional<FsdbErrorCode> flush(
+      const SubscriptionMetadataServer&) override {
+    return std::nullopt;
+  }
+
+  std::optional<FsdbErrorCode> serveHeartbeat() override {
+    return std::nullopt;
+  }
   std::unique_ptr<Subscription> resolve(
       const SubscriptionKey& /* key */,
       const std::vector<std::string>& path) override {

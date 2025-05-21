@@ -77,7 +77,11 @@ folly::coro::Task<void> BaseSubscription::heartbeatLoop() {
   // make sure to stop loop when we're cancelled
   while (!backgroundScope_.isScopeCancellationRequested()) {
     co_await folly::coro::sleep(heartbeatInterval_);
-    serveHeartbeat();
+    auto ret = serveHeartbeat();
+    if (ret.has_value()) {
+      requestPruneWithReason(ret.value());
+      break;
+    }
   }
   co_return;
 }
@@ -140,16 +144,18 @@ DeltaSubscription::create(
   return std::make_pair(std::move(generator), std::move(subscription));
 }
 
-void DeltaSubscription::flush(
+std::optional<FsdbErrorCode> DeltaSubscription::flush(
     const SubscriptionMetadataServer& metadataServer) {
+  std::optional<FsdbErrorCode> ret;
   auto delta = moveFromCurrDelta(metadataServer);
   if (delta) {
-    tryWrite(pipe_, std::move(*delta), "delta.flush");
+    ret = tryWrite(pipe_, std::move(*delta), "delta.flush");
   }
+  return ret;
 }
 
-void DeltaSubscription::serveHeartbeat() {
-  tryWrite(pipe_, OperDelta(), "delta.hb");
+std::optional<FsdbErrorCode> DeltaSubscription::serveHeartbeat() {
+  return tryWrite(pipe_, OperDelta(), "delta.hb");
 }
 
 bool DeltaSubscription::isActive() const {
@@ -189,7 +195,7 @@ PubSubType FullyResolvedExtendedPathSubscription::type() const {
   return subscription_.type();
 }
 
-void FullyResolvedExtendedPathSubscription::offer(
+std::optional<FsdbErrorCode> FullyResolvedExtendedPathSubscription::offer(
     DeltaValue<OperState> source) {
   // Convert to DeltaValue<TaggedOperState>. Could do this in the
   // SubscriberImpl, but this should do.
@@ -212,6 +218,8 @@ void FullyResolvedExtendedPathSubscription::offer(
   }
 
   subscription_.buffer(std::move(target));
+
+  return std::nullopt;
 }
 
 void FullyResolvedExtendedPathSubscription::allPublishersGone(
@@ -220,13 +228,15 @@ void FullyResolvedExtendedPathSubscription::allPublishersGone(
   // No-op as we expect the extended subscription to send the hangup message
 }
 
-void FullyResolvedExtendedPathSubscription::flush(
+std::optional<FsdbErrorCode> FullyResolvedExtendedPathSubscription::flush(
     const SubscriptionMetadataServer& /*metadataServer*/) {
   // no-op as propagation is done in offer()
+  return std::nullopt;
 }
 
-void FullyResolvedExtendedPathSubscription::serveHeartbeat() {
-  subscription_.serveHeartbeat();
+std::optional<FsdbErrorCode>
+FullyResolvedExtendedPathSubscription::serveHeartbeat() {
+  return subscription_.serveHeartbeat();
 }
 
 FullyResolvedExtendedDeltaSubscription::FullyResolvedExtendedDeltaSubscription(
@@ -241,22 +251,22 @@ FullyResolvedExtendedDeltaSubscription::FullyResolvedExtendedDeltaSubscription(
           subscription.heartbeatInterval()),
       subscription_(subscription) {}
 
-void FullyResolvedExtendedDeltaSubscription::flush(
+std::optional<FsdbErrorCode> FullyResolvedExtendedDeltaSubscription::flush(
     const SubscriptionMetadataServer& metadataServer) {
   auto delta = moveFromCurrDelta(metadataServer);
-  if (!delta) {
-    return;
+  if (delta) {
+    TaggedOperDelta target;
+    target.path()->path() = path();
+    target.delta() = std::move(*delta);
+
+    subscription_.buffer(std::move(target));
   }
-
-  TaggedOperDelta target;
-  target.path()->path() = path();
-  target.delta() = std::move(*delta);
-
-  subscription_.buffer(std::move(target));
+  return std::nullopt;
 }
 
-void FullyResolvedExtendedDeltaSubscription::serveHeartbeat() {
-  subscription_.serveHeartbeat();
+std::optional<FsdbErrorCode>
+FullyResolvedExtendedDeltaSubscription::serveHeartbeat() {
+  return subscription_.serveHeartbeat();
 }
 
 bool FullyResolvedExtendedDeltaSubscription::isActive() const {
@@ -308,15 +318,15 @@ void ExtendedPathSubscription::buffer(
   buffered_->emplace_back(newVal);
 }
 
-void ExtendedPathSubscription::flush(
+std::optional<FsdbErrorCode> ExtendedPathSubscription::flush(
     const SubscriptionMetadataServer& /*metadataServer*/) {
   if (!buffered_) {
-    return;
+    return std::nullopt;
   }
 
   std::optional<gen_type> toServe;
   toServe.swap(buffered_);
-  tryWrite(pipe_, std::move(toServe).value(), "ExtPath.flush");
+  return tryWrite(pipe_, std::move(toServe).value(), "ExtPath.flush");
 }
 
 std::unique_ptr<Subscription> ExtendedPathSubscription::resolve(
@@ -375,18 +385,20 @@ void ExtendedDeltaSubscription::buffer(TaggedOperDelta&& newVal) {
   buffered_->emplace_back(newVal);
 }
 
-void ExtendedDeltaSubscription::flush(
+std::optional<FsdbErrorCode> ExtendedDeltaSubscription::flush(
     const SubscriptionMetadataServer& /*metadataServer*/) {
   if (!buffered_) {
-    return;
+    return std::nullopt;
   }
 
   std::optional<gen_type> toServe;
   toServe.swap(buffered_);
-  tryWrite(pipe_, std::move(toServe).value(), "ExtDelta.flush");
+  return tryWrite(pipe_, std::move(toServe).value(), "ExtDelta.flush");
 }
 
-void ExtendedDeltaSubscription::serveHeartbeat() {}
+std::optional<FsdbErrorCode> ExtendedDeltaSubscription::serveHeartbeat() {
+  return std::nullopt;
+}
 
 bool ExtendedDeltaSubscription::isActive() const {
   return !pipe_.isClosed();
@@ -421,24 +433,28 @@ void PatchSubscription::allPublishersGone(
   // No-op as we expect the extended subscription to send the hangup message
 }
 
-void PatchSubscription::sendEmptyInitialChunk() {
-  subscription_.serveHeartbeat();
+std::optional<FsdbErrorCode> PatchSubscription::sendEmptyInitialChunk() {
+  return subscription_.serveHeartbeat();
 }
 
-void PatchSubscription::serveHeartbeat() {
+std::optional<FsdbErrorCode> PatchSubscription::serveHeartbeat() {
   // No-op as we expect the extended subscription to send the heartbeat
+  return std::nullopt;
 }
 
-void PatchSubscription::flush(
+std::optional<FsdbErrorCode> PatchSubscription::flush(
     const SubscriptionMetadataServer& metadataServer) {
   // No-op as propagation is done in offer()
+  return std::nullopt;
 }
 
-void PatchSubscription::offer(thrift_cow::PatchNode node) {
+std::optional<FsdbErrorCode> PatchSubscription::offer(
+    thrift_cow::PatchNode node) {
   Patch patch;
   patch.basePath() = path();
   patch.patch() = std::move(node);
   subscription_.buffer(key_, std::move(patch));
+  return std::nullopt;
 }
 
 bool PatchSubscription::isActive() const {
@@ -546,19 +562,20 @@ std::optional<SubscriberChunk> ExtendedPatchSubscription::moveCurChunk(
   return chunk;
 }
 
-void ExtendedPatchSubscription::flush(
+std::optional<FsdbErrorCode> ExtendedPatchSubscription::flush(
     const SubscriptionMetadataServer& metadataServer) {
   if (auto chunk = moveCurChunk(metadataServer)) {
     SubscriberMessage msg;
     msg.set_chunk(std::move(*chunk));
-    tryWrite(pipe_, std::move(msg), "ExtPatch.flush");
+    return tryWrite(pipe_, std::move(msg), "ExtPatch.flush");
   }
+  return std::nullopt;
 }
 
-void ExtendedPatchSubscription::serveHeartbeat() {
+std::optional<FsdbErrorCode> ExtendedPatchSubscription::serveHeartbeat() {
   SubscriberMessage msg;
   msg.set_heartbeat();
-  tryWrite(pipe_, std::move(msg), "ExtPatch.hb");
+  return tryWrite(pipe_, std::move(msg), "ExtPatch.hb");
 }
 
 bool ExtendedPatchSubscription::isActive() const {

@@ -49,7 +49,8 @@ class CmdShowFabricReachability : public CmdHandler<
   }
 
   static RetType createModel(
-      std::map<std::string, std::vector<std::string>>& reachabilityMatrix) {
+      std::unordered_map<std::string, std::vector<std::string>>&
+          reachabilityMatrix) {
     RetType model;
     for (auto& [switchName, reachability] : reachabilityMatrix) {
       cli::ReachabilityEntry entry;

@@ -78,6 +78,8 @@ class EcmpResourceManager {
   using NextHops2GroupId = std::map<RouteNextHopSet, NextHopGroupId>;
 
   std::vector<StateDelta> consolidate(const StateDelta& delta);
+  std::vector<StateDelta> reconstructFromSwitchState(
+      const std::shared_ptr<SwitchState>& curState);
   const auto& getNhopsToId() const {
     return nextHopGroup2Id_;
   }
@@ -105,6 +107,7 @@ class EcmpResourceManager {
   struct PreUpdateState {
     std::map<NextHopGroupIds, ConsolidationPenalty> mergedGroups;
     std::map<RouteNextHopSet, NextHopGroupId> nextHopGroup2Id;
+    std::optional<cfg::SwitchingMode> backupEcmpGroupType;
   };
   struct InputOutputState {
     InputOutputState(
@@ -165,7 +168,6 @@ class EcmpResourceManager {
       const std::shared_ptr<Route<AddrT>>& route,
       NextHops2GroupId::iterator nhops2IdItr,
       InputOutputState* inOutState);
-  template <typename AddrT>
   void processRouteUpdates(
       const StateDelta& delta,
       InputOutputState* inOutState);
