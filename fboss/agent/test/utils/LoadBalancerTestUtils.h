@@ -55,18 +55,37 @@ size_t pumpTraffic(
 
 size_t pumpRoCETraffic(
     bool isV6,
-    AllocatePktFunc allocateFn,
+    const AllocatePktFunc& allocateFn,
     SendPktFunc sendFn,
     folly::MacAddress dstMac,
-    std::optional<VlanID> vlan,
-    std::optional<PortID> frontPanelPortToLoopTraffic,
+    const std::optional<VlanID>& vlan,
+    const std::optional<PortID>& frontPanelPortToLoopTraffic,
     int roceDestPort = kUdfL4DstPort, /* RoCE fixed dst port */
     int hopLimit = 255,
     std::optional<folly::MacAddress> srcMacAddr = std::nullopt,
     int packetCount = 200000,
     uint8_t roceOpcode = kUdfRoceOpcodeAck,
     uint8_t reserved = kRoceReserved,
-    std::optional<std::vector<uint8_t>> nextHdr =
+    const std::optional<std::vector<uint8_t>>& nextHdr =
+        std::optional<std::vector<uint8_t>>(),
+    bool sameDstQueue = false);
+
+size_t pumpRoCETraffic(
+    bool isV6,
+    const AllocatePktFunc& allocateFn,
+    SendPktFunc sendFn,
+    folly::MacAddress dstMac,
+    const std::optional<VlanID>& vlan,
+    const std::optional<PortID>& frontPanelPortToLoopTraffic,
+    const folly::IPAddress& srcIp,
+    const folly::IPAddress& dstIp,
+    int roceDestPort = kUdfL4DstPort, /* RoCE fixed dst port */
+    int hopLimit = 255,
+    std::optional<folly::MacAddress> srcMacAddr = std::nullopt,
+    int packetCount = 200000,
+    uint8_t roceOpcode = kUdfRoceOpcodeAck,
+    uint8_t reserved = kRoceReserved,
+    const std::optional<std::vector<uint8_t>>& nextHdr =
         std::optional<std::vector<uint8_t>>(),
     bool sameDstQueue = false);
 
