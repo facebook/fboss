@@ -81,7 +81,8 @@
         59,
         63,
         69,
-        72
+        72,
+        79
     ],
     "jericho3": [
         2,
@@ -373,7 +374,8 @@
         60,
         63,
         69,
-        72
+        72,
+        79
     ]
   },
   "asicToFeatureNames": {
@@ -458,7 +460,8 @@
         "CLASS_ID_FOR_CONNECTED_ROUTE",
         "UCMP",
         "PTP_TC",
-        "MODIFY_ACL_QUALIFIERS"
+        "MODIFY_ACL_QUALIFIERS",
+        "PTP_TC_PROVISIONING_TIME_HW_VALIDATION"
     ],
     "jericho3": [
         "CPU_RX_TX",
@@ -750,7 +753,8 @@
         "SEPARATE_BYTE_AND_PACKET_ACL_COUNTERS",
         "UCMP",
         "PTP_TC",
-        "MODIFY_ACL_QUALIFIERS"
+        "MODIFY_ACL_QUALIFIERS",
+        "PTP_TC_PROVISIONING_TIME_HW_VALIDATION"
     ]
   }
 }
