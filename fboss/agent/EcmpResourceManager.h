@@ -78,6 +78,8 @@ class EcmpResourceManager {
   using NextHops2GroupId = std::map<RouteNextHopSet, NextHopGroupId>;
 
   std::vector<StateDelta> consolidate(const StateDelta& delta);
+  std::vector<StateDelta> reconstructFromSwitchState(
+      const std::shared_ptr<SwitchState>& curState);
   const auto& getNhopsToId() const {
     return nextHopGroup2Id_;
   }

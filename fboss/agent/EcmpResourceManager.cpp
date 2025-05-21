@@ -339,6 +339,57 @@ EcmpResourceManager::updateForwardingInfoAndInsertDelta(
   return grpInfo;
 }
 
+std::vector<StateDelta> EcmpResourceManager::reconstructFromSwitchState(
+    const std::shared_ptr<SwitchState>& curState) {
+  if (!preUpdateState_.has_value()) {
+    preUpdateState_ = PreUpdateState();
+  }
+  /*
+   * TODO - when we goto merged groups, cur state will no longer
+   * be efficient for rebuilding state. As for merged, nhops we will
+   * endup needing to look up all combinations of individual groups
+   * and find merges. So we will need to store more state around
+   * warm boots.
+   */
+  // Clear state which needs to be resored from given state
+  nextHopGroup2Id_.clear();
+  mergedGroups_.clear();
+  prefixToGroupInfo_.clear();
+  nextHopGroupIdToInfo_.clear();
+  candidateMergeGroups_.clear();
+  /*
+   * Restore state from previous input state. To do this we simply
+   * replay the state in consolidate. Input state has a guarantee
+   * that that
+   * Num nhop groups of primary type <= maxEcmpGroups and there
+   * may or may not be groups of backupEcmpType
+   * Now there are a few sub cases for input state
+   * i. No backup ecmp nhop groups and 0 or more primary ECMP group types.
+   * This is simple, consolidate will simply run through the routes and
+   * populate internal data structures
+   * ii. Have both primary and backup ECMP route nhop groups. And primary
+   * ECMP groups == maxEcmpGroups_. As we run through the routes, we will
+   * see a mix of nhop groups, some that are of type primary and others
+   * that are of type backupEcmpGroupType. We record them as such in our
+   * data structures.  Note that in this replay routes may come in a
+   * different order than when we originally got them. However since
+   * we are not creating any new backup nhop groups (since
+   * num nhop groups of primary type <= maxEcmpGroups) our data structures
+   * should simply reflect the state in input state.
+   * iii. Have both primary and backup ECMP route nhop groups. And primary
+   * ECMP groups < maxEcmpGroups_. This is similar to ii. except that we
+   * will now be able to reclaim some of the backup nhop groups.
+   * */
+  StateDelta delta(std::make_shared<SwitchState>(), curState);
+  InputOutputState inOutState(0, delta, *preUpdateState_);
+  auto deltas = consolidateImpl(delta, &inOutState);
+  CHECK_EQ(deltas.size(), 1);
+  StateDelta toRet(deltas.front().oldState(), deltas.back().newState());
+  deltas.clear();
+  deltas.emplace_back(std::move(toRet));
+  return deltas;
+}
+
 template <typename AddrT>
 bool EcmpResourceManager::routesEqual(
     const std::shared_ptr<Route<AddrT>>& oldRoute,
@@ -640,16 +691,7 @@ void EcmpResourceManager::updateFailed(
     // if that fails, we anyways fail the application
     throw FbossError("Update failed with backup switching mode transition");
   }
-  /* clear state which needs to be resored from previous state*/
-  nextHopGroup2Id_.clear();
-  mergedGroups_.clear();
-  prefixToGroupInfo_.clear();
-  nextHopGroupIdToInfo_.clear();
-  candidateMergeGroups_.clear();
-  /* restore state from previous state*/
-  StateDelta delta(std::make_shared<SwitchState>(), curState);
-  InputOutputState inOutState(0, delta, std::move(*preUpdateState_));
-  consolidateImpl(delta, &inOutState);
+  reconstructFromSwitchState(curState);
   preUpdateState_.reset();
 }
 
