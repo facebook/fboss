@@ -538,6 +538,22 @@ void addAclDscpQueueAction(
   utility::addMatcher(cfg, matcher, matchAction);
 }
 
+void addAclEcmpHashCancelAction(
+    cfg::SwitchConfig* cfg,
+    const std::string& matcher,
+    const std::string& counterName) {
+  cfg::MatchAction matchAction = cfg::MatchAction();
+  matchAction.ecmpHashAction() = cfg::SetEcmpHashAction();
+  matchAction.ecmpHashAction()->switchingMode() =
+      cfg::SwitchingMode::FIXED_ASSIGNMENT;
+
+  matchAction.counter() = counterName;
+  std::vector<cfg::CounterType> counterTypes{
+      cfg::CounterType::PACKETS, cfg::CounterType::BYTES};
+  utility::addTrafficCounter(cfg, counterName, std::move(counterTypes));
+  utility::addMatcher(cfg, matcher, matchAction);
+}
+
 std::vector<cfg::CounterType> getAclCounterTypes(
     const std::vector<const HwAsic*>& asics) {
   auto asic = checkSameAndGetAsic(asics);
