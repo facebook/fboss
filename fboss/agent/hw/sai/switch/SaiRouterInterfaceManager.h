@@ -90,7 +90,7 @@ class SaiRouterInterfaceManager {
 
   RouterInterfaceSaiId addRemoteRouterInterface(
       const std::shared_ptr<Interface>& swInterface) {
-    return addRouterInterface(swInterface, false /*remote*/);
+    return addRouterInterface(swInterface, false /*isLocal*/);
   }
   void removeRemoteRouterInterface(
       const std::shared_ptr<Interface>& swInterface) {
@@ -99,7 +99,7 @@ class SaiRouterInterfaceManager {
   void changeRemoteRouterInterface(
       const std::shared_ptr<Interface>& oldInterface,
       const std::shared_ptr<Interface>& newInterface) {
-    changeRouterInterface(oldInterface, newInterface, false /*remote*/);
+    changeRouterInterface(oldInterface, newInterface, false /*isLocal*/);
   }
 
   SaiRouterInterfaceHandle* getRouterInterfaceHandle(const InterfaceID& swId);
