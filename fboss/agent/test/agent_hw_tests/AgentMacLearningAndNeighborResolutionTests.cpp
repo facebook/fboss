@@ -555,11 +555,22 @@ class AgentNeighborResolutionOverFlowTest : public AgentNeighborResolutionTest {
       const PortDescriptor& port,
       const std::vector<AddrT>& ipAddresses,
       std::optional<cfg::AclLookupClass> lookupClass = std::nullopt) {
-    applyNewStateTransaction(
-        [&](const std::shared_ptr<SwitchState>& in) {
-          return updateNeighborEntries(in, port, ipAddresses, lookupClass);
-        },
-        "program bulk neighbor with hw failure protection");
+    auto asicNdpScale = getAsicNeighborTableSize();
+    auto bulkProgramCount = getBulkProgramCount();
+    for (int offset = 0; offset < asicNdpScale / bulkProgramCount; ++offset) {
+      auto startIndex = offset * bulkProgramCount;
+      applyNewStateTransaction(
+          [&](const std::shared_ptr<SwitchState>& in) {
+            return updateNeighborEntries(
+                in,
+                port,
+                ipAddresses,
+                startIndex,
+                bulkProgramCount,
+                lookupClass);
+          },
+          "program bulk neighbor with hw failure protection");
+    }
   }
 
   // verify neighbor entry over flow,
@@ -690,9 +701,12 @@ class AgentNeighborResolutionOverFlowTest : public AgentNeighborResolutionTest {
       const std::shared_ptr<SwitchState>& in,
       const PortDescriptor& port,
       const std::vector<AddrT>& ipAddressesV6,
+      const uint32_t startIndex,
+      const uint32_t count,
       std::optional<cfg::AclLookupClass> lookupClass = std::nullopt) {
     auto state = in->clone();
-    for (int i = 0; i < getBulkProgramCount(); i++) {
+    CHECK_LE(startIndex + count, ipAddressesV6.size());
+    for (int i = startIndex; i < startIndex + count; i++) {
       state = updateNeighborEntry<AddrT>(
           state,
           port,
