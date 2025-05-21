@@ -88,6 +88,7 @@ enum ProductionFeature {
   GLOBAL_TC_RATE_LIMIT = 75,
   COPP_SHAPER = 76,
   COPP_SCHEDULER = 77,
+  ECMP_RANDOM_SPRAY = 78,
   # production feature which is present on all platforms, keep it at the end
   HW_SWITCH = 65536,
 }

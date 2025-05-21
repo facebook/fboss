@@ -149,7 +149,7 @@ bcm_port_resource_t getCurrentPortResource(int unit, bcm_gport_t gport) {
   bcm_port_resource_t_init(&portResource);
   auto rv = bcm_port_resource_speed_get(unit, gport, &portResource);
   bcmCheckError(rv, "failed to get port resource on port ", gport);
-  XLOG(DBG4) << "Get current port resorce: port=" << portResource.port
+  XLOG(DBG5) << "Get current port resorce: port=" << portResource.port
              << ", physical_port=" << portResource.physical_port
              << ", speed=" << portResource.speed
              << ", fec_type=" << portResource.fec_type << ", phy_lane_config=0x"
