@@ -153,6 +153,29 @@ void EcmpResourceManager::reclaimEcmpGroups(InputOutputState* inOutState) {
     }
   }
   newState->publish();
+  /*
+   * We do reclaim on a separate delta since the space is
+   * guaranteed to be freed up *only* after the previous deltas
+   * were completely applied.
+   * Consider a case where we have space for only 2 primary ECMP
+   * groups. And we have the following state (say state0)
+   * R0-> G0 (bkup)
+   * R1-> G1
+   * R2-> G2
+   * Next we get a new state (say state1)
+   * R0-> G0(bkup)
+   * R1-> G1
+   * R2-> G1
+   * With our current approach, the first delta enqueued will be
+   * StateDelta(state0, state1);
+   * This will now trigger a reclaim, getting us to state2
+   * R0 -> G0
+   * R1 -> G1
+   * R2 -> G1
+   * Had we combined state1 and state2 and just sent down
+   * a single delta StateDelta(state0, state2), we would have
+   * overflowed the ECMP limit when processing R0
+   */
   inOutState->out.emplace_back(oldState, newState);
 }
 
