@@ -16,12 +16,17 @@ class EcmpBackupGroupTypeTest : public BaseEcmpResourceManagerTest {
  public:
   std::shared_ptr<EcmpResourceManager> makeResourceMgr() const override {
     static constexpr auto kEcmpGroupHwLimit = 7;
+    return makeResourceMgrWithEcmpLimit(kEcmpGroupHwLimit);
+  }
+  static constexpr auto kNumStartRoutes = 5;
+
+  std::shared_ptr<EcmpResourceManager> makeResourceMgrWithEcmpLimit(
+      int ecmpGroupLimit) const {
     return std::make_shared<EcmpResourceManager>(
-        kEcmpGroupHwLimit,
+        ecmpGroupLimit,
         0 /*compressionPenaltyThresholdPct*/,
         cfg::SwitchingMode::PER_PACKET_RANDOM);
   }
-  static constexpr auto kNumStartRoutes = 5;
   int numStartRoutes() const override {
     return kNumStartRoutes;
   }
@@ -68,12 +73,13 @@ class EcmpBackupGroupTypeTest : public BaseEcmpResourceManagerTest {
     assertEndState(newState, {});
     XLOG(DBG2) << "EcmpResourceMgrBackupGrpTest SetUp done";
   }
-  void assertEndState(
+  void assertTargetState(
+      const std::shared_ptr<SwitchState>& targetState,
       const std::shared_ptr<SwitchState>& endStatePrefixes,
       const std::set<RouteV6::Prefix>& overflowPrefixes) {
     EXPECT_EQ(state_->getFibs()->getNode(RouterID(0))->getFibV4()->size(), 0);
     for (auto [_, inRoute] : std::as_const(*cfib(endStatePrefixes))) {
-      auto route = cfib(state_)->exactMatch(inRoute->prefix());
+      auto route = cfib(targetState)->exactMatch(inRoute->prefix());
       ASSERT_TRUE(route->isResolved());
       ASSERT_NE(route, nullptr);
       if (overflowPrefixes.find(route->prefix()) != overflowPrefixes.end()) {
@@ -89,6 +95,11 @@ class EcmpBackupGroupTypeTest : public BaseEcmpResourceManagerTest {
             route->getForwardInfo().getOverrideEcmpSwitchingMode().has_value());
       }
     }
+  }
+  void assertEndState(
+      const std::shared_ptr<SwitchState>& endStatePrefixes,
+      const std::set<RouteV6::Prefix>& overflowPrefixes) {
+    assertTargetState(state_, endStatePrefixes, overflowPrefixes);
   }
 };
 
@@ -839,5 +850,32 @@ TEST_F(EcmpBackupGroupTypeTest, overflowRoutesInReverseOrderOfReplay) {
     EXPECT_EQ(deltas.size(), startPrefixes.size() + 1);
     assertEndState(newState, startPrefixes);
   }
+}
+
+TEST_F(EcmpBackupGroupTypeTest, reclaimOnReplay) {
+  // Add new routes pointing to new nhops. ECMP limit is breached.
+  auto nhopSets = nextNhopSets();
+  auto oldState = state_;
+  auto newState = oldState->clone();
+  auto fib6 = fib(newState);
+  auto routesBefore = fib6->size();
+  std::set<RouteNextHopSet> nhops;
+  std::set<RouteV6::Prefix> overflowPrefixes;
+  for (auto i = 0; i < numStartRoutes(); ++i) {
+    auto route = makeRoute(makePrefix(routesBefore + i), nhopSets[i]);
+    overflowPrefixes.insert(route->prefix());
+    nhops.insert(nhopSets[i]);
+    fib6->addNode(route);
+  }
+  auto deltas = consolidate(newState);
+  EXPECT_EQ(deltas.size(), numStartRoutes() + 1);
+  assertEndState(newState, overflowPrefixes);
+  auto newConsolidator = makeResourceMgrWithEcmpLimit(
+      cfib(state_)->size() +
+      FLAGS_ecmp_resource_manager_make_before_break_buffer);
+  auto replayDeltas = newConsolidator->reconstructFromSwitchState(state_);
+  ASSERT_EQ(replayDeltas.size(), 1);
+  // No overflow, since we increased the limit to cover all the prefixes
+  assertTargetState(replayDeltas.back().newState(), state_, {});
 }
 } // namespace facebook::fboss

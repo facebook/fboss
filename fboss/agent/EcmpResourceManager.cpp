@@ -383,7 +383,8 @@ std::vector<StateDelta> EcmpResourceManager::reconstructFromSwitchState(
   StateDelta delta(std::make_shared<SwitchState>(), curState);
   InputOutputState inOutState(0, delta, *preUpdateState_);
   auto deltas = consolidateImpl(delta, &inOutState);
-  CHECK_EQ(deltas.size(), 1);
+  // LE 2, since reclaim always starts with a new delta
+  CHECK_LE(deltas.size(), 2);
   StateDelta toRet(deltas.front().oldState(), deltas.back().newState());
   deltas.clear();
   deltas.emplace_back(std::move(toRet));
