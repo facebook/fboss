@@ -40,6 +40,10 @@ class EcmpResourceManagerRibFibTest : public ::testing::Test {
     ASSERT_NE(sw_->getEcmpResourceManager(), nullptr);
     // Taken from mock asic
     EXPECT_EQ(sw_->getEcmpResourceManager()->getMaxPrimaryEcmpGroups(), 4);
+    // Backup ecmp group type will com from default flowlet confg
+    EXPECT_EQ(
+        *sw_->getEcmpResourceManager()->getBackupEcmpSwitchingMode(),
+        *cfg.flowletSwitchingConfig()->backupSwitchingMode());
   }
   std::unique_ptr<HwTestHandle> handle_;
   SwSwitch* sw_;
