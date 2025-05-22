@@ -1,0 +1,32 @@
+---
+id: routing-dataplane-requirements
+title: Routing - Dataplane Requirement
+---
+
+# Routing - Dataplane Requirement
+Goal - Comprehensive documentation of dataplane requirements for Routing for our protocol stack in our network. This outlines a cohesive requirement for both BGP++ & Open/R protocol stack.
+
+# Format
+Use this format for laying out a dataplane requirement. Each of the requirements must demonstrate a clear Use Case, and Scope where it would be applicable.
+Would be helpful to have a matrix of FBOSS agent features that DC routing rely upon. The matrix would indicate the layer/role of the DC fabric the feature is required. e.g. RSW, FSW, SSW, FA, DMAG. i.e. rows could be features and columns could be roles in DC. The content of a matrix cell would indicate status of the feature (e.g. deployed widely, in-pilot in ODN1, planned-pilot Q4’21@ODN1, etc)
+
+# Features
+# Packet IO
+
+Control Plane depends on underlying SwitchAgent for inband communication to neighboring devices. We term this as Packet IO.
+
+At a hardware level, there exists concepts of Ports, VLANs, and Aggregated Ports. However, from a routing perspective, all that matters is Layer3 (L3) Interfaces, simply termed as Interface. The interface would have L3 (IPv4 and IPv6) addresses, and subnets.
+
+# Unicast Route Programming
+Dataplane should support programming of IPv4 and IPv6, Unicast, routes.
+
+# MPLS Route Programming
+MPLS Route Programming (Limited Scope as of Today).
+
+# UCMP
+Unequal Cost Multipath (UCMP) is a technique to send an unequal amount of packets to next-hops associated with the route. Feature design and Platform support captured in FBOSS Unequal Cost Multipath. It defines the concept of Variable ECMP, Wide ECMP, and Native UCMP.
+Capacity Aware Routing, is a control plane capability that leverages UCMP data plane support to optimize network performance. This feature is needed in ALL layers of our network (F16 Fabrics and HGRIDs, EB). However the granularity (quality of UCMP) support could differ based on platform.
+
+# Miscellaneous APIs
+    Streaming API for LLDP neighbors (for fast BGP neighbor down) [NEW]
+    Discovering Link Speed
