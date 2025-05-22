@@ -34,10 +34,16 @@ struct SaiArsTraits {
   struct Attributes {
     using EnumType = sai_ars_attr_t;
     using Mode = SaiAttribute<EnumType, SAI_ARS_ATTR_MODE, sai_int32_t>;
-    using IdleTime =
-        SaiAttribute<EnumType, SAI_ARS_ATTR_IDLE_TIME, sai_uint32_t>;
-    using MaxFlows =
-        SaiAttribute<EnumType, SAI_ARS_ATTR_MAX_FLOWS, sai_uint32_t>;
+    using IdleTime = SaiAttribute<
+        EnumType,
+        SAI_ARS_ATTR_IDLE_TIME,
+        sai_uint32_t,
+        StdNullOptDefault<sai_uint32_t>>;
+    using MaxFlows = SaiAttribute<
+        EnumType,
+        SAI_ARS_ATTR_MAX_FLOWS,
+        sai_uint32_t,
+        StdNullOptDefault<sai_uint32_t>>;
   };
 
   using AdapterKey = ArsSaiId;
