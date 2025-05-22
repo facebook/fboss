@@ -261,7 +261,7 @@
             "versions": [
               {
                 "fwType": 1,
-                "version": "2.2"
+                "version": "2.5"
               }
             ]
         },
@@ -630,7 +630,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "2.3"
+              "version": "2.6"
             }
           ]
       },

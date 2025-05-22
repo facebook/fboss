@@ -55,7 +55,7 @@ class MockMultiSwitchHwSwitchHandler : public MultiSwitchHwSwitchHandler {
   MOCK_METHOD4(
       stateChanged,
       std::pair<fsdb::OperDelta, HwSwitchStateUpdateStatus>(
-          const fsdb::OperDelta&,
+          const std::vector<fsdb::OperDelta>&,
           bool,
           const std::shared_ptr<SwitchState>&,
           const HwWriteBehavior&));

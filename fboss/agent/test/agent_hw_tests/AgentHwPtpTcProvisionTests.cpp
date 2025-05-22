@@ -36,12 +36,16 @@ namespace facebook::fboss {
  * capture the packet and check for CF field in the packet.
  *  5. Run for each port pairs.
  */
-class AgentHwPtpTcProvisionTests : public AgentHwTest {
+class AgentHwPtpTcProvisionTests
+    : public AgentHwTest,
+      public testing::WithParamInterface<cfg::PortSpeed> {
  protected:
   const std::string kdstIpPrefix = "2192::101:";
   const std::string knexthopMacPrefix = "aa:bb:cc:dd:ee:";
   const folly::IPAddressV6 kSrcIp = folly::IPAddressV6("2025::1");
   const folly::MacAddress kSrcMac = folly::MacAddress("aa:bb:cc:00:00:01");
+
+  const cfg::PortSpeed portSpeed = GetParam();
 
   void SetUp() override {
     AgentHwTest::SetUp();
@@ -49,7 +53,10 @@ class AgentHwPtpTcProvisionTests : public AgentHwTest {
 
   std::vector<production_features::ProductionFeature>
   getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::PTP_TC};
+    return {
+        production_features::ProductionFeature::PTP_TC,
+        production_features::ProductionFeature::
+            PTP_TC_PROVISIONING_TIME_HW_VALIDATION};
   }
 
   cfg::SwitchConfig initialConfig(
@@ -62,6 +69,13 @@ class AgentHwPtpTcProvisionTests : public AgentHwTest {
         true /*interfaceHasSubnet*/);
     config.switchSettings()->ptpTcEnable() = true;
     auto ports = ensemble.masterLogicalInterfacePortIds();
+    // Port disabled if not support this speed
+    utility::configurePortGroup(
+        ensemble.getPlatformMapping(),
+        ensemble.getSw()->getPlatformSupportsAddRemovePort(),
+        config,
+        portSpeed,
+        ports);
     // Todo: We should use dst mac to avoid same packet trapped twice
     // on inject and dst ports. But Leaba 1.42.8 SDK does not support it yet.
     std::set<folly::CIDRNetwork> prefixs;
@@ -224,19 +238,30 @@ class AgentHwPtpTcProvisionTests : public AgentHwTest {
 };
 
 // Each port will be selected as Ingress port once and Egress port once.
-TEST_F(AgentHwPtpTcProvisionTests, VerifyPtpTcDelayRequestOnPorts) {
-  auto ports = masterLogicalPortIds();
-  auto size = ports.size();
+TEST_P(AgentHwPtpTcProvisionTests, VerifyPtpTcDelayRequestOnPorts) {
+  std::vector<PortID> ports;
   std::vector<folly::MacAddress> nexthopMacs; // binding to ingress port
   std::vector<folly::IPAddressV6> dstIps; // binding to egress port
-  for (int idx = 0; idx < size; idx++) {
+
+  auto cfg = getAgentEnsemble()->getCurrentConfig();
+  // Test all enabled ports
+  for (auto& port : *cfg.ports()) {
+    if (port.state() == cfg::PortState::ENABLED &&
+        port.portType() == cfg::PortType::INTERFACE_PORT) {
+      ports.emplace_back(*port.logicalID());
+    }
+  }
+  for (int idx = 0; idx < ports.size(); idx++) {
     nexthopMacs.emplace_back(getNexthopMac(idx));
     dstIps.emplace_back(getDstIp(idx));
   }
 
+  XLOG(DBG0) << "Test " << ports.size() << " Ports with speed set to "
+             << static_cast<int>(portSpeed) << " kbps for PTP TC test";
+
   auto setup = [=, this]() {
-    for (int idx = 0; idx < size; idx++) {
-      auto dstIdx = (idx + 1) % size;
+    for (int idx = 0; idx < ports.size(); idx++) {
+      auto dstIdx = (idx + 1) % ports.size();
       // For inject port (idx) IP, routed to dest port (dstIdx)
       setupEcmpTraffic(ports[dstIdx], nexthopMacs[dstIdx], dstIps[idx]);
     }
@@ -248,8 +273,8 @@ TEST_F(AgentHwPtpTcProvisionTests, VerifyPtpTcDelayRequestOnPorts) {
   auto verify = [=, this]() {
     utility::SwSwitchPacketSnooper snooper(getSw(), "snooper-ptp");
 
-    for (int idx = 0; idx < size; idx++) {
-      auto dstIdx = (idx + 1) % size;
+    for (int idx = 0; idx < ports.size(); idx++) {
+      auto dstIdx = (idx + 1) % ports.size();
       sendPtpPkts(
           PTPMessageType::PTP_DELAY_REQUEST,
           ports[idx],
@@ -266,5 +291,18 @@ TEST_F(AgentHwPtpTcProvisionTests, VerifyPtpTcDelayRequestOnPorts) {
   };
   verifyAcrossWarmBoots(setup, verify);
 }
+
+INSTANTIATE_TEST_SUITE_P(
+    AgentHwPtpTcProvisionTests,
+    AgentHwPtpTcProvisionTests,
+    ::testing::Values(
+        cfg::PortSpeed::TWENTYFIVEG,
+        cfg::PortSpeed::FIFTYG,
+        cfg::PortSpeed::HUNDREDG,
+        cfg::PortSpeed::TWOHUNDREDG,
+        cfg::PortSpeed::FOURHUNDREDG),
+    [](const ::testing::TestParamInfo<cfg::PortSpeed>& info) {
+      return apache::thrift::util::enumNameSafe(info.param);
+    });
 
 } // namespace facebook::fboss

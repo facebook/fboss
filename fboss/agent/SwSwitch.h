@@ -1097,6 +1097,10 @@ class SwSwitch : public HwSwitchCallback {
       const StateDelta& delta,
       bool transaction) const;
 
+  std::shared_ptr<SwitchState> stateChanged(
+      const std::vector<StateDelta>& delta,
+      bool transaction) const;
+
   template <typename FsdbFunc>
   void runFsdbSyncFunction(FsdbFunc&& fn);
 

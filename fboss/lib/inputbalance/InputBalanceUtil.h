@@ -21,6 +21,17 @@ class MultiSwitchPortMap;
 
 namespace utility {
 
+struct InputBalanceResult {
+  std::string destinationSwitch;
+  std::string sourceSwitch;
+  bool balanced;
+  // Detailed information will only be populated if not balanced
+  std::optional<std::vector<std::string>> inputCapacity;
+  std::optional<std::vector<std::string>> outputCapacity;
+  std::optional<std::vector<std::string>> inputLinkFailure;
+  std::optional<std::vector<std::string>> outputLinkFailure;
+};
+
 bool isDualStage(const std::map<int64_t, cfg::DsfNode>& dsfNodeMap);
 
 std::vector<std::pair<int64_t, std::string>> deviceToQueryInputCapacity(
@@ -33,5 +44,15 @@ getNeighborFabricPortsToSelf(
 
 std::map<std::string, std::string> getPortToNeighbor(
     const std::shared_ptr<MultiSwitchPortMap>& portMap);
+
+// TODO(zecheng): Add check to link failure
+std::vector<InputBalanceResult> checkInputBalanceSingleStage(
+    const std::vector<std::string>& dstSwitchNames,
+    const std::unordered_map<
+        std::string,
+        std::unordered_map<std::string, std::vector<std::string>>>&
+        inputCpacity,
+    const std::unordered_map<std::string, std::vector<std::string>>&
+        outputCpacity);
 } // namespace utility
 } // namespace facebook::fboss

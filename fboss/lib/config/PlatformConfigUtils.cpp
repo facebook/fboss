@@ -397,4 +397,23 @@ std::vector<cfg::PlatformPortEntry> getPlatformPortsByChip(
   }
   return ports;
 }
+std::vector<uint32_t> getHwPortLanes(
+    cfg::PlatformPortEntry& platformPortEntry,
+    cfg::PortProfileID profileID,
+    const std::map<std::string, phy::DataPlanePhyChip>& dataPlanePhyChips,
+    std::function<uint32_t(uint32_t, uint32_t)>&& getPhysicalLaneId) {
+  auto iphys = utility::getOrderedIphyLanes(
+      platformPortEntry, dataPlanePhyChips, profileID);
+  std::vector<uint32_t> hwLaneList;
+  for (auto iphy : iphys) {
+    auto chipIter = dataPlanePhyChips.find(*iphy.chip());
+    if (chipIter == dataPlanePhyChips.end()) {
+      throw FbossError(
+          "dataplane chip does not exist for chip: ", *iphy.chip());
+    }
+    hwLaneList.push_back(
+        getPhysicalLaneId(*chipIter->second.physicalID(), *iphy.lane()));
+  }
+  return hwLaneList;
+}
 } // namespace facebook::fboss::utility

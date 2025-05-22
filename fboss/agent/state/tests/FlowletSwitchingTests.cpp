@@ -255,3 +255,60 @@ TEST(FlowletSwitching, applyConfig) {
   ASSERT_NE(nullptr, stateV4);
   EXPECT_EQ(stateV5->getFlowletSwitchingConfig(), nullptr);
 }
+
+TEST(FlowletSwitching, modify) {
+  auto platform = createMockPlatform();
+
+  cfg::SwitchConfig config;
+  cfg::FlowletSwitchingConfig flowletCfg;
+
+  // make any random change, so that new state can be created
+  // ensure that flowlet switching is not configured
+  config.flowletSwitchingConfig() = flowletCfg;
+  auto stateV0 = std::make_shared<SwitchState>();
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  ASSERT_NE(stateV1, nullptr);
+  stateV1->publish();
+  EXPECT_NE(stateV1->getFlowletSwitchingConfig(), nullptr);
+  EXPECT_TRUE(stateV1->isPublished());
+  EXPECT_TRUE(stateV1->getSwitchSettings()->isPublished());
+  EXPECT_TRUE(stateV1->getFlowletSwitchingConfig()->isPublished());
+  auto origFlowletConfig = stateV1->getFlowletSwitchingConfig();
+  auto newFlowletConfig = origFlowletConfig->modify(&stateV1);
+  EXPECT_NE(newFlowletConfig, origFlowletConfig.get());
+  EXPECT_FALSE(stateV1->isPublished());
+  EXPECT_FALSE(stateV1->getSwitchSettings()->isPublished());
+  EXPECT_FALSE(stateV1->getFlowletSwitchingConfig()->isPublished());
+}
+
+TEST(FlowletSwitching, mismatchedStateModify) {
+  auto platform = createMockPlatform();
+
+  cfg::SwitchConfig config;
+  cfg::FlowletSwitchingConfig flowletCfg;
+
+  // make any random change, so that new state can be created
+  // ensure that flowlet switching is not configured
+  config.flowletSwitchingConfig() = flowletCfg;
+  auto stateV0 = std::make_shared<SwitchState>();
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  ASSERT_NE(stateV1, nullptr);
+  stateV1->publish();
+  EXPECT_NE(stateV1->getFlowletSwitchingConfig(), nullptr);
+  EXPECT_TRUE(stateV1->isPublished());
+  EXPECT_TRUE(stateV1->getSwitchSettings()->isPublished());
+  EXPECT_TRUE(stateV1->getFlowletSwitchingConfig()->isPublished());
+  auto origFlowletConfig = stateV1->getFlowletSwitchingConfig();
+  auto newFlowletConfig = origFlowletConfig->modify(&stateV1);
+  EXPECT_NE(newFlowletConfig, origFlowletConfig.get());
+  EXPECT_FALSE(stateV1->isPublished());
+  EXPECT_FALSE(stateV1->getSwitchSettings()->isPublished());
+  EXPECT_FALSE(stateV1->getFlowletSwitchingConfig()->isPublished());
+  stateV1->publish();
+  newFlowletConfig->publish();
+  auto stateV2 = stateV1->clone();
+  stateV2->publish();
+  std::ignore = stateV2->getFlowletSwitchingConfig()->modify(&stateV2);
+  // newFlowletConfig is part of stateV1 not stateV2
+  EXPECT_THROW(newFlowletConfig->modify(&stateV2), FbossError);
+}

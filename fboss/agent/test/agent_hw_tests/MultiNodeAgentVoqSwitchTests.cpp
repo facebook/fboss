@@ -80,11 +80,25 @@ TEST_F(MultiNodeAgentVoqSwitchTest, verifyInbandPing) {
         getInbandPortIntfID(getProgrammedState(), switchId);
     auto recyclePortIntf = folly::to<std::string>("fboss", recyclePortIntfID);
     auto cmd = folly::to<std::string>(
-        "/usr/sbin/fping6 -I ", recyclePortIntf, " ", ipAddrsToPing);
+        "/usr/sbin/fping6 --alive -I ", recyclePortIntf, " ", ipAddrsToPing);
 
-    auto output = runShellCmd(cmd);
+    auto reachableIps = runShellCmd(cmd);
     XLOG(DBG2) << "Cmd: " << cmd;
-    XLOG(DBG2) << "Output: \n" << output;
+    XLOG(DBG2) << "Output: #" << reachableIps << "#";
+
+    // fping returns list of reachable IPs separated by \n.
+    // Convert to space separated list, so we can compare with ipAddrsToPing and
+    // assert that every pinged IP is reachable.
+    // Note: fping pings all IPs in parallel, so sort before comparing.
+    std::vector<std::string> reachableIpList;
+    folly::split("\n", reachableIps, reachableIpList);
+    std::sort(reachableIpList.begin(), reachableIpList.end());
+
+    std::vector<std::string> ipAddrsToPingList;
+    folly::split(" ", ipAddrsToPing, ipAddrsToPingList);
+    std::sort(ipAddrsToPingList.begin(), ipAddrsToPingList.end());
+
+    EXPECT_EQ(reachableIpList, ipAddrsToPingList);
   };
 
   verifyAcrossWarmBoots(setup, verify);

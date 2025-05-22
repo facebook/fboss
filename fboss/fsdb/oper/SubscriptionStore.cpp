@@ -11,6 +11,20 @@
 
 namespace facebook::fboss::fsdb {
 
+void updateSubscriberStats(
+    std::map<FsdbClient, SubscriberStats>& stats,
+    const BaseSubscription& subscription,
+    const std::function<void(SubscriberStats&, const BaseSubscription&)>&
+        updater) {
+  FsdbClient key = *subscriberId2ClientId(subscription.subscriberId()).client();
+  auto it = stats.find(key);
+  if (it == stats.end()) {
+    stats.emplace(key, SubscriberStats());
+    it = stats.find(key);
+  }
+  updater(it->second, subscription);
+}
+
 SubscriptionStore::~SubscriptionStore() {
   initialSyncNeeded_.clear(&pathStoreStats_);
   initialSyncNeededExtended_.clear();
@@ -100,10 +114,25 @@ void SubscriptionStore::registerPendingSubscriptions(
   }
 }
 
+void updateSubscriberStatsDisconnectReason(
+    SubscriberStats& stats,
+    const BaseSubscription& subscription) {
+  auto pruneReason = subscription.pruneReason();
+  if (pruneReason) {
+    if (pruneReason.value() == FsdbErrorCode::SUBSCRIPTION_SERVE_QUEUE_FULL) {
+      stats.numSlowSubscriptionDisconnects++;
+    }
+  }
+}
+
 void SubscriptionStore::unregisterSubscription(const std::string& name) {
   XLOG(DBG1) << "Unregistering subscription " << name;
   if (auto it = subscriptions_.find(name); it != subscriptions_.end()) {
-    auto rawPtr = it->second.get();
+    Subscription* rawPtr = it->second.get();
+    if (rawPtr->pruneReason()) {
+      updateSubscriberStats(
+          subscriberStats_, *rawPtr, updateSubscriberStatsDisconnectReason);
+    }
     // TODO: trim empty path stores
     initialSyncNeeded_.remove(rawPtr);
     lookup_.remove(rawPtr);
@@ -116,6 +145,12 @@ void SubscriptionStore::unregisterExtendedSubscription(
   XLOG(DBG1) << "Unregistering extended subscription " << name;
   if (auto it = extendedSubscriptions_.find(name);
       it != extendedSubscriptions_.end()) {
+    if (it->second.get()->pruneReason()) {
+      updateSubscriberStats(
+          subscriberStats_,
+          *it->second.get(),
+          updateSubscriberStatsDisconnectReason);
+    }
     initialSyncNeededExtended_.erase(it->second);
     extendedSubscriptions_.erase(it);
   }
@@ -182,10 +217,16 @@ void SubscriptionStore::flush(
   // TODO: hint which subscriptions need to be flushed to avoid full
   // loop
   for (auto& [_, subscription] : subscriptions_) {
-    subscription->flush(metadataServer);
+    auto ret = subscription->flush(metadataServer);
+    if (ret.has_value()) {
+      subscription->requestPruneWithReason(ret.value());
+    }
   }
   for (auto& [_, subscription] : extendedSubscriptions_) {
-    subscription->flush(metadataServer);
+    auto ret = subscription->flush(metadataServer);
+    if (ret.has_value()) {
+      subscription->requestPruneWithReason(ret.value());
+    }
   }
 }
 
@@ -193,6 +234,25 @@ void SubscriptionStore::processAddedPath(
     std::vector<std::string>::const_iterator begin,
     std::vector<std::string>::const_iterator end) {
   lookup_.processAddedPath(*this, begin, begin, end);
+}
+
+std::map<FsdbClient, SubscriberStats> SubscriptionStore::getSubscriberStats()
+    const {
+  std::map<FsdbClient, SubscriberStats> toRet = folly::copy(subscriberStats_);
+  auto updater = [](SubscriberStats& stats,
+                    const BaseSubscription& subscription) {
+    stats.numSubscriptions++;
+    stats.subscriptionServeQueueWatermark = std::max(
+        stats.subscriptionServeQueueWatermark,
+        subscription.getQueueWatermark());
+  };
+  for (auto& [id, subscription] : subscriptions_) {
+    updateSubscriberStats(toRet, *subscription, updater);
+  }
+  for (auto& [id, subscription] : extendedSubscriptions_) {
+    updateSubscriberStats(toRet, *subscription, updater);
+  }
+  return toRet;
 }
 
 } // namespace facebook::fboss::fsdb

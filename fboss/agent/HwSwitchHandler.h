@@ -22,10 +22,10 @@ class SwitchStats;
 class HwSwitchFb303Stats;
 
 struct HwSwitchStateUpdate {
-  HwSwitchStateUpdate(const StateDelta& delta, bool transaction);
+  HwSwitchStateUpdate(const std::vector<StateDelta>& deltas, bool transaction);
   std::shared_ptr<SwitchState> oldState;
   std::shared_ptr<SwitchState> newState;
-  fsdb::OperDelta inDelta;
+  std::vector<fsdb::OperDelta> operDeltas = {};
   bool isTransaction;
 };
 
@@ -80,7 +80,7 @@ class HwSwitchHandler {
       std::optional<cfg::SdkVersion> sdkVersion) const = 0;
 
   virtual HwSwitchStateOperUpdateResult stateChanged(
-      const fsdb::OperDelta& delta,
+      const std::vector<fsdb::OperDelta>& deltas,
       bool transaction,
       const std::shared_ptr<SwitchState>& initialState,
       const HwWriteBehavior& hwWriteBehavior = HwWriteBehavior::WRITE) = 0;
@@ -126,7 +126,7 @@ class HwSwitchHandler {
       const HwWriteBehavior& hwWriteBehavior = HwWriteBehavior::WRITE);
 
   HwSwitchStateOperUpdateResult stateChangedImpl(
-      const fsdb::OperDelta& delta,
+      const std::vector<fsdb::OperDelta>& deltas,
       bool transaction,
       const std::shared_ptr<SwitchState>& newState,
       const HwWriteBehavior& hwWriteBehavior = HwWriteBehavior::WRITE);

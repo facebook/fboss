@@ -192,6 +192,7 @@ class BcmEcmpEgress : public BcmEgressBase {
       bcm_if_t* pathsInHw);
   void createEcmpObject(
       bcm_l3_egress_ecmp_t& obj,
+      int option,
       int* index,
       bcm_l3_ecmp_member_t* ecmpMemberArray,
       bcm_if_t* pathsArray,

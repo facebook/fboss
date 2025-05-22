@@ -98,6 +98,10 @@ class NaivePeriodicSubscribableStorage
             tracker->getPublisherRootMetadata(*getPublisherRoot(begin, end));
         if (metadata && *metadata->operMetadata.lastConfirmedAt() > 0) {
           result.value().metadata() = metadata->operMetadata;
+          result.value().metadata()->lastServedAt() =
+              std::chrono::duration_cast<std::chrono::milliseconds>(
+                  std::chrono::system_clock::now().time_since_epoch())
+                  .count();
         } else {
           throw Utils::createFsdbException(
               FsdbErrorCode::PUBLISHER_NOT_READY, "Publisher not ready");
@@ -122,8 +126,12 @@ class NaivePeriodicSubscribableStorage
         auto metadata =
             tracker->getPublisherRootMetadata(*getPublisherRoot(begin, end));
         if (metadata && *metadata->operMetadata.lastConfirmedAt() > 0) {
+          auto now = std::chrono::duration_cast<std::chrono::milliseconds>(
+                         std::chrono::system_clock::now().time_since_epoch())
+                         .count();
           for (auto& state : result.value()) {
             state.state()->metadata() = metadata->operMetadata;
+            state.state()->metadata()->lastServedAt() = now;
           }
         } else {
           throw Utils::createFsdbException(

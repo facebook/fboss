@@ -16,12 +16,17 @@ class EcmpBackupGroupTypeTest : public BaseEcmpResourceManagerTest {
  public:
   std::shared_ptr<EcmpResourceManager> makeResourceMgr() const override {
     static constexpr auto kEcmpGroupHwLimit = 7;
+    return makeResourceMgrWithEcmpLimit(kEcmpGroupHwLimit);
+  }
+  static constexpr auto kNumStartRoutes = 5;
+
+  std::shared_ptr<EcmpResourceManager> makeResourceMgrWithEcmpLimit(
+      int ecmpGroupLimit) const {
     return std::make_shared<EcmpResourceManager>(
-        kEcmpGroupHwLimit,
+        ecmpGroupLimit,
         0 /*compressionPenaltyThresholdPct*/,
         cfg::SwitchingMode::PER_PACKET_RANDOM);
   }
-  static constexpr auto kNumStartRoutes = 5;
   int numStartRoutes() const override {
     return kNumStartRoutes;
   }
@@ -68,12 +73,13 @@ class EcmpBackupGroupTypeTest : public BaseEcmpResourceManagerTest {
     assertEndState(newState, {});
     XLOG(DBG2) << "EcmpResourceMgrBackupGrpTest SetUp done";
   }
-  void assertEndState(
+  void assertTargetState(
+      const std::shared_ptr<SwitchState>& targetState,
       const std::shared_ptr<SwitchState>& endStatePrefixes,
       const std::set<RouteV6::Prefix>& overflowPrefixes) {
     EXPECT_EQ(state_->getFibs()->getNode(RouterID(0))->getFibV4()->size(), 0);
     for (auto [_, inRoute] : std::as_const(*cfib(endStatePrefixes))) {
-      auto route = cfib(state_)->exactMatch(inRoute->prefix());
+      auto route = cfib(targetState)->exactMatch(inRoute->prefix());
       ASSERT_TRUE(route->isResolved());
       ASSERT_NE(route, nullptr);
       if (overflowPrefixes.find(route->prefix()) != overflowPrefixes.end()) {
@@ -89,6 +95,11 @@ class EcmpBackupGroupTypeTest : public BaseEcmpResourceManagerTest {
             route->getForwardInfo().getOverrideEcmpSwitchingMode().has_value());
       }
     }
+  }
+  void assertEndState(
+      const std::shared_ptr<SwitchState>& endStatePrefixes,
+      const std::set<RouteV6::Prefix>& overflowPrefixes) {
+    assertTargetState(state_, endStatePrefixes, overflowPrefixes);
   }
 };
 
@@ -483,16 +494,16 @@ TEST_F(EcmpBackupGroupTypeTest, updateAllRoutesAllRoutesAboveEcmpLimit) {
    * R4, R8 - G4
    * R0, R9 - G5
    * Routes after
-   * R1 - G6
-   * R2 - G7
-   * R3 - G8
-   * R4 - G9
+   * R1 - G6 (bkup)
+   * R2 - G7 (bkup)
+   * R3 - G8 (bkup)
+   * R4 - G9 (bkup)
    * R5 - G1
    * R6 - G2
    * R7 - G3
    * R8 - G4
    * R9 - G5
-   * R0 - G10
+   * R0 - G10 (bkup)
    *
    */
   {
@@ -661,4 +672,210 @@ TEST_F(EcmpBackupGroupTypeTest, reclaimPrioritizesECMPWithMoreRoutes) {
   }
 }
 
+// Backup switching mode change tests
+TEST_F(EcmpBackupGroupTypeTest, changeSwitchingModeNoBackupEcmpRoutes) {
+  // add new routes pointing to existing nhops. No limit is thus breached.
+  auto oldState = state_;
+  auto newState = oldState->clone();
+  auto newFlowletSwitchingConfig =
+      newState->getFlowletSwitchingConfig()->modify(&newState);
+  newFlowletSwitchingConfig->setBackupSwitchingMode(
+      cfg::SwitchingMode::FIXED_ASSIGNMENT);
+  auto deltas = consolidate(newState);
+  EXPECT_EQ(deltas.size(), 1);
+  EXPECT_EQ(deltas.back(), StateDelta(oldState, newState));
+  // No overflow
+  assertEndState(newState, {});
+  EXPECT_EQ(
+      state_->getFlowletSwitchingConfig()->getBackupSwitchingMode(),
+      cfg::SwitchingMode::FIXED_ASSIGNMENT);
+  EXPECT_EQ(
+      *consolidator_->getBackupEcmpSwitchingMode(),
+      cfg::SwitchingMode::FIXED_ASSIGNMENT);
+}
+
+TEST_F(EcmpBackupGroupTypeTest, overflowAndSwitchingModeChange) {
+  // Add new routes pointing to new nhops. ECMP limit is breached.
+  auto nhopSets = nextNhopSets();
+  auto oldState = state_;
+  auto newState = oldState->clone();
+  auto fib6 = fib(newState);
+  auto routesBefore = fib6->size();
+  std::set<RouteNextHopSet> nhops;
+  std::set<RouteV6::Prefix> overflowPrefixes;
+  for (auto i = 0; i < numStartRoutes(); ++i) {
+    auto route = makeRoute(makePrefix(routesBefore + i), nhopSets[i]);
+    overflowPrefixes.insert(route->prefix());
+    nhops.insert(nhopSets[i]);
+    fib6->addNode(route);
+  }
+  // Change backup ecmp switching mode
+  auto newFlowletSwitchingConfig =
+      newState->getFlowletSwitchingConfig()->modify(&newState);
+  newFlowletSwitchingConfig->setBackupSwitchingMode(
+      cfg::SwitchingMode::FIXED_ASSIGNMENT);
+  auto deltas = consolidate(newState);
+  EXPECT_EQ(deltas.size(), overflowPrefixes.size() + 1);
+  assertEndState(newState, overflowPrefixes);
+}
+
+TEST_F(EcmpBackupGroupTypeTest, overflowRoutesAndThenSwitchingModeChange) {
+  // Add new routes pointing to new nhops. ECMP limit is breached.
+  auto nhopSets = nextNhopSets();
+  auto oldState = state_;
+  auto newState = oldState->clone();
+  auto fib6 = fib(newState);
+  auto routesBefore = fib6->size();
+  std::set<RouteNextHopSet> nhops;
+  std::set<RouteV6::Prefix> overflowPrefixes;
+  for (auto i = 0; i < numStartRoutes(); ++i) {
+    auto route = makeRoute(makePrefix(routesBefore + i), nhopSets[i]);
+    overflowPrefixes.insert(route->prefix());
+    nhops.insert(nhopSets[i]);
+    fib6->addNode(route);
+  }
+  auto deltas = consolidate(newState);
+  EXPECT_EQ(deltas.size(), overflowPrefixes.size() + 1);
+  assertEndState(newState, overflowPrefixes);
+  auto newerState = newState->clone();
+  // Change backup ecmp switching mode
+  auto newFlowletSwitchingConfig =
+      newerState->getFlowletSwitchingConfig()->modify(&newerState);
+  newFlowletSwitchingConfig->setBackupSwitchingMode(
+      cfg::SwitchingMode::FIXED_ASSIGNMENT);
+  auto deltas2 = consolidate(newerState);
+  EXPECT_EQ(deltas2.size(), overflowPrefixes.size() + 1);
+  assertEndState(newerState, overflowPrefixes);
+}
+
+TEST_F(EcmpBackupGroupTypeTest, resetBackupSwitchingModeProhibited) {
+  // Reset switching config mode from one value to null. Expect throw
+  auto oldState = state_;
+  auto newState = oldState->clone();
+  auto switchSettings = newState->getSwitchSettings()
+                            ->getNode(hwMatcher().matcherString())
+                            ->modify(&newState);
+  switchSettings->setFlowletSwitchingConfig(nullptr);
+  EXPECT_THROW(consolidate(newState), FbossError);
+}
+
+TEST_F(EcmpBackupGroupTypeTest, changeSwitchingModeAndFailUpdate) {
+  // add new routes pointing to existing nhops. No limit is thus breached.
+  auto oldState = state_;
+  auto newState = oldState->clone();
+  auto newFlowletSwitchingConfig =
+      newState->getFlowletSwitchingConfig()->modify(&newState);
+  newFlowletSwitchingConfig->setBackupSwitchingMode(
+      cfg::SwitchingMode::FIXED_ASSIGNMENT);
+  EXPECT_THROW(failUpdate(newState), FbossError);
+}
+
+// Replay state tests
+
+TEST_F(EcmpBackupGroupTypeTest, overflowRoutesInReverseOrderOfReplay) {
+  std::set<RouteV6::Prefix> startPrefixes;
+  for (const auto& [_, route] : std::as_const(*cfib(state_))) {
+    startPrefixes.insert(route->prefix());
+  }
+  // clear all routes
+  {
+    auto newState = state_->clone();
+    auto fib6 = fib(newState);
+    fib6->clear();
+    auto deltas = consolidate(newState);
+    EXPECT_EQ(deltas.size(), 1);
+    assertEndState(newState, {});
+  }
+  /*
+  State before
+  - No routes
+  State after
+    R5 -> G1
+    R6 -> G2
+    R7 -> G3
+    R8 -> G4
+    R9 -> G5
+  */
+  {
+    // Add routes pointing to default nhop sets ECMP limit is not breached.
+    auto oldState = state_;
+    auto newState = oldState->clone();
+    auto fib6 = fib(newState);
+    auto defaultNhops = defaultNhopSets();
+    for (auto i = 0; i < startPrefixes.size(); ++i) {
+      auto newRoute =
+          makeRoute(makePrefix(startPrefixes.size() + i), defaultNhops[i]);
+      fib6->addNode(newRoute);
+    }
+    auto deltas = consolidate(newState);
+    EXPECT_EQ(deltas.size(), 1);
+    assertEndState(newState, {});
+  }
+  /*
+  State before
+    R5 -> G1
+    R6 -> G2
+    R7 -> G3
+    R8 -> G4
+    R9 -> G5
+  State after
+    R0 -> G6 (bkup)
+    R1 -> G7 (bkup)
+    R2 -> G8 (bkup)
+    R3 -> G9 (bkup)
+    R4 -> G10 (bkup)
+    R5 -> G1
+    R6 -> G2
+    R7 -> G3
+    R8 -> G4
+    R9 -> G5
+  */
+  {
+    // Add new routes. These will go to backup nhop groups.
+    auto oldState = state_;
+    auto newState = oldState->clone();
+    auto fib6 = fib(newState);
+    auto newNhops = nextNhopSets();
+    auto idx = 0;
+    for (const auto& pfx : startPrefixes) {
+      auto newRoute = makeRoute(pfx, newNhops[idx++]);
+      fib6->addNode(newRoute);
+    }
+    // BaseEcmpResourceManagerTest::consolidate does a replay
+    // of newState and asserts that same set of prefixes gets
+    // marked for backup ecmp group. Even though had we played
+    // the current start from start routes from R5-R9 would have
+    // ended up with backup ecmp group type nhops
+    auto deltas = consolidate(newState);
+    EXPECT_EQ(deltas.size(), startPrefixes.size() + 1);
+    assertEndState(newState, startPrefixes);
+  }
+}
+
+TEST_F(EcmpBackupGroupTypeTest, reclaimOnReplay) {
+  // Add new routes pointing to new nhops. ECMP limit is breached.
+  auto nhopSets = nextNhopSets();
+  auto oldState = state_;
+  auto newState = oldState->clone();
+  auto fib6 = fib(newState);
+  auto routesBefore = fib6->size();
+  std::set<RouteNextHopSet> nhops;
+  std::set<RouteV6::Prefix> overflowPrefixes;
+  for (auto i = 0; i < numStartRoutes(); ++i) {
+    auto route = makeRoute(makePrefix(routesBefore + i), nhopSets[i]);
+    overflowPrefixes.insert(route->prefix());
+    nhops.insert(nhopSets[i]);
+    fib6->addNode(route);
+  }
+  auto deltas = consolidate(newState);
+  EXPECT_EQ(deltas.size(), numStartRoutes() + 1);
+  assertEndState(newState, overflowPrefixes);
+  auto newConsolidator = makeResourceMgrWithEcmpLimit(
+      cfib(state_)->size() +
+      FLAGS_ecmp_resource_manager_make_before_break_buffer);
+  auto replayDeltas = newConsolidator->reconstructFromSwitchState(state_);
+  ASSERT_EQ(replayDeltas.size(), 1);
+  // No overflow, since we increased the limit to cover all the prefixes
+  assertTargetState(replayDeltas.back().newState(), state_, {});
+}
 } // namespace facebook::fboss

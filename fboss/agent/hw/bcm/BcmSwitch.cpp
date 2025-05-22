@@ -965,6 +965,8 @@ HwInitResult BcmSwitch::initImpl(
   setupToCpuEgress();
   portTable_->initPorts(&pcfg, warmBoot);
 
+  egressManager_->init();
+
   // initialize UDF module
   udfManager_->init();
   bstStatsMgr_->startBufferStatCollection();
