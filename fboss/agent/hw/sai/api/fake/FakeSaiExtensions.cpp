@@ -682,4 +682,8 @@ SaiSwitchTraits::Attributes::AttributePipelineObjectList::operator()() {
   return SAI_SWITCH_ATTR_PIPELINE_OBJECTS;
 }
 
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeDisableSllAndHllTimeout::operator()() {
+  return SAI_SWITCH_ATTR_DISABLE_SLL_AND_HLL_TIMEOUT;
+}
 } // namespace facebook::fboss

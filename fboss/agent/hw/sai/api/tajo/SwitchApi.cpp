@@ -342,4 +342,8 @@ SaiSwitchTraits::Attributes::AttributePipelineObjectList::operator()() {
   return std::nullopt;
 }
 
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeDisableSllAndHllTimeout::operator()() {
+  return std::nullopt;
+}
 } // namespace facebook::fboss

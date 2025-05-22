@@ -152,6 +152,7 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(Switch, PfcTcDldTimerGranularityInterval);
   SAI_EXT_ATTR_MAP(Switch, NumberOfPipes);
   SAI_EXT_ATTR_MAP(Switch, PipelineObjectList);
+  SAI_EXT_ATTR_MAP(Switch, DisableSllAndHllTimeout);
 }
 
 } // namespace

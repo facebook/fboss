@@ -101,6 +101,7 @@ typedef enum _sai_switch_extensions_attr_t {
   SAI_SWITCH_ATTR_PFC_TC_DLD_TIMER_INTERVAL,
   SAI_SWITCH_ATTR_NUMBER_OF_PIPES,
   SAI_SWITCH_ATTR_PIPELINE_OBJECTS,
+  SAI_SWITCH_ATTR_DISABLE_SLL_AND_HLL_TIMEOUT,
 } sai_switch_extensions_attr_t;
 
 typedef enum _sai_tam_event_extensions_attr_t {

@@ -750,6 +750,14 @@ struct SaiSwitchTraits {
         std::vector<sai_object_id_t>,
         AttributePipelineObjectList,
         SaiObjectIdListDefault>;
+
+    struct AttributeDisableSllAndHllTimeout {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using DisableSllAndHllTimeout = SaiExtensionAttribute<
+        bool,
+        AttributeDisableSllAndHllTimeout,
+        SaiBoolDefaultFalse>;
   };
   using AdapterKey = SwitchSaiId;
   using AdapterHostKey = std::monostate;
@@ -1009,6 +1017,7 @@ SAI_ATTRIBUTE_NAME(Switch, TcRateLimitList)
 SAI_ATTRIBUTE_NAME(Switch, PfcTcDldTimerGranularityInterval)
 SAI_ATTRIBUTE_NAME(Switch, NumberOfPipes)
 SAI_ATTRIBUTE_NAME(Switch, PipelineObjectList)
+SAI_ATTRIBUTE_NAME(Switch, DisableSllAndHllTimeout)
 
 template <>
 struct SaiObjectHasStats<SaiSwitchTraits> : public std::true_type {};
