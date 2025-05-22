@@ -177,6 +177,9 @@ void EcmpResourceManager::reclaimEcmpGroups(InputOutputState* inOutState) {
    * overflowed the ECMP limit when processing R0
    */
   inOutState->out.emplace_back(oldState, newState);
+  inOutState->nonBackupEcmpGroupsCnt += groupIdsToReclaim.size();
+  XLOG(DBG2) << " Primary ECMP Groups after reclaim: "
+             << inOutState->nonBackupEcmpGroupsCnt;
 }
 
 std::set<EcmpResourceManager::NextHopGroupId>
