@@ -179,6 +179,7 @@ cpp_library(
         "//fboss/agent/test/utils:udf_test_utils",
         "//fboss/agent/test/utils:voq_test_utils",
         "//fboss/lib:common_utils",
+        "//fboss/lib/config:fboss_config_utils",
         "//folly:file_util",
         "//folly:map_util",
         "//folly:network_address",
