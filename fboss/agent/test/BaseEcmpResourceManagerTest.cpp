@@ -46,6 +46,35 @@ std::shared_ptr<RouteV6> makeRoute(
   return rt;
 }
 
+cfg::SwitchConfig onePortPerIntfConfig(int numIntfs) {
+  cfg::SwitchConfig cfg;
+  cfg.ports()->resize(numIntfs);
+  cfg.vlans()->resize(numIntfs);
+  cfg.interfaces()->resize(numIntfs);
+  int idBegin = 1;
+  for (int p = 0; p < numIntfs; ++p) {
+    auto id = p + idBegin;
+    cfg.ports()[p].logicalID() = id;
+    cfg.ports()[p].name() = folly::to<std::string>("port", id);
+    cfg.ports()[p].speed() = cfg::PortSpeed::TWENTYFIVEG;
+    cfg.ports()[p].profileID() =
+        cfg::PortProfileID::PROFILE_25G_1_NRZ_CL74_COPPER;
+    cfg.vlans()[p].id() = id;
+    cfg.vlans()[p].name() = folly::to<std::string>("Vlan", id);
+    cfg.vlans()[p].intfID() = id;
+    cfg.interfaces()[p].intfID() = id;
+    cfg.interfaces()[p].routerID() = 0;
+    cfg.interfaces()[p].vlanID() = id;
+    cfg.interfaces()[p].name() = folly::to<std::string>("interface", id);
+    cfg.interfaces()[p].mac() = "00:02:00:00:00:01";
+    cfg.interfaces()[p].mtu() = 9000;
+    cfg.interfaces()[p].ipAddresses()->resize(1);
+    cfg.interfaces()[p].ipAddresses()[0] =
+        folly::sformat("2601:db00:2110:{}::1/64", p);
+  }
+  return cfg;
+}
+
 std::vector<StateDelta> BaseEcmpResourceManagerTest::consolidate(
     const std::shared_ptr<SwitchState>& state) {
   state->publish();

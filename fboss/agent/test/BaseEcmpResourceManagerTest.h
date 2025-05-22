@@ -45,6 +45,8 @@ inline HwSwitchMatcher hwMatcher() {
   return HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(0)}));
 }
 
+cfg::SwitchConfig onePortPerIntfConfig(int numIntfs);
+
 class BaseEcmpResourceManagerTest : public ::testing::Test {
  public:
   RouteNextHopSet defaultNhops() const {
