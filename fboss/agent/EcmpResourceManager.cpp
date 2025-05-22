@@ -69,6 +69,13 @@ std::vector<StateDelta> EcmpResourceManager::consolidateImpl(
   processRouteUpdates(delta, inOutState);
   reclaimEcmpGroups(inOutState);
   CHECK(!inOutState->out.empty());
+  if (!inOutState->updated) {
+    /*
+     * If inOutState was not updated, just return the original delta
+     */
+    inOutState->out.clear();
+    inOutState->out.emplace_back(delta.oldState(), delta.newState());
+  }
   return std::move(inOutState->out);
 }
 
@@ -178,6 +185,7 @@ void EcmpResourceManager::reclaimEcmpGroups(InputOutputState* inOutState) {
    */
   inOutState->out.emplace_back(oldState, newState);
   inOutState->nonBackupEcmpGroupsCnt += groupIdsToReclaim.size();
+  inOutState->updated = true;
   XLOG(DBG2) << " Primary ECMP Groups after reclaim: "
              << inOutState->nonBackupEcmpGroupsCnt;
 }
@@ -362,6 +370,7 @@ EcmpResourceManager::updateForwardingInfoAndInsertDelta(
   newRoute->setResolved(std::move(newForwardInfo));
   newRoute->publish();
   inOutState->addOrUpdateRoute(rid, newRoute, ecmpDemandExceeded);
+  inOutState->updated = true;
   return grpInfo;
 }
 
@@ -446,9 +455,9 @@ void EcmpResourceManager::routeAddedOrUpdated(
   auto [idItr, inserted] = nextHopGroup2Id_.insert(
       {nhopSet, findCachedOrNewIdForNhops(nhopSet, *inOutState)});
   std::shared_ptr<NextHopGroupInfo> grpInfo;
+  bool isBackupEcmpGroupType =
+      newRoute->getForwardInfo().getOverrideEcmpSwitchingMode().has_value();
   if (inserted) {
-    bool isBackupEcmpGroupType =
-        newRoute->getForwardInfo().getOverrideEcmpSwitchingMode().has_value();
     if (ecmpLimitReached && !isBackupEcmpGroupType) {
       /*
        * If ECMP limit is reached and route does not point to a backup
@@ -480,7 +489,7 @@ void EcmpResourceManager::routeAddedOrUpdated(
   } else {
     // Route points to a existing group
     grpInfo = nextHopGroupIdToInfo_.ref(idItr->second);
-    if (grpInfo->isBackupEcmpGroupType()) {
+    if (grpInfo->isBackupEcmpGroupType() && !isBackupEcmpGroupType) {
       auto existingGrpInfo = updateForwardingInfoAndInsertDelta(
           rid, newRoute, idItr, false /*ecmpLimitReached*/, inOutState);
       CHECK_EQ(existingGrpInfo, grpInfo);

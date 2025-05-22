@@ -76,10 +76,11 @@ std::vector<StateDelta> BaseEcmpResourceManagerTest::consolidate(
     for (const auto& [_, origRoute] : std::as_const(*cfib(state_))) {
       auto newRoute = newFib6->getRouteIf(origRoute->prefix());
       EXPECT_EQ(newRoute->isResolved(), origRoute->isResolved());
-      CHECK(origRoute->isResolved());
-      EXPECT_EQ(
-          newRoute->getForwardInfo().getOverrideEcmpSwitchingMode(),
-          origRoute->getForwardInfo().getOverrideEcmpSwitchingMode());
+      if (origRoute->isResolved()) {
+        EXPECT_EQ(
+            newRoute->getForwardInfo().getOverrideEcmpSwitchingMode(),
+            origRoute->getForwardInfo().getOverrideEcmpSwitchingMode());
+      }
     }
   }
   return deltas;

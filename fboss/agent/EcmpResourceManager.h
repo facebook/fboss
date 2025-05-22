@@ -140,6 +140,7 @@ class EcmpResourceManager {
     uint32_t nonBackupEcmpGroupsCnt;
     std::vector<StateDelta> out;
     PreUpdateState groupIdCache;
+    bool updated{false};
   };
   std::optional<InputOutputState> handleFlowletSwitchConfigDelta(
       const StateDelta& delta);
