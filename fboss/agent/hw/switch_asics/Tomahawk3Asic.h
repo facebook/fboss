@@ -96,7 +96,8 @@ class Tomahawk3Asic : public BroadcomXgsAsic {
     return 256;
   }
   std::optional<uint32_t> getMaxNdpTableSize() const override {
-    return 8192;
+    // TBD(vsp): Details here - D75211129
+    return 5154;
   }
 
   std::optional<uint32_t> getMaxArpTableSize() const override {
