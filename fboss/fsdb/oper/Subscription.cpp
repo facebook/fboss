@@ -25,8 +25,8 @@ DEFINE_int32(
 
 DEFINE_bool(
     forceCloseSlowSubscriber,
-    false,
-    "Force close slow subscriber if subscription serve queue gets full, default false");
+    true,
+    "Force close slow subscriber if subscription serve queue gets full");
 
 namespace facebook::fboss::fsdb {
 

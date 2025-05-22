@@ -410,7 +410,6 @@ TYPED_TEST(FsdbPubSubTest, dupSubscriber) {
 
 TYPED_TEST(FsdbPubSubTest, slowSubscriber) {
   FLAGS_subscriptionServeQueueSize = 2;
-  FLAGS_forceCloseSlowSubscriber = true;
 
   // publishInterval: wait for subscriptionServeIntervalMs+delta to prevent
   // published updates from being coalesced
