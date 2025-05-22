@@ -148,6 +148,10 @@ SaiSwitchTraits::CreateAttributes SaiYangraPlatform::getSwitchAttributes(
       mandatoryOnly, switchType, switchId, bootType);
   std::get<std::optional<SaiSwitchTraits::Attributes::HwInfo>>(attributes) =
       std::nullopt;
+  // disable timeout based discards and retain only buffer discards
+  std::get<std::optional<SaiSwitchTraits::Attributes::DisableSllAndHllTimeout>>(
+      attributes) = true;
+
   return attributes;
 }
 
