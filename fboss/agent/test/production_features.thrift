@@ -89,6 +89,7 @@ enum ProductionFeature {
   COPP_SHAPER = 76,
   COPP_SCHEDULER = 77,
   ECMP_RANDOM_SPRAY = 78,
+  PTP_TC_PROVISIONING_TIME_HW_VALIDATION = 79,
   # production feature which is present on all platforms, keep it at the end
   HW_SWITCH = 65536,
 }

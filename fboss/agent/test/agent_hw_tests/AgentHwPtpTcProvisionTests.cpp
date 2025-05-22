@@ -53,7 +53,10 @@ class AgentHwPtpTcProvisionTests
 
   std::vector<production_features::ProductionFeature>
   getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::PTP_TC};
+    return {
+        production_features::ProductionFeature::PTP_TC,
+        production_features::ProductionFeature::
+            PTP_TC_PROVISIONING_TIME_HW_VALIDATION};
   }
 
   cfg::SwitchConfig initialConfig(
