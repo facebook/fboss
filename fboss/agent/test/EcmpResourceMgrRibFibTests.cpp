@@ -29,7 +29,6 @@ class EcmpResourceManagerRibFibTest : public ::testing::Test {
   RouteNextHopSet defaultNhops() const {
     return makeNextHops(54);
   }
-  using NextHopGroupId = EcmpResourceManager::NextHopGroupId;
   void SetUp() override {
     FLAGS_enable_ecmp_resource_manager = true;
     FLAGS_ecmp_resource_manager_make_before_break_buffer = 0;
@@ -45,9 +44,21 @@ class EcmpResourceManagerRibFibTest : public ::testing::Test {
         *sw_->getEcmpResourceManager()->getBackupEcmpSwitchingMode(),
         *cfg.flowletSwitchingConfig()->backupSwitchingMode());
   }
+  void assertRibFibEquivalence() const {
+    for (const auto& [_, route] : std::as_const(*cfib(sw_->getState()))) {
+      auto ribRoute =
+          sw_->getRib()->longestMatch(route->prefix().network(), RouterID(0));
+      ASSERT_NE(ribRoute, nullptr);
+      // TODO - check why are the pointers different even though the
+      // forwarding info matches. This is true with or w/o consolidator
+      EXPECT_EQ(ribRoute->getForwardInfo(), route->getForwardInfo());
+    }
+  }
   std::unique_ptr<HwTestHandle> handle_;
   SwSwitch* sw_;
 };
 
-TEST_F(EcmpResourceManagerRibFibTest, init) {}
+TEST_F(EcmpResourceManagerRibFibTest, init) {
+  assertRibFibEquivalence();
+}
 } // namespace facebook::fboss
