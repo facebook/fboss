@@ -95,7 +95,7 @@ class BaseEcmpSetupHelper {
  public:
   static auto constexpr kIsV6 = std::is_same<AddrT, folly::IPAddressV6>::value;
 
-  BaseEcmpSetupHelper();
+  explicit BaseEcmpSetupHelper(bool needL2EntryForNeighbor);
   virtual NextHopT nhop(PortDescriptor portDesc) const = 0;
   const std::vector<NextHopT>& getNextHops() const {
     return nhops_;
@@ -186,11 +186,17 @@ class BaseEcmpSetupHelper {
       const std::shared_ptr<Interface>& intf,
       bool useLinkLocal) const;
 
+  bool needL2EntryForNeighbor_;
+
  protected:
   boost::container::flat_map<PortDescriptor, InterfaceID>
   computePortDesc2Interface(
       const std::shared_ptr<SwitchState>& inputState,
       const std::set<cfg::PortType>& portTypes) const;
+
+  bool needL2EntryForNeighbor() const {
+    return needL2EntryForNeighbor_;
+  }
 
   std::vector<NextHopT> nhops_;
   boost::container::flat_map<PortDescriptor, InterfaceID> portDesc2Interface_;
@@ -206,9 +212,11 @@ class EcmpSetupTargetedPorts
   using EcmpNextHopT = EcmpNextHop<IPAddrT>;
   explicit EcmpSetupTargetedPorts(
       const std::shared_ptr<SwitchState>& inputState,
+      bool needL2EntryForNeighbor,
       RouterID routerId = RouterID(0))
       : EcmpSetupTargetedPorts(
             inputState,
+            needL2EntryForNeighbor,
             std::nullopt,
             routerId,
             false,
@@ -216,10 +224,12 @@ class EcmpSetupTargetedPorts
 
   EcmpSetupTargetedPorts(
       const std::shared_ptr<SwitchState>& inputState,
+      bool needL2EntryForNeighbor,
       bool forProdConfig,
       const std::set<cfg::PortType>& portTypes)
       : EcmpSetupTargetedPorts(
             inputState,
+            needL2EntryForNeighbor,
             std::nullopt,
             RouterID(0),
             forProdConfig,
@@ -227,6 +237,7 @@ class EcmpSetupTargetedPorts
 
   EcmpSetupTargetedPorts(
       const std::shared_ptr<SwitchState>& inputState,
+      bool needL2EntryForNeighbor,
       std::optional<folly::MacAddress> nextHopMac,
       RouterID routerId = RouterID(0),
       bool forProdConfig = false,
@@ -337,12 +348,16 @@ class MplsEcmpSetupTargetedPorts
 
   explicit MplsEcmpSetupTargetedPorts(
       const std::shared_ptr<SwitchState>& inputState,
+      bool needL2EntryForNeighbor,
       Label topLabel,
       LabelForwardingAction::LabelForwardingType actionType,
       bool forProdConfig = false,
       const std::set<cfg::PortType>& portTypes =
           {cfg::PortType::INTERFACE_PORT})
-      : topLabel_(topLabel), actionType_(actionType) {
+      : BaseEcmpSetupHelper<IPAddrT, EcmpMplsNextHop<IPAddrT>>(
+            needL2EntryForNeighbor),
+        topLabel_(topLabel),
+        actionType_(actionType) {
     computeNextHops(inputState, std::nullopt, forProdConfig, portTypes);
   }
 
@@ -376,11 +391,13 @@ class EcmpSetupAnyNPorts {
   using EcmpNextHopT = EcmpNextHop<IPAddrT>;
   explicit EcmpSetupAnyNPorts(
       const std::shared_ptr<SwitchState>& inputState,
+      bool needL2EntryForNeighbor,
       RouterID routerId = RouterID(0),
       const std::set<cfg::PortType>& portTypes =
           {cfg::PortType::INTERFACE_PORT})
       : EcmpSetupAnyNPorts(
             inputState,
+            needL2EntryForNeighbor,
             std::nullopt,
             routerId,
             false,
@@ -388,6 +405,7 @@ class EcmpSetupAnyNPorts {
 
   EcmpSetupAnyNPorts(
       const std::shared_ptr<SwitchState>& inputState,
+      bool needL2EntryForNeighbor,
       const std::optional<folly::MacAddress>& nextHopMac,
       RouterID routerId = RouterID(0),
       bool forProdConfig = false,
@@ -395,6 +413,7 @@ class EcmpSetupAnyNPorts {
           {cfg::PortType::INTERFACE_PORT})
       : ecmpSetupTargetedPorts_(
             inputState,
+            needL2EntryForNeighbor,
             nextHopMac,
             routerId,
             forProdConfig,
@@ -521,9 +540,14 @@ class MplsEcmpSetupAnyNPorts {
   using EcmpNextHopT = EcmpMplsNextHop<IPAddrT>;
   MplsEcmpSetupAnyNPorts(
       const std::shared_ptr<SwitchState>& inputState,
+      bool needL2EntryForNeighbor,
       Label topLabel,
       LabelForwardingAction::LabelForwardingType actionType)
-      : mplsEcmpSetupTargetedPorts_(inputState, topLabel, actionType) {}
+      : mplsEcmpSetupTargetedPorts_(
+            inputState,
+            needL2EntryForNeighbor,
+            topLabel,
+            actionType) {}
 
   void setupECMPForwarding(
       const std::shared_ptr<SwitchState>& inputState,

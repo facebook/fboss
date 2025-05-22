@@ -297,7 +297,6 @@ class HwLoadBalancerTestRunner {
     }
 
     auto setup = [=, this]() {
-      helper_->programRoutesAndLoadBalancer(ecmpWidth, weights, loadBalancer);
       auto cfg = getEnsemble()->getCurrentConfig();
       if (preMode != cfg::SwitchingMode::FIXED_ASSIGNMENT) {
         cfg.udfConfig() =
@@ -311,6 +310,7 @@ class HwLoadBalancerTestRunner {
             utility::kFlowletAclCounterName);
       }
       getEnsemble()->applyNewConfig(cfg);
+      helper_->programRoutesAndLoadBalancer(ecmpWidth, weights, loadBalancer);
     };
 
     auto verify = [=, this]() {

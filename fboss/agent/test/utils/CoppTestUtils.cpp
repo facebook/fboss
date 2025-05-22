@@ -24,8 +24,8 @@
 #include "fboss/agent/test/TestEnsembleIf.h"
 #include "fboss/lib/CommonUtils.h"
 
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 #include "fboss/agent/test/utils/PacketTestUtils.h"
@@ -1378,15 +1378,17 @@ uint64_t getCpuQueueInPackets(SwSwitch* sw, SwitchID switchId, int queueId) {
 }
 
 template <typename SwitchT>
-uint64_t getQueueOutPacketsWithRetry(
+std::map<int, uint64_t> getQueueOutPacketsWithRetry(
     SwitchT* switchPtr,
     SwitchID switchId,
     int queueId,
     int retryTimes,
     uint64_t expectedNumPkts,
+    bool verifyPktCntInOtherQueues,
     int postMatchRetryTimes) {
   uint64_t outPkts = 0;
-  const HwAsic* asic;
+  std::map<int, uint64_t> result;
+  const HwAsic* asic = nullptr;
   if constexpr (std::is_same_v<SwitchT, SwSwitch>) {
     asic = static_cast<SwSwitch*>(switchPtr)->getHwAsicTable()->getHwAsicIf(
         switchId);
@@ -1395,15 +1397,40 @@ uint64_t getQueueOutPacketsWithRetry(
   }
 
   do {
-    for (auto i = 0; i <= utility::getCoppHighPriQueueId(asic); i++) {
-      auto qOutPkts =
-          getCpuQueueOutPacketsAndBytes(switchPtr, i, switchId).first;
-      XLOG(DBG2) << "QueueID: " << i << " qOutPkts: " << qOutPkts;
-    }
+    if (!verifyPktCntInOtherQueues) {
+      for (auto i = 0; i <= utility::getCoppHighPriQueueId(asic); i++) {
+        auto qOutPkts =
+            getCpuQueueOutPacketsAndBytes(switchPtr, i, switchId).first;
+        XLOG(DBG2) << "QueueID: " << i << " qOutPkts: " << qOutPkts;
+      }
 
-    outPkts = getCpuQueueOutPacketsAndBytes(switchPtr, queueId, switchId).first;
-    if (retryTimes == 0 || (outPkts >= expectedNumPkts)) {
-      break;
+      result[queueId] =
+          getCpuQueueOutPacketsAndBytes(switchPtr, queueId, switchId).first;
+      if (retryTimes == 0 || (outPkts >= expectedNumPkts)) {
+        break;
+      }
+    } else {
+      // Get all queue IDs and populate the result map with packet counts for
+      // each queue
+      auto queueIds = getCpuQueueIds({asic});
+      bool allQueuesReady = true;
+
+      for (auto qId : queueIds) {
+        auto qOutPkts =
+            getCpuQueueOutPacketsAndBytes(switchPtr, qId, switchId).first;
+        result[qId] = qOutPkts;
+        XLOG(DBG2) << "QueueID: " << qId << " qOutPkts: " << qOutPkts;
+
+        // For the primary queue we're checking, see if it meets the expected
+        // count
+        if (qId == queueId && qOutPkts < expectedNumPkts) {
+          allQueuesReady = false;
+        }
+      }
+
+      if (retryTimes == 0 || allQueuesReady) {
+        break;
+      }
     }
 
     /*
@@ -1416,11 +1443,12 @@ uint64_t getQueueOutPacketsWithRetry(
     sleep(1);
   } while (retryTimes-- > 0);
 
-  while ((outPkts == expectedNumPkts) && postMatchRetryTimes--) {
-    outPkts = getCpuQueueOutPacketsAndBytes(switchPtr, queueId, switchId).first;
+  while ((result[queueId] == expectedNumPkts) && postMatchRetryTimes--) {
+    result[queueId] =
+        getCpuQueueOutPacketsAndBytes(switchPtr, queueId, switchId).first;
   }
 
-  return outPkts;
+  return result;
 }
 
 std::unique_ptr<facebook::fboss::TxPacket> createUdpPkt(
@@ -1498,20 +1526,22 @@ std::pair<uint64_t, uint64_t> getCpuQueueOutPacketsAndBytes(
   return std::pair(outPackets, outBytes);
 }
 
-template uint64_t getQueueOutPacketsWithRetry<SwSwitch>(
+template std::map<int, uint64_t> getQueueOutPacketsWithRetry<SwSwitch>(
     SwSwitch* switchPtr,
     SwitchID switchId,
     int queueId,
     int retryTimes,
     uint64_t expectedNumPkts,
+    bool verifyPktCntInOtherQueues,
     int postMatchRetryTimes);
 
-template uint64_t getQueueOutPacketsWithRetry<HwSwitch>(
+template std::map<int, uint64_t> getQueueOutPacketsWithRetry<HwSwitch>(
     HwSwitch* switchPtr,
     SwitchID switchId,
     int queueId,
     int retryTimes,
     uint64_t expectedNumPkts,
+    bool verifyPktCntInOtherQueues,
     int postMatchRetryTimes);
 
 template <typename SwitchT>
@@ -1542,7 +1572,13 @@ void sendAndVerifyPkts(
         trafficClass);
   };
 
-  sendPktAndVerifyCpuQueue(switchPtr, switchId, queueId, sendPkts, 1);
+  sendPktAndVerifyCpuQueue(
+      switchPtr,
+      switchId,
+      queueId,
+      sendPkts,
+      1,
+      false /*verifyPktCntInOtherQueues*/);
 }
 
 /*
@@ -1672,6 +1708,14 @@ uint32_t getDnxCoppMaxDynamicSharedBytes(uint16_t queueId) {
   // should not reach here
   XLOG(FATAL) << "no max dynamic shared bytes set for queue " << queueId;
   return 0;
+}
+
+std::vector<uint16_t> getCpuQueueIds(
+    const std::vector<const HwAsic*>& hwAsics) {
+  return {
+      utility::kCoppLowPriQueueId,
+      utility::getCoppMidPriQueueId(hwAsics),
+      utility::getCoppHighPriQueueId(hwAsics)};
 }
 
 AgentConfig setTTL0PacketForwardingEnableConfig(

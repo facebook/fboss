@@ -44,6 +44,15 @@
           "test_name_regex": "HwFlowletSwitching.*$"
         },
         {
+          "test_name_regex": "HwArsTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsFlowletTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsSprayTest.*$"
+        },
+        {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*$"
         },
         {
@@ -106,6 +115,15 @@
           "test_name_regex": "HwFlowletSwitching.*$"
         },
         {
+          "test_name_regex": "HwArsTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsFlowletTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsSprayTest.*$"
+        },
+        {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*$"
         }
     ],
@@ -151,6 +169,15 @@
         },
         {
           "test_name_regex": "HwFlowletSwitching.*$"
+        },
+        {
+          "test_name_regex": "HwArsTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsFlowletTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsSprayTest.*$"
         },
         {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*$"
@@ -209,6 +236,15 @@
         },
         {
           "test_name_regex": "HwFlowletSwitching.*$"
+        },
+        {
+          "test_name_regex": "HwArsTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsFlowletTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsSprayTest.*$"
         },
         {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*$"
@@ -430,6 +466,15 @@
         },
         {
           "test_name_regex": "HwFlowletSwitching.*$"
+        },
+        {
+          "test_name_regex": "HwArsTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsFlowletTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsSprayTest.*$"
         },
         {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*$"
@@ -694,6 +739,15 @@
           "test_name_regex": "HwFlowletSwitching.*$"
         },
         {
+          "test_name_regex": "HwArsTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsFlowletTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsSprayTest.*$"
+        },
+        {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*$"
         },
         {
@@ -913,6 +967,15 @@
         },
         {
           "test_name_regex": "HwFlowletSwitching.*$"
+        },
+        {
+          "test_name_regex": "HwArsTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsFlowletTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsSprayTest.*$"
         },
         {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*$"
@@ -1163,6 +1226,15 @@
           "test_name_regex": "HwFlowletSwitching.*$"
         },
         {
+          "test_name_regex": "HwArsTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsFlowletTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsSprayTest.*$"
+        },
+        {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*$"
         },
         {
@@ -1225,6 +1297,15 @@
           "test_name_regex": "HwFlowletSwitching.*$"
         },
         {
+          "test_name_regex": "HwArsTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsFlowletTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsSprayTest.*$"
+        },
+        {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*$"
         }
     ],
@@ -1272,6 +1353,15 @@
           "test_name_regex": "HwFlowletSwitching.*$"
         },
         {
+          "test_name_regex": "HwArsTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsFlowletTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsSprayTest.*$"
+        },
+        {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*$"
         }
     ],
@@ -1317,6 +1407,15 @@
         },
         {
           "test_name_regex": "HwFlowletSwitching.*$"
+        },
+        {
+          "test_name_regex": "HwArsTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsFlowletTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsSprayTest.*$"
         },
         {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*$"
@@ -1381,6 +1480,15 @@
           "test_name_regex": "HwFlowletSwitching.*$"
         },
         {
+          "test_name_regex": "HwArsTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsFlowletTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsSprayTest.*$"
+        },
+        {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*$"
         }
     ],
@@ -1428,6 +1536,15 @@
           "test_name_regex": "HwFlowletSwitching.*$"
         },
         {
+          "test_name_regex": "HwArsTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsFlowletTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsSprayTest.*$"
+        },
+        {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*$"
         }
     ],
@@ -1473,6 +1590,15 @@
         },
         {
           "test_name_regex": "HwFlowletSwitching.*$"
+        },
+        {
+          "test_name_regex": "HwArsTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsFlowletTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsSprayTest.*$"
         },
         {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*$"
@@ -1537,6 +1663,15 @@
           "test_name_regex": "HwFlowletSwitching.*$"
         },
         {
+          "test_name_regex": "HwArsTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsFlowletTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsSprayTest.*$"
+        },
+        {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*$"
         }
     ],
@@ -1584,7 +1719,114 @@
           "test_name_regex": "HwFlowletSwitching.*$"
         },
         {
+          "test_name_regex": "HwArsTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsFlowletTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsSprayTest.*$"
+        },
+        {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*$"
+        }
+    ],
+    "chenab/1.15.7.2/1.15.7.2/chenab": [
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*HwTest_PROFILE_400G_8_PAM4_RS544X2N_COPPER"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*SaiQPHRollbackTest.rollback"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostTest/[0123].*"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostRouteTest/[01].*"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentQueuePerHostL2Test.*"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentAclPriorityTest/[0].*"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentPacketSendTest.PortTxEnableTest"
+        },
+        {
+          "test_name_regex": "HwTeFlowTest.*$"
+        },
+        {
+          "test_name_regex": "HwTeFlowTrafficTest.*$"
+        },
+        {
+          "test_name_regex": "HwUdfAclTeFlowTrafficTest.*$"
+        },
+        {
+          "test_name_regex": "HwL3Test.TestRouteHitBit"
+        },
+        {
+          "test_name_regex": "HwL3Test.TestNeighborHitBit"
+        },
+        {
+          "test_name_regex": "HwLabelEdgeRouteTest.*"
+        },
+        {
+          "test_name_regex": "HwLabelSwitchRouteTest.*"
+        },
+        {
+          "test_name_regex": "HwMPLSTest.*"
+        },
+        {
+          "test_name_regex": "HwMirrorTest/[01].SampleOnePort"
+        },
+        {
+          "test_name_regex": "HwMirrorTest/[01].SampleAllPorts"
+        },
+        {
+          "test_name_regex": "HwMirrorTest/[01].SflowMirrorWithErspanMirror"
+        },
+        {
+          "test_name_regex": "HwMirrorTest/[01].SflowMirrorWithErspanMirrorOnePortSflow"
+        },
+        {
+          "test_name_regex": "HwMirrorTest/[01].SflowMirrorWithErspanMirrorNoPortSflow"
+        },
+        {
+          "test_name_regex": "HwMirrorTest/[01].SampleAllPortsMirrorUnresolved"
+        },
+        {
+          "test_name_regex": "HwMirrorTest/[01].SampleAllPortsMirrorUnresolvedResolved"
+        },
+        {
+          "test_name_regex": "HwMirrorTest/[01].SampleAllPortsMirrorUpdate"
+        },
+        {
+          "test_name_regex": "HwMirrorTest/[01].RemoveSampleAllPorts"
+        },
+        {
+          "test_name_regex": "HwMirrorTest/[01].RemoveSampleAllPortsAfterWarmBoot"
+        },
+        {
+          "test_name_regex": "HwMirrorTest/[01].SampleAllPortsReloadConfig"
+        },
+        {
+          "test_name_regex": "HwSflowTest.SflowSamplingEnabled"
+        },
+        {
+          "test_name_regex": "HwSflowTest.SflowSamplingDisabled"
+        },
+        {
+          "test_name_regex": "HwArsFlowletTest.*HwLoadBalancerTestV6Flowlet.VerifyWBFromFixedToFlowlet"
+        },
+        {
+          "test_name_regex": "HwLoadBalancerTestV6Flowlet.VerifyWBFromFlowletToFixed"
+        },
+        {
+          "test_name_regex": "HwLoadBalancerTestV6Flowlet.VerifyWBFromFlowletToPerPacket"
+        },
+        {
+          "test_name_regex": "HwLoadBalancerTestV6Flowlet.VerifyWBFromPerPacketToFlowlet"
         }
     ],
     "chenab/1.15.7/1.15.7/chenab": [
@@ -1673,7 +1915,7 @@
           "test_name_regex": "HwSflowTest.SflowSamplingDisabled"
         },
         {
-          "test_name_regex": "HwLoadBalancerTestV6Flowlet.VerifyWBFromFixedToFlowlet"
+          "test_name_regex": "HwArsFlowletTest.*HwLoadBalancerTestV6Flowlet.VerifyWBFromFixedToFlowlet"
         },
         {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.VerifyWBFromFlowletToFixed"
@@ -1697,6 +1939,15 @@
         },
         {
           "test_name_regex": "HwFlowletSwitching.*$"
+        },
+        {
+          "test_name_regex": "HwArsTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsFlowletTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsSprayTest.*$"
         },
         {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*$"
@@ -1773,6 +2024,15 @@
           "test_name_regex": "HwFlowletSwitching.*$"
         },
         {
+          "test_name_regex": "HwArsTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsFlowletTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsSprayTest.*$"
+        },
+        {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*$"
         },
         {
@@ -1818,6 +2078,15 @@
         },
         {
           "test_name_regex": "HwFlowletSwitching.*$"
+        },
+        {
+          "test_name_regex": "HwArsTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsFlowletTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsSprayTest.*$"
         },
         {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*$"
@@ -1867,6 +2136,15 @@
           "test_name_regex": "HwFlowletSwitching.*$"
         },
         {
+          "test_name_regex": "HwArsTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsFlowletTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsSprayTest.*$"
+        },
+        {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*$"
         },
         {
@@ -1912,6 +2190,15 @@
         },
         {
           "test_name_regex": "HwFlowletSwitching.*$"
+        },
+        {
+          "test_name_regex": "HwArsTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsFlowletTest.*$"
+        },
+        {
+          "test_name_regex": "HwArsSprayTest.*$"
         },
         {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*$"

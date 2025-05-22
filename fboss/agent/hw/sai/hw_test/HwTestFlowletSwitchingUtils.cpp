@@ -11,6 +11,7 @@
 #include "fboss/agent/hw/test/HwTestFlowletSwitchingUtils.h"
 
 #include <gtest/gtest.h>
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/switch/SaiArsManager.h"
 #include "fboss/agent/hw/sai/switch/SaiArsProfileManager.h"
@@ -21,7 +22,6 @@
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVirtualRouterManager.h"
 #include "fboss/agent/test/TestEnsembleIf.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
 
 #include "folly/testing/TestUtil.h"
 
@@ -190,6 +190,7 @@ bool verifyEcmpForFlowletSwitching(
 bool verifyEcmpForNonFlowlet(
     const HwSwitch* hw,
     const folly::CIDRNetwork& ip,
+    const cfg::FlowletSwitchingConfig& /* unused */,
     const bool flowletEnable) {
   bool isVerified = true;
 
@@ -247,7 +248,7 @@ void runCint(TestEnsembleIf* ensemble, const std::string& cintStr) {
 }
 
 void setEcmpMemberStatus(const TestEnsembleIf* ensemble) {
-  auto asic = utility::checkSameAndGetAsic(ensemble->getL3Asics());
+  auto asic = checkSameAndGetAsic(ensemble->getL3Asics());
   if (asic->getAsicVendor() != HwAsic::AsicVendor::ASIC_VENDOR_BCM) {
     return;
   }

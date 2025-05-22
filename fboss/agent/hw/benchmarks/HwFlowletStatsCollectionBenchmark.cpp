@@ -55,7 +55,9 @@ BENCHMARK(HwFlowletStatsCollection) {
   ensemble =
       createAgentEnsemble(initialConfigFn, false /*disableLinkStateToggler*/);
   // Resolve nextHops
-  auto ecmpHelper = utility::EcmpSetupAnyNPorts6(ensemble->getSw()->getState());
+  auto ecmpHelper = utility::EcmpSetupAnyNPorts6(
+      ensemble->getSw()->getState(),
+      ensemble->getSw()->needL2EntryForNeighbor());
   ensemble->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
     return ecmpHelper.resolveNextHops(in, kEcmpWidth);
   });

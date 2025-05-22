@@ -432,4 +432,25 @@ std::map<std::string, int64_t> getAgentFb303RegexCounters(
   return counters;
 }
 
+std::unordered_map<std::string, std::vector<std::string>>
+getCachedSwSwitchReachabilityInfo(
+    const HostInfo& hostInfo,
+    const std::vector<std::string>& switchNames) {
+  // Query swAgent for cached reachability information
+  std::unordered_map<std::string, std::vector<std::string>> reachabilityMatrix;
+  auto client =
+      utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
+
+  std::map<std::string, std::vector<std::string>> reachability;
+  client->sync_getSwitchReachability(reachability, switchNames);
+  for (auto& [switchName, reachablePorts] : reachability) {
+    reachabilityMatrix[switchName].insert(
+        reachabilityMatrix[switchName].end(),
+        reachablePorts.begin(),
+        reachablePorts.end());
+  }
+
+  return reachabilityMatrix;
+}
+
 } // namespace facebook::fboss::utils

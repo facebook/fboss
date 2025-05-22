@@ -495,7 +495,8 @@ TEST_F(AgentEnsembleLinkTest, fabricLinkHealth) {
 
   setForceTrafficOverFabric(true);
 
-  utility::EcmpSetupTargetedPorts6 ecmpHelper(getSw()->getState());
+  utility::EcmpSetupTargetedPorts6 ecmpHelper(
+      getSw()->getState(), getSw()->needL2EntryForNeighbor());
   const auto kDstPortDesc = ecmpHelper.ecmpPortDescriptorAt(0);
   const auto kSrcPortDesc = ecmpHelper.ecmpPortDescriptorAt(1);
   const auto kSrcPort = kSrcPortDesc.phyPortID();

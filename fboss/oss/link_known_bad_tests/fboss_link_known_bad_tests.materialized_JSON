@@ -5698,6 +5698,9 @@
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*DR4_400G.*$"
         },
         {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR8_800G.*$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*ASIC.*$"
         },
         {
@@ -5803,6 +5806,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR8_800G.*$"
         },
         {
           "test_name_regex": "Prbs.*ASIC.*ASIC.*$"
@@ -5912,6 +5918,9 @@
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*DR4_400G.*$"
         },
         {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR8_800G.*$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*ASIC.*$"
         },
         {
@@ -6017,6 +6026,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR8_800G.*$"
         },
         {
           "test_name_regex": "Prbs.*ASIC.*ASIC.*$"
@@ -6126,6 +6138,9 @@
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*DR4_400G.*$"
         },
         {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR8_800G.*$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*ASIC.*$"
         },
         {
@@ -6231,6 +6246,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR8_800G.*$"
         },
         {
           "test_name_regex": "Prbs.*ASIC.*ASIC.*$"
@@ -6340,6 +6358,9 @@
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*DR4_400G.*$"
         },
         {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR8_800G.*$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*ASIC.*$"
         },
         {
@@ -6439,6 +6460,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR8_800G.*$"
         },
         {
           "test_name_regex": "Prbs.*ASIC.*ASIC.*$"
@@ -6542,6 +6566,9 @@
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*DR4_400G.*$"
         },
         {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR8_800G.*$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*ASIC.*$"
         },
         {
@@ -6641,6 +6668,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR8_800G.*$"
         },
         {
           "test_name_regex": "Prbs.*ASIC.*ASIC.*$"
@@ -6744,6 +6774,9 @@
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*DR4_400G.*$"
         },
         {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR8_800G.*$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*ASIC.*$"
         },
         {
@@ -6843,6 +6876,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR8_800G.*$"
         },
         {
           "test_name_regex": "Prbs.*ASIC.*ASIC.*$"
@@ -6946,6 +6982,9 @@
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*DR4_400G.*$"
         },
         {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR8_800G.*$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*ASIC.*$"
         },
         {
@@ -7045,6 +7084,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR8_800G.*$"
         },
         {
           "test_name_regex": "Prbs.*ASIC.*ASIC.*$"
@@ -9226,6 +9268,9 @@
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*DR4_400G.*$"
         },
         {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR8_800G.*$"
+        },
+        {
           "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*DR4_400G.*$"
         },
         {
@@ -9319,6 +9364,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR8_800G.*$"
         },
         {
           "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*DR4_400G.*$"
@@ -9416,6 +9464,9 @@
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*DR4_400G.*$"
         },
         {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR8_800G.*$"
+        },
+        {
           "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*DR4_400G.*$"
         },
         {
@@ -9509,6 +9560,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR8_800G.*$"
         },
         {
           "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*DR4_400G.*$"
@@ -9606,6 +9660,9 @@
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*DR4_400G.*$"
         },
         {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR8_800G.*$"
+        },
+        {
           "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*DR4_400G.*$"
         },
         {
@@ -9699,6 +9756,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR8_800G.*$"
         },
         {
           "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*DR4_400G.*$"
@@ -9818,6 +9878,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR8_800G.*$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
@@ -9942,6 +10005,9 @@
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*DR4_400G.*$"
         },
         {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR8_800G.*$"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
@@ -10062,6 +10128,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR8_800G.*$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
@@ -10186,6 +10255,9 @@
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*DR4_400G.*$"
         },
         {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR8_800G.*$"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
@@ -10306,6 +10378,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR8_800G.*$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
@@ -10430,6 +10505,9 @@
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*DR4_400G.*$"
         },
         {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR8_800G.*$"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
@@ -10552,6 +10630,9 @@
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*DR4_400G.*$"
         },
         {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR8_800G.*$"
+        },
+        {
           "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
@@ -10669,6 +10750,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR8_800G.*$"
         },
         {
           "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
@@ -10790,6 +10874,9 @@
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*DR4_400G.*$"
         },
         {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR8_800G.*$"
+        },
+        {
           "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
@@ -10907,6 +10994,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR8_800G.*$"
         },
         {
           "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
@@ -11028,6 +11118,9 @@
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*DR4_400G.*$"
         },
         {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR8_800G.*$"
+        },
+        {
           "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
         },
         {
@@ -11145,6 +11238,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR8_800G.*$"
         },
         {
           "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
@@ -12302,7 +12398,195 @@
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
+    "minipack3n/sai/asicsdk-1.15.7.2/1.15.7.2": [
+        {
+          "test_name_regex": "MacsecTest.*$"
+        },
+        {
+          "test_name_regex": "MacsecFsdbTest.*$"
+        },
+        {
+          "test_name_regex": "MacsecStatTest.*$"
+        },
+        {
+          "test_name_regex": "PortStatsTest.xphySanity"
+        },
+        {
+          "test_name_regex": "LinkTest.xPhyInfoTest"
+        },
+        {
+          "test_name_regex": "LinkTest.fabricLinkHealth$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
+        },
+        {
+          "test_name_regex": "Prbs.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
+        }
+    ],
+    "minipack3n/sai/asicsdk-1.15.7.2/1.15.7.2/physdk-credo-0.7.2/credo-0.7.2": [
+        {
+          "test_name_regex": "MacsecTest.*$"
+        },
+        {
+          "test_name_regex": "MacsecFsdbTest.*$"
+        },
+        {
+          "test_name_regex": "MacsecStatTest.*$"
+        },
+        {
+          "test_name_regex": "PortStatsTest.xphySanity"
+        },
+        {
+          "test_name_regex": "LinkTest.xPhyInfoTest"
+        },
+        {
+          "test_name_regex": "LinkTest.fabricLinkHealth$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
+        },
+        {
+          "test_name_regex": "Prbs.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
+        }
+    ],
     "minipack3n/sai/asicsdk-1.15.7/1.15.7": [
+        {
+          "test_name_regex": "MacsecTest.*$"
+        },
+        {
+          "test_name_regex": "MacsecFsdbTest.*$"
+        },
+        {
+          "test_name_regex": "MacsecStatTest.*$"
+        },
+        {
+          "test_name_regex": "PortStatsTest.xphySanity"
+        },
+        {
+          "test_name_regex": "LinkTest.xPhyInfoTest"
+        },
+        {
+          "test_name_regex": "LinkTest.fabricLinkHealth$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
+        },
+        {
+          "test_name_regex": "Prbs.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
+        }
+    ],
+    "minipack3n/sai/asicsdk-1.15.7/1.15.7.2": [
+        {
+          "test_name_regex": "MacsecTest.*$"
+        },
+        {
+          "test_name_regex": "MacsecFsdbTest.*$"
+        },
+        {
+          "test_name_regex": "MacsecStatTest.*$"
+        },
+        {
+          "test_name_regex": "PortStatsTest.xphySanity"
+        },
+        {
+          "test_name_regex": "LinkTest.xPhyInfoTest"
+        },
+        {
+          "test_name_regex": "LinkTest.fabricLinkHealth$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.clearIphyInterfaceCounters$"
+        },
+        {
+          "test_name_regex": "Prbs.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
+        },
+        {
+          "test_name_regex": "warm_boot.MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
+        }
+    ],
+    "minipack3n/sai/asicsdk-1.15.7/1.15.7.2/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "MacsecTest.*$"
         },
@@ -16434,9 +16718,6 @@
           "test_name_regex": "LinkTest.testOpticsRemediation"
         },
         {
-          "test_name_regex": "QsfpFsdbTest.tcvr"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -16515,9 +16796,6 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation"
-        },
-        {
-          "test_name_regex": "QsfpFsdbTest.tcvr"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -16600,9 +16878,6 @@
           "test_name_regex": "LinkTest.testOpticsRemediation"
         },
         {
-          "test_name_regex": "QsfpFsdbTest.tcvr"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -16681,9 +16956,6 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation"
-        },
-        {
-          "test_name_regex": "QsfpFsdbTest.tcvr"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -16766,9 +17038,6 @@
           "test_name_regex": "LinkTest.testOpticsRemediation"
         },
         {
-          "test_name_regex": "QsfpFsdbTest.tcvr"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -16847,9 +17116,6 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation"
-        },
-        {
-          "test_name_regex": "QsfpFsdbTest.tcvr"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -16932,9 +17198,6 @@
           "test_name_regex": "LinkTest.testOpticsRemediation"
         },
         {
-          "test_name_regex": "QsfpFsdbTest.tcvr"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -17010,9 +17273,6 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation"
-        },
-        {
-          "test_name_regex": "QsfpFsdbTest.tcvr"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -17092,9 +17352,6 @@
           "test_name_regex": "LinkTest.testOpticsRemediation"
         },
         {
-          "test_name_regex": "QsfpFsdbTest.tcvr"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -17170,9 +17427,6 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation"
-        },
-        {
-          "test_name_regex": "QsfpFsdbTest.tcvr"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -17252,9 +17506,6 @@
           "test_name_regex": "LinkTest.testOpticsRemediation"
         },
         {
-          "test_name_regex": "QsfpFsdbTest.tcvr"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -17330,9 +17581,6 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation"
-        },
-        {
-          "test_name_regex": "QsfpFsdbTest.tcvr"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -17412,9 +17660,6 @@
           "test_name_regex": "LinkTest.testOpticsRemediation"
         },
         {
-          "test_name_regex": "QsfpFsdbTest.tcvr"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -17490,9 +17735,6 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation"
-        },
-        {
-          "test_name_regex": "QsfpFsdbTest.tcvr"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -17590,6 +17832,9 @@
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*DR4_400G.*$"
         },
         {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR8_800G.*$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*ASIC.*$"
         },
         {
@@ -17615,6 +17860,9 @@
         },
         {
           "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToHUNDREDG$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -17691,6 +17939,9 @@
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*DR4_400G.*$"
         },
         {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR8_800G.*$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*ASIC.*$"
         },
         {
@@ -17716,6 +17967,9 @@
         },
         {
           "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToHUNDREDG$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -17792,6 +18046,9 @@
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*DR4_400G.*$"
         },
         {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR8_800G.*$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*ASIC.*$"
         },
         {
@@ -17817,6 +18074,9 @@
         },
         {
           "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToHUNDREDG$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -17893,6 +18153,9 @@
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*DR4_400G.*$"
         },
         {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR8_800G.*$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*ASIC.*$"
         },
         {
@@ -17918,6 +18181,9 @@
         },
         {
           "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToHUNDREDG$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -17994,6 +18260,9 @@
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*DR4_400G.*$"
         },
         {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR8_800G.*$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*ASIC.*$"
         },
         {
@@ -18019,6 +18288,9 @@
         },
         {
           "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToHUNDREDG$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -18095,6 +18367,9 @@
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*DR4_400G.*$"
         },
         {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR8_800G.*$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*ASIC.*$"
         },
         {
@@ -18120,6 +18395,9 @@
         },
         {
           "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToHUNDREDG$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -18196,6 +18474,9 @@
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*DR4_400G.*$"
         },
         {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR8_800G.*$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*ASIC.*$"
         },
         {
@@ -18221,6 +18502,9 @@
         },
         {
           "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToHUNDREDG$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -18294,6 +18578,9 @@
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*DR4_400G.*$"
         },
         {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR8_800G.*$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*ASIC.*$"
         },
         {
@@ -18319,6 +18606,9 @@
         },
         {
           "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToHUNDREDG$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -18392,6 +18682,9 @@
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*DR4_400G.*$"
         },
         {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR8_800G.*$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*ASIC.*$"
         },
         {
@@ -18417,6 +18710,9 @@
         },
         {
           "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToHUNDREDG$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -18490,6 +18786,9 @@
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*DR4_400G.*$"
         },
         {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR8_800G.*$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*ASIC.*$"
         },
         {
@@ -18515,6 +18814,9 @@
         },
         {
           "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToHUNDREDG$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -18588,6 +18890,9 @@
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*DR4_400G.*$"
         },
         {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR8_800G.*$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*ASIC.*$"
         },
         {
@@ -18613,6 +18918,9 @@
         },
         {
           "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToHUNDREDG$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -18686,6 +18994,9 @@
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*DR4_400G.*$"
         },
         {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR8_800G.*$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*ASIC.*$"
         },
         {
@@ -18711,6 +19022,9 @@
         },
         {
           "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToHUNDREDG$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -18784,6 +19098,9 @@
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*DR4_400G.*$"
         },
         {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR8_800G.*$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*ASIC.*$"
         },
         {
@@ -18809,6 +19126,9 @@
         },
         {
           "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToHUNDREDG$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -18882,6 +19202,9 @@
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*DR4_400G.*$"
         },
         {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR8_800G.*$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*ASIC.*$"
         },
         {
@@ -18907,6 +19230,9 @@
         },
         {
           "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToHUNDREDG$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -19761,6 +20087,9 @@
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*DR4_400G.*$"
         },
         {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR8_800G.*$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*ASIC.*$"
         },
         {
@@ -19854,6 +20183,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR8_800G.*$"
         },
         {
           "test_name_regex": "Prbs.*ASIC.*ASIC.*$"
@@ -19951,6 +20283,9 @@
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*DR4_400G.*$"
         },
         {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR8_800G.*$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*ASIC.*$"
         },
         {
@@ -20044,6 +20379,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR8_800G.*$"
         },
         {
           "test_name_regex": "Prbs.*ASIC.*ASIC.*$"
@@ -20141,6 +20479,9 @@
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*DR4_400G.*$"
         },
         {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR8_800G.*$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*ASIC.*$"
         },
         {
@@ -20234,6 +20575,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR8_800G.*$"
         },
         {
           "test_name_regex": "Prbs.*ASIC.*ASIC.*$"
@@ -20331,6 +20675,9 @@
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*DR4_400G.*$"
         },
         {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR8_800G.*$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*ASIC.*$"
         },
         {
@@ -20421,6 +20768,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR8_800G.*$"
         },
         {
           "test_name_regex": "Prbs.*ASIC.*ASIC.*$"
@@ -20515,6 +20865,9 @@
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*DR4_400G.*$"
         },
         {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR8_800G.*$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*ASIC.*$"
         },
         {
@@ -20605,6 +20958,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR8_800G.*$"
         },
         {
           "test_name_regex": "Prbs.*ASIC.*ASIC.*$"
@@ -20699,6 +21055,9 @@
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*DR4_400G.*$"
         },
         {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR8_800G.*$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*ASIC.*$"
         },
         {
@@ -20789,6 +21148,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR8_800G.*$"
         },
         {
           "test_name_regex": "Prbs.*ASIC.*ASIC.*$"
@@ -20883,6 +21245,9 @@
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*DR4_400G.*$"
         },
         {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR8_800G.*$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*ASIC.*$"
         },
         {
@@ -20973,6 +21338,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*DR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR8_800G.*$"
         },
         {
           "test_name_regex": "Prbs.*ASIC.*ASIC.*$"

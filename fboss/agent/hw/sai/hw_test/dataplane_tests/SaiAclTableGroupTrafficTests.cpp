@@ -17,6 +17,7 @@
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
 #include "fboss/agent/test/utils/DscpMarkingUtils.h"
+#include "fboss/agent/test/utils/NeighborTestUtils.h"
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
 #include "fboss/agent/test/utils/QueuePerHostTestUtils.h"
 
@@ -47,7 +48,9 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
     FLAGS_enable_acl_table_group = true;
     HwLinkStateDependentTest::SetUp();
     helper_ = std::make_unique<utility::EcmpSetupAnyNPorts6>(
-        getProgrammedState(), RouterID(0));
+        getProgrammedState(),
+        getHwSwitch()->needL2EntryForNeighbor(),
+        RouterID(0));
   }
   cfg::SwitchConfig initialConfig() const override {
     auto cfg = utility::onePortPerInterfaceConfig(
@@ -179,9 +182,7 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
 
     for (const auto& ipToMacAndClassID : getIpToMacAndClassID<AddrT>()) {
       auto ip = ipToMacAndClassID.first;
-      auto macAndClassID = ipToMacAndClassID.second;
-      auto neighborMac = macAndClassID.first;
-      auto classID = macAndClassID.second;
+      auto [neighborMac, classID] = ipToMacAndClassID.second;
 
       NeighborTableT* neighborTable;
       if (isIntfNbrTable) {
@@ -195,23 +196,27 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
                             ->template getNeighborTable<NeighborTableT>()
                             ->modify(kVlanID, &outState);
       }
+      auto reachableNeighborState = NeighborState::REACHABLE;
+      auto neighborPort = PortDescriptor(masterLogicalPortIds()[0]);
+      auto existingEntry = neighborTable->getEntryIf(ip);
 
       if (setClassIDs) {
         neighborTable->updateEntry(
             ip,
             neighborMac,
-            PortDescriptor(masterLogicalPortIds()[0]),
+            neighborPort,
             kIntfID,
-            NeighborState::REACHABLE,
+            reachableNeighborState,
             classID);
 
       } else {
         neighborTable->updateEntry(
-            ip,
-            neighborMac,
-            PortDescriptor(masterLogicalPortIds()[0]),
-            kIntfID,
-            NeighborState::REACHABLE);
+            ip, neighborMac, neighborPort, kIntfID, reachableNeighborState);
+      }
+
+      if (getHwSwitch()->needL2EntryForNeighbor()) {
+        outState = utility::NeighborTestUtils::updateMacEntryForUpdatedNbrEntry(
+            outState, kVlanID, existingEntry, neighborTable->getEntryIf(ip));
       }
     }
 

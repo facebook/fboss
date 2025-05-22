@@ -92,11 +92,13 @@ struct SaiBufferProfileTraits {
     using SharedDynamicThreshold = SaiAttribute<
         EnumType,
         SAI_BUFFER_PROFILE_ATTR_SHARED_DYNAMIC_TH,
-        sai_int8_t>;
+        sai_int8_t,
+        StdNullOptDefault<sai_int8_t>>;
     using SharedStaticThreshold = SaiAttribute<
         EnumType,
         SAI_BUFFER_PROFILE_ATTR_SHARED_STATIC_TH,
-        sai_uint64_t>;
+        sai_uint64_t,
+        StdNullOptDefault<sai_uint64_t>>;
     using XoffTh =
         SaiAttribute<EnumType, SAI_BUFFER_PROFILE_ATTR_XOFF_TH, sai_uint64_t>;
     using XonTh =
@@ -104,7 +106,8 @@ struct SaiBufferProfileTraits {
     using XonOffsetTh = SaiAttribute<
         EnumType,
         SAI_BUFFER_PROFILE_ATTR_XON_OFFSET_TH,
-        sai_uint64_t>;
+        sai_uint64_t,
+        StdNullOptDefault<sai_uint64_t>>;
     struct AttributeSharedFadtMaxTh {
       std::optional<sai_attr_id_t> operator()();
     };

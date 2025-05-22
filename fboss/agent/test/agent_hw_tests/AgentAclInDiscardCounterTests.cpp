@@ -36,7 +36,8 @@ class AgentAclInDiscardsCounterTest : public AgentHwTest {
 
 TEST_F(AgentAclInDiscardsCounterTest, aclInDiscards) {
   auto setup = [=, this]() {
-    utility::EcmpSetupAnyNPorts6 ecmpHelper6(getSw()->getState());
+    utility::EcmpSetupAnyNPorts6 ecmpHelper6(
+        getSw()->getState(), getSw()->needL2EntryForNeighbor());
     auto wrapper = getSw()->getRouteUpdater();
     ecmpHelper6.programRoutes(&wrapper, 1);
     applyNewState([&](const std::shared_ptr<SwitchState>& in) {

@@ -134,7 +134,11 @@ class ConfigLib:
                                 AuxDeviceType.I2C,
                                 auxDev.deviceName,
                                 auxDev.csrOffset,
-                                i2cInfo=I2cInfo(numChannels=adapter.numberOfAdapters),
+                                i2cInfo=I2cInfo(
+                                    numChannels=1
+                                    if adapter.numberOfAdapters == 0
+                                    else adapter.numberOfAdapters
+                                ),
                             ),
                         ),
                     )

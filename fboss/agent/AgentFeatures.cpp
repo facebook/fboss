@@ -25,6 +25,8 @@ DEFINE_bool(
 
 DEFINE_bool(hide_fabric_ports, false, "Elide ports of type fabric");
 
+DEFINE_bool(hide_management_ports, false, "Elide ports of type management");
+
 // DSF Subscriber flags
 DEFINE_bool(
     dsf_subscribe,
@@ -108,6 +110,11 @@ DEFINE_bool(
     flowletSwitchingEnable,
     false,
     "Flag to turn on flowlet switching for DLB");
+
+DEFINE_bool(
+    enable_ecmp_random_spray,
+    false,
+    "Flag to turn on backup flowlet switching for DLB");
 
 // TODO (ravi)
 // This is more a safety tool for fast rollback if RTSWs run into an issue
@@ -282,3 +289,20 @@ DEFINE_int32(
     max_unprocessed_switch_reachability_changes,
     1,
     "Max number of switch reachability changes that can be enqueued to bottom-half.");
+
+DEFINE_bool(
+    enable_ecmp_resource_manager,
+    false,
+    "This flag is used to enable ecmp resource manager feature");
+
+DEFINE_int32(
+    ecmp_resource_manager_make_before_break_buffer,
+    2,
+    "Buffer to keep in ECMP resource manager from actual ECMP limt");
+
+DEFINE_int32(update_stats_interval_s, 1, "Update stats interval in seconds");
+
+DEFINE_bool(
+    update_route_with_dlb_type,
+    false,
+    "Flag to perform a DLB type update in FIB state");

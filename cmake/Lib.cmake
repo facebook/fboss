@@ -202,3 +202,15 @@ target_link_libraries(restart_time_tracker
   fb303::fb303
   Folly::folly
 )
+
+add_library(warm_boot_file_utils
+  fboss/lib/WarmBootFileUtils.cpp
+)
+
+target_link_libraries(warm_boot_file_utils
+  fboss_error
+  switch_state_cpp2
+  utils
+  state
+  Folly::folly
+)

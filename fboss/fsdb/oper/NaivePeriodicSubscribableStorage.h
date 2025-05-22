@@ -77,14 +77,20 @@ class NaivePeriodicSubscribableStorage
 
   template <typename T>
   Result<T> get_impl(PathIter begin, PathIter end) const {
-    auto state = currentState_.rlock();
-    return state->template get<T>(begin, end);
+    auto state =
+        (params_.serveGetRequestsWithLastPublishedState_
+             ? Storage(*lastPublishedState_.rlock())
+             : Storage(*currentState_.rlock()));
+    return state.template get<T>(begin, end);
   }
 
   Result<OperState>
   get_encoded_impl(PathIter begin, PathIter end, OperProtocol protocol) const {
-    auto state = currentState_.rlock();
-    auto result = state->get_encoded(begin, end, protocol);
+    auto state =
+        (params_.serveGetRequestsWithLastPublishedState_
+             ? Storage(*lastPublishedState_.rlock())
+             : Storage(*currentState_.rlock()));
+    auto result = state.get_encoded(begin, end, protocol);
     if (result.hasValue() && params_.trackMetadata_) {
       metadataTracker_.withRLock([&](auto& tracker) {
         CHECK(tracker);
@@ -92,6 +98,10 @@ class NaivePeriodicSubscribableStorage
             tracker->getPublisherRootMetadata(*getPublisherRoot(begin, end));
         if (metadata && *metadata->operMetadata.lastConfirmedAt() > 0) {
           result.value().metadata() = metadata->operMetadata;
+          result.value().metadata()->lastServedAt() =
+              std::chrono::duration_cast<std::chrono::milliseconds>(
+                  std::chrono::system_clock::now().time_since_epoch())
+                  .count();
         } else {
           throw Utils::createFsdbException(
               FsdbErrorCode::PUBLISHER_NOT_READY, "Publisher not ready");
@@ -105,16 +115,23 @@ class NaivePeriodicSubscribableStorage
       ExtPathIter begin,
       ExtPathIter end,
       OperProtocol protocol) const {
-    auto state = currentState_.rlock();
-    auto result = state->get_encoded_extended(begin, end, protocol);
+    auto state =
+        (params_.serveGetRequestsWithLastPublishedState_
+             ? Storage(*lastPublishedState_.rlock())
+             : Storage(*currentState_.rlock()));
+    auto result = state.get_encoded_extended(begin, end, protocol);
     if (result.hasValue() && params_.trackMetadata_) {
       metadataTracker_.withRLock([&](auto& tracker) {
         CHECK(tracker);
         auto metadata =
             tracker->getPublisherRootMetadata(*getPublisherRoot(begin, end));
         if (metadata && *metadata->operMetadata.lastConfirmedAt() > 0) {
+          auto now = std::chrono::duration_cast<std::chrono::milliseconds>(
+                         std::chrono::system_clock::now().time_since_epoch())
+                         .count();
           for (auto& state : result.value()) {
             state.state()->metadata() = metadata->operMetadata;
+            state.state()->metadata()->lastServedAt() = now;
           }
         } else {
           throw Utils::createFsdbException(
@@ -260,9 +277,9 @@ class NaivePeriodicSubscribableStorage
   }
 
   OperState publishedStateEncoded(OperProtocol protocol) {
-    auto lastState = lastPublishedState_.rlock();
+    auto lastState = Storage(*lastPublishedState_.rlock());
     std::vector<std::string> rootPath;
-    return *lastState->get_encoded(rootPath.begin(), rootPath.end(), protocol);
+    return *lastState.get_encoded(rootPath.begin(), rootPath.end(), protocol);
   }
 
  protected:

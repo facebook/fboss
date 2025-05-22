@@ -9,8 +9,9 @@
  */
 
 #include "fboss/agent/test/utils/NetworkAITestUtils.h"
+
 #include "fboss/agent/AgentFeatures.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/test/utils/QueueTestUtils.h"
 #include "fboss/agent/test/utils/TrafficPolicyTestUtils.h"
 #include "fboss/agent/test/utils/VoqTestUtils.h"

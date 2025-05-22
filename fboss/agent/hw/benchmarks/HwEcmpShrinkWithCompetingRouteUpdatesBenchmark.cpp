@@ -40,8 +40,9 @@ BENCHMARK(HwEcmpGroupShrinkWithCompetingRouteUpdates) {
       };
   ensemble =
       createAgentEnsemble(initialConfigFn, false /*disableLinkStateToggler*/);
-  auto state = ensemble->getSw()->getState();
-  auto ecmpHelper = utility::EcmpSetupAnyNPorts6(state);
+  auto ecmpHelper = utility::EcmpSetupAnyNPorts6(
+      ensemble->getSw()->getState(),
+      ensemble->getSw()->needL2EntryForNeighbor());
   ensemble->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
     return ecmpHelper.resolveNextHops(in, kEcmpWidth);
   });
@@ -62,6 +63,7 @@ BENCHMARK(HwEcmpGroupShrinkWithCompetingRouteUpdates) {
                          {{}},
                          10'000,
                          4,
+                         ensemble->getSw()->needL2EntryForNeighbor(),
                          RouterID(0))
                          .getThriftRoutes();
 

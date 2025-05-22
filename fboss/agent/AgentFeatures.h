@@ -34,6 +34,7 @@ DECLARE_bool(dsf_100g_nif_breakout);
 DECLARE_bool(enable_acl_table_chain_group);
 DECLARE_int32(oper_sync_req_timeout);
 DECLARE_bool(hide_fabric_ports);
+DECLARE_bool(hide_management_ports);
 
 DECLARE_bool(dsf_subscribe);
 DECLARE_bool(dsf_subscriber_skip_hw_writes);
@@ -54,6 +55,7 @@ DECLARE_int32(stat_publish_interval_ms);
 DECLARE_int32(hwagent_port_base);
 DECLARE_bool(force_init_fp);
 DECLARE_bool(flowletSwitchingEnable);
+DECLARE_bool(enable_ecmp_random_spray);
 DECLARE_bool(dlbResourceCheckEnable);
 DECLARE_bool(disable_neighbor_solicitation);
 DECLARE_bool(disable_looped_fabric_ports);
@@ -97,3 +99,8 @@ DECLARE_string(sdk_reg_dump_path_prefix);
 DECLARE_bool(type_dctype1_janga);
 DECLARE_bool(prod_invariant_config_test);
 DECLARE_int32(max_unprocessed_switch_reachability_changes);
+DECLARE_bool(enable_ecmp_resource_manager);
+DECLARE_int32(ecmp_resource_manager_make_before_break_buffer);
+
+DECLARE_int32(update_stats_interval_s);
+DECLARE_bool(update_route_with_dlb_type);

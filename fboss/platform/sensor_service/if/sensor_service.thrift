@@ -1,11 +1,13 @@
 namespace cpp2 facebook.fboss.platform.sensor_service
 namespace go neteng.fboss.platform.sensor_service
+namespace php NetengFbossPlatformSensorService
 namespace py neteng.fboss.platform.sensor_service
 namespace py3 neteng.fboss.platform.sensor_service
 namespace py.asyncio neteng.fboss.platform.asyncio.sensor_service
 
 include "fboss/agent/if/fboss.thrift"
 include "fboss/platform/sensor_service/if/sensor_config.thrift"
+include "thrift/annotation/hack.thrift"
 
 // SensorData contains the observed data of a sensor device's output.
 //
@@ -27,8 +29,17 @@ struct SensorData {
   5: sensor_config.SensorType sensorType;
 }
 
-// TODO: Add more FRU types
+@hack.Attributes{
+  attributes = [
+    "Oncalls('fboss_platform')",
+    "JSEnum",
+    "GraphQLEnum('FruType')",
+    "SelfDescriptive",
+    "RelayFlowEnum",
+  ],
+}
 enum FruType {
+  // TODO: Add more FRU types
   ALL = 0,
   SMB = 1,
   SCM = 2,

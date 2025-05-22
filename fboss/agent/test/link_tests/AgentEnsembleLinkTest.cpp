@@ -177,7 +177,7 @@ void AgentEnsembleLinkTest::initializeCabledPorts() {
           utility::getTransceiverId(platformPortEntry->second, chips);
       if (transceiverID.has_value()) {
         cabledTransceivers_.insert(*transceiverID);
-        cabledTransceiverPorts_.push_back(PortID(portID));
+        cabledTransceiverPorts_.emplace_back(portID);
       }
     }
   }
@@ -280,7 +280,8 @@ void AgentEnsembleLinkTest::programDefaultRoute(
 void AgentEnsembleLinkTest::programDefaultRoute(
     const boost::container::flat_set<PortDescriptor>& ecmpPorts,
     std::optional<folly::MacAddress> dstMac) {
-  utility::EcmpSetupTargetedPorts6 ecmp6(getSw()->getState(), dstMac);
+  utility::EcmpSetupTargetedPorts6 ecmp6(
+      getSw()->getState(), getSw()->needL2EntryForNeighbor(), dstMac);
   programDefaultRoute(ecmpPorts, ecmp6);
 }
 
@@ -288,7 +289,9 @@ void AgentEnsembleLinkTest::createL3DataplaneFlood(
     const boost::container::flat_set<PortDescriptor>& ecmpPorts) {
   auto switchId = scope(ecmpPorts);
   utility::EcmpSetupTargetedPorts6 ecmp6(
-      getSw()->getState(), getSw()->getLocalMac(switchId));
+      getSw()->getState(),
+      getSw()->needL2EntryForNeighbor(),
+      getSw()->getLocalMac(switchId));
   programDefaultRoute(ecmpPorts, ecmp6);
   utility::disableTTLDecrements(getSw(), ecmpPorts);
   auto vlanID = utility::getFirstMap(getSw()->getState()->getVlans())
@@ -403,14 +406,12 @@ AgentEnsembleLinkTest::getConnectedOpticalAndActivePortPairWithFeature(
     phy::Side side,
     bool skipLoopback) const {
   auto connectedPairs = getConnectedPairs();
-  auto opticalPorts =
-      std::get<0>(getOpticalAndActiveCabledPortsAndNames(false));
+  auto ports = std::get<0>(getOpticalAndActiveCabledPortsAndNames(false));
 
   std::set<std::pair<PortID, PortID>> connectedOpticalPortPairs;
   for (auto connectedPair : connectedPairs) {
-    if (std::find(
-            opticalPorts.begin(), opticalPorts.end(), connectedPair.first) !=
-        opticalPorts.end()) {
+    if (std::find(ports.begin(), ports.end(), connectedPair.first) !=
+        ports.end()) {
       if (connectedPair.first == connectedPair.second && skipLoopback) {
         continue;
       }

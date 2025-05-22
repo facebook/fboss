@@ -52,7 +52,7 @@ PlatformNameLib::PlatformNameLib(
     : platformUtils_(platformUtils), platformFsUtils_(platformFsUtils) {}
 
 std::string PlatformNameLib::getPlatformNameFromBios(bool writeToCache) const {
-  XLOG(INFO) << "Getting platform name from bios using dmedicode ...";
+  XLOG(INFO) << "Getting platform name from bios using dmidecode ...";
   auto [exitStatus, standardOut] =
       platformUtils_->execCommand(dmidecodeCommand);
   if (exitStatus != 0) {

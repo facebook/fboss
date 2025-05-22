@@ -202,7 +202,47 @@
   },
   "transceiverFirmwareVersions": {
     "versionsMap": {
+      "EOLO-138HG-5H-1B": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.5"
+            }
+          ]
+      },
+      "EOLO-138HG-5H-1T": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.5"
+            }
+          ]
+      },
+      "EOLO-138HG-5H-3B": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.5"
+            }
+          ]
+      },
+      "EOLO-138HG-5H-3T": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.5"
+            }
+          ]
+      },
       "EOLO-138HG-5H-B": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.5"
+            }
+          ]
+      },
+      "EOLO-138HG-5H-T": {
           "versions": [
             {
               "fwType": 1,
@@ -223,6 +263,38 @@
             {
               "fwType": 1,
               "version": "3.9"
+            }
+          ]
+      },
+      "EOLO-168HG-10-1B": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.0"
+            }
+          ]
+      },
+      "EOLO-168HG-10-1T": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.0"
+            }
+          ]
+      },
+      "EOLO-168HG-10-2B": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.0"
+            }
+          ]
+      },
+      "EOLO-168HG-10-2T": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.0"
             }
           ]
       },
@@ -286,7 +358,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "2.3"
+              "version": "2.6"
             }
           ]
       },
@@ -307,6 +379,14 @@
             {
               "fwType": 2,
               "version": "209.7"
+            }
+          ]
+      },
+      "SPTSHP3CLCK2": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "1.1"
             }
           ]
       },
@@ -406,6 +486,14 @@
             }
           ]
       },
+      "T-OH8CNH-NFB": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "36.197"
+            }
+          ]
+      },
       "T-OH8CNH-NFL": {
           "versions": [
             {
@@ -431,6 +519,30 @@
           ]
       },
       "T-OL8CNH-NFM": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "114.149"
+            }
+          ]
+      },
+      "T-OL8CNL-NFL": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "114.149"
+            }
+          ]
+      },
+      "T-OL8CNL-NFM": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "114.149"
+            }
+          ]
+      },
+      "T-OL8CNL-NFY": {
           "versions": [
             {
               "fwType": 1,

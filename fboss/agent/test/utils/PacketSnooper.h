@@ -22,14 +22,23 @@ namespace facebook::fboss::utility {
 using PacketComparatorFn =
     std::optional<std::function<bool(utility::EthFrame, utility::EthFrame)>>;
 
+// define received packet type for packetSnooper
+enum class packetSnooperReceivePacketType {
+  PACKET_TYPE_ALL,
+  PACKET_TYPE_PTP,
+};
+
 class PacketSnooper : public PacketObserverIf {
  public:
   PacketSnooper(
       std::optional<PortID> port = std::nullopt,
       std::optional<utility::EthFrame> expectedFrame = std::nullopt,
-      PacketComparatorFn packetComparator = std::nullopt);
+      PacketComparatorFn packetComparator = std::nullopt,
+      packetSnooperReceivePacketType receivePktType =
+          packetSnooperReceivePacketType::PACKET_TYPE_ALL);
 
   void packetReceived(const RxPacket* pkt) noexcept override;
+  bool expectedReceivedPacketType(folly::io::Cursor& cursor) noexcept;
 
   virtual ~PacketSnooper() override {
     if (!ignoreUnclaimedRxPkts_) {
@@ -43,6 +52,7 @@ class PacketSnooper : public PacketObserverIf {
   }
 
  private:
+  packetSnooperReceivePacketType receivePktType_;
   std::optional<PortID> port_;
   std::optional<utility::EthFrame> expectedFrame_;
   PacketComparatorFn packetComparator_;
@@ -59,7 +69,9 @@ class SwSwitchPacketSnooper : public PacketSnooper {
       const std::string& name,
       std::optional<PortID> port = std::nullopt,
       std::optional<utility::EthFrame> expectedFrame = std::nullopt,
-      PacketComparatorFn packetComparator = std::nullopt);
+      PacketComparatorFn packetComparator = std::nullopt,
+      packetSnooperReceivePacketType receivePktType =
+          packetSnooperReceivePacketType::PACKET_TYPE_ALL);
 
   std::optional<std::unique_ptr<folly::IOBuf>> waitForPacket(
       uint32_t timeout_s);

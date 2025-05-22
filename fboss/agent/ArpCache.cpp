@@ -73,4 +73,9 @@ std::list<ArpEntryThrift> ArpCache::getArpCacheData() {
   return getCacheData<ArpEntryThrift>();
 }
 
+std::optional<ArpEntryThrift> ArpCache::getArpCacheData(
+    folly::IPAddressV4 ip) const {
+  return getCacheData<ArpEntryThrift>(ip);
+}
+
 } // namespace facebook::fboss

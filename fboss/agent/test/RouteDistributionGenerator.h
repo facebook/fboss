@@ -66,6 +66,7 @@ class RouteDistributionGenerator {
       const Masklen2NumPrefixes& v4DistributionSpec,
       unsigned int chunkSize,
       unsigned int ecmpWidth,
+      bool needL2EntryForNeighbor,
       RouterID routerId = RouterID(0));
 
   virtual ~RouteDistributionGenerator() = default;
@@ -103,6 +104,10 @@ class RouteDistributionGenerator {
     return routerId_;
   }
 
+  bool needL2EntryForNeighbor() const {
+    return needL2EntryForNeighbor_;
+  }
+
  private:
   template <typename AddrT>
   const std::vector<UnresolvedNextHop>& getNhops() const;
@@ -112,6 +117,7 @@ class RouteDistributionGenerator {
   const Masklen2NumPrefixes v4DistributionSpec_;
   const unsigned int chunkSize_;
   const unsigned int ecmpWidth_;
+  const bool needL2EntryForNeighbor_;
   const RouterID routerId_{0};
 
  protected:

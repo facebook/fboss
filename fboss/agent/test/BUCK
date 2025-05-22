@@ -374,6 +374,7 @@ cpp_library(
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent/hw/switch_asics:switch_asics",
         "//fboss/agent/state:state",
+        "//fboss/agent/test/utils:neighbor_test_utils",
         "//folly:network_address",
     ],
     exported_external_deps = [
@@ -466,7 +467,6 @@ cpp_library(
         "//fboss/agent/hw:hardware_stats-cpp2-types",
         "//fboss/agent/hw/switch_asics:switch_asics",
         "//fboss/agent/state:state",
-        "//fboss/agent/test/utils:asic_test_utils",
         "//fboss/agent/test/utils:qos_test_utils",
         "//fboss/qsfp_service/lib:qsfp-service-client",
         "//folly/gen:base",
@@ -508,7 +508,6 @@ cpp_library(
         ":agent_ensemble_test",
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent/hw/test:config_factory",
-        "//fboss/agent/test/utils:asic_test_utils",
         "//folly:synchronized",
         "//folly/gen:base",
         "//folly/logging:logging",
@@ -552,7 +551,6 @@ cpp_library(
     srcs = [
         "MultiNodeTest.cpp",
     ],
-    link_whole = True,
     exported_deps = [
         ":agent_test",
         "//common/network:util",
@@ -651,6 +649,7 @@ cpp_library(
         "//fboss/agent:agent_config-cpp2-types",
         "//fboss/agent:agent_features",
         "//fboss/agent:core",
+        "//fboss/agent:fboss-types",
         "//fboss/agent:fboss_common_init",
         "//fboss/agent:fboss_init_h",
         "//fboss/agent:handler",
@@ -663,6 +662,7 @@ cpp_library(
         "//fboss/agent:sw_switch_warmboot_helper",
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent:utils",
+        "//fboss/agent/hw:hardware_stats-cpp2-types",
         "//fboss/agent/hw/bcm:bcm_config-cpp2-types",
         "//fboss/agent/hw/test:config_factory",
         "//fboss/agent/if:agent_hw_test_ctrl-cpp2-services",
@@ -951,13 +951,18 @@ cpp_unittest(
 )
 
 cpp_unittest(
-    name = "ecmp_consolidator_test",
+    name = "ecmp_resource_manager_test",
     srcs = [
-        "EcmpGroupConsolidatorTests.cpp",
+        "BaseEcmpResourceManagerTest.cpp",
+        "EcmpResourceMgrBackupGrpTests.cpp",
+        "EcmpResourceMgrGroupIdAllocationTests.cpp",
     ],
+    headers = ["BaseEcmpResourceManagerTest.h"],
     deps = [
-        "//fboss/agent:ecmp_consolidator",
+        ":utils",
+        "//fboss/agent:ecmp_resource_manager",
         "//fboss/agent:fboss-types",
+        "//fboss/agent:fib_helpers",
         "//fboss/agent/state:state",
         "//folly:network_address",
     ],

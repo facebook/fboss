@@ -12,10 +12,12 @@ DEFINE_bool(
     fsdb_publish_test,
     false,
     "Test-flag indicating whether to publish to FSDB and wait for completion");
+
 DEFINE_bool(
     wait_for_agent_publish_completion,
     false,
     "Test-flag indicating whether to publish to FSDB and wait for completion");
+
 DEFINE_string(
     write_agent_config_marker_for_fsdb,
     "",
@@ -24,12 +26,55 @@ DECLARE_bool(json);
 const thriftpath::RootThriftPath<facebook::fboss::fsdb::FsdbOperStateRoot>
     stateRoot;
 
-const auto portId = 1;
+const auto kExpectedPortId = 1;
+const auto kExpectedDescription = "Publish Done";
 
 namespace facebook::fboss {
 
+bool AgentFsdbIntegrationBenchmarkHelper::queryFsdbCounters(
+    std::map<std::string, int64_t>& fb303Counters) {
+  bool success{false};
+#ifndef IS_OSS
+  // Create a thrift client to fsdb service
+  auto clientParams =
+      facebook::servicerouter::ClientParams()
+          .setSingleHost("::1", FLAGS_fsdbPort)
+          .setProcessingTimeoutMs(std::chrono::milliseconds(1000));
+  auto fsdbClient =
+      facebook::servicerouter::cpp2::getClientFactory()
+          .getSRClientUnique<
+              apache::thrift::Client<facebook::fboss::fsdb::FsdbService>>(
+              "fboss.fsdb", clientParams);
+  try {
+    fsdbClient->sync_getCounters(fb303Counters);
+    success = true;
+  } catch (const std::exception& ex) {
+    XLOG(ERR) << "Failed to get fb303 counters: " << ex.what();
+    std::cerr << "Failed to get fb303 counters: " << ex.what() << std::endl;
+  }
+#endif
+  return success;
+};
+
 AgentFsdbIntegrationBenchmarkHelper::AgentFsdbIntegrationBenchmarkHelper() {
   auto subscriptionPath = stateRoot.agent().switchState().portMaps();
+  using PortMaps = typename decltype(subscriptionPath)::DataT;
+
+  auto isExpectedPublishMarker = [](fsdb::OperState&& state) {
+    PortMaps portMaps;
+    if (auto contents = state.contents()) {
+      portMaps =
+          apache::thrift::BinarySerializer::deserialize<PortMaps>(*contents);
+      for (const auto& [_switchIdList, portMap] : portMaps) {
+        auto it = portMap.find(kExpectedPortId);
+        if (it != portMap.end() &&
+            (it->second.portDescription().value() == kExpectedDescription)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  };
 
   fsdb::FsdbStateSubscriber::FsdbOperStateUpdateCb subscriptionCb =
       [&](fsdb::OperState&& state) {
@@ -40,82 +85,24 @@ AgentFsdbIntegrationBenchmarkHelper::AgentFsdbIntegrationBenchmarkHelper() {
         auto lastPublishedAt = state.metadata()->lastPublishedAt().value();
         subscribe_latency_ = std::max<uint64_t>(
             subscribe_latency_, currentTimestamp - lastPublishedAt);
-        if (waitForDummyDataPublish_) {
-          using PortMaps = typename decltype(subscriptionPath)::DataT;
-          PortMaps portMaps;
-          if (auto contents = state.contents()) {
-            portMaps = apache::thrift::BinarySerializer::deserialize<PortMaps>(
-                *contents);
-            for (const auto& [_switchIdList, portMap] : portMaps) {
-              for (const auto& [portId, portInfo] : portMap) {
-                if (portInfo.portId().value() == portId) {
-                  if (portInfo.portDescription().value() == "Publish Done") {
-                    dummyDataPublished_.post();
-#ifndef IS_OSS
-
-                    // Create a thrift client to fsdb service
-                    auto clientParams =
-                        facebook::servicerouter::ClientParams()
-                            .setSingleHost("::1", FLAGS_fsdbPort)
-                            .setProcessingTimeoutMs(
-                                std::chrono::milliseconds(1000));
-                    auto fsdbClient =
-                        facebook::servicerouter::cpp2::getClientFactory()
-                            .getSRClientUnique<apache::thrift::Client<
-                                facebook::fboss::fsdb::FsdbService>>(
-                                "fboss.fsdb", clientParams);
-                    std::map<std::string, int64_t> fb303Counters;
-
-                    if (FLAGS_json) {
-                      folly::dynamic fsdbSubscribeLatency =
-                          folly::dynamic::object;
-                      fsdbSubscribeLatency["subscribe_latency_ms"] =
-                          subscribe_latency_;
-                      try {
-                        fsdbClient->sync_getCounters(fb303Counters);
-                        for (const auto& [counterName, counterValue] :
-                             fb303Counters) {
-                          if (counterName ==
-                              "fsdb.publish_time_ms.agent.p99.60") {
-                            fsdbSubscribeLatency["publish_time_ms"] =
-                                counterValue;
-                          }
-                          if (counterName ==
-                              "fsdb.subscribe_time_ms.agent.p99.60") {
-                            fsdbSubscribeLatency["subscribe_time_ms"] =
-                                counterValue;
-                          }
-                        }
-                      } catch (const std::exception& ex) {
-                        XLOG(ERR)
-                            << "Failed to get fb303 counters: " << ex.what();
-                        std::cerr
-                            << "Failed to get fb303 counters: " << ex.what()
-                            << std::endl;
-                      }
-                      std::cout << toPrettyJson(fsdbSubscribeLatency)
-                                << std::endl;
-                    } else {
-                      XLOG(DBG2) << " interval ms: " << subscribe_latency_;
-                    }
-#endif
-                  }
-                }
-              }
-            }
+        if (waitForAllPublishConfirmed_) {
+          if (isExpectedPublishMarker(std::move(state))) {
+            dummyDataPublished_.post();
           }
         }
       };
-  if (FLAGS_fsdb_publish_test) {
-    enablePublishToFsdb_ = true;
-    connectToFsdb_ = true;
-    waitForPublishConfirmed_ = true;
-  }
 
   if (FLAGS_wait_for_agent_publish_completion) {
-    waitForDummyDataPublish_ = true;
+    FLAGS_fsdb_publish_test = true; // implicit
+    writeAllPublishCompleteMarker_ = true;
   }
-  if (waitForPublishConfirmed_) {
+
+  if (FLAGS_fsdb_publish_test) {
+    enablePublishToFsdb_ = true;
+    waitForSubscriptionConnected_ = true;
+  }
+
+  if (enablePublishToFsdb_) {
     // create a test subscription for agent state to help in confirming
     // completion of publish to fsdb
     auto stateChangeCb = [this](
@@ -155,14 +142,35 @@ void writeAgentConfigMarkerForFsdb() {
 }
 
 void AgentFsdbIntegrationBenchmarkHelper::awaitCompletion(
-    AgentEnsemble* /* ensemble */) {
-  if (waitForPublishConfirmed_) {
+    AgentEnsemble* ensemble) {
+  if (writeAllPublishCompleteMarker_) {
+    publishCompletionMarker(ensemble);
+  }
+
+  if (waitForSubscriptionConnected_) {
     // wait for subscribption to be served
     subscriptionConnected_.wait();
   }
-  if (waitForDummyDataPublish_) {
+
+  if (waitForAllPublishConfirmed_) {
     dummyDataPublished_.wait();
   }
+
+  if (FLAGS_json) {
+    folly::dynamic fsdbSubscribeLatency = folly::dynamic::object;
+    fsdbSubscribeLatency["subscribe_latency_ms"] = subscribe_latency_;
+
+    std::map<std::string, int64_t> fb303Counters;
+    if (queryFsdbCounters(fb303Counters)) {
+      fsdbSubscribeLatency["publish_time_ms"] =
+          fb303Counters["fsdb.publish_time_ms.agent.p99.60"];
+      fsdbSubscribeLatency["subscribe_time_ms"] =
+          fb303Counters["fsdb.subscribe_time_ms.agent.p99.60"];
+    }
+
+    std::cout << toPrettyJson(fsdbSubscribeLatency) << std::endl;
+  }
+
   if (FLAGS_write_agent_config_marker_for_fsdb != "") {
     writeAgentConfigMarkerForFsdb();
   }
@@ -170,18 +178,17 @@ void AgentFsdbIntegrationBenchmarkHelper::awaitCompletion(
 
 void AgentFsdbIntegrationBenchmarkHelper::publishCompletionMarker(
     AgentEnsemble* ensemble) {
-  if (waitForDummyDataPublish_) {
-    ensemble->getSw()->updateStateBlocking(
-        "update port desc", [](const auto& state) {
-          auto newState = state->clone();
-          auto ports = newState->getPorts()->modify(&newState);
-          auto port = ports->getNodeIf(portId)->clone();
-          port->setDescription("Publish Done");
-          HwSwitchMatcher matcher(std::unordered_set<SwitchID>({SwitchID(0)}));
-          ports->updateNode(std::move(port), matcher);
-          return newState;
-        });
-  }
+  ensemble->getSw()->updateStateBlocking(
+      "update port desc", [](const auto& state) {
+        auto newState = state->clone();
+        auto ports = newState->getPorts()->modify(&newState);
+        auto port = ports->getNodeIf(kExpectedPortId)->clone();
+        port->setDescription(kExpectedDescription);
+        HwSwitchMatcher matcher(std::unordered_set<SwitchID>({SwitchID(0)}));
+        ports->updateNode(std::move(port), matcher);
+        return newState;
+      });
+  waitForAllPublishConfirmed_ = true;
 }
 
 AgentFsdbIntegrationBenchmarkHelper::~AgentFsdbIntegrationBenchmarkHelper() {

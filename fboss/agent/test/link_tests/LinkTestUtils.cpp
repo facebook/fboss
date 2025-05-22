@@ -193,6 +193,19 @@ std::map<int32_t, TransceiverInfo> waitForTransceiverInfo(
   throw FbossError("TransceiverInfo was never populated.");
 }
 
+std::map<std::string, MediaInterfaceCode> getPortToMediaInterface() {
+  std::map<std::string, MediaInterfaceCode> portToMedia;
+  try {
+    auto qsfpServiceClient = utils::createQsfpServiceClient();
+    qsfpServiceClient->sync_getPortMediaInterface(portToMedia);
+  } catch (const std::exception& ex) {
+    XLOG(WARN) << "Failed to call qsfp_service getPortMediaInterface(). "
+               << folly::exceptionStr(ex);
+    return {};
+  }
+  return portToMedia;
+}
+
 const TransceiverSpec* getTransceiverSpec(const SwSwitch* sw, PortID portId) {
   auto& platformPort = sw->getPlatformMapping()->getPlatformPort(portId);
   const auto& chips = sw->getPlatformMapping()->getChips();

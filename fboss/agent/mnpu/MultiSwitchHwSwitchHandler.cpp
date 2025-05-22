@@ -102,10 +102,13 @@ bool MultiSwitchHwSwitchHandler::checkOperSyncStateLocked(
 
 std::pair<fsdb::OperDelta, HwSwitchStateUpdateStatus>
 MultiSwitchHwSwitchHandler::stateChanged(
-    const fsdb::OperDelta& delta,
+    const std::vector<fsdb::OperDelta>& deltas,
     bool transaction,
     const std::shared_ptr<SwitchState>& newState,
     const HwWriteBehavior& hwWriteBehavior) {
+  // TODO (ravi) until HwSwitch support vector delta processing
+  CHECK_LE(deltas.size(), 1);
+  auto& delta = deltas.back();
   multiswitch::StateOperDelta stateDelta;
   {
     std::unique_lock<std::mutex> lk(stateUpdateMutex_);

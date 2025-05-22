@@ -35,7 +35,7 @@ static constexpr uint8_t kCdbCommandStatusBusyCmdExec = 0x83;
 // All the CDB commands finishes well within 2 seconds but one particular DSP
 // firmware download takes too much time. During this each CDB command takes
 // average 5 seconds to increasing this CDB timeout value to 10 seconds
-constexpr int cdbCommandTimeoutUsec = 10000000;
+constexpr int cdbCommandTimeoutUsec = 20000000;
 constexpr int cdbCommandErrorIntervalUsec = 100000;
 constexpr int cdbCommandStatusPollIntervalUsec = 10000;
 

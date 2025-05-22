@@ -95,8 +95,12 @@ int RibRouteWeightNormalizer::getNumPathsToPrune(
     RackId dstRack,
     RackId srcRack) {
   // Rack ids are offset 1 based
-  CHECK(dstRack && dstRack <= numRacks_);
-  CHECK(srcRack && srcRack <= numRacks_);
+  if (!dstRack || dstRack > numRacks_) {
+    throw FbossError("invalid dst rack id ", dstRack);
+  }
+  if (!srcRack || srcRack > numRacks_) {
+    throw FbossError("invalid src rack id ", srcRack);
+  }
   return pruneLookupTable_[numFailures][dstRack - 1][srcRack - 1];
 }
 

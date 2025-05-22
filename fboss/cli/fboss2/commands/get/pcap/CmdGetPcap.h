@@ -18,7 +18,7 @@
 
 namespace facebook::fboss {
 
-struct CmdGetPcapTraits : public BaseCommandTraits {
+struct CmdGetPcapTraits : public ReadCommandTraits {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
   using ObjectArgType = std::monostate;

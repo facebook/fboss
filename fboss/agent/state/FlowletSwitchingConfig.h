@@ -25,6 +25,7 @@ class FlowletSwitchingConfig : public ThriftStructNode<
  public:
   using BaseT =
       ThriftStructNode<FlowletSwitchingConfig, cfg::FlowletSwitchingConfig>;
+  using BaseT::modify;
   explicit FlowletSwitchingConfig() = default;
 
   void setInactivityIntervalUsecs(const uint16_t inactivityIntervalUsecs) {
@@ -141,6 +142,8 @@ class FlowletSwitchingConfig : public ThriftStructNode<
   cfg::SwitchingMode getBackupSwitchingMode() const {
     return get<switch_config_tags::backupSwitchingMode>()->cref();
   }
+
+  FlowletSwitchingConfig* modify(std::shared_ptr<SwitchState>* state);
 
  private:
   // Inherit the constructors required for clone()

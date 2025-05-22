@@ -106,16 +106,7 @@ struct SetEncodedPathVisitorOperator : public BasePathVisitorOperator {
 
  protected:
   void visit(facebook::fboss::thrift_cow::Serializable& node) override {
-    try {
-      node.fromEncoded(protocol_, val_);
-    } catch (const thrift_cow::NodeException& e) {
-      if (e.reason() !=
-          thrift_cow::NodeException::Reason::SET_IMMUTABLE_PRIMITIVE_NODE) {
-        throw;
-      }
-    } catch (const std::exception&) {
-      throw;
-    }
+    node.fromEncoded(protocol_, val_);
   }
 
  private:
@@ -164,8 +155,25 @@ enum class PathVisitMode {
   LEAF
 };
 
-namespace pv_detail {
+struct PathVisitOptions {
+  static PathVisitOptions visitFull(bool skipImmutablePrimitiveNode = false) {
+    return PathVisitOptions(PathVisitMode::FULL, skipImmutablePrimitiveNode);
+  }
 
+  static PathVisitOptions visitLeaf(bool skipImmutablePrimitiveNode = false) {
+    return PathVisitOptions(PathVisitMode::LEAF, skipImmutablePrimitiveNode);
+  }
+
+  explicit PathVisitOptions(
+      PathVisitMode mode,
+      bool skipImmutablePrimitiveNode = false)
+      : mode(mode), skipImmutablePrimitiveNode(skipImmutablePrimitiveNode) {}
+
+  PathVisitMode mode;
+  bool skipImmutablePrimitiveNode;
+};
+
+namespace pv_detail {
 template <typename TC>
 struct PathVisitorImpl;
 
@@ -177,13 +185,13 @@ struct VisitImplParams {
   VisitImplParams(
       pv_detail::PathIter begin,
       pv_detail::PathIter end,
-      const PathVisitMode& mode,
+      const PathVisitOptions& options,
       Op& op)
-      : begin(begin), end(end), mode(mode), op(op) {}
+      : begin(begin), end(end), options(options), op(op) {}
 
   pv_detail::PathIter begin;
   pv_detail::PathIter end;
-  const PathVisitMode& mode;
+  const PathVisitOptions& options;
   Op& op;
 };
 
@@ -217,9 +225,9 @@ struct LambdaPathVisitorOperator {
   Func f_;
 };
 
-// Similar to LambdaPathVisitorOperator, only that if the node is thrift object,
-// this operator wraps it in a writable wrapper that provides write interface to
-// caller such as remove(tok), modify(tok)
+// Similar to LambdaPathVisitorOperator, only that if the node is thrift
+// object, this operator wraps it in a writable wrapper that provides write
+// interface to caller such as remove(tok), modify(tok)
 template <typename Func>
 struct WritablePathVisitorOperator {
   explicit WritablePathVisitorOperator(Func&& f) : f_(std::forward<Func>(f)) {}
@@ -266,7 +274,7 @@ visitNode(Node& node, const VisitImplParams<Op>& params, PathIter cursor)
     // only enable for Node types
   requires(std::is_same_v<typename Node::CowType, NodeType>)
 {
-  if (params.mode == PathVisitMode::FULL || cursor == params.end) {
+  if (params.options.mode == PathVisitMode::FULL || cursor == params.end) {
     try {
       params.op.template visitTyped<TC, Node>(node, cursor, params.end);
       if (cursor == params.end) {
@@ -310,7 +318,7 @@ struct PathVisitorImpl<apache::thrift::type_class::set<ValueTypeClass>> {
     requires(!is_cow_type_v<Obj> && !is_field_type_v<Obj>)
   {
     try {
-      if (params.mode == PathVisitMode::FULL || cursor == params.end) {
+      if (params.options.mode == PathVisitMode::FULL || cursor == params.end) {
         params.op.template visitTyped<TC, Obj>(tObj, cursor, params.end);
         if (cursor == params.end) {
           return ThriftTraverseResult::OK;
@@ -349,7 +357,7 @@ struct PathVisitorImpl<apache::thrift::type_class::set<ValueTypeClass>> {
     requires(std::is_same_v<typename Node::CowType, HybridNodeType>)
   {
     try {
-      if (params.mode == PathVisitMode::FULL || cursor == params.end) {
+      if (params.options.mode == PathVisitMode::FULL || cursor == params.end) {
         params.op.template visitTyped<TC, Node>(node, cursor, params.end);
         if (cursor == params.end) {
           return ThriftTraverseResult::OK;
@@ -429,7 +437,7 @@ struct PathVisitorImpl<apache::thrift::type_class::list<ValueTypeClass>> {
     requires(!is_cow_type_v<Obj> && !is_field_type_v<Obj>)
   {
     try {
-      if (params.mode == PathVisitMode::FULL || cursor == params.end) {
+      if (params.options.mode == PathVisitMode::FULL || cursor == params.end) {
         params.op.template visitTyped<TC, Obj>(tObj, cursor, params.end);
         if (cursor == params.end) {
           return ThriftTraverseResult::OK;
@@ -458,7 +466,7 @@ struct PathVisitorImpl<apache::thrift::type_class::list<ValueTypeClass>> {
     requires(std::is_same_v<typename Node::CowType, HybridNodeType>)
   {
     try {
-      if (params.mode == PathVisitMode::FULL || cursor == params.end) {
+      if (params.options.mode == PathVisitMode::FULL || cursor == params.end) {
         params.op.template visitTyped<TC, Node>(node, cursor, params.end);
         if (cursor == params.end) {
           return ThriftTraverseResult::OK;
@@ -530,7 +538,7 @@ struct PathVisitorImpl<
     requires(!is_cow_type_v<Obj> && !is_field_type_v<Obj>)
   {
     try {
-      if (params.mode == PathVisitMode::FULL || cursor == params.end) {
+      if (params.options.mode == PathVisitMode::FULL || cursor == params.end) {
         params.op.template visitTyped<TC, Obj>(tObj, cursor, params.end);
         if (cursor == params.end) {
           return ThriftTraverseResult::OK;
@@ -564,7 +572,7 @@ struct PathVisitorImpl<
     requires(std::is_same_v<typename Node::CowType, HybridNodeType>)
   {
     try {
-      if (params.mode == PathVisitMode::FULL || cursor == params.end) {
+      if (params.options.mode == PathVisitMode::FULL || cursor == params.end) {
         params.op.template visitTyped<TC, Node>(node, cursor, params.end);
         if (cursor == params.end) {
           return ThriftTraverseResult::OK;
@@ -673,7 +681,8 @@ struct PathVisitorImpl<apache::thrift::type_class::variant> {
       using name = typename descriptor::metadata::name;
       using tc = typename descriptor::metadata::type_class;
 
-      if (fields.type() != descriptor::metadata::id::value) {
+      if (folly::to_underlying(fields.type()) !=
+          descriptor::metadata::id::value) {
         result = ThriftTraverseResult::INCORRECT_VARIANT_MEMBER;
         return;
       }
@@ -717,7 +726,7 @@ struct PathVisitorImpl<apache::thrift::type_class::structure> {
     requires(std::is_same_v<typename Node::CowType, HybridNodeType>)
   {
     try {
-      if (params.mode == PathVisitMode::FULL || cursor == params.end) {
+      if (params.options.mode == PathVisitMode::FULL || cursor == params.end) {
         params.op.template visitTyped<TC, Node>(node, cursor, params.end);
         if (cursor == params.end) {
           return ThriftTraverseResult::OK;
@@ -764,7 +773,7 @@ struct PathVisitorImpl<apache::thrift::type_class::structure> {
     requires(!is_cow_type_v<Obj> && !is_field_type_v<Obj>)
   {
     try {
-      if (params.mode == PathVisitMode::FULL || cursor == params.end) {
+      if (params.options.mode == PathVisitMode::FULL || cursor == params.end) {
         params.op.template visitTyped<TC, Obj>(tObj, cursor, params.end);
         if (cursor == params.end) {
           return ThriftTraverseResult::OK;
@@ -781,7 +790,8 @@ struct PathVisitorImpl<apache::thrift::type_class::structure> {
     auto key = *cursor++;
     // Perform linear search over all members for key
     ThriftTraverseResult result = ThriftTraverseResult::INVALID_STRUCT_MEMBER;
-    using Members = typename apache::thrift::reflect_struct<Obj>::members;
+    using Members =
+        typename apache::thrift::reflect_struct<std::remove_cv_t<Obj>>::members;
     visitMember<Members>(key, [&](auto indexed) {
       using member = decltype(fatal::tag_type(indexed));
       using tc = typename member::type_class;
@@ -864,7 +874,14 @@ struct PathVisitorImpl {
   template <typename Node, typename Op>
   static ThriftTraverseResult
   visit(Node& node, const VisitImplParams<Op>& params, PathIter cursor) {
-    if (params.mode == PathVisitMode::FULL || cursor == params.end) {
+    if constexpr (is_cow_type_v<Node>) {
+      if constexpr (!std::is_same_v<typename Node::CowType, HybridNodeType>) {
+        if (params.options.skipImmutablePrimitiveNode && node.immutable) {
+          return ThriftTraverseResult::OK;
+        }
+      }
+    }
+    if (params.options.mode == PathVisitMode::FULL || cursor == params.end) {
       try {
         // unfortunately its tough to get full const correctness for primitive
         // types since we don't enforce whether or not lambdas or operators
@@ -911,12 +928,12 @@ struct PathVisitor {
       Node& node,
       pv_detail::PathIter begin,
       pv_detail::PathIter end,
-      const PathVisitMode& mode,
+      const PathVisitOptions& options,
       Op& op)
       // only enable for Node types
     requires(std::is_same_v<typename Node::CowType, NodeType>)
   {
-    pv_detail::VisitImplParams<Op> params(begin, end, mode, op);
+    pv_detail::VisitImplParams<Op> params(begin, end, options, op);
     return pv_detail::PathVisitorImpl<TC>::visit(node, params, begin);
   }
 
@@ -925,13 +942,13 @@ struct PathVisitor {
       Node& node,
       pv_detail::PathIter begin,
       pv_detail::PathIter end,
-      const PathVisitMode& mode,
+      const PathVisitOptions& options,
       BasePathVisitorOperator& op)
       // only enable for Node types
     requires(std::is_same_v<typename Node::CowType, NodeType>)
   {
     pv_detail::VisitImplParams<BasePathVisitorOperator> params(
-        begin, end, mode, op);
+        begin, end, options, op);
     return pv_detail::PathVisitorImpl<TC>::visit(node, params, begin);
   }
 
@@ -940,14 +957,14 @@ struct PathVisitor {
       Fields& fields,
       pv_detail::PathIter begin,
       pv_detail::PathIter end,
-      const PathVisitMode& mode,
+      const PathVisitOptions& options,
       Op& op)
       // only enable for Fields types
     requires(
         is_field_type_v<Fields> &&
         std::is_same_v<typename Fields::CowType, FieldsType>)
   {
-    pv_detail::VisitImplParams<Op> params(begin, end, mode, op);
+    pv_detail::VisitImplParams<Op> params(begin, end, options, op);
     return pv_detail::PathVisitorImpl<TC>::visit(fields, params, begin);
   }
 
@@ -956,7 +973,7 @@ struct PathVisitor {
       Fields& fields,
       pv_detail::PathIter begin,
       pv_detail::PathIter end,
-      const PathVisitMode& mode,
+      const PathVisitOptions& options,
       BasePathVisitorOperator& op)
       // only enable for Fields types
     requires(
@@ -964,7 +981,7 @@ struct PathVisitor {
         std::is_same_v<typename Fields::CowType, FieldsType>)
   {
     pv_detail::VisitImplParams<BasePathVisitorOperator> params(
-        begin, end, mode, op);
+        begin, end, options, op);
     return pv_detail::PathVisitorImpl<TC>::visit(fields, params, begin);
   }
 };

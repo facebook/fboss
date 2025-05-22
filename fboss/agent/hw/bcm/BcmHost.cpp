@@ -46,7 +46,8 @@ namespace facebook::fboss {
 std::ostream& operator<<(
     std::ostream& os,
     const facebook::fboss::BcmMultiPathNextHopKey& key) {
-  return os << "BcmMultiPathNextHop: " << key.second << "@vrf " << key.first;
+  return os << "BcmMultiPathNextHop: " << std::get<1>(key) << "@vrf "
+            << std::get<0>(key);
 }
 
 using folly::IPAddress;

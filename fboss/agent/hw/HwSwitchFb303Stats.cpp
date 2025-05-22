@@ -364,6 +364,108 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
           getCounterPrefix() + vendor + ".tm_action_resolution.errors",
           SUM,
           RATE),
+      ingressTmErrors_(
+          map,
+          getCounterPrefix() + vendor + ".ingress_tm.errors",
+          SUM,
+          RATE),
+      egressTmErrors_(
+          map,
+          getCounterPrefix() + vendor + ".egress_tm.errors",
+          SUM,
+          RATE),
+      ingressPpErrors_(
+          map,
+          getCounterPrefix() + vendor + ".ingress_pp.errors",
+          SUM,
+          RATE),
+      egressPpErrors_(
+          map,
+          getCounterPrefix() + vendor + ".egress_pp.errors",
+          SUM,
+          RATE),
+      dramErrors_(map, getCounterPrefix() + vendor + ".dram.errors", SUM, RATE),
+      counterAndMeterErrors_(
+          map,
+          getCounterPrefix() + vendor + ".counter_and_meter.errors",
+          SUM,
+          RATE),
+      fabricRxErrors_(
+          map,
+          getCounterPrefix() + vendor + ".fabric_rx.errors",
+          SUM,
+          RATE),
+      fabricTxErrors_(
+          map,
+          getCounterPrefix() + vendor + ".fabric_tx.errors",
+          SUM,
+          RATE),
+      fabricLinkErrors_(
+          map,
+          getCounterPrefix() + vendor + ".fabric_link.errors",
+          SUM,
+          RATE),
+      fabricTopologyErrors_(
+          map,
+          getCounterPrefix() + vendor + ".fabric_topology.errors",
+          SUM,
+          RATE),
+      networkInterfaceErrors_(
+          map,
+          getCounterPrefix() + vendor + ".network_interface.errors",
+          SUM,
+          RATE),
+      fabricControlPathErrors_(
+          map,
+          getCounterPrefix() + vendor + ".fabric_control_path.errors",
+          SUM,
+          RATE),
+      fabricDataPathErrors_(
+          map,
+          getCounterPrefix() + vendor + ".fabric_data_path.errors",
+          SUM,
+          RATE),
+      cpuErrors_(map, getCounterPrefix() + vendor + ".cpu.errors", SUM, RATE),
+      ingressTmWarnings_(
+          map,
+          getCounterPrefix() + vendor + ".ingress_tm.warnings",
+          SUM,
+          RATE),
+      egressTmWarnings_(
+          map,
+          getCounterPrefix() + vendor + ".egress_tm.warnings",
+          SUM,
+          RATE),
+      dramWarnings_(
+          map,
+          getCounterPrefix() + vendor + ".dram.warnings",
+          SUM,
+          RATE),
+      fabricRxWarnings_(
+          map,
+          getCounterPrefix() + vendor + ".fabric_rx.warnings",
+          SUM,
+          RATE),
+      fabricTxWarnings_(
+          map,
+          getCounterPrefix() + vendor + ".fabric_tx.warnings",
+          SUM,
+          RATE),
+      fabricLinkWarnings_(
+          map,
+          getCounterPrefix() + vendor + ".fabric_link.warnings",
+          SUM,
+          RATE),
+      networkInterfaceWarnings_(
+          map,
+          getCounterPrefix() + vendor + ".network_interface.warnings",
+          SUM,
+          RATE),
+      interruptMaskedEvents_(
+          map,
+          getCounterPrefix() + vendor + ".interrupt_masked_events",
+          SUM,
+          RATE),
       hwInitializedTimeMs_(
           map,
           getCounterPrefix() + vendor + ".hw_initialized_time_ms",
@@ -674,12 +776,100 @@ int64_t HwSwitchFb303Stats::getTmActionResolutionErrors() const {
   return getCumulativeValue(tmActionResolutionErrors_);
 }
 
+int64_t HwSwitchFb303Stats::getIngressTmErrors() const {
+  return getCumulativeValue(ingressTmErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getEgressTmErrors() const {
+  return getCumulativeValue(egressTmErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getIngressPpErrors() const {
+  return getCumulativeValue(ingressPpErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getEgressPpErrors() const {
+  return getCumulativeValue(egressPpErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getDramErrors() const {
+  return getCumulativeValue(dramErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getCounterAndMeterErrors() const {
+  return getCumulativeValue(counterAndMeterErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getFabricRxErrors() const {
+  return getCumulativeValue(fabricRxErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getFabricTxErrors() const {
+  return getCumulativeValue(fabricTxErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getFabricLinkErrors() const {
+  return getCumulativeValue(fabricLinkErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getFabricTopologyErrors() const {
+  return getCumulativeValue(fabricTopologyErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getNetworkInterfaceErrors() const {
+  return getCumulativeValue(networkInterfaceErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getFabricControlPathErrors() const {
+  return getCumulativeValue(fabricControlPathErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getFabricDataPathErrors() const {
+  return getCumulativeValue(fabricDataPathErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getCpuErrors() const {
+  return getCumulativeValue(cpuErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getIngressTmWarnings() const {
+  return getCumulativeValue(ingressTmWarnings_);
+}
+
+int64_t HwSwitchFb303Stats::getEgressTmWarnings() const {
+  return getCumulativeValue(egressTmWarnings_);
+}
+
+int64_t HwSwitchFb303Stats::getDramWarnings() const {
+  return getCumulativeValue(dramWarnings_);
+}
+
+int64_t HwSwitchFb303Stats::getFabricRxWarnings() const {
+  return getCumulativeValue(fabricRxWarnings_);
+}
+
+int64_t HwSwitchFb303Stats::getFabricTxWarnings() const {
+  return getCumulativeValue(fabricTxWarnings_);
+}
+
+int64_t HwSwitchFb303Stats::getFabricLinkWarnings() const {
+  return getCumulativeValue(fabricLinkWarnings_);
+}
+
+int64_t HwSwitchFb303Stats::getNetworkInterfaceWarnings() const {
+  return getCumulativeValue(networkInterfaceWarnings_);
+}
+
 int64_t HwSwitchFb303Stats::getIsolationFirmwareCrashes() const {
   return getCumulativeValue(isolationFirmwareCrashes_);
 }
 
 int64_t HwSwitchFb303Stats::getRxFifoStuckDetected() const {
   return getCumulativeValue(rxFifoStuckDetected_);
+}
+
+int64_t HwSwitchFb303Stats::getInterruptMaskedEvents() const {
+  return getCumulativeValue(interruptMaskedEvents_);
 }
 
 int64_t HwSwitchFb303Stats::getPacketIntegrityDrops() const {
@@ -769,6 +959,27 @@ HwAsicErrors HwSwitchFb303Stats::getHwAsicErrors() const {
   asicErrors.sramPacketBufferErrors() = getSramPacketBufferErrors();
   asicErrors.sramQueueManagementErrors() = getSramQueueManagementErrors();
   asicErrors.tmActionResolutionErrors() = getTmActionResolutionErrors();
+  asicErrors.ingressTmErrors() = getIngressTmErrors();
+  asicErrors.egressTmErrors() = getEgressTmErrors();
+  asicErrors.ingressPpErrors() = getIngressPpErrors();
+  asicErrors.egressPpErrors() = getEgressPpErrors();
+  asicErrors.dramErrors() = getDramErrors();
+  asicErrors.counterAndMeterErrors() = getCounterAndMeterErrors();
+  asicErrors.fabricRxErrors() = getFabricRxErrors();
+  asicErrors.fabricTxErrors() = getFabricTxErrors();
+  asicErrors.fabricLinkErrors() = getFabricLinkErrors();
+  asicErrors.fabricTopologyErrors() = getFabricTopologyErrors();
+  asicErrors.networkInterfaceErrors() = getNetworkInterfaceErrors();
+  asicErrors.fabricControlPathErrors() = getFabricControlPathErrors();
+  asicErrors.fabricDataPathErrors() = getFabricDataPathErrors();
+  asicErrors.cpuErrors() = getCpuErrors();
+  asicErrors.ingressTmWarnings() = getIngressTmWarnings();
+  asicErrors.egressTmWarnings() = getEgressTmWarnings();
+  asicErrors.dramWarnings() = getDramWarnings();
+  asicErrors.fabricRxWarnings() = getFabricRxWarnings();
+  asicErrors.fabricTxWarnings() = getFabricTxWarnings();
+  asicErrors.fabricLinkWarnings() = getFabricLinkWarnings();
+  asicErrors.networkInterfaceWarnings() = getNetworkInterfaceWarnings();
   return asicErrors;
 }
 
@@ -904,6 +1115,7 @@ HwSwitchFb303GlobalStats HwSwitchFb303Stats::getAllFb303Stats() const {
   hwFb303Stats.deleted_credit_bytes() = getDeletedCreditBytes();
   hwFb303Stats.vsq_resource_exhaustion_drops() =
       getVsqResourcesExhautionDrops();
+  hwFb303Stats.interrupt_masked_events() = getInterruptMaskedEvents();
   return hwFb303Stats;
 }
 

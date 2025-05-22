@@ -10,9 +10,9 @@
 
 #include "fboss/agent/hw/test/ProdConfigFactory.h"
 
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
-
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestPfcUtils.h"

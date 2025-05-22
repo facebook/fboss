@@ -16,6 +16,8 @@ bool CredoPhyAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::PMD_RX_LOCK_STATUS:
     case HwAsic::Feature::FEC_AM_LOCK_STATUS:
     case HwAsic::Feature::PCS_RX_LINK_STATUS:
+    case HwAsic::Feature::WARMBOOT:
+    case HwAsic::Feature::OBJECT_KEY_CACHE:
       return true;
     default:
       return false;

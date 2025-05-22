@@ -150,6 +150,12 @@ struct FakePortSerdes {
   std::vector<int32_t> rxCdrTdet1stOrdStepOvVal;
   std::vector<int32_t> rxCdrTdet2ndOrdStepOvVal;
   std::vector<int32_t> rxCdrTdetFineStepOvVal;
+  std::vector<int32_t> txLdoBypass;
+  std::vector<int32_t> rxLdoBypass;
+  std::vector<int32_t> rxDiffEncoderEn;
+  std::vector<int32_t> rxInstgEnableScan;
+  std::vector<int32_t> rxFfeLengthBitmap;
+  std::vector<int32_t> rxFfeLmsDynamicGatingEn;
 };
 
 struct FakePortConnector {

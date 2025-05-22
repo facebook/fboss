@@ -5,6 +5,7 @@
 #include <chrono>
 #include <thread>
 #include "fboss/agent/AgentConfig.h"
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/RouteUpdateWrapper.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
@@ -50,7 +51,10 @@ void ProdInvariantTest::setupAgentTestEcmp(
   auto forProdConfig =
       useProdConfig_.has_value() ? useProdConfig_.value() : false;
   utility::EcmpSetupTargetedPorts6 ecmp6(
-      getSw()->getState(), forProdConfig, {cfg::PortType::INTERFACE_PORT});
+      getSw()->getState(),
+      getSw()->needL2EntryForNeighbor(),
+      forProdConfig,
+      {cfg::PortType::INTERFACE_PORT});
 
   getSw()->updateStateBlocking("Resolve nhops", [&](auto state) {
     return ecmp6.resolveNextHops(state, ports);
@@ -139,7 +143,7 @@ void ProdInvariantTest::setupConfigFlag() {
   AgentEnsemble* ensemble = getAgentEnsemble();
   cfg::AgentConfig testConfig;
   auto hwAsics = ensemble->getSw()->getHwAsicTable()->getL3Asics();
-  auto asic = utility::checkSameAndGetAsic(hwAsics);
+  auto asic = checkSameAndGetAsic(hwAsics);
   utility::setPortToDefaultProfileIDMap(
       std::make_shared<MultiSwitchPortMap>(),
       ensemble->getPlatformMapping(),
@@ -247,7 +251,7 @@ void ProdInvariantTest::verifyLoadBalancing() {
 void ProdInvariantTest::verifyDscpToQueueMapping() {
   AgentEnsemble* ensemble = getAgentEnsemble();
   auto hwAsics = ensemble->getSw()->getHwAsicTable()->getL3Asics();
-  auto asic = utility::checkSameAndGetAsic(hwAsics);
+  auto asic = checkSameAndGetAsic(hwAsics);
 
   if (!asic->isSupported(HwAsic::Feature::L3_QOS)) {
     return;
@@ -334,7 +338,7 @@ void ProdInvariantTest::verifySafeDiagCommands() {
   AgentEnsemble* ensemble = getAgentEnsemble();
   std::set<std::string> diagCmds;
   auto hwAsics = ensemble->getSw()->getHwAsicTable()->getL3Asics();
-  auto asic = utility::checkSameAndGetAsic(hwAsics);
+  auto asic = checkSameAndGetAsic(hwAsics);
 
   switch (asic->getAsicType()) {
     case cfg::AsicType::ASIC_TYPE_FAKE:
@@ -488,11 +492,13 @@ class ProdInvariantRswMhnicTest : public ProdInvariantTest {
     });
 
     getSw()->updateStateBlocking("Resolve nhops", [&](auto state) {
-      utility::EcmpSetupTargetedPorts4 ecmp4(state);
+      utility::EcmpSetupTargetedPorts4 ecmp4(
+          state, getSw()->needL2EntryForNeighbor());
       return ecmp4.resolveNextHops(state, ports);
     });
 
-    utility::EcmpSetupTargetedPorts4 ecmp4(getSw()->getState());
+    utility::EcmpSetupTargetedPorts4 ecmp4(
+        getSw()->getState(), getSw()->needL2EntryForNeighbor());
     ecmp4.programRoutes(
         std::make_unique<SwSwitchRouteUpdateWrapper>(
             getSw()->getRouteUpdater()),

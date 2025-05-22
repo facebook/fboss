@@ -215,6 +215,7 @@ bool verifyEcmpForFlowletSwitching(
 bool verifyEcmpForNonFlowlet(
     const facebook::fboss::HwSwitch* hw,
     const folly::CIDRNetwork& prefix,
+    const cfg::FlowletSwitchingConfig& flowletCfg,
     const bool expectFlowsetFree) {
   const auto bcmSwitch = static_cast<const BcmSwitch*>(hw);
   auto ecmp = getEgressIdForRoute(bcmSwitch, prefix.first, prefix.second, kRid);
@@ -227,7 +228,14 @@ bool verifyEcmpForNonFlowlet(
   // Ecmp Id should be greater than or equal to max dlb Ecmp Id
   CHECK_GE(ecmp, kDlbEcmpMaxId);
   // Check all the flowlet configs are disabled
-  CHECK_EQ(existing.dynamic_mode, BCM_L3_ECMP_DYNAMIC_MODE_DISABLED);
+  if (flowletCfg.backupSwitchingMode() ==
+      cfg::SwitchingMode::FIXED_ASSIGNMENT) {
+    CHECK_EQ(existing.dynamic_mode, BCM_L3_ECMP_DYNAMIC_MODE_DISABLED);
+  } else if (
+      flowletCfg.backupSwitchingMode() ==
+      cfg::SwitchingMode::PER_PACKET_RANDOM) {
+    CHECK_EQ(existing.dynamic_mode, BCM_L3_ECMP_DYNAMIC_MODE_RANDOM);
+  }
   CHECK_EQ(existing.dynamic_age, 0);
   CHECK_EQ(existing.dynamic_size, 0);
   int freeEntries = 0;

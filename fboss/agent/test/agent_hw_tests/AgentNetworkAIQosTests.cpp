@@ -8,8 +8,8 @@
  *
  */
 
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/test/agent_hw_tests/AgentQosTestBase.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/NetworkAITestUtils.h"
 
@@ -23,7 +23,7 @@ class AgentNetworkAIQosTests : public AgentQosTestBase {
         ensemble.getSw(),
         ensemble.masterLogicalPortIds(),
         true /*interfaceHasSubnet*/);
-    auto hwAsic = utility::checkSameAndGetAsic(ensemble.getL3Asics());
+    auto hwAsic = checkSameAndGetAsic(ensemble.getL3Asics());
     auto streamType =
         *hwAsic->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin();
     utility::addNetworkAIQueueConfig(

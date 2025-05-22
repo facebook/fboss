@@ -229,7 +229,9 @@ class HwTeFlowTrafficTest : public HwLinkStateDependentTest {
 
   void _setupTeFlow() {
     ecmpHelper_ = std::make_unique<utility::EcmpSetupTargetedPorts6>(
-        getProgrammedState(), RouterID(0));
+        getProgrammedState(),
+        getHwSwitch()->needL2EntryForNeighbor(),
+        RouterID(0));
     setExactMatchCfg(getHwSwitchEnsemble(), kPrefixLength1);
     // Add 100::/32 lpm route entry
     this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[0]));
@@ -316,7 +318,9 @@ TEST_F(HwTeFlowTrafficTest, validateTeFlow) {
 TEST_F(HwTeFlowTrafficTest, validateAddDelTeFlows) {
   auto setup = [=, this]() {
     ecmpHelper_ = std::make_unique<utility::EcmpSetupTargetedPorts6>(
-        getProgrammedState(), RouterID(0));
+        getProgrammedState(),
+        getHwSwitch()->needL2EntryForNeighbor(),
+        RouterID(0));
     setExactMatchCfg(getHwSwitchEnsemble(), kPrefixLength1);
     this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[0]));
     this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[1]));
@@ -390,7 +394,9 @@ TEST_F(HwTeFlowTrafficTest, validateAddDelTeFlows) {
 TEST_F(HwTeFlowTrafficTest, validateSyncTeFlows) {
   auto setup = [=, this]() {
     ecmpHelper_ = std::make_unique<utility::EcmpSetupTargetedPorts6>(
-        getProgrammedState(), getIntfMac());
+        getProgrammedState(),
+        getHwSwitch()->needL2EntryForNeighbor(),
+        getIntfMac());
     setExactMatchCfg(getHwSwitchEnsemble(), kPrefixLength1);
     this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[0]));
     this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[1]));
@@ -468,7 +474,9 @@ TEST_F(HwTeFlowTrafficTest, verifyTeFlowScale) {
   auto setup = [&]() {
     FLAGS_emStatOnlyMode = true;
     ecmpHelper_ = std::make_unique<utility::EcmpSetupTargetedPorts6>(
-        getProgrammedState(), RouterID(0));
+        getProgrammedState(),
+        getHwSwitch()->needL2EntryForNeighbor(),
+        RouterID(0));
     setExactMatchCfg(getHwSwitchEnsemble(), kPrefixLength1);
     this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[0]));
     this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[1]));

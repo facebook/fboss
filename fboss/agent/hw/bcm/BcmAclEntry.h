@@ -76,6 +76,8 @@ class BcmAclEntry {
       bcm_vrf_t vrf = 0);
   void applyFlowletAction(
       const std::optional<facebook::fboss::MatchAction>& action);
+  void applyEcmpHashAction(
+      const std::optional<facebook::fboss::MatchAction>& action);
 
   BcmSwitch* hw_;
   int gid_;

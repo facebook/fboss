@@ -22,6 +22,7 @@
 #include "fboss/agent/state/PortDescriptor.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
+#include "fboss/agent/test/utils/NeighborTestUtils.h"
 #include "fboss/agent/types.h"
 
 #include <folly/IPAddress.h>
@@ -114,7 +115,9 @@ boost::container::flat_set<PortDescriptor> getSingleVlanOrRoutedCabledPorts(
 }
 
 template <typename AddrT, typename NextHopT>
-BaseEcmpSetupHelper<AddrT, NextHopT>::BaseEcmpSetupHelper() {}
+BaseEcmpSetupHelper<AddrT, NextHopT>::BaseEcmpSetupHelper(
+    bool needL2EntryForNeighbor)
+    : needL2EntryForNeighbor_(needL2EntryForNeighbor) {}
 
 template <typename AddrT, typename NextHopT>
 flat_map<PortDescriptor, InterfaceID>
@@ -222,16 +225,30 @@ BaseEcmpSetupHelper<AddrT, NextHopT>::resolveVlanRifNextHop(
   }
 
   auto nhopIp = useLinkLocal ? nhop.linkLocalNhopIp.value() : nhop.ip;
-  if (nbrTable->getEntryIf(nhop.ip)) {
+  auto existingEntry = nbrTable->getEntryIf(nhopIp);
+  if (existingEntry) {
     nbrTable->updateEntry(
         nhopIp,
         nhop.mac,
         nhop.portDesc,
         intf->getID(),
         NeighborState::REACHABLE);
+    if (needL2EntryForNeighbor()) {
+      outputState = NeighborTestUtils::updateMacEntryForUpdatedNbrEntry(
+          outputState,
+          intf->getVlanID(),
+          existingEntry,
+          nbrTable->getEntryIf(nhopIp));
+    }
   } else {
     nbrTable->addEntry(nhopIp, nhop.mac, nhop.portDesc, intf->getID());
+    if (needL2EntryForNeighbor()) {
+      CHECK(intf->getVlanIDIf().has_value());
+      outputState = NeighborTestUtils::addMacEntryForNewNbrEntry(
+          outputState, intf->getVlanID(), nbrTable->getEntryIf(nhopIp));
+    }
   }
+
   return outputState;
 }
 
@@ -292,7 +309,14 @@ BaseEcmpSetupHelper<AddrT, NextHopT>::unresolveVlanRifNextHop(
   }
 
   auto nhopIp = useLinkLocal ? nhop.linkLocalNhopIp.value() : nhop.ip;
-  nbrTable->removeEntry(nhopIp);
+  auto entry = nbrTable->getEntryIf(nhopIp);
+  if (entry) {
+    nbrTable->removeEntry(nhopIp);
+    if (needL2EntryForNeighbor()) {
+      outputState = NeighborTestUtils::pruneMacEntryForDelNbrEntry(
+          outputState, intf->getVlanID(), entry);
+    }
+  }
   return outputState;
 }
 
@@ -434,7 +458,10 @@ std::optional<VlanID> BaseEcmpSetupHelper<AddrT, NextHopT>::getVlan(
         portId = port.phyPortID();
         break;
       case PortDescriptor::PortType::AGGREGATE: {
-        auto aggPort = state->getAggregatePorts()->getNode(port.aggPortID());
+        auto aggPort = state->getAggregatePorts()->getNodeIf(port.aggPortID());
+        if (!aggPort) {
+          return std::nullopt;
+        }
         portId = aggPort->sortedSubports().begin()->portID;
       } break;
 
@@ -458,11 +485,13 @@ std::optional<VlanID> BaseEcmpSetupHelper<AddrT, NextHopT>::getVlan(
 template <typename IPAddrT>
 EcmpSetupTargetedPorts<IPAddrT>::EcmpSetupTargetedPorts(
     const std::shared_ptr<SwitchState>& inputState,
+    bool needL2EntryForNeighbor,
     std::optional<folly::MacAddress> nextHopMac,
     RouterID routerId,
     bool forProdConfig,
     const std::set<cfg::PortType>& portTypes)
-    : BaseEcmpSetupHelper<IPAddrT, EcmpNextHopT>(), routerId_(routerId) {
+    : BaseEcmpSetupHelper<IPAddrT, EcmpNextHopT>(needL2EntryForNeighbor),
+      routerId_(routerId) {
   computeNextHops(inputState, nextHopMac, forProdConfig, portTypes);
 }
 

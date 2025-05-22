@@ -161,7 +161,8 @@ class BcmEcmpEgress : public BcmEgressBase {
   BcmEcmpEgress(
       const BcmSwitchIf* hw,
       const EgressId2Weight& egressId2Weight,
-      const bool isUcmp);
+      const bool isUcmp,
+      const std::optional<cfg::SwitchingMode> switchingMode);
   ~BcmEcmpEgress() override;
   bool pathUnreachableHwLocked(EgressId path);
   bool pathReachableHwLocked(EgressId path);
@@ -189,6 +190,14 @@ class BcmEcmpEgress : public BcmEgressBase {
       int* pathsInHwCount,
       bcm_l3_ecmp_member_t* membersInHw,
       bcm_if_t* pathsInHw);
+  void createEcmpObject(
+      bcm_l3_egress_ecmp_t& obj,
+      int option,
+      int* index,
+      bcm_l3_ecmp_member_t* ecmpMemberArray,
+      bcm_if_t* pathsArray,
+      int numPaths);
+  cfg::SwitchingMode getEcmpSwitchingMode();
   /*
    * Update ecmp egress entries in HW
    */
@@ -241,7 +250,7 @@ class BcmEcmpEgress : public BcmEgressBase {
  private:
   void program();
   bool isFlowletConfigUpdateNeeded();
-  bool updateFlowletConfig(bcm_l3_egress_ecmp_t& obj, int numPaths);
+  bool getDynamicEcmpParams(bcm_l3_egress_ecmp_t& obj, int numPaths);
   bool isFlowletEnabledOnAllEgress(const EgressId2Weight& egressId2Weight);
   static bool isWideEcmpEnabled(bool wideEcmpSupported);
   const EgressId2Weight egressId2Weight_;
@@ -251,6 +260,7 @@ class BcmEcmpEgress : public BcmEgressBase {
   bool wideEcmpSupported_{false};
   static constexpr int kMaxNonWeightedEcmpPaths{128};
   static constexpr int kMaxWeightedEcmpPaths{512};
+  uint32_t dynamicMode_{0};
 };
 
 bool operator==(const bcm_l3_egress_t& lhs, const bcm_l3_egress_t& rhs);

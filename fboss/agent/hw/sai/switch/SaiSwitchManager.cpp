@@ -12,7 +12,6 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/HwSwitchFb303Stats.h"
-#include "fboss/agent/hw/sai/api/AdapterKeySerializers.h"
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/api/SwitchApi.h"
 #include "fboss/agent/hw/sai/api/Types.h"
@@ -23,11 +22,7 @@
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/switch_asics/Jericho3Asic.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
-#include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/LoadBalancer.h"
-#include "fboss/agent/state/QosPolicy.h"
-#include "fboss/agent/state/StateDelta.h"
-#include "fboss/agent/state/SwitchState.h"
 
 #include <folly/logging/xlog.h>
 
@@ -200,7 +195,8 @@ SaiSwitchManager::SaiSwitchManager(
         swId);
     // Load all switch attributes
     switch_ = std::make_unique<SaiSwitchObj>(newSwitchId);
-    if (switchType != cfg::SwitchType::FABRIC) {
+    if (switchType != cfg::SwitchType::FABRIC &&
+        switchType != cfg::SwitchType::PHY) {
       if (!FLAGS_skip_setting_src_mac) {
         switch_->setOptionalAttribute(
             SaiSwitchTraits::Attributes::SrcMac{platform->getLocalMac()});
@@ -252,6 +248,38 @@ SaiSwitchManager::SaiSwitchManager(
   if (platform_->getAsic()->isSupported(HwAsic::Feature::CPU_PORT)) {
     initCpuPort();
   }
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  // load switch pipeline sai ids
+  int numPipelines = SaiApiTable::getInstance()->switchApi().getAttribute(
+      switch_->adapterKey(), SaiSwitchTraits::Attributes::NumberOfPipes{});
+  std::vector<sai_object_id_t> pipelineList;
+  pipelineList.resize(numPipelines);
+  SaiSwitchTraits::Attributes::PipelineObjectList pipelineListAttribute{
+      pipelineList};
+  auto pipelineSaiIdList = SaiApiTable::getInstance()->switchApi().getAttribute(
+      switch_->adapterKey(), pipelineListAttribute);
+  if (pipelineSaiIdList.size() == 0) {
+    throw FbossError("no pipeline exists");
+  }
+  std::vector<SwitchPipelineSaiId> pipelineSaiIds;
+  pipelineSaiIds.reserve(pipelineSaiIdList.size());
+  std::transform(
+      pipelineSaiIdList.begin(),
+      pipelineSaiIdList.end(),
+      std::back_inserter(pipelineSaiIds),
+      [](sai_object_id_t pipelineId) -> SwitchPipelineSaiId {
+        return SwitchPipelineSaiId(pipelineId);
+      });
+  // create switch  pipeline sai objects
+  for (auto pipelineSaiId : pipelineSaiIds) {
+    std::shared_ptr switchPipeline =
+        std::make_shared<SaiSwitchPipeline>(pipelineSaiId);
+    switchPipeline->setOwnedByAdapter(true);
+    XLOG(DBG2) << "loaded switch pipeline sai object " << pipelineSaiId
+               << " with idx " << switchPipeline->adapterHostKey().value();
+    switchPipelines_.push_back(switchPipeline);
+  }
+#endif
   isMplsQosSupported_ = isMplsQoSMapSupported();
 }
 
@@ -973,6 +1001,86 @@ const HwSwitchWatermarkStats SaiSwitchManager::getHwSwitchWatermarkStats()
   return switchWatermarkStats;
 }
 
+const std::vector<sai_stat_id_t>&
+SaiSwitchManager::supportedPipelineWatermarkStats() const {
+  static std::vector<sai_stat_id_t> stats;
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  if (stats.size()) {
+    // initialized
+    return stats;
+  }
+  // TODO(daiweix): enable watermark stats after CS00012366726 is resolved
+  /*if (platform_->getAsic()->getSwitchType() == cfg::SwitchType::FABRIC) {
+    stats.insert(
+        stats.end(),
+        SaiSwitchPipelineTraits::watermarkLevels().begin(),
+        SaiSwitchPipelineTraits::watermarkLevels().end());
+  }*/
+#endif
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>& SaiSwitchManager::supportedPipelineStats()
+    const {
+  static std::vector<sai_stat_id_t> stats;
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  if (stats.size()) {
+    // initialized
+    return stats;
+  }
+  if (platform_->getAsic()->getSwitchType() == cfg::SwitchType::FABRIC) {
+    stats.insert(
+        stats.end(),
+        SaiSwitchPipelineTraits::currOccupancyBytes().begin(),
+        SaiSwitchPipelineTraits::currOccupancyBytes().end());
+    stats.insert(
+        stats.end(),
+        SaiSwitchPipelineTraits::txCells().begin(),
+        SaiSwitchPipelineTraits::txCells().end());
+    stats.insert(
+        stats.end(),
+        SaiSwitchPipelineTraits::rxCells().begin(),
+        SaiSwitchPipelineTraits::rxCells().end());
+    stats.insert(
+        stats.end(),
+        SaiSwitchPipelineTraits::globalDrop().begin(),
+        SaiSwitchPipelineTraits::globalDrop().end());
+  } else if (platform_->getAsic()->getSwitchType() == cfg::SwitchType::VOQ) {
+    stats.insert(
+        stats.end(),
+        SaiSwitchPipelineTraits::rxCells().begin(),
+        SaiSwitchPipelineTraits::rxCells().end());
+  }
+#endif
+  return stats;
+}
+
+const HwSwitchPipelineStats SaiSwitchManager::getHwSwitchPipelineStats(
+    bool updateWatermarks) const {
+  HwSwitchPipelineStats switchPipelineStats;
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  auto watermarkStats = supportedPipelineWatermarkStats();
+  if (updateWatermarks && watermarkStats.size() > 0) {
+    for (const auto& pipeline : switchPipelines_) {
+      pipeline->updateStats(watermarkStats, SAI_STATS_MODE_READ_AND_CLEAR);
+      auto idx = pipeline->adapterHostKey().value();
+      fillHwSwitchPipelineStats(
+          pipeline->getStats(watermarkStats), idx, switchPipelineStats);
+    }
+  }
+  auto stats = supportedPipelineStats();
+  if (stats.size()) {
+    for (const auto& pipeline : switchPipelines_) {
+      pipeline->updateStats(stats, SAI_STATS_MODE_READ);
+      auto idx = pipeline->adapterHostKey().value();
+      fillHwSwitchPipelineStats(
+          pipeline->getStats(stats), idx, switchPipelineStats);
+    }
+  }
+#endif
+  return switchPipelineStats;
+}
+
 void SaiSwitchManager::updateStats(bool updateWatermarks) {
   auto switchDropStats = supportedDropStats();
   if (switchDropStats.size()) {
@@ -1064,6 +1172,8 @@ void SaiSwitchManager::updateStats(bool updateWatermarks) {
     switchWatermarkStats_ = getHwSwitchWatermarkStats();
     publishSwitchWatermarks(switchWatermarkStats_);
   }
+  switchPipelineStats_ = getHwSwitchPipelineStats(updateWatermarks);
+  publishSwitchPipelineStats(switchPipelineStats_);
 }
 
 void SaiSwitchManager::setSwitchIsolate(bool isolate) {

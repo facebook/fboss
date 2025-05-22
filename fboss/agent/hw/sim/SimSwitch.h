@@ -79,6 +79,10 @@ class SimSwitch : public HwSwitch {
     return HwSwitchWatermarkStats{};
   }
 
+  HwSwitchPipelineStats getSwitchPipelineStats() const override {
+    return HwSwitchPipelineStats{};
+  }
+
   HwResourceStats getResourceStats() const override {
     return HwResourceStats{};
   }
@@ -125,6 +129,8 @@ class SimSwitch : public HwSwitch {
 
   void clearPortStats(
       const std::unique_ptr<std::vector<int32_t>>& /*ports*/) override {}
+
+  void syncPortLinkState(PortID /*portId*/) override {}
 
   virtual BootType getBootType() const override {
     return bootType_;

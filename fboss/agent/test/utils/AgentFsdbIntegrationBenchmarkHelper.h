@@ -7,6 +7,7 @@
 #include "gflags/gflags.h"
 
 DECLARE_bool(fsdb_publish_test);
+
 namespace facebook::fboss {
 
 // helper class to run Agent benchmark test in Agent-FSDB integration benchmark
@@ -21,18 +22,20 @@ class AgentFsdbIntegrationBenchmarkHelper {
 
   void awaitCompletion(AgentEnsemble* ensemble);
 
-  void publishCompletionMarker(AgentEnsemble* ensemble);
-
   ~AgentFsdbIntegrationBenchmarkHelper();
 
  private:
+  bool queryFsdbCounters(std::map<std::string, int64_t>& fb303Counters);
+  void publishCompletionMarker(AgentEnsemble* ensemble);
+
   std::unique_ptr<fsdb::FsdbPubSubManager> pubsubMgr_;
   folly::Baton<> subscriptionConnected_;
   // helper flags derived from test gflag(s)
   bool enablePublishToFsdb_{false};
-  bool connectToFsdb_{false};
-  bool waitForPublishConfirmed_{false};
-  bool waitForDummyDataPublish_{false};
+  bool writeAllPublishCompleteMarker_{false};
+  // helper flags used at run-time
+  bool waitForSubscriptionConnected_{false};
+  bool waitForAllPublishConfirmed_{false};
   folly::Baton<> dummyDataPublished_;
   uint64_t subscribe_latency_{0};
 };

@@ -269,6 +269,22 @@ void __gTxReadyStatusChangeNotification(
   __gSaiIdToSwitch.begin()->second->txReadyStatusChangeCallbackTopHalf(
       SwitchSaiId{switch_id});
 }
+
+void __gSwitchAsicSdkHealthNotificationCallBack(
+    sai_object_id_t switch_id,
+    sai_switch_asic_sdk_health_severity_t severity,
+    sai_timespec_t timestamp,
+    sai_switch_asic_sdk_health_category_t category,
+    sai_switch_health_data_t data,
+    const sai_u8_list_t description) {
+  auto switchIter = __gSaiIdToSwitch.find(switch_id);
+  CHECK(switchIter != __gSaiIdToSwitch.end());
+  SaiHealthNotification notification(
+      fromSaiTimeSpec(timestamp), severity, category, data, description);
+  switchIter->second->switchAsicSdkHealthNotificationTopHalf(
+      std::move(notification));
+  ;
+}
 #endif
 
 PortSaiId SaiSwitch::getCPUPortSaiId() const {
@@ -370,6 +386,18 @@ void SaiSwitch::unregisterCallbacks() noexcept {
     switchReachabilityChangeProcessThread_->join();
     // switch reachability change processing is completely shut-off
   }
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
+  if (runState_ >= SwitchRunState::CONFIGURED &&
+      platform_->getAsic()->isSupported(
+          HwAsic::Feature::SWITCH_ASIC_SDK_HEALTH_NOTIFY)) {
+    switchAsicSdkHealthNotificationBHEventBase_
+        .runInFbossEventBaseThreadAndWait([this]() {
+          switchAsicSdkHealthNotificationBHEventBase_.terminateLoopSoon();
+        });
+    switchAsicSdkHealthNotificationBHThread_->join();
+  }
+#endif
 
   if (runState_ >= SwitchRunState::INITIALIZED) {
     fdbEventBottomHalfEventBase_.runInFbossEventBaseThreadAndWait(
@@ -826,6 +854,9 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
         &SaiVlanManager::changeVlan,
         &SaiVlanManager::addVlan,
         &SaiVlanManager::removeVlan);
+  } else {
+    // Only DNX asics support switch reachability function
+    processPortStateChangedForSwitchReachability(delta, lockPolicy);
   }
 
   {
@@ -1621,6 +1652,40 @@ void SaiSwitch::processSwitchSettingsDrainStateChange(
   }
 }
 
+void SaiSwitch::processPortStateChangedForSwitchReachabilityLocked(
+    const std::lock_guard<std::mutex>& /*lock*/,
+    const StateDelta& delta) {
+  DeltaFunctions::forEachChanged(
+      delta.getPortsDelta(), [&](const auto& oldPort, const auto& newPort) {
+        if ((newPort->getPortType() == cfg::PortType::FABRIC_PORT) &&
+            (newPort->getActiveState() != oldPort->getActiveState())) {
+          // Forcing a switch reachability get from SAI/SDK once the
+          // port active state change handling is complete to ensure
+          // the switch reachability data is updated. This is needed
+          // as there are some cases like the one captured in
+          // CS00012399424, where a rechability change notification
+          // is not sent to NOS when port active state changes.
+          XLOG(DBG2) << "Port active state change on " << newPort->getName()
+                     << " triggering switch reachability get!";
+          setSwitchReachabilityChangePending();
+          return;
+        }
+      });
+}
+
+template <typename LockPolicyT>
+void SaiSwitch::processPortStateChangedForSwitchReachability(
+    const StateDelta& delta,
+    const LockPolicyT& lockPolicy) {
+  const auto portsDelta = delta.getPortsDelta();
+  const auto& oldPorts = portsDelta.getOld();
+  const auto& newPorts = portsDelta.getNew();
+  if (oldPorts != newPorts) {
+    processPortStateChangedForSwitchReachabilityLocked(
+        lockPolicy.lock(), delta);
+  }
+}
+
 bool SaiSwitch::isValidStateUpdate(const StateDelta& delta) const {
   std::lock_guard<std::mutex> lock(saiSwitchMutex_);
   return isValidStateUpdateLocked(lock, delta);
@@ -2174,9 +2239,12 @@ void SaiSwitch::gracefulExitLocked(const std::lock_guard<std::mutex>& lock) {
   SaiSwitchTraits::Attributes::SwitchRestartWarm restartWarm{true};
   SaiApiTable::getInstance()->switchApi().setAttribute(
       saiSwitchId_, restartWarm);
+
+#ifndef CREDO_SDK_0_9_0
   SaiSwitchTraits::Attributes::SwitchPreShutdown preShutdown{true};
   SaiApiTable::getInstance()->switchApi().setAttribute(
       saiSwitchId_, preShutdown);
+#endif
   if (platform_->getAsic()->isSupported(HwAsic::Feature::P4_WARMBOOT)) {
 #if defined(TAJO_P4_WB_SDK)
     SaiSwitchTraits::Attributes::RestartIssu restartIssu{true};
@@ -2296,6 +2364,28 @@ void SaiSwitch::linkStateChangedCallbackTopHalf(
       });
 }
 
+void SaiSwitch::syncPortLinkState(PortID portId) {
+  linkStateBottomHalfEventBase_.runInFbossEventBaseThread(
+      [this, portId = portId]() mutable {
+        linkStateChangedBottomHalf(portId);
+      });
+}
+void SaiSwitch::linkStateChangedBottomHalf(const PortID& portId) {
+  // Query SDK for port oper state using portId
+  auto handle = managerTable_->portManager().getPortHandle(portId);
+  auto saiPortId = handle->port->adapterKey();
+  auto portOperStatus = SaiApiTable::getInstance()->portApi().getAttribute(
+      saiPortId, SaiPortTraits::Attributes::OperStatus{});
+
+  std::vector<sai_port_oper_status_notification_t> portStatus{};
+  sai_port_oper_status_notification_t notification{};
+  notification.port_id = saiPortId;
+  notification.port_state = static_cast<sai_port_oper_status_t>(portOperStatus);
+  portStatus.push_back(notification);
+
+  linkStateChangedCallbackBottomHalf(portStatus);
+}
+
 void SaiSwitch::linkStateChangedCallbackBottomHalf(
     std::vector<sai_port_oper_status_notification_t> operStatus) {
   std::map<PortID, bool> swPortId2Status;
@@ -2375,13 +2465,6 @@ void SaiSwitch::linkStateChangedCallbackBottomHalf(
         // link going down.
         managerTable_->neighborManager().handleLinkDown(
             SaiPortDescriptor(swPortId));
-      }
-      /*
-       * Enable AFE adaptive mode (S249471) on TAJO platforms when a port
-       * flaps
-       */
-      if (asicType_ == cfg::AsicType::ASIC_TYPE_EBRO) {
-        managerTable_->portManager().enableAfeAdaptiveMode(swPortId);
       }
     }
     swPortId2Status[swPortId] = up;
@@ -2497,13 +2580,6 @@ void SaiSwitch::txReadyStatusChangeOrFwIsolateCallbackBottomHalf(
 
   callback_->linkActiveStateChangedOrFwIsolated(
       port2IsActive, fwIsolated, numActiveFabricPortsAtFwIsolate);
-
-  // Forcing a switch reachability get from SAI/SDK once port
-  // active state change handling is complete to ensure the
-  // switch reachability data is consistent with port active
-  // state which is still an issue in S486672.
-  // TODO: Remove this once root cause of mismatch is identified.
-  setSwitchReachabilityChangePending();
 #endif
 }
 
@@ -2526,10 +2602,10 @@ std::set<PortID> SaiSwitch::getFabricReachabilityPortIds(
     const std::vector<sai_object_id_t>& switchIdAndFabricPortSaiIds) const {
   int64_t switchId = switchIdAndFabricPortSaiIds.at(0);
   if (switchIdAndFabricPortSaiIds.size() > 1) {
-    XLOG(DBG2) << "SwitchID " << switchId << " reachable over "
+    XLOG(DBG4) << "SwitchID " << switchId << " reachable over "
                << switchIdAndFabricPortSaiIds.size() - 1 << " ports!";
   } else if (switchIdAndFabricPortSaiIds.size() == 1) {
-    XLOG(DBG2) << "SwitchID " << switchId << " unreachable over fabric!";
+    XLOG(DBG4) << "SwitchID " << switchId << " unreachable over fabric!";
   }
   // Index 0 has switchId and indices 1 onwards has fabric port SAI id,
   // need to find the PortID associated with these fabric port SAI ids.
@@ -3049,6 +3125,22 @@ void SaiSwitch::initSwitchReachabilityChangeLocked(
   setSwitchReachabilityChangePending();
 }
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
+void SaiSwitch::initSwitchAsicSdkHealthNotificationLocked(
+    const std::lock_guard<std::mutex>& /* lock */) {
+  CHECK(platform_->getAsic()->isSupported(
+      HwAsic::Feature::SWITCH_ASIC_SDK_HEALTH_NOTIFY));
+  switchAsicSdkHealthNotificationBHThread_ =
+      std::make_unique<std::thread>([this]() {
+        initThread("fbossSaiSwitchAsicSdkHealthNotification");
+        switchAsicSdkHealthNotificationBHEventBase_.loopForever();
+      });
+  auto& switchApi = SaiApiTable::getInstance()->switchApi();
+  switchApi.registerSwitchAsicSdkHealthEventCallback(
+      saiSwitchId_, __gSwitchAsicSdkHealthNotificationCallBack);
+}
+#endif
+
 bool SaiSwitch::isMissingSrcPortAllowed(HostifTrapSaiId hostifTrapSaiId) {
   static std::set<facebook::fboss::cfg::PacketRxReason> kAllowedRxReasons = {
       facebook::fboss::cfg::PacketRxReason::TTL_1};
@@ -3386,6 +3478,13 @@ void SaiSwitch::unregisterCallbacksLocked(
     switchApi.unregisterSwitchEventCallback(saiSwitchId_);
 #else
     switchApi.unregisterTamEventCallback(saiSwitchId_);
+#endif
+  }
+
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::SWITCH_ASIC_SDK_HEALTH_NOTIFY)) {
+#if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
+    switchApi.unregisterSwitchAsicSdkHealthEventCallback(saiSwitchId_);
 #endif
   }
 
@@ -3755,6 +3854,12 @@ void SaiSwitch::switchRunStateChangedImplLocked(
         switchApi.registerTamEventCallback(saiSwitchId_, __gTamEventCallback);
 #endif
       }
+      if (platform_->getAsic()->isSupported(
+              HwAsic::Feature::SWITCH_ASIC_SDK_HEALTH_NOTIFY)) {
+#if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
+        initSwitchAsicSdkHealthNotificationLocked(lock);
+#endif
+      }
 
       if (platform_->getAsic()->isSupported(
               HwAsic::Feature::LINK_ACTIVE_INACTIVE_NOTIFY)) {
@@ -3857,6 +3962,8 @@ void SaiSwitch::fdbEventCallback(
     }
     fdbEventNotificationDataTmp.push_back(FdbEventNotificationData(
         data[i].event_type, data[i].fdb_entry, bridgePortSaiId, fdbMetaData));
+    XLOG(DBG2) << "Received FDB event: " << fdbEventToString(data[i].event_type)
+               << " for bridge port: " << bridgePortSaiId;
   }
   fdbEventBottomHalfEventBase_.runInFbossEventBaseThread(
       [this,
@@ -3910,8 +4017,21 @@ std::optional<L2Entry> SaiSwitch::getL2Entry(
     XLOG(ERR) << "Missing bridge port attribute in FDB event";
     return std::nullopt;
   }
-  auto portOrLagSaiId = SaiApiTable::getInstance()->bridgeApi().getAttribute(
-      fdbEvent.bridgePortSaiId, SaiBridgePortTraits::Attributes::PortId{});
+
+  // We could recive learn event when bridge port is not present.
+  // Ignore SDK error. Refer D74672820 for details.
+  sai_object_id_t portOrLagSaiId = SAI_NULL_OBJECT_ID;
+  try {
+    portOrLagSaiId = SaiApiTable::getInstance()->bridgeApi().getAttribute(
+        fdbEvent.bridgePortSaiId, SaiBridgePortTraits::Attributes::PortId{});
+  } catch (const SaiApiError& e) {
+    if (e.getSaiStatus() == SAI_STATUS_ITEM_NOT_FOUND) {
+      XLOG(ERR)
+          << "Bridge port is not found in SDK, may be we deleted it during port re-create";
+      return std::nullopt;
+    }
+    throw;
+  }
 
   L2Entry::L2EntryType entryType{L2Entry::L2EntryType::L2_ENTRY_TYPE_PENDING};
   auto mac = fromSaiMacAddress(fdbEvent.fdbEntry.mac_address);
@@ -4089,19 +4209,36 @@ std::string SaiSwitch::listObjectsLocked(
     bool cached,
     const std::lock_guard<std::mutex>& lock) const {
   const SaiStore* store = saiStore_.get();
+  std::unique_ptr<SaiStore> directToHwStore;
   if (!cached) {
-    SaiStore directToHwStore(getSaiSwitchId());
+    directToHwStore = std::make_unique<SaiStore>(getSaiSwitchId());
     auto json = toFollyDynamicLocked(lock);
     std::unique_ptr<folly::dynamic> adapterKeysJson;
     std::unique_ptr<folly::dynamic> adapterKeys2AdapterHostKeysJson;
-    if (platform_->getAsic()->isSupported(HwAsic::Feature::OBJECT_KEY_CACHE)) {
+
+    /* We're making a change to ensure that the listObjectsLocked functionality
+     * remains unchanged for Credo 0.7.2, We added
+     * HwAsic::Feature::OBJECT_KEY_CACHE support for Credo Asic But for 0.7.2,
+     * we want to avoid loading the adapterKeysJson file, and keep the
+     * functionality as it was before.
+     */
+    bool useAdapterKeysJson =
+        platform_->getAsic()->isSupported(HwAsic::Feature::OBJECT_KEY_CACHE);
+#ifndef CREDO_SDK_0_9_0
+    if (getPlatform()->getAsic()->getAsicType() ==
+        cfg::AsicType::ASIC_TYPE_ELBERT_8DD) {
+      useAdapterKeysJson = false;
+    }
+#endif
+
+    if (useAdapterKeysJson) {
       adapterKeysJson = std::make_unique<folly::dynamic>(json[kAdapterKeys]);
     }
     adapterKeys2AdapterHostKeysJson =
         std::make_unique<folly::dynamic>(json[kAdapterKey2AdapterHostKey]);
-    directToHwStore.reload(
+    directToHwStore->reload(
         adapterKeysJson.get(), adapterKeys2AdapterHostKeysJson.get());
-    store = &directToHwStore;
+    store = directToHwStore.get();
   }
   std::string output;
   std::for_each(objects.begin(), objects.end(), [&output, store](auto objType) {
@@ -4526,12 +4663,13 @@ void SaiSwitch::pfcDeadlockNotificationCallback(
     XLOG_EVERY_MS(WARNING, 5000)
         << "PFC deadlock notification callback invoked for qid: " << qId
         << ", on port: " << portId << ", with event: " << deadlockEvent;
+    std::lock_guard<std::mutex> locked(saiSwitchMutex_);
     switch (deadlockEvent) {
       case SAI_QUEUE_PFC_DEADLOCK_EVENT_TYPE_DETECTED:
-        callback_->pfcWatchdogStateChanged(portId, true);
+        managerTable_->portManager().incrementPfcDeadlockCounter(portId);
         break;
       case SAI_QUEUE_PFC_DEADLOCK_EVENT_TYPE_RECOVERED:
-        callback_->pfcWatchdogStateChanged(portId, false);
+        managerTable_->portManager().incrementPfcRecoveryCounter(portId);
         break;
       default:
         XLOG(ERR) << "Unknown event " << deadlockEvent
@@ -4579,6 +4717,11 @@ AclStats SaiSwitch::getAclStats() const {
 HwSwitchWatermarkStats SaiSwitch::getSwitchWatermarkStats() const {
   std::lock_guard<std::mutex> lk(saiSwitchMutex_);
   return managerTable_->switchManager().getSwitchWatermarkStats();
+}
+
+HwSwitchPipelineStats SaiSwitch::getSwitchPipelineStats() const {
+  std::lock_guard<std::mutex> lk(saiSwitchMutex_);
+  return managerTable_->switchManager().getSwitchPipelineStats();
 }
 
 /*
@@ -4735,5 +4878,33 @@ std::vector<FirmwareInfo> SaiSwitch::getAllFirmwareInfo() const {
 
   return {};
 }
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
+void SaiSwitch::switchAsicSdkHealthNotificationTopHalf(
+    SaiHealthNotification saiHealthNotification) {
+  switchAsicSdkHealthNotificationBHEventBase_.runInFbossEventBaseThread(
+      [this, notification = std::move(saiHealthNotification)]() {
+        switchAsicSdkHealthNotificationBottomHalf(std::move(notification));
+      });
+}
+
+void SaiSwitch::switchAsicSdkHealthNotificationBottomHalf(
+    SaiHealthNotification saiHealthNotification) {
+  switch (saiHealthNotification.getSeverity()) {
+    case SAI_SWITCH_ASIC_SDK_HEALTH_SEVERITY_FATAL:
+      XLOGF(FATAL, "{}", saiHealthNotification);
+      break;
+
+    case SAI_SWITCH_ASIC_SDK_HEALTH_SEVERITY_WARNING:
+      XLOGF(WARNING, "{}", saiHealthNotification);
+      break;
+
+    case SAI_SWITCH_ASIC_SDK_HEALTH_SEVERITY_NOTICE:
+      XLOGF(INFO, "{}", saiHealthNotification);
+      break;
+  }
+  /* TODO(pshaikh) : process saiHealthNotification to set parity error */
+}
+#endif
 
 } // namespace facebook::fboss

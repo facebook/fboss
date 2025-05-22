@@ -24,7 +24,7 @@ namespace facebook::fboss {
 
 using utils::Table;
 
-struct CmdShowDsfNodesTraits : public BaseCommandTraits {
+struct CmdShowDsfNodesTraits : public ReadCommandTraits {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
   using ObjectArgType = std::monostate;
@@ -66,7 +66,7 @@ class CmdShowDsfNodes
     out << table << std::endl;
   }
 
-  RetType createModel(std::map<int64_t, cfg::DsfNode> dsfNodes) {
+  RetType createModel(const std::map<int64_t, cfg::DsfNode>& dsfNodes) {
     RetType model;
     const std::string kUnavail;
     for (const auto& idAndNode : dsfNodes) {

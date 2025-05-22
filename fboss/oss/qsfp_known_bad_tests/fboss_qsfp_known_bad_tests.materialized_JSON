@@ -17,6 +17,23 @@
           "test_name_regex": "HwTransceiverResetTest.verifyResetControl$"
         }
     ],
+    "darwin/physdk-credo-0.9.0/credo-0.9.0": [
+        {
+          "test_name_regex": "HwTransceiverTest.resetTranscieverAndDetectStateChanged$"
+        },
+        {
+          "test_name_regex": "HwTransceiverResetTest.resetTranscieverAndDetectStateChanged$"
+        },
+        {
+          "test_name_regex": "OpticsFwUpgradeTest.*$"
+        },
+        {
+          "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
+        },
+        {
+          "test_name_regex": "HwTransceiverResetTest.verifyResetControl$"
+        }
+    ],
     "darwin_mix/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "HwTransceiverTest.resetTranscieverAndDetectStateChanged$"
@@ -34,7 +51,41 @@
           "test_name_regex": "HwTransceiverResetTest.verifyResetControl$"
         }
     ],
+    "darwin_mix/physdk-credo-0.9.0/credo-0.9.0": [
+        {
+          "test_name_regex": "HwTransceiverTest.resetTranscieverAndDetectStateChanged$"
+        },
+        {
+          "test_name_regex": "HwTransceiverResetTest.resetTranscieverAndDetectStateChanged$"
+        },
+        {
+          "test_name_regex": "OpticsFwUpgradeTest.*$"
+        },
+        {
+          "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
+        },
+        {
+          "test_name_regex": "HwTransceiverResetTest.verifyResetControl$"
+        }
+    ],
     "darwin_original/physdk-credo-0.7.2/credo-0.7.2": [
+        {
+          "test_name_regex": "HwTransceiverTest.resetTranscieverAndDetectStateChanged$"
+        },
+        {
+          "test_name_regex": "HwTransceiverResetTest.resetTranscieverAndDetectStateChanged$"
+        },
+        {
+          "test_name_regex": "OpticsFwUpgradeTest.*$"
+        },
+        {
+          "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
+        },
+        {
+          "test_name_regex": "HwTransceiverResetTest.verifyResetControl$"
+        }
+    ],
+    "darwin_original/physdk-credo-0.9.0/credo-0.9.0": [
         {
           "test_name_regex": "HwTransceiverTest.resetTranscieverAndDetectStateChanged$"
         },
@@ -86,6 +137,47 @@
           "test_name_regex": "PhyIOTest.phyIOStats$"
         },
         {
+          "test_name_regex": "HwMacsecTest.*$"
+        },
+        {
+          "test_name_regex": "HwTest.CheckTcvrNameAndInterfaces$"
+        }
+    ],
+    "elbert_2x16Q_6x8DD/physdk-credo-0.9.0/credo-0.9.0": [
+        {
+          "test_name_regex": "HwTransceiverTest.resetTranscieverAndDetectStateChanged$"
+        },
+        {
+          "test_name_regex": "HwTransceiverResetTest.resetTranscieverAndDetectStateChanged$"
+        },
+        {
+          "test_name_regex": "OpticsFwUpgradeTest.*$"
+        },
+        {
+          "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
+        },
+        {
+          "test_name_regex": "HwXphyPortStatsCollectionTest.*$"
+        },
+        {
+          "test_name_regex": "HwXphyPrbsStatsCollectionTest.*$"
+        },
+        {
+          "test_name_regex": "HwXphyPortInfoTest.*$"
+        },
+        {
+          "test_name_regex": "HwPortPrbsTest.*$"
+        },
+        {
+          "test_name_regex": "HwTransceiverResetTest.verifyResetControl$"
+        },
+        {
+          "test_name_regex": "PhyIOTest.phyIOStats$"
+        },
+        {
+          "test_name_regex": "HwMacsecTest.*$"
+        },
+        {
           "test_name_regex": "HwTest.CheckTcvrNameAndInterfaces$"
         }
     ],
@@ -124,10 +216,68 @@
           "test_name_regex": "PhyIOTest.phyIOStats$"
         },
         {
+          "test_name_regex": "HwMacsecTest.*$"
+        },
+        {
+          "test_name_regex": "HwTest.CheckTcvrNameAndInterfaces$"
+        }
+    ],
+    "elbert_5x16Q_3x8DD/physdk-credo-0.9.0/credo-0.9.0": [
+        {
+          "test_name_regex": "HwTransceiverTest.resetTranscieverAndDetectStateChanged$"
+        },
+        {
+          "test_name_regex": "HwTransceiverResetTest.resetTranscieverAndDetectStateChanged$"
+        },
+        {
+          "test_name_regex": "OpticsFwUpgradeTest.*$"
+        },
+        {
+          "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
+        },
+        {
+          "test_name_regex": "HwXphyPortStatsCollectionTest.*$"
+        },
+        {
+          "test_name_regex": "HwXphyPrbsStatsCollectionTest.*$"
+        },
+        {
+          "test_name_regex": "HwXphyPortInfoTest.*$"
+        },
+        {
+          "test_name_regex": "HwPortPrbsTest.*$"
+        },
+        {
+          "test_name_regex": "HwTransceiverResetTest.verifyResetControl$"
+        },
+        {
+          "test_name_regex": "PhyIOTest.phyIOStats$"
+        },
+        {
+          "test_name_regex": "HwMacsecTest.*$"
+        },
+        {
           "test_name_regex": "HwTest.CheckTcvrNameAndInterfaces$"
         }
     ],
     "elbert_8x16Q/physdk-credo-0.7.2/credo-0.7.2": [
+        {
+          "test_name_regex": "HwTransceiverTest.resetTranscieverAndDetectStateChanged$"
+        },
+        {
+          "test_name_regex": "HwTransceiverResetTest.resetTranscieverAndDetectStateChanged$"
+        },
+        {
+          "test_name_regex": "OpticsFwUpgradeTest.*$"
+        },
+        {
+          "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
+        },
+        {
+          "test_name_regex": "HwTransceiverResetTest.verifyResetControl$"
+        }
+    ],
+    "elbert_8x16Q/physdk-credo-0.9.0/credo-0.9.0": [
         {
           "test_name_regex": "HwTransceiverTest.resetTranscieverAndDetectStateChanged$"
         },
@@ -216,7 +366,35 @@
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
         }
     ],
+    "janga800bic/physdk-credo-0.9.0/credo-0.9.0": [
+        {
+          "test_name_regex": "HwTransceiverTest.resetTranscieverAndDetectStateChanged$"
+        },
+        {
+          "test_name_regex": "HwTransceiverResetTest.resetTranscieverAndDetectStateChanged$"
+        },
+        {
+          "test_name_regex": "OpticsFwUpgradeTest.*$"
+        },
+        {
+          "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
+        }
+    ],
     "meru400bfu/physdk-credo-0.7.2/credo-0.7.2": [
+        {
+          "test_name_regex": "HwTransceiverTest.resetTranscieverAndDetectStateChanged$"
+        },
+        {
+          "test_name_regex": "HwTransceiverResetTest.resetTranscieverAndDetectStateChanged$"
+        },
+        {
+          "test_name_regex": "OpticsFwUpgradeTest.*$"
+        },
+        {
+          "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
+        }
+    ],
+    "meru400bfu/physdk-credo-0.9.0/credo-0.9.0": [
         {
           "test_name_regex": "HwTransceiverTest.resetTranscieverAndDetectStateChanged$"
         },
@@ -244,7 +422,35 @@
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
         }
     ],
+    "meru400biu/physdk-credo-0.9.0/credo-0.9.0": [
+        {
+          "test_name_regex": "HwTransceiverTest.resetTranscieverAndDetectStateChanged$"
+        },
+        {
+          "test_name_regex": "HwTransceiverResetTest.resetTranscieverAndDetectStateChanged$"
+        },
+        {
+          "test_name_regex": "OpticsFwUpgradeTest.*$"
+        },
+        {
+          "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
+        }
+    ],
     "meru800bfa/physdk-credo-0.7.2/credo-0.7.2": [
+        {
+          "test_name_regex": "HwTransceiverTest.resetTranscieverAndDetectStateChanged$"
+        },
+        {
+          "test_name_regex": "HwTransceiverResetTest.resetTranscieverAndDetectStateChanged$"
+        },
+        {
+          "test_name_regex": "OpticsFwUpgradeTest.*$"
+        },
+        {
+          "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
+        }
+    ],
+    "meru800bfa/physdk-credo-0.9.0/credo-0.9.0": [
         {
           "test_name_regex": "HwTransceiverTest.resetTranscieverAndDetectStateChanged$"
         },
@@ -272,7 +478,35 @@
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
         }
     ],
+    "meru800bia/physdk-credo-0.9.0/credo-0.9.0": [
+        {
+          "test_name_regex": "HwTransceiverTest.resetTranscieverAndDetectStateChanged$"
+        },
+        {
+          "test_name_regex": "HwTransceiverResetTest.resetTranscieverAndDetectStateChanged$"
+        },
+        {
+          "test_name_regex": "OpticsFwUpgradeTest.*$"
+        },
+        {
+          "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
+        }
+    ],
     "minipack3n/physdk-credo-0.7.2/credo-0.7.2": [
+        {
+          "test_name_regex": "HwTransceiverTest.resetTranscieverAndDetectStateChanged$"
+        },
+        {
+          "test_name_regex": "HwTransceiverResetTest.resetTranscieverAndDetectStateChanged$"
+        },
+        {
+          "test_name_regex": "OpticsFwUpgradeTest.*$"
+        },
+        {
+          "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
+        }
+    ],
+    "minipack3n/physdk-credo-0.9.0/credo-0.9.0": [
         {
           "test_name_regex": "HwTransceiverTest.resetTranscieverAndDetectStateChanged$"
         },
@@ -317,7 +551,35 @@
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
         }
     ],
+    "montblanc/physdk-credo-0.9.0/credo-0.9.0": [
+        {
+          "test_name_regex": "HwTransceiverTest.resetTranscieverAndDetectStateChanged$"
+        },
+        {
+          "test_name_regex": "HwTransceiverResetTest.resetTranscieverAndDetectStateChanged$"
+        },
+        {
+          "test_name_regex": "OpticsFwUpgradeTest.*$"
+        },
+        {
+          "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
+        }
+    ],
     "morgan800cc/physdk-credo-0.7.2/credo-0.7.2": [
+        {
+          "test_name_regex": "HwTransceiverTest.resetTranscieverAndDetectStateChanged$"
+        },
+        {
+          "test_name_regex": "HwTransceiverResetTest.resetTranscieverAndDetectStateChanged$"
+        },
+        {
+          "test_name_regex": "OpticsFwUpgradeTest.*$"
+        },
+        {
+          "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
+        }
+    ],
+    "morgan800cc/physdk-credo-0.9.0/credo-0.9.0": [
         {
           "test_name_regex": "HwTransceiverTest.resetTranscieverAndDetectStateChanged$"
         },
@@ -345,7 +607,38 @@
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
         }
     ],
+    "tahan800bc/physdk-credo-0.9.0/credo-0.9.0": [
+        {
+          "test_name_regex": "HwTransceiverTest.resetTranscieverAndDetectStateChanged$"
+        },
+        {
+          "test_name_regex": "HwTransceiverResetTest.resetTranscieverAndDetectStateChanged$"
+        },
+        {
+          "test_name_regex": "OpticsFwUpgradeTest.*$"
+        },
+        {
+          "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
+        }
+    ],
     "wedge100s/physdk-credo-0.7.2/credo-0.7.2": [
+        {
+          "test_name_regex": "HwTransceiverTest.resetTranscieverAndDetectStateChanged$"
+        },
+        {
+          "test_name_regex": "HwTransceiverResetTest.resetTranscieverAndDetectStateChanged$"
+        },
+        {
+          "test_name_regex": "OpticsFwUpgradeTest.*$"
+        },
+        {
+          "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
+        },
+        {
+          "test_name_regex": "HwTransceiverResetTest.verifyResetControl$"
+        }
+    ],
+    "wedge100s/physdk-credo-0.9.0/credo-0.9.0": [
         {
           "test_name_regex": "HwTransceiverTest.resetTranscieverAndDetectStateChanged$"
         },
@@ -379,6 +672,23 @@
           "test_name_regex": "HwTransceiverResetTest.verifyResetControl$"
         }
     ],
+    "wedge400/physdk-credo-0.9.0/credo-0.9.0": [
+        {
+          "test_name_regex": "HwTransceiverTest.resetTranscieverAndDetectStateChanged$"
+        },
+        {
+          "test_name_regex": "HwTransceiverResetTest.resetTranscieverAndDetectStateChanged$"
+        },
+        {
+          "test_name_regex": "OpticsFwUpgradeTest.*$"
+        },
+        {
+          "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
+        },
+        {
+          "test_name_regex": "HwTransceiverResetTest.verifyResetControl$"
+        }
+    ],
     "wedge400c/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "HwTransceiverTest.resetTranscieverAndDetectStateChanged$"
@@ -396,7 +706,44 @@
           "test_name_regex": "HwTransceiverResetTest.verifyResetControl$"
         }
     ],
+    "wedge400c/physdk-credo-0.9.0/credo-0.9.0": [
+        {
+          "test_name_regex": "HwTransceiverTest.resetTranscieverAndDetectStateChanged$"
+        },
+        {
+          "test_name_regex": "HwTransceiverResetTest.resetTranscieverAndDetectStateChanged$"
+        },
+        {
+          "test_name_regex": "OpticsFwUpgradeTest.*$"
+        },
+        {
+          "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
+        },
+        {
+          "test_name_regex": "HwTransceiverResetTest.verifyResetControl$"
+        }
+    ],
     "yamp_8x16Q/physdk-credo-0.7.2/credo-0.7.2": [
+        {
+          "test_name_regex": "HwTransceiverTest.resetTranscieverAndDetectStateChanged$"
+        },
+        {
+          "test_name_regex": "HwTransceiverResetTest.resetTranscieverAndDetectStateChanged$"
+        },
+        {
+          "test_name_regex": "OpticsFwUpgradeTest.*$"
+        },
+        {
+          "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
+        },
+        {
+          "test_name_regex": "HwTransceiverResetTest.verifyResetControl$"
+        },
+        {
+          "test_name_regex": "PhyIOTest.phyIOStats$"
+        }
+    ],
+    "yamp_8x16Q/physdk-credo-0.9.0/credo-0.9.0": [
         {
           "test_name_regex": "HwTransceiverTest.resetTranscieverAndDetectStateChanged$"
         },

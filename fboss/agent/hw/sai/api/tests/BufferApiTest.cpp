@@ -333,3 +333,20 @@ TEST_F(BufferApiTest, setIngressPriorityGroupAttritbutes) {
           id, SaiIngressPriorityGroupTraits::Attributes::BufferProfile{}),
       100);
 }
+
+TEST_F(BufferApiTest, StdNullOptDefault) {
+  static_assert(
+      facebook::fboss::SaiBufferProfileTraits::Attributes::
+          SharedStaticThreshold::hasOptionalDefaultGetter,
+      "SharedStaticThreshold hasOptionalDefaultGetter");
+  static_assert(
+      facebook::fboss::SaiBufferProfileTraits::Attributes::
+          SharedDynamicThreshold::hasOptionalDefaultGetter,
+      "SharedStaticThreshold hasOptionalDefaultGetter");
+  auto defaultVal0 = facebook::fboss::SaiBufferProfileTraits::Attributes::
+      SharedStaticThreshold::defaultValue();
+  auto defaultVal1 = facebook::fboss::SaiBufferProfileTraits::Attributes::
+      SharedDynamicThreshold::defaultValue();
+  EXPECT_EQ(defaultVal0, std::nullopt);
+  EXPECT_EQ(defaultVal1, std::nullopt);
+}

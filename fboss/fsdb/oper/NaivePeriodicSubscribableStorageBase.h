@@ -31,6 +31,9 @@ inline constexpr std::string_view kSubscribeTimePrefix{"subscribe_time_ms"};
 inline constexpr std::string_view kSubscriberPrefix{"subscriber"};
 inline constexpr std::string_view kSubscriptionQueueWatermark{
     "queue_watermark"};
+inline constexpr std::string_view kSlowSubscriptionDisconnects{
+    "disconnects.slow_subscriber"};
+inline constexpr std::string_view kSubscriberConnected{"connected"};
 
 // non-templated parts of NaivePeriodicSubscribableStorage to help with
 // compilation
@@ -51,14 +54,17 @@ class NaivePeriodicSubscribableStorageBase {
         const std::string& metricPrefix = "fsdb",
         bool convertToIDPaths = false,
         bool requireResponseOnInitialSync = false,
-        bool exportPerSubscriberMetrics = false)
+        bool exportPerSubscriberMetrics = false,
+        bool serveGetRequestsWithLastPublishedState = true)
         : subscriptionServeInterval_(subscriptionServeInterval),
           subscriptionHeartbeatInterval_(subscriptionHeartbeatInterval),
           trackMetadata_(trackMetadata),
           metricPrefix_(metricPrefix),
           convertSubsToIDPaths_(convertToIDPaths),
           requireResponseOnInitialSync_(requireResponseOnInitialSync),
-          exportPerSubscriberMetrics_(exportPerSubscriberMetrics) {}
+          exportPerSubscriberMetrics_(exportPerSubscriberMetrics),
+          serveGetRequestsWithLastPublishedState_(
+              serveGetRequestsWithLastPublishedState) {}
 
     const std::chrono::milliseconds subscriptionServeInterval_;
     const std::chrono::milliseconds subscriptionHeartbeatInterval_;
@@ -67,6 +73,7 @@ class NaivePeriodicSubscribableStorageBase {
     bool convertSubsToIDPaths_;
     const bool requireResponseOnInitialSync_;
     const bool exportPerSubscriberMetrics_;
+    const bool serveGetRequestsWithLastPublishedState_;
   };
 
   explicit NaivePeriodicSubscribableStorageBase(StorageParams params);
@@ -82,7 +89,10 @@ class NaivePeriodicSubscribableStorageBase {
   void start_impl();
   void stop_impl();
 
-  void registerPublisher(PathIter begin, PathIter end);
+  void registerPublisher(
+      PathIter begin,
+      PathIter end,
+      bool skipThriftStreamLivenessCheck);
 
   void unregisterPublisher(
       PathIter begin,
@@ -199,7 +209,7 @@ class NaivePeriodicSubscribableStorageBase {
   void exportServeMetrics(
       std::chrono::steady_clock::time_point serveStartTime,
       SubscriptionMetadataServer& metadata,
-      std::map<std::string, uint64_t>& lastServedPublisherRootUpdates) const;
+      std::map<std::string, uint64_t>& lastServedPublisherRootUpdates);
 
   std::optional<std::string> getPublisherRoot(PathIter begin, PathIter end)
       const;
@@ -235,8 +245,11 @@ class NaivePeriodicSubscribableStorageBase {
   const OperProtocol patchOperProtocol_{OperProtocol::COMPACT};
 
  private:
+  void initExportedSubscriberStats(FsdbClient subscriberClientId);
+
   folly::Synchronized<std::map<std::string, std::string>>
       registeredPublisherRoots_;
+  std::set<FsdbClient> registeredSubscriberClientIds_;
   folly::coro::CancellableAsyncScope backgroundScope_;
   std::unique_ptr<std::thread> subscriptionServingThread_;
   folly::EventBase evb_;

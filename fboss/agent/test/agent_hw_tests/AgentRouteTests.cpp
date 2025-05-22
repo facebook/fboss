@@ -7,6 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/packet/PktUtil.h"
 #include "fboss/agent/state/LabelForwardingAction.h"
@@ -15,7 +16,6 @@
 #include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
@@ -208,7 +208,8 @@ class AgentRouteTest : public AgentHwTest {
       const std::shared_ptr<SwitchState>& inState,
       const std::vector<RoutePrefix<AddrT>>& routePrefixes) {
     auto kEcmpWidth = 1;
-    utility::EcmpSetupAnyNPorts<AddrT> ecmpHelper(inState, kRouterID());
+    utility::EcmpSetupAnyNPorts<AddrT> ecmpHelper(
+        inState, getSw()->needL2EntryForNeighbor(), kRouterID());
     applyNewState([&](const std::shared_ptr<SwitchState>& in) {
       auto newState = ecmpHelper.resolveNextHops(in, kEcmpWidth);
       return newState;
@@ -319,7 +320,9 @@ TYPED_TEST(AgentRouteTest, VerifyClassIdWithNhopResolutionFlap) {
     auto kEcmpWidth = 1;
     using AddrT = typename TestFixture::Type;
     utility::EcmpSetupAnyNPorts<AddrT> ecmpHelper(
-        this->getProgrammedState(), this->kRouterID());
+        this->getProgrammedState(),
+        this->getSw()->needL2EntryForNeighbor(),
+        this->kRouterID());
     // Unresolve nhop
     this->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
       auto newState = ecmpHelper.unresolveNextHops(in, kEcmpWidth);
@@ -343,7 +346,9 @@ TYPED_TEST(AgentRouteTest, UnresolvedAndResolvedNextHop) {
   auto ports = this->portDescs();
   auto setup = [=, this]() {
     utility::EcmpSetupTargetedPorts<AddrT> ecmpHelper(
-        this->getProgrammedState(), this->kRouterID());
+        this->getProgrammedState(),
+        this->getSw()->needL2EntryForNeighbor(),
+        this->kRouterID());
     auto wrapper = this->getSw()->getRouteUpdater();
     ecmpHelper.programRoutes(&wrapper, {ports[0]}, {this->kGetRoutePrefix0()});
 
@@ -356,7 +361,9 @@ TYPED_TEST(AgentRouteTest, UnresolvedAndResolvedNextHop) {
   auto verify = [=, this]() {
     auto routePrefix0 = this->kGetRoutePrefix0();
     utility::EcmpSetupTargetedPorts<AddrT> ecmpHelper(
-        this->getProgrammedState(), this->kRouterID());
+        this->getProgrammedState(),
+        this->getSw()->needL2EntryForNeighbor(),
+        this->kRouterID());
     auto routeInfo = getRouteInfo(
         routePrefix0.network(), routePrefix0.mask(), *this->getAgentEnsemble());
     EXPECT_TRUE(*routeInfo.isProgrammedToCpu());
@@ -381,7 +388,9 @@ TYPED_TEST(AgentRouteTest, UnresolveResolvedNextHop) {
 
   auto setup = [=, this]() {
     utility::EcmpSetupAnyNPorts<AddrT> ecmpHelper(
-        this->getProgrammedState(), this->kRouterID());
+        this->getProgrammedState(),
+        this->getSw()->needL2EntryForNeighbor(),
+        this->kRouterID());
     this->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
       auto newState = ecmpHelper.resolveNextHops(in, 1);
       return newState;
@@ -409,7 +418,9 @@ TYPED_TEST(AgentRouteTest, UnresolvedAndResolvedMultiNextHop) {
   auto ports = this->portDescs();
   auto setup = [=, this]() {
     utility::EcmpSetupTargetedPorts<AddrT> ecmpHelper(
-        this->getProgrammedState(), this->kRouterID());
+        this->getProgrammedState(),
+        this->getSw()->needL2EntryForNeighbor(),
+        this->kRouterID());
     auto wrapper = this->getSw()->getRouteUpdater();
     ecmpHelper.programRoutes(
         &wrapper, {ports[0], ports[1]}, {this->kGetRoutePrefix0()});
@@ -428,7 +439,9 @@ TYPED_TEST(AgentRouteTest, UnresolvedAndResolvedMultiNextHop) {
     EXPECT_FALSE(*routeInfo.isProgrammedToCpu());
     EXPECT_TRUE(*routeInfo.isMultiPath());
     utility::EcmpSetupTargetedPorts<AddrT> ecmpHelper(
-        this->getProgrammedState(), this->kRouterID());
+        this->getProgrammedState(),
+        this->getSw()->needL2EntryForNeighbor(),
+        this->kRouterID());
     EXPECT_FALSE(isRouteToNexthop(
         routePrefix0.network(),
         routePrefix0.mask(),
@@ -464,7 +477,9 @@ TYPED_TEST(AgentRouteTest, ResolvedMultiNexthopToUnresolvedSingleNexthop) {
   using AddrT = typename TestFixture::Type;
   auto verify = [=, this]() {
     utility::EcmpSetupTargetedPorts<AddrT> ecmpHelper(
-        this->getProgrammedState(), this->kRouterID());
+        this->getProgrammedState(),
+        this->getSw()->needL2EntryForNeighbor(),
+        this->kRouterID());
     this->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
       auto newState = ecmpHelper.resolveNextHops(in, {ports[0], ports[1]});
       return newState;
@@ -514,7 +529,9 @@ TYPED_TEST(AgentRouteTest, VerifyRouting) {
   auto ports = this->portDescs();
   auto setup = [=, this]() {
     utility::EcmpSetupTargetedPorts<AddrT> ecmpHelper(
-        this->getProgrammedState(), this->kRouterID());
+        this->getProgrammedState(),
+        this->getSw()->needL2EntryForNeighbor(),
+        this->kRouterID());
 
     this->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
       auto newState = ecmpHelper.resolveNextHops(in, {ports[0]});
@@ -577,7 +594,9 @@ TYPED_TEST(AgentRouteTest, verifyHostRouteChange) {
 
   auto setup = [=, this]() {
     utility::EcmpSetupTargetedPorts<AddrT> ecmpHelper(
-        this->getProgrammedState(), this->kRouterID());
+        this->getProgrammedState(),
+        this->getSw()->needL2EntryForNeighbor(),
+        this->kRouterID());
     this->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
       auto newState = ecmpHelper.resolveNextHops(in, {ports[0], ports[1]});
       return newState;
@@ -591,7 +610,9 @@ TYPED_TEST(AgentRouteTest, verifyHostRouteChange) {
   auto verify = [=, this]() {
     auto routePrefix = this->kGetRoutePrefix3();
     utility::EcmpSetupTargetedPorts<AddrT> ecmpHelper(
-        this->getProgrammedState(), this->kRouterID());
+        this->getProgrammedState(),
+        this->getSw()->needL2EntryForNeighbor(),
+        this->kRouterID());
     EXPECT_TRUE(isRouteToNexthop(
         routePrefix.network(),
         routePrefix.mask(),
@@ -621,7 +642,9 @@ TYPED_TEST(AgentRouteTest, verifyCpuRouteChange) {
     this->applyNewConfig(cfg);
 
     utility::EcmpSetupTargetedPorts<AddrT> ecmpHelper(
-        this->getProgrammedState(), this->kRouterID());
+        this->getProgrammedState(),
+        this->getSw()->needL2EntryForNeighbor(),
+        this->kRouterID());
     // Next hops unresolved - route should point to CPU
     auto wrapper = this->getSw()->getRouteUpdater();
     ecmpHelper.programRoutes(&wrapper, {ports[1]}, {this->kGetRoutePrefix3()});
@@ -638,7 +661,9 @@ TYPED_TEST(AgentRouteTest, verifyCpuRouteChange) {
 
     // Resolve next hops
     utility::EcmpSetupTargetedPorts<AddrT> ecmpHelper(
-        this->getProgrammedState(), this->kRouterID());
+        this->getProgrammedState(),
+        this->getSw()->needL2EntryForNeighbor(),
+        this->kRouterID());
     this->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
       auto newState = ecmpHelper.resolveNextHops(in, {ports[1]});
       return newState;
@@ -756,8 +781,7 @@ TYPED_TEST(AgentClassIDRouteTest, VerifyClassIDForConnectedRoute) {
     auto routeInfo = getRouteInfo(
         ipAddr.network(), ipAddr.mask(), *this->getAgentEnsemble());
     EXPECT_TRUE(*routeInfo.exists());
-    auto asic =
-        utility::checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics());
+    auto asic = checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics());
     if (asic->getAsicVendor() != HwAsic::AsicVendor::ASIC_VENDOR_TAJO) {
       if (FLAGS_set_classid_for_my_subnet_and_ip_routes) {
         this->verifyClassIDHelper(
@@ -792,7 +816,9 @@ TYPED_TEST(AgentMplsRouteTest, StaticIp2MplsRoutes) {
 
     // resolve prefix 0 subnet
     utility::EcmpSetupTargetedPorts<AddrT> ecmpHelper(
-        this->getProgrammedState(), this->kRouterID());
+        this->getProgrammedState(),
+        this->getSw()->needL2EntryForNeighbor(),
+        this->kRouterID());
     auto wrapper = this->getSw()->getRouteUpdater();
     ecmpHelper.programRoutes(
         &wrapper,

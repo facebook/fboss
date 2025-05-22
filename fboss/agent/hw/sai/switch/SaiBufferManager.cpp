@@ -20,8 +20,6 @@
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
-#include "fboss/agent/hw/switch_asics/Jericho2Asic.h"
-#include "fboss/agent/hw/switch_asics/Jericho3Asic.h"
 #include "fboss/agent/hw/switch_asics/Tomahawk3Asic.h"
 #include "fboss/agent/hw/switch_asics/Tomahawk4Asic.h"
 #include "fboss/agent/hw/switch_asics/Tomahawk5Asic.h"
@@ -39,7 +37,7 @@ uint64_t getSwitchEgressPoolAvailableSize(const SaiPlatform* platform) {
   const auto switchId = saiSwitch->getSaiSwitchId();
   auto& switchApi = SaiApiTable::getInstance()->switchApi();
   return switchApi.getAttribute(
-      switchId, SaiSwitchTraits::Attributes::EgressPoolAvaialableSize{});
+      switchId, SaiSwitchTraits::Attributes::EgressPoolAvailableSize{});
 }
 
 void assertMaxBufferPoolSize(const SaiPlatform* platform) {
@@ -173,7 +171,7 @@ uint64_t SaiBufferManager::getMaxEgressPoolBytes(const SaiPlatform* platform) {
       saiSwitch = static_cast<SaiSwitch*>(platform->getHwSwitch());
       switchId = saiSwitch->getSaiSwitchId();
       return SaiApiTable::getInstance()->switchApi().getAttribute(
-          switchId, SaiSwitchTraits::Attributes::EgressPoolAvaialableSize{});
+          switchId, SaiSwitchTraits::Attributes::EgressPoolAvailableSize{});
     case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
     case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
     case cfg::AsicType::ASIC_TYPE_RAMON:

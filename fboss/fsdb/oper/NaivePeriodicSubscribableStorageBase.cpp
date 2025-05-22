@@ -145,7 +145,8 @@ void NaivePeriodicSubscribableStorageBase::stop_impl() {
 
 void NaivePeriodicSubscribableStorageBase::registerPublisher(
     PathIter begin,
-    PathIter end) {
+    PathIter end,
+    bool skipThriftStreamLivenessCheck) {
   if (!params_.trackMetadata_) {
     return;
   }
@@ -172,7 +173,8 @@ void NaivePeriodicSubscribableStorageBase::registerPublisher(
   });
   metadataTracker_.withWLock([&](auto& tracker) {
     CHECK(tracker);
-    tracker->registerPublisherRoot(publisherRoot.value());
+    tracker->registerPublisherRoot(
+        publisherRoot.value(), skipThriftStreamLivenessCheck);
   });
 }
 
@@ -207,10 +209,58 @@ NaivePeriodicSubscribableStorageBase::getCurrentMetadataServer() {
   return SubscriptionMetadataServer(std::move(metadata));
 }
 
+void NaivePeriodicSubscribableStorageBase::initExportedSubscriberStats(
+    FsdbClient clientId) {
+  auto it = registeredSubscriberClientIds_.find(clientId);
+  if (it == registeredSubscriberClientIds_.end()) {
+    registeredSubscriberClientIds_.insert(clientId);
+
+    std::string clientName = fsdbClient2string(clientId);
+    fb303::ThreadCachedServiceData::get()->addStatExportType(
+        fmt::format(
+            "{}.{}.{}",
+            subscriberPrefix_,
+            clientName,
+            kSubscriptionQueueWatermark),
+        fb303::AVG);
+    fb303::ThreadCachedServiceData::get()->addStatExportType(
+        fmt::format(
+            "{}.{}.{}", subscriberPrefix_, clientName, kSubscriberConnected),
+        fb303::COUNT);
+    fb303::ThreadCachedServiceData::get()->addStatExportType(
+        fmt::format(
+            "{}.{}.{}",
+            subscriberPrefix_,
+            clientName,
+            kSlowSubscriptionDisconnects),
+        fb303::COUNT);
+  }
+}
+
+void exportSubscriberStats(
+    const std::string& prefix,
+    const FsdbClient& clientId,
+    const SubscriberStats& stat) {
+  std::string clientName = fsdbClient2string(clientId);
+  fb303::ThreadCachedServiceData::get()->addStatValue(
+      fmt::format("{}.{}.{}", prefix, clientName, kSubscriptionQueueWatermark),
+      stat.subscriptionServeQueueWatermark,
+      fb303::AVG);
+  // TODO: export counter for number of connected Thrift streams per client
+  fb303::ThreadCachedServiceData::get()->addStatValue(
+      fmt::format("{}.{}.{}", prefix, clientName, kSubscriberConnected),
+      (stat.numSubscriptions > 0),
+      fb303::AVG);
+  fb303::ThreadCachedServiceData::get()->addStatValue(
+      fmt::format("{}.{}.{}", prefix, clientName, kSlowSubscriptionDisconnects),
+      stat.numSlowSubscriptionDisconnects,
+      fb303::AVG);
+}
+
 void NaivePeriodicSubscribableStorageBase::exportServeMetrics(
     std::chrono::steady_clock::time_point serveStartTime,
     SubscriptionMetadataServer& metadata,
-    std::map<std::string, uint64_t>& lastServedPublisherRootUpdates) const {
+    std::map<std::string, uint64_t>& lastServedPublisherRootUpdates) {
   auto currentTimestamp =
       std::chrono::duration_cast<std::chrono::milliseconds>(
           std::chrono::system_clock::now().time_since_epoch())
@@ -274,16 +324,10 @@ void NaivePeriodicSubscribableStorageBase::exportServeMetrics(
   }
 
   if (params_.exportPerSubscriberMetrics_) {
-    // export per-subscriber metrics
     std::map<FsdbClient, SubscriberStats> stats = subMgr().getSubscriberStats();
     for (const auto& [key, stat] : stats) {
-      auto counterName = fmt::format(
-          "{}.{}.{}",
-          subscriberPrefix_,
-          fsdbClient2string(key),
-          kSubscriptionQueueWatermark);
-      fb303::ThreadCachedServiceData::get()->addStatValue(
-          counterName, stat.subscriptionServeQueueWatermark, fb303::AVG);
+      initExportedSubscriberStats(key);
+      exportSubscriberStats(subscriberPrefix_, key, stat);
     }
   }
 }

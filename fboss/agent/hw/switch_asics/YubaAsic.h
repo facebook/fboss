@@ -161,6 +161,15 @@ class YubaAsic : public TajoAsic {
   uint32_t getNumMemoryBuffers() const override {
     return 1;
   }
+
+  std::optional<uint32_t> getMaxNdpTableSize() const override {
+    return 512;
+  }
+
+  std::optional<uint32_t> getMaxArpTableSize() const override {
+    return 512;
+  }
+
   cfg::Range64 getReservedEncapIndexRange() const override;
 
   std::vector<prbs::PrbsPolynomial> getSupportedPrbsPolynomials()

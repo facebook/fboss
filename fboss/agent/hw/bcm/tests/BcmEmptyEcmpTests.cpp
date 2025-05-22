@@ -47,7 +47,10 @@ class BcmEmptyEcmpTest : public BcmTest {
            {RoutePrefixV6{IPAddressV6(), 0},
             RoutePrefixV6{IPAddressV6("1::1"), 128}}) {
         programRoutes(
-            utility::EcmpSetupAnyNPorts6(getProgrammedState(), kRid),
+            utility::EcmpSetupAnyNPorts6(
+                getProgrammedState(),
+                getHwSwitch()->needL2EntryForNeighbor(),
+                kRid),
             ecmpWidth,
             v6Pfx);
       }
@@ -55,7 +58,10 @@ class BcmEmptyEcmpTest : public BcmTest {
            {RoutePrefixV4{IPAddressV4(), 0},
             RoutePrefixV4{IPAddressV4("1.1.1.1"), 32}}) {
         programRoutes(
-            utility::EcmpSetupAnyNPorts4(getProgrammedState(), kRid),
+            utility::EcmpSetupAnyNPorts4(
+                getProgrammedState(),
+                getHwSwitch()->needL2EntryForNeighbor(),
+                kRid),
             ecmpWidth,
             v4Pfx);
       }

@@ -2,6 +2,7 @@ load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 load("@fbcode_macros//build_defs:export_files.bzl", "export_file")
 load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
+load("@fbsource//tools/target_determinator/macros:ci_sandcastle.bzl", "ci_sandcastle")
 load("//fboss/agent:sai.bzl", "sai_main_all")
 load("//fboss/thriftpath_plugin/facebook:thriftpath_plugin.bzl", "thrift_plugin_thriftpath")
 
@@ -629,6 +630,7 @@ cpp_library(
     srcs = ["ApplyThriftConfig.cpp"],
     exported_deps = [
         ":agent_features",
+        ":asic_utils",
         ":core",
         ":fboss-error",
         ":hw_asic_table",
@@ -703,17 +705,19 @@ cpp_library(
 )
 
 cpp_library(
-    name = "ecmp_consolidator",
+    name = "ecmp_resource_manager",
     srcs = [
-        "EcmpGroupConsolidator.cpp",
+        "EcmpResourceManager.cpp",
     ],
     exported_deps = [
+        ":agent_features",
         ":fib_helpers",
         "//fboss/agent/state:state",
         "//fboss/lib:ref_map",
     ],
     exported_external_deps = [
         "gflags",
+        ("boost", None, "boost_container"),
     ],
 )
 
@@ -817,6 +821,7 @@ cpp_library(
         ":build_info_wrapper",
         ":constants",
         ":dhcpv4_options_of_interest",
+        ":ecmp_resource_manager",
         ":fboss-error",
         ":fboss-types",
         ":fboss_event_base",
@@ -1658,13 +1663,13 @@ cpp_library(
     exported_deps = [
         ":agent_dir_util",
         ":async_logger",
-        ":fboss-error",
         ":hw_asic_table",
         ":switch_state-cpp2-types",
         ":utils",
         "//fboss/agent/rib:standalone_rib",
         "//fboss/agent/state:state",
         "//fboss/lib:common_file_utils",
+        "//fboss/lib:warm_boot_file_utils",
         "//folly:file_util",
         "//folly/logging:logging",
     ],
@@ -1847,6 +1852,30 @@ cpp_library(
         ":utils",
         "//fboss/agent/state:state",
     ],
+)
+
+ci_sandcastle(
+    name = "build_fboss_fbpkg",
+    alias = "build_fboss_fbpkg_ci",
+    args = {
+        "steps": [
+            {
+                "name": "Build fboss fbkg targets",
+                "shell": "buck2 build //fbcode/fboss/agent/fbpkg/...",
+            },
+        ],
+    },
+    capabilities = {
+        "tenant": "default-tenant",
+        "type": "fbcode",
+        "vcs": "full-fbsource",
+    },
+    # Adding triggers for raw inputs (for changes in asic_vendor_config) and generated outputs
+    ci_srcs = [
+        "fbcode/fboss/agent/**",
+    ],
+    command = "SandcastleUniversalCommand",
+    oncall = "fboss_agent",
 )
 
 export_file(name = "Main.cpp")

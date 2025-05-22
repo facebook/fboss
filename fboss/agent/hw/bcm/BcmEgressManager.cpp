@@ -1,6 +1,7 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "fboss/agent/hw/bcm/BcmEgressManager.h"
+#include "fboss/agent/hw/bcm/BcmEcmpUtils.h"
 #include "fboss/agent/hw/bcm/BcmHost.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
@@ -10,6 +11,20 @@ constexpr auto kDefaultMemberWeight = 1;
 }
 
 namespace facebook::fboss {
+
+void BcmEgressManager::init() {
+  if (hw_->getBootType() == BootType::WARM_BOOT) {
+    const auto warmBootCache = hw_->getWarmBootCache();
+    auto egressIds2EcmpCItr = warmBootCache->egressIds2Ecmp_begin();
+    while (egressIds2EcmpCItr != warmBootCache->egressIds2Ecmp_end()) {
+      const auto& existing = egressIds2EcmpCItr->second;
+      insertEcmpID(existing.ecmp_intf);
+      XLOG(DBG2) << "Inserted ECMP ID " << existing.ecmp_intf
+                 << " into egressManager";
+      egressIds2EcmpCItr++;
+    }
+  }
+}
 
 void BcmEgressManager::updatePortToEgressMapping(
     bcm_if_t egressId,
@@ -158,11 +173,14 @@ void BcmEgressManager::processFlowletSwitchingConfigChanged(
         newFlowletSwitching->getFlowletTableSize();
     tmpFlowletConfig.maxLinks = newFlowletSwitching->getMaxLinks();
     tmpFlowletConfig.switchingMode = newFlowletSwitching->getSwitchingMode();
+    tmpFlowletConfig.backupSwitchingMode =
+        newFlowletSwitching->getBackupSwitchingMode();
   } else {
     tmpFlowletConfig.inactivityIntervalUsecs = 0;
     tmpFlowletConfig.flowletTableSize = 0;
     tmpFlowletConfig.maxLinks = 0;
     tmpFlowletConfig.switchingMode = cfg::SwitchingMode::FIXED_ASSIGNMENT;
+    tmpFlowletConfig.backupSwitchingMode = cfg::SwitchingMode::FIXED_ASSIGNMENT;
   }
   // take the write lock
   *bcmFlowletConfig_.wlock() = tmpFlowletConfig;
@@ -205,4 +223,47 @@ void BcmEgressManager::updateAllEgressForFlowletSwitching() {
     }
   }
 }
+
+void BcmEgressManager::insertEcmpID(bcm_if_t id) {
+  bcm_if_t firstID = kDlbStartID;
+  auto ret = inUseIds_.insert(id - firstID);
+  CHECK(ret.second);
+}
+
+void BcmEgressManager::eraseEcmpID(bcm_if_t id) {
+  bcm_if_t firstID = kDlbStartID;
+  inUseIds_.erase(id - firstID);
+}
+
+uint32_t BcmEgressManager::findNextAvailableId(uint32_t dynamicMode) const {
+  bcm_if_t firstID = kDlbStartID;
+  uint32_t start = 0;
+  uint32_t step = 1;
+
+  // CS00012398177
+  // For TH4, SDK starts creating ECMP at 2000001
+  if (hw_->getPlatform()->getAsic()->getAsicType() ==
+      cfg::AsicType::ASIC_TYPE_TOMAHAWK4) {
+    start = 1;
+  }
+
+  // CS00012344837
+  // This is a bug where ECMP IDs are only created with even integers
+  if (hw_->getPlatform()->getAsic()->getAsicType() ==
+      cfg::AsicType::ASIC_TYPE_TOMAHAWK3) {
+    step = 2;
+  }
+  // Non dynamic groups start at 200128
+  if (!utility::isEcmpModeDynamic(dynamicMode)) {
+    start = 128;
+  }
+
+  for (; start < std::numeric_limits<uint32_t>::max(); start += step) {
+    if (inUseIds_.find(start) == inUseIds_.end()) {
+      return (firstID + start);
+    }
+  }
+  throw FbossError("Unable to find id to allocate for new ECMP");
+}
+
 } // namespace facebook::fboss

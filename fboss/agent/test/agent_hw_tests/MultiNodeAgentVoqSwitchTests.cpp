@@ -1,7 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/test/AgentHwTest.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
 
 DECLARE_bool(disable_neighbor_updates);
 DECLARE_bool(disable_looped_fabric_ports);
@@ -16,7 +16,7 @@ class MultiNodeAgentVoqSwitchTest : public AgentHwTest {
     XLOG(DBG0) << "initialConfig() loaded config from file " << FLAGS_config;
 
     auto hwAsics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
-    auto asic = utility::checkSameAndGetAsic(hwAsics);
+    auto asic = checkSameAndGetAsic(hwAsics);
 
     auto it = asic->desiredLoopbackModes().find(cfg::PortType::INTERFACE_PORT);
     CHECK(it != asic->desiredLoopbackModes().end());
@@ -80,11 +80,25 @@ TEST_F(MultiNodeAgentVoqSwitchTest, verifyInbandPing) {
         getInbandPortIntfID(getProgrammedState(), switchId);
     auto recyclePortIntf = folly::to<std::string>("fboss", recyclePortIntfID);
     auto cmd = folly::to<std::string>(
-        "/usr/sbin/fping6 -I ", recyclePortIntf, " ", ipAddrsToPing);
+        "/usr/sbin/fping6 --alive -I ", recyclePortIntf, " ", ipAddrsToPing);
 
-    auto output = runShellCmd(cmd);
+    auto reachableIps = runShellCmd(cmd);
     XLOG(DBG2) << "Cmd: " << cmd;
-    XLOG(DBG2) << "Output: \n" << output;
+    XLOG(DBG2) << "Output: #" << reachableIps << "#";
+
+    // fping returns list of reachable IPs separated by \n.
+    // Convert to space separated list, so we can compare with ipAddrsToPing and
+    // assert that every pinged IP is reachable.
+    // Note: fping pings all IPs in parallel, so sort before comparing.
+    std::vector<std::string> reachableIpList;
+    folly::split("\n", reachableIps, reachableIpList);
+    std::sort(reachableIpList.begin(), reachableIpList.end());
+
+    std::vector<std::string> ipAddrsToPingList;
+    folly::split(" ", ipAddrsToPing, ipAddrsToPingList);
+    std::sort(ipAddrsToPingList.begin(), ipAddrsToPingList.end());
+
+    EXPECT_EQ(reachableIpList, ipAddrsToPingList);
   };
 
   verifyAcrossWarmBoots(setup, verify);

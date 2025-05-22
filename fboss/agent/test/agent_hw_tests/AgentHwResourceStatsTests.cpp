@@ -8,13 +8,13 @@
  *
  */
 
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/FbossHwUpdateError.h"
 #include "fboss/agent/hw/HwResourceStatsPublisher.h"
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/QueuePerHostTestUtils.h"
 
@@ -62,8 +62,10 @@ TEST_F(AgentHwResourceStatsTest, l3Stats) {
     // Trigger a stats collection
     this->getLatestPortStats(this->masterLogicalPortIds());
     auto constexpr kEcmpWidth = 2;
-    utility::EcmpSetupAnyNPorts4 ecmp4(this->getProgrammedState());
-    utility::EcmpSetupAnyNPorts6 ecmp6(this->getProgrammedState());
+    utility::EcmpSetupAnyNPorts4 ecmp4(
+        this->getProgrammedState(), this->getSw()->needL2EntryForNeighbor());
+    utility::EcmpSetupAnyNPorts6 ecmp6(
+        this->getProgrammedState(), this->getSw()->needL2EntryForNeighbor());
 
     // lamda to get stats from fbData for multi switch
     auto getStatsFn = [this]() {
@@ -182,7 +184,7 @@ TEST_F(AgentHwResourceStatsTest, aclStats) {
     this->getLatestPortStats(this->masterLogicalPortIds());
 
     auto l3Asics = getAgentEnsemble()->getL3Asics();
-    auto asic = utility::checkSameAndGetAsic(l3Asics);
+    auto asic = checkSameAndGetAsic(l3Asics);
     auto [aclEntriesFreeBefore, aclCountersFreeBefore] = getStatsFn();
     // getSw()->isRunModeMultiSwitch() ? getMultiStatsFn() : getMonoStatsFn();
     auto acl = utility::addAcl_DEPRECATED(&newCfg, "acl0");

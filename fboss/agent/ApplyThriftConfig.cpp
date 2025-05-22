@@ -22,6 +22,7 @@
 
 #include "fboss/agent/AgentFeatures.h"
 
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/DsfStateUpdaterUtil.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/HwAsicTable.h"
@@ -5573,6 +5574,9 @@ ThriftConfigApplier::updateMirrorOnDropReports() {
 std::shared_ptr<MirrorOnDropReport>
 ThriftConfigApplier::createMirrorOnDropReport(
     const cfg::MirrorOnDropReport* config) {
+  auto asicType =
+      checkSameAndGetAsic(hwAsicTable_->getL3Asics())->getAsicType();
+
   auto switchId = getAnyVoqSwitchId();
   if (!switchId.has_value()) {
     throw FbossError("No VOQ switchId found");
@@ -5585,9 +5589,73 @@ ThriftConfigApplier::createMirrorOnDropReport(
       ? folly::IPAddress(getSwitchIntfIP(new_, InterfaceID(systemPortId)))
       : folly::IPAddress(getSwitchIntfIPv6(new_, InterfaceID(systemPortId)));
 
+  // Determine the mirror recirculation port.
+  std::optional<PortID> mirrorPortId;
+  if (config->mirrorPort().has_value()) {
+    auto egressPort = config->mirrorPort()->egressPort();
+    if (!egressPort.has_value()) {
+      throw FbossError(
+          "Only egressPort can be used as a Mirror-on-Drop destination");
+    }
+    switch (egressPort->getType()) {
+      case cfg::MirrorEgressPort::Type::name:
+        for (auto& portMap : std::as_const(*(new_->getPorts()))) {
+          for (auto& [portId, port] : std::as_const(*portMap.second)) {
+            if (port->getName() == egressPort->get_name()) {
+              mirrorPortId = portId;
+              break;
+            }
+          }
+        }
+        break;
+      case cfg::MirrorEgressPort::Type::logicalID:
+        mirrorPortId = egressPort->get_logicalID();
+        break;
+      case cfg::MirrorEgressPort::Type::__EMPTY__:
+        throw FbossError(
+            "Must set either name or logicalID for MirrorEgressPort");
+    }
+  } else if (config->mirrorPortId().has_value()) {
+    mirrorPortId = PortID(*config->mirrorPortId());
+  } else {
+    if (asicType == cfg::AsicType::ASIC_TYPE_JERICHO3) {
+      // Find the lowest numbered local-scope recycle port.
+      for (auto& portMap : std::as_const(*(new_->getPorts()))) {
+        for (auto& [portId, port] : std::as_const(*portMap.second)) {
+          if (port->getPortType() == cfg::PortType::RECYCLE_PORT &&
+              port->getScope() == cfg::Scope::LOCAL) {
+            if (!mirrorPortId.has_value() ||
+                portId < static_cast<int>(mirrorPortId.value())) {
+              mirrorPortId = portId;
+            }
+          }
+        }
+      }
+    }
+  }
+  if (!mirrorPortId.has_value()) {
+    throw FbossError(
+        "Mirror-on-Drop destination is not specified, "
+        "and auto-detection is not supported on this ASIC");
+  }
+  if (asicType == cfg::AsicType::ASIC_TYPE_JERICHO3 &&
+      !FLAGS_allow_nif_port_for_mod) {
+    auto mirrorPortType = new_->getPort(*mirrorPortId)->getPortType();
+    if (mirrorPortType != cfg::PortType::RECYCLE_PORT &&
+        mirrorPortType != cfg::PortType::EVENTOR_PORT) {
+      throw FbossError(
+          "Only RECYCLE_PORT or EVENTOR_PORT can be used for Mirror-on-Drop on Jericho3, got ",
+          apache::thrift::util::enumNameSafe(mirrorPortType));
+    }
+    if (new_->getPort(*mirrorPortId)->getScope() != cfg::Scope::LOCAL) {
+      throw FbossError(
+          "Mirror-on-Drop must use LOCAL scoped recycle/eventor ports");
+    }
+  }
+
   return std::make_shared<MirrorOnDropReport>(
       *config->name(),
-      PortID(*config->mirrorPortId()),
+      *mirrorPortId,
       localSrcIp,
       *config->localSrcPort(),
       collectorIp,

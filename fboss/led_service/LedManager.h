@@ -66,7 +66,8 @@ class LedManager {
   virtual void initLedManager() {}
 
   // On getting the update from FSDB, update portDisplayMap_
-  void updateLedStatus(std::map<short, LedSwitchStateUpdate> newSwitchState);
+  void updateLedStatus(
+      const std::map<short, LedSwitchStateUpdate>& newSwitchState);
 
   folly::EventBase* getEventBase() {
     return eventBase_.get();

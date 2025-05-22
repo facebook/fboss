@@ -30,7 +30,7 @@ using utils::Table;
  Define the traits of this command. This will include the inputs and output
  types
 */
-struct CmdSetFanHoldTraits : public BaseCommandTraits {
+struct CmdSetFanHoldTraits : public WriteCommandTraits {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_FAN_PWM;
   using ObjectArgType = utils::FanPwm;

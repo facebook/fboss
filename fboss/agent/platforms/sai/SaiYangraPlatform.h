@@ -52,6 +52,7 @@ class SaiYangraPlatform : public SaiPlatform {
       cfg::SwitchType switchType,
       std::optional<int64_t> switchId,
       BootType bootType) override;
+  HwSwitchWarmBootHelper* getWarmBootHelper() override;
 
  private:
   void setupAsic(

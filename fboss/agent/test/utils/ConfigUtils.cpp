@@ -12,11 +12,11 @@
 #include <memory>
 
 #include "fboss/agent/AgentFeatures.h"
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/test/TestEnsembleIf.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/PortTestUtils.h"
 #include "fboss/agent/test/utils/VoqTestUtils.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
@@ -1293,6 +1293,9 @@ UplinkDownlinkPair getAllUplinkDownlinkPorts(
   }
 
   auto begin = masterPorts.begin();
+  CHECK_GE(masterPorts.size(), ecmpWidth)
+      << "Not enough ports with subnet in config. Need  " << ecmpWidth
+      << " ports, but found only " << masterPorts.size();
   auto mid = masterPorts.begin() + ecmpWidth;
   auto end = masterPorts.end();
   return std::pair(PortList(begin, mid), PortList(mid, end));
@@ -1469,7 +1472,7 @@ void modifyPlatformConfig(
     const std::function<void(std::map<std::string, std::string>&)>&
         modifyMapFunc) {
   auto& chip = *config.chip();
-  if (chip.getType() == chip.bcm) {
+  if (chip.getType() == cfg::ChipConfig::Type::bcm) {
     auto& bcm = chip.mutable_bcm();
     if (!bcm.yamlConfig().value_or("").empty()) {
       // yamlConfig used for TH4
@@ -1477,12 +1480,12 @@ void modifyPlatformConfig(
     } else {
       modifyMapFunc(*bcm.config());
     }
-  } else if (chip.getType() == chip.asicConfig) {
+  } else if (chip.getType() == cfg::ChipConfig::Type::asicConfig) {
     auto& common = *(chip.mutable_asicConfig().common());
-    if (common.getType() == common.yamlConfig) {
+    if (common.getType() == cfg::AsicConfigEntry::Type::yamlConfig) {
       // yamlConfig used for TH4
       modifyYamlFunc(common.mutable_yamlConfig());
-    } else if (common.getType() == common.config) {
+    } else if (common.getType() == cfg::AsicConfigEntry::Type::config) {
       modifyMapFunc(common.mutable_config());
     }
   }

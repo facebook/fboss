@@ -168,6 +168,11 @@ void addAclDscpQueueAction(
     int32_t dscpValue = 0,
     int queueId = -1);
 
+void addAclEcmpHashCancelAction(
+    cfg::SwitchConfig* cfg,
+    const std::string& matcher,
+    const std::string& counterName);
+
 void renameAclStat(
     cfg::SwitchConfig* cfg,
     const std::string& matcher,

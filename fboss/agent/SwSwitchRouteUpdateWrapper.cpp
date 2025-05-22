@@ -22,6 +22,7 @@
 
 namespace facebook::fboss {
 
+namespace {
 std::shared_ptr<SwitchState> swSwitchFibUpdate(
     const facebook::fboss::SwitchIdScopeResolver* resolver,
     facebook::fboss::RouterID vrf,
@@ -36,6 +37,7 @@ std::shared_ptr<SwitchState> swSwitchFibUpdate(
   sw->updateStateWithHwFailureProtection("update fib", std::move(fibUpdater));
   return sw->getState();
 }
+} // namespace
 
 SwSwitchRouteUpdateWrapper::SwSwitchRouteUpdateWrapper(
     SwSwitch* sw,

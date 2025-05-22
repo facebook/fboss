@@ -25,7 +25,7 @@ namespace facebook::fboss {
 
 using utils::Table;
 
-struct CmdShowHwAgentStatusTraits : public BaseCommandTraits {
+struct CmdShowHwAgentStatusTraits : public ReadCommandTraits {
   using RetType = cli::ShowHwAgentStatusModel;
 };
 

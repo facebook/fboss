@@ -1,4 +1,5 @@
 #include "fboss/agent/test/utils/AclScaleTestUtils.h"
+#include "fboss/agent/AsicUtils.h"
 
 namespace facebook::fboss::utility {
 
@@ -24,7 +25,7 @@ std::vector<cfg::AclTableQualifier> setAclQualifiers(AclWidth width) {
 }
 
 uint32_t getMaxAclEntries(const std::vector<const HwAsic*>& asics) {
-  auto asic = utility::checkSameAndGetAsic(asics);
+  auto asic = checkSameAndGetAsic(asics);
   auto maxAclEntries = asic->getMaxAclEntries();
   if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK4 ||
       asic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK5) {

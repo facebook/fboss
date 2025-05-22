@@ -42,7 +42,8 @@ class AgentRouteScaleTest : public AgentHwTest {
   template <typename RouteScaleGeneratorT>
   void runTest() {
     auto setup = [this]() {
-      auto routeGen = RouteScaleGeneratorT(getProgrammedState());
+      auto routeGen = RouteScaleGeneratorT(
+          getProgrammedState(), getSw()->needL2EntryForNeighbor());
 
       applyNewState([&](const std::shared_ptr<SwitchState>& in) {
         return routeGen.resolveNextHops(in);
@@ -55,7 +56,7 @@ class AgentRouteScaleTest : public AgentHwTest {
     verifyAcrossWarmBoots(setup, verify);
   }
 
- private:
+ protected:
   void setCmdLineFlagOverrides() const override {
     AgentHwTest::setCmdLineFlagOverrides();
     FLAGS_enable_route_resource_protection = false;

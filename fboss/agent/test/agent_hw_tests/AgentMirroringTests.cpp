@@ -2,11 +2,11 @@
 
 #include "fboss/agent/test/AgentHwTest.h"
 
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/packet/PktUtil.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/MirrorTestUtils.h"
 #include "fboss/agent/test/utils/PacketSnooper.h"
@@ -19,6 +19,7 @@
 
 #include <boost/range/combine.hpp>
 #include <folly/logging/xlog.h>
+#include "fboss/lib/config/PlatformConfigUtils.h"
 
 namespace {
 using TestTypes = ::testing::Types<folly::IPAddressV4, folly::IPAddressV6>;
@@ -120,7 +121,8 @@ class AgentMirroringTest : public AgentHwTest {
 
   template <typename T = AddrT>
   void resolveMirror(const std::string& mirrorName) {
-    utility::EcmpSetupAnyNPorts<AddrT> ecmpHelper(getProgrammedState());
+    utility::EcmpSetupAnyNPorts<AddrT> ecmpHelper(
+        getProgrammedState(), getSw()->needL2EntryForNeighbor());
     auto trafficPort = getTrafficPort(*getAgentEnsemble());
     auto mirrorToPort = getMirrorToPort(*getAgentEnsemble());
     EXPECT_EQ(trafficPort, ecmpHelper.nhop(0).portDesc.phyPortID());
@@ -129,8 +131,9 @@ class AgentMirroringTest : public AgentHwTest {
     applyNewState([&](const std::shared_ptr<SwitchState>& in) {
       boost::container::flat_set<PortDescriptor> nhopPorts{
           PortDescriptor(mirrorToPort)};
-      return utility::EcmpSetupAnyNPorts<AddrT>(in).resolveNextHops(
-          in, nhopPorts);
+      return utility::EcmpSetupAnyNPorts<AddrT>(
+                 in, getSw()->needL2EntryForNeighbor())
+          .resolveNextHops(in, nhopPorts);
     });
     getSw()->getUpdateEvb()->runInFbossEventBaseThreadAndWait([] {});
     auto mirror = getSw()->getState()->getMirrors()->getNodeIf(mirrorName);
@@ -751,7 +754,7 @@ class AgentErspanIngressSamplingTest
 
   void configureTrapAcl(cfg::SwitchConfig* config) {
     auto ensemble = this->getAgentEnsemble();
-    auto asic = utility::checkSameAndGetAsic(ensemble->getL3Asics());
+    auto asic = checkSameAndGetAsic(ensemble->getL3Asics());
     if (asic->isSupported(HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER)) {
       utility::configureTrapAcl(
           asic, *config, this->getMirrorToPort(*ensemble));
@@ -830,6 +833,27 @@ TYPED_TEST(AgentErspanIngressSamplingTest, SamplePacketFormat) {
     auto mirrorToPort = this->getMirrorToPort(*agentEnsemble);
     auto trafficPort = this->getTrafficPort(*agentEnsemble);
 
+    auto platformMapping =
+        this->getAgentEnsemble()->getSw()->getPlatformMapping();
+    auto platformPortEntry = platformMapping->getPlatformPort(trafficPort);
+    auto chips = platformMapping->getChips();
+    auto profileID = this->getAgentEnsemble()
+                         ->getProgrammedState()
+                         ->getPorts()
+                         ->getNode(trafficPort)
+                         ->getProfileID();
+    // Below is CHENAB specific computation
+    // ingress label port is calculated based on the lane as follows
+    // ingress label port = ((module + 1) << 4 | split)
+    // module is first lane / 8 and split is 0 or 1 depending on first lane
+    auto lanes = utility::getHwPortLanes(
+        platformPortEntry, profileID, chips, [](auto, auto lane) {
+          return lane;
+        });
+    auto module = lanes[0] / 8;
+    auto split = lanes[0] % 8;
+    auto ingressLabelPort = ((module + 1) << 4 | split);
+
     WITH_RETRIES({
       auto ingressMirror = this->getProgrammedState()->getMirrors()->getNodeIf(
           utility::kIngressErspan);
@@ -847,7 +871,7 @@ TYPED_TEST(AgentErspanIngressSamplingTest, SamplePacketFormat) {
         // Intentionally dumping to develop deep packet inspection
         XLOG(INFO) << PktUtil::hexDump(buf.value().get());
         auto ensemble = this->getAgentEnsemble();
-        auto asic = utility::checkSameAndGetAsic(ensemble->getL3Asics());
+        auto asic = checkSameAndGetAsic(ensemble->getL3Asics());
         if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
           folly::io::Cursor cursor(buf.value().get());
           cursor += 14; // skip ethernet header
@@ -859,7 +883,7 @@ TYPED_TEST(AgentErspanIngressSamplingTest, SamplePacketFormat) {
           auto gre = cursor.readBE<uint32_t>(); // read gre proto
           EXPECT_EQ(gre, 0x8949);
           auto port = cursor.readBE<uint16_t>(); // ingress label port
-          EXPECT_EQ(port, trafficPort);
+          EXPECT_EQ(port, ingressLabelPort);
           auto opcode = cursor.readBE<uint8_t>(); // opcode
           EXPECT_EQ(opcode, 0x1); // v1 erspan
           cursor.readBE<uint8_t>(); // padding

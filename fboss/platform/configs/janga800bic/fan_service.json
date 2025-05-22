@@ -6,6 +6,7 @@
   "pwmTransitionValue": 50,
   "pwmLowerThreshold": 30,
   "pwmUpperThreshold": 100,
+  "shutdownCmd": "echo 0 > /run/devmap/cplds/JANGA_SMB_CPLD/j3a_pwr_en;echo 0 > /run/devmap/cplds/JANGA_SMB_CPLD/j3b_pwr_en",
   "controlInterval": {
     "sensorReadInterval": 5,
     "pwmUpdateInterval": 5
@@ -106,6 +107,61 @@
       }
     }
   ],
+  "shutdownCondition": {
+    "numOvertempSensorForShutdown": 2,
+    "conditions": [
+      {
+        "sensorName": "SMB_U68_TMP422_J3_A_TEMPDIODE_NIF1",
+        "overtempThreshold": 110.0,
+        "slidingWindowSize": 1
+      },
+      {
+        "sensorName": "SMB_U68_TMP422_J3_A_TEMPDIODE_HBM_PHY0",
+        "overtempThreshold": 110.0,
+        "slidingWindowSize": 1
+      },
+      {
+        "sensorName": "SMB_U150_TMP422_J3_A_TEMPDIODE_FAB1",
+        "overtempThreshold": 110.0,
+        "slidingWindowSize": 1
+      },
+      {
+        "sensorName": "SMB_U150_TMP422_J3_A_TEMPDIODE_HBM_PHY2",
+        "overtempThreshold": 110.0,
+        "slidingWindowSize": 1
+      },
+      {
+        "sensorName": "SMB_U351_TMP422_J3_B_TEMPDIODE_PADS",
+        "overtempThreshold": 110.0,
+        "slidingWindowSize": 1
+      },
+      {
+        "sensorName": "SMB_U351_TMP422_J3_B_TEMPDIODE_NIF0",
+        "overtempThreshold": 110.0,
+        "slidingWindowSize": 1
+      },
+      {
+        "sensorName": "SMB_U352_TMP422_J3_B_TEMPDIODE_NIF1",
+        "overtempThreshold": 110.0,
+        "slidingWindowSize": 1
+      },
+      {
+        "sensorName": "SMB_U352_TMP422_J3_B_TEMPDIODE_HBM_PHY0",
+        "overtempThreshold": 110.0,
+        "slidingWindowSize": 1
+      },
+      {
+        "sensorName": "SMB_U152_TMP422_J3_B_TEMPDIODE_FAB1",
+        "overtempThreshold": 110.0,
+        "slidingWindowSize": 1
+      },
+      {
+        "sensorName": "SMB_U152_TMP422_J3_B_TEMPDIODE_HBM_PHY2",
+        "overtempThreshold": 110.0,
+        "slidingWindowSize": 1
+      }
+    ]
+  },
   "fans": [
     {
       "fanName": "FANTRAY1_FAN1",

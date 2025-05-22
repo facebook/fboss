@@ -73,32 +73,10 @@ std::vector<OperSubscriberInfo> SubscriptionManagerBase::getSubscriptions()
   return toRet;
 }
 
-void updateSubscriberStats(
-    std::map<FsdbClient, SubscriberStats>& stats,
-    const BaseSubscription& subscription) {
-  FsdbClient key = *subscriberId2ClientId(subscription.subscriberId()).client();
-  auto it = stats.find(key);
-  if (it == stats.end()) {
-    stats.emplace(key, SubscriberStats());
-    it = stats.find(key);
-  }
-  it->second.numSubscriptions++;
-  it->second.subscriptionServeQueueWatermark = std::max(
-      it->second.subscriptionServeQueueWatermark,
-      subscription.getQueueWatermark());
-}
-
 std::map<FsdbClient, SubscriberStats>
 SubscriptionManagerBase::getSubscriberStats() const {
-  std::map<FsdbClient, SubscriberStats> toRet;
   auto store = store_.rlock();
-  for (auto& [id, subscription] : store->subscriptions()) {
-    updateSubscriberStats(toRet, *subscription);
-  }
-  for (auto& [id, subscription] : store->extendedSubscriptions()) {
-    updateSubscriberStats(toRet, *subscription);
-  }
-  return toRet;
+  return store->getSubscriberStats();
 }
 
 void SubscriptionManagerBase::registerPendingSubscriptions(

@@ -2174,6 +2174,11 @@ void printCmisDetailService(
         MediaInterfaceUnion::Type::passiveCuCode) {
       mediaInterface = apache::thrift::util::enumNameSafe(
           (*mediaInterfaceId)[0].media()->get_passiveCuCode());
+    } else if (
+        (*mediaInterfaceId)[0].media()->getType() ==
+        MediaInterfaceUnion::Type::activeCuCode) {
+      mediaInterface = apache::thrift::util::enumNameSafe(
+          (*mediaInterfaceId)[0].media()->get_activeCuCode());
     }
     printf("  Current Media Interface: %s\n", mediaInterface.c_str());
   }
@@ -2412,7 +2417,7 @@ void printPortDetail(
     const DOMDataUnion& domDataUnion,
     unsigned int port,
     const std::string& portNames) {
-  if (domDataUnion.__EMPTY__) {
+  if (domDataUnion.getType() == DOMDataUnion::Type::__EMPTY__) {
     fprintf(stderr, "DOMDataUnion object is empty\n");
     return;
   }

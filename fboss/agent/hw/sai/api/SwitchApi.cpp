@@ -113,6 +113,22 @@ void SwitchApi::registerTxReadyStatusChangeCallback(
       tx_ready_status_cb ? "register" : "unregister",
       " tx ready status change callback");
 }
+
+void SwitchApi::registerSwitchAsicSdkHealthEventCallback(
+    const SwitchSaiId& id,
+    sai_switch_asic_sdk_health_event_notification_fn function) const {
+  sai_attribute_t attr;
+  attr.id = SAI_SWITCH_ATTR_SWITCH_ASIC_SDK_HEALTH_EVENT_NOTIFY;
+  attr.value.ptr = (void*)function;
+
+  auto rv = _setAttribute(id, &attr);
+  saiApiCheckError(
+      rv,
+      ApiType,
+      "Unable to ",
+      function ? "register" : "unregister",
+      " switch asic sdk health event  notify callback");
+}
 #endif
 
 #if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
@@ -129,6 +145,43 @@ void SwitchApi::registerVendorSwitchEventNotifyCallback(
       "Unable to ",
       event_notify_cb ? "register" : "unregister",
       " vendor switch event notify callback");
+}
+#endif
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
+
+SaiHealthNotification::SaiHealthNotification(
+    SaiTimeSpec saiTimeSpec,
+    const sai_switch_asic_sdk_health_severity_t&
+        sai_switch_asic_sdk_health_severity,
+    const sai_switch_asic_sdk_health_category_t&
+        sai_switch_asic_sdk_health_category,
+    const sai_switch_health_data_t& data,
+    const sai_u8_list_t& sai_u8_list)
+    : timeSpec(std::move(saiTimeSpec)),
+      severity(sai_switch_asic_sdk_health_severity),
+      category(sai_switch_asic_sdk_health_category),
+      saiHealthData{},
+      description(sai_u8_list.list, sai_u8_list.list + sai_u8_list.count) {
+  switch (data.data_type) {
+    case SAI_HEALTH_DATA_TYPE_GENERAL:
+      break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 15, 0)
+    case SAI_HEALTH_DATA_TYPE_SER:
+      saiHealthData = SaiSerHealthData(data.data.ser);
+      break;
+#endif
+  }
+}
+
+std::string SaiHealthNotification::toString() const {
+  return fmt::format("{}", *this);
+}
+#endif
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 15, 0)
+std::string SaiSerHealthData::toString() const {
+  return fmt::format("{}", *this);
 }
 #endif
 

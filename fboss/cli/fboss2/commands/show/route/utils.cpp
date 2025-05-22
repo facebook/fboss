@@ -96,8 +96,10 @@ std::string getTopologyInfoStr(const cli::NextHopInfo& nextHopInfo) {
     if (topoInfoPtr->local_rack_capacity().has_value()) {
       rackCapacityStr =
           std::to_string(topoInfoPtr->local_rack_capacity().value());
-    } else if (topoInfoPtr->remote_rack_capacity().has_value()) {
-      rackCapacityStr =
+    }
+    std::string remoteRackCapacityStr = "none";
+    if (topoInfoPtr->remote_rack_capacity().has_value()) {
+      remoteRackCapacityStr =
           std::to_string(topoInfoPtr->remote_rack_capacity().value());
     }
     std::string spineCapacityStr = "none";
@@ -111,11 +113,12 @@ std::string getTopologyInfoStr(const cli::NextHopInfo& nextHopInfo) {
         ? std::to_string(topoInfoPtr->rack_id().value())
         : "none";
     topoStr = fmt::format(
-        " rack {} plane {} rack weight {} spine weight {}",
+        " rack {} plane {} remote weight {} spine weight {} local weight {}",
         rackStr,
         planeStr,
-        rackCapacityStr,
-        spineCapacityStr);
+        remoteRackCapacityStr,
+        spineCapacityStr,
+        rackCapacityStr);
   }
   return topoStr;
 }

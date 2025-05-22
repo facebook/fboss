@@ -57,4 +57,10 @@ std::optional<TransceiverID> getTransceiverId(
     const cfg::PlatformPortEntry& port,
     const std::map<std::string, phy::DataPlanePhyChip>& chipsMap);
 
+std::vector<uint32_t> getHwPortLanes(
+    cfg::PlatformPortEntry& platformPort,
+    cfg::PortProfileID profileID,
+    const std::map<std::string, phy::DataPlanePhyChip>& dataPlanePhyChips,
+    std::function<uint32_t(uint32_t, uint32_t)>&& getPhysicalLaneId);
+
 } // namespace facebook::fboss::utility

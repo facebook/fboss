@@ -232,9 +232,9 @@ TYPED_TEST(CaptureTest, FullCapture) {
   waitForStateUpdates(sw);
 
   // Receive an ARP reply for the desired IP. This should cause the
-  // arp entry to change from pending to active. That in turn would
-  // trigger a static l2 entry add update
-  EXPECT_STATE_UPDATE_TIMES(sw, 2);
+  // arp entry to change from pending to active. Static l2 entry will
+  // be added in the same update.
+  EXPECT_STATE_UPDATE_TIMES(sw, 1);
   sw->packetReceived(arpPkt.clone());
   sw->getNeighborUpdater()->waitForPendingUpdates();
   waitForStateUpdates(sw);

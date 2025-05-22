@@ -421,12 +421,14 @@ class BcmSwitch : public BcmSwitchIf {
   }
 
   HwSwitchWatermarkStats getSwitchWatermarkStats() const override;
+  HwSwitchPipelineStats getSwitchPipelineStats() const override;
   HwFlowletStats getHwFlowletStats() const override;
 
   HwResourceStats getResourceStats() const override;
 
   std::vector<EcmpDetails> getAllEcmpDetails() const override;
 
+  cfg::SwitchingMode getFwdSwitchingMode(const RouteNextHopEntry&) override;
   /*
    * Wrapper functions to register and unregister a BCM event callbacks.  These
    * just forward the call.
@@ -641,6 +643,7 @@ class BcmSwitch : public BcmSwitchIf {
   }
 
   void syncLinkStates() override;
+  void syncPortLinkState(PortID port) override;
 
   // no concept of link active states in BcmSwitch
   void syncLinkActiveStates() override {}

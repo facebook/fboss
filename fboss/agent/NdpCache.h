@@ -56,6 +56,8 @@ class NdpCache : public NeighborCache<NdpTable> {
 
   std::list<NdpEntryThrift> getNdpCacheData();
 
+  std::optional<NdpEntryThrift> getNdpCacheData(folly::IPAddressV6 ip) const;
+
  private:
   void receivedNeighborAdvertisementMine(
       folly::IPAddressV6 ip,

@@ -4,6 +4,11 @@
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 
+DEFINE_int32(
+    vendor_switch_interrupt_log_throttle_timeout_secs,
+    60,
+    "Vendor switch interrupt should be logged only once in this interval");
+
 namespace facebook::fboss {
 
 SaiVendorSwitchManager::SaiVendorSwitchManager(
@@ -32,6 +37,9 @@ SaiVendorSwitchManager::SaiVendorSwitchManager(
       SaiVendorSwitchTraits::CreateAttributes{eventIdToOptions};
   vendorSwitch_ =
       vendorSwitchStore.setObject(std::monostate{}, vendorSwitchTraits);
+  // Initialize the vector for interrupt event time tracking
+  lastInterruptEventTime_.resize(getNumberOfVendorSwitchInterruptEventsIds());
+  initWarningInterruptEvents();
 #endif
 }
 
@@ -54,6 +62,21 @@ void SaiVendorSwitchManager::setVendorSwitchEventEnableState(bool enable) {
 #endif
 }
 
+void SaiVendorSwitchManager::logVendorSwitchEvent(
+    uint32_t eventId,
+    uint32_t time) {
+  // Throttle the logging as per the timeout specified
+  if (time > lastInterruptEventTime_.at(eventId) +
+          FLAGS_vendor_switch_interrupt_log_throttle_timeout_secs) {
+    lastInterruptEventTime_.at(eventId) = time;
+    if (isVendorSwitchWarningEventId(eventId)) {
+      XLOG(DBG2) << "WARNING INTERRUPT: " << getVendorSwitchEventName(eventId);
+    } else {
+      XLOG(WARNING) << "ERROR INTERRUPT: " << getVendorSwitchEventName(eventId);
+    }
+  }
+}
+
 void SaiVendorSwitchManager::vendorSwitchEventNotificationCallback(
     sai_size_t /*bufferSize*/,
     const void* buffer,
@@ -61,8 +84,7 @@ void SaiVendorSwitchManager::vendorSwitchEventNotificationCallback(
 #if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
   sai_vendor_switch_event_info_t* eventInfo =
       (sai_vendor_switch_event_info_t*)(buffer);
-  XLOG(WARNING) << "ERROR INTERRUPT: "
-                << getVendorSwitchEventName(eventInfo->event_id);
+  logVendorSwitchEvent(eventInfo->event_id, eventInfo->time);
   incrementInterruptEventCounter(eventInfo->event_id);
 #endif
 }

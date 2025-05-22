@@ -8,12 +8,15 @@
 namespace facebook::fboss {
 
 HwSwitchStateUpdate::HwSwitchStateUpdate(
-    const StateDelta& delta,
+    const std::vector<StateDelta>& deltas,
     bool transaction)
-    : oldState(delta.oldState()),
-      newState(delta.newState()),
-      inDelta(delta.getOperDelta()),
-      isTransaction(transaction) {}
+    : oldState(deltas.front().oldState()),
+      newState(deltas.back().newState()),
+      isTransaction(transaction) {
+  for (const auto& delta : deltas) {
+    operDeltas.push_back(delta.getOperDelta());
+  }
+}
 
 HwSwitchHandler::HwSwitchHandler(
     const SwitchID& switchId,
@@ -67,20 +70,30 @@ folly::Future<HwSwitchStateUpdateResult> HwSwitchHandler::stateChanged(
 HwSwitchStateUpdateResult HwSwitchHandler::stateChangedImpl(
     const HwSwitchStateUpdate& update,
     const HwWriteBehavior& hwWriteBehavior) {
-  auto inDelta = operDeltaFilter_.filterWithSwitchStateRootPath(update.inDelta);
-  if (!inDelta) {
+  std::vector<fsdb::OperDelta> inDeltas;
+  for (const auto& operDelta : update.operDeltas) {
+    auto inDelta = operDeltaFilter_.filterWithSwitchStateRootPath(operDelta);
+    if (inDelta.has_value()) {
+      inDeltas.push_back(inDelta.value());
+    }
+  }
+  if (inDeltas.size() == 0) {
     // no-op
     return {
         update.newState,
         HwSwitchStateUpdateStatus::HWSWITCH_STATE_UPDATE_SUCCEEDED};
   }
   auto stateUpdateResult = stateChangedImpl(
-      *inDelta, update.isTransaction, update.newState, hwWriteBehavior);
+      inDeltas, update.isTransaction, update.newState, hwWriteBehavior);
   auto outDelta = stateUpdateResult.first;
   if (outDelta.changes()->empty()) {
     return {update.newState, stateUpdateResult.second};
   }
-  if (*inDelta == outDelta) {
+  // outDelta would be combined delta if update fails at first delta
+  // return the old state
+  auto inDelta = operDeltaFilter_.filterWithSwitchStateRootPath(
+      StateDelta(update.oldState, update.newState).getOperDelta());
+  if (inDelta && *inDelta == outDelta) {
     return {update.oldState, stateUpdateResult.second};
   }
   // obtain the state that actually got programmed
@@ -90,11 +103,11 @@ HwSwitchStateUpdateResult HwSwitchHandler::stateChangedImpl(
 }
 
 HwSwitchStateOperUpdateResult HwSwitchHandler::stateChangedImpl(
-    const fsdb::OperDelta& delta,
+    const std::vector<fsdb::OperDelta>& deltas,
     bool transaction,
     const std::shared_ptr<SwitchState>& newState,
     const HwWriteBehavior& hwWriteBehavior) {
-  return stateChanged(delta, transaction, newState, hwWriteBehavior);
+  return stateChanged(deltas, transaction, newState, hwWriteBehavior);
 }
 
 fsdb::OperDelta HwSwitchHandler::getFullSyncOperDelta(

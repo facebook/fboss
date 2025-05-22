@@ -842,77 +842,6 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   };
 }
 
-/*
- * This is a temporary routine to fix AFE trim issue in TAJO.
- * TAJO provided a new extension attribute to set AFE mode to adaptive
- * per port.
- * 1) Apply only on 25G copper port
- * 2) Attribute to use: SAI_PORT_SERDES_ATTR_EXT_RX_AFE_ADAPTIVE_ENABLE
- * 3) Enable adaptive mode only if its not enabled in the SDK.
- */
-void SaiPortManager::enableAfeAdaptiveMode(PortID portId) {
-  SaiPortHandle* portHandle = getPortHandle(portId);
-  if (!portHandle) {
-    XLOG(DBG2) << "afe adaptive mode not enabled: failed to find port"
-               << portId;
-    return;
-  }
-  std::optional<SaiPortTraits::Attributes::MediaType> mediaTypeAttr{};
-  auto mediaType = SaiApiTable::getInstance()->portApi().getAttribute(
-      portHandle->port->adapterKey(), mediaTypeAttr);
-  // Return if media type is not copper
-  if (!(mediaType == SAI_PORT_MEDIA_TYPE_COPPER ||
-        mediaType == SAI_PORT_MEDIA_TYPE_UNKNOWN)) {
-    XLOG(DBG2)
-        << "afe adaptive mode not enabled: media type do not match for port: "
-        << portId;
-    return;
-  }
-
-  if (!portHandle->serdes) {
-    XLOG(DBG2) << "afe adaptive mode not enabled: failed to find serdes on port"
-               << portId;
-    return;
-  }
-
-  auto serdesId = portHandle->serdes->adapterKey();
-  std::optional<SaiPortSerdesTraits::Attributes::RxAfeAdaptiveEnable>
-      rxAfeAdaptiveEnableAttr{};
-  auto rxAfeAdaptiveEnabledList =
-      SaiApiTable::getInstance()->portApi().getAttribute(
-          PortSerdesSaiId(serdesId), rxAfeAdaptiveEnableAttr);
-  bool afeReset = false;
-  if (rxAfeAdaptiveEnabledList.has_value()) {
-    for (auto afeEnabledPerLane : rxAfeAdaptiveEnabledList.value()) {
-      if (afeEnabledPerLane == 0) {
-        afeReset = true;
-        break;
-      }
-    }
-  }
-  if (!afeReset) {
-    XLOG(DBG2) << "afe adaptive mode is already enabled on port: " << portId;
-    return;
-  }
-
-  SaiPortSerdesTraits::Attributes::RxAfeAdaptiveEnable::ValueType
-      rxAfeAdaptiveEnable;
-  auto hwLaneListSize =
-      GET_ATTR(Port, HwLaneList, portHandle->port->adapterHostKey()).size();
-  for (auto i = 0; i < hwLaneListSize; i++) {
-    rxAfeAdaptiveEnable.push_back(1);
-  }
-  auto& store = saiStore_->get<SaiPortSerdesTraits>();
-  SaiPortSerdesTraits::AdapterHostKey serdesKey{portHandle->port->adapterKey()};
-  auto serdesAttributes = portHandle->serdes->attributes();
-  std::get<std::optional<std::decay_t<
-      decltype(SaiPortSerdesTraits::Attributes::RxAfeAdaptiveEnable{})>>>(
-      serdesAttributes) = rxAfeAdaptiveEnable;
-  portHandle->serdes.reset();
-  portHandle->serdes = store.setObject(serdesKey, serdesAttributes);
-  XLOG(DBG2) << "Configuring afe mode to adaptive on port: " << portId;
-}
-
 void SaiPortManager::programSerdes(
     std::shared_ptr<SaiPort> saiPort,
     std::shared_ptr<Port> swPort,
@@ -1105,6 +1034,7 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
   SaiPortSerdesTraits::Attributes::TxFfeCoeff3::ValueType txFfeCoeff3;
   SaiPortSerdesTraits::Attributes::TxFfeCoeff4::ValueType txFfeCoeff4;
   SaiPortSerdesTraits::Attributes::TxDriverSwing::ValueType txDriverSwing;
+  SaiPortSerdesTraits::Attributes::TxLdoBypass::ValueType txLdoBypass;
   // RX Params
   SaiPortSerdesTraits::Attributes::RxInstgBoost1Start::ValueType
       rxInstgBoost1Start;
@@ -1139,6 +1069,14 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
       rxCdrTdet2ndOrdStepOvVal;
   SaiPortSerdesTraits::Attributes::RxCdrTdetFineStepOvVal::ValueType
       rxCdrTdetFineStepOvVal;
+  SaiPortSerdesTraits::Attributes::RxLdoBypass::ValueType rxLdoBypass;
+  SaiPortSerdesTraits::Attributes::RxDiffEncoderEn::ValueType rxDiffEncoderEn;
+  SaiPortSerdesTraits::Attributes::RxInstgEnableScan::ValueType
+      rxInstgEnableScan;
+  SaiPortSerdesTraits::Attributes::RxFfeLengthBitmap::ValueType
+      rxFfeLengthBitmap;
+  SaiPortSerdesTraits::Attributes::RxFfeLmsDynamicGatingEn::ValueType
+      rxFfeLmsDynamicGatingEn;
 
   // Now use pinConfigs from SW port as the source of truth
   auto numExpectedTxLanes = 0;
@@ -1186,6 +1124,9 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
         }
         if (auto driverSwing = tx->driverSwing()) {
           txDriverSwing.push_back(driverSwing.value());
+        }
+        if (auto ldoBypass = tx->ldoBypass()) {
+          txLdoBypass.push_back(ldoBypass.value());
         }
       } else {
         txPre1.push_back(zeroPreemphasis ? 0 : *tx->pre());
@@ -1282,6 +1223,21 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
       if (auto cdrTdetFineStepOvVal = rx->cdrTdetFineStepOvVal()) {
         rxCdrTdetFineStepOvVal.push_back(cdrTdetFineStepOvVal.value());
       }
+      if (auto ldoBypass = rx->ldoBypass()) {
+        rxLdoBypass.push_back(ldoBypass.value());
+      }
+      if (auto diffEncoderEn = rx->diffEncoderEn()) {
+        rxDiffEncoderEn.push_back(diffEncoderEn.value());
+      }
+      if (auto instgEnableScan = rx->instgEnableScan()) {
+        rxInstgEnableScan.push_back(instgEnableScan.value());
+      }
+      if (auto ffeLengthBitmap = rx->ffeLengthBitmap()) {
+        rxFfeLengthBitmap.push_back(ffeLengthBitmap.value());
+      }
+      if (auto ffeLmsDynamicGatingEn = rx->ffeLmsDynamicGatingEn()) {
+        rxFfeLmsDynamicGatingEn.push_back(ffeLmsDynamicGatingEn.value());
+      }
     }
   }
 
@@ -1309,100 +1265,118 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
         HwAsic::AsicVendor::ASIC_VENDOR_TAJO) {
       setTxRxAttr(
           attrs, SaiPortSerdesTraits::Attributes::TxLutMode{}, txLutMode);
-#if defined(TAJO_SDK_GTE_24_8_3001)
-      setTxRxAttr(
-          attrs,
-          SaiPortSerdesTraits::Attributes::TxDiffEncoderEn{},
-          txDiffEncoderEn);
-      setTxRxAttr(
-          attrs, SaiPortSerdesTraits::Attributes::TxDigGain{}, txDigGain);
-      setTxRxAttr(
-          attrs, SaiPortSerdesTraits::Attributes::TxFfeCoeff0{}, txFfeCoeff0);
-      setTxRxAttr(
-          attrs, SaiPortSerdesTraits::Attributes::TxFfeCoeff1{}, txFfeCoeff1);
-      setTxRxAttr(
-          attrs, SaiPortSerdesTraits::Attributes::TxFfeCoeff2{}, txFfeCoeff2);
-      setTxRxAttr(
-          attrs, SaiPortSerdesTraits::Attributes::TxFfeCoeff3{}, txFfeCoeff3);
-      setTxRxAttr(
-          attrs, SaiPortSerdesTraits::Attributes::TxFfeCoeff4{}, txFfeCoeff4);
-      setTxRxAttr(
-          attrs,
-          SaiPortSerdesTraits::Attributes::TxDriverSwing{},
-          txDriverSwing);
-      setTxRxAttr(
-          attrs,
-          SaiPortSerdesTraits::Attributes::RxInstgBoost1Start{},
-          rxInstgBoost1Start);
-      setTxRxAttr(
-          attrs,
-          SaiPortSerdesTraits::Attributes::RxInstgBoost1Step{},
-          rxInstgBoost1Step);
-      setTxRxAttr(
-          attrs,
-          SaiPortSerdesTraits::Attributes::RxInstgBoost1Stop{},
-          rxInstgBoost1Stop);
-      setTxRxAttr(
-          attrs,
-          SaiPortSerdesTraits::Attributes::RxInstgBoost2OrHrStart{},
-          rxInstgBoost2OrHrStart);
-      setTxRxAttr(
-          attrs,
-          SaiPortSerdesTraits::Attributes::RxInstgBoost2OrHrStep{},
-          rxInstgBoost2OrHrStep);
-      setTxRxAttr(
-          attrs,
-          SaiPortSerdesTraits::Attributes::RxInstgBoost2OrHrStop{},
-          rxInstgBoost2OrHrStop);
-      setTxRxAttr(
-          attrs,
-          SaiPortSerdesTraits::Attributes::RxInstgC1Start1p7{},
-          rxInstgC1Start1p7);
-      setTxRxAttr(
-          attrs,
-          SaiPortSerdesTraits::Attributes::RxInstgC1Step1p7{},
-          rxInstgC1Step1p7);
-      setTxRxAttr(
-          attrs,
-          SaiPortSerdesTraits::Attributes::RxInstgC1Stop1p7{},
-          rxInstgC1Stop1p7);
-      setTxRxAttr(
-          attrs,
-          SaiPortSerdesTraits::Attributes::RxInstgDfeStart1p7{},
-          rxInstgDfeStart1p7);
-      setTxRxAttr(
-          attrs,
-          SaiPortSerdesTraits::Attributes::RxInstgDfeStep1p7{},
-          rxInstgDfeStep1p7);
-      setTxRxAttr(
-          attrs,
-          SaiPortSerdesTraits::Attributes::RxInstgDfeStop1p7{},
-          rxInstgDfeStop1p7);
-      setTxRxAttr(
-          attrs,
-          SaiPortSerdesTraits::Attributes::RxEnableScanSelection{},
-          rxEnableScanSelection);
-      setTxRxAttr(
-          attrs,
-          SaiPortSerdesTraits::Attributes::RxInstgScanUseSrSettings{},
-          rxInstgScanUseSrSettings);
-      setTxRxAttr(
-          attrs, SaiPortSerdesTraits::Attributes::RxCdrCfgOvEn{}, rxCdrCfgOvEn);
-      setTxRxAttr(
-          attrs,
-          SaiPortSerdesTraits::Attributes::RxCdrTdet1stOrdStepOvVal{},
-          rxCdrTdet1stOrdStepOvVal);
-      setTxRxAttr(
-          attrs,
-          SaiPortSerdesTraits::Attributes::RxCdrTdet2ndOrdStepOvVal{},
-          rxCdrTdet2ndOrdStepOvVal);
-      setTxRxAttr(
-          attrs,
-          SaiPortSerdesTraits::Attributes::RxCdrTdetFineStepOvVal{},
-          rxCdrTdetFineStepOvVal);
-#endif
     }
   }
+
+#if defined(TAJO_SDK_GTE_24_8_3001)
+  setTxRxAttr(
+      attrs,
+      SaiPortSerdesTraits::Attributes::TxDiffEncoderEn{},
+      txDiffEncoderEn);
+  setTxRxAttr(attrs, SaiPortSerdesTraits::Attributes::TxDigGain{}, txDigGain);
+  setTxRxAttr(
+      attrs, SaiPortSerdesTraits::Attributes::TxFfeCoeff0{}, txFfeCoeff0);
+  setTxRxAttr(
+      attrs, SaiPortSerdesTraits::Attributes::TxFfeCoeff1{}, txFfeCoeff1);
+  setTxRxAttr(
+      attrs, SaiPortSerdesTraits::Attributes::TxFfeCoeff2{}, txFfeCoeff2);
+  setTxRxAttr(
+      attrs, SaiPortSerdesTraits::Attributes::TxFfeCoeff3{}, txFfeCoeff3);
+  setTxRxAttr(
+      attrs, SaiPortSerdesTraits::Attributes::TxFfeCoeff4{}, txFfeCoeff4);
+  setTxRxAttr(
+      attrs, SaiPortSerdesTraits::Attributes::TxDriverSwing{}, txDriverSwing);
+  setTxRxAttr(
+      attrs, SaiPortSerdesTraits::Attributes::TxLdoBypass{}, txLdoBypass);
+  setTxRxAttr(
+      attrs,
+      SaiPortSerdesTraits::Attributes::RxInstgBoost1Start{},
+      rxInstgBoost1Start);
+  setTxRxAttr(
+      attrs,
+      SaiPortSerdesTraits::Attributes::RxInstgBoost1Step{},
+      rxInstgBoost1Step);
+  setTxRxAttr(
+      attrs,
+      SaiPortSerdesTraits::Attributes::RxInstgBoost1Stop{},
+      rxInstgBoost1Stop);
+  setTxRxAttr(
+      attrs,
+      SaiPortSerdesTraits::Attributes::RxInstgBoost2OrHrStart{},
+      rxInstgBoost2OrHrStart);
+  setTxRxAttr(
+      attrs,
+      SaiPortSerdesTraits::Attributes::RxInstgBoost2OrHrStep{},
+      rxInstgBoost2OrHrStep);
+  setTxRxAttr(
+      attrs,
+      SaiPortSerdesTraits::Attributes::RxInstgBoost2OrHrStop{},
+      rxInstgBoost2OrHrStop);
+  setTxRxAttr(
+      attrs,
+      SaiPortSerdesTraits::Attributes::RxInstgC1Start1p7{},
+      rxInstgC1Start1p7);
+  setTxRxAttr(
+      attrs,
+      SaiPortSerdesTraits::Attributes::RxInstgC1Step1p7{},
+      rxInstgC1Step1p7);
+  setTxRxAttr(
+      attrs,
+      SaiPortSerdesTraits::Attributes::RxInstgC1Stop1p7{},
+      rxInstgC1Stop1p7);
+  setTxRxAttr(
+      attrs,
+      SaiPortSerdesTraits::Attributes::RxInstgDfeStart1p7{},
+      rxInstgDfeStart1p7);
+  setTxRxAttr(
+      attrs,
+      SaiPortSerdesTraits::Attributes::RxInstgDfeStep1p7{},
+      rxInstgDfeStep1p7);
+  setTxRxAttr(
+      attrs,
+      SaiPortSerdesTraits::Attributes::RxInstgDfeStop1p7{},
+      rxInstgDfeStop1p7);
+  setTxRxAttr(
+      attrs,
+      SaiPortSerdesTraits::Attributes::RxEnableScanSelection{},
+      rxEnableScanSelection);
+  setTxRxAttr(
+      attrs,
+      SaiPortSerdesTraits::Attributes::RxInstgScanUseSrSettings{},
+      rxInstgScanUseSrSettings);
+  setTxRxAttr(
+      attrs, SaiPortSerdesTraits::Attributes::RxCdrCfgOvEn{}, rxCdrCfgOvEn);
+  setTxRxAttr(
+      attrs,
+      SaiPortSerdesTraits::Attributes::RxCdrTdet1stOrdStepOvVal{},
+      rxCdrTdet1stOrdStepOvVal);
+  setTxRxAttr(
+      attrs,
+      SaiPortSerdesTraits::Attributes::RxCdrTdet2ndOrdStepOvVal{},
+      rxCdrTdet2ndOrdStepOvVal);
+  setTxRxAttr(
+      attrs,
+      SaiPortSerdesTraits::Attributes::RxCdrTdetFineStepOvVal{},
+      rxCdrTdetFineStepOvVal);
+  setTxRxAttr(
+      attrs, SaiPortSerdesTraits::Attributes::RxLdoBypass{}, rxLdoBypass);
+  setTxRxAttr(
+      attrs,
+      SaiPortSerdesTraits::Attributes::RxDiffEncoderEn{},
+      rxDiffEncoderEn);
+  setTxRxAttr(
+      attrs,
+      SaiPortSerdesTraits::Attributes::RxInstgEnableScan{},
+      rxInstgEnableScan);
+  setTxRxAttr(
+      attrs,
+      SaiPortSerdesTraits::Attributes::RxFfeLengthBitmap{},
+      rxFfeLengthBitmap);
+  setTxRxAttr(
+      attrs,
+      SaiPortSerdesTraits::Attributes::RxFfeLmsDynamicGatingEn{},
+      rxFfeLmsDynamicGatingEn);
+#endif
 
   if (!txPre3.empty()) {
     setTxRxAttr(attrs, SaiPortSerdesTraits::Attributes::TxFirPre3{}, txPre3);

@@ -7,12 +7,15 @@
 namespace facebook::fboss::fsdb {
 
 void FsdbOperTreeMetadataTracker::registerPublisherRoot(
-    const std::string& publisherRoot) {
+    const std::string& publisherRoot,
+    bool skipThriftStreamLivenessCheck) {
   auto& pubMetadata = publisherRoot2Metadata_[publisherRoot];
+  pubMetadata.skipThriftStreamLivenessCheck_ = skipThriftStreamLivenessCheck;
   ++pubMetadata.numOpenConnections;
   XLOG(DBG2) << " Publisher: " << publisherRoot
              << " open connections  : " << pubMetadata.numOpenConnections;
 }
+
 void FsdbOperTreeMetadataTracker::unregisterPublisherRoot(
     const std::string& publisherRoot) {
   auto itr = publisherRoot2Metadata_.find(publisherRoot);
@@ -22,8 +25,14 @@ void FsdbOperTreeMetadataTracker::unregisterPublisherRoot(
   CHECK_GT(itr->second.numOpenConnections, 0);
   --itr->second.numOpenConnections;
   if (itr->second.numOpenConnections == 0) {
-    XLOG(DBG2) << " All open connections gone, removing : " << publisherRoot;
-    publisherRoot2Metadata_.erase(itr);
+    if (itr->second.skipThriftStreamLivenessCheck_) {
+      XLOG(DBG2) << "PublisherRoot: " << publisherRoot
+                 << " disconnected, skipThriftStreamLivenessCheck";
+    } else {
+      XLOG(DBG2) << "PublisherRoot: " << publisherRoot
+                 << " disconnected, removing...";
+      publisherRoot2Metadata_.erase(itr);
+    }
   }
 }
 

@@ -544,7 +544,7 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
 
   LLDPValidations getLLDPValidations() const {
     // THRIFT_COPY
-    return cref<switch_state_tags::expectedLLDPValues>()->toThrift();
+    return safe_cref<switch_state_tags::expectedLLDPValues>()->toThrift();
   }
 
   auto getExpectedNeighborValues() const {

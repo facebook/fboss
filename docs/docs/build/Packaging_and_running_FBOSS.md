@@ -1,4 +1,16 @@
-# Packaging and running FBOSS HW tests on switch
+---
+id: packaging_and_running_fboss_hw_tests_on_switch
+title: Packaging and running FBOSS HW tests on switch
+description: How to package and run FBOSS HW tests
+keywords:
+    - FBOSS
+    - OSS
+    - build
+    - docker
+    - test
+    - HW
+oncall: fboss_oss
+---
 
 ## Requirements
  - FBOSS OSS binaries built as per the instructions in Building FBOSS OSS on Containers
@@ -7,7 +19,7 @@
 
 ## Packaging FBOSS
 
-On container used for building FBOSS -
+On container used for building FBOSS:
 
 ```
 cd /var/FBOSS/fboss.git
@@ -18,7 +30,7 @@ This creates a package directory with prefix /var/FBOSS/tmp_bld_dir/fboss_bins a
 
 This package directory could then be copied over to the test switch for exercising FBOSS and associated tests.
 
-The package directory can be compressed to create a tarball ("fboss_bins.tar.gz") using "--compress" option.
+The package directory can be compressed to create a tarball ("fboss_bins.tar.gz") using "--compress" option:
 
 ```
 cd /var/FBOSS/fboss.git
@@ -27,21 +39,21 @@ cd /var/FBOSS/fboss.git
 
 ## Copy the directory or tarball to the switch
 
-From the host VM of the container, copy over the FBOSS package directory or tarball to the switch -
+From the host VM of the container, copy over the FBOSS package directory or tarball to the switch:
 
 ```
 scp -r /opt/app/FBOSS_DIR/tmp_bld_dir/fboss_bins-<$pkg-id> root@$switchName:/opt/ # directory copy
 scp -r /opt/app/FBOSS_DIR/tmp_bld_dir/fboss_bins.tar.gz root@$switchName:/opt/ # tarball copy
 ```
 
-On the switch, if tarball is copied, extract the tarball -
+On the switch, if tarball is copied, extract the tarball:
 
 ```
 cd /opt/
 tar -xzvf fboss_bins.tar.gz
 ```
 
-On the switch, point /opt/fboss to the new package before using
+On the switch, point /opt/fboss to the new package before using:
 
 ```
 ln -s  /opt/fboss_bins-<$pkg-id> /opt/fboss
@@ -49,7 +61,7 @@ ln -s  /opt/fboss_bins-<$pkg-id> /opt/fboss
 
 ## Checking dependencies
 
-Verify that all runtime dependencies are satisified for HW test binary including the libraries installed in /opt/fboss
+Verify that all runtime dependencies are satisified for HW test binary including the libraries installed in /opt/fboss:
 
 ```
 cd /opt/fboss
@@ -61,28 +73,28 @@ If there are any missing libraries, then those need to be installed on the switc
 
 ## Running FBOSS
 
-Install SDK kmods as per the instructions from ASIC vendor
+Install SDK kmods as per the instructions from ASIC vendor.
 
-Switch to the FBOSS install directory on the switch and set up FBOSS environment
+Switch to the FBOSS install directory on the switch and set up FBOSS environment:
 
 ```
 cd /opt/fboss
 source ./bin/setup_fboss_env
 ```
 
-Run setup script to populate fruid.json and other config files (this step may not succeed on all platforms)
+Run setup script to populate fruid.json and other config files (this step may not succeed on all platforms):
 
 ```
 ./bin/setup.py
 ```
 
-Running single HW test using HW test binary -
+Running single HW test using HW test binary:
 
 ```
 ./bin/sai_test-sai_impl-1.12.0 --config ./share/hw_test_configs/meru400biu.agent.materialized_JSON --filter=HwVoqSwitchWithFabricPortsTest.init
 ```
 
-Running multiple tests using test runner -
+Running multiple tests using test runner:
 
 FBOSS tests can be launched by executing the test runner script. The script automatically selects and runs tests relevant to the optional filters. Also, the test runner can be run using various options - known good tests, known bad tests, include and exclude regexes, etc... These are documented in run_test.py. After running all the tests, results will also be generated in a csv file.
 
@@ -100,7 +112,9 @@ The `run_test.py` script is a helper utility to simplify the process of running 
 - Link tests
 - SAI Agent tests
 
-Examples of the command to run for each of the various tyeps of tests are shown below.
+Examples of the command to run for each of the various types of tests are shown below.
+
+**Important:** You must be in the `/opt/fboss` directory when running tests with `run_test.py`.
 
 ### SAI tests
 
@@ -124,13 +138,13 @@ Examples of the command to run for each of the various tyeps of tests are shown 
 # Run all QSFP HW tests
 ./run_test.py qsfp --qsfp-config $qsfpConfFile
 
-# Run EmptyHwTest.CheckInit using non-default platform mapping configs.
+# Run EmptyHwTest.CheckInit using non-default platform mapping configs
 ./run_test.py qsfp --qsfp-config ./test_qsfp_config_current --filter=EmptyHwTest.CheckInit --bsp_platform_mapping_override_path /fake/bad/path --platform_mapping_override_path /another/bad/path
 ```
 
 Special flags:
 
-1. `--filter`: FBOSS uses GTEST for it's test cases, and supports filtering tests via `--gtest_filter` ([doc](https://google.github.io/googletest/advanced.html#running-a-subset-of-the-tests)). The filter is passed through to the test binary.
+1. `--filter`: FBOSS uses GTEST for its test cases, and supports filtering tests via `--gtest_filter` ([doc](https://google.github.io/googletest/advanced.html#running-a-subset-of-the-tests)). The filter is passed through to the test binary.
 1. `--bsp_platform_mapping_override_path`: an optional flag to override the BSP platform mapping. This value is passed through to the QSFP HW test binary.
 1. `--platform_mapping_override_path`: an optioanl flag to override the ASIC platform mapping. This value is passed through to the QSFP HW test binary.
 

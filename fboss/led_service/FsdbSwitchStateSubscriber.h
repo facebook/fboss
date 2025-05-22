@@ -37,8 +37,10 @@ class FsdbSwitchStateSubscriber {
   static std::vector<std::string> getSwitchStatePath();
 
  private:
-  void subscribeToState(std::vector<std::string> path, LedManager* ledManager);
-  void removeStateSubscribe(std::vector<std::string> path);
+  void subscribeToState(
+      const std::vector<std::string>& path,
+      LedManager* ledManager);
+  void removeStateSubscribe(const std::vector<std::string>& path);
 
   fsdb::FsdbPubSubManager* fsdbPubSubMgr_;
 };

@@ -46,7 +46,7 @@ struct CopyToMember {
     using member = typename T::member;
     using name = typename T::name;
 
-    if (rhs.getType() == member::metadata::id::value) {
+    if (folly::to_underlying(rhs.getType()) == member::metadata::id::value) {
       storage.template set<name>(typename member::getter{}(rhs));
     }
   }
@@ -65,7 +65,7 @@ struct CopyFromMember {
     using member = typename T::member;
     using name = typename T::name;
 
-    if (storage.type() == member::metadata::id::value) {
+    if (folly::to_underlying(storage.type()) == member::metadata::id::value) {
       member::set(thrift, storage.template cref<name>()->toThrift());
     }
   }
@@ -82,7 +82,7 @@ struct ChildInvoke {
     using member = typename T::member;
     using name = typename T::name;
 
-    if (storage.type() != member::metadata::id::value) {
+    if (folly::to_underlying(storage.type()) != member::metadata::id::value) {
       return;
     }
 
@@ -128,7 +128,7 @@ struct ThriftUnionStorage {
   template <typename Name>
   TypeFor<Name> get() const {
     using Metadata = MetadataFor<Name>;
-    if (Metadata::id::value == type_) {
+    if (Metadata::id::value == folly::to_underlying(type_)) {
       return storage_.template get<Name>();
     }
 
@@ -138,7 +138,7 @@ struct ThriftUnionStorage {
   template <typename Name>
   TypeFor<Name>& ref() {
     using Metadata = MetadataFor<Name>;
-    if (Metadata::id::value == type_) {
+    if (Metadata::id::value == folly::to_underlying(type_)) {
       return storage_.template get<Name>();
     }
 
@@ -148,7 +148,7 @@ struct ThriftUnionStorage {
   template <typename Name>
   const TypeFor<Name>& ref() const {
     using Metadata = MetadataFor<Name>;
-    if (Metadata::id::value == type_) {
+    if (Metadata::id::value == folly::to_underlying(type_)) {
       return storage_.template get<Name>();
     }
 
@@ -158,7 +158,7 @@ struct ThriftUnionStorage {
   template <typename Name>
   const TypeFor<Name>& cref() const {
     using Metadata = MetadataFor<Name>;
-    if (Metadata::id::value == type_) {
+    if (Metadata::id::value == folly::to_underlying(type_)) {
       return storage_.template get<Name>();
     }
 
@@ -327,7 +327,7 @@ struct ThriftUnionFields : public FieldBaseType {
   template <typename Name>
   bool isSet() const {
     using Metadata = MetadataFor<Name>;
-    return Metadata::id::value == type();
+    return Metadata::id::value == folly::to_underlying(type());
   }
 
   template <typename Name>

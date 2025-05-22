@@ -90,12 +90,14 @@ class MockHwSwitch : public HwSwitch {
   MOCK_METHOD1(
       clearPortStats,
       void(const std::unique_ptr<std::vector<int32_t>>&));
+  MOCK_METHOD1(syncPortLinkState, void(PortID portId));
   MOCK_CONST_METHOD0(getBootType, BootType());
   MOCK_CONST_METHOD0(getTeFlowStats, TeFlowStats());
   MOCK_CONST_METHOD0(getHwFlowletStats, HwFlowletStats());
   MOCK_CONST_METHOD0(getAllEcmpDetails, std::vector<EcmpDetails>());
   MOCK_CONST_METHOD0(getAclStats, AclStats());
   MOCK_CONST_METHOD0(getSwitchWatermarkStats, HwSwitchWatermarkStats());
+  MOCK_CONST_METHOD0(getSwitchPipelineStats, HwSwitchPipelineStats());
 
   MockPlatform* getPlatform() const override {
     return platform_;

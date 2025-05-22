@@ -16,7 +16,8 @@ TEST(FsdbHelperTests, VerifyOperDelta) {
   auto cfg = testConfigA();
   auto handle = createTestHandle(&cfg);
 
-  utility::HgridUuRouteScaleGenerator generator(handle->getSw()->getState());
+  utility::HgridUuRouteScaleGenerator generator(
+      handle->getSw()->getState(), handle->getSw()->needL2EntryForNeighbor());
   handle->getSw()->updateStateBlocking(
       "update 1", [=](const std::shared_ptr<SwitchState>& state) {
         return generator.resolveNextHops(state);

@@ -22,8 +22,20 @@ const std::string& SaiElbert8DDPhyPlatform::getFirmwareDirectory() {
 }
 
 namespace {
+
+std::unordered_map<std::string, std::string> kSaiProfileValues;
+auto constexpr sdkWarmBootStateFile = "sdk_warm_boot_state";
+
+#ifdef CREDO_SDK_0_9_0
+static auto constexpr kSaiBootType = "SAI_BOOT_TYPE";
+static auto constexpr kSaiConfigFile = "SAI_INIT_CONFIG_FILE";
+#else
 static auto constexpr kSaiBootType = "SAI_KEY_BOOT_TYPE";
 static auto constexpr kSaiConfigFile = "SAI_KEY_INIT_CONFIG_FILE";
+#endif
+
+static auto constexpr kSaiWarmBootReadFile = "SAI_WARM_BOOT_READ_FILE";
+static auto constexpr kSaiWarmBootWriteFile = "SAI_WARM_BOOT_WRITE_FILE";
 
 const std::array<std::string, 8> kPhyConfigProfiles = {
     SaiElbert8DDPhyPlatform::getFirmwareDirectory() + "Elbert_16Q_0.xml",
@@ -46,12 +58,14 @@ const std::array<std::string, 8> kPhyConfigProfiles = {
  */
 const char* FOLLY_NULLABLE
 saiProfileGetValue(sai_switch_profile_id_t profileId, const char* variable) {
-  if (strcmp(variable, kSaiBootType) == 0) {
-    // TODO(rajank) Support warmboot
-    return "cold";
-  } else if (strcmp(variable, kSaiConfigFile) == 0) {
+  if (strcmp(variable, kSaiConfigFile) == 0) {
     if (profileId >= 0 && profileId <= 7) {
       return kPhyConfigProfiles[profileId].c_str();
+    }
+  } else {
+    auto saiProfileValItr = kSaiProfileValues.find(variable);
+    if (saiProfileValItr != kSaiProfileValues.end()) {
+      return saiProfileValItr->second.c_str();
     }
   }
   return nullptr;
@@ -152,13 +166,28 @@ const std::set<sai_api_t>& SaiElbert8DDPhyPlatform::getSupportedApiList()
   return kSupportedMacsecPhyApiList;
 }
 
-void SaiElbert8DDPhyPlatform::preHwInitialized() {
+void SaiElbert8DDPhyPlatform::initSaiProfileValues(bool warmboot) {
+  auto sdkWarmBootStatePath =
+      FLAGS_volatile_state_dir_phy + "/" + sdkWarmBootStateFile;
+
+  kSaiProfileValues.insert(
+      std::make_pair(kSaiWarmBootReadFile, sdkWarmBootStatePath));
+
+  kSaiProfileValues.insert(
+      std::make_pair(kSaiWarmBootWriteFile, sdkWarmBootStatePath));
+
+  kSaiProfileValues.insert(std::make_pair(kSaiBootType, warmboot ? "1" : "0"));
+}
+
+void SaiElbert8DDPhyPlatform::preHwInitialized(bool warmboot) {
   // Call SaiSwitch::initSaiApis before creating SaiSwitch.
   // Only call this function once to make sure we only initialize sai apis
   // once even we'll create multiple SaiSwitch based on how many Elbert8DD Phys
   // in the system.
   SaiApiTable::getInstance()->queryApis(
       getServiceMethodTable(), getSupportedApiList());
+
+  initSaiProfileValues(warmboot);
 }
 
 void SaiElbert8DDPhyPlatform::initImpl(uint32_t hwFeaturesDesired) {

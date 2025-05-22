@@ -12,7 +12,6 @@
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/SwitchState.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/QosTestUtils.h"
 #include "fboss/qsfp_service/lib/QsfpClient.h"
 
@@ -23,6 +22,7 @@ char** argVec{nullptr};
 
 DECLARE_string(config);
 DECLARE_bool(disable_looped_fabric_ports);
+DECLARE_bool(intf_nbr_tables);
 
 namespace facebook::fboss {
 
@@ -165,12 +165,26 @@ void AgentEnsembleTest::resolveNeighbor(
     const AddrT& ip,
     VlanID vlanId,
     folly::MacAddress mac) {
+  using NeighborTableT = typename std::conditional_t<
+      std::is_same<AddrT, folly::IPAddressV4>::value,
+      ArpTable,
+      NdpTable>;
+
   auto resolveNeighborFn = [=,
                             this](const std::shared_ptr<SwitchState>& state) {
     auto outputState{state->clone()};
     auto vlan = outputState->getVlans()->getNode(vlanId);
-    auto nbrTable = vlan->template getNeighborEntryTable<AddrT>()->modify(
-        vlanId, &outputState);
+    auto intfId = vlan->getInterfaceID();
+    NeighborTableT* nbrTable;
+    if (FLAGS_intf_nbr_tables) {
+      auto intf = outputState->getInterfaces()->getNode(intfId);
+      nbrTable = intf->template getNeighborEntryTable<AddrT>()->modify(
+          intfId, &outputState);
+    } else {
+      nbrTable = vlan->template getNeighborEntryTable<AddrT>()->modify(
+          vlanId, &outputState);
+    }
+
     if (nbrTable->getEntryIf(ip)) {
       nbrTable->updateEntry(
           ip, mac, port, vlan->getInterfaceID(), NeighborState::REACHABLE);

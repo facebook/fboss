@@ -99,7 +99,10 @@ std::optional<uint16_t> getUplinksCount(
         cfg::PortSpeed::HUNDREDG,
         cfg::PortSpeed::HUNDREDG},
        4},
-  };
+      {{PlatformType::PLATFORM_MINIPACK3N,
+        cfg::PortSpeed::FOURHUNDREDG,
+        cfg::PortSpeed::FOURHUNDREDG},
+       64}};
 
   auto iter = numUplinksMap.find(
       std::make_tuple(platformType, uplinkSpeed, downlinkSpeed));
@@ -131,9 +134,11 @@ utility::RouteDistributionGenerator::ThriftRouteChunks getRoutes(
       swSwitch->getHwAsicTable()->getHwAsic(*switchIds.cbegin())->getAsicType();
 
   if (asicType == cfg::AsicType::ASIC_TYPE_TRIDENT2) {
-    return utility::RSWRouteScaleGenerator(swSwitch->getState())
+    return utility::RSWRouteScaleGenerator(
+               swSwitch->getState(), swSwitch->needL2EntryForNeighbor())
         .getThriftRoutes();
   } else if (
+      asicType == cfg::AsicType::ASIC_TYPE_CHENAB ||
       asicType == cfg::AsicType::ASIC_TYPE_TOMAHAWK3 ||
       asicType == cfg::AsicType::ASIC_TYPE_TOMAHAWK4 ||
       asicType == cfg::AsicType::ASIC_TYPE_EBRO ||
@@ -142,10 +147,12 @@ utility::RouteDistributionGenerator::ThriftRouteChunks getRoutes(
       asicType == cfg::AsicType::ASIC_TYPE_JERICHO3 ||
       asicType == cfg::AsicType::ASIC_TYPE_RAMON ||
       asicType == cfg::AsicType::ASIC_TYPE_TOMAHAWK5) {
-    return utility::HgridUuRouteScaleGenerator(swSwitch->getState())
+    return utility::HgridUuRouteScaleGenerator(
+               swSwitch->getState(), swSwitch->needL2EntryForNeighbor())
         .getThriftRoutes();
   } else if (asicType == cfg::AsicType::ASIC_TYPE_TOMAHAWK) {
-    return utility::FSWRouteScaleGenerator(swSwitch->getState())
+    return utility::FSWRouteScaleGenerator(
+               swSwitch->getState(), swSwitch->needL2EntryForNeighbor())
         .getThriftRoutes();
   } else {
     CHECK(false) << "Invalid asic type for route scale";
@@ -287,7 +294,8 @@ void initAndExitBenchmarkHelper(
               });
 
           utility::EcmpSetupTargetedPorts6 ecmpHelper(
-              ensemble->getProgrammedState());
+              ensemble->getProgrammedState(),
+              ensemble->getSw()->needL2EntryForNeighbor());
           auto portDescriptor =
               utility::resolveRemoteNhops(ensemble.get(), ecmpHelper);
 

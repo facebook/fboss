@@ -13,7 +13,9 @@
 
 namespace facebook::fboss {
 
-FakeBcmTestPort::FakeBcmTestPort(PortID id, FakeBcmTestPlatform* platform)
+FakeBcmTestPort::FakeBcmTestPort(
+    const PortID& id,
+    FakeBcmTestPlatform* platform)
     : BcmTestPort(id, platform) {}
 
 } // namespace facebook::fboss

@@ -23,8 +23,6 @@ class FbossEepromParser {
       unsigned char* output,
       int offset,
       int max);
-  std::unordered_map<int, std::string> parseEepromBlobLinear(
-      const unsigned char* buffer);
   std::unordered_map<int, std::string> parseEepromBlobTLV(
       int eepromVer,
       const unsigned char* buffer,
@@ -42,9 +40,7 @@ class FbossEepromParser {
   std::string parseLeHex(int len, unsigned char* ptr);
   std::string parseBeHex(int len, unsigned char* ptr);
   std::string parseString(int len, unsigned char* ptr);
-  std::string parseV4Mac(int len, unsigned char* ptr);
-  std::string parseV5Mac(int len, unsigned char* ptr);
-  std::string parseLegacyMac(int len, unsigned char* ptr);
+  std::string parseMac(int len, unsigned char* ptr);
   std::string parseDate(int len, unsigned char* ptr);
   uint16_t calculateCrc16(const uint8_t* buffer, size_t len);
 

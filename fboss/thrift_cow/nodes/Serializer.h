@@ -271,6 +271,7 @@ template <typename TClass, typename TType>
 class SerializableWrapper : public Serializable {
  public:
   using TC = TClass;
+  using ThriftType = TType;
   using CowType = ThriftObject;
   explicit SerializableWrapper(TType& node) : node_(node) {}
 
@@ -293,7 +294,13 @@ class SerializableWrapper : public Serializable {
 
   void fromEncodedBuf(fsdb::OperProtocol proto, folly::IOBuf&& encoded)
       override {
-    node_ = deserializeBuf<TC, TType>(proto, std::move(encoded));
+    if constexpr (std::is_const<TType>::value) {
+      throw std::runtime_error(folly::to<std::string>(
+          "deserialize assigns to const type: ",
+          folly::demangle(typeid(TType)).toStdString()));
+    } else {
+      node_ = deserializeBuf<TC, TType>(proto, std::move(encoded));
+    }
   }
 
 #ifdef ENABLE_DYNAMIC_APIS
@@ -311,6 +318,10 @@ class SerializableWrapper : public Serializable {
 
   TType& toThrift() {
     return node_;
+  }
+
+  void fromThrift(const TType& val) {
+    node_ = val;
   }
 
  private:

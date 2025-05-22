@@ -260,6 +260,17 @@ void TransceiverManager::readWarmBootStateFile() {
 void TransceiverManager::init() {
   // Check whether we can warm boot
   canWarmBoot_ = checkWarmBootFlags();
+
+  if (!canWarmBoot_) {
+    // For cold boot, remove the xphy warm boot state directory if it exists
+    std::string xphyDir = xphyWarmBootStateDirectory();
+    if (checkFileExists(xphyDir)) {
+      XLOG(INFO) << "Cold boot: removing xphy warm boot state directory: "
+                 << xphyDir;
+      removeDir(xphyDir);
+    }
+  }
+
   XLOG(INFO) << "Will attempt " << (canWarmBoot_ ? "WARM" : "COLD") << " boot";
 
   restart_time::init(FLAGS_qsfp_service_volatile_dir, canWarmBoot_);
@@ -426,12 +437,13 @@ void TransceiverManager::gracefulExit() {
 
   // Set all warm boot related files before gracefully shut down
   setWarmBootState();
-  setCanWarmBoot();
 
   // Do a graceful shutdown of the phy.
   if (phyManager_) {
     phyManager_->gracefulExit();
   }
+
+  setCanWarmBoot();
 
   steady_clock::time_point setWBFilesDone = steady_clock::now();
   XLOG(INFO) << "[Exit] Done creating Warm Boot related files. Stop time: "
@@ -782,6 +794,35 @@ void TransceiverManager::doTransceiverFirmwareUpgrade(TransceiverID tcvrID) {
   // programmed again, Optic itself gets programmed again. Therefore, we'll set
   // the fwUpgradeInProgress status to false after we are truly done getting the
   // optic ready after fw upgrade
+}
+
+void TransceiverManager::getPortMediaInterface(
+    std::map<std::string, MediaInterfaceCode>& portMediaInterface) {
+  std::map<int32_t, TransceiverInfo> infoMap;
+  getTransceiversInfo(
+      infoMap, std::make_unique<std::vector<int32_t>>(std::vector<int32_t>()));
+
+  for (const auto& tcvrInfo : infoMap) {
+    auto& tcvrState = *tcvrInfo.second.tcvrState();
+    auto tcvrSettings = tcvrState.settings();
+    if (!tcvrSettings) {
+      continue;
+    }
+    auto mediaInterface = tcvrSettings->mediaInterface();
+    if (!mediaInterface) {
+      continue;
+    }
+    for (const auto& [portName, mediaLanes] :
+         *tcvrState.portNameToMediaLanes()) {
+      if (!mediaLanes.empty()) {
+        auto firstLane = *mediaLanes.begin();
+        if (firstLane < mediaInterface->size()) {
+          portMediaInterface[portName] =
+              mediaInterface->at(firstLane).code().value();
+        }
+      }
+    }
+  }
 }
 
 TransceiverManager::TransceiverToStateMachineHelper
@@ -2040,7 +2081,13 @@ void TransceiverManager::refreshStateMachines() {
     isFullyInitialized_ = true;
     // On successful initialization, set warm boot flag in case of a
     // qsfp_service crash (no gracefulExit).
-    setCanWarmBoot();
+
+    /* We don't want to set warm boot flag here for platforms with external PHYs
+     * The reason is SAI based external PHYs platforms needs to gracefully
+     * shutdown to store the warmboot state */
+    if (!phyManager_) {
+      setCanWarmBoot();
+    }
 
     restart_time::mark(RestartEvent::CONFIGURED);
   }
@@ -2525,6 +2572,11 @@ std::string TransceiverManager::warmBootFlagFileName() {
 std::string TransceiverManager::warmBootStateFileName() const {
   return folly::to<std::string>(
       FLAGS_qsfp_service_volatile_dir, "/", kWarmbootStateFileName);
+}
+
+std::string TransceiverManager::xphyWarmBootStateDirectory() const {
+  return folly::to<std::string>(
+      FLAGS_qsfp_service_volatile_dir, "/", kPhyStateKey);
 }
 
 void TransceiverManager::setWarmBootState() {

@@ -122,9 +122,22 @@ class AgentVoqSwitchIsolationFirmwareTest : public AgentVoqSwitchTest {
   void forceIsolate(int delay = 1) {
     std::stringstream ss;
     ss << "edk -c fi force_isolate 0 5 1 " << delay << std::endl;
+    XLOG(INFO) << "Running force_isolate command: ";
     for (const auto& switchId : getSw()->getHwAsicTable()->getSwitchIDs()) {
       std::string out;
       getAgentEnsemble()->runDiagCommand(ss.str(), out, switchId);
+      XLOG(INFO) << "force_isolate output: " << out;
+      getAgentEnsemble()->runDiagCommand("quit\n", out, switchId);
+    }
+  }
+  void getIsolate() {
+    std::stringstream ss;
+    ss << "edk -c fi dump 0 5" << std::endl;
+    XLOG(INFO) << "Running get_isolate command: ";
+    for (const auto& switchId : getSw()->getHwAsicTable()->getSwitchIDs()) {
+      std::string out;
+      getAgentEnsemble()->runDiagCommand(ss.str(), out, switchId);
+      XLOG(INFO) << "get_isolate output: " << out;
       getAgentEnsemble()->runDiagCommand("quit\n", out, switchId);
     }
   }
@@ -343,9 +356,22 @@ TEST_F(
     assertPortAndDrainState(false /* not drained*/);
     setMinLinksConfig();
     forceIsolate(kEventDelay);
+    /*
+    Issue: The force_isolate command sometimes doesn't get flushed through the
+    diagnostic shell before binaries exit, despite the SDK call being made.
+
+    Mitigation: We add a second command (get_isolate) after force_isolate. Even
+    if get_isolate doesn't get flushed either, it's not critical since the test
+    doesn't depend on its execution - it only ensures force_isolate gets
+    processed.
+
+    TODO: Think of a long term solution to this.
+    */
+    getIsolate();
   };
 
   auto verifyPostWarmboot = [this]() {
+    getIsolate();
     assertSwitchDrainState(true /* drained */);
     utility::checkFabricPortsActiveState(
         getAgentEnsemble(),

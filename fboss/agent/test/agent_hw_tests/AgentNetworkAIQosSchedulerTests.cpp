@@ -8,6 +8,7 @@
  *
  */
 
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/test/agent_hw_tests/AgentQosSchedulerTestBase.h"
 #include "fboss/agent/test/utils/NetworkAITestUtils.h"
 
@@ -20,7 +21,7 @@ class AgentNetworkAIQosSchedulerTest : public AgentQosSchedulerTestBase {
         ensemble.getSw(),
         ensemble.masterLogicalPortIds(),
         true /*interfaceHasSubnet*/);
-    auto hwAsic = utility::checkSameAndGetAsic(ensemble.getL3Asics());
+    auto hwAsic = checkSameAndGetAsic(ensemble.getL3Asics());
     auto streamType =
         *hwAsic->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin();
     utility::addNetworkAIQueueConfig(
@@ -48,7 +49,8 @@ class AgentNetworkAIQosSchedulerTest : public AgentQosSchedulerTestBase {
 };
 
 void AgentNetworkAIQosSchedulerTest::verifySP(bool frontPanelTraffic) {
-  utility::EcmpSetupAnyNPorts6 ecmpHelper6(getProgrammedState(), dstMac());
+  utility::EcmpSetupAnyNPorts6 ecmpHelper6(
+      getProgrammedState(), getSw()->needL2EntryForNeighbor(), dstMac());
 
   auto setup = [=, this]() { _setup(ecmpHelper6); };
 
@@ -69,8 +71,7 @@ void AgentNetworkAIQosSchedulerTest::verifySP(bool frontPanelTraffic) {
 void AgentNetworkAIQosSchedulerTest::verifyWRR() {
   auto setup = [=, this]() {
     auto newCfg{initialConfig(*getAgentEnsemble())};
-    auto hwAsic =
-        utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+    auto hwAsic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
     auto streamType =
         *hwAsic->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin();
     utility::addNetworkAIQueueConfig(
@@ -97,8 +98,7 @@ void AgentNetworkAIQosSchedulerTest::verifyWRRAndSP(
     int trafficQueueId) {
   auto setup = [=, this]() {
     auto newCfg{initialConfig(*getAgentEnsemble())};
-    auto hwAsic =
-        utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+    auto hwAsic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
     auto streamType =
         *hwAsic->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin();
     utility::addNetworkAIQueueConfig(

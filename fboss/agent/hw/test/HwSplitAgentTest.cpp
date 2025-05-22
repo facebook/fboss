@@ -98,7 +98,11 @@ TEST_F(HwSplitAgentCallbackTest, txPacket) {
   }
 
   resolveNeigborAndProgramRoutes(
-      utility::EcmpSetupAnyNPorts4(getProgrammedState(), RouterID(0)), 1);
+      utility::EcmpSetupAnyNPorts4(
+          getProgrammedState(),
+          getHwSwitch()->needL2EntryForNeighbor(),
+          RouterID(0)),
+      1);
 
   auto intfMac =
       utility::getMacForFirstInterfaceWithPorts(getProgrammedState());

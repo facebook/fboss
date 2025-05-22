@@ -104,6 +104,8 @@ void SaiPortManager::changePortByRecreate(
   } else {
     removePort(oldPort);
     addPort(newPort);
+    // Link scan for new port
+    platform_->getHwSwitch()->syncPortLinkState(newPort->getID());
   }
 }
 

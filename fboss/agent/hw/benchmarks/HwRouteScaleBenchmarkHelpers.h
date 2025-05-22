@@ -51,7 +51,8 @@ void routeAddDelBenchmarker(bool measureAdd) {
       createAgentEnsemble(initialConfigFn, false /*disableLinkStateToggler*/);
   auto* sw = ensemble->getSw();
 
-  auto routeGenerator = RouteScaleGeneratorT(sw->getState());
+  auto routeGenerator =
+      RouteScaleGeneratorT(sw->getState(), sw->needL2EntryForNeighbor());
   auto swSwitch = ensemble->agentInitializer()->sw();
   auto platformType = swSwitch->getPlatformType();
   if (!routeGenerator.isSupported(platformType)) {
@@ -68,6 +69,7 @@ void routeAddDelBenchmarker(bool measureAdd) {
   // flap and following route updates
   auto allThriftRoutesNarrowerEcmp = RouteScaleGeneratorT(
                                          sw->getState(),
+                                         sw->needL2EntryForNeighbor(),
                                          allThriftRoutes.size(),
                                          routeGenerator.ecmpWidth() - 1)
                                          .allThriftRoutes();
@@ -225,7 +227,9 @@ voqRouteBenchmark(bool add, uint32_t ecmpGroup, uint32_t ecmpWidth) {
             folly::sformat("Update state for node: {}", 0), updateDsfStateFn);
       });
 
-  utility::EcmpSetupTargetedPorts6 ecmpHelper(ensemble->getProgrammedState());
+  utility::EcmpSetupTargetedPorts6 ecmpHelper(
+      ensemble->getProgrammedState(),
+      ensemble->getSw()->needL2EntryForNeighbor());
   auto portDescriptor = utility::resolveRemoteNhops(ensemble.get(), ecmpHelper);
 
   std::vector<RoutePrefixV6> prefixes;

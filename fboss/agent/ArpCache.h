@@ -52,6 +52,8 @@ class ArpCache : public NeighborCache<ArpTable> {
   void probeFor(folly::IPAddressV4 ip) const override;
 
   std::list<ArpEntryThrift> getArpCacheData();
+
+  std::optional<ArpEntryThrift> getArpCacheData(folly::IPAddressV4 ip) const;
 };
 
 } // namespace facebook::fboss

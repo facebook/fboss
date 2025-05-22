@@ -8,13 +8,13 @@
  *
  */
 
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 #include "fboss/agent/test/utils/UdfTestUtils.h"
@@ -65,7 +65,7 @@ class AgentAclCounterTest : public AgentHwTest {
       return;
     }
     helper_ = std::make_unique<utility::EcmpSetupAnyNPorts6>(
-        getProgrammedState(), RouterID(0));
+        getProgrammedState(), getSw()->needL2EntryForNeighbor(), RouterID(0));
   }
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
@@ -453,7 +453,7 @@ class AgentAclCounterTest : public AgentHwTest {
     aclEntry.actionType() = aclActionType_;
     auto* acl = &aclEntry;
     auto l3Asics = getAgentEnsemble()->getL3Asics();
-    auto asic = utility::checkSameAndGetAsic(l3Asics);
+    auto asic = checkSameAndGetAsic(l3Asics);
     bool isSai = getAgentEnsemble()->isSai();
     switch (aclType) {
       case AclType::TCP_TTLD:
@@ -729,7 +729,7 @@ TEST_F(AgentUdfAclCounterTest, VerifyUdfPlusUdfHash) {
 
   auto setupPostWarmboot = [this]() {
     auto newCfg{initialConfig(*getAgentEnsemble())};
-    auto asicType = utility::checkSameAndGetAsicType(newCfg);
+    auto asicType = checkSameAndGetAsicType(newCfg);
 
     newCfg.udfConfig() = utility::addUdfHashAclConfig(asicType);
     addAclAndStat(&newCfg, AclType::UDF_OPCODE_ACK);
@@ -749,7 +749,7 @@ TEST_F(AgentUdfAclCounterTest, VerifyUdfMinusUdfHash) {
     auto wrapper = getSw()->getRouteUpdater();
     helper_->programRoutes(&wrapper, kEcmpWidth);
     auto newCfg{initialConfig(*getAgentEnsemble())};
-    auto asicType = utility::checkSameAndGetAsicType(newCfg);
+    auto asicType = checkSameAndGetAsicType(newCfg);
     newCfg.udfConfig() = utility::addUdfHashAclConfig(asicType);
     addAclAndStat(&newCfg, AclType::UDF_OPCODE_ACK);
     addAclAndStat(&newCfg, AclType::UDF_OPCODE_WRITE_IMMEDIATE);

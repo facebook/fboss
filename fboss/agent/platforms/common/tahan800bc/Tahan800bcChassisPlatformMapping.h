@@ -17324,7 +17324,7 @@ constexpr auto kJsonChassisPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "38": {
+          "45": {
               "pins": {
                 "iphy": [
                   {
@@ -17416,7 +17416,7 @@ constexpr auto kJsonChassisPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -17701,7 +17701,7 @@ constexpr auto kJsonChassisPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "38": {
+          "45": {
               "pins": {
                 "iphy": [
                   {
@@ -17793,7 +17793,7 @@ constexpr auto kJsonChassisPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -18078,7 +18078,7 @@ constexpr auto kJsonChassisPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "38": {
+          "45": {
               "pins": {
                 "iphy": [
                   {
@@ -18170,7 +18170,7 @@ constexpr auto kJsonChassisPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -18455,7 +18455,7 @@ constexpr auto kJsonChassisPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "38": {
+          "45": {
               "pins": {
                 "iphy": [
                   {
@@ -18547,7 +18547,7 @@ constexpr auto kJsonChassisPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -18832,7 +18832,7 @@ constexpr auto kJsonChassisPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "38": {
+          "45": {
               "pins": {
                 "iphy": [
                   {
@@ -18924,7 +18924,7 @@ constexpr auto kJsonChassisPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -19209,7 +19209,7 @@ constexpr auto kJsonChassisPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "38": {
+          "45": {
               "pins": {
                 "iphy": [
                   {
@@ -19301,7 +19301,7 @@ constexpr auto kJsonChassisPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -19586,7 +19586,7 @@ constexpr auto kJsonChassisPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "38": {
+          "45": {
               "pins": {
                 "iphy": [
                   {
@@ -19678,7 +19678,7 @@ constexpr auto kJsonChassisPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -19963,7 +19963,7 @@ constexpr auto kJsonChassisPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "38": {
+          "45": {
               "pins": {
                 "iphy": [
                   {
@@ -20055,7 +20055,7 @@ constexpr auto kJsonChassisPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -20340,7 +20340,7 @@ constexpr auto kJsonChassisPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "38": {
+          "45": {
               "pins": {
                 "iphy": [
                   {
@@ -20432,7 +20432,7 @@ constexpr auto kJsonChassisPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -20717,7 +20717,7 @@ constexpr auto kJsonChassisPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "38": {
+          "45": {
               "pins": {
                 "iphy": [
                   {
@@ -20809,7 +20809,7 @@ constexpr auto kJsonChassisPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -21094,7 +21094,7 @@ constexpr auto kJsonChassisPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "38": {
+          "45": {
               "pins": {
                 "iphy": [
                   {
@@ -21186,7 +21186,7 @@ constexpr auto kJsonChassisPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -21471,7 +21471,7 @@ constexpr auto kJsonChassisPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "38": {
+          "45": {
               "pins": {
                 "iphy": [
                   {
@@ -21563,7 +21563,7 @@ constexpr auto kJsonChassisPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -21848,7 +21848,7 @@ constexpr auto kJsonChassisPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "38": {
+          "45": {
               "pins": {
                 "iphy": [
                   {
@@ -21940,7 +21940,7 @@ constexpr auto kJsonChassisPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -22225,7 +22225,7 @@ constexpr auto kJsonChassisPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "38": {
+          "45": {
               "pins": {
                 "iphy": [
                   {
@@ -22317,7 +22317,7 @@ constexpr auto kJsonChassisPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -22602,7 +22602,7 @@ constexpr auto kJsonChassisPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "38": {
+          "45": {
               "pins": {
                 "iphy": [
                   {
@@ -22694,7 +22694,7 @@ constexpr auto kJsonChassisPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -22979,7 +22979,7 @@ constexpr auto kJsonChassisPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "38": {
+          "45": {
               "pins": {
                 "iphy": [
                   {
@@ -23071,7 +23071,7 @@ constexpr auto kJsonChassisPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -23356,7 +23356,7 @@ constexpr auto kJsonChassisPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "38": {
+          "45": {
               "pins": {
                 "iphy": [
                   {
@@ -23448,7 +23448,7 @@ constexpr auto kJsonChassisPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -23733,7 +23733,7 @@ constexpr auto kJsonChassisPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "38": {
+          "45": {
               "pins": {
                 "iphy": [
                   {
@@ -23825,7 +23825,7 @@ constexpr auto kJsonChassisPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -24110,7 +24110,7 @@ constexpr auto kJsonChassisPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "38": {
+          "45": {
               "pins": {
                 "iphy": [
                   {
@@ -24202,7 +24202,7 @@ constexpr auto kJsonChassisPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -24487,7 +24487,7 @@ constexpr auto kJsonChassisPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "38": {
+          "45": {
               "pins": {
                 "iphy": [
                   {
@@ -24579,7 +24579,7 @@ constexpr auto kJsonChassisPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -24864,7 +24864,7 @@ constexpr auto kJsonChassisPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "38": {
+          "45": {
               "pins": {
                 "iphy": [
                   {
@@ -24956,7 +24956,7 @@ constexpr auto kJsonChassisPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -25241,7 +25241,7 @@ constexpr auto kJsonChassisPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "38": {
+          "45": {
               "pins": {
                 "iphy": [
                   {
@@ -25333,7 +25333,7 @@ constexpr auto kJsonChassisPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -25618,7 +25618,7 @@ constexpr auto kJsonChassisPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "38": {
+          "45": {
               "pins": {
                 "iphy": [
                   {
@@ -25710,7 +25710,7 @@ constexpr auto kJsonChassisPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -25995,7 +25995,7 @@ constexpr auto kJsonChassisPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "38": {
+          "45": {
               "pins": {
                 "iphy": [
                   {
@@ -26087,7 +26087,7 @@ constexpr auto kJsonChassisPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -26372,7 +26372,7 @@ constexpr auto kJsonChassisPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "38": {
+          "45": {
               "pins": {
                 "iphy": [
                   {
@@ -26464,7 +26464,7 @@ constexpr auto kJsonChassisPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -26749,7 +26749,7 @@ constexpr auto kJsonChassisPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "38": {
+          "45": {
               "pins": {
                 "iphy": [
                   {
@@ -26841,7 +26841,7 @@ constexpr auto kJsonChassisPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -27126,7 +27126,7 @@ constexpr auto kJsonChassisPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "38": {
+          "45": {
               "pins": {
                 "iphy": [
                   {
@@ -27218,7 +27218,7 @@ constexpr auto kJsonChassisPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -27503,7 +27503,7 @@ constexpr auto kJsonChassisPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "38": {
+          "45": {
               "pins": {
                 "iphy": [
                   {
@@ -27595,7 +27595,7 @@ constexpr auto kJsonChassisPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -27880,7 +27880,7 @@ constexpr auto kJsonChassisPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "38": {
+          "45": {
               "pins": {
                 "iphy": [
                   {
@@ -27972,7 +27972,7 @@ constexpr auto kJsonChassisPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -28257,7 +28257,7 @@ constexpr auto kJsonChassisPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "38": {
+          "45": {
               "pins": {
                 "iphy": [
                   {
@@ -28349,7 +28349,7 @@ constexpr auto kJsonChassisPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -28634,7 +28634,7 @@ constexpr auto kJsonChassisPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "38": {
+          "45": {
               "pins": {
                 "iphy": [
                   {
@@ -28726,7 +28726,7 @@ constexpr auto kJsonChassisPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -29011,7 +29011,7 @@ constexpr auto kJsonChassisPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "38": {
+          "45": {
               "pins": {
                 "iphy": [
                   {
@@ -29103,7 +29103,7 @@ constexpr auto kJsonChassisPlatformMappingStr = R"(
                 ]
               }
           },
-          "39": {
+          "50": {
               "pins": {
                 "iphy": [
                   {
@@ -29937,21 +29937,6 @@ constexpr auto kJsonChassisPlatformMappingStr = R"(
   "platformSupportedProfiles": [
     {
       "factor": {
-        "profileID": 23
-      },
-      "profile": {
-        "speed": 100000,
-        "iphy": {
-          "numLanes": 4,
-          "modulation": 1,
-          "fec": 528,
-          "medium": 2,
-          "interfaceType": 21
-        }
-      }
-    },
-    {
-      "factor": {
         "profileID": 38
       },
       "profile": {
@@ -29977,6 +29962,51 @@ constexpr auto kJsonChassisPlatformMappingStr = R"(
           "fec": 11,
           "medium": 2,
           "interfaceType": 4
+        }
+      }
+    },
+    {
+      "factor": {
+        "profileID": 45
+      },
+      "profile": {
+        "speed": 400000,
+        "iphy": {
+          "numLanes": 4,
+          "modulation": 2,
+          "fec": 11,
+          "medium": 1,
+          "interfaceType": 12
+        }
+      }
+    },
+    {
+      "factor": {
+        "profileID": 50
+      },
+      "profile": {
+        "speed": 800000,
+        "iphy": {
+          "numLanes": 8,
+          "modulation": 2,
+          "fec": 11,
+          "medium": 1,
+          "interfaceType": 13
+        }
+      }
+    },
+    {
+      "factor": {
+        "profileID": 23
+      },
+      "profile": {
+        "speed": 100000,
+        "iphy": {
+          "numLanes": 4,
+          "modulation": 1,
+          "fec": 528,
+          "medium": 2,
+          "interfaceType": 21
         }
       }
     }

@@ -309,4 +309,4 @@ class PlatformMappingV2:
                             if port_id not in other_port_config.subsumedPorts:
                                 other_port_config.subsumedPorts.append(port_id)
                             port_entry.mapping.controllingPort = other_port_id
-        return ports
+        return dict(sorted(ports.items()))

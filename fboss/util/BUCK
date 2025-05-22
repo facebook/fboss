@@ -1,6 +1,7 @@
 load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 load("@fbcode_macros//build_defs:python_binary.bzl", "python_binary")
+load("@fbcode_macros//build_defs:python_library.bzl", "python_library")
 
 oncall("dc_push")
 
@@ -271,5 +272,27 @@ python_binary(
     deps = [
         "//fboss/agent:switch_state-py3-types",
         "//thrift/lib/py3:types",
+    ],
+)
+
+python_library(
+    name = "process_known_bad_test_lib",
+    srcs = [
+        "facebook/process_known_bad_test.py",
+    ],
+    deps = [
+        "//libfb/py/asyncio:mysql",
+        "//libfb/py/asyncio:tasks",
+        "//libfb/py/pyre:pyre",
+        "//scm/scmquery/client:scmqueryclient",
+    ],
+)
+
+python_binary(
+    name = "process_known_bad_test",
+    main_function = "fboss.util.facebook.process_known_bad_test.main",
+    par_style = "xar",
+    deps = [
+        ":process_known_bad_test_lib",
     ],
 )

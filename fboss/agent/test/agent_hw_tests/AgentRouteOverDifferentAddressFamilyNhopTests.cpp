@@ -94,7 +94,7 @@ class AgentRouteOverDifferentAddressFamilyNhopTest : public AgentHwTest {
     }
     auto setup = [this, useLinkLocalNhop] {
       utility::EcmpSetupTargetedPorts<NhopAddrT> ecmpHelper(
-          getProgrammedState());
+          getProgrammedState(), getSw()->needL2EntryForNeighbor());
       auto addRoute = [this, &ecmpHelper, useLinkLocalNhop](
                           auto nw, const auto& nhopPorts) {
         RouteNextHopEntry::NextHopSet nhops;

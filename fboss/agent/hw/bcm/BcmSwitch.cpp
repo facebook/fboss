@@ -965,6 +965,8 @@ HwInitResult BcmSwitch::initImpl(
   setupToCpuEgress();
   portTable_->initPorts(&pcfg, warmBoot);
 
+  egressManager_->init();
+
   // initialize UDF module
   udfManager_->init();
   bstStatsMgr_->startBufferStatCollection();
@@ -3169,6 +3171,13 @@ std::vector<EcmpDetails> BcmSwitch::getAllEcmpDetails() const {
   return multiPathNextHopStatsManager_->getAllEcmpDetails();
 }
 
+cfg::SwitchingMode BcmSwitch::getFwdSwitchingMode(
+    const RouteNextHopEntry& fwd) {
+  std::lock_guard<std::mutex> lock(lock_);
+  return multiPathNextHopTable_->getFwdSwitchingMode(
+      getBcmVrfId(RouterID(0)), fwd.normalizedNextHops());
+}
+
 shared_ptr<BcmSwitchEventCallback> BcmSwitch::registerSwitchEventCallback(
     bcm_switch_event_t eventID,
     shared_ptr<BcmSwitchEventCallback> callback) {
@@ -3228,6 +3237,10 @@ HwSwitchWatermarkStats BcmSwitch::getSwitchWatermarkStats() const {
       bstStatsMgr_->getGlobalSharedWatermarkBytes().begin(),
       bstStatsMgr_->getGlobalSharedWatermarkBytes().end());
   return stats;
+}
+
+HwSwitchPipelineStats BcmSwitch::getSwitchPipelineStats() const {
+  return HwSwitchPipelineStats{};
 }
 
 bcm_if_t BcmSwitch::getDropEgressId() const {
@@ -4252,6 +4265,8 @@ void BcmSwitch::syncLinkStates() {
     }
   });
 }
+
+void BcmSwitch::syncPortLinkState(PortID /*port*/) {}
 
 CpuPortStats BcmSwitch::getCpuPortStats() const {
   CpuPortStats cpuPortStats;

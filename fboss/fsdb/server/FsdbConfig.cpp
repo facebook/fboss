@@ -90,4 +90,14 @@ FsdbConfig::getSubscriberConfig(const SubscriberId& id) const {
   return std::nullopt;
 }
 
+std::optional<std::reference_wrapper<const PublisherConfig>>
+FsdbConfig::getPublisherConfig(const PublisherId& id) const {
+  const auto& publishers = thrift_.publishers();
+  auto it = publishers->find(id);
+  if (it != publishers->end()) {
+    return std::reference_wrapper<const PublisherConfig>(it->second);
+  }
+  return std::nullopt;
+}
+
 } // namespace facebook::fboss::fsdb

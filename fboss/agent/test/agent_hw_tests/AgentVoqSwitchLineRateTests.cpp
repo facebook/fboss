@@ -57,7 +57,7 @@ class AgentVoqSwitchLineRateTest : public AgentVoqSwitchTest {
 
   void setupEcmpDataplaneLoopOnAllPorts() {
     utility::EcmpSetupTargetedPorts6 ecmpHelper(
-        getProgrammedState(), getIntfMac());
+        getProgrammedState(), getSw()->needL2EntryForNeighbor(), getIntfMac());
     std::vector<PortDescriptor> portDescriptors;
     std::vector<flat_set<PortDescriptor>> portDescSets;
     for (auto& portId : masterLogicalInterfacePortIds()) {
@@ -190,8 +190,9 @@ TEST_F(AgentVoqSwitchLineRateTest, dramBlockedTime) {
 }
 
 TEST_F(AgentVoqSwitchLineRateTest, creditsDeleted) {
-  auto setup = [=, this]() { setupEcmpDataplaneLoopOnAllPorts(); };
+  auto setup = [=]() {};
   auto verify = [=, this]() {
+    setupEcmpDataplaneLoopOnAllPorts();
     const auto kPort = masterLogicalInterfacePortIds()[0];
     auto switchId = scopeResolver().scope(kPort).switchId();
     auto switchIndex =
@@ -207,7 +208,6 @@ TEST_F(AgentVoqSwitchLineRateTest, creditsDeleted) {
     });
     // Stop traffic loop, so that it gets restarted after warmboot
     addRemoveNeighbor(PortDescriptor(kPort), NeighborOp::DEL);
-    addRemoveNeighbor(PortDescriptor(kPort), NeighborOp::ADD);
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }

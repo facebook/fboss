@@ -101,7 +101,7 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(Switch, Led)
   SAI_EXT_ATTR_MAP(Switch, LedReset)
   SAI_EXT_ATTR_MAP(Switch, AclFieldList)
-  SAI_EXT_ATTR_MAP(Switch, EgressPoolAvaialableSize)
+  SAI_EXT_ATTR_MAP(Switch, EgressPoolAvailableSize)
   SAI_EXT_ATTR_MAP(Switch, HwEccErrorInitiate)
   SAI_EXT_ATTR_MAP(Switch, WarmBootTargetVersion)
   SAI_EXT_ATTR_MAP(Switch, SwitchIsolate)
@@ -150,6 +150,9 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(Switch, FirmwareObjectList);
   SAI_EXT_ATTR_MAP(Switch, TcRateLimitList);
   SAI_EXT_ATTR_MAP(Switch, PfcTcDldTimerGranularityInterval);
+  SAI_EXT_ATTR_MAP(Switch, NumberOfPipes);
+  SAI_EXT_ATTR_MAP(Switch, PipelineObjectList);
+  SAI_EXT_ATTR_MAP(Switch, DisableSllAndHllTimeout);
 }
 
 } // namespace

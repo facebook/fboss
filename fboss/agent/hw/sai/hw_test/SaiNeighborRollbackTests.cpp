@@ -20,9 +20,13 @@ TEST_F(SaiRollbackTest, rollbackNeighborResolution) {
   auto verify = [this] {
     auto origState = getProgrammedState();
     utility::EcmpSetupAnyNPorts4 v4EcmpHelper(
-        getProgrammedState(), RouterID(0));
+        getProgrammedState(),
+        getHwSwitch()->needL2EntryForNeighbor(),
+        RouterID(0));
     utility::EcmpSetupAnyNPorts6 v6EcmpHelper(
-        getProgrammedState(), RouterID(0));
+        getProgrammedState(),
+        getHwSwitch()->needL2EntryForNeighbor(),
+        RouterID(0));
     v4EcmpHelper.resolveNextHops(getProgrammedState(), 1);
     v6EcmpHelper.resolveNextHops(getProgrammedState(), 1);
     auto resolvedNeighborsState = getProgrammedState();

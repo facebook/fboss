@@ -25,7 +25,7 @@
 
 namespace facebook::fboss {
 
-RouteNextHopSet makeNextHops(std::vector<std::string> ipsAsStrings) {
+RouteNextHopSet makeNextHops(const std::vector<std::string>& ipsAsStrings) {
   RouteNextHopSet nhops;
   for (const std::string& ipAsString : ipsAsStrings) {
     nhops.emplace(UnresolvedNextHop(folly::IPAddress(ipAsString), ECMP_WEIGHT));

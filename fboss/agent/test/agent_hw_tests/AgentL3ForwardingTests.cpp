@@ -135,8 +135,10 @@ TEST_F(AgentL3ForwardingTest, linkLocalNeighborAndNextHop) {
 }
 
 TEST_F(AgentL3ForwardingTest, ttl255) {
-  utility::EcmpSetupAnyNPorts6 ecmpHelper6(getSw()->getState());
-  utility::EcmpSetupAnyNPorts4 ecmpHelper4(getSw()->getState());
+  utility::EcmpSetupAnyNPorts6 ecmpHelper6(
+      getSw()->getState(), getSw()->needL2EntryForNeighbor());
+  utility::EcmpSetupAnyNPorts4 ecmpHelper4(
+      getSw()->getState(), getSw()->needL2EntryForNeighbor());
   auto setup = [=, this]() {
     auto programDefaultRoutes = [this](auto& ecmpHelper) {
       auto wrapper = getSw()->getRouteUpdater();

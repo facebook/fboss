@@ -465,6 +465,17 @@ TYPED_TEST(FsdbPubSubTest, slowSubscriber) {
       FsdbStreamClient::ReconnectingThriftClient::State::DISCONNECTED);
   ASSERT_EQ(
       info.disconnectReason, FsdbErrorCode::SUBSCRIPTION_SERVE_QUEUE_FULL);
+
+  // Also validate fb303 counter for slow subscriber disconnects
+  WITH_RETRIES_N(90, {
+    fb303::ThreadCachedServiceData::get()->publishStats();
+    auto counterName = folly::sformat(
+        "{}.subscriber.{}.disconnects.slow_subscriber.count",
+        this->pubSubStats() ? "stats" : "fsdb",
+        "unspecified");
+    EXPECT_EVENTUALLY_GT(fb303::ServiceData::get()->getCounter(counterName), 0);
+  });
+
   resumeReconnect.post();
 }
 
@@ -568,8 +579,8 @@ TYPED_TEST(FsdbPubSubTest, dupPublisher) {
   auto req = this->makePubRequest("test", {"agent"});
   auto res = this->setupPublisher(req);
   // we've had errors sneak through this in the past because the publisher
-  // key depended on the current timestamp. Introducing a sleep To make sure we
-  // validate publisher unique-ness even if timing is a factor
+  // key depended on the current timestamp. Introducing a sleep To make sure
+  // we validate publisher unique-ness even if timing is a factor
   // @lint-ignore CLANGTIDY
   std::this_thread::sleep_for(std::chrono::seconds(3));
   EXPECT_THROW(this->setupPublisher(req), FsdbException);

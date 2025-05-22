@@ -271,6 +271,7 @@ class AgentWatermarkTest : public AgentHwTest {
       bool needTrafficLoop = false) {
     utility::EcmpSetupTargetedPorts6 ecmpHelper6{
         getProgrammedState(),
+        getSw()->needL2EntryForNeighbor(),
         (needTrafficLoop ? std::make_optional<folly::MacAddress>(
                                utility::getMacForFirstInterfaceWithPorts(
                                    getProgrammedState()))
@@ -308,7 +309,8 @@ class AgentWatermarkTest : public AgentHwTest {
     if (needTrafficLoop) {
       macAddr = intfMac;
     }
-    utility::EcmpSetupTargetedPorts6 ecmpHelper6{getProgrammedState(), macAddr};
+    utility::EcmpSetupTargetedPorts6 ecmpHelper6{
+        getProgrammedState(), getSw()->needL2EntryForNeighbor(), macAddr};
     for (const auto& portAndIp : getPort2DstIp()) {
       auto portDesc = PortDescriptor(portAndIp.first);
       resolveNdpNeighbors(portDesc, needTrafficLoop);

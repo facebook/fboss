@@ -9,11 +9,6 @@
  */
 #include "fboss/agent/state/Transceiver.h"
 
-#include "fboss/agent/FbossError.h"
-#include "fboss/agent/state/NodeBase-defs.h"
-
-#include <thrift/lib/cpp/util/EnumUtils.h>
-
 namespace facebook::fboss {
 
 TransceiverSpec::TransceiverSpec(TransceiverID id) {

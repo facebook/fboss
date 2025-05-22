@@ -514,7 +514,11 @@ TYPED_TEST(ThriftStructNodeTestSuite, ThriftStructNodeModifyPathTest) {
   });
   // non-existent node
   auto visitResult = RootPathVisitor::visit(
-      *node, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
+      *node,
+      path.begin(),
+      path.end(),
+      PathVisitOptions::visitLeaf(),
+      processPath);
   EXPECT_EQ(visitResult, ThriftTraverseResult::NON_EXISTENT_NODE);
 
   // create node
@@ -526,7 +530,11 @@ TYPED_TEST(ThriftStructNodeTestSuite, ThriftStructNodeModifyPathTest) {
 
   // node exists now
   visitResult = RootPathVisitor::visit(
-      *node, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
+      *node,
+      path.begin(),
+      path.end(),
+      PathVisitOptions::visitLeaf(),
+      processPath);
   EXPECT_EQ(visitResult, ThriftTraverseResult::OK);
 
   // remove node
@@ -539,7 +547,11 @@ TYPED_TEST(ThriftStructNodeTestSuite, ThriftStructNodeModifyPathTest) {
   EXPECT_EQ(result, ThriftTraverseResult::OK);
 
   visitResult = RootPathVisitor::visit(
-      *node, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
+      *node,
+      path.begin(),
+      path.end(),
+      PathVisitOptions::visitLeaf(),
+      processPath);
   EXPECT_EQ(visitResult, ThriftTraverseResult::NON_EXISTENT_NODE);
 }
 
@@ -574,7 +586,11 @@ TYPED_TEST(
 
   // non-existent node
   auto visitResult = RootPathVisitor::visit(
-      *node, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
+      *node,
+      path.begin(),
+      path.end(),
+      PathVisitOptions::visitLeaf(),
+      processPath);
   EXPECT_EQ(visitResult, ThriftTraverseResult::NON_EXISTENT_NODE);
 
   // create node
@@ -586,7 +602,11 @@ TYPED_TEST(
 
   // node exists now
   visitResult = RootPathVisitor::visit(
-      *node, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
+      *node,
+      path.begin(),
+      path.end(),
+      PathVisitOptions::visitLeaf(),
+      processPath);
   EXPECT_EQ(visitResult, ThriftTraverseResult::OK);
 
   // remove node
@@ -596,7 +616,11 @@ TYPED_TEST(
       enableHybridStorage>::removePath(&node, path.begin(), path.end());
   EXPECT_EQ(result, ThriftTraverseResult::OK);
   visitResult = RootPathVisitor::visit(
-      *node, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
+      *node,
+      path.begin(),
+      path.end(),
+      PathVisitOptions::visitLeaf(),
+      processPath);
   EXPECT_EQ(visitResult, ThriftTraverseResult::NON_EXISTENT_NODE);
 }
 
@@ -633,7 +657,11 @@ TYPED_TEST(
 
   // non-existent node
   auto visitResult = RootPathVisitor::visit(
-      *node, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
+      *node,
+      path.begin(),
+      path.end(),
+      PathVisitOptions::visitLeaf(),
+      processPath);
   EXPECT_EQ(visitResult, ThriftTraverseResult::INVALID_ARRAY_INDEX);
 
   // create node
@@ -645,7 +673,11 @@ TYPED_TEST(
 
   // node exists now
   visitResult = RootPathVisitor::visit(
-      *node, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
+      *node,
+      path.begin(),
+      path.end(),
+      PathVisitOptions::visitLeaf(),
+      processPath);
   EXPECT_EQ(visitResult, ThriftTraverseResult::OK);
 
   // remove node
@@ -655,7 +687,11 @@ TYPED_TEST(
       enableHybridStorage>::removePath(&node, path.begin(), path.end());
   EXPECT_EQ(result, ThriftTraverseResult::OK);
   visitResult = RootPathVisitor::visit(
-      *node, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
+      *node,
+      path.begin(),
+      path.end(),
+      PathVisitOptions::visitLeaf(),
+      processPath);
   EXPECT_EQ(visitResult, ThriftTraverseResult::INVALID_ARRAY_INDEX);
 }
 
@@ -692,7 +728,11 @@ TYPED_TEST(
 
   // non-existent node
   auto visitResult = RootPathVisitor::visit(
-      *node, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
+      *node,
+      path.begin(),
+      path.end(),
+      PathVisitOptions::visitLeaf(),
+      processPath);
   EXPECT_EQ(visitResult, ThriftTraverseResult::NON_EXISTENT_NODE);
 
   // create node
@@ -704,7 +744,11 @@ TYPED_TEST(
 
   // node exists now
   visitResult = RootPathVisitor::visit(
-      *node, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
+      *node,
+      path.begin(),
+      path.end(),
+      PathVisitOptions::visitLeaf(),
+      processPath);
   EXPECT_EQ(visitResult, ThriftTraverseResult::OK);
 
   // remove node
@@ -714,7 +758,11 @@ TYPED_TEST(
       enableHybridStorage>::removePath(&node, path.begin(), path.end());
   EXPECT_EQ(result, ThriftTraverseResult::OK);
   visitResult = RootPathVisitor::visit(
-      *node, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
+      *node,
+      path.begin(),
+      path.end(),
+      PathVisitOptions::visitLeaf(),
+      processPath);
   EXPECT_EQ(visitResult, ThriftTraverseResult::NON_EXISTENT_NODE);
 }
 
@@ -748,7 +796,11 @@ TYPED_TEST(ThriftStructNodeTestSuite, ThriftStructNodeRemoveOptionalFieldTest) {
 
   // non-existent node
   auto visitResult = RootPathVisitor::visit(
-      *node, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
+      *node,
+      path.begin(),
+      path.end(),
+      PathVisitOptions::visitLeaf(),
+      processPath);
   EXPECT_EQ(visitResult, ThriftTraverseResult::NON_EXISTENT_NODE);
 
   // create node
@@ -760,7 +812,11 @@ TYPED_TEST(ThriftStructNodeTestSuite, ThriftStructNodeRemoveOptionalFieldTest) {
 
   // node exists now
   visitResult = RootPathVisitor::visit(
-      *node, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
+      *node,
+      path.begin(),
+      path.end(),
+      PathVisitOptions::visitLeaf(),
+      processPath);
   EXPECT_EQ(visitResult, ThriftTraverseResult::OK);
 
   // remove node
@@ -770,7 +826,11 @@ TYPED_TEST(ThriftStructNodeTestSuite, ThriftStructNodeRemoveOptionalFieldTest) {
       enableHybridStorage>::removePath(&node, path.begin(), path.end());
   EXPECT_EQ(result, ThriftTraverseResult::OK);
   visitResult = RootPathVisitor::visit(
-      *node, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
+      *node,
+      path.begin(),
+      path.end(),
+      PathVisitOptions::visitLeaf(),
+      processPath);
   EXPECT_EQ(visitResult, ThriftTraverseResult::NON_EXISTENT_NODE);
 }
 
@@ -807,7 +867,11 @@ TYPED_TEST(
 
   // node exists now
   auto visitResult = RootPathVisitor::visit(
-      *node, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
+      *node,
+      path.begin(),
+      path.end(),
+      PathVisitOptions::visitLeaf(),
+      processPath);
   EXPECT_EQ(visitResult, ThriftTraverseResult::OK);
 
   // remove node
@@ -817,7 +881,11 @@ TYPED_TEST(
       enableHybridStorage>::removePath(&node, path.begin(), path.end());
   EXPECT_EQ(result, ThriftTraverseResult::OK);
   visitResult = RootPathVisitor::visit(
-      *node, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
+      *node,
+      path.begin(),
+      path.end(),
+      PathVisitOptions::visitLeaf(),
+      processPath);
   EXPECT_EQ(visitResult, ThriftTraverseResult::NON_EXISTENT_NODE);
 }
 
@@ -854,7 +922,11 @@ TYPED_TEST(
 
   // existing node
   auto visitResult = RootPathVisitor::visit(
-      *node, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
+      *node,
+      path.begin(),
+      path.end(),
+      PathVisitOptions::visitLeaf(),
+      processPath);
   EXPECT_EQ(visitResult, ThriftTraverseResult::OK);
 
   // remove node
@@ -864,7 +936,11 @@ TYPED_TEST(
       enableHybridStorage>::removePath(&node, path.begin(), path.end());
   EXPECT_EQ(result, ThriftTraverseResult::OK);
   visitResult = RootPathVisitor::visit(
-      *node, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
+      *node,
+      path.begin(),
+      path.end(),
+      PathVisitOptions::visitLeaf(),
+      processPath);
   EXPECT_EQ(visitResult, ThriftTraverseResult::INVALID_ARRAY_INDEX);
 }
 
@@ -901,7 +977,11 @@ TYPED_TEST(
 
   // existing node
   auto visitResult = RootPathVisitor::visit(
-      *node, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
+      *node,
+      path.begin(),
+      path.end(),
+      PathVisitOptions::visitLeaf(),
+      processPath);
   EXPECT_EQ(visitResult, ThriftTraverseResult::OK);
 
   // remove node
@@ -911,7 +991,11 @@ TYPED_TEST(
       enableHybridStorage>::removePath(&node, path.begin(), path.end());
   EXPECT_EQ(result, ThriftTraverseResult::OK);
   visitResult = RootPathVisitor::visit(
-      *node, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
+      *node,
+      path.begin(),
+      path.end(),
+      PathVisitOptions::visitLeaf(),
+      processPath);
   EXPECT_EQ(visitResult, ThriftTraverseResult::NON_EXISTENT_NODE);
 }
 

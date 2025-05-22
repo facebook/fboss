@@ -461,6 +461,10 @@ struct RouteNextHopEntry {
   3: optional string counterID;
   4: optional switch_config.AclLookupClass classID;
   5: list<common.NextHopThrift> nexthops;
+  // If override switching mode, HW must use this instead
+  // of default ecmp switching mode, when programming this
+  // nhop group
+  6: optional switch_config.SwitchingMode overrideEcmpSwitchingMode;
 }
 
 struct RouteNextHopsMulti {
@@ -490,8 +494,8 @@ struct LabelForwardingEntryFields {
 
 struct FibContainerFields {
   1: i16 vrf;
-  2: map<string, RouteFields> fibV4;
-  3: map<string, RouteFields> fibV6;
+  2: map<string, RouteFields> fibV4 (allow_skip_thrift_cow = true);
+  3: map<string, RouteFields> fibV6 (allow_skip_thrift_cow = true);
 }
 
 struct TrafficClassToQosAttributeEntry {

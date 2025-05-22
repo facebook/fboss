@@ -17,7 +17,7 @@ class BcmTestDarwinPlatform;
 
 class BcmTestDarwinPort : public BcmTestPort {
  public:
-  BcmTestDarwinPort(PortID id, BcmTestDarwinPlatform* platform);
+  BcmTestDarwinPort(const PortID& id, BcmTestDarwinPlatform* platform);
 
   LaneSpeeds supportedLaneSpeeds() const override {
     return LaneSpeeds();

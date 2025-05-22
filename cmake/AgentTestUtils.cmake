@@ -245,6 +245,7 @@ add_library(trap_packet_utils
 target_link_libraries(trap_packet_utils
   fboss_types
   Folly::folly
+  acl_test_utils
   platform_config_cpp2
   switch_config_cpp2
   switch_state_cpp2
@@ -297,6 +298,7 @@ target_link_libraries(packet_snooper
   fboss_types
   packet
   packet_factory
+  pkt_test_utils
   Folly::folly
 )
 
@@ -523,4 +525,13 @@ target_link_libraries(agent_fsdb_integ_bench_helper
   fsdb_model
   fsdb_flags
   Folly::folly
+)
+
+add_library(neighbor_test_utils
+  fboss/agent/test/utils/NeighborTestUtils.cpp
+)
+
+target_link_libraries(neighbor_test_utils
+  core
+  state
 )

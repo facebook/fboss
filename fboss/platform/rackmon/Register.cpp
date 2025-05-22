@@ -150,7 +150,7 @@ void RegisterValue::makeFlags(
 RegisterValue::RegisterValue(
     const std::vector<uint16_t>& reg,
     const RegisterDescriptor& desc,
-    uint32_t tstamp)
+    time_t tstamp)
     : type(desc.format), timestamp(tstamp) {
   switch (desc.format) {
     case RegisterValueType::STRING:
@@ -378,7 +378,7 @@ NLOHMANN_JSON_SERIALIZE_ENUM(
     {
         {RegisterEndian::BIG, "B"},
         {RegisterEndian::LITTLE, "L"},
-    })
+    });
 
 NLOHMANN_JSON_SERIALIZE_ENUM(
     RegisterValueType,
@@ -389,11 +389,11 @@ NLOHMANN_JSON_SERIALIZE_ENUM(
         {RegisterValueType::FLOAT, "FLOAT"},
         {RegisterValueType::FLAGS, "FLAGS"},
         {RegisterValueType::LONG, "LONG"},
-    })
+    });
 
 NLOHMANN_JSON_SERIALIZE_ENUM(
     Parity,
-    {{Parity::EVEN, "EVEN"}, {Parity::ODD, "ODD"}, {Parity::NONE, "NONE"}})
+    {{Parity::EVEN, "EVEN"}, {Parity::ODD, "ODD"}, {Parity::NONE, "NONE"}});
 
 void from_json(const json& j, RegisterDescriptor& i) {
   j.at("begin").get_to(i.begin);

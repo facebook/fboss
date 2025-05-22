@@ -9,6 +9,7 @@ bcm_agent_benchmark(
         "//fboss/agent/hw/benchmarks:hw_ecmp_shrink_speed",
         "//fboss/agent/hw/bcm/tests:bcm_ecmp_utils",
         "//fboss/agent/hw/bcm/tests:bcm_port_utils",
+        "//fboss/agent/hw/bcm/tests:bcm_acl_utils",
     ],
 )
 
@@ -29,6 +30,7 @@ bcm_agent_benchmark(
     extra_deps = [
         "//fboss/agent/hw/benchmarks:hw_fsw_scale_route_add_speed",
         "//fboss/agent/test:route_scale_gen",
+        "//fboss/agent/hw/bcm/tests:bcm_acl_utils",
     ],
 )
 
@@ -38,6 +40,7 @@ bcm_agent_benchmark(
     extra_deps = [
         "//fboss/agent/hw/benchmarks:hw_fsw_scale_route_del_speed",
         "//fboss/agent/test:route_scale_gen",
+        "//fboss/agent/hw/bcm/tests:bcm_acl_utils",
     ],
 )
 
@@ -48,6 +51,7 @@ bcm_agent_benchmark(
     extra_deps = [
         "//fboss/agent/hw/benchmarks:hw_th_alpm_scale_route_add_speed",
         "//fboss/agent/test:route_scale_gen",
+        "//fboss/agent/hw/bcm/tests:bcm_acl_utils",
     ],
 )
 
@@ -67,6 +71,7 @@ bcm_agent_benchmark(
     extra_deps = [
         "//fboss/agent/hw/benchmarks:hw_hgrid_du_scale_route_add_speed",
         "//fboss/agent/test:route_scale_gen",
+        "//fboss/agent/hw/bcm/tests:bcm_acl_utils",
     ],
 )
 
@@ -95,6 +100,7 @@ bcm_agent_benchmark(
     extra_deps = [
         "//fboss/agent/hw/benchmarks:hw_hgrid_uu_scale_route_del_speed",
         "//fboss/agent/test:route_scale_gen",
+        "//fboss/agent/hw/bcm/tests:bcm_acl_utils",
     ],
 )
 
@@ -105,6 +111,7 @@ bcm_agent_benchmark(
     extra_deps = [
         "//fboss/agent/hw/benchmarks:hw_anticipated_scale_route_add_speed",
         "//fboss/agent/test:route_scale_gen",
+        "//fboss/agent/hw/bcm/tests:bcm_acl_utils",
     ],
 )
 
@@ -114,6 +121,7 @@ bcm_agent_benchmark(
     extra_deps = [
         "//fboss/agent/hw/benchmarks:hw_anticipated_scale_route_del_speed",
         "//fboss/agent/test:route_scale_gen",
+        "//fboss/agent/hw/bcm/tests:bcm_acl_utils",
     ],
 )
 
@@ -148,6 +156,7 @@ bcm_agent_benchmark(
     srcs = [],
     extra_deps = [
         "//fboss/agent/hw/benchmarks:hw_rib_sync_fib_speed",
+        "//fboss/agent/hw/bcm/tests:bcm_acl_utils",
     ],
 )
 
@@ -189,6 +198,7 @@ bcm_agent_benchmark(
     extra_deps = [
         "//fboss/agent/hw/bcm/tests:bcm_switch_ensemble",
         "//fboss/agent/hw/benchmarks:hw_tx_slow_path_rate",
+        "//fboss/agent/hw/bcm/tests:bcm_acl_utils",
     ],
 )
 

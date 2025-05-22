@@ -96,6 +96,11 @@ HwSwitchWatermarkStats MonolithicHwSwitchHandler::getSwitchWatermarkStats()
   return hw_->getSwitchWatermarkStats();
 }
 
+HwSwitchPipelineStats MonolithicHwSwitchHandler::getSwitchPipelineStats()
+    const {
+  return hw_->getSwitchPipelineStats();
+}
+
 void MonolithicHwSwitchHandler::updateAllPhyInfo() {
   hw_->updateAllPhyInfo();
 }
@@ -149,6 +154,11 @@ std::vector<EcmpDetails> MonolithicHwSwitchHandler::getAllEcmpDetails() const {
   return hw_->getAllEcmpDetails();
 }
 
+cfg::SwitchingMode MonolithicHwSwitchHandler::getFwdSwitchingMode(
+    const RouteNextHopEntry& fwd) {
+  return hw_->getFwdSwitchingMode(fwd);
+}
+
 CpuPortStats MonolithicHwSwitchHandler::getCpuPortStats() const {
   return hw_->getCpuPortStats();
 }
@@ -190,10 +200,13 @@ bool MonolithicHwSwitchHandler::needL2EntryForNeighbor(
 
 std::pair<fsdb::OperDelta, HwSwitchStateUpdateStatus>
 MonolithicHwSwitchHandler::stateChanged(
-    const fsdb::OperDelta& delta,
+    const std::vector<fsdb::OperDelta>& deltas,
     bool transaction,
     const std::shared_ptr<SwitchState>& /*newState*/,
     const HwWriteBehavior& hwWriteBehavior) {
+  // TODO (ravi) until HwSwitch support vector delta processing
+  CHECK_LE(deltas.size(), 1);
+  auto& delta = deltas.back();
   auto operResult = transaction
       ? hw_->stateChangedTransaction(
             delta, HwWriteBehaviorRAII(hwWriteBehavior))
@@ -235,6 +248,7 @@ void MonolithicHwSwitchHandler::getHwStats(
   hwStats.switchDropStats() = getSwitchDropStats();
   hwStats.fabricReachabilityStats() = getFabricReachabilityStats();
   hwStats.switchWatermarkStats() = getSwitchWatermarkStats();
+  hwStats.switchPipelineStats() = getSwitchPipelineStats();
   if (auto hwSwitchStats = getSwitchStats()) {
     hwStats.hwAsicErrors() = hwSwitchStats->getHwAsicErrors();
   }

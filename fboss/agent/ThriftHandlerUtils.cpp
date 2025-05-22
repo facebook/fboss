@@ -21,7 +21,7 @@ std::string getCurrentStateJSONForPathHelper(
       *std::const_pointer_cast<const SwitchState>(sw),
       thriftPath.begin(),
       thriftPath.end(),
-      thrift_cow::PathVisitMode::LEAF,
+      thrift_cow::PathVisitOptions::visitLeaf(),
       op);
   switch (traverseResult) {
     case thrift_cow::ThriftTraverseResult::OK:

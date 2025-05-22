@@ -10,8 +10,8 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
 // With JSDoc @type annotations, IDEs can provide config autocompletion
 /** @type {import('@docusaurus/types').DocusaurusConfig} */
 (module.exports = {
-  title: 'fboss', // TODO
-  tagline: 'fboss is cool', // TODO
+  title: 'FBOSS Documentation', // TODO
+  tagline: 'https://github.com/facebook/fboss', // TODO
   url: 'https://internalfb.com',
   baseUrl: '/fboss/',
   onBrokenLinks: 'throw',
@@ -61,15 +61,14 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
           src: 'img/logo.svg',
         },
         items: [
+          {label: 'Build', position: 'left', docId: 'build/building_fboss_on_docker_containers', type: 'doc'},
+          {label: 'Develop', position: 'left', docId: 'developing/platform_mapping', type: 'doc'},
+          {label: 'Test', position: 'left', docId: 'testing/sensor_service_hw_test', type: 'doc'},
+          // TODO: change docId when populated
+          // {label: 'Contribute', position: 'left', docId: 'build/building_fboss_on_docker_containers', type: 'doc'},
+          {label: 'Architecture', position: 'left', docId: 'architecture/meta_switch_architecture', type: 'doc'},
           {
-            type: 'doc',
-            docId: 'intro',
-            position: 'left',
-            label: 'Tutorial',
-          },
-          {to: '/blog', label: 'Blog', position: 'left'},
-          {
-            href: 'https://github.com/facebook/docusaurus',
+            href: 'https://github.com/facebook/fboss',
             label: 'GitHub',
             position: 'right',
           },
@@ -77,6 +76,7 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
       },
       footer: {
         style: 'dark',
+        /*
         links: [
           {
             title: 'Docs',
@@ -119,6 +119,8 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
           },
         ],
         copyright: `Copyright © ${new Date().getFullYear()} My Project, Inc. Built with Docusaurus.`,
+        */
+        copyright: `Copyright © 2004-Present Facebook. All Rights Reserved.`,
       },
       prism: {
         theme: lightCodeTheme,

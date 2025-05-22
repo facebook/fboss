@@ -2892,6 +2892,10 @@ MediaInterfaceCode CmisModule::getModuleMediaInterface() const {
         smfCode == SMFMediaInterfaceCode::DR4_400G &&
         firstModuleCapability->hostStartLanes.size() == 2) {
       moduleMediaInterface = MediaInterfaceCode::DR4_2x400G;
+    } else if (
+        smfCode == SMFMediaInterfaceCode::LR4_10_400G &&
+        firstModuleCapability->hostStartLanes.size() == 2) {
+      moduleMediaInterface = MediaInterfaceCode::LR4_2x400G_10KM;
     } else {
       moduleMediaInterface =
           CmisHelper::getMediaInterfaceCode<SMFMediaInterfaceCode>(

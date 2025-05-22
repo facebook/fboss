@@ -423,6 +423,8 @@ void getPortInfoHelper(
   *portInfo.isDrained() =
       (port->getPortDrainState() ==
        facebook::fboss::cfg::PortDrainState::DRAINED);
+  portInfo.expectedNeighborReachability() =
+      port->getExpectedNeighborValues()->toThrift();
 }
 
 LacpPortRateThrift fromLacpPortRate(facebook::fboss::cfg::LacpPortRate rate) {
@@ -2913,26 +2915,46 @@ void ThriftHandler::getSwitchReachability(
     std::unique_ptr<std::vector<std::string>> switchNames) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureVoqOrFabric(__func__);
-  if (switchNames->empty()) {
-    throw FbossError("Empty switch name list input for getSwitchReachability.");
+  const auto hwSwitchReachabilityInfo = sw_->getSwitchReachability();
+  std::unordered_set<std::string> switchNameSet;
+  if (switchNames->size()) {
+    std::copy(
+        switchNames->begin(),
+        switchNames->end(),
+        std::inserter(switchNameSet, switchNameSet.begin()));
   }
-  std::unordered_set<std::string> switchNameSet{
-      switchNames->begin(), switchNames->end()};
   for (const auto& [_, dsfNodes] :
        std::as_const(*sw_->getState()->getDsfNodes())) {
     for (const auto& [_, node] : std::as_const(*dsfNodes)) {
-      if (std::find(
-              switchNameSet.begin(), switchNameSet.end(), node->getName()) !=
-          switchNameSet.end()) {
-        std::vector<std::string> reachablePorts;
-        for (const auto& port :
-             sw_->getHwSwitchHandler()->getSwitchReachability(
-                 node->getSwitchId())) {
-          reachablePorts.push_back(
-              sw_->getState()->getPorts()->getNodeIf(port)->getName());
-        }
-        reachabilityMatrix.insert({node->getName(), std::move(reachablePorts)});
+      if (switchNameSet.size() &&
+          (switchNameSet.find(node->getName()) == switchNameSet.end())) {
+        // Switch is not of interest!
+        continue;
       }
+      if (node->getType() != cfg::DsfNodeType::INTERFACE_NODE) {
+        // Reachability information available only for RDSW/EDSW
+        continue;
+      }
+      const auto& switchId = node->getSwitchId();
+      std::vector<std::string> reachablePorts;
+      // Reachability to a remote switch ID is via fabric links
+      // over all the local switches.
+      for (const auto& [_, reachabilityInfo] : hwSwitchReachabilityInfo) {
+        auto portGroupInfo =
+            reachabilityInfo.switchIdToFabricPortGroupMap()->find(switchId);
+        if (portGroupInfo !=
+            reachabilityInfo.switchIdToFabricPortGroupMap()->end()) {
+          int portGroupId = portGroupInfo->second;
+          auto portNames =
+              reachabilityInfo.fabricPortGroupMap()->find(portGroupId);
+          reachablePorts.insert(
+              reachablePorts.end(),
+              portNames->second.begin(),
+              portNames->second.end());
+        }
+      }
+      // Update the switch to port mapping
+      reachabilityMatrix.insert({node->getName(), std::move(reachablePorts)});
     }
   }
 }

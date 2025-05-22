@@ -64,11 +64,17 @@ class BcmAddDelEcmpTest : public BcmTest {
     };
     if (network.first.isV4()) {
       unprogram(
-          utility::EcmpSetupAnyNPorts4(getProgrammedState(), kRid),
+          utility::EcmpSetupAnyNPorts4(
+              getProgrammedState(),
+              getHwSwitch()->needL2EntryForNeighbor(),
+              kRid),
           RoutePrefixV4{network.first.asV4(), network.second});
     } else {
       unprogram(
-          utility::EcmpSetupAnyNPorts6(getProgrammedState(), kRid),
+          utility::EcmpSetupAnyNPorts6(
+              getProgrammedState(),
+              getHwSwitch()->needL2EntryForNeighbor(),
+              kRid),
           RoutePrefixV6{network.first.asV6(), network.second});
     }
   }
@@ -92,12 +98,18 @@ class BcmAddDelEcmpTest : public BcmTest {
       for (auto& cidrNetwork : cidrNetworks_) {
         if (cidrNetwork.first.isV6()) {
           programRoute(
-              utility::EcmpSetupAnyNPorts6(getProgrammedState(), kRid),
+              utility::EcmpSetupAnyNPorts6(
+                  getProgrammedState(),
+                  getHwSwitch()->needL2EntryForNeighbor(),
+                  kRid),
               ecmpWidth--,
               RoutePrefixV6{cidrNetwork.first.asV6(), cidrNetwork.second});
         } else {
           programRoute(
-              utility::EcmpSetupAnyNPorts4(getProgrammedState(), kRid),
+              utility::EcmpSetupAnyNPorts4(
+                  getProgrammedState(),
+                  getHwSwitch()->needL2EntryForNeighbor(),
+                  kRid),
               ecmpWidth--,
               RoutePrefixV4{cidrNetwork.first.asV4(), cidrNetwork.second});
         }

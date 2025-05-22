@@ -72,6 +72,11 @@ DEFINE_bool(
     allow_zero_headroom_for_lossless_pg,
     false,
     "Allow lossless PG to have headroom as zero");
+DEFINE_string(
+    mod_dest_mac_override,
+    "",
+    "Destination MAC override for Mirror-on-Drop packets");
+DEFINE_bool(allow_nif_port_for_mod, false, "Allow NIF port to be used for MOD");
 
 namespace facebook::fboss {
 

@@ -67,6 +67,11 @@ struct resolve_arg_types<void> {
   using unfiltered_type = std::tuple<>;
 };
 
+enum class CliReadWriteMode {
+  CLI_MODE_WRITE,
+  CLI_MODE_READ,
+};
+
 struct BaseCommandTraits {
   // Only for top level commands, nested subcommands will override this
   using ParentCmd = void;
@@ -75,7 +80,19 @@ struct BaseCommandTraits {
   using ObjectArgType = std::monostate;
   static constexpr bool ALLOW_FILTERING = false;
   static constexpr bool ALLOW_AGGREGATION = false;
+  static constexpr CliReadWriteMode CLI_READ_WRITE_MODE =
+      CliReadWriteMode::CLI_MODE_WRITE;
   std::vector<utils::LocalOption> LocalOptions = {};
+};
+
+struct ReadCommandTraits : public BaseCommandTraits {
+  static constexpr CliReadWriteMode CLI_READ_WRITE_MODE =
+      CliReadWriteMode::CLI_MODE_READ;
+};
+
+struct WriteCommandTraits : public BaseCommandTraits {
+  static constexpr CliReadWriteMode CLI_READ_WRITE_MODE =
+      CliReadWriteMode::CLI_MODE_WRITE;
 };
 
 template <typename CmdTypeT, typename CmdTypeTraits>

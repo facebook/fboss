@@ -339,3 +339,21 @@ cpp_library(
         "//fboss/lib/if:fboss_io_stats-cpp2-types",
     ],
 )
+
+cpp_library(
+    name = "warm_boot_file_utils",
+    srcs = [
+        "WarmBootFileUtils.cpp",
+    ],
+    headers = [
+        "WarmBootFileUtils.h",
+    ],
+    exported_deps = [
+        "//fboss/agent:fboss-error",
+        "//fboss/agent:switch_state-cpp2-types",
+        "//fboss/agent:utils",
+        "//fboss/agent/state:state",
+        "//folly:file_util",
+        "//folly/logging:logging",
+    ],
+)

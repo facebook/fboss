@@ -101,6 +101,10 @@ class CowStorageTests : public ::testing::Test {
                 ThriftStructResolver<RootType, isHybridStorage>,
             isHybridStorage>>(val);
   }
+
+  constexpr bool isHybridStorage() {
+    return TestParams::hybridStorage;
+  }
 };
 
 TYPED_TEST_SUITE(CowStorageTests, StorageTestTypes);

@@ -81,7 +81,8 @@ class HwHashPolarizationTests : public HwLinkStateDependentTest {
     std::for_each(ecmpPorts.begin(), ecmpPorts.end(), [&ports](auto ecmpPort) {
       ports.insert(PortDescriptor{ecmpPort});
     });
-    utility::EcmpSetupTargetedPorts<AddrT> ecmpHelper(getProgrammedState());
+    utility::EcmpSetupTargetedPorts<AddrT> ecmpHelper(
+        getProgrammedState(), getHwSwitch()->needL2EntryForNeighbor());
     applyNewState(ecmpHelper.resolveNextHops(getProgrammedState(), ports));
     ecmpHelper.programRoutes(getRouteUpdater(), ports);
   }
@@ -463,7 +464,8 @@ class HwHashTrunkPolarizationTests : public HwHashPolarizationTests {
 
   template <typename AddrT>
   void programRoutesForAggregatePorts() {
-    utility::EcmpSetupTargetedPorts<AddrT> ecmpHelper{getProgrammedState()};
+    utility::EcmpSetupTargetedPorts<AddrT> ecmpHelper{
+        getProgrammedState(), getHwSwitch()->needL2EntryForNeighbor()};
     applyNewState(
         ecmpHelper.resolveNextHops(getProgrammedState(), getAggregatePorts()));
     ecmpHelper.programRoutes(getRouteUpdater(), getAggregatePorts());

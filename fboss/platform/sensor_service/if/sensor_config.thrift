@@ -1,8 +1,11 @@
 namespace cpp2 facebook.fboss.platform.sensor_config
 namespace go neteng.fboss.platform.sensor_config
+namespace php NetengFbossPlatformSensorConfig
 namespace py neteng.fboss.platform.sensor_config
 namespace py3 neteng.fboss.platform.sensor_config
 namespace py.asyncio neteng.fboss.platform.asyncio.sensor_config
+
+include "thrift/annotation/hack.thrift"
 
 // `SensorType` :  SensorType represents the type of sensor being measured.
 //  For Power, should be Watt (W)
@@ -11,6 +14,15 @@ namespace py.asyncio neteng.fboss.platform.asyncio.sensor_config
 //  For Temperature, should be celsius (C)
 //  For Fan, should be RPM
 //  For PWM, should be Percent(%)
+@hack.Attributes{
+  attributes = [
+    "Oncalls('fboss_platform')",
+    "JSEnum",
+    "GraphQLEnum('SensorType')",
+    "SelfDescriptive",
+    "RelayFlowEnum",
+  ],
+}
 enum SensorType {
   POWER = 0,
   VOLTAGE = 1,

@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "fboss/agent/hw/HwSwitchWarmBootHelper.h"
 #include "fboss/agent/hw/sai/switch/SaiMacsecManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/lib/phy/PhyManager.h"
@@ -89,7 +90,7 @@ class SaiPhyManager : public PhyManager {
       bool needResetDataPath) override;
 
   template <typename platformT, typename xphychipT>
-  void initializeSlotPhysImpl(PimID pimID);
+  void initializeSlotPhysImpl(PimID pimID, bool warmBoot);
 
   PortOperState macsecGetPhyLinkInfo(PortID swPort);
   phy::PhyInfo getPhyInfo(PortID swPort) override;
@@ -239,7 +240,7 @@ class SaiPhyManager : public PhyManager {
 
 using namespace std::chrono;
 template <typename platformT, typename xphychipT>
-void SaiPhyManager::initializeSlotPhysImpl(PimID pimID) {
+void SaiPhyManager::initializeSlotPhysImpl(PimID pimID, bool warmboot) {
   if (const auto pimPhyMap = xphyMap_.find(pimID);
       pimPhyMap != xphyMap_.end()) {
     for (const auto& phy : pimPhyMap->second) {
@@ -264,7 +265,18 @@ void SaiPhyManager::initializeSlotPhysImpl(PimID pimID) {
 
       // Now call HwSwitch to create the switch object in hardware
       auto saiSwitch = static_cast<SaiSwitch*>(saiPlatform->getHwSwitch());
-      saiSwitch->init(xphy, nullptr, true /* failHwCallsOnWarmboot */);
+
+      if (warmboot) {
+        auto wbState =
+            saiPlatform->getWarmBootHelper()->getWarmBootThriftState();
+        auto statePrev =
+            saiPlatform->getWarmBootHelper()->reconstructWarmBootThriftState(
+                wbState);
+        saiSwitch->init(xphy, statePrev, true /* failHwCallsOnWarmboot */);
+      } else {
+        saiSwitch->init(xphy, nullptr, true /* failHwCallsOnWarmboot */);
+      }
+
       xphy->setSwitchId(saiSwitch->getSaiSwitchId());
       xphy->dump();
       XLOG(DBG2)

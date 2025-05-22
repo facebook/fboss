@@ -77,7 +77,7 @@ class AgentQueuePerHostRouteTest : public AgentHwTest {
   void addRoutes(const std::vector<RoutePrefix<AddrT>>& routePrefixes) {
     auto kEcmpWidth = 1;
     utility::EcmpSetupAnyNPorts<AddrT> ecmpHelper(
-        getProgrammedState(), kRouterID());
+        getProgrammedState(), getSw()->needL2EntryForNeighbor(), kRouterID());
     auto wrapper = getSw()->getRouteUpdater();
     ecmpHelper.programRoutes(&wrapper, kEcmpWidth, routePrefixes);
   }
@@ -103,7 +103,14 @@ class AgentQueuePerHostRouteTest : public AgentHwTest {
             ArpOpCode::ARP_OP_REPLY);
       }
       WITH_RETRIES({
-        auto entries = getSw()->getNeighborUpdater()->getArpCacheData().get();
+        std::list<facebook::fboss::ArpEntryThrift> entries;
+
+        if (isIntfNbrTable()) {
+          entries =
+              getSw()->getNeighborUpdater()->getArpCacheDataForIntf().get();
+        } else {
+          entries = getSw()->getNeighborUpdater()->getArpCacheData().get();
+        }
         bool found = false;
         for (const auto& entry : entries) {
           if (entry.ip() == network::toBinaryAddress(ipAddress)) {
@@ -132,7 +139,13 @@ class AgentQueuePerHostRouteTest : public AgentHwTest {
             0);
       }
       WITH_RETRIES({
-        auto entries = getSw()->getNeighborUpdater()->getNdpCacheData().get();
+        std::list<facebook::fboss::NdpEntryThrift> entries;
+        if (isIntfNbrTable()) {
+          entries =
+              getSw()->getNeighborUpdater()->getNdpCacheDataForIntf().get();
+        } else {
+          entries = getSw()->getNeighborUpdater()->getNdpCacheData().get();
+        }
         bool found = false;
         for (const auto& entry : entries) {
           if (entry.ip() == network::toBinaryAddress(ipAddress)) {

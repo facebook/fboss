@@ -204,6 +204,9 @@ bool YubaAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::SAI_HOST_MISS_TRAP:
     case HwAsic::Feature::CPU_TX_PACKET_REQUIRES_VLAN_TAG:
     case HwAsic::Feature::DRAM_DATAPATH_PACKET_ERROR_STATS:
+    case HwAsic::Feature::EGRESS_POOL_AVAILABLE_SIZE_ATTRIBUTE_SUPPORTED:
+    case HwAsic::Feature::SWITCH_ASIC_SDK_HEALTH_NOTIFY:
+    case HwAsic::Feature::VENDOR_SWITCH_CONGESTION_MANAGEMENT_ERRORS:
       return false;
   }
   return false;

@@ -161,8 +161,8 @@ HwPortStats getInitedStats() {
        {5, 6},
        {6, 7},
        {7, 8}}, // pgInCongestionDiscards_
-      30, // pfcDeadlockDetection_
-      31, // pfcDeadlockRecovery_
+      29, // pfcDeadlockDetection_
+      30, // pfcDeadlockRecovery_
   };
 }
 
@@ -171,6 +171,8 @@ HwPortStats resetOptionals(HwPortStats stats) {
   stats.inAclDiscards_().reset();
   stats.inTrapDiscards_().reset();
   stats.outForwardingDiscards_().reset();
+  stats.pfcDeadlockDetection_().reset();
+  stats.pfcDeadlockRecovery_().reset();
   return stats;
 }
 

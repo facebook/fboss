@@ -42,4 +42,15 @@ const std::string SaiVendorSwitchManager::getCgmDropReasonName(
   return std::string();
 }
 
+void SaiVendorSwitchManager::initWarningInterruptEvents() {}
+void SaiVendorSwitchManager::logVendorSwitchEvent(
+    uint32_t /*eventId*/,
+    uint32_t /*time*/) {}
+int SaiVendorSwitchManager::getNumberOfVendorSwitchInterruptEventsIds() const {
+  return 0;
+}
+bool SaiVendorSwitchManager::isVendorSwitchWarningEventId(
+    uint32_t /*eventId*/) const {
+  return false;
+}
 } // namespace facebook::fboss

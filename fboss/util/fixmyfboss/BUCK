@@ -19,6 +19,7 @@ python_binary(
     srcs = ["main.py"],
     main_function = ".main.main",
     deps = [
+        ":cli_wrapper",
         ":fixmyfboss_library",
     ],
 )
@@ -28,4 +29,10 @@ fbpkg.builder(
     path_actions = {
         "fixmyfboss": "//fboss/util/fixmyfboss:fixmyfboss",
     },
+)
+
+python_library(
+    name = "cli_wrapper",
+    srcs = ["cli_wrapper.py"],
+    labels = ["autodeps2_generated"],
 )

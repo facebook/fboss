@@ -599,14 +599,13 @@ TYPED_TEST(ThriftTestAllSwitchTypes, getSwitchReachability) {
       std::make_unique<std::vector<std::string>>();
   switchNames->push_back("dsfNodeCfg0");
   std::map<std::string, std::vector<std::string>> reachabilityMatrix;
+  EXPECT_HW_CALL(this->sw_, getSwitchReachability(testing::_)).Times(0);
   if (this->isNpu()) {
-    EXPECT_HW_CALL(this->sw_, getSwitchReachability(testing::_)).Times(0);
     EXPECT_THROW(
         handler.getSwitchReachability(
             reachabilityMatrix, std::move(switchNames)),
         FbossError);
   } else {
-    EXPECT_HW_CALL(this->sw_, getSwitchReachability(testing::_)).Times(1);
     handler.getSwitchReachability(reachabilityMatrix, std::move(switchNames));
     EXPECT_EQ(reachabilityMatrix.size(), 1);
   }
@@ -1772,10 +1771,13 @@ TEST_F(ThriftTest, hwUpdateErrorAfterPartialUpdate) {
 
 TEST_F(ThriftTest, routeUpdatesWithConcurrentReads) {
   auto thriftHgridRoutes =
-      utility::HgridDuRouteScaleGenerator(sw_->getState(), 100000)
+      utility::HgridDuRouteScaleGenerator(
+          sw_->getState(), sw_->needL2EntryForNeighbor(), 100000)
           .getThriftRoutes()[0];
-  auto thriftRswRoutes = utility::RSWRouteScaleGenerator(sw_->getState(), 10000)
-                             .getThriftRoutes()[0];
+  auto thriftRswRoutes =
+      utility::RSWRouteScaleGenerator(
+          sw_->getState(), sw_->needL2EntryForNeighbor(), 10000)
+          .getThriftRoutes()[0];
   std::atomic<bool> done{false};
 
   ThriftHandler handler(sw_);

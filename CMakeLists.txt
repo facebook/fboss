@@ -984,6 +984,7 @@ add_dependencies(fboss_platform_services
   sensor_service_hw_test
   weutil_hw_test
   platform_manager_hw_test
+  cross_config_validator_test
 )
 
 add_custom_target(qsfp_targets)
@@ -998,6 +999,12 @@ add_dependencies(fboss_other_services
   qsfp_targets
   fboss2
   fsdb
+)
+
+add_custom_target(fboss_platform_mapping_gen)
+add_dependencies(fboss_platform_mapping_gen
+  platform_mapping_gen_unit_test.GEN_PY_EXE
+  platform_mapping_gen_no_regression_test.GEN_PY_EXE
 )
 
 if (BUILD_SAI_FAKE)

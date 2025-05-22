@@ -24,6 +24,8 @@
 
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 
+#include "fboss/agent/hw/sai/api/SaiVersion.h"
+
 #include <memory>
 #include <mutex>
 #include <thread>
@@ -119,6 +121,7 @@ class SaiSwitch : public HwSwitch {
   CpuPortStats getCpuPortStats() const override;
   HwSwitchDropStats getSwitchDropStats() const override;
   HwSwitchWatermarkStats getSwitchWatermarkStats() const override;
+  HwSwitchPipelineStats getSwitchPipelineStats() const override;
 
   HwResourceStats getResourceStats() const override;
 
@@ -148,6 +151,9 @@ class SaiSwitch : public HwSwitch {
   void linkStateChangedCallbackTopHalf(
       uint32_t count,
       const sai_port_oper_status_notification_t* data);
+  void syncPortLinkState(PortID portId) override;
+  void linkStateChangedBottomHalf(const PortID& portId);
+
   void fdbEventCallback(
       uint32_t count,
       const sai_fdb_event_notification_data_t* data);
@@ -252,6 +258,11 @@ class SaiSwitch : public HwSwitch {
   bool getArsExhaustionStatus() override;
 
   std::vector<FirmwareInfo> getAllFirmwareInfo() const override;
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
+  void switchAsicSdkHealthNotificationTopHalf(
+      SaiHealthNotification saiHealthNotification);
+#endif
 
  private:
   void gracefulExitImpl() override;
@@ -365,6 +376,13 @@ class SaiSwitch : public HwSwitch {
   void initSwitchReachabilityChangeLocked(
       const std::lock_guard<std::mutex>& lock);
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
+  void switchAsicSdkHealthNotificationBottomHalf(
+      SaiHealthNotification saiHealthNotification);
+
+  void initSwitchAsicSdkHealthNotificationLocked(
+      const std::lock_guard<std::mutex>& lock);
+#endif
   bool isFeatureSetupLocked(
       FeaturesDesired feature,
       const std::lock_guard<std::mutex>& lock) const;
@@ -436,6 +454,10 @@ class SaiSwitch : public HwSwitch {
       cfg::SwitchDrainState drainStateToProcess,
       const std::shared_ptr<SwitchSettings>& oldSwitchSettings,
       const std::shared_ptr<SwitchSettings>& newSwitchSettings);
+
+  void processPortStateChangedForSwitchReachabilityLocked(
+      const std::lock_guard<std::mutex>& lock,
+      const StateDelta& delta);
 
   void syncLinkStatesLocked(const std::lock_guard<std::mutex>& lock);
   void syncLinkConnectivityLocked(const std::lock_guard<std::mutex>& lock);
@@ -530,6 +552,11 @@ class SaiSwitch : public HwSwitch {
   void processSwitchSettingsDrainStateChange(
       const StateDelta& delta,
       cfg::SwitchDrainState drainStateToProcess,
+      const LockPolicyT& lockPolicy);
+
+  template <typename LockPolicyT>
+  void processPortStateChangedForSwitchReachability(
+      const StateDelta& delta,
       const LockPolicyT& lockPolicy);
 
   PortSaiId getCPUPortSaiId() const;
@@ -651,6 +678,11 @@ class SaiSwitch : public HwSwitch {
   std::unique_ptr<std::thread> switchReachabilityChangeProcessThread_;
   FbossEventBase switchReachabilityChangeProcessEventBase_{
       "SwitchReachabilityChangeBottomHalfEventBase"};
+#if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
+  std::unique_ptr<std::thread> switchAsicSdkHealthNotificationBHThread_;
+  FbossEventBase switchAsicSdkHealthNotificationBHEventBase_{
+      "SwitchAsicSdkHealthNotificationEventBase"};
+#endif
 
   HwResourceStats hwResourceStats_;
   std::atomic<SwitchRunState> runState_{SwitchRunState::UNINITIALIZED};

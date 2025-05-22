@@ -246,6 +246,18 @@ void HwPortFb303Stats::updateStats(
         kLinkLayerFlowControlWatermark(),
         *curPortStats.linkLayerFlowControlWatermark_());
   }
+  if (curPortStats.pfcDeadlockDetection_().has_value()) {
+    updateStat(
+        timeRetrieved_,
+        kPfcDeadlockDetection(),
+        *curPortStats.pfcDeadlockDetection_());
+  }
+  if (curPortStats.pfcDeadlockRecovery_().has_value()) {
+    updateStat(
+        timeRetrieved_,
+        kPfcDeadlockRecovery(),
+        *curPortStats.pfcDeadlockRecovery_());
+  }
 
   // Update queue stats
   auto updateQueueStat = [this](

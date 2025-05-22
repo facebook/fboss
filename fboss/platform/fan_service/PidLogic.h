@@ -6,15 +6,14 @@
 
 namespace facebook::fboss::platform::fan_service {
 
-class PidLogic {
+// Explaination for PidLogic and IncrementalPidLogic
+// https://www.yahboom.net/public/upload/upload-html/1653307952/1.%20PID%20algorithm%20theory.html
+class PidLogicBase {
  public:
-  explicit PidLogic(const PidSetting& pidSetting, unsigned int dT)
-      : pidSetting_(pidSetting), dT_(dT) {
-    if (dT_ <= 0) {
-      throw std::invalid_argument("dT cannot less than or equal to 0");
-    }
-  }
-  int16_t calculatePwm(float measurement);
+  explicit PidLogicBase(const PidSetting& pidSetting)
+      : pidSetting_(pidSetting) {}
+  virtual ~PidLogicBase() = default;
+  virtual int16_t calculatePwm(float measurement) = 0;
   float getSetPoint() const {
     return *pidSetting_.setPoint();
   }
@@ -27,16 +26,39 @@ class PidLogic {
     return lastPwm_;
   }
 
+ protected:
+  const PidSetting pidSetting_;
+  int16_t lastPwm_{0};
+};
+
+class PidLogic : public PidLogicBase {
+ public:
+  explicit PidLogic(const PidSetting& pidSetting, unsigned int dT)
+      : PidLogicBase(pidSetting), dT_(dT) {
+    if (dT_ == 0) {
+      throw std::invalid_argument("dT cannot be less than or equal to 0");
+    }
+  }
+  int16_t calculatePwm(float measurement) override;
   float getLastError() const {
     return lastError_;
   }
 
  private:
-  const PidSetting pidSetting_;
   float integral_{0};
   float lastError_{0};
-  int16_t lastPwm_{0};
   const unsigned int dT_;
+};
+
+class IncrementalPidLogic : public PidLogicBase {
+ public:
+  explicit IncrementalPidLogic(const PidSetting& pidSetting)
+      : PidLogicBase(pidSetting) {}
+  int16_t calculatePwm(float measurement) override;
+
+ private:
+  float previousRead1_{0};
+  float previousRead2_{0};
 };
 
 } // namespace facebook::fboss::platform::fan_service

@@ -18,7 +18,7 @@
 
 namespace facebook::fboss {
 
-struct CmdShowAggregatePortTraits : public BaseCommandTraits {
+struct CmdShowAggregatePortTraits : public ReadCommandTraits {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST;
   using ObjectArgType = std::vector<std::string>;
@@ -64,7 +64,8 @@ class CmdShowAggregatePort
   }
 
   RetType createModel(
-      std::vector<facebook::fboss::AggregatePortThrift> aggregatePortEntries,
+      const std::vector<facebook::fboss::AggregatePortThrift>&
+          aggregatePortEntries,
       std::map<int32_t, facebook::fboss::PortInfoThrift> portInfo,
       const ObjectArgType& queriedPorts) {
     RetType model;

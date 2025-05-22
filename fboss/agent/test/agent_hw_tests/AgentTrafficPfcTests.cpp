@@ -3,10 +3,10 @@
 #include <folly/MapUtil.h>
 
 #include "fboss/agent/AgentFeatures.h"
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/PfcTestUtils.h"
@@ -94,9 +94,8 @@ void waitPfcCounterIncrease(
     // TODO(maxgg): CS00012381334 - Rx counters not incrementing on TH5
     // However we know PFC is working as long as TX PFC is being generated, so
     // skip validating RX PFC counters on TH5 for now.
-    auto asicType =
-        facebook::fboss::utility::checkSameAndGetAsic(ensemble->getL3Asics())
-            ->getAsicType();
+    auto asicType = facebook::fboss::checkSameAndGetAsic(ensemble->getL3Asics())
+                        ->getAsicType();
     if (asicType != facebook::fboss::cfg::AsicType::ASIC_TYPE_TOMAHAWK5) {
       EXPECT_EVENTUALLY_GT(rxPfcCtr, 0);
       if (ensemble->getSw()->getHwAsicTable()->isFeatureSupportedOnAllAsic(
@@ -245,8 +244,7 @@ class AgentTrafficPfcTest : public AgentHwTest {
   void applyPlatformConfigOverrides(
       const cfg::SwitchConfig& sw,
       cfg::PlatformConfig& config) const override {
-    if (utility::checkSameAndGetAsicType(sw) ==
-        cfg::AsicType::ASIC_TYPE_CHENAB) {
+    if (checkSameAndGetAsicType(sw) == cfg::AsicType::ASIC_TYPE_CHENAB) {
       return;
     }
     utility::modifyPlatformConfig(
@@ -331,13 +329,13 @@ class AgentTrafficPfcTest : public AgentHwTest {
 
  protected:
   PfcBufferParams defaultPfcBufferParams() const {
-    return PfcBufferParams::getPfcBufferParams(utility::checkSameAndGetAsicType(
-        getAgentEnsemble()->getCurrentConfig()));
+    return PfcBufferParams::getPfcBufferParams(
+        checkSameAndGetAsicType(getAgentEnsemble()->getCurrentConfig()));
   }
 
   void setupEcmpTraffic(const PortID& portId, const folly::IPAddressV6& ip) {
     utility::EcmpSetupTargetedPorts6 ecmpHelper{
-        getProgrammedState(), getIntfMac()};
+        getProgrammedState(), getSw()->needL2EntryForNeighbor(), getIntfMac()};
 
     const PortDescriptor port(portId);
     RoutePrefixV6 route{ip, 128};
@@ -527,8 +525,7 @@ class AgentTrafficPfcTest : public AgentHwTest {
           lossyPgIds,
           tcToPgOverride,
           testParams.buffer);
-      auto asic =
-          utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+      auto asic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
       if (isSupportedOnAllAsics(HwAsic::Feature::MULTIPLE_EGRESS_BUFFER_POOL)) {
         utility::setupMultipleEgressPoolAndQueueConfigs(
             cfg, kLosslessPgIds, asic->getMMUSizeBytes());
@@ -680,7 +677,7 @@ class AgentTrafficPfcZeroGlobalHeadroomTest : public AgentTrafficPfcTest {
 
 TEST_F(AgentTrafficPfcTest, verifyPfcWithZeroGlobalHeadRoomCfg) {
   auto asicType =
-      utility::checkSameAndGetAsicType(getAgentEnsemble()->getCurrentConfig());
+      checkSameAndGetAsicType(getAgentEnsemble()->getCurrentConfig());
   TrafficTestParams param{
       .buffer = PfcBufferParams::getPfcBufferParams(
           asicType, PfcBufferParams::kGlobalSharedBytes, 0 /*globalHeadroom*/),
@@ -719,8 +716,7 @@ class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcTest {
       // can be programmed and we need to ensure that the configured value here
       // is in sync with what is in SAI/SDK to avoid a reprogramming attempt
       // during warmboot.
-      auto asic =
-          utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+      auto asic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
       switch (asic->getAsicType()) {
         case cfg::AsicType::ASIC_TYPE_JERICHO2:
         case cfg::AsicType::ASIC_TYPE_JERICHO3:
@@ -767,7 +763,7 @@ class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcTest {
       const PortID& port,
       const PortID& txOffPortId,
       const folly::IPAddressV6& ip) {
-    auto asic = utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+    auto asic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
     if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
       // As traffic cannot trigger deadlock for DNX, force back
       // to back PFC frame generation which causes a deadlock!
@@ -777,10 +773,12 @@ class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcTest {
           std::make_tuple(static_cast<int>(port), kLosslessPriority));
       ASSERT_FALSE(iter == kRegValToForcePfcTxForPriorityOnPortDnx.end());
       std::string out;
+      auto switchID = scopeResolver().scope(port).switchId();
       getAgentEnsemble()->runDiagCommand(
           fmt::format(
               "modreg CFC_FRC_NIF_ETH_PFC FRC_NIF_ETH_PFC={}\n", iter->second),
-          out);
+          out,
+          switchID);
     } else {
       // Disable Tx on the outbound port so that queues will build up.
       utility::setCreditWatchdogAndPortTx(
@@ -809,11 +807,13 @@ class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcTest {
                                ->getNodeIf(portId)
                                ->getName();
     return {
-        facebook::fb303::fbData
-            ->getCounterIfExists(portName + ".pfc_deadlock_detection.sum")
+        getAgentEnsemble()
+            ->getFb303CounterIfExists(
+                portId, portName + ".pfc_deadlock_detection.sum")
             .value_or(0),
-        facebook::fb303::fbData
-            ->getCounterIfExists(portName + ".pfc_deadlock_recovery.sum")
+        getAgentEnsemble()
+            ->getFb303CounterIfExists(
+                portId, portName + ".pfc_deadlock_recovery.sum")
             .value_or(0),
     };
   }
@@ -873,16 +873,17 @@ class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcTest {
   void cleanupPfcDeadlockDetectionTrigger(const PortID& portId) {
     // Enable credit WD and TX on port
     utility::setCreditWatchdogAndPortTx(getAgentEnsemble(), portId, true);
-    auto asic = utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+    auto asic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
     if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
       std::string out;
+      auto switchID = scopeResolver().scope(portId).switchId();
       // TODO: When PFC WD is continuously being triggered with this register
       // config, getAttr for queue PFC WD enabled returns wrong value and is
       // tracked in CS00012388717. Until that is fixed, work around the issue.
       // For that, stop PFC WD being triggered continuously and wait to ensure
       // that the PFC DL generation settles.
       getAgentEnsemble()->runDiagCommand(
-          "modreg CFC_FRC_NIF_ETH_PFC FRC_NIF_ETH_PFC=0\n", out);
+          "modreg CFC_FRC_NIF_ETH_PFC FRC_NIF_ETH_PFC=0\n", out, switchID);
     }
     waitForPfcDeadlocksToSettle(portId);
   }

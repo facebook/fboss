@@ -106,6 +106,7 @@ struct HwSwitchStats {
   15: hardware_stats.AclStats aclStats;
   16: hardware_stats.HwSwitchWatermarkStats switchWatermarkStats;
   17: bool arsExhausted;
+  18: hardware_stats.HwSwitchPipelineStats switchPipelineStats;
 }
 
 service MultiSwitchCtrl {

@@ -74,7 +74,9 @@ class BcmQcmDataTest : public BcmLinkStateDependentTests {
     const auto& queueIds = utility::kOlympicWRRQueueIds();
     CHECK_EQ(FLAGS_init_gport_available_count, queueIds.size() * 2);
     ecmpHelper6_ = std::make_unique<utility::EcmpSetupTargetedPorts6>(
-        getProgrammedState(), RouterID(0));
+        getProgrammedState(),
+        getHwSwitch()->needL2EntryForNeighbor(),
+        RouterID(0));
   }
 
   cfg::SwitchConfig initialConfig() const override {

@@ -16,6 +16,7 @@ cpp_library(
         "SubscriptionCommon.h",
     ],
     exported_deps = [
+        "//fboss/fsdb/common:utils",
         "//fboss/fsdb/if:fsdb_common-cpp2-types",
     ],
 )

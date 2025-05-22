@@ -9,10 +9,10 @@
  */
 
 #include <folly/IPAddress.h>
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
 
 #include "fboss/agent/test/gen-cpp2/production_features_types.h"
 
@@ -102,14 +102,14 @@ class AgentAclScaleTest : public AgentHwTest {
   }
 
   uint32_t getMaxSingleWideAclTables(const std::vector<const HwAsic*>& asics) {
-    auto asic = utility::checkSameAndGetAsic(asics);
+    auto asic = checkSameAndGetAsic(asics);
     auto maxAclTables = asic->getMaxAclTables();
     CHECK(maxAclTables.has_value());
     return maxAclTables.value();
   }
 
   uint32_t getMaxAclEntries(const std::vector<const HwAsic*>& asics) {
-    auto asic = utility::checkSameAndGetAsic(asics);
+    auto asic = checkSameAndGetAsic(asics);
     auto maxAclEntries = asic->getMaxAclEntries();
     CHECK(maxAclEntries.has_value());
     return maxAclEntries.value();

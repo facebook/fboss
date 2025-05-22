@@ -174,7 +174,9 @@ class HwLabelEdgeRouteTest : public HwLinkStateDependentTest {
     auto emplaced = ecmpHelpers_.emplace(std::make_pair(
         prefix,
         std::make_unique<EcmpSetupTargetedPorts>(
-            getProgrammedState(), kRouter0)));
+            getProgrammedState(),
+            getHwSwitch()->needL2EntryForNeighbor(),
+            kRouter0)));
 
     EXPECT_TRUE(emplaced.second);
     const auto& ecmpHelper = emplaced.first->second;
