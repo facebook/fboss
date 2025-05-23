@@ -142,7 +142,7 @@ std::array<uint8_t, 128> kSffDacPage0 = {
 };
 
 std::array<uint8_t, 128> kSffCwdm4PageLowerA0 = {
-    0x0d, 0x00, 0x02, 0xab, 0xbc, 0xcd, 0xc0, 0x30, 0x00, 0xc5, 0xf3, 0xc5,
+    0x0d, 0x00, 0x02, 0xab, 0xbc, 0xcd, 0x00, 0x30, 0x00, 0xc5, 0xf3, 0xc5,
     0x3c, 0xc5, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1f, 0x04,
     0x00, 0x00, 0x80, 0xdd, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x12, 0x23,
     0x23, 0x34, 0x13, 0x31, 0x12, 0x12, 0x14, 0x14, 0x11, 0x11, 0x22, 0x22,
@@ -1876,5 +1876,28 @@ Cmis2x400GDr4Transceiver::Cmis2x400GDr4Transceiver(
           kCmis2x400GDr4Lower,
           kCmis2x400GDr4UpperPages,
           mgr) {}
+
+SffCwdm4TempTransceiver::SffCwdm4TempTransceiver(
+    int module,
+    TransceiverManager* mgr)
+    : FakeTransceiverImpl(
+          module,
+          kSffCwdm4PageLower,
+          kSffCwdm4UpperPages,
+          mgr) {}
+
+void SffCwdm4TempTransceiver::setTemperature(double tempValue) {
+  // Convert temperature to raw value
+  // Temperature is stored in 2 bytes at offset 22 in the lower page
+  // The formula is: temp = (raw_value * 1/256)
+  uint16_t rawTemp = static_cast<uint16_t>(tempValue * 256);
+
+  uint8_t tempBytes[2] = {
+      static_cast<uint8_t>((rawTemp >> 8) & 0xFF),
+      static_cast<uint8_t>(rawTemp & 0xFF)};
+
+  writeTransceiver(
+      {TransceiverAccessParameter::ADDR_QSFP, 22, 2}, tempBytes, 0, 0);
+}
 } // namespace fboss
 } // namespace facebook

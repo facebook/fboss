@@ -150,6 +150,15 @@ class Cmis2x400GDr4Transceiver : public FakeTransceiverImpl {
   explicit Cmis2x400GDr4Transceiver(int module, TransceiverManager* mgr);
 };
 
+// Custom transceiver for testing CWDM4_100G temperature thresholds
+class SffCwdm4TempTransceiver : public FakeTransceiverImpl {
+ public:
+  explicit SffCwdm4TempTransceiver(int module, TransceiverManager* mgr);
+
+  // Set the temperature value in the lower page
+  void setTemperature(double tempValue);
+};
+
 class Cmis400GDr4Transceiver : public FakeTransceiverImpl {
  public:
   explicit Cmis400GDr4Transceiver(int module, TransceiverManager* mgr);
