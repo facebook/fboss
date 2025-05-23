@@ -1867,7 +1867,6 @@ SwSwitch::applyUpdate(
     }
     // TODO allow for > 1 deltas once switch handlers, HwSwitch are
     // able to handle these.
-    CHECK_EQ(deltas.size(), 1);
     newDesiredState = deltas.back().newState();
   }
 
