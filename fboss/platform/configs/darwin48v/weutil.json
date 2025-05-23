@@ -5,10 +5,6 @@
       "path": "/run/devmap/eeproms/CHASSIS_EEPROM",
       "offset": 1536
     },
-    "FANSPINNER": {
-      "path": "/run/devmap/eeproms/FANSPINNER_EEPROM",
-      "offset": 15360
-    },
     "RACKMON": {
       "path": "/run/devmap/eeproms/RACKMON_EEPROM",
       "offset": 15360
