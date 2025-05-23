@@ -238,6 +238,11 @@ bool verifyEcmpForNonFlowlet(
   }
   CHECK_EQ(existing.dynamic_age, 0);
   CHECK_EQ(existing.dynamic_size, 0);
+  // TH3 only supports flowlet. Below checks don't apply
+  if (hw->getPlatform()->getAsic()->getAsicType() ==
+      cfg::AsicType::ASIC_TYPE_TOMAHAWK3) {
+    return true;
+  }
   int freeEntries = 0;
   bcm_switch_object_count_get(
       bcmSwitch->getUnit(),
