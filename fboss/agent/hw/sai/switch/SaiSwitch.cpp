@@ -4890,6 +4890,15 @@ void SaiSwitch::switchAsicSdkHealthNotificationTopHalf(
 
 void SaiSwitch::switchAsicSdkHealthNotificationBottomHalf(
     SaiHealthNotification saiHealthNotification) {
+  if (saiHealthNotification.asicError()) {
+    getSwitchStats()->asicError();
+  }
+  if (saiHealthNotification.corrParityError()) {
+    getSwitchStats()->corrParityError();
+  }
+  if (saiHealthNotification.uncorrParityError()) {
+    getSwitchStats()->uncorrParityError();
+  }
   switch (saiHealthNotification.getSeverity()) {
     case SAI_SWITCH_ASIC_SDK_HEALTH_SEVERITY_FATAL:
       XLOGF(FATAL, "{}", saiHealthNotification);
@@ -4903,7 +4912,6 @@ void SaiSwitch::switchAsicSdkHealthNotificationBottomHalf(
       XLOGF(INFO, "{}", saiHealthNotification);
       break;
   }
-  /* TODO(pshaikh) : process saiHealthNotification to set parity error */
 }
 #endif
 

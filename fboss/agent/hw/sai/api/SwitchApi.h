@@ -1069,6 +1069,12 @@ struct SaiHealthNotification {
     return timeSpec;
   }
 
+  bool corrParityError() const;
+
+  bool uncorrParityError() const;
+
+  bool asicError() const;
+
  private:
 #if SAI_API_VERSION >= SAI_VERSION(1, 15, 0)
   std::string toStringSaiHealthData(const SaiSerHealthData& healthData) const {
