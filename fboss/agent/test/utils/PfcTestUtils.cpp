@@ -167,6 +167,7 @@ void setupPortPgConfig(
       pgConfig.maxSramXoffThresholdBytes() = 2048 * 16 * 256;
       pgConfig.minSramXoffThresholdBytes() = 256 * 16 * 256;
       pgConfig.sramResumeOffsetBytes() = 128 * 16 * 256;
+      pgConfig.sramScalingFactor() = cfg::MMUScalingFactor::ONE_HALF;
     }
     // set scaling factor
     pgConfig.scalingFactor() = buffer.scalingFactor;
