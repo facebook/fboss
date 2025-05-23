@@ -2009,6 +2009,9 @@ std::shared_ptr<PortPgConfig> ThriftConfigApplier::createPortPg(
   if (const auto sramResumeOffsetBytes = cfg->sramResumeOffsetBytes()) {
     pgCfg->setSramResumeOffsetBytes(*sramResumeOffsetBytes);
   }
+  if (const auto sramScalingFactor = cfg->sramScalingFactor()) {
+    pgCfg->setSramScalingFactor(*sramScalingFactor);
+  }
   return pgCfg;
 }
 
