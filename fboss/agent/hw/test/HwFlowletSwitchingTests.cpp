@@ -126,41 +126,35 @@ class HwArsTest : public HwLinkStateDependentTest {
   }
 
   void setupEcmpGroups(int numEcmp) {
-    for (int i = 1; i <= numEcmp; i++) {
-      std::vector<PortID> portIds;
-      portIds.push_back(masterLogicalPortIds()[i % 64]);
-      portIds.push_back(masterLogicalPortIds()[(i + 1) % 64]);
-      resolveNextHopsAddRoute(
-          std::move(portIds),
-          folly::IPAddressV6(folly::sformat("{}:{:x}::", kAddr3, i)));
-      std::vector<PortID> portIds2;
-      portIds2.push_back(masterLogicalPortIds()[i % 64]);
-      portIds2.push_back(masterLogicalPortIds()[(i + 2) % 64]);
-      resolveNextHopsAddRoute(
-          std::move(portIds2),
-          folly::IPAddressV6(folly::sformat("{}:{:x}::", kAddr4, i)));
+    int count = 0;
+    int maxPortIndex = 32;
+    for (int i = 1; i < maxPortIndex; i++) {
+      for (int j = i + 1; j < maxPortIndex; j++) {
+        for (int k = j + 1; k < maxPortIndex; k++) {
+          std::vector<PortID> portIds;
+          portIds.push_back(masterLogicalPortIds()[i]);
+          portIds.push_back(masterLogicalPortIds()[j]);
+          portIds.push_back(masterLogicalPortIds()[k]);
+          resolveNextHopsAddRoute(
+              std::move(portIds),
+              folly::IPAddressV6(folly::sformat("{}:{:x}::", kAddr3, count++)));
+          if (count > numEcmp) {
+            return;
+          }
+        }
+      }
     }
   }
 
   void verifyEcmpGroups(const cfg::SwitchConfig& cfg, int numEcmp) {
     auto portFlowletConfig =
         getPortFlowletConfig(kScalingFactor1(), kLoadWeight1, kQueueWeight1);
-    for (int i = 1; i < numEcmp; i++) {
-      auto currentIp1 =
-          folly::IPAddress(folly::sformat("{}:{:x}::", kAddr3, i));
-      folly::CIDRNetwork currentPrefix1{currentIp1, 64};
+    for (int i = 0; i < numEcmp; i++) {
+      auto currentIp = folly::IPAddress(folly::sformat("{}:{:x}::", kAddr3, i));
+      folly::CIDRNetwork currentPrefix{currentIp, 64};
       EXPECT_TRUE(utility::verifyEcmpForFlowletSwitching(
           getHwSwitch(),
-          currentPrefix1,
-          *cfg.flowletSwitchingConfig(),
-          portFlowletConfig,
-          true /* flowletEnable */));
-      auto currentIp2 =
-          folly::IPAddress(folly::sformat("{}:{:x}::", kAddr4, i));
-      folly::CIDRNetwork currentPrefix2{currentIp2, 64};
-      EXPECT_TRUE(utility::verifyEcmpForFlowletSwitching(
-          getHwSwitch(),
-          currentPrefix2,
+          currentPrefix,
           *cfg.flowletSwitchingConfig(),
           portFlowletConfig,
           true /* flowletEnable */));
@@ -1193,12 +1187,8 @@ TEST_F(HwArsSprayTest, VerifySprayModeScale) {
 #endif
     return;
   }
-  int numEcmp = 63;
-  // CS00012344837
-  if (getPlatform()->getAsic()->getAsicType() ==
-      cfg::AsicType::ASIC_TYPE_TOMAHAWK3) {
-    numEcmp = 30;
-  }
+  auto numEcmp =
+      getHwSwitch()->getPlatform()->getAsic()->getMaxDlbEcmpGroups().value();
 
   auto setup = [this, numEcmp]() {
     auto cfg = initialConfig();
@@ -1237,7 +1227,7 @@ TEST_F(HwArsFlowletTest, VerifyModeFlowletToSpray) {
   flowletSwitchingWBHelper(
       cfg::SwitchingMode::FLOWLET_QUALITY,
       kFlowletTableSize2,
-      8,
+      16,
       cfg::SwitchingMode::PER_PACKET_QUALITY,
       kMinFlowletTableSize,
       numEcmp);
