@@ -34,6 +34,11 @@ using InterfaceStatsMap =
 
 class SwitchStats : public boost::noncopyable {
  public:
+  // Method to update the tunnelInterfacePacketDrop counter
+  void updateTxBufferLimitExceededDrops() {
+    txBufferLimitExceedDrop_.addValue(1);
+  }
+
   /*
    * The prefix to use for our counter names
    */
@@ -1060,6 +1065,7 @@ class SwitchStats : public boost::noncopyable {
   // Failed Dsf subscriptions by peer SwitchID
   std::map<std::string, TLCounter> failedDsfSubscriptionByPeerSwitchName_;
 
+  TLTimeseries txBufferLimitExceedDrop_;
   TLTimeseries coldBoot_;
   TLTimeseries warmBoot_;
   TLTimeseries switchConfiguredMs_;

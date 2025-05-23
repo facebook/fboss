@@ -332,6 +332,11 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map, int numSwitches)
       localResolvedArp_(map, kCounterPrefix + "localResolvedArp"),
       remoteResolvedArp_(map, kCounterPrefix + "remoteResolvedArp"),
       failedDsfSubscription_(map, kCounterPrefix + "failedDsfSubscription"),
+      txBufferLimitExceedDrop_(
+          map,
+          kCounterPrefix + "txBufferLimitExceedDrop",
+          SUM,
+          RATE),
       coldBoot_(map, kCounterPrefix + "cold_boot", SUM, RATE),
       warmBoot_(map, kCounterPrefix + "warm_boot", SUM, RATE),
       switchConfiguredMs_(

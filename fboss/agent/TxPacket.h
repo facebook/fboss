@@ -10,16 +10,20 @@
 #pragma once
 
 #include <folly/MacAddress.h>
+#include <atomic>
+#include <memory>
 #include "fboss/agent/Packet.h"
 #include "fboss/agent/types.h"
 
 namespace facebook::fboss {
-
 /*
  * TxPacket represents a packet that may be transmitted out via the switch.
  */
 class TxPacket : public Packet {
  public:
+  static std::atomic<size_t>* getPacketCounter();
+  static void decrementPacketCounter();
+  static void incrementPacketCounter();
   /**
    * Write an ethernet header at the specified cursor location.
    *
@@ -69,16 +73,10 @@ class TxPacket : public Packet {
       uint16_t protocol);
 
   TxPacket() {}
-
-  static std::unique_ptr<TxPacket> allocateTxPacket(size_t size) {
-    return std::unique_ptr<TxPacket>(new TxPacket(size));
-  }
+  static std::unique_ptr<TxPacket> allocateTxPacket(size_t size);
 
  private:
-  explicit TxPacket(size_t size) {
-    buf_ = folly::IOBuf::create(size);
-    buf_->append(size);
-  }
+  explicit TxPacket(size_t size);
 
   // Forbidden copy constructor and assignment operator
   TxPacket(TxPacket const&) = delete;

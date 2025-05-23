@@ -1233,12 +1233,14 @@ cpp_library(
     name = "packet",
     srcs = [
         "Packet.cpp",
+        "TxPacket.cpp",
     ],
     headers = [
         "Packet.h",
         "RxPacket.h",
         "SwRxPacket.h",
         "TxPacket.h",
+        "TxPacketObserver.h",
     ],
     exported_deps = [
         ":fboss-types",

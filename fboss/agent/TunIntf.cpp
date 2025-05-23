@@ -31,8 +31,12 @@ extern "C" {
 #include "fboss/agent/SysError.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/packet/EthHdr.h"
-
 namespace facebook::fboss {
+
+DEFINE_int32(
+    max_tx_packets,
+    100000, // 1 gb / 10 kb
+    "the point at which we start dropping tx packets");
 
 namespace {
 
@@ -329,6 +333,16 @@ void TunIntf::handlerReady(uint16_t /*events*/) noexcept {
   try {
     while (sent + dropped < kMaxSentOneTime) {
       std::unique_ptr<TxPacket> pkt;
+      size_t txPacketCount = TxPacket::getPacketCounter()->load();
+      if (txPacketCount >= FLAGS_max_tx_packets) {
+        XLOG_EVERY_MS(ERR, 5000) << "Reached max tx packets threshold "
+                                 << txPacketCount << ". Dropping packets.";
+        ++dropped;
+        sw_->stats()
+            ->updateTxBufferLimitExceededDrops(); // Increment the counter
+        continue;
+      }
+
       pkt = sw_->allocateL3TxPacket(mtu_, (type_ == cfg::InterfaceType::VLAN));
       auto buf = pkt->buf();
       int ret = 0;
