@@ -818,6 +818,30 @@ class AgentSflowMirrorWithLineRateTrafficTest
           1 /*desiredPctLineRate*/);
     };
     auto verify = [=, this]() {
+      // Attempt to send packets directly into the eventor port to brick it.
+      if (checkSameAndGetAsic()->isSupported(
+              HwAsic::Feature::EVENTOR_PORT_FOR_SFLOW)) {
+        auto eventorPortId =
+            masterLogicalPortIds({cfg::PortType::EVENTOR_PORT})[0];
+        XLOG(INFO) << "Eventor port: " << eventorPortId;
+        for (int i = 0; i < 10; ++i) {
+          auto pkt = utility::makeUDPTxPacket(
+              getSw(),
+              std::nullopt, // vlanID
+              folly::MacAddress("02:00:00:00:0F:0B"),
+              folly::MacAddress("FF:FF:FF:FF:FF:FF"),
+              folly::IPAddressV6("::1"),
+              folly::IPAddressV6("::2"),
+              1234, // srcPort
+              5678, // dstPort
+              0, // dscp
+              255, // hopLimit
+              std::vector<uint8_t>(100, 0xff)); // 100B payload
+          getAgentEnsemble()->sendPacketAsync(
+              std::move(pkt), PortDescriptor(eventorPortId), std::nullopt);
+        }
+      }
+
       verifySflowEgressPortNotStuck(iterations);
       if (checkSameAndGetAsic()->isSupported(
               HwAsic::Feature::EVENTOR_PORT_FOR_SFLOW)) {
