@@ -7,6 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
+#include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/EcmpResourceManager.h"
 #include "fboss/agent/SwSwitch.h"
@@ -26,12 +27,12 @@ namespace facebook::fboss {
 
 class EcmpResourceManagerRibFibTest : public ::testing::Test {
  public:
-  static constexpr auto kNumIntfs = 30;
+  static constexpr auto kNumIntfs = 15;
   void SetUp() override {
     FLAGS_enable_ecmp_resource_manager = true;
     FLAGS_ecmp_resource_percentage = 100;
     FLAGS_flowletSwitchingEnable = true;
-    auto cfg = onePortPerIntfConfig(10);
+    auto cfg = onePortPerIntfConfig(kNumIntfs);
     handle_ = createTestHandle(&cfg);
     sw_ = handle_->getSw();
     ASSERT_NE(sw_->getEcmpResourceManager(), nullptr);
@@ -41,6 +42,19 @@ class EcmpResourceManagerRibFibTest : public ::testing::Test {
     EXPECT_EQ(
         *sw_->getEcmpResourceManager()->getBackupEcmpSwitchingMode(),
         *cfg.flowletSwitchingConfig()->backupSwitchingMode());
+
+    // Assert rib/fib sync after config application
+    assertRibFibEquivalence();
+    // Add 5 routes with distinct nhops, should not go
+    // over DLB limits
+    auto newNhops = defaultNhopSets();
+    auto newState = sw_->getState()->clone();
+    auto fib6 = fib(newState);
+    for (auto i = 0; i < numStartRoutes(); ++i) {
+      auto newRoute = makeRoute(makePrefix(i), RouteNextHopSet(newNhops[i]));
+      fib6->addNode(newRoute);
+    }
+    updateRoutes(newState);
   }
   void assertRibFibEquivalence() const {
     for (const auto& [_, route] : std::as_const(*cfib(sw_->getState()))) {
@@ -51,6 +65,66 @@ class EcmpResourceManagerRibFibTest : public ::testing::Test {
       // forwarding info matches. This is true with or w/o consolidator
       EXPECT_EQ(ribRoute->getForwardInfo(), route->getForwardInfo());
     }
+  }
+  RouteNextHopSet defaultNhops() const {
+    return makeNextHops(kNumIntfs);
+  }
+  int numStartRoutes() const {
+    return 5;
+  }
+  std::vector<RouteNextHopSet> defaultNhopSets() const {
+    std::vector<RouteNextHopSet> defaultNhopGroups;
+    auto beginNhops = defaultNhops();
+    for (auto i = 0; i < numStartRoutes(); ++i) {
+      defaultNhopGroups.push_back(beginNhops);
+      beginNhops.erase(beginNhops.begin());
+      CHECK_GT(beginNhops.size(), 1);
+    }
+    return defaultNhopGroups;
+  }
+
+  std::vector<RouteNextHopSet> nextNhopSets(int numSets = 5) {
+    auto nhopsStart = defaultNhopSets().back();
+    std::vector<RouteNextHopSet> nhopsTo;
+    for (auto i = 0; i < numSets; ++i) {
+      nhopsStart.erase(nhopsStart.begin());
+      CHECK_GT(nhopsStart.size(), 1);
+      nhopsTo.push_back(nhopsStart);
+    }
+    return nhopsTo;
+  }
+  void updateRoutes(const std::shared_ptr<SwitchState>& newState) {
+    auto updater = sw_->getRouteUpdater();
+    auto constexpr kClientID(ClientID::BGPD);
+    StateDelta delta(sw_->getState(), newState);
+    processFibsDeltaInHwSwitchOrder(
+        delta,
+        [&updater, kClientID](
+            RouterID rid, const auto& oldRoute, const auto& newRoute) {
+          updater.addRoute(
+              rid,
+              newRoute->prefix().network(),
+              newRoute->prefix().mask(),
+              kClientID,
+              newRoute->getForwardInfo());
+        },
+        [&updater, kClientID](RouterID rid, const auto& newRoute) {
+          updater.addRoute(
+              rid,
+              newRoute->prefix().network(),
+              newRoute->prefix().mask(),
+              kClientID,
+              newRoute->getForwardInfo());
+        },
+        [&updater, kClientID](RouterID rid, const auto& oldRoute) {
+          IpPrefix pfx;
+          pfx.ip() = network::toBinaryAddress(oldRoute->prefix().network());
+          pfx.prefixLength() = oldRoute->prefix().mask();
+          updater.delRoute(rid, pfx, kClientID);
+        });
+
+    updater.program();
+    assertRibFibEquivalence();
   }
   std::unique_ptr<HwTestHandle> handle_;
   SwSwitch* sw_;
