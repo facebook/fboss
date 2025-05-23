@@ -104,14 +104,15 @@ TEST_F(ResourceAccountantTest, getMemberCountForEcmpGroup) {
 }
 
 TEST_F(ResourceAccountantTest, checkDlbResource) {
-  // MockAsic is configured to support 4 DLB groups
+  // MockAsic is configured to support 7 DLB groups
   EXPECT_TRUE(
       this->resourceAccountant_->checkDlbResource(75 /* resourcePercentage */));
   EXPECT_TRUE(this->resourceAccountant_->checkDlbResource(
       100 /* resourcePercentage */));
 
   std::vector<RouteNextHopSet> ecmpNexthopsList;
-  for (int i = 0; i < getMaxEcmpGroups(); i++) {
+  ecmpNexthopsList.reserve(getMaxDlbEcmpGroups());
+  for (int i = 0; i < getMaxDlbEcmpGroups(); i++) {
     ecmpNexthopsList.push_back(RouteNextHopSet{
         ResolvedNextHop(
             folly::IPAddress(folly::to<std::string>("1.1.1.", i + 1)),
@@ -133,7 +134,7 @@ TEST_F(ResourceAccountantTest, checkDlbResource) {
 }
 
 TEST_F(ResourceAccountantTest, checkEcmpResource) {
-  // MockAsic is configured to support 4 group and 64 members.
+  // MockAsic is configured to support 20 group and 128 members.
   EXPECT_TRUE(this->resourceAccountant_->checkEcmpResource(
       true /* intermediateState */));
   EXPECT_TRUE(this->resourceAccountant_->checkEcmpResource(
@@ -180,7 +181,11 @@ TEST_F(ResourceAccountantTest, checkEcmpResource) {
 
   // Add three groups (with width = 2 each) and remove ecmpGroup0
   std::vector<RouteNextHopSet> ecmpNexthopsList;
-  for (int i = 0; i < getMaxEcmpGroups() - 1; i++) {
+  ecmpNexthopsList.reserve(
+      (getMaxEcmpGroups() * FLAGS_ecmp_resource_percentage / 100.0));
+  for (int i = 0;
+       i < (getMaxEcmpGroups() * FLAGS_ecmp_resource_percentage / 100.0);
+       i++) {
     ecmpNexthopsList.push_back(RouteNextHopSet{
         ResolvedNextHop(
             folly::IPAddress(folly::to<std::string>("1.1.1.", i + 1)),
@@ -290,7 +295,7 @@ TEST_F(ResourceAccountantTest, checkAndUpdateEcmpResource) {
 
 TEST_F(ResourceAccountantTest, computeWeightedEcmpMemberCount) {
   RouteNextHopSet ecmpNexthops;
-  for (int i = 0; i < getMaxEcmpMembers(); i++) {
+  for (int i = 0; i < getMaxEcmpMembers() - 1; i++) {
     ecmpNexthops.insert(ResolvedNextHop(
         folly::IPAddress(folly::to<std::string>("1.1.1.", i + 1)),
         InterfaceID(i + 1),

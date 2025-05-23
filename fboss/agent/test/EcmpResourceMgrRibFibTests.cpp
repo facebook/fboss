@@ -26,19 +26,17 @@ namespace facebook::fboss {
 
 class EcmpResourceManagerRibFibTest : public ::testing::Test {
  public:
-  RouteNextHopSet defaultNhops() const {
-    return makeNextHops(54);
-  }
+  static constexpr auto kNumIntfs = 30;
   void SetUp() override {
     FLAGS_enable_ecmp_resource_manager = true;
-    FLAGS_ecmp_resource_manager_make_before_break_buffer = 0;
     FLAGS_ecmp_resource_percentage = 100;
+    FLAGS_flowletSwitchingEnable = true;
     auto cfg = onePortPerIntfConfig(10);
     handle_ = createTestHandle(&cfg);
     sw_ = handle_->getSw();
     ASSERT_NE(sw_->getEcmpResourceManager(), nullptr);
     // Taken from mock asic
-    EXPECT_EQ(sw_->getEcmpResourceManager()->getMaxPrimaryEcmpGroups(), 4);
+    EXPECT_EQ(sw_->getEcmpResourceManager()->getMaxPrimaryEcmpGroups(), 5);
     // Backup ecmp group type will com from default flowlet confg
     EXPECT_EQ(
         *sw_->getEcmpResourceManager()->getBackupEcmpSwitchingMode(),
