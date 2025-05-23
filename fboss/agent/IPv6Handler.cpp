@@ -1064,10 +1064,10 @@ void IPv6Handler::floodNeighborAdvertisements() {
 
       // If NDP is flooded on recycle port interface, it will be resolved and
       // will get added as DYNAMIC entry, which is incorrect.
-      if (isAnyInterfacePortRecyclePort(sw_->getState(), intf)) {
-        XLOG(DBG2)
-            << "Do not flood neighbor advertisement on recycle port interface: "
-            << intf->getName();
+      // Sending NDP packet to eventor port will cause it to get stuck.
+      if (isAnyInterfacePortRecycleOrEventorPort(sw_->getState(), intf)) {
+        XLOG(DBG2) << "Do not flood neighbor advertisement on recycle "
+                   << "or eventor port interface: " << intf->getName();
         continue;
       }
 

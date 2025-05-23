@@ -243,7 +243,7 @@ bool isAnyInterfacePortInLoopbackMode(
     std::shared_ptr<SwitchState> swState,
     const std::shared_ptr<Interface> interface);
 
-bool isAnyInterfacePortRecyclePort(
+bool isAnyInterfacePortRecycleOrEventorPort(
     std::shared_ptr<SwitchState> swState,
     const std::shared_ptr<Interface> interface);
 

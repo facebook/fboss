@@ -586,12 +586,14 @@ bool isAnyInterfacePortInLoopbackMode(
   return false;
 }
 
-bool isAnyInterfacePortRecyclePort(
+bool isAnyInterfacePortRecycleOrEventorPort(
     std::shared_ptr<SwitchState> swState,
     const std::shared_ptr<Interface> interface) {
   for (auto portId : getPortsForInterface(interface->getID(), swState)) {
     auto port = swState->getPorts()->getNodeIf(portId);
-    if (port && port->getPortType() == cfg::PortType::RECYCLE_PORT) {
+    if (port &&
+        (port->getPortType() == cfg::PortType::RECYCLE_PORT ||
+         port->getPortType() == cfg::PortType::EVENTOR_PORT)) {
       return true;
     }
   }

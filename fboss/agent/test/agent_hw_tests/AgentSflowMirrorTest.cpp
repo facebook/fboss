@@ -768,6 +768,9 @@ class AgentSflowMirrorWithLineRateTrafficTest
     // VerifySflowEgressCongestionShort is also used in n-warmboot tests, where
     // we want to test basic fabric port init.
     FLAGS_hide_fabric_ports = false;
+    // Test that neighbor advertisements won't cause eventor port to get stuck
+    // (CS00012404377).
+    FLAGS_disable_neighbor_updates = false;
   }
 
   static const int kLosslessPriority{2};
