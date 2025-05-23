@@ -1945,6 +1945,8 @@ struct PortPgConfig {
   // Allowing configuring an absolute value at which to send XON in such cases.
   // resumeOffsetBytes and resumeBytes should not be set at the same time.
   13: optional i32 resumeBytes;
+  // Scaling factor for SRAM usage
+  14: optional MMUScalingFactor sramScalingFactor;
 }
 
 // asicSdk: Native SDK version. may or may not support SAI
