@@ -133,6 +133,11 @@ struct SaiBufferProfileTraits {
     };
     using SramFadtXonOffset =
         SaiExtensionAttribute<sai_uint64_t, AttributeSramFadtXonOffset>;
+    struct AttributeSramDynamicTh {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using SramDynamicTh =
+        SaiExtensionAttribute<sai_int8_t, AttributeSramDynamicTh>;
   };
   using AdapterKey = BufferProfileSaiId;
   using CreateAttributes = std::tuple<
@@ -152,7 +157,8 @@ struct SaiBufferProfileTraits {
       std::optional<Attributes::SharedFadtMinTh>,
       std::optional<Attributes::SramFadtMaxTh>,
       std::optional<Attributes::SramFadtMinTh>,
-      std::optional<Attributes::SramFadtXonOffset>>;
+      std::optional<Attributes::SramFadtXonOffset>,
+      std::optional<Attributes::SramDynamicTh>>;
   using AdapterHostKey = CreateAttributes;
 };
 
@@ -169,6 +175,7 @@ SAI_ATTRIBUTE_NAME(BufferProfile, SharedFadtMinTh);
 SAI_ATTRIBUTE_NAME(BufferProfile, SramFadtMaxTh);
 SAI_ATTRIBUTE_NAME(BufferProfile, SramFadtMinTh);
 SAI_ATTRIBUTE_NAME(BufferProfile, SramFadtXonOffset);
+SAI_ATTRIBUTE_NAME(BufferProfile, SramDynamicTh);
 
 struct SaiIngressPriorityGroupTraits {
   static constexpr sai_api_t ApiType = SAI_API_BUFFER;

@@ -245,6 +245,11 @@ SaiBufferProfileTraits::Attributes::AttributeSramFadtXonOffset::operator()() {
 }
 
 std::optional<sai_attr_id_t>
+SaiBufferProfileTraits::Attributes::AttributeSramDynamicTh::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
 SaiSflowMirrorTraits::Attributes::AttributeTcBufferLimit::operator()() {
   return std::nullopt;
 }

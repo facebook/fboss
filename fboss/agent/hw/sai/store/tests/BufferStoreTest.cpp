@@ -72,6 +72,7 @@ class BufferStoreTest : public SaiStoreTest {
         std::nullopt,
         std::nullopt,
         std::nullopt,
+        std::nullopt,
         std::nullopt};
   }
   BufferProfileSaiId createBufferProfile(

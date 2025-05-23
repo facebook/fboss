@@ -58,4 +58,13 @@ SaiBufferProfileTraits::Attributes::AttributeSramFadtXonOffset::operator()() {
 #endif
 }
 
+std::optional<sai_attr_id_t>
+SaiBufferProfileTraits::Attributes::AttributeSramDynamicTh::operator()() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+  return SAI_BUFFER_PROFILE_ATTR_SRAM_DYNAMIC_TH;
+#else
+  return std::nullopt;
+#endif
+}
+
 } // namespace facebook::fboss

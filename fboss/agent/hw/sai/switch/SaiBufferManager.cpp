@@ -576,6 +576,8 @@ SaiBufferProfileTraits::CreateAttributes SaiBufferManager::profileCreateAttrs(
       sramFadtMinTh{};
   std::optional<SaiBufferProfileTraits::Attributes::SramFadtXonOffset>
       sramFadtXonOffset{};
+  std::optional<SaiBufferProfileTraits::Attributes::SramDynamicTh>
+      sramDynamicTh{};
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   if (queue.getMaxDynamicSharedBytes()) {
     sharedFadtMaxTh = queue.getMaxDynamicSharedBytes().value();
@@ -590,6 +592,7 @@ SaiBufferProfileTraits::CreateAttributes SaiBufferManager::profileCreateAttrs(
   sramFadtMaxTh = 0;
   sramFadtMinTh = 0;
   sramFadtXonOffset = 0;
+  sramDynamicTh = 0;
 #endif
   return SaiBufferProfileTraits::CreateAttributes{
       pool,
@@ -613,7 +616,8 @@ SaiBufferProfileTraits::CreateAttributes SaiBufferManager::profileCreateAttrs(
       sharedFadtMinTh,
       sramFadtMaxTh,
       sramFadtMinTh,
-      sramFadtXonOffset};
+      sramFadtXonOffset,
+      sramDynamicTh};
 }
 
 void SaiBufferManager::setupBufferPool(
@@ -696,12 +700,21 @@ SaiBufferManager::ingressProfileCreateAttrs(
       sramFadtMinTh;
   std::optional<SaiBufferProfileTraits::Attributes::SramFadtXonOffset>
       sramFadtXonOffset;
+  std::optional<SaiBufferProfileTraits::Attributes::SramDynamicTh>
+      sramDynamicTh;
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   sharedFadtMaxTh = config.maxSharedXoffThresholdBytes().value_or(0);
   sharedFadtMinTh = config.minSharedXoffThresholdBytes().value_or(0);
   sramFadtMaxTh = config.maxSramXoffThresholdBytes().value_or(0);
   sramFadtMinTh = config.minSramXoffThresholdBytes().value_or(0);
   sramFadtXonOffset = config.sramResumeOffsetBytes().value_or(0);
+  if (config.sramScalingFactor() &&
+      platform_->getAsic()->scalingFactorBasedDynamicThresholdSupported()) {
+    sramDynamicTh = platform_->getAsic()->getBufferDynThreshFromScalingFactor(
+        nameToEnum<cfg::MMUScalingFactor>(*config.sramScalingFactor()));
+  } else {
+    sramDynamicTh = 0;
+  }
 #endif
   return SaiBufferProfileTraits::CreateAttributes{
       pool,
@@ -720,7 +733,8 @@ SaiBufferManager::ingressProfileCreateAttrs(
       sharedFadtMinTh,
       sramFadtMaxTh,
       sramFadtMinTh,
-      sramFadtXonOffset};
+      sramFadtXonOffset,
+      sramDynamicTh};
 }
 
 std::shared_ptr<SaiBufferProfile> SaiBufferManager::getOrCreateIngressProfile(
