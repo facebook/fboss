@@ -837,3 +837,74 @@ TEST_F(SwSwitchHandlerTest, operAckTimeoutCount) {
   clientRequestThread1.join();
   clientRequestThread2.join();
 }
+
+/*
+ * Test with 1 client
+ * - Client updates delta to hw partially.
+ * - Server should rollback oper delta. Client gets partial rollback update
+ */
+TEST_F(SwSwitchHandlerTest, verifyRollback) {
+  auto stateV0 = std::make_shared<SwitchState>();
+  stateV0->publish();
+  auto stateV1 = getInitialTestState();
+  stateV1->publish();
+  auto stateV2 = this->addAcl(stateV1, 1);
+  stateV2->publish();
+  auto stateV3 = this->addAcl(stateV2, 2);
+  stateV3->publish();
+
+  auto delta0 = StateDelta(stateV0, stateV1);
+  auto delta1 = StateDelta(stateV1, stateV2);
+  auto delta2 = StateDelta(stateV2, stateV3);
+
+  std::vector<StateDelta> deltas;
+  deltas.emplace_back(stateV0, stateV1);
+  deltas.emplace_back(stateV1, stateV2);
+  deltas.emplace_back(stateV2, stateV3);
+
+  std::thread stateUpdateThread([this, &deltas, &stateV0]() {
+    getHwSwitchHandler()->waitUntilHwSwitchConnected();
+    auto stateReturned = getHwSwitchHandler()->stateChanged(deltas, false);
+    // update should rollback
+    EXPECT_EQ(stateReturned, stateV0);
+    getHwSwitchHandler()->stop();
+  });
+  auto clientThreadBody = [this, &stateV0](
+                              int64_t switchId,
+                              const StateDelta& failedDelta,
+                              const std::shared_ptr<SwitchState>& newState) {
+    int64_t ackNum{0};
+    OperDeltaFilter filter((SwitchID(switchId)));
+    // connect and get next state delta
+    auto getEmptyOper = []() {
+      auto operDelta = std::make_unique<multiswitch::StateOperDelta>();
+      operDelta->operDeltas() = {fsdb::OperDelta()};
+      return operDelta;
+    };
+    auto operDelta = getHwSwitchHandler()->getNextStateOperDelta(
+        switchId, getEmptyOper(), ackNum++);
+    CHECK(operDelta.operDeltas()->size() > 0);
+    /* return failure with partial oper delta */
+    auto operDeltaRet = std::make_unique<multiswitch::StateOperDelta>();
+    operDeltaRet->operDeltas() = {failedDelta.getOperDelta()};
+    operDelta = getHwSwitchHandler()->getNextStateOperDelta(
+        switchId, std::move(operDeltaRet), ackNum++);
+    CHECK(operDelta.operDeltas()->size() > 0);
+
+    // server should return a rollback oper which remove the partial
+    // update
+    auto expectedDelta = StateDelta(newState, stateV0);
+    EXPECT_EQ(
+        operDelta.operDeltas()->back(),
+        *filter.filterWithSwitchStateRootPath(expectedDelta.getOperDelta()));
+    operDelta = getHwSwitchHandler()->getNextStateOperDelta(
+        switchId, getEmptyOper(), ackNum++);
+  };
+  std::thread clientRequestThread1(
+      [&]() { clientThreadBody(1, delta2, stateV3); });
+  std::thread clientRequestThread2(
+      [&]() { clientThreadBody(2, delta0, stateV1); });
+  stateUpdateThread.join();
+  clientRequestThread1.join();
+  clientRequestThread2.join();
+}
