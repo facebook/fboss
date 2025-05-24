@@ -32,6 +32,7 @@ class EcmpResourceManagerRibFibTest : public ::testing::Test {
     FLAGS_enable_ecmp_resource_manager = true;
     FLAGS_ecmp_resource_percentage = 100;
     FLAGS_flowletSwitchingEnable = true;
+    FLAGS_dlbResourceCheckEnable = false;
     auto cfg = onePortPerIntfConfig(kNumIntfs);
     handle_ = createTestHandle(&cfg);
     sw_ = handle_->getSw();
@@ -134,4 +135,22 @@ class EcmpResourceManagerRibFibTest : public ::testing::Test {
 TEST_F(EcmpResourceManagerRibFibTest, init) {
   assertRibFibEquivalence();
 }
+
+TEST_F(EcmpResourceManagerRibFibTest, addRoutesAboveEcmpLimit) {
+  // Add new routes pointing to new nhops. ECMP limit is breached.
+  auto nhopSets = nextNhopSets();
+  auto newState = sw_->getState()->clone();
+  auto fib6 = fib(newState);
+  auto routesBefore = fib6->size();
+  std::set<RouteNextHopSet> nhops;
+  std::set<RouteV6::Prefix> overflowPrefixes;
+  for (auto i = 0; i < numStartRoutes(); ++i) {
+    auto route = makeRoute(makePrefix(routesBefore + i), nhopSets[i]);
+    overflowPrefixes.insert(route->prefix());
+    nhops.insert(nhopSets[i]);
+    fib6->addNode(route);
+  }
+  updateRoutes(newState);
+}
+
 } // namespace facebook::fboss
