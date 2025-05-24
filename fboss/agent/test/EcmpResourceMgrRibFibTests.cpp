@@ -57,6 +57,7 @@ class EcmpResourceManagerRibFibTest : public ::testing::Test {
     updateRoutes(newState);
   }
   void assertRibFibEquivalence() const {
+    waitForStateUpdates(sw_);
     for (const auto& [_, route] : std::as_const(*cfib(sw_->getState()))) {
       auto ribRoute =
           sw_->getRib()->longestMatch(route->prefix().network(), RouterID(0));
