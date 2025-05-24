@@ -341,6 +341,7 @@ unsigned int QsfpModule::numHostLanes() const {
     case MediaInterfaceCode::SR_10G:
     case MediaInterfaceCode::BASE_T_10G:
     case MediaInterfaceCode::CR_10G:
+    case MediaInterfaceCode::DR1_200G:
       return 1;
     case MediaInterfaceCode::CWDM4_100G:
     case MediaInterfaceCode::CR4_100G:
@@ -348,6 +349,7 @@ unsigned int QsfpModule::numHostLanes() const {
     case MediaInterfaceCode::FR4_200G:
     case MediaInterfaceCode::CR4_200G:
     case MediaInterfaceCode::CR4_400G:
+    case MediaInterfaceCode::DR4_800G:
       return 4;
     case MediaInterfaceCode::FR4_400G:
     case MediaInterfaceCode::LR4_400G_10KM:
@@ -359,6 +361,7 @@ unsigned int QsfpModule::numHostLanes() const {
     case MediaInterfaceCode::FR8_800G:
     case MediaInterfaceCode::CR8_800G:
     case MediaInterfaceCode::LR4_2x400G_10KM:
+    case MediaInterfaceCode::DR4_2x800G:
       return 8;
     case MediaInterfaceCode::UNKNOWN:
       return 0;
@@ -374,6 +377,7 @@ unsigned int QsfpModule::numMediaLanes() const {
     case MediaInterfaceCode::FR1_100G:
     case MediaInterfaceCode::BASE_T_10G:
     case MediaInterfaceCode::CR_10G:
+    case MediaInterfaceCode::DR1_200G:
       return 1;
     case MediaInterfaceCode::CWDM4_100G:
     case MediaInterfaceCode::CR4_100G:
@@ -383,6 +387,7 @@ unsigned int QsfpModule::numMediaLanes() const {
     case MediaInterfaceCode::LR4_400G_10KM:
     case MediaInterfaceCode::DR4_400G:
     case MediaInterfaceCode::CR4_400G:
+    case MediaInterfaceCode::DR4_800G:
       return 4;
     case MediaInterfaceCode::CR8_400G:
     case MediaInterfaceCode::FR4_2x400G:
@@ -391,6 +396,7 @@ unsigned int QsfpModule::numMediaLanes() const {
     case MediaInterfaceCode::FR8_800G:
     case MediaInterfaceCode::CR8_800G:
     case MediaInterfaceCode::LR4_2x400G_10KM:
+    case MediaInterfaceCode::DR4_2x800G:
       return 8;
     case MediaInterfaceCode::UNKNOWN:
       return 0;
