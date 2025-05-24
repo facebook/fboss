@@ -1334,11 +1334,12 @@ void SwSwitch::init(
   initialState->publish();
   auto emptyState = std::make_shared<SwitchState>();
   emptyState->publish();
+  std::vector<StateDelta> deltas;
   if (ecmpResourceManager_) {
-    std::vector<StateDelta> deltas;
     deltas = ecmpResourceManager_->reconstructFromSwitchState(initialState);
-    CHECK_EQ(deltas.size(), 1);
     initialState = deltas.back().newState();
+  } else {
+    deltas.emplace_back(emptyState, initialState);
   }
   const auto initialStateDelta = StateDelta(emptyState, initialState);
 
@@ -1350,8 +1351,7 @@ void SwSwitch::init(
         "This should not happen given the state was previously applied, ",
         "but possible if calculation or threshold changes across warmboot.");
   }
-  multiHwSwitchHandler_->stateChanged(
-      initialStateDelta, false, hwWriteBehavior);
+  multiHwSwitchHandler_->stateChanged(deltas, false, hwWriteBehavior);
   if (ecmpResourceManager_) {
     ecmpResourceManager_->updateDone();
   }
@@ -1856,8 +1856,8 @@ SwSwitch::applyUpdate(
     XLOG(DBG2) << " Agent exiting before all updates could be applied";
     return std::make_pair(oldState, newDesiredState);
   }
+  std::vector<StateDelta> deltas;
   if (ecmpResourceManager_) {
-    std::vector<StateDelta> deltas;
     try {
       deltas = ecmpResourceManager_->consolidate(
           StateDelta(oldState, newDesiredState));
@@ -1865,9 +1865,9 @@ SwSwitch::applyUpdate(
       XLOG(DBG2) << " Ecmp resource manager rejected update: " << e.what();
       return std::make_pair(oldState, newDesiredState);
     }
-    // TODO allow for > 1 deltas once switch handlers, HwSwitch are
-    // able to handle these.
     newDesiredState = deltas.back().newState();
+  } else {
+    deltas.emplace_back(oldState, newDesiredState);
   }
 
   StateDelta delta(oldState, newDesiredState);
@@ -1893,7 +1893,7 @@ SwSwitch::applyUpdate(
   // undesirable.  So far I don't think this brief discrepancy should cause
   // major issues.
   try {
-    newAppliedState = stateChanged(delta, isTransaction);
+    newAppliedState = stateChanged(deltas, isTransaction);
   } catch (const std::exception& ex) {
     // Notify the hw_ of the crash so it can execute any device specific
     // tasks before we fatal. An example would be to dump the current hw
