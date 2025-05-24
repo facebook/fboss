@@ -326,6 +326,22 @@ TEST_F(MirrorTest, MirrorWithoutTruncation) {
   EXPECT_EQ(mirror->getTruncate(), false);
 }
 
+TEST_F(MirrorTest, SflowWithoutTruncationDisallowedOnJ3) {
+  auto config =
+      testConfigA(cfg::SwitchType::VOQ, cfg::AsicType::ASIC_TYPE_JERICHO3);
+  config.mirrors()->push_back(utility::getSFlowMirrorWithPort(
+      "mirror0",
+      MirrorTest::egressPort,
+      MirrorTest::udpPorts.udpSrcPort,
+      MirrorTest::udpPorts.udpDstPort,
+      MirrorTest::tunnelDestination,
+      std::nullopt,
+      MirrorTest::dscp,
+      false /*truncate*/));
+  EXPECT_THROW(
+      publishAndApplyConfig(state_, &config, platform_.get()), FbossError);
+}
+
 TEST_F(MirrorTest, AclMirror) {
   config_.mirrors()->push_back(
       utility::getGREMirror("mirror0", MirrorTest::tunnelDestination));
