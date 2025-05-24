@@ -55,8 +55,9 @@ MockHwSwitch::MockHwSwitch(MockPlatform* platform) : platform_(platform) {
             return true;
           }));
   ON_CALL(*this, stateChangedImpl(_))
-      .WillByDefault(
-          Invoke([](const StateDelta& delta) { return delta.newState(); }));
+      .WillByDefault(Invoke([](const std::vector<StateDelta>& deltas) {
+        return deltas.back().newState();
+      }));
   ON_CALL(*this, stateChangedTransaction(_, _))
       .WillByDefault(
           Invoke([](const StateDelta& delta, const HwWriteBehaviorRAII&) {

@@ -280,17 +280,20 @@ void HwSwitch::setProgrammedState(const std::shared_ptr<SwitchState>& state) {
 fsdb::OperDelta HwSwitch::stateChanged(
     const fsdb::OperDelta& delta,
     const HwWriteBehaviorRAII& /*behavior*/) {
-  auto stateDelta = StateDelta(getProgrammedState(), delta);
-  auto state = stateChangedImpl(stateDelta);
+  // TODO (ravi) convert above delta to vector
+  std::vector<StateDelta> deltas;
+  deltas.emplace_back(getProgrammedState(), delta);
+  auto state = stateChangedImpl(deltas);
   setProgrammedState(state);
-  if (getProgrammedState() == stateDelta.newState()) {
+  if (getProgrammedState() == deltas.back().newState()) {
     return fsdb::OperDelta{};
   }
   // return the delta between expected applied state and actually applied state
   // caller can then can construct actually applied state from its expected new
   // state from returning oper delta, and also know what was not applied from
   // the state delta between expected applied state and applied state.
-  return StateDelta(stateDelta.newState(), getProgrammedState()).getOperDelta();
+  return StateDelta(deltas.back().newState(), getProgrammedState())
+      .getOperDelta();
 }
 
 fsdb::OperDelta HwSwitch::stateChangedTransaction(

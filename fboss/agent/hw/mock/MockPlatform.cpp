@@ -54,8 +54,10 @@ MockPlatform::MockPlatform(
           tmpDir_.path().string() + "/volatile",
           tmpDir_.path().string() + "/persist")) {
   ON_CALL(*hw_, stateChangedImpl(_))
-      .WillByDefault(WithArg<0>(
-          Invoke([=](const StateDelta& delta) { return delta.newState(); })));
+      .WillByDefault(
+          WithArg<0>(Invoke([=](const std::vector<StateDelta>& deltas) {
+            return deltas.back().newState();
+          })));
   ON_CALL(*hw_, stateChangedTransaction(_, _))
       .WillByDefault(WithArg<0>(
           Invoke([=](const StateDelta& delta) { return delta.newState(); })));

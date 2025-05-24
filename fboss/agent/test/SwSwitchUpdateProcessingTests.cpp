@@ -46,18 +46,16 @@ class SwSwitchUpdateProcessingTest : public ::testing::TestWithParam<bool> {
   }
 
  protected:
-  void setStateChangedReturn(const std::shared_ptr<SwitchState>& state) {
-    if (handle->getHwSwitch()->transactionsSupported()) {
-      EXPECT_HW_CALL(sw, stateChangedTransaction(_, _))
-          .WillRepeatedly(Return(state));
-    } else {
-      EXPECT_HW_CALL(sw, stateChangedImpl(_)).WillRepeatedly(Return(state));
-    }
-  }
+  using updateFunc = std::function<std::shared_ptr<SwitchState>(
+      const std::vector<StateDelta>&)>;
+  updateFunc front = [](const std::vector<StateDelta>& deltas) {
+    return deltas.front().oldState();
+  };
+  updateFunc back = [](const std::vector<StateDelta>& deltas) {
+    return deltas.back().newState();
+  };
 
-  void setStateChangedReturn(
-      std::function<std::shared_ptr<SwitchState>(const StateDelta& delta)>
-          updateFn) {
+  void setStateChangedReturn(const updateFunc& updateFn) {
     if (handle->getHwSwitch()->transactionsSupported()) {
       return setStateChangedTransactionReturn(updateFn);
     }
@@ -65,9 +63,7 @@ class SwSwitchUpdateProcessingTest : public ::testing::TestWithParam<bool> {
         .WillRepeatedly(::testing::WithArg<0>(::testing::Invoke(updateFn)));
   }
 
-  void setStateChangedTransactionReturn(
-      std::function<std::shared_ptr<SwitchState>(const StateDelta& delta)>
-          updateFn) {
+  void setStateChangedTransactionReturn(const updateFunc& updateFn) {
     EXPECT_HW_CALL(sw, stateChangedImpl(_))
         .WillRepeatedly(::testing::WithArg<0>(::testing::Invoke(updateFn)));
   }
@@ -105,10 +101,8 @@ TEST_P(SwSwitchUpdateProcessingTest, HwRejectsUpdateThenAccepts) {
   // this happens only in case of table overflow. However at the SwSwitch
   // layer we don't care *why* the HwSwitch rejected this update, just
   // that it did
-  setStateChangedReturn([](const StateDelta& delta) {
-    // Reject the update
-    return delta.oldState();
-  });
+  // Reject the update
+  setStateChangedReturn(front);
   auto stateUpdateFn = [](const std::shared_ptr<SwitchState>& state) {
     return bringAllPortsUp(state->clone());
   };
@@ -128,9 +122,9 @@ TEST_P(SwSwitchUpdateProcessingTest, HwRejectsUpdateThenAccepts) {
   CHECK_EQ(
       counters.value(SwitchStats::kCounterPrefix + "hw_update_failures"), 2);
   // Have HwSwitch now accept this update
-  setStateChangedReturn([](const StateDelta& delta) {
-    CHECK(delta.newState() != delta.oldState());
-    return delta.newState();
+  setStateChangedReturn([](const std::vector<StateDelta>& deltas) {
+    CHECK(deltas.back().newState() != deltas.front().oldState());
+    return deltas.back().newState();
   });
   sw->updateStateBlocking("Accept update", stateUpdateFn);
   // No increament on successful updates
@@ -230,10 +224,8 @@ TEST_P(
   // layer we don't care *why* the HwSwitch rejected this update, just
   // that it did
 
-  setStateChangedReturn([](const StateDelta& delta) {
-    /* reject the update */
-    return delta.oldState();
-  });
+  // reject the update
+  setStateChangedReturn(front);
   auto stateUpdateFn = [](const std::shared_ptr<SwitchState>& state) {
     return bringAllPortsUp(state->clone());
   };
@@ -243,16 +235,15 @@ TEST_P(
       FbossHwUpdateError);
 
   // Next update should be a non protected update since we will schedule it such
-  setStateChangedReturn([](const StateDelta& delta) {
-    /* accept the update */
-    return delta.newState();
-  });
+  // accept the update
+  setStateChangedReturn(back);
 
   StateDelta expectedDelta(origState, newState);
-  auto isEqual = [&expectedDelta](const auto& delta) {
-    return delta.newState()->toThrift() ==
+  auto isEqual = [&expectedDelta](const auto& deltas) {
+    return deltas.back().newState()->toThrift() ==
         expectedDelta.newState()->toThrift() &&
-        delta.oldState()->toThrift() == expectedDelta.oldState()->toThrift();
+        deltas.front().oldState()->toThrift() ==
+        expectedDelta.oldState()->toThrift();
   };
   EXPECT_HW_CALL(sw, stateChangedImpl(testing::Truly(isEqual)));
   sw->updateState("Accept update", stateUpdateFn);

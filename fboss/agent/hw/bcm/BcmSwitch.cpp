@@ -1477,11 +1477,27 @@ void BcmSwitch::processMacTableChanges(const StateDelta& stateDelta) {
 }
 
 std::shared_ptr<SwitchState> BcmSwitch::stateChangedImpl(
-    const StateDelta& delta) {
+    const std::vector<StateDelta>& deltas) {
+  // This is unlikely to happen but if it does, return current state
+  if (deltas.size() == 0) {
+    return getProgrammedState();
+  }
+  std::shared_ptr<SwitchState> appliedState{nullptr};
   // Take the lock before modifying any objects
   std::lock_guard<std::mutex> lock(lock_);
-  auto appliedState = stateChangedImplLocked(delta, lock);
-  appliedState->publish();
+  int count = 1;
+  for (const auto& delta : deltas) {
+    appliedState = stateChangedImplLocked(delta, lock);
+    // if the current delta fails to apply, return the last successful state
+    if (*appliedState != *delta.newState()) {
+      XLOG(DBG2) << "Failed to apply " << count << " delta in  "
+                 << deltas.size() << " deltas";
+      appliedState->publish();
+      return appliedState;
+    }
+    count++;
+    appliedState->publish();
+  }
   return appliedState;
 }
 

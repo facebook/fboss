@@ -163,7 +163,7 @@ class HwSwitch {
           HwWriteBehaviorRAII(HwWriteBehavior::WRITE));
 
   virtual std::shared_ptr<SwitchState> stateChangedImpl(
-      const StateDelta& delta) = 0;
+      const std::vector<StateDelta>& delta) = 0;
 
   virtual std::shared_ptr<SwitchState> stateChangedTransaction(
       const StateDelta& delta,
