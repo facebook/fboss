@@ -30,7 +30,7 @@ class OperDeltaSyncer {
   void initOperDeltaSync();
   void operSyncLoop();
   fsdb::OperDelta processFullOperDelta(
-      fsdb::OperDelta& operDelta,
+      multiswitch::StateOperDelta& stateOperDelta,
       const HwWriteBehavior& hwWriteBehavior = HwWriteBehavior::WRITE);
 
   uint16_t serverPort_;

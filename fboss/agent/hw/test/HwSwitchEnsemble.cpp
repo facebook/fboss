@@ -187,7 +187,7 @@ class HwEnsembleMultiSwitchThriftHandler
       return;
     }
     // return empty delta if cancelled
-    operDelta.operDelta() = fsdb::OperDelta();
+    operDelta.operDeltas() = {fsdb::OperDelta()};
     return;
   }
 

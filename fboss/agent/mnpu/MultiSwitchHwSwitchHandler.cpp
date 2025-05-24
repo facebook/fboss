@@ -159,9 +159,11 @@ MultiSwitchHwSwitchHandler::stateChanged(
         prevOperDeltaResult_ = nullptr;
       };
       // received ack. return result from HwSwitch
+      CHECK_EQ(prevOperDeltaResult_->operDeltas()->size(), 1);
+      auto prevOperDeltaResponse = prevOperDeltaResult_->operDeltas()->back();
       return {
-          *prevOperDeltaResult_->operDelta(),
-          prevOperDeltaResult_->operDelta()->changes()->empty()
+          prevOperDeltaResponse,
+          prevOperDeltaResponse.changes()->empty()
               ? HwSwitchStateUpdateStatus::HWSWITCH_STATE_UPDATE_SUCCEEDED
               : HwSwitchStateUpdateStatus::HWSWITCH_STATE_UPDATE_FAILED};
     } else {
@@ -225,8 +227,9 @@ multiswitch::StateOperDelta MultiSwitchHwSwitchHandler::getNextStateOperDelta(
             HwSwitchOperDeltaSyncState::INITIAL_SYNC_SENT, lk);
         multiswitch::StateOperDelta fullOperResponse;
         fullOperResponse.seqNum() = ++currOperDeltaSeqNum_;
-        fullOperResponse.operDelta() =
-            getFullSyncOperDelta(prevUpdateSwitchState_);
+        // TODO (ravi) This state needs to go through consolidater as well
+        fullOperResponse.operDeltas() = {
+            getFullSyncOperDelta(prevUpdateSwitchState_)};
         fullOperResponse.isFullState() = true;
         return fullOperResponse;
       } else {
@@ -367,15 +370,18 @@ void MultiSwitchHwSwitchHandler::fillMultiswitchOperDelta(
     bool transaction,
     int64_t lastSeqNum,
     const HwWriteBehavior& hwWriteBehavior) {
+  // TODO (ravi) convert above delta to vector
+  std::vector<fsdb::OperDelta> deltas = {delta};
   // Send full delta if this is first switchstate update.
   // Sequence number 0 indicates first update
   if (lastSeqNum == 0) {
     stateDelta.isFullState() = true;
-    stateDelta.operDelta() = getFullSyncOperDelta(state);
+    // TODO (ravi) This state needs to go through consolidater as well
+    stateDelta.operDeltas() = {getFullSyncOperDelta(state)};
     CHECK(!transaction);
   } else {
     stateDelta.isFullState() = false;
-    stateDelta.operDelta() = delta;
+    stateDelta.operDeltas() = deltas;
   }
   stateDelta.transaction() = transaction;
   stateDelta.seqNum() = lastSeqNum + 1;

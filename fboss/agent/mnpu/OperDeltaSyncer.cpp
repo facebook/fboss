@@ -74,7 +74,7 @@ void OperDeltaSyncer::operSyncLoop() {
   int64_t lastUpdateSeqNum{0};
   while (operSyncRunning_.load()) {
     multiswitch::StateOperDelta lastOperDeltaResult;
-    lastOperDeltaResult.operDelta() = lastUpdateResult;
+    lastOperDeltaResult.operDeltas() = {lastUpdateResult};
     multiswitch::StateOperDelta stateOperDelta;
     apache::thrift::RpcOptions options;
     /*
@@ -107,20 +107,22 @@ void OperDeltaSyncer::operSyncLoop() {
     }
     // SwSwitch can send empty operdelta when cancelling the service on
     // shutdown
-    if (operSyncRunning_.load() &&
-        stateOperDelta.operDelta()->changes()->size()) {
+    if (operSyncRunning_.load() && stateOperDelta.operDeltas()->size() &&
+        stateOperDelta.operDeltas()->back().changes()->size()) {
       if (*stateOperDelta.isFullState()) {
         XLOG(DBG2) << "Received full state oper delta from swswitch";
         lastUpdateResult = processFullOperDelta(
-            *stateOperDelta.operDelta(), *stateOperDelta.hwWriteBehavior());
+            stateOperDelta, *stateOperDelta.hwWriteBehavior());
       } else {
+        // TODO (ravi) convert to send operDeltas
+        CHECK_EQ(stateOperDelta.operDeltas()->size(), 1);
         auto oldState = hw_->getProgrammedState();
         lastUpdateResult = stateOperDelta.transaction().value()
             ? hw_->stateChangedTransaction(
-                  *stateOperDelta.operDelta(),
+                  stateOperDelta.operDeltas()->back(),
                   HwWriteBehaviorRAII(*stateOperDelta.hwWriteBehavior()))
             : hw_->stateChanged(
-                  *stateOperDelta.operDelta(),
+                  stateOperDelta.operDeltas()->back(),
                   HwWriteBehaviorRAII(*stateOperDelta.hwWriteBehavior()));
         if (lastUpdateResult.changes()->empty()) {
           hw_->getPlatform()->stateChanged(
@@ -142,18 +144,28 @@ void OperDeltaSyncer::operSyncLoop() {
 }
 
 fsdb::OperDelta OperDeltaSyncer::processFullOperDelta(
-    fsdb::OperDelta& operDelta,
+    multiswitch::StateOperDelta& stateOperDelta,
     const HwWriteBehavior& hwWriteBehavior) {
   // Enable deep comparison for full oper delta
+  std::vector<StateDelta> deltas;
   DeltaComparison::PolicyRAII policyGuard{DeltaComparison::Policy::DEEP};
-  auto fullStateDelta = StateDelta(std::make_shared<SwitchState>(), operDelta);
-  auto delta = StateDelta(hw_->getProgrammedState(), fullStateDelta.newState());
+  CHECK_GE(stateOperDelta.operDeltas()->size(), 1);
+  auto oldState = std::make_shared<SwitchState>();
+  auto prevState = hw_->getProgrammedState();
+  for (const auto& operDelta : *stateOperDelta.operDeltas()) {
+    auto currentStateDelta = StateDelta(oldState, operDelta);
+    deltas.emplace_back(prevState, currentStateDelta.newState());
+    oldState = deltas.back().newState();
+    prevState = deltas.back().newState();
+  }
+  // TODO (ravi) convert to send full vector
   auto appliedState =
-      hw_->stateChanged(delta, HwWriteBehaviorRAII(hwWriteBehavior));
+      hw_->stateChanged(deltas.back(), HwWriteBehaviorRAII(hwWriteBehavior));
   // return empty oper delta to indicate success. If update was not successful,
   // hwswitch would have crashed.
-  CHECK(isStateDeltaEmpty(StateDelta(fullStateDelta.newState(), appliedState)));
-  hw_->getPlatform()->stateChanged(delta);
+  CHECK(isStateDeltaEmpty(StateDelta(deltas.back().newState(), appliedState)));
+  // TODO (ravi) verify if this requires full vector
+  hw_->getPlatform()->stateChanged(deltas.back());
   return fsdb::OperDelta{};
 }
 
