@@ -999,6 +999,7 @@ class SwSwitch : public HwSwitchCallback {
       const std::shared_ptr<VlanOrIntfT>& vlanOrIntf) const;
 
  private:
+  void updateRibEcmpOverrides(const StateDelta& delta);
   std::optional<folly::MacAddress> getSourceMac(
       const std::shared_ptr<Interface>& intf) const;
   void updateStateBlockingImpl(

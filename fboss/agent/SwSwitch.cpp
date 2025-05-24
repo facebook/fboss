@@ -1333,6 +1333,7 @@ void SwSwitch::init(
   }
   initialState->publish();
   auto emptyState = std::make_shared<SwitchState>();
+  auto origInitialState = initialState;
   emptyState->publish();
   std::vector<StateDelta> deltas;
   if (ecmpResourceManager_) {
@@ -1354,6 +1355,7 @@ void SwSwitch::init(
   multiHwSwitchHandler_->stateChanged(deltas, false, hwWriteBehavior);
   if (ecmpResourceManager_) {
     ecmpResourceManager_->updateDone();
+    updateRibEcmpOverrides(StateDelta(origInitialState, initialState));
   }
   // For cold boot there will be discripancy between applied state and state
   // that exists in hardware. this discrepancy is until config is applied, after
@@ -1846,6 +1848,7 @@ SwSwitch::applyUpdate(
   // Check that we are starting from what has been already applied
   DCHECK_EQ(oldState, getAppliedState());
   auto newDesiredState = newState;
+  auto origDesiredState = newDesiredState;
   auto start = std::chrono::steady_clock::now();
   XLOG(DBG2) << "Updating state: old_gen=" << oldState->getGeneration()
              << " new_gen=" << newDesiredState->getGeneration();
@@ -1910,6 +1913,9 @@ SwSwitch::applyUpdate(
     dumpBadStateUpdate(oldState, newDesiredState);
     XLOG(FATAL) << "encountered a fatal error: " << folly::exceptionStr(ex);
   }
+  if (ecmpResourceManager_ && newAppliedState != oldState) {
+    updateRibEcmpOverrides(StateDelta(origDesiredState, newAppliedState));
+  }
 
   setStateInternal(newAppliedState);
 
@@ -1927,6 +1933,51 @@ SwSwitch::applyUpdate(
 
   XLOG(DBG0) << "Update state took " << duration.count() << "us";
   return std::make_pair(newAppliedState, newDesiredState);
+}
+
+void SwSwitch::updateRibEcmpOverrides(const StateDelta& delta) {
+  std::map<
+      RouterID,
+      std::map<folly::CIDRNetwork, std::optional<cfg::SwitchingMode>>>
+      rid2prefix2SwitchingMode;
+
+  forEachChangedRoute(
+      delta,
+      [&rid2prefix2SwitchingMode](
+          RouterID rid, const auto& oldRoute, const auto& newRoute) {
+        if (!newRoute->isResolved()) {
+          return;
+        }
+        if (!oldRoute->isResolved()) {
+          if (newRoute->getForwardInfo()
+                  .getOverrideEcmpSwitchingMode()
+                  .has_value()) {
+            rid2prefix2SwitchingMode[rid][newRoute->prefix().toCidrNetwork()] =
+                newRoute->getForwardInfo().getOverrideEcmpSwitchingMode();
+          }
+        } else {
+          // both are resolved
+          if (oldRoute->getForwardInfo().getOverrideEcmpSwitchingMode() !=
+              newRoute->getForwardInfo().getOverrideEcmpSwitchingMode()) {
+            rid2prefix2SwitchingMode[rid][newRoute->prefix().toCidrNetwork()] =
+                newRoute->getForwardInfo().getOverrideEcmpSwitchingMode();
+          }
+        }
+      },
+      [&rid2prefix2SwitchingMode](RouterID rid, const auto& newRoute) {
+        if (newRoute->isResolved() &&
+            newRoute->getForwardInfo()
+                .getOverrideEcmpSwitchingMode()
+                .has_value()) {
+          rid2prefix2SwitchingMode[rid][newRoute->prefix().toCidrNetwork()] =
+              newRoute->getForwardInfo().getOverrideEcmpSwitchingMode();
+        }
+      },
+      [&rid2prefix2SwitchingMode](RouterID /*rid*/, const auto& /*oldRoute*/) {
+      });
+  for (const auto& [rid, prefixes] : rid2prefix2SwitchingMode) {
+    getRouteUpdater().programEcmpSwitchingModeAsync(rid, prefixes);
+  }
 }
 
 void SwSwitch::dumpBadStateUpdate(
