@@ -879,4 +879,16 @@ TEST_F(AgentVoqSwitchTest, verifyEgressCoreAndSramWatermark) {
   };
   verifyAcrossWarmBoots(setup, verify);
 }
+
+TEST_F(AgentVoqSwitchTest, verifySendPacketOutOfEventorBlocked) {
+  for (const auto& portId :
+       masterLogicalPortIds({cfg::PortType::EVENTOR_PORT})) {
+    auto beforeOutPkts = *getLatestPortStats(portId).outUnicastPkts_();
+    sendLocalServiceDiscoveryMulticastPacket(portId, 1);
+    // NOLINTNEXTLINE(facebook-hte-BadCall-sleep)
+    sleep(5);
+    EXPECT_EQ(beforeOutPkts, *getLatestPortStats(portId).outUnicastPkts_());
+  }
+}
+
 } // namespace facebook::fboss
