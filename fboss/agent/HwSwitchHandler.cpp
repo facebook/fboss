@@ -84,7 +84,11 @@ HwSwitchStateUpdateResult HwSwitchHandler::stateChangedImpl(
         HwSwitchStateUpdateStatus::HWSWITCH_STATE_UPDATE_SUCCEEDED};
   }
   auto stateUpdateResult = stateChangedImpl(
-      inDeltas, update.isTransaction, update.newState, hwWriteBehavior);
+      inDeltas,
+      update.isTransaction,
+      update.oldState,
+      update.newState,
+      hwWriteBehavior);
   auto outDelta = stateUpdateResult.first;
   if (outDelta.changes()->empty()) {
     return {update.newState, stateUpdateResult.second};
@@ -105,9 +109,10 @@ HwSwitchStateUpdateResult HwSwitchHandler::stateChangedImpl(
 HwSwitchStateOperUpdateResult HwSwitchHandler::stateChangedImpl(
     const std::vector<fsdb::OperDelta>& deltas,
     bool transaction,
+    const std::shared_ptr<SwitchState>& oldState,
     const std::shared_ptr<SwitchState>& newState,
     const HwWriteBehavior& hwWriteBehavior) {
-  return stateChanged(deltas, transaction, newState, hwWriteBehavior);
+  return stateChanged(deltas, transaction, oldState, newState, hwWriteBehavior);
 }
 
 fsdb::OperDelta HwSwitchHandler::getFullSyncOperDelta(

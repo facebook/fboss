@@ -101,10 +101,19 @@ bool MultiSwitchHwSwitchHandler::checkOperSyncStateLocked(
   return operDeltaSyncState_ == state;
 }
 
+/*
+ * - A successful operation in HwSwitch would return empty operDelta
+ *   (desired == applied)
+ * - A failed operation in HwSwitch would return the oper delta between the
+ *   applied to desired state
+ * - For cancelled case, return the full operDelta equivalent to vector of
+ *   deltas passed in to maintain similar semantics for all responses
+ */
 std::pair<fsdb::OperDelta, HwSwitchStateUpdateStatus>
 MultiSwitchHwSwitchHandler::stateChanged(
     const std::vector<fsdb::OperDelta>& deltas,
     bool transaction,
+    const std::shared_ptr<SwitchState>& oldState,
     const std::shared_ptr<SwitchState>& newState,
     const HwWriteBehavior& hwWriteBehavior) {
   multiswitch::StateOperDelta stateDelta;
@@ -121,9 +130,8 @@ MultiSwitchHwSwitchHandler::stateChanged(
             HwSwitchOperDeltaSyncState::DISCONNECTED, lk) ||
         checkOperSyncStateLocked(HwSwitchOperDeltaSyncState::CANCELLED, lk)) {
       // return incoming delta to indicate that none of the changes were applied
-      // TODO (ravi) return full operDelta from vector of deltas
       return {
-          deltas.front(),
+          StateDelta(oldState, newState).getOperDelta(),
           HwSwitchStateUpdateStatus::HWSWITCH_STATE_UPDATE_CANCELLED};
     }
     // block state update till hwswitch resync is complete
@@ -134,9 +142,8 @@ MultiSwitchHwSwitchHandler::stateChanged(
       if (!waitForOperSyncAck(lk, FLAGS_oper_delta_ack_timeout)) {
         setOperSyncStateLocked(HwSwitchOperDeltaSyncState::CANCELLED, lk);
         // initial sync was cancelled
-        // TODO (ravi) return full operDelta from vector of deltas
         return {
-            deltas.front(),
+            StateDelta(oldState, newState).getOperDelta(),
             HwSwitchStateUpdateStatus::HWSWITCH_STATE_UPDATE_CANCELLED};
       }
     }
@@ -172,9 +179,8 @@ MultiSwitchHwSwitchHandler::stateChanged(
     } else {
       setOperSyncStateLocked(HwSwitchOperDeltaSyncState::CANCELLED, lk);
       // return incoming delta to indicate that none of the changes were applied
-      // TODO (ravi) return full operDelta from vector of deltas
       return {
-          deltas.front(),
+          StateDelta(oldState, newState).getOperDelta(),
           HwSwitchStateUpdateStatus::HWSWITCH_STATE_UPDATE_CANCELLED};
     }
   }

@@ -82,7 +82,8 @@ class HwSwitchHandler {
   virtual HwSwitchStateOperUpdateResult stateChanged(
       const std::vector<fsdb::OperDelta>& deltas,
       bool transaction,
-      const std::shared_ptr<SwitchState>& initialState,
+      const std::shared_ptr<SwitchState>& oldState,
+      const std::shared_ptr<SwitchState>& newState,
       const HwWriteBehavior& hwWriteBehavior = HwWriteBehavior::WRITE) = 0;
 
   virtual std::map<PortID, FabricEndpoint> getFabricConnectivity() const = 0;
@@ -128,6 +129,7 @@ class HwSwitchHandler {
   HwSwitchStateOperUpdateResult stateChangedImpl(
       const std::vector<fsdb::OperDelta>& deltas,
       bool transaction,
+      const std::shared_ptr<SwitchState>& oldState,
       const std::shared_ptr<SwitchState>& newState,
       const HwWriteBehavior& hwWriteBehavior = HwWriteBehavior::WRITE);
 

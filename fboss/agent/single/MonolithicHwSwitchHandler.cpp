@@ -202,6 +202,7 @@ std::pair<fsdb::OperDelta, HwSwitchStateUpdateStatus>
 MonolithicHwSwitchHandler::stateChanged(
     const std::vector<fsdb::OperDelta>& deltas,
     bool transaction,
+    const std::shared_ptr<SwitchState>& /*oldState*/,
     const std::shared_ptr<SwitchState>& /*newState*/,
     const HwWriteBehavior& hwWriteBehavior) {
   auto operResult = transaction
