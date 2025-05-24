@@ -116,11 +116,13 @@ TEST_F(SwSwitchHandlerTest, GetOperDelta) {
     std::this_thread::sleep_for(std::chrono::milliseconds{random() % 100});
   };
 
+  std::vector<StateDelta> deltas;
+  deltas.emplace_back(stateV0, stateV1);
   auto delta = StateDelta(stateV0, stateV1);
-  std::thread stateUpdateThread([this, &delta, &addRandomDelay, &stateV1]() {
+  std::thread stateUpdateThread([this, &deltas, &addRandomDelay, &stateV1]() {
     getHwSwitchHandler()->waitUntilHwSwitchConnected();
     addRandomDelay();
-    auto stateReturned = getHwSwitchHandler()->stateChanged(delta, false);
+    auto stateReturned = getHwSwitchHandler()->stateChanged(deltas, false);
     EXPECT_EQ(stateReturned, stateV1);
     // Switch 1 cancels request
     getHwSwitchHandler()->notifyHwSwitchGracefulExit(1);
@@ -182,14 +184,25 @@ TEST_F(SwSwitchHandlerTest, partialUpdateAndFullSync) {
   stateV0->publish();
   auto stateV1 = getInitialTestState();
   stateV1->publish();
-  /* initial update delta */
-  auto delta = StateDelta(stateV0, stateV1);
   auto stateV2 = this->addAcl(stateV1, 1);
   stateV2->publish();
+  auto stateV3 = this->addAcl(stateV2, 2);
+  stateV3->publish();
+  auto stateV4 = this->addAcl(stateV3, 3);
+  stateV4->publish();
+
+  /* initial update delta */
+  std::vector<StateDelta> deltas;
+  deltas.emplace_back(stateV0, stateV1);
+  deltas.emplace_back(stateV1, stateV2);
+  auto delta = StateDelta(stateV1, stateV2);
   /* second update delta */
-  auto delta2 = StateDelta(stateV1, stateV2);
+  std::vector<StateDelta> deltas2;
+  deltas2.emplace_back(stateV2, stateV3);
+  deltas2.emplace_back(stateV3, stateV4);
+  auto delta2 = StateDelta(stateV3, stateV4);
   /* full update delta */
-  auto delta3 = StateDelta(stateV0, stateV2);
+  auto delta3 = StateDelta(stateV0, stateV4);
 
   getHwSwitchHandler()->connected(SwitchID(1));
   sw_->init(HwWriteBehavior::WRITE, SwitchFlags::DEFAULT);
@@ -198,19 +211,19 @@ TEST_F(SwSwitchHandlerTest, partialUpdateAndFullSync) {
       StateDelta(std::make_shared<SwitchState>(), sw_->getState()), false);
 
   std::thread stateUpdateThread([this,
-                                 &delta,
-                                 &stateV1,
-                                 &delta2,
+                                 &deltas,
                                  &stateV2,
+                                 &deltas2,
+                                 &stateV4,
                                  &client2FinishedBaton,
                                  &client1InitialSyncBaton]() {
     // wait for client 1 to do initial sync
     client1InitialSyncBaton.wait();
     /* state update should succeed */
-    auto stateReturned = getHwSwitchHandler()->stateChanged(delta, true);
-    EXPECT_EQ(stateReturned, stateV1);
-    auto stateReturned2 = getHwSwitchHandler()->stateChanged(delta2, true);
-    EXPECT_EQ(stateReturned2, stateV2);
+    auto stateReturned = getHwSwitchHandler()->stateChanged(deltas, true);
+    EXPECT_EQ(stateReturned, stateV2);
+    auto stateReturned2 = getHwSwitchHandler()->stateChanged(deltas2, true);
+    EXPECT_EQ(stateReturned2, stateV4);
     // wait for client 2 to do full sync
     client2FinishedBaton.wait();
     getHwSwitchHandler()->stop();
@@ -299,25 +312,24 @@ TEST_F(SwSwitchHandlerTest, rollbackFailedHwSwitchUpdate) {
   stateV0->publish();
   auto stateV1 = getInitialTestState();
   stateV1->publish();
-  auto delta = StateDelta(stateV0, stateV1);
   auto stateV2 = this->addAcl(stateV1, 1);
   stateV2->publish();
-  auto delta2 = StateDelta(stateV1, stateV2);
-  auto delta3 = StateDelta(stateV0, stateV2);
 
-  std::thread stateUpdateThread([this, &delta, &stateV0]() {
+  /* initial update delta */
+  std::vector<StateDelta> deltas;
+  deltas.emplace_back(stateV0, stateV1);
+  deltas.emplace_back(stateV1, stateV2);
+  auto delta2 = StateDelta(stateV1, stateV2);
+
+  std::thread stateUpdateThread([this, &deltas, &stateV0]() {
     getHwSwitchHandler()->waitUntilHwSwitchConnected();
-    auto stateReturned = getHwSwitchHandler()->stateChanged(delta, false);
+    auto stateReturned = getHwSwitchHandler()->stateChanged(deltas, false);
     // update should rollback
     EXPECT_EQ(stateReturned, stateV0);
     getHwSwitchHandler()->stop();
   });
-  auto clientThreadBody = [this,
-                           &stateV0,
-                           &stateV1,
-                           &stateV2,
-                           &delta2,
-                           &delta3](int64_t switchId) {
+  auto clientThreadBody = [this, &stateV0, &stateV1, &stateV2, &delta2](
+                              int64_t switchId) {
     int64_t ackNum{0};
     OperDeltaFilter filter((SwitchID(switchId)));
     // connect and get next state delta
@@ -387,11 +399,26 @@ TEST_F(SwSwitchHandlerTest, reconnectingHwSwitch) {
   stateV2->publish();
   auto stateV3 = this->addAcl(stateV2, 2);
   stateV3->publish();
-  auto delta = StateDelta(stateV0, stateV1);
-  auto delta2 = StateDelta(stateV1, stateV2);
-  auto delta2Full = StateDelta(stateV0, stateV2);
-  auto delta3 = StateDelta(stateV2, stateV3);
-  auto delta4 = StateDelta(stateV0, stateV3);
+  auto stateV4 = this->addAcl(stateV2, 3);
+  stateV4->publish();
+  auto stateV5 = this->addAcl(stateV4, 4);
+  stateV5->publish();
+
+  std::vector<StateDelta> deltas;
+  deltas.emplace_back(stateV0, stateV1);
+  deltas.emplace_back(stateV1, stateV2);
+  auto delta = StateDelta(stateV1, stateV2);
+  std::vector<StateDelta> deltas2;
+  deltas2.emplace_back(stateV2, stateV3);
+  deltas2.emplace_back(stateV3, stateV4);
+  auto delta2 = StateDelta(stateV3, stateV4);
+  auto delta2Full = StateDelta(stateV0, stateV4);
+  std::vector<StateDelta> deltas3;
+  deltas3.emplace_back(stateV4, stateV5);
+  auto delta3 = StateDelta(stateV4, stateV5);
+  std::vector<StateDelta> deltas4;
+  deltas4.emplace_back(stateV0, stateV5);
+  auto delta4 = StateDelta(stateV0, stateV5);
 
   getHwSwitchHandler()->connected(SwitchID(1));
   getHwSwitchHandler()->connected(SwitchID(2));
@@ -414,13 +441,13 @@ TEST_F(SwSwitchHandlerTest, reconnectingHwSwitch) {
   newHwSwitchHandler->start();
 
   std::thread stateUpdateThread([this,
-                                 &delta,
-                                 &delta2,
-                                 &delta3,
-                                 &delta4,
-                                 &stateV1,
+                                 &deltas,
+                                 &deltas2,
+                                 &deltas3,
+                                 &deltas4,
                                  &stateV2,
-                                 &stateV3,
+                                 &stateV4,
+                                 &stateV5,
                                  &serverUpdateCompletedBaton,
                                  &serverRestartBaton,
                                  &client1InitialSyncBaton,
@@ -430,23 +457,23 @@ TEST_F(SwSwitchHandlerTest, reconnectingHwSwitch) {
     // wait for initial sync to complete on both switches
     client1InitialSyncBaton.wait();
     client2InitialSyncBaton.wait();
-    auto stateReturned = getHwSwitchHandler()->stateChanged(delta, true);
-    EXPECT_EQ(stateReturned, stateV1);
+    auto stateReturned = getHwSwitchHandler()->stateChanged(deltas, true);
+    EXPECT_EQ(stateReturned, stateV2);
     // Switch 2 cancels request
     getHwSwitchHandler()->notifyHwSwitchGracefulExit(2);
     // Switch 1 continues to operate
-    stateReturned = getHwSwitchHandler()->stateChanged(delta2, true);
-    EXPECT_EQ(stateReturned, stateV2);
+    stateReturned = getHwSwitchHandler()->stateChanged(deltas2, true);
+    EXPECT_EQ(stateReturned, stateV4);
     serverUpdateCompletedBaton.post();
     // wait for client 2 to resync
     clientResyncBaton.wait();
     // resume normal updates
-    stateReturned = getHwSwitchHandler()->stateChanged(delta3, true);
-    EXPECT_EQ(stateReturned, stateV3);
+    stateReturned = getHwSwitchHandler()->stateChanged(deltas3, true);
+    EXPECT_EQ(stateReturned, stateV5);
     getHwSwitchHandler()->stop();
     // server restarts
     serverRestartBaton.post();
-    stateReturned = newHwSwitchHandler->stateChanged(delta4, false);
+    stateReturned = newHwSwitchHandler->stateChanged(deltas4, false);
     newHwSwitchHandler->stop();
   });
 
@@ -573,6 +600,8 @@ TEST_F(SwSwitchHandlerTest, switchRunStateTest) {
   folly::Baton<> client1StartBaton;
   folly::Baton<> client2StartBaton;
 
+  std::vector<StateDelta> deltas;
+  deltas.emplace_back(stateV0, stateV1);
   auto delta = StateDelta(stateV0, stateV1);
   auto checkState = [&](auto state,
                         std::optional<int32_t> switchId = std::nullopt) {
@@ -587,7 +616,7 @@ TEST_F(SwSwitchHandlerTest, switchRunStateTest) {
     });
   };
   checkState(SwitchRunState::UNINITIALIZED);
-  getHwSwitchHandler()->stateChanged(delta, true);
+  getHwSwitchHandler()->stateChanged(deltas, true);
 
   std::thread stateUpdateThread([this,
                                  &delta,
@@ -792,15 +821,17 @@ TEST_F(SwSwitchHandlerTest, operAckTimeoutCount) {
   auto stateV0 = std::make_shared<SwitchState>();
   auto stateV1 = getInitialTestState();
 
+  std::vector<StateDelta> deltas;
+  deltas.emplace_back(stateV0, stateV1);
   auto delta = StateDelta(stateV0, stateV1);
-  std::thread stateUpdateThread([this, &delta]() {
+  std::thread stateUpdateThread([this, &deltas]() {
     getHwSwitchHandler()->waitUntilHwSwitchConnected();
     CounterCache counters(sw_.get());
     counters.update();
     auto prevCounter = counters.value(
         SwitchStats::kCounterPrefix + "switch." + folly::to<std::string>(0) +
         ".hwupdate_timeouts.sum.60");
-    auto stateReturned = getHwSwitchHandler()->stateChanged(delta, false);
+    auto stateReturned = getHwSwitchHandler()->stateChanged(deltas, false);
     WITH_RETRIES({
       counters.update();
       EXPECT_EVENTUALLY_EQ(
