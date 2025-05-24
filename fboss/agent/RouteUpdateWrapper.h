@@ -106,6 +106,10 @@ class RouteUpdateWrapper {
       const std::vector<folly::CIDRNetwork>& prefixes,
       std::optional<cfg::AclLookupClass> classId,
       bool async);
+  void programEcmpSwitchingModeAsync(
+      RouterID rid,
+      const std::map<folly::CIDRNetwork, std::optional<cfg::SwitchingMode>>&
+          prefixes);
 
  private:
   RoutingInformationBase* getRib() {
