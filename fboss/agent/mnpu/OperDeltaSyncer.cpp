@@ -114,15 +114,13 @@ void OperDeltaSyncer::operSyncLoop() {
         lastUpdateResult = processFullOperDelta(
             stateOperDelta, *stateOperDelta.hwWriteBehavior());
       } else {
-        // TODO (ravi) convert to send operDeltas
-        CHECK_EQ(stateOperDelta.operDeltas()->size(), 1);
         auto oldState = hw_->getProgrammedState();
         lastUpdateResult = stateOperDelta.transaction().value()
             ? hw_->stateChangedTransaction(
-                  stateOperDelta.operDeltas()->back(),
+                  *stateOperDelta.operDeltas(),
                   HwWriteBehaviorRAII(*stateOperDelta.hwWriteBehavior()))
             : hw_->stateChanged(
-                  stateOperDelta.operDeltas()->back(),
+                  *stateOperDelta.operDeltas(),
                   HwWriteBehaviorRAII(*stateOperDelta.hwWriteBehavior()));
         if (lastUpdateResult.changes()->empty()) {
           hw_->getPlatform()->stateChanged(
@@ -158,9 +156,8 @@ fsdb::OperDelta OperDeltaSyncer::processFullOperDelta(
     oldState = deltas.back().newState();
     prevState = deltas.back().newState();
   }
-  // TODO (ravi) convert to send full vector
   auto appliedState =
-      hw_->stateChanged(deltas.back(), HwWriteBehaviorRAII(hwWriteBehavior));
+      hw_->stateChanged(deltas, HwWriteBehaviorRAII(hwWriteBehavior));
   // return empty oper delta to indicate success. If update was not successful,
   // hwswitch would have crashed.
   CHECK(isStateDeltaEmpty(StateDelta(deltas.back().newState(), appliedState)));

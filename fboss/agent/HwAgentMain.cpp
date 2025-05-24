@@ -123,8 +123,9 @@ void SplitHwAgentSignalHandler::signalReceived(int /*signum*/) noexcept {
       // for cold boot and HwAgent shutdown for cold boot. this is because two
       // agents may indepdently shutdown for cold boot and regardless of the
       // order of shutdown this constraint must be satisfied.
-      hwAgent_->getPlatform()->getHwSwitch()->stateChanged(
-          StateDelta(programmedState, alpmState));
+      std::vector<StateDelta> deltas;
+      deltas.emplace_back(programmedState, alpmState);
+      hwAgent_->getPlatform()->getHwSwitch()->stateChanged(deltas);
     }
     // invoke destructors
     XLOG(DBG2) << "[Exit] destroying hardware agent";

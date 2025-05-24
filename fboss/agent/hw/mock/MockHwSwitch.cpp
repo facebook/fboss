@@ -59,10 +59,9 @@ MockHwSwitch::MockHwSwitch(MockPlatform* platform) : platform_(platform) {
         return deltas.back().newState();
       }));
   ON_CALL(*this, stateChangedTransaction(_, _))
-      .WillByDefault(
-          Invoke([](const StateDelta& delta, const HwWriteBehaviorRAII&) {
-            return delta.newState();
-          }));
+      .WillByDefault(Invoke(
+          [](const std::vector<StateDelta>& deltas,
+             const HwWriteBehaviorRAII&) { return deltas.back().newState(); }));
   if (FLAGS_enable_hw_update_protection) {
     ON_CALL(*this, transactionsSupported()).WillByDefault(Return(true));
   } else {

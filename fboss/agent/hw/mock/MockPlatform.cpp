@@ -59,8 +59,10 @@ MockPlatform::MockPlatform(
             return deltas.back().newState();
           })));
   ON_CALL(*hw_, stateChangedTransaction(_, _))
-      .WillByDefault(WithArg<0>(
-          Invoke([=](const StateDelta& delta) { return delta.newState(); })));
+      .WillByDefault(
+          WithArg<0>(Invoke([=](const std::vector<StateDelta>& deltas) {
+            return deltas.back().newState();
+          })));
   for (const auto& portEntry : getPlatformMapping()->getPlatformPorts()) {
     auto portID = PortID(portEntry.first);
     portMapping_.emplace(

@@ -89,8 +89,8 @@ void checkUnsupportedDelta(const Delta& delta, Mgr& mgr) {
 class HwSwitch {
  public:
   using Callback = HwSwitchCallback;
-  using StateChangedFn =
-      std::function<std::shared_ptr<SwitchState>(const StateDelta& delta)>;
+  using StateChangedFn = std::function<std::shared_ptr<SwitchState>(
+      const std::vector<StateDelta>& delta)>;
 
   enum FeaturesDesired : uint32_t {
     PACKET_RX_DESIRED = 0x01,
@@ -158,7 +158,7 @@ class HwSwitch {
    * @ret   The actual state that was applied in the hardware.
    */
   std::shared_ptr<SwitchState> stateChanged(
-      const StateDelta& delta,
+      const std::vector<StateDelta>& deltas,
       const HwWriteBehaviorRAII& behavior =
           HwWriteBehaviorRAII(HwWriteBehavior::WRITE));
 
@@ -166,7 +166,7 @@ class HwSwitch {
       const std::vector<StateDelta>& delta) = 0;
 
   virtual std::shared_ptr<SwitchState> stateChangedTransaction(
-      const StateDelta& delta,
+      const std::vector<StateDelta>& deltas,
       const HwWriteBehaviorRAII& behavior =
           HwWriteBehaviorRAII(HwWriteBehavior::WRITE));
   virtual void rollback(const StateDelta& delta) noexcept;
@@ -372,11 +372,11 @@ class HwSwitch {
 
   std::shared_ptr<SwitchState> getProgrammedState() const;
   fsdb::OperDelta stateChanged(
-      const fsdb::OperDelta& delta,
+      const std::vector<fsdb::OperDelta>& deltas,
       const HwWriteBehaviorRAII& behavior =
           HwWriteBehaviorRAII(HwWriteBehavior::WRITE));
   fsdb::OperDelta stateChangedTransaction(
-      const fsdb::OperDelta& delta,
+      const std::vector<fsdb::OperDelta>& deltas,
       const HwWriteBehaviorRAII& behavior =
           HwWriteBehaviorRAII(HwWriteBehavior::WRITE));
 

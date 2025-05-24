@@ -1382,6 +1382,7 @@ cpp_library(
         ":packet",
         ":stats",
         "//fboss/agent/if:multiswitch_ctrl-cpp2-services",
+        "//fboss/agent/state:state",
     ],
 )
 

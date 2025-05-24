@@ -6,6 +6,7 @@
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/TxPacket.h"
+#include "fboss/agent/state/StateDelta.h"
 
 DEFINE_int32(oper_delta_ack_timeout, 600, "Oper delta ack timeout in seconds");
 
@@ -106,10 +107,8 @@ MultiSwitchHwSwitchHandler::stateChanged(
     bool transaction,
     const std::shared_ptr<SwitchState>& newState,
     const HwWriteBehavior& hwWriteBehavior) {
-  // TODO (ravi) until HwSwitch support vector delta processing
-  CHECK_LE(deltas.size(), 1);
-  auto& delta = deltas.back();
   multiswitch::StateOperDelta stateDelta;
+  CHECK_GE(deltas.size(), 1);
   {
     std::unique_lock<std::mutex> lk(stateUpdateMutex_);
     SCOPE_EXIT {
@@ -122,8 +121,10 @@ MultiSwitchHwSwitchHandler::stateChanged(
             HwSwitchOperDeltaSyncState::DISCONNECTED, lk) ||
         checkOperSyncStateLocked(HwSwitchOperDeltaSyncState::CANCELLED, lk)) {
       // return incoming delta to indicate that none of the changes were applied
+      // TODO (ravi) return full operDelta from vector of deltas
       return {
-          delta, HwSwitchStateUpdateStatus::HWSWITCH_STATE_UPDATE_CANCELLED};
+          deltas.front(),
+          HwSwitchStateUpdateStatus::HWSWITCH_STATE_UPDATE_CANCELLED};
     }
     // block state update till hwswitch resync is complete
     if (checkOperSyncStateLocked(
@@ -133,14 +134,16 @@ MultiSwitchHwSwitchHandler::stateChanged(
       if (!waitForOperSyncAck(lk, FLAGS_oper_delta_ack_timeout)) {
         setOperSyncStateLocked(HwSwitchOperDeltaSyncState::CANCELLED, lk);
         // initial sync was cancelled
+        // TODO (ravi) return full operDelta from vector of deltas
         return {
-            delta, HwSwitchStateUpdateStatus::HWSWITCH_STATE_UPDATE_CANCELLED};
+            deltas.front(),
+            HwSwitchStateUpdateStatus::HWSWITCH_STATE_UPDATE_CANCELLED};
       }
     }
     fillMultiswitchOperDelta(
         stateDelta,
         prevUpdateSwitchState_,
-        delta,
+        deltas,
         transaction,
         currOperDeltaSeqNum_,
         hwWriteBehavior);
@@ -169,8 +172,10 @@ MultiSwitchHwSwitchHandler::stateChanged(
     } else {
       setOperSyncStateLocked(HwSwitchOperDeltaSyncState::CANCELLED, lk);
       // return incoming delta to indicate that none of the changes were applied
+      // TODO (ravi) return full operDelta from vector of deltas
       return {
-          delta, HwSwitchStateUpdateStatus::HWSWITCH_STATE_UPDATE_CANCELLED};
+          deltas.front(),
+          HwSwitchStateUpdateStatus::HWSWITCH_STATE_UPDATE_CANCELLED};
     }
   }
 }
@@ -366,12 +371,10 @@ bool MultiSwitchHwSwitchHandler::waitForOperDeltaReady(
 void MultiSwitchHwSwitchHandler::fillMultiswitchOperDelta(
     multiswitch::StateOperDelta& stateDelta,
     const std::shared_ptr<SwitchState>& state,
-    const fsdb::OperDelta& delta,
+    const std::vector<fsdb::OperDelta>& deltas,
     bool transaction,
     int64_t lastSeqNum,
     const HwWriteBehavior& hwWriteBehavior) {
-  // TODO (ravi) convert above delta to vector
-  std::vector<fsdb::OperDelta> deltas = {delta};
   // Send full delta if this is first switchstate update.
   // Sequence number 0 indicates first update
   if (lastSeqNum == 0) {

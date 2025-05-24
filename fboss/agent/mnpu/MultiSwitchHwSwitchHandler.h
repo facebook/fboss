@@ -89,7 +89,7 @@ class MultiSwitchHwSwitchHandler : public HwSwitchHandler {
   void fillMultiswitchOperDelta(
       multiswitch::StateOperDelta& stateDelta,
       const std::shared_ptr<SwitchState>& state,
-      const fsdb::OperDelta& delta,
+      const std::vector<fsdb::OperDelta>& deltas,
       bool transaction,
       int64_t lastSeqNum,
       const HwWriteBehavior& hwWriteBehavior = HwWriteBehavior::WRITE);
