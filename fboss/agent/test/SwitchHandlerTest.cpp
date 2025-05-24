@@ -81,11 +81,22 @@ class SwSwitchHandlerTest : public ::testing::Test {
     addSwitchSettings(SwitchID(1));
     addSwitchSettings(SwitchID(2));
     state->resetSwitchSettings(std::move(multiSwitchSwitchSettings));
-    auto aclEntry = make_shared<AclEntry>(0, std::string("acl1"));
+    auto aclEntry = make_shared<AclEntry>(0, std::string("acl0"));
     auto acls = state->getAcls();
     acls->addNode(aclEntry, scope());
     state->resetAcls(acls);
     return state;
+  }
+
+  std::shared_ptr<SwitchState> addAcl(
+      const std::shared_ptr<SwitchState>& state,
+      int idx) {
+    auto newState = state->clone();
+    auto aclEntry =
+        make_shared<AclEntry>(idx, folly::to<std::string>("acl", idx));
+    auto acls = newState->getAcls()->modify(&newState);
+    acls->addNode(aclEntry, scope());
+    return newState;
   }
 
   MultiHwSwitchHandler* getHwSwitchHandler() {
@@ -173,10 +184,7 @@ TEST_F(SwSwitchHandlerTest, partialUpdateAndFullSync) {
   stateV1->publish();
   /* initial update delta */
   auto delta = StateDelta(stateV0, stateV1);
-  auto stateV2 = stateV1->clone();
-  auto aclEntry2 = make_shared<AclEntry>(1, std::string("acl2"));
-  auto aclsV2 = stateV2->getAcls()->modify(&stateV2);
-  aclsV2->addNode(aclEntry2, scope());
+  auto stateV2 = this->addAcl(stateV1, 1);
   stateV2->publish();
   /* second update delta */
   auto delta2 = StateDelta(stateV1, stateV2);
@@ -292,10 +300,7 @@ TEST_F(SwSwitchHandlerTest, rollbackFailedHwSwitchUpdate) {
   auto stateV1 = getInitialTestState();
   stateV1->publish();
   auto delta = StateDelta(stateV0, stateV1);
-  auto stateV2 = stateV1->clone();
-  auto aclEntry2 = make_shared<AclEntry>(1, std::string("acl2"));
-  auto aclsV2 = stateV2->getAcls()->modify(&stateV2);
-  aclsV2->addNode(aclEntry2, scope());
+  auto stateV2 = this->addAcl(stateV1, 1);
   stateV2->publish();
   auto delta2 = StateDelta(stateV1, stateV2);
   auto delta3 = StateDelta(stateV0, stateV2);
@@ -378,15 +383,9 @@ TEST_F(SwSwitchHandlerTest, reconnectingHwSwitch) {
   stateV0->publish();
   auto stateV1 = getInitialTestState();
   stateV1->publish();
-  auto stateV2 = stateV1->clone();
-  auto aclEntry2 = make_shared<AclEntry>(1, std::string("acl2"));
-  auto aclsV2 = stateV2->getAcls()->modify(&stateV2);
-  aclsV2->addNode(aclEntry2, scope());
+  auto stateV2 = this->addAcl(stateV1, 1);
   stateV2->publish();
-  auto stateV3 = stateV2->clone();
-  auto aclEntry3 = make_shared<AclEntry>(2, std::string("acl3"));
-  auto aclsV3 = stateV3->getAcls()->modify(&stateV3);
-  aclsV3->addNode(aclEntry3, scope());
+  auto stateV3 = this->addAcl(stateV2, 2);
   stateV3->publish();
   auto delta = StateDelta(stateV0, stateV1);
   auto delta2 = StateDelta(stateV1, stateV2);
