@@ -90,6 +90,18 @@ class SwSwitchUpdateProcessingTest : public ::testing::TestWithParam<bool> {
     mirrors->updateNode(mirror, HwSwitchMatcher::defaultHwSwitchMatcher());
     return newState;
   }
+
+  std::shared_ptr<SwitchState> addAcl(
+      const std::shared_ptr<SwitchState>& state,
+      int idx) {
+    auto newState = state->clone();
+    auto aclEntry =
+        make_shared<AclEntry>(idx, folly::to<std::string>("acl", idx));
+    auto acls = newState->getAcls()->modify(&newState);
+    acls->addNode(aclEntry, HwSwitchMatcher::defaultHwSwitchMatcher());
+    newState->publish();
+    return newState;
+  }
   SwSwitch* sw{nullptr};
   std::unique_ptr<HwTestHandle> handle{nullptr};
 };
@@ -287,6 +299,44 @@ TEST_P(SwSwitchUpdateProcessingTest, HwFailureProtectedUpdatesDuringExit) {
   updateThread.join();
   updateThread2.join();
   EXPECT_EQ(startState, sw->getState());
+}
+
+TEST_P(SwSwitchUpdateProcessingTest, ProcessDeltaVector) {
+  auto startV0 = sw->getState();
+  startV0->publish();
+
+  auto startV1 = this->addAcl(startV0, 1);
+  startV1->publish();
+  auto startV2 = this->addAcl(startV1, 2);
+  startV2->publish();
+  auto startV3 = this->addAcl(startV2, 3);
+  startV3->publish();
+
+  std::vector<StateDelta> deltas;
+  deltas.emplace_back(startV0, startV1);
+  deltas.emplace_back(startV1, startV2);
+  deltas.emplace_back(startV2, startV3);
+
+  {
+    // Reject the update
+    setStateChangedReturn(front);
+    auto ret = sw->getHwSwitchHandler()->stateChanged(deltas, GetParam());
+    EXPECT_EQ(*ret, *startV0);
+  }
+  {
+    // Reject 2nd update
+    setStateChangedReturn([](const std::vector<StateDelta>& deltas) {
+      return deltas[1].oldState();
+    });
+    auto ret = sw->getHwSwitchHandler()->stateChanged(deltas, GetParam());
+    EXPECT_EQ(*ret, *startV1);
+  }
+  {
+    // accept the update
+    setStateChangedReturn(back);
+    auto ret = sw->getHwSwitchHandler()->stateChanged(deltas, GetParam());
+    EXPECT_EQ(*ret, *startV3);
+  }
 }
 
 INSTANTIATE_TEST_CASE_P(
