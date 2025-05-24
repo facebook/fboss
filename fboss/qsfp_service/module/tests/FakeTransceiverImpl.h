@@ -164,5 +164,10 @@ class Cmis400GDr4Transceiver : public FakeTransceiverImpl {
   explicit Cmis400GDr4Transceiver(int module, TransceiverManager* mgr);
 };
 
+class Cmis2x800GDr4Transceiver : public FakeTransceiverImpl {
+ public:
+  explicit Cmis2x800GDr4Transceiver(int module, TransceiverManager* mgr);
+};
+
 } // namespace fboss
 } // namespace facebook
