@@ -962,6 +962,7 @@ cpp_unittest(
     deps = [
         ":hw_test_handle",
         ":utils",
+        "//fboss/agent:address_utils",
         "//fboss/agent:agent_features",
         "//fboss/agent:core",
         "//fboss/agent:ecmp_resource_manager",
