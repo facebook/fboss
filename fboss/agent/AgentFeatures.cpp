@@ -306,3 +306,5 @@ DEFINE_bool(
     update_route_with_dlb_type,
     false,
     "Flag to perform a DLB type update in FIB state");
+
+DEFINE_int32(agent_exit_delay_s, 0, "Delay in seconds before the agent exits");
