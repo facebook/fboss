@@ -216,10 +216,10 @@ TEST_F(NextHopIdAllocatorTest, updateAllRouteNhops) {
     auto newState = state_->clone();
     auto fib6 = fib(newState);
     auto routesBefore = fib6->size();
-    // Previously nhop group Id set was {1} and we updated all 10 routes. Since
+    // Previously nhop group Id set was {1} and we updated all 5 routes. Since
     // we account for both before and current nhop  group Ids when allocating
     // next IDs, the IDs generated will be 2 - 11
-    std::set<NextHopGroupId> expectedNhopIds{2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
+    std::set<NextHopGroupId> expectedNhopIds{2, 3, 4, 5, 6};
     for (auto i = 0; i < routesBefore; ++i) {
       curNhops.erase(curNhops.begin());
       CHECK(curNhops.size());
@@ -232,12 +232,11 @@ TEST_F(NextHopIdAllocatorTest, updateAllRouteNhops) {
     auto newState = state_->clone();
     auto fib6 = fib(newState);
     auto routesBefore = fib6->size();
-    // Previously nhop group Id set was {2, 3, 4, 5, 6, 7, 8, 9, 10, 11}
+    // Previously nhop group Id set was {2, 3, 4, 5, 6}
     // and we updated all 10 routes. Since
     // we account for both before and current nhop  group Ids when allocating
-    // next IDs, the IDs generated will be {1, 12 - 20}
-    std::set<NextHopGroupId> expectedNhopIds{
-        1, 12, 13, 14, 15, 16, 17, 18, 19, 20};
+    // next IDs, the IDs generated will be {1, 7 - 10}
+    std::set<NextHopGroupId> expectedNhopIds{1, 7, 8, 9, 10};
     for (auto i = 0; i < routesBefore; ++i) {
       curNhops.erase(curNhops.begin());
       CHECK(curNhops.size());

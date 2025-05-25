@@ -27,7 +27,7 @@ namespace facebook::fboss {
 
 class EcmpResourceManagerRibFibTest : public ::testing::Test {
  public:
-  static constexpr auto kNumIntfs = 15;
+  static constexpr auto kNumIntfs = 20;
   void SetUp() override {
     FLAGS_enable_ecmp_resource_manager = true;
     FLAGS_ecmp_resource_percentage = 100;
