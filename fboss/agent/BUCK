@@ -951,7 +951,6 @@ cpp_library(
         "//scribe/client:scribe_client_no_sr",
         "//servicerouter/client/cpp2:cpp2",
         "//thrift/lib/cpp/util:enum_utils",
-        "//thrift/lib/cpp2/async:header_client_channel",
         "//thrift/lib/cpp2/async:pooled_request_channel",
         "//thrift/lib/cpp2/async:reconnecting_request_channel",
         "//thrift/lib/cpp2/async:request_channel",

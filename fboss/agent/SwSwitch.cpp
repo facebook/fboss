@@ -95,6 +95,7 @@
 #include "fboss/lib/restart_tracker/RestartTimeTracker.h"
 #include "fboss/util/Logging.h"
 
+#include <boost/functional/hash.hpp>
 #include <fb303/ServiceData.h>
 #include <folly/Demangle.h>
 #include <folly/FileUtil.h>
@@ -107,7 +108,6 @@
 #include <folly/system/ThreadName.h>
 #include <glog/logging.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
-#include <thrift/lib/cpp2/async/HeaderClientChannel.h>
 #include <thrift/lib/cpp2/async/RequestChannel.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 

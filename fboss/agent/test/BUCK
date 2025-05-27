@@ -564,7 +564,7 @@ cpp_library(
         "//fboss/agent/test/utils:qos_test_utils",
         "//fboss/lib:common_utils",
         "//folly:string",
-        "//thrift/lib/cpp2/async:header_client_channel",
+        "//thrift/lib/cpp2/async:rocket_client_channel",
     ],
     exported_external_deps = [
         "gflags",
@@ -605,8 +605,6 @@ cpp_library(
         "//folly/init:init",
         "//openr/common:network_util",
         "//openr/if:if-cpp-cpp2-services",
-        "//servicerouter/client/cpp2:client_factory",
-        "//servicerouter/client/cpp2:cpp2",
     ],
 )
 

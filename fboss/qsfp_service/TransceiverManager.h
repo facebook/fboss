@@ -22,7 +22,6 @@
 #include "fboss/lib/phy/PhyManager.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/lib/phy/gen-cpp2/prbs_types.h"
-#include "fboss/lib/platforms/PlatformMode.h"
 #include "fboss/lib/usb/TransceiverI2CApi.h"
 #include "fboss/lib/usb/TransceiverPlatformApi.h"
 #include "fboss/qsfp_service/QsfpConfig.h"
@@ -782,7 +781,7 @@ class TransceiverManager {
     TransceiverID tcvrID_;
     folly::Synchronized<state_machine<TransceiverStateMachine>> stateMachine_;
     // Can't use ScopedEventBaseThread as it won't work well with
-    // handcrafted HeaderClientChannel client instead of servicerouter client
+    // handcrafted RocketClientChannel client instead of servicerouter client
     std::unique_ptr<std::thread> updateThread_;
     std::unique_ptr<folly::EventBase> updateEventBase_;
     std::shared_ptr<ThreadHeartbeat> heartbeat_;

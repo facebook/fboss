@@ -222,7 +222,7 @@ cpp_binary(
     ],
     deps = [
         "//fboss/agent/if:ctrl-cpp2-services",
-        "//thrift/lib/cpp2/async:header_client_channel",
+        "//thrift/lib/cpp2/async:rocket_client_channel",
     ],
 )
 
