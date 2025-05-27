@@ -214,7 +214,7 @@ class AgentVoqSwitchIsolationFirmwareTest : public AgentVoqSwitchTest {
     }
   }
 
- private:
+ protected:
   void setCmdLineFlagOverrides() const override {
     AgentHwTest::setCmdLineFlagOverrides();
     FLAGS_hide_fabric_ports = false;
@@ -226,6 +226,7 @@ class AgentVoqSwitchIsolationFirmwareTest : public AgentVoqSwitchTest {
     FLAGS_sdk_reg_dump_path_prefix = sdkRegDumpPathPrefix_;
   }
 
+ private:
   std::string sdkRegDumpPathPrefix_{"/tmp/sdk_reg_dump"};
 };
 
@@ -235,7 +236,13 @@ class AgentVoqSwitchIsolationFirmwareWBEventsTest
   static uint16_t fwCapableSwitchIndex;
 
  public:
-  static constexpr auto kEventDelay = 20;
+  static constexpr auto kEventDelay = 30;
+
+ private:
+  void setCmdLineFlagOverrides() const override {
+    AgentVoqSwitchIsolationFirmwareTest::setCmdLineFlagOverrides();
+    FLAGS_agent_exit_delay_s = 60;
+  }
   void tearDownAgentEnsemble(bool warmboot = false) override {
     // We check for agentEnsemble not being NULL since the tests
     // are also invoked for just listing their prod features.
@@ -264,11 +271,6 @@ class AgentVoqSwitchIsolationFirmwareWBEventsTest
               fwCrashedCounters.size() == 1 &&
               fwCrashedCounters.begin()->second == 0);
         });
-
-        XLOG(ERR)
-            << "Allow for Firmware Isolate callback to fire post cb unregister, sleep for "
-            << kEventDelay * 2 << " seconds";
-        sleep(kEventDelay * 2);
       }
     });
     AgentHwTest::tearDownAgentEnsemble(warmboot);
@@ -355,6 +357,8 @@ TEST_F(
   auto setup = [this]() {
     assertPortAndDrainState(false /* not drained*/);
     setMinLinksConfig();
+    XLOG(ERR)
+        << "Schedule a delayed isolate in the firmware. Agent would have unregistered SDK callbacks by that time.";
     forceIsolate(kEventDelay);
     /*
     Issue: The force_isolate command sometimes doesn't get flushed through the
