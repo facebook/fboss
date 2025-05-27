@@ -77,7 +77,7 @@ class EcmpBackupGroupTypeTest : public BaseEcmpResourceManagerTest {
       const std::shared_ptr<SwitchState>& targetState,
       const std::shared_ptr<SwitchState>& endStatePrefixes,
       const std::set<RouteV6::Prefix>& overflowPrefixes) {
-    EXPECT_EQ(state_->getFibs()->getNode(RouterID(0))->getFibV4()->size(), 0);
+    EXPECT_EQ(state_->getFibs()->getNode(RouterID(0))->getFibV4()->size(), 1);
     for (auto [_, inRoute] : std::as_const(*cfib(endStatePrefixes))) {
       auto route = cfib(targetState)->exactMatch(inRoute->prefix());
       ASSERT_TRUE(route->isResolved());
@@ -757,7 +757,11 @@ TEST_F(EcmpBackupGroupTypeTest, resetBackupSwitchingModeProhibited) {
                             ->getNode(hwMatcher().matcherString())
                             ->modify(&newState);
   switchSettings->setFlowletSwitchingConfig(nullptr);
-  EXPECT_THROW(consolidate(newState), FbossError);
+  auto newConsolidator = makeResourceMgr();
+  newConsolidator->reconstructFromSwitchState(oldState);
+  newConsolidator->updateDone();
+  EXPECT_THROW(
+      newConsolidator->consolidate(StateDelta(oldState, newState)), FbossError);
 }
 
 TEST_F(EcmpBackupGroupTypeTest, changeSwitchingModeAndFailUpdate) {

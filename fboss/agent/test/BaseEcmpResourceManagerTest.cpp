@@ -81,17 +81,15 @@ std::vector<StateDelta> BaseEcmpResourceManagerTest::consolidate(
     const std::shared_ptr<SwitchState>& state) {
   state->publish();
   StateDelta delta(state_, state);
+  updateFlowletSwitchingConfig(state);
+  updateRoutes(state);
   auto deltas = consolidator_->consolidate(delta);
   consolidator_->updateDone();
   if (deltas.size()) {
     XLOG(DBG2) << " Checking deltas, num deltas: " << deltas.size();
     assertDeltasForOverflow(deltas);
-    state_ = deltas.back().newState();
-  } else {
-    state_ = state;
   }
-  state_->publish();
-  EXPECT_EQ(state_->getFibs()->getNode(RouterID(0))->getFibV4()->size(), 0);
+  EXPECT_EQ(state_->getFibs()->getNode(RouterID(0))->getFibV4()->size(), 1);
   /*
    * Assert that EcmpResourceMgr leaves the ports state untouched
    */
@@ -278,24 +276,7 @@ void BaseEcmpResourceManagerTest::SetUp() {
       *sw_->getEcmpResourceManager()->getBackupEcmpSwitchingMode(),
       *cfg.flowletSwitchingConfig()->backupSwitchingMode());
   consolidator_ = makeResourceMgr();
-  state_ = std::make_shared<SwitchState>();
-  state_->getPorts()->modify(&state_);
-  registerPort(state_, PortID(1), "port1", hwMatcher());
-  auto switchSettings = std::make_shared<SwitchSettings>();
-  state_->getSwitchSettings()->addNode(
-      hwMatcher().matcherString(), switchSettings);
-  auto flowletSwitchingConfig = std::make_shared<FlowletSwitchingConfig>();
-  if (consolidator_->getBackupEcmpSwitchingMode()) {
-    flowletSwitchingConfig->setBackupSwitchingMode(
-        *consolidator_->getBackupEcmpSwitchingMode());
-  }
-  switchSettings->setFlowletSwitchingConfig(flowletSwitchingConfig);
-  EXPECT_EQ(state_->getFlowletSwitchingConfig(), flowletSwitchingConfig);
-  auto fibContainer =
-      std::make_shared<ForwardingInformationBaseContainer>(RouterID(0));
-  auto mfib = std::make_shared<MultiSwitchForwardingInformationBaseMap>();
-  mfib->updateForwardingInformationBaseContainer(fibContainer, hwMatcher());
-  state_->resetForwardingInformationBases(mfib);
+  state_ = sw_->getState();
   state_->publish();
   auto newState = state_->clone();
   auto fib6 = fib(newState);
@@ -367,6 +348,7 @@ void BaseEcmpResourceManagerTest::updateRoutes(
 
   updater.program();
   assertRibFibEquivalence();
+  state_ = sw_->getState();
 }
 
 void BaseEcmpResourceManagerTest::assertRibFibEquivalence() const {
