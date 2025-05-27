@@ -12,7 +12,6 @@ cpp_library(
     ],
     link_whole = True,  # Required for gtest to find tests in other files.
     exported_deps = [
-        "//common/process:process",
         "//fboss/agent:core",
         "//fboss/agent/hw/test:config_factory",
         "//fboss/agent/hw/test:hw_packet_utils",
