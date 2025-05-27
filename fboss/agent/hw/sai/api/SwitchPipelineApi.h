@@ -43,7 +43,6 @@ struct SaiSwitchPipelineTraits {
 
   static const std::vector<sai_stat_id_t>& watermarkLevels() {
     static const std::vector<sai_stat_id_t> stats{
-        SAI_SWITCH_PIPELINE_STAT_RX_WATERMARK_LEVELS,
         SAI_SWITCH_PIPELINE_STAT_TX_WATERMARK_LEVELS,
     };
     return stats;
