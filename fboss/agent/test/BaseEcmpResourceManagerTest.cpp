@@ -363,6 +363,21 @@ void BaseEcmpResourceManagerTest::assertRibFibEquivalence() const {
     EXPECT_EQ(ribRoute->getForwardInfo(), route->getForwardInfo());
   }
 }
+
+std::vector<std::shared_ptr<RouteV6>>
+BaseEcmpResourceManagerTest::getPostConfigResolvedRoutes(
+    const std::shared_ptr<SwitchState>& in) const {
+  std::vector<std::shared_ptr<RouteV6>> routes;
+  for (const auto& [_, route] : std::as_const(*cfib(in))) {
+    if (!route->isResolved() || route->isConnected() ||
+        route->getForwardInfo().getNextHopSet().empty()) {
+      continue;
+    }
+    routes.emplace_back(route);
+  }
+  return routes;
+}
+
 std::optional<EcmpResourceManager::NextHopGroupId>
 BaseEcmpResourceManagerTest::getNhopId(const RouteNextHopSet& nhops) const {
   std::optional<EcmpResourceManager::NextHopGroupId> nhopId;
