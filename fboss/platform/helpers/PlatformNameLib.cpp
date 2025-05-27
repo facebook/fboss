@@ -39,6 +39,14 @@ std::string sanitizePlatformName(const std::string& platformNameFromBios) {
     return "MERU800BIA";
   }
 
+  if (platformNameUpper == "ICECUBE") {
+    return "ICECUBE800BC";
+  }
+
+  if (platformNameUpper == "ICETRAY") {
+    return "ICETRAY800BC";
+  }
+
   return platformNameUpper;
 }
 
