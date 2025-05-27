@@ -42,11 +42,11 @@ class Storage {
   Result<typename Path::DataT> get(const Path& path) const
     requires(std::is_same_v<typename Path::RootT, Root>)
   {
-    return this->template get<typename Path::DataT>(path.begin(), path.end());
+    return this->get<typename Path::DataT>(path.begin(), path.end());
   }
   template <typename T>
   Result<T> get(const ConcretePath& path) const {
-    return this->template get<T>(path.begin(), path.end());
+    return this->get<T>(path.begin(), path.end());
   }
   template <typename T>
   Result<T> get(PathIter begin, PathIter end) const {
@@ -86,7 +86,7 @@ class Storage {
 
   template <typename T>
   std::optional<StorageError> set(const ConcretePath& path, T&& value) {
-    return this->template set(path.begin(), path.end(), std::forward<T>(value));
+    return this->set(path.begin(), path.end(), std::forward<T>(value));
   }
   template <typename T>
   std::optional<StorageError> set(PathIter begin, PathIter end, T&& value) {
@@ -150,7 +150,7 @@ class Storage {
   }
 
   std::optional<StorageError> remove(const ConcretePath& path) {
-    return this->template remove(path.begin(), path.end());
+    return this->remove(path.begin(), path.end());
   }
   std::optional<StorageError> remove(PathIter begin, PathIter end) {
     return static_cast<Derived*>(this)->remove_impl(begin, end);
