@@ -76,7 +76,6 @@ class BaseEcmpResourceManagerTest : public ::testing::Test {
     return 5;
   }
   void assertDeltasForOverflow(const std::vector<StateDelta>& deltas) const;
-  void updateRoutes(const std::shared_ptr<SwitchState>& newState);
   void assertRibFibEquivalence() const;
   std::vector<std::shared_ptr<RouteV6>> getPostConfigResolvedRoutes(
       const std::shared_ptr<SwitchState>& in) const;
@@ -86,6 +85,9 @@ class BaseEcmpResourceManagerTest : public ::testing::Test {
   }
 
  public:
+  void updateFlowletSwitchingConfig(
+      const std::shared_ptr<SwitchState>& newState);
+  void updateRoutes(const std::shared_ptr<SwitchState>& newState);
   std::shared_ptr<SwitchState> state_;
   std::shared_ptr<EcmpResourceManager> consolidator_;
   std::unique_ptr<HwTestHandle> handle_;

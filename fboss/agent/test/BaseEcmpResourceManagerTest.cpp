@@ -320,6 +320,21 @@ BaseEcmpResourceManagerTest::getNhopGroupIds() const {
   return nhopIds;
 }
 
+void BaseEcmpResourceManagerTest::updateFlowletSwitchingConfig(
+    const std::shared_ptr<SwitchState>& newState) {
+  if (sw_->getState()->getFlowletSwitchingConfig() !=
+      newState->getFlowletSwitchingConfig()) {
+    auto curConfig = sw_->getConfig();
+    if (newState->getFlowletSwitchingConfig()) {
+      curConfig.flowletSwitchingConfig()->backupSwitchingMode() =
+          newState->getFlowletSwitchingConfig()->getBackupSwitchingMode();
+    } else {
+      curConfig.flowletSwitchingConfig().reset();
+    }
+    sw_->applyConfig("flowletSwitching change", curConfig);
+  }
+}
+
 void BaseEcmpResourceManagerTest::updateRoutes(
     const std::shared_ptr<SwitchState>& newState) {
   auto updater = sw_->getRouteUpdater();
