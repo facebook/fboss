@@ -607,7 +607,6 @@ cpp_library(
     exported_deps = [
         ":agent_stats-cpp2-types",
         ":fboss-types",
-        "//common/stats:macros",
         "//fb303:service_data",
         "//fb303:thread_cached_service_data",
         "//fb303/detail:quantile_stat_wrappers",
@@ -851,7 +850,6 @@ cpp_library(
         ":voq_utils",
         "//common/fbwhoami:fb_who_am_i",
         "//common/network:util",
-        "//common/stats:macros",
         "//common/strings:uuid",
         "//common/time:time",
         "//common/time:time_core",
