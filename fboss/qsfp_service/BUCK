@@ -50,7 +50,6 @@ cpp_library(
         "//fboss/qsfp_service/if:qsfp-cpp2-services",
         "//folly/futures:core",
         "//folly/logging:logging",
-        "//thrift/lib/cpp/util:enum_utils",
     ],
 )
 
