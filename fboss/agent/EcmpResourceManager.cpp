@@ -19,6 +19,13 @@
 
 namespace facebook::fboss {
 
+const NextHopGroupInfo* EcmpResourceManager::getGroupInfo(
+    RouterID rid,
+    const folly::CIDRNetwork& nw) const {
+  auto pitr = prefixToGroupInfo_.find({rid, nw});
+  return pitr == prefixToGroupInfo_.end() ? nullptr : pitr->second.get();
+}
+
 std::vector<StateDelta> EcmpResourceManager::consolidate(
     const StateDelta& delta) {
   CHECK(!preUpdateState_.has_value());

@@ -93,6 +93,10 @@ class EcmpResourceManager {
     return maxEcmpGroups_;
   }
 
+  const NextHopGroupInfo* getGroupInfo(
+      RouterID rid,
+      const folly::CIDRNetwork& nw) const;
+
  private:
   template <typename AddrT>
   bool routesEqual(
