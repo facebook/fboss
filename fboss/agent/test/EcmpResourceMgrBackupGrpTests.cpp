@@ -91,6 +91,27 @@ class EcmpBackupGroupTypeTest : public BaseEcmpResourceManagerTest {
           route->getForwardInfo().getNextHopSet().size() > 1;
       if (isEcmpRoute) {
         ASSERT_NE(consolidatorGrpInfo, nullptr);
+        if (consolidatorToCheck == consolidator_.get()) {
+          /*
+           * If consolidatorToCheck is the same as test class consolidator
+           * assert that group infos b/w SwSwitch's consolidator_ and
+           * Test class consolidator match
+           */
+
+          auto swSwitchGroupInfo = sw_->getEcmpResourceManager()->getGroupInfo(
+              RouterID(0), route->prefix().toCidrNetwork());
+          ASSERT_NE(swSwitchGroupInfo, nullptr);
+          auto consolidatorRouteUsageCount =
+              consolidatorGrpInfo->getRouteUsageCount();
+          auto swRouteUsageCount = swSwitchGroupInfo->getRouteUsageCount();
+          auto consolidatorIsBackupEcmpType =
+              consolidatorGrpInfo->isBackupEcmpGroupType();
+          auto swIsBackupEcmpType = swSwitchGroupInfo->isBackupEcmpGroupType();
+          EXPECT_EQ(
+              std::tie(swRouteUsageCount, swIsBackupEcmpType),
+              std::tie(
+                  consolidatorRouteUsageCount, consolidatorIsBackupEcmpType));
+        }
       }
       if (overflowPrefixes.find(route->prefix()) != overflowPrefixes.end()) {
         EXPECT_TRUE(
@@ -717,7 +738,7 @@ TEST_F(EcmpBackupGroupTypeTest, overflowAndSwitchingModeChange) {
   auto oldState = state_;
   auto newState = oldState->clone();
   auto fib6 = fib(newState);
-  auto routesBefore = fib6->size();
+  auto routesBefore = getPostConfigResolvedRoutes(newState).size();
   std::set<RouteNextHopSet> nhops;
   std::set<RouteV6::Prefix> overflowPrefixes;
   for (auto i = 0; i < numStartRoutes(); ++i) {
@@ -742,7 +763,7 @@ TEST_F(EcmpBackupGroupTypeTest, overflowRoutesAndThenSwitchingModeChange) {
   auto oldState = state_;
   auto newState = oldState->clone();
   auto fib6 = fib(newState);
-  auto routesBefore = fib6->size();
+  auto routesBefore = getPostConfigResolvedRoutes(newState).size();
   std::set<RouteNextHopSet> nhops;
   std::set<RouteV6::Prefix> overflowPrefixes;
   for (auto i = 0; i < numStartRoutes(); ++i) {

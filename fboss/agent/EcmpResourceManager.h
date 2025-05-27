@@ -79,6 +79,9 @@ class EcmpResourceManager {
   using NextHopGroupId = uint32_t;
   using NextHopGroupIds = boost::container::flat_set<NextHopGroupId>;
   using NextHops2GroupId = std::map<RouteNextHopSet, NextHopGroupId>;
+  using PrefixToGroupInfo = std::unordered_map<
+      std::pair<RouterID, folly::CIDRNetwork>,
+      std::shared_ptr<NextHopGroupInfo>>;
 
   std::vector<StateDelta> consolidate(const StateDelta& delta);
   std::vector<StateDelta> reconstructFromSwitchState(
@@ -99,6 +102,10 @@ class EcmpResourceManager {
   const NextHopGroupInfo* getGroupInfo(
       RouterID rid,
       const folly::CIDRNetwork& nw) const;
+
+  const PrefixToGroupInfo& getPrefixToGroupInfo() const {
+    return prefixToGroupInfo_;
+  }
 
  private:
   template <typename AddrT>
@@ -209,10 +216,7 @@ class EcmpResourceManager {
   NextHopGroupId findNextAvailableId() const;
   NextHops2GroupId nextHopGroup2Id_;
   StdRefMap<NextHopGroupId, NextHopGroupInfo> nextHopGroupIdToInfo_;
-  std::unordered_map<
-      std::pair<RouterID, folly::CIDRNetwork>,
-      std::shared_ptr<NextHopGroupInfo>>
-      prefixToGroupInfo_;
+  PrefixToGroupInfo prefixToGroupInfo_;
   std::map<NextHopGroupIds, ConsolidationPenalty> mergedGroups_;
   std::map<NextHopGroupIds, ConsolidationPenalty> candidateMergeGroups_;
   // Cached pre update state, will be used in case of roll back

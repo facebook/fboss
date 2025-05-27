@@ -80,15 +80,21 @@ cfg::SwitchConfig onePortPerIntfConfig(int numIntfs) {
 std::vector<StateDelta> BaseEcmpResourceManagerTest::consolidate(
     const std::shared_ptr<SwitchState>& state) {
   state->publish();
+  XLOG(DBG2) << " Consolidator update start";
   StateDelta delta(state_, state);
-  updateFlowletSwitchingConfig(state);
-  updateRoutes(state);
   auto deltas = consolidator_->consolidate(delta);
   consolidator_->updateDone();
   if (deltas.size()) {
     XLOG(DBG2) << " Checking deltas, num deltas: " << deltas.size();
     assertDeltasForOverflow(deltas);
   }
+  XLOG(DBG2) << " Consolidator update done";
+  XLOG(DBG2) << " SwSwitch update start";
+  updateFlowletSwitchingConfig(state);
+  updateRoutes(state);
+  XLOG(DBG2) << " SwSwitch update done";
+  CHECK(state_->isPublished());
+  state_ = sw_->getState();
   EXPECT_EQ(state_->getFibs()->getNode(RouterID(0))->getFibV4()->size(), 1);
   /*
    * Assert that EcmpResourceMgr leaves the ports state untouched
@@ -348,7 +354,6 @@ void BaseEcmpResourceManagerTest::updateRoutes(
 
   updater.program();
   assertRibFibEquivalence();
-  state_ = sw_->getState();
 }
 
 void BaseEcmpResourceManagerTest::assertRibFibEquivalence() const {
