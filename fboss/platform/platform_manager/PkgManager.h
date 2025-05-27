@@ -60,6 +60,7 @@ class PkgManager {
   virtual void unloadBspKmods() const;
   virtual void loadRequiredKmods() const;
   void removeInstalledRpms() const;
+  BspKmodsFile readKmodsFile() const;
 
  private:
   std::string getKmodsRpmName() const;

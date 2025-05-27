@@ -354,4 +354,43 @@ TEST_F(PkgManagerTest, loadRequiredKmods) {
   EXPECT_EQ(
       facebook::fb303::fbData->getCounter(PkgManager::kLoadKmodsFailure), 1);
 }
+
+TEST_F(PkgManagerTest, ReadKmodsFileSuccess) {
+  const std::string kernelVersion = "6.4.3-0_fbk1_755_ga25447393a1d";
+  const std::filesystem::path expectedFilePath =
+      "/usr/local/fboss_bsp/6.4.3-0_fbk1_755_ga25447393a1d/kmods.json";
+
+  EXPECT_CALL(*mockSystemInterface_, getHostKernelVersion())
+      .WillOnce(Return(kernelVersion));
+
+  EXPECT_CALL(*mockPlatformFsUtils_, getStringFileContent(expectedFilePath))
+      .WillOnce(Return(jsonBspKmodsFile_));
+
+  BspKmodsFile result = pkgManager_.readKmodsFile();
+
+  EXPECT_EQ(result.bspKmods()->size(), bspKmodsFile_.bspKmods()->size());
+  EXPECT_EQ(result.sharedKmods()->size(), bspKmodsFile_.sharedKmods()->size());
+
+  for (size_t i = 0; i < result.bspKmods()->size(); i++) {
+    EXPECT_EQ((*result.bspKmods())[i], (*bspKmodsFile_.bspKmods())[i]);
+  }
+
+  for (size_t i = 0; i < result.sharedKmods()->size(); i++) {
+    EXPECT_EQ((*result.sharedKmods())[i], (*bspKmodsFile_.sharedKmods())[i]);
+  }
+}
+
+TEST_F(PkgManagerTest, ReadKmodsFileFailure) {
+  const std::string kernelVersion = "6.4.3-0_fbk1_755_ga25447393a1d";
+  const std::filesystem::path expectedFilePath =
+      "/usr/local/fboss_bsp/6.4.3-0_fbk1_755_ga25447393a1d/kmods.json";
+
+  EXPECT_CALL(*mockSystemInterface_, getHostKernelVersion())
+      .WillOnce(Return(kernelVersion));
+
+  EXPECT_CALL(*mockPlatformFsUtils_, getStringFileContent(expectedFilePath))
+      .WillOnce(Return(std::nullopt));
+
+  EXPECT_THROW(pkgManager_.readKmodsFile(), std::runtime_error);
+}
 }; // namespace facebook::fboss::platform::platform_manager
