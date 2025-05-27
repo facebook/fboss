@@ -337,4 +337,5 @@ What endpoints must be implemented in BMC-Lite OpenBMC??
 
 ### 7.2 Test coverage
 
-1. TBD
+1. Implement all relevant tests from
+https://github.com/facebook/openbmc/tree/helium/tests2/common
