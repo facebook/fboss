@@ -393,14 +393,16 @@ BaseEcmpResourceManagerTest::getNhopId(const RouteNextHopSet& nhops) const {
 TEST_F(BaseEcmpResourceManagerTest, noFibsDelta) {
   auto oldState = state_;
   auto newState = oldState->clone();
-  newState->getPorts()->modify(&newState);
-  registerPort(newState, PortID(2), "port2", hwMatcher());
+  auto ports = newState->getPorts()->modify(&newState);
+  auto port1 = ports->getPort("port1")->clone();
+  port1->setPortDrainState(cfg::PortDrainState::DRAINED);
+  ports->updateNode(port1, hwMatcher());
   auto deltas = consolidate(newState);
   EXPECT_EQ(deltas.size(), 1);
   EXPECT_EQ(deltas.begin()->oldState(), oldState);
   EXPECT_EQ(deltas.begin()->newState(), newState);
   EXPECT_NE(
-      deltas.begin()->newState()->getPorts()->getPortIf("port2"), nullptr);
+      deltas.begin()->newState()->getPorts()->getPortIf("port1"), nullptr);
 }
 
 TEST_F(BaseEcmpResourceManagerTest, addClassId) {
