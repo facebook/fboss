@@ -261,6 +261,20 @@ RouteV6::Prefix BaseEcmpResourceManagerTest::nextPrefix() const {
 
 void BaseEcmpResourceManagerTest::SetUp() {
   XLOG(DBG2) << "BaseEcmpResourceMgrTest SetUp";
+  FLAGS_enable_ecmp_resource_manager = true;
+  FLAGS_ecmp_resource_percentage = 100;
+  FLAGS_flowletSwitchingEnable = true;
+  FLAGS_dlbResourceCheckEnable = false;
+  auto cfg = onePortPerIntfConfig(kNumIntfs);
+  handle_ = createTestHandle(&cfg);
+  sw_ = handle_->getSw();
+  ASSERT_NE(sw_->getEcmpResourceManager(), nullptr);
+  // Taken from mock asic
+  EXPECT_EQ(sw_->getEcmpResourceManager()->getMaxPrimaryEcmpGroups(), 5);
+  // Backup ecmp group type will com from default flowlet confg
+  EXPECT_EQ(
+      *sw_->getEcmpResourceManager()->getBackupEcmpSwitchingMode(),
+      *cfg.flowletSwitchingConfig()->backupSwitchingMode());
   consolidator_ = makeResourceMgr();
   state_ = std::make_shared<SwitchState>();
   state_->getPorts()->modify(&state_);
@@ -304,6 +318,51 @@ BaseEcmpResourceManagerTest::getNhopGroupIds() const {
   return nhopIds;
 }
 
+void BaseEcmpResourceManagerTest::updateRoutes(
+    const std::shared_ptr<SwitchState>& newState) {
+  auto updater = sw_->getRouteUpdater();
+  auto constexpr kClientID(ClientID::BGPD);
+  StateDelta delta(sw_->getState(), newState);
+  processFibsDeltaInHwSwitchOrder(
+      delta,
+      [&updater](RouterID rid, const auto& /*oldRoute*/, const auto& newRoute) {
+        updater.addRoute(
+            rid,
+            newRoute->prefix().network(),
+            newRoute->prefix().mask(),
+            kClientID,
+            newRoute->getForwardInfo());
+      },
+      [&updater](RouterID rid, const auto& newRoute) {
+        updater.addRoute(
+            rid,
+            newRoute->prefix().network(),
+            newRoute->prefix().mask(),
+            kClientID,
+            newRoute->getForwardInfo());
+      },
+      [&updater](RouterID rid, const auto& oldRoute) {
+        IpPrefix pfx;
+        pfx.ip() = network::toBinaryAddress(oldRoute->prefix().network());
+        pfx.prefixLength() = oldRoute->prefix().mask();
+        updater.delRoute(rid, pfx, kClientID);
+      });
+
+  updater.program();
+  assertRibFibEquivalence();
+}
+
+void BaseEcmpResourceManagerTest::assertRibFibEquivalence() const {
+  waitForStateUpdates(sw_);
+  for (const auto& [_, route] : std::as_const(*cfib(sw_->getState()))) {
+    auto ribRoute =
+        sw_->getRib()->longestMatch(route->prefix().network(), RouterID(0));
+    ASSERT_NE(ribRoute, nullptr);
+    // TODO - check why are the pointers different even though the
+    // forwarding info matches. This is true with or w/o consolidator
+    EXPECT_EQ(ribRoute->getForwardInfo(), route->getForwardInfo());
+  }
+}
 std::optional<EcmpResourceManager::NextHopGroupId>
 BaseEcmpResourceManagerTest::getNhopId(const RouteNextHopSet& nhops) const {
   std::optional<EcmpResourceManager::NextHopGroupId> nhopId;

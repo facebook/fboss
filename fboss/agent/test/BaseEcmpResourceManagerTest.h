@@ -9,10 +9,13 @@
  */
 #pragma once
 #include "fboss/agent/EcmpResourceManager.h"
+#include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/test/HwTestHandle.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/types.h"
 
 #include <folly/IPAddress.h>
@@ -49,8 +52,9 @@ cfg::SwitchConfig onePortPerIntfConfig(int numIntfs);
 
 class BaseEcmpResourceManagerTest : public ::testing::Test {
  public:
+  static constexpr auto kNumIntfs = 20;
   RouteNextHopSet defaultNhops() const {
-    return makeNextHops(20);
+    return makeNextHops(kNumIntfs);
   }
   using NextHopGroupId = EcmpResourceManager::NextHopGroupId;
   std::vector<StateDelta> consolidate(
@@ -72,7 +76,13 @@ class BaseEcmpResourceManagerTest : public ::testing::Test {
     return 5;
   }
   void assertDeltasForOverflow(const std::vector<StateDelta>& deltas) const;
+  void updateRoutes(const std::shared_ptr<SwitchState>& newState);
+  void assertRibFibEquivalence() const;
+
+ public:
   std::shared_ptr<SwitchState> state_;
   std::shared_ptr<EcmpResourceManager> consolidator_;
+  std::unique_ptr<HwTestHandle> handle_;
+  SwSwitch* sw_;
 };
 } // namespace facebook::fboss
