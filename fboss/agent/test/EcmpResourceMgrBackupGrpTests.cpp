@@ -76,12 +76,22 @@ class EcmpBackupGroupTypeTest : public BaseEcmpResourceManagerTest {
   void assertTargetState(
       const std::shared_ptr<SwitchState>& targetState,
       const std::shared_ptr<SwitchState>& endStatePrefixes,
-      const std::set<RouteV6::Prefix>& overflowPrefixes) {
+      const std::set<RouteV6::Prefix>& overflowPrefixes,
+      const EcmpResourceManager* consolidatorToCheck = nullptr) {
+    consolidatorToCheck =
+        consolidatorToCheck ? consolidatorToCheck : consolidator_.get();
     EXPECT_EQ(state_->getFibs()->getNode(RouterID(0))->getFibV4()->size(), 1);
     for (auto [_, inRoute] : std::as_const(*cfib(endStatePrefixes))) {
       auto route = cfib(targetState)->exactMatch(inRoute->prefix());
       ASSERT_TRUE(route->isResolved());
       ASSERT_NE(route, nullptr);
+      auto consolidatorGrpInfo = consolidatorToCheck->getGroupInfo(
+          RouterID(0), inRoute->prefix().toCidrNetwork());
+      bool isEcmpRoute = route->isResolved() &&
+          route->getForwardInfo().getNextHopSet().size() > 1;
+      if (isEcmpRoute) {
+        ASSERT_NE(consolidatorGrpInfo, nullptr);
+      }
       if (overflowPrefixes.find(route->prefix()) != overflowPrefixes.end()) {
         EXPECT_TRUE(
             route->getForwardInfo().getOverrideEcmpSwitchingMode().has_value())
@@ -89,10 +99,16 @@ class EcmpBackupGroupTypeTest : public BaseEcmpResourceManagerTest {
             << " to have override ECMP group type";
         EXPECT_EQ(
             route->getForwardInfo().getOverrideEcmpSwitchingMode(),
-            consolidator_->getBackupEcmpSwitchingMode());
+            consolidatorToCheck->getBackupEcmpSwitchingMode());
+        if (isEcmpRoute) {
+          EXPECT_TRUE(consolidatorGrpInfo->isBackupEcmpGroupType());
+        }
       } else {
         EXPECT_FALSE(
             route->getForwardInfo().getOverrideEcmpSwitchingMode().has_value());
+        if (isEcmpRoute) {
+          EXPECT_FALSE(consolidatorGrpInfo->isBackupEcmpGroupType());
+        }
       }
     }
   }
@@ -881,6 +897,7 @@ TEST_F(EcmpBackupGroupTypeTest, reclaimOnReplay) {
   auto replayDeltas = newConsolidator->reconstructFromSwitchState(state_);
   ASSERT_EQ(replayDeltas.size(), 1);
   // No overflow, since we increased the limit to cover all the prefixes
-  assertTargetState(replayDeltas.back().newState(), state_, {});
+  assertTargetState(
+      replayDeltas.back().newState(), state_, {}, newConsolidator.get());
 }
 } // namespace facebook::fboss
