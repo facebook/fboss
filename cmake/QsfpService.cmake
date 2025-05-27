@@ -144,6 +144,15 @@ target_link_libraries(tahan800bc_bsp
   FBThrift::thriftcpp2
 )
 
+add_library(darwin_bsp
+  fboss/lib/bsp/darwin/DarwinBspPlatformMapping.cpp
+)
+
+target_link_libraries(darwin_bsp
+  bsp_platform_mapping_cpp2
+  FBThrift::thriftcpp2
+)
+
 add_library(qsfp_bsp_core
   fboss/lib/bsp/BspGenericSystemContainer.cpp
   fboss/lib/bsp/BspIOBus.cpp
@@ -176,6 +185,7 @@ target_link_libraries(qsfp_bsp_core
   morgan800cc_bsp
   janga800bic_bsp
   tahan800bc_bsp
+  darwin_bsp
   device_mdio
   fpga_device
   phy_management_base

@@ -3,6 +3,7 @@
 #include "fboss/lib/bsp/BspGenericSystemContainer.h"
 #include "fboss/lib/bsp/BspIOBus.h"
 #include "fboss/lib/bsp/BspTransceiverApi.h"
+#include "fboss/lib/bsp/darwin/DarwinBspPlatformMapping.h"
 #include "fboss/lib/bsp/janga800bic/Janga800bicBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru400bfu/Meru400bfuBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru400bia/Meru400biaBspPlatformMapping.h"
@@ -103,6 +104,13 @@ std::pair<std::unique_ptr<TransceiverI2CApi>, int> getTransceiverAPI() {
               .get();
       auto ioBus = std::make_unique<BspIOBus>(systemContainer);
       return std::make_pair(std::move(ioBus), 0);
+    } else if (
+      FLAGS_platform == "darwin" || FLAGS_platform == "darwin48v") {
+      auto systemContainer =
+          BspGenericSystemContainer<DarwinBspPlatformMapping>::getInstance()
+              .get();
+      auto ioBus = std::make_unique<BspIOBus>(systemContainer);
+      return std::make_pair(std::move(ioBus), 0);
     } else {
       fprintf(stderr, "Unknown platform %s\n", FLAGS_platform.c_str());
       return std::make_pair(nullptr, EX_USAGE);
@@ -168,6 +176,14 @@ std::pair<std::unique_ptr<TransceiverI2CApi>, int> getTransceiverAPI() {
             .get();
     auto ioBus = std::make_unique<BspIOBus>(systemContainer);
     return std::make_pair(std::move(ioBus), 0);
+  } else if (
+    mode == PlatformType::PLATFORM_DARWIN ||
+    mode == PlatformType::PLATFORM_DARWIN48V) {
+    auto systemContainer =
+        BspGenericSystemContainer<DarwinBspPlatformMapping>::getInstance()
+            .get();
+    auto ioBus = std::make_unique<BspIOBus>(systemContainer);
+    return std::make_pair(std::move(ioBus), 0);
   }
 
   // TODO(klahey):  Should probably verify the other chip architecture.
@@ -178,7 +194,7 @@ std::pair<std::unique_ptr<TransceiverI2CApi>, int> getTransceiverAPI() {
 }
 
 /* This function creates and returns the Transceiver Platform Api object
- * for that platform. Cuirrently this is kept empty function and it will
+ * for that platform. Currently this is kept empty function and it will
  * be implemented in coming version
  */
 std::pair<std::unique_ptr<TransceiverPlatformApi>, int>
@@ -210,6 +226,8 @@ getTransceiverPlatformAPI(TransceiverI2CApi* i2cBus) {
       mode = PlatformType::PLATFORM_JANGA800BIC;
     } else if (FLAGS_platform == "tahan800bc") {
       mode = PlatformType::PLATFORM_TAHAN800BC;
+    } else if (FLAGS_platform == "darwin") {
+      mode = PlatformType::PLATFORM_DARWIN;
     }
   } else {
     // If the platform is not provided by the user then use current hardware's
@@ -263,6 +281,14 @@ getTransceiverPlatformAPI(TransceiverI2CApi* i2cBus) {
         std::make_unique<BspTransceiverApi>(systemContainer), 0);
   } else if (mode == PlatformType::PLATFORM_WEDGE400C) {
     return std::make_pair(std::make_unique<Wedge400TransceiverApi>(), 0);
+  } else if (
+    mode == PlatformType::PLATFORM_DARWIN ||
+    mode == PlatformType::PLATFORM_DARWIN48V) {
+    auto systemContainer =
+        BspGenericSystemContainer<DarwinBspPlatformMapping>::getInstance()
+            .get();
+    return std::make_pair(
+        std::make_unique<BspTransceiverApi>(systemContainer), 0);
   }
   return std::make_pair(nullptr, EX_USAGE);
 }
