@@ -46,6 +46,9 @@ class NextHopGroupInfo {
   bool isBackupEcmpGroupType() const {
     return isBackupEcmpGroupType_;
   }
+  void setIsBackupEcmpGroupType(bool isBackupEcmp) {
+    isBackupEcmpGroupType_ = isBackupEcmp;
+  }
 
  private:
   static constexpr int kInvalidRouteUsageCount = 0;

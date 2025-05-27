@@ -134,11 +134,12 @@ void EcmpResourceManager::reclaimEcmpGroups(InputOutputState* inOutState) {
   }
   auto oldState = inOutState->out.back().newState();
   auto newState = oldState->clone();
-  for (const auto& [ridAndPfx, grpInfo] : prefixToGroupInfo_) {
+  for (auto& [ridAndPfx, grpInfo] : prefixToGroupInfo_) {
     if (!groupIdsToReclaim.contains(grpInfo->getID())) {
       continue;
     }
 
+    grpInfo->setIsBackupEcmpGroupType(false);
     auto updateFib = [](const auto& routePfx, auto fib) {
       auto route = fib->exactMatch(routePfx)->clone();
       const auto& curForwardInfo = route->getForwardInfo();
