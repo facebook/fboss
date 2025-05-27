@@ -132,6 +132,15 @@ target_link_libraries(thread_heartbeat
   Folly::folly
 )
 
+add_library(thrift_method_rate_limit
+  fboss/lib/ThriftMethodRateLimit.cpp
+)
+
+target_link_libraries(thrift_method_rate_limit
+  Folly::folly
+  FBThrift::thriftcpp2
+)
+
 add_library(pci_device
   fboss/lib/PciDevice.cpp
   fboss/lib/PciSystem.cpp

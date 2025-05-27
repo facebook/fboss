@@ -297,6 +297,20 @@ cpp_library(
 )
 
 cpp_library(
+    name = "thrift_method_rate_limit",
+    srcs = [
+        "ThriftMethodRateLimit.cpp",
+    ],
+    headers = [
+        "ThriftMethodRateLimit.h",
+    ],
+    exported_deps = [
+        "//folly:token_bucket",
+        "//thrift/lib/cpp2/server:preprocess_functions",
+    ],
+)
+
+cpp_library(
     name = "sysfs_utils",
     headers = [
         "SysfsUtils.h",
