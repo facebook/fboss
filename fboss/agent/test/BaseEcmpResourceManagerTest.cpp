@@ -71,7 +71,9 @@ cfg::SwitchConfig onePortPerIntfConfig(int numIntfs) {
     cfg.interfaces()[p].ipAddresses()[0] =
         folly::sformat("2400:db00:2110:{}::1/64", p);
   }
-  cfg.flowletSwitchingConfig() = cfg::FlowletSwitchingConfig();
+  cfg::FlowletSwitchingConfig flowletConfig;
+  flowletConfig.backupSwitchingMode() = cfg::SwitchingMode::PER_PACKET_RANDOM;
+  cfg.flowletSwitchingConfig() = flowletConfig;
   return cfg;
 }
 
