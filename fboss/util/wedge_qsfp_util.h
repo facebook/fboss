@@ -7,7 +7,7 @@
 #include "fboss/lib/usb/TransceiverPlatformApi.h"
 #include "fboss/lib/usb/TransceiverPlatformI2cApi.h"
 #include "fboss/qsfp_service/TransceiverManager.h"
-#include "fboss/qsfp_service/lib/QsfpClient.h"
+#include "fboss/qsfp_service/if/gen-cpp2/qsfp_clients.h"
 #include "fboss/qsfp_service/module/FirmwareUpgrader.h"
 
 #include <memory>
