@@ -133,6 +133,31 @@ enum class ThriftTraverseResult {
   INVALID_SET_MEMBER,
 };
 
+inline std::string traverseResultString(ThriftTraverseResult result) {
+  switch (result) {
+    case ThriftTraverseResult::OK:
+      return "OK";
+    case ThriftTraverseResult::NON_EXISTENT_NODE:
+      return "NON_EXISTENT_NODE";
+    case ThriftTraverseResult::INVALID_ARRAY_INDEX:
+      return "INVALID_ARRAY_INDEX";
+    case ThriftTraverseResult::INVALID_MAP_KEY:
+      return "INVALID_MAP_KEY";
+    case ThriftTraverseResult::INVALID_STRUCT_MEMBER:
+      return "INVALID_STRUCT_MEMBER";
+    case ThriftTraverseResult::INVALID_VARIANT_MEMBER:
+      return "INVALID_VARIANT_MEMBER";
+    case ThriftTraverseResult::INCORRECT_VARIANT_MEMBER:
+      return "INCORRECT_VARIANT_MEMBER";
+    case ThriftTraverseResult::VISITOR_EXCEPTION:
+      return "VISITOR_EXCEPTION";
+    case ThriftTraverseResult::INVALID_SET_MEMBER:
+      return "INVALID_SET_MEMBER";
+    default:
+      return "ThriftTraverseResult::unknown";
+  }
+}
+
 /*
  * invokeVisitorFnHelper allows us to support two different visitor
  * signatures:

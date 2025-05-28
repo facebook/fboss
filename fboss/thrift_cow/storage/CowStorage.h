@@ -151,6 +151,10 @@ class CowStorage : public Storage<Root, CowStorage<Root, Node>> {
         });
     auto traverseResult = thrift_cow::RootPathVisitor::visit(
         *root_, begin, end, thrift_cow::PathVisitOptions::visitLeaf(), op);
+    if (traverseResult != thrift_cow::ThriftTraverseResult::OK) {
+      XLOG(DBG1) << "Error:set: PathVisit(" << folly::join("/", begin, end)
+                 << "): " << thrift_cow::traverseResultString(traverseResult);
+    }
     return detail::parseTraverseResult(traverseResult);
   }
 
@@ -158,12 +162,25 @@ class CowStorage : public Storage<Root, CowStorage<Root, Node>> {
   set_encoded_impl(PathIter begin, PathIter end, const OperState& state) {
     auto modifyResult = StorageImpl::modifyPath(&root_, begin, end);
     if (modifyResult != thrift_cow::ThriftTraverseResult::OK) {
+      XLOG(DBG1) << "Error:set_encoded: modifyPath("
+                 << folly::join("/", begin, end)
+                 << "): " << thrift_cow::traverseResultString(modifyResult);
       return detail::parseTraverseResult(modifyResult);
     }
     thrift_cow::SetEncodedPathVisitorOperator op(
         *state.protocol(), *state.contents());
-    auto traverseResult = thrift_cow::RootPathVisitor::visit(
-        *root_, begin, end, thrift_cow::PathVisitOptions::visitLeaf(true), op);
+    thrift_cow::ThriftTraverseResult traverseResult =
+        thrift_cow::RootPathVisitor::visit(
+            *root_,
+            begin,
+            end,
+            thrift_cow::PathVisitOptions::visitLeaf(true),
+            op);
+    if (traverseResult != thrift_cow::ThriftTraverseResult::OK) {
+      XLOG(DBG1) << "Error:set_encoded: SetEncoded(path: "
+                 << folly::join("/", begin, end)
+                 << "): " << thrift_cow::traverseResultString(traverseResult);
+    }
     return detail::parseTraverseResult(traverseResult);
   }
 
@@ -172,6 +189,8 @@ class CowStorage : public Storage<Root, CowStorage<Root, Node>> {
     auto end = patch.basePath()->end();
     auto modifyResult = StorageImpl::modifyPath(&root_, begin, end);
     if (modifyResult != thrift_cow::ThriftTraverseResult::OK) {
+      XLOG(DBG1) << "Error:patch: modifyPath(" << folly::join("/", begin, end)
+                 << "): " << thrift_cow::traverseResultString(modifyResult);
       return detail::parseTraverseResult(modifyResult);
     }
     thrift_cow::PatchApplyResult patchResult;
@@ -197,6 +216,9 @@ class CowStorage : public Storage<Root, CowStorage<Root, Node>> {
         *root_, begin, end, thrift_cow::PathVisitOptions::visitLeaf(), op);
     auto visitError = detail::parseTraverseResult(visitResult);
     if (visitError) {
+      XLOG(DBG1) << "Error:patch: PathVisit(path: "
+                 << folly::join("/", begin, end)
+                 << "): " << thrift_cow::traverseResultString(visitResult);
       return visitError;
     }
     return detail::parsePatchResult(patchResult);
@@ -242,11 +264,15 @@ class CowStorage : public Storage<Root, CowStorage<Root, Node>> {
     auto traverseResult = StorageImpl::removePath(&root_, begin, end);
     if (traverseResult == thrift_cow::ThriftTraverseResult::OK) {
       return std::nullopt;
-    } else if (
-        traverseResult == thrift_cow::ThriftTraverseResult::VISITOR_EXCEPTION) {
-      return StorageError::TYPE_ERROR;
     } else {
-      return StorageError::INVALID_PATH;
+      XLOG(DBG1) << "Error:removePath: (path: " << folly::join("/", begin, end)
+                 << "): " << thrift_cow::traverseResultString(traverseResult);
+      if (traverseResult ==
+          thrift_cow::ThriftTraverseResult::VISITOR_EXCEPTION) {
+        return StorageError::TYPE_ERROR;
+      } else {
+        return StorageError::INVALID_PATH;
+      }
     }
   }
 
