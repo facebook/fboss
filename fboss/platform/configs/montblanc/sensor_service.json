@@ -1031,7 +1031,7 @@
           "sensors": [
             {
               "name": "COME_PU4_XDPE15284_PVCCIN_VOUT",
-              "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR5/in3_input",
+              "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR5/in2_input",
               "type": 1,
               "thresholds": {
                 "upperCriticalVal": 2.2,
@@ -1042,7 +1042,7 @@
             },
             {
               "name": "COME_PU4_XDPE15284_P1V8_VOUT",
-              "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR5/in4_input",
+              "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR5/in3_input",
               "type": 1,
               "thresholds": {
                 "upperCriticalVal": 2.2,
