@@ -93,15 +93,29 @@ class CmdShowFabricInputBalance : public CmdHandler<
     auto selfReachability =
         utils::getCachedSwSwitchReachabilityInfo(hostInfo, dstSwitchName);
 
-    auto inputBalanceResult = utility::checkInputBalanceSingleStage(
-        dstSwitchName, neighborReachability, selfReachability);
-
-    return createModel();
+    return createModel(utility::checkInputBalanceSingleStage(
+        dstSwitchName,
+        neighborReachability,
+        selfReachability,
+        true /* verbose */));
   }
 
-  RetType createModel() {
-    // TODO(zecheng): Create model for input balance
-    return {};
+  RetType createModel(
+      const std::vector<utility::InputBalanceResult>& inputBalanceResults) {
+    RetType ret;
+    std::vector<cli::InputBalanceEntry> entries;
+
+    for (const auto& inputBalanceResult : inputBalanceResults) {
+      cli::InputBalanceEntry entry;
+      entry.destinationSwitchName() = inputBalanceResult.destinationSwitch;
+      entry.sourceSwitchName() = inputBalanceResult.sourceSwitch;
+      entry.balanced() = inputBalanceResult.balanced;
+      entry.inputCapacity() = *inputBalanceResult.inputCapacity;
+      entry.outputCapacity() = *inputBalanceResult.outputCapacity;
+      entries.push_back(entry);
+    }
+    ret.inputBalanceEntry() = entries;
+    return ret;
   }
 
   void printOutput(const RetType& model, std::ostream& out = std::cout) {
