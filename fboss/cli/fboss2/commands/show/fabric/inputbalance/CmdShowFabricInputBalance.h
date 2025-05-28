@@ -146,8 +146,9 @@ class CmdShowFabricInputBalance : public CmdHandler<
       std::unordered_map<std::string, std::vector<std::string>>>
   getNeighborReachability(
       std::vector<std::pair<int64_t, std::string>> deviceToQueryInputCapacity,
-      const std::unordered_map<std::string, std::set<std::string>>&
-          neighborName2Ports,
+      const std::unordered_map<
+          std::string,
+          std::unordered_map<std::string, std::string>>& neighborName2Ports,
       const std::vector<std::string>& dstSwitchNames) {
     std::unordered_map<
         std::string,
@@ -175,8 +176,9 @@ class CmdShowFabricInputBalance : public CmdHandler<
         std::vector<std::string> filteredPorts;
         for (const auto& port : ports) {
           // Filter ports that are not connected to the source switch
-          if (neighborName2Ports.at(switchName).contains(port)) {
-            filteredPorts.push_back(port);
+          auto iter = neighborName2Ports.at(switchName).find(port);
+          if (iter != neighborName2Ports.at(switchName).end()) {
+            filteredPorts.push_back(iter->second);
           }
         }
         filteredReachabilityMap[dstSwitch] = std::move(filteredPorts);

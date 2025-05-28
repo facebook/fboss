@@ -59,10 +59,11 @@ std::vector<std::pair<int64_t, std::string>> deviceToQueryInputCapacity(
   return switchIDAndName2Query;
 }
 
-std::unordered_map<std::string, std::set<std::string>>
+std::unordered_map<std::string, std::unordered_map<std::string, std::string>>
 getNeighborFabricPortsToSelf(
     const std::map<int32_t, PortInfoThrift>& myPortInfo) {
-  std::unordered_map<std::string, std::set<std::string>> switchNameToPorts;
+  std::unordered_map<std::string, std::unordered_map<std::string, std::string>>
+      switchNameToPorts;
   std::vector<std::string> noExpectedNeighbor;
   for (const auto& [_, portInfo] : myPortInfo) {
     if (portInfo.portType() == cfg::PortType::FABRIC_PORT) {
@@ -73,13 +74,14 @@ getNeighborFabricPortsToSelf(
 
       auto neighborName =
           *portInfo.expectedNeighborReachability()->at(0).remoteSystem();
-      auto portName =
+      auto neighborPortName =
           *portInfo.expectedNeighborReachability()->at(0).remotePort();
       auto iter = switchNameToPorts.find(neighborName);
       if (iter != switchNameToPorts.end()) {
-        iter->second.insert(portName);
+        iter->second.insert({neighborPortName, *portInfo.name()});
       } else {
-        switchNameToPorts[neighborName] = {portName};
+        switchNameToPorts[neighborName] = {
+            {neighborPortName, *portInfo.name()}};
       }
     }
   }

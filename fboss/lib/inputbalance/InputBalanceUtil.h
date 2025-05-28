@@ -38,7 +38,8 @@ std::vector<std::pair<int64_t, std::string>> deviceToQueryInputCapacity(
     const std::vector<int64_t>& fabricSwitchIDs,
     const std::map<int64_t, cfg::DsfNode>& dsfNodeMap);
 
-std::unordered_map<std::string, std::set<std::string>>
+// map<neighborName, map<neighborPort, localPort>>
+std::unordered_map<std::string, std::unordered_map<std::string, std::string>>
 getNeighborFabricPortsToSelf(
     const std::map<int32_t, PortInfoThrift>& myPortInfo);
 
