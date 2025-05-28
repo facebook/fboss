@@ -119,7 +119,23 @@ class CmdShowFabricInputBalance : public CmdHandler<
   }
 
   void printOutput(const RetType& model, std::ostream& out = std::cout) {
-    // TODO(zecheng): Print output of input balance
+    Table table;
+    table.setHeader({
+        "Destination",
+        "Source",
+        "Balanced",
+        "InputCapacity",
+        "OutputCapacity",
+    });
+    for (const auto& entry : *model.inputBalanceEntry()) {
+      table.addRow(
+          {*entry.destinationSwitchName(),
+           folly::join(" ", *entry.sourceSwitchName()),
+           folly::to<std::string>(*entry.balanced()),
+           folly::join(" ", *entry.inputCapacity()),
+           folly::join(" ", *entry.outputCapacity())});
+    }
+    out << table << std::endl;
   }
 
  private:
