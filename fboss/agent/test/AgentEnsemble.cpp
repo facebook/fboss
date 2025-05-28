@@ -778,4 +778,29 @@ std::optional<int64_t> AgentEnsemble::getFb303CounterIfExists(
   return std::nullopt;
 }
 
+/**
+ * Retrieves monitoring counters that match a given regex pattern for a specific
+ * switch.
+ *
+ * @details
+ * Works in both mono-switch and multi-switch environments.
+ * @param regex The regex pattern to match against the counter names.
+ * @param switchID The ID of the switch for which to retrieve counters.
+ *
+ * @return A map of counter names to their respective values that match the
+ * regex pattern.
+ */
+std::map<std::string, int64_t> AgentEnsemble::getFb303RegexCounters(
+    const std::string& regex,
+    const SwitchID& switchID) {
+  std::map<std::string, int64_t> counters;
+#ifndef IS_OSS
+  auto client = getSw()->getHwSwitchThriftClientTable()->getClient(switchID);
+  apache::thrift::Client<facebook::thrift::Monitor> monitoringClient{
+      client->getChannelShared()};
+  monitoringClient.sync_getRegexCounters(counters, regex);
+#endif
+  return counters;
+}
+
 } // namespace facebook::fboss
