@@ -6,18 +6,8 @@ struct ShowFabricInputBalanceModel {
 
 struct InputBalanceEntry {
   1: string destinationSwitchName;
-  2: bool balanced;
-  3: InputBalanceScope scope;
-  4: list<InputBalanceEntry> inputCapacity;
+  2: list<string> sourceSwitchName;
+  3: bool balanced;
+  4: list<string> inputCapacity;
   5: list<string> outputCapacity;
-}
-
-enum InputBalanceScope {
-  LOCAL = 0,
-  GLOBAL = 1,
-}
-
-struct InputCapacityEntry {
-  1: string switchName;
-  2: list<string> ports;
 }
