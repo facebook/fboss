@@ -380,7 +380,7 @@ TEST_F(EcmpBackupGroupTypeTest, addRoutesAboveEcmpLimitAndReplay) {
       fib6->updateNode(route);
     }
     auto deltas2 = consolidate(newState);
-    EXPECT_EQ(deltas2.size(), overflowPrefixes.size() + 1);
+    EXPECT_EQ(deltas2.size(), 1);
     assertEndState(newState, overflowPrefixes);
   }
   {
@@ -782,7 +782,7 @@ TEST_F(EcmpBackupGroupTypeTest, overflowRoutesAndThenSwitchingModeChange) {
   newFlowletSwitchingConfig->setBackupSwitchingMode(
       cfg::SwitchingMode::FIXED_ASSIGNMENT);
   auto deltas2 = consolidate(newerState);
-  EXPECT_EQ(deltas2.size(), overflowPrefixes.size() + 1);
+  EXPECT_EQ(deltas2.size(), 1);
   assertEndState(newerState, overflowPrefixes);
 }
 
