@@ -185,6 +185,18 @@ TEST_F(PlatformManagerHwTest, XcvrCtrlFiles) {
   }
 }
 
+TEST_F(PlatformManagerHwTest, XcvrIoFiles) {
+  fs::remove_all("/run/devmap/xcvrs");
+  EXPECT_FALSE(fs::exists("/run/devmap/xcvrs"));
+  explorationOk();
+  for (auto xcvrId = 1; xcvrId <= *platformConfig_.numXcvrs(); xcvrId++) {
+    auto xcvrIoPath =
+        fs::path(fmt::format("/run/devmap/xcvrs/xcvr_io_{}", xcvrId));
+    EXPECT_TRUE(fs::is_character_file(xcvrIoPath))
+        << fmt::format("{} isn't a character file", xcvrIoPath.string());
+  }
+}
+
 } // namespace facebook::fboss::platform::platform_manager
 
 int main(int argc, char* argv[]) {
