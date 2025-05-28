@@ -22,6 +22,15 @@ bool isDualStage(const std::map<int64_t, cfg::DsfNode>& dsfNodeMap) {
   return false;
 }
 
+std::unordered_map<std::string, cfg::DsfNode> switchNameToDsfNode(
+    const std::map<int64_t, cfg::DsfNode>& dsfNodes) {
+  std::unordered_map<std::string, cfg::DsfNode> nameToDsfNode;
+  for (const auto& [_, dsfNode] : dsfNodes) {
+    nameToDsfNode[dsfNode.name().value()] = dsfNode;
+  }
+  return nameToDsfNode;
+}
+
 std::vector<std::pair<int64_t, std::string>> deviceToQueryInputCapacity(
     const std::vector<int64_t>& fabricSwitchIDs,
     const std::map<int64_t, cfg::DsfNode>& dsfNodeMap) {
