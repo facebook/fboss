@@ -11,6 +11,8 @@
 #include "fboss/agent/test/utils/FabricTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
+#include "folly/testing/TestUtil.h"
+
 namespace {
 constexpr auto kNumRemoteFabricNodes = 8;
 constexpr auto kNumParallelLinks = 5;
@@ -586,6 +588,73 @@ TEST_F(AgentFabricSwitchTest, verifyRtpGpdAlwaysDisabled) {
         }
       });
     }
+  };
+  verifyAcrossWarmBoots([]() {}, verify);
+}
+
+TEST_F(AgentFabricSwitchTest, verifySourceRoutedCellHandling) {
+  auto verify = [&]() {
+    auto fabricSwitchId = *getFabricSwitchIdsWithPorts().begin();
+    auto fabricPorts =
+        getAgentEnsemble()->masterLogicalFabricPortIds(fabricSwitchId);
+    std::string sourceRoutedCellInjectCintStr = R"(
+      cint_reset();
+      int i;
+      uint32 flags = 0;
+      uint32 MAX_SEND_WORDS = 16;
+      uint32 data_set[MAX_SEND_WORDS];
+
+      bcm_fabric_route_t route;
+      bcm_fabric_route_t_init(&route);
+
+      int link_id[2];
+      )" +
+        folly::to<std::string>("link_id[0] =",
+                               static_cast<int>(fabricPorts[0]),
+                               ";\nlink_id[1] =",
+                               static_cast<int>(fabricPorts[1]),
+                               ";") +
+        R"(
+      route.number_of_hops = 2;
+      route.hop_ids = link_id;
+      for (i = 0; i < MAX_SEND_WORDS; i++) {
+        data_set[i] = -1;
+      }
+      bcm_fabric_route_tx(0, flags, route, MAX_SEND_WORDS, data_set);
+    )";
+    folly::test::TemporaryFile file;
+    folly::writeFull(
+        file.fd(),
+        sourceRoutedCellInjectCintStr.c_str(),
+        sourceRoutedCellInjectCintStr.size());
+    auto cmd = folly::sformat("cint {}\n", file.path().c_str());
+    std::string out;
+    getAgentEnsemble()->runDiagCommand(cmd, out, fabricSwitchId);
+    WITH_RETRIES({
+      auto stats = getNextUpdatedPortStats({fabricPorts[0], fabricPorts[1]});
+      uint64_t outBytesFab0 = *stats[fabricPorts[0]].outBytes_();
+      uint64_t outBytesFab1 = *stats[fabricPorts[1]].outBytes_();
+      // We expect the source routed cell to be dropped at fabricPorts[0]
+      EXPECT_EVENTUALLY_LT(outBytesFab0, 200);
+      EXPECT_EVENTUALLY_EQ(outBytesFab1, 0);
+      XLOG(DBG2) << "Out bytes for fabric port ID(" << fabricPorts[0]
+                 << "): " << outBytesFab0 << ", fabric port ID("
+                 << fabricPorts[1] << "): " << outBytesFab1;
+      for (auto portId : fabricPorts) {
+        auto portName =
+            getProgrammedState()->getPorts()->getNodeIf(portId)->getName();
+        auto rciWatermarkStr = folly::sformat(
+            "buffer_watermark_ucast.{}.queue0.fabric_q0.p100.60", portName);
+        auto counters = getAgentEnsemble()->getFb303CountersByRegex(
+            portId, rciWatermarkStr);
+        ASSERT_EVENTUALLY_EQ(counters.size(), 1);
+        for (const auto& ctr : counters) {
+          // No RCI asserted on any port
+          XLOG(DBG4) << ctr.first << " : " << ctr.second;
+          EXPECT_EQ(ctr.second, 0);
+        }
+      }
+    });
   };
   verifyAcrossWarmBoots([]() {}, verify);
 }
