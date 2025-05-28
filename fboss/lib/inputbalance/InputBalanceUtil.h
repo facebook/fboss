@@ -23,7 +23,7 @@ namespace utility {
 
 struct InputBalanceResult {
   std::string destinationSwitch;
-  std::string sourceSwitch;
+  std::vector<std::string> sourceSwitch;
   bool balanced;
   // Detailed information will only be populated if not balanced
   std::optional<std::vector<std::string>> inputCapacity;

@@ -145,7 +145,7 @@ std::vector<InputBalanceResult> checkInputBalanceSingleStage(
 
       InputBalanceResult result;
       result.destinationSwitch = dstSwitch;
-      result.sourceSwitch = neighborSwitch;
+      result.sourceSwitch = {neighborSwitch};
       result.balanced = balanced;
 
       if (verbose || !balanced) {
