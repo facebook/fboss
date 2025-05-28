@@ -1,0 +1,37 @@
+{
+  "pmUnitSensorsList": [
+    {
+      "slotPath": "/SMB_SLOT@0",
+      "pmUnitName": "SMB",
+      "sensors": [
+        {
+          "name": "INLET_SENSOR",
+          "sysfsPath": "/run/devmap/sensors/SMB_INLET_SENSOR/temp1_input",
+          "type": 3,
+          "thresholds": {
+            "upperCriticalVal": 85
+          },
+          "compute": "@/1000.0"
+        },
+        {
+          "name": "OUTLET_SENSOR",
+          "sysfsPath": "/run/devmap/sensors/SMB_OUTLET_SENSOR/temp1_input",
+          "type": 3,
+          "thresholds": {
+            "upperCriticalVal": 70
+          },
+          "compute": "@/1000.0"
+        },
+        {
+          "name": "ASIC_SENSOR",
+          "sysfsPath": "/run/devmap/sensors/ASIC_SENSOR/temp1_input",
+          "type": 3,
+          "thresholds": {
+            "upperCriticalVal": 80
+          },
+          "compute": "@/1000.0"
+        }
+      ]
+    }
+  ]
+}
