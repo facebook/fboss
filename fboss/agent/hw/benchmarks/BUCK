@@ -101,6 +101,7 @@ cpp_library(
     exported_deps = [
         "//fboss/agent:agent_features",
         "//fboss/agent:core",
+        "//fboss/agent:fib_helpers",
         "//fboss/agent:hw_switch",
         "//fboss/agent:utils",
         "//fboss/agent/benchmarks:agent_benchmarks_h",  # @manual
