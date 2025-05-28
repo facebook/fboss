@@ -688,18 +688,19 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImpl(
   if (deltas.size() == 0) {
     return getProgrammedState();
   }
-  int count = 1;
   std::shared_ptr<SwitchState> appliedState{nullptr};
   for (const auto& delta : deltas) {
     appliedState = stateChangedImplLocked(delta, lockPolicy);
     // if the current delta fails to apply, return the last successful state
     // HwSwitchHandler would rollback based on the response
+    // TODO (ravi) re-enable below once the performance issue is addressed
+#if 0
     if (*appliedState != *delta.newState()) {
       XLOG(DBG2) << "Failed to apply " << count << " delta in  "
                  << deltas.size() << " deltas";
       return appliedState;
     }
-    count++;
+#endif
   }
   return appliedState;
 }
