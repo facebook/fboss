@@ -118,7 +118,8 @@ std::vector<InputBalanceResult> checkInputBalanceSingleStage(
         std::unordered_map<std::string, std::vector<std::string>>>&
         inputCapacity,
     const std::unordered_map<std::string, std::vector<std::string>>&
-        outputCapacity) {
+        outputCapacity,
+    bool verbose) {
   std::vector<InputBalanceResult> inputBalanceResult;
   for (const auto& dstSwitch : dstSwitchNames) {
     auto outputCapacityIter = outputCapacity.find(dstSwitch);
@@ -147,7 +148,7 @@ std::vector<InputBalanceResult> checkInputBalanceSingleStage(
       result.sourceSwitch = neighborSwitch;
       result.balanced = balanced;
 
-      if (!balanced) {
+      if (verbose || !balanced) {
         result.inputCapacity = neighborReachIter->second;
         result.outputCapacity = outputCapacityIter->second;
         // TODO(zecheng): Add input/output link failure

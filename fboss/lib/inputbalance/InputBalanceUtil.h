@@ -53,6 +53,7 @@ std::vector<InputBalanceResult> checkInputBalanceSingleStage(
         std::unordered_map<std::string, std::vector<std::string>>>&
         inputCpacity,
     const std::unordered_map<std::string, std::vector<std::string>>&
-        outputCpacity);
+        outputCpacity,
+    bool verbose = false);
 } // namespace utility
 } // namespace facebook::fboss
