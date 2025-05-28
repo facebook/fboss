@@ -18,6 +18,16 @@
         "profileID": 39
       },
       {
+        "aPortName": "eth1/2/1",
+        "zPortName": "eth1/6/1",
+        "profileID": 25
+      },
+      {
+        "aPortName": "eth1/2/5",
+        "zPortName": "eth1/6/5",
+        "profileID": 25
+      },
+      {
         "aPortName": "eth1/3/1",
         "zPortName": "eth1/3/5",
         "profileID": 38
@@ -25,6 +35,46 @@
       {
         "aPortName": "eth1/4/1",
         "zPortName": "eth1/4/5",
+        "profileID": 38
+      },
+      {
+        "aPortName": "eth1/10/1",
+        "zPortName": "eth1/14/1",
+        "profileID": 23
+      },
+      {
+        "aPortName": "eth1/10/5",
+        "zPortName": "eth1/14/5",
+        "profileID": 23
+      },
+      {
+        "aPortName": "eth1/12/1",
+        "zPortName": "eth1/16/1",
+        "profileID": 38
+      },
+      {
+        "aPortName": "eth1/12/5",
+        "zPortName": "eth1/16/5",
+        "profileID": 38
+      },
+      {
+        "aPortName": "eth1/18/1",
+        "zPortName": "eth1/22/1",
+        "profileID": 38
+      },
+      {
+        "aPortName": "eth1/18/5",
+        "zPortName": "eth1/22/5",
+        "profileID": 38
+      },
+      {
+        "aPortName": "eth1/20/1",
+        "zPortName": "eth1/24/1",
+        "profileID": 25
+      },
+      {
+        "aPortName": "eth1/20/5",
+        "zPortName": "eth1/24/5",
         "profileID": 38
       },
       {
@@ -60,26 +110,31 @@
       {
         "aPortName": "eth1/30/1",
         "zPortName": "eth1/30/5",
-        "profileID": 47
-      },
-      {
-        "aPortName": "eth1/30/2",
-        "zPortName": "eth1/30/6",
-        "profileID": 47
-      },
-      {
-        "aPortName": "eth1/30/3",
-        "zPortName": "eth1/30/7",
-        "profileID": 47
-      },
-      {
-        "aPortName": "eth1/30/4",
-        "zPortName": "eth1/30/8",
-        "profileID": 47
+        "profileID": 38
       },
       {
         "aPortName": "eth1/40/1",
         "zPortName": "eth1/40/5",
+        "profileID": 38
+      },
+      {
+        "aPortName": "eth1/41/1",
+        "zPortName": "eth1/42/1",
+        "profileID": 38
+      },
+      {
+        "aPortName": "eth1/41/5",
+        "zPortName": "eth1/42/5",
+        "profileID": 38
+      },
+      {
+        "aPortName": "eth1/43/1",
+        "zPortName": "eth1/44/1",
+        "profileID": 25
+      },
+      {
+        "aPortName": "eth1/43/5",
+        "zPortName": "eth1/44/5",
         "profileID": 38
       },
       {
@@ -90,7 +145,7 @@
       {
         "aPortName": "eth1/45/5",
         "zPortName": "eth1/49/5",
-        "profileID": 25
+        "profileID": 38
       },
       {
         "aPortName": "eth1/61/1",
