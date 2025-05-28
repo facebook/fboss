@@ -131,7 +131,7 @@ class CmdShowFabricInputBalance : public CmdHandler<
       table.addRow(
           {*entry.destinationSwitchName(),
            folly::join(" ", *entry.sourceSwitchName()),
-           folly::to<std::string>(*entry.balanced()),
+           *entry.balanced() ? "True" : "False",
            folly::join(" ", *entry.inputCapacity()),
            folly::join(" ", *entry.outputCapacity())});
     }
