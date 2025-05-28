@@ -646,14 +646,12 @@ void BcmEcmpEgress::program() {
       bcmCheckError(ret, "Unable to get ECMP:  ", id_);
     } else {
       int option = 0;
-      // TODO add an new flag in addition
-      if (FLAGS_flowletSwitchingEnable) {
+      if (FLAGS_flowletSwitchingEnable && FLAGS_enable_ecmp_resource_manager) {
         option = BCM_L3_ECMP_O_CREATE_WITH_ID;
         obj.flags = BCM_L3_WITH_ID;
         obj.ecmp_intf =
             hw_->getEgressManager()->findNextAvailableId(dynamicMode_);
-        if (FLAGS_enable_ecmp_resource_manager &&
-            utility::isEcmpModeDynamic(dynamicMode_) &&
+        if (utility::isEcmpModeDynamic(dynamicMode_) &&
             obj.ecmp_intf >= kDlbEcmpMaxId) {
           bcmCheckError(
               BCM_E_FULL,
