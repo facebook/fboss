@@ -470,6 +470,14 @@ add_fbthrift_cpp_library(
     phy_cpp2
     transceiver_cpp2
     pim_state_cpp2
+    port_state_cpp2
+)
+add_fbthrift_cpp_library(
+  port_state_cpp2
+  fboss/qsfp_service/if/port_state.thrift
+  OPTIONS
+    json
+    reflection
 )
 add_fbthrift_cpp_library(
   qsfp_stats_cpp2
