@@ -1168,6 +1168,7 @@
     "/run/devmap/sensors/PSU_PMBUS": "/PSU_SLOT@0/[PSU_PMBUS]"
   },
   "chassisEepromDevicePath": "/[CHASSIS_EEPROM]",
+  "numXcvrs": 32,
   "bspKmodsRpmName": "arista_bsp_kmods",
   "bspKmodsRpmVersion": "0.7.9-1",
   "requiredKmodsToLoad": [

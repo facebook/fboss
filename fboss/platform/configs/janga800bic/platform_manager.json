@@ -2771,6 +2771,7 @@
     "/run/devmap/xcvrs/xcvr_ctrl_46": "/[SMB_DOM_XCVR_CTRL_PORT_46]"
   },
   "chassisEepromDevicePath": "/SMB_FRU_SLOT@0/[IDPROM]",
+  "numXcvrs": 46,
   "bspKmodsRpmName": "fboss_bsp_kmods",
   "bspKmodsRpmVersion": "3.1.0-1",
   "requiredKmodsToLoad": [

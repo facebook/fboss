@@ -542,6 +542,9 @@ struct PlatformConfig {
   // Phase (EVT/DVT/PVT/MP) and Serial Number of the chassis.
   16: string chassisEepromDevicePath;
 
+  // Number of transceivers in the platform.
+  17: i16 numXcvrs;
+
   // Name and version of the rpm containing the BSP kmods for this platform
   21: string bspKmodsRpmName;
   22: string bspKmodsRpmVersion;
