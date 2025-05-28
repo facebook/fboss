@@ -63,12 +63,12 @@ std::unordered_map<std::string, std::set<std::string>>
 getNeighborFabricPortsToSelf(
     const std::map<int32_t, PortInfoThrift>& myPortInfo) {
   std::unordered_map<std::string, std::set<std::string>> switchNameToPorts;
+  std::vector<std::string> noExpectedNeighbor;
   for (const auto& [_, portInfo] : myPortInfo) {
     if (portInfo.portType() == cfg::PortType::FABRIC_PORT) {
       if (portInfo.expectedNeighborReachability()->size() != 1) {
-        throw std::runtime_error(
-            "No expected neighbor or more than one expected neighbor for port " +
-            *portInfo.name());
+        noExpectedNeighbor.push_back(*portInfo.name());
+        continue;
       }
 
       auto neighborName =
@@ -83,6 +83,11 @@ getNeighborFabricPortsToSelf(
       }
     }
   }
+  std::cout
+      << "[WARNING] No expected neighbor or more than one expected neighbor for following port(s). "
+      << "This could happen on LAB devices but should not occur in PROD. \n"
+      << "Port: " << folly::join(" ", noExpectedNeighbor) << "\n\n"
+      << std::endl;
   return switchNameToPorts;
 }
 
