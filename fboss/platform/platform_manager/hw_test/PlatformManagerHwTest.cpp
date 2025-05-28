@@ -25,6 +25,9 @@ const std::map<ExplorationStatus, std::vector<ExplorationStatus>>
         {ExplorationStatus::SUCCEEDED_WITH_EXPECTED_ERRORS, {}},
         {ExplorationStatus::FAILED, {}}};
 }; // namespace
+
+namespace fs = std::filesystem;
+
 class PlatformExplorerWrapper : public PlatformExplorer {
  public:
   explicit PlatformExplorerWrapper(const PlatformConfig& config)
@@ -128,8 +131,8 @@ TEST_F(PlatformManagerHwTest, PmExplorationStatusTransitions) {
 }
 
 TEST_F(PlatformManagerHwTest, Symlinks) {
-  std::filesystem::remove_all("/run/devmap");
-  EXPECT_FALSE(std::filesystem::exists("/run/devmap"));
+  fs::remove_all("/run/devmap");
+  EXPECT_FALSE(fs::exists("/run/devmap"));
   explorationOk();
   for (const auto& [symlink, devicePath] :
        *platformConfig_.symbolicLinkToDevicePath()) {
@@ -137,9 +140,9 @@ TEST_F(PlatformManagerHwTest, Symlinks) {
     if (platformExplorer_.isDeviceExpectedToFail(devicePath)) {
       continue;
     }
-    EXPECT_TRUE(std::filesystem::exists(symlink))
+    EXPECT_TRUE(fs::exists(symlink))
         << fmt::format("{} doesn't exist", symlink);
-    EXPECT_TRUE(std::filesystem::is_symlink(symlink))
+    EXPECT_TRUE(fs::is_symlink(symlink))
         << fmt::format("{} isn't a symlink", symlink);
   }
 }
