@@ -739,7 +739,7 @@ class AgentAclCounterTestBase : public AgentHwTest {
     }
   }
 
-  void generatePrefixes() {
+  virtual void generatePrefixes() {
     std::vector<PortID> portIds = masterLogicalInterfacePortIds();
     std::vector<PortDescriptor> portDescriptorIds;
     std::transform(
@@ -767,6 +767,28 @@ class AgentAclCounterTestBase : public AgentHwTest {
       return RoutePrefixV6{
           folly::IPAddressV6(folly::to<std::string>(2401, "::", i++)), 128};
     });
+  }
+
+  cfg::SwitchingMode getFwdSwitchingMode(const RoutePrefixV6& prefix) {
+    auto switchId = getSw()
+                        ->getScopeResolver()
+                        ->scope(masterLogicalPortIds()[0])
+                        .switchId();
+    auto client = getAgentEnsemble()->getHwAgentTestClient(switchId);
+    auto resolvedRoute = findRoute<folly::IPAddressV6>(
+        RouterID(0), {prefix.network(), prefix.mask()}, getProgrammedState());
+    state::RouteNextHopEntry entry{};
+    entry.adminDistance() = AdminDistance::EBGP;
+    entry.nexthops() = util::fromRouteNextHopSet(
+        resolvedRoute->getForwardInfo().getNextHopSet());
+    return client->sync_getFwdSwitchingMode(entry);
+  }
+
+  void verifyFwdSwitchingMode(
+      const RoutePrefixV6& prefix,
+      cfg::SwitchingMode switchingMode) {
+    WITH_RETRIES(
+        { EXPECT_EVENTUALLY_EQ(getFwdSwitchingMode(prefix), switchingMode); });
   }
 
   static inline constexpr auto kEcmpWidth = 4;
@@ -1541,23 +1563,6 @@ TEST_F(AgentFlowletSwitchingTest, VerifyEcmpSwitchingMode) {
   auto setup = [this]() { this->setup(4); };
 
   auto verify = [this]() {
-    auto switchId = getSw()
-                        ->getScopeResolver()
-                        ->scope(masterLogicalPortIds()[0])
-                        .switchId();
-    auto client = getAgentEnsemble()->getHwAgentTestClient(switchId);
-    auto prefix = folly::CIDRNetwork{folly::IPAddress("::"), 0};
-    auto resolvedRoute = findRoute<folly::IPAddressV6>(
-        RouterID(0), prefix, getProgrammedState());
-    state::RouteNextHopEntry entry{};
-    entry.adminDistance() = AdminDistance::EBGP;
-    entry.nexthops() = util::fromRouteNextHopSet(
-        resolvedRoute->getForwardInfo().getNextHopSet());
-    WITH_RETRIES({
-      EXPECT_EVENTUALLY_EQ(
-          client->sync_getFwdSwitchingMode(entry),
-          cfg::SwitchingMode::PER_PACKET_QUALITY);
-    });
     auto ecmpResourceMgr = getSw()->getEcmpResourceManager();
     if (ecmpResourceMgr) {
       auto flowletSwitchConfig =
@@ -1569,6 +1574,8 @@ TEST_F(AgentFlowletSwitchingTest, VerifyEcmpSwitchingMode) {
       EXPECT_EQ(
           *backupEcmpGroupType, flowletSwitchConfig->getBackupSwitchingMode());
     }
+    RoutePrefixV6 prefix{folly::IPAddressV6("::"), 0};
+    verifyFwdSwitchingMode(prefix, cfg::SwitchingMode::PER_PACKET_QUALITY);
   };
 
   verifyAcrossWarmBoots(setup, verify);
