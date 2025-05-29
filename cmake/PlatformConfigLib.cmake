@@ -77,6 +77,8 @@ target_link_libraries(platform_config_lib_config_lib_test
   ${LIBGMOCK_LIBRARIES}
 )
 
+gtest_discover_tests(platform_config_lib_config_lib_test)
+
 add_library(platform_config_lib
   fboss/platform/config_lib/ConfigLib.cpp
   ${generated_header}
@@ -91,3 +93,5 @@ target_link_libraries(platform_config_lib
   Folly::folly
   platform_name_lib
 )
+
+gtest_discover_tests(platform_config_lib_config_lib_test)

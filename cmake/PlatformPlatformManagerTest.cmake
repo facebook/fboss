@@ -14,6 +14,8 @@ target_link_libraries(platform_manager_config_validator_test
   ${LIBGMOCK_LIBRARIES}
 )
 
+gtest_discover_tests(platform_manager_config_validator_test)
+
 add_executable(platform_manager_i2c_explorer_test
   fboss/platform/platform_manager/tests/I2cExplorerTest.cpp
 )
@@ -24,6 +26,8 @@ target_link_libraries(platform_manager_i2c_explorer_test
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}
 )
+
+gtest_discover_tests(platform_manager_i2c_explorer_test)
 
 add_executable(platform_manager_platform_explorer_test
   fboss/platform/platform_manager/tests/PlatformExplorerTest.cpp
@@ -38,6 +42,8 @@ target_link_libraries(platform_manager_platform_explorer_test
   ${LIBGMOCK_LIBRARIES}
 )
 
+gtest_discover_tests(platform_manager_platform_explorer_test)
+
 add_executable(platform_manager_utils_test
   fboss/platform/platform_manager/tests/UtilsTest.cpp
 )
@@ -49,6 +55,8 @@ target_link_libraries(platform_manager_utils_test
   ${LIBGMOCK_LIBRARIES}
 )
 
+gtest_discover_tests(platform_manager_utils_test)
+
 add_executable(platform_manager_data_store_test
   fboss/platform/platform_manager/tests/DataStoreTest.cpp
 )
@@ -59,6 +67,7 @@ target_link_libraries(platform_manager_data_store_test
   ${LIBGMOCK_LIBRARIES}
 )
 
+gtest_discover_tests(platform_manager_data_store_test)
 add_executable(platform_manager_device_path_resolver_test
   fboss/platform/platform_manager/tests/DevicePathResolverTest.cpp
 )
@@ -80,3 +89,5 @@ target_link_libraries(platform_manager_presence_checker_test
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}
 )
+
+gtest_discover_tests(platform_manager_presence_checker_test)

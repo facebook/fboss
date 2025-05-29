@@ -16,3 +16,5 @@ target_link_libraries(platform_data_corral_sw_test
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}
 )
+
+gtest_discover_tests(platform_data_corral_sw_test)
