@@ -107,13 +107,15 @@ class CmdShowFabricInputBalance : public CmdHandler<
     RetType ret;
     std::vector<cli::InputBalanceEntry> entries;
 
-    for (const auto& inputBalanceResult : inputBalanceResults) {
+    for (const auto& result : inputBalanceResults) {
       cli::InputBalanceEntry entry;
-      entry.destinationSwitchName() = inputBalanceResult.destinationSwitch;
-      entry.sourceSwitchName() = inputBalanceResult.sourceSwitch;
-      entry.balanced() = inputBalanceResult.balanced;
-      entry.inputCapacity() = *inputBalanceResult.inputCapacity;
-      entry.outputCapacity() = *inputBalanceResult.outputCapacity;
+      entry.destinationSwitchName() = result.destinationSwitch;
+      entry.sourceSwitchName() = result.sourceSwitch;
+      entry.balanced() = result.balanced;
+      entry.inputCapacity() = result.inputCapacity.value();
+      entry.outputCapacity() = result.outputCapacity.value();
+      entry.inputLinkFailure() = result.inputLinkFailure.value();
+      entry.outputLinkFailure() = result.outputLinkFailure.value();
       entries.push_back(entry);
     }
     ret.inputBalanceEntry() = entries;
@@ -128,6 +130,8 @@ class CmdShowFabricInputBalance : public CmdHandler<
         "Balanced",
         "InputCapacity",
         "OutputCapacity",
+        "InputLinkFailure",
+        "OutputLinkFailure",
     });
     for (const auto& entry : *model.inputBalanceEntry()) {
       table.addRow(
@@ -135,7 +139,9 @@ class CmdShowFabricInputBalance : public CmdHandler<
            folly::join(" ", *entry.sourceSwitchName()),
            *entry.balanced() ? "True" : "False",
            folly::join(" ", *entry.inputCapacity()),
-           folly::join(" ", *entry.outputCapacity())});
+           folly::join(" ", *entry.outputCapacity()),
+           folly::join(" ", *entry.inputLinkFailure()),
+           folly::join(" ", *entry.outputLinkFailure())});
     }
     out << table << std::endl;
   }
