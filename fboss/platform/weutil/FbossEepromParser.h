@@ -1,10 +1,13 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
 #pragma once
+#include <memory>
 #include <optional>
 #include <string>
 #include <unordered_map>
 #include <vector>
+
+#include "fboss/platform/weutil/FbossEepromInterface.h"
 
 namespace facebook::fboss::platform {
 
@@ -23,18 +26,11 @@ class FbossEepromParser {
       unsigned char* output,
       int offset,
       int max);
-  std::unordered_map<int, std::string> parseEepromBlobTLV(
+  std::unique_ptr<FbossEepromInterface> parseEepromBlobTLV(
       int eepromVer,
       const unsigned char* buffer,
       const int readCount);
 
-  // This method is a helper function to translate <field_id, value> pair
-  // into <field_name, field_value> pair, so that the user of this
-  // methon can parse the data into human readable screen output or
-  // JSON
-  std::vector<std::pair<std::string, std::string>> prepareEepromFieldMap(
-      const std::unordered_map<int, std::string>& parsedValue,
-      int eepromVer);
   std::string parseLeUint(int len, unsigned char* ptr);
   std::string parseBeUint(int len, unsigned char* ptr);
   std::string parseLeHex(int len, unsigned char* ptr);
