@@ -243,27 +243,35 @@ TEST_F(AgentEcmpTest, ecmpToDropToEcmp) {
    * and expand the ECMP group
    */
   auto constexpr kEcmpWidthForTest = 4;
-  utility::EcmpSetupAnyNPorts6 ecmpHelper(
-      this->getProgrammedState(), this->getSw()->needL2EntryForNeighbor());
-  // Program ECMP route
-  resolveNeighborAndProgramRoutes(ecmpHelper, kEcmpWidthForTest);
-  WITH_RETRIES({ EXPECT_EVENTUALLY_EQ(kEcmpWidthForTest, getEcmpSizeInHw()); });
+  auto setup = [=, this]() {
+    utility::EcmpSetupAnyNPorts6 ecmpHelper(
+        this->getProgrammedState(), this->getSw()->needL2EntryForNeighbor());
+    // Program ECMP route
+    resolveNeighborAndProgramRoutes(ecmpHelper, kEcmpWidthForTest);
+  };
+  auto verify = [=, this]() {
+    WITH_RETRIES(
+        { EXPECT_EVENTUALLY_EQ(kEcmpWidthForTest, getEcmpSizeInHw()); });
 
-  // Mimic neighbor entries going away and route getting removed. Since
-  // this is the default route, it actually does not go away but transitions
-  // to drop.
-  unresolveNhops(kEcmpWidthForTest);
-  WITH_RETRIES({ EXPECT_EVENTUALLY_EQ(0, getEcmpSizeInHw()); });
-  auto wrapper = getSw()->getRouteUpdater();
-  ecmpHelper.unprogramRoutes(&wrapper);
-  // Bring the route back, but mimic learning it from peers one by one first
-  resolveNhops(kEcmpWidthForTest);
-  for (auto i = 0; i < kEcmpWidthForTest; ++i) {
-    ecmpHelper.programRoutes(&wrapper, i + 1);
-    if (i) {
-      WITH_RETRIES({ EXPECT_EVENTUALLY_EQ(i + 1, getEcmpSizeInHw()); });
+    // Mimic neighbor entries going away and route getting removed. Since
+    // this is the default route, it actually does not go away but transitions
+    // to drop.
+    unresolveNhops(kEcmpWidthForTest);
+    WITH_RETRIES({ EXPECT_EVENTUALLY_EQ(0, getEcmpSizeInHw()); });
+    auto wrapper = getSw()->getRouteUpdater();
+    utility::EcmpSetupAnyNPorts6 ecmpHelper(
+        this->getProgrammedState(), this->getSw()->needL2EntryForNeighbor());
+    ecmpHelper.unprogramRoutes(&wrapper);
+    // Bring the route back, but mimic learning it from peers one by one first
+    resolveNhops(kEcmpWidthForTest);
+    for (auto i = 0; i < kEcmpWidthForTest; ++i) {
+      ecmpHelper.programRoutes(&wrapper, i + 1);
+      if (i) {
+        WITH_RETRIES({ EXPECT_EVENTUALLY_EQ(i + 1, getEcmpSizeInHw()); });
+      }
     }
-  }
+  };
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 TEST_F(AgentEcmpTest, L2ResolveOneNhopThenLinkDownThenUpThenL2ResolveNhop) {
