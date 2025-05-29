@@ -86,10 +86,11 @@ class CmdShowFabricInputBalance : public CmdHandler<
 
     std::map<int32_t, facebook::fboss::PortInfoThrift> myPortInfo;
     fbossCtrlClient->sync_getAllPortInfo(myPortInfo);
-    auto neighborName2Ports = utility::getNeighborFabricPortsToSelf(myPortInfo);
+    auto neighborToPorts = utility::getNeighborFabricPortsToSelf(myPortInfo);
+    auto neighborToLinkFailure = utility::getNeighborToLinkFailure(myPortInfo);
 
     auto neighborReachability = getNeighborReachability(
-        deviceToQueryInputCapacity, neighborName2Ports, dstSwitchName);
+        deviceToQueryInputCapacity, neighborToPorts, dstSwitchName);
     auto selfReachability =
         utils::getCachedSwSwitchReachabilityInfo(hostInfo, dstSwitchName);
 
@@ -97,6 +98,7 @@ class CmdShowFabricInputBalance : public CmdHandler<
         dstSwitchName,
         neighborReachability,
         selfReachability,
+        neighborToLinkFailure,
         true /* verbose */));
   }
 

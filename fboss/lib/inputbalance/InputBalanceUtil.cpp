@@ -11,6 +11,8 @@
 #include "fboss/lib/inputbalance/InputBalanceUtil.h"
 #include "fboss/agent/state/PortMap.h"
 
+#include <algorithm>
+
 namespace facebook::fboss::utility {
 
 bool isDualStage(const std::map<int64_t, cfg::DsfNode>& dsfNodeMap) {
@@ -162,7 +164,17 @@ std::vector<InputBalanceResult> checkInputBalanceSingleStage(
         inputCapacity,
     const std::unordered_map<std::string, std::vector<std::string>>&
         outputCapacity,
+    const std::unordered_map<std::string, std::vector<std::string>>&
+        neighborToLinkFailure,
     bool verbose) {
+  auto getLinkFailure = [&](const std::string& neighbor) {
+    auto iter = neighborToLinkFailure.find(neighbor);
+    if (iter != neighborToLinkFailure.end()) {
+      return iter->second;
+    }
+    return std::vector<std::string>{};
+  };
+
   std::vector<InputBalanceResult> inputBalanceResult;
   for (const auto& dstSwitch : dstSwitchNames) {
     auto outputCapacityIter = outputCapacity.find(dstSwitch);
@@ -170,6 +182,7 @@ std::vector<InputBalanceResult> checkInputBalanceSingleStage(
       throw std::runtime_error(
           "No output capacity data for switch " + dstSwitch);
     }
+    auto outputLinkFailure = getLinkFailure(dstSwitch);
 
     for (const auto& [neighborSwitch, neighborReachability] : inputCapacity) {
       if (neighborSwitch == dstSwitch) {
@@ -183,8 +196,14 @@ std::vector<InputBalanceResult> checkInputBalanceSingleStage(
             " from neighbor " + neighborSwitch);
       }
 
-      bool balanced =
-          neighborReachIter->second.size() <= outputCapacityIter->second.size();
+      auto inputLinkFailure = getLinkFailure(neighborSwitch);
+      auto localLinkFailure = std::max(
+          0,
+          static_cast<int>(inputLinkFailure.size()) -
+              static_cast<int>(outputLinkFailure.size()));
+
+      bool balanced = (neighborReachIter->second.size() + localLinkFailure) ==
+          outputCapacityIter->second.size();
 
       InputBalanceResult result;
       result.destinationSwitch = dstSwitch;
@@ -194,7 +213,8 @@ std::vector<InputBalanceResult> checkInputBalanceSingleStage(
       if (verbose || !balanced) {
         result.inputCapacity = neighborReachIter->second;
         result.outputCapacity = outputCapacityIter->second;
-        // TODO(zecheng): Add input/output link failure
+        result.inputLinkFailure = inputLinkFailure;
+        result.outputLinkFailure = outputLinkFailure;
       }
       inputBalanceResult.push_back(result);
     }
