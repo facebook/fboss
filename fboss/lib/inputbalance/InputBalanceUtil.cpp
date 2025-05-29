@@ -156,6 +156,18 @@ getNeighborToLinkFailure(const std::map<int32_t, PortInfoThrift>& myPortInfo) {
   return neighborToLinkFailure;
 }
 
+std::unordered_map<std::string, int> getPortToVirtualDeviceId(
+    const std::map<int32_t, PortInfoThrift>& myPortInfo) {
+  std::unordered_map<std::string, int> portToVD;
+  for (const auto& [_, portInfo] : myPortInfo) {
+    if (portInfo.portType() == cfg::PortType::FABRIC_PORT) {
+      CHECK(portInfo.virtualDeviceId().has_value());
+      portToVD[*portInfo.name()] = portInfo.virtualDeviceId().value();
+    }
+  }
+  return portToVD;
+}
+
 std::vector<InputBalanceResult> checkInputBalanceSingleStage(
     const std::vector<std::string>& dstSwitchNames,
     const std::unordered_map<
