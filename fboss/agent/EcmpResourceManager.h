@@ -103,10 +103,6 @@ class EcmpResourceManager {
       RouterID rid,
       const folly::CIDRNetwork& nw) const;
 
-  const PrefixToGroupInfo& getPrefixToGroupInfo() const {
-    return prefixToGroupInfo_;
-  }
-
  private:
   template <typename AddrT>
   bool routesEqual(

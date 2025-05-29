@@ -101,6 +101,8 @@ class EcmpBackupGroupTypeTest : public BaseEcmpResourceManagerTest {
           auto swSwitchGroupInfo = sw_->getEcmpResourceManager()->getGroupInfo(
               RouterID(0), route->prefix().toCidrNetwork());
           ASSERT_NE(swSwitchGroupInfo, nullptr);
+          auto swGroupId = swSwitchGroupInfo->getID();
+          auto consolidatorGroupId = swSwitchGroupInfo->getID();
           auto consolidatorRouteUsageCount =
               consolidatorGrpInfo->getRouteUsageCount();
           auto swRouteUsageCount = swSwitchGroupInfo->getRouteUsageCount();
@@ -108,9 +110,11 @@ class EcmpBackupGroupTypeTest : public BaseEcmpResourceManagerTest {
               consolidatorGrpInfo->isBackupEcmpGroupType();
           auto swIsBackupEcmpType = swSwitchGroupInfo->isBackupEcmpGroupType();
           EXPECT_EQ(
-              std::tie(swRouteUsageCount, swIsBackupEcmpType),
+              std::tie(swGroupId, swRouteUsageCount, swIsBackupEcmpType),
               std::tie(
-                  consolidatorRouteUsageCount, consolidatorIsBackupEcmpType));
+                  consolidatorGroupId,
+                  consolidatorRouteUsageCount,
+                  consolidatorIsBackupEcmpType));
         }
       }
       if (overflowPrefixes.find(route->prefix()) != overflowPrefixes.end()) {
