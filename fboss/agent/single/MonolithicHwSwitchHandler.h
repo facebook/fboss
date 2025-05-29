@@ -142,6 +142,8 @@ class MonolithicHwSwitchHandler : public HwSwitchHandler {
         "reconstructSwitchState Not implemented in MultiSwitchHwSwitchHandler");
   }
 
+  void initialStateApplied();
+
  private:
   Platform* platform_;
   HwSwitch* hw_;

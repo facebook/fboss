@@ -4478,6 +4478,7 @@ void SaiSwitch::initialStateApplied() {
   managerTable_->aclTableManager().removeUnclaimedAclCounter();
 #endif
   if (bootType_ == BootType::WARM_BOOT) {
+    XLOG(DBG2) << "Warm boot: removing unreferenced handles";
     saiStore_->printWarmbootHandles();
     if (FLAGS_check_wb_handles == true) {
       saiStore_->checkUnexpectedUnclaimedWarmbootHandles();
