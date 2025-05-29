@@ -796,7 +796,7 @@ TYPED_TEST(AgentErspanIngressSamplingTest, ErspanIngressSampling) {
     auto mirrorPortPktStatsBefore = this->getLatestPortStats(mirrorToPort);
 
     auto trafficPortPktsBefore = *trafficPortPktStatsBefore.outUnicastPkts_();
-    auto mirroredPortPktsBefore = *trafficPortPktStatsBefore.outUnicastPkts_();
+    auto mirroredPortPktsBefore = *mirrorPortPktStatsBefore.outUnicastPkts_();
 
     this->sendPackets(3 * kSampleRate, 1000);
 
@@ -816,8 +816,7 @@ TYPED_TEST(AgentErspanIngressSamplingTest, ErspanIngressSampling) {
           expectedMirrorPackets);
     });
   };
-  setup();
-  verify();
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 
 TYPED_TEST(AgentErspanIngressSamplingTest, SamplePacketFormat) {
@@ -894,8 +893,7 @@ TYPED_TEST(AgentErspanIngressSamplingTest, SamplePacketFormat) {
       EXPECT_EVENTUALLY_TRUE(buf.has_value());
     });
   };
-  setup();
-  verify();
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 
 } // namespace facebook::fboss
