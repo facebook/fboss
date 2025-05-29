@@ -394,6 +394,10 @@ RetType CmdShowPort::createModel(
         expectedActive &= !isPeerPortDrainedOrDown.value();
       }
 
+      bool canDetermineExpectedActiveState =
+          (peerDrainStates.contains(portName) && isPeerDrained.has_value() &&
+           isPeerPortDrainedOrDown.has_value());
+
       cli::PortEntry portDetails;
       portDetails.id() = folly::copy(portInfo.portId().value());
       portDetails.name() = portInfo.name().value();
@@ -402,7 +406,9 @@ RetType CmdShowPort::createModel(
       portDetails.linkState() = operState;
       portDetails.activeState() = activeState;
       portDetails.activeStateMismatch() =
-          (isActive.has_value() ? (isActive.value() != expectedActive) : false);
+          (canDetermineExpectedActiveState && isActive.has_value()
+               ? (isActive.value() != expectedActive)
+               : false);
       portDetails.speed() =
           utils::getSpeedGbps(folly::copy(portInfo.speedMbps().value()));
       portDetails.profileId() = portInfo.profileID().value();
