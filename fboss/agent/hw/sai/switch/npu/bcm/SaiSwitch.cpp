@@ -35,8 +35,6 @@ std::string eventName(uint32_t eventID) {
 #if defined BRCM_SAI_SDK_GTE_11_0
     case SAI_SWITCH_EVENT_TYPE_INTERRUPT:
       return "SAI_SWITCH_EVENT_TYPE_INTERRUPT";
-#endif
-#if defined BRCM_SAI_SDK_GTE_12_0
     case SAI_SWITCH_EVENT_TYPE_INTERRUPT_MASKED:
       return "SAI_SWITCH_EVENT_TYPE_INTERRUPT_MASKED";
 #endif
@@ -941,8 +939,6 @@ void SaiSwitch::switchEventCallback(
 
       break;
     }
-#endif
-#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
     case SAI_SWITCH_EVENT_TYPE_INTERRUPT_MASKED:
       getSwitchStats()->interruptMaskedEvent();
       // For debug purposes only, to avoid flood of msgs in case of a
