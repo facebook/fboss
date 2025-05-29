@@ -4221,6 +4221,7 @@ void SaiSwitch::processRemovedDelta(
 }
 
 void SaiSwitch::dumpDebugState(const std::string& path) const {
+  XLOG(INFO) << "generating debug dump at " << path;
   saiCheckError(sai_dbg_generate_dump(path.c_str()));
 }
 
