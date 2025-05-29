@@ -149,7 +149,7 @@ TEST_F(EcmpBackupGroupTypeTest, addSingleNhopRoutesBelowEcmpLimit) {
   auto oldState = state_;
   auto newState = oldState->clone();
   auto fib6 = fib(newState);
-  auto routesBefore = fib6->size();
+  auto routesBefore = getPostConfigResolvedRoutes(newState).size();
   auto nhopSet = defaultNhops();
   auto nhopItr = nhopSet.begin();
   for (auto i = 0; i < numStartRoutes(); ++i) {
@@ -169,7 +169,7 @@ TEST_F(EcmpBackupGroupTypeTest, addRemoveSingleNhopRoutesBelowEcmpLimit) {
     auto oldState = state_;
     auto newState = oldState->clone();
     auto fib6 = fib(newState);
-    auto routesBefore = fib6->size();
+    auto routesBefore = getPostConfigResolvedRoutes(newState).size();
     auto nhopSet = defaultNhops();
     auto nhopItr = nhopSet.begin();
     for (auto i = 0; i < numStartRoutes(); ++i) {
@@ -323,7 +323,7 @@ TEST_F(EcmpBackupGroupTypeTest, addRoutesBelowEcmpLimit) {
   auto oldState = state_;
   auto newState = oldState->clone();
   auto fib6 = fib(newState);
-  auto routesBefore = fib6->size();
+  auto routesBefore = getPostConfigResolvedRoutes(newState).size();
   for (auto i = 0; i < numStartRoutes(); ++i) {
     auto route = makeRoute(makePrefix(routesBefore + i), nhopSets[i]);
     fib6->addNode(route);
@@ -339,7 +339,7 @@ TEST_F(EcmpBackupGroupTypeTest, addRoutesAboveEcmpLimit) {
   auto oldState = state_;
   auto newState = oldState->clone();
   auto fib6 = fib(newState);
-  auto routesBefore = fib6->size();
+  auto routesBefore = getPostConfigResolvedRoutes(newState).size();
   std::set<RouteNextHopSet> nhops;
   std::set<RouteV6::Prefix> overflowPrefixes;
   for (auto i = 0; i < numStartRoutes(); ++i) {
@@ -904,7 +904,7 @@ TEST_F(EcmpBackupGroupTypeTest, reclaimOnReplay) {
   auto oldState = state_;
   auto newState = oldState->clone();
   auto fib6 = fib(newState);
-  auto routesBefore = fib6->size();
+  auto routesBefore = getPostConfigResolvedRoutes(newState).size();
   std::set<RouteNextHopSet> nhops;
   std::set<RouteV6::Prefix> overflowPrefixes;
   for (auto i = 0; i < numStartRoutes(); ++i) {
