@@ -2,10 +2,6 @@
 
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 
-#include "fboss/agent/hw/sai/api/TamApi.h"
-
-#include <folly/String.h>
-
 extern "C" {
 #if !defined(BRCM_SAI_SDK_XGS_AND_DNX)
 #include <experimental/saiexperimentalswitch.h>

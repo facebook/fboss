@@ -5,13 +5,11 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/CounterUtils.h"
 #include "fboss/agent/hw/HwPortFb303Stats.h"
-#include "fboss/agent/hw/gen-cpp2/hardware_stats_constants.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/ConcurrentIndices.h"
 #include "fboss/agent/hw/sai/switch/SaiBridgeManager.h"
 #include "fboss/agent/hw/sai/switch/SaiDebugCounterManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
-#include "fboss/agent/hw/sai/switch/SaiPortUtils.h"
 #include "fboss/agent/hw/sai/switch/SaiQueueManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
@@ -19,7 +17,6 @@
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
-#include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
 #include <folly/logging/xlog.h>
 
