@@ -14,6 +14,7 @@ cpp_library(
         "AgentAclInDiscardCounterTests.cpp",
         "AgentAclPriorityTests.cpp",
         "AgentAqmTests.cpp",
+        "AgentArsBase.cpp",
         "AgentConfigSetupTest.cpp",
         "AgentConfigVerifyQosTests.cpp",
         "AgentCoppTests.cpp",
@@ -90,6 +91,9 @@ cpp_library(
         "AgentVoqSwitchWithFabricPortsTests.cpp",
         "AgentVoqSwitchWithMultipleDsfNodesTests.cpp",
         "AgentWatermarkTests.cpp",
+    ],
+    headers = [
+        "AgentArsBase.h",
     ],
     link_whole = True,
     exported_deps = [
