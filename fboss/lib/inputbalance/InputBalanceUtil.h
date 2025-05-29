@@ -49,6 +49,9 @@ getNeighborFabricPortsToSelf(
 std::map<std::string, std::string> getPortToNeighbor(
     const std::shared_ptr<MultiSwitchPortMap>& portMap);
 
+std::unordered_map<std::string, std::vector<std::string>>
+getNeighborToLinkFailure(const std::map<int32_t, PortInfoThrift>& myPortInfo);
+
 // TODO(zecheng): Add check to link failure
 std::vector<InputBalanceResult> checkInputBalanceSingleStage(
     const std::vector<std::string>& dstSwitchNames,

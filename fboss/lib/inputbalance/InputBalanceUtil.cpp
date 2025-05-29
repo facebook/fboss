@@ -81,9 +81,9 @@ getNeighborFabricPortsToSelf(
         continue;
       }
 
-      auto neighborName =
+      const auto& neighborName =
           *portInfo.expectedNeighborReachability()->at(0).remoteSystem();
-      auto neighborPortName =
+      const auto& neighborPortName =
           *portInfo.expectedNeighborReachability()->at(0).remotePort();
       auto iter = switchNameToPorts.find(neighborName);
       if (iter != switchNameToPorts.end()) {
@@ -125,6 +125,33 @@ std::map<std::string, std::string> getPortToNeighbor(
     }
   }
   return portToNeighbor;
+}
+
+std::unordered_map<std::string, std::vector<std::string>>
+getNeighborToLinkFailure(const std::map<int32_t, PortInfoThrift>& myPortInfo) {
+  std::unordered_map<std::string, std::vector<std::string>>
+      neighborToLinkFailure;
+  for (const auto& [_, portInfo] : myPortInfo) {
+    // DOWN or INACTIVE fabric ports
+    if (portInfo.portType() == cfg::PortType::FABRIC_PORT &&
+        (portInfo.operState().value() == PortOperState::DOWN ||
+         (portInfo.activeState().has_value() &&
+          portInfo.activeState().value() == PortActiveState::INACTIVE))) {
+      if (portInfo.expectedNeighborReachability()->size() != 1) {
+        continue;
+      }
+
+      auto neighborName =
+          *portInfo.expectedNeighborReachability()->at(0).remoteSystem();
+      auto iter = neighborToLinkFailure.find(neighborName);
+      if (iter != neighborToLinkFailure.end()) {
+        iter->second.push_back(*portInfo.name());
+      } else {
+        neighborToLinkFailure[neighborName] = {*portInfo.name()};
+      }
+    }
+  }
+  return neighborToLinkFailure;
 }
 
 std::vector<InputBalanceResult> checkInputBalanceSingleStage(
