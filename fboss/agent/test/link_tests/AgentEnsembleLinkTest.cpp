@@ -141,7 +141,7 @@ void AgentEnsembleLinkTest::setupTtl0ForwardingEnable() {
   }
   auto agentConfig = AgentConfig::fromFile(FLAGS_config);
   auto newAgentConfig =
-      utility::setTTL0PacketForwardingEnableConfig(getSw(), *agentConfig);
+      utility::setTTL0PacketForwardingEnableConfig(*agentConfig);
   newAgentConfig.dumpConfig(getTestConfigPath());
   FLAGS_config = getTestConfigPath();
 }

@@ -1718,13 +1718,15 @@ std::vector<uint16_t> getCpuQueueIds(
       utility::getCoppHighPriQueueId(hwAsics)};
 }
 
-AgentConfig setTTL0PacketForwardingEnableConfig(
-    SwSwitch* sw,
-    AgentConfig& agentConfig) {
+AgentConfig setTTL0PacketForwardingEnableConfig(AgentConfig& agentConfig) {
   cfg::AgentConfig testConfig = agentConfig.thrift;
   cfg::SwitchConfig swConfig = testConfig.sw().value();
+  auto asicTable = HwAsicTable(
+      swConfig.switchSettings()->switchIdToSwitchInfo().value(),
+      std::nullopt,
+      swConfig.dsfNodes().value());
   // Setup TTL0 CPU queue
-  utility::setTTLZeroCpuConfig(sw->getHwAsicTable()->getL3Asics(), swConfig);
+  utility::setTTLZeroCpuConfig(asicTable.getL3Asics(), swConfig);
   auto newAgentConfig = AgentConfig(
       testConfig,
       apache::thrift::SimpleJSONSerializer::serialize<std::string>(testConfig));
