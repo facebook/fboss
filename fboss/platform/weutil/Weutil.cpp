@@ -46,10 +46,15 @@ weutil_config::FruEepromConfig getFruEepromConfig(
 weutil_config::WeutilConfig getWeUtilConfig() {
   weutil_config::WeutilConfig thriftConfig;
   std::string weutilConfigJson = ConfigLib().getWeutilConfig();
-  apache::thrift::SimpleJSONSerializer::deserialize<
-      weutil_config::WeutilConfig>(weutilConfigJson, thriftConfig);
-  XLOG(DBG1) << apache::thrift::SimpleJSONSerializer::serialize<std::string>(
-      thriftConfig);
+  try {
+    apache::thrift::SimpleJSONSerializer::deserialize<
+        weutil_config::WeutilConfig>(weutilConfigJson, thriftConfig);
+  } catch (const std::exception& e) {
+    throw std::runtime_error(fmt::format(
+        "Failed to deserialize WeutilConfig: {}. Error: {}",
+        weutilConfigJson,
+        e.what()));
+  }
   return thriftConfig;
 }
 

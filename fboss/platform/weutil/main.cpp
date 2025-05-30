@@ -49,7 +49,6 @@ bool validFlags(int argc) {
 
 int main(int argc, char* argv[]) {
   helpers::initCli(&argc, &argv, "weutil");
-  std::unique_ptr<WeutilInterface> weutilInstance;
 
   if (geteuid() != 0) {
     std::cerr << "Please run this program as root" << std::endl;
@@ -76,12 +75,8 @@ int main(int argc, char* argv[]) {
     return 0;
   }
 
-  try {
-    weutilInstance = createWeUtilIntf(FLAGS_eeprom, FLAGS_path, FLAGS_offset);
-  } catch (const std::exception& ex) {
-    std::cout << "Failed creation of proper parser. " << ex.what() << std::endl;
-    return 1;
-  }
+  auto weutilInstance =
+      createWeUtilIntf(FLAGS_eeprom, FLAGS_path, FLAGS_offset);
 
   if (weutilInstance) {
     try {
