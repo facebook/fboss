@@ -267,7 +267,8 @@ template <typename AddrT>
 void EcmpResourceManager::InputOutputState::addOrUpdateRoute(
     RouterID rid,
     const std::shared_ptr<Route<AddrT>>& newRoute,
-    bool ecmpDemandExceeded) {
+    bool ecmpDemandExceeded,
+    bool addNewDelta) {
   if (ecmpDemandExceeded) {
     CHECK(
         newRoute->getForwardInfo().getOverrideEcmpSwitchingMode().has_value());
@@ -298,8 +299,8 @@ void EcmpResourceManager::InputOutputState::addOrUpdateRoute(
                        : "N");
     fib->addNode(newRoute);
   }
-  if (!ecmpDemandExceeded) {
-    // Still within ECMP limits, replaced the current delta.
+  if (!addNewDelta) {
+    // Still working on the current, replaced the current delta.
     // To do this, we need to do 2 things
     // - use the current delta's old state as a base for
     // new delta

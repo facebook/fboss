@@ -294,8 +294,8 @@ TEST_F(EcmpBackupGroupTypeTest, updateRouteAboveEcmpLimitToSingleNhop) {
     addedPrefixes.insert(newRoute->prefix());
     fib6->updateNode(newRoute);
     auto deltas = consolidate(newState);
-    // Base FIB delta + overflow delta + reclaim delta
-    EXPECT_EQ(deltas.size(), 3);
+    // Route delta + reclaim delta
+    EXPECT_EQ(deltas.size(), 2);
     assertEndState(newState, {});
   }
   {
@@ -349,7 +349,7 @@ TEST_F(EcmpBackupGroupTypeTest, addRoutesAboveEcmpLimit) {
     fib6->addNode(route);
   }
   auto deltas = consolidate(newState);
-  EXPECT_EQ(deltas.size(), numStartRoutes() + 1);
+  EXPECT_EQ(deltas.size(), 1);
   assertEndState(newState, overflowPrefixes);
 }
 
@@ -369,7 +369,7 @@ TEST_F(EcmpBackupGroupTypeTest, addRoutesAboveEcmpLimitAndReplay) {
     fib6->addNode(route);
   }
   auto deltas = consolidate(newState);
-  EXPECT_EQ(deltas.size(), numStartRoutes() + 1);
+  EXPECT_EQ(deltas.size(), 1);
   assertEndState(newState, overflowPrefixes);
   {
     // Replay state with new pointers for the overflow routes,
@@ -482,7 +482,7 @@ TEST_F(EcmpBackupGroupTypeTest, updateRouteAboveEcmpLimit) {
   fib6->updateNode(newRoute);
   auto deltas = consolidate(newState);
   // Initial update + overflow + reclaim
-  EXPECT_EQ(deltas.size(), 3);
+  EXPECT_EQ(deltas.size(), 2);
   assertEndState(newState, {});
 }
 
@@ -502,7 +502,8 @@ TEST_F(EcmpBackupGroupTypeTest, updateAllRoutesOneRouteAboveEcmpLimit) {
     fib6->updateNode(newRoute);
   }
   auto deltas = consolidate(newState);
-  EXPECT_EQ(deltas.size(), 3);
+  // 1 delta for routes + 1 delta for reclaim
+  EXPECT_EQ(deltas.size(), 2);
   assertEndState(newState, {});
 }
 
@@ -566,8 +567,8 @@ TEST_F(EcmpBackupGroupTypeTest, updateAllRoutesAllRoutesAboveEcmpLimit) {
       fib6->updateNode(newRoute);
     }
     auto deltas = consolidate(newState);
-    // Initial delta + 5 overflow deltas, no reclaima
-    EXPECT_EQ(deltas.size(), 6);
+    // Route delta, no reclaima
+    EXPECT_EQ(deltas.size(), 1);
     assertEndState(newState, overflowPrefixes);
   }
 }
@@ -626,7 +627,7 @@ TEST_F(EcmpBackupGroupTypeTest, updateAllRoutesToNewNhopsAboveEcmpLimit) {
       }
     }
     auto deltas = consolidate(newState);
-    EXPECT_EQ(deltas.size(), 7);
+    EXPECT_EQ(deltas.size(), 2);
     assertEndState(newState, {});
   }
 }
@@ -667,7 +668,8 @@ TEST_F(EcmpBackupGroupTypeTest, reclaimPrioritizesECMPWithMoreRoutes) {
       fib6->updateNode(newRoute);
     }
     auto deltas = consolidate(newState);
-    EXPECT_EQ(deltas.size(), 3);
+    // Routes delta - no reclaim
+    EXPECT_EQ(deltas.size(), 1);
     assertEndState(newState, overflowPrefixes);
   }
   {
@@ -705,6 +707,7 @@ TEST_F(EcmpBackupGroupTypeTest, reclaimPrioritizesECMPWithMoreRoutes) {
         RouteNextHopEntry(nhopsFrom, kDefaultAdminDistance));
     fib6->updateNode(updateRoute);
     auto deltas = consolidate(newState);
+    // Routes delta + reclaim
     EXPECT_EQ(deltas.size(), 2);
     // prefixFrom should now longer point to backupGroupType since it
     // will be reclaimed as one ECMP group gets freed due to update
@@ -757,7 +760,7 @@ TEST_F(EcmpBackupGroupTypeTest, overflowAndSwitchingModeChange) {
   newFlowletSwitchingConfig->setBackupSwitchingMode(
       cfg::SwitchingMode::FIXED_ASSIGNMENT);
   auto deltas = consolidate(newState);
-  EXPECT_EQ(deltas.size(), overflowPrefixes.size() + 1);
+  EXPECT_EQ(deltas.size(), 1);
   assertEndState(newState, overflowPrefixes);
 }
 
@@ -777,7 +780,7 @@ TEST_F(EcmpBackupGroupTypeTest, overflowRoutesAndThenSwitchingModeChange) {
     fib6->addNode(route);
   }
   auto deltas = consolidate(newState);
-  EXPECT_EQ(deltas.size(), overflowPrefixes.size() + 1);
+  EXPECT_EQ(deltas.size(), 1);
   assertEndState(newState, overflowPrefixes);
   auto newerState = newState->clone();
   // Change backup ecmp switching mode
@@ -893,7 +896,7 @@ TEST_F(EcmpBackupGroupTypeTest, overflowRoutesInReverseOrderOfReplay) {
     // the current start from start routes from R5-R9 would have
     // ended up with backup ecmp group type nhops
     auto deltas = consolidate(newState);
-    EXPECT_EQ(deltas.size(), startPrefixes.size() + 1);
+    EXPECT_EQ(deltas.size(), 1);
     assertEndState(newState, startPrefixes);
   }
 }
@@ -914,7 +917,7 @@ TEST_F(EcmpBackupGroupTypeTest, reclaimOnReplay) {
     fib6->addNode(route);
   }
   auto deltas = consolidate(newState);
-  EXPECT_EQ(deltas.size(), numStartRoutes() + 1);
+  EXPECT_EQ(deltas.size(), 1);
   assertEndState(newState, overflowPrefixes);
   auto newConsolidator = makeResourceMgrWithEcmpLimit(
       cfib(state_)->size() +

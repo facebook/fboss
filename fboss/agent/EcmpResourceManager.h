@@ -124,11 +124,36 @@ class EcmpResourceManager {
         uint32_t _nonBackupEcmpGroupsCnt,
         const StateDelta& _in,
         const PreUpdateState& _groupIdCache = PreUpdateState());
+    /*
+     * addOrUpdateRoute has 2 interesting knobs
+     * ecmpDemandExceeded - used for checking that new route now
+     * either has overrideEcmpType set or points to a merged group
+     * addNewDelta - This route update should be placed on a new
+     * delta. This only applies to when we are merging groups at
+     * ECMP limit. When doing so we will
+     * a. Create a merged group
+     * b. Move all routes that point to any members of this merged
+     * group to this new group.
+     * In transient state this creates 2 extra groups -
+     * New merged ECMP group
+     * Group that was merged into the new ECMP group
+     * This is exactly the make before break buffer we have.
+     * We need this update to be applied fully before we process
+     * more routes. Since multiple routes maybe migrated to new
+     * merged ECMP group and we cannot rely on ordered processing
+     * of routes to take care of not tipping over the limit.
+     * New delta creation *does not apply* for spillover to backup
+     * ECMP type since, on ecmp demand exceeding, we always spillover
+     * the new incoming route to backup ecmp type (new group only has
+     * one route pointing to it and there is nothing cheaper than a
+     * group pointed to by one route).
+     */
     template <typename AddrT>
     void addOrUpdateRoute(
         RouterID rid,
         const std::shared_ptr<Route<AddrT>>& newRoute,
-        bool ecmpDemandExceeded);
+        bool ecmpDemandExceeded,
+        bool addNewDelta = false);
 
     template <typename AddrT>
     void deleteRoute(
