@@ -44,6 +44,12 @@ void Utils::printFwutilDetails() {
             << std::endl;
 }
 
+void Utils::printLspciDetails(bool verbose) {
+  std::cout << "##### LSPCI #####" << std::endl;
+  std::string cmd = verbose ? "lspci -vvv" : "lspci";
+  std::cout << platformUtils_.execCommand(cmd).second << std::endl;
+}
+
 void Utils::runFbossCliCmd(const std::string& cmd) {
   if (!std::filesystem::exists("/etc/ramdisk")) {
     auto fullCmd = fmt::format("fboss2 show {}", cmd);

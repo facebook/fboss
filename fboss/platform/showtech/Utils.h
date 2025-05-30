@@ -12,6 +12,7 @@ class Utils {
   void printFbossDetails();
   void printWeutilDetails();
   void printFwutilDetails();
+  void printLspciDetails(bool verbose);
   void runFbossCliCmd(const std::string& cmd);
 
  private:
