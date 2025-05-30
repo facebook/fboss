@@ -1727,6 +1727,7 @@ AgentConfig setTTL0PacketForwardingEnableConfig(AgentConfig& agentConfig) {
       swConfig.dsfNodes().value());
   // Setup TTL0 CPU queue
   utility::setTTLZeroCpuConfig(asicTable.getL3Asics(), swConfig);
+  testConfig.sw() = swConfig;
   auto newAgentConfig = AgentConfig(
       testConfig,
       apache::thrift::SimpleJSONSerializer::serialize<std::string>(testConfig));
