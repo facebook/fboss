@@ -18,5 +18,6 @@ int main(int argc, char** argv) {
   Utils().printWeutilDetails();
   Utils().printFwutilDetails();
   Utils().printLspciDetails(FLAGS_verbose);
+  Utils().printPortDetails(FLAGS_verbose);
   return 0;
 }

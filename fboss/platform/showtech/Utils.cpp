@@ -50,6 +50,27 @@ void Utils::printLspciDetails(bool verbose) {
   std::cout << platformUtils_.execCommand(cmd).second << std::endl;
 }
 
+void Utils::printPortDetails(bool verbose) {
+  runFbossCliCmd("port");
+  runFbossCliCmd("fabric");
+  runFbossCliCmd("lldp");
+  runFbossCliCmd("interface counters");
+  runFbossCliCmd("interface errors");
+  runFbossCliCmd("interface flaps");
+  runFbossCliCmd("interface phy");
+  runFbossCliCmd("transceiver");
+  if (verbose && !std::filesystem::exists("/etc/ramdisk")) {
+    std::cout << "#### wedge_qsfp_util ####" << std::endl;
+    auto [ret, output] =
+        platformUtils_.execCommand("timeout 30 wedge_qsfp_util");
+    std::cout << output << std::endl;
+    if (ret == 124) {
+      std::cout << "Error: wedge_qsfp_util timed out after 30 seconds"
+                << std::endl;
+    }
+  }
+}
+
 void Utils::runFbossCliCmd(const std::string& cmd) {
   if (!std::filesystem::exists("/etc/ramdisk")) {
     auto fullCmd = fmt::format("fboss2 show {}", cmd);
