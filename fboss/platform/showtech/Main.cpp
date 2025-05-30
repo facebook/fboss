@@ -19,5 +19,6 @@ int main(int argc, char** argv) {
   Utils().printFwutilDetails();
   Utils().printLspciDetails(FLAGS_verbose);
   Utils().printPortDetails(FLAGS_verbose);
+  Utils().printSensorDetails();
   return 0;
 }

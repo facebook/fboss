@@ -71,6 +71,14 @@ void Utils::printPortDetails(bool verbose) {
   }
 }
 
+void Utils::printSensorDetails() {
+  std::cout << "##### SENSORS #####" << std::endl;
+  std::cout << platformUtils_.execCommand("sensors").second << std::endl;
+  std::cout << "##### Dump from sensor_service #####" << std::endl;
+  std::cout << platformUtils_.execCommand("sensor_service_client").second
+            << std::endl;
+}
+
 void Utils::runFbossCliCmd(const std::string& cmd) {
   if (!std::filesystem::exists("/etc/ramdisk")) {
     auto fullCmd = fmt::format("fboss2 show {}", cmd);

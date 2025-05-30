@@ -14,6 +14,7 @@ class Utils {
   void printFwutilDetails();
   void printLspciDetails(bool verbose);
   void printPortDetails(bool verbose);
+  void printSensorDetails();
   void runFbossCliCmd(const std::string& cmd);
 
  private:
