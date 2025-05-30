@@ -135,10 +135,6 @@ void AgentEnsembleLinkTest::overrideL2LearningConfig(
 }
 
 void AgentEnsembleLinkTest::setupTtl0ForwardingEnable() {
-  if (!isSupportedOnAllAsics(HwAsic::Feature::SAI_TTL0_PACKET_FORWARD_ENABLE)) {
-    // don't configure if not supported
-    return;
-  }
   auto agentConfig = AgentConfig::fromFile(FLAGS_config);
   auto newAgentConfig =
       utility::setTTL0PacketForwardingEnableConfig(*agentConfig);
