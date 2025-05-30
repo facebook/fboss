@@ -419,6 +419,7 @@ struct VdmPerfMonitorPortSideStats {
   10: optional i16 fecTailMax;
   11: optional i16 fecTailCurr;
   12: optional i16 maxSupportedFecTail;
+  13: map<i32, FlagLevels> lanePam4MPIFlags;
 }
 
 struct VdmPerfMonitorStats {
