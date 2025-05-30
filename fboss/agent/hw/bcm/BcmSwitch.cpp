@@ -1489,7 +1489,7 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChangedImpl(
   for (const auto& delta : deltas) {
     appliedState = stateChangedImplLocked(delta, lock);
     // if the current delta fails to apply, return the last successful state
-    if (*appliedState != *delta.newState()) {
+    if (appliedState != delta.newState()) {
       XLOG(DBG2) << "Failed to apply " << count << " delta in  "
                  << deltas.size() << " deltas";
       appliedState->publish();
