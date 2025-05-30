@@ -11,6 +11,7 @@ class Utils {
   void printHostDetails();
   void printFbossDetails();
   void printWeutilDetails();
+  void printFwutilDetails();
   void runFbossCliCmd(const std::string& cmd);
 
  private:

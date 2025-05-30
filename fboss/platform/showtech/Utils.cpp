@@ -35,6 +35,15 @@ void Utils::printWeutilDetails() {
   std::cout << platformUtils_.execCommand("weutil --all").second << std::endl;
 }
 
+void Utils::printFwutilDetails() {
+  std::cout << "##### FWUTIL dump of all Programmables #####" << std::endl;
+  std::cout << platformUtils_
+                   .execCommand(
+                       "fw_util --fw_action version --fw_target_name all")
+                   .second
+            << std::endl;
+}
+
 void Utils::runFbossCliCmd(const std::string& cmd) {
   if (!std::filesystem::exists("/etc/ramdisk")) {
     auto fullCmd = fmt::format("fboss2 show {}", cmd);

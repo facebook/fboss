@@ -14,5 +14,6 @@ int main(int argc, char** argv) {
   Utils().printHostDetails();
   Utils().printFbossDetails();
   Utils().printWeutilDetails();
+  Utils().printFwutilDetails();
   return 0;
 }
