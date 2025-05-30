@@ -21,6 +21,7 @@ FOLLY_INIT_LOGGING_CONFIG(".=FATAL; default:async=true");
 
 DEFINE_bool(json, false, "Output in JSON format");
 DEFINE_bool(list, false, "List all eeproms in config");
+DEFINE_bool(all, false, "Print contents of all eeproms in config");
 DEFINE_int32(offset, 0, "Offset for eeprom specified by --path");
 DEFINE_string(
     eeprom,
@@ -38,6 +39,10 @@ DEFINE_string(
 bool validFlags(int argc) {
   if (!FLAGS_path.empty() && !FLAGS_eeprom.empty()) {
     std::cout << "Please use either --path or --eeprom, not both!" << std::endl;
+    return false;
+  }
+  if (FLAGS_list && FLAGS_all) {
+    std::cout << "Please use either --all or --list, not both!" << std::endl;
     return false;
   }
   if (argc > 1) {
@@ -71,6 +76,18 @@ int main(int argc, char* argv[]) {
                        *eepromConfig.path(),
                        *eepromConfig.offset())
                 << std::endl;
+    }
+    return 0;
+  }
+
+  if (FLAGS_all) {
+    auto config = getWeUtilConfig();
+    for (const auto& [eepromName, _] : *config.fruEepromList()) {
+      std::cout << fmt::format("#### Reading EEPROM: {} ####", eepromName)
+                << std::endl;
+      auto weutilInstance = createWeUtilIntf(eepromName, "", 0);
+      weutilInstance->printInfo();
+      std::cout << std::endl;
     }
     return 0;
   }
