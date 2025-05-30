@@ -99,7 +99,7 @@ class PlatformMappingParser:
             )
         if self.platform in ["tahan800bc_test_fixture", "tahan800bc_chassis"]:
             prefix = "tahan800bc_port" if port_profile else "tahan800bc"
-        if self.platform in ["janga800bic_test_fixture", "janga800bic"]:
+        if "janga" in self.platform:
             prefix = "janga800bic_port" if port_profile else "janga800bic"
         return prefix
 

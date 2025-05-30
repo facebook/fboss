@@ -32,13 +32,18 @@ class TestVerifyPlatformMappingGeneratedFiles(unittest.TestCase):
             "meru800bia_dual_stage_edsw",
             "meru800bia_100g_nif_port_breakout",
             "meru800bia_800g",
-            "janga800bic",
-            "janga800bic_test_fixture",
+            "janga800bic_dctype1_prod",
+            "janga800bic_dctype1_test_fixture",
             "tahan800bc_test_fixture",
             "tahan800bc_chassis",
             "icecube800bc",
         ],
-        True: ["meru800bfa", "meru400bfu", "janga800bic", "janga800bic_test_fixture"],
+        True: [
+            "meru800bfa",
+            "meru400bfu",
+            "janga800bic_dctypef_prod",
+            "janga800bic_dctypef_test_fixture",
+        ],
     }
     _FBCODE_GENERATED_DIR: str = (
         "fboss/lib/platform_mapping_v2/generated_platform_mappings"
