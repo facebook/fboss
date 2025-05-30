@@ -237,6 +237,7 @@
             "deviceId": "0x0001",
             "subSystemVendorId": "0x3475",
             "subSystemDeviceId": "0x0002",
+            "__comment__": "XCVR settings (P1817021386) are removed intentionally",
             "i2cAdapterConfigs": [
               {
                 "fpgaIpBlockConfig": {
