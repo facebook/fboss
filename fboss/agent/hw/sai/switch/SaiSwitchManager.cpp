@@ -18,6 +18,7 @@
 #include "fboss/agent/hw/sai/switch/SaiAclTableGroupManager.h"
 #include "fboss/agent/hw/sai/switch/SaiBufferManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
+#include "fboss/agent/hw/sai/switch/SaiPortUtils.h"
 #include "fboss/agent/hw/sai/switch/SaiUdfManager.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/switch_asics/Jericho3Asic.h"
@@ -784,6 +785,10 @@ sai_object_id_t SaiSwitchManager::getDefaultVlanAdapterKey() const {
 
 void SaiSwitchManager::setPtpTcEnabled(bool ptpEnable) {
   isPtpTcEnabled_ = ptpEnable;
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+  auto ptpMode = utility::getSaiPortPtpMode(ptpEnable);
+  switch_->setOptionalAttribute(SaiSwitchTraits::Attributes::PtpMode{ptpMode});
+#endif
 }
 
 std::optional<bool> SaiSwitchManager::getPtpTcEnabled() {

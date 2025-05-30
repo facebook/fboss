@@ -878,6 +878,9 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
       std::nullopt, // ARS profile
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+      std::nullopt, // PTP mode
+#endif
       std::nullopt, // ReachabilityGroupList
       delayDropCongThreshold, // Delay Drop Cong Threshold
       fabricLLFC,

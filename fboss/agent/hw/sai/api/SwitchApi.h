@@ -573,6 +573,13 @@ struct SaiSwitchTraits {
         SaiObjectIdT,
         SaiObjectIdDefault>;
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+    using PtpMode = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_PORT_PTP_MODE,
+        sai_int32_t,
+        SaiIntDefault<sai_int32_t>>;
+#endif
     struct AttributeReachabilityGroupList {
       std::optional<sai_attr_id_t> operator()();
     };
@@ -827,6 +834,9 @@ struct SaiSwitchTraits {
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
       std::optional<Attributes::ArsProfile>,
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+      std::optional<Attributes::PtpMode>,
+#endif
       std::optional<Attributes::ReachabilityGroupList>,
       std::optional<Attributes::DelayDropCongThreshold>,
       std::optional<Attributes::FabricLinkLayerFlowControlThreshold>,
@@ -991,6 +1001,9 @@ SAI_ATTRIBUTE_NAME(Switch, VoqLatencyMinLevel2Ns)
 SAI_ATTRIBUTE_NAME(Switch, VoqLatencyMaxLevel2Ns)
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
 SAI_ATTRIBUTE_NAME(Switch, ArsProfile)
+#endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+SAI_ATTRIBUTE_NAME(Switch, PtpMode)
 #endif
 SAI_ATTRIBUTE_NAME(Switch, ReachabilityGroupList)
 SAI_ATTRIBUTE_NAME(Switch, FabricLinkLayerFlowControlThreshold)
