@@ -9,6 +9,7 @@ cpp_library(
     ],
     headers = [
         "Janga800bicPlatformMapping.h",
+        "Janga800bicProdPlatformMapping.h",
     ],
     exported_deps = [
         "//fboss/agent/platforms/common:platform_mapping",

@@ -5,6 +5,7 @@
 
 add_library(janga800bic_platform_mapping
   fboss/agent/platforms/common/janga800bic/Janga800bicPlatformMapping.cpp
+  fboss/agent/platforms/common/janga800bic/Janga800bicProdPlatformMapping.h
 )
 
 target_link_libraries(janga800bic_platform_mapping
