@@ -30,7 +30,8 @@ TEST_F(WeutilTest, getWedgeInfo) {
 }
 
 TEST_F(WeutilTest, getEepromPaths) {
-  EXPECT_GT(getEepromPaths().size(), 0);
+  auto config = getWeUtilConfig();
+  EXPECT_GT(config.fruEepromList()->size(), 0);
 }
 
 } // namespace facebook::fboss::platform

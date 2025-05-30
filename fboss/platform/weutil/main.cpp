@@ -61,11 +61,17 @@ int main(int argc, char* argv[]) {
   }
 
   if (FLAGS_list) {
-    try {
-      auto eeproms = getEepromPaths();
-      std::cout << folly::join("\n", eeproms) << std::endl;
-    } catch (const std::exception& ex) {
-      std::cout << "Failed to get list of eeproms: " << ex.what() << std::endl;
+    auto config = getWeUtilConfig();
+    for (const auto& [eepromName, eepromConfig] : *config.fruEepromList()) {
+      std::string fruName = eepromName;
+      std::transform(
+          fruName.begin(), fruName.end(), fruName.begin(), ::toupper);
+      std::cout << fmt::format(
+                       "Name:{} Path:{} Offset:{}",
+                       fruName,
+                       *eepromConfig.path(),
+                       *eepromConfig.offset())
+                << std::endl;
     }
     return 0;
   }
