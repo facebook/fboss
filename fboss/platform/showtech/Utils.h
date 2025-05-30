@@ -10,6 +10,7 @@ class Utils {
  public:
   void printHostDetails();
   void printFbossDetails();
+  void printWeutilDetails();
   void runFbossCliCmd(const std::string& cmd);
 
  private:

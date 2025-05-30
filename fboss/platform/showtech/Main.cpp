@@ -13,5 +13,6 @@ int main(int argc, char** argv) {
 
   Utils().printHostDetails();
   Utils().printFbossDetails();
+  Utils().printWeutilDetails();
   return 0;
 }

@@ -30,6 +30,11 @@ void Utils::printFbossDetails() {
   runFbossCliCmd("environment power");
 }
 
+void Utils::printWeutilDetails() {
+  std::cout << "##### WEUTIL dump of all EEPROMs #####" << std::endl;
+  std::cout << platformUtils_.execCommand("weutil --all").second << std::endl;
+}
+
 void Utils::runFbossCliCmd(const std::string& cmd) {
   if (!std::filesystem::exists("/etc/ramdisk")) {
     auto fullCmd = fmt::format("fboss2 show {}", cmd);
