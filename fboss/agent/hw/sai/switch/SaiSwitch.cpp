@@ -3706,6 +3706,19 @@ bool SaiSwitch::sendPacketOutOfPortSync(
     XLOG(ERR) << "Failed to send packet on invalid port: " << portID;
     return false;
   }
+
+  // We should never send packets directly out of eventor port. Doing so may
+  // trigger SDK or HW bugs.
+  if (auto portInfoItr =
+          concurrentIndices_->portSaiId2PortInfo.find(portItr->second);
+      portInfoItr != concurrentIndices_->portSaiId2PortInfo.end()) {
+    if (portInfoItr->second.portType == cfg::PortType::EVENTOR_PORT) {
+      XLOG_EVERY_MS(WARNING, 5000)
+          << "Rejecting packet sent to EVENTOR_PORT: " << portID;
+      return false;
+    }
+  }
+
   /* Strip vlan tag with pipeline bypass, for all asic types. */
   getSwitchStats()->txSent();
   folly::io::Cursor cursor(pkt->buf());
