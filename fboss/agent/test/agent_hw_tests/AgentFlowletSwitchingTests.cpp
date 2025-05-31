@@ -878,7 +878,7 @@ TEST_F(AgentFlowletBcmTest, VerifySwitchingModeUpdateSwState) {
         state,
         testPrefixes2,
         std::optional<cfg::SwitchingMode>(
-            cfg::SwitchingMode::PER_PACKET_RANDOM));
+            cfg::SwitchingMode::FIXED_ASSIGNMENT));
 
     // Now verify if warmboot state is updated in sw state
     verifySwitchingMode(getProgrammedState(), testPrefixes1, std::nullopt);
@@ -886,7 +886,7 @@ TEST_F(AgentFlowletBcmTest, VerifySwitchingModeUpdateSwState) {
         getProgrammedState(),
         testPrefixes2,
         std::optional<cfg::SwitchingMode>(
-            cfg::SwitchingMode::PER_PACKET_RANDOM));
+            cfg::SwitchingMode::FIXED_ASSIGNMENT));
   };
   verifyAcrossWarmBoots(setup, [] {}, [] {}, verifyPostWarmboot);
 }

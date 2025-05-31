@@ -86,7 +86,7 @@ class AgentEcmpSpilloverTest : public AgentArsBase {
   }
   void verifySpilloverPrefixes() {
     for (const auto& prefix : spilloverPrefixes) {
-      verifyFwdSwitchingMode(prefix, cfg::SwitchingMode::PER_PACKET_RANDOM);
+      verifyFwdSwitchingMode(prefix, cfg::SwitchingMode::FIXED_ASSIGNMENT);
     }
   }
 
@@ -210,7 +210,7 @@ TEST_F(AgentEcmpSpilloverTest, VerifyDynamicPrefixUpdate) {
     ASSERT_EQ(
         modeCount[cfg::SwitchingMode::PER_PACKET_QUALITY], kMaxDlbEcmpGroup);
     ASSERT_EQ(
-        modeCount[cfg::SwitchingMode::PER_PACKET_RANDOM], kMaxSpilloverCount);
+        modeCount[cfg::SwitchingMode::FIXED_ASSIGNMENT], kMaxSpilloverCount);
   };
 
   verifyAcrossWarmBoots(setup, verify);

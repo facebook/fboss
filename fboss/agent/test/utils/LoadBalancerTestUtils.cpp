@@ -134,7 +134,8 @@ std::vector<cfg::LoadBalancer> getEcmpFullTrunkFullHashConfig(
 
 cfg::FlowletSwitchingConfig getDefaultFlowletSwitchingConfig(
     bool isSai,
-    cfg::SwitchingMode switchingMode) {
+    cfg::SwitchingMode switchingMode,
+    cfg::SwitchingMode backupSwitchingMode) {
   cfg::FlowletSwitchingConfig flowletCfg;
   flowletCfg.inactivityIntervalUsecs() = 16;
   flowletCfg.flowletTableSize() = 2048;
@@ -161,7 +162,7 @@ cfg::FlowletSwitchingConfig getDefaultFlowletSwitchingConfig(
   flowletCfg.dynamicEgressMinThresholdBytes() = 1000;
   flowletCfg.dynamicEgressMaxThresholdBytes() = 10000;
   flowletCfg.switchingMode() = switchingMode;
-  flowletCfg.backupSwitchingMode() = cfg::SwitchingMode::PER_PACKET_RANDOM;
+  flowletCfg.backupSwitchingMode() = backupSwitchingMode;
   return flowletCfg;
 }
 
@@ -211,9 +212,11 @@ void addFlowletConfigs(
     cfg::SwitchConfig& cfg,
     const std::vector<PortID>& ports,
     bool isSai,
-    cfg::SwitchingMode switchingMode) {
+    cfg::SwitchingMode switchingMode,
+    cfg::SwitchingMode backupSwitchingMode) {
   cfg::FlowletSwitchingConfig flowletCfg =
-      utility::getDefaultFlowletSwitchingConfig(isSai, switchingMode);
+      utility::getDefaultFlowletSwitchingConfig(
+          isSai, switchingMode, backupSwitchingMode);
   cfg.flowletSwitchingConfig() = flowletCfg;
 
   std::map<std::string, cfg::PortFlowletConfig> portFlowletCfgMap;
