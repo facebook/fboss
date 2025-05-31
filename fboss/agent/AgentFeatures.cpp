@@ -2,10 +2,7 @@
 
 #include "fboss/agent/AgentFeatures.h"
 
-DEFINE_bool(
-    dctype1_janga_test,
-    false,
-    "Enable Janga test fixture platform mapping");
+DEFINE_bool(janga_test, false, "Enable Janga test fixture platform mapping");
 
 DEFINE_bool(dsf_4k, false, "Enable DSF Scale Test config");
 

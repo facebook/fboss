@@ -18,14 +18,14 @@ namespace facebook::fboss {
 namespace {
 static const std::string getPlatformMappingStr(bool multiNpuPlatformMapping) {
   if (multiNpuPlatformMapping) {
-    if (FLAGS_dctype1_janga_test) {
+    if (FLAGS_janga_test) {
       XLOG(INFO) << "Using Test MNPU Platform Mapping";
       return kJsonMultiNpuTestPlatformMappingStr;
     }
     XLOG(INFO) << "Using Prod MNPU Platform Mapping";
     return kJsonMultiNpuProdPlatformMappingStr;
   } else {
-    if (FLAGS_dctype1_janga_test) {
+    if (FLAGS_janga_test) {
       XLOG(INFO) << "Using Test Single NPU Platform Mapping";
       return kJsonSingleNpuTestPlatformMappingStr;
     }
