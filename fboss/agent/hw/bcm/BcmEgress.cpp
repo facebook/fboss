@@ -440,6 +440,22 @@ void BcmEcmpEgress::createEcmpObject(
     int numPaths) {
   int ret = 0;
   int idx = 0;
+
+  if (FLAGS_flowletSwitchingEnable && FLAGS_enable_ecmp_resource_manager) {
+    option = BCM_L3_ECMP_O_CREATE_WITH_ID;
+    obj.flags = BCM_L3_WITH_ID;
+    obj.ecmp_intf = hw_->getEgressManager()->findNextAvailableId(dynamicMode_);
+    if (utility::isEcmpModeDynamic(dynamicMode_) &&
+        obj.ecmp_intf >= kDlbEcmpMaxId) {
+      bcmCheckError(
+          BCM_E_FULL,
+          "Failed to allocate ECMP ID for dynamic mode, allocated ID: ",
+          obj.ecmp_intf);
+    }
+    XLOG(DBG2) << "Attempting L3 ECMP egress object create with ID "
+               << obj.ecmp_intf;
+  }
+
   if (useHsdk_) {
     if (ucmpEnabled_) {
       obj.ecmp_group_flags |= BCM_L3_ECMP_MEMBER_WEIGHTED;
@@ -628,11 +644,26 @@ void BcmEcmpEgress::program() {
     id_ = existing.ecmp_intf;
     ret = getEcmpObject(&obj, &index, ecmpMemberArray, pathsArray);
     bcmCheckError(ret, "Unable to get ECMP:  ", id_);
-    dynamicMode_ = obj.dynamic_mode;
     XLOG(DBG1) << "Ecmp egress object for egress : "
                << BcmWarmBootCache::toEgressId2WeightStr(egressId2Weight_)
                << " already exists ";
-    warmBootCache->programmed(egressIds2EcmpCItr);
+    // ERM reclaims dynamic groups with spilled over groups during initial
+    // state sync.
+    // If this is one of those groups being decompressed into dynamic range,
+    // create a new ECMP and leave the warmboot version as is. It will be
+    // reclaimed later when the warmboot cache is cleared
+    if (FLAGS_flowletSwitchingEnable && FLAGS_enable_ecmp_resource_manager &&
+        utility::isEcmpModeDynamic(dynamicMode_) &&
+        obj.dynamic_mode != dynamicMode_) {
+      int option = 0;
+      createEcmpObject(
+          obj, option, &index, ecmpMemberArray, pathsArray, numPaths);
+      XLOG(DBG2) << "Programmed L3 ECMP egress object " << id_ << " for "
+                 << numPaths << " paths during warmboot";
+      hw_->writableEgressManager()->insertEcmpID(id_);
+    } else {
+      warmBootCache->programmed(egressIds2EcmpCItr);
+    }
   } else {
     XLOG(DBG1) << "Adding ecmp egress with egress : "
                << BcmWarmBootCache::toEgressId2WeightStr(egressId2Weight_);
@@ -646,21 +677,6 @@ void BcmEcmpEgress::program() {
       bcmCheckError(ret, "Unable to get ECMP:  ", id_);
     } else {
       int option = 0;
-      if (FLAGS_flowletSwitchingEnable && FLAGS_enable_ecmp_resource_manager) {
-        option = BCM_L3_ECMP_O_CREATE_WITH_ID;
-        obj.flags = BCM_L3_WITH_ID;
-        obj.ecmp_intf =
-            hw_->getEgressManager()->findNextAvailableId(dynamicMode_);
-        if (utility::isEcmpModeDynamic(dynamicMode_) &&
-            obj.ecmp_intf >= kDlbEcmpMaxId) {
-          bcmCheckError(
-              BCM_E_FULL,
-              "Failed to allocate ECMP ID for dynamic mode, allocated ID: ",
-              obj.ecmp_intf);
-        }
-        XLOG(DBG2) << "Attempting L3 ECMP egress object create with ID "
-                   << obj.ecmp_intf;
-      }
       createEcmpObject(
           obj, option, &index, ecmpMemberArray, pathsArray, numPaths);
       XLOG(DBG2) << "Programmed L3 ECMP egress object " << id_ << " for "
