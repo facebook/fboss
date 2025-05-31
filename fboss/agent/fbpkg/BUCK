@@ -83,7 +83,7 @@ fboss_fbpkg_builder(
     ],
     buck_opts = fbpkg.buck_opts(
         config = {
-            "fbcode//cxx.link_weight": "6",  # reduce concurrency to avoid OOM
+            "fbcode//cxx.link_weight": "12",  # reduce concurrency to avoid OOM
         },
     ),
     override_log_paths = ["fboss/agent"],
@@ -111,7 +111,7 @@ fboss_fbpkg_builder(
     ],
     buck_opts = fbpkg.buck_opts(
         config = {
-            "fbcode//cxx.link_weight": "6",  # reduce concurrency to avoid OOM
+            "fbcode//cxx.link_weight": "12",  # reduce concurrency to avoid OOM
         },
     ),
     override_log_paths = ["fboss/agent"],
