@@ -52,7 +52,7 @@
     defined(SAI_VERSION_10_2_0_0_ODP) || defined(SAI_VERSION_11_0_EA_ODP) ||   \
     defined(SAI_VERSION_11_0_EA_SIM_ODP) ||                                    \
     defined(SAI_VERSION_11_3_0_0_ODP) || defined(SAI_VERSION_11_7_0_0_ODP) ||  \
-    defined(SAI_VERSION_13_0_EA_ODP)
+    defined(SAI_VERSION_13_0_EA_ODP) || defined(SAI_VERSION_14_0_EA_ODP)
 #define BRCM_SAI_SDK_XGS
 #endif
 
@@ -69,6 +69,14 @@
 
 #if defined(BRCM_SAI_SDK_XGS) || defined(BRCM_SAI_SDK_DNX)
 #define BRCM_SAI_SDK_XGS_AND_DNX
+#endif
+
+#if defined(SAI_VERSION_14_0_EA_ODP)
+#define BRCM_SAI_SDK_GTE_14_0
+#endif
+
+#if defined BRCM_SAI_SDK_GTE_14_0 || defined(SAI_VERSION_13_0_EA_ODP)
+#define BRCM_SAI_SDK_GTE_13_0
 #endif
 
 #if defined(SAI_VERSION_12_0_EA_DNX_ODP) || \
