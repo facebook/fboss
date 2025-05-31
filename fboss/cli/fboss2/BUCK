@@ -269,6 +269,7 @@ cpp_library(
         "commands/create/facebook/config/CmdCreateConfigUtils.cpp",
         "commands/debug/facebook/CmdDebugUtils.cpp",
         "commands/delete/facebook/config/CmdDeleteConfigUtils.cpp",
+        "commands/show/acl/CmdShowAcl.cpp",
         "commands/show/agent/CmdShowAgentFirmware.cpp",
         "commands/show/arp/CmdShowArp.cpp",
         "commands/show/facebook/CmdShowUtils.cpp",
