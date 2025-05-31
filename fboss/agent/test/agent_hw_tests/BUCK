@@ -22,6 +22,7 @@ cpp_library(
         "AgentDiagShellStressTests.cpp",
         "AgentDscpMarkingTests.cpp",
         "AgentDscpQueueMappingTests.cpp",
+        "AgentEcmpSpilloverTests.cpp",
         "AgentEcmpTests.cpp",
         "AgentEgressForwardingDiscardCounterTests.cpp",
         "AgentEmptyTests.cpp",
@@ -212,6 +213,8 @@ cpp_library(
     link_whole = True,
     exported_deps = [
         "//fboss/agent:asic_utils",
+        "//fboss/agent:core",
+        "//fboss/agent:fboss-error",
         "//fboss/agent/hw/test:config_factory",
         "//fboss/agent/packet:packet_factory",
         "//fboss/agent/test:agent_hw_test",
