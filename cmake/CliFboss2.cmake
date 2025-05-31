@@ -391,6 +391,7 @@ add_executable(fboss2
   fboss/cli/fboss2/commands/show/example/CmdShowExample.h
   fboss/cli/fboss2/commands/show/example/CmdShowExample.cpp
   fboss/cli/fboss2/commands/show/fabric/CmdShowFabric.h
+  fboss/cli/fboss2/commands/show/fabric/CmdShowFabric.cpp
   fboss/cli/fboss2/commands/show/fabric/reachability/CmdShowFabricReachability.h
   fboss/cli/fboss2/commands/show/fabric/reachability/uncached/CmdShowFabricReachabilityUncached.h
   fboss/cli/fboss2/commands/show/fabric/inputbalance/CmdShowFabricInputBalance.h
