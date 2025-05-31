@@ -396,6 +396,7 @@ add_executable(fboss2
   fboss/cli/fboss2/commands/show/l2/CmdShowL2.h
   fboss/cli/fboss2/commands/show/lldp/CmdShowLldp.h
   fboss/cli/fboss2/commands/show/ndp/CmdShowNdp.h
+  fboss/cli/fboss2/commands/show/ndp/CmdShowNdp.cpp
   fboss/cli/fboss2/commands/show/port/CmdShowPort.h
   fboss/cli/fboss2/commands/show/port/CmdShowPort.cpp
   fboss/cli/fboss2/commands/show/port/CmdShowPortQueue.h
