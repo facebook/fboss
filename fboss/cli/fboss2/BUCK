@@ -292,6 +292,7 @@ cpp_library(
         "commands/show/mac/CmdShowMacDetails.cpp",
         "commands/show/ndp/CmdShowNdp.cpp",
         "commands/show/port/CmdShowPort.cpp",
+        "commands/show/rif/CmdShowRif.cpp",
         "commands/show/route/utils.cpp",
         "facebook/CmdHandlerImpl.cpp",
         "facebook/CmdList.cpp",

@@ -435,6 +435,8 @@ add_executable(fboss2
   fboss/cli/fboss2/commands/show/interface/prbs/capabilities/CmdShowInterfacePrbsCapabilities.h
   fboss/cli/fboss2/commands/show/interface/prbs/state/CmdShowInterfacePrbsState.h
   fboss/cli/fboss2/commands/show/interface/prbs/stats/CmdShowInterfacePrbsStats.h
+  fboss/cli/fboss2/commands/show/rif/CmdShowRif.h
+  fboss/cli/fboss2/commands/show/rif/CmdShowRif.cpp
   fboss/cli/fboss2/commands/show/sdk/dump/CmdShowSdkDump.h
   fboss/cli/fboss2/commands/show/systemport/CmdShowSystemPort.h
   fboss/cli/fboss2/commands/show/cpuport/CmdShowCpuPort.h
