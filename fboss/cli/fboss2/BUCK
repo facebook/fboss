@@ -275,6 +275,7 @@ cpp_library(
         "commands/show/arp/CmdShowArp.cpp",
         "commands/show/cpuport/CmdShowCpuPort.cpp",
         "commands/show/dsfnodes/CmdShowDsfNodes.cpp",
+        "commands/show/example/CmdShowExample.cpp",
         "commands/show/facebook/CmdShowUtils.cpp",
         "commands/show/facebook/CmdShowVersionAgent.cpp",
         "commands/show/facebook/bgp/ribpolicy/CmdShowBgpRibPolicyUtils.cpp",
