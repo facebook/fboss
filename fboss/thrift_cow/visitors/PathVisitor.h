@@ -181,21 +181,27 @@ enum class PathVisitMode {
 };
 
 struct PathVisitOptions {
-  static PathVisitOptions visitFull(bool skipImmutablePrimitiveNode = false) {
-    return PathVisitOptions(PathVisitMode::FULL, skipImmutablePrimitiveNode);
+  static PathVisitOptions visitFull(
+      bool skipOptionalOrImmutablePrimitiveNode = false) {
+    return PathVisitOptions(
+        PathVisitMode::FULL, skipOptionalOrImmutablePrimitiveNode);
   }
 
-  static PathVisitOptions visitLeaf(bool skipImmutablePrimitiveNode = false) {
-    return PathVisitOptions(PathVisitMode::LEAF, skipImmutablePrimitiveNode);
+  static PathVisitOptions visitLeaf(
+      bool skipOptionalOrImmutablePrimitiveNode = false) {
+    return PathVisitOptions(
+        PathVisitMode::LEAF, skipOptionalOrImmutablePrimitiveNode);
   }
 
   explicit PathVisitOptions(
       PathVisitMode mode,
-      bool skipImmutablePrimitiveNode = false)
-      : mode(mode), skipImmutablePrimitiveNode(skipImmutablePrimitiveNode) {}
+      bool skipOptionalOrImmutablePrimitiveNode = false)
+      : mode(mode),
+        skipOptionalOrImmutablePrimitiveNode(
+            skipOptionalOrImmutablePrimitiveNode) {}
 
   PathVisitMode mode;
-  bool skipImmutablePrimitiveNode;
+  bool skipOptionalOrImmutablePrimitiveNode;
 };
 
 namespace pv_detail {
@@ -896,12 +902,24 @@ struct PathVisitorImpl {
       "Forgot to specify reflection option or include fatal header file? "
       "Refer to thrift/lib/cpp2/reflection/reflection.h");
 
+  template <typename T>
+  struct optional_field : std::false_type {};
+  template <typename T>
+  struct optional_field<apache::thrift::optional_field_ref<T>>
+      : std::true_type {};
+
   template <typename Node, typename Op>
   static ThriftTraverseResult
   visit(Node& node, const VisitImplParams<Op>& params, PathIter cursor) {
+    if constexpr (optional_field<folly::remove_cvref_t<Node>>::value) {
+      if (params.options.skipOptionalOrImmutablePrimitiveNode) {
+        return ThriftTraverseResult::OK;
+      }
+    }
     if constexpr (is_cow_type_v<Node>) {
       if constexpr (!std::is_same_v<typename Node::CowType, HybridNodeType>) {
-        if (params.options.skipImmutablePrimitiveNode && node.immutable) {
+        if (params.options.skipOptionalOrImmutablePrimitiveNode &&
+            node.immutable) {
           return ThriftTraverseResult::OK;
         }
       }
