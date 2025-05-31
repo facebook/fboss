@@ -360,6 +360,7 @@ bool isLoadBalancedImpl(
     return !highest && noTrafficOk;
   }
   if (!weights.empty()) {
+    assert(ecmpPorts.size() == weights.size());
     auto maxWeight = *(std::max_element(weights.begin(), weights.end()));
     for (auto i = 0; i < portIdToStats.size(); ++i) {
       uint64_t portOutBytes;
