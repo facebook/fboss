@@ -5299,7 +5299,7 @@
             "minAlarmVal": 3.135,
             "lowerCriticalVal": 2.97
           },
-          "compute": "3*@/1000"
+          "compute": "@/1000"
         },
         {
           "name": "SMB_3V3_L_VRM_TEMP",
@@ -5843,7 +5843,7 @@
             "minAlarmVal": 3.135,
             "lowerCriticalVal": 2.97
           },
-          "compute": "3*@/1000"
+          "compute": "@/1000"
         },
         {
           "name": "SMB_3V3_R_VRM_TEMP",
