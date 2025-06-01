@@ -193,4 +193,31 @@ TEST_F(AgentVoqSwitchInterruptTest, allReassemblyContextsTakenError) {
   };
   verifyAcrossWarmBoots([]() {}, verify);
 }
+
+TEST_F(AgentVoqSwitchInterruptTest, validateInterruptMaskedEventCallback) {
+  auto verify = [=, this]() {
+    constexpr auto kInterruptMaskedEventCintStr = R"(
+      cint_reset();
+      bcm_switch_event_control_t type;
+      type.event_id = 2128; // JR3_INT_MACT_LARGE_EM_LARGE_EM_EVENT_FIFO_HIGH_THRESHOLD_REACHED
+      type.index = 0;
+      type.action = bcmSwitchEventMask;
+      bcm_switch_event_control_set(0, BCM_SWITCH_EVENT_DEVICE_INTERRUPT, type, 0);
+    )";
+    runCint(kInterruptMaskedEventCintStr);
+    WITH_RETRIES({
+      for (const auto& [switchIdx, switchStats] :
+           getSw()->getHwSwitchStatsExpensive()) {
+        auto intrMaskedEvents =
+            switchStats.fb303GlobalStats()->interrupt_masked_events();
+        ASSERT_EVENTUALLY_TRUE(intrMaskedEvents.has_value());
+        XLOG(INFO) << "Switch index: " << switchIdx
+                   << " Interrupt masked events: " << *intrMaskedEvents;
+        EXPECT_EVENTUALLY_GT(*intrMaskedEvents, 0);
+      }
+    });
+  };
+  verifyAcrossWarmBoots([]() {}, verify);
+}
+
 } // namespace facebook::fboss
