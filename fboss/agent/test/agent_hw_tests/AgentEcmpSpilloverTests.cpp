@@ -236,6 +236,49 @@ TEST_F(AgentEcmpSpilloverTest, VerifyEcmpReplay) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+// Coldboot backup mode as static hash
+// Warmboot changes backup mode to random spray
+// Verify spillover switching mode updated to random spray
+// TODO (ravi) update SAI once spray support becomes available
+TEST_F(AgentEcmpSpilloverTest, VerifyEcmpBackupUpdateOverWB) {
+  generatePrefixes();
+
+  auto setup = [=, this]() {
+    programDynamicPrefixes();
+    programSpilloverPrefixes();
+  };
+
+  auto verify = [=, this]() {
+    verifyDynamicPrefixes();
+    verifySpilloverPrefixes();
+  };
+
+  auto setupPostWarmboot = [=, this]() {
+    const auto& ensemble = *getAgentEnsemble();
+    auto cfg = initialConfig(ensemble);
+    utility::addFlowletConfigs(
+        cfg,
+        ensemble.masterLogicalPortIds(),
+        ensemble.isSai(),
+        cfg::SwitchingMode::PER_PACKET_QUALITY,
+        ensemble.isSai() ? cfg::SwitchingMode::FIXED_ASSIGNMENT
+                         : cfg::SwitchingMode::PER_PACKET_RANDOM);
+    applyNewConfig(cfg);
+  };
+
+  auto verifyPostWarmboot = [=, this]() {
+    const auto& ensemble = *getAgentEnsemble();
+    verifyDynamicPrefixes();
+    for (const auto& prefix : spilloverPrefixes) {
+      verifyFwdSwitchingMode(
+          prefix,
+          ensemble.isSai() ? cfg::SwitchingMode::FIXED_ASSIGNMENT
+                           : cfg::SwitchingMode::PER_PACKET_RANDOM);
+    }
+  };
+  verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
+}
+
 /*
  * Create 128 dynamic ECMP
  * Create 32 spillover ECMP
