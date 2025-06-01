@@ -10,10 +10,12 @@
 
 #include "fboss/agent/test/agent_hw_tests/AgentArsBase.h"
 
+#include "fboss/agent/AgentDirectoryUtil.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 #include "fboss/agent/test/utils/ScaleTestUtils.h"
+#include "fboss/lib/CommonFileUtils.h"
 
 namespace facebook::fboss {
 
@@ -69,6 +71,9 @@ class AgentEcmpSpilloverTest : public AgentArsBase {
     spilloverNhopSets2 = {
         nhopSets.begin() + 256 + kMaxDlbEcmpGroup,
         nhopSets.begin() + 256 + kMaxDlbEcmpGroup + kMaxSpilloverCount};
+    spilloverPrefixes2 = {
+        prefixes.begin() + 256 + kMaxDlbEcmpGroup,
+        prefixes.begin() + 256 + kMaxDlbEcmpGroup + kMaxSpilloverCount};
   }
 
   void programDynamicPrefixes() {
@@ -96,6 +101,7 @@ class AgentEcmpSpilloverTest : public AgentArsBase {
   std::vector<flat_set<PortDescriptor>> spilloverNhopSets;
   std::vector<flat_set<PortDescriptor>> spilloverNhopSets2;
   std::vector<RoutePrefixV6> spilloverPrefixes;
+  std::vector<RoutePrefixV6> spilloverPrefixes2;
   static inline constexpr auto kMaxSpilloverCount = 32;
 };
 
@@ -326,5 +332,191 @@ TEST_F(AgentEcmpSpilloverTest, VerifySpilloverPrefixChangeToPrimaryGroupNhops) {
 
   verifyAcrossWarmBoots(setup, verify);
 }
+
+class AgentEcmpResourceMgrWarmbootEnableTest : public AgentEcmpSpilloverTest {
+ protected:
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto cfg = utility::onePortPerInterfaceConfig(
+        ensemble.getSw(),
+        ensemble.masterLogicalPortIds(),
+        true /*interfaceHasSubnet*/);
+    utility::addFlowletConfigs(
+        cfg,
+        ensemble.masterLogicalPortIds(),
+        ensemble.isSai(),
+        cfg::SwitchingMode::PER_PACKET_QUALITY,
+        cfg::SwitchingMode::FIXED_ASSIGNMENT);
+    return cfg;
+  }
+
+  void setCmdLineFlagOverrides() const override {
+    AgentArsBase::setCmdLineFlagOverrides();
+    FLAGS_flowletSwitchingEnable = true;
+    FLAGS_dlbResourceCheckEnable = false;
+    // Update switch thrift state before warmboot shutdown
+    FLAGS_update_route_with_dlb_type = true;
+    auto dirUtil = AgentDirectoryUtil();
+    auto canWarmBoot = checkFileExists(dirUtil.getSwSwitchCanWarmBootFile());
+    if (canWarmBoot) {
+      FLAGS_enable_ecmp_resource_manager = true;
+      FLAGS_ecmp_resource_percentage = 100;
+      FLAGS_ecmp_resource_manager_make_before_break_buffer = 0;
+    }
+  }
+};
+
+// Cold boot setup
+// 1. Create 128 dynamic ECMP groups
+// 2. Create 32 spillover ECMP groups
+//
+// Post warmboot, update backup mode to Random
+// 1. 32 spilled over ECMP should be updated to Random
+TEST_F(AgentEcmpResourceMgrWarmbootEnableTest, VerifyEcmpDecompressNoReclaim) {
+  generatePrefixes();
+
+  auto setup = [=, this]() {
+    programDynamicPrefixes();
+    programSpilloverPrefixes();
+  };
+
+  auto verify = [=, this]() {
+    verifyDynamicPrefixes();
+    for (const auto& prefix : spilloverPrefixes) {
+      verifyFwdSwitchingMode(prefix, cfg::SwitchingMode::FIXED_ASSIGNMENT);
+    }
+  };
+
+  auto setupPostWarmboot = [=, this]() {
+    const auto& ensemble = *getAgentEnsemble();
+    auto cfg = initialConfig(ensemble);
+    utility::addFlowletConfigs(
+        cfg,
+        ensemble.masterLogicalPortIds(),
+        ensemble.isSai(),
+        cfg::SwitchingMode::PER_PACKET_QUALITY,
+        cfg::SwitchingMode::PER_PACKET_RANDOM);
+    applyNewConfig(cfg);
+  };
+
+  auto verifyPostWarmboot = [=, this]() {
+    verifyDynamicPrefixes();
+    // Spilled over ECMP should now be converted to dynamic
+    for (const auto& prefix : spilloverPrefixes) {
+      verifyFwdSwitchingMode(prefix, cfg::SwitchingMode::PER_PACKET_RANDOM);
+    }
+  };
+  verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
+};
+
+// Cold boot setup
+// 1. Create 128 dynamic ECMP groups
+// 2. Create 32 spillover ECMP groups
+// 3. Delete 32 dynamic ECMP groups
+//
+// Post warmboot
+// 1. 32 spilled over ECMP should be reclaimed
+TEST_F(
+    AgentEcmpResourceMgrWarmbootEnableTest,
+    VerifyEcmpDecompressFullReclaim) {
+  generatePrefixes();
+
+  auto setup = [=, this]() {
+    programDynamicPrefixes(); // 127 - 32
+    programSpilloverPrefixes(); // 32
+
+    // delete prefixes from dynamic range
+    {
+      std::vector<RoutePrefixV6> delPrefixes = {
+          dynamicPrefixes.begin(),
+          dynamicPrefixes.begin() + kMaxSpilloverCount};
+      auto wrapper = getSw()->getRouteUpdater();
+      helper_->unprogramRoutes(&wrapper, delPrefixes);
+    }
+
+    for (const auto& prefix : spilloverPrefixes) {
+      verifyFwdSwitchingMode(prefix, cfg::SwitchingMode::FIXED_ASSIGNMENT);
+    }
+  };
+
+  auto verifyPostWarmboot = [=, this]() {
+    for (const auto& prefix : spilloverPrefixes) {
+      verifyFwdSwitchingMode(prefix, cfg::SwitchingMode::PER_PACKET_QUALITY);
+    }
+  };
+  verifyAcrossWarmBoots(setup, []() {}, []() {}, verifyPostWarmboot);
+};
+
+// This test is above 2 combined
+// Cold boot setup
+// 1. Create 128 dynamic ECMP groups
+// 2. Create 64 spillover ECMP groups
+// 3. Delete 32 dynamic ECMP groups
+//
+// Post warmboot, update backup mode to Random
+// 1. 32 spilled over ECMP should be reclaimed
+// 2. 32 should still be spilled over but backup mode updated to Random
+TEST_F(
+    AgentEcmpResourceMgrWarmbootEnableTest,
+    VerifyEcmpDecompressPartialReclaim) {
+  generatePrefixes();
+
+  auto setup = [=, this]() {
+    // Dynamic ECMP groups full
+    programDynamicPrefixes();
+    //  32 spillover groups
+    programSpilloverPrefixes();
+    {
+      // program 32 more spillover prefixes
+      auto wrapper = getSw()->getRouteUpdater();
+      helper_->programRoutes(&wrapper, spilloverNhopSets2, spilloverPrefixes2);
+    }
+
+    // delete 32 prefixes from dynamic range
+    {
+      std::vector<RoutePrefixV6> delPrefixes = {
+          dynamicPrefixes.begin(),
+          dynamicPrefixes.begin() + kMaxSpilloverCount};
+      auto wrapper = getSw()->getRouteUpdater();
+      helper_->unprogramRoutes(&wrapper, delPrefixes);
+    }
+  };
+
+  auto setupPostWarmboot = [=, this]() {
+    const auto& ensemble = *getAgentEnsemble();
+    auto cfg = initialConfig(ensemble);
+    utility::addFlowletConfigs(
+        cfg,
+        ensemble.masterLogicalPortIds(),
+        ensemble.isSai(),
+        cfg::SwitchingMode::PER_PACKET_QUALITY,
+        cfg::SwitchingMode::PER_PACKET_RANDOM);
+    applyNewConfig(cfg);
+  };
+
+  auto verifyPostWarmboot = [=, this]() {
+    const auto kMaxDlbEcmpGroup =
+        utility::getMaxDlbEcmpGroups(getAgentEnsemble()->getL3Asics());
+    std::vector<RoutePrefixV6> remainingDynamicPrefixes = {
+        prefixes.begin() + 32, prefixes.begin() + kMaxDlbEcmpGroup};
+
+    std::map<cfg::SwitchingMode, int> modeCount;
+    for (const auto& prefix : remainingDynamicPrefixes) {
+      modeCount[getFwdSwitchingMode(prefix)]++;
+    }
+    for (const auto& prefix : spilloverPrefixes) {
+      modeCount[getFwdSwitchingMode(prefix)]++;
+    }
+    for (const auto& prefix : spilloverPrefixes2) {
+      modeCount[getFwdSwitchingMode(prefix)]++;
+    }
+
+    ASSERT_EQ(
+        modeCount[cfg::SwitchingMode::PER_PACKET_QUALITY], kMaxDlbEcmpGroup);
+    ASSERT_EQ(
+        modeCount[cfg::SwitchingMode::PER_PACKET_RANDOM], kMaxSpilloverCount);
+  };
+  verifyAcrossWarmBoots(setup, []() {}, setupPostWarmboot, verifyPostWarmboot);
+};
 
 } // namespace facebook::fboss
