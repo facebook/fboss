@@ -52,6 +52,26 @@ class AgentEcmpSpilloverTest : public AgentArsBase {
         production_features::ProductionFeature::SINGLE_ACL_TABLE};
   }
 
+  // Find the ECMP mode for both dynamic and spillover prefixes
+  // check if the correct counts are utilized
+  void verifyModeCount(
+      const std::vector<std::vector<RoutePrefixV6>>& prefixVector,
+      cfg::SwitchingMode backupSwitchingMode) {
+    const auto kMaxDlbEcmpGroup =
+        utility::getMaxDlbEcmpGroups(getAgentEnsemble()->getL3Asics());
+
+    std::map<cfg::SwitchingMode, int> modeCount;
+    for (const auto& eachVector : prefixVector) {
+      for (const auto& prefix : eachVector) {
+        modeCount[getFwdSwitchingMode(prefix)]++;
+      }
+    }
+
+    ASSERT_EQ(
+        modeCount[cfg::SwitchingMode::PER_PACKET_QUALITY], kMaxDlbEcmpGroup);
+    ASSERT_EQ(modeCount[backupSwitchingMode], kMaxSpilloverCount);
+  }
+
   void generatePrefixes() override {
     AgentArsBase::generatePrefixes();
     const auto kMaxDlbEcmpGroup =
@@ -203,20 +223,9 @@ TEST_F(AgentEcmpSpilloverTest, VerifyDynamicPrefixUpdate) {
   auto verify = [=, this]() {
     // No guarantee that the new nhops are dynamic, so instead count the number
     // of ECMPs to identify how many are still dynamic or spilled over
-    std::map<cfg::SwitchingMode, int> modeCount;
-    for (const auto& prefix : dynamicPrefixes) {
-      modeCount[getFwdSwitchingMode(prefix)]++;
-    }
-    for (const auto& prefix : spilloverPrefixes) {
-      modeCount[getFwdSwitchingMode(prefix)]++;
-    }
-
-    const auto kMaxDlbEcmpGroup =
-        utility::getMaxDlbEcmpGroups(getAgentEnsemble()->getL3Asics());
-    ASSERT_EQ(
-        modeCount[cfg::SwitchingMode::PER_PACKET_QUALITY], kMaxDlbEcmpGroup);
-    ASSERT_EQ(
-        modeCount[cfg::SwitchingMode::FIXED_ASSIGNMENT], kMaxSpilloverCount);
+    verifyModeCount(
+        {dynamicPrefixes, spilloverPrefixes},
+        cfg::SwitchingMode::FIXED_ASSIGNMENT);
   };
 
   verifyAcrossWarmBoots(setup, verify);
@@ -498,23 +507,13 @@ TEST_F(
     const auto kMaxDlbEcmpGroup =
         utility::getMaxDlbEcmpGroups(getAgentEnsemble()->getL3Asics());
     std::vector<RoutePrefixV6> remainingDynamicPrefixes = {
-        prefixes.begin() + 32, prefixes.begin() + kMaxDlbEcmpGroup};
-
-    std::map<cfg::SwitchingMode, int> modeCount;
-    for (const auto& prefix : remainingDynamicPrefixes) {
-      modeCount[getFwdSwitchingMode(prefix)]++;
-    }
-    for (const auto& prefix : spilloverPrefixes) {
-      modeCount[getFwdSwitchingMode(prefix)]++;
-    }
-    for (const auto& prefix : spilloverPrefixes2) {
-      modeCount[getFwdSwitchingMode(prefix)]++;
-    }
-
-    ASSERT_EQ(
-        modeCount[cfg::SwitchingMode::PER_PACKET_QUALITY], kMaxDlbEcmpGroup);
-    ASSERT_EQ(
-        modeCount[cfg::SwitchingMode::PER_PACKET_RANDOM], kMaxSpilloverCount);
+        prefixes.begin() + kMaxSpilloverCount,
+        prefixes.begin() + kMaxDlbEcmpGroup};
+    verifyModeCount(
+        {std::move(remainingDynamicPrefixes),
+         spilloverPrefixes,
+         spilloverPrefixes2},
+        cfg::SwitchingMode::PER_PACKET_RANDOM);
   };
   verifyAcrossWarmBoots(setup, []() {}, setupPostWarmboot, verifyPostWarmboot);
 };
