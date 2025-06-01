@@ -68,20 +68,40 @@ class AgentEcmpSpilloverTest : public AgentArsBase {
     }
 
     ASSERT_EQ(
-        modeCount[cfg::SwitchingMode::PER_PACKET_QUALITY], kMaxDlbEcmpGroup);
-    ASSERT_EQ(modeCount[backupSwitchingMode], kMaxSpilloverCount);
+        modeCount[cfg::SwitchingMode::PER_PACKET_QUALITY],
+        kMaxDlbEcmpGroup * kPrefixesPerNhopSet);
+    ASSERT_EQ(
+        modeCount[backupSwitchingMode],
+        kMaxSpilloverCount * kPrefixesPerNhopSet);
   }
 
   void generatePrefixes() override {
+    // this generates 4096 prefixes and 512 nhopSets
     AgentArsBase::generatePrefixes();
     const auto kMaxDlbEcmpGroup =
         utility::getMaxDlbEcmpGroups(getAgentEnsemble()->getL3Asics());
+
+    // Start of dynamic prefix range in generated prefixes
+    const int kDynamicPrefixStart = 0;
+    const int kDynamicPrefixEnd =
+        kDynamicPrefixStart + (kMaxDlbEcmpGroup * kPrefixesPerNhopSet);
+    // Start of spillover prefix range in generated prefixes
+    const int kSpilloverPrefixStart = kDynamicPrefixEnd;
+    const int kSpilloverPrefixEnd =
+        kSpilloverPrefixStart + (kMaxSpilloverCount * kPrefixesPerNhopSet);
+    // A 2nd set of spillover prefixes for testing
+    const int kSpilloverPrefix2Start = kSpilloverPrefixEnd;
+    const int kSpilloverPrefix2End =
+        kSpilloverPrefix2Start + (kMaxSpilloverCount * kPrefixesPerNhopSet);
+
     // Create two test prefix vectors
-    dynamicPrefixes = {prefixes.begin(), prefixes.begin() + kMaxDlbEcmpGroup};
+    dynamicPrefixes = {
+        prefixes.begin() + kDynamicPrefixStart,
+        prefixes.begin() + kDynamicPrefixEnd};
     dynamicNhopSets = {nhopSets.begin(), nhopSets.begin() + kMaxDlbEcmpGroup};
     spilloverPrefixes = {
-        prefixes.begin() + kMaxDlbEcmpGroup,
-        prefixes.begin() + kMaxDlbEcmpGroup + kMaxSpilloverCount};
+        prefixes.begin() + kSpilloverPrefixStart,
+        prefixes.begin() + kSpilloverPrefixEnd};
     spilloverNhopSets = {
         nhopSets.begin() + kMaxDlbEcmpGroup,
         nhopSets.begin() + kMaxDlbEcmpGroup + kMaxSpilloverCount};
@@ -92,17 +112,19 @@ class AgentEcmpSpilloverTest : public AgentArsBase {
         nhopSets.begin() + 256 + kMaxDlbEcmpGroup,
         nhopSets.begin() + 256 + kMaxDlbEcmpGroup + kMaxSpilloverCount};
     spilloverPrefixes2 = {
-        prefixes.begin() + 256 + kMaxDlbEcmpGroup,
-        prefixes.begin() + 256 + kMaxDlbEcmpGroup + kMaxSpilloverCount};
+        prefixes.begin() + kSpilloverPrefix2Start,
+        prefixes.begin() + kSpilloverPrefix2End};
   }
 
   void programDynamicPrefixes() {
     auto wrapper = getSw()->getRouteUpdater();
-    helper_->programRoutes(&wrapper, dynamicNhopSets, dynamicPrefixes);
+    auto nhopSetsExpanded = expandNhopSets(dynamicNhopSets);
+    helper_->programRoutes(&wrapper, nhopSetsExpanded, dynamicPrefixes);
   }
   void programSpilloverPrefixes() {
     auto wrapper = getSw()->getRouteUpdater();
-    helper_->programRoutes(&wrapper, spilloverNhopSets, spilloverPrefixes);
+    auto nhopSetsExpanded = expandNhopSets(spilloverNhopSets);
+    helper_->programRoutes(&wrapper, nhopSetsExpanded, spilloverPrefixes);
   }
   void verifyDynamicPrefixes() {
     for (const auto& prefix : dynamicPrefixes) {
@@ -115,6 +137,20 @@ class AgentEcmpSpilloverTest : public AgentArsBase {
     }
   }
 
+  // Take a nhopSet and expand it to kPrefixesPerNhopSet times
+  // when used with programRoutes, this will program kPrefixesPerNhopSet number
+  // of prefixes per nhopSet
+  std::vector<flat_set<PortDescriptor>> expandNhopSets(
+      const std::vector<flat_set<PortDescriptor>>& nhopSets) {
+    std::vector<flat_set<PortDescriptor>> out;
+    for (const auto& nhopSet : nhopSets) {
+      for (auto i = 0; i < kPrefixesPerNhopSet; i++) {
+        out.push_back(nhopSet);
+      }
+    }
+    return out;
+  }
+
   std::vector<flat_set<PortDescriptor>> dynamicNhopSets;
   std::vector<flat_set<PortDescriptor>> dynamicNhopSets2;
   std::vector<RoutePrefixV6> dynamicPrefixes;
@@ -123,6 +159,8 @@ class AgentEcmpSpilloverTest : public AgentArsBase {
   std::vector<RoutePrefixV6> spilloverPrefixes;
   std::vector<RoutePrefixV6> spilloverPrefixes2;
   static inline constexpr auto kMaxSpilloverCount = 32;
+  // Number of prefixes per nhopSet
+  static inline constexpr auto kPrefixesPerNhopSet = 10;
 };
 
 // Basic test to verify ecmp spillover
@@ -155,9 +193,10 @@ TEST_F(AgentEcmpSpilloverTest, VerifyEcmpDecompress) {
 
     // delete prefixes from dynamic range
     {
+      // Delete first 32*10 prefixes (32 nhopSets with 10 prefixes each)
       std::vector<RoutePrefixV6> delPrefixes = {
           dynamicPrefixes.begin(),
-          dynamicPrefixes.begin() + kMaxSpilloverCount};
+          dynamicPrefixes.begin() + (kMaxSpilloverCount * kPrefixesPerNhopSet)};
       auto wrapper = getSw()->getRouteUpdater();
       helper_->unprogramRoutes(&wrapper, delPrefixes);
     }
@@ -216,7 +255,8 @@ TEST_F(AgentEcmpSpilloverTest, VerifyDynamicPrefixUpdate) {
     // update dynamic prefixes to new nhops
     {
       auto wrapper = getSw()->getRouteUpdater();
-      helper_->programRoutes(&wrapper, dynamicNhopSets2, dynamicPrefixes);
+      auto nhopSetsExpanded = expandNhopSets(dynamicNhopSets2);
+      helper_->programRoutes(&wrapper, nhopSetsExpanded, dynamicPrefixes);
     }
   };
 
@@ -251,7 +291,8 @@ TEST_F(AgentEcmpSpilloverTest, VerifySpilloverPrefixUpdate) {
     // update spillover prefixes to new nhops
     {
       auto wrapper = getSw()->getRouteUpdater();
-      helper_->programRoutes(&wrapper, spilloverNhopSets2, spilloverPrefixes);
+      auto nhopSetsExpanded = expandNhopSets(spilloverNhopSets2);
+      helper_->programRoutes(&wrapper, nhopSetsExpanded, spilloverPrefixes);
     }
   };
 
@@ -284,11 +325,13 @@ TEST_F(AgentEcmpSpilloverTest, VerifySpilloverPrefixReclaimOnRouteDelete) {
     // update dynamic prefixes to nhops in spillover range
     {
       auto wrapper = getSw()->getRouteUpdater();
+      // Take first 32*10 prefixes (32 nhopSets with 10 prefixes each)
       std::vector<RoutePrefixV6> first32DynamicPrefixes = {
           dynamicPrefixes.begin(),
-          dynamicPrefixes.begin() + kMaxSpilloverCount};
+          dynamicPrefixes.begin() + (kMaxSpilloverCount * kPrefixesPerNhopSet)};
+      auto nhopSetsExpanded = expandNhopSets(spilloverNhopSets);
       helper_->programRoutes(
-          &wrapper, spilloverNhopSets, first32DynamicPrefixes);
+          &wrapper, nhopSetsExpanded, first32DynamicPrefixes);
     }
   };
 
@@ -326,8 +369,8 @@ TEST_F(AgentEcmpSpilloverTest, VerifySpilloverPrefixChangeToPrimaryGroupNhops) {
       auto wrapper = getSw()->getRouteUpdater();
       std::vector<flat_set<PortDescriptor>> first32DynamicNhopSets = {
           nhopSets.begin(), nhopSets.begin() + kMaxSpilloverCount};
-      helper_->programRoutes(
-          &wrapper, first32DynamicNhopSets, spilloverPrefixes);
+      auto nhopSetsExpanded = expandNhopSets(first32DynamicNhopSets);
+      helper_->programRoutes(&wrapper, nhopSetsExpanded, spilloverPrefixes);
     }
   };
 
@@ -436,9 +479,10 @@ TEST_F(
 
     // delete prefixes from dynamic range
     {
+      // Delete first 32*10 prefixes (32 nhopSets with 10 prefixes each)
       std::vector<RoutePrefixV6> delPrefixes = {
           dynamicPrefixes.begin(),
-          dynamicPrefixes.begin() + kMaxSpilloverCount};
+          dynamicPrefixes.begin() + (kMaxSpilloverCount * kPrefixesPerNhopSet)};
       auto wrapper = getSw()->getRouteUpdater();
       helper_->unprogramRoutes(&wrapper, delPrefixes);
     }
@@ -478,14 +522,16 @@ TEST_F(
     {
       // program 32 more spillover prefixes
       auto wrapper = getSw()->getRouteUpdater();
-      helper_->programRoutes(&wrapper, spilloverNhopSets2, spilloverPrefixes2);
+      auto nhopSetsExpanded = expandNhopSets(spilloverNhopSets2);
+      helper_->programRoutes(&wrapper, nhopSetsExpanded, spilloverPrefixes2);
     }
 
     // delete 32 prefixes from dynamic range
     {
+      // Delete first 32*10 prefixes (32 nhopSets with 10 prefixes each)
       std::vector<RoutePrefixV6> delPrefixes = {
           dynamicPrefixes.begin(),
-          dynamicPrefixes.begin() + kMaxSpilloverCount};
+          dynamicPrefixes.begin() + (kMaxSpilloverCount * kPrefixesPerNhopSet)};
       auto wrapper = getSw()->getRouteUpdater();
       helper_->unprogramRoutes(&wrapper, delPrefixes);
     }
@@ -507,8 +553,8 @@ TEST_F(
     const auto kMaxDlbEcmpGroup =
         utility::getMaxDlbEcmpGroups(getAgentEnsemble()->getL3Asics());
     std::vector<RoutePrefixV6> remainingDynamicPrefixes = {
-        prefixes.begin() + kMaxSpilloverCount,
-        prefixes.begin() + kMaxDlbEcmpGroup};
+        prefixes.begin() + (kMaxSpilloverCount * kPrefixesPerNhopSet),
+        prefixes.begin() + (kMaxDlbEcmpGroup * kPrefixesPerNhopSet)};
     verifyModeCount(
         {std::move(remainingDynamicPrefixes),
          spilloverPrefixes,

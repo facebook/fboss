@@ -731,7 +731,7 @@ void AgentArsBase::generatePrefixes() {
                 std::make_move_iterator(portDescriptorIds.end())));
       });
 
-  std::generate_n(std::back_inserter(prefixes), 512, [i = 0]() mutable {
+  std::generate_n(std::back_inserter(prefixes), 4096, [i = 0]() mutable {
     return RoutePrefixV6{
         folly::IPAddressV6(folly::to<std::string>(2401, "::", i++)), 128};
   });
