@@ -145,6 +145,7 @@ cli::ShowRouteDetailsModel createRouteModel() {
   entry1.nextHops()->emplace_back(nextHopInfo1_2);
   entry1.counterID() = "None";
   entry1.classID() = "DST_CLASS_L3_DPR(20)";
+  entry1.overridenEcmpMode() = "None";
 
   // entry 2
   entry2.ip() = "176.161.6.0";
@@ -170,6 +171,7 @@ cli::ShowRouteDetailsModel createRouteModel() {
   entry2.nextHops()->emplace_back(nextHopInfo2_2);
   entry2.counterID() = "counter0";
   entry2.classID() = "None";
+  entry2.overridenEcmpMode() = "None";
 
   model.routeEntries() = {entry1, entry2};
 
@@ -245,6 +247,7 @@ Network Address: 2401:db00::/32
   Admin Distance: None
   Counter Id: None
   Class Id: DST_CLASS_L3_DPR(20)
+  Overridden ECMP mode: None
 
 Network Address: 176.161.6.0/32 (connected)
   Nexthops from client STATIC_ROUTE
@@ -255,6 +258,7 @@ Network Address: 176.161.6.0/32 (connected)
   Admin Distance: DIRECTLY_CONNECTED
   Counter Id: counter0
   Class Id: None
+  Overridden ECMP mode: None
 )";
   EXPECT_EQ(output, expectOutput);
 }
