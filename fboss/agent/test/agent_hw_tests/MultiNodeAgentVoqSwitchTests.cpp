@@ -68,6 +68,7 @@ TEST_F(MultiNodeAgentVoqSwitchTest, verifyDsfCluster) {
     WITH_RETRIES_N_TIMED(10, std::chrono::milliseconds(5000), {
       EXPECT_EVENTUALLY_TRUE(multiNodeUtil->verifySystemPorts());
       EXPECT_EVENTUALLY_TRUE(multiNodeUtil->verifyRifs());
+      EXPECT_EVENTUALLY_TRUE(multiNodeUtil->verifyStaticNdpEntries());
       EXPECT_EVENTUALLY_TRUE(multiNodeUtil->verifyDsfSessions());
     });
   };
