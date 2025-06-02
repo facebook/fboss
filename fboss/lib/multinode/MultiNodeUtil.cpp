@@ -272,6 +272,31 @@ MultiNodeUtil::getNdpEntriesAndSwitchOfType(
   return ndpEntriesAndSwitchOfType;
 }
 
+bool MultiNodeUtil::verifyStaticNdpEntries() {
+  // Every remote RDSW must have a STATIC NDP entry in the local RDSW
+  auto expectedRdsws = getAllRdsws();
+
+  for (const auto& [clusterId, rdsws] : std::as_const(clusterIdToRdsws_)) {
+    for (const auto& rdsw : std::as_const(rdsws)) {
+      auto ndpEntriesAndSwitchOfType =
+          getNdpEntriesAndSwitchOfType(rdsw, {"STATIC"});
+
+      std::set<std::string> gotRdsws;
+      std::transform(
+          ndpEntriesAndSwitchOfType.begin(),
+          ndpEntriesAndSwitchOfType.end(),
+          std::inserter(gotRdsws, gotRdsws.begin()),
+          [](const auto& pair) { return pair.second; });
+
+      if (expectedRdsws != gotRdsws) {
+        return false;
+      }
+    }
+  }
+
+  return true;
+}
+
 std::set<std::string> MultiNodeUtil::getRdswsWithEstablishedDsfSessions(
     const std::string& rdsw) {
   auto logDsfSession =
