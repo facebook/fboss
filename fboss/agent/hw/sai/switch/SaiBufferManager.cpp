@@ -592,7 +592,9 @@ SaiBufferProfileTraits::CreateAttributes SaiBufferManager::profileCreateAttrs(
   sramFadtMaxTh = 0;
   sramFadtMinTh = 0;
   sramFadtXonOffset = 0;
+#if !defined(BRCM_SAI_SDK_DNX_GTE_13_0)
   sramDynamicTh = 0;
+#endif
 #endif
   return SaiBufferProfileTraits::CreateAttributes{
       pool,
@@ -708,6 +710,7 @@ SaiBufferManager::ingressProfileCreateAttrs(
   sramFadtMaxTh = config.maxSramXoffThresholdBytes().value_or(0);
   sramFadtMinTh = config.minSramXoffThresholdBytes().value_or(0);
   sramFadtXonOffset = config.sramResumeOffsetBytes().value_or(0);
+#if !defined(BRCM_SAI_SDK_DNX_GTE_13_0)
   if (config.sramScalingFactor() &&
       platform_->getAsic()->scalingFactorBasedDynamicThresholdSupported()) {
     sramDynamicTh = platform_->getAsic()->getBufferDynThreshFromScalingFactor(
@@ -715,6 +718,7 @@ SaiBufferManager::ingressProfileCreateAttrs(
   } else {
     sramDynamicTh = 0;
   }
+#endif
 #endif
   return SaiBufferProfileTraits::CreateAttributes{
       pool,
