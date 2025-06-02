@@ -266,15 +266,26 @@ void SaiPhyManager::initializeSlotPhysImpl(PimID pimID, bool warmboot) {
       // Now call HwSwitch to create the switch object in hardware
       auto saiSwitch = static_cast<SaiSwitch*>(saiPlatform->getHwSwitch());
 
+      auto initSaiSwitch = [pimID, saiSwitch, xphy](
+                               std::shared_ptr<SwitchState> statePrev) {
+        try {
+          saiSwitch->init(xphy, statePrev, true /* failHwCallsOnWarmboot */);
+        } catch (const std::exception& ex) {
+          XLOG(ERR) << "Failed to initialize SaiSwitch: pimID=" << pimID << ":"
+                    << ex.what();
+          throw;
+        }
+      };
+
       if (warmboot) {
         auto wbState =
             saiPlatform->getWarmBootHelper()->getWarmBootThriftState();
         auto statePrev =
             saiPlatform->getWarmBootHelper()->reconstructWarmBootThriftState(
                 wbState);
-        saiSwitch->init(xphy, statePrev, true /* failHwCallsOnWarmboot */);
+        initSaiSwitch(statePrev);
       } else {
-        saiSwitch->init(xphy, nullptr, true /* failHwCallsOnWarmboot */);
+        initSaiSwitch(nullptr);
       }
 
       xphy->setSwitchId(saiSwitch->getSaiSwitchId());
