@@ -33,7 +33,6 @@ cpp_library(
         "//fboss/agent:hw_switch",
         "//fboss/agent:packet",
         "//fboss/agent:switch_config-cpp2-types",
-        "//fboss/agent:utils",
         "//fboss/agent:voq_utils",
         "//fboss/agent/hw:hardware_stats-cpp2-types",
         "//fboss/agent/hw/switch_asics:switch_asics",
@@ -91,7 +90,6 @@ cpp_library(
     exported_deps = [
         "fbsource//third-party/googletest:gtest",
         "//fboss/agent:fboss-types",
-        "//fboss/agent:stats",
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent/hw/test:config_factory",
         "//fboss/agent/test:agent_ensemble",
@@ -246,7 +244,6 @@ cpp_library(
     ],
     exported_deps = [
         "fbsource//third-party/googletest:gtest",
-        ":asic_test_utils",
         ":pkt_test_utils",
         ":voq_test_utils",
         "//fboss/agent:asic_utils",

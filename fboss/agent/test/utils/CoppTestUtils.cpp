@@ -14,7 +14,6 @@
 #include "fboss/agent/LldpManager.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/TxPacket.h"
-#include "fboss/agent/Utils.h"
 #include "fboss/agent/VoqUtils.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/packet/ICMPHdr.h"
