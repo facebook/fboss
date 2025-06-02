@@ -206,6 +206,16 @@ bool MultiNodeUtil::verifyRifsForRdsw(const std::string& rdswToVerify) {
   return expectedRifs == gotRifs;
 }
 
+bool MultiNodeUtil::verifyRifs() {
+  for (const auto& rdsw : getAllRdsws()) {
+    if (!verifyRifsForRdsw(rdsw)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 std::set<std::string> MultiNodeUtil::getRdswsWithEstablishedDsfSessions(
     const std::string& rdsw) {
   auto logDsfSession =
