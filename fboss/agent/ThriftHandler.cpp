@@ -1832,6 +1832,10 @@ void ThriftHandler::getRouteTable(std::vector<UnicastRoute>& routes) {
     if (fwdInfo.getClassID().has_value()) {
       tempRoute.classID() = *fwdInfo.getClassID();
     }
+    if (fwdInfo.getOverrideEcmpSwitchingMode().has_value()) {
+      tempRoute.overrideEcmpSwitchingMode() =
+          *fwdInfo.getOverrideEcmpSwitchingMode();
+    }
     routes.emplace_back(std::move(tempRoute));
   });
 }
@@ -1856,6 +1860,10 @@ void ThriftHandler::getRouteTableByClient(
     }
     if (auto classID = entry->getClassID()) {
       tempRoute.classID() = *classID;
+    }
+    if (auto overrideEcmpSwitchingMode =
+            entry->getOverrideEcmpSwitchingMode()) {
+      tempRoute.overrideEcmpSwitchingMode() = *overrideEcmpSwitchingMode;
     }
     for (const auto& nh : *tempRoute.nextHops()) {
       tempRoute.nextHopAddrs()->emplace_back(*nh.address());
@@ -1900,6 +1908,10 @@ void ThriftHandler::getIpRoute(
     if (classID.has_value()) {
       route.classID() = *classID;
     }
+    auto overrideEcmpSwitchingMode = fwdInfo.getOverrideEcmpSwitchingMode();
+    if (overrideEcmpSwitchingMode.has_value()) {
+      route.overrideEcmpSwitchingMode() = *overrideEcmpSwitchingMode;
+    }
   } else {
     auto match = sw_->longestMatch(state, ipAddr.asV6(), RouterID(vrfId));
     if (!match || !match->isResolved()) {
@@ -1918,6 +1930,10 @@ void ThriftHandler::getIpRoute(
     auto classID = fwdInfo.getClassID();
     if (classID.has_value()) {
       route.classID() = *classID;
+    }
+    auto overrideEcmpSwitchingMode = fwdInfo.getOverrideEcmpSwitchingMode();
+    if (overrideEcmpSwitchingMode.has_value()) {
+      route.overrideEcmpSwitchingMode() = *overrideEcmpSwitchingMode;
     }
   }
 }
