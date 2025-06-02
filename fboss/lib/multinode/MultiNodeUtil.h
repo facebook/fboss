@@ -32,6 +32,9 @@ class MultiNodeUtil {
 
   std::set<std::string> getFabricConnectedSwitches(
       const std::string& switchName);
+  bool verifyFabricConnectedSwitchesForRdsw(
+      int clusterId,
+      const std::string& rdswToVerify);
 
   std::set<std::string> getGlobalSystemPortsOfType(
       const std::string& rdsw,

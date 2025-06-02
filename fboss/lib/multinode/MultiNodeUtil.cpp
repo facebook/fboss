@@ -149,6 +149,17 @@ std::set<std::string> MultiNodeUtil::getFabricConnectedSwitches(
   return connectedSwitches;
 }
 
+bool MultiNodeUtil::verifyFabricConnectedSwitchesForRdsw(
+    int clusterId,
+    const std::string& rdswToVerify) {
+  // Every RDSW is connected to all FDSWs in its cluster
+  std::set<std::string> expectedConnectedSwitches(
+      clusterIdToFdsws_[clusterId].begin(), clusterIdToFdsws_[clusterId].end());
+  auto gotConnectedSwitches = getFabricConnectedSwitches(rdswToVerify);
+
+  return expectedConnectedSwitches == gotConnectedSwitches;
+}
+
 std::set<std::string> MultiNodeUtil::getGlobalSystemPortsOfType(
     const std::string& rdsw,
     const std::set<RemoteSystemPortType>& types) {
