@@ -233,9 +233,20 @@ bool MultiNodeUtil::verifyFabricConnectedSwitchesForSdsw(
   return expectedConnectedSwitches == gotConnectedSwitches;
 }
 
+bool MultiNodeUtil::verifyFabricConnectedSwitchesForAllSdsws() {
+  for (const auto& sdsw : sdsws_) {
+    if (!verifyFabricConnectedSwitchesForSdsw(sdsw)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 bool MultiNodeUtil::verifyFabricConnectivity() {
   return verifyFabricConnectedSwitchesForAllRdsws() &&
-      verifyFabricConnectedSwitchesForAllFdsws();
+      verifyFabricConnectedSwitchesForAllFdsws() &&
+      verifyFabricConnectedSwitchesForAllSdsws();
 }
 
 std::set<std::string> MultiNodeUtil::getGlobalSystemPortsOfType(

@@ -43,6 +43,7 @@ class MultiNodeUtil {
       const std::string& fdswToVerify);
   bool verifyFabricConnectedSwitchesForAllFdsws();
   bool verifyFabricConnectedSwitchesForSdsw(const std::string& sdswToVerify);
+  bool verifyFabricConnectedSwitchesForAllSdsws();
 
   std::set<std::string> getGlobalSystemPortsOfType(
       const std::string& rdsw,
