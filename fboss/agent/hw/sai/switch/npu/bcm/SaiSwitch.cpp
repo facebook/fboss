@@ -28,7 +28,7 @@ std::string eventName(uint32_t eventID) {
       return "SAI_SWITCH_EVENT_TYPE_UNCONTROLLED_SHUTDOWN";
     case SAI_SWITCH_EVENT_TYPE_PARITY_ERROR:
       return "SAI_SWITCH_EVENT_TYPE_PARITY_ERROR";
-#if defined BRCM_SAI_SDK_GTE_11_0
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_7)
     case SAI_SWITCH_EVENT_TYPE_INTERRUPT:
       return "SAI_SWITCH_EVENT_TYPE_INTERRUPT";
     case SAI_SWITCH_EVENT_TYPE_INTERRUPT_MASKED:
@@ -839,7 +839,7 @@ void SaiSwitch::switchEventCallback(
         getSwitchStats()->uncorrParityError();
       }
     } break;
-#if defined BRCM_SAI_SDK_GTE_11_0
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_7)
     case SAI_SWITCH_EVENT_TYPE_INTERRUPT: {
       auto ireError = isIreErrorType(eventInfo->error_type);
       auto itppError = isItppError(eventInfo->error_type);
@@ -942,8 +942,6 @@ void SaiSwitch::switchEventCallback(
       XLOG(DBG4) << "Interrupt masked notification received for interrupt ID "
                  << static_cast<int>(eventInfo->index);
       break;
-#endif
-#if defined(BRCM_SAI_SDK_DNX_GTE_11_7)
     case SAI_SWITCH_EVENT_TYPE_FIRMWARE_CRASHED: {
       XLOG(ERR) << "Firmware Crash callback received: " << " error type: "
                 << errorType(eventInfo->error_type)
