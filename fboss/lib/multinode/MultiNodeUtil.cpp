@@ -29,6 +29,31 @@ std::unique_ptr<apache::thrift::Client<FbossCtrl>> getSwAgentThriftClient(
 }
 
 MultiNodeUtil::MultiNodeUtil(
-    const std::shared_ptr<MultiSwitchDsfNodeMap>& dsfNodeMap) {}
+    const std::shared_ptr<MultiSwitchDsfNodeMap>& dsfNodeMap) {
+  for (const auto& [_, dsfNodes] : std::as_const(*dsfNodeMap)) {
+    for (const auto& [_, node] : std::as_const(*dsfNodes)) {
+      if (node->getType() == cfg::DsfNodeType::INTERFACE_NODE) {
+        CHECK(node->getClusterId().has_value());
+        auto clusterId = node->getClusterId().value();
+        clusterIdToRdsws_[clusterId].push_back(node->getName());
+      } else if (node->getType() == cfg::DsfNodeType::FABRIC_NODE) {
+        CHECK(node->getFabricLevel().has_value());
+        if (node->getFabricLevel().value() == 1) {
+          CHECK(node->getClusterId().has_value());
+          auto clusterId = node->getClusterId().value();
+          clusterIdToFdsws_[clusterId].push_back(node->getName());
+        } else if (node->getFabricLevel().value() == 2) {
+          sdsws_.insert(node->getName());
+        } else {
+          XLOG(FATAL) << "Invalid fabric level"
+                      << node->getFabricLevel().value();
+        }
+      } else {
+        XLOG(FATAL) << "Invalid DSF Node type"
+                    << apache::thrift::util::enumNameSafe(node->getType());
+      }
+    }
+  }
+}
 
 } // namespace facebook::fboss::utility
