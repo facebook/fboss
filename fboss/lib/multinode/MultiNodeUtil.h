@@ -28,6 +28,7 @@ class MultiNodeUtil {
   void populateDsfNodes(
       const std::shared_ptr<MultiSwitchDsfNodeMap>& dsfNodeMap);
   void populateAllRdsws();
+  void populateAllFdsws();
 
   std::set<std::string> getGlobalSystemPortsOfType(
       const std::string& rdsw,
@@ -51,6 +52,7 @@ class MultiNodeUtil {
   std::set<std::string> sdsws_;
 
   std::set<std::string> allRdsws_;
+  std::set<std::string> allFdsws_;
   std::map<SwitchID, std::string> switchIdToSwitchName_;
 };
 

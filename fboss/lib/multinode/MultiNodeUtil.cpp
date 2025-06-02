@@ -116,6 +116,14 @@ void MultiNodeUtil::populateAllRdsws() {
   }
 }
 
+void MultiNodeUtil::populateAllFdsws() {
+  for (const auto& [clusterId, fdsws] : std::as_const(clusterIdToFdsws_)) {
+    for (const auto& fdsw : fdsws) {
+      allFdsws_.insert(fdsw);
+    }
+  }
+}
+
 std::set<std::string> MultiNodeUtil::getGlobalSystemPortsOfType(
     const std::string& rdsw,
     const std::set<RemoteSystemPortType>& types) {
