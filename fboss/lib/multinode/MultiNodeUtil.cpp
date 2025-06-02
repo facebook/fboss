@@ -101,6 +101,31 @@ std::set<std::string> MultiNodeUtil::getGlobalSystemPortsOfType(
   return systemPortsOfType;
 }
 
+bool MultiNodeUtil::verifySystemPortsForRdsw(const std::string& rdswToVerify) {
+  // Every GLOBAL system port of every remote RDSW is either a STATIC_ENTRY or
+  // DYNAMIC_ENTRY of the local RDSW
+  std::set<std::string> gotSystemPorts;
+  std::set<std::string> expectedSystemPorts;
+  for (const auto& [clusterId, rdsws] : std::as_const(clusterIdToRdsws_)) {
+    for (const auto& rdsw : std::as_const(rdsws)) {
+      if (rdsw == rdswToVerify) {
+        gotSystemPorts = getGlobalSystemPortsOfType(
+            rdswToVerify,
+            {RemoteSystemPortType::STATIC_ENTRY,
+             RemoteSystemPortType::
+                 DYNAMIC_ENTRY} /* Get Global Remote ports of self */);
+      } else {
+        auto systemPortsForRdsw = getGlobalSystemPortsOfType(
+            rdsw, {} /* Get Global ports of Remote RDSW */);
+        expectedSystemPorts.insert(
+            systemPortsForRdsw.begin(), systemPortsForRdsw.end());
+      }
+    }
+  }
+
+  return expectedSystemPorts == gotSystemPorts;
+}
+
 std::set<std::string> MultiNodeUtil::getRdswsWithEstablishedDsfSessions(
     const std::string& rdsw) {
   auto logDsfSession =
