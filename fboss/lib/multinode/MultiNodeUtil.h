@@ -22,6 +22,9 @@ class MultiNodeUtil {
 
  private:
   std::set<std::string> getAllRdsws();
+  std::set<std::string> getRdswsWithEstablishedDsfSessions(
+      const std::string& rdsw);
+
   std::map<int, std::vector<std::string>> clusterIdToRdsws_;
   std::map<int, std::vector<std::string>> clusterIdToFdsws_;
   std::set<std::string> sdsws_;

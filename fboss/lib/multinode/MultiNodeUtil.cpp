@@ -73,4 +73,23 @@ std::set<std::string> MultiNodeUtil::getAllRdsws() {
   return allRdsws;
 }
 
+std::set<std::string> MultiNodeUtil::getRdswsWithEstablishedDsfSessions(
+    const std::string& rdsw) {
+  auto swAgentClient = getSwAgentThriftClient(rdsw);
+  std::vector<facebook::fboss::DsfSessionThrift> sessions;
+  swAgentClient->sync_getDsfSessions(sessions);
+
+  std::set<std::string> gotRdsws;
+  for (const auto& session : sessions) {
+    if (session.state() == facebook::fboss::DsfSessionState::ESTABLISHED) {
+      size_t pos = (*session.remoteName()).find("::");
+      if (pos != std::string::npos) {
+        gotRdsws.insert((*session.remoteName()).substr(0, pos));
+      }
+    }
+  }
+
+  return gotRdsws;
+}
+
 } // namespace facebook::fboss::utility
