@@ -24,6 +24,8 @@ class MultiNodeUtil {
   bool verifyDsfSessions();
 
  private:
+  void populateDsfNodes(
+      const std::shared_ptr<MultiSwitchDsfNodeMap>& dsfNodeMap);
   std::set<std::string> getAllRdsws();
 
   std::set<std::string> getGlobalSystemPortsOfType(

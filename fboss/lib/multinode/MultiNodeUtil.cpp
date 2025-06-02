@@ -37,6 +37,11 @@ namespace facebook::fboss::utility {
 
 MultiNodeUtil::MultiNodeUtil(
     const std::shared_ptr<MultiSwitchDsfNodeMap>& dsfNodeMap) {
+  populateDsfNodes(dsfNodeMap);
+}
+
+void MultiNodeUtil::populateDsfNodes(
+    const std::shared_ptr<MultiSwitchDsfNodeMap>& dsfNodeMap) {
   for (const auto& [_, dsfNodes] : std::as_const(*dsfNodeMap)) {
     for (const auto& [_, node] : std::as_const(*dsfNodes)) {
       if (node->getType() == cfg::DsfNodeType::INTERFACE_NODE) {
