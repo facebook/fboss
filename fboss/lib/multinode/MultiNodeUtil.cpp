@@ -188,6 +188,10 @@ bool MultiNodeUtil::verifyFabricConnectedSwitchesForAllRdsws() {
   return true;
 }
 
+bool MultiNodeUtil::verifyFabricConnectivity() {
+  return verifyFabricConnectedSwitchesForAllRdsws();
+}
+
 std::set<std::string> MultiNodeUtil::getGlobalSystemPortsOfType(
     const std::string& rdsw,
     const std::set<RemoteSystemPortType>& types) {
