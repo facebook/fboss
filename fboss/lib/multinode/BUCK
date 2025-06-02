@@ -9,6 +9,7 @@ cpp_library(
     exported_deps = [
         "//common/network:util",
         "//fboss/agent/if:ctrl-cpp2-clients",
+        "//fboss/agent/if:hw_ctrl-cpp2-services",
         "//fboss/agent/state:state",
         "//thrift/lib/cpp2/async:rocket_client_channel",
     ],
