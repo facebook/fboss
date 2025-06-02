@@ -33,6 +33,7 @@ class MultiNodeUtil {
   std::set<int> getGlobalRifsOfType(
       const std::string& rdsw,
       const std::set<RemoteInterfaceType>& types);
+  bool verifyRifsForRdsw(const std::string& rdswToVerify);
 
   std::set<std::string> getRdswsWithEstablishedDsfSessions(
       const std::string& rdsw);

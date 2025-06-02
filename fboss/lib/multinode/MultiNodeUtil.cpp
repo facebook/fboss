@@ -182,6 +182,30 @@ std::set<int> MultiNodeUtil::getGlobalRifsOfType(
   return rifsOfType;
 }
 
+bool MultiNodeUtil::verifyRifsForRdsw(const std::string& rdswToVerify) {
+  // Every GLOBAL rif of every remote RDSW is either a STATIC_ENTRY or
+  // DYNAMIC_ENTRY of the local RDSW
+  std::set<int> gotRifs;
+  std::set<int> expectedRifs;
+  for (const auto& [clusterId, rdsws] : std::as_const(clusterIdToRdsws_)) {
+    for (const auto& rdsw : std::as_const(rdsws)) {
+      if (rdsw == rdswToVerify) {
+        gotRifs = getGlobalRifsOfType(
+            rdswToVerify,
+            {RemoteInterfaceType::STATIC_ENTRY,
+             RemoteInterfaceType::
+                 DYNAMIC_ENTRY} /* Get Global Remote rifs of self */);
+      } else {
+        auto rifsForRdsw =
+            getGlobalRifsOfType(rdsw, {} /* Get Global rifs of Remote RDSW */);
+        expectedRifs.insert(rifsForRdsw.begin(), rifsForRdsw.end());
+      }
+    }
+  }
+
+  return expectedRifs == gotRifs;
+}
+
 std::set<std::string> MultiNodeUtil::getRdswsWithEstablishedDsfSessions(
     const std::string& rdsw) {
   auto logDsfSession =
