@@ -20,5 +20,6 @@ int main(int argc, char** argv) {
   Utils().printLspciDetails(FLAGS_verbose);
   Utils().printPortDetails(FLAGS_verbose);
   Utils().printSensorDetails();
+  Utils().printI2cDetails(FLAGS_verbose);
   return 0;
 }

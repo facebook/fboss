@@ -79,6 +79,26 @@ void Utils::printSensorDetails() {
             << std::endl;
 }
 
+void Utils::printI2cDetails(bool verbose) {
+  std::cout << "##### I2C Information #####" << std::endl;
+  auto [ret, output] = platformUtils_.execCommand("i2cdetect -l");
+  std::cout << output << std::endl;
+  if (!verbose) {
+    return;
+  }
+  std::istringstream outputStream(output);
+  std::string line;
+  while (std::getline(outputStream, line)) {
+    std::istringstream lineStream(line);
+    std::string bus;
+    lineStream >> bus;
+    std::string busNumber = bus.substr(4); // Remove "i2c-" prefix
+    auto cmd = fmt::format("time i2cdetect -y {}", busNumber);
+    std::cout << fmt::format("##### Running `{}` #####", cmd) << std::endl;
+    std::cout << platformUtils_.execCommand(cmd).second << std::endl;
+  }
+}
+
 void Utils::runFbossCliCmd(const std::string& cmd) {
   if (!std::filesystem::exists("/etc/ramdisk")) {
     auto fullCmd = fmt::format("fboss2 show {}", cmd);
