@@ -242,6 +242,7 @@ cpp_library(
     exported_deps = [
         "//fboss/agent:asic_utils",
         "//fboss/agent/test:agent_hw_test",
+        "//fboss/lib/multinode:multi_node_util",
     ],
 )
 

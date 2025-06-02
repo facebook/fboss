@@ -17,4 +17,9 @@ namespace facebook::fboss::utility {
 std::unique_ptr<apache::thrift::Client<FbossCtrl>> getSwAgentThriftClient(
     const std::string& switchName);
 
+class MultiNodeUtil {
+ public:
+  MultiNodeUtil();
+};
+
 } // namespace facebook::fboss::utility

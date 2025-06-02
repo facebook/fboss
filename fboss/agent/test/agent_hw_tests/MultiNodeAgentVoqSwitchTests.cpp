@@ -2,10 +2,13 @@
 
 #include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/test/AgentHwTest.h"
+#include "fboss/lib/multinode/MultiNodeUtil.h"
 
 DECLARE_bool(disable_neighbor_updates);
 DECLARE_bool(disable_looped_fabric_ports);
 DECLARE_bool(dsf_subscribe);
+
+using facebook::fboss::utility::MultiNodeUtil;
 
 namespace facebook::fboss {
 
@@ -55,10 +58,12 @@ class MultiNodeAgentVoqSwitchTest : public AgentHwTest {
   }
 };
 
-TEST_F(MultiNodeAgentVoqSwitchTest, verifyInbandPing) {
+TEST_F(MultiNodeAgentVoqSwitchTest, verifyDsfCluster) {
   auto setup = []() {};
 
-  auto verify = [this]() {};
+  auto verify = [this]() {
+    auto multiNodeUtil = std::make_unique<MultiNodeUtil>();
+  };
 
   verifyAcrossWarmBoots(setup, verify);
 }

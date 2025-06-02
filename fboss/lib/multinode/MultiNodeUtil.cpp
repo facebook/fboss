@@ -28,4 +28,6 @@ std::unique_ptr<apache::thrift::Client<FbossCtrl>> getSwAgentThriftClient(
       std::move(channel));
 }
 
+MultiNodeUtil::MultiNodeUtil() {}
+
 } // namespace facebook::fboss::utility
