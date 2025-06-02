@@ -19,6 +19,7 @@ class MultiNodeUtil {
  public:
   explicit MultiNodeUtil(
       const std::shared_ptr<MultiSwitchDsfNodeMap>& dsfNodeMap);
+  bool verifySystemPorts();
   bool verifyDsfSessions();
 
  private:

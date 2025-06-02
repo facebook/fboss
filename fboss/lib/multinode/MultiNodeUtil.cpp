@@ -126,6 +126,16 @@ bool MultiNodeUtil::verifySystemPortsForRdsw(const std::string& rdswToVerify) {
   return expectedSystemPorts == gotSystemPorts;
 }
 
+bool MultiNodeUtil::verifySystemPorts() {
+  for (const auto& rdsw : getAllRdsws()) {
+    if (!verifySystemPortsForRdsw(rdsw)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 std::set<std::string> MultiNodeUtil::getRdswsWithEstablishedDsfSessions(
     const std::string& rdsw) {
   auto logDsfSession =
