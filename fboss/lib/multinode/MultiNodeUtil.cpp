@@ -75,12 +75,24 @@ std::set<std::string> MultiNodeUtil::getAllRdsws() {
 
 std::set<std::string> MultiNodeUtil::getRdswsWithEstablishedDsfSessions(
     const std::string& rdsw) {
+  auto logDsfSession =
+      [rdsw](const facebook::fboss::DsfSessionThrift& session) {
+        XLOG(DBG2) << "From " << rdsw << " session: " << *session.remoteName()
+                   << " state: "
+                   << apache::thrift::util::enumNameSafe(*session.state())
+                   << " lastEstablishedAt: "
+                   << session.lastEstablishedAt().value_or(0)
+                   << " lastDisconnectedAt: "
+                   << session.lastDisconnectedAt().value_or(0);
+      };
+
   auto swAgentClient = getSwAgentThriftClient(rdsw);
   std::vector<facebook::fboss::DsfSessionThrift> sessions;
   swAgentClient->sync_getDsfSessions(sessions);
 
   std::set<std::string> gotRdsws;
   for (const auto& session : sessions) {
+    logDsfSession(session);
     if (session.state() == facebook::fboss::DsfSessionState::ESTABLISHED) {
       size_t pos = (*session.remoteName()).find("::");
       if (pos != std::string::npos) {
@@ -102,6 +114,9 @@ bool MultiNodeUtil::verifyDsfSessions() {
       expectedRdsws.erase(rdsw); // exclude self
       auto gotRdsws = getRdswsWithEstablishedDsfSessions(rdsw);
       if (expectedRdsws != gotRdsws) {
+        XLOG(DBG2) << "DSF ESTABLISHED sessions from " << rdsw
+                   << " Expected RDSWs: " << folly::join(",", expectedRdsws)
+                   << " Got RDSWs: " << folly::join(",", gotRdsws);
         return false;
       }
     }
