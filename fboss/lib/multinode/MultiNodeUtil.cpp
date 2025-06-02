@@ -44,6 +44,8 @@ void MultiNodeUtil::populateDsfNodes(
     const std::shared_ptr<MultiSwitchDsfNodeMap>& dsfNodeMap) {
   for (const auto& [_, dsfNodes] : std::as_const(*dsfNodeMap)) {
     for (const auto& [_, node] : std::as_const(*dsfNodes)) {
+      switchIdToSwitchName_[node->getSwitchId()] = node->getName();
+
       if (node->getType() == cfg::DsfNodeType::INTERFACE_NODE) {
         CHECK(node->getClusterId().has_value());
         auto clusterId = node->getClusterId().value();

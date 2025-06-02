@@ -44,6 +44,8 @@ class MultiNodeUtil {
   std::map<int, std::vector<std::string>> clusterIdToRdsws_;
   std::map<int, std::vector<std::string>> clusterIdToFdsws_;
   std::set<std::string> sdsws_;
+
+  std::map<SwitchID, std::string> switchIdToSwitchName_;
 };
 
 } // namespace facebook::fboss::utility
