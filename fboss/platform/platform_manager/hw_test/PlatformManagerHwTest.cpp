@@ -77,10 +77,14 @@ class PlatformManagerHwTest : public ::testing::Test {
   PlatformConfig platformConfig_{ConfigUtils().getConfig()};
   PlatformExplorerWrapper platformExplorer_{platformConfig_};
   PkgManager pkgManager_{platformConfig_};
+  std::optional<DataStore> ds =
+      platformExplorer_.getDataStore().value_or(DataStore(platformConfig_));
   std::unique_ptr<apache::thrift::Client<PlatformManagerService>> pmClient_{
       apache::thrift::makeTestClient<
           apache::thrift::Client<PlatformManagerService>>(
-          std::make_unique<PlatformManagerHandler>(platformExplorer_))};
+          std::make_unique<PlatformManagerHandler>(
+              platformExplorer_,
+              ds.value()))};
 };
 
 TEST_F(PlatformManagerHwTest, ExploreAsDeployed) {

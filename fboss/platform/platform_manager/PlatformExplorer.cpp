@@ -833,6 +833,19 @@ void PlatformExplorer::updatePmStatus(const PlatformManagerStatus& newStatus) {
   });
 }
 
+std::optional<DataStore> PlatformExplorer::getDataStore() const {
+  bool ready = false;
+  platformManagerStatus_.withRLock([&](const PlatformManagerStatus& status) {
+    ready =
+        (status.explorationStatus() != ExplorationStatus::IN_PROGRESS &&
+         status.explorationStatus() != ExplorationStatus::UNSTARTED);
+  });
+  if (ready) {
+    return dataStore_;
+  }
+  return std::nullopt;
+}
+
 void PlatformExplorer::setupI2cDevice(
     const std::string& devicePath,
     uint16_t busNum,

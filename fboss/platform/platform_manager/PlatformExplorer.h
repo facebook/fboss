@@ -98,6 +98,8 @@ class PlatformExplorer {
   // throws if no PmUnit found at the SlotPath.
   PmUnitInfo getPmUnitInfo(const std::string& slotPath) const;
 
+  std::optional<DataStore> getDataStore() const;
+
  protected:
   virtual void updatePmStatus(const PlatformManagerStatus& newStatus);
   // A thrift struct which contains the status of PM exploration.
