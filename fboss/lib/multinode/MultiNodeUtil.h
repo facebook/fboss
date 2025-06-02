@@ -30,6 +30,9 @@ class MultiNodeUtil {
   void populateAllRdsws();
   void populateAllFdsws();
 
+  std::set<std::string> getFabricConnectedSwitches(
+      const std::string& switchName);
+
   std::set<std::string> getGlobalSystemPortsOfType(
       const std::string& rdsw,
       const std::set<RemoteSystemPortType>& types);

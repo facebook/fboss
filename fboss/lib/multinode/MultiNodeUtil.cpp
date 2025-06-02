@@ -124,6 +124,31 @@ void MultiNodeUtil::populateAllFdsws() {
   }
 }
 
+std::set<std::string> MultiNodeUtil::getFabricConnectedSwitches(
+    const std::string& switchName) {
+  std::map<std::string, FabricEndpoint> fabricEndpoints;
+  auto hwAgentQueryFn =
+      [&fabricEndpoints](
+          apache::thrift::Client<facebook::fboss::FbossHwCtrl>& client) {
+        std::map<std::string, FabricEndpoint> hwagentEntries;
+        client.sync_getHwFabricConnectivity(hwagentEntries);
+        fabricEndpoints.merge(hwagentEntries);
+      };
+  runOnAllHwAgents(switchName, hwAgentQueryFn);
+
+  std::set<std::string> connectedSwitches;
+
+  for (const auto& [portName, fabricEndpoint] : fabricEndpoints) {
+    if (fabricEndpoint.isAttached().value()) {
+      if (fabricEndpoint.switchName().has_value()) {
+        connectedSwitches.insert(fabricEndpoint.switchName().value());
+      }
+    }
+  }
+
+  return connectedSwitches;
+}
+
 std::set<std::string> MultiNodeUtil::getGlobalSystemPortsOfType(
     const std::string& rdsw,
     const std::set<RemoteSystemPortType>& types) {
