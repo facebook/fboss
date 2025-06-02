@@ -126,6 +126,15 @@ void MultiNodeUtil::populateAllFdsws() {
 
 std::set<std::string> MultiNodeUtil::getFabricConnectedSwitches(
     const std::string& switchName) {
+  auto logFabricEndpoint = [switchName](const FabricEndpoint& fabricEndpoint) {
+    XLOG(DBG2) << "From " << " switchName: " << switchName
+               << " switchId: " << fabricEndpoint.switchId().value()
+               << " fabricEndpoint.switchName: "
+               << fabricEndpoint.switchName().value_or("none")
+               << " fabricEndpoint.portName: "
+               << fabricEndpoint.portName().value_or("none");
+  };
+
   std::map<std::string, FabricEndpoint> fabricEndpoints;
   auto hwAgentQueryFn =
       [&fabricEndpoints](
@@ -140,6 +149,7 @@ std::set<std::string> MultiNodeUtil::getFabricConnectedSwitches(
 
   for (const auto& [portName, fabricEndpoint] : fabricEndpoints) {
     if (fabricEndpoint.isAttached().value()) {
+      logFabricEndpoint(fabricEndpoint);
       if (fabricEndpoint.switchName().has_value()) {
         connectedSwitches.insert(fabricEndpoint.switchName().value());
       }
@@ -156,6 +166,12 @@ bool MultiNodeUtil::verifyFabricConnectedSwitchesForRdsw(
   std::set<std::string> expectedConnectedSwitches(
       clusterIdToFdsws_[clusterId].begin(), clusterIdToFdsws_[clusterId].end());
   auto gotConnectedSwitches = getFabricConnectedSwitches(rdswToVerify);
+
+  XLOG(DBG2) << "From RDSW::" << rdswToVerify
+             << " Expected Connected Switches: "
+             << folly::join(",", expectedConnectedSwitches)
+             << " Got Connected Switches: "
+             << folly::join(",", gotConnectedSwitches);
 
   return expectedConnectedSwitches == gotConnectedSwitches;
 }
