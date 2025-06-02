@@ -66,6 +66,7 @@ TEST_F(MultiNodeAgentVoqSwitchTest, verifyDsfCluster) {
         std::make_unique<MultiNodeUtil>(getProgrammedState()->getDsfNodes());
 
     WITH_RETRIES_N_TIMED(10, std::chrono::milliseconds(5000), {
+      EXPECT_EVENTUALLY_TRUE(multiNodeUtil->verifyFabricConnectivity());
       EXPECT_EVENTUALLY_TRUE(multiNodeUtil->verifySystemPorts());
       EXPECT_EVENTUALLY_TRUE(multiNodeUtil->verifyRifs());
       EXPECT_EVENTUALLY_TRUE(multiNodeUtil->verifyStaticNdpEntries());
