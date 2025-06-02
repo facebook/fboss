@@ -218,6 +218,21 @@ bool MultiNodeUtil::verifyFabricConnectedSwitchesForAllFdsws() {
   return true;
 }
 
+bool MultiNodeUtil::verifyFabricConnectedSwitchesForSdsw(
+    const std::string& sdswToVerify) {
+  // Every SDSW is connected to all FDSWs in all clusters
+  auto expectedConnectedSwitches = allFdsws_;
+  auto gotConnectedSwitches = getFabricConnectedSwitches(sdswToVerify);
+
+  XLOG(DBG2) << "From SDSW:: " << sdswToVerify
+             << " Expected Connected Switches: "
+             << folly::join(",", expectedConnectedSwitches)
+             << " Got Connected Switches: "
+             << folly::join(",", gotConnectedSwitches);
+
+  return expectedConnectedSwitches == gotConnectedSwitches;
+}
+
 bool MultiNodeUtil::verifyFabricConnectivity() {
   return verifyFabricConnectedSwitchesForAllRdsws() &&
       verifyFabricConnectedSwitchesForAllFdsws();
