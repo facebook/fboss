@@ -17903,7 +17903,7 @@
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
-    "minipack3n/sai/asicsdk-116.132.2505.14/116.132.2505.14": [
+    "minipack3n/sai/asicsdk-116.132.2505.19/116.132.2505.19": [
         {
           "test_name_regex": "MacsecTest.*$"
         },
@@ -17950,7 +17950,7 @@
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
-    "minipack3n/sai/asicsdk-116.132.2505.14/116.132.2505.14/physdk-credo-0.7.2/credo-0.7.2": [
+    "minipack3n/sai/asicsdk-116.132.2505.19/116.132.2505.19/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "MacsecTest.*$"
         },
@@ -17997,7 +17997,7 @@
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
-    "minipack3n/sai/asicsdk-116.132.2505.14/116.132.2505.14/physdk-credo-0.9.0/credo-0.9.0": [
+    "minipack3n/sai/asicsdk-116.132.2505.19/116.132.2505.19/physdk-credo-0.9.0/credo-0.9.0": [
         {
           "test_name_regex": "MacsecTest.*$"
         },
