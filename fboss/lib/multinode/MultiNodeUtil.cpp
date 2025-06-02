@@ -157,6 +157,31 @@ bool MultiNodeUtil::verifySystemPorts() {
   return true;
 }
 
+std::set<int> MultiNodeUtil::getGlobalRifsOfType(
+    const std::string& rdsw,
+    const std::set<RemoteInterfaceType>& types) {
+  auto swAgentClient = getSwAgentThriftClient(rdsw);
+  std::map<int32_t, facebook::fboss::InterfaceDetail> rifs;
+  swAgentClient->sync_getAllInterfaces(rifs);
+
+  auto matchesRifType = [&types](const facebook::fboss::InterfaceDetail& rif) {
+    if (rif.remoteIntfType().has_value()) {
+      return types.find(rif.remoteIntfType().value()) != types.end();
+    } else {
+      return types.empty();
+    }
+  };
+
+  std::set<int> rifsOfType;
+  for (const auto& [_, rif] : rifs) {
+    if (*rif.scope() == cfg::Scope::GLOBAL && matchesRifType(rif)) {
+      rifsOfType.insert(rif.interfaceId().value());
+    }
+  }
+
+  return rifsOfType;
+}
+
 std::set<std::string> MultiNodeUtil::getRdswsWithEstablishedDsfSessions(
     const std::string& rdsw) {
   auto logDsfSession =
