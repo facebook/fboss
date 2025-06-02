@@ -38,6 +38,7 @@ namespace facebook::fboss::utility {
 MultiNodeUtil::MultiNodeUtil(
     const std::shared_ptr<MultiSwitchDsfNodeMap>& dsfNodeMap) {
   populateDsfNodes(dsfNodeMap);
+  populateAllRdsws();
 }
 
 void MultiNodeUtil::populateDsfNodes(
@@ -70,14 +71,12 @@ void MultiNodeUtil::populateDsfNodes(
   }
 }
 
-std::set<std::string> MultiNodeUtil::getAllRdsws() {
-  std::set<std::string> allRdsws;
+void MultiNodeUtil::populateAllRdsws() {
   for (const auto& [clusterId, rdsws] : std::as_const(clusterIdToRdsws_)) {
     for (const auto& rdsw : rdsws) {
-      allRdsws.insert(rdsw);
+      allRdsws_.insert(rdsw);
     }
   }
-  return allRdsws;
 }
 
 std::set<std::string> MultiNodeUtil::getGlobalSystemPortsOfType(
@@ -155,7 +154,7 @@ bool MultiNodeUtil::verifySystemPortsForRdsw(const std::string& rdswToVerify) {
 }
 
 bool MultiNodeUtil::verifySystemPorts() {
-  for (const auto& rdsw : getAllRdsws()) {
+  for (const auto& rdsw : allRdsws_) {
     if (!verifySystemPortsForRdsw(rdsw)) {
       return false;
     }
@@ -230,7 +229,7 @@ bool MultiNodeUtil::verifyRifsForRdsw(const std::string& rdswToVerify) {
 }
 
 bool MultiNodeUtil::verifyRifs() {
-  for (const auto& rdsw : getAllRdsws()) {
+  for (const auto& rdsw : allRdsws_) {
     if (!verifyRifsForRdsw(rdsw)) {
       return false;
     }
@@ -284,7 +283,7 @@ MultiNodeUtil::getNdpEntriesAndSwitchOfType(
 
 bool MultiNodeUtil::verifyStaticNdpEntries() {
   // Every remote RDSW must have a STATIC NDP entry in the local RDSW
-  auto expectedRdsws = getAllRdsws();
+  auto expectedRdsws = allRdsws_;
 
   for (const auto& [clusterId, rdsws] : std::as_const(clusterIdToRdsws_)) {
     for (const auto& rdsw : std::as_const(rdsws)) {
@@ -343,11 +342,10 @@ std::set<std::string> MultiNodeUtil::getRdswsWithEstablishedDsfSessions(
 
 bool MultiNodeUtil::verifyDsfSessions() {
   // Every RDSW must have an ESTABLISHED DSF Session with every other RDSW
-  auto allRdsws = getAllRdsws();
 
   for (const auto& [clusterId, rdsws] : std::as_const(clusterIdToRdsws_)) {
     for (const auto& rdsw : std::as_const(rdsws)) {
-      auto expectedRdsws = allRdsws;
+      auto expectedRdsws = allRdsws_;
       expectedRdsws.erase(rdsw); // exclude self
       auto gotRdsws = getRdswsWithEstablishedDsfSessions(rdsw);
       if (expectedRdsws != gotRdsws) {
