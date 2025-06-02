@@ -73,6 +73,34 @@ std::set<std::string> MultiNodeUtil::getAllRdsws() {
   return allRdsws;
 }
 
+std::set<std::string> MultiNodeUtil::getGlobalSystemPortsOfType(
+    const std::string& rdsw,
+    const std::set<RemoteSystemPortType>& types) {
+  auto swAgentClient = getSwAgentThriftClient(rdsw);
+  std::map<int64_t, facebook::fboss::SystemPortThrift> systemPortEntries;
+  swAgentClient->sync_getSystemPorts(systemPortEntries);
+
+  auto matchesPortType =
+      [&types](const facebook::fboss::SystemPortThrift& systemPort) {
+        if (systemPort.remoteSystemPortType().has_value()) {
+          return types.find(systemPort.remoteSystemPortType().value()) !=
+              types.end();
+        } else {
+          return types.empty();
+        }
+      };
+
+  std::set<std::string> systemPortsOfType;
+  for (const auto& [_, systemPort] : systemPortEntries) {
+    if (*systemPort.scope() == cfg::Scope::GLOBAL &&
+        matchesPortType(systemPort)) {
+      systemPortsOfType.insert(systemPort.portName().value());
+    }
+  }
+
+  return systemPortsOfType;
+}
+
 std::set<std::string> MultiNodeUtil::getRdswsWithEstablishedDsfSessions(
     const std::string& rdsw) {
   auto logDsfSession =

@@ -23,6 +23,10 @@ class MultiNodeUtil {
 
  private:
   std::set<std::string> getAllRdsws();
+
+  std::set<std::string> getGlobalSystemPortsOfType(
+      const std::string& rdsw,
+      const std::set<RemoteSystemPortType>& types);
   std::set<std::string> getRdswsWithEstablishedDsfSessions(
       const std::string& rdsw);
 
