@@ -160,6 +160,18 @@ bool MultiNodeUtil::verifyFabricConnectedSwitchesForRdsw(
   return expectedConnectedSwitches == gotConnectedSwitches;
 }
 
+bool MultiNodeUtil::verifyFabricConnectedSwitchesForAllRdsws() {
+  for (const auto& [clusterId, rdsws] : std::as_const(clusterIdToRdsws_)) {
+    for (const auto& rdsw : rdsws) {
+      if (!verifyFabricConnectedSwitchesForRdsw(clusterId, rdsw)) {
+        return false;
+      }
+    }
+  }
+
+  return true;
+}
+
 std::set<std::string> MultiNodeUtil::getGlobalSystemPortsOfType(
     const std::string& rdsw,
     const std::set<RemoteSystemPortType>& types) {
