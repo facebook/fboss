@@ -28,6 +28,7 @@ std::unique_ptr<apache::thrift::Client<FbossCtrl>> getSwAgentThriftClient(
       std::move(channel));
 }
 
-MultiNodeUtil::MultiNodeUtil() {}
+MultiNodeUtil::MultiNodeUtil(
+    const std::shared_ptr<MultiSwitchDsfNodeMap>& dsfNodeMap) {}
 
 } // namespace facebook::fboss::utility

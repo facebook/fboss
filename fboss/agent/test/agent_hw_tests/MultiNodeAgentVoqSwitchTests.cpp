@@ -62,7 +62,8 @@ TEST_F(MultiNodeAgentVoqSwitchTest, verifyDsfCluster) {
   auto setup = []() {};
 
   auto verify = [this]() {
-    auto multiNodeUtil = std::make_unique<MultiNodeUtil>();
+    auto multiNodeUtil =
+        std::make_unique<MultiNodeUtil>(getProgrammedState()->getDsfNodes());
   };
 
   verifyAcrossWarmBoots(setup, verify);
