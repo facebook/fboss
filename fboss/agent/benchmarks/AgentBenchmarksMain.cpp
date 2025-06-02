@@ -4,17 +4,13 @@
 #include <folly/init/Init.h>
 #include <folly/json/dynamic.h>
 #include <folly/json/json.h>
-#include <folly/logging/Init.h>
 #include <gtest/gtest.h>
 
 #include <sys/resource.h>
-#include <sys/time.h>
 
 #include <iostream>
 
 #include "fboss/agent/benchmarks/AgentBenchmarksMain.h"
-
-#include "fboss/agent/benchmarks/AgentBenchmarks.h"
 
 const int64_t kUsecPerSecond = 1000000;
 
