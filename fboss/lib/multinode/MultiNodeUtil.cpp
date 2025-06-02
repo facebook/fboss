@@ -92,4 +92,22 @@ std::set<std::string> MultiNodeUtil::getRdswsWithEstablishedDsfSessions(
   return gotRdsws;
 }
 
+bool MultiNodeUtil::verifyDsfSessions() {
+  // Every RDSW must have an ESTABLISHED DSF Session with every other RDSW
+  auto allRdsws = getAllRdsws();
+
+  for (const auto& [clusterId, rdsws] : std::as_const(clusterIdToRdsws_)) {
+    for (const auto& rdsw : std::as_const(rdsws)) {
+      auto expectedRdsws = allRdsws;
+      expectedRdsws.erase(rdsw); // exclude self
+      auto gotRdsws = getRdswsWithEstablishedDsfSessions(rdsw);
+      if (expectedRdsws != gotRdsws) {
+        return false;
+      }
+    }
+  }
+
+  return true;
+}
+
 } // namespace facebook::fboss::utility
