@@ -17,6 +17,7 @@
 
 namespace {
 using facebook::fboss::FbossCtrl;
+using facebook::fboss::MultiSwitchRunState;
 
 std::unique_ptr<apache::thrift::Client<FbossCtrl>> getSwAgentThriftClient(
     const std::string& switchName) {
@@ -29,6 +30,13 @@ std::unique_ptr<apache::thrift::Client<FbossCtrl>> getSwAgentThriftClient(
       apache::thrift::RocketClientChannel::newChannel(std::move(socket));
   return std::make_unique<apache::thrift::Client<FbossCtrl>>(
       std::move(channel));
+}
+
+int getNumHwSwitches(const std::string& switchName) {
+  auto swAgentClient = getSwAgentThriftClient(switchName);
+  MultiSwitchRunState runState;
+  swAgentClient->sync_getMultiSwitchRunState(runState);
+  return runState.hwIndexToRunState()->size();
 }
 
 } // namespace
