@@ -63,4 +63,14 @@ MultiNodeUtil::MultiNodeUtil(
   }
 }
 
+std::set<std::string> MultiNodeUtil::getAllRdsws() {
+  std::set<std::string> allRdsws;
+  for (const auto& [clusterId, rdsws] : std::as_const(clusterIdToRdsws_)) {
+    for (const auto& rdsw : rdsws) {
+      allRdsws.insert(rdsw);
+    }
+  }
+  return allRdsws;
+}
+
 } // namespace facebook::fboss::utility
