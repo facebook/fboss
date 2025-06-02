@@ -11,13 +11,9 @@
 #pragma once
 
 #include <string>
-#include "fboss/agent/if/gen-cpp2/FbossCtrlAsyncClient.h"
-
 #include "fboss/agent/state/DsfNodeMap.h"
 
 namespace facebook::fboss::utility {
-std::unique_ptr<apache::thrift::Client<FbossCtrl>> getSwAgentThriftClient(
-    const std::string& switchName);
 
 class MultiNodeUtil {
  public:

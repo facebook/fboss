@@ -13,7 +13,10 @@
 #include <thrift/lib/cpp2/async/RocketClientChannel.h>
 #include "common/network/NetworkUtil.h"
 
-namespace facebook::fboss::utility {
+#include "fboss/agent/if/gen-cpp2/FbossCtrlAsyncClient.h"
+
+namespace {
+using facebook::fboss::FbossCtrl;
 
 std::unique_ptr<apache::thrift::Client<FbossCtrl>> getSwAgentThriftClient(
     const std::string& switchName) {
@@ -27,6 +30,10 @@ std::unique_ptr<apache::thrift::Client<FbossCtrl>> getSwAgentThriftClient(
   return std::make_unique<apache::thrift::Client<FbossCtrl>>(
       std::move(channel));
 }
+
+} // namespace
+
+namespace facebook::fboss::utility {
 
 MultiNodeUtil::MultiNodeUtil(
     const std::shared_ptr<MultiSwitchDsfNodeMap>& dsfNodeMap) {
