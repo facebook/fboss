@@ -89,6 +89,7 @@ struct UnicastRoute {
   6: common.NamedRouteDestination namedRouteDestination;
   7: optional RouteCounterID counterID;
   8: optional switch_config.AclLookupClass classID;
+  9: optional switch_config.SwitchingMode overrideEcmpSwitchingMode;
 }
 
 struct MplsRoute {
