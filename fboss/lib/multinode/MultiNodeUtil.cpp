@@ -243,6 +243,15 @@ std::set<std::pair<std::string, std::string>>
 MultiNodeUtil::getNdpEntriesAndSwitchOfType(
     const std::string& rdsw,
     const std::set<std::string>& types) {
+  auto logNdpEntry = [rdsw](const facebook::fboss::NdpEntryThrift& ndpEntry) {
+    auto ip = folly::IPAddress::fromBinary(folly::ByteRange(
+        folly::StringPiece(ndpEntry.ip().value().addr().value())));
+
+    XLOG(DBG2) << "From " << rdsw << " ip: " << ip.str()
+               << " state: " << ndpEntry.state().value()
+               << " switchId: " << ndpEntry.switchId().value_or(-1);
+  };
+
   auto swAgentClient = getSwAgentThriftClient(rdsw);
   std::vector<facebook::fboss::NdpEntryThrift> ndpEntries;
   swAgentClient->sync_getNdpTable(ndpEntries);
@@ -254,6 +263,7 @@ MultiNodeUtil::getNdpEntriesAndSwitchOfType(
 
   std::set<std::pair<std::string, std::string>> ndpEntriesAndSwitchOfType;
   for (const auto& ndpEntry : ndpEntries) {
+    logNdpEntry(ndpEntry);
     if (matchesNdpType(ndpEntry)) {
       CHECK(ndpEntry.switchId().has_value());
       CHECK(
@@ -289,6 +299,9 @@ bool MultiNodeUtil::verifyStaticNdpEntries() {
           [](const auto& pair) { return pair.second; });
 
       if (expectedRdsws != gotRdsws) {
+        XLOG(DBG2) << "STATIC NDP Entries from " << rdsw
+                   << " Expected RDSWs: " << folly::join(",", expectedRdsws)
+                   << " Got RDSWs: " << folly::join(",", gotRdsws);
         return false;
       }
     }
