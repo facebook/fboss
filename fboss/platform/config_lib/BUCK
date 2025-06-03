@@ -49,6 +49,7 @@ cpp_library(
         "//fboss/platform/platform_manager:platform_manager_config-cpp2-types",
         "//fboss/platform/sensor_service:config_validator",
         "//fboss/platform/sensor_service/if:sensor_config-cpp2-types",
+        "//fboss/platform/weutil/if:weutil_config-cpp2-types",
         "//folly/logging:logging",
     ],
     exported_external_deps = [

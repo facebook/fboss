@@ -43,6 +43,7 @@ target_link_libraries(cross_config_validator
   sensor_config_cpp2
   platform_manager_config_validator
   sensor_service_config_validator
+  weutil_config_cpp2
   ${RE2}
 )
 

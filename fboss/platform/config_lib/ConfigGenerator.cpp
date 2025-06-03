@@ -177,6 +177,11 @@ std::map<std::string, std::map<std::string, std::string>> getConfigs() {
       if (!weutil::ConfigValidator().isValid(config, platformName)) {
         throw std::runtime_error("Invalid weutil configuration");
       }
+      if (crossConfigValidator &&
+          !crossConfigValidator->isValidWeutilConfig(config, platformName)) {
+        throw std::runtime_error(
+            "Invalid weutil configuration. Failed cross config validation.");
+      }
     }
   } // end per platform iteration
 
