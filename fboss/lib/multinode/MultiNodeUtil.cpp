@@ -251,6 +251,14 @@ bool MultiNodeUtil::verifyFabricConnectivity() {
 
 bool MultiNodeUtil::verifyFabricReachablityForRdsw(
     const std::string& rdswToVerify) {
+  auto logReachability = [rdswToVerify](
+                             const std::string& remoteSwitchName,
+                             const std::vector<std::string>& reachablePorts) {
+    XLOG(DBG2) << "From " << rdswToVerify
+               << " remoteSwitchName: " << remoteSwitchName
+               << " reachablePorts: " << folly::join(",", reachablePorts);
+  };
+
   // Every remote RDSW across all clusters is reachable from the local RDSW
   std::vector<std::string> remoteSwitchNames;
   std::copy_if(
@@ -273,7 +281,9 @@ bool MultiNodeUtil::verifyFabricReachablityForRdsw(
   // for DSF Single Stage as well as DSF Dual Stage.
   static auto constexpr kNumOfConnectedFabricPorts = 16;
 
-  for (auto& [_, reachablePorts] : reachability) {
+  for (auto& [remoteSwitchName, reachablePorts] : reachability) {
+    logReachability(remoteSwitchName, reachablePorts);
+
     if (reachablePorts.size() != kNumOfConnectedFabricPorts) {
       return false;
     }
