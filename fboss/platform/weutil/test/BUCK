@@ -32,3 +32,15 @@ cpp_unittest(
         "//fboss/platform/weutil:eeprom_content_validator",
     ],
 )
+
+cpp_unittest(
+    name = "config_validator_test",
+    srcs = [
+        "ConfigValidatorTest.cpp",
+    ],
+    deps = [
+        "//fboss/platform/weutil:config_validator",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+)
