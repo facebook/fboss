@@ -66,6 +66,9 @@ ModbusDeviceInfo ThriftHandler::transformModbusDeviceInfo(
   target.mode() = source.mode == rackmon::ModbusDeviceMode::ACTIVE
       ? ModbusDeviceMode::ACTIVE
       : ModbusDeviceMode::DORMANT;
+  // TODO: in the the next rackmon fbcode sync, update this to
+  // include the port number in the upper byte.
+  target.uniqueDevAddress() = source.deviceAddress;
   return target;
 }
 
