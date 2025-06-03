@@ -69,6 +69,31 @@ TEST_F(NextHopGroupManagerTest, addNextHopGroup) {
   checkNextHopGroup(saiNextHopGroup->adapterKey(), {});
 }
 
+TEST_F(NextHopGroupManagerTest, verifyNextHopGroupKey) {
+  ResolvedNextHop nh1{h0.ip, InterfaceID(intf0.id), ECMP_WEIGHT};
+  ResolvedNextHop nh2{h1.ip, InterfaceID(intf1.id), ECMP_WEIGHT};
+  RouteNextHopEntry::NextHopSet swNextHops{nh1, nh2};
+  auto saiNextHopGroupHandle =
+      saiManagerTable->nextHopGroupManager().incRefOrAddNextHopGroup(
+          SaiNextHopGroupKey(swNextHops, cfg::SwitchingMode::FIXED_ASSIGNMENT));
+  EXPECT_EQ(saiNextHopGroupHandle.use_count(), 1);
+
+  auto saiNextHopGroupHandle2 =
+      saiManagerTable->nextHopGroupManager().incRefOrAddNextHopGroup(
+          SaiNextHopGroupKey(swNextHops, cfg::SwitchingMode::FIXED_ASSIGNMENT));
+  EXPECT_EQ(saiNextHopGroupHandle.use_count(), 2);
+
+  EXPECT_EQ(saiNextHopGroupHandle, saiNextHopGroupHandle2);
+
+  auto saiNextHopGroupHandle3 =
+      saiManagerTable->nextHopGroupManager().incRefOrAddNextHopGroup(
+          SaiNextHopGroupKey(
+              swNextHops, cfg::SwitchingMode::PER_PACKET_RANDOM));
+  EXPECT_EQ(saiNextHopGroupHandle3.use_count(), 1);
+
+  EXPECT_EQ(saiNextHopGroupHandle.use_count(), 2);
+}
+
 TEST_F(NextHopGroupManagerTest, refNextHopGroup) {
   ResolvedNextHop nh1{h0.ip, InterfaceID(intf0.id), ECMP_WEIGHT};
   ResolvedNextHop nh2{h1.ip, InterfaceID(intf1.id), ECMP_WEIGHT};
