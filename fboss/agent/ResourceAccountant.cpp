@@ -50,6 +50,9 @@ int ResourceAccountant::computeWeightedEcmpMemberCount(
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
       // For TH4, UCMP members take 4x of ECMP members in the same table.
       return 4 * fwd.getNextHopSet().size();
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
+      // For TH5, UCMP members take 4x of ECMP members in the same table.
+      return 4 * fwd.getNextHopSet().size();
     case cfg::AsicType::ASIC_TYPE_YUBA:
       // Yuba asic natively supports UCMP members with no extra cost.
       return fwd.getNextHopSet().size();
