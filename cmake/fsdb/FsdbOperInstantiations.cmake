@@ -4,7 +4,8 @@
 # cmake/FooBar.cmake
 
 add_library(fsdb_cow_root
-  fboss/fsdb/oper/instantiations/FsdbCowRoot.cpp
+  fboss/fsdb/oper/instantiations/FsdbStatCowRoot.cpp
+  fboss/fsdb/oper/instantiations/FsdbStateCowRoot.cpp
 )
 
 target_link_libraries(fsdb_cow_root
