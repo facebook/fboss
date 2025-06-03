@@ -35,7 +35,10 @@ cpp_library(
 
 cpp_library(
     name = "fsdb_cow_storage",
-    srcs = ["FsdbCowStorage.cpp"],
+    srcs = [
+        "FsdbCowStateStorage.cpp",
+        "FsdbCowStatsStorage.cpp",
+    ],
     headers = ["FsdbCowStorage.h"],
     exported_deps = [
         ":fsdb_cow_root",

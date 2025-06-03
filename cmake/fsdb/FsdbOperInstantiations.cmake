@@ -25,7 +25,8 @@ target_link_libraries(fsdb_cow_root_path_visitor
 )
 
 add_library(fsdb_cow_storage
-  fboss/fsdb/oper/instantiations/FsdbCowStorage.cpp
+  fboss/fsdb/oper/instantiations/FsdbCowStateStorage.cpp
+  fboss/fsdb/oper/instantiations/FsdbCowStatsStorage.cpp
 )
 
 target_link_libraries(fsdb_cow_storage
