@@ -57,6 +57,17 @@ cpp_library(
 )
 
 cpp_library(
+    name = "config_validator",
+    srcs = [
+        "ConfigValidator.cpp",
+    ],
+    exported_deps = [
+        "//fboss/platform/weutil/if:weutil_config-cpp2-types",
+        "//folly/logging:logging",
+    ],
+)
+
+cpp_library(
     name = "eeprom_content_validator",
     srcs = [
         "ContentValidator.cpp",

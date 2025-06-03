@@ -72,6 +72,14 @@ target_link_libraries(weutil
   weutil_lib
 )
 
+add_library(weutil_config_validator
+  fboss/platform/weutil/ConfigValidator.cpp
+)
+
+target_link_libraries(weutil_config_validator
+  weutil_config_cpp2
+)
+
 add_executable(weutil_hw_test
   fboss/platform/weutil/hw_test/WeutilTest.cpp
 )
