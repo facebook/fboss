@@ -19,6 +19,7 @@
 #include "fboss/platform/platform_manager/gen-cpp2/platform_manager_config_types.h"
 #include "fboss/platform/sensor_service/ConfigValidator.h"
 #include "fboss/platform/sensor_service/if/gen-cpp2/sensor_config_types.h"
+#include "fboss/platform/weutil/ConfigValidator.h"
 #include "fboss/platform/weutil/if/gen-cpp2/weutil_config_types.h"
 
 // The install_dir flag is a requirement that comes from using a custom buck
@@ -168,6 +169,13 @@ std::map<std::string, std::map<std::string, std::string>> getConfigs() {
           deserializedConfigs.at("led_manager"));
       if (!data_corral_service::ConfigValidator().isValid(config)) {
         throw std::runtime_error("Invalid led_manager configuration");
+      }
+    }
+    if (deserializedConfigs.contains("weutil")) {
+      auto config =
+          std::any_cast<WeutilConfig>(deserializedConfigs.at("weutil"));
+      if (!weutil::ConfigValidator().isValid(config, platformName)) {
+        throw std::runtime_error("Invalid weutil configuration");
       }
     }
   } // end per platform iteration
