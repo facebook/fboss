@@ -1155,15 +1155,22 @@ void SwSwitch::getAllCpuPortStats(
 
 void SwSwitch::updateFlowletStats() {
   uint64_t dlbErrorPackets = 0;
+  uint64_t dlbReassignmentCount = 0;
   {
     auto lockedStats = hwSwitchStats_.rlock();
     for (auto& [switchIdx, hwSwitchStats] : *lockedStats) {
       dlbErrorPackets +=
           hwSwitchStats.flowletStats()->l3EcmpDlbFailPackets().value();
+      dlbReassignmentCount += hwSwitchStats.flowletStats()
+                                  ->l3EcmpDlbPortReassignmentCount()
+                                  .value();
     }
   }
   fb303::fbData->setCounter(
       SwitchStats::kCounterPrefix + "dlb_error_packets", dlbErrorPackets);
+  fb303::fbData->setCounter(
+      SwitchStats::kCounterPrefix + "dlb_reassignment_count",
+      dlbReassignmentCount);
 }
 
 TeFlowStats SwSwitch::getTeFlowStats() {
