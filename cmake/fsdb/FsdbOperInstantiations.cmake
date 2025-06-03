@@ -37,7 +37,8 @@ target_link_libraries(fsdb_cow_storage
 )
 
 add_library(fsdb_cow_subscription_manager
-  fboss/fsdb/oper/instantiations/FsdbCowSubscriptionManager.cpp
+  fboss/fsdb/oper/instantiations/FsdbCowStateSubscriptionManager.cpp
+  fboss/fsdb/oper/instantiations/FsdbCowStatsSubscriptionManager.cpp
 )
 
 target_link_libraries(fsdb_cow_subscription_manager
