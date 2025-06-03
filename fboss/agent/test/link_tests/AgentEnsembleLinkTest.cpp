@@ -104,8 +104,8 @@ void AgentEnsembleLinkTest::TearDown() {
     } catch (const std::exception& ex) {
       XLOG(ERR) << "Failed to call fsdb getStatus(). " << ex.what();
     }
-  }
 #endif
+  }
   AgentEnsembleTest::TearDown();
 }
 
