@@ -50,7 +50,8 @@ target_link_libraries(fsdb_cow_subscription_manager
 )
 
 add_library(fsdb_path_converter
-  fboss/fsdb/oper/instantiations/FsdbPathConverter.cpp
+  fboss/fsdb/oper/instantiations/FsdbStatePathConverter.cpp
+  fboss/fsdb/oper/instantiations/FsdbStatsPathConverter.cpp
 )
 
 target_link_libraries(fsdb_path_converter

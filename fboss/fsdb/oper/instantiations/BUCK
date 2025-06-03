@@ -64,7 +64,10 @@ cpp_library(
 
 cpp_library(
     name = "fsdb_path_converter",
-    srcs = ["FsdbPathConverter.cpp"],
+    srcs = [
+        "FsdbStatePathConverter.cpp",
+        "FsdbStatsPathConverter.cpp",
+    ],
     headers = ["FsdbPathConverter.h"],
     exported_deps = [
         "//fboss/fsdb/if:fsdb_model",
