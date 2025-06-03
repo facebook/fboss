@@ -249,6 +249,39 @@ bool MultiNodeUtil::verifyFabricConnectivity() {
       verifyFabricConnectedSwitchesForAllSdsws();
 }
 
+bool MultiNodeUtil::verifyFabricReachablityForRdsw(
+    const std::string& rdswToVerify) {
+  // Every remote RDSW across all clusters is reachable from the local RDSW
+  std::vector<std::string> remoteSwitchNames;
+  std::copy_if(
+      allRdsws_.begin(),
+      allRdsws_.end(),
+      std::back_inserter(remoteSwitchNames),
+      [rdswToVerify](const std::string& switchName) {
+        return switchName != rdswToVerify; // exclude self
+      });
+
+  auto swAgentClient = getSwAgentThriftClient(rdswToVerify);
+  std::map<std::string, std::vector<std::string>> reachability;
+  swAgentClient->sync_getSwitchReachability(reachability, remoteSwitchNames);
+
+  // TODO
+  // DSF Single Stage Test: 2 FDSWs x 8 Fabric links to each FDSW = 16.
+  // Populate expected reachability in the config. We can then validate
+  // Reachability (and Connectivity) against that and remove this hard coding.
+  // That would be a stricter check as well as a generic approach that will work
+  // for DSF Single Stage as well as DSF Dual Stage.
+  static auto constexpr kNumOfConnectedFabricPorts = 16;
+
+  for (auto& [_, reachablePorts] : reachability) {
+    if (reachablePorts.size() != kNumOfConnectedFabricPorts) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 std::set<std::string> MultiNodeUtil::getGlobalSystemPortsOfType(
     const std::string& rdsw,
     const std::set<RemoteSystemPortType>& types) {
