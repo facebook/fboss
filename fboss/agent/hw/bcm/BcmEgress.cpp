@@ -1427,8 +1427,10 @@ bool BcmEcmpEgress::updateEcmpDynamicMode() {
   return updateComplete;
 }
 
-uint64_t BcmEcmpEgress::getL3EcmpDlbFailPackets() {
+HwFlowletStats BcmEcmpEgress::getL3EcmpDlbStats() {
+  HwFlowletStats flowletStats;
   uint64_t dlbDropCount = 0;
+  uint64_t dlbReassignPackets = 0;
   // Flowlet switching might not be enabled all the ecmp groups during the init
   // or during lot of link flaps event due to flowset resource scarce.
   // Reading the dlb stats on non flowlet enabled ecmp group will throw SDK
@@ -1438,9 +1440,17 @@ uint64_t BcmEcmpEgress::getL3EcmpDlbFailPackets() {
     XLOG(DBG3) << "Read l3 ecmp dlb stats: " << id_;
     auto rv = bcm_l3_ecmp_dlb_stat_get(
         hw_->getUnit(), id_, bcmL3ECMPDlbStatFailPackets, &dlbDropCount);
+    flowletStats.l3EcmpDlbFailPackets() = dlbDropCount;
     bcmCheckError(rv, "failed to get l3 ecmp dlb stat ", id_);
+    rv = bcm_l3_ecmp_dlb_stat_get(
+        hw_->getUnit(),
+        id_,
+        bcmL3ECMPDlbStatPortReassignmentCount,
+        &dlbReassignPackets);
+    bcmCheckError(rv, "failed to get l3 ecmp dlb reassign stat ", id_);
+    flowletStats.l3EcmpDlbPortReassignmentCount() = dlbReassignPackets;
   }
-  return dlbDropCount;
+  return flowletStats;
 }
 
 } // namespace facebook::fboss
