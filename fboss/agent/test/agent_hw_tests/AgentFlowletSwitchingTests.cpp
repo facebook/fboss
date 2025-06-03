@@ -220,6 +220,7 @@ class AgentFlowletSprayTest : public AgentFlowletSwitchingTest {
   void setCmdLineFlagOverrides() const override {
     AgentFlowletSwitchingTest::setCmdLineFlagOverrides();
     FLAGS_dlbResourceCheckEnable = false;
+    FLAGS_flowletStatsEnable = true;
   }
 
   std::vector<production_features::ProductionFeature>
@@ -330,11 +331,32 @@ TEST_F(AgentFlowletSprayTest, VerifyEcmpRandomSpray) {
                                       const folly::IPAddress& dstIp,
                                       int reserved,
                                       const std::vector<PortID>& ports,
-                                      bool loadBalanceExpected) {
+                                      bool loadBalanceExpected,
+                                      bool is_dlb = false) {
       auto dlbAclCountBefore = utility::getAclInOutPackets(
           getSw(), getCounterName(AclType::UDF_FLOWLET));
       auto cancelAclCountBefore = utility::getAclInOutPackets(
           getSw(), getCounterName(AclType::ECMP_HASH_CANCEL));
+      auto switchId = getSw()
+                          ->getScopeResolver()
+                          ->scope(masterLogicalPortIds()[0])
+                          .switchId();
+      HwFlowletStats flowletStats;
+      checkWithRetry(
+          [&flowletStats, switchId, sw = getSw()]() {
+            auto switchStats = sw->getHwSwitchStatsExpensive();
+            if (switchStats.find(switchId) == switchStats.end()) {
+              return false;
+            }
+            flowletStats = *switchStats.at(switchId).flowletStats();
+            return true;
+          },
+          120,
+          std::chrono::milliseconds(1000),
+          " fetch port stats");
+
+      auto reassignmentCounterBefore =
+          flowletStats.l3EcmpDlbPortReassignmentCount().value();
 
       auto egressPort = helper_->ecmpPortDescriptorAt(8).phyPortID();
       int packetCount = 200000;
@@ -384,6 +406,22 @@ TEST_F(AgentFlowletSprayTest, VerifyEcmpRandomSpray) {
           EXPECT_EVENTUALLY_EQ(dlbAclCountAfter, dlbAclCountBefore);
         }
 
+        auto reassignmentCounterAfter =
+            getSw()
+                ->getHwSwitchStatsExpensive(switchId)
+                .flowletStats()
+                ->l3EcmpDlbPortReassignmentCount()
+                .value();
+        XLOG(DBG2) << "reassignmentCounter: " << reassignmentCounterBefore
+                   << " -> " << reassignmentCounterAfter;
+        if (is_dlb) {
+          EXPECT_EVENTUALLY_GT(
+              reassignmentCounterAfter, reassignmentCounterBefore);
+        } else {
+          EXPECT_EVENTUALLY_EQ(
+              reassignmentCounterAfter, reassignmentCounterBefore);
+        }
+
         auto portStats = getNextUpdatedPortStats(ports);
         for (const auto& [portId, stats] : portStats) {
           XLOG(DBG2) << "Ecmp egress Port: " << portId
@@ -402,7 +440,11 @@ TEST_F(AgentFlowletSprayTest, VerifyEcmpRandomSpray) {
     // Test 1
     // Hit DLB ACL and do DLB
     sendTrafficAndVerifyLB(
-        folly::IPAddress("3001::1"), utility::kRoceReserved, dlbPortIDs, true);
+        folly::IPAddress("3001::1"),
+        utility::kRoceReserved,
+        dlbPortIDs,
+        true,
+        true);
     // Miss DLB ACL and do static hash
     sendTrafficAndVerifyLB(folly::IPAddress("3001::1"), 0, dlbPortIDs, false);
 
