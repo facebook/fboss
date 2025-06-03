@@ -47,6 +47,8 @@ using SaiNextHop = ConditionSaiObjectType<SaiNextHopTraits>::type;
 using SaiNextHopGroupMemberInfo = std::pair<
     SaiNextHopGroupMemberTraits::AdapterHostKey,
     SaiNextHopGroupMemberTraits::Attributes::Weight>;
+using SaiNextHopGroupKey =
+    std::pair<RouteNextHopEntry::NextHopSet, std::optional<cfg::SwitchingMode>>;
 
 template <typename T>
 class ManagedNextHop;
@@ -177,7 +179,7 @@ class SaiNextHopGroupManager {
       const SaiPlatform* platform);
 
   std::shared_ptr<SaiNextHopGroupHandle> incRefOrAddNextHopGroup(
-      const RouteNextHopEntry::NextHopSet& swNextHops);
+      const SaiNextHopGroupKey& key);
 
   std::shared_ptr<SaiNextHopGroupMember> createSaiObject(
       const typename SaiNextHopGroupMemberTraits::AdapterHostKey& key,
@@ -203,7 +205,7 @@ class SaiNextHopGroupManager {
   // TODO(borisb): improve SaiObject/SaiStore to the point where they
   // support the next hop group use case correctly, rather than this
   // abomination of multiple levels of RefMaps :(
-  FlatRefMap<RouteNextHopEntry::NextHopSet, SaiNextHopGroupHandle> handles_;
+  FlatRefMap<SaiNextHopGroupKey, SaiNextHopGroupHandle> handles_;
   FlatRefMap<
       std::pair<typename SaiNextHopGroupTraits::AdapterKey, ResolvedNextHop>,
       NextHopGroupMember>

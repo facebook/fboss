@@ -34,13 +34,13 @@ SaiNextHopGroupManager::SaiNextHopGroupManager(
     : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {}
 
 std::shared_ptr<SaiNextHopGroupHandle>
-SaiNextHopGroupManager::incRefOrAddNextHopGroup(
-    const RouteNextHopEntry::NextHopSet& swNextHops) {
-  auto ins = handles_.refOrEmplace(swNextHops);
+SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
+  auto ins = handles_.refOrEmplace(key);
   std::shared_ptr<SaiNextHopGroupHandle> nextHopGroupHandle = ins.first;
   if (!ins.second) {
     return nextHopGroupHandle;
   }
+  const auto& swNextHops = key.first;
   SaiNextHopGroupTraits::AdapterHostKey nextHopGroupAdapterHostKey;
   // Populate the set of rifId, IP pairs for the NextHopGroup's
   // AdapterHostKey, and a set of next hop ids to create members for
