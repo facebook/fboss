@@ -4,13 +4,6 @@
 
 namespace facebook::fboss::thrift_cow {
 
-template ThriftTraverseResult RootPathVisitor::visit<FsdbCowStateRoot>(
-    FsdbCowStateRoot& node,
-    pv_detail::PathIter begin,
-    pv_detail::PathIter end,
-    const PathVisitOptions& options,
-    BasePathVisitorOperator& op);
-
 template ThriftTraverseResult RootPathVisitor::visit<FsdbCowStatsRoot>(
     FsdbCowStatsRoot& node,
     pv_detail::PathIter begin,

@@ -4,7 +4,10 @@ oncall("fboss_agent_push")
 
 cpp_library(
     name = "fsdb_cow_root_path_visitor",
-    srcs = ["FsdbCowRootPathVisitor.cpp"],
+    srcs = [
+        "FsdbCowStateRootPathVisitor.cpp",
+        "FsdbCowStatsRootPathVisitor.cpp",
+    ],
     headers = [
         "FsdbCowRootPathVisitor.h",
     ],
