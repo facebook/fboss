@@ -282,6 +282,16 @@ bool MultiNodeUtil::verifyFabricReachablityForRdsw(
   return true;
 }
 
+bool MultiNodeUtil::verifyFabricReachability() {
+  for (const auto& rdsw : allRdsws_) {
+    if (!verifyFabricReachablityForRdsw(rdsw)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 std::set<std::string> MultiNodeUtil::getGlobalSystemPortsOfType(
     const std::string& rdsw,
     const std::set<RemoteSystemPortType>& types) {

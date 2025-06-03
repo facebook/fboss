@@ -21,6 +21,7 @@ class MultiNodeUtil {
       const std::shared_ptr<MultiSwitchDsfNodeMap>& dsfNodeMap);
 
   bool verifyFabricConnectivity();
+  bool verifyFabricReachability();
   bool verifySystemPorts();
   bool verifyRifs();
   bool verifyStaticNdpEntries();
