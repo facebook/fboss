@@ -13,10 +13,10 @@
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 #include <chrono>
 #include <list>
+#include "fboss/lib/link_snapshots/AsyncFileWriterFactory.h"
 #include "fboss/lib/link_snapshots/RingBuffer-defs.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "folly/logging/xlog.h"
-
 // By default we'll use 1 minute as our buffer time for snapshots
 constexpr auto kDefaultTimespanSeconds = 60;
 
@@ -25,7 +25,10 @@ namespace facebook::fboss {
 class SnapshotWrapper {
  public:
   explicit SnapshotWrapper(phy::LinkSnapshot snapshot) : snapshot_(snapshot) {}
-  void publish(const std::set<std::string>& portNames);
+  void publish(
+      const std::set<std::string>& portNames,
+      std::shared_ptr<folly::AsyncFileWriter> asyncFileWriter,
+      SnapshotLogSource snapshotLogSource);
 
   phy::LinkSnapshot snapshot_;
   bool published_{false};
@@ -41,9 +44,11 @@ class SnapshotManager {
  public:
   explicit SnapshotManager(
       const std::set<std::string>& portNames,
+      SnapshotLogSource snapshotLogSource,
       size_t intervalSeconds);
   explicit SnapshotManager(
       const std::set<std::string>& portNames,
+      SnapshotLogSource snapshotLogSource,
       size_t intervalSeconds,
       size_t timespanSeconds);
   void addSnapshot(const phy::LinkSnapshot& val);
@@ -60,6 +65,8 @@ class SnapshotManager {
   RingBuffer<SnapshotWrapper> buf_;
   int numSnapshotsToPublish_{0};
   std::set<std::string> portNames_;
+  SnapshotLogSource snapshotLogSource_;
+  std::shared_ptr<folly::AsyncFileWriter> asyncFileWriter_;
 };
 
 } // namespace facebook::fboss

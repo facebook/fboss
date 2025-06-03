@@ -90,6 +90,7 @@
 #include "fboss/agent/state/StateUpdateHelpers.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
+#include "fboss/lib/link_snapshots/AsyncFileWriterFactory.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/lib/platforms/PlatformProductInfo.h"
 #include "fboss/lib/restart_tracker/RestartTimeTracker.h"
@@ -460,7 +461,9 @@ SwSwitch::SwSwitch(
       lookupClassRouteUpdater_(new LookupClassRouteUpdater(this)),
       staticL2ForNeighborObserver_(new StaticL2ForNeighborObserver(this)),
       macTableManager_(new MacTableManager(this)),
-      phySnapshotManager_(new PhySnapshotManager(kIphySnapshotIntervalSeconds)),
+      phySnapshotManager_(new PhySnapshotManager(
+          kIphySnapshotIntervalSeconds,
+          SnapshotLogSource::WEDGE_AGENT)),
       aclNexthopHandler_(new AclNexthopHandler(this)),
       teFlowNextHopHandler_(new TeFlowNexthopHandler(this)),
       dsfSubscriber_(new DsfSubscriber(this)),
