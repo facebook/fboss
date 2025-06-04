@@ -514,7 +514,9 @@ cpp_library(
     ],
     exported_deps = [
         "//fboss/agent:route_update_wrapper",
+        "//fboss/agent/if:agent_hw_test_ctrl-cpp2-types",
         "//fboss/agent/if:ctrl-cpp2-types",
+        "//fboss/agent/test:agent_ensemble",
         "//fboss/agent/test:route_distribution_gen",
     ],
 )
