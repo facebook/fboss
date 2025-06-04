@@ -675,6 +675,7 @@ cpp_library(
     ],
     exported_deps = [
         "//fboss/agent/state:state",
+        "//fboss/lib/link_snapshots:async_filewriter_factory",
         "//fboss/lib/link_snapshots:snapshot_manager",
         "//fboss/lib/phy:phy-cpp2-types",
     ],
@@ -909,6 +910,7 @@ cpp_library(
         "//fboss/lib:radix_tree",
         "//fboss/lib:thread_heartbeat",
         "//fboss/lib/config:fboss_config_utils",
+        "//fboss/lib/link_snapshots:async_filewriter_factory",
         "//fboss/lib/phy:phy-cpp2-types",
         "//fboss/lib/phy:prbs-cpp2-types",
         "//fboss/lib/platforms:product-info",
