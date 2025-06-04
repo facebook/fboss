@@ -101,6 +101,9 @@ class RouteUpdateWrapper {
           _staticMplsRoutesToNull,
       const std::vector<cfg::StaticMplsRouteNoNextHops>&
           _staticMplsRoutesToCpu);
+  void setRemoteLoopbackInterfaceRoutesToConfig(
+      const RouterIDAndNetworkToInterfaceRoutes& toAdd,
+      const RouterIDToPrefixes& toDel);
   void program(const SyncFibInfo& syncFibInfo = {});
   void programMinAlpmState();
   void programClassID(

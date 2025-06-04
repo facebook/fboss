@@ -244,4 +244,11 @@ void RouteUpdateWrapper::setRoutesToConfig(
       _staticMplsRoutesToNull,
       _staticMplsRoutesToCpu});
 }
+
+void RouteUpdateWrapper::setRemoteLoopbackInterfaceRoutesToConfig(
+    const RouterIDAndNetworkToInterfaceRoutes& toAdd,
+    const RouterIDToPrefixes& toDel) {
+  remoteLoopbackIntfRouteToAdd_ = toAdd;
+  remoteLoopbackIntfRouteToDel_ = toDel;
+}
 } // namespace facebook::fboss
