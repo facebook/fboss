@@ -31,4 +31,7 @@ struct AgentConfig {
   // configuration (e.g broadcom config), as well as low-level port
   // tuning params.
   3: platform_config.PlatformConfig platform;
+
+  // Map of thrift API name to Rate limit in thrift API queries per second.
+  4: optional map<string, i32> thriftApiToRateLimitInQps;
 }
