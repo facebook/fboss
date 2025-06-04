@@ -584,7 +584,6 @@ class ThriftConfigApplier {
 
   folly::MacAddress getLocalMac(SwitchID switchId) const;
   SwitchID getSwitchId(const cfg::Interface& intfConfig) const;
-  void addRemoteIntfRoute();
   std::optional<SwitchID> getAnyVoqSwitchId();
   std::vector<SwitchID> getLocalFabricSwitchIds() const;
   std::optional<QueueConfig> getDefaultVoqConfigIfChanged(
@@ -745,9 +744,6 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
       changed = true;
     }
   }
-
-  // Add remote interface routes to route table.
-  addRemoteIntfRoute();
 
   if (routeUpdater_) {
     routeUpdater_->setRoutesToConfig(
@@ -5991,26 +5987,6 @@ folly::MacAddress ThriftConfigApplier::getLocalMac(SwitchID switchId) const {
   }
   XLOG(WARNING) << " No mac address found for switch " << switchId;
   return getLocalMacAddress();
-}
-
-void ThriftConfigApplier::addRemoteIntfRoute() {
-  // In order to resolve ECMP members pointing to remote nexthops,
-  // also treat remote Interfaces as directly connected route in rib.
-  // HwSwitch will point remote nextHops as dropped such that switch does
-  // not attract traffic for remote nexthops.
-  for (const auto& remoteInterfaceMap :
-       std::as_const(*orig_->getRemoteInterfaces())) {
-    for (const auto& [_, remoteInterface] :
-         std::as_const(*remoteInterfaceMap.second)) {
-      for (const auto& [addr, mask] :
-           std::as_const(*remoteInterface->getAddresses())) {
-        intfRouteTables_[remoteInterface->getRouterID()].emplace(
-            IPAddress::createNetwork(
-                folly::to<std::string>(addr, "/", mask->toThrift())),
-            std::make_pair(remoteInterface->getID(), addr));
-      }
-    }
-  }
 }
 
 void ThriftConfigApplier::updateSystemPortSelfHealingEcmpLagDestinationEnable(
