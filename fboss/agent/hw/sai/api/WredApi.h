@@ -111,3 +111,19 @@ class WredApi : public SaiApi<WredApi> {
 };
 
 } // namespace facebook::fboss
+
+#if defined(CHENAB_SAI_SDK)
+/* TODO(Chenab) : Remove this once separate thresholds for ECN and early drop */
+bool operator==(
+    const facebook::fboss::SaiWredTraits::AdapterHostKey& left,
+    const facebook::fboss::SaiWredTraits::AdapterHostKey& right);
+
+namespace std {
+template <>
+struct hash<facebook::fboss::SaiWredTraits::AdapterHostKey> {
+  size_t operator()(
+      const facebook::fboss::SaiWredTraits::AdapterHostKey& key) const;
+};
+} // namespace std
+
+#endif
