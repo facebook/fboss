@@ -10,17 +10,12 @@
 
 #include "CmdShowPort.h"
 
-#include <folly/json/json.h>
 #include <thrift/lib/cpp/transport/TTransportException.h>
-#include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/show/port/gen-cpp2/model_types.h"
-#include "fboss/cli/fboss2/commands/show/port/gen-cpp2/model_visitation.h"
-#include "fboss/cli/fboss2/utils/CmdClientUtils.h"
 #include "fboss/cli/fboss2/utils/CmdUtils.h"
 #include "fboss/cli/fboss2/utils/Table.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
-#include <unistd.h>
 #include <algorithm>
 
 namespace facebook::fboss {
