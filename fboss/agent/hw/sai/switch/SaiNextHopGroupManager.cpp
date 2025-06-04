@@ -27,6 +27,13 @@
 
 namespace facebook::fboss {
 
+bool isEcmpModeDynamic(std::optional<cfg::SwitchingMode> switchingMode) {
+  return (
+      switchingMode.has_value() &&
+      (switchingMode.value() == cfg::SwitchingMode::PER_PACKET_QUALITY ||
+       switchingMode.value() == cfg::SwitchingMode::FLOWLET_QUALITY));
+}
+
 SaiNextHopGroupManager::SaiNextHopGroupManager(
     SaiStore* saiStore,
     SaiManagerTable* managerTable,
@@ -92,6 +99,7 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
       nextHopGroupHandle->nextHopGroup->adapterKey();
   nextHopGroupHandle->fixedWidthMode = isFixedWidthNextHopGroup(swNextHops);
   nextHopGroupHandle->saiStore_ = saiStore_;
+  nextHopGroupHandle->desiredArsMode_ = key.second;
   nextHopGroupHandle->maxVariableWidthEcmpSize =
       platform_->getAsic()->getMaxVariableWidthEcmpSize();
   XLOG(DBG2) << "Created NexthopGroup OID: " << nextHopGroupId;
