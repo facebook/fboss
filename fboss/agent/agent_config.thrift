@@ -33,5 +33,5 @@ struct AgentConfig {
   3: platform_config.PlatformConfig platform;
 
   // Map of thrift API name to Rate limit in thrift API queries per second.
-  4: optional map<string, i32> thriftApiToRateLimitInQps;
+  4: map<string, i32> thriftApiToRateLimitInQps = {};
 }
