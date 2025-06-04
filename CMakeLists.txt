@@ -704,6 +704,7 @@ add_fbthrift_cpp_library(
     reflection
   DEPENDS
     hardware_stats_cpp2
+    sensor_service_cpp2
     phy_cpp2
 )
 add_fbthrift_cpp_library(
