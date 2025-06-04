@@ -431,6 +431,11 @@ cpp_library(
         ":agent_features",
         ":switch_config-cpp2-types",
         "//fboss/agent/hw/switch_asics:switch_asics",
+        "//fboss/agent/state:state",
+        "//folly:network_address",
+    ],
+    exported_external_deps = [
+        ("boost", None, "boost_container"),
     ],
 )
 

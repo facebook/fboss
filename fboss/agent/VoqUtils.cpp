@@ -9,8 +9,8 @@
  */
 
 #include "fboss/agent/VoqUtils.h"
-
 #include "fboss/agent/AgentFeatures.h"
+#include "fboss/agent/state/SwitchState.h"
 
 namespace facebook::fboss {
 
@@ -45,5 +45,50 @@ int getRemotePortNumVoqs(
     return 3;
   }
   return 8;
+}
+
+void processRemoteInterfaceRoutes(
+    const std::shared_ptr<Interface>& remoteIntf,
+    const std::shared_ptr<SwitchState>& state,
+    bool add,
+    IntfRouteTable& remoteIntfRoutesToAdd,
+    RouterIDToPrefixes& remoteIntfRoutesToDel) {
+  // On the same box, interfaces of both npu0 and npu1 will be added
+  // as local interface. They will be used for route resolution as directly
+  // connected routes. Hence no need to process as remote interfaces.
+  if (state->getInterfaces()->getNodeIf(remoteIntf->getID())) {
+    return;
+  }
+
+  for (const auto& [addr, mask] : std::as_const(*remoteIntf->getAddresses())) {
+    const auto ipAddr = folly::IPAddress(addr);
+    // Skip link-local addresses in directly-connected routes
+    if (ipAddr.isV6() && ipAddr.isLinkLocal()) {
+      continue;
+    }
+    auto prefix = folly::IPAddress::createNetwork(
+        folly::to<std::string>(addr, "/", static_cast<int>(mask->cref())));
+    IntfAddress intfAddr = std::make_pair(remoteIntf->getID(), ipAddr);
+    if (add) {
+      // Check if route already in remoteIntfRoutesToDel
+      auto& toDel = remoteIntfRoutesToDel[remoteIntf->getRouterID()];
+      auto iter = std::find(toDel.begin(), toDel.end(), prefix);
+      if (iter != toDel.end()) {
+        toDel.erase(iter);
+      } else {
+        remoteIntfRoutesToAdd[remoteIntf->getRouterID()].emplace(
+            prefix, intfAddr);
+      }
+    } else {
+      // Check if route already in remoteIntfRoutesToAdd
+      auto& toAdd = remoteIntfRoutesToAdd[remoteIntf->getRouterID()];
+      auto iter = toAdd.find(prefix);
+      if (iter != toAdd.end()) {
+        toAdd.erase(iter);
+      } else {
+        remoteIntfRoutesToDel[remoteIntf->getRouterID()].push_back(prefix);
+      }
+    }
+  }
 }
 } // namespace facebook::fboss
