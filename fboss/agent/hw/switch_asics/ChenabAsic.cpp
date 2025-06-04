@@ -442,4 +442,9 @@ ChenabAsic::desiredLoopbackModes() const {
       {cfg::PortType::MANAGEMENT_PORT, cfg::PortLoopbackMode::MAC}};
   return kLoopbackMode;
 }
+
+uint32_t ChenabAsic::getThresholdGranularity() const {
+  return getPacketBufferUnitSize() * 64;
+}
+
 } // namespace facebook::fboss
