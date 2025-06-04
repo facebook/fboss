@@ -428,6 +428,83 @@ TEST_F(AgentEcmpSpilloverTest, VerifySpilloverPrefixChangeToPrimaryGroupNhops) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+// Verify ECMP decompression with higher preference to ECMP with more prefixes
+// Create 128 dynamic ECMP groups
+// Delete first 32 ECMP groups
+// Create 64 new ECMP groups with a range 1-64 prefixes per ECMP
+// ECMP with num prefixes >32 should move into dynamic range and rest spillover
+TEST_F(AgentEcmpSpilloverTest, VerifyEcmpDecompressByPrefixCount) {
+  generatePrefixes();
+
+  // n(n+1)/2 for 64 ECMP groups is 2080
+  std::vector<RoutePrefixV6> newPrefixes_0_32 = {
+      prefixes.begin() + 1536, prefixes.begin() + 1536 + 528};
+
+  // this set of prefixes should use dynamic ECMP groups since ERM uses
+  // highest number of routes using an ECMP as the heuristic to move groups
+  std::vector<RoutePrefixV6> newPrefixes_32_64 = {
+      prefixes.begin() + 1536 + 528, prefixes.begin() + 1536 + 2080};
+
+  // merge into a singe prefix list
+  std::vector<RoutePrefixV6> newPrefixes;
+  newPrefixes.insert(
+      newPrefixes.end(), newPrefixes_0_32.begin(), newPrefixes_0_32.end());
+  newPrefixes.insert(
+      newPrefixes.end(), newPrefixes_32_64.begin(), newPrefixes_32_64.end());
+
+  // merge the 2 spillover nhopSets
+  std::vector<flat_set<PortDescriptor>> nhopSet64;
+  nhopSet64.insert(
+      nhopSet64.end(), spilloverNhopSets.begin(), spilloverNhopSets.end());
+  nhopSet64.insert(
+      nhopSet64.end(), spilloverNhopSets2.begin(), spilloverNhopSets2.end());
+
+  std::vector<flat_set<PortDescriptor>> nhopSetExpanded;
+  for (auto i = 0; i < 64; i++) {
+    for (int j = 0; j <= i; j++) {
+      nhopSetExpanded.push_back(nhopSet64[i]);
+    }
+  }
+
+  // confirm nhopSets and prefixes match
+  ASSERT_EQ(newPrefixes.size(), nhopSetExpanded.size());
+
+  auto setup = [=, this]() {
+    programDynamicPrefixes();
+    verifyDynamicPrefixes();
+
+    // program 2080 routes using 64 nhopSets
+    {
+      auto wrapper = getSw()->getRouteUpdater();
+      helper_->programRoutes(&wrapper, nhopSetExpanded, newPrefixes);
+    }
+
+    // verify all new routes spilled over
+    for (const auto& prefix : newPrefixes) {
+      verifyFwdSwitchingMode(prefix, cfg::SwitchingMode::FIXED_ASSIGNMENT);
+    }
+
+    // create space for 32 ECMP groups in dynamic range
+    {
+      // Delete first 32*10 prefixes (32 nhopSets with 10 prefixes each)
+      std::vector<RoutePrefixV6> delPrefixes = {
+          dynamicPrefixes.begin(),
+          dynamicPrefixes.begin() + (kMaxSpilloverCount * kPrefixesPerNhopSet)};
+      auto wrapper = getSw()->getRouteUpdater();
+      helper_->unprogramRoutes(&wrapper, delPrefixes);
+    }
+  };
+
+  auto verify = [=, this]() {
+    // verify ECMP with >32 prefixes referring to it is dynamic
+    for (const auto& prefix : newPrefixes_32_64) {
+      verifyFwdSwitchingMode(prefix, cfg::SwitchingMode::PER_PACKET_QUALITY);
+    }
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 class AgentEcmpResourceMgrWarmbootEnableTest : public AgentEcmpSpilloverTest {
  protected:
   cfg::SwitchConfig initialConfig(
