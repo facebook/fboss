@@ -1,7 +1,6 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
 #include "fboss/fsdb/client/FsdbDeltaPublisher.h"
-#include "fboss/fsdb/common/Flags.h"
 #include "fboss/lib/CommonUtils.h"
 
 #include <folly/coro/AsyncGenerator.h>
