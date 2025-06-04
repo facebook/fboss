@@ -197,6 +197,11 @@ void SaiNextHopGroupManager::updateArsModeAll(
 #endif
 }
 
+void SaiNextHopGroupManager::setPrimaryArsSwitchingMode(
+    std::optional<cfg::SwitchingMode> switchingMode) {
+  primaryArsMode_ = switchingMode;
+}
+
 std::string SaiNextHopGroupManager::listManagedObjects() const {
   std::set<std::string> outputs{};
   for (auto entry : handles_) {

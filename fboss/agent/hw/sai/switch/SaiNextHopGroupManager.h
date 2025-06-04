@@ -197,6 +197,9 @@ class SaiNextHopGroupManager {
   void updateArsModeAll(
       const std::shared_ptr<FlowletSwitchingConfig>& newFlowletConfig);
 
+  void setPrimaryArsSwitchingMode(
+      std::optional<cfg::SwitchingMode> switchingMode);
+
  private:
   bool isFixedWidthNextHopGroup(
       const RouteNextHopEntry::NextHopSet& swNextHops) const;
@@ -211,6 +214,7 @@ class SaiNextHopGroupManager {
       std::pair<typename SaiNextHopGroupTraits::AdapterKey, ResolvedNextHop>,
       NextHopGroupMember>
       nextHopGroupMembers_;
+  std::optional<cfg::SwitchingMode> primaryArsMode_;
 };
 
 } // namespace facebook::fboss
