@@ -77,6 +77,10 @@ DEFINE_string(
     "",
     "Destination MAC override for Mirror-on-Drop packets");
 DEFINE_bool(allow_nif_port_for_mod, false, "Allow NIF port to be used for MOD");
+DEFINE_bool(
+    allow_eventor_send_packet,
+    false,
+    "A test-only flag to allow sending packets directly out of the eventor");
 
 namespace facebook::fboss {
 

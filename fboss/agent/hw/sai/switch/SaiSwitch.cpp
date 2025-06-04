@@ -3709,13 +3709,15 @@ bool SaiSwitch::sendPacketOutOfPortSync(
 
   // We should never send packets directly out of eventor port. Doing so may
   // trigger SDK or HW bugs.
-  if (auto portInfoItr =
-          concurrentIndices_->portSaiId2PortInfo.find(portItr->second);
-      portInfoItr != concurrentIndices_->portSaiId2PortInfo.end()) {
-    if (portInfoItr->second.portType == cfg::PortType::EVENTOR_PORT) {
-      XLOG_EVERY_MS(WARNING, 5000)
-          << "Rejecting packet sent to EVENTOR_PORT: " << portID;
-      return false;
+  if (!FLAGS_allow_eventor_send_packet) {
+    if (auto portInfoItr =
+            concurrentIndices_->portSaiId2PortInfo.find(portItr->second);
+        portInfoItr != concurrentIndices_->portSaiId2PortInfo.end()) {
+      if (portInfoItr->second.portType == cfg::PortType::EVENTOR_PORT) {
+        XLOG_EVERY_MS(WARNING, 5000)
+            << "Rejecting packet sent to EVENTOR_PORT: " << portID;
+        return false;
+      }
     }
   }
 
