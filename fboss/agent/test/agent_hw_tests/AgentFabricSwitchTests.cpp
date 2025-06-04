@@ -39,9 +39,9 @@ class AgentFabricSwitchTest : public AgentHwTest {
     }
   }
 
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::FABRIC};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::FABRIC};
   }
   /*
    * Get switchIds of type fabric which have non zero fabric ports

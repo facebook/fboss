@@ -26,16 +26,16 @@ class AgentLoadBalancerTest
     Runner::setEcmpHelper();
   }
 
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     if constexpr (!kWideEcmp) {
       return {
-          production_features::ProductionFeature::ECMP_LOAD_BALANCER,
+          ProductionFeature::ECMP_LOAD_BALANCER,
       };
     } else {
       return {
-          production_features::ProductionFeature::ECMP_LOAD_BALANCER,
-          production_features::ProductionFeature::WIDE_ECMP,
+          ProductionFeature::ECMP_LOAD_BALANCER,
+          ProductionFeature::WIDE_ECMP,
       };
     }
   }
@@ -124,11 +124,11 @@ template <typename EcmpDataPlateUtils, bool kWideEcmp = false>
 class AgentIp2MplsLoadBalancerTest
     : public AgentLoadBalancerTest<EcmpDataPlateUtils, kWideEcmp> {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     auto features = AgentLoadBalancerTest<EcmpDataPlateUtils, kWideEcmp>::
         getProductionFeaturesVerified();
-    features.push_back(production_features::ProductionFeature::MPLS);
+    features.push_back(ProductionFeature::MPLS);
     return features;
   }
 
@@ -149,11 +149,11 @@ template <
 class AgentMpls2MplsLoadBalancerTest
     : public AgentLoadBalancerTest<EcmpDataPlateUtils, kWideEcmp> {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     auto features = AgentLoadBalancerTest<EcmpDataPlateUtils, kWideEcmp>::
         getProductionFeaturesVerified();
-    features.push_back(production_features::ProductionFeature::MPLS);
+    features.push_back(ProductionFeature::MPLS);
     return features;
   }
   std::unique_ptr<EcmpDataPlateUtils> getECMPHelper() override {

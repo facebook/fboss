@@ -11,9 +11,9 @@ namespace facebook::fboss {
 
 class AgentTunnelMgrTest : public AgentHwTest {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::CPU_RX_TX};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::CPU_RX_TX};
   }
 
   void setCmdLineFlagOverrides() const override {

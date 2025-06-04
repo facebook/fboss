@@ -108,9 +108,9 @@ class AgentIngressBufferTest : public AgentHwTest {
         true /*interfaceHasSubnet*/);
   }
 
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::PFC};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::PFC};
   }
 
   void setupGlobalBuffer(
@@ -370,11 +370,10 @@ TEST_F(AgentIngressBufferTest, validatePGQueueChanges) {
 }
 
 class AgentIngressBufferPoolTest : public AgentIngressBufferTest {
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     auto features = AgentIngressBufferTest::getProductionFeaturesVerified();
-    features.push_back(production_features::ProductionFeature::
-                           SEPARATE_INGRESS_EGRESS_BUFFER_POOL);
+    features.push_back(ProductionFeature::SEPARATE_INGRESS_EGRESS_BUFFER_POOL);
     return features;
   }
 };

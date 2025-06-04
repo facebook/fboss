@@ -36,11 +36,9 @@ namespace facebook::fboss {
 
 class AgentFlowletSwitchingTest : public AgentArsBase {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {
-        production_features::ProductionFeature::DLB,
-        production_features::ProductionFeature::SINGLE_ACL_TABLE};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::DLB, ProductionFeature::SINGLE_ACL_TABLE};
   }
 
  protected:
@@ -68,12 +66,12 @@ class AgentFlowletSwitchingTest : public AgentArsBase {
 
 class AgentFlowletAclPriorityTest : public AgentFlowletSwitchingTest {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     return {
-        production_features::ProductionFeature::DLB,
-        production_features::ProductionFeature::UDF_WR_IMMEDIATE_ACL,
-        production_features::ProductionFeature::SINGLE_ACL_TABLE};
+        ProductionFeature::DLB,
+        ProductionFeature::UDF_WR_IMMEDIATE_ACL,
+        ProductionFeature::SINGLE_ACL_TABLE};
   }
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
@@ -102,13 +100,13 @@ class AgentFlowletMirrorTest : public AgentFlowletSwitchingTest {
     MIRROR_SFLOW_SAME_VIP,
     MIRROR_SFLOW_DIFFERENT_VIP,
   };
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     return {
-        production_features::ProductionFeature::DLB,
-        production_features::ProductionFeature::SFLOWv6_SAMPLING,
-        production_features::ProductionFeature::INGRESS_MIRRORING,
-        production_features::ProductionFeature::SINGLE_ACL_TABLE};
+        ProductionFeature::DLB,
+        ProductionFeature::SFLOWv6_SAMPLING,
+        ProductionFeature::INGRESS_MIRRORING,
+        ProductionFeature::SINGLE_ACL_TABLE};
   }
 
  protected:
@@ -223,13 +221,13 @@ class AgentFlowletSprayTest : public AgentFlowletSwitchingTest {
     FLAGS_flowletStatsEnable = true;
   }
 
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     return {
-        production_features::ProductionFeature::DLB,
-        production_features::ProductionFeature::ECMP_RANDOM_SPRAY,
-        production_features::ProductionFeature::ACL_COUNTER,
-        production_features::ProductionFeature::SINGLE_ACL_TABLE};
+        ProductionFeature::DLB,
+        ProductionFeature::ECMP_RANDOM_SPRAY,
+        ProductionFeature::ACL_COUNTER,
+        ProductionFeature::SINGLE_ACL_TABLE};
   }
 };
 

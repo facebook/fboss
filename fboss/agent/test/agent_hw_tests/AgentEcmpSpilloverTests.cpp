@@ -44,12 +44,12 @@ class AgentEcmpSpilloverTest : public AgentArsBase {
     FLAGS_ecmp_resource_manager_make_before_break_buffer = 0;
   }
 
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     return {
-        production_features::ProductionFeature::DLB,
-        production_features::ProductionFeature::ACL_COUNTER,
-        production_features::ProductionFeature::SINGLE_ACL_TABLE};
+        ProductionFeature::DLB,
+        ProductionFeature::ACL_COUNTER,
+        ProductionFeature::SINGLE_ACL_TABLE};
   }
 
   // Find the ECMP mode for both dynamic and spillover prefixes

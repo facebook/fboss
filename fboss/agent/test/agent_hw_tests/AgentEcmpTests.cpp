@@ -61,9 +61,9 @@ class AgentEcmpTest : public AgentHwTest {
         true /*interfaceHasSubnet*/);
   }
 
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::L3_FORWARDING};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::L3_FORWARDING};
   }
 
   void resolveNhops(int numNhops) {
@@ -314,11 +314,9 @@ class AgentWideEcmpTest : public AgentEcmpTest {
     FLAGS_ecmp_width = 512;
     AgentHwTest::setCmdLineFlagOverrides();
   }
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {
-        production_features::ProductionFeature::L3_FORWARDING,
-        production_features::ProductionFeature::WIDE_ECMP};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::L3_FORWARDING, ProductionFeature::WIDE_ECMP};
   }
 };
 
@@ -428,17 +426,17 @@ class AgentEcmpNeighborTest : public AgentEcmpTest {
     AgentHwTest::setCmdLineFlagOverrides();
   }
 
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     if (intfNbrTable) {
       return {
-          production_features::ProductionFeature::L3_FORWARDING,
-          production_features::ProductionFeature::INTERFACE_NEIGHBOR_TABLE};
+          ProductionFeature::L3_FORWARDING,
+          ProductionFeature::INTERFACE_NEIGHBOR_TABLE};
     } else {
       return {
-          production_features::ProductionFeature::L3_FORWARDING,
-          production_features::ProductionFeature::VLAN,
-          production_features::ProductionFeature::MAC_LEARNING};
+          ProductionFeature::L3_FORWARDING,
+          ProductionFeature::VLAN,
+          ProductionFeature::MAC_LEARNING};
     }
   }
 
@@ -519,11 +517,9 @@ TYPED_TEST(AgentEcmpNeighborTest, ResolvePendingResolveNexthop) {
 
 class AgentUcmpTest : public AgentEcmpTest {
  protected:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {
-        production_features::ProductionFeature::L3_FORWARDING,
-        production_features::ProductionFeature::UCMP};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::L3_FORWARDING, ProductionFeature::UCMP};
   }
 };
 

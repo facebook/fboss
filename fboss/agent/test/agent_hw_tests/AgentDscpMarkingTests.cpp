@@ -32,9 +32,9 @@ namespace facebook::fboss {
 
 class AgentDscpMarkingTest : public AgentHwTest {
  protected:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::DSCP_REMARKING};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::DSCP_REMARKING};
   }
 
   cfg::SwitchConfig initialConfig(

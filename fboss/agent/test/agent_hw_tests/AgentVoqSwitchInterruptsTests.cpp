@@ -8,9 +8,9 @@
 namespace facebook::fboss {
 class AgentVoqSwitchInterruptTest : public AgentHwTest {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::VOQ_DNX_INTERRUPTS};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::VOQ_DNX_INTERRUPTS};
   }
 
  protected:

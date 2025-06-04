@@ -71,9 +71,9 @@ class AgentRouteTest : public AgentHwTest {
         true /*interfaceHasSubnet*/);
   }
 
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::L3_FORWARDING};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::L3_FORWARDING};
   }
 
   RouterID kRouterID() const {
@@ -204,11 +204,10 @@ class AgentRouteTest : public AgentHwTest {
 template <typename AddrT>
 class AgentClassIDRouteTest : public AgentRouteTest<AddrT> {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     auto features = AgentRouteTest<AddrT>::getProductionFeaturesVerified();
-    features.push_back(
-        production_features::ProductionFeature::CLASS_ID_FOR_CONNECTED_ROUTE);
+    features.push_back(ProductionFeature::CLASS_ID_FOR_CONNECTED_ROUTE);
     return features;
   }
 };
@@ -216,10 +215,10 @@ class AgentClassIDRouteTest : public AgentRouteTest<AddrT> {
 template <typename AddrT>
 class AgentMplsRouteTest : public AgentRouteTest<AddrT> {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     auto features = AgentRouteTest<AddrT>::getProductionFeaturesVerified();
-    features.push_back(production_features::ProductionFeature::MPLS);
+    features.push_back(ProductionFeature::MPLS);
     return features;
   }
 };

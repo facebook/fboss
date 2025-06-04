@@ -406,9 +406,9 @@ class AgentMirroringTest : public AgentHwTest {
 template <typename AddrT>
 class AgentIngressPortSpanMirroringTest : public AgentMirroringTest<AddrT> {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::INGRESS_MIRRORING};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::INGRESS_MIRRORING};
   }
 
   cfg::SwitchConfig initialConfig(
@@ -428,9 +428,9 @@ class AgentIngressPortSpanMirroringTest : public AgentMirroringTest<AddrT> {
 template <typename AddrT>
 class AgentIngressPortErspanMirroringTest : public AgentMirroringTest<AddrT> {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::INGRESS_MIRRORING};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::INGRESS_MIRRORING};
   }
 
   cfg::SwitchConfig initialConfig(
@@ -451,11 +451,11 @@ template <typename AddrT>
 class AgentIngressPortErspanMirroringTruncateTest
     : public AgentMirroringTest<AddrT> {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     return {
-        production_features::ProductionFeature::INGRESS_MIRRORING,
-        production_features::ProductionFeature::MIRROR_PACKET_TRUNCATION};
+        ProductionFeature::INGRESS_MIRRORING,
+        ProductionFeature::MIRROR_PACKET_TRUNCATION};
   }
 
   cfg::SwitchConfig initialConfig(
@@ -475,11 +475,11 @@ class AgentIngressPortErspanMirroringTruncateTest
 template <typename AddrT>
 class AgentIngressAclSpanMirroringTest : public AgentMirroringTest<AddrT> {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     return {
-        production_features::ProductionFeature::INGRESS_MIRRORING,
-        production_features::ProductionFeature::INGRESS_ACL_MIRRORING};
+        ProductionFeature::INGRESS_MIRRORING,
+        ProductionFeature::INGRESS_ACL_MIRRORING};
   }
 
   cfg::SwitchConfig initialConfig(
@@ -499,11 +499,11 @@ class AgentIngressAclSpanMirroringTest : public AgentMirroringTest<AddrT> {
 template <typename AddrT>
 class AgentIngressAclErspanMirroringTest : public AgentMirroringTest<AddrT> {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     return {
-        production_features::ProductionFeature::INGRESS_MIRRORING,
-        production_features::ProductionFeature::INGRESS_ACL_MIRRORING};
+        ProductionFeature::INGRESS_MIRRORING,
+        ProductionFeature::INGRESS_ACL_MIRRORING};
   }
 
   cfg::SwitchConfig initialConfig(
@@ -524,9 +524,9 @@ template <typename AddrT>
 class AgentEgressPortSpanMirroringTest : public AgentMirroringTest<AddrT> {
  public:
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::EGRESS_MIRRORING};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::EGRESS_MIRRORING};
   }
 
   cfg::SwitchConfig initialConfig(
@@ -546,9 +546,9 @@ class AgentEgressPortSpanMirroringTest : public AgentMirroringTest<AddrT> {
 template <typename AddrT>
 class AgentEgressPortErspanMirroringTest : public AgentMirroringTest<AddrT> {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::EGRESS_MIRRORING};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::EGRESS_MIRRORING};
   }
 
   cfg::SwitchConfig initialConfig(
@@ -569,11 +569,11 @@ template <typename AddrT>
 class AgentEgressPortErspanMirroringTruncateTest
     : public AgentMirroringTest<AddrT> {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     return {
-        production_features::ProductionFeature::MIRROR_PACKET_TRUNCATION,
-        production_features::ProductionFeature::EGRESS_MIRRORING};
+        ProductionFeature::MIRROR_PACKET_TRUNCATION,
+        ProductionFeature::EGRESS_MIRRORING};
   }
 
   cfg::SwitchConfig initialConfig(
@@ -593,11 +593,11 @@ class AgentEgressPortErspanMirroringTruncateTest
 template <typename AddrT>
 class AgentEgressAclSpanMirroringTest : public AgentMirroringTest<AddrT> {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     return {
-        production_features::ProductionFeature::EGRESS_MIRRORING,
-        production_features::ProductionFeature::EGRESS_ACL_MIRRORING};
+        ProductionFeature::EGRESS_MIRRORING,
+        ProductionFeature::EGRESS_ACL_MIRRORING};
   }
 
   cfg::SwitchConfig initialConfig(
@@ -617,11 +617,11 @@ class AgentEgressAclSpanMirroringTest : public AgentMirroringTest<AddrT> {
 template <typename AddrT>
 class AgentEgressAclErspanMirroringTest : public AgentMirroringTest<AddrT> {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     return {
-        production_features::ProductionFeature::EGRESS_MIRRORING,
-        production_features::ProductionFeature::EGRESS_ACL_MIRRORING};
+        ProductionFeature::EGRESS_MIRRORING,
+        ProductionFeature::EGRESS_ACL_MIRRORING};
   }
 
   cfg::SwitchConfig initialConfig(
@@ -722,15 +722,13 @@ class AgentErspanIngressSamplingTest
     : public AgentIngressPortErspanMirroringTruncateTest<AddrT> {
  public:
   using Base = AgentIngressPortErspanMirroringTruncateTest<AddrT>;
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     auto features = Base::getProductionFeaturesVerified();
     if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
-      features.push_back(
-          production_features::ProductionFeature::ERSPANv4_SAMPLING);
+      features.push_back(ProductionFeature::ERSPANv4_SAMPLING);
     } else if (std::is_same_v<AddrT, folly::IPAddressV6>) {
-      features.push_back(
-          production_features::ProductionFeature::ERSPANv6_SAMPLING);
+      features.push_back(ProductionFeature::ERSPANv6_SAMPLING);
     }
     return features;
   }
