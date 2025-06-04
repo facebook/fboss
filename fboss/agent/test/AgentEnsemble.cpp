@@ -727,6 +727,9 @@ std::map<std::string, int64_t> AgentEnsemble::getFb303CountersByRegex(
   apache::thrift::Client<facebook::thrift::Monitor> monitoringClient{
       client->getChannelShared()};
   monitoringClient.sync_getRegexCounters(counters, regex);
+#else
+  // TODO: This needs to be updated to support multi-switch.
+  counters = facebook::fb303::fbData->getRegexCounters(regex);
 #endif
   return counters;
 }
@@ -751,6 +754,9 @@ int64_t AgentEnsemble::getFb303Counter(
   apache::thrift::Client<facebook::thrift::Monitor> monitoringClient{
       client->getChannelShared()};
   counter = monitoringClient.sync_getCounter(key);
+#else
+  // TODO: This needs to be updated to support multi-switch.
+  counter = facebook::fb303::fbData->getCounter(key);
 #endif
   return counter;
 }
@@ -799,6 +805,9 @@ std::map<std::string, int64_t> AgentEnsemble::getFb303RegexCounters(
   apache::thrift::Client<facebook::thrift::Monitor> monitoringClient{
       client->getChannelShared()};
   monitoringClient.sync_getRegexCounters(counters, regex);
+#else
+  // TODO: This needs to be updated to support multi-switch.
+  counters = facebook::fb303::fbData->getRegexCounters(regex);
 #endif
   return counters;
 }
