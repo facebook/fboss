@@ -161,6 +161,15 @@ void RouteUpdateWrapper::programStandAloneRib(const SyncFibFor& syncFibFor) {
         *fibUpdateFn_,
         fibUpdateCookie_);
   }
+  if (!remoteLoopbackIntfRouteToAdd_.empty() ||
+      !remoteLoopbackIntfRouteToDel_.empty()) {
+    getRib()->updateRemoteInterfaceRoutes(
+        resolver_,
+        remoteLoopbackIntfRouteToAdd_,
+        remoteLoopbackIntfRouteToDel_,
+        *fibUpdateFn_,
+        fibUpdateCookie_);
+  }
   for (auto [ridClientId, addDelRoutes] : ribRoutesToAddDel_) {
     auto stats = getRib()->update(
         resolver_,
