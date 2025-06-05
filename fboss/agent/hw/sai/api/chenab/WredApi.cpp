@@ -45,7 +45,6 @@ bool operator==(
 namespace std {
 size_t hash<SaiWredTraits::AdapterHostKey>::operator()(
     const SaiWredTraits::AdapterHostKey& key) const {
-  using Attributes = SaiWredTraits::Attributes;
   size_t seed = 0;
   auto attrs = separateAttributes(key);
   std::visit(
