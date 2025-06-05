@@ -36,6 +36,8 @@ namespace facebook::fboss {
  * Agent/Hw tests are migrated to this framework.
  */
 
+using ProductionFeature = test::production_features::ProductionFeature;
+
 class AgentHwTest : public ::testing::Test {
  public:
   AgentHwTest() = default;
@@ -262,8 +264,8 @@ class AgentHwTest : public ::testing::Test {
     return true;
   }
 
-  virtual std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const = 0;
+  virtual std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const = 0;
   void printProductionFeatures() const;
   virtual bool failHwCallsOnWarmboot() const {
     return true;

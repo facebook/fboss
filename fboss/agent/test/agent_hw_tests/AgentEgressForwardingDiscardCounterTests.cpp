@@ -25,10 +25,9 @@ class AgentEgressForwardingDiscardsCounterTest : public AgentHwTest {
     }
     return cfg;
   }
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::
-                EGRESS_FORWARDING_DISCARDS_COUNTER};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::EGRESS_FORWARDING_DISCARDS_COUNTER};
   }
 };
 

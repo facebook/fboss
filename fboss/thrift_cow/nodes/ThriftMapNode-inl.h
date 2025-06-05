@@ -378,7 +378,7 @@ class ThriftMapNode
         key, std::forward<Args>(args)...);
   }
 
-  bool remove(const std::string& token) {
+  virtual bool remove(const std::string& token) override {
     return this->writableFields()->remove(token);
   }
 
@@ -450,7 +450,8 @@ class ThriftMapNode
     return false;
   }
 
-  void modify(const std::string& token, bool construct = true) {
+  virtual void modify(const std::string& token, bool construct = true)
+      override {
     if (!tryModify(token, construct)) {
       throw std::runtime_error(folly::to<std::string>("Invalid key: ", token));
     }

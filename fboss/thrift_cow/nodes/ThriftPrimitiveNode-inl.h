@@ -145,7 +145,7 @@ class ThriftPrimitiveNode : public thrift_cow::Serializable {
     throwImmutableException();
   }
 
-  bool remove(const std::string& token) {
+  virtual bool remove(const std::string& token) override {
     throw std::runtime_error(folly::to<std::string>(
         "Cannot remove a child from a primitive node: ", token));
   }
@@ -155,7 +155,7 @@ class ThriftPrimitiveNode : public thrift_cow::Serializable {
         "Cannot remove a child from a primitive node: ", token));
   }
 
-  void modify(const std::string&, bool = true) {
+  virtual void modify(const std::string&, bool = true) override {
     if constexpr (immutable) {
       throwImmutableException();
     }

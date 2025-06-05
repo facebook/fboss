@@ -32,7 +32,6 @@ cpp_library(
         "//infrasec/authorization:base_identity_util",
         "//neteng/fboss/tools/build_info/server/if:fboss_build_info_if-cpp2-services",
         "//security/ca/lib:cert_path_picker",
-        "//thrift/lib/cpp2/async:header_client_channel",
         "//thrift/lib/cpp2/async:rocket_client_channel",
     ],
 )

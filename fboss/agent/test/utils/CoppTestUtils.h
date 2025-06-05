@@ -303,9 +303,7 @@ cfg::PortQueueRate setPortQueueRate(const HwAsic* hwAsic, uint16_t queueId);
 
 uint32_t getDnxCoppMaxDynamicSharedBytes(uint16_t queueId);
 
-AgentConfig setTTL0PacketForwardingEnableConfig(
-    SwSwitch* sw,
-    AgentConfig& agentConfig);
+AgentConfig setTTL0PacketForwardingEnableConfig(AgentConfig& agentConfig);
 
 } // namespace utility
 } // namespace facebook::fboss

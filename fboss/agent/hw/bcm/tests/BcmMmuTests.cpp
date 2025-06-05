@@ -13,7 +13,6 @@
 #include "fboss/agent/hw/bcm/BcmPortUtils.h"
 #include "fboss/agent/hw/bcm/tests/BcmSwitchEnsemble.h"
 #include "fboss/agent/hw/bcm/tests/BcmTest.h"
-#include "fboss/agent/hw/test/HwPortUtils.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestPfcUtils.h"
 #include "fboss/agent/platforms/tests/utils/BcmTestPlatform.h"

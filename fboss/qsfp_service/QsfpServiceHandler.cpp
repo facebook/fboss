@@ -9,7 +9,6 @@
 
 #include <fboss/lib/LogThriftCall.h>
 #include <folly/logging/xlog.h>
-#include <thrift/lib/cpp/util/EnumUtils.h>
 
 DEFINE_string(
     sak_list_warmboot_config,

@@ -222,6 +222,7 @@ thrift_library(
     deps = [
         "//fboss/agent/hw:hardware_stats",
         "//fboss/lib/phy:phy",
+        "//fboss/platform/sensor_service/if:sensor_service",
         "//thrift/annotation:cpp",
     ],
 )
@@ -249,6 +250,7 @@ cpp_library(
         "//common/services/cpp:thrift_acl_checker_module_config",
         "//common/services/cpp:thrift_aclchecker_handler_factory",
         "//common/services/cpp:tls",
+        "//fboss/lib:thrift_method_rate_limit",
         "//folly:network_address",
         "//folly/io/async:async_base",
         "//folly/logging:logging",
@@ -430,6 +432,11 @@ cpp_library(
         ":agent_features",
         ":switch_config-cpp2-types",
         "//fboss/agent/hw/switch_asics:switch_asics",
+        "//fboss/agent/state:state",
+        "//folly:network_address",
+    ],
+    exported_external_deps = [
+        ("boost", None, "boost_container"),
     ],
 )
 
@@ -607,7 +614,6 @@ cpp_library(
     exported_deps = [
         ":agent_stats-cpp2-types",
         ":fboss-types",
-        "//common/stats:macros",
         "//fb303:service_data",
         "//fb303:thread_cached_service_data",
         "//fb303/detail:quantile_stat_wrappers",
@@ -670,6 +676,7 @@ cpp_library(
     ],
     exported_deps = [
         "//fboss/agent/state:state",
+        "//fboss/lib/link_snapshots:async_filewriter_factory",
         "//fboss/lib/link_snapshots:snapshot_manager",
         "//fboss/lib/phy:phy-cpp2-types",
     ],
@@ -851,7 +858,6 @@ cpp_library(
         ":voq_utils",
         "//common/fbwhoami:fb_who_am_i",
         "//common/network:util",
-        "//common/stats:macros",
         "//common/strings:uuid",
         "//common/time:time",
         "//common/time:time_core",
@@ -905,6 +911,7 @@ cpp_library(
         "//fboss/lib:radix_tree",
         "//fboss/lib:thread_heartbeat",
         "//fboss/lib/config:fboss_config_utils",
+        "//fboss/lib/link_snapshots:async_filewriter_factory",
         "//fboss/lib/phy:phy-cpp2-types",
         "//fboss/lib/phy:prbs-cpp2-types",
         "//fboss/lib/platforms:product-info",
@@ -951,7 +958,6 @@ cpp_library(
         "//scribe/client:scribe_client_no_sr",
         "//servicerouter/client/cpp2:cpp2",
         "//thrift/lib/cpp/util:enum_utils",
-        "//thrift/lib/cpp2/async:header_client_channel",
         "//thrift/lib/cpp2/async:pooled_request_channel",
         "//thrift/lib/cpp2/async:reconnecting_request_channel",
         "//thrift/lib/cpp2/async:request_channel",

@@ -38,7 +38,8 @@ uint32_t getMaxUcmpMembers(const std::vector<const HwAsic*>& asics) {
   auto asic = checkSameAndGetAsic(asics);
   auto maxUcmpMembers = asic->getMaxEcmpMembers();
   CHECK(maxUcmpMembers.has_value());
-  if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK4) {
+  if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK4 ||
+      asic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK5) {
     return maxUcmpMembers.value() / 4;
   }
   return maxUcmpMembers.value();

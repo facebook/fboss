@@ -136,8 +136,12 @@ std::tuple<int, int, int> normalizeSdkVersion(std::string sdkVersion) {
 namespace facebook::fboss {
 
 std::string HwSwitch::getDebugDump() const {
-  folly::test::TemporaryDirectory tmpDir;
-  auto fname = tmpDir.path().string() + "hw_debug_dump";
+  /* dump sdk state in directory /var/facebook/fboss/fboss_sdk_dump.xxxx */
+  folly::test::TemporaryDirectory tmpDir(
+      "fboss_sdk_dump",
+      getPlatform()->getDirectoryUtil()->getPersistentStateDir(),
+      folly::test::TemporaryDirectory::Scope::PERMANENT);
+  auto fname = tmpDir.path().string() + "/hw_debug_dump";
   dumpDebugState(fname);
   std::string out;
   if (!folly::readFile(fname.c_str(), out)) {

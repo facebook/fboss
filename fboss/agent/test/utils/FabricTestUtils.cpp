@@ -9,7 +9,6 @@
  */
 
 #include "fboss/agent/test/utils/FabricTestUtils.h"
-#include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/lib/CommonUtils.h"
 

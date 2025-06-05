@@ -178,6 +178,8 @@ class CmdShowRouteDetails
       out << fmt::format("  Admin Distance: {}\n", entry.get_adminDistance());
       out << fmt::format("  Counter Id: {}\n", entry.get_counterID());
       out << fmt::format("  Class Id: {}\n", entry.get_classID());
+      out << fmt::format(
+          "  Overridden ECMP mode: {}\n", entry.get_overridenEcmpMode());
     }
   }
 
@@ -251,6 +253,10 @@ class CmdShowRouteDetails
         auto classIDPtr = entry.get_classID();
         routeDetails.classID() =
             classIDPtr == nullptr ? "None" : getClassID(*classIDPtr);
+        auto overrideEcmpModePtr = entry.get_overridenEcmpMode();
+        routeDetails.overridenEcmpMode() = overrideEcmpModePtr == nullptr
+            ? "None"
+            : apache::thrift::util::enumNameSafe(*overrideEcmpModePtr);
         model.routeEntries()->push_back(routeDetails);
       }
     }

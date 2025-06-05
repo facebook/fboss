@@ -198,6 +198,10 @@ bool MonolithicHwSwitchHandler::needL2EntryForNeighbor(
   return hw_->needL2EntryForNeighbor();
 }
 
+void MonolithicHwSwitchHandler::initialStateApplied() {
+  hw_->initialStateApplied();
+}
+
 std::pair<fsdb::OperDelta, HwSwitchStateUpdateStatus>
 MonolithicHwSwitchHandler::stateChanged(
     const std::vector<fsdb::OperDelta>& deltas,

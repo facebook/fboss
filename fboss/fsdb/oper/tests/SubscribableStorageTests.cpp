@@ -65,22 +65,18 @@ folly::coro::Task<typename Gen::value_type> consumeOne(Gen& generator) {
 
 } // namespace
 
-template <bool EnableHybridStorage, bool LazyPathStoreCreation>
+template <bool EnableHybridStorage>
 struct TestParams {
   static constexpr auto hybridStorage = EnableHybridStorage;
-  static constexpr auto lazyPathStoreCreation = LazyPathStoreCreation;
 };
 
-using SubscribableStorageTestTypes = ::testing::Types<
-    TestParams<false, false>,
-    TestParams<false, true>,
-    TestParams<true, true>>;
+using SubscribableStorageTestTypes =
+    ::testing::Types<TestParams<false>, TestParams<true>>;
 
 template <typename TestParams>
 class SubscribableStorageTests : public Test {
  public:
   void SetUp() override {
-    FLAGS_lazyPathStoreCreation = TestParams::lazyPathStoreCreation;
     auto testDyn = createTestDynamic();
     testStruct = facebook::thrift::from_dynamic<TestStruct>(
         testDyn, facebook::thrift::dynamic_format::JSON_1);
@@ -999,14 +995,9 @@ TYPED_TEST(SubscribableStorageTests, PruneSubscriptionPathStores) {
   EXPECT_EQ(deltaVal.changes()->size(), 1);
 
   auto maxNumPathStores = storage.numPathStoresRecursive_Expensive();
-  XLOG(DBG2) << "maxNumPathStores: " << maxNumPathStores;
-  if (FLAGS_lazyPathStoreCreation) {
-    // with lazy PathStore creation, numPathStores should not change
-    // for exact subscriptions when adding/deleting paths.
-    EXPECT_EQ(maxNumPathStores, initialNumPathStores);
-  } else {
-    EXPECT_GT(maxNumPathStores, initialNumPathStores);
-  }
+  // with lazy PathStore creation, numPathStores should not change
+  // for exact subscriptions when adding/deleting paths.
+  EXPECT_EQ(maxNumPathStores, initialNumPathStores);
 
   // now delete the added path
   storage.remove(this->root.structMap()[99]);
@@ -1018,11 +1009,7 @@ TYPED_TEST(SubscribableStorageTests, PruneSubscriptionPathStores) {
   // after path deletion, numPathStores should drop
   auto finalNumPathStores = storage.numPathStoresRecursive_Expensive();
   XLOG(DBG2) << "finalNumPathStores : " << finalNumPathStores;
-  if (FLAGS_lazyPathStoreCreation) {
-    EXPECT_EQ(finalNumPathStores, maxNumPathStores);
-  } else {
-    EXPECT_LT(finalNumPathStores, maxNumPathStores);
-  }
+  EXPECT_EQ(finalNumPathStores, maxNumPathStores);
   EXPECT_EQ(finalNumPathStores, initialNumPathStores);
 
   // stronger check: allocation stats and numPathStores must match
@@ -1200,12 +1187,11 @@ CO_TYPED_TEST(SubscribableStorageTests, SubscribeExtendedPatchMultipleChanges) {
 
 class SubscribableStorageTestsPathDelta
     : public Test,
-      public WithParamInterface<std::tuple<bool, bool>> {
+      public WithParamInterface<std::tuple<bool>> {
  public:
   void SetUp() override {
-    const std::tuple<bool, bool> params = GetParam();
+    const std::tuple<bool> params = GetParam();
     isPath = get<0>(params);
-    FLAGS_lazyPathStoreCreation = get<1>(params);
     auto testDyn = createTestDynamic();
     testStruct = facebook::thrift::from_dynamic<TestStruct>(
         testDyn, facebook::thrift::dynamic_format::JSON_1);
@@ -1220,7 +1206,7 @@ class SubscribableStorageTestsPathDelta
 INSTANTIATE_TEST_SUITE_P(
     SubscribableStorageSubTypeTests,
     SubscribableStorageTestsPathDelta,
-    Combine(Bool(), Bool()));
+    Combine(Bool()));
 
 using TestSubscribableStorage = NaivePeriodicSubscribableCowStorage<TestStruct>;
 

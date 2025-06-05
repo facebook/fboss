@@ -361,6 +361,32 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
                                     : "<ABSENT>",
           eepromPath,
           slotPath);
+
+      if (productionStateInEeprom.has_value() &&
+          productVersionInEeprom.has_value() &&
+          productSubVersionInEeprom.has_value()) {
+        PmUnitInfo info;
+        PmUnitVersion version;
+        version.productProductionState() = *productionStateInEeprom;
+        version.productVersion() = *productVersionInEeprom;
+        version.productSubVersion() = *productSubVersionInEeprom;
+        info.version() = version;
+        info.name() = pmUnitNameInEeprom.value_or("");
+        dataStore_.updatePmUnitInfo(slotPath, info);
+      } else {
+        XLOG(WARNING) << fmt::format(
+            "At SlotPath {}, unexpected partial versions: ProductProductionState `{}` "
+            "ProductVersion `{}` ProductSubVersion `{}`. Skipping updating PmUnit {}",
+            slotPath,
+            productionStateInEeprom ? std::to_string(*productionStateInEeprom)
+                                    : "<ABSENT>",
+            productVersionInEeprom ? std::to_string(*productVersionInEeprom)
+                                   : "<ABSENT>",
+            productSubVersionInEeprom
+                ? std::to_string(*productSubVersionInEeprom)
+                : "<ABSENT>",
+            *pmUnitNameInEeprom);
+      }
     } catch (const std::exception& e) {
       auto errMsg = fmt::format(
           "Could not fetch contents of IDPROM {} in {}. {}",
@@ -402,12 +428,9 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
         "or SlotTypeConfig::idpromConfig at {}",
         slotPath));
   }
-  dataStore_.updatePmUnitInfo(
-      slotPath,
-      *pmUnitName,
-      productionStateInEeprom,
-      productVersionInEeprom,
-      productSubVersionInEeprom);
+  PmUnitInfo info;
+  info.name() = *pmUnitName;
+  dataStore_.updatePmUnitInfo(slotPath, info);
   return pmUnitName;
 }
 
@@ -808,6 +831,19 @@ void PlatformExplorer::updatePmStatus(const PlatformManagerStatus& newStatus) {
       status.failedDevices() = explorationSummary_.getFailedDevices();
     }
   });
+}
+
+std::optional<DataStore> PlatformExplorer::getDataStore() const {
+  bool ready = false;
+  platformManagerStatus_.withRLock([&](const PlatformManagerStatus& status) {
+    ready =
+        (status.explorationStatus() != ExplorationStatus::IN_PROGRESS &&
+         status.explorationStatus() != ExplorationStatus::UNSTARTED);
+  });
+  if (ready) {
+    return dataStore_;
+  }
+  return std::nullopt;
 }
 
 void PlatformExplorer::setupI2cDevice(

@@ -23,9 +23,9 @@ class AgentPfcTest : public AgentHwTest {
     return config;
   }
 
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::PFC};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::PFC};
   }
 
  protected:
@@ -105,11 +105,11 @@ TEST_F(AgentPfcTest, verifyPfcCounters) {
 }
 
 class AgentPfcCaptureTest : public AgentPfcTest {
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     return {
-        production_features::ProductionFeature::PFC,
-        production_features::ProductionFeature::PFC_CAPTURE,
+        ProductionFeature::PFC,
+        ProductionFeature::PFC_CAPTURE,
     };
   }
 };

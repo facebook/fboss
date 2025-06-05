@@ -42,7 +42,9 @@ class CrossConfigValidatorTest : public testing::Test {
     platformConfig.symbolicLinkToDevicePath() = {
         {"/run/devmap/sensors/CPU_CORE_TEMP", "/[CPU_CORE_TEMP]"},
         {"/run/devmap/sensors/BCB_FAN_CPLD", "/BCB_SLOT@0/[BCB_FAN_CPLD]"},
-        {"/run/devmap/gpiochips/MCB_GPIO_CHIP_1", "/[MCB_GPIO_CHIP_1]"}};
+        {"/run/devmap/gpiochips/MCB_GPIO_CHIP_1", "/[MCB_GPIO_CHIP_1]"},
+        {"/run/devmap/eeproms/SMB_EEPROM", "/SMB_FRU_SLOT@0/[IDPROM]"},
+        {"/run/devmap/eeproms/COME_EEPROM", "/[IDPROM]"}};
 
     crossConfigValidator_ = CrossConfigValidator(platformConfig);
   }
@@ -182,4 +184,40 @@ TEST_F(CrossConfigValidatorTest, InvalidFanConfig) {
   sensorConfig.pmUnitSensorsList() = {pmUnitSensors};
   EXPECT_FALSE(
       crossConfigValidator_->isValidFanServiceConfig(config, sensorConfig));
+}
+
+TEST_F(CrossConfigValidatorTest, ValidWeutilConfig) {
+  weutil_config::WeutilConfig weutilConfig;
+  weutilConfig.chassisEepromName() = "SMB";
+  weutilConfig.fruEepromList()["SMB"] = {};
+  weutilConfig.fruEepromList()["SMB"].path() = "/run/devmap/eeproms/SMB_EEPROM";
+  weutilConfig.fruEepromList()["COME"] = {};
+  weutilConfig.fruEepromList()["COME"].path() =
+      "/run/devmap/eeproms/COME_EEPROM";
+  EXPECT_TRUE(
+      crossConfigValidator_->isValidWeutilConfig(weutilConfig, "tahan800bc"));
+  // It is expected for MERU_SCM_EEPROM to be missing in platform_manager config
+  weutilConfig.fruEepromList()["MERU_SCM"] = {};
+  weutilConfig.fruEepromList()["MERU_SCM"].path() =
+      "/run/devmap/eeproms/MERU_SCM_EEPROM";
+  EXPECT_TRUE(
+      crossConfigValidator_->isValidWeutilConfig(weutilConfig, "meru800bfa"));
+  // TODO: T226259767 Remove this check once PM is onboarded in Darwin
+  // Darwin is not migrated to platform_manager config yet, so any config should
+  // be valid
+  weutilConfig.fruEepromList()["MCB"] = {};
+  weutilConfig.fruEepromList()["MCB"].path() =
+      "/run/devmap/eeproms/INVALID_PATH";
+  EXPECT_TRUE(
+      crossConfigValidator_->isValidWeutilConfig(weutilConfig, "darwin"));
+}
+
+TEST_F(CrossConfigValidatorTest, InvalidWeutilConfig) {
+  weutil_config::WeutilConfig weutilConfig;
+  weutilConfig.chassisEepromName() = "SMB";
+  weutilConfig.fruEepromList()["SMB"] = {};
+  weutilConfig.fruEepromList()["SMB"].path() =
+      "/run/devmap/eeproms/INVALID_PATH";
+  EXPECT_FALSE(
+      crossConfigValidator_->isValidWeutilConfig(weutilConfig, "tahan800bc"));
 }

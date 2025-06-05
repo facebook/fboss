@@ -135,6 +135,7 @@ void OperDeltaSyncer::operSyncLoop() {
                hw_->getProgrammedState()->getSwitchSettings())
                ->getSwSwitchRunState() == SwitchRunState::CONFIGURED)) {
         hw_->switchRunStateChanged(SwitchRunState::CONFIGURED);
+        hw_->initialStateApplied();
       }
     }
     lastUpdateSeqNum = *stateOperDelta.seqNum();

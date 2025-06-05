@@ -4733,6 +4733,7 @@
     "/run/devmap/xcvrs/xcvr_ctrl_128": "/SMB_SLOT@0/[OSFP_PORT128_XCVR]"
   },
   "chassisEepromDevicePath": "/SMB_SLOT@0/[IDPROM]",
+  "numXcvrs": 128,
   "bspKmodsRpmName": "arista_bsp_kmods",
   "bspKmodsRpmVersion": "0.7.9-1",
   "requiredKmodsToLoad": [

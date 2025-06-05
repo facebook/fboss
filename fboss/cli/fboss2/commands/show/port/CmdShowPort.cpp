@@ -10,17 +10,12 @@
 
 #include "CmdShowPort.h"
 
-#include <folly/json/json.h>
 #include <thrift/lib/cpp/transport/TTransportException.h>
-#include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/show/port/gen-cpp2/model_types.h"
-#include "fboss/cli/fboss2/commands/show/port/gen-cpp2/model_visitation.h"
-#include "fboss/cli/fboss2/utils/CmdClientUtils.h"
 #include "fboss/cli/fboss2/utils/CmdUtils.h"
 #include "fboss/cli/fboss2/utils/Table.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
-#include <unistd.h>
 #include <algorithm>
 
 namespace facebook::fboss {
@@ -385,13 +380,16 @@ RetType CmdShowPort::createModel(
         isPeerPortDrainedOrDown = it->second;
       }
 
-      bool expectedActive =
-          !isPortDetached && !isPortDisabled && !isPortDrained;
-      if (isPeerDrained.has_value()) {
-        expectedActive &= !isPeerDrained.value();
-      }
-      if (isPeerPortDrainedOrDown.has_value()) {
-        expectedActive &= !isPeerPortDrainedOrDown.value();
+      bool canDetermineExpectedActiveState =
+          (isActive.has_value() && isPeerDrained.has_value() &&
+           isPeerPortDrainedOrDown.has_value());
+
+      bool activeStateMismatch = false;
+      if (canDetermineExpectedActiveState) {
+        bool expectedActive = !isPortDetached && !isPortDisabled &&
+            !isPortDrained && !isPeerDrained.value() &&
+            !isPeerPortDrainedOrDown.value();
+        activeStateMismatch = (isActive.value() != expectedActive);
       }
 
       cli::PortEntry portDetails;
@@ -401,8 +399,7 @@ RetType CmdShowPort::createModel(
           getAdminStateStr(folly::copy(portInfo.adminState().value()));
       portDetails.linkState() = operState;
       portDetails.activeState() = activeState;
-      portDetails.activeStateMismatch() =
-          (isActive.has_value() ? (isActive.value() != expectedActive) : false);
+      portDetails.activeStateMismatch() = activeStateMismatch;
       portDetails.speed() =
           utils::getSpeedGbps(folly::copy(portInfo.speedMbps().value()));
       portDetails.profileId() = portInfo.profileID().value();

@@ -1,19 +1,18 @@
 #include <chrono>
 #include <iostream>
 
+#include <folly/Random.h>
+#include <folly/executors/FunctionScheduler.h>
+#include <folly/init/Init.h>
+#include <folly/io/async/AsyncSocket.h>
+#include <folly/io/async/EventBase.h>
+#include <folly/logging/xlog.h>
+#include <thrift/lib/cpp2/async/RocketClientChannel.h>
+
 #include "fboss/agent/if/gen-cpp2/ctrl_clients.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/types.h"
 #include "fboss/qsfp_service/lib/QsfpCache.h"
-
-#include <folly/Random.h>
-#include <folly/executors/FunctionScheduler.h>
-#include <folly/init/Init.h>
-#include <folly/io/async/EventBase.h>
-
-#include <folly/io/async/AsyncSocket.h>
-#include <folly/logging/xlog.h>
-#include <thrift/lib/cpp2/async/HeaderClientChannel.h>
 
 DECLARE_string(qsfp_service_host);
 DEFINE_bool(dump_qsfp_cache, false, "dump contents of cache as we go");
@@ -32,7 +31,7 @@ std::unique_ptr<apache::thrift::Client<FbossCtrl>> fbossAgentClient() {
   folly::EventBase* eb = folly::EventBaseManager::get()->getEventBase();
   folly::SocketAddress agent(FLAGS_qsfp_service_host, 5909);
   auto socket = folly::AsyncSocket::newSocket(eb, agent);
-  auto chan = HeaderClientChannel::newChannel(std::move(socket));
+  auto chan = RocketClientChannel::newChannel(std::move(socket));
   return std::make_unique<apache::thrift::Client<FbossCtrl>>(std::move(chan));
 }
 

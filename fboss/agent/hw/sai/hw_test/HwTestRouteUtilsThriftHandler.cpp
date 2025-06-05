@@ -363,18 +363,21 @@ void HwTestThriftHandler::getRouteInfo(
   auto routePrefix = folly::CIDRNetwork(
       network::toIPAddress(*prefix->ip()), *prefix->prefixLength());
   routeInfo.exists() = isRoutePresent(hwSwitch_, RouterID(0), routePrefix);
-  if (*routeInfo.exists() &&
-      !isRouteSetToDrop(hwSwitch_, RouterID(0), routePrefix)) {
-    auto classID = getHwRouteClassID(hwSwitch_, RouterID(0), routePrefix);
-    if (classID.has_value()) {
-      routeInfo.classId() = classID.value();
+  if (*routeInfo.exists()) {
+    if (!isRouteSetToDrop(hwSwitch_, RouterID(0), routePrefix)) {
+      auto classID = getHwRouteClassID(hwSwitch_, RouterID(0), routePrefix);
+      if (classID.has_value()) {
+        routeInfo.classId() = classID.value();
+      }
+      routeInfo.isProgrammedToCpu() =
+          isHwRouteToCpu(hwSwitch_, RouterID(0), routePrefix);
+      routeInfo.isMultiPath() =
+          isHwRouteMultiPath(hwSwitch_, RouterID(0), routePrefix);
+      routeInfo.isRouteUnresolvedToClassId() =
+          isRouteUnresolvedToCpuClassId(hwSwitch_, RouterID(0), routePrefix);
+    } else {
+      routeInfo.isProgrammedToDrop() = true;
     }
-    routeInfo.isProgrammedToCpu() =
-        isHwRouteToCpu(hwSwitch_, RouterID(0), routePrefix);
-    routeInfo.isMultiPath() =
-        isHwRouteMultiPath(hwSwitch_, RouterID(0), routePrefix);
-    routeInfo.isRouteUnresolvedToClassId() =
-        isRouteUnresolvedToCpuClassId(hwSwitch_, RouterID(0), routePrefix);
   }
 }
 

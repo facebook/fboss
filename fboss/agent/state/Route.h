@@ -329,10 +329,7 @@ class Route : public ThriftStructNode<Route<AddrT>, ThriftFieldsT<AddrT>> {
   }
 
   // THRIFT_COPY
-  RouteDetails toRouteDetails(bool normalizedNhopWeights = false) const {
-    RouteFields<AddrT> fields{this->toThrift()};
-    return fields.toRouteDetails(normalizedNhopWeights);
-  }
+  RouteDetails toRouteDetails(bool normalizedNhopWeights = false) const;
 
   /*
    * clone and clear all forwarding info. Forwarding info will be recomputed

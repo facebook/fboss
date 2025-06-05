@@ -2,7 +2,6 @@
 
 #include "fboss/util/qsfp/QsfpUtilContainer.h"
 #include <folly/Singleton.h>
-#include <folly/logging/xlog.h>
 
 namespace facebook::fboss {
 

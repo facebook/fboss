@@ -8,8 +8,7 @@ class AgentOverflowTestBase : public AgentHwTest {
  protected:
   void SetUp() override;
   cfg::SwitchConfig initialConfig(const AgentEnsemble& ensemble) const override;
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override;
+  std::vector<ProductionFeature> getProductionFeaturesVerified() const override;
   void startPacketTxRxVerify();
   void stopPacketTxRxVerify();
 

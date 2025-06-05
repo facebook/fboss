@@ -36,12 +36,12 @@ class AgentMmuTuningTest : public AgentHwTest {
     return cfg;
   }
 
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     return {
-        production_features::ProductionFeature::L3_QOS,
-        production_features::ProductionFeature::PORT_TX_DISABLE,
-        production_features::ProductionFeature::MMU_TUNING};
+        ProductionFeature::L3_QOS,
+        ProductionFeature::PORT_TX_DISABLE,
+        ProductionFeature::MMU_TUNING};
   }
 
   void setup() {

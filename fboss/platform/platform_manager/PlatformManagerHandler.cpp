@@ -5,8 +5,9 @@
 
 namespace facebook::fboss::platform::platform_manager {
 PlatformManagerHandler::PlatformManagerHandler(
-    const PlatformExplorer& platformExplorer)
-    : platformExplorer_(platformExplorer) {}
+    const PlatformExplorer& platformExplorer,
+    const DataStore& dataStore)
+    : platformExplorer_(platformExplorer), dataStore_(dataStore) {}
 
 void PlatformManagerHandler::getPlatformSnapshot(PlatformSnapshot&) {}
 

@@ -16,25 +16,18 @@ namespace facebook::fboss::thrift_cow::test {
 
 struct GetVisitedPathsOperator : public BasePathVisitorOperator {
  public:
+  GetVisitedPathsOperator()
+      : BasePathVisitorOperator(
+            ConstSerializableVisitorFunc([this](
+                                             const Serializable&,
+                                             pv_detail::PathIter begin,
+                                             pv_detail::PathIter end) {
+              visited.insert(
+                  "/" + folly::join('/', std::vector<std::string>(begin, end)));
+            })) {}
+
   const std::set<std::string>& getVisited() {
     return visited;
-  }
-
- protected:
-  void visit(
-      Serializable& /* node */,
-      pv_detail::PathIter begin,
-      pv_detail::PathIter end) override {
-    visited.insert(
-        "/" + folly::join('/', std::vector<std::string>(begin, end)));
-  }
-
-  template <typename Node>
-  void visit(Node& node, pv_detail::PathIter begin, pv_detail::PathIter end)
-    requires(!is_cow_type_v<Node>)
-  {
-    SerializableWrapper wrapper(node);
-    visit(wrapper, begin, end);
   }
 
  private:

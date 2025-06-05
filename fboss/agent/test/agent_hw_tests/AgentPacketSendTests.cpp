@@ -25,9 +25,9 @@ namespace facebook::fboss {
 
 class AgentPacketSendTest : public AgentHwTest {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::CPU_RX_TX};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::CPU_RX_TX};
   }
 
   void waitForTxDoneOnPort(
@@ -74,10 +74,10 @@ class AgentPacketSendTest : public AgentHwTest {
 
 class AgentSwitchedPacketSendTest : public AgentPacketSendTest {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     auto features = AgentPacketSendTest::getProductionFeaturesVerified();
-    features.push_back(production_features::ProductionFeature::VLAN);
+    features.push_back(ProductionFeature::VLAN);
     return features;
   }
 };
@@ -270,9 +270,9 @@ TEST_F(AgentPacketSendTest, PortTxEnableTest) {
 
 class AgentPacketSendReceiveTest : public AgentHwTest, public PacketObserverIf {
  protected:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::CPU_RX_TX};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::CPU_RX_TX};
   }
 
   cfg::SwitchConfig initialConfig(
@@ -337,11 +337,11 @@ TEST_F(AgentPacketSendReceiveTest, LldpPacketReceiveSrcPort) {
 
 class AgentPacketSendReceiveLagTest : public AgentPacketSendReceiveTest {
  protected:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     auto prodFeatures =
         AgentPacketSendReceiveTest::getProductionFeaturesVerified();
-    prodFeatures.push_back(production_features::ProductionFeature::LAG);
+    prodFeatures.push_back(ProductionFeature::LAG);
     return prodFeatures;
   }
   cfg::SwitchConfig initialConfig(
@@ -450,12 +450,10 @@ class AgentPacketFloodTest : public AgentHwTest {
     return cfg;
   }
 
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     // PKTIO feature
-    return {
-        production_features::ProductionFeature::CPU_RX_TX,
-        production_features::ProductionFeature::VLAN};
+    return {ProductionFeature::CPU_RX_TX, ProductionFeature::VLAN};
   }
 
   bool checkPacketFlooding(

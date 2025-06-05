@@ -9,21 +9,10 @@
 #include "fboss/platform/helpers/PlatformNameLib.h"
 #include "fboss/platform/weutil/WeutilDarwin.h"
 #include "fboss/platform/weutil/WeutilImpl.h"
-#include "fboss/platform/weutil/if/gen-cpp2/weutil_config_types.h"
 
 namespace facebook::fboss::platform {
 
 namespace {
-
-weutil_config::WeutilConfig getWeUtilConfig() {
-  weutil_config::WeutilConfig thriftConfig;
-  std::string weutilConfigJson = ConfigLib().getWeutilConfig();
-  apache::thrift::SimpleJSONSerializer::deserialize<
-      weutil_config::WeutilConfig>(weutilConfigJson, thriftConfig);
-  XLOG(DBG1) << apache::thrift::SimpleJSONSerializer::serialize<std::string>(
-      thriftConfig);
-  return thriftConfig;
-}
 
 std::vector<std::string> getEepromNames(
     const weutil_config::WeutilConfig& thriftConfig) {
@@ -54,20 +43,19 @@ weutil_config::FruEepromConfig getFruEepromConfig(
 
 } // namespace
 
-std::vector<std::string> getEepromPaths() {
-  auto config = getWeUtilConfig();
-  std::vector<std::string> eepromPaths;
-
-  for (const auto& [eepromName, eepromConfig] : *config.fruEepromList()) {
-    std::string fruName = eepromName;
-    std::transform(fruName.begin(), fruName.end(), fruName.begin(), ::toupper);
-    auto& fruPath = *eepromConfig.path();
-    auto fruOffset = *eepromConfig.offset();
-    std::string eepromInfo =
-        fmt::format("Name:{} Path:{} Offset:{}", fruName, fruPath, fruOffset);
-    eepromPaths.push_back(eepromInfo);
+weutil_config::WeutilConfig getWeUtilConfig() {
+  weutil_config::WeutilConfig thriftConfig;
+  std::string weutilConfigJson = ConfigLib().getWeutilConfig();
+  try {
+    apache::thrift::SimpleJSONSerializer::deserialize<
+        weutil_config::WeutilConfig>(weutilConfigJson, thriftConfig);
+  } catch (const std::exception& e) {
+    throw std::runtime_error(fmt::format(
+        "Failed to deserialize WeutilConfig: {}. Error: {}",
+        weutilConfigJson,
+        e.what()));
   }
-  return eepromPaths;
+  return thriftConfig;
 }
 
 std::unique_ptr<WeutilInterface> createWeUtilIntf(

@@ -10,12 +10,14 @@
 
 #pragma once
 
+#include "fboss/agent/if/gen-cpp2/agent_hw_test_ctrl_types.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/test/RouteDistributionGenerator.h"
 
 namespace facebook::fboss {
 
 class RouteUpdateWrapper;
+class AgentEnsemble;
 
 namespace utility {
 
@@ -30,6 +32,17 @@ void unprogramRoutes(
     RouterID rid,
     ClientID client,
     const utility::RouteDistributionGenerator::ThriftRouteChunks& routeChunks);
+
+RouteInfo getRouteInfo(
+    const folly::IPAddress& ip,
+    int prefixLength,
+    AgentEnsemble& ensemble);
+
+bool isRouteToNexthop(
+    const folly::IPAddress& ip,
+    int prefixLength,
+    const folly::IPAddress& nexthop,
+    facebook::fboss::AgentEnsemble& ensemble);
 
 } // namespace utility
 } // namespace facebook::fboss

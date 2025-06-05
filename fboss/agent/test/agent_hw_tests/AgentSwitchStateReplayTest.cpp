@@ -42,9 +42,9 @@ class AgentSwitchStateReplayTest : public AgentHwTest {
     return utility::onePortPerInterfaceConfig(
         ensemble.getSw(), ensemble.masterLogicalPortIds());
   }
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::HW_SWITCH};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::HW_SWITCH};
   }
   std::shared_ptr<SwitchState> getWarmBootState() {
     if (FLAGS_replay_switch_state_file.size()) {

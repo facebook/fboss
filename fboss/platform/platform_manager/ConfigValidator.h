@@ -30,6 +30,9 @@ class ConfigValidator {
   bool isValidVersionedPmConfigs(
       const std::map<std::string, std::vector<VersionedPmUnitConfig>>&
           versionedPmUnitConfigs);
+  bool isValidXcvrSymlinks(
+      int16_t numXcvrs,
+      const std::vector<std::string>& symlinks);
 
   // Used by other platform services config validation.
   virtual bool isValidSlotPath(

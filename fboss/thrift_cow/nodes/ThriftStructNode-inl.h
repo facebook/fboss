@@ -534,7 +534,7 @@ class ThriftStructNode : public NodeBaseT<
     // TODO: use SFINAE to disallow non-children names (other apis too)
   }
 
-  bool remove(const std::string& token) {
+  bool remove(const std::string& token) override {
     return this->writableFields()->remove(token);
   }
 
@@ -571,7 +571,8 @@ class ThriftStructNode : public NodeBaseT<
     return child;
   }
 
-  virtual void modify(const std::string& token, bool construct = true) {
+  virtual void modify(const std::string& token, bool construct = true)
+      override {
     visitMember<typename Fields::Members>(token, [&](auto tag) {
       using name = typename decltype(fatal::tag_type(tag))::name;
       this->modify<name>(construct);
@@ -594,14 +595,14 @@ class ThriftStructNode : public NodeBaseT<
 
     auto result = ThriftTraverseResult::OK;
     if (begin != end) {
-      // TODO: can probably remove lambda use here
-      auto op = writablelambda([](auto&& node, auto begin, auto end) {
-        if (begin == end) {
-          return;
-        }
-        auto tok = *begin;
-        node.modify(tok);
-      });
+      auto op = BasePathVisitorOperator(
+          [](Serializable& node, PathIter begin, PathIter end) {
+            if (begin == end) {
+              return;
+            }
+            auto tok = *begin;
+            node.modify(tok);
+          });
 
       result = PathVisitor<TC>::visit(
           *newRoot, begin, end, PathVisitOptions::visitFull(), op);
@@ -623,16 +624,16 @@ class ThriftStructNode : public NodeBaseT<
     // first clone root if needed
     auto newRoot = ((*root)->isPublished()) ? (*root)->clone() : *root;
 
-    // TODO: can probably remove lambda use here
-    auto op = writablelambda([](auto&& node, auto begin, auto end) {
-      auto tok = *begin;
-      if (begin == end) {
-        node.remove(tok);
+    auto op = BasePathVisitorOperator(
+        [](Serializable& node, PathIter begin, PathIter end) {
+          auto tok = *begin;
+          if (begin == end) {
+            node.remove(tok);
 
-      } else {
-        node.modify(tok, false);
-      }
-    });
+          } else {
+            node.modify(tok, false);
+          }
+        });
 
     // Traverse to second to last hop and call remove. Modify parents
     // along the way

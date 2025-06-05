@@ -183,7 +183,7 @@ class BcmEcmpEgress : public BcmEgressBase {
   }
   void programForFlowletSwitching();
   bool updateEcmpDynamicMode();
-  uint64_t getL3EcmpDlbFailPackets();
+  HwFlowletStats getL3EcmpDlbStats();
   EcmpDetails getEcmpDetails();
   int getEcmpObject(
       bcm_l3_egress_ecmp_t* obj,

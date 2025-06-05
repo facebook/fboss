@@ -25,9 +25,9 @@ namespace facebook::fboss {
 class AgentIpInIpTunnelTest : public AgentHwTest {
  protected:
   std::string kTunnelTermDstIp = "2000::1";
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::IP_IN_IP_DECAP};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::IP_IN_IP_DECAP};
   }
 
   cfg::SwitchConfig initialConfig(

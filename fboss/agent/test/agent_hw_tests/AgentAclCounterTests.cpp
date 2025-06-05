@@ -45,16 +45,14 @@ class AgentAclCounterTest : public AgentHwTest {
   cfg::AclActionType aclActionType_ = cfg::AclActionType::PERMIT;
   uint8_t roceReservedByte_ = utility::kRoceReserved;
 
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     if (!FLAGS_enable_acl_table_group) {
       return {
-          production_features::ProductionFeature::ACL_COUNTER,
-          production_features::ProductionFeature::SINGLE_ACL_TABLE};
+          ProductionFeature::ACL_COUNTER, ProductionFeature::SINGLE_ACL_TABLE};
     } else {
       return {
-          production_features::ProductionFeature::ACL_COUNTER,
-          production_features::ProductionFeature::MULTI_ACL_TABLE};
+          ProductionFeature::ACL_COUNTER, ProductionFeature::MULTI_ACL_TABLE};
     }
   }
 
@@ -528,18 +526,18 @@ class AgentAclCounterTest : public AgentHwTest {
 
 class AgentL4DstPortAclCounterTest : public AgentAclCounterTest {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     if (!FLAGS_enable_acl_table_group) {
       return {
-          production_features::ProductionFeature::ACL_COUNTER,
-          production_features::ProductionFeature::SINGLE_ACL_TABLE,
-          production_features::ProductionFeature::L4_DST_PORT_ACL};
+          ProductionFeature::ACL_COUNTER,
+          ProductionFeature::SINGLE_ACL_TABLE,
+          ProductionFeature::L4_DST_PORT_ACL};
     } else {
       return {
-          production_features::ProductionFeature::ACL_COUNTER,
-          production_features::ProductionFeature::MULTI_ACL_TABLE,
-          production_features::ProductionFeature::L4_DST_PORT_ACL};
+          ProductionFeature::ACL_COUNTER,
+          ProductionFeature::MULTI_ACL_TABLE,
+          ProductionFeature::L4_DST_PORT_ACL};
     }
   }
 };
@@ -630,11 +628,10 @@ class AgentUdfAclCounterTest : public AgentAclCounterTest {
     return cfg;
   }
 
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     auto features = AgentAclCounterTest::getProductionFeaturesVerified();
-    features.push_back(
-        production_features::ProductionFeature::UDF_WR_IMMEDIATE_ACL);
+    features.push_back(ProductionFeature::UDF_WR_IMMEDIATE_ACL);
     return features;
   }
 };
@@ -773,11 +770,10 @@ TEST_F(AgentUdfAclCounterTest, VerifyUdfMinusUdfHash) {
 
 class AgentBthOpcodeAclCounterTest : public AgentAclCounterTest {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     return {
-        production_features::ProductionFeature::BTH_OPCODE_ACL,
-        production_features::ProductionFeature::SINGLE_ACL_TABLE};
+        ProductionFeature::BTH_OPCODE_ACL, ProductionFeature::SINGLE_ACL_TABLE};
   }
 };
 
@@ -796,12 +792,12 @@ TEST_F(
  */
 class AgentFlowletAclCounterTest : public AgentAclCounterTest {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     return {
-        production_features::ProductionFeature::DLB,
-        production_features::ProductionFeature::SINGLE_ACL_TABLE,
-        production_features::ProductionFeature::UDF_WR_IMMEDIATE_ACL};
+        ProductionFeature::DLB,
+        ProductionFeature::SINGLE_ACL_TABLE,
+        ProductionFeature::UDF_WR_IMMEDIATE_ACL};
   }
 
  protected:

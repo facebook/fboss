@@ -688,13 +688,13 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImpl(
   if (deltas.size() == 0) {
     return getProgrammedState();
   }
-  int count = 1;
+  int count = 0;
   std::shared_ptr<SwitchState> appliedState{nullptr};
   for (const auto& delta : deltas) {
     appliedState = stateChangedImplLocked(delta, lockPolicy);
     // if the current delta fails to apply, return the last successful state
     // HwSwitchHandler would rollback based on the response
-    if (*appliedState != *delta.newState()) {
+    if (appliedState != delta.newState()) {
       XLOG(DBG2) << "Failed to apply " << count << " delta in  "
                  << deltas.size() << " deltas";
       return appliedState;
@@ -1475,10 +1475,10 @@ void SaiSwitch::processSwitchSettingsChangeSansDrainedEntryLocked(
     if (oldVal != newVal) {
       XLOG(DBG3) << "Configuring ptpTcEnable old: " << oldVal
                  << " new: " << newVal;
-      // update already added ports
-      managerTable_->portManager().setPtpTcEnable(newVal);
       // cache the new status, used if the ports are not added yet
       managerTable_->switchManager().setPtpTcEnabled(newVal);
+      // update already added ports
+      managerTable_->portManager().setPtpTcEnable(newVal);
     }
   }
 
@@ -3709,11 +3709,16 @@ bool SaiSwitch::sendPacketOutOfPortSync(
 
   // We should never send packets directly out of eventor port. Doing so may
   // trigger SDK or HW bugs.
-  if (managerTable_->portManager().getPortType(portID) ==
-      cfg::PortType::EVENTOR_PORT) {
-    XLOG_EVERY_MS(WARNING, 5000)
-        << "Rejecting packet sent to EVENTOR_PORT: " << portID;
-    return false;
+  if (!FLAGS_allow_eventor_send_packet) {
+    if (auto portInfoItr =
+            concurrentIndices_->portSaiId2PortInfo.find(portItr->second);
+        portInfoItr != concurrentIndices_->portSaiId2PortInfo.end()) {
+      if (portInfoItr->second.portType == cfg::PortType::EVENTOR_PORT) {
+        XLOG_EVERY_MS(WARNING, 5000)
+            << "Rejecting packet sent to EVENTOR_PORT: " << portID;
+        return false;
+      }
+    }
   }
 
   /* Strip vlan tag with pipeline bypass, for all asic types. */
@@ -4230,6 +4235,7 @@ void SaiSwitch::processRemovedDelta(
 }
 
 void SaiSwitch::dumpDebugState(const std::string& path) const {
+  XLOG(INFO) << "generating debug dump at " << path;
   saiCheckError(sai_dbg_generate_dump(path.c_str()));
 }
 
@@ -4486,6 +4492,7 @@ void SaiSwitch::initialStateApplied() {
   managerTable_->aclTableManager().removeUnclaimedAclCounter();
 #endif
   if (bootType_ == BootType::WARM_BOOT) {
+    XLOG(DBG2) << "Warm boot: removing unreferenced handles";
     saiStore_->printWarmbootHandles();
     if (FLAGS_check_wb_handles == true) {
       saiStore_->checkUnexpectedUnclaimedWarmbootHandles();
@@ -4602,6 +4609,8 @@ void SaiSwitch::processFlowletSwitchingConfigAdded(
 
   if (newFlowletConfig && !oldFlowletConfig) {
     XLOG(DBG2) << "Flowlet switching config is added";
+    nextHopGroupManager.setPrimaryArsSwitchingMode(
+        newFlowletConfig->getSwitchingMode());
     // create the ARS profile object and attach to switch
     arsProfileManager.addArsProfile(newFlowletConfig);
     auto arsProfileHandlePtr = arsProfileManager.getArsProfileHandle();
@@ -4647,6 +4656,8 @@ void SaiSwitch::processFlowletSwitchingConfigChanged(
     } else {
       XLOG(DBG2) << "Flowlet switching config is changed";
       // FlowletSwitchingConfig has both ARS_PROFILE and ARS info
+      nextHopGroupManager.setPrimaryArsSwitchingMode(
+          newFlowletConfig->getSwitchingMode());
       arsProfileManager.changeArsProfile(oldFlowletConfig, newFlowletConfig);
       arsManager.changeArs(oldFlowletConfig, newFlowletConfig);
     }
@@ -4658,6 +4669,7 @@ void SaiSwitch::processFlowletSwitchingConfigChanged(
     arsManager.removeArs(newFlowletConfig);
     switchManager.resetArsProfile();
     arsProfileManager.removeArsProfile(oldFlowletConfig);
+    nextHopGroupManager.setPrimaryArsSwitchingMode(std::nullopt);
   }
 #endif
 }

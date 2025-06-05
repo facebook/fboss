@@ -12,7 +12,6 @@
 #include <fboss/agent/gen-cpp2/switch_config_types.h>
 #include "fboss/agent/hw/bcm/BcmEcmpUtils.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
-#include "fboss/agent/hw/bcm/BcmSdkVer.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/tests/BcmSwitchEnsemble.h"
 #include "fboss/agent/hw/bcm/tests/BcmTestUtils.h"

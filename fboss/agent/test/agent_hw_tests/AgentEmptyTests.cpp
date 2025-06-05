@@ -7,8 +7,8 @@ namespace facebook::fboss {
 
 class AgentEmptyTest : public AgentHwTest {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     return {};
   }
   void setCmdLineFlagOverrides() const override {

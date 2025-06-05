@@ -10,7 +10,9 @@ namespace facebook::fboss::platform::platform_manager {
 class PlatformManagerHandler
     : public apache::thrift::ServiceHandler<PlatformManagerService> {
  public:
-  explicit PlatformManagerHandler(const PlatformExplorer& platformExplorer);
+  explicit PlatformManagerHandler(
+      const PlatformExplorer& platformExplorer,
+      const DataStore& dataStore);
   void getPlatformSnapshot(PlatformSnapshot& response) override;
   void getLastPMStatus(PlatformManagerStatus& response) override;
   void getPmUnitInfo(
@@ -19,6 +21,7 @@ class PlatformManagerHandler
 
  private:
   const PlatformExplorer& platformExplorer_;
+  const DataStore dataStore_;
 };
 
 } // namespace facebook::fboss::platform::platform_manager

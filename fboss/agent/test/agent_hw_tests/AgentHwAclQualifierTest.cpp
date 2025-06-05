@@ -130,16 +130,16 @@ class AgentHwAclQualifierTest : public AgentHwTest {
  public:
   bool addQualifiers = false;
 
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     if (!FLAGS_enable_acl_table_group) {
       return {
-          production_features::ProductionFeature::SINGLE_ACL_TABLE,
-          production_features::ProductionFeature::MODIFY_ACL_QUALIFIERS};
+          ProductionFeature::SINGLE_ACL_TABLE,
+          ProductionFeature::MODIFY_ACL_QUALIFIERS};
     }
     return {
-        production_features::ProductionFeature::MULTI_ACL_TABLE,
-        production_features::ProductionFeature::MODIFY_ACL_QUALIFIERS};
+        ProductionFeature::MULTI_ACL_TABLE,
+        ProductionFeature::MODIFY_ACL_QUALIFIERS};
   }
 
   cfg::SwitchConfig initialConfig(
@@ -779,12 +779,11 @@ TEST_F(AgentHwAclQualifierTest, AclQualifiersCanaryOff) {
 }
 
 struct AgentHwAclLookupClassQualifierTest : public AgentHwAclQualifierTest {
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     auto productionFeatures =
         AgentHwAclQualifierTest::getProductionFeaturesVerified();
-    productionFeatures.push_back(
-        production_features::ProductionFeature::QUEUE_PER_HOST);
+    productionFeatures.push_back(ProductionFeature::QUEUE_PER_HOST);
     return productionFeatures;
   }
 };

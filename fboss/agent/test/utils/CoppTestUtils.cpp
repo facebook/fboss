@@ -14,7 +14,6 @@
 #include "fboss/agent/LldpManager.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/TxPacket.h"
-#include "fboss/agent/Utils.h"
 #include "fboss/agent/VoqUtils.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/packet/ICMPHdr.h"
@@ -1718,13 +1717,16 @@ std::vector<uint16_t> getCpuQueueIds(
       utility::getCoppHighPriQueueId(hwAsics)};
 }
 
-AgentConfig setTTL0PacketForwardingEnableConfig(
-    SwSwitch* sw,
-    AgentConfig& agentConfig) {
+AgentConfig setTTL0PacketForwardingEnableConfig(AgentConfig& agentConfig) {
   cfg::AgentConfig testConfig = agentConfig.thrift;
   cfg::SwitchConfig swConfig = testConfig.sw().value();
+  auto asicTable = HwAsicTable(
+      swConfig.switchSettings()->switchIdToSwitchInfo().value(),
+      std::nullopt,
+      swConfig.dsfNodes().value());
   // Setup TTL0 CPU queue
-  utility::setTTLZeroCpuConfig(sw->getHwAsicTable()->getL3Asics(), swConfig);
+  utility::setTTLZeroCpuConfig(asicTable.getL3Asics(), swConfig);
+  testConfig.sw() = swConfig;
   auto newAgentConfig = AgentConfig(
       testConfig,
       apache::thrift::SimpleJSONSerializer::serialize<std::string>(testConfig));

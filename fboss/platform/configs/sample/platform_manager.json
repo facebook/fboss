@@ -166,6 +166,12 @@
           "kernelDeviceName": "24c02",
           "pmUnitScopedName": "CHASSIS_EEPROM",
           "isChassisEeprom": true
+        },
+        {
+          "busName": "INCOMING@0",
+          "address": "0x5e",
+          "kernelDeviceName": "max31790",
+          "pmUnitScopedName": "FAN_CPLD"
         }
       ],
       "outgoingSlotConfigs": {
@@ -329,7 +335,8 @@
     "/run/devmap/i2c-busses/SCM_IOB_MASTER_0": "/[SCM_IOB_I2C_0]",
     "/run/devmap/i2c-busses/SMB_IOB_MASTER_0": "/SMB_SLOT@0/[SMB_IOB_I2C_0]",
     "/run/devmap/i2c-busses/SMB_IOB_MASTER_1": "/SMB_SLOT@0/[SMB_IOB_I2C_1]",
-    "/run/devmap/i2c-busses/DOM_MASTER_0": "/SMB_SLOT@0/YOLO_SLOT@0/[YOLO_DOM_I2C_0]"
+    "/run/devmap/i2c-busses/DOM_MASTER_0": "/SMB_SLOT@0/YOLO_SLOT@0/[YOLO_DOM_I2C_0]",
+    "/run/devmap/sensors/FAN_CPLD": "/SMB_SLOT@0/[FAN_CPLD]"
   },
   "bspKmodsRpmName": "sample_bsp_kmods",
   "bspKmodsRpmVersion": "0.7.2-1"

@@ -208,6 +208,7 @@ bool EbroAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::EGRESS_POOL_AVAILABLE_SIZE_ATTRIBUTE_SUPPORTED:
     case HwAsic::Feature::SWITCH_ASIC_SDK_HEALTH_NOTIFY:
     case HwAsic::Feature::VENDOR_SWITCH_CONGESTION_MANAGEMENT_ERRORS:
+    case HwAsic::Feature::PFC_WATCHDOG_TIMER_GRANULARITY:
       return false;
     case HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER:
       /*

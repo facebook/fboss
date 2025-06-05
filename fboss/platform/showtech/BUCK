@@ -1,0 +1,17 @@
+load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
+
+oncall("fboss_platform")
+
+cpp_binary(
+    name = "showtech",
+    srcs = [
+        "Main.cpp",
+        "Utils.cpp",
+    ],
+    deps = [
+        "fbsource//third-party/fmt:fmt",
+        "//fb303:logging",
+        "//fboss/platform/helpers:init_cli",
+        "//fboss/platform/helpers:platform_utils",
+    ],
+)

@@ -30,6 +30,7 @@ cpp_unittest(
     deps = [
         "//fboss/fsdb/oper:extended_path_builder",
         "//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-reflection",
+        "//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-serialization",
         "//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-thriftpath",
         "//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-types",
         "//fboss/thrift_cow/nodes:serializer",

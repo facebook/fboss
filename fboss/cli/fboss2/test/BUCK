@@ -12,7 +12,6 @@ cpp_library(
     exported_deps = [
         "fbsource//third-party/googletest:gmock",
         "fbsource//third-party/googletest:gtest",
-        "//fboss/agent/if:ctrl-cpp2-clients",
         "//fboss/agent/if:ctrl-cpp2-services",
         "//fboss/agent/if:ctrl-cpp2-types",
         "//fboss/cli/fboss2:cmd-common-utils",
@@ -23,7 +22,6 @@ cpp_library(
         "//folly:network_address",
         "//folly/io/async:async_socket",
         "//neteng/fboss/bgp/if:bgp_thrift-cpp2-services",
-        "//thrift/lib/cpp2/async:header_client_channel",
         "//thrift/lib/cpp2/util:util",
     ],
 )

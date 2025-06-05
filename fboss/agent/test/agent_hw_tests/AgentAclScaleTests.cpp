@@ -26,9 +26,9 @@ enum class AclWidth : uint8_t {
 
 class AgentAclScaleTest : public AgentHwTest {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::MULTI_ACL_TABLE};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::MULTI_ACL_TABLE};
   }
 
  protected:

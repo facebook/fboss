@@ -9,16 +9,17 @@
  */
 #pragma once
 
+#include <memory>
+#include <optional>
+
+#include <folly/IPAddress.h>
+#include <folly/io/async/EventBase.h>
+#include <thrift/lib/cpp2/async/RocketClientChannel.h>
+
 #include "fboss/agent/if/gen-cpp2/ctrl_clients.h"
 #include "fboss/fsdb/if/gen-cpp2/FsdbService.h"
 #include "fboss/lib/thrift_service_client/ConnectionOptions.h"
 #include "fboss/qsfp_service/if/gen-cpp2/qsfp_clients.h"
-
-#include <folly/IPAddress.h>
-#include <folly/io/async/EventBase.h>
-#include <thrift/lib/cpp2/async/HeaderClientChannel.h>
-#include <memory>
-#include <optional>
 
 DECLARE_string(wedge_agent_host);
 DECLARE_int32(wedge_agent_port);

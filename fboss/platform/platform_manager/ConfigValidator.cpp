@@ -531,11 +531,18 @@ bool ConfigValidator::isValid(const PlatformConfig& config) {
     }
   }
 
-  // Validate symbolic links
+  XLOG(INFO) << "Validating Symbolic links...";
   for (const auto& [symlink, devicePath] : *config.symbolicLinkToDevicePath()) {
     if (!isValidSymlink(symlink) || !isValidDevicePath(config, devicePath)) {
       return false;
     }
+  }
+
+  XLOG(INFO) << "Validating Transceiver symbolic links...";
+  auto symlinks = *config.symbolicLinkToDevicePath() | ranges::views::keys |
+      ranges::to<std::vector<std::string>>();
+  if (!isValidXcvrSymlinks(*config.numXcvrs(), symlinks)) {
+    return false;
   }
 
   if (!isValidBspKmodsRpmVersion(*config.bspKmodsRpmVersion())) {
@@ -748,6 +755,50 @@ bool ConfigValidator::isValidBspKmodsRpmName(
   if (!re2::RE2::FullMatch(bspKmodsRpmName, kRpmNameRegex, &keyword)) {
     XLOG(ERR) << fmt::format("Invalid BspKmodsRpmName : {}", bspKmodsRpmName);
     return false;
+  }
+  return true;
+}
+
+bool ConfigValidator::isValidXcvrSymlinks(
+    int16_t numXcvrs,
+    const std::vector<std::string>& symlinks) {
+  std::set<std::string> xcvrCtrlSymlinks, xcvrIoSymlinks;
+  for (const auto& symlink : symlinks) {
+    if (symlink.starts_with("/run/devmap/xcvrs/xcvr_ctrl_")) {
+      xcvrCtrlSymlinks.insert(symlink);
+    }
+    if (symlink.starts_with("/run/devmap/xcvrs/xcvr_io_")) {
+      xcvrIoSymlinks.insert(symlink);
+    }
+  }
+  if (xcvrCtrlSymlinks.size() != numXcvrs) {
+    XLOG(ERR) << fmt::format(
+        "Expected {} xcvr control symlinks, but found {}",
+        numXcvrs,
+        xcvrCtrlSymlinks.size());
+    return false;
+  }
+  if (xcvrIoSymlinks.size() != numXcvrs) {
+    XLOG(ERR) << fmt::format(
+        "Expected {} xcvr IO symlinks, but found {}",
+        numXcvrs,
+        xcvrIoSymlinks.size());
+    return false;
+  }
+
+  for (int16_t xcvrId = 1; xcvrId <= numXcvrs; xcvrId++) {
+    auto xcvrCtrlSymlink =
+        fmt::format("/run/devmap/xcvrs/xcvr_ctrl_{}", xcvrId);
+    if (!xcvrCtrlSymlinks.contains(xcvrCtrlSymlink)) {
+      XLOG(ERR) << fmt::format(
+          "Missing xcvr control symlink for xcvr {}", xcvrId);
+      return false;
+    }
+    auto xcvrIoSymlink = fmt::format("/run/devmap/xcvrs/xcvr_io_{}", xcvrId);
+    if (!xcvrIoSymlinks.contains(xcvrIoSymlink)) {
+      XLOG(ERR) << fmt::format("Missing xcvr IO symlink for xcvr {}", xcvrId);
+      return false;
+    }
   }
   return true;
 }

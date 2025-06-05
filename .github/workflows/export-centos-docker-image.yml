@@ -1,0 +1,29 @@
+name: Build & Save CentOS docker image for FBOSS
+run-name: Build & Save CentOS docker image for FBOSS
+on:
+  pull_request:
+  # Allow manually triggering the workflow
+  workflow_dispatch:
+  # Also schedule the workflow to run every 3 hours during day only
+  # ShipIt job will sync hourly around HH:21, so schedule the run with 15 minute offset
+  schedule:
+    # Run weekly on Mondays
+    - cron: '0 0 * * 1'
+jobs:
+  export-centos-docker-image:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clean workspace
+        run: sudo rm -rf ${{ github.workspace }}/*
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      - name: Build & Save CentOS docker image
+        run: ./fboss/oss/docker/prefetch/build_image.sh ${{ github.workspace }}/fboss_centos_docker_image.tar.zst centos
+      - name: Upload docker image
+        uses: actions/upload-artifact@v4
+        with:
+          name: fboss_centos_docker_image.tar.zst
+          path: ${{ github.workspace }}/fboss_centos_docker_image.tar.zst
+          compression-level: 0
+          # Explicitly set the retention at the object level
+          retention-days: 14

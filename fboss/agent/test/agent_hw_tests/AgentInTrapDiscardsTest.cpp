@@ -12,9 +12,9 @@ namespace facebook::fboss {
 
 class AgentInTrapDiscardsCounterTest : public AgentHwTest {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::TRAP_DISCARDS_COUNTER};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::TRAP_DISCARDS_COUNTER};
   }
 
  protected:

@@ -3,7 +3,6 @@
 #include "fboss/led_service/MinipackBaseLedManager.h"
 #include "fboss/agent/EnumUtils.h"
 #include "fboss/lib/CommonFileUtils.h"
-#include "fboss/lib/fpga/MinipackLed.h"
 
 namespace facebook::fboss {
 

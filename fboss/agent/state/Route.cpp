@@ -155,6 +155,17 @@ template struct RouteFields<folly::IPAddressV6>;
 template struct RouteFields<LabelID>;
 
 template <typename AddrT>
+RouteDetails Route<AddrT>::toRouteDetails(bool normalizedNhopWeights) const {
+  RouteFields<AddrT> fields{this->toThrift()};
+  auto rd = fields.toRouteDetails(normalizedNhopWeights);
+  if (isResolved() &&
+      getForwardInfo().getOverrideEcmpSwitchingMode().has_value()) {
+    rd.overridenEcmpMode() = *getForwardInfo().getOverrideEcmpSwitchingMode();
+  }
+  return rd;
+}
+
+template <typename AddrT>
 bool Route<AddrT>::isSame(const Route<AddrT>* rt) const {
   return *this == *rt;
 }

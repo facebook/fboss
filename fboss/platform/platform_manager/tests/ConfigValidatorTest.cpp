@@ -425,3 +425,60 @@ TEST(ConfigValidatorTest, PmUnitName) {
   EXPECT_TRUE(
       ConfigValidator().isValidPmUnitName(config, "/SCM_SLOT@0", "SCM"));
 }
+
+TEST(ConfigValidatorTest, XcvrSymlinks) {
+  ConfigValidator validator;
+  int16_t numXcvrs = 2;
+  std::vector<std::string> symlinks{};
+
+  // Test case: Valid symlinks
+  symlinks = {
+      "/run/devmap/xcvrs/xcvr_ctrl_1",
+      "/run/devmap/xcvrs/xcvr_ctrl_2",
+      "/run/devmap/xcvrs/xcvr_io_1",
+      "/run/devmap/xcvrs/xcvr_io_2"};
+  EXPECT_TRUE(validator.isValidXcvrSymlinks(numXcvrs, symlinks));
+
+  // Test case: Missing control symlink
+  symlinks = {
+      "/run/devmap/xcvrs/xcvr_ctrl_1",
+      "/run/devmap/xcvrs/xcvr_io_1",
+      "/run/devmap/xcvrs/xcvr_io_2"};
+  EXPECT_FALSE(validator.isValidXcvrSymlinks(numXcvrs, symlinks));
+
+  // Test case: Missing IO symlink
+  symlinks = {
+      "/run/devmap/xcvrs/xcvr_ctrl_1",
+      "/run/devmap/xcvrs/xcvr_ctrl_2",
+      "/run/devmap/xcvrs/xcvr_io_1"};
+  EXPECT_FALSE(validator.isValidXcvrSymlinks(numXcvrs, symlinks));
+
+  // Test case: Extra symlink
+  symlinks = {
+      "/run/devmap/xcvrs/xcvr_ctrl_1",
+      "/run/devmap/xcvrs/xcvr_ctrl_2",
+      "/run/devmap/xcvrs/xcvr_io_1",
+      "/run/devmap/xcvrs/xcvr_io_2",
+      "/run/devmap/xcvrs/xcvr_ctrl_3"};
+  EXPECT_FALSE(validator.isValidXcvrSymlinks(numXcvrs, symlinks));
+
+  // Test case: Unexpected format in symlinks
+  symlinks = {
+      "/run/devmap/xcvrs/xcvr_control_1",
+      "/run/devmap/xcvrs/xcvr_ctrl_2",
+      "/run/devmap/xcvrs/xcvr_io_1",
+      "/run/devmap/xcvrs/xcvr_io_2"};
+  EXPECT_FALSE(validator.isValidXcvrSymlinks(numXcvrs, symlinks));
+  symlinks = {
+      "/run/devmap/xcvrs/xcvr_ctrl_1",
+      "/run/devmap/xcvrs/xcvr_ctrl_2",
+      "/run/devmap/xcvrs/xcvr_iod_1",
+      "/run/devmap/xcvrs/xcvr_io_2"};
+  EXPECT_FALSE(validator.isValidXcvrSymlinks(numXcvrs, symlinks));
+  symlinks = {
+      "/run/devmap/xcvrs/xcvr_ctrl_1",
+      "/run/devmap/xcvrs/xcvr_ctrl_2",
+      "/run/devmap/xcvrs/xcvr_io_11",
+      "/run/devmap/xcvrs/xcvr_io_2"};
+  EXPECT_FALSE(validator.isValidXcvrSymlinks(numXcvrs, symlinks));
+}

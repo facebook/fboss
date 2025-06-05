@@ -1395,6 +1395,13 @@ void BcmSwitch::setEcmpDynamicRandomSeed(int ecmpRandomSeed) {
 
 void BcmSwitch::processFlowletSwitchingConfigChanges(const StateDelta& delta) {
   const auto flowletSwitchingDelta = delta.getFlowletSwitchingConfigDelta();
+  const auto& newFlowletSwitching = flowletSwitchingDelta.getNew();
+
+  egressManager_->processFlowletSwitchingConfigChanged(newFlowletSwitching);
+}
+
+void BcmSwitch::processEcmpForArsChanges(const StateDelta& delta) {
+  const auto flowletSwitchingDelta = delta.getFlowletSwitchingConfigDelta();
   const auto& oldFlowletSwitching = flowletSwitchingDelta.getOld();
   const auto& newFlowletSwitching = flowletSwitchingDelta.getNew();
   // process change in the flowlet switching config
@@ -1447,12 +1454,12 @@ void BcmSwitch::processFlowletSwitchingConfigChanges(const StateDelta& delta) {
     // Update All egress first for flowlet config add or update
     // This ordering is needed otherwise SDK fails for TH3
     egressManager_->updateAllEgressForFlowletSwitching();
-    egressManager_->processFlowletSwitchingConfigChanged(newFlowletSwitching);
+    writableMultiPathNextHopTable()->updateEcmpsForFlowletSwitching();
   } else if (oldFlowletSwitching && !newFlowletSwitching) {
     XLOG(DBG2) << "Flowlet switching config is removed";
     setEcmpDynamicRandomSeed(0);
     // Update All ecmps first for flowlet config removal
-    egressManager_->processFlowletSwitchingConfigChanged(newFlowletSwitching);
+    writableMultiPathNextHopTable()->updateEcmpsForFlowletSwitching();
     egressManager_->updateAllEgressForFlowletSwitching();
   }
 }
@@ -1489,7 +1496,7 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChangedImpl(
   for (const auto& delta : deltas) {
     appliedState = stateChangedImplLocked(delta, lock);
     // if the current delta fails to apply, return the last successful state
-    if (*appliedState != *delta.newState()) {
+    if (appliedState != delta.newState()) {
       XLOG(DBG2) << "Failed to apply " << count << " delta in  "
                  << deltas.size() << " deltas";
       appliedState->publish();
@@ -1551,6 +1558,9 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChangedImplLocked(
   // before neighbor/route delta programming of egress objects
   // after warm boot for TH3
   processPortFlowletConfigAdd(delta);
+
+  // Process Flowlet config changes
+  processFlowletSwitchingConfigChanges(delta);
 
   // remove all routes to be deleted
   processRemovedRoutes(delta);
@@ -1659,8 +1669,8 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChangedImplLocked(
   processAddedPorts(delta);
   processChangedPorts(delta);
 
-  // Process Flowlet config changes
-  processFlowletSwitchingConfigChanges(delta);
+  // Process all ECMP groups with new ARS config
+  processEcmpForArsChanges(delta);
 
   // delete any removed mirrors after processing port and acl changes
   forEachRemoved(

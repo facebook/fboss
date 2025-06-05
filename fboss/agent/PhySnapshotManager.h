@@ -3,6 +3,7 @@
 #pragma once
 
 #include "fboss/agent/state/Port.h"
+#include "fboss/lib/link_snapshots/AsyncFileWriterFactory.h"
 #include "fboss/lib/link_snapshots/SnapshotManager.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 
@@ -15,8 +16,11 @@ class PhySnapshotManager {
       std::map<PortID, SnapshotManager>>::WLockedPtr;
 
  public:
-  explicit PhySnapshotManager(size_t intervalSeconds)
-      : intervalSeconds_(intervalSeconds) {}
+  explicit PhySnapshotManager(
+      size_t intervalSeconds,
+      SnapshotLogSource snapshotLogSource)
+      : intervalSeconds_(intervalSeconds),
+        snapshotLogSource_(snapshotLogSource) {}
   void updatePhyInfo(PortID portID, const phy::PhyInfo& phyInfo);
   void updatePhyInfos(const std::map<PortID, phy::PhyInfo>& phyInfo);
   std::optional<phy::PhyInfo> getPhyInfo(PortID portID) const;
@@ -37,6 +41,7 @@ class PhySnapshotManager {
   // Map of portID to last few phy diagnostic snapshots
   folly::Synchronized<std::map<PortID, SnapshotManager>> snapshots_;
   size_t intervalSeconds_;
+  SnapshotLogSource snapshotLogSource_;
 };
 
 } // namespace facebook::fboss

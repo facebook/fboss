@@ -16,6 +16,21 @@ cpp_library(
 )
 
 cpp_library(
+    name = "async_filewriter_factory",
+    srcs = [
+        "AsyncFileWriterFactory.cpp",
+    ],
+    headers = ["AsyncFileWriterFactory.h"],
+    exported_deps = [
+        "//folly:singleton",
+        "//folly/logging:logging",
+    ],
+    exported_external_deps = [
+        ("boost", None, "boost_filesystem"),
+    ],
+)
+
+cpp_library(
     name = "snapshot_manager",
     srcs = [
         "SnapshotManager.cpp",
@@ -24,6 +39,7 @@ cpp_library(
         "SnapshotManager.h",
     ],
     exported_deps = [
+        ":async_filewriter_factory",
         ":ring_buffer",
         "//fboss/lib:alert_logger",
         "//fboss/lib/phy:phy-cpp2-types",

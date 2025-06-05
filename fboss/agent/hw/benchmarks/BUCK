@@ -101,6 +101,7 @@ cpp_library(
     exported_deps = [
         "//fboss/agent:agent_features",
         "//fboss/agent:core",
+        "//fboss/agent:fib_helpers",
         "//fboss/agent:hw_switch",
         "//fboss/agent:utils",
         "//fboss/agent/benchmarks:agent_benchmarks_h",  # @manual
@@ -414,4 +415,17 @@ agent_benchmark_lib(
     name = "hw_clear_interface_phy_counters",
     srcs = ["HwClearInterfacePhyCountersBenchmark.cpp"],
     extra_deps = [],
+)
+
+agent_benchmark_lib(
+    name = "hw_ecmp_backup_group_spillover",
+    srcs = ["HwEcmpBackupGroupSpilloverBenchmark.cpp"],
+    extra_deps = [
+        "//fboss/agent/hw/test:hw_test_ecmp_utils",
+        "//fboss/agent/hw/test:hw_test_port_utils",
+        "//fboss/agent/hw/test:hw_switch_ensemble_factory",
+        "//fboss/agent/test/utils:ecmp_test_utils",
+        "//fboss/agent/test/utils:scale_test_utils",
+        "//fboss/agent/test/utils:load_balancer_test_utils",
+    ],
 )

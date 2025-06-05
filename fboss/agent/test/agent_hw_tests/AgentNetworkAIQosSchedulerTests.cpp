@@ -34,11 +34,9 @@ class AgentNetworkAIQosSchedulerTest : public AgentQosSchedulerTestBase {
     return cfg;
   }
 
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {
-        production_features::ProductionFeature::L3_QOS,
-        production_features::ProductionFeature::NETWORKAI_QOS};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::L3_QOS, ProductionFeature::NETWORKAI_QOS};
   }
 
   void verifyWRR();

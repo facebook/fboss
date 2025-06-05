@@ -490,7 +490,7 @@ class ThriftUnionNode
     return this->writableFields()->template remove<Name>();
   }
 
-  bool remove(const std::string& token) {
+  virtual bool remove(const std::string& token) override {
     return this->writableFields()->remove(token);
   }
 
@@ -517,7 +517,8 @@ class ThriftUnionNode
     }
   }
 
-  virtual void modify(const std::string& token, bool construct = true) {
+  virtual void modify(const std::string& token, bool construct = true)
+      override {
     visitMember<typename Fields::MemberTypes>(token, [&](auto tag) {
       using name = typename decltype(fatal::tag_type(tag))::name;
       this->template modify<name>(construct);

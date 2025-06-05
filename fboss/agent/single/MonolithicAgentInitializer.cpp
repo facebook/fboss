@@ -156,6 +156,14 @@ void MonolithicAgentInitializer::handleExitSignal(bool gracefulExit) {
 #endif
 #endif
   initializer_.reset();
+  // Delay exit if agent_exit_delay_s is set
+  if (FLAGS_agent_exit_delay_s > 0) {
+    XLOG(INFO) << "[Exit] Delaying exit by " << FLAGS_agent_exit_delay_s
+               << " seconds";
+    // @lint-ignore CLANGTIDY
+    std::this_thread::sleep_for(std::chrono::seconds(FLAGS_agent_exit_delay_s));
+    XLOG(INFO) << "[Exit] Delay complete, exiting now";
+  }
   if (gracefulExit) {
     exit(0);
   } else {

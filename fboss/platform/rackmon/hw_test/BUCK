@@ -19,7 +19,6 @@ cpp_binary(
         "//folly/init:init",
         "//folly/logging:init",
         "//folly/logging:logging",
-        "//thrift/lib/cpp2:server",
         "//thrift/lib/cpp2/async:rocket_client_channel",
         "//thrift/lib/cpp2/util:util",
     ],

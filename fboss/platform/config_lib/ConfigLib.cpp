@@ -49,7 +49,13 @@ std::string ConfigLib::getSensorServiceConfig(
   if (auto configJson = getConfigFromFile()) {
     return *configJson;
   }
-  return configs::sensor_service.at(getPlatformName(platformName));
+  try {
+    return configs::sensor_service.at(getPlatformName(platformName));
+  } catch (const std::out_of_range&) {
+    throw std::runtime_error(
+        "sensor_service configuration not found for platform: " +
+        getPlatformName(platformName));
+  }
 }
 
 std::string ConfigLib::getFanServiceConfig(
@@ -57,21 +63,41 @@ std::string ConfigLib::getFanServiceConfig(
   if (auto configJson = getConfigFromFile()) {
     return *configJson;
   }
-  return configs::fan_service.at(getPlatformName(platformName));
+  try {
+    return configs::fan_service.at(getPlatformName(platformName));
+  } catch (const std::out_of_range&) {
+    throw std::runtime_error(
+        "fan_service configuration not found for platform: " +
+        getPlatformName(platformName));
+  }
 }
+
 std::string ConfigLib::getWeutilConfig(
     const std::optional<std::string>& platformName) const {
   if (auto configJson = getConfigFromFile()) {
     return *configJson;
   }
-  return configs::weutil.at(getPlatformName(platformName));
+  try {
+    return configs::weutil.at(getPlatformName(platformName));
+  } catch (const std::out_of_range&) {
+    throw std::runtime_error(
+        "weutil configuration not found for platform: " +
+        getPlatformName(platformName));
+  }
 }
+
 std::string ConfigLib::getFwUtilConfig(
     const std::optional<std::string>& platformName) const {
   if (auto configJson = getConfigFromFile()) {
     return *configJson;
   }
-  return configs::fw_util.at(getPlatformName(platformName));
+  try {
+    return configs::fw_util.at(getPlatformName(platformName));
+  } catch (const std::out_of_range&) {
+    throw std::runtime_error(
+        "fw_util configuration not found for platform: " +
+        getPlatformName(platformName));
+  }
 }
 
 std::string ConfigLib::getPlatformManagerConfig(
@@ -79,7 +105,13 @@ std::string ConfigLib::getPlatformManagerConfig(
   if (auto configJson = getConfigFromFile()) {
     return *configJson;
   }
-  return configs::platform_manager.at(getPlatformName(platformName));
+  try {
+    return configs::platform_manager.at(getPlatformName(platformName));
+  } catch (const std::out_of_range&) {
+    throw std::runtime_error(
+        "platform_manager configuration not found for platform: " +
+        getPlatformName(platformName));
+  }
 }
 
 std::string ConfigLib::getLedManagerConfig(
@@ -87,7 +119,13 @@ std::string ConfigLib::getLedManagerConfig(
   if (auto configJson = getConfigFromFile()) {
     return *configJson;
   }
-  return configs::led_manager.at(getPlatformName(platformName));
+  try {
+    return configs::led_manager.at(getPlatformName(platformName));
+  } catch (const std::out_of_range&) {
+    throw std::runtime_error(
+        "led_manager configuration not found for platform: " +
+        getPlatformName(platformName));
+  }
 }
 
 } // namespace facebook::fboss::platform

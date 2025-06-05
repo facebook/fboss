@@ -33,9 +33,9 @@ class AgentL4PortBlackHolingTest : public AgentHwTest {
   int kNumL4Ports() const {
     return pow(2, 16) - 1;
   }
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::L3_FORWARDING};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::L3_FORWARDING};
   }
   void pumpTraffic(bool isV6) {
     auto srcIp = IPAddress(isV6 ? "1001::1" : "101.0.0.1");

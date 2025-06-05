@@ -18,6 +18,8 @@ add_library(weutil_crc16_ccitt_aug
 add_library(weutil_fboss_eeprom_parser
   fboss/platform/weutil/FbossEepromParserUtils.cpp
   fboss/platform/weutil/FbossEepromParser.cpp
+  fboss/platform/weutil/FbossEepromV5.cpp
+  fboss/platform/weutil/FbossEepromV6.cpp
 )
 
 target_link_libraries(weutil_fboss_eeprom_parser
@@ -68,6 +70,14 @@ add_executable(weutil
 
 target_link_libraries(weutil
   weutil_lib
+)
+
+add_library(weutil_config_validator
+  fboss/platform/weutil/ConfigValidator.cpp
+)
+
+target_link_libraries(weutil_config_validator
+  weutil_config_cpp2
 )
 
 add_executable(weutil_hw_test

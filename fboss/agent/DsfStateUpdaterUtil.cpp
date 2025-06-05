@@ -2,16 +2,12 @@
 
 #include "fboss/agent/DsfStateUpdaterUtil.h"
 
+#include "fboss/agent/VoqUtils.h"
 #include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/StateDelta.h"
 
 namespace {
-
-typedef std::pair<facebook::fboss::InterfaceID, folly::IPAddress> IntfAddress;
-typedef boost::container::flat_map<folly::CIDRNetwork, IntfAddress> IntfRoute;
-typedef boost::container::flat_map<facebook::fboss::RouterID, IntfRoute>
-    IntfRouteTable;
 
 std::shared_ptr<facebook::fboss::SwitchState> updateFibForRemoteConnectedRoutes(
     const facebook::fboss::SwitchIdScopeResolver* resolver,
@@ -106,9 +102,7 @@ std::shared_ptr<SwitchState> DsfStateUpdaterUtil::getUpdatedState(
   bool changed{false};
   auto out = in->clone();
   IntfRouteTable remoteIntfRoutesToAdd;
-  boost::container::
-      flat_map<facebook::fboss::RouterID, std::vector<folly::CIDRNetwork>>
-          remoteIntfRoutesToDel;
+  RouterIDToPrefixes remoteIntfRoutesToDel;
 
   auto makeRemoteSysPort = [&](const auto& oldNode, const auto& newNode) {
     /*
@@ -192,46 +186,6 @@ std::shared_ptr<SwitchState> DsfStateUpdaterUtil::getUpdatedState(
     return clonedNode;
   };
 
-  auto processRemoteIntfRoute = [&](const auto& remoteIntf, bool add) {
-    // On the same box, local interface of mpu0 will be added
-    // as remote interface of mpu1 (and vice versa). Therefore
-    // skipping those when processing remote interfaces.
-    if (out->getInterfaces()->getNodeIf(remoteIntf->getID())) {
-      return;
-    }
-    for (const auto& [addr, mask] :
-         std::as_const(*remoteIntf->getAddresses())) {
-      const auto ipAddr = folly::IPAddress(addr);
-      // Skip link-local addresses in directly-connected routes
-      if (ipAddr.isV6() && ipAddr.isLinkLocal()) {
-        continue;
-      }
-      auto prefix = folly::IPAddress::createNetwork(
-          folly::to<std::string>(addr, "/", static_cast<int>(mask->cref())));
-      IntfAddress intfAddr = std::make_pair(remoteIntf->getID(), ipAddr);
-      if (add) {
-        // Check if route already in remoteIntfRoutesToDel
-        auto& toDel = remoteIntfRoutesToDel[remoteIntf->getRouterID()];
-        auto iter = std::find(toDel.begin(), toDel.end(), prefix);
-        if (iter != toDel.end()) {
-          toDel.erase(iter);
-        } else {
-          remoteIntfRoutesToAdd[remoteIntf->getRouterID()].emplace(
-              prefix, intfAddr);
-        }
-      } else {
-        // Check if route already in remoteIntfRoutesToAdd
-        auto& toAdd = remoteIntfRoutesToAdd[remoteIntf->getRouterID()];
-        auto iter = toAdd.find(prefix);
-        if (iter != toAdd.end()) {
-          toAdd.erase(iter);
-        } else {
-          remoteIntfRoutesToDel[remoteIntf->getRouterID()].push_back(prefix);
-        }
-      }
-    }
-  };
-
   auto processDelta = [&]<typename MapT>(
                           auto& delta, MapT* mapToUpdate, auto& makeRemote) {
     DeltaFunctions::forEachChanged(
@@ -247,8 +201,18 @@ std::shared_ptr<SwitchState> DsfStateUpdaterUtil::getUpdatedState(
               mapToUpdate->updateNode(
                   clonedNode, scopeResolver->scope(clonedNode));
             } else {
-              processRemoteIntfRoute(oldNode, false /* add */);
-              processRemoteIntfRoute(newNode, true /* add */);
+              processRemoteInterfaceRoutes(
+                  oldNode,
+                  out,
+                  false /* add */,
+                  remoteIntfRoutesToAdd,
+                  remoteIntfRoutesToDel);
+              processRemoteInterfaceRoutes(
+                  newNode,
+                  out,
+                  true /* add */,
+                  remoteIntfRoutesToAdd,
+                  remoteIntfRoutesToDel);
               mapToUpdate->updateNode(
                   clonedNode, scopeResolver->scope(clonedNode, in));
             }
@@ -264,7 +228,12 @@ std::shared_ptr<SwitchState> DsfStateUpdaterUtil::getUpdatedState(
           if constexpr (std::is_same_v<MapT, MultiSwitchSystemPortMap>) {
             mapToUpdate->addNode(clonedNode, scopeResolver->scope(clonedNode));
           } else {
-            processRemoteIntfRoute(clonedNode, true /* add */);
+            processRemoteInterfaceRoutes(
+                clonedNode,
+                out,
+                true /* add */,
+                remoteIntfRoutesToAdd,
+                remoteIntfRoutesToDel);
             mapToUpdate->addNode(
                 clonedNode, scopeResolver->scope(clonedNode, in));
           }
@@ -286,7 +255,12 @@ std::shared_ptr<SwitchState> DsfStateUpdaterUtil::getUpdatedState(
           }
 
           if constexpr (std::is_same_v<MapT, MultiSwitchInterfaceMap>) {
-            processRemoteIntfRoute(rmNode, false /* add */);
+            processRemoteInterfaceRoutes(
+                rmNode,
+                out,
+                false /* add */,
+                remoteIntfRoutesToAdd,
+                remoteIntfRoutesToDel);
           }
           mapToUpdate->removeNode(rmNode);
           changed = true;

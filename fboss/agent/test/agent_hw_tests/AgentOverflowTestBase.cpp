@@ -47,12 +47,12 @@ cfg::SwitchConfig AgentOverflowTestBase::initialConfig(
       ensemble.isSai());
 }
 
-std::vector<production_features::ProductionFeature>
+std::vector<ProductionFeature>
 AgentOverflowTestBase::getProductionFeaturesVerified() const {
   return {
-      production_features::ProductionFeature::COPP,
-      production_features::ProductionFeature::ECMP_LOAD_BALANCER,
-      production_features::ProductionFeature::L3_QOS};
+      ProductionFeature::COPP,
+      ProductionFeature::ECMP_LOAD_BALANCER,
+      ProductionFeature::L3_QOS};
 }
 
 void AgentOverflowTestBase::startPacketTxRxVerify() {

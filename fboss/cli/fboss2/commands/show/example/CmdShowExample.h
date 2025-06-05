@@ -2,10 +2,10 @@
 
 #pragma once
 
+#include <fboss/agent/if/gen-cpp2/ctrl_types.h>
+#include <map>
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/show/example/gen-cpp2/model_types.h"
-#include "fboss/cli/fboss2/utils/CmdClientUtils.h"
-#include "fboss/cli/fboss2/utils/Table.h"
 
 /*
   Since we don't want to open source this command, it is place under a facebook
@@ -19,8 +19,6 @@
   fboss/github/cmake/CliFboss2.cmake
 */
 namespace facebook::fboss {
-
-using utils::Table;
 
 /*
  Define the traits of this command. This will include the inputs and output
@@ -47,55 +45,17 @@ class CmdShowExample : public CmdHandler<CmdShowExample, CmdShowExampleTraits> {
   */
   RetType queryClient(
       const HostInfo& hostInfo,
-      const ObjectArgType& /* queriedPorts */) {
-    // Create thrift clients to query agents
-    auto wedgeAgent = utils::createClient<FbossCtrlAsyncClient>(hostInfo);
-    auto qsfpService = utils::createClient<QsfpServiceAsyncClient>(hostInfo);
-
-    // fetch the required data
-    std::map<int32_t, PortInfoThrift> entries;
-    wedgeAgent->sync_getAllPortInfo(entries);
-
-    // do filtering and some minimal processing
-
-    return createModel(entries);
-  }
+      const ObjectArgType& queriedPorts);
 
   /*
     Run data normalization to linked thrift object
   */
-  RetType createModel(std::map<int32_t, PortInfoThrift> data) {
-    // Go through the queried data and normalize
-    RetType ret;
-    for (const auto& [key, queriedItem] : data) {
-      cli::ExampleData normalizedItem;
-      normalizedItem.id() = key;
-      normalizedItem.name() = queriedItem.name().value();
-      ret.exampleData()->push_back(normalizedItem);
-    }
-    return ret;
-  }
+  RetType createModel(std::map<int32_t, facebook::fboss::PortInfoThrift>& data);
 
   /*
     Output to human readable format
   */
-  void printOutput(const RetType& model, std::ostream& out = std::cout) {
-    // Recommended to use the Table library if suitable
-    Table table;
-    table.setHeader({"ID", "Name"});
-
-    for (auto const& data : model.exampleData().value()) {
-      table.addRow({
-          folly::to<std::string>(folly::copy(data.id().value())),
-          // Can conditionally add styles to cells
-          data.name().value() != ""
-              ? data.name().value()
-              : Table::StyledCell("No Name!", Table::Style::WARN),
-      });
-    }
-
-    out << table << std::endl;
-  }
+  void printOutput(const RetType& model, std::ostream& out = std::cout);
 };
 
 } // namespace facebook::fboss

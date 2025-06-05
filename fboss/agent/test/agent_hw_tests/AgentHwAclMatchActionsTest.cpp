@@ -11,12 +11,12 @@ namespace facebook::fboss {
 
 class AgentHwAclMatchActionsTest : public AgentHwTest {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     if (!FLAGS_enable_acl_table_group) {
-      return {production_features::ProductionFeature::SINGLE_ACL_TABLE};
+      return {ProductionFeature::SINGLE_ACL_TABLE};
     }
-    return {production_features::ProductionFeature::MULTI_ACL_TABLE};
+    return {ProductionFeature::MULTI_ACL_TABLE};
   }
 
   void addSetDscpAction(

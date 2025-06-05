@@ -17,7 +17,7 @@ include "thrift/annotation/hack.thrift"
 @hack.Attributes{
   attributes = [
     "Oncalls('fboss_platform')",
-    "JSEnum",
+    "JSEnum(shape('flow_enum' => false))",
     "GraphQLEnum('SensorType')",
     "SelfDescriptive",
     "RelayFlowEnum",

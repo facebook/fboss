@@ -41,9 +41,9 @@ class AgentQueuePerHostRouteTest : public AgentHwTest {
     return cfg;
   }
 
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::QUEUE_PER_HOST};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::QUEUE_PER_HOST};
   }
 
   void setCmdLineFlagOverrides() const override {

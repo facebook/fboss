@@ -342,7 +342,7 @@ class ThriftListNode : public NodeBaseT<
     this->writableFields()->resize(size);
   }
 
-  bool remove(const std::string& token) {
+  virtual bool remove(const std::string& token) override {
     return this->writableFields()->remove(token);
   }
 
@@ -350,7 +350,8 @@ class ThriftListNode : public NodeBaseT<
     return this->writableFields()->remove(index);
   }
 
-  void modify(std::string token, bool construct = true) {
+  virtual void modify(const std::string& token, bool construct = true)
+      override {
     modify(folly::to<std::size_t>(token), construct);
   }
 

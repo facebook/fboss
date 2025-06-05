@@ -29,10 +29,9 @@ class AgentInNullRouteDiscardsCounterTest : public AgentHwTest {
     return config;
   }
 
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {
-        production_features::ProductionFeature::NULL_ROUTE_IN_DISCARDS_COUNTER};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::NULL_ROUTE_IN_DISCARDS_COUNTER};
   }
 
  protected:

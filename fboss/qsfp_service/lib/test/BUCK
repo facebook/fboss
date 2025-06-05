@@ -17,7 +17,7 @@ cpp_binary(
         "//folly/io/async:async_base",
         "//folly/io/async:async_socket",
         "//folly/logging:logging",
-        "//thrift/lib/cpp2/async:header_client_channel",
+        "//thrift/lib/cpp2/async:rocket_client_channel",
     ],
 )
 

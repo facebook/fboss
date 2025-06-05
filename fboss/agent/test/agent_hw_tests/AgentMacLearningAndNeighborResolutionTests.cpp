@@ -98,9 +98,9 @@ using LearningAndPortTypes = ::testing::Types<
 
 class AgentNeighborResolutionTest : public AgentHwTest {
  protected:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::MAC_LEARNING};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::MAC_LEARNING};
   }
 
   cfg::SwitchConfig initialConfig(
@@ -218,17 +218,15 @@ class AgentMacLearningAndNeighborResolutionTest
     FLAGS_enable_hw_update_protection = true;
   }
 
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    std::vector<production_features::ProductionFeature> features = {
-        production_features::ProductionFeature::MAC_LEARNING};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    std::vector<ProductionFeature> features = {ProductionFeature::MAC_LEARNING};
 
     if (isIntfNbrTable) {
-      features.push_back(
-          production_features::ProductionFeature::INTERFACE_NEIGHBOR_TABLE);
+      features.push_back(ProductionFeature::INTERFACE_NEIGHBOR_TABLE);
     }
     if (kIsTrunk) {
-      features.push_back(production_features::ProductionFeature::LAG);
+      features.push_back(ProductionFeature::LAG);
     }
     return features;
   }

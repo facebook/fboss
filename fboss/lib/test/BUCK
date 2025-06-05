@@ -128,6 +128,19 @@ cpp_unittest(
     ],
 )
 
+cpp_unittest(
+    name = "thrift_method_rate_limit_test",
+    srcs = [
+        "ThriftMethodRateLimitTest.cpp",
+    ],
+    deps = [
+        "//fboss/lib:thrift_method_rate_limit",
+        "//thrift/lib/cpp2/server:cpp2_conn_context",
+        "//thrift/lib/cpp2/server:preprocess_functions",
+        "//thrift/lib/cpp2/server:preprocess_result",
+    ],
+)
+
 cpp_library(
     name = "utils",
     headers = [

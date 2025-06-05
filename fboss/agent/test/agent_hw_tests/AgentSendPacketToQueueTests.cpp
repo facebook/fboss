@@ -30,9 +30,9 @@ namespace facebook::fboss {
 
 class AgentSendPacketToQueueTest : public AgentHwTest {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::L3_FORWARDING};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::L3_FORWARDING};
   }
 
  protected:
@@ -129,11 +129,10 @@ TEST_F(AgentSendPacketToQueueTest, SendPacketSwitchedToDefaultUCQueue) {
 
 class AgentSendPacketToMulticastQueueTest : public AgentHwTest {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     return {
-        production_features::ProductionFeature::L3_FORWARDING,
-        production_features::ProductionFeature::MULTICAST_QUEUE};
+        ProductionFeature::L3_FORWARDING, ProductionFeature::MULTICAST_QUEUE};
   }
 };
 

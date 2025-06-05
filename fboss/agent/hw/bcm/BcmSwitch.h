@@ -872,6 +872,7 @@ class BcmSwitch : public BcmSwitchIf {
       const StateDelta& delta);
 
   void processFlowletSwitchingConfigChanges(const StateDelta& delta);
+  void processEcmpForArsChanges(const StateDelta& delta);
 
   void processMacTableChanges(const StateDelta& delta);
 

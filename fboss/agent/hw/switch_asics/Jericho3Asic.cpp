@@ -217,6 +217,7 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_HOST_MISS_TRAP:
     case HwAsic::Feature::CPU_TX_PACKET_REQUIRES_VLAN_TAG:
     case HwAsic::Feature::SWITCH_ASIC_SDK_HEALTH_NOTIFY:
+    case HwAsic::Feature::PFC_WATCHDOG_TIMER_GRANULARITY:
       return false;
   }
   return false;

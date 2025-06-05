@@ -50,7 +50,6 @@ cpp_library(
         "//fboss/qsfp_service/if:qsfp-cpp2-services",
         "//folly/futures:core",
         "//folly/logging:logging",
-        "//thrift/lib/cpp/util:enum_utils",
     ],
 )
 
@@ -133,7 +132,6 @@ cpp_library(
         "//fboss/lib/phy:phy-cpp2-types",
         "//fboss/lib/phy:phy_management_base",
         "//fboss/lib/phy:prbs-cpp2-types",
-        "//fboss/lib/platforms:platform_mode",
         "//fboss/lib/restart_tracker:restart_time_tracker",
         "//fboss/lib/thrift_service_client:thrift-service-client",
         "//fboss/lib/usb:i2-api",

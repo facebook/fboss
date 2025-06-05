@@ -72,7 +72,18 @@ struct ThriftHybridNode : public thrift_cow::Serializable {
     fromThrift(deserializeBuf<TypeClass, TType>(proto, std::move(encoded)));
   }
 
-  void modify(const std::string&) {}
+  virtual void modify(const std::string& token, bool construct = true)
+      override {
+    if (construct) {
+      SerializableWrapper<TypeClass, TType> wrapper(ref());
+      wrapper.modify(token, construct);
+    }
+  }
+
+  virtual bool remove(const std::string& token) override {
+    SerializableWrapper<TypeClass, TType> wrapper(ref());
+    return wrapper.remove(token);
+  }
 
   TType& ref() {
     return obj_;

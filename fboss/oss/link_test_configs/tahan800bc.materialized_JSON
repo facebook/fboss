@@ -6096,25 +6096,20 @@
       {
         "id": 9,
         "streamType": 1,
-        "weight": 4,
-        "scheduling": 0,
+        "scheduling": 1,
         "name": "cpuQueue-high"
       },
       {
         "id": 2,
         "streamType": 1,
-        "weight": 2,
-        "scheduling": 0,
+        "scheduling": 1,
         "name": "cpuQueue-mid"
       },
       {
         "id": 1,
         "streamType": 1,
-        "weight": 1,
-        "reservedBytes": 1040,
-        "scheduling": 0,
+        "scheduling": 1,
         "name": "cpuQueue-default",
-        "sharedBytes": 10192,
         "portQueueRate": {
           "pktsPerSec": {
             "minimum": 0,
@@ -6125,11 +6120,8 @@
       {
         "id": 0,
         "streamType": 1,
-        "weight": 1,
-        "reservedBytes": 1040,
-        "scheduling": 0,
+        "scheduling": 1,
         "name": "cpuQueue-low",
-        "sharedBytes": 10192,
         "portQueueRate": {
           "pktsPerSec": {
             "minimum": 0,

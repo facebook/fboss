@@ -1,6 +1,7 @@
 name: Build & Save debian docker image for FBOSS
 run-name: Build & Save debian docker image for FBOSS
 on:
+  pull_request:
   # Allow manually triggering the workflow
   workflow_dispatch:
   # Also schedule the workflow to run every 3 hours during day only
@@ -17,7 +18,7 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v4
       - name: Build & Save debian docker image
-        run: ./fboss/oss/docker/debian-prefetch/build_image.sh ${{ github.workspace }}/fboss_debian_docker_image.tar.zst
+        run: ./fboss/oss/docker/prefetch/build_image.sh ${{ github.workspace }}/fboss_debian_docker_image.tar.zst debian
       - name: Upload docker image
         uses: actions/upload-artifact@v4
         with:

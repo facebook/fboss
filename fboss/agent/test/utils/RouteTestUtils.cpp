@@ -10,6 +10,9 @@
 
 #include "fboss/agent/test/utils/RouteTestUtils.h"
 #include "fboss/agent/RouteUpdateWrapper.h"
+#include "fboss/agent/test/AgentEnsemble.h"
+
+using facebook::network::toBinaryAddress;
 
 namespace {
 void programRoutesImpl(
@@ -53,4 +56,36 @@ void unprogramRoutes(
   programRoutesImpl(routeUpdater, rid, client, routeChunks, false /* del*/);
 }
 
+RouteInfo getRouteInfo(
+    const folly::IPAddress& ip,
+    int prefixLength,
+    AgentEnsemble& ensemble) {
+  auto switchId = ensemble.getSw()
+                      ->getScopeResolver()
+                      ->scope(ensemble.masterLogicalPortIds())
+                      .switchId();
+  facebook::fboss::IpPrefix prefix;
+  prefix.ip() = toBinaryAddress(ip);
+  prefix.prefixLength() = prefixLength;
+  auto client = ensemble.getHwAgentTestClient(switchId);
+  RouteInfo routeInfo;
+  client->sync_getRouteInfo(routeInfo, prefix);
+  return routeInfo;
+}
+
+bool isRouteToNexthop(
+    const folly::IPAddress& ip,
+    int prefixLength,
+    const folly::IPAddress& nexthop,
+    AgentEnsemble& ensemble) {
+  auto switchId = ensemble.getSw()
+                      ->getScopeResolver()
+                      ->scope(ensemble.masterLogicalPortIds())
+                      .switchId();
+  IpPrefix prefix;
+  prefix.ip() = toBinaryAddress(ip);
+  prefix.prefixLength() = prefixLength;
+  auto client = ensemble.getHwAgentTestClient(switchId);
+  return client->sync_isRouteToNexthop(prefix, toBinaryAddress(nexthop));
+}
 } // namespace facebook::fboss::utility

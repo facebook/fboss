@@ -24,6 +24,9 @@ typedef list<TestEnum2> ListTypedef
 struct TestStructSimple {
   1: i32 min;
   2: i32 max;
+  3: optional TestEnum optionalEnum;
+  4: optional i32 optionalIntegral;
+  5: optional string optionalString;
 }
 // For illustration that multiple roots can be annotated. This
 // will result in path code gen for all these roots, which can

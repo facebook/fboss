@@ -32,7 +32,7 @@ struct SensorData {
 @hack.Attributes{
   attributes = [
     "Oncalls('fboss_platform')",
-    "JSEnum",
+    "JSEnum(shape('flow_enum' => false))",
     "GraphQLEnum('FruType')",
     "SelfDescriptive",
     "RelayFlowEnum",

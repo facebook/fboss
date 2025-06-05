@@ -92,40 +92,31 @@ void DataStore::updateCharDevPath(
 
 void DataStore::updatePmUnitInfo(
     const std::string& slotPath,
-    const std::string& pmUnitName,
-    std::optional<int> productProductionState,
-    std::optional<int> productVersion,
-    std::optional<int> productSubVersion) {
-  PmUnitInfo pmUnitInfo;
-  pmUnitInfo.name() = pmUnitName;
-  if (productProductionState && productVersion && productSubVersion) {
-    pmUnitInfo.version() = PmUnitVersion();
-    pmUnitInfo.version()->productProductionState() = *productProductionState;
-    pmUnitInfo.version()->productVersion() = *productVersion;
-    pmUnitInfo.version()->productSubVersion() = *productSubVersion;
-  } else if (productProductionState || productVersion || productSubVersion) {
-    XLOG(WARNING) << fmt::format(
-        "At SlotPath {}, unexpected partial versions: ProductProductionState `{}` "
-        "ProductVersion `{}` ProductSubVersion `{}`. Skipping updating PmUnit {}",
-        slotPath,
-        productProductionState ? std::to_string(*productProductionState)
-                               : "<ABSENT>",
-        productVersion ? std::to_string(*productVersion) : "<ABSENT>",
-        productSubVersion ? std::to_string(*productSubVersion) : "<ABSENT>",
-        pmUnitName);
+    const PmUnitInfo& info) {
+  PmUnitInfo existingInfo;
+  // Check if the slotPath already has a PmUnitInfo
+  if (slotPathToPmUnitInfo.find(slotPath) != slotPathToPmUnitInfo.end()) {
+    existingInfo = slotPathToPmUnitInfo.at(slotPath);
   }
+  if (!info.name()->empty()) {
+    existingInfo.name() = *info.name();
+  }
+  if (info.version()) {
+    existingInfo.version() = *info.version();
+  }
+
   XLOG(INFO) << fmt::format(
       "At SlotPath {}, updating to PmUnit {} with {}",
       slotPath,
-      pmUnitName,
-      pmUnitInfo.version()
+      *existingInfo.name(),
+      existingInfo.version()
           ? fmt::format(
                 "ProductProductionState {}, ProductVersion {}, ProductSubVersion {}",
-                *productProductionState,
-                *productVersion,
-                *productSubVersion)
+                *existingInfo.version()->productProductionState(),
+                *existingInfo.version()->productVersion(),
+                *existingInfo.version()->productSubVersion())
           : "");
-  slotPathToPmUnitInfo[slotPath] = pmUnitInfo;
+  slotPathToPmUnitInfo[slotPath] = existingInfo;
 }
 
 PmUnitConfig DataStore::resolvePmUnitConfig(const std::string& slotPath) const {

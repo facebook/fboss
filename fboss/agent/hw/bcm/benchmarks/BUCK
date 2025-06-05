@@ -23,6 +23,17 @@ bcm_agent_benchmark(
     ],
 )
 
+bcm_agent_benchmark(
+    name = "bcm_ecmp_backup_group_spillover",
+    srcs = [],
+    extra_deps = [
+        "//fboss/agent/hw/benchmarks:hw_ecmp_backup_group_spillover",
+        "//fboss/agent/hw/bcm/tests:bcm_ecmp_utils",
+        "//fboss/agent/hw/bcm/tests:bcm_port_utils",
+        "//fboss/agent/hw/bcm/tests:bcm_acl_utils",
+    ],
+)
+
 # FSW route scale
 bcm_agent_benchmark(
     name = "bcm_fsw_scale_route_add_speed",
@@ -292,5 +303,6 @@ bcm_agent_benchmark(
         "//fboss/agent/hw/benchmarks:hw_rx_slow_path_rate",
         "//fboss/agent/hw/benchmarks:hw_tx_slow_path_rate",
         "//fboss/agent/hw/benchmarks:hw_clear_interface_phy_counters",
+        "//fboss/agent/hw/benchmarks:hw_ecmp_backup_group_spillover",
     ],
 )

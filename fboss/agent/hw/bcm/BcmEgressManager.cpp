@@ -184,9 +184,6 @@ void BcmEgressManager::processFlowletSwitchingConfigChanged(
   }
   // take the write lock
   *bcmFlowletConfig_.wlock() = tmpFlowletConfig;
-  // update the all the ecmps in the hw
-  // if the flowlet switching config changed
-  hw_->writableMultiPathNextHopTable()->updateEcmpsForFlowletSwitching();
 }
 
 void BcmEgressManager::updateAllEgressForFlowletSwitching() {

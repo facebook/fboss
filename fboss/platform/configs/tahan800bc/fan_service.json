@@ -158,7 +158,7 @@
       }
     },
     {
-      "sensorName": "POWER_BRICK1_TEMP1",
+      "sensorName": "PDB_POWER_BRICK1_TEMP1",
       "access": {
         "accessType": "ACCESS_TYPE_THRIFT"
       },
@@ -197,7 +197,7 @@
       }
     },
     {
-      "sensorName": "POWER_BRICK2_TEMP1",
+      "sensorName": "PDB_POWER_BRICK2_TEMP1",
       "access": {
         "accessType": "ACCESS_TYPE_THRIFT"
       },
@@ -528,8 +528,8 @@
         "SMB_U77_INLET_LEFT_BOT_LM75_TEMP",
         "CPU_UNCORE_TEMP",
         "SMB_E1S_SSD_TEMP",
-        "POWER_BRICK1_TEMP1",
-        "POWER_BRICK2_TEMP1",
+        "PDB_POWER_BRICK1_TEMP1",
+        "PDB_POWER_BRICK2_TEMP1",
         "qsfp_group_1"
       ],
       "fanNames": [

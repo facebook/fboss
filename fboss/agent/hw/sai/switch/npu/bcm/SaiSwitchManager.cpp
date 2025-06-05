@@ -140,9 +140,6 @@ void fillHwSwitchPipelineStats(
       case SAI_SWITCH_PIPELINE_STAT_TX_BYTES:
         hwSwitchPipelineStats.txBytes()[idx] = value;
         break;
-      case SAI_SWITCH_PIPELINE_STAT_RX_WATERMARK_LEVELS:
-        hwSwitchPipelineStats.rxWatermarkLevels()[idx] = value;
-        break;
       case SAI_SWITCH_PIPELINE_STAT_TX_WATERMARK_LEVELS:
         hwSwitchPipelineStats.txWatermarkLevels()[idx] = value;
         break;

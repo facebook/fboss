@@ -30,22 +30,31 @@ constexpr auto kMaxLogLineLength = 12000;
 namespace facebook::fboss {
 SnapshotManager::SnapshotManager(
     const std::set<std::string>& portNames,
+    SnapshotLogSource snapshotLogSource,
     size_t intervalSeconds,
     size_t timespanSeconds)
     // Round up the number of snapshots stored (always store at least 1)
-    : buf_(timespanSeconds / intervalSeconds + 1), portNames_(portNames) {}
+    : buf_(timespanSeconds / intervalSeconds + 1),
+      portNames_(portNames),
+      snapshotLogSource_(snapshotLogSource),
+      asyncFileWriter_(AsyncFileWriterFactory::getLogger(snapshotLogSource)) {}
 
 SnapshotManager::SnapshotManager(
     const std::set<std::string>& portNames,
+    SnapshotLogSource snapshotLogSource,
     size_t intervalSeconds)
-    : SnapshotManager(portNames, intervalSeconds, kDefaultTimespanSeconds) {}
+    : SnapshotManager(
+          portNames,
+          snapshotLogSource,
+          intervalSeconds,
+          kDefaultTimespanSeconds) {}
 
 void SnapshotManager::addSnapshot(const phy::LinkSnapshot& val) {
   auto snapshot = SnapshotWrapper(val);
   buf_.write(snapshot);
 
   if (numSnapshotsToPublish_ > 0) {
-    snapshot.publish(portNames_);
+    snapshot.publish(portNames_, asyncFileWriter_, snapshotLogSource_);
   }
   if (numSnapshotsToPublish_ > 0) {
     numSnapshotsToPublish_--;
@@ -58,7 +67,7 @@ const RingBuffer<SnapshotWrapper>& SnapshotManager::getSnapshots() const {
 
 void SnapshotManager::publishAllSnapshots() {
   for (auto& snapshot : buf_) {
-    snapshot.publish(portNames_);
+    snapshot.publish(portNames_, asyncFileWriter_, snapshotLogSource_);
   }
 }
 
@@ -66,7 +75,10 @@ void SnapshotManager::publishFutureSnapshots(int numToPublish) {
   numSnapshotsToPublish_ = numToPublish;
 }
 
-void SnapshotWrapper::publish(const std::set<std::string>& portNames) {
+void SnapshotWrapper::publish(
+    const std::set<std::string>& portNames,
+    std::shared_ptr<folly::AsyncFileWriter> asyncFileWriter,
+    SnapshotLogSource snapshotLogSource) {
   if (!FLAGS_enable_snapshot_debugs) {
     return;
   }
@@ -84,6 +96,10 @@ void SnapshotWrapper::publish(const std::set<std::string>& portNames) {
     DCHECK(log.str().size() < kMaxLogLineLength)
         << "CHECK failed, snapshot length was too long.";
     XLOG(DBG2) << log.str();
+    if (snapshotLogSource != SnapshotLogSource::SNAPSHOT_AGENT) {
+      asyncFileWriter->writeMessage(log.str() + "\n");
+    }
+
     published_ = true;
   }
 }

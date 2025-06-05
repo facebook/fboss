@@ -117,6 +117,7 @@ target_link_libraries(voq_utils
   switch_config_cpp2
   agent_features
   switch_asics
+  state
 )
 
 target_link_libraries(address_utils
@@ -365,6 +366,7 @@ set(core_libs
   phy_snapshot_manager
   build_info_wrapper
   ecmp_resource_manager
+  thrift_method_rate_limit
 )
 
 target_link_libraries(core ${core_libs})

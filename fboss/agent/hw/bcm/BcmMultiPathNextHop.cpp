@@ -237,6 +237,7 @@ std::vector<EcmpDetails> BcmMultiPathNextHopStatsManager::getAllEcmpDetails()
 HwFlowletStats BcmMultiPathNextHopStatsManager::getHwFlowletStats() const {
   HwFlowletStats flowletStats;
   uint64_t l3EcmpDlbFailPackets = 0;
+  uint64_t l3EcmpDlbReassignPackets = 0;
   // TODO Remove the flowletStatsEnable flag once stat code
   // is solid. If we need to disable flowlet stats,
   // we can use this flag without hotfix.
@@ -253,10 +254,13 @@ HwFlowletStats BcmMultiPathNextHopStatsManager::getHwFlowletStats() const {
       auto ecmpEgress = multipathNextHop->getEgress();
       CHECK(ecmpEgress)
           << "egress object does not exist for multipath next hop";
-      l3EcmpDlbFailPackets += ecmpEgress->getL3EcmpDlbFailPackets();
+      HwFlowletStats stats = ecmpEgress->getL3EcmpDlbStats();
+      l3EcmpDlbFailPackets += *stats.l3EcmpDlbFailPackets();
+      l3EcmpDlbReassignPackets += *stats.l3EcmpDlbPortReassignmentCount();
     }
   }
   flowletStats.l3EcmpDlbFailPackets() = l3EcmpDlbFailPackets;
+  flowletStats.l3EcmpDlbPortReassignmentCount() = l3EcmpDlbReassignPackets;
   return flowletStats;
 }
 

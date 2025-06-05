@@ -23,7 +23,7 @@ namespace utility {
 
 struct InputBalanceResult {
   std::string destinationSwitch;
-  std::string sourceSwitch;
+  std::vector<std::string> sourceSwitch;
   bool balanced;
   // Detailed information will only be populated if not balanced
   std::optional<std::vector<std::string>> inputCapacity;
@@ -34,16 +34,26 @@ struct InputBalanceResult {
 
 bool isDualStage(const std::map<int64_t, cfg::DsfNode>& dsfNodeMap);
 
+std::unordered_map<std::string, cfg::DsfNode> switchNameToDsfNode(
+    const std::map<int64_t, cfg::DsfNode>& dsfNodes);
+
 std::vector<std::pair<int64_t, std::string>> deviceToQueryInputCapacity(
     const std::vector<int64_t>& fabricSwitchIDs,
     const std::map<int64_t, cfg::DsfNode>& dsfNodeMap);
 
-std::unordered_map<std::string, std::set<std::string>>
+// map<neighborName, map<neighborPort, localPort>>
+std::unordered_map<std::string, std::unordered_map<std::string, std::string>>
 getNeighborFabricPortsToSelf(
     const std::map<int32_t, PortInfoThrift>& myPortInfo);
 
 std::map<std::string, std::string> getPortToNeighbor(
     const std::shared_ptr<MultiSwitchPortMap>& portMap);
+
+std::unordered_map<std::string, std::vector<std::string>>
+getNeighborToLinkFailure(const std::map<int32_t, PortInfoThrift>& myPortInfo);
+
+std::unordered_map<std::string, int> getPortToVirtualDeviceId(
+    const std::map<int32_t, PortInfoThrift>& myPortInfo);
 
 // TODO(zecheng): Add check to link failure
 std::vector<InputBalanceResult> checkInputBalanceSingleStage(
@@ -53,6 +63,9 @@ std::vector<InputBalanceResult> checkInputBalanceSingleStage(
         std::unordered_map<std::string, std::vector<std::string>>>&
         inputCpacity,
     const std::unordered_map<std::string, std::vector<std::string>>&
-        outputCpacity);
+        outputCpacity,
+    const std::unordered_map<std::string, std::vector<std::string>>&
+        neighborToLinkFailure,
+    bool verbose = false);
 } // namespace utility
 } // namespace facebook::fboss

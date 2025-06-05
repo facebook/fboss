@@ -99,7 +99,7 @@ cli::ShowHostModel createSortedHostModel() {
   entry1.portName() = "eth4/3/1";
   entry1.portID() = 1;
   entry1.queueID() = "Olympic";
-  entry1.hostName() = "eth3-1-1.fsw005.p031.f01.pnb6";
+  entry1.hostName() = "eth3-6-1.fsw005.p031.f01.pnb6";
   entry1.adminState() = "Enabled";
   entry1.linkState() = "Down";
   entry1.speed() = "200G";
@@ -112,7 +112,7 @@ cli::ShowHostModel createSortedHostModel() {
   entry2.portName() = "eth5/5/1";
   entry2.portID() = 106;
   entry2.queueID() = "22";
-  entry2.hostName() = "eth3-1-1.fsw005.p045.f01.pnb6";
+  entry2.hostName() = "eth3-6-1.fsw005.p045.f01.pnb6";
   entry2.adminState() = "Disabled";
   entry2.linkState() = "Up";
   entry2.speed() = "549G";
@@ -174,8 +174,8 @@ TEST_F(CmdShowHostTestFixture, printOutput) {
   std::string expectOutput =
       " Port      ID   Queue ID  Hostname                       Admin State  Link State  Speed  FEC       InErr  InDiscard  OutErr  OutDiscard \n"
       "-----------------------------------------------------------------------------------------------------------------------------------------------------\n"
-      " eth4/3/1  1    Olympic   eth3-1-1.fsw005.p031.f01.pnb6  Enabled      Down        200G   RS528     10     43         2       98         \n"
-      " eth5/5/1  106  22        eth3-1-1.fsw005.p045.f01.pnb6  Disabled     Up          549G   RS544_2N  56     72         12      9          \n\n";
+      " eth4/3/1  1    Olympic   eth3-6-1.fsw005.p031.f01.pnb6  Enabled      Down        200G   RS528     10     43         2       98         \n"
+      " eth5/5/1  106  22        eth3-6-1.fsw005.p045.f01.pnb6  Disabled     Up          549G   RS544_2N  56     72         12      9          \n\n";
 
   EXPECT_EQ(output, expectOutput);
 }

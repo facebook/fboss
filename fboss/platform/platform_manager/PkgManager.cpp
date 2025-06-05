@@ -417,6 +417,25 @@ void PkgManager::removeInstalledRpms() const {
       "Removed old rpms: {}", folly::join(", ", installedRpms));
 }
 
+BspKmodsFile PkgManager::readKmodsFile() const {
+  std::string keyword{};
+  re2::RE2::FullMatch(
+      *platformConfig_.bspKmodsRpmName(), kBspRpmNameRe, &keyword);
+  std::string bspKmodsFilePath = fmt::format(
+      kBspKmodsFilePath, keyword, systemInterface_->getHostKernelVersion());
+  auto jsonBspKmodsFile =
+      platformFsUtils_->getStringFileContent(bspKmodsFilePath);
+  if (!jsonBspKmodsFile) {
+    throw std::runtime_error(fmt::format(
+        "Failed to read kmods file. Reason: Failed to read {}",
+        bspKmodsFilePath));
+  }
+  BspKmodsFile bspKmodsFile;
+  apache::thrift::SimpleJSONSerializer::deserialize<BspKmodsFile>(
+      *jsonBspKmodsFile, bspKmodsFile);
+  return bspKmodsFile;
+}
+
 std::string PkgManager::getKmodsRpmName() const {
   return fmt::format(
       "{}-{}-{}",

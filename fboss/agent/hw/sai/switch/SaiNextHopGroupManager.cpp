@@ -27,6 +27,13 @@
 
 namespace facebook::fboss {
 
+bool isEcmpModeDynamic(std::optional<cfg::SwitchingMode> switchingMode) {
+  return (
+      switchingMode.has_value() &&
+      (switchingMode.value() == cfg::SwitchingMode::PER_PACKET_QUALITY ||
+       switchingMode.value() == cfg::SwitchingMode::FLOWLET_QUALITY));
+}
+
 SaiNextHopGroupManager::SaiNextHopGroupManager(
     SaiStore* saiStore,
     SaiManagerTable* managerTable,
@@ -34,13 +41,13 @@ SaiNextHopGroupManager::SaiNextHopGroupManager(
     : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {}
 
 std::shared_ptr<SaiNextHopGroupHandle>
-SaiNextHopGroupManager::incRefOrAddNextHopGroup(
-    const RouteNextHopEntry::NextHopSet& swNextHops) {
-  auto ins = handles_.refOrEmplace(swNextHops);
+SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
+  auto ins = handles_.refOrEmplace(key);
   std::shared_ptr<SaiNextHopGroupHandle> nextHopGroupHandle = ins.first;
   if (!ins.second) {
     return nextHopGroupHandle;
   }
+  const auto& swNextHops = key.first;
   SaiNextHopGroupTraits::AdapterHostKey nextHopGroupAdapterHostKey;
   // Populate the set of rifId, IP pairs for the NextHopGroup's
   // AdapterHostKey, and a set of next hop ids to create members for
@@ -92,6 +99,7 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(
       nextHopGroupHandle->nextHopGroup->adapterKey();
   nextHopGroupHandle->fixedWidthMode = isFixedWidthNextHopGroup(swNextHops);
   nextHopGroupHandle->saiStore_ = saiStore_;
+  nextHopGroupHandle->desiredArsMode_ = key.second;
   nextHopGroupHandle->maxVariableWidthEcmpSize =
       platform_->getAsic()->getMaxVariableWidthEcmpSize();
   XLOG(DBG2) << "Created NexthopGroup OID: " << nextHopGroupId;
@@ -187,6 +195,11 @@ void SaiNextHopGroupManager::updateArsModeAll(
     }
   }
 #endif
+}
+
+void SaiNextHopGroupManager::setPrimaryArsSwitchingMode(
+    std::optional<cfg::SwitchingMode> switchingMode) {
+  primaryArsMode_ = switchingMode;
 }
 
 std::string SaiNextHopGroupManager::listManagedObjects() const {

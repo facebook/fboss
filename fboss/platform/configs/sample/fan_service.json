@@ -57,7 +57,7 @@
   ],
   "sensors": [
     {
-      "sensorName": "SC_TH3_DIODE1_TEMP",
+      "sensorName": "INLET_SENSOR",
       "access": {
         "accessType": "ACCESS_TYPE_THRIFT"
       },
@@ -80,7 +80,31 @@
       }
     },
     {
-      "sensorName": "SC_TH3_DIODE2_TEMP",
+      "sensorName": "OUTLET_SENSOR",
+      "access": {
+        "accessType": "ACCESS_TYPE_THRIFT"
+      },
+      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
+      "type": "linear_four_curves",
+      "normalUpTable": {
+        "15": 24,
+        "110": 100
+      },
+      "normalDownTable": {
+        "15": 24,
+        "110": 100
+      },
+      "failUpTable": {
+        "15": 24,
+        "110": 100
+      },
+      "failDownTable": {
+        "15": 24,
+        "110": 100
+      }
+    },
+    {
+      "sensorName": "ASIC_SENSOR",
       "access": {
         "accessType": "ACCESS_TYPE_THRIFT"
       },
@@ -176,7 +200,7 @@
       "zoneType": "ZONE_TYPE_MAX",
       "zoneName": "zone1",
       "sensorNames": [
-        "SC_TH3_DIODE1_TEMP"
+        "OUTLET_SENSOR"
       ],
       "fanNames": [
         "fan_5"
@@ -187,7 +211,7 @@
       "zoneType": "ZONE_TYPE_MIN",
       "zoneName": "zone2",
       "sensorNames": [
-        "SC_TH3_DIODE2_TEMP"
+        "INLET_SENSOR"
       ],
       "fanNames": [
         "fan_1",
@@ -199,7 +223,7 @@
       "zoneType": "ZONE_TYPE_AVG",
       "zoneName": "zone3",
       "sensorNames": [
-        "qsfp_group_1"
+        "ASIC_SENSOR"
       ],
       "fanNames": [
         "fan_3",

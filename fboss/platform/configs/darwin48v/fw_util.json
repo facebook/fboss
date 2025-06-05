@@ -1,6 +1,6 @@
 {
   "newFwConfigs": {
-    "bios": {
+    "BIOS": {
       "upgrade": [
         {
           "commandType": "flashrom",
@@ -79,7 +79,7 @@
       },
       "priority": 1
     },
-    "cpu_cpld": {
+    "CPU_CPLD": {
       "preUpgrade": [
         {
           "commandType": "jtag",
@@ -128,7 +128,7 @@
       },
       "priority": 2
     },
-    "sc_cpld": {
+    "SC_CPLD": {
       "preUpgrade": [
         {
           "commandType": "jtag",
@@ -177,7 +177,7 @@
       },
       "priority": 7
     },
-    "sc_scd": {
+    "SC_SCD": {
       "upgrade": [
         {
           "commandType": "flashrom",
@@ -198,7 +198,7 @@
       },
       "priority": 3
     },
-    "sc_sat_cpld0": {
+    "SC_SAT_CPLD0": {
       "preUpgrade": [
         {
           "commandType": "jtag",
@@ -247,7 +247,7 @@
       },
       "priority": 4
     },
-    "sc_sat_cpld1": {
+    "SC_SAT_CPLD1": {
       "preUpgrade": [
         {
           "commandType": "jtag",
@@ -296,7 +296,7 @@
       },
       "priority": 5
     },
-    "fan_cpld": {
+    "FAN_CPLD": {
       "version": {
         "versionType": "sysfs",
         "path": "/run/devmap/cplds/FAN_CPLD/*/*/fw_ver"

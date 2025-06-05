@@ -1355,6 +1355,7 @@ TEST_F(HwArsTest, VerifyEcmpIdAllocationForNonDynamicEcmp) {
   }
 
   auto setup = [&]() {
+    FLAGS_enable_ecmp_resource_manager = true;
     auto cfg = initialConfig();
     updateFlowletConfigs(
         cfg, cfg::SwitchingMode::PER_PACKET_RANDOM, kMinFlowletTableSize);

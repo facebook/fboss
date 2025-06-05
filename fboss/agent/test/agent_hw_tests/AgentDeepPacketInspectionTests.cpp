@@ -103,9 +103,9 @@ class AgentDeepPacketInspectionTest : public AgentHwTest {
   }
 
  private:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::L3_FORWARDING};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::L3_FORWARDING};
   }
 };
 TEST_F(AgentDeepPacketInspectionTest, l3ForwardedPkt) {

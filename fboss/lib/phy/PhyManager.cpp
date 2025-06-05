@@ -2,15 +2,6 @@
 
 #include "fboss/lib/phy/PhyManager.h"
 
-#include "fboss/agent/FbossError.h"
-#include "fboss/agent/PhySnapshotManager.h"
-#include "fboss/agent/gen-cpp2/switch_config_types.h"
-#include "fboss/agent/platforms/common/PlatformMapping.h"
-#include "fboss/agent/types.h"
-#include "fboss/lib/config/PlatformConfigUtils.h"
-#include "fboss/lib/phy/ExternalPhy.h"
-#include "fboss/lib/phy/gen-cpp2/phy_types.h"
-
 #include <fb303/ThreadCachedServiceData.h>
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
@@ -18,6 +9,15 @@
 #include <cstdlib>
 #include <exception>
 #include <memory>
+#include "fboss/agent/FbossError.h"
+#include "fboss/agent/PhySnapshotManager.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/platforms/common/PlatformMapping.h"
+#include "fboss/agent/types.h"
+#include "fboss/lib/config/PlatformConfigUtils.h"
+#include "fboss/lib/link_snapshots/AsyncFileWriterFactory.h"
+#include "fboss/lib/phy/ExternalPhy.h"
+#include "fboss/lib/phy/gen-cpp2/phy_types.h"
 
 DEFINE_bool(
     init_pim_xphys,
@@ -71,8 +71,9 @@ PhyManager::PhyManager(const PlatformMapping* platformMapping)
     : platformMapping_(platformMapping),
       portToCacheInfo_(setupPortToCacheInfo(platformMapping)),
       portToStatsInfo_(setupPortToStatsInfo(platformMapping)),
-      xphySnapshotManager_(
-          std::make_unique<PhySnapshotManager>(kXphySnapshotIntervalSeconds)) {}
+      xphySnapshotManager_(std::make_unique<PhySnapshotManager>(
+          kXphySnapshotIntervalSeconds,
+          SnapshotLogSource::QSFP_SERVICE)) {}
 PhyManager::~PhyManager() {}
 
 PhyManager::PortToCacheInfo PhyManager::setupPortToCacheInfo(

@@ -31,6 +31,7 @@ enum class CmisPages : int {
   PAGE24 = 0x24,
   PAGE25 = 0x25,
   PAGE26 = 0x26,
+  PAGE2C = 0x2C,
   PAGE2F = 0x2F
 };
 
@@ -100,6 +101,7 @@ class CmisModule : public QsfpModule {
     CmisPages vdmValPage;
     int vdmValOffset;
     int vdmValLength;
+    uint8_t localThresholdSetID = static_cast<uint8_t>(-1);
   };
 
   /*
@@ -626,6 +628,7 @@ class CmisModule : public QsfpModule {
   bool fillVdmPerfMonitorFecTail(VdmPerfMonitorStats& vdmStats);
   bool fillVdmPerfMonitorLtp(VdmPerfMonitorStats& vdmStats);
   bool fillVdmPerfMonitorPam4Data(VdmPerfMonitorStats& vdmStats);
+  bool fillVdmPerfMonitorPam4AlarmData(VdmPerfMonitorStats& vdmStats);
 
   void setApplicationSelectCode(
       uint8_t apSelCode,

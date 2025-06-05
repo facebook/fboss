@@ -75,13 +75,13 @@ class AgentRouteCounterOverflowTest : public AgentOverflowTestBase {
     return cfg;
   }
 
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     return {
-        production_features::ProductionFeature::ROUTE_COUNTERS,
-        production_features::ProductionFeature::COPP,
-        production_features::ProductionFeature::ECMP_LOAD_BALANCER,
-        production_features::ProductionFeature::L3_QOS};
+        ProductionFeature::ROUTE_COUNTERS,
+        ProductionFeature::COPP,
+        ProductionFeature::ECMP_LOAD_BALANCER,
+        ProductionFeature::L3_QOS};
   }
 };
 

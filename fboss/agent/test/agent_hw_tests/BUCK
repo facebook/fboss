@@ -14,6 +14,7 @@ cpp_library(
         "AgentAclInDiscardCounterTests.cpp",
         "AgentAclPriorityTests.cpp",
         "AgentAqmTests.cpp",
+        "AgentArsBase.cpp",
         "AgentConfigSetupTest.cpp",
         "AgentConfigVerifyQosTests.cpp",
         "AgentCoppTests.cpp",
@@ -21,6 +22,7 @@ cpp_library(
         "AgentDiagShellStressTests.cpp",
         "AgentDscpMarkingTests.cpp",
         "AgentDscpQueueMappingTests.cpp",
+        "AgentEcmpSpilloverTests.cpp",
         "AgentEcmpTests.cpp",
         "AgentEgressForwardingDiscardCounterTests.cpp",
         "AgentEmptyTests.cpp",
@@ -91,12 +93,16 @@ cpp_library(
         "AgentVoqSwitchWithMultipleDsfNodesTests.cpp",
         "AgentWatermarkTests.cpp",
     ],
+    headers = [
+        "AgentArsBase.h",
+    ],
     link_whole = True,
     exported_deps = [
         "fbsource//third-party/fmt:fmt",
         "fbsource//third-party/googletest:gtest",
         "//fb303:service_data",
         "//fboss/agent:address_utils",
+        "//fboss/agent:agent_dir_util",
         "//fboss/agent:agent_features",
         "//fboss/agent:apply_thrift_config",
         "//fboss/agent:asic_utils",
@@ -178,6 +184,7 @@ cpp_library(
         "//fboss/agent/test/utils:trunk_test_utils",
         "//fboss/agent/test/utils:udf_test_utils",
         "//fboss/agent/test/utils:voq_test_utils",
+        "//fboss/lib:common_file_utils",
         "//fboss/lib:common_utils",
         "//fboss/lib/config:fboss_config_utils",
         "//folly:file_util",
@@ -208,6 +215,8 @@ cpp_library(
     link_whole = True,
     exported_deps = [
         "//fboss/agent:asic_utils",
+        "//fboss/agent:core",
+        "//fboss/agent:fboss-error",
         "//fboss/agent/hw/test:config_factory",
         "//fboss/agent/packet:packet_factory",
         "//fboss/agent/test:agent_hw_test",
@@ -233,6 +242,7 @@ cpp_library(
     exported_deps = [
         "//fboss/agent:asic_utils",
         "//fboss/agent/test:agent_hw_test",
+        "//fboss/lib/multinode:multi_node_util",
     ],
 )
 

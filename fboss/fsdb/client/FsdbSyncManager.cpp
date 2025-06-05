@@ -7,4 +7,16 @@ DEFINE_bool(
     false,
     "Publish paths using thrift ids rather than names");
 
-namespace facebook::fboss::fsdb {} // namespace facebook::fboss::fsdb
+DEFINE_bool(
+    fsdb_publish_state_with_patches,
+    false,
+    "Publish state to FSDB using Patches instead of Deltas, default false");
+
+namespace facebook::fboss::fsdb {
+
+PubSubType getFsdbStatePubType() {
+  return FLAGS_fsdb_publish_state_with_patches ? PubSubType::PATCH
+                                               : PubSubType::DELTA;
+}
+
+} // namespace facebook::fboss::fsdb

@@ -1365,6 +1365,144 @@ TEST_F(CmisTest, cmis2x400GDr4TransceiverInfoTest) {
   EXPECT_TRUE(xcvr->isSnrSupported(phy::Side::SYSTEM));
 }
 
+TEST_F(CmisTest, vdmPam4MpiAlarmsTest) {
+  // This test verifies that PAM4 MPI alarm flags are not raised by default
+  auto xcvrID = TransceiverID(1);
+  auto xcvr = overrideCmisModule<Cmis2x400GFr4Transceiver>(
+      xcvrID, TransceiverModuleIdentifier::OSFP);
+  const auto& info = xcvr->getTransceiverInfo();
+  EXPECT_TRUE(info.tcvrState()->transceiverManagementInterface());
+  EXPECT_EQ(
+      info.tcvrState()->transceiverManagementInterface(),
+      TransceiverManagementInterface::CMIS);
+  EXPECT_EQ(xcvr->numHostLanes(), 8);
+  EXPECT_EQ(xcvr->numMediaLanes(), 8);
+  EXPECT_EQ(
+      info.tcvrState()->moduleMediaInterface(), MediaInterfaceCode::FR4_2x400G);
+  // Verify that VDM group 3 is supported
+  EXPECT_TRUE(xcvr->isVdmSupported());
+  EXPECT_TRUE(xcvr->isVdmSupported(3));
+
+  ProgramTransceiverState programTcvrState;
+  TransceiverPortState portState;
+  portState.portName = "eth1/1/1";
+  portState.startHostLane = 0;
+  portState.speed = cfg::PortSpeed::FOURHUNDREDG;
+  portState.numHostLanes = 4;
+  programTcvrState.ports.emplace(portState.portName, portState);
+  portState.portName = "eth1/1/5";
+  portState.startHostLane = 4;
+  portState.speed = cfg::PortSpeed::FOURHUNDREDG;
+  portState.numHostLanes = 4;
+  programTcvrState.ports.emplace(portState.portName, portState);
+
+  xcvr->programTransceiver(programTcvrState, false);
+
+  // Trigger VDM stats capture
+  std::vector<int32_t> xcvrIds = {xcvrID};
+  transceiverManager_->triggerVdmStatsCapture(xcvrIds);
+
+  transceiverManager_->refreshStateMachines();
+  const auto& newInfo = xcvr->getTransceiverInfo();
+
+  // Verify that VDM performance monitor stats are available
+  ASSERT_TRUE(newInfo.tcvrStats()->vdmPerfMonitorStats().has_value());
+
+  // Verify that we have stats for both ports
+  ASSERT_EQ(
+      newInfo.tcvrStats()
+          ->vdmPerfMonitorStats()
+          ->mediaPortVdmStats()
+          .value()
+          .size(),
+      2);
+
+  // Assert that there are 4 keys in lanePam4MPIFlags().value() for each port
+  for (const auto& [portName, portStats] : newInfo.tcvrStats()
+                                               ->vdmPerfMonitorStats()
+                                               ->mediaPortVdmStats()
+                                               .value()) {
+    EXPECT_EQ(portStats.lanePam4MPIFlags().value().size(), 4);
+  }
+
+  // Check that PAM4 MPI flags are not raised by default
+  for (const auto& [portName, portStats] : newInfo.tcvrStats()
+                                               ->vdmPerfMonitorStats()
+                                               ->mediaPortVdmStats()
+                                               .value()) {
+    // Check each lane's flags
+    for (const auto& [lane, flags] : portStats.lanePam4MPIFlags().value()) {
+      // Verify that the flags are not raised
+      EXPECT_FALSE(*flags.alarm()->high());
+      EXPECT_FALSE(*flags.warn()->high());
+
+      // Low flags should always be false for MPI
+      EXPECT_FALSE(*flags.alarm()->low());
+      EXPECT_FALSE(*flags.warn()->low());
+    }
+  }
+}
+
+TEST_F(CmisTest, vdmPam4MpiAlarmsRaisedTest) {
+  // This test verifies that PAM4 MPI alarm/warning flags are correctly read
+  auto xcvrID = TransceiverID(1);
+  auto xcvr = overrideCmisModule<Cmis2x400GFr4WithMpiAlarmsTransceiver>(
+      xcvrID, TransceiverModuleIdentifier::OSFP);
+
+  // Verify that VDM group 3 is supported
+  EXPECT_TRUE(xcvr->isVdmSupported());
+  EXPECT_TRUE(xcvr->isVdmSupported(3));
+
+  ProgramTransceiverState programTcvrState;
+  TransceiverPortState portState;
+  portState.portName = "eth1/1/1";
+  portState.startHostLane = 0;
+  portState.speed = cfg::PortSpeed::FOURHUNDREDG;
+  portState.numHostLanes = 4;
+  programTcvrState.ports.emplace(portState.portName, portState);
+  portState.portName = "eth1/1/5";
+  portState.startHostLane = 4;
+  portState.speed = cfg::PortSpeed::FOURHUNDREDG;
+  portState.numHostLanes = 4;
+  programTcvrState.ports.emplace(portState.portName, portState);
+
+  xcvr->programTransceiver(programTcvrState, false);
+
+  // Trigger VDM stats capture
+  std::vector<int32_t> xcvrIds = {xcvrID};
+  transceiverManager_->triggerVdmStatsCapture(xcvrIds);
+
+  transceiverManager_->refreshStateMachines();
+
+  const auto& info = xcvr->getTransceiverInfo();
+
+  ASSERT_TRUE(info.tcvrStats()->vdmPerfMonitorStats().has_value());
+
+  // Verify that we have stats for both ports
+  ASSERT_EQ(
+      info.tcvrStats()
+          ->vdmPerfMonitorStats()
+          ->mediaPortVdmStats()
+          .value()
+          .size(),
+      2);
+
+  // Check that PAM4 MPI flags are raised as expected
+  for (const auto& [portName, portStats] :
+       info.tcvrStats()->vdmPerfMonitorStats()->mediaPortVdmStats().value()) {
+    // Check each lane's flags
+    for (const auto& [lane, flags] : portStats.lanePam4MPIFlags().value()) {
+      // Verify that the high alarm and high warning flags are raised
+      EXPECT_TRUE(*flags.alarm()->high());
+      EXPECT_TRUE(*flags.warn()->high());
+
+      // Low flags should always be false for MPI
+      EXPECT_FALSE(*flags.alarm()->low());
+      EXPECT_FALSE(*flags.warn()->low());
+    }
+  }
+}
+
 TEST_F(CmisTest, cmis400GDr4TransceiverInfoTest) {
   auto xcvrID = TransceiverID(1);
   auto xcvr = overrideCmisModule<Cmis400GDr4Transceiver>(xcvrID);
