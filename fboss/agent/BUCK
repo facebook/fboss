@@ -719,6 +719,7 @@ cpp_library(
     exported_deps = [
         ":agent_features",
         ":fib_helpers",
+        ":stats",
         "//fboss/agent/state:state",
         "//fboss/lib:ref_map",
     ],

@@ -11,6 +11,7 @@
 #include "fboss/agent/EcmpResourceManager.h"
 
 #include "fboss/agent/FibHelpers.h"
+#include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/StateDelta.h"
 
@@ -24,6 +25,30 @@ const NextHopGroupInfo* EcmpResourceManager::getGroupInfo(
     const folly::CIDRNetwork& nw) const {
   auto pitr = prefixToGroupInfo_.find({rid, nw});
   return pitr == prefixToGroupInfo_.end() ? nullptr : pitr->second.get();
+}
+
+EcmpResourceManager::EcmpResourceManager(
+    uint32_t maxHwEcmpGroups,
+    int compressionPenaltyThresholdPct,
+    std::optional<cfg::SwitchingMode> backupEcmpGroupType,
+    SwitchStats* stats)
+    // We keep a buffer of 2 for transient increment in ECMP groups when
+    // pushing updates down to HW
+    : maxEcmpGroups_(
+          maxHwEcmpGroups -
+          FLAGS_ecmp_resource_manager_make_before_break_buffer),
+      compressionPenaltyThresholdPct_(compressionPenaltyThresholdPct),
+      backupEcmpGroupType_(backupEcmpGroupType),
+      switchStats_(stats) {
+  CHECK_GT(
+      maxHwEcmpGroups, FLAGS_ecmp_resource_manager_make_before_break_buffer);
+  CHECK_EQ(compressionPenaltyThresholdPct_, 0)
+      << " Group compression algo is WIP";
+  if (switchStats_) {
+    switchStats_->setPrimaryEcmpGroupsExhausted(false);
+    switchStats_->setPrimaryEcmpGroupsCount(0);
+    switchStats_->setBackupEcmpGroupsCount(0);
+  }
 }
 
 std::vector<StateDelta> EcmpResourceManager::consolidate(
