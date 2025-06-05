@@ -18,6 +18,7 @@
 #include "fboss/agent/hw/sai/switch/SaiAclTableGroupManager.h"
 #include "fboss/agent/hw/sai/switch/SaiBufferManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
+#include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiPortUtils.h"
 #include "fboss/agent/hw/sai/switch/SaiUdfManager.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
@@ -1379,5 +1380,17 @@ void SaiSwitchManager::setTcRateLimitList(
   switch_->setOptionalAttribute(
       SaiSwitchTraits::Attributes::TcRateLimitList{mapToValueList});
 #endif
+}
+
+bool SaiSwitchManager::isPtpTcEnabled() const {
+  bool ptpTcEnabled =
+      isPtpTcEnabled_.has_value() ? isPtpTcEnabled_.value() : false;
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+  ptpTcEnabled &=
+      (GET_OPT_ATTR(Switch, PtpMode, switch_->attributes()) ==
+       utility::getSaiPortPtpMode(true));
+#endif
+  ptpTcEnabled &= managerTable_->portManager().isPtpTcEnabled();
+  return ptpTcEnabled;
 }
 } // namespace facebook::fboss

@@ -127,6 +127,7 @@ class SaiSwitchManager {
   void setVoqOutOfBoundsLatency(int voqOutOfBoundsLatencyNsec);
   void setTcRateLimitList(
       const std::optional<std::map<int32_t, int32_t>>& tcToRateLimitKbps);
+  bool isPtpTcEnabled() const;
 
  private:
   void programEcmpLoadBalancerParams(
