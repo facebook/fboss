@@ -1304,8 +1304,8 @@ std::shared_ptr<SwitchState> SwSwitch::preInit(SwitchFlags flags) {
                            ? apache::thrift::util::enumNameSafe(*switchingMode)
                            : "None");
 
-        ecmpResourceManager_ =
-            std::make_unique<EcmpResourceManager>(maxEcmps, 0, switchingMode);
+        ecmpResourceManager_ = std::make_unique<EcmpResourceManager>(
+            maxEcmps, 0, switchingMode, stats());
       }
     }
   }

@@ -20,6 +20,7 @@
 namespace facebook::fboss {
 class StateDelta;
 class SwitchState;
+class SwitchStats;
 
 class NextHopGroupInfo {
  public:
@@ -63,19 +64,8 @@ class EcmpResourceManager {
   explicit EcmpResourceManager(
       uint32_t maxHwEcmpGroups,
       int compressionPenaltyThresholdPct = 0,
-      std::optional<cfg::SwitchingMode> backupEcmpGroupType = std::nullopt)
-      // We keep a buffer of 2 for transient increment in ECMP groups when
-      // pushing updates down to HW
-      : maxEcmpGroups_(
-            maxHwEcmpGroups -
-            FLAGS_ecmp_resource_manager_make_before_break_buffer),
-        compressionPenaltyThresholdPct_(compressionPenaltyThresholdPct),
-        backupEcmpGroupType_(backupEcmpGroupType) {
-    CHECK_GT(
-        maxHwEcmpGroups, FLAGS_ecmp_resource_manager_make_before_break_buffer);
-    CHECK_EQ(compressionPenaltyThresholdPct_, 0)
-        << " Group compression algo is WIP";
-  }
+      std::optional<cfg::SwitchingMode> backupEcmpGroupType = std::nullopt,
+      SwitchStats* stats = nullptr);
   using NextHopGroupId = uint32_t;
   using NextHopGroupIds = boost::container::flat_set<NextHopGroupId>;
   using NextHops2GroupId = std::map<RouteNextHopSet, NextHopGroupId>;
@@ -247,5 +237,6 @@ class EcmpResourceManager {
   uint32_t maxEcmpGroups_{0};
   int compressionPenaltyThresholdPct_{0};
   std::optional<cfg::SwitchingMode> backupEcmpGroupType_;
+  SwitchStats* switchStats_;
 };
 } // namespace facebook::fboss
