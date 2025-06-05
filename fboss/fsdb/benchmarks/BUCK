@@ -37,10 +37,30 @@ cpp_library(
 )
 
 cpp_benchmark(
-    name = "fsdb_bench_test",
+    name = "fsdb_build_bench",
     srcs = [
         "FsdbBenchmarksMain.cpp",
         "FsdbBuildBench.cpp",
+    ],
+    deps = [
+        "fbsource//third-party/googletest:gtest",
+        "//folly:benchmark",
+        "//folly:format",
+        "//folly:subprocess",
+        "//folly/init:init",
+        "//folly/json:dynamic",
+        "//folly/logging:init",
+        "//folly/logging:logging",
+    ],
+    external_deps = [
+        "gflags",
+    ],
+)
+
+cpp_benchmark(
+    name = "fsdb_bench_test",
+    srcs = [
+        "FsdbBenchmarksMain.cpp",
         "FsdbSystemScaleBench.cpp",
         "FsdbSystemScaleChurn.cpp",
         "SysPortAndRIFBench.cpp",
@@ -53,8 +73,6 @@ cpp_benchmark(
         "//fboss/fsdb/tests/utils:fsdb_test_server",
         "//fboss/lib:common_file_utils",
         "//folly:benchmark",
-        "//folly:format",
-        "//folly:subprocess",
         "//folly/init:init",
         "//folly/json:dynamic",
         "//folly/logging:init",
