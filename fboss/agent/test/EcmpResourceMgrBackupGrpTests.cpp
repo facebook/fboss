@@ -77,10 +77,12 @@ class EcmpBackupGroupTypeTest : public BaseEcmpResourceManagerTest {
       const std::shared_ptr<SwitchState>& targetState,
       const std::shared_ptr<SwitchState>& endStatePrefixes,
       const std::set<RouteV6::Prefix>& overflowPrefixes,
-      const EcmpResourceManager* consolidatorToCheck = nullptr) {
+      const EcmpResourceManager* consolidatorToCheck = nullptr,
+      bool checkStats = true) {
     consolidatorToCheck =
         consolidatorToCheck ? consolidatorToCheck : consolidator_.get();
     EXPECT_EQ(state_->getFibs()->getNode(RouterID(0))->getFibV4()->size(), 1);
+    std::set<RouteNextHopSet> primaryEcmpGroups, backupEcmpGroups;
     for (auto [_, inRoute] : std::as_const(*cfib(endStatePrefixes))) {
       auto route = cfib(targetState)->exactMatch(inRoute->prefix());
       ASSERT_TRUE(route->isResolved());
@@ -127,14 +129,26 @@ class EcmpBackupGroupTypeTest : public BaseEcmpResourceManagerTest {
             consolidatorToCheck->getBackupEcmpSwitchingMode());
         if (isEcmpRoute) {
           EXPECT_TRUE(consolidatorGrpInfo->isBackupEcmpGroupType());
+          backupEcmpGroups.insert(route->getForwardInfo().normalizedNextHops());
         }
       } else {
         EXPECT_FALSE(
             route->getForwardInfo().getOverrideEcmpSwitchingMode().has_value());
         if (isEcmpRoute) {
           EXPECT_FALSE(consolidatorGrpInfo->isBackupEcmpGroupType());
+          primaryEcmpGroups.insert(
+              route->getForwardInfo().normalizedNextHops());
         }
       }
+    }
+    if (checkStats) {
+      EXPECT_EQ(
+          sw_->stats()->getPrimaryEcmpGroupsExhausted(),
+          backupEcmpGroups.size() ? 1 : 0);
+      EXPECT_EQ(
+          sw_->stats()->getPrimaryEcmpGroupsCount(), primaryEcmpGroups.size());
+      EXPECT_EQ(
+          sw_->stats()->getBackupEcmpGroupsCount(), backupEcmpGroups.size());
     }
   }
   void assertEndState(
@@ -926,6 +940,10 @@ TEST_F(EcmpBackupGroupTypeTest, reclaimOnReplay) {
   ASSERT_EQ(replayDeltas.size(), 1);
   // No overflow, since we increased the limit to cover all the prefixes
   assertTargetState(
-      replayDeltas.back().newState(), state_, {}, newConsolidator.get());
+      replayDeltas.back().newState(),
+      state_,
+      {},
+      newConsolidator.get(),
+      false /*checkStats*/);
 }
 } // namespace facebook::fboss

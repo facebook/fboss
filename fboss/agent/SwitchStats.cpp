@@ -24,7 +24,7 @@ std::string fabricOverdrainCounter(int16_t switchIndex) {
   return folly::to<std::string>(
       "switch.", switchIndex, ".fabric_overdrain_pct");
 }
-const std::string kPrimaryEcmpGroupsExhausted = "primary_ecmp_groups_exhahsted";
+const std::string kPrimaryEcmpGroupsExhausted = "primary_ecmp_groups_exhausted";
 const std::string kPrimaryEcmpGroupsCount = "primary_ecmp_groups_count";
 const std::string kBackupEcmpGroupsCount = "backup_ecmp_groups_count";
 } // namespace
