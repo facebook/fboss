@@ -37,7 +37,8 @@ struct SaiSchedulerTraits {
     using SchedulingWeight = SaiAttribute<
         EnumType,
         SAI_SCHEDULER_ATTR_SCHEDULING_WEIGHT,
-        sai_uint8_t>;
+        sai_uint8_t,
+        StdNullOptDefault<sai_uint8_t>>;
     using MeterType =
         SaiAttribute<EnumType, SAI_SCHEDULER_ATTR_METER_TYPE, sai_int32_t>;
     using MinBandwidthRate = SaiAttribute<
