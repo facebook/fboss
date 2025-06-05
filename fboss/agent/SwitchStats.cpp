@@ -803,4 +803,14 @@ void SwitchStats::setInactivePortsWithSwitchReachability(
   fb303::fbData->setCounter(
       inactivePortsWithSwitchReachability_[switchIndex].name(), numPorts);
 }
+
+void SwitchStats::setPrimaryEcmpGroupsExhausted(bool exhausted) const {
+  fb303::fbData->setCounter("primary_ecmp_groups_exhahsted", exhausted ? 1 : 0);
+}
+void SwitchStats::setPrimaryEcmpGroupsCount(uint32_t count) const {
+  fb303::fbData->setCounter("primary_ecmp_groups_count", count);
+}
+void SwitchStats::setBackupEcmpGroupsCount(uint32_t count) const {
+  fb303::fbData->setCounter("backup_ecmp_groups_count", count);
+}
 } // namespace facebook::fboss

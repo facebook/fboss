@@ -637,6 +637,9 @@ class SwitchStats : public boost::noncopyable {
     CHECK_LT(switchIndex, switchReachabilityInconsistencyDetected_.size());
     switchReachabilityInconsistencyDetected_[switchIndex].addValue(1);
   }
+  void setPrimaryEcmpGroupsExhausted(bool exhausted) const;
+  void setPrimaryEcmpGroupsCount(uint32_t count) const;
+  void setBackupEcmpGroupsCount(uint32_t count) const;
 
   void getHwAgentStatus(
       std::map<int16_t, HwAgentEventSyncStatus>& statusMap) const;
