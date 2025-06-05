@@ -366,6 +366,7 @@ set(core_libs
   phy_snapshot_manager
   build_info_wrapper
   ecmp_resource_manager
+  thrift_method_rate_limit
 )
 
 target_link_libraries(core ${core_libs})

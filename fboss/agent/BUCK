@@ -250,6 +250,7 @@ cpp_library(
         "//common/services/cpp:thrift_acl_checker_module_config",
         "//common/services/cpp:thrift_aclchecker_handler_factory",
         "//common/services/cpp:tls",
+        "//fboss/lib:thrift_method_rate_limit",
         "//folly:network_address",
         "//folly/io/async:async_base",
         "//folly/logging:logging",
