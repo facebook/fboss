@@ -114,6 +114,7 @@ cpp_library(
         "facebook/LogThriftCall.cpp",
     ],
     exported_deps = [
+        "//fboss/agent:stats",
         "//folly:conv",
         "//folly:range",
         "//folly/futures:core",

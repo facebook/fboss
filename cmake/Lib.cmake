@@ -20,6 +20,7 @@ add_library(log_thrift_call
 target_link_libraries(log_thrift_call
   Folly::folly
   FBThrift::thriftcpp2
+  stats
 )
 
 add_library(alert_logger
