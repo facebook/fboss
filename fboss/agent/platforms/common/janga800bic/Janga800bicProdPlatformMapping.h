@@ -99,7 +99,7 @@ constexpr auto kJsonSingleNpuProdPlatformMappingStr = R"(
           ],
           "portType": 4,
           "attachedCoreId": 2,
-          "attachedCorePortIndex": 11,
+          "attachedCorePortIndex": 7,
           "virtualDeviceId": 0,
           "scope": 1
         },
@@ -355,7 +355,7 @@ constexpr auto kJsonSingleNpuProdPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 7,
+          "attachedCorePortIndex": 4,
           "virtualDeviceId": 0,
           "scope": 1
         },
@@ -643,7 +643,7 @@ constexpr auto kJsonSingleNpuProdPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 8,
+          "attachedCorePortIndex": 5,
           "virtualDeviceId": 0,
           "scope": 1
         },
@@ -931,7 +931,7 @@ constexpr auto kJsonSingleNpuProdPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 9,
+          "attachedCorePortIndex": 6,
           "virtualDeviceId": 0,
           "scope": 1
         },
@@ -1219,7 +1219,7 @@ constexpr auto kJsonSingleNpuProdPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 10,
+          "attachedCorePortIndex": 7,
           "virtualDeviceId": 0,
           "scope": 1
         },
@@ -1507,7 +1507,7 @@ constexpr auto kJsonSingleNpuProdPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 3,
+          "attachedCorePortIndex": 2,
           "virtualDeviceId": 0,
           "scope": 1
         },
@@ -1795,7 +1795,7 @@ constexpr auto kJsonSingleNpuProdPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 4,
+          "attachedCorePortIndex": 3,
           "virtualDeviceId": 0,
           "scope": 1
         },
@@ -2083,7 +2083,7 @@ constexpr auto kJsonSingleNpuProdPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 5,
+          "attachedCorePortIndex": 4,
           "virtualDeviceId": 0,
           "scope": 1
         },
@@ -2371,7 +2371,7 @@ constexpr auto kJsonSingleNpuProdPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 6,
+          "attachedCorePortIndex": 5,
           "virtualDeviceId": 0,
           "scope": 1
         },
@@ -3811,7 +3811,7 @@ constexpr auto kJsonSingleNpuProdPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 3,
-          "attachedCorePortIndex": 4,
+          "attachedCorePortIndex": 3,
           "virtualDeviceId": 0,
           "scope": 1
         },
@@ -4099,7 +4099,7 @@ constexpr auto kJsonSingleNpuProdPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 3,
-          "attachedCorePortIndex": 5,
+          "attachedCorePortIndex": 4,
           "virtualDeviceId": 0,
           "scope": 1
         },
@@ -4387,7 +4387,7 @@ constexpr auto kJsonSingleNpuProdPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 3,
-          "attachedCorePortIndex": 6,
+          "attachedCorePortIndex": 5,
           "virtualDeviceId": 0,
           "scope": 1
         },
@@ -4675,7 +4675,7 @@ constexpr auto kJsonSingleNpuProdPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 3,
-          "attachedCorePortIndex": 7,
+          "attachedCorePortIndex": 6,
           "virtualDeviceId": 0,
           "scope": 1
         },
@@ -5251,7 +5251,7 @@ constexpr auto kJsonSingleNpuProdPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 4,
+          "attachedCorePortIndex": 3,
           "virtualDeviceId": 0,
           "scope": 1
         },
@@ -14385,7 +14385,7 @@ constexpr auto kJsonSingleNpuProdPlatformMappingStr = R"(
           ],
           "portType": 5,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 12,
+          "attachedCorePortIndex": 2,
           "virtualDeviceId": 0,
           "scope": 0
         },
