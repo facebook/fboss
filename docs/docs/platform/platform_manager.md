@@ -79,7 +79,7 @@ not interchangeable.
 
 ### EEPROM
 
-It should store content in Meta EEPROM V5 format.
+It should store content in Meta EEPROM V6 format.
 
 ### IDPROM
 

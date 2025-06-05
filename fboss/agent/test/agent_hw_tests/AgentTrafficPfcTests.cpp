@@ -293,9 +293,9 @@ class AgentTrafficPfcTest : public AgentHwTest {
     return config;
   }
 
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::PFC};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::PFC};
   }
 
   std::string portDesc(const PortID& portId) {

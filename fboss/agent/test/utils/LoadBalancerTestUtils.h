@@ -222,7 +222,9 @@ inline const int kQueueWeight(30);
 
 cfg::FlowletSwitchingConfig getDefaultFlowletSwitchingConfig(
     bool isSai,
-    cfg::SwitchingMode switchingMode = cfg::SwitchingMode::FLOWLET_QUALITY);
+    cfg::SwitchingMode switchingMode = cfg::SwitchingMode::FLOWLET_QUALITY,
+    cfg::SwitchingMode backupSwitchingMode =
+        cfg::SwitchingMode::FIXED_ASSIGNMENT);
 void addFlowletAcl(
     cfg::SwitchConfig& cfg,
     bool isSai,
@@ -233,7 +235,9 @@ void addFlowletConfigs(
     cfg::SwitchConfig& cfg,
     const std::vector<PortID>& ports,
     bool isSai = false,
-    cfg::SwitchingMode switchingMode = cfg::SwitchingMode::FLOWLET_QUALITY);
+    cfg::SwitchingMode switchingMode = cfg::SwitchingMode::FLOWLET_QUALITY,
+    cfg::SwitchingMode backupSwitchingMode =
+        cfg::SwitchingMode::FIXED_ASSIGNMENT);
 
 cfg::LoadBalancer getTrunkHalfHashConfig(
     const std::vector<const HwAsic*>& asics);

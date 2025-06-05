@@ -79,14 +79,12 @@ class AgentCoppTest : public AgentHwTest {
     AgentHwTest::setCmdLineFlagOverrides();
   }
 
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     if constexpr (std::is_same_v<TestType, PortID>) {
-      return {production_features::ProductionFeature::COPP};
+      return {ProductionFeature::COPP};
     } else {
-      return {
-          production_features::ProductionFeature::COPP,
-          production_features::ProductionFeature::LAG};
+      return {ProductionFeature::COPP, ProductionFeature::LAG};
     }
   }
 
@@ -1090,17 +1088,15 @@ TYPED_TEST(AgentCoppTest, L3MTUErrorToLowPriQ) {
 template <typename TestType>
 class AgentCoppPortMtuTest : public AgentCoppTest<TestType> {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     if constexpr (std::is_same_v<TestType, PortID>) {
-      return {
-          production_features::ProductionFeature::COPP,
-          production_features::ProductionFeature::PORT_MTU_ERROR_TRAP};
+      return {ProductionFeature::COPP, ProductionFeature::PORT_MTU_ERROR_TRAP};
     } else {
       return {
-          production_features::ProductionFeature::COPP,
-          production_features::ProductionFeature::LAG,
-          production_features::ProductionFeature::PORT_MTU_ERROR_TRAP};
+          ProductionFeature::COPP,
+          ProductionFeature::LAG,
+          ProductionFeature::PORT_MTU_ERROR_TRAP};
     }
   }
 };
@@ -1440,12 +1436,12 @@ TYPED_TEST(AgentCoppTest, DHCPv6AdvertiseToMidPriQ) {
 
 class AgentCoppQosTest : public AgentHwTest {
  protected:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     return {
-        production_features::ProductionFeature::COPP,
-        production_features::ProductionFeature::L3_QOS,
-        production_features::ProductionFeature::COPP_SCHEDULER};
+        ProductionFeature::COPP,
+        ProductionFeature::L3_QOS,
+        ProductionFeature::COPP_SCHEDULER};
   }
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
@@ -1759,11 +1755,9 @@ class AgentCoppQosTest : public AgentHwTest {
 
 class AgentCoppQueueStuckTest : public AgentCoppQosTest {
  protected:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {
-        production_features::ProductionFeature::COPP,
-        production_features::ProductionFeature::COPP_SHAPER};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::COPP, ProductionFeature::COPP_SHAPER};
   }
 
   cfg::SwitchConfig initialConfig(
@@ -1830,11 +1824,9 @@ TEST_F(AgentCoppQueueStuckTest, CpuQueueHighRateTraffic) {
 }
 
 class AgentCoppGlobalRateLimitTest : public AgentCoppQosTest {
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {
-        production_features::ProductionFeature::COPP,
-        production_features::ProductionFeature::GLOBAL_TC_RATE_LIMIT};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::COPP, ProductionFeature::GLOBAL_TC_RATE_LIMIT};
   }
 
  protected:
@@ -2069,17 +2061,15 @@ TEST_F(AgentCoppQosTest, HighVsLowerPriorityCpuQueueTrafficPrioritization) {
 template <typename TestType>
 class AgentCoppEapolTest : public AgentCoppTest<TestType> {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     if constexpr (std::is_same_v<TestType, PortID>) {
-      return {
-          production_features::ProductionFeature::COPP,
-          production_features::ProductionFeature::EAPOL_TRAP};
+      return {ProductionFeature::COPP, ProductionFeature::EAPOL_TRAP};
     } else {
       return {
-          production_features::ProductionFeature::COPP,
-          production_features::ProductionFeature::LAG,
-          production_features::ProductionFeature::EAPOL_TRAP};
+          ProductionFeature::COPP,
+          ProductionFeature::LAG,
+          ProductionFeature::EAPOL_TRAP};
     }
   }
 };

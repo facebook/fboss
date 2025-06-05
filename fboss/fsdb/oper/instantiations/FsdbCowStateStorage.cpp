@@ -8,12 +8,10 @@
  *
  */
 
-#include "fboss/fsdb/oper/instantiations/FsdbCowRoot.h"
+#include "fboss/fsdb/oper/instantiations/FsdbCowStorage.h"
 
-namespace facebook::fboss::thrift_cow {
+namespace facebook::fboss::fsdb {
 
-template class ThriftStructNode<fsdb::FsdbOperStateRoot>;
+template class CowStorage<FsdbOperStateRoot>;
 
-template class ThriftStructNode<fsdb::FsdbOperStatsRoot>;
-
-} // namespace facebook::fboss::thrift_cow
+} // namespace facebook::fboss::fsdb

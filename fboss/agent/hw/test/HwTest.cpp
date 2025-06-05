@@ -43,6 +43,8 @@ DEFINE_bool(
     false,
     "Set up thrift on demand upon encountering test failure");
 
+DEFINE_bool(dump_sdk_state, false, "Generate sdk debug dump");
+
 DECLARE_int32(update_watermark_stats_interval_s);
 
 namespace {
@@ -154,6 +156,10 @@ void HwTest::logStage(folly::StringPiece msg) {
 }
 
 void HwTest::tearDownSwitchEnsemble(bool doWarmboot) {
+  if (FLAGS_dump_sdk_state) {
+    XLOG(INFO) << "generating sdk debug dump";
+    auto out = getHwSwitch()->getDebugDump();
+  }
   if (!hwSwitchEnsemble_) {
     // hwSwitchEnsemble already torn down, nothing to do
     return;

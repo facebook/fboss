@@ -90,6 +90,7 @@
 #include "fboss/agent/state/StateUpdateHelpers.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
+#include "fboss/lib/link_snapshots/AsyncFileWriterFactory.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/lib/platforms/PlatformProductInfo.h"
 #include "fboss/lib/restart_tracker/RestartTimeTracker.h"
@@ -460,7 +461,9 @@ SwSwitch::SwSwitch(
       lookupClassRouteUpdater_(new LookupClassRouteUpdater(this)),
       staticL2ForNeighborObserver_(new StaticL2ForNeighborObserver(this)),
       macTableManager_(new MacTableManager(this)),
-      phySnapshotManager_(new PhySnapshotManager(kIphySnapshotIntervalSeconds)),
+      phySnapshotManager_(new PhySnapshotManager(
+          kIphySnapshotIntervalSeconds,
+          SnapshotLogSource::WEDGE_AGENT)),
       aclNexthopHandler_(new AclNexthopHandler(this)),
       teFlowNextHopHandler_(new TeFlowNexthopHandler(this)),
       dsfSubscriber_(new DsfSubscriber(this)),
@@ -1152,15 +1155,22 @@ void SwSwitch::getAllCpuPortStats(
 
 void SwSwitch::updateFlowletStats() {
   uint64_t dlbErrorPackets = 0;
+  uint64_t dlbReassignmentCount = 0;
   {
     auto lockedStats = hwSwitchStats_.rlock();
     for (auto& [switchIdx, hwSwitchStats] : *lockedStats) {
       dlbErrorPackets +=
           hwSwitchStats.flowletStats()->l3EcmpDlbFailPackets().value();
+      dlbReassignmentCount += hwSwitchStats.flowletStats()
+                                  ->l3EcmpDlbPortReassignmentCount()
+                                  .value();
     }
   }
   fb303::fbData->setCounter(
       SwitchStats::kCounterPrefix + "dlb_error_packets", dlbErrorPackets);
+  fb303::fbData->setCounter(
+      SwitchStats::kCounterPrefix + "dlb_reassignment_count",
+      dlbReassignmentCount);
 }
 
 TeFlowStats SwSwitch::getTeFlowStats() {
@@ -1384,6 +1394,10 @@ void SwSwitch::init(
     notifyStateObservers(
         StateDelta(std::make_shared<SwitchState>(), initialState));
   });
+
+  if (isRunModeMonolithic()) {
+    getMonolithicHwSwitchHandler()->initialStateApplied();
+  }
 
   XLOG(DBG2)
       << "Time to init switch and start all threads and apply the state "

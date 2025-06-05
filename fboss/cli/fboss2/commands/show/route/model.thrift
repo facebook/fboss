@@ -53,4 +53,5 @@ struct RouteDetailEntry {
   7: list<NextHopInfo> nextHops;
   8: string counterID;
   9: string classID;
+  10: string overridenEcmpMode;
 }

@@ -65,9 +65,9 @@ class AgentQueuePerHostTest : public AgentHwTest {
     return cfg;
   }
 
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::QUEUE_PER_HOST};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::QUEUE_PER_HOST};
   }
 
   const std::map<AddrT, std::pair<folly::MacAddress, cfg::AclLookupClass>>&

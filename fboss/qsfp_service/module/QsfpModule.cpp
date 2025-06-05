@@ -20,6 +20,7 @@
 #include <folly/logging/xlog.h>
 
 #include "fboss/agent/FbossError.h"
+#include "fboss/lib/link_snapshots/AsyncFileWriterFactory.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/qsfp_service/StatsPublisher.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
@@ -103,7 +104,10 @@ QsfpModule::QsfpModule(
     std::string tcvrName)
     : Transceiver(),
       qsfpImpl_(qsfpImpl),
-      snapshots_(SnapshotManager(portNames, kSnapshotIntervalSeconds)),
+      snapshots_(SnapshotManager(
+          portNames,
+          SnapshotLogSource::QSFP_SERVICE,
+          kSnapshotIntervalSeconds)),
       portNames_(portNames),
       tcvrName_(std::move(tcvrName)) {
   CHECK(!portNames.empty())

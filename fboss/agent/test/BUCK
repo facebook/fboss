@@ -894,7 +894,7 @@ cpp_unittest(
 thrift_library(
     name = "production_features",
     go_thrift_namespaces = {
-        "production_features.thrift": "neteng.fboss.production_features",
+        "production_features.thrift": "neteng.fboss.test.production_features",
     },
     languages = [
         "cpp2",
@@ -905,9 +905,9 @@ thrift_library(
         "py-deprecated",
         "python",
     ],
-    py3_namespace = "neteng.fboss",
-    py_asyncio_base_module = "neteng.fboss.asyncio",
-    py_base_module = "neteng.fboss",
+    py3_namespace = "neteng.fboss.test",
+    py_asyncio_base_module = "neteng.fboss.test.asyncio",
+    py_base_module = "neteng.fboss.test",
     thrift_cpp2_options = "json",
     thrift_py_options = "json,sort_keys",
     thrift_rust_options = [

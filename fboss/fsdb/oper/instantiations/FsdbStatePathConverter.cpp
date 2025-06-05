@@ -6,6 +6,4 @@ namespace facebook::fboss::fsdb {
 
 template class PathConverter<FsdbOperStateRoot>;
 
-template class PathConverter<FsdbOperStatsRoot>;
-
 } // namespace facebook::fboss::fsdb

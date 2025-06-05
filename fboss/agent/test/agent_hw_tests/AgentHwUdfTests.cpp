@@ -16,9 +16,9 @@ namespace facebook::fboss {
 
 class AgentHwUdfTest : public AgentHwTest {
  protected:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::UDF_WR_IMMEDIATE_ACL};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::UDF_WR_IMMEDIATE_ACL};
   }
 
   cfg::UdfConfig setupUdfConfiguration(

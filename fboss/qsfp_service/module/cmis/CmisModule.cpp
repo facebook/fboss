@@ -7,6 +7,7 @@
 #include <folly/io/IOBuf.h>
 #include <folly/io/async/EventBase.h>
 #include <folly/logging/xlog.h>
+#include <array>
 #include <cmath>
 #include <string>
 #include "common/time/Time.h"
@@ -281,6 +282,9 @@ static const QsfpFieldInfo<CmisField, CmisPages>::QsfpFieldMap cmisFields = {
     {CmisField::PAGE_UPPER25H, {CmisPages::PAGE25, 128, 128}},
     // Page 26h
     {CmisField::PAGE_UPPER26H, {CmisPages::PAGE26, 128, 128}},
+    // Page 2Ch
+    {CmisField::PAGE_UPPER2CH, {CmisPages::PAGE2C, 128, 128}},
+    {CmisField::PAM4_MPI_ALARMS, {CmisPages::PAGE2C, 208, 4}},
     // Page 2Fh
     {CmisField::PAGE_UPPER2FH, {CmisPages::PAGE2F, 128, 128}},
     {CmisField::VDM_GROUPS_SUPPORT, {CmisPages::PAGE2F, 128, 1}},
@@ -1423,6 +1427,9 @@ void CmisModule::updateVdmDiagsValLocation() {
           vdmConfStatus.vdmValPage = static_cast<CmisPages>(page + 4);
           vdmConfStatus.vdmValOffset = offset;
           vdmConfStatus.vdmValLength = 2;
+          // Extract bits 7-4 from byte 0 (Even Address byte) for
+          // LocalThresholdSetID
+          vdmConfStatus.localThresholdSetID = (dataPtr[0] >> 4) & 0x0F;
           lastConfig = static_cast<VdmConfigType>(dataPtr[1]);
           vdmConfigDataLocations_[lastConfig] = vdmConfStatus;
         }
@@ -1743,6 +1750,9 @@ std::optional<VdmPerfMonitorStats> CmisModule::getVdmPerfMonitorStats() {
   }
   if (!fillVdmPerfMonitorPam4Data(vdmStats)) {
     QSFP_LOG(ERR, this) << "Failed to get VDM Perf Monitor PAM4 data";
+  }
+  if (!fillVdmPerfMonitorPam4AlarmData(vdmStats)) {
+    QSFP_LOG(ERR, this) << "Failed to get VDM Perf Monitor PAM4 alarm data";
   }
 
   QSFP_LOG(DBG5, this) << "Read VDM Performance Monitoring stats";
@@ -4354,6 +4364,103 @@ bool CmisModule::fillVdmPerfMonitorPam4Data(VdmPerfMonitorStats& vdmStats) {
           sdL3Map[mediaLane];
       vdmStats.mediaPortVdmStats()[portName].lanePam4MPI()[mediaLane] =
           mpiMap[mediaLane];
+    }
+  }
+  return true;
+}
+
+/*
+ * fillVdmPerfMonitorPam4AlarmData
+ *
+ * Reads and processes the latched alarm and warning flags for PAM4 MPI values.
+ *
+ * These flags are stored in VDM page 0x2C, bytes 208-211, with the following
+ * bit layout:
+ *
+ * Byte 208:
+ *   - bit 0: High alarm for lane 0
+ *   - bit 2: High warning for lane 0
+ *   - bit 4: High alarm for lane 1
+ *   - bit 6: High warning for lane 1
+ *
+ * Byte 209:
+ *   - bit 0: High alarm for lane 2
+ *   - bit 2: High warning for lane 2
+ *   - bit 4: High alarm for lane 3
+ *   - bit 6: High warning for lane 3
+ *
+ * Byte 210:
+ *   - bit 0: High alarm for lane 4
+ *   - bit 2: High warning for lane 4
+ *   - bit 4: High alarm for lane 5
+ *   - bit 6: High warning for lane 5
+ *
+ * Byte 211:
+ *   - bit 0: High alarm for lane 6
+ *   - bit 2: High warning for lane 6
+ *   - bit 4: High alarm for lane 7
+ *   - bit 6: High warning for lane 7
+ *
+ * The function reads these flags and stores them in the VdmPerfMonitorStats
+ * structure.
+ */
+bool CmisModule::fillVdmPerfMonitorPam4AlarmData(
+    VdmPerfMonitorStats& vdmStats) {
+  if (!isVdmSupported(3) || !cacheIsValid()) {
+    return false;
+  }
+  auto vdmConfStatus = getVdmDiagsValLocation(PAM4_MPI_LINE);
+  if (!vdmConfStatus.vdmConfImplementedByModule) {
+    return false;
+  }
+  // For Line-side histogram based MPI_metric value, the ThresholdSetID ID
+  // should be 34
+  uint8_t thresholdSetID = vdmConfStatus.localThresholdSetID + 33;
+  if (thresholdSetID != 34) {
+    QSFP_LOG(WARN, this)
+        << "Skipping reading PAM4_MPI_LINE warning/alarms, unexpected ThresholdSetID: "
+        << static_cast<int>(thresholdSetID);
+    return false;
+  }
+
+  auto& portNameToMediaLanes = getPortNameToMediaLanes();
+  // VDM page 0x2C byte 208-211 contain the Alarms and Warnings flags for MPI
+  std::array<uint8_t, 4>
+      alarmData; // Buffer to read alarm data (4 bytes for 8 lanes)
+  try {
+    // Read the alarm data using the CmisField we defined
+    readCmisField(CmisField::PAM4_MPI_ALARMS, alarmData.data());
+  } catch (const std::exception& ex) {
+    QSFP_LOG(ERR, this) << "Error reading MPI alarm data: " << ex.what();
+    return false;
+  }
+  // Process the alarm/warning flags for each lane
+  for (auto& [portName, mediaLanes] : portNameToMediaLanes) {
+    for (auto& mediaLane : mediaLanes) {
+      if (mediaLane > 7) {
+        // We only support up to 8 lanes (0-7)
+        continue;
+      }
+      // Calculate which byte and bit position to read for this lane
+      int byteOffset = mediaLane / 2;
+      int bitOffset = (mediaLane % 2) * 4; // 0 or 4 depending on even/odd lane
+
+      // Extract alarm and warning flags directly
+      bool alarmHigh = (alarmData[byteOffset] & (1 << bitOffset)) != 0;
+      bool warnHigh = (alarmData[byteOffset] & (1 << (bitOffset + 2))) != 0;
+
+      QSFP_LOG(DBG3, this) << "Lane " << mediaLane
+                           << " MPI Alarm: " << (alarmHigh ? "true" : "false")
+                           << " MPI Warning: " << (warnHigh ? "true" : "false");
+
+      FlagLevels flags;
+      flags.alarm()->high() = alarmHigh;
+      flags.alarm()->low() = false; // Low alarm not used for MPI
+      flags.warn()->high() = warnHigh;
+      flags.warn()->low() = false; // Low warning not used for MPI
+
+      vdmStats.mediaPortVdmStats()[portName].lanePam4MPIFlags()[mediaLane] =
+          flags;
     }
   }
   return true;

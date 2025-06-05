@@ -8,15 +8,15 @@
  *
  */
 
-#include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
+#include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/test/HwTestThriftHandler.h"
 
 namespace facebook::fboss::utility {
 bool HwTestThriftHandler::getPtpTcEnabled() {
   auto saiSwitch = static_cast<const SaiSwitch*>(hwSwitch_);
   XLOG(DBG2) << "getPtpTcEnabled: "
-             << saiSwitch->managerTable()->portManager().isPtpTcEnabled();
-  return saiSwitch->managerTable()->portManager().isPtpTcEnabled();
+             << saiSwitch->managerTable()->switchManager().isPtpTcEnabled();
+  return saiSwitch->managerTable()->switchManager().isPtpTcEnabled();
 }
 } // namespace facebook::fboss::utility

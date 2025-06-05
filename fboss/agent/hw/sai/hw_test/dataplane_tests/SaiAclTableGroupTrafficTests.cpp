@@ -381,9 +381,6 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
   void verifyMultipleAclTablesHelper() {
     bool multipleAclTableSupport =
         HwTest::isSupported(HwAsic::Feature::MULTIPLE_ACL_TABLES);
-#if defined(TAJO_SDK_VERSION_1_42_8)
-    multipleAclTableSupport = false;
-#endif
     ASSERT_TRUE(multipleAclTableSupport);
 
     auto setup = [this]() {
@@ -549,9 +546,6 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
   void verifyDscpTtlAclTablesHelper() {
     bool multipleAclTableSupport =
         HwTest::isSupported(HwAsic::Feature::MULTIPLE_ACL_TABLES);
-#if defined(TAJO_SDK_VERSION_1_42_8)
-    multipleAclTableSupport = false;
-#endif
     ASSERT_TRUE(multipleAclTableSupport);
 
     auto setup = [this]() {

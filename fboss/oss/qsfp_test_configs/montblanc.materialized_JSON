@@ -118,26 +118,6 @@
         "profileID": 38
       },
       {
-        "aPortName": "eth1/41/1",
-        "zPortName": "eth1/42/1",
-        "profileID": 38
-      },
-      {
-        "aPortName": "eth1/41/5",
-        "zPortName": "eth1/42/5",
-        "profileID": 38
-      },
-      {
-        "aPortName": "eth1/43/1",
-        "zPortName": "eth1/44/1",
-        "profileID": 25
-      },
-      {
-        "aPortName": "eth1/43/5",
-        "zPortName": "eth1/44/5",
-        "profileID": 38
-      },
-      {
         "aPortName": "eth1/45/1",
         "zPortName": "eth1/49/1",
         "profileID": 25

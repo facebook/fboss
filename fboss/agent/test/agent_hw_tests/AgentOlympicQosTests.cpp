@@ -26,11 +26,9 @@ class AgentOlympicQosTests : public AgentQosTestBase {
     return cfg;
   }
 
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {
-        production_features::ProductionFeature::L3_QOS,
-        production_features::ProductionFeature::OLYMPIC_QOS};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::L3_QOS, ProductionFeature::OLYMPIC_QOS};
   }
 };
 

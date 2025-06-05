@@ -388,6 +388,8 @@ target_link_libraries(route_test_utils
   route_update_wrapper
   ctrl_cpp2
   route_distribution_gen
+  agent_ensemble
+  agent_hw_test_ctrl_cpp2
 )
 
 add_library(pfc_test_utils

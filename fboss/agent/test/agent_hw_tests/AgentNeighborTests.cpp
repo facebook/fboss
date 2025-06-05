@@ -123,18 +123,17 @@ class AgentNeighborTest : public AgentHwTest {
     AgentHwTest::setCmdLineFlagOverrides();
   }
 
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    std::vector<production_features::ProductionFeature> features = {
-        production_features::ProductionFeature::L3_FORWARDING};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    std::vector<ProductionFeature> features = {
+        ProductionFeature::L3_FORWARDING};
     if (isIntfNbrTable) {
-      features.push_back(
-          production_features::ProductionFeature::INTERFACE_NEIGHBOR_TABLE);
+      features.push_back(ProductionFeature::INTERFACE_NEIGHBOR_TABLE);
     } else {
-      features.push_back(production_features::ProductionFeature::VLAN);
+      features.push_back(ProductionFeature::VLAN);
     }
     if (programToTrunk) {
-      features.push_back(production_features::ProductionFeature::LAG);
+      features.push_back(ProductionFeature::LAG);
     }
     return features;
   }
@@ -492,15 +491,14 @@ class AgentNeighborOnMultiplePortsTest : public AgentHwTest {
     AgentHwTest::setCmdLineFlagOverrides();
   }
 
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    std::vector<production_features::ProductionFeature> features = {
-        production_features::ProductionFeature::L3_FORWARDING};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    std::vector<ProductionFeature> features = {
+        ProductionFeature::L3_FORWARDING};
     if (isIntfNbrTable) {
-      features.push_back(
-          production_features::ProductionFeature::INTERFACE_NEIGHBOR_TABLE);
+      features.push_back(ProductionFeature::INTERFACE_NEIGHBOR_TABLE);
     } else {
-      features.push_back(production_features::ProductionFeature::VLAN);
+      features.push_back(ProductionFeature::VLAN);
     }
     return features;
   }

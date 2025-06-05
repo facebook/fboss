@@ -2,10 +2,13 @@
 
 #include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/test/AgentHwTest.h"
+#include "fboss/lib/multinode/MultiNodeUtil.h"
 
 DECLARE_bool(disable_neighbor_updates);
 DECLARE_bool(disable_looped_fabric_ports);
 DECLARE_bool(dsf_subscribe);
+
+using facebook::fboss::utility::MultiNodeUtil;
 
 namespace facebook::fboss {
 
@@ -34,9 +37,9 @@ class MultiNodeAgentVoqSwitchTest : public AgentHwTest {
     return config;
   }
 
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::VOQ};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::VOQ};
   }
 
  private:
@@ -55,50 +58,21 @@ class MultiNodeAgentVoqSwitchTest : public AgentHwTest {
   }
 };
 
-TEST_F(MultiNodeAgentVoqSwitchTest, verifyInbandPing) {
+TEST_F(MultiNodeAgentVoqSwitchTest, verifyDsfCluster) {
   auto setup = []() {};
 
   auto verify = [this]() {
-    std::string ipAddrsToPing;
-    for (const auto& [_, dsfNodes] :
-         std::as_const(*getProgrammedState()->getDsfNodes())) {
-      for (const auto& [_, node] : std::as_const(*dsfNodes)) {
-        if (node->getType() == cfg::DsfNodeType::INTERFACE_NODE) {
-          CHECK_GE(node->getLoopbackIpsSorted().size(), 1);
+    auto multiNodeUtil =
+        std::make_unique<MultiNodeUtil>(getProgrammedState()->getDsfNodes());
 
-          auto ip = node->getLoopbackIpsSorted().begin()->first.str();
-          ipAddrsToPing = folly::to<std::string>(ipAddrsToPing, ip, " ");
-        }
-      }
-    }
-
-    auto switchSettings =
-        utility::getFirstNodeIf(getSw()->getState()->getSwitchSettings());
-    auto switchId =
-        SwitchID(switchSettings->getSwitchIdToSwitchInfo().begin()->first);
-    auto recyclePortIntfID =
-        getInbandPortIntfID(getProgrammedState(), switchId);
-    auto recyclePortIntf = folly::to<std::string>("fboss", recyclePortIntfID);
-    auto cmd = folly::to<std::string>(
-        "/usr/sbin/fping6 --alive -I ", recyclePortIntf, " ", ipAddrsToPing);
-
-    auto reachableIps = runShellCmd(cmd);
-    XLOG(DBG2) << "Cmd: " << cmd;
-    XLOG(DBG2) << "Output: #" << reachableIps << "#";
-
-    // fping returns list of reachable IPs separated by \n.
-    // Convert to space separated list, so we can compare with ipAddrsToPing and
-    // assert that every pinged IP is reachable.
-    // Note: fping pings all IPs in parallel, so sort before comparing.
-    std::vector<std::string> reachableIpList;
-    folly::split("\n", reachableIps, reachableIpList);
-    std::sort(reachableIpList.begin(), reachableIpList.end());
-
-    std::vector<std::string> ipAddrsToPingList;
-    folly::split(" ", ipAddrsToPing, ipAddrsToPingList);
-    std::sort(ipAddrsToPingList.begin(), ipAddrsToPingList.end());
-
-    EXPECT_EQ(reachableIpList, ipAddrsToPingList);
+    WITH_RETRIES_N_TIMED(10, std::chrono::milliseconds(5000), {
+      EXPECT_EVENTUALLY_TRUE(multiNodeUtil->verifyFabricConnectivity());
+      EXPECT_EVENTUALLY_TRUE(multiNodeUtil->verifyFabricReachability());
+      EXPECT_EVENTUALLY_TRUE(multiNodeUtil->verifySystemPorts());
+      EXPECT_EVENTUALLY_TRUE(multiNodeUtil->verifyRifs());
+      EXPECT_EVENTUALLY_TRUE(multiNodeUtil->verifyStaticNdpEntries());
+      EXPECT_EVENTUALLY_TRUE(multiNodeUtil->verifyDsfSessions());
+    });
   };
 
   verifyAcrossWarmBoots(setup, verify);

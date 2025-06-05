@@ -21,9 +21,9 @@ namespace facebook::fboss {
 
 class AgentEcmpTest : public AgentHwTest {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::ECMP_LOAD_BALANCER};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::ECMP_LOAD_BALANCER};
   }
 
  protected:

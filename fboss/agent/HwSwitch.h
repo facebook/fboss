@@ -404,10 +404,10 @@ class HwSwitch {
 
   virtual std::vector<FirmwareInfo> getAllFirmwareInfo() const = 0;
 
+  virtual void initialStateApplied() = 0;
+
  protected:
   void setProgrammedState(const std::shared_ptr<SwitchState>& state);
-
-  virtual void initialStateApplied() = 0;
 
  private:
   HwInitResult initLightImpl(Callback* callback, bool failHwCallsOnWarmboot);

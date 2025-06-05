@@ -10,4 +10,6 @@ struct InputBalanceEntry {
   3: bool balanced;
   4: list<string> inputCapacity;
   5: list<string> outputCapacity;
+  6: list<string> inputLinkFailure;
+  7: list<string> outputLinkFailure;
 }

@@ -255,6 +255,20 @@ class AgentVoqSwitchIsolationFirmwareWBEventsTest
       fwCapableSwitchIndex =
           *getFWCapableSwitchIndices(getSw()->getConfig()).begin();
     }
+    if (isColdBoot) {
+      WITH_RETRIES({
+        auto crashCounterRegex = std::string("(switch.") +
+            folly::to<std::string>(fwCapableSwitchIndex) + ".)?" +
+            "bcm.isolationFirmwareCrash.sum";
+        auto fwCrashedCounters = getAgentEnsemble()->getFb303RegexCounters(
+            crashCounterRegex,
+            *getSw()->getHwAsicTable()->getSwitchIDs().begin());
+        EXPECT_EVENTUALLY_TRUE(
+            fwCrashedCounters.size() == 1 &&
+            fwCrashedCounters.begin()->second == 0);
+      });
+    }
+
     std::atexit([]() {
       if (isColdBoot) {
         WITH_RETRIES({
@@ -262,14 +276,6 @@ class AgentVoqSwitchIsolationFirmwareWBEventsTest
               "fw_drained_with_high_num_active_fabric_links.sum");
           EXPECT_EVENTUALLY_TRUE(
               fwIsolated.has_value() && fwIsolated.value() == 0);
-          auto crashCounterRegex = std::string("(switch.") +
-              folly::to<std::string>(fwCapableSwitchIndex) + ".)?" +
-              "bcm.isolationFirmwareCrash.sum";
-          auto fwCrashedCounters =
-              fb303::fbData->getRegexCounters(crashCounterRegex);
-          EXPECT_EVENTUALLY_TRUE(
-              fwCrashedCounters.size() == 1 &&
-              fwCrashedCounters.begin()->second == 0);
         });
       }
     });

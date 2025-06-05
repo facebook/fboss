@@ -28,9 +28,9 @@ namespace facebook::fboss {
 // dropped).
 class AgentLoopBackTest : public AgentHwTest {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::CPU_RX_TX};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::CPU_RX_TX};
   }
 
  private:

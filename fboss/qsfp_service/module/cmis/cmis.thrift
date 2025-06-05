@@ -221,6 +221,10 @@ enum CmisField {
   VDM_LATCH_REQUEST = 189,
   VDM_LATCH_DONE = 190,
 
+  // Page 2Ch
+  PAGE_UPPER2CH = 191,
+  PAM4_MPI_ALARMS = 192,
+
   // Custom Fields
   // These are fields that are custom to specific transceivers
   //

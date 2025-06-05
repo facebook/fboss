@@ -267,7 +267,8 @@ template <typename AddrT>
 void EcmpResourceManager::InputOutputState::addOrUpdateRoute(
     RouterID rid,
     const std::shared_ptr<Route<AddrT>>& newRoute,
-    bool ecmpDemandExceeded) {
+    bool ecmpDemandExceeded,
+    bool addNewDelta) {
   if (ecmpDemandExceeded) {
     CHECK(
         newRoute->getForwardInfo().getOverrideEcmpSwitchingMode().has_value());
@@ -298,8 +299,8 @@ void EcmpResourceManager::InputOutputState::addOrUpdateRoute(
                        : "N");
     fib->addNode(newRoute);
   }
-  if (!ecmpDemandExceeded) {
-    // Still within ECMP limits, replaced the current delta.
+  if (!addNewDelta) {
+    // Still working on the current, replaced the current delta.
     // To do this, we need to do 2 things
     // - use the current delta's old state as a base for
     // new delta
@@ -457,7 +458,17 @@ void EcmpResourceManager::routeAddedOrUpdated(
   bool ecmpLimitReached = inOutState->nonBackupEcmpGroupsCnt == maxEcmpGroups_;
   if (oldRoute) {
     DCHECK(!routesEqual(oldRoute, newRoute));
-    routeDeleted(rid, oldRoute, true /*isUpdate*/, inOutState);
+    if (oldRoute->getForwardInfo().normalizedNextHops() !=
+        newRoute->getForwardInfo().normalizedNextHops()) {
+      /*
+       * Update internal data structures only if nhops changes.
+       * There are other route changes (e.g. classID, counterID)
+       * which are no-op to us. If we delete the route here
+       * we may endup deleting and recreating nhop group, which
+       * is unnecessary.
+       */
+      routeDeleted(rid, oldRoute, true /*isUpdate*/, inOutState);
+    }
   }
   auto nhopSet = newRoute->getForwardInfo().normalizedNextHops();
   auto [idItr, inserted] = nextHopGroup2Id_.insert(
@@ -512,8 +523,12 @@ void EcmpResourceManager::routeAddedOrUpdated(
   CHECK(grpInfo);
   auto [pitr, pfxInserted] = prefixToGroupInfo_.insert(
       {{rid, newRoute->prefix().toCidrNetwork()}, std::move(grpInfo)});
-  CHECK(pfxInserted);
-  pitr->second->incRouteUsageCount();
+  if (pfxInserted) {
+    /*
+     * If a new prefix points to this group increment ref count
+     */
+    pitr->second->incRouteUsageCount();
+  }
   CHECK_GT(pitr->second->getRouteUsageCount(), 0);
   CHECK_LE(inOutState->nonBackupEcmpGroupsCnt, maxEcmpGroups_);
 }

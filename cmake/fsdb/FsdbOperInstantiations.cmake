@@ -4,7 +4,8 @@
 # cmake/FooBar.cmake
 
 add_library(fsdb_cow_root
-  fboss/fsdb/oper/instantiations/FsdbCowRoot.cpp
+  fboss/fsdb/oper/instantiations/FsdbStatCowRoot.cpp
+  fboss/fsdb/oper/instantiations/FsdbStateCowRoot.cpp
 )
 
 target_link_libraries(fsdb_cow_root
@@ -13,7 +14,8 @@ target_link_libraries(fsdb_cow_root
 )
 
 add_library(fsdb_cow_root_path_visitor
-  fboss/fsdb/oper/instantiations/FsdbCowRootPathVisitor.cpp
+  fboss/fsdb/oper/instantiations/FsdbCowStateRootPathVisitor.cpp
+  fboss/fsdb/oper/instantiations/FsdbCowStatsRootPathVisitor.cpp
 )
 
 target_link_libraries(fsdb_cow_root_path_visitor
@@ -23,7 +25,8 @@ target_link_libraries(fsdb_cow_root_path_visitor
 )
 
 add_library(fsdb_cow_storage
-  fboss/fsdb/oper/instantiations/FsdbCowStorage.cpp
+  fboss/fsdb/oper/instantiations/FsdbCowStateStorage.cpp
+  fboss/fsdb/oper/instantiations/FsdbCowStatsStorage.cpp
 )
 
 target_link_libraries(fsdb_cow_storage
@@ -34,7 +37,8 @@ target_link_libraries(fsdb_cow_storage
 )
 
 add_library(fsdb_cow_subscription_manager
-  fboss/fsdb/oper/instantiations/FsdbCowSubscriptionManager.cpp
+  fboss/fsdb/oper/instantiations/FsdbCowStateSubscriptionManager.cpp
+  fboss/fsdb/oper/instantiations/FsdbCowStatsSubscriptionManager.cpp
 )
 
 target_link_libraries(fsdb_cow_subscription_manager
@@ -46,7 +50,8 @@ target_link_libraries(fsdb_cow_subscription_manager
 )
 
 add_library(fsdb_path_converter
-  fboss/fsdb/oper/instantiations/FsdbPathConverter.cpp
+  fboss/fsdb/oper/instantiations/FsdbStatePathConverter.cpp
+  fboss/fsdb/oper/instantiations/FsdbStatsPathConverter.cpp
 )
 
 target_link_libraries(fsdb_path_converter

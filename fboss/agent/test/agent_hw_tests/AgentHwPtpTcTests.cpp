@@ -25,9 +25,9 @@ class AgentHwPtpTcTest : public AgentHwTest {
     AgentHwTest::SetUp();
   }
 
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::PTP_TC};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::PTP_TC};
   }
 
   cfg::SwitchConfig initialConfig(

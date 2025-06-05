@@ -30,6 +30,7 @@ struct RouteInfo {
   3: bool isMultiPath;
   4: bool isRouteUnresolvedToClassId;
   5: optional i32 classId;
+  6: bool isProgrammedToDrop;
 }
 
 struct PortInfo {

@@ -16,6 +16,7 @@ void PhySnapshotManager::updatePhyInfoLocked(
   auto result = lockedSnapshotMap->try_emplace(
       portID,
       std::set<std::string>({phyInfo.state()->name().value()}),
+      snapshotLogSource_,
       intervalSeconds_);
   auto iter = result.first;
   auto& value = iter->second;

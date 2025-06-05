@@ -148,21 +148,6 @@ int main(int argc, char* argv[]) {
   // Parse command line flags
   testing::InitGoogleTest(&argc, argv);
   facebook::fboss::platform::helpers::init(&argc, &argv);
-  if (!FLAGS_config_file.empty()) {
-    XLOG(ERR)
-        << "Please use --led_manager_config_file and --weutil_config_file instead of --config_file. "
-        << "For more info on the flags, run with --helpon=DataCorralServiceHwTest";
-    return -1;
-  }
-#ifdef IS_OSS
-  if (FLAGS_led_manager_config_file.empty() ||
-      FLAGS_weutil_config_file.empty()) {
-    XLOG(ERR)
-        << "Please specify --led_manager_config_file and --weutil_config_file. "
-        << "For more info on the flags, run with --helpon=DataCorralServiceHwTest";
-    return -1;
-  }
-#endif
   // Run the tests
   return RUN_ALL_TESTS();
 }

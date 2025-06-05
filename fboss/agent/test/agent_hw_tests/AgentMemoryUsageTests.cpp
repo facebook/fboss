@@ -19,8 +19,8 @@ constexpr size_t kMemoryHeadroom = 10 << 20; // 10MB
 
 class AgentMemoryUsageTest : public AgentHwTest {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     return {};
   }
 

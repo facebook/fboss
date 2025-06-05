@@ -30,9 +30,9 @@ namespace facebook::fboss {
 
 class AgentHwResourceStatsTest : public AgentHwTest {
  protected:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::L3_FORWARDING};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::L3_FORWARDING};
   }
 
   cfg::SwitchConfig initialConfig(

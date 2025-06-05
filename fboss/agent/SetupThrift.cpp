@@ -8,6 +8,7 @@
  *
  */
 #include "fboss/agent/SetupThrift.h"
+#include "fboss/lib/ThriftMethodRateLimit.h"
 
 #include <folly/io/async/EventBase.h>
 #include <gflags/gflags.h>
@@ -77,6 +78,16 @@ std::unique_ptr<apache::thrift::ThriftServer> setupThriftServer(
   }
   server->setAddresses(addresses);
   server->setIdleTimeout(std::chrono::seconds(FLAGS_thrift_idle_timeout));
+
+  // TODO(daiweix): no rate limit to any thrift APIs for now, need to read from
+  // agent config and update
+  std::map<std::string, int> methood2QpsLimit = {};
+  auto rateLimiter = std::make_unique<ThriftMethodRateLimit>(methood2QpsLimit);
+  auto preprocessFunc =
+      ThriftMethodRateLimit::getThriftMethodRateLimitPreprocessFunc(
+          std::move(rateLimiter));
+  server->addPreprocessFunc("ThriftMethodRateLimit", std::move(preprocessFunc));
+
   return server;
 }
 } // namespace facebook::fboss
