@@ -765,6 +765,11 @@ struct SaiSwitchTraits {
         bool,
         AttributeDisableSllAndHllTimeout,
         SaiBoolDefaultFalse>;
+    struct AttributeAsicRevision {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using AsicRevision =
+        SaiExtensionAttribute<sai_uint32_t, AttributeAsicRevision>;
   };
   using AdapterKey = SwitchSaiId;
   using AdapterHostKey = std::monostate;

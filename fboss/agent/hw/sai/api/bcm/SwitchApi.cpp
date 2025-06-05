@@ -613,4 +613,13 @@ std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeDisableSllAndHllTimeout::operator()() {
   return std::nullopt;
 }
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeAsicRevision::operator()() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_13_0)
+  return SAI_SWITCH_ATTR_ASIC_REVISION;
+#endif
+  return std::nullopt;
+}
+
 } // namespace facebook::fboss
