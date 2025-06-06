@@ -22,7 +22,6 @@
 #include <folly/Memory.h>
 #include <folly/io/async/EventBase.h>
 #include <gflags/gflags.h>
-#include <glog/logging.h>
 #include <chrono>
 #include "fboss/agent/EnumUtils.h"
 

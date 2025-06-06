@@ -10,7 +10,6 @@
 #include <folly/gen/Base.h>
 #include <folly/init/Init.h>
 #include <gflags/gflags.h>
-#include <glog/logging.h>
 
 #include <sysexits.h>
 #include <iostream>

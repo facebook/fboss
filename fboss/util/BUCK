@@ -49,7 +49,6 @@ cpp_binary(
     ],
     external_deps = [
         "gflags",
-        "glog",
     ],
 )
 
@@ -108,7 +107,6 @@ cpp_library(
     ],
     exported_external_deps = [
         "gflags",
-        "glog",
     ],
 )
 
