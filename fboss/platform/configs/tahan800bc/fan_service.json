@@ -240,7 +240,7 @@
     "numOvertempSensorForShutdown": 1,
     "conditions": [
       {
-        "sensorName": "TAHAN_SMB_TH5_TEMP",
+        "sensorName": "SMB_TH5_TEMP",
         "overtempThreshold": 110.0,
         "slidingWindowSize": 1
       }
