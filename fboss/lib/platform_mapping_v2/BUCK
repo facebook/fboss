@@ -157,7 +157,7 @@ ci_sandcastle(
             },
             {
                 "name": "Run Configo Sync Command",
-                "shell": "buck2 run --flagfile fbcode//mode/opt fbcode//fboss/lib/platform_mapping_v2/facebook:gen -- --make-configerator-changes",
+                "shell": "buck2 run --flagfile fbcode//mode/opt fbcode//fboss/lib/platform_mapping_v2/facebook:gen -- --make-configerator-changes --add-fbcode-dependency",
             },
         ],
     },
