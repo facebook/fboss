@@ -99,6 +99,7 @@ class CmdShowFabricInputBalance : public CmdHandler<
         neighborReachability,
         selfReachability,
         neighborToLinkFailure,
+        {},
         true /* verbose */));
   }
 

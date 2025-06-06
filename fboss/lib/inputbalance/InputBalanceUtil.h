@@ -24,8 +24,10 @@ namespace utility {
 struct InputBalanceResult {
   std::string destinationSwitch;
   std::vector<std::string> sourceSwitch;
+  int virtualDeviceID{};
   bool balanced;
-  // Detailed information will only be populated if not balanced
+  // Detailed information will only be populated if not balanced, or verbose
+  // option enabled (for fboss2)
   std::optional<std::vector<std::string>> inputCapacity;
   std::optional<std::vector<std::string>> outputCapacity;
   std::optional<std::vector<std::string>> inputLinkFailure;
@@ -66,6 +68,7 @@ std::vector<InputBalanceResult> checkInputBalanceSingleStage(
         outputCpacity,
     const std::unordered_map<std::string, std::vector<std::string>>&
         neighborToLinkFailure,
+    const std::unordered_map<std::string, int>& portToVirtualDevice,
     bool verbose = false);
 } // namespace utility
 } // namespace facebook::fboss
