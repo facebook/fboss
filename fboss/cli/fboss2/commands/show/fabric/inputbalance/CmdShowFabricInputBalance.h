@@ -88,6 +88,7 @@ class CmdShowFabricInputBalance : public CmdHandler<
     fbossCtrlClient->sync_getAllPortInfo(myPortInfo);
     auto neighborToPorts = utility::getNeighborFabricPortsToSelf(myPortInfo);
     auto neighborToLinkFailure = utility::getNeighborToLinkFailure(myPortInfo);
+    auto portToVirtualDevice = utility::getPortToVirtualDeviceId(myPortInfo);
 
     auto neighborReachability = getNeighborReachability(
         deviceToQueryInputCapacity, neighborToPorts, dstSwitchName);
@@ -99,7 +100,7 @@ class CmdShowFabricInputBalance : public CmdHandler<
         neighborReachability,
         selfReachability,
         neighborToLinkFailure,
-        {},
+        portToVirtualDevice,
         true /* verbose */));
   }
 
@@ -112,6 +113,7 @@ class CmdShowFabricInputBalance : public CmdHandler<
       cli::InputBalanceEntry entry;
       entry.destinationSwitchName() = result.destinationSwitch;
       entry.sourceSwitchName() = result.sourceSwitch;
+      entry.virtualDeviceID() = result.virtualDeviceID;
       entry.balanced() = result.balanced;
       entry.inputCapacity() = result.inputCapacity.value();
       entry.outputCapacity() = result.outputCapacity.value();
@@ -128,6 +130,7 @@ class CmdShowFabricInputBalance : public CmdHandler<
     table.setHeader({
         "Destination",
         "Source",
+        "VirtualDeviceID",
         "Balanced",
         "InputCapacity",
         "OutputCapacity",
@@ -138,6 +141,7 @@ class CmdShowFabricInputBalance : public CmdHandler<
       table.addRow(
           {*entry.destinationSwitchName(),
            folly::join(" ", *entry.sourceSwitchName()),
+           folly::to<std::string>(*entry.virtualDeviceID()),
            *entry.balanced() ? "True" : "False",
            folly::join(" ", *entry.inputCapacity()),
            folly::join(" ", *entry.outputCapacity()),

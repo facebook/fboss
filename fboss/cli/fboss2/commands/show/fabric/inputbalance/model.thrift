@@ -7,9 +7,10 @@ struct ShowFabricInputBalanceModel {
 struct InputBalanceEntry {
   1: string destinationSwitchName;
   2: list<string> sourceSwitchName;
-  3: bool balanced;
-  4: list<string> inputCapacity;
-  5: list<string> outputCapacity;
-  6: list<string> inputLinkFailure;
-  7: list<string> outputLinkFailure;
+  3: i16 virtualDeviceID;
+  4: bool balanced;
+  5: list<string> inputCapacity;
+  6: list<string> outputCapacity;
+  7: list<string> inputLinkFailure;
+  8: list<string> outputLinkFailure;
 }
