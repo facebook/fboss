@@ -544,6 +544,13 @@ uint8_t getDefaultQueue() {
   return isDualStage3Q2QMode() ? kDualStage3Q2QDefaultQueue : kDefaultQueue;
 }
 
+uint8_t getGlobalRcyDefaultQueue() {
+  // For both single stage and dual stage, packet destined to Gloabl RCY goes to
+  // queue 0 by default. In dual stage we follow 2Q model, where non RDMA and
+  // non NC goes to queue zero.
+  return kDefaultQueue;
+}
+
 int getTrafficClassToVoqId(const HwAsic* hwAsic, int trafficClass) {
   if (hwAsic->isSupported(HwAsic::Feature::VOQ) && isDualStage3Q2QQos()) {
     if (trafficClass == 7) {
