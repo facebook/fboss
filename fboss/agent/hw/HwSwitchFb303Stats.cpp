@@ -1127,6 +1127,9 @@ HwSwitchFb303GlobalStats HwSwitchFb303Stats::getAllFb303Stats() const {
   hwFb303Stats.vsq_resource_exhaustion_drops() =
       getVsqResourcesExhautionDrops();
   hwFb303Stats.interrupt_masked_events() = getInterruptMaskedEvents();
+  if (auto asicRevision = getAsicRevision()) {
+    hwFb303Stats.asic_revision() = *asicRevision;
+  }
   return hwFb303Stats;
 }
 
