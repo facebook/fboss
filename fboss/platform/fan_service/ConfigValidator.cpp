@@ -37,7 +37,8 @@ std::unordered_set<std::string> opticAggregationTypes = {
 
 std::unordered_set<std::string> sensorPwmCalcTypes = {
     constants::SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE(),
-    constants::SENSOR_PWM_CALC_TYPE_PID()};
+    constants::SENSOR_PWM_CALC_TYPE_PID(),
+    constants::SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID()};
 
 } // namespace
 
