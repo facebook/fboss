@@ -26,11 +26,9 @@ cpp_library(
         "//fboss/agent:hw_switch",
         "//fboss/agent:hwagent",
         "//fboss/agent:hwswitchcallback",
-        "//fboss/agent:load_agent_config",
         "//fboss/agent:packet",
         "//fboss/agent:platform_base",
         "//fboss/agent:split_agent_thrift_syncer",
-        "//fboss/agent:stats",
         "//fboss/agent:sw_switch_warmboot_helper",
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent:switchid_scope_resolver",
@@ -126,10 +124,6 @@ cpp_library(
         "//folly/init:init",
         "//folly/logging:init",
         "//folly/logging:logging",
-    ],
-    exported_external_deps = [
-        "gflags",
-        "glog",
     ],
 )
 

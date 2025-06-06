@@ -15,7 +15,6 @@
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTest.h"
-#include "fboss/agent/state/Interface.h"
 #include "fboss/agent/test/TrunkUtils.h"
 
 namespace facebook::fboss {
