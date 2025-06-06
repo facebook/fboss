@@ -1037,6 +1037,7 @@ SAI_ATTRIBUTE_NAME(Switch, PfcTcDldTimerGranularityInterval)
 SAI_ATTRIBUTE_NAME(Switch, NumberOfPipes)
 SAI_ATTRIBUTE_NAME(Switch, PipelineObjectList)
 SAI_ATTRIBUTE_NAME(Switch, DisableSllAndHllTimeout)
+SAI_ATTRIBUTE_NAME(Switch, AsicRevision)
 
 template <>
 struct SaiObjectHasStats<SaiSwitchTraits> : public std::true_type {};

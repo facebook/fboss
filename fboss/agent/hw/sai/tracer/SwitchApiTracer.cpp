@@ -157,6 +157,7 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(Switch, NumberOfPipes);
   SAI_EXT_ATTR_MAP(Switch, PipelineObjectList);
   SAI_EXT_ATTR_MAP(Switch, DisableSllAndHllTimeout);
+  SAI_EXT_ATTR_MAP(Switch, AsicRevision);
 }
 
 } // namespace
