@@ -108,6 +108,7 @@ struct HwSwitchStats {
   16: hardware_stats.HwSwitchWatermarkStats switchWatermarkStats;
   17: bool arsExhausted;
   18: hardware_stats.HwSwitchPipelineStats switchPipelineStats;
+  19: map<i32, switch_config.PortState> sysPortShelState;
 }
 
 service MultiSwitchCtrl {

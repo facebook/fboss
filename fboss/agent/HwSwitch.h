@@ -259,6 +259,7 @@ class HwSwitch {
   virtual HwSwitchWatermarkStats getSwitchWatermarkStats() const = 0;
   virtual HwSwitchPipelineStats getSwitchPipelineStats() const = 0;
   virtual HwResourceStats getResourceStats() const = 0;
+  virtual std::map<int, cfg::PortState> getSysPortShelState() const = 0;
 
   // TODO delete this after ECMP resource manager rolled out to backend
   virtual cfg::SwitchingMode getFwdSwitchingMode(const RouteNextHopEntry&) {

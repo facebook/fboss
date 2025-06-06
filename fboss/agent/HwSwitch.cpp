@@ -198,6 +198,7 @@ multiswitch::HwSwitchStats HwSwitch::getHwSwitchStats() {
   hwSwitchStats.hwResourceStats() = getResourceStats();
   hwSwitchStats.arsExhausted() = getArsExhaustionStatus();
   hwSwitchStats.switchPipelineStats() = getSwitchPipelineStats();
+  hwSwitchStats.sysPortShelState() = getSysPortShelState();
   return hwSwitchStats;
 }
 

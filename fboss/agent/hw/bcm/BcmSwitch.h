@@ -425,6 +425,9 @@ class BcmSwitch : public BcmSwitchIf {
   HwFlowletStats getHwFlowletStats() const override;
 
   HwResourceStats getResourceStats() const override;
+  std::map<int, cfg::PortState> getSysPortShelState() const override {
+    return {};
+  }
 
   std::vector<EcmpDetails> getAllEcmpDetails() const override;
 

@@ -91,6 +91,10 @@ class SimSwitch : public HwSwitch {
     return {};
   }
 
+  std::map<int, cfg::PortState> getSysPortShelState() const override {
+    return {};
+  }
+
   void fetchL2Table(std::vector<L2EntryThrift>* /*l2Table*/) const override {
     return;
   }

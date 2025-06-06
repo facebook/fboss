@@ -1791,6 +1791,15 @@ std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoImpl() {
   return updateAllPhyInfoLocked();
 }
 
+std::map<int, cfg::PortState> SaiSwitch::getSysPortShelState() const {
+  std::map<int, cfg::PortState> sysPortShelState;
+  for (const auto& [sysPortId, portState] :
+       std::as_const(concurrentIndices().sysPortShelState)) {
+    sysPortShelState[static_cast<int>(sysPortId)] = portState;
+  }
+  return sysPortShelState;
+}
+
 std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoLocked() {
   std::map<PortID, phy::PhyInfo> returnPhyParams;
   auto& portManager = managerTable_->portManager();
