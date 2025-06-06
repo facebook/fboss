@@ -2910,6 +2910,7 @@ HwInitResult SaiSwitch::initLocked(
   asicRevision_ = switchApi.getAttribute(
       saiSwitchId_, SaiSwitchTraits::Attributes::AsicRevision{});
   XLOG(DBG2) << "Asic revision: " << *asicRevision_;
+  getSwitchStats()->asicRevision(*asicRevision_);
 #endif
   ret.switchState->publish();
   return ret;

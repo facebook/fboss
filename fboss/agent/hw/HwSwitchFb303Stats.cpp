@@ -21,6 +21,7 @@ namespace {
 void updateValue(TLTimeseries& counter, int64_t value) {
   counter.addValue(value - facebook::fboss::getCumulativeValue(counter));
 }
+const std::string kAsicRevision = "asic_revision";
 } // namespace
 
 namespace facebook::fboss {
@@ -1016,6 +1017,10 @@ void HwSwitchFb303Stats::portGroupSkew(int64_t value) {
   fb303::fbData->setCounter(portGroupSkew_.name(), value);
 }
 
+void HwSwitchFb303Stats::asicRevision(int64_t value) {
+  fb303::fbData->setCounter(getCounterPrefix() + kAsicRevision, value);
+}
+
 void HwSwitchFb303Stats::bcmSdkVer(int64_t ver) {
   fb303::fbData->setCounter(bcmSdkVer_.name(), ver);
 }
@@ -1071,6 +1076,12 @@ int64_t HwSwitchFb303Stats::getVirtualDevicesWithAsymmetricConnectivityCount()
 int64_t HwSwitchFb303Stats::getPortGroupSkewCount() const {
   auto counterVal = fb303::fbData->getCounterIfExists(portGroupSkew_.name());
   return counterVal ? *counterVal : 0;
+}
+
+std::optional<int64_t> HwSwitchFb303Stats::getAsicRevision() const {
+  auto counterVal =
+      fb303::fbData->getCounterIfExists(getCounterPrefix() + kAsicRevision);
+  return counterVal.toStdOptional();
 }
 
 HwSwitchFb303GlobalStats HwSwitchFb303Stats::getAllFb303Stats() const {

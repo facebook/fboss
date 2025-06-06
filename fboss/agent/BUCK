@@ -220,6 +220,7 @@ thrift_library(
     ],
     thrift_srcs = {"agent_stats.thrift": []},
     deps = [
+        ":switch_config",
         "//fboss/agent/hw:hardware_stats",
         "//fboss/lib/phy:phy",
         "//fboss/platform/sensor_service/if:sensor_service",

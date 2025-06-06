@@ -262,6 +262,7 @@ class HwSwitchFb303Stats {
   void fabricConnectivityBogusCount(int64_t value);
   void virtualDevicesWithAsymmetricConnectivity(int64_t value);
   void portGroupSkew(int64_t value);
+  void asicRevision(int64_t value);
 
   void bcmSdkVer(int64_t ver);
   void bcmSaiSdkVer(int64_t ver);
@@ -398,6 +399,7 @@ class HwSwitchFb303Stats {
   HwSwitchFb303GlobalStats getAllFb303Stats() const;
   // Used in SwAgent to update stats based on HwSwitch synced counters
   void updateStats(HwSwitchFb303GlobalStats& globalStats);
+  std::optional<int64_t> getAsicRevision() const;
 
  private:
   // Forbidden copy constructor and assignment operator
