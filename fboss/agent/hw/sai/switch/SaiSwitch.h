@@ -698,6 +698,7 @@ class SaiSwitch : public HwSwitch {
   bool pfcDeadlockEnabled_{false};
   folly::Synchronized<int> switchReachabilityChangePending_{0};
   folly::Synchronized<bool> txReadyStatusChangePending_{false};
+  std::optional<uint32_t> asicRevision_;
 };
 
 } // namespace facebook::fboss

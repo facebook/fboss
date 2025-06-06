@@ -2907,9 +2907,9 @@ HwInitResult SaiSwitch::initLocked(
 
 #if defined(BRCM_SAI_SDK_DNX_GTE_13_0)
   auto& switchApi = SaiApiTable::getInstance()->switchApi();
-  auto asicRevision = switchApi.getAttribute(
+  asicRevision_ = switchApi.getAttribute(
       saiSwitchId_, SaiSwitchTraits::Attributes::AsicRevision{});
-  XLOG(DBG2) << " Asic revision: " << asicRevision;
+  XLOG(DBG2) << "Asic revision: " << *asicRevision_;
 #endif
   ret.switchState->publish();
   return ret;
