@@ -2904,6 +2904,13 @@ HwInitResult SaiSwitch::initLocked(
               ->second->getL2AgeTimerSeconds());
     }
   }
+
+#if defined(BRCM_SAI_SDK_DNX_GTE_13_0)
+  auto& switchApi = SaiApiTable::getInstance()->switchApi();
+  auto asicRevision = switchApi.getAttribute(
+      saiSwitchId_, SaiSwitchTraits::Attributes::AsicRevision{});
+  XLOG(DBG2) << " Asic revision: " << asicRevision;
+#endif
   ret.switchState->publish();
   return ret;
 }
