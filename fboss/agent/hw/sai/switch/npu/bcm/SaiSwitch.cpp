@@ -1,6 +1,7 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
+#include "fboss/agent/hw/sai/switch/ConcurrentIndices.h"
 
 extern "C" {
 #if !defined(BRCM_SAI_SDK_XGS_AND_DNX)
@@ -956,7 +957,9 @@ void SaiSwitch::switchEventCallback(
       XLOG(DBG2) << "[SHEL] Received remote link change event: " << "isUp: "
                  << static_cast<int>(isUp)
                  << " sysPortId: " << static_cast<int>(sysPortId);
-      // TODO(zecheng): Handle and log remote link change
+      concurrentIndices_->sysPortShelState.insert_or_assign(
+          SystemPortID(sysPortId),
+          isUp ? cfg::PortState::ENABLED : cfg::PortState::DISABLED);
       break;
     }
 #endif
