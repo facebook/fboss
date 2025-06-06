@@ -5,8 +5,6 @@ title: Switch Statistics
 
 # Switch Statistics
 
-# Feature Description
-
 # Overview
 
 Sometimes when debugging detailed networking problems or tracking new statistics, understanding the low-level details of how statistics are generated and tracked across the FBOSS agent are important. In particular, for performance reasons, collection of switch statistics are done periodically (e.g., once per second, one per minute, etc.) and you need to know how the statistics are collected to understand what they’re actually telling you.
@@ -61,10 +59,6 @@ In theory, we could remove the thread polling step and directly DMA our counters
 
 Given the under the covers implementation and the interaction between the Broadcom SDK periodic counter thread and the FBOSS thread counter, it’s possible for a packet that’s counted by the hardware at time t=0 to not show up in fb303 getCounter until 2 full seconds later, e.g., if we just missed the Broadcom SDK counter thread scheduling (1 second per update) and that thread is just slightly out of sync with the FBOSS updateCounters thread (also 1 second). For right now, that’s probably ok, but it would be easy to tweak (e.g., by reducing either of these intervals) and perhaps even possible to remove (e.g., by going to DMA).
 
-# Scale
-
-N/A
-
 # Use Case: Statistics Runbook for a Single Switch
 
 All FBOSS statistics are exported via the fb303 interface (running on agent’s thrift port - 5909), so any of the following will work:
@@ -84,17 +78,14 @@ Note that when trying to view statistics across multiple switches, particularly 
 
 Similar to other Facebook services, once statistics are available from agent via fb303, then fbagent (not to be confused with wedge_agent) polls the statistics from agent once per minute. Then, ODS polls from fbagent typically once every one to five minutes, depending on the counter. So the question of “where do I look at the statistics” comes down to “how fresh do you need the data”.
 
-# Configuration
+# Multi-Switch support
 
-The feature is enabled by default, no configuration knobs available.
+Hardware counters are generally defined in the `Hw.*Fb303Stats` classes.
+SAI managers [collect stats](https://www.internalfb.com/code/fbsource/[978ddaaf2545]/fbcode/fboss/agent/hw/sai/switch/SaiPortManager.cpp?lines=1910) from SDK periodically and update the Fb303 stats.
+When multiple ASICs are present, a [prefix](https://www.internalfb.com/code/fbsource/[80e81311e7b89680ee203c5b694f576ffc43d779]/fbcode/fboss/agent/HwSwitch.cpp?lines=158) is added to the counter name to disambiguate them.
 
-# Build and test
+When FSDB publishing is needed, `MultiSwitchCtrl.syncHwStats` is used to synchronize counters from HwAgents to SwAgent, which will then publish them to FSDB.
 
-N/A
-
-# Debug
-
-N/A
 
 # Sample Output
 
