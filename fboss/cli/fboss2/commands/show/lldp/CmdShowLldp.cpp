@@ -211,6 +211,13 @@ std::string CmdShowLldp::extractExpectedPort(
     return results[0] + "." + results[1];
   }
 
+  const RE2 bc_regex(".*\\.bc([^:]+)");
+  if (RE2::PartialMatch(portDescription, bc_regex)) {
+    std::string match;
+    RE2::PartialMatch(portDescription, bc_regex, &match);
+    return "bc" + match;
+  }
+
   // default to empty string, entire port descriptions is in a separate column
   return "";
 }
