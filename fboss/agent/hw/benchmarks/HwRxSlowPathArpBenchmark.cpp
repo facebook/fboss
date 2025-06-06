@@ -35,12 +35,17 @@ const std::string kDstIp = "8.8.8.8";
 
 namespace facebook::fboss {
 
-// How to generate linerate arp request packets
+// How to generate linerate arp request packets for NPU with Vlan Rif
 // 1. Put all ports under same vlan
 // 2. Install CPU trap acl
 // 3. Send arp request packets with Broadcast mac.
 // It should be broadcast to all the ports to the
 // same vlan and hence amplify the traffic.
+// How to generate linerate arp request packets for NPU with Port Rif
+// 1. Create one port rif per port
+// 2. Install CPU trap acl
+// 3. Send arp request packets with Broadcast mac on that port.
+
 BENCHMARK(RxSlowPathArpBenchmark) {
   AgentEnsembleSwitchConfigFn initialConfigFn = [](const AgentEnsemble&
                                                        ensemble) {
@@ -52,12 +57,20 @@ BENCHMARK(RxSlowPathArpBenchmark) {
 
     auto l3Asics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
     auto asic = checkSameAndGetAsic(l3Asics);
-    auto config = utility::oneL3IntfNPortConfig(
-        ensemble.getSw()->getPlatformMapping(),
-        asic,
-        ensemble.masterLogicalPortIds(),
-        ensemble.getSw()->getPlatformSupportsAddRemovePort(),
-        asic->desiredLoopbackModes());
+
+    auto config = (asic->getAsicType() != cfg::AsicType::ASIC_TYPE_CHENAB)
+        ? utility::oneL3IntfNPortConfig(
+              ensemble.getSw()->getPlatformMapping(),
+              asic,
+              ensemble.masterLogicalPortIds(),
+              ensemble.getSw()->getPlatformSupportsAddRemovePort(),
+              asic->desiredLoopbackModes())
+        : utility::onePortPerInterfaceConfig(
+              ensemble.getSw()->getPlatformMapping(),
+              asic,
+              ensemble.masterLogicalPortIds(),
+              ensemble.getSw()->getPlatformSupportsAddRemovePort(),
+              asic->desiredLoopbackModes());
 
     utility::setupDefaultAclTableGroups(config);
     // We don't want to set queue rate that limits the number of rx pkts
@@ -74,10 +87,18 @@ BENCHMARK(RxSlowPathArpBenchmark) {
   auto ensemble =
       createAgentEnsemble(initialConfigFn, false /*disableLinkStateToggler*/);
 
-  const auto kSrcMac = folly::MacAddress{"fa:ce:b0:00:00:0c"};
+  auto state = ensemble->getSw()->getState();
+  auto intf = utility::firstInterfaceWithPorts(state);
+  const auto kSrcMac = intf->getMac();
   auto broadcastMac = folly::MacAddress("FF:FF:FF:FF:FF:FF");
   //  Send packet
-  auto vlanId = ensemble->getVlanIDForTx();
+  std::optional<PortDescriptor> portDescriptor{};
+  std::optional<VlanID> vlanId{};
+  if (intf->getType() == cfg::InterfaceType::VLAN) {
+    vlanId = intf->getVlanID();
+  } else if (intf->getType() == cfg::InterfaceType::PORT) {
+    portDescriptor = PortDescriptor(intf->getPortID());
+  }
   auto constexpr kPacketToSend = 10;
   for (int i = 0; i < kPacketToSend; i++) {
     auto txPacket = utility::makeARPTxPacket(
@@ -88,7 +109,7 @@ BENCHMARK(RxSlowPathArpBenchmark) {
         folly::IPAddressV4(kSrcIp),
         folly::IPAddressV4(kDstIp),
         ARP_OPER::ARP_OPER_REQUEST);
-    ensemble->getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+    ensemble->getSw()->sendPacketAsync(std::move(txPacket), portDescriptor);
   }
 
   constexpr auto kBurnIntevalInSeconds = 10;
