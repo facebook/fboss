@@ -20,13 +20,20 @@ namespace fboss {
 
 QsfpFsdbSyncManager::QsfpFsdbSyncManager() {
   if (FLAGS_publish_state_to_fsdb) {
-    stateSyncer_ =
-        std::make_unique<fsdb::FsdbSyncManager<state::QsfpServiceData>>(
-            "qsfp_service", getStatePath(), false, fsdb::PubSubType::DELTA);
+    stateSyncer_ = std::make_unique<fsdb::FsdbSyncManager<
+        state::QsfpServiceData,
+        true /* EnablePatchAPIs */>>(
+        "qsfp_service",
+        getStatePath(),
+        false /* isStats */,
+        fsdb::getFsdbStatePubType());
   }
   if (FLAGS_publish_stats_to_fsdb) {
     statsSyncer_ = std::make_unique<fsdb::FsdbSyncManager<stats::QsfpStats>>(
-        "qsfp_service", getStatsPath(), true, fsdb::PubSubType::PATH);
+        "qsfp_service",
+        getStatsPath(),
+        true /* isStats */,
+        fsdb::PubSubType::PATH);
   }
 }
 
