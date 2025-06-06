@@ -431,6 +431,7 @@ struct HwSwitchFb303GlobalStats {
   33: optional i64 rqp_parity_error;
   34: i64 fabric_connectivity_bogus;
   35: optional i64 interrupt_masked_events;
+  36: optional i64 asic_revision;
 }
 
 struct HwFlowletStats {
