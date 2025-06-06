@@ -838,6 +838,16 @@ enum QueueScheduling {
   INTERNAL = 1000,
 }
 
+enum HighLowPriority {
+  PRIORITY_LOW = 0,
+  PRIORITY_HIGH = 1,
+}
+
+union SchedulingParam {
+  1: HighLowPriority spPriority;
+  2: i16 wrrWeight;
+}
+
 // Detection based on average queue length in bytes with two thresholds.
 // If the queue length is below the minimum threshold, then never consider the
 // queue congested. If the queue length is above the maximum threshold, then
@@ -2027,6 +2037,11 @@ struct DsfNode {
   // as part of config for other nodes to bootstrap
   // communication to this node
   14: optional i32 inbandPortId;
+  // Prioritization between credit requests from different remote DSF nodes, default no priorization
+  15: QueueScheduling scheduling = QueueScheduling.INTERNAL;
+  // If strict priority, using spPriority
+  // If weighted round robin, use wrrWeight
+  16: optional SchedulingParam schedulingParam;
 }
 
 /**
