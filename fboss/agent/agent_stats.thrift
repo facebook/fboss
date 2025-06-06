@@ -8,6 +8,7 @@ cpp_include "folly/container/F14Map.h"
 cpp_include "folly/FBString.h"
 
 include "fboss/agent/hw/hardware_stats.thrift"
+include "fboss/agent/switch_config.thrift"
 include "thrift/annotation/cpp.thrift"
 include "fboss/lib/phy/phy.thrift"
 include "fboss/platform/sensor_service/if/sensor_service.thrift"
@@ -64,4 +65,5 @@ struct AgentStats {
   > fabricReachabilityStatsMap;
   28: map<i16, hardware_stats.HwSwitchPipelineStats> switchPipelineStatsMap;
   29: map<string, sensor_service.SensorData> asicTemp;
+  30: map<i16, map<i32, switch_config.PortState>> sysPortShelStateMap;
 }
