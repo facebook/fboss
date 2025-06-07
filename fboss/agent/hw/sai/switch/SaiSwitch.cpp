@@ -4725,9 +4725,11 @@ void SaiSwitch::pfcDeadlockNotificationCallback(
     switch (deadlockEvent) {
       case SAI_QUEUE_PFC_DEADLOCK_EVENT_TYPE_DETECTED:
         managerTable_->portManager().incrementPfcDeadlockCounter(portId);
+        getSwitchStats()->pfcDeadlockDetectionCount(); // update HwSwitch stats
         break;
       case SAI_QUEUE_PFC_DEADLOCK_EVENT_TYPE_RECOVERED:
         managerTable_->portManager().incrementPfcRecoveryCounter(portId);
+        getSwitchStats()->pfcDeadlockRecoveryCount(); // update HwSwitch stats
         break;
       default:
         XLOG(ERR) << "Unknown event " << deadlockEvent

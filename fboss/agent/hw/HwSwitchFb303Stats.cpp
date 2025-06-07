@@ -510,7 +510,15 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
           getCounterPrefix() + "isolation_firmware_op_status"),
       isolationFirmwareFuncStatus_(
           map,
-          getCounterPrefix() + "isolation_firmware_functional_status") {}
+          getCounterPrefix() + "isolation_firmware_functional_status"),
+      pfcDeadlockDetectionCount_(
+          map,
+          getCounterPrefix() + "pfc_deadlock_detection_count",
+          SUM),
+      pfcDeadlockRecoveryCount_(
+          map,
+          getCounterPrefix() + "pfc_deadlock_recovery_count",
+          SUM) {}
 
 void HwSwitchFb303Stats::update(const HwSwitchDropStats& dropStats) {
   if (dropStats.globalDrops().has_value()) {

@@ -257,6 +257,12 @@ class HwSwitchFb303Stats {
   void interruptMaskedEvent() {
     interruptMaskedEvents_.addValue(1);
   }
+  void pfcDeadlockDetectionCount() {
+    pfcDeadlockDetectionCount_.addValue(1);
+  }
+  void pfcDeadlockRecoveryCount() {
+    pfcDeadlockRecoveryCount_.addValue(1);
+  }
   void fabricConnectivityMissingCount(int64_t value);
   void fabricConnectivityMismatchCount(int64_t value);
   void fabricConnectivityBogusCount(int64_t value);
@@ -541,6 +547,8 @@ class HwSwitchFb303Stats {
   TLCounter isolationFirmwareVersion_;
   TLCounter isolationFirmwareOpStatus_;
   TLCounter isolationFirmwareFuncStatus_;
+  TLTimeseries pfcDeadlockDetectionCount_;
+  TLTimeseries pfcDeadlockRecoveryCount_;
 };
 
 } // namespace facebook::fboss

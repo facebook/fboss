@@ -818,6 +818,24 @@ class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcTest {
     };
   }
 
+  std::tuple<int, int> getSwitchPfcDeadlockCounters() {
+    auto detectionCtrName = getAgentEnsemble()->isSai()
+        ? "pfc_deadlock_detection_count.sum"
+        : "pfc_deadlock_detection.sum";
+    auto recoveryCtrName = getAgentEnsemble()->isSai()
+        ? "pfc_deadlock_recovery_count.sum"
+        : "pfc_deadlock_recovery.sum";
+    int deadlockCtr = 0;
+    int recoveryCtr = 0;
+    for (auto [switchId, asic] : getAsics()) {
+      deadlockCtr +=
+          getAgentEnsemble()->getFb303Counter(detectionCtrName, switchId);
+      recoveryCtr +=
+          getAgentEnsemble()->getFb303Counter(recoveryCtrName, switchId);
+    }
+    return {deadlockCtr, recoveryCtr};
+  }
+
   void validatePfcWatchdogCountersIncrement(
       const PortID& portId,
       const uint64_t& deadlockCtrBefore,
@@ -828,6 +846,19 @@ class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcTest {
                  << " recoveryCtr = " << recoveryCtr;
       EXPECT_EVENTUALLY_GT(deadlockCtr, deadlockCtrBefore);
       EXPECT_EVENTUALLY_GT(recoveryCtr, recoveryCtrBefore);
+    });
+  }
+
+  void validateGlobalPfcWatchdogCountersIncrement(
+      const uint64_t& globalDeadlockCtrBefore,
+      const uint64_t& globalRecoveryCtrBefore) {
+    WITH_RETRIES_N_TIMED(10, std::chrono::milliseconds(1000), {
+      auto [globalDeadlockCtr, globalRecoveryCtr] =
+          getSwitchPfcDeadlockCounters();
+      XLOG(DBG0) << "Global deadlockCtr = " << globalDeadlockCtr
+                 << " recoveryCtr = " << globalRecoveryCtr;
+      EXPECT_EVENTUALLY_GT(globalDeadlockCtr, globalDeadlockCtrBefore);
+      EXPECT_EVENTUALLY_GT(globalRecoveryCtr, globalRecoveryCtrBefore);
     });
   }
 
@@ -908,9 +939,13 @@ TEST_F(AgentTrafficPfcWatchdogTest, PfcWatchdogDetection) {
   auto verify = [&]() {
     auto [deadlockCtrBefore, recoveryCtrBefore] =
         getPfcDeadlockCounters(portId);
+    auto [globalDeadlockBefore, globalRecoveryBefore] =
+        getSwitchPfcDeadlockCounters();
     triggerPfcDeadlockDetection(portId, txOffPortId, ip);
     validatePfcWatchdogCountersIncrement(
         portId, deadlockCtrBefore, recoveryCtrBefore);
+    validateGlobalPfcWatchdogCountersIncrement(
+        globalDeadlockBefore, globalRecoveryBefore);
     cleanupPfcDeadlockDetectionTrigger(txOffPortId);
   };
   verifyAcrossWarmBoots(setup, verify);

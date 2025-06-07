@@ -222,7 +222,7 @@ void SplitAgentThriftSyncer::exitFatal() const noexcept {
 void SplitAgentThriftSyncer::pfcWatchdogStateChanged(
     const PortID& /* port */,
     const bool /* deadlock */) {
-  // TODO - Add handler
+  // No need to sync PFC events to SwSwitch. We'll increment counters locally.
 }
 
 void SplitAgentThriftSyncer::registerStateObserver(
