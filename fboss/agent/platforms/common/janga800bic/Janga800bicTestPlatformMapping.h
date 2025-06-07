@@ -32369,7 +32369,7 @@ constexpr auto kJsonMultiNpuTestPlatformMappingStr = R"(
           "portType": 3,
           "attachedCoreId": 2,
           "attachedCorePortIndex": 2,
-          "virtualDeviceId": 4,
+          "virtualDeviceId": 0,
           "scope": 1
         },
         "supportedProfiles": {
@@ -32403,7 +32403,7 @@ constexpr auto kJsonMultiNpuTestPlatformMappingStr = R"(
           "portType": 3,
           "attachedCoreId": 0,
           "attachedCorePortIndex": 1,
-          "virtualDeviceId": 4,
+          "virtualDeviceId": 0,
           "scope": 0
         },
         "supportedProfiles": {
@@ -32437,7 +32437,7 @@ constexpr auto kJsonMultiNpuTestPlatformMappingStr = R"(
           "portType": 3,
           "attachedCoreId": 1,
           "attachedCorePortIndex": 1,
-          "virtualDeviceId": 4,
+          "virtualDeviceId": 0,
           "scope": 0
         },
         "supportedProfiles": {
@@ -32471,7 +32471,7 @@ constexpr auto kJsonMultiNpuTestPlatformMappingStr = R"(
           "portType": 3,
           "attachedCoreId": 2,
           "attachedCorePortIndex": 1,
-          "virtualDeviceId": 4,
+          "virtualDeviceId": 0,
           "scope": 0
         },
         "supportedProfiles": {
@@ -32505,7 +32505,7 @@ constexpr auto kJsonMultiNpuTestPlatformMappingStr = R"(
           "portType": 3,
           "attachedCoreId": 3,
           "attachedCorePortIndex": 1,
-          "virtualDeviceId": 4,
+          "virtualDeviceId": 0,
           "scope": 0
         },
         "supportedProfiles": {
@@ -32539,7 +32539,7 @@ constexpr auto kJsonMultiNpuTestPlatformMappingStr = R"(
           "portType": 5,
           "attachedCoreId": 0,
           "attachedCorePortIndex": 2,
-          "virtualDeviceId": 4,
+          "virtualDeviceId": 0,
           "scope": 0
         },
         "supportedProfiles": {
@@ -32615,7 +32615,7 @@ constexpr auto kJsonMultiNpuTestPlatformMappingStr = R"(
           "portType": 4,
           "attachedCoreId": 2,
           "attachedCorePortIndex": 7,
-          "virtualDeviceId": 4,
+          "virtualDeviceId": 0,
           "scope": 1
         },
         "supportedProfiles": {
@@ -32869,9 +32869,9 @@ constexpr auto kJsonMultiNpuTestPlatformMappingStr = R"(
             }
           ],
           "portType": 0,
-          "attachedCoreId": 0,
+          "attachedCoreId": 3,
           "attachedCorePortIndex": 2,
-          "virtualDeviceId": 4,
+          "virtualDeviceId": 0,
           "scope": 1
         },
         "supportedProfiles": {
@@ -33479,9 +33479,9 @@ constexpr auto kJsonMultiNpuTestPlatformMappingStr = R"(
             }
           ],
           "portType": 0,
-          "attachedCoreId": 0,
+          "attachedCoreId": 3,
           "attachedCorePortIndex": 7,
-          "virtualDeviceId": 4,
+          "virtualDeviceId": 0,
           "scope": 1
         },
         "supportedProfiles": {
@@ -33851,9 +33851,9 @@ constexpr auto kJsonMultiNpuTestPlatformMappingStr = R"(
             }
           ],
           "portType": 0,
-          "attachedCoreId": 3,
+          "attachedCoreId": 0,
           "attachedCorePortIndex": 3,
-          "virtualDeviceId": 4,
+          "virtualDeviceId": 0,
           "scope": 1
         },
         "supportedProfiles": {
@@ -34461,9 +34461,9 @@ constexpr auto kJsonMultiNpuTestPlatformMappingStr = R"(
             }
           ],
           "portType": 0,
-          "attachedCoreId": 3,
+          "attachedCoreId": 0,
           "attachedCorePortIndex": 8,
-          "virtualDeviceId": 4,
+          "virtualDeviceId": 0,
           "scope": 1
         },
         "supportedProfiles": {
@@ -34835,7 +34835,7 @@ constexpr auto kJsonMultiNpuTestPlatformMappingStr = R"(
           "portType": 0,
           "attachedCoreId": 0,
           "attachedCorePortIndex": 4,
-          "virtualDeviceId": 4,
+          "virtualDeviceId": 0,
           "scope": 1
         },
         "supportedProfiles": {
@@ -35123,7 +35123,7 @@ constexpr auto kJsonMultiNpuTestPlatformMappingStr = R"(
           "portType": 0,
           "attachedCoreId": 0,
           "attachedCorePortIndex": 5,
-          "virtualDeviceId": 4,
+          "virtualDeviceId": 0,
           "scope": 1
         },
         "supportedProfiles": {
@@ -35411,7 +35411,7 @@ constexpr auto kJsonMultiNpuTestPlatformMappingStr = R"(
           "portType": 0,
           "attachedCoreId": 0,
           "attachedCorePortIndex": 6,
-          "virtualDeviceId": 4,
+          "virtualDeviceId": 0,
           "scope": 1
         },
         "supportedProfiles": {
@@ -35699,7 +35699,7 @@ constexpr auto kJsonMultiNpuTestPlatformMappingStr = R"(
           "portType": 0,
           "attachedCoreId": 0,
           "attachedCorePortIndex": 7,
-          "virtualDeviceId": 4,
+          "virtualDeviceId": 0,
           "scope": 1
         },
         "supportedProfiles": {
@@ -35987,7 +35987,7 @@ constexpr auto kJsonMultiNpuTestPlatformMappingStr = R"(
           "portType": 0,
           "attachedCoreId": 1,
           "attachedCorePortIndex": 2,
-          "virtualDeviceId": 4,
+          "virtualDeviceId": 0,
           "scope": 1
         },
         "supportedProfiles": {
@@ -36275,7 +36275,7 @@ constexpr auto kJsonMultiNpuTestPlatformMappingStr = R"(
           "portType": 0,
           "attachedCoreId": 1,
           "attachedCorePortIndex": 3,
-          "virtualDeviceId": 4,
+          "virtualDeviceId": 0,
           "scope": 1
         },
         "supportedProfiles": {
@@ -36563,7 +36563,7 @@ constexpr auto kJsonMultiNpuTestPlatformMappingStr = R"(
           "portType": 0,
           "attachedCoreId": 1,
           "attachedCorePortIndex": 4,
-          "virtualDeviceId": 4,
+          "virtualDeviceId": 0,
           "scope": 1
         },
         "supportedProfiles": {
@@ -36851,7 +36851,7 @@ constexpr auto kJsonMultiNpuTestPlatformMappingStr = R"(
           "portType": 0,
           "attachedCoreId": 1,
           "attachedCorePortIndex": 5,
-          "virtualDeviceId": 4,
+          "virtualDeviceId": 0,
           "scope": 1
         },
         "supportedProfiles": {
@@ -37139,7 +37139,7 @@ constexpr auto kJsonMultiNpuTestPlatformMappingStr = R"(
           "portType": 0,
           "attachedCoreId": 2,
           "attachedCorePortIndex": 3,
-          "virtualDeviceId": 4,
+          "virtualDeviceId": 0,
           "scope": 1
         },
         "supportedProfiles": {
@@ -37427,7 +37427,7 @@ constexpr auto kJsonMultiNpuTestPlatformMappingStr = R"(
           "portType": 0,
           "attachedCoreId": 2,
           "attachedCorePortIndex": 4,
-          "virtualDeviceId": 4,
+          "virtualDeviceId": 0,
           "scope": 1
         },
         "supportedProfiles": {
@@ -37715,7 +37715,7 @@ constexpr auto kJsonMultiNpuTestPlatformMappingStr = R"(
           "portType": 0,
           "attachedCoreId": 2,
           "attachedCorePortIndex": 5,
-          "virtualDeviceId": 4,
+          "virtualDeviceId": 0,
           "scope": 1
         },
         "supportedProfiles": {
@@ -38003,7 +38003,7 @@ constexpr auto kJsonMultiNpuTestPlatformMappingStr = R"(
           "portType": 0,
           "attachedCoreId": 2,
           "attachedCorePortIndex": 6,
-          "virtualDeviceId": 4,
+          "virtualDeviceId": 0,
           "scope": 1
         },
         "supportedProfiles": {
@@ -38291,7 +38291,7 @@ constexpr auto kJsonMultiNpuTestPlatformMappingStr = R"(
           "portType": 0,
           "attachedCoreId": 3,
           "attachedCorePortIndex": 3,
-          "virtualDeviceId": 4,
+          "virtualDeviceId": 0,
           "scope": 1
         },
         "supportedProfiles": {
@@ -38579,7 +38579,7 @@ constexpr auto kJsonMultiNpuTestPlatformMappingStr = R"(
           "portType": 0,
           "attachedCoreId": 3,
           "attachedCorePortIndex": 4,
-          "virtualDeviceId": 4,
+          "virtualDeviceId": 0,
           "scope": 1
         },
         "supportedProfiles": {
@@ -38867,7 +38867,7 @@ constexpr auto kJsonMultiNpuTestPlatformMappingStr = R"(
           "portType": 0,
           "attachedCoreId": 3,
           "attachedCorePortIndex": 5,
-          "virtualDeviceId": 4,
+          "virtualDeviceId": 0,
           "scope": 1
         },
         "supportedProfiles": {
@@ -39155,7 +39155,7 @@ constexpr auto kJsonMultiNpuTestPlatformMappingStr = R"(
           "portType": 0,
           "attachedCoreId": 3,
           "attachedCorePortIndex": 6,
-          "virtualDeviceId": 4,
+          "virtualDeviceId": 0,
           "scope": 1
         },
         "supportedProfiles": {
