@@ -9,6 +9,7 @@ add_library(setup_thrift
 )
 
 target_link_libraries(setup_thrift
+  load_agent_config
   Folly::folly
   FBThrift::thriftcpp2
 )

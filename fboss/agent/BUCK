@@ -248,6 +248,7 @@ cpp_library(
         "facebook/SetupThrift.h",
     ],
     exported_deps = [
+        ":load_agent_config",
         "//common/services/cpp:thrift_acl_checker_module_config",
         "//common/services/cpp:thrift_aclchecker_handler_factory",
         "//common/services/cpp:tls",
