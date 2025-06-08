@@ -29,7 +29,9 @@ class HwSwitchThriftClientTable {
       const std::map<int64_t, cfg::SwitchInfo>& switchIdToSwitchInfo);
   apache::thrift::Client<FbossHwCtrl>* getClient(SwitchID switchId);
 
-  std::optional<std::map<::std::int64_t, FabricEndpoint>> getFabricConnectivity(
+  std::optional<std::map<::std::int64_t, FabricEndpoint>> getFabricReachability(
+      SwitchID switchId);
+  std::optional<std::map<::std::string, FabricEndpoint>> getFabricConnectivity(
       SwitchID switchId);
 
   void clearHwPortStats(SwitchID switchId, std::vector<int32_t>& ports);

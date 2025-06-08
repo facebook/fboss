@@ -2916,13 +2916,14 @@ void ThriftHandler::getFabricConnectivity(
   auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureVoqOrFabric(__func__);
   // get cached data as stored in the fabric manager
-  auto portId2FabricEndpoint =
-      sw_->getHwSwitchHandler()->getFabricConnectivity();
-  auto state = sw_->getState();
-
-  for (auto [portId, fabricEndpoint] : portId2FabricEndpoint) {
-    auto portName = state->getPorts()->getNodeIf(portId)->getName();
-    connectivity.insert({portName, fabricEndpoint});
+  for (const auto& switchId : sw_->getSwitchInfoTable().getSwitchIDs()) {
+    auto portId2FabricEndpoint =
+        sw_->getHwSwitchThriftClientTable()->getFabricConnectivity(switchId);
+    CHECK(portId2FabricEndpoint.has_value());
+    auto state = sw_->getState();
+    for (auto [portName, fabricEndpoint] : portId2FabricEndpoint.value()) {
+      connectivity.insert({portName, fabricEndpoint});
+    }
   }
 }
 
