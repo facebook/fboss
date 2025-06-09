@@ -368,6 +368,15 @@ std::set<std::string> MultiNodeUtil::getActiveFabricPorts(
   return activePorts;
 }
 
+bool MultiNodeUtil::verifyPortActiveStateForDevice(
+    const std::string& switchName) {
+  // Every Connected Fabric Port must be Active
+  auto expectedActivePorts = getConnectedFabricPorts(switchName);
+  auto gotActivePorts = getActiveFabricPorts(switchName);
+
+  return expectedActivePorts == gotActivePorts;
+}
+
 std::set<std::string> MultiNodeUtil::getGlobalSystemPortsOfType(
     const std::string& rdsw,
     const std::set<RemoteSystemPortType>& types) {
