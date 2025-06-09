@@ -55,9 +55,7 @@ cpp_library(
         "//fboss/lib/config:fboss_config_utils",
         "//fboss/lib/fpga/facebook/fuji:fuji_container",
         "//fboss/lib/platforms:product-info",
-        "//folly:memory",
         "//folly:network_address",
-        "//folly/logging:logging",
         "//folly/testing:test_util",
     ],
     exported_external_deps = [
@@ -94,9 +92,7 @@ cpp_library(
         "//fboss/lib/config:fboss_config_utils",
         "//fboss/lib/fpga/facebook/fuji:fuji_container",
         "//fboss/lib/platforms:product-info",
-        "//folly:memory",
         "//folly:network_address",
-        "//folly/logging:logging",
         "//folly/testing:test_util",
     ],
     exported_external_deps = [

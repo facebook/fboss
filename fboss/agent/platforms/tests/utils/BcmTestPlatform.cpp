@@ -17,9 +17,6 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 
-#include <folly/Memory.h>
-#include <folly/logging/xlog.h>
-
 #include "fboss/agent/platforms/wedge/utils/BcmLedUtils.h"
 #include "fboss/lib/fpga/facebook/fuji/FujiSystemContainer.h"
 
