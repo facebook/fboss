@@ -69,6 +69,9 @@ class MultiNodeUtil {
 
   bool verifyFabricReachablityForRdsw(const std::string& rdswToVerify);
 
+  std::map<int32_t, facebook::fboss::PortInfoThrift> getPorts(
+      const std::string& switchName);
+
   std::set<std::string> getGlobalSystemPortsOfType(
       const std::string& rdsw,
       const std::set<RemoteSystemPortType>& types);

@@ -327,6 +327,15 @@ bool MultiNodeUtil::verifyFabricReachability() {
   return true;
 }
 
+std::map<int32_t, facebook::fboss::PortInfoThrift> MultiNodeUtil::getPorts(
+    const std::string& switchName) {
+  std::map<int32_t, facebook::fboss::PortInfoThrift> portEntries;
+  auto swAgentClient = getSwAgentThriftClient(switchName);
+  swAgentClient->sync_getAllPortInfo(portEntries);
+
+  return portEntries;
+}
+
 std::set<std::string> MultiNodeUtil::getGlobalSystemPortsOfType(
     const std::string& rdsw,
     const std::set<RemoteSystemPortType>& types) {
