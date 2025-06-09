@@ -29,23 +29,22 @@ class MultiNodeUtil {
   bool verifyDsfSessions();
 
  private:
-  enum class DeviceType : uint8_t {
+  enum class SwitchType : uint8_t {
     RDSW = 0,
     FDSW = 1,
     SDSW = 2,
   };
 
-  std::string deviceTypeToString(DeviceType deviceType) {
-    switch (deviceType) {
-      case DeviceType::RDSW:
+  std::string switchTypeToString(SwitchType switchType) {
+    switch (switchType) {
+      case SwitchType::RDSW:
         return "RDSW";
-      case DeviceType::FDSW:
+      case SwitchType::FDSW:
         return "FDSW";
-      case DeviceType::SDSW:
+      case SwitchType::SDSW:
         return "SDSW";
     }
   }
-
   void populateDsfNodes(
       const std::shared_ptr<MultiSwitchDsfNodeMap>& dsfNodeMap);
   void populateAllRdsws();
@@ -55,8 +54,8 @@ class MultiNodeUtil {
       const std::string& switchName);
   std::set<std::string> getConnectedFabricPorts(const std::string& switchName);
   bool verifyFabricConnectedSwitchesHelper(
-      DeviceType deviceType,
-      const std::string& deviceToVerify,
+      SwitchType switchType,
+      const std::string& switchToVerify,
       const std::set<std::string>& expectedConnectedSwitches);
   bool verifyFabricConnectedSwitchesForRdsw(
       int clusterId,
@@ -74,14 +73,14 @@ class MultiNodeUtil {
   std::map<int32_t, facebook::fboss::PortInfoThrift> getPorts(
       const std::string& switchName);
   std::set<std::string> getActiveFabricPorts(const std::string& switchName);
-  bool verifyPortActiveStateForDevice(
-      DeviceType deviceType,
+  bool verifyPortActiveStateForSwitch(
+      SwitchType switchType,
       const std::string& switchName);
-  bool verifyNoPortErrorsForDevice(
-      DeviceType deviceType,
+  bool verifyNoPortErrorsForSwitch(
+      SwitchType switchType,
       const std::string& switchName);
-  bool verifyPortsForDevice(
-      DeviceType deviceType,
+  bool verifyPortsForSwitch(
+      SwitchType switchType,
       const std::string& switchName);
 
   std::set<std::string> getGlobalSystemPortsOfType(
