@@ -28,6 +28,23 @@ class MultiNodeUtil {
   bool verifyDsfSessions();
 
  private:
+  enum class DeviceType : uint8_t {
+    RDSW = 0,
+    FDSW = 1,
+    SDSW = 2,
+  };
+
+  std::string deviceTypeToString(DeviceType deviceType) {
+    switch (deviceType) {
+      case DeviceType::RDSW:
+        return "RDSW";
+      case DeviceType::FDSW:
+        return "FDSW";
+      case DeviceType::SDSW:
+        return "SDSW";
+    }
+  }
+
   void populateDsfNodes(
       const std::shared_ptr<MultiSwitchDsfNodeMap>& dsfNodeMap);
   void populateAllRdsws();
