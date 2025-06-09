@@ -1,6 +1,5 @@
 #include <folly/logging/xlog.h>
 #include "fboss/platform/fw_util/FwUtilImpl.h"
-#include "fboss/platform/helpers/PlatformUtils.h"
 
 namespace facebook::fboss::platform::fw_util {
 
