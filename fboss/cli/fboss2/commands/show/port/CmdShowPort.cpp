@@ -391,6 +391,10 @@ RetType CmdShowPort::createModel(
             !isPeerPortDrainedOrDown.value();
         activeStateMismatch = (isActive.value() != expectedActive);
       }
+      std::string cableLenMeters = "--";
+      if (auto cableLen = portInfo.cableLengthMeters()) {
+        cableLenMeters = folly::to<std::string>(*cableLen);
+      }
 
       cli::PortEntry portDetails;
       portDetails.id() = folly::copy(portInfo.portId().value());
@@ -400,6 +404,7 @@ RetType CmdShowPort::createModel(
       portDetails.linkState() = operState;
       portDetails.activeState() = activeState;
       portDetails.activeStateMismatch() = activeStateMismatch;
+      portDetails.cableLengthMeters() = cableLenMeters;
       portDetails.speed() =
           utils::getSpeedGbps(folly::copy(portInfo.speedMbps().value()));
       portDetails.profileId() = portInfo.profileID().value();
@@ -691,6 +696,7 @@ void CmdShowPort::printOutput(const RetType& model, std::ostream& out) {
         "Errors",
         "Core Id",
         "Virtual device Id",
+        "Cable Len meters",
     });
 
     for (auto const& portInfo : model.portEntries().value()) {
@@ -717,7 +723,8 @@ void CmdShowPort::printOutput(const RetType& model, std::ostream& out) {
            portInfo.peerPortDrainedOrDown().value(),
            getStyledErrors(portInfo.activeErrors().value()),
            portInfo.coreId().value(),
-           portInfo.virtualDeviceId().value()});
+           portInfo.virtualDeviceId().value(),
+           portInfo.cableLengthMeters().value()});
     }
     out << table << std::endl;
   }

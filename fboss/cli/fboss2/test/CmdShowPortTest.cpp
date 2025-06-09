@@ -222,6 +222,7 @@ cli::ShowPortModel createPortModel() {
   entry1.peerPortDrainedOrDown() = "--";
   entry1.coreId() = "1";
   entry1.virtualDeviceId() = "1";
+  entry1.cableLengthMeters() = "--";
 
   entry2.id() = 2;
   entry2.hwLogicalPortId() = 2;
@@ -241,6 +242,7 @@ cli::ShowPortModel createPortModel() {
   entry2.peerPortDrainedOrDown() = "--";
   entry2.coreId() = "2";
   entry2.virtualDeviceId() = "2";
+  entry2.cableLengthMeters() = "--";
 
   entry3.id() = 3;
   entry3.hwLogicalPortId() = 3;
@@ -260,6 +262,7 @@ cli::ShowPortModel createPortModel() {
   entry3.peerPortDrainedOrDown() = "--";
   entry3.coreId() = "3";
   entry3.virtualDeviceId() = "3";
+  entry3.cableLengthMeters() = "--";
 
   entry4.id() = 8;
   entry4.hwLogicalPortId() = 8;
@@ -279,6 +282,7 @@ cli::ShowPortModel createPortModel() {
   entry4.peerPortDrainedOrDown() = "--";
   entry4.coreId() = "--";
   entry4.virtualDeviceId() = "--";
+  entry4.cableLengthMeters() = "--";
 
   entry5.id() = 7;
   entry5.hwLogicalPortId() = 7;
@@ -298,6 +302,7 @@ cli::ShowPortModel createPortModel() {
   entry5.peerPortDrainedOrDown() = "--";
   entry5.coreId() = "5";
   entry5.virtualDeviceId() = "5";
+  entry5.cableLengthMeters() = "--";
 
   entry6.id() = 9;
   entry6.hwLogicalPortId() = 9;
@@ -317,6 +322,7 @@ cli::ShowPortModel createPortModel() {
   entry6.peerPortDrainedOrDown() = "--";
   entry6.coreId() = "6";
   entry6.virtualDeviceId() = "6";
+  entry6.cableLengthMeters() = "--";
 
   // sorted by name
   model.portEntries() = {entry6, entry1, entry2, entry3, entry5, entry4};

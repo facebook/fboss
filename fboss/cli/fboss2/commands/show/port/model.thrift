@@ -27,7 +27,7 @@ struct PortEntry {
   20: string peerSwitchDrained;
   21: string peerPortDrainedOrDown;
   22: bool activeStateMismatch;
-  23: string cableLen;
+  23: string cableLengthMeters;
 }
 
 struct PortHwStatsEntry {
