@@ -32,14 +32,17 @@ std::vector<std::vector<std::string>> groupPortsByVD(
 }
 
 std::vector<std::vector<std::string>> getLinkFailure(
-    const std::string& neighbor,
+    const std::vector<std::string>& neighbors,
     const std::unordered_map<std::string, std::vector<std::string>>&
         neighborToLinkFailure,
     const std::unordered_map<std::string, int>& portToVirtualDevice) {
   std::vector<std::string> linkFailures;
-  auto iter = neighborToLinkFailure.find(neighbor);
-  if (iter != neighborToLinkFailure.end()) {
-    linkFailures = iter->second;
+  for (const auto& neighbor : neighbors) {
+    auto iter = neighborToLinkFailure.find(neighbor);
+    if (iter != neighborToLinkFailure.end()) {
+      linkFailures.insert(
+          linkFailures.end(), iter->second.begin(), iter->second.end());
+    }
   }
   return groupPortsByVD(linkFailures, portToVirtualDevice);
 };
@@ -223,7 +226,7 @@ std::vector<InputBalanceResult> checkInputBalanceSingleStage(
     auto outputCapacity =
         groupPortsByVD(outputCapacityIter->second, portToVirtualDevice);
     auto outputLinkFailure =
-        getLinkFailure(dstSwitch, neighborToLinkFailure, portToVirtualDevice);
+        getLinkFailure({dstSwitch}, neighborToLinkFailure, portToVirtualDevice);
 
     for (const auto& [neighborSwitch, neighborReachability] : inputCapacity) {
       if (neighborSwitch == dstSwitch) {
@@ -240,7 +243,7 @@ std::vector<InputBalanceResult> checkInputBalanceSingleStage(
       auto inputCapacity =
           groupPortsByVD(neighborReachIter->second, portToVirtualDevice);
       auto inputLinkFailure = getLinkFailure(
-          neighborSwitch, neighborToLinkFailure, portToVirtualDevice);
+          {neighborSwitch}, neighborToLinkFailure, portToVirtualDevice);
 
       for (int vd = 0; vd < kNumVirtualDevice; vd++) {
         auto localLinkFailure = std::max(
