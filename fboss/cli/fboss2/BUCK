@@ -278,6 +278,7 @@ cpp_library(
         "commands/show/example/CmdShowExample.cpp",
         "commands/show/fabric/CmdShowFabric.cpp",
         "commands/show/fabric/reachability/CmdShowFabricReachability.cpp",
+        "commands/show/fabric/reachability/uncached/CmdShowFabricReachabilityUncached.cpp",
         "commands/show/facebook/CmdShowUtils.cpp",
         "commands/show/facebook/CmdShowVersionAgent.cpp",
         "commands/show/facebook/bgp/ribpolicy/CmdShowBgpRibPolicyUtils.cpp",
