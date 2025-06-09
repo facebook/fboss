@@ -52,6 +52,7 @@ class MultiNodeUtil {
 
   std::map<std::string, FabricEndpoint> getFabricEndpoints(
       const std::string& switchName);
+  std::set<std::string> getConnectedFabricPorts(const std::string& switchName);
   bool verifyFabricConnectedSwitchesHelper(
       DeviceType deviceType,
       const std::string& deviceToVerify,

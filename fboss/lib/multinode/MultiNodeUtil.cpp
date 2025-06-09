@@ -139,6 +139,20 @@ std::map<std::string, FabricEndpoint> MultiNodeUtil::getFabricEndpoints(
   return fabricEndpoints;
 }
 
+std::set<std::string> MultiNodeUtil::getConnectedFabricPorts(
+    const std::string& switchName) {
+  auto fabricEndpoints = getFabricEndpoints(switchName);
+
+  std::set<std::string> connectedPorts;
+  for (const auto& [localPort, fabricEndpoint] : fabricEndpoints) {
+    if (fabricEndpoint.isAttached().value()) {
+      connectedPorts.insert(localPort);
+    }
+  }
+
+  return connectedPorts;
+}
+
 bool MultiNodeUtil::verifyFabricConnectedSwitchesHelper(
     DeviceType deviceType,
     const std::string& deviceToVerify,
