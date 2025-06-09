@@ -49,7 +49,8 @@
             "programmer_type": "linux_spi:dev=",
             "programmer": "/run/devmap/flashes/SMB_SPI_MASTER_1_DEVICE_1",
             "chip": [
-              "N25Q128..3E"
+              "N25Q128..3E",
+              "IS25LP128"
             ]
           }
         }
@@ -60,7 +61,8 @@
           "programmer_type": "linux_spi:dev=",
           "programmer": "/run/devmap/flashes/SMB_SPI_MASTER_1_DEVICE_1",
           "chip": [
-            "N25Q128..3E"
+            "N25Q128..3E",
+            "IS25LP128"
           ]
         }
       },
@@ -70,7 +72,8 @@
           "programmer_type": "linux_spi:dev=",
           "programmer": "/run/devmap/flashes/SMB_SPI_MASTER_1_DEVICE_1",
           "chip": [
-            "N25Q128..3E"
+            "N25Q128..3E",
+            "IS25LP128"
           ]
         }
       },
@@ -98,7 +101,8 @@
             "programmer_type": "linux_spi:dev=",
             "programmer": "/run/devmap/flashes/SMB_SPI_MASTER_2_DEVICE_1",
             "chip": [
-              "N25Q128..3E"
+              "N25Q128..3E",
+              "IS25LP128"
             ]
           }
         }
@@ -118,7 +122,8 @@
           "programmer_type": "linux_spi:dev=",
           "programmer": "/run/devmap/flashes/SMB_SPI_MASTER_2_DEVICE_1",
           "chip": [
-            "N25Q128..3E"
+            "N25Q128..3E",
+            "IS25LP128"
           ]
         }
       },
@@ -128,7 +133,8 @@
           "programmer_type": "linux_spi:dev=",
           "programmer": "/run/devmap/flashes/SMB_SPI_MASTER_2_DEVICE_1",
           "chip": [
-            "N25Q128..3E"
+            "N25Q128..3E",
+            "IS25LP128"
           ]
         }
       },
