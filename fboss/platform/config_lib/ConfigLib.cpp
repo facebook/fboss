@@ -128,4 +128,12 @@ std::string ConfigLib::getLedManagerConfig(
   }
 }
 
+std::string ConfigLib::getBspTestConfig(
+    const std::optional<std::string>& platformName) const {
+  if (auto configJson = getConfigFromFile()) {
+    return *configJson;
+  }
+  return configs::bsp_tests.at(getPlatformName(platformName));
+}
+
 } // namespace facebook::fboss::platform

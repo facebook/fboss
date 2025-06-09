@@ -53,6 +53,7 @@ add_executable(platform_config_lib_config_generator
 
 target_link_libraries(platform_config_lib_config_generator
   cross_config_validator
+  bsp_tests_config_cpp2
   led_manager_config_types_cpp2
   fan_service_config_validator
   fan_service_cpp2
