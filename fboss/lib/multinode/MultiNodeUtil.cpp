@@ -168,6 +168,25 @@ bool MultiNodeUtil::verifyFabricConnectedSwitchesHelper(
   for (const auto& [portName, fabricEndpoint] : fabricEndpoints) {
     if (fabricEndpoint.isAttached().value()) {
       logFabricEndpoint(fabricEndpoint);
+
+      auto actualRemoteSwitchId = fabricEndpoint.switchId().value();
+      auto expectedRemoteSwitchId =
+          fabricEndpoint.expectedSwitchId().value_or(-1);
+      auto actualRemoteSwitchName = fabricEndpoint.switchName();
+      auto expectedRemoteSwitchName = fabricEndpoint.expectedSwitchName();
+
+      auto actualRemotePortId = fabricEndpoint.portId().value();
+      auto expectedRemotePortId = fabricEndpoint.expectedPortId().value_or(-1);
+      auto actualRemotePortName = fabricEndpoint.portName();
+      auto expectedRemotePortName = fabricEndpoint.portName();
+
+      // Expected switch/port ID/name must match for every entry
+      if (!(expectedRemoteSwitchId == actualRemoteSwitchId &&
+            expectedRemoteSwitchName == actualRemoteSwitchName &&
+            expectedRemotePortId == actualRemotePortId &&
+            expectedRemotePortName == actualRemotePortName)) {
+        return false;
+      }
       if (fabricEndpoint.switchName().has_value()) {
         gotConnectedSwitches.insert(fabricEndpoint.switchName().value());
       }
