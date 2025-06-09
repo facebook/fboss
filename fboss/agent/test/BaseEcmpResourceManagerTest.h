@@ -83,6 +83,13 @@ class BaseEcmpResourceManagerTest : public ::testing::Test {
       const std::shared_ptr<SwitchState>& in) const {
     return getPostConfigResolvedRoutes(in).size();
   }
+  void verifyRouteUsageCount(
+      const RouteNextHopSet& nhops,
+      size_t expectedCount) {
+    auto nhopId = getNhopId(nhops);
+    ASSERT_TRUE(nhopId.has_value());
+    EXPECT_EQ(consolidator_->getRouteUsageCount(nhopId.value()), expectedCount);
+  }
 
  public:
   void updateFlowletSwitchingConfig(
