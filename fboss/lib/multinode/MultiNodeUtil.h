@@ -52,6 +52,10 @@ class MultiNodeUtil {
 
   std::set<std::string> getFabricConnectedSwitches(
       const std::string& switchName);
+  bool verifyFabricConnectedSwitchesHelper(
+      DeviceType deviceType,
+      const std::string& deviceToVerify,
+      const std::set<std::string>& expectedConnectedSwitches);
   bool verifyFabricConnectedSwitchesForRdsw(
       int clusterId,
       const std::string& rdswToVerify);
