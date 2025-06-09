@@ -67,6 +67,7 @@ class CmdShowFabricReachability : public CmdHandler<
     Table table;
     table.setHeader({
         "Switch Name",
+        "Reachable via # Ports",
         "Reachable Via Ports",
     });
     for (const auto& entry : *model.reachabilityEntries()) {
@@ -75,7 +76,10 @@ class CmdShowFabricReachability : public CmdHandler<
           (*entry.reachablePorts()).begin(),
           (*entry.reachablePorts()).end(),
           std::ostream_iterator<std::string>(ss, " "));
-      table.addRow({*entry.switchName(), ss.str()});
+      table.addRow(
+          {*entry.switchName(),
+           folly::to<std::string>(entry.reachablePorts()->size()),
+           ss.str()});
     }
     out << table << std::endl;
   }
