@@ -119,6 +119,18 @@ void DataStore::updatePmUnitInfo(
   slotPathToPmUnitInfo[slotPath] = existingInfo;
 }
 
+void DataStore::updatePmUnitSuccessfullyExplored(
+    const std::string& slotPath,
+    bool successfullyExplored) {
+  slotPathToPmUnitInfo[slotPath].successfullyExplored() = successfullyExplored;
+}
+
+void DataStore::updatePmUnitPresenceInfo(
+    const std::string& slotPath,
+    const PresenceInfo& presenceInfo) {
+  slotPathToPmUnitInfo[slotPath].presenceInfo() = presenceInfo;
+}
+
 PmUnitConfig DataStore::resolvePmUnitConfig(const std::string& slotPath) const {
   if (slotPathToPmUnitInfo.find(slotPath) == slotPathToPmUnitInfo.end()) {
     throw std::runtime_error(

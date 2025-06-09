@@ -181,6 +181,7 @@ void PlatformExplorer::explorePmUnit(
     const std::string& pmUnitName) {
   auto pmUnitConfig = dataStore_.resolvePmUnitConfig(slotPath);
   XLOG(INFO) << fmt::format("Exploring PmUnit {} at {}", pmUnitName, slotPath);
+  dataStore_.updatePmUnitSuccessfullyExplored(slotPath, false);
 
   XLOG(INFO) << fmt::format(
       "Exploring PCI Devices for PmUnit {} at SlotPath {}. Count {}",
@@ -210,6 +211,7 @@ void PlatformExplorer::explorePmUnit(
           *embeddedSensorConfig.sysfsPath());
     }
   }
+  dataStore_.updatePmUnitSuccessfullyExplored(slotPath, true);
 
   XLOG(INFO) << fmt::format(
       "Exploring Slots for PmUnit {} at SlotPath {}. Count {}",
@@ -232,9 +234,17 @@ void PlatformExplorer::exploreSlot(
   // If PresenceDetection is specified, proceed further only if the presence
   // condition is satisfied
   if (const auto presenceDetection = slotConfig.presenceDetection()) {
+    PresenceInfo presenceInfo;
+    presenceInfo.presenceDetection() = *presenceDetection;
+    presenceInfo.isPresent() = false;
+    dataStore_.updatePmUnitPresenceInfo(childSlotPath, presenceInfo);
     try {
       auto isPmUnitPresent =
-          presenceChecker_.isPresent(presenceDetection.value(), childSlotPath);
+          presenceChecker_.isPresent(*presenceDetection, childSlotPath);
+      presenceInfo.isPresent() = isPmUnitPresent;
+      presenceInfo.actualValue() = presenceChecker_.getPresenceValue(
+          presenceDetection.value(), childSlotPath);
+      dataStore_.updatePmUnitPresenceInfo(childSlotPath, presenceInfo);
       if (!isPmUnitPresent) {
         auto errMsg = fmt::format(
             "Skipping exploring Slot {} at {}. No PmUnit in the Slot",
