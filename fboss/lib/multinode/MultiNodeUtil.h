@@ -50,7 +50,7 @@ class MultiNodeUtil {
   void populateAllRdsws();
   void populateAllFdsws();
 
-  std::set<std::string> getFabricConnectedSwitches(
+  std::map<std::string, FabricEndpoint> getFabricEndpoints(
       const std::string& switchName);
   bool verifyFabricConnectedSwitchesHelper(
       DeviceType deviceType,

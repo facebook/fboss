@@ -124,10 +124,28 @@ void MultiNodeUtil::populateAllFdsws() {
   }
 }
 
-std::set<std::string> MultiNodeUtil::getFabricConnectedSwitches(
+std::map<std::string, FabricEndpoint> MultiNodeUtil::getFabricEndpoints(
     const std::string& switchName) {
-  auto logFabricEndpoint = [switchName](const FabricEndpoint& fabricEndpoint) {
-    XLOG(DBG2) << "From " << " switchName: " << switchName
+  std::map<std::string, FabricEndpoint> fabricEndpoints;
+  auto hwAgentQueryFn =
+      [&fabricEndpoints](
+          apache::thrift::Client<facebook::fboss::FbossHwCtrl>& client) {
+        std::map<std::string, FabricEndpoint> hwagentEntries;
+        client.sync_getHwFabricConnectivity(hwagentEntries);
+        fabricEndpoints.merge(hwagentEntries);
+      };
+  runOnAllHwAgents(switchName, hwAgentQueryFn);
+
+  return fabricEndpoints;
+}
+
+bool MultiNodeUtil::verifyFabricConnectedSwitchesHelper(
+    DeviceType deviceType,
+    const std::string& deviceToVerify,
+    const std::set<std::string>& expectedConnectedSwitches) {
+  auto logFabricEndpoint = [deviceToVerify](
+                               const FabricEndpoint& fabricEndpoint) {
+    XLOG(DBG2) << "From " << " switchName: " << deviceToVerify
                << " actualPeerSwitchId: " << fabricEndpoint.switchId().value()
                << " actualPeerSwitchName: "
                << fabricEndpoint.switchName().value_or("none")
@@ -144,35 +162,17 @@ std::set<std::string> MultiNodeUtil::getFabricConnectedSwitches(
                << fabricEndpoint.expectedPortName().value_or("none");
   };
 
-  std::map<std::string, FabricEndpoint> fabricEndpoints;
-  auto hwAgentQueryFn =
-      [&fabricEndpoints](
-          apache::thrift::Client<facebook::fboss::FbossHwCtrl>& client) {
-        std::map<std::string, FabricEndpoint> hwagentEntries;
-        client.sync_getHwFabricConnectivity(hwagentEntries);
-        fabricEndpoints.merge(hwagentEntries);
-      };
-  runOnAllHwAgents(switchName, hwAgentQueryFn);
+  auto fabricEndpoints = getFabricEndpoints(deviceToVerify);
 
-  std::set<std::string> connectedSwitches;
-
+  std::set<std::string> gotConnectedSwitches;
   for (const auto& [portName, fabricEndpoint] : fabricEndpoints) {
     if (fabricEndpoint.isAttached().value()) {
       logFabricEndpoint(fabricEndpoint);
       if (fabricEndpoint.switchName().has_value()) {
-        connectedSwitches.insert(fabricEndpoint.switchName().value());
+        gotConnectedSwitches.insert(fabricEndpoint.switchName().value());
       }
     }
   }
-
-  return connectedSwitches;
-}
-
-bool MultiNodeUtil::verifyFabricConnectedSwitchesHelper(
-    DeviceType deviceType,
-    const std::string& deviceToVerify,
-    const std::set<std::string>& expectedConnectedSwitches) {
-  auto gotConnectedSwitches = getFabricConnectedSwitches(deviceToVerify);
 
   XLOG(DBG2) << "From " << deviceTypeToString(deviceType)
              << ":: " << deviceToVerify << " Expected Connected Switches: "
