@@ -12,7 +12,6 @@
 
 #include <fboss/agent/if/gen-cpp2/ctrl_constants.h>
 #include <fboss/agent/if/gen-cpp2/ctrl_types.h>
-#include <fboss/agent/if/gen-cpp2/fboss_types.h>
 #include <folly/Conv.h>
 #include <folly/IPAddress.h>
 #include <folly/Range.h>
