@@ -377,6 +377,19 @@ bool MultiNodeUtil::verifyPortActiveStateForDevice(
   return expectedActivePorts == gotActivePorts;
 }
 
+bool MultiNodeUtil::verifyNoPortErrorsForDevice(const std::string& switchName) {
+  // No ports should have errors
+  auto ports = getPorts(switchName);
+  for (const auto& port : ports) {
+    auto portInfo = port.second;
+    if (portInfo.activeErrors()->size() != 0) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 std::set<std::string> MultiNodeUtil::getGlobalSystemPortsOfType(
     const std::string& rdsw,
     const std::set<RemoteSystemPortType>& types) {

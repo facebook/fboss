@@ -74,6 +74,7 @@ class MultiNodeUtil {
       const std::string& switchName);
   std::set<std::string> getActiveFabricPorts(const std::string& switchName);
   bool verifyPortActiveStateForDevice(const std::string& switchName);
+  bool verifyNoPortErrorsForDevice(const std::string& switchName);
 
   std::set<std::string> getGlobalSystemPortsOfType(
       const std::string& rdsw,
