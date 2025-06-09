@@ -214,14 +214,8 @@ bool MultiNodeUtil::verifyFabricConnectedSwitchesForFdsw(
       clusterIdToRdsws_[clusterId].begin(), clusterIdToRdsws_[clusterId].end());
   expectedConnectedSwitches.insert(sdsws_.begin(), sdsws_.end());
 
-  auto gotConnectedSwitches = getFabricConnectedSwitches(fdswToVerify);
-  XLOG(DBG2) << "From FDSW:: " << fdswToVerify
-             << " Expected Connected Switches: "
-             << folly::join(",", expectedConnectedSwitches)
-             << " Got Connected Switches: "
-             << folly::join(",", gotConnectedSwitches);
-
-  return expectedConnectedSwitches == gotConnectedSwitches;
+  return verifyFabricConnectedSwitchesHelper(
+      DeviceType::FDSW, fdswToVerify, expectedConnectedSwitches);
 }
 
 bool MultiNodeUtil::verifyFabricConnectedSwitchesForAllFdsws() {
@@ -240,15 +234,9 @@ bool MultiNodeUtil::verifyFabricConnectedSwitchesForSdsw(
     const std::string& sdswToVerify) {
   // Every SDSW is connected to all FDSWs in all clusters
   auto expectedConnectedSwitches = allFdsws_;
-  auto gotConnectedSwitches = getFabricConnectedSwitches(sdswToVerify);
 
-  XLOG(DBG2) << "From SDSW:: " << sdswToVerify
-             << " Expected Connected Switches: "
-             << folly::join(",", expectedConnectedSwitches)
-             << " Got Connected Switches: "
-             << folly::join(",", gotConnectedSwitches);
-
-  return expectedConnectedSwitches == gotConnectedSwitches;
+  return verifyFabricConnectedSwitchesHelper(
+      DeviceType::SDSW, sdswToVerify, expectedConnectedSwitches);
 }
 
 bool MultiNodeUtil::verifyFabricConnectedSwitchesForAllSdsws() {
