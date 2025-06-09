@@ -395,6 +395,31 @@ bool MultiNodeUtil::verifyPortsForDevice(const std::string& switchName) {
       verifyNoPortErrorsForDevice(switchName);
 }
 
+bool MultiNodeUtil::verifyPorts() {
+  // The checks are identical for all Device types at the moment
+  // as we only verify Fabric ports. We may add Ethernet port checks
+  // specific to RDSWs in the future.
+  for (const auto& rdsw : allRdsws_) {
+    if (!verifyPortsForDevice(rdsw)) {
+      return false;
+    }
+  }
+
+  for (const auto& fdsw : allFdsws_) {
+    if (!verifyPortsForDevice(fdsw)) {
+      return false;
+    }
+  }
+
+  for (const auto& sdsw : sdsws_) {
+    if (!verifyPortsForDevice(sdsw)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 std::set<std::string> MultiNodeUtil::getGlobalSystemPortsOfType(
     const std::string& rdsw,
     const std::set<RemoteSystemPortType>& types) {

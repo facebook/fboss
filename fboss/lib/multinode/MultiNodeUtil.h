@@ -22,6 +22,7 @@ class MultiNodeUtil {
 
   bool verifyFabricConnectivity();
   bool verifyFabricReachability();
+  bool verifyPorts();
   bool verifySystemPorts();
   bool verifyRifs();
   bool verifyStaticNdpEntries();
