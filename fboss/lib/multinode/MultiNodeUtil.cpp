@@ -369,20 +369,32 @@ std::set<std::string> MultiNodeUtil::getActiveFabricPorts(
 }
 
 bool MultiNodeUtil::verifyPortActiveStateForDevice(
+    DeviceType deviceType,
     const std::string& switchName) {
   // Every Connected Fabric Port must be Active
   auto expectedActivePorts = getConnectedFabricPorts(switchName);
   auto gotActivePorts = getActiveFabricPorts(switchName);
 
+  XLOG(DBG2) << "From " << deviceTypeToString(deviceType) << ":: " << switchName
+             << " Expected Active Ports (connected fabric ports): "
+             << folly::join(",", expectedActivePorts)
+             << " Got Active Ports: " << folly::join(",", gotActivePorts);
+
   return expectedActivePorts == gotActivePorts;
 }
 
-bool MultiNodeUtil::verifyNoPortErrorsForDevice(const std::string& switchName) {
+bool MultiNodeUtil::verifyNoPortErrorsForDevice(
+    DeviceType deviceType,
+    const std::string& switchName) {
   // No ports should have errors
   auto ports = getPorts(switchName);
   for (const auto& port : ports) {
     auto portInfo = port.second;
     if (portInfo.activeErrors()->size() != 0) {
+      XLOG(DBG2) << "From " << deviceTypeToString(deviceType)
+                 << ":: " << switchName << " Port: " << portInfo.name().value()
+                 << " has errors: "
+                 << folly::join(",", *portInfo.activeErrors());
       return false;
     }
   }
@@ -390,9 +402,11 @@ bool MultiNodeUtil::verifyNoPortErrorsForDevice(const std::string& switchName) {
   return true;
 }
 
-bool MultiNodeUtil::verifyPortsForDevice(const std::string& switchName) {
-  return verifyPortActiveStateForDevice(switchName) &&
-      verifyNoPortErrorsForDevice(switchName);
+bool MultiNodeUtil::verifyPortsForDevice(
+    DeviceType deviceType,
+    const std::string& switchName) {
+  return verifyPortActiveStateForDevice(deviceType, switchName) &&
+      verifyNoPortErrorsForDevice(deviceType, switchName);
 }
 
 bool MultiNodeUtil::verifyPorts() {
@@ -400,19 +414,19 @@ bool MultiNodeUtil::verifyPorts() {
   // as we only verify Fabric ports. We may add Ethernet port checks
   // specific to RDSWs in the future.
   for (const auto& rdsw : allRdsws_) {
-    if (!verifyPortsForDevice(rdsw)) {
+    if (!verifyPortsForDevice(DeviceType::RDSW, rdsw)) {
       return false;
     }
   }
 
   for (const auto& fdsw : allFdsws_) {
-    if (!verifyPortsForDevice(fdsw)) {
+    if (!verifyPortsForDevice(DeviceType::FDSW, fdsw)) {
       return false;
     }
   }
 
   for (const auto& sdsw : sdsws_) {
-    if (!verifyPortsForDevice(sdsw)) {
+    if (!verifyPortsForDevice(DeviceType::SDSW, sdsw)) {
       return false;
     }
   }

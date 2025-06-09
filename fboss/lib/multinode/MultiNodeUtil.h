@@ -74,9 +74,15 @@ class MultiNodeUtil {
   std::map<int32_t, facebook::fboss::PortInfoThrift> getPorts(
       const std::string& switchName);
   std::set<std::string> getActiveFabricPorts(const std::string& switchName);
-  bool verifyPortActiveStateForDevice(const std::string& switchName);
-  bool verifyNoPortErrorsForDevice(const std::string& switchName);
-  bool verifyPortsForDevice(const std::string& switchName);
+  bool verifyPortActiveStateForDevice(
+      DeviceType deviceType,
+      const std::string& switchName);
+  bool verifyNoPortErrorsForDevice(
+      DeviceType deviceType,
+      const std::string& switchName);
+  bool verifyPortsForDevice(
+      DeviceType deviceType,
+      const std::string& switchName);
 
   std::set<std::string> getGlobalSystemPortsOfType(
       const std::string& rdsw,
