@@ -31,6 +31,19 @@ std::vector<std::vector<std::string>> groupPortsByVD(
   return portsByVD;
 }
 
+std::vector<std::vector<std::string>> getLinkFailure(
+    const std::string& neighbor,
+    const std::unordered_map<std::string, std::vector<std::string>>&
+        neighborToLinkFailure,
+    const std::unordered_map<std::string, int>& portToVirtualDevice) {
+  std::vector<std::string> linkFailures;
+  auto iter = neighborToLinkFailure.find(neighbor);
+  if (iter != neighborToLinkFailure.end()) {
+    linkFailures = iter->second;
+  }
+  return groupPortsByVD(linkFailures, portToVirtualDevice);
+};
+
 } // namespace
 
 namespace facebook::fboss::utility {
@@ -200,15 +213,6 @@ std::vector<InputBalanceResult> checkInputBalanceSingleStage(
         neighborToLinkFailure,
     const std::unordered_map<std::string, int>& portToVirtualDevice,
     bool verbose) {
-  auto getLinkFailure = [&](const std::string& neighbor) {
-    std::vector<std::string> linkFailures;
-    auto iter = neighborToLinkFailure.find(neighbor);
-    if (iter != neighborToLinkFailure.end()) {
-      linkFailures = iter->second;
-    }
-    return groupPortsByVD(linkFailures, portToVirtualDevice);
-  };
-
   std::vector<InputBalanceResult> inputBalanceResult;
   for (const auto& dstSwitch : dstSwitchNames) {
     auto outputCapacityIter = outputCapacity.find(dstSwitch);
@@ -218,7 +222,8 @@ std::vector<InputBalanceResult> checkInputBalanceSingleStage(
     }
     auto outputCapacity =
         groupPortsByVD(outputCapacityIter->second, portToVirtualDevice);
-    auto outputLinkFailure = getLinkFailure(dstSwitch);
+    auto outputLinkFailure =
+        getLinkFailure(dstSwitch, neighborToLinkFailure, portToVirtualDevice);
 
     for (const auto& [neighborSwitch, neighborReachability] : inputCapacity) {
       if (neighborSwitch == dstSwitch) {
@@ -234,7 +239,8 @@ std::vector<InputBalanceResult> checkInputBalanceSingleStage(
 
       auto inputCapacity =
           groupPortsByVD(neighborReachIter->second, portToVirtualDevice);
-      auto inputLinkFailure = getLinkFailure(neighborSwitch);
+      auto inputLinkFailure = getLinkFailure(
+          neighborSwitch, neighborToLinkFailure, portToVirtualDevice);
 
       for (int vd = 0; vd < kNumVirtualDevice; vd++) {
         auto localLinkFailure = std::max(
