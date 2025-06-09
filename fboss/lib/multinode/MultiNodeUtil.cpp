@@ -128,11 +128,20 @@ std::set<std::string> MultiNodeUtil::getFabricConnectedSwitches(
     const std::string& switchName) {
   auto logFabricEndpoint = [switchName](const FabricEndpoint& fabricEndpoint) {
     XLOG(DBG2) << "From " << " switchName: " << switchName
-               << " switchId: " << fabricEndpoint.switchId().value()
-               << " fabricEndpoint.switchName: "
+               << " actualPeerSwitchId: " << fabricEndpoint.switchId().value()
+               << " actualPeerSwitchName: "
                << fabricEndpoint.switchName().value_or("none")
-               << " fabricEndpoint.portName: "
-               << fabricEndpoint.portName().value_or("none");
+               << " actualPeerPortId: " << fabricEndpoint.portId().value()
+               << " actualPortName: "
+               << fabricEndpoint.portName().value_or("none")
+               << " expectedPeerSwitchId: "
+               << fabricEndpoint.expectedSwitchId().value_or(-1)
+               << " expectedPeerSwitchName: "
+               << fabricEndpoint.expectedSwitchName().value_or("none")
+               << " expectedPeerPortId: "
+               << fabricEndpoint.expectedPortId().value_or(-1)
+               << " expectedPeerPortName: "
+               << fabricEndpoint.expectedPortName().value_or("none");
   };
 
   std::map<std::string, FabricEndpoint> fabricEndpoints;
