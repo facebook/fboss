@@ -90,7 +90,6 @@ cpp_unittest(
         "//fboss/agent:fboss-error",
         "//fboss/agent:fboss-types",
         "//fboss/agent:fib_helpers",
-        "//fboss/agent:gtest_defs",
         "//fboss/agent:handler",
         "//fboss/agent:hw_asic_table",
         "//fboss/agent:hwswitch_matcher",
@@ -412,7 +411,6 @@ cpp_unittest(
     srcs = ["AsyncLoggerTest.cpp"],
     deps = [
         "//fboss/agent:async_logger",
-        "//folly:c_portability",
     ],
 )
 
@@ -536,7 +534,6 @@ cpp_library(
         "//fboss/agent/hw/test:config_factory",
         "//fboss/agent/hw/test:hw_copp_utils",
         "//fboss/agent/if:multiswitch_ctrl-cpp2-types",
-        "//fboss/agent/test/utils:acl_test_utils",
         "//fboss/agent/test/utils:agent_hw_test_constants",
         "//fboss/agent/test/utils:stats_test_utils",
         "//fboss/lib:common_utils",
