@@ -312,18 +312,23 @@ bool MultiNodeUtil::verifyFabricReachablityForRdsw(
   std::map<std::string, std::vector<std::string>> reachability;
   swAgentClient->sync_getSwitchReachability(reachability, remoteSwitchNames);
 
-  // TODO
-  // DSF Single Stage Test: 2 FDSWs x 8 Fabric links to each FDSW = 16.
-  // Populate expected reachability in the config. We can then validate
-  // Reachability (and Connectivity) against that and remove this hard coding.
-  // That would be a stricter check as well as a generic approach that will work
-  // for DSF Single Stage as well as DSF Dual Stage.
-  static auto constexpr kNumOfConnectedFabricPorts = 16;
+  // Every remote RDSW must be reachable via every local active port.
+  // TODO: This assertion is not true when Input Balanced Mode is enabled.
+  // We will enhance this check for DSF Dual Stage where Input Balanced Mode
+  // is enabled.
+  auto activePorts = getActiveFabricPorts(rdswToVerify);
 
   for (auto& [remoteSwitchName, reachablePorts] : reachability) {
     logReachability(remoteSwitchName, reachablePorts);
 
-    if (reachablePorts.size() != kNumOfConnectedFabricPorts) {
+    std::set<std::string> reachablePortsSet(
+        reachablePorts.begin(), reachablePorts.end());
+    XLOG(DBG2) << "From RDSW:: " << rdswToVerify
+               << " Expected reachable ports (Active Ports): "
+               << folly::join(",", activePorts) << " Got reachable ports: "
+               << folly::join(",", reachablePortsSet);
+
+    if (activePorts != reachablePortsSet) {
       return false;
     }
   }
