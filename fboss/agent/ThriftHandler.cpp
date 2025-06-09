@@ -182,6 +182,9 @@ void fillPortStats(
     }
     portInfo.output()->unicast()->push_back(stats);
   }
+  if (auto cableLen = hwPortStats.cableLengthMeters()) {
+    portInfo.cableLengthMeters() = *cableLen;
+  }
 }
 
 void getPortInfoHelper(
