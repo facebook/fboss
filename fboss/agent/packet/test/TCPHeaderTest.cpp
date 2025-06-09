@@ -10,7 +10,6 @@
 #include "fboss/agent/packet/TCPHeader.h"
 #include <gtest/gtest.h>
 #include "fboss/agent/FbossError.h"
-#include "fboss/agent/PortStats.h"
 #include "fboss/agent/SwitchStats.h"
 
 using namespace facebook::fboss;

@@ -7,8 +7,6 @@
 #include "fboss/agent/packet/MPLSHdr.h"
 #include "fboss/agent/packet/PktUtil.h"
 
-#include <folly/logging/xlog.h>
-
 namespace facebook::fboss {
 
 TEST(MPLSHdrTest, parameterized_data_constructor_label) {
