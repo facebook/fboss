@@ -33,10 +33,7 @@ bool CrossConfigValidator::isValidSensorConfig(
             *pmUnitSensors.pmUnitName())) {
       return false;
     }
-    if (!isValidPmSensors(
-            *pmUnitSensors.slotPath(),
-            *pmUnitSensors.pmUnitName(),
-            *pmUnitSensors.sensors())) {
+    if (!isValidPmSensors(*pmUnitSensors.sensors())) {
       return false;
     }
     if (!pmUnitSensors.versionedSensors()->empty() &&
@@ -129,8 +126,6 @@ bool CrossConfigValidator::isValidWeutilConfig(
 }
 
 bool CrossConfigValidator::isValidPmSensors(
-    const std::string& slotPath,
-    const std::string& pmUnitName,
     const std::vector<sensor_config::PmSensor>& pmSensors) {
   for (const auto& pmSensor : pmSensors) {
     if (!isValidRuntimePath(*pmSensor.sysfsPath())) {
@@ -156,7 +151,7 @@ bool CrossConfigValidator::isValidVersionedPmSensors(
     return false;
   }
   for (const auto& versionedPmSensor : versionedPmSensors) {
-    if (!isValidPmSensors(slotPath, pmUnitName, *versionedPmSensor.sensors())) {
+    if (!isValidPmSensors(*versionedPmSensor.sensors())) {
       return false;
     }
   }
