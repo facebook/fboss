@@ -72,17 +72,34 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
   std::optional<SaiNextHopGroupTraits::Attributes::ArsObjectId> arsObjectId{
       std::nullopt};
+#endif
+
   if (FLAGS_flowletSwitchingEnable &&
       platform_->getAsic()->isSupported(HwAsic::Feature::ARS)) {
-    auto arsHandlePtr = managerTable_->arsManager().getArsHandle();
-    if (arsHandlePtr->ars) {
-      auto arsSaiId = arsHandlePtr->ars->adapterKey();
-      if (!managerTable_->arsManager().isFlowsetTableFull(arsSaiId)) {
-        arsObjectId = SaiNextHopGroupTraits::Attributes::ArsObjectId{arsSaiId};
+    auto overrideEcmpSwitchingMode = key.second;
+
+    // if overrideEcmpSwitchingMode is empty, then use primary mode
+    // if overrideEcmpSwitchingMode has value, then a backup mode is requested
+    // by ERM
+    nextHopGroupHandle->desiredArsMode_ = overrideEcmpSwitchingMode.has_value()
+        ? overrideEcmpSwitchingMode
+        : primaryArsMode_;
+
+    if (isEcmpModeDynamic(nextHopGroupHandle->desiredArsMode_)) {
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+      auto arsHandlePtr = managerTable_->arsManager().getArsHandle();
+      if (arsHandlePtr->ars) {
+        auto arsSaiId = arsHandlePtr->ars->adapterKey();
+        if (!managerTable_->arsManager().isFlowsetTableFull(arsSaiId)) {
+          arsObjectId =
+              SaiNextHopGroupTraits::Attributes::ArsObjectId{arsSaiId};
+        }
       }
+#endif
+    } else {
+      // TODO (ravi) update after random spray support becomes available
     }
   }
-#endif
 
   // Create the NextHopGroup and NextHopGroupMembers
   auto& store = saiStore_->get<SaiNextHopGroupTraits>();
@@ -99,7 +116,6 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
       nextHopGroupHandle->nextHopGroup->adapterKey();
   nextHopGroupHandle->fixedWidthMode = isFixedWidthNextHopGroup(swNextHops);
   nextHopGroupHandle->saiStore_ = saiStore_;
-  nextHopGroupHandle->desiredArsMode_ = key.second;
   nextHopGroupHandle->maxVariableWidthEcmpSize =
       platform_->getAsic()->getMaxVariableWidthEcmpSize();
   XLOG(DBG2) << "Created NexthopGroup OID: " << nextHopGroupId;
@@ -180,6 +196,11 @@ void SaiNextHopGroupManager::updateArsModeAll(
     auto handle = entry.second;
     auto handlePtr = handle.lock();
     if (!handlePtr) {
+      continue;
+    }
+
+    // do not convert backup modes to dynamic
+    if (!isEcmpModeDynamic(handlePtr->desiredArsMode_)) {
       continue;
     }
 
