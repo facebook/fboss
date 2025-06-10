@@ -274,6 +274,9 @@ std::unordered_map<std::string, PeerPortInfo> CmdShowPort::getPeerPortInfo(
         (peerPortInfoThrift.operState().value() == PortOperState::DOWN ||
          peerPortInfoThrift.adminState().value() == PortAdminState::DISABLED ||
          peerPortInfoThrift.isDrained().value() == true);
+    if (auto cableLenMeters = peerPortInfoThrift.cableLengthMeters()) {
+      portInfo.cableLenMeters = *cableLenMeters;
+    }
     peerPortInfo[localPort] = portInfo;
   }
   return peerPortInfo;
@@ -375,9 +378,13 @@ RetType CmdShowPort::createModel(
             (peerDrainStates.at(portName) == cfg::SwitchDrainState::DRAINED);
       }
       std::optional<bool> isPeerPortDrainedOrDown;
+      std::optional<uint64_t> peerPortCableLenMeters;
       auto it = peerPortInfo.find(portName);
       if (it != peerPortInfo.end()) {
         isPeerPortDrainedOrDown = it->second.drainedOrDown;
+        if (it->second.cableLenMeters) {
+          peerPortCableLenMeters = *it->second.cableLenMeters;
+        }
       }
 
       bool canDetermineExpectedActiveState =
@@ -394,6 +401,8 @@ RetType CmdShowPort::createModel(
       std::string cableLenMeters = "--";
       if (auto cableLen = portInfo.cableLengthMeters()) {
         cableLenMeters = folly::to<std::string>(*cableLen);
+      } else if (peerPortCableLenMeters.has_value()) {
+        cableLenMeters = folly::to<std::string>(*peerPortCableLenMeters);
       }
 
       cli::PortEntry portDetails;

@@ -53,7 +53,7 @@ struct PeerInfo {
 
 struct PeerPortInfo {
   bool drainedOrDown{false};
-  std::optional<uint64_t> cableLen;
+  std::optional<uint64_t> cableLenMeters;
 };
 class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
  public:
