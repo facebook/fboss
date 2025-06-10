@@ -1,5 +1,5 @@
 // Copyright 2021-present Facebook. All Rights Reserved.
-#include "Register.h"
+#include "fboss/platform/rackmon/Register.h"
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 

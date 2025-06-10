@@ -10,7 +10,7 @@
 #include <unordered_map>
 #include "Log.h"
 
-#include "UARTDevice.h"
+#include "fboss/platform/rackmon/UARTDevice.h"
 
 using namespace std::literals;
 

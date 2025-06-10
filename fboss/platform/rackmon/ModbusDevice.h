@@ -6,9 +6,9 @@
 #include <optional>
 #include <set>
 #include <shared_mutex>
-#include "Modbus.h"
-#include "ModbusCmds.h"
-#include "Register.h"
+#include "fboss/platform/rackmon/Modbus.h"
+#include "fboss/platform/rackmon/ModbusCmds.h"
+#include "fboss/platform/rackmon/Register.h"
 
 namespace rackmon {
 
