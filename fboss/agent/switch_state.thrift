@@ -448,6 +448,8 @@ struct SwitchSettingsFields {
   // Number of sflow samples to pack in a single packet being sent out
   56: optional byte numberOfSflowSamplesPerPacket;
   57: optional map<i32, i32> tcToRateLimitKbps;
+  // PFC watchdog timer granularity which can be 1ms, 10ms or 100ms.
+  58: optional i32 pfcWatchdogTimerGranularityMsec;
 }
 
 struct RoutePrefix {
