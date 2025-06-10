@@ -27,7 +27,7 @@ class SimSwitch : public HwSwitch {
       BootType bootType,
       bool failHwCallsOnWarmboot) override;
   std::shared_ptr<SwitchState> stateChangedImpl(
-      const StateDelta& delta) override;
+      const std::vector<StateDelta>& deltas) override;
   std::unique_ptr<TxPacket> allocatePacket(uint32_t size) const override;
   bool sendPacketSwitchedAsync(std::unique_ptr<TxPacket> pkt) noexcept override;
   bool sendPacketOutOfPortAsync(
@@ -79,11 +79,19 @@ class SimSwitch : public HwSwitch {
     return HwSwitchWatermarkStats{};
   }
 
+  HwSwitchPipelineStats getSwitchPipelineStats() const override {
+    return HwSwitchPipelineStats{};
+  }
+
   HwResourceStats getResourceStats() const override {
     return HwResourceStats{};
   }
 
   std::vector<EcmpDetails> getAllEcmpDetails() const override {
+    return {};
+  }
+
+  std::map<int, cfg::PortState> getSysPortShelState() const override {
     return {};
   }
 
@@ -125,6 +133,8 @@ class SimSwitch : public HwSwitch {
 
   void clearPortStats(
       const std::unique_ptr<std::vector<int32_t>>& /*ports*/) override {}
+
+  void syncPortLinkState(PortID /*portId*/) override {}
 
   virtual BootType getBootType() const override {
     return bootType_;

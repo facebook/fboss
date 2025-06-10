@@ -211,6 +211,8 @@ bool Jericho2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::CPU_TX_PACKET_REQUIRES_VLAN_TAG:
     case HwAsic::Feature::DRAM_DATAPATH_PACKET_ERROR_STATS:
     case HwAsic::Feature::SWITCH_ASIC_SDK_HEALTH_NOTIFY:
+    case HwAsic::Feature::VENDOR_SWITCH_CONGESTION_MANAGEMENT_ERRORS:
+    case HwAsic::Feature::PFC_WATCHDOG_TIMER_GRANULARITY:
       return false;
   }
   return false;

@@ -28,6 +28,7 @@ enum CoreType {
   G200 = 6, // Yuba/Kodiak3
   J3_EVT = 7, // J3 Eventor Port
   CHENAB_NIF = 8,
+  TH6_NIF = 9, // TH6
 
   // Transceivers
   OSFP = 100,

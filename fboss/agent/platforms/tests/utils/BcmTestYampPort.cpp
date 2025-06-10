@@ -14,7 +14,9 @@
 
 namespace facebook::fboss {
 
-BcmTestYampPort::BcmTestYampPort(PortID id, BcmTestYampPlatform* platform)
+BcmTestYampPort::BcmTestYampPort(
+    const PortID& id,
+    BcmTestYampPlatform* platform)
     : BcmTestPort(id, platform) {}
 
 } // namespace facebook::fboss

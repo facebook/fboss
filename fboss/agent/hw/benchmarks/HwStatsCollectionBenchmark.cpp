@@ -17,7 +17,6 @@
 #include "fboss/agent/test/utils/DsfConfigUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 #include "fboss/agent/test/utils/NetworkAITestUtils.h"
-#include "fboss/agent/test/utils/OlympicTestUtils.h"
 #include "fboss/agent/test/utils/VoqTestUtils.h"
 
 #include <folly/Benchmark.h>
@@ -25,7 +24,7 @@
 
 namespace facebook::fboss {
 
-RouteNextHopSet makeNextHops(std::vector<std::string> ipsAsStrings) {
+RouteNextHopSet makeNextHops(const std::vector<std::string>& ipsAsStrings) {
   RouteNextHopSet nhops;
   for (const std::string& ipAsString : ipsAsStrings) {
     nhops.emplace(UnresolvedNextHop(folly::IPAddress(ipAsString), ECMP_WEIGHT));

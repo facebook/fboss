@@ -4,7 +4,10 @@ oncall("fboss_agent_push")
 
 cpp_library(
     name = "fsdb_cow_root_path_visitor",
-    srcs = ["FsdbCowRootPathVisitor.cpp"],
+    srcs = [
+        "FsdbCowStateRootPathVisitor.cpp",
+        "FsdbCowStatsRootPathVisitor.cpp",
+    ],
     headers = [
         "FsdbCowRootPathVisitor.h",
     ],
@@ -17,7 +20,10 @@ cpp_library(
 
 cpp_library(
     name = "fsdb_cow_root",
-    srcs = ["FsdbCowRoot.cpp"],
+    srcs = [
+        "FsdbStatCowRoot.cpp",
+        "FsdbStateCowRoot.cpp",
+    ],
     headers = [
         "FsdbCowRoot.h",
     ],
@@ -29,7 +35,10 @@ cpp_library(
 
 cpp_library(
     name = "fsdb_cow_storage",
-    srcs = ["FsdbCowStorage.cpp"],
+    srcs = [
+        "FsdbCowStateStorage.cpp",
+        "FsdbCowStatsStorage.cpp",
+    ],
     headers = ["FsdbCowStorage.h"],
     exported_deps = [
         ":fsdb_cow_root",
@@ -41,7 +50,10 @@ cpp_library(
 
 cpp_library(
     name = "fsdb_cow_subscription_manager",
-    srcs = ["FsdbCowSubscriptionManager.cpp"],
+    srcs = [
+        "FsdbCowStateSubscriptionManager.cpp",
+        "FsdbCowStatsSubscriptionManager.cpp",
+    ],
     headers = ["FsdbCowSubscriptionManager.h"],
     exported_deps = [
         ":fsdb_cow_root",
@@ -52,7 +64,10 @@ cpp_library(
 
 cpp_library(
     name = "fsdb_path_converter",
-    srcs = ["FsdbPathConverter.cpp"],
+    srcs = [
+        "FsdbStatePathConverter.cpp",
+        "FsdbStatsPathConverter.cpp",
+    ],
     headers = ["FsdbPathConverter.h"],
     exported_deps = [
         "//fboss/fsdb/if:fsdb_model",

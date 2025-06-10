@@ -11,6 +11,8 @@ namespace facebook::fboss {
 
 class ProdInvariantTest : public ProdAgentTests {
  protected:
+  void sendTraffic(int numPackets);
+  void setupAgentTestEcmp(const std::vector<PortDescriptor>& ecmpPorts);
   virtual void SetUp() override;
   virtual void setupConfigFlag();
   cfg::SwitchConfig initialConfig(const AgentEnsemble& ensemble) override;
@@ -18,7 +20,7 @@ class ProdInvariantTest : public ProdAgentTests {
   void verifyAcl();
   void verifyCopp();
   void verifySafeDiagCommands();
-  void verifyLoadBalancing();
+  void verifyLoadBalancing(int numPackets = 10000);
   void verifyDscpToQueueMapping();
   void verifyQueuePerHostMapping(bool dscpMarkingTest);
   std::vector<PortDescriptor> ecmpPorts_{};
@@ -48,8 +50,6 @@ class ProdInvariantTest : public ProdAgentTests {
   }
 
  private:
-  void sendTraffic();
-  void setupAgentTestEcmp(const std::vector<PortDescriptor>& ecmpPorts);
   bool mmuLosslessMode_ = false;
 };
 

@@ -2,13 +2,14 @@
 
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
+#include "fboss/lib/CommonUtils.h"
 
 namespace facebook::fboss {
 
 class AgentEmptyTest : public AgentHwTest {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     return {};
   }
   void setCmdLineFlagOverrides() const override {
@@ -32,6 +33,16 @@ TEST_F(AgentEmptyTest, CheckInit) {
         }
       }
     }
+#if defined(BRCM_SAI_SDK_DNX_GTE_13_0)
+    WITH_RETRIES({
+      for (const auto& [switchId, hwSwitchStats] : getHwSwitchStats()) {
+        auto asicRevision = hwSwitchStats.fb303GlobalStats()->asic_revision();
+        ASSERT_EVENTUALLY_TRUE(asicRevision.has_value());
+        XLOG(INFO) << "Switch Id: " << switchId
+                   << " asic revision : " << *asicRevision;
+      }
+    });
+#endif
   };
   verifyAcrossWarmBoots([]() {}, verify);
 }

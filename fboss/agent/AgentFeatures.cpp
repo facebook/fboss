@@ -2,6 +2,8 @@
 
 #include "fboss/agent/AgentFeatures.h"
 
+DEFINE_bool(janga_test, false, "Enable Janga test fixture platform mapping");
+
 DEFINE_bool(dsf_4k, false, "Enable DSF Scale Test config");
 
 DEFINE_bool(dsf_100g_nif_breakout, false, "Enable J3 DSF Scale Test config");
@@ -289,3 +291,22 @@ DEFINE_int32(
     max_unprocessed_switch_reachability_changes,
     1,
     "Max number of switch reachability changes that can be enqueued to bottom-half.");
+
+DEFINE_bool(
+    enable_ecmp_resource_manager,
+    false,
+    "This flag is used to enable ecmp resource manager feature");
+
+DEFINE_int32(
+    ecmp_resource_manager_make_before_break_buffer,
+    2,
+    "Buffer to keep in ECMP resource manager from actual ECMP limt");
+
+DEFINE_int32(update_stats_interval_s, 1, "Update stats interval in seconds");
+
+DEFINE_bool(
+    update_route_with_dlb_type,
+    false,
+    "Flag to perform a DLB type update in FIB state");
+
+DEFINE_int32(agent_exit_delay_s, 0, "Delay in seconds before the agent exits");

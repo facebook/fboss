@@ -11,6 +11,7 @@ import tempfile
 
 
 OPT_ARG_SCRATCH_PATH = "--scratch-path"
+OPT_ARG_COPY_ROOT_LIBS = "--copy-root-libs"
 
 
 def parse_args():
@@ -28,6 +29,11 @@ def parse_args():
     )
     parser.add_argument(
         "--compress", help="Compress the FBOSS Binaries", action="store_true"
+    )
+    parser.add_argument(
+        OPT_ARG_COPY_ROOT_LIBS,
+        help="Copy libs from /lib and /lib64. Default: False",
+        action="store_true",
     )
     return parser.parse_args()
 
@@ -66,6 +72,8 @@ class PackageFboss:
         os.makedirs(os.path.join(self.tmp_dir_name, PackageFboss.BIN))
         os.makedirs(os.path.join(self.tmp_dir_name, PackageFboss.LIB))
         os.makedirs(os.path.join(self.tmp_dir_name, PackageFboss.DATA))
+        self.copy_root_libs = args.copy_root_libs
+        self.dependencies = set()
 
     def _get_dir_for(self, name, location):
         # TODO: Getdeps' show-inst-dir has issues. This needs to be
@@ -299,7 +307,11 @@ class PackageFboss:
             else:
                 lib_path = parts[0].split("(")[0].strip()
 
-            if not lib_path.startswith("/lib"):
+            not_present = lib_path not in self.dependencies
+            root_and_copy = lib_path.startswith("/lib") and self.copy_root_libs
+            not_root = not lib_path.startswith("/lib")
+            if not_present and (root_and_copy or not_root):
+                self.dependencies.add(lib_path)
                 dependencies.add(lib_path)
 
         return dependencies
@@ -307,7 +319,6 @@ class PackageFboss:
     def _compress_binaries(self):
         print("Compressing FBOSS Binaries...")
         tar_path = os.path.join(args.scratch_path, PackageFboss.FBOSS_BIN_TAR)
-        compressed_file = shutil.make_archive(tar_path, "gztar", self.tmp_dir_name)
         subprocess.run(
             ["tar", "-cvf", tar_path, "--zstd", "-C", self.tmp_dir_name, "."]
         )

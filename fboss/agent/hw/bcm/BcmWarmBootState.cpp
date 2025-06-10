@@ -111,9 +111,9 @@ folly::dynamic BcmWarmBootState::toFollyDynamic(
     const BcmMultiPathNextHopKey& key,
     const std::shared_ptr<BcmMultiPathNextHop>& multiPathNextHop) const {
   folly::dynamic ecmpHost = folly::dynamic::object;
-  ecmpHost[kVrf] = key.first;
+  ecmpHost[kVrf] = std::get<0>(key);
   folly::dynamic nhops = folly::dynamic::array;
-  for (const auto& nhop : key.second) {
+  for (const auto& nhop : std::get<1>(key)) {
     nhops.push_back(nhop.toFollyDynamic());
   }
   ecmpHost[kNextHops] = std::move(nhops);

@@ -60,7 +60,8 @@ SaiInSegEntryHandle::NextHopHandle getNextHopHandle(
       return nexthop;
     }
   }
-  return managerTable->nextHopGroupManager().incRefOrAddNextHopGroup(nexthops);
+  return managerTable->nextHopGroupManager().incRefOrAddNextHopGroup(
+      SaiNextHopGroupKey(nexthops, std::nullopt));
 }
 } // namespace
 namespace facebook::fboss {

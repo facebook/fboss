@@ -10,6 +10,7 @@
 #include "fboss/agent/ResourceAccountant.h"
 #include "fboss/agent/AgentFeatures.h"
 
+#include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/SwitchState.h"
 
@@ -48,6 +49,9 @@ int ResourceAccountant::computeWeightedEcmpMemberCount(
   switch (asicType) {
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
       // For TH4, UCMP members take 4x of ECMP members in the same table.
+      return 4 * fwd.getNextHopSet().size();
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
+      // For TH5, UCMP members take 4x of ECMP members in the same table.
       return 4 * fwd.getNextHopSet().size();
     case cfg::AsicType::ASIC_TYPE_YUBA:
       // Yuba asic natively supports UCMP members with no extra cost.
@@ -201,28 +205,24 @@ bool ResourceAccountant::routeAndEcmpStateChangedImpl(const StateDelta& delta) {
   }
   bool validRouteUpdate = true;
 
-  auto processRoutesDelta = [&](const auto& routesDelta) {
-    DeltaFunctions::forEachRemoved(routesDelta, [&](const auto& delRoute) {
-      validRouteUpdate &= checkAndUpdateEcmpResource(delRoute, false /* add */);
-      validRouteUpdate &= checkAndUpdateRouteResource(false /* add */);
-    });
+  processFibsDeltaInHwSwitchOrder(
+      delta,
+      [&](RouterID /*rid*/, const auto& oldRoute, const auto& newRoute) {
+        validRouteUpdate &= checkAndUpdateEcmpResource(newRoute, true);
+        validRouteUpdate &= checkAndUpdateEcmpResource(oldRoute, false);
+      },
+      [&](RouterID /*rid*/, const auto& newRoute) {
+        validRouteUpdate &=
+            checkAndUpdateEcmpResource(newRoute, true /* add */);
+        validRouteUpdate &= checkAndUpdateRouteResource(true /* add */);
+      },
+      [&](RouterID /*rid*/, const auto& delRoute) {
+        validRouteUpdate &=
+            checkAndUpdateEcmpResource(delRoute, false /* add */);
+        validRouteUpdate &= checkAndUpdateRouteResource(false /* add */);
+      }
 
-    DeltaFunctions::forEachChanged(
-        routesDelta, [&](const auto& oldRoute, const auto& newRoute) {
-          validRouteUpdate &= checkAndUpdateEcmpResource(newRoute, true);
-          validRouteUpdate &= checkAndUpdateEcmpResource(oldRoute, false);
-        });
-
-    DeltaFunctions::forEachAdded(routesDelta, [&](const auto& newRoute) {
-      validRouteUpdate &= checkAndUpdateEcmpResource(newRoute, true /* add */);
-      validRouteUpdate &= checkAndUpdateRouteResource(true /* add */);
-    });
-  };
-
-  for (const auto& routeDelta : delta.getFibsDelta()) {
-    processRoutesDelta(routeDelta.getFibDelta<folly::IPAddressV4>());
-    processRoutesDelta(routeDelta.getFibDelta<folly::IPAddressV6>());
-  }
+  );
 
   // Ensure new state usage does not exceed ecmp_resource_percentage
   validRouteUpdate &= checkEcmpResource(false /* intermediateState */);

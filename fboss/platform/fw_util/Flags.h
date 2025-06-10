@@ -16,3 +16,4 @@ DECLARE_string(fw_target_name);
 DECLARE_string(fw_action);
 DECLARE_string(fw_binary_file);
 DECLARE_bool(verify_sha1sum);
+DECLARE_bool(dry_run);

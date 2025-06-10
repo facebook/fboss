@@ -19,6 +19,7 @@
 
 #include <boost/range/combine.hpp>
 #include <folly/logging/xlog.h>
+#include "fboss/lib/config/PlatformConfigUtils.h"
 
 namespace {
 using TestTypes = ::testing::Types<folly::IPAddressV4, folly::IPAddressV6>;
@@ -405,9 +406,9 @@ class AgentMirroringTest : public AgentHwTest {
 template <typename AddrT>
 class AgentIngressPortSpanMirroringTest : public AgentMirroringTest<AddrT> {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::INGRESS_MIRRORING};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::INGRESS_MIRRORING};
   }
 
   cfg::SwitchConfig initialConfig(
@@ -427,9 +428,9 @@ class AgentIngressPortSpanMirroringTest : public AgentMirroringTest<AddrT> {
 template <typename AddrT>
 class AgentIngressPortErspanMirroringTest : public AgentMirroringTest<AddrT> {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::INGRESS_MIRRORING};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::INGRESS_MIRRORING};
   }
 
   cfg::SwitchConfig initialConfig(
@@ -450,11 +451,11 @@ template <typename AddrT>
 class AgentIngressPortErspanMirroringTruncateTest
     : public AgentMirroringTest<AddrT> {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     return {
-        production_features::ProductionFeature::INGRESS_MIRRORING,
-        production_features::ProductionFeature::MIRROR_PACKET_TRUNCATION};
+        ProductionFeature::INGRESS_MIRRORING,
+        ProductionFeature::MIRROR_PACKET_TRUNCATION};
   }
 
   cfg::SwitchConfig initialConfig(
@@ -474,11 +475,11 @@ class AgentIngressPortErspanMirroringTruncateTest
 template <typename AddrT>
 class AgentIngressAclSpanMirroringTest : public AgentMirroringTest<AddrT> {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     return {
-        production_features::ProductionFeature::INGRESS_MIRRORING,
-        production_features::ProductionFeature::INGRESS_ACL_MIRRORING};
+        ProductionFeature::INGRESS_MIRRORING,
+        ProductionFeature::INGRESS_ACL_MIRRORING};
   }
 
   cfg::SwitchConfig initialConfig(
@@ -498,11 +499,11 @@ class AgentIngressAclSpanMirroringTest : public AgentMirroringTest<AddrT> {
 template <typename AddrT>
 class AgentIngressAclErspanMirroringTest : public AgentMirroringTest<AddrT> {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     return {
-        production_features::ProductionFeature::INGRESS_MIRRORING,
-        production_features::ProductionFeature::INGRESS_ACL_MIRRORING};
+        ProductionFeature::INGRESS_MIRRORING,
+        ProductionFeature::INGRESS_ACL_MIRRORING};
   }
 
   cfg::SwitchConfig initialConfig(
@@ -523,9 +524,9 @@ template <typename AddrT>
 class AgentEgressPortSpanMirroringTest : public AgentMirroringTest<AddrT> {
  public:
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::EGRESS_MIRRORING};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::EGRESS_MIRRORING};
   }
 
   cfg::SwitchConfig initialConfig(
@@ -545,9 +546,9 @@ class AgentEgressPortSpanMirroringTest : public AgentMirroringTest<AddrT> {
 template <typename AddrT>
 class AgentEgressPortErspanMirroringTest : public AgentMirroringTest<AddrT> {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::EGRESS_MIRRORING};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::EGRESS_MIRRORING};
   }
 
   cfg::SwitchConfig initialConfig(
@@ -568,11 +569,11 @@ template <typename AddrT>
 class AgentEgressPortErspanMirroringTruncateTest
     : public AgentMirroringTest<AddrT> {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     return {
-        production_features::ProductionFeature::MIRROR_PACKET_TRUNCATION,
-        production_features::ProductionFeature::EGRESS_MIRRORING};
+        ProductionFeature::MIRROR_PACKET_TRUNCATION,
+        ProductionFeature::EGRESS_MIRRORING};
   }
 
   cfg::SwitchConfig initialConfig(
@@ -592,11 +593,11 @@ class AgentEgressPortErspanMirroringTruncateTest
 template <typename AddrT>
 class AgentEgressAclSpanMirroringTest : public AgentMirroringTest<AddrT> {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     return {
-        production_features::ProductionFeature::EGRESS_MIRRORING,
-        production_features::ProductionFeature::EGRESS_ACL_MIRRORING};
+        ProductionFeature::EGRESS_MIRRORING,
+        ProductionFeature::EGRESS_ACL_MIRRORING};
   }
 
   cfg::SwitchConfig initialConfig(
@@ -616,11 +617,11 @@ class AgentEgressAclSpanMirroringTest : public AgentMirroringTest<AddrT> {
 template <typename AddrT>
 class AgentEgressAclErspanMirroringTest : public AgentMirroringTest<AddrT> {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     return {
-        production_features::ProductionFeature::EGRESS_MIRRORING,
-        production_features::ProductionFeature::EGRESS_ACL_MIRRORING};
+        ProductionFeature::EGRESS_MIRRORING,
+        ProductionFeature::EGRESS_ACL_MIRRORING};
   }
 
   cfg::SwitchConfig initialConfig(
@@ -721,15 +722,13 @@ class AgentErspanIngressSamplingTest
     : public AgentIngressPortErspanMirroringTruncateTest<AddrT> {
  public:
   using Base = AgentIngressPortErspanMirroringTruncateTest<AddrT>;
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     auto features = Base::getProductionFeaturesVerified();
     if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
-      features.push_back(
-          production_features::ProductionFeature::ERSPANv4_SAMPLING);
+      features.push_back(ProductionFeature::ERSPANv4_SAMPLING);
     } else if (std::is_same_v<AddrT, folly::IPAddressV6>) {
-      features.push_back(
-          production_features::ProductionFeature::ERSPANv6_SAMPLING);
+      features.push_back(ProductionFeature::ERSPANv6_SAMPLING);
     }
     return features;
   }
@@ -795,7 +794,7 @@ TYPED_TEST(AgentErspanIngressSamplingTest, ErspanIngressSampling) {
     auto mirrorPortPktStatsBefore = this->getLatestPortStats(mirrorToPort);
 
     auto trafficPortPktsBefore = *trafficPortPktStatsBefore.outUnicastPkts_();
-    auto mirroredPortPktsBefore = *trafficPortPktStatsBefore.outUnicastPkts_();
+    auto mirroredPortPktsBefore = *mirrorPortPktStatsBefore.outUnicastPkts_();
 
     this->sendPackets(3 * kSampleRate, 1000);
 
@@ -815,8 +814,7 @@ TYPED_TEST(AgentErspanIngressSamplingTest, ErspanIngressSampling) {
           expectedMirrorPackets);
     });
   };
-  setup();
-  verify();
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 
 TYPED_TEST(AgentErspanIngressSamplingTest, SamplePacketFormat) {
@@ -831,6 +829,27 @@ TYPED_TEST(AgentErspanIngressSamplingTest, SamplePacketFormat) {
     auto agentEnsemble = this->getAgentEnsemble();
     auto mirrorToPort = this->getMirrorToPort(*agentEnsemble);
     auto trafficPort = this->getTrafficPort(*agentEnsemble);
+
+    auto platformMapping =
+        this->getAgentEnsemble()->getSw()->getPlatformMapping();
+    auto platformPortEntry = platformMapping->getPlatformPort(trafficPort);
+    auto chips = platformMapping->getChips();
+    auto profileID = this->getAgentEnsemble()
+                         ->getProgrammedState()
+                         ->getPorts()
+                         ->getNode(trafficPort)
+                         ->getProfileID();
+    // Below is CHENAB specific computation
+    // ingress label port is calculated based on the lane as follows
+    // ingress label port = ((module + 1) << 4 | split)
+    // module is first lane / 8 and split is 0 or 1 depending on first lane
+    auto lanes = utility::getHwPortLanes(
+        platformPortEntry, profileID, chips, [](auto, auto lane) {
+          return lane;
+        });
+    auto module = lanes[0] / 8;
+    auto split = lanes[0] % 8;
+    auto ingressLabelPort = ((module + 1) << 4 | split);
 
     WITH_RETRIES({
       auto ingressMirror = this->getProgrammedState()->getMirrors()->getNodeIf(
@@ -861,7 +880,7 @@ TYPED_TEST(AgentErspanIngressSamplingTest, SamplePacketFormat) {
           auto gre = cursor.readBE<uint32_t>(); // read gre proto
           EXPECT_EQ(gre, 0x8949);
           auto port = cursor.readBE<uint16_t>(); // ingress label port
-          EXPECT_EQ(port, trafficPort);
+          EXPECT_EQ(port, ingressLabelPort);
           auto opcode = cursor.readBE<uint8_t>(); // opcode
           EXPECT_EQ(opcode, 0x1); // v1 erspan
           cursor.readBE<uint8_t>(); // padding
@@ -872,8 +891,7 @@ TYPED_TEST(AgentErspanIngressSamplingTest, SamplePacketFormat) {
       EXPECT_EVENTUALLY_TRUE(buf.has_value());
     });
   };
-  setup();
-  verify();
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 
 } // namespace facebook::fboss

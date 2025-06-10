@@ -25,12 +25,29 @@ namespace pv_detail {
 using PathIter = typename std::vector<std::string>::const_iterator;
 }
 
-// Base class for "untyped" operators. This base class should be the prefered
-// way to use visitors. Operations should subclass this and override the virtual
-// methods but pass a pointer to the base class to avoid extra unique
-// instantiations
-class BasePathVisitorOperator {
- public:
+// BasePathVisitorOperator is a base class for "untyped" operators.
+// This base class should be the preferred way to use visitors. Operations
+// should subclass this and override the virtual methods but pass a pointer
+// to the base class to avoid extra unique instantiations
+typedef std::function<void(
+    Serializable& node,
+    pv_detail::PathIter begin,
+    pv_detail::PathIter end)>
+    SerializableVisitorFunc;
+
+typedef std::function<void(
+    const Serializable& node,
+    pv_detail::PathIter begin,
+    pv_detail::PathIter end)>
+    ConstSerializableVisitorFunc;
+
+struct BasePathVisitorOperator {
+  explicit BasePathVisitorOperator(SerializableVisitorFunc&& f)
+      : visitFunc_(f) {}
+
+  explicit BasePathVisitorOperator(ConstSerializableVisitorFunc&& f)
+      : constVisitFunc_(f) {}
+
   virtual ~BasePathVisitorOperator() = default;
 
   template <typename TC, typename Node>
@@ -40,10 +57,8 @@ class BasePathVisitorOperator {
   {
     if constexpr (std::is_const_v<Node>) {
       cvisit(node, begin, end);
-      cvisit(node);
     } else {
       visit(node, begin, end);
-      visit(node);
     }
   }
 
@@ -56,61 +71,73 @@ class BasePathVisitorOperator {
     SerializableWrapper<TC, Node> wrapper(node);
     if constexpr (std::is_const_v<Node>) {
       cvisit(wrapper, begin, end);
-      cvisit(wrapper);
     } else {
       visit(wrapper, begin, end);
-      visit(wrapper);
     }
   }
 
  protected:
-  virtual void visit(
-      Serializable& /* node */,
-      pv_detail::PathIter /* begin */,
-      pv_detail::PathIter /* end */) {}
+  void visit(
+      Serializable& node,
+      pv_detail::PathIter begin,
+      pv_detail::PathIter end) {
+    if (constVisitFunc_) {
+      constVisitFunc_(node, begin, end);
+    }
+    if (visitFunc_) {
+      visitFunc_(node, begin, end);
+    }
+  }
 
-  virtual void visit(Serializable& node) {}
+  void cvisit(
+      const Serializable& node,
+      pv_detail::PathIter begin,
+      pv_detail::PathIter end) {
+    if (constVisitFunc_) {
+      constVisitFunc_(node, begin, end);
+    }
+    if (visitFunc_) {
+      throw std::runtime_error("const visitor called on non-const node");
+    }
+  }
 
-  virtual void cvisit(
-      const Serializable& /* node */,
-      pv_detail::PathIter /* begin */,
-      pv_detail::PathIter /* end */) {}
-
-  virtual void cvisit(const Serializable& node) {}
+ private:
+  SerializableVisitorFunc visitFunc_{nullptr};
+  ConstSerializableVisitorFunc constVisitFunc_{nullptr};
 };
 
 struct GetEncodedPathVisitorOperator : public BasePathVisitorOperator {
   explicit GetEncodedPathVisitorOperator(fsdb::OperProtocol protocol)
-      : protocol_(protocol) {}
+      : BasePathVisitorOperator(
+            ConstSerializableVisitorFunc([this](
+                                             const Serializable& node,
+                                             pv_detail::PathIter,
+                                             pv_detail::PathIter) {
+              auto encoded = node.encode(protocol_);
+              val = encoded;
+            })),
+        protocol_(protocol) {}
 
   std::optional<folly::fbstring> val{std::nullopt};
 
- protected:
-  void cvisit(const Serializable& node) override {
-    val = node.encode(protocol_);
-  }
-
-  void visit(Serializable& node) override {
-    val = node.encode(protocol_);
-  }
-
  private:
-  fsdb::OperProtocol protocol_;
+  const fsdb::OperProtocol protocol_;
 };
 
 struct SetEncodedPathVisitorOperator : public BasePathVisitorOperator {
   SetEncodedPathVisitorOperator(
       fsdb::OperProtocol protocol,
       const folly::fbstring& val)
-      : protocol_(protocol), val_(val) {}
-
- protected:
-  void visit(facebook::fboss::thrift_cow::Serializable& node) override {
-    node.fromEncoded(protocol_, val_);
-  }
+      : BasePathVisitorOperator(SerializableVisitorFunc(
+            [this](
+                Serializable& node,
+                pv_detail::PathIter,
+                pv_detail::PathIter) { node.fromEncoded(protocol_, val_); })),
+        protocol_(protocol),
+        val_(val) {}
 
  private:
-  fsdb::OperProtocol protocol_;
+  const fsdb::OperProtocol protocol_;
   const folly::fbstring& val_{};
 };
 
@@ -132,6 +159,31 @@ enum class ThriftTraverseResult {
   VISITOR_EXCEPTION,
   INVALID_SET_MEMBER,
 };
+
+inline std::string traverseResultString(ThriftTraverseResult result) {
+  switch (result) {
+    case ThriftTraverseResult::OK:
+      return "OK";
+    case ThriftTraverseResult::NON_EXISTENT_NODE:
+      return "NON_EXISTENT_NODE";
+    case ThriftTraverseResult::INVALID_ARRAY_INDEX:
+      return "INVALID_ARRAY_INDEX";
+    case ThriftTraverseResult::INVALID_MAP_KEY:
+      return "INVALID_MAP_KEY";
+    case ThriftTraverseResult::INVALID_STRUCT_MEMBER:
+      return "INVALID_STRUCT_MEMBER";
+    case ThriftTraverseResult::INVALID_VARIANT_MEMBER:
+      return "INVALID_VARIANT_MEMBER";
+    case ThriftTraverseResult::INCORRECT_VARIANT_MEMBER:
+      return "INCORRECT_VARIANT_MEMBER";
+    case ThriftTraverseResult::VISITOR_EXCEPTION:
+      return "VISITOR_EXCEPTION";
+    case ThriftTraverseResult::INVALID_SET_MEMBER:
+      return "INVALID_SET_MEMBER";
+    default:
+      return "ThriftTraverseResult::unknown";
+  }
+}
 
 /*
  * invokeVisitorFnHelper allows us to support two different visitor
@@ -156,21 +208,27 @@ enum class PathVisitMode {
 };
 
 struct PathVisitOptions {
-  static PathVisitOptions visitFull(bool skipImmutablePrimitiveNode = false) {
-    return PathVisitOptions(PathVisitMode::FULL, skipImmutablePrimitiveNode);
+  static PathVisitOptions visitFull(
+      bool skipOptionalOrImmutablePrimitiveNode = false) {
+    return PathVisitOptions(
+        PathVisitMode::FULL, skipOptionalOrImmutablePrimitiveNode);
   }
 
-  static PathVisitOptions visitLeaf(bool skipImmutablePrimitiveNode = false) {
-    return PathVisitOptions(PathVisitMode::LEAF, skipImmutablePrimitiveNode);
+  static PathVisitOptions visitLeaf(
+      bool skipOptionalOrImmutablePrimitiveNode = false) {
+    return PathVisitOptions(
+        PathVisitMode::LEAF, skipOptionalOrImmutablePrimitiveNode);
   }
 
   explicit PathVisitOptions(
       PathVisitMode mode,
-      bool skipImmutablePrimitiveNode = false)
-      : mode(mode), skipImmutablePrimitiveNode(skipImmutablePrimitiveNode) {}
+      bool skipOptionalOrImmutablePrimitiveNode = false)
+      : mode(mode),
+        skipOptionalOrImmutablePrimitiveNode(
+            skipOptionalOrImmutablePrimitiveNode) {}
 
   PathVisitMode mode;
-  bool skipImmutablePrimitiveNode;
+  bool skipOptionalOrImmutablePrimitiveNode;
 };
 
 namespace pv_detail {
@@ -218,49 +276,6 @@ struct LambdaPathVisitorOperator {
   {
     // Node is not a Serializable, dispatch with wrapper
     SerializableWrapper<TC, Node> wrapper(node);
-    return f_(wrapper, begin, end);
-  }
-
- private:
-  Func f_;
-};
-
-// Similar to LambdaPathVisitorOperator, only that if the node is thrift
-// object, this operator wraps it in a writable wrapper that provides write
-// interface to caller such as remove(tok), modify(tok)
-template <typename Func>
-struct WritablePathVisitorOperator {
-  explicit WritablePathVisitorOperator(Func&& f) : f_(std::forward<Func>(f)) {}
-
-  template <typename TC, typename Node>
-  inline auto
-  visitTyped(Node& node, pv_detail::PathIter begin, pv_detail::PathIter end)
-    requires(
-        is_cow_type_v<Node> &&
-        !std::is_same_v<typename Node::CowType, HybridNodeType>)
-  {
-    return f_(node, begin, end);
-  }
-
-  template <typename TC, typename Node>
-  inline auto
-  visitTyped(Node& node, pv_detail::PathIter begin, pv_detail::PathIter end)
-    requires(
-        is_cow_type_v<Node> &&
-        std::is_same_v<typename Node::CowType, HybridNodeType>)
-  {
-    // Node is not a Serializable, dispatch with a writable wrapper
-    WritableWrapper<TC, typename Node::ThriftType> wrapper(node.ref());
-    return f_(wrapper, begin, end);
-  }
-
-  template <typename TC, typename Node>
-  inline auto
-  visitTyped(Node& node, pv_detail::PathIter begin, pv_detail::PathIter end)
-    requires(!is_cow_type_v<Node>)
-  {
-    // Node is not a Serializable, dispatch with a writable wrapper
-    WritableWrapper<TC, Node> wrapper(node);
     return f_(wrapper, begin, end);
   }
 
@@ -681,7 +696,8 @@ struct PathVisitorImpl<apache::thrift::type_class::variant> {
       using name = typename descriptor::metadata::name;
       using tc = typename descriptor::metadata::type_class;
 
-      if (fields.type() != descriptor::metadata::id::value) {
+      if (folly::to_underlying(fields.type()) !=
+          descriptor::metadata::id::value) {
         result = ThriftTraverseResult::INCORRECT_VARIANT_MEMBER;
         return;
       }
@@ -789,7 +805,8 @@ struct PathVisitorImpl<apache::thrift::type_class::structure> {
     auto key = *cursor++;
     // Perform linear search over all members for key
     ThriftTraverseResult result = ThriftTraverseResult::INVALID_STRUCT_MEMBER;
-    using Members = typename apache::thrift::reflect_struct<Obj>::members;
+    using Members =
+        typename apache::thrift::reflect_struct<std::remove_cv_t<Obj>>::members;
     visitMember<Members>(key, [&](auto indexed) {
       using member = decltype(fatal::tag_type(indexed));
       using tc = typename member::type_class;
@@ -869,12 +886,24 @@ struct PathVisitorImpl {
       "Forgot to specify reflection option or include fatal header file? "
       "Refer to thrift/lib/cpp2/reflection/reflection.h");
 
+  template <typename T>
+  struct optional_field : std::false_type {};
+  template <typename T>
+  struct optional_field<apache::thrift::optional_field_ref<T>>
+      : std::true_type {};
+
   template <typename Node, typename Op>
   static ThriftTraverseResult
   visit(Node& node, const VisitImplParams<Op>& params, PathIter cursor) {
+    if constexpr (optional_field<folly::remove_cvref_t<Node>>::value) {
+      if (params.options.skipOptionalOrImmutablePrimitiveNode) {
+        return ThriftTraverseResult::OK;
+      }
+    }
     if constexpr (is_cow_type_v<Node>) {
       if constexpr (!std::is_same_v<typename Node::CowType, HybridNodeType>) {
-        if (params.options.skipImmutablePrimitiveNode && node.immutable) {
+        if (params.options.skipOptionalOrImmutablePrimitiveNode &&
+            node.immutable) {
           return ThriftTraverseResult::OK;
         }
       }
@@ -914,24 +943,20 @@ inline pv_detail::LambdaPathVisitorOperator<Func> pvlambda(Func&& f) {
   return pv_detail::LambdaPathVisitorOperator<Func>(std::forward<Func>(f));
 }
 
-template <typename Func>
-inline pv_detail::WritablePathVisitorOperator<Func> writablelambda(Func&& f) {
-  return pv_detail::WritablePathVisitorOperator<Func>(std::forward<Func>(f));
-}
-
 template <typename TC>
 struct PathVisitor {
-  template <typename Node, typename Op>
+  template <typename Node, typename Func>
   static inline ThriftTraverseResult visit(
       Node& node,
       pv_detail::PathIter begin,
       pv_detail::PathIter end,
       const PathVisitOptions& options,
-      Op& op)
+      pv_detail::LambdaPathVisitorOperator<Func>& op)
       // only enable for Node types
     requires(std::is_same_v<typename Node::CowType, NodeType>)
   {
-    pv_detail::VisitImplParams<Op> params(begin, end, options, op);
+    pv_detail::VisitImplParams<pv_detail::LambdaPathVisitorOperator<Func>>
+        params(begin, end, options, op);
     return pv_detail::PathVisitorImpl<TC>::visit(node, params, begin);
   }
 
@@ -950,19 +975,20 @@ struct PathVisitor {
     return pv_detail::PathVisitorImpl<TC>::visit(node, params, begin);
   }
 
-  template <typename Fields, typename Op>
+  template <typename Fields, typename Func>
   inline static ThriftTraverseResult visit(
       Fields& fields,
       pv_detail::PathIter begin,
       pv_detail::PathIter end,
       const PathVisitOptions& options,
-      Op& op)
+      pv_detail::LambdaPathVisitorOperator<Func>& op)
       // only enable for Fields types
     requires(
         is_field_type_v<Fields> &&
         std::is_same_v<typename Fields::CowType, FieldsType>)
   {
-    pv_detail::VisitImplParams<Op> params(begin, end, options, op);
+    pv_detail::VisitImplParams<pv_detail::LambdaPathVisitorOperator<Func>>
+        params(begin, end, options, op);
     return pv_detail::PathVisitorImpl<TC>::visit(fields, params, begin);
   }
 

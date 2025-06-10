@@ -99,6 +99,8 @@ class PlatformMappingParser:
             )
         if self.platform in ["tahan800bc_test_fixture", "tahan800bc_chassis"]:
             prefix = "tahan800bc_port" if port_profile else "tahan800bc"
+        if "janga" in self.platform:
+            prefix = "janga800bic_port" if port_profile else "janga800bic"
         return prefix
 
     def _read_csvs(self) -> None:
@@ -309,4 +311,4 @@ class PlatformMappingV2:
                             if port_id not in other_port_config.subsumedPorts:
                                 other_port_config.subsumedPorts.append(port_id)
                             port_entry.mapping.controllingPort = other_port_id
-        return ports
+        return dict(sorted(ports.items()))

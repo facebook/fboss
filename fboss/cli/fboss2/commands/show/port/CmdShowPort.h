@@ -30,7 +30,7 @@ using PeerDrainState = std::map<int64_t, cfg::SwitchDrainState>;
 using PortIdToInfo = std::map<int32_t, facebook::fboss::PortInfoThrift>;
 using PortNameToInfo = std::map<std::string, facebook::fboss::PortInfoThrift>;
 
-struct CmdShowPortTraits : public BaseCommandTraits {
+struct CmdShowPortTraits : public ReadCommandTraits {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST;
   using ObjectArgType = utils::PortList;
@@ -51,6 +51,10 @@ struct PeerInfo {
   std::unordered_set<std::string> allPeers;
 };
 
+struct PeerPortInfo {
+  bool drainedOrDown{false};
+  std::optional<uint64_t> cableLenMeters;
+};
 class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
  public:
   using ObjectArgType = CmdShowPortTraits::ObjectArgType;
@@ -72,18 +76,13 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
       const std::unordered_map<std::string, Endpoint>& portToPeer,
       const std::unordered_map<std::string, cfg::SwitchDrainState>&
           peerDrainStates,
-      const std::unordered_map<std::string, bool>& peerPortDrainedOrDown,
+      const std::unordered_map<std::string, PeerPortInfo>& peerPortInfo,
       const std::vector<std::string>& drainedInterfaces);
 
   void printOutput(const RetType& model, std::ostream& out = std::cout);
 
  private:
   std::chrono::seconds peerTimeout = std::chrono::seconds(1);
-
-  std::unordered_map<
-      std::string,
-      std::shared_ptr<apache::thrift::Client<FbossCtrl>>>
-      clients;
 
   PeerInfo getFabPortPeerInfo(const auto& hostInfo) const;
 
@@ -96,8 +95,13 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
       std::shared_ptr<apache::thrift::Client<FbossCtrl>> client) const;
   std::unordered_map<std::string, PortNameToInfo> getPeerToPorts(
       const std::unordered_set<std::string>& hosts);
-  std::unordered_map<std::string, bool> getPeerPortDrainedOrDown(
+  std::unordered_map<std::string, PeerPortInfo> getPeerPortInfo(
       const PeerInfo& peerInfo);
+
+  std::unordered_map<
+      std::string,
+      std::shared_ptr<apache::thrift::Client<FbossCtrl>>>
+      clients_;
 };
 
 } // namespace facebook::fboss

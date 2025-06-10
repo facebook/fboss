@@ -75,10 +75,17 @@ int main(int argc, char** argv) {
     }
   }
 
+  std::optional<DataStore> ds = platformExplorer.getDataStore();
+  if (!ds.has_value()) {
+    XLOG(ERR)
+        << "PlatformExplorer did not succeed. Not starting Thrift Service.";
+    return 1;
+  }
   XLOG(INFO) << "Running PlatformManager thrift service...";
 
   auto server = std::make_shared<apache::thrift::ThriftServer>();
-  auto handler = std::make_shared<PlatformManagerHandler>(platformExplorer);
+  auto handler =
+      std::make_shared<PlatformManagerHandler>(platformExplorer, ds.value());
   server->setPort(FLAGS_thrift_port);
   server->setInterface(handler);
   server->setAllowPlaintextOnLoopback(true);

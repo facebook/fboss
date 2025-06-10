@@ -101,6 +101,10 @@ class CowStorageTests : public ::testing::Test {
                 ThriftStructResolver<RootType, isHybridStorage>,
             isHybridStorage>>(val);
   }
+
+  constexpr bool isHybridStorage() {
+    return TestParams::hybridStorage;
+  }
 };
 
 TYPED_TEST_SUITE(CowStorageTests, StorageTestTypes);
@@ -378,6 +382,160 @@ TYPED_TEST(CowStorageTests, PatchDelta) {
   EXPECT_EQ(storage.get(root.member().min()).value(), 100);
   EXPECT_EQ(storage.get(root.structMap()[5].min()).value(), 1001);
   EXPECT_EQ(storage.get(root.enumMap()[TestEnum::FIRST].min()).value(), 2001);
+}
+
+template <typename Node>
+OperDelta buildOperDelta(
+    const std::shared_ptr<Node>& oldNode,
+    const std::shared_ptr<Node>& newNode,
+    const std::vector<std::string>& basePath = {},
+    bool outputIdPaths = false) {
+  std::vector<OperDeltaUnit> operDeltaUnits{};
+
+  bool operDeltaWithOldState = true;
+
+  auto makeOperDeltaUnit = [](const std::vector<std::string>& path,
+                              const auto& oldNode,
+                              const auto& newNode,
+                              OperProtocol protocol) -> OperDeltaUnit {
+    OperDeltaUnit unit;
+    unit.path()->raw() = path;
+    if (oldNode) {
+      unit.oldState() = oldNode->encode(protocol);
+    }
+    if (newNode) {
+      unit.newState() = newNode->encode(protocol);
+    }
+    return unit;
+  };
+
+  auto processDelta =
+      [basePath, &operDeltaUnits, &makeOperDeltaUnit, operDeltaWithOldState](
+          facebook::fboss::thrift_cow::SimpleTraverseHelper& traverser,
+          const auto& oldNode,
+          const auto& newNode,
+          facebook::fboss::thrift_cow::DeltaElemTag /* visitTag */) {
+        std::vector<std::string> fullPath;
+        fullPath.reserve(basePath.size() + traverser.path().size());
+        fullPath.insert(fullPath.end(), basePath.begin(), basePath.end());
+        fullPath.insert(
+            fullPath.end(), traverser.path().begin(), traverser.path().end());
+        using NodeT = typename std::remove_reference<decltype(oldNode)>::type;
+        const NodeT emptyOldNode;
+        operDeltaUnits.push_back(makeOperDeltaUnit(
+            fullPath,
+            (operDeltaWithOldState ? oldNode : emptyOldNode),
+            newNode,
+            OperProtocol::SIMPLE_JSON));
+      };
+
+  facebook::fboss::thrift_cow::SimpleTraverseHelper traverser;
+  facebook::fboss::thrift_cow::RootDeltaVisitor::visit(
+      oldNode,
+      newNode,
+      facebook::fboss::thrift_cow::DeltaVisitOptions(
+          facebook::fboss::thrift_cow::DeltaVisitMode::MINIMAL,
+          facebook::fboss::thrift_cow::DeltaVisitOrder::PARENTS_FIRST,
+          outputIdPaths),
+      std::move(processDelta));
+
+  OperDelta delta;
+  delta.changes() = std::move(operDeltaUnits);
+  const OperProtocol protocol = OperProtocol::SIMPLE_JSON;
+  delta.protocol() = protocol;
+
+  return delta;
+}
+
+TYPED_TEST(CowStorageTests, verifyOperDeltaForOptionalPrimitives) {
+  using namespace facebook::fboss::fsdb;
+  using namespace apache::thrift::type_class;
+
+  thriftpath::RootThriftPath<TestStruct> root;
+
+  TestStruct testStruct = facebook::thrift::from_dynamic<TestStruct>(
+      createTestDynamic(), facebook::thrift::dynamic_format::JSON_1);
+  auto storage = this->initStorage(testStruct);
+
+  // publish to ensure we can patch published storage
+  storage.publish();
+  EXPECT_TRUE(storage.isPublished());
+
+  // start with optional primitives not set
+  std::optional<StorageError> patchResult;
+  auto queryEnum = storage.get(root.structMap()[3].optionalEnum());
+  EXPECT_EQ(queryEnum.error(), StorageError::INVALID_PATH);
+  auto queryInt = storage.get(root.structMap()[3].optionalIntegral());
+  EXPECT_EQ(queryInt.error(), StorageError::INVALID_PATH);
+  auto queryString = storage.get(root.structMap()[3].optionalString());
+  EXPECT_EQ(queryString.error(), StorageError::INVALID_PATH);
+
+  // test: add optional primitives
+  auto lastVersion = storage;
+  auto setResult =
+      storage.set(root.structMap()[3].optionalEnum(), TestEnum::SECOND);
+  EXPECT_FALSE(setResult.has_value());
+  setResult = storage.set(root.structMap()[3].optionalIntegral(), 100);
+  EXPECT_FALSE(setResult.has_value());
+  setResult = storage.set(root.structMap()[3].optionalString(), "val_1");
+  EXPECT_FALSE(setResult.has_value());
+
+  OperDelta delta = buildOperDelta(lastVersion.root(), storage.root());
+  patchResult = storage.patch(delta);
+  EXPECT_FALSE(patchResult.has_value());
+  queryEnum = storage.get(root.structMap()[3].optionalEnum());
+  std::optional<TestEnum> valEnum = queryEnum.value();
+  EXPECT_TRUE(valEnum.has_value());
+  EXPECT_EQ(valEnum.value(), TestEnum::SECOND);
+  queryInt = storage.get(root.structMap()[3].optionalIntegral());
+  std::optional<int32_t> valInt = queryInt.value();
+  EXPECT_TRUE(valInt.has_value());
+  EXPECT_EQ(valInt.value(), 100);
+  queryString = storage.get(root.structMap()[3].optionalString());
+  std::optional<std::string> valString = queryString.value();
+  EXPECT_TRUE(valString.has_value());
+  EXPECT_EQ(valString.value(), "val_1");
+
+  // test: update optional primitives
+  lastVersion = storage;
+  setResult = storage.set(root.structMap()[3].optionalEnum(), TestEnum::THIRD);
+  EXPECT_FALSE(setResult.has_value());
+  setResult = storage.set(root.structMap()[3].optionalIntegral(), 200);
+  EXPECT_FALSE(setResult.has_value());
+  setResult = storage.set(root.structMap()[3].optionalString(), "val_2");
+  EXPECT_FALSE(setResult.has_value());
+
+  delta = buildOperDelta(lastVersion.root(), storage.root());
+  patchResult = storage.patch(delta);
+  EXPECT_FALSE(patchResult.has_value());
+  queryEnum = storage.get(root.structMap()[3].optionalEnum());
+  valEnum = queryEnum.value();
+  EXPECT_TRUE(valEnum.has_value());
+  EXPECT_EQ(valEnum.value(), TestEnum::THIRD);
+  queryInt = storage.get(root.structMap()[3].optionalIntegral());
+  valInt = queryInt.value();
+  EXPECT_TRUE(valInt.has_value());
+  EXPECT_EQ(valInt.value(), 200);
+  queryString = storage.get(root.structMap()[3].optionalString());
+  valString = queryString.value();
+  EXPECT_TRUE(valString.has_value());
+  EXPECT_EQ(valString.value(), "val_2");
+
+  // test: remove optional primitives
+  lastVersion = storage;
+  storage.remove(root.structMap()[3].optionalEnum());
+  storage.remove(root.structMap()[3].optionalIntegral());
+  storage.remove(root.structMap()[3].optionalString());
+
+  delta = buildOperDelta(lastVersion.root(), storage.root());
+  patchResult = storage.patch(delta);
+  EXPECT_FALSE(patchResult.has_value());
+  queryEnum = storage.get(root.structMap()[3].optionalEnum());
+  EXPECT_EQ(queryEnum.error(), StorageError::INVALID_PATH);
+  queryInt = storage.get(root.structMap()[3].optionalIntegral());
+  EXPECT_EQ(queryInt.error(), StorageError::INVALID_PATH);
+  queryString = storage.get(root.structMap()[3].optionalString());
+  EXPECT_EQ(queryString.error(), StorageError::INVALID_PATH);
 }
 
 TYPED_TEST(CowStorageTests, EncodedExtendedAccessFieldSimple) {

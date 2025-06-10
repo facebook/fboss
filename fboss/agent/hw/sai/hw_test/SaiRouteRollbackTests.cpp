@@ -28,16 +28,16 @@ namespace facebook::fboss {
 class SaiRouteRollbackTest : public SaiRollbackTest {
  private:
   RoutePrefixV4 kV4Prefix1() const {
-    return RoutePrefixV4{folly::IPAddressV4("100.0.0.0"), 24};
+    return RoutePrefixV4{folly::IPAddressV4("100.1.1.0"), 24};
   }
   RoutePrefixV6 kV6Prefix1() const {
-    return RoutePrefixV6{folly::IPAddressV6("100::"), 64};
+    return RoutePrefixV6{folly::IPAddressV6("100:1:1::"), 64};
   }
   RoutePrefixV4 kV4Prefix2() const {
-    return RoutePrefixV4{folly::IPAddressV4("200.0.0.0"), 24};
+    return RoutePrefixV4{folly::IPAddressV4("200.1.1.0"), 24};
   }
   RoutePrefixV6 kV6Prefix2() const {
-    return RoutePrefixV6{folly::IPAddressV6("200::"), 64};
+    return RoutePrefixV6{folly::IPAddressV6("200:1:1::"), 64};
   }
   template <typename T>
   folly::CIDRNetwork routePrefixToNetwork(const RoutePrefix<T>& route) const {

@@ -21,9 +21,9 @@ class AgentConfigSetupTest : public AgentHwTest {
     return getConfig(false, ensemble);
   }
 
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::L3_FORWARDING};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::L3_FORWARDING};
   }
 
   std::function<void(void)> testSetup() {

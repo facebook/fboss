@@ -584,7 +584,6 @@ class ThriftConfigApplier {
 
   folly::MacAddress getLocalMac(SwitchID switchId) const;
   SwitchID getSwitchId(const cfg::Interface& intfConfig) const;
-  void addRemoteIntfRoute();
   std::optional<SwitchID> getAnyVoqSwitchId();
   std::vector<SwitchID> getLocalFabricSwitchIds() const;
   std::optional<QueueConfig> getDefaultVoqConfigIfChanged(
@@ -745,9 +744,6 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
       changed = true;
     }
   }
-
-  // Add remote interface routes to route table.
-  addRemoteIntfRoute();
 
   if (routeUpdater_) {
     routeUpdater_->setRoutesToConfig(
@@ -1004,6 +1000,9 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
   std::unordered_set<SwitchID> localSwitchIds;
   std::unordered_set<int> localInbandPortIds;
 
+  IntfRouteTable remoteIntfRoutesToAdd;
+  RouterIDToPrefixes remoteIntfRoutesToDel;
+
   for (auto& [matcherString, switchSettings] :
        std::as_const(*new_->getSwitchSettings())) {
     auto localSwitchId = HwSwitchMatcher(matcherString).switchId();
@@ -1241,6 +1240,14 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
     auto intfs = new_->getRemoteInterfaces()->modify(&new_);
     intfs->addNode(intf, scopeResolver_.scope(intf, new_));
     processLoopbacks(node, dsfNodeAsic.get());
+
+    processRemoteInterfaceRoutes(
+        new_->getRemoteInterfaces()->getNode(
+            InterfaceID(getInbandSysPortId(node))),
+        new_,
+        true /* add */,
+        remoteIntfRoutesToAdd,
+        remoteIntfRoutesToDel);
   };
   auto rmDsfNode = [&](const std::shared_ptr<DsfNode>& node) {
     if (!isInterfaceNode(node)) {
@@ -1248,6 +1255,13 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
     }
     if (!isLocal(node)) {
       auto recyclePortId = getInbandSysPortId(node);
+      processRemoteInterfaceRoutes(
+          new_->getRemoteInterfaces()->getNode(InterfaceID(recyclePortId)),
+          new_,
+          false /* add */,
+          remoteIntfRoutesToAdd,
+          remoteIntfRoutesToDel);
+
       auto sysPorts = new_->getRemoteSystemPorts()->modify(&new_);
       sysPorts->removeNode(SystemPortID(recyclePortId));
       auto intfs = new_->getRemoteInterfaces()->modify(&new_);
@@ -1267,6 +1281,18 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
       },
       [&](auto newNode) { addDsfNode(newNode); },
       [&](auto oldNode) { rmDsfNode(oldNode); });
+
+  if (routeUpdater_) {
+    routeUpdater_->setRemoteLoopbackInterfaceRoutesToConfig(
+        remoteIntfRoutesToAdd, remoteIntfRoutesToDel);
+  } else if (rib_) {
+    rib_->updateRemoteInterfaceRoutes(
+        &scopeResolver_,
+        remoteIntfRoutesToAdd,
+        remoteIntfRoutesToDel,
+        &updateFibFromConfig,
+        static_cast<void*>(&new_));
+  }
 }
 
 void ThriftConfigApplier::processReachabilityGroup(
@@ -2008,6 +2034,9 @@ std::shared_ptr<PortPgConfig> ThriftConfigApplier::createPortPg(
   }
   if (const auto sramResumeOffsetBytes = cfg->sramResumeOffsetBytes()) {
     pgCfg->setSramResumeOffsetBytes(*sramResumeOffsetBytes);
+  }
+  if (const auto sramScalingFactor = cfg->sramScalingFactor()) {
+    pgCfg->setSramScalingFactor(*sramScalingFactor);
   }
   return pgCfg;
 }
@@ -5988,26 +6017,6 @@ folly::MacAddress ThriftConfigApplier::getLocalMac(SwitchID switchId) const {
   }
   XLOG(WARNING) << " No mac address found for switch " << switchId;
   return getLocalMacAddress();
-}
-
-void ThriftConfigApplier::addRemoteIntfRoute() {
-  // In order to resolve ECMP members pointing to remote nexthops,
-  // also treat remote Interfaces as directly connected route in rib.
-  // HwSwitch will point remote nextHops as dropped such that switch does
-  // not attract traffic for remote nexthops.
-  for (const auto& remoteInterfaceMap :
-       std::as_const(*orig_->getRemoteInterfaces())) {
-    for (const auto& [_, remoteInterface] :
-         std::as_const(*remoteInterfaceMap.second)) {
-      for (const auto& [addr, mask] :
-           std::as_const(*remoteInterface->getAddresses())) {
-        intfRouteTables_[remoteInterface->getRouterID()].emplace(
-            IPAddress::createNetwork(
-                folly::to<std::string>(addr, "/", mask->toThrift())),
-            std::make_pair(remoteInterface->getID(), addr));
-      }
-    }
-  }
 }
 
 void ThriftConfigApplier::updateSystemPortSelfHealingEcmpLagDestinationEnable(

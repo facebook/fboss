@@ -11,7 +11,6 @@
 #include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/hw/test/HwPortUtils.h"
 #include "fboss/agent/hw/test/HwTest.h"
-#include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
 
 #include "fboss/agent/hw/test/ConfigFactory.h"

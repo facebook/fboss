@@ -186,6 +186,7 @@ add_library(agent_hw_test_thrift_handler
   fboss/agent/hw/sai/hw_test/HwTestFlowletUtilsThriftHandler.cpp
   fboss/agent/hw/sai/hw_test/HwTestPtpTcUtilsThriftHandler.cpp
   fboss/agent/hw/sai/hw_test/HwTestUdfUtilsThriftHandler.cpp
+  fboss/agent/hw/sai/hw_test/HwTestTeFlowUtilsThriftHandler.cpp
 )
 
 target_link_libraries(agent_hw_test_thrift_handler

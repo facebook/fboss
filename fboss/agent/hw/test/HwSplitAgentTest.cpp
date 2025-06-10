@@ -148,14 +148,14 @@ TEST_F(HwSplitAgentCallbackTest, operDeltaUpdate) {
   port->setOperState(false);
   port->setLoopbackMode(cfg::PortLoopbackMode::NONE);
   multiswitch::StateOperDelta operDelta;
-  operDelta.operDelta() = StateDelta(state, newState).getOperDelta();
+  operDelta.operDeltas() = {StateDelta(state, newState).getOperDelta()};
   getHwSwitchEnsemble()->enqueueOperDelta(operDelta);
   EXPECT_TRUE(waitForPortEvent());
 
   // Set port to up
   setPortIDAndStateToWaitFor(masterLogicalInterfacePortIds()[0], true);
   multiswitch::StateOperDelta operDelta2;
-  operDelta2.operDelta() = StateDelta(newState, state).getOperDelta();
+  operDelta2.operDeltas() = {StateDelta(newState, state).getOperDelta()};
   getHwSwitchEnsemble()->enqueueOperDelta(operDelta2);
   EXPECT_TRUE(waitForPortEvent());
 }

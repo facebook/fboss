@@ -7,4 +7,5 @@ struct ShowFabricReachabilityModel {
 struct ReachabilityEntry {
   1: string switchName;
   2: list<string> reachablePorts;
+  3: i32 numPorts;
 }

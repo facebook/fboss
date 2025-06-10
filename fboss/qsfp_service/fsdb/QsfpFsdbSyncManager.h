@@ -56,7 +56,9 @@ class QsfpFsdbSyncManager {
   void updatePortStat(std::string&& portName, HwPortStats&& stat);
 
  private:
-  std::unique_ptr<fsdb::FsdbSyncManager<state::QsfpServiceData>> stateSyncer_;
+  std::unique_ptr<
+      fsdb::FsdbSyncManager<state::QsfpServiceData, true /* EnablePatchAPIs */>>
+      stateSyncer_;
   std::unique_ptr<fsdb::FsdbSyncManager<stats::QsfpStats>> statsSyncer_;
   // updatePhyStat, that reads and writes to pendingPhyStats_, is called per
   // port from every PIM evb. So calls to this function from ports on different

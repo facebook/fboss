@@ -77,6 +77,10 @@ DEFINE_string(
     "",
     "Destination MAC override for Mirror-on-Drop packets");
 DEFINE_bool(allow_nif_port_for_mod, false, "Allow NIF port to be used for MOD");
+DEFINE_bool(
+    allow_eventor_send_packet,
+    false,
+    "A test-only flag to allow sending packets directly out of the eventor");
 
 namespace facebook::fboss {
 
@@ -586,12 +590,14 @@ bool isAnyInterfacePortInLoopbackMode(
   return false;
 }
 
-bool isAnyInterfacePortRecyclePort(
+bool isAnyInterfacePortRecycleOrEventorPort(
     std::shared_ptr<SwitchState> swState,
     const std::shared_ptr<Interface> interface) {
   for (auto portId : getPortsForInterface(interface->getID(), swState)) {
     auto port = swState->getPorts()->getNodeIf(portId);
-    if (port && port->getPortType() == cfg::PortType::RECYCLE_PORT) {
+    if (port &&
+        (port->getPortType() == cfg::PortType::RECYCLE_PORT ||
+         port->getPortType() == cfg::PortType::EVENTOR_PORT)) {
       return true;
     }
   }

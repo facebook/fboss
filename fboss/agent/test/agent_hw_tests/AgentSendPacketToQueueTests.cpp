@@ -30,9 +30,9 @@ namespace facebook::fboss {
 
 class AgentSendPacketToQueueTest : public AgentHwTest {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::L3_FORWARDING};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::L3_FORWARDING};
   }
 
  protected:
@@ -64,7 +64,7 @@ void AgentSendPacketToQueueTest::checkSendPacket(
     // id 7
     auto sw = getAgentEnsemble()->getSw();
     auto asic = utility::getAsic(*sw, port);
-    if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB && isOutOfPort) {
       queueID = kChenabTxQueue;
     }
 
@@ -129,11 +129,10 @@ TEST_F(AgentSendPacketToQueueTest, SendPacketSwitchedToDefaultUCQueue) {
 
 class AgentSendPacketToMulticastQueueTest : public AgentHwTest {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     return {
-        production_features::ProductionFeature::L3_FORWARDING,
-        production_features::ProductionFeature::MULTICAST_QUEUE};
+        ProductionFeature::L3_FORWARDING, ProductionFeature::MULTICAST_QUEUE};
   }
 };
 

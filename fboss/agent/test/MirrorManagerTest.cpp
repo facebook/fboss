@@ -23,8 +23,6 @@
 #include <folly/logging/xlog.h>
 #include <gtest/gtest.h>
 
-#include "fboss/agent/GtestDefs.h"
-
 using folly::IPAddress;
 using folly::IPAddressV4;
 using folly::IPAddressV6;

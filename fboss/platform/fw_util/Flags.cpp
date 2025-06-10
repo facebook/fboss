@@ -21,3 +21,7 @@ DEFINE_string(
     "",
     "The binary file that needs to be programmed to the fpd");
 DEFINE_bool(verify_sha1sum, false, "Verify SHA1 sum of the firmware");
+DEFINE_bool(
+    dry_run,
+    false,
+    "Perform a dry run of the firmware actions without upgrading firmware");

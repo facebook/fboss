@@ -19,7 +19,7 @@
 
 namespace facebook::fboss {
 
-struct CmdClearArpTraits : public BaseCommandTraits {
+struct CmdClearArpTraits : public WriteCommandTraits {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_CIDR_NETWORK;
   using ObjectArgType = utils::CIDRNetwork;

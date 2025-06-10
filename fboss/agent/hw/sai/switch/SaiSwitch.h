@@ -95,7 +95,7 @@ class SaiSwitch : public HwSwitch {
   }
 
   std::shared_ptr<SwitchState> stateChangedImpl(
-      const StateDelta& delta) override;
+      const std::vector<StateDelta>& deltas) override;
 
   bool isValidStateUpdate(const StateDelta& delta) const override;
 
@@ -121,6 +121,8 @@ class SaiSwitch : public HwSwitch {
   CpuPortStats getCpuPortStats() const override;
   HwSwitchDropStats getSwitchDropStats() const override;
   HwSwitchWatermarkStats getSwitchWatermarkStats() const override;
+  HwSwitchPipelineStats getSwitchPipelineStats() const override;
+  std::map<int, cfg::PortState> getSysPortShelState() const override;
 
   HwResourceStats getResourceStats() const override;
 
@@ -150,6 +152,9 @@ class SaiSwitch : public HwSwitch {
   void linkStateChangedCallbackTopHalf(
       uint32_t count,
       const sai_port_oper_status_notification_t* data);
+  void syncPortLinkState(PortID portId) override;
+  void linkStateChangedBottomHalf(const PortID& portId);
+
   void fdbEventCallback(
       uint32_t count,
       const sai_fdb_event_notification_data_t* data);
@@ -451,6 +456,10 @@ class SaiSwitch : public HwSwitch {
       const std::shared_ptr<SwitchSettings>& oldSwitchSettings,
       const std::shared_ptr<SwitchSettings>& newSwitchSettings);
 
+  void processPortStateChangedForSwitchReachabilityLocked(
+      const std::lock_guard<std::mutex>& lock,
+      const StateDelta& delta);
+
   void syncLinkStatesLocked(const std::lock_guard<std::mutex>& lock);
   void syncLinkConnectivityLocked(const std::lock_guard<std::mutex>& lock);
 
@@ -544,6 +553,11 @@ class SaiSwitch : public HwSwitch {
   void processSwitchSettingsDrainStateChange(
       const StateDelta& delta,
       cfg::SwitchDrainState drainStateToProcess,
+      const LockPolicyT& lockPolicy);
+
+  template <typename LockPolicyT>
+  void processPortStateChangedForSwitchReachability(
+      const StateDelta& delta,
       const LockPolicyT& lockPolicy);
 
   PortSaiId getCPUPortSaiId() const;
@@ -684,6 +698,7 @@ class SaiSwitch : public HwSwitch {
   bool pfcDeadlockEnabled_{false};
   folly::Synchronized<int> switchReachabilityChangePending_{0};
   folly::Synchronized<bool> txReadyStatusChangePending_{false};
+  std::optional<uint32_t> asicRevision_;
 };
 
 } // namespace facebook::fboss

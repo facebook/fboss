@@ -32,11 +32,13 @@ std::unordered_set<std::string> opticTypes = {
 
 std::unordered_set<std::string> opticAggregationTypes = {
     constants::OPTIC_AGGREGATION_TYPE_MAX(),
-    constants::OPTIC_AGGREGATION_TYPE_PID()};
+    constants::OPTIC_AGGREGATION_TYPE_PID(),
+    constants::OPTIC_AGGREGATION_TYPE_INCREMENTAL_PID()};
 
 std::unordered_set<std::string> sensorPwmCalcTypes = {
     constants::SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE(),
-    constants::SENSOR_PWM_CALC_TYPE_PID()};
+    constants::SENSOR_PWM_CALC_TYPE_PID(),
+    constants::SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID()};
 
 } // namespace
 
@@ -135,6 +137,22 @@ bool ConfigValidator::isValidOpticConfig(const Optic& optic) {
     if (optic.pidSettings()->empty()) {
       XLOG(ERR) << "PID settings cannot be empty for optic aggregation type: "
                 << *optic.aggregationType();
+      return false;
+    }
+    for (const auto& [opticType, pidSetting] : *optic.pidSettings()) {
+      if (!opticTypes.contains(opticType)) {
+        XLOG(ERR) << "Invalid optic type: " << opticType;
+        return false;
+      }
+    }
+  }
+
+  if (*optic.aggregationType() ==
+      constants::OPTIC_AGGREGATION_TYPE_INCREMENTAL_PID()) {
+    if (optic.pidSettings()->empty()) {
+      XLOG(ERR)
+          << "PID settings cannot be empty for optic aggregation incremental type: "
+          << *optic.aggregationType();
       return false;
     }
     for (const auto& [opticType, pidSetting] : *optic.pidSettings()) {

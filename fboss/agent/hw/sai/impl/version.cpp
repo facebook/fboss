@@ -3,7 +3,7 @@
 #include "fboss/agent/hw/sai/impl/version.h"
 
 namespace facebook::fboss {
-const char* getSaiImpVersion() {
+std::string getSaiImpVersion(bool /* verbose */) {
   return "sai";
 }
 } // namespace facebook::fboss

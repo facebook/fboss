@@ -22,6 +22,9 @@ namespace facebook::fboss {
  * this class will default to a cold boot and perform none of the setup for
  * performing a warm boot on the next startup.
  */
+
+class SwitchState;
+
 class HwSwitchWarmBootHelper {
  public:
   HwSwitchWarmBootHelper(
@@ -36,6 +39,13 @@ class HwSwitchWarmBootHelper {
   }
 
   void storeHwSwitchWarmBootState(const folly::dynamic& switchState);
+
+  state::SwitchState getWarmBootThriftState() const;
+
+  void storeWarmBootThriftState(const state::SwitchState& switchThriftState);
+
+  std::shared_ptr<SwitchState> reconstructWarmBootThriftState(
+      const std::optional<state::SwitchState>& warmBootState);
 
   folly::dynamic getWarmBootState() const;
 

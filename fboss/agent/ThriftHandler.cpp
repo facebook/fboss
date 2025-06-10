@@ -164,6 +164,9 @@ void fillPortStats(
   portInfo.output()->broadcastPkts() = *hwPortStats.outBroadcastPkts_();
   portInfo.output()->errors()->errors() = *hwPortStats.outErrors_();
   portInfo.output()->errors()->discards() = *hwPortStats.outDiscards_();
+  if (auto cableLen = hwPortStats.cableLengthMeters()) {
+    portInfo.cableLengthMeters() = *cableLen;
+  }
 
   for (int16_t i = 0; i < numPortQs; i++) {
     QueueStats stats;
@@ -423,6 +426,8 @@ void getPortInfoHelper(
   *portInfo.isDrained() =
       (port->getPortDrainState() ==
        facebook::fboss::cfg::PortDrainState::DRAINED);
+  portInfo.expectedNeighborReachability() =
+      port->getExpectedNeighborValues()->toThrift();
 }
 
 LacpPortRateThrift fromLacpPortRate(facebook::fboss::cfg::LacpPortRate rate) {
@@ -704,7 +709,7 @@ void ThriftHandler::async_tm_getStatus(ThriftCallback<fb_status> callback) {
 }
 
 void ThriftHandler::flushCountersNow() {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   // Currently SwSwitch only contains thread local stats.
   //
   // Depending on how we design the HW-specific stats interface,
@@ -718,7 +723,7 @@ void ThriftHandler::addUnicastRouteInVrf(
     std::unique_ptr<UnicastRoute> route,
     int32_t vrf) {
   auto clientName = apache::thrift::util::enumNameSafe(ClientID(client));
-  auto log = LOG_THRIFT_CALL(DBG1, clientName);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats(), clientName);
   auto routes = std::make_unique<std::vector<UnicastRoute>>();
   routes->emplace_back(std::move(*route));
   addUnicastRoutesInVrf(client, std::move(routes), vrf);
@@ -728,7 +733,7 @@ void ThriftHandler::addUnicastRoute(
     int16_t client,
     std::unique_ptr<UnicastRoute> route) {
   auto clientName = apache::thrift::util::enumNameSafe(ClientID(client));
-  auto log = LOG_THRIFT_CALL(DBG1, clientName);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats(), clientName);
   addUnicastRouteInVrf(client, std::move(route), 0);
 }
 
@@ -737,7 +742,7 @@ void ThriftHandler::deleteUnicastRouteInVrf(
     std::unique_ptr<IpPrefix> prefix,
     int32_t vrf) {
   auto clientName = apache::thrift::util::enumNameSafe(ClientID(client));
-  auto log = LOG_THRIFT_CALL(DBG1, clientName);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats(), clientName);
   auto prefixes = std::make_unique<std::vector<IpPrefix>>();
   prefixes->emplace_back(std::move(*prefix));
   deleteUnicastRoutesInVrf(client, std::move(prefixes), vrf);
@@ -747,7 +752,7 @@ void ThriftHandler::deleteUnicastRoute(
     int16_t client,
     std::unique_ptr<IpPrefix> prefix) {
   auto clientName = apache::thrift::util::enumNameSafe(ClientID(client));
-  auto log = LOG_THRIFT_CALL(DBG1, clientName);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats(), clientName);
   deleteUnicastRouteInVrf(client, std::move(prefix), 0);
 }
 
@@ -756,7 +761,7 @@ void ThriftHandler::addUnicastRoutesInVrf(
     std::unique_ptr<std::vector<UnicastRoute>> routes,
     int32_t vrf) {
   auto clientName = apache::thrift::util::enumNameSafe(ClientID(client));
-  auto log = LOG_THRIFT_CALL(DBG1, clientName);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats(), clientName);
   ensureNotFabric(__func__);
   updateUnicastRoutesImpl(vrf, client, routes, "addUnicastRoutesInVrf", false);
 }
@@ -765,13 +770,13 @@ void ThriftHandler::addUnicastRoutes(
     int16_t client,
     std::unique_ptr<std::vector<UnicastRoute>> routes) {
   auto clientName = apache::thrift::util::enumNameSafe(ClientID(client));
-  auto log = LOG_THRIFT_CALL(DBG1, clientName);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats(), clientName);
   ensureConfigured(__func__);
   addUnicastRoutesInVrf(client, std::move(routes), 0);
 }
 
 void ThriftHandler::getProductInfo(ProductInfo& productInfo) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
   sw_->getProductInfo(productInfo);
 }
@@ -781,7 +786,7 @@ void ThriftHandler::deleteUnicastRoutesInVrf(
     std::unique_ptr<std::vector<IpPrefix>> prefixes,
     int32_t vrf) {
   auto clientName = apache::thrift::util::enumNameSafe(ClientID(client));
-  auto log = LOG_THRIFT_CALL(DBG1, clientName);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats(), clientName);
   ensureNotFabric(__func__);
 
   auto updater = sw_->getRouteUpdater();
@@ -797,7 +802,7 @@ void ThriftHandler::deleteUnicastRoutes(
     int16_t client,
     std::unique_ptr<std::vector<IpPrefix>> prefixes) {
   auto clientName = apache::thrift::util::enumNameSafe(ClientID(client));
-  auto log = LOG_THRIFT_CALL(DBG1, clientName);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats(), clientName);
   ensureConfigured(__func__);
   deleteUnicastRoutesInVrf(client, std::move(prefixes), 0);
 }
@@ -808,7 +813,7 @@ void ThriftHandler::syncFibInVrf(
     int32_t vrf) {
   auto clientId = static_cast<ClientID>(client);
   auto clientName = apache::thrift::util::enumNameSafe(clientId);
-  auto log = LOG_THRIFT_CALL(DBG1, clientName);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats(), clientName);
   ensureConfigured(__func__);
   if (!sw_->getSwitchInfoTable().haveL3Switches()) {
     if (routes->size()) {
@@ -842,7 +847,7 @@ void ThriftHandler::syncFib(
     int16_t client,
     std::unique_ptr<std::vector<UnicastRoute>> routes) {
   auto clientName = apache::thrift::util::enumNameSafe(ClientID(client));
-  auto log = LOG_THRIFT_CALL(DBG1, clientName);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats(), clientName);
   ensureConfigured(__func__);
   syncFibInVrf(client, std::move(routes), 0);
 }
@@ -907,7 +912,7 @@ static void populateInterfaceDetail(
 
 void ThriftHandler::getAllInterfaces(
     std::map<int32_t, InterfaceDetail>& interfaces) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
 
   auto getAllInterfacesHelper = [&interfaces](const auto& interfaceMap) {
@@ -925,7 +930,7 @@ void ThriftHandler::getAllInterfaces(
 }
 
 void ThriftHandler::getInterfaceList(std::vector<std::string>& interfaceList) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
   const auto interfaceMap = sw_->getState()->getInterfaces();
   for (const auto& [_, intfs] : std::as_const(*interfaceMap)) {
@@ -939,7 +944,7 @@ void ThriftHandler::getInterfaceList(std::vector<std::string>& interfaceList) {
 void ThriftHandler::getInterfaceDetail(
     InterfaceDetail& interfaceDetail,
     int32_t interfaceId) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
   const auto intf =
       sw_->getState()->getInterfaces()->getNodeIf(InterfaceID(interfaceId));
@@ -1028,7 +1033,7 @@ void ThriftHandler::addRemoteNeighbors(
 }
 
 void ThriftHandler::getNdpTable(std::vector<NdpEntryThrift>& ndpTable) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
 
   // Look up neighbor table entries
@@ -1049,7 +1054,7 @@ void ThriftHandler::getNdpTable(std::vector<NdpEntryThrift>& ndpTable) {
 }
 
 void ThriftHandler::getArpTable(std::vector<ArpEntryThrift>& arpTable) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
 
   // Look up neighbor table entries
@@ -1070,7 +1075,7 @@ void ThriftHandler::getArpTable(std::vector<ArpEntryThrift>& arpTable) {
 }
 
 void ThriftHandler::getL2Table(std::vector<L2EntryThrift>& l2Table) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
   ensureNPU(__func__);
   if (sw_->isRunModeMultiSwitch()) {
@@ -1088,7 +1093,7 @@ void ThriftHandler::getL2Table(std::vector<L2EntryThrift>& l2Table) {
 }
 
 void ThriftHandler::getAclTable(std::vector<AclEntryThrift>& aclTable) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
   aclTable.reserve(sw_->getState()->getAcls()->numNodes());
   for (const auto& mIter : std::as_const(*(sw_->getState()->getAcls()))) {
@@ -1100,7 +1105,7 @@ void ThriftHandler::getAclTable(std::vector<AclEntryThrift>& aclTable) {
 }
 
 void ThriftHandler::getAclTableGroup(AclTableThrift& aclTableEntry) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
   if (FLAGS_enable_acl_table_group) {
     for (const auto& mIter :
@@ -1135,7 +1140,7 @@ void ThriftHandler::getAclTableGroup(AclTableThrift& aclTableEntry) {
 void ThriftHandler::getAggregatePort(
     AggregatePortThrift& aggregatePortThrift,
     int32_t aggregatePortIDThrift) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
 
   if (aggregatePortIDThrift < 0 ||
@@ -1158,7 +1163,7 @@ void ThriftHandler::getAggregatePort(
 
 void ThriftHandler::getAggregatePortTable(
     std::vector<AggregatePortThrift>& aggregatePortsThrift) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
 
   // Since aggregatePortsThrift is being push_back'ed to, but is an out
@@ -1178,7 +1183,7 @@ void ThriftHandler::getAggregatePortTable(
 }
 
 void ThriftHandler::getPortInfo(PortInfoThrift& portInfo, int32_t portId) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
 
   const auto port = sw_->getState()->getPorts()->getNodeIf(PortID(portId));
@@ -1190,7 +1195,7 @@ void ThriftHandler::getPortInfo(PortInfoThrift& portInfo, int32_t portId) {
 }
 
 void ThriftHandler::getAllPortInfo(map<int32_t, PortInfoThrift>& portInfoMap) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
 
   // NOTE: important to take pointer to switch state before iterating over
@@ -1206,7 +1211,7 @@ void ThriftHandler::getAllPortInfo(map<int32_t, PortInfoThrift>& portInfoMap) {
 }
 
 void ThriftHandler::clearPortStats(unique_ptr<vector<int32_t>> ports) {
-  auto log = LOG_THRIFT_CALL(DBG1, *ports);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats(), *ports);
   ensureConfigured(__func__);
   utility::clearSwPortStats(*ports, sw_->getState());
   if (sw_->isRunModeMultiSwitch()) {
@@ -1228,7 +1233,7 @@ void ThriftHandler::clearPortStats(unique_ptr<vector<int32_t>> ports) {
 }
 
 void ThriftHandler::clearAllPortStats() {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
   if (sw_->isRunModeMultiSwitch()) {
     for (const auto& switchId : sw_->getSwitchInfoTable().getSwitchIDs()) {
@@ -1247,19 +1252,19 @@ void ThriftHandler::clearAllPortStats() {
 }
 
 void ThriftHandler::getPortStats(PortInfoThrift& portInfo, int32_t portId) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
   getPortInfo(portInfo, portId);
 }
 
 void ThriftHandler::getAllPortStats(map<int32_t, PortInfoThrift>& portInfoMap) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
   getAllPortInfo(portInfoMap);
 }
 
 void ThriftHandler::getRunningConfig(std::string& configStr) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
   configStr = sw_->getConfigStr();
 }
@@ -1267,7 +1272,7 @@ void ThriftHandler::getRunningConfig(std::string& configStr) {
 void ThriftHandler::getCurrentStateJSON(
     std::string& ret,
     std::unique_ptr<std::string> path) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
 
   if (path) {
@@ -1278,7 +1283,7 @@ void ThriftHandler::getCurrentStateJSON(
 void ThriftHandler::getCurrentStateJSONForPaths(
     std::map<std::string, std::string>& pathToState,
     std::unique_ptr<std::vector<std::string>> paths) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
 
   for (auto& path : *paths) {
@@ -1289,7 +1294,7 @@ void ThriftHandler::getCurrentStateJSONForPaths(
 
 void ThriftHandler::patchCurrentStateJSONForPaths(
     std::unique_ptr<std::map<std::string, std::string>> pathToJsonPatch) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
 
   if (!FLAGS_allow_running_switch_state_mutations) {
@@ -1383,7 +1388,7 @@ void ThriftHandler::getPortStatusImpl(
 void ThriftHandler::getPortStatus(
     map<int32_t, PortStatus>& statusMap,
     unique_ptr<vector<int32_t>> ports) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   getPortStatusImpl(statusMap, ports);
 }
 
@@ -1391,7 +1396,7 @@ void ThriftHandler::getSupportedPrbsPolynomials(
     std::vector<prbs::PrbsPolynomial>& prbsCapabilities,
     std::unique_ptr<std::string> portName,
     phy::PortComponent component) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   if (component != phy::PortComponent::ASIC) {
     throw FbossError("Unsupported component");
   }
@@ -1403,7 +1408,7 @@ void ThriftHandler::getInterfacePrbsState(
     prbs::InterfacePrbsState& prbsState,
     std::unique_ptr<std::string> portName,
     phy::PortComponent component) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   if (component != phy::PortComponent::ASIC) {
     throw FbossError("Unsupported component");
   }
@@ -1414,7 +1419,7 @@ void ThriftHandler::getInterfacePrbsState(
 void ThriftHandler::clearInterfacePrbsStats(
     std::unique_ptr<std::string> portName,
     phy::PortComponent component) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   if (component != phy::PortComponent::ASIC) {
     throw FbossError("Unsupported component");
   }
@@ -1426,7 +1431,7 @@ void ThriftHandler::getInterfacePrbsStats(
     phy::PrbsStats& response,
     std::unique_ptr<std::string> portName,
     phy::PortComponent component) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   if (component != phy::PortComponent::ASIC) {
     throw FbossError("Unsupported component");
   }
@@ -1438,7 +1443,7 @@ void ThriftHandler::setInterfacePrbs(
     std::unique_ptr<std::string> portName,
     phy::PortComponent component,
     std::unique_ptr<prbs::InterfacePrbsState> state) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   if (component != phy::PortComponent::ASIC) {
     throw FbossError("Unsupported component");
   }
@@ -1464,7 +1469,7 @@ void ThriftHandler::setInterfacePrbs(
 void ThriftHandler::clearPortPrbsStats(
     int32_t portId,
     phy::PortComponent component) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
   if (component == phy::PortComponent::ASIC) {
     sw_->clearPortAsicPrbsStats(PortID(portId));
@@ -1482,7 +1487,7 @@ void ThriftHandler::getPortPrbsStats(
     phy::PrbsStats& prbsStats,
     int32_t portId,
     phy::PortComponent component) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
 
   if (component == phy::PortComponent::ASIC) {
@@ -1512,7 +1517,7 @@ void ThriftHandler::setPortPrbs(
     phy::PortComponent component,
     bool enable,
     int32_t polynominal) {
-  auto log = LOG_THRIFT_CALL(DBG1, portNum, enable);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats(), portNum, enable);
   ensureConfigured(__func__);
   PortID portId = PortID(portNum);
   const auto port = sw_->getState()->getPorts()->getNodeIf(portId);
@@ -1573,7 +1578,7 @@ void ThriftHandler::setPortPrbs(
 }
 
 void ThriftHandler::setPortState(int32_t portNum, bool enable) {
-  auto log = LOG_THRIFT_CALL(DBG1, portNum, enable);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats(), portNum, enable);
   ensureConfigured(__func__);
   PortID portId = PortID(portNum);
   const auto port = sw_->getState()->getPorts()->getNodeIf(portId);
@@ -1603,7 +1608,7 @@ void ThriftHandler::setPortState(int32_t portNum, bool enable) {
 }
 
 void ThriftHandler::setPortDrainState(int32_t portNum, bool drain) {
-  auto log = LOG_THRIFT_CALL(DBG1, portNum, drain);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats(), portNum, drain);
   ensureConfigured(__func__);
   PortID portId = PortID(portNum);
   const auto port = sw_->getState()->getPorts()->getNodeIf(portId);
@@ -1639,7 +1644,7 @@ void ThriftHandler::setPortDrainState(int32_t portNum, bool drain) {
 void ThriftHandler::setPortLoopbackMode(
     int32_t portNum,
     PortLoopbackMode mode) {
-  auto log = LOG_THRIFT_CALL(DBG1, portNum, mode);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats(), portNum, mode);
   ensureConfigured(__func__);
   PortID portId = PortID(portNum);
   const auto port = sw_->getState()->getPorts()->getNodeIf(portId);
@@ -1669,7 +1674,7 @@ void ThriftHandler::setPortLoopbackMode(
 
 void ThriftHandler::getAllPortLoopbackMode(
     std::map<int32_t, PortLoopbackMode>& port2LbMode) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
   for (auto& portMap : std::as_const(*sw_->getState()->getPorts())) {
     for (auto& port : std::as_const(*portMap.second)) {
@@ -1691,7 +1696,7 @@ void ThriftHandler::programInternalPhyPorts(
     std::unique_ptr<TransceiverInfo> transceiver,
     bool force) {
   int32_t id = *transceiver->tcvrState()->port();
-  auto log = LOG_THRIFT_CALL(DBG1, id, force);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats(), id, force);
   ensureConfigured(__func__);
 
   // Check whether the transceiver has valid id
@@ -1809,7 +1814,7 @@ void ThriftHandler::programInternalPhyPorts(
 }
 
 void ThriftHandler::getRouteTable(std::vector<UnicastRoute>& routes) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
   auto state = sw_->getState();
   forAllRoutes(state, [&routes](RouterID /*rid*/, const auto& route) {
@@ -1830,6 +1835,10 @@ void ThriftHandler::getRouteTable(std::vector<UnicastRoute>& routes) {
     if (fwdInfo.getClassID().has_value()) {
       tempRoute.classID() = *fwdInfo.getClassID();
     }
+    if (fwdInfo.getOverrideEcmpSwitchingMode().has_value()) {
+      tempRoute.overrideEcmpSwitchingMode() =
+          *fwdInfo.getOverrideEcmpSwitchingMode();
+    }
     routes.emplace_back(std::move(tempRoute));
   });
 }
@@ -1837,7 +1846,7 @@ void ThriftHandler::getRouteTable(std::vector<UnicastRoute>& routes) {
 void ThriftHandler::getRouteTableByClient(
     std::vector<UnicastRoute>& routes,
     int16_t client) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
   auto state = sw_->getState();
   forAllRoutes(state, [&routes, client](RouterID /*rid*/, const auto& route) {
@@ -1855,6 +1864,10 @@ void ThriftHandler::getRouteTableByClient(
     if (auto classID = entry->getClassID()) {
       tempRoute.classID() = *classID;
     }
+    if (auto overrideEcmpSwitchingMode =
+            entry->getOverrideEcmpSwitchingMode()) {
+      tempRoute.overrideEcmpSwitchingMode() = *overrideEcmpSwitchingMode;
+    }
     for (const auto& nh : *tempRoute.nextHops()) {
       tempRoute.nextHopAddrs()->emplace_back(*nh.address());
     }
@@ -1863,7 +1876,7 @@ void ThriftHandler::getRouteTableByClient(
 }
 
 void ThriftHandler::getRouteTableDetails(std::vector<RouteDetails>& routes) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
   forAllRoutes(sw_->getState(), [&routes](RouterID /*rid*/, const auto& route) {
     routes.emplace_back(route->toRouteDetails(true));
@@ -1874,7 +1887,7 @@ void ThriftHandler::getIpRoute(
     UnicastRoute& route,
     std::unique_ptr<Address> addr,
     int32_t vrfId) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
   folly::IPAddress ipAddr = toIPAddress(*addr);
 
@@ -1898,6 +1911,10 @@ void ThriftHandler::getIpRoute(
     if (classID.has_value()) {
       route.classID() = *classID;
     }
+    auto overrideEcmpSwitchingMode = fwdInfo.getOverrideEcmpSwitchingMode();
+    if (overrideEcmpSwitchingMode.has_value()) {
+      route.overrideEcmpSwitchingMode() = *overrideEcmpSwitchingMode;
+    }
   } else {
     auto match = sw_->longestMatch(state, ipAddr.asV6(), RouterID(vrfId));
     if (!match || !match->isResolved()) {
@@ -1917,6 +1934,10 @@ void ThriftHandler::getIpRoute(
     if (classID.has_value()) {
       route.classID() = *classID;
     }
+    auto overrideEcmpSwitchingMode = fwdInfo.getOverrideEcmpSwitchingMode();
+    if (overrideEcmpSwitchingMode.has_value()) {
+      route.overrideEcmpSwitchingMode() = *overrideEcmpSwitchingMode;
+    }
   }
 }
 
@@ -1924,7 +1945,7 @@ void ThriftHandler::getIpRouteDetails(
     RouteDetails& route,
     std::unique_ptr<Address> addr,
     int32_t vrfId) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
   folly::IPAddress ipAddr = toIPAddress(*addr);
   auto state = sw_->getState();
@@ -1944,7 +1965,7 @@ void ThriftHandler::getIpRouteDetails(
 
 void ThriftHandler::getHwAgentConnectionStatus(
     std::map<int16_t, HwAgentEventSyncStatus>& hwAgentSyncStatusMap) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
   sw_->stats()->getHwAgentStatus(hwAgentSyncStatusMap);
 }
@@ -1952,7 +1973,7 @@ void ThriftHandler::getHwAgentConnectionStatus(
 void ThriftHandler::getRouteCounterBytes(
     std::map<std::string, std::int64_t>& routeCounters,
     std::unique_ptr<std::vector<std::string>> counters) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
   auto statMap = facebook::fb303::fbData->getStatMap();
   for (const auto& statName : *counters) {
@@ -1968,7 +1989,7 @@ void ThriftHandler::getRouteCounterBytes(
 
 void ThriftHandler::getAllRouteCounterBytes(
     std::map<std::string, std::int64_t>& routeCounters) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
   auto state = sw_->getState();
   std::unordered_set<std::string> countersUsed;
@@ -1989,7 +2010,7 @@ void ThriftHandler::getAllRouteCounterBytes(
 }
 
 void ThriftHandler::getLldpNeighbors(vector<LinkNeighborThrift>& results) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
   auto lldpMgr = sw_->getLldpMgr();
   if (lldpMgr == nullptr) {
@@ -2013,7 +2034,7 @@ void ThriftHandler::async_eb_registerForNeighborChanged(
 }
 
 void ThriftHandler::startPktCapture(unique_ptr<CaptureInfo> info) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
   auto* mgr = sw_->getCaptureMgr();
   auto capture = make_unique<PktCapture>(
@@ -2022,14 +2043,14 @@ void ThriftHandler::startPktCapture(unique_ptr<CaptureInfo> info) {
 }
 
 void ThriftHandler::stopPktCapture(unique_ptr<std::string> name) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
   auto* mgr = sw_->getCaptureMgr();
   mgr->forgetCapture(*name);
 }
 
 void ThriftHandler::stopAllPktCaptures() {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
   auto* mgr = sw_->getCaptureMgr();
   mgr->forgetAllCaptures();
@@ -2037,7 +2058,7 @@ void ThriftHandler::stopAllPktCaptures() {
 
 void ThriftHandler::startLoggingRouteUpdates(
     std::unique_ptr<RouteUpdateLoggingInfo> info) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
   auto* routeUpdateLogger = sw_->getRouteUpdateLogger();
   folly::IPAddress addr = toIPAddress(*info->prefix()->ip());
@@ -2051,7 +2072,7 @@ void ThriftHandler::startLoggingRouteUpdates(
 
 void ThriftHandler::startLoggingMplsRouteUpdates(
     std::unique_ptr<MplsRouteUpdateLoggingInfo> info) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
   auto* routeUpdateLogger = sw_->getRouteUpdateLogger();
   routeUpdateLogger->startLoggingForLabel(*info->label(), *info->identifier());
@@ -2060,7 +2081,7 @@ void ThriftHandler::startLoggingMplsRouteUpdates(
 void ThriftHandler::stopLoggingRouteUpdates(
     std::unique_ptr<IpPrefix> prefix,
     std::unique_ptr<std::string> identifier) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
   auto* routeUpdateLogger = sw_->getRouteUpdateLogger();
   folly::IPAddress addr = toIPAddress(*prefix->ip());
@@ -2070,7 +2091,7 @@ void ThriftHandler::stopLoggingRouteUpdates(
 
 void ThriftHandler::stopLoggingAnyRouteUpdates(
     std::unique_ptr<std::string> identifier) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
   auto* routeUpdateLogger = sw_->getRouteUpdateLogger();
   routeUpdateLogger->stopLoggingForIdentifier(*identifier);
@@ -2078,7 +2099,7 @@ void ThriftHandler::stopLoggingAnyRouteUpdates(
 
 void ThriftHandler::stopLoggingAnyMplsRouteUpdates(
     std::unique_ptr<std::string> identifier) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
   auto* routeUpdateLogger = sw_->getRouteUpdateLogger();
   routeUpdateLogger->stopLabelLoggingForIdentifier(*identifier);
@@ -2086,7 +2107,7 @@ void ThriftHandler::stopLoggingAnyMplsRouteUpdates(
 
 void ThriftHandler::stopLoggingMplsRouteUpdates(
     std::unique_ptr<MplsRouteUpdateLoggingInfo> info) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
   auto* routeUpdateLogger = sw_->getRouteUpdateLogger();
   routeUpdateLogger->stopLoggingForLabel(*info->label(), *info->identifier());
@@ -2094,7 +2115,7 @@ void ThriftHandler::stopLoggingMplsRouteUpdates(
 
 void ThriftHandler::getRouteUpdateLoggingTrackedPrefixes(
     std::vector<RouteUpdateLoggingInfo>& infos) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
   auto* routeUpdateLogger = sw_->getRouteUpdateLogger();
   for (const auto& tracked : routeUpdateLogger->getTrackedPrefixes()) {
@@ -2111,7 +2132,7 @@ void ThriftHandler::getRouteUpdateLoggingTrackedPrefixes(
 
 void ThriftHandler::getMplsRouteUpdateLoggingTrackedLabels(
     std::vector<MplsRouteUpdateLoggingInfo>& infos) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
   auto* routeUpdateLogger = sw_->getRouteUpdateLogger();
   for (const auto& tracked : routeUpdateLogger->gettTrackedLabels()) {
@@ -2126,7 +2147,7 @@ void ThriftHandler::sendPkt(
     int32_t port,
     int32_t vlan,
     unique_ptr<fbstring> data) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureNotFabric(__func__);
   auto buf = IOBuf::copyBuffer(
       reinterpret_cast<const uint8_t*>(data->data()), data->size());
@@ -2140,7 +2161,7 @@ void ThriftHandler::sendPktHex(
     int32_t port,
     int32_t vlan,
     unique_ptr<fbstring> hex) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureNotFabric(__func__);
   auto pkt = MockRxPacket::fromHex(StringPiece(*hex));
   pkt->setSrcPort(PortID(port));
@@ -2149,7 +2170,7 @@ void ThriftHandler::sendPktHex(
 }
 
 void ThriftHandler::txPkt(int32_t port, unique_ptr<fbstring> data) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureNotFabric(__func__);
 
   unique_ptr<TxPacket> pkt = sw_->allocatePacket(data->size());
@@ -2160,7 +2181,7 @@ void ThriftHandler::txPkt(int32_t port, unique_ptr<fbstring> data) {
 }
 
 void ThriftHandler::txPktL2(unique_ptr<fbstring> data) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureNotFabric(__func__);
 
   unique_ptr<TxPacket> pkt = sw_->allocatePacket(data->size());
@@ -2171,7 +2192,7 @@ void ThriftHandler::txPktL2(unique_ptr<fbstring> data) {
 }
 
 void ThriftHandler::txPktL3(unique_ptr<fbstring> payload) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureNotFabric(__func__);
 
   // Use any configured interface
@@ -2211,7 +2232,7 @@ Vlan* ThriftHandler::getVlan(const std::string& vlanName) {
 int32_t ThriftHandler::flushNeighborEntry(
     unique_ptr<BinaryAddress> ip,
     int32_t vlan) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
 
   auto parsedIP = toIPAddress(*ip);
@@ -2238,7 +2259,7 @@ int32_t ThriftHandler::flushNeighborEntry(
 }
 
 void ThriftHandler::getVlanAddresses(Addresses& addrs, int32_t vlan) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureNPU(__func__);
   getVlanAddresses(getVlan(vlan), addrs, toAddress);
 }
@@ -2246,7 +2267,7 @@ void ThriftHandler::getVlanAddresses(Addresses& addrs, int32_t vlan) {
 void ThriftHandler::getVlanAddressesByName(
     Addresses& addrs,
     unique_ptr<string> vlan) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureNPU(__func__);
   getVlanAddresses(getVlan(*vlan), addrs, toAddress);
 }
@@ -2254,7 +2275,7 @@ void ThriftHandler::getVlanAddressesByName(
 void ThriftHandler::getVlanBinaryAddresses(
     BinaryAddresses& addrs,
     int32_t vlan) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureNPU(__func__);
   getVlanAddresses(getVlan(vlan), addrs, toBinaryAddress);
 }
@@ -2262,7 +2283,7 @@ void ThriftHandler::getVlanBinaryAddresses(
 void ThriftHandler::getVlanBinaryAddressesByName(
     BinaryAddresses& addrs,
     const std::unique_ptr<std::string> vlan) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureNPU(__func__);
   getVlanAddresses(getVlan(*vlan), addrs, toBinaryAddress);
 }
@@ -2288,7 +2309,7 @@ void ThriftHandler::getVlanAddresses(
 }
 
 BootType ThriftHandler::getBootType() {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
   return sw_->getBootType();
 }
@@ -2341,7 +2362,7 @@ void ThriftHandler::ensureVoqOrFabric(StringPiece function) const {
 }
 
 int32_t ThriftHandler::getIdleTimeout() {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   if (thriftIdleTimeout_ < 0) {
     throw FbossError("Idle timeout has not been set");
   }
@@ -2349,19 +2370,19 @@ int32_t ThriftHandler::getIdleTimeout() {
 }
 
 void ThriftHandler::reloadConfig() {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
   return sw_->applyConfig("reload config initiated by thrift call", true);
 }
 
 int64_t ThriftHandler::getLastConfigAppliedInMs() {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
   return *sw_->getConfigAppliedInfo().lastAppliedInMs();
 }
 
 void ThriftHandler::getConfigAppliedInfo(ConfigAppliedInfo& configAppliedInfo) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
   configAppliedInfo = sw_->getConfigAppliedInfo();
 }
@@ -2369,7 +2390,7 @@ void ThriftHandler::getConfigAppliedInfo(ConfigAppliedInfo& configAppliedInfo) {
 void ThriftHandler::getLacpPartnerPair(
     LacpPartnerPair& lacpPartnerPair,
     int32_t portID) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
 
   auto lagManager = sw_->getLagManager();
@@ -2382,7 +2403,7 @@ void ThriftHandler::getLacpPartnerPair(
 
 void ThriftHandler::getAllLacpPartnerPairs(
     std::vector<LacpPartnerPair>& lacpPartnerPairs) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
 
   auto lagManager = sw_->getLagManager();
@@ -2400,7 +2421,7 @@ SwitchRunState ThriftHandler::getSwitchRunState() {
 }
 
 SSLType ThriftHandler::getSSLPolicy() {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   SSLType sslType = SSLType::PERMITTED;
 
   if (sslPolicy_ == apache::thrift::SSLPolicy::DISABLED) {
@@ -2419,7 +2440,7 @@ SSLType ThriftHandler::getSSLPolicy() {
 void ThriftHandler::setExternalLedState(
     int32_t portNum,
     PortLedExternalState ledState) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
   PortID portId = PortID(portNum);
 
@@ -2437,7 +2458,7 @@ void ThriftHandler::addMplsRoutes(
     int16_t clientId,
     std::unique_ptr<std::vector<MplsRoute>> mplsRoutes) {
   auto clientName = apache::thrift::util::enumNameSafe(ClientID(clientId));
-  auto log = LOG_THRIFT_CALL(DBG1, clientName);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats(), clientName);
   ensureConfigured(__func__);
   if (FLAGS_mpls_rib) {
     return addMplsRibRoutes(clientId, std::move(mplsRoutes), false /* sync */);
@@ -2577,7 +2598,7 @@ void ThriftHandler::deleteMplsRoutes(
     int16_t clientId,
     std::unique_ptr<std::vector<MplsLabel>> topLabels) {
   auto clientName = apache::thrift::util::enumNameSafe(ClientID(clientId));
-  auto log = LOG_THRIFT_CALL(DBG1, clientName);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats(), clientName);
   ensureConfigured(__func__);
   if (FLAGS_mpls_rib) {
     return deleteMplsRibRoutes(clientId, std::move(topLabels));
@@ -2619,7 +2640,7 @@ void ThriftHandler::deleteMplsRibRoutes(
 void ThriftHandler::syncMplsFib(
     int16_t clientId,
     std::unique_ptr<std::vector<MplsRoute>> mplsRoutes) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
   if (FLAGS_mpls_rib) {
     return addMplsRibRoutes(clientId, std::move(mplsRoutes), true /* sync */);
@@ -2644,7 +2665,7 @@ void ThriftHandler::syncMplsFib(
 void ThriftHandler::getMplsRouteTableByClient(
     std::vector<MplsRoute>& mplsRoutes,
     int16_t clientId) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
   auto labelFib = sw_->getState()->getLabelForwardingInformationBase();
   for (const auto& iter : std::as_const(*labelFib)) {
@@ -2665,7 +2686,7 @@ void ThriftHandler::getMplsRouteTableByClient(
 
 void ThriftHandler::getAllMplsRouteDetails(
     std::vector<MplsRouteDetails>& mplsRouteDetails) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
   const auto labelFib = sw_->getState()->getLabelForwardingInformationBase();
   for (const auto& iter : std::as_const(*labelFib)) {
@@ -2680,7 +2701,7 @@ void ThriftHandler::getAllMplsRouteDetails(
 void ThriftHandler::getMplsRouteDetails(
     MplsRouteDetails& mplsRouteDetail,
     MplsLabel topLabel) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
   const auto entry =
       sw_->getState()->getLabelForwardingInformationBase()->getNode(topLabel);
@@ -2695,7 +2716,7 @@ void ThriftHandler::getMplsRouteDetails(
 }
 
 void ThriftHandler::getHwDebugDump(std::string& out) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
   if (sw_->isRunModeMonolithic()) {
     out = sw_->getMonolithicHwSwitchHandler()->getDebugDump();
@@ -2712,7 +2733,7 @@ void ThriftHandler::listHwObjects(
     std::string& out,
     std::unique_ptr<std::vector<HwObjectType>> hwObjects,
     bool cached) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
   if (sw_->isRunModeMonolithic()) {
     out = sw_->getMonolithicHwSwitchHandler()->listObjects(*hwObjects, cached);
@@ -2724,7 +2745,7 @@ void ThriftHandler::listHwObjects(
 
 void ThriftHandler::getBlockedNeighbors(
     std::vector<cfg::Neighbor>& blockedNeighbors) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
   throw FbossError(
       "Deprecated thrift API. Please use setMacAddrsToBlock/getMacAddrsToBlock.");
@@ -2732,7 +2753,7 @@ void ThriftHandler::getBlockedNeighbors(
 
 void ThriftHandler::setNeighborsToBlock(
     std::unique_ptr<std::vector<cfg::Neighbor>> neighborsToBlock) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureNPU(__func__);
   ensureConfigured(__func__);
   throw FbossError("Deprecated thrift API. Please use setMacAddrsToBlock");
@@ -2740,7 +2761,7 @@ void ThriftHandler::setNeighborsToBlock(
 
 void ThriftHandler::getMacAddrsToBlock(
     std::vector<cfg::MacAndVlan>& blockedMacAddrs) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
 
   for (const auto& iter :
@@ -2791,7 +2812,7 @@ void ThriftHandler::setMacAddrsToBlock(
     }
   }
 
-  auto log = LOG_THRIFT_CALL(DBG1, macAddrsToBlockStr);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats(), macAddrsToBlockStr);
 
   sw_->updateStateBlocking(
       "Update MAC addrs to block ",
@@ -2807,7 +2828,7 @@ void ThriftHandler::setMacAddrsToBlock(
 
 void ThriftHandler::publishLinkSnapshots(
     std::unique_ptr<std::vector<std::string>> portNames) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   for (const auto& portName : *portNames) {
     auto portID = sw_->getPlatformMapping()->getPortID(portName);
     sw_->publishPhyInfoSnapshots(portID);
@@ -2816,7 +2837,7 @@ void ThriftHandler::publishLinkSnapshots(
 
 void ThriftHandler::getAllInterfacePhyInfo(
     std::map<std::string, phy::PhyInfo>& phyInfos) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
   auto portNames = std::make_unique<std::vector<std::string>>();
   std::shared_ptr<SwitchState> swState = sw_->getState();
@@ -2831,7 +2852,7 @@ void ThriftHandler::getAllInterfacePhyInfo(
 void ThriftHandler::getInterfacePhyInfo(
     std::map<std::string, phy::PhyInfo>& phyInfos,
     std::unique_ptr<std::vector<std::string>> portNames) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
   std::vector<PortID> portIDs;
   for (const auto& portName : *portNames) {
@@ -2866,25 +2887,25 @@ void ThriftHandler::getActualSwitchDrainState(
 
 void ThriftHandler::addTeFlows(
     std::unique_ptr<std::vector<FlowEntry>> /*teFlowEntries*/) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   throw FbossError("addTeFlows is deprecated");
 }
 
 void ThriftHandler::deleteTeFlows(
     std::unique_ptr<std::vector<TeFlow>> /*teFlows*/) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   throw FbossError("deleteTeFlows is deprecated");
 }
 
 void ThriftHandler::syncTeFlows(
     std::unique_ptr<std::vector<FlowEntry>> /*teFlowEntries*/) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   throw FbossError("syncTeFlows is deprecated");
 }
 
 void ThriftHandler::getTeFlowTableDetails(
     std::vector<TeFlowDetails>& /*flowTable*/) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   throw FbossError("getTeFlowTableDetails is deprecated");
 }
 
@@ -2895,23 +2916,24 @@ void ThriftHandler::getFabricReachability(
 
 void ThriftHandler::getFabricConnectivity(
     std::map<std::string, FabricEndpoint>& connectivity) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureVoqOrFabric(__func__);
   // get cached data as stored in the fabric manager
-  auto portId2FabricEndpoint =
-      sw_->getHwSwitchHandler()->getFabricConnectivity();
-  auto state = sw_->getState();
-
-  for (auto [portId, fabricEndpoint] : portId2FabricEndpoint) {
-    auto portName = state->getPorts()->getNodeIf(portId)->getName();
-    connectivity.insert({portName, fabricEndpoint});
+  for (const auto& switchId : sw_->getSwitchInfoTable().getSwitchIDs()) {
+    auto portId2FabricEndpoint =
+        sw_->getHwSwitchThriftClientTable()->getFabricConnectivity(switchId);
+    CHECK(portId2FabricEndpoint.has_value());
+    auto state = sw_->getState();
+    for (auto [portName, fabricEndpoint] : portId2FabricEndpoint.value()) {
+      connectivity.insert({portName, fabricEndpoint});
+    }
   }
 }
 
 void ThriftHandler::getSwitchReachability(
     std::map<std::string, std::vector<string>>& reachabilityMatrix,
     std::unique_ptr<std::vector<std::string>> switchNames) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureVoqOrFabric(__func__);
   const auto hwSwitchReachabilityInfo = sw_->getSwitchReachability();
   std::unordered_set<std::string> switchNameSet;
@@ -2958,7 +2980,7 @@ void ThriftHandler::getSwitchReachability(
 }
 
 void ThriftHandler::getDsfNodes(std::map<int64_t, cfg::DsfNode>& dsfNodes) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureVoqOrFabric(__func__);
   for (const auto& matcherAndNodes :
        std::as_const(*sw_->getState()->getDsfNodes())) {
@@ -2972,7 +2994,7 @@ void ThriftHandler::getDsfNodes(std::map<int64_t, cfg::DsfNode>& dsfNodes) {
 
 void ThriftHandler::getDsfSubscriptions(
     std::vector<FsdbSubscriptionThrift>& subscriptions) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureVoqOrFabric(__func__);
   // Build a map of <loopbackIp, switchName> from DsfNodes
   std::unordered_map<IPAddress, std::string> loopbackIpToName;
@@ -3016,20 +3038,20 @@ void ThriftHandler::getDsfSubscriptions(
 }
 
 void ThriftHandler::getDsfSubscriptionClientId(std::string& ret) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureVoqOrFabric(__func__);
   ret = sw_->getDsfSubscriber()->getClientId();
 }
 
 void ThriftHandler::getDsfSessions(std::vector<DsfSessionThrift>& dsfSessions) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureVoqOrFabric(__func__);
   dsfSessions = this->sw_->getDsfSubscriber()->getDsfSessionsThrift();
 }
 
 void ThriftHandler::getSystemPorts(
     std::map<int64_t, SystemPortThrift>& sysPortsThrift) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
   auto fillSysPorts = [&sysPortsThrift](const auto& mSwitchSysPorts) {
     for (const auto& [_, sysPorts] : std::as_const(*mSwitchSysPorts)) {
@@ -3043,14 +3065,14 @@ void ThriftHandler::getSystemPorts(
 
 void ThriftHandler::getSysPortStats(
     std::map<std::string, HwSysPortStats>& hwSysPortStats) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
   sw_->getAllHwSysPortStats(hwSysPortStats);
 }
 
 // TODO - delete this api after callers migrate to getAllCpuPortStats
 void ThriftHandler::getCpuPortStats(CpuPortStats& cpuPortStats) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
   std::map<int, CpuPortStats> hwCpuPortStats;
   sw_->getAllCpuPortStats(hwCpuPortStats);
@@ -3061,21 +3083,21 @@ void ThriftHandler::getCpuPortStats(CpuPortStats& cpuPortStats) {
 
 void ThriftHandler::getAllCpuPortStats(
     std::map<int, CpuPortStats>& hwCpuPortStats) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
   sw_->getAllCpuPortStats(hwCpuPortStats);
 }
 
 void ThriftHandler::getHwPortStats(
     std::map<std::string, HwPortStats>& hwPortStats) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
   sw_->getAllHwPortStats(hwPortStats);
 }
 
 void ThriftHandler::getFabricReachabilityStats(
     FabricReachabilityStats& fabricReachabilityStats) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
   fabricReachabilityStats = sw_->getFabricReachabilityStats();
 }
@@ -3088,7 +3110,7 @@ void ThriftHandler::getMultiSwitchRunState(MultiSwitchRunState& runState) {
 }
 
 void ThriftHandler::getAllEcmpDetails(std::vector<EcmpDetails>& ecmpDetails) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
   if (sw_->isRunModeMonolithic()) {
     ecmpDetails = sw_->getMonolithicHwSwitchHandler()->getAllEcmpDetails();
@@ -3100,7 +3122,7 @@ void ThriftHandler::getAllEcmpDetails(std::vector<EcmpDetails>& ecmpDetails) {
 void ThriftHandler::getSwitchIndicesForInterfaces(
     std::map<int16_t, std::vector<std::string>>& switchIndicesForInterfaces,
     std::unique_ptr<std::vector<std::string>> interfaces) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
   for (const auto& interface : *interfaces) {
     auto switchIndex = sw_->getSwitchIndexForInterface(interface);

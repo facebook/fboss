@@ -9,15 +9,15 @@
  */
 
 #include "fboss/agent/Main.h"
-#include "fboss/agent/test/AgentIntegrationTestBase.h"
+#include "fboss/agent/test/AgentEnsembleIntegrationTestBase.h"
 
 DECLARE_string(config);
 
 namespace facebook::fboss {
-class AgentIntegrationTest : public AgentIntegrationTestBase {
+class AgentIntegrationTest : public AgentEnsembleIntegrationTestBase {
  protected:
   void SetUp() override;
-  cfg::SwitchConfig initialConfig() const override;
+  cfg::SwitchConfig initialConfig(const AgentEnsemble& ensemble) override;
 };
 
 int agentIntegrationTestMain(

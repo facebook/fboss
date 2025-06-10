@@ -113,7 +113,7 @@ TEST_F(LinkTest, asicLinkFlap) {
 TEST_F(LinkTest, getTransceivers) {
   auto verify = [this]() {
     WITH_RETRIES({
-      auto ports = getCabledPorts();
+      auto ports = getCabledTransceiverPorts();
       // Set the port status on all cabled ports to false. The link should go
       // down
       for (const auto& port : ports) {
@@ -125,7 +125,7 @@ TEST_F(LinkTest, getTransceivers) {
     })
 
     WITH_RETRIES({
-      auto ports = getCabledPorts();
+      auto ports = getCabledTransceiverPorts();
       for (const auto& port : ports) {
         auto profileID =
             sw()->getState()->getPorts()->getNode(port)->getProfileID();

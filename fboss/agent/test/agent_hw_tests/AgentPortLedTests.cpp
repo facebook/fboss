@@ -17,9 +17,9 @@ class AgentPortLedTest : public AgentHwTest {
         true /*interfaceHasSubnet*/);
   }
 
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::LED_PROGRAMMING};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::LED_PROGRAMMING};
   }
 
   bool verifyLedStatus(PortID portID, bool up) {

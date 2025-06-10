@@ -134,10 +134,14 @@ std::vector<cfg::LoadBalancer> getEcmpFullTrunkFullHashConfig(
 
 cfg::FlowletSwitchingConfig getDefaultFlowletSwitchingConfig(
     bool isSai,
-    cfg::SwitchingMode switchingMode) {
+    cfg::SwitchingMode switchingMode,
+    cfg::SwitchingMode backupSwitchingMode) {
   cfg::FlowletSwitchingConfig flowletCfg;
   flowletCfg.inactivityIntervalUsecs() = 16;
   flowletCfg.flowletTableSize() = 2048;
+  if (switchingMode == cfg::SwitchingMode::PER_PACKET_QUALITY) {
+    flowletCfg.flowletTableSize() = 256;
+  }
   // set the egress load and queue exponent to zero for DLB engine
   // to do load balancing across all the links better with single stream
   // SAI has exponents 1 based while native BCM is 0 based
@@ -158,7 +162,7 @@ cfg::FlowletSwitchingConfig getDefaultFlowletSwitchingConfig(
   flowletCfg.dynamicEgressMinThresholdBytes() = 1000;
   flowletCfg.dynamicEgressMaxThresholdBytes() = 10000;
   flowletCfg.switchingMode() = switchingMode;
-  flowletCfg.backupSwitchingMode() = cfg::SwitchingMode::PER_PACKET_RANDOM;
+  flowletCfg.backupSwitchingMode() = backupSwitchingMode;
   return flowletCfg;
 }
 
@@ -208,9 +212,11 @@ void addFlowletConfigs(
     cfg::SwitchConfig& cfg,
     const std::vector<PortID>& ports,
     bool isSai,
-    cfg::SwitchingMode switchingMode) {
+    cfg::SwitchingMode switchingMode,
+    cfg::SwitchingMode backupSwitchingMode) {
   cfg::FlowletSwitchingConfig flowletCfg =
-      utility::getDefaultFlowletSwitchingConfig(isSai, switchingMode);
+      utility::getDefaultFlowletSwitchingConfig(
+          isSai, switchingMode, backupSwitchingMode);
   cfg.flowletSwitchingConfig() = flowletCfg;
 
   std::map<std::string, cfg::PortFlowletConfig> portFlowletCfgMap;
@@ -357,6 +363,7 @@ bool isLoadBalancedImpl(
     return !highest && noTrafficOk;
   }
   if (!weights.empty()) {
+    assert(ecmpPorts.size() == weights.size());
     auto maxWeight = *(std::max_element(weights.begin(), weights.end()));
     for (auto i = 0; i < portIdToStats.size(); ++i) {
       uint64_t portOutBytes;
@@ -406,24 +413,24 @@ bool isLoadBalancedImpl(
  */
 size_t pumpRoCETraffic(
     bool isV6,
-    AllocatePktFunc allocateFn,
+    const AllocatePktFunc& allocateFn,
     SendPktFunc sendFn,
     folly::MacAddress dstMac,
-    std::optional<VlanID> vlan,
-    std::optional<PortID> frontPanelPortToLoopTraffic,
+    const std::optional<VlanID>& vlan,
+    const std::optional<PortID>& frontPanelPortToLoopTraffic,
+    const folly::IPAddress& srcIp,
+    const folly::IPAddress& dstIp,
     int destPort,
     int hopLimit,
     std::optional<folly::MacAddress> srcMacAddr,
     int packetCount,
     uint8_t roceOpcode,
     uint8_t reserved,
-    std::optional<std::vector<uint8_t>> nxtHdr,
+    const std::optional<std::vector<uint8_t>>& nxtHdr,
     bool sameDstQueue) {
   folly::MacAddress srcMac(
       srcMacAddr.has_value() ? *srcMacAddr
                              : MacAddressGenerator().get(dstMac.u64HBO() + 1));
-  auto srcIp = folly::IPAddress(isV6 ? "1001::1" : "100.0.0.1");
-  auto dstIp = folly::IPAddress(isV6 ? "2001::1" : "200.0.0.1");
 
   size_t txPacketSize = 0;
   XLOG(INFO) << "Send traffic with RoCE payload .. Packet Count = "
@@ -459,8 +466,8 @@ size_t pumpRoCETraffic(
         vlan,
         srcMac,
         dstMac,
-        srcIp, /* fixed */
-        dstIp, /* fixed */
+        srcIp,
+        dstIp,
         kRandomUdfL4SrcPort, /* arbit src port, fixed */
         destPort,
         0,
@@ -477,6 +484,42 @@ size_t pumpRoCETraffic(
   return txPacketSize;
 }
 
+size_t pumpRoCETraffic(
+    bool isV6,
+    const AllocatePktFunc& allocateFn,
+    SendPktFunc sendFn,
+    folly::MacAddress dstMac,
+    const std::optional<VlanID>& vlan,
+    const std::optional<PortID>& frontPanelPortToLoopTraffic,
+    int destPort,
+    int hopLimit,
+    std::optional<folly::MacAddress> srcMacAddr,
+    int packetCount,
+    uint8_t roceOpcode,
+    uint8_t reserved,
+    const std::optional<std::vector<uint8_t>>& nxtHdr,
+    bool sameDstQueue) {
+  auto srcIp = folly::IPAddress(isV6 ? "1001::1" : "100.0.0.1");
+  auto dstIp = folly::IPAddress(isV6 ? "2001::1" : "200.0.0.1");
+
+  return pumpRoCETraffic(
+      isV6,
+      allocateFn,
+      std::move(sendFn),
+      dstMac,
+      vlan,
+      frontPanelPortToLoopTraffic,
+      srcIp,
+      dstIp,
+      destPort,
+      hopLimit,
+      srcMacAddr,
+      packetCount,
+      roceOpcode,
+      reserved,
+      nxtHdr,
+      sameDstQueue);
+}
 /*
  * The helper expects source file FLAGS_load_balance_traffic_src to be in CSV
  * format, where it should contain the following columns:

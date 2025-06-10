@@ -1,0 +1,200 @@
+---
+id: Sai_object_dependency_management.mdx
+title: SAI Object Dependency Management
+---
+
+# SAI Object Dependency Management in FBOSS
+
+This document describes how SAI object dependencies are handled.
+
+## Introduction to SAI Objects and their dependencies
+
+In FBOSS SAI implementation, every SAI object has corresponding SaiObject&lt;SaiObjectTrait&gt; class. Instances of such a class are those SAI objects. Examples of such SAI objects are given below.
+
+    SaiObject<SaiNeighborTraits> for a neighbor
+    SaiObject<SaiFdbTraits> for FDB entry
+    SaiObject<SaiRouteTraits> for L3 route entry
+    SaiObject<SaiNextHopTraits<SAI_NEXT_HOP_TYPE_IP>> for IP next hops
+    SaiObject<SaiNextHopTraits<SAI_NEXT_HOP_TYPE_MPLS>> for MPLS next hops
+
+
+Each SAI object has two keys
+    - adapter host key : a logical identifier which FBOSS application uses to identify SAI object
+    - adapter key : this is SAI object identifier  used by underlying implementation of SAI SDK to identify SAI objects.
+
+SAI objects depend on each other in different ways.
+
+The most common way they rely on each other is by utilizing "adapter keys" of other SAI object.
+
+Example of such a relation is::
+
+    SaiObject<SaiBridgePortTraits> require adapter key of SaiObject<SaiPortTraits> or SaiObject<SaiLagTraits>
+    SaiObject<SaiNeighborTraits> require adapter key of SaiObject<SaiFdbTraits>
+
+Some relations are more complicated::
+
+    SaiObject<SaiNextHopTraits<SAI_NEXT_HOP_TYPE_IP>> depends on link status of port to which it points
+
+In general::
+
+    1. Object A --------(uses adapter key of) -------> Object B
+    2. Object A -----(is influenced by state of) ----> Object B
+
+Implications of these relationships are:
+    #. A can not be created before B for obvious reason and B can not be deleted before deleting A.
+    #. If B changes state, A must be notified so it also changes its own state.
+
+Managing these relations can get complicated and require additional coding.
+
+However to simplify this and to provide boiler-plate code to reduce code duplication, an object dependency management mechanism was introuced.
+
+In this mechanism, object A is noted as "subscriber", while object B is noted as publisher.
+
+This is many-to-many relation, in other words, many subscribers may subscribe to many publishers::
+
+    A0 ------(subscribes to)------> B0, C0
+    A1 ------(subscribes to)------> B0, C0
+    B0 ------(subscribes to)------> C0, D0
+
+A simpler example of this would be, IP and MPLS next hop heading to same neighbor.
+
+They both depend on neighbor and link status of port.
+
+Another example of this would be several fdb entries dependning on only one bridge port.
+
+Multiple next hop group members relying on many next hops in many-to-many relation.
+
+However cyclic relationship is not possible.
+
+## Subscriber Object
+
+A subscriber object is a "wrapper" on an actual SAI object.
+
+It is typically referred as "ManagedObject".
+
+This wrapper object can be created independent of  publisher object of actual SAI object.
+
+Taking an example of vlan member SAI object which depends on bridge port::
+
+     SaiObject<SaiVlanMemberTraits> depends on SaiObject<SaiBridgePortTraits>.
+     Wrapper for SaiObject<SaiVlanMemberTraits> is ManagedVlanMember.
+     ManagedVlanMember is a subscriber for SaiObject<SaiBridgePortTraits>.
+     ManagedVlanMember maintaines reference of SaiObject<SaiVlanMemberTraits>.
+     ManagedVlanMember sets or resets this reference when bridge port is added or removed.
+
+Each subscriber class must implement two methods::
+
+    void createObject(PublisherObjects added);
+    void removeObject(size_t index, PublisherObjects removed)
+
+
+createObject method passes a tuple of weak pointers, each of which point to a publisher object on which a subscriber depends on.
+
+In this method, every publisher object can simply be accessed as follows::
+
+    void createObject(PublisherObjects added) {
+        // get shared_ptr to SaiObject<SaiPublisherObjectTraits>
+        auto publisher = std::get<SaiPublisherObjectTraits>(added).lock();
+        // get adapter key of publisher
+        auto publisherAdapterKey = publisher->adapterKey();
+        // use it to create SaiObject<SaiSubscriberObjectTraits>
+        auto subscriber = store_->get<SaiSubscriberObjectTraits>.setObject(....);
+        // retain reference to SaiObject<SaiSubscriberObjectTraits>
+        this->setObject(subscriber);
+    }
+
+removeObject passes a tuple of weak pointers, each of which point to publisher object and also an index into tuple identifying publisher which is being removed::
+
+    void createObject(size_t index, PublisherObjects removed) {
+        // in response typically destroy reference to SaiObject<SaiSubscriberObjectTraits>
+        this->resetObject();
+    }
+
+A subscriber object such as managed vlan member doesn't automatically start receiving notifications as soon as it is created.
+
+A subscriber object must subscribe to notifications from a particular publisher. For this it must invoke "subscribe" method::
+
+    auto managedSubscriber = std::make_shared<ManagedSubscriber>(....);
+
+    SaiObjectEventPublisher::getInstance()
+        ->get<SaiPublisherObjectTraits>()
+        .subscribe(managedSubscriber);
+
+Note that a subscription and event dispatch to subscribers have been facilitated by SaiObjectEventPublisher singleton.
+
+More on this singleton in subsequent sections.
+
+## Publisher Object
+A publisher is an actual SAI object, such as SaiObject&lt;SaiBridgePortTraits&gt; or SaiObjectWithCounters&lt;SaiPortTraits&gt; (SaiObjectWithCounters is a SaiObject with some stats).
+
+SAI objects in FBOSS are manipulated through store (using store.setObject).
+
+Store of publisher SaiObject accepts an additional argument in "setObject" to notify its subscribers::
+
+    // notify is true when subscribers must be informed of object create or update
+    auto object = store.setObject(adapterHostKey, attributes, notify);
+
+Alternatively publisher SAI object also export method to influence subscriber objects as follows::
+
+    // invoke removeObject method on subscribers
+    publisher->notifyBeforeDestroy();
+
+    // invoke createObject method on subscribers
+    publisher->notifyAfterCreate();
+
+SAI object's destructor ensures to invoke removeObject method on subscribers and SaiStore ensures to invoke createObject method on subscribers.
+
+
+## Existing SAI object dependencies in FBOSS
+Subscriber-Publisher mechanism has been employed in managing relations of few objects
+
+| **Subscriber**                       | **Managed Object**    | **Publisher**    |
+|--------------------------------------|-----------------------|------------------|
+| ManagedVlanMember                    | vlan member           | bridge port      |
+| ManagedVlanRifNeighbor               | neighbor              | router interface |
+| ManagedVlanRifNeighbor               | neighbor              | fdb entry        |
+| ManagedNextHop                       | next hop              | neighbor         |
+| ManagedSaiNextHopGroupMember         | next hop group member | next hop         |
+| ManagedRouteNextHop                  | non-multipath route   | next hop         |
+| ManagedInSegNextHop                  | non-multipath label   | next hop         |
+
+Some of these can be simplified, e.g. neighbor can depend only on fdb entry.
+
+## Publisher Key
+
+
+Subscriber idenfies a publisher by what is called a "publisher-key". This ensures that notification for a particular object are sent only to subscriber of that object.
+
+Example -
+
+next hop to IP identifies neighbor it depends on with adapter host key of neighbor.
+neighbor however identfies fdb entry it depends on with tuple of interface id and mac address
+
+
+| **Publisher**      | **Publisher Key**              |
+|--------------------|--------------------------------|
+| bridge port        | Port Descriptor                |
+| router interface   | Interface ID                   |
+| fdb entry          | Interface ID and Mac Address   |
+| neighbor           | Adapter Host Key               |
+| next hop           | Adapter Host Key               |
+
+During subscribe, subscriber provides publisher key and is notified of life events of only that publisher.
+
+
+## Object Event Publisher Singleton
+
+
+This is a simple wrapper over two refMaps.
+
+One refMap maintains a map of publisher key to weak pointer (non-owning reference) to publisher object.
+
+If publisher is alive, this entry exists.
+
+Second refMap has key as publisher key and value is subscription.
+
+A subscription maintains list of subscribers relying on this publisher.
+
+For every life event, this refMap is looked up and its subscribers are notified.
+
+Boost signal is used for this message passing.

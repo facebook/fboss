@@ -23,7 +23,7 @@
 
 namespace facebook::fboss {
 
-struct CmdShowTeFlowTraits : public BaseCommandTraits {
+struct CmdShowTeFlowTraits : public ReadCommandTraits {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_IPV6_LIST;
   using ObjectArgType = std::vector<std::string>;

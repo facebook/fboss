@@ -53,9 +53,9 @@ HwInitResult SimSwitch::initImpl(
 }
 
 std::shared_ptr<SwitchState> SimSwitch::stateChangedImpl(
-    const StateDelta& delta) {
+    const std::vector<StateDelta>& deltas) {
   // TODO
-  return delta.newState();
+  return deltas.back().newState();
 }
 
 void SimSwitch::printDiagCmd(const std::string& /*cmd*/) const {

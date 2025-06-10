@@ -639,9 +639,10 @@ std::shared_ptr<QosPolicy> ManagerTestBase::makeQosPolicy(
 void ManagerTestBase::applyNewState(
     const std::shared_ptr<SwitchState>& newState) {
   auto oldState = saiPlatform->getHwSwitch()->getProgrammedState();
-  StateDelta delta(oldState, newState);
-  EXPECT_TRUE(saiPlatform->getHwSwitch()->isValidStateUpdate(delta));
-  saiPlatform->getHwSwitch()->stateChanged(delta);
+  std::vector<StateDelta> deltas;
+  deltas.emplace_back(oldState, newState);
+  EXPECT_TRUE(saiPlatform->getHwSwitch()->isValidStateUpdate(deltas.back()));
+  saiPlatform->getHwSwitch()->stateChanged(deltas);
   programmedState = newState;
   programmedState->publish();
 }

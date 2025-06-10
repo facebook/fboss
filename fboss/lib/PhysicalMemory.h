@@ -88,7 +88,7 @@ class PhysicalMemory8 : public BaseT {
     return BaseT::template readImpl<uint8_t>(offset);
   }
   void write(uint32_t offset, uint8_t val) {
-    return BaseT::template writeImpl(offset, val);
+    return BaseT::writeImpl(offset, val);
   }
 };
 
@@ -100,7 +100,7 @@ class PhysicalMemory16 : public BaseT {
     return BaseT::template readImpl<uint16_t>(offset);
   }
   void write(uint32_t offset, uint16_t val) {
-    return BaseT::template writeImpl(offset, val);
+    return BaseT::writeImpl(offset, val);
   }
 };
 
@@ -112,7 +112,7 @@ class PhysicalMemory32 : public BaseT {
     return BaseT::template readImpl<uint32_t>(offset);
   }
   void write(uint32_t offset, uint32_t val) {
-    return BaseT::template writeImpl(offset, val);
+    return BaseT::writeImpl(offset, val);
   }
 };
 

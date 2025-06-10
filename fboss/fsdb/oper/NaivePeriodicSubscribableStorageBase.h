@@ -31,6 +31,9 @@ inline constexpr std::string_view kSubscribeTimePrefix{"subscribe_time_ms"};
 inline constexpr std::string_view kSubscriberPrefix{"subscriber"};
 inline constexpr std::string_view kSubscriptionQueueWatermark{
     "queue_watermark"};
+inline constexpr std::string_view kSlowSubscriptionDisconnects{
+    "disconnects.slow_subscriber"};
+inline constexpr std::string_view kSubscriberConnected{"connected"};
 
 // non-templated parts of NaivePeriodicSubscribableStorage to help with
 // compilation
@@ -206,7 +209,7 @@ class NaivePeriodicSubscribableStorageBase {
   void exportServeMetrics(
       std::chrono::steady_clock::time_point serveStartTime,
       SubscriptionMetadataServer& metadata,
-      std::map<std::string, uint64_t>& lastServedPublisherRootUpdates) const;
+      std::map<std::string, uint64_t>& lastServedPublisherRootUpdates);
 
   std::optional<std::string> getPublisherRoot(PathIter begin, PathIter end)
       const;
@@ -242,8 +245,11 @@ class NaivePeriodicSubscribableStorageBase {
   const OperProtocol patchOperProtocol_{OperProtocol::COMPACT};
 
  private:
+  void initExportedSubscriberStats(FsdbClient subscriberClientId);
+
   folly::Synchronized<std::map<std::string, std::string>>
       registeredPublisherRoots_;
+  std::set<FsdbClient> registeredSubscriberClientIds_;
   folly::coro::CancellableAsyncScope backgroundScope_;
   std::unique_ptr<std::thread> subscriptionServingThread_;
   folly::EventBase evb_;

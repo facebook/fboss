@@ -384,5 +384,8 @@
         }
       }
     }
+  },
+  "thriftApiToRateLimitInQps": {
+    
   }
 }

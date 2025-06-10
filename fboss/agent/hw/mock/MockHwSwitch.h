@@ -34,11 +34,11 @@ class MockHwSwitch : public HwSwitch {
   MOCK_METHOD3(initImpl, HwInitResult(Callback*, BootType, bool));
   MOCK_METHOD1(
       stateChangedImpl,
-      std::shared_ptr<SwitchState>(const StateDelta& delta));
+      std::shared_ptr<SwitchState>(const std::vector<StateDelta>& deltas));
   MOCK_METHOD2(
       stateChangedTransaction,
       std::shared_ptr<SwitchState>(
-          const StateDelta& delta,
+          const std::vector<StateDelta>& deltas,
           const HwWriteBehaviorRAII&));
   MOCK_CONST_METHOD0(reconstructSwitchState, std::shared_ptr<SwitchState>());
 
@@ -90,12 +90,15 @@ class MockHwSwitch : public HwSwitch {
   MOCK_METHOD1(
       clearPortStats,
       void(const std::unique_ptr<std::vector<int32_t>>&));
+  MOCK_METHOD1(syncPortLinkState, void(PortID portId));
   MOCK_CONST_METHOD0(getBootType, BootType());
   MOCK_CONST_METHOD0(getTeFlowStats, TeFlowStats());
   MOCK_CONST_METHOD0(getHwFlowletStats, HwFlowletStats());
   MOCK_CONST_METHOD0(getAllEcmpDetails, std::vector<EcmpDetails>());
   MOCK_CONST_METHOD0(getAclStats, AclStats());
   MOCK_CONST_METHOD0(getSwitchWatermarkStats, HwSwitchWatermarkStats());
+  MOCK_CONST_METHOD0(getSwitchPipelineStats, HwSwitchPipelineStats());
+  MOCK_CONST_METHOD0(getSysPortShelState, std::map<int, cfg::PortState>());
 
   MockPlatform* getPlatform() const override {
     return platform_;

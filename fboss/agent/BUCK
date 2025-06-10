@@ -2,6 +2,7 @@ load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 load("@fbcode_macros//build_defs:export_files.bzl", "export_file")
 load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
+load("@fbsource//tools/target_determinator/macros:ci_sandcastle.bzl", "ci_sandcastle")
 load("//fboss/agent:sai.bzl", "sai_main_all")
 load("//fboss/thriftpath_plugin/facebook:thriftpath_plugin.bzl", "thrift_plugin_thriftpath")
 
@@ -219,8 +220,10 @@ thrift_library(
     ],
     thrift_srcs = {"agent_stats.thrift": []},
     deps = [
+        ":switch_config",
         "//fboss/agent/hw:hardware_stats",
         "//fboss/lib/phy:phy",
+        "//fboss/platform/sensor_service/if:sensor_service",
         "//thrift/annotation:cpp",
     ],
 )
@@ -245,9 +248,11 @@ cpp_library(
         "facebook/SetupThrift.h",
     ],
     exported_deps = [
+        ":load_agent_config",
         "//common/services/cpp:thrift_acl_checker_module_config",
         "//common/services/cpp:thrift_aclchecker_handler_factory",
         "//common/services/cpp:tls",
+        "//fboss/lib:thrift_method_rate_limit",
         "//folly:network_address",
         "//folly/io/async:async_base",
         "//folly/logging:logging",
@@ -429,6 +434,11 @@ cpp_library(
         ":agent_features",
         ":switch_config-cpp2-types",
         "//fboss/agent/hw/switch_asics:switch_asics",
+        "//fboss/agent/state:state",
+        "//folly:network_address",
+    ],
+    exported_external_deps = [
+        ("boost", None, "boost_container"),
     ],
 )
 
@@ -606,7 +616,6 @@ cpp_library(
     exported_deps = [
         ":agent_stats-cpp2-types",
         ":fboss-types",
-        "//common/stats:macros",
         "//fb303:service_data",
         "//fb303:thread_cached_service_data",
         "//fb303/detail:quantile_stat_wrappers",
@@ -629,6 +638,7 @@ cpp_library(
     srcs = ["ApplyThriftConfig.cpp"],
     exported_deps = [
         ":agent_features",
+        ":asic_utils",
         ":core",
         ":fboss-error",
         ":hw_asic_table",
@@ -668,6 +678,7 @@ cpp_library(
     ],
     exported_deps = [
         "//fboss/agent/state:state",
+        "//fboss/lib/link_snapshots:async_filewriter_factory",
         "//fboss/lib/link_snapshots:snapshot_manager",
         "//fboss/lib/phy:phy-cpp2-types",
     ],
@@ -708,7 +719,9 @@ cpp_library(
         "EcmpResourceManager.cpp",
     ],
     exported_deps = [
+        ":agent_features",
         ":fib_helpers",
+        ":stats",
         "//fboss/agent/state:state",
         "//fboss/lib:ref_map",
     ],
@@ -818,6 +831,7 @@ cpp_library(
         ":build_info_wrapper",
         ":constants",
         ":dhcpv4_options_of_interest",
+        ":ecmp_resource_manager",
         ":fboss-error",
         ":fboss-types",
         ":fboss_event_base",
@@ -847,7 +861,6 @@ cpp_library(
         ":voq_utils",
         "//common/fbwhoami:fb_who_am_i",
         "//common/network:util",
-        "//common/stats:macros",
         "//common/strings:uuid",
         "//common/time:time",
         "//common/time:time_core",
@@ -901,6 +914,7 @@ cpp_library(
         "//fboss/lib:radix_tree",
         "//fboss/lib:thread_heartbeat",
         "//fboss/lib/config:fboss_config_utils",
+        "//fboss/lib/link_snapshots:async_filewriter_factory",
         "//fboss/lib/phy:phy-cpp2-types",
         "//fboss/lib/phy:prbs-cpp2-types",
         "//fboss/lib/platforms:product-info",
@@ -947,7 +961,6 @@ cpp_library(
         "//scribe/client:scribe_client_no_sr",
         "//servicerouter/client/cpp2:cpp2",
         "//thrift/lib/cpp/util:enum_utils",
-        "//thrift/lib/cpp2/async:header_client_channel",
         "//thrift/lib/cpp2/async:pooled_request_channel",
         "//thrift/lib/cpp2/async:reconnecting_request_channel",
         "//thrift/lib/cpp2/async:request_channel",
@@ -1229,12 +1242,14 @@ cpp_library(
     name = "packet",
     srcs = [
         "Packet.cpp",
+        "TxPacket.cpp",
     ],
     headers = [
         "Packet.h",
         "RxPacket.h",
         "SwRxPacket.h",
         "TxPacket.h",
+        "TxPacketObserver.h",
     ],
     exported_deps = [
         ":fboss-types",
@@ -1376,6 +1391,7 @@ cpp_library(
         ":packet",
         ":stats",
         "//fboss/agent/if:multiswitch_ctrl-cpp2-services",
+        "//fboss/agent/state:state",
     ],
 )
 
@@ -1659,13 +1675,13 @@ cpp_library(
     exported_deps = [
         ":agent_dir_util",
         ":async_logger",
-        ":fboss-error",
         ":hw_asic_table",
         ":switch_state-cpp2-types",
         ":utils",
         "//fboss/agent/rib:standalone_rib",
         "//fboss/agent/state:state",
         "//fboss/lib:common_file_utils",
+        "//fboss/lib:warm_boot_file_utils",
         "//folly:file_util",
         "//folly/logging:logging",
     ],
@@ -1848,6 +1864,30 @@ cpp_library(
         ":utils",
         "//fboss/agent/state:state",
     ],
+)
+
+ci_sandcastle(
+    name = "build_fboss_fbpkg",
+    alias = "build_fboss_fbpkg_ci",
+    args = {
+        "steps": [
+            {
+                "name": "Build fboss fbkg targets",
+                "shell": "buck2 build //fbcode/fboss/agent/fbpkg/...",
+            },
+        ],
+    },
+    capabilities = {
+        "tenant": "default-tenant",
+        "type": "fbcode",
+        "vcs": "full-fbsource",
+    },
+    # Adding triggers for raw inputs (for changes in asic_vendor_config) and generated outputs
+    ci_srcs = [
+        "fbcode/fboss/agent/**",
+    ],
+    command = "SandcastleUniversalCommand",
+    oncall = "fboss_agent",
 )
 
 export_file(name = "Main.cpp")

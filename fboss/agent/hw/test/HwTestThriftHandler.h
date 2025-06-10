@@ -121,6 +121,9 @@ class HwTestThriftHandler : public AgentHwTestCtrlSvIf {
 
   void updateFlowletStats() override;
 
+  cfg::SwitchingMode getFwdSwitchingMode(
+      std::unique_ptr<state::RouteNextHopEntry> routeNextHopEntry) override;
+
   bool getPtpTcEnabled() override;
 
   void clearInterfacePhyCounters(
@@ -144,6 +147,11 @@ class HwTestThriftHandler : public AgentHwTestCtrlSvIf {
       std::unique_ptr<::facebook::fboss::state::SwitchState> curState) override;
 
   bool validateUdfIdsInQset(int aclGroupId, bool isSet) override;
+
+  int32_t getNumTeFlowEntries() override;
+  bool checkSwHwTeFlowMatch(
+      std::unique_ptr<::facebook::fboss::state::TeFlowEntryFields>
+          flowEntryFields) override;
 
  private:
   HwSwitch* hwSwitch_;

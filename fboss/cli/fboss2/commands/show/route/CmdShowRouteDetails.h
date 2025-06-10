@@ -23,7 +23,7 @@
 
 namespace facebook::fboss {
 
-struct CmdShowRouteDetailsTraits : public BaseCommandTraits {
+struct CmdShowRouteDetailsTraits : public ReadCommandTraits {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_IP_LIST;
   using ParentCmd = CmdShowRoute;
@@ -149,6 +149,7 @@ class CmdShowRouteDetails
 
       out << fmt::format("  Action: {}\n", entry.get_action());
 
+      std::map<int, int> planeIdToPathCount;
       auto& nextHops = entry.get_nextHops();
       if (nextHops.size() > 0) {
         out << fmt::format("  Forwarding via:\n");
@@ -157,6 +158,18 @@ class CmdShowRouteDetails
               "    {}\n",
               show::route::utils::getNextHopInfoStr(
                   nextHop, vlanAggregatePortMap, vlanPortMap));
+          auto topologyInfo =
+              apache::thrift::get_pointer(nextHop.topologyInfo());
+          if (topologyInfo) {
+            CHECK(topologyInfo->plane_id().has_value());
+            planeIdToPathCount[topologyInfo->plane_id().value()]++;
+          }
+        }
+        if (planeIdToPathCount.size() > 0) {
+          out << fmt::format("  Paths per plane:\n");
+          for (const auto& [planeId, pathCount] : planeIdToPathCount) {
+            out << fmt::format("    Plane {}: {}\n", planeId, pathCount);
+          }
         }
       } else {
         out << "  No Forwarding Info\n";
@@ -165,6 +178,8 @@ class CmdShowRouteDetails
       out << fmt::format("  Admin Distance: {}\n", entry.get_adminDistance());
       out << fmt::format("  Counter Id: {}\n", entry.get_counterID());
       out << fmt::format("  Class Id: {}\n", entry.get_classID());
+      out << fmt::format(
+          "  Overridden ECMP mode: {}\n", entry.get_overridenEcmpMode());
     }
   }
 
@@ -238,6 +253,10 @@ class CmdShowRouteDetails
         auto classIDPtr = entry.get_classID();
         routeDetails.classID() =
             classIDPtr == nullptr ? "None" : getClassID(*classIDPtr);
+        auto overrideEcmpModePtr = entry.get_overridenEcmpMode();
+        routeDetails.overridenEcmpMode() = overrideEcmpModePtr == nullptr
+            ? "None"
+            : apache::thrift::util::enumNameSafe(*overrideEcmpModePtr);
         model.routeEntries()->push_back(routeDetails);
       }
     }

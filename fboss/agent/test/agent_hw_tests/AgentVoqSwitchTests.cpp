@@ -12,11 +12,9 @@
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
-#include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/DsfConfigUtils.h"
 #include "fboss/agent/test/utils/FabricTestUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
-#include "fboss/agent/test/utils/NetworkAITestUtils.h"
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
 #include "fboss/agent/test/utils/PacketSnooper.h"
 #include "fboss/agent/test/utils/PortTestUtils.h"
@@ -33,21 +31,6 @@ constexpr auto kDefaultEgressQueue = 0;
 
 using namespace facebook::fb303;
 namespace facebook::fboss {
-
-cfg::SwitchConfig AgentVoqSwitchTest::initialConfig(
-    const AgentEnsemble& ensemble) const {
-  // Increase the query timeout to be 5sec
-  FLAGS_hwswitch_query_timeout = 5000;
-  auto config = utility::onePortPerInterfaceConfig(
-      ensemble.getSw(),
-      ensemble.masterLogicalPortIds(),
-      true /*interfaceHasSubnet*/);
-  utility::addNetworkAIQosMaps(config, ensemble.getL3Asics());
-  utility::setDefaultCpuTrafficPolicyConfig(
-      config, ensemble.getL3Asics(), ensemble.isSai());
-  utility::addCpuQueueConfig(config, ensemble.getL3Asics(), ensemble.isSai());
-  return config;
-}
 
 void AgentVoqSwitchTest::rxPacketToCpuHelper(
     uint16_t l4SrcPort,
@@ -220,19 +203,6 @@ int AgentVoqSwitchTest::sendPacket(
   return txPacketSize;
 }
 
-SystemPortID AgentVoqSwitchTest::getSystemPortID(
-    const PortDescriptor& port,
-    cfg::Scope portScope) {
-  auto switchId = scopeResolver().scope(getProgrammedState(), port).switchId();
-  const auto& dsfNode =
-      getProgrammedState()->getDsfNodes()->getNodeIf(switchId);
-  auto sysPortOffset = portScope == cfg::Scope::GLOBAL
-      ? dsfNode->getGlobalSystemPortOffset()
-      : dsfNode->getLocalSystemPortOffset();
-  CHECK(sysPortOffset.has_value());
-  return SystemPortID(port.intID() + *sysPortOffset);
-}
-
 void AgentVoqSwitchTest::addDscpAclWithCounter() {
   auto newCfg = initialConfig(*getAgentEnsemble());
   auto* acl = utility::addAcl_DEPRECATED(&newCfg, kDscpAclName());
@@ -276,35 +246,6 @@ void AgentVoqSwitchTest::setForceTrafficOverFabric(bool force) {
     }
     return out;
   });
-}
-
-std::vector<PortDescriptor> AgentVoqSwitchTest::getInterfacePortSysPortDesc() {
-  auto ports = getProgrammedState()->getPorts()->getAllNodes();
-  std::vector<PortDescriptor> portDescs;
-  std::for_each(
-      ports->begin(), ports->end(), [this, &portDescs](const auto& idAndPort) {
-        const auto port = idAndPort.second;
-        if (port->getPortType() == cfg::PortType::INTERFACE_PORT) {
-          portDescs.push_back(PortDescriptor(getSystemPortID(
-              PortDescriptor(port->getID()), cfg::Scope::GLOBAL)));
-        }
-      });
-  return portDescs;
-}
-
-// Resolve and return list of local nhops (only NIF ports)
-std::vector<PortDescriptor> AgentVoqSwitchTest::resolveLocalNhops(
-    utility::EcmpSetupTargetedPorts6& ecmpHelper) {
-  std::vector<PortDescriptor> portDescs = getInterfacePortSysPortDesc();
-
-  applyNewState([&](const std::shared_ptr<SwitchState>& in) {
-    auto out = in->clone();
-    for (const auto& portDesc : portDescs) {
-      out = ecmpHelper.resolveNextHops(out, {portDesc});
-    }
-    return out;
-  });
-  return portDescs;
 }
 
 TEST_F(AgentVoqSwitchTest, fdrRciAndCoreRciWatermarks) {
@@ -412,13 +353,6 @@ TEST_F(AgentVoqSwitchTest, sendPacketCpuAndFrontPanel) {
       int64_t beforeQueueOutPkts = 0, beforeQueueOutBytes = 0;
       int64_t afterQueueOutPkts = 0, afterQueueOutBytes = 0;
       int64_t beforeVoQOutBytes = 0, afterVoQOutBytes = 0;
-      int64_t egressCoreWatermarkBytes = 0;
-      // Get SRAM size per core as thats the highest possible free SRAM
-      const uint64_t kSramSize =
-          checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
-              ->getSramSizeBytes() /
-          checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())->getNumCores();
-      int64_t sramMinBufferWatermarkBytes = kSramSize + 1;
 
       if (isSupportedOnAllAsics(HwAsic::Feature::L3_QOS)) {
         auto beforeAllQueueOut = getAllQueueOutPktsBytes();
@@ -477,21 +411,6 @@ TEST_F(AgentVoqSwitchTest, sendPacketCpuAndFrontPanel) {
                   getPortOutPktsBytes(*frontPanelPort);
             }
             auto afterRecyclePkts = getRecyclePortPkts();
-            for (const auto& switchWatermarksIter :
-                 getAllSwitchWatermarkStats()) {
-              if (switchWatermarksIter.second.egressCoreBufferWatermarkBytes()
-                      .has_value()) {
-                egressCoreWatermarkBytes +=
-                    switchWatermarksIter.second.egressCoreBufferWatermarkBytes()
-                        .value();
-              }
-              if (switchWatermarksIter.second.sramMinBufferWatermarkBytes()
-                      .has_value()) {
-                sramMinBufferWatermarkBytes = std::min(
-                    sramMinBufferWatermarkBytes,
-                    *switchWatermarksIter.second.sramMinBufferWatermarkBytes());
-              }
-            }
             XLOG(DBG2) << "Verifying: "
                        << (isFrontPanel ? "Send Packet from Front Panel Port"
                                         : "Send Packet from CPU Port")
@@ -512,11 +431,7 @@ TEST_F(AgentVoqSwitchTest, sendPacketCpuAndFrontPanel) {
                        << " afterAclPkts: " << afterAclPkts
                        << " afterFrontPanelPkts: " << afterFrontPanelOutPkts
                        << " afterFrontPanelBytes: " << afterFrontPanelOutBytes
-                       << " afterRecyclePkts: " << afterRecyclePkts
-                       << " egressCoreWatermarkBytes: "
-                       << egressCoreWatermarkBytes
-                       << " sramMinBufferWatermarkBytes: "
-                       << sramMinBufferWatermarkBytes;
+                       << " afterRecyclePkts: " << afterRecyclePkts;
 
             EXPECT_EVENTUALLY_EQ(afterOutPkts - 1, beforeOutPkts);
             int extraByteOffset = 0;
@@ -560,14 +475,6 @@ TEST_F(AgentVoqSwitchTest, sendPacketCpuAndFrontPanel) {
               EXPECT_EVENTUALLY_EQ(
                   *afterSwitchDropStats.queueResolutionDrops(),
                   *beforeSwitchDropStats.queueResolutionDrops() + 1);
-            }
-            if (isSupportedOnAllAsics(
-                    HwAsic::Feature::EGRESS_CORE_BUFFER_WATERMARK)) {
-              EXPECT_EVENTUALLY_GT(egressCoreWatermarkBytes, 0);
-            }
-            if (isSupportedOnAllAsics(
-                    HwAsic::Feature::INGRESS_SRAM_MIN_BUFFER_WATERMARK)) {
-              EXPECT_EVENTUALLY_LE(sramMinBufferWatermarkBytes, kSramSize);
             }
           });
     };
@@ -934,4 +841,54 @@ TEST_F(AgentVoqSwitchTest, verifyDramErrorDetection) {
   };
   verifyAcrossWarmBoots(setup, verify);
 }
+
+TEST_F(AgentVoqSwitchTest, verifyEgressCoreAndSramWatermark) {
+  utility::EcmpSetupAnyNPorts6 ecmpHelper(
+      getProgrammedState(), getSw()->needL2EntryForNeighbor());
+  const auto kPortDesc = ecmpHelper.ecmpPortDescriptorAt(0);
+
+  auto setup = [this, kPortDesc, ecmpHelper]() {
+    addRemoveNeighbor(kPortDesc, NeighborOp::ADD);
+  };
+
+  auto verify = [this, kPortDesc, ecmpHelper]() {
+    std::string kEgressCoreWm{"buffer_watermark_egress_core.p100.60"};
+    std::string kSramMinWm{"buffer_watermark_min_sram.p0.60"};
+    // Get SRAM size per core as thats the highest possible free SRAM
+    const uint64_t kSramSize =
+        checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
+            ->getSramSizeBytes() /
+        checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())->getNumCores();
+    auto regex = kEgressCoreWm + "|" + kSramMinWm;
+    sendPacket(
+        ecmpHelper.ip(kPortDesc),
+        ecmpHelper.ecmpPortDescriptorAt(1).phyPortID());
+    WITH_RETRIES({
+      auto counters = getAgentEnsemble()->getFb303CountersByRegex(
+          ecmpHelper.ecmpPortDescriptorAt(1).phyPortID(), regex);
+      ASSERT_EVENTUALLY_EQ(counters.size(), 2);
+      for (const auto& ctr : counters) {
+        XLOG(DBG0) << ctr.first << " : " << ctr.second;
+        if (ctr.first.find(kEgressCoreWm) != std::string::npos) {
+          EXPECT_EVENTUALLY_GT(ctr.second, 0);
+        } else {
+          EXPECT_EVENTUALLY_LE(ctr.second, kSramSize);
+        }
+      }
+    });
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(AgentVoqSwitchTest, verifySendPacketOutOfEventorBlocked) {
+  for (const auto& portId :
+       masterLogicalPortIds({cfg::PortType::EVENTOR_PORT})) {
+    auto beforeOutPkts = *getLatestPortStats(portId).outUnicastPkts_();
+    sendLocalServiceDiscoveryMulticastPacket(portId, 1);
+    // NOLINTNEXTLINE(facebook-hte-BadCall-sleep)
+    sleep(5);
+    EXPECT_EQ(beforeOutPkts, *getLatestPortStats(portId).outUnicastPkts_());
+  }
+}
+
 } // namespace facebook::fboss

@@ -296,6 +296,7 @@ int TunManager::getTableIdForVoq(InterfaceID ifID) const {
   const auto& switchIdToSwitchInfo =
       utility::getFirstNodeIf(sw_->getState()->getSwitchSettings())
           ->getSwitchIdToSwitchInfo();
+  auto platform = sw_->getPlatformType();
   if (isDualStage3Q2QMode()) {
     if (switchIdToSwitchInfo.size() > 1) {
       throw FbossError(
@@ -334,6 +335,17 @@ int TunManager::getTableIdForVoq(InterfaceID ifID) const {
           << ")";
       return tableId;
     }
+  } else if (platform == PlatformType::PLATFORM_JANGA800BIC) {
+    auto intf = sw_->getState()->getInterfaces()->getNode(ifID);
+    auto constexpr kLocalIntfTableStart = 1;
+    auto constexpr kGlobalIntfTableStart = 200;
+    if (intf->getScope() == cfg::Scope::LOCAL) {
+      return kLocalIntfTableStart + ifID;
+    } else {
+      auto firstSwitchSysPortRange =
+          getFirstSwitchSystemPortIdRange(switchIdToSwitchInfo);
+      return kGlobalIntfTableStart + ifID - *firstSwitchSysPortRange.minimum();
+    }
   }
   auto firstSwitchSysPortRange =
       getFirstSwitchSystemPortIdRange(switchIdToSwitchInfo);
@@ -351,8 +363,8 @@ cfg::InterfaceType TunManager::getInterfaceType(InterfaceID ifID) const {
 }
 
 void TunManager::addRemoveRouteTable(InterfaceID ifID, int ifIndex, bool add) {
-  // We just store default routes (one for IPv4 and one for IPv6) in each route
-  // table.
+  // We just store default routes (one for IPv4 and one for IPv6) in each
+  // route table.
   const folly::IPAddress addrs[] = {
       IPAddress{"0.0.0.0"}, // v4 default
       IPAddress{"::0"}, // v6 default
@@ -520,11 +532,11 @@ void TunManager::addRemoveTunAddress(
 
   if (add) {
     /**
-     * When you bring down interface some routes are purged but some still stay
-     * there (I tested from command line and v6 routes were gone but v4 were
-     * there). To be on safe side, when we bring up interface we always add
-     * addresses and routes for that interface with REPLACE flag overriding
-     * existing ones if any.
+     * When you bring down interface some routes are purged but some still
+     * stay there (I tested from command line and v6 routes were gone but v4
+     * were there). To be on safe side, when we bring up interface we always
+     * add addresses and routes for that interface with REPLACE flag
+     * overriding existing ones if any.
      */
     error = rtnl_addr_add(sock_, tunaddr, NLM_F_REPLACE);
   } else {
@@ -856,10 +868,10 @@ void TunManager::sync(std::shared_ptr<SwitchState> state) {
           setIntfStatus(ifName, ifIndex, newStatus);
         }
 
-        // We need to add route-table and tun-addresses if interface is brought
-        // up recently.
-        // NOTE: Do not add source routing rules because kernel doesn't handle
-        // NLM_F_REPLACE flags and they just keep piling up :/
+        // We need to add route-table and tun-addresses if interface is
+        // brought up recently. NOTE: Do not add source routing rules because
+        // kernel doesn't handle NLM_F_REPLACE flags and they just keep piling
+        // up :/
         if (!oldStatus and newStatus) {
           addRouteTable(ifID, ifIndex);
           for (const auto& addr : newAddrs) {
@@ -869,8 +881,8 @@ void TunManager::sync(std::shared_ptr<SwitchState> state) {
 
         // Update interface addresses only if interface is up currently
         // We would like to process address change whenever current state of
-        // interface is UP. We should not try to add addresses when interface is
-        // down as it can throw exception for v6 address.
+        // interface is UP. We should not try to add addresses when interface
+        // is down as it can throw exception for v6 address.
         if (newStatus) {
           applyInterfaceAddrChanges(ifID, ifName, ifIndex, oldAddrs, newAddrs);
         }

@@ -22,7 +22,6 @@
 #include "fboss/lib/phy/PhyManager.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/lib/phy/gen-cpp2/prbs_types.h"
-#include "fboss/lib/platforms/PlatformMode.h"
 #include "fboss/lib/usb/TransceiverI2CApi.h"
 #include "fboss/lib/usb/TransceiverPlatformApi.h"
 #include "fboss/qsfp_service/QsfpConfig.h"
@@ -36,6 +35,12 @@
 #include <functional>
 #include <map>
 #include <vector>
+
+#ifndef IS_OSS
+#if __has_feature(address_sanitizer)
+#include <sanitizer/lsan_interface.h>
+#endif
+#endif
 
 #define MODULE_LOG(level, Module, tcvrID) \
   XLOG(level) << Module << " tcvrID:" << tcvrID << ": "
@@ -212,6 +217,18 @@ class TransceiverManager {
 
   PhyManager* getPhyManager() {
     return phyManager_.get();
+  }
+
+  void releasePhyManager() {
+    if (phyManager_) {
+      // Suppressing ASAN warnings as this is expected behavior
+      __attribute__((unused)) auto* leakedPhyManager = phyManager_.release();
+#ifndef IS_OSS
+#if __has_feature(address_sanitizer)
+      folly::lsan_ignore_object(leakedPhyManager);
+#endif
+#endif
+    }
   }
 
   /*
@@ -609,6 +626,14 @@ class TransceiverManager {
 
   std::map<std::string, FirmwareUpgradeData> triggerAllOpticsFwUpgrade();
 
+  // portName to MediaInterfaceCode map
+  void getPortMediaInterface(
+      std::map<std::string, MediaInterfaceCode>& portMediaInterface);
+
+  TcvrIdToTcvrNameMap getTcvrIdToTcvrNameMap() const {
+    return tcvrIdToTcvrName_;
+  }
+
  protected:
   /*
    * Check to see if we can attempt a warm boot.
@@ -760,7 +785,7 @@ class TransceiverManager {
     TransceiverID tcvrID_;
     folly::Synchronized<state_machine<TransceiverStateMachine>> stateMachine_;
     // Can't use ScopedEventBaseThread as it won't work well with
-    // handcrafted HeaderClientChannel client instead of servicerouter client
+    // handcrafted RocketClientChannel client instead of servicerouter client
     std::unique_ptr<std::thread> updateThread_;
     std::unique_ptr<folly::EventBase> updateEventBase_;
     std::shared_ptr<ThreadHeartbeat> heartbeat_;

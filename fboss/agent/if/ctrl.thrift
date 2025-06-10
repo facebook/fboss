@@ -89,6 +89,7 @@ struct UnicastRoute {
   6: common.NamedRouteDestination namedRouteDestination;
   7: optional RouteCounterID counterID;
   8: optional switch_config.AclLookupClass classID;
+  9: optional switch_config.SwitchingMode overrideEcmpSwitchingMode;
 }
 
 struct MplsRoute {
@@ -126,6 +127,7 @@ struct RouteDetails {
   8: optional common.NamedRouteDestination namedRouteDestination;
   9: optional RouteCounterID counterID;
   10: optional switch_config.AclLookupClass classID;
+  11: optional switch_config.SwitchingMode overridenEcmpMode;
 }
 
 struct MplsRouteDetails {
@@ -366,7 +368,6 @@ struct PortInfoThrift {
   18: string fecMode;
   19: string profileID;
   20: optional PfcConfig pfc;
-
   21: optional PortHardwareDetails hw;
   22: optional TransceiverIdxThrift transceiverIdx;
   23: optional i32 hwLogicalPortId;
@@ -379,6 +380,8 @@ struct PortInfoThrift {
   30: optional i32 virtualDeviceId;
   31: switch_config.PortType portType;
   32: switch_config.Scope scope;
+  33: list<switch_config.PortNeighbor> expectedNeighborReachability;
+  34: optional i64 cableLengthMeters;
 }
 
 // Port queueing configuration

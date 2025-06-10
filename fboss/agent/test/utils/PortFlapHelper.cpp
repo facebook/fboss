@@ -13,9 +13,15 @@ namespace facebook::fboss::utility {
 
 void PortFlapHelper::portFlap() {
   bool up = false;
-  while (!done_) {
-    std::unique_lock<std::mutex> lock(mutex_);
-    cv_.wait_for(lock, flapIntervalMs_, [this] { return done_.load(); });
+  while (true) {
+    {
+      std::unique_lock<std::mutex> lock(mutex_);
+      cv_.wait_for(lock, flapIntervalMs_, [this] { return done_.load(); });
+      if (done_) {
+        break;
+      }
+    }
+
     if (up) {
       ensemble_->bringUpPorts(portsToFlap_);
     } else {
@@ -23,6 +29,7 @@ void PortFlapHelper::portFlap() {
     }
     up = !up;
   }
+  ensemble_->bringUpPorts(portsToFlap_);
 };
 
 void PortFlapHelper::startPortFlap() {
@@ -34,11 +41,13 @@ void PortFlapHelper::startPortFlap() {
 }
 
 void PortFlapHelper::stopPortFlap() {
-  done_ = true;
-  cv_.notify_one();
+  {
+    std::lock_guard<std::mutex> lock(mutex_);
+    done_ = true;
+    cv_.notify_one();
+  }
   if (portFlapThread_.joinable()) {
     portFlapThread_.join();
   }
-  ensemble_->bringUpPorts(portsToFlap_);
 }
 } // namespace facebook::fboss::utility

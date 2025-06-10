@@ -282,6 +282,10 @@ struct HwAsicErrors {
   55: optional i64 fabricTxWarnings;
   56: optional i64 fabricLinkWarnings;
   57: optional i64 networkInterfaceWarnings;
+  // DNX fabric device block level errors
+  58: optional i64 fabricControlPathErrors;
+  59: optional i64 fabricDataPathErrors;
+  60: optional i64 cpuErrors;
 }
 
 struct HwTeFlowStats {
@@ -427,6 +431,7 @@ struct HwSwitchFb303GlobalStats {
   33: optional i64 rqp_parity_error;
   34: i64 fabric_connectivity_bogus;
   35: optional i64 interrupt_masked_events;
+  36: optional i64 asic_revision;
 }
 
 struct HwFlowletStats {

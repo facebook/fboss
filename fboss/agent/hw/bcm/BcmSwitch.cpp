@@ -965,6 +965,8 @@ HwInitResult BcmSwitch::initImpl(
   setupToCpuEgress();
   portTable_->initPorts(&pcfg, warmBoot);
 
+  egressManager_->init();
+
   // initialize UDF module
   udfManager_->init();
   bstStatsMgr_->startBufferStatCollection();
@@ -1393,6 +1395,13 @@ void BcmSwitch::setEcmpDynamicRandomSeed(int ecmpRandomSeed) {
 
 void BcmSwitch::processFlowletSwitchingConfigChanges(const StateDelta& delta) {
   const auto flowletSwitchingDelta = delta.getFlowletSwitchingConfigDelta();
+  const auto& newFlowletSwitching = flowletSwitchingDelta.getNew();
+
+  egressManager_->processFlowletSwitchingConfigChanged(newFlowletSwitching);
+}
+
+void BcmSwitch::processEcmpForArsChanges(const StateDelta& delta) {
+  const auto flowletSwitchingDelta = delta.getFlowletSwitchingConfigDelta();
   const auto& oldFlowletSwitching = flowletSwitchingDelta.getOld();
   const auto& newFlowletSwitching = flowletSwitchingDelta.getNew();
   // process change in the flowlet switching config
@@ -1445,12 +1454,12 @@ void BcmSwitch::processFlowletSwitchingConfigChanges(const StateDelta& delta) {
     // Update All egress first for flowlet config add or update
     // This ordering is needed otherwise SDK fails for TH3
     egressManager_->updateAllEgressForFlowletSwitching();
-    egressManager_->processFlowletSwitchingConfigChanged(newFlowletSwitching);
+    writableMultiPathNextHopTable()->updateEcmpsForFlowletSwitching();
   } else if (oldFlowletSwitching && !newFlowletSwitching) {
     XLOG(DBG2) << "Flowlet switching config is removed";
     setEcmpDynamicRandomSeed(0);
     // Update All ecmps first for flowlet config removal
-    egressManager_->processFlowletSwitchingConfigChanged(newFlowletSwitching);
+    writableMultiPathNextHopTable()->updateEcmpsForFlowletSwitching();
     egressManager_->updateAllEgressForFlowletSwitching();
   }
 }
@@ -1475,11 +1484,27 @@ void BcmSwitch::processMacTableChanges(const StateDelta& stateDelta) {
 }
 
 std::shared_ptr<SwitchState> BcmSwitch::stateChangedImpl(
-    const StateDelta& delta) {
+    const std::vector<StateDelta>& deltas) {
+  // This is unlikely to happen but if it does, return current state
+  if (deltas.size() == 0) {
+    return getProgrammedState();
+  }
+  std::shared_ptr<SwitchState> appliedState{nullptr};
   // Take the lock before modifying any objects
   std::lock_guard<std::mutex> lock(lock_);
-  auto appliedState = stateChangedImplLocked(delta, lock);
-  appliedState->publish();
+  int count = 1;
+  for (const auto& delta : deltas) {
+    appliedState = stateChangedImplLocked(delta, lock);
+    // if the current delta fails to apply, return the last successful state
+    if (appliedState != delta.newState()) {
+      XLOG(DBG2) << "Failed to apply " << count << " delta in  "
+                 << deltas.size() << " deltas";
+      appliedState->publish();
+      return appliedState;
+    }
+    count++;
+    appliedState->publish();
+  }
   return appliedState;
 }
 
@@ -1533,6 +1558,9 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChangedImplLocked(
   // before neighbor/route delta programming of egress objects
   // after warm boot for TH3
   processPortFlowletConfigAdd(delta);
+
+  // Process Flowlet config changes
+  processFlowletSwitchingConfigChanges(delta);
 
   // remove all routes to be deleted
   processRemovedRoutes(delta);
@@ -1641,8 +1669,8 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChangedImplLocked(
   processAddedPorts(delta);
   processChangedPorts(delta);
 
-  // Process Flowlet config changes
-  processFlowletSwitchingConfigChanges(delta);
+  // Process all ECMP groups with new ARS config
+  processEcmpForArsChanges(delta);
 
   // delete any removed mirrors after processing port and acl changes
   forEachRemoved(
@@ -3169,6 +3197,13 @@ std::vector<EcmpDetails> BcmSwitch::getAllEcmpDetails() const {
   return multiPathNextHopStatsManager_->getAllEcmpDetails();
 }
 
+cfg::SwitchingMode BcmSwitch::getFwdSwitchingMode(
+    const RouteNextHopEntry& fwd) {
+  std::lock_guard<std::mutex> lock(lock_);
+  return multiPathNextHopTable_->getFwdSwitchingMode(
+      getBcmVrfId(RouterID(0)), fwd.normalizedNextHops());
+}
+
 shared_ptr<BcmSwitchEventCallback> BcmSwitch::registerSwitchEventCallback(
     bcm_switch_event_t eventID,
     shared_ptr<BcmSwitchEventCallback> callback) {
@@ -3228,6 +3263,10 @@ HwSwitchWatermarkStats BcmSwitch::getSwitchWatermarkStats() const {
       bstStatsMgr_->getGlobalSharedWatermarkBytes().begin(),
       bstStatsMgr_->getGlobalSharedWatermarkBytes().end());
   return stats;
+}
+
+HwSwitchPipelineStats BcmSwitch::getSwitchPipelineStats() const {
+  return HwSwitchPipelineStats{};
 }
 
 bcm_if_t BcmSwitch::getDropEgressId() const {
@@ -4252,6 +4291,8 @@ void BcmSwitch::syncLinkStates() {
     }
   });
 }
+
+void BcmSwitch::syncPortLinkState(PortID /*port*/) {}
 
 CpuPortStats BcmSwitch::getCpuPortStats() const {
   CpuPortStats cpuPortStats;

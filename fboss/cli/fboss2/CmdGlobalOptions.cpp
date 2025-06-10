@@ -122,8 +122,8 @@ CmdGlobalOptions::parseAggregate(cli::CliOptionResult& aggParsingEC) const {
     return std::nullopt;
   }
 
-  unsigned first = aggregate_.find("(");
-  unsigned last = aggregate_.find_last_of(")");
+  unsigned first = aggregate_.find('(');
+  unsigned last = aggregate_.find_last_of(')');
 
   if (first < 0 || first >= aggregate_.length() || last < 0 ||
       last >= aggregate_.length()) {

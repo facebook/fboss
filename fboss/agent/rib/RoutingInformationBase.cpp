@@ -427,6 +427,53 @@ void RibRouteTables::setClassID(
   updateFib(resolver, rid, fibUpdateCallback, cookie);
 }
 
+void RibRouteTables::setOverrideEcmpMode(
+    const SwitchIdScopeResolver* resolver,
+    RouterID rid,
+    const std::map<folly::CIDRNetwork, std::optional<cfg::SwitchingMode>>&
+        prefix2EcmpMode,
+    const FibUpdateFunction& fibUpdateCallback,
+    void* cookie) {
+  updateRib(rid, [&](auto& routeTable) {
+    // Update rib
+    auto updateRoute = [](auto& rib,
+                          auto ip,
+                          uint8_t mask,
+                          std::optional<cfg::SwitchingMode> overrideEcmpMode) {
+      auto ritr = rib.exactMatch(ip, mask);
+      if (ritr == rib.end()) {
+        return;
+      }
+      auto& ribRoute = ritr->value();
+      if (!ribRoute->isResolved() ||
+          ribRoute->getForwardInfo().getOverrideEcmpSwitchingMode() ==
+              overrideEcmpMode) {
+        return;
+      }
+      ritr->value() = ribRoute->clone();
+      const auto& curForwardInfo = ritr->value()->getForwardInfo();
+      auto newForwardInfo = RouteNextHopEntry(
+          curForwardInfo.getNextHopSet(),
+          curForwardInfo.getAdminDistance(),
+          curForwardInfo.getCounterID(),
+          curForwardInfo.getClassID(),
+          overrideEcmpMode);
+      ritr->value()->setResolved(newForwardInfo);
+      ritr->value()->publish();
+    };
+    auto& v4Rib = routeTable.v4NetworkToRoute;
+    auto& v6Rib = routeTable.v6NetworkToRoute;
+    for (const auto& [prefix, ecmpMode] : prefix2EcmpMode) {
+      if (prefix.first.isV4()) {
+        updateRoute(v4Rib, prefix.first.asV4(), prefix.second, ecmpMode);
+      } else {
+        updateRoute(v6Rib, prefix.first.asV6(), prefix.second, ecmpMode);
+      }
+    }
+  });
+  updateFib(resolver, rid, fibUpdateCallback, cookie);
+}
+
 template <typename AddressT>
 std::shared_ptr<Route<AddressT>> RibRouteTables::longestMatch(
     const AddressT& address,
@@ -622,6 +669,21 @@ void RoutingInformationBase::setClassIDImpl(
   } else {
     ribUpdateEventBase_.runInFbossEventBaseThreadAndWait(updateFn);
   }
+}
+
+void RoutingInformationBase::setOverrideEcmpModeAsync(
+    const SwitchIdScopeResolver* resolver,
+    RouterID rid,
+    const std::map<folly::CIDRNetwork, std::optional<cfg::SwitchingMode>>&
+        prefix2EcmpMode,
+    const FibUpdateFunction& fibUpdateCallback,
+    void* cookie) {
+  ensureRunning();
+  auto updateFn = [=, this]() {
+    ribTables_.setOverrideEcmpMode(
+        resolver, rid, prefix2EcmpMode, fibUpdateCallback, cookie);
+  };
+  ribUpdateEventBase_.runInFbossEventBaseThread(updateFn);
 }
 
 RibRouteTables RibRouteTables::fromThrift(

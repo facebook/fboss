@@ -28,8 +28,13 @@ using namespace facebook::fboss::platform::fw_util_config;
 
 class FwUtilImpl {
  public:
-  explicit FwUtilImpl(const std::string& fwBinaryFile, bool verifySha1sum)
-      : fwBinaryFile_(fwBinaryFile), verifySha1sum_(verifySha1sum) {
+  explicit FwUtilImpl(
+      const std::string& fwBinaryFile,
+      bool verifySha1sum,
+      bool dryRun)
+      : fwBinaryFile_(fwBinaryFile),
+        verifySha1sum_(verifySha1sum),
+        dryRun_(dryRun) {
     init();
   }
   void doVersionAudit();
@@ -62,6 +67,8 @@ class FwUtilImpl {
       const FlashromConfig&,
       std::vector<std::string>&,
       const std::string&);
+  bool
+  createCustomContentFile(const std::string&, const int&, const std::string&);
   std::string detectFlashromChip(const FlashromConfig&, const std::string&);
   void performJamUpgrade(const JamConfig&, const std::string&);
   void performXappUpgrade(const XappConfig&, const std::string&);
@@ -75,7 +82,10 @@ class FwUtilImpl {
       const ReadFirmwareOperationConfig&,
       const std::string&);
   void performFlashromRead(const FlashromConfig&, const std::string&);
-  void addFileOption(const std::string&, std::vector<std::string>&);
+  void addFileOption(
+      const std::string&,
+      std::vector<std::string>&,
+      std::optional<std::string>&);
   void performFlashromVerify(const FlashromConfig&, const std::string&);
   void performVerify(const VerifyFirmwareOperationConfig&, const std::string&);
   void doWriteToPortOperation(const WriteToPortConfig&, const std::string&);
@@ -89,6 +99,7 @@ class FwUtilImpl {
   std::string platformName_;
   std::string fwBinaryFile_;
   bool verifySha1sum_;
+  bool dryRun_;
 
   void init();
 

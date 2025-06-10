@@ -22,11 +22,14 @@ std::string nextHopKeyStr(const KetT& key) {
 }
 
 std::string nextHopKeyStr(const facebook::fboss::BcmMultiPathNextHopKey& key) {
-  std::string str = folly::to<std::string>("vrf:", key.first, "->{");
-  for (const auto& nhop : key.second) {
-    str = folly::to<std::string>(nhop.str(), ",");
+  std::string str = folly::to<std::string>("vrf:", std::get<0>(key), "->{");
+  for (const auto& nhop : std::get<1>(key)) {
+    str += folly::to<std::string>(nhop.str(), ",");
   }
   str += "}";
+  if (auto mode = std::get<2>(key)) {
+    str += folly::to<std::string>("mode:", *mode);
+  }
   return str;
 }
 } // namespace

@@ -17,9 +17,9 @@ namespace facebook::fboss {
 
 class AgentRouteScaleTest : public AgentHwTest {
  protected:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::L3_FORWARDING};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::L3_FORWARDING};
   }
 
   void programRoutes(
@@ -67,10 +67,10 @@ class AgentRouteScaleTest : public AgentHwTest {
 
 class AgentRswRouteScaleTest : public AgentRouteScaleTest {
  protected:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     auto features = AgentRouteScaleTest::getProductionFeaturesVerified();
-    features.push_back(production_features::ProductionFeature::RSW_ROUTE_SCALE);
+    features.push_back(ProductionFeature::RSW_ROUTE_SCALE);
     return features;
   }
 };
@@ -81,10 +81,10 @@ TEST_F(AgentRswRouteScaleTest, rswRouteScale) {
 
 class AgentFswRouteScaleTest : public AgentRouteScaleTest {
  protected:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     auto features = AgentRouteScaleTest::getProductionFeaturesVerified();
-    features.push_back(production_features::ProductionFeature::FSW_ROUTE_SCALE);
+    features.push_back(ProductionFeature::FSW_ROUTE_SCALE);
     return features;
   }
 };
@@ -95,11 +95,10 @@ TEST_F(AgentFswRouteScaleTest, fswRouteScale) {
 
 class AgentThAlpmRouteScaleTest : public AgentRouteScaleTest {
  protected:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     auto features = AgentRouteScaleTest::getProductionFeaturesVerified();
-    features.push_back(
-        production_features::ProductionFeature::TH_ALPM_ROUTE_SCALE);
+    features.push_back(ProductionFeature::TH_ALPM_ROUTE_SCALE);
     return features;
   }
 };
@@ -110,11 +109,10 @@ TEST_F(AgentThAlpmRouteScaleTest, thAlpmScale) {
 
 class AgentHgridDuRouteScaleTest : public AgentRouteScaleTest {
  protected:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     auto features = AgentRouteScaleTest::getProductionFeaturesVerified();
-    features.push_back(
-        production_features::ProductionFeature::HGRID_DU_ROUTE_SCALE);
+    features.push_back(ProductionFeature::HGRID_DU_ROUTE_SCALE);
     return features;
   }
 };
@@ -125,11 +123,10 @@ TEST_F(AgentHgridDuRouteScaleTest, hgridDuScaleTest) {
 
 class AgentHgridUuRouteScaleTest : public AgentRouteScaleTest {
  protected:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     auto features = AgentRouteScaleTest::getProductionFeaturesVerified();
-    features.push_back(
-        production_features::ProductionFeature::HGRID_UU_ROUTE_SCALE);
+    features.push_back(ProductionFeature::HGRID_UU_ROUTE_SCALE);
     return features;
   }
 };
@@ -140,11 +137,10 @@ TEST_F(AgentHgridUuRouteScaleTest, hgridUuScaleTest) {
 
 class AgentHundredThousandRouteScaleTest : public AgentRouteScaleTest {
  protected:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     auto features = AgentRouteScaleTest::getProductionFeaturesVerified();
-    features.push_back(
-        production_features::ProductionFeature::HUNDRED_THOUSAND_ROUTE_SCALE);
+    features.push_back(ProductionFeature::HUNDRED_THOUSAND_ROUTE_SCALE);
     return features;
   }
 };

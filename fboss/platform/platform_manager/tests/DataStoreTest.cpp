@@ -24,7 +24,16 @@ TEST(DataStoreTest, I2CBusNum) {
 TEST(DataStoreTest, PmUnitAtSlotPath) {
   PlatformConfig config;
   DataStore dataStore(config);
-  dataStore.updatePmUnitInfo("/", "MCB_FAN_CPLD", 2, 13, 1);
+
+  PmUnitInfo info;
+  info.name() = "MCB_FAN_CPLD";
+  PmUnitVersion version;
+  version.productProductionState() = 2;
+  version.productVersion() = 13;
+  version.productSubVersion() = 1;
+  info.version() = version;
+
+  dataStore.updatePmUnitInfo("/", info);
   EXPECT_TRUE(dataStore.hasPmUnit("/"));
   EXPECT_FALSE(dataStore.hasPmUnit("/SMB_SLOT@1"));
   EXPECT_EQ(*dataStore.getPmUnitInfo("/").name(), "MCB_FAN_CPLD");
@@ -38,9 +47,12 @@ TEST(DataStoreTest, PmUnitAtSlotPath) {
 TEST(DataStoreTest, PmUnitUnavailableVersion) {
   PlatformConfig config;
   DataStore dataStore(config);
-  dataStore.updatePmUnitInfo("/", "MCB_FAN_CPLD", 2, std::nullopt, 1);
-  EXPECT_FALSE(dataStore.getPmUnitInfo("/").version().has_value());
-  dataStore.updatePmUnitInfo("/", "MCB_FAN_CPLD");
+
+  // Create info with no version data
+  PmUnitInfo infoNoVersion;
+  infoNoVersion.name() = "MCB_FAN_CPLD";
+
+  dataStore.updatePmUnitInfo("/", infoNoVersion);
   EXPECT_FALSE(dataStore.getPmUnitInfo("/").version().has_value());
 }
 
@@ -64,12 +76,30 @@ TEST(DataStoreTest, ResolvePmUnitConfig) {
   PlatformConfig config;
   config.pmUnitConfigs() = {{"SCM", PmUnitConfig()}};
   DataStore dataStore(config);
+
   // Case 1 -- Resolve when No versionedPmUnitConfigs
-  dataStore.updatePmUnitInfo(slotPath, pmUnitName, 2, 1, 1);
+  PmUnitInfo info1;
+  info1.name() = pmUnitName;
+  PmUnitVersion version1;
+  version1.productProductionState() = 2;
+  version1.productVersion() = 1;
+  version1.productSubVersion() = 1;
+  info1.version() = version1;
+
+  dataStore.updatePmUnitInfo(slotPath, info1);
   EXPECT_TRUE(
       dataStore.resolvePmUnitConfig(slotPath).i2cDeviceConfigs()->empty());
+
   // Case 2 -- Resolve to versionedPmUnitConfigs
-  dataStore.updatePmUnitInfo(slotPath, pmUnitName, 3, 1, 2);
+  PmUnitInfo info2;
+  info2.name() = pmUnitName;
+  PmUnitVersion version2;
+  version2.productProductionState() = 3;
+  version2.productVersion() = 1;
+  version2.productSubVersion() = 2;
+  info2.version() = version2;
+
+  dataStore.updatePmUnitInfo(slotPath, info2);
   VersionedPmUnitConfig versionedPmUnitConfig;
   versionedPmUnitConfig.productSubVersion() = 2;
   versionedPmUnitConfig.pmUnitConfig()->i2cDeviceConfigs() = {
@@ -78,12 +108,25 @@ TEST(DataStoreTest, ResolvePmUnitConfig) {
   EXPECT_EQ(
       dataStore.resolvePmUnitConfig(slotPath).i2cDeviceConfigs()->size(),
       versionedPmUnitConfig.pmUnitConfig()->i2cDeviceConfigs()->size());
+
   // Case 3 -- Resolve to default PmUnitConfig if no version matches.
-  dataStore.updatePmUnitInfo(slotPath, pmUnitName, 2, 1, 3);
+  PmUnitInfo info3;
+  info3.name() = pmUnitName;
+  PmUnitVersion version3;
+  version3.productProductionState() = 2;
+  version3.productVersion() = 1;
+  version3.productSubVersion() = 3;
+  info3.version() = version3;
+
+  dataStore.updatePmUnitInfo(slotPath, info3);
   EXPECT_TRUE(
       dataStore.resolvePmUnitConfig(slotPath).i2cDeviceConfigs()->empty());
+
   // Case 4 -- Resolve to default PmUnitConfig if productVersion is null.
-  dataStore.updatePmUnitInfo(slotPath, pmUnitName);
+  PmUnitInfo info4;
+  info4.name() = pmUnitName;
+
+  dataStore.updatePmUnitInfo(slotPath, info4);
   EXPECT_TRUE(
       dataStore.resolvePmUnitConfig(slotPath).i2cDeviceConfigs()->empty());
 }

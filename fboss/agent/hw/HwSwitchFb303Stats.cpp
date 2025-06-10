@@ -21,6 +21,7 @@ namespace {
 void updateValue(TLTimeseries& counter, int64_t value) {
   counter.addValue(value - facebook::fboss::getCumulativeValue(counter));
 }
+const std::string kAsicRevision = "asic_revision";
 } // namespace
 
 namespace facebook::fboss {
@@ -415,6 +416,17 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
           getCounterPrefix() + vendor + ".network_interface.errors",
           SUM,
           RATE),
+      fabricControlPathErrors_(
+          map,
+          getCounterPrefix() + vendor + ".fabric_control_path.errors",
+          SUM,
+          RATE),
+      fabricDataPathErrors_(
+          map,
+          getCounterPrefix() + vendor + ".fabric_data_path.errors",
+          SUM,
+          RATE),
+      cpuErrors_(map, getCounterPrefix() + vendor + ".cpu.errors", SUM, RATE),
       ingressTmWarnings_(
           map,
           getCounterPrefix() + vendor + ".ingress_tm.warnings",
@@ -498,7 +510,15 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
           getCounterPrefix() + "isolation_firmware_op_status"),
       isolationFirmwareFuncStatus_(
           map,
-          getCounterPrefix() + "isolation_firmware_functional_status") {}
+          getCounterPrefix() + "isolation_firmware_functional_status"),
+      pfcDeadlockDetectionCount_(
+          map,
+          getCounterPrefix() + "pfc_deadlock_detection_count",
+          SUM),
+      pfcDeadlockRecoveryCount_(
+          map,
+          getCounterPrefix() + "pfc_deadlock_recovery_count",
+          SUM) {}
 
 void HwSwitchFb303Stats::update(const HwSwitchDropStats& dropStats) {
   if (dropStats.globalDrops().has_value()) {
@@ -809,6 +829,18 @@ int64_t HwSwitchFb303Stats::getNetworkInterfaceErrors() const {
   return getCumulativeValue(networkInterfaceErrors_);
 }
 
+int64_t HwSwitchFb303Stats::getFabricControlPathErrors() const {
+  return getCumulativeValue(fabricControlPathErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getFabricDataPathErrors() const {
+  return getCumulativeValue(fabricDataPathErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getCpuErrors() const {
+  return getCumulativeValue(cpuErrors_);
+}
+
 int64_t HwSwitchFb303Stats::getIngressTmWarnings() const {
   return getCumulativeValue(ingressTmWarnings_);
 }
@@ -947,6 +979,9 @@ HwAsicErrors HwSwitchFb303Stats::getHwAsicErrors() const {
   asicErrors.fabricLinkErrors() = getFabricLinkErrors();
   asicErrors.fabricTopologyErrors() = getFabricTopologyErrors();
   asicErrors.networkInterfaceErrors() = getNetworkInterfaceErrors();
+  asicErrors.fabricControlPathErrors() = getFabricControlPathErrors();
+  asicErrors.fabricDataPathErrors() = getFabricDataPathErrors();
+  asicErrors.cpuErrors() = getCpuErrors();
   asicErrors.ingressTmWarnings() = getIngressTmWarnings();
   asicErrors.egressTmWarnings() = getEgressTmWarnings();
   asicErrors.dramWarnings() = getDramWarnings();
@@ -988,6 +1023,10 @@ void HwSwitchFb303Stats::virtualDevicesWithAsymmetricConnectivity(
 
 void HwSwitchFb303Stats::portGroupSkew(int64_t value) {
   fb303::fbData->setCounter(portGroupSkew_.name(), value);
+}
+
+void HwSwitchFb303Stats::asicRevision(int64_t value) {
+  fb303::fbData->setCounter(getCounterPrefix() + kAsicRevision, value);
 }
 
 void HwSwitchFb303Stats::bcmSdkVer(int64_t ver) {
@@ -1047,6 +1086,12 @@ int64_t HwSwitchFb303Stats::getPortGroupSkewCount() const {
   return counterVal ? *counterVal : 0;
 }
 
+std::optional<int64_t> HwSwitchFb303Stats::getAsicRevision() const {
+  auto counterVal =
+      fb303::fbData->getCounterIfExists(getCounterPrefix() + kAsicRevision);
+  return counterVal.toStdOptional();
+}
+
 HwSwitchFb303GlobalStats HwSwitchFb303Stats::getAllFb303Stats() const {
   HwSwitchFb303GlobalStats hwFb303Stats;
   hwFb303Stats.tx_pkt_allocated() = getCumulativeValue(txPktAlloc_);
@@ -1090,6 +1135,9 @@ HwSwitchFb303GlobalStats HwSwitchFb303Stats::getAllFb303Stats() const {
   hwFb303Stats.vsq_resource_exhaustion_drops() =
       getVsqResourcesExhautionDrops();
   hwFb303Stats.interrupt_masked_events() = getInterruptMaskedEvents();
+  if (auto asicRevision = getAsicRevision()) {
+    hwFb303Stats.asic_revision() = *asicRevision;
+  }
   return hwFb303Stats;
 }
 

@@ -145,7 +145,7 @@ class Platform {
    * initialized. Platform-specific initialization that requires setup before
    * HwSwitch creation can be performed here.
    */
-  virtual void preHwInitialized() {}
+  virtual void preHwInitialized(bool /* warmboot */) {}
 
   /*
    * onHwInitialized() will be called once the HwSwitch object has been

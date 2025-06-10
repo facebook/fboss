@@ -57,7 +57,8 @@ int main(int argc, char* argv[]) {
     exit(1);
   }
 
-  FwUtilImpl fwUtilImpl(FLAGS_fw_binary_file, FLAGS_verify_sha1sum);
+  FwUtilImpl fwUtilImpl(
+      FLAGS_fw_binary_file, FLAGS_verify_sha1sum, FLAGS_dry_run);
 
   if (FLAGS_fw_action == "version" && !FLAGS_fw_target_name.empty()) {
     fwUtilImpl.printVersion(toLower(FLAGS_fw_target_name));

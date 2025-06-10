@@ -421,12 +421,17 @@ class BcmSwitch : public BcmSwitchIf {
   }
 
   HwSwitchWatermarkStats getSwitchWatermarkStats() const override;
+  HwSwitchPipelineStats getSwitchPipelineStats() const override;
   HwFlowletStats getHwFlowletStats() const override;
 
   HwResourceStats getResourceStats() const override;
+  std::map<int, cfg::PortState> getSysPortShelState() const override {
+    return {};
+  }
 
   std::vector<EcmpDetails> getAllEcmpDetails() const override;
 
+  cfg::SwitchingMode getFwdSwitchingMode(const RouteNextHopEntry&) override;
   /*
    * Wrapper functions to register and unregister a BCM event callbacks.  These
    * just forward the call.
@@ -641,6 +646,7 @@ class BcmSwitch : public BcmSwitchIf {
   }
 
   void syncLinkStates() override;
+  void syncPortLinkState(PortID port) override;
 
   // no concept of link active states in BcmSwitch
   void syncLinkActiveStates() override {}
@@ -833,7 +839,7 @@ class BcmSwitch : public BcmSwitchIf {
   //
   // Lock has to be performed in the function.
   std::shared_ptr<SwitchState> stateChangedImpl(
-      const StateDelta& delta) override;
+      const std::vector<StateDelta>& delta) override;
   std::shared_ptr<SwitchState> stateChangedImplLocked(
       const StateDelta& delta,
       const std::lock_guard<std::mutex>& lock);
@@ -869,6 +875,7 @@ class BcmSwitch : public BcmSwitchIf {
       const StateDelta& delta);
 
   void processFlowletSwitchingConfigChanges(const StateDelta& delta);
+  void processEcmpForArsChanges(const StateDelta& delta);
 
   void processMacTableChanges(const StateDelta& delta);
 

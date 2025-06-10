@@ -61,9 +61,9 @@ class AgentEcmpTest : public AgentHwTest {
         true /*interfaceHasSubnet*/);
   }
 
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::L3_FORWARDING};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::L3_FORWARDING};
   }
 
   void resolveNhops(int numNhops) {
@@ -243,27 +243,35 @@ TEST_F(AgentEcmpTest, ecmpToDropToEcmp) {
    * and expand the ECMP group
    */
   auto constexpr kEcmpWidthForTest = 4;
-  utility::EcmpSetupAnyNPorts6 ecmpHelper(
-      this->getProgrammedState(), this->getSw()->needL2EntryForNeighbor());
-  // Program ECMP route
-  resolveNeighborAndProgramRoutes(ecmpHelper, kEcmpWidthForTest);
-  WITH_RETRIES({ EXPECT_EVENTUALLY_EQ(kEcmpWidthForTest, getEcmpSizeInHw()); });
+  auto setup = [=, this]() {
+    utility::EcmpSetupAnyNPorts6 ecmpHelper(
+        this->getProgrammedState(), this->getSw()->needL2EntryForNeighbor());
+    // Program ECMP route
+    resolveNeighborAndProgramRoutes(ecmpHelper, kEcmpWidthForTest);
+  };
+  auto verify = [=, this]() {
+    WITH_RETRIES(
+        { EXPECT_EVENTUALLY_EQ(kEcmpWidthForTest, getEcmpSizeInHw()); });
 
-  // Mimic neighbor entries going away and route getting removed. Since
-  // this is the default route, it actually does not go away but transitions
-  // to drop.
-  unresolveNhops(kEcmpWidthForTest);
-  WITH_RETRIES({ EXPECT_EVENTUALLY_EQ(0, getEcmpSizeInHw()); });
-  auto wrapper = getSw()->getRouteUpdater();
-  ecmpHelper.unprogramRoutes(&wrapper);
-  // Bring the route back, but mimic learning it from peers one by one first
-  resolveNhops(kEcmpWidthForTest);
-  for (auto i = 0; i < kEcmpWidthForTest; ++i) {
-    ecmpHelper.programRoutes(&wrapper, i + 1);
-    if (i) {
-      WITH_RETRIES({ EXPECT_EVENTUALLY_EQ(i + 1, getEcmpSizeInHw()); });
+    // Mimic neighbor entries going away and route getting removed. Since
+    // this is the default route, it actually does not go away but transitions
+    // to drop.
+    unresolveNhops(kEcmpWidthForTest);
+    WITH_RETRIES({ EXPECT_EVENTUALLY_EQ(0, getEcmpSizeInHw()); });
+    auto wrapper = getSw()->getRouteUpdater();
+    utility::EcmpSetupAnyNPorts6 ecmpHelper(
+        this->getProgrammedState(), this->getSw()->needL2EntryForNeighbor());
+    ecmpHelper.unprogramRoutes(&wrapper);
+    // Bring the route back, but mimic learning it from peers one by one first
+    resolveNhops(kEcmpWidthForTest);
+    for (auto i = 0; i < kEcmpWidthForTest; ++i) {
+      ecmpHelper.programRoutes(&wrapper, i + 1);
+      if (i) {
+        WITH_RETRIES({ EXPECT_EVENTUALLY_EQ(i + 1, getEcmpSizeInHw()); });
+      }
     }
-  }
+  };
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 TEST_F(AgentEcmpTest, L2ResolveOneNhopThenLinkDownThenUpThenL2ResolveNhop) {
@@ -306,11 +314,9 @@ class AgentWideEcmpTest : public AgentEcmpTest {
     FLAGS_ecmp_width = 512;
     AgentHwTest::setCmdLineFlagOverrides();
   }
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {
-        production_features::ProductionFeature::L3_FORWARDING,
-        production_features::ProductionFeature::WIDE_ECMP};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::L3_FORWARDING, ProductionFeature::WIDE_ECMP};
   }
 };
 
@@ -420,17 +426,17 @@ class AgentEcmpNeighborTest : public AgentEcmpTest {
     AgentHwTest::setCmdLineFlagOverrides();
   }
 
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     if (intfNbrTable) {
       return {
-          production_features::ProductionFeature::L3_FORWARDING,
-          production_features::ProductionFeature::INTERFACE_NEIGHBOR_TABLE};
+          ProductionFeature::L3_FORWARDING,
+          ProductionFeature::INTERFACE_NEIGHBOR_TABLE};
     } else {
       return {
-          production_features::ProductionFeature::L3_FORWARDING,
-          production_features::ProductionFeature::VLAN,
-          production_features::ProductionFeature::MAC_LEARNING};
+          ProductionFeature::L3_FORWARDING,
+          ProductionFeature::VLAN,
+          ProductionFeature::MAC_LEARNING};
     }
   }
 
@@ -511,11 +517,9 @@ TYPED_TEST(AgentEcmpNeighborTest, ResolvePendingResolveNexthop) {
 
 class AgentUcmpTest : public AgentEcmpTest {
  protected:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {
-        production_features::ProductionFeature::L3_FORWARDING,
-        production_features::ProductionFeature::UCMP};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::L3_FORWARDING, ProductionFeature::UCMP};
   }
 };
 

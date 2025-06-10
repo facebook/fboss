@@ -769,7 +769,7 @@
                 "rcy_mirror_to_forward_port_map_122.BCM8889X": "22",
                 "ucode_port_123.BCM8889X": "RCY_MIRROR.23:core_3.123",
                 "rcy_mirror_to_forward_port_map_123.BCM8889X": "23",
-                "custom_feature_fdr_in_first_fifo_size" : "448",
+                "custom_feature_fdr_in_first_fifo_size" : "424",
                 "custom_feature_fdr_out_first_fifo_size" : "1782",
                 "fabric_single_pipe_over_dual_pipe" : "1"
             }

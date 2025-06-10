@@ -174,6 +174,25 @@ SaiHealthNotification::SaiHealthNotification(
   }
 }
 
+bool SaiHealthNotification::corrParityError() const {
+#if defined(CHENAB_SAI_SDK)
+  return (severity == SAI_SWITCH_ASIC_SDK_HEALTH_SEVERITY_NOTICE);
+#endif
+  return false;
+}
+
+bool SaiHealthNotification::uncorrParityError() const {
+#if defined(CHENAB_SAI_SDK)
+  return (severity == SAI_SWITCH_ASIC_SDK_HEALTH_SEVERITY_FATAL);
+#endif
+  return false;
+}
+
+bool SaiHealthNotification::asicError() const {
+  // TODO(Chenab): Add support for asic error
+  return true;
+}
+
 std::string SaiHealthNotification::toString() const {
   return fmt::format("{}", *this);
 }

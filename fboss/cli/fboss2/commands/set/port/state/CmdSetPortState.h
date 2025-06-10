@@ -40,7 +40,7 @@ inline std::map<std::string, int32_t> getQueriedPortIds(
 
 namespace facebook::fboss {
 
-struct CmdSetPortStateTraits : public BaseCommandTraits {
+struct CmdSetPortStateTraits : public WriteCommandTraits {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_PORT_STATE;
   using ParentCmd = CmdSetPort;

@@ -499,7 +499,7 @@ void BcmAclEntry::applyRedirectToNextHopAction(
   if (nexthops.size() > 0) {
     redirectNexthop_ =
         hw_->writableMultiPathNextHopTable()->referenceOrEmplaceNextHop(
-            BcmMultiPathNextHopKey(vrf, nexthops));
+            BcmMultiPathNextHopKey(vrf, nexthops, std::nullopt));
     egressId = redirectNexthop_->getEgressId();
   } else {
     egressId = hw_->getDropEgressId();

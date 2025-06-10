@@ -11,7 +11,6 @@
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 #include "fboss/agent/test/utils/PacketSendUtils.h"
 
-#include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/AlpmUtils.h"
 #include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/EncapIndexAllocator.h"
@@ -22,7 +21,6 @@
 #include "fboss/agent/SwRxPacket.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwSwitchWarmBootHelper.h"
-#include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/TxPacketUtils.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
@@ -187,7 +185,7 @@ class HwEnsembleMultiSwitchThriftHandler
       return;
     }
     // return empty delta if cancelled
-    operDelta.operDelta() = fsdb::OperDelta();
+    operDelta.operDeltas() = {fsdb::OperDelta()};
     return;
   }
 
@@ -397,9 +395,10 @@ fsdb::OperDelta HwSwitchEnsemble::applyUpdate(
     const fsdb::OperDelta& operDelta,
     const std::lock_guard<std::mutex>& /*lock*/,
     bool transaction) {
+  std::vector<fsdb::OperDelta> operDeltas = {operDelta};
   auto resultOperDelta = transaction
-      ? getHwSwitch()->stateChangedTransaction(operDelta)
-      : getHwSwitch()->stateChanged(operDelta);
+      ? getHwSwitch()->stateChangedTransaction(operDeltas)
+      : getHwSwitch()->stateChanged(operDeltas);
   return resultOperDelta;
 }
 
@@ -578,7 +577,7 @@ std::map<SystemPortID, HwSysPortStats> HwSwitchEnsemble::getLatestSysPortStats(
   for (auto [portStatName, stats] : stats) {
     // Sysport stats names are suffixed with _switchIndex. Remove that
     // to get at sys port name
-    auto portName = portStatName.substr(0, portStatName.find_last_of("_"));
+    auto portName = portStatName.substr(0, portStatName.find_last_of('_'));
     SystemPortID portId;
     try {
       if (portName.find("cpu") != std::string::npos) {

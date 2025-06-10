@@ -143,6 +143,12 @@ class PortApiTest : public ::testing::Test {
         std::nullopt, // rxCdrTdet1stOrdStepOvVal
         std::nullopt, // rxCdrTdet2ndOrdStepOvVal
         std::nullopt, // rxCdrTdetFineStepOvVal
+        std::nullopt, // TxLdoBypass
+        std::nullopt, // RxLdoBypass
+        std::nullopt, // RxDiffEncoderEn
+        std::nullopt, // RxInstgEnableScan
+        std::nullopt, // RxFfeLengthBitmap
+        std::nullopt, // RxFfeLmsDynamicGatingEn
     };
     return portApi->create<SaiPortSerdesTraits>(a, 0 /*switch id*/);
   }

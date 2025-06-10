@@ -62,7 +62,7 @@ class CmisHelper final {
           SMFMediaInterfaceCode::DR4_400G}},
         {
             facebook::fboss::cfg::PortSpeed::EIGHTHUNDREDG,
-            {SMFMediaInterfaceCode::FR8_800G},
+            {SMFMediaInterfaceCode::FR8_800G, SMFMediaInterfaceCode::DR4_800G},
         }};
     return smfSpeedApplicationMapping_;
   }
@@ -77,6 +77,7 @@ class CmisHelper final {
         {SMFMediaInterfaceCode::LR4_10_400G, MediaInterfaceCode::LR4_400G_10KM},
         {SMFMediaInterfaceCode::DR4_400G, MediaInterfaceCode::DR4_400G},
         {SMFMediaInterfaceCode::FR8_800G, MediaInterfaceCode::FR8_800G},
+        {SMFMediaInterfaceCode::DR4_800G, MediaInterfaceCode::DR4_800G},
     };
     return smfMediaInterfaceMapping_;
   }
@@ -203,6 +204,28 @@ class CmisHelper final {
             SMFMediaInterfaceCode::LR4_10_400G,
             SMFMediaInterfaceCode::LR4_10_400G,
             SMFMediaInterfaceCode::LR4_10_400G,
+        },
+        {
+            // 800G-DR4 + 800G-DR4
+            SMFMediaInterfaceCode::DR4_800G,
+            SMFMediaInterfaceCode::DR4_800G,
+            SMFMediaInterfaceCode::DR4_800G,
+            SMFMediaInterfaceCode::DR4_800G,
+            SMFMediaInterfaceCode::DR4_800G,
+            SMFMediaInterfaceCode::DR4_800G,
+            SMFMediaInterfaceCode::DR4_800G,
+            SMFMediaInterfaceCode::DR4_800G,
+        },
+        {
+            // 8x200G-DR1
+            SMFMediaInterfaceCode::DR1_200G,
+            SMFMediaInterfaceCode::DR1_200G,
+            SMFMediaInterfaceCode::DR1_200G,
+            SMFMediaInterfaceCode::DR1_200G,
+            SMFMediaInterfaceCode::DR1_200G,
+            SMFMediaInterfaceCode::DR1_200G,
+            SMFMediaInterfaceCode::DR1_200G,
+            SMFMediaInterfaceCode::DR1_200G,
         },
     };
     return smfOsfpValidSpeedCombinations_;

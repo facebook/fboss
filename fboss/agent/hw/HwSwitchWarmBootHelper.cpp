@@ -19,7 +19,11 @@
 #include <folly/FileUtil.h>
 #include <folly/json/json.h>
 #include <folly/logging/xlog.h>
+
+#include <utility>
+#include "fboss/agent/state/SwitchState.h"
 #include "fboss/lib/CommonFileUtils.h"
+#include "fboss/lib/WarmBootFileUtils.h"
 
 DEFINE_string(
     switch_state_file,
@@ -82,8 +86,6 @@ std::string HwSwitchWarmBootHelper::warmBootHwSwitchStateFile() const {
 }
 
 std::string HwSwitchWarmBootHelper::warmBootThriftSwitchStateFile() const {
-  // TODO(pshaikh): delete this method when SwSwitch loads switch state and
-  // seeds HwSwitch
   return folly::to<std::string>(
       warmBootDir_, "/", FLAGS_thrift_switch_state_file);
 }
@@ -116,13 +118,7 @@ std::string HwSwitchWarmBootHelper::shutdownSdkDumpFile() const {
 }
 
 void HwSwitchWarmBootHelper::setCanWarmBoot() {
-  auto wbFlag = warmBootFlag();
-  auto updateFd = creat(wbFlag.c_str(), S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
-  if (updateFd < 0) {
-    throw SysError(errno, "Unable to create ", wbFlag);
-  }
-  close(updateFd);
-  XLOG(DBG1) << "Wrote can warm boot flag: " << wbFlag;
+  WarmBootFileUtils::setCanWarmBoot(warmBootFlag());
 }
 
 bool HwSwitchWarmBootHelper::checkAndClearWarmBootFlags() {
@@ -174,6 +170,23 @@ folly::dynamic HwSwitchWarmBootHelper::getHwSwitchWarmBootState(
   sysCheckError(
       ret, "Unable to read hw switch warm boot state from : ", fileName);
   return folly::parseJson(warmBootJson);
+}
+
+state::SwitchState HwSwitchWarmBootHelper::getWarmBootThriftState() const {
+  return WarmBootFileUtils::getWarmBootThriftState(
+      warmBootThriftSwitchStateFile());
+}
+
+void HwSwitchWarmBootHelper::storeWarmBootThriftState(
+    const state::SwitchState& switchThriftState) {
+  WarmBootFileUtils::storeWarmBootThriftState(
+      warmBootThriftSwitchStateFile(), switchThriftState);
+}
+
+std::shared_ptr<SwitchState>
+HwSwitchWarmBootHelper::reconstructWarmBootThriftState(
+    const std::optional<state::SwitchState>& warmBootState) {
+  return WarmBootFileUtils::reconstructWarmBootThriftState(warmBootState);
 }
 
 } // namespace facebook::fboss

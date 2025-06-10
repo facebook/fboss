@@ -20,8 +20,6 @@
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
-#include "fboss/agent/hw/switch_asics/Jericho2Asic.h"
-#include "fboss/agent/hw/switch_asics/Jericho3Asic.h"
 #include "fboss/agent/hw/switch_asics/Tomahawk3Asic.h"
 #include "fboss/agent/hw/switch_asics/Tomahawk4Asic.h"
 #include "fboss/agent/hw/switch_asics/Tomahawk5Asic.h"
@@ -578,6 +576,8 @@ SaiBufferProfileTraits::CreateAttributes SaiBufferManager::profileCreateAttrs(
       sramFadtMinTh{};
   std::optional<SaiBufferProfileTraits::Attributes::SramFadtXonOffset>
       sramFadtXonOffset{};
+  std::optional<SaiBufferProfileTraits::Attributes::SramDynamicTh>
+      sramDynamicTh{};
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   if (queue.getMaxDynamicSharedBytes()) {
     sharedFadtMaxTh = queue.getMaxDynamicSharedBytes().value();
@@ -592,6 +592,9 @@ SaiBufferProfileTraits::CreateAttributes SaiBufferManager::profileCreateAttrs(
   sramFadtMaxTh = 0;
   sramFadtMinTh = 0;
   sramFadtXonOffset = 0;
+#if !defined(BRCM_SAI_SDK_DNX_GTE_13_0)
+  sramDynamicTh = 0;
+#endif
 #endif
   return SaiBufferProfileTraits::CreateAttributes{
       pool,
@@ -615,7 +618,8 @@ SaiBufferProfileTraits::CreateAttributes SaiBufferManager::profileCreateAttrs(
       sharedFadtMinTh,
       sramFadtMaxTh,
       sramFadtMinTh,
-      sramFadtXonOffset};
+      sramFadtXonOffset,
+      sramDynamicTh};
 }
 
 void SaiBufferManager::setupBufferPool(
@@ -698,12 +702,23 @@ SaiBufferManager::ingressProfileCreateAttrs(
       sramFadtMinTh;
   std::optional<SaiBufferProfileTraits::Attributes::SramFadtXonOffset>
       sramFadtXonOffset;
+  std::optional<SaiBufferProfileTraits::Attributes::SramDynamicTh>
+      sramDynamicTh;
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   sharedFadtMaxTh = config.maxSharedXoffThresholdBytes().value_or(0);
   sharedFadtMinTh = config.minSharedXoffThresholdBytes().value_or(0);
   sramFadtMaxTh = config.maxSramXoffThresholdBytes().value_or(0);
   sramFadtMinTh = config.minSramXoffThresholdBytes().value_or(0);
   sramFadtXonOffset = config.sramResumeOffsetBytes().value_or(0);
+#if !defined(BRCM_SAI_SDK_DNX_GTE_13_0)
+  if (config.sramScalingFactor() &&
+      platform_->getAsic()->scalingFactorBasedDynamicThresholdSupported()) {
+    sramDynamicTh = platform_->getAsic()->getBufferDynThreshFromScalingFactor(
+        nameToEnum<cfg::MMUScalingFactor>(*config.sramScalingFactor()));
+  } else {
+    sramDynamicTh = 0;
+  }
+#endif
 #endif
   return SaiBufferProfileTraits::CreateAttributes{
       pool,
@@ -722,7 +737,8 @@ SaiBufferManager::ingressProfileCreateAttrs(
       sharedFadtMinTh,
       sramFadtMaxTh,
       sramFadtMinTh,
-      sramFadtXonOffset};
+      sramFadtXonOffset,
+      sramDynamicTh};
 }
 
 std::shared_ptr<SaiBufferProfile> SaiBufferManager::getOrCreateIngressProfile(

@@ -2,8 +2,9 @@
 
 #pragma once
 
+#include <string>
 namespace facebook::fboss {
 
-const char* getSaiImpVersion();
+std::string getSaiImpVersion(bool verbose = false);
 
 } // namespace facebook::fboss

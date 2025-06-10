@@ -12,22 +12,19 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/HwSwitchFb303Stats.h"
-#include "fboss/agent/hw/sai/api/AdapterKeySerializers.h"
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/api/SwitchApi.h"
 #include "fboss/agent/hw/sai/api/Types.h"
 #include "fboss/agent/hw/sai/switch/SaiAclTableGroupManager.h"
 #include "fboss/agent/hw/sai/switch/SaiBufferManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
+#include "fboss/agent/hw/sai/switch/SaiPortManager.h"
+#include "fboss/agent/hw/sai/switch/SaiPortUtils.h"
 #include "fboss/agent/hw/sai/switch/SaiUdfManager.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/switch_asics/Jericho3Asic.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
-#include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/LoadBalancer.h"
-#include "fboss/agent/state/QosPolicy.h"
-#include "fboss/agent/state/StateDelta.h"
-#include "fboss/agent/state/SwitchState.h"
 
 #include <folly/logging/xlog.h>
 
@@ -789,6 +786,10 @@ sai_object_id_t SaiSwitchManager::getDefaultVlanAdapterKey() const {
 
 void SaiSwitchManager::setPtpTcEnabled(bool ptpEnable) {
   isPtpTcEnabled_ = ptpEnable;
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+  auto ptpMode = utility::getSaiPortPtpMode(ptpEnable);
+  switch_->setOptionalAttribute(SaiSwitchTraits::Attributes::PtpMode{ptpMode});
+#endif
 }
 
 std::optional<bool> SaiSwitchManager::getPtpTcEnabled() {
@@ -1006,6 +1007,86 @@ const HwSwitchWatermarkStats SaiSwitchManager::getHwSwitchWatermarkStats()
   return switchWatermarkStats;
 }
 
+const std::vector<sai_stat_id_t>&
+SaiSwitchManager::supportedPipelineWatermarkStats() const {
+  static std::vector<sai_stat_id_t> stats;
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  if (stats.size()) {
+    // initialized
+    return stats;
+  }
+  // TODO(daiweix): enable watermark stats after CS00012366726 is resolved
+  /*if (platform_->getAsic()->getSwitchType() == cfg::SwitchType::FABRIC) {
+    stats.insert(
+        stats.end(),
+        SaiSwitchPipelineTraits::watermarkLevels().begin(),
+        SaiSwitchPipelineTraits::watermarkLevels().end());
+  }*/
+#endif
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>& SaiSwitchManager::supportedPipelineStats()
+    const {
+  static std::vector<sai_stat_id_t> stats;
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  if (stats.size()) {
+    // initialized
+    return stats;
+  }
+  if (platform_->getAsic()->getSwitchType() == cfg::SwitchType::FABRIC) {
+    stats.insert(
+        stats.end(),
+        SaiSwitchPipelineTraits::currOccupancyBytes().begin(),
+        SaiSwitchPipelineTraits::currOccupancyBytes().end());
+    stats.insert(
+        stats.end(),
+        SaiSwitchPipelineTraits::txCells().begin(),
+        SaiSwitchPipelineTraits::txCells().end());
+    stats.insert(
+        stats.end(),
+        SaiSwitchPipelineTraits::rxCells().begin(),
+        SaiSwitchPipelineTraits::rxCells().end());
+    stats.insert(
+        stats.end(),
+        SaiSwitchPipelineTraits::globalDrop().begin(),
+        SaiSwitchPipelineTraits::globalDrop().end());
+  } else if (platform_->getAsic()->getSwitchType() == cfg::SwitchType::VOQ) {
+    stats.insert(
+        stats.end(),
+        SaiSwitchPipelineTraits::rxCells().begin(),
+        SaiSwitchPipelineTraits::rxCells().end());
+  }
+#endif
+  return stats;
+}
+
+const HwSwitchPipelineStats SaiSwitchManager::getHwSwitchPipelineStats(
+    bool updateWatermarks) const {
+  HwSwitchPipelineStats switchPipelineStats;
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  auto watermarkStats = supportedPipelineWatermarkStats();
+  if (updateWatermarks && watermarkStats.size() > 0) {
+    for (const auto& pipeline : switchPipelines_) {
+      pipeline->updateStats(watermarkStats, SAI_STATS_MODE_READ_AND_CLEAR);
+      auto idx = pipeline->adapterHostKey().value();
+      fillHwSwitchPipelineStats(
+          pipeline->getStats(watermarkStats), idx, switchPipelineStats);
+    }
+  }
+  auto stats = supportedPipelineStats();
+  if (stats.size()) {
+    for (const auto& pipeline : switchPipelines_) {
+      pipeline->updateStats(stats, SAI_STATS_MODE_READ);
+      auto idx = pipeline->adapterHostKey().value();
+      fillHwSwitchPipelineStats(
+          pipeline->getStats(stats), idx, switchPipelineStats);
+    }
+  }
+#endif
+  return switchPipelineStats;
+}
+
 void SaiSwitchManager::updateStats(bool updateWatermarks) {
   auto switchDropStats = supportedDropStats();
   if (switchDropStats.size()) {
@@ -1097,6 +1178,8 @@ void SaiSwitchManager::updateStats(bool updateWatermarks) {
     switchWatermarkStats_ = getHwSwitchWatermarkStats();
     publishSwitchWatermarks(switchWatermarkStats_);
   }
+  switchPipelineStats_ = getHwSwitchPipelineStats(updateWatermarks);
+  publishSwitchPipelineStats(switchPipelineStats_);
 }
 
 void SaiSwitchManager::setSwitchIsolate(bool isolate) {
@@ -1198,7 +1281,7 @@ void SaiSwitchManager::setSramGlobalFreePercentXonTh(
 
 void SaiSwitchManager::setLinkFlowControlCreditTh(
     uint16_t linkFlowControlThreshold) {
-#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_13_0)
   switch_->setOptionalAttribute(
       SaiSwitchTraits::Attributes::FabricCllfcTxCreditTh{
           linkFlowControlThreshold});
@@ -1297,5 +1380,17 @@ void SaiSwitchManager::setTcRateLimitList(
   switch_->setOptionalAttribute(
       SaiSwitchTraits::Attributes::TcRateLimitList{mapToValueList});
 #endif
+}
+
+bool SaiSwitchManager::isPtpTcEnabled() const {
+  bool ptpTcEnabled =
+      isPtpTcEnabled_.has_value() ? isPtpTcEnabled_.value() : false;
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+  ptpTcEnabled &=
+      (GET_OPT_ATTR(Switch, PtpMode, switch_->attributes()) ==
+       utility::getSaiPortPtpMode(true));
+#endif
+  ptpTcEnabled &= managerTable_->portManager().isPtpTcEnabled();
+  return ptpTcEnabled;
 }
 } // namespace facebook::fboss

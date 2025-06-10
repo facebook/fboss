@@ -107,6 +107,7 @@ class AgentDirectoryUtil;
 class HwSwitchThriftClientTable;
 class ResourceAccountant;
 class RemoteNeighborUpdater;
+class EcmpResourceManager;
 
 inline static const int kHiPriorityBufferSize{1000};
 inline static const int kMidPriorityBufferSize{1000};
@@ -283,6 +284,9 @@ class SwSwitch : public HwSwitchCallback {
   void updateStats();
 
   state::WarmbootState gracefulExitState() const;
+
+  state::SwitchState updateOverrideEcmpSwitchingMode(
+      state::WarmbootState* warmbootState) const;
 
   /*
    * Get a pointer to the current switch state.
@@ -773,6 +777,9 @@ class SwSwitch : public HwSwitchCallback {
   LookupClassRouteUpdater* getLookupClassRouteUpdater() {
     return lookupClassRouteUpdater_.get();
   }
+  const EcmpResourceManager* getEcmpResourceManager() const {
+    return ecmpResourceManager_.get();
+  }
 
   /*
    * RIB and switch state need to be kept in sync,
@@ -992,6 +999,7 @@ class SwSwitch : public HwSwitchCallback {
       const std::shared_ptr<VlanOrIntfT>& vlanOrIntf) const;
 
  private:
+  void updateRibEcmpOverrides(const StateDelta& delta);
   std::optional<folly::MacAddress> getSourceMac(
       const std::shared_ptr<Interface>& intf) const;
   void updateStateBlockingImpl(
@@ -1038,7 +1046,8 @@ class SwSwitch : public HwSwitchCallback {
   void updatePtpTcCounter();
   static void handlePendingUpdatesHelper(SwSwitch* sw);
   void handlePendingUpdates();
-  std::shared_ptr<SwitchState> applyUpdate(
+  std::pair<std::shared_ptr<SwitchState>, std::shared_ptr<SwitchState>>
+  applyUpdate(
       const std::shared_ptr<SwitchState>& oldState,
       const std::shared_ptr<SwitchState>& newState,
       bool isTransaction);
@@ -1087,6 +1096,10 @@ class SwSwitch : public HwSwitchCallback {
 
   std::shared_ptr<SwitchState> stateChanged(
       const StateDelta& delta,
+      bool transaction) const;
+
+  std::shared_ptr<SwitchState> stateChanged(
+      const std::vector<StateDelta>& delta,
       bool transaction) const;
 
   template <typename FsdbFunc>
@@ -1326,6 +1339,7 @@ class SwSwitch : public HwSwitchCallback {
   std::unique_ptr<SwitchIdScopeResolver> scopeResolver_;
   std::unique_ptr<SwitchStatsObserver> switchStatsObserver_;
   std::unique_ptr<ResourceAccountant> resourceAccountant_;
+  std::unique_ptr<EcmpResourceManager> ecmpResourceManager_;
 
   folly::Synchronized<ConfigAppliedInfo> configAppliedInfo_;
   std::optional<std::chrono::time_point<std::chrono::steady_clock>>

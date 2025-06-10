@@ -42,6 +42,7 @@ DECLARE_uint64(ingress_egress_buffer_pool_size);
 DECLARE_bool(allow_zero_headroom_for_lossless_pg);
 DECLARE_string(mod_dest_mac_override);
 DECLARE_bool(allow_nif_port_for_mod);
+DECLARE_bool(allow_eventor_send_packet);
 
 namespace folly {
 struct dynamic;
@@ -243,7 +244,7 @@ bool isAnyInterfacePortInLoopbackMode(
     std::shared_ptr<SwitchState> swState,
     const std::shared_ptr<Interface> interface);
 
-bool isAnyInterfacePortRecyclePort(
+bool isAnyInterfacePortRecycleOrEventorPort(
     std::shared_ptr<SwitchState> swState,
     const std::shared_ptr<Interface> interface);
 

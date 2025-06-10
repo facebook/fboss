@@ -383,7 +383,10 @@ RouteNextHopEntry::NextHopSet RouteNextHopEntry::normalizedNextHops() const {
         nhop.addr(),
         nhop.intf(),
         std::max(nhop.weight(), NextHopWeight(1)),
-        nhop.labelForwardingAction()));
+        nhop.labelForwardingAction(),
+        nhop.disableTTLDecrement(),
+        nhop.topologyInfo(),
+        nhop.adjustedWeight()));
   }
   // 2)
   // Calculate the totalWeight. If that exceeds the max ecmp width, we use the
@@ -424,7 +427,13 @@ RouteNextHopEntry::NextHopSet RouteNextHopEntry::normalizedNextHops() const {
         auto weight = scaledWeights.at(index);
         if (weight) {
           scaledNextHops.insert(ResolvedNextHop(
-              nhop.addr(), nhop.intf(), weight, nhop.labelForwardingAction()));
+              nhop.addr(),
+              nhop.intf(),
+              weight,
+              nhop.labelForwardingAction(),
+              nhop.disableTTLDecrement(),
+              nhop.topologyInfo(),
+              nhop.adjustedWeight()));
           scaledTotalWeight += weight;
         }
         index++;
@@ -438,7 +447,13 @@ RouteNextHopEntry::NextHopSet RouteNextHopEntry::normalizedNextHops() const {
             static_cast<NextHopWeight>(nhop.weight() * factor),
             NextHopWeight(1));
         scaledNextHops.insert(ResolvedNextHop(
-            nhop.addr(), nhop.intf(), w, nhop.labelForwardingAction()));
+            nhop.addr(),
+            nhop.intf(),
+            w,
+            nhop.labelForwardingAction(),
+            nhop.disableTTLDecrement(),
+            nhop.topologyInfo(),
+            nhop.adjustedWeight()));
         scaledTotalWeight += w;
       }
       // 2c)
@@ -462,7 +477,10 @@ RouteNextHopEntry::NextHopSet RouteNextHopEntry::normalizedNextHops() const {
               maxItr->addr(),
               maxItr->intf(),
               maxItr->weight() - 1,
-              maxItr->labelForwardingAction());
+              maxItr->labelForwardingAction(),
+              maxItr->disableTTLDecrement(),
+              maxItr->topologyInfo(),
+              maxItr->adjustedWeight());
           // remove the max weight next hop and replace with the
           // decremented version, if the decremented version would
           // not have weight 0. If it would have weight 0, that means
@@ -496,7 +514,10 @@ RouteNextHopEntry::NextHopSet RouteNextHopEntry::normalizedNextHops() const {
           nhop.addr(),
           nhop.intf(),
           nhopWeights.at(idx++),
-          nhop.labelForwardingAction()));
+          nhop.labelForwardingAction(),
+          nhop.disableTTLDecrement(),
+          nhop.topologyInfo(),
+          nhop.adjustedWeight()));
     }
     XLOG(DBG3) << "Scaled next hops from " << getNextHopSet() << " to "
                << normalizedToMaxPathNextHops;

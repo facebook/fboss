@@ -9,15 +9,13 @@
  */
 #pragma once
 
-#include <thrift/lib/cpp2/async/HeaderClientChannel.h>
+#include <chrono>
 
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
 #include "fboss/agent/if/gen-cpp2/FbossHwCtrl.h"
 #include "fboss/cli/fboss2/utils/CmdClientUtilsCommon.h"
 #include "fboss/led_service/if/gen-cpp2/LedService.h"
 #include "fboss/qsfp_service/if/gen-cpp2/QsfpService.h"
-
-#include <chrono>
 
 namespace facebook::fboss::utils {
 

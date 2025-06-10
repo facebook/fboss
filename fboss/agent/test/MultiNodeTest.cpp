@@ -8,17 +8,17 @@
  *
  */
 
-#include <folly/String.h>
 #include <gflags/gflags.h>
 
-#include <thrift/lib/cpp2/async/HeaderClientChannel.h>
+#include <folly/String.h>
+#include <thrift/lib/cpp2/async/RocketClientChannel.h>
+
 #include "common/network/NetworkUtil.h"
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/state/Port.h"
-#include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/MultiNodeTest.h"
 #include "fboss/lib/CommonUtils.h"
 
@@ -127,7 +127,7 @@ std::unique_ptr<FbossCtrlAsyncClient> MultiNodeTest::getRemoteThriftClient()
       FLAGS_multiNodeTestRemoteSwitchName);
   folly::SocketAddress agent(remoteSwitchIp, 5909);
   auto socket = folly::AsyncSocket::newSocket(eb, agent);
-  auto chan = HeaderClientChannel::newChannel(std::move(socket));
+  auto chan = RocketClientChannel::newChannel(std::move(socket));
   return std::make_unique<FbossCtrlAsyncClient>(std::move(chan));
 }
 

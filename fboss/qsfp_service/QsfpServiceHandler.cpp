@@ -9,7 +9,6 @@
 
 #include <fboss/lib/LogThriftCall.h>
 #include <folly/logging/xlog.h>
-#include <thrift/lib/cpp/util/EnumUtils.h>
 
 DEFINE_string(
     sak_list_warmboot_config,
@@ -79,6 +78,12 @@ void QsfpServiceHandler::getTransceiverInfo(
     std::unique_ptr<std::vector<int32_t>> ids) {
   auto log = LOG_THRIFT_CALL(INFO);
   manager_->getTransceiversInfo(info, std::move(ids));
+}
+
+void QsfpServiceHandler::getPortMediaInterface(
+    std::map<std::string, MediaInterfaceCode>& portMediaInterface) {
+  auto log = LOG_THRIFT_CALL(INFO);
+  manager_->getPortMediaInterface(portMediaInterface);
 }
 
 void QsfpServiceHandler::getPortsRequiringOpticsFwUpgrade(

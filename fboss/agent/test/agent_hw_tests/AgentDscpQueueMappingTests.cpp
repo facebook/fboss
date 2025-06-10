@@ -24,9 +24,9 @@ namespace facebook::fboss {
 
 class AgentDscpQueueMappingTestBase : public AgentHwTest {
  protected:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::L3_QOS};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::L3_QOS};
   }
 
   void setupHelper() {

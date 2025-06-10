@@ -8,14 +8,11 @@
  *
  */
 #include "fboss/agent/packet/DHCPv6Packet.h"
-#include <folly/Conv.h>
 #include <folly/IPAddressV6.h>
 #include <folly/MacAddress.h>
-#include <folly/Memory.h>
 #include <folly/io/Cursor.h>
 #include <folly/io/IOBuf.h>
 #include <gtest/gtest.h>
-#include <algorithm>
 #include <memory>
 #include <string>
 #include "fboss/agent/DHCPv6Handler.h"

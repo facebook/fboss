@@ -110,7 +110,7 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, collectStats) {
       auto port2Stats = getSw()->getHwPortStats(masterLogicalFabricPortIds());
       for (auto portId : masterLogicalFabricPortIds()) {
         auto pitr = port2Stats.find(portId);
-        EXPECT_EVENTUALLY_TRUE(pitr != port2Stats.end());
+        ASSERT_EVENTUALLY_TRUE(pitr != port2Stats.end());
         EXPECT_EVENTUALLY_TRUE(pitr->second.cableLengthMeters().has_value());
       }
       auto state = getProgrammedState();
@@ -176,7 +176,7 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, switchReachability) {
       WITH_RETRIES({
         const auto& reachability = getSw()->getSwitchReachability();
         const auto switchIter = reachability.find(switchId);
-        EXPECT_EVENTUALLY_TRUE(switchIter != reachability.end());
+        ASSERT_EVENTUALLY_TRUE(switchIter != reachability.end());
         auto switchReachability = switchIter->second;
         const auto switchToPortGroupIter =
             switchReachability.switchIdToFabricPortGroupMap()->find(switchId);
@@ -647,4 +647,25 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, ValidateFecErrorDetect) {
   };
   verifyAcrossWarmBoots([]() {}, verify);
 }
+
+TEST_F(AgentVoqSwitchWithFabricPortsTest, verifyRxFifoStuckDetectedCallback) {
+  auto verify = [this]() {
+    std::string out;
+    WITH_RETRIES_N_TIMED(5, std::chrono::seconds(5), {
+      for (const auto& switchId : getSw()->getHwAsicTable()->getSwitchIDs()) {
+        getAgentEnsemble()->runDiagCommand(
+            "fabric link rx_fifo_monitor action=TRIGGER\n", out, switchId);
+        getAgentEnsemble()->runDiagCommand("quit\n", out, switchId);
+        auto multiSwitchStats = getSw()->getHwSwitchStatsExpensive();
+        auto asicError = *multiSwitchStats[switchId].hwAsicErrors();
+        auto rxFifoStuckDetected = asicError.rxFifoStuckDetected().value_or(0);
+        XLOG(DBG2) << "Switch ID: " << switchId
+                   << ", rxFifoStuckDetected: " << rxFifoStuckDetected;
+        EXPECT_EVENTUALLY_GT(rxFifoStuckDetected, 0);
+      }
+    });
+  };
+  verifyAcrossWarmBoots([]() {}, verify);
+}
+
 } // namespace facebook::fboss

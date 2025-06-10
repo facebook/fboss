@@ -7,7 +7,6 @@ from pathlib import Path
 import pytest
 from fboss.platform.bsp_tests.cdev_types import FpgaSpec, I2CAdapter
 from fboss.platform.bsp_tests.config import ConfigLib, RuntimeConfig, TestConfig
-from fboss.platform.bsp_tests.test_runner import PLATFORMS
 from fboss.platform.bsp_tests.utils.kmod_utils import (
     fbsp_remove,
     load_kmods,
@@ -21,6 +20,7 @@ platform_to_vendor = {
     "montblanc": "fboss",
     "morgan800cc": "cisco",
     "tahan800bc": "fboss",
+    "minipack3n": "fboss",
 }
 
 
@@ -54,10 +54,6 @@ def platform_config(request) -> RuntimeConfig:  # pyre-ignore request
         if config_file:
             config_file_path = config_file
         else:
-            if platform not in PLATFORMS:
-                raise Exception(
-                    f"Unknown platform '{platform}'. Available platforms are {PLATFORMS}"
-                )
             config_file_path = os.path.join(
                 install_dir, config_subdir, f"{platform}.json"
             )

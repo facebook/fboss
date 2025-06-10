@@ -59,9 +59,9 @@ class AgentMirrorOnDropTest
     return config;
   }
 
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::MIRROR_ON_DROP};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::MIRROR_ON_DROP};
   }
 
   void setCmdLineFlagOverrides() const override {
@@ -76,7 +76,9 @@ class AgentMirrorOnDropTest
     // Log drop counters to facilitate test debugging.
     if (auto ensemble = getAgentEnsemble(); ensemble != nullptr) {
       std::string output;
-      ensemble->runDiagCommand("diag count g\n", output);
+      for (const auto& switchIdx : getSw()->getHwAsicTable()->getSwitchIDs()) {
+        ensemble->runDiagCommand("quit\n", output, switchIdx);
+      }
       XLOG(DBG3) << output;
     }
     AgentHwTest::TearDown();
@@ -354,9 +356,9 @@ class AgentMirrorOnDropTest
         folly::IOBuf::wrapBufferAsValue(content.data(), content.size());
     folly::io::Cursor cursor(&contentBuf);
 
-    if (portType == cfg::PortType::EVENTOR_PORT) {
-      // When mirroring through eventor port, an extra 12 byte eventor header
-      // will be added after MOD header.
+    if (portType == cfg::PortType::EVENTOR_PORT &&
+        cursor.totalLength() == 140) {
+      // On 12.x, a 12-byte eventor header is added before MOD header.
       cursor.skip(12); // eventor sequence number, timestamp, sample
     }
 
@@ -418,6 +420,92 @@ class AgentMirrorOnDropTest
     });
   }
 };
+
+class AgentMirrorOnDropMtuTest : public AgentMirrorOnDropTest {
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto config = AgentMirrorOnDropTest::initialConfig(ensemble);
+    config = addCoppConfig(ensemble, config);
+    for (auto& port : *config.ports()) {
+      if (port.portType() == cfg::PortType::INTERFACE_PORT) {
+        // Prod MTU is 9412, but there seems to be some limit in the maximum
+        // allowed payload length, so use 9000 instead.
+        port.maxFrameSize() = 9000;
+      }
+    }
+    return config;
+  }
+
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {
+        ProductionFeature::MIRROR_ON_DROP,
+        ProductionFeature::PORT_MTU_ERROR_TRAP,
+    };
+  }
+};
+
+// Verifies that enabling MOD on a recycle port doesn't interfere with
+// normal operations of the MTU trap.
+TEST_F(AgentMirrorOnDropMtuTest, MtuTrapStillWorks) {
+  auto mirrorPortId = findRecirculationPort(cfg::PortType::RECYCLE_PORT);
+  auto egressPortId = masterLogicalInterfacePortIds()[0];
+  XLOG(DBG3) << "MoD port: " << portDesc(mirrorPortId);
+  XLOG(DBG3) << "Egress port: " << portDesc(egressPortId);
+
+  const folly::IPAddressV6 kDestIp{"2401:4444:4444:4444:4444:4444:4444:4444"};
+  const folly::MacAddress kNeighborMac{"02:44:44:44:44:44"};
+
+  auto setup = [&]() {
+    auto config = getAgentEnsemble()->getCurrentConfig();
+    // Enable MOD on a local RCY port, which belongs to one of the cores.
+    setupMirrorOnDrop(
+        &config,
+        mirrorPortId,
+        kCollectorIp_,
+        {{0,
+          makeEventConfig(
+              std::nullopt, // use default aging group
+              {cfg::MirrorOnDropReasonAggregation::
+                   INGRESS_PACKET_PROCESSING_DISCARDS})}});
+    applyNewConfig(config);
+    setupEcmpTraffic(egressPortId, kDestIp, kNeighborMac);
+  };
+
+  auto verify = [&]() {
+    // Send > MTU packets from all NIF ports to a destination. This will
+    // trigger MTU traps on all the cores.
+    for (const auto& portId : masterLogicalInterfacePortIds()) {
+      auto pkt = utility::makeUDPTxPacket(
+          getSw(),
+          getVlanIDForTx(),
+          utility::kLocalCpuMac(),
+          utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
+          folly::IPAddressV6{"2401:2222:2222:2222:2222:2222:2222:2222"},
+          kDestIp,
+          0x4444,
+          0x5555,
+          0,
+          10,
+          std::vector<uint8_t>(9100, 0xff)); // >= MTU
+      getAgentEnsemble()->sendPacketAsync(
+          std::move(pkt), PortDescriptor(portId), std::nullopt);
+    }
+
+    // We expect all MTU traps to still work.
+    WITH_RETRIES_N(5, {
+      int pkts = 0;
+      for (const auto switchId : getSw()->getHwAsicTable()->getSwitchIDs()) {
+        // MTU trap goes to kCoppLowPriQueueId
+        pkts += utility::getCpuQueueInPackets(
+            getSw(), switchId, utility::kCoppLowPriQueueId);
+      }
+      EXPECT_EVENTUALLY_GE(pkts, masterLogicalInterfacePortIds().size());
+    });
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
 
 class AgentMirrorOnDropDestMacTest : public AgentMirrorOnDropTest {
   const std::string kModDestMacOverride = "02:33:33:33:33:33";
@@ -503,6 +591,69 @@ INSTANTIATE_TEST_SUITE_P(
     [](const ::testing::TestParamInfo<cfg::PortType>& info) {
       return apache::thrift::util::enumNameSafe(info.param);
     });
+
+// 1. Configures MOD on a recycle or eventor port, but don't add a route to the
+//    collector IP.
+// 2. Sends a packet towards an unknown destination.
+// 3. Check that recycle/eventor port stats increase by at most 2 packets.
+TEST_P(AgentMirrorOnDropTest, NoInfiniteLoopRecirculated) {
+  auto mirrorPortId = masterLogicalPortIds({GetParam()})[0];
+  auto injectionPortId = masterLogicalInterfacePortIds()[0];
+  XLOG(DBG3) << "MoD port: " << portDesc(mirrorPortId);
+  XLOG(DBG3) << "Injection port: " << portDesc(injectionPortId);
+
+  auto setup = [&]() {
+    auto config = getAgentEnsemble()->getCurrentConfig();
+    setupMirrorOnDrop(
+        &config,
+        mirrorPortId,
+        kCollectorIp_,
+        {{kL3DropEventId,
+          makeEventConfig(
+              std::nullopt, // use default aging group
+              {cfg::MirrorOnDropReasonAggregation::
+                   INGRESS_PACKET_PROCESSING_DISCARDS})}});
+    applyNewConfig(config);
+  };
+
+  auto verify = [&]() {
+    auto injectionPortStatsBefore = getLatestPortStats(injectionPortId);
+    auto mirrorPortStatsBefore = getLatestPortStats(mirrorPortId);
+    int queueOutBytesBefore = 0;
+    for (const auto& [id, bytes] : *mirrorPortStatsBefore.queueOutBytes_()) {
+      queueOutBytesBefore += bytes;
+    }
+
+    sendPackets(1, injectionPortId, kDropDestIp);
+
+    // Ensure packet drop happened.
+    WITH_RETRIES_N(5, {
+      auto injectionPortStatsAfter = getLatestPortStats(injectionPortId);
+      EXPECT_EVENTUALLY_GT(
+          *injectionPortStatsAfter.inDstNullDiscards_(),
+          *injectionPortStatsBefore.inDstNullDiscards_());
+    });
+
+    auto mirrorPortStatsAfter = getLatestPortStats(mirrorPortId);
+
+    // At most 2 packets (one MOD packet for the original, one MOD packet for
+    // the dropped MOD packet).
+    EXPECT_LE(
+        *mirrorPortStatsAfter.outUnicastPkts_() -
+            *mirrorPortStatsBefore.outUnicastPkts_(),
+        2);
+
+    // MOD payload is truncated to 128 bytes, with MOD/UDP/IP/Eth header each
+    // packet should be just a little over 200 bytes.
+    int queueOutBytesAfter = 0;
+    for (const auto& [id, bytes] : *mirrorPortStatsAfter.queueOutBytes_()) {
+      queueOutBytesAfter += bytes;
+    }
+    EXPECT_LE(queueOutBytesAfter - queueOutBytesBefore, 500);
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
 
 // Verifies that changing MOD configs after warmboot succeeds.
 TEST_P(AgentMirrorOnDropTest, ConfigChangePostWarmboot) {

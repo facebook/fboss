@@ -63,6 +63,31 @@ Once you've executed the above commands, you should be dropped into a root
 shell within the docker container and can proceed with the next steps to start
 the build.
 
+## Loading Published Docker Image from GitHub
+
+Instead of building the docker image yourself, you can also obtain an image
+tarball from GitHub (e.g. https://github.com/facebook/fboss/actions/runs/14961317578).
+The advantage of using this image instead of building it yourself is that the
+published image includes all relevant sources, including sources for dependencies,
+which means that building FBOSS binaries from this image eliminates the need for
+a network connection at the time of building (which would normally be required in
+order to download sources or clone Git repositories for those same dependencies).
+
+In order to use this image, you can download it from GitHub and decompress it using `zstd`:
+
+```
+zstd -d fboss_debian_docker_image.tar.zst
+```
+
+You can then load the image via:
+
+```
+sudo docker load < fboss_debian_docker_image.tar
+```
+
+You can then start the container using the same `docker run` and `docker exec`
+command as mentioned above.
+
 ## Building FBOSS Binaries
 
 Instructions for building FBOSS binaries may have slight differences based on
@@ -124,6 +149,22 @@ time ./build/fbcode_builder/getdeps.py build --allow-system-packages \
 ```
 
 
+By default, `build-helper.py` will use SAI version 1.14.0. If you are planning
+on building against a different version of SAI, you add another param to the
+build-helper.py command (example below).
+
+```
+./build-helper.py $HOME/brcm-sai/build/lib/libsai_impl.a $HOME/brcm-sai/headers/experimental/ $HOME/sai_impl_output 1.15.3
+```
+
+Supported values:
+
+1. 1.13.2
+1. 1.14.0
+1. 1.15.0
+1. 1.15.3
+1. 1.16.0
+
 #### Important Environment Variables
 
 The following environment variables should be set depending on which platform and SDK version you are building:
@@ -152,6 +193,8 @@ but are listed below for convenience. Default value is "SAI_VERSION_11_0_EA_DNX_
     - `SAI_VERSION_11_7_0_0_DNX_ODP`
     - `SAI_VERSION_12_0_EA_DNX_ODP`
     - `SAI_VERSION_13_0_EA_ODP`
+1. `SAI_VERSION` - can be omitted if you are using SAI 1.14.0. If using a more
+recent version of SAI from https://github.com/opencomputeproject/SAI, this should be set to the semantic version e.g. 1.16.1.
 
 ### Build Options
 
@@ -162,8 +205,8 @@ Buildable targets can be found by examining the cmake scripts in the repository.
 Any buildable target will be specified in the cmake scripts either by
 `add_executable` or `add_library`. Example command below:
 
-```
 
+```
 time ./build/fbcode_builder/getdeps.py build --allow-system-packages \
 --extra-cmake-defines='{"CMAKE_BUILD_TYPE": "MinSizeRel", "CMAKE_CXX_STANDARD": "20"}' \
 --scratch-path /var/FBOSS/tmp_bld_dir --cmake-target qsfp_service fboss

@@ -838,6 +838,16 @@ enum QueueScheduling {
   INTERNAL = 1000,
 }
 
+enum HighLowPriority {
+  PRIORITY_LOW = 0,
+  PRIORITY_HIGH = 1,
+}
+
+union SchedulingParam {
+  1: HighLowPriority spPriority;
+  2: i16 wrrWeight;
+}
+
 // Detection based on average queue length in bytes with two thresholds.
 // If the queue length is below the minimum threshold, then never consider the
 // queue congested. If the queue length is above the maximum threshold, then
@@ -1900,6 +1910,8 @@ struct SwitchSettings {
   // Number of sflow samples to pack in a single packet being sent out
   30: optional byte numberOfSflowSamplesPerPacket;
   31: optional map<i32, i32> tcToRateLimitKbps;
+  // PFC watchdog timer granularity which can be 1ms, 10ms or 100ms.
+  32: optional i32 pfcWatchdogTimerGranularityMsec;
 }
 
 // Global buffer pool
@@ -1945,6 +1957,8 @@ struct PortPgConfig {
   // Allowing configuring an absolute value at which to send XON in such cases.
   // resumeOffsetBytes and resumeBytes should not be set at the same time.
   13: optional i32 resumeBytes;
+  // Scaling factor for SRAM usage
+  14: optional MMUScalingFactor sramScalingFactor;
 }
 
 // asicSdk: Native SDK version. may or may not support SAI
@@ -2025,6 +2039,11 @@ struct DsfNode {
   // as part of config for other nodes to bootstrap
   // communication to this node
   14: optional i32 inbandPortId;
+  // Prioritization between credit requests from different remote DSF nodes, default no priorization
+  15: QueueScheduling scheduling = QueueScheduling.INTERNAL;
+  // If strict priority, using spPriority
+  // If weighted round robin, use wrrWeight
+  16: optional SchedulingParam schedulingParam;
 }
 
 /**

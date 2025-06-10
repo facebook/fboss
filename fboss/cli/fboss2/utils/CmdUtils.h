@@ -473,6 +473,7 @@ cfg::SwitchType getSwitchType(apache::thrift::Client<FbossCtrl>& client);
 cfg::SwitchType getSwitchType(
     std::map<int64_t, cfg::SwitchInfo> switchIdToSwitchInfo);
 bool isVoqOrFabric(cfg::SwitchType switchType);
+bool isFabricSwitch(cfg::SwitchType switchType);
 
 std::map<std::string, FabricEndpoint> getFabricEndpoints(
     const HostInfo& hostInfo);
@@ -480,5 +481,10 @@ std::map<std::string, FabricEndpoint> getFabricEndpoints(
 std::map<std::string, int64_t> getAgentFb303RegexCounters(
     const HostInfo& hostInfo,
     const std::string& regex);
+
+std::unordered_map<std::string, std::vector<std::string>>
+getCachedSwSwitchReachabilityInfo(
+    const HostInfo& hostInfo,
+    const std::vector<std::string>& switchNames);
 
 } // namespace facebook::fboss::utils

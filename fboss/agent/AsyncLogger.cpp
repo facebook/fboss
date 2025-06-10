@@ -39,7 +39,7 @@ static std::mutex bootTypeLatch_;
 namespace {
 
 constexpr auto kBuildRevision = "build_revision";
-constexpr auto kSdkVersion = "SDK Version";
+constexpr auto kVerboseSdkVersion = "Verbose SDK Version";
 
 void terminateHandler() {
   if (offset > 0) {
@@ -249,7 +249,7 @@ void AsyncLogger::openLogFile(std::string& filePath) {
       logFile_ = folly::File(filePath, O_RDWR | O_CREAT | O_TRUNC);
     }
   } catch (const std::system_error&) {
-    auto last_slash = filePath.find_last_of("/");
+    auto last_slash = filePath.find_last_of('/');
 
     std::string directory = filePath.substr(0, last_slash);
     std::string file_name = filePath.substr(last_slash + 1);
@@ -283,16 +283,21 @@ void AsyncLogger::writeNewBootHeader() {
   // Log commit ID and SDK version
   std::string commitId;
   fb303::fbData->getExportedValue(commitId, kBuildRevision);
-  std::string sdkVersion;
-  fb303::fbData->getExportedValue(sdkVersion, kSdkVersion);
+  std::string verboseSdkVersion;
+  fb303::fbData->getExportedValue(verboseSdkVersion, kVerboseSdkVersion);
 
   // Remove newline in SDK version
-  sdkVersion.erase(
-      std::remove(sdkVersion.begin(), sdkVersion.end(), '\n'),
-      sdkVersion.end());
+  verboseSdkVersion.erase(
+      std::remove(verboseSdkVersion.begin(), verboseSdkVersion.end(), '\n'),
+      verboseSdkVersion.end());
 
   std::string agentVersion = folly::to<std::string>(
-      "// Commit id : ", commitId, "\n", "// SDK version : ", sdkVersion, "\n");
+      "// Commit id : ",
+      commitId,
+      "\n",
+      "// SDK version : ",
+      verboseSdkVersion,
+      "\n");
   appendLog(agentVersion.c_str(), agentVersion.size());
 }
 

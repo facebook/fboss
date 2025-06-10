@@ -33,9 +33,9 @@ namespace facebook::fboss {
 
 class AgentJumboFramesTest : public AgentHwTest {
  private:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::JUMBO_FRAMES};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::JUMBO_FRAMES};
   }
 
   void sendPkt(int payloadSize) {

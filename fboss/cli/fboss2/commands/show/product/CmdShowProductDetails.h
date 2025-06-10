@@ -15,7 +15,7 @@
 
 namespace facebook::fboss {
 
-struct CmdShowProductDetailsTraits : public BaseCommandTraits {
+struct CmdShowProductDetailsTraits : public ReadCommandTraits {
   using ParentCmd = CmdShowProduct;
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;

@@ -213,7 +213,7 @@ vector<string> BcmCinter::wrapFunc(const string& funcCall) const {
           "if (rv) { printf(\"\\nError around line ",
           linesWritten_.load(),
           " : ",
-          funcCall.substr(0, funcCall.find("(")),
+          funcCall.substr(0, funcCall.find('(')),
           ": %d -> %s\", rv, bcm_errmsg(rv));  }")};
   return cintLines;
 }

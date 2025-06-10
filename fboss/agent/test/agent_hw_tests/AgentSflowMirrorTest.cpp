@@ -41,12 +41,12 @@ class AgentSflowMirrorTest : public AgentHwTest {
  public:
   // Index in the sample ports where data traffic is expected!
   const int kDataTrafficPortIndex{0};
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
-      return {production_features::ProductionFeature::SFLOWv4_SAMPLING};
+      return {ProductionFeature::SFLOWv4_SAMPLING};
     } else {
-      return {production_features::ProductionFeature::SFLOWv6_SAMPLING};
+      return {ProductionFeature::SFLOWv6_SAMPLING};
     }
   }
 
@@ -656,16 +656,16 @@ class AgentSflowMirrorTest : public AgentHwTest {
 template <typename AddrT>
 class AgentSflowMirrorUntruncateTest : public AgentSflowMirrorTest<AddrT> {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
       return {
-          production_features::ProductionFeature::SFLOWv4_SAMPLING,
-          production_features::ProductionFeature::UNTRUNCATED_SFLOW};
+          ProductionFeature::SFLOWv4_SAMPLING,
+          ProductionFeature::UNTRUNCATED_SFLOW};
     } else {
       return {
-          production_features::ProductionFeature::SFLOWv6_SAMPLING,
-          production_features::ProductionFeature::UNTRUNCATED_SFLOW};
+          ProductionFeature::SFLOWv6_SAMPLING,
+          ProductionFeature::UNTRUNCATED_SFLOW};
     }
   }
 
@@ -677,16 +677,16 @@ class AgentSflowMirrorUntruncateTest : public AgentSflowMirrorTest<AddrT> {
 template <typename AddrT>
 class AgentSflowMirrorTruncateTest : public AgentSflowMirrorTest<AddrT> {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
       return {
-          production_features::ProductionFeature::SFLOWv4_SAMPLING,
-          production_features::ProductionFeature::MIRROR_PACKET_TRUNCATION};
+          ProductionFeature::SFLOWv4_SAMPLING,
+          ProductionFeature::MIRROR_PACKET_TRUNCATION};
     } else {
       return {
-          production_features::ProductionFeature::SFLOWv6_SAMPLING,
-          production_features::ProductionFeature::MIRROR_PACKET_TRUNCATION};
+          ProductionFeature::SFLOWv6_SAMPLING,
+          ProductionFeature::MIRROR_PACKET_TRUNCATION};
     }
   }
 
@@ -700,12 +700,12 @@ class AgentSflowMirrorTruncateTest : public AgentSflowMirrorTest<AddrT> {
 class AgentSflowMirrorAddressFamilySwitchingTest
     : public AgentSflowMirrorTruncateTest<folly::IPAddressV4> {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     return {
-        production_features::ProductionFeature::SFLOWv4_SAMPLING,
-        production_features::ProductionFeature::SFLOWv6_SAMPLING,
-        production_features::ProductionFeature::MIRROR_PACKET_TRUNCATION};
+        ProductionFeature::SFLOWv4_SAMPLING,
+        ProductionFeature::SFLOWv6_SAMPLING,
+        ProductionFeature::MIRROR_PACKET_TRUNCATION};
   }
 };
 
@@ -714,20 +714,20 @@ class AgentSflowMirrorOnTrunkTest : public AgentSflowMirrorTruncateTest<AddrT> {
  public:
   using AgentSflowMirrorTest<AddrT>::getPortsForSampling;
 
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
       return {
-          production_features::ProductionFeature::SFLOWv4_SAMPLING,
-          production_features::ProductionFeature::LAG,
-          production_features::ProductionFeature::MIRROR_PACKET_TRUNCATION,
-          production_features::ProductionFeature::LAG_MIRRORING};
+          ProductionFeature::SFLOWv4_SAMPLING,
+          ProductionFeature::LAG,
+          ProductionFeature::MIRROR_PACKET_TRUNCATION,
+          ProductionFeature::LAG_MIRRORING};
     } else {
       return {
-          production_features::ProductionFeature::SFLOWv6_SAMPLING,
-          production_features::ProductionFeature::LAG,
-          production_features::ProductionFeature::MIRROR_PACKET_TRUNCATION,
-          production_features::ProductionFeature::LAG_MIRRORING};
+          ProductionFeature::SFLOWv6_SAMPLING,
+          ProductionFeature::LAG,
+          ProductionFeature::MIRROR_PACKET_TRUNCATION,
+          ProductionFeature::LAG_MIRRORING};
     }
   }
 
@@ -754,12 +754,11 @@ class AgentSflowMirrorOnTrunkTest : public AgentSflowMirrorTruncateTest<AddrT> {
 class AgentSflowMirrorWithLineRateTrafficTest
     : public AgentSflowMirrorTruncateTest<folly::IPAddressV6> {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     auto productionFeatures = AgentSflowMirrorTruncateTest<
         folly::IPAddressV6>::getProductionFeaturesVerified();
-    productionFeatures.push_back(
-        production_features::ProductionFeature::LINERATE_SFLOW);
+    productionFeatures.push_back(ProductionFeature::LINERATE_SFLOW);
     return productionFeatures;
   }
 
@@ -768,6 +767,10 @@ class AgentSflowMirrorWithLineRateTrafficTest
     // VerifySflowEgressCongestionShort is also used in n-warmboot tests, where
     // we want to test basic fabric port init.
     FLAGS_hide_fabric_ports = false;
+    // Test that neighbor advertisements or stray packets won't cause eventor
+    // port to get stuck (CS00012404377).
+    FLAGS_disable_neighbor_updates = false;
+    FLAGS_allow_eventor_send_packet = true;
   }
 
   static const int kLosslessPriority{2};
@@ -815,6 +818,30 @@ class AgentSflowMirrorWithLineRateTrafficTest
           1 /*desiredPctLineRate*/);
     };
     auto verify = [=, this]() {
+      // Attempt to send packets directly into the eventor port to brick it.
+      if (checkSameAndGetAsic()->isSupported(
+              HwAsic::Feature::EVENTOR_PORT_FOR_SFLOW)) {
+        auto eventorPortId =
+            masterLogicalPortIds({cfg::PortType::EVENTOR_PORT})[0];
+        XLOG(INFO) << "Eventor port: " << eventorPortId;
+        for (int i = 0; i < 10; ++i) {
+          auto pkt = utility::makeUDPTxPacket(
+              getSw(),
+              std::nullopt, // vlanID
+              folly::MacAddress("02:00:00:00:0F:0B"),
+              folly::MacAddress("FF:FF:FF:FF:FF:FF"),
+              folly::IPAddressV6("::1"),
+              folly::IPAddressV6("::2"),
+              1234, // srcPort
+              5678, // dstPort
+              0, // dscp
+              255, // hopLimit
+              std::vector<uint8_t>(100, 0xff)); // 100B payload
+          getAgentEnsemble()->sendPacketAsync(
+              std::move(pkt), PortDescriptor(eventorPortId), std::nullopt);
+        }
+      }
+
       verifySflowEgressPortNotStuck(iterations);
       if (checkSameAndGetAsic()->isSupported(
               HwAsic::Feature::EVENTOR_PORT_FOR_SFLOW)) {
@@ -923,12 +950,11 @@ class AgentSflowMirrorTruncateWithSamplesPackingTestV6
     : public AgentSflowMirrorTruncateTest<folly::IPAddressV6> {
  public:
   const int kNumSflowSamplesPacked{4};
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     auto productionFeatures = AgentSflowMirrorTruncateTest<
         folly::IPAddressV6>::getProductionFeaturesVerified();
-    productionFeatures.push_back(
-        production_features::ProductionFeature::SFLOW_SAMPLES_PACKING);
+    productionFeatures.push_back(ProductionFeature::SFLOW_SAMPLES_PACKING);
     return productionFeatures;
   }
 

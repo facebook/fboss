@@ -37,6 +37,7 @@ struct PortPgFields {
   // Not all implementations support specifying an offset at which to send XON.
   // Allowing configuring an absolute value at which to send XON in such cases.
   14: optional i64 resumeBytes;
+  15: optional string sramScalingFactor;
 }
 
 struct MKASakKey {
@@ -447,6 +448,8 @@ struct SwitchSettingsFields {
   // Number of sflow samples to pack in a single packet being sent out
   56: optional byte numberOfSflowSamplesPerPacket;
   57: optional map<i32, i32> tcToRateLimitKbps;
+  // PFC watchdog timer granularity which can be 1ms, 10ms or 100ms.
+  58: optional i32 pfcWatchdogTimerGranularityMsec;
 }
 
 struct RoutePrefix {
@@ -494,8 +497,8 @@ struct LabelForwardingEntryFields {
 
 struct FibContainerFields {
   1: i16 vrf;
-  2: map<string, RouteFields> fibV4;
-  3: map<string, RouteFields> fibV6;
+  2: map<string, RouteFields> fibV4 (allow_skip_thrift_cow = true);
+  3: map<string, RouteFields> fibV6 (allow_skip_thrift_cow = true);
 }
 
 struct TrafficClassToQosAttributeEntry {

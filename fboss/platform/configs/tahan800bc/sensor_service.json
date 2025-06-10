@@ -105,7 +105,7 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "TH5_U182_INLET_BOT_LM75_TEMP",
+          "name": "SMB_TH5_U182_INLET_BOT_LM75_TEMP",
           "sysfsPath": "/run/devmap/sensors/SMB_U182_LM75B_2/temp1_input",
           "type": 3,
           "thresholds": {
@@ -115,7 +115,7 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "XP1R2V_TH5",
+          "name": "SMB_XP1R2V_TH5",
           "sysfsPath": "/run/devmap/sensors/SMB_U206_ADC128D818_2/in0_input",
           "type": 1,
           "thresholds": {
@@ -127,7 +127,7 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "XP1R8V_TH5",
+          "name": "SMB_XP1R8V_TH5",
           "sysfsPath": "/run/devmap/sensors/SMB_U206_ADC128D818_2/in1_input",
           "type": 1,
           "thresholds": {
@@ -139,7 +139,7 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "TH5_VDD_CORE",
+          "name": "SMB_TH5_VDD_CORE",
           "sysfsPath": "/run/devmap/sensors/SMB_U206_ADC128D818_2/in2_input",
           "type": 1,
           "thresholds": {
@@ -151,7 +151,7 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "XP0R75V_TH5_TRVDD_0",
+          "name": "SMB_XP0R75V_TH5_TRVDD_0",
           "sysfsPath": "/run/devmap/sensors/SMB_U206_ADC128D818_2/in3_input",
           "type": 1,
           "thresholds": {
@@ -163,7 +163,7 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "XP0R75V_TH5_TRVDD_1",
+          "name": "SMB_XP0R75V_TH5_TRVDD_1",
           "sysfsPath": "/run/devmap/sensors/SMB_U206_ADC128D818_2/in4_input",
           "type": 1,
           "thresholds": {
@@ -175,7 +175,7 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "XP0R9V_TH5_TRVDD_0",
+          "name": "SMB_XP0R9V_TH5_TRVDD_0",
           "sysfsPath": "/run/devmap/sensors/SMB_U206_ADC128D818_2/in5_input",
           "type": 1,
           "thresholds": {
@@ -187,7 +187,7 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "XP0R9V_TH5_TRVDD_1",
+          "name": "SMB_XP0R9V_TH5_TRVDD_1",
           "sysfsPath": "/run/devmap/sensors/SMB_U206_ADC128D818_2/in6_input",
           "type": 1,
           "thresholds": {
@@ -199,7 +199,7 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "XP0R8V_TH5_VDDA",
+          "name": "SMB_XP0R8V_TH5_VDDA",
           "sysfsPath": "/run/devmap/sensors/SMB_U206_ADC128D818_2/in7_input",
           "type": 3,
           "thresholds": {
@@ -211,7 +211,7 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "XP1R5V_TH5_VDDH",
+          "name": "SMB_XP1R5V_TH5_VDDH",
           "sysfsPath": "/run/devmap/sensors/SMB_U207_ADC128D818_3/in0_input",
           "type": 1,
           "thresholds": {
@@ -223,7 +223,7 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "XP1R5V_TH5_ANLG",
+          "name": "SMB_XP1R5V_TH5_ANLG",
           "sysfsPath": "/run/devmap/sensors/SMB_U207_ADC128D818_3/in1_input",
           "type": 1,
           "thresholds": {
@@ -235,7 +235,7 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "XP0R9V_TH5_TSC_PLL_0",
+          "name": "SMB_XP0R9V_TH5_TSC_PLL_0",
           "sysfsPath": "/run/devmap/sensors/SMB_U207_ADC128D818_3/in2_input",
           "type": 1,
           "thresholds": {
@@ -247,7 +247,7 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "XP0R9V_TH5_TSC_PLL_1",
+          "name": "SMB_XP0R9V_TH5_TSC_PLL_1",
           "sysfsPath": "/run/devmap/sensors/SMB_U207_ADC128D818_3/in3_input",
           "type": 1,
           "thresholds": {
@@ -259,7 +259,7 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "XP0R9V_TH5_TSC_PLL_2",
+          "name": "SMB_XP0R9V_TH5_TSC_PLL_2",
           "sysfsPath": "/run/devmap/sensors/SMB_U207_ADC128D818_3/in4_input",
           "type": 1,
           "thresholds": {
@@ -271,7 +271,7 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "XP0R9V_TH5_TSC_PLL_3",
+          "name": "SMB_XP0R9V_TH5_TSC_PLL_3",
           "sysfsPath": "/run/devmap/sensors/SMB_U207_ADC128D818_3/in5_input",
           "type": 1,
           "thresholds": {
@@ -283,7 +283,7 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "XP3R3V_LEFT",
+          "name": "SMB_XP3R3V_LEFT",
           "sysfsPath": "/run/devmap/sensors/SMB_U207_ADC128D818_3/in6_input",
           "type": 1,
           "thresholds": {
@@ -295,7 +295,7 @@
           "compute": "(5/3)*@/1000.0"
         },
         {
-          "name": "XP3R3V_RIGHT",
+          "name": "SMB_XP3R3V_RIGHT",
           "sysfsPath": "/run/devmap/sensors/SMB_U207_ADC128D818_3/in7_input",
           "type": 3,
           "thresholds": {
@@ -307,7 +307,7 @@
           "compute": "(5/3)*@/1000.0"
         },
         {
-          "name": "XP1R1V_FPGA_DOM",
+          "name": "SMB_XP1R1V_FPGA_DOM",
           "sysfsPath": "/run/devmap/sensors/SMB_U208_ADC128D818_1/in0_input",
           "type": 1,
           "thresholds": {
@@ -319,7 +319,7 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "XP2R5V_FPGA_DOM",
+          "name": "SMB_XP2R5V_FPGA_DOM",
           "sysfsPath": "/run/devmap/sensors/SMB_U208_ADC128D818_1/in1_input",
           "type": 1,
           "thresholds": {
@@ -331,7 +331,7 @@
           "compute": "(15/11)*@/1000.0"
         },
         {
-          "name": "XP3R3V_FPGA_DOM",
+          "name": "SMB_XP3R3V_FPGA_DOM",
           "sysfsPath": "/run/devmap/sensors/SMB_U208_ADC128D818_1/in2_input",
           "type": 1,
           "thresholds": {
@@ -343,7 +343,7 @@
           "compute": "(5/3)*@/1000.0"
         },
         {
-          "name": "XP1R0V_IOB",
+          "name": "SMB_XP1R0V_IOB",
           "sysfsPath": "/run/devmap/sensors/SMB_U208_ADC128D818_1/in3_input",
           "type": 1,
           "thresholds": {
@@ -355,7 +355,7 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "XP1R2V_IOB",
+          "name": "SMB_XP1R2V_IOB",
           "sysfsPath": "/run/devmap/sensors/SMB_U208_ADC128D818_1/in4_input",
           "type": 1,
           "thresholds": {
@@ -367,7 +367,7 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "XP1R8V_IOB",
+          "name": "SMB_XP1R8V_IOB",
           "sysfsPath": "/run/devmap/sensors/SMB_U208_ADC128D818_1/in5_input",
           "type": 1,
           "thresholds": {
@@ -379,7 +379,7 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "XP3R3V_IOB",
+          "name": "SMB_XP3R3V_IOB",
           "sysfsPath": "/run/devmap/sensors/SMB_U208_ADC128D818_1/in6_input",
           "type": 1,
           "thresholds": {
@@ -391,7 +391,7 @@
           "compute": "(5/3)*@/1000.0"
         },
         {
-          "name": "ADC_U208_TEMP",
+          "name": "SMB_ADC_U208_TEMP",
           "sysfsPath": "/run/devmap/sensors/SMB_U208_ADC128D818_1/temp1_input",
           "type": 3,
           "thresholds": {
@@ -401,7 +401,7 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "XP3R3V_SMB_CPLD",
+          "name": "SMB_XP3R3V_SMB_CPLD",
           "sysfsPath": "/run/devmap/sensors/SMB_U21_ADC128D818_2/in0_input",
           "type": 1,
           "thresholds": {
@@ -413,7 +413,7 @@
           "compute": "(5/3)*@/1000.0"
         },
         {
-          "name": "XP1R8V_SMB_CPLD",
+          "name": "SMB_XP1R8V_SMB_CPLD",
           "sysfsPath": "/run/devmap/sensors/SMB_U21_ADC128D818_2/in1_input",
           "type": 1,
           "thresholds": {
@@ -425,7 +425,7 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "XP3R3V_I210",
+          "name": "SMB_XP3R3V_I210",
           "sysfsPath": "/run/devmap/sensors/SMB_U21_ADC128D818_2/in2_input",
           "type": 1,
           "thresholds": {
@@ -437,7 +437,7 @@
           "compute": "(5/3)*@/1000.0"
         },
         {
-          "name": "XP2R5V_OOB",
+          "name": "SMB_XP2R5V_OOB",
           "sysfsPath": "/run/devmap/sensors/SMB_U21_ADC128D818_2/in3_input",
           "type": 1,
           "thresholds": {
@@ -449,7 +449,7 @@
           "compute": "(15/11)*@/1000.0"
         },
         {
-          "name": "XP1R5V_OOB",
+          "name": "SMB_XP1R5V_OOB",
           "sysfsPath": "/run/devmap/sensors/SMB_U21_ADC128D818_2/in4_input",
           "type": 1,
           "thresholds": {
@@ -461,7 +461,7 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "XP1R1V_OOB",
+          "name": "SMB_XP1R1V_OOB",
           "sysfsPath": "/run/devmap/sensors/SMB_U21_ADC128D818_2/in5_input",
           "type": 1,
           "thresholds": {
@@ -473,7 +473,7 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "ADC_U21_TEMP",
+          "name": "SMB_ADC_U21_TEMP",
           "sysfsPath": "/run/devmap/sensors/SMB_U21_ADC128D818_2/temp1_input",
           "type": 3,
           "thresholds": {
@@ -483,7 +483,7 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "HOTSWAP_IOUT",
+          "name": "SMB_HOTSWAP_IOUT",
           "sysfsPath": "/run/devmap/sensors/SMB_U279_ADM1272_1/curr1_input",
           "type": 2,
           "thresholds": {
@@ -493,7 +493,7 @@
           "compute": "2*@/1000.0"
         },
         {
-          "name": "HOTSWAP_VIN",
+          "name": "SMB_HOTSWAP_VIN",
           "sysfsPath": "/run/devmap/sensors/SMB_U279_ADM1272_1/in1_input",
           "type": 1,
           "thresholds": {
@@ -505,7 +505,7 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "HOTSWAP_VOUT",
+          "name": "SMB_HOTSWAP_VOUT",
           "sysfsPath": "/run/devmap/sensors/SMB_U279_ADM1272_1/in2_input",
           "type": 1,
           "thresholds": {
@@ -517,7 +517,7 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "HOTSWAP_PIN",
+          "name": "SMB_HOTSWAP_PIN",
           "sysfsPath": "/run/devmap/sensors/SMB_U279_ADM1272_1/power1_input",
           "type": 0,
           "thresholds": {
@@ -527,7 +527,7 @@
           "compute": "2*@/1000000.0"
         },
         {
-          "name": "HOTSWAP_TEMP",
+          "name": "SMB_HOTSWAP_TEMP",
           "sysfsPath": "/run/devmap/sensors/SMB_U279_ADM1272_1/temp1_input",
           "type": 3,
           "thresholds": {
@@ -537,7 +537,7 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "TH5_U39_INLET_LM75_TEMP",
+          "name": "SMB_TH5_U39_INLET_LM75_TEMP",
           "sysfsPath": "/run/devmap/sensors/SMB_U39_LM75B_1/temp1_input",
           "type": 3,
           "thresholds": {
@@ -557,7 +557,7 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "PWR_U57_OUTLET_BOT_LM75_TEMP",
+          "name": "PDB_U57_OUTLET_BOT_LM75_TEMP",
           "sysfsPath": "/run/devmap/sensors/SMB_U57_LM75B_2/temp1_input",
           "type": 3,
           "thresholds": {
@@ -587,7 +587,7 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "XP12R0V",
+          "name": "SMB_XP12R0V",
           "sysfsPath": "/run/devmap/sensors/SMB_U6_ADC128D818_3/in0_input",
           "type": 1,
           "thresholds": {
@@ -599,7 +599,7 @@
           "compute": "11*@/1000.0"
         },
         {
-          "name": "XP5R0V",
+          "name": "SMB_XP5R0V",
           "sysfsPath": "/run/devmap/sensors/SMB_U6_ADC128D818_3/in1_input",
           "type": 1,
           "thresholds": {
@@ -611,7 +611,7 @@
           "compute": "5.7*@/1000.0"
         },
         {
-          "name": "XP3R3V",
+          "name": "SMB_XP3R3V",
           "sysfsPath": "/run/devmap/sensors/SMB_U6_ADC128D818_3/in2_input",
           "type": 1,
           "thresholds": {
@@ -623,7 +623,7 @@
           "compute": "(5/3)*@/1000.0"
         },
         {
-          "name": "XP12R0V_COME",
+          "name": "SMB_XP12R0V_COME",
           "sysfsPath": "/run/devmap/sensors/SMB_U6_ADC128D818_3/in3_input",
           "type": 1,
           "thresholds": {
@@ -635,7 +635,7 @@
           "compute": "11*@/1000.0"
         },
         {
-          "name": "XP5R0V_COME",
+          "name": "SMB_XP5R0V_COME",
           "sysfsPath": "/run/devmap/sensors/SMB_U6_ADC128D818_3/in4_input",
           "type": 1,
           "thresholds": {
@@ -647,7 +647,7 @@
           "compute": "5.7*@/1000.0"
         },
         {
-          "name": "XP5R0V_USB",
+          "name": "SMB_XP5R0V_USB",
           "sysfsPath": "/run/devmap/sensors/SMB_U6_ADC128D818_3/in5_input",
           "type": 1,
           "thresholds": {
@@ -659,7 +659,7 @@
           "compute": "5.7*@/1000.0"
         },
         {
-          "name": "ADC_U6_TEMP",
+          "name": "SMB_ADC_U6_TEMP",
           "sysfsPath": "/run/devmap/sensors/SMB_U6_ADC128D818_3/temp1_input",
           "type": 1,
           "thresholds": {
@@ -679,7 +679,7 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "XP3R3V_PROT",
+          "name": "SMB_XP3R3V_PROT",
           "sysfsPath": "/run/devmap/sensors/SMB_U7_ADC128D818_1/in0_input",
           "type": 3,
           "thresholds": {
@@ -691,7 +691,7 @@
           "compute": "(5/3)*@/1000.0"
         },
         {
-          "name": "XP3R3V_LDO_PCIE",
+          "name": "SMB_XP3R3V_LDO_PCIE",
           "sysfsPath": "/run/devmap/sensors/SMB_U7_ADC128D818_1/in1_input",
           "type": 3,
           "thresholds": {
@@ -703,7 +703,7 @@
           "compute": "(5/3)*@/1000.0"
         },
         {
-          "name": "XP3R3V_SSD",
+          "name": "SMB_XP3R3V_SSD",
           "sysfsPath": "/run/devmap/sensors/SMB_U7_ADC128D818_1/in2_input",
           "type": 3,
           "thresholds": {
@@ -715,7 +715,7 @@
           "compute": "(5/3)*@/1000.0"
         },
         {
-          "name": "XP12R0V_SSD",
+          "name": "SMB_XP12R0V_SSD",
           "sysfsPath": "/run/devmap/sensors/SMB_U7_ADC128D818_1/in3_input",
           "type": 3,
           "thresholds": {
@@ -727,7 +727,7 @@
           "compute": "11*@/1000.0"
         },
         {
-          "name": "XP3R3V_CLK",
+          "name": "SMB_XP3R3V_CLK",
           "sysfsPath": "/run/devmap/sensors/SMB_U7_ADC128D818_1/in4_input",
           "type": 3,
           "thresholds": {
@@ -739,7 +739,7 @@
           "compute": "(5/3)*@/1000.0"
         },
         {
-          "name": "XP1R8V_CLK",
+          "name": "SMB_XP1R8V_CLK",
           "sysfsPath": "/run/devmap/sensors/SMB_U7_ADC128D818_1/in5_input",
           "type": 3,
           "thresholds": {
@@ -751,7 +751,7 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "XP3R3V_STBY",
+          "name": "SMB_XP3R3V_STBY",
           "sysfsPath": "/run/devmap/sensors/SMB_U7_ADC128D818_1/in6_input",
           "type": 3,
           "thresholds": {
@@ -763,7 +763,7 @@
           "compute": "(5/3)*@/1000.0"
         },
         {
-          "name": "ADC_U7_TEMP",
+          "name": "SMB_ADC_U7_TEMP",
           "sysfsPath": "/run/devmap/sensors/SMB_U7_ADC128D818_1/temp1_input",
           "type": 3,
           "thresholds": {
@@ -831,7 +831,7 @@
           "compute": "(1000/3650)*@/1000"
         },
         {
-          "name": "TAHAN_SMB_TH5_TEMP",
+          "name": "SMB_TH5_TEMP",
           "sysfsPath": "/run/devmap/sensors/TAHAN_SMB_CPLD/temp1_input",
           "type": 3,
           "thresholds": {
@@ -857,7 +857,7 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "POWER_BRICK1_VIN",
+          "name": "PDB_POWER_BRICK1_VIN",
           "sysfsPath": "/run/devmap/sensors/PDB_PMBUS_1/in1_input",
           "type": 1,
           "thresholds": {
@@ -869,7 +869,7 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "POWER_BRICK1_VOUT",
+          "name": "PDB_POWER_BRICK1_VOUT",
           "sysfsPath": "/run/devmap/sensors/PDB_PMBUS_1/in2_input",
           "type": 1,
           "thresholds": {
@@ -881,7 +881,7 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "POWER_BRICK1_TEMP1",
+          "name": "PDB_POWER_BRICK1_TEMP1",
           "sysfsPath": "/run/devmap/sensors/PDB_PMBUS_1/temp1_input",
           "type": 3,
           "thresholds": {
@@ -891,7 +891,7 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "POWER_BRICK1_IOUT",
+          "name": "PDB_POWER_BRICK1_IOUT",
           "sysfsPath": "/run/devmap/sensors/PDB_PMBUS_1/curr1_input",
           "type": 2,
           "thresholds": {
@@ -901,7 +901,7 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "POWER_BRICK2_VIN",
+          "name": "PDB_POWER_BRICK2_VIN",
           "sysfsPath": "/run/devmap/sensors/PDB_PMBUS_2/in1_input",
           "type": 1,
           "thresholds": {
@@ -913,7 +913,7 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "POWER_BRICK2_VOUT",
+          "name": "PDB_POWER_BRICK2_VOUT",
           "sysfsPath": "/run/devmap/sensors/PDB_PMBUS_2/in2_input",
           "type": 1,
           "thresholds": {
@@ -925,7 +925,7 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "POWER_BRICK2_TEMP1",
+          "name": "PDB_POWER_BRICK2_TEMP1",
           "sysfsPath": "/run/devmap/sensors/PDB_PMBUS_2/temp1_input",
           "type": 3,
           "thresholds": {
@@ -935,7 +935,7 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "POWER_BRICK2_IOUT",
+          "name": "PDB_POWER_BRICK2_IOUT",
           "sysfsPath": "/run/devmap/sensors/PDB_PMBUS_2/curr1_input",
           "type": 2,
           "thresholds": {
@@ -1154,7 +1154,7 @@
         {
           "sensors": [
             {
-              "name": "TH5_VDD_CORE_IOUT",
+              "name": "SMB_TH5_VDD_CORE_IOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U122_PMBUS_1/curr1_input",
               "type": 2,
               "thresholds": {
@@ -1164,7 +1164,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "TH5_VDD_CORE_VIN",
+              "name": "SMB_TH5_VDD_CORE_VIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U122_PMBUS_1/in1_input",
               "type": 1,
               "thresholds": {
@@ -1176,7 +1176,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "TH5_VDD_CORE_VOUT",
+              "name": "SMB_TH5_VDD_CORE_VOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U122_PMBUS_1/in2_input",
               "type": 1,
               "thresholds": {
@@ -1188,7 +1188,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "TH5_VDD_CORE_PIN",
+              "name": "SMB_TH5_VDD_CORE_PIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U122_PMBUS_1/power1_input",
               "type": 0,
               "thresholds": {
@@ -1198,7 +1198,7 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "TH5_VDD_CORE_POUT",
+              "name": "SMB_TH5_VDD_CORE_POUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U122_PMBUS_1/power2_input",
               "type": 0,
               "thresholds": {
@@ -1208,7 +1208,7 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "TH5_VDD_CORE_TEMP",
+              "name": "SMB_TH5_VDD_CORE_TEMP",
               "sysfsPath": "/run/devmap/sensors/SMB_U122_PMBUS_1/temp1_input",
               "type": 3,
               "thresholds": {
@@ -1218,7 +1218,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP3R3V_RIGHT_IIN",
+              "name": "SMB_XP3R3V_RIGHT_IIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U20_XDPE12284_1/curr1_input",
               "type": 2,
               "thresholds": {
@@ -1228,7 +1228,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP3R3V_RIGHT_IOUT",
+              "name": "SMB_XP3R3V_RIGHT_IOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U20_XDPE12284_1/curr3_input",
               "type": 2,
               "thresholds": {
@@ -1238,7 +1238,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP3R3V_RIGHT_VIN",
+              "name": "SMB_XP3R3V_RIGHT_VIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U20_XDPE12284_1/in1_input",
               "type": 1,
               "thresholds": {
@@ -1250,7 +1250,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP3R3V_RIGHT_VOUT",
+              "name": "SMB_XP3R3V_RIGHT_VOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U20_XDPE12284_1/in3_input",
               "type": 1,
               "thresholds": {
@@ -1262,7 +1262,7 @@
               "compute": "3*@/1000.0"
             },
             {
-              "name": "XP3R3V_RIGHT_PIN",
+              "name": "SMB_XP3R3V_RIGHT_PIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U20_XDPE12284_1/power1_input",
               "type": 0,
               "thresholds": {
@@ -1272,7 +1272,7 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "XP3R3V_RIGHT_POUT",
+              "name": "SMB_XP3R3V_RIGHT_POUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U20_XDPE12284_1/power3_input",
               "type": 0,
               "thresholds": {
@@ -1282,7 +1282,7 @@
               "compute": "3*@/1000000.0"
             },
             {
-              "name": "XP3R3V_RIGHT_TEMP",
+              "name": "SMB_XP3R3V_RIGHT_TEMP",
               "sysfsPath": "/run/devmap/sensors/SMB_U20_XDPE12284_1/temp1_input",
               "type": 3,
               "thresholds": {
@@ -1292,7 +1292,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP3R3V_LEFT_IIN",
+              "name": "SMB_XP3R3V_LEFT_IIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U229_XDPE12284_1/curr1_input",
               "type": 2,
               "thresholds": {
@@ -1302,7 +1302,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP3R3V_LEFT_IOUT",
+              "name": "SMB_XP3R3V_LEFT_IOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U229_XDPE12284_1/curr3_input",
               "type": 2,
               "thresholds": {
@@ -1312,7 +1312,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP3R3V_LEFT_VIN",
+              "name": "SMB_XP3R3V_LEFT_VIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U229_XDPE12284_1/in1_input",
               "type": 1,
               "thresholds": {
@@ -1324,7 +1324,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP3R3V_LEFT_VOUT",
+              "name": "SMB_XP3R3V_LEFT_VOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U229_XDPE12284_1/in3_input",
               "type": 1,
               "thresholds": {
@@ -1336,7 +1336,7 @@
               "compute": "3*@/1000.0"
             },
             {
-              "name": "XP3R3V_LEFT_PIN",
+              "name": "SMB_XP3R3V_LEFT_PIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U229_XDPE12284_1/power1_input",
               "type": 0,
               "thresholds": {
@@ -1346,7 +1346,7 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "XP3R3V_LEFT_POUT",
+              "name": "SMB_XP3R3V_LEFT_POUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U229_XDPE12284_1/power3_input",
               "type": 0,
               "thresholds": {
@@ -1356,7 +1356,7 @@
               "compute": "3*@/1000000.0"
             },
             {
-              "name": "XP3R3V_LEFT_TEMP",
+              "name": "SMB_XP3R3V_LEFT_TEMP",
               "sysfsPath": "/run/devmap/sensors/SMB_U229_XDPE12284_1/temp1_input",
               "type": 3,
               "thresholds": {
@@ -1366,7 +1366,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_XP0R9V_TH5_TRVDD_1_IIN",
+              "name": "SMB_XP0R75V_XP0R9V_TH5_TRVDD_1_IIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U86_XDPE12284_2/curr1_input",
               "type": 2,
               "thresholds": {
@@ -1376,7 +1376,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R9V_TH5_TRVDD_1_IOUT",
+              "name": "SMB_XP0R9V_TH5_TRVDD_1_IOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U86_XDPE12284_2/curr3_input",
               "type": 2,
               "thresholds": {
@@ -1386,7 +1386,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_TH5_TRVDD_1_IOUT",
+              "name": "SMB_XP0R75V_TH5_TRVDD_1_IOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U86_XDPE12284_2/curr4_input",
               "type": 2,
               "thresholds": {
@@ -1396,7 +1396,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_XP0R9V_TH5_TRVDD_1_VIN",
+              "name": "SMB_XP0R75V_XP0R9V_TH5_TRVDD_1_VIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U86_XDPE12284_2/in1_input",
               "type": 1,
               "thresholds": {
@@ -1408,7 +1408,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R9V_TH5_TRVDD_1_VOUT",
+              "name": "SMB_XP0R9V_TH5_TRVDD_1_VOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U86_XDPE12284_2/in3_input",
               "type": 1,
               "thresholds": {
@@ -1420,7 +1420,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_TH5_TRVDD_1_VOUT",
+              "name": "SMB_XP0R75V_TH5_TRVDD_1_VOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U86_XDPE12284_2/in4_input",
               "type": 1,
               "thresholds": {
@@ -1432,7 +1432,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_XP0R9V_TH5_TRVDD_1_PIN",
+              "name": "SMB_XP0R75V_XP0R9V_TH5_TRVDD_1_PIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U86_XDPE12284_2/power1_input",
               "type": 0,
               "thresholds": {
@@ -1442,7 +1442,7 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "XP0R9V_TH5_TRVDD_1_POUT",
+              "name": "SMB_XP0R9V_TH5_TRVDD_1_POUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U86_XDPE12284_2/power3_input",
               "type": 0,
               "thresholds": {
@@ -1452,7 +1452,7 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "XP0R75V_TH5_TRVDD_1_POUT",
+              "name": "SMB_XP0R75V_TH5_TRVDD_1_POUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U86_XDPE12284_2/power4_input",
               "type": 0,
               "thresholds": {
@@ -1462,7 +1462,7 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "XP0R9V_TH5_TRVDD_1_TEMP",
+              "name": "SMB_XP0R9V_TH5_TRVDD_1_TEMP",
               "sysfsPath": "/run/devmap/sensors/SMB_U86_XDPE12284_2/temp1_input",
               "type": 3,
               "thresholds": {
@@ -1472,7 +1472,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_TH5_TRVDD_1_TEMP",
+              "name": "SMB_XP0R75V_TH5_TRVDD_1_TEMP",
               "sysfsPath": "/run/devmap/sensors/SMB_U86_XDPE12284_2/temp2_input",
               "type": 3,
               "thresholds": {
@@ -1482,7 +1482,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_XP0R9V_TH5_TRVDD_0_IIN",
+              "name": "SMB_XP0R75V_XP0R9V_TH5_TRVDD_0_IIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U92_XDPE12284_2/curr1_input",
               "type": 2,
               "thresholds": {
@@ -1492,7 +1492,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R9V_TH5_TRVDD_0_IOUT",
+              "name": "SMB_XP0R9V_TH5_TRVDD_0_IOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U92_XDPE12284_2/curr3_input",
               "type": 2,
               "thresholds": {
@@ -1502,7 +1502,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_TH5_TRVDD_0_IOUT",
+              "name": "SMB_XP0R75V_TH5_TRVDD_0_IOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U92_XDPE12284_2/curr4_input",
               "type": 2,
               "thresholds": {
@@ -1512,7 +1512,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_XP0R9V_TH5_TRVDD_0_VIN",
+              "name": "SMB_XP0R75V_XP0R9V_TH5_TRVDD_0_VIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U92_XDPE12284_2/in1_input",
               "type": 1,
               "thresholds": {
@@ -1524,7 +1524,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R9V_TH5_TRVDD_0_VOUT",
+              "name": "SMB_XP0R9V_TH5_TRVDD_0_VOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U92_XDPE12284_2/in3_input",
               "type": 1,
               "thresholds": {
@@ -1536,7 +1536,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_TH5_TRVDD_0_VOUT",
+              "name": "SMB_XP0R75V_TH5_TRVDD_0_VOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U92_XDPE12284_2/in4_input",
               "type": 1,
               "thresholds": {
@@ -1548,7 +1548,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_XP0R9V_TH5_TRVDD_0_PIN",
+              "name": "SMB_XP0R75V_XP0R9V_TH5_TRVDD_0_PIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U92_XDPE12284_2/power1_input",
               "type": 0,
               "thresholds": {
@@ -1558,7 +1558,7 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "XP0R9V_TH5_TRVDD_0_POUT",
+              "name": "SMB_XP0R9V_TH5_TRVDD_0_POUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U92_XDPE12284_2/power3_input",
               "type": 0,
               "thresholds": {
@@ -1568,7 +1568,7 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "XP0R75V_TH5_TRVDD_0_POUT",
+              "name": "SMB_XP0R75V_TH5_TRVDD_0_POUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U92_XDPE12284_2/power4_input",
               "type": 0,
               "thresholds": {
@@ -1578,7 +1578,7 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "XP0R75V_XP0R9V_TH5_TRVDD_0_TEMP",
+              "name": "SMB_XP0R75V_XP0R9V_TH5_TRVDD_0_TEMP",
               "sysfsPath": "/run/devmap/sensors/SMB_U92_XDPE12284_2/temp1_input",
               "type": 3,
               "thresholds": {
@@ -1588,7 +1588,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_TH5_TRVDD_0_TEMP",
+              "name": "SMB_XP0R75V_TH5_TRVDD_0_TEMP",
               "sysfsPath": "/run/devmap/sensors/SMB_U92_XDPE12284_2/temp2_input",
               "type": 3,
               "thresholds": {
@@ -1605,7 +1605,7 @@
         {
           "sensors": [
             {
-              "name": "TH5_VDD_CORE_IOUT",
+              "name": "SMB_TH5_VDD_CORE_IOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U122_PMBUS_1/curr1_input",
               "type": 2,
               "thresholds": {
@@ -1615,7 +1615,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "TH5_VDD_CORE_VIN",
+              "name": "SMB_TH5_VDD_CORE_VIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U122_PMBUS_1/in1_input",
               "type": 1,
               "thresholds": {
@@ -1627,7 +1627,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "TH5_VDD_CORE_VOUT",
+              "name": "SMB_TH5_VDD_CORE_VOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U122_PMBUS_1/in2_input",
               "type": 1,
               "thresholds": {
@@ -1639,7 +1639,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "TH5_VDD_CORE_PIN",
+              "name": "SMB_TH5_VDD_CORE_PIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U122_PMBUS_1/power1_input",
               "type": 0,
               "thresholds": {
@@ -1649,7 +1649,7 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "TH5_VDD_CORE_POUT",
+              "name": "SMB_TH5_VDD_CORE_POUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U122_PMBUS_1/power2_input",
               "type": 0,
               "thresholds": {
@@ -1659,7 +1659,7 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "TH5_VDD_CORE_TEMP",
+              "name": "SMB_TH5_VDD_CORE_TEMP",
               "sysfsPath": "/run/devmap/sensors/SMB_U122_PMBUS_1/temp1_input",
               "type": 3,
               "thresholds": {
@@ -1669,7 +1669,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP3R3V_RIGHT_IIN",
+              "name": "SMB_XP3R3V_RIGHT_IIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U20_XDPE12284_1/curr1_input",
               "type": 2,
               "thresholds": {
@@ -1679,7 +1679,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP3R3V_RIGHT_IOUT",
+              "name": "SMB_XP3R3V_RIGHT_IOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U20_XDPE12284_1/curr3_input",
               "type": 2,
               "thresholds": {
@@ -1689,7 +1689,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP3R3V_RIGHT_VIN",
+              "name": "SMB_XP3R3V_RIGHT_VIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U20_XDPE12284_1/in1_input",
               "type": 1,
               "thresholds": {
@@ -1701,7 +1701,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP3R3V_RIGHT_VOUT",
+              "name": "SMB_XP3R3V_RIGHT_VOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U20_XDPE12284_1/in3_input",
               "type": 1,
               "thresholds": {
@@ -1713,7 +1713,7 @@
               "compute": "3*@/1000.0"
             },
             {
-              "name": "XP3R3V_RIGHT_PIN",
+              "name": "SMB_XP3R3V_RIGHT_PIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U20_XDPE12284_1/power1_input",
               "type": 0,
               "thresholds": {
@@ -1723,7 +1723,7 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "XP3R3V_RIGHT_POUT",
+              "name": "SMB_XP3R3V_RIGHT_POUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U20_XDPE12284_1/power3_input",
               "type": 0,
               "thresholds": {
@@ -1733,7 +1733,7 @@
               "compute": "3*@/1000000.0"
             },
             {
-              "name": "XP3R3V_RIGHT_TEMP",
+              "name": "SMB_XP3R3V_RIGHT_TEMP",
               "sysfsPath": "/run/devmap/sensors/SMB_U20_XDPE12284_1/temp1_input",
               "type": 3,
               "thresholds": {
@@ -1743,7 +1743,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP3R3V_LEFT_IIN",
+              "name": "SMB_XP3R3V_LEFT_IIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U229_XDPE12284_1/curr1_input",
               "type": 2,
               "thresholds": {
@@ -1753,7 +1753,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP3R3V_LEFT_IOUT",
+              "name": "SMB_XP3R3V_LEFT_IOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U229_XDPE12284_1/curr3_input",
               "type": 2,
               "thresholds": {
@@ -1763,7 +1763,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP3R3V_LEFT_VIN",
+              "name": "SMB_XP3R3V_LEFT_VIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U229_XDPE12284_1/in1_input",
               "type": 1,
               "thresholds": {
@@ -1775,7 +1775,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP3R3V_LEFT_VOUT",
+              "name": "SMB_XP3R3V_LEFT_VOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U229_XDPE12284_1/in3_input",
               "type": 1,
               "thresholds": {
@@ -1787,7 +1787,7 @@
               "compute": "3*@/1000.0"
             },
             {
-              "name": "XP3R3V_LEFT_PIN",
+              "name": "SMB_XP3R3V_LEFT_PIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U229_XDPE12284_1/power1_input",
               "type": 0,
               "thresholds": {
@@ -1797,7 +1797,7 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "XP3R3V_LEFT_POUT",
+              "name": "SMB_XP3R3V_LEFT_POUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U229_XDPE12284_1/power3_input",
               "type": 0,
               "thresholds": {
@@ -1807,7 +1807,7 @@
               "compute": "3*@/1000000.0"
             },
             {
-              "name": "XP3R3V_LEFT_TEMP",
+              "name": "SMB_XP3R3V_LEFT_TEMP",
               "sysfsPath": "/run/devmap/sensors/SMB_U229_XDPE12284_1/temp1_input",
               "type": 3,
               "thresholds": {
@@ -1817,7 +1817,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_XP0R9V_TH5_TRVDD_1_IIN",
+              "name": "SMB_XP0R75V_XP0R9V_TH5_TRVDD_1_IIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U86_XDPE12284_2/curr1_input",
               "type": 2,
               "thresholds": {
@@ -1827,7 +1827,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R9V_TH5_TRVDD_1_IOUT",
+              "name": "SMB_XP0R9V_TH5_TRVDD_1_IOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U86_XDPE12284_2/curr3_input",
               "type": 2,
               "thresholds": {
@@ -1837,7 +1837,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_TH5_TRVDD_1_IOUT",
+              "name": "SMB_XP0R75V_TH5_TRVDD_1_IOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U86_XDPE12284_2/curr4_input",
               "type": 2,
               "thresholds": {
@@ -1847,7 +1847,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_XP0R9V_TH5_TRVDD_1_VIN",
+              "name": "SMB_XP0R75V_XP0R9V_TH5_TRVDD_1_VIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U86_XDPE12284_2/in1_input",
               "type": 1,
               "thresholds": {
@@ -1859,7 +1859,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R9V_TH5_TRVDD_1_VOUT",
+              "name": "SMB_XP0R9V_TH5_TRVDD_1_VOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U86_XDPE12284_2/in3_input",
               "type": 1,
               "thresholds": {
@@ -1871,7 +1871,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_TH5_TRVDD_1_VOUT",
+              "name": "SMB_XP0R75V_TH5_TRVDD_1_VOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U86_XDPE12284_2/in4_input",
               "type": 1,
               "thresholds": {
@@ -1883,7 +1883,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_XP0R9V_TH5_TRVDD_1_PIN",
+              "name": "SMB_XP0R75V_XP0R9V_TH5_TRVDD_1_PIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U86_XDPE12284_2/power1_input",
               "type": 0,
               "thresholds": {
@@ -1893,7 +1893,7 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "XP0R9V_TH5_TRVDD_1_POUT",
+              "name": "SMB_XP0R9V_TH5_TRVDD_1_POUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U86_XDPE12284_2/power3_input",
               "type": 0,
               "thresholds": {
@@ -1903,7 +1903,7 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "XP0R75V_TH5_TRVDD_1_POUT",
+              "name": "SMB_XP0R75V_TH5_TRVDD_1_POUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U86_XDPE12284_2/power4_input",
               "type": 0,
               "thresholds": {
@@ -1913,7 +1913,7 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "XP0R9V_TH5_TRVDD_1_TEMP",
+              "name": "SMB_XP0R9V_TH5_TRVDD_1_TEMP",
               "sysfsPath": "/run/devmap/sensors/SMB_U86_XDPE12284_2/temp1_input",
               "type": 3,
               "thresholds": {
@@ -1923,7 +1923,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_TH5_TRVDD_1_TEMP",
+              "name": "SMB_XP0R75V_TH5_TRVDD_1_TEMP",
               "sysfsPath": "/run/devmap/sensors/SMB_U86_XDPE12284_2/temp2_input",
               "type": 3,
               "thresholds": {
@@ -1933,7 +1933,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_XP0R9V_TH5_TRVDD_0_IIN",
+              "name": "SMB_XP0R75V_XP0R9V_TH5_TRVDD_0_IIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U92_XDPE12284_2/curr1_input",
               "type": 2,
               "thresholds": {
@@ -1943,7 +1943,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R9V_TH5_TRVDD_0_IOUT",
+              "name": "SMB_XP0R9V_TH5_TRVDD_0_IOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U92_XDPE12284_2/curr3_input",
               "type": 2,
               "thresholds": {
@@ -1953,7 +1953,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_TH5_TRVDD_0_IOUT",
+              "name": "SMB_XP0R75V_TH5_TRVDD_0_IOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U92_XDPE12284_2/curr4_input",
               "type": 2,
               "thresholds": {
@@ -1963,7 +1963,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_XP0R9V_TH5_TRVDD_0_VIN",
+              "name": "SMB_XP0R75V_XP0R9V_TH5_TRVDD_0_VIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U92_XDPE12284_2/in1_input",
               "type": 1,
               "thresholds": {
@@ -1975,7 +1975,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R9V_TH5_TRVDD_0_VOUT",
+              "name": "SMB_XP0R9V_TH5_TRVDD_0_VOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U92_XDPE12284_2/in3_input",
               "type": 1,
               "thresholds": {
@@ -1987,7 +1987,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_TH5_TRVDD_0_VOUT",
+              "name": "SMB_XP0R75V_TH5_TRVDD_0_VOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U92_XDPE12284_2/in4_input",
               "type": 1,
               "thresholds": {
@@ -1999,7 +1999,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_XP0R9V_TH5_TRVDD_0_PIN",
+              "name": "SMB_XP0R75V_XP0R9V_TH5_TRVDD_0_PIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U92_XDPE12284_2/power1_input",
               "type": 0,
               "thresholds": {
@@ -2009,7 +2009,7 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "XP0R9V_TH5_TRVDD_0_POUT",
+              "name": "SMB_XP0R9V_TH5_TRVDD_0_POUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U92_XDPE12284_2/power3_input",
               "type": 0,
               "thresholds": {
@@ -2019,7 +2019,7 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "XP0R75V_TH5_TRVDD_0_POUT",
+              "name": "SMB_XP0R75V_TH5_TRVDD_0_POUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U92_XDPE12284_2/power4_input",
               "type": 0,
               "thresholds": {
@@ -2029,7 +2029,7 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "XP0R75V_XP0R9V_TH5_TRVDD_0_TEMP",
+              "name": "SMB_XP0R75V_XP0R9V_TH5_TRVDD_0_TEMP",
               "sysfsPath": "/run/devmap/sensors/SMB_U92_XDPE12284_2/temp1_input",
               "type": 3,
               "thresholds": {
@@ -2039,7 +2039,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_TH5_TRVDD_0_TEMP",
+              "name": "SMB_XP0R75V_TH5_TRVDD_0_TEMP",
               "sysfsPath": "/run/devmap/sensors/SMB_U92_XDPE12284_2/temp2_input",
               "type": 3,
               "thresholds": {
@@ -2056,7 +2056,7 @@
         {
           "sensors": [
             {
-              "name": "TH5_VDD_CORE_IOUT",
+              "name": "SMB_TH5_VDD_CORE_IOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U122_PMBUS_1/curr1_input",
               "type": 2,
               "thresholds": {
@@ -2066,7 +2066,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "TH5_VDD_CORE_VIN",
+              "name": "SMB_TH5_VDD_CORE_VIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U122_PMBUS_1/in1_input",
               "type": 1,
               "thresholds": {
@@ -2078,7 +2078,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "TH5_VDD_CORE_VOUT",
+              "name": "SMB_TH5_VDD_CORE_VOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U122_PMBUS_1/in2_input",
               "type": 1,
               "thresholds": {
@@ -2090,7 +2090,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "TH5_VDD_CORE_PIN",
+              "name": "SMB_TH5_VDD_CORE_PIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U122_PMBUS_1/power1_input",
               "type": 0,
               "thresholds": {
@@ -2100,7 +2100,7 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "TH5_VDD_CORE_POUT",
+              "name": "SMB_TH5_VDD_CORE_POUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U122_PMBUS_1/power2_input",
               "type": 0,
               "thresholds": {
@@ -2110,7 +2110,7 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "TH5_VDD_CORE_TEMP",
+              "name": "SMB_TH5_VDD_CORE_TEMP",
               "sysfsPath": "/run/devmap/sensors/SMB_U122_PMBUS_1/temp1_input",
               "type": 3,
               "thresholds": {
@@ -2120,7 +2120,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP3R3V_RIGHT_IIN",
+              "name": "SMB_XP3R3V_RIGHT_IIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U20_XDPE12284_1/curr1_input",
               "type": 2,
               "thresholds": {
@@ -2130,7 +2130,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP3R3V_RIGHT_IOUT",
+              "name": "SMB_XP3R3V_RIGHT_IOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U20_XDPE12284_1/curr3_input",
               "type": 2,
               "thresholds": {
@@ -2140,7 +2140,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP3R3V_RIGHT_VIN",
+              "name": "SMB_XP3R3V_RIGHT_VIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U20_XDPE12284_1/in1_input",
               "type": 1,
               "thresholds": {
@@ -2152,7 +2152,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP3R3V_RIGHT_VOUT",
+              "name": "SMB_XP3R3V_RIGHT_VOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U20_XDPE12284_1/in3_input",
               "type": 1,
               "thresholds": {
@@ -2164,7 +2164,7 @@
               "compute": "3*@/1000.0"
             },
             {
-              "name": "XP3R3V_RIGHT_PIN",
+              "name": "SMB_XP3R3V_RIGHT_PIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U20_XDPE12284_1/power1_input",
               "type": 0,
               "thresholds": {
@@ -2174,7 +2174,7 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "XP3R3V_RIGHT_POUT",
+              "name": "SMB_XP3R3V_RIGHT_POUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U20_XDPE12284_1/power3_input",
               "type": 0,
               "thresholds": {
@@ -2184,7 +2184,7 @@
               "compute": "3*@/1000000.0"
             },
             {
-              "name": "XP3R3V_RIGHT_TEMP",
+              "name": "SMB_XP3R3V_RIGHT_TEMP",
               "sysfsPath": "/run/devmap/sensors/SMB_U20_XDPE12284_1/temp1_input",
               "type": 3,
               "thresholds": {
@@ -2194,7 +2194,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP3R3V_LEFT_IIN",
+              "name": "SMB_XP3R3V_LEFT_IIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U229_XDPE12284_1/curr1_input",
               "type": 2,
               "thresholds": {
@@ -2204,7 +2204,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP3R3V_LEFT_IOUT",
+              "name": "SMB_XP3R3V_LEFT_IOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U229_XDPE12284_1/curr3_input",
               "type": 2,
               "thresholds": {
@@ -2214,7 +2214,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP3R3V_LEFT_VIN",
+              "name": "SMB_XP3R3V_LEFT_VIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U229_XDPE12284_1/in1_input",
               "type": 1,
               "thresholds": {
@@ -2226,7 +2226,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP3R3V_LEFT_VOUT",
+              "name": "SMB_XP3R3V_LEFT_VOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U229_XDPE12284_1/in3_input",
               "type": 1,
               "thresholds": {
@@ -2238,7 +2238,7 @@
               "compute": "3*@/1000.0"
             },
             {
-              "name": "XP3R3V_LEFT_PIN",
+              "name": "SMB_XP3R3V_LEFT_PIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U229_XDPE12284_1/power1_input",
               "type": 0,
               "thresholds": {
@@ -2248,7 +2248,7 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "XP3R3V_LEFT_POUT",
+              "name": "SMB_XP3R3V_LEFT_POUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U229_XDPE12284_1/power3_input",
               "type": 0,
               "thresholds": {
@@ -2258,7 +2258,7 @@
               "compute": "3*@/1000000.0"
             },
             {
-              "name": "XP3R3V_LEFT_TEMP",
+              "name": "SMB_XP3R3V_LEFT_TEMP",
               "sysfsPath": "/run/devmap/sensors/SMB_U229_XDPE12284_1/temp1_input",
               "type": 3,
               "thresholds": {
@@ -2268,7 +2268,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_XP0R9V_TH5_TRVDD_1_IIN",
+              "name": "SMB_XP0R75V_XP0R9V_TH5_TRVDD_1_IIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U86_XDPE12284_2/curr1_input",
               "type": 2,
               "thresholds": {
@@ -2278,7 +2278,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R9V_TH5_TRVDD_1_IOUT",
+              "name": "SMB_XP0R9V_TH5_TRVDD_1_IOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U86_XDPE12284_2/curr3_input",
               "type": 2,
               "thresholds": {
@@ -2288,7 +2288,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_TH5_TRVDD_1_IOUT",
+              "name": "SMB_XP0R75V_TH5_TRVDD_1_IOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U86_XDPE12284_2/curr4_input",
               "type": 2,
               "thresholds": {
@@ -2298,7 +2298,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_XP0R9V_TH5_TRVDD_1_VIN",
+              "name": "SMB_XP0R75V_XP0R9V_TH5_TRVDD_1_VIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U86_XDPE12284_2/in1_input",
               "type": 1,
               "thresholds": {
@@ -2310,7 +2310,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R9V_TH5_TRVDD_1_VOUT",
+              "name": "SMB_XP0R9V_TH5_TRVDD_1_VOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U86_XDPE12284_2/in3_input",
               "type": 1,
               "thresholds": {
@@ -2322,7 +2322,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_TH5_TRVDD_1_VOUT",
+              "name": "SMB_XP0R75V_TH5_TRVDD_1_VOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U86_XDPE12284_2/in4_input",
               "type": 1,
               "thresholds": {
@@ -2334,7 +2334,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_XP0R9V_TH5_TRVDD_1_PIN",
+              "name": "SMB_XP0R75V_XP0R9V_TH5_TRVDD_1_PIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U86_XDPE12284_2/power1_input",
               "type": 0,
               "thresholds": {
@@ -2344,7 +2344,7 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "XP0R9V_TH5_TRVDD_1_POUT",
+              "name": "SMB_XP0R9V_TH5_TRVDD_1_POUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U86_XDPE12284_2/power3_input",
               "type": 0,
               "thresholds": {
@@ -2354,7 +2354,7 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "XP0R75V_TH5_TRVDD_1_POUT",
+              "name": "SMB_XP0R75V_TH5_TRVDD_1_POUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U86_XDPE12284_2/power4_input",
               "type": 0,
               "thresholds": {
@@ -2364,7 +2364,7 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "XP0R9V_TH5_TRVDD_1_TEMP",
+              "name": "SMB_XP0R9V_TH5_TRVDD_1_TEMP",
               "sysfsPath": "/run/devmap/sensors/SMB_U86_XDPE12284_2/temp1_input",
               "type": 3,
               "thresholds": {
@@ -2374,7 +2374,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_TH5_TRVDD_1_TEMP",
+              "name": "SMB_XP0R75V_TH5_TRVDD_1_TEMP",
               "sysfsPath": "/run/devmap/sensors/SMB_U86_XDPE12284_2/temp2_input",
               "type": 3,
               "thresholds": {
@@ -2384,7 +2384,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_XP0R9V_TH5_TRVDD_0_IIN",
+              "name": "SMB_XP0R75V_XP0R9V_TH5_TRVDD_0_IIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U92_XDPE12284_2/curr1_input",
               "type": 2,
               "thresholds": {
@@ -2394,7 +2394,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R9V_TH5_TRVDD_0_IOUT",
+              "name": "SMB_XP0R9V_TH5_TRVDD_0_IOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U92_XDPE12284_2/curr3_input",
               "type": 2,
               "thresholds": {
@@ -2404,7 +2404,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_TH5_TRVDD_0_IOUT",
+              "name": "SMB_XP0R75V_TH5_TRVDD_0_IOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U92_XDPE12284_2/curr4_input",
               "type": 2,
               "thresholds": {
@@ -2414,7 +2414,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_XP0R9V_TH5_TRVDD_0_VIN",
+              "name": "SMB_XP0R75V_XP0R9V_TH5_TRVDD_0_VIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U92_XDPE12284_2/in1_input",
               "type": 1,
               "thresholds": {
@@ -2426,7 +2426,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R9V_TH5_TRVDD_0_VOUT",
+              "name": "SMB_XP0R9V_TH5_TRVDD_0_VOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U92_XDPE12284_2/in3_input",
               "type": 1,
               "thresholds": {
@@ -2438,7 +2438,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_TH5_TRVDD_0_VOUT",
+              "name": "SMB_XP0R75V_TH5_TRVDD_0_VOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U92_XDPE12284_2/in4_input",
               "type": 1,
               "thresholds": {
@@ -2450,7 +2450,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_XP0R9V_TH5_TRVDD_0_PIN",
+              "name": "SMB_XP0R75V_XP0R9V_TH5_TRVDD_0_PIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U92_XDPE12284_2/power1_input",
               "type": 0,
               "thresholds": {
@@ -2460,7 +2460,7 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "XP0R9V_TH5_TRVDD_0_POUT",
+              "name": "SMB_XP0R9V_TH5_TRVDD_0_POUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U92_XDPE12284_2/power3_input",
               "type": 0,
               "thresholds": {
@@ -2470,7 +2470,7 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "XP0R75V_TH5_TRVDD_0_POUT",
+              "name": "SMB_XP0R75V_TH5_TRVDD_0_POUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U92_XDPE12284_2/power4_input",
               "type": 0,
               "thresholds": {
@@ -2480,7 +2480,7 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "XP0R75V_XP0R9V_TH5_TRVDD_0_TEMP",
+              "name": "SMB_XP0R75V_XP0R9V_TH5_TRVDD_0_TEMP",
               "sysfsPath": "/run/devmap/sensors/SMB_U92_XDPE12284_2/temp1_input",
               "type": 3,
               "thresholds": {
@@ -2490,7 +2490,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_TH5_TRVDD_0_TEMP",
+              "name": "SMB_XP0R75V_TH5_TRVDD_0_TEMP",
               "sysfsPath": "/run/devmap/sensors/SMB_U92_XDPE12284_2/temp2_input",
               "type": 3,
               "thresholds": {
@@ -2507,7 +2507,7 @@
         {
           "sensors": [
             {
-              "name": "TH5_VDD_CORE_IOUT",
+              "name": "SMB_TH5_VDD_CORE_IOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U122_PMBUS_1/curr1_input",
               "type": 2,
               "thresholds": {
@@ -2517,7 +2517,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "TH5_VDD_CORE_VIN",
+              "name": "SMB_TH5_VDD_CORE_VIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U122_PMBUS_1/in1_input",
               "type": 1,
               "thresholds": {
@@ -2529,7 +2529,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "TH5_VDD_CORE_VOUT",
+              "name": "SMB_TH5_VDD_CORE_VOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U122_PMBUS_1/in2_input",
               "type": 1,
               "thresholds": {
@@ -2541,7 +2541,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "TH5_VDD_CORE_PIN",
+              "name": "SMB_TH5_VDD_CORE_PIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U122_PMBUS_1/power1_input",
               "type": 0,
               "thresholds": {
@@ -2551,7 +2551,7 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "TH5_VDD_CORE_POUT",
+              "name": "SMB_TH5_VDD_CORE_POUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U122_PMBUS_1/power2_input",
               "type": 0,
               "thresholds": {
@@ -2561,7 +2561,7 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "TH5_VDD_CORE_TEMP",
+              "name": "SMB_TH5_VDD_CORE_TEMP",
               "sysfsPath": "/run/devmap/sensors/SMB_U122_PMBUS_1/temp1_input",
               "type": 3,
               "thresholds": {
@@ -2571,7 +2571,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP3R3V_RIGHT_IIN",
+              "name": "SMB_XP3R3V_RIGHT_IIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U20_XDPE12284_1/curr1_input",
               "type": 2,
               "thresholds": {
@@ -2581,7 +2581,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP3R3V_RIGHT_IOUT",
+              "name": "SMB_XP3R3V_RIGHT_IOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U20_XDPE12284_1/curr3_input",
               "type": 2,
               "thresholds": {
@@ -2591,7 +2591,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP3R3V_RIGHT_VIN",
+              "name": "SMB_XP3R3V_RIGHT_VIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U20_XDPE12284_1/in1_input",
               "type": 1,
               "thresholds": {
@@ -2603,7 +2603,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP3R3V_RIGHT_VOUT",
+              "name": "SMB_XP3R3V_RIGHT_VOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U20_XDPE12284_1/in3_input",
               "type": 1,
               "thresholds": {
@@ -2615,7 +2615,7 @@
               "compute": "3*@/1000.0"
             },
             {
-              "name": "XP3R3V_RIGHT_PIN",
+              "name": "SMB_XP3R3V_RIGHT_PIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U20_XDPE12284_1/power1_input",
               "type": 0,
               "thresholds": {
@@ -2625,7 +2625,7 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "XP3R3V_RIGHT_POUT",
+              "name": "SMB_XP3R3V_RIGHT_POUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U20_XDPE12284_1/power3_input",
               "type": 0,
               "thresholds": {
@@ -2635,7 +2635,7 @@
               "compute": "3*@/1000000.0"
             },
             {
-              "name": "XP3R3V_RIGHT_TEMP",
+              "name": "SMB_XP3R3V_RIGHT_TEMP",
               "sysfsPath": "/run/devmap/sensors/SMB_U20_XDPE12284_1/temp1_input",
               "type": 3,
               "thresholds": {
@@ -2645,7 +2645,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP3R3V_LEFT_IIN",
+              "name": "SMB_XP3R3V_LEFT_IIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U229_XDPE12284_1/curr1_input",
               "type": 2,
               "thresholds": {
@@ -2655,7 +2655,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP3R3V_LEFT_IOUT",
+              "name": "SMB_XP3R3V_LEFT_IOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U229_XDPE12284_1/curr3_input",
               "type": 2,
               "thresholds": {
@@ -2665,7 +2665,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP3R3V_LEFT_VIN",
+              "name": "SMB_XP3R3V_LEFT_VIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U229_XDPE12284_1/in1_input",
               "type": 1,
               "thresholds": {
@@ -2677,7 +2677,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP3R3V_LEFT_VOUT",
+              "name": "SMB_XP3R3V_LEFT_VOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U229_XDPE12284_1/in3_input",
               "type": 1,
               "thresholds": {
@@ -2689,7 +2689,7 @@
               "compute": "3*@/1000.0"
             },
             {
-              "name": "XP3R3V_LEFT_PIN",
+              "name": "SMB_XP3R3V_LEFT_PIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U229_XDPE12284_1/power1_input",
               "type": 0,
               "thresholds": {
@@ -2699,7 +2699,7 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "XP3R3V_LEFT_POUT",
+              "name": "SMB_XP3R3V_LEFT_POUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U229_XDPE12284_1/power3_input",
               "type": 0,
               "thresholds": {
@@ -2709,7 +2709,7 @@
               "compute": "3*@/1000000.0"
             },
             {
-              "name": "XP3R3V_LEFT_TEMP",
+              "name": "SMB_XP3R3V_LEFT_TEMP",
               "sysfsPath": "/run/devmap/sensors/SMB_U229_XDPE12284_1/temp1_input",
               "type": 3,
               "thresholds": {
@@ -2719,7 +2719,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_XP0R9V_TH5_TRVDD_1_IIN",
+              "name": "SMB_XP0R75V_XP0R9V_TH5_TRVDD_1_IIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U86_XDPE12284_2/curr1_input",
               "type": 2,
               "thresholds": {
@@ -2729,7 +2729,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R9V_TH5_TRVDD_1_IOUT",
+              "name": "SMB_XP0R9V_TH5_TRVDD_1_IOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U86_XDPE12284_2/curr3_input",
               "type": 2,
               "thresholds": {
@@ -2739,7 +2739,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_TH5_TRVDD_1_IOUT",
+              "name": "SMB_XP0R75V_TH5_TRVDD_1_IOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U86_XDPE12284_2/curr4_input",
               "type": 2,
               "thresholds": {
@@ -2749,7 +2749,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_XP0R9V_TH5_TRVDD_1_VIN",
+              "name": "SMB_XP0R75V_XP0R9V_TH5_TRVDD_1_VIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U86_XDPE12284_2/in1_input",
               "type": 1,
               "thresholds": {
@@ -2761,7 +2761,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R9V_TH5_TRVDD_1_VOUT",
+              "name": "SMB_XP0R9V_TH5_TRVDD_1_VOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U86_XDPE12284_2/in3_input",
               "type": 1,
               "thresholds": {
@@ -2773,7 +2773,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_TH5_TRVDD_1_VOUT",
+              "name": "SMB_XP0R75V_TH5_TRVDD_1_VOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U86_XDPE12284_2/in4_input",
               "type": 1,
               "thresholds": {
@@ -2785,7 +2785,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_XP0R9V_TH5_TRVDD_1_PIN",
+              "name": "SMB_XP0R75V_XP0R9V_TH5_TRVDD_1_PIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U86_XDPE12284_2/power1_input",
               "type": 0,
               "thresholds": {
@@ -2795,7 +2795,7 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "XP0R9V_TH5_TRVDD_1_POUT",
+              "name": "SMB_XP0R9V_TH5_TRVDD_1_POUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U86_XDPE12284_2/power3_input",
               "type": 0,
               "thresholds": {
@@ -2805,7 +2805,7 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "XP0R75V_TH5_TRVDD_1_POUT",
+              "name": "SMB_XP0R75V_TH5_TRVDD_1_POUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U86_XDPE12284_2/power4_input",
               "type": 0,
               "thresholds": {
@@ -2815,7 +2815,7 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "XP0R9V_TH5_TRVDD_1_TEMP",
+              "name": "SMB_XP0R9V_TH5_TRVDD_1_TEMP",
               "sysfsPath": "/run/devmap/sensors/SMB_U86_XDPE12284_2/temp1_input",
               "type": 3,
               "thresholds": {
@@ -2825,7 +2825,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_TH5_TRVDD_1_TEMP",
+              "name": "SMB_XP0R75V_TH5_TRVDD_1_TEMP",
               "sysfsPath": "/run/devmap/sensors/SMB_U86_XDPE12284_2/temp2_input",
               "type": 3,
               "thresholds": {
@@ -2835,7 +2835,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_XP0R9V_TH5_TRVDD_0_IIN",
+              "name": "SMB_XP0R75V_XP0R9V_TH5_TRVDD_0_IIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U92_XDPE12284_2/curr1_input",
               "type": 2,
               "thresholds": {
@@ -2845,7 +2845,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R9V_TH5_TRVDD_0_IOUT",
+              "name": "SMB_XP0R9V_TH5_TRVDD_0_IOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U92_XDPE12284_2/curr3_input",
               "type": 2,
               "thresholds": {
@@ -2855,7 +2855,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_TH5_TRVDD_0_IOUT",
+              "name": "SMB_XP0R75V_TH5_TRVDD_0_IOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U92_XDPE12284_2/curr4_input",
               "type": 2,
               "thresholds": {
@@ -2865,7 +2865,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_XP0R9V_TH5_TRVDD_0_VIN",
+              "name": "SMB_XP0R75V_XP0R9V_TH5_TRVDD_0_VIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U92_XDPE12284_2/in1_input",
               "type": 1,
               "thresholds": {
@@ -2877,7 +2877,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R9V_TH5_TRVDD_0_VOUT",
+              "name": "SMB_XP0R9V_TH5_TRVDD_0_VOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U92_XDPE12284_2/in3_input",
               "type": 1,
               "thresholds": {
@@ -2889,7 +2889,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_TH5_TRVDD_0_VOUT",
+              "name": "SMB_XP0R75V_TH5_TRVDD_0_VOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U92_XDPE12284_2/in4_input",
               "type": 1,
               "thresholds": {
@@ -2901,7 +2901,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_XP0R9V_TH5_TRVDD_0_PIN",
+              "name": "SMB_XP0R75V_XP0R9V_TH5_TRVDD_0_PIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U92_XDPE12284_2/power1_input",
               "type": 0,
               "thresholds": {
@@ -2911,7 +2911,7 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "XP0R9V_TH5_TRVDD_0_POUT",
+              "name": "SMB_XP0R9V_TH5_TRVDD_0_POUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U92_XDPE12284_2/power3_input",
               "type": 0,
               "thresholds": {
@@ -2921,7 +2921,7 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "XP0R75V_TH5_TRVDD_0_POUT",
+              "name": "SMB_XP0R75V_TH5_TRVDD_0_POUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U92_XDPE12284_2/power4_input",
               "type": 0,
               "thresholds": {
@@ -2931,7 +2931,7 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "XP0R75V_XP0R9V_TH5_TRVDD_0_TEMP",
+              "name": "SMB_XP0R75V_XP0R9V_TH5_TRVDD_0_TEMP",
               "sysfsPath": "/run/devmap/sensors/SMB_U92_XDPE12284_2/temp1_input",
               "type": 3,
               "thresholds": {
@@ -2941,7 +2941,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_TH5_TRVDD_0_TEMP",
+              "name": "SMB_XP0R75V_TH5_TRVDD_0_TEMP",
               "sysfsPath": "/run/devmap/sensors/SMB_U92_XDPE12284_2/temp2_input",
               "type": 3,
               "thresholds": {
@@ -2958,7 +2958,7 @@
         {
           "sensors": [
             {
-              "name": "TH5_VDD_CORE_IOUT",
+              "name": "SMB_TH5_VDD_CORE_IOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U122_PMBUS_1/curr1_input",
               "type": 2,
               "thresholds": {
@@ -2968,7 +2968,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "TH5_VDD_CORE_VIN",
+              "name": "SMB_TH5_VDD_CORE_VIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U122_PMBUS_1/in1_input",
               "type": 1,
               "thresholds": {
@@ -2980,7 +2980,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "TH5_VDD_CORE_VOUT",
+              "name": "SMB_TH5_VDD_CORE_VOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U122_PMBUS_1/in2_input",
               "type": 1,
               "thresholds": {
@@ -2992,7 +2992,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "TH5_VDD_CORE_PIN",
+              "name": "SMB_TH5_VDD_CORE_PIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U122_PMBUS_1/power1_input",
               "type": 0,
               "thresholds": {
@@ -3002,7 +3002,7 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "TH5_VDD_CORE_POUT",
+              "name": "SMB_TH5_VDD_CORE_POUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U122_PMBUS_1/power2_input",
               "type": 0,
               "thresholds": {
@@ -3012,7 +3012,7 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "TH5_VDD_CORE_TEMP",
+              "name": "SMB_TH5_VDD_CORE_TEMP",
               "sysfsPath": "/run/devmap/sensors/SMB_U122_PMBUS_1/temp1_input",
               "type": 3,
               "thresholds": {
@@ -3022,7 +3022,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP3R3V_RIGHT_IIN",
+              "name": "SMB_XP3R3V_RIGHT_IIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U20_XDPE12284_1/curr1_input",
               "type": 2,
               "thresholds": {
@@ -3032,7 +3032,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP3R3V_RIGHT_IOUT",
+              "name": "SMB_XP3R3V_RIGHT_IOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U20_XDPE12284_1/curr3_input",
               "type": 2,
               "thresholds": {
@@ -3042,7 +3042,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP3R3V_RIGHT_VIN",
+              "name": "SMB_XP3R3V_RIGHT_VIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U20_XDPE12284_1/in1_input",
               "type": 1,
               "thresholds": {
@@ -3054,7 +3054,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP3R3V_RIGHT_VOUT",
+              "name": "SMB_XP3R3V_RIGHT_VOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U20_XDPE12284_1/in3_input",
               "type": 1,
               "thresholds": {
@@ -3066,7 +3066,7 @@
               "compute": "3*@/1000.0"
             },
             {
-              "name": "XP3R3V_RIGHT_PIN",
+              "name": "SMB_XP3R3V_RIGHT_PIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U20_XDPE12284_1/power1_input",
               "type": 0,
               "thresholds": {
@@ -3076,7 +3076,7 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "XP3R3V_RIGHT_POUT",
+              "name": "SMB_XP3R3V_RIGHT_POUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U20_XDPE12284_1/power3_input",
               "type": 0,
               "thresholds": {
@@ -3086,7 +3086,7 @@
               "compute": "3*@/1000000.0"
             },
             {
-              "name": "XP3R3V_RIGHT_TEMP",
+              "name": "SMB_XP3R3V_RIGHT_TEMP",
               "sysfsPath": "/run/devmap/sensors/SMB_U20_XDPE12284_1/temp1_input",
               "type": 3,
               "thresholds": {
@@ -3096,7 +3096,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP3R3V_LEFT_IIN",
+              "name": "SMB_XP3R3V_LEFT_IIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U229_XDPE12284_1/curr1_input",
               "type": 2,
               "thresholds": {
@@ -3106,7 +3106,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP3R3V_LEFT_IOUT",
+              "name": "SMB_XP3R3V_LEFT_IOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U229_XDPE12284_1/curr3_input",
               "type": 2,
               "thresholds": {
@@ -3116,7 +3116,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP3R3V_LEFT_VIN",
+              "name": "SMB_XP3R3V_LEFT_VIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U229_XDPE12284_1/in1_input",
               "type": 1,
               "thresholds": {
@@ -3128,7 +3128,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP3R3V_LEFT_VOUT",
+              "name": "SMB_XP3R3V_LEFT_VOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U229_XDPE12284_1/in3_input",
               "type": 1,
               "thresholds": {
@@ -3140,7 +3140,7 @@
               "compute": "3*@/1000.0"
             },
             {
-              "name": "XP3R3V_LEFT_PIN",
+              "name": "SMB_XP3R3V_LEFT_PIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U229_XDPE12284_1/power1_input",
               "type": 0,
               "thresholds": {
@@ -3150,7 +3150,7 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "XP3R3V_LEFT_POUT",
+              "name": "SMB_XP3R3V_LEFT_POUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U229_XDPE12284_1/power3_input",
               "type": 0,
               "thresholds": {
@@ -3160,7 +3160,7 @@
               "compute": "3*@/1000000.0"
             },
             {
-              "name": "XP3R3V_LEFT_TEMP",
+              "name": "SMB_XP3R3V_LEFT_TEMP",
               "sysfsPath": "/run/devmap/sensors/SMB_U229_XDPE12284_1/temp1_input",
               "type": 3,
               "thresholds": {
@@ -3170,7 +3170,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_XP0R9V_TH5_TRVDD_1_IIN",
+              "name": "SMB_XP0R75V_XP0R9V_TH5_TRVDD_1_IIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U86_XDPE12284_2/curr1_input",
               "type": 2,
               "thresholds": {
@@ -3180,7 +3180,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R9V_TH5_TRVDD_1_IOUT",
+              "name": "SMB_XP0R9V_TH5_TRVDD_1_IOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U86_XDPE12284_2/curr3_input",
               "type": 2,
               "thresholds": {
@@ -3190,7 +3190,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_TH5_TRVDD_1_IOUT",
+              "name": "SMB_XP0R75V_TH5_TRVDD_1_IOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U86_XDPE12284_2/curr4_input",
               "type": 2,
               "thresholds": {
@@ -3200,7 +3200,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_XP0R9V_TH5_TRVDD_1_VIN",
+              "name": "SMB_XP0R75V_XP0R9V_TH5_TRVDD_1_VIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U86_XDPE12284_2/in1_input",
               "type": 1,
               "thresholds": {
@@ -3212,7 +3212,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R9V_TH5_TRVDD_1_VOUT",
+              "name": "SMB_XP0R9V_TH5_TRVDD_1_VOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U86_XDPE12284_2/in3_input",
               "type": 1,
               "thresholds": {
@@ -3224,7 +3224,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_TH5_TRVDD_1_VOUT",
+              "name": "SMB_XP0R75V_TH5_TRVDD_1_VOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U86_XDPE12284_2/in4_input",
               "type": 1,
               "thresholds": {
@@ -3236,7 +3236,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_XP0R9V_TH5_TRVDD_1_PIN",
+              "name": "SMB_XP0R75V_XP0R9V_TH5_TRVDD_1_PIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U86_XDPE12284_2/power1_input",
               "type": 0,
               "thresholds": {
@@ -3246,7 +3246,7 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "XP0R9V_TH5_TRVDD_1_POUT",
+              "name": "SMB_XP0R9V_TH5_TRVDD_1_POUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U86_XDPE12284_2/power3_input",
               "type": 0,
               "thresholds": {
@@ -3256,7 +3256,7 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "XP0R75V_TH5_TRVDD_1_POUT",
+              "name": "SMB_XP0R75V_TH5_TRVDD_1_POUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U86_XDPE12284_2/power4_input",
               "type": 0,
               "thresholds": {
@@ -3266,7 +3266,7 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "XP0R9V_TH5_TRVDD_1_TEMP",
+              "name": "SMB_XP0R9V_TH5_TRVDD_1_TEMP",
               "sysfsPath": "/run/devmap/sensors/SMB_U86_XDPE12284_2/temp1_input",
               "type": 3,
               "thresholds": {
@@ -3276,7 +3276,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_TH5_TRVDD_1_TEMP",
+              "name": "SMB_XP0R75V_TH5_TRVDD_1_TEMP",
               "sysfsPath": "/run/devmap/sensors/SMB_U86_XDPE12284_2/temp2_input",
               "type": 3,
               "thresholds": {
@@ -3286,7 +3286,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_XP0R9V_TH5_TRVDD_0_IIN",
+              "name": "SMB_XP0R75V_XP0R9V_TH5_TRVDD_0_IIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U92_XDPE12284_2/curr1_input",
               "type": 2,
               "thresholds": {
@@ -3296,7 +3296,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R9V_TH5_TRVDD_0_IOUT",
+              "name": "SMB_XP0R9V_TH5_TRVDD_0_IOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U92_XDPE12284_2/curr3_input",
               "type": 2,
               "thresholds": {
@@ -3306,7 +3306,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_TH5_TRVDD_0_IOUT",
+              "name": "SMB_XP0R75V_TH5_TRVDD_0_IOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U92_XDPE12284_2/curr4_input",
               "type": 2,
               "thresholds": {
@@ -3316,7 +3316,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_XP0R9V_TH5_TRVDD_0_VIN",
+              "name": "SMB_XP0R75V_XP0R9V_TH5_TRVDD_0_VIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U92_XDPE12284_2/in1_input",
               "type": 1,
               "thresholds": {
@@ -3328,7 +3328,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R9V_TH5_TRVDD_0_VOUT",
+              "name": "SMB_XP0R9V_TH5_TRVDD_0_VOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U92_XDPE12284_2/in3_input",
               "type": 1,
               "thresholds": {
@@ -3340,7 +3340,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_TH5_TRVDD_0_VOUT",
+              "name": "SMB_XP0R75V_TH5_TRVDD_0_VOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U92_XDPE12284_2/in4_input",
               "type": 1,
               "thresholds": {
@@ -3352,7 +3352,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_XP0R9V_TH5_TRVDD_0_PIN",
+              "name": "SMB_XP0R75V_XP0R9V_TH5_TRVDD_0_PIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U92_XDPE12284_2/power1_input",
               "type": 0,
               "thresholds": {
@@ -3362,7 +3362,7 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "XP0R9V_TH5_TRVDD_0_POUT",
+              "name": "SMB_XP0R9V_TH5_TRVDD_0_POUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U92_XDPE12284_2/power3_input",
               "type": 0,
               "thresholds": {
@@ -3372,7 +3372,7 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "XP0R75V_TH5_TRVDD_0_POUT",
+              "name": "SMB_XP0R75V_TH5_TRVDD_0_POUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U92_XDPE12284_2/power4_input",
               "type": 0,
               "thresholds": {
@@ -3382,7 +3382,7 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "XP0R75V_XP0R9V_TH5_TRVDD_0_TEMP",
+              "name": "SMB_XP0R75V_XP0R9V_TH5_TRVDD_0_TEMP",
               "sysfsPath": "/run/devmap/sensors/SMB_U92_XDPE12284_2/temp1_input",
               "type": 3,
               "thresholds": {
@@ -3392,7 +3392,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_TH5_TRVDD_0_TEMP",
+              "name": "SMB_XP0R75V_TH5_TRVDD_0_TEMP",
               "sysfsPath": "/run/devmap/sensors/SMB_U92_XDPE12284_2/temp2_input",
               "type": 3,
               "thresholds": {
@@ -3409,13 +3409,13 @@
         {
           "sensors": [
             {
-              "name": "TH5_VDD_CORE_IIN",
+              "name": "SMB_TH5_VDD_CORE_IIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U122_PMBUS_1/curr1_input",
               "type": 2,
               "compute": "@/1000.0"
             },
             {
-              "name": "TH5_VDD_CORE_IOUT",
+              "name": "SMB_TH5_VDD_CORE_IOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U122_PMBUS_1/curr3_input",
               "type": 2,
               "thresholds": {
@@ -3425,7 +3425,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "TH5_VDD_CORE_VIN",
+              "name": "SMB_TH5_VDD_CORE_VIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U122_PMBUS_1/in1_input",
               "type": 1,
               "thresholds": {
@@ -3437,7 +3437,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "TH5_VDD_CORE_VOUT",
+              "name": "SMB_TH5_VDD_CORE_VOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U122_PMBUS_1/in2_input",
               "type": 1,
               "thresholds": {
@@ -3449,7 +3449,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "TH5_VDD_CORE_PIN",
+              "name": "SMB_TH5_VDD_CORE_PIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U122_PMBUS_1/power1_input",
               "type": 0,
               "thresholds": {
@@ -3459,7 +3459,7 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "TH5_VDD_CORE_POUT",
+              "name": "SMB_TH5_VDD_CORE_POUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U122_PMBUS_1/power3_input",
               "type": 0,
               "thresholds": {
@@ -3469,7 +3469,7 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "TH5_VDD_CORE_TEMP",
+              "name": "SMB_TH5_VDD_CORE_TEMP",
               "sysfsPath": "/run/devmap/sensors/SMB_U122_PMBUS_1/temp1_input",
               "type": 3,
               "thresholds": {
@@ -3479,7 +3479,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP3R3V_RIGHT_IIN",
+              "name": "SMB_XP3R3V_RIGHT_IIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U20_XDPE12284_1/curr1_input",
               "type": 2,
               "thresholds": {
@@ -3489,7 +3489,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP3R3V_RIGHT_IOUT",
+              "name": "SMB_XP3R3V_RIGHT_IOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U20_XDPE12284_1/curr2_input",
               "type": 2,
               "thresholds": {
@@ -3499,7 +3499,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP3R3V_RIGHT_PHASE1_IOUT",
+              "name": "SMB_XP3R3V_RIGHT_PHASE1_IOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U20_XDPE12284_1/curr3_input",
               "type": 2,
               "thresholds": {
@@ -3509,7 +3509,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP3R3V_RIGHT_PHASE2_IOUT",
+              "name": "SMB_XP3R3V_RIGHT_PHASE2_IOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U20_XDPE12284_1/curr4_input",
               "type": 2,
               "thresholds": {
@@ -3519,7 +3519,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP3R3V_RIGHT_PHASE3_IOUT",
+              "name": "SMB_XP3R3V_RIGHT_PHASE3_IOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U20_XDPE12284_1/curr5_input",
               "type": 2,
               "thresholds": {
@@ -3529,7 +3529,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP3R3V_RIGHT_PHASE4_IOUT",
+              "name": "SMB_XP3R3V_RIGHT_PHASE4_IOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U20_XDPE12284_1/curr6_input",
               "type": 2,
               "thresholds": {
@@ -3539,7 +3539,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP3R3V_RIGHT_VIN",
+              "name": "SMB_XP3R3V_RIGHT_VIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U20_XDPE12284_1/in1_input",
               "type": 1,
               "thresholds": {
@@ -3551,7 +3551,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP3R3V_RIGHT_VOUT",
+              "name": "SMB_XP3R3V_RIGHT_VOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U20_XDPE12284_1/in2_input",
               "type": 1,
               "thresholds": {
@@ -3563,7 +3563,7 @@
               "compute": "3*@/1000.0"
             },
             {
-              "name": "XP3R3V_RIGHT_PIN",
+              "name": "SMB_XP3R3V_RIGHT_PIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U20_XDPE12284_1/power1_input",
               "type": 0,
               "thresholds": {
@@ -3573,7 +3573,7 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "XP3R3V_RIGHT_POUT",
+              "name": "SMB_XP3R3V_RIGHT_POUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U20_XDPE12284_1/power2_input",
               "type": 0,
               "thresholds": {
@@ -3583,7 +3583,7 @@
               "compute": "3*@/1000000.0"
             },
             {
-              "name": "XP3R3V_RIGHT_TEMP",
+              "name": "SMB_XP3R3V_RIGHT_TEMP",
               "sysfsPath": "/run/devmap/sensors/SMB_U20_XDPE12284_1/temp1_input",
               "type": 3,
               "thresholds": {
@@ -3593,7 +3593,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP3R3V_LEFT_IIN",
+              "name": "SMB_XP3R3V_LEFT_IIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U229_XDPE12284_1/curr1_input",
               "type": 2,
               "thresholds": {
@@ -3603,7 +3603,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP3R3V_LEFT_IOUT",
+              "name": "SMB_XP3R3V_LEFT_IOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U229_XDPE12284_1/curr2_input",
               "type": 2,
               "thresholds": {
@@ -3613,7 +3613,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP3R3V_LEFT_PHASE1_IOUT",
+              "name": "SMB_XP3R3V_LEFT_PHASE1_IOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U229_XDPE12284_1/curr3_input",
               "type": 2,
               "thresholds": {
@@ -3623,7 +3623,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP3R3V_LEFT_PHASE2_IOUT",
+              "name": "SMB_XP3R3V_LEFT_PHASE2_IOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U229_XDPE12284_1/curr4_input",
               "type": 2,
               "thresholds": {
@@ -3633,7 +3633,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP3R3V_LEFT_PHASE3_IOUT",
+              "name": "SMB_XP3R3V_LEFT_PHASE3_IOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U229_XDPE12284_1/curr5_input",
               "type": 2,
               "thresholds": {
@@ -3643,7 +3643,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP3R3V_LEFT_PHASE4_IOUT",
+              "name": "SMB_XP3R3V_LEFT_PHASE4_IOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U229_XDPE12284_1/curr6_input",
               "type": 2,
               "thresholds": {
@@ -3653,7 +3653,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP3R3V_LEFT_VIN",
+              "name": "SMB_XP3R3V_LEFT_VIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U229_XDPE12284_1/in1_input",
               "type": 1,
               "thresholds": {
@@ -3665,7 +3665,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP3R3V_LEFT_VOUT",
+              "name": "SMB_XP3R3V_LEFT_VOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U229_XDPE12284_1/in2_input",
               "type": 1,
               "thresholds": {
@@ -3677,7 +3677,7 @@
               "compute": "3*@/1000.0"
             },
             {
-              "name": "XP3R3V_LEFT_PIN",
+              "name": "SMB_XP3R3V_LEFT_PIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U229_XDPE12284_1/power1_input",
               "type": 0,
               "thresholds": {
@@ -3687,7 +3687,7 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "XP3R3V_LEFT_POUT",
+              "name": "SMB_XP3R3V_LEFT_POUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U229_XDPE12284_1/power2_input",
               "type": 0,
               "thresholds": {
@@ -3697,7 +3697,7 @@
               "compute": "3*@/1000000.0"
             },
             {
-              "name": "XP3R3V_LEFT_TEMP",
+              "name": "SMB_XP3R3V_LEFT_TEMP",
               "sysfsPath": "/run/devmap/sensors/SMB_U229_XDPE12284_1/temp1_input",
               "type": 3,
               "thresholds": {
@@ -3707,7 +3707,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_XP0R9V_TH5_TRVDD_1_IIN",
+              "name": "SMB_XP0R75V_XP0R9V_TH5_TRVDD_1_IIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U86_XDPE12284_2/curr1_input",
               "type": 2,
               "thresholds": {
@@ -3717,7 +3717,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R9V_TH5_TRVDD_1_IOUT",
+              "name": "SMB_XP0R9V_TH5_TRVDD_1_IOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U86_XDPE12284_2/curr2_input",
               "type": 2,
               "thresholds": {
@@ -3727,7 +3727,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R9V_TH5_TRVDD_1_PHASE1_IOUT",
+              "name": "SMB_XP0R9V_TH5_TRVDD_1_PHASE1_IOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U86_XDPE12284_2/curr3_input",
               "type": 2,
               "thresholds": {
@@ -3737,7 +3737,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R9V_TH5_TRVDD_1_PHASE2_IOUT",
+              "name": "SMB_XP0R9V_TH5_TRVDD_1_PHASE2_IOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U86_XDPE12284_2/curr4_input",
               "type": 2,
               "thresholds": {
@@ -3747,7 +3747,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R9V_TH5_TRVDD_1_PHASE3_IOUT",
+              "name": "SMB_XP0R9V_TH5_TRVDD_1_PHASE3_IOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U86_XDPE12284_2/curr5_input",
               "type": 2,
               "thresholds": {
@@ -3757,7 +3757,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_TH5_TRVDD_1_IOUT",
+              "name": "SMB_XP0R75V_TH5_TRVDD_1_IOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U86_XDPE12284_2/curr6_input",
               "type": 2,
               "thresholds": {
@@ -3767,7 +3767,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_TH5_TRVDD_1_PHASE1_IOUT",
+              "name": "SMB_XP0R75V_TH5_TRVDD_1_PHASE1_IOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U86_XDPE12284_2/curr7_input",
               "type": 2,
               "thresholds": {
@@ -3777,7 +3777,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_TH5_TRVDD_1_PHASE2_IOUT",
+              "name": "SMB_XP0R75V_TH5_TRVDD_1_PHASE2_IOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U86_XDPE12284_2/curr8_input",
               "type": 2,
               "thresholds": {
@@ -3787,7 +3787,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_XP0R9V_TH5_TRVDD_1_VIN",
+              "name": "SMB_XP0R75V_XP0R9V_TH5_TRVDD_1_VIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U86_XDPE12284_2/in1_input",
               "type": 1,
               "thresholds": {
@@ -3799,7 +3799,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R9V_TH5_TRVDD_1_VOUT",
+              "name": "SMB_XP0R9V_TH5_TRVDD_1_VOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U86_XDPE12284_2/in2_input",
               "type": 1,
               "thresholds": {
@@ -3811,7 +3811,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_TH5_TRVDD_1_VOUT",
+              "name": "SMB_XP0R75V_TH5_TRVDD_1_VOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U86_XDPE12284_2/in3_input",
               "type": 1,
               "thresholds": {
@@ -3823,7 +3823,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_XP0R9V_TH5_TRVDD_1_PIN",
+              "name": "SMB_XP0R75V_XP0R9V_TH5_TRVDD_1_PIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U86_XDPE12284_2/power1_input",
               "type": 0,
               "thresholds": {
@@ -3833,7 +3833,7 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "XP0R9V_TH5_TRVDD_1_POUT",
+              "name": "SMB_XP0R9V_TH5_TRVDD_1_POUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U86_XDPE12284_2/power2_input",
               "type": 0,
               "thresholds": {
@@ -3843,7 +3843,7 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "XP0R75V_TH5_TRVDD_1_POUT",
+              "name": "SMB_XP0R75V_TH5_TRVDD_1_POUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U86_XDPE12284_2/power3_input",
               "type": 0,
               "thresholds": {
@@ -3853,7 +3853,7 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "XP0R75V_XP0R9V_TH5_TRVDD_1_TEMP",
+              "name": "SMB_XP0R75V_XP0R9V_TH5_TRVDD_1_TEMP",
               "sysfsPath": "/run/devmap/sensors/SMB_U86_XDPE12284_2/temp1_input",
               "type": 3,
               "thresholds": {
@@ -3863,7 +3863,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_XP0R9V_TH5_TRVDD_0_IIN",
+              "name": "SMB_XP0R75V_XP0R9V_TH5_TRVDD_0_IIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U92_XDPE12284_2/curr1_input",
               "type": 2,
               "thresholds": {
@@ -3873,7 +3873,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R9V_TH5_TRVDD_0_IOUT",
+              "name": "SMB_XP0R9V_TH5_TRVDD_0_IOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U92_XDPE12284_2/curr2_input",
               "type": 2,
               "thresholds": {
@@ -3883,7 +3883,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R9V_TH5_TRVDD_0_PHASE1_IOUT",
+              "name": "SMB_XP0R9V_TH5_TRVDD_0_PHASE1_IOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U92_XDPE12284_2/curr3_input",
               "type": 2,
               "thresholds": {
@@ -3893,7 +3893,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R9V_TH5_TRVDD_0_PHASE2_IOUT",
+              "name": "SMB_XP0R9V_TH5_TRVDD_0_PHASE2_IOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U92_XDPE12284_2/curr4_input",
               "type": 2,
               "thresholds": {
@@ -3903,7 +3903,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R9V_TH5_TRVDD_0_PHASE3_IOUT",
+              "name": "SMB_XP0R9V_TH5_TRVDD_0_PHASE3_IOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U92_XDPE12284_2/curr5_input",
               "type": 2,
               "thresholds": {
@@ -3913,7 +3913,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_TH5_TRVDD_0_IOUT",
+              "name": "SMB_XP0R75V_TH5_TRVDD_0_IOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U92_XDPE12284_2/curr6_input",
               "type": 2,
               "thresholds": {
@@ -3923,7 +3923,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_TH5_TRVDD_0_PHASE1_IOUT",
+              "name": "SMB_XP0R75V_TH5_TRVDD_0_PHASE1_IOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U92_XDPE12284_2/curr7_input",
               "type": 2,
               "thresholds": {
@@ -3933,7 +3933,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_TH5_TRVDD_0_PHASE2_IOUT",
+              "name": "SMB_XP0R75V_TH5_TRVDD_0_PHASE2_IOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U92_XDPE12284_2/curr8_input",
               "type": 2,
               "thresholds": {
@@ -3943,7 +3943,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_XP0R9V_TH5_TRVDD_0_VIN",
+              "name": "SMB_XP0R75V_XP0R9V_TH5_TRVDD_0_VIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U92_XDPE12284_2/in1_input",
               "type": 1,
               "thresholds": {
@@ -3955,7 +3955,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R9V_TH5_TRVDD_0_VOUT",
+              "name": "SMB_XP0R9V_TH5_TRVDD_0_VOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U92_XDPE12284_2/in2_input",
               "type": 1,
               "thresholds": {
@@ -3967,7 +3967,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_TH5_TRVDD_0_VOUT",
+              "name": "SMB_XP0R75V_TH5_TRVDD_0_VOUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U92_XDPE12284_2/in3_input",
               "type": 1,
               "thresholds": {
@@ -3979,7 +3979,7 @@
               "compute": "@/1000.0"
             },
             {
-              "name": "XP0R75V_XP0R9V_TH5_TRVDD_0_PIN",
+              "name": "SMB_XP0R75V_XP0R9V_TH5_TRVDD_0_PIN",
               "sysfsPath": "/run/devmap/sensors/SMB_U92_XDPE12284_2/power1_input",
               "type": 0,
               "thresholds": {
@@ -3989,7 +3989,7 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "XP0R9V_TH5_TRVDD_0_POUT",
+              "name": "SMB_XP0R9V_TH5_TRVDD_0_POUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U92_XDPE12284_2/power2_input",
               "type": 0,
               "thresholds": {
@@ -3999,7 +3999,7 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "XP0R75V_TH5_TRVDD_0_POUT",
+              "name": "SMB_XP0R75V_TH5_TRVDD_0_POUT",
               "sysfsPath": "/run/devmap/sensors/SMB_U92_XDPE12284_2/power3_input",
               "type": 0,
               "thresholds": {
@@ -4009,7 +4009,7 @@
               "compute": "@/1000000.0"
             },
             {
-              "name": "XP0R75V_XP0R9V_TH5_TRVDD_0_TEMP",
+              "name": "SMB_XP0R75V_XP0R9V_TH5_TRVDD_0_TEMP",
               "sysfsPath": "/run/devmap/sensors/SMB_U92_XDPE12284_2/temp1_input",
               "type": 3,
               "thresholds": {

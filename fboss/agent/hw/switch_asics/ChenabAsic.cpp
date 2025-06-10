@@ -212,6 +212,8 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::SAI_SET_TC_WITH_USER_DEFINED_TRAP_CPU_ACTION:
     case HwAsic::Feature::DRAM_DATAPATH_PACKET_ERROR_STATS:
     case HwAsic::Feature::EGRESS_POOL_AVAILABLE_SIZE_ATTRIBUTE_SUPPORTED:
+    case HwAsic::Feature::VENDOR_SWITCH_CONGESTION_MANAGEMENT_ERRORS:
+    case HwAsic::Feature::PFC_WATCHDOG_TIMER_GRANULARITY:
       return false;
   }
   return false;
@@ -440,4 +442,9 @@ ChenabAsic::desiredLoopbackModes() const {
       {cfg::PortType::MANAGEMENT_PORT, cfg::PortLoopbackMode::MAC}};
   return kLoopbackMode;
 }
+
+uint32_t ChenabAsic::getThresholdGranularity() const {
+  return getPacketBufferUnitSize() * 64;
+}
+
 } // namespace facebook::fboss

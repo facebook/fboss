@@ -70,6 +70,18 @@ class ChenabAsic : public HwAsic {
   std::optional<uint32_t> getMaxEcmpGroups() const override;
   std::optional<uint32_t> getMaxEcmpMembers() const override;
   std::optional<uint32_t> getMaxDlbEcmpGroups() const override;
+  uint32_t getThresholdGranularity() const override;
+
+  virtual std::optional<uint32_t> getMaxAclTables() const override {
+    // TODO(Chenab): Picked a reasonable number for now, revise this based on
+    // vendor guidance
+    return 8;
+  }
+  virtual std::optional<uint32_t> getMaxAclEntries() const override {
+    // TODO(Chenab): Picked a reasonable number for now, revise this based on
+    // vendor guidance
+    return 64;
+  }
 
  private:
   bool isSupportedFabric(Feature feature) const;

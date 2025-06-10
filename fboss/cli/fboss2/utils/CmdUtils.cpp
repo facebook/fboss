@@ -390,6 +390,10 @@ bool isVoqOrFabric(cfg::SwitchType switchType) {
       switchType == cfg::SwitchType::FABRIC;
 }
 
+bool isFabricSwitch(cfg::SwitchType switchType) {
+  return switchType == cfg::SwitchType::FABRIC;
+}
+
 std::map<std::string, FabricEndpoint> getFabricEndpoints(
     const HostInfo& hostInfo) {
   std::map<std::string, FabricEndpoint> entries;
@@ -430,6 +434,27 @@ std::map<std::string, int64_t> getAgentFb303RegexCounters(
   }
 #endif
   return counters;
+}
+
+std::unordered_map<std::string, std::vector<std::string>>
+getCachedSwSwitchReachabilityInfo(
+    const HostInfo& hostInfo,
+    const std::vector<std::string>& switchNames) {
+  // Query swAgent for cached reachability information
+  std::unordered_map<std::string, std::vector<std::string>> reachabilityMatrix;
+  auto client =
+      utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
+
+  std::map<std::string, std::vector<std::string>> reachability;
+  client->sync_getSwitchReachability(reachability, switchNames);
+  for (auto& [switchName, reachablePorts] : reachability) {
+    reachabilityMatrix[switchName].insert(
+        reachabilityMatrix[switchName].end(),
+        reachablePorts.begin(),
+        reachablePorts.end());
+  }
+
+  return reachabilityMatrix;
 }
 
 } // namespace facebook::fboss::utils

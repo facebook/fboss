@@ -140,7 +140,7 @@ void SwSwitchInitializer::init(
     // aggregated counters more accurate with less spikes and dips
     fs_->setSteady(true);
     std::function<void()> callback(std::bind(updateStats, sw_));
-    auto timeInterval = std::chrono::seconds(1);
+    auto timeInterval = std::chrono::seconds(FLAGS_update_stats_interval_s);
     fs_->addFunction(callback, timeInterval, "updateStats");
     fs_->start();
     XLOG(DBG2) << "Started background thread: UpdateStatsThread";
@@ -161,7 +161,18 @@ void SwAgentInitializer::stopServer() {
   // stop Thrift server: stop all worker threads and
   // stop accepting new connections
   XLOG(DBG2) << "Stop listening on thrift server";
+
+  // stopListening behavior:
+  //  - Thrift server stops accepting new thrift requests
+  //  - expects the queued requests to complete execution within
+  //    JOIN_TIMEOUT or else, Thrift server crashes with FATAL error.
+  //
+  // However, the queued requests continue to get processed, and can thus
+  // cause us to go over the JOIN_TIMEOUT.
+  // Avoid it by flushing the queue.
+  server_->setQueueTimeout(std::chrono::seconds(1));
   server_->stopListening();
+
   XLOG(DBG2) << "Stopping thrift server";
   auto stopController = server_->getStopController();
   if (auto lockedPtr = stopController.lock()) {

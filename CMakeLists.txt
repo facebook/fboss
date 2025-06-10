@@ -470,6 +470,14 @@ add_fbthrift_cpp_library(
     phy_cpp2
     transceiver_cpp2
     pim_state_cpp2
+    port_state_cpp2
+)
+add_fbthrift_cpp_library(
+  port_state_cpp2
+  fboss/qsfp_service/if/port_state.thrift
+  OPTIONS
+    json
+    reflection
 )
 add_fbthrift_cpp_library(
   qsfp_stats_cpp2
@@ -696,6 +704,7 @@ add_fbthrift_cpp_library(
     reflection
   DEPENDS
     hardware_stats_cpp2
+    sensor_service_cpp2
     phy_cpp2
 )
 add_fbthrift_cpp_library(
@@ -984,6 +993,7 @@ add_dependencies(fboss_platform_services
   sensor_service_hw_test
   weutil_hw_test
   platform_manager_hw_test
+  cross_config_validator_test
 )
 
 add_custom_target(qsfp_targets)

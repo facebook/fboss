@@ -376,18 +376,26 @@ add_executable(fboss2
   fboss/cli/fboss2/commands/set/interface/prbs/CmdSetInterfacePrbs.h
   fboss/cli/fboss2/commands/set/interface/prbs/state/CmdSetInterfacePrbsState.h
   fboss/cli/fboss2/commands/show/acl/CmdShowAcl.h
+  fboss/cli/fboss2/commands/show/acl/CmdShowAcl.cpp
   fboss/cli/fboss2/commands/show/agent/CmdShowAgentSsl.h
+  fboss/cli/fboss2/commands/show/agent/CmdShowAgentSsl.cpp
   fboss/cli/fboss2/commands/show/agent/CmdShowAgentFirmware.h
   fboss/cli/fboss2/commands/show/agent/CmdShowAgentFirmware.cpp
   fboss/cli/fboss2/commands/show/aggregateport/CmdShowAggregatePort.h
   fboss/cli/fboss2/commands/show/arp/CmdShowArp.h
+  fboss/cli/fboss2/commands/show/arp/CmdShowArp.cpp
   fboss/cli/fboss2/commands/show/dsf/CmdShowDsf.h
   fboss/cli/fboss2/commands/show/dsf/subscription/CmdShowDsfSubscription.h
   fboss/cli/fboss2/commands/show/dsfnodes/CmdShowDsfNodes.h
+  fboss/cli/fboss2/commands/show/dsfnodes/CmdShowDsfNodes.cpp
   fboss/cli/fboss2/commands/show/example/CmdShowExample.h
+  fboss/cli/fboss2/commands/show/example/CmdShowExample.cpp
   fboss/cli/fboss2/commands/show/fabric/CmdShowFabric.h
+  fboss/cli/fboss2/commands/show/fabric/CmdShowFabric.cpp
   fboss/cli/fboss2/commands/show/fabric/reachability/CmdShowFabricReachability.h
+  fboss/cli/fboss2/commands/show/fabric/reachability/CmdShowFabricReachability.cpp
   fboss/cli/fboss2/commands/show/fabric/reachability/uncached/CmdShowFabricReachabilityUncached.h
+  fboss/cli/fboss2/commands/show/fabric/reachability/uncached/CmdShowFabricReachabilityUncached.cpp
   fboss/cli/fboss2/commands/show/fabric/inputbalance/CmdShowFabricInputBalance.h
   fboss/cli/fboss2/commands/show/flowlet/CmdShowFlowlet.h
   fboss/cli/fboss2/commands/show/host/CmdShowHost.h
@@ -395,7 +403,9 @@ add_executable(fboss2
   fboss/cli/fboss2/commands/show/hwobject/CmdShowHwObject.h
   fboss/cli/fboss2/commands/show/l2/CmdShowL2.h
   fboss/cli/fboss2/commands/show/lldp/CmdShowLldp.h
+  fboss/cli/fboss2/commands/show/lldp/CmdShowLldp.cpp
   fboss/cli/fboss2/commands/show/ndp/CmdShowNdp.h
+  fboss/cli/fboss2/commands/show/ndp/CmdShowNdp.cpp
   fboss/cli/fboss2/commands/show/port/CmdShowPort.h
   fboss/cli/fboss2/commands/show/port/CmdShowPort.cpp
   fboss/cli/fboss2/commands/show/port/CmdShowPortQueue.h
@@ -406,6 +416,7 @@ add_executable(fboss2
   fboss/cli/fboss2/commands/show/mpls/CmdShowMplsRoute.h
   fboss/cli/fboss2/commands/show/mac/CmdShowMacAddrToBlock.h
   fboss/cli/fboss2/commands/show/mac/CmdShowMacDetails.h
+  fboss/cli/fboss2/commands/show/mac/CmdShowMacDetails.cpp
   fboss/cli/fboss2/commands/show/mirror/CmdShowMirror.h
   fboss/cli/fboss2/commands/show/interface/CmdShowInterface.h
   fboss/cli/fboss2/commands/show/interface/flaps/CmdShowInterfaceFlaps.h
@@ -426,9 +437,13 @@ add_executable(fboss2
   fboss/cli/fboss2/commands/show/interface/prbs/capabilities/CmdShowInterfacePrbsCapabilities.h
   fboss/cli/fboss2/commands/show/interface/prbs/state/CmdShowInterfacePrbsState.h
   fboss/cli/fboss2/commands/show/interface/prbs/stats/CmdShowInterfacePrbsStats.h
+  fboss/cli/fboss2/commands/show/rif/CmdShowRif.h
+  fboss/cli/fboss2/commands/show/rif/CmdShowRif.cpp
   fboss/cli/fboss2/commands/show/sdk/dump/CmdShowSdkDump.h
   fboss/cli/fboss2/commands/show/systemport/CmdShowSystemPort.h
+  fboss/cli/fboss2/commands/show/systemport/CmdShowSystemPort.cpp
   fboss/cli/fboss2/commands/show/cpuport/CmdShowCpuPort.h
+  fboss/cli/fboss2/commands/show/cpuport/CmdShowCpuPort.cpp
   fboss/cli/fboss2/commands/show/teflow/CmdShowTeFlow.h
   fboss/cli/fboss2/commands/show/transceiver/CmdShowTransceiver.h
   fboss/cli/fboss2/commands/start/pcap/CmdStartPcap.h

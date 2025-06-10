@@ -50,13 +50,21 @@ enum ModbusDeviceType {
  * Structure to describe a modbus device (PSU, BBU, etc).
  */
 struct ModbusDeviceInfo {
-  1: i16 devAddress;
+  /* Represents the 8-bit modbus address as recognized by the device.
+     The same address may be discovered across other physical ports/buses.
+     Considering this no longer uniquely represents a physical address,
+     callers are urged to migrate to the uniqueDevAddress */
+  1: i16 devAddress (deprecated = "Use uniqueDevAddress");
   2: ModbusDeviceMode mode;
   3: i32 baudrate;
   4: i32 timeouts;
   5: i32 crcErrors;
   6: i32 miscErrors;
   7: ModbusDeviceType deviceType;
+
+  /* Address unique for the system and encodes both the 8-bit modbus address
+     and the numeric representation of the port over which it was discovered */
+  8: i16 uniqueDevAddress = 0;
 }
 
 /*
@@ -64,6 +72,8 @@ struct ModbusDeviceInfo {
  * such as holding registers, input registers
  */
 struct ReadWordRegistersRequest {
+  /* Can be either of ModbusDeviceInfo.devAddress (if address is unique to
+     the system) or ModbusDeviceInfo.uniqueDevAddress (Recommended). */
   1: i16 devAddress;
   2: i32 regAddress;
   3: i32 numRegisters;
@@ -76,6 +86,8 @@ struct ReadWordRegistersResponse {
 }
 
 struct WriteSingleRegisterRequest {
+  /* Can be either of ModbusDeviceInfo.devAddress (if address is unique to
+     the system) or ModbusDeviceInfo.uniqueDevAddress (Recommended). */
   1: i16 devAddress;
   2: i32 regAddress;
   3: i32 regValue;
@@ -83,6 +95,8 @@ struct WriteSingleRegisterRequest {
 }
 
 struct PresetMultipleRegistersRequest {
+  /* Can be either of ModbusDeviceInfo.devAddress (if address is unique to
+     the system) or ModbusDeviceInfo.uniqueDevAddress (Recommended). */
   1: i16 devAddress;
   2: i32 regAddress;
   3: list<i32> regValue;
@@ -102,6 +116,8 @@ struct FileRecord {
 }
 
 struct ReadFileRecordRequest {
+  /* Can be either of ModbusDeviceInfo.devAddress (if address is unique to
+     the system) or ModbusDeviceInfo.uniqueDevAddress (Recommended). */
   1: i16 devAddress;
   2: list<FileRecordReq> records;
   3: optional i32 timeout;
@@ -118,6 +134,8 @@ struct ReadFileRecordResponse {
  * device address or by device type.
  */
 union DeviceFilter {
+  /* Each element can be either of ModbusDeviceInfo.devAddress (if address is
+     unique to the system) or ModbusDeviceInfo.uniqueDevAddress (Recommended). */
   1: set<i16> addressFilter;
   2: set<ModbusDeviceType> typeFilter;
 }

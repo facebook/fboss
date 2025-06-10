@@ -5,7 +5,6 @@
 #include <folly/IPAddressV4.h>
 #include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/state/Port.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/VoqTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 

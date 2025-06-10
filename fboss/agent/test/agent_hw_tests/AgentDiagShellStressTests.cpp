@@ -46,8 +46,8 @@ class AgentDiagShellStressTest : public AgentHwTest {
     }
   }
 
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     // TODO: introduce diag shell feature
     return {};
   }

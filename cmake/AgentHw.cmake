@@ -66,6 +66,8 @@ target_link_libraries(hw_switch_warmboot_helper
   common_file_utils
   Folly::folly
   sw_switch_warmboot_helper
+  warm_boot_file_utils
+  state
 )
 
 target_link_libraries(hw_switch_fb303_stats

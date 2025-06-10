@@ -16,9 +16,9 @@
 namespace facebook::fboss {
 class AgentHwParityErrorTest : public AgentHwTest {
  protected:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::HW_SWITCH};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::HW_SWITCH};
   }
   void setCmdLineFlagOverrides() const override {
     AgentHwTest::setCmdLineFlagOverrides();

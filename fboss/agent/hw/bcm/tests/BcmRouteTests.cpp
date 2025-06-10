@@ -334,7 +334,8 @@ class BcmRouteHostReferenceTest : public BcmRouteTest {
             static_cast<NextHop>(
                 ResolvedNextHop(nexthop, InterfaceID(interface), weight)),
             AdminDistance::MAX_ADMIN_DISTANCE)
-            .getNextHopSet());
+            .getNextHopSet(),
+        std::nullopt);
   }
 
   long referenceCount(const BcmMultiPathNextHopKey& key) {
@@ -712,14 +713,15 @@ void BcmRouteTest::routeReferenceCountTest(
 void BcmRouteTest::verifyBcmHostReference(
     bcm_vrf_t vrf,
     const RouteNextHopSet& nexthops) {
-  auto count =
-      referenceCount(std::make_pair(vrf, nexthops)); // initial ref count
+  auto count = referenceCount(
+      std::make_tuple(vrf, nexthops, std::nullopt)); // initial ref count
 
   auto* ecmpHost = getHwSwitch()->getMultiPathNextHopTable()->getNextHopIf(
-      BcmMultiPathNextHopKey(vrf, nexthops));
+      BcmMultiPathNextHopKey(vrf, nexthops, std::nullopt));
   EXPECT_NE(ecmpHost, nullptr);
 
-  EXPECT_EQ(referenceCount(std::make_pair(vrf, nexthops)), count);
+  EXPECT_EQ(
+      referenceCount(std::make_tuple(vrf, nexthops, std::nullopt)), count);
 }
 
 void BcmRouteTest::verifyNextHopReferences(

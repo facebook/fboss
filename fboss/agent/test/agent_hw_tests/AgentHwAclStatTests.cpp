@@ -8,16 +8,15 @@ namespace facebook::fboss {
 
 class AgentHwAclStatTest : public AgentHwTest {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     if (!FLAGS_enable_acl_table_group) {
       return {
-          production_features::ProductionFeature::SINGLE_ACL_TABLE,
-          production_features::ProductionFeature::L3_FORWARDING};
+          ProductionFeature::SINGLE_ACL_TABLE,
+          ProductionFeature::L3_FORWARDING};
     }
     return {
-        production_features::ProductionFeature::MULTI_ACL_TABLE,
-        production_features::ProductionFeature::L3_FORWARDING};
+        ProductionFeature::MULTI_ACL_TABLE, ProductionFeature::L3_FORWARDING};
   }
 
   cfg::AclEntry* addDscpAcl(
@@ -38,11 +37,11 @@ class AgentHwAclStatTest : public AgentHwTest {
 
 class AgentHwAclStatCounterTypeTest : public AgentHwAclStatTest {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     auto features = AgentHwAclStatTest::getProductionFeaturesVerified();
-    features.push_back(production_features::ProductionFeature::
-                           SEPARATE_BYTE_AND_PACKET_ACL_COUNTERS);
+    features.push_back(
+        ProductionFeature::SEPARATE_BYTE_AND_PACKET_ACL_COUNTERS);
     return features;
   }
 };

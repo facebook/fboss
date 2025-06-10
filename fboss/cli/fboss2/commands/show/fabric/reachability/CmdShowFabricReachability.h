@@ -13,18 +13,19 @@
 #include <string>
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/cli/fboss2/CmdHandler.h"
+#include "fboss/cli/fboss2/commands/show/fabric/CmdShowFabric.h"
 #include "fboss/cli/fboss2/commands/show/fabric/reachability/gen-cpp2/model_types.h"
-#include "fboss/cli/fboss2/utils/CmdUtils.h"
 
 namespace facebook::fboss {
 
-struct CmdShowFabricReachabilityTraits : public BaseCommandTraits {
+struct CmdShowFabricReachabilityTraits : public ReadCommandTraits {
   using ParentCmd = CmdShowFabric;
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_SWITCH_NAME_LIST;
   using ObjectArgType = std::vector<std::string>;
   using RetType = cli::ShowFabricReachabilityModel;
 };
+
 class CmdShowFabricReachability : public CmdHandler<
                                       CmdShowFabricReachability,
                                       CmdShowFabricReachabilityTraits> {
@@ -34,67 +35,12 @@ class CmdShowFabricReachability : public CmdHandler<
 
   RetType queryClient(
       const HostInfo& hostInfo,
-      const ObjectArgType& queriedSwitchNames) {
-    std::map<std::string, std::vector<std::string>> reachabilityMatrix;
-
-    std::vector<std::string> switchNames;
-    if (queriedSwitchNames.size()) {
-      switchNames.reserve(queriedSwitchNames.size());
-      for (const auto& queriedSwitchName : queriedSwitchNames) {
-        switchNames.push_back(utils::removeFbDomains(queriedSwitchName));
-      }
-    }
-
-    // Query swAgent for cached reachability information
-    auto swAgentQueryFn =
-        [&reachabilityMatrix, &switchNames](
-            apache::thrift::Client<facebook::fboss::FbossCtrl>& client) {
-          std::map<std::string, std::vector<std::string>> reachability;
-          client.sync_getSwitchReachability(reachability, switchNames);
-          for (auto& [switchName, reachablePorts] : reachability) {
-            reachabilityMatrix[switchName].insert(
-                reachabilityMatrix[switchName].end(),
-                reachablePorts.begin(),
-                reachablePorts.end());
-          }
-        };
-
-    auto client =
-        utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
-    swAgentQueryFn(*client);
-
-    return createModel(reachabilityMatrix);
-  }
+      const ObjectArgType& queriedSwitchNames);
 
   static RetType createModel(
-      std::map<std::string, std::vector<std::string>>& reachabilityMatrix) {
-    RetType model;
-    for (auto& [switchName, reachability] : reachabilityMatrix) {
-      cli::ReachabilityEntry entry;
-      std::sort(
-          reachability.begin(), reachability.end(), utils::comparePortName);
-      entry.switchName() = switchName;
-      entry.reachablePorts() = reachability;
-      model.reachabilityEntries()->push_back(entry);
-    }
-    return model;
-  }
+      std::unordered_map<std::string, std::vector<std::string>>&
+          reachabilityMatrix);
 
-  static void printOutput(const RetType& model, std::ostream& out = std::cout) {
-    Table table;
-    table.setHeader({
-        "Switch Name",
-        "Reachable Via Ports",
-    });
-    for (const auto& entry : *model.reachabilityEntries()) {
-      std::stringstream ss;
-      std::copy(
-          (*entry.reachablePorts()).begin(),
-          (*entry.reachablePorts()).end(),
-          std::ostream_iterator<std::string>(ss, " "));
-      table.addRow({*entry.switchName(), ss.str()});
-    }
-    out << table << std::endl;
-  }
+  static void printOutput(const RetType& model, std::ostream& out = std::cout);
 };
 } // namespace facebook::fboss

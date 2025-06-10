@@ -73,6 +73,7 @@ DECLARE_int32(fboss_event_base_queue_limit);
 DECLARE_bool(dual_stage_rdsw_3q_2q);
 DECLARE_bool(dual_stage_edsw_3q_2q);
 DECLARE_bool(dual_stage_3q_2q_qos);
+DECLARE_bool(janga_test);
 
 bool isDualStage3Q2QMode();
 bool isDualStage3Q2QQos();
@@ -99,3 +100,9 @@ DECLARE_string(sdk_reg_dump_path_prefix);
 DECLARE_bool(type_dctype1_janga);
 DECLARE_bool(prod_invariant_config_test);
 DECLARE_int32(max_unprocessed_switch_reachability_changes);
+DECLARE_bool(enable_ecmp_resource_manager);
+DECLARE_int32(ecmp_resource_manager_make_before_break_buffer);
+
+DECLARE_int32(update_stats_interval_s);
+DECLARE_bool(update_route_with_dlb_type);
+DECLARE_int32(agent_exit_delay_s);

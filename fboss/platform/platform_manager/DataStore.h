@@ -7,6 +7,7 @@
 #include <string>
 
 #include "fboss/platform/platform_manager/gen-cpp2/platform_manager_config_types.h"
+#include "fboss/platform/platform_manager/gen-cpp2/platform_manager_presence_types.h"
 
 using EepromContents = std::vector<
     std::pair<std::string /* eeprom key */, std::string /* eeprom value */>>;
@@ -65,12 +66,15 @@ class DataStore {
   // Update PmUnitInfo for a given slotPath.
   // For valid version update, expect all values (productProductionState,
   // productVersion, productSubVersion) to be passed.
-  void updatePmUnitInfo(
+  void updatePmUnitInfo(const std::string& slotPath, const PmUnitInfo& info);
+
+  void updatePmUnitSuccessfullyExplored(
       const std::string& slotPath,
-      const std::string& pmUnitName,
-      std::optional<int> productProductionState = std::nullopt,
-      std::optional<int> productVersion = std::nullopt,
-      std::optional<int> productSubVersion = std::nullopt);
+      bool successfullyExplored);
+
+  void updatePmUnitPresenceInfo(
+      const std::string& slotPath,
+      const PresenceInfo& presenceInfo);
 
   // Resolve PmUnitConfig based on the platformSubVersion from eeprom.
   // Throws if none of the VersionedPmUnitConfig matches the version.

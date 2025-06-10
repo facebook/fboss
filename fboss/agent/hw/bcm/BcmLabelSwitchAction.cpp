@@ -84,12 +84,14 @@ void BcmLabelSwitchAction::program(
       nexthop = hw->writableMultiPathNextHopTable()->referenceOrEmplaceNextHop(
           BcmMultiPathNextHopKey(
               0 /* vrfid */,
-              utility::stripLabelForwarding(entry.normalizedNextHops())));
+              utility::stripLabelForwarding(entry.normalizedNextHops()),
+              std::nullopt));
     } else {
       // put decremented TTL into outgoing L3 packets
       action_.flags |= BCM_MPLS_SWITCH_OUTER_TTL;
       nexthop = hw->writableMultiPathNextHopTable()->referenceOrEmplaceNextHop(
-          BcmMultiPathNextHopKey(0 /* vrfid */, entry.normalizedNextHops()));
+          BcmMultiPathNextHopKey(
+              0 /* vrfid */, entry.normalizedNextHops(), std::nullopt));
     }
     action_.egress_if = nexthop->getEgressId();
   } else {

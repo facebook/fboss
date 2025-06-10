@@ -114,6 +114,86 @@
         "profileID": 42
       },
       {
+        "aPortName": "fab1/30/1",
+        "zPortName": "fab1/33/1",
+        "profileID": 42
+      },
+      {
+        "aPortName": "fab1/30/2",
+        "zPortName": "fab1/33/2",
+        "profileID": 42
+      },
+      {
+        "aPortName": "fab1/30/3",
+        "zPortName": "fab1/33/3",
+        "profileID": 42
+      },
+      {
+        "aPortName": "fab1/30/4",
+        "zPortName": "fab1/33/4",
+        "profileID": 42
+      },
+      {
+        "aPortName": "fab1/30/5",
+        "zPortName": "fab1/33/5",
+        "profileID": 42
+      },
+      {
+        "aPortName": "fab1/30/6",
+        "zPortName": "fab1/33/6",
+        "profileID": 42
+      },
+      {
+        "aPortName": "fab1/30/7",
+        "zPortName": "fab1/33/7",
+        "profileID": 42
+      },
+      {
+        "aPortName": "fab1/30/8",
+        "zPortName": "fab1/33/8",
+        "profileID": 42
+      },
+      {
+        "aPortName": "fab1/29/1",
+        "zPortName": "fab1/32/1",
+        "profileID": 42
+      },
+      {
+        "aPortName": "fab1/29/2",
+        "zPortName": "fab1/32/2",
+        "profileID": 42
+      },
+      {
+        "aPortName": "fab1/29/3",
+        "zPortName": "fab1/32/3",
+        "profileID": 42
+      },
+      {
+        "aPortName": "fab1/29/4",
+        "zPortName": "fab1/32/4",
+        "profileID": 42
+      },
+      {
+        "aPortName": "fab1/29/5",
+        "zPortName": "fab1/32/5",
+        "profileID": 42
+      },
+      {
+        "aPortName": "fab1/29/6",
+        "zPortName": "fab1/32/6",
+        "profileID": 42
+      },
+      {
+        "aPortName": "fab1/29/7",
+        "zPortName": "fab1/32/7",
+        "profileID": 42
+      },
+      {
+        "aPortName": "fab1/29/8",
+        "zPortName": "fab1/32/8",
+        "profileID": 42
+      },
+      {
         "aPortName": "fab1/31/1",
         "zPortName": "fab1/34/1",
         "profileID": 42
@@ -162,7 +242,47 @@
   },
   "transceiverFirmwareVersions": {
     "versionsMap": {
+      "EOLO-138HG-5H-1B": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.5"
+            }
+          ]
+      },
+      "EOLO-138HG-5H-1T": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.5"
+            }
+          ]
+      },
+      "EOLO-138HG-5H-3B": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.5"
+            }
+          ]
+      },
+      "EOLO-138HG-5H-3T": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.5"
+            }
+          ]
+      },
       "EOLO-138HG-5H-B": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.5"
+            }
+          ]
+      },
+      "EOLO-138HG-5H-T": {
           "versions": [
             {
               "fwType": 1,
@@ -183,6 +303,38 @@
             {
               "fwType": 1,
               "version": "3.9"
+            }
+          ]
+      },
+      "EOLO-168HG-10-1B": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.0"
+            }
+          ]
+      },
+      "EOLO-168HG-10-1T": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.0"
+            }
+          ]
+      },
+      "EOLO-168HG-10-2B": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.0"
+            }
+          ]
+      },
+      "EOLO-168HG-10-2T": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.0"
             }
           ]
       },
@@ -246,7 +398,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "2.3"
+              "version": "2.6"
             }
           ]
       },
@@ -267,6 +419,14 @@
             {
               "fwType": 2,
               "version": "209.7"
+            }
+          ]
+      },
+      "SPTSHP3CLCK2": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "1.1"
             }
           ]
       },
@@ -366,6 +526,14 @@
             }
           ]
       },
+      "T-OH8CNH-NFB": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "36.197"
+            }
+          ]
+      },
       "T-OH8CNH-NFL": {
           "versions": [
             {
@@ -391,6 +559,30 @@
           ]
       },
       "T-OL8CNH-NFM": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "114.149"
+            }
+          ]
+      },
+      "T-OL8CNL-NFL": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "114.149"
+            }
+          ]
+      },
+      "T-OL8CNL-NFM": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "114.149"
+            }
+          ]
+      },
+      "T-OL8CNL-NFY": {
           "versions": [
             {
               "fwType": 1,

@@ -76,6 +76,7 @@ class BufferApiTest : public ::testing::Test {
         std::nullopt,
         std::nullopt,
         std::nullopt,
+        std::nullopt,
         std::nullopt};
     return bufferApi->create<SaiBufferProfileTraits>(c, 0);
   }

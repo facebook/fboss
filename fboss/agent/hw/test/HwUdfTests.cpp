@@ -9,7 +9,6 @@
  */
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTest.h"
-#include "fboss/agent/hw/test/HwTestAclUtils.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/HwTestUdfUtils.h"
 #include "fboss/agent/test/utils/UdfTestUtils.h"

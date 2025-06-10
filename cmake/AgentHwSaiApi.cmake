@@ -121,12 +121,13 @@ elseif (CHENAB_SAI_SDK)
   list(APPEND SAI_API_SRC
     fboss/agent/hw/sai/api/oss/PortApi.cpp
     fboss/agent/hw/sai/api/oss/TamApi.cpp
-    fboss/agent/hw/sai/api/oss/SwitchApi.cpp
+    fboss/agent/hw/sai/api/chenab/SwitchApi.cpp
     fboss/agent/hw/sai/api/oss/DebugCounterApi.cpp
     fboss/agent/hw/sai/api/oss/BufferApi.cpp
     fboss/agent/hw/sai/api/oss/QueueApi.cpp
     fboss/agent/hw/sai/api/oss/MirrorApi.cpp
     fboss/agent/hw/sai/api/oss/SystemPortApi.cpp
+    fboss/agent/hw/sai/api/chenab/WredApi.cpp
   )
 
   find_path(SAI_IMPL_DIR NAMES lib/libsai_impl.a)

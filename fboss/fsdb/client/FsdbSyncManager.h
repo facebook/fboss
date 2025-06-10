@@ -17,7 +17,11 @@
 
 DECLARE_bool(publish_use_id_paths);
 
+DECLARE_bool(fsdb_publish_state_with_patches);
+
 namespace facebook::fboss::fsdb {
+
+PubSubType getFsdbStatePubType();
 
 template <typename PubRootT, bool EnablePatchAPIs = false>
 class FsdbSyncManager {

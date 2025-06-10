@@ -67,6 +67,13 @@ class RibRouteTables {
       FibUpdateFunction fibUpdateCallback,
       std::optional<cfg::AclLookupClass> classId,
       void* cookie);
+  void setOverrideEcmpMode(
+      const SwitchIdScopeResolver* resolver,
+      RouterID rid,
+      const std::map<folly::CIDRNetwork, std::optional<cfg::SwitchingMode>>&
+          prefix2EcmpMode,
+      const FibUpdateFunction& fibUpdateCallback,
+      void* cookie);
   /*
    * VrfAndNetworkToInterfaceRoute is conceptually a mapping from the pair
    * (RouterID, folly::CIDRNetwork) to the pair (Interface(1),
@@ -311,6 +318,13 @@ class RoutingInformationBase {
     setClassIDImpl(
         resolver, rid, prefixes, fibUpdateCallback, classId, cookie, true);
   }
+  void setOverrideEcmpModeAsync(
+      const SwitchIdScopeResolver* resolver,
+      RouterID rid,
+      const std::map<folly::CIDRNetwork, std::optional<cfg::SwitchingMode>>&
+          prefix2EcmpMode,
+      const FibUpdateFunction& fibUpdateCallback,
+      void* cookie);
 
   void updateStateInRibThread(const std::function<void()>& fn);
 

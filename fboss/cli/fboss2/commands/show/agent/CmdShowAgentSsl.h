@@ -2,15 +2,14 @@
 
 #pragma once
 
+#include <fboss/agent/if/gen-cpp2/fboss_types.h>
+#include "fboss/agent/if/gen-cpp2/FbossCtrlAsyncClient.h"
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/show/agent/gen-cpp2/model_types.h"
-#include "fboss/cli/fboss2/commands/show/agent/gen-cpp2/model_visitation.h"
-#include "fboss/cli/fboss2/utils/CmdClientUtils.h"
-#include "fboss/cli/fboss2/utils/CmdUtils.h"
 
 namespace facebook::fboss {
 
-struct CmdShowAgentSslTraits : public BaseCommandTraits {
+struct CmdShowAgentSslTraits : public ReadCommandTraits {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
   using ObjectArgType = utils::NoneArgType;
@@ -20,33 +19,12 @@ struct CmdShowAgentSslTraits : public BaseCommandTraits {
 class CmdShowAgentSsl
     : public CmdHandler<CmdShowAgentSsl, CmdShowAgentSslTraits> {
  public:
-  RetType queryClient(const HostInfo& hostInfo) {
-    auto client = utils::createAgentClient(hostInfo);
-    SSLType sslType = client->sync_getSSLPolicy();
+  RetType queryClient(const HostInfo& hostInfo);
 
-    RetType model{};
-    model.AgentSslStatus() = sslTypeToString(sslType);
-    return model;
-  }
-
-  void printOutput(const RetType& model, std::ostream& out = std::cout) {
-    out << "Secure Thrift server SSL config: " << model.AgentSslStatus().value()
-        << std::endl;
-  }
+  void printOutput(const RetType& model, std::ostream& out = std::cout);
 
  private:
-  static std::string sslTypeToString(const facebook::fboss::SSLType& sslType) {
-    switch (sslType) {
-      case SSLType::DISABLED:
-        return "DISABLED (allow plaintext clients only)";
-      case SSLType::PERMITTED:
-        return "PERMITTED (allow plaintext & encrypted clients)";
-      case SSLType::REQUIRED:
-        return "REQUIRED (allow encrypted clients only)";
-      default:
-        return "UNKNOWN - unexpected value of SSLType";
-    }
-  }
+  static std::string sslTypeToString(const facebook::fboss::SSLType& sslType);
 };
 
 } // namespace facebook::fboss

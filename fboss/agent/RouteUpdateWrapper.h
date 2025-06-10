@@ -40,6 +40,8 @@ class RouteUpdateWrapper {
       flat_map<folly::CIDRNetwork, std::pair<InterfaceID, folly::IPAddress>>;
   using RouterIDAndNetworkToInterfaceRoutes =
       boost::container::flat_map<RouterID, PrefixToInterfaceIDAndIP>;
+  using RouterIDToPrefixes = boost::container::
+      flat_map<facebook::fboss::RouterID, std::vector<folly::CIDRNetwork>>;
 
   struct ConfigRoutes {
     RouterIDAndNetworkToInterfaceRoutes configRouterIDToInterfaceRoutes;
@@ -99,6 +101,9 @@ class RouteUpdateWrapper {
           _staticMplsRoutesToNull,
       const std::vector<cfg::StaticMplsRouteNoNextHops>&
           _staticMplsRoutesToCpu);
+  void setRemoteLoopbackInterfaceRoutesToConfig(
+      const RouterIDAndNetworkToInterfaceRoutes& toAdd,
+      const RouterIDToPrefixes& toDel);
   void program(const SyncFibInfo& syncFibInfo = {});
   void programMinAlpmState();
   void programClassID(
@@ -106,6 +111,10 @@ class RouteUpdateWrapper {
       const std::vector<folly::CIDRNetwork>& prefixes,
       std::optional<cfg::AclLookupClass> classId,
       bool async);
+  void programEcmpSwitchingModeAsync(
+      RouterID rid,
+      const std::map<folly::CIDRNetwork, std::optional<cfg::SwitchingMode>>&
+          prefixes);
 
  private:
   RoutingInformationBase* getRib() {
@@ -136,6 +145,8 @@ class RouteUpdateWrapper {
       ribRoutesToAddDel_;
   std::unordered_map<std::pair<RouterID, ClientID>, AddDelMplsRoutes>
       ribMplsRoutesToAddDel_;
+  RouterIDAndNetworkToInterfaceRoutes remoteLoopbackIntfRouteToAdd_;
+  RouterIDToPrefixes remoteLoopbackIntfRouteToDel_;
   const SwitchIdScopeResolver* resolver_{};
   RoutingInformationBase* rib_{nullptr};
   std::optional<FibUpdateFunction> fibUpdateFn_;

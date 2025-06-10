@@ -70,6 +70,8 @@ constexpr uint16_t kBgpPort = 179;
 constexpr uint16_t kNonSpecialPort1 = 60000;
 constexpr uint16_t kNonSpecialPort2 = 60001;
 
+std::vector<uint16_t> getCpuQueueIds(const std::vector<const HwAsic*>& hwAsics);
+
 // For benchmark tests, we don't want to set queue rate for low priority queues.
 void addCpuQueueConfig(
     cfg::SwitchConfig& config,
@@ -180,13 +182,32 @@ void addNoActionAclForUnicastLinkLocal(
     std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>>& acls);
 
 template <typename SwitchT>
-uint64_t getQueueOutPacketsWithRetry(
+std::map<int, uint64_t> getQueueOutPacketsWithRetry(
     SwitchT* switchPtr,
     SwitchID switchId,
     int queueId,
     int retryTimes,
     uint64_t expectedNumPkts,
+    bool verifyPktCntInOtherQueues,
     int postMatchRetryTimes = 2);
+
+template <typename SwitchT>
+inline uint64_t getQueueOutPacketsWithRetry(
+    SwitchT* switchPtr,
+    SwitchID switchId,
+    int queueId,
+    int retryTimes,
+    uint64_t expectedNumPkts,
+    int postMatchRetryTimes = 2) {
+  return getQueueOutPacketsWithRetry(
+      switchPtr,
+      switchId,
+      queueId,
+      retryTimes,
+      expectedNumPkts,
+      false, /* verifyPktCntInOtherQueues */
+      postMatchRetryTimes)[queueId];
+}
 
 template <typename SendFn, typename SwitchT>
 void sendPktAndVerifyCpuQueue(
@@ -194,25 +215,38 @@ void sendPktAndVerifyCpuQueue(
     SwitchID switchId,
     int queueId,
     SendFn sendPkts,
-    const int expectedPktDelta) {
-  auto beforeOutPkts = getQueueOutPacketsWithRetry(
+    const int expectedPktDelta,
+    bool verifyPktCntInOtherQueues = true) {
+  auto beforeOutPktsMap = getQueueOutPacketsWithRetry(
       switchPtr,
       switchId,
       queueId,
       0 /* retryTimes */,
       0 /* expectedNumPkts */,
+      verifyPktCntInOtherQueues,
       2 /* postMatchRetryTimes */);
+  uint64_t beforeOutPkts = beforeOutPktsMap[queueId];
+
   sendPkts();
+
   constexpr auto kGetQueueOutPktsRetryTimes = 5;
-  auto afterOutPkts = getQueueOutPacketsWithRetry(
+  auto afterOutPktsMap = getQueueOutPacketsWithRetry(
       switchPtr,
       switchId,
       queueId,
       kGetQueueOutPktsRetryTimes,
-      beforeOutPkts + expectedPktDelta);
-  XLOG(DBG0) << "Queue=" << queueId << ", before pkts:" << beforeOutPkts
-             << ", after pkts:" << afterOutPkts;
-  EXPECT_EQ(expectedPktDelta, afterOutPkts - beforeOutPkts);
+      beforeOutPkts + expectedPktDelta,
+      verifyPktCntInOtherQueues);
+
+  for (auto [qId, afterOutPkts] : afterOutPktsMap) {
+    if (qId == queueId) {
+      XLOG(DBG0) << "Queue=" << queueId << ", before pkts:" << beforeOutPkts
+                 << ", after pkts:" << afterOutPkts;
+      EXPECT_EQ(expectedPktDelta, afterOutPkts - beforeOutPkts);
+    } else if (verifyPktCntInOtherQueues) {
+      EXPECT_EQ(0, afterOutPkts - beforeOutPktsMap[qId]);
+    }
+  }
 }
 
 uint64_t getCpuQueueInPackets(SwSwitch* sw, SwitchID switchId, int queueId);
@@ -269,9 +303,7 @@ cfg::PortQueueRate setPortQueueRate(const HwAsic* hwAsic, uint16_t queueId);
 
 uint32_t getDnxCoppMaxDynamicSharedBytes(uint16_t queueId);
 
-AgentConfig setTTL0PacketForwardingEnableConfig(
-    SwSwitch* sw,
-    AgentConfig& agentConfig);
+AgentConfig setTTL0PacketForwardingEnableConfig(AgentConfig& agentConfig);
 
 } // namespace utility
 } // namespace facebook::fboss

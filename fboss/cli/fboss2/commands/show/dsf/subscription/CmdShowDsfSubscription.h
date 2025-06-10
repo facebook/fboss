@@ -19,7 +19,7 @@
 
 namespace facebook::fboss {
 
-struct CmdShowDsfSubscriptionTraits : public BaseCommandTraits {
+struct CmdShowDsfSubscriptionTraits : public ReadCommandTraits {
   using ParentCmd = CmdShowDsf;
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;

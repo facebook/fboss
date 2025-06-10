@@ -72,22 +72,22 @@ class ControlLogic {
   std::tuple<bool /*fanAccessFailed*/, int /*rpm*/, uint64_t /*timestamp*/>
   readFanRpm(const Fan& fan);
   void getOpticsUpdate();
-  std::pair<bool /* pwm update fail */, int16_t /* pwm */> programFan(
-      const Zone& zone,
-      const Fan& fan,
-      int16_t currentFanPwm,
-      int16_t zonePwm);
+  bool /* pwm update fail */
+  programFan(const Zone& zone, const Fan& fan, int16_t fanPwm);
   int16_t calculateZonePwm(const Zone& zone, bool boostMode);
   void updateTargetPwm(const Sensor& sensorItem);
   void programLed(const Fan& fan, bool fanFailed);
   bool isFanPresentInDevice(const Fan& fan);
+  int16_t calculateFanPwm(float slope, int16_t currentFanPwm, int16_t zonePwm);
+  void updatePwmState(const Zone& zone, int16_t fanPwm);
 
   folly::Synchronized<std::map<std::string /* fanName */, FanStatus>>
       fanStatuses_;
   std::atomic<std::optional<int>> fanHoldPwm_;
   std::map<std::string /* sensorName */, SensorReadCache> sensorReadCaches_;
   std::map<std::string /* sensorName */, int16_t /* pwm */> opticReadCaches_;
-  std::map<std::string /* sensorName */, PidLogic> pidLogics_;
+  std::map<std::string /* sensorName */, std::unique_ptr<PidLogicBase>>
+      pidLogics_;
   std::shared_ptr<SensorData> pSensorData_{nullptr};
 };
 } // namespace facebook::fboss::platform::fan_service

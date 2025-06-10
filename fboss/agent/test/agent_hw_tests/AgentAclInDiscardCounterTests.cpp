@@ -14,10 +14,9 @@ namespace facebook::fboss {
 
 class AgentAclInDiscardsCounterTest : public AgentHwTest {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {
-        production_features::ProductionFeature::ACL_PORT_IN_DISCARDS_COUNTER};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::ACL_PORT_IN_DISCARDS_COUNTER};
   }
 
  private:

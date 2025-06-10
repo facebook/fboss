@@ -24,6 +24,9 @@ std::string fabricOverdrainCounter(int16_t switchIndex) {
   return folly::to<std::string>(
       "switch.", switchIndex, ".fabric_overdrain_pct");
 }
+const std::string kPrimaryEcmpGroupsExhausted = "primary_ecmp_groups_exhausted";
+const std::string kPrimaryEcmpGroupsCount = "primary_ecmp_groups_count";
+const std::string kBackupEcmpGroupsCount = "backup_ecmp_groups_count";
 } // namespace
 
 namespace facebook::fboss {
@@ -103,6 +106,10 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map, int numSwitches)
           RATE),
       updateState_(
           kCounterPrefix + "state_update.us",
+          facebook::fb303::ExportTypeConsts::kCountAvg,
+          facebook::fb303::QuantileConsts::kP50_P95_P99_P100),
+      thriftRequestCompletionTimeMs_(
+          kCounterPrefix + "thrift_request_completion_time.ms",
           facebook::fb303::ExportTypeConsts::kCountAvg,
           facebook::fb303::QuantileConsts::kP50_P95_P99_P100),
       bgHeartbeatDelay_(
@@ -332,6 +339,11 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map, int numSwitches)
       localResolvedArp_(map, kCounterPrefix + "localResolvedArp"),
       remoteResolvedArp_(map, kCounterPrefix + "remoteResolvedArp"),
       failedDsfSubscription_(map, kCounterPrefix + "failedDsfSubscription"),
+      txBufferLimitExceedDrop_(
+          map,
+          kCounterPrefix + "txBufferLimitExceedDrop",
+          SUM,
+          RATE),
       coldBoot_(map, kCounterPrefix + "cold_boot", SUM, RATE),
       warmBoot_(map, kCounterPrefix + "warm_boot", SUM, RATE),
       switchConfiguredMs_(
@@ -797,5 +809,27 @@ void SwitchStats::setInactivePortsWithSwitchReachability(
   CHECK_LT(switchIndex, inactivePortsWithSwitchReachability_.size());
   fb303::fbData->setCounter(
       inactivePortsWithSwitchReachability_[switchIndex].name(), numPorts);
+}
+
+void SwitchStats::setPrimaryEcmpGroupsExhausted(bool exhausted) const {
+  fb303::fbData->setCounter(kPrimaryEcmpGroupsExhausted, exhausted ? 1 : 0);
+}
+void SwitchStats::setPrimaryEcmpGroupsCount(uint32_t count) const {
+  fb303::fbData->setCounter(kPrimaryEcmpGroupsCount, count);
+}
+void SwitchStats::setBackupEcmpGroupsCount(uint32_t count) const {
+  fb303::fbData->setCounter(kBackupEcmpGroupsCount, count);
+}
+
+bool SwitchStats::getPrimaryEcmpGroupsExhausted() const {
+  return fb303::fbData->getCounter(kPrimaryEcmpGroupsExhausted);
+}
+
+int64_t SwitchStats::getPrimaryEcmpGroupsCount() const {
+  return fb303::fbData->getCounter(kPrimaryEcmpGroupsCount);
+}
+
+int64_t SwitchStats::getBackupEcmpGroupsCount() const {
+  return fb303::fbData->getCounter(kBackupEcmpGroupsCount);
 }
 } // namespace facebook::fboss

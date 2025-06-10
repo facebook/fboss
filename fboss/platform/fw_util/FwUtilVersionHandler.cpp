@@ -3,7 +3,6 @@
 #include <folly/logging/xlog.h>
 #include <glob.h>
 #include <iostream>
-#include "fboss/platform/fw_util/fw_util_helpers.h"
 #include "fboss/platform/helpers/PlatformFsUtils.h"
 #include "fboss/platform/helpers/PlatformUtils.h"
 
@@ -28,7 +27,7 @@ void FwUtilVersionHandler::printDarwinVersion(const std::string& fpd) {
       if (exitStatus != 0) {
         throw std::runtime_error("Run " + versionCmd + " failed!");
       }
-      std::cout << fpd << " : " << version;
+      std::cout << fmt::format("{} : {}", fpd, version) << std::endl;
     } else {
       XLOG(INFO)
           << fpd

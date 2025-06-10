@@ -2701,6 +2701,10 @@ TEST_F(RouteTest, routePrune) {
     }
   }
   EXPECT_EQ(numPrunedPaths, 1);
+  auto normalizedNextHops = rt10->getForwardInfo().normalizedNextHops();
+  for (auto& nhop : normalizedNextHops) {
+    EXPECT_EQ(nhop.topologyInfo().value(), topologyInfo);
+  }
 }
 
 TEST_F(RouteTest, invalidRouteWeights) {

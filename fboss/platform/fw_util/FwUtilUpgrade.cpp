@@ -1,10 +1,13 @@
 #include <folly/logging/xlog.h>
 #include "fboss/platform/fw_util/FwUtilImpl.h"
-#include "fboss/platform/helpers/PlatformUtils.h"
 
 namespace facebook::fboss::platform::fw_util {
 
 void FwUtilImpl::doUpgrade(const std::string& fpd) {
+  if (dryRun_) {
+    XLOG(INFO) << "Dry run mode enabled, skipping upgrade for " << fpd;
+    return;
+  }
   XLOG(INFO) << "Running Upgrade operation for " << fpd;
   for (const auto& operation :
        *fwUtilConfig_.newFwConfigs()->at(fpd).upgrade()) {

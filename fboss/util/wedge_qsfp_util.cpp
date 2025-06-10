@@ -22,7 +22,6 @@
 #include <folly/Memory.h>
 #include <folly/io/async/EventBase.h>
 #include <gflags/gflags.h>
-#include <glog/logging.h>
 #include <chrono>
 #include "fboss/agent/EnumUtils.h"
 
@@ -2417,7 +2416,7 @@ void printPortDetail(
     const DOMDataUnion& domDataUnion,
     unsigned int port,
     const std::string& portNames) {
-  if (domDataUnion.__EMPTY__) {
+  if (domDataUnion.getType() == DOMDataUnion::Type::__EMPTY__) {
     fprintf(stderr, "DOMDataUnion object is empty\n");
     return;
   }

@@ -147,13 +147,17 @@ python_binary(
 )
 
 ci_sandcastle(
-    name = "platform_mapping_v2_configo_sync",
-    alias = "platform-mapping-v2-configo-sync-citadel",
+    name = "platform_mapping_v2_verify_and_configo_sync",
+    alias = "platform-mapping-v2-verify-and-configo-sync-citadel",
     args = {
         "steps": [
             {
+                "name": "Verify /generated_platform_mappings Is Populated Correctly",
+                "shell": "buck2 test --flagfile fbcode//mode/opt fbcode//fboss/lib/platform_mapping_v2/test:verify_generated_files",
+            },
+            {
                 "name": "Run Configo Sync Command",
-                "shell": "buck2 run --flagfile fbcode//mode/opt fbcode//fboss/lib/platform_mapping_v2/facebook:gen -- --make-configerator-changes",
+                "shell": "buck2 run --flagfile fbcode//mode/opt fbcode//fboss/lib/platform_mapping_v2/facebook:gen -- --make-configerator-changes --add-fbcode-dependency",
             },
         ],
     },
@@ -162,12 +166,8 @@ ci_sandcastle(
         "type": "fbcode",
         "vcs": "full-fbsource",
     },
-    # Adding triggers for raw inputs (for changes in asic_vendor_config) and generated outputs
     ci_srcs = [
-        "fbcode/fboss/lib/platform_mapping_v2/facebook/generated_platform_mappings/**",
-        "fbcode/fboss/lib/platform_mapping_v2/facebook/platforms/**",
-        "fbcode/fboss/lib/platform_mapping_v2/generated_platform_mappings/**",
-        "fbcode/fboss/lib/platform_mapping_v2/platforms/**",
+        "fbcode/fboss/lib/platform_mapping_v2/**",
     ],
     command = "SandcastleUniversalCommand",
     oncall = "fboss_optics_phy",

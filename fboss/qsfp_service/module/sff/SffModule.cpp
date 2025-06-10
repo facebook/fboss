@@ -39,6 +39,15 @@ DEFINE_bool(
 namespace {
 
 constexpr int kUsecBetweenPowerModeFlap = 100000;
+// Temperature thresholds for CWDM4_100G optics special handling
+DEFINE_int32(
+    cwdm4_100g_high_temp_alarm_threshold,
+    60,
+    "High temperature alarm threshold for CWDM4_100G optics in degrees Celsius");
+DEFINE_int32(
+    cwdm4_100g_high_temp_warning_threshold,
+    55,
+    "High temperature warning threshold for CWDM4_100G optics in degrees Celsius");
 
 bool cdrSupportedSpeed(facebook::fboss::cfg::PortSpeed speed) {
   return speed == facebook::fboss::cfg::PortSpeed::HUNDREDG ||
@@ -314,6 +323,17 @@ GlobalSensors SffModule::getSensorInfo() {
   info.temp()->value() =
       getQsfpSensor(SffField::TEMPERATURE, SffFieldInfo::getTemp);
   info.temp()->flags() = getQsfpSensorFlags(SffField::TEMPERATURE_ALARMS);
+
+  // Special handling for CWDM4_100G optics
+  auto extSpecCompliance = getExtendedSpecificationComplianceCode();
+  if (extSpecCompliance &&
+      *extSpecCompliance == ExtendedSpecComplianceCode::CWDM4_100G) {
+    info.temp()->flags()->alarm()->high() =
+        (*info.temp()->value() > FLAGS_cwdm4_100g_high_temp_alarm_threshold);
+    info.temp()->flags()->warn()->high() =
+        (*info.temp()->value() > FLAGS_cwdm4_100g_high_temp_warning_threshold);
+  }
+
   info.vcc()->value() = getQsfpSensor(SffField::VCC, SffFieldInfo::getVcc);
   info.vcc()->flags() = getQsfpSensorFlags(SffField::VCC_ALARMS);
   return info;

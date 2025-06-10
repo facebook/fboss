@@ -122,9 +122,22 @@ class AgentVoqSwitchIsolationFirmwareTest : public AgentVoqSwitchTest {
   void forceIsolate(int delay = 1) {
     std::stringstream ss;
     ss << "edk -c fi force_isolate 0 5 1 " << delay << std::endl;
+    XLOG(INFO) << "Running force_isolate command: ";
     for (const auto& switchId : getSw()->getHwAsicTable()->getSwitchIDs()) {
       std::string out;
       getAgentEnsemble()->runDiagCommand(ss.str(), out, switchId);
+      XLOG(INFO) << "force_isolate output: " << out;
+      getAgentEnsemble()->runDiagCommand("quit\n", out, switchId);
+    }
+  }
+  void getIsolate() {
+    std::stringstream ss;
+    ss << "edk -c fi dump 0 5" << std::endl;
+    XLOG(INFO) << "Running get_isolate command: ";
+    for (const auto& switchId : getSw()->getHwAsicTable()->getSwitchIDs()) {
+      std::string out;
+      getAgentEnsemble()->runDiagCommand(ss.str(), out, switchId);
+      XLOG(INFO) << "get_isolate output: " << out;
       getAgentEnsemble()->runDiagCommand("quit\n", out, switchId);
     }
   }
@@ -201,7 +214,7 @@ class AgentVoqSwitchIsolationFirmwareTest : public AgentVoqSwitchTest {
     }
   }
 
- private:
+ protected:
   void setCmdLineFlagOverrides() const override {
     AgentHwTest::setCmdLineFlagOverrides();
     FLAGS_hide_fabric_ports = false;
@@ -213,6 +226,7 @@ class AgentVoqSwitchIsolationFirmwareTest : public AgentVoqSwitchTest {
     FLAGS_sdk_reg_dump_path_prefix = sdkRegDumpPathPrefix_;
   }
 
+ private:
   std::string sdkRegDumpPathPrefix_{"/tmp/sdk_reg_dump"};
 };
 
@@ -222,7 +236,13 @@ class AgentVoqSwitchIsolationFirmwareWBEventsTest
   static uint16_t fwCapableSwitchIndex;
 
  public:
-  static constexpr auto kEventDelay = 20;
+  static constexpr auto kEventDelay = 30;
+
+ private:
+  void setCmdLineFlagOverrides() const override {
+    AgentVoqSwitchIsolationFirmwareTest::setCmdLineFlagOverrides();
+    FLAGS_agent_exit_delay_s = 60;
+  }
   void tearDownAgentEnsemble(bool warmboot = false) override {
     // We check for agentEnsemble not being NULL since the tests
     // are also invoked for just listing their prod features.
@@ -235,6 +255,20 @@ class AgentVoqSwitchIsolationFirmwareWBEventsTest
       fwCapableSwitchIndex =
           *getFWCapableSwitchIndices(getSw()->getConfig()).begin();
     }
+    if (isColdBoot) {
+      WITH_RETRIES({
+        auto crashCounterRegex = std::string("(switch.") +
+            folly::to<std::string>(fwCapableSwitchIndex) + ".)?" +
+            "bcm.isolationFirmwareCrash.sum";
+        auto fwCrashedCounters = getAgentEnsemble()->getFb303RegexCounters(
+            crashCounterRegex,
+            *getSw()->getHwAsicTable()->getSwitchIDs().begin());
+        EXPECT_EVENTUALLY_TRUE(
+            fwCrashedCounters.size() == 1 &&
+            fwCrashedCounters.begin()->second == 0);
+      });
+    }
+
     std::atexit([]() {
       if (isColdBoot) {
         WITH_RETRIES({
@@ -242,20 +276,7 @@ class AgentVoqSwitchIsolationFirmwareWBEventsTest
               "fw_drained_with_high_num_active_fabric_links.sum");
           EXPECT_EVENTUALLY_TRUE(
               fwIsolated.has_value() && fwIsolated.value() == 0);
-          auto crashCounterRegex = std::string("(switch.") +
-              folly::to<std::string>(fwCapableSwitchIndex) + ".)?" +
-              "bcm.isolationFirmwareCrash.sum";
-          auto fwCrashedCounters =
-              fb303::fbData->getRegexCounters(crashCounterRegex);
-          EXPECT_EVENTUALLY_TRUE(
-              fwCrashedCounters.size() == 1 &&
-              fwCrashedCounters.begin()->second == 0);
         });
-
-        XLOG(ERR)
-            << "Allow for Firmware Isolate callback to fire post cb unregister, sleep for "
-            << kEventDelay * 2 << " seconds";
-        sleep(kEventDelay * 2);
       }
     });
     AgentHwTest::tearDownAgentEnsemble(warmboot);
@@ -342,10 +363,25 @@ TEST_F(
   auto setup = [this]() {
     assertPortAndDrainState(false /* not drained*/);
     setMinLinksConfig();
+    XLOG(ERR)
+        << "Schedule a delayed isolate in the firmware. Agent would have unregistered SDK callbacks by that time.";
     forceIsolate(kEventDelay);
+    /*
+    Issue: The force_isolate command sometimes doesn't get flushed through the
+    diagnostic shell before binaries exit, despite the SDK call being made.
+
+    Mitigation: We add a second command (get_isolate) after force_isolate. Even
+    if get_isolate doesn't get flushed either, it's not critical since the test
+    doesn't depend on its execution - it only ensures force_isolate gets
+    processed.
+
+    TODO: Think of a long term solution to this.
+    */
+    getIsolate();
   };
 
   auto verifyPostWarmboot = [this]() {
+    getIsolate();
     assertSwitchDrainState(true /* drained */);
     utility::checkFabricPortsActiveState(
         getAgentEnsemble(),

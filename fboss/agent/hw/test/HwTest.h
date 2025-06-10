@@ -33,6 +33,7 @@
 
 DECLARE_bool(setup_for_warmboot);
 DECLARE_int32(thrift_port);
+DECLARE_bool(dump_sdk_state);
 
 namespace facebook::fboss {
 

@@ -292,12 +292,20 @@ void PkgManager::closeWatchdogs() const {
   try {
     for (const auto& entry : fs::directory_iterator(watchdogsDir)) {
       const std::string filePath = entry.path().string();
+      if (!fs::is_character_file(filePath)) {
+        XLOG(WARN) << fmt::format(
+            "{} does not exist or is not a character file. "
+            "Not performing watchdog magic close",
+            filePath);
+        continue;
+      }
       std::ofstream outFile(filePath);
       if (!outFile) {
         XLOG(ERR) << "Failed to open file: " << filePath;
         continue;
       }
       outFile << "V" << std::endl;
+      XLOG(INFO) << fmt::format("Closed watchdog file {}", filePath);
     }
   } catch (const std::exception& e) {
     XLOG(ERR) << "Failed to close watchdog: " << e.what();
@@ -407,6 +415,25 @@ void PkgManager::removeInstalledRpms() const {
   }
   XLOG(INFO) << fmt::format(
       "Removed old rpms: {}", folly::join(", ", installedRpms));
+}
+
+BspKmodsFile PkgManager::readKmodsFile() const {
+  std::string keyword{};
+  re2::RE2::FullMatch(
+      *platformConfig_.bspKmodsRpmName(), kBspRpmNameRe, &keyword);
+  std::string bspKmodsFilePath = fmt::format(
+      kBspKmodsFilePath, keyword, systemInterface_->getHostKernelVersion());
+  auto jsonBspKmodsFile =
+      platformFsUtils_->getStringFileContent(bspKmodsFilePath);
+  if (!jsonBspKmodsFile) {
+    throw std::runtime_error(fmt::format(
+        "Failed to read kmods file. Reason: Failed to read {}",
+        bspKmodsFilePath));
+  }
+  BspKmodsFile bspKmodsFile;
+  apache::thrift::SimpleJSONSerializer::deserialize<BspKmodsFile>(
+      *jsonBspKmodsFile, bspKmodsFile);
+  return bspKmodsFile;
 }
 
 std::string PkgManager::getKmodsRpmName() const {

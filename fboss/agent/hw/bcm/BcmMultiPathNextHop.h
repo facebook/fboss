@@ -26,7 +26,8 @@ namespace facebook::fboss {
  * BcmMultiPathNextHop simply references another egress entry (which maybe
  * either BcmEgress or BcmEcmpEgress).
  */
-using BcmMultiPathNextHopKey = std::pair<bcm_vrf_t, RouteNextHopSet>;
+using BcmMultiPathNextHopKey =
+    std::tuple<bcm_vrf_t, RouteNextHopSet, std::optional<cfg::SwitchingMode>>;
 
 class BcmNextHop;
 
@@ -86,6 +87,7 @@ class BcmMultiPathNextHopTable : public BcmMultiPathNextHopTableBase {
   bool getDlbExhaustedStat() {
     return dlbExhausted_.load();
   }
+  cfg::SwitchingMode getFwdSwitchingMode(bcm_vrf_t, const RouteNextHopSet&);
 
  private:
   static constexpr int kEcmpEgressstartId = 200000;

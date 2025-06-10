@@ -8,6 +8,8 @@
  *
  */
 #include "fboss/agent/SetupThrift.h"
+#include "fboss/agent/AgentConfig.h"
+#include "fboss/lib/ThriftMethodRateLimit.h"
 
 #include <folly/io/async/EventBase.h>
 #include <gflags/gflags.h>
@@ -77,6 +79,26 @@ std::unique_ptr<apache::thrift::ThriftServer> setupThriftServer(
   }
   server->setAddresses(addresses);
   server->setIdleTimeout(std::chrono::seconds(FLAGS_thrift_idle_timeout));
+
+  std::map<std::string, int> method2QpsLimit = {};
+  try {
+    auto config = AgentConfig::fromDefaultFile();
+    for (const auto& item : *config->thrift.thriftApiToRateLimitInQps()) {
+      XLOG(DBG2) << "set rate limit " << item.second << " qps to "
+                 << "thrift method " << item.first;
+      method2QpsLimit[item.first] = item.second;
+    }
+  } catch (const std::exception&) {
+    XLOG(ERR) << "cannot load thrift rate limit settings from agent config";
+  }
+  if (!method2QpsLimit.empty()) {
+    auto rateLimiter = std::make_unique<ThriftMethodRateLimit>(method2QpsLimit);
+    auto preprocessFunc =
+        ThriftMethodRateLimit::getThriftMethodRateLimitPreprocessFunc(
+            std::move(rateLimiter));
+    server->addPreprocessFunc(
+        "ThriftMethodRateLimit", std::move(preprocessFunc));
+  }
   return server;
 }
 } // namespace facebook::fboss

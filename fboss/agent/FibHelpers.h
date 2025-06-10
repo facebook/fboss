@@ -125,4 +125,39 @@ void forEachChangedRoute(
       delta, changedFn, addedFn, removedFn, args...);
 }
 
+/*
+ * Helper function to process FIBs delta in the same order that HwSwitch will
+ */
+template <
+    typename ChangedFn,
+    typename AddFn,
+    typename RemoveFn,
+    typename... Args>
+void processFibsDeltaInHwSwitchOrder(
+    const StateDelta& delta,
+    ChangedFn changedFn,
+    AddFn addedFn,
+    RemoveFn removedFn,
+    const Args&... args) {
+  // First handle removed routes
+  forEachChangedRoute(
+      delta,
+      [](RouterID /*rid*/,
+         const auto&
+         /*oldRoute*/,
+         const auto& /*newRoute*/) {},
+      [](RouterID /*id*/, const auto& /*addedRoute*/) {},
+      [&](RouterID rid, const auto& deleted) { removedFn(rid, deleted); },
+      args...);
+
+  // Now handle added, changed routes
+  forEachChangedRoute(
+      delta,
+      [&](RouterID rid, const auto& oldRoute, const auto& newRoute) {
+        changedFn(rid, oldRoute, newRoute);
+      },
+      [&](RouterID rid, const auto& addedRoute) { addedFn(rid, addedRoute); },
+      [](RouterID /*rid*/, const auto& /*deleted*/) {},
+      args...);
+}
 } // namespace facebook::fboss

@@ -9,6 +9,7 @@
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
+#include "fboss/platform/bsp_tests/gen-cpp2/bsp_tests_config_types.h"
 #include "fboss/platform/config_lib/CrossConfigValidator.h"
 #include "fboss/platform/data_corral_service/ConfigValidator.h"
 #include "fboss/platform/data_corral_service/if/gen-cpp2/led_manager_config_types.h"
@@ -19,6 +20,7 @@
 #include "fboss/platform/platform_manager/gen-cpp2/platform_manager_config_types.h"
 #include "fboss/platform/sensor_service/ConfigValidator.h"
 #include "fboss/platform/sensor_service/if/gen-cpp2/sensor_config_types.h"
+#include "fboss/platform/weutil/ConfigValidator.h"
 #include "fboss/platform/weutil/if/gen-cpp2/weutil_config_types.h"
 
 // The install_dir flag is a requirement that comes from using a custom buck
@@ -35,6 +37,7 @@ using namespace facebook::fboss::platform::sensor_config;
 using namespace facebook::fboss::platform::fan_service;
 using namespace facebook::fboss::platform::weutil_config;
 using namespace facebook::fboss::platform::fw_util_config;
+using namespace facebook::fboss::platform::bsp_tests;
 using namespace apache::thrift;
 
 namespace {
@@ -55,6 +58,8 @@ std::any deserialize(
       return SimpleJSONSerializer::deserialize<NewFwUtilConfig>(jsonConfigStr);
     } else if (serviceName == "led_manager") {
       return SimpleJSONSerializer::deserialize<LedManagerConfig>(jsonConfigStr);
+    } else if (serviceName == "bsp_tests") {
+      return SimpleJSONSerializer::deserialize<BspTestsConfig>(jsonConfigStr);
     }
     LOG(FATAL) << fmt::format("Unsupported service {}", serviceName);
   } catch (std::exception& ex) {
@@ -72,7 +77,8 @@ const auto kX86Services = std::set<std::string>{
     "fan_service",
     "weutil",
     "fw_util",
-    "led_manager"};
+    "led_manager",
+    "bsp_tests"};
 constexpr auto kHdrName = "GeneratedConfig.h";
 constexpr auto kHdrBegin = R"(#pragma once
 
@@ -151,12 +157,35 @@ std::map<std::string, std::map<std::string, std::string>> getConfigs() {
       if (!fan_service::ConfigValidator().isValid(config)) {
         throw std::runtime_error("Invalid fan_service configuration");
       }
+      std::optional<SensorConfig> sensorConfig = std::nullopt;
+      if (deserializedConfigs.contains("sensor_service")) {
+        sensorConfig = std::any_cast<SensorConfig>(
+            deserializedConfigs.at("sensor_service"));
+      }
+      if (crossConfigValidator &&
+          !crossConfigValidator->isValidFanServiceConfig(
+              config, sensorConfig)) {
+        throw std::runtime_error(
+            "Invalid fan_service configuration. Failed cross config validation.");
+      }
     }
     if (deserializedConfigs.contains("led_manager")) {
       auto config = std::any_cast<LedManagerConfig>(
           deserializedConfigs.at("led_manager"));
       if (!data_corral_service::ConfigValidator().isValid(config)) {
         throw std::runtime_error("Invalid led_manager configuration");
+      }
+    }
+    if (deserializedConfigs.contains("weutil")) {
+      auto config =
+          std::any_cast<WeutilConfig>(deserializedConfigs.at("weutil"));
+      if (!weutil::ConfigValidator().isValid(config, platformName)) {
+        throw std::runtime_error("Invalid weutil configuration");
+      }
+      if (crossConfigValidator &&
+          !crossConfigValidator->isValidWeutilConfig(config, platformName)) {
+        throw std::runtime_error(
+            "Invalid weutil configuration. Failed cross config validation.");
       }
     }
   } // end per platform iteration

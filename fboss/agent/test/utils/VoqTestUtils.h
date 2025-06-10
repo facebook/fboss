@@ -74,6 +74,8 @@ std::optional<QueueConfigAndName> getNameAndDefaultVoqCfg(
 
 uint8_t getDefaultQueue();
 
+uint8_t getGlobalRcyDefaultQueue();
+
 int getTrafficClassToVoqId(const HwAsic* hwAsic, int trafficClass);
 
 int getTrafficClassToCpuVoqId(const HwAsic* hwAsic, int trafficClass);

@@ -77,7 +77,7 @@ apache::thrift::Client<FbossHwCtrl>* HwSwitchThriftClientTable::getClient(
 }
 
 std::optional<std::map<::std::int64_t, FabricEndpoint>>
-HwSwitchThriftClientTable::getFabricConnectivity(SwitchID switchId) {
+HwSwitchThriftClientTable::getFabricReachability(SwitchID switchId) {
   std::map<::std::int64_t, FabricEndpoint> reachability;
   auto client = getClient(switchId);
   try {
@@ -88,6 +88,20 @@ HwSwitchThriftClientTable::getFabricConnectivity(SwitchID switchId) {
     return std::nullopt;
   }
   return reachability;
+}
+
+std::optional<std::map<::std::string, FabricEndpoint>>
+HwSwitchThriftClientTable::getFabricConnectivity(SwitchID switchId) {
+  std::map<::std::string, FabricEndpoint> connectivity;
+  auto client = getClient(switchId);
+  try {
+    client->sync_getHwFabricConnectivity(connectivity);
+  } catch (const std::exception& ex) {
+    XLOG(ERR) << "Failed to get fabric reachability for switch : " << switchId
+              << " error: " << ex.what();
+    return std::nullopt;
+  }
+  return connectivity;
 }
 
 void HwSwitchThriftClientTable::clearHwPortStats(

@@ -729,9 +729,9 @@ void LookupClassUpdater::updateStateObserverLocalCacheHelper(
     const std::shared_ptr<Vlan>& vlan,
     const std::shared_ptr<Port>& port) {
   using EntryType = typename detail::EntryType<AddrT>::type;
-  for (auto iter :
-       std::as_const(*(NeighborTableDeltaCallbackGenerator::getTable<AddrT>(
-           switchState, vlan)))) {
+  auto table =
+      NeighborTableDeltaCallbackGenerator::getTable<AddrT>(switchState, vlan);
+  for (auto iter : std::as_const(*table)) {
     EntryType entry = nullptr;
     entry = iter.second;
     if (entry->getPort().isPhysicalPort() &&

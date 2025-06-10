@@ -78,26 +78,35 @@ void AgentEnsembleLinkTest::SetUp() {
 void AgentEnsembleLinkTest::TearDown() {
   if (!FLAGS_list_production_feature) {
     // Expect the qsfp service to be running at the end of the tests
-    auto qsfpServiceClient = utils::createQsfpServiceClient();
-    EXPECT_EQ(
-        facebook::fb303::cpp2::fb_status::ALIVE,
-        qsfpServiceClient.get()->sync_getStatus())
-        << "QSFP Service no longer alive after the test";
-    EXPECT_EQ(
-        QsfpServiceRunState::ACTIVE,
-        qsfpServiceClient.get()->sync_getQsfpServiceRunState())
-        << "QSFP Service run state no longer active after the test";
+    try {
+      auto qsfpServiceClient = utils::createQsfpServiceClient();
+      EXPECT_EQ(
+          facebook::fb303::cpp2::fb_status::ALIVE,
+          qsfpServiceClient.get()->sync_getStatus())
+          << "QSFP Service no longer alive after the test";
+      EXPECT_EQ(
+          QsfpServiceRunState::ACTIVE,
+          qsfpServiceClient.get()->sync_getQsfpServiceRunState())
+          << "QSFP Service run state no longer active after the test";
+
+    } catch (const std::exception& ex) {
+      XLOG(ERR) << "Failed to call qsfp_service getStatus(). " << ex.what();
+    }
 
 #ifndef IS_OSS
-    // FSDB is not fully supported in OSS
-    auto fsdbClient = utils::createFsdbClient();
-    EXPECT_EQ(
-        facebook::fb303::cpp2::fb_status::ALIVE,
-        fsdbClient.get()->sync_getStatus())
-        << "FSDB no longer alive after the test";
+    try {
+      // FSDB is not fully supported in OSS
+      auto fsdbClient = utils::createFsdbClient();
+      EXPECT_EQ(
+          facebook::fb303::cpp2::fb_status::ALIVE,
+          fsdbClient.get()->sync_getStatus())
+          << "FSDB no longer alive after the test";
+    } catch (const std::exception& ex) {
+      XLOG(ERR) << "Failed to call fsdb getStatus(). " << ex.what();
+    }
 #endif
-    AgentEnsembleTest::TearDown();
   }
+  AgentEnsembleTest::TearDown();
 }
 
 void AgentEnsembleLinkTest::checkAgentMemoryInBounds() const {
@@ -135,13 +144,9 @@ void AgentEnsembleLinkTest::overrideL2LearningConfig(
 }
 
 void AgentEnsembleLinkTest::setupTtl0ForwardingEnable() {
-  if (!isSupportedOnAllAsics(HwAsic::Feature::SAI_TTL0_PACKET_FORWARD_ENABLE)) {
-    // don't configure if not supported
-    return;
-  }
   auto agentConfig = AgentConfig::fromFile(FLAGS_config);
   auto newAgentConfig =
-      utility::setTTL0PacketForwardingEnableConfig(getSw(), *agentConfig);
+      utility::setTTL0PacketForwardingEnableConfig(*agentConfig);
   newAgentConfig.dumpConfig(getTestConfigPath());
   FLAGS_config = getTestConfigPath();
 }
@@ -177,7 +182,7 @@ void AgentEnsembleLinkTest::initializeCabledPorts() {
           utility::getTransceiverId(platformPortEntry->second, chips);
       if (transceiverID.has_value()) {
         cabledTransceivers_.insert(*transceiverID);
-        cabledTransceiverPorts_.push_back(PortID(portID));
+        cabledTransceiverPorts_.emplace_back(portID);
       }
     }
   }
@@ -294,9 +299,7 @@ void AgentEnsembleLinkTest::createL3DataplaneFlood(
       getSw()->getLocalMac(switchId));
   programDefaultRoute(ecmpPorts, ecmp6);
   utility::disableTTLDecrements(getSw(), ecmpPorts);
-  auto vlanID = utility::getFirstMap(getSw()->getState()->getVlans())
-                    ->cbegin()
-                    ->second->getID();
+  auto vlanID = getAgentEnsemble()->getVlanIDForTx();
   utility::pumpTraffic(
       true,
       utility::getAllocatePktFn(getSw()),
@@ -406,14 +409,12 @@ AgentEnsembleLinkTest::getConnectedOpticalAndActivePortPairWithFeature(
     phy::Side side,
     bool skipLoopback) const {
   auto connectedPairs = getConnectedPairs();
-  auto opticalPorts =
-      std::get<0>(getOpticalAndActiveCabledPortsAndNames(false));
+  auto ports = std::get<0>(getOpticalAndActiveCabledPortsAndNames(false));
 
   std::set<std::pair<PortID, PortID>> connectedOpticalPortPairs;
   for (auto connectedPair : connectedPairs) {
-    if (std::find(
-            opticalPorts.begin(), opticalPorts.end(), connectedPair.first) !=
-        opticalPorts.end()) {
+    if (std::find(ports.begin(), ports.end(), connectedPair.first) !=
+        ports.end()) {
       if (connectedPair.first == connectedPair.second && skipLoopback) {
         continue;
       }

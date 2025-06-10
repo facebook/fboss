@@ -157,7 +157,10 @@ class CowSubscriptionManager
       newState->metadata() = subscription->getMetadata(metadataServer);
     }
     auto value = DeltaValue<OperState>(oldState, newState);
-    subscription->offer(std::move(value));
+    auto ret = subscription->offer(std::move(value));
+    if (ret.has_value()) {
+      subscription->requestPruneWithReason(ret.value());
+    }
   }
 
   void doInitialSyncSimple(
@@ -202,7 +205,10 @@ class CowSubscriptionManager
           state->protocol() = subscription->operProtocol();
           state->metadata() = subscription->getMetadata(metadataServer);
           auto value = DeltaValue<OperState>(std::nullopt, std::move(state));
-          pathSubscription->offer(std::move(value));
+          auto ret = pathSubscription->offer(std::move(value));
+          if (ret.has_value()) {
+            pathSubscription->requestPruneWithReason(ret.value());
+          }
         } else if (subscription->type() == PubSubType::DELTA) {
           auto deltaSubscription =
               static_cast<BaseDeltaSubscription*>(subscription);
@@ -218,7 +224,10 @@ class CowSubscriptionManager
               operUnitCache.getEncodedState(subscription->operProtocol());
           auto buf = folly::IOBuf::copyBuffer(state->data(), state->length());
           patchNode.set_val(*buf);
-          patchSubscription->offer(std::move(patchNode));
+          auto ret = patchSubscription->offer(std::move(patchNode));
+          if (ret.has_value()) {
+            patchSubscription->requestPruneWithReason(ret.value());
+          }
         }
         store.lookup().add(subscription, store.getPathStoreStats());
         subscription->firstChunkSent();
@@ -240,7 +249,10 @@ class CowSubscriptionManager
       for (auto& [_, subscription] : store.subscriptions()) {
         if (metadataServer.ready(subscription->publisherTreeRoot()) &&
             subscription->needsFirstChunk()) {
-          subscription->sendEmptyInitialChunk();
+          auto ret = subscription->sendEmptyInitialChunk();
+          if (ret.has_value()) {
+            subscription->requestPruneWithReason(ret.value());
+          }
           subscription->firstChunkSent();
         }
       }
@@ -354,7 +366,8 @@ class CowSubscriptionManager
         thrift_cow::DeltaVisitOptions(
             thrift_cow::DeltaVisitMode::FULL,
             thrift_cow::DeltaVisitOrder::CHILDREN_FIRST,
-            this->useIdPaths_),
+            this->useIdPaths_,
+            false /* hybridNodeShallowTraversal */),
         std::move(processDelta));
   }
 
@@ -422,7 +435,11 @@ class CowSubscriptionManager
               traverser.patchBuilder()) {
             // patches only supported when using id paths
             auto* patchSubscription = static_cast<PatchSubscription*>(relevant);
-            patchSubscription->offer(traverser.patchBuilder()->curPatch());
+            auto ret =
+                patchSubscription->offer(traverser.patchBuilder()->curPatch());
+            if (ret.has_value()) {
+              patchSubscription->requestPruneWithReason(ret.value());
+            }
           }
         }
       }

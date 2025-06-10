@@ -573,6 +573,13 @@ struct SaiSwitchTraits {
         SaiObjectIdT,
         SaiObjectIdDefault>;
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+    using PtpMode = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_PORT_PTP_MODE,
+        sai_int32_t,
+        SaiIntDefault<sai_int32_t>>;
+#endif
     struct AttributeReachabilityGroupList {
       std::optional<sai_attr_id_t> operator()();
     };
@@ -750,6 +757,19 @@ struct SaiSwitchTraits {
         std::vector<sai_object_id_t>,
         AttributePipelineObjectList,
         SaiObjectIdListDefault>;
+
+    struct AttributeDisableSllAndHllTimeout {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using DisableSllAndHllTimeout = SaiExtensionAttribute<
+        bool,
+        AttributeDisableSllAndHllTimeout,
+        SaiBoolDefaultFalse>;
+    struct AttributeAsicRevision {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using AsicRevision =
+        SaiExtensionAttribute<sai_uint32_t, AttributeAsicRevision>;
   };
   using AdapterKey = SwitchSaiId;
   using AdapterHostKey = std::monostate;
@@ -819,6 +839,9 @@ struct SaiSwitchTraits {
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
       std::optional<Attributes::ArsProfile>,
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+      std::optional<Attributes::PtpMode>,
+#endif
       std::optional<Attributes::ReachabilityGroupList>,
       std::optional<Attributes::DelayDropCongThreshold>,
       std::optional<Attributes::FabricLinkLayerFlowControlThreshold>,
@@ -841,7 +864,8 @@ struct SaiSwitchTraits {
       std::optional<Attributes::SdkRegDumpLogPath>,
       std::optional<Attributes::FirmwareObjectList>,
       std::optional<Attributes::TcRateLimitList>,
-      std::optional<Attributes::PfcTcDldTimerGranularityInterval>>;
+      std::optional<Attributes::PfcTcDldTimerGranularityInterval>,
+      std::optional<Attributes::DisableSllAndHllTimeout>>;
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
   static constexpr std::array<sai_stat_id_t, 3> CounterIdsToRead = {
@@ -983,6 +1007,9 @@ SAI_ATTRIBUTE_NAME(Switch, VoqLatencyMaxLevel2Ns)
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
 SAI_ATTRIBUTE_NAME(Switch, ArsProfile)
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+SAI_ATTRIBUTE_NAME(Switch, PtpMode)
+#endif
 SAI_ATTRIBUTE_NAME(Switch, ReachabilityGroupList)
 SAI_ATTRIBUTE_NAME(Switch, FabricLinkLayerFlowControlThreshold)
 SAI_ATTRIBUTE_NAME(Switch, SramFreePercentXoffTh)
@@ -1009,6 +1036,8 @@ SAI_ATTRIBUTE_NAME(Switch, TcRateLimitList)
 SAI_ATTRIBUTE_NAME(Switch, PfcTcDldTimerGranularityInterval)
 SAI_ATTRIBUTE_NAME(Switch, NumberOfPipes)
 SAI_ATTRIBUTE_NAME(Switch, PipelineObjectList)
+SAI_ATTRIBUTE_NAME(Switch, DisableSllAndHllTimeout)
+SAI_ATTRIBUTE_NAME(Switch, AsicRevision)
 
 template <>
 struct SaiObjectHasStats<SaiSwitchTraits> : public std::true_type {};
@@ -1058,6 +1087,12 @@ struct SaiHealthNotification {
   const SaiTimeSpec& getTimeSpec() const {
     return timeSpec;
   }
+
+  bool corrParityError() const;
+
+  bool uncorrParityError() const;
+
+  bool asicError() const;
 
  private:
 #if SAI_API_VERSION >= SAI_VERSION(1, 15, 0)

@@ -14,9 +14,9 @@ namespace facebook::fboss {
 
 class AgentPrbsTest : public AgentHwTest {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::PRBS};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::PRBS};
   }
 
   std::vector<PortID> getTestPortIds() const {

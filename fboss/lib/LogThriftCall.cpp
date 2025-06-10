@@ -11,6 +11,7 @@
 #include "fboss/lib/LogThriftCall.h"
 #include <folly/logging/LogLevel.h>
 #include <folly/logging/xlog.h>
+#include "fboss/agent/SwitchStats.h"
 
 using apache::thrift::Cpp2ConnContext;
 using apache::thrift::Cpp2RequestContext;
@@ -30,14 +31,16 @@ LogThriftCall::LogThriftCall(
     uint32_t line,
     Cpp2RequestContext* ctx,
     std::string paramsStr,
-    const char* identityEnvFallback)
+    const char* identityEnvFallback,
+    SwitchStats* switchStats)
     : logger_(logger),
       level_(level),
       func_(func),
       file_(file),
       line_(line),
       start_(std::chrono::steady_clock::now()),
-      paramsStr_(paramsStr) {
+      paramsStr_(paramsStr),
+      switchStats_(switchStats) {
   std::string client = kUnknown;
   std::optional<std::string> identity;
   if (ctx) {
@@ -80,6 +83,10 @@ LogThriftCall::~LogThriftCall() {
     FB_LOG_RAW_WITH_CONTEXT(logger_, level_, file_, line_, "")
         << func_ << " thrift request " << result << " in " << ms.count()
         << "ms. " << "params: " << paramsStr_;
+  }
+
+  if (switchStats_) {
+    switchStats_->thriftRequestCompletionTimeMs(ms);
   }
 }
 

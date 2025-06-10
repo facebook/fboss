@@ -48,6 +48,7 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(BufferProfile, SramFadtMaxTh)
   SAI_EXT_ATTR_MAP(BufferProfile, SramFadtMinTh)
   SAI_EXT_ATTR_MAP(BufferProfile, SramFadtXonOffset)
+  SAI_EXT_ATTR_MAP(BufferProfile, SramDynamicTh)
 }
 
 } // namespace

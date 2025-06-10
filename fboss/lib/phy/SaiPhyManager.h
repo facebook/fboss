@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "fboss/agent/hw/HwSwitchWarmBootHelper.h"
 #include "fboss/agent/hw/sai/switch/SaiMacsecManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/lib/phy/PhyManager.h"
@@ -239,7 +240,7 @@ class SaiPhyManager : public PhyManager {
 
 using namespace std::chrono;
 template <typename platformT, typename xphychipT>
-void SaiPhyManager::initializeSlotPhysImpl(PimID pimID, bool /* warmboot */) {
+void SaiPhyManager::initializeSlotPhysImpl(PimID pimID, bool warmboot) {
   if (const auto pimPhyMap = xphyMap_.find(pimID);
       pimPhyMap != xphyMap_.end()) {
     for (const auto& phy : pimPhyMap->second) {
@@ -264,7 +265,29 @@ void SaiPhyManager::initializeSlotPhysImpl(PimID pimID, bool /* warmboot */) {
 
       // Now call HwSwitch to create the switch object in hardware
       auto saiSwitch = static_cast<SaiSwitch*>(saiPlatform->getHwSwitch());
-      saiSwitch->init(xphy, nullptr, true /* failHwCallsOnWarmboot */);
+
+      auto initSaiSwitch = [pimID, saiSwitch, xphy](
+                               std::shared_ptr<SwitchState> statePrev) {
+        try {
+          saiSwitch->init(xphy, statePrev, true /* failHwCallsOnWarmboot */);
+        } catch (const std::exception& ex) {
+          XLOG(ERR) << "Failed to initialize SaiSwitch: pimID=" << pimID << ":"
+                    << ex.what();
+          throw;
+        }
+      };
+
+      if (warmboot) {
+        auto wbState =
+            saiPlatform->getWarmBootHelper()->getWarmBootThriftState();
+        auto statePrev =
+            saiPlatform->getWarmBootHelper()->reconstructWarmBootThriftState(
+                wbState);
+        initSaiSwitch(statePrev);
+      } else {
+        initSaiSwitch(nullptr);
+      }
+
       xphy->setSwitchId(saiSwitch->getSaiSwitchId());
       xphy->dump();
       XLOG(DBG2)

@@ -352,7 +352,7 @@ class ThriftSetNode : public NodeBaseT<
     return this->getFields()->size();
   }
 
-  bool remove(const std::string& token) {
+  virtual bool remove(const std::string& token) override {
     return this->writableFields()->remove(token);
   }
 
@@ -367,7 +367,8 @@ class ThriftSetNode : public NodeBaseT<
     return this->writableFields()->remove(value);
   }
 
-  void modify(const std::string& token, bool construct = true) {
+  virtual void modify(const std::string& token, bool construct = true)
+      override {
     if (auto value =
             tryParseKey<ValueTType, typename Fields::ValueTypeClass>(token)) {
       modifyTyped(value.value(), construct);

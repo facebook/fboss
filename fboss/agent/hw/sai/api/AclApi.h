@@ -372,7 +372,8 @@ struct SaiAclEntryTraits {
     using FieldSrcPort = SaiAttribute<
         EnumType,
         SAI_ACL_ENTRY_ATTR_FIELD_IN_PORT,
-        AclEntryFieldSaiObjectIdT>;
+        AclEntryFieldSaiObjectIdT,
+        StdNullOptDefault<AclEntryFieldSaiObjectIdT>>;
 #else
     using FieldSrcPort = SaiAttribute<
         EnumType,
@@ -387,15 +388,18 @@ struct SaiAclEntryTraits {
     using FieldL4SrcPort = SaiAttribute<
         EnumType,
         SAI_ACL_ENTRY_ATTR_FIELD_L4_SRC_PORT,
-        AclEntryFieldU16>;
+        AclEntryFieldU16,
+        StdNullOptDefault<AclEntryFieldU16>>;
     using FieldL4DstPort = SaiAttribute<
         EnumType,
         SAI_ACL_ENTRY_ATTR_FIELD_L4_DST_PORT,
-        AclEntryFieldU16>;
+        AclEntryFieldU16,
+        StdNullOptDefault<AclEntryFieldU16>>;
     using FieldIpProtocol = SaiAttribute<
         EnumType,
         SAI_ACL_ENTRY_ATTR_FIELD_IP_PROTOCOL,
-        AclEntryFieldU8>;
+        AclEntryFieldU8,
+        StdNullOptDefault<AclEntryFieldU8>>;
     using FieldTcpFlags = SaiAttribute<
         EnumType,
         SAI_ACL_ENTRY_ATTR_FIELD_TCP_FLAGS,

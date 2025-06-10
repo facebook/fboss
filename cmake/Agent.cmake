@@ -9,6 +9,7 @@ add_library(setup_thrift
 )
 
 target_link_libraries(setup_thrift
+  load_agent_config
   Folly::folly
   FBThrift::thriftcpp2
 )
@@ -117,6 +118,7 @@ target_link_libraries(voq_utils
   switch_config_cpp2
   agent_features
   switch_asics
+  state
 )
 
 target_link_libraries(address_utils
@@ -202,6 +204,16 @@ target_link_libraries(fib_helpers
   fboss_types
   standalone_rib
   fib_updater
+  state
+  Folly::folly
+)
+
+add_library(ecmp_resource_manager
+  fboss/agent/EcmpResourceManager.cpp
+)
+
+target_link_libraries(ecmp_resource_manager
+  fib_helpers
   state
   Folly::folly
 )
@@ -354,6 +366,8 @@ set(core_libs
   fboss_event_base
   phy_snapshot_manager
   build_info_wrapper
+  ecmp_resource_manager
+  thrift_method_rate_limit
 )
 
 target_link_libraries(core ${core_libs})
@@ -681,6 +695,7 @@ target_link_libraries(sw_switch_warmboot_helper
   common_file_utils
   Folly::folly
   switch_state_cpp2
+  warm_boot_file_utils
 )
 
 add_library(sw_agent_initializer

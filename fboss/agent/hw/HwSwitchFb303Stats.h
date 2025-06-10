@@ -194,6 +194,15 @@ class HwSwitchFb303Stats {
   void networkInterfaceError() {
     networkInterfaceErrors_.addValue(1);
   }
+  void fabricControlPathError() {
+    fabricControlPathErrors_.addValue(1);
+  }
+  void fabricDataPathError() {
+    fabricDataPathErrors_.addValue(1);
+  }
+  void cpuError() {
+    cpuErrors_.addValue(1);
+  }
   void ingressTmWarning() {
     ingressTmWarnings_.addValue(1);
   }
@@ -248,11 +257,18 @@ class HwSwitchFb303Stats {
   void interruptMaskedEvent() {
     interruptMaskedEvents_.addValue(1);
   }
+  void pfcDeadlockDetectionCount() {
+    pfcDeadlockDetectionCount_.addValue(1);
+  }
+  void pfcDeadlockRecoveryCount() {
+    pfcDeadlockRecoveryCount_.addValue(1);
+  }
   void fabricConnectivityMissingCount(int64_t value);
   void fabricConnectivityMismatchCount(int64_t value);
   void fabricConnectivityBogusCount(int64_t value);
   void virtualDevicesWithAsymmetricConnectivity(int64_t value);
   void portGroupSkew(int64_t value);
+  void asicRevision(int64_t value);
 
   void bcmSdkVer(int64_t ver);
   void bcmSaiSdkVer(int64_t ver);
@@ -355,6 +371,9 @@ class HwSwitchFb303Stats {
   int64_t getFabricLinkErrors() const;
   int64_t getFabricTopologyErrors() const;
   int64_t getNetworkInterfaceErrors() const;
+  int64_t getFabricControlPathErrors() const;
+  int64_t getFabricDataPathErrors() const;
+  int64_t getCpuErrors() const;
   int64_t getIngressTmWarnings() const;
   int64_t getEgressTmWarnings() const;
   int64_t getDramWarnings() const;
@@ -386,6 +405,7 @@ class HwSwitchFb303Stats {
   HwSwitchFb303GlobalStats getAllFb303Stats() const;
   // Used in SwAgent to update stats based on HwSwitch synced counters
   void updateStats(HwSwitchFb303GlobalStats& globalStats);
+  std::optional<int64_t> getAsicRevision() const;
 
  private:
   // Forbidden copy constructor and assignment operator
@@ -500,6 +520,9 @@ class HwSwitchFb303Stats {
   TLTimeseries fabricLinkErrors_;
   TLTimeseries fabricTopologyErrors_;
   TLTimeseries networkInterfaceErrors_;
+  TLTimeseries fabricControlPathErrors_;
+  TLTimeseries fabricDataPathErrors_;
+  TLTimeseries cpuErrors_;
   TLTimeseries ingressTmWarnings_;
   TLTimeseries egressTmWarnings_;
   TLTimeseries dramWarnings_;
@@ -524,6 +547,8 @@ class HwSwitchFb303Stats {
   TLCounter isolationFirmwareVersion_;
   TLCounter isolationFirmwareOpStatus_;
   TLCounter isolationFirmwareFuncStatus_;
+  TLTimeseries pfcDeadlockDetectionCount_;
+  TLTimeseries pfcDeadlockRecoveryCount_;
 };
 
 } // namespace facebook::fboss

@@ -7,7 +7,7 @@ COPY . fboss
 WORKDIR fboss
 RUN rm -rf build/deps/github_hashes/
 RUN tar xvzf fboss/oss/stable_commits/latest_stable_hashes.tar.gz
-RUN apt install -y autoconf automake binutils binutils-dev bzip2 \
+RUN apt install -y wget autoconf automake binutils binutils-dev bzip2 \
     libbz2-dev cmake libdouble-conversion3 libdouble-conversion-dev libcurl4-openssl-dev \
     libcurl4 libdwarf-dev libevent-dev libffi-dev \
     libnghttp2-dev libnl-3-dev libnl-route-3-dev libsodium-dev libtool libunwind-dev \
@@ -15,6 +15,10 @@ RUN apt install -y autoconf automake binutils binutils-dev bzip2 \
     libssl-dev python3-all-dev libre2-dev libsnappy-dev xxhash libxxhash-dev \
     liblzma-dev zlib1g-dev
 RUN ./build/fbcode_builder/getdeps.py install-system-deps --recursive fboss
+WORKDIR /var/FBOSS/
+RUN wget http://ftp.us.debian.org/debian/pool/main/f/fast-float/libfast-float-dev_8.0.0-0.1_amd64.deb
+RUN dpkg -i libfast-float-dev_8.0.0-0.1_amd64.deb
+WORKDIR fboss
 RUN apt install -y bison flex
 RUN apt install -y openssl
 RUN apt install python3-pip -y

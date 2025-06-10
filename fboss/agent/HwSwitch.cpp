@@ -136,8 +136,12 @@ std::tuple<int, int, int> normalizeSdkVersion(std::string sdkVersion) {
 namespace facebook::fboss {
 
 std::string HwSwitch::getDebugDump() const {
-  folly::test::TemporaryDirectory tmpDir;
-  auto fname = tmpDir.path().string() + "hw_debug_dump";
+  /* dump sdk state in directory /var/facebook/fboss/fboss_sdk_dump.xxxx */
+  folly::test::TemporaryDirectory tmpDir(
+      "fboss_sdk_dump",
+      getPlatform()->getDirectoryUtil()->getPersistentStateDir(),
+      folly::test::TemporaryDirectory::Scope::PERMANENT);
+  auto fname = tmpDir.path().string() + "/hw_debug_dump";
   dumpDebugState(fname);
   std::string out;
   if (!folly::readFile(fname.c_str(), out)) {
@@ -193,6 +197,8 @@ multiswitch::HwSwitchStats HwSwitch::getHwSwitchStats() {
   hwSwitchStats.switchWatermarkStats() = getSwitchWatermarkStats();
   hwSwitchStats.hwResourceStats() = getResourceStats();
   hwSwitchStats.arsExhausted() = getArsExhaustionStatus();
+  hwSwitchStats.switchPipelineStats() = getSwitchPipelineStats();
+  hwSwitchStats.sysPortShelState() = getSysPortShelState();
   return hwSwitchStats;
 }
 
@@ -218,6 +224,18 @@ uint32_t HwSwitch::generateDeterministicSeed(LoadBalancerID loadBalancerID) {
 }
 
 void HwSwitch::gracefulExit() {
+  /* For ASIC_TYPE_ELBERT_8DD warmboot support, we need to store the switch
+   * state in graceful exit. This ensures the state is preserved and
+   * can be restored when the system comes back up in warmboot.
+   */
+  if (getPlatform()->getAsic()->getAsicType() ==
+      cfg::AsicType::ASIC_TYPE_ELBERT_8DD) {
+    auto thriftSwitchState = getProgrammedState()->toThrift();
+    if (auto warmBootHelper = getPlatform()->getWarmBootHelper()) {
+      warmBootHelper->storeWarmBootThriftState(thriftSwitchState);
+    }
+  }
+
   auto* dirUtil = getPlatform()->getDirectoryUtil();
   auto switchIndex = getPlatform()->getAsic()->getSwitchIndex();
   auto sleepOnSigTermFile = dirUtil->sleepHwSwitchOnSigTermFile(switchIndex);
@@ -238,14 +256,21 @@ void HwSwitch::gracefulExit() {
 }
 
 std::shared_ptr<SwitchState> HwSwitch::stateChangedTransaction(
-    const StateDelta& delta,
+    const std::vector<StateDelta>& deltas,
     const HwWriteBehaviorRAII& behavior) {
-  auto result = stateChangedTransaction(delta.getOperDelta(), behavior);
+  std::vector<fsdb::OperDelta> operDeltas;
+  std::transform(
+      deltas.begin(),
+      deltas.end(),
+      std::back_inserter(operDeltas),
+      [](const auto& delta) { return delta.getOperDelta(); });
+
+  auto result = stateChangedTransaction(operDeltas, behavior);
   if (!result.changes()->empty()) {
     // changes have been rolled back to last good known state
-    return delta.oldState();
+    return deltas.front().oldState();
   }
-  return delta.newState();
+  return deltas.back().newState();
 }
 
 void HwSwitch::rollback(const StateDelta& /*delta*/) noexcept {
@@ -265,23 +290,31 @@ void HwSwitch::setProgrammedState(const std::shared_ptr<SwitchState>& state) {
 }
 
 fsdb::OperDelta HwSwitch::stateChanged(
-    const fsdb::OperDelta& delta,
+    const std::vector<fsdb::OperDelta>& deltas,
     const HwWriteBehaviorRAII& /*behavior*/) {
-  auto stateDelta = StateDelta(getProgrammedState(), delta);
-  auto state = stateChangedImpl(stateDelta);
+  std::vector<StateDelta> stateDeltas;
+  stateDeltas.reserve(deltas.size());
+  auto oldState = getProgrammedState();
+  for (const auto& delta : deltas) {
+    stateDeltas.emplace_back(oldState, delta);
+    oldState = stateDeltas.back().newState();
+  }
+  auto state = stateChangedImpl(stateDeltas);
   setProgrammedState(state);
-  if (getProgrammedState() == stateDelta.newState()) {
+  CHECK(!stateDeltas.empty());
+  if (getProgrammedState() == stateDeltas.back().newState()) {
     return fsdb::OperDelta{};
   }
   // return the delta between expected applied state and actually applied state
   // caller can then can construct actually applied state from its expected new
   // state from returning oper delta, and also know what was not applied from
   // the state delta between expected applied state and applied state.
-  return StateDelta(stateDelta.newState(), getProgrammedState()).getOperDelta();
+  return StateDelta(stateDeltas.back().newState(), getProgrammedState())
+      .getOperDelta();
 }
 
 fsdb::OperDelta HwSwitch::stateChangedTransaction(
-    const fsdb::OperDelta& delta,
+    const std::vector<fsdb::OperDelta>& deltas,
     const HwWriteBehaviorRAII& /*behavior*/) {
   if (!transactionsSupported()) {
     throw FbossError("Transactions not supported on this switch");
@@ -289,13 +322,17 @@ fsdb::OperDelta HwSwitch::stateChangedTransaction(
   auto goodKnownState = getProgrammedState();
   fsdb::OperDelta result{};
   try {
-    result = stateChanged(delta);
+    result = stateChanged(deltas);
   } catch (const FbossError& e) {
     XLOG(WARNING) << " Transaction failed with error : " << *e.message()
                   << " attempting rollback";
-    this->rollback(StateDelta(getProgrammedState(), delta));
+    // TODO (ravi) Update rollback to work with a vector of deltas
+    // HwSwitch impl returns last failed delta in the vector. Construct a
+    // reversed vector and feed it to rollback operation
+    CHECK_LE(deltas.size(), 1);
+    this->rollback(StateDelta(getProgrammedState(), deltas.front()));
     setProgrammedState(goodKnownState);
-    return delta;
+    return deltas.front();
   }
   return result;
 }
@@ -357,7 +394,9 @@ std::shared_ptr<SwitchState> HwSwitch::getMinAlpmState(
 std::shared_ptr<SwitchState> HwSwitch::programMinAlpmState(
     RoutingInformationBase* rib) {
   return programMinAlpmState(
-      rib, [this](const StateDelta& delta) { return stateChanged(delta); });
+      rib, [this](const std::vector<StateDelta>& deltas) {
+        return stateChanged(deltas);
+      });
 }
 
 std::shared_ptr<SwitchState> HwSwitch::programMinAlpmState(
@@ -365,7 +404,9 @@ std::shared_ptr<SwitchState> HwSwitch::programMinAlpmState(
     StateChangedFn func) {
   auto state = getProgrammedState();
   auto minAlpmState = getMinAlpmState(rib, state);
-  return func(StateDelta(state, minAlpmState));
+  std::vector<StateDelta> deltas;
+  deltas.emplace_back(state, minAlpmState);
+  return func(deltas);
 }
 
 HwInitResult HwSwitch::init(
@@ -388,8 +429,9 @@ HwInitResult HwSwitch::init(
   if (ret.bootType == BootType::WARM_BOOT) {
     // apply state only for warm boot. cold boot state is already applied.
     auto writeBehavior = getWarmBootWriteBehavior(failHwCallsOnWarmboot);
-    ret.switchState = stateChanged(
-        StateDelta(getProgrammedState(), ret.switchState), writeBehavior);
+    std::vector<StateDelta> deltas;
+    deltas.emplace_back(getProgrammedState(), ret.switchState);
+    ret.switchState = stateChanged(deltas, writeBehavior);
     setProgrammedState(ret.switchState);
   }
   ret.bootTime =
@@ -489,8 +531,8 @@ HwInitResult HwSwitch::initLightImpl(
   std::map<int32_t, state::RouteTableFields> routeTables{};
   routeTables.emplace(kDefaultVrf, state::RouteTableFields{});
   auto rib = RoutingInformationBase::fromThrift(routeTables);
-  programMinAlpmState(rib.get(), [this](const StateDelta& delta) {
-    return stateChanged(delta);
+  programMinAlpmState(rib.get(), [this](const std::vector<StateDelta>& deltas) {
+    return stateChanged(deltas);
   });
   return ret;
 }

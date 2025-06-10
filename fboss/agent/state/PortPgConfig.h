@@ -203,6 +203,22 @@ class PortPgConfig
     set<switch_state_tags::sramResumeOffsetBytes>(sramResumeOffsetBytes);
   }
 
+  std::optional<cfg::MMUScalingFactor> getSramScalingFactor() const {
+    if (auto sramScalingFactor =
+            safe_cref<switch_state_tags::sramScalingFactor>()) {
+      cfg::MMUScalingFactor cfgSramScalingFactor{};
+      apache::thrift::util::tryParseEnum(
+          sramScalingFactor->toThrift(), &cfgSramScalingFactor);
+      return cfgSramScalingFactor;
+    }
+    return std::nullopt;
+  }
+
+  void setSramScalingFactor(cfg::MMUScalingFactor sramScalingFactor) {
+    set<switch_state_tags::sramScalingFactor>(
+        apache::thrift::util::enumName(sramScalingFactor));
+  }
+
   static state::PortPgFields makeThrift(
       uint8_t id,
       std::optional<cfg::MMUScalingFactor> scalingFactor,

@@ -7,7 +7,7 @@ This page first outlines the required structure of each necessary configuration 
 
 
 ## Platform Configuration File Usage
-![A flowchart showing which vendor provided source files are needed for different FBOSS services.](platform_mapping_workflow_diagram.png)
+![A flowchart showing which vendor provided source files are needed for different FBOSS services.](/img/developing/platform_mapping/platform_mapping_workflow_diagram.png)
 
 We expect vendors to provide the source files in blue, run the parser / config generation tool, and validate their Platform Mapping JSON before adding it to the FBOSS codebase through a pull request.
 

@@ -29,4 +29,9 @@ SaiBufferProfileTraits::Attributes::AttributeSramFadtXonOffset::operator()() {
   return std::nullopt;
 }
 
+std::optional<sai_attr_id_t>
+SaiBufferProfileTraits::Attributes::AttributeSramDynamicTh::operator()() {
+  return std::nullopt;
+}
+
 } // namespace facebook::fboss

@@ -28,8 +28,8 @@ struct BcmFlowletConfig {
   uint16_t flowletTableSize;
   uint16_t inactivityIntervalUsecs;
   uint16_t maxLinks;
-  cfg::SwitchingMode switchingMode;
-  cfg::SwitchingMode backupSwitchingMode;
+  cfg::SwitchingMode switchingMode = cfg::SwitchingMode::FIXED_ASSIGNMENT;
+  cfg::SwitchingMode backupSwitchingMode = cfg::SwitchingMode::FIXED_ASSIGNMENT;
 };
 
 class BcmEgressManager {
@@ -51,6 +51,7 @@ class BcmEgressManager {
     port2EgressIds->publish();
     setPort2EgressIdsInternal(port2EgressIds);
   }
+  void init();
   /*
    * Port down handling
    * Look up egress entries going over this port and
@@ -116,6 +117,10 @@ class BcmEgressManager {
 
   void updateAllEgressForFlowletSwitching();
 
+  uint32_t findNextAvailableId(uint32_t dynamicMode) const;
+  void insertEcmpID(bcm_if_t id);
+  void eraseEcmpID(bcm_if_t id);
+
  private:
   /*
    * Called both while holding and not holding the hw lock.
@@ -159,6 +164,9 @@ class BcmEgressManager {
   std::shared_ptr<PortAndEgressIdsMap> portAndEgressIdsDontUseDirectly_;
   mutable folly::SpinLock portAndEgressIdsLock_;
   boost::container::flat_set<bcm_if_t> resolvedEgresses_;
+  // For ECMP group ID management
+  std::set<uint32_t> inUseIds_;
+  static constexpr uint32_t kDlbStartID{200000};
 };
 
 } // namespace facebook::fboss

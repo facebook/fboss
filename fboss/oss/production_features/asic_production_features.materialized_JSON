@@ -31,8 +31,6 @@
         35,
         42,
         43,
-        45,
-        47,
         50,
         51,
         53,
@@ -82,7 +80,8 @@
         59,
         63,
         69,
-        72
+        72,
+        79
     ],
     "jericho3": [
         2,
@@ -277,7 +276,8 @@
         67,
         69,
         71,
-        72
+        72,
+        78
     ],
     "tomahawk5": [
         2,
@@ -373,7 +373,8 @@
         60,
         63,
         69,
-        72
+        72,
+        79
     ]
   },
   "asicToFeatureNames": {
@@ -408,8 +409,6 @@
         "EGRESS_MIRRORING",
         "PFC",
         "UDF_WR_IMMEDIATE_ACL",
-        "PORT_MTU_ERROR_TRAP",
-        "PFC_CAPTURE",
         "PAUSE",
         "SEPARATE_INGRESS_EGRESS_BUFFER_POOL",
         "ERSPANV6_MIRRORING",
@@ -459,7 +458,8 @@
         "CLASS_ID_FOR_CONNECTED_ROUTE",
         "UCMP",
         "PTP_TC",
-        "MODIFY_ACL_QUALIFIERS"
+        "MODIFY_ACL_QUALIFIERS",
+        "PTP_TC_PROVISIONING_TIME_HW_VALIDATION"
     ],
     "jericho3": [
         "CPU_RX_TX",
@@ -654,7 +654,8 @@
         "UNTRUNCATED_SFLOW",
         "PTP_TC",
         "L4_DST_PORT_ACL",
-        "MODIFY_ACL_QUALIFIERS"
+        "MODIFY_ACL_QUALIFIERS",
+        "ECMP_RANDOM_SPRAY"
     ],
     "tomahawk5": [
         "CPU_RX_TX",
@@ -750,7 +751,8 @@
         "SEPARATE_BYTE_AND_PACKET_ACL_COUNTERS",
         "UCMP",
         "PTP_TC",
-        "MODIFY_ACL_QUALIFIERS"
+        "MODIFY_ACL_QUALIFIERS",
+        "PTP_TC_PROVISIONING_TIME_HW_VALIDATION"
     ]
   }
 }

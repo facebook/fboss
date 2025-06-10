@@ -14,7 +14,6 @@
 
 #include <thrift/lib/cpp2/async/RocketClientChannel.h>
 #include "fboss/platform/helpers/Init.h"
-#include "thrift/lib/cpp2/server/ThriftServer.h"
 
 #ifndef IS_OSS
 #include "common/services/cpp/ServiceFrameworkLight.h"

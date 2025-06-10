@@ -3,6 +3,7 @@
 #pragma once
 
 #include "fboss/fsdb/client/FsdbPatchSubscriber.h"
+#include "fboss/fsdb/common/Flags.h"
 #include "fboss/fsdb/if/FsdbModel.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 #include "fboss/lib/thrift_service_client/ConnectionOptions.h"
@@ -61,9 +62,10 @@ class FsdbSubManager {
 
   using DataCallback = std::function<void(SubUpdate)>;
 
-  FsdbSubManager(
+  explicit FsdbSubManager(
       fsdb::SubscriptionOptions opts,
-      utils::ConnectionOptions serverOptions,
+      utils::ConnectionOptions serverOptions =
+          utils::ConnectionOptions("::1", FLAGS_fsdbPort),
       folly::EventBase* reconnectEvb = nullptr,
       folly::EventBase* subscriberEvb = nullptr)
       : opts_(std::move(opts)),

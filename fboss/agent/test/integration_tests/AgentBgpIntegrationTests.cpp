@@ -12,6 +12,7 @@
 #include <folly/Subprocess.h>
 #include <memory>
 #include "configerator/structs/neteng/fboss/bgp/if/gen-cpp2/bgp_attr_types.h"
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/IPv6Handler.h"
 #include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/ThriftHandler.h"
@@ -75,7 +76,7 @@ class BgpIntegrationTest : public AgentIntegrationTest {
   }
   void checkBgpState(
       TBgpPeerState state,
-      std::set<std::string> sessionsToCheck,
+      const std::set<std::string>& sessionsToCheck,
       int retries = kMaxRetries) {
     auto clientParams = servicerouter::ClientParams();
     clientParams.setSingleHost("::1", kBgpThriftPort);
@@ -105,8 +106,7 @@ class BgpIntegrationTest : public AgentIntegrationTest {
 
   void checkAgentState() {
     WITH_RETRIES({
-      auto syncFibCounterName =
-          platform()->getHwSwitch()->getBootType() == BootType::WARM_BOOT
+      auto syncFibCounterName = getSw()->getBootType() == BootType::WARM_BOOT
           ? "warm_boot.fib_synced_bgp.stage_duration_ms"
           : "cold_boot.fib_synced_bgp.stage_duration_ms";
       auto syncFibCounter =
@@ -122,7 +122,7 @@ class BgpIntegrationTest : public AgentIntegrationTest {
   }
 
   void updateState(folly::StringPiece name, StateUpdateFn func) {
-    sw()->updateStateBlocking(name, func);
+    getSw()->updateStateBlocking(name, std::move(func));
   }
 
   void setPortState(PortID port, bool up) {
@@ -143,12 +143,12 @@ class BgpIntegrationTest : public AgentIntegrationTest {
       PortDescriptor portDesc,
       VlanID vlan) {
     auto srcMac = utility::kLocalCpuMac(), dstMac = srcMac;
-    sw()->getIPv6Handler()->sendNeighborAdvertisement(
+    getSw()->getIPv6Handler()->sendNeighborAdvertisement(
         vlan, srcMac, srcIpV6, dstMac, dstIpV6, portDesc);
   }
 
   void addRoute(folly::IPAddress dest, int length, folly::IPAddress nhop) {
-    ThriftHandler handler(sw());
+    ThriftHandler handler(getSw());
     auto bgpClient = static_cast<int16_t>(ClientID::BGPD);
     auto nr = std::make_unique<UnicastRoute>();
     *nr->dest()->ip() = network::toBinaryAddress(dest);
@@ -171,7 +171,7 @@ class BgpIntegrationTest : public AgentIntegrationTest {
   void checkRoute(TIpAddress prefix, uint8_t length, bool exists) {
     WITH_RETRIES({
       const auto& fibContainer =
-          sw()->getState()->getFibs()->getNode(RouterID(0));
+          getSw()->getState()->getFibs()->getNode(RouterID(0));
       auto fib = fibContainer->template getFib<TIpAddress>();
       auto testRoute = fib->getRouteIf({prefix, length});
       if (exists) {
@@ -194,7 +194,8 @@ class BgpIntegrationTest : public AgentIntegrationTest {
     return tprefix;
   }
 
-  void addBgpUnicastRoutes(std::vector<facebook::fboss::UnicastRoute> toAdd) {
+  void addBgpUnicastRoutes(
+      const std::vector<facebook::fboss::UnicastRoute>& toAdd) {
     auto clientParams = servicerouter::ClientParams();
     clientParams.setSingleHost("::1", kBgpThriftPort);
 
@@ -225,10 +226,10 @@ class BgpIntegrationTest : public AgentIntegrationTest {
 
   template <typename RouteScaleGeneratorT>
   void runRouteScaleTest() {
-    auto swstate = sw()->getState();
+    auto swstate = getSw()->getState();
     utility::RouteDistributionGenerator::ThriftRouteChunks routeChunks;
     auto routeDistributionGen =
-        RouteScaleGeneratorT(swstate, sw()->needL2EntryForNeighbor());
+        RouteScaleGeneratorT(swstate, getSw()->needL2EntryForNeighbor());
     routeChunks = routeDistributionGen.getThriftRoutes();
 
     auto setup = [&]() {
@@ -263,7 +264,8 @@ class BgpIntegrationTest : public AgentIntegrationTest {
     verifyAcrossWarmBoots(setup, verify);
   }
 
-  void addBgpRoutes(std::vector<std::pair<folly::IPAddress, uint8_t>> toAdd) {
+  void addBgpRoutes(
+      const std::vector<std::pair<folly::IPAddress, uint8_t>>& toAdd) {
     auto clientParams = servicerouter::ClientParams();
     clientParams.setSingleHost("::1", kBgpThriftPort);
     auto client =
@@ -293,26 +295,27 @@ TEST_F(BgpIntegrationTest, bgpSesionsEst) {
 }
 
 TEST_F(BgpIntegrationTest, bgpNotifyPortDown) {
+  AgentEnsemble* ensemble = getAgentEnsemble();
   auto verify = [&]() {
     // Bring the port up and verify
-    setPortState(masterLogicalPortIds()[0], true);
-    setPortState(masterLogicalPortIds()[1], true);
+    setPortState(ensemble->masterLogicalPortIds()[0], true);
+    setPortState(ensemble->masterLogicalPortIds()[1], true);
     checkBgpState(TBgpPeerState::ESTABLISHED, {"1::", "2::"});
     checkAgentState();
     // add an NDP entres to trigger update to bgp on flush
     addNDPEntry(
         folly::IPAddressV6("1::"),
         folly::IPAddressV6("1::"),
-        PortDescriptor(masterLogicalPortIds()[0]),
+        PortDescriptor(ensemble->masterLogicalPortIds()[0]),
         VlanID(utility::kBaseVlanId));
     addNDPEntry(
         folly::IPAddressV6("2::"),
         folly::IPAddressV6("2::"),
-        PortDescriptor(masterLogicalPortIds()[1]),
+        PortDescriptor(ensemble->masterLogicalPortIds()[1]),
         VlanID(utility::kBaseVlanId + 1));
     // Bring down a port and ensure that BGP session goes idle
-    setPortState(masterLogicalPortIds()[0], false);
-    setPortState(masterLogicalPortIds()[1], false);
+    setPortState(ensemble->masterLogicalPortIds()[0], false);
+    setPortState(ensemble->masterLogicalPortIds()[1], false);
     // BGP session should transition to idle through fast notification
     checkBgpState(
         TBgpPeerState::IDLE, {"1::", "2::"}, kMaxFastNotificationRetries);
@@ -338,8 +341,11 @@ TEST_F(BgpIntegrationTest, bgpRestart) {
 }
 
 TEST_F(BgpIntegrationTest, routeScaleTest) {
-  auto hw = platform()->getAsic();
-  auto npu = hw->getAsicType();
+  AgentEnsemble* ensemble = getAgentEnsemble();
+  auto hwAsics = ensemble->getSw()->getHwAsicTable()->getL3Asics();
+  auto asic = checkSameAndGetAsic(hwAsics);
+
+  auto npu = asic->getAsicType();
   switch (npu) {
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK:
       runRouteScaleTest<utility::FSWRouteScaleGenerator>();

@@ -10,8 +10,6 @@
 #include "fboss/agent/hw/sai/fake/FakeSaiUdf.h"
 #include "fboss/agent/hw/sai/fake/FakeSai.h"
 
-#include <folly/logging/xlog.h>
-
 using facebook::fboss::FakeSai;
 
 sai_status_t set_udf_attribute_fn(

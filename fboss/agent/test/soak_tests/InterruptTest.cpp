@@ -12,8 +12,6 @@
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/CounterCache.h"
 
-#include "common/process/Process.h"
-
 namespace facebook::fboss {
 
 void InterruptTest::setUpPorts() {

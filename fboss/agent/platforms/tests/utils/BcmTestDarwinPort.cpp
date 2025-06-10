@@ -14,7 +14,9 @@
 
 namespace facebook::fboss {
 
-BcmTestDarwinPort::BcmTestDarwinPort(PortID id, BcmTestDarwinPlatform* platform)
+BcmTestDarwinPort::BcmTestDarwinPort(
+    const PortID& id,
+    BcmTestDarwinPlatform* platform)
     : BcmTestPort(id, platform) {}
 
 } // namespace facebook::fboss

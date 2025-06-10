@@ -66,11 +66,9 @@ static constexpr uint32_t kV6TopPhp = 20011;
 namespace facebook::fboss {
 class AgentTrunkLoadBalancerTest : public AgentHwTest {
  protected:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {
-        production_features::ProductionFeature::LAG,
-        production_features::ProductionFeature::LAG_LOAD_BALANCER};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::LAG, ProductionFeature::LAG_LOAD_BALANCER};
   }
 
   void addAggregatePorts(cfg::SwitchConfig* config, AggPortInfo aggInfo) const {

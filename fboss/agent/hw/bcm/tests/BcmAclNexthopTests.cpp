@@ -76,7 +76,8 @@ class BcmAclNexthopTest : public BcmTest {
     XLOG(DBG3) << "routerId: " << kRid << ", nexthops: " << nexthops;
     return getHwSwitch()
         ->writableMultiPathNextHopTable()
-        ->referenceOrEmplaceNextHop(BcmMultiPathNextHopKey(kRid, nexthops));
+        ->referenceOrEmplaceNextHop(
+            BcmMultiPathNextHopKey(kRid, nexthops, std::nullopt));
   }
 
   void updateAcl(std::string name, RouteNextHopSet nexthops) {

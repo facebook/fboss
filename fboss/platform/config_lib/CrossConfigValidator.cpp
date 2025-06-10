@@ -5,6 +5,7 @@
 #include <fmt/format.h>
 #include <folly/logging/xlog.h>
 #include <re2/re2.h>
+#include <numeric>
 
 #include "fboss/platform/platform_manager/ConfigValidator.h"
 #include "fboss/platform/sensor_service/ConfigValidator.h"
@@ -80,6 +81,51 @@ bool CrossConfigValidator::isValidFanServiceConfig(
     }
   }
   return true;
+}
+
+bool CrossConfigValidator::isValidWeutilConfig(
+    const weutil_config::WeutilConfig& weutilConfig,
+    const std::string& platformName) {
+  // TODO: T226259767 Remove this check once PM is onboarded in Darwin
+  if (platformName == "darwin") {
+    return true;
+  }
+  XLOG(INFO) << fmt::format("Validating WeutilConfig for {}", platformName);
+  std::unordered_set<std::string> weutilEepromPaths{};
+  for (const auto& [eepromName, eepromConfig] : *weutilConfig.fruEepromList()) {
+    // Meru SCM EEPROM is calculated runtime and not present in pm config
+    // https://fburl.com/code/ifvtduk2
+    if (*eepromConfig.path() == "/run/devmap/eeproms/MERU_SCM_EEPROM") {
+      XLOG(INFO)
+          << "Skipping '/run/devmap/eeproms/MERU_SCM_EEPROM' as it's not being created by PlatformManager";
+      continue;
+    }
+    weutilEepromPaths.insert(*eepromConfig.path());
+    XLOG(INFO) << fmt::format(
+        "Added {} to weutilEepromPaths", *eepromConfig.path());
+  }
+  // PlatformManager should have all the EEPROMs defined in WeutilConfig
+  for (const auto& [link, path] : *pmConfig_.symbolicLinkToDevicePath()) {
+    weutilEepromPaths.erase(link);
+    XLOG(INFO) << fmt::format("Found {} in PlatformManager config", path);
+    // Exit early if the set is empty
+    if (weutilEepromPaths.empty()) {
+      break;
+    }
+  }
+  XLOG(INFO) << fmt::format(
+      "weutilEepromPaths after removing all symbolic links: [{}]",
+      // Format it to json array to make it easier to read
+      std::accumulate(
+          weutilEepromPaths.begin(),
+          weutilEepromPaths.end(),
+          std::string(""),
+          [](std::string a, const std::string& b) {
+            bool comma_needed = !a.empty();
+            return std::move(a) + (comma_needed ? ", " : "") +
+                fmt::format("\"{}\"", b);
+          }));
+  return weutilEepromPaths.empty();
 }
 
 bool CrossConfigValidator::isValidPmSensors(

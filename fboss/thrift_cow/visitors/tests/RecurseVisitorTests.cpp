@@ -96,7 +96,10 @@ TYPED_TEST(RecurseVisitorTests, TestFullRecurse) {
       traverser,
       nodeA,
       RecurseVisitOptions(
-          RecurseVisitMode::FULL, RecurseVisitOrder::PARENTS_FIRST),
+          RecurseVisitMode::FULL,
+          RecurseVisitOrder::PARENTS_FIRST,
+          false /* outputIdPaths */,
+          true /* hybridNodeShallowTraversal */),
       std::move(processPath));
 
   std::map<std::vector<std::string>, folly::dynamic> expected = {
@@ -195,7 +198,10 @@ TYPED_TEST(RecurseVisitorTests, TestLeafRecurse) {
       traverser,
       nodeA,
       RecurseVisitOptions(
-          RecurseVisitMode::LEAVES, RecurseVisitOrder::PARENTS_FIRST),
+          RecurseVisitMode::LEAVES,
+          RecurseVisitOrder::PARENTS_FIRST,
+          false /* outputIdPaths */,
+          true /* hybridNodeShallowTraversal */),
       processPath);
 
   std::map<std::vector<std::string>, folly::dynamic> expected = {
@@ -249,7 +255,10 @@ TYPED_TEST(RecurseVisitorTests, TestLeafRecurse) {
       traverser,
       nodeA,
       RecurseVisitOptions(
-          RecurseVisitMode::LEAVES, RecurseVisitOrder::PARENTS_FIRST, true),
+          RecurseVisitMode::LEAVES,
+          RecurseVisitOrder::PARENTS_FIRST,
+          true /* outputIdPaths */,
+          true /* hybridNodeShallowTraversal */),
       processPath);
 
   expected = {
