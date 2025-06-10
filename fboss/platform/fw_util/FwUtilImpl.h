@@ -70,8 +70,8 @@ class FwUtilImpl {
   bool
   createCustomContentFile(const std::string&, const int&, const std::string&);
   std::string detectFlashromChip(const FlashromConfig&, const std::string&);
-  void performJamUpgrade(const JamConfig&, const std::string&);
-  void performXappUpgrade(const XappConfig&, const std::string&);
+  void performJamUpgrade(const JamConfig&);
+  void performXappUpgrade(const XappConfig&);
   void doPostUpgrade(const std::string&);
   void doPostUpgradeOperation(
       const PostFirmwareOperationConfig&,
