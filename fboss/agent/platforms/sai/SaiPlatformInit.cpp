@@ -31,6 +31,7 @@
 #include "fboss/agent/platforms/sai/SaiMeru400biuPlatform.h"
 #include "fboss/agent/platforms/sai/SaiMeru800bfaPlatform.h"
 #include "fboss/agent/platforms/sai/SaiMeru800biaPlatform.h"
+#include "fboss/agent/platforms/sai/SaiGlath05a-64oPlatform.h"
 #include "fboss/agent/platforms/sai/SaiMinipack3NPlatform.h"
 #include "fboss/agent/platforms/sai/SaiMorgan800ccPlatform.h"
 #include "fboss/agent/platforms/sai/SaiTahan800bcPlatform.h"
@@ -112,6 +113,9 @@ std::unique_ptr<SaiPlatform> chooseSaiPlatform(
         std::move(productInfo), localMac, platformMappingStr);
   } else if (productInfo->getType() == PlatformType::PLATFORM_ICECUBE800BC) {
     return std::make_unique<SaiBcmIcecube800bcPlatform>(
+        std::move(productInfo), localMac, platformMappingStr);
+  } else if (productInfo->getType() == PlatformType::PLATFORM_GLATH05A_64O) {
+    return std::make_unique<SaiGlath05a_64oPlatform>(
         std::move(productInfo), localMac, platformMappingStr);
   } else if (productInfo->getType() == PlatformType::PLATFORM_FAKE_SAI) {
     return std::make_unique<SaiFakePlatform>(std::move(productInfo));
