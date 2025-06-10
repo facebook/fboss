@@ -390,6 +390,10 @@ bool isVoqOrFabric(cfg::SwitchType switchType) {
       switchType == cfg::SwitchType::FABRIC;
 }
 
+bool isFabricSwitch(cfg::SwitchType switchType) {
+  return switchType == cfg::SwitchType::FABRIC;
+}
+
 std::map<std::string, FabricEndpoint> getFabricEndpoints(
     const HostInfo& hostInfo) {
   std::map<std::string, FabricEndpoint> entries;
