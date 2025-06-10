@@ -66,6 +66,7 @@ add_library(led_manager_lib
   fboss/led_service/Morgan800ccLedManager.cpp
   fboss/led_service/Minipack3NLedManager.cpp
   fboss/led_service/Tahan800bcLedManager.cpp
+  fboss/led_service/Glath05a-64oLedManager.cpp
 )
 
 target_link_libraries(led_manager_lib
@@ -80,6 +81,7 @@ target_link_libraries(led_manager_lib
   meru800bia_bsp
   meru800bfa_bsp
   tahan800bc_bsp
+  glath05a-64o_bsp
   morgan800cc_bsp
   darwin_platform_mapping
   elbert_platform_mapping
@@ -93,6 +95,7 @@ target_link_libraries(led_manager_lib
   tahan800bc_platform_mapping
   wedge400_platform_mapping
   yamp_platform_mapping
+  glath05a-64o_platform_mapping
   product_info
   Folly::folly
   FBThrift::thriftcpp2

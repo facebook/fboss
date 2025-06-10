@@ -1,0 +1,84 @@
+{
+  "systemLedConfig": {
+    "presentLedColor": 1,
+    "presentLedSysfsPath": "/sys/class/leds/sys_led:green:status/brightness",
+    "absentLedColor": 2,
+    "absentLedSysfsPath": "/sys/class/leds/sys_led:red:status/brightness"
+  },
+  "fruTypeLedConfigs": {
+    "FAN": {
+      "presentLedColor": 1,
+      "presentLedSysfsPath": "/sys/class/leds/fan_led:green:status/brightness",
+      "absentLedColor": 2,
+      "absentLedSysfsPath": "/sys/class/leds/fan_led:red:status/brightness"
+    },
+    "PSU": {
+      "presentLedColor": 1,
+      "presentLedSysfsPath": "/sys/class/leds/psu_led:green:status/brightness",
+      "absentLedColor": 2,
+      "absentLedSysfsPath": "/sys/class/leds/psu_led:red:status/brightness"
+    }
+  },
+  "fruConfigs": [
+    {
+      "fruName": "FAN1",
+      "fruType": "FAN",
+      "presenceDetection": {
+        "sysfsFileHandle": {
+          "presenceFilePath": "/run/devmap/sensors/FAN_CPLD/fan1_present",
+          "desiredValue": 1
+        }
+      }
+    },
+    {
+      "fruName": "FAN2",
+      "fruType": "FAN",
+      "presenceDetection": {
+        "sysfsFileHandle": {
+          "presenceFilePath": "/run/devmap/sensors/FAN_CPLD/fan2_present",
+          "desiredValue": 1
+        }
+      }
+    },
+    {
+      "fruName": "FAN3",
+      "fruType": "FAN",
+      "presenceDetection": {
+        "sysfsFileHandle": {
+          "presenceFilePath": "/run/devmap/sensors/FAN_CPLD/fan3_present",
+          "desiredValue": 1
+        }
+      }
+    },
+    {
+      "fruName": "FAN4",
+      "fruType": "FAN",
+      "presenceDetection": {
+        "sysfsFileHandle": {
+          "presenceFilePath": "/run/devmap/sensors/FAN_CPLD/fan4_present",
+          "desiredValue": 1
+        }
+      }
+    },
+    {
+      "fruName": "PSU1",
+      "fruType": "PSU",
+      "presenceDetection": {
+        "sysfsFileHandle": {
+          "presenceFilePath": "/run/devmap/fpgas/GLATH05A-64O_SMB_FPGA/psu1_present",
+          "desiredValue": 1
+        }
+      }
+    },
+    {
+      "fruName": "PSU2",
+      "fruType": "PSU",
+      "presenceDetection": {
+        "sysfsFileHandle": {
+          "presenceFilePath": "/run/devmap/fpgas/GLATH05A-64O_SMB_FPGA/psu2_present",
+          "desiredValue": 1
+        }
+      }
+    }
+  ]
+}
