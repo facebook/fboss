@@ -346,7 +346,6 @@ hw_test_asic_only_srcs = hw_test_common_srcs + [
 
 hw_dataplane_test_srcs = [
     "dataplane_tests/HwHashConsistencyTest.cpp",
-    "dataplane_tests/HwAqmTests.cpp",
     "dataplane_tests/HwHashPolarizationTests.cpp",
     "dataplane_tests/HwInPauseDiscardsTests.cpp",
     "dataplane_tests/HwLoadBalancerTests.cpp",
@@ -388,7 +387,6 @@ cpp_library(
         ":hw_qos_utils",
         ":hw_switch_ensemble_factory",
         ":hw_test_acl_utils",
-        ":hw_test_aqm_utils",
         ":hw_test_ecmp_utils",
         ":hw_test_flowlet_switching_utils",
         ":hw_test_mirror_utils",
@@ -433,7 +431,6 @@ cpp_library(
         "//fboss/agent/hw/switch_asics:switch_asics",
         "//fboss/agent/if:common-cpp2-types",
         "//fboss/agent/if:mpls-cpp2-types",
-        "//fboss/agent/packet:packet",
         "//fboss/agent/packet:packet_factory",
         "//fboss/agent/packet:pktutil",
         "//fboss/agent/state:label_forwarding_action",
@@ -443,13 +440,11 @@ cpp_library(
         "//fboss/agent/test:resourcelibutil",
         "//fboss/agent/test:trunk_utils",
         "//fboss/agent/test/utils:agent_hw_test_constants",
-        "//fboss/agent/test/utils:aqm_test_utils",
         "//fboss/agent/test/utils:config_utils",
         "//fboss/agent/test/utils:dscp_marking_utils",
         "//fboss/agent/test/utils:ecmp_dataplane_test_util",
         "//fboss/agent/test/utils:load_balancer_test_runner_h",
         "//fboss/agent/test/utils:load_balancer_test_utils",
-        "//fboss/agent/test/utils:olympic_qos_utils",
         "//fboss/agent/test/utils:pfc_test_utils",
         "//fboss/agent/test/utils:port_stats_test_utils",
         "//fboss/agent/test/utils:queue_per_host_test_utils",
@@ -769,6 +764,11 @@ cpp_library(
 cpp_library(
     name = "hw_test_tam_utils",
     headers = ["HwTestTamUtils.h"],
+)
+
+cpp_library(
+    name = "hw_test_aqm_utils_headers",
+    headers = ["dataplane_tests/HwTestAqmUtils.h"],
 )
 
 cpp_library(
