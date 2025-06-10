@@ -92,7 +92,7 @@ bool OvertempCondition::checkIfOvertemp() {
   return overtempCount >= numOvertempForShutdown;
 }
 
-bool OvertempCondition::isTracked(const std::string sensorName) {
+bool OvertempCondition::isTracked(const std::string& sensorName) {
   return entries.find(sensorName) != entries.end();
 }
 } // namespace facebook::fboss::platform::fan_service
