@@ -959,6 +959,19 @@ void SaiPortManager::programSerdes(
   }
   if (platform_->getAsic()->getAsicType() ==
       cfg::AsicType::ASIC_TYPE_TOMAHAWK5) {
+    auto platformPort = platform_->getPort(swPort->getID());
+    if (platformPort->getPortType() == cfg::PortType::MANAGEMENT_PORT) {
+      XLOG(DBG2)
+          << "Tomahawk5 management port only support 3 tap serdes setting";
+      std::get<std::optional<SaiPortSerdesTraits::Attributes::TxFirPre2>>(
+          serdesAttributes) = std::nullopt;
+      std::get<std::optional<SaiPortSerdesTraits::Attributes::TxFirPre3>>(
+          serdesAttributes) = std::nullopt;
+      std::get<std::optional<SaiPortSerdesTraits::Attributes::TxFirPost2>>(
+          serdesAttributes) = std::nullopt;
+      std::get<std::optional<SaiPortSerdesTraits::Attributes::TxFirPost3>>(
+          serdesAttributes) = std::nullopt;
+    }
     // set main txfir only first to avoid programming errors, see CS00012393198
     auto attributes = serdesAttributes;
     auto newTxFirMain =
