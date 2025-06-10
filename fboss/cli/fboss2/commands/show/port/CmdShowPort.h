@@ -80,11 +80,6 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
  private:
   std::chrono::seconds peerTimeout = std::chrono::seconds(1);
 
-  std::unordered_map<
-      std::string,
-      std::shared_ptr<apache::thrift::Client<FbossCtrl>>>
-      clients;
-
   PeerInfo getFabPortPeerInfo(const auto& hostInfo) const;
 
   PeerDrainState asyncGetDrainState(
@@ -98,6 +93,11 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
       const std::unordered_set<std::string>& hosts);
   std::unordered_map<std::string, bool> getPeerPortDrainedOrDown(
       const PeerInfo& peerInfo);
+
+  std::unordered_map<
+      std::string,
+      std::shared_ptr<apache::thrift::Client<FbossCtrl>>>
+      clients_;
 };
 
 } // namespace facebook::fboss

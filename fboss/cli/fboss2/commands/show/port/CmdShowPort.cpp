@@ -170,15 +170,15 @@ CmdShowPort::getPeerDrainStates(const PeerInfo& peerInfo) {
   std::unordered_set<std::string> peersChecked;
   std::unordered_map<std::string, std::shared_future<PeerDrainState>> futures;
   for (const auto& peer : peerInfo.allPeers) {
-    if (!clients.contains(peer)) {
-      clients[peer] = utils::createClient<apache::thrift::Client<FbossCtrl>>(
+    if (!clients_.contains(peer)) {
+      clients_[peer] = utils::createClient<apache::thrift::Client<FbossCtrl>>(
           HostInfo(peer), peerTimeout);
     }
     futures[peer] = std::async(
         std::launch::async,
         &CmdShowPort::asyncGetDrainState,
         this,
-        clients[peer]);
+        clients_[peer]);
   };
 
   // Get results
@@ -217,15 +217,15 @@ std::unordered_map<std::string, PortNameToInfo> CmdShowPort::getPeerToPorts(
   // Launch futures
   std::unordered_map<std::string, std::shared_future<PortIdToInfo>> futures;
   for (const auto& host : hosts) {
-    if (!clients.contains(host)) {
-      clients[host] = utils::createClient<apache::thrift::Client<FbossCtrl>>(
+    if (!clients_.contains(host)) {
+      clients_[host] = utils::createClient<apache::thrift::Client<FbossCtrl>>(
           HostInfo(host), peerTimeout);
     }
     futures[host] = std::async(
         std::launch::async,
         &CmdShowPort::asyncGetPortInfo,
         this,
-        clients[host]);
+        clients_[host]);
   }
 
   // Get results
