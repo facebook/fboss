@@ -83,7 +83,6 @@ class Bsp {
   virtual bool writeSysfs(const std::string& path, int value);
   std::vector<std::pair<std::string, float>> processOpticEntries(
       const Optic& opticsGroup,
-      std::shared_ptr<SensorData> pSensorData,
       uint64_t& currentQsfpSvcTimestamp,
       const std::map<int32_t, TransceiverInfo>& transceiverInfoMap);
 
