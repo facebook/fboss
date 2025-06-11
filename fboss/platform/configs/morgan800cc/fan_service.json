@@ -6,6 +6,10 @@
   "pwmTransitionValue": 45,
   "pwmLowerThreshold": 18,
   "pwmUpperThreshold": 70,
+  "watchdog": {
+    "sysfsPath": "/run/devmap/watchdogs/MCB_FAN_WD",
+    "value": 0
+  },
   "optics": [
     {
       "opticName": "qsfp_group_1",
