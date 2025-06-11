@@ -691,4 +691,10 @@ std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeDisableSllAndHllTimeout::operator()() {
   return SAI_SWITCH_ATTR_DISABLE_SLL_AND_HLL_TIMEOUT;
 }
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeAsicRevision::operator()() {
+  return SAI_SWITCH_ATTR_ASIC_REVISION;
+}
+
 } // namespace facebook::fboss
