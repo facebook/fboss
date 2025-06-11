@@ -68,7 +68,7 @@ class Bsp {
   int sensordThriftPort_{5970};
   int qsfpSvcThriftPort_{5910};
   bool initialSensorDataRead_{false};
-  std::optional<int> watchdogFd_;
+  std::optional<int> watchdogFd_{std::nullopt};
 
   bool writeFd(int fd, const std::string& val) {
     auto ret = write(fd, val.c_str(), val.size());
