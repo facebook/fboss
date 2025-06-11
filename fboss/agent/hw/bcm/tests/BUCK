@@ -414,6 +414,7 @@ bcm_test_fake_hw_facebook_test_srcs = bcm_test_all_hw_facebook_srcs + [
             "//fboss/agent/hw/test:hw_packet_utils",
             "//fboss/agent/hw/test:hw_pfc_utils",
             "//fboss/agent/hw/test:hw_switch_test",
+            "//fboss/agent/hw/test:hw_test_aqm_utils",
             "//fboss/agent/hw/test:hw_test_main",
             "//fboss/agent/hw/test:load_balancer_utils",
             "//fboss/agent/platforms/tests/utils:bcm_test_platforms",

@@ -151,7 +151,6 @@ bool Bsp::writeToWatchdog(const std::string& value) {
 
 std::vector<std::pair<std::string, float>> Bsp::processOpticEntries(
     const Optic& opticsGroup,
-    std::shared_ptr<SensorData> pSensorData,
     uint64_t& currentQsfpSvcTimestamp,
     const std::map<int32_t, TransceiverInfo>& transceiverInfoMap) {
   std::vector<std::pair<std::string, float>> data{};
@@ -263,7 +262,7 @@ void Bsp::getOpticsDataFromQsfpSvc(
 
   // Parse the data
   auto data = processOpticEntries(
-      opticsGroup, pSensorData, currentQsfpSvcTimestamp, transceiverInfoMap);
+      opticsGroup, currentQsfpSvcTimestamp, transceiverInfoMap);
 
   auto opticEntry = pSensorData->getOpticEntry(*opticsGroup.opticName());
   // Using the timestamp, check if the data is too old or not.

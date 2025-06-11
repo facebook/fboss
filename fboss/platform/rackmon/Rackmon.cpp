@@ -1,5 +1,5 @@
 // Copyright 2021-present Facebook. All Rights Reserved.
-#include "Rackmon.h"
+#include "fboss/platform/rackmon/Rackmon.h"
 #include <nlohmann/json.hpp>
 #include <fstream>
 #include <iomanip>

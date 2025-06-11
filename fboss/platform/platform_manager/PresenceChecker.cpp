@@ -14,7 +14,7 @@ PresenceChecker::PresenceChecker(
 
 bool PresenceChecker::isPresent(
     const PresenceDetection& presenceDetection,
-    const std::string slotPath) {
+    const std::string& slotPath) {
   if (const auto sysfsFileHandle = presenceDetection.sysfsFileHandle()) {
     return sysfsPresent(*sysfsFileHandle, slotPath);
   } else if (const auto gpioLineHandle = presenceDetection.gpioLineHandle()) {

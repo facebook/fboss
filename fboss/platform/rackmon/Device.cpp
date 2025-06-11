@@ -6,7 +6,7 @@
 #include <cstring>
 #include "Log.h"
 
-#include "Device.h"
+#include "fboss/platform/rackmon/Device.h"
 
 namespace rackmon {
 

@@ -1,5 +1,5 @@
 // Copyright 2021-present Facebook. All Rights Reserved.
-#include "ModbusDevice.h"
+#include "fboss/platform/rackmon/ModbusDevice.h"
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <thread>
