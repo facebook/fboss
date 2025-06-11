@@ -94,3 +94,5 @@ target_link_libraries(platform_config_lib
   Folly::folly
   platform_name_lib
 )
+
+gtest_discover_tests(platform_config_lib_config_lib_test)

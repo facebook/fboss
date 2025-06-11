@@ -94,3 +94,4 @@ target_include_directories(rackmon_test PRIVATE
 target_compile_definitions(rackmon_test PRIVATE __TEST__=1)
 
 install(TARGETS rackmon_test)
+gtest_discover_tests(rackmon_test)
