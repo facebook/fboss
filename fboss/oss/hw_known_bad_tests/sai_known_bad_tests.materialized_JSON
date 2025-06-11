@@ -8143,12 +8143,6 @@
           "test_name_regex": "HwAclStatTest.AclStatRenameShared$"
         },
         {
-          "test_name_regex": "SaiAclTableGroupTest.*$"
-        },
-        {
-          "test_name_regex": "SaiAclTableGroupTrafficTest/[01].*$"
-        },
-        {
           "test_name_regex": "HwInDiscardsCounterTest.*$"
         },
         {
@@ -8453,6 +8447,12 @@
         },
         {
           "test_name_regex": "warm_boot.HwOlympicQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
+        },
+        {
+          "test_name_regex": "SaiAclTableGroupTest.*$"
+        },
+        {
+          "test_name_regex": "SaiAclTableGroupTrafficTest/[01].*$"
         }
     ],
     "leaba/1.42.8/1.42.8/simulator": [
@@ -8530,12 +8530,6 @@
         },
         {
           "test_name_regex": "HwAclStatTest.AclStatRenameShared$"
-        },
-        {
-          "test_name_regex": "SaiAclTableGroupTest.*$"
-        },
-        {
-          "test_name_regex": "SaiAclTableGroupTrafficTest/[01].*$"
         },
         {
           "test_name_regex": "HwInDiscardsCounterTest.*$"
@@ -9225,12 +9219,6 @@
         },
         {
           "test_name_regex": "HwAclStatTest.AclStatRenameShared$"
-        },
-        {
-          "test_name_regex": "SaiAclTableGroupTest.*$"
-        },
-        {
-          "test_name_regex": "SaiAclTableGroupTrafficTest/[01].*$"
         },
         {
           "test_name_regex": "HwInDiscardsCounterTest.*$"
