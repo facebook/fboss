@@ -137,7 +137,7 @@ void SensorServiceImpl::fetchSensorData() {
                 .count() >= FLAGS_fsdb_statsStream_interval_seconds) {
       stats::SensorServiceStats sensorServiceStats;
       sensorServiceStats.sensorData() = getAllSensorData();
-      fsdbSyncer_->statsUpdated(std::move(sensorServiceStats));
+      fsdbSyncer_->statsUpdated(sensorServiceStats);
       publishedStatsToFsdbAt_ = now;
     }
   }
