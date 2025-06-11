@@ -101,6 +101,10 @@ void fixThresholds(
   }
 }
 
+uint64_t roundup(uint64_t value, uint64_t unit) {
+  return std::ceil(static_cast<double>(value) / unit) * unit;
+}
+
 } // namespace
 
 const std::string kDefaultEgressBufferPoolName{"default"};
@@ -205,6 +209,11 @@ void SaiBufferManager::setupEgressBufferPool(
   if (FLAGS_egress_buffer_pool_size > 0) {
     uint64_t newSize = FLAGS_egress_buffer_pool_size *
         platform_->getAsic()->getNumMemoryBuffers();
+    if (platform_->getAsic()->getAsicType() ==
+        cfg::AsicType::ASIC_TYPE_CHENAB) {
+      newSize =
+          roundup(newSize, platform_->getAsic()->getPacketBufferUnitSize());
+    }
     XLOG(WARNING) << "Overriding egress buffer pool size from " << poolSize
                   << " to " << newSize;
     poolSize = newSize;
@@ -303,6 +312,11 @@ void SaiBufferManager::setupIngressEgressBufferPool(
     // An option for test to override the buffer pool size to be used.
     poolSize = FLAGS_ingress_egress_buffer_pool_size *
         platform_->getAsic()->getNumMemoryBuffers();
+    if (platform_->getAsic()->getAsicType() ==
+        cfg::AsicType::ASIC_TYPE_CHENAB) {
+      poolSize =
+          roundup(poolSize, platform_->getAsic()->getPacketBufferUnitSize());
+    }
   } else {
     // For Jericho ASIC family, there is a single ingress/egress buffer
     // pool and hence the usage getSwitchEgressPoolAvailableSize() might
