@@ -21,6 +21,7 @@ class PlatformManagerHandler
       PmUnitInfoResponse& response,
       std::unique_ptr<PmUnitInfoRequest> request) override;
   void getBspVersion(BspVersionResponse& response) override;
+  void getPlatformName(std::string& response) override;
 
  private:
   const PlatformExplorer& platformExplorer_;

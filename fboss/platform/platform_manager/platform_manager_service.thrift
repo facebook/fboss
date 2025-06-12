@@ -67,4 +67,5 @@ service PlatformManagerService {
     1: PlatformManagerError pmError,
   );
   BspVersionResponse getBspVersion();
+  string getPlatformName();
 }

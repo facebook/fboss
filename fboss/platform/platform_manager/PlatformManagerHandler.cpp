@@ -52,4 +52,8 @@ void PlatformManagerHandler::getBspVersion(
   bspVersionResponse.bspVersion() = *platformConfig_.bspKmodsRpmVersion();
   bspVersionResponse.kernelVersion() = system_.getHostKernelVersion();
 }
+
+void PlatformManagerHandler::getPlatformName(std::string& response) {
+  response = *platformConfig_.platformName();
+}
 } // namespace facebook::fboss::platform::platform_manager
