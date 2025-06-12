@@ -102,9 +102,7 @@ bool ResourceAccountant::checkEcmpResource(bool intermediateState) const {
   uint32_t resourcePercentage =
       intermediateState ? kHundredPercentage : FLAGS_ecmp_resource_percentage;
 
-  // No need to check for DLB resources unless checkDlbResource_=True
-  if (FLAGS_dlbResourceCheckEnable && FLAGS_flowletSwitchingEnable &&
-      checkDlbResource_) {
+  if (FLAGS_dlbResourceCheckEnable && FLAGS_flowletSwitchingEnable) {
     if (!checkDlbResource(resourcePercentage)) {
       return false;
     }
@@ -233,7 +231,7 @@ bool ResourceAccountant::isValidRouteUpdate(const StateDelta& delta) {
   bool validRouteUpdate = routeAndEcmpStateChangedImpl(delta);
 
   if (FLAGS_dlbResourceCheckEnable && FLAGS_flowletSwitchingEnable &&
-      checkDlbResource_ && !validRouteUpdate) {
+      !validRouteUpdate) {
     XLOG(WARNING)
         << "Invalid route update - exceeding DLB resource limits. New state consumes "
         << ecmpGroupRefMap_.size() << " DLB ECMP groups and "
@@ -279,10 +277,6 @@ bool ResourceAccountant::isValidRouteUpdate(const StateDelta& delta) {
     }
   }
   return validRouteUpdate;
-}
-
-void ResourceAccountant::enableDlbResourceCheck(bool enable) {
-  checkDlbResource_ = enable;
 }
 
 template bool

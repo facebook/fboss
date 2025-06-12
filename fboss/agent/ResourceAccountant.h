@@ -30,7 +30,6 @@ class ResourceAccountant {
   bool isValidUpdate(const StateDelta& delta);
   bool isValidRouteUpdate(const StateDelta& delta);
   void stateChanged(const StateDelta& delta);
-  void enableDlbResourceCheck(bool enable);
 
  private:
   int getMemberCountForEcmpGroup(const RouteNextHopEntry& fwd) const;
@@ -85,7 +84,6 @@ class ResourceAccountant {
 
   bool nativeWeightedEcmp_{true};
   bool checkRouteUpdate_;
-  bool checkDlbResource_{true};
   uint32_t l2Entries_{0};
   uint32_t ecmpMemberUsage_{0};
   uint32_t routeUsage_{0};
