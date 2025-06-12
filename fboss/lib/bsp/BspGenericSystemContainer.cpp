@@ -13,6 +13,7 @@
 #include "fboss/lib/bsp/montblanc/MontblancBspPlatformMapping.h"
 #include "fboss/lib/bsp/morgan800cc/Morgan800ccBspPlatformMapping.h"
 #include "fboss/lib/bsp/tahan800bc/Tahan800bcBspPlatformMapping.h"
+#include "fboss/lib/bsp/glath05a-64o/Glath05a-64oBspPlatformMapping.h"
 
 DEFINE_string(
     bsp_platform_mapping_override_path,
@@ -132,6 +133,15 @@ template <>
 std::shared_ptr<Tahan800bcSystemContainer>
 Tahan800bcSystemContainer::getInstance() {
   return _tahan800bcSystemContainer.try_get();
+}
+
+using Glath05a_64oSystemContainer =
+    BspGenericSystemContainer<Glath05a_64oBspPlatformMapping>;
+folly::Singleton<Glath05a_64oSystemContainer> _glath05a_64oSystemContainer;
+template <>
+std::shared_ptr<Glath05a_64oSystemContainer>
+Glath05a_64oSystemContainer::getInstance() {
+  return _glath05a_64oSystemContainer.try_get();
 }
 
 } // namespace fboss

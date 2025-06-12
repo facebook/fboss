@@ -99,6 +99,15 @@ target_link_libraries(meru800bfa_bsp
   FBThrift::thriftcpp2
 )
 
+add_library(glath05a-64o_bsp
+  fboss/lib/bsp/glath05a-64o/Glath05a-64oBspPlatformMapping.cpp
+)
+
+target_link_libraries(glath05a-64o_bsp
+  bsp_platform_mapping_cpp2
+  FBThrift::thriftcpp2
+)
+
 add_library(montblanc_bsp
   fboss/lib/bsp/montblanc/MontblancBspPlatformMapping.cpp
 )
@@ -171,6 +180,7 @@ target_link_libraries(qsfp_bsp_core
   meru400biu_bsp
   meru800bia_bsp
   meru800bfa_bsp
+  glath05a-64o_bsp
   montblanc_bsp
   minipack3n_bsp
   morgan800cc_bsp
