@@ -34,13 +34,23 @@ class ResourceAccountant {
  private:
   int getMemberCountForEcmpGroup(const RouteNextHopEntry& fwd) const;
   bool checkEcmpResource(bool intermediateState) const;
-  bool checkDlbResource(uint32_t resourcePercentage) const;
+  bool checkArsResource(bool intermediateState) const;
   bool routeAndEcmpStateChangedImpl(const StateDelta& delta);
   bool shouldCheckRouteUpdate() const;
   bool isEcmp(const RouteNextHopEntry& fwd) const;
   int computeWeightedEcmpMemberCount(
       const RouteNextHopEntry& fwd,
       const cfg::AsicType& asicType) const;
+
+  template <typename AddrT>
+  bool checkAndUpdateGenericEcmpResource(
+      const std::shared_ptr<Route<AddrT>>& route,
+      bool add);
+
+  template <typename AddrT>
+  bool checkAndUpdateArsEcmpResource(
+      const std::shared_ptr<Route<AddrT>>& route,
+      bool add);
 
   template <typename AddrT>
   bool checkAndUpdateEcmpResource(
@@ -78,6 +88,7 @@ class ResourceAccountant {
   std::unordered_map<SwitchID, uint32_t>& getNeighborEntriesMap();
 
   std::map<RouteNextHopEntry::NextHopSet, uint32_t> ecmpGroupRefMap_;
+  std::map<RouteNextHopEntry::NextHopSet, uint32_t> arsEcmpGroupRefMap_;
 
   const HwAsicTable* asicTable_;
   const SwitchIdScopeResolver* scopeResolver_;
@@ -91,9 +102,11 @@ class ResourceAccountant {
   std::unordered_map<SwitchID, uint32_t> arpEntriesMap_;
 
   FRIEND_TEST(ResourceAccountantTest, getMemberCountForEcmpGroup);
-  FRIEND_TEST(ResourceAccountantTest, checkDlbResource);
+  FRIEND_TEST(ResourceAccountantTest, checkArsResource);
   FRIEND_TEST(ResourceAccountantTest, checkEcmpResource);
   FRIEND_TEST(ResourceAccountantTest, checkAndUpdateEcmpResource);
+  FRIEND_TEST(ResourceAccountantTest, checkAndUpdateGenericEcmpResource);
+  FRIEND_TEST(ResourceAccountantTest, checkAndUpdateArsEcmpResource);
   FRIEND_TEST(ResourceAccountantTest, computeWeightedEcmpMemberCount);
   FRIEND_TEST(MacTableManagerTest, MacLearnedBulkCb);
 };

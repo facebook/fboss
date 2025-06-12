@@ -261,7 +261,7 @@ DEFINE_int32(
 
 DEFINE_int32(
     ars_resource_percentage,
-    100,
+    75,
     "Percentage of DLB ECMP resources (out of 100) allowed to use before ResourceAccountant rejects the update.");
 
 DEFINE_int32(
