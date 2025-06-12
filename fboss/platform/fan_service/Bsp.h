@@ -68,7 +68,7 @@ class Bsp {
   int sensordThriftPort_{5970};
   int qsfpSvcThriftPort_{5910};
   bool initialSensorDataRead_{false};
-  std::optional<int> watchdogFd_;
+  std::optional<int> watchdogFd_{std::nullopt};
 
   bool writeFd(int fd, const std::string& val) {
     auto ret = write(fd, val.c_str(), val.size());
@@ -83,7 +83,6 @@ class Bsp {
   virtual bool writeSysfs(const std::string& path, int value);
   std::vector<std::pair<std::string, float>> processOpticEntries(
       const Optic& opticsGroup,
-      std::shared_ptr<SensorData> pSensorData,
       uint64_t& currentQsfpSvcTimestamp,
       const std::map<int32_t, TransceiverInfo>& transceiverInfoMap);
 

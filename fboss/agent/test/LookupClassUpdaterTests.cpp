@@ -10,7 +10,6 @@
 
 #include <gtest/gtest.h>
 
-#include "fboss/agent/GtestDefs.h"
 #include "fboss/agent/L2Entry.h"
 #include "fboss/agent/LookupClassUpdater.h"
 #include "fboss/agent/NeighborUpdater.h"

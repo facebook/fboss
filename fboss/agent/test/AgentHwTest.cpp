@@ -7,7 +7,6 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/test/AgentEnsemble.h"
-#include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/StatsTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 

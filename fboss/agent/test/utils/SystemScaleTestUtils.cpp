@@ -311,6 +311,9 @@ void configureMaxMacEntriesViaPacketIn(AgentEnsemble* ensemble) {
 }
 void configureMaxMacEntries(AgentEnsemble* ensemble) {
   auto asic = checkSameAndGetAsic(ensemble->getHwAsicTable()->getL3Asics());
+  if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    return;
+  }
   // TH3 had existing slowness of l2 callbacks. To exercise the callback path,
   // we utilize l2 callback on sw switch to simulate large scale of l2 callback
   if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK3) {
@@ -778,14 +781,18 @@ void initSystemScaleChurnTest(AgentEnsemble* ensemble) {
       ensemble->masterLogicalInterfacePortIds()[kMacChurnTxPortIdx],
       ensemble->masterLogicalInterfacePortIds()[kMacChurnRxPortIdx],
       VlanID(kBaseVlanId));
+  XLOG(INFO) << "configuring maximum acl entries";
   configureMaxMacEntries(ensemble);
+  XLOG(INFO) << "starting port flaps";
   portFlapHelper.startPortFlap();
   auto asic = checkSameAndGetAsic(ensemble->getHwAsicTable()->getL3Asics());
 
   if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK3 ||
       asic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK4) {
+    XLOG(INFO) << "churn mac table";
     macLearningFloodHelper.startChurnMacTable();
   }
+  XLOG(INFO) << "start churn route entries";
   configureMaxRouteEntries(ensemble);
   for (auto i = 0; i < kNumChurnRoute; i++) {
     removeAllRouteEntries(ensemble);
@@ -793,20 +800,23 @@ void initSystemScaleChurnTest(AgentEnsemble* ensemble) {
   }
   auto timeBefore = std::chrono::steady_clock::now();
   auto [rxPktsBefore, rxBytesBefore] = startRxMeasure(ensemble);
+  XLOG(INFO) << "churn neighbor entries";
   configureMaxNeighborEntries(ensemble);
   for (auto i = 0; i < kNumChurn; i++) {
     removeAllNeighbors(ensemble);
     configureMaxNeighborEntries(ensemble);
   }
 
+  portFlapHelper.stopPortFlap();
+
   auto [rxPktsAfter, rxBytesAfter] = stopRxMeasure(ensemble);
   auto timeAfter = std::chrono::steady_clock::now();
   std::chrono::duration<double, std::milli> durationMillseconds =
       timeAfter - timeBefore;
-  portFlapHelper.stopPortFlap();
   if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK3 ||
       asic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK4) {
     macLearningFloodHelper.stopChurnMacTable();
+    XLOG(INFO) << "stop churn mac table";
   }
 
   int txPPS, txBPS;

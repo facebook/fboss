@@ -3,7 +3,6 @@
 #include <folly/logging/xlog.h>
 #include <glob.h>
 #include <iostream>
-#include "fboss/platform/fw_util/fw_util_helpers.h"
 #include "fboss/platform/helpers/PlatformFsUtils.h"
 #include "fboss/platform/helpers/PlatformUtils.h"
 

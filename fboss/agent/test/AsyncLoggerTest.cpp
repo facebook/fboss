@@ -10,9 +10,7 @@
 
 #include "fboss/agent/AsyncLogger.h"
 
-#include <folly/CPortability.h>
 #include <gtest/gtest.h>
-#include <stdio.h>
 
 #define TEST_LOG "/tmp/sai_logger_test"
 

@@ -57,7 +57,6 @@ getNeighborToLinkFailure(const std::map<int32_t, PortInfoThrift>& myPortInfo);
 std::unordered_map<std::string, int> getPortToVirtualDeviceId(
     const std::map<int32_t, PortInfoThrift>& myPortInfo);
 
-// TODO(zecheng): Add check to link failure
 std::vector<InputBalanceResult> checkInputBalanceSingleStage(
     const std::vector<std::string>& dstSwitchNames,
     const std::unordered_map<

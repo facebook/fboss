@@ -1,6 +1,5 @@
 #include <folly/logging/xlog.h>
 #include "fboss/platform/fw_util/FwUtilImpl.h"
-#include "fboss/platform/helpers/PlatformUtils.h"
 
 namespace facebook::fboss::platform::fw_util {
 
@@ -25,11 +24,11 @@ void FwUtilImpl::doUpgradeOperation(
     }
   } else if (*upgradeConfig.commandType() == "jam") {
     if (upgradeConfig.jamArgs().has_value()) {
-      performJamUpgrade(upgradeConfig.jamArgs().value(), fpd);
+      performJamUpgrade(upgradeConfig.jamArgs().value());
     }
   } else if (*upgradeConfig.commandType() == "xapp") {
     if (upgradeConfig.xappArgs().has_value()) {
-      performXappUpgrade(upgradeConfig.xappArgs().value(), fpd);
+      performXappUpgrade(upgradeConfig.xappArgs().value());
     }
   } else {
     throw std::runtime_error(

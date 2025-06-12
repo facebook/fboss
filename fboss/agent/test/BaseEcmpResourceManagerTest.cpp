@@ -446,4 +446,23 @@ TEST_F(BaseEcmpResourceManagerTest, addCounterId) {
   EXPECT_NE(postUpdateRoute, nullptr);
   EXPECT_EQ(postUpdateRoute->getForwardInfo().getCounterID(), counterId);
 }
+
+TEST_F(BaseEcmpResourceManagerTest, UpdateFailed) {
+  auto oldState = state_;
+  auto newState = oldState->clone();
+  auto fib6 = fib(newState);
+
+  // Create a next hop set
+  auto nhops = makeNextHops(9);
+
+  // Add a route with the next hop set
+  auto route = makeRoute(nextPrefix(), nhops);
+  fib6->addNode(route);
+
+  failUpdate(newState);
+
+  // After update failure, the next hop set should not exist
+  auto nhopId = getNhopId(nhops);
+  EXPECT_FALSE(nhopId.has_value());
+}
 } // namespace facebook::fboss

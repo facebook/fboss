@@ -223,7 +223,8 @@
         67,
         69,
         71,
-        72
+        72,
+        80
     ],
     "tomahawk4": [
         2,
@@ -277,7 +278,8 @@
         69,
         71,
         72,
-        78
+        78,
+        80
     ],
     "tomahawk5": [
         2,
@@ -328,7 +330,8 @@
         63,
         69,
         71,
-        72
+        72,
+        80
     ],
     "yuba": [
         2,
@@ -601,7 +604,8 @@
         "UNTRUNCATED_SFLOW",
         "PTP_TC",
         "L4_DST_PORT_ACL",
-        "MODIFY_ACL_QUALIFIERS"
+        "MODIFY_ACL_QUALIFIERS",
+        "PFC_WATCHDOG_GRANULARITY"
     ],
     "tomahawk4": [
         "CPU_RX_TX",
@@ -655,7 +659,8 @@
         "PTP_TC",
         "L4_DST_PORT_ACL",
         "MODIFY_ACL_QUALIFIERS",
-        "ECMP_RANDOM_SPRAY"
+        "ECMP_RANDOM_SPRAY",
+        "PFC_WATCHDOG_GRANULARITY"
     ],
     "tomahawk5": [
         "CPU_RX_TX",
@@ -706,7 +711,8 @@
         "UCMP",
         "PTP_TC",
         "L4_DST_PORT_ACL",
-        "MODIFY_ACL_QUALIFIERS"
+        "MODIFY_ACL_QUALIFIERS",
+        "PFC_WATCHDOG_GRANULARITY"
     ],
     "yuba": [
         "CPU_RX_TX",

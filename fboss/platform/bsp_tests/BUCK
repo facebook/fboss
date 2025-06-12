@@ -1,9 +1,36 @@
 load("@fbcode_macros//build_defs:python_binary.bzl", "python_binary")
 load("@fbcode_macros//build_defs:python_library.bzl", "python_library")
 load("@fbcode_macros//build_defs:python_unittest.bzl", "python_unittest")
+load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
 load("//fbpkg:fbpkg.bzl", "fbpkg")
 
 oncall("fboss_platform")
+
+thrift_library(
+    name = "fbiob_device_config",
+    languages = [
+        "cpp2",
+    ],
+    thrift_cpp2_options = "json",
+    thrift_srcs = {
+        "fbiob_device_config.thrift": [],
+    },
+)
+
+thrift_library(
+    name = "bsp_tests_config",
+    languages = [
+        "cpp2",
+    ],
+    thrift_cpp2_options = "json",
+    thrift_srcs = {
+        "bsp_tests_config.thrift": [],
+    },
+    deps = [
+        ":fbiob_device_config",
+        "//fboss/platform/platform_manager:platform_manager_config",
+    ],
+)
 
 fbpkg.builder(
     name = "fboss_bsp_tests",

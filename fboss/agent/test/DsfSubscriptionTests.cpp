@@ -14,7 +14,6 @@
 #include <folly/executors/IOThreadPoolExecutor.h>
 #include <folly/executors/thread_factory/NamedThreadFactory.h>
 #include <gtest/gtest.h>
-#include "fboss/agent/GtestDefs.h"
 
 using ::testing::_;
 using ::testing::Return;

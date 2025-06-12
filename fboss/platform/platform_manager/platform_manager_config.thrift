@@ -477,6 +477,8 @@ struct VersionedPmUnitConfig {
 struct PmUnitInfo {
   1: string name;
   2: optional PmUnitVersion version;
+  3: optional platform_manager_presence.PresenceInfo presenceInfo;
+  4: bool successfullyExplored;
 }
 
 // `PmUnitVersion`: Version of a PmUnit.

@@ -9,6 +9,7 @@
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
+#include "fboss/platform/bsp_tests/gen-cpp2/bsp_tests_config_types.h"
 #include "fboss/platform/config_lib/CrossConfigValidator.h"
 #include "fboss/platform/data_corral_service/ConfigValidator.h"
 #include "fboss/platform/data_corral_service/if/gen-cpp2/led_manager_config_types.h"
@@ -36,6 +37,7 @@ using namespace facebook::fboss::platform::sensor_config;
 using namespace facebook::fboss::platform::fan_service;
 using namespace facebook::fboss::platform::weutil_config;
 using namespace facebook::fboss::platform::fw_util_config;
+using namespace facebook::fboss::platform::bsp_tests;
 using namespace apache::thrift;
 
 namespace {
@@ -56,6 +58,8 @@ std::any deserialize(
       return SimpleJSONSerializer::deserialize<NewFwUtilConfig>(jsonConfigStr);
     } else if (serviceName == "led_manager") {
       return SimpleJSONSerializer::deserialize<LedManagerConfig>(jsonConfigStr);
+    } else if (serviceName == "bsp_tests") {
+      return SimpleJSONSerializer::deserialize<BspTestsConfig>(jsonConfigStr);
     }
     LOG(FATAL) << fmt::format("Unsupported service {}", serviceName);
   } catch (std::exception& ex) {
@@ -73,7 +77,8 @@ const auto kX86Services = std::set<std::string>{
     "fan_service",
     "weutil",
     "fw_util",
-    "led_manager"};
+    "led_manager",
+    "bsp_tests"};
 constexpr auto kHdrName = "GeneratedConfig.h";
 constexpr auto kHdrBegin = R"(#pragma once
 

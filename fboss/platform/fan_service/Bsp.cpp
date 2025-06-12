@@ -120,13 +120,14 @@ void Bsp::kickWatchdog() {
 }
 
 void Bsp::closeWatchdog() {
-  if (!watchdogFd_.has_value()) {
+  if (!watchdogFd_) {
     return;
   }
   std::cout << "Closing watchdog" << std::endl;
   try {
     writeToWatchdog("V");
     close(watchdogFd_.value());
+    watchdogFd_.reset();
   } catch (std::exception& e) {
     XLOG(ERR) << "Error closing watchdog: " << e.what();
   }
@@ -139,8 +140,13 @@ bool Bsp::writeToWatchdog(const std::string& value) {
   }
   try {
     auto sysfsPath = config_.watchdog()->sysfsPath()->c_str();
-    if (!watchdogFd_.has_value()) {
-      watchdogFd_ = open(sysfsPath, O_WRONLY);
+    if (!watchdogFd_) {
+      int fd = open(sysfsPath, O_WRONLY);
+      if (fd < 0) {
+        throw std::runtime_error("Failed to open watchdog");
+      } else {
+        watchdogFd_ = fd;
+      }
     }
     return writeFd(watchdogFd_.value(), value);
   } catch (std::exception& e) {
@@ -151,7 +157,6 @@ bool Bsp::writeToWatchdog(const std::string& value) {
 
 std::vector<std::pair<std::string, float>> Bsp::processOpticEntries(
     const Optic& opticsGroup,
-    std::shared_ptr<SensorData> pSensorData,
     uint64_t& currentQsfpSvcTimestamp,
     const std::map<int32_t, TransceiverInfo>& transceiverInfoMap) {
   std::vector<std::pair<std::string, float>> data{};
@@ -263,7 +268,7 @@ void Bsp::getOpticsDataFromQsfpSvc(
 
   // Parse the data
   auto data = processOpticEntries(
-      opticsGroup, pSensorData, currentQsfpSvcTimestamp, transceiverInfoMap);
+      opticsGroup, currentQsfpSvcTimestamp, transceiverInfoMap);
 
   auto opticEntry = pSensorData->getOpticEntry(*opticsGroup.opticName());
   // Using the timestamp, check if the data is too old or not.

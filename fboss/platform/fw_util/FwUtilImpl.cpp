@@ -7,7 +7,6 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include <sys/wait.h>
 #include <filesystem>
 #include <iostream>
 

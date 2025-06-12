@@ -154,12 +154,12 @@ std::set<std::string> MultiNodeUtil::getConnectedFabricPorts(
 }
 
 bool MultiNodeUtil::verifyFabricConnectedSwitchesHelper(
-    DeviceType deviceType,
-    const std::string& deviceToVerify,
+    SwitchType switchType,
+    const std::string& switchToVerify,
     const std::set<std::string>& expectedConnectedSwitches) {
-  auto logFabricEndpoint = [deviceToVerify](
+  auto logFabricEndpoint = [switchToVerify](
                                const FabricEndpoint& fabricEndpoint) {
-    XLOG(DBG2) << "From " << " switchName: " << deviceToVerify
+    XLOG(DBG2) << "From " << " switchName: " << switchToVerify
                << " actualPeerSwitchId: " << fabricEndpoint.switchId().value()
                << " actualPeerSwitchName: "
                << fabricEndpoint.switchName().value_or("none")
@@ -176,7 +176,7 @@ bool MultiNodeUtil::verifyFabricConnectedSwitchesHelper(
                << fabricEndpoint.expectedPortName().value_or("none");
   };
 
-  auto fabricEndpoints = getFabricEndpoints(deviceToVerify);
+  auto fabricEndpoints = getFabricEndpoints(switchToVerify);
 
   std::set<std::string> gotConnectedSwitches;
   for (const auto& [portName, fabricEndpoint] : fabricEndpoints) {
@@ -207,8 +207,8 @@ bool MultiNodeUtil::verifyFabricConnectedSwitchesHelper(
     }
   }
 
-  XLOG(DBG2) << "From " << deviceTypeToString(deviceType)
-             << ":: " << deviceToVerify << " Expected Connected Switches: "
+  XLOG(DBG2) << "From " << switchTypeToString(switchType)
+             << ":: " << switchToVerify << " Expected Connected Switches: "
              << folly::join(",", expectedConnectedSwitches)
              << " Got Connected Switches: "
              << folly::join(",", gotConnectedSwitches);
@@ -224,7 +224,7 @@ bool MultiNodeUtil::verifyFabricConnectedSwitchesForRdsw(
       clusterIdToFdsws_[clusterId].begin(), clusterIdToFdsws_[clusterId].end());
 
   return verifyFabricConnectedSwitchesHelper(
-      DeviceType::RDSW, rdswToVerify, expectedConnectedSwitches);
+      SwitchType::RDSW, rdswToVerify, expectedConnectedSwitches);
 }
 
 bool MultiNodeUtil::verifyFabricConnectedSwitchesForAllRdsws() {
@@ -248,7 +248,7 @@ bool MultiNodeUtil::verifyFabricConnectedSwitchesForFdsw(
   expectedConnectedSwitches.insert(sdsws_.begin(), sdsws_.end());
 
   return verifyFabricConnectedSwitchesHelper(
-      DeviceType::FDSW, fdswToVerify, expectedConnectedSwitches);
+      SwitchType::FDSW, fdswToVerify, expectedConnectedSwitches);
 }
 
 bool MultiNodeUtil::verifyFabricConnectedSwitchesForAllFdsws() {
@@ -269,7 +269,7 @@ bool MultiNodeUtil::verifyFabricConnectedSwitchesForSdsw(
   auto expectedConnectedSwitches = allFdsws_;
 
   return verifyFabricConnectedSwitchesHelper(
-      DeviceType::SDSW, sdswToVerify, expectedConnectedSwitches);
+      SwitchType::SDSW, sdswToVerify, expectedConnectedSwitches);
 }
 
 bool MultiNodeUtil::verifyFabricConnectedSwitchesForAllSdsws() {
@@ -373,14 +373,14 @@ std::set<std::string> MultiNodeUtil::getActiveFabricPorts(
   return activePorts;
 }
 
-bool MultiNodeUtil::verifyPortActiveStateForDevice(
-    DeviceType deviceType,
+bool MultiNodeUtil::verifyPortActiveStateForSwitch(
+    SwitchType switchType,
     const std::string& switchName) {
   // Every Connected Fabric Port must be Active
   auto expectedActivePorts = getConnectedFabricPorts(switchName);
   auto gotActivePorts = getActiveFabricPorts(switchName);
 
-  XLOG(DBG2) << "From " << deviceTypeToString(deviceType) << ":: " << switchName
+  XLOG(DBG2) << "From " << switchTypeToString(switchType) << ":: " << switchName
              << " Expected Active Ports (connected fabric ports): "
              << folly::join(",", expectedActivePorts)
              << " Got Active Ports: " << folly::join(",", gotActivePorts);
@@ -388,15 +388,15 @@ bool MultiNodeUtil::verifyPortActiveStateForDevice(
   return expectedActivePorts == gotActivePorts;
 }
 
-bool MultiNodeUtil::verifyNoPortErrorsForDevice(
-    DeviceType deviceType,
+bool MultiNodeUtil::verifyNoPortErrorsForSwitch(
+    SwitchType switchType,
     const std::string& switchName) {
   // No ports should have errors
   auto ports = getPorts(switchName);
   for (const auto& port : ports) {
     auto portInfo = port.second;
     if (portInfo.activeErrors()->size() != 0) {
-      XLOG(DBG2) << "From " << deviceTypeToString(deviceType)
+      XLOG(DBG2) << "From " << switchTypeToString(switchType)
                  << ":: " << switchName << " Port: " << portInfo.name().value()
                  << " has errors: "
                  << folly::join(",", *portInfo.activeErrors());
@@ -407,31 +407,31 @@ bool MultiNodeUtil::verifyNoPortErrorsForDevice(
   return true;
 }
 
-bool MultiNodeUtil::verifyPortsForDevice(
-    DeviceType deviceType,
+bool MultiNodeUtil::verifyPortsForSwitch(
+    SwitchType switchType,
     const std::string& switchName) {
-  return verifyPortActiveStateForDevice(deviceType, switchName) &&
-      verifyNoPortErrorsForDevice(deviceType, switchName);
+  return verifyPortActiveStateForSwitch(switchType, switchName) &&
+      verifyNoPortErrorsForSwitch(switchType, switchName);
 }
 
 bool MultiNodeUtil::verifyPorts() {
-  // The checks are identical for all Device types at the moment
+  // The checks are identical for all Switch types at the moment
   // as we only verify Fabric ports. We may add Ethernet port checks
   // specific to RDSWs in the future.
   for (const auto& rdsw : allRdsws_) {
-    if (!verifyPortsForDevice(DeviceType::RDSW, rdsw)) {
+    if (!verifyPortsForSwitch(SwitchType::RDSW, rdsw)) {
       return false;
     }
   }
 
   for (const auto& fdsw : allFdsws_) {
-    if (!verifyPortsForDevice(DeviceType::FDSW, fdsw)) {
+    if (!verifyPortsForSwitch(SwitchType::FDSW, fdsw)) {
       return false;
     }
   }
 
   for (const auto& sdsw : sdsws_) {
-    if (!verifyPortsForDevice(DeviceType::SDSW, sdsw)) {
+    if (!verifyPortsForSwitch(SwitchType::SDSW, sdsw)) {
       return false;
     }
   }

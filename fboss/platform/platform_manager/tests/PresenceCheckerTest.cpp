@@ -98,8 +98,94 @@ TEST_F(PresenceCheckerTest, sysfsPresent) {
 
   EXPECT_CALL(
       devicePathResolver_, resolvePresencePath("device/path", "presenceName"))
-      .WillOnce(Return(std::nullopt));
+      .Times(2)
+      .WillRepeatedly(Return(std::nullopt));
   EXPECT_THROW(
       presenceChecker.isPresent(presenceDetection, "/slot/path"),
+      std::runtime_error);
+}
+
+TEST_F(PresenceCheckerTest, sysfsValue) {
+  auto utils = std::make_shared<MockUtils>();
+  auto platformFsUtils = std::make_shared<MockPlatformFsUtils>();
+  PresenceChecker presenceChecker(devicePathResolver_, utils, platformFsUtils);
+
+  PresenceDetection presenceDetection = PresenceDetection();
+  presenceDetection.sysfsFileHandle() = SysfsFileHandle();
+  presenceDetection.sysfsFileHandle()->devicePath() = "device/path";
+  presenceDetection.sysfsFileHandle()->presenceFileName() = "presenceName";
+  presenceDetection.sysfsFileHandle()->desiredValue() = 1;
+
+  // Test successful read
+  EXPECT_CALL(
+      devicePathResolver_, resolvePresencePath("device/path", "presenceName"))
+      .WillOnce(Return("/file/path"));
+  EXPECT_CALL(*platformFsUtils, getStringFileContent({"/file/path"}))
+      .WillOnce(Return(std::make_optional("42")));
+  EXPECT_EQ(
+      42, presenceChecker.getPresenceValue(presenceDetection, "/slot/path"));
+
+  // Test path resolution failure
+  EXPECT_CALL(
+      devicePathResolver_, resolvePresencePath("device/path", "presenceName"))
+      .WillOnce(Return(std::nullopt));
+  EXPECT_THROW(
+      presenceChecker.getPresenceValue(presenceDetection, "/slot/path"),
+      std::runtime_error);
+
+  // Test file read failure
+  EXPECT_CALL(
+      devicePathResolver_, resolvePresencePath("device/path", "presenceName"))
+      .WillOnce(Return("/file/path"));
+  EXPECT_CALL(*platformFsUtils, getStringFileContent({"/file/path"}))
+      .WillOnce(Return(std::nullopt));
+  EXPECT_THROW(
+      presenceChecker.getPresenceValue(presenceDetection, "/slot/path"),
+      std::runtime_error);
+
+  // Test invalid content format
+  EXPECT_CALL(
+      devicePathResolver_, resolvePresencePath("device/path", "presenceName"))
+      .WillOnce(Return("/file/path"));
+  EXPECT_CALL(*platformFsUtils, getStringFileContent({"/file/path"}))
+      .WillOnce(Return(std::make_optional("not_a_number")));
+  EXPECT_THROW(
+      presenceChecker.getPresenceValue(presenceDetection, "/slot/path"),
+      std::runtime_error);
+}
+
+TEST_F(PresenceCheckerTest, gpioValue) {
+  auto utils = std::make_shared<MockUtils>();
+  auto platformFsUtils = std::make_shared<MockPlatformFsUtils>();
+  PresenceChecker presenceChecker(devicePathResolver_, utils, platformFsUtils);
+
+  PresenceDetection presenceDetection = PresenceDetection();
+  presenceDetection.gpioLineHandle() = GpioLineHandle();
+  presenceDetection.gpioLineHandle()->devicePath() = "device/path";
+  presenceDetection.gpioLineHandle()->lineIndex() = 5;
+  presenceDetection.gpioLineHandle()->desiredValue() = 1;
+
+  // Test successful read
+  EXPECT_CALL(devicePathResolver_, resolvePciSubDevCharDevPath("device/path"))
+      .WillOnce(Return("/dev/gpiochip0"));
+  EXPECT_CALL(*utils, getGpioLineValue("/dev/gpiochip0", 5))
+      .WillOnce(Return(1));
+  EXPECT_EQ(
+      1, presenceChecker.getPresenceValue(presenceDetection, "/slot/path"));
+
+  // Test path resolution failure
+  EXPECT_CALL(devicePathResolver_, resolvePciSubDevCharDevPath("device/path"))
+      .WillOnce(Throw(std::runtime_error("Failed to resolve path")));
+  EXPECT_THROW(
+      presenceChecker.getPresenceValue(presenceDetection, "/slot/path"),
+      std::runtime_error);
+
+  // Test getGpioLineValue failure
+  EXPECT_CALL(devicePathResolver_, resolvePciSubDevCharDevPath("device/path"))
+      .WillOnce(Return("/dev/gpiochip0"));
+  EXPECT_CALL(*utils, getGpioLineValue("/dev/gpiochip0", 5))
+      .WillOnce(Throw(std::runtime_error("GPIO read error")));
+  EXPECT_THROW(
+      presenceChecker.getPresenceValue(presenceDetection, "/slot/path"),
       std::runtime_error);
 }
