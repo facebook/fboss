@@ -4010,7 +4010,7 @@ std::optional<VlanID> SwSwitch::getVlanIDForTx(
       vlanOrIntf, getState(), getScopeResolver(), getHwAsicTable());
   if (!vlanID.has_value()) {
     // Handle the case where the VLAN ID is not found
-    XLOG(DBG3) << "VLAN ID not found for transmission";
+    XLOG(DBG4) << "VLAN ID not found for transmission";
     return std::nullopt;
   }
   return vlanID;
