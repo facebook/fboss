@@ -91,6 +91,10 @@ void waitPfcCounterIncrease(
 
     EXPECT_EVENTUALLY_GT(txPfcCtr, 0);
 
+    // inDiscards is tracked in software, so inDiscards + sum(inPfc) isn't
+    // necessarily equal to inDiscardsRaw after warmboot. Just check for <=.
+    EXPECT_EVENTUALLY_LE(*portStats.inDiscards_(), *portStats.inDiscardsRaw_());
+
     // TODO(maxgg): CS00012381334 - Rx counters not incrementing on TH5
     // However we know PFC is working as long as TX PFC is being generated, so
     // skip validating RX PFC counters on TH5 for now.

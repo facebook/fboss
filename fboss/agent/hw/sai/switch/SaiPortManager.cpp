@@ -1999,8 +1999,14 @@ void SaiPortManager::updateStats(
        *curPortStats.inDstNullDiscards_()}};
   if (platform_->getAsic()->isSupported(
           HwAsic::Feature::IN_PAUSE_INCREMENTS_DISCARDS)) {
-    toSubtractFromInDiscardsRaw.push_back(
-        {*prevPortStats.inPause_(), *curPortStats.inPause_()});
+    toSubtractFromInDiscardsRaw.emplace_back(
+        *prevPortStats.inPause_(), *curPortStats.inPause_());
+  }
+  for (auto& [priority, current] : *curPortStats.inPfc_()) {
+    if (current > 0) {
+      toSubtractFromInDiscardsRaw.emplace_back(
+          folly::get_default(*prevPortStats.inPfc_(), priority, 0), current);
+    }
   }
   *curPortStats.inDiscards_() += utility::subtractIncrements(
       {*prevPortStats.inDiscardsRaw_(), *curPortStats.inDiscardsRaw_()},
