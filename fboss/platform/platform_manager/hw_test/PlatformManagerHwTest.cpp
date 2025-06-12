@@ -84,7 +84,8 @@ class PlatformManagerHwTest : public ::testing::Test {
           apache::thrift::Client<PlatformManagerService>>(
           std::make_unique<PlatformManagerHandler>(
               platformExplorer_,
-              ds.value()))};
+              ds.value(),
+              platformConfig_))};
 };
 
 TEST_F(PlatformManagerHwTest, ExploreAsDeployed) {

@@ -84,8 +84,8 @@ int main(int argc, char** argv) {
   XLOG(INFO) << "Running PlatformManager thrift service...";
 
   auto server = std::make_shared<apache::thrift::ThriftServer>();
-  auto handler =
-      std::make_shared<PlatformManagerHandler>(platformExplorer, ds.value());
+  auto handler = std::make_shared<PlatformManagerHandler>(
+      platformExplorer, ds.value(), config);
   server->setPort(FLAGS_thrift_port);
   server->setInterface(handler);
   server->setAllowPlaintextOnLoopback(true);

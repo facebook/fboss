@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "fboss/platform/platform_manager/PkgManager.h"
 #include "fboss/platform/platform_manager/PlatformExplorer.h"
 #include "fboss/platform/platform_manager/gen-cpp2/platform_manager_service_handlers.h"
 
@@ -12,16 +13,20 @@ class PlatformManagerHandler
  public:
   explicit PlatformManagerHandler(
       const PlatformExplorer& platformExplorer,
-      const DataStore& dataStore);
+      const DataStore& dataStore,
+      const PlatformConfig& config);
   void getPlatformSnapshot(PlatformSnapshot& response) override;
   void getLastPMStatus(PlatformManagerStatus& response) override;
   void getPmUnitInfo(
       PmUnitInfoResponse& response,
       std::unique_ptr<PmUnitInfoRequest> request) override;
+  void getBspVersion(BspVersionResponse& response) override;
 
  private:
   const PlatformExplorer& platformExplorer_;
   const DataStore dataStore_;
+  const package_manager::SystemInterface system_;
+  const PlatformConfig& platformConfig_;
 };
 
 } // namespace facebook::fboss::platform::platform_manager

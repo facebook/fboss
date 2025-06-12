@@ -232,6 +232,7 @@ cpp_library(
         "PlatformManagerHandler.cpp",
     ],
     exported_deps = [
+        ":pkg_manager",
         ":platform_explorer",
         ":platform_manager_service-cpp2-services",
     ],

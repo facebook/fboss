@@ -54,10 +54,17 @@ struct PmUnitInfoRequest {
   1: string slotPath;
 }
 
+struct BspVersionResponse {
+  1: string bspBaseName;
+  2: string bspVersion;
+  3: string kernelVersion;
+}
+
 service PlatformManagerService {
   platform_manager_snapshot.PlatformSnapshot getPlatformSnapshot();
   PlatformManagerStatus getLastPMStatus();
   PmUnitInfoResponse getPmUnitInfo(1: PmUnitInfoRequest req) throws (
     1: PlatformManagerError pmError,
   );
+  BspVersionResponse getBspVersion();
 }
