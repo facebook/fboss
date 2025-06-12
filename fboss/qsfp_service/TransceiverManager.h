@@ -630,6 +630,10 @@ class TransceiverManager {
   void getPortMediaInterface(
       std::map<std::string, MediaInterfaceCode>& portMediaInterface);
 
+  TcvrIdToTcvrNameMap getTcvrIdToTcvrNameMap() const {
+    return tcvrIdToTcvrName_;
+  }
+
  protected:
   /*
    * Check to see if we can attempt a warm boot.

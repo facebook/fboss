@@ -164,6 +164,9 @@ void fillPortStats(
   portInfo.output()->broadcastPkts() = *hwPortStats.outBroadcastPkts_();
   portInfo.output()->errors()->errors() = *hwPortStats.outErrors_();
   portInfo.output()->errors()->discards() = *hwPortStats.outDiscards_();
+  if (auto cableLen = hwPortStats.cableLengthMeters()) {
+    portInfo.cableLengthMeters() = *cableLen;
+  }
 
   for (int16_t i = 0; i < numPortQs; i++) {
     QueueStats stats;
@@ -181,9 +184,6 @@ void fillPortStats(
       *stats.outBytes() = 0;
     }
     portInfo.output()->unicast()->push_back(stats);
-  }
-  if (auto cableLen = hwPortStats.cableLengthMeters()) {
-    portInfo.cableLengthMeters() = *cableLen;
   }
 }
 

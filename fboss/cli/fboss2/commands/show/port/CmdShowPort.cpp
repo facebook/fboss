@@ -19,7 +19,6 @@
 #include <algorithm>
 
 namespace facebook::fboss {
-
 using utils::Table;
 using ObjectArgType = CmdShowPortTraits::ObjectArgType;
 using RetType = CmdShowPortTraits::RetType;
@@ -246,12 +245,12 @@ std::unordered_map<std::string, PortNameToInfo> CmdShowPort::getPeerToPorts(
   return peerToPorts;
 }
 
-std::unordered_map<std::string, bool> CmdShowPort::getPeerPortDrainedOrDown(
+std::unordered_map<std::string, PeerPortInfo> CmdShowPort::getPeerPortInfo(
     const PeerInfo& peerInfo) {
   auto peerToPorts = getPeerToPorts(peerInfo.allPeers);
 
   // Populate peer port states
-  std::unordered_map<std::string, bool> peerPortDrainedOrDown;
+  std::unordered_map<std::string, PeerPortInfo> peerPortInfo;
   for (const auto& [localPort, peer] : peerInfo.fabPort2Peer) {
     if (peer.attachedSwitchName.empty() ||
         peer.attachedRemotePortName.empty()) {
@@ -268,15 +267,19 @@ std::unordered_map<std::string, bool> CmdShowPort::getPeerPortDrainedOrDown(
     if (peerPortInfoIt == peerPortNameToInfo.end()) {
       continue;
     }
-    auto peerPortInfo = peerPortInfoIt->second;
+    auto peerPortInfoThrift = peerPortInfoIt->second;
 
-    peerPortDrainedOrDown[localPort] =
-        (peerPortInfo.operState().value() == PortOperState::DOWN ||
-         peerPortInfo.adminState().value() == PortAdminState::DISABLED ||
-         peerPortInfo.isDrained().value() == true);
+    PeerPortInfo portInfo;
+    portInfo.drainedOrDown =
+        (peerPortInfoThrift.operState().value() == PortOperState::DOWN ||
+         peerPortInfoThrift.adminState().value() == PortAdminState::DISABLED ||
+         peerPortInfoThrift.isDrained().value() == true);
+    if (auto cableLenMeters = peerPortInfoThrift.cableLengthMeters()) {
+      portInfo.cableLenMeters = *cableLenMeters;
+    }
+    peerPortInfo[localPort] = portInfo;
   }
-
-  return peerPortDrainedOrDown;
+  return peerPortInfo;
 }
 
 RetType CmdShowPort::queryClient(
@@ -311,12 +314,12 @@ RetType CmdShowPort::queryClient(
   // Get peer drain state
   std::unordered_map<std::string, Endpoint> portToPeer;
   std::unordered_map<std::string, cfg::SwitchDrainState> peerDrainStates;
-  std::unordered_map<std::string, bool> peerPortDrainedOrDown;
+  std::unordered_map<std::string, PeerPortInfo> peerPortInfo;
   if (utils::isVoqOrFabric(utils::getSwitchType(*client))) {
     auto peerInfo = getFabPortPeerInfo(hostInfo);
     portToPeer = peerInfo.fabPort2Peer;
     peerDrainStates = getPeerDrainStates(peerInfo);
-    peerPortDrainedOrDown = getPeerPortDrainedOrDown(peerInfo);
+    peerPortInfo = getPeerPortInfo(peerInfo);
   }
 
   return createModel(
@@ -326,7 +329,7 @@ RetType CmdShowPort::queryClient(
       portStats,
       portToPeer,
       peerDrainStates,
-      peerPortDrainedOrDown,
+      peerPortInfo,
       utils::getBgpDrainedInterafces(hostInfo));
 }
 
@@ -339,7 +342,7 @@ RetType CmdShowPort::createModel(
     const std::unordered_map<std::string, Endpoint>& portToPeer,
     const std::unordered_map<std::string, cfg::SwitchDrainState>&
         peerDrainStates,
-    const std::unordered_map<std::string, bool>& peerPortDrainedOrDown,
+    const std::unordered_map<std::string, PeerPortInfo>& peerPortInfo,
     const std::vector<std::string>& drainedInterfaces) {
   RetType model;
   std::unordered_set<std::string> queriedSet(
@@ -375,9 +378,13 @@ RetType CmdShowPort::createModel(
             (peerDrainStates.at(portName) == cfg::SwitchDrainState::DRAINED);
       }
       std::optional<bool> isPeerPortDrainedOrDown;
-      auto it = peerPortDrainedOrDown.find(portName);
-      if (it != peerPortDrainedOrDown.end()) {
-        isPeerPortDrainedOrDown = it->second;
+      std::optional<uint64_t> peerPortCableLenMeters;
+      auto it = peerPortInfo.find(portName);
+      if (it != peerPortInfo.end()) {
+        isPeerPortDrainedOrDown = it->second.drainedOrDown;
+        if (it->second.cableLenMeters) {
+          peerPortCableLenMeters = *it->second.cableLenMeters;
+        }
       }
 
       bool canDetermineExpectedActiveState =
@@ -394,6 +401,8 @@ RetType CmdShowPort::createModel(
       std::string cableLenMeters = "--";
       if (auto cableLen = portInfo.cableLengthMeters()) {
         cableLenMeters = folly::to<std::string>(*cableLen);
+      } else if (peerPortCableLenMeters.has_value()) {
+        cableLenMeters = folly::to<std::string>(*peerPortCableLenMeters);
       }
 
       cli::PortEntry portDetails;

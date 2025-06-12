@@ -13,3 +13,5 @@ target_link_libraries(platform_helpers_platform_name_lib_test
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}
 )
+
+gtest_discover_tests(platform_helpers_platform_name_lib_test)

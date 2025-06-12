@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 #include <nlohmann/json.hpp>
-#include "RackmonConfig.h"
+#include "fboss/platform/rackmon/RackmonConfig.h"
 
 using namespace rackmonsvc;
 using nlohmann::json;

@@ -84,9 +84,7 @@ void FwUtilImpl::doGpiogetOperation(
   checkCmdStatus(gpiogetCmd, exitStatus);
 }
 
-void FwUtilImpl::performJamUpgrade(
-    const JamConfig& jamConfig,
-    const std::string& fpd) {
+void FwUtilImpl::performJamUpgrade(const JamConfig& jamConfig) {
   // Check if the firmware binary file is present
   if (!std::filesystem::exists(fwBinaryFile_)) {
     throw std::runtime_error(
@@ -116,9 +114,7 @@ void FwUtilImpl::performJamUpgrade(
   checkCmdStatus(jamCmd, exitStatus);
 }
 
-void FwUtilImpl::performXappUpgrade(
-    const XappConfig& xappConfig,
-    const std::string& fpd) {
+void FwUtilImpl::performXappUpgrade(const XappConfig& xappConfig) {
   // Check if the firmware binary file is present
   if (!std::filesystem::exists(fwBinaryFile_)) {
     throw std::runtime_error(

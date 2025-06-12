@@ -123,14 +123,25 @@ void setupPfc(
 }
 
 void setupBufferPoolConfig(
+    const HwAsic* asic,
     std::map<std::string, cfg::BufferPoolConfig>& bufferPoolCfgMap,
     int globalSharedBytes,
     int globalHeadroomBytes) {
   cfg::BufferPoolConfig poolConfig;
   // provide small shared buffer size
   // idea is to hit the limit and trigger XOFF (PFC)
-  poolConfig.sharedBytes() = globalSharedBytes;
-  poolConfig.headroomBytes() = globalHeadroomBytes;
+  if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    // Round up the configured buffer size to the nearest multiple of unit size
+    auto unit = asic->getPacketBufferUnitSize();
+    auto roundUp = [unit](int size) {
+      return std::ceil(static_cast<double>(size) / unit) * unit;
+    };
+    poolConfig.sharedBytes() = roundUp(globalSharedBytes);
+    poolConfig.headroomBytes() = roundUp(globalHeadroomBytes);
+  } else {
+    poolConfig.sharedBytes() = globalSharedBytes;
+    poolConfig.headroomBytes() = globalHeadroomBytes;
+  }
   bufferPoolCfgMap.insert(std::make_pair("bufferNew", poolConfig));
 }
 
@@ -284,8 +295,9 @@ void setupPfcBuffers(
   // create buffer pool
   std::map<std::string, cfg::BufferPoolConfig> bufferPoolCfgMap =
       cfg.bufferPoolConfigs().ensure();
+  auto asic = checkSameAndGetAsic(ensemble->getL3Asics());
   setupBufferPoolConfig(
-      bufferPoolCfgMap, buffer.globalShared, buffer.globalHeadroom);
+      asic, bufferPoolCfgMap, buffer.globalShared, buffer.globalHeadroom);
   cfg.bufferPoolConfigs() = std::move(bufferPoolCfgMap);
   if (ensemble->getHwAsicTable()
           ->getHwAsics()

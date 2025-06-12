@@ -1817,16 +1817,10 @@
           "test_name_regex": "HwSflowTest.SflowSamplingDisabled"
         },
         {
-          "test_name_regex": "HwArsFlowletTest.*HwLoadBalancerTestV6Flowlet.VerifyWBFromFixedToFlowlet"
+          "test_name_regex": "HwArsFlowletTest.*"
         },
         {
-          "test_name_regex": "HwLoadBalancerTestV6Flowlet.VerifyWBFromFlowletToFixed"
-        },
-        {
-          "test_name_regex": "HwLoadBalancerTestV6Flowlet.VerifyWBFromFlowletToPerPacket"
-        },
-        {
-          "test_name_regex": "HwLoadBalancerTestV6Flowlet.VerifyWBFromPerPacketToFlowlet"
+          "test_name_regex": "HwLoadBalancerTestV6Flowlet.*"
         }
     ],
     "leaba/1.42.8/1.42.8/gibraltar": [
@@ -2022,6 +2016,12 @@
         },
         {
           "test_name_regex": "HwAsicDefaultProgrammingTest.*$"
+        },
+        {
+          "test_name_regex": "SaiAclTableGroupTest.AddAclEntriesAndQualifiersToAclTablesPostWarmboot$"
+        },
+        {
+          "test_name_regex": "SaiAclTableGroupTest.AddFirstTableAfterWarmboot$"
         }
     ],
     "leaba/24.8.3001/24.8.3001/graphene200": [

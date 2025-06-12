@@ -237,13 +237,26 @@ void HwTest::printProductionFeatures() const {
 
 TEST_F(HwTest, CheckTcvrNameAndInterfaces) {
   auto wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
-  std::map<int32_t, TransceiverInfo> transceivers;
+  std::map<int32_t, TransceiverInfo> insertedTransceiversMap;
   wedgeManager->getTransceiversInfo(
-      transceivers, std::make_unique<std::vector<int32_t>>());
-  CHECK(!transceivers.empty());
-  for (auto& [id, tcvr] : transceivers) {
+      insertedTransceiversMap, std::make_unique<std::vector<int32_t>>());
+  CHECK(!insertedTransceiversMap.empty());
+  auto platformMappingTransceiverMap =
+      getHwQsfpEnsemble()->getWedgeManager()->getTcvrIdToTcvrNameMap();
+  for (auto& [id, tcvr] : insertedTransceiversMap) {
+    if (platformMappingTransceiverMap.find(static_cast<TransceiverID>(id)) ==
+        platformMappingTransceiverMap.end()) {
+      // It's possible that there are more transceivers on the system than the
+      // one used by current config. For example, the BSP mapping may have more
+      // transceiver slots corresponding to multiple NPUs, but in reality we are
+      // using the single NPU mode and hence should not test the unused
+      // transceivers in this test
+      continue;
+    }
     auto tcvrStateName = *tcvr.tcvrState()->tcvrName();
     auto tcvrStatsName = *tcvr.tcvrState()->tcvrName();
+    XLOG(INFO) << "Checking transceiver name and interfaces for id: " << id
+               << " " << tcvrStateName;
     EXPECT_EQ(tcvrStateName, tcvrStatsName);
     EXPECT_TRUE(
         tcvrStateName.starts_with("eth") || tcvrStateName.starts_with("fab"));

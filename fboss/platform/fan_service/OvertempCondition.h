@@ -22,7 +22,7 @@ class OvertempCondition {
   void processSensorData(std::string sensorName, float sensorValue);
   void addSensorForTracking(std::string name, float threshold, int windowSize);
   bool checkIfOvertemp();
-  bool isTracked(const std::string);
+  bool isTracked(const std::string& sensorName);
   void setNumOvertempSensorForShutdown(int number);
 
  private:

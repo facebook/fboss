@@ -329,10 +329,13 @@ cli::ShowPortModel createPortModel() {
   return model;
 }
 
-std::unordered_map<std::string, cfg::SwitchDrainState> createPeerDrainStates() {
+std::unordered_map<std::string, PeerPortInfo> createPeerPortInfo() {
   return {};
 }
 
+std::unordered_map<std::string, cfg::SwitchDrainState> createPeerDrainStates() {
+  return {};
+}
 std::unordered_map<std::string, bool> createPeerPortStates() {
   return {};
 }
@@ -360,6 +363,7 @@ class CmdShowPortTestFixture : public CmdHandlerTestBase {
   std::unordered_map<std::string, Endpoint> mockPortToPeer;
   std::map<std::string, facebook::fboss::HwPortStats> mockPortStats;
   std::unordered_map<std::string, cfg::SwitchDrainState> mockPeerDrainStates;
+  std::unordered_map<std::string, PeerPortInfo> mockPeerPortInfo;
   std::unordered_map<std::string, bool> mockPeerPortStates;
   cli::ShowPortModel normalizedModel;
   std::vector<std::string> mockDrainedInterfaces;
@@ -374,6 +378,7 @@ class CmdShowPortTestFixture : public CmdHandlerTestBase {
     mockTransceiverEntries = createTransceiverEntries();
     normalizedModel = createPortModel();
     mockPeerDrainStates = createPeerDrainStates();
+    mockPeerPortInfo = createPeerPortInfo();
     mockPeerPortStates = createPeerPortStates();
     mockDrainedInterfaces = createDrainedInterfaces();
     mockBgpRunningConfig = createMockedBgpConfig();
@@ -390,7 +395,7 @@ TEST_F(CmdShowPortTestFixture, sortByName) {
       mockPortStats,
       mockPortToPeer,
       mockPeerDrainStates,
-      mockPeerPortStates,
+      mockPeerPortInfo,
       mockDrainedInterfaces);
 
   EXPECT_THRIFT_EQ(model, normalizedModel);
@@ -407,7 +412,7 @@ TEST_F(CmdShowPortTestFixture, invalidPortName) {
         mockPortStats,
         mockPortToPeer,
         mockPeerDrainStates,
-        mockPeerPortStates,
+        mockPeerPortInfo,
         mockDrainedInterfaces);
     FAIL();
   } catch (const std::invalid_argument& expected) {
