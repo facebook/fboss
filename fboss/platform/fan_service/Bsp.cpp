@@ -36,6 +36,7 @@ Bsp::Bsp(const FanServiceConfig& config) : config_(config) {
       std::make_unique<FsdbSensorSubscriber>(fsdbPubSubMgr_.get());
   if (FLAGS_subscribe_to_stats_from_fsdb) {
     fsdbSensorSubscriber_->subscribeToSensorServiceStat();
+    fsdbSensorSubscriber_->subscribeToAgentStat();
     if (FLAGS_subscribe_to_qsfp_data_from_fsdb) {
       fsdbSensorSubscriber_->subscribeToQsfpServiceStat();
       fsdbSensorSubscriber_->subscribeToQsfpServiceState();
@@ -303,6 +304,60 @@ void Bsp::getOpticsData(std::shared_ptr<SensorData> pSensorData) {
       throw facebook::fboss::FbossError(
           "Invalid way for fetching optics temperature!");
     }
+  }
+}
+
+void Bsp::getAsicTempData(const std::shared_ptr<SensorData>& pSensorData) {
+  bool useFsdb = FLAGS_subscribe_to_stats_from_fsdb ? true : false;
+  if (useFsdb) {
+    getAsicTempThroughFsdb(pSensorData);
+  } else {
+    getAsicTempDataOverThrift(pSensorData);
+  }
+}
+
+void Bsp::getAsicTempThroughFsdb(
+    const std::shared_ptr<SensorData>& pSensorData) {
+  try {
+    auto subscribedData = fsdbSensorSubscriber_->getAgentData();
+    for (const auto& [asicTempName, asicTempData] : subscribedData) {
+      // Only parse the entry with value and timestamp set.
+      if (asicTempData.value().has_value() &&
+          asicTempData.timeStamp().has_value()) {
+        pSensorData->updateSensorEntry(
+            *asicTempData.name(),
+            *asicTempData.value(),
+            *asicTempData.timeStamp());
+      }
+    }
+    XLOG(INFO) << fmt::format(
+        "Got ASIC Temp data from fsdb.  Item count: {}", subscribedData.size());
+  } catch (std::exception& e) {
+    XLOG(ERR) << "Failed to get ASIC temp data using FSDB, with error : "
+              << e.what();
+  }
+}
+
+void Bsp::getAsicTempDataOverThrift(
+    const std::shared_ptr<SensorData>& pSensorData) {
+  try {
+    auto agentReadResponse =
+        getAsicTempThroughThrift(agentTempThriftPort_, evbSensor_);
+    for (auto& asicTempData : *agentReadResponse.sensorData()) {
+      // Again, for Thrift too, only honor the entry with value and timestamp.
+      if (asicTempData.value() && asicTempData.timeStamp()) {
+        pSensorData->updateSensorEntry(
+            *asicTempData.name(),
+            *asicTempData.value(),
+            *asicTempData.timeStamp());
+      }
+    }
+    XLOG(INFO) << fmt::format(
+        "Got Asic Temp data from agent.  Item count: {}",
+        agentReadResponse.sensorData()->size());
+  } catch (std::exception& e) {
+    XLOG(ERR) << "Failed to get ASIC temp data using Thrift, with error : "
+              << e.what();
   }
 }
 
