@@ -40,8 +40,6 @@ class AgentEcmpSpilloverTest : public AgentArsBase {
     FLAGS_flowletSwitchingEnable = true;
     FLAGS_dlbResourceCheckEnable = false;
     FLAGS_enable_ecmp_resource_manager = true;
-    FLAGS_ecmp_resource_percentage = 100;
-    FLAGS_ecmp_resource_manager_make_before_break_buffer = 0;
   }
 
   std::vector<ProductionFeature> getProductionFeaturesVerified()
@@ -57,9 +55,6 @@ class AgentEcmpSpilloverTest : public AgentArsBase {
   void verifyModeCount(
       const std::vector<std::vector<RoutePrefixV6>>& prefixVector,
       cfg::SwitchingMode backupSwitchingMode) {
-    const auto kMaxDlbEcmpGroup =
-        utility::getMaxDlbEcmpGroups(getAgentEnsemble()->getL3Asics());
-
     std::map<cfg::SwitchingMode, int> modeCount;
     for (const auto& eachVector : prefixVector) {
       for (const auto& prefix : eachVector) {
@@ -78,8 +73,13 @@ class AgentEcmpSpilloverTest : public AgentArsBase {
   void generatePrefixes() override {
     // this generates 4096 prefixes and 512 nhopSets
     AgentArsBase::generatePrefixes();
-    const auto kMaxDlbEcmpGroup =
+    kMaxDlbEcmpGroup =
         utility::getMaxDlbEcmpGroups(getAgentEnsemble()->getL3Asics());
+    kMaxDlbEcmpGroup = std::floor(
+        kMaxDlbEcmpGroup * static_cast<double>(FLAGS_ars_resource_percentage) /
+        100.0);
+    kMaxDlbEcmpGroup -= FLAGS_ecmp_resource_manager_make_before_break_buffer;
+    XLOG(DBG2) << "Max DLB groups: " << kMaxDlbEcmpGroup;
 
     // Start of dynamic prefix range in generated prefixes
     const int kDynamicPrefixStart = 0;
@@ -161,6 +161,7 @@ class AgentEcmpSpilloverTest : public AgentArsBase {
   static inline constexpr auto kMaxSpilloverCount = 32;
   // Number of prefixes per nhopSet
   static inline constexpr auto kPrefixesPerNhopSet = 10;
+  uint32_t kMaxDlbEcmpGroup = 0;
 };
 
 // Basic test to verify ecmp spillover
@@ -526,14 +527,14 @@ class AgentEcmpResourceMgrWarmbootEnableTest : public AgentEcmpSpilloverTest {
     AgentArsBase::setCmdLineFlagOverrides();
     FLAGS_flowletSwitchingEnable = true;
     FLAGS_dlbResourceCheckEnable = false;
+    FLAGS_ars_resource_percentage = 100;
+    FLAGS_ecmp_resource_manager_make_before_break_buffer = 0;
     // Update switch thrift state before warmboot shutdown
     FLAGS_update_route_with_dlb_type = true;
     auto dirUtil = AgentDirectoryUtil();
     auto canWarmBoot = checkFileExists(dirUtil.getSwSwitchCanWarmBootFile());
     if (canWarmBoot) {
       FLAGS_enable_ecmp_resource_manager = true;
-      FLAGS_ecmp_resource_percentage = 100;
-      FLAGS_ecmp_resource_manager_make_before_break_buffer = 0;
     }
   }
 };
@@ -670,8 +671,6 @@ TEST_F(
   };
 
   auto verifyPostWarmboot = [=, this]() {
-    const auto kMaxDlbEcmpGroup =
-        utility::getMaxDlbEcmpGroups(getAgentEnsemble()->getL3Asics());
     std::vector<RoutePrefixV6> remainingDynamicPrefixes = {
         prefixes.begin() + (kMaxSpilloverCount * kPrefixesPerNhopSet),
         prefixes.begin() + (kMaxDlbEcmpGroup * kPrefixesPerNhopSet)};
