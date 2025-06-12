@@ -90,6 +90,7 @@ DECLARE_int32(max_neighbors_to_block);
 
 DECLARE_bool(link_stress_test);
 DECLARE_int32(ecmp_resource_percentage);
+DECLARE_int32(ars_resource_percentage);
 DECLARE_int32(switch_index_for_testing);
 DECLARE_uint32(counter_refresh_interval);
 

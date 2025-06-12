@@ -260,6 +260,11 @@ DEFINE_int32(
     "Percentage of ECMP resources (out of 100) allowed to use before ResourceAccountant rejects the update.");
 
 DEFINE_int32(
+    ars_resource_percentage,
+    100,
+    "Percentage of DLB ECMP resources (out of 100) allowed to use before ResourceAccountant rejects the update.");
+
+DEFINE_int32(
     switch_index_for_testing,
     0,
     "switch index under test. Used for testing NPU specific features.");

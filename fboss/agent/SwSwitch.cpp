@@ -1295,9 +1295,11 @@ std::shared_ptr<SwitchState> SwSwitch::preInit(SwitchFlags flags) {
         switchingMode = flowletSwitchingConfig->getBackupSwitchingMode();
       }
       if (maxEcmpGroups.has_value()) {
+        auto percentage = FLAGS_flowletSwitchingEnable
+            ? FLAGS_ars_resource_percentage
+            : FLAGS_ecmp_resource_percentage;
         auto maxEcmps = std::floor(
-            *maxEcmpGroups *
-            static_cast<double>(FLAGS_ecmp_resource_percentage) / 100.0);
+            *maxEcmpGroups * static_cast<double>(percentage) / 100.0);
         XLOG(DBG2) << " Creating ecmp resource manager with max ECMP groups: "
                    << maxEcmps << " and backup group type: "
                    << (switchingMode.has_value()
