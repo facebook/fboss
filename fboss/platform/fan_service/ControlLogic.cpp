@@ -76,35 +76,49 @@ unsigned int ControlLogic::getSensorFetchFrequency() const {
   return kDefaultSensorReadFrequencyInSec;
 }
 
+bool ControlLogic::getAllTemperatureData() {
+  bool sensorReadOK = false;
+  bool opticsReadOK = false;
+  bool agentReadOK = false;
+
+  // Get the updated sensor data
+  try {
+    pBsp_->getSensorData(pSensorData_);
+    sensorReadOK = true;
+  } catch (std::exception& e) {
+    XLOG(ERR) << "Failed to get sensor data with error : " << e.what();
+  }
+
+  try {
+    // Get the updated optics data
+    pBsp_->getOpticsData(pSensorData_);
+    opticsReadOK = true;
+  } catch (std::exception& e) {
+    XLOG(ERR) << "Failed to get optics data with error : " << e.what();
+  }
+
+  try {
+    // Get the ASIC temperature data from agent
+    // Agent and platform agreed to use Sensor Service Data Format
+    pBsp_->getAsicTempData(pSensorData_);
+    agentReadOK = true;
+  } catch (std::exception& e) {
+    XLOG(ERR) << "Failed to get agent data with error : " << e.what();
+  }
+
+  if (sensorReadOK && opticsReadOK && agentReadOK) {
+    XLOG(INFO) << "Successfully fetched all temperature data.";
+  }
+  return sensorReadOK && opticsReadOK && agentReadOK;
+}
+
 void ControlLogic::controlFan() {
   uint64_t currentTimeSec = pBsp_->getCurrentTime();
+  bool temperatureFetchSuccessful = false;
   // Update Sensor Value based according to fetch frequency
   if ((currentTimeSec - lastSensorFetchTimeSec_) >= getSensorFetchFrequency()) {
-    bool sensorReadOK = false;
-    bool opticsReadOK = false;
-
-    // Get the updated sensor data
-    try {
-      pBsp_->getSensorData(pSensorData_);
-      sensorReadOK = true;
-      XLOG(INFO) << "Successfully fetched sensor data.";
-    } catch (std::exception& e) {
-      XLOG(ERR) << "Failed to get sensor data with error : " << e.what();
-    }
-
-    // Also get the updated optics data
-    try {
-      // Get the updated optics data
-      pBsp_->getOpticsData(pSensorData_);
-      opticsReadOK = true;
-      XLOG(INFO) << "Successfully fetched optics data.";
-    } catch (std::exception& e) {
-      XLOG(ERR) << "Failed to get optics data with error : " << e.what();
-    }
-    // If BOTH of the two data read above pass, then we consider
-    // that the sensor reading is successful. Otherwise, we will
-    // keep retrying.
-    if (sensorReadOK && opticsReadOK) {
+    temperatureFetchSuccessful = getAllTemperatureData();
+    if (temperatureFetchSuccessful) {
       lastSensorFetchTimeSec_ = currentTimeSec;
     }
   }
