@@ -46,6 +46,10 @@ void PlatformManagerHandler::getPmUnitInfo(
   }
 }
 
+void PlatformManagerHandler::getAllPmUnits(PmUnitsResponse& response) {
+  response.pmUnits() = dataStore_.getSlotPathToPmUnitInfo();
+}
+
 void PlatformManagerHandler::getBspVersion(
     BspVersionResponse& bspVersionResponse) {
   bspVersionResponse.bspBaseName() = *platformConfig_.bspKmodsRpmName();

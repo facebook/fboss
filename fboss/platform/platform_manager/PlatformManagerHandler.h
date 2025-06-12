@@ -20,6 +20,7 @@ class PlatformManagerHandler
   void getPmUnitInfo(
       PmUnitInfoResponse& response,
       std::unique_ptr<PmUnitInfoRequest> request) override;
+  void getAllPmUnits(PmUnitsResponse& response) override;
   void getBspVersion(BspVersionResponse& response) override;
   void getPlatformName(std::string& response) override;
 

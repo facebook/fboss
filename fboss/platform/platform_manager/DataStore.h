@@ -94,6 +94,8 @@ class DataStore {
   // Returns true if eeprom contents have been stored at the given DevicePath.
   bool hasEepromContents(const std::string& devicePath);
 
+  std::map<std::string, PmUnitInfo> getSlotPathToPmUnitInfo() const;
+
  private:
   // Map from <pmUnitPath, pmUnitScopeBusName> to kernel i2c bus name.
   // - The pmUnitPath to the rootPmUnit is /. So a bus at root PmUnit will
