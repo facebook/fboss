@@ -120,7 +120,7 @@ class PortManagerTest : public ManagerTestBase {
     }
     SaiPortTraits::Attributes::AdminState adminState{true};
     SaiPortTraits::Attributes::HwLaneList lanes(ls);
-    SaiPortTraits::Attributes::Speed speed{static_cast<int>(portSpeed)};
+    SaiPortTraits::Attributes::Speed speed{int(portSpeed)};
     SaiPortTraits::CreateAttributes a{
         lanes,        speed,        adminState,   std::nullopt,
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
