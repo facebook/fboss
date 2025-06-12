@@ -8063,6 +8063,9 @@
           "test_name_regex": "HwProdInvariantsRswMhnicTest.verifyInvariants"
         },
         {
+          "test_name_regex": "HwProdInvariantsMmuLosslessTest.*"
+        },
+        {
           "test_name_regex": "HwArsTest.*"
         }
     ],
