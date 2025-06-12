@@ -374,14 +374,11 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
       if (productionStateInEeprom.has_value() &&
           productVersionInEeprom.has_value() &&
           productSubVersionInEeprom.has_value()) {
-        PmUnitInfo info;
         PmUnitVersion version;
         version.productProductionState() = *productionStateInEeprom;
         version.productVersion() = *productVersionInEeprom;
         version.productSubVersion() = *productSubVersionInEeprom;
-        info.version() = version;
-        info.name() = pmUnitNameInEeprom.value_or("");
-        dataStore_.updatePmUnitInfo(slotPath, info);
+        dataStore_.updatePmUnitVersion(slotPath, version);
       } else {
         XLOG(WARNING) << fmt::format(
             "At SlotPath {}, unexpected partial versions: ProductProductionState `{}` "
@@ -437,9 +434,7 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
         "or SlotTypeConfig::idpromConfig at {}",
         slotPath));
   }
-  PmUnitInfo info;
-  info.name() = *pmUnitName;
-  dataStore_.updatePmUnitInfo(slotPath, info);
+  dataStore_.updatePmUnitName(slotPath, *pmUnitName);
   return pmUnitName;
 }
 

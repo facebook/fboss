@@ -63,10 +63,13 @@ class DataStore {
       const std::string& devicePath,
       const std::string& charDevPath);
 
-  // Update PmUnitInfo for a given slotPath.
-  // For valid version update, expect all values (productProductionState,
-  // productVersion, productSubVersion) to be passed.
-  void updatePmUnitInfo(const std::string& slotPath, const PmUnitInfo& info);
+  // Update PmUnitName for a given slotPath.
+  void updatePmUnitName(const std::string& slotPath, const std::string& name);
+
+  // Update PmUnitVersion for a given slotPath.
+  void updatePmUnitVersion(
+      const std::string& slotPath,
+      const PmUnitVersion& version);
 
   void updatePmUnitSuccessfullyExplored(
       const std::string& slotPath,

@@ -90,33 +90,27 @@ void DataStore::updateCharDevPath(
   pciSubDevicePathToCharDevPath_[devicePath] = charDevPath;
 }
 
-void DataStore::updatePmUnitInfo(
+void DataStore::updatePmUnitName(
     const std::string& slotPath,
-    const PmUnitInfo& info) {
-  PmUnitInfo existingInfo;
-  // Check if the slotPath already has a PmUnitInfo
-  if (slotPathToPmUnitInfo.find(slotPath) != slotPathToPmUnitInfo.end()) {
-    existingInfo = slotPathToPmUnitInfo.at(slotPath);
-  }
-  if (!info.name()->empty()) {
-    existingInfo.name() = *info.name();
-  }
-  if (info.version()) {
-    existingInfo.version() = *info.version();
-  }
-
+    const std::string& name) {
+  slotPathToPmUnitInfo[slotPath].name() = name;
   XLOG(INFO) << fmt::format(
-      "At SlotPath {}, updating to PmUnit {} with {}",
+      "At SlotPath {}, updating to PmUnit with name: {}", slotPath, name);
+}
+
+void DataStore::updatePmUnitVersion(
+    const std::string& slotPath,
+    const PmUnitVersion& version) {
+  slotPathToPmUnitInfo[slotPath].version() = version;
+  XLOG(INFO) << fmt::format(
+      "At SlotPath {}, updating to PmUnit `{}` with {}",
       slotPath,
-      *existingInfo.name(),
-      existingInfo.version()
-          ? fmt::format(
-                "ProductProductionState {}, ProductVersion {}, ProductSubVersion {}",
-                *existingInfo.version()->productProductionState(),
-                *existingInfo.version()->productVersion(),
-                *existingInfo.version()->productSubVersion())
-          : "");
-  slotPathToPmUnitInfo[slotPath] = existingInfo;
+      *slotPathToPmUnitInfo[slotPath].name(),
+      fmt::format(
+          "ProductProductionState {}, ProductVersion {}, ProductSubVersion {}",
+          *version.productProductionState(),
+          *version.productVersion(),
+          *version.productSubVersion()));
 }
 
 void DataStore::updatePmUnitSuccessfullyExplored(
