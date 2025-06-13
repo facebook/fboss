@@ -218,7 +218,7 @@ TEST_F(PtpTests, verifyPtpTcDelayRequest) {
   folly::CIDRNetwork dstPrefix = folly::CIDRNetwork{kIPv6Dst, 128};
   this->trapPackets(dstPrefix);
   programDefaultRoute(ecmpPorts, sw()->getLocalMac(scope(ecmpPorts)));
-
+  setPtpTcEnable(true);
   verifyPtpTcOnPorts(ecmpPorts, PTPMessageType::PTP_DELAY_REQUEST);
 }
 
