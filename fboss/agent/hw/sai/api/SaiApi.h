@@ -337,7 +337,7 @@ class SaiApi {
     constexpr auto kMaxNumAttrsPerObject = 1;
     size_t objectCount = attributes.size();
 
-    uint32_t attrCount[objectCount];
+    std::vector<uint32_t> attrCount(objectCount);
     for (auto idx = 0; idx < objectCount; idx++) {
       attrCount[idx] = kMaxNumAttrsPerObject;
     }
@@ -355,7 +355,11 @@ class SaiApi {
     {
       TIME_CALL;
       status = impl()._bulkGetAttribute(
-          adapterKeys.data(), attrCount, attrs.data(), retStatus, objectCount);
+          adapterKeys.data(),
+          attrCount.data(),
+          attrs.data(),
+          retStatus,
+          objectCount);
     }
 
     saiApiCheckError(
