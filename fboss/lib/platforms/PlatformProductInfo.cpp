@@ -185,7 +185,8 @@ void PlatformProductInfo::initMode() {
     } else if (modelName.find("ICEPACK-TH6") == 0) {
       type_ = PlatformType::PLATFORM_ICECUBE800BC;
     } else if (
-        modelName.find("Glath05a-64o") == 0 || modelName.find("GLATH05A-64O") == 0) {
+        modelName.find("Glath05a-64o") == 0 ||
+        modelName.find("GLATH05A-64O") == 0) {
       type_ = PlatformType::PLATFORM_GLATH05A_64O;
     } else {
       throw FbossError("invalid model name " + modelName);
