@@ -104,3 +104,62 @@ TEST(PIDLogicTest, Basic2) {
         "Measurement = {}, newPwm = {}", measurement, newPwm);
   }
 }
+
+TEST(IncrementalPIDLogicTest, Basic) {
+  PidSetting pidSetting;
+  pidSetting.kp() = -0.3;
+  pidSetting.ki() = 1.0;
+  pidSetting.kd() = -0.3;
+  pidSetting.setPoint() = 50;
+  pidSetting.negHysteresis() = 2;
+  pidSetting.posHysteresis() = 2;
+
+  auto incrementalPidLogic1 = IncrementalPidLogic(pidSetting);
+  incrementalPidLogic1.updateLastPwm(40);
+  // Emulates the system start-up situation where fan service starts,
+  // then controlled fans to eventually decrease the system temperature
+  incrementalPidLogic1.calculatePwm(30);
+  incrementalPidLogic1.calculatePwm(40);
+  incrementalPidLogic1.calculatePwm(55);
+  auto initialPwm = incrementalPidLogic1.calculatePwm(50);
+
+  // 1. Pos hysteresis check
+  // Measurement within posHysteresis from set point. Pwm should not change
+  // Hysteresis for preventing small oscillations around the set point.
+  auto newPwm1 = incrementalPidLogic1.calculatePwm(51);
+  ASSERT_EQ(newPwm1, initialPwm);
+
+  // 2. Neg hysteresis check
+  // Measurement within negHysteresis from set point. Pwm should not change
+  // Hysteresis for preventing small oscillations around the set point.
+  newPwm1 = incrementalPidLogic1.calculatePwm(49);
+  ASSERT_EQ(newPwm1, initialPwm);
+
+  // 3. Pwm increase check-1
+  // Temperature going up multiple times. PWM should increase
+  incrementalPidLogic1.calculatePwm(53);
+  incrementalPidLogic1.calculatePwm(54);
+  auto newPwm2 = incrementalPidLogic1.calculatePwm(55);
+  ASSERT_GT(newPwm2, newPwm1);
+
+  // 4. Pwm increase check-2
+  // Increased pwm did not lower the measurement.
+  // Temperature remains same, so system should increase pwm
+  // so that it will go down to the setPoint
+  auto newPwm3 = incrementalPidLogic1.calculatePwm(55);
+  ASSERT_GT(newPwm3, newPwm2);
+
+  // 5. Pwm decrease check-1
+  // Temperature decreases below setPoint. PWM should go down
+  incrementalPidLogic1.calculatePwm(53);
+  incrementalPidLogic1.calculatePwm(50);
+  incrementalPidLogic1.calculatePwm(47);
+  auto newPwm4 = incrementalPidLogic1.calculatePwm(44);
+  ASSERT_LT(newPwm4, newPwm3);
+
+  // 6. Pwm decrease check-2
+  // Temperature remains the same (low) even with low PWM.
+  // PWM should go even lower
+  auto newPwm5 = incrementalPidLogic1.calculatePwm(44);
+  ASSERT_LT(newPwm5, newPwm4);
+}
