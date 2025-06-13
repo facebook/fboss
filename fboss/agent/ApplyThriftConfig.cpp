@@ -5068,6 +5068,20 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings(
     }
   }
 
+  {
+    std::optional<int32_t> newPfcWatchdogTimerGranularity;
+    if (cfg_->switchSettings()->pfcWatchdogTimerGranularityMsec()) {
+      newPfcWatchdogTimerGranularity =
+          *cfg_->switchSettings()->pfcWatchdogTimerGranularityMsec();
+    }
+    if (newPfcWatchdogTimerGranularity !=
+        origSwitchSettings->getPfcWatchdogTimerGranularity()) {
+      newSwitchSettings->setPfcWatchdogTimerGranularity(
+          newPfcWatchdogTimerGranularity);
+      switchSettingsChange = true;
+    }
+  }
+
   if (switchSettingsChange) {
     return newSwitchSettings;
   }

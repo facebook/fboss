@@ -60,11 +60,6 @@ DEFINE_bool(
     false,
     "Enable new delay drop congestion threshold in CGM");
 
-DEFINE_int32(
-    pfc_watchdog_timer_granularity_msec,
-    10,
-    "PFC watchdog timer granularity which can be 1ms, 10ms or 100ms");
-
 namespace {
 
 std::unordered_map<std::string, std::string> kSaiProfileValues;
@@ -808,7 +803,8 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
          pri++) {
       sai_map_t mapping{};
       mapping.key = pri;
-      mapping.value = FLAGS_pfc_watchdog_timer_granularity_msec;
+      mapping.value =
+          switchSettings->pfcWatchdogTimerGranularityMsec().value_or(10);
       mapToValueList.at(pri) = mapping;
     }
     pfcWatchdogTimerGranularityMap =

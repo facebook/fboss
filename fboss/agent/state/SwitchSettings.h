@@ -754,6 +754,24 @@ class SwitchSettings
     }
   }
 
+  std::optional<int32_t> getPfcWatchdogTimerGranularity() const {
+    if (auto pfcWatchdogTimerGranularityMsec =
+            cref<switch_state_tags::pfcWatchdogTimerGranularityMsec>()) {
+      return pfcWatchdogTimerGranularityMsec->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  void setPfcWatchdogTimerGranularity(
+      const std::optional<int32_t>& pfcWatchdogTimerGranularityMsec) {
+    if (!pfcWatchdogTimerGranularityMsec) {
+      ref<switch_state_tags::pfcWatchdogTimerGranularityMsec>().reset();
+    } else {
+      set<switch_state_tags::pfcWatchdogTimerGranularityMsec>(
+          *pfcWatchdogTimerGranularityMsec);
+    }
+  }
+
   SwitchSettings* modify(std::shared_ptr<SwitchState>* state);
 
  private:

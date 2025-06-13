@@ -128,6 +128,7 @@ class SaiSwitchManager {
   void setTcRateLimitList(
       const std::optional<std::map<int32_t, int32_t>>& tcToRateLimitKbps);
   bool isPtpTcEnabled() const;
+  void setPfcWatchdogTimerGranularity(int pfcWatchdogTimerGranularityMsec);
 
  private:
   void programEcmpLoadBalancerParams(

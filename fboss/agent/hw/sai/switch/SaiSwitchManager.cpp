@@ -1393,4 +1393,31 @@ bool SaiSwitchManager::isPtpTcEnabled() const {
   ptpTcEnabled &= managerTable_->portManager().isPtpTcEnabled();
   return ptpTcEnabled;
 }
+
+void SaiSwitchManager::setPfcWatchdogTimerGranularity(
+    int pfcWatchdogTimerGranularityMsec) {
+#if defined(BRCM_SAI_SDK_XGS) && defined(BRCM_SAI_SDK_GTE_11_0)
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::PFC_WATCHDOG_TIMER_GRANULARITY)) {
+    // We need to set the watchdog granularity to an appropriate value,
+    // otherwise the default granularity in SAI/SDK may be incompatible with the
+    // requested watchdog intervals. Auto-derivation is being requested in
+    // CS00012393810.
+    std::vector<sai_map_t> mapToValueList(
+        cfg::switch_config_constants::PFC_PRIORITY_VALUE_MAX() + 1);
+    for (int pri = 0;
+         pri <= cfg::switch_config_constants::PFC_PRIORITY_VALUE_MAX();
+         pri++) {
+      sai_map_t mapping{};
+      mapping.key = pri;
+      mapping.value = pfcWatchdogTimerGranularityMsec;
+      mapToValueList.at(pri) = mapping;
+    }
+    switch_->setOptionalAttribute(
+        SaiSwitchTraits::Attributes::PfcTcDldTimerGranularityInterval{
+            mapToValueList});
+  }
+#endif
+}
+
 } // namespace facebook::fboss

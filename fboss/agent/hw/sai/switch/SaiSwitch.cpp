@@ -1627,6 +1627,18 @@ void SaiSwitch::processSwitchSettingsChangeSansDrainedEntryLocked(
       managerTable_->switchManager().setTcRateLimitList(newTcToRateLimitKbps);
     }
   }
+
+  {
+    const auto oldPfcWatchdogTimerGranularity =
+        oldSwitchSettings->getPfcWatchdogTimerGranularity();
+    const auto newPfcWatchdogTimerGranularity =
+        newSwitchSettings->getPfcWatchdogTimerGranularity();
+    if (oldPfcWatchdogTimerGranularity != newPfcWatchdogTimerGranularity &&
+        newPfcWatchdogTimerGranularity.has_value()) {
+      managerTable_->switchManager().setPfcWatchdogTimerGranularity(
+          *newPfcWatchdogTimerGranularity);
+    }
+  }
 }
 
 template <typename LockPolicyT>
