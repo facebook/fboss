@@ -386,14 +386,23 @@ bool operator()(
   // a transceiver if there's no enabled/programmed port on it
   auto xcvrMgr = fsm.get_attribute(transceiverMgrPtr);
   bool isEnabled = !xcvrMgr->getProgrammedIphyPortToPortInfo(tcvrID).empty();
+
+  bool result = false;
   if (!isEnabled) {
     XLOG(DBG2) << "[Transceiver:" << tcvrID
               << "] No enabled ports. Safe to remove";
-    return true;
+    result = true;
+  } else {
+    result = xcvrMgr->areAllPortsDown(tcvrID).first;
+    XLOG_IF(WARN, !result) << "[Transceiver:" << tcvrID
+                          << "] Not all ports down. Not Safe to remove";
   }
-  bool result = xcvrMgr->areAllPortsDown(tcvrID).first;
-  XLOG_IF(WARN, !result) << "[Transceiver:" << tcvrID
-                        << "] Not all ports down. Not Safe to remove";
+
+  // If the state machine can proceed (result=true) we reset transceiver associated 
+  // port states in FSDB.
+  if (result) {
+    xcvrMgr->resetPortState(tcvrID);
+  }
   return result;
 }
 };

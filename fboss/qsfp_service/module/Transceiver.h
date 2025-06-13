@@ -17,6 +17,7 @@
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/lib/phy/gen-cpp2/prbs_types.h"
+#include "fboss/qsfp_service/if/gen-cpp2/port_state_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/qsfp_service_config_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
@@ -304,6 +305,11 @@ class Transceiver {
 
   virtual bool tcvrPortStateSupported(
       TransceiverPortState& portState) const = 0;
+
+  // Derived classes will override this function.
+  virtual portstate::PortState getPortState() {
+    return portstate::PortState();
+  }
 
  protected:
   virtual void latchAndReadVdmDataLocked() = 0;

@@ -688,6 +688,7 @@ std::vector<TransceiverID> WedgeManager::updateTransceiverMap() {
     // Delete the transceivers first before potentially creating them later
     for (auto idx : tcvrsToDelete) {
       lockedTransceiversWPtr->erase(TransceiverID(idx));
+      resetPortState(TransceiverID(idx));
     }
 
     auto tcvrConfig = getTransceiverConfig();
@@ -1142,6 +1143,14 @@ void WedgeManager::publishPortStatToFsdb(
     HwPortStats&& stat) const {
   if (FLAGS_publish_stats_to_fsdb) {
     fsdbSyncManager_->updatePortStat(std::move(portName), std::move(stat));
+  }
+}
+
+void WedgeManager::publishPortStateToFsdb(
+    std::string&& portName,
+    portstate::PortState&& state) const {
+  if (FLAGS_publish_stats_to_fsdb) {
+    fsdbSyncManager_->updatePortState(std::move(portName), std::move(state));
   }
 }
 

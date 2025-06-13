@@ -27,6 +27,7 @@
 #include "fboss/qsfp_service/QsfpConfig.h"
 #include "fboss/qsfp_service/TransceiverStateMachineUpdate.h"
 #include "fboss/qsfp_service/TransceiverValidator.h"
+#include "fboss/qsfp_service/if/gen-cpp2/port_state_types.h"
 #include "fboss/qsfp_service/module/Transceiver.h"
 
 #include <folly/IntrusiveList.h>
@@ -368,7 +369,7 @@ class TransceiverManager {
 
   void updateValidationCache(TransceiverID id, bool isValid);
 
-  // ========== Public functions for TransceiverStateMachine ==========
+  // ========== Public functions for TransceiverStateMachine Start ==========
   // This refresh TransceiverStateMachine functions will handle all state
   // machine updates.
   void refreshStateMachines();
@@ -406,7 +407,10 @@ class TransceiverManager {
   std::map<uint32_t, phy::PhyIDInfo> getAllPortPhyInfo();
 
   phy::PhyInfo getPhyInfo(const std::string& portName);
-  // ========== Public functions fo TransceiverStateMachine ==========
+
+  // Reset the port state for all ports associated with given transceiver.
+  void resetPortState(const TransceiverID& id);
+  // ========== Public functions for TransceiverStateMachine End ==========
 
   // A struct to keep track of the software port profile and status
   struct TransceiverPortInfo {
@@ -576,6 +580,16 @@ class TransceiverManager {
   virtual void publishPortStatToFsdb(
       std::string&& /* portName */,
       HwPortStats&& /* stat */) const {}
+
+  virtual void publishPortStateToFsdb(
+      std::string&& /* portName */,
+      portstate::PortState&& /* portState */) const {}
+
+  // Publishes to FSDB the port state for all ports
+  // belonging to a given transceiver.
+  void publishPortStatesToFsdb(
+      const TransceiverID& id,
+      const portstate::PortState& state);
 
   std::optional<TransceiverID> getTransceiverID(PortID id) const;
 

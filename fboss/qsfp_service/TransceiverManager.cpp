@@ -373,6 +373,7 @@ void TransceiverManager::hardResetAction(
     bool removeTransceiver) {
   // Order of locking is important.
   auto trscvrsInreset = tcvrsHeldInReset_.wlock();
+  TransceiverID id = TransceiverID(idx);
   if (holdInReset) {
     trscvrsInreset->insert(idx);
   } else {
@@ -385,7 +386,7 @@ void TransceiverManager::hardResetAction(
     {
       // Read Lock to trigger all state machine changes
       auto lockedTransceivers = transceivers_.rlock();
-      if (auto it = lockedTransceivers->find(TransceiverID(idx));
+      if (auto it = lockedTransceivers->find(id);
           it != lockedTransceivers->end()) {
         it->second->removeTransceiver();
         removeTransceiver = true;
@@ -394,7 +395,9 @@ void TransceiverManager::hardResetAction(
 
     // Write lock to remove the transceiver
     auto lockedTransceivers = transceivers_.wlock();
-    lockedTransceivers->erase(TransceiverID(idx));
+    lockedTransceivers->erase(id);
+    // Reset transceiver associated port states in FSDB.
+    resetPortState(id);
   }
 }
 
@@ -1482,6 +1485,11 @@ void TransceiverManager::programTransceiver(
   }
 
   tcvrIt->second->programTransceiver(programTcvrState, needResetDataPath);
+
+  // Once the transceiver has been programmed, report the port state
+  // (start of programming time, end of programming time) to the
+  // fsdb.
+  publishPortStatesToFsdb(id, tcvrIt->second->getPortState());
   XLOG(INFO) << "Programmed Transceiver for Transceiver=" << id
              << (needResetDataPath ? " with" : " without")
              << " resetting data path";
@@ -1504,6 +1512,22 @@ bool TransceiverManager::readyTransceiver(TransceiverID id) {
   }
 
   return tcvrIt->second->readyTransceiver();
+}
+
+void TransceiverManager::resetPortState(const TransceiverID& id) {
+  auto portNames = getPortNames(id);
+  for (auto& portName : portNames) {
+    publishPortStateToFsdb(std::string(portName), portstate::PortState());
+  }
+}
+
+void TransceiverManager::publishPortStatesToFsdb(
+    const TransceiverID& id,
+    const portstate::PortState& state) {
+  auto portNames = getPortNames(id);
+  for (auto& portName : portNames) {
+    publishPortStateToFsdb(std::string(portName), portstate::PortState(state));
+  }
 }
 
 bool TransceiverManager::tryRemediateTransceiver(TransceiverID id) {
