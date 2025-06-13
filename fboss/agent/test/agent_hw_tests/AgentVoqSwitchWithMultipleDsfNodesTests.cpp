@@ -3,6 +3,7 @@
 #include "fboss/agent/test/agent_hw_tests/AgentVoqSwitchTests.h"
 
 #include "fboss/agent/AsicUtils.h"
+#include "fboss/agent/DsfStateUpdaterUtil.h"
 #include "fboss/agent/FabricConnectivityManager.h"
 #include "fboss/agent/FbossHwUpdateError.h"
 #include "fboss/agent/hw/HwResourceStatsPublisher.h"
@@ -33,9 +34,10 @@ class AgentVoqSwitchWithMultipleDsfNodesTest : public AgentVoqSwitchTest {
     return utility::addRemoteIntfNodeCfg(curDsfNodes, 1);
   }
   SwitchID getRemoteVoqSwitchId() const {
-    auto dsfNodes = getSw()->getConfig().dsfNodes();
+    const auto config = getSw()->getConfig();
+    const auto dsfNodes = config.dsfNodes();
     // We added remote switch Id at the end
-    auto [switchId, remoteNode] = *dsfNodes->rbegin();
+    const auto& [switchId, remoteNode] = *dsfNodes->crbegin();
     CHECK(*remoteNode.type() == cfg::DsfNodeType::INTERFACE_NODE);
     return SwitchID(switchId);
   }
@@ -639,6 +641,108 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, resolveRouteToLoopbackIp) {
           getWatchdogDeletePkts(afterStats),
           getWatchdogDeletePkts(beforeStats));
     });
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, resolveRouteToRemoteNeighbor) {
+  constexpr auto kRemotePortId = 401;
+  const SystemPortID kRemoteSysPortId(kRemotePortId);
+  const InterfaceID kRemoteIntfId(kRemotePortId);
+
+  const auto intfAddrV6 = std::make_pair(folly::IPAddress("100::1"), 64);
+  const auto intfAddrV4 = std::make_pair(folly::IPAddress("100.0.0.1"), 24);
+
+  const auto ipAddr = folly::IPAddressV6("42::42");
+  const auto prefixLen = 128;
+
+  auto makeSwitchId2SystemPorts = [=](auto& remoteSwitchID) {
+    std::map<SwitchID, std::shared_ptr<SystemPortMap>> switchId2SystemPorts;
+    auto remoteSysPort =
+        utility::makeRemoteSysPort(kRemoteSysPortId, remoteSwitchID);
+    auto remoteSysPorts = std::make_shared<SystemPortMap>();
+    remoteSysPorts->addNode(remoteSysPort);
+    switchId2SystemPorts[remoteSwitchID] = std::move(remoteSysPorts);
+    return switchId2SystemPorts;
+  };
+
+  auto makeSwitchId2Rifs = [=](auto& remoteSwitchID) {
+    std::map<SwitchID, std::shared_ptr<InterfaceMap>> switchId2Rifs;
+    auto remoteIntf = utility::makeRemoteInterface(
+        kRemoteIntfId,
+        {
+            intfAddrV6,
+            intfAddrV4,
+        });
+    auto remoteIntfs = std::make_shared<InterfaceMap>();
+    remoteIntfs->addNode(remoteIntf);
+    switchId2Rifs[remoteSwitchID] = std::move(remoteIntfs);
+    return switchId2Rifs;
+  };
+
+  auto addRemoteSysPortAndIntf = [&](auto swSwitch, auto& remoteSwitchID) {
+    auto updateDsfStateFn = [=](const std::shared_ptr<SwitchState>& in) {
+      auto switchId2SystemPorts = makeSwitchId2SystemPorts(remoteSwitchID);
+      auto switchId2Rifs = makeSwitchId2Rifs(remoteSwitchID);
+
+      return DsfStateUpdaterUtil::getUpdatedState(
+          in,
+          swSwitch->getScopeResolver(),
+          swSwitch->getRib(),
+          switchId2SystemPorts,
+          switchId2Rifs);
+    };
+    swSwitch->getRib()->updateStateInRibThread([swSwitch, updateDsfStateFn]() {
+      swSwitch->updateStateWithHwFailureProtection(
+          folly::sformat("Update state for node: {}", 0), updateDsfStateFn);
+    });
+  };
+
+  auto setup = [&, this]() {
+    auto remoteSwitchID = getRemoteVoqSwitchId();
+    addRemoteSysPortAndIntf(getSw(), remoteSwitchID);
+
+    utility::EcmpSetupTargetedPorts6 ecmpHelper(
+        getProgrammedState(), getSw()->needL2EntryForNeighbor());
+    auto routeUpdater = getSw()->getRouteUpdater();
+    auto sysPortDescs =
+        utility::resolveRemoteNhops(getAgentEnsemble(), ecmpHelper);
+    CHECK_EQ(sysPortDescs.size(), 1);
+    ecmpHelper.programRoutes(
+        &routeUpdater, sysPortDescs, {RoutePrefixV6{ipAddr, prefixLen}});
+  };
+  auto verify = [&, this]() {
+    auto routeInfo =
+        utility::getRouteInfo(ipAddr, prefixLen, *getAgentEnsemble());
+    EXPECT_TRUE(*routeInfo.exists() && !*routeInfo.isProgrammedToDrop());
+
+    auto beforeStats = getLatestSysPortStats(kRemoteSysPortId);
+    sendPacket(ipAddr, std::nullopt /* frontPanelPort */);
+    auto getWatchdogDeletePkts = [](const auto& stats) {
+      return stats.queueCreditWatchdogDeletedPackets_()->at(
+          utility::getDefaultQueue());
+    };
+    WITH_RETRIES({
+      auto afterStats = getLatestSysPortStats(kRemoteSysPortId);
+      XLOG(DBG2) << "Before: " << getWatchdogDeletePkts(beforeStats)
+                 << " After: " << getWatchdogDeletePkts(afterStats);
+      EXPECT_EVENTUALLY_GT(
+          getWatchdogDeletePkts(afterStats),
+          getWatchdogDeletePkts(beforeStats));
+    });
+
+    // Unresolve neighbor
+    utility::EcmpSetupTargetedPorts6 ecmpHelper(
+        getProgrammedState(), getSw()->needL2EntryForNeighbor());
+    utility::unresolveRemoteNhops(getAgentEnsemble(), ecmpHelper);
+
+    routeInfo = utility::getRouteInfo(ipAddr, prefixLen, *getAgentEnsemble());
+    EXPECT_TRUE(*routeInfo.exists() && *routeInfo.isProgrammedToDrop());
+
+    // Resolve neighbor
+    utility::resolveRemoteNhops(getAgentEnsemble(), ecmpHelper);
+    routeInfo = utility::getRouteInfo(ipAddr, prefixLen, *getAgentEnsemble());
+    EXPECT_TRUE(*routeInfo.exists() && !*routeInfo.isProgrammedToDrop());
   };
   verifyAcrossWarmBoots(setup, verify);
 }
