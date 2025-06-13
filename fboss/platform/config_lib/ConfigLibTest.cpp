@@ -16,6 +16,7 @@ const std::string kMeru800bfa = "meru800bfa";
 const std::string kMorgan800cc = "morgan800cc";
 const std::string kJanga800bic = "janga800bic";
 const std::string kTahan800bc = "tahan800bc";
+const std::string kGlath05a_64o = "glath05a-64o";
 const std::string kSample = "sample";
 const std::string kNonExistentPlatform = "nonExistentPlatform";
 } // namespace
@@ -63,6 +64,7 @@ TEST(ConfigLibTest, Basic) {
   EXPECT_NO_THROW(ConfigLib().getWeutilConfig(kJanga800bic));
   EXPECT_NO_THROW(ConfigLib().getWeutilConfig(kTahan800bc));
   EXPECT_NO_THROW(ConfigLib().getWeutilConfig(kMontblanc));
+  EXPECT_NO_THROW(ConfigLib().getWeutilConfig(kGlath05a_64o));
   EXPECT_THROW(
       ConfigLib().getWeutilConfig(kNonExistentPlatform), std::runtime_error);
 
