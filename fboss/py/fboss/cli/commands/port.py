@@ -47,9 +47,20 @@ class PortDetailsCmd(cmds.FbossCmd):
             if not port_details:
                 print("No ports found")
 
+            multi = False
+            try:
+                resp = client.getMultiSwitchRunState()
+                if resp.multiSwitchEnabled:
+                    multi = True
+            except FbossBaseError as e:
+                pass  # If we can't get the run state, assume we're single switch
+
             for port in sorted(port_details.values(), key=utils.port_sort_fn):
                 self._print_port_details(port)
-                self._print_port_counters(client, port)
+                if multi:
+                    self._print_port_counters(self._create_agent_hw_client(), port)
+                else:
+                    self._print_port_counters(client, port)
 
     def _convert_bps(self, bps):
         """convert bps to human readable form
