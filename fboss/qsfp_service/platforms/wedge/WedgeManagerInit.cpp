@@ -9,6 +9,7 @@
  */
 #include "fboss/qsfp_service/platforms/wedge/WedgeManagerInit.h"
 
+#include "fboss/agent/platforms/common/glath05a-64o/Glath05a-64oPlatformMapping.h"
 #include "fboss/agent/platforms/common/janga800bic/Janga800bicPlatformMapping.h"
 #include "fboss/agent/platforms/common/meru400bfu/Meru400bfuPlatformMapping.h"
 #include "fboss/agent/platforms/common/meru400bia/Meru400biaPlatformMapping.h"
@@ -19,8 +20,8 @@
 #include "fboss/agent/platforms/common/montblanc/MontblancPlatformMapping.h"
 #include "fboss/agent/platforms/common/morgan800cc/Morgan800ccPlatformMapping.h"
 #include "fboss/agent/platforms/common/tahan800bc/Tahan800bcPlatformMapping.h"
-#include "fboss/agent/platforms/common/glath05a-64o/Glath05a-64oPlatformMapping.h"
 #include "fboss/lib/bsp/BspGenericSystemContainer.h"
+#include "fboss/lib/bsp/glath05a-64o/Glath05a-64oBspPlatformMapping.h"
 #include "fboss/lib/bsp/janga800bic/Janga800bicBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru400bfu/Meru400bfuBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru400bia/Meru400biaBspPlatformMapping.h"
@@ -31,7 +32,6 @@
 #include "fboss/lib/bsp/montblanc/MontblancBspPlatformMapping.h"
 #include "fboss/lib/bsp/morgan800cc/Morgan800ccBspPlatformMapping.h"
 #include "fboss/lib/bsp/tahan800bc/Tahan800bcBspPlatformMapping.h"
-#include "fboss/lib/bsp/glath05a-64o/Glath05a-64oBspPlatformMapping.h"
 #include "fboss/lib/platforms/PlatformProductInfo.h"
 #include "fboss/qsfp_service/platforms/wedge/BspWedgeManager.h"
 #include "fboss/qsfp_service/platforms/wedge/GalaxyManager.h"
@@ -113,17 +113,17 @@ std::unique_ptr<WedgeManager> createWedgeManager() {
 }
 
 std::unique_ptr<WedgeManager> createGlath05a_64oWedgeManager(
-  const std::string& platformMappingStr) {
-auto systemContainer =
-    BspGenericSystemContainer<Glath05a_64oBspPlatformMapping>::getInstance()
-        .get();
-return std::make_unique<BspWedgeManager>(
-    systemContainer,
-    std::make_unique<BspTransceiverApi>(systemContainer),
-    platformMappingStr.empty()
-        ? std::make_unique<Glath05a_64oPlatformMapping>()
-        : std::make_unique<Glath05a_64oPlatformMapping>(platformMappingStr),
-    PlatformType::PLATFORM_GLATH05A_64O);
+    const std::string& platformMappingStr) {
+  auto systemContainer =
+      BspGenericSystemContainer<Glath05a_64oBspPlatformMapping>::getInstance()
+          .get();
+  return std::make_unique<BspWedgeManager>(
+      systemContainer,
+      std::make_unique<BspTransceiverApi>(systemContainer),
+      platformMappingStr.empty()
+          ? std::make_unique<Glath05a_64oPlatformMapping>()
+          : std::make_unique<Glath05a_64oPlatformMapping>(platformMappingStr),
+      PlatformType::PLATFORM_GLATH05A_64O);
 }
 
 std::unique_ptr<WedgeManager> createMeru400bfuWedgeManager(

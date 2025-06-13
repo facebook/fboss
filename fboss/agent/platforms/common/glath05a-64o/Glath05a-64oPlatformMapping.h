@@ -21,6 +21,7 @@ class Glath05a_64oPlatformMapping : public PlatformMapping {
  private:
   // Forbidden copy constructor and assignment operator
   Glath05a_64oPlatformMapping(Glath05a_64oPlatformMapping const&) = delete;
-  Glath05a_64oPlatformMapping& operator=(Glath05a_64oPlatformMapping const&) = delete;
+  Glath05a_64oPlatformMapping& operator=(Glath05a_64oPlatformMapping const&) =
+      delete;
 };
 } // namespace facebook::fboss
