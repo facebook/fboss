@@ -27,8 +27,8 @@ void FwUtilImpl::doUpgradeOperation(
     if (upgradeConfig.xappArgs().has_value()) {
       performXappUpgrade(upgradeConfig.xappArgs().value(), fpd);
     }
-    } else if (*upgradeConfig.commandType() == "i2cEeprom") {
-    if (upgradeConfig.i2cEepromArgs().has_value()) {	 
+  } else if (*upgradeConfig.commandType() == "i2cEeprom") {
+    if (upgradeConfig.i2cEepromArgs().has_value()) {
       performI2cEepromOperation(upgradeConfig.i2cEepromArgs().value(),fpd);
     }
   }	

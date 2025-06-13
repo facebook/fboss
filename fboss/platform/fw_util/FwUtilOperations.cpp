@@ -163,7 +163,7 @@ void FwUtilImpl::performI2cEepromOperation(
 
   // 1.Getting the i2cbus number from config path
   i2cBusNum =
-      i2cExplorer.extractBusNumFromPath(std::filesystem::read_symlink(*config.path()));    
+      i2cExplorer.extractBusNumFromPath(std::filesystem::read_symlink(*config.path()));
 
   // 2.Bind the driver and get the eeprom path
   i2cExplorer.createI2cDevice("i2cEeprom", driverName, i2cBusNum, addr);
@@ -171,7 +171,7 @@ void FwUtilImpl::performI2cEepromOperation(
 
   // 3.Run the DD command for FW write or read
   cmd = fmt::format(
-      "dd if={} of={}", FLAGS_fw_binary_file, eepromPath);  
+      "dd if={} of={}", FLAGS_fw_binary_file, eepromPath);
   auto [exitStatus, standardOut] = PlatformUtils().execCommand(cmd);
   if (exitStatus != 0) {
     throw std::runtime_error("Run " + cmd + " failed!");
@@ -182,4 +182,4 @@ void FwUtilImpl::performI2cEepromOperation(
   i2cExplorer.deleteI2cDevice(i2cBusNum, addr);
 }
 
-}  // namespace facebook::fboss::platform::fw_util
+} // namespace facebook::fboss::platform::fw_util

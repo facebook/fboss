@@ -87,7 +87,7 @@ class FwUtilImpl {
   void printDarwinVersion(const std::string&);
   void performUpgradeOperation(const UpgradeConfig&, const std::string&);
   void doUpgradeOperation(const UpgradeConfig&, const std::string&);
-  void performI2cEepromOperation(const I2cEepromConfig&,const std::string&);
+  void performI2cEepromOperation(const I2cEepromConfig&, const std::string&);
 
   NewFwUtilConfig fwUtilConfig_{};
   std::map<std::string, std::vector<std::string>> spiChip_;

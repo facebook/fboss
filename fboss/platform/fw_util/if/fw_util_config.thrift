@@ -54,7 +54,7 @@ struct GpiogetConfig {
 
 // Define a struct for I2cEepromConfig
 struct I2cEepromConfig {
-  // I2C driver name of the i2cEeprom	
+  // I2C driver name of the i2cEeprom
   1: string driverName;
   // I2C address of the i2cEeprom
   2: string deviceAddress;
