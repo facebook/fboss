@@ -109,18 +109,7 @@ class DsfSubscriptionTest : public ::testing::Test {
     FLAGS_fsdb_sync_full_state = true;
     FLAGS_dsf_subscribe = false;
     FLAGS_dsf_subscribe_patch = kSubscribePatch;
-    auto config = testConfigA(cfg::SwitchType::VOQ);
-    for (auto remoteSwitch : remoteSwitchIds()) {
-      int remoteSwitchId = static_cast<int64_t>(remoteSwitch);
-      auto dsfNode = makeDsfNodeCfg(remoteSwitchId);
-      cfg::Range64 sysPortRange;
-      sysPortRange.minimum() =
-          remoteSwitchId / kSwitchIdGap * kSysPortBlockSize;
-      sysPortRange.maximum() = *sysPortRange.minimum() + kSysPortBlockSize;
-      dsfNode.systemPortRanges()->systemPortRanges()->push_back(sysPortRange);
-      dsfNode.loopbackIps() = {"::1/128", "169.254.0.1/24"};
-      config.dsfNodes()->insert(std::make_pair(remoteSwitchId, dsfNode));
-    }
+    auto config = initialConfig();
     handle_ = createTestHandle(&config);
     sw_ = handle_->getSw();
     fsdbTestServer_ = std::make_unique<fsdb::test::FsdbTestServer>();
@@ -137,6 +126,22 @@ class DsfSubscriptionTest : public ::testing::Test {
             "DsfSubscriberStreamServe"));
     hwUpdatePool_ = std::make_unique<folly::IOThreadPoolExecutor>(
         1, std::make_shared<folly::NamedThreadFactory>("DsfHwUpdate"));
+  }
+
+  cfg::SwitchConfig initialConfig() {
+    auto config = testConfigA(cfg::SwitchType::VOQ);
+    for (auto remoteSwitch : remoteSwitchIds()) {
+      int remoteSwitchId = static_cast<int64_t>(remoteSwitch);
+      auto dsfNode = makeDsfNodeCfg(remoteSwitchId);
+      cfg::Range64 sysPortRange;
+      sysPortRange.minimum() =
+          remoteSwitchId / kSwitchIdGap * kSysPortBlockSize;
+      sysPortRange.maximum() = *sysPortRange.minimum() + kSysPortBlockSize;
+      dsfNode.systemPortRanges()->systemPortRanges()->push_back(sysPortRange);
+      dsfNode.loopbackIps() = {"::1/128", "169.254.0.1/24"};
+      config.dsfNodes()->insert(std::make_pair(remoteSwitchId, dsfNode));
+    }
+    return config;
   }
 
   void TearDown() override {
@@ -508,6 +513,12 @@ TYPED_TEST(DsfSubscriptionTest, updateWithRollbackProtection) {
   const auto addedState = this->sw_->getState();
   this->verifyRemoteIntfRouteDelta(StateDelta(prevState, addedState), 2, 0);
 
+  // Reapply config - ensure no change in remote interfaces
+  this->sw_->applyConfig("Reload initial config", this->initialConfig());
+  const auto configReappliedState = this->sw_->getState();
+  this->verifyRemoteIntfRouteDelta(
+      StateDelta(addedState, configReappliedState), 0, 0);
+
   // Change remote interface routes
   switchId2SystemPorts[SwitchID(kRemoteSwitchIdBegin)] =
       makeSysPortsForSwitchIds(
@@ -530,7 +541,8 @@ TYPED_TEST(DsfSubscriptionTest, updateWithRollbackProtection) {
       switchId2SystemPorts, switchId2Intfs);
 
   auto modifiedState = this->sw_->getState();
-  this->verifyRemoteIntfRouteDelta(StateDelta(addedState, modifiedState), 2, 2);
+  this->verifyRemoteIntfRouteDelta(
+      StateDelta(configReappliedState, modifiedState), 2, 2);
 
   // Remove remote interface routes
   switchId2SystemPorts[SwitchID(kRemoteSwitchIdBegin)] =
@@ -543,7 +555,8 @@ TYPED_TEST(DsfSubscriptionTest, updateWithRollbackProtection) {
 
   waitForStateUpdates(this->sw_);
   auto deletedState = this->sw_->getState();
-  this->verifyRemoteIntfRouteDelta(StateDelta(addedState, deletedState), 0, 2);
+  this->verifyRemoteIntfRouteDelta(
+      StateDelta(modifiedState, deletedState), 0, 2);
 }
 
 TYPED_TEST(DsfSubscriptionTest, setupNeighbors) {
