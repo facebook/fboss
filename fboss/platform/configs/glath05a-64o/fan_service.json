@@ -1,0 +1,130 @@
+{
+  "pwmBoostOnNumDeadFan": 1,
+  "pwmBoostOnNumDeadSensor": 0,
+  "pwmBoostOnNoQsfpAfterInSec": 0,
+  "pwmBoostValue": 90,
+  "pwmTransitionValue": 75,
+  "pwmLowerThreshold": 54,
+  "pwmUpperThreshold": 100,
+  "optics" : [
+    {
+      "opticName" : "osfp_group_1",
+      "access" : {
+        "accessType" : "ACCESS_TYPE_QSFP"
+      },
+      "portList" : [],
+      "aggregationType" : "OPTIC_AGGREGATION_TYPE_MAX",
+      "tempToPwmMaps" : {
+        "OPTIC_TYPE_800_GENERIC" : {
+          "5": 54,
+          "66": 58,
+          "67": 60,
+          "68": 62,
+          "69": 75,
+          "70": 95,
+          "71": 100
+        }
+      }
+    }
+  ],
+  "controlInterval": {
+    "sensorReadInterval": 5,
+    "pwmUpdateInterval": 5
+  },
+  "sensors": [
+    {
+      "sensorName": "SMB_TH5_DIODE_1_TEMP",
+      "access": {
+        "accessType": "ACCESS_TYPE_THRIFT"
+      },
+      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
+      "normalUpTable": {
+        "15": 54,
+        "110": 100
+      },
+      "normalDownTable": {
+        "15": 54,
+        "110": 100
+      },
+      "failUpTable": {
+        "15": 54,
+        "110": 100
+      },
+      "failDownTable": {
+        "15": 54,
+        "110": 100
+      }
+    }
+  ],
+  "fans": [
+    {
+      "fanName": "fan_1",
+      "rpmSysfsPath": "/run/devmap/sensors/FAN_CPLD/fan1_input",
+      "pwmSysfsPath": "/run/devmap/sensors/FAN_CPLD/pwm1",
+      "presenceSysfsPath": "/run/devmap/sensors/FAN_CPLD/fan1_present",
+      "ledSysfsPath": "/sys/class/leds/fan1::status/brightness",
+      "pwmMin": 1,
+      "pwmMax": 255,
+      "fanPresentVal": 1,
+      "fanMissingVal": 0,
+      "fanGoodLedVal": 1,
+      "fanFailLedVal": 2
+    },
+    {
+      "fanName": "fan_2",
+      "rpmSysfsPath": "/run/devmap/sensors/FAN_CPLD/fan2_input",
+      "pwmSysfsPath": "/run/devmap/sensors/FAN_CPLD/pwm2",
+      "presenceSysfsPath": "/run/devmap/sensors/FAN_CPLD/fan2_present",
+      "ledSysfsPath": "/sys/class/leds/fan2::status/brightness",
+      "pwmMin": 1,
+      "pwmMax": 255,
+      "fanPresentVal": 1,
+      "fanMissingVal": 0,
+      "fanGoodLedVal": 1,
+      "fanFailLedVal": 2
+    },
+    {
+      "fanName": "fan_3",
+      "rpmSysfsPath": "/run/devmap/sensors/FAN_CPLD/fan3_input",
+      "pwmSysfsPath": "/run/devmap/sensors/FAN_CPLD/pwm3",
+      "presenceSysfsPath": "/run/devmap/sensors/FAN_CPLD/fan3_present",
+      "ledSysfsPath": "/sys/class/leds/fan3::status/brightness",
+      "pwmMin": 1,
+      "pwmMax": 255,
+      "fanPresentVal": 1,
+      "fanMissingVal": 0,
+      "fanGoodLedVal": 1,
+      "fanFailLedVal": 2
+    },
+    {
+      "fanName": "fan_4",
+      "rpmSysfsPath": "/run/devmap/sensors/FAN_CPLD/fan4_input",
+      "pwmSysfsPath": "/run/devmap/sensors/FAN_CPLD/pwm4",
+      "presenceSysfsPath": "/run/devmap/sensors/FAN_CPLD/fan4_present",
+      "ledSysfsPath": "/sys/class/leds/fan4::status/brightness",
+      "pwmMin": 1,
+      "pwmMax": 255,
+      "fanPresentVal": 1,
+      "fanMissingVal": 0,
+      "fanGoodLedVal": 1,
+      "fanFailLedVal": 2
+    }
+  ],
+  "zones": [
+    {
+      "zoneType": "ZONE_TYPE_MAX",
+      "zoneName": "zone1",
+      "sensorNames": [
+        "SMB_TH5_DIODE_1_TEMP",
+        "osfp_group_1"
+      ],
+      "fanNames": [
+        "fan_1",
+        "fan_2",
+        "fan_3",
+        "fan_4"
+      ],
+      "slope": 3
+    }
+  ]
+}
