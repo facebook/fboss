@@ -1386,7 +1386,6 @@ void configurePortProfile(
     cfg::PortProfileID profileID,
     std::vector<PortID> allPortsInGroup,
     PortID controllingPortID) {
-  auto controllingPort = findCfgPort(config, controllingPortID);
   for (auto portID : allPortsInGroup) {
     // We might have removed a subsumed port already in a previous
     // iteration of the loop.
@@ -1409,7 +1408,6 @@ void configurePortProfile(
     }
     cfgPort->profileID() = profileID;
     cfgPort->speed() = getSpeed(profileID);
-    cfgPort->ingressVlan() = *controllingPort->ingressVlan();
     cfgPort->state() = cfg::PortState::ENABLED;
     removeSubsumedPorts(config, profile->second, supportsAddRemovePort);
   }
