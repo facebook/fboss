@@ -3803,7 +3803,7 @@ void SwSwitch::updateDsfSubscriberState(
 
 std::string SwSwitch::getConfigStr() const {
   return apache::thrift::SimpleJSONSerializer::serialize<std::string>(
-      getConfig());
+      getAgentConfig());
 }
 
 cfg::SwitchConfig SwSwitch::getConfig() const {
