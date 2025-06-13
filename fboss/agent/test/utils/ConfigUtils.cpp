@@ -140,11 +140,11 @@ std::vector<std::string> getLoopbackIps(SwitchID switchId) {
   int secondOctet = switchIdVal % 256;
 
   auto v6 = FLAGS_nodeZ
-      ? folly::sformat("{}:{}::2/64", firstOctet, secondOctet)
-      : folly::sformat("{}:{}::1/64", firstOctet, secondOctet);
+      ? folly::sformat("{}:{}::2/128", firstOctet, secondOctet)
+      : folly::sformat("{}:{}::1/128", firstOctet, secondOctet);
   auto v4 = FLAGS_nodeZ
-      ? folly::sformat("{}.{}.0.2/24", firstOctet, secondOctet)
-      : folly::sformat("{}.{}.0.1/24", firstOctet, secondOctet);
+      ? folly::sformat("{}.{}.0.2/32", firstOctet, secondOctet)
+      : folly::sformat("{}.{}.0.1/32", firstOctet, secondOctet);
   return {v6, v4};
 }
 
