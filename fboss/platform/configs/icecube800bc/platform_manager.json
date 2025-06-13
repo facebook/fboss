@@ -1,6 +1,6 @@
 {
-  "platformName": "ICECUBE800BC",
-  "rootPmUnitName": "ICECUBE800BC_MCB",
+  "platformName": "ICECUBE",
+  "rootPmUnitName": "ICECUBE_MCB",
   "rootSlotType": "MCB_SLOT",
   "slotTypeConfigs": {
     "MCB_SLOT": {
@@ -10,7 +10,7 @@
         "address": "0x53",
         "kernelDeviceName": "24c02"
       },
-      "pmUnitName": "ICECUBE800BC_MCB"
+      "pmUnitName": "ICECUBE_MCB"
     },
     "RUNBMC_SLOT": {
       "numOutgoingI2cBuses": 1,
@@ -19,7 +19,7 @@
         "address": "0x51",
         "kernelDeviceName": "24c64"
       },
-      "pmUnitName": "ICECUBE800BC_BMC"
+      "pmUnitName": "ICECUBE_BMC"
     },
     "COMESE_SLOT": {
       "numOutgoingI2cBuses": 2,
@@ -37,7 +37,7 @@
         "address": "0x50",
         "kernelDeviceName": "24c64"
       },
-      "pmUnitName": "ICECUBE800BC_PIC_T"
+      "pmUnitName": "ICECUBE_PIC_T"
     },
     "PICB_SLOT": {
       "numOutgoingI2cBuses": 3,
@@ -46,7 +46,7 @@
         "address": "0x50",
         "kernelDeviceName": "24c64"
       },
-      "pmUnitName": "ICECUBE800BC_PIC_B"
+      "pmUnitName": "ICECUBE_PIC_B"
     }
   },
   "i2cAdaptersFromCpu": [
@@ -96,7 +96,7 @@
     ]
   },
   "pmUnitConfigs": {
-    "ICECUBE800BC_MCB": {
+    "ICECUBE_MCB": {
       "pluggedInSlotType": "MCB_SLOT",
       "embeddedSensorConfigs": [
         {
@@ -2795,7 +2795,7 @@
         }
       }
     },
-    "ICECUBE800BC_BMC": {
+    "ICECUBE_BMC": {
       "pluggedInSlotType": "RUNBMC_SLOT",
       "i2cDeviceConfigs": [
         {
@@ -2841,7 +2841,7 @@
         }
       ]
     },
-    "ICECUBE800BC_PIC_T": {
+    "ICECUBE_PIC_T": {
       "pluggedInSlotType": "PICT_SLOT",
       "i2cDeviceConfigs": [
         {
@@ -2890,7 +2890,7 @@
         }
       ]
     },
-    "ICECUBE800BC_PIC_B": {
+    "ICECUBE_PIC_B": {
       "pluggedInSlotType": "PICB_SLOT",
       "i2cDeviceConfigs": [
         {
