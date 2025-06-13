@@ -3047,11 +3047,13 @@ namespace fboss {
 
 Glath05a_64oBspPlatformMapping::Glath05a_64oBspPlatformMapping()
     : BspPlatformMapping(
-          buildGlath05a_64oPlatformMapping(kJsonBspPlatformMappingStr)) {}
+          buildGlath05a_64oPlatformMapping(kJsonBspPlatformMappingStr)) {
+}
 
 Glath05a_64oBspPlatformMapping::Glath05a_64oBspPlatformMapping(
     const std::string& platformMappingStr)
-    : BspPlatformMapping(buildGlath05a_64oPlatformMapping(platformMappingStr)) {}
+    : BspPlatformMapping(buildGlath05a_64oPlatformMapping(platformMappingStr)) {
+}
 
 } // namespace fboss
 } // namespace facebook

@@ -10,7 +10,8 @@ namespace fboss {
 class Glath05a_64oBspPlatformMapping : public BspPlatformMapping {
  public:
   Glath05a_64oBspPlatformMapping();
-  explicit Glath05a_64oBspPlatformMapping(const std::string& platformMappingStr);
+  explicit Glath05a_64oBspPlatformMapping(
+      const std::string& platformMappingStr);
 };
 
 } // namespace fboss

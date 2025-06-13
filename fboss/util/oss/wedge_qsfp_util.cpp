@@ -75,9 +75,9 @@ std::pair<std::unique_ptr<TransceiverI2CApi>, int> getTransceiverAPI() {
       auto ioBus = std::make_unique<BspIOBus>(systemContainer);
       return std::make_pair(std::move(ioBus), 0);
     } else if (FLAGS_platform == "glath05a-64o") {
-      auto systemContainer =
-          BspGenericSystemContainer<Glath05a_64oBspPlatformMapping>::getInstance()
-              .get();
+      auto systemContainer = BspGenericSystemContainer<
+                                 Glath05a_64oBspPlatformMapping>::getInstance()
+                                 .get();
       auto ioBus = std::make_unique<BspIOBus>(systemContainer);
       return std::make_pair(std::move(ioBus), 0);
     } else if (FLAGS_platform == "morgan800cc") {

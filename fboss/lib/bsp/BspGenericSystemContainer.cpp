@@ -3,6 +3,7 @@
 #include "fboss/lib/bsp/BspGenericSystemContainer.h"
 #include <folly/FileUtil.h>
 #include <folly/Singleton.h>
+#include "fboss/lib/bsp/glath05a-64o/Glath05a-64oBspPlatformMapping.h"
 #include "fboss/lib/bsp/janga800bic/Janga800bicBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru400bfu/Meru400bfuBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru400bia/Meru400biaBspPlatformMapping.h"
@@ -13,7 +14,6 @@
 #include "fboss/lib/bsp/montblanc/MontblancBspPlatformMapping.h"
 #include "fboss/lib/bsp/morgan800cc/Morgan800ccBspPlatformMapping.h"
 #include "fboss/lib/bsp/tahan800bc/Tahan800bcBspPlatformMapping.h"
-#include "fboss/lib/bsp/glath05a-64o/Glath05a-64oBspPlatformMapping.h"
 
 DEFINE_string(
     bsp_platform_mapping_override_path,
