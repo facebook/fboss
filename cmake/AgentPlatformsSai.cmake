@@ -40,7 +40,7 @@ add_library(sai_platform
   fboss/agent/platforms/sai/SaiYangraPlatform.cpp
   fboss/agent/platforms/sai/SaiMinipack3NPlatform.cpp
   fboss/agent/platforms/sai/SaiBcmIcecube800bcPlatform.cpp
-
+  fboss/agent/platforms/sai/SaiGlath05a-64oPlatform.cpp
 
   fboss/agent/platforms/sai/oss/SaiBcmMinipackPlatform.cpp
   fboss/agent/platforms/sai/oss/SaiTajoPlatform.cpp
@@ -68,6 +68,8 @@ add_library(sai_platform
   fboss/agent/platforms/sai/SaiYangraPlatformPort.cpp
   fboss/agent/platforms/sai/SaiMinipack3NPlatformPort.cpp
   fboss/agent/platforms/sai/SaiBcmIcecube800bcPlatformPort.cpp
+  fboss/agent/platforms/sai/oss/SaiGlath05a-64oPlatform.cpp
+  fboss/agent/platforms/sai/oss/SaiGlath05a-64oPlatformPort.cpp
 )
 
 target_link_libraries(sai_platform
@@ -105,6 +107,7 @@ target_link_libraries(sai_platform
   janga800bic_platform_mapping
   tahan800bc_platform_mapping
   icecube800bc_platform_mapping
+  glath05a-64o_platform_mapping
   led_structs_types_cpp2
   led_mapping_cpp2
 )
