@@ -237,7 +237,7 @@ class AgentHwPtpTcProvisionTests
 };
 
 // Each port will be selected as Ingress port once and Egress port once.
-TEST_P(AgentHwPtpTcProvisionTests, VerifyPtpTcDelayRequestOnPorts) {
+TEST_P(AgentHwPtpTcProvisionTests, VerifyPtpTcDelayRequest) {
   std::vector<PortID> ports;
   std::vector<folly::MacAddress> nexthopMacs; // binding to ingress port
   std::vector<folly::IPAddressV6> dstIps; // binding to egress port
@@ -292,7 +292,7 @@ TEST_P(AgentHwPtpTcProvisionTests, VerifyPtpTcDelayRequestOnPorts) {
 }
 
 INSTANTIATE_TEST_SUITE_P(
-    AgentHwPtpTcProvisionTests,
+    test, // simple test_suite prefix to reduce name length
     AgentHwPtpTcProvisionTests,
     ::testing::Values(
         cfg::PortSpeed::TWENTYFIVEG,
