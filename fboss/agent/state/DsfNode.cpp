@@ -138,5 +138,17 @@ std::optional<int> DsfNode::getGlobalSystemPortOffset() const {
   }
   return ret;
 }
+
+cfg::QueueScheduling DsfNode::getScheduling() const {
+  return get<switch_config_tags::scheduling>()->cref();
+}
+
+std::optional<cfg::SchedulingParam> DsfNode::getSchedulingParam() const {
+  if (const auto& param = cref<switch_config_tags::schedulingParam>()) {
+    return param->toThrift();
+  }
+  return std::nullopt;
+}
+
 template struct ThriftStructNode<DsfNode, cfg::DsfNode>;
 } // namespace facebook::fboss

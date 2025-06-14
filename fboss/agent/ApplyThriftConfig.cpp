@@ -1487,8 +1487,23 @@ std::shared_ptr<DsfNodeMap> ThriftConfigApplier::updateDsfNodes() {
   auto newNodes = std::make_shared<DsfNodeMap>();
   newNodes->fromThrift(*cfg_->dsfNodes());
   bool changed = false;
+  std::optional<cfg::QueueScheduling> expectedScheduling;
   for (const auto& idAndNode : *newNodes) {
     auto newNode = idAndNode.second;
+    if (newNode->getType() == cfg::DsfNodeType::INTERFACE_NODE) {
+      auto scheduling = newNode->getScheduling();
+      if (!expectedScheduling.has_value()) {
+        expectedScheduling = scheduling;
+      } else if (expectedScheduling.value() != scheduling) {
+        throw FbossError(
+            "Scheduling settings are not consistent between dsf nodes");
+      }
+      if (scheduling != cfg::QueueScheduling::INTERNAL &&
+          !newNode->getSchedulingParam().has_value()) {
+        throw FbossError(
+            "Scheduling parameter should not be empty if scheduler is not INTERNAL");
+      }
+    }
     if (newNode->isInterfaceNode()) {
       if (!newNode->getLocalSystemPortOffset().has_value() ||
           !newNode->getGlobalSystemPortOffset().has_value()) {
