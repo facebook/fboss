@@ -25,6 +25,8 @@ constexpr auto kNumPortPerCore = 10;
 constexpr auto kRemoteSysPortOffset = 7;
 constexpr auto kNumRdswSysPort = 44;
 constexpr auto kNumEdswSysPort = 26;
+// Prod range
+constexpr auto kNumJangaSysPort = 22;
 constexpr uint8_t kDefaultQueue = 0;
 constexpr uint8_t kDualStage3Q2QDefaultQueue = 1;
 
@@ -316,7 +318,9 @@ void populateRemoteIntfAndSysPorts(
         const auto minPortID = *sysPortRange.minimum();
         const auto maxPortID = *sysPortRange.maximum();
         const auto numPorts = maxPortID - minPortID + 1;
-        CHECK(numPorts == kNumRdswSysPort || numPorts == kNumEdswSysPort);
+        CHECK(
+            numPorts == kNumRdswSysPort || numPorts == kNumEdswSysPort ||
+            numPorts == kNumJangaSysPort);
         for (int i = minPortID + kRemoteSysPortOffset; i <= maxPortID; i++) {
           const SystemPortID remoteSysPortId(i);
           const InterfaceID remoteIntfId(i);
