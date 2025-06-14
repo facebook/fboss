@@ -2429,6 +2429,7 @@ void SaiSwitch::linkStateChangedBottomHalf(const PortID& portId) {
 void SaiSwitch::linkStateChangedCallbackBottomHalf(
     std::vector<sai_port_oper_status_notification_t> operStatus) {
   std::map<PortID, bool> swPortId2Status;
+  std::map<PortID, std::optional<AggregatePortID>> swPortId2DownAggPort;
   for (auto i = 0; i < operStatus.size(); i++) {
     bool up = utility::isPortOperUp(operStatus[i].port_state);
 
@@ -2493,6 +2494,13 @@ void SaiSwitch::linkStateChangedCallbackBottomHalf(
           // will point to drop and next hop group will shrink.
           managerTable_->fdbManager().handleLinkDown(
               SaiPortDescriptor(swAggPort.value()));
+          // if min-link is enabled, neighbor caches in sw switch may not be
+          // cleared and re-learned, when port flaps happen around the min-link
+          // threshold. As a result, sai neighbor/nexthop object is not updated
+          // and keep pointing to unresolved nexthop cpu port, see S519817 for
+          // details. So, need to force trigger clearing neighbor cache
+          // associated with the agg port here.
+          swPortId2DownAggPort[swPortId] = swAggPort;
         }
       }
       managerTable_->fdbManager().handleLinkDown(SaiPortDescriptor(swPortId));
@@ -2513,10 +2521,17 @@ void SaiSwitch::linkStateChangedCallbackBottomHalf(
   // processing is not at the mercy of what the callback (SwSwitch, HwTest)
   // does with the callback notification.
   for (auto swPortIdAndStatus : swPortId2Status) {
+    std::optional<AggregatePortID> downAggPort;
+    auto it = swPortId2DownAggPort.find(swPortIdAndStatus.first);
+    if (it != swPortId2DownAggPort.end()) {
+      downAggPort = it->second;
+    }
     callback_->linkStateChanged(
         swPortIdAndStatus.first,
         swPortIdAndStatus.second,
-        managerTable_->portManager().getPortType(swPortIdAndStatus.first));
+        managerTable_->portManager().getPortType(swPortIdAndStatus.first),
+        std::nullopt,
+        downAggPort);
   }
 }
 

@@ -40,7 +40,8 @@ class HwSwitchCallback {
       PortID port,
       bool up,
       cfg::PortType portType,
-      std::optional<phy::LinkFaultStatus> iPhyFaultStatus = std::nullopt) = 0;
+      std::optional<phy::LinkFaultStatus> iPhyFaultStatus = std::nullopt,
+      std::optional<AggregatePortID> aggPortId = std::nullopt) = 0;
 
   /*
    * linkActiveStateChangedOrFwIsolated() is invoked by the HwSwitch whenever

@@ -2300,7 +2300,8 @@ void SwSwitch::linkStateChanged(
     PortID portId,
     bool up,
     cfg::PortType portType,
-    std::optional<phy::LinkFaultStatus> iPhyFaultStatus) {
+    std::optional<phy::LinkFaultStatus> iPhyFaultStatus,
+    std::optional<AggregatePortID> aggPortId) {
   if (!isFullyInitialized()) {
     XLOG(ERR)
         << "Ignore link state change event before we are fully initialized...";
@@ -2352,6 +2353,11 @@ void SwSwitch::linkStateChanged(
   } else {
     updateStateNoCoalescing(
         "Port OperState (UP/DOWN) Update", std::move(updateOperStateFn));
+    if (!up && aggPortId.has_value()) {
+      XLOG(DBG2) << "set neighbor caches pending for trunk port "
+                 << aggPortId.value();
+      getNeighborUpdater()->portDown(PortDescriptor(aggPortId.value()));
+    }
   }
 }
 

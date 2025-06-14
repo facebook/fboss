@@ -136,8 +136,8 @@ class AgentEnsemble : public TestEnsembleIf {
       PortID port,
       bool up,
       cfg::PortType portType,
-      std::optional<phy::LinkFaultStatus> iPhyFaultStatus =
-          std::nullopt) override {
+      std::optional<phy::LinkFaultStatus> iPhyFaultStatus = std::nullopt,
+      std::optional<AggregatePortID> aggPortId = std::nullopt) override {
     if (linkToggler_ &&
         getSw()->getSwitchRunState() >= SwitchRunState::CONFIGURED) {
       linkToggler_->linkStateChanged(port, up);
