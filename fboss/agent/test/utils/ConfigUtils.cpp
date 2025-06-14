@@ -52,9 +52,15 @@ void removePort(
   }
 }
 
-int getRdswSysPortBlockSize() {
+int getRdswSysPortBlockSize(
+    std::optional<PlatformType> platformType = std::nullopt) {
   // For dual stage 3/2q mode, sys ports are allocated in 2 blocks of 28 while
   // for single state we allocate a single block of 44
+  // For PLATFORM_JANGA800BIC, use Prod range
+  if (platformType.has_value() &&
+      platformType.value() == PlatformType::PLATFORM_JANGA800BIC) {
+    return 22;
+  }
   return isDualStage3Q2QMode() ? 28 : 44;
 }
 int getEdswSysPortBlockSize() {
@@ -63,9 +69,12 @@ int getEdswSysPortBlockSize() {
   return isDualStage3Q2QMode() ? 14 : 26;
 }
 
-int getPerNodeSysPortsBlockSize(const HwAsic& asic, int remoteSwitchId) {
+int getPerNodeSysPortsBlockSize(
+    const HwAsic& asic,
+    int remoteSwitchId,
+    std::optional<PlatformType> platformType = std::nullopt) {
   if (remoteSwitchId < getMaxRdsw() * asic.getNumCores()) {
-    return getRdswSysPortBlockSize();
+    return getRdswSysPortBlockSize(platformType);
   }
   return getEdswSysPortBlockSize();
 }
@@ -73,14 +82,15 @@ int getPerNodeSysPortsBlockSize(const HwAsic& asic, int remoteSwitchId) {
 int getSysPortIdsAllocated(
     const HwAsic& asic,
     int remoteSwitchId,
-    int64_t firstSwitchIdMin) {
+    int64_t firstSwitchIdMin,
+    std::optional<PlatformType> platformType = std::nullopt) {
   auto portsConsumed = firstSwitchIdMin;
   auto deviceIndex = remoteSwitchId / asic.getNumCores();
   CHECK(asic.getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3);
   if (deviceIndex < getMaxRdsw()) {
-    portsConsumed += deviceIndex * getRdswSysPortBlockSize() - 1;
+    portsConsumed += deviceIndex * getRdswSysPortBlockSize(platformType) - 1;
   } else {
-    portsConsumed += getMaxRdsw() * getRdswSysPortBlockSize() +
+    portsConsumed += getMaxRdsw() * getRdswSysPortBlockSize(platformType) +
         (deviceIndex - getMaxRdsw()) * getEdswSysPortBlockSize() - 1;
   }
   return portsConsumed;
@@ -425,7 +435,9 @@ cfg::DsfNode dsfNodeConfig(
     }
     throw FbossError("Unexpected asic type: ", asic.getAsicTypeStr());
   };
-  auto getSystemPortRanges = [](const HwAsic& fromAsic, int64_t otherSwitchId) {
+  auto getSystemPortRanges = [&platformType](
+                                 const HwAsic& fromAsic,
+                                 int64_t otherSwitchId) {
     cfg::SystemPortRanges sysPortRanges;
     CHECK(fromAsic.getSystemPortRanges().systemPortRanges()->size());
     CHECK(fromAsic.getSwitchId().has_value());
@@ -436,12 +448,15 @@ cfg::DsfNode dsfNodeConfig(
     for (const auto& firstNodeRange : firstDsfNodeSysPortRanges) {
       cfg::Range64 systemPortRange;
       // Already allocated + 1
-      systemPortRange.minimum() =
-          getSysPortIdsAllocated(
-              fromAsic, otherSwitchId, *firstNodeRange.minimum()) +
+      systemPortRange.minimum() = getSysPortIdsAllocated(
+                                      fromAsic,
+                                      otherSwitchId,
+                                      *firstNodeRange.minimum(),
+                                      platformType) +
           1;
       systemPortRange.maximum() = *systemPortRange.minimum() +
-          getPerNodeSysPortsBlockSize(fromAsic, otherSwitchId) - 1;
+          getPerNodeSysPortsBlockSize(fromAsic, otherSwitchId, platformType) -
+          1;
       XLOG(DBG2) << " For switch Id: " << otherSwitchId
                  << " allocating range, min: " << *systemPortRange.minimum()
                  << " max: " << *systemPortRange.maximum();
