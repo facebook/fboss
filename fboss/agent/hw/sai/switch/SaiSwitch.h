@@ -258,6 +258,8 @@ class SaiSwitch : public HwSwitch {
 
   bool getArsExhaustionStatus() override;
 
+  cfg::SwitchingMode getFwdSwitchingMode(const RouteNextHopEntry&) override;
+
   std::vector<FirmwareInfo> getAllFirmwareInfo() const override;
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)

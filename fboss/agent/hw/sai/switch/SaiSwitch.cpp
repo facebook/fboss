@@ -4801,6 +4801,13 @@ AclStats SaiSwitch::getAclStats() const {
   return managerTable_->aclTableManager().getAclStats();
 }
 
+cfg::SwitchingMode SaiSwitch::getFwdSwitchingMode(
+    const RouteNextHopEntry& fwd) {
+  std::lock_guard<std::mutex> lock(saiSwitchMutex_);
+  return managerTable_->nextHopGroupManager().getNextHopGroupSwitchingMode(
+      fwd.normalizedNextHops());
+}
+
 HwSwitchWatermarkStats SaiSwitch::getSwitchWatermarkStats() const {
   std::lock_guard<std::mutex> lk(saiSwitchMutex_);
   return managerTable_->switchManager().getSwitchWatermarkStats();
