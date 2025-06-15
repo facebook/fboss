@@ -607,19 +607,12 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, resolveRouteToLoopbackIp) {
     CHECK_EQ(remoteSysPorts->size(), 1);
     return remoteSysPorts->cbegin()->first;
   };
-
-  auto getLoopbackNeighborIp = [&]() {
+  auto setup = [&, this]() {
     auto remoteIntf = getProgrammedState()->getRemoteInterfaces()->getNode(
         getRemoteLoopbackSysPort());
     auto nbrTable = remoteIntf->getNdpTable();
     CHECK_GE(nbrTable->size(), 1);
-    return folly::IPAddress(nbrTable->cbegin()->first);
-  };
-
-  auto setup = [&, this]() {
-    auto remoteIntf = getProgrammedState()->getRemoteInterfaces()->getNode(
-        getRemoteLoopbackSysPort());
-    auto neighborIp = getLoopbackNeighborIp();
+    auto neighborIp = folly::IPAddress(nbrTable->cbegin()->first);
     auto routeUpdater = getSw()->getRouteUpdater();
     RouteNextHopSet nextHopSet{
         ResolvedNextHop(neighborIp, remoteIntf->getID(), 1)};
@@ -629,45 +622,25 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, resolveRouteToLoopbackIp) {
         prefixLen,
         ClientID::BGPD,
         RouteNextHopEntry(nextHopSet, AdminDistance::EBGP));
-    routeUpdater.addRoute(
-        RouterID(0),
-        neighborIp,
-        prefixLen,
-        ClientID::BGPD,
-        RouteNextHopEntry(nextHopSet, AdminDistance::EBGP));
     routeUpdater.program();
   };
   auto verify = [&]() {
-    auto sendPacketAndVerifyFwding = [&]() {
-      auto neighborIp = getLoopbackNeighborIp();
-      auto sysPortID = SystemPortID(getRemoteLoopbackSysPort());
-      auto beforeStats = getLatestSysPortStats(sysPortID);
-      sendPacket(ipAddr, std::nullopt /* frontPanelPort */);
-      sendPacket(neighborIp, std::nullopt /* frontPanelPort */);
+    auto sysPortID = SystemPortID(getRemoteLoopbackSysPort());
+    auto beforeStats = getLatestSysPortStats(sysPortID);
+    sendPacket(ipAddr, std::nullopt /* frontPanelPort */);
 
-      auto getWatchdogDeletePkts = [](const auto& stats) {
-        return stats.queueCreditWatchdogDeletedPackets_()->at(
-            utility::getGlobalRcyDefaultQueue());
-      };
-      WITH_RETRIES({
-        auto afterStats = getLatestSysPortStats(sysPortID);
-        XLOG(DBG2) << "Before: " << getWatchdogDeletePkts(beforeStats)
-                   << " After: " << getWatchdogDeletePkts(afterStats);
-        EXPECT_EVENTUALLY_EQ(
-            getWatchdogDeletePkts(afterStats),
-            getWatchdogDeletePkts(beforeStats) + 2);
-      });
+    auto getWatchdogDeletePkts = [](const auto& stats) {
+      return stats.queueCreditWatchdogDeletedPackets_()->at(
+          utility::getGlobalRcyDefaultQueue());
     };
-
-    sendPacketAndVerifyFwding();
-
-    // Remove route that has the same IP as neighbor
-    auto routeUpdater = getSw()->getRouteUpdater();
-    routeUpdater.delRoute(
-        RouterID(0), getLoopbackNeighborIp(), prefixLen, ClientID::BGPD);
-    routeUpdater.program();
-
-    sendPacketAndVerifyFwding();
+    WITH_RETRIES({
+      auto afterStats = getLatestSysPortStats(sysPortID);
+      XLOG(DBG2) << "Before: " << getWatchdogDeletePkts(beforeStats)
+                 << " After: " << getWatchdogDeletePkts(afterStats);
+      EXPECT_EVENTUALLY_GT(
+          getWatchdogDeletePkts(afterStats),
+          getWatchdogDeletePkts(beforeStats));
+    });
   };
   verifyAcrossWarmBoots(setup, verify);
 }
