@@ -252,6 +252,29 @@ std::string SaiNextHopGroupManager::listManagedObjects() const {
   return finalOutput;
 }
 
+cfg::SwitchingMode SaiNextHopGroupManager::getNextHopGroupSwitchingMode(
+    const RouteNextHopEntry::NextHopSet& swNextHops) {
+  auto nextHopGroupHandle =
+      handles_.get(SaiNextHopGroupKey(swNextHops, std::nullopt));
+  if (!nextHopGroupHandle) {
+    // if not in dynamic mode, search for backup modes
+    std::vector<cfg::SwitchingMode> modes = {
+        cfg::SwitchingMode::FIXED_ASSIGNMENT,
+        cfg::SwitchingMode::PER_PACKET_RANDOM};
+    for (const auto& mode : modes) {
+      nextHopGroupHandle = handles_.get(SaiNextHopGroupKey(swNextHops, mode));
+      if (nextHopGroupHandle) {
+        break;
+      }
+    }
+  }
+
+  if (nextHopGroupHandle && nextHopGroupHandle->desiredArsMode_.has_value()) {
+    return nextHopGroupHandle->desiredArsMode_.value();
+  }
+  return cfg::SwitchingMode::FIXED_ASSIGNMENT;
+}
+
 NextHopGroupMember::NextHopGroupMember(
     SaiNextHopGroupManager* manager,
     SaiNextHopGroupHandle* nhgroup,
