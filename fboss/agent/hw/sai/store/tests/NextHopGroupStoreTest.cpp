@@ -231,8 +231,10 @@ TEST_F(NextHopGroupStoreTest, nextHopGroupJson) {
   auto got = store0.get(k);
   EXPECT_TRUE(got);
   auto json = got->adapterHostKeyToFollyDynamic();
-  auto k1 =
-      SaiObject<SaiNextHopGroupTraits>::follyDynamicToAdapterHostKey(json);
+  auto memberList = json[AttributeName<
+      SaiNextHopGroupTraits::Attributes::NextHopMemberList>::value];
+  auto k1 = SaiObject<SaiNextHopGroupTraits>::follyDynamicToAdapterHostKey(
+      memberList);
   EXPECT_EQ(k1, k);
 
   auto ak2AhkJson = s.adapterKeys2AdapterHostKeysFollyDynamic();
@@ -244,7 +246,7 @@ TEST_F(NextHopGroupStoreTest, nextHopGroupJson) {
 
   auto iter = nhgAk2AhkJson.find(folly::to<std::string>(got->adapterKey()));
   EXPECT_FALSE(nhgAk2AhkJson.items().end() == iter);
-  EXPECT_EQ(iter->second, json);
+  EXPECT_EQ(iter->second, memberList);
 }
 
 TEST_F(NextHopGroupStoreTest, bulkSetNextHopGroup) {

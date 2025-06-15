@@ -81,7 +81,40 @@ folly::dynamic SaiStore::adapterKeys2AdapterHostKeysFollyDynamic() const {
             json[folly::to<std::string>(object->adapterKey())] =
                 object->adapterHostKeyToFollyDynamic();
           }
-          storeJson[store.objectTypeName()] = json;
+          // Refer to D75845886 for details
+          if (ObjectTraits::ObjectType == SAI_OBJECT_TYPE_NEXT_HOP_GROUP) {
+            /* For backward compatibility, existing map "nhop-group" is updated
+             * in old format
+             *
+             * "nhop-group" : {
+             *   "nhopGroup0" : [ memberList ],
+             *   "nhopGroup1" : [ memberList ],
+             * }
+             */
+            // Just get the members from the new format and ignore mode
+            folly::dynamic temporaryJson = folly::dynamic::object;
+            for (const auto& object : json.items()) {
+              temporaryJson[object.first] = object.second[AttributeName<
+                  SaiNextHopGroupTraits::Attributes::NextHopMemberList>::value];
+            }
+            storeJson[store.objectTypeName()] = temporaryJson;
+
+            /* New format goes into a new map called "nhop-group-temporary"
+             * "nhop-group-temporary" : {
+             *   "nhopGroup0" : {
+             *     "NextHopMemberList" : [ memberList ],
+             *     "Mode" : 2,
+             *   },
+             *   "nhopGroup1" : {
+             *     "NextHopMemberList" : [ memberList ],
+             *     "Mode" : 4,
+             *   },
+             * }
+             */
+            storeJson[kNhopGroupWithModeName] = json;
+          } else {
+            storeJson[store.objectTypeName()] = json;
+          }
         }
       },
       stores_);

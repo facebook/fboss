@@ -9,7 +9,8 @@ namespace fboss {
 template <>
 folly::dynamic
 SaiObject<SaiNextHopGroupTraits>::adapterHostKeyToFollyDynamic() {
-  folly::dynamic json = folly::dynamic::array;
+  folly::dynamic json = folly::dynamic::object;
+  folly::dynamic memberList = folly::dynamic::array;
   for (auto& ahk : adapterHostKey_.nhopMemberSet) {
     folly::dynamic object = folly::dynamic::object;
     object[AttributeName<SaiIpNextHopTraits::Attributes::Type>::value] =
@@ -53,8 +54,15 @@ SaiObject<SaiNextHopGroupTraits>::adapterHostKeyToFollyDynamic() {
     object[AttributeName<
         SaiNextHopGroupMemberTraits::Attributes::Weight>::value] = ahk.second;
 
-    json.push_back(object);
+    memberList.push_back(object);
   }
+  json[AttributeName<
+      SaiNextHopGroupTraits::Attributes::NextHopMemberList>::value] =
+      memberList;
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+  json[AttributeName<SaiArsTraits::Attributes::Mode>::value] =
+      adapterHostKey_.mode;
+#endif
   return json;
 }
 
