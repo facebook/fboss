@@ -96,15 +96,15 @@ TEST_F(NextHopGroupStoreTest, loadNextHopGroup) {
   auto& store = s.get<SaiNextHopGroupTraits>();
 
   SaiNextHopGroupTraits::AdapterHostKey k;
-  k.insert(
+  k.nhopMemberSet.insert(
       std::make_pair(SaiIpNextHopTraits::AdapterHostKey{42, ip1}, weight1));
-  k.insert(
+  k.nhopMemberSet.insert(
       std::make_pair(SaiIpNextHopTraits::AdapterHostKey{42, ip2}, weight2));
-  k.insert(std::make_pair(
+  k.nhopMemberSet.insert(std::make_pair(
       SaiMplsNextHopTraits::AdapterHostKey{
           42, ip3, std::vector<sai_uint32_t>{102, 103}},
       weight3));
-  k.insert(std::make_pair(
+  k.nhopMemberSet.insert(std::make_pair(
       SaiMplsNextHopTraits::AdapterHostKey{
           42, ip4, std::vector<sai_uint32_t>{201, 203}},
       weight4));
@@ -145,7 +145,7 @@ TEST_F(NextHopGroupStoreTest, nextHopGroupMemberLoadCtor) {
 }
 
 TEST_F(NextHopGroupStoreTest, nextHopGroupCreateCtor) {
-  SaiNextHopGroupTraits::AdapterHostKey k{{}};
+  SaiNextHopGroupTraits::AdapterHostKey k;
   SaiNextHopGroupTraits::CreateAttributes c{
       SAI_NEXT_HOP_GROUP_TYPE_ECMP, std::nullopt};
   auto obj = createObj<SaiNextHopGroupTraits>(k, c, 0);
@@ -216,15 +216,15 @@ TEST_F(NextHopGroupStoreTest, nextHopGroupJson) {
   auto& store0 = s.get<SaiNextHopGroupTraits>();
 
   SaiNextHopGroupTraits::AdapterHostKey k;
-  k.insert(
+  k.nhopMemberSet.insert(
       std::make_pair(SaiIpNextHopTraits::AdapterHostKey{42, ip1}, weight1));
-  k.insert(
+  k.nhopMemberSet.insert(
       std::make_pair(SaiIpNextHopTraits::AdapterHostKey{42, ip2}, weight2));
-  k.insert(std::make_pair(
+  k.nhopMemberSet.insert(std::make_pair(
       SaiMplsNextHopTraits::AdapterHostKey{
           42, ip3, std::vector<sai_uint32_t>{102, 103}},
       weight3));
-  k.insert(std::make_pair(
+  k.nhopMemberSet.insert(std::make_pair(
       SaiMplsNextHopTraits::AdapterHostKey{
           42, ip4, std::vector<sai_uint32_t>{201, 203}},
       weight4));
@@ -272,9 +272,9 @@ TEST_F(NextHopGroupStoreTest, bulkSetNextHopGroup) {
   auto& store = s.get<SaiNextHopGroupTraits>();
 
   SaiNextHopGroupTraits::AdapterHostKey k;
-  k.insert(
+  k.nhopMemberSet.insert(
       std::make_pair(SaiIpNextHopTraits::AdapterHostKey{42, ip1}, weight1));
-  k.insert(
+  k.nhopMemberSet.insert(
       std::make_pair(SaiIpNextHopTraits::AdapterHostKey{42, ip2}, weight2));
 
   auto got = store.get(k);

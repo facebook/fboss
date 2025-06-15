@@ -66,7 +66,8 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
     }
     auto nhk = managerTable_->nextHopManager().getAdapterHostKey(
         folly::poly_cast<ResolvedNextHop>(swNextHop));
-    nextHopGroupAdapterHostKey.insert(std::make_pair(nhk, swNextHop.weight()));
+    nextHopGroupAdapterHostKey.nhopMemberSet.insert(
+        std::make_pair(nhk, swNextHop.weight()));
   }
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
@@ -99,6 +100,11 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
     } else {
       // TODO (ravi) update after random spray support becomes available
     }
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+    nextHopGroupAdapterHostKey.mode =
+        managerTable_->arsManager().cfgSwitchingModeToSai(
+            nextHopGroupHandle->desiredArsMode_.value());
+#endif
   }
 
   // Create the NextHopGroup and NextHopGroupMembers

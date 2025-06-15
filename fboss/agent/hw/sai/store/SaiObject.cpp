@@ -10,7 +10,7 @@ template <>
 folly::dynamic
 SaiObject<SaiNextHopGroupTraits>::adapterHostKeyToFollyDynamic() {
   folly::dynamic json = folly::dynamic::array;
-  for (auto& ahk : adapterHostKey_) {
+  for (auto& ahk : adapterHostKey_.nhopMemberSet) {
     folly::dynamic object = folly::dynamic::object;
     object[AttributeName<SaiIpNextHopTraits::Attributes::Type>::value] =
         folly::to<std::string>(ahk.first.index());
@@ -95,7 +95,7 @@ SaiObject<SaiNextHopGroupTraits>::follyDynamicToAdapterHostKey(
         std::get<SaiIpNextHopTraits::Attributes::Ip>(ipAhk) = folly::IPAddress(
             object[AttributeName<SaiIpNextHopTraits::Attributes::Ip>::value]
                 .asString());
-        key.insert(std::make_pair(ipAhk, weight));
+        key.nhopMemberSet.insert(std::make_pair(ipAhk, weight));
       } break;
 
       case SAI_NEXT_HOP_TYPE_MPLS: {
@@ -119,7 +119,7 @@ SaiObject<SaiNextHopGroupTraits>::follyDynamicToAdapterHostKey(
               label.asInt());
         }
         std::get<SaiMplsNextHopTraits::Attributes::LabelStack>(mplsAhk) = stack;
-        key.insert(std::make_pair(mplsAhk, weight));
+        key.nhopMemberSet.insert(std::make_pair(mplsAhk, weight));
       } break;
 
       default:
