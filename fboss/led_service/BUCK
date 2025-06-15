@@ -107,6 +107,7 @@ cpp_library(
         "//fboss/lib:common_file_utils",
         "//fboss/lib:common_port_utils",
         "//fboss/lib/bsp:bsp_core",
+        "//fboss/lib/bsp/glath05a-64o:glath05a-64o_bsp",
         "//fboss/lib/bsp/meru800bfa:meru800bfa_bsp",
         "//fboss/lib/bsp/meru800bia:meru800bia_bsp",
         "//fboss/lib/bsp/minipack3n:minipack3n_bsp",
