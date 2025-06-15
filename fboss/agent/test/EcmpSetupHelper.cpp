@@ -385,10 +385,7 @@ BaseEcmpSetupHelper<AddrT, NextHopT>::unresolveNextHop(
     const NextHopT& nhop,
     bool useLinkLocal) const {
   auto intfID = portDesc2Interface_.find(nhop.portDesc)->second;
-  auto intf = inputState->getInterfaces()->getNodeIf(intfID);
-  if (intf == nullptr) {
-    intf = inputState->getRemoteInterfaces()->getNodeIf(intfID);
-  }
+  auto intf = inputState->getInterfaces()->getNode(intfID);
   switch (intf->getType()) {
     case cfg::InterfaceType::VLAN:
       return unresolveVlanRifNextHop(inputState, nhop, intf, useLinkLocal);
