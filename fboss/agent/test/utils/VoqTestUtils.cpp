@@ -487,10 +487,8 @@ boost::container::flat_set<PortDescriptor> resolveRemoteNhops(
       remoteSysPorts->begin(),
       remoteSysPorts->end(),
       [&sysPortDescs](const auto& idAndPort) {
-        if (!idAndPort.second->isStatic()) {
-          sysPortDescs.insert(
-              PortDescriptor(static_cast<SystemPortID>(idAndPort.first)));
-        }
+        sysPortDescs.insert(
+            PortDescriptor(static_cast<SystemPortID>(idAndPort.first)));
       });
   ensemble->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
     return ecmpHelper.resolveNextHops(
