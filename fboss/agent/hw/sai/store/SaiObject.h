@@ -134,6 +134,14 @@ typename std::
   const auto& apiTable = SaiApiTable::getInstance();
   auto memberIds = apiTable->nextHopGroupApi().getAttribute(
       adapterKey, SaiNextHopGroupTraits::Attributes::NextHopMemberList{});
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+  auto arsSaiId = apiTable->nextHopGroupApi().getAttribute(
+      adapterKey, SaiNextHopGroupTraits::Attributes::ArsObjectId());
+  if (arsSaiId != SAI_NULL_OBJECT_ID) {
+    ret.mode = apiTable->arsApi().getAttribute(
+        static_cast<ArsSaiId>(arsSaiId), SaiArsTraits::Attributes::Mode());
+  }
+#endif
   for (const auto memberId : memberIds) {
     NextHopSaiId nextHopSaiId{apiTable->nextHopGroupApi().getAttribute(
         NextHopGroupMemberSaiId(memberId),

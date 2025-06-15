@@ -27,12 +27,40 @@ void SaiStore::reload(
     const folly::dynamic* adapterKeys2AdapterHostKeyJson) {
   tupleForEach(
       [adapterKeysJson, adapterKeys2AdapterHostKeyJson](auto& store) {
+        using ObjectTraits =
+            typename std::decay_t<decltype(store)>::ObjectTraits;
         const folly::dynamic* adapterKeys = adapterKeysJson
             ? adapterKeysJson->get_ptr(store.objectTypeName())
             : nullptr;
         const folly::dynamic* adapterHostKeys = adapterKeys2AdapterHostKeyJson
             ? adapterKeys2AdapterHostKeyJson->get_ptr(store.objectTypeName())
             : nullptr;
+        // Refer to D75845886 for details
+        // In the adapterKey2AdapterHostKey map in warm boot file,
+        // Pre D75845886, adapterHostKey for nhop-group is a simple list of
+        // nhop members.
+        // Post D75845886, adapterHostKey changes to a pair of <members, mode>
+        //
+        // To support warmboot downgrade, both formats will be written to
+        //  - Existing "nhop-group" holds the old members only key
+        //  - Temporary "nhop-group-temporary" holds the <members, mode> pair
+        // More details in SaiStore::adapterKeys2AdapterHostKeysFollyDynamic
+        //
+        // Until all SAI switches upgrade to the 2nd format above, both maps
+        // with above keys will be written to the warm boot file
+        //
+        // For the 1st warmboot to this image, "nhop-group-temporary" will be
+        // absent and below code would be a NOP.
+        // If it is present, prefer the new map with the new format
+        if (ObjectTraits::ObjectType == SAI_OBJECT_TYPE_NEXT_HOP_GROUP) {
+          const folly::dynamic* newAdapterHostKeys =
+              adapterKeys2AdapterHostKeyJson
+              ? adapterKeys2AdapterHostKeyJson->get_ptr(kNhopGroupWithModeName)
+              : nullptr;
+          if (newAdapterHostKeys) {
+            adapterHostKeys = newAdapterHostKeys;
+          }
+        }
 
         store.reload(adapterKeys, adapterHostKeys);
       },
@@ -99,6 +127,8 @@ folly::dynamic SaiStore::adapterKeys2AdapterHostKeysFollyDynamic() const {
             }
             storeJson[store.objectTypeName()] = temporaryJson;
 
+            // TODO(ravi) Remove this new map and use the new format in the
+            // above existing nhop-group map
             /* New format goes into a new map called "nhop-group-temporary"
              * "nhop-group-temporary" : {
              *   "nhopGroup0" : {
