@@ -210,6 +210,7 @@ cpp_library(
 cpp_library(
     name = "commands-show-bgp",
     headers = [
+        "commands/show/facebook/bgp/CmdShowBgpInitializationEvents.h",
         "commands/show/facebook/bgp/CmdShowBgpOriginatedRoutes.h",
         "commands/show/facebook/bgp/neighbors/CmdShowBgpNeighbors.h",
         "commands/show/facebook/bgp/neighbors/advertised/BgpNeighborsAdvertisedDryRun.h",
