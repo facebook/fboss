@@ -30,7 +30,7 @@
 #include "fboss/agent/SflowShimUtils.h"
 
 DEFINE_int32(sflow_test_rate, 90000, "sflow sampling rate for hw test");
-constexpr uint16_t kTimeoutSecs = 10;
+constexpr uint16_t kTimeoutSecs = 1;
 
 const std::string kSflowMirror = "sflow_mirror";
 
