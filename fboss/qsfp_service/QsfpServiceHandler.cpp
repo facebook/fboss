@@ -130,7 +130,7 @@ void QsfpServiceHandler::resetTransceiver(
     std::unique_ptr<std::vector<std::string>> portNames,
     ResetType resetType,
     ResetAction resetAction) {
-  auto log = LOG_THRIFT_CALL(INFO);
+  auto log = LOG_THRIFT_CALL(INFO, portNames);
   manager_->resetTransceiver(std::move(portNames), resetType, resetAction);
 }
 
