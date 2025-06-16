@@ -366,6 +366,16 @@ void TransceiverManager::clearAllTransceiverReset() {
   sleep(kSecAfterModuleOutOfReset);
 }
 
+void TransceiverManager::setForceRemoveTransceiver(TransceiverID id) {
+  auto stateMachineItr = stateMachines_.find(id);
+  if (stateMachineItr == stateMachines_.end()) {
+    throw FbossError("Transceiver:", id, " doesn't exist");
+  }
+
+  auto lockedStateMachine = stateMachineItr->second->getStateMachine().wlock();
+  lockedStateMachine->get_attribute(forceRemoveTransceiver) = true;
+}
+
 void TransceiverManager::hardResetAction(
     void (TransceiverPlatformApi::*func)(unsigned int),
     int idx,
@@ -383,6 +393,7 @@ void TransceiverManager::hardResetAction(
   // TransceiverManager is 0 based.
   (qsfpPlatApi_.get()->*func)(idx + 1);
   if (removeTransceiver) {
+    setForceRemoveTransceiver(id);
     {
       // Read Lock to trigger all state machine changes
       auto lockedTransceivers = transceivers_.rlock();

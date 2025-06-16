@@ -767,6 +767,8 @@ class TransceiverManager {
   void waitForAllBlockingStateUpdateDone(
       const BlockingStateUpdateResultList& results);
 
+  void setForceRemoveTransceiver(TransceiverID tcvrID);
+
   /*
    * This is the private class to capture all information a
    * TransceiverStateMachine needs
