@@ -62,9 +62,9 @@ std::vector<InputBalanceResult> checkInputBalanceSingleStage(
     const std::unordered_map<
         std::string,
         std::unordered_map<std::string, std::vector<std::string>>>&
-        inputCpacity,
+        inputCapacity,
     const std::unordered_map<std::string, std::vector<std::string>>&
-        outputCpacity,
+        outputCapacity,
     const std::unordered_map<std::string, std::vector<std::string>>&
         neighborToLinkFailure,
     const std::unordered_map<std::string, int>& portToVirtualDevice,
