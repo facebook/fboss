@@ -311,7 +311,7 @@ void SaiBufferManager::setupIngressEgressBufferPool(
   if (FLAGS_ingress_egress_buffer_pool_size) {
     // An option for test to override the buffer pool size to be used.
     poolSize = FLAGS_ingress_egress_buffer_pool_size *
-        platform_->getAsic()->getNumMemoryBuffers();
+        platform_->getAsic()->getNumCores();
     if (platform_->getAsic()->getAsicType() ==
         cfg::AsicType::ASIC_TYPE_CHENAB) {
       poolSize =
