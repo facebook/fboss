@@ -36,8 +36,9 @@ cpp_library(
     ],
     exported_deps = [
         "//fboss/agent:switch_state-cpp2-types",
+        "//fboss/fsdb/client:fsdb_cow_state_sub_manager",
         "//fboss/fsdb/client:fsdb_pub_sub",
-        "//fboss/fsdb/client:fsdb_stream_client",
+        "//fboss/fsdb/client:fsdb_sub_manager",
         "//fboss/fsdb/if:fsdb_model",
         "//fboss/fsdb/if:fsdb_oper-cpp2-types",
         "//fboss/qsfp_service:transceiver-manager",
