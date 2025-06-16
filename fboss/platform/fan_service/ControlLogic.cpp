@@ -257,10 +257,10 @@ void ControlLogic::getSensorUpdate() {
       readCache.lastReadValue = sensorEntry->value;
       readCache.lastUpdatedTime = sensorEntry->lastUpdated;
       readCache.sensorFailed = false;
-      XLOG(ERR) << fmt::format(
+      XLOG(INFO) << fmt::format(
           "{}: Sensor read value is {}", sensorName, sensorEntry->value);
     } else {
-      XLOG(INFO) << fmt::format(
+      XLOG(ERR) << fmt::format(
           "{}: Failure to get data (either wrong entry or read failure)",
           sensorName);
       sensorAccessFail = true;
