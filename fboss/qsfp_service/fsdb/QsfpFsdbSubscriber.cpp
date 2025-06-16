@@ -4,10 +4,8 @@
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 #include "fboss/fsdb/client/FsdbPubSubManager.h"
-#include "fboss/fsdb/if/FsdbModel.h"
-#ifndef IS_OSS
 #include "fboss/fsdb/client/FsdbSubManager.h"
-#endif
+#include "fboss/fsdb/if/FsdbModel.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 #include "fboss/qsfp_service/TransceiverManager.h"
 #include "fboss/thrift_cow/nodes/Serializer.h"
@@ -32,17 +30,12 @@ const auto switchStatePortMapPath =
 namespace facebook::fboss {
 
 QsfpFsdbSubscriber::QsfpFsdbSubscriber()
-    : fsdbPubSubMgr_{FLAGS_enable_fsdb_patch_subscriber ? nullptr : std::make_unique<fsdb::FsdbPubSubManager>("qsfp_service")}
-#ifndef IS_OSS
-      ,
+    : fsdbPubSubMgr_{FLAGS_enable_fsdb_patch_subscriber ? nullptr : std::make_unique<fsdb::FsdbPubSubManager>("qsfp_service")},
       fsdbSubMgr_{
           FLAGS_enable_fsdb_patch_subscriber
               ? std::make_unique<fsdb::FsdbCowStateSubManager>(
                     fsdb::SubscriptionOptions("qsfp_service"))
-              : nullptr}
-#endif
-{
-}
+              : nullptr} {}
 
 void QsfpFsdbSubscriber::subscribeToSwitchStatePortMap(
     TransceiverManager* tcvrManager) {
@@ -88,7 +81,6 @@ void QsfpFsdbSubscriber::subscribeToSwitchStatePortMap(
     fsdbPubSubMgr_->addStatePathSubscription(path.tokens(), stateCb, dataCb);
   }
 
-#ifndef IS_OSS
   if (fsdbSubMgr_) {
     fsdbSubMgr_->addPath(path);
     fsdbSubMgr_->subscribe([&processData](auto update) {
@@ -97,7 +89,6 @@ void QsfpFsdbSubscriber::subscribeToSwitchStatePortMap(
       processData(swPortMaps);
     });
   }
-#endif
 
   XLOG(INFO) << "QsfpFsdbSubscriber: subscribed to switch state "
              << folly::join("/", path.tokens());
@@ -109,11 +100,9 @@ void QsfpFsdbSubscriber::stop() {
     fsdbPubSubMgr_->removeStatePathSubscription(
         switchStatePortMapPath.tokens());
   }
-#ifndef IS_OSS
   if (fsdbSubMgr_) {
     fsdbSubMgr_->stop();
   }
-#endif
   XLOG(INFO) << "QsfpFsdbSubscriber stopped";
 }
 
