@@ -463,6 +463,50 @@ void SaiSwitch::processLocalCapsuleSwitchIdsDelta(
 }
 
 template <typename LockPolicyT>
+void SaiSwitch::processCreditRequestProfileDelta(
+    const StateDelta& delta,
+    const LockPolicyT& lockPolicy) {
+  auto dsfNodesDelta = delta.getDsfNodesDelta();
+  if (getSwitchType() != cfg::SwitchType::VOQ ||
+      dsfNodesDelta.begin() == dsfNodesDelta.end() || !dsfNodesDelta.getNew()) {
+    return;
+  }
+
+  std::map<int32_t, int32_t> moduleIdToCreditRequestProfileParam;
+  cfg::QueueScheduling expectedScheduling = cfg::QueueScheduling::INTERNAL;
+  [[maybe_unused]] const auto& lock = lockPolicy.lock();
+  for (const auto& [_, dsfNodes] : std::as_const(*dsfNodesDelta.getNew())) {
+    for (const auto& [switchId, node] : std::as_const(*dsfNodes)) {
+      auto scheduling = node->getScheduling();
+      auto param = node->getSchedulingParam();
+      int paramVal = 0;
+      if (scheduling == cfg::QueueScheduling::STRICT_PRIORITY) {
+        expectedScheduling = scheduling;
+        paramVal = static_cast<int>(param.value().spPriority().value());
+      } else if (scheduling == cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN) {
+        expectedScheduling = scheduling;
+        paramVal = param.value().wrrWeight().value();
+      }
+      if (scheduling != cfg::QueueScheduling::INTERNAL) {
+        XLOG(DBG2) << "set credit request scheduling parameter of "
+                   << node->getName() << " to " << paramVal;
+        const auto& hwAsic = getHwAsicForAsicType(node->getAsicType());
+        int numCores = hwAsic.getNumCores();
+        for (auto core = switchId; core < switchId + numCores; core++) {
+          moduleIdToCreditRequestProfileParam[core] = paramVal;
+        }
+      }
+    }
+  }
+  XLOG(DBG2) << "set credit request profile scheduler "
+             << apache::thrift::util::enumNameSafe(expectedScheduling);
+  managerTable_->switchManager().setCreditRequestProfileSchedulerMode(
+      expectedScheduling);
+  managerTable_->switchManager().setModuleIdToCreditRequestProfileParam(
+      moduleIdToCreditRequestProfileParam);
+}
+
+template <typename LockPolicyT>
 void SaiSwitch::processDefaultDataPlanePolicyDelta(
     const StateDelta& delta,
     const LockPolicyT& lockPolicy) {
@@ -717,6 +761,7 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
       delta, cfg::SwitchDrainState::DRAINED, lockPolicy);
   processSwitchSettingsChangeSansDrained(delta, lockPolicy);
   processLocalCapsuleSwitchIdsDelta(delta, lockPolicy);
+  processCreditRequestProfileDelta(delta, lockPolicy);
 
   if (platform_->getAsic()->isSupported(HwAsic::Feature::ARS)) {
     processFlowletSwitchingConfigAdded(delta, lockPolicy);

@@ -471,6 +471,11 @@ class SaiSwitch : public HwSwitch {
       const LockPolicyT& lockPolicy);
 
   template <typename LockPolicyT>
+  void processCreditRequestProfileDelta(
+      const StateDelta& delta,
+      const LockPolicyT& lockPolicy);
+
+  template <typename LockPolicyT>
   void processDefaultDataPlanePolicyDelta(
       const StateDelta& delta,
       const LockPolicyT& lk);

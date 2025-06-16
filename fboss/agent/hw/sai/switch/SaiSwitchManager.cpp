@@ -1420,4 +1420,15 @@ void SaiSwitchManager::setPfcWatchdogTimerGranularity(
 #endif
 }
 
+void SaiSwitchManager::setCreditRequestProfileSchedulerMode(
+    cfg::QueueScheduling scheduling) {
+  // TODO(daiweix): program scheduler mode through sai api
+}
+
+void SaiSwitchManager::setModuleIdToCreditRequestProfileParam(
+    const std::optional<std::map<int32_t, int32_t>>&
+        moduleIdToCreditRequestProfileParam) {
+  // TODO(daiweix): program scheduler parameter through sai api
+}
+
 } // namespace facebook::fboss
