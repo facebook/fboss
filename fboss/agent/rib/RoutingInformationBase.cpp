@@ -11,7 +11,6 @@
 #include "fboss/agent/rib/RoutingInformationBase.h"
 
 #include "fboss/agent/AddressUtil.h"
-#include "fboss/agent/Constants.h"
 #include "fboss/agent/FbossHwUpdateError.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
