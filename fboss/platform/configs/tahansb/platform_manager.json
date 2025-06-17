@@ -1013,7 +1013,7 @@
         {
           "busName": "SMB_MUX@1",
           "address": "0x4c",
-          "kernelDeviceName": "tpm432",
+          "kernelDeviceName": "tmp432",
           "pmUnitScopedName": "SMB_TH6_SENSOR_TMP432_1"
         },
         {
@@ -1037,7 +1037,7 @@
         {
           "busName": "SMB_MUX@3",
           "address": "0x4c",
-          "kernelDeviceName": "tpm432",
+          "kernelDeviceName": "tmp432",
           "pmUnitScopedName": "SMB_TH6_SENSOR_TMP432_2"
         },
         {
