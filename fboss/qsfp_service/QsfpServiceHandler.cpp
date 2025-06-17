@@ -50,14 +50,16 @@ QsfpServiceHandler::QsfpServiceHandler(
 
 QsfpServiceHandler::~QsfpServiceHandler() {
   if (fsdbSubscriber_) {
-    fsdbSubscriber_->stop();
+    fsdbSubscriber_->removeSwitchStatePortMapSubscription();
   }
 }
 
 void QsfpServiceHandler::init() {
   manager_->init();
   if (FLAGS_subscribe_to_state_from_fsdb) {
-    fsdbSubscriber_ = std::make_unique<QsfpFsdbSubscriber>();
+    fsdbPubSubMgr_ = std::make_unique<fsdb::FsdbPubSubManager>("qsfp_service");
+    fsdbSubscriber_ =
+        std::make_unique<QsfpFsdbSubscriber>(fsdbPubSubMgr_.get());
     fsdbSubscriber_->subscribeToSwitchStatePortMap(manager_.get());
   }
 }

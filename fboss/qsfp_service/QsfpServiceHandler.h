@@ -7,6 +7,7 @@
 
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
+#include "fboss/fsdb/client/FsdbPubSubManager.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/lib/phy/gen-cpp2/prbs_types.h"
 #include "fboss/mka_service/handlers/MacsecHandler.h"
@@ -345,6 +346,7 @@ class QsfpServiceHandler
   std::unique_ptr<TransceiverManager> manager_{nullptr};
   std::shared_ptr<mka::MacsecHandler> macsecHandler_;
 
+  std::unique_ptr<fsdb::FsdbPubSubManager> fsdbPubSubMgr_;
   std::unique_ptr<QsfpFsdbSubscriber> fsdbSubscriber_;
 };
 } // namespace fboss

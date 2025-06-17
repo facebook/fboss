@@ -4,15 +4,15 @@
 
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/fsdb/client/FsdbPubSubManager.h"
-// TODO: add OSS build support for FsdbCowStateSubManager
-#ifndef IS_OSS
-#include "fboss/fsdb/client/instantiations/FsdbCowStateSubManager.h"
-#endif
+#include "fboss/fsdb/client/FsdbStreamClient.h"
 #include "fboss/qsfp_service/TransceiverManager.h"
 
-DECLARE_bool(enable_fsdb_patch_subscriber);
+#include <memory>
 
 namespace facebook::fboss {
+namespace fsdb {
+class FsdbPubSubManager;
+}
 
 /*
  * QsfpFsdbSubscriber class:
@@ -21,17 +21,20 @@ namespace facebook::fboss {
  */
 class QsfpFsdbSubscriber {
  public:
-  QsfpFsdbSubscriber();
+  explicit QsfpFsdbSubscriber(fsdb::FsdbPubSubManager* pubSubMgr)
+      : fsdbPubSubMgr_(pubSubMgr) {}
+
+  fsdb::FsdbPubSubManager* pubSubMgr() {
+    return fsdbPubSubMgr_;
+  }
 
   void subscribeToSwitchStatePortMap(TransceiverManager* tcvrManager);
+  void removeSwitchStatePortMapSubscription();
 
-  void stop();
+  static std::vector<std::string> getSwitchStatePortMapPath();
 
  private:
-  std::unique_ptr<fsdb::FsdbPubSubManager> fsdbPubSubMgr_;
-#ifndef IS_OSS
-  std::unique_ptr<fsdb::FsdbCowStateSubManager> fsdbSubMgr_;
-#endif
+  fsdb::FsdbPubSubManager* fsdbPubSubMgr_;
 };
 
 } // namespace facebook::fboss
