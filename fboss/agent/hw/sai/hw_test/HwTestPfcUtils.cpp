@@ -277,12 +277,17 @@ void checkSwHwPgCfgMatch(
     // Buffer pool configs
     const auto bufferPool =
         pgConfig->cref<switch_state_tags::bufferPoolConfig>();
+    const HwAsic* asic =
+        static_cast<const SaiSwitch*>(hw)->getPlatform()->getAsic();
+    // TODO: Unify the usage such that all ASIC can agree on the same
+    // multiplication factor to use.
+    const auto headroomPoolSizeMultiplicator =
+        asic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3
+        ? asic->getNumCores()
+        : asic->getNumMemoryBuffers();
     EXPECT_EQ(
         bufferPool->cref<common_if_tags::headroomBytes>()->cref() *
-            static_cast<const SaiSwitch*>(hw)
-                ->getPlatform()
-                ->getAsic()
-                ->getNumMemoryBuffers(),
+            headroomPoolSizeMultiplicator,
         SaiApiTable::getInstance()->bufferApi().getAttribute(
             static_cast<const SaiSwitch*>(hw)
                 ->managerTable()

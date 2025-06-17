@@ -331,9 +331,18 @@ void SaiBufferManager::setupIngressEgressBufferPool(
   }
   std::optional<int32_t> newXoffSize;
   if (bufferPoolCfg &&
-      platform_->getAsic()->isSupported(HwAsic::Feature::PFC)) {
-    newXoffSize = *(*bufferPoolCfg).headroomBytes() *
-        platform_->getAsic()->getNumMemoryBuffers();
+      platform_->getAsic()->isSupported(HwAsic::Feature::PFC) &&
+      bufferPoolCfg->headroomBytes().has_value()) {
+    // TODO: Unify the usage such that all ASIC can agree on the same
+    // multiplication factor to use.
+    if (platform_->getAsic()->getAsicType() ==
+        cfg::AsicType::ASIC_TYPE_JERICHO3) {
+      newXoffSize =
+          *bufferPoolCfg->headroomBytes() * platform_->getAsic()->getNumCores();
+    } else {
+      newXoffSize = *bufferPoolCfg->headroomBytes() *
+          platform_->getAsic()->getNumMemoryBuffers();
+    }
   }
   if (!ingressEgressBufferPoolHandle_) {
     createOrUpdateIngressEgressBufferPool(poolSize, newXoffSize);
