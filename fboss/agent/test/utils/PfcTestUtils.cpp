@@ -222,7 +222,7 @@ PfcBufferParams PfcBufferParams::getPfcBufferParams(
     //     less than the headroom size, in which case there will be hystersis.
     if (globalHeadroom > 0) {
       buffer.resumeThreshold = 20480;
-      buffer.pgHeadroom = 2200;
+      buffer.pgHeadroom = 4400;
       buffer.minLimit = *buffer.resumeThreshold;
     } else {
       buffer.resumeThreshold = 20480;
