@@ -1178,10 +1178,19 @@ std::map<int32_t, TransceiverInfo> fetchInfoFromQsfpService(
 
 DOMDataUnion fetchDataFromLocalI2CBus(
     DirectI2cInfo i2cInfo,
-    unsigned int port) {
+    unsigned int port,
+    WedgeQsfp* qsfpImpl) {
   // port is 1 based and WedgeQsfp is 0 based.
-  auto qsfpImpl = std::make_unique<WedgeQsfp>(
-      port - 1, i2cInfo.bus, i2cInfo.transceiverManager, /*logBuffer*/ nullptr);
+  std::unique_ptr<WedgeQsfp> qsfpImplPtr;
+  if (qsfpImpl == nullptr) {
+    qsfpImplPtr.reset(new WedgeQsfp(
+        port - 1,
+        i2cInfo.bus,
+        i2cInfo.transceiverManager,
+        /*logBuffer*/ nullptr));
+    qsfpImpl = qsfpImplPtr.get();
+  }
+
   auto mgmtInterface = qsfpImpl->getTransceiverManagementInterface();
   if (!FLAGS_forced_module_type.empty()) {
     if (FLAGS_forced_module_type == "cmis") {
@@ -1211,7 +1220,7 @@ DOMDataUnion fetchDataFromLocalI2CBus(
   if (mgmtInterface == TransceiverManagementInterface::CMIS) {
     auto cmisModule = std::make_unique<CmisModule>(
         tcvrMgr->getPortNames(tcvrID),
-        qsfpImpl.get(),
+        qsfpImpl,
         cfgPtr,
         cmisSupportRemediate,
         tcvrMgr->getTransceiverName(tcvrID));
@@ -1226,7 +1235,7 @@ DOMDataUnion fetchDataFromLocalI2CBus(
   } else if (mgmtInterface == TransceiverManagementInterface::SFF) {
     auto sffModule = std::make_unique<SffModule>(
         tcvrMgr->getPortNames(tcvrID),
-        qsfpImpl.get(),
+        qsfpImpl,
         cfgPtr,
         tcvrMgr->getTransceiverName(tcvrID));
     sffModule->refresh();
@@ -2826,6 +2835,64 @@ std::vector<int> getPidForProcess(std::string proccessName) {
   return pidList;
 }
 
+std::string getI2cLogFileName(const unsigned int port) {
+  return "/tmp/i2clog_wedge_util_" + std::to_string(port) + ".txt";
+}
+
+std::unique_ptr<WedgeQsfp> getDomDataAndQsfpImpl(
+    DirectI2cInfo& i2cInfo,
+    const unsigned int port,
+    DOMDataUnion& domDataOut) {
+  // Enable Transceiver I2C Log for the upgrade command to help us debug issues.
+  // 20K slots are enough for a 1MB FW.
+  cfg::TransceiverI2cLogging logCfg;
+  logCfg.bufferSlots().value() = 20480;
+  logCfg.readLog() = true;
+  logCfg.writeLog() = true;
+  logCfg.disableOnFail() = false;
+
+  // Enable Logging
+  auto logFileName = getI2cLogFileName(port);
+  auto logBuffer = std::make_unique<I2cLogBuffer>(logCfg, logFileName);
+  auto qsfpImpl = std::make_unique<WedgeQsfp>(
+      port - 1, i2cInfo.bus, i2cInfo.transceiverManager, std::move(logBuffer));
+
+  domDataOut = fetchDataFromLocalI2CBus(i2cInfo, port, qsfpImpl.get());
+  auto cmisData = domDataOut.get_cmis();
+
+  auto mgmtIf = qsfpImpl->getTransceiverManagementInterface();
+  Vendor vend;
+  vend.name() = "UNKNOWN";
+  FirmwareStatus fwSt;
+  fwSt.version() = "UNKNOWN";
+
+  switch (mgmtIf) {
+    case TransceiverManagementInterface::CMIS: {
+      auto dataUpper = cmisData.page0()->data();
+      auto dataLower = cmisData.lower()->data();
+      std::array<uint8_t, 16> vendorArray{0};
+      std::array<uint8_t, 2> fwVerArray{0};
+      memcpy(&vendorArray[0], &dataUpper[1], 16);
+      memcpy(&fwVerArray[0], &dataLower[39], 2);
+      vend.name() = std::string((char*)&vendorArray[0], 16);
+      fwSt.version() =
+          std::to_string(fwVerArray[0]) + "." + std::to_string(fwVerArray[1]);
+    } break;
+    default:
+      // do nothing. Data in transceiver might be corrupt and we just want to
+      // force reprogramming it.
+      break;
+  }
+
+  std::optional<Vendor> vendorOpt = vend;
+  std::optional<FirmwareStatus> fwStOpt = fwSt;
+  std::set<std::string> portNames{std::to_string(port)};
+
+  // Now we set the transceiver info in the log buffer.
+  qsfpImpl->setTcvrInfoInLog(mgmtIf, portNames, fwStOpt, vendorOpt);
+
+  return qsfpImpl;
+}
 /*
  * cliModulefirmwareUpgrade
  *
@@ -2848,7 +2915,10 @@ bool cliModulefirmwareUpgrade(
     return false;
   }
 
-  auto domData = fetchDataFromLocalI2CBus(i2cInfo, port);
+  DOMDataUnion domData;
+  std::unique_ptr<WedgeQsfp> qsfpImpl(
+      getDomDataAndQsfpImpl(i2cInfo, port, domData));
+
   CmisData cmisData = domData.get_cmis();
   auto dataUpper = cmisData.page0()->data();
 
@@ -2897,18 +2967,6 @@ bool cliModulefirmwareUpgrade(
     }
   }
 
-  // Enable Transceiver I2C Log for the upgrade command to help us debug issues.
-  // 20K slots are enough for a 1MB FW.
-  cfg::TransceiverI2cLogging logCfg;
-  logCfg.bufferSlots().value() = 20480;
-  logCfg.readLog() = true;
-  logCfg.writeLog() = true;
-  logCfg.disableOnFail() = false;
-
-  auto logFileName = "/tmp/i2clog_wedge_util_" + std::to_string(port) + ".txt";
-  // Only Enable logging when in I2C Mode.
-  auto logBuffer = std::make_unique<I2cLogBuffer>(logCfg, logFileName);
-
   // Create FbossFirmware object using firmware filename and msa password,
   // header length as properties
   FbossFirmware::FwAttributes firmwareAttr;
@@ -2920,18 +2978,6 @@ bool cliModulefirmwareUpgrade(
   firmwareAttr.properties["image_type"] =
       FLAGS_dsp_image ? "dsp" : "application";
   auto fbossFwObj = std::make_unique<FbossFirmware>(firmwareAttr);
-  auto qsfpImpl = std::make_unique<WedgeQsfp>(
-      port - 1, i2cInfo.bus, i2cInfo.transceiverManager, std::move(logBuffer));
-  auto mgmtIf = qsfpImpl->getTransceiverManagementInterface();
-  std::set<std::string> portNames;
-  Vendor vend;
-  vend.name() = "UNKNOWN";
-  FirmwareStatus fwSt;
-  fwSt.version() = "UNKNOWN";
-  std::optional<Vendor> vendor = vend;
-  std::optional<FirmwareStatus> fwStatus = fwSt;
-  portNames.insert(std::to_string(port));
-  qsfpImpl->setTcvrInfoInLog(mgmtIf, portNames, fwStatus, vendor);
 
   auto fwUpgradeObj = std::make_unique<CmisFirmwareUpgrader>(
       qsfpImpl.get(), port, fbossFwObj.get());
@@ -2949,9 +2995,9 @@ bool cliModulefirmwareUpgrade(
 
   auto logRet = qsfpImpl->dumpTransceiverI2cLog();
   printf(
-      "I2C Logged %lu entries to file %s \n",
+      "I2C transactions Logged: %lu. Entries are in %s \n",
       logRet.second,
-      logFileName.c_str());
+      getI2cLogFileName(port).c_str());
   return ret;
 }
 
