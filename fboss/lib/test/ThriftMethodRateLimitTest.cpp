@@ -23,7 +23,7 @@ class ThriftMethodRateLimitTest : public ::testing::Test {
 };
 
 TEST_F(ThriftMethodRateLimitTest, ConstructorTest) {
-  std::map<std::string, int> methodLimits = {
+  std::map<std::string, double> methodLimits = {
       {"method1", 10},
       {"method2", 20},
   };
@@ -34,7 +34,7 @@ TEST_F(ThriftMethodRateLimitTest, ConstructorTest) {
 }
 
 TEST_F(ThriftMethodRateLimitTest, IsQpsLimitExceededTest) {
-  std::map<std::string, int> methodLimits = {
+  std::map<std::string, double> methodLimits = {
       {"method1", 10},
   };
 
@@ -52,7 +52,7 @@ TEST_F(ThriftMethodRateLimitTest, IsQpsLimitExceededTest) {
 }
 
 TEST_F(ThriftMethodRateLimitTest, RateLimitPreprocessFuncTest) {
-  std::map<std::string, int> methodLimits = {
+  std::map<std::string, double> methodLimits = {
       {"method1", 1}, // Set a very low limit for testing
   };
 
@@ -86,7 +86,7 @@ TEST_F(ThriftMethodRateLimitTest, RateLimitPreprocessFuncTest) {
 }
 
 TEST_F(ThriftMethodRateLimitTest, MultipleMethodsTest) {
-  std::map<std::string, int> methodLimits = {
+  std::map<std::string, double> methodLimits = {
       {"method1", 5},
       {"method2", 10},
   };

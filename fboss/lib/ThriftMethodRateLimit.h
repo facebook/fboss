@@ -22,7 +22,7 @@ class ThriftMethodRateLimit {
    */
  public:
   explicit ThriftMethodRateLimit(
-      const std::map<std::string, int>& methood2QpsLimit) {
+      const std::map<std::string, double>& methood2QpsLimit) {
     for (const auto& it : methood2QpsLimit) {
       method2QpsLimitAndTokenBucket.emplace(
           it.first, std::make_pair(it.second, folly::DynamicTokenBucket(0)));
@@ -36,7 +36,7 @@ class ThriftMethodRateLimit {
       std::unique_ptr<ThriftMethodRateLimit> rateLimiter);
 
  private:
-  std::unordered_map<std::string, std::pair<int, folly::DynamicTokenBucket>>
+  std::unordered_map<std::string, std::pair<double, folly::DynamicTokenBucket>>
       method2QpsLimitAndTokenBucket;
 };
 

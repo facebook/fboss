@@ -80,7 +80,7 @@ std::unique_ptr<apache::thrift::ThriftServer> setupThriftServer(
   server->setAddresses(addresses);
   server->setIdleTimeout(std::chrono::seconds(FLAGS_thrift_idle_timeout));
 
-  std::map<std::string, int> method2QpsLimit = {};
+  std::map<std::string, double> method2QpsLimit = {};
   try {
     auto config = AgentConfig::fromDefaultFile();
     for (const auto& item : *config->thrift.thriftApiToRateLimitInQps()) {
