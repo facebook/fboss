@@ -223,7 +223,7 @@ std::vector<InputBalanceResult> checkInputBalanceSingleStage(
       throw std::runtime_error(
           "No output capacity data for switch " + dstSwitch);
     }
-    auto outputCapacity =
+    auto outputCapacityByVD =
         groupPortsByVD(outputCapacityIter->second, portToVirtualDevice);
     auto outputLinkFailure =
         getLinkFailure({dstSwitch}, neighborToLinkFailure, portToVirtualDevice);
@@ -240,7 +240,7 @@ std::vector<InputBalanceResult> checkInputBalanceSingleStage(
             " from neighbor " + neighborSwitch);
       }
 
-      auto inputCapacity =
+      auto inputCapacityByVD =
           groupPortsByVD(neighborReachIter->second, portToVirtualDevice);
       auto inputLinkFailure = getLinkFailure(
           {neighborSwitch}, neighborToLinkFailure, portToVirtualDevice);
@@ -251,8 +251,8 @@ std::vector<InputBalanceResult> checkInputBalanceSingleStage(
             static_cast<int>(inputLinkFailure.at(vd).size()) -
                 static_cast<int>(outputLinkFailure.at(vd).size()));
 
-        bool balanced = (inputCapacity.at(vd).size() + localLinkFailure) ==
-            outputCapacity.at(vd).size();
+        bool balanced = (inputCapacityByVD.at(vd).size() + localLinkFailure) ==
+            outputCapacityByVD.at(vd).size();
 
         InputBalanceResult result;
         result.destinationSwitch = dstSwitch;
@@ -261,8 +261,8 @@ std::vector<InputBalanceResult> checkInputBalanceSingleStage(
         result.virtualDeviceID = vd;
 
         if (verbose || !balanced) {
-          result.inputCapacity = inputCapacity.at(vd);
-          result.outputCapacity = outputCapacity.at(vd);
+          result.inputCapacity = inputCapacityByVD.at(vd);
+          result.outputCapacity = outputCapacityByVD.at(vd);
           result.inputLinkFailure = inputLinkFailure.at(vd);
           result.outputLinkFailure = outputLinkFailure.at(vd);
         }
