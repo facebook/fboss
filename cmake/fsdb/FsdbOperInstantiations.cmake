@@ -71,23 +71,3 @@ target_link_libraries(fsdb_naive_periodic_subscribable_storage
   fsdb_path_converter
   subscribable_storage
 )
-
-add_library(fsdb_cow_state_sub_mgr
-  fboss/fsdb/client/instantiations/FsdbCowStateSubManager.cpp
-)
-
-target_link_libraries(fsdb_cow_state_sub_mgr
-  fsdb_model
-  fsdb_pub_sub
-  fsdb_cow_storage
-)
-
-add_library(fsdb_cow_stats_sub_mgr
-  fboss/fsdb/client/instantiations/FsdbCowStatsSubManager.cpp
-)
-
-target_link_libraries(fsdb_cow_stats_sub_mgr
-  fsdb_model
-  fsdb_pub_sub
-  fsdb_cow_storage
-)

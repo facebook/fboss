@@ -26,7 +26,6 @@ target_link_libraries(qsfp_lib
     qsfp_service_client
     fsdb_stream_client
     fsdb_pub_sub
-    fsdb_cow_state_sub_mgr
     fsdb_flags
     fsdb_syncer
     fsdb_model
