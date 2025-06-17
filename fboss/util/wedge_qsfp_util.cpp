@@ -4,6 +4,7 @@
 #include "fboss/lib/usb/GalaxyI2CBus.h"
 #include "fboss/lib/usb/WedgeI2CBus.h"
 
+#include "fboss/qsfp_service/module/I2cLogBuffer.h"
 #include "fboss/qsfp_service/module/QsfpModule.h"
 #include "fboss/qsfp_service/module/QsfpUtil.h"
 #include "fboss/qsfp_service/module/cmis/CmisModule.h"
@@ -15,6 +16,8 @@
 
 #include "fboss/util/qsfp/QsfpServiceDetector.h"
 #include "fboss/util/qsfp/QsfpUtilContainer.h"
+
+#include "fboss/qsfp_service/if/gen-cpp2/qsfp_service_config_types.h"
 
 #include <folly/Conv.h>
 #include <folly/Exception.h>
@@ -2886,12 +2889,25 @@ bool cliModulefirmwareUpgrade(
       }
     }
     if (imageHdrLen == 0) {
-      printf("Image header length is not specified on command line and");
-      printf(" the default image header size is unknown for this module");
-      printf("Pl re-run the same command with option --image_header_len <len>");
+      printf("Image header length is not specified on command line and \n");
+      printf(" the default image header size is unknown for this module \n");
+      printf(
+          "Pl re-run the same command with option --image_header_len <len> \n");
       return false;
     }
   }
+
+  // Enable Transceiver I2C Log for the upgrade command to help us debug issues.
+  // 20K slots are enough for a 1MB FW.
+  cfg::TransceiverI2cLogging logCfg;
+  logCfg.bufferSlots().value() = 20480;
+  logCfg.readLog() = true;
+  logCfg.writeLog() = true;
+  logCfg.disableOnFail() = false;
+
+  auto logFileName = "/tmp/i2clog_wedge_util_" + std::to_string(port) + ".txt";
+  // Only Enable logging when in I2C Mode.
+  auto logBuffer = std::make_unique<I2cLogBuffer>(logCfg, logFileName);
 
   // Create FbossFirmware object using firmware filename and msa password,
   // header length as properties
@@ -2905,7 +2921,18 @@ bool cliModulefirmwareUpgrade(
       FLAGS_dsp_image ? "dsp" : "application";
   auto fbossFwObj = std::make_unique<FbossFirmware>(firmwareAttr);
   auto qsfpImpl = std::make_unique<WedgeQsfp>(
-      port - 1, i2cInfo.bus, i2cInfo.transceiverManager, /*logBuffer*/ nullptr);
+      port - 1, i2cInfo.bus, i2cInfo.transceiverManager, std::move(logBuffer));
+  auto mgmtIf = qsfpImpl->getTransceiverManagementInterface();
+  std::set<std::string> portNames;
+  Vendor vend;
+  vend.name() = "UNKNOWN";
+  FirmwareStatus fwSt;
+  fwSt.version() = "UNKNOWN";
+  std::optional<Vendor> vendor = vend;
+  std::optional<FirmwareStatus> fwStatus = fwSt;
+  portNames.insert(std::to_string(port));
+  qsfpImpl->setTcvrInfoInLog(mgmtIf, portNames, fwStatus, vendor);
+
   auto fwUpgradeObj = std::make_unique<CmisFirmwareUpgrader>(
       qsfpImpl.get(), port, fbossFwObj.get());
 
@@ -2920,6 +2947,11 @@ bool cliModulefirmwareUpgrade(
     printf("Firmware upgrade failed, you may retry the same command\n");
   }
 
+  auto logRet = qsfpImpl->dumpTransceiverI2cLog();
+  printf(
+      "I2C Logged %lu entries to file %s \n",
+      logRet.second,
+      logFileName.c_str());
   return ret;
 }
 
