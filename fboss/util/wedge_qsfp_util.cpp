@@ -1176,20 +1176,11 @@ std::map<int32_t, TransceiverInfo> fetchInfoFromQsfpService(
   return qsfpInfoMap;
 }
 
-DOMDataUnion fetchDataFromLocalI2CBus(
+DOMDataUnion getDOMDataUnionI2CBus(
     DirectI2cInfo i2cInfo,
     unsigned int port,
     WedgeQsfp* qsfpImpl) {
-  // port is 1 based and WedgeQsfp is 0 based.
-  std::unique_ptr<WedgeQsfp> qsfpImplPtr;
-  if (qsfpImpl == nullptr) {
-    qsfpImplPtr.reset(new WedgeQsfp(
-        port - 1,
-        i2cInfo.bus,
-        i2cInfo.transceiverManager,
-        /*logBuffer*/ nullptr));
-    qsfpImpl = qsfpImplPtr.get();
-  }
+  assert(qsfpImpl);
 
   auto mgmtInterface = qsfpImpl->getTransceiverManagementInterface();
   if (!FLAGS_forced_module_type.empty()) {
@@ -2839,7 +2830,7 @@ std::string getI2cLogFileName(const unsigned int port) {
   return "/tmp/i2clog_wedge_util_" + std::to_string(port) + ".txt";
 }
 
-std::unique_ptr<WedgeQsfp> getDomDataAndQsfpImpl(
+std::unique_ptr<WedgeQsfp> fetchDataFromLocalI2CBus(
     DirectI2cInfo& i2cInfo,
     const unsigned int port,
     DOMDataUnion& domDataOut) {
@@ -2857,7 +2848,7 @@ std::unique_ptr<WedgeQsfp> getDomDataAndQsfpImpl(
   auto qsfpImpl = std::make_unique<WedgeQsfp>(
       port - 1, i2cInfo.bus, i2cInfo.transceiverManager, std::move(logBuffer));
 
-  domDataOut = fetchDataFromLocalI2CBus(i2cInfo, port, qsfpImpl.get());
+  domDataOut = getDOMDataUnionI2CBus(i2cInfo, port, qsfpImpl.get());
   auto cmisData = domDataOut.get_cmis();
 
   auto mgmtIf = qsfpImpl->getTransceiverManagementInterface();
@@ -2917,7 +2908,7 @@ bool cliModulefirmwareUpgrade(
 
   DOMDataUnion domData;
   std::unique_ptr<WedgeQsfp> qsfpImpl(
-      getDomDataAndQsfpImpl(i2cInfo, port, domData));
+      fetchDataFromLocalI2CBus(i2cInfo, port, domData));
 
   CmisData cmisData = domData.get_cmis();
   auto dataUpper = cmisData.page0()->data();
@@ -3062,7 +3053,8 @@ bool cliModulefirmwareUpgrade(
   } else {
     // Image header length is not provided by user. Try to get it from known
     // module info frm first module in the list
-    auto domData = fetchDataFromLocalI2CBus(i2cInfo, bucket[0][0]);
+    DOMDataUnion domData;
+    fetchDataFromLocalI2CBus(i2cInfo, bucket[0][0], domData);
     CmisData cmisData = domData.get_cmis();
     auto dataUpper = cmisData.page0()->data();
 
@@ -3394,7 +3386,8 @@ void get_module_fw_info(
       continue;
     }
 
-    DOMDataUnion tempDomData = fetchDataFromLocalI2CBus(i2cInfo, module);
+    DOMDataUnion tempDomData;
+    fetchDataFromLocalI2CBus(i2cInfo, module, tempDomData);
     CmisData cmisData = tempDomData.get_cmis();
     auto dataLower = cmisData.lower()->data();
     auto dataUpper = cmisData.page0()->data();
@@ -3681,7 +3674,7 @@ bool printVdmInfoDirect(DirectI2cInfo i2cInfo, unsigned int port) {
 
   // Read the optics data directly from this process
   try {
-    domDataUnion = fetchDataFromLocalI2CBus(i2cInfo, port);
+    fetchDataFromLocalI2CBus(i2cInfo, port, domDataUnion);
   } catch (const std::exception& ex) {
     fprintf(stderr, "error reading QSFP data %u: %s\n", port, ex.what());
     return false;

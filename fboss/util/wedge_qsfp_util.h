@@ -169,17 +169,18 @@ std::map<int32_t, TransceiverInfo> fetchInfoFromQsfpService(
     const std::vector<int32_t>& ports,
     folly::EventBase& evb);
 
-DOMDataUnion fetchDataFromLocalI2CBus(
-    DirectI2cInfo i2cInfo,
-    unsigned int port,
-    WedgeQsfp* qsfpImpl = nullptr);
-
 // Function to create the WedgeQsfp HW Interface which enables i2c logging.
 // Populates the DOMDataUnion for a transceiver.
-std::unique_ptr<WedgeQsfp> getDomDataAndQsfpImpl(
+// Expected to be used when --direct_i2c is set.
+std::unique_ptr<WedgeQsfp> fetchDataFromLocalI2CBus(
     DirectI2cInfo& i2cInfo,
     const unsigned int port,
     DOMDataUnion& cmisDataOut);
+
+DOMDataUnion getDOMDataUnionI2CBus(
+    DirectI2cInfo i2cInfo,
+    unsigned int port,
+    WedgeQsfp* qsfpImpl);
 
 folly::StringPiece sfpString(const uint8_t* buf, size_t offset, size_t len);
 
