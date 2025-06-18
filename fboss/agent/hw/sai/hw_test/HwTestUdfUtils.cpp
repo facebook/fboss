@@ -11,7 +11,6 @@
 #include "fboss/agent/hw/test/HwTestUdfUtils.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/hw/sai/switch/SaiUdfManager.h"
-#include "fboss/agent/hw/test/LoadBalancerUtils.h"
 #include "fboss/agent/packet/IPProto.h"
 #include "fboss/agent/test/utils/UdfTestUtils.h"
 
