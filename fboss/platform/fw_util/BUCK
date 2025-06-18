@@ -9,16 +9,18 @@ cpp_binary(
     srcs = ["fw_util.cpp"],
     deps = [
         ":core",
-        "//fboss/platform/helpers:init_cli",
+        "//common/base:build_info",
         "//folly/logging:init",
         "//folly/logging:logging",
+    ],
+    external_deps = [
+        "CLI11",
     ],
 )
 
 cpp_library(
     name = "core",
     srcs = [
-        "Flags.cpp",
         "FwUtilFlashrom.cpp",
         "FwUtilImpl.cpp",
         "FwUtilOperations.cpp",
@@ -43,9 +45,6 @@ cpp_library(
         "//folly/logging:logging",
         "//folly/system:shell",
         "//thrift/lib/cpp2/protocol:protocol",
-    ],
-    exported_external_deps = [
-        "gflags",
     ],
 )
 
