@@ -24,7 +24,7 @@ class FbossEepromParser {
       unsigned char* output,
       int offset,
       int max);
-  std::unique_ptr<FbossEepromInterface> parseEepromBlobTLV(
+  FbossEepromInterface parseEepromBlobTLV(
       int eepromVer,
       const unsigned char* buffer,
       const int readCount);

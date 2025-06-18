@@ -13,8 +13,7 @@
 
 #include <folly/logging/xlog.h>
 #include "fboss/platform/weutil/Crc16CcittAug.h"
-#include "fboss/platform/weutil/FbossEepromV5.h"
-#include "fboss/platform/weutil/FbossEepromV6.h"
+#include "fboss/platform/weutil/FbossEepromInterface.h"
 
 namespace {
 
@@ -59,7 +58,7 @@ FbossEepromParser::getContents() {
   auto parsedValue = parseEepromBlobTLV(
       eepromVer, buffer, std::min(readCount, kMaxEepromSize));
 
-  return parsedValue->getContents();
+  return parsedValue.getContents();
 }
 
 // Calculate the CRC16 of the EEPROM. The last 4 bytes of EEPROM
@@ -122,7 +121,7 @@ int FbossEepromParser::loadEeprom(
   return readCount;
 }
 
-std::unique_ptr<FbossEepromInterface> FbossEepromParser::parseEepromBlobTLV(
+FbossEepromInterface FbossEepromParser::parseEepromBlobTLV(
     int eepromVer,
     const unsigned char* buffer,
     const int readCount) {
@@ -135,44 +134,33 @@ std::unique_ptr<FbossEepromInterface> FbossEepromParser::parseEepromBlobTLV(
   std::unordered_map<int, std::string> parsedValue;
   std::string value;
 
-  std::unique_ptr<FbossEepromInterface> result;
-  if (eepromVer == 5) {
-    result = std::make_unique<FbossEepromV5>();
-  } else if (eepromVer == 6) {
-    result = std::make_unique<FbossEepromV6>();
-  } else {
-    throw std::runtime_error(
-        "Invalid EEPROM version : " + std::to_string(eepromVer));
-  }
-  auto fieldDictionary = result->getFieldDictionary();
+  FbossEepromInterface result =
+      FbossEepromInterface::createEepromInterface(eepromVer);
+  const auto& fieldDictionary = result.getFieldDictionary();
 
   while (cursor < readCount) {
     // Increment the item counter (mainly for debugging purposes)
     // Very important to do this.
     juice = juice + 1;
     // First, get the itemCode of the TLV (T)
-    int itemCode = static_cast<int>(buffer[cursor]);
-    FbossEepromInterface::entryType itemType =
-        FbossEepromInterface::FIELD_INVALID;
-    std::string key;
-    std::string* fieldPtr = nullptr;
+    int fieldCode = static_cast<int>(buffer[cursor]);
 
     // Vendors pad EEPROM with 0xff. Therefore, if item code is
     // 0xff, then we reached to the end of the actual content.
-    if (itemCode == 0xFF) {
+    if (fieldCode == 0xFF) {
       break;
     }
-    // Look up our table to find the itemType and field name of this itemCode
-    for (size_t i = 0; i < fieldDictionary.size(); i++) {
-      if (fieldDictionary[i].typeCode == itemCode) {
-        itemType = fieldDictionary[i].fieldType;
-        key = fieldDictionary[i].fieldName;
-        fieldPtr = fieldDictionary[i].fieldPtr;
-      }
+
+    FbossEepromInterface::entryType fieldType{
+        FbossEepromInterface::FIELD_INVALID};
+    std::string fieldName;
+    try {
+      fieldType = fieldDictionary.at(fieldCode).fieldType;
+      fieldName = fieldDictionary.at(fieldCode).fieldName;
     }
     // If no entry found, throw an exception
-    if (itemType == FbossEepromInterface::FIELD_INVALID) {
-      std::cout << " Unknown field code " << itemCode << " at position "
+    catch (const std::out_of_range&) {
+      std::cout << " Unknown field code " << fieldCode << " at position "
                 << cursor << " item number " << juice << std::endl;
       throw std::runtime_error(
           "Invalid field code in EEPROM at :" + std::to_string(cursor));
@@ -183,7 +171,7 @@ std::unique_ptr<FbossEepromInterface> FbossEepromParser::parseEepromBlobTLV(
     unsigned char* itemDataPtr =
         (unsigned char*)&buffer[cursor + kEepromTypeLengthSize];
     // Parse the value according to the itemType
-    switch (itemType) {
+    switch (fieldType) {
       case FbossEepromInterface::FIELD_BE_UINT:
         value = parseBeUint(itemLength, itemDataPtr);
         break;
@@ -197,28 +185,27 @@ std::unique_ptr<FbossEepromInterface> FbossEepromParser::parseEepromBlobTLV(
         value = parseMac(itemLength, itemDataPtr);
         break;
       default:
-        std::cout << " Unknown field type " << itemType << " at position "
+        std::cout << " Unknown field type " << fieldType << " at position "
                   << cursor << " item number " << juice << std::endl;
         throw std::runtime_error("Invalid field type in EEPROM.");
         break;
     }
     // Add the key-value pair to the result
-    if (fieldPtr) {
-      *fieldPtr = value;
-    }
+    result.setField(fieldCode, value);
     // Increment the cursor
     cursor += itemLength + kEepromTypeLengthSize;
     // the CRC16 is the last content, parsing must stop.
-    if (key == "CRC16" && fieldPtr) {
+    if (fieldName == "CRC16") {
       uint16_t crcProgrammed = std::stoi(value, nullptr, 16);
       uint16_t crcCalculated = calculateCrc16(buffer, cursor);
       if (crcProgrammed == crcCalculated) {
-        *fieldPtr = value + " (CRC Matched)";
+        value.append(" (CRC Matched)");
       } else {
         std::stringstream ss;
         ss << std::hex << crcCalculated;
-        *fieldPtr = value + " (CRC Mismatch. Expected 0x" + ss.str() + ")";
+        value.append(" (CRC Mismatch. Expected 0x" + ss.str() + ")");
       }
+      result.setField(fieldCode, value);
       break;
     }
   }
