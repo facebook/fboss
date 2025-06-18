@@ -972,6 +972,7 @@ void SaiSwitch::switchEventCallback(
     }
     case SAI_SWITCH_EVENT_TYPE_DEVICE_SOFT_RESET:
       XLOG(ERR) << " Got soft reset event";
+      getSwitchStats()->asicSoftResetError();
       break;
 #endif
   }
