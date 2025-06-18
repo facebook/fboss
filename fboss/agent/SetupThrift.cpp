@@ -36,6 +36,11 @@ DEFINE_bool(
     "1) Enable thrift handler for HW tests, "
     "2) Consume config file created by sw agent with overrides.");
 
+DEFINE_bool(
+    thrift_rate_limit_shadow_mode,
+    true,
+    "Run thrift rate limit in shadow mode");
+
 namespace {
 // The worst performance of programming acceptable route scale is 28s across
 // our platforms in production. Hence setting the queue timeout to 30s to give
@@ -92,7 +97,8 @@ std::unique_ptr<apache::thrift::ThriftServer> setupThriftServer(
     XLOG(ERR) << "cannot load thrift rate limit settings from agent config";
   }
   if (!method2QpsLimit.empty()) {
-    auto rateLimiter = std::make_unique<ThriftMethodRateLimit>(method2QpsLimit);
+    auto rateLimiter = std::make_unique<ThriftMethodRateLimit>(
+        method2QpsLimit, FLAGS_thrift_rate_limit_shadow_mode);
     auto preprocessFunc =
         ThriftMethodRateLimit::getThriftMethodRateLimitPreprocessFunc(
             std::move(rateLimiter));
