@@ -1025,10 +1025,16 @@ TYPED_TEST(AgentCoppTest, CpuPortIpv6LinkLocalUcastIp) {
           utility::getMacForFirstInterfaceWithPorts(this->getProgrammedState());
       skipTtlDecrement = false;
     }
+    bool outOfPort = false; /* route link local packet */
+    auto asic = checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics());
+    if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+      outOfPort = true; /* routing link local packet is not supported */
+      skipTtlDecrement =
+          true; /* ttl will not decrement because packet is not routed */
+    }
     auto nbrLinkLocalAddr = folly::IPAddressV6("fe80:face:b11c::1");
     this->sendTcpPktAndVerifyCpuQueue(
-        utility::getCoppHighPriQueueId(
-            checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics())),
+        utility::getCoppHighPriQueueId(asic),
         nbrLinkLocalAddr,
         utility::kNonSpecialPort1,
         utility::kNonSpecialPort2,
@@ -1036,7 +1042,7 @@ TYPED_TEST(AgentCoppTest, CpuPortIpv6LinkLocalUcastIp) {
         kNetworkControlDscp,
         std::nullopt,
         true,
-        false /*outOfPort*/,
+        outOfPort,
         skipTtlDecrement);
   };
 
