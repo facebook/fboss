@@ -286,6 +286,8 @@ struct HwAsicErrors {
   58: optional i64 fabricControlPathErrors;
   59: optional i64 fabricDataPathErrors;
   60: optional i64 cpuErrors;
+  // ASIC reset errors
+  61: optional i64 asicSoftResetErrors;
 }
 
 struct HwTeFlowStats {

@@ -22005,7 +22005,8 @@ std::pair<strings::fabricLinkWarnings, Child<::std::int64_t, ::apache::thrift::t
 std::pair<strings::networkInterfaceWarnings, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
 std::pair<strings::fabricControlPathErrors, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
 std::pair<strings::fabricDataPathErrors, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
-std::pair<strings::cpuErrors, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
+std::pair<strings::cpuErrors, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+std::pair<strings::asicSoftResetErrors, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
@@ -22065,7 +22066,8 @@ std::pair<strings::cpuErrors, Child<::std::int64_t, ::apache::thrift::type_class
    std::pair<std::integral_constant<apache::thrift::field_id_t, 57>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 58>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 59>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 60>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 60>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 61>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
   template <typename Name>
   using NameToId = fatal::tuple<std::pair<strings::parityErrors, std::integral_constant<apache::thrift::field_id_t, 1>>,
 std::pair<strings::correctedParityErrors, std::integral_constant<apache::thrift::field_id_t, 2>>,
@@ -22126,7 +22128,8 @@ std::pair<strings::fabricLinkWarnings, std::integral_constant<apache::thrift::fi
 std::pair<strings::networkInterfaceWarnings, std::integral_constant<apache::thrift::field_id_t, 57>>,
 std::pair<strings::fabricControlPathErrors, std::integral_constant<apache::thrift::field_id_t, 58>>,
 std::pair<strings::fabricDataPathErrors, std::integral_constant<apache::thrift::field_id_t, 59>>,
-std::pair<strings::cpuErrors, std::integral_constant<apache::thrift::field_id_t, 60>>>::template type_of<Name>;
+std::pair<strings::cpuErrors, std::integral_constant<apache::thrift::field_id_t, 60>>,
+std::pair<strings::asicSoftResetErrors, std::integral_constant<apache::thrift::field_id_t, 61>>>::template type_of<Name>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -22192,6 +22195,7 @@ std::pair<strings::cpuErrors, std::integral_constant<apache::thrift::field_id_t,
     STRUCT_CHILD_GETTERS(fabricControlPathErrors, 58);
     STRUCT_CHILD_GETTERS(fabricDataPathErrors, 59);
     STRUCT_CHILD_GETTERS(cpuErrors, 60);
+    STRUCT_CHILD_GETTERS(asicSoftResetErrors, 61);
 
   template <apache::thrift::field_id_t __id>
   auto operator()(const std::integral_constant<apache::thrift::field_id_t, __id>&) {
@@ -22255,6 +22259,7 @@ std::pair<strings::cpuErrors, std::integral_constant<apache::thrift::field_id_t,
     else if constexpr (__id == 58) { return fabricControlPathErrors(); }
     else if constexpr (__id == 59) { return fabricDataPathErrors(); }
     else if constexpr (__id == 60) { return cpuErrors(); }
+    else if constexpr (__id == 61) { return asicSoftResetErrors(); }
   }
 
   template <typename T, T... Values>
