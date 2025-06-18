@@ -22,22 +22,28 @@ class ThriftMethodRateLimit {
    */
  public:
   explicit ThriftMethodRateLimit(
-      const std::map<std::string, double>& methood2QpsLimit) {
+      const std::map<std::string, double>& methood2QpsLimit,
+      bool shadowMode = false) {
     for (const auto& it : methood2QpsLimit) {
-      method2QpsLimitAndTokenBucket.emplace(
+      method2QpsLimitAndTokenBucket_.emplace(
           it.first, std::make_pair(it.second, folly::DynamicTokenBucket(0)));
     }
+    shadowMode_ = shadowMode;
   }
 
   bool isQpsLimitExceeded(const std::string& method);
   int getQpsLimit(const std::string& method);
+  bool getShadowMode() {
+    return shadowMode_;
+  }
 
   static apache::thrift::PreprocessFunc getThriftMethodRateLimitPreprocessFunc(
       std::unique_ptr<ThriftMethodRateLimit> rateLimiter);
 
  private:
   std::unordered_map<std::string, std::pair<double, folly::DynamicTokenBucket>>
-      method2QpsLimitAndTokenBucket;
+      method2QpsLimitAndTokenBucket_;
+  bool shadowMode_;
 };
 
 } // namespace facebook::fboss
