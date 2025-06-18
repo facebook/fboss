@@ -427,6 +427,11 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
           SUM,
           RATE),
       cpuErrors_(map, getCounterPrefix() + vendor + ".cpu.errors", SUM, RATE),
+      asicSoftResetErrors_(
+          map,
+          getCounterPrefix() + vendor + ".asicSoftReset.errors",
+          SUM,
+          RATE),
       ingressTmWarnings_(
           map,
           getCounterPrefix() + vendor + ".ingress_tm.warnings",
@@ -841,6 +846,10 @@ int64_t HwSwitchFb303Stats::getCpuErrors() const {
   return getCumulativeValue(cpuErrors_);
 }
 
+int64_t HwSwitchFb303Stats::getAsicSoftResetErrors() const {
+  return getCumulativeValue(asicSoftResetErrors_);
+}
+
 int64_t HwSwitchFb303Stats::getIngressTmWarnings() const {
   return getCumulativeValue(ingressTmWarnings_);
 }
@@ -982,6 +991,7 @@ HwAsicErrors HwSwitchFb303Stats::getHwAsicErrors() const {
   asicErrors.fabricControlPathErrors() = getFabricControlPathErrors();
   asicErrors.fabricDataPathErrors() = getFabricDataPathErrors();
   asicErrors.cpuErrors() = getCpuErrors();
+  asicErrors.asicSoftResetErrors() = getAsicSoftResetErrors();
   asicErrors.ingressTmWarnings() = getIngressTmWarnings();
   asicErrors.egressTmWarnings() = getEgressTmWarnings();
   asicErrors.dramWarnings() = getDramWarnings();
