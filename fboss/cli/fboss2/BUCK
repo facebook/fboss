@@ -429,8 +429,6 @@ cpp_library(
         "commands/show/facebook/openr/spark/CmdShowOpenrSparkNeighbors.h",
         "commands/show/facebook/openr/unicast_routes/CmdShowOpenrUnicastRoutes.h",
         "commands/show/facebook/state/CmdShowStateDrain.h",
-        "commands/show/facebook/teagent/flowroutes/CmdShowTeAgentFlowRoutesInactive.h",
-        "commands/show/facebook/teagent/flowroutes/CmdShowTeAgentFlowRoutesReceived.h",
         "commands/show/facebook/techsupport/CmdShowTechSupport.h",
         "commands/show/facebook/vip/fib/CmdShowVipsFib.h",
         "commands/show/facebook/vip/injectors/CmdShowVipsInjectors.h",
