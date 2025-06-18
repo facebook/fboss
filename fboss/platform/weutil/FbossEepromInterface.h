@@ -7,6 +7,8 @@
 #include <string>
 #include <vector>
 
+#include "fboss/platform/weutil/if/gen-cpp2/eeprom_contents_types.h"
+
 namespace facebook::fboss::platform {
 
 class FbossEepromInterface {
@@ -33,6 +35,7 @@ class FbossEepromInterface {
 
   const std::map<int, EepromFieldEntry>& getFieldDictionary() const;
 
+  // TODO: Get rid of getContents() in the future.
   std::vector<std::pair<std::string, std::string>> getContents() const;
 
   int getVersion() const;
@@ -42,6 +45,8 @@ class FbossEepromInterface {
   std::string getProductionSubState() const;
   std::string getVariantVersion() const;
   std::string getProductSerialNumber() const;
+
+  EepromContents getEepromContents() const;
 
  private:
   FbossEepromInterface() = default;

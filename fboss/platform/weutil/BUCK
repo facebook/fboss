@@ -47,6 +47,7 @@ cpp_library(
     ],
     exported_deps = [
         ":crc16_ccitt_aug",
+        "//fboss/platform/weutil/if:eeprom_contents-cpp2-types",
         "//folly/logging:logging",
     ],
 )
