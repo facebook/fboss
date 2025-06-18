@@ -122,6 +122,14 @@ int FbossEepromInterface::getVersion() const {
   return version_;
 }
 
+std::string FbossEepromInterface::getProductName() const {
+  return fieldMap_.at(1).value;
+}
+
+std::string FbossEepromInterface::getProductPartNumber() const {
+  return fieldMap_.at(2).value;
+}
+
 std::string FbossEepromInterface::getProductionState() const {
   return fieldMap_.at(8).value;
 }
@@ -132,6 +140,10 @@ std::string FbossEepromInterface::getProductionSubState() const {
 
 std::string FbossEepromInterface::getVariantVersion() const {
   return fieldMap_.at(10).value;
+}
+
+std::string FbossEepromInterface::getProductSerialNumber() const {
+  return fieldMap_.at(11).value;
 }
 
 } // namespace facebook::fboss::platform

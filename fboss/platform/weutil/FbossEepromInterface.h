@@ -39,9 +39,12 @@ class FbossEepromInterface {
   EepromContents getContents() const;
 
   int getVersion() const;
+  std::string getProductName() const;
+  std::string getProductPartNumber() const;
   std::string getProductionState() const;
   std::string getProductionSubState() const;
   std::string getVariantVersion() const;
+  std::string getProductSerialNumber() const;
 
  private:
   FbossEepromInterface() = default;
