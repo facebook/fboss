@@ -96,8 +96,9 @@ FbossEepromInterface::getFieldDictionary() const {
   return fieldMap_;
 }
 
-EepromContents FbossEepromInterface::getContents() const {
-  EepromContents contents;
+std::vector<std::pair<std::string, std::string>>
+FbossEepromInterface::getContents() const {
+  std::vector<std::pair<std::string, std::string>> contents;
   contents.emplace_back("Version", std::to_string(getVersion()));
   for (const auto& [_, entry] : getFieldDictionary()) {
     if (entry.fieldName == "NA") {

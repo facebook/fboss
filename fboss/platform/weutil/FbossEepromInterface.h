@@ -9,9 +9,6 @@
 
 namespace facebook::fboss::platform {
 
-using EepromContents = std::vector<
-    std::pair<std::string /* eeprom key */, std::string /* eeprom value */>>;
-
 class FbossEepromInterface {
  public:
   enum entryType {
@@ -36,7 +33,7 @@ class FbossEepromInterface {
 
   const std::map<int, EepromFieldEntry>& getFieldDictionary() const;
 
-  EepromContents getContents() const;
+  std::vector<std::pair<std::string, std::string>> getContents() const;
 
   int getVersion() const;
   std::string getProductName() const;

@@ -222,6 +222,7 @@ cpp_library(
     exported_deps = [
         "fbsource//third-party/fmt:fmt",
         ":platform_manager_config-cpp2-types",
+        "//fboss/platform/weutil:fboss_eeprom_lib",
         "//folly/logging:logging",
     ],
 )

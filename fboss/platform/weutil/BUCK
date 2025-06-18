@@ -39,13 +39,11 @@ cpp_library(
     srcs = [
         "FbossEepromInterface.cpp",
         "FbossEepromParser.cpp",
-        "FbossEepromParserUtils.cpp",
     ],
     headers = [
         "CachedFbossEepromParser.h",
         "FbossEepromInterface.h",
         "FbossEepromParser.h",
-        "FbossEepromParserUtils.h",
     ],
     exported_deps = [
         ":crc16_ccitt_aug",

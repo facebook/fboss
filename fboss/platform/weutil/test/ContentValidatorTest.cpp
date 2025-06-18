@@ -13,9 +13,7 @@ class ContentValidatorTest : public ::testing::Test {
 
 TEST_F(ContentValidatorTest, ValidVersion) {
   std::vector<std::pair<std::string, std::string>> contents = {
-      {"Version", "4"}};
-  EXPECT_TRUE(validator.isValid(contents));
-  contents = {{"Version", "5"}};
+      {"Version", "5"}};
   EXPECT_TRUE(validator.isValid(contents));
   contents = {{"Version", "6"}, {"Production State", "3"}};
   EXPECT_TRUE(validator.isValid(contents));

@@ -48,8 +48,7 @@ std::string parseMacHelper(int len, unsigned char* ptr, bool useBigEndian) {
 
 namespace facebook::fboss::platform {
 
-std::vector<std::pair<std::string, std::string>>
-FbossEepromParser::getContents() {
+FbossEepromInterface FbossEepromParser::getContents() {
   unsigned char buffer[kMaxEepromSize + 1] = {};
 
   int readCount = loadEeprom(eepromPath_, buffer, offset_, kMaxEepromSize);
@@ -58,7 +57,7 @@ FbossEepromParser::getContents() {
   auto parsedValue = parseEepromBlobTLV(
       eepromVer, buffer, std::min(readCount, kMaxEepromSize));
 
-  return parsedValue.getContents();
+  return parsedValue;
 }
 
 // Calculate the CRC16 of the EEPROM. The last 4 bytes of EEPROM

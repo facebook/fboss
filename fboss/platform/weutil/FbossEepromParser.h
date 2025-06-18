@@ -16,7 +16,7 @@ class FbossEepromParser {
       const uint16_t offset)
       : eepromPath_(eepromPath), offset_(offset) {}
 
-  std::vector<std::pair<std::string, std::string>> getContents();
+  FbossEepromInterface getContents();
 
  private:
   int loadEeprom(
