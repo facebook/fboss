@@ -10,6 +10,8 @@ cpp_binary(
     deps = [
         "fbsource//third-party/googletest:gtest",
         "//fboss/platform/helpers:init",
+        "//fboss/platform/helpers:platform_name_lib",
+        "//fboss/platform/weutil:eeprom_content_validator",
         "//fboss/platform/weutil:weutil_core",
     ],
 )
