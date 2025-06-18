@@ -5,7 +5,6 @@
 #include "fboss/cli/fboss2/CmdGlobalOptions.h"
 #include "folly/json/dynamic.h"
 
-#include <folly/String.h>
 #include <folly/json/json.h>
 
 namespace facebook::fboss {
