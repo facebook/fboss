@@ -12,6 +12,7 @@
 #include "fboss/agent/test/utils/NetworkAITestUtils.h"
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
 #include "fboss/agent/test/utils/PortTestUtils.h"
+#include "fboss/agent/test/utils/RouteTestUtils.h"
 #include "fboss/agent/test/utils/VoqTestUtils.h"
 
 using namespace facebook::fb303;
@@ -592,6 +593,55 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, verifyDscpToVoqMapping) {
   };
   verifyAcrossWarmBoots(setup, verify);
 };
+
+TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, resolveRouteToLoopbackIp) {
+  const auto ipAddr = folly::IPAddressV6("42::42");
+  const auto prefixLen = 128;
+  // Only one remote system port should be created by the remote interface
+  // node's Loopback.
+  auto getRemoteLoopbackSysPort = [&]() {
+    auto remoteSysPorts =
+        getProgrammedState()->getRemoteSystemPorts()->getAllNodes();
+    CHECK_EQ(remoteSysPorts->size(), 1);
+    return remoteSysPorts->cbegin()->first;
+  };
+  auto setup = [&, this]() {
+    auto remoteIntf = getProgrammedState()->getRemoteInterfaces()->getNode(
+        getRemoteLoopbackSysPort());
+    auto nbrTable = remoteIntf->getNdpTable();
+    CHECK_GE(nbrTable->size(), 1);
+    auto neighborIp = folly::IPAddress(nbrTable->cbegin()->first);
+    auto routeUpdater = getSw()->getRouteUpdater();
+    RouteNextHopSet nextHopSet{
+        ResolvedNextHop(neighborIp, remoteIntf->getID(), 1)};
+    routeUpdater.addRoute(
+        RouterID(0),
+        ipAddr,
+        prefixLen,
+        ClientID::BGPD,
+        RouteNextHopEntry(nextHopSet, AdminDistance::EBGP));
+    routeUpdater.program();
+  };
+  auto verify = [&]() {
+    auto sysPortID = SystemPortID(getRemoteLoopbackSysPort());
+    auto beforeStats = getLatestSysPortStats(sysPortID);
+    sendPacket(ipAddr, std::nullopt /* frontPanelPort */);
+
+    auto getWatchdogDeletePkts = [](const auto& stats) {
+      return stats.queueCreditWatchdogDeletedPackets_()->at(
+          utility::getGlobalRcyDefaultQueue());
+    };
+    WITH_RETRIES({
+      auto afterStats = getLatestSysPortStats(sysPortID);
+      XLOG(DBG2) << "Before: " << getWatchdogDeletePkts(beforeStats)
+                 << " After: " << getWatchdogDeletePkts(afterStats);
+      EXPECT_EVENTUALLY_GT(
+          getWatchdogDeletePkts(afterStats),
+          getWatchdogDeletePkts(beforeStats));
+    });
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
 
 class AgentVoqShelSwitchTest : public AgentVoqSwitchWithMultipleDsfNodesTest {
  public:
