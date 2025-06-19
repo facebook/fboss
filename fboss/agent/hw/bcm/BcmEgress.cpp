@@ -1437,7 +1437,7 @@ HwFlowletStats BcmEcmpEgress::getL3EcmpDlbStats() {
   // error and subsequently crash in bcmCheckError
   auto ecmpDetails = getEcmpDetails();
   if (FLAGS_flowletSwitchingEnable && ecmpDetails.flowletEnabled().value()) {
-    XLOG(DBG3) << "Read l3 ecmp dlb stats: " << id_;
+    XLOG(DBG5) << "Read l3 ecmp dlb stats: " << id_;
     auto rv = bcm_l3_ecmp_dlb_stat_get(
         hw_->getUnit(), id_, bcmL3ECMPDlbStatFailPackets, &dlbDropCount);
     flowletStats.l3EcmpDlbFailPackets() = dlbDropCount;
