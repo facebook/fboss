@@ -339,6 +339,7 @@ std::string pfcStatsString(const HwPortStats& stats) {
      << " inUnicastPkts=" << *stats.inUnicastPkts_()
      << " inDiscards=" << *stats.inDiscards_()
      << " inDiscardsRaw=" << *stats.inDiscardsRaw_()
+     << " inCongestionDiscards=" << *stats.inCongestionDiscards_()
      << " inErrors=" << *stats.inErrors_();
   for (auto [qos, value] : *stats.inPfc_()) {
     ss << " inPfc." << qos << "=" << value;
