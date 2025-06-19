@@ -1155,6 +1155,9 @@ class SwitchApi : public SaiApi<SwitchApi> {
       sai_vendor_switch_event_notification_fn event_notify_cb) const;
 #endif
 
+  void registerSwitchHardResetNotifyCallback(
+      const SwitchSaiId& id,
+      sai_pointer_t event_notify_cb) const;
   void unregisterRxCallback(SwitchSaiId switch_id) const {
     registerRxCallback(switch_id, nullptr);
   }
@@ -1184,6 +1187,9 @@ class SwitchApi : public SaiApi<SwitchApi> {
     registerVendorSwitchEventNotifyCallback(id, nullptr);
   }
 #endif
+  void unregisterSwitchHardResetNotifyCallback(const SwitchSaiId& id) const {
+    registerSwitchHardResetNotifyCallback(id, nullptr);
+  }
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
   void registerSwitchAsicSdkHealthEventCallback(
