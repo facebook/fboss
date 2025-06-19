@@ -38,6 +38,7 @@ class TestVerifyPlatformMappingGeneratedFiles(unittest.TestCase):
             "tahan800bc_test_fixture",
             "tahan800bc_chassis",
             "icecube800bc",
+            "glath05a-64o"
         ],
         True: [
             "meru800bfa",
