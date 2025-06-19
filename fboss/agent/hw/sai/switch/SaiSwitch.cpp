@@ -251,6 +251,14 @@ void __gVendorSwitchEventNotificationCallback(
       buffer_size, buffer, event_type);
 }
 
+void __gHardResetNotificationallback(
+    sai_object_id_t /*switch_id*/,
+    sai_size_t buffer_size,
+    const void* buffer) {
+  __gSaiIdToSwitch.begin()->second->hardResetSwitchEventNotificationCallback(
+      buffer_size, buffer);
+}
+
 #if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
 void __gTxReadyStatusChangeNotification(
     sai_object_id_t switch_id,
@@ -4819,6 +4827,12 @@ void SaiSwitch::vendorSwitchEventNotificationCallback(
   // splitting the callback to bottom / top half processing.
   managerTable_->vendorSwitchManager().vendorSwitchEventNotificationCallback(
       bufferSize, buffer, eventType);
+}
+
+void SaiSwitch::hardResetSwitchEventNotificationCallback(
+    sai_size_t /*bufferSize*/,
+    const void* /*buffer*/) {
+  // TODO
 }
 
 TeFlowStats SaiSwitch::getTeFlowStats() const {

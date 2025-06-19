@@ -170,6 +170,9 @@ class SaiSwitch : public HwSwitch {
       sai_size_t bufferSize,
       const void* buffer,
       uint32_t eventType);
+  void hardResetSwitchEventNotificationCallback(
+      sai_size_t bufferSize,
+      const void* buffer);
 
   void txReadyStatusChangeCallbackTopHalf(SwitchSaiId switchId);
   void linkConnectivityChanged(
