@@ -78,6 +78,33 @@ thrift_library(
 )
 
 thrift_library(
+    name = "agent_info",
+    go_thrift_namespaces = {
+        "agent_info.thrift": "neteng.fboss.agent_info",
+    },
+    languages = [
+        "cpp2",
+        "py-deprecated",
+        "py3-deprecated",
+        "py-deprecated-asyncio",
+        "go",
+        "rust",
+        "python",
+    ],
+    plugins = [
+        thrift_plugin_thriftpath(),
+    ],
+    py3_namespace = "neteng.fboss",
+    py_asyncio_base_module = "neteng.fboss.asyncio",
+    py_base_module = "neteng.fboss",
+    rust_gen_metadata = True,
+    thrift_cpp2_options = "json,reflection",
+    thrift_py_options = "json,sort_keys",
+    thrift_srcs = {"agent_info.thrift": []},
+    deps = [],
+)
+
+thrift_library(
     name = "platform_config",
     cpp2_deps = [
         "//fboss/lib/phy:phy-cpp2-types",
