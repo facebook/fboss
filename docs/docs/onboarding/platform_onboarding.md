@@ -36,10 +36,9 @@ This document describes the steps involved in onboarding a new platform to FBOSS
 
    **Work Items:**
 
-   - [ ] Add Platform Mapping - [Link](https://facebook.github.io/fboss/docs/developing/platform_mapping/)
-   - [ ] Add BSP Mapping - [Link](https://facebook.github.io/fboss/docs/developing/bsp_mapping/)
-   - [ ] Add new platform code in agent - see “New platform support” section
-   - [ ] Add new platform code in qsfp_service
+   - [ ] Add Platform Mapping Config - [Link](https://facebook.github.io/fboss/docs/developing/platform_mapping/)
+   - [ ] Add BSP Mapping Config - [Link](https://facebook.github.io/fboss/docs/developing/bsp_mapping/)
+   - [ ] Add All Platform Support Code in Agent and Qsfp Service – [Link](https://facebook.github.io/fboss/docs/developing/new_platform_support/)
    - [ ] Onboard NPU [Optional depending on new platform needs]
 
    **Outcomes:**

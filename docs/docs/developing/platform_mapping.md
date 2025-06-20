@@ -1,4 +1,4 @@
-# Platform Mapping
+# Platform Mapping Config Generation
 
 ## Introduction
 This document gives an overview of the vendor-provided configuration files needed to run FBOSS binaries on new platforms. Meta uses these files to generate a "Platform Mapping" JSON (used by `wedge_agent` and `qsfp_service`) and an ASIC configuration file (used by `wedge_agent`). The Platform Mapping JSON is built into FBOSS binaries and encompasses all lane mappings for connections between NPUs, external phys, and transceivers. It is used for programming the ports with the appropriate settings and includes all system ports with their possible speeds, lane configurations, and signal integrity settings.
@@ -133,37 +133,5 @@ The first step in validing your platform mapping source files is to ensure a val
 The second step is using this platform mapping JSON to ensure `qsfp_service` and `wedge_agent` binaries are brought up correctly. We typically have platfom mapping JSONs embedded into our FBOSS binaries, but to enable faster testing for external users, you can run both binaries with the `--platform_mapping_override_path` flag followed by the filepath to your platform mapping JSON – e.g. `./qsfp_service --platform_mapping_override_path /tmp/generated_platform_mappings/PLATFORM-platform-mapping.json`.
 
 
-### Opening a Pull Request
-Once you have validated your generated platform mapping JSON file, please take the following steps to add your configuration files to Meta's repository:
-
-1. If not done already, add all platform mapping source files to `fboss/lib/platform_mapping_v2/platforms/PLATFORM/`.
-2. If not done already, manually copy the generated JSON file into a C++ file at `agent/platforms/common/PLATFORM/PLATFORM.cpp`.
-3. Open a pull request with all of these files for an FBOSS team member to review.
-
-
-### Updating FBOSS Code to Use New Platform Mapping (Work In Progress)
-
-*We are actively working on simplifying these steps, so this section may change frequently.*
-
-Once you verify the successful bring-up of `qsfp_service` and `wedge_agent` using the `--platform_mapping_override_path` flag, the next step is adding code support to compile this JSON directly into FBOSS binaries.
-
-#### General FBOSS Code Changes
-
-1. Create a new folder for your platform, `fboss/agent/platforms/common/PLATFORM/`, to host platform mapping C++ files that are baked into FBOSS binaries.
-2. Add a new entry to [PlatformType enum](https://github.com/facebook/fboss/blob/main/fboss/lib/if/fboss_common.thrift) for your platform.
-3. Add a new entry to [toString(PlatformType mode)](https://github.com/facebook/fboss/blob/main/fboss/lib/platforms/PlatformMode.h) for your platform.
-4. Add a new entry to [initMode()](https://github.com/facebook/fboss/blob/main/fboss/lib/platforms/PlatformProductInfo.cpp) for your platform.
-5. Add a source file `PLATFORMPlatformMapping.cpp`, which contains the platform mapping JSON as a string, and a corresponding header file ([header example](https://github.com/facebook/fboss/blob/main/fboss/agent/platforms/common/montblanc/MontblancPlatformMapping.h), [source example](https://github.com/facebook/fboss/blob/main/fboss/agent/platforms/common/montblanc/MontblancPlatformMapping.cpp)).
-6. Add a new switch case for your platform to `initPlatformMapping()` in `fboss/agent/platforms/common/PlatformMappingUtils.cpp` ([example](https://github.com/facebook/fboss/blob/main/fboss/agent/platforms/common/PlatformMappingUtils.cpp#L124)).
-7. Create BspPlatformMapping header and source files under `fboss/lib/bsp/PLATFORM` ([header example](https://github.com/facebook/fboss/blob/main/fboss/lib/bsp/montblanc/MontblancBspPlatformMapping.h), [source example](https://github.com/facebook/fboss/blob/main/fboss/lib/bsp/montblanc/MontblancBspPlatformMapping.cpp)). Please follow instructions on generating the BspPlatformMapping JSON [here](https://github.com/facebook/fboss/blob/main/fboss/lib/bsp/bspmapping/README.md).
-8. Add an LED Manager class for your platform as `fboss/led_service/PLATFORMLedManager.cpp` ([header example](https://github.com/facebook/fboss/blob/main/fboss/led_service/MontblancLedManager.h), [source example](https://github.com/facebook/fboss/blob/main/fboss/led_service/MontblancLedManager.cpp)).
-9. Within `WedgeManagerInit.cpp`, add a function called `createPLATFORMWedgeManager` function that instantiates a `WedgeManager` object with the platform mapping JSON file ([header example](https://github.com/facebook/fboss/blob/main/fboss/qsfp_service/platforms/wedge/WedgeManagerInit.h#L59), [source example](https://github.com/facebook/fboss/blob/main/fboss/qsfp_service/platforms/wedge/WedgeManagerInit.cpp#L181)).
-
-
-#### Agent-Specific Code Changes
-
-1. Add a `SaiPLATFORMPlatformPort` [header file](https://www.internalfb.com/code/fbsource/fbcode/fboss/agent/platforms/sai/SaiBcmMontblancPlatformPort.h) and [source file](https://www.internalfb.com/code/fbsource/fbcode/fboss/agent/platforms/sai/SaiBcmMontblancPlatformPort.cpp) for your platform.
-2. Add a `SaiPLATFORMPlatform` [header file](https://www.internalfb.com/code/fbsource/fbcode/fboss/agent/platforms/sai/SaiBcmMontblancPlatform.h) and [source file](https://www.internalfb.com/code/fbsource/fbcode/fboss/agent/platforms/sai/SaiBcmMontblancPlatform.cpp) for your platform.
-3. Add a new entry to [initPorts()](https://github.com/facebook/fboss/blob/main/fboss/agent/platforms/sai/SaiPlatform.cpp) using your `SaiPLATFORMPlatformPort` from earlier.
-4. Add a new entry to [chooseSaiPlatform()](https://github.com/facebook/fboss/blob/main/fboss/agent/platforms/sai/SaiPlatformInit.cpp) using your `SaiPLATFORMPlatformPort` from earlier.
-5. Add a new `AgentPlatformsCommonPLATFORM.cmake` file for your platform ([example](https://github.com/facebook/fboss/blob/main/cmake/AgentPlatformsCommonMontblanc.cmake)). Then, add this library name to `sai_platform` link libraries [here](https://github.com/facebook/fboss/blob/main/cmake/AgentPlatformsSai.cmake#L104).
+### Updating FBOSS Code to Use New Platform Mapping
+Please refer to [New Platform Support](https://facebook.github.io/fboss/docs/developing/new_platform_support/) for instructions on how to incorporate this new Platform Mapping file within the FBOSS codebase.

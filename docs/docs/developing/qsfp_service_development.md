@@ -20,13 +20,9 @@ This step is common for `qsfp_service` and `led_service` development. BSP Platfo
 
 QSFP Service utilizes multiple per-platform classes to select the corresponding platform's Platform Mapping and BSP Platform Mapping.
 
-1. The type of platform the `qsfp_service`/`qsfp_hw_test` is running on is defined by the `fruid.json` file located at `/var/facebook/fboss/fruid.json`.
+The type of platform the `qsfp_service`/`qsfp_hw_test` is running on is defined by the `fruid.json` file located at `/var/facebook/fboss/fruid.json`. Alternatively, the platform type can be overridden by the “mode” argument in the `defaultCommandLineArgs` parameter in the QSFP config.
 
-   Alternatively, the platform type can be overridden by the “mode” argument in the `defaultCommandLineArgs` parameter in the QSFP config.
-
-   We need to extend the code in `PlatformProductInfo.cpp` to create the corresponding `PlatformType` for the new platform.
-
-2. Once the `PlatformType` is established, look up examples of a previous platform type in the “fboss/” directory and extend the code to the new platform.
+Please refer to the "Common Code Changes" and "Qsfp Service Code Changes" in [FBOSS New Platform Support](https://facebook.github.io/fboss/docs/developing/new_platform_support/).
 
 ## Optics Development
 
