@@ -36,4 +36,8 @@ target_link_libraries(fw_util
   fw_util_config-cpp2-types
 )
 
+add_executable(fw_util_hw_test
+    fboss/platform/fw_util/hw_test/FwUtilHwTest.cpp
+)
+
 install(TARGETS fw_util)
