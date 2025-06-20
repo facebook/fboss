@@ -306,8 +306,6 @@ void SaiPlatform::initSaiProfileValues() {
   auto vendorProfileValues = getSaiProfileVendorExtensionValues();
   kSaiProfileValues.insert(
       vendorProfileValues.begin(), vendorProfileValues.end());
-  kSaiProfileValues.insert(std::make_pair(
-      "SAI_SDK_LOG_CONFIG_FILE", "/root/res/config/sai_sdk_log_config.json"));
 }
 
 void SaiPlatform::initImpl(uint32_t hwFeaturesDesired) {

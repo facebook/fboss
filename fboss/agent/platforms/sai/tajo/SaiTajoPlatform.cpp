@@ -18,13 +18,18 @@ namespace facebook::fboss {
 
 const std::unordered_map<std::string, std::string>
 SaiTajoPlatform::getSaiProfileVendorExtensionValues() const {
+  std::unordered_map<std::string, std::string> vendorExtensions;
   if (getAsic()->isSupported(HwAsic::Feature::P4_WARMBOOT)) {
 #if defined(TAJO_P4_WB_SDK)
-    return std::unordered_map<std::string, std::string>{
-        std::make_pair(SAI_KEY_EXT_DEVICE_ISSU_CAPABLE, "1")};
+    vendorExtensions[SAI_KEY_EXT_DEVICE_ISSU_CAPABLE] = "1";
 #endif
   }
-  return std::unordered_map<std::string, std::string>();
+
+  if (const char* basePath = getenv("BASE_OUTPUT_DIR")) {
+    vendorExtensions["SAI_SDK_LOG_CONFIG_FILE"] =
+        std::string(basePath) + "/res/config/sai_sdk_log_config.json";
+  }
+  return vendorExtensions;
 }
 
 } // namespace facebook::fboss
