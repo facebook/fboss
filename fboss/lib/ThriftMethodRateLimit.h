@@ -32,7 +32,7 @@ class ThriftMethodRateLimit {
   }
 
   bool isQpsLimitExceeded(const std::string& method);
-  int getQpsLimit(const std::string& method);
+  double getQpsLimit(const std::string& method);
   bool getShadowMode() {
     return shadowMode_;
   }
