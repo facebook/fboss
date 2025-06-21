@@ -110,6 +110,7 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::DRAM_DATAPATH_PACKET_ERROR_STATS:
     case HwAsic::Feature::EGRESS_POOL_AVAILABLE_SIZE_ATTRIBUTE_SUPPORTED:
     case HwAsic::Feature::VENDOR_SWITCH_CONGESTION_MANAGEMENT_ERRORS:
+    case HwAsic::Feature::ASIC_RESET_NOTIFICATIONS:
       return true;
     // Features not expected to work on SIM
     case HwAsic::Feature::SHARED_INGRESS_EGRESS_BUFFER_POOL:

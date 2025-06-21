@@ -214,6 +214,7 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::EGRESS_POOL_AVAILABLE_SIZE_ATTRIBUTE_SUPPORTED:
     case HwAsic::Feature::VENDOR_SWITCH_CONGESTION_MANAGEMENT_ERRORS:
     case HwAsic::Feature::PFC_WATCHDOG_TIMER_GRANULARITY:
+    case HwAsic::Feature::ASIC_RESET_NOTIFICATIONS:
       return false;
   }
   return false;

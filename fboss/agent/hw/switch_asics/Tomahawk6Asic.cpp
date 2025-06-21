@@ -204,6 +204,7 @@ bool Tomahawk6Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::DRAM_DATAPATH_PACKET_ERROR_STATS:
     case HwAsic::Feature::SWITCH_ASIC_SDK_HEALTH_NOTIFY:
     case HwAsic::Feature::VENDOR_SWITCH_CONGESTION_MANAGEMENT_ERRORS:
+    case HwAsic::Feature::ASIC_RESET_NOTIFICATIONS:
       return false;
   }
   return false;
