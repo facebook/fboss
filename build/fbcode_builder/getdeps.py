@@ -42,6 +42,15 @@ except ImportError:
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "getdeps"))
 
 
+def create_cache(cache_config):
+    if cache_config:
+        return cache_module.create_cache(cache_config)
+    else:
+        # If no cache config was passed, don't pass any argument at all. This is
+        # to accommodate getdeps.facebook above, which might monkey patch
+        # create_cache into a version that takes no arguments.
+        return cache_module.create_cache()
+
 class UsageError(Exception):
     pass
 
@@ -331,7 +340,7 @@ class FetchCmd(ProjectCmdBase):
         else:
             projects = [manifest]
 
-        cache = cache_module.create_cache()
+        cache = create_cache(args.cache_config)
         for m in projects:
             fetcher = loader.create_fetcher(m)
             if isinstance(fetcher, SystemPackageFetcher):
@@ -566,7 +575,7 @@ class QueryPathsCmd(ProjectCmdBase):
         else:
             manifests = [manifest]
 
-        cache = cache_module.create_cache()
+        cache = create_cache(args.cache_config)
         for m in manifests:
             fetcher = loader.create_fetcher(m)
             if isinstance(fetcher, SystemPackageFetcher):
@@ -620,7 +629,7 @@ class BuildCmd(ProjectCmdBase):
         print("Building on %s" % loader.ctx_gen.get_context(args.project))
         projects = loader.manifests_in_dependency_order()
 
-        cache = cache_module.create_cache() if args.use_build_cache else None
+        cache = create_cache(args.cache_config) if args.use_build_cache else None
 
         dep_manifests = []
 
@@ -1544,7 +1553,15 @@ def parse_args():
             "Download from the URL, rather than LFS. This is useful "
             "in cases where the upstream project has uploaded a new "
             "version of the archive with a different hash"
+        )
+    )
+    add_common_arg(
+        "--cache-config",
+        help=(
+            "Path to file describing cache configuration. See getdeps/cache.py "
+            "for the format."
         ),
+        default=None,
     )
 
     ap = argparse.ArgumentParser(
