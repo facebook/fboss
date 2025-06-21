@@ -3629,6 +3629,10 @@ void SaiSwitch::unregisterCallbacksLocked(
     switchApi.unregisterVendorSwitchEventNotifyCallback(saiSwitchId_);
   }
 #endif
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::ASIC_RESET_NOTIFICATIONS)) {
+    switchApi.unregisterSwitchHardResetNotifyCallback(saiSwitchId_);
+  }
 }
 
 bool SaiSwitch::isValidStateUpdateLocked(
@@ -3917,6 +3921,12 @@ void SaiSwitch::switchRunStateChangedImplLocked(
       if (platform_->getAsic()->isSupported(
               HwAsic::Feature::BRIDGE_PORT_8021Q)) {
         switchApi.registerFdbEventCallback(saiSwitchId_, __gFdbEventCallback);
+      }
+
+      if (platform_->getAsic()->isSupported(
+              HwAsic::Feature::ASIC_RESET_NOTIFICATIONS)) {
+        switchApi.registerSwitchHardResetNotifyCallback(
+            saiSwitchId_, (sai_pointer_t)__gHardResetNotificationallback);
       }
 
     } break;
@@ -4832,7 +4842,7 @@ void SaiSwitch::vendorSwitchEventNotificationCallback(
 void SaiSwitch::hardResetSwitchEventNotificationCallback(
     sai_size_t /*bufferSize*/,
     const void* /*buffer*/) {
-  // TODO
+  XLOG(FATAL) << " ASIC had a hard reset. Aborting !!!";
 }
 
 TeFlowStats SaiSwitch::getTeFlowStats() const {
