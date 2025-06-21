@@ -97,6 +97,7 @@ cpp_library(
     ],
     exported_deps = [
         ":fsdb_pub_sub",
+        "//fboss/fsdb/common:flags",
         "//fboss/fsdb/if:fsdb_model",
         "//fboss/fsdb/if:fsdb_oper-cpp2-types",
         "//fboss/lib/thrift_service_client:thrift-service-client",
