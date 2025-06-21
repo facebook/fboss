@@ -9,7 +9,6 @@
  */
 #include "fboss/agent/capture/PktCapture.h"
 
-#include <folly/Conv.h>
 #include <folly/logging/xlog.h>
 #include <sstream>
 
