@@ -183,7 +183,6 @@ cpp_library(
     exported_deps = [
         ":cmd-global-options",
         ":tabulate",
-        "//folly:utility",
     ],
 )
 
@@ -658,7 +657,6 @@ cpp_library(
         "//folly:format",
         "//folly:network_address",
         "//folly:range",
-        "//folly:stop_watch",
         "//folly:string",
         "//folly/container:access",
         "//folly/coro:async_pipe",

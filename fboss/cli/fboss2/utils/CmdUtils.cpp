@@ -9,16 +9,12 @@
  */
 #include "fboss/cli/fboss2/utils/CmdUtils.h"
 #include <fboss/agent/if/gen-cpp2/ctrl_types.h>
-#include <folly/stop_watch.h>
 #include "folly/Conv.h"
 
 #include <folly/logging/LogConfig.h>
-#include <folly/logging/LoggerDB.h>
-#include <folly/logging/xlog.h>
 
 #include <re2/re2.h>
 #include <chrono>
-#include <fstream>
 #include <string>
 
 using namespace std::chrono;
