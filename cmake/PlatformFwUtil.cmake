@@ -13,7 +13,6 @@ add_fbthrift_cpp_library(
 
 add_executable(fw_util
   fboss/platform/fw_util/fw_util.cpp
-  fboss/platform/fw_util/Flags.cpp
   fboss/platform/fw_util/FwUtilImpl.cpp
   fboss/platform/fw_util/FwUtilVerify.cpp
   fboss/platform/fw_util/FwUtilRead.cpp
