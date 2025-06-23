@@ -92,10 +92,10 @@ class NaivePeriodicSubscribableStorage
              : Storage(*currentState_.rlock()));
     auto result = state.get_encoded(begin, end, protocol);
     if (result.hasValue() && params_.trackMetadata_) {
+      auto publisherRoot = getPublisherRoot(begin, end);
       metadataTracker_.withRLock([&](auto& tracker) {
         CHECK(tracker);
-        auto metadata =
-            tracker->getPublisherRootMetadata(*getPublisherRoot(begin, end));
+        auto metadata = tracker->getPublisherRootMetadata(*publisherRoot);
         if (metadata && *metadata->operMetadata.lastConfirmedAt() > 0) {
           result.value().metadata() = metadata->operMetadata;
           result.value().metadata()->lastServedAt() =
@@ -104,7 +104,8 @@ class NaivePeriodicSubscribableStorage
                   .count();
         } else {
           throw Utils::createFsdbException(
-              FsdbErrorCode::PUBLISHER_NOT_READY, "Publisher not ready");
+              FsdbErrorCode::PUBLISHER_NOT_READY,
+              fmt::format("Publisher not ready for root: {}", *publisherRoot));
         }
       });
     }
@@ -121,10 +122,10 @@ class NaivePeriodicSubscribableStorage
              : Storage(*currentState_.rlock()));
     auto result = state.get_encoded_extended(begin, end, protocol);
     if (result.hasValue() && params_.trackMetadata_) {
+      auto publisherRoot = getPublisherRoot(begin, end);
       metadataTracker_.withRLock([&](auto& tracker) {
         CHECK(tracker);
-        auto metadata =
-            tracker->getPublisherRootMetadata(*getPublisherRoot(begin, end));
+        auto metadata = tracker->getPublisherRootMetadata(*publisherRoot);
         if (metadata && *metadata->operMetadata.lastConfirmedAt() > 0) {
           auto now = std::chrono::duration_cast<std::chrono::milliseconds>(
                          std::chrono::system_clock::now().time_since_epoch())
@@ -135,7 +136,8 @@ class NaivePeriodicSubscribableStorage
           }
         } else {
           throw Utils::createFsdbException(
-              FsdbErrorCode::PUBLISHER_NOT_READY, "Publisher not ready");
+              FsdbErrorCode::PUBLISHER_NOT_READY,
+              fmt::format("Publisher not ready for root: {}", *publisherRoot));
         }
       });
     }
