@@ -770,6 +770,20 @@ struct SaiSwitchTraits {
     };
     using AsicRevision =
         SaiExtensionAttribute<sai_uint32_t, AttributeAsicRevision>;
+    struct AttributeCreditRequestProfileSchedulerMode {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using CreditRequestProfileSchedulerMode = SaiExtensionAttribute<
+        sai_uint32_t,
+        AttributeCreditRequestProfileSchedulerMode,
+        SaiIntDefault<sai_uint32_t>>;
+    struct AttributeModuleIdToCreditRequestProfileParamList {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using ModuleIdToCreditRequestProfileParamList = SaiExtensionAttribute<
+        std::vector<sai_map_t>,
+        AttributeModuleIdToCreditRequestProfileParamList,
+        SaiListDefault<sai_map_list_t>>;
   };
   using AdapterKey = SwitchSaiId;
   using AdapterHostKey = std::monostate;
@@ -1038,6 +1052,8 @@ SAI_ATTRIBUTE_NAME(Switch, NumberOfPipes)
 SAI_ATTRIBUTE_NAME(Switch, PipelineObjectList)
 SAI_ATTRIBUTE_NAME(Switch, DisableSllAndHllTimeout)
 SAI_ATTRIBUTE_NAME(Switch, AsicRevision)
+SAI_ATTRIBUTE_NAME(Switch, CreditRequestProfileSchedulerMode)
+SAI_ATTRIBUTE_NAME(Switch, ModuleIdToCreditRequestProfileParamList)
 
 template <>
 struct SaiObjectHasStats<SaiSwitchTraits> : public std::true_type {};

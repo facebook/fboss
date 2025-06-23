@@ -158,6 +158,8 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(Switch, PipelineObjectList);
   SAI_EXT_ATTR_MAP(Switch, DisableSllAndHllTimeout);
   SAI_EXT_ATTR_MAP(Switch, AsicRevision);
+  SAI_EXT_ATTR_MAP(Switch, CreditRequestProfileSchedulerMode);
+  SAI_EXT_ATTR_MAP(Switch, ModuleIdToCreditRequestProfileParamList);
 }
 
 } // namespace

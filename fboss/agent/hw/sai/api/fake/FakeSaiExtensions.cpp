@@ -777,4 +777,14 @@ SaiSwitchTraits::Attributes::AttributeAsicRevision::operator()() {
   return SAI_SWITCH_ATTR_ASIC_REVISION;
 }
 
+std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
+    AttributeCreditRequestProfileSchedulerMode::operator()() {
+  return SAI_SWITCH_ATTR_CREDIT_REQUEST_PROFILE_SCHEDULER_MODE;
+}
+
+std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
+    AttributeModuleIdToCreditRequestProfileParamList::operator()() {
+  return SAI_SWITCH_ATTR_MODULE_ID_TO_CREDIT_REQUEST_PROFILE_PARAM_LIST;
+}
+
 } // namespace facebook::fboss
