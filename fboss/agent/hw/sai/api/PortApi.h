@@ -793,6 +793,54 @@ struct SaiPortSerdesTraits {
         std::vector<sai_uint32_t>,
         SaiU32ListDefault>;
     /* extension attributes */
+    struct AttributeRVgaWrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    struct AttributeDcoWrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    struct AttributeFltMWrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    struct AttributeFltSWrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    struct AttributeRxPfWrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    struct AttributeRxEqP2Wrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    struct AttributeRxEqP1Wrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    struct AttributeRxEqMWrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    struct AttributeRxEq1Wrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    struct AttributeRxEq2Wrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    struct AttributeRxEq3Wrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    struct AttributeRxTap2Wrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    struct AttributeRxTap1Wrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    struct AttributeTpChn2Wrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    struct AttributeTpChn1Wrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    struct AttributeTpChn0Wrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
     struct AttributeTxLutModeIdWrapper {
       std::optional<sai_attr_id_t> operator()();
     };
@@ -815,6 +863,45 @@ struct SaiPortSerdesTraits {
     struct AttributeRxAfeAdaptiveEnableWrapper {
       std::optional<sai_attr_id_t> operator()();
     };
+    using RVga =
+        SaiExtensionAttribute<std::vector<sai_uint32_t>, AttributeRVgaWrapper>;
+    using Dco =
+        SaiExtensionAttribute<std::vector<sai_uint32_t>, AttributeDcoWrapper>;
+    using FltM =
+        SaiExtensionAttribute<std::vector<sai_uint32_t>, AttributeFltMWrapper>;
+    using FltS =
+        SaiExtensionAttribute<std::vector<sai_uint32_t>, AttributeFltSWrapper>;
+    using RxPf =
+        SaiExtensionAttribute<std::vector<sai_uint32_t>, AttributeRxPfWrapper>;
+    using RxEqP2 = SaiExtensionAttribute<
+        std::vector<sai_uint32_t>,
+        AttributeRxEqP2Wrapper>;
+    using RxEqP1 = SaiExtensionAttribute<
+        std::vector<sai_uint32_t>,
+        AttributeRxEqP1Wrapper>;
+    using RxEqM =
+        SaiExtensionAttribute<std::vector<sai_uint32_t>, AttributeRxEqMWrapper>;
+    using RxEq1 =
+        SaiExtensionAttribute<std::vector<sai_uint32_t>, AttributeRxEq1Wrapper>;
+    using RxEq2 =
+        SaiExtensionAttribute<std::vector<sai_uint32_t>, AttributeRxEq2Wrapper>;
+    using RxEq3 =
+        SaiExtensionAttribute<std::vector<sai_uint32_t>, AttributeRxEq3Wrapper>;
+    using RxTap2 = SaiExtensionAttribute<
+        std::vector<sai_uint32_t>,
+        AttributeRxTap2Wrapper>;
+    using RxTap1 = SaiExtensionAttribute<
+        std::vector<sai_uint32_t>,
+        AttributeRxTap1Wrapper>;
+    using TpChn2 = SaiExtensionAttribute<
+        std::vector<sai_uint32_t>,
+        AttributeTpChn2Wrapper>;
+    using TpChn1 = SaiExtensionAttribute<
+        std::vector<sai_uint32_t>,
+        AttributeTpChn1Wrapper>;
+    using TpChn0 = SaiExtensionAttribute<
+        std::vector<sai_uint32_t>,
+        AttributeTpChn0Wrapper>;
     using TxLutMode = SaiExtensionAttribute<
         std::vector<sai_int32_t>,
         AttributeTxLutModeIdWrapper>;
@@ -1133,6 +1220,22 @@ SAI_ATTRIBUTE_NAME(PortSerdes, RxDiffEncoderEn);
 SAI_ATTRIBUTE_NAME(PortSerdes, RxInstgEnableScan);
 SAI_ATTRIBUTE_NAME(PortSerdes, RxFfeLengthBitmap);
 SAI_ATTRIBUTE_NAME(PortSerdes, RxFfeLmsDynamicGatingEn);
+SAI_ATTRIBUTE_NAME(PortSerdes, RVga);
+SAI_ATTRIBUTE_NAME(PortSerdes, Dco);
+SAI_ATTRIBUTE_NAME(PortSerdes, FltM);
+SAI_ATTRIBUTE_NAME(PortSerdes, FltS);
+SAI_ATTRIBUTE_NAME(PortSerdes, RxPf);
+SAI_ATTRIBUTE_NAME(PortSerdes, RxEqP2);
+SAI_ATTRIBUTE_NAME(PortSerdes, RxEqP1);
+SAI_ATTRIBUTE_NAME(PortSerdes, RxEqM);
+SAI_ATTRIBUTE_NAME(PortSerdes, RxEq1);
+SAI_ATTRIBUTE_NAME(PortSerdes, RxEq2);
+SAI_ATTRIBUTE_NAME(PortSerdes, RxEq3);
+SAI_ATTRIBUTE_NAME(PortSerdes, RxTap2);
+SAI_ATTRIBUTE_NAME(PortSerdes, RxTap1);
+SAI_ATTRIBUTE_NAME(PortSerdes, TpChn2);
+SAI_ATTRIBUTE_NAME(PortSerdes, TpChn1);
+SAI_ATTRIBUTE_NAME(PortSerdes, TpChn0);
 
 struct SaiPortConnectorTraits {
   static constexpr sai_object_type_t ObjectType =

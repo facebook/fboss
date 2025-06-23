@@ -50,6 +50,150 @@ SaiPortTraits::Attributes::AttributeRxLaneSquelchEnable::operator()() {
 }
 
 std::optional<sai_attr_id_t>
+SaiPortSerdesTraits::Attributes::AttributeRVgaWrapper::operator()() {
+#if defined(SAI_VERSION_13_0_EA_ODP) || defined(SAI_VERSION_13_0_EA_DNX_ODP)
+  return SAI_PORT_SERDES_ATTR_PHY_DIAG_RVG;
+#else
+  return std::nullopt;
+#endif
+}
+
+std::optional<sai_attr_id_t>
+SaiPortSerdesTraits::Attributes::AttributeDcoWrapper::operator()() {
+#if defined(SAI_VERSION_13_0_EA_ODP) || defined(SAI_VERSION_13_0_EA_DNX_ODP)
+  return SAI_PORT_SERDES_ATTR_PHY_DIAG_DCO;
+#else
+  return std::nullopt;
+#endif
+}
+
+std::optional<sai_attr_id_t>
+SaiPortSerdesTraits::Attributes::AttributeFltMWrapper::operator()() {
+#if defined(SAI_VERSION_13_0_EA_ODP) || defined(SAI_VERSION_13_0_EA_DNX_ODP)
+  return SAI_PORT_SERDES_ATTR_PHY_DIAG_FLT_M;
+#else
+  return std::nullopt;
+#endif
+}
+
+std::optional<sai_attr_id_t>
+SaiPortSerdesTraits::Attributes::AttributeFltSWrapper::operator()() {
+#if defined(SAI_VERSION_13_0_EA_ODP) || defined(SAI_VERSION_13_0_EA_DNX_ODP)
+  return SAI_PORT_SERDES_ATTR_PHY_DIAG_FLT_S;
+#else
+  return std::nullopt;
+#endif
+}
+
+std::optional<sai_attr_id_t>
+SaiPortSerdesTraits::Attributes::AttributeRxPfWrapper::operator()() {
+#if defined(SAI_VERSION_13_0_EA_ODP) || defined(SAI_VERSION_13_0_EA_DNX_ODP)
+  return SAI_PORT_SERDES_ATTR_PHY_DIAG_RX_PF;
+#else
+  return std::nullopt;
+#endif
+}
+
+std::optional<sai_attr_id_t>
+SaiPortSerdesTraits::Attributes::AttributeRxEqP2Wrapper::operator()() {
+#if defined(SAI_VERSION_13_0_EA_ODP) || defined(SAI_VERSION_13_0_EA_DNX_ODP)
+  return SAI_PORT_SERDES_ATTR_PHY_DIAG_RX_EQ_P2;
+#else
+  return std::nullopt;
+#endif
+}
+
+std::optional<sai_attr_id_t>
+SaiPortSerdesTraits::Attributes::AttributeRxEqP1Wrapper::operator()() {
+#if defined(SAI_VERSION_13_0_EA_ODP) || defined(SAI_VERSION_13_0_EA_DNX_ODP)
+  return SAI_PORT_SERDES_ATTR_PHY_DIAG_RX_EQ_P1;
+#else
+  return std::nullopt;
+#endif
+}
+
+std::optional<sai_attr_id_t>
+SaiPortSerdesTraits::Attributes::AttributeRxEqMWrapper::operator()() {
+#if defined(SAI_VERSION_13_0_EA_ODP) || defined(SAI_VERSION_13_0_EA_DNX_ODP)
+  return SAI_PORT_SERDES_ATTR_PHY_DIAG_RX_EQ_M;
+#else
+  return std::nullopt;
+#endif
+}
+
+std::optional<sai_attr_id_t>
+SaiPortSerdesTraits::Attributes::AttributeRxEq1Wrapper::operator()() {
+#if defined(SAI_VERSION_13_0_EA_ODP) || defined(SAI_VERSION_13_0_EA_DNX_ODP)
+  return SAI_PORT_SERDES_ATTR_PHY_DIAG_RX_EQ_1;
+#else
+  return std::nullopt;
+#endif
+}
+
+std::optional<sai_attr_id_t>
+SaiPortSerdesTraits::Attributes::AttributeRxEq2Wrapper::operator()() {
+#if defined(SAI_VERSION_13_0_EA_ODP) || defined(SAI_VERSION_13_0_EA_DNX_ODP)
+  return SAI_PORT_SERDES_ATTR_PHY_DIAG_RX_EQ_2;
+#else
+  return std::nullopt;
+#endif
+}
+
+std::optional<sai_attr_id_t>
+SaiPortSerdesTraits::Attributes::AttributeRxEq3Wrapper::operator()() {
+#if defined(SAI_VERSION_13_0_EA_ODP) || defined(SAI_VERSION_13_0_EA_DNX_ODP)
+  return SAI_PORT_SERDES_ATTR_PHY_DIAG_RX_EQ_3;
+#else
+  return std::nullopt;
+#endif
+}
+
+std::optional<sai_attr_id_t>
+SaiPortSerdesTraits::Attributes::AttributeRxTap2Wrapper::operator()() {
+#if defined(SAI_VERSION_13_0_EA_ODP) || defined(SAI_VERSION_13_0_EA_DNX_ODP)
+  return SAI_PORT_SERDES_ATTR_PHY_DIAG_RX_TAP_2;
+#else
+  return std::nullopt;
+#endif
+}
+
+std::optional<sai_attr_id_t>
+SaiPortSerdesTraits::Attributes::AttributeRxTap1Wrapper::operator()() {
+#if defined(SAI_VERSION_13_0_EA_ODP) || defined(SAI_VERSION_13_0_EA_DNX_ODP)
+  return SAI_PORT_SERDES_ATTR_PHY_DIAG_RX_TAP_1;
+#else
+  return std::nullopt;
+#endif
+}
+
+std::optional<sai_attr_id_t>
+SaiPortSerdesTraits::Attributes::AttributeTpChn2Wrapper::operator()() {
+#if defined(SAI_VERSION_13_0_EA_ODP) || defined(SAI_VERSION_13_0_EA_DNX_ODP)
+  return SAI_PORT_SERDES_ATTR_PHY_DIAG_TP_CHN_2;
+#else
+  return std::nullopt;
+#endif
+}
+
+std::optional<sai_attr_id_t>
+SaiPortSerdesTraits::Attributes::AttributeTpChn1Wrapper::operator()() {
+#if defined(SAI_VERSION_13_0_EA_ODP) || defined(SAI_VERSION_13_0_EA_DNX_ODP)
+  return SAI_PORT_SERDES_ATTR_PHY_DIAG_TP_CHN_1;
+#else
+  return std::nullopt;
+#endif
+}
+
+std::optional<sai_attr_id_t>
+SaiPortSerdesTraits::Attributes::AttributeTpChn0Wrapper::operator()() {
+#if defined(SAI_VERSION_13_0_EA_ODP) || defined(SAI_VERSION_13_0_EA_DNX_ODP)
+  return SAI_PORT_SERDES_ATTR_PHY_DIAG_TP_CHN_0;
+#else
+  return std::nullopt;
+#endif
+}
+
+std::optional<sai_attr_id_t>
 SaiPortSerdesTraits::Attributes::AttributeTxLutModeIdWrapper::operator()() {
   return std::nullopt;
 }

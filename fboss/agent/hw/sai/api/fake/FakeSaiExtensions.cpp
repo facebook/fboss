@@ -145,6 +145,86 @@ SaiPortTraits::Attributes::AttributeRxLaneSquelchEnable::operator()() {
 }
 
 std::optional<sai_attr_id_t>
+SaiPortSerdesTraits::Attributes::AttributeRVgaWrapper::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiPortSerdesTraits::Attributes::AttributeDcoWrapper::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiPortSerdesTraits::Attributes::AttributeFltMWrapper::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiPortSerdesTraits::Attributes::AttributeFltSWrapper::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiPortSerdesTraits::Attributes::AttributeRxPfWrapper::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiPortSerdesTraits::Attributes::AttributeRxEqP2Wrapper::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiPortSerdesTraits::Attributes::AttributeRxEqP1Wrapper::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiPortSerdesTraits::Attributes::AttributeRxEqMWrapper::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiPortSerdesTraits::Attributes::AttributeRxEq1Wrapper::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiPortSerdesTraits::Attributes::AttributeRxEq2Wrapper::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiPortSerdesTraits::Attributes::AttributeRxEq3Wrapper::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiPortSerdesTraits::Attributes::AttributeRxTap2Wrapper::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiPortSerdesTraits::Attributes::AttributeRxTap1Wrapper::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiPortSerdesTraits::Attributes::AttributeTpChn2Wrapper::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiPortSerdesTraits::Attributes::AttributeTpChn1Wrapper::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiPortSerdesTraits::Attributes::AttributeTpChn0Wrapper::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributeCablePropogationDelayNS::operator()() {
   return std::nullopt;
 }
