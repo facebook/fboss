@@ -22898,9 +22898,6 @@
           "test_name_regex": "LinkTest.opticsTxDisableEnable$"
         },
         {
-          "test_name_regex": "Prbs.*ASIC.*ASIC.*$"
-        },
-        {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
@@ -22997,9 +22994,6 @@
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*ASIC.*$"
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
@@ -23100,9 +23094,6 @@
           "test_name_regex": "LinkTest.opticsTxDisableEnable$"
         },
         {
-          "test_name_regex": "Prbs.*ASIC.*ASIC.*$"
-        },
-        {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
@@ -23199,9 +23190,6 @@
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*ASIC.*$"
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
@@ -23305,9 +23293,6 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
-          "test_name_regex": "Prbs.*ASIC.*ASIC.*$"
-        },
-        {
           "test_name_regex": "LinkTest.fabricLinkHealth$"
         },
         {
@@ -23401,9 +23386,6 @@
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*ASIC.*$"
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
@@ -23504,9 +23486,6 @@
           "test_name_regex": "LinkTest.opticsTxDisableEnable$"
         },
         {
-          "test_name_regex": "Prbs.*ASIC.*ASIC.*$"
-        },
-        {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
@@ -23605,9 +23584,6 @@
           "test_name_regex": "LinkTest.opticsTxDisableEnable$"
         },
         {
-          "test_name_regex": "Prbs.*ASIC.*ASIC.*$"
-        },
-        {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
@@ -23704,9 +23680,6 @@
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*ASIC.*$"
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
@@ -23810,9 +23783,6 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
-          "test_name_regex": "Prbs.*ASIC.*ASIC.*$"
-        },
-        {
           "test_name_regex": "LinkTest.fabricLinkHealth$"
         },
         {
@@ -23903,9 +23873,6 @@
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*ASIC.*$"
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
@@ -24003,9 +23970,6 @@
           "test_name_regex": "LinkTest.opticsTxDisableEnable$"
         },
         {
-          "test_name_regex": "Prbs.*ASIC.*ASIC.*$"
-        },
-        {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
@@ -24099,9 +24063,6 @@
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*ASIC.*$"
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
@@ -24199,9 +24160,6 @@
           "test_name_regex": "LinkTest.opticsTxDisableEnable$"
         },
         {
-          "test_name_regex": "Prbs.*ASIC.*ASIC.*$"
-        },
-        {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
@@ -24295,9 +24253,6 @@
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*ASIC.*$"
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
@@ -24395,9 +24350,6 @@
           "test_name_regex": "LinkTest.opticsTxDisableEnable$"
         },
         {
-          "test_name_regex": "Prbs.*ASIC.*ASIC.*$"
-        },
-        {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
@@ -24491,9 +24443,6 @@
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*ASIC.*$"
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
@@ -24591,9 +24540,6 @@
           "test_name_regex": "LinkTest.opticsTxDisableEnable$"
         },
         {
-          "test_name_regex": "Prbs.*ASIC.*ASIC.*$"
-        },
-        {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
@@ -24687,9 +24633,6 @@
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*ASIC.*$"
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
@@ -24787,9 +24730,6 @@
           "test_name_regex": "LinkTest.opticsTxDisableEnable$"
         },
         {
-          "test_name_regex": "Prbs.*ASIC.*ASIC.*$"
-        },
-        {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
@@ -24883,9 +24823,6 @@
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*ASIC.*$"
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
@@ -29154,9 +29091,6 @@
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
-        },
-        {
-          "test_name_regex": "QsfpFsdbTest.portStateWithResetHold$"
         },
         {
           "test_name_regex": "QsfpFsdbTest.portStateWithResetHold$"
