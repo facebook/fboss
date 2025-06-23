@@ -60,6 +60,7 @@ cpp_unittest(
         "ThriftServerTest.cpp",
         "ThriftTest.cpp",
         "TunInterfaceTest.cpp",
+        "TxPacketTest.cpp",
         "UDPTest.cpp",
         "UtilsTest.cpp",
     ],
