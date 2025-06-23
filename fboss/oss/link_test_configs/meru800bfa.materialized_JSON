@@ -51,7 +51,7 @@
       },
       {
         "logicalID": 1,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -71,7 +71,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "fab1/13/8"
         },
         "portQueueConfigName": "FabricTxQueueConfig",
         "lookupClasses": [
@@ -199,7 +199,7 @@
       },
       {
         "logicalID": 5,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -219,7 +219,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "fab1/13/4"
         },
         "portQueueConfigName": "FabricTxQueueConfig",
         "lookupClasses": [
@@ -680,7 +680,7 @@
       },
       {
         "logicalID": 18,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -700,7 +700,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "fab1/3/6"
         },
         "portQueueConfigName": "FabricTxQueueConfig",
         "lookupClasses": [
@@ -828,7 +828,7 @@
       },
       {
         "logicalID": 22,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -848,7 +848,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "fab1/3/2"
         },
         "portQueueConfigName": "FabricTxQueueConfig",
         "lookupClasses": [
@@ -1901,7 +1901,7 @@
       },
       {
         "logicalID": 51,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -1921,7 +1921,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "fab1/28/6"
         },
         "portQueueConfigName": "FabricTxQueueConfig",
         "lookupClasses": [
@@ -2049,7 +2049,7 @@
       },
       {
         "logicalID": 55,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -2069,7 +2069,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "fab1/28/2"
         },
         "portQueueConfigName": "FabricTxQueueConfig",
         "lookupClasses": [
@@ -2123,7 +2123,7 @@
       },
       {
         "logicalID": 57,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -2143,7 +2143,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "fab1/31/8"
         },
         "portQueueConfigName": "FabricTxQueueConfig",
         "lookupClasses": [
@@ -2271,7 +2271,7 @@
       },
       {
         "logicalID": 61,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -2291,7 +2291,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "fab1/31/4"
         },
         "portQueueConfigName": "FabricTxQueueConfig",
         "lookupClasses": [
@@ -5712,7 +5712,7 @@
       },
       {
         "logicalID": 154,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -5732,7 +5732,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "fab1/88/6"
         },
         "portQueueConfigName": "FabricTxQueueConfig",
         "lookupClasses": [
@@ -5860,7 +5860,7 @@
       },
       {
         "logicalID": 158,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -5880,7 +5880,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "fab1/88/2"
         },
         "portQueueConfigName": "FabricTxQueueConfig",
         "lookupClasses": [
@@ -6341,7 +6341,7 @@
       },
       {
         "logicalID": 171,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -6361,7 +6361,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "fab1/78/6"
         },
         "portQueueConfigName": "FabricTxQueueConfig",
         "lookupClasses": [
@@ -6489,7 +6489,7 @@
       },
       {
         "logicalID": 175,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -6509,7 +6509,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "fab1/78/2"
         },
         "portQueueConfigName": "FabricTxQueueConfig",
         "lookupClasses": [
@@ -9597,7 +9597,7 @@
       },
       {
         "logicalID": 259,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -9617,7 +9617,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "fab1/13/6"
         },
         "portQueueConfigName": "FabricTxQueueConfig",
         "lookupClasses": [
@@ -9745,7 +9745,7 @@
       },
       {
         "logicalID": 263,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -9765,7 +9765,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "fab1/13/2"
         },
         "portQueueConfigName": "FabricTxQueueConfig",
         "lookupClasses": [
@@ -10152,7 +10152,7 @@
       },
       {
         "logicalID": 274,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -10172,7 +10172,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "fab1/3/8"
         },
         "portQueueConfigName": "FabricTxQueueConfig",
         "lookupClasses": [
@@ -10300,7 +10300,7 @@
       },
       {
         "logicalID": 278,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -10320,7 +10320,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "fab1/3/4"
         },
         "portQueueConfigName": "FabricTxQueueConfig",
         "lookupClasses": [
@@ -11373,7 +11373,7 @@
       },
       {
         "logicalID": 307,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -11393,7 +11393,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "fab1/28/8"
         },
         "portQueueConfigName": "FabricTxQueueConfig",
         "lookupClasses": [
@@ -11521,7 +11521,7 @@
       },
       {
         "logicalID": 311,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -11541,7 +11541,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "fab1/28/4"
         },
         "portQueueConfigName": "FabricTxQueueConfig",
         "lookupClasses": [
@@ -11595,7 +11595,7 @@
       },
       {
         "logicalID": 313,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -11615,7 +11615,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "fab1/31/6"
         },
         "portQueueConfigName": "FabricTxQueueConfig",
         "lookupClasses": [
@@ -11743,7 +11743,7 @@
       },
       {
         "logicalID": 317,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -11763,7 +11763,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "fab1/31/2"
         },
         "portQueueConfigName": "FabricTxQueueConfig",
         "lookupClasses": [
@@ -15184,7 +15184,7 @@
       },
       {
         "logicalID": 410,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -15204,7 +15204,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "fab1/88/8"
         },
         "portQueueConfigName": "FabricTxQueueConfig",
         "lookupClasses": [
@@ -15332,7 +15332,7 @@
       },
       {
         "logicalID": 414,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -15352,7 +15352,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "fab1/88/4"
         },
         "portQueueConfigName": "FabricTxQueueConfig",
         "lookupClasses": [
@@ -15813,7 +15813,7 @@
       },
       {
         "logicalID": 427,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -15833,7 +15833,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "fab1/78/8"
         },
         "portQueueConfigName": "FabricTxQueueConfig",
         "lookupClasses": [
@@ -15961,7 +15961,7 @@
       },
       {
         "logicalID": 431,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -15981,7 +15981,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "fab1/78/4"
         },
         "portQueueConfigName": "FabricTxQueueConfig",
         "lookupClasses": [
@@ -22029,7 +22029,7 @@
       },
       {
         "logicalID": 2131,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -22049,7 +22049,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "fab1/78/1"
         },
         "portQueueConfigName": "FabricTxQueueConfig",
         "lookupClasses": [
@@ -22177,7 +22177,7 @@
       },
       {
         "logicalID": 2135,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -22197,7 +22197,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "fab1/78/5"
         },
         "portQueueConfigName": "FabricTxQueueConfig",
         "lookupClasses": [
@@ -22584,7 +22584,7 @@
       },
       {
         "logicalID": 2146,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -22604,7 +22604,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "fab1/88/1"
         },
         "portQueueConfigName": "FabricTxQueueConfig",
         "lookupClasses": [
@@ -22732,7 +22732,7 @@
       },
       {
         "logicalID": 2150,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -22752,7 +22752,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "fab1/88/5"
         },
         "portQueueConfigName": "FabricTxQueueConfig",
         "lookupClasses": [
@@ -26099,7 +26099,7 @@
       },
       {
         "logicalID": 2241,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -26119,7 +26119,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "fab1/31/3"
         },
         "portQueueConfigName": "FabricTxQueueConfig",
         "lookupClasses": [
@@ -26247,7 +26247,7 @@
       },
       {
         "logicalID": 2245,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -26267,7 +26267,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "fab1/31/7"
         },
         "portQueueConfigName": "FabricTxQueueConfig",
         "lookupClasses": [
@@ -26469,7 +26469,7 @@
       },
       {
         "logicalID": 2251,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -26489,7 +26489,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "fab1/28/1"
         },
         "portQueueConfigName": "FabricTxQueueConfig",
         "lookupClasses": [
@@ -26617,7 +26617,7 @@
       },
       {
         "logicalID": 2255,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -26637,7 +26637,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "fab1/28/5"
         },
         "portQueueConfigName": "FabricTxQueueConfig",
         "lookupClasses": [
@@ -27616,7 +27616,7 @@
       },
       {
         "logicalID": 2282,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -27636,7 +27636,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "fab1/3/1"
         },
         "portQueueConfigName": "FabricTxQueueConfig",
         "lookupClasses": [
@@ -27764,7 +27764,7 @@
       },
       {
         "logicalID": 2286,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -27784,7 +27784,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "fab1/3/5"
         },
         "portQueueConfigName": "FabricTxQueueConfig",
         "lookupClasses": [
@@ -28171,7 +28171,7 @@
       },
       {
         "logicalID": 2297,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -28191,7 +28191,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "fab1/13/3"
         },
         "portQueueConfigName": "FabricTxQueueConfig",
         "lookupClasses": [
@@ -28319,7 +28319,7 @@
       },
       {
         "logicalID": 2301,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -28339,7 +28339,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "fab1/13/7"
         },
         "portQueueConfigName": "FabricTxQueueConfig",
         "lookupClasses": [
@@ -31501,7 +31501,7 @@
       },
       {
         "logicalID": 2387,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -31521,7 +31521,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "fab1/78/3"
         },
         "portQueueConfigName": "FabricTxQueueConfig",
         "lookupClasses": [
@@ -31649,7 +31649,7 @@
       },
       {
         "logicalID": 2391,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -31669,7 +31669,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "fab1/78/7"
         },
         "portQueueConfigName": "FabricTxQueueConfig",
         "lookupClasses": [
@@ -32056,7 +32056,7 @@
       },
       {
         "logicalID": 2402,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -32076,7 +32076,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "fab1/88/3"
         },
         "portQueueConfigName": "FabricTxQueueConfig",
         "lookupClasses": [
@@ -32204,7 +32204,7 @@
       },
       {
         "logicalID": 2406,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -32224,7 +32224,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "fab1/88/7"
         },
         "portQueueConfigName": "FabricTxQueueConfig",
         "lookupClasses": [
@@ -35571,7 +35571,7 @@
       },
       {
         "logicalID": 2497,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -35591,7 +35591,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "fab1/31/1"
         },
         "portQueueConfigName": "FabricTxQueueConfig",
         "lookupClasses": [
@@ -35719,7 +35719,7 @@
       },
       {
         "logicalID": 2501,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -35739,7 +35739,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "fab1/31/5"
         },
         "portQueueConfigName": "FabricTxQueueConfig",
         "lookupClasses": [
@@ -35941,7 +35941,7 @@
       },
       {
         "logicalID": 2507,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -35961,7 +35961,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "fab1/28/3"
         },
         "portQueueConfigName": "FabricTxQueueConfig",
         "lookupClasses": [
@@ -36089,7 +36089,7 @@
       },
       {
         "logicalID": 2511,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -36109,7 +36109,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "fab1/28/7"
         },
         "portQueueConfigName": "FabricTxQueueConfig",
         "lookupClasses": [
@@ -37088,7 +37088,7 @@
       },
       {
         "logicalID": 2538,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -37108,7 +37108,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "fab1/3/3"
         },
         "portQueueConfigName": "FabricTxQueueConfig",
         "lookupClasses": [
@@ -37236,7 +37236,7 @@
       },
       {
         "logicalID": 2542,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -37256,7 +37256,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "fab1/3/7"
         },
         "portQueueConfigName": "FabricTxQueueConfig",
         "lookupClasses": [
@@ -37717,7 +37717,7 @@
       },
       {
         "logicalID": 2555,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -37737,7 +37737,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "fab1/13/1"
         },
         "portQueueConfigName": "FabricTxQueueConfig",
         "lookupClasses": [
@@ -37865,7 +37865,7 @@
       },
       {
         "logicalID": 2559,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -37885,7 +37885,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "fab1/13/5"
         },
         "portQueueConfigName": "FabricTxQueueConfig",
         "lookupClasses": [
@@ -38053,7 +38053,8 @@
             
           ],
           "asicType": 16,
-          "platformType": 30
+          "platformType": 30,
+          "scheduling": 1000
       },
       "2": {
           "name": "fabricNode2",
@@ -38063,7 +38064,8 @@
             
           ],
           "asicType": 16,
-          "platformType": 30
+          "platformType": 30,
+          "scheduling": 1000
       }
     },
     "defaultVoqConfig": [
@@ -41209,5 +41211,8 @@
         }
       }
     }
+  },
+  "thriftApiToRateLimitInQps": {
+    
   }
 }
