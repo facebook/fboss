@@ -12,7 +12,7 @@
       "absentLedColor": 4,
       "absentLedSysfsPath": "/sys/class/leds/fan_led:amber:status/brightness"
     },
-    "PSU": {
+    "PWR": {
       "presentLedColor": 3,
       "presentLedSysfsPath": "/sys/class/leds/psu_led:blue:status/brightness",
       "absentLedColor": 4,
