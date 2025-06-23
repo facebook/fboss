@@ -20,6 +20,15 @@ struct TestPort {
   prbs::PrbsPolynomial polynomial;
 };
 
+#define PRBS_ERROR_MSG(message, interfaceName, component) \
+  message << interfaceName << " component "               \
+          << apache::thrift::util::enumNameSafe(component)
+
+#define PRINT_PRBS_ERROR_W_EXCEPTION(                            \
+    message, interfaceName, component, exception)                \
+  XLOG(ERR) << PRBS_ERROR_MSG(message, interfaceName, component) \
+            << " failed with " << exception.what()
+
 class AllPrbsStats {
   using StatsMap = std::map<std::string, phy::PrbsStats>;
 
@@ -219,8 +228,8 @@ class AgentEnsemblePrbsTest : public AgentEnsembleLinkTest {
     try {
       client->sync_setInterfacePrbs(interfaceName, component, state);
     } catch (const std::exception& ex) {
-      XLOG(ERR) << "Setting PRBS on " << interfaceName << " failed with "
-                << ex.what();
+      PRINT_PRBS_ERROR_W_EXCEPTION(
+          "Setting PRBS on ", interfaceName, component, ex);
       return false;
     }
     return true;
@@ -330,8 +339,8 @@ class AgentEnsemblePrbsTest : public AgentEnsembleLinkTest {
              state.checkerEnabled().value()));
       }
     } catch (const std::exception& ex) {
-      XLOG(ERR) << "Checking PRBS State on " << interfaceName << " failed with "
-                << ex.what();
+      PRINT_PRBS_ERROR_W_EXCEPTION(
+          "Checking PRBS State on ", interfaceName, component, ex);
       return false;
     }
   }
@@ -414,7 +423,7 @@ class AgentEnsemblePrbsTest : public AgentEnsembleLinkTest {
       phy::PrbsStats& stats,
       bool initial,
       time_t testStartTime) {
-    ASSERT_FALSE(stats.get_laneStats().empty());
+    ASSERT_FALSE(stats.laneStats().value().empty());
     for (const auto& laneStat : stats.laneStats().value()) {
       XLOG(DBG2) << folly::sformat(
           "Interface {:s}, component {:s}, lane: {:d}, locked: {:d}, numLossOfLock: {:d}, ber: {:e}, maxBer: {:e}, timeSinceLastLock: {:d}",
@@ -433,7 +442,7 @@ class AgentEnsemblePrbsTest : public AgentEnsembleLinkTest {
       if (!initial) {
         // These stats may not be valid when initial is true which is when we
         // just enable PRBS
-        EXPECT_EQ(laneStat.get_numLossOfLock(), 0);
+        EXPECT_EQ(laneStat.numLossOfLock().value(), 0);
         auto berThreshold = FLAGS_link_stress_test ? 5e-7 : 1;
         EXPECT_TRUE(
             laneStat.get_ber() >= 0 && laneStat.get_ber() < berThreshold);
@@ -500,12 +509,15 @@ class AgentEnsemblePrbsTest : public AgentEnsembleLinkTest {
                  << apache::thrift::util::enumNameSafe(component);
       phy::PrbsStats stats;
       client->sync_getInterfacePrbsStats(stats, interfaceName, component);
-      EXPECT_FALSE(stats.get_laneStats().empty());
+      EXPECT_FALSE(stats.laneStats().value().empty())
+          << PRBS_ERROR_MSG("Failed ", interfaceName, component);
       for (const auto& laneStat : stats.laneStats().value()) {
         // Don't check lock status because clear would have cleared it too and
         // we may not have had an update of stats yet
-        EXPECT_EQ(laneStat.get_numLossOfLock(), 0);
-        EXPECT_LT(laneStat.get_timeSinceLastClear(), timestampBeforeClear);
+        EXPECT_EQ(laneStat.numLossOfLock().value(), 0)
+            << PRBS_ERROR_MSG("Failed ", interfaceName, component);
+        EXPECT_LT(laneStat.timeSinceLastClear().value(), timestampBeforeClear)
+            << PRBS_ERROR_MSG("Failed ", interfaceName, component);
       }
     } catch (const std::exception& ex) {
       XLOG(ERR) << "Checking PRBS Stats on " << interfaceName << " failed with "
@@ -552,8 +564,8 @@ class AgentEnsemblePrbsTest : public AgentEnsembleLinkTest {
     try {
       client->sync_clearInterfacePrbsStats(interfaceName, component);
     } catch (const std::exception& ex) {
-      XLOG(ERR) << "Clearing PRBS Stats on " << interfaceName << " failed with "
-                << ex.what();
+      PRINT_PRBS_ERROR_W_EXCEPTION(
+          "Clearing PRBS Stats on ", interfaceName, component, ex);
       return false;
     }
     return true;
@@ -606,10 +618,10 @@ class TransceiverLineToTransceiverLinePrbsTest : public AgentEnsemblePrbsTest {
       auto port2SupportPrbs = checkPrbsSupported(
           portName2, phy::PortComponent::TRANSCEIVER_LINE, Polynomial);
       XLOG(INFO) << "Tcvr to Tcvr PRBS test: portA " << portName1 << " portZ "
-                 << portName2 << " validMA " << port1ValidMedia << " validMZ "
-                 << port2ValidMedia << " supPrbsA " << port1SupportPrbs
-                 << " supPrbsZ " << port2SupportPrbs << " poly "
-                 << apache::thrift::util::enumNameSafe(Polynomial);
+                 << portName2 << " validMediaA " << port1ValidMedia
+                 << " validMediaZ " << port2ValidMedia << " supPrbsA "
+                 << port1SupportPrbs << " supPrbsZ " << port2SupportPrbs
+                 << " poly " << apache::thrift::util::enumNameSafe(Polynomial);
       if (!port1ValidMedia || !port2ValidMedia || !port1SupportPrbs ||
           !port2SupportPrbs) {
         continue;
@@ -652,9 +664,9 @@ class PhyToTransceiverSystemPrbsTest : public AgentEnsemblePrbsTest {
             checkPrbsSupported(portName, ComponentA, PolynomialA);
         auto portSupportPrbsZ = checkPrbsSupported(
             portName, phy::PortComponent::TRANSCEIVER_SYSTEM, PolynomialZ);
-        XLOG(INFO) << "Tcvr to ASIC PRBS test: port " << portName << " validM "
-                   << portValidMedia << " supportPrbsA " << portSupportPrbsA
-                   << " PolyA "
+        XLOG(INFO) << "Tcvr to ASIC PRBS test: port " << portName
+                   << " validMedia " << portValidMedia << " supportPrbsA "
+                   << portSupportPrbsA << " PolyA "
                    << apache::thrift::util::enumNameSafe(PolynomialA)
                    << " CompA "
                    << apache::thrift::util::enumNameSafe(ComponentA)
