@@ -21,6 +21,13 @@ class MultiSwitchPortMap;
 
 namespace utility {
 
+enum InputBalanceDestType {
+  SINGLE_STAGE_FDSW_INTRA,
+  DUAL_STAGE_SDSW_INTER,
+  DUAL_STAGE_FDSW_INTRA,
+  DUAL_STAGE_FDSW_INTER,
+};
+
 struct InputBalanceResult {
   std::string destinationSwitch;
   std::vector<std::string> sourceSwitch;
