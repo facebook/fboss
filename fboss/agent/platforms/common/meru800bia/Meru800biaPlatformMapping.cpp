@@ -143680,17 +143680,26 @@ constexpr auto kJsonDualStageEdsw3q2qPlatformMappingStr = R"(
 }
 )";
 
+std::string getPlatformMappingString() {
+  if (FLAGS_dual_stage_rdsw_3q_2q) {
+    return kJsonDualStageRdsw3q2qPlatformMappingStr;
+  }
+  if (FLAGS_dual_stage_edsw_3q_2q) {
+    return kJsonDualStageEdsw3q2qPlatformMappingStr;
+  }
+  if (FLAGS_dsf_100g_nif_breakout) {
+    return kJsonDsfJ3ScaleTestPlatformMappingStr;
+  }
+  if (FLAGS_dsf_edsw_platform_mapping) {
+    return kJsonEdswPlatformMappingStr;
+  }
+  return kJsonPlatformMappingStr;
+}
+
 } // namespace
 
 Meru800biaPlatformMapping::Meru800biaPlatformMapping()
-    : PlatformMapping(
-          FLAGS_dual_stage_rdsw_3q_2q ? kJsonDualStageRdsw3q2qPlatformMappingStr
-              : FLAGS_dual_stage_edsw_3q_2q
-              ? kJsonDualStageEdsw3q2qPlatformMappingStr
-              : FLAGS_dsf_100g_nif_breakout
-              ? kJsonDsfJ3ScaleTestPlatformMappingStr
-              : FLAGS_dsf_edsw_platform_mapping ? kJsonEdswPlatformMappingStr
-                                                : kJsonPlatformMappingStr) {}
+    : PlatformMapping(getPlatformMappingString()) {}
 
 Meru800biaPlatformMapping::Meru800biaPlatformMapping(
     const std::string& platformMappingStr)
