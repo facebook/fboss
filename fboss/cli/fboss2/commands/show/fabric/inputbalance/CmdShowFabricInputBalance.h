@@ -76,10 +76,10 @@ class CmdShowFabricInputBalance : public CmdHandler<
       }
     }
 
-    auto deviceToQueryInputCapacity =
-        utility::deviceToQueryInputCapacity(fabricSwitchIDs, dsfNodeMap);
+    auto devicesToQueryInputCapacity =
+        utility::devicesToQueryInputCapacity(fabricSwitchIDs, dsfNodeMap);
 
-    if (deviceToQueryInputCapacity.empty()) {
+    if (devicesToQueryInputCapacity.empty()) {
       throw std::runtime_error(
           "Failed to find devices to query input capacity");
     }
@@ -91,7 +91,7 @@ class CmdShowFabricInputBalance : public CmdHandler<
     auto portToVirtualDevice = utility::getPortToVirtualDeviceId(myPortInfo);
 
     auto neighborReachability = getNeighborReachability(
-        deviceToQueryInputCapacity, neighborToPorts, dstSwitchName);
+        devicesToQueryInputCapacity, neighborToPorts, dstSwitchName);
     auto selfReachability =
         utils::getCachedSwSwitchReachabilityInfo(hostInfo, dstSwitchName);
 
@@ -158,7 +158,7 @@ class CmdShowFabricInputBalance : public CmdHandler<
       std::string,
       std::unordered_map<std::string, std::vector<std::string>>>
   getNeighborReachability(
-      std::vector<std::pair<int64_t, std::string>> deviceToQueryInputCapacity,
+      const std::vector<std::string>& devicesToQueryInputCapacity,
       const std::unordered_map<
           std::string,
           std::unordered_map<std::string, std::string>>& neighborName2Ports,
@@ -172,7 +172,7 @@ class CmdShowFabricInputBalance : public CmdHandler<
         std::shared_future<
             std::unordered_map<std::string, std::vector<std::string>>>>
         neighborReachabilityFutureMap;
-    for (const auto& [switchId, switchName] : deviceToQueryInputCapacity) {
+    for (const auto& switchName : devicesToQueryInputCapacity) {
       neighborReachabilityFutureMap[switchName] = std::async(
           std::launch::async,
           &utils::getCachedSwSwitchReachabilityInfo,

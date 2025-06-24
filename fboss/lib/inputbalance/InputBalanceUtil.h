@@ -46,7 +46,7 @@ bool isDualStage(const std::map<int64_t, cfg::DsfNode>& dsfNodeMap);
 std::unordered_map<std::string, cfg::DsfNode> switchNameToDsfNode(
     const std::map<int64_t, cfg::DsfNode>& dsfNodes);
 
-std::vector<std::pair<int64_t, std::string>> deviceToQueryInputCapacity(
+std::vector<std::string> devicesToQueryInputCapacity(
     const std::vector<int64_t>& fabricSwitchIDs,
     const std::map<int64_t, cfg::DsfNode>& dsfNodeMap);
 

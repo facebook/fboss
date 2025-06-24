@@ -99,10 +99,10 @@ std::unordered_map<std::string, cfg::DsfNode> switchNameToDsfNode(
   return nameToDsfNode;
 }
 
-std::vector<std::pair<int64_t, std::string>> deviceToQueryInputCapacity(
+std::vector<std::string> devicesToQueryInputCapacity(
     const std::vector<int64_t>& fabricSwitchIDs,
     const std::map<int64_t, cfg::DsfNode>& dsfNodeMap) {
-  std::vector<std::pair<int64_t, std::string>> switchIDAndName2Query;
+  std::vector<std::string> devicesToQuery;
   if (fabricSwitchIDs.empty()) {
     throw std::runtime_error("No fabric switch ID provided.");
   }
@@ -128,12 +128,12 @@ std::vector<std::pair<int64_t, std::string>> deviceToQueryInputCapacity(
           throw std::runtime_error(
               "Non-matching cluster ID for FDSW and RDSW in single stage.");
         }
-        switchIDAndName2Query.emplace_back(switchId, *dsfNode.name());
+        devicesToQuery.emplace_back(dsfNode.name().value());
       }
     }
   }
   // TODO(zecheng): Implement functionality for dual stage
-  return switchIDAndName2Query;
+  return devicesToQuery;
 }
 
 std::unordered_map<std::string, std::unordered_map<std::string, std::string>>
