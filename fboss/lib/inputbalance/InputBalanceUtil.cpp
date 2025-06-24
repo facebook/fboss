@@ -47,6 +47,22 @@ std::vector<std::vector<std::string>> getLinkFailure(
   return groupPortsByVD(linkFailures, portToVirtualDevice);
 };
 
+std::vector<std::string> getFdswsInCluster(
+    int clusterID,
+    const std::unordered_map<std::string, facebook::fboss::cfg::DsfNode>&
+        nameToDsfNode) {
+  std::vector<std::string> fdsws;
+  for (const auto& [name, dsfNode] : nameToDsfNode) {
+    if (dsfNode.clusterId().has_value() &&
+        dsfNode.clusterId().value() == clusterID &&
+        dsfNode.fabricLevel().has_value() &&
+        dsfNode.fabricLevel().value() == 1) {
+      fdsws.emplace_back(name);
+    }
+  }
+  return fdsws;
+}
+
 } // namespace
 
 namespace facebook::fboss::utility {
