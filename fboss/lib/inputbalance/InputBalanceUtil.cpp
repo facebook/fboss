@@ -63,6 +63,20 @@ std::vector<std::string> getFdswsInCluster(
   return fdsws;
 }
 
+std::vector<std::string> getSdswsInCluster(
+    const std::unordered_map<std::string, facebook::fboss::cfg::DsfNode>&
+        nameToDsfNode) {
+  std::vector<std::string> sdsws;
+  for (const auto& [name, dsfNode] : nameToDsfNode) {
+    if (dsfNode.type() == facebook::fboss::cfg::DsfNodeType::FABRIC_NODE &&
+        dsfNode.fabricLevel().has_value() &&
+        dsfNode.fabricLevel().value() == 2) {
+      sdsws.emplace_back(name);
+    }
+  }
+  return sdsws;
+}
+
 } // namespace
 
 namespace facebook::fboss::utility {
