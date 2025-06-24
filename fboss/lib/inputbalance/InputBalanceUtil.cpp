@@ -303,4 +303,53 @@ std::vector<InputBalanceResult> checkInputBalanceSingleStage(
   return inputBalanceResult;
 }
 
+std::vector<InputBalanceResult> checkInputBalanceDualStage(
+    const InputBalanceDestType& inputBalanceDestType,
+    const std::vector<std::string>& dstSwitchNames,
+    const std::unordered_map<
+        std::string,
+        std::unordered_map<std::string, std::vector<std::string>>>&
+    /*inputCapacity*/,
+    const std::unordered_map<std::string, std::vector<std::string>>&
+        outputCapacity,
+    const std::unordered_map<std::string, std::vector<std::string>>&
+        neighborToLinkFailure,
+    const std::unordered_map<std::string, int>& portToVirtualDevice,
+    const std::unordered_map<std::string, cfg::DsfNode>& switchNameToDsfNode,
+    bool /*verbose*/) {
+  CHECK(
+      inputBalanceDestType == InputBalanceDestType::DUAL_STAGE_SDSW_INTER ||
+      inputBalanceDestType == InputBalanceDestType::DUAL_STAGE_FDSW_INTER);
+  std::vector<InputBalanceResult> inputBalanceResult;
+  for (const auto& dstSwitch : dstSwitchNames) {
+    auto outputCapacityIter = outputCapacity.find(dstSwitch);
+    if (outputCapacityIter == outputCapacity.end()) {
+      throw std::runtime_error(
+          "No output capacity data for switch " + dstSwitch);
+    }
+    [[maybe_unused]] auto outputCapacityByVD =
+        groupPortsByVD(outputCapacityIter->second, portToVirtualDevice);
+    auto dstDsfNodeIter = switchNameToDsfNode.find(dstSwitch);
+    if (dstDsfNodeIter == switchNameToDsfNode.end()) {
+      throw std::runtime_error("No dsfNode Found for " + dstSwitch);
+    }
+
+    std::vector<std::string> outputNeighbors;
+    if (inputBalanceDestType == InputBalanceDestType::DUAL_STAGE_SDSW_INTER) {
+      auto dstClusterID = dstDsfNodeIter->second.clusterId();
+      CHECK(dstClusterID.has_value());
+      outputNeighbors =
+          getFdswsInCluster(dstClusterID.value(), switchNameToDsfNode);
+    } else if (
+        inputBalanceDestType == InputBalanceDestType::DUAL_STAGE_FDSW_INTER) {
+      outputNeighbors = getSdswsInCluster(switchNameToDsfNode);
+    }
+    [[maybe_unused]] auto outputLinkFailure = getLinkFailure(
+        outputNeighbors, neighborToLinkFailure, portToVirtualDevice);
+
+    // TODO(zecheng): Process Input Capacity from Neighbors
+  }
+  return inputBalanceResult;
+}
+
 } // namespace facebook::fboss::utility

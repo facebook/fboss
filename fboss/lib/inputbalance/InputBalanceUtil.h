@@ -76,5 +76,21 @@ std::vector<InputBalanceResult> checkInputBalanceSingleStage(
         neighborToLinkFailure,
     const std::unordered_map<std::string, int>& portToVirtualDevice,
     bool verbose = false);
+
+std::vector<InputBalanceResult> checkInputBalanceDualStage(
+    const InputBalanceDestType& inputBalanceDestType,
+    const std::vector<std::string>& dstSwitchNames,
+    const std::unordered_map<
+        std::string,
+        std::unordered_map<std::string, std::vector<std::string>>>&
+        inputCapacity,
+    const std::unordered_map<std::string, std::vector<std::string>>&
+        outputCapacity,
+    const std::unordered_map<std::string, std::vector<std::string>>&
+        neighborToLinkFailure,
+    const std::unordered_map<std::string, int>& portToVirtualDevice,
+    const std::unordered_map<std::string, cfg::DsfNode>& switchNameToDsfNode,
+    bool verbose);
+
 } // namespace utility
 } // namespace facebook::fboss
