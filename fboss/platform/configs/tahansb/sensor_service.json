@@ -102,7 +102,7 @@
             "upperCriticalVal": 3.63,
             "lowerCriticalVal": 2.97
           },
-          "compute": "(5/3)*@/1000"
+          "compute": "(5/3)*@/1000.0"
         },
         {
           "name": "MCB_U34_ADC128D818_XP5R0V_COME",
@@ -114,7 +114,7 @@
             "upperCriticalVal": 5.5,
             "lowerCriticalVal": 4.5
           },
-          "compute": "5.7*@/1000"
+          "compute": "5.7*@/1000.0"
         },
         {
           "name": "MCB_U34_ADC128D818_XP5R0V_USB",
@@ -126,7 +126,7 @@
             "upperCriticalVal": 5.5,
             "lowerCriticalVal": 4.5
           },
-          "compute": "5.7*@/1000"
+          "compute": "5.7*@/1000.0"
         },
         {
           "name": "MCB_U34_ADC128D818_XP12R0V_SSD",
@@ -138,7 +138,7 @@
             "upperCriticalVal": 13.2,
             "lowerCriticalVal": 10.8
           },
-          "compute": "(5/3)*@/1000"
+          "compute": "(5/3)*@/1000.0"
         },
         {
           "name": "MCB_U34_ADC128D818_XP3R3V_MCB",
@@ -150,7 +150,7 @@
             "upperCriticalVal": 3.63,
             "lowerCriticalVal": 2.97
           },
-          "compute": "(5/3)*@/1000"
+          "compute": "(5/3)*@/1000.0"
         },
         {
           "name": "MCB_U34_ADC128D818_XP3R3V_STBY_BMC",
@@ -162,7 +162,7 @@
             "upperCriticalVal": 3.63,
             "lowerCriticalVal": 2.97
           },
-          "compute": "(5/3)*@/1000"
+          "compute": "(5/3)*@/1000.0"
         },
         {
           "name": "MCB_U34_ADC128D818_XP12R0V_STBY_BMC",
@@ -174,7 +174,7 @@
             "upperCriticalVal": 13.2,
             "lowerCriticalVal": 10.8
           },
-          "compute": "11*@/1000"
+          "compute": "11*@/1000.0"
         },
         {
           "name": "MCB_U34_ADC128D818_XP3R3V_SSD",
@@ -186,7 +186,7 @@
             "upperCriticalVal": 3.63,
             "lowerCriticalVal": 2.97
           },
-          "compute": "11*@/1000"
+          "compute": "11*@/1000.0"
         },
         {
           "name": "MCB_U35_ADC128D818_XP3R3V_STBY",
@@ -198,7 +198,7 @@
             "upperCriticalVal": 3.63,
             "lowerCriticalVal": 2.97
           },
-          "compute": "(5/3)*@/1000"
+          "compute": "(5/3)*@/1000.0"
         },
         {
           "name": "MCB_U35_ADC128D818_XP1R0V_IOB",
@@ -210,7 +210,7 @@
             "upperCriticalVal": 1.1,
             "lowerCriticalVal": 0.9
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "MCB_U35_ADC128D818_XP1R2V_IOB",
@@ -222,7 +222,7 @@
             "upperCriticalVal": 1.32,
             "lowerCriticalVal": 1.08
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "MCB_U35_ADC128D818_XP1R8V_IOB",
@@ -234,7 +234,7 @@
             "upperCriticalVal": 1.98,
             "lowerCriticalVal": 1.62
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "MCB_U35_ADC128D818_XP3R3V_IOB",
@@ -246,7 +246,7 @@
             "upperCriticalVal": 3.63,
             "lowerCriticalVal": 2.97
           },
-          "compute": "(5/3)*@/1000"
+          "compute": "(5/3)*@/1000.0"
         },
         {
           "name": "MCB_U35_ADC128D818_XP3R3V_I210",
@@ -258,7 +258,7 @@
             "upperCriticalVal": 3.63,
             "lowerCriticalVal": 2.97
           },
-          "compute": "(5/3)*@/1000"
+          "compute": "(5/3)*@/1000.0"
         },
         {
           "name": "MCB_U35_ADC128D818_XP1R0V_IOB_MGTAVCC",
@@ -270,7 +270,7 @@
             "upperCriticalVal": 1.1,
             "lowerCriticalVal": 0.9
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "MCB_U35_ADC128D818_XP5R0V_STBY",
@@ -282,7 +282,7 @@
             "upperCriticalVal": 5.5,
             "lowerCriticalVal": 4.5
           },
-          "compute": "5.7*@/1000"
+          "compute": "5.7*@/1000.0"
         },
         {
           "name": "MCB_U1_ADC128D818_XP1R1V_OOB",
@@ -294,7 +294,7 @@
             "upperCriticalVal": 1.21,
             "lowerCriticalVal": 0.99
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "MCB_U1_ADC128D818_XP1R5V_OOB",
@@ -306,7 +306,7 @@
             "upperCriticalVal": 1.65,
             "lowerCriticalVal": 1.35
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "MCB_U1_ADC128D818_XP2R5V_OOB",
@@ -318,7 +318,7 @@
             "upperCriticalVal": 2.75,
             "lowerCriticalVal": 2.25
           },
-          "compute": "2*@/1000"
+          "compute": "2*@/1000.0"
         },
         {
           "name": "MCB_U1_ADC128D818_XP3R3V_DOM_MCB",
@@ -330,7 +330,7 @@
             "upperCriticalVal": 3.63,
             "lowerCriticalVal": 2.97
           },
-          "compute": "(5/3)*@/1000"
+          "compute": "(5/3)*@/1000.0"
         },
         {
           "name": "MCB_U1_ADC128D818_XP2R5V_DOM_MCB",
@@ -342,7 +342,7 @@
             "upperCriticalVal": 2.75,
             "lowerCriticalVal": 2.25
           },
-          "compute": "2*@/1000"
+          "compute": "2*@/1000.0"
         },
         {
           "name": "MCB_U1_ADC128D818_XP1R1V_DOM_MCB",
@@ -354,7 +354,7 @@
             "upperCriticalVal": 1.21,
             "lowerCriticalVal": 0.99
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "MCB_U1_ADC128D818_ORV3_PWR_NTC_P2",
@@ -384,7 +384,7 @@
             "maxAlarmVal": 60,
             "upperCriticalVal": 65
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "MCB_U60_MCB_COME_OUTLET_TSENSOR",
@@ -394,7 +394,7 @@
             "maxAlarmVal": 60,
             "upperCriticalVal": 65
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "MCB_U62_PB_INLET_TSENSOR",
@@ -404,7 +404,7 @@
             "maxAlarmVal": 55,
             "upperCriticalVal": 60
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "MCB_U63_PB_OUTLET_TSENSOR",
@@ -414,7 +414,7 @@
             "maxAlarmVal": 60,
             "upperCriticalVal": 65
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "NETLAKE_U1_CPU_UNCORE_TEMP",
@@ -424,7 +424,7 @@
             "upperCriticalVal": 100,
             "maxAlarmVal": 90
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "NETLAKE_U1_CPU_CORE0_TEMP",
@@ -434,7 +434,7 @@
             "maxAlarmVal": 90,
             "upperCriticalVal": 100
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "NETLAKE_U1_CPU_CORE1_TEMP",
@@ -444,7 +444,7 @@
             "maxAlarmVal": 90,
             "upperCriticalVal": 100
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "NETLAKE_U1_CPU_CORE2_TEMP",
@@ -454,7 +454,7 @@
             "maxAlarmVal": 90,
             "upperCriticalVal": 100
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "NETLAKE_U1_CPU_CORE3_TEMP",
@@ -464,7 +464,7 @@
             "maxAlarmVal": 90,
             "upperCriticalVal": 100
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "NETLAKE_U1_CPU_CORE4_TEMP",
@@ -474,7 +474,7 @@
             "maxAlarmVal": 90,
             "upperCriticalVal": 100
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "NETLAKE_U1_CPU_CORE5_TEMP",
@@ -484,7 +484,7 @@
             "maxAlarmVal": 90,
             "upperCriticalVal": 100
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "NETLAKE_U1_CPU_CORE6_TEMP",
@@ -494,7 +494,7 @@
             "maxAlarmVal": 90,
             "upperCriticalVal": 100
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "NETLAKE_U1_CPU_CORE7_TEMP",
@@ -504,7 +504,7 @@
             "maxAlarmVal": 90,
             "upperCriticalVal": 100
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "MCB_PU101_XP48R0V_STBY_VIN",
@@ -516,7 +516,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "MCB_PU101_XP48R0V_STBY_VOUT",
@@ -528,7 +528,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "MCB_PU101_XP48R0V_STBY_TEMPARTURES",
@@ -540,7 +540,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "MCB_PU101_XP48R0V_STBY_IIN",
@@ -552,7 +552,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "MCB_PU167_XP48R0V_STBY_INA238_VOLTAGE",
@@ -564,7 +564,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "MCB_PU167_XP48R0V_STBY_INA238_TEMPERATURE",
@@ -576,7 +576,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "MCB_PU167_XP48R0V_STBY_INA238_CURRENT",
@@ -588,7 +588,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "MCB_PU167_XP48R0V_STBY_INA238_POWER",
@@ -600,7 +600,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "MCB_PU1066_XP48R0V_HOTSWAP_VIN",
@@ -612,7 +612,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "MCB_PU1066_XP48R0V_HOTSWAP_VOUT",
@@ -624,7 +624,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "MCB_PU1066_XP48R0V_HOTSWAP_IOUT",
@@ -636,7 +636,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "MCB_PU1066_XP48R0V_HOTSWAP_TEMP",
@@ -648,7 +648,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "MCB_PU1066_XP48R0V_HOTSWAP_PIN",
@@ -660,7 +660,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "MCB_PU426_XP12R0V_FAN1_VIN",
@@ -672,7 +672,7 @@
             "upperCriticalVal": 13.2,
             "lowerCriticalVal": 10.8
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "MCB_PU426_XP12R0V_FAN1_VOUT",
@@ -684,7 +684,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "MCB_PU426_XP12R0V_FAN1_IIN",
@@ -694,7 +694,7 @@
             "maxAlarmVal": 15,
             "upperCriticalVal": 30
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "MCB_PU426_XP12R0V_FAN1_TEMPARTURES",
@@ -706,7 +706,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "MCB_PU595_XP12R0V_FAN2_VIN",
@@ -718,7 +718,7 @@
             "upperCriticalVal": 13.2,
             "lowerCriticalVal": 10.8
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "MCB_PU595_XP12R0V_FAN2_VOUT",
@@ -730,7 +730,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "MCB_PU595_XP12R0V_FAN2_IIN",
@@ -740,7 +740,7 @@
             "maxAlarmVal": 15,
             "upperCriticalVal": 30
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "MCB_PU595_XP12R0V_FAN2_TEMPARTURES",
@@ -752,7 +752,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "MCB_PU691_XP12R0V_FAN3_VIN",
@@ -764,7 +764,7 @@
             "upperCriticalVal": 13.2,
             "lowerCriticalVal": 10.8
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "MCB_PU691_XP12R0V_FAN3_VOUT",
@@ -776,7 +776,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "MCB_PU691_XP12R0V_FAN3_IIN",
@@ -786,7 +786,7 @@
             "maxAlarmVal": 15,
             "upperCriticalVal": 30
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "MCB_PU691_XP12R0V_FAN3_TEMPARTURES",
@@ -798,7 +798,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "MCB_PU810_XP12R0V_FAN4_VIN",
@@ -810,7 +810,7 @@
             "upperCriticalVal": 13.2,
             "lowerCriticalVal": 10.8
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "MCB_PU810_XP12R0V_FAN4_VOUT",
@@ -822,7 +822,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "MCB_PU810_XP12R0V_FAN4_IIN",
@@ -832,7 +832,7 @@
             "maxAlarmVal": 15,
             "upperCriticalVal": 30
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "MCB_PU810_XP12R0V_FAN4_TEMPARTURES",
@@ -844,7 +844,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "MCB_PS108_XP12R0V_PB1_VIN",
@@ -856,7 +856,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "MCB_PS108_XP12R0V_PB1_VOUT",
@@ -868,7 +868,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "MCB_PS108_XP12R0V_PB1_IOUT",
@@ -880,7 +880,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "MCB_PS108_XP12R0V_PB1_TEMPARTURES",
@@ -892,7 +892,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "MCB_PS109_XP12R0V_PB2_VIN",
@@ -904,7 +904,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "MCB_PS109_XP12R0V_PB2_VOUT",
@@ -916,7 +916,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "MCB_PS109_XP12R0V_PB2_IOUT",
@@ -928,7 +928,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "MCB_PS109_XP12R0V_PB2_TEMPARTURES",
@@ -940,7 +940,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "MCB_PU925_XP12R0V_COME_VIN",
@@ -952,7 +952,7 @@
             "upperCriticalVal": 13.2,
             "lowerCriticalVal": 10.8
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "MCB_PU925_XP12R0V_COME_VOUT",
@@ -964,7 +964,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "MCB_PU925_XP12R0V_COME_TEMPARTURES",
@@ -976,7 +976,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "MCB_PU925_XP12R0V_COME_IIN",
@@ -986,7 +986,7 @@
             "maxAlarmVal": 10,
             "upperCriticalVal": 15
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "MCB_PU1497_XP3R3V_OSFP_VIN",
@@ -998,7 +998,7 @@
             "upperCriticalVal": 3.63,
             "lowerCriticalVal": 2.805
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "MCB_PU1497_XP3R3V_OSFP_IIN",
@@ -1010,7 +1010,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "MCB_PU1497_XP3R3V_OSFP_VOUT",
@@ -1022,7 +1022,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "MCB_PU1497_XP3R3V_OSFP_IOUT",
@@ -1034,7 +1034,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "MCB_PU1497_XP3R3V_OSFP_TEMP",
@@ -1046,7 +1046,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "MCB_PU1497_XP3R3V_OSFP_PIN",
@@ -1058,7 +1058,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "MCB_PU1497_XP3R3V_OSFP_POUT",
@@ -1070,13 +1070,13 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         }
       ]
     },
     {
       "slotPath": "/RUNBMC_SLOT@0",
-      "pmUnitName": "TAHANSB_BMC",
+      "pmUnitName": "BMC",
       "sensors": [
         {
           "name": "BMC_U9_LM75B_TEMP",
@@ -1086,7 +1086,7 @@
             "upperCriticalVal": 65,
             "maxAlarmVal": 60
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         }
       ]
     },
@@ -1096,7 +1096,7 @@
       "sensors": [
         {
           "name": "COME_PU4_XDPE15284_PVCCIN_VIN",
-          "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR5/in1_input",
+          "sysfsPath": "/run/devmap/sensors/COME_HWMON5/in1_input",
           "type": 1,
           "thresholds": {
             "maxAlarmVal": 14,
@@ -1107,7 +1107,7 @@
         },
         {
           "name": "COME_PU4_XDPE15284_P1V8_VIN",
-          "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR5/in2_input",
+          "sysfsPath": "/run/devmap/sensors/COME_HWMON5/in2_input",
           "type": 1,
           "thresholds": {
             "maxAlarmVal": 14,
@@ -1118,49 +1118,49 @@
         },
         {
           "name": "COME_PU4_XDPE15284_PVCCIN_VOUT",
-          "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR5/in3_input",
+          "sysfsPath": "/run/devmap/sensors/COME_HWMON5/in3_input",
           "type": 1,
           "thresholds": {
             "maxAlarmVal": 2,
             "upperCriticalVal": 2.2,
             "lowerCriticalVal": 1.4
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "COME_PU4_XDPE15284_P1V8_VOUT",
-          "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR5/in4_input",
+          "sysfsPath": "/run/devmap/sensors/COME_HWMON5/in4_input",
           "type": 1,
           "thresholds": {
             "maxAlarmVal": 2,
             "upperCriticalVal": 2.2,
             "lowerCriticalVal": 1.4
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "COME_PU4_XDPE15284_PVCCIN_TEMP",
-          "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR5/temp1_input",
+          "sysfsPath": "/run/devmap/sensors/COME_HWMON5/temp1_input",
           "type": 3,
           "thresholds": {
             "maxAlarmVal": 100,
             "upperCriticalVal": 115
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "COME_PU4_XDPE15284_P1V8_TEMP",
-          "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR5/temp2_input",
+          "sysfsPath": "/run/devmap/sensors/COME_HWMON5/temp2_input",
           "type": 3,
           "thresholds": {
             "maxAlarmVal": 100,
             "upperCriticalVal": 115
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "COME_PU4_XDPE15284_PVCCIN_PIN",
-          "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR5/power1_input",
+          "sysfsPath": "/run/devmap/sensors/COME_HWMON5/power1_input",
           "type": 0,
           "thresholds": {
             "maxAlarmVal": 225
@@ -1169,7 +1169,7 @@
         },
         {
           "name": "COME_PU4_XDPE15284_P1V8_PIN",
-          "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR5/power2_input",
+          "sysfsPath": "/run/devmap/sensors/COME_HWMON5/power2_input",
           "type": 0,
           "thresholds": {
             "maxAlarmVal": 52.5
@@ -1178,7 +1178,7 @@
         },
         {
           "name": "COME_PU4_XDPE15284_PVCCIN_POUT",
-          "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR5/power3_input",
+          "sysfsPath": "/run/devmap/sensors/COME_HWMON5/power3_input",
           "type": 0,
           "thresholds": {
             "maxAlarmVal": 318.5
@@ -1187,7 +1187,7 @@
         },
         {
           "name": "COME_PU4_XDPE15284_P1V8_POUT",
-          "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR5/power4_input",
+          "sysfsPath": "/run/devmap/sensors/COME_HWMON5/power4_input",
           "type": 0,
           "thresholds": {
             "maxAlarmVal": 15
@@ -1196,267 +1196,267 @@
         },
         {
           "name": "COME_PU4_XDPE15284_PVCCIN_IIN",
-          "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR5/curr1_input",
+          "sysfsPath": "/run/devmap/sensors/COME_HWMON5/curr1_input",
           "type": 2,
           "thresholds": {
             "maxAlarmVal": 12,
             "upperCriticalVal": 15
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "COME_PU4_XDPE15284_P1V8_IIN",
-          "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR5/curr2_input",
+          "sysfsPath": "/run/devmap/sensors/COME_HWMON5/curr2_input",
           "type": 2,
           "thresholds": {
             "maxAlarmVal": 3,
             "upperCriticalVal": 3.5
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "COME_PU4_XDPE15284_PVCCIN_IOUT",
-          "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR5/curr3_input",
+          "sysfsPath": "/run/devmap/sensors/COME_HWMON5/curr3_input",
           "type": 2,
           "thresholds": {
             "maxAlarmVal": 94,
             "upperCriticalVal": 130
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "COME_PU4_XDPE15284_P1V8_IOUT",
-          "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR5/curr4_input",
+          "sysfsPath": "/run/devmap/sensors/COME_HWMON5/curr4_input",
           "type": 2,
           "thresholds": {
             "maxAlarmVal": 3,
             "upperCriticalVal": 6
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "COME_PU41_TDA38640_1.2V_PVDDQ_ABC_CPU_VIN",
-          "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR3/in1_input",
+          "sysfsPath": "/run/devmap/sensors/COME_HWMON3/in1_input",
           "type": 1,
           "thresholds": {
             "upperCriticalVal": 15
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "COME_PU41_TDA38640_1.2V_PVDDQ_ABC_CPU_VOUT",
-          "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR3/in2_input",
+          "sysfsPath": "/run/devmap/sensors/COME_HWMON3/in2_input",
           "type": 1,
           "thresholds": {
             "upperCriticalVal": 1.605,
             "lowerCriticalVal": 0.805
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "COME_PU41_TDA38640_1.2V_PVDDQ_ABC_CPU_TEMP",
-          "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR3/temp1_input",
+          "sysfsPath": "/run/devmap/sensors/COME_HWMON3/temp1_input",
           "type": 3,
           "thresholds": {
             "maxAlarmVal": 100,
             "upperCriticalVal": 115
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "COME_PU41_TDA38640_1.2V_PVDDQ_ABC_CPU_PIN",
-          "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR3/power1_input",
+          "sysfsPath": "/run/devmap/sensors/COME_HWMON3/power1_input",
           "type": 0,
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "COME_PU41_TDA38640_1.2V_PVDDQ_ABC_CPU_POUT",
-          "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR3/power2_input",
+          "sysfsPath": "/run/devmap/sensors/COME_HWMON3/power2_input",
           "type": 0,
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "COME_PU41_TDA38640_1.2V_PVDDQ_ABC_CPU_IIN",
-          "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR3/curr1_input",
+          "sysfsPath": "/run/devmap/sensors/COME_HWMON3/curr1_input",
           "type": 2,
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "COME_PU41_TDA38640_1.2V_PVDDQ_ABC_CPU_IOUT",
-          "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR3/curr2_input",
+          "sysfsPath": "/run/devmap/sensors/COME_HWMON3/curr2_input",
           "type": 2,
           "thresholds": {
             "upperCriticalVal": 26
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "COME_PU31_TDA38640_PVNN_PCH_VIN",
-          "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR1/in1_input",
+          "sysfsPath": "/run/devmap/sensors/COME_HWMON1/in1_input",
           "type": 1,
           "thresholds": {
             "upperCriticalVal": 15
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "COME_PU31_TDA38640_PVNN_PCH_VOUT",
-          "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR1/in2_input",
+          "sysfsPath": "/run/devmap/sensors/COME_HWMON1/in2_input",
           "type": 1,
           "thresholds": {
             "upperCriticalVal": 1.4,
             "lowerCriticalVal": 0.6
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "COME_PU31_TDA38640_PVNN_PCH_TEMP",
-          "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR1/temp1_input",
+          "sysfsPath": "/run/devmap/sensors/COME_HWMON1/temp1_input",
           "type": 3,
           "thresholds": {
             "maxAlarmVal": 100,
             "upperCriticalVal": 115
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "COME_PU31_TDA38640_PVNN_PCH_PIN",
-          "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR1/power1_input",
+          "sysfsPath": "/run/devmap/sensors/COME_HWMON1/power1_input",
           "type": 0,
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "COME_PU31_TDA38640_PVNN_PCH_POUT",
-          "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR1/power2_input",
+          "sysfsPath": "/run/devmap/sensors/COME_HWMON1/power2_input",
           "type": 0,
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "COME_PU31_TDA38640_PVNN_PCH_IIN",
-          "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR1/curr1_input",
+          "sysfsPath": "/run/devmap/sensors/COME_HWMON1/curr1_input",
           "type": 2,
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "COME_PU31_TDA38640_PVNN_PCH_IOUT",
-          "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR1/curr2_input",
+          "sysfsPath": "/run/devmap/sensors/COME_HWMON1/curr2_input",
           "type": 2,
           "thresholds": {
             "upperCriticalVal": 13
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "COME_PU42_TDA38640_PVCCANA_CPU_1V_VIN",
-          "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR4/in1_input",
+          "sysfsPath": "/run/devmap/sensors/COME_HWMON4/in1_input",
           "type": 1,
           "thresholds": {
             "upperCriticalVal": 15
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "COME_PU42_TDA38640_PVCCANA_CPU_1V_VOUT",
-          "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR4/in2_input",
+          "sysfsPath": "/run/devmap/sensors/COME_HWMON4/in2_input",
           "type": 1,
           "thresholds": {
             "upperCriticalVal": 1.4,
             "lowerCriticalVal": 0.6
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "COME_PU42_TDA38640_PVCCANA_CPU_1V_TEMP",
-          "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR4/temp1_input",
+          "sysfsPath": "/run/devmap/sensors/COME_HWMON4/temp1_input",
           "type": 3,
           "thresholds": {
             "maxAlarmVal": 100,
             "upperCriticalVal": 115
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "COME_PU42_TDA38640_PVCCANA_CPU_1V_PIN",
-          "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR4/power1_input",
+          "sysfsPath": "/run/devmap/sensors/COME_HWMON4/power1_input",
           "type": 0,
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "COME_PU42_TDA38640_PVCCANA_CPU_1V_POUT",
-          "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR4/power2_input",
+          "sysfsPath": "/run/devmap/sensors/COME_HWMON4/power2_input",
           "type": 0,
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "COME_PU42_TDA38640_PVCCANA_CPU_1V_IIN",
-          "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR4/curr1_input",
+          "sysfsPath": "/run/devmap/sensors/COME_HWMON4/curr1_input",
           "type": 2,
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "COME_PU42_TDA38640_PVCCANA_CPU_1V_IOUT",
-          "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR4/curr2_input",
+          "sysfsPath": "/run/devmap/sensors/COME_HWMON4/curr2_input",
           "type": 2,
           "thresholds": {
             "upperCriticalVal": 5
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "COME_PU32_TDA38640_P1V05_STBY_VIN",
-          "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR2/in1_input",
+          "sysfsPath": "/run/devmap/sensors/COME_HWMON2/in1_input",
           "type": 1,
           "thresholds": {
             "upperCriticalVal": 15
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "COME_PU32_TDA38640_P1V05_STBY_VOUT",
-          "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR2/in2_input",
+          "sysfsPath": "/run/devmap/sensors/COME_HWMON2/in2_input",
           "type": 1,
           "thresholds": {
             "upperCriticalVal": 1.46,
             "lowerCriticalVal": 0.66
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "COME_PU32_TDA38640_P1V05_STBY_TEMP",
-          "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR2/temp1_input",
+          "sysfsPath": "/run/devmap/sensors/COME_HWMON2/temp1_input",
           "type": 3,
           "thresholds": {
             "maxAlarmVal": 100,
             "upperCriticalVal": 115
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "COME_PU32_TDA38640_P1V05_STBY_PIN",
-          "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR2/power1_input",
+          "sysfsPath": "/run/devmap/sensors/COME_HWMON2/power1_input",
           "type": 0,
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "COME_PU32_TDA38640_P1V05_STBY_POUT",
-          "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR2/power2_input",
+          "sysfsPath": "/run/devmap/sensors/COME_HWMON2/power2_input",
           "type": 0,
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "COME_PU32_TDA38640_P1V05_STBY_IIN",
-          "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR2/curr1_input",
+          "sysfsPath": "/run/devmap/sensors/COME_HWMON2/curr1_input",
           "type": 2,
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "COME_PU32_TDA38640_P1V05_STBY_IOUT",
-          "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR2/curr2_input",
+          "sysfsPath": "/run/devmap/sensors/COME_HWMON2/curr2_input",
           "type": 2,
           "thresholds": {
             "upperCriticalVal": 20
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "COME_U18_INLET_SENSOR_TMP75_TEMP",
@@ -1466,7 +1466,7 @@
             "maxAlarmVal": 60,
             "upperCriticalVal": 65
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "COME_U39_OUTLET_SENSOR_TMP75_TEMP",
@@ -1476,13 +1476,13 @@
             "maxAlarmVal": 60,
             "upperCriticalVal": 65
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         }
       ]
     },
     {
       "slotPath": "/SMB_SLOT@0",
-      "pmUnitName": "TAHANSB_SMB",
+      "pmUnitName": "SMB",
       "sensors": [
         {
           "name": "SMB_PU2978_XP0R8V_TH6_VDDC_PIN",
@@ -1494,7 +1494,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU2978_XP0R8V_TH6_VDDC_POUT",
@@ -1506,7 +1506,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU2978_XP0R8V_TH6_VDDC_VIN",
@@ -1518,7 +1518,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU2978_XP0R8V_TH6_VDDC_VOUT",
@@ -1530,7 +1530,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU2978_XP0R8V_TH6_VDDC_IIN",
@@ -1542,7 +1542,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU2978_XP0R8V_TH6_VDDC_IOUT",
@@ -1554,7 +1554,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU2978_XP0R8V_TH6_VDDC_TEMP",
@@ -1566,7 +1566,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_U8_LM75B_TH6_INLET",
@@ -1578,7 +1578,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU2203_XP0R8V_PT_VDDC_0_VIN",
@@ -1590,7 +1590,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU2203_XP0R8V_PT_VDDC_0_VOUT",
@@ -1602,7 +1602,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU2203_XP0R8V_PT_VDDC_0_IIN",
@@ -1614,7 +1614,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU2203_XP0R8V_PT_VDDC_0_IOUT",
@@ -1626,7 +1626,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU2203_XP0R8V_PT_VDDC_0_TEMP",
@@ -1638,7 +1638,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU2203_XP0R8V_PT_VDDC_0_PIN",
@@ -1650,7 +1650,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU2203_XP0R8V_PT_VDDC_0_POUT",
@@ -1662,7 +1662,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU2203_XP0R72V_PB_TRVDD_0_VIN",
@@ -1674,7 +1674,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU2203_XP0R72V_PB_TRVDD_0_VOUT",
@@ -1686,7 +1686,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU2203_XP0R72V_PB_TRVDD_0_IIN",
@@ -1698,7 +1698,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU2203_XP0R72V_PB_TRVDD_0_IOUT",
@@ -1710,7 +1710,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU2203_XP0R72V_PB_TRVDD_0_TEMP",
@@ -1722,7 +1722,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU2203_XP0R72V_PB_TRVDD_0_PIN",
@@ -1734,7 +1734,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU2203_XP0R72V_PB_TRVDD_0_POUT",
@@ -1746,7 +1746,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1502_XP0R75V_TH6_TRVDD_0_VIN",
@@ -1758,7 +1758,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1502_XP0R75V_TH6_TRVDD_0_VOUT",
@@ -1770,7 +1770,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1502_XP0R75V_TH6_TRVDD_0_IIN",
@@ -1782,7 +1782,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1502_XP0R75V_TH6_TRVDD_0_IOUT",
@@ -1794,7 +1794,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1502_XP0R75V_TH6_TRVDD_0_TEMP",
@@ -1806,7 +1806,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1502_XP0R75V_TH6_TRVDD_0_PIN",
@@ -1818,7 +1818,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1502_XP0R75V_TH6_TRVDD_0_POUT",
@@ -1830,7 +1830,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1502_XP0R8V_PT_VDDC_2_VIN",
@@ -1842,7 +1842,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1502_XP0R8V_PT_VDDC_2_VOUT",
@@ -1854,7 +1854,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1502_XP0R8V_PT_VDDC_2_IIN",
@@ -1866,7 +1866,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1502_XP0R8V_PT_VDDC_2_IOUT",
@@ -1878,7 +1878,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1502_XP0R8V_PT_VDDC_2_TEMP",
@@ -1890,7 +1890,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1502_XP0R8V_PT_VDDC_2_PIN",
@@ -1902,7 +1902,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1502_XP0R8V_PT_VDDC_2_POUT",
@@ -1914,7 +1914,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_U29_TH6_SENSOR_TMP432A_1",
@@ -1926,7 +1926,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU2056_XP0R8V_PT_VDDC_3_VIN",
@@ -1938,7 +1938,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU2056_XP0R8V_PT_VDDC_3_VOUT",
@@ -1950,7 +1950,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU2056_XP0R8V_PT_VDDC_3_IIN",
@@ -1962,7 +1962,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU2056_XP0R8V_PT_VDDC_3_IOUT",
@@ -1974,7 +1974,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU2056_XP0R8V_PT_VDDC_3_TEMP",
@@ -1986,7 +1986,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU2056_XP0R8V_PT_VDDC_3_PIN",
@@ -1998,7 +1998,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU2056_XP0R8V_PT_VDDC_3_POUT",
@@ -2010,7 +2010,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU2056_XP0R8V_PT_VDDC_4_VIN",
@@ -2022,7 +2022,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU2056_XP0R8V_PT_VDDC_4_VOUT",
@@ -2034,7 +2034,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU2056_XP0R8V_PT_VDDC_4_IIN",
@@ -2046,7 +2046,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU2056_XP0R8V_PT_VDDC_4_IOUT",
@@ -2058,7 +2058,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU2056_XP0R8V_PT_VDDC_4_TEMP",
@@ -2070,7 +2070,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU2056_XP0R8V_PT_VDDC_4_PIN",
@@ -2082,7 +2082,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU2056_XP0R8V_PT_VDDC_4_POUT",
@@ -2094,7 +2094,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_U7_LM75B_TH6_OUTLET",
@@ -2106,7 +2106,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1745_XP0R8V_PT_VDDC_7_VIN",
@@ -2118,7 +2118,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1745_XP0R8V_PT_VDDC_7_VOUT",
@@ -2130,7 +2130,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1745_XP0R8V_PT_VDDC_7_IIN",
@@ -2142,7 +2142,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1745_XP0R8V_PT_VDDC_7_IOUT",
@@ -2154,7 +2154,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1745_XP0R8V_PT_VDDC_7_TEMP",
@@ -2166,7 +2166,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1745_XP0R8V_PT_VDDC_7_PIN",
@@ -2178,7 +2178,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1745_XP0R8V_PT_VDDC_7_POUT",
@@ -2190,7 +2190,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1745_XP0R72V_PB_TRVDD_2_VIN",
@@ -2202,7 +2202,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1745_XP0R72V_PB_TRVDD_2_VOUT",
@@ -2214,7 +2214,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1745_XP0R72V_PB_TRVDD_2_IIN",
@@ -2226,7 +2226,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1745_XP0R72V_PB_TRVDD_2_IOUT",
@@ -2238,7 +2238,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1745_XP0R72V_PB_TRVDD_2_TEMP",
@@ -2250,7 +2250,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1745_XP0R72V_PB_TRVDD_2_PIN",
@@ -2262,7 +2262,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1745_XP0R72V_PB_TRVDD_2_POUT",
@@ -2274,7 +2274,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_U30_TH6_SENSOR_TMP432A_2",
@@ -2286,7 +2286,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1342_XP0R8V_PT_VDDC_1_VIN",
@@ -2298,7 +2298,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1342_XP0R8V_PT_VDDC_1_VOUT",
@@ -2310,7 +2310,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1342_XP0R8V_PT_VDDC_1_IIN",
@@ -2322,7 +2322,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1342_XP0R8V_PT_VDDC_1_IOUT",
@@ -2334,7 +2334,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1342_XP0R8V_PT_VDDC_1_TEMP",
@@ -2346,7 +2346,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1342_XP0R8V_PT_VDDC_1_PIN",
@@ -2358,7 +2358,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1342_XP0R8V_PT_VDDC_1_POUT",
@@ -2370,7 +2370,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1342_XP1R5V_TH6_RVDD_0_VIN",
@@ -2382,7 +2382,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1342_XP1R5V_TH6_RVDD_0_VOUT",
@@ -2394,7 +2394,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1342_XP1R5V_TH6_RVDD_0_IIN",
@@ -2406,7 +2406,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1342_XP1R5V_TH6_RVDD_0_IOUT",
@@ -2418,7 +2418,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1342_XP1R5V_TH6_RVDD_0_TEMP",
@@ -2430,7 +2430,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1342_XP1R5V_TH6_RVDD_0_PIN",
@@ -2442,7 +2442,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1342_XP1R5V_TH6_RVDD_0_POUT",
@@ -2454,7 +2454,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU2052_XP0R8V_PT_VDDC_6_VIN",
@@ -2466,7 +2466,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU2052_XP0R8V_PT_VDDC_6_VOUT",
@@ -2478,7 +2478,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU2052_XP0R8V_PT_VDDC_6_IIN",
@@ -2490,7 +2490,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU2052_XP0R8V_PT_VDDC_6_IOUT",
@@ -2502,7 +2502,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU2052_XP0R8V_PT_VDDC_6_TEMP",
@@ -2514,7 +2514,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU2052_XP0R8V_PT_VDDC_6_PIN",
@@ -2526,7 +2526,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU2052_XP0R8V_PT_VDDC_6_POUT",
@@ -2538,7 +2538,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU2052_XP1R5V_TH6_RVDD_1_VIN",
@@ -2550,7 +2550,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU2052_XP1R5V_TH6_RVDD_1_VOUT",
@@ -2562,7 +2562,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU2052_XP1R5V_TH6_RVDD_1_IIN",
@@ -2574,7 +2574,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU2052_XP1R5V_TH6_RVDD_1_IOUT",
@@ -2586,7 +2586,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU2052_XP1R5V_TH6_RVDD_1_TEMP",
@@ -2598,7 +2598,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU2052_XP1R5V_TH6_RVDD_1_PIN",
@@ -2610,7 +2610,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU2052_XP1R5V_TH6_RVDD_1_POUT",
@@ -2622,7 +2622,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1937_XP0R75V_TH6_TRVDD_1_VIN",
@@ -2634,7 +2634,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1937_XP0R75V_TH6_TRVDD_1_VOUT",
@@ -2646,7 +2646,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1937_XP0R75V_TH6_TRVDD_1_IIN",
@@ -2658,7 +2658,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1937_XP0R75V_TH6_TRVDD_1_IOUT",
@@ -2670,7 +2670,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1937_XP0R75V_TH6_TRVDD_1_TEMP",
@@ -2682,7 +2682,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1937_XP0R75V_TH6_TRVDD_1_PIN",
@@ -2694,7 +2694,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1937_XP0R75V_TH6_TRVDD_1_POUT",
@@ -2706,7 +2706,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1937_XP0R8V_PT_VDDC_5_VIN",
@@ -2718,7 +2718,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1937_XP0R8V_PT_VDDC_5_VOUT",
@@ -2730,7 +2730,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1937_XP0R8V_PT_VDDC_5_IIN",
@@ -2742,7 +2742,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1937_XP0R8V_PT_VDDC_5_IOUT",
@@ -2754,7 +2754,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1937_XP0R8V_PT_VDDC_5_TEMP",
@@ -2766,7 +2766,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1937_XP0R8V_PT_VDDC_5_PIN",
@@ -2778,7 +2778,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1937_XP0R8V_PT_VDDC_5_POUT",
@@ -2790,7 +2790,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1497_XP0R9V_TH6_TRVDD_0_VIN",
@@ -2802,7 +2802,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1497_XP0R9V_TH6_TRVDD_0_VOUT",
@@ -2814,7 +2814,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1497_XP0R9V_TH6_TRVDD_0_IIN",
@@ -2826,7 +2826,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1497_XP0R9V_TH6_TRVDD_0_IOUT",
@@ -2838,7 +2838,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1497_XP0R9V_TH6_TRVDD_0_TEMP",
@@ -2850,7 +2850,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1497_XP0R9V_TH6_TRVDD_0_PIN",
@@ -2862,7 +2862,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1497_XP0R9V_TH6_TRVDD_0_POUT",
@@ -2874,7 +2874,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1497_XP0R72V_PB_TRVDD_1_VIN",
@@ -2886,7 +2886,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1497_XP0R72V_PB_TRVDD_1_VOUT",
@@ -2898,7 +2898,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1497_XP0R72V_PB_TRVDD_1_IIN",
@@ -2910,7 +2910,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1497_XP0R72V_PB_TRVDD_1_IOUT",
@@ -2922,7 +2922,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1497_XP0R72V_PB_TRVDD_1_TEMP",
@@ -2934,7 +2934,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1497_XP0R72V_PB_TRVDD_1_PIN",
@@ -2946,7 +2946,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1497_XP0R72V_PB_TRVDD_1_POUT",
@@ -2958,7 +2958,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1746_XP0R9V_TH6_TRVDD_1_VIN",
@@ -2970,7 +2970,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1746_XP0R9V_TH6_TRVDD_1_VOUT",
@@ -2982,7 +2982,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1746_XP0R9V_TH6_TRVDD_1_IIN",
@@ -2994,7 +2994,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1746_XP0R9V_TH6_TRVDD_1_IOUT",
@@ -3006,7 +3006,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1746_XP0R9V_TH6_TRVDD_1_TEMP",
@@ -3018,7 +3018,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1746_XP0R9V_TH6_TRVDD_1_PIN",
@@ -3030,7 +3030,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1746_XP0R9V_TH6_TRVDD_1_POUT",
@@ -3042,7 +3042,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1746_XP0R72V_TH6_TRVDD_3_VIN",
@@ -3054,7 +3054,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1746_XP0R72V_TH6_TRVDD_3_VOUT",
@@ -3066,7 +3066,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1746_XP0R72V_TH6_TRVDD_3_IIN",
@@ -3078,7 +3078,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1746_XP0R72V_TH6_TRVDD_3_IOUT",
@@ -3090,7 +3090,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1746_XP0R72V_TH6_TRVDD_3_TEMP",
@@ -3102,7 +3102,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1746_XP0R72V_TH6_TRVDD_3_PIN",
@@ -3114,7 +3114,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_PU1746_XP0R72V_TH6_TRVDD_3_POUT",
@@ -3126,7 +3126,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_U21_XP3R3V_CLK_1",
@@ -3138,7 +3138,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "(5/3)*@/1000"
+          "compute": "(5/3)*@/1000.0"
         },
         {
           "name": "SMB_U21_XP1R8V_CLK_1",
@@ -3150,7 +3150,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_U21_XP0R75V_TH6_PT_RESCAL",
@@ -3162,7 +3162,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_U21_XP0R8V_TH6_VDDA",
@@ -3174,7 +3174,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_U21_XP1R8V_TH6_VDDO",
@@ -3186,7 +3186,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_U21_XP1R5V_TH6_AVDD",
@@ -3198,7 +3198,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_U21_XP1R2V_TH6_VDDO",
@@ -3210,7 +3210,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_U21_XP0R9V_TH6_PVDD_2",
@@ -3222,7 +3222,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_U22_XP1R8V_CLK_2",
@@ -3234,7 +3234,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_U22_XP1R2V_TH6_VDDHTX",
@@ -3246,7 +3246,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_U22_XP3R3V_CLK_2",
@@ -3258,7 +3258,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "(5/3)*@/1000"
+          "compute": "(5/3)*@/1000.0"
         },
         {
           "name": "SMB_U22_XP0R9V_TH6_PVDD_1",
@@ -3270,7 +3270,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_U22_XP0R9V_TH6_PVDD_3",
@@ -3282,7 +3282,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_U22_XP0R9V_TH6_PVDD_0",
@@ -3294,7 +3294,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_U22_XP1R8V_SMB",
@@ -3306,7 +3306,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         },
         {
           "name": "SMB_U22_XP1R5V_TH6_PVDD",
@@ -3318,7 +3318,7 @@
             "upperCriticalVal": 0,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000"
+          "compute": "@/1000.0"
         }
       ]
     }
