@@ -419,7 +419,7 @@ std::optional<uint32_t> ChenabAsic::getMaxDlbEcmpGroups() const {
   return 256;
 }
 uint32_t ChenabAsic::getNumCores() const {
-  return 12;
+  return 1;
 }
 uint32_t ChenabAsic::getStaticQueueLimitBytes() const {
   return 512 * 1024 * getPacketBufferUnitSize();
