@@ -11,6 +11,11 @@ add_fbthrift_cpp_library(
     reflection
 )
 
+add_fbthrift_cpp_library(
+  eeprom_contents_cpp2
+  fboss/platform/weutil/if/eeprom_contents.thrift
+)
+
 add_library(weutil_crc16_ccitt_aug
   fboss/platform/weutil/Crc16CcittAug.cpp
 )
@@ -21,11 +26,9 @@ add_library(weutil_fboss_eeprom_parser
 )
 
 target_link_libraries(weutil_fboss_eeprom_parser
-  weutil_crc16_ccitt_aug
-)
-
-target_link_libraries(weutil_fboss_eeprom_parser
   Folly::folly
+  eeprom_contents_cpp2
+  weutil_crc16_ccitt_aug
 )
 
 add_library(weutil_lib
