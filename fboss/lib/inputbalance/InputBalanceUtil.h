@@ -55,6 +55,9 @@ std::unordered_map<std::string, std::unordered_map<std::string, std::string>>
 getNeighborFabricPortsToSelf(
     const std::map<int32_t, PortInfoThrift>& myPortInfo);
 
+std::unordered_map<int, std::vector<std::string>> groupFabricDevicesByCluster(
+    const std::unordered_map<std::string, cfg::DsfNode>& nameToDsfNode);
+
 std::map<std::string, std::string> getPortToNeighbor(
     const std::shared_ptr<MultiSwitchPortMap>& portMap);
 

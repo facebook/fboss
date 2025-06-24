@@ -170,6 +170,25 @@ getNeighborFabricPortsToSelf(
   return switchNameToPorts;
 }
 
+std::unordered_map<int, std::vector<std::string>> groupFabricDevicesByCluster(
+    const std::unordered_map<std::string, cfg::DsfNode>& nameToDsfNode) {
+  std::unordered_map<int, std::vector<std::string>> clusterToFabricDevices;
+  for (const auto& [name, dsfNode] : nameToDsfNode) {
+    if (dsfNode.clusterId().has_value()) {
+      auto clusterID = dsfNode.clusterId().value();
+      if (dsfNode.type() == cfg::DsfNodeType::FABRIC_NODE) {
+        auto iter = clusterToFabricDevices.find(clusterID);
+        if (iter != clusterToFabricDevices.end()) {
+          iter->second.emplace_back(name);
+        } else {
+          clusterToFabricDevices[clusterID] = {name};
+        }
+      }
+    }
+  }
+  return clusterToFabricDevices;
+}
+
 std::map<std::string, std::string> getPortToNeighbor(
     const std::shared_ptr<MultiSwitchPortMap>& portMap) {
   std::map<std::string, std::string> portToNeighbor;
