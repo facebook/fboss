@@ -11,6 +11,7 @@
 
 #include "fboss/agent/types.h"
 #include "fboss/qsfp_service/TransceiverStateMachine.h"
+#include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
 #include <folly/IntrusiveList.h>
 #include <memory>

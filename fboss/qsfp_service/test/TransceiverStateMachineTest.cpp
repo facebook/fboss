@@ -448,7 +448,7 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
       }
     };
     auto stateUpdateFnStr = folly::to<std::string>(
-        "Event=", TransceiverStateMachineUpdate::getEventName(event));
+        "Event=", apache::thrift::util::enumNameSafe(event));
     verifyStateMachine(
         supportedStates,
         expectedState,
@@ -516,7 +516,7 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
       transceiverManager_->updateStateBlocking(id_, event);
     };
     auto stateUpdateFnStr = folly::to<std::string>(
-        "Event=", TransceiverStateMachineUpdate::getEventName(event));
+        "Event=", apache::thrift::util::enumNameSafe(event));
     verifyStateUnchanged(
         states,
         preUpdate,

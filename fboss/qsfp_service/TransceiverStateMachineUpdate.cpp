@@ -12,6 +12,7 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/qsfp_service/TransceiverManager.h"
+#include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
 #include <fmt/format.h>
 
@@ -19,25 +20,39 @@ namespace facebook::fboss {
 
 std::map<TransceiverStateMachineEvent, std::string>
     kTransceiverStateMachineEventNames = {
-        {TCVR_EV_EVENT_DETECT_TRANSCEIVER, "EVENT_DETECT_TRANSCEIVER"},
-        {TCVR_EV_RESET_TRANSCEIVER, "RESET_TRANSCEIVER"},
-        {TCVR_EV_REMOVE_TRANSCEIVER, "REMOVE_TRANSCEIVER"},
-        {TCVR_EV_READ_EEPROM, "READ_EEPROM"},
-        {TCVR_EV_ALL_PORTS_DOWN, "ALL_PORTS_DOWN"},
-        {TCVR_EV_PORT_UP, "PORT_UP"},
-        {TCVR_EV_TRIGGER_UPGRADE, "TRIGGER_UPGRADE"},
-        {TCVR_EV_FORCED_UPGRADE, "FORCED_UPGRADE"},
-        {TCVR_EV_AGENT_SYNC_TIMEOUT, "AGENT_SYNC_TIMEOUT"},
-        {TCVR_EV_BRINGUP_DONE, "BRINGUP_DONE"},
-        {TCVR_EV_REMEDIATE_DONE, "REMEDIATE_DONE"},
-        {TCVR_EV_PROGRAM_IPHY, "PROGRAM_IPHY"},
-        {TCVR_EV_PROGRAM_XPHY, "PROGRAM_XPHY"},
-        {TCVR_EV_PROGRAM_TRANSCEIVER, "PROGRAM_TRANSCEIVER"},
-        {TCVR_EV_RESET_TO_DISCOVERED, "RESET_TO_DISCOVERED"},
-        {TCVR_EV_RESET_TO_NOT_PRESENT, "RESET_TO_NOT_PRESENT"},
-        {TCVR_EV_REMEDIATE_TRANSCEIVER, "REMEDIATE_TRANSCEIVER"},
-        {TCVR_EV_PREPARE_TRANSCEIVER, "PREPARE_TRANSCEIVER"},
-        {TCVR_EV_UPGRADE_FIRMWARE, "UPGRADE_FIRMWARE"},
+        {TransceiverStateMachineEvent::TCVR_EV_EVENT_DETECT_TRANSCEIVER,
+         "EVENT_DETECT_TRANSCEIVER"},
+        {TransceiverStateMachineEvent::TCVR_EV_RESET_TRANSCEIVER,
+         "RESET_TRANSCEIVER"},
+        {TransceiverStateMachineEvent::TCVR_EV_REMOVE_TRANSCEIVER,
+         "REMOVE_TRANSCEIVER"},
+        {TransceiverStateMachineEvent::TCVR_EV_READ_EEPROM, "READ_EEPROM"},
+        {TransceiverStateMachineEvent::TCVR_EV_ALL_PORTS_DOWN,
+         "ALL_PORTS_DOWN"},
+        {TransceiverStateMachineEvent::TCVR_EV_PORT_UP, "PORT_UP"},
+        {TransceiverStateMachineEvent::TCVR_EV_TRIGGER_UPGRADE,
+         "TRIGGER_UPGRADE"},
+        {TransceiverStateMachineEvent::TCVR_EV_FORCED_UPGRADE,
+         "FORCED_UPGRADE"},
+        {TransceiverStateMachineEvent::TCVR_EV_AGENT_SYNC_TIMEOUT,
+         "AGENT_SYNC_TIMEOUT"},
+        {TransceiverStateMachineEvent::TCVR_EV_BRINGUP_DONE, "BRINGUP_DONE"},
+        {TransceiverStateMachineEvent::TCVR_EV_REMEDIATE_DONE,
+         "REMEDIATE_DONE"},
+        {TransceiverStateMachineEvent::TCVR_EV_PROGRAM_IPHY, "PROGRAM_IPHY"},
+        {TransceiverStateMachineEvent::TCVR_EV_PROGRAM_XPHY, "PROGRAM_XPHY"},
+        {TransceiverStateMachineEvent::TCVR_EV_PROGRAM_TRANSCEIVER,
+         "PROGRAM_TRANSCEIVER"},
+        {TransceiverStateMachineEvent::TCVR_EV_RESET_TO_DISCOVERED,
+         "RESET_TO_DISCOVERED"},
+        {TransceiverStateMachineEvent::TCVR_EV_RESET_TO_NOT_PRESENT,
+         "RESET_TO_NOT_PRESENT"},
+        {TransceiverStateMachineEvent::TCVR_EV_REMEDIATE_TRANSCEIVER,
+         "REMEDIATE_TRANSCEIVER"},
+        {TransceiverStateMachineEvent::TCVR_EV_PREPARE_TRANSCEIVER,
+         "PREPARE_TRANSCEIVER"},
+        {TransceiverStateMachineEvent::TCVR_EV_UPGRADE_FIRMWARE,
+         "UPGRADE_FIRMWARE"},
 };
 
 TransceiverStateMachineUpdate::TransceiverStateMachineUpdate(
