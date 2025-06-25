@@ -777,20 +777,15 @@ class TransceiverManager {
    * StateMachine update at the same time and also better starting and
    * terminating these threads.
    */
-  class TransceiverStateMachineHelper {
+  class TransceiverThreadHelper {
    public:
-    TransceiverStateMachineHelper(
-        TransceiverManager* tcvrMgrPtr,
-        TransceiverID tcvrID);
+    explicit TransceiverThreadHelper(const TransceiverID& tcvrID)
+        : tcvrID_(tcvrID) {}
 
     void startThread();
     void stopThread();
     folly::EventBase* getEventBase() const {
       return updateEventBase_.get();
-    }
-    folly::Synchronized<state_machine<TransceiverStateMachine>>&
-    getStateMachine() {
-      return stateMachine_;
     }
 
     std::shared_ptr<ThreadHeartbeat> getThreadHeartbeat() {
@@ -799,7 +794,6 @@ class TransceiverManager {
 
    private:
     TransceiverID tcvrID_;
-    folly::Synchronized<state_machine<TransceiverStateMachine>> stateMachine_;
     // Can't use ScopedEventBaseThread as it won't work well with
     // handcrafted RocketClientChannel client instead of servicerouter client
     std::unique_ptr<std::thread> updateThread_;
@@ -807,10 +801,9 @@ class TransceiverManager {
     std::shared_ptr<ThreadHeartbeat> heartbeat_;
   };
 
-  using TransceiverToStateMachineHelper = std::unordered_map<
-      TransceiverID,
-      std::unique_ptr<TransceiverStateMachineHelper>>;
-  TransceiverToStateMachineHelper setupTransceiverToStateMachineHelper();
+  using TransceiverToThreadHelper = std::
+      unordered_map<TransceiverID, std::unique_ptr<TransceiverThreadHelper>>;
+  TransceiverToThreadHelper setupTransceiverToThreadHelper();
 
   using TransceiverToPortInfo = std::unordered_map<
       TransceiverID,
@@ -952,7 +945,7 @@ class TransceiverManager {
    * (`getNumQsfpModules()`), we'll only setup this map insude constructor,
    * and no other functions will erase any items from this map.
    */
-  const TransceiverToStateMachineHelper stateMachines_;
+  const TransceiverToThreadHelper threads_;
 
   /*
    * A map to maintain all transceivers(present and absent) programmed SW port
@@ -1031,6 +1024,12 @@ class TransceiverManager {
   std::atomic<int> maxTimeTakenForFwUpgrade_{0};
 
   folly::Synchronized<std::unordered_set<TransceiverID>> tcvrsForFwUpgrade;
+
+  using TransceiverToStateMachineMap = std::unordered_map<
+      TransceiverID,
+      folly::Synchronized<state_machine<TransceiverStateMachine>>>;
+  TransceiverToStateMachineMap setupTransceiverToStateMachineMap();
+  TransceiverToStateMachineMap stateMachines_;
 
   friend class TransceiverStateMachineTest;
 };
