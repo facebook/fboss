@@ -15,11 +15,11 @@ GalaxyManager::GalaxyManager(
     : WedgeManager(
           std::make_unique<TransceiverPlatformI2cApi>(&i2cBus_),
           (mode == PlatformType::PLATFORM_GALAXY_LC)
-              ? (std::unique_ptr<PlatformMapping>)
-                    std::make_unique<GalaxyLCPlatformMapping>(
+              ? (std::shared_ptr<PlatformMapping>)
+                    std::make_shared<GalaxyLCPlatformMapping>(
                         GalaxyLCPlatformMapping::getLinecardName())
-              : (std::unique_ptr<PlatformMapping>)
-                    std::make_unique<GalaxyFCPlatformMapping>(
+              : (std::shared_ptr<PlatformMapping>)
+                    std::make_shared<GalaxyFCPlatformMapping>(
                         GalaxyFCPlatformMapping::getFabriccardName()),
           mode) {}
 // TODO: Will fully migrate I2CBusApi into TransceiverPlatformApi. Then we will

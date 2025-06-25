@@ -17,7 +17,7 @@ class BspWedgeManager : public WedgeManager {
   BspWedgeManager(
       const BspSystemContainer* systemContainer,
       std::unique_ptr<BspTransceiverApi> api,
-      std::unique_ptr<PlatformMapping> platformMapping,
+      const std::shared_ptr<const PlatformMapping> platformMapping,
       PlatformType type);
   ~BspWedgeManager() override {}
 

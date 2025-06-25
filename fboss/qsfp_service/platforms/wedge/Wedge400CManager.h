@@ -21,7 +21,7 @@ class Wedge400CManager : public WedgeManager {
   Wedge400CManager(Wedge400CManager const&) = delete;
   Wedge400CManager& operator=(Wedge400CManager const&) = delete;
 
-  std::unique_ptr<PlatformMapping> createWedge400CPlatformMapping(
+  const std::shared_ptr<const PlatformMapping> createWedge400CPlatformMapping(
       const std::string& platformMappingStr);
 
  protected:

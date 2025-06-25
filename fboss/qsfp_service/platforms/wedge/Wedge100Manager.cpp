@@ -10,8 +10,8 @@ Wedge100Manager::Wedge100Manager(const std::string& platformMappingStr)
     : WedgeManager(
           std::make_unique<TransceiverPlatformI2cApi>(&i2cBus_),
           platformMappingStr.empty()
-              ? std::make_unique<Wedge100PlatformMapping>()
-              : std::make_unique<Wedge100PlatformMapping>(platformMappingStr),
+              ? std::make_shared<Wedge100PlatformMapping>()
+              : std::make_shared<Wedge100PlatformMapping>(platformMappingStr),
           PlatformType::PLATFORM_WEDGE100) {}
 // TODO: Will fully migrate I2CBusApi into TransceiverPlatformApi. Then we will
 // construct the bus pointer before construct WedgeManager and will get rid of

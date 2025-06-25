@@ -145,7 +145,7 @@ namespace facebook::fboss {
 
 TransceiverManager::TransceiverManager(
     std::unique_ptr<TransceiverPlatformApi> api,
-    std::unique_ptr<PlatformMapping> platformMapping)
+    const std::shared_ptr<const PlatformMapping> platformMapping)
     : qsfpPlatApi_(std::move(api)),
       platformMapping_(std::move(platformMapping)),
       threads_(setupTransceiverToThreadHelper()),

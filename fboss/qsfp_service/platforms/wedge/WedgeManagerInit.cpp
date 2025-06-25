@@ -150,8 +150,8 @@ std::unique_ptr<WedgeManager> createBspWedgeManager(
       systemContainer,
       std::make_unique<BspTransceiverApi>(systemContainer),
       platformMappingStr.empty()
-          ? std::make_unique<PlatformMapping>()
-          : std::make_unique<PlatformMapping>(platformMappingStr),
+          ? std::make_shared<PlatformMapping>()
+          : std::make_shared<PlatformMapping>(platformMappingStr),
       platformType);
 }
 } // namespace fboss

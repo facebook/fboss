@@ -88,7 +88,7 @@ class TransceiverManager {
 
   explicit TransceiverManager(
       std::unique_ptr<TransceiverPlatformApi> api,
-      std::unique_ptr<PlatformMapping> platformMapping);
+      const std::shared_ptr<const PlatformMapping> platformMapping);
   virtual ~TransceiverManager();
   void gracefulExit();
   void setGracefulExitingFlag() {
@@ -731,7 +731,7 @@ class TransceiverManager {
    * the components connected on different ports. This handle is populated
    * from this class constructor
    */
-  const std::unique_ptr<const PlatformMapping> platformMapping_;
+  const std::shared_ptr<const PlatformMapping> platformMapping_;
   // A time point until when the remediation of module will be paused.
   // Before reaching that time point, the module is paused
   // and it will resume once the time is reached.

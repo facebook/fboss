@@ -62,7 +62,7 @@ using LockedTransceiversPtr = folly::Synchronized<
 
 WedgeManager::WedgeManager(
     std::unique_ptr<TransceiverPlatformApi> api,
-    std::unique_ptr<PlatformMapping> platformMapping,
+    const std::shared_ptr<const PlatformMapping> platformMapping,
     PlatformType type)
     : TransceiverManager(std::move(api), std::move(platformMapping)),
       platformType_(type) {

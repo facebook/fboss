@@ -92,7 +92,7 @@ class MockWedgeManager : public WedgeManager {
   }
 
  private:
-  std::unique_ptr<FakeTestPlatformMapping> makeFakePlatformMappnig(
+  const std::shared_ptr<const FakeTestPlatformMapping> makeFakePlatformMappnig(
       int numModules,
       int numPortsPerModule) {
     std::vector<int> controllingPortIDs(numModules);
@@ -104,7 +104,7 @@ class MockWedgeManager : public WedgeManager {
           n += numPortsPerModule;
           return port;
         });
-    return std::make_unique<FakeTestPlatformMapping>(
+    return std::make_shared<FakeTestPlatformMapping>(
         controllingPortIDs, numPortsPerModule);
   }
 

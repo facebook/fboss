@@ -18,12 +18,12 @@ std::unique_ptr<TransceiverI2CApi> Wedge400CManager::getI2CBus() {
   return std::make_unique<Wedge400I2CBus>();
 }
 
-std::unique_ptr<PlatformMapping>
+const std::shared_ptr<const PlatformMapping>
 Wedge400CManager::createWedge400CPlatformMapping(
     const std::string& platformMappingStr) {
   return platformMappingStr.empty()
-      ? std::make_unique<Wedge400CPlatformMapping>()
-      : std::make_unique<Wedge400CPlatformMapping>(platformMappingStr);
+      ? std::make_shared<Wedge400CPlatformMapping>()
+      : std::make_shared<Wedge400CPlatformMapping>(platformMappingStr);
 }
 
 } // namespace fboss

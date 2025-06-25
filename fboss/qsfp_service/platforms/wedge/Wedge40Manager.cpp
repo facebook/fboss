@@ -9,8 +9,8 @@ Wedge40Manager::Wedge40Manager(const std::string& platformMappingStr)
     : WedgeManager(
           std::make_unique<TransceiverPlatformI2cApi>(new WedgeI2CBus()),
           platformMappingStr.empty()
-              ? std::make_unique<Wedge40PlatformMapping>()
-              : std::make_unique<Wedge40PlatformMapping>(platformMappingStr),
+              ? std::make_shared<Wedge40PlatformMapping>()
+              : std::make_shared<Wedge40PlatformMapping>(platformMappingStr),
           PlatformType::PLATFORM_WEDGE) {}
 // TODO: Will fully migrate I2CBusApi into TransceiverPlatformApi. Then we will
 // construct the bus pointer before construct WedgeManager and will get rid of
