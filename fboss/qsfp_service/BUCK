@@ -137,6 +137,7 @@ cpp_library(
         "//fboss/lib/usb:i2-api",
         "//fboss/lib/usb:transceiver_access_parameter",
         "//fboss/qsfp_service/if:config-cpp2-types",
+        "//fboss/qsfp_service/if:port_state-cpp2-types",
         "//fboss/qsfp_service/if:transceiver-cpp2-types",
         "//folly:file_util",
         "//folly:intrusive_list",
@@ -187,6 +188,17 @@ cpp_library(
         "//folly:string",
         "//folly/logging:logging",
         "//thrift/lib/cpp/util:enum_utils",
+    ],
+)
+
+cpp_library(
+    name = "typed-state-machine-update",
+    headers = [
+        "TypedStateMachineUpdate.h",
+    ],
+    exported_deps = [
+        "fbsource//third-party/fmt:fmt",
+        "//folly/logging:logging",
     ],
 )
 
