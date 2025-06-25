@@ -202,6 +202,28 @@ cpp_library(
     ],
 )
 
+cpp_library(
+    name = "state-machine-controller",
+    srcs = [
+        "StateMachineController.cpp",
+    ],
+    headers = [
+        "StateMachineController.h",
+    ],
+    exported_deps = [
+        "fbsource//third-party/fmt:fmt",
+        ":transceiver-manager",
+        ":typed-state-machine-update",
+        "//fboss/agent:fboss-error",
+        "//fboss/agent:fboss-types",
+        "//folly:spin_lock",
+        "//folly:synchronized",
+    ],
+    exported_external_deps = [
+        "boost",
+    ],
+)
+
 custom_unittest(
     name = "test_qsfp_service_version",
     command = [

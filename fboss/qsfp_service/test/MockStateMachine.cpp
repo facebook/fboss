@@ -13,6 +13,22 @@
 
 namespace facebook::fboss {
 
+using MockStateMachineController =
+    StateMachineController<MockID, MockEvent, MockState, MockStateMachine>;
+
+const std::string mockEventToString(MockEvent event) {
+  std::unordered_map<MockEvent, std::string> mockEventMap = {
+      {MockEvent::EVENT_1, "EVENT_1"},
+      {MockEvent::EVENT_2, "EVENT_2"},
+      {MockEvent::EVENT_3, "EVENT_3"},
+  };
+
+  if (mockEventMap.find(event) == mockEventMap.end()) {
+    throw FbossError("MockEvent ", static_cast<int>(event), " doesn't exist.");
+  }
+  return mockEventMap[event];
+}
+
 MockState getMockStateByOrder(int currentStateOrder) {
   switch (currentStateOrder) {
     case 0:
@@ -24,5 +40,60 @@ MockState getMockStateByOrder(int currentStateOrder) {
     default:
       throw FbossError("Unsupported MockState order: ", currentStateOrder);
   }
+}
+
+template <>
+MockState MockStateMachineController::getStateByOrder(
+    int currentStateOrder) const {
+  switch (currentStateOrder) {
+    case 0:
+      return MockState::STATE_1;
+    case 1:
+      return MockState::STATE_2;
+    case 2:
+      return MockState::STATE_3;
+    default:
+      throw FbossError("Unsupported MockState order: ", currentStateOrder);
+  }
+}
+
+template <>
+std::string MockStateMachineController::getUpdateString(MockEvent event) const {
+  return fmt::format("[MockObj: {}, Event:{}]", id_, mockEventToString(event));
+};
+
+template <>
+void MockStateMachineController::applyUpdate(MockEvent event) {
+  auto lockedStateMachine = stateMachine_.wlock();
+
+  switch (event) {
+    case MockEvent::EVENT_1:
+      lockedStateMachine->process_event(Event1);
+      break;
+    case MockEvent::EVENT_2:
+      lockedStateMachine->process_event(Event2);
+      break;
+    case MockEvent::EVENT_3:
+      lockedStateMachine->process_event(Event3);
+      break;
+    default:
+      XLOG(ERR) << "Unsupported MockStateMachine for "
+                << getUpdateString(event);
+  }
+};
+
+template <>
+void MockStateMachineController::logCurrentState(
+    int curStateOrder,
+    MockState state) const {
+  XLOG(DBG4) << "Current mockObj:" << static_cast<int32_t>(id_)
+             << ", state order:" << curStateOrder
+             << ", state:" << static_cast<int>(state);
+};
+
+template <>
+void MockStateMachineController::setStateMachineAttributes() {
+  stateMachine_.withWLock(
+      [&](auto& stateMachine) { stateMachine.get_attribute(mockID) = id_; });
 }
 } // namespace facebook::fboss

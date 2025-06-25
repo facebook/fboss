@@ -5,12 +5,12 @@
 #include <boost/msm/front/euml/state_grammar.hpp>
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
+#include "fboss/qsfp_service/StateMachineController.h"
 
 namespace facebook::fboss {
 
 using boost::msm::front::euml::attributes_;
 using boost::msm::front::euml::build_state;
-using boost::msm::front::euml::init_;
 using boost::msm::front::euml::no_action;
 
 // Mock ID type for testing
