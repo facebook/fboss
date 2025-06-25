@@ -15,13 +15,13 @@
 #include "fboss/lib/usb/WedgeI2CBus.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeManager.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 class GalaxyManager : public WedgeManager {
  public:
   explicit GalaxyManager(
       PlatformType type,
-      const std::string& platformMappingStr);
+      const std::shared_ptr<const PlatformMapping> platformMapping);
   ~GalaxyManager() override {}
 
   // This is the front panel ports count
@@ -37,5 +37,4 @@ class GalaxyManager : public WedgeManager {
   std::unique_ptr<TransceiverI2CApi> getI2CBus() override;
   GalaxyI2CBus i2cBus_;
 };
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

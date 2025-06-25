@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include <folly/logging/xlog.h>
 #include <memory>
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 #include "fboss/lib/if/gen-cpp2/fboss_common_types.h"
@@ -31,28 +32,25 @@ std::shared_ptr<FbossMacsecHandler> createFbossMacsecHandler(
  */
 std::unique_ptr<WedgeManager> createFBWedgeManager(
     std::unique_ptr<PlatformProductInfo> productInfo,
-    const std::string& platformMappingStr);
+    const std::shared_ptr<const PlatformMapping> platformMapping);
 
 std::unique_ptr<WedgeManager> createYampWedgeManager(
-    const std::string& platformMappingStr);
+    const std::shared_ptr<const PlatformMapping> platformMapping);
 
 std::unique_ptr<WedgeManager> createDarwinWedgeManager(
-    const std::string& platformMappingStr);
+    const std::shared_ptr<const PlatformMapping> platformMapping);
 
 std::unique_ptr<WedgeManager> createElbertWedgeManager(
-    const std::string& platformMappingStr);
+    const std::shared_ptr<const PlatformMapping> platformMapping);
 
 bool isElbert8DD();
 
 std::string getDeviceDatacenter();
 std::string getDeviceHostnameScheme();
 
-template <
-    typename BspPlatformMapping,
-    typename PlatformMapping,
-    PlatformType platformType>
+template <typename BspPlatformMapping, PlatformType platformType>
 std::unique_ptr<WedgeManager> createBspWedgeManager(
-    const std::string& platformMappingStr);
+    const std::shared_ptr<const PlatformMapping> platformMapping);
 
 } // namespace fboss
 } // namespace facebook

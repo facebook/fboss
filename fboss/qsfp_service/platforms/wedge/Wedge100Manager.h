@@ -15,11 +15,12 @@
 
 #include "fboss/qsfp_service/platforms/wedge/WedgeManager.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 class Wedge100Manager : public WedgeManager {
  public:
-  explicit Wedge100Manager(const std::string& platformMappingStr);
+  explicit Wedge100Manager(
+      const std::shared_ptr<const PlatformMapping> platformMapping);
   ~Wedge100Manager() override {}
   int getNumQsfpModules() const override {
     return 32;
@@ -34,5 +35,4 @@ class Wedge100Manager : public WedgeManager {
 
   Wedge100I2CBus i2cBus_;
 };
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

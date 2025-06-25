@@ -147,7 +147,7 @@ TransceiverManager::TransceiverManager(
     std::unique_ptr<TransceiverPlatformApi> api,
     const std::shared_ptr<const PlatformMapping> platformMapping)
     : qsfpPlatApi_(std::move(api)),
-      platformMapping_(std::move(platformMapping)),
+      platformMapping_(platformMapping),
       threads_(setupTransceiverToThreadHelper()),
       tcvrToPortInfo_(setupTransceiverToPortInfo()),
       stateMachineControllers_(setupTransceiverToStateMachineControllerMap()) {

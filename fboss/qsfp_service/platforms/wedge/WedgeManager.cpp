@@ -64,8 +64,7 @@ WedgeManager::WedgeManager(
     std::unique_ptr<TransceiverPlatformApi> api,
     const std::shared_ptr<const PlatformMapping> platformMapping,
     PlatformType type)
-    : TransceiverManager(std::move(api), std::move(platformMapping)),
-      platformType_(type) {
+    : TransceiverManager(std::move(api), platformMapping), platformType_(type) {
   /* Constructor for WedgeManager class:
    * Get the TransceiverPlatformApi object from the creator of this object,
    * this object will be used for controlling the QSFP devices on board.

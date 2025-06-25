@@ -9,16 +9,7 @@
  */
 #include "fboss/qsfp_service/platforms/wedge/WedgeManagerInit.h"
 
-#include "fboss/agent/platforms/common/janga800bic/Janga800bicPlatformMapping.h"
-#include "fboss/agent/platforms/common/meru400bfu/Meru400bfuPlatformMapping.h"
-#include "fboss/agent/platforms/common/meru400bia/Meru400biaPlatformMapping.h"
-#include "fboss/agent/platforms/common/meru400biu/Meru400biuPlatformMapping.h"
-#include "fboss/agent/platforms/common/meru800bfa/Meru800bfaPlatformMapping.h"
-#include "fboss/agent/platforms/common/meru800bia/Meru800biaPlatformMapping.h"
-#include "fboss/agent/platforms/common/minipack3n/Minipack3NPlatformMapping.h"
-#include "fboss/agent/platforms/common/montblanc/MontblancPlatformMapping.h"
-#include "fboss/agent/platforms/common/morgan800cc/Morgan800ccPlatformMapping.h"
-#include "fboss/agent/platforms/common/tahan800bc/Tahan800bcPlatformMapping.h"
+#include "fboss/agent/platforms/common/PlatformMappingUtils.h"
 #include "fboss/lib/bsp/BspGenericSystemContainer.h"
 #include "fboss/lib/bsp/janga800bic/Janga800bicBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru400bfu/Meru400bfuBspPlatformMapping.h"
@@ -39,8 +30,7 @@
 
 #include "fboss/lib/CommonFileUtils.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 std::unique_ptr<WedgeManager> createWedgeManager() {
   auto productInfo =
@@ -48,6 +38,7 @@ std::unique_ptr<WedgeManager> createWedgeManager() {
   productInfo->initialize();
   auto mode = productInfo->getType();
 
+  // Only used for platform mapping overrides.
   std::string platformMappingStr;
   if (!FLAGS_platform_mapping_override_path.empty()) {
     if (!folly::readFile(
@@ -58,101 +49,88 @@ std::unique_ptr<WedgeManager> createWedgeManager() {
                << FLAGS_platform_mapping_override_path;
   }
 
+  std::shared_ptr<const PlatformMapping> platformMapping =
+      utility::initPlatformMapping(mode);
+
   createDir(FLAGS_qsfp_service_volatile_dir);
   if (mode == PlatformType::PLATFORM_WEDGE100) {
-    return std::make_unique<Wedge100Manager>(platformMappingStr);
+    return std::make_unique<Wedge100Manager>(platformMapping);
   } else if (
       mode == PlatformType::PLATFORM_GALAXY_LC ||
       mode == PlatformType::PLATFORM_GALAXY_FC) {
-    return std::make_unique<GalaxyManager>(mode, platformMappingStr);
+    return std::make_unique<GalaxyManager>(mode, platformMapping);
   } else if (mode == PlatformType::PLATFORM_YAMP) {
-    return createYampWedgeManager(platformMappingStr);
+    return createYampWedgeManager(platformMapping);
   } else if (
       mode == PlatformType::PLATFORM_DARWIN ||
       mode == PlatformType::PLATFORM_DARWIN48V) {
-    return createDarwinWedgeManager(platformMappingStr);
+    return createDarwinWedgeManager(platformMapping);
   } else if (mode == PlatformType::PLATFORM_ELBERT) {
-    return createElbertWedgeManager(platformMappingStr);
+    return createElbertWedgeManager(platformMapping);
   } else if (mode == PlatformType::PLATFORM_MERU400BFU) {
     return createBspWedgeManager<
         Meru400bfuBspPlatformMapping,
-        Meru400bfuPlatformMapping,
-        PlatformType::PLATFORM_MERU400BFU>(platformMappingStr);
+        PlatformType::PLATFORM_MERU400BFU>(platformMapping);
   } else if (mode == PlatformType::PLATFORM_MERU400BIA) {
     return createBspWedgeManager<
         Meru400biaBspPlatformMapping,
-        Meru400biaPlatformMapping,
-        PlatformType::PLATFORM_MERU400BIA>(platformMappingStr);
+        PlatformType::PLATFORM_MERU400BIA>(platformMapping);
   } else if (mode == PlatformType::PLATFORM_MERU400BIU) {
     return createBspWedgeManager<
         Meru400biuBspPlatformMapping,
-        Meru400biuPlatformMapping,
-        PlatformType::PLATFORM_MERU400BIU>(platformMappingStr);
+        PlatformType::PLATFORM_MERU400BIU>(platformMapping);
   } else if (
       mode == PlatformType::PLATFORM_MERU800BIA ||
       mode == PlatformType::PLATFORM_MERU800BIAB) {
     return createBspWedgeManager<
         Meru800biaBspPlatformMapping,
-        Meru800biaPlatformMapping,
-        PlatformType::PLATFORM_MERU800BIA>(platformMappingStr);
+        PlatformType::PLATFORM_MERU800BIA>(platformMapping);
   } else if (
       mode == PlatformType::PLATFORM_MERU800BFA ||
       mode == PlatformType::PLATFORM_MERU800BFA_P1) {
     return createBspWedgeManager<
         Meru800bfaBspPlatformMapping,
-        Meru800bfaPlatformMapping,
-        PlatformType::PLATFORM_MERU800BFA>(platformMappingStr);
+        PlatformType::PLATFORM_MERU800BFA>(platformMapping);
   } else if (mode == PlatformType::PLATFORM_MONTBLANC) {
     return createBspWedgeManager<
         MontblancBspPlatformMapping,
-        MontblancPlatformMapping,
-        PlatformType::PLATFORM_MONTBLANC>(platformMappingStr);
+        PlatformType::PLATFORM_MONTBLANC>(platformMapping);
   } else if (mode == PlatformType::PLATFORM_MINIPACK3N) {
     return createBspWedgeManager<
         Minipack3NBspPlatformMapping,
-        Minipack3NPlatformMapping,
-        PlatformType::PLATFORM_MINIPACK3N>(platformMappingStr);
+        PlatformType::PLATFORM_MINIPACK3N>(platformMapping);
   } else if (mode == PlatformType::PLATFORM_MORGAN800CC) {
     return createBspWedgeManager<
         Morgan800ccBspPlatformMapping,
-        Morgan800ccPlatformMapping,
-        PlatformType::PLATFORM_MORGAN800CC>(platformMappingStr);
+        PlatformType::PLATFORM_MORGAN800CC>(platformMapping);
   } else if (mode == PlatformType::PLATFORM_WEDGE400C) {
-    return std::make_unique<Wedge400CManager>(platformMappingStr);
+    return std::make_unique<Wedge400CManager>(platformMapping);
   } else if (mode == PlatformType::PLATFORM_JANGA800BIC) {
     return createBspWedgeManager<
         Janga800bicBspPlatformMapping,
-        Janga800bicPlatformMapping,
-        PlatformType::PLATFORM_JANGA800BIC>(platformMappingStr);
+        PlatformType::PLATFORM_JANGA800BIC>(platformMapping);
   } else if (mode == PlatformType::PLATFORM_TAHAN800BC) {
     return createBspWedgeManager<
         Tahan800bcBspPlatformMapping,
-        Tahan800bcPlatformMapping,
-        PlatformType::PLATFORM_TAHAN800BC>(platformMappingStr);
+        PlatformType::PLATFORM_TAHAN800BC>(platformMapping);
   } else if (
       mode == PlatformType::PLATFORM_FUJI ||
       mode == PlatformType::PLATFORM_MINIPACK ||
       mode == PlatformType::PLATFORM_WEDGE400) {
-    return createFBWedgeManager(std::move(productInfo), platformMappingStr);
+    return createFBWedgeManager(std::move(productInfo), platformMapping);
   }
-  return std::make_unique<Wedge40Manager>(platformMappingStr);
+  return std::make_unique<Wedge40Manager>(platformMapping);
 }
 
-template <
-    typename BspPlatformMapping,
-    typename PlatformMapping,
-    PlatformType platformType>
+template <typename BspPlatformMapping, PlatformType platformType>
 std::unique_ptr<WedgeManager> createBspWedgeManager(
-    const std::string& platformMappingStr) {
+    const std::shared_ptr<const PlatformMapping> platformMapping) {
   auto systemContainer =
       BspGenericSystemContainer<BspPlatformMapping>::getInstance().get();
   return std::make_unique<BspWedgeManager>(
       systemContainer,
       std::make_unique<BspTransceiverApi>(systemContainer),
-      platformMappingStr.empty()
-          ? std::make_shared<PlatformMapping>()
-          : std::make_shared<PlatformMapping>(platformMappingStr),
+      platformMapping,
       platformType);
 }
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

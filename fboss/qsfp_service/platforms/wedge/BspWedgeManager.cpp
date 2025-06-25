@@ -6,15 +6,14 @@
 #include "fboss/lib/bsp/BspIOBus.h"
 #include "fboss/lib/bsp/BspSystemContainer.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 BspWedgeManager::BspWedgeManager(
     const BspSystemContainer* systemContainer,
     std::unique_ptr<BspTransceiverApi> api,
     const std::shared_ptr<const PlatformMapping> platformMapping,
     PlatformType type)
-    : WedgeManager(std::move(api), std::move(platformMapping), type) {
+    : WedgeManager(std::move(api), platformMapping, type) {
   XLOG(INFO) << "BspTrace: BspWedgeManager()";
   systemContainer_ = systemContainer;
 }
@@ -28,5 +27,4 @@ int BspWedgeManager::getNumQsfpModules() const {
   return systemContainer_->getNumTransceivers();
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

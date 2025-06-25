@@ -5,6 +5,7 @@
 #include <boost/container/flat_map.hpp>
 
 #include "fboss/agent/platforms/common/PlatformMapping.h"
+#include "fboss/agent/platforms/common/wedge40/Wedge40PlatformMapping.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/lib/i2c/gen-cpp2/i2c_controller_stats_types.h"
 #include "fboss/lib/platforms/PlatformMode.h"
