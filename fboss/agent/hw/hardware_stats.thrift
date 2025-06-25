@@ -384,6 +384,11 @@ struct HwSwitchPipelineStats {
   8: map<i16, i64> globalDrops = {};
 }
 
+struct HwSwitchTemperatureStats {
+  1: map<string, i64> timeStamp = {};
+  2: map<string, float> value = {};
+}
+
 struct HwSwitchFb303GlobalStats {
   1: i64 tx_pkt_allocated;
   2: i64 tx_pkt_freed;
