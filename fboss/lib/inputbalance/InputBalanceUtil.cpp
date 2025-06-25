@@ -189,6 +189,20 @@ std::unordered_map<int, std::vector<std::string>> groupFabricDevicesByCluster(
   return clusterToFabricDevices;
 }
 
+std::vector<std::string> getInterfaceDevicesInCluster(
+    const std::unordered_map<std::string, cfg::DsfNode>& nameToDsfNode,
+    int clusterID) {
+  std::vector<std::string> intfDevices;
+  for (const auto& [name, dsfNode] : nameToDsfNode) {
+    if (dsfNode.type() == cfg::DsfNodeType::INTERFACE_NODE &&
+        dsfNode.clusterId().has_value() &&
+        dsfNode.clusterId().value() == clusterID) {
+      intfDevices.emplace_back(name);
+    }
+  }
+  return intfDevices;
+}
+
 std::map<std::string, std::string> getPortToNeighbor(
     const std::shared_ptr<MultiSwitchPortMap>& portMap) {
   std::map<std::string, std::string> portToNeighbor;
