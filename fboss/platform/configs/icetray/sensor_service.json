@@ -2,7 +2,7 @@
   "pmUnitSensorsList": [
     {
       "slotPath": "/",
-      "pmUnitName": "ICETRAY_MCB",
+      "pmUnitName": "ICETRAY",
       "sensors": [
         {
           "name": "CPU_UNCORE_TEMP",

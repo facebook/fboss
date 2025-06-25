@@ -1,6 +1,6 @@
 {
   "platformName": "ICETRAY",
-  "rootPmUnitName": "ICETRAY_MCB",
+  "rootPmUnitName": "ICETRAY",
   "rootSlotType": "MCB_SLOT",
   "slotTypeConfigs": {
     "MCB_SLOT": {
@@ -10,7 +10,7 @@
         "address": "0x53",
         "kernelDeviceName": "24c02"
       },
-      "pmUnitName": "ICETRAY_MCB"
+      "pmUnitName": "ICETRAY"
     },
     "RUNBMC_SLOT": {
       "numOutgoingI2cBuses": 1,
@@ -117,7 +117,7 @@
     ]
   },
   "pmUnitConfigs": {
-    "ICETRAY_MCB": {
+    "ICETRAY": {
       "pluggedInSlotType": "MCB_SLOT",
       "embeddedSensorConfigs": [
         {
