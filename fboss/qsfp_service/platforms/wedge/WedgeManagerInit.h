@@ -10,6 +10,8 @@
 #pragma once
 
 #include <memory>
+#include "fboss/agent/platforms/common/PlatformMapping.h"
+#include "fboss/lib/if/gen-cpp2/fboss_common_types.h"
 
 namespace facebook {
 namespace fboss {
@@ -24,7 +26,8 @@ std::shared_ptr<FbossMacsecHandler> createFbossMacsecHandler(
     WedgeManager* wedgeMgr);
 
 /**
- * This function should return derived WedgeManager which is still in dev.
+ * These functions enable us to create different WedgeManagers for open-sourced
+ * and closed-souce platforms.
  */
 std::unique_ptr<WedgeManager> createFBWedgeManager(
     std::unique_ptr<PlatformProductInfo> productInfo,
@@ -44,31 +47,11 @@ bool isElbert8DD();
 std::string getDeviceDatacenter();
 std::string getDeviceHostnameScheme();
 
-std::unique_ptr<WedgeManager> createMeru400bfuWedgeManager(
-    const std::string& platformMappingStr);
-
-std::unique_ptr<WedgeManager> createMeru400biaWedgeManager(
-    const std::string& platformMappingStr);
-std::unique_ptr<WedgeManager> createMeru400biuWedgeManager(
-    const std::string& platformMappingStr);
-std::unique_ptr<WedgeManager> createMeru800biaWedgeManager(
-    const std::string& platformMappingStr);
-std::unique_ptr<WedgeManager> createMeru800bfaWedgeManager(
-    const std::string& platformMappingStr);
-
-std::unique_ptr<WedgeManager> createMontblancWedgeManager(
-    const std::string& platformMappingStr);
-
-std::unique_ptr<WedgeManager> createMinipack3NWedgeManager(
-    const std::string& platformMappingStr);
-
-std::unique_ptr<WedgeManager> createMorgan800ccWedgeManager(
-    const std::string& platformMappingStr);
-
-std::unique_ptr<WedgeManager> createJanga800bicWedgeManager(
-    const std::string& platformMappingStr);
-
-std::unique_ptr<WedgeManager> createTahan800bcWedgeManager(
+template <
+    typename BspPlatformMapping,
+    typename PlatformMapping,
+    PlatformType platformType>
+std::unique_ptr<WedgeManager> createBspWedgeManager(
     const std::string& platformMappingStr);
 
 } // namespace fboss

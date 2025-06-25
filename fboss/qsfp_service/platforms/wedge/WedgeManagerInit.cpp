@@ -74,31 +74,61 @@ std::unique_ptr<WedgeManager> createWedgeManager() {
   } else if (mode == PlatformType::PLATFORM_ELBERT) {
     return createElbertWedgeManager(platformMappingStr);
   } else if (mode == PlatformType::PLATFORM_MERU400BFU) {
-    return createMeru400bfuWedgeManager(platformMappingStr);
+    return createBspWedgeManager<
+        Meru400bfuBspPlatformMapping,
+        Meru400bfuPlatformMapping,
+        PlatformType::PLATFORM_MERU400BFU>(platformMappingStr);
   } else if (mode == PlatformType::PLATFORM_MERU400BIA) {
-    return createMeru400biaWedgeManager(platformMappingStr);
+    return createBspWedgeManager<
+        Meru400biaBspPlatformMapping,
+        Meru400biaPlatformMapping,
+        PlatformType::PLATFORM_MERU400BIA>(platformMappingStr);
   } else if (mode == PlatformType::PLATFORM_MERU400BIU) {
-    return createMeru400biuWedgeManager(platformMappingStr);
+    return createBspWedgeManager<
+        Meru400biuBspPlatformMapping,
+        Meru400biuPlatformMapping,
+        PlatformType::PLATFORM_MERU400BIU>(platformMappingStr);
   } else if (
       mode == PlatformType::PLATFORM_MERU800BIA ||
       mode == PlatformType::PLATFORM_MERU800BIAB) {
-    return createMeru800biaWedgeManager(platformMappingStr);
+    return createBspWedgeManager<
+        Meru800biaBspPlatformMapping,
+        Meru800biaPlatformMapping,
+        PlatformType::PLATFORM_MERU800BIA>(platformMappingStr);
   } else if (
       mode == PlatformType::PLATFORM_MERU800BFA ||
       mode == PlatformType::PLATFORM_MERU800BFA_P1) {
-    return createMeru800bfaWedgeManager(platformMappingStr);
+    return createBspWedgeManager<
+        Meru800bfaBspPlatformMapping,
+        Meru800bfaPlatformMapping,
+        PlatformType::PLATFORM_MERU800BFA>(platformMappingStr);
   } else if (mode == PlatformType::PLATFORM_MONTBLANC) {
-    return createMontblancWedgeManager(platformMappingStr);
+    return createBspWedgeManager<
+        MontblancBspPlatformMapping,
+        MontblancPlatformMapping,
+        PlatformType::PLATFORM_MONTBLANC>(platformMappingStr);
   } else if (mode == PlatformType::PLATFORM_MINIPACK3N) {
-    return createMinipack3NWedgeManager(platformMappingStr);
+    return createBspWedgeManager<
+        Minipack3NBspPlatformMapping,
+        Minipack3NPlatformMapping,
+        PlatformType::PLATFORM_MINIPACK3N>(platformMappingStr);
   } else if (mode == PlatformType::PLATFORM_MORGAN800CC) {
-    return createMorgan800ccWedgeManager(platformMappingStr);
+    return createBspWedgeManager<
+        Morgan800ccBspPlatformMapping,
+        Morgan800ccPlatformMapping,
+        PlatformType::PLATFORM_MORGAN800CC>(platformMappingStr);
   } else if (mode == PlatformType::PLATFORM_WEDGE400C) {
     return std::make_unique<Wedge400CManager>(platformMappingStr);
   } else if (mode == PlatformType::PLATFORM_JANGA800BIC) {
-    return createJanga800bicWedgeManager(platformMappingStr);
+    return createBspWedgeManager<
+        Janga800bicBspPlatformMapping,
+        Janga800bicPlatformMapping,
+        PlatformType::PLATFORM_JANGA800BIC>(platformMappingStr);
   } else if (mode == PlatformType::PLATFORM_TAHAN800BC) {
-    return createTahan800bcWedgeManager(platformMappingStr);
+    return createBspWedgeManager<
+        Tahan800bcBspPlatformMapping,
+        Tahan800bcPlatformMapping,
+        PlatformType::PLATFORM_TAHAN800BC>(platformMappingStr);
   } else if (
       mode == PlatformType::PLATFORM_FUJI ||
       mode == PlatformType::PLATFORM_MINIPACK ||
@@ -108,141 +138,21 @@ std::unique_ptr<WedgeManager> createWedgeManager() {
   return std::make_unique<Wedge40Manager>(platformMappingStr);
 }
 
-std::unique_ptr<WedgeManager> createMeru400bfuWedgeManager(
+template <
+    typename BspPlatformMapping,
+    typename PlatformMapping,
+    PlatformType platformType>
+std::unique_ptr<WedgeManager> createBspWedgeManager(
     const std::string& platformMappingStr) {
   auto systemContainer =
-      BspGenericSystemContainer<Meru400bfuBspPlatformMapping>::getInstance()
-          .get();
+      BspGenericSystemContainer<BspPlatformMapping>::getInstance().get();
   return std::make_unique<BspWedgeManager>(
       systemContainer,
       std::make_unique<BspTransceiverApi>(systemContainer),
       platformMappingStr.empty()
-          ? std::make_unique<Meru400bfuPlatformMapping>()
-          : std::make_unique<Meru400bfuPlatformMapping>(platformMappingStr),
-      PlatformType::PLATFORM_MERU400BFU);
-}
-
-std::unique_ptr<WedgeManager> createMeru400biaWedgeManager(
-    const std::string& platformMappingStr) {
-  auto systemContainer =
-      BspGenericSystemContainer<Meru400biaBspPlatformMapping>::getInstance()
-          .get();
-  return std::make_unique<BspWedgeManager>(
-      systemContainer,
-      std::make_unique<BspTransceiverApi>(systemContainer),
-      platformMappingStr.empty()
-          ? std::make_unique<Meru400biaPlatformMapping>()
-          : std::make_unique<Meru400biaPlatformMapping>(platformMappingStr),
-      PlatformType::PLATFORM_MERU400BIA);
-}
-
-std::unique_ptr<WedgeManager> createMeru400biuWedgeManager(
-    const std::string& platformMappingStr) {
-  auto systemContainer =
-      BspGenericSystemContainer<Meru400biuBspPlatformMapping>::getInstance()
-          .get();
-  return std::make_unique<BspWedgeManager>(
-      systemContainer,
-      std::make_unique<BspTransceiverApi>(systemContainer),
-      platformMappingStr.empty()
-          ? std::make_unique<Meru400biuPlatformMapping>()
-          : std::make_unique<Meru400biuPlatformMapping>(platformMappingStr),
-      PlatformType::PLATFORM_MERU400BIU);
-}
-
-std::unique_ptr<WedgeManager> createMeru800biaWedgeManager(
-    const std::string& platformMappingStr) {
-  auto systemContainer =
-      BspGenericSystemContainer<Meru800biaBspPlatformMapping>::getInstance()
-          .get();
-  return std::make_unique<BspWedgeManager>(
-      systemContainer,
-      std::make_unique<BspTransceiverApi>(systemContainer),
-      platformMappingStr.empty()
-          ? std::make_unique<Meru800biaPlatformMapping>()
-          : std::make_unique<Meru800biaPlatformMapping>(platformMappingStr),
-      PlatformType::PLATFORM_MERU800BIA);
-}
-
-std::unique_ptr<WedgeManager> createMeru800bfaWedgeManager(
-    const std::string& platformMappingStr) {
-  auto systemContainer =
-      BspGenericSystemContainer<Meru800bfaBspPlatformMapping>::getInstance()
-          .get();
-  return std::make_unique<BspWedgeManager>(
-      systemContainer,
-      std::make_unique<BspTransceiverApi>(systemContainer),
-      platformMappingStr.empty()
-          ? std::make_unique<Meru800bfaPlatformMapping>()
-          : std::make_unique<Meru800bfaPlatformMapping>(platformMappingStr),
-      PlatformType::PLATFORM_MERU800BFA);
-}
-
-std::unique_ptr<WedgeManager> createMontblancWedgeManager(
-    const std::string& platformMappingStr) {
-  auto systemContainer =
-      BspGenericSystemContainer<MontblancBspPlatformMapping>::getInstance()
-          .get();
-  return std::make_unique<BspWedgeManager>(
-      systemContainer,
-      std::make_unique<BspTransceiverApi>(systemContainer),
-      platformMappingStr.empty()
-          ? std::make_unique<MontblancPlatformMapping>()
-          : std::make_unique<MontblancPlatformMapping>(platformMappingStr),
-      PlatformType::PLATFORM_MONTBLANC);
-}
-std::unique_ptr<WedgeManager> createMinipack3NWedgeManager(
-    const std::string& platformMappingStr) {
-  auto systemContainer =
-      BspGenericSystemContainer<Minipack3NBspPlatformMapping>::getInstance()
-          .get();
-  return std::make_unique<BspWedgeManager>(
-      systemContainer,
-      std::make_unique<BspTransceiverApi>(systemContainer),
-      platformMappingStr.empty()
-          ? std::make_unique<Minipack3NPlatformMapping>()
-          : std::make_unique<Minipack3NPlatformMapping>(platformMappingStr),
-      PlatformType::PLATFORM_MINIPACK3N);
-}
-
-std::unique_ptr<WedgeManager> createMorgan800ccWedgeManager(
-    const std::string& platformMappingStr) {
-  auto systemContainer =
-      BspGenericSystemContainer<Morgan800ccBspPlatformMapping>::getInstance()
-          .get();
-  return std::make_unique<BspWedgeManager>(
-      systemContainer,
-      std::make_unique<BspTransceiverApi>(systemContainer),
-      platformMappingStr.empty()
-          ? std::make_unique<Morgan800ccPlatformMapping>()
-          : std::make_unique<Morgan800ccPlatformMapping>(platformMappingStr),
-      PlatformType::PLATFORM_MORGAN800CC);
-}
-std::unique_ptr<WedgeManager> createJanga800bicWedgeManager(
-    const std::string& platformMappingStr) {
-  auto systemContainer =
-      BspGenericSystemContainer<Janga800bicBspPlatformMapping>::getInstance()
-          .get();
-  return std::make_unique<BspWedgeManager>(
-      systemContainer,
-      std::make_unique<BspTransceiverApi>(systemContainer),
-      platformMappingStr.empty()
-          ? std::make_unique<Janga800bicPlatformMapping>()
-          : std::make_unique<Janga800bicPlatformMapping>(platformMappingStr),
-      PlatformType::PLATFORM_JANGA800BIC);
-}
-std::unique_ptr<WedgeManager> createTahan800bcWedgeManager(
-    const std::string& platformMappingStr) {
-  auto systemContainer =
-      BspGenericSystemContainer<Tahan800bcBspPlatformMapping>::getInstance()
-          .get();
-  return std::make_unique<BspWedgeManager>(
-      systemContainer,
-      std::make_unique<BspTransceiverApi>(systemContainer),
-      platformMappingStr.empty()
-          ? std::make_unique<Tahan800bcPlatformMapping>()
-          : std::make_unique<Tahan800bcPlatformMapping>(platformMappingStr),
-      PlatformType::PLATFORM_TAHAN800BC);
+          ? std::make_unique<PlatformMapping>()
+          : std::make_unique<PlatformMapping>(platformMappingStr),
+      platformType);
 }
 } // namespace fboss
 } // namespace facebook
