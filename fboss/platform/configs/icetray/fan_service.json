@@ -1,0 +1,168 @@
+{
+  "pwmBoostOnNumDeadFan": 2,
+  "pwmBoostOnNumDeadSensor": 0,
+  "pwmBoostOnNoQsfpAfterInSec": 0,
+  "pwmBoostValue": 70,
+  "pwmTransitionValue": 70,
+  "pwmLowerThreshold": 60,
+  "pwmUpperThreshold": 100,
+  "watchdog": {
+    "sysfsPath": "/run/devmap/watchdogs/FAN_WATCHDOG",
+    "value": 0
+  },
+  "controlInterval": {
+    "sensorReadInterval": 5,
+    "pwmUpdateInterval": 5
+  },
+  "sensors": [
+    {
+      "sensorName": "CPU_UNCORE_TEMP",
+      "access": {
+        "accessType": "ACCESS_TYPE_THRIFT"
+      },
+      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_PID",
+      "pidSetting": {
+        "kp": -4,
+        "ki": -0.06,
+        "kd": 0,
+        "setPoint": 97.0,
+        "posHysteresis": 0.0,
+        "negHysteresis": 8.0
+      }
+    },
+    {
+      "sensorName": "PIC_U12_INLET_LM75_1_TEMP",
+      "access": {
+        "accessType": "ACCESS_TYPE_THRIFT"
+      },
+      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
+      "normalUpTable": {
+        "30": 60,
+        "35": 70,
+        "37": 80,
+        "42": 90
+      },
+      "normalDownTable": {
+        "28": 60,
+        "33": 70,
+        "35": 80,
+        "40": 90
+      },
+      "failUpTable": {
+        "30": 70,
+        "35": 80,
+        "37": 90,
+        "42": 100
+      },
+      "failDownTable": {
+        "28": 70,
+        "33": 80,
+        "35": 90,
+        "40": 100
+      }
+    },
+    {
+      "sensorName": "POWER_BRICK1_TEMP1",
+      "access": {
+        "accessType": "ACCESS_TYPE_THRIFT"
+      },
+      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_PID",
+      "pidSetting": {
+        "kp": -8,
+        "ki": -0.06,
+        "kd": 0,
+        "setPoint": 105.0,
+        "posHysteresis": 0.0,
+        "negHysteresis": 3.0
+      }
+    },
+    {
+      "sensorName": "POWER_BRICK2_TEMP1",
+      "access": {
+        "accessType": "ACCESS_TYPE_THRIFT"
+      },
+      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_PID",
+      "pidSetting": {
+        "kp": -8,
+        "ki": -0.06,
+        "kd": 0,
+        "setPoint": 105.0,
+        "posHysteresis": 0.0,
+        "negHysteresis": 3.0
+      }
+    }
+  ],
+  "fans": [
+    {
+      "fanName": "FAN_1_F",
+      "rpmSysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan1_input",
+      "pwmSysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/pwm1",
+      "presenceSysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan1_present",
+      "pwmMin": 0,
+      "pwmMax": 40,
+      "fanPresentVal": 1,
+      "fanMissingVal": 0,
+      "fanGoodLedVal": 1,
+      "fanFailLedVal": 2,
+      "rpmMin": 1500
+    },
+    {
+      "fanName": "FAN_2_F",
+      "rpmSysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan2_input",
+      "pwmSysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/pwm2",
+      "presenceSysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan2_present",
+      "pwmMin": 0,
+      "pwmMax": 40,
+      "fanPresentVal": 1,
+      "fanMissingVal": 0,
+      "fanGoodLedVal": 1,
+      "fanFailLedVal": 2,
+      "rpmMin": 1500
+    },
+    {
+      "fanName": "FAN_3_F",
+      "rpmSysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan3_input",
+      "pwmSysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/pwm3",
+      "presenceSysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan3_present",
+      "pwmMin": 0,
+      "pwmMax": 40,
+      "fanPresentVal": 1,
+      "fanMissingVal": 0,
+      "fanGoodLedVal": 1,
+      "fanFailLedVal": 2,
+      "rpmMin": 1500
+    },
+    {
+      "fanName": "FAN_4_F",
+      "rpmSysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan4_input",
+      "pwmSysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/pwm4",
+      "presenceSysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan4_present",
+      "pwmMin": 0,
+      "pwmMax": 40,
+      "fanPresentVal": 1,
+      "fanMissingVal": 0,
+      "fanGoodLedVal": 1,
+      "fanFailLedVal": 2,
+      "rpmMin": 1500
+    }
+  ],
+  "zones": [
+    {
+      "zoneType": "ZONE_TYPE_MAX",
+      "zoneName": "zone1",
+      "sensorNames": [
+        "CPU_UNCORE_TEMP",
+        "PIC_U12_INLET_LM75_1_TEMP",
+        "POWER_BRICK1_TEMP1",
+        "POWER_BRICK2_TEMP1"
+      ],
+      "fanNames": [
+        "FAN_1_F",
+        "FAN_2_F",
+        "FAN_3_F",
+        "FAN_4_F"
+      ],
+      "slope": 10
+    }
+  ]
+}
