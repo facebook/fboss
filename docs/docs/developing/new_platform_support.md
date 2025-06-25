@@ -38,6 +38,7 @@ This document describes all of the locations in the code where you need to add c
 2. Add an LED Manager class for your platform:
    - `fboss/led_service/{PLATFORM}LedManager.h` [Header example](https://github.com/facebook/fboss/blob/main/fboss/led_service/MontblancLedManager.h)
    - `fboss/led_service/{PLATFORM}LedManager.cpp` [Source example](https://github.com/facebook/fboss/blob/main/fboss/led_service/MontblancLedManager.cpp)
+   - Add to [fboss/led_service/LedManagerInit.cpp](https://github.com/facebook/fboss/blob/main/fboss/led_service/LedManagerInit.cpp).
 
 3. In `fboss/qsfp_service/platforms/wedge/WedgeManagerInit.cpp`, add a function called `create{PLATFORM}WedgeManager` that instantiates a `WedgeManager` object with the platform mapping JSON file.
    - `fboss/qsfp_service/platforms/wedge/WedgeManagerInit.h` [Header example](https://github.com/facebook/fboss/blob/main/fboss/qsfp_service/platforms/wedge/WedgeManagerInit.h#L59)
