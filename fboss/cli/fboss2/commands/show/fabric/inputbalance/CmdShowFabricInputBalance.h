@@ -104,11 +104,11 @@ class CmdShowFabricInputBalance : public CmdHandler<
       auto clusterIDToFabricDevices =
           utility::groupFabricDevicesByCluster(nameToDsfNode);
       // TODO(zecheng): Handle dst switches in different clusters.
-      auto localClusterID = *nameToDsfNode.at(dstSwitchName.at(0)).clusterId();
+      auto dstClusterID = *nameToDsfNode.at(dstSwitchName.at(0)).clusterId();
 
       std::vector<utility::InputBalanceResult> inputBalanceResult;
       for (const auto& [clusterID, fabricDevices] : clusterIDToFabricDevices) {
-        if (clusterID != localClusterID) {
+        if (clusterID != dstClusterID) {
           auto neighborReachability = getNeighborReachability(
               fabricDevices, neighborToPorts, dstSwitchName);
           auto result = utility::checkInputBalanceDualStage(
