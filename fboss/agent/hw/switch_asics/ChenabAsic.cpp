@@ -215,6 +215,7 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::VENDOR_SWITCH_CONGESTION_MANAGEMENT_ERRORS:
     case HwAsic::Feature::PFC_WATCHDOG_TIMER_GRANULARITY:
     case HwAsic::Feature::ASIC_RESET_NOTIFICATIONS:
+    case HwAsic::Feature::RX_SERDES_PARAMETERS:
       return false;
   }
   return false;
@@ -418,7 +419,7 @@ std::optional<uint32_t> ChenabAsic::getMaxDlbEcmpGroups() const {
   return 256;
 }
 uint32_t ChenabAsic::getNumCores() const {
-  return 12;
+  return 1;
 }
 uint32_t ChenabAsic::getStaticQueueLimitBytes() const {
   return 512 * 1024 * getPacketBufferUnitSize();

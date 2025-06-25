@@ -103,6 +103,8 @@ typedef enum _sai_switch_extensions_attr_t {
   SAI_SWITCH_ATTR_PIPELINE_OBJECTS,
   SAI_SWITCH_ATTR_DISABLE_SLL_AND_HLL_TIMEOUT,
   SAI_SWITCH_ATTR_ASIC_REVISION,
+  SAI_SWITCH_ATTR_CREDIT_REQUEST_PROFILE_SCHEDULER_MODE,
+  SAI_SWITCH_ATTR_MODULE_ID_TO_CREDIT_REQUEST_PROFILE_PARAM_LIST,
 } sai_switch_extensions_attr_t;
 
 typedef enum _sai_tam_event_extensions_attr_t {

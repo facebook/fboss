@@ -1738,6 +1738,15 @@ bool SaiPortManager::rxFrequencyRPMSupported() const {
 #endif
 }
 
+bool SaiPortManager::rxSerdesParametersSupported() const {
+#if defined(SAI_VERSION_13_0_EA_ODP) || defined(SAI_VERSION_13_0_EA_DNX_ODP)
+  return platform_->getAsic()->isSupported(
+      HwAsic::Feature::RX_SERDES_PARAMETERS);
+#else
+  return false;
+#endif
+}
+
 bool SaiPortManager::rxSNRSupported() const {
 #if defined(BRCM_SAI_SDK_GTE_10_0)
   return platform_->getAsic()->isSupported(HwAsic::Feature::RX_SNR);

@@ -36,6 +36,7 @@ bool Ramon3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::FEC_ERROR_DETECT_ENABLE:
     case HwAsic::Feature::EGRESS_POOL_AVAILABLE_SIZE_ATTRIBUTE_SUPPORTED:
     case HwAsic::Feature::SDK_REGISTER_DUMP:
+    case HwAsic::Feature::RX_SERDES_PARAMETERS:
       return true;
     case HwAsic::Feature::SAI_PORT_SERDES_FIELDS_RESET:
     case HwAsic::Feature::FABRIC_TX_QUEUES:

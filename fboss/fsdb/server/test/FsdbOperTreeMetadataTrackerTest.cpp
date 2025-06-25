@@ -2,6 +2,7 @@
 
 #include "fboss/fsdb/server/FsdbOperTreeMetadataTracker.h"
 #include <gtest/gtest.h>
+#include "fboss/fsdb/server/OperPathToPublisherRoot.h"
 
 namespace facebook::fboss::fsdb::test {
 namespace {
@@ -71,4 +72,31 @@ TEST_F(PublisherTreeMetadataTrackerTest, updateMetadataMoveback) {
   metadataTracker_.updateMetadata(kPublishRoot, metadata, false);
   EXPECT_EQ(*getMetadata().operMetadata.lastConfirmedAt(), 9);
 }
+
+TEST_F(PublisherTreeMetadataTrackerTest, validatePublisherRoot) {
+  std::vector<std::string> emptyPath = {};
+  std::vector<std::string> pathLen1 = {"devices"};
+  std::vector<std::string> pathLen2 = {"devices", "rsw001"};
+  std::vector<std::string> fullPath = {
+      "devices", "rsw001", "agent", "switch_state"};
+  std::string root;
+
+  auto pathToRootHelper = OperPathToPublisherRoot();
+  EXPECT_THROW(pathToRootHelper.publisherRoot(emptyPath), FsdbException);
+  root = pathToRootHelper.publisherRoot(pathLen1);
+  EXPECT_EQ(root, "devices");
+  root = pathToRootHelper.publisherRoot(pathLen2);
+  EXPECT_EQ(root, "devices");
+  root = pathToRootHelper.publisherRoot(fullPath);
+  EXPECT_EQ(root, "devices");
+
+  auto aggPathToRootHelper = OperPathToPublisherRoot(2);
+  EXPECT_THROW(aggPathToRootHelper.publisherRoot(emptyPath), FsdbException);
+  EXPECT_THROW(aggPathToRootHelper.publisherRoot(pathLen1), FsdbException);
+  root = aggPathToRootHelper.publisherRoot(pathLen2);
+  EXPECT_EQ(root, "devices_rsw001");
+  root = aggPathToRootHelper.publisherRoot(fullPath);
+  EXPECT_EQ(root, "devices_rsw001");
+}
+
 } // namespace facebook::fboss::fsdb::test

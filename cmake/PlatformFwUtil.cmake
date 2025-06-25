@@ -28,6 +28,7 @@ add_executable(fw_util
 
 target_link_libraries(fw_util
   Folly::folly
+  CLI11::CLI11
   platform_config_lib
   platform_name_lib
   platform_utils

@@ -1,13 +1,14 @@
 //  Copyright 2021-present Facebook. All Rights Reserved.
 
+#include <CLI/CLI.hpp>
+#include <filesystem>
+
 #include <folly/logging/Init.h>
 #include <folly/logging/xlog.h>
 
-#include <CLI/CLI.hpp>
-#include <filesystem>
-#include "common/base/BuildInfo.h"
 #include "fboss/platform/fw_util/FwUtilImpl.h"
 #include "fboss/platform/fw_util/fw_util_helpers.h"
+#include "fboss/platform/helpers/InitCli.h"
 
 using namespace facebook::fboss::platform::fw_util;
 using namespace facebook::fboss::platform;
@@ -28,7 +29,7 @@ int main(int argc, char* argv[]) {
   bool verify_sha1sum = false;
   bool dry_run = false;
 
-  app.set_version_flag("--version", facebook::BuildInfo::toDebugString());
+  app.set_version_flag("--version", helpers::getBuildVersion());
 
   // Group: Firmware Options
   auto fwGroup = app.add_option_group(

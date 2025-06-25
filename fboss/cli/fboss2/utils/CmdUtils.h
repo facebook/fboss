@@ -487,4 +487,9 @@ getCachedSwSwitchReachabilityInfo(
     const HostInfo& hostInfo,
     const std::vector<std::string>& switchNames);
 
+std::unordered_map<std::string, std::vector<std::string>>
+getUncachedSwitchReachabilityInfo(
+    const HostInfo& hostInfo,
+    const std::vector<std::string>& switchNames);
+
 } // namespace facebook::fboss::utils

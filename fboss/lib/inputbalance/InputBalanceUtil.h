@@ -21,6 +21,13 @@ class MultiSwitchPortMap;
 
 namespace utility {
 
+enum InputBalanceDestType {
+  SINGLE_STAGE_FDSW_INTRA,
+  DUAL_STAGE_SDSW_INTER,
+  DUAL_STAGE_FDSW_INTRA,
+  DUAL_STAGE_FDSW_INTER,
+};
+
 struct InputBalanceResult {
   std::string destinationSwitch;
   std::vector<std::string> sourceSwitch;
@@ -39,7 +46,7 @@ bool isDualStage(const std::map<int64_t, cfg::DsfNode>& dsfNodeMap);
 std::unordered_map<std::string, cfg::DsfNode> switchNameToDsfNode(
     const std::map<int64_t, cfg::DsfNode>& dsfNodes);
 
-std::vector<std::pair<int64_t, std::string>> deviceToQueryInputCapacity(
+std::vector<std::string> devicesToQueryInputCapacity(
     const std::vector<int64_t>& fabricSwitchIDs,
     const std::map<int64_t, cfg::DsfNode>& dsfNodeMap);
 
@@ -47,6 +54,9 @@ std::vector<std::pair<int64_t, std::string>> deviceToQueryInputCapacity(
 std::unordered_map<std::string, std::unordered_map<std::string, std::string>>
 getNeighborFabricPortsToSelf(
     const std::map<int32_t, PortInfoThrift>& myPortInfo);
+
+std::unordered_map<int, std::vector<std::string>> groupFabricDevicesByCluster(
+    const std::unordered_map<std::string, cfg::DsfNode>& nameToDsfNode);
 
 std::map<std::string, std::string> getPortToNeighbor(
     const std::shared_ptr<MultiSwitchPortMap>& portMap);
@@ -69,5 +79,21 @@ std::vector<InputBalanceResult> checkInputBalanceSingleStage(
         neighborToLinkFailure,
     const std::unordered_map<std::string, int>& portToVirtualDevice,
     bool verbose = false);
+
+std::vector<InputBalanceResult> checkInputBalanceDualStage(
+    const InputBalanceDestType& inputBalanceDestType,
+    const std::vector<std::string>& dstSwitchNames,
+    const std::unordered_map<
+        std::string,
+        std::unordered_map<std::string, std::vector<std::string>>>&
+        inputCapacity,
+    const std::unordered_map<std::string, std::vector<std::string>>&
+        outputCapacity,
+    const std::unordered_map<std::string, std::vector<std::string>>&
+        neighborToLinkFailure,
+    const std::unordered_map<std::string, int>& portToVirtualDevice,
+    const std::unordered_map<std::string, cfg::DsfNode>& switchNameToDsfNode,
+    bool verbose);
+
 } // namespace utility
 } // namespace facebook::fboss

@@ -22,13 +22,22 @@ class OperPathToPublisherRoot {
   using RawSubPathMap = std::map<SubscriptionKey, RawOperPath>;
   using ExtSubPathMap = std::map<SubscriptionKey, ExtendedOperPath>;
 
-  /* We use the conventions of taking the first element of
-   * path and considering it as publisher root. This matches
-   * the structure of our FSDB tree. However in the
-   * future, if we ever change this, we could create a
+  OperPathToPublisherRoot(unsigned int rootPathLength = 1)
+      : rootPathLength_(rootPathLength) {}
+  /*
+   * We use the conventions of publisher root paths are of format
+   * {optional_root_prefix_path[], publisherRoot}
+   *
+   * For FSDB data model paths are of form {publisherRoot}
+   * i.e. rootPathLength = 1
+   * In future, if we ever change this, we could create a
    * mapping from (sub) path to a publisher root. So
    * for e.g. {"unit0","agent"} may map to publish root
    * of unit0_agent
+   *
+   * In case of NSDB data model where paths are of form /devices/<deviceName>
+   * using rootPathLength = 2 allows each deviceName to be mapped
+   * to publisher root of devices_{deviceName}.
    */
   std::string publisherRoot(PathIter begin, PathIter end) const;
 
@@ -51,6 +60,11 @@ class OperPathToPublisherRoot {
   std::string publisherRoot(const ExtSubPathMap& operPathMap) const;
 
  private:
+  unsigned int rootPathLength_;
+
+  template <typename PathIterator>
+  void checkNonEmpty(const PathIterator& begin, const PathIterator& end) const;
+
   void checkPath(PathIter begin, PathIter end) const;
 
   void checkExtendedPath(ExtPathIter begin, ExtPathIter end) const;

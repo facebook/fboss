@@ -140,6 +140,9 @@
           "test_name_regex": "HwMacsecTest.*$"
         },
         {
+          "test_name_regex": "HwStateMachineTest.CheckAgentConfigChanged$"
+        },
+        {
           "test_name_regex": "HwTest.CheckTcvrNameAndInterfaces$"
         }
     ],
@@ -176,6 +179,9 @@
         },
         {
           "test_name_regex": "HwMacsecTest.*$"
+        },
+        {
+          "test_name_regex": "HwStateMachineTest.CheckAgentConfigChanged$"
         },
         {
           "test_name_regex": "HwTest.CheckTcvrNameAndInterfaces$"
@@ -219,6 +225,9 @@
           "test_name_regex": "HwMacsecTest.*$"
         },
         {
+          "test_name_regex": "HwStateMachineTest.CheckAgentConfigChanged$"
+        },
+        {
           "test_name_regex": "HwTest.CheckTcvrNameAndInterfaces$"
         }
     ],
@@ -255,6 +264,9 @@
         },
         {
           "test_name_regex": "HwMacsecTest.*$"
+        },
+        {
+          "test_name_regex": "HwStateMachineTest.CheckAgentConfigChanged$"
         },
         {
           "test_name_regex": "HwTest.CheckTcvrNameAndInterfaces$"

@@ -70,6 +70,8 @@ FsdbSyncer::FsdbSyncer(SwSwitch* sw)
 }
 
 void FsdbSyncer::start() {
+  // full sync of agent info
+  agentFsdbSyncManager_->agentInfoChanged(sw_->getAgentInfo());
   // full sync of initial state
   agentFsdbSyncManager_->stateUpdated(
       StateDelta(std::make_shared<SwitchState>(), sw_->getState()));
@@ -120,6 +122,10 @@ void FsdbSyncer::switchReachabilityChanged(
     switch_reachability::SwitchReachability newReachability) {
   agentFsdbSyncManager_->switchReachabilityChanged(
       switchId, std::move(newReachability));
+}
+
+void FsdbSyncer::agentInfoChanged(agent_info::AgentInfo newAgentInfo) {
+  agentFsdbSyncManager_->agentInfoChanged(std::move(newAgentInfo));
 }
 
 void FsdbSyncer::statsUpdated(const AgentStats& stats) {

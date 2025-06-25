@@ -853,6 +853,7 @@ cpp_library(
         ":agent_dir_util",
         ":agent_features",
         ":agent_fsdb_sync_manager",
+        ":agent_info-cpp2-types",
         ":agent_stats-cpp2-types",
         ":asic_utils",
         ":build_info_wrapper",
@@ -1809,6 +1810,7 @@ cpp_library(
         "AgentFsdbSyncManager-computeOperDelta.cpp",
     ],
     exported_deps = [
+        ":agent_info-cpp2-types",
         ":switch_reachability-cpp2-types",
         ":switch_state-cpp2-types",
         "//configerator/structs/neteng/fboss/bitsflow:bitsflow-cpp2-types",
