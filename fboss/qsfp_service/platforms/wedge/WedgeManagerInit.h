@@ -11,8 +11,11 @@
 
 #include <folly/logging/xlog.h>
 #include <memory>
+#include <unordered_map>
 #include "fboss/agent/platforms/common/PlatformMapping.h"
+#include "fboss/agent/types.h"
 #include "fboss/lib/if/gen-cpp2/fboss_common_types.h"
+#include "fboss/qsfp_service/SlotThreadHelper.h"
 
 namespace facebook {
 namespace fboss {
@@ -32,25 +35,30 @@ std::shared_ptr<FbossMacsecHandler> createFbossMacsecHandler(
  */
 std::unique_ptr<WedgeManager> createFBWedgeManager(
     std::unique_ptr<PlatformProductInfo> productInfo,
-    const std::shared_ptr<const PlatformMapping> platformMapping);
-
+    const std::shared_ptr<const PlatformMapping> platformMapping,
+    const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
+        threads);
 std::unique_ptr<WedgeManager> createYampWedgeManager(
-    const std::shared_ptr<const PlatformMapping> platformMapping);
-
+    const std::shared_ptr<const PlatformMapping> platformMapping,
+    const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
+        threads);
 std::unique_ptr<WedgeManager> createDarwinWedgeManager(
-    const std::shared_ptr<const PlatformMapping> platformMapping);
-
+    const std::shared_ptr<const PlatformMapping> platformMapping,
+    const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
+        threads);
 std::unique_ptr<WedgeManager> createElbertWedgeManager(
-    const std::shared_ptr<const PlatformMapping> platformMapping);
-
+    const std::shared_ptr<const PlatformMapping> platformMapping,
+    const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
+        threads);
 bool isElbert8DD();
-
 std::string getDeviceDatacenter();
 std::string getDeviceHostnameScheme();
 
 template <typename BspPlatformMapping, PlatformType platformType>
 std::unique_ptr<WedgeManager> createBspWedgeManager(
-    const std::shared_ptr<const PlatformMapping> platformMapping);
+    const std::shared_ptr<const PlatformMapping> platformMapping,
+    const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
+        threads);
 
 } // namespace fboss
 } // namespace facebook

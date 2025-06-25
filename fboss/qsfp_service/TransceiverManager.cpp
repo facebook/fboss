@@ -34,11 +34,6 @@ DEFINE_bool(
     true,
     "Enable/disable warm boot functionality for qsfp_service");
 
-DEFINE_int32(
-    state_machine_update_thread_heartbeat_ms,
-    20000,
-    "State machine update thread's heartbeat interval (ms)");
-
 DEFINE_bool(
     firmware_upgrade_supported,
     false,
@@ -145,10 +140,12 @@ namespace facebook::fboss {
 
 TransceiverManager::TransceiverManager(
     std::unique_ptr<TransceiverPlatformApi> api,
-    const std::shared_ptr<const PlatformMapping> platformMapping)
+    const std::shared_ptr<const PlatformMapping> platformMapping,
+    const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
+        threads)
     : qsfpPlatApi_(std::move(api)),
       platformMapping_(platformMapping),
-      threads_(setupTransceiverToThreadHelper()),
+      threads_(threads),
       tcvrToPortInfo_(setupTransceiverToPortInfo()),
       stateMachineControllers_(setupTransceiverToStateMachineControllerMap()) {
   // Cache the static mapping based on platformMapping_
@@ -839,17 +836,6 @@ void TransceiverManager::getPortMediaInterface(
   }
 }
 
-TransceiverManager::TransceiverToThreadHelper
-TransceiverManager::setupTransceiverToThreadHelper() {
-  TransceiverToThreadHelper threadMap;
-  for (const auto& tcvrID :
-       utility::getTransceiverIds(platformMapping_->getChips())) {
-    threadMap.emplace(
-        tcvrID, std::make_unique<TransceiverThreadHelper>(tcvrID));
-  }
-  return threadMap;
-}
-
 TransceiverManager::TransceiverToStateMachineControllerMap
 TransceiverManager::setupTransceiverToStateMachineControllerMap() {
   TransceiverToStateMachineControllerMap stateMachineMap;
@@ -883,9 +869,14 @@ TransceiverManager::setupTransceiverToPortInfo() {
 
 void TransceiverManager::startThreads() {
   // Setup all TransceiverStateMachineHelper thread
-  for (auto& threadHelper : threads_) {
-    threadHelper.second->startThread();
-    heartbeats_.push_back(threadHelper.second->getThreadHeartbeat());
+  if (!threads_) {
+    throw FbossError(
+        "Attempting to initialize TransceiverManager without initializing thread object.");
+  }
+
+  for (auto& threadHelper : *threads_) {
+    threadHelper.second.startThread();
+    heartbeats_.push_back(threadHelper.second.getThreadHeartbeat());
   }
 
   XLOG(DBG2) << "Started TransceiverStateMachineUpdateThread";
@@ -946,8 +937,8 @@ void TransceiverManager::stopThreads() {
   drainAllStateMachineUpdates();
 
   // And finally stop all TransceiverStateMachineHelper thread
-  for (auto& threadHelper : threads_) {
-    threadHelper.second->stopThread();
+  for (auto& threadHelper : *threads_) {
+    threadHelper.second.stopThread();
   }
 }
 
@@ -1048,7 +1039,7 @@ void TransceiverManager::handlePendingUpdates() {
 
   // To expedite all these different transceivers state update, use Future
   std::vector<folly::Future<folly::Unit>> stateUpdateTasks;
-  for (auto& [tcvrID, threadHelper] : threads_) {
+  for (auto& [tcvrID, threadHelper] : *threads_) {
     auto stateMachineItr = stateMachineControllers_.find(tcvrID);
     if (stateMachineItr == stateMachineControllers_.end()) {
       XLOG(WARN) << "Unrecognize Transceiver: " << tcvrID
@@ -1057,7 +1048,7 @@ void TransceiverManager::handlePendingUpdates() {
     }
 
     stateUpdateTasks.push_back(
-        folly::via(threadHelper->getEventBase())
+        folly::via(threadHelper.getEventBase())
             .thenValue([stateMachineItr](auto&&) {
               stateMachineItr->second->executeSingleUpdate();
             }));
@@ -1716,7 +1707,7 @@ void TransceiverManager::triggerFirmwareUpgradeEvents(
     TransceiverStateMachineEvent event =
         TransceiverStateMachineEvent::TCVR_EV_UPGRADE_FIRMWARE;
     heartbeatWatchdog_->pauseMonitoringHeartbeat(
-        threads_.find(tcvrID)->second->getThreadHeartbeat());
+        threads_->find(tcvrID)->second.getThreadHeartbeat());
     // Only enqueue updates for now, we'll execute them at once after this loop
     if (auto result =
             enqueueStateUpdateForTcvrWithoutExecuting(tcvrID, event)) {
@@ -2064,9 +2055,9 @@ void TransceiverManager::refreshStateMachines() {
 
   // Resume heartbeats at the end of refresh loop in case they were paused by
   // any of the operations above
-  for (auto& threadHelper : threads_) {
+  for (auto& threadHelper : *threads_) {
     heartbeatWatchdog_->resumeMonitoringHeartbeat(
-        threadHelper.second->getThreadHeartbeat());
+        threadHelper.second.getThreadHeartbeat());
   }
   heartbeatWatchdog_->resumeMonitoringHeartbeat(updateThreadHeartbeat_);
 
@@ -2199,25 +2190,6 @@ void TransceiverManager::triggerAgentConfigChangeEvent() {
              << " transceivers state machines set back to discovered, "
              << numResetToNotPresent << " set back to not_present";
   configAppliedInfo_ = newConfigAppliedInfo;
-}
-
-void TransceiverManager::TransceiverThreadHelper::startThread() {
-  updateEventBase_ = std::make_unique<folly::EventBase>("update thread");
-  updateThread_.reset(
-      new std::thread([this] { updateEventBase_->loopForever(); }));
-  auto heartbeatStatsFunc = [this](int /* delay */, int /* backLog */) {};
-  heartbeat_ = std::make_shared<ThreadHeartbeat>(
-      updateEventBase_.get(),
-      folly::to<std::string>("thread_", tcvrID_, "_"),
-      FLAGS_state_machine_update_thread_heartbeat_ms,
-      heartbeatStatsFunc);
-}
-
-void TransceiverManager::TransceiverThreadHelper::stopThread() {
-  if (updateThread_) {
-    updateEventBase_->terminateLoopSoon();
-    updateThread_->join();
-  }
 }
 
 void TransceiverManager::waitForAllBlockingStateUpdateDone(

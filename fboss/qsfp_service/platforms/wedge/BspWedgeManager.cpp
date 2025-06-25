@@ -12,8 +12,10 @@ BspWedgeManager::BspWedgeManager(
     const BspSystemContainer* systemContainer,
     std::unique_ptr<BspTransceiverApi> api,
     const std::shared_ptr<const PlatformMapping> platformMapping,
-    PlatformType type)
-    : WedgeManager(std::move(api), platformMapping, type) {
+    PlatformType type,
+    const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
+        threads)
+    : WedgeManager(std::move(api), platformMapping, type, threads) {
   XLOG(INFO) << "BspTrace: BspWedgeManager()";
   systemContainer_ = systemContainer;
 }

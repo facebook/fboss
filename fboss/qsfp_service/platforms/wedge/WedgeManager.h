@@ -33,7 +33,9 @@ class WedgeManager : public TransceiverManager {
   explicit WedgeManager(
       std::unique_ptr<TransceiverPlatformApi> api,
       const std::shared_ptr<const PlatformMapping> platformMapping,
-      PlatformType type);
+      PlatformType type,
+      const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
+          threads);
   ~WedgeManager() override;
 
   void getTransceiversInfo(

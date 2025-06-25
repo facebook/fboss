@@ -115,6 +115,7 @@ cpp_library(
     exported_deps = [
         "fbsource//third-party/fmt:fmt",
         ":qsfp-config",
+        ":slot-thread-helper",
         ":transceiver-validator",
         "//fb303:thread_cached_service_data",
         "//fboss/agent:fboss-error",
@@ -222,6 +223,26 @@ cpp_library(
     ],
     exported_external_deps = [
         "boost",
+    ],
+)
+
+cpp_library(
+    name = "slot-thread-helper",
+    srcs = [
+        "SlotThreadHelper.cpp",
+    ],
+    headers = [
+        "SlotThreadHelper.h",
+    ],
+    exported_deps = [
+        "//fboss/agent:fboss-types",
+        "//fboss/lib:thread_heartbeat",
+        "//folly:intrusive_list",
+        "//folly:spin_lock",
+        "//folly:synchronized",
+    ],
+    exported_external_deps = [
+        ("boost", None, "boost_bimap"),
     ],
 )
 

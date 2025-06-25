@@ -24,8 +24,10 @@ class MockWedgeManager : public WedgeManager {
   MockWedgeManager(int numModules = 16, int numPortsPerModule = 4)
       : WedgeManager(
             std::make_unique<MockTransceiverPlatformApi>(),
-            makeFakePlatformMappnig(numModules, numPortsPerModule),
-            PlatformType::PLATFORM_WEDGE),
+            makeFakePlatformMapping(numModules, numPortsPerModule),
+            PlatformType::PLATFORM_WEDGE,
+            makeSlotThreadHelper(
+                makeFakePlatformMapping(numModules, numPortsPerModule))),
         numModules_(numModules) {}
 
   PlatformType getPlatformType() const override {
@@ -92,7 +94,22 @@ class MockWedgeManager : public WedgeManager {
   }
 
  private:
-  const std::shared_ptr<const FakeTestPlatformMapping> makeFakePlatformMappnig(
+  const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
+  makeSlotThreadHelper(
+      const std::shared_ptr<const FakeTestPlatformMapping> platformMapping) {
+    std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
+        slotThreadHelper = std::make_shared<
+            std::unordered_map<TransceiverID, SlotThreadHelper>>();
+
+    for (const auto& tcvrID :
+         utility::getTransceiverIds(platformMapping->getChips())) {
+      slotThreadHelper->emplace(tcvrID, SlotThreadHelper(tcvrID));
+    }
+
+    return slotThreadHelper;
+  }
+
+  const std::shared_ptr<const FakeTestPlatformMapping> makeFakePlatformMapping(
       int numModules,
       int numPortsPerModule) {
     std::vector<int> controllingPortIDs(numModules);

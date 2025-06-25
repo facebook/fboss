@@ -10,7 +10,9 @@ namespace facebook::fboss {
 class Wedge400CManager : public WedgeManager {
  public:
   explicit Wedge400CManager(
-      const std::shared_ptr<const PlatformMapping> platformMapping);
+      const std::shared_ptr<const PlatformMapping> platformMapping,
+      const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
+          threads);
   ~Wedge400CManager() override {}
   int getNumQsfpModules() const override {
     return 48;

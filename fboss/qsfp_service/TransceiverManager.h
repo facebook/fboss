@@ -25,6 +25,7 @@
 #include "fboss/lib/usb/TransceiverI2CApi.h"
 #include "fboss/lib/usb/TransceiverPlatformApi.h"
 #include "fboss/qsfp_service/QsfpConfig.h"
+#include "fboss/qsfp_service/SlotThreadHelper.h"
 #include "fboss/qsfp_service/StateMachineController.h"
 #include "fboss/qsfp_service/TransceiverStateMachine.h"
 #include "fboss/qsfp_service/TransceiverValidator.h"
@@ -57,7 +58,6 @@ DECLARE_bool(can_qsfp_service_warm_boot);
 DECLARE_bool(enable_tcvr_validation);
 
 namespace facebook::fboss {
-
 struct TransceiverConfig;
 
 struct NpuPortStatus {
@@ -88,7 +88,9 @@ class TransceiverManager {
 
   explicit TransceiverManager(
       std::unique_ptr<TransceiverPlatformApi> api,
-      const std::shared_ptr<const PlatformMapping> platformMapping);
+      const std::shared_ptr<const PlatformMapping> platformMapping,
+      const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
+          threads);
   virtual ~TransceiverManager();
   void gracefulExit();
   void setGracefulExitingFlag() {
@@ -483,9 +485,9 @@ class TransceiverManager {
   // transceiver out of reset by default will stay no op.
   virtual void clearAllTransceiverReset();
 
-  // This function will trigger a hard reset on the specific transceiver, making
-  // use of the specific implementation from each platform.
-  // It will also remove the transceiver from the transceivers_ map.
+  // This function will trigger a hard reset on the specific transceiver,
+  // making use of the specific implementation from each platform. It will
+  // also remove the transceiver from the transceivers_ map.
   void triggerQsfpHardReset(int idx);
 
   // Hold the reset on a specific transceiver. It will also remove the
@@ -667,8 +669,8 @@ class TransceiverManager {
    * Returns true if 2 conditions are met
    *
    * 1) User did not create cold_boot_once_qsfp_service file
-   * 2) can_warm_boot file exists, indicating that qsfp_service saved warm boot
-   *    state and shut down successfully.
+   * 2) can_warm_boot file exists, indicating that qsfp_service saved warm
+   * boot state and shut down successfully.
    *
    * This function also remove the forceColdBoot file but keep the canWarmBoot
    * file so that for future qsfp_service crash, we can still use warm boot
@@ -745,15 +747,16 @@ class TransceiverManager {
   /* This variable stores the TransceiverValidator object which maintains
    * data structures for all transceiver configurations currently deployed
    * in the fleet. This is left as a nullptr if either the feature flag
-   * is not enabled or the relevant structs are not included in the config file.
+   * is not enabled or the relevant structs are not included in the config
+   * file.
    */
   std::unique_ptr<TransceiverValidator> tcvrValidator_;
 
   // For platforms that needs to program xphy
   std::unique_ptr<PhyManager> phyManager_;
 
-  // Use the following bidirectional map to cache the static mapping so that we
-  // don't have to search from PlatformMapping again and again
+  // Use the following bidirectional map to cache the static mapping so that
+  // we don't have to search from PlatformMapping again and again
   PortNameIdMap portNameToPortID_;
 
   TcvrIdToTcvrNameMap tcvrIdToTcvrName_;
@@ -813,10 +816,6 @@ class TransceiverManager {
     std::unique_ptr<folly::EventBase> updateEventBase_;
     std::shared_ptr<ThreadHeartbeat> heartbeat_;
   };
-
-  using TransceiverToThreadHelper = std::
-      unordered_map<TransceiverID, std::unique_ptr<TransceiverThreadHelper>>;
-  TransceiverToThreadHelper setupTransceiverToThreadHelper();
 
   using TransceiverToPortInfo = std::unordered_map<
       TransceiverID,
@@ -951,7 +950,8 @@ class TransceiverManager {
   /*
    * A map to maintain all threads for all transceivers
    */
-  const TransceiverToThreadHelper threads_;
+  const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
+      threads_;
 
   /*
    * A map to maintain all transceivers(present and absent) programmed SW port
@@ -961,8 +961,8 @@ class TransceiverManager {
 
   /*
    * A ConfigAppliedInfo to keep track of the last wedge_agent config applied
-   * info. refreshStateMachines() will routinely call wedge_agent thrift api to
-   * getConfigAppliedInfo() thrift api, and then we can use that to tell
+   * info. refreshStateMachines() will routinely call wedge_agent thrift api
+   * to getConfigAppliedInfo() thrift api, and then we can use that to tell
    * whether there's a config change. This will probably:
    * 1) introduce an updated iphy port profile change, like reloading config
    * with new speed;
@@ -987,8 +987,9 @@ class TransceiverManager {
   std::unique_ptr<ThreadHeartbeatWatchdog> heartbeatWatchdog_;
 
   /*
-   * Tracks how many times a heart beat (from any of the state machine threads)
-   * was missed. This counter is periodically published to ODS by StatsPublisher
+   * Tracks how many times a heart beat (from any of the state machine
+   * threads) was missed. This counter is periodically published to ODS by
+   * StatsPublisher
    */
   std::atomic<long> stateMachineThreadHeartbeatMissedCount_{0};
 

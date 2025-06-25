@@ -16,7 +16,9 @@ namespace facebook::fboss {
 class Wedge40Manager : public WedgeManager {
  public:
   explicit Wedge40Manager(
-      const std::shared_ptr<const PlatformMapping> platformMapping);
+      const std::shared_ptr<const PlatformMapping> platformMapping,
+      const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
+          threads);
   ~Wedge40Manager() override {}
 
  private:

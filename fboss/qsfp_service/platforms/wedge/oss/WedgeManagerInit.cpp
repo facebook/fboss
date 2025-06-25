@@ -15,22 +15,32 @@ namespace facebook {
 namespace fboss {
 std::unique_ptr<WedgeManager> createFBWedgeManager(
     std::unique_ptr<PlatformProductInfo> /*productInfo*/,
-    const std::shared_ptr<const PlatformMapping> /* platformMapping */) {
+    const std::shared_ptr<const PlatformMapping> /* platformMapping */,
+    const std::shared_ptr<
+        std::unordered_map<TransceiverID, SlotThreadHelper>> /* threads */
+) {
   return std::unique_ptr<WedgeManager>{};
 }
 
 std::unique_ptr<WedgeManager> createYampWedgeManager(
-    const std::shared_ptr<const PlatformMapping> /* platformMapping */) {
+    const std::shared_ptr<const PlatformMapping> /* platformMapping */
+    ,
+    const std::shared_ptr<
+        std::unordered_map<TransceiverID, SlotThreadHelper>> /* threads */) {
   return std::unique_ptr<WedgeManager>{};
 }
 
 std::unique_ptr<WedgeManager> createDarwinWedgeManager(
-    const std::shared_ptr<const PlatformMapping> /* platformMapping */) {
+    const std::shared_ptr<const PlatformMapping> /* platformMapping */,
+    const std::shared_ptr<
+        std::unordered_map<TransceiverID, SlotThreadHelper>> /* threads */) {
   return std::unique_ptr<WedgeManager>{};
 }
 
 std::unique_ptr<WedgeManager> createElbertWedgeManager(
-    const std::shared_ptr<const PlatformMapping> /* platformMapping */) {
+    const std::shared_ptr<const PlatformMapping> /* platformMapping */,
+    const std::shared_ptr<
+        std::unordered_map<TransceiverID, SlotThreadHelper>> /* threads */) {
   return std::unique_ptr<WedgeManager>{};
 }
 
