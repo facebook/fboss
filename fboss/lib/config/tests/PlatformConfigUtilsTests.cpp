@@ -397,6 +397,15 @@ TEST(PlatformConfigUtilsTests, GetTransceiverId) {
   EXPECT_FALSE(transceiverId);
 }
 
+TEST(PlatformConfigUtilsTests, GetTransceiverIds) {
+  const auto& portChips = utility::getDataPlanePhyChips(
+      getPlatformPortEntryWithXPHY(), getPlatformChips());
+  const auto& transceiverIds = utility::getTransceiverIds(portChips);
+
+  EXPECT_EQ(transceiverIds.size(), 1);
+  EXPECT_EQ(transceiverIds[0], TransceiverID{2});
+}
+
 TEST(PlatformConfigUtilsTests, GetPlatformPortsByChip) {
   std::map<int32_t, cfg::PlatformPortEntry> platformPorts;
 

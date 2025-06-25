@@ -220,12 +220,7 @@ TEST_F(PlatformManagerHwTest, XcvrLedFiles) {
     auto yellowLed2 = fs::path(
         fmt::format("/sys/class/leds/port{}_led2:yellow:status", xcvrNum));
     for (auto& ledDir : {blueLed1, blueLed2, yellowLed1, yellowLed2}) {
-      for (auto& ledFile :
-           {"brightness",
-            "max_brightness",
-            "delay_on",
-            "delay_off",
-            "trigger"}) {
+      for (auto& ledFile : {"brightness", "max_brightness", "trigger"}) {
         auto ledFullPath = ledDir / fs::path(ledFile);
         EXPECT_TRUE(fs::exists(ledFullPath))
             << fmt::format("{} doesn't exist", ledFullPath.string());

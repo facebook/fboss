@@ -76,7 +76,9 @@ class NaivePeriodicSubscribableStorageBase {
     const bool serveGetRequestsWithLastPublishedState_;
   };
 
-  explicit NaivePeriodicSubscribableStorageBase(StorageParams params);
+  explicit NaivePeriodicSubscribableStorageBase(
+      StorageParams params,
+      std::optional<OperPathToPublisherRoot> pathToRootHelper = std::nullopt);
 
   virtual ~NaivePeriodicSubscribableStorageBase() {}
 
@@ -245,6 +247,8 @@ class NaivePeriodicSubscribableStorageBase {
   const OperProtocol patchOperProtocol_{OperProtocol::COMPACT};
 
  private:
+  std::optional<OperPathToPublisherRoot> pathToRootHelper_;
+
   void initExportedSubscriberStats(FsdbClient subscriberClientId);
 
   folly::Synchronized<std::map<std::string, std::string>>

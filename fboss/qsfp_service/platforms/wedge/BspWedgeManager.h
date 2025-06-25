@@ -17,8 +17,10 @@ class BspWedgeManager : public WedgeManager {
   BspWedgeManager(
       const BspSystemContainer* systemContainer,
       std::unique_ptr<BspTransceiverApi> api,
-      std::unique_ptr<PlatformMapping> platformMapping,
-      PlatformType type);
+      const std::shared_ptr<const PlatformMapping> platformMapping,
+      PlatformType type,
+      const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
+          threads);
   ~BspWedgeManager() override {}
 
   int getNumQsfpModules() const override;

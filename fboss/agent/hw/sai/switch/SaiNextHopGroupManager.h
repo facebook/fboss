@@ -200,6 +200,9 @@ class SaiNextHopGroupManager {
   void setPrimaryArsSwitchingMode(
       std::optional<cfg::SwitchingMode> switchingMode);
 
+  cfg::SwitchingMode getNextHopGroupSwitchingMode(
+      const RouteNextHopEntry::NextHopSet& swNextHops);
+
  private:
   bool isFixedWidthNextHopGroup(
       const RouteNextHopEntry::NextHopSet& swNextHops) const;

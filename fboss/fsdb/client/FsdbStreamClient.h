@@ -53,8 +53,8 @@ class FsdbStreamClient : public ReconnectingThriftClient {
   class FsdbClientGRDisconnectException : public FsdbException {
    public:
     explicit FsdbClientGRDisconnectException(std::string msg) {
-      this->message_ref() = std::move(msg);
-      this->errorCode_ref() = FsdbErrorCode::PUBLISHER_GR_DISCONNECT;
+      this->message() = std::move(msg);
+      this->errorCode() = FsdbErrorCode::PUBLISHER_GR_DISCONNECT;
     }
   };
 

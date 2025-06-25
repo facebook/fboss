@@ -6,7 +6,7 @@
     "firmware_upgrade_supported": "true",
     "janga_test": "true",
     "mode": "janga800bic",
-    "multi_npu_platform_mapping": "true",
+    "multi_npu_platform_mapping": "false",
     "remediation_enabled": "false"
   },
   "transceiverConfigOverrides": [
@@ -23,21 +23,6 @@
         "aPortName": "eth1/1/5",
         "zPortName": "eth1/2/5",
         "profileID": 38
-      },
-      {
-        "aPortName": "eth1/45/1",
-        "zPortName": "eth1/46/1",
-        "profileID": 38
-      },
-      {
-        "aPortName": "eth1/45/5",
-        "zPortName": "eth1/46/5",
-        "profileID": 38
-      },
-      {
-        "aPortName": "eth1/41/1",
-        "zPortName": "eth1/44/1",
-        "profileID": 22
       },
       {
         "aPortName": "fab1/3/1",
@@ -117,86 +102,6 @@
       {
         "aPortName": "fab1/15/8",
         "zPortName": "fab1/16/8",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/30/1",
-        "zPortName": "fab1/31/1",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/30/2",
-        "zPortName": "fab1/31/2",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/30/3",
-        "zPortName": "fab1/31/3",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/30/4",
-        "zPortName": "fab1/31/4",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/30/5",
-        "zPortName": "fab1/31/5",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/30/6",
-        "zPortName": "fab1/31/6",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/30/7",
-        "zPortName": "fab1/31/7",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/30/8",
-        "zPortName": "fab1/31/8",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/42/1",
-        "zPortName": "fab1/43/1",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/42/2",
-        "zPortName": "fab1/43/2",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/42/3",
-        "zPortName": "fab1/43/3",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/42/4",
-        "zPortName": "fab1/43/4",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/42/5",
-        "zPortName": "fab1/43/5",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/42/6",
-        "zPortName": "fab1/43/6",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/42/7",
-        "zPortName": "fab1/43/7",
-        "profileID": 42
-      },
-      {
-        "aPortName": "fab1/42/8",
-        "zPortName": "fab1/43/8",
         "profileID": 42
       }
     ]

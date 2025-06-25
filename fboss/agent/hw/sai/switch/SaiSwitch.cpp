@@ -251,6 +251,14 @@ void __gVendorSwitchEventNotificationCallback(
       buffer_size, buffer, event_type);
 }
 
+void __gHardResetNotificationallback(
+    sai_object_id_t /*switch_id*/,
+    sai_size_t buffer_size,
+    const void* buffer) {
+  __gSaiIdToSwitch.begin()->second->hardResetSwitchEventNotificationCallback(
+      buffer_size, buffer);
+}
+
 #if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
 void __gTxReadyStatusChangeNotification(
     sai_object_id_t switch_id,
@@ -460,6 +468,50 @@ void SaiSwitch::processLocalCapsuleSwitchIdsDelta(
     switchIdToNumCores[switchId] = hwAsic.getNumCores();
   }
   managerTable_->switchManager().setLocalCapsuleSwitchIds(switchIdToNumCores);
+}
+
+template <typename LockPolicyT>
+void SaiSwitch::processCreditRequestProfileDelta(
+    const StateDelta& delta,
+    const LockPolicyT& lockPolicy) {
+  auto dsfNodesDelta = delta.getDsfNodesDelta();
+  if (getSwitchType() != cfg::SwitchType::VOQ ||
+      dsfNodesDelta.begin() == dsfNodesDelta.end() || !dsfNodesDelta.getNew()) {
+    return;
+  }
+
+  std::map<int32_t, int32_t> moduleIdToCreditRequestProfileParam;
+  cfg::QueueScheduling expectedScheduling = cfg::QueueScheduling::INTERNAL;
+  [[maybe_unused]] const auto& lock = lockPolicy.lock();
+  for (const auto& [_, dsfNodes] : std::as_const(*dsfNodesDelta.getNew())) {
+    for (const auto& [switchId, node] : std::as_const(*dsfNodes)) {
+      auto scheduling = node->getScheduling();
+      auto param = node->getSchedulingParam();
+      int paramVal = 0;
+      if (scheduling == cfg::QueueScheduling::STRICT_PRIORITY) {
+        expectedScheduling = scheduling;
+        paramVal = static_cast<int>(param.value().spPriority().value());
+      } else if (scheduling == cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN) {
+        expectedScheduling = scheduling;
+        paramVal = param.value().wrrWeight().value();
+      }
+      if (scheduling != cfg::QueueScheduling::INTERNAL) {
+        XLOG(DBG2) << "set credit request scheduling parameter of "
+                   << node->getName() << " to " << paramVal;
+        const auto& hwAsic = getHwAsicForAsicType(node->getAsicType());
+        int numCores = hwAsic.getNumCores();
+        for (auto core = switchId; core < switchId + numCores; core++) {
+          moduleIdToCreditRequestProfileParam[core] = paramVal;
+        }
+      }
+    }
+  }
+  XLOG(DBG2) << "set credit request profile scheduler "
+             << apache::thrift::util::enumNameSafe(expectedScheduling);
+  managerTable_->switchManager().setCreditRequestProfileSchedulerMode(
+      expectedScheduling);
+  managerTable_->switchManager().setModuleIdToCreditRequestProfileParam(
+      moduleIdToCreditRequestProfileParam);
 }
 
 template <typename LockPolicyT>
@@ -717,6 +769,7 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
       delta, cfg::SwitchDrainState::DRAINED, lockPolicy);
   processSwitchSettingsChangeSansDrained(delta, lockPolicy);
   processLocalCapsuleSwitchIdsDelta(delta, lockPolicy);
+  processCreditRequestProfileDelta(delta, lockPolicy);
 
   if (platform_->getAsic()->isSupported(HwAsic::Feature::ARS)) {
     processFlowletSwitchingConfigAdded(delta, lockPolicy);
@@ -2429,6 +2482,7 @@ void SaiSwitch::linkStateChangedBottomHalf(const PortID& portId) {
 void SaiSwitch::linkStateChangedCallbackBottomHalf(
     std::vector<sai_port_oper_status_notification_t> operStatus) {
   std::map<PortID, bool> swPortId2Status;
+  std::map<PortID, std::optional<AggregatePortID>> swPortId2DownAggPort;
   for (auto i = 0; i < operStatus.size(); i++) {
     bool up = utility::isPortOperUp(operStatus[i].port_state);
 
@@ -2493,6 +2547,13 @@ void SaiSwitch::linkStateChangedCallbackBottomHalf(
           // will point to drop and next hop group will shrink.
           managerTable_->fdbManager().handleLinkDown(
               SaiPortDescriptor(swAggPort.value()));
+          // if min-link is enabled, neighbor caches in sw switch may not be
+          // cleared and re-learned, when port flaps happen around the min-link
+          // threshold. As a result, sai neighbor/nexthop object is not updated
+          // and keep pointing to unresolved nexthop cpu port, see S519817 for
+          // details. So, need to force trigger clearing neighbor cache
+          // associated with the agg port here.
+          swPortId2DownAggPort[swPortId] = swAggPort;
         }
       }
       managerTable_->fdbManager().handleLinkDown(SaiPortDescriptor(swPortId));
@@ -2513,10 +2574,17 @@ void SaiSwitch::linkStateChangedCallbackBottomHalf(
   // processing is not at the mercy of what the callback (SwSwitch, HwTest)
   // does with the callback notification.
   for (auto swPortIdAndStatus : swPortId2Status) {
+    std::optional<AggregatePortID> downAggPort;
+    auto it = swPortId2DownAggPort.find(swPortIdAndStatus.first);
+    if (it != swPortId2DownAggPort.end()) {
+      downAggPort = it->second;
+    }
     callback_->linkStateChanged(
         swPortIdAndStatus.first,
         swPortIdAndStatus.second,
-        managerTable_->portManager().getPortType(swPortIdAndStatus.first));
+        managerTable_->portManager().getPortType(swPortIdAndStatus.first),
+        std::nullopt,
+        downAggPort);
   }
 }
 
@@ -3561,6 +3629,10 @@ void SaiSwitch::unregisterCallbacksLocked(
     switchApi.unregisterVendorSwitchEventNotifyCallback(saiSwitchId_);
   }
 #endif
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::ASIC_RESET_NOTIFICATIONS)) {
+    switchApi.unregisterSwitchHardResetNotifyCallback(saiSwitchId_);
+  }
 }
 
 bool SaiSwitch::isValidStateUpdateLocked(
@@ -3849,6 +3921,12 @@ void SaiSwitch::switchRunStateChangedImplLocked(
       if (platform_->getAsic()->isSupported(
               HwAsic::Feature::BRIDGE_PORT_8021Q)) {
         switchApi.registerFdbEventCallback(saiSwitchId_, __gFdbEventCallback);
+      }
+
+      if (platform_->getAsic()->isSupported(
+              HwAsic::Feature::ASIC_RESET_NOTIFICATIONS)) {
+        switchApi.registerSwitchHardResetNotifyCallback(
+            saiSwitchId_, (sai_pointer_t)__gHardResetNotificationallback);
       }
 
     } break;
@@ -4761,6 +4839,12 @@ void SaiSwitch::vendorSwitchEventNotificationCallback(
       bufferSize, buffer, eventType);
 }
 
+void SaiSwitch::hardResetSwitchEventNotificationCallback(
+    sai_size_t /*bufferSize*/,
+    const void* /*buffer*/) {
+  XLOG(FATAL) << " ASIC had a hard reset. Aborting !!!";
+}
+
 TeFlowStats SaiSwitch::getTeFlowStats() const {
   // not implemented in SAI. Return empty stats
   return TeFlowStats();
@@ -4784,6 +4868,13 @@ HwSwitchDropStats SaiSwitch::getSwitchDropStats() const {
 AclStats SaiSwitch::getAclStats() const {
   std::lock_guard<std::mutex> lock(saiSwitchMutex_);
   return managerTable_->aclTableManager().getAclStats();
+}
+
+cfg::SwitchingMode SaiSwitch::getFwdSwitchingMode(
+    const RouteNextHopEntry& fwd) {
+  std::lock_guard<std::mutex> lock(saiSwitchMutex_);
+  return managerTable_->nextHopGroupManager().getNextHopGroupSwitchingMode(
+      fwd.normalizedNextHops());
 }
 
 HwSwitchWatermarkStats SaiSwitch::getSwitchWatermarkStats() const {

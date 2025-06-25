@@ -2,18 +2,16 @@
 
 #pragma once
 
+#include <map>
 #include <optional>
 #include <string>
 #include <vector>
 
+#include "fboss/platform/weutil/if/gen-cpp2/eeprom_contents_types.h"
+
 namespace facebook::fboss::platform {
 
-using EepromContents = std::vector<
-    std::pair<std::string /* eeprom key */, std::string /* eeprom value */>>;
-
 class FbossEepromInterface {
-  virtual constexpr int getVersion() const = 0;
-
  public:
   enum entryType {
     FIELD_INVALID,
@@ -25,43 +23,36 @@ class FbossEepromInterface {
   };
 
   struct EepromFieldEntry {
-    int typeCode;
     std::string fieldName;
     entryType fieldType;
-    std::string* fieldPtr;
     std::optional<int> length{std::nullopt};
+    std::string value{};
   };
 
-  virtual std::vector<EepromFieldEntry> getFieldDictionary() = 0;
+  static FbossEepromInterface createEepromInterface(int version);
 
-  EepromContents getContents() {
-    EepromContents contents;
-    contents.emplace_back("Version", std::to_string(getVersion()));
-    for (const auto& entry : getFieldDictionary()) {
-      if (!entry.fieldPtr) {
-        continue;
-      }
-      if (entry.fieldType == FIELD_MAC) {
-        // Format
-        // (value): (00:00:00:00:00:00,222)
-        // (value1);(value2): (00:00:00:00:00:00);(222)
-        std::string value = *entry.fieldPtr;
-        std::string value1 = value.substr(0, value.find(','));
-        std::string value2 = value.substr(value.find(',') + 1);
-        contents.emplace_back(entry.fieldName + " Base", value1);
-        contents.emplace_back(entry.fieldName + " Address Size", value2);
-      } else {
-        contents.emplace_back(entry.fieldName, *entry.fieldPtr);
-      }
-    }
-    return contents;
-  }
+  void setField(int typeCode, const std::string& value);
 
-  virtual std::string getProductionState() const = 0;
-  virtual std::string getProductionSubState() const = 0;
-  virtual std::string getVariantVersion() const = 0;
+  const std::map<int, EepromFieldEntry>& getFieldDictionary() const;
 
-  virtual ~FbossEepromInterface() = default;
+  // TODO: Get rid of getContents() in the future.
+  std::vector<std::pair<std::string, std::string>> getContents() const;
+
+  int getVersion() const;
+  std::string getProductName() const;
+  std::string getProductPartNumber() const;
+  std::string getProductionState() const;
+  std::string getProductionSubState() const;
+  std::string getVariantVersion() const;
+  std::string getProductSerialNumber() const;
+
+  EepromContents getEepromContents() const;
+
+ private:
+  FbossEepromInterface() = default;
+
+  std::map<int, EepromFieldEntry> fieldMap_{};
+  int version_{0};
 };
 
 } // namespace facebook::fboss::platform

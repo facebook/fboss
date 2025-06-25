@@ -21,8 +21,6 @@ CmdShowFabricReachabilityUncached::queryClient(
         "Switch name(s) required to get reachability information from hardware.");
   }
 
-  std::unordered_map<std::string, std::vector<std::string>> reachabilityMatrix;
-
   std::vector<std::string> switchNames;
   switchNames.reserve(queriedSwitchNames.size());
   for (const auto& queriedSwitchName : queriedSwitchNames) {
@@ -33,20 +31,8 @@ CmdShowFabricReachabilityUncached::queryClient(
   // feature is enabled. Leverage it.
   // Collecting such information from HwAgent is more efficient, and thus
   // preferred as SwSwitch call would just be a passthrough.
-  auto hwAgentQueryFn =
-      [&reachabilityMatrix, &switchNames](
-          apache::thrift::Client<facebook::fboss::FbossHwCtrl>& client) {
-        std::map<std::string, std::vector<std::string>> reachability;
-        client.sync_getHwSwitchReachability(reachability, switchNames);
-        for (auto& [switchName, reachablePorts] : reachability) {
-          reachabilityMatrix[switchName].insert(
-              reachabilityMatrix[switchName].end(),
-              reachablePorts.begin(),
-              reachablePorts.end());
-        }
-      };
-
-  utils::runOnAllHwAgents(hostInfo, hwAgentQueryFn);
+  auto reachabilityMatrix =
+      utils::getUncachedSwitchReachabilityInfo(hostInfo, switchNames);
 
   return createModel(reachabilityMatrix);
 }

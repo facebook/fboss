@@ -203,6 +203,9 @@ class HwSwitchFb303Stats {
   void cpuError() {
     cpuErrors_.addValue(1);
   }
+  void asicSoftResetError() {
+    asicSoftResetErrors_.addValue(1);
+  }
   void ingressTmWarning() {
     ingressTmWarnings_.addValue(1);
   }
@@ -406,6 +409,7 @@ class HwSwitchFb303Stats {
   // Used in SwAgent to update stats based on HwSwitch synced counters
   void updateStats(HwSwitchFb303GlobalStats& globalStats);
   std::optional<int64_t> getAsicRevision() const;
+  int64_t getAsicSoftResetErrors() const;
 
  private:
   // Forbidden copy constructor and assignment operator
@@ -523,6 +527,7 @@ class HwSwitchFb303Stats {
   TLTimeseries fabricControlPathErrors_;
   TLTimeseries fabricDataPathErrors_;
   TLTimeseries cpuErrors_;
+  TLTimeseries asicSoftResetErrors_;
   TLTimeseries ingressTmWarnings_;
   TLTimeseries egressTmWarnings_;
   TLTimeseries dramWarnings_;

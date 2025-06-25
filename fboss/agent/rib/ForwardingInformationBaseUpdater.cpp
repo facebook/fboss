@@ -19,8 +19,6 @@
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/SwitchState.h"
 
-#include <folly/logging/xlog.h>
-
 #include <algorithm>
 
 namespace facebook::fboss {

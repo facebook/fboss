@@ -213,6 +213,8 @@ bool Jericho2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SWITCH_ASIC_SDK_HEALTH_NOTIFY:
     case HwAsic::Feature::VENDOR_SWITCH_CONGESTION_MANAGEMENT_ERRORS:
     case HwAsic::Feature::PFC_WATCHDOG_TIMER_GRANULARITY:
+    case HwAsic::Feature::ASIC_RESET_NOTIFICATIONS:
+    case HwAsic::Feature::RX_SERDES_PARAMETERS:
       return false;
   }
   return false;

@@ -166,13 +166,14 @@ PmUnitConfig DataStore::resolvePmUnitConfig(const std::string& slotPath) const {
 
 void DataStore::updateEepromContents(
     const std::string& devicePath,
-    const EepromContents& contents) {
+    const FbossEepromInterface& contents) {
   XLOG(INFO) << fmt::format(
       "Updating EepromContents for DevicePath ({})", devicePath);
-  eepromContents_[devicePath] = contents;
+  eepromContents_.insert(std::make_pair(devicePath, contents));
 }
 
-EepromContents DataStore::getEepromContents(const std::string& devicePath) {
+FbossEepromInterface DataStore::getEepromContents(
+    const std::string& devicePath) {
   if (!eepromContents_.contains(devicePath)) {
     throw std::runtime_error(fmt::format(
         "Couldn't find EepromContents at DevicePath ({})", devicePath));

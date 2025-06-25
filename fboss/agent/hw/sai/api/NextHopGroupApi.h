@@ -16,6 +16,7 @@
 #include "fboss/agent/hw/sai/api/SaiVersion.h"
 #include "fboss/agent/hw/sai/api/Types.h"
 
+#include <fmt/format.h>
 #include <folly/logging/xlog.h>
 
 #include <set>
@@ -28,6 +29,37 @@ extern "C" {
 namespace facebook::fboss {
 
 class NextHopGroupApi;
+
+namespace detail {
+using NextHopMemberKey =
+    std::pair<SaiNextHopTraits::AdapterHostKey, sai_uint32_t>; // weight
+/* For NSF, due to the limited availability of ARS supported ECMP groups, the
+ * ecmp resource manager does a reclaim of ARS groups when they become
+ * available during a state/config update. Since the SAI SDK does not support
+ * directly converting a non ARS ECMP group, the route update will set the new
+ * ARS mode within SaiNextHopGroupKey.
+ * There is no change to the nhop set though.
+ *
+ * Because the key changed, refOrEmplace operation would trigger a
+ * new NHG group reference with the same nhop set as the existing ECMP.
+ *
+ * Having the ARS mode as part of the adapter host key allows SAI store to
+ * create a new ECMP group within the ARS range while a non ARS ECMP still
+ * exists with the same nhop set.
+ */
+struct NextHopGroupAdapterHostKey {
+  std::set<NextHopMemberKey> nhopMemberSet = {};
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+  sai_uint32_t mode = SAI_ARS_MODE_FIXED; // switching mode
+#else
+  sai_uint32_t mode = 0;
+#endif
+  bool operator==(const NextHopGroupAdapterHostKey& other) const {
+    return nhopMemberSet == other.nhopMemberSet && mode == other.mode;
+  }
+  friend struct fmt::formatter<NextHopGroupAdapterHostKey>;
+};
+} // namespace detail
 
 struct SaiNextHopGroupTraits {
   static constexpr sai_object_type_t ObjectType =
@@ -51,9 +83,7 @@ struct SaiNextHopGroupTraits {
   };
 
   using AdapterKey = NextHopGroupSaiId;
-  using NextHopMemberKey =
-      std::pair<SaiNextHopTraits::AdapterHostKey, sai_uint32_t>; // weight
-  using AdapterHostKey = std::set<NextHopMemberKey>;
+  using AdapterHostKey = typename detail::NextHopGroupAdapterHostKey;
   using CreateAttributes = std::tuple<
       Attributes::Type
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
@@ -179,6 +209,23 @@ class NextHopGroupApi : public SaiApi<NextHopGroupApi> {
 };
 
 } // namespace facebook::fboss
+
+namespace fmt {
+template <>
+struct formatter<facebook::fboss::detail::NextHopGroupAdapterHostKey> {
+  template <typename ParseContext>
+  constexpr auto parse(ParseContext& ctx) const {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(
+      const facebook::fboss::detail::NextHopGroupAdapterHostKey& ahk,
+      FormatContext& ctx) const {
+    return format_to(ctx.out(), "{}, {}", ahk.nhopMemberSet, ahk.mode);
+  }
+};
+} // namespace fmt
 
 namespace std {
 template <>

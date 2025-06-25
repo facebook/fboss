@@ -290,7 +290,9 @@ void SaiRouteManager::addOrUpdateRoute(
        */
       auto nextHopGroupHandle =
           managerTable_->nextHopGroupManager().incRefOrAddNextHopGroup(
-              SaiNextHopGroupKey(fwd.normalizedNextHops(), std::nullopt));
+              SaiNextHopGroupKey(
+                  fwd.normalizedNextHops(),
+                  fwd.getOverrideEcmpSwitchingMode()));
       NextHopGroupSaiId nextHopGroupId{
           nextHopGroupHandle->nextHopGroup->adapterKey()};
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)

@@ -956,7 +956,8 @@ void SaiPhyManager::setPortPrbs(
   if (prbs.enabled().value()) {
     SaiApiTable::getInstance()->portApi().setAttribute(
         portAdapterKey,
-        SaiPortTraits::Attributes::PrbsPolynomial{prbs.polynominal().value()});
+        SaiPortTraits::Attributes::PrbsPolynomial{
+            static_cast<sai_uint32_t>(prbs.polynominal().value())});
   }
   SaiApiTable::getInstance()->portApi().setAttribute(
       portAdapterKey,

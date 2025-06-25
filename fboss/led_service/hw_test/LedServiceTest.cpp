@@ -44,15 +44,30 @@ void LedServiceTest::TearDown() {
 
 std::vector<TransceiverID> LedServiceTest::getAllTransceivers(
     const PlatformMapping* platformMapping) const {
-  std::vector<TransceiverID> transceivers;
+  // Use a set to sort the transceiver IDs.
+  std::set<TransceiverID> transceivers;
   const auto& chips = platformMapping->getChips();
   for (auto chip : chips) {
     if (*chip.second.type() == phy::DataPlanePhyChipType::TRANSCEIVER) {
       auto tcvrID = TransceiverID(*chip.second.physicalID());
-      transceivers.push_back(tcvrID);
+      transceivers.insert(tcvrID);
     }
   }
-  return transceivers;
+  std::vector<TransceiverID> retVal;
+  // For some platforms (e.g. Janga Test), the platform mapping has transceivers
+  // missing logical port IDs which will fail the tests (not all transceivers
+  // have logical port IDs). So, we will skip the missing ones here.
+  for (auto tcvrID : transceivers) {
+    try {
+      auto swPorts = platformMap_->getSwPortListFromTransceiverId(tcvrID);
+      if (!swPorts.empty()) {
+        retVal.push_back(tcvrID);
+      }
+    } catch (FbossError&) {
+    }
+  }
+
+  return retVal;
 }
 
 /*
@@ -63,7 +78,6 @@ TEST_F(LedServiceTest, checkForceLed) {
   // Test for all the modules
   // Use the ports max speed and profile
   auto transceivers = getAllTransceivers(platformMap_);
-  std::sort(transceivers.begin(), transceivers.end());
 
   for (auto tcvr : transceivers) {
     auto swPorts = platformMap_->getSwPortListFromTransceiverId(tcvr);
@@ -170,7 +184,6 @@ void LedServiceTest::checkLedBlink(
 
 TEST_F(LedServiceTest, checkLedColorChange) {
   auto transceivers = getAllTransceivers(platformMap_);
-  std::sort(transceivers.begin(), transceivers.end());
 
   for (auto tcvr : transceivers) {
     XLOG(INFO) << "Testing transceiver " << tcvr;
@@ -303,7 +316,6 @@ TEST_F(LedServiceTest, checkLedColorChange) {
 
 TEST_F(LedServiceTest, checkLedBlinking) {
   auto transceivers = getAllTransceivers(platformMap_);
-  std::sort(transceivers.begin(), transceivers.end());
   auto blinkSupported = ledManager_->blinkingSupported();
 
   for (auto tcvr : transceivers) {

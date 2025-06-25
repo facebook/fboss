@@ -16,7 +16,7 @@ class FbossEepromParser {
       const uint16_t offset)
       : eepromPath_(eepromPath), offset_(offset) {}
 
-  std::vector<std::pair<std::string, std::string>> getContents();
+  FbossEepromInterface getContents();
 
  private:
   int loadEeprom(
@@ -24,7 +24,7 @@ class FbossEepromParser {
       unsigned char* output,
       int offset,
       int max);
-  std::unique_ptr<FbossEepromInterface> parseEepromBlobTLV(
+  FbossEepromInterface parseEepromBlobTLV(
       int eepromVer,
       const unsigned char* buffer,
       const int readCount);

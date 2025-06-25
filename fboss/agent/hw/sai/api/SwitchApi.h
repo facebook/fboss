@@ -407,6 +407,16 @@ struct SaiSwitchTraits {
         sai_uint32_t,
         SaiIntDefault<sai_uint32_t>>;
 #endif
+    using AsicTemperatureList = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_TEMP_LIST,
+        std::vector<sai_int32_t>,
+        SaiU32ListDefault>;
+    using NumTemperatureSensors = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_MAX_NUMBER_OF_TEMP_SENSORS,
+        sai_uint8_t,
+        SaiS8ListDefault>;
     /* extension attributes */
     struct AttributeLedIdWrapper {
       std::optional<sai_attr_id_t> operator()();
@@ -770,6 +780,20 @@ struct SaiSwitchTraits {
     };
     using AsicRevision =
         SaiExtensionAttribute<sai_uint32_t, AttributeAsicRevision>;
+    struct AttributeCreditRequestProfileSchedulerMode {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using CreditRequestProfileSchedulerMode = SaiExtensionAttribute<
+        sai_uint32_t,
+        AttributeCreditRequestProfileSchedulerMode,
+        SaiIntDefault<sai_uint32_t>>;
+    struct AttributeModuleIdToCreditRequestProfileParamList {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using ModuleIdToCreditRequestProfileParamList = SaiExtensionAttribute<
+        std::vector<sai_map_t>,
+        AttributeModuleIdToCreditRequestProfileParamList,
+        SaiListDefault<sai_map_list_t>>;
   };
   using AdapterKey = SwitchSaiId;
   using AdapterHostKey = std::monostate;
@@ -1038,6 +1062,10 @@ SAI_ATTRIBUTE_NAME(Switch, NumberOfPipes)
 SAI_ATTRIBUTE_NAME(Switch, PipelineObjectList)
 SAI_ATTRIBUTE_NAME(Switch, DisableSllAndHllTimeout)
 SAI_ATTRIBUTE_NAME(Switch, AsicRevision)
+SAI_ATTRIBUTE_NAME(Switch, CreditRequestProfileSchedulerMode)
+SAI_ATTRIBUTE_NAME(Switch, ModuleIdToCreditRequestProfileParamList)
+SAI_ATTRIBUTE_NAME(Switch, AsicTemperatureList)
+SAI_ATTRIBUTE_NAME(Switch, NumTemperatureSensors)
 
 template <>
 struct SaiObjectHasStats<SaiSwitchTraits> : public std::true_type {};
@@ -1155,6 +1183,9 @@ class SwitchApi : public SaiApi<SwitchApi> {
       sai_vendor_switch_event_notification_fn event_notify_cb) const;
 #endif
 
+  void registerSwitchHardResetNotifyCallback(
+      const SwitchSaiId& id,
+      sai_pointer_t event_notify_cb) const;
   void unregisterRxCallback(SwitchSaiId switch_id) const {
     registerRxCallback(switch_id, nullptr);
   }
@@ -1184,6 +1215,9 @@ class SwitchApi : public SaiApi<SwitchApi> {
     registerVendorSwitchEventNotifyCallback(id, nullptr);
   }
 #endif
+  void unregisterSwitchHardResetNotifyCallback(const SwitchSaiId& id) const {
+    registerSwitchHardResetNotifyCallback(id, nullptr);
+  }
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
   void registerSwitchAsicSdkHealthEventCallback(

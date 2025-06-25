@@ -335,7 +335,9 @@ int TunManager::getTableIdForVoq(InterfaceID ifID) const {
           << ")";
       return tableId;
     }
-  } else if (platform == PlatformType::PLATFORM_JANGA800BIC) {
+  } else if (
+      platform == PlatformType::PLATFORM_JANGA800BIC ||
+      FLAGS_dsf_single_stage_r192_f40_e32) {
     auto intf = sw_->getState()->getInterfaces()->getNode(ifID);
     auto constexpr kLocalIntfTableStart = 1;
     auto constexpr kGlobalIntfTableStart = 200;

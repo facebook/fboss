@@ -39,7 +39,8 @@ class ArsProfileApiTest : public ::testing::Test {
     SaiArsProfileTraits::Attributes::PortLoadPast
         arsProfilePortLoadPastAttribute{true};
     SaiArsProfileTraits::Attributes::PortLoadPastWeight
-        arsProfilePortLoadPastWeightAttribute{kPastWeight()};
+        arsProfilePortLoadPastWeightAttribute{
+            static_cast<uint8_t>(kPastWeight())};
     SaiArsProfileTraits::Attributes::LoadPastMinVal
         arsProfileLoadPastMinValAttribute{kLoadPastMinVal()};
     SaiArsProfileTraits::Attributes::LoadPastMaxVal
@@ -47,7 +48,8 @@ class ArsProfileApiTest : public ::testing::Test {
     SaiArsProfileTraits::Attributes::PortLoadFuture
         arsProfilePortLoadFutureAttribute{true};
     SaiArsProfileTraits::Attributes::PortLoadFutureWeight
-        arsProfilePortLoadFutureWeightAttribute{kFutureWeight()};
+        arsProfilePortLoadFutureWeightAttribute{
+            static_cast<uint8_t>(kFutureWeight())};
     SaiArsProfileTraits::Attributes::LoadFutureMinVal
         arsProfileLoadFutureMinValAttribute{kLoadFutureMinVal()};
     SaiArsProfileTraits::Attributes::LoadFutureMaxVal
@@ -244,19 +246,19 @@ TEST_F(ArsProfileApiTest, setArsProfileAttribute) {
   SaiArsProfileTraits::Attributes::RandomSeed arsProfileRandomSeedAttribute{
       0x2222};
   SaiArsProfileTraits::Attributes::PortLoadPastWeight
-      arsProfilePortLoadPastWeightAttribute{40};
+      arsProfilePortLoadPastWeightAttribute{static_cast<uint8_t>(40)};
   SaiArsProfileTraits::Attributes::LoadPastMinVal
       arsProfileLoadPastMinValAttribute{4000};
   SaiArsProfileTraits::Attributes::LoadPastMaxVal
       arsProfileLoadPastMaxValAttribute{40000};
   SaiArsProfileTraits::Attributes::PortLoadFutureWeight
-      arsProfilePortLoadFutureWeightAttribute{50};
+      arsProfilePortLoadFutureWeightAttribute{static_cast<uint8_t>(50)};
   SaiArsProfileTraits::Attributes::LoadFutureMinVal
       arsProfileLoadFutureMinValAttribute{5000};
   SaiArsProfileTraits::Attributes::LoadFutureMaxVal
       arsProfileLoadFutureMaxValAttribute{50000};
   SaiArsProfileTraits::Attributes::PortLoadExponent
-      arsProfilePortLoadExponentAttribute{60};
+      arsProfilePortLoadExponentAttribute{static_cast<uint8_t>(60)};
   SaiArsProfileTraits::Attributes::LoadCurrentMinVal
       arsProfileLoadCurrentMinValAttribute{6000};
   SaiArsProfileTraits::Attributes::LoadCurrentMaxVal

@@ -66,7 +66,8 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
     }
     auto nhk = managerTable_->nextHopManager().getAdapterHostKey(
         folly::poly_cast<ResolvedNextHop>(swNextHop));
-    nextHopGroupAdapterHostKey.insert(std::make_pair(nhk, swNextHop.weight()));
+    nextHopGroupAdapterHostKey.nhopMemberSet.insert(
+        std::make_pair(nhk, swNextHop.weight()));
   }
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
@@ -99,6 +100,11 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
     } else {
       // TODO (ravi) update after random spray support becomes available
     }
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+    nextHopGroupAdapterHostKey.mode =
+        managerTable_->arsManager().cfgSwitchingModeToSai(
+            nextHopGroupHandle->desiredArsMode_.value());
+#endif
   }
 
   // Create the NextHopGroup and NextHopGroupMembers
@@ -244,6 +250,29 @@ std::string SaiNextHopGroupManager::listManagedObjects() const {
     finalOutput += "\n";
   }
   return finalOutput;
+}
+
+cfg::SwitchingMode SaiNextHopGroupManager::getNextHopGroupSwitchingMode(
+    const RouteNextHopEntry::NextHopSet& swNextHops) {
+  auto nextHopGroupHandle =
+      handles_.get(SaiNextHopGroupKey(swNextHops, std::nullopt));
+  if (!nextHopGroupHandle) {
+    // if not in dynamic mode, search for backup modes
+    std::vector<cfg::SwitchingMode> modes = {
+        cfg::SwitchingMode::FIXED_ASSIGNMENT,
+        cfg::SwitchingMode::PER_PACKET_RANDOM};
+    for (const auto& mode : modes) {
+      nextHopGroupHandle = handles_.get(SaiNextHopGroupKey(swNextHops, mode));
+      if (nextHopGroupHandle) {
+        break;
+      }
+    }
+  }
+
+  if (nextHopGroupHandle && nextHopGroupHandle->desiredArsMode_.has_value()) {
+    return nextHopGroupHandle->desiredArsMode_.value();
+  }
+  return cfg::SwitchingMode::FIXED_ASSIGNMENT;
 }
 
 NextHopGroupMember::NextHopGroupMember(

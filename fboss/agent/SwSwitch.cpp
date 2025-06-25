@@ -696,6 +696,10 @@ void SwSwitch::setSwitchRunState(SwitchRunState runState) {
 void SwSwitch::onSwitchRunStateChange(SwitchRunState newState) {
   if (newState == SwitchRunState::INITIALIZED) {
     restart_time::mark(RestartEvent::INITIALIZED);
+    agentInfo_.startTime() =
+        std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::system_clock::now().time_since_epoch())
+            .count();
   } else if (newState == SwitchRunState::CONFIGURED) {
     restart_time::mark(RestartEvent::CONFIGURED);
   }
@@ -2300,7 +2304,8 @@ void SwSwitch::linkStateChanged(
     PortID portId,
     bool up,
     cfg::PortType portType,
-    std::optional<phy::LinkFaultStatus> iPhyFaultStatus) {
+    std::optional<phy::LinkFaultStatus> iPhyFaultStatus,
+    std::optional<AggregatePortID> aggPortId) {
   if (!isFullyInitialized()) {
     XLOG(ERR)
         << "Ignore link state change event before we are fully initialized...";
@@ -2352,6 +2357,11 @@ void SwSwitch::linkStateChanged(
   } else {
     updateStateNoCoalescing(
         "Port OperState (UP/DOWN) Update", std::move(updateOperStateFn));
+    if (!up && aggPortId.has_value()) {
+      XLOG(DBG2) << "set neighbor caches pending for trunk port "
+                 << aggPortId.value();
+      getNeighborUpdater()->portDown(PortDescriptor(aggPortId.value()));
+    }
   }
 }
 
@@ -3803,7 +3813,7 @@ void SwSwitch::updateDsfSubscriberState(
 
 std::string SwSwitch::getConfigStr() const {
   return apache::thrift::SimpleJSONSerializer::serialize<std::string>(
-      getConfig());
+      getAgentConfig());
 }
 
 cfg::SwitchConfig SwSwitch::getConfig() const {

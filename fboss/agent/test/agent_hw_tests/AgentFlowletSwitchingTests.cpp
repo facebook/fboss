@@ -48,11 +48,14 @@ class AgentFlowletSwitchingTest : public AgentArsBase {
         ensemble.getSw(),
         ensemble.masterLogicalPortIds(),
         true /*interfaceHasSubnet*/);
+    // TODO(ravi) fixed for SAI until spray support is available
     utility::addFlowletConfigs(
         cfg,
         ensemble.masterLogicalPortIds(),
         ensemble.isSai(),
-        cfg::SwitchingMode::PER_PACKET_QUALITY);
+        cfg::SwitchingMode::PER_PACKET_QUALITY,
+        ensemble.isSai() ? cfg::SwitchingMode::FIXED_ASSIGNMENT
+                         : cfg::SwitchingMode::PER_PACKET_RANDOM);
     return cfg;
   }
 
@@ -918,7 +921,7 @@ TEST_F(AgentFlowletBcmTest, VerifySwitchingModeUpdateSwState) {
         state,
         testPrefixes2,
         std::optional<cfg::SwitchingMode>(
-            cfg::SwitchingMode::FIXED_ASSIGNMENT));
+            cfg::SwitchingMode::PER_PACKET_RANDOM));
 
     // Now verify if warmboot state is updated in sw state
     verifySwitchingMode(getProgrammedState(), testPrefixes1, std::nullopt);
@@ -926,7 +929,7 @@ TEST_F(AgentFlowletBcmTest, VerifySwitchingModeUpdateSwState) {
         getProgrammedState(),
         testPrefixes2,
         std::optional<cfg::SwitchingMode>(
-            cfg::SwitchingMode::FIXED_ASSIGNMENT));
+            cfg::SwitchingMode::PER_PACKET_RANDOM));
   };
   verifyAcrossWarmBoots(setup, [] {}, [] {}, verifyPostWarmboot);
 }

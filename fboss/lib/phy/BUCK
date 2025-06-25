@@ -141,6 +141,7 @@ cpp_library(
         "//fboss/agent/if:ctrl-cpp2-types",
         "//fboss/agent/platforms/common:platform_mapping",
         "//fboss/lib/config:fboss_config_utils",
+        "//fboss/lib/link_snapshots:async_filewriter_factory",
         "//fboss/mdio:mdio",
         "//fboss/mka_service/if:mka_structs-cpp2-types",
         "//folly:synchronized",

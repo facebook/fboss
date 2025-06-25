@@ -100,20 +100,22 @@ cpp_library(
 cpp_library(
     name = "transceiver-manager",
     srcs = [
+        "StateMachineController.cpp",
         "TransceiverManager.cpp",
         "TransceiverStateMachine.cpp",
-        "TransceiverStateMachineUpdate.cpp",
     ],
     headers = [
+        "StateMachineController.h",
         "TransceiverManager.h",
         "TransceiverStateMachine.h",
-        "TransceiverStateMachineUpdate.h",
+        "TypedStateMachineUpdate.h",
         "module/Transceiver.h",
         "module/TransceiverImpl.h",
     ],
     exported_deps = [
         "fbsource//third-party/fmt:fmt",
         ":qsfp-config",
+        ":slot-thread-helper",
         ":transceiver-validator",
         "//fb303:thread_cached_service_data",
         "//fboss/agent:fboss-error",
@@ -137,6 +139,7 @@ cpp_library(
         "//fboss/lib/usb:i2-api",
         "//fboss/lib/usb:transceiver_access_parameter",
         "//fboss/qsfp_service/if:config-cpp2-types",
+        "//fboss/qsfp_service/if:port_state-cpp2-types",
         "//fboss/qsfp_service/if:transceiver-cpp2-types",
         "//folly:file_util",
         "//folly:intrusive_list",
@@ -187,6 +190,59 @@ cpp_library(
         "//folly:string",
         "//folly/logging:logging",
         "//thrift/lib/cpp/util:enum_utils",
+    ],
+)
+
+cpp_library(
+    name = "typed-state-machine-update",
+    headers = [
+        "TypedStateMachineUpdate.h",
+    ],
+    exported_deps = [
+        "fbsource//third-party/fmt:fmt",
+        "//folly/logging:logging",
+    ],
+)
+
+cpp_library(
+    name = "state-machine-controller",
+    srcs = [
+        "StateMachineController.cpp",
+    ],
+    headers = [
+        "StateMachineController.h",
+    ],
+    exported_deps = [
+        "fbsource//third-party/fmt:fmt",
+        ":transceiver-manager",
+        ":typed-state-machine-update",
+        "//fboss/agent:fboss-error",
+        "//fboss/agent:fboss-types",
+        "//folly:spin_lock",
+        "//folly:synchronized",
+    ],
+    exported_external_deps = [
+        "boost",
+    ],
+)
+
+cpp_library(
+    name = "slot-thread-helper",
+    srcs = [
+        "SlotThreadHelper.cpp",
+    ],
+    headers = [
+        "SlotThreadHelper.h",
+    ],
+    exported_deps = [
+        "//fboss/agent:fboss-types",
+        "//fboss/lib:thread_heartbeat",
+        "//folly:intrusive_list",
+        "//folly:spin_lock",
+        "//folly:synchronized",
+    ],
+    exported_external_deps = [
+        ("boost", None, "boost_bimap"),
     ],
 )
 

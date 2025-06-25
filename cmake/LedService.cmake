@@ -65,6 +65,7 @@ add_library(led_manager_lib
   fboss/led_service/Meru800bfaLedManager.cpp
   fboss/led_service/Morgan800ccLedManager.cpp
   fboss/led_service/Minipack3NLedManager.cpp
+  fboss/led_service/Janga800bicLedManager.cpp
   fboss/led_service/Tahan800bcLedManager.cpp
 )
 
@@ -79,11 +80,13 @@ target_link_libraries(led_manager_lib
   montblanc_bsp
   meru800bia_bsp
   meru800bfa_bsp
+  janga800bic_bsp
   tahan800bc_bsp
   morgan800cc_bsp
   darwin_platform_mapping
   elbert_platform_mapping
   fuji_platform_mapping
+  janga800bic_platform_mapping
   minipack_platform_mapping
   minipack3n_platform_mapping
   montblanc_platform_mapping

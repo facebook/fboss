@@ -8774,5 +8774,8 @@
         }
       }
     }
+  },
+  "thriftApiToRateLimitInQps": {
+    
   }
 }

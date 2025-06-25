@@ -28,7 +28,7 @@ bool ContentValidator::isValid(
     return false;
   }
   std::string version = versionIt->second;
-  std::vector<std::string> validVersions = {"4", "5", "6"};
+  std::vector<std::string> validVersions = {"5", "6"};
   if (std::find(validVersions.begin(), validVersions.end(), version) ==
       validVersions.end()) {
     std::cerr << fmt::format("Invalid Version: `{}`", version);

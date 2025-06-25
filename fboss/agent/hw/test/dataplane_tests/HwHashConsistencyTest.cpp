@@ -347,6 +347,11 @@ TEST_F(HwHashConsistencyTest, UdpEgressLinksOnEcmpExpand) {
 TEST_F(HwHashConsistencyTest, VerifyMemberOrderEffect) {
   auto setup = [this]() { setupHashAndProgramRoute(); };
   auto verify = [this]() {
+    // unresolve all next hops
+    for (auto i = 0; i < 4; i++) {
+      resolveNhop(i /* nhop0 */, false /* resolve */);
+    }
+    // resolve next hops
     for (auto i = 0; i < 4; i++) {
       resolveNhop(i /* nhop0 */, true /* resolve */);
     }
@@ -356,16 +361,33 @@ TEST_F(HwHashConsistencyTest, VerifyMemberOrderEffect) {
     EXPECT_EQ(utility::getPortOutPkts(this->getLatestPortStats(ports_[0])), 2);
 
     clearPortStats();
-
+    // unresolve all next hops
     for (auto i = 0; i < 4; i++) {
       resolveNhop(i /* nhopi */, false /* resolve */);
     }
+    // resolve next hops in reverse order
     for (auto i = 3; i >= 0; i--) {
       resolveNhop(i /* nhop0 */, true /* resolve */);
     }
     sendFlow(0 /* flow 0 */, FlowType::TCP);
     sendFlow(0 /* flow 0 */, FlowType::UDP);
-    EXPECT_EQ(utility::getPortOutPkts(this->getLatestPortStats(ports_[0])), 2);
+
+    auto asicType = getPlatform()->getAsic()->getAsicType();
+    if (asicType == cfg::AsicType::ASIC_TYPE_CHENAB) {
+      /* On Chenab when next hops are programmed using
+      SAI_NEXT_HOP_GROUP_TYPE_DYNAMIC_UNORDERED_ECMP the order of next hops in
+      the group is the order in which they are programmed and so the flow moves
+      to port 3.*/
+      EXPECT_EQ(
+          utility::getPortOutPkts(this->getLatestPortStats(ports_[3])), 2);
+    } else {
+      /* On other implementations when next hops are programmed using
+      SAI_NEXT_HOP_GROUP_TYPE_DYNAMIC_UNORDERED_ECMP the order of next hops in
+      the group is in order of physical output port so the flow remains on port
+      0.*/
+      EXPECT_EQ(
+          utility::getPortOutPkts(this->getLatestPortStats(ports_[0])), 2);
+    }
   };
   verifyAcrossWarmBoots(setup, verify);
 }

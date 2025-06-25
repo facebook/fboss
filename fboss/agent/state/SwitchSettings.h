@@ -125,8 +125,8 @@ class SwitchSettings
     std::vector<state::BlockedMacAddress> macAddrs{};
     for (auto& entry : macAddrsToBlock) {
       state::BlockedMacAddress macAddr;
-      macAddr.macAddrToBlockVlanID_ref() = entry.first;
-      macAddr.macAddrToBlockAddr_ref() = entry.second.toString();
+      macAddr.macAddrToBlockVlanID() = entry.first;
+      macAddr.macAddrToBlockAddr() = entry.second.toString();
       macAddrs.push_back(macAddr);
     }
     set<switch_state_tags::macAddrsToBlock>(macAddrs);

@@ -63,6 +63,7 @@ add_library(platform_manager_data_store
 target_link_libraries(platform_manager_data_store
   fmt::fmt
   platform_manager_config_cpp2
+  weutil_eeprom_contents_cpp2
   Folly::folly
 )
 
@@ -95,6 +96,7 @@ add_library(platform_manager_presence_checker
 target_link_libraries(platform_manager_presence_checker
   platform_manager_device_path_resolver
   platform_manager_utils
+  weutil_eeprom_contents_cpp2
 )
 
 add_library(platform_manager_pci_explorer
@@ -118,6 +120,7 @@ target_link_libraries(platform_manager_device_path_resolver
   platform_manager_pci_explorer
   platform_manager_config_cpp2
   platform_manager_utils
+  weutil_eeprom_contents_cpp2
 )
 
 add_library(platform_manager_platform_explorer

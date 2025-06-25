@@ -34,7 +34,6 @@ cpp_library(
     exported_deps = [
         ":network_to_route_map",
         "//fboss/agent:address_utils",
-        "//fboss/agent:constants",
         "//fboss/agent:fboss-error",
         "//fboss/agent:fboss-types",
         "//fboss/agent:fboss_event_base",
@@ -131,6 +130,5 @@ cpp_library(
         "//fboss/agent:switchid_scope_resolver",
         "//fboss/agent/state:nodebase",
         "//fboss/agent/state:state",
-        "//folly/logging:logging",
     ],
 )

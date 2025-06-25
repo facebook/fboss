@@ -170,6 +170,9 @@ class SaiSwitch : public HwSwitch {
       sai_size_t bufferSize,
       const void* buffer,
       uint32_t eventType);
+  void hardResetSwitchEventNotificationCallback(
+      sai_size_t bufferSize,
+      const void* buffer);
 
   void txReadyStatusChangeCallbackTopHalf(SwitchSaiId switchId);
   void linkConnectivityChanged(
@@ -257,6 +260,8 @@ class SaiSwitch : public HwSwitch {
   void injectSwitchReachabilityChangeNotification() override;
 
   bool getArsExhaustionStatus() override;
+
+  cfg::SwitchingMode getFwdSwitchingMode(const RouteNextHopEntry&) override;
 
   std::vector<FirmwareInfo> getAllFirmwareInfo() const override;
 
@@ -465,6 +470,11 @@ class SaiSwitch : public HwSwitch {
 
   template <typename LockPolicyT>
   void processLocalCapsuleSwitchIdsDelta(
+      const StateDelta& delta,
+      const LockPolicyT& lockPolicy);
+
+  template <typename LockPolicyT>
+  void processCreditRequestProfileDelta(
       const StateDelta& delta,
       const LockPolicyT& lockPolicy);
 

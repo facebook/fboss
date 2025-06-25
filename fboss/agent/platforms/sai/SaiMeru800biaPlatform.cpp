@@ -86,6 +86,10 @@ SaiMeru800biaPlatform::getInternalSystemPortConfig() const {
   CHECK(asic_) << " Asic must be set before getting sys port info";
   CHECK(asic_->getSwitchId()) << " Switch Id must be set before sys port info";
 
+  if (FLAGS_dsf_single_stage_r192_f40_e32) {
+    return {{0, static_cast<uint32_t>(*asic_->getSwitchId()), 0, 0, 10000, 8}};
+  }
+
   const uint32_t switchId = static_cast<uint32_t>(*asic_->getSwitchId());
   const uint32_t speed = kCpuPortSpeed;
   const uint32_t numVoqs = isDualStage3Q2QMode() ? kDualStageCpuPortNumVoqs

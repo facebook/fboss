@@ -296,6 +296,7 @@ class SaiPortManager {
   cfg::PortType getPortType(PortID portId) const;
   bool fecCorrectedBitsSupported(PortID portID) const;
   bool rxFrequencyRPMSupported() const;
+  bool rxSerdesParametersSupported() const;
   bool rxSNRSupported() const;
   bool fecCodewordsStatsSupported(PortID portID) const;
   void addPortShelEnable(const std::shared_ptr<Port>& swPort) const;

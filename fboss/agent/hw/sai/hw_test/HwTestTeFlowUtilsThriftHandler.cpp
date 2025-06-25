@@ -8,8 +8,6 @@
  *
  */
 #include "fboss/agent/hw/test/HwTestThriftHandler.h"
-#include "fboss/agent/state/SwitchState.h"
-#include "fboss/agent/state/TeFlowTable.h"
 
 namespace facebook::fboss::utility {
 int HwTestThriftHandler::getNumTeFlowEntries() {

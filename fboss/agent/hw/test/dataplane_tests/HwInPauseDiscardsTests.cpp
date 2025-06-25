@@ -115,7 +115,7 @@ class HwInPauseDiscardsCounterTest : public HwLinkStateDependentTest {
 class HwInPauseFloodTest : public HwInPauseDiscardsCounterTest {
  private:
   cfg::SwitchConfig initialConfig() const override {
-    auto cfg = utility::oneL3IntfNPortConfig(
+    auto cfg = utility::onePortPerInterfaceConfig(
         getHwSwitch()->getPlatform()->getPlatformMapping(),
         getHwSwitch()->getPlatform()->getAsic(),
         masterLogicalPortIds(),

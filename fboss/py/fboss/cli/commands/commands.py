@@ -41,6 +41,13 @@ class FbossCmd:
 
         return PlainTextFbossAgentClient(*args)
 
+    def _create_agent_hw_client(self):
+        args = [self._hostname, PlainTextFbossAgentClient.DEFAULT_HW_PORT]
+        if self._timeout:
+            args.append(self._timeout)
+
+        return PlainTextFbossAgentClient(*args)
+
     def _create_qsfp_client(self):
         args = [self._hostname, self._port]
         if self._timeout:

@@ -4,6 +4,7 @@
 #include "fboss/led_service/DarwinLedManager.h"
 #include "fboss/led_service/ElbertLedManager.h"
 #include "fboss/led_service/FujiLedManager.h"
+#include "fboss/led_service/Janga800bicLedManager.h"
 #include "fboss/led_service/Meru800bfaLedManager.h"
 #include "fboss/led_service/Meru800biaLedManager.h"
 #include "fboss/led_service/Minipack3NLedManager.h"
@@ -56,6 +57,8 @@ std::unique_ptr<LedManager> createLedManager() {
     return std::make_unique<Morgan800ccLedManager>();
   } else if (mode == PlatformType::PLATFORM_MINIPACK3N) {
     return std::make_unique<Minipack3NLedManager>();
+  } else if (mode == PlatformType::PLATFORM_JANGA800BIC) {
+    return std::make_unique<Janga800bicLedManager>();
   } else if (mode == PlatformType::PLATFORM_TAHAN800BC) {
     return std::make_unique<Tahan800bcLedManager>();
   }

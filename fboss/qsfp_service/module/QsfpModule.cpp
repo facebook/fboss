@@ -440,7 +440,7 @@ void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
 
     auto sensorInfo = getSensorInfo();
     if (auto tempFlags = sensorInfo.temp()->flags()) {
-      if (*tempFlags->alarm()->high() || *tempFlags->warn()->high()) {
+      if (*tempFlags->alarm()->high()) {
         StatsPublisher::bumpHighTemp();
         StatsPublisher::bumpHighTempPort(primaryPortName_);
       }

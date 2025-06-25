@@ -341,6 +341,13 @@ add_fbthrift_cpp_library(
     switch_config_cpp2
 )
 add_fbthrift_cpp_library(
+  agent_info_cpp2
+  fboss/agent/agent_info.thrift
+  OPTIONS
+    json
+    reflection
+)
+add_fbthrift_cpp_library(
   platform_config_cpp2
   fboss/agent/platform_config.thrift
   OPTIONS

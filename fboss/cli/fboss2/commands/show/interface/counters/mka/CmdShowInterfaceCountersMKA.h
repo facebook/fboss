@@ -69,72 +69,72 @@ class CmdShowInterfaceCountersMKA : public CmdHandler<
       const auto& inStats = *modelIntfMKAStats.ingressPortStats();
       const auto& outStats = *modelIntfMKAStats.egressPortStats();
 
-      Table table;
-      table.setHeader({"Counter Name", "IN", "OUT"});
-      table.addRow(
+      Table portStatsTable;
+      portStatsTable.setHeader({"Counter Name", "IN", "OUT"});
+      portStatsTable.addRow(
           {"PreMacsecDropPackets",
            std::to_string(*inStats.preMacsecDropPkts()),
            std::to_string(*outStats.preMacsecDropPkts())});
-      table.addRow(
+      portStatsTable.addRow(
           {"ControlPackets",
            std::to_string(*inStats.controlPkts()),
            std::to_string(*outStats.controlPkts())});
-      table.addRow(
+      portStatsTable.addRow(
           {"DataPackets",
            std::to_string(*inStats.dataPkts()),
            std::to_string(*outStats.dataPkts())});
-      table.addRow(
+      portStatsTable.addRow(
           {"(En/De)cryptedOctets",
            std::to_string(*inStats.octetsEncrypted()),
            std::to_string(*outStats.octetsEncrypted())});
-      table.addRow(
+      portStatsTable.addRow(
           {"MacsecTagPkts",
            std::to_string(*inStats.noMacsecTagPkts()),
            std::to_string(*outStats.noMacsecTagPkts())});
-      table.addRow(
+      portStatsTable.addRow(
           {"BadOrNoMacsecTagDroppedPkts",
            std::to_string(*outStats.inBadOrNoMacsecTagDroppedPkts()),
            "--"});
-      table.addRow(
+      portStatsTable.addRow(
           {"NoSciDroppedPkts",
            std::to_string(*inStats.inNoSciDroppedPkts()),
            "--"});
-      table.addRow(
+      portStatsTable.addRow(
           {"UnknownSciPkts",
            std::to_string(*inStats.inUnknownSciPkts()),
            "--"});
-      table.addRow(
+      portStatsTable.addRow(
           {"OverrunDroppedPkts",
            std::to_string(*inStats.inOverrunDroppedPkts()),
            "--"});
-      table.addRow(
+      portStatsTable.addRow(
           {"DelayedPkts", std::to_string(*inStats.inDelayedPkts()), "--"});
-      table.addRow(
+      portStatsTable.addRow(
           {"LateDroppedPkts",
            std::to_string(*inStats.inLateDroppedPkts()),
            "--"});
-      table.addRow(
+      portStatsTable.addRow(
           {"NotValidDroppedPkts",
            std::to_string(*inStats.inNotValidDroppedPkts()),
            "--"});
-      table.addRow(
+      portStatsTable.addRow(
           {"InvalidPkts", std::to_string(*inStats.inInvalidPkts()), "--"});
-      table.addRow(
+      portStatsTable.addRow(
           {"NoSaDroppedPkts",
            std::to_string(*inStats.inNoSaDroppedPkts()),
            "--"});
-      table.addRow(
+      portStatsTable.addRow(
           {"UnusedSaPkts", std::to_string(*inStats.inUnusedSaPkts()), "--"});
-      table.addRow(
+      portStatsTable.addRow(
           {"TooLongDroppedPkts",
            "--",
            std::to_string(*outStats.outTooLongDroppedPkts())});
-      table.addRow(
+      portStatsTable.addRow(
           {"CurrentXPN",
            std::to_string(*inStats.inCurrentXpn()),
            std::to_string(*outStats.outCurrentXpn())});
 
-      out << table << std::endl;
+      out << portStatsTable << std::endl;
     };
 
     auto printFlowStatsMap = [&out](const auto& modelIntfMKAStats) {

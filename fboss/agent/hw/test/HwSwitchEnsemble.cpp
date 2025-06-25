@@ -417,7 +417,8 @@ void HwSwitchEnsemble::linkStateChanged(
     PortID port,
     bool up,
     cfg::PortType portType,
-    std::optional<phy::LinkFaultStatus> /* iPhyFaultStatus */) {
+    std::optional<phy::LinkFaultStatus> /* iPhyFaultStatus */,
+    std::optional<AggregatePortID> /* aggPortId */) {
   if (getHwSwitch()->getRunState() < SwitchRunState::INITIALIZED) {
     return;
   }

@@ -315,3 +315,8 @@ DEFINE_bool(
     "Flag to perform a DLB type update in FIB state");
 
 DEFINE_int32(agent_exit_delay_s, 0, "Delay in seconds before the agent exits");
+
+DEFINE_bool(
+    dsf_single_stage_r192_f40_e32,
+    false,
+    "Use platform mapping for DSF Single Stage with 192 RDSWs, 40 FDSWs, 32 EDSWs");

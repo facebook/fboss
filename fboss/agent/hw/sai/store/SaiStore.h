@@ -39,6 +39,7 @@ extern "C" {
 namespace facebook::fboss {
 
 inline constexpr auto kAdapterKey2AdapterHostKey = "adapterKey2AdapterHostKey";
+inline constexpr auto kNhopGroupWithModeName = "nhop-group-with-mode";
 
 template <>
 struct AdapterHostKeyWarmbootRecoverable<SaiNextHopGroupTraits>

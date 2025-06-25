@@ -61,6 +61,7 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
           src: 'img/logo.svg',
         },
         items: [
+          {label: 'Onboarding', position: 'left', docId: 'onboarding/platform_onboarding', type: 'doc'},
           {label: 'Build', position: 'left', docId: 'build/building_fboss_on_docker_containers', type: 'doc'},
           {label: 'Develop', position: 'left', docId: 'developing/platform_mapping', type: 'doc'},
           {label: 'Test', position: 'left', docId: 'testing/sensor_service_hw_test', type: 'doc'},

@@ -222,7 +222,7 @@ PfcBufferParams PfcBufferParams::getPfcBufferParams(
     //     less than the headroom size, in which case there will be hystersis.
     if (globalHeadroom > 0) {
       buffer.resumeThreshold = 20480;
-      buffer.pgHeadroom = 2200;
+      buffer.pgHeadroom = 4400;
       buffer.minLimit = *buffer.resumeThreshold;
     } else {
       buffer.resumeThreshold = 20480;
@@ -339,6 +339,7 @@ std::string pfcStatsString(const HwPortStats& stats) {
      << " inUnicastPkts=" << *stats.inUnicastPkts_()
      << " inDiscards=" << *stats.inDiscards_()
      << " inDiscardsRaw=" << *stats.inDiscardsRaw_()
+     << " inCongestionDiscards=" << *stats.inCongestionDiscards_()
      << " inErrors=" << *stats.inErrors_();
   for (auto [qos, value] : *stats.inPfc_()) {
     ss << " inPfc." << qos << "=" << value;

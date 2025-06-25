@@ -62,9 +62,11 @@ using LockedTransceiversPtr = folly::Synchronized<
 
 WedgeManager::WedgeManager(
     std::unique_ptr<TransceiverPlatformApi> api,
-    std::unique_ptr<PlatformMapping> platformMapping,
-    PlatformType type)
-    : TransceiverManager(std::move(api), std::move(platformMapping)),
+    const std::shared_ptr<const PlatformMapping> platformMapping,
+    PlatformType type,
+    const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
+        threads)
+    : TransceiverManager(std::move(api), platformMapping, threads),
       platformType_(type) {
   /* Constructor for WedgeManager class:
    * Get the TransceiverPlatformApi object from the creator of this object,

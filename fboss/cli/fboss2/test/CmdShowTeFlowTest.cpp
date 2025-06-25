@@ -8,7 +8,6 @@
 #include <fboss/agent/if/gen-cpp2/common_types.h>
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
-#include "fboss/cli/fboss2/utils/CmdClientUtils.h"
 
 #include "fboss/cli/fboss2/commands/show/teflow/CmdShowTeFlow.h"
 #include "fboss/cli/fboss2/commands/show/teflow/gen-cpp2/model_types.h"

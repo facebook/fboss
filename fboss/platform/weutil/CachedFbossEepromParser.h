@@ -2,8 +2,8 @@
 
 #pragma once
 
+#include <utility>
 #include "fboss/platform/weutil/FbossEepromParser.h"
-#include "fboss/platform/weutil/FbossEepromParserUtils.h"
 
 namespace facebook::fboss::platform {
 
@@ -11,7 +11,7 @@ class CachedFbossEepromParser {
  public:
   CachedFbossEepromParser() {}
 
-  std::vector<std::pair<std::string, std::string>> getContents(
+  FbossEepromInterface getContents(
       const std::string& eepromFilePath,
       uint16_t offset) {
     auto eepromPtr = std::make_pair(eepromFilePath, offset);
@@ -28,36 +28,34 @@ class CachedFbossEepromParser {
       const std::string& eepromFilePath,
       uint16_t offset) {
     auto contents = getContents(eepromFilePath, offset);
-    return FbossEepromParserUtils::getProductName(contents);
+    return contents.getProductName();
   }
 
   std::optional<int> getProductionState(
       const std::string& eepromFilePath,
       uint16_t offset) {
     auto contents = getContents(eepromFilePath, offset);
-    return FbossEepromParserUtils::getProductionState(contents);
+    return std::stoi(contents.getProductionState());
   }
 
   std::optional<int> getProductionSubState(
       const std::string& eepromFilePath,
       uint16_t offset) {
     auto contents = getContents(eepromFilePath, offset);
-    return FbossEepromParserUtils::getProductionSubState(contents);
+    return std::stoi(contents.getProductionSubState());
   }
 
   std::optional<int> getVariantVersion(
       const std::string& eepromFilePath,
       uint16_t offset = 0) {
     auto contents = getContents(eepromFilePath, offset);
-    return FbossEepromParserUtils::getVariantVersion(contents);
+    return stoi(contents.getVariantVersion());
   }
 
  private:
   std::map<
       std::pair<std::string /* eepromFilePath */, uint16_t /* offset */>,
-      std::vector<std::pair<
-          std::string /* eeprom key */,
-          std::string /* eeprom value */>>>
+      FbossEepromInterface>
       cache_{};
 };
 

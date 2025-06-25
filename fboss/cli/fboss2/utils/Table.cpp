@@ -10,8 +10,6 @@
 #include "fboss/cli/fboss2/utils/Table.h"
 #include "fboss/cli/fboss2/CmdGlobalOptions.h"
 
-#include <folly/Utility.h>
-
 namespace {
 using facebook::fboss::CmdGlobalOptions;
 using facebook::fboss::utils::Table;
