@@ -48,6 +48,13 @@ class StateMachineController {
     return stateMachine_;
   }
 
+  void blockNewUpdates() {
+    // Lock acquisition is needed here to ensure updates cannot be queued after
+    // blocking new updates.
+    pendingUpdates_.withWLock(
+        [&](auto& /* pendingUpdatesList */) { blockNewUpdates_ = true; });
+  }
+
   void enqueueUpdate(std::unique_ptr<StateMachineUpdate> update) {
     if (update == nullptr) {
       XLOG(ERR)
@@ -55,6 +62,12 @@ class StateMachineController {
           << static_cast<int32_t>(id_);
     }
     pendingUpdates_.withWLock([&](auto& pendingUpdatesList) {
+      if (blockNewUpdates_) {
+        XLOG(ERR) << "[SM] Ignoring state machine update for: "
+                  << getUpdateString(update->getEvent())
+                  << ". State machine controller is in shutdown mode.";
+        return;
+      }
       pendingUpdatesList.push_back(std::move(update));
     });
   }
@@ -105,6 +118,7 @@ class StateMachineController {
   void applyUpdate(EventType event);
   void setStateMachineAttributes();
 
+  bool blockNewUpdates_{false};
   IdType id_;
   folly::Synchronized<state_machine<StateMachineType>> stateMachine_;
   folly::Synchronized<std::list<std::unique_ptr<StateMachineUpdate>>>

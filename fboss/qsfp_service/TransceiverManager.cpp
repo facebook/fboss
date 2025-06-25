@@ -18,7 +18,6 @@
 #include "fboss/lib/phy/gen-cpp2/prbs_types.h"
 #include "fboss/lib/restart_tracker/RestartTimeTracker.h"
 #include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
-#include "fboss/qsfp_service/TransceiverStateMachineUpdate.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
 using namespace std::chrono;
@@ -151,7 +150,7 @@ TransceiverManager::TransceiverManager(
       platformMapping_(std::move(platformMapping)),
       threads_(setupTransceiverToThreadHelper()),
       tcvrToPortInfo_(setupTransceiverToPortInfo()),
-      stateMachines_(setupTransceiverToStateMachineMap()) {
+      stateMachineControllers_(setupTransceiverToStateMachineControllerMap()) {
   // Cache the static mapping based on platformMapping_
   const auto& platformPorts = platformMapping_->getPlatformPorts();
   const auto& chips = platformMapping_->getChips();
@@ -368,12 +367,13 @@ void TransceiverManager::clearAllTransceiverReset() {
 }
 
 void TransceiverManager::setForceRemoveTransceiver(TransceiverID id) {
-  auto stateMachineItr = stateMachines_.find(id);
-  if (stateMachineItr == stateMachines_.end()) {
+  auto stateMachineControllerItr = stateMachineControllers_.find(id);
+  if (stateMachineControllerItr == stateMachineControllers_.end()) {
     throw FbossError("Transceiver:", id, " doesn't exist");
   }
 
-  stateMachineItr->second.wlock()->get_attribute(forceRemoveTransceiver) = true;
+  stateMachineControllerItr->second->getStateMachine().wlock()->get_attribute(
+      forceRemoveTransceiver) = true;
 }
 
 void TransceiverManager::hardResetAction(
@@ -850,20 +850,19 @@ TransceiverManager::setupTransceiverToThreadHelper() {
   return threadMap;
 }
 
-TransceiverManager::TransceiverToStateMachineMap
-TransceiverManager::setupTransceiverToStateMachineMap() {
-  TransceiverToStateMachineMap stateMachineMap;
+TransceiverManager::TransceiverToStateMachineControllerMap
+TransceiverManager::setupTransceiverToStateMachineControllerMap() {
+  TransceiverToStateMachineControllerMap stateMachineMap;
   for (const auto& tcvrID :
        utility::getTransceiverIds(platformMapping_->getChips())) {
-    auto stateMachine =
-        folly::Synchronized<state_machine<TransceiverStateMachine>>();
+    auto stateMachineController =
+        std::make_unique<TransceiverManager::TransceiverStateMachineController>(
+            tcvrID);
+    auto& stateMachine = stateMachineController->getStateMachine();
     stateMachine.withWLock([&](auto& lockedStateMachine) {
       lockedStateMachine.get_attribute(transceiverMgrPtr) = this;
-      lockedStateMachine.get_attribute(transceiverID) = tcvrID;
-      // Make sure this attr is false by default.
-      lockedStateMachine.get_attribute(needResetDataPath) = false;
     });
-    stateMachineMap.emplace(tcvrID, std::move(stateMachine));
+    stateMachineMap.emplace(tcvrID, std::move(stateMachineController));
   }
 
   return stateMachineMap;
@@ -944,15 +943,8 @@ void TransceiverManager::stopThreads() {
     updateThread_->join();
     XLOG(DBG2) << "Terminated TransceiverStateMachineUpdateThread";
   }
-  // Drain any pending updates by calling handlePendingUpdates directly.
-  bool updatesDrained = false;
-  do {
-    handlePendingUpdates();
-    {
-      std::unique_lock guard(pendingUpdatesLock_);
-      updatesDrained = pendingUpdates_.empty();
-    }
-  } while (!updatesDrained);
+  drainAllStateMachineUpdates();
+
   // And finally stop all TransceiverStateMachineHelper thread
   for (auto& threadHelper : threads_) {
     threadHelper.second->stopThread();
@@ -975,28 +967,28 @@ void TransceiverManager::updateStateBlocking(
   }
 }
 
-std::shared_ptr<BlockingTransceiverStateMachineUpdateResult>
+std::shared_ptr<BlockingStateMachineUpdateResult>
 TransceiverManager::enqueueStateUpdateForTcvrWithoutExecuting(
     TransceiverID id,
     TransceiverStateMachineEvent event) {
-  auto result = std::make_shared<BlockingTransceiverStateMachineUpdateResult>();
-  auto update = std::make_unique<BlockingTransceiverStateMachineUpdate>(
-      id, event, result);
-  if (enqueueStateUpdate(std::move(update))) {
+  auto result = std::make_shared<BlockingStateMachineUpdateResult>();
+  auto update = std::make_unique<
+      TransceiverManager::BlockingTransceiverStateMachineUpdate>(event, result);
+  if (enqueueStateUpdate(id, std::move(update))) {
     // Only return blocking result if the update has been added in queue
     return result;
   }
   return nullptr;
 }
 
-std::shared_ptr<BlockingTransceiverStateMachineUpdateResult>
+std::shared_ptr<BlockingStateMachineUpdateResult>
 TransceiverManager::updateStateBlockingWithoutWait(
     TransceiverID id,
     TransceiverStateMachineEvent event) {
-  auto result = std::make_shared<BlockingTransceiverStateMachineUpdateResult>();
-  auto update = std::make_unique<BlockingTransceiverStateMachineUpdate>(
-      id, event, result);
-  if (updateState(std::move(update))) {
+  auto result = std::make_shared<BlockingStateMachineUpdateResult>();
+  auto update = std::make_unique<
+      TransceiverManager::BlockingTransceiverStateMachineUpdate>(event, result);
+  if (updateState(id, std::move(update))) {
     // Only return blocking result if the update has been added in queue
     return result;
   }
@@ -1004,21 +996,28 @@ TransceiverManager::updateStateBlockingWithoutWait(
 }
 
 bool TransceiverManager::enqueueStateUpdate(
+    const TransceiverID& tcvrID,
     std::unique_ptr<TransceiverStateMachineUpdate> update) {
+  const std::string eventName =
+      apache::thrift::util::enumNameSafe(update->getEvent());
   if (isExiting_) {
-    XLOG(WARN) << "Skipped queueing update:" << update->getName()
-               << ", since exit already started";
+    SM_LOG(WARN, tcvrID) << "Skipped queueing event: " << eventName
+                         << ", since exit already started";
     return false;
   }
   if (!updateEventBase_) {
-    XLOG(WARN) << "Skipped queueing update:" << update->getName()
-               << ", since updateEventBase_ is not created yet";
+    SM_LOG(WARN, tcvrID) << "Skipped queueing event: " << eventName
+                         << ", since updateEventBase_ is not created yet";
     return false;
   }
-  {
-    std::unique_lock guard(pendingUpdatesLock_);
-    pendingUpdates_.push_back(*update.release());
+  auto stateMachineItr = stateMachineControllers_.find(tcvrID);
+  if (stateMachineItr == stateMachineControllers_.end()) {
+    SM_LOG(WARN, tcvrID) << "Skipped queueing event: " << eventName
+                         << ", since TransceiverStateMachine doesn't exist";
+    return false;
   }
+  stateMachineItr->second->enqueueUpdate(std::move(update));
+
   return true;
 }
 
@@ -1030,8 +1029,9 @@ void TransceiverManager::executeStateUpdates() {
 }
 
 bool TransceiverManager::updateState(
+    const TransceiverID& tcvrID,
     std::unique_ptr<TransceiverStateMachineUpdate> update) {
-  if (!enqueueStateUpdate(std::move(update))) {
+  if (!enqueueStateUpdate(tcvrID, std::move(update))) {
     return false;
   }
   // Signal the update thread that updates are pending.
@@ -1043,123 +1043,55 @@ void TransceiverManager::handlePendingUpdatesHelper(TransceiverManager* mgr) {
   return mgr->handlePendingUpdates();
 }
 void TransceiverManager::handlePendingUpdates() {
-  // Get the list of updates to run.
-  // We might pull multiple updates off the list at once if several updates were
-  // scheduled before we had a chance to process them.
-  // In some case we might also end up finding 0 updates to process if a
-  // previous handlePendingUpdates() call processed multiple updates.
-  StateUpdateList updates;
-  std::set<TransceiverID> toBeUpdateTransceivers;
-  {
-    std::unique_lock guard(pendingUpdatesLock_);
-    // Each TransceiverStateMachineUpdate should be able to process at the same
-    // time as we already have lock protection in ExternalPhy and QsfpModule.
-    // Therefore, we should just put all the pending update into the updates
-    // list as long as they are from totally different transceivers.
-    auto iter = pendingUpdates_.begin();
-    while (iter != pendingUpdates_.end()) {
-      auto [_, isInserted] =
-          toBeUpdateTransceivers.insert(iter->getTransceiverID());
-      if (!isInserted) {
-        // Stop when we find another update for the same transceiver
-        break;
-      }
-      ++iter;
-    }
-    updates.splice(
-        updates.begin(), pendingUpdates_, pendingUpdates_.begin(), iter);
-  }
+  // Try to run one state machine updates on each transceiver.
+  XLOG(DBG2) << "Trying to update all TransceiverStateMachines";
 
-  // handlePendingUpdates() is invoked once for each update, but a previous
-  // call might have already processed everything.  If we don't have anything
-  // to do just return early.
-  if (updates.empty()) {
-    return;
-  }
-
-  XLOG(DBG2) << "About to update " << updates.size()
-             << " TransceiverStateMachine";
   // To expedite all these different transceivers state update, use Future
   std::vector<folly::Future<folly::Unit>> stateUpdateTasks;
-  auto iter = updates.begin();
-  while (iter != updates.end()) {
-    TransceiverStateMachineUpdate* update = &(*iter);
-    ++iter;
-
-    auto threadItr = threads_.find(update->getTransceiverID());
-    if (threadItr == threads_.end()) {
-      XLOG(WARN) << "Unrecognize Transceiver:" << update->getTransceiverID()
+  for (auto& [tcvrID, threadHelper] : threads_) {
+    auto stateMachineItr = stateMachineControllers_.find(tcvrID);
+    if (stateMachineItr == stateMachineControllers_.end()) {
+      XLOG(WARN) << "Unrecognize Transceiver: " << tcvrID
                  << ", can't find ThreadHelper for it. Skip updating.";
-      delete update;
-      continue;
-    }
-
-    auto stateMachineItr = stateMachines_.find(update->getTransceiverID());
-    if (stateMachineItr == stateMachines_.end()) {
-      XLOG(WARN) << "Unrecognize Transceiver:" << update->getTransceiverID()
-                 << ", can't find StateMachine for it. Skip updating.";
-      delete update;
       continue;
     }
 
     stateUpdateTasks.push_back(
-        folly::via(threadItr->second->getEventBase())
-            .thenValue([update, stateMachineItr](auto&&) {
-              XLOG(INFO) << "Preparing TransceiverStateMachine update for "
-                         << update->getName();
-              // Hold the module state machine lock
-              const auto& lockedStateMachine = stateMachineItr->second.wlock();
-              update->applyUpdate(*lockedStateMachine);
-            })
-            .thenError(
-                folly::tag_t<std::exception>{},
-                [update](const std::exception& ex) {
-                  update->onError(ex);
-                  delete update;
-                }));
+        folly::via(threadHelper->getEventBase())
+            .thenValue([stateMachineItr](auto&&) {
+              stateMachineItr->second->executeSingleUpdate();
+            }));
   }
   folly::collectAll(stateUpdateTasks).wait();
-
-  // Notify all of the updates of success and delete them.
-  while (!updates.empty()) {
-    std::unique_ptr<TransceiverStateMachineUpdate> update(&updates.front());
-    updates.pop_front();
-    update->onSuccess();
-  }
 }
 
 TransceiverStateMachineState TransceiverManager::getCurrentState(
     TransceiverID id) const {
-  auto stateMachineItr = stateMachines_.find(id);
-  if (stateMachineItr == stateMachines_.end()) {
+  auto stateMachineItr = stateMachineControllers_.find(id);
+  if (stateMachineItr == stateMachineControllers_.end()) {
     throw FbossError("Transceiver:", id, " doesn't exist");
   }
-
-  const auto& lockedStateMachine = stateMachineItr->second.rlock();
-  auto curStateOrder = *lockedStateMachine->current_state();
-  auto curState = getStateByOrder(curStateOrder);
-  XLOG(DBG4) << "Current transceiver:" << static_cast<int32_t>(id)
-             << ", state order:" << curStateOrder
-             << ", state:" << apache::thrift::util::enumNameSafe(curState);
-  return curState;
+  return stateMachineItr->second->getCurrentState();
 }
 
 const state_machine<TransceiverStateMachine>&
 TransceiverManager::getStateMachineForTesting(TransceiverID id) const {
-  auto stateMachineItr = stateMachines_.find(id);
-  if (stateMachineItr == stateMachines_.end()) {
+  auto stateMachineItr = stateMachineControllers_.find(id);
+  if (stateMachineItr == stateMachineControllers_.end()) {
     throw FbossError("Transceiver:", id, " doesn't exist");
   }
-  const auto& lockedStateMachine = stateMachineItr->second.rlock();
+  const auto& lockedStateMachine =
+      stateMachineItr->second->getStateMachine().rlock();
   return *lockedStateMachine;
 }
 
 bool TransceiverManager::getNeedResetDataPath(TransceiverID id) const {
-  auto stateMachineItr = stateMachines_.find(id);
-  if (stateMachineItr == stateMachines_.end()) {
+  auto stateMachineItr = stateMachineControllers_.find(id);
+  if (stateMachineItr == stateMachineControllers_.end()) {
     throw FbossError("Transceiver:", id, " doesn't exist");
   }
-  return stateMachineItr->second.rlock()->get_attribute(needResetDataPath);
+  return stateMachineItr->second->getStateMachine().rlock()->get_attribute(
+      needResetDataPath);
 }
 
 std::vector<TransceiverID> TransceiverManager::triggerProgrammingEvents() {
@@ -1168,11 +1100,12 @@ std::vector<TransceiverID> TransceiverManager::triggerProgrammingEvents() {
       numPrepareTcvr{0};
   BlockingStateUpdateResultList results;
   steady_clock::time_point begin = steady_clock::now();
-  for (auto& stateMachine : stateMachines_) {
+  for (auto& stateMachine : stateMachineControllers_) {
     bool needProgramIphy{false}, needProgramXphy{false}, needProgramTcvr{false},
         moduleStateReady{false};
     {
-      const auto& lockedStateMachine = stateMachine.second.rlock();
+      const auto& lockedStateMachine =
+          stateMachine.second->getStateMachine().rlock();
       needProgramIphy = !lockedStateMachine->get_attribute(isIphyProgrammed);
       needProgramXphy = !lockedStateMachine->get_attribute(isXphyProgrammed);
       needProgramTcvr =
@@ -1197,8 +1130,7 @@ std::vector<TransceiverID> TransceiverManager::triggerProgrammingEvents() {
         results.push_back(result);
       }
     } else if (needProgramTcvr) {
-      std::shared_ptr<BlockingTransceiverStateMachineUpdateResult> result{
-          nullptr};
+      std::shared_ptr<BlockingStateMachineUpdateResult> result{nullptr};
 
       if (moduleStateReady) {
         result = updateStateBlockingWithoutWait(
@@ -1653,6 +1585,8 @@ void TransceiverManager::updateTransceiverPortStatus() noexcept {
 
   const auto& presentTransceivers = getPresentTransceivers();
   BlockingStateUpdateResultList results;
+  std::vector<std::pair<TransceiverID, TransceiverStateMachineEvent>>
+      updateArgsToExecute;
   for (auto& [tcvrID, portToPortInfo] : tcvrToPortInfo_) {
     std::unordered_set<PortID> statusChangedPorts;
     bool anyPortUp = false;
@@ -1733,9 +1667,7 @@ void TransceiverManager::updateTransceiverPortStatus() noexcept {
       // lock of portToPortInfo, so that it will make sure the cached status
       // and the state machine will be in sync
       if (event.has_value()) {
-        if (auto result = updateStateBlockingWithoutWait(tcvrID, *event)) {
-          results.push_back(result);
-        }
+        updateArgsToExecute.emplace_back(tcvrID, *event);
       }
     } // lock block for portToPortInfo
     // After releasing portToPortInfo lock, publishLinkSnapshots() will use
@@ -1749,7 +1681,16 @@ void TransceiverManager::updateTransceiverPortStatus() noexcept {
       }
     }
   }
-  waitForAllBlockingStateUpdateDone(results);
+  if (!updateArgsToExecute.empty()) {
+    for (auto& [tcvrID, event] : updateArgsToExecute) {
+      if (auto result =
+              enqueueStateUpdateForTcvrWithoutExecuting(tcvrID, event)) {
+        results.push_back(result);
+      }
+    }
+    executeStateUpdates();
+    waitForAllBlockingStateUpdateDone(results);
+  }
   XLOG_IF(
       DBG2,
       numResetToDiscovered + numResetToNotPresent + numPortStatusChanged > 0)
@@ -1877,8 +1818,9 @@ void TransceiverManager::updateTransceiverActiveState(
 void TransceiverManager::resetUpgradedTransceiversToDiscovered() {
   BlockingStateUpdateResultList results;
   std::vector<TransceiverID> tcvrsToReset;
-  for (auto& stateMachine : stateMachines_) {
-    const auto& lockedStateMachine = stateMachine.second.rlock();
+  for (auto& stateMachine : stateMachineControllers_) {
+    const auto& lockedStateMachine =
+        stateMachine.second->getStateMachine().rlock();
     if (lockedStateMachine->get_attribute(needToResetToDiscovered)) {
       tcvrsToReset.push_back(stateMachine.first);
     }
@@ -2076,9 +2018,9 @@ void TransceiverManager::refreshStateMachines() {
             << " just did a cold boot and is still in discovered state, adding it to list of potentialTcvrsForFwUpgrade";
         potentialTcvrsForFwUpgrade.insert(tcvrID);
       } else if (FLAGS_firmware_upgrade_on_tcvr_insert) {
-        auto stateMachine = stateMachines_.find(tcvrID);
-        if (stateMachine != stateMachines_.end() &&
-            stateMachine->second.rlock()->get_attribute(
+        auto stateMachine = stateMachineControllers_.find(tcvrID);
+        if (stateMachine != stateMachineControllers_.end() &&
+            stateMachine->second->getStateMachine().rlock()->get_attribute(
                 newTransceiverInsertedAfterInit)) {
           // Not the first refresh but the module is in discovered state and was
           // just inserted
@@ -2227,12 +2169,13 @@ void TransceiverManager::triggerAgentConfigChangeEvent() {
   int numResetToDiscovered{0}, numResetToNotPresent{0};
   const auto& presentTransceivers = getPresentTransceivers();
   BlockingStateUpdateResultList results;
-  for (auto& stateMachine : stateMachines_) {
+  for (auto& stateMachine : stateMachineControllers_) {
     // Only need to set true to `needResetDataPath` attribute here. And leave
     // the state machine to change it to false once it finishes
     // programTransceiver
     if (resetDataPath) {
-      stateMachine.second.wlock()->get_attribute(needResetDataPath) = true;
+      stateMachine.second->getStateMachine().wlock()->get_attribute(
+          needResetDataPath) = true;
     }
     auto tcvrID = stateMachine.first;
     if (presentTransceivers.find(tcvrID) != presentTransceivers.end()) {
@@ -3357,4 +3300,23 @@ void TransceiverManager::ensureTransceiversMapLocked(
   }
 }
 
+void TransceiverManager::drainAllStateMachineUpdates() {
+  // Enforce no updates can be added while draining.
+  for (auto& [_, stateMachineController] : stateMachineControllers_) {
+    stateMachineController->blockNewUpdates();
+  }
+
+  // Drain any pending updates by calling handlePendingUpdates directly.
+  bool updatesDrained = false;
+  do {
+    updatesDrained = true;
+    handlePendingUpdates();
+    for (auto& [_, stateMachineController] : stateMachineControllers_) {
+      if (stateMachineController->arePendingUpdates()) {
+        updatesDrained = false;
+        break;
+      }
+    }
+  } while (!updatesDrained);
+}
 } // namespace facebook::fboss

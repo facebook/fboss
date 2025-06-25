@@ -72,6 +72,14 @@ TEST_F(StateMachineControllerTest, AddExecuteNoUpdatesNoException) {
   EXPECT_NO_THROW(controller_->executeSingleUpdate());
 }
 
+TEST_F(StateMachineControllerTest, AddExecuteUpdateAfterBlock) {
+  controller_->blockNewUpdates();
+  controller_->enqueueUpdate(
+      std::make_unique<MockStateMachineUpdate>(MockEvent::EVENT_1));
+
+  EXPECT_EQ(controller_->getCurrentState(), MockState::STATE_1);
+}
+
 TEST_F(StateMachineControllerTest, AddExecuteMultipleUpdatesIndividually) {
   controller_->enqueueUpdate(
       std::make_unique<MockStateMachineUpdate>(MockEvent::EVENT_1));

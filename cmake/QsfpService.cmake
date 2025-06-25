@@ -197,7 +197,7 @@ target_link_libraries(transceiver_validator
 add_library(transceiver_manager STATIC
     fboss/qsfp_service/TransceiverManager.cpp
     fboss/qsfp_service/TransceiverStateMachine.cpp
-    fboss/qsfp_service/TransceiverStateMachineUpdate.cpp
+    fboss/qsfp_service/StateMachineController.cpp
 )
 
 target_link_libraries(transceiver_manager

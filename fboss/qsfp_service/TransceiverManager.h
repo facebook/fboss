@@ -25,8 +25,10 @@
 #include "fboss/lib/usb/TransceiverI2CApi.h"
 #include "fboss/lib/usb/TransceiverPlatformApi.h"
 #include "fboss/qsfp_service/QsfpConfig.h"
-#include "fboss/qsfp_service/TransceiverStateMachineUpdate.h"
+#include "fboss/qsfp_service/StateMachineController.h"
+#include "fboss/qsfp_service/TransceiverStateMachine.h"
 #include "fboss/qsfp_service/TransceiverValidator.h"
+#include "fboss/qsfp_service/TypedStateMachineUpdate.h"
 #include "fboss/qsfp_service/if/gen-cpp2/port_state_types.h"
 #include "fboss/qsfp_service/module/Transceiver.h"
 
@@ -47,6 +49,8 @@
   XLOG(level) << Module << " tcvrID:" << tcvrID << ": "
 
 #define FW_LOG(level, tcvrID) MODULE_LOG(level, "[FWUPG]", tcvrID)
+
+#define SM_LOG(level, tcvrID) MODULE_LOG(level, "[SM]", tcvrID)
 
 DECLARE_string(qsfp_service_volatile_dir);
 DECLARE_bool(can_qsfp_service_warm_boot);
@@ -69,6 +73,15 @@ class TransceiverManager {
   using PortGroups = std::map<int32_t, std::set<cfg::PlatformPortEntry>>;
   using PortNameIdMap = boost::bimap<std::string, PortID>;
   using TcvrIdToTcvrNameMap = std::map<TransceiverID, std::string>;
+  using TransceiverStateMachineController = StateMachineController<
+      TransceiverID,
+      TransceiverStateMachineEvent,
+      TransceiverStateMachineState,
+      TransceiverStateMachine>;
+  using TransceiverStateMachineUpdate =
+      TypedStateMachineUpdate<TransceiverStateMachineEvent>;
+  using BlockingTransceiverStateMachineUpdate =
+      BlockingStateMachineUpdate<TransceiverStateMachineEvent>;
 
  public:
   using TcvrInfoMap = std::map<int32_t, TransceiverInfo>;
@@ -331,11 +344,11 @@ class TransceiverManager {
   void updateStateBlocking(
       TransceiverID id,
       TransceiverStateMachineEvent event);
-  std::shared_ptr<BlockingTransceiverStateMachineUpdateResult>
+  std::shared_ptr<BlockingStateMachineUpdateResult>
   updateStateBlockingWithoutWait(
       TransceiverID id,
       TransceiverStateMachineEvent event);
-  std::shared_ptr<BlockingTransceiverStateMachineUpdateResult>
+  std::shared_ptr<BlockingStateMachineUpdateResult>
   enqueueStateUpdateForTcvrWithoutExecuting(
       TransceiverID id,
       TransceiverStateMachineEvent event);
@@ -763,7 +776,7 @@ class TransceiverManager {
   TransceiverManager& operator=(TransceiverManager const&) = delete;
 
   using BlockingStateUpdateResultList =
-      std::vector<std::shared_ptr<BlockingTransceiverStateMachineUpdateResult>>;
+      std::vector<std::shared_ptr<BlockingStateMachineUpdateResult>>;
   void waitForAllBlockingStateUpdateDone(
       const BlockingStateUpdateResultList& results);
 
@@ -825,8 +838,11 @@ class TransceiverManager {
    * in the update thread in order to update the TransceiverStateMachine.
    *
    */
-  bool updateState(std::unique_ptr<TransceiverStateMachineUpdate> update);
+  bool updateState(
+      const TransceiverID& tcvrID,
+      std::unique_ptr<TransceiverStateMachineUpdate> update);
   bool enqueueStateUpdate(
+      const TransceiverID& tcvrID,
       std::unique_ptr<TransceiverStateMachineUpdate> update);
   void executeStateUpdates();
 
@@ -887,6 +903,8 @@ class TransceiverManager {
 
   void ensureTransceiversMapLocked(std::string message) const;
 
+  void drainAllStateMachineUpdates();
+
   // Store the QSFP service state for warm boots.
   // Updated on every refresh of the state machine as well as during graceful
   // exit.
@@ -897,15 +915,6 @@ class TransceiverManager {
   std::map<int32_t, NpuPortStatus> overrideAgentPortStatusForTesting_;
   // This ConfigAppliedInfo is an override of agent getConfigAppliedInfo()
   std::optional<ConfigAppliedInfo> overrideAgentConfigAppliedInfoForTesting_;
-
-  using StateUpdateList = folly::IntrusiveList<
-      TransceiverStateMachineUpdate,
-      &TransceiverStateMachineUpdate::listHook_>;
-  /*
-   * A list of pending state updates to be applied.
-   */
-  folly::SpinLock pendingUpdatesLock_;
-  StateUpdateList pendingUpdates_;
 
   /*
    * A thread for processing TransceiverStateMachine updates.
@@ -940,10 +949,7 @@ class TransceiverManager {
   bool isSystemInitialized_{false};
 
   /*
-   * A map to maintain all transceivers(present and absent) state machines.
-   * As each platform has its own fixed supported module num
-   * (`getNumQsfpModules()`), we'll only setup this map insude constructor,
-   * and no other functions will erase any items from this map.
+   * A map to maintain all threads for all transceivers
    */
   const TransceiverToThreadHelper threads_;
 
@@ -1025,11 +1031,17 @@ class TransceiverManager {
 
   folly::Synchronized<std::unordered_set<TransceiverID>> tcvrsForFwUpgrade;
 
-  using TransceiverToStateMachineMap = std::unordered_map<
+  using TransceiverToStateMachineControllerMap = std::unordered_map<
       TransceiverID,
-      folly::Synchronized<state_machine<TransceiverStateMachine>>>;
-  TransceiverToStateMachineMap setupTransceiverToStateMachineMap();
-  TransceiverToStateMachineMap stateMachines_;
+      std::unique_ptr<TransceiverStateMachineController>>;
+  TransceiverToStateMachineControllerMap
+  setupTransceiverToStateMachineControllerMap();
+
+  /*
+   * Map of TransceiverID to StateMachineController object, which contains state
+   * machine and queue of updates to execute.
+   */
+  const TransceiverToStateMachineControllerMap stateMachineControllers_;
 
   friend class TransceiverStateMachineTest;
 };

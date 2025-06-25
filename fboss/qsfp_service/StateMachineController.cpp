@@ -56,6 +56,8 @@ std::string TransceiverStateMachineController::getUpdateString(
 template <>
 void TransceiverStateMachineController::applyUpdate(
     TransceiverStateMachineEvent event) {
+  XLOG(INFO) << "Applying TransceiverStateMachine Update for "
+             << getUpdateString(event);
   auto lockedStateMachine = stateMachine_.wlock();
   auto preState = *lockedStateMachine->current_state();
 

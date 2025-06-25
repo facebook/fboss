@@ -100,14 +100,15 @@ cpp_library(
 cpp_library(
     name = "transceiver-manager",
     srcs = [
+        "StateMachineController.cpp",
         "TransceiverManager.cpp",
         "TransceiverStateMachine.cpp",
-        "TransceiverStateMachineUpdate.cpp",
     ],
     headers = [
+        "StateMachineController.h",
         "TransceiverManager.h",
         "TransceiverStateMachine.h",
-        "TransceiverStateMachineUpdate.h",
+        "TypedStateMachineUpdate.h",
         "module/Transceiver.h",
         "module/TransceiverImpl.h",
     ],
