@@ -453,4 +453,30 @@ getCachedSwSwitchReachabilityInfo(
   return reachabilityMatrix;
 }
 
+std::unordered_map<std::string, std::vector<std::string>>
+getUncachedSwitchReachabilityInfo(
+    const HostInfo& hostInfo,
+    const std::vector<std::string>& switchNames) {
+  std::unordered_map<std::string, std::vector<std::string>> reachabilityMatrix;
+  auto hwAgentQueryFn =
+      [&reachabilityMatrix, &switchNames](
+          apache::thrift::Client<facebook::fboss::FbossHwCtrl>& client) {
+        std::map<std::string, std::vector<std::string>> reachability;
+        client.sync_getHwSwitchReachability(reachability, switchNames);
+        for (auto& [switchName, reachablePorts] : reachability) {
+          reachabilityMatrix[switchName].insert(
+              reachabilityMatrix[switchName].end(),
+              reachablePorts.begin(),
+              reachablePorts.end());
+        }
+      };
+
+  try {
+    utils::runOnAllHwAgents(hostInfo, hwAgentQueryFn);
+  } catch (const std::exception& e) {
+    std::cerr << e.what();
+  }
+  return reachabilityMatrix;
+}
+
 } // namespace facebook::fboss::utils

@@ -1,25 +1,11 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/fsdb/server/OperPathToPublisherRoot.h"
+#include <folly/String.h>
 
 namespace {
 using facebook::fboss::fsdb::FsdbErrorCode;
 using facebook::fboss::fsdb::FsdbException;
-
-template <typename PathIter>
-void checkNonEmpty(const PathIter& begin, const PathIter& end) {
-  if (begin == end) {
-    FsdbException e;
-    e.message() = "Empty path";
-    e.errorCode() = FsdbErrorCode::INVALID_PATH;
-    throw e;
-  }
-}
-
-template <typename Path>
-void checkNonEmpty(const Path& path) {
-  checkNonEmpty(path.begin(), path.end());
-}
 
 void checkCrossRoot(const std::string& root1, const std::string& root2) {
   if (root1 != root2) {
@@ -34,10 +20,30 @@ void checkCrossRoot(const std::string& root1, const std::string& root2) {
 
 namespace facebook::fboss::fsdb {
 
+template <typename PathIterator>
+void OperPathToPublisherRoot::checkNonEmpty(
+    const PathIterator& begin,
+    const PathIterator& end) const {
+  auto it = begin;
+  if (it != end) {
+    if (rootPathLength_ > 1) {
+      std::advance(it, rootPathLength_ - 1);
+    }
+  }
+  if (it == end) {
+    FsdbException e;
+    e.message() = "Path empty or too short";
+    e.errorCode() = FsdbErrorCode::INVALID_PATH;
+    throw e;
+  }
+}
+
 std::string OperPathToPublisherRoot::publisherRoot(PathIter begin, PathIter end)
     const {
   checkPath(begin, end);
-  return *begin;
+  auto rootPathEnd = begin;
+  std::advance(rootPathEnd, rootPathLength_);
+  return folly::join('_', begin, rootPathEnd);
 }
 
 std::string OperPathToPublisherRoot::publisherRoot(const Path& path) const {
@@ -57,7 +63,18 @@ std::string OperPathToPublisherRoot::publisherRoot(
     ExtPathIter begin,
     ExtPathIter end) const {
   checkExtendedPath(begin, end);
-  return *begin->raw_ref();
+  if (rootPathLength_ > 1) {
+    auto rootPathEnd = begin;
+    std::advance(rootPathEnd, rootPathLength_);
+    std::vector<std::string> elements;
+    std::transform(
+        begin, rootPathEnd, std::back_inserter(elements), [](const auto& elem) {
+          return *elem.raw_ref();
+        });
+    return folly::join('_', elements);
+  } else {
+    return *begin->raw_ref();
+  }
 }
 
 std::string OperPathToPublisherRoot::publisherRoot(const ExtPath& path) const {
@@ -71,7 +88,7 @@ std::string OperPathToPublisherRoot::publisherRoot(
 
 std::string OperPathToPublisherRoot::publisherRoot(
     const std::vector<ExtendedOperPath>& paths) const {
-  checkNonEmpty(paths);
+  checkNonEmpty(paths.begin(), paths.end());
 
   std::optional<std::string> root;
   for (const auto& path : paths) {
@@ -88,7 +105,7 @@ std::string OperPathToPublisherRoot::publisherRoot(
 
 std::string OperPathToPublisherRoot::publisherRoot(
     const RawSubPathMap& operPathMap) const {
-  checkNonEmpty(operPathMap);
+  checkNonEmpty(operPathMap.begin(), operPathMap.end());
 
   std::optional<std::string> root;
   for (const auto& [_, path] : operPathMap) {
@@ -105,7 +122,7 @@ std::string OperPathToPublisherRoot::publisherRoot(
 
 std::string OperPathToPublisherRoot::publisherRoot(
     const ExtSubPathMap& operPathMap) const {
-  checkNonEmpty(operPathMap);
+  checkNonEmpty(operPathMap.begin(), operPathMap.end());
 
   std::optional<std::string> root;
   for (const auto& [_, path] : operPathMap) {

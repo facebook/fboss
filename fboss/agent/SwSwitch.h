@@ -20,6 +20,7 @@
 #include "fboss/agent/SwitchInfoTable.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/Utils.h"
+#include "fboss/agent/gen-cpp2/agent_info_types.h"
 #include "fboss/agent/gen-cpp2/agent_stats_types.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/gen-cpp2/switch_reachability_types.h"
@@ -843,6 +844,9 @@ class SwSwitch : public HwSwitchCallback {
   std::string getConfigStr() const;
   cfg::SwitchConfig getConfig() const;
   cfg::AgentConfig getAgentConfig() const;
+  const agent_info::AgentInfo& getAgentInfo() const {
+    return agentInfo_;
+  }
 
   AdminDistance clientIdToAdminDistance(int clientId) const;
 
@@ -1351,6 +1355,7 @@ class SwSwitch : public HwSwitchCallback {
   std::atomic<std::chrono::time_point<std::chrono::steady_clock>>
       lastPacketRxTime_{std::chrono::steady_clock::time_point::min()};
   folly::Synchronized<std::unique_ptr<AgentConfig>> agentConfig_;
+  agent_info::AgentInfo agentInfo_; // TODO: initialize this
   folly::Synchronized<std::map<uint16_t, multiswitch::HwSwitchStats>>
       hwSwitchStats_;
   // Map to lookup local interface address to interface id, for fask look up in

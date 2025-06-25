@@ -335,6 +335,9 @@ class HwAsic {
     return 0;
   }
 
+  /**
+   * Number of forwarding engines / units with its own buffer pool.
+   */
   virtual uint32_t getNumCores() const = 0;
 
   virtual uint32_t getSflowShimHeaderSize() const = 0;

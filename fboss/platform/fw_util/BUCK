@@ -9,7 +9,7 @@ cpp_binary(
     srcs = ["fw_util.cpp"],
     deps = [
         ":core",
-        "//common/base:build_info",
+        "//fboss/platform/helpers:init_cli",
         "//folly/logging:init",
         "//folly/logging:logging",
     ],

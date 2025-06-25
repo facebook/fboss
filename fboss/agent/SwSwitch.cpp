@@ -696,6 +696,10 @@ void SwSwitch::setSwitchRunState(SwitchRunState runState) {
 void SwSwitch::onSwitchRunStateChange(SwitchRunState newState) {
   if (newState == SwitchRunState::INITIALIZED) {
     restart_time::mark(RestartEvent::INITIALIZED);
+    agentInfo_.startTime() =
+        std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::system_clock::now().time_since_epoch())
+            .count();
   } else if (newState == SwitchRunState::CONFIGURED) {
     restart_time::mark(RestartEvent::CONFIGURED);
   }
