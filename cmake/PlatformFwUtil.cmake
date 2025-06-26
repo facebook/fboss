@@ -34,6 +34,7 @@ target_link_libraries(fw_util
   platform_utils
   FBThrift::thriftcpp2
   fw_util_config-cpp2-types
+  platform_manager_i2c_explorer
 )
 
 install(TARGETS fw_util)
