@@ -42,7 +42,8 @@ class FbossCmd:
         return PlainTextFbossAgentClient(*args)
 
     def _create_agent_hw_client(self):
-        args = [self._hostname, PlainTextFbossAgentClient.DEFAULT_HW_PORT]
+        DEFAULT_HW_PORT = 5931
+        args = [self._hostname, DEFAULT_HW_PORT]
         if self._timeout:
             args.append(self._timeout)
 
