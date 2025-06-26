@@ -4,15 +4,12 @@
 
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/fsdb/client/FsdbPubSubManager.h"
-#include "fboss/fsdb/client/FsdbStreamClient.h"
+#include "fboss/fsdb/client/instantiations/FsdbCowStateSubManager.h"
 #include "fboss/qsfp_service/TransceiverManager.h"
 
-#include <memory>
+DECLARE_bool(enable_fsdb_patch_subscriber);
 
 namespace facebook::fboss {
-namespace fsdb {
-class FsdbPubSubManager;
-}
 
 /*
  * QsfpFsdbSubscriber class:
@@ -21,20 +18,15 @@ class FsdbPubSubManager;
  */
 class QsfpFsdbSubscriber {
  public:
-  explicit QsfpFsdbSubscriber(fsdb::FsdbPubSubManager* pubSubMgr)
-      : fsdbPubSubMgr_(pubSubMgr) {}
-
-  fsdb::FsdbPubSubManager* pubSubMgr() {
-    return fsdbPubSubMgr_;
-  }
+  QsfpFsdbSubscriber();
 
   void subscribeToSwitchStatePortMap(TransceiverManager* tcvrManager);
-  void removeSwitchStatePortMapSubscription();
 
-  static std::vector<std::string> getSwitchStatePortMapPath();
+  void stop();
 
  private:
-  fsdb::FsdbPubSubManager* fsdbPubSubMgr_;
+  std::unique_ptr<fsdb::FsdbPubSubManager> fsdbPubSubMgr_;
+  std::unique_ptr<fsdb::FsdbCowStateSubManager> fsdbSubMgr_;
 };
 
 } // namespace facebook::fboss
