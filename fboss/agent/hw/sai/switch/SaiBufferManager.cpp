@@ -544,8 +544,12 @@ void SaiBufferManager::updateIngressPriorityGroupStats(
       inCongestionDiscards += pgCongestionDiscardIter->second;
     }
   }
-  // Port inCongestionDiscards is the sum of all PG inCongestionDiscards
-  hwPortStats.inCongestionDiscards_() = inCongestionDiscards;
+  // If port-level congestion discard counter isn't supported, sum up all PG
+  // inCongestionDiscards to get the port inCongestionDiscards.
+  if (!platform_->getAsic()->isSupported(
+          HwAsic::Feature::SAI_PORT_IN_CONGESTION_DISCARDS)) {
+    hwPortStats.inCongestionDiscards_() = inCongestionDiscards;
+  }
 }
 
 SaiBufferProfileTraits::CreateAttributes SaiBufferManager::profileCreateAttrs(
