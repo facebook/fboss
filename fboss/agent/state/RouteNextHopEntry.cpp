@@ -379,13 +379,16 @@ RouteNextHopEntry::NextHopSet RouteNextHopEntry::normalizedNextHops() const {
       // skip nexthops with adjusted weight set to 0
       continue;
     }
+    // reset topology info for nexthops as nexthop is used as key in identifying
+    // unique nexthop groups and the presence of rackid in topology info
+    // will prevent the nexthop from being identified as unique
     normalizedNextHops.insert(ResolvedNextHop(
         nhop.addr(),
         nhop.intf(),
         std::max(nhop.weight(), NextHopWeight(1)),
         nhop.labelForwardingAction(),
         nhop.disableTTLDecrement(),
-        nhop.topologyInfo(),
+        std::nullopt,
         nhop.adjustedWeight()));
   }
   // 2)

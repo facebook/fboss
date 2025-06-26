@@ -184,7 +184,7 @@ bool ResourceAccountant::checkAndUpdateArsEcmpResource(
           fwd.getOverrideEcmpSwitchingMode().has_value()) {
         return true;
       }
-      const auto& nhSet = fwd.getNextHopSet();
+      const auto& nhSet = fwd.normalizedNextHops();
       if (auto it = arsEcmpGroupRefMap_.find(nhSet);
           it != arsEcmpGroupRefMap_.end()) {
         it->second = it->second + (add ? 1 : -1);
