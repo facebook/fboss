@@ -1443,7 +1443,7 @@ void ThriftHandler::setInterfacePrbs(
     std::unique_ptr<std::string> portName,
     phy::PortComponent component,
     std::unique_ptr<prbs::InterfacePrbsState> state) {
-  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats(), *portName);
   if (component != phy::PortComponent::ASIC) {
     throw FbossError("Unsupported component");
   }
