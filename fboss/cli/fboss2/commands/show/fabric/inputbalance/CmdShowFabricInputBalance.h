@@ -140,9 +140,6 @@ class CmdShowFabricInputBalance : public CmdHandler<
         CHECK(localClusterID.has_value());
         auto localRDSW = utility::getInterfaceDevicesInCluster(
             nameToDsfNode, localClusterID.value());
-
-        auto selfReachability =
-            utils::getCachedSwSwitchReachabilityInfo(hostInfo, dstSwitchName);
         auto neighborReachability =
             getNeighborReachability(localRDSW, neighborToPorts, dstSwitchName);
 
