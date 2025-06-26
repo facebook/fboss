@@ -1501,6 +1501,7 @@ void SffModule::overwriteChannelControlSettings() {
 }
 
 bool SffModule::tcvrPortStateSupported(TransceiverPortState& portState) const {
+  lock_guard<std::mutex> g(qsfpModuleMutex_);
   if (portState.transmitterTech != getQsfpTransmitterTechnology()) {
     return false;
   }
