@@ -211,6 +211,7 @@ bool EbroAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::VENDOR_SWITCH_CONGESTION_MANAGEMENT_ERRORS:
     case HwAsic::Feature::PFC_WATCHDOG_TIMER_GRANULARITY:
     case HwAsic::Feature::RX_SERDES_PARAMETERS:
+    case HwAsic::Feature::SAI_PORT_IN_CONGESTION_DISCARDS:
       return false;
     case HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER:
       /*

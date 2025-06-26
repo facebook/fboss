@@ -210,6 +210,7 @@ bool YubaAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::PFC_WATCHDOG_TIMER_GRANULARITY:
     case HwAsic::Feature::ASIC_RESET_NOTIFICATIONS:
     case HwAsic::Feature::RX_SERDES_PARAMETERS:
+    case HwAsic::Feature::SAI_PORT_IN_CONGESTION_DISCARDS:
       return false;
   }
   return false;
