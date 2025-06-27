@@ -70,7 +70,6 @@ cpp_library(
         "AgentQueuePerHostTests.cpp",
         "AgentRouteOverDifferentAddressFamilyNhopTests.cpp",
         "AgentRouteOverflowTests.cpp",
-        "AgentRouteScaleTests.cpp",
         "AgentRouteTests.cpp",
         "AgentRxReasonTests.cpp",
         "AgentSendPacketToQueueTests.cpp",
@@ -206,6 +205,7 @@ cpp_library(
     srcs = [
         "AgentAclScaleTests.cpp",
         "AgentEcmpScaleTests.cpp",
+        "AgentRouteScaleTests.cpp",
         "AgentVoqSwitchScaleTests.cpp",
     ],
     headers = [
@@ -222,6 +222,7 @@ cpp_library(
         "//fboss/agent/test:agent_hw_test",
         "//fboss/agent/test:ecmp_helper",
         "//fboss/agent/test:production_features-cpp2-types",
+        "//fboss/agent/test:route_scale_gen",
         "//fboss/agent/test/utils:acl_test_utils",
         "//fboss/agent/test/utils:copp_test_utils",
         "//fboss/agent/test/utils:dsf_config_utils",
