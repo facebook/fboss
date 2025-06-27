@@ -757,7 +757,7 @@ TEST_F(ProdInvariantStswTest, verifyInvariants) {
   auto verify = [&]() {
     verifyAcl();
     verifyCopp();
-    verifyLoadBalancing(20000);
+    verifyLoadBalancing(30000);
     verifyDscpToQueueMapping();
     verifySafeDiagCommands();
     verifyThriftHandler();
