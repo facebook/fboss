@@ -18,35 +18,35 @@
         "accessType": "ACCESS_TYPE_QSFP"
       },
       "portList": [],
-      "aggregationType": "OPTIC_AGGREGATION_TYPE_PID",
+      "aggregationType": "OPTIC_AGGREGATION_TYPE_INCREMENTAL_PID",
       "pidSettings": {
         "OPTIC_TYPE_800_GENERIC": {
-          "kp": -4,
-          "ki": -0.06,
+          "kp": 2,
+          "ki": 0.6,
           "kd": 0,
           "setPoint": 76.0,
           "posHysteresis": 0.0,
           "negHysteresis": 2.0
         },
         "OPTIC_TYPE_400_GENERIC": {
-          "kp": -4,
-          "ki": -0.06,
+          "kp": 2,
+          "ki": 0.6,
           "kd": 0,
           "setPoint": 76.0,
           "posHysteresis": 0.0,
           "negHysteresis": 2.0
         },
         "OPTIC_TYPE_200_GENERIC": {
-          "kp": -4,
-          "ki": -0.06,
+          "kp": 2,
+          "ki": 0.6,
           "kd": 0,
           "setPoint": 76.0,
           "posHysteresis": 0.0,
           "negHysteresis": 2.0
         },
         "OPTIC_TYPE_100_GENERIC": {
-          "kp": -4,
-          "ki": -0.06,
+          "kp": 2,
+          "ki": 0.6,
           "kd": 0,
           "setPoint": 76.0,
           "posHysteresis": 0.0,
@@ -240,7 +240,7 @@
     "numOvertempSensorForShutdown": 1,
     "conditions": [
       {
-        "sensorName": "TAHAN_SMB_TH5_TEMP",
+        "sensorName": "SMB_TH5_TEMP",
         "overtempThreshold": 110.0,
         "slidingWindowSize": 1
       }
