@@ -180,7 +180,8 @@
               }
             ]
           },
-          "inbandPortId": 1
+          "inbandPortId": 1,
+          "scheduling": 1000
       }
     },
     "defaultVoqConfig": [
