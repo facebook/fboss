@@ -15,6 +15,7 @@ cpp_library(
         "AgentAclPriorityTests.cpp",
         "AgentAqmTests.cpp",
         "AgentArsBase.cpp",
+        "AgentArsFlowletTest.cpp",
         "AgentConfigSetupTest.cpp",
         "AgentConfigVerifyQosTests.cpp",
         "AgentCoppTests.cpp",
