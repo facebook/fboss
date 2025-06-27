@@ -145,7 +145,7 @@ bool ResourceAccountant::checkAndUpdateGenericEcmpResource(
   // Forwarding to nextHops and more than one nextHop - use ECMP
   if (fwd.getAction() == RouteForwardAction::NEXTHOPS &&
       fwd.getNextHopSet().size() > 1) {
-    const auto& nhSet = fwd.getNextHopSet();
+    const auto& nhSet = fwd.normalizedNextHops();
     if (auto it = ecmpGroupRefMap_.find(nhSet); it != ecmpGroupRefMap_.end()) {
       it->second = it->second + (add ? 1 : -1);
       CHECK(it->second >= 0);
