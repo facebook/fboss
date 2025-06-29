@@ -440,10 +440,10 @@ class AgentTunnelMgrTest : public AgentHwTest {
 
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
+    std::vector<PortID> ports = {
+        ensemble.masterLogicalPortIds()[0], ensemble.masterLogicalPortIds()[1]};
     auto cfg = utility::onePortPerInterfaceConfig(
-        ensemble.getSw(),
-        ensemble.masterLogicalPortIds(),
-        true /*interfaceHasSubnet*/);
+        ensemble.getSw(), ports, true /*interfaceHasSubnet*/);
     return cfg;
   }
 };
