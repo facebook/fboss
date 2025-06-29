@@ -198,16 +198,16 @@ TEST(ThriftMapNodeTests, ThriftMapNodePrimitivesVisit) {
 
   std::vector<std::string> path = {"0"};
   auto result = visitPath(node, path.begin(), path.end(), f);
-  ASSERT_EQ(result.code(), ThriftTraverseResult::Code::NON_EXISTENT_NODE);
+  ASSERT_EQ(result, ThriftTraverseResult::NON_EXISTENT_NODE);
 
   path = {"1"};
   result = visitPath(node, path.begin(), path.end(), f);
-  ASSERT_TRUE(result);
+  ASSERT_EQ(result, ThriftTraverseResult::OK);
   ASSERT_EQ(out, 2);
 
   path = {"5"};
   result = visitPath(node, path.begin(), path.end(), f);
-  ASSERT_TRUE(result);
+  ASSERT_EQ(result, ThriftTraverseResult::OK);
   ASSERT_EQ(out, 99);
 }
 
@@ -231,24 +231,24 @@ TEST(ThriftMapNodeTests, ThriftMapNodePrimitivesVisitMutable) {
 
   std::vector<std::string> path = {"0"};
   auto result = visitPath(node, path.begin(), path.end(), read);
-  ASSERT_EQ(result.code(), ThriftTraverseResult::Code::NON_EXISTENT_NODE);
+  ASSERT_EQ(result, ThriftTraverseResult::NON_EXISTENT_NODE);
 
   path = {"1"};
   result = visitPath(node, path.begin(), path.end(), read);
-  ASSERT_TRUE(result);
+  ASSERT_EQ(result, ThriftTraverseResult::OK);
   ASSERT_EQ(out, 2);
 
   path = {"5"};
   result = visitPath(node, path.begin(), path.end(), read);
-  ASSERT_TRUE(result);
+  ASSERT_EQ(result, ThriftTraverseResult::OK);
   ASSERT_EQ(out, 99);
 
   path = {"1"};
   toWrite = 888;
   result = visitPath(node, path.begin(), path.end(), write);
-  ASSERT_TRUE(result);
+  ASSERT_EQ(result, ThriftTraverseResult::OK);
   result = visitPath(node, path.begin(), path.end(), read);
-  ASSERT_TRUE(result);
+  ASSERT_EQ(result, ThriftTraverseResult::OK);
   ASSERT_EQ(out, toWrite);
 }
 
@@ -413,7 +413,7 @@ TEST(ThriftMapNodeTests, ThriftMapNodeStructsVisit) {
 
   std::vector<std::string> path = {"FIRST"};
   auto result = visitPath(node, path.begin(), path.end(), f);
-  ASSERT_TRUE(result);
+  ASSERT_EQ(result, ThriftTraverseResult::OK);
   folly::dynamic expected;
   facebook::thrift::to_dynamic(
       expected,
@@ -424,12 +424,12 @@ TEST(ThriftMapNodeTests, ThriftMapNodeStructsVisit) {
   // visit by enum value should also work
   path = {"1"};
   result = visitPath(node, path.begin(), path.end(), f);
-  ASSERT_TRUE(result);
+  ASSERT_EQ(result, ThriftTraverseResult::OK);
   ASSERT_EQ(out, expected);
 
   path = {"SECOND"};
   result = visitPath(node, path.begin(), path.end(), f);
-  ASSERT_TRUE(result);
+  ASSERT_EQ(result, ThriftTraverseResult::OK);
   facebook::thrift::to_dynamic(
       expected,
       data[TestEnum::SECOND],
@@ -438,39 +438,39 @@ TEST(ThriftMapNodeTests, ThriftMapNodeStructsVisit) {
 
   path = {"2"};
   result = visitPath(node, path.begin(), path.end(), f);
-  ASSERT_TRUE(result);
+  ASSERT_EQ(result, ThriftTraverseResult::OK);
   ASSERT_EQ(out, expected);
 
   path = {"THIRD"};
   result = visitPath(node, path.begin(), path.end(), f);
-  ASSERT_EQ(result.code(), ThriftTraverseResult::Code::NON_EXISTENT_NODE);
+  ASSERT_EQ(result, ThriftTraverseResult::NON_EXISTENT_NODE);
 
   path = {"FIRST", "nonexistent"};
   result = visitPath(node, path.begin(), path.end(), f);
-  ASSERT_EQ(result.code(), ThriftTraverseResult::Code::INVALID_STRUCT_MEMBER);
+  ASSERT_EQ(result, ThriftTraverseResult::INVALID_STRUCT_MEMBER);
 
   path = {"1", "nonexistent"};
   result = visitPath(node, path.begin(), path.end(), f);
-  ASSERT_EQ(result.code(), ThriftTraverseResult::Code::INVALID_STRUCT_MEMBER);
+  ASSERT_EQ(result, ThriftTraverseResult::INVALID_STRUCT_MEMBER);
 
   path = {"FIRST", "min"};
   result = visitPath(node, path.begin(), path.end(), f);
-  ASSERT_TRUE(result);
+  ASSERT_EQ(result, ThriftTraverseResult::OK);
   ASSERT_EQ(out, 100);
 
   path = {"1", "min"};
   result = visitPath(node, path.begin(), path.end(), f);
-  ASSERT_TRUE(result);
+  ASSERT_EQ(result, ThriftTraverseResult::OK);
   ASSERT_EQ(out, 100);
 
   path = {"SECOND", "min"};
   result = visitPath(node, path.begin(), path.end(), f);
-  ASSERT_TRUE(result);
+  ASSERT_EQ(result, ThriftTraverseResult::OK);
   ASSERT_EQ(out, 1000);
 
   path = {"2", "min"};
   result = visitPath(node, path.begin(), path.end(), f);
-  ASSERT_TRUE(result);
+  ASSERT_EQ(result, ThriftTraverseResult::OK);
   ASSERT_EQ(out, 1000);
 }
 
@@ -496,7 +496,7 @@ TEST(ThriftMapNodeTests, ThriftMapNodeStructsVisitMutable) {
 
   std::vector<std::string> path = {"FIRST"};
   auto result = visitPath(node, path.begin(), path.end(), read);
-  ASSERT_TRUE(result);
+  ASSERT_EQ(result, ThriftTraverseResult::OK);
   folly::dynamic expected;
   facebook::thrift::to_dynamic(
       expected,
@@ -506,7 +506,7 @@ TEST(ThriftMapNodeTests, ThriftMapNodeStructsVisitMutable) {
 
   path = {"SECOND"};
   result = visitPath(node, path.begin(), path.end(), read);
-  ASSERT_TRUE(result);
+  ASSERT_EQ(result, ThriftTraverseResult::OK);
   facebook::thrift::to_dynamic(
       expected,
       data[TestEnum::SECOND],
@@ -515,35 +515,35 @@ TEST(ThriftMapNodeTests, ThriftMapNodeStructsVisitMutable) {
 
   path = {"THIRD"};
   result = visitPath(node, path.begin(), path.end(), read);
-  ASSERT_EQ(result.code(), ThriftTraverseResult::Code::NON_EXISTENT_NODE);
+  ASSERT_EQ(result, ThriftTraverseResult::NON_EXISTENT_NODE);
 
   path = {"FIRST", "min"};
   result = visitPath(node, path.begin(), path.end(), read);
-  ASSERT_TRUE(result);
+  ASSERT_EQ(result, ThriftTraverseResult::OK);
   ASSERT_EQ(out, 100);
 
   path = {"SECOND", "min"};
   result = visitPath(node, path.begin(), path.end(), read);
-  ASSERT_TRUE(result);
+  ASSERT_EQ(result, ThriftTraverseResult::OK);
   ASSERT_EQ(out, 1000);
 
   path = {"FIRST"};
   facebook::thrift::to_dynamic(
       toWrite, buildPortRange(1, 2), facebook::thrift::dynamic_format::JSON_1);
   result = visitPath(node, path.begin(), path.end(), write);
-  ASSERT_TRUE(result);
+  ASSERT_EQ(result, ThriftTraverseResult::OK);
   result = visitPath(node, path.begin(), path.end(), read);
-  ASSERT_TRUE(result);
+  ASSERT_EQ(result, ThriftTraverseResult::OK);
   ASSERT_EQ(out, toWrite);
 
   path = {"FIRST", "min"};
   result = visitPath(node, path.begin(), path.end(), read);
-  ASSERT_TRUE(result);
+  ASSERT_EQ(result, ThriftTraverseResult::OK);
   ASSERT_EQ(out, 1);
 
   path = {"SECOND", "min"};
   result = visitPath(node, path.begin(), path.end(), read);
-  ASSERT_TRUE(result);
+  ASSERT_EQ(result, ThriftTraverseResult::OK);
   ASSERT_EQ(out, 1000);
 }
 
