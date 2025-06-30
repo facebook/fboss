@@ -456,7 +456,6 @@ cpp_library(
         "//folly:file_util",
         "//folly:format",
         "//folly:network_address",
-        "//folly:optional",
         "//folly:range",
         "//folly:singleton",
         "//folly:string",
