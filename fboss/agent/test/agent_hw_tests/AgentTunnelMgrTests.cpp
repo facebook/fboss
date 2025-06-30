@@ -38,6 +38,9 @@ class AgentTunnelMgrTest : public AgentHwTest {
 
     auto output = runShellCmd(cmd);
 
+    XLOG(DBG2) << "clearKernelEntries Cmd: " << cmd;
+    XLOG(DBG2) << "clearKernelEntries Output: \n" << output;
+
     // There could be duplicate source route rule entries in the kernel. Clear
     // all of them.
     while (output.find(folly::to<std::string>(intfIp)) != std::string::npos) {
@@ -301,6 +304,28 @@ class AgentTunnelMgrTest : public AgentHwTest {
     }
   }
 
+  bool checkIpRuleEntriesRemoved(
+      const std::string& intfIp,
+      bool isIPv4 = true) {
+    // Check that the source route rule entries are not present in the kernel
+    std::string cmd;
+    if (isIPv4) {
+      cmd = folly::to<std::string>("ip rule list | grep -w ", intfIp);
+    } else {
+      cmd = folly::to<std::string>("ip -6 rule list | grep -w ", intfIp);
+    }
+
+    auto output = runShellCmd(cmd);
+
+    XLOG(DBG2) << "checkIpRuleEntriesRemoved Cmd: " << cmd;
+    XLOG(DBG2) << "checkIpRuleEntriesRemoved Output: \n" << output;
+
+    if (output.find(folly::to<std::string>(intfIp)) != std::string::npos)
+      return false;
+
+    return true;
+  }
+
   void checkIpKernelEntriesRemoved(
       const std::string& intfIp,
       bool isIPv4 = true) {
@@ -358,6 +383,65 @@ class AgentTunnelMgrTest : public AgentHwTest {
 
     EXPECT_TRUE(
         output.find(folly::to<std::string>(searchIntfIp)) == std::string::npos);
+  }
+
+  // Check that the kernel entries are present in the kernel
+  void checkKernelEntriesNotExist(
+      const std::string& intfIp,
+      bool isIPv4 = true,
+      bool checkRouteEntry = true) {
+    // Check that the source route rule entries are present in the kernel
+
+    std::string cmd;
+    std::string searchIntfIp = intfIp;
+    if (isIPv4) {
+      cmd = folly::to<std::string>("ip rule list | grep -w ", searchIntfIp);
+    } else {
+      cmd = folly::to<std::string>("ip -6 rule list | grep -w ", searchIntfIp);
+    }
+
+    auto output = runShellCmd(cmd);
+
+    XLOG(DBG2) << "checkKernelEntriesNotExist Cmd: " << cmd;
+    XLOG(DBG2) << "checkKernelEntriesNotExist Output: \n" << output;
+
+    EXPECT_TRUE(
+        output.find(folly::to<std::string>(searchIntfIp)) == std::string::npos);
+
+    if (isIPv4) {
+      // Check that the tunnel address entries are present in the kernel
+      cmd = folly::to<std::string>("ip addr list | grep -w ", searchIntfIp);
+    } else {
+      cmd = folly::to<std::string>("ip -6 addr list | grep -w ", searchIntfIp);
+    }
+
+    output = runShellCmd(cmd);
+
+    XLOG(DBG2) << "checkKernelEntriesNotExist Cmd: " << cmd;
+    XLOG(DBG2) << "checkKernelEntriesNotExist Output: \n" << output;
+
+    EXPECT_TRUE(
+        output.find(folly::to<std::string>(searchIntfIp)) == std::string::npos);
+
+    if (checkRouteEntry) {
+      // Check that the route entries are present in the kernel
+      if (isIPv4) {
+        cmd = folly::to<std::string>(
+            "ip route list | grep -w ", searchIntfIp, " | grep fboss");
+      } else {
+        cmd = folly::to<std::string>(
+            "ip -6 route list | grep -w ", searchIntfIp, " | grep fboss");
+      }
+
+      output = runShellCmd(cmd);
+
+      XLOG(DBG2) << "checkKernelEntriesNotExist Cmd: " << cmd;
+      XLOG(DBG2) << "checkKernelEntriesNotExist Output:" << output;
+
+      EXPECT_TRUE(
+          output.find(folly::to<std::string>(searchIntfIp)) ==
+          std::string::npos);
+    }
   }
 
   // Check that the kernel entries are present in the kernel
@@ -445,6 +529,157 @@ class AgentTunnelMgrTest : public AgentHwTest {
     auto cfg = utility::onePortPerInterfaceConfig(
         ensemble.getSw(), ports, true /*interfaceHasSubnet*/);
     return cfg;
+  }
+
+  std::vector<std::string> getInterfaceIpAddress(
+      cfg::SwitchConfig& config,
+      bool isIPv4) {
+    std::string intfIP;
+    std::string intfIPv4;
+    std::string intfIPv6;
+    std::vector<std::string> intfIPList;
+
+    for (int i = 0; i < config.interfaces()->size(); i++) {
+      if (config.interfaces()[i].scope() == cfg::Scope::GLOBAL) {
+        continue;
+      }
+      for (int j = 0; j < config.interfaces()[i].ipAddresses()->size(); j++) {
+        intfIP = folly::to<std::string>(
+            folly::IPAddress::createNetwork(
+                config.interfaces()[i].ipAddresses()[j], -1, false)
+                .first);
+        if (isIPv4) {
+          if (intfIP.find("::") == std::string::npos) {
+            intfIPv4 = std::move(intfIP);
+            intfIPList.push_back(intfIPv4);
+          }
+        } else {
+          if (intfIP.find("::") != std::string::npos) {
+            intfIPv6 = std::move(intfIP);
+            intfIPList.push_back(intfIPv6);
+          }
+        }
+      }
+    }
+
+    return intfIPList;
+  }
+
+  void checkKernelIpEntriesExist(
+      const InterfaceID& ifid,
+      const std::string& intfIP,
+      bool isIPv4) {
+    // Get TunManager pointer
+    auto tunMgr_ = getAgentEnsemble()->getSw()->getTunManager();
+    auto status = tunMgr_->getIntfStatus(getProgrammedState(), ifid);
+
+    // There is a known limitation in the kernel that the source route rule
+    // entries are not created if the interface is not up. So, checking for
+    // the kernel entries if the interface is  up
+    if (status) {
+      if (isIPv4) {
+        checkKernelEntriesExist(folly::to<std::string>(intfIP), true, false);
+      } else {
+        checkKernelEntriesExist(folly::to<std::string>(intfIP), false, false);
+      }
+    }
+  }
+
+  std::vector<std::string> changeKernelIPAddress(
+      cfg::SwitchConfig& config,
+      bool isIpv4) {
+    std::vector<std::string> intfIPList;
+    for (int i = 0; i < config.interfaces()->size(); i++) {
+      if (config.interfaces()[i].scope() == cfg::Scope::GLOBAL) {
+        continue;
+      }
+
+      // change ipv4 address of the interface
+      for (int j = 0; j < config.interfaces()[i].ipAddresses()->size(); j++) {
+        std::string intfIP = folly::to<std::string>(
+            folly::IPAddress::createNetwork(
+                config.interfaces()[i].ipAddresses()[j], -1, false)
+                .first);
+        if (isIpv4) {
+          if (intfIP.find("::") == std::string::npos) {
+            auto ipDecimal = folly::sformat("{}", i + 1);
+            config.interfaces()[i].ipAddresses()[j] =
+                folly::sformat("{}.2.2.2/24", ipDecimal);
+            intfIPList.push_back(config.interfaces()[i].ipAddresses()[j]);
+          }
+        } else {
+          if (intfIP.find("::") != std::string::npos) {
+            auto ipDecimal =
+                folly::sformat("{}", i + config.interfaces()->size() + 1);
+            config.interfaces()[i].ipAddresses()[j] =
+                folly::sformat("{}::/64", ipDecimal);
+            intfIPList.push_back(config.interfaces()[i].ipAddresses()[j]);
+          }
+        }
+      }
+    }
+
+    // Apply the config
+    applyNewConfig(config);
+    waitForStateUpdates(getAgentEnsemble()->getSw());
+    return intfIPList;
+  }
+
+  void restoreKernelIPAddress(
+      cfg::SwitchConfig& config,
+      bool isIpv4,
+      const std::vector<std::string>& intfOldIPs) {
+    for (int i = 0; i < config.ports()->size(); i++) {
+      config.ports()[i].state() = cfg::PortState::ENABLED;
+    }
+    // Apply the config
+    applyNewConfig(config);
+    waitForStateUpdates(getAgentEnsemble()->getSw());
+    for (int i = 0; i < config.interfaces()->size(); i++) {
+      if (config.interfaces()[i].scope() == cfg::Scope::GLOBAL) {
+        continue;
+      }
+
+      // change ipv4 address of the interface
+      for (int j = 0; j < config.interfaces()[i].ipAddresses()->size(); j++) {
+        std::string intfIP = folly::to<std::string>(
+            folly::IPAddress::createNetwork(
+                config.interfaces()[i].ipAddresses()[j], -1, false)
+                .first);
+        if (isIpv4) {
+          if (intfIP.find("::") == std::string::npos) {
+            config.interfaces()[i].ipAddresses()[j] = intfOldIPs[i];
+          }
+        } else {
+          if (intfIP.find("::") != std::string::npos) {
+            config.interfaces()[i].ipAddresses()[j] = intfOldIPs[i];
+          }
+        }
+      }
+    }
+    // Apply the config
+    applyNewConfig(config);
+    waitForStateUpdates(getAgentEnsemble()->getSw());
+  }
+
+  void checkKernelIpEntriesRemoved(
+      const InterfaceID& ifId,
+      const std::string& intfIP,
+      bool isIPv4) {
+    // Get TunManager pointer
+    auto tunMgr_ = getAgentEnsemble()->getSw()->getTunManager();
+    auto status = tunMgr_->getIntfStatus(getProgrammedState(), ifId);
+
+    // There is a known limitation in the kernel that the source route rule
+    // entries are not created if the interface is not up. So, checking for
+    // the kernel entries if the interface is  up
+    if (status) {
+      if (isIPv4) {
+        checkKernelEntriesNotExist(folly::to<std::string>(intfIP), true, true);
+      } else {
+        checkKernelEntriesNotExist(folly::to<std::string>(intfIP), false, true);
+      }
+    }
   }
 };
 
@@ -777,8 +1012,9 @@ TEST_F(AgentTunnelMgrTest, checkDuplicateEntries) {
       }
 
       // Applying the same config again
-      // Made change in TunManager to reprogram source route rule upon interface
-      // up. Noticed duplicate entry for 1.1.1.1 and 1:: for source route rule.
+      // Made change in TunManager to reprogram source route rule upon
+      // interface up. Noticed duplicate entry for 1.1.1.1 and 1:: for source
+      // route rule.
 
       // Applying same ipv4 and ipv6 address on the interface
 
@@ -1032,6 +1268,113 @@ TEST_F(AgentTunnelMgrTest, checkKernelIPv6EntriesPortsDownUp) {
   };
 
   verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(AgentTunnelMgrTest, changeIpv4AddressPortDownUp) {
+  auto setup = [=]() {};
+
+  auto verify = [=, this]() {
+    auto config = getAgentEnsemble()->getCurrentConfig();
+    std::string intfIPv4;
+    std::vector<std::string> intfOldIPv4s;
+    std::vector<std::string> intfNewIPv4s;
+    InterfaceID intfID = (InterfaceID)config.interfaces()[0].intfID().value();
+
+    intfOldIPv4s = getInterfaceIpAddress(config, true);
+    checkKernelIpEntriesExist(intfID, intfOldIPv4s[0], true);
+    for (int i = 0; i < config.ports()->size(); i++) {
+      config.ports()[i].state() = cfg::PortState::DISABLED;
+    }
+
+    // Apply the config
+    applyNewConfig(config);
+    waitForStateUpdates(getAgentEnsemble()->getSw());
+
+    // change ipv6 address of the interface
+    intfNewIPv4s = changeKernelIPAddress(config, true);
+
+    // Bring up one port
+    bringUpPort(getAgentEnsemble()->masterLogicalPortIds()[0]);
+
+    checkKernelIpEntriesExist(intfID, intfNewIPv4s[0], true);
+
+    checkKernelIpEntriesRemoved(intfID, intfOldIPv4s[0], true);
+
+    config.ports()[0].state() = cfg::PortState::ENABLED;
+    // Apply the config
+    applyNewConfig(config);
+    waitForStateUpdates(getAgentEnsemble()->getSw());
+  };
+
+  auto setupPostWarmboot = [=]() {};
+
+  // This is just to bring back the set-up to the original state
+  auto verifyPostWarmboot = [=, this]() {
+    auto config = getAgentEnsemble()->getCurrentConfig();
+    InterfaceID intfID = (InterfaceID)config.interfaces()[0].intfID().value();
+    std::vector<std::string> intfIPv6s;
+    intfIPv6s = getInterfaceIpAddress(config, true);
+    checkKernelIpEntriesExist(intfID, intfIPv6s[0], true);
+    clearAllKernelEntries();
+
+    checkKernelIpEntriesRemoved(intfID, intfIPv6s[0], true);
+  };
+
+  verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
+}
+
+TEST_F(AgentTunnelMgrTest, changeIpv6AddressPortDownUp) {
+  auto setup = [=]() {};
+
+  auto verify = [=, this]() {
+    auto config = getAgentEnsemble()->getCurrentConfig();
+    std::string intfIPv6;
+    std::vector<std::string> intfOldIPv6s;
+    std::vector<std::string> intfNewIPv6s;
+    InterfaceID intfID = (InterfaceID)config.interfaces()[0].intfID().value();
+
+    intfOldIPv6s = getInterfaceIpAddress(config, false);
+    checkKernelIpEntriesExist(intfID, intfOldIPv6s[0], false);
+
+    for (int i = 0; i < config.ports()->size(); i++) {
+      config.ports()[i].state() = cfg::PortState::DISABLED;
+    }
+
+    // Apply the config
+    applyNewConfig(config);
+    waitForStateUpdates(getAgentEnsemble()->getSw());
+
+    // change ipv6 address of the interface
+    intfNewIPv6s = changeKernelIPAddress(config, false);
+
+    // Bring up one port
+    bringUpPort(getAgentEnsemble()->masterLogicalPortIds()[0]);
+
+    checkKernelIpEntriesExist(intfID, intfNewIPv6s[0], false);
+
+    checkKernelIpEntriesRemoved(intfID, intfOldIPv6s[0], false);
+
+    config.ports()[0].state() = cfg::PortState::ENABLED;
+    // Apply the config
+    applyNewConfig(config);
+    waitForStateUpdates(getAgentEnsemble()->getSw());
+  };
+
+  auto setupPostWarmboot = [=]() {};
+
+  // This is just to bring back the set-up to the original state
+  auto verifyPostWarmboot = [=, this]() {
+    auto config = getAgentEnsemble()->getCurrentConfig();
+    InterfaceID intfID = (InterfaceID)config.interfaces()[0].intfID().value();
+    std::vector<std::string> intfIPv6s;
+    intfIPv6s = getInterfaceIpAddress(config, false);
+    checkKernelIpEntriesExist(intfID, intfIPv6s[0], false);
+    clearAllKernelEntries();
+
+    checkKernelIpEntriesRemoved(intfID, intfIPv6s[0], false);
+  };
+
+  verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
 }
 
 } // namespace facebook::fboss
