@@ -1,3 +1,14 @@
+---
+id: clis_for_l1_debugging
+title: CLIs for L1 Debugging
+description: Debugging L1 issues using various CLIs
+keywords:
+    - FBOSS
+    - OSS
+    - L1
+    - debug
+oncall: fboss_oss
+---
 # Introduction
 
 This document enlists different commands that can be used on a FBOSS switch for debugging L1 issues.
