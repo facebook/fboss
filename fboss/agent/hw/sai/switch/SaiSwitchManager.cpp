@@ -176,6 +176,24 @@ void fillHwSwitchDropStats(
   }
 }
 
+void fillHwSwitchTemperatureStats(
+    const folly::F14FastMap<sai_attr_id_t, sai_attribute_value_t>& attrId2Value,
+    HwSwitchTemperatureStats& hwSwitchTemperatureStats) {
+  for (auto attrIdAndValue : attrId2Value) {
+    auto [attrId, value] = attrIdAndValue;
+    if (attrId == SAI_SWITCH_ATTR_TEMP_LIST) {
+      for (uint32_t i = 0; i < value.s32list.count; i++) {
+        auto sensorName = std::to_string(i);
+        hwSwitchTemperatureStats.timeStamp()->insert(
+            {sensorName,
+             std::chrono::system_clock::now().time_since_epoch().count()});
+        hwSwitchTemperatureStats.value()->insert(
+            {sensorName, value.s32list.list[i]});
+      }
+    }
+  }
+}
+
 } // namespace
 
 namespace facebook::fboss {
@@ -863,6 +881,20 @@ const std::vector<sai_stat_id_t>& SaiSwitchManager::supportedDropStats() const {
   return stats;
 }
 
+const std::vector<sai_attr_id_t>& SaiSwitchManager::supportedTemperatureStats()
+    const {
+  static std::vector<sai_stat_id_t> stats;
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::TEMPERATURE_MONITORING)) {
+    stats = {
+        SAI_SWITCH_ATTR_MAX_NUMBER_OF_TEMP_SENSORS, SAI_SWITCH_ATTR_TEMP_LIST};
+    return stats;
+  } else {
+    stats = {};
+    return stats;
+  }
+}
+
 const std::vector<sai_stat_id_t>& SaiSwitchManager::supportedErrorStats()
     const {
   static std::vector<sai_stat_id_t> stats;
@@ -1087,6 +1119,54 @@ const HwSwitchPipelineStats SaiSwitchManager::getHwSwitchPipelineStats(
   return switchPipelineStats;
 }
 
+const HwSwitchTemperatureStats SaiSwitchManager::getHwSwitchTemperatureStats()
+    const {
+  // Get temperature stats
+  HwSwitchTemperatureStats switchTemperatureStats;
+  if (!supportedTemperatureStats().empty()) {
+    folly::F14FastMap<sai_attr_id_t, sai_attribute_value_t> attrValues;
+    for (auto attrId : supportedTemperatureStats()) {
+      try {
+        if (attrId == SAI_SWITCH_ATTR_MAX_NUMBER_OF_TEMP_SENSORS) {
+          auto NumTemperatureSensors =
+              SaiApiTable::getInstance()->switchApi().getAttribute(
+                  switch_->adapterKey(),
+                  SaiSwitchTraits::Attributes::NumTemperatureSensors{});
+          sai_attribute_value_t value;
+          value.u8 = NumTemperatureSensors;
+          attrValues[attrId] = value;
+        } else if (attrId == SAI_SWITCH_ATTR_TEMP_LIST) {
+          auto NumTemperatureSensors =
+              SaiApiTable::getInstance()->switchApi().getAttribute(
+                  switch_->adapterKey(),
+                  SaiSwitchTraits::Attributes::NumTemperatureSensors{});
+          std::vector<sai_int32_t> temperatureList;
+          XLOG(DBG5) << "# temperature sensor: " << NumTemperatureSensors;
+          temperatureList.resize(NumTemperatureSensors);
+          SaiSwitchTraits::Attributes::AsicTemperatureList
+              temperatureListAttribute{temperatureList};
+
+          auto temperatureU32List =
+              SaiApiTable::getInstance()->switchApi().getAttribute(
+                  switch_->adapterKey(), temperatureListAttribute);
+
+          sai_attribute_value_t value;
+          value.u32list.count = temperatureU32List.size();
+          value.u32list.list =
+              reinterpret_cast<uint32_t*>(temperatureU32List.data());
+
+          attrValues[attrId] = value;
+          fillHwSwitchTemperatureStats(attrValues, switchTemperatureStats);
+        }
+      } catch (const std::exception& ex) {
+        XLOG(ERR) << "Failed to get temperature attribute " << attrId << ": "
+                  << ex.what();
+      }
+    }
+  }
+  return switchTemperatureStats;
+}
+
 void SaiSwitchManager::updateStats(bool updateWatermarks) {
   auto switchDropStats = supportedDropStats();
   if (switchDropStats.size()) {
@@ -1178,6 +1258,7 @@ void SaiSwitchManager::updateStats(bool updateWatermarks) {
     switchWatermarkStats_ = getHwSwitchWatermarkStats();
     publishSwitchWatermarks(switchWatermarkStats_);
   }
+  switchTemperatureStats_ = getHwSwitchTemperatureStats();
   switchPipelineStats_ = getHwSwitchPipelineStats(updateWatermarks);
   publishSwitchPipelineStats(switchPipelineStats_);
 }
@@ -1400,8 +1481,8 @@ void SaiSwitchManager::setPfcWatchdogTimerGranularity(
   if (platform_->getAsic()->isSupported(
           HwAsic::Feature::PFC_WATCHDOG_TIMER_GRANULARITY)) {
     // We need to set the watchdog granularity to an appropriate value,
-    // otherwise the default granularity in SAI/SDK may be incompatible with the
-    // requested watchdog intervals. Auto-derivation is being requested in
+    // otherwise the default granularity in SAI/SDK may be incompatible with
+    // the requested watchdog intervals. Auto-derivation is being requested in
     // CS00012393810.
     std::vector<sai_map_t> mapToValueList(
         cfg::switch_config_constants::PFC_PRIORITY_VALUE_MAX() + 1);
