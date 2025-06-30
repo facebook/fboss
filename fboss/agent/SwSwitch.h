@@ -1003,6 +1003,8 @@ class SwSwitch : public HwSwitchCallback {
       const std::shared_ptr<VlanOrIntfT>& vlanOrIntf) const;
 
  private:
+  void initAgentInfo();
+
   void updateRibEcmpOverrides(const StateDelta& delta);
   std::optional<folly::MacAddress> getSourceMac(
       const std::shared_ptr<Interface>& intf) const;
@@ -1355,7 +1357,7 @@ class SwSwitch : public HwSwitchCallback {
   std::atomic<std::chrono::time_point<std::chrono::steady_clock>>
       lastPacketRxTime_{std::chrono::steady_clock::time_point::min()};
   folly::Synchronized<std::unique_ptr<AgentConfig>> agentConfig_;
-  agent_info::AgentInfo agentInfo_; // TODO: initialize this
+  agent_info::AgentInfo agentInfo_;
   folly::Synchronized<std::map<uint16_t, multiswitch::HwSwitchStats>>
       hwSwitchStats_;
   // Map to lookup local interface address to interface id, for fask look up in

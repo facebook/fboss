@@ -10,4 +10,6 @@ namespace go neteng.fboss.agent_info
 struct AgentInfo {
   // timestamp in msec since epoch when wedge_agent started
   1: i64 startTime;
+  // interval in msec for publishing stats to fsdb
+  2: i64 fsdbStatsPublishIntervalMsec;
 }
