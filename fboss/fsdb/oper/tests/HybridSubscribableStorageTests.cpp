@@ -1408,8 +1408,8 @@ CO_TEST_P(SubscribableStorageTestsPathDelta, UnregisterSubscriberMulti) {
   };
 
   folly::coro::AsyncScope backgroundScope;
-  backgroundScope.add(subscribeManyAndUnregister(isPath, 50)
-                          .scheduleOn(folly::getGlobalCPUExecutor()));
+  backgroundScope.add(co_withExecutor(
+      folly::getGlobalCPUExecutor(), subscribeManyAndUnregister(isPath, 50)));
 
   for (int j = 0; j < 5; ++j) {
     for (int i = 0; i < 10; ++i) {
