@@ -6,7 +6,6 @@
 #include <chrono>
 #include <exception>
 #include <filesystem>
-#include <ranges>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -375,14 +374,11 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
       if (productionStateInEeprom.has_value() &&
           productVersionInEeprom.has_value() &&
           productSubVersionInEeprom.has_value()) {
-        PmUnitInfo info;
         PmUnitVersion version;
         version.productProductionState() = *productionStateInEeprom;
         version.productVersion() = *productVersionInEeprom;
         version.productSubVersion() = *productSubVersionInEeprom;
-        info.version() = version;
-        info.name() = pmUnitNameInEeprom.value_or("");
-        dataStore_.updatePmUnitInfo(slotPath, info);
+        dataStore_.updatePmUnitVersion(slotPath, version);
       } else {
         XLOG(WARNING) << fmt::format(
             "At SlotPath {}, unexpected partial versions: ProductProductionState `{}` "
@@ -438,9 +434,7 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
         "or SlotTypeConfig::idpromConfig at {}",
         slotPath));
   }
-  PmUnitInfo info;
-  info.name() = *pmUnitName;
-  dataStore_.updatePmUnitInfo(slotPath, info);
+  dataStore_.updatePmUnitName(slotPath, *pmUnitName);
   return pmUnitName;
 }
 
@@ -788,39 +782,33 @@ void PlatformExplorer::publishHardwareVersions() {
   }
 
   auto chassisEepromContent = dataStore_.getEepromContents(chassisDevicePath);
-  auto prodState =
-      FbossEepromParserUtils::getProductionState(chassisEepromContent);
-  auto prodSubState =
-      FbossEepromParserUtils::getProductionSubState(chassisEepromContent);
-  auto variantVersion =
-      FbossEepromParserUtils::getVariantVersion(chassisEepromContent);
+  auto prodState = chassisEepromContent.getProductionState();
+  auto prodSubState = chassisEepromContent.getProductionSubState();
+  auto variantVersion = chassisEepromContent.getVariantVersion();
 
   // Report production state
-  if (prodState.has_value()) {
-    XLOG(INFO) << fmt::format(
-        "Reporting Production State: {}", prodState.value());
-    fb303::fbData->setCounter(
-        fmt::format(kProductionState, prodState.value()), 1);
+  if (!prodState.empty()) {
+    XLOG(INFO) << fmt::format("Reporting Production State: {}", prodState);
+    fb303::fbData->setCounter(fmt::format(kProductionState, prodState), 1);
   } else {
     XLOG(ERR) << "Production State not set";
   }
 
   // Report production sub-state
-  if (prodSubState.has_value()) {
+  if (!prodSubState.empty()) {
     XLOG(INFO) << fmt::format(
-        "Reporting Production Sub-State: {}", prodSubState.value());
+        "Reporting Production Sub-State: {}", prodSubState);
     fb303::fbData->setCounter(
-        fmt::format(kProductionSubState, prodSubState.value()), 1);
+        fmt::format(kProductionSubState, prodSubState), 1);
   } else {
     XLOG(ERR) << "Production Sub-State not set";
   }
 
   // Report variant version
-  if (variantVersion.has_value()) {
+  if (!variantVersion.empty()) {
     XLOG(INFO) << fmt::format(
-        "Reporting Variant Indicator: {}", variantVersion.value());
-    fb303::fbData->setCounter(
-        fmt::format(kVariantVersion, variantVersion.value()), 1);
+        "Reporting Variant Indicator: {}", variantVersion);
+    fb303::fbData->setCounter(fmt::format(kVariantVersion, variantVersion), 1);
   } else {
     XLOG(ERR) << "Variant Indicator not set";
   }
@@ -921,7 +909,7 @@ void PlatformExplorer::genHumanReadableEeproms() {
           devicePath);
       return;
     }
-    auto contents = dataStore_.getEepromContents(devicePath);
+    auto contents = dataStore_.getEepromContents(devicePath).getContents();
     std::ostringstream os;
     for (const auto& [key, value] : contents) {
       os << fmt::format("{}: {}\n", key, value);

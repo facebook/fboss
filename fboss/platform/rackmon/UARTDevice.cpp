@@ -1,5 +1,4 @@
 // Copyright 2021-present Facebook. All Rights Reserved.
-#include <fcntl.h>
 #include <linux/serial.h>
 #include <pthread.h>
 #include <sys/ioctl.h>
@@ -10,7 +9,7 @@
 #include <unordered_map>
 #include "Log.h"
 
-#include "UARTDevice.h"
+#include "fboss/platform/rackmon/UARTDevice.h"
 
 using namespace std::literals;
 

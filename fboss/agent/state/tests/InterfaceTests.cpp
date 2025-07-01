@@ -801,8 +801,8 @@ TEST(Interface, getRemoteInterfacesBySwitchId) {
 
   remoteInterfaces->addNode(
       rif,
-      HwSwitchMatcher(
-          std::unordered_set<SwitchID>({SwitchID{remoteSwitchId}})));
+      HwSwitchMatcher(std::unordered_set<SwitchID>(
+          {static_cast<SwitchID>(static_cast<uint16_t>(remoteSwitchId))})));
 
   EXPECT_EQ(stateV2->getInterfaces(SwitchID(remoteSwitchId))->size(), 1);
 }

@@ -90,9 +90,12 @@ It should store content in Meta EEPROM V6 format.
 - The Product Name field in the IDPROM should have the corresponding PMUnit name
   used in the PlatformManager configuration as value.
 - The Product Name should not be cryptic or in code words. The Product Name
-  should be obvious about the functionality of the PMUnit. For example, use SCM
-  for a PMUnit containing CPU and not EAGLE, use SMB for a PMUnit containing the
-  switch ASIC and not APOLLO.
+  should be obvious about the functionality of the PMUnit. Some examples
+  - Use SCM for a PMUnit containing CPU (not EAGLE or PLATFORM_NAME_SCM)
+  - Use SMB for a PMUnit containing the switch ASIC.
+  - Use PSU for Power Supply Unit
+  - Use FAN for FAN PmUnit,
+  - PDB, MCB, JUMPER, FCB etc., are other valid names
 - Chassis EEPROM is not considered an IDPROM.
 
 ### Chassis EEPROM

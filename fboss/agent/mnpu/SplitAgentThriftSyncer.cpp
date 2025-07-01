@@ -121,7 +121,8 @@ void SplitAgentThriftSyncer::linkStateChanged(
     PortID port,
     bool up,
     cfg::PortType portType,
-    std::optional<phy::LinkFaultStatus> iPhyFaultStatus) {
+    std::optional<phy::LinkFaultStatus> iPhyFaultStatus,
+    std::optional<AggregatePortID> /*aggPortId*/) {
   multiswitch::LinkEvent event;
   event.port() = port;
   event.up() = up;

@@ -88,3 +88,44 @@ cpp_unittest(
         "//fboss/qsfp_service/test/hw_test:hw_transceiver_utils",
     ],
 )
+
+cpp_library(
+    name = "mock-state-machine",
+    srcs = ["MockStateMachine.cpp"],
+    headers = ["MockStateMachine.h"],
+    exported_deps = [
+        "//fboss/agent:fboss-error",
+        "//fboss/qsfp_service:state-machine-controller",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp/util:enum_utils",
+    ],
+    exported_external_deps = [
+        "boost",
+    ],
+)
+
+cpp_unittest(
+    name = "state_machine_update_test",
+    srcs = [
+        "TypedStateMachineUpdateTest.cpp",
+    ],
+    deps = [
+        "//fboss/qsfp_service:typed-state-machine-update",
+    ],
+)
+
+cpp_unittest(
+    name = "state_machine_controller_test",
+    srcs = ["StateMachineControllerTest.cpp"],
+    deps = [
+        "fbsource//third-party/googletest:gmock",
+        ":mock-state-machine",
+        "//fboss/qsfp_service:state-machine-controller",
+        "//fboss/qsfp_service:typed-state-machine-update",
+        "//folly:synchronized",
+        "//folly/logging:logging",
+    ],
+    external_deps = [
+        "boost",
+    ],
+)

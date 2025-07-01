@@ -34,7 +34,8 @@ DEFINE_bool(
 namespace facebook::fboss::fsdb {
 
 NaivePeriodicSubscribableStorageBase::NaivePeriodicSubscribableStorageBase(
-    StorageParams params)
+    StorageParams params,
+    std::optional<OperPathToPublisherRoot> pathToRootHelper)
     : params_(std::move(params)),
       rss_(fmt::format("{}.{}", params_.metricPrefix_, kRss)),
       registeredSubs_(
@@ -52,6 +53,11 @@ NaivePeriodicSubscribableStorageBase::NaivePeriodicSubscribableStorageBase(
           fmt::format("{}.{}", params_.metricPrefix_, kSubscriberPrefix)) {
   if (params_.trackMetadata_) {
     metadataTracker_ = std::make_unique<FsdbOperTreeMetadataTracker>();
+  }
+  if (pathToRootHelper.has_value()) {
+    pathToRootHelper_ = pathToRootHelper;
+  } else {
+    pathToRootHelper_ = OperPathToPublisherRoot();
   }
 
   // init metrics
@@ -110,7 +116,7 @@ void NaivePeriodicSubscribableStorageBase::start_impl() {
       FLAGS_storage_thread_heartbeat_ms,
       heartbeatStatsFunc);
 
-  backgroundScope_.add(serveSubscriptions().scheduleOn(&evb_));
+  backgroundScope_.add(co_withExecutor(&evb_, serveSubscriptions()));
 
   *runningLocked = true;
 }
@@ -339,7 +345,7 @@ NaivePeriodicSubscribableStorageBase::getPublisherRoot(
   auto path = convertPath(ConcretePath(begin, end));
   return params_.trackMetadata_
       ? std::make_optional(
-            OperPathToPublisherRoot().publisherRoot(path.begin(), path.end()))
+            pathToRootHelper_->publisherRoot(path.begin(), path.end()))
       : std::nullopt;
 }
 
@@ -348,8 +354,7 @@ NaivePeriodicSubscribableStorageBase::getPublisherRoot(
     const std::vector<ExtendedOperPath>& paths) const {
   auto convertedPaths = convertExtPaths(paths);
   return params_.trackMetadata_
-      ? std::make_optional(
-            OperPathToPublisherRoot().publisherRoot(convertedPaths))
+      ? std::make_optional(pathToRootHelper_->publisherRoot(convertedPaths))
       : std::nullopt;
 }
 
@@ -360,7 +365,7 @@ NaivePeriodicSubscribableStorageBase::getPublisherRoot(
   auto path = convertPath(ExtPath(begin, end));
   return params_.trackMetadata_
       ? std::make_optional(
-            OperPathToPublisherRoot().publisherRoot(path.begin(), path.end()))
+            pathToRootHelper_->publisherRoot(path.begin(), path.end()))
       : std::nullopt;
 }
 
@@ -368,7 +373,7 @@ std::optional<std::string>
 NaivePeriodicSubscribableStorageBase::getPublisherRoot(
     const std::map<SubscriptionKey, RawOperPath>& paths) const {
   return params_.trackMetadata_
-      ? std::make_optional(OperPathToPublisherRoot().publisherRoot(paths))
+      ? std::make_optional(pathToRootHelper_->publisherRoot(paths))
       : std::nullopt;
 }
 
@@ -376,7 +381,7 @@ std::optional<std::string>
 NaivePeriodicSubscribableStorageBase::getPublisherRoot(
     const std::map<SubscriptionKey, ExtendedOperPath>& paths) const {
   return params_.trackMetadata_
-      ? std::make_optional(OperPathToPublisherRoot().publisherRoot(paths))
+      ? std::make_optional(pathToRootHelper_->publisherRoot(paths))
       : std::nullopt;
 }
 

@@ -44,3 +44,14 @@ cpp_unittest(
         "//thrift/lib/cpp2/protocol:protocol",
     ],
 )
+
+cpp_unittest(
+    name = "fboss_eeprom_interface_test",
+    srcs = [
+        "FbossEepromInterfaceTest.cpp",
+    ],
+    deps = [
+        "//fboss/platform/weutil:fboss_eeprom_lib",
+        "//fboss/platform/weutil/if:eeprom_contents-cpp2-types",
+    ],
+)

@@ -158,6 +158,10 @@ class MockHwSwitch : public HwSwitch {
 
   MOCK_CONST_METHOD0(getResourceStats, HwResourceStats());
 
+  MOCK_METHOD1(
+      getFwdSwitchingMode,
+      cfg::SwitchingMode(const RouteNextHopEntry&));
+
  private:
   MOCK_METHOD1(switchRunStateChangedImpl, void(SwitchRunState newState));
   MOCK_METHOD0(initialStateApplied, void());

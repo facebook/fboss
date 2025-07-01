@@ -31,6 +31,7 @@ class EcmpResourceManagerRibFibTest : public ::testing::Test {
   void SetUp() override {
     FLAGS_enable_ecmp_resource_manager = true;
     FLAGS_ecmp_resource_percentage = 100;
+    FLAGS_ars_resource_percentage = 100;
     FLAGS_flowletSwitchingEnable = true;
     FLAGS_dlbResourceCheckEnable = false;
     auto cfg = onePortPerIntfConfig(kNumIntfs);

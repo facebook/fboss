@@ -34,6 +34,8 @@ constexpr uint8_t kModulePasswordEntryReg = 122;
 
 constexpr int moduleDatapathInitDurationUsec = 5000000;
 
+constexpr int moduleReadyAfterFirmwareRunUsec = 100 * 1000; // 100ms
+
 // CMIS FW Upgrade
 constexpr int kFwUpgrade = static_cast<int>(CmisField::FW_UPGRADE);
 
@@ -314,6 +316,12 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
       msaPassword_.data(),
       POST_I2C_WRITE_NO_DELAY_US,
       kFwUpgrade);
+
+  /* After the firmware starts running, module may disable I2C for a short time
+   * while it updates the different pages of its eeprom. Adding a delay here
+   * avoids this issue */
+  /* sleep override */
+  usleep(moduleReadyAfterFirmwareRunUsec);
 
   // Step 5: Issue CDB command: Commit the downloaded firmware
   commandBlock->createCdbCmdFwCommit();

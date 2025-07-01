@@ -16,6 +16,8 @@ target_link_libraries(sensor_service_sw_test
   ${LIBGMOCK_LIBRARIES}
 )
 
+gtest_discover_tests(sensor_service_sw_test)
+
 install(TARGETS sensor_service_sw_test)
 
 add_executable(sensor_service_utils_test
@@ -27,3 +29,5 @@ target_link_libraries(sensor_service_utils_test
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}
 )
+
+gtest_discover_tests(sensor_service_utils_test)

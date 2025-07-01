@@ -52,16 +52,22 @@ bool HwTestThriftHandler::validateUdfConfig(
         return false;
       }
 
+      auto offsetInBytes = utility::kUdfHashDstQueuePairStartOffsetInBytes;
+      auto fieldSizeInBytes = utility::kUdfHashDstQueuePairFieldSizeInBytes;
+      if (hwSwitch_->getPlatform()->getAsic()->getAsicType() ==
+          cfg::AsicType::ASIC_TYPE_CHENAB) {
+        offsetInBytes = utility::kChenabUdfHashDstQueuePairStartOffsetInBytes;
+        fieldSizeInBytes = utility::kChenabUdfHashDstQueuePairFieldSizeInBytes;
+      }
+
       if (udfApi.getAttribute(
               saiUdfGroup->adapterKey(),
-              SaiUdfGroupTraits::Attributes::Length{}) !=
-          utility::kUdfHashDstQueuePairFieldSizeInBytes) {
+              SaiUdfGroupTraits::Attributes::Length{}) != fieldSizeInBytes) {
         XLOG(ERR) << "udfApi.getAttribute: Actual: "
                   << udfApi.getAttribute(
                          saiUdfGroup->adapterKey(),
                          SaiUdfGroupTraits::Attributes::Length{})
-                  << " Expected: "
-                  << utility::kUdfHashDstQueuePairFieldSizeInBytes;
+                  << " Expected: " << fieldSizeInBytes;
         return false;
       }
 
@@ -69,13 +75,12 @@ bool HwTestThriftHandler::validateUdfConfig(
       auto saiUdf = udfGroupIter->second->udfs[*udfPacketMatchName.get()]->udf;
       if (udfApi.getAttribute(
               saiUdf->adapterKey(), SaiUdfTraits::Attributes::Offset{}) !=
-          utility::kUdfHashDstQueuePairStartOffsetInBytes) {
+          offsetInBytes) {
         XLOG(ERR) << "udfApi.getAttribute: Actual: "
                   << udfApi.getAttribute(
                          saiUdf->adapterKey(),
                          SaiUdfTraits::Attributes::Offset{})
-                  << " Expected: "
-                  << utility::kUdfHashDstQueuePairStartOffsetInBytes;
+                  << " Expected: " << offsetInBytes;
         return false;
       }
       if (udfApi.getAttribute(

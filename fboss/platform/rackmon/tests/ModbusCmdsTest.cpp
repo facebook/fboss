@@ -1,5 +1,5 @@
 // Copyright 2021-present Facebook. All Rights Reserved.
-#include "ModbusCmds.h"
+#include "fboss/platform/rackmon/ModbusCmds.h"
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 

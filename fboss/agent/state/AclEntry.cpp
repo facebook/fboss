@@ -10,11 +10,9 @@
 #include "fboss/agent/state/AclEntry.h"
 #include <folly/Conv.h>
 #include <folly/MacAddress.h>
-#include <thrift/lib/cpp/util/EnumUtils.h>
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/state/AclMap.h"
 #include "fboss/agent/state/NodeBase-defs.h"
-#include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "folly/IPAddress.h"
 

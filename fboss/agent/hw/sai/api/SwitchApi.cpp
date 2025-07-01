@@ -10,7 +10,7 @@
 
 #include "fboss/agent/hw/sai/api/SwitchApi.h"
 
-#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_7)
 extern "C" {
 #ifndef IS_OSS_BRCM_SAI
 #include <experimental/saiswitchextensions.h>
@@ -147,7 +147,22 @@ void SwitchApi::registerVendorSwitchEventNotifyCallback(
       " vendor switch event notify callback");
 }
 #endif
-
+void SwitchApi::registerSwitchHardResetNotifyCallback(
+    const SwitchSaiId& id,
+    sai_pointer_t event_notify_cb) const {
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_7)
+  sai_attribute_t attr;
+  attr.id = SAI_SWITCH_ATTR_SWITCH_HARD_RESET_EVENT_NOTIFY;
+  attr.value.ptr = event_notify_cb;
+  auto rv = _setAttribute(id, &attr);
+  saiApiCheckError(
+      rv,
+      ApiType,
+      "Unable to ",
+      event_notify_cb ? "register" : "unregister",
+      "switch hard reset callback");
+#endif
+}
 #if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
 
 SaiHealthNotification::SaiHealthNotification(

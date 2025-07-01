@@ -29,10 +29,11 @@ class Bsp {
   virtual void getSensorData(std::shared_ptr<SensorData> pSensorData);
   // getOpticsData: Get Optics temperature data
   virtual void getOpticsData(std::shared_ptr<SensorData> pSensorData);
+  // getAsicTempData: Get agent ASIC temperature data from fsdb or thrift
+  virtual void getAsicTempData(const std::shared_ptr<SensorData>& pSensorData);
   // emergencyShutdown: function to shutdown the platform upon overheat
   virtual int emergencyShutdown(bool enable);
   void kickWatchdog();
-  void closeWatchdog();
   virtual bool setFanPwmSysfs(const std::string& path, int pwm);
   virtual bool setFanLedSysfs(const std::string& path, int pwm);
   virtual uint64_t getCurrentTime() const;
@@ -58,6 +59,9 @@ class Bsp {
       std::shared_ptr<SensorData> pSensorData);
   bool writeToWatchdog(const std::string& value);
   std::shared_ptr<std::thread> thread_{nullptr};
+  void getAsicTempDataOverThrift(
+      const std::shared_ptr<SensorData>& pSensorData);
+  void getAsicTempThroughFsdb(const std::shared_ptr<SensorData>& pSensorData);
   // For communicating with qsfp_service
   folly::EventBase evb_;
   // For communicating with sensor_service
@@ -67,8 +71,8 @@ class Bsp {
   // Private Attributes
   int sensordThriftPort_{5970};
   int qsfpSvcThriftPort_{5910};
+  int agentTempThriftPort_{5972};
   bool initialSensorDataRead_{false};
-  std::optional<int> watchdogFd_;
 
   bool writeFd(int fd, const std::string& val) {
     auto ret = write(fd, val.c_str(), val.size());
@@ -83,7 +87,6 @@ class Bsp {
   virtual bool writeSysfs(const std::string& path, int value);
   std::vector<std::pair<std::string, float>> processOpticEntries(
       const Optic& opticsGroup,
-      std::shared_ptr<SensorData> pSensorData,
       uint64_t& currentQsfpSvcTimestamp,
       const std::map<int32_t, TransceiverInfo>& transceiverInfoMap);
 

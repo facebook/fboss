@@ -13,12 +13,14 @@ cpp_binary(
         "//folly/logging:init",
         "//folly/logging:logging",
     ],
+    external_deps = [
+        "CLI11",
+    ],
 )
 
 cpp_library(
     name = "core",
     srcs = [
-        "Flags.cpp",
         "FwUtilFlashrom.cpp",
         "FwUtilImpl.cpp",
         "FwUtilOperations.cpp",
@@ -43,9 +45,6 @@ cpp_library(
         "//folly/logging:logging",
         "//folly/system:shell",
         "//thrift/lib/cpp2/protocol:protocol",
-    ],
-    exported_external_deps = [
-        "gflags",
     ],
 )
 

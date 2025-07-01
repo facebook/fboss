@@ -236,6 +236,10 @@ class QsfpModule : public Transceiver {
 
   bool readyTransceiver() override;
 
+  portstate::PortState getPortState() override {
+    return portState_;
+  }
+
   virtual void triggerVdmStatsCapture() override {}
 
   void publishSnapshots() override;
@@ -695,6 +699,8 @@ class QsfpModule : public Transceiver {
 
   void removeTransceiverLocked();
 
+  void setPortStateLocked(bool programEnd);
+
   TransceiverPresenceDetectionStatus detectPresenceLocked();
 
   /*
@@ -798,6 +804,9 @@ class QsfpModule : public Transceiver {
 
   time_t lastFwUpgradeStartTime_{0};
   time_t lastFwUpgradeEndTime_{0};
+
+  // Port state. Has programming start/end.
+  portstate::PortState portState_;
 
   std::string getFwStorageHandle(const std::string& tcvrPartNumber) const;
 

@@ -6,8 +6,11 @@
 namespace facebook::fboss::platform::platform_manager {
 PlatformManagerHandler::PlatformManagerHandler(
     const PlatformExplorer& platformExplorer,
-    const DataStore& dataStore)
-    : platformExplorer_(platformExplorer), dataStore_(dataStore) {}
+    const DataStore& dataStore,
+    const PlatformConfig& config)
+    : platformExplorer_(platformExplorer),
+      dataStore_(dataStore),
+      platformConfig_(config) {}
 
 void PlatformManagerHandler::getPlatformSnapshot(PlatformSnapshot&) {}
 
@@ -41,5 +44,20 @@ void PlatformManagerHandler::getPmUnitInfo(
         *pmUnitInfoReq->slotPath());
     throw error;
   }
+}
+
+void PlatformManagerHandler::getAllPmUnits(PmUnitsResponse& response) {
+  response.pmUnits() = dataStore_.getSlotPathToPmUnitInfo();
+}
+
+void PlatformManagerHandler::getBspVersion(
+    BspVersionResponse& bspVersionResponse) {
+  bspVersionResponse.bspBaseName() = *platformConfig_.bspKmodsRpmName();
+  bspVersionResponse.bspVersion() = *platformConfig_.bspKmodsRpmVersion();
+  bspVersionResponse.kernelVersion() = system_.getHostKernelVersion();
+}
+
+void PlatformManagerHandler::getPlatformName(std::string& response) {
+  response = *platformConfig_.platformName();
 }
 } // namespace facebook::fboss::platform::platform_manager

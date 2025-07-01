@@ -333,4 +333,15 @@ std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeAsicRevision::operator()() {
   return std::nullopt;
 }
+
+std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
+    AttributeCreditRequestProfileSchedulerMode::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
+    AttributeModuleIdToCreditRequestProfileParamList::operator()() {
+  return std::nullopt;
+}
+
 } // namespace facebook::fboss

@@ -2666,6 +2666,7 @@ void CmisModule::ensureRxOutputSquelchEnabled(
 }
 
 bool CmisModule::tcvrPortStateSupported(TransceiverPortState& portState) const {
+  lock_guard<std::mutex> g(qsfpModuleMutex_);
   auto currTransmitterTechnology = getQsfpTransmitterTechnology();
   bool activeElectricalCable = false;
   if (getMediaTypeEncoding() == MediaTypeEncodings::ACTIVE_CABLES) {

@@ -20,4 +20,8 @@ sensor_service::SensorReadResponse getSensorValueThroughThrift(
     int sensorServiceThriftPort,
     folly::EventBase& evb);
 
+sensor_service::SensorReadResponse getAsicTempThroughThrift(
+    int agentTempThriftPort,
+    folly::EventBase& evb);
+
 } // namespace facebook::fboss::platform::fan_service

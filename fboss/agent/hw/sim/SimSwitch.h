@@ -103,6 +103,10 @@ class SimSwitch : public HwSwitch {
     return false;
   }
 
+  cfg::SwitchingMode getFwdSwitchingMode(const RouteNextHopEntry&) override {
+    return cfg::SwitchingMode::FIXED_ASSIGNMENT;
+  }
+
   void resetTxCount() {
     txCount_ = 0;
   }

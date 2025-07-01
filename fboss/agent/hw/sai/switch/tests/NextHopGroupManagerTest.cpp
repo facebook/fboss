@@ -70,28 +70,40 @@ TEST_F(NextHopGroupManagerTest, addNextHopGroup) {
 }
 
 TEST_F(NextHopGroupManagerTest, verifyNextHopGroupKey) {
+  FLAGS_flowletSwitchingEnable = true;
   ResolvedNextHop nh1{h0.ip, InterfaceID(intf0.id), ECMP_WEIGHT};
   ResolvedNextHop nh2{h1.ip, InterfaceID(intf1.id), ECMP_WEIGHT};
   RouteNextHopEntry::NextHopSet swNextHops{nh1, nh2};
   auto saiNextHopGroupHandle =
       saiManagerTable->nextHopGroupManager().incRefOrAddNextHopGroup(
           SaiNextHopGroupKey(swNextHops, cfg::SwitchingMode::FIXED_ASSIGNMENT));
+  auto saiNextHopGroup = saiNextHopGroupHandle->nextHopGroup;
   EXPECT_EQ(saiNextHopGroupHandle.use_count(), 1);
+  EXPECT_EQ(saiNextHopGroup.use_count(), 2);
 
   auto saiNextHopGroupHandle2 =
       saiManagerTable->nextHopGroupManager().incRefOrAddNextHopGroup(
           SaiNextHopGroupKey(swNextHops, cfg::SwitchingMode::FIXED_ASSIGNMENT));
-  EXPECT_EQ(saiNextHopGroupHandle.use_count(), 2);
+  auto saiNextHopGroup2 = saiNextHopGroupHandle2->nextHopGroup;
+  EXPECT_EQ(saiNextHopGroupHandle2.use_count(), 2);
+  EXPECT_EQ(saiNextHopGroup2.use_count(), 3);
 
+  EXPECT_EQ(saiNextHopGroup, saiNextHopGroup2);
   EXPECT_EQ(saiNextHopGroupHandle, saiNextHopGroupHandle2);
 
   auto saiNextHopGroupHandle3 =
       saiManagerTable->nextHopGroupManager().incRefOrAddNextHopGroup(
           SaiNextHopGroupKey(
               swNextHops, cfg::SwitchingMode::PER_PACKET_RANDOM));
+  auto saiNextHopGroup3 = saiNextHopGroupHandle3->nextHopGroup;
   EXPECT_EQ(saiNextHopGroupHandle3.use_count(), 1);
+  EXPECT_EQ(saiNextHopGroup3.use_count(), 2);
 
-  EXPECT_EQ(saiNextHopGroupHandle.use_count(), 2);
+  EXPECT_NE(saiNextHopGroupHandle3, saiNextHopGroupHandle);
+  EXPECT_NE(saiNextHopGroup3, saiNextHopGroup);
+
+  EXPECT_EQ(saiNextHopGroupHandle2.use_count(), 2);
+  EXPECT_EQ(saiNextHopGroup2.use_count(), 3);
 }
 
 TEST_F(NextHopGroupManagerTest, refNextHopGroup) {

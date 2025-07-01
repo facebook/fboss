@@ -14,8 +14,13 @@
 
 namespace {
 auto constexpr kFsdbSensorDataStale = "fsdb_sensor_service_data_stale";
+auto constexpr kFsdbSensorContentName = "Sensor Data";
 auto constexpr kFsdbQsfpStateStale = "fsdb_qsfp_state_stale";
+auto constexpr kFsdbQsfpStateContentName = "QSFP State";
 auto constexpr kFsdbQsfpStatsStale = "fsdb_qsfp_stats_stale";
+auto constexpr kFsdbQsfpStatsContentName = "QSFP Stats";
+auto constexpr kFsdbAgentDataStale = "fsdb_asic_temp_stats_stale";
+auto constexpr kFsdbAgentDataContentName = "Agent Data";
 auto constexpr kFsdbSyncTimeoutThresholdInSec = 3 * 60; // 3 minutes
 } // namespace
 
@@ -75,43 +80,55 @@ void FsdbSensorSubscriber::subscribeToSensorServiceStat() {
       sensorStatsLastUpdatedTime);
 }
 
+void FsdbSensorSubscriber::subscribeToAgentStat() {
+  subscribeToStatsOrState(
+      getAgentDataStatsPath(),
+      agentData,
+      true /* stats */,
+      agentLastUpdatedTime);
+}
+
+void FsdbSensorSubscriber::checkDataFreshness(
+    const std::atomic<uint64_t>& lastUpdatedTime,
+    const std::string& contentName,
+    const std::string& staleCounterName) const {
+  auto timeSinceLastUpdate =
+      facebook::WallClockUtil::NowInSecFast() - lastUpdatedTime.load();
+  if (timeSinceLastUpdate > kFsdbSyncTimeoutThresholdInSec) {
+    XLOG(ERR) << "Warning! " << contentName << " hasn't been synced since last "
+              << timeSinceLastUpdate << " seconds";
+    fb303::fbData->setCounter(staleCounterName, 1);
+  } else {
+    fb303::fbData->setCounter(staleCounterName, 0);
+  }
+}
+
 std::map<std::string, fboss::platform::sensor_service::SensorData>
 FsdbSensorSubscriber::getSensorData() const {
-  auto timeSinceLastUpdate = facebook::WallClockUtil::NowInSecFast() -
-      sensorStatsLastUpdatedTime.load();
-  if (timeSinceLastUpdate > kFsdbSyncTimeoutThresholdInSec) {
-    XLOG(ERR) << "Warning! Sensor data hasn't been synced since last "
-              << timeSinceLastUpdate << " seconds";
-    fb303::fbData->setCounter(kFsdbSensorDataStale, 1);
-  } else {
-    fb303::fbData->setCounter(kFsdbSensorDataStale, 0);
-  }
+  checkDataFreshness(
+      sensorStatsLastUpdatedTime, kFsdbSensorContentName, kFsdbSensorDataStale);
   return sensorSvcData.copy();
+}
+
+std::map<std::string, fboss::platform::sensor_service::SensorData>
+FsdbSensorSubscriber::getAgentData() const {
+  checkDataFreshness(
+      sensorStatsLastUpdatedTime,
+      kFsdbAgentDataContentName,
+      kFsdbAgentDataStale);
+  return agentData.copy();
 };
 
 std::map<int32_t, TcvrState> FsdbSensorSubscriber::getTcvrState() const {
-  auto timeSinceLastUpdate =
-      facebook::WallClockUtil::NowInSecFast() - qsfpStateLastUpdatedTime.load();
-  if (timeSinceLastUpdate > kFsdbSyncTimeoutThresholdInSec) {
-    XLOG(ERR) << "Warning! QSFP State hasn't been synced since last "
-              << timeSinceLastUpdate << " seconds";
-    fb303::fbData->setCounter(kFsdbQsfpStateStale, 1);
-  } else {
-    fb303::fbData->setCounter(kFsdbQsfpStateStale, 0);
-  }
+  checkDataFreshness(
+      qsfpStateLastUpdatedTime, kFsdbQsfpStateContentName, kFsdbQsfpStateStale);
   return tcvrState.copy();
 };
 
 std::map<int32_t, TcvrStats> FsdbSensorSubscriber::getTcvrStats() const {
-  auto timeSinceLastUpdate =
-      facebook::WallClockUtil::NowInSecFast() - qsfpStatsLastUpdatedTime.load();
-  if (timeSinceLastUpdate > kFsdbSyncTimeoutThresholdInSec) {
-    XLOG(ERR) << "Warning! QSFP Stats hasn't been synced since last "
-              << timeSinceLastUpdate << " seconds";
-    fb303::fbData->setCounter(kFsdbQsfpStatsStale, 1);
-  } else {
-    fb303::fbData->setCounter(kFsdbQsfpStatsStale, 0);
-  }
+  checkDataFreshness(
+      qsfpStatsLastUpdatedTime, kFsdbQsfpStatsContentName, kFsdbQsfpStatsStale);
   return tcvrStats.copy();
 };
+
 } // namespace facebook::fboss

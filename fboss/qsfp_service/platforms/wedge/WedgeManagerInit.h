@@ -9,7 +9,13 @@
  */
 #pragma once
 
+#include <folly/logging/xlog.h>
 #include <memory>
+#include <unordered_map>
+#include "fboss/agent/platforms/common/PlatformMapping.h"
+#include "fboss/agent/types.h"
+#include "fboss/lib/if/gen-cpp2/fboss_common_types.h"
+#include "fboss/qsfp_service/SlotThreadHelper.h"
 
 namespace facebook {
 namespace fboss {
@@ -24,52 +30,35 @@ std::shared_ptr<FbossMacsecHandler> createFbossMacsecHandler(
     WedgeManager* wedgeMgr);
 
 /**
- * This function should return derived WedgeManager which is still in dev.
+ * These functions enable us to create different WedgeManagers for open-sourced
+ * and closed-souce platforms.
  */
 std::unique_ptr<WedgeManager> createFBWedgeManager(
     std::unique_ptr<PlatformProductInfo> productInfo,
-    const std::string& platformMappingStr);
-
+    const std::shared_ptr<const PlatformMapping> platformMapping,
+    const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
+        threads);
 std::unique_ptr<WedgeManager> createYampWedgeManager(
-    const std::string& platformMappingStr);
-
+    const std::shared_ptr<const PlatformMapping> platformMapping,
+    const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
+        threads);
 std::unique_ptr<WedgeManager> createDarwinWedgeManager(
-    const std::string& platformMappingStr);
-
+    const std::shared_ptr<const PlatformMapping> platformMapping,
+    const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
+        threads);
 std::unique_ptr<WedgeManager> createElbertWedgeManager(
-    const std::string& platformMappingStr);
-
+    const std::shared_ptr<const PlatformMapping> platformMapping,
+    const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
+        threads);
 bool isElbert8DD();
-
 std::string getDeviceDatacenter();
 std::string getDeviceHostnameScheme();
 
-std::unique_ptr<WedgeManager> createMeru400bfuWedgeManager(
-    const std::string& platformMappingStr);
-
-std::unique_ptr<WedgeManager> createMeru400biaWedgeManager(
-    const std::string& platformMappingStr);
-std::unique_ptr<WedgeManager> createMeru400biuWedgeManager(
-    const std::string& platformMappingStr);
-std::unique_ptr<WedgeManager> createMeru800biaWedgeManager(
-    const std::string& platformMappingStr);
-std::unique_ptr<WedgeManager> createMeru800bfaWedgeManager(
-    const std::string& platformMappingStr);
-
-std::unique_ptr<WedgeManager> createMontblancWedgeManager(
-    const std::string& platformMappingStr);
-
-std::unique_ptr<WedgeManager> createMinipack3NWedgeManager(
-    const std::string& platformMappingStr);
-
-std::unique_ptr<WedgeManager> createMorgan800ccWedgeManager(
-    const std::string& platformMappingStr);
-
-std::unique_ptr<WedgeManager> createJanga800bicWedgeManager(
-    const std::string& platformMappingStr);
-
-std::unique_ptr<WedgeManager> createTahan800bcWedgeManager(
-    const std::string& platformMappingStr);
+template <typename BspPlatformMapping, PlatformType platformType>
+std::unique_ptr<WedgeManager> createBspWedgeManager(
+    const std::shared_ptr<const PlatformMapping> platformMapping,
+    const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
+        threads);
 
 } // namespace fboss
 } // namespace facebook

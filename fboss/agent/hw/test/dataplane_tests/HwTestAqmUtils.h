@@ -12,7 +12,6 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
-#include "fboss/agent/test/utils/AqmTestUtils.h"
 #include "fboss/agent/types.h"
 
 /*

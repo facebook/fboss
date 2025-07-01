@@ -333,8 +333,9 @@ int main(int argc, char* argv[]) {
         // the i2c info from module
         auto logicalPorts = folly::join(
             ", ", wedgeManager->getPortNames(TransceiverID(portNum - 1)));
-        printPortDetail(
-            fetchDataFromLocalI2CBus(i2cInfo, portNum), portNum, logicalPorts);
+        DOMDataUnion dataUnion;
+        fetchDataFromLocalI2CBus(i2cInfo, portNum, dataUnion);
+        printPortDetail(dataUnion, portNum, logicalPorts);
       } catch (const I2cError& ex) {
         // This generally means the QSFP module is not present.
         fprintf(stderr, "Port %d: not present: %s\n", portNum, ex.what());

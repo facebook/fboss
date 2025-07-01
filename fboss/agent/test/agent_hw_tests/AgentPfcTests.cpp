@@ -104,6 +104,46 @@ TEST_F(AgentPfcTest, verifyPfcCounters) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+class AgentPfcWatchdogGranularityTest : public AgentPfcTest {
+ public:
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {
+        ProductionFeature::PFC, ProductionFeature::PFC_WATCHDOG_GRANULARITY};
+  }
+};
+
+TEST_F(AgentPfcWatchdogGranularityTest, verifyPfcWatchdogTimerGranularity) {
+  auto portId = masterLogicalInterfacePortIds()[0];
+
+  auto setup = [&]() {};
+  auto verify = [&]() {
+    // Populate PFC and watchdog configs.
+    auto cfg = getAgentEnsemble()->getCurrentConfig();
+    utility::setupPfcBuffers(getAgentEnsemble(), cfg, {portId}, {2}, {0});
+    auto portCfg = utility::findCfgPort(cfg, portId);
+    cfg::PfcWatchdog pfcWatchdog;
+    pfcWatchdog.recoveryAction() = cfg::PfcWatchdogRecoveryAction::NO_DROP;
+    pfcWatchdog.recoveryTimeMsecs() = 1000;
+    portCfg->pfc().ensure().watchdog() = pfcWatchdog;
+
+    // Try different combinations of granularity and detection time.
+    cfg.switchSettings()->pfcWatchdogTimerGranularityMsec() = 1;
+    portCfg->pfc().ensure().watchdog().ensure().detectionTimeMsecs() = 5;
+    applyNewConfig(cfg);
+
+    cfg.switchSettings()->pfcWatchdogTimerGranularityMsec() = 10;
+    portCfg->pfc().ensure().watchdog().ensure().detectionTimeMsecs() = 150;
+    applyNewConfig(cfg);
+
+    cfg.switchSettings()->pfcWatchdogTimerGranularityMsec() = 100;
+    portCfg->pfc().ensure().watchdog().ensure().detectionTimeMsecs() = 200;
+    applyNewConfig(cfg);
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 class AgentPfcCaptureTest : public AgentPfcTest {
   std::vector<ProductionFeature> getProductionFeaturesVerified()
       const override {

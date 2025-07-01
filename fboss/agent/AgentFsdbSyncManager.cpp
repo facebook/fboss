@@ -229,4 +229,27 @@ void AgentFsdbSyncManager::switchReachabilityChanged(
   });
 }
 
+void AgentFsdbSyncManager::agentInfoChanged(
+    agent_info::AgentInfo newAgentInfo) {
+  if (!FLAGS_agent_fsdb_sync) {
+    return;
+  }
+  updateState([newAgentInfo =
+                   std::move(newAgentInfo)](const auto& agentState) mutable {
+    using agentInfoKey = fsdb_model_tags::agentInfo;
+    const auto& oldAgentInfo = agentState->template safe_cref<agentInfoKey>();
+    if (oldAgentInfo && oldAgentInfo->toThrift() == newAgentInfo) {
+      // no change
+      return agentState;
+    }
+
+    auto newAgentState = agentState->clone();
+    auto& newAgentInfoState =
+        newAgentState->template modify<agentInfoKey>(&newAgentState);
+    newAgentInfoState->fromThrift(std::move(newAgentInfo));
+
+    return newAgentState;
+  });
+}
+
 } // namespace facebook::fboss

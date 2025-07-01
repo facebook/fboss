@@ -4,7 +4,6 @@
 
 #include <folly/io/async/AsyncSSLSocket.h>
 #include <folly/io/async/SSLOptions.h>
-#include <folly/logging/xlog.h>
 #include <thrift/lib/cpp2/async/RocketClientChannel.h>
 
 #include "common/fbwhoami/FbWhoAmI.h"

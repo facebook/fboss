@@ -133,6 +133,7 @@ void SaiPortManager::changePortImpl(
     auto portSansMacsec = newPort->clone();
     portSansMacsec->setTxSak(std::nullopt);
     portSansMacsec->setRxSaksMap({});
+    removePort(oldPort);
     addPort(portSansMacsec);
   }
   programMacsec(oldPort, newPort);

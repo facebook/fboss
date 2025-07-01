@@ -44,4 +44,24 @@ sensor_service::SensorReadResponse getSensorValueThroughThrift(
   return res;
 }
 
+sensor_service::SensorReadResponse getAsicTempThroughThrift(
+    int agentTempThriftPort,
+    folly::EventBase& evb) {
+  folly::SocketAddress sockAddr("::1", agentTempThriftPort);
+  auto socket =
+      folly::AsyncSocket::newSocket(&evb, sockAddr, kSensorSendTimeoutMs);
+  auto channel =
+      apache::thrift::RocketClientChannel::newChannel(std::move(socket));
+  auto client = std::make_unique<apache::thrift::Client<
+      facebook::fboss::platform::sensor_service::SensorServiceThrift>>(
+      std::move(channel));
+  sensor_service::SensorReadResponse res;
+  try {
+    res = client->future_getSensorValuesByNames({}).get();
+  } catch (std::exception& ex) {
+    XLOG(ERR) << "Exception talking to sensor_service. " << ex.what();
+  }
+  return res;
+}
+
 } // namespace facebook::fboss::platform::fan_service

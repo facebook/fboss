@@ -13,7 +13,6 @@ add_fbthrift_cpp_library(
 
 add_executable(fw_util
   fboss/platform/fw_util/fw_util.cpp
-  fboss/platform/fw_util/Flags.cpp
   fboss/platform/fw_util/FwUtilImpl.cpp
   fboss/platform/fw_util/FwUtilVerify.cpp
   fboss/platform/fw_util/FwUtilRead.cpp
@@ -29,6 +28,7 @@ add_executable(fw_util
 
 target_link_libraries(fw_util
   Folly::folly
+  CLI11::CLI11
   platform_config_lib
   platform_name_lib
   platform_utils

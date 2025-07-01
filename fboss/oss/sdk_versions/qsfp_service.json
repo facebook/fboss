@@ -1,0 +1,36 @@
+{
+    "RepoSyncHeader": [
+        "(c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.",
+        "This file is generated. Do not modify it manually!",
+        "@codegen-source : configerator\/raw_configs\/neteng\/fboss\/coop\/inputs\/platform_to_qsfp_sdk_version",
+        "@generated SignedSource<<c7a1000ec7af36b93541a6c1c86d9df0>>"
+    ],
+    "MINIPACK": [
+        {
+            "rolloutType": "PRODUCTION",
+            "version": "millenio\/5.5"
+        }
+    ],
+    "FUJI": [
+        {
+            "rolloutType": "PRODUCTION",
+            "version": "barchetta2\/5.2"
+        }
+    ],
+    "ELBERT": [
+        {
+            "rolloutType": "PRODUCTION",
+            "version": "credo\/0.7.2"
+        },
+        {
+            "rolloutType": "RELEASE_CANDIDATE",
+            "version": "credo\/0.9.0"
+        }
+    ],
+    "YAMP": [
+        {
+            "rolloutType": "PRODUCTION",
+            "version": "credo\/0.7.2"
+        }
+    ]
+}

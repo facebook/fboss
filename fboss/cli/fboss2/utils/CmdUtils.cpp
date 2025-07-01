@@ -9,16 +9,12 @@
  */
 #include "fboss/cli/fboss2/utils/CmdUtils.h"
 #include <fboss/agent/if/gen-cpp2/ctrl_types.h>
-#include <folly/stop_watch.h>
 #include "folly/Conv.h"
 
 #include <folly/logging/LogConfig.h>
-#include <folly/logging/LoggerDB.h>
-#include <folly/logging/xlog.h>
 
 #include <re2/re2.h>
 #include <chrono>
-#include <fstream>
 #include <string>
 
 using namespace std::chrono;
@@ -454,6 +450,32 @@ getCachedSwSwitchReachabilityInfo(
         reachablePorts.end());
   }
 
+  return reachabilityMatrix;
+}
+
+std::unordered_map<std::string, std::vector<std::string>>
+getUncachedSwitchReachabilityInfo(
+    const HostInfo& hostInfo,
+    const std::vector<std::string>& switchNames) {
+  std::unordered_map<std::string, std::vector<std::string>> reachabilityMatrix;
+  auto hwAgentQueryFn =
+      [&reachabilityMatrix, &switchNames](
+          apache::thrift::Client<facebook::fboss::FbossHwCtrl>& client) {
+        std::map<std::string, std::vector<std::string>> reachability;
+        client.sync_getHwSwitchReachability(reachability, switchNames);
+        for (auto& [switchName, reachablePorts] : reachability) {
+          reachabilityMatrix[switchName].insert(
+              reachabilityMatrix[switchName].end(),
+              reachablePorts.begin(),
+              reachablePorts.end());
+        }
+      };
+
+  try {
+    utils::runOnAllHwAgents(hostInfo, hwAgentQueryFn);
+  } catch (const std::exception& e) {
+    std::cerr << e.what();
+  }
   return reachabilityMatrix;
 }
 

@@ -11,7 +11,6 @@
 
 #include "fboss/agent/state/NodeMap-defs.h"
 
-#include "fboss/agent/HwSwitchMatcher.h"
 #include "fboss/agent/state/SwitchState.h"
 
 namespace facebook::fboss {

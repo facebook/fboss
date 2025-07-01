@@ -39,6 +39,7 @@ class ControlLogic {
   }
 
   void controlFan();
+  bool getAllTemperatureData();
   void getSensorDataThrift(std::shared_ptr<SensorData> pSensorData) const {
     return pBsp_->getSensorDataThrift(pSensorData);
   }

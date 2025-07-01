@@ -220,4 +220,21 @@ TEST_F(AgentVoqSwitchInterruptTest, validateInterruptMaskedEventCallback) {
   verifyAcrossWarmBoots([]() {}, verify);
 }
 
+TEST_F(AgentVoqSwitchInterruptTest, softResetErrors) {
+  auto verify = [=, this]() {
+    std::string out;
+    runCmd("der soft nofabric=1\n");
+    runCmd("quit\n");
+    WITH_RETRIES({
+      auto asicErrors = getVoqAsicErrors();
+      for (const auto& [idx, asicError] : asicErrors) {
+        auto asicSoftResetErrors = asicError.asicSoftResetErrors().value_or(0);
+        XLOG(INFO) << " Switch index: " << idx
+                   << " Asic soft reset errors: " << asicSoftResetErrors;
+        EXPECT_EVENTUALLY_GT(asicSoftResetErrors, 0);
+      }
+    });
+  };
+  verifyAcrossWarmBoots([]() {}, verify);
+}
 } // namespace facebook::fboss

@@ -147,7 +147,7 @@ struct NameToPathVisitor<apache::thrift::type::set<ValueTag>> {
 
     KeyType<Path> key{};
     auto elem = *curr++;
-    if (auto raw = elem.raw_ref()) {
+    if (auto raw = elem.raw()) {
       auto parsed = Self::parse(std::forward<Path>(path), *raw);
       if (!parsed) {
         return NameToPathResult::INVALID_PATH;
@@ -219,7 +219,7 @@ struct NameToPathVisitor<apache::thrift::type::list<ValueTag>> {
 
     KeyType key{};
     auto elem = *curr++;
-    if (auto raw = elem.raw_ref()) {
+    if (auto raw = elem.raw()) {
       auto parsed = Self::parse(*raw);
       if (!parsed) {
         return NameToPathResult::INVALID_ARRAY_INDEX;
@@ -312,7 +312,7 @@ struct NameToPathVisitor<apache::thrift::type::map<KeyTag, MappedTag>> {
 
     KeyType<Path> key{};
     auto elem = *curr++;
-    if (auto raw = elem.raw_ref()) {
+    if (auto raw = elem.raw()) {
       auto parsed = Self::parse(std::forward<Path>(path), *raw);
       if (!parsed) {
         return NameToPathResult::INVALID_MAP_KEY;
@@ -390,7 +390,7 @@ struct NameToPathVisitor<apache::thrift::type::union_t<T>> {
     }
 
     auto elem = *curr++;
-    if (auto raw = elem.raw_ref()) {
+    if (auto raw = elem.raw()) {
       const auto& token = *raw;
       auto result = NameToPathResult::INVALID_VARIANT_MEMBER;
 
@@ -485,7 +485,7 @@ struct NameToPathVisitor<apache::thrift::type::struct_t<T>> {
     }
 
     auto elem = *curr++;
-    if (auto raw = elem.raw_ref()) {
+    if (auto raw = elem.raw()) {
       const auto& token = *raw;
       auto result = NameToPathResult::INVALID_STRUCT_MEMBER;
 

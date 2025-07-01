@@ -13,3 +13,11 @@ thrift_library(
     thrift_cpp2_options = "json",
     thrift_srcs = {"weutil_config.thrift": []},
 )
+
+thrift_library(
+    name = "eeprom_contents",
+    languages = [
+        "cpp2",
+    ],
+    thrift_srcs = {"eeprom_contents.thrift": []},
+)

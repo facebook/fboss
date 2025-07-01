@@ -3,7 +3,6 @@
 #include "fboss/agent/platforms/common/utils/BcmYamlConfig.h"
 
 #include "fboss/agent/FbossError.h"
-#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "folly/gen/String.h"
 

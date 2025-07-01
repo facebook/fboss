@@ -9,9 +9,7 @@
  */
 #include "fboss/agent/state/Interface.h"
 
-#include <thrift/lib/cpp2/protocol/Serializer.h>
 #include <optional>
-#include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/NodeBase-defs.h"
 #include "fboss/agent/state/SwitchState.h"

@@ -45,8 +45,10 @@ class AgentVoqSwitchFullScaleDsfNodesTest : public AgentVoqSwitchTest {
         remoteSysPorts->begin(),
         remoteSysPorts->end(),
         [&sysPortDescs](const auto& idAndPort) {
-          sysPortDescs.insert(
-              PortDescriptor(static_cast<SystemPortID>(idAndPort.first)));
+          if (!idAndPort.second->isStatic()) {
+            sysPortDescs.insert(
+                PortDescriptor(static_cast<SystemPortID>(idAndPort.first)));
+          }
         });
     return sysPortDescs;
   }

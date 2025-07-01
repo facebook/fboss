@@ -260,6 +260,11 @@ DEFINE_int32(
     "Percentage of ECMP resources (out of 100) allowed to use before ResourceAccountant rejects the update.");
 
 DEFINE_int32(
+    ars_resource_percentage,
+    75,
+    "Percentage of DLB ECMP resources (out of 100) allowed to use before ResourceAccountant rejects the update.");
+
+DEFINE_int32(
     switch_index_for_testing,
     0,
     "switch index under test. Used for testing NPU specific features.");
@@ -310,3 +315,8 @@ DEFINE_bool(
     "Flag to perform a DLB type update in FIB state");
 
 DEFINE_int32(agent_exit_delay_s, 0, "Delay in seconds before the agent exits");
+
+DEFINE_bool(
+    dsf_single_stage_r192_f40_e32,
+    false,
+    "Use platform mapping for DSF Single Stage with 192 RDSWs, 40 FDSWs, 32 EDSWs");

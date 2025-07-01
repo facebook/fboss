@@ -26,6 +26,7 @@ target_link_libraries(qsfp_lib
     qsfp_service_client
     fsdb_stream_client
     fsdb_pub_sub
+    fsdb_cow_state_sub_mgr
     fsdb_flags
     fsdb_syncer
     fsdb_model
@@ -197,7 +198,8 @@ target_link_libraries(transceiver_validator
 add_library(transceiver_manager STATIC
     fboss/qsfp_service/TransceiverManager.cpp
     fboss/qsfp_service/TransceiverStateMachine.cpp
-    fboss/qsfp_service/TransceiverStateMachineUpdate.cpp
+    fboss/qsfp_service/StateMachineController.cpp
+    fboss/qsfp_service/SlotThreadHelper.cpp
 )
 
 target_link_libraries(transceiver_manager

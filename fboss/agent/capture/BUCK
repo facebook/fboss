@@ -19,7 +19,6 @@ cpp_library(
         "//fboss/agent:packet_observer",
         "//fboss/agent:utils",
         "//fboss/agent/if:ctrl-cpp2-types",
-        "//folly:conv",
         "//folly:exception",
         "//folly:file",
         "//folly:file_util",

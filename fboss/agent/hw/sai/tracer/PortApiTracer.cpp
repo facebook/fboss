@@ -186,6 +186,24 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(Port, CondEntropyRehashPeriodUS)
   SAI_EXT_ATTR_MAP(Port, CondEntropyRehashSeed)
   SAI_EXT_ATTR_MAP(Port, ShelEnable)
+#if defined(SAI_VERSION_13_0_EA_ODP) || defined(SAI_VERSION_13_0_EA_DNX_ODP)
+  SAI_EXT_ATTR_MAP(PortSerdes, Dco)
+  SAI_EXT_ATTR_MAP(PortSerdes, FltM)
+  SAI_EXT_ATTR_MAP(PortSerdes, FltS)
+  SAI_EXT_ATTR_MAP(PortSerdes, RVga)
+  SAI_EXT_ATTR_MAP(PortSerdes, RxEq1)
+  SAI_EXT_ATTR_MAP(PortSerdes, RxEq2)
+  SAI_EXT_ATTR_MAP(PortSerdes, RxEq3)
+  SAI_EXT_ATTR_MAP(PortSerdes, RxEqM)
+  SAI_EXT_ATTR_MAP(PortSerdes, RxEqP1)
+  SAI_EXT_ATTR_MAP(PortSerdes, RxEqP2)
+  SAI_EXT_ATTR_MAP(PortSerdes, RxPf)
+  SAI_EXT_ATTR_MAP(PortSerdes, RxTap1)
+  SAI_EXT_ATTR_MAP(PortSerdes, RxTap2)
+  SAI_EXT_ATTR_MAP(PortSerdes, TpChn0)
+  SAI_EXT_ATTR_MAP(PortSerdes, TpChn1)
+  SAI_EXT_ATTR_MAP(PortSerdes, TpChn2)
+#endif
 }
 
 } // namespace

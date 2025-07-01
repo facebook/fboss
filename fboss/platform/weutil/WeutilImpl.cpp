@@ -9,8 +9,6 @@
 #include <folly/logging/xlog.h>
 #include <iostream>
 #include <string>
-#include <utility>
-#include <vector>
 
 namespace {
 std::string getProductionStateString(const std::string& value) {
@@ -34,11 +32,11 @@ WeutilImpl::WeutilImpl(const std::string& eepromPath, const uint16_t offset)
     : parser_(eepromPath, offset) {}
 
 std::vector<std::pair<std::string, std::string>> WeutilImpl::getContents() {
-  auto contents = parser_.getContents();
+  auto contents = parser_.getContents().getContents();
   if (!ContentValidator().isValid(contents)) {
     throw std::runtime_error("Invalid EEPROM contents");
   }
-  return parser_.getContents();
+  return contents;
 }
 
 void WeutilImpl::printInfo() {
@@ -52,9 +50,8 @@ void WeutilImpl::printInfo() {
 }
 
 void WeutilImpl::printInfoJson() {
-  auto info = getContents();
   folly::dynamic eepromObject = folly::dynamic::object;
-  for (const auto& [key, value] : parser_.getContents()) {
+  for (const auto& [key, value] : getContents()) {
     if (key == "CRC16") {
       continue;
     }

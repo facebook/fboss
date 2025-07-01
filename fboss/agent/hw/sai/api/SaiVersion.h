@@ -146,11 +146,12 @@
  * Do not enable the P4 WB SDK until a future SDK release with the fix.
  */
 
-#if defined(TAJO_SDK_VERSION_1_42_8) || defined(TAJO_SDK_VERSION_24_8_3001)
+#if defined(TAJO_SDK_VERSION_1_42_8) || defined(TAJO_SDK_VERSION_24_8_3001) || \
+    defined(TAJO_SDK_VERSION_25_5_5210)
 #define TAJO_SDK_EBRO
 #endif
 
-#if defined(TAJO_SDK_VERSION_24_8_3001)
+#if defined(TAJO_SDK_VERSION_24_8_3001) || defined(TAJO_SDK_VERSION_25_5_5210)
 #define TAJO_SDK_GTE_24_8_3001
 #endif
 

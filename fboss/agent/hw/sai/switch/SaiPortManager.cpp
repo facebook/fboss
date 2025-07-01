@@ -220,6 +220,9 @@ void fillHwPortStats(
       case SAI_PORT_STAT_WRED_DROPPED_PACKETS:
         hwPortStats.wredDroppedPackets_() = value;
         break;
+      case SAI_PORT_STAT_IN_DROPPED_PKTS:
+        hwPortStats.inCongestionDiscards_() = value;
+        break;
       case SAI_PORT_STAT_IF_IN_FEC_CORRECTABLE_FRAMES:
         if (updateFecStats) {
           // SDK provides clear-on-read counter but we store it as a monotonic
@@ -1738,6 +1741,15 @@ bool SaiPortManager::rxFrequencyRPMSupported() const {
 #endif
 }
 
+bool SaiPortManager::rxSerdesParametersSupported() const {
+#if defined(SAI_VERSION_13_0_EA_ODP) || defined(SAI_VERSION_13_0_EA_DNX_ODP)
+  return platform_->getAsic()->isSupported(
+      HwAsic::Feature::RX_SERDES_PARAMETERS);
+#else
+  return false;
+#endif
+}
+
 bool SaiPortManager::rxSNRSupported() const {
 #if defined(BRCM_SAI_SDK_GTE_10_0)
   return platform_->getAsic()->isSupported(HwAsic::Feature::RX_SNR);
@@ -1999,8 +2011,14 @@ void SaiPortManager::updateStats(
        *curPortStats.inDstNullDiscards_()}};
   if (platform_->getAsic()->isSupported(
           HwAsic::Feature::IN_PAUSE_INCREMENTS_DISCARDS)) {
-    toSubtractFromInDiscardsRaw.push_back(
-        {*prevPortStats.inPause_(), *curPortStats.inPause_()});
+    toSubtractFromInDiscardsRaw.emplace_back(
+        *prevPortStats.inPause_(), *curPortStats.inPause_());
+  }
+  for (auto& [priority, current] : *curPortStats.inPfc_()) {
+    if (current > 0) {
+      toSubtractFromInDiscardsRaw.emplace_back(
+          folly::get_default(*prevPortStats.inPfc_(), priority, 0), current);
+    }
   }
   *curPortStats.inDiscards_() += utility::subtractIncrements(
       {*prevPortStats.inDiscardsRaw_(), *curPortStats.inDiscardsRaw_()},

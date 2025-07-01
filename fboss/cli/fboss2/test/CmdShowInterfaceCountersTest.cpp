@@ -7,7 +7,6 @@
 
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
-#include "fboss/cli/fboss2/utils/CmdClientUtils.h"
 
 #include "fboss/cli/fboss2/commands/show/interface/counters/CmdShowInterfaceCounters.h"
 #include "fboss/cli/fboss2/commands/show/interface/counters/gen-cpp2/model_types.h"

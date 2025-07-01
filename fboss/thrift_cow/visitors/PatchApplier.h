@@ -399,7 +399,7 @@ struct PatchApplier<apache::thrift::type_class::variant> {
       return PatchApplyResult::INVALID_PATCH_TYPE;
     }
 
-    auto variantPatch = patch.variant_node_ref();
+    auto variantPatch = patch.variant_node();
     auto key = *variantPatch->id();
     traverser.push(key);
     traverser.traverseResult(
