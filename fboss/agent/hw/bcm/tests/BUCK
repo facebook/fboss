@@ -614,6 +614,7 @@ cpp_library(
     srcs = [
         "HwTestAclUtilsThriftHandler.cpp",
         "HwTestAqmUtilsThriftHandler.cpp",
+        "HwTestArsFlowletThriftHandler.cpp",
         "HwTestCommonUtilsThriftHandler.cpp",
         "HwTestEcmpUtilsThriftHandler.cpp",
         "HwTestFlowletUtilsThriftHandler.cpp",
@@ -650,6 +651,7 @@ cpp_library(
         "//fboss/agent/test/utils:udf_test_utils",
     ],
     exported_external_deps = [
+        "glog",
         ("broadcom-xgs-robo", None, "xgs_robo"),
     ],
 )

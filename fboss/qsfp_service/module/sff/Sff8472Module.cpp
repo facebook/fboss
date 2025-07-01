@@ -14,6 +14,9 @@
 
 #include <thrift/lib/cpp/util/EnumUtils.h>
 
+using std::lock_guard;
+using std::mutex;
+
 namespace {}
 
 namespace facebook {
@@ -488,6 +491,7 @@ void Sff8472Module::remediateFlakyTransceiver(
 
 bool Sff8472Module::tcvrPortStateSupported(
     TransceiverPortState& portState) const {
+  lock_guard<std::mutex> g(qsfpModuleMutex_);
   if (portState.transmitterTech != getQsfpTransmitterTechnology()) {
     return false;
   }

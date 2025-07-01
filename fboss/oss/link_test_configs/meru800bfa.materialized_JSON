@@ -80,7 +80,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/13/8"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -228,7 +231,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/13/4"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -376,7 +382,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/14/8"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -524,7 +533,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/14/4"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -709,7 +721,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/3/6"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -857,7 +872,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/3/2"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -1005,7 +1023,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/4/6"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -1153,7 +1174,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/4/2"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -1893,7 +1917,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/32/6"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -1930,7 +1957,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/28/6"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -2041,7 +2071,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/32/2"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -2078,7 +2111,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/28/2"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -2152,7 +2188,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/31/8"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -2226,7 +2265,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/29/6"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -2300,7 +2342,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/31/4"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -2374,7 +2419,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/29/2"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -5482,7 +5530,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/89/6"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -5630,7 +5681,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/89/2"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -5741,7 +5795,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/88/6"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -5889,7 +5946,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/88/2"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -6370,7 +6430,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/78/6"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -6518,7 +6581,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/78/2"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -6555,7 +6621,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/79/8"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -6703,7 +6772,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/79/4"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -8701,7 +8773,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/128/6"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -8849,7 +8924,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/128/2"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -9256,7 +9334,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/118/2"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -9404,7 +9485,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/118/6"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -9626,7 +9710,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/13/6"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -9774,7 +9861,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/13/2"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -9922,7 +10012,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/14/6"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -10070,7 +10163,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/14/2"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -10181,7 +10277,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/3/8"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -10329,7 +10428,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/3/4"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -10477,7 +10579,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/4/8"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -10625,7 +10730,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/4/4"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -11365,7 +11473,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/32/8"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -11402,7 +11513,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/28/8"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -11513,7 +11627,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/32/4"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -11550,7 +11667,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/28/4"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -11624,7 +11744,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/31/6"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -11698,7 +11821,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/29/8"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -11772,7 +11898,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/31/2"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -11846,7 +11975,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/29/4"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -14954,7 +15086,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/89/8"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -15102,7 +15237,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/89/4"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -15213,7 +15351,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/88/8"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -15361,7 +15502,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/88/4"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -15842,7 +15986,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/78/8"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -15990,7 +16137,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/78/4"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -16027,7 +16177,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/79/6"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -16175,7 +16328,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/79/2"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -18173,7 +18329,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/128/8"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -18321,7 +18480,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/128/4"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -18802,7 +18964,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/118/4"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -18950,7 +19115,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/118/8"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -19024,7 +19192,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/118/5"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -19172,7 +19343,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/118/1"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -19653,7 +19827,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/128/1"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -19801,7 +19978,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/128/5"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -21651,7 +21831,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/79/3"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -21799,7 +21982,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/79/7"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -22058,7 +22244,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/78/1"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -22206,7 +22395,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/78/5"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -22613,7 +22805,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/88/1"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -22761,7 +22956,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/88/5"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -22946,7 +23144,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/89/1"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -23094,7 +23295,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/89/5"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -26128,7 +26332,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/31/3"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -26202,7 +26409,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/29/1"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -26276,7 +26486,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/31/7"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -26350,7 +26563,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/29/5"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -26461,7 +26677,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/32/1"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -26498,7 +26717,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/28/1"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -26609,7 +26831,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/32/5"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -26646,7 +26871,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/28/5"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -27349,7 +27577,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/4/1"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -27497,7 +27728,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/4/5"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -27645,7 +27879,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/3/1"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -27793,7 +28030,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/3/5"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -27904,7 +28144,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/14/3"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -28052,7 +28295,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/14/7"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -28200,7 +28446,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/13/3"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -28348,7 +28597,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/13/7"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -28570,7 +28822,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/118/7"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -28718,7 +28973,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/118/3"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -29125,7 +29383,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/128/3"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -29273,7 +29534,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/128/7"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -31123,7 +31387,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/79/1"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -31271,7 +31538,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/79/5"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -31530,7 +31800,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/78/3"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -31678,7 +31951,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/78/7"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -32085,7 +32361,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/88/3"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -32233,7 +32512,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/88/7"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -32418,7 +32700,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/89/3"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -32566,7 +32851,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/89/7"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -35600,7 +35888,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/31/1"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -35674,7 +35965,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/29/3"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -35748,7 +36042,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/31/5"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -35822,7 +36119,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/29/7"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -35933,7 +36233,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/32/3"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -35970,7 +36273,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/28/3"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -36081,7 +36387,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/32/7"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -36118,7 +36427,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/28/7"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -36821,7 +37133,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/4/3"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -36969,7 +37284,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/4/7"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -37117,7 +37435,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/3/3"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -37265,7 +37586,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/3/7"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -37450,7 +37774,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/14/1"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -37598,7 +37925,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/14/5"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -37746,7 +38076,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/13/1"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -37894,7 +38227,10 @@
         "profileID": 42,
         "portType": 1,
         "expectedNeighborReachability": [
-          
+          {
+            "remoteSystem": "fabricNode0",
+            "remotePort": "fab1/13/5"
+          }
         ],
         "drainState": 0,
         "scope": 0,
@@ -38057,7 +38393,7 @@
           "scheduling": 1000
       },
       "2": {
-          "name": "fabricNode2",
+          "name": "fabricNode0",
           "switchId": 2,
           "type": 1,
           "loopbackIps": [

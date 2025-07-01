@@ -138,6 +138,7 @@ void HwTransceiverUtils::verifyPortNameToLaneMap(
             break;
           case cfg::PortProfileID::PROFILE_106POINT25G_1_PAM4_RS544_OPTICAL:
           case cfg::PortProfileID::PROFILE_100G_1_PAM4_RS544_OPTICAL:
+          case cfg::PortProfileID::PROFILE_200G_1_PAM4_RS544X2N_OPTICAL:
             expectedMediaLanes = {*hostLaneMap[portName].begin()};
             break;
           case cfg::PortProfileID::PROFILE_800G_8_PAM4_RS544X2N_OPTICAL:

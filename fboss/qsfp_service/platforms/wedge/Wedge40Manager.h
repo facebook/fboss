@@ -8,16 +8,17 @@
  *
  */
 #pragma once
-
 #include "fboss/lib/usb/WedgeI2CBus.h"
-
 #include "fboss/qsfp_service/platforms/wedge/WedgeManager.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 class Wedge40Manager : public WedgeManager {
  public:
-  explicit Wedge40Manager(const std::string& platformMappingStr);
+  explicit Wedge40Manager(
+      const std::shared_ptr<const PlatformMapping> platformMapping,
+      const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
+          threads);
   ~Wedge40Manager() override {}
 
  private:
@@ -25,5 +26,4 @@ class Wedge40Manager : public WedgeManager {
   Wedge40Manager(Wedge40Manager const&) = delete;
   Wedge40Manager& operator=(Wedge40Manager const&) = delete;
 };
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

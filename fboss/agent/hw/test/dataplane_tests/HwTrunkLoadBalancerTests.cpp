@@ -24,8 +24,6 @@
 
 #include "fboss/agent/state/SwitchState.h"
 
-#include <folly/Optional.h>
-
 #include <boost/container/flat_set.hpp>
 
 #include <vector>

@@ -14,7 +14,6 @@
 
 #include "fboss/agent/hw/HwSwitchWarmBootHelper.h"
 #include "fboss/agent/hw/sai/api/ArsApi.h"
-#include "fboss/agent/hw/sai/api/ArsProfileApi.h"
 #include "fboss/agent/hw/sai/api/MplsApi.h"
 #include "fboss/agent/hw/sai/api/SystemPortApi.h"
 #include "fboss/agent/hw/sai/api/TamApi.h"

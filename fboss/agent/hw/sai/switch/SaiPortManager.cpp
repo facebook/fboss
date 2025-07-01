@@ -220,6 +220,9 @@ void fillHwPortStats(
       case SAI_PORT_STAT_WRED_DROPPED_PACKETS:
         hwPortStats.wredDroppedPackets_() = value;
         break;
+      case SAI_PORT_STAT_IN_DROPPED_PKTS:
+        hwPortStats.inCongestionDiscards_() = value;
+        break;
       case SAI_PORT_STAT_IF_IN_FEC_CORRECTABLE_FRAMES:
         if (updateFecStats) {
           // SDK provides clear-on-read counter but we store it as a monotonic

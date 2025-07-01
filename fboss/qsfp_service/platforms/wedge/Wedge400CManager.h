@@ -5,12 +5,14 @@
 #include "fboss/lib/fpga/Wedge400I2CBus.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeManager.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class Wedge400CManager : public WedgeManager {
  public:
-  explicit Wedge400CManager(const std::string& platformMappingStr);
+  explicit Wedge400CManager(
+      const std::shared_ptr<const PlatformMapping> platformMapping,
+      const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
+          threads);
   ~Wedge400CManager() override {}
   int getNumQsfpModules() const override {
     return 48;
@@ -21,12 +23,8 @@ class Wedge400CManager : public WedgeManager {
   Wedge400CManager(Wedge400CManager const&) = delete;
   Wedge400CManager& operator=(Wedge400CManager const&) = delete;
 
-  std::unique_ptr<PlatformMapping> createWedge400CPlatformMapping(
-      const std::string& platformMappingStr);
-
  protected:
   std::unique_ptr<TransceiverI2CApi> getI2CBus() override;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

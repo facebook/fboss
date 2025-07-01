@@ -153,6 +153,11 @@ class HwTestThriftHandler : public AgentHwTestCtrlSvIf {
       std::unique_ptr<::facebook::fboss::state::TeFlowEntryFields>
           flowEntryFields) override;
 
+  bool verifyEcmpForFlowletSwitchingHandler(
+      std::unique_ptr<CIDRNetwork> ip,
+      std::unique_ptr<::facebook::fboss::state::SwitchSettingsFields> settings,
+      bool flowletEnable) override;
+
  private:
   HwSwitch* hwSwitch_;
 };

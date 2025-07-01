@@ -21,7 +21,7 @@ This document describes the steps involved in onboarding a new platform to FBOSS
 
    **Work Items:**
 
-   - [ ] Add Platform Manager Support - [Link](https://facebook.github.io/fboss/docs/platform/platform_manager/)
+   - [ ] [Add Platform Manager Support](https://facebook.github.io/fboss/docs/platform/platform_manager/)
 
    **Outcomes:**
 
@@ -36,9 +36,9 @@ This document describes the steps involved in onboarding a new platform to FBOSS
 
    **Work Items:**
 
-   - [ ] Add Platform Mapping Config - [Link](https://facebook.github.io/fboss/docs/developing/platform_mapping/)
-   - [ ] Add BSP Mapping Config - [Link](https://facebook.github.io/fboss/docs/developing/bsp_mapping/)
-   - [ ] Add All Platform Support Code in Agent and Qsfp Service – [Link](https://facebook.github.io/fboss/docs/developing/new_platform_support/)
+   - [ ] [Add Platform Mapping Config](https://facebook.github.io/fboss/docs/developing/platform_mapping/)
+   - [ ] [Add BSP Mapping Config](https://facebook.github.io/fboss/docs/developing/bsp_mapping/)
+   - [ ] [Add All Platform Support Code in Agent and Qsfp Service](https://facebook.github.io/fboss/docs/developing/new_platform_support/)
    - [ ] Onboard NPU [Optional depending on new platform needs]
 
    **Outcomes:**
@@ -53,8 +53,8 @@ This document describes the steps involved in onboarding a new platform to FBOSS
 
    **Work Items:**
 
-   - [ ] Build FBOSS agent test binary - [Link](https://facebook.github.io/fboss/docs/build/building_fboss_on_docker_containers/)
-   - [ ] Generate Agent HW Test Config - [Link](https://facebook.github.io/fboss/docs/build/packaging_and_running_fboss_hw_tests_on_switch/)
+   - [ ] [Build FBOSS agent test binary](https://facebook.github.io/fboss/docs/build/building_fboss_on_docker_containers/)
+   - [ ] [Generate Agent HW Test Config](https://facebook.github.io/fboss/docs/build/packaging_and_running_fboss_hw_tests_on_switch/)
 
    **Outcomes:**
 
@@ -64,8 +64,8 @@ This document describes the steps involved in onboarding a new platform to FBOSS
 
    **Work Items:**
 
-   - [ ] Build a QSFP/Link test setup with 100% port coverage
-   - [ ] Generate QSFP Test Config
+   - [ ] [Build a QSFP/Link test setup with 100% port coverage](https://facebook.github.io/fboss/docs/testing/qsfp_and_link_test_topology/)
+   - [ ] [Generate QSFP Test Config](https://facebook.github.io/fboss/docs/developing/qsfp_test_config/)
 
    **Outcomes:**
 
@@ -75,7 +75,7 @@ This document describes the steps involved in onboarding a new platform to FBOSS
 
    **Work Items:**
 
-   - [ ] Generate Link Test Config
+   - [ ] Generate Link Test Config - (Currently Meta will provide a link test config)
 
    **Outcomes:**
 
@@ -85,7 +85,7 @@ This document describes the steps involved in onboarding a new platform to FBOSS
 
    **Work Items:**
 
-   - [ ] Build a Ping test setup
+   - [ ] [Build a Ping test setup](https://facebook.github.io/fboss/docs/testing/ping_test/)
 
    **Outcomes:**
 

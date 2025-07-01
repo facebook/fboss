@@ -1695,9 +1695,19 @@ void BcmPort::updateFdrStats(__attribute__((unused)) std::chrono::seconds now) {
   increments[6] = fdr_stats.cw_s6_errs * pages;
   increments[7] = fdr_stats.cw_s7_errs * pages;
 
-  for (int i = 0; i < kCodewordErrorsPageSize; ++i) {
-    fdrStats_[i].incrementValue(now, increments[i]);
-    codewordStats_[i] += increments[i];
+  int startBin;
+  if (hw_->getPlatform()->getAsic()->getAsicType() ==
+          cfg::AsicType::ASIC_TYPE_TOMAHAWK4 &&
+      codewordErrorsPage_ > 0) {
+    // When collecting FEC stats on the higher page, BCM reports counters in
+    // s0-s7 whereas they actually apply to s8-s15
+    startBin = 8;
+  } else {
+    startBin = 0;
+  }
+  for (int i = startBin; i < startBin + kCodewordErrorsPageSize; ++i) {
+    fdrStats_[i].incrementValue(now, increments[i - startBin]);
+    codewordStats_[i] += increments[i - startBin];
   }
 
   if (pages > 1) {

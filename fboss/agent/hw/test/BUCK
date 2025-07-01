@@ -456,7 +456,6 @@ cpp_library(
         "//folly:file_util",
         "//folly:format",
         "//folly:network_address",
-        "//folly:optional",
         "//folly:range",
         "//folly:singleton",
         "//folly:string",
@@ -769,6 +768,12 @@ cpp_library(
 cpp_library(
     name = "hw_test_aqm_utils_headers",
     headers = ["dataplane_tests/HwTestAqmUtils.h"],
+    exported_deps = [
+        ":config_factory",
+        "//fboss/agent:fboss-types",
+        "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent/hw/switch_asics:switch_asics",
+    ],
 )
 
 cpp_library(

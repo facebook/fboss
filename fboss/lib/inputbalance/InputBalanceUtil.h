@@ -58,6 +58,10 @@ getNeighborFabricPortsToSelf(
 std::unordered_map<int, std::vector<std::string>> groupFabricDevicesByCluster(
     const std::unordered_map<std::string, cfg::DsfNode>& nameToDsfNode);
 
+std::vector<std::string> getInterfaceDevicesInCluster(
+    const std::unordered_map<std::string, cfg::DsfNode>& nameToDsfNode,
+    int clusterID);
+
 std::map<std::string, std::string> getPortToNeighbor(
     const std::shared_ptr<MultiSwitchPortMap>& portMap);
 

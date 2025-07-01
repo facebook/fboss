@@ -60,7 +60,7 @@ BaseSubscription::BaseSubscription(
       heartbeatEvb_(heartbeatEvb),
       heartbeatInterval_(heartbeatInterval) {
   if (heartbeatEvb_) {
-    backgroundScope_.add(heartbeatLoop().scheduleOn(heartbeatEvb_));
+    backgroundScope_.add(co_withExecutor(heartbeatEvb_, heartbeatLoop()));
   }
 }
 

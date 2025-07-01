@@ -91,7 +91,7 @@ command as mentioned above.
 ## Building FBOSS Binaries
 
 Instructions for building FBOSS binaries may have slight differences based on
-which SDK you are linking against (more specifically
+which SDK you are linking against.
 
 ### Building Fake SAI binaries
 
