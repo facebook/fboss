@@ -84,6 +84,8 @@ inline std::string subscriptionStateToString(SubscriptionState state) {
 using SubscriptionStateChangeCb = std::function<
     void(SubscriptionState, SubscriptionState, std::optional<bool>)>;
 
+using FsdbStreamHeartbeatCb = std::function<void(std::optional<OperMetadata>)>;
+
 struct SubscriptionOptions {
   SubscriptionOptions() = default;
   explicit SubscriptionOptions(
@@ -150,7 +152,8 @@ class FsdbSubscriber : public FsdbSubscriberBase {
       std::optional<SubscriptionStateChangeCb> streamStateChangeCb =
           std::nullopt,
       std::optional<FsdbStreamStateChangeCb> connectionStateChangeCb =
-          std::nullopt)
+          std::nullopt,
+      std::optional<FsdbStreamHeartbeatCb> heartbeatCb = std::nullopt)
       : FsdbSubscriber(
             std::move(SubscriptionOptions(clientId, subscribeStats)),
             subscribePaths,
@@ -158,7 +161,8 @@ class FsdbSubscriber : public FsdbSubscriberBase {
             connRetryEvb,
             operSubUnitUpdate,
             streamStateChangeCb,
-            connectionStateChangeCb) {}
+            connectionStateChangeCb,
+            heartbeatCb) {}
 
   FsdbSubscriber(
       SubscriptionOptions&& options,
@@ -168,7 +172,8 @@ class FsdbSubscriber : public FsdbSubscriberBase {
       FsdbSubUnitUpdateCb operSubUnitUpdate,
       std::optional<SubscriptionStateChangeCb> stateChangeCb = std::nullopt,
       std::optional<FsdbStreamStateChangeCb> connectionStateChangeCb =
-          std::nullopt)
+          std::nullopt,
+      std::optional<FsdbStreamHeartbeatCb> heartbeatCb = std::nullopt)
       : FsdbSubscriberBase(
             options.clientId_,
             streamEvb,
@@ -199,6 +204,7 @@ class FsdbSubscriber : public FsdbSubscriberBase {
                 : SubscriptionState::DISCONNECTED),
         connectionStateChangeCb_(connectionStateChangeCb),
         subscriptionStateChangeCb_(stateChangeCb),
+        heartbeatCb_(heartbeatCb),
         staleStateTimer_(folly::AsyncTimeout::make(
             *streamEvb,
             [this]() noexcept { staleStateTimeoutExpired(); })) {
@@ -333,6 +339,24 @@ class FsdbSubscriber : public FsdbSubscriberBase {
   FsdbSubUnitUpdateCb operSubUnitUpdate_;
 
  protected:
+  void onChunkReceived(bool isHeartbeat, std::optional<OperMetadata> md) {
+    if (md.has_value()) {
+      lastMetadata_ = md;
+    }
+    if (isHeartbeat) {
+      if (heartbeatCb_.has_value()) {
+        try {
+          heartbeatCb_.value()(md);
+        } catch (const std::exception& ex) {
+          FsdbException e;
+          e.message() = folly::exceptionStr(ex);
+          e.errorCode() = FsdbErrorCode::SUBSCRIPTION_DATA_CALLBACK_ERROR;
+          throw e;
+        }
+      }
+    }
+  }
+
   const std::string subscribeLatencyMetric_;
   const std::string clientPubsubLatencyMetric_;
 
@@ -342,7 +366,9 @@ class FsdbSubscriber : public FsdbSubscriberBase {
   folly::Synchronized<SubscriptionState> subscriptionState_;
   std::optional<FsdbStreamStateChangeCb> connectionStateChangeCb_;
   std::optional<SubscriptionStateChangeCb> subscriptionStateChangeCb_;
+  std::optional<FsdbStreamHeartbeatCb> heartbeatCb_;
   std::unique_ptr<folly::AsyncTimeout> staleStateTimer_;
+  std::optional<OperMetadata> lastMetadata_;
   fb303::TimeseriesWrapper grDisconnectEvents_{
       getCounterPrefix() + ".disconnectGRHold",
       fb303::SUM,

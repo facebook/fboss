@@ -315,26 +315,32 @@ std::string FsdbPubSubManager::addStatDeltaSubscription(
     const Path& subscribePath,
     SubscriptionStateChangeCb stateChangeCb,
     FsdbDeltaSubscriber::FsdbOperDeltaUpdateCb operDeltaCb,
-    utils::ConnectionOptions&& connectionOptions) {
+    utils::ConnectionOptions&& connectionOptions,
+    std::optional<FsdbStreamHeartbeatCb> hearbeatCb) {
   return addSubscriptionImpl<FsdbDeltaSubscriber>(
       subscribePath,
       stateChangeCb,
       operDeltaCb,
       true /*subscribeStat*/,
-      std::move(connectionOptions));
+      std::move(connectionOptions),
+      std::nullopt,
+      hearbeatCb);
 }
 
 std::string FsdbPubSubManager::addStatPathSubscription(
     const Path& subscribePath,
     SubscriptionStateChangeCb stateChangeCb,
     FsdbStateSubscriber::FsdbOperStateUpdateCb operStateCb,
-    utils::ConnectionOptions&& connectionOptions) {
+    utils::ConnectionOptions&& connectionOptions,
+    std::optional<FsdbStreamHeartbeatCb> hearbeatCb) {
   return addSubscriptionImpl<FsdbStateSubscriber>(
       subscribePath,
       stateChangeCb,
       operStateCb,
       true /*subscribeStat*/,
-      std::move(connectionOptions));
+      std::move(connectionOptions),
+      std::nullopt,
+      hearbeatCb);
 }
 /* multi path subscriptions */
 std::string FsdbPubSubManager::addStateDeltaSubscription(
@@ -380,39 +386,48 @@ std::string FsdbPubSubManager::addStateDeltaSubscription(
     const Path& subscribePath,
     SubscriptionStateChangeCb stateChangeCb,
     FsdbDeltaSubscriber::FsdbOperDeltaUpdateCb operDeltaCb,
-    utils::ConnectionOptions&& connectionOptions) {
+    utils::ConnectionOptions&& connectionOptions,
+    std::optional<FsdbStreamHeartbeatCb> heartbeatCb) {
   return addSubscriptionImpl<FsdbDeltaSubscriber>(
       subscribePath,
       stateChangeCb,
       operDeltaCb,
       false /*subscribeStat*/,
-      std::move(connectionOptions));
+      std::move(connectionOptions),
+      std::nullopt,
+      heartbeatCb);
 }
 
 std::string FsdbPubSubManager::addStatePatchSubscription(
     const PatchPath& subscribePath,
     SubscriptionStateChangeCb stateChangeCb,
     FsdbPatchSubscriber::FsdbOperPatchUpdateCb patchCb,
-    utils::ConnectionOptions&& connectionOptions) {
+    utils::ConnectionOptions&& connectionOptions,
+    std::optional<FsdbStreamHeartbeatCb> hearbeatCb) {
   return addSubscriptionImpl<FsdbPatchSubscriber>(
       subscribePath,
       stateChangeCb,
       patchCb,
       false /*subscribeStat*/,
-      std::move(connectionOptions));
+      std::move(connectionOptions),
+      std::nullopt,
+      hearbeatCb);
 }
 
 std::string FsdbPubSubManager::addStatePathSubscription(
     const Path& subscribePath,
     SubscriptionStateChangeCb stateChangeCb,
     FsdbStateSubscriber::FsdbOperStateUpdateCb operStateCb,
-    utils::ConnectionOptions&& connectionOptions) {
+    utils::ConnectionOptions&& connectionOptions,
+    std::optional<FsdbStreamHeartbeatCb> hearbeatCb) {
   return addSubscriptionImpl<FsdbStateSubscriber>(
       subscribePath,
       stateChangeCb,
       operStateCb,
       false /*subscribeStat*/,
-      std::move(connectionOptions));
+      std::move(connectionOptions),
+      std::nullopt,
+      hearbeatCb);
 }
 
 std::string FsdbPubSubManager::addStatePathSubscription(
@@ -427,7 +442,8 @@ std::string FsdbPubSubManager::addStatePathSubscription(
       operStateCb,
       false /*subscribeStat*/,
       std::move(connectionOptions),
-      clientIdSuffix);
+      clientIdSuffix,
+      std::nullopt);
 }
 
 std::string FsdbPubSubManager::addStatePathSubscription(
@@ -435,13 +451,15 @@ std::string FsdbPubSubManager::addStatePathSubscription(
     const Path& subscribePath,
     SubscriptionStateChangeCb stateChangeCb,
     FsdbStateSubscriber::FsdbOperStateUpdateCb operStateCb,
-    utils::ConnectionOptions&& connectionOptions) {
+    utils::ConnectionOptions&& connectionOptions,
+    std::optional<FsdbStreamHeartbeatCb> hearbeatCb) {
   return addSubscriptionImpl<FsdbStateSubscriber>(
       std::move(subscriptionOptions),
       subscribePath,
       stateChangeCb,
       operStateCb,
-      std::move(connectionOptions));
+      std::move(connectionOptions),
+      hearbeatCb);
 }
 
 std::string FsdbPubSubManager::addStatePathSubscription(
@@ -449,13 +467,15 @@ std::string FsdbPubSubManager::addStatePathSubscription(
     const MultiPath& subscribePaths,
     SubscriptionStateChangeCb stateChangeCb,
     FsdbExtStateSubscriber::FsdbOperStateUpdateCb operStateCb,
-    utils::ConnectionOptions&& connectionOptions) {
+    utils::ConnectionOptions&& connectionOptions,
+    std::optional<FsdbStreamHeartbeatCb> hearbeatCb) {
   return addSubscriptionImpl<FsdbExtStateSubscriber>(
       std::move(subscriptionOptions),
       PathHelpers::toExtendedOperPath(subscribePaths),
       stateChangeCb,
       operStateCb,
-      std::move(connectionOptions));
+      std::move(connectionOptions),
+      hearbeatCb);
 }
 
 std::string FsdbPubSubManager::addStateExtPathSubscription(
@@ -517,7 +537,8 @@ std::string FsdbPubSubManager::addSubscriptionImpl(
     typename SubscriberT::FsdbSubUnitUpdateCb subUnitAvailableCb,
     bool subscribeStats,
     utils::ConnectionOptions&& connectionOptions,
-    const std::optional<std::string>& clientIdSuffix) {
+    const std::optional<std::string>& clientIdSuffix,
+    const std::optional<FsdbStreamHeartbeatCb>& heartbeatCb) {
   auto subscribeType = SubscriberT::subscriptionType();
   XCHECK(subscribeType != SubscriptionType::UNKNOWN) << "Unknown data type";
   auto subsStr = toSubscriptionStr(
@@ -543,7 +564,9 @@ std::string FsdbPubSubManager::addSubscriptionImpl(
           reconnectEvb_,
           subUnitAvailableCb,
           subscribeStats,
-          stateChangeCb)));
+          stateChangeCb,
+          std::nullopt,
+          heartbeatCb)));
   if (!inserted) {
     throw std::runtime_error(
         "Subscription at : " + subsStr + " already exists");
@@ -561,7 +584,8 @@ std::string FsdbPubSubManager::addSubscriptionImpl(
     typename SubscriberT::FsdbSubUnitUpdateCb subUnitAvailableCb,
     bool subscribeStats,
     utils::ConnectionOptions&& connectionOptions,
-    const std::optional<std::string>& clientIdSuffix) {
+    const std::optional<std::string>& clientIdSuffix,
+    const std::optional<FsdbStreamHeartbeatCb>& heartbeatCb) {
   auto subscriptionType = SubscriberT::subscriptionType();
   XCHECK(subscriptionType != SubscriptionType::UNKNOWN) << "Unknown data type";
   auto subsStr = toSubscriptionStr(
@@ -587,7 +611,9 @@ std::string FsdbPubSubManager::addSubscriptionImpl(
           reconnectEvb_,
           subUnitAvailableCb,
           subscribeStats,
-          stateChangeCb)));
+          stateChangeCb,
+          std::nullopt,
+          heartbeatCb)));
   if (!inserted) {
     throw std::runtime_error(
         "Subscription at : " + subsStr + " already exists");
@@ -604,7 +630,8 @@ std::string FsdbPubSubManager::addSubscriptionImpl(
     const std::vector<PathElement>& subscribePath,
     SubscriptionStateChangeCb stateChangeCb,
     typename SubscriberT::FsdbSubUnitUpdateCb subUnitAvailableCb,
-    utils::ConnectionOptions&& connectionOptions) {
+    utils::ConnectionOptions&& connectionOptions,
+    const std::optional<FsdbStreamHeartbeatCb>& hearbeatCb) {
   auto subscriptionType = SubscriberT::subscriptionType();
   XCHECK(subscriptionType != SubscriptionType::UNKNOWN) << "Unknown data type";
   auto subsStr = toSubscriptionStr(
@@ -625,7 +652,9 @@ std::string FsdbPubSubManager::addSubscriptionImpl(
           subscriberEvb_,
           reconnectEvb_,
           subUnitAvailableCb,
-          stateChangeCb)));
+          stateChangeCb,
+          std::nullopt,
+          hearbeatCb)));
   if (!inserted) {
     throw std::runtime_error(
         "Subscription at : " + subsStr + " already exists");
