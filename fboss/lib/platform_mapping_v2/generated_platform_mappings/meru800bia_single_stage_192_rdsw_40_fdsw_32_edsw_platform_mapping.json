@@ -2871,7 +2871,7 @@
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 12,
+          "attachedCorePortIndex": 2,
           "virtualDeviceId": 0,
           "scope": 1
         },
@@ -11593,7 +11593,7 @@
           ],
           "portType": 0,
           "attachedCoreId": 2,
-          "attachedCorePortIndex": 12,
+          "attachedCorePortIndex": 10,
           "virtualDeviceId": 0,
           "scope": 1
         },
