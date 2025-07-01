@@ -9,6 +9,12 @@ We use the netcastle tool to reserve a switch for development. You can reserve a
 switch by going to the
 [netcastle UI](https://www.internalfb.com/intern/network/netcastle/).
 
+
+# To SSH to the switch:
+```bash
+sush2 --reason 'Development and testing' $TESTSWITCH
+```
+
 ## FBOSS stack
 
 Devices in the fboss.autotest pool are reserved for on diff testing. You can
@@ -25,6 +31,54 @@ stack.
 
 You can also distinguish these device types by the device attribute,
 "running_fboss_stack."
+
+# Check Wedge Agent Status
+
+These commands should not prompt for a password. If you see a password prompt, consult someone from the FBOSS team.
+
+Log into your devserver, then SSH into the switch:
+```bash
+sush2 --reason 'Development access' $TESTSWITCH
+```
+
+From the switch, you can run commands such as:
+```bash
+
+# Display information about FBOSS wedge agent
+systemctl status wedge_agent
+
+# Note "SDK Version" e.g. 6.5.16
+
+cat /proc/linux-user-bde
+
+fboss agent version
+```
+
+# Using Configerator
+
+Log into your devserver.
+
+Clone configerator:
+```bash
+fbclone configerator
+cd configerator/
+```
+
+Build the project:
+```bash
+arc build
+```
+
+Deploy the built binary to a single targeted switch:
+```bash
+arc canary $TESTSWITCH
+```
+
+If you see the following error message, you need to navigate into the `configerator` repository to be able to use the `canary` command.
+```
+Usage Exception: Unknown command 'canary'. Try 'arc help'.
+```
+
 
 # Devserver vs on demand
 
@@ -67,4 +121,3 @@ This file shows us which SDK is supported on each ASIC: fbcode/fboss/build/sdk.b
 ```
 fboss-dev-helper --notify dev fboss_hw_agent-brcm-10.2.0.0_odp $testSwitch
 ```
-
