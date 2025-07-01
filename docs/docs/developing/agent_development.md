@@ -24,7 +24,7 @@ This document describes the steps involved in onboarding a new NPU to the FBOSS 
     1. Please refer to [FBOSS build documentation](https://facebook.github.io/fboss/docs/build/building_fboss_on_docker_containers/) on how to build SAI test and FBOSS wedge agent and HW test binary. `build-helper.py` will build all three binaries. [FBOSS Wiki](https://facebook.github.io/fboss/docs/build/building_fboss_on_docker_containers/).
 
 5. **Configuration Files Used in SAI Test HW Test**
-    1. OSS HW agent test used in the next section could be found under this folder `fboss/oss/hw_test_configs`.
+    1. OSS HW agent test configurations files used in the next section could be found under this folder `fboss/oss/hw_test_configs`. The file in general could split to two parts, FBOSS agent config and Broadcom ASIC bring up config. The FBOSS agent config is in JSON format. Broadcom ASIC bring up config is in yaml format and embeded as plain text in "platform" dicnationary in FBOSS agent JSON config. [example empty agent config with TH5 yaml ASIC config](https://github.com/facebook/fboss/blob/main/fboss/oss/hw_test_configs/montblanc.agent.materialized_JSON). This [python script](https://github.com/facebook/fboss/blob/main/fboss/lib/platform_mapping_v2/generate_agent_config_from_asic_config.py) could embed asic config to FBOSS agent config file.
     2. `fruid.json` determines the switch and type, and the example `fruid.json` files can be found [here](https://github.com/facebook/fboss/blob/main/fbcode/fboss/oss/scripts/run_configs/). Model name is stored in this file, please read step 5 for more details.
 
 6. **Basic SAI Test**
