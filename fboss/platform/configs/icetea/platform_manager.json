@@ -1,6 +1,6 @@
 {
   "platformName": "ICETEA",
-  "rootPmUnitName": "ICETEA",
+  "rootPmUnitName": "ICETEA_MCB",
   "rootSlotType": "MCB_SLOT",
   "slotTypeConfigs": {
     "MCB_SLOT": {
@@ -10,7 +10,7 @@
         "address": "0x53",
         "kernelDeviceName": "24c02"
       },
-      "pmUnitName": "ICETEA"
+      "pmUnitName": "ICETEA_MCB"
     },
     "RUNBMC_SLOT": {
       "numOutgoingI2cBuses": 1,
@@ -117,7 +117,7 @@
     ]
   },
   "pmUnitConfigs": {
-    "ICETEA": {
+    "ICETEA_MCB": {
       "pluggedInSlotType": "MCB_SLOT",
       "embeddedSensorConfigs": [
         {
@@ -1567,7 +1567,7 @@
         {
           "busName": "MCB_IOB_I2C_MASTER_3",
           "address": "0x35",
-          "kernelDeviceName": "icetray_scmcpld",
+          "kernelDeviceName": "icetea_scmcpld",
           "pmUnitScopedName": "SCM_CPLD"
         },
         {
@@ -1603,14 +1603,14 @@
         {
           "busName": "MCB_IOB_I2C_MASTER_14",
           "address": "0x33",
-          "kernelDeviceName": "icetray_fancpld",
+          "kernelDeviceName": "icetea_fancpld",
           "pmUnitScopedName": "MCB_FAN_CPLD",
           "isWatchdog": true
         },
         {
           "busName": "MCB_IOB_I2C_MASTER_14",
           "address": "0x60",
-          "kernelDeviceName": "icetray_mcbcpld",
+          "kernelDeviceName": "icetea_mcbcpld",
           "pmUnitScopedName": "MCB_CPLD"
         },
         {
@@ -1840,7 +1840,7 @@
         {
           "busName": "INCOMING@0",
           "address": "0x33",
-          "kernelDeviceName": "icetray_piccpld",
+          "kernelDeviceName": "icetea_piccpld",
           "pmUnitScopedName": "PIC_CPLD"
         },
         {
@@ -1982,7 +1982,7 @@
         {
           "busName": "INCOMING@2",
           "address": "0x33",
-          "kernelDeviceName": "icetray_smbcpld",
+          "kernelDeviceName": "icetea_smbcpld",
           "pmUnitScopedName": "SMB_CPLD"
         },
         {

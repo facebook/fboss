@@ -2,7 +2,7 @@
   "pmUnitSensorsList": [
     {
       "slotPath": "/",
-      "pmUnitName": "ICETEA",
+      "pmUnitName": "ICETEA_MCB",
       "sensors": [
         {
           "name": "CPU_UNCORE_TEMP",
