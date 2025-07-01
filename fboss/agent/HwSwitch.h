@@ -260,11 +260,7 @@ class HwSwitch {
   virtual HwSwitchPipelineStats getSwitchPipelineStats() const = 0;
   virtual HwResourceStats getResourceStats() const = 0;
   virtual std::map<int, cfg::PortState> getSysPortShelState() const = 0;
-
-  // TODO delete this after ECMP resource manager rolled out to backend
-  virtual cfg::SwitchingMode getFwdSwitchingMode(const RouteNextHopEntry&) {
-    throw FbossError("getFwdSwitchingMode not supported on SAI");
-  }
+  virtual cfg::SwitchingMode getFwdSwitchingMode(const RouteNextHopEntry&) = 0;
 
   /*
    * Get latest device watermark bytes

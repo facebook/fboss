@@ -102,14 +102,6 @@ bool ResourceAccountant::checkEcmpResource(bool intermediateState) const {
   uint32_t resourcePercentage =
       intermediateState ? kHundredPercentage : FLAGS_ecmp_resource_percentage;
 
-  // No need to check for DLB resources unless checkDlbResource_=True
-  if (FLAGS_dlbResourceCheckEnable && FLAGS_flowletSwitchingEnable &&
-      checkDlbResource_) {
-    if (!checkDlbResource(resourcePercentage)) {
-      return false;
-    }
-  }
-
   for (const auto& [_, hwAsic] : asicTable_->getHwAsics()) {
     const auto ecmpGroupLimit = hwAsic->getMaxEcmpGroups();
     const auto ecmpMemberLimit = hwAsic->getMaxEcmpMembers();
@@ -126,20 +118,26 @@ bool ResourceAccountant::checkEcmpResource(bool intermediateState) const {
   return true;
 }
 
-bool ResourceAccountant::checkDlbResource(uint32_t resourcePercentage) const {
-  for (const auto& [_, hwAsic] : asicTable_->getHwAsics()) {
-    const auto dlbGroupLimit = hwAsic->getMaxDlbEcmpGroups();
-    if (dlbGroupLimit.has_value() &&
-        ecmpGroupRefMap_.size() >
-            (dlbGroupLimit.value() * resourcePercentage) / kHundredPercentage) {
-      return false;
+bool ResourceAccountant::checkArsResource(bool intermediateState) const {
+  if (FLAGS_dlbResourceCheckEnable && FLAGS_flowletSwitchingEnable) {
+    uint32_t resourcePercentage =
+        intermediateState ? kHundredPercentage : FLAGS_ars_resource_percentage;
+
+    for (const auto& [_, hwAsic] : asicTable_->getHwAsics()) {
+      const auto arsGroupLimit = hwAsic->getMaxDlbEcmpGroups();
+      if (arsGroupLimit.has_value() &&
+          arsEcmpGroupRefMap_.size() >
+              (arsGroupLimit.value() * resourcePercentage) /
+                  kHundredPercentage) {
+        return false;
+      }
     }
   }
   return true;
 }
 
 template <typename AddrT>
-bool ResourceAccountant::checkAndUpdateEcmpResource(
+bool ResourceAccountant::checkAndUpdateGenericEcmpResource(
     const std::shared_ptr<Route<AddrT>>& route,
     bool add) {
   const auto& fwd = route->getForwardInfo();
@@ -147,7 +145,7 @@ bool ResourceAccountant::checkAndUpdateEcmpResource(
   // Forwarding to nextHops and more than one nextHop - use ECMP
   if (fwd.getAction() == RouteForwardAction::NEXTHOPS &&
       fwd.getNextHopSet().size() > 1) {
-    const auto& nhSet = fwd.getNextHopSet();
+    const auto& nhSet = fwd.normalizedNextHops();
     if (auto it = ecmpGroupRefMap_.find(nhSet); it != ecmpGroupRefMap_.end()) {
       it->second = it->second + (add ? 1 : -1);
       CHECK(it->second >= 0);
@@ -165,6 +163,55 @@ bool ResourceAccountant::checkAndUpdateEcmpResource(
     return checkEcmpResource(true /* intermediateState */);
   }
   return true;
+}
+
+template <typename AddrT>
+bool ResourceAccountant::checkAndUpdateArsEcmpResource(
+    const std::shared_ptr<Route<AddrT>>& route,
+    bool add) {
+  if (FLAGS_dlbResourceCheckEnable && FLAGS_flowletSwitchingEnable) {
+    const auto& fwd = route->getForwardInfo();
+
+    // Forwarding to nextHops and more than one nextHop - use ECMP
+    if (fwd.getAction() == RouteForwardAction::NEXTHOPS &&
+        fwd.getNextHopSet().size() > 1) {
+      // If ERM were disabled, then arsEcmpGroupRefMap_ and ecmpGroupRefMap_
+      // will be identical since primary and backup groups are
+      // indistinguishable.
+      //
+      // No need to check backup groups since they don't use dynamic groups
+      if (FLAGS_enable_ecmp_resource_manager &&
+          fwd.getOverrideEcmpSwitchingMode().has_value()) {
+        return true;
+      }
+      const auto& nhSet = fwd.normalizedNextHops();
+      if (auto it = arsEcmpGroupRefMap_.find(nhSet);
+          it != arsEcmpGroupRefMap_.end()) {
+        it->second = it->second + (add ? 1 : -1);
+        CHECK(it->second >= 0);
+        if (!add && it->second == 0) {
+          arsEcmpGroupRefMap_.erase(it);
+        }
+        return true;
+      }
+      // ECMP group does not exists in hw - Check if any usage exceeds ASIC
+      // limit
+      CHECK(add);
+      arsEcmpGroupRefMap_[nhSet] = 1;
+      return checkArsResource(true /* intermediateState */);
+    }
+  }
+  return true;
+}
+
+template <typename AddrT>
+bool ResourceAccountant::checkAndUpdateEcmpResource(
+    const std::shared_ptr<Route<AddrT>>& route,
+    bool add) {
+  bool valid = true;
+  valid &= checkAndUpdateGenericEcmpResource(route, add);
+  valid &= checkAndUpdateArsEcmpResource(route, add);
+  return valid;
 }
 
 bool ResourceAccountant::shouldCheckRouteUpdate() const {
@@ -226,6 +273,7 @@ bool ResourceAccountant::routeAndEcmpStateChangedImpl(const StateDelta& delta) {
 
   // Ensure new state usage does not exceed ecmp_resource_percentage
   validRouteUpdate &= checkEcmpResource(false /* intermediateState */);
+  validRouteUpdate &= checkArsResource(false /* intermediateState */);
   return validRouteUpdate;
 }
 
@@ -233,22 +281,16 @@ bool ResourceAccountant::isValidRouteUpdate(const StateDelta& delta) {
   bool validRouteUpdate = routeAndEcmpStateChangedImpl(delta);
 
   if (FLAGS_dlbResourceCheckEnable && FLAGS_flowletSwitchingEnable &&
-      checkDlbResource_ && !validRouteUpdate) {
+      !validRouteUpdate) {
     XLOG(WARNING)
         << "Invalid route update - exceeding DLB resource limits. New state consumes "
-        << ecmpGroupRefMap_.size() << " DLB ECMP groups and "
-        << ecmpMemberUsage_ << " members.";
+        << arsEcmpGroupRefMap_.size() << " DLB ECMP groups";
     for (const auto& [switchId, hwAsic] : asicTable_->getHwAsics()) {
       const auto dlbGroupLimit = hwAsic->getMaxDlbEcmpGroups();
-      const auto ecmpMemberLimit = hwAsic->getMaxEcmpMembers();
       XLOG(WARNING) << "DLB ECMP resource limits for Switch " << switchId
                     << ": max DLB groups="
                     << (dlbGroupLimit.has_value()
                             ? folly::to<std::string>(dlbGroupLimit.value())
-                            : "None")
-                    << ", max ECMP members="
-                    << (ecmpMemberLimit.has_value()
-                            ? folly::to<std::string>(ecmpMemberLimit.value())
                             : "None");
     }
     return validRouteUpdate;
@@ -279,10 +321,6 @@ bool ResourceAccountant::isValidRouteUpdate(const StateDelta& delta) {
     }
   }
   return validRouteUpdate;
-}
-
-void ResourceAccountant::enableDlbResourceCheck(bool enable) {
-  checkDlbResource_ = enable;
 }
 
 template bool

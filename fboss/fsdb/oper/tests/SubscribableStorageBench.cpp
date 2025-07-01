@@ -86,7 +86,7 @@ void bm_get(
 
   for (int i = 0; i < numThreads; i++) {
     asyncScope.add(
-        helper.getRequest(numReadsPerTask).scheduleOn(executor.get()));
+        co_withExecutor(executor.get(), helper.getRequest(numReadsPerTask)));
   }
 
   folly::coro::blockingWait(asyncScope.joinAsync());
@@ -110,8 +110,8 @@ void bm_set(
   suspender.dismiss();
 
   for (int i = 0; i < numThreads; i++) {
-    asyncScope.add(helper.publishData(numWritesPerTask, useLargeData)
-                       .scheduleOn(executor.get()));
+    asyncScope.add(co_withExecutor(
+        executor.get(), helper.publishData(numWritesPerTask, useLargeData)));
   }
 
   folly::coro::blockingWait(asyncScope.joinAsync());
@@ -137,12 +137,12 @@ void bm_concurrent_get_set(
 
   suspender.dismiss();
 
-  asyncScope.add(helper.publishData(numWritesPerTask, useLargeData)
-                     .scheduleOn(executor.get()));
+  asyncScope.add(co_withExecutor(
+      executor.get(), helper.publishData(numWritesPerTask, useLargeData)));
 
   for (int i = 1; i < numThreads; i++) {
     asyncScope.add(
-        helper.getRequest(numReadsPerTask).scheduleOn(executor.get()));
+        co_withExecutor(executor.get(), helper.getRequest(numReadsPerTask)));
   }
 
   folly::coro::blockingWait(asyncScope.joinAsync());

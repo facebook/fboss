@@ -9,12 +9,9 @@
  */
 #include "fboss/agent/state/AclTable.h"
 #include <folly/Conv.h>
-#include <thrift/lib/cpp/util/EnumUtils.h>
 #include <memory>
 #include "fboss/agent/gen-cpp2/switch_config_constants.h"
-#include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/state/NodeBase-defs.h"
-#include "fboss/agent/state/StateUtils.h"
 
 using apache::thrift::TEnumTraits;
 using folly::IPAddress;

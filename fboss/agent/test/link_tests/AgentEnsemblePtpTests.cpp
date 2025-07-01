@@ -133,10 +133,17 @@ class AgentEnsemblePtpTests : public AgentEnsembleLinkTest {
       auto srcMac = ethHdr.getSrcMac();
       auto dstMac = ethHdr.getDstMac();
 
+      auto asic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
       if (hopLimit == kStartTtl) {
-        // this is the original pkt, and has no timestamp on it
-        EXPECT_EQ(correctionField, 0);
-
+        if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+          // On chenab, the first packet is also timestamped,
+          // CPU tx pipeline (with pipeline bypass) has correction field update
+          EXPECT_GT(correctionField, 0);
+          EXPECT_LT(cfInNsecs, 2000 * (kStartTtl - hopLimit + 1));
+        } else {
+          // this is the original pkt, and has no timestamp on it
+          EXPECT_EQ(correctionField, 0);
+        }
         // Original packet should have the same src and dst mac as we sent out
         EXPECT_EQ(srcMac, kSrcMac);
         EXPECT_EQ(dstMac, localMac);
@@ -144,7 +151,7 @@ class AgentEnsemblePtpTests : public AgentEnsembleLinkTest {
         EXPECT_GT(correctionField, 0);
         // CF for first pkt is ~800nsecs for BCM and ~1.7 msecs for Tajo
         // Also account for loopback multiple times
-        EXPECT_LT(cfInNsecs, 2000 * (kStartTtl - hopLimit));
+        EXPECT_LT(cfInNsecs, 2000 * (kStartTtl - hopLimit + 1));
 
         // Both src and mac address should be local mac
         EXPECT_EQ(srcMac, localMac);
@@ -229,6 +236,8 @@ TEST_F(AgentEnsemblePtpTests, verifyPtpTcDelayRequest) {
   folly::CIDRNetwork dstPrefix = folly::CIDRNetwork{kIPv6Dst, 128};
   this->trapPackets(dstPrefix);
   programDefaultRoute(ecmpPorts, getSw()->getLocalMac(scope(ecmpPorts)));
+
+  setPtpTcEnable(true);
 
   verifyPtpTcOnPorts(ecmpPorts, PTPMessageType::PTP_DELAY_REQUEST);
 }

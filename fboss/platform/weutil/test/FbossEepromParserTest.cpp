@@ -193,7 +193,7 @@ TEST(FbossEepromParserTest, Basic) {
     std::string fileName = tmpDir.path().string() + "/eepromContent";
     folly::writeFile(eepromData, fileName.c_str());
     FbossEepromParser parser(fileName, 0);
-    auto parsedContents = parser.getContents();
+    auto parsedContents = parser.getContents().getContents();
     ASSERT_EQ(expectedContents.size(), parsedContents.size());
     for (size_t i = 0; i < expectedContents.size(); i++) {
       EXPECT_EQ(parsedContents[i], expectedContents[i]);

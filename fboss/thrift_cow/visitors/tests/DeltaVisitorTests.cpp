@@ -8,7 +8,6 @@
 
 #include <fboss/thrift_cow/visitors/DeltaVisitor.h>
 #include <fboss/thrift_cow/visitors/tests/VisitorTestUtils.h>
-#include <thrift/lib/cpp2/folly_dynamic/folly_dynamic.h>
 #include "fboss/thrift_cow/nodes/Types.h"
 
 using folly::dynamic;

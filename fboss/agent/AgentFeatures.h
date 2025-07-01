@@ -90,6 +90,7 @@ DECLARE_int32(max_neighbors_to_block);
 
 DECLARE_bool(link_stress_test);
 DECLARE_int32(ecmp_resource_percentage);
+DECLARE_int32(ars_resource_percentage);
 DECLARE_int32(switch_index_for_testing);
 DECLARE_uint32(counter_refresh_interval);
 
@@ -106,3 +107,5 @@ DECLARE_int32(ecmp_resource_manager_make_before_break_buffer);
 DECLARE_int32(update_stats_interval_s);
 DECLARE_bool(update_route_with_dlb_type);
 DECLARE_int32(agent_exit_delay_s);
+
+DECLARE_bool(dsf_single_stage_r192_f40_e32);

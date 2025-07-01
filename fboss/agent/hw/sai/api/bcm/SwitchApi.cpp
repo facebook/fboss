@@ -275,7 +275,7 @@ void SwitchApi::registerSwitchEventCallback(
 
     // Register switch events
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_7)
-    std::array<uint32_t, 11> events = {
+    std::array<uint32_t, 12> events = {
         SAI_SWITCH_EVENT_TYPE_PARITY_ERROR,
         SAI_SWITCH_EVENT_TYPE_STABLE_FULL,
         SAI_SWITCH_EVENT_TYPE_STABLE_ERROR,
@@ -286,7 +286,9 @@ void SwitchApi::registerSwitchEventCallback(
         SAI_SWITCH_EVENT_TYPE_FIRMWARE_CRASHED,
         SAI_SWITCH_EVENT_TYPE_REMOTE_LINK_CHANGE,
         SAI_SWITCH_EVENT_TYPE_RX_FIFO_STUCK_DETECTED,
-        SAI_SWITCH_EVENT_TYPE_INTERRUPT_MASKED};
+        SAI_SWITCH_EVENT_TYPE_DEVICE_SOFT_RESET,
+        SAI_SWITCH_EVENT_TYPE_INTERRUPT_MASKED,
+    };
 #elif defined(BRCM_SAI_SDK_GTE_11_0)
     std::array<uint32_t, 7> events = {
         SAI_SWITCH_EVENT_TYPE_PARITY_ERROR,
@@ -618,6 +620,22 @@ std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeAsicRevision::operator()() {
 #if defined(BRCM_SAI_SDK_DNX_GTE_13_0)
   return SAI_SWITCH_ATTR_ASIC_REVISION;
+#endif
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
+    AttributeCreditRequestProfileSchedulerMode::operator()() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  return SAI_SWITCH_ATTR_CREDIT_REQUEST_PROFILE_SCHEDULER_MODE;
+#endif
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
+    AttributeModuleIdToCreditRequestProfileParamList::operator()() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  return SAI_SWITCH_ATTR_MODULE_ID_TO_CREDIT_REQUEST_PROFILE_PARAM_LIST;
 #endif
   return std::nullopt;
 }

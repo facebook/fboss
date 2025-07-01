@@ -222,6 +222,7 @@ cpp_library(
     exported_deps = [
         "fbsource//third-party/fmt:fmt",
         ":platform_manager_config-cpp2-types",
+        "//fboss/platform/weutil:fboss_eeprom_lib",
         "//folly/logging:logging",
     ],
 )
@@ -232,6 +233,7 @@ cpp_library(
         "PlatformManagerHandler.cpp",
     ],
     exported_deps = [
+        ":pkg_manager",
         ":platform_explorer",
         ":platform_manager_service-cpp2-services",
     ],

@@ -232,5 +232,27 @@ void QsfpFsdbSyncManager::updatePortStat(
   updatePortStats(*pendingPortStatsWLockedPtr);
 }
 
+void QsfpFsdbSyncManager::updatePortState(
+    std::string&& portName,
+    portstate::PortState&& newState) {
+  if (!FLAGS_publish_state_to_fsdb) {
+    return;
+  }
+  stateSyncer_->updateState([portName = std::move(portName),
+                             newState = std::move(newState)](const auto& in) {
+    auto out = in->clone();
+    out->template modify<state::qsfp_state_tags::strings::state>();
+    auto& state = out->template ref<state::qsfp_state_tags::strings::state>();
+    state->template modify<state::qsfp_state_tags::strings::portStates>();
+    auto& PortStates =
+        state->template ref<state::qsfp_state_tags::strings::portStates>();
+    // insert to list of port states in case its not there.
+    PortStates->modify(portName);
+    // update the value.
+    PortStates->ref(portName)->fromThrift(newState);
+    return out;
+  });
+}
+
 } // namespace fboss
 } // namespace facebook

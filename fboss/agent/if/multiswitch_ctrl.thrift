@@ -22,6 +22,7 @@ struct LinkEvent {
   2: bool up;
   3: optional phy.LinkFaultStatus iPhyLinkFaultStatus;
   4: switch_config.PortType portType;
+  5: optional i32 aggPortId;
 }
 
 struct LinkActiveEvent {

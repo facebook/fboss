@@ -18,7 +18,7 @@ class PresenceChecker {
 
   bool isPresent(
       const PresenceDetection& presenceDetection,
-      const std::string slotPath);
+      const std::string& slotPath);
 
   int getPresenceValue(
       const PresenceDetection& presenceDetection,

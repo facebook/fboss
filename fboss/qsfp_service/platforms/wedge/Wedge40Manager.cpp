@@ -1,19 +1,18 @@
 #include "fboss/qsfp_service/platforms/wedge/Wedge40Manager.h"
-
-#include "fboss/agent/platforms/common/wedge40/Wedge40PlatformMapping.h"
 #include "fboss/lib/usb/TransceiverPlatformI2cApi.h"
 
-namespace facebook {
-namespace fboss {
-Wedge40Manager::Wedge40Manager(const std::string& platformMappingStr)
+namespace facebook::fboss {
+
+Wedge40Manager::Wedge40Manager(
+    const std::shared_ptr<const PlatformMapping> platformMapping,
+    const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
+        threads)
     : WedgeManager(
           std::make_unique<TransceiverPlatformI2cApi>(new WedgeI2CBus()),
-          platformMappingStr.empty()
-              ? std::make_unique<Wedge40PlatformMapping>()
-              : std::make_unique<Wedge40PlatformMapping>(platformMappingStr),
-          PlatformType::PLATFORM_WEDGE) {}
+          platformMapping,
+          PlatformType::PLATFORM_WEDGE,
+          threads) {}
 // TODO: Will fully migrate I2CBusApi into TransceiverPlatformApi. Then we will
 // construct the bus pointer before construct WedgeManager and will get rid of
 // getI2CBus at that time.
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

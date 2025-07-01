@@ -84,7 +84,8 @@ class PlatformManagerHwTest : public ::testing::Test {
           apache::thrift::Client<PlatformManagerService>>(
           std::make_unique<PlatformManagerHandler>(
               platformExplorer_,
-              ds.value()))};
+              ds.value(),
+              platformConfig_))};
 };
 
 TEST_F(PlatformManagerHwTest, ExploreAsDeployed) {
@@ -198,6 +199,33 @@ TEST_F(PlatformManagerHwTest, XcvrIoFiles) {
         fs::path(fmt::format("/run/devmap/xcvrs/xcvr_io_{}", xcvrId));
     EXPECT_TRUE(fs::is_character_file(xcvrIoPath))
         << fmt::format("{} isn't a character file", xcvrIoPath.string());
+  }
+}
+
+TEST_F(PlatformManagerHwTest, XcvrLedFiles) {
+  fs::remove_all("/run/devmap/xcvrs");
+  EXPECT_FALSE(fs::exists("/run/devmap/xcvrs"));
+  explorationOk();
+  // Note: We are not checking the LED files of the last xcvr (typically the
+  // PIE/Management port). This PIE/Management port has different number of LEDs
+  // on different platforms. We can augment this test later by reading from
+  // `ledCtrlConfigs` and perform this check even for PIE ports.
+  for (auto xcvrNum = 1; xcvrNum < *platformConfig_.numXcvrs(); xcvrNum++) {
+    auto blueLed1 = fs::path(
+        fmt::format("/sys/class/leds/port{}_led1:blue:status", xcvrNum));
+    auto blueLed2 = fs::path(
+        fmt::format("/sys/class/leds/port{}_led2:blue:status", xcvrNum));
+    auto yellowLed1 = fs::path(
+        fmt::format("/sys/class/leds/port{}_led1:yellow:status", xcvrNum));
+    auto yellowLed2 = fs::path(
+        fmt::format("/sys/class/leds/port{}_led2:yellow:status", xcvrNum));
+    for (auto& ledDir : {blueLed1, blueLed2, yellowLed1, yellowLed2}) {
+      for (auto& ledFile : {"brightness", "max_brightness", "trigger"}) {
+        auto ledFullPath = ledDir / fs::path(ledFile);
+        EXPECT_TRUE(fs::exists(ledFullPath))
+            << fmt::format("{} doesn't exist", ledFullPath.string());
+      }
+    }
   }
 }
 

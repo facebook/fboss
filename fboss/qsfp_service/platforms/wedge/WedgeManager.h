@@ -5,6 +5,7 @@
 #include <boost/container/flat_map.hpp>
 
 #include "fboss/agent/platforms/common/PlatformMapping.h"
+#include "fboss/agent/platforms/common/wedge40/Wedge40PlatformMapping.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/lib/i2c/gen-cpp2/i2c_controller_stats_types.h"
 #include "fboss/lib/platforms/PlatformMode.h"
@@ -31,8 +32,10 @@ class WedgeManager : public TransceiverManager {
 
   explicit WedgeManager(
       std::unique_ptr<TransceiverPlatformApi> api,
-      std::unique_ptr<PlatformMapping> platformMapping,
-      PlatformType type);
+      const std::shared_ptr<const PlatformMapping> platformMapping,
+      PlatformType type,
+      const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
+          threads);
   ~WedgeManager() override;
 
   void getTransceiversInfo(
@@ -170,6 +173,10 @@ class WedgeManager : public TransceiverManager {
 
   virtual void publishPortStatToFsdb(std::string&& portName, HwPortStats&& stat)
       const override;
+
+  virtual void publishPortStateToFsdb(
+      std::string&& portName,
+      portstate::PortState&& state) const override;
 
   void loadConfig() override;
 

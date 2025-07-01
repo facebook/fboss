@@ -39,6 +39,8 @@ constexpr int cdbCommandTimeoutUsec = 120000000;
 constexpr int cdbCommandErrorIntervalUsec = 100000;
 constexpr int cdbCommandStatusPollIntervalUsec = 10000;
 
+constexpr int delayAfterFwCommitUsec = 200000; // 200 ms
+
 // CMIS firmware related register offsets
 constexpr uint8_t kCdbCommandStatusReg = 37;
 constexpr uint8_t kModulePasswordEntryReg = 122;
@@ -162,6 +164,16 @@ bool CdbCommandBlock::cmisRunCdbCommand(TransceiverImpl* bus) {
   if (this->cdbFields_.cdbCommandCode ==
       htons(kCdbCommandFirmwareDownloadRun)) {
     return true;
+  }
+
+  // Special handling for COMMIT command
+  if (this->cdbFields_.cdbCommandCode ==
+      htons(kCdbCommandFirmwareDownloadCommit)) {
+    /* Module could disable i2c after executing the commit command. So add a
+     * delay before checking CDB status
+     */
+    /* sleep override */
+    usleep(delayAfterFwCommitUsec);
   }
 
   // Now read the CDB command status register till the status becomes success

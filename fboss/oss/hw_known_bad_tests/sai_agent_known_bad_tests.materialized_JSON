@@ -4744,9 +4744,6 @@
           "test_name_regex": "AgentMirrorOnDrop.*ModOnInterfacePortCleanup"
         },
         {
-          "test_name_regex": "AgentAqmEcnOnlyTest.verifyPerQueueEcnMarkedStats$"
-        },
-        {
           "test_name_regex": "AgentVoqSwitchInterruptTest.alignerError$"
         },
         {
@@ -5053,9 +5050,6 @@
         },
         {
           "test_name_regex": "AgentMirrorOnDrop.*ModOnInterfacePortCleanup"
-        },
-        {
-          "test_name_regex": "AgentAqmEcnOnlyTest.verifyPerQueueEcnMarkedStats$"
         },
         {
           "test_name_regex": "AgentVoqSwitchInterruptTest.alignerError$"
@@ -6592,9 +6586,6 @@
           "test_name_regex": "AgentMirrorOnDrop.*ModOnInterfacePortCleanup"
         },
         {
-          "test_name_regex": "AgentAqmEcnOnlyTest.verifyPerQueueEcnMarkedStats$"
-        },
-        {
           "test_name_regex": "AgentVoqSwitchInterruptTest.alignerError$"
         },
         {
@@ -6909,9 +6900,6 @@
           "test_name_regex": "AgentVoqSwitchFullScaleDsfNodesTest.remoteNeighborWithEcmpGroup"
         },
         {
-          "test_name_regex": "AgentAqmEcnOnlyTest.verifyPerQueueEcnMarkedStats$"
-        },
-        {
           "test_name_regex": "AgentVoqSwitchInterruptTest.alignerError$"
         },
         {
@@ -7218,9 +7206,6 @@
         },
         {
           "test_name_regex": "AgentMirrorOnDrop.*ModOnInterfacePortCleanup"
-        },
-        {
-          "test_name_regex": "AgentAqmEcnOnlyTest.verifyPerQueueEcnMarkedStats$"
         },
         {
           "test_name_regex": "AgentVoqSwitchInterruptTest.alignerError$"
@@ -7535,9 +7520,6 @@
         },
         {
           "test_name_regex": "AgentVoqSwitchFullScaleDsfNodesTest.remoteNeighborWithEcmpGroup"
-        },
-        {
-          "test_name_regex": "AgentAqmEcnOnlyTest.verifyPerQueueEcnMarkedStats$"
         },
         {
           "test_name_regex": "AgentVoqSwitchInterruptTest.alignerError$"
@@ -7882,9 +7864,6 @@
         },
         {
           "test_name_regex": "AgentHwParityErrorTest.verifyParityError$"
-        },
-        {
-          "test_name_regex": "AgentAqmEcnOnlyTest.verifyPerQueueEcnMarkedStats$"
         },
         {
           "test_name_regex": "AgentVoqSwitchInterruptTest.alignerError$"
@@ -11002,9 +10981,6 @@
           "test_name_regex": "AgentSflowMirror.*$"
         },
         {
-          "test_name_regex": "AgentTrafficPauseTest.verifyPauseRxOnly$"
-        },
-        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion.*$"
         },
         {
@@ -11305,9 +11281,6 @@
         },
         {
           "test_name_regex": "AgentSflowMirror.*$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPauseTest.verifyPauseRxOnly$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion.*$"
@@ -11633,9 +11606,6 @@
           "test_name_regex": "AgentSflowMirror.*$"
         },
         {
-          "test_name_regex": "AgentTrafficPauseTest.verifyPauseRxOnly$"
-        },
-        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion.*$"
         },
         {
@@ -11676,9 +11646,6 @@
         },
         {
           "test_name_regex": "AgentHundredThousandRouteScaleTest.hundredThousandRouteScaleTest$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPauseTest.*$"
         },
         {
           "test_name_regex": "warm_boot.AgentHwResourceStatsTest.l3Stats$"
@@ -11938,9 +11905,6 @@
           "test_name_regex": "AgentSflowMirror.*$"
         },
         {
-          "test_name_regex": "AgentTrafficPauseTest.verifyPauseRxOnly$"
-        },
-        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion.*$"
         },
         {
@@ -11981,9 +11945,6 @@
         },
         {
           "test_name_regex": "AgentHundredThousandRouteScaleTest.hundredThousandRouteScaleTest$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPauseTest.*$"
         },
         {
           "test_name_regex": "warm_boot.AgentHwResourceStatsTest.l3Stats$"

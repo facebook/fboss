@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "fboss/agent/gen-cpp2/agent_info_types.h"
 #include "fboss/agent/gen-cpp2/agent_stats_types.h"
 #include "fboss/agent/gen-cpp2/switch_reachability_types.h"
 #include "fboss/fsdb/client/FsdbPubSubManager.h"
@@ -41,6 +42,8 @@ class FsdbSyncer {
   void switchReachabilityChanged(
       int64_t switchId,
       switch_reachability::SwitchReachability newReachability);
+
+  void agentInfoChanged(agent_info::AgentInfo newAgentInfo);
 
   void start();
   void stop(bool gracefulStop = false);

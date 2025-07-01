@@ -25,52 +25,10 @@ constexpr auto kNumPortPerCore = 10;
 constexpr auto kRemoteSysPortOffset = 7;
 constexpr auto kNumRdswSysPort = 44;
 constexpr auto kNumEdswSysPort = 26;
+// Prod range
+constexpr auto kNumJangaSysPort = 22;
 constexpr uint8_t kDefaultQueue = 0;
 constexpr uint8_t kDualStage3Q2QDefaultQueue = 1;
-
-std::shared_ptr<SystemPort> makeRemoteSysPort(
-    SystemPortID portId,
-    SwitchID remoteSwitchId,
-    int coreIndex,
-    int corePortIndex,
-    int64_t speed,
-    HwAsic::InterfaceNodeRole intfRole,
-    cfg::PortType portType,
-    std::string remoteSwitchName = "") {
-  if (remoteSwitchName.empty()) {
-    remoteSwitchName = folly::to<std::string>("hwTestSwitch", remoteSwitchId);
-  }
-  auto remoteSysPort = std::make_shared<SystemPort>(portId);
-  auto voqConfig = getDefaultVoqConfig(portType);
-  remoteSysPort->setName(
-      folly::to<std::string>(remoteSwitchName, ":eth1/", portId, "/1"));
-  remoteSysPort->setSwitchId(remoteSwitchId);
-  remoteSysPort->setNumVoqs(getRemotePortNumVoqs(intfRole, portType));
-  remoteSysPort->setCoreIndex(coreIndex);
-  remoteSysPort->setCorePortIndex(corePortIndex);
-  remoteSysPort->setSpeedMbps(speed);
-  remoteSysPort->resetPortQueues(voqConfig);
-  remoteSysPort->setScope(cfg::Scope::GLOBAL);
-  return remoteSysPort;
-}
-
-std::shared_ptr<Interface> makeRemoteInterface(
-    InterfaceID intfId,
-    const Interface::Addresses& subnets) {
-  auto remoteIntf = std::make_shared<Interface>(
-      intfId,
-      RouterID(0),
-      std::optional<VlanID>(std::nullopt),
-      folly::StringPiece("RemoteIntf"),
-      folly::MacAddress("c6:ca:2b:2a:b1:b6"),
-      9000,
-      false,
-      false,
-      cfg::InterfaceType::SYSTEM_PORT);
-  remoteIntf->setAddresses(subnets);
-  remoteIntf->setScope(cfg::Scope::GLOBAL);
-  return remoteIntf;
-}
 
 void updateRemoteIntfWithNeighbor(
     std::shared_ptr<Interface>& remoteIntf,
@@ -203,6 +161,50 @@ std::shared_ptr<PortQueue> makeSwitchStateVoq(const cfg::PortQueue& cfgQueue) {
 }
 } // namespace
 
+std::shared_ptr<SystemPort> makeRemoteSysPort(
+    SystemPortID portId,
+    SwitchID remoteSwitchId,
+    int coreIndex,
+    int corePortIndex,
+    int64_t speed,
+    HwAsic::InterfaceNodeRole intfRole,
+    cfg::PortType portType,
+    std::string remoteSwitchName) {
+  if (remoteSwitchName.empty()) {
+    remoteSwitchName = folly::to<std::string>("hwTestSwitch", remoteSwitchId);
+  }
+  auto remoteSysPort = std::make_shared<SystemPort>(portId);
+  auto voqConfig = getDefaultVoqConfig(portType);
+  remoteSysPort->setName(
+      folly::to<std::string>(remoteSwitchName, ":eth1/", portId, "/1"));
+  remoteSysPort->setSwitchId(remoteSwitchId);
+  remoteSysPort->setNumVoqs(getRemotePortNumVoqs(intfRole, portType));
+  remoteSysPort->setCoreIndex(coreIndex);
+  remoteSysPort->setCorePortIndex(corePortIndex);
+  remoteSysPort->setSpeedMbps(speed);
+  remoteSysPort->resetPortQueues(voqConfig);
+  remoteSysPort->setScope(cfg::Scope::GLOBAL);
+  return remoteSysPort;
+}
+
+std::shared_ptr<Interface> makeRemoteInterface(
+    InterfaceID intfId,
+    const Interface::Addresses& subnets) {
+  auto remoteIntf = std::make_shared<Interface>(
+      intfId,
+      RouterID(0),
+      std::optional<VlanID>(std::nullopt),
+      folly::StringPiece("RemoteIntf"),
+      folly::MacAddress("c6:ca:2b:2a:b1:b6"),
+      9000,
+      false,
+      false,
+      cfg::InterfaceType::SYSTEM_PORT);
+  remoteIntf->setAddresses(subnets);
+  remoteIntf->setScope(cfg::Scope::GLOBAL);
+  return remoteIntf;
+}
+
 std::shared_ptr<SwitchState> addRemoteSysPort(
     std::shared_ptr<SwitchState> currState,
     const SwitchIdScopeResolver& scopeResolver,
@@ -316,7 +318,9 @@ void populateRemoteIntfAndSysPorts(
         const auto minPortID = *sysPortRange.minimum();
         const auto maxPortID = *sysPortRange.maximum();
         const auto numPorts = maxPortID - minPortID + 1;
-        CHECK(numPorts == kNumRdswSysPort || numPorts == kNumEdswSysPort);
+        CHECK(
+            numPorts == kNumRdswSysPort || numPorts == kNumEdswSysPort ||
+            numPorts == kNumJangaSysPort);
         for (int i = minPortID + kRemoteSysPortOffset; i <= maxPortID; i++) {
           const SystemPortID remoteSysPortId(i);
           const InterfaceID remoteIntfId(i);
@@ -483,12 +487,35 @@ boost::container::flat_set<PortDescriptor> resolveRemoteNhops(
       remoteSysPorts->begin(),
       remoteSysPorts->end(),
       [&sysPortDescs](const auto& idAndPort) {
-        sysPortDescs.insert(
-            PortDescriptor(static_cast<SystemPortID>(idAndPort.first)));
+        if (!idAndPort.second->isStatic()) {
+          sysPortDescs.insert(
+              PortDescriptor(static_cast<SystemPortID>(idAndPort.first)));
+        }
       });
   ensemble->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
     return ecmpHelper.resolveNextHops(
         in, sysPortDescs, false, getDummyEncapIndex(ensemble));
+  });
+  return sysPortDescs;
+}
+
+boost::container::flat_set<PortDescriptor> unresolveRemoteNhops(
+    TestEnsembleIf* ensemble,
+    utility::EcmpSetupTargetedPorts6& ecmpHelper) {
+  auto remoteSysPorts =
+      ensemble->getProgrammedState()->getRemoteSystemPorts()->getAllNodes();
+  boost::container::flat_set<PortDescriptor> sysPortDescs;
+  std::for_each(
+      remoteSysPorts->begin(),
+      remoteSysPorts->end(),
+      [&sysPortDescs](const auto& idAndPort) {
+        if (!idAndPort.second->isStatic()) {
+          sysPortDescs.insert(
+              PortDescriptor(static_cast<SystemPortID>(idAndPort.first)));
+        }
+      });
+  ensemble->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+    return ecmpHelper.unresolveNextHops(in, sysPortDescs, false);
   });
   return sysPortDescs;
 }

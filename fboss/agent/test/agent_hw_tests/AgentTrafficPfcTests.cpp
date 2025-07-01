@@ -46,12 +46,16 @@ static const std::vector<int> kLossyPgIds{0};
 // This hardcoded map needs to be updated when a different port is chosen.
 // The map stores a string because the register won't fit in any integer type.
 // See CS00012321021 for details.
+// TODO (maxgg): Use HwLogicalPortId insetad of PortIds, as that is being used
+// for computing register's value.
 static const std::map<std::tuple<int, int>, std::string>
     kRegValToForcePfcTxForPriorityOnPortDnx = {
         // Single-stage: portID=8, port_first_phy=0, core_first_phy=0
         {std::make_tuple(8, 2), "0x4"},
         // Dual-stage: portID=1, port_first_phy=8, core_first_phy=0
         {std::make_tuple(1, 2), "0x40000000000000000"},
+        // Janga: portID=3, port_first_phy=8, core_first_phy=0 P1842843423
+        {std::make_tuple(3, 2), "0x40000000000000000"},
 };
 
 struct TrafficTestParams {
@@ -90,6 +94,10 @@ void waitPfcCounterIncrease(
     XLOG(DBG0) << facebook::fboss::utility::pfcStatsString(portStats);
 
     EXPECT_EVENTUALLY_GT(txPfcCtr, 0);
+
+    // inDiscards is tracked in software, so inDiscards + sum(inPfc) isn't
+    // necessarily equal to inDiscardsRaw after warmboot. Just check for <=.
+    EXPECT_EVENTUALLY_LE(*portStats.inDiscards_(), *portStats.inDiscardsRaw_());
 
     // TODO(maxgg): CS00012381334 - Rx counters not incrementing on TH5
     // However we know PFC is working as long as TX PFC is being generated, so
@@ -385,11 +393,14 @@ class AgentTrafficPfcTest : public AgentHwTest {
         auto ingressDropRaw = *portStats.inDiscardsRaw_();
         uint64_t ingressCongestionDiscards = 0;
         std::string ingressCongestionDiscardLog{};
-        // In congestion discard stats is supported in native impl
-        // and in sai platforms with HwAsic::Feature enabled.
+        // In congestion discard stats is always supported on native. On SAI
+        // it requires either the SAI_PORT_IN_CONGESTION_DISCARDS or
+        // INGRESS_PRIORITY_GROUP_DROPPED_PACKETS feature.
         bool isIngressCongestionDiscardsSupported =
             isSupportedOnAllAsics(
                 HwAsic::Feature::INGRESS_PRIORITY_GROUP_DROPPED_PACKETS) ||
+            isSupportedOnAllAsics(
+                HwAsic::Feature::SAI_PORT_IN_CONGESTION_DISCARDS) ||
             !getAgentEnsemble()->isSai();
         if (isIngressCongestionDiscardsSupported) {
           ingressCongestionDiscards = *portStats.inCongestionDiscards_();
@@ -402,11 +413,16 @@ class AgentTrafficPfcTest : public AgentHwTest {
         EXPECT_EVENTUALLY_GT(ingressDropRaw, 0);
         if (isIngressCongestionDiscardsSupported) {
           EXPECT_EVENTUALLY_GT(ingressCongestionDiscards, 0);
-          // Ingress congestion discards should be less than
-          // the total packets received on this port.
-          uint64_t inPackets = *portStats.inUnicastPkts_() +
-              *portStats.inMulticastPkts_() + *portStats.inBroadcastPkts_();
-          EXPECT_EVENTUALLY_LT(ingressCongestionDiscards, inPackets);
+
+          // In packet counters not supported in EDB loopback on TH5.
+          if (checkSameAndGetAsicType(getAgentEnsemble()->getCurrentConfig()) !=
+              facebook::fboss::cfg::AsicType::ASIC_TYPE_TOMAHAWK5) {
+            // Ingress congestion discards should be less than
+            // the total packets received on this port.
+            uint64_t inPackets = *portStats.inUnicastPkts_() +
+                *portStats.inMulticastPkts_() + *portStats.inBroadcastPkts_();
+            EXPECT_EVENTUALLY_LT(ingressCongestionDiscards, inPackets);
+          }
         }
       }
       for (auto [switchId, asic] : getAsics()) {

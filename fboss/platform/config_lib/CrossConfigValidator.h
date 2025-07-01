@@ -23,10 +23,7 @@ class CrossConfigValidator {
 
  private:
   // Sensor Service
-  bool isValidPmSensors(
-      const std::string& slotPath,
-      const std::string& pmUnitName,
-      const std::vector<sensor_config::PmSensor>& pmSensors);
+  bool isValidPmSensors(const std::vector<sensor_config::PmSensor>& pmSensors);
   bool isValidVersionedPmSensors(
       const std::string& slotPath,
       const std::string& pmUnitName,

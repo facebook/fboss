@@ -125,8 +125,8 @@ class SwitchSettings
     std::vector<state::BlockedMacAddress> macAddrs{};
     for (auto& entry : macAddrsToBlock) {
       state::BlockedMacAddress macAddr;
-      macAddr.macAddrToBlockVlanID_ref() = entry.first;
-      macAddr.macAddrToBlockAddr_ref() = entry.second.toString();
+      macAddr.macAddrToBlockVlanID() = entry.first;
+      macAddr.macAddrToBlockAddr() = entry.second.toString();
       macAddrs.push_back(macAddr);
     }
     set<switch_state_tags::macAddrsToBlock>(macAddrs);
@@ -751,6 +751,24 @@ class SwitchSettings
       ref<switch_state_tags::tcToRateLimitKbps>().reset();
     } else {
       set<switch_state_tags::tcToRateLimitKbps>(*tcToRateLimitKbps);
+    }
+  }
+
+  std::optional<int32_t> getPfcWatchdogTimerGranularity() const {
+    if (auto pfcWatchdogTimerGranularityMsec =
+            cref<switch_state_tags::pfcWatchdogTimerGranularityMsec>()) {
+      return pfcWatchdogTimerGranularityMsec->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  void setPfcWatchdogTimerGranularity(
+      const std::optional<int32_t>& pfcWatchdogTimerGranularityMsec) {
+    if (!pfcWatchdogTimerGranularityMsec) {
+      ref<switch_state_tags::pfcWatchdogTimerGranularityMsec>().reset();
+    } else {
+      set<switch_state_tags::pfcWatchdogTimerGranularityMsec>(
+          *pfcWatchdogTimerGranularityMsec);
     }
   }
 

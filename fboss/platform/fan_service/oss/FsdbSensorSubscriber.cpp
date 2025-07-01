@@ -15,4 +15,9 @@ std::vector<std::string> FsdbSensorSubscriber::getQsfpDataStatsPath() {
 std::vector<std::string> FsdbSensorSubscriber::getQsfpDataStatePath() {
   return {"qsfp_service", "state", "tcvrState"};
 }
+
+std::vector<std::string> FsdbSensorSubscriber::getAgentDataStatsPath() {
+  return {"agent", "asicTemp"};
+}
+
 } // namespace facebook::fboss

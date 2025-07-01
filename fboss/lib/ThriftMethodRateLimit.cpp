@@ -15,21 +15,21 @@ using namespace std::chrono;
 namespace facebook::fboss {
 
 bool ThriftMethodRateLimit::isQpsLimitExceeded(const std::string& method) {
-  auto it = method2QpsLimitAndTokenBucket.find(method);
-  if (it != method2QpsLimitAndTokenBucket.end()) {
-    int qpsLimit = it->second.first;
+  auto it = method2QpsLimitAndTokenBucket_.find(method);
+  if (it != method2QpsLimitAndTokenBucket_.end()) {
+    double qpsLimit = it->second.first;
     auto& tokenBucket = it->second.second;
-    return !tokenBucket.consume(1.0, qpsLimit, qpsLimit);
+    return !tokenBucket.consume(1.0, qpsLimit, std::max(1.0, qpsLimit));
   }
   return false;
 }
 
-int ThriftMethodRateLimit::getQpsLimit(const std::string& method) {
-  auto it = method2QpsLimitAndTokenBucket.find(method);
-  if (it != method2QpsLimitAndTokenBucket.end()) {
+double ThriftMethodRateLimit::getQpsLimit(const std::string& method) {
+  auto it = method2QpsLimitAndTokenBucket_.find(method);
+  if (it != method2QpsLimitAndTokenBucket_.end()) {
     return it->second.first;
   }
-  return 0;
+  return 0.0;
 }
 
 apache::thrift::PreprocessFunc
@@ -39,12 +39,19 @@ ThriftMethodRateLimit::getThriftMethodRateLimitPreprocessFunc(
              const apache::thrift::server::PreprocessParams& params)
              -> apache::thrift::PreprocessResult {
     if (rateLimiter->isQpsLimitExceeded(params.method)) {
-      return apache::thrift::AppOverloadedException(
-          fmt::format(
-              "reject thrift methd due to rate limit: {} for method: {}",
-              rateLimiter->getQpsLimit(params.method),
-              params.method),
-          "ThriftMethoRateLimit");
+      XLOG(WARN) << "reject thrift method due to rate limit: "
+                 << rateLimiter->getQpsLimit(params.method)
+                 << " for method: " << params.method;
+      if (!rateLimiter->getShadowMode()) {
+        return apache::thrift::AppOverloadedException(
+            fmt::format(
+                "reject thrift methd due to rate limit: {} for method: {}",
+                rateLimiter->getQpsLimit(params.method),
+                params.method),
+            "ThriftMethoRateLimit");
+      } else {
+        XLOG(WARN) << "Rate limit is running in shadow mode and no real impact";
+      }
     }
     return apache::thrift::PreprocessResult{};
   };

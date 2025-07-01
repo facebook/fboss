@@ -440,7 +440,7 @@ void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
 
     auto sensorInfo = getSensorInfo();
     if (auto tempFlags = sensorInfo.temp()->flags()) {
-      if (*tempFlags->alarm()->high() || *tempFlags->warn()->high()) {
+      if (*tempFlags->alarm()->high()) {
         StatsPublisher::bumpHighTemp();
         StatsPublisher::bumpHighTempPort(primaryPortName_);
       }
@@ -1454,6 +1454,9 @@ void QsfpModule::programTransceiver(
         updateLaneToPortNameMapping(portIt.first, startHostLane);
       }
       updateCachedTransceiverInfoLocked({});
+
+      // Set the programming in port state.
+      setPortStateLocked(true /* programEnd */);
     }
 
     // We are done programming the transceivers. Clear the pending datapath mask
@@ -1523,6 +1526,8 @@ bool QsfpModule::readyTransceiver() {
         // ensure that the cache is updated for all the subsequent operations
         QSFP_LOG(INFO, this) << "Transceiver is ready, updating cache";
         updateQsfpData(false);
+        // Update the programming start of port state
+        setPortStateLocked(false /* programEnd */);
         return true;
       } else {
         return false;
@@ -1546,6 +1551,17 @@ bool QsfpModule::readyTransceiver() {
         .thenValue(
             [powerStateCheckFn](auto&&) mutable { return powerStateCheckFn(); })
         .get();
+  }
+}
+
+void QsfpModule::setPortStateLocked(bool programEnd) {
+  auto steadyTime = std::chrono::steady_clock::now().time_since_epoch();
+  auto ns =
+      std::chrono::duration_cast<std::chrono::nanoseconds>(steadyTime).count();
+  if (programEnd) {
+    portState_.tcvrProgrammingCompleteTs() = static_cast<int64_t>(ns);
+  } else {
+    portState_.tcvrProgrammingStartTs() = static_cast<int64_t>(ns);
   }
 }
 

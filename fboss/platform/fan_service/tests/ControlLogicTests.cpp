@@ -65,7 +65,7 @@ class ControlLogicTests : public testing::Test {
         value += 12.0;
       }
       sensorData_->updateOpticEntry(
-          *optic.opticName(), std::move(opticData), mockBsp_->getCurrentTime());
+          *optic.opticName(), opticData, mockBsp_->getCurrentTime());
     }
 
     ASSERT_TRUE(kExpectedPwms.size() == fanServiceConfig_.fans()->size());

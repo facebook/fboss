@@ -194,6 +194,7 @@ std::unique_ptr<PlatformMapping> initPlatformMapping(PlatformType type) {
     case PlatformType::PLATFORM_WEDGE400C_FABRIC:
     case PlatformType::PLATFORM_WEDGE400C_VOQ:
     case PlatformType::PLATFORM_SANDIA:
+    case PlatformType::PLATFORM_UNKNOWN:
       throw FbossError("Unsupported platform type");
   }
   return nullptr;

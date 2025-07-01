@@ -1,5 +1,5 @@
 // Copyright 2021-present Facebook. All Rights Reserved.
-#include "PollThread.h"
+#include "fboss/platform/rackmon/PollThread.h"
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 

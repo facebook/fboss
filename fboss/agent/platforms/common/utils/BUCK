@@ -37,7 +37,6 @@ cpp_library(
         "//fboss/agent:fboss-error",
         "//fboss/agent:fboss-types",
         "//fboss/agent:platform_config-cpp2-types",
-        "//fboss/agent:switch_config-cpp2-types",
         "//fboss/lib/phy:phy-cpp2-types",
         "//folly:file_util",
         "//folly:format",

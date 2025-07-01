@@ -105,6 +105,7 @@ class HwAsic {
     MEDIA_TYPE,
     FEC,
     RX_FREQUENCY_PPM,
+    RX_SERDES_PARAMETERS,
     FABRIC_PORTS,
     ECMP_MEMBER_WIDTH_INTROSPECTION,
     FABRIC_PORT_MTU,
@@ -215,6 +216,9 @@ class HwAsic {
     SWITCH_ASIC_SDK_HEALTH_NOTIFY,
     VENDOR_SWITCH_CONGESTION_MANAGEMENT_ERRORS,
     PFC_WATCHDOG_TIMER_GRANULARITY,
+    ASIC_RESET_NOTIFICATIONS,
+    SAI_PORT_IN_CONGESTION_DISCARDS,
+    TEMPERATURE_MONITORING,
   };
 
   enum class AsicMode {
@@ -333,6 +337,9 @@ class HwAsic {
     return 0;
   }
 
+  /**
+   * Number of forwarding engines / units with its own buffer pool.
+   */
   virtual uint32_t getNumCores() const = 0;
 
   virtual uint32_t getSflowShimHeaderSize() const = 0;

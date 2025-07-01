@@ -70,6 +70,9 @@
         4,
         5
     ],
+    "minipackba": [
+        7
+    ],
     "montblanc": [
         7
     ],
@@ -166,6 +169,9 @@
         "PIM",
         "XPHY_SYSTEM_PAM4_PROFILE",
         "XPHY_LINE_NRZ_PROFILE"
+    ],
+    "minipackba": [
+        "TRANSCEIVER_PRBS"
     ],
     "montblanc": [
         "TRANSCEIVER_PRBS"

@@ -6862,6 +6862,29 @@
           ]
         },
         "algorithm": 1
+      },
+      {
+        "id": 2,
+        "fieldSelection": {
+          "ipv4Fields": [
+            1,
+            2
+          ],
+          "ipv6Fields": [
+            1,
+            2
+          ],
+          "transportFields": [
+            
+          ],
+          "mplsFields": [
+            
+          ],
+          "udfGroups": [
+            
+          ]
+        },
+        "algorithm": 1
       }
     ],
     "dataPlaneTrafficPolicy": {
@@ -7023,5 +7046,8 @@
         }
       }
     }
+  },
+  "thriftApiToRateLimitInQps": {
+    
   }
 }

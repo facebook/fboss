@@ -113,7 +113,6 @@ TerminalSession::~TerminalSession() noexcept {
     // cause pty fd got stuck
     /* sleep override */
     usleep(100 * 1000);
-    fflush(stdout);
     for (auto& fd2stream : fd2oldStreams_) {
       // Restore the old streams
       dup2(fd2stream.second, folly::File(fd2stream.first));

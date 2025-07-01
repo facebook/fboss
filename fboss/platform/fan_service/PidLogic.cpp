@@ -59,9 +59,16 @@ int16_t PidLogic::calculatePwm(float measurement) {
 }
 
 int16_t IncrementalPidLogic::calculatePwm(float measurement) {
-  float pwmDelta = (*pidSetting_.kp() * (measurement - previousRead1_)) +
-      (*pidSetting_.ki() * (measurement - *pidSetting_.setPoint())) +
-      (*pidSetting_.kd() * (measurement - 2 * previousRead1_ + previousRead2_));
+  float pwmDelta{0};
+  float minVal = *pidSetting_.setPoint() - *pidSetting_.negHysteresis();
+  float maxVal = *pidSetting_.setPoint() + *pidSetting_.posHysteresis();
+
+  if ((measurement > maxVal) || (measurement < minVal)) {
+    pwmDelta = (*pidSetting_.kp() * (measurement - previousRead1_)) +
+        (*pidSetting_.ki() * (measurement - *pidSetting_.setPoint())) +
+        (*pidSetting_.kd() *
+         (measurement - 2 * previousRead1_ + previousRead2_));
+  }
   int16_t newPwm = lastPwm_ + pwmDelta;
 
   XLOG(DBG2) << fmt::format(

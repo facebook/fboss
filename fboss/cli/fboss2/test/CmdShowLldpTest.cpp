@@ -6,7 +6,6 @@
 #include <folly/IPAddressV4.h>
 
 #include "fboss/agent/AddressUtil.h"
-#include "fboss/cli/fboss2/utils/CmdClientUtils.h"
 
 #include "fboss/cli/fboss2/commands/show/lldp/CmdShowLldp.h"
 #include "fboss/cli/fboss2/commands/show/lldp/gen-cpp2/model_types.h"

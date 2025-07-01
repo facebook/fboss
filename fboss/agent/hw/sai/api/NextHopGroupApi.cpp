@@ -18,9 +18,10 @@ namespace std {
 size_t hash<facebook::fboss::SaiNextHopGroupTraits::AdapterHostKey>::operator()(
     const facebook::fboss::SaiNextHopGroupTraits::AdapterHostKey& k) const {
   size_t seed = 0;
-  for (const auto& p : k) {
+  for (const auto& p : k.nhopMemberSet) {
     boost::hash_combine(seed, std::hash<std::decay_t<decltype(p)>>{}(p));
   }
+  boost::hash_combine(seed, k.mode);
   return seed;
 }
 } // namespace std

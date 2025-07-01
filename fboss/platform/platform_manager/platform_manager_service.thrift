@@ -50,8 +50,18 @@ struct PmUnitInfoResponse {
   1: platform_manager_config.PmUnitInfo pmUnitInfo;
 }
 
+struct PmUnitsResponse {
+  1: map<string/* slotPath */ , platform_manager_config.PmUnitInfo> pmUnits;
+}
+
 struct PmUnitInfoRequest {
   1: string slotPath;
+}
+
+struct BspVersionResponse {
+  1: string bspBaseName;
+  2: string bspVersion;
+  3: string kernelVersion;
 }
 
 service PlatformManagerService {
@@ -60,4 +70,7 @@ service PlatformManagerService {
   PmUnitInfoResponse getPmUnitInfo(1: PmUnitInfoRequest req) throws (
     1: PlatformManagerError pmError,
   );
+  PmUnitsResponse getAllPmUnits();
+  BspVersionResponse getBspVersion();
+  string getPlatformName();
 }

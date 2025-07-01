@@ -13,7 +13,6 @@
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/capture/PktCapture.h"
 
-#include <folly/String.h>
 #include <folly/logging/xlog.h>
 
 using folly::StringPiece;

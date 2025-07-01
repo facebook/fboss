@@ -110,6 +110,9 @@ class SaiSwitchManager {
   HwSwitchPipelineStats getSwitchPipelineStats() const {
     return switchPipelineStats_;
   }
+  HwSwitchTemperatureStats getSwitchTemperatureStats() const {
+    return switchTemperatureStats_;
+  }
   void setLocalCapsuleSwitchIds(
       const std::map<SwitchID, int>& switchIdToNumCores);
   void setReachabilityGroupList(const std::vector<int>& reachabilityGroups);
@@ -128,6 +131,11 @@ class SaiSwitchManager {
   void setTcRateLimitList(
       const std::optional<std::map<int32_t, int32_t>>& tcToRateLimitKbps);
   bool isPtpTcEnabled() const;
+  void setPfcWatchdogTimerGranularity(int pfcWatchdogTimerGranularityMsec);
+  void setCreditRequestProfileSchedulerMode(cfg::QueueScheduling scheduling);
+  void setModuleIdToCreditRequestProfileParam(
+      const std::optional<std::map<int32_t, int32_t>>&
+          moduleIdToCreditRequestProfileParam);
 
  private:
   void programEcmpLoadBalancerParams(
@@ -162,9 +170,11 @@ class SaiSwitchManager {
   const std::vector<sai_stat_id_t>& supportedErrorStats() const;
   const std::vector<sai_stat_id_t>& supportedPipelineWatermarkStats() const;
   const std::vector<sai_stat_id_t>& supportedPipelineStats() const;
+  const std::vector<sai_attr_id_t>& supportedTemperatureStats() const;
   const HwSwitchWatermarkStats getHwSwitchWatermarkStats() const;
   const HwSwitchPipelineStats getHwSwitchPipelineStats(
       bool updateWatermarks) const;
+  const HwSwitchTemperatureStats getHwSwitchTemperatureStats() const;
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
   std::unique_ptr<SaiSwitchObj> switch_;
@@ -189,6 +199,7 @@ class SaiSwitchManager {
   HwSwitchDropStats switchDropStats_;
   HwSwitchWatermarkStats switchWatermarkStats_;
   HwSwitchPipelineStats switchPipelineStats_;
+  HwSwitchTemperatureStats switchTemperatureStats_;
 };
 
 void fillHwSwitchDramStats(
@@ -209,4 +220,5 @@ void fillHwSwitchPipelineStats(
     HwSwitchPipelineStats& switchPipelineStats);
 void publishSwitchWatermarks(HwSwitchWatermarkStats& watermarkStats);
 void publishSwitchPipelineStats(HwSwitchPipelineStats& pipelineStats);
+void publishSwitchTemperatureStats(HwSwitchTemperatureStats& temperatureStats);
 } // namespace facebook::fboss

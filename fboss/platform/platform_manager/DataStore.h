@@ -8,9 +8,7 @@
 
 #include "fboss/platform/platform_manager/gen-cpp2/platform_manager_config_types.h"
 #include "fboss/platform/platform_manager/gen-cpp2/platform_manager_presence_types.h"
-
-using EepromContents = std::vector<
-    std::pair<std::string /* eeprom key */, std::string /* eeprom value */>>;
+#include "fboss/platform/weutil/FbossEepromInterface.h"
 
 namespace facebook::fboss::platform::platform_manager {
 class DataStore {
@@ -63,10 +61,13 @@ class DataStore {
       const std::string& devicePath,
       const std::string& charDevPath);
 
-  // Update PmUnitInfo for a given slotPath.
-  // For valid version update, expect all values (productProductionState,
-  // productVersion, productSubVersion) to be passed.
-  void updatePmUnitInfo(const std::string& slotPath, const PmUnitInfo& info);
+  // Update PmUnitName for a given slotPath.
+  void updatePmUnitName(const std::string& slotPath, const std::string& name);
+
+  // Update PmUnitVersion for a given slotPath.
+  void updatePmUnitVersion(
+      const std::string& slotPath,
+      const PmUnitVersion& version);
 
   void updatePmUnitSuccessfullyExplored(
       const std::string& slotPath,
@@ -83,13 +84,15 @@ class DataStore {
   // Store eeprom contents at the given DevicePath.
   void updateEepromContents(
       const std::string& devicePath,
-      const EepromContents& contents);
+      const FbossEepromInterface& contents);
 
   // Get eeprom contents at a given SlotPath.
-  EepromContents getEepromContents(const std::string& devicePath);
+  FbossEepromInterface getEepromContents(const std::string& devicePath);
 
   // Returns true if eeprom contents have been stored at the given DevicePath.
   bool hasEepromContents(const std::string& devicePath);
+
+  std::map<std::string, PmUnitInfo> getSlotPathToPmUnitInfo() const;
 
  private:
   // Map from <pmUnitPath, pmUnitScopeBusName> to kernel i2c bus name.
@@ -112,7 +115,7 @@ class DataStore {
   std::map<std::string, PmUnitInfo> slotPathToPmUnitInfo{};
 
   // Map from DevicePath to its EEPROM (IDPROM) contents.
-  std::unordered_map<std::string, EepromContents> eepromContents_{};
+  std::unordered_map<std::string, FbossEepromInterface> eepromContents_{};
 
   const PlatformConfig& platformConfig_;
 };

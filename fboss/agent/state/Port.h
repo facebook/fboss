@@ -352,7 +352,7 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
         auto detection =
             entry->cref<switch_config_tags::detection>()->toThrift();
         if (behavior == facebook::fboss::cfg::QueueCongestionBehavior::ECN &&
-            detection.linear_ref()->probability() != kDefaultProbability) {
+            detection.linear()->probability() != kDefaultProbability) {
           return false;
         }
       }

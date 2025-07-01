@@ -98,6 +98,8 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _SwitchMap{
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
     SAI_ATTR_MAP(Switch, PtpMode),
 #endif
+    SAI_ATTR_MAP(Switch, AsicTemperatureList),
+    SAI_ATTR_MAP(Switch, NumTemperatureSensors),
 
 };
 
@@ -158,6 +160,8 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(Switch, PipelineObjectList);
   SAI_EXT_ATTR_MAP(Switch, DisableSllAndHllTimeout);
   SAI_EXT_ATTR_MAP(Switch, AsicRevision);
+  SAI_EXT_ATTR_MAP(Switch, CreditRequestProfileSchedulerMode);
+  SAI_EXT_ATTR_MAP(Switch, ModuleIdToCreditRequestProfileParamList);
 }
 
 } // namespace

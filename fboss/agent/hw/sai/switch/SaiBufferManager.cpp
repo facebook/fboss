@@ -101,6 +101,10 @@ void fixThresholds(
   }
 }
 
+uint64_t roundup(uint64_t value, uint64_t unit) {
+  return std::ceil(static_cast<double>(value) / unit) * unit;
+}
+
 } // namespace
 
 const std::string kDefaultEgressBufferPoolName{"default"};
@@ -205,6 +209,11 @@ void SaiBufferManager::setupEgressBufferPool(
   if (FLAGS_egress_buffer_pool_size > 0) {
     uint64_t newSize = FLAGS_egress_buffer_pool_size *
         platform_->getAsic()->getNumMemoryBuffers();
+    if (platform_->getAsic()->getAsicType() ==
+        cfg::AsicType::ASIC_TYPE_CHENAB) {
+      newSize =
+          roundup(newSize, platform_->getAsic()->getPacketBufferUnitSize());
+    }
     XLOG(WARNING) << "Overriding egress buffer pool size from " << poolSize
                   << " to " << newSize;
     poolSize = newSize;
@@ -302,7 +311,12 @@ void SaiBufferManager::setupIngressEgressBufferPool(
   if (FLAGS_ingress_egress_buffer_pool_size) {
     // An option for test to override the buffer pool size to be used.
     poolSize = FLAGS_ingress_egress_buffer_pool_size *
-        platform_->getAsic()->getNumMemoryBuffers();
+        platform_->getAsic()->getNumCores();
+    if (platform_->getAsic()->getAsicType() ==
+        cfg::AsicType::ASIC_TYPE_CHENAB) {
+      poolSize =
+          roundup(poolSize, platform_->getAsic()->getPacketBufferUnitSize());
+    }
   } else {
     // For Jericho ASIC family, there is a single ingress/egress buffer
     // pool and hence the usage getSwitchEgressPoolAvailableSize() might
@@ -530,8 +544,12 @@ void SaiBufferManager::updateIngressPriorityGroupStats(
       inCongestionDiscards += pgCongestionDiscardIter->second;
     }
   }
-  // Port inCongestionDiscards is the sum of all PG inCongestionDiscards
-  hwPortStats.inCongestionDiscards_() = inCongestionDiscards;
+  // If port-level congestion discard counter isn't supported, sum up all PG
+  // inCongestionDiscards to get the port inCongestionDiscards.
+  if (!platform_->getAsic()->isSupported(
+          HwAsic::Feature::SAI_PORT_IN_CONGESTION_DISCARDS)) {
+    hwPortStats.inCongestionDiscards_() = inCongestionDiscards;
+  }
 }
 
 SaiBufferProfileTraits::CreateAttributes SaiBufferManager::profileCreateAttrs(
