@@ -17,6 +17,7 @@
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmPortTable.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include "fboss/agent/if/gen-cpp2/highfreq_types.h"
 
 extern "C" {}
 
@@ -218,6 +219,82 @@ void BcmBstStatsMgr::updateStats() {
   }
 
   getAndPublishDeviceWatermark();
+}
+
+void BcmBstStatsMgr::populateHighFrequencyBstPortStats(
+    const PortID portId,
+    const BcmPort* bcmPort,
+    const HfPortStatsCollectionConfig& portStatsConfig,
+    HwHighFrequencyStats& stats) const {
+  if (!(portStatsConfig.includePgWatermark().value() ||
+        portStatsConfig.includeQueueWatermark().value())) {
+    return;
+  }
+  if (!bcmPort->isUp() || !bcmPort->isPortPgConfigured()) {
+    return;
+  }
+  std::map<int16_t, int64_t> queueIdToWatermarkBytes;
+  std::map<int16_t, int64_t> queueIdToPGWatermarkBytes;
+  bcm_gport_t gport = bcmPort->getBcmGport();
+  uint32_t options = BCM_COSQ_STAT_CLEAR;
+  for (int16_t queue : kHfQueueIds) {
+    if (portStatsConfig.includePgWatermark().value() &&
+        portStatsConfig.includeQueueWatermark().value()) {
+      std::array<uint64_t, 2> value{};
+      auto rv = bcm_cosq_bst_stat_multi_get(
+          hw_->getUnit(),
+          gport,
+          queue,
+          options,
+          kHfBstStats.size(),
+          const_cast<bcm_bst_stat_id_t*>(kHfBstStats.data()),
+          value.data());
+      bcmCheckError(
+          rv, "Failed to get BST stat for port: ", portId, " cosq: ", queue);
+      queueIdToPGWatermarkBytes[queue] = value.at(1) * hw_->getMMUCellBytes();
+      queueIdToWatermarkBytes[queue] = value.at(0) * hw_->getMMUCellBytes();
+      stats.portStats()[bcmPort->getPortName()].pgSharedWatermarkBytes() =
+          queueIdToPGWatermarkBytes;
+      stats.portStats()[bcmPort->getPortName()].queueWatermarkBytes() =
+          queueIdToWatermarkBytes;
+    } else if (portStatsConfig.includePgWatermark().value()) {
+      uint64_t value;
+      auto rv = bcm_cosq_bst_stat_get(
+          hw_->getUnit(),
+          gport,
+          queue,
+          (bcm_bst_stat_id_t)bcmBstStatIdPriGroupShared,
+          options,
+          &value);
+      bcmCheckError(
+          rv,
+          "Failed to get PG shared watermark for port: ",
+          portId,
+          " cosq: ",
+          queue);
+      queueIdToPGWatermarkBytes[queue] = rv * hw_->getMMUCellBytes();
+      stats.portStats()[bcmPort->getPortName()].pgSharedWatermarkBytes() =
+          queueIdToPGWatermarkBytes;
+    } else if (portStatsConfig.includeQueueWatermark().value()) {
+      uint64_t value;
+      auto rv = bcm_cosq_bst_stat_get(
+          hw_->getUnit(),
+          gport,
+          queue,
+          (bcm_bst_stat_id_t)bcmBstStatIdUcast,
+          options,
+          &value);
+      bcmCheckError(
+          rv,
+          "Failed to get queue watermark for port: ",
+          portId,
+          " cosq: ",
+          queue);
+      queueIdToWatermarkBytes[queue] = rv * hw_->getMMUCellBytes();
+      stats.portStats()[bcmPort->getPortName()].queueWatermarkBytes() =
+          queueIdToWatermarkBytes;
+    }
+  }
 }
 
 } // namespace facebook::fboss
