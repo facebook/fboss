@@ -343,6 +343,22 @@ void BcmBstStatsMgr::populateHighFrequencyBstStats(
       break;
     }
   }
+  static std::map<int, bcm_port_t> itmToPortMap;
+  createItmToPortMap(itmToPortMap);
+  if (statsConfig.includeDeviceWatermark().value()) {
+    BcmCosManager* cosMgr = hw_->getCosMgr();
+    for (int itm : kHfItms) {
+      auto it = itmToPortMap.find(itm);
+      if (it == itmToPortMap.end()) {
+        XLOG(ERR) << "ITM" << itm << " not found in itmToPortMap";
+        continue;
+      }
+      stats.itmPoolSharedWatermarkBytes()[itm] =
+          cosMgr->statGetExtended(
+              itm, PortID(it->second), -1, bcmBstStatIdIngPool) *
+          hw_->getMMUCellBytes();
+    }
+  }
 }
 
 } // namespace facebook::fboss
