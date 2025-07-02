@@ -232,7 +232,7 @@ void PlatformProductInfo::initMode() {
       type_ = PlatformType::PLATFORM_WEDGE400C_VOQ;
     } else if (FLAGS_mode == "wedge400c_fabric") {
       type_ = PlatformType::PLATFORM_WEDGE400C_FABRIC;
-    } else if (FLAGS_mode == "montblanc") {
+    } else if (FLAGS_mode == "montblanc" || FLAGS_mode == "minipack3ba") {
       type_ = PlatformType::PLATFORM_MONTBLANC;
     } else if (FLAGS_mode == "fake_sai") {
       type_ = PlatformType::PLATFORM_FAKE_SAI;

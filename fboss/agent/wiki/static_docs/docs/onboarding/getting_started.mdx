@@ -1,0 +1,123 @@
+# Getting started with FBOSS
+
+This wiki provides quick list of commands/tips for someone new to FBOSS
+development (e.g. a bootcamper).
+
+# Reserving a switch
+
+We use the netcastle tool to reserve a switch for development. You can reserve a
+switch by going to the
+[netcastle UI](https://www.internalfb.com/intern/network/netcastle/).
+
+
+# To SSH to the switch:
+```bash
+sush2 --reason 'Development and testing' $TESTSWITCH
+```
+
+## FBOSS stack
+
+Devices in the fboss.autotest pool are reserved for on diff testing. You can
+still reserve a device here but it might slow down the diff testing process.
+
+Most of the lab devices do not have the "fboss stack." This means that all the
+30 services and daemons that are expected in our fleet are not running. This
+type of device just has linux installed and can be used to test a change to a
+single binary. We can test changes really quickly on a device like this. These
+devices also have no connections to other devices.
+
+For fboss2 CLI changes, we need to find a device that is running the fboss
+stack.
+
+You can also distinguish these device types by the device attribute,
+"running_fboss_stack."
+
+# Check Wedge Agent Status
+
+These commands should not prompt for a password. If you see a password prompt, consult someone from the FBOSS team.
+
+Log into your devserver, then SSH into the switch:
+```bash
+sush2 --reason 'Development access' $TESTSWITCH
+```
+
+From the switch, you can run commands such as:
+```bash
+
+# Display information about FBOSS wedge agent
+systemctl status wedge_agent
+
+# Note "SDK Version" e.g. 6.5.16
+
+cat /proc/linux-user-bde
+
+fboss agent version
+```
+
+# Using Configerator
+
+Log into your devserver.
+
+Clone configerator:
+```bash
+fbclone configerator
+cd configerator/
+```
+
+Build the project:
+```bash
+arc build
+```
+
+Deploy the built binary to a single targeted switch:
+```bash
+arc canary $TESTSWITCH
+```
+
+If you see the following error message, you need to navigate into the `configerator` repository to be able to use the `canary` command.
+```
+Usage Exception: Unknown command 'canary'. Try 'arc help'.
+```
+
+
+# Devserver vs on demand
+
+Dev servers are the preferred way for development because they have much more
+resources to support the large builds that we have. You can reserve a dev server
+[here](https://www.internalfb.com/devservers/)
+
+# Building fboss2 changes
+
+```
+buck2 build fbcode//fboss/cli/fboss2:fboss2 --show-output
+```
+
+# Testing fboss2 cli changes
+You can use the binary that was generated from the previous build command like this. You do not need to ship the binary and then test it on the box.
+
+```
+
+./buck-out/v2/gen/fbcode/f5ebbc4543b308cd/fboss/cli/fboss2/__fboss2__/fboss2 -H $switch show route details
+
+```
+
+# Checking out fboss code
+
+```
+fbclone fbcode
+cd ~/fbsource/fbcode/fboss/
+```
+
+# Building and deploying a the fboss_sw_agent
+
+```
+fboss-dev-helper --notify dev fboss_sw_agent $testSwitch
+```
+# Building and deploying hw wedge_agent
+## Find out the sdk version supported by the ASIC
+
+This file shows us which SDK is supported on each ASIC: fbcode/fboss/build/sdk.bzl
+
+```
+fboss-dev-helper --notify dev fboss_hw_agent-brcm-10.2.0.0_odp $testSwitch
+```

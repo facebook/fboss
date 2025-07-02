@@ -3070,9 +3070,17 @@ cfg::PortProfileID BcmPort::getCurrentProfile() const {
 }
 
 bool BcmPort::isPortPgConfigured() const {
-  return (
-      hw_->getPlatform()->getAsic()->isSupported(HwAsic::Feature::PFC) &&
-      (*programmedSettings_.rlock())->getPortPgConfigs());
+  if (!hw_->getPlatform()->getAsic()->isSupported(HwAsic::Feature::PFC)) {
+    return false;
+  }
+
+  auto settings = programmedSettings_.rlock();
+  if (*settings == nullptr) {
+    // Port settings haven't been programmed yet
+    return false;
+  }
+
+  return static_cast<bool>((*settings)->getPortPgConfigs());
 }
 
 PortPgConfigs BcmPort::getCurrentProgrammedPgSettings() const {
