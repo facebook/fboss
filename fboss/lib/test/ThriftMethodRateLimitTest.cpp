@@ -56,10 +56,10 @@ TEST_F(ThriftMethodRateLimitTest, RateLimitPreprocessFuncTest) {
       {"method1", 1}, // Set a very low limit for testing
   };
 
-  auto rateLimiter = std::make_unique<ThriftMethodRateLimit>(methodLimits);
+  auto rateLimiter = std::make_shared<ThriftMethodRateLimit>(methodLimits);
   auto preprocessFunc =
       ThriftMethodRateLimit::getThriftMethodRateLimitPreprocessFunc(
-          std::move(rateLimiter));
+          rateLimiter);
 
   // Create test params
   apache::thrift::transport::THeader::StringToStringMap headers;
@@ -71,10 +71,14 @@ TEST_F(ThriftMethodRateLimitTest, RateLimitPreprocessFuncTest) {
   // First call should succeed
   auto result1 = preprocessFunc(params);
   EXPECT_TRUE(std::holds_alternative<std::monostate>(result1));
+  EXPECT_EQ(rateLimiter->getDenyCounter(methodName), 0);
+  EXPECT_EQ(rateLimiter->getAggDenyCounter(), 0);
 
   // Subsequent calls should be rate limited and throw an exception
   auto result2 = preprocessFunc(params);
   EXPECT_FALSE(std::holds_alternative<std::monostate>(result2));
+  EXPECT_EQ(rateLimiter->getDenyCounter(methodName), 1);
+  EXPECT_EQ(rateLimiter->getAggDenyCounter(), 1);
 
   // Test with unknown method (should be allowed)
   apache::thrift::transport::THeader::StringToStringMap headers2;
@@ -83,6 +87,8 @@ TEST_F(ThriftMethodRateLimitTest, RateLimitPreprocessFuncTest) {
       headers2, unknownMethod, connContext);
   auto result3 = preprocessFunc(params2);
   EXPECT_TRUE(std::holds_alternative<std::monostate>(result3));
+  EXPECT_EQ(rateLimiter->getDenyCounter(unknownMethod), 0);
+  EXPECT_EQ(rateLimiter->getAggDenyCounter(), 1);
 }
 
 TEST_F(ThriftMethodRateLimitTest, MultipleMethodsTest) {
@@ -91,10 +97,10 @@ TEST_F(ThriftMethodRateLimitTest, MultipleMethodsTest) {
       {"method2", 10},
   };
 
-  auto rateLimiter = std::make_unique<ThriftMethodRateLimit>(methodLimits);
+  auto rateLimiter = std::make_shared<ThriftMethodRateLimit>(methodLimits);
   auto preprocessFunc =
       ThriftMethodRateLimit::getThriftMethodRateLimitPreprocessFunc(
-          std::move(rateLimiter));
+          rateLimiter);
 
   // Test method1 with limit of 5
   apache::thrift::transport::THeader::StringToStringMap headers1;
@@ -108,6 +114,8 @@ TEST_F(ThriftMethodRateLimitTest, MultipleMethodsTest) {
     auto result = preprocessFunc(params1);
     EXPECT_TRUE(std::holds_alternative<std::monostate>(result));
   }
+  EXPECT_EQ(rateLimiter->getDenyCounter(methodName1), 0);
+  EXPECT_EQ(rateLimiter->getAggDenyCounter(), 0);
 
   // Test method2 with limit of 10
   apache::thrift::transport::THeader::StringToStringMap headers2;
@@ -121,6 +129,8 @@ TEST_F(ThriftMethodRateLimitTest, MultipleMethodsTest) {
     auto result = preprocessFunc(params2);
     EXPECT_TRUE(std::holds_alternative<std::monostate>(result));
   }
+  EXPECT_EQ(rateLimiter->getDenyCounter(methodName2), 0);
+  EXPECT_EQ(rateLimiter->getAggDenyCounter(), 0);
 
   // Verify that limits are separate for different methods
   // Call method1 again - should still be allowed since we're testing different
@@ -130,10 +140,16 @@ TEST_F(ThriftMethodRateLimitTest, MultipleMethodsTest) {
   EXPECT_TRUE(std::holds_alternative<std::monostate>(result1));
   auto result2 = preprocessFunc(params2);
   EXPECT_TRUE(std::holds_alternative<std::monostate>(result2));
+  EXPECT_EQ(rateLimiter->getDenyCounter(methodName1), 0);
+  EXPECT_EQ(rateLimiter->getDenyCounter(methodName1), 0);
+  EXPECT_EQ(rateLimiter->getAggDenyCounter(), 0);
 
   // Now both thrift calls should got rate limit exception
   auto result3 = preprocessFunc(params1);
   EXPECT_FALSE(std::holds_alternative<std::monostate>(result3));
   auto result4 = preprocessFunc(params2);
   EXPECT_FALSE(std::holds_alternative<std::monostate>(result4));
+  EXPECT_EQ(rateLimiter->getDenyCounter(methodName1), 1);
+  EXPECT_EQ(rateLimiter->getDenyCounter(methodName1), 1);
+  EXPECT_EQ(rateLimiter->getAggDenyCounter(), 2);
 }
