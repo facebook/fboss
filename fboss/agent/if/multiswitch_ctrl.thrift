@@ -110,6 +110,7 @@ struct HwSwitchStats {
   17: bool arsExhausted;
   18: hardware_stats.HwSwitchPipelineStats switchPipelineStats;
   19: map<i32, switch_config.PortState> sysPortShelState;
+  20: hardware_stats.HwSwitchTemperatureStats switchTemperatureStats;
 }
 
 service MultiSwitchCtrl {
