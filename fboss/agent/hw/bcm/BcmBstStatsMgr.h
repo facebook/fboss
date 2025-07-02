@@ -63,8 +63,13 @@ class BcmBstStatsMgr {
 
   void updateStats();
 
+  void populateHighFrequencyBstStats(
+      const HfStatsConfig& statsConfig,
+      HwHighFrequencyStats& stats) const;
+
  private:
   void syncStats() const;
+  void syncHighFrequencyStats() const;
   void getAndPublishDeviceWatermark();
   void publishDeviceWatermark(uint64_t peakBytes) const;
   void publishCpuQueueWatermark(int queue, uint64_t peakBytes) const;

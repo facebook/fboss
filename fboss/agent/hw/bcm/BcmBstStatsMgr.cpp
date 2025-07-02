@@ -61,6 +61,22 @@ void BcmBstStatsMgr::syncStats() const {
   }
 }
 
+void BcmBstStatsMgr::syncHighFrequencyStats() const {
+  auto rv = bcm_cosq_bst_stat_sync(
+      hw_->getUnit(), (bcm_bst_stat_id_t)bcmBstStatIdUcast);
+  bcmCheckError(rv, "Failed to sync bcmBstStatIdUcast stat");
+  if (!hw_->getPlatform()->getAsic()->isSupported(HwAsic::Feature::PFC)) {
+    return;
+  }
+  // All the below are PG related and available on platforms supporting PFC
+  rv = bcm_cosq_bst_stat_sync(
+      hw_->getUnit(), (bcm_bst_stat_id_t)bcmBstStatIdPriGroupShared);
+  bcmCheckError(rv, "Failed to sync bcmBstStatIdPriGroupShared stat");
+  rv = bcm_cosq_bst_stat_sync(
+      hw_->getUnit(), (bcm_bst_stat_id_t)bcmBstStatIdIngPool);
+  bcmCheckError(rv, "Failed to sync bcmBstStatIdIngPool stat");
+}
+
 void BcmBstStatsMgr::getAndPublishDeviceWatermark() {
   auto peakUsage = hw_->getCosMgr()->deviceStatGet(bcmBstStatIdDevice);
   auto peakBytes = peakUsage * hw_->getMMUCellBytes();
@@ -293,6 +309,38 @@ void BcmBstStatsMgr::populateHighFrequencyBstPortStats(
       queueIdToWatermarkBytes[queue] = rv * hw_->getMMUCellBytes();
       stats.portStats()[bcmPort->getPortName()].queueWatermarkBytes() =
           queueIdToWatermarkBytes;
+    }
+  }
+}
+
+void BcmBstStatsMgr::populateHighFrequencyBstStats(
+    const HfStatsConfig& statsConfig,
+    HwHighFrequencyStats& stats) const {
+  syncHighFrequencyStats();
+  switch (statsConfig.portStatsConfig()->getType()) {
+    case HfPortStatsConfig::Type::allPortsConfig: {
+      for (const auto& [portId, bcmPort] : *hw_->getPortTable()) {
+        populateHighFrequencyBstPortStats(
+            portId,
+            bcmPort,
+            statsConfig.portStatsConfig()->allPortsConfig().value(),
+            stats);
+      }
+      break;
+    }
+    case HfPortStatsConfig::Type::filterConfig: {
+      auto filterConfig = statsConfig.portStatsConfig()->filterConfig();
+      for (const auto& [portId, bcmPort] : *hw_->getPortTable()) {
+        auto it = filterConfig->find(bcmPort->getPortName());
+        if (it == filterConfig->end()) {
+          continue;
+        }
+        populateHighFrequencyBstPortStats(portId, bcmPort, it->second, stats);
+      }
+      break;
+    }
+    default: {
+      break;
     }
   }
 }
