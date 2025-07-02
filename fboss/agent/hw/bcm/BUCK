@@ -181,6 +181,7 @@ cpp_library(
         "//fboss/lib/phy:phy_utils",
         "//folly/container:enumerate",
         "//folly/container:f14_hash",
+        "//folly/executors:function_scheduler",
         "//folly/io/async:async_base",
     ],
     exported_external_deps = [
