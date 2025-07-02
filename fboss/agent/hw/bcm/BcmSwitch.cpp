@@ -93,6 +93,7 @@
 #include "fboss/agent/hw/bcm/PacketTraceUtils.h"
 #include "fboss/agent/hw/bcm/RxUtils.h"
 #include "fboss/agent/hw/bcm/gen-cpp2/packettrace_types.h"
+#include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/hw/mock/MockRxPacket.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/if/gen-cpp2/highfreq_types.h"
@@ -3192,6 +3193,14 @@ folly::F14FastMap<std::string, HwPortStats> BcmSwitch::getPortStats() const {
 
 TeFlowStats BcmSwitch::getTeFlowStats() const {
   return teFlowTable_->getFlowStats();
+}
+
+HwHighFrequencyStats BcmSwitch::getHighFrequencyStats() {
+  HwHighFrequencyStats stats{};
+  stats.timestampUs() = std::chrono::duration_cast<std::chrono::microseconds>(
+                            std::chrono::steady_clock::now().time_since_epoch())
+                            .count();
+  return stats;
 }
 
 std::vector<EcmpDetails> BcmSwitch::getAllEcmpDetails() const {

@@ -26,6 +26,7 @@
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmRxPacket.h"
 #include "fboss/agent/hw/bcm/types.h"
+#include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/if/gen-cpp2/highfreq_types.h"
 #include "fboss/agent/state/FlowletSwitchingConfig.h"
 #include "fboss/agent/types.h"
@@ -1167,6 +1168,8 @@ class BcmSwitch : public BcmSwitchIf {
 
   void processDefaultAclgroupForUdf(std::set<bcm_udf_id_t>& udfAclIds);
   void initialStateApplied() override;
+
+  HwHighFrequencyStats getHighFrequencyStats();
 
   /*
    * Member variables
