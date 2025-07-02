@@ -49,6 +49,7 @@
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_constants.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include "fboss/agent/if/gen-cpp2/highfreq_types.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortMap.h"
 #include "fboss/agent/state/PortQueue.h"
@@ -1605,6 +1606,21 @@ void BcmPort::updateStats() {
   }
 };
 
+void BcmPort::populateHighFrequencyPortStats(
+    const HfPortStatsCollectionConfig& portStatsConfig,
+    HwHighFrequencyPortStats& stats) const {
+  // If neither of the PFC stats are requested, return early.
+  if (!(portStatsConfig.includePfcTx().value() &&
+        portStatsConfig.includePfcRx().value())) {
+    return;
+  }
+  std::shared_ptr<Port> settings = getProgrammedSettings();
+  if (settings && settings->getPfc().has_value()) {
+    populateHighFrequencyPortPfcStats(
+        portStatsConfig, kHighFrequencyPfcPriorities, stats);
+  }
+}
+
 void BcmPort::updateFecStats(
     std::chrono::seconds now,
     HwPortStats& curPortStats) {
@@ -1785,6 +1801,27 @@ void BcmPort::updatePortPfcStats(
       statTypes,
       {&(*portStats.inDiscardsRaw_()), &(*portStats.inPfcCtrl_())},
       2);
+}
+
+void BcmPort::populateHighFrequencyPortPfcStats(
+    const HfPortStatsCollectionConfig& portStatsConfig,
+    std::span<const PfcPriority> pfcPriorities,
+    HwHighFrequencyPortStats& stats) const {
+  for (PfcPriority pfcPriority : pfcPriorities) {
+    if (portStatsConfig.includePfcRx().value() &&
+        portStatsConfig.includePfcTx().value()) {
+      std::vector<uint64_t> pfcStats = getMultiHighFrequencyStats(std::array{
+          kInPfcStats.at(pfcPriority), kOutPfcStats.at(pfcPriority)});
+      stats.pfcStats()[pfcPriority].inPfc() = pfcStats.at(0);
+      stats.pfcStats()[pfcPriority].outPfc() = pfcStats.at(1);
+    } else if (portStatsConfig.includePfcTx().value()) {
+      stats.pfcStats()[pfcPriority].inPfc() =
+          getHighFrequencyStat(kInPfcStats.at(pfcPriority));
+    } else if (portStatsConfig.includePfcRx().value()) {
+      stats.pfcStats()[pfcPriority].outPfc() =
+          getHighFrequencyStat(kOutPfcStats.at(pfcPriority));
+    }
+  }
 }
 
 void BcmPort::updateMultiStat(
