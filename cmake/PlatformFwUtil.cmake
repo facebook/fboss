@@ -11,8 +11,7 @@ add_fbthrift_cpp_library(
     reflection
 )
 
-add_executable(fw_util
-  fboss/platform/fw_util/fw_util.cpp
+add_library(fw_util_libs
   fboss/platform/fw_util/FwUtilImpl.cpp
   fboss/platform/fw_util/FwUtilVerify.cpp
   fboss/platform/fw_util/FwUtilRead.cpp
@@ -23,10 +22,9 @@ add_executable(fw_util
   fboss/platform/fw_util/FwUtilFlashrom.cpp
   fboss/platform/fw_util/fw_util_helpers.cpp
   fboss/platform/fw_util/FwUtilVersionHandler.cpp
-
 )
 
-target_link_libraries(fw_util
+target_link_libraries(fw_util_libs
   Folly::folly
   CLI11::CLI11
   platform_config_lib
@@ -34,6 +32,23 @@ target_link_libraries(fw_util
   platform_utils
   FBThrift::thriftcpp2
   fw_util_config-cpp2-types
+)
+
+add_executable(fw_util
+  fboss/platform/fw_util/fw_util.cpp
+)
+
+target_link_libraries(fw_util
+  fw_util_libs
+)
+
+add_executable(fw_util_hw_test
+  fboss/platform/fw_util/hw_test/FwUtilHwTest.cpp
+)
+
+target_link_libraries(fw_util_hw_test
+  fw_util_libs
+  ${LIBGMOCK_LIBRARIES}
 )
 
 install(TARGETS fw_util)
