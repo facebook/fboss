@@ -12,10 +12,12 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/assign.hpp>
 #include <boost/bimap.hpp>
-#include <algorithm>
 #include <array>
 #include <chrono>
 #include <map>
+#include <span>
+#include <utility>
+#include <vector>
 
 #include <fb303/ServiceData.h>
 #include <folly/Conv.h>
@@ -1847,6 +1849,34 @@ void BcmPort::updateStat(
   }
   stat->updateValue(now, value);
   *statVal = value;
+}
+
+int64_t BcmPort::getHighFrequencyStat(bcm_stat_val_t type) const {
+  uint64_t stat{0};
+  int ret = bcm_stat_sync_get(unit_, port_, type, &stat);
+  if (BCM_FAILURE(ret)) {
+    XLOG(ERR) << "Failed to get stat " << type << " for port " << port_ << " :"
+              << bcm_errmsg(ret);
+    return -1;
+  }
+  return stat;
+}
+
+std::vector<uint64_t> BcmPort::getMultiHighFrequencyStats(
+    std::span<const bcm_stat_val_t> types) const {
+  std::vector<uint64_t> stats(types.size());
+  int ret = bcm_stat_sync_multi_get(
+      unit_,
+      port_,
+      static_cast<int>(types.size()),
+      const_cast<bcm_stat_val_t*>(types.data()),
+      stats.data());
+  if (BCM_FAILURE(ret)) {
+    XLOG(ERR) << "Failed to get multi stats for port " << port_ << " :"
+              << bcm_errmsg(ret);
+    return {};
+  }
+  return stats;
 }
 
 void BcmPort::updateInCongestionDiscardStats(

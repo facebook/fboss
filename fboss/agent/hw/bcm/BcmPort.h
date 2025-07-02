@@ -29,8 +29,11 @@ extern "C" {
 
 #include <folly/Range.h>
 #include <folly/Synchronized.h>
+#include <cstdint>
 #include <mutex>
+#include <span>
 #include <utility>
+#include <vector>
 
 namespace facebook::fboss {
 
@@ -155,6 +158,10 @@ class BcmPort {
   void updateStats();
   std::optional<HwPortStats> getPortStats() const;
   std::chrono::seconds getTimeRetrieved() const;
+
+  int64_t getHighFrequencyStat(bcm_stat_val_t type) const;
+  std::vector<uint64_t> getMultiHighFrequencyStats(
+      std::span<const bcm_stat_val_t> types) const;
 
   /**
    * Take actions on this port (especially if it is up), so that it will not
