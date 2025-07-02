@@ -53,8 +53,14 @@ uint8_t kIcpDscp() {
       .front();
 }
 
+uint8_t kNcnfDscp() {
+  return utility::kOlympicV2QueueToDscp()
+      .at(utility::getOlympicV2QueueId(utility::OlympicV2QueueType::NCNF))
+      .front();
+}
+
 std::string
-getDscpAclName(IP_PROTO proto, std::string direction, uint32_t port) {
+getDscpAclName(IP_PROTO proto, const std::string& direction, uint32_t port) {
   return folly::to<std::string>(
       "dscp-mark-for-proto-",
       static_cast<int>(proto),
@@ -62,6 +68,10 @@ getDscpAclName(IP_PROTO proto, std::string direction, uint32_t port) {
       direction,
       "-port-",
       port);
+}
+
+std::string getDscpReclassificationAclName() {
+  return "dscp_reclassification";
 }
 
 void addDscpMarkingAclsHelper(
@@ -93,6 +103,22 @@ void addDscpMarkingAclsHelper(
         utility::getOlympicQueueId(utility::OlympicQueueType::ICP),
         isSai);
   }
+}
+
+void addDscpReclassificationAcls(
+    const HwAsic* hwAsic,
+    cfg::SwitchConfig* config,
+    const PortID& portId) {
+  auto acl = cfg::AclEntry();
+  acl.srcPort() = portId;
+  acl.dscp() = kNcnfDscp();
+  acl.name() = getDscpReclassificationAclName();
+
+  // To overcome DNX crash, add etherType to ACL
+  utility::addEtherTypeToAcl(hwAsic, &acl, cfg::EtherType::IPv6);
+  utility::addAclEntry(config, acl, utility::kDefaultAclTable());
+  utility::addSetDscpActionToCfg(
+      config, getDscpReclassificationAclName(), kIcpDscp());
 }
 
 void addDscpMarkingAcls(
