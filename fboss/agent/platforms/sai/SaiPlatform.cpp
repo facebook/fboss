@@ -917,6 +917,8 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       std::nullopt, // tc rate limit list
       pfcWatchdogTimerGranularityMap, // PFC watchdog timer granularity
       std::nullopt, // disable sll and hll timeout
+      std::nullopt, // credit request profile scheduler mode
+      std::nullopt, // module id to credit request profile param list
   };
 }
 
