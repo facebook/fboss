@@ -12,9 +12,6 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
-#include "fboss/agent/hw/sai/api/SaiVersion.h"
-
-#include <folly/Format.h>
 
 extern "C" {
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
