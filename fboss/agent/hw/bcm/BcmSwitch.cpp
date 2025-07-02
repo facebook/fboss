@@ -11,6 +11,7 @@
 
 #include <fstream>
 #include <map>
+#include <mutex>
 #include <optional>
 #include <unordered_set>
 #include <utility>
@@ -4333,12 +4334,49 @@ HwResourceStats BcmSwitch::getResourceStats() const {
   return bcmStatUpdater_->getHwTableStats();
 }
 
+void BcmSwitch::collectHighFrequencyStats() {
+  auto endTime = std::chrono::steady_clock::now() +
+      std::chrono::microseconds(highFreqStatsThreadConfig_.schedulerConfig()
+                                    ->statsCollectionDurationInMicroseconds()
+                                    .value());
+  while (std::chrono::steady_clock::now() < endTime) {
+    HwHighFrequencyStats stats = getHighFrequencyStats();
+    std::this_thread::sleep_for(
+        std::chrono::microseconds(highFreqStatsThreadConfig_.schedulerConfig()
+                                      ->statsWaitDurationInMicroseconds()
+                                      .value()));
+  }
+}
+
+void BcmSwitch::updateHighFrequencyStatsThreadConfig(
+    const HighFrequencyStatsCollectionConfig& config) {
+  highFreqStatsThreadConfig_ = config;
+  auto schedulerConfig = highFreqStatsThreadConfig_.schedulerConfig();
+  if (schedulerConfig->statsWaitDurationInMicroseconds().value() <
+      kHfMinWaitDurationUs_) {
+    schedulerConfig->statsWaitDurationInMicroseconds() = kHfMinWaitDurationUs_;
+  }
+  if (schedulerConfig->statsCollectionDurationInMicroseconds().value() >
+      kHfMaxCollectionDurationUs_) {
+    schedulerConfig->statsCollectionDurationInMicroseconds() =
+        kHfMaxCollectionDurationUs_;
+  }
+}
+
 void BcmSwitch::startHighFrequencyStatsThread(
     const HighFrequencyStatsCollectionConfig& config) {
+  std::lock_guard<std::mutex> lock(lock_);
+  updateHighFrequencyStatsThreadConfig(config);
+  highFreqStatsThread_->cancelFunctionAndWait(kHighFreqStatsFunctionName_);
+  // Use addFunctionOnce instead of using periodic function scheduling to allow
+  // for the thread to terminate after collection duration.
+  highFreqStatsThread_->addFunctionOnce(
+      [&]() { collectHighFrequencyStats(); }, kHighFreqStatsFunctionName_);
   highFreqStatsThread_->start();
 }
 
 void BcmSwitch::stopHighFrequencyStatsThread() {
+  std::lock_guard<std::mutex> lock(lock_);
   highFreqStatsThread_->shutdown();
 }
 
