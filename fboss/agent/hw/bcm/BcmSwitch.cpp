@@ -3279,6 +3279,10 @@ HwSwitchPipelineStats BcmSwitch::getSwitchPipelineStats() const {
   return HwSwitchPipelineStats{};
 }
 
+HwSwitchTemperatureStats BcmSwitch::getSwitchTemperatureStats() const {
+  return HwSwitchTemperatureStats{};
+}
+
 bcm_if_t BcmSwitch::getDropEgressId() const {
   return platform_->getAsic()->getDefaultDropEgressID();
 }
