@@ -118,6 +118,7 @@ common_deps = [
     ":packettrace-cpp2-types",
     "//fboss/agent/if:ctrl-cpp2-types",
     "//fboss/agent/if:sflow-cpp2-types",
+    "//fboss/agent/if:highfreq-cpp2-types",
     "//fboss/lib:ref_map",
     "//common/stats:monotonic_counter",
     "//fboss/agent/hw:hardware_stats-cpp2-types",
