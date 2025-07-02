@@ -9,9 +9,16 @@
  */
 #pragma once
 
+#include <memory>
+#include <mutex>
+#include <optional>
+#include <thread>
+
+#include <boost/container/flat_map.hpp>
+#include <folly/executors/FunctionScheduler.h>
 #include <folly/json/dynamic.h>
 #include <gtest/gtest_prod.h>
-#include <optional>
+
 #include "fboss/agent/FbossEventBase.h"
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/L2Entry.h"
@@ -19,14 +26,10 @@
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmRxPacket.h"
 #include "fboss/agent/hw/bcm/types.h"
+#include "fboss/agent/if/gen-cpp2/highfreq_types.h"
 #include "fboss/agent/state/FlowletSwitchingConfig.h"
 #include "fboss/agent/types.h"
 #include "fboss/lib/phy/gen-cpp2/prbs_types.h"
-
-#include <boost/container/flat_map.hpp>
-#include <memory>
-#include <mutex>
-#include <thread>
 
 extern "C" {
 #include <bcm/cosq.h>
@@ -667,6 +670,10 @@ class BcmSwitch : public BcmSwitchIf {
     return {};
   }
 
+  void startHighFrequencyStatsThread(
+      const HighFrequencyStatsCollectionConfig& config);
+  void stopHighFrequencyStatsThread();
+
  private:
   enum Flags : uint32_t {
     RX_REGISTERED = 0x01,
@@ -1217,6 +1224,10 @@ class BcmSwitch : public BcmSwitchIf {
   std::unique_ptr<UnsupportedFeatureManager> sysPortMgr_;
   std::unique_ptr<UnsupportedFeatureManager> remoteRifMgr_;
   std::unique_ptr<BcmUdfManager> udfManager_;
+
+  static constexpr std::string_view kHighFreqStatsThreadName_{
+      "HighFrequencyStatsThread"};
+  std::unique_ptr<folly::FunctionScheduler> highFreqStatsThread_;
   /*
    * Lock to synchronize access to all BCM* data structures
    */

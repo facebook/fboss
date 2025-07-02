@@ -9,14 +9,14 @@
  */
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 
-#include <boost/cast.hpp>
-#include <boost/filesystem/operations.hpp>
 #include <fstream>
 #include <map>
 #include <optional>
 #include <unordered_set>
 #include <utility>
 
+#include <boost/cast.hpp>
+#include <boost/filesystem/operations.hpp>
 #include <folly/Conv.h>
 #include <folly/FileUtil.h>
 #include <folly/Memory.h>
@@ -27,6 +27,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/LacpTypes.h"
+#include "fboss/agent/LoadBalancerUtils.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/Utils.h"
@@ -51,6 +52,7 @@
 #include "fboss/agent/hw/bcm/BcmFieldProcessorUtils.h"
 #include "fboss/agent/hw/bcm/BcmHost.h"
 #include "fboss/agent/hw/bcm/BcmHostKey.h"
+#include "fboss/agent/hw/bcm/BcmHostUtils.h"
 #include "fboss/agent/hw/bcm/BcmIngressFieldProcessorFlexCounter.h"
 #include "fboss/agent/hw/bcm/BcmIntf.h"
 #include "fboss/agent/hw/bcm/BcmLabelMap.h"
@@ -93,6 +95,7 @@
 #include "fboss/agent/hw/bcm/gen-cpp2/packettrace_types.h"
 #include "fboss/agent/hw/mock/MockRxPacket.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include "fboss/agent/if/gen-cpp2/highfreq_types.h"
 #include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/ArpEntry.h"
@@ -105,29 +108,23 @@
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/LoadBalancer.h"
 #include "fboss/agent/state/LoadBalancerMap.h"
-#include "fboss/agent/state/UdfGroup.h"
-#include "fboss/agent/state/UdfPacketMatcher.h"
-
 #include "fboss/agent/state/NodeMapDelta.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortMap.h"
 #include "fboss/agent/state/Route.h"
-#include "fboss/agent/state/TeFlowEntry.h"
-#include "fboss/agent/state/TransceiverMap.h"
-
 #include "fboss/agent/state/SflowCollector.h"
 #include "fboss/agent/state/SflowCollectorMap.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState-defs.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/state/TeFlowEntry.h"
+#include "fboss/agent/state/TransceiverMap.h"
+#include "fboss/agent/state/UdfGroup.h"
+#include "fboss/agent/state/UdfPacketMatcher.h"
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/state/VlanMap.h"
 #include "fboss/agent/state/VlanMapDelta.h"
 #include "fboss/agent/types.h"
-
-#include "fboss/agent/hw/bcm/BcmHostUtils.h"
-
-#include "fboss/agent/LoadBalancerUtils.h"
 
 extern "C" {
 #include <bcm/link.h>
@@ -1002,6 +999,10 @@ HwInitResult BcmSwitch::initImpl(
   }
 
   macTable_ = std::make_unique<BcmMacTable>(this);
+
+  // Initialize the high frequency stats thread
+  highFreqStatsThread_ = std::make_unique<folly::FunctionScheduler>();
+  highFreqStatsThread_->setThreadName(kHighFreqStatsThreadName_);
 
   ret.bootTime =
       duration_cast<duration<float>>(steady_clock::now() - begin).count();
@@ -4317,6 +4318,15 @@ std::shared_ptr<SwitchState> BcmSwitch::reconstructSwitchState() const {
 
 HwResourceStats BcmSwitch::getResourceStats() const {
   return bcmStatUpdater_->getHwTableStats();
+}
+
+void BcmSwitch::startHighFrequencyStatsThread(
+    const HighFrequencyStatsCollectionConfig& config) {
+  highFreqStatsThread_->start();
+}
+
+void BcmSwitch::stopHighFrequencyStatsThread() {
+  highFreqStatsThread_->shutdown();
 }
 
 } // namespace facebook::fboss
