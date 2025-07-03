@@ -525,6 +525,9 @@ void AgentHwTest::checkStatsStabilize(
       // PhyInfo can be noisy and dependent on external
       // physical params. Don't compare these
       stats.phyInfo()->clear();
+      // temperature stats can be noisy
+      (*stats.switchTemperatureStats()).value().value().clear();
+      (*stats.switchTemperatureStats()).timeStamp().value().clear();
     }
   };
   auto timestampChanged = [](const auto& before, const auto& after) {

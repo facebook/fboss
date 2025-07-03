@@ -889,7 +889,9 @@ struct SaiSwitchTraits {
       std::optional<Attributes::FirmwareObjectList>,
       std::optional<Attributes::TcRateLimitList>,
       std::optional<Attributes::PfcTcDldTimerGranularityInterval>,
-      std::optional<Attributes::DisableSllAndHllTimeout>>;
+      std::optional<Attributes::DisableSllAndHllTimeout>,
+      std::optional<Attributes::CreditRequestProfileSchedulerMode>,
+      std::optional<Attributes::ModuleIdToCreditRequestProfileParamList>>;
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
   static constexpr std::array<sai_stat_id_t, 3> CounterIdsToRead = {

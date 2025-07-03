@@ -82,13 +82,15 @@ class FsdbPubSubManager {
       SubscriptionStateChangeCb subscriptionStateChangeCb,
       FsdbDeltaSubscriber::FsdbOperDeltaUpdateCb operDeltaCb,
       utils::ConnectionOptions&& connectionOptions =
-          kDefaultConnectionOptions());
+          kDefaultConnectionOptions(),
+      std::optional<FsdbStreamHeartbeatCb> heartbeatCb = std::nullopt);
   std::string addStatPathSubscription(
       const Path& subscribePath,
       SubscriptionStateChangeCb subscriptionStateChangeCb,
       FsdbStateSubscriber::FsdbOperStateUpdateCb operDeltaCb,
       utils::ConnectionOptions&& connectionOptions =
-          kDefaultConnectionOptions());
+          kDefaultConnectionOptions(),
+      std::optional<FsdbStreamHeartbeatCb> heartbeatCb = std::nullopt);
   /* multi path subscription */
   std::string addStateDeltaSubscription(
       const MultiPath& subscribePaths,
@@ -116,7 +118,8 @@ class FsdbPubSubManager {
       SubscriptionStateChangeCb subscriptionStateChangeCb,
       FsdbStateSubscriber::FsdbOperStateUpdateCb operStateCb,
       utils::ConnectionOptions&& connectionOptions =
-          kDefaultConnectionOptions());
+          kDefaultConnectionOptions(),
+      std::optional<FsdbStreamHeartbeatCb> heartbeatCb = std::nullopt);
   std::string addStatePathSubscription(
       const MultiPath& subscribePaths,
       SubscriptionStateChangeCb subscriptionStateChangeCb,
@@ -129,24 +132,28 @@ class FsdbPubSubManager {
       SubscriptionStateChangeCb stateChangeCb,
       FsdbDeltaSubscriber::FsdbOperDeltaUpdateCb operDeltaCb,
       utils::ConnectionOptions&& connectionOptions =
-          kDefaultConnectionOptions());
+          kDefaultConnectionOptions(),
+      std::optional<FsdbStreamHeartbeatCb> heartbeatCb = std::nullopt);
   std::string addStatePatchSubscription(
       const PatchPath& subscribePath,
       SubscriptionStateChangeCb stateChangeCb,
       FsdbPatchSubscriber::FsdbOperPatchUpdateCb patchCb,
-      utils::ConnectionOptions&& connectionOptions);
+      utils::ConnectionOptions&& connectionOptions,
+      std::optional<FsdbStreamHeartbeatCb> heartbeatCb = std::nullopt);
   std::string addStatePathSubscription(
       SubscriptionOptions&& subscriptionOptions,
       const Path& subscribePath,
       SubscriptionStateChangeCb stateChangeCb,
       FsdbStateSubscriber::FsdbOperStateUpdateCb operStateCb,
-      utils::ConnectionOptions&& connectionOptions);
+      utils::ConnectionOptions&& connectionOptions,
+      std::optional<FsdbStreamHeartbeatCb> heartbeatCb = std::nullopt);
   std::string addStatePathSubscription(
       SubscriptionOptions&& subscriptionOptions,
       const MultiPath& subscribePaths,
       SubscriptionStateChangeCb stateChangeCb,
       FsdbExtStateSubscriber::FsdbOperStateUpdateCb operStateCb,
-      utils::ConnectionOptions&& connectionOptions);
+      utils::ConnectionOptions&& connectionOptions,
+      std::optional<FsdbStreamHeartbeatCb> heartbeatCb = std::nullopt);
   std::string addStateExtPathSubscription(
       const std::vector<ExtendedOperPath>& subscribePaths,
       SubscriptionStateChangeCb stateChangeCb,
@@ -283,7 +290,8 @@ class FsdbPubSubManager {
       typename SubscriberT::FsdbSubUnitUpdateCb subUnitAvailableCb,
       bool subscribeStats,
       utils::ConnectionOptions&& connectionOptions,
-      const std::optional<std::string>& clientIdSuffix = std::nullopt);
+      const std::optional<std::string>& clientIdSuffix = std::nullopt,
+      const std::optional<FsdbStreamHeartbeatCb>& heartbeatCb = std::nullopt);
   template <typename SubscriberT, typename PathElement>
   std::string addSubscriptionImpl(
       const std::map<SubscriptionKey, PathElement>& subscribePath,
@@ -291,14 +299,16 @@ class FsdbPubSubManager {
       typename SubscriberT::FsdbSubUnitUpdateCb subUnitAvailableCb,
       bool subscribeStats,
       utils::ConnectionOptions&& connectionOptions,
-      const std::optional<std::string>& clientIdSuffix = std::nullopt);
+      const std::optional<std::string>& clientIdSuffix = std::nullopt,
+      const std::optional<FsdbStreamHeartbeatCb>& heartbeatCb = std::nullopt);
   template <typename SubscriberT, typename PathElement>
   std::string addSubscriptionImpl(
       SubscriptionOptions&& subscriptionOptions,
       const std::vector<PathElement>& subscribePath,
       SubscriptionStateChangeCb stateChangeCb,
       typename SubscriberT::FsdbSubUnitUpdateCb subUnitAvailableCb,
-      utils::ConnectionOptions&& connectionOptions);
+      utils::ConnectionOptions&& connectionOptions,
+      const std::optional<FsdbStreamHeartbeatCb>& heartbeatCb = std::nullopt);
 
   const std::string clientId_;
 

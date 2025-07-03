@@ -6,6 +6,7 @@ namespace py.asyncio neteng.fboss.asyncio.hardware_stats
 namespace php fboss_hw
 
 include "fboss/mka_service/if/mka_structs.thrift"
+include "thrift/annotation/cpp.thrift"
 
 const i64 STAT_UNINITIALIZED = -1;
 
@@ -448,4 +449,22 @@ struct HwFlowletStats {
 
 struct AclStats {
   1: map<string, i64> statNameToCounterMap;
+}
+
+struct HwHighFrequencyPfcStats {
+  1: optional i64 inPfc;
+  2: optional i64 outPfc;
+}
+
+struct HwHighFrequencyPortStats {
+  1: map<i16, HwHighFrequencyPfcStats> pfcStats = {};
+  3: map<i16, i64> queueWatermarkBytes = {};
+  4: map<i16, i64> pgSharedWatermarkBytes = {};
+}
+
+struct HwHighFrequencyStats {
+  1: i64 timestampUs = STAT_UNINITIALIZED;
+  @cpp.Type{template = "folly::F14FastMap"}
+  2: map<string, HwHighFrequencyPortStats> portStats;
+  3: map<i16, i64> itmPoolSharedWatermarkBytes = {};
 }

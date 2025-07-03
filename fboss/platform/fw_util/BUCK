@@ -10,6 +10,7 @@ cpp_binary(
     deps = [
         ":core",
         "//fboss/platform/helpers:init_cli",
+        "//folly/logging:file_handler_factory",
         "//folly/logging:init",
         "//folly/logging:logging",
     ],

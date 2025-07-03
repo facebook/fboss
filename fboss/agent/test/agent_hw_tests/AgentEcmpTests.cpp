@@ -312,6 +312,7 @@ TEST_F(AgentEcmpTest, L2UnresolvedNhopsECMPInHWEmpty) {
 class AgentWideEcmpTest : public AgentEcmpTest {
   void setCmdLineFlagOverrides() const override {
     FLAGS_ecmp_width = 512;
+    FLAGS_wide_ecmp = true;
     AgentHwTest::setCmdLineFlagOverrides();
   }
   std::vector<ProductionFeature> getProductionFeaturesVerified()
@@ -351,6 +352,7 @@ TEST_F(AgentWideEcmpTest, WideUcmpUnderflow) {
 
 class Agent256WideEcmpTest : public AgentWideEcmpTest {
   void setCmdLineFlagOverrides() const override {
+    FLAGS_wide_ecmp = true;
     FLAGS_ecmp_width = 256;
     AgentHwTest::setCmdLineFlagOverrides();
   }

@@ -766,23 +766,47 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
     maxSystemPorts = 22136;
     maxVoqs = 65284;
   } else if (FLAGS_dsf_single_stage_r192_f40_e32) {
-    // Total System Ports required:
-    //  = System Ports required for RDSW + System Ports required for EDSW
-    //  = 192 RDSWs x System Ports per RDSW + 32 EDSWs x System Port per EDSW
-    //  = 192 x (36 x 400G GPU facing ports, 1x100G mgmt port, 1x100G RCY port)
-    //  + 32 x (16 x 800G, 1x100G mgmt port, 1x100G RCY
-    //  = 192 x 38 + 32 x 18 = 7872
+    // Total System Ports in the cluster
+    // =================================
     //
-    // From the numbering standpoint,
-    //  - 1 CPU, 4 RCY, 1 eventor, 160 Fabric link monitoring + 16 hyper ports
-    //   = 182 Local ports.
-    // If we start allocating the global system ports after local system ports,
-    // and say with a buffer of 3 i.e. at 182 + 3 = 185.
-    // maxSystemPortID = 185 + 7872 = 8057
-    maxSystemPortId = 8056;
+    // 1 Global recycle port
+    // 1 Management port
+    // RDSW: 36 x 400G NIF ports. Thus, 1 + 1 + 36 = 38 ports.
+    // EDSW: 18 x 800G NIF ports. Thus, 1 + 1 + 18 = 20 ports.
+    //
+    // 4 CPU (1 per core) + 4 Recycle (1 per core) + 1 eventor +
+    // 160 Fabric link monitoring + 16 hyerports = 185
+    // Thus, Max local system PortID (starting 0) = 184.
+    //
+    // Max System Ports = 185 + (38 x 192) + (20 x 32) = 8121.
+    //
+    // System Port ID assignment
+    // =========================
+    //   Local Ports
+    //   -----------
+    //      [0-3]: CPU ports
+    //      [4-7]: Recycle ports
+    //          8: Eventor port
+    //    [9-168]: 160 Fabric link monitoring ports (in the future)
+    //  [169-184]: 16 Hyper ports (in the future)
+    //
+    //   The above assignment is same for ALL the RDSWs, EDSWs.
+    //
+    //   Global Ports for RDSW 1, base offset 184
+    //   ----------------------------------------
+    //        185: Recycle port for inband
+    //        186: Management port
+    //  [187-222]: One for each of the 36 x 400G NIF ports
+    //
+    //   Global Ports for EDSW 1, base offset 7480
+    //   -----------------------------------------
+    //        7481: Recycle port for inband
+    //        7482: Management port
+    //  [7483-7500: One for each of the 16 x 800G NIF ports
+    maxSystemPortId = 8120;
     maxLocalSystemPortId = 184;
-    maxSystemPorts = 8057;
-    maxVoqs = 8057 * 8;
+    maxSystemPorts = 8121;
+    maxVoqs = 8121 * 8;
   } else {
     maxSystemPortId = 6143;
     maxLocalSystemPortId = -1;
@@ -920,6 +944,8 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       std::nullopt, // tc rate limit list
       pfcWatchdogTimerGranularityMap, // PFC watchdog timer granularity
       std::nullopt, // disable sll and hll timeout
+      std::nullopt, // credit request profile scheduler mode
+      std::nullopt, // module id to credit request profile param list
   };
 }
 

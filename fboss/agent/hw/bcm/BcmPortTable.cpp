@@ -9,6 +9,8 @@
  */
 #include "fboss/agent/hw/bcm/BcmPortTable.h"
 
+#include <string>
+
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
@@ -16,9 +18,11 @@
 #include "fboss/agent/hw/bcm/BcmPort.h"
 #include "fboss/agent/hw/bcm/BcmPortGroup.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
+#include "fboss/agent/if/gen-cpp2/highfreq_types.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 
 #include <folly/Memory.h>
+#include <folly/container/F14Map.h>
 #include <folly/logging/xlog.h>
 
 extern "C" {
@@ -154,6 +158,37 @@ void BcmPortTable::updatePortStats() {
   for (const auto& entry : bcmPhysicalPorts_) {
     BcmPort* bcmPort = entry.second.get();
     bcmPort->updateStats();
+  }
+}
+
+void BcmPortTable::populateHighFrequencyPortStats(
+    const HfPortStatsConfig& portStatsConfig,
+    folly::F14FastMap<std::string, HwHighFrequencyPortStats>& portStatsMap)
+    const {
+  switch (portStatsConfig.getType()) {
+    case HfPortStatsConfig::Type::allPortsConfig: {
+      for (const auto& [_, bcmPort] : bcmPhysicalPorts_) {
+        bcmPort->populateHighFrequencyPortStats(
+            portStatsConfig.allPortsConfig().value(),
+            portStatsMap[bcmPort->getPortName()]);
+      }
+      break;
+    }
+    case HfPortStatsConfig::Type::filterConfig: {
+      for (const auto& [_, bcmPort] : bcmPhysicalPorts_) {
+        auto portFilterConfig = portStatsConfig.filterConfig();
+        auto it = portFilterConfig->find(bcmPort->getPortName());
+        if (it == portFilterConfig->end()) {
+          continue;
+        }
+        bcmPort->populateHighFrequencyPortStats(
+            it->second, portStatsMap[bcmPort->getPortName()]);
+      }
+      break;
+    }
+    default: {
+      break;
+    }
   }
 }
 

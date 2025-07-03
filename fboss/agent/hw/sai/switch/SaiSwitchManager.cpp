@@ -1503,13 +1503,41 @@ void SaiSwitchManager::setPfcWatchdogTimerGranularity(
 
 void SaiSwitchManager::setCreditRequestProfileSchedulerMode(
     cfg::QueueScheduling scheduling) {
-  // TODO(daiweix): program scheduler mode through sai api
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  sai_scheduling_type_t type;
+  if (scheduling == cfg::QueueScheduling::STRICT_PRIORITY) {
+    type = SAI_SCHEDULING_TYPE_STRICT;
+  } else if (scheduling == cfg::QueueScheduling::DEFICIT_ROUND_ROBIN) {
+    type = SAI_SCHEDULING_TYPE_DWRR;
+  }
+  // TODO(daiweix): properly disable the feature from SP or WRR back to INTERNAL
+  if (scheduling != cfg::QueueScheduling::INTERNAL) {
+    switch_->setOptionalAttribute(
+        SaiSwitchTraits::Attributes::CreditRequestProfileSchedulerMode{type});
+  }
+#endif
 }
 
 void SaiSwitchManager::setModuleIdToCreditRequestProfileParam(
     const std::optional<std::map<int32_t, int32_t>>&
         moduleIdToCreditRequestProfileParam) {
-  // TODO(daiweix): program scheduler parameter through sai api
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  std::vector<sai_map_t> mapToValueList;
+  if (moduleIdToCreditRequestProfileParam) {
+    for (const auto& [moduleId, param] : *moduleIdToCreditRequestProfileParam) {
+      sai_map_t mapping{};
+      mapping.key = moduleId;
+      mapping.value = param;
+      mapToValueList.push_back(mapping);
+    }
+  }
+  // TODO(daiweix): properly disable the feature from SP or WRR back to INTERNAL
+  if (!mapToValueList.empty()) {
+    switch_->setOptionalAttribute(
+        SaiSwitchTraits::Attributes::ModuleIdToCreditRequestProfileParamList{
+            mapToValueList});
+  }
+#endif
 }
 
 } // namespace facebook::fboss

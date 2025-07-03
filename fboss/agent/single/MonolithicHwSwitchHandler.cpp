@@ -100,6 +100,10 @@ HwSwitchPipelineStats MonolithicHwSwitchHandler::getSwitchPipelineStats()
     const {
   return hw_->getSwitchPipelineStats();
 }
+HwSwitchTemperatureStats MonolithicHwSwitchHandler::getSwitchTemperatureStats()
+    const {
+  return hw_->getSwitchTemperatureStats();
+}
 
 void MonolithicHwSwitchHandler::updateAllPhyInfo() {
   hw_->updateAllPhyInfo();
@@ -251,6 +255,8 @@ void MonolithicHwSwitchHandler::getHwStats(
   hwStats.fabricReachabilityStats() = getFabricReachabilityStats();
   hwStats.switchWatermarkStats() = getSwitchWatermarkStats();
   hwStats.switchPipelineStats() = getSwitchPipelineStats();
+  hwStats.switchTemperatureStats() = getSwitchTemperatureStats();
+
   if (auto hwSwitchStats = getSwitchStats()) {
     hwStats.hwAsicErrors() = hwSwitchStats->getHwAsicErrors();
   }

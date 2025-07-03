@@ -12,10 +12,12 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/assign.hpp>
 #include <boost/bimap.hpp>
-#include <algorithm>
 #include <array>
 #include <chrono>
 #include <map>
+#include <span>
+#include <utility>
+#include <vector>
 
 #include <fb303/ServiceData.h>
 #include <folly/Conv.h>
@@ -47,6 +49,7 @@
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_constants.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include "fboss/agent/if/gen-cpp2/highfreq_types.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortMap.h"
 #include "fboss/agent/state/PortQueue.h"
@@ -1603,6 +1606,21 @@ void BcmPort::updateStats() {
   }
 };
 
+void BcmPort::populateHighFrequencyPortStats(
+    const HfPortStatsCollectionConfig& portStatsConfig,
+    HwHighFrequencyPortStats& stats) const {
+  // If neither of the PFC stats are requested, return early.
+  if (!(portStatsConfig.includePfcTx().value() &&
+        portStatsConfig.includePfcRx().value())) {
+    return;
+  }
+  std::shared_ptr<Port> settings = getProgrammedSettings();
+  if (settings && settings->getPfc().has_value()) {
+    populateHighFrequencyPortPfcStats(
+        portStatsConfig, kHighFrequencyPfcPriorities, stats);
+  }
+}
+
 void BcmPort::updateFecStats(
     std::chrono::seconds now,
     HwPortStats& curPortStats) {
@@ -1785,6 +1803,27 @@ void BcmPort::updatePortPfcStats(
       2);
 }
 
+void BcmPort::populateHighFrequencyPortPfcStats(
+    const HfPortStatsCollectionConfig& portStatsConfig,
+    std::span<const PfcPriority> pfcPriorities,
+    HwHighFrequencyPortStats& stats) const {
+  for (PfcPriority pfcPriority : pfcPriorities) {
+    if (portStatsConfig.includePfcRx().value() &&
+        portStatsConfig.includePfcTx().value()) {
+      std::vector<uint64_t> pfcStats = getMultiHighFrequencyStats(std::array{
+          kInPfcStats.at(pfcPriority), kOutPfcStats.at(pfcPriority)});
+      stats.pfcStats()[pfcPriority].inPfc() = pfcStats.at(0);
+      stats.pfcStats()[pfcPriority].outPfc() = pfcStats.at(1);
+    } else if (portStatsConfig.includePfcTx().value()) {
+      stats.pfcStats()[pfcPriority].inPfc() =
+          getHighFrequencyStat(kInPfcStats.at(pfcPriority));
+    } else if (portStatsConfig.includePfcRx().value()) {
+      stats.pfcStats()[pfcPriority].outPfc() =
+          getHighFrequencyStat(kOutPfcStats.at(pfcPriority));
+    }
+  }
+}
+
 void BcmPort::updateMultiStat(
     std::chrono::seconds now,
     std::vector<folly::StringPiece> statKeys,
@@ -1847,6 +1886,34 @@ void BcmPort::updateStat(
   }
   stat->updateValue(now, value);
   *statVal = value;
+}
+
+int64_t BcmPort::getHighFrequencyStat(bcm_stat_val_t type) const {
+  uint64_t stat{0};
+  int ret = bcm_stat_sync_get(unit_, port_, type, &stat);
+  if (BCM_FAILURE(ret)) {
+    XLOG(ERR) << "Failed to get stat " << type << " for port " << port_ << " :"
+              << bcm_errmsg(ret);
+    return -1;
+  }
+  return stat;
+}
+
+std::vector<uint64_t> BcmPort::getMultiHighFrequencyStats(
+    std::span<const bcm_stat_val_t> types) const {
+  std::vector<uint64_t> stats(types.size());
+  int ret = bcm_stat_sync_multi_get(
+      unit_,
+      port_,
+      static_cast<int>(types.size()),
+      const_cast<bcm_stat_val_t*>(types.data()),
+      stats.data());
+  if (BCM_FAILURE(ret)) {
+    XLOG(ERR) << "Failed to get multi stats for port " << port_ << " :"
+              << bcm_errmsg(ret);
+    return {};
+  }
+  return stats;
 }
 
 void BcmPort::updateInCongestionDiscardStats(
@@ -3070,9 +3137,17 @@ cfg::PortProfileID BcmPort::getCurrentProfile() const {
 }
 
 bool BcmPort::isPortPgConfigured() const {
-  return (
-      hw_->getPlatform()->getAsic()->isSupported(HwAsic::Feature::PFC) &&
-      (*programmedSettings_.rlock())->getPortPgConfigs());
+  if (!hw_->getPlatform()->getAsic()->isSupported(HwAsic::Feature::PFC)) {
+    return false;
+  }
+
+  auto settings = programmedSettings_.rlock();
+  if (*settings == nullptr) {
+    // Port settings haven't been programmed yet
+    return false;
+  }
+
+  return static_cast<bool>((*settings)->getPortPgConfigs());
 }
 
 PortPgConfigs BcmPort::getCurrentProgrammedPgSettings() const {

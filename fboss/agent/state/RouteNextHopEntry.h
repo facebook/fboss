@@ -21,6 +21,7 @@
 
 DECLARE_uint32(ecmp_width);
 DECLARE_bool(optimized_ucmp);
+DECLARE_bool(wide_ecmp);
 
 namespace facebook::fboss {
 

@@ -118,6 +118,7 @@ common_deps = [
     ":packettrace-cpp2-types",
     "//fboss/agent/if:ctrl-cpp2-types",
     "//fboss/agent/if:sflow-cpp2-types",
+    "//fboss/agent/if:highfreq-cpp2-types",
     "//fboss/lib:ref_map",
     "//common/stats:monotonic_counter",
     "//fboss/agent/hw:hardware_stats-cpp2-types",
@@ -180,6 +181,7 @@ cpp_library(
         "//fboss/lib/phy:phy_utils",
         "//folly/container:enumerate",
         "//folly/container:f14_hash",
+        "//folly/executors:function_scheduler",
         "//folly/io/async:async_base",
     ],
     exported_external_deps = [

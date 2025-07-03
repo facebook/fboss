@@ -35,15 +35,15 @@ union HfPortStatsConfig {
 }
 
 // Config for high frequency stats collection on a switch.
-struct HfStatsCollectionConfig {
+struct HfStatsConfig {
   1: HfPortStatsConfig portStatsConfig = {allPortsConfig: {}};
   2: bool includeDeviceWatermark = false;
 }
 
 // Config for high frequency stats collection on a switch.
-struct HighFrequencyStatsJobConfig {
+struct HighFrequencyStatsCollectionConfig {
   1: HfSchedulerConfig schedulerConfig;
-  2: HfStatsCollectionConfig collectionConfig;
+  2: HfStatsConfig statsConfig;
 }
 
 // Options to get high frequency stats with limit and timestamp range filtering.
