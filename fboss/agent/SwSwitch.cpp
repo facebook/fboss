@@ -4044,10 +4044,10 @@ std::optional<VlanID> SwSwitch::getVlanIDForTx(
   }
   auto vlanID = utility::getVlanIDForTx(
       vlanOrIntf, getState(), getScopeResolver(), getHwAsicTable());
-  if (!vlanID.has_value()) {
-    // Handle the case where the VLAN ID is not found
-    XLOG(DBG4) << "VLAN ID not found for transmission";
-    return std::nullopt;
+  if (getHwAsicTable()->isFeatureSupportedOnAllAsic(
+          HwAsic::Feature::CPU_TX_PACKET_REQUIRES_VLAN_TAG) &&
+      !vlanID.has_value()) {
+    XLOG(FATAL) << "VLAN ID not found for transmission";
   }
   return vlanID;
 }
