@@ -28,6 +28,14 @@ HwAgentEventSyncStatus createHwAgentStatusEntry() {
   return statusEntry;
 }
 
+SwHwAgentCounters createSwHwAgentCounters() {
+  SwHwAgentCounters counters;
+  counters.FBSwCounters = {{"switch.0.link_event_received.sum", 10}};
+  counters.FBHwCountersVec = {
+      {{"LinkChangeEventThriftSyncer.events_sent.sum", 15}}};
+  return counters;
+}
+
 cli::ShowHwAgentStatusModel createHwAgentStatusModel() {
   cli::ShowHwAgentStatusModel model;
   cli::HwAgentStatusEntry statusEntry;
@@ -41,6 +49,8 @@ cli::ShowHwAgentStatusModel createHwAgentStatusModel() {
   statusEntry.fdbSyncActive() = 1;
   statusEntry.rxPktSyncActive() = 1;
   statusEntry.txPktSyncActive() = 1;
+  statusEntry.linkEventsSent() = 15;
+  statusEntry.linkEventsReceived() = 10;
   model.hwAgentStatusEntries() = {statusEntry};
   return model;
 }
@@ -51,26 +61,33 @@ class CmdShowHwAgentStatusTestFixture : public CmdHandlerTestBase {
   std::map<int16_t, HwAgentEventSyncStatus> mockHwAgentStatusEntries;
   cli::ShowHwAgentStatusModel normalizedModel;
   MultiSwitchRunState mockMultiSwitchRunState;
+  SwHwAgentCounters mockCounters;
 
   void SetUp() override {
     CmdHandlerTestBase::SetUp();
     mockHwAgentStatusEntries.insert({0, createHwAgentStatusEntry()});
     mockMultiSwitchRunState.hwIndexToRunState()->insert(
         {100, SwitchRunState::CONFIGURED});
+    mockCounters = createSwHwAgentCounters();
     normalizedModel = createHwAgentStatusModel();
   }
 };
 
 TEST_F(CmdShowHwAgentStatusTestFixture, queryClient) {
   setupMockedAgentServer();
+  MockAgentCounters mockAgentCounters;
   EXPECT_CALL(getMockAgent(), getHwAgentConnectionStatus(_))
       .WillOnce(
           Invoke([&](auto& entries) { entries = mockHwAgentStatusEntries; }));
   EXPECT_CALL(getMockAgent(), getMultiSwitchRunState(_))
       .WillOnce(
           Invoke([&](auto& entries) { entries = mockMultiSwitchRunState; }));
+  EXPECT_CALL(mockAgentCounters, getAgentCounters(_, _, _))
+      .WillOnce(Invoke([&](const auto& h, auto num, auto& counters) {
+        counters = mockCounters;
+      }));
 
-  auto cmd = CmdShowHwAgentStatus();
+  auto cmd = CmdShowHwAgentStatus(&mockAgentCounters);
   auto model = cmd.queryClient(localhost());
 
   EXPECT_THRIFT_EQ(model, normalizedModel);

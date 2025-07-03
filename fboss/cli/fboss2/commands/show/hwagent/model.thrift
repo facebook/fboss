@@ -15,4 +15,6 @@ struct HwAgentStatusEntry {
   8: i32 rxPktSyncActive;
   9: i32 txPktSyncActive;
   10: i32 switchReachabilityChangeSyncActive;
+  11: i64 linkEventsSent;
+  12: i64 linkEventsReceived;
 }
