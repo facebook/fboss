@@ -1,3 +1,4 @@
+load("@fbcode//clifoundation/cli_target/buck_defs:cli.bzl", "cli")
 load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
@@ -728,6 +729,16 @@ cpp_binary(
     external_deps = [
         "CLI11",
     ],
+)
+
+cli.metadata(
+    name = "cli-fboss2",
+    binary_name = "fboss2",
+    criticality = cli.criticality(
+        level = cli.level.TIER_0,
+    ),
+    description = "FBOSS agent management frontend.",
+    executable = ":fboss2",
 )
 
 auto_tab_complete(
