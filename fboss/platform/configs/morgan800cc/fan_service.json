@@ -7,7 +7,7 @@
   "pwmLowerThreshold": 18,
   "pwmUpperThreshold": 70,
   "watchdog": {
-    "sysfsPath": "/run/devmap/watchdogs/MCB_FAN_WD",
+    "sysfsPath": "/run/devmap/watchdogs/MCB_FAN_WATCHDOG",
     "value": 0
   },
   "optics": [
