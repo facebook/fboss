@@ -12,6 +12,7 @@
 #include "fboss/agent/hw/BufferStatsLogger.h"
 #include "fboss/agent/hw/bcm/BcmPort.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
+#include "fboss/agent/if/gen-cpp2/highfreq_types.h"
 
 #include <atomic>
 
@@ -62,8 +63,13 @@ class BcmBstStatsMgr {
 
   void updateStats();
 
+  void populateHighFrequencyBstStats(
+      const HfStatsConfig& statsConfig,
+      HwHighFrequencyStats& stats) const;
+
  private:
   void syncStats() const;
+  void syncHighFrequencyStats() const;
   void getAndPublishDeviceWatermark();
   void publishDeviceWatermark(uint64_t peakBytes) const;
   void publishCpuQueueWatermark(int queue, uint64_t peakBytes) const;
@@ -83,6 +89,12 @@ class BcmBstStatsMgr {
       const std::map<int, bcm_port_t>& itmToPortMap);
   void createItmToPortMap(std::map<int, bcm_port_t>& itmToPortMap) const;
 
+  void populateHighFrequencyBstPortStats(
+      const PortID portId,
+      const BcmPort* bcmPort,
+      const HfPortStatsCollectionConfig& portStatsConfig,
+      HwHighFrequencyStats& stats) const;
+
   BufferStatsLogger* getBufferStatsLogger() const {
     return bufferStatsLogger_.get();
   }
@@ -98,6 +110,12 @@ class BcmBstStatsMgr {
   std::atomic<uint64_t> deviceWatermarkBytes_{0};
   std::map<std::string, uint64_t> globalHeadroomWatermarkBytes_{};
   std::map<std::string, uint64_t> globalSharedWatermarkBytes_{};
+
+  static constexpr std::array<bcm_bst_stat_id_t, 2> kHfBstStats{
+      bcmBstStatIdPriGroupShared,
+      bcmBstStatIdUcast};
+  static constexpr std::array<int16_t, 1> kHfQueueIds{2};
+  static constexpr std::array<int, 2> kHfItms{0, 1};
 };
 
 } // namespace facebook::fboss

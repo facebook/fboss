@@ -195,6 +195,7 @@ class CowSubscriptionManager
           ++it;
           continue;
         }
+        subscription->updateMetadata(metadataServer);
         if (subscription->type() == PubSubType::PATH) {
           auto pathSubscription =
               static_cast<BasePathSubscription*>(subscription);
@@ -277,6 +278,8 @@ class CowSubscriptionManager
         ++it;
         continue;
       }
+
+      subscription->updateMetadata(metadataServer);
 
       const auto& paths = subscription->paths();
       for (const auto& [key, path] : paths) {

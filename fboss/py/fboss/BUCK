@@ -1,5 +1,7 @@
 load("@fbcode_macros//build_defs:python_library.bzl", "python_library")
 
+oncall("fboss_provisioning")
+
 python_library(
     name = "thrift_clients",
     srcs = [

@@ -11,6 +11,7 @@
 #pragma once
 #include <folly/TokenBucket.h>
 #include <thrift/lib/cpp2/server/PreprocessFunctions.h>
+#include <atomic>
 
 namespace facebook::fboss {
 
@@ -27,8 +28,10 @@ class ThriftMethodRateLimit {
     for (const auto& it : methood2QpsLimit) {
       method2QpsLimitAndTokenBucket_.emplace(
           it.first, std::make_pair(it.second, folly::DynamicTokenBucket(0)));
+      method2DenyCounter_[it.first] = 0;
     }
     shadowMode_ = shadowMode;
+    aggDenyCounter_ = 0;
   }
 
   bool isQpsLimitExceeded(const std::string& method);
@@ -36,13 +39,32 @@ class ThriftMethodRateLimit {
   bool getShadowMode() {
     return shadowMode_;
   }
+  void incrementDenyCounter(const std::string& method) {
+    auto it = method2DenyCounter_.find(method);
+    if (it == method2DenyCounter_.end()) {
+      return;
+    }
+    it->second.fetch_add(1, std::memory_order_relaxed);
+    aggDenyCounter_.fetch_add(1, std::memory_order_relaxed);
+  }
+  uint64_t getDenyCounter(const std::string& method) {
+    auto it = method2DenyCounter_.find(method);
+    return it != method2DenyCounter_.end()
+        ? it->second.load(std::memory_order_relaxed)
+        : 0;
+  }
+  uint64_t getAggDenyCounter() {
+    return aggDenyCounter_.load(std::memory_order_relaxed);
+  }
 
   static apache::thrift::PreprocessFunc getThriftMethodRateLimitPreprocessFunc(
-      std::unique_ptr<ThriftMethodRateLimit> rateLimiter);
+      std::shared_ptr<ThriftMethodRateLimit> rateLimiter);
 
  private:
   std::unordered_map<std::string, std::pair<double, folly::DynamicTokenBucket>>
       method2QpsLimitAndTokenBucket_;
+  std::unordered_map<std::string, std::atomic<uint64_t>> method2DenyCounter_;
+  std::atomic<uint64_t> aggDenyCounter_;
   bool shadowMode_;
 };
 

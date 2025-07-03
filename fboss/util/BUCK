@@ -296,3 +296,25 @@ python_binary(
         ":process_known_bad_test_lib",
     ],
 )
+
+python_library(
+    name = "post_weekly_known_bad_test_lib",
+    srcs = [
+        "facebook/post_weekly_known_bad_test.py",
+    ],
+    deps = [
+        ":process_known_bad_test_lib",
+        "//groups/submit_post:PostToInternalGroup-py-deprecated",
+        "//libfb/py:employee",
+        "//libfb/py/thrift_clients:post_to_internal_group_thrift_client",
+    ],
+)
+
+python_binary(
+    name = "post_weekly_known_bad_test",
+    main_function = "fboss.util.facebook.post_weekly_known_bad_test.main",
+    par_style = "xar",
+    deps = [
+        ":post_weekly_known_bad_test_lib",
+    ],
+)

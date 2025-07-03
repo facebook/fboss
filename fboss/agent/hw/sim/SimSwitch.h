@@ -83,6 +83,10 @@ class SimSwitch : public HwSwitch {
     return HwSwitchPipelineStats{};
   }
 
+  HwSwitchTemperatureStats getSwitchTemperatureStats() const override {
+    return HwSwitchTemperatureStats{};
+  }
+
   HwResourceStats getResourceStats() const override {
     return HwResourceStats{};
   }

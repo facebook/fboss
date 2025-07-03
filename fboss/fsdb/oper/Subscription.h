@@ -75,6 +75,17 @@ class BaseSubscription {
     return publisherTreeRoot_ ? *publisherTreeRoot_ : "";
   }
 
+  void updateMetadata(const SubscriptionMetadataServer& metadataServer) {
+    auto operTreeMetadata = metadataServer.getMetadata(publisherTreeRoot());
+    if (operTreeMetadata.has_value()) {
+      lastServedMetadata_ = operTreeMetadata->operMetadata;
+    }
+  }
+
+  std::optional<OperMetadata> getLastMetadata() const {
+    return lastServedMetadata_;
+  }
+
   OperMetadata getMetadata(
       const SubscriptionMetadataServer& metadataServer) const {
     OperMetadata metadata;
@@ -162,6 +173,7 @@ class BaseSubscription {
   std::chrono::milliseconds heartbeatInterval_;
   folly::Synchronized<uint32_t> queueWatermark_{0};
   std::optional<FsdbErrorCode> pruneReason_{std::nullopt};
+  std::optional<OperMetadata> lastServedMetadata_;
 };
 
 class Subscription : public BaseSubscription {
@@ -332,6 +344,10 @@ class PathSubscription : public BasePathSubscription,
     t.newVal = OperState();
     // need to explicitly set a flag for OperState else it looks like a deletion
     t.newVal->isHeartbeat() = true;
+    auto md = getLastMetadata();
+    if (md.has_value()) {
+      t.newVal->metadata() = md.value();
+    }
     return tryWrite(pipe_, std::move(t), "path.hb");
   }
 

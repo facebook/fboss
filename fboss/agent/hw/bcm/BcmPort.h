@@ -24,13 +24,19 @@ extern "C" {
 #include "fboss/agent/hw/bcm/BcmCosQueueManager.h"
 #include "fboss/agent/hw/bcm/BcmPlatformPort.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
+#include "fboss/agent/if/gen-cpp2/highfreq_types.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/types.h"
 
 #include <folly/Range.h>
 #include <folly/Synchronized.h>
+
+#include <array>
+#include <cstdint>
 #include <mutex>
+#include <span>
 #include <utility>
+#include <vector>
 
 namespace facebook::fboss {
 
@@ -155,6 +161,17 @@ class BcmPort {
   void updateStats();
   std::optional<HwPortStats> getPortStats() const;
   std::chrono::seconds getTimeRetrieved() const;
+
+  void populateHighFrequencyPortStats(
+      const HfPortStatsCollectionConfig& portStatsConfig,
+      HwHighFrequencyPortStats& stats) const;
+  void populateHighFrequencyPortPfcStats(
+      const HfPortStatsCollectionConfig& portStatsConfig,
+      std::span<const PfcPriority> pfcPriorities,
+      HwHighFrequencyPortStats& stats) const;
+  int64_t getHighFrequencyStat(bcm_stat_val_t type) const;
+  std::vector<uint64_t> getMultiHighFrequencyStats(
+      std::span<const bcm_stat_val_t> types) const;
 
   /**
    * Take actions on this port (especially if it is up), so that it will not
@@ -449,6 +466,8 @@ class BcmPort {
   std::atomic<int> numLanes_{0};
 
   phy::PhyInfo lastPhyInfo_;
+
+  const std::array<PfcPriority, 1> kHighFrequencyPfcPriorities{PfcPriority{2}};
 };
 
 } // namespace facebook::fboss

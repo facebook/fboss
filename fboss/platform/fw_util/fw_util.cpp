@@ -3,7 +3,9 @@
 #include <CLI/CLI.hpp>
 #include <filesystem>
 
+#include <folly/logging/FileHandlerFactory.h>
 #include <folly/logging/Init.h>
+#include <folly/logging/LogConfigParser.h>
 #include <folly/logging/xlog.h>
 
 #include "fboss/platform/fw_util/FwUtilImpl.h"
@@ -72,6 +74,17 @@ int main(int argc, char* argv[]) {
       "  fw_util --fw_action=audit\n");
 
   CLI11_PARSE(app, argc, argv);
+
+  // Log to a file
+  const std::filesystem::path logFolder = "/var/facebook/logs/fboss";
+  std::filesystem::create_directories(logFolder);
+  const std::filesystem::path logPath = logFolder / "fw_util.log";
+  folly::LoggerDB::get().registerHandlerFactory(
+      std::make_unique<folly::FileHandlerFactory>(), false);
+  folly::LoggerDB::get().updateConfig(folly::parseLogConfig(
+      "INFO:filehandler:default;"
+      "filehandler=file:path=" +
+      logPath.string() + ",async=true"));
 
   // TODO: To be removed once XFN change the commands in their codes
   if (fw_action.empty()) {

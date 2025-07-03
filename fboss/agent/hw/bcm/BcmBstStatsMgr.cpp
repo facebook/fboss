@@ -17,6 +17,7 @@
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmPortTable.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include "fboss/agent/if/gen-cpp2/highfreq_types.h"
 
 extern "C" {}
 
@@ -58,6 +59,22 @@ void BcmBstStatsMgr::syncStats() const {
         hw_->getUnit(), (bcm_bst_stat_id_t)bcmBstStatIdIngPool);
     bcmCheckError(rv, "Failed to sync bcmBstStatIdIngPool stat");
   }
+}
+
+void BcmBstStatsMgr::syncHighFrequencyStats() const {
+  auto rv = bcm_cosq_bst_stat_sync(
+      hw_->getUnit(), (bcm_bst_stat_id_t)bcmBstStatIdUcast);
+  bcmCheckError(rv, "Failed to sync bcmBstStatIdUcast stat");
+  if (!hw_->getPlatform()->getAsic()->isSupported(HwAsic::Feature::PFC)) {
+    return;
+  }
+  // All the below are PG related and available on platforms supporting PFC
+  rv = bcm_cosq_bst_stat_sync(
+      hw_->getUnit(), (bcm_bst_stat_id_t)bcmBstStatIdPriGroupShared);
+  bcmCheckError(rv, "Failed to sync bcmBstStatIdPriGroupShared stat");
+  rv = bcm_cosq_bst_stat_sync(
+      hw_->getUnit(), (bcm_bst_stat_id_t)bcmBstStatIdIngPool);
+  bcmCheckError(rv, "Failed to sync bcmBstStatIdIngPool stat");
 }
 
 void BcmBstStatsMgr::getAndPublishDeviceWatermark() {
@@ -218,6 +235,130 @@ void BcmBstStatsMgr::updateStats() {
   }
 
   getAndPublishDeviceWatermark();
+}
+
+void BcmBstStatsMgr::populateHighFrequencyBstPortStats(
+    const PortID portId,
+    const BcmPort* bcmPort,
+    const HfPortStatsCollectionConfig& portStatsConfig,
+    HwHighFrequencyStats& stats) const {
+  if (!(portStatsConfig.includePgWatermark().value() ||
+        portStatsConfig.includeQueueWatermark().value())) {
+    return;
+  }
+  if (!bcmPort->isUp() || !bcmPort->isPortPgConfigured()) {
+    return;
+  }
+  std::map<int16_t, int64_t> queueIdToWatermarkBytes;
+  std::map<int16_t, int64_t> queueIdToPGWatermarkBytes;
+  bcm_gport_t gport = bcmPort->getBcmGport();
+  uint32_t options = BCM_COSQ_STAT_CLEAR;
+  for (int16_t queue : kHfQueueIds) {
+    if (portStatsConfig.includePgWatermark().value() &&
+        portStatsConfig.includeQueueWatermark().value()) {
+      std::array<uint64_t, 2> value{};
+      auto rv = bcm_cosq_bst_stat_multi_get(
+          hw_->getUnit(),
+          gport,
+          queue,
+          options,
+          kHfBstStats.size(),
+          const_cast<bcm_bst_stat_id_t*>(kHfBstStats.data()),
+          value.data());
+      bcmCheckError(
+          rv, "Failed to get BST stat for port: ", portId, " cosq: ", queue);
+      queueIdToPGWatermarkBytes[queue] = value.at(1) * hw_->getMMUCellBytes();
+      queueIdToWatermarkBytes[queue] = value.at(0) * hw_->getMMUCellBytes();
+      stats.portStats()[bcmPort->getPortName()].pgSharedWatermarkBytes() =
+          queueIdToPGWatermarkBytes;
+      stats.portStats()[bcmPort->getPortName()].queueWatermarkBytes() =
+          queueIdToWatermarkBytes;
+    } else if (portStatsConfig.includePgWatermark().value()) {
+      uint64_t value;
+      auto rv = bcm_cosq_bst_stat_get(
+          hw_->getUnit(),
+          gport,
+          queue,
+          (bcm_bst_stat_id_t)bcmBstStatIdPriGroupShared,
+          options,
+          &value);
+      bcmCheckError(
+          rv,
+          "Failed to get PG shared watermark for port: ",
+          portId,
+          " cosq: ",
+          queue);
+      queueIdToPGWatermarkBytes[queue] = rv * hw_->getMMUCellBytes();
+      stats.portStats()[bcmPort->getPortName()].pgSharedWatermarkBytes() =
+          queueIdToPGWatermarkBytes;
+    } else if (portStatsConfig.includeQueueWatermark().value()) {
+      uint64_t value;
+      auto rv = bcm_cosq_bst_stat_get(
+          hw_->getUnit(),
+          gport,
+          queue,
+          (bcm_bst_stat_id_t)bcmBstStatIdUcast,
+          options,
+          &value);
+      bcmCheckError(
+          rv,
+          "Failed to get queue watermark for port: ",
+          portId,
+          " cosq: ",
+          queue);
+      queueIdToWatermarkBytes[queue] = rv * hw_->getMMUCellBytes();
+      stats.portStats()[bcmPort->getPortName()].queueWatermarkBytes() =
+          queueIdToWatermarkBytes;
+    }
+  }
+}
+
+void BcmBstStatsMgr::populateHighFrequencyBstStats(
+    const HfStatsConfig& statsConfig,
+    HwHighFrequencyStats& stats) const {
+  syncHighFrequencyStats();
+  switch (statsConfig.portStatsConfig()->getType()) {
+    case HfPortStatsConfig::Type::allPortsConfig: {
+      for (const auto& [portId, bcmPort] : *hw_->getPortTable()) {
+        populateHighFrequencyBstPortStats(
+            portId,
+            bcmPort,
+            statsConfig.portStatsConfig()->allPortsConfig().value(),
+            stats);
+      }
+      break;
+    }
+    case HfPortStatsConfig::Type::filterConfig: {
+      auto filterConfig = statsConfig.portStatsConfig()->filterConfig();
+      for (const auto& [portId, bcmPort] : *hw_->getPortTable()) {
+        auto it = filterConfig->find(bcmPort->getPortName());
+        if (it == filterConfig->end()) {
+          continue;
+        }
+        populateHighFrequencyBstPortStats(portId, bcmPort, it->second, stats);
+      }
+      break;
+    }
+    default: {
+      break;
+    }
+  }
+  static std::map<int, bcm_port_t> itmToPortMap;
+  createItmToPortMap(itmToPortMap);
+  if (statsConfig.includeDeviceWatermark().value()) {
+    BcmCosManager* cosMgr = hw_->getCosMgr();
+    for (int itm : kHfItms) {
+      auto it = itmToPortMap.find(itm);
+      if (it == itmToPortMap.end()) {
+        XLOG(ERR) << "ITM" << itm << " not found in itmToPortMap";
+        continue;
+      }
+      stats.itmPoolSharedWatermarkBytes()[itm] =
+          cosMgr->statGetExtended(
+              itm, PortID(it->second), -1, bcmBstStatIdIngPool) *
+          hw_->getMMUCellBytes();
+    }
+  }
 }
 
 } // namespace facebook::fboss

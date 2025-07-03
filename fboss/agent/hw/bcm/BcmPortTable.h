@@ -15,8 +15,10 @@ extern "C" {
 }
 
 #include <folly/concurrency/ConcurrentHashMap.h>
+#include <folly/container/F14Map.h>
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/hw/bcm/BcmPort.h"
+#include "fboss/agent/if/gen-cpp2/highfreq_types.h"
 #include "fboss/agent/types.h"
 
 #include <mutex>
@@ -74,9 +76,14 @@ class BcmPortTable {
   std::map<PortID, phy::PhyInfo> updateIPhyInfo() const;
 
   /*
-   * Update all ports' statistics.
+   * Update statistics for all ports.
    */
   void updatePortStats();
+
+  void populateHighFrequencyPortStats(
+      const HfPortStatsConfig& portStatsConfig,
+      folly::F14FastMap<std::string, HwHighFrequencyPortStats>& portStatsMap)
+      const;
 
   bool portExists(PortID port) const {
     return getBcmPortIf(port) != nullptr;

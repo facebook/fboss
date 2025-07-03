@@ -155,7 +155,12 @@ std::optional<FsdbErrorCode> DeltaSubscription::flush(
 }
 
 std::optional<FsdbErrorCode> DeltaSubscription::serveHeartbeat() {
-  return tryWrite(pipe_, OperDelta(), "delta.hb");
+  auto delta = OperDelta();
+  auto md = getLastMetadata();
+  if (md.has_value()) {
+    delta.metadata() = md.value();
+  }
+  return tryWrite(pipe_, delta, "delta.hb");
 }
 
 bool DeltaSubscription::isActive() const {
@@ -575,6 +580,10 @@ std::optional<FsdbErrorCode> ExtendedPatchSubscription::flush(
 std::optional<FsdbErrorCode> ExtendedPatchSubscription::serveHeartbeat() {
   SubscriberMessage msg;
   msg.set_heartbeat();
+  auto md = getLastMetadata();
+  if (md.has_value()) {
+    msg.heartbeat()->metadata() = md.value();
+  }
   return tryWrite(pipe_, std::move(msg), "ExtPatch.hb");
 }
 
